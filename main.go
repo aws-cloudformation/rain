@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -94,11 +95,20 @@ func main() {
 	}
 
 	command := args[0]
+	args = args[1:]
 
 	if cmdFunc, ok := commands[command]; ok {
-		cmdFunc(args[1:]...)
+		cmdFunc(args...)
 	} else if plugin, ok := plugins[command]; ok {
-		fmt.Println("Execing:", plugin, args[1:])
+		cmd := exec.Command(plugin, args...)
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
+		if err != nil {
+			panic(err)
+		}
 	} else {
 		die()
 	}
