@@ -2,9 +2,9 @@ package main
 
 import (
 	"codecommit/builders/cfn-cli/cmd"
+	"codecommit/builders/cfn-cli/util"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -99,15 +99,7 @@ func main() {
 	if cmd, ok := cmd.Commands[command]; ok {
 		cmd.Func(args)
 	} else if plugin, ok := plugins[command]; ok {
-		cmd := exec.Command(plugin, args...)
-		cmd.Stdin = os.Stdin
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-
-		err := cmd.Run()
-		if err != nil {
-			panic(err)
-		}
+		util.RunAttached(plugin, args...)
 	} else {
 		die()
 	}
