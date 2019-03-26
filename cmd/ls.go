@@ -6,7 +6,10 @@ import (
 )
 
 func init() {
-	Commands["ls"] = lsCommand
+	Commands["ls"] = Command{
+		Func: lsCommand,
+		Help: "List running CloudFormation stacks",
+	}
 }
 
 func lsCommand(args []string) {

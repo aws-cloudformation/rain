@@ -57,8 +57,8 @@ func init() {
 			}
 		}
 
-		for name, _ := range cmd.Commands {
-			usage += fmt.Sprintf("  %s  %s- %s\n", name, strings.Repeat(" ", longest-len(name)), name)
+		for name, cmd := range cmd.Commands {
+			usage += fmt.Sprintf("  %s  %s- %s\n", name, strings.Repeat(" ", longest-len(name)), cmd.Help)
 		}
 
 		usage += "\n"
@@ -96,8 +96,8 @@ func main() {
 	command := args[0]
 	args = args[1:]
 
-	if cmdFunc, ok := cmd.Commands[command]; ok {
-		cmdFunc(args)
+	if cmd, ok := cmd.Commands[command]; ok {
+		cmd.Func(args)
 	} else if plugin, ok := plugins[command]; ok {
 		cmd := exec.Command(plugin, args...)
 		cmd.Stdin = os.Stdin
