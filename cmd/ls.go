@@ -10,5 +10,11 @@ func init() {
 }
 
 func lsCommand(args []string) {
-	util.RunAttached("aws", "cloudformation", "list-stacks", "--query", "StackSummaries[].[StackName,StackStatus]", "--output", "table")
+	util.RunAttached(
+		"aws",
+		"cloudformation",
+		"list-stacks",
+		"--output", "table",
+		"--query", "StackSummaries[].[StackName,StackStatus]",
+	)
 }
