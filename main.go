@@ -1,6 +1,7 @@
 package main
 
 import (
+	"codecommit/builders/cfn-cli/cmd"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,8 +12,6 @@ import (
 type Command func(args ...string)
 
 var plugins map[string]string
-
-var commands = map[string]Command{}
 
 var usage string
 
@@ -49,16 +48,16 @@ func init() {
 
 	longest := 0
 
-	if len(commands) > 0 {
+	if len(cmd.Commands) > 0 {
 		usage += "Built-in commands:\n\n"
 
-		for name, _ := range commands {
+		for name, _ := range cmd.Commands {
 			if len(name) > longest {
 				longest = len(name)
 			}
 		}
 
-		for name, _ := range commands {
+		for name, _ := range cmd.Commands {
 			usage += fmt.Sprintf("  %s  %s- %s\n", name, strings.Repeat(" ", longest-len(name)), name)
 		}
 
@@ -97,8 +96,8 @@ func main() {
 	command := args[0]
 	args = args[1:]
 
-	if cmdFunc, ok := commands[command]; ok {
-		cmdFunc(args...)
+	if cmdFunc, ok := cmd.Commands[command]; ok {
+		cmdFunc(args)
 	} else if plugin, ok := plugins[command]; ok {
 		cmd := exec.Command(plugin, args...)
 		cmd.Stdin = os.Stdin
