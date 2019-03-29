@@ -13,22 +13,17 @@ func init() {
 	}
 }
 
-func catDie() {
-	fmt.Fprintln(os.Stderr, "Usage: cfn cat <stack name>")
-	os.Exit(1)
-}
-
 func catCommand(args []string) {
 	if len(args) != 1 {
-		catDie()
+		fmt.Fprintln(os.Stderr, "Usage: cfn cat <stack name>")
+		os.Exit(1)
 	}
 
 	util.RunAttached(
 		"aws",
 		"cloudformation",
 		"get-template",
-		"--stack-name", args[0],
 		"--query", "TemplateBody",
-		"--output", "text",
+		"--stack-name", args[0],
 	)
 }
