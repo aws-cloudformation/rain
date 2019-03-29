@@ -101,6 +101,7 @@ func main() {
 	} else if plugin, ok := plugins[command]; ok {
 		util.RunAttached(plugin, args...)
 	} else {
-		die()
+		args = append([]string{"cloudformation", command}, args...)
+		util.RunAttached("aws", args...)
 	}
 }
