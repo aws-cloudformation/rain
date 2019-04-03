@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -51,13 +52,20 @@ func init() {
 	if len(cmd.Commands) > 0 {
 		usage += "Built-in commands:\n\n"
 
+		names := make([]string, 0)
+
 		for name, _ := range cmd.Commands {
+			names = append(names, name)
+
 			if len(name) > longest {
 				longest = len(name)
 			}
 		}
 
-		for name, cmd := range cmd.Commands {
+		sort.Strings(names)
+
+		for _, name := range names {
+			cmd := cmd.Commands[name]
 			usage += fmt.Sprintf("  %s  %s- %s\n", name, strings.Repeat(" ", longest-len(name)), cmd.Help)
 		}
 
@@ -67,13 +75,19 @@ func init() {
 	if len(plugins) > 0 {
 		usage += "Plugins found:\n\n"
 
+		names := make([]string, 0)
+
 		for name, _ := range plugins {
+			names = append(names, name)
+
 			if len(name) > longest {
 				longest = len(name)
 			}
 		}
 
-		for name, _ := range plugins {
+		sort.Strings(names)
+
+		for _, name := range names {
 			usage += fmt.Sprintf("  %s  %s- Runs cfn-%s\n", name, strings.Repeat(" ", longest-len(name)), name)
 		}
 
