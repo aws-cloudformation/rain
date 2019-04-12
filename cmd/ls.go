@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"codecommit/builders/cfn-cli/util"
+	"codecommit/builders/rain/util"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws/external"

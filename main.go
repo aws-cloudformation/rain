@@ -1,8 +1,8 @@
 package main
 
 import (
-	"codecommit/builders/cfn-cli/cmd"
-	"codecommit/builders/cfn-cli/util"
+	"codecommit/builders/rain/cmd"
+	"codecommit/builders/rain/util"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -36,14 +36,14 @@ func init() {
 	}
 
 	// Prepare usage
-	usage = `Usage: cfn [COMMAND] [OPTIONS...]
+	usage = `Usage: rain [COMMAND] [OPTIONS...]
 
-  The CloudFormation CLI is a tool to save you some typing when working with CloudFormation
+  Rain is a tool to save you some typing when working with CloudFormation
   
-  cfn is extensible and searches for commands in the following order:
+  rain is extensible and searches for commands in the following order:
   1. commands built in to the CloudFormation CLI itself
   2. binaries in your path that begin with 'cfn-'
-  3. if the command you supply doesn't match 1 or 2, cfn runs 'aws cloudformation <command>'
+  3. if the command you supply doesn't match 1 or 2, rain runs 'aws cloudformation <command>'
 
 `
 

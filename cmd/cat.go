@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"codecommit/builders/cfn-cli/util"
+	"codecommit/builders/rain/util"
 	"fmt"
 	"os"
 )
