@@ -53,6 +53,10 @@ func (t Template) FindDependencies() []Dependency {
 	}
 
 	for typeKey, typeName := range typeMap {
+		if _, ok := t[typeKey]; !ok {
+			continue
+		}
+
 		// Resources
 		for name, res := range t[typeKey].(map[string]interface{}) {
 			resource := tree(res.(map[string]interface{}))
