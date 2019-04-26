@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"codecommit/builders/rain/util"
 	"fmt"
+
+	"github.com/aws-cloudformation/rain/util"
 
 	"github.com/aws/aws-sdk-go-v2/aws/external"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"

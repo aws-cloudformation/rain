@@ -1,10 +1,11 @@
 package cmd
 
 import (
-	"codecommit/builders/rain/lib"
 	"fmt"
 	"os"
 	"sort"
+
+	"github.com/aws-cloudformation/rain/lib"
 
 	"github.com/awslabs/aws-cloudformation-template-formatter/parse"
 )

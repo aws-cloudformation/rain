@@ -1,13 +1,14 @@
 package main
 
 import (
-	"codecommit/builders/rain/cmd"
-	"codecommit/builders/rain/util"
 	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/aws-cloudformation/rain/cmd"
+	"github.com/aws-cloudformation/rain/util"
 )
 
 type Command func(args ...string)

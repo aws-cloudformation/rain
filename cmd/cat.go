@@ -1,9 +1,10 @@
 package cmd
 
 import (
-	"codecommit/builders/rain/util"
 	"fmt"
 	"os"
+
+	"github.com/aws-cloudformation/rain/util"
 )
 
 func init() {
