@@ -19,7 +19,9 @@ func init() {
 			panic(err)
 		}
 
-		for _, bin := range bins {
+		for i, _ := range bins {
+			bin := bins[i]
+
 			name := string(bin[len(dir)+5:])
 
 			Commands[name] = Command{
