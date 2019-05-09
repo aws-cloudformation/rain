@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 
@@ -11,31 +10,9 @@ import (
 	"github.com/aws-cloudformation/rain/util"
 )
 
-type Command func(args ...string)
-
-var plugins map[string]string
-
 var usage string
 
 func init() {
-	// Find plugins
-	plugins = make(map[string]string)
-
-	path := os.Getenv("PATH")
-
-	for _, dir := range strings.Split(path, ":") {
-		bins, err := filepath.Glob(dir + "/cfn-*")
-		if err != nil {
-			panic(err)
-		}
-
-		for _, bin := range bins {
-			name := string(bin[len(dir)+5:])
-
-			plugins[name] = bin
-		}
-	}
-
 	// Prepare usage
 	usage = `Usage: rain [COMMAND] [OPTIONS...]
 
@@ -48,51 +25,32 @@ func init() {
 
 `
 
-	longest := 0
-
-	if len(cmd.Commands) > 0 {
-		usage += "Built-in commands:\n\n"
-
+	for _, cmdType := range cmd.CommandTypes {
 		names := make([]string, 0)
+		longest := 0
 
-		for name, _ := range cmd.Commands {
-			names = append(names, name)
+		for name, cmd := range cmd.Commands {
+			if cmd.Type == cmdType {
+				names = append(names, name)
 
-			if len(name) > longest {
-				longest = len(name)
+				if len(name) > longest {
+					longest = len(name)
+				}
 			}
 		}
 
-		sort.Strings(names)
+		if len(names) > 0 {
+			sort.Strings(names)
 
-		for _, name := range names {
-			cmd := cmd.Commands[name]
-			usage += fmt.Sprintf("  %s  %s- %s\n", name, strings.Repeat(" ", longest-len(name)), cmd.Help)
-		}
+			usage += fmt.Sprintf("%s commands:\n", cmdType)
 
-		usage += "\n"
-	}
-
-	if len(plugins) > 0 {
-		usage += "Plugins found:\n\n"
-
-		names := make([]string, 0)
-
-		for name, _ := range plugins {
-			names = append(names, name)
-
-			if len(name) > longest {
-				longest = len(name)
+			for _, name := range names {
+				cmd := cmd.Commands[name]
+				usage += fmt.Sprintf("  %s  %s- %s\n", name, strings.Repeat(" ", longest-len(name)), cmd.Help)
 			}
+
+			usage += "\n"
 		}
-
-		sort.Strings(names)
-
-		for _, name := range names {
-			usage += fmt.Sprintf("  %s  %s- Runs cfn-%s\n", name, strings.Repeat(" ", longest-len(name)), name)
-		}
-
-		usage += "\n"
 	}
 }
 
@@ -111,10 +69,8 @@ func main() {
 	command := args[0]
 	args = args[1:]
 
-	if cmd, ok := cmd.Commands[command]; ok {
-		cmd.Func(args)
-	} else if plugin, ok := plugins[command]; ok {
-		util.RunAttached(plugin, args...)
+	if c, ok := cmd.Commands[command]; ok {
+		c.Run(args)
 	} else {
 		args = append([]string{"cloudformation", command}, args...)
 		util.RunAttached("aws", args...)

@@ -30,8 +30,9 @@ var liveStatuses = []string{
 
 func init() {
 	Commands["ls"] = Command{
-		Func: lsCommand,
-		Help: "List running CloudFormation stacks",
+		Type: STACK,
+		Run:  lsCommand,
+		Help: "List running stacks",
 	}
 }
 

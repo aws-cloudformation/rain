@@ -1,24 +1,30 @@
 # To do
 
-* Make it `rain`!
-    * Should we have no-command do a series of fun things to a template?
-        * format it
-        * lint it
-        * run nag
-        * opinionated set of default actions
-        * flags for tweaking it
-    * Any default actions for a stack?
-        * Use `stack://name` notation?
-        * Maybe it should grab the template and perform the same actions, saving the template in the local folder?
+* Implement commands
+    * `deploy`
+        * Package, diff, confirm (or `--yes` flag), deploy, and store stack name in the template metadata
+    * `diff`
+        * Compare a template with another template or a stack
+    * `rm`
+        * Delete a stack with confirmation or `--yes` flag
+    * `validate`
+        * Run `cfn-lint` if installed
+        * Run `cfn-nag` if installed
+        * Run `aws cloudformation validate-template` (quietly)
 
-* Tidy up this (old) list of features:
-    * build   - construct templates from resources required and their dependencies
-    * check   - validate templates against the published specification
-    * clean   - perform opinionated improvements to templates
-    * deploy  - deploy a template :)
-    * doc     - Display the documentation for a resource or property type
-    * flip    - convert templates between JSON and YAML formats
-    * graph   - prints out a graph of the resources and the dependencies between them
-    * ls      - List running stacks and, optionally, their resources
-    * rm      - Delete a stack
-    * minify  - A tool of last resort. Try hard to get your stack past that 51,200 byte limit.
+* Make it work with multiple templates at once
+    * Detect templates in in the current folder
+
+* Bring in default flow
+    If no command is specified, do this:
+
+    1. `validate`
+    2. `format`
+    3. `diff`
+    4. Manual confirm or `--yes` flag
+    5. `deploy`
+    6. Store stack name in template metadata
+
+* Other ideas
+    * `doc` - load documentation for a resource type
+    * `minify` - try hard to get a template below the size limit

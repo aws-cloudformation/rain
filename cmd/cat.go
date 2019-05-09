@@ -9,14 +9,15 @@ import (
 
 func init() {
 	Commands["cat"] = Command{
-		Func: catCommand,
-		Help: "Gets a template from a CloudFormation stack",
+		Type: STACK,
+		Help: "Get templates from stacks",
+		Run:  catCommand,
 	}
 }
 
 func catCommand(args []string) {
 	if len(args) != 1 {
-		fmt.Fprintln(os.Stderr, "Usage: cfn cat <stack name>")
+		fmt.Fprintln(os.Stderr, "Usage: rain cat <stack name>")
 		os.Exit(1)
 	}
 

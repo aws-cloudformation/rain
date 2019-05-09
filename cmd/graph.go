@@ -12,14 +12,15 @@ import (
 
 func init() {
 	Commands["graph"] = Command{
-		Func: graphCommand,
-		Help: "Graph the dependencies between resources in a template",
+		Type: TEMPLATE,
+		Run:  graphCommand,
+		Help: "Graph dependencies between resources in a template",
 	}
 }
 
 func graphCommand(args []string) {
 	if len(args) != 1 {
-		fmt.Fprintln(os.Stderr, "Usage: cfn graph <template filename>")
+		fmt.Fprintln(os.Stderr, "Usage: rain graph <template filename>")
 		os.Exit(1)
 	}
 
