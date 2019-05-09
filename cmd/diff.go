@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	ADD = "<<<"
-	DEL = ">>>"
+	ADD = "\033[32m>>>"
+	DEL = "\033[31m<<<"
+	END = "\033[0m"
 )
 
 func init() {
@@ -87,9 +88,11 @@ func compare(left, right interface{}, indent string) string {
 		for name, _ := range names {
 			if _, ok := l[name]; !ok {
 				output += fmt.Sprintf("%s%s %s\n", indent, DEL, name)
+				output += END
 			} else if _, ok := r[name]; !ok {
 				output += fmt.Sprintf("%s%s %s:\n", indent, ADD, name)
 				output += render(l[name], indent+"  ")
+				output += END
 			} else {
 				diff := compare(l[name], r[name], indent+"  ")
 				if diff != "" {
@@ -108,9 +111,11 @@ func compare(left, right interface{}, indent string) string {
 		for i := 0; i < int(math.Max(float64(len(l)), float64(len(r)))); i++ {
 			if i > len(l)-1 {
 				output += fmt.Sprintf("%s%s %d\n", indent, DEL, i)
+				output += END
 			} else if i > len(r)-1 {
 				output += fmt.Sprintf("%s%s %d\n:", indent, ADD, i)
 				output += render(l[i], indent+"  ")
+				output += END
 			} else {
 				diff := compare(l[i], r[i], indent+"  ")
 				if diff != "" {
