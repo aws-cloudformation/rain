@@ -22,7 +22,7 @@ func deployCommand(args []string) {
 	var err error
 
 	if len(args) < 1 {
-		fmt.Fprintf(os.Stderr, "Usage: rain deploy <template> [stack]")
+		fmt.Fprintf(os.Stderr, "Usage: rain deploy <template> [stack]\n")
 		os.Exit(1)
 	}
 
