@@ -4,12 +4,10 @@ import (
 	"fmt"
 
 	"github.com/aws-cloudformation/rain/util"
-
-	"github.com/aws/aws-sdk-go-v2/aws/external"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 )
 
-var liveStatuses = []string{
+var liveStatuses = []cloudformation.StackStatus{
 	"CREATE_IN_PROGRESS",
 	"CREATE_FAILED",
 	"CREATE_COMPLETE",
@@ -37,28 +35,32 @@ func init() {
 }
 
 func listStacks() {
-	cmdArgs := append([]string{
-		"cloudformation",
-		"list-stacks",
-		"--output", "table",
-		"--query", "StackSummaries[].[StackName,StackStatus]",
-		"--stack-status-filter",
-	}, liveStatuses...)
+	req := cfnClient.ListStacksRequest(&cloudformation.ListStacksInput{
+		StackStatusFilter: liveStatuses,
+	})
 
-	util.RunAttached("aws", cmdArgs...)
+	table := util.NewTable("Name", "Status")
+
+	p := req.Paginate()
+
+	for p.Next() {
+		page := p.CurrentPage()
+
+		for _, s := range page.StackSummaries {
+			table.Append(*s.StackName, s.StackStatus)
+		}
+	}
+
+	if err := p.Err(); err != nil {
+		panic(err)
+	}
+
+	fmt.Println(table.String())
 }
 
 func listStack(name string) {
-	var client *cloudformation.CloudFormation
-
-	cfg, err := external.LoadDefaultAWSConfig()
-	if err != nil {
-		panic("Couldn't load AWS config: " + err.Error())
-	}
-	client = cloudformation.New(cfg)
-
 	// Get the stack properties
-	stackReq := client.DescribeStacksRequest(&cloudformation.DescribeStacksInput{
+	stackReq := cfnClient.DescribeStacksRequest(&cloudformation.DescribeStacksInput{
 		StackName: &name,
 	})
 
@@ -68,7 +70,7 @@ func listStack(name string) {
 	}
 
 	// Get the resources
-	resourceReq := client.DescribeStackResourcesRequest(&cloudformation.DescribeStackResourcesInput{
+	resourceReq := cfnClient.DescribeStackResourcesRequest(&cloudformation.DescribeStackResourcesInput{
 		StackName: &name,
 	})
 

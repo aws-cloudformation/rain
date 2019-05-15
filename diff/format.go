@@ -110,7 +110,6 @@ func formatMap(d diffMap) string {
 func formatSub(d diff) string {
 	// Format the element
 	formatted := strings.Split(Format(d), "\n")
-	// FIXME: Trim the right?
 
 	// It's a scalar
 	if len(formatted) == 1 {
@@ -118,7 +117,6 @@ func formatSub(d diff) string {
 	}
 
 	// Trim out blank lines
-	// FIXME: Kill this bit?
 	parts := make([]string, 0)
 	for _, part := range formatted {
 		if strings.TrimSpace(part) != "" {
