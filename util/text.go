@@ -16,7 +16,8 @@ const (
 	Red    Colour = "\033[1;31m"
 	Green  Colour = "\033[0;32m"
 	Grey   Colour = "\033[0;37m"
-	end    Colour = "\033[0m"
+	White  Colour = "\033[0;30m"
+	End    Colour = "\033[0m"
 )
 
 func (t Text) String() string {
@@ -24,7 +25,7 @@ func (t Text) String() string {
 		return t.Text
 	}
 
-	return fmt.Sprintf("%s%s%s", t.Colour, t.Text, end)
+	return fmt.Sprintf("%s%s%s", t.Colour, t.Text, End)
 }
 
 func (t Text) Len() int {

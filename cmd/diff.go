@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/aws-cloudformation/rain/diff"
 	"github.com/aws-cloudformation/rain/util"
@@ -35,5 +36,20 @@ func diffCommand(args []string) {
 		util.Die(err)
 	}
 
-	fmt.Print(diff.Format(diff.Compare(left, right)))
+	output := diff.Format(diff.Compare(left, right))
+
+	for _, line := range strings.Split(output, "\n") {
+		colour := util.None
+
+		switch {
+		case strings.HasPrefix(line, ">>> "):
+			colour = util.Green
+		case strings.HasPrefix(line, "<<< "):
+			colour = util.Red
+		case strings.HasPrefix(line, "||| "):
+			colour = util.Orange
+		}
+
+		fmt.Println(util.Text{line, colour})
+	}
 }

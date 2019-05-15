@@ -10,14 +10,6 @@ import (
 	"github.com/awslabs/aws-cloudformation-template-formatter/format"
 )
 
-// We'll use these later
-var colorMap = map[string]string{
-	"=== ": "\033[33m",
-	"||| ": "\033[33m",
-	">>> ": "\033[32m",
-	"<<< ": "\033[31m",
-}
-
 var modeStrings = map[mode]string{
 	Added:     ">>> ",
 	Removed:   "<<< ",
