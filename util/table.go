@@ -8,8 +8,8 @@ import (
 )
 
 type Table struct {
-	headings   []string
-	values     [][]string
+	headings   []Text
+	values     [][]Text
 	maxLengths []int
 }
 
@@ -20,34 +20,43 @@ func NewTable(headings ...string) Table {
 		maxLengths[i] = len(h)
 	}
 
+	ch := make([]Text, len(headings))
+	for i, h := range headings {
+		ch[i] = Text{h, Bold}
+	}
+
 	return Table{
-		headings:   headings,
-		values:     make([][]string, 0),
+		headings:   ch,
+		values:     make([][]Text, 0),
 		maxLengths: maxLengths,
 	}
 }
 
 func (t *Table) Append(values ...interface{}) {
-	s := make([]string, len(values))
+	s := make([]Text, len(values))
 
 	for i, v := range values {
-		s[i] = fmt.Sprint(v)
+		if t, ok := v.(Text); ok {
+			s[i] = t
+		} else {
+			s[i] = Text{fmt.Sprint(v), None}
+		}
 
-		if len(s[i]) > t.maxLengths[i] {
-			t.maxLengths[i] = len(s[i])
+		if s[i].Len() > t.maxLengths[i] {
+			t.maxLengths[i] = s[i].Len()
 		}
 	}
 
 	t.values = append(t.values, s)
 }
 
-func (t *Table) rowString(values []string) string {
+func (t *Table) rowString(values []Text) string {
 	output := strings.Builder{}
 
 	for i, v := range values {
 		output.WriteString("| ")
-		output.WriteString(v)
-		output.WriteString(strings.Repeat(" ", t.maxLengths[i]-len(v)))
+		output.WriteString(v.String())
+		output.WriteString(strings.Repeat(" ", t.maxLengths[i]-v.Len()))
 		output.WriteString(" ")
 	}
 	output.WriteString("|\n")
@@ -60,8 +69,7 @@ func (t *Table) String() string {
 
 	// Top line
 	for _, l := range t.maxLengths {
-		output.WriteString("+")
-		output.WriteString(strings.Repeat("-", l+2))
+		output.WriteString("+" + strings.Repeat("-", l+2))
 	}
 	output.WriteString("+\n")
 
@@ -70,8 +78,7 @@ func (t *Table) String() string {
 
 	// Heading underline
 	for _, l := range t.maxLengths {
-		output.WriteString("|")
-		output.WriteString(strings.Repeat("-", l+2))
+		output.WriteString("|" + strings.Repeat("-", l+2))
 	}
 	output.WriteString("|\n")
 
@@ -82,8 +89,7 @@ func (t *Table) String() string {
 
 	// Bottom line
 	for _, l := range t.maxLengths {
-		output.WriteString("+")
-		output.WriteString(strings.Repeat("-", l+2))
+		output.WriteString("+" + strings.Repeat("-", l+2))
 	}
 	output.WriteString("+\n")
 
@@ -97,7 +103,7 @@ func (t *Table) YAML() string {
 		m := make(map[string]interface{})
 
 		for j, h := range t.headings {
-			m[h] = v[j]
+			m[h.Text] = v[j].Text
 		}
 
 		out[i] = m

@@ -9,14 +9,13 @@ import (
 )
 
 const (
-	pending = "\033[0;33m"
-	fail    = "\033[1;31m"
-	success = "\033[0;32m"
-	deleted = "\033[0;30m"
-	end     = "\033[0m"
+	pending = util.Orange
+	fail    = util.Red
+	success = util.Green
+	deleted = util.Grey
 )
 
-var statusColours = map[string]string{
+var statusColours = map[string]util.Colour{
 	"CREATE_IN_PROGRESS":                           pending,
 	"CREATE_FAILED":                                fail,
 	"CREATE_COMPLETE":                              success,
@@ -54,13 +53,13 @@ func listStacks() {
 	fmt.Println(table.String())
 }
 
-func colouriseStatus(status string) string {
+func colouriseStatus(status string) util.Text {
 	colour, ok := statusColours[status]
 	if !ok {
-		return status
+		return util.Text{status, util.None}
 	}
 
-	return fmt.Sprintf("%s%s%s", colour, status, end)
+	return util.Text{status, colour}
 }
 
 func listStack(name string, fullscreen bool) {
