@@ -2,6 +2,7 @@ package cfn
 
 import (
 	"fmt"
+	"io/ioutil"
 	"runtime"
 
 	"github.com/aws-cloudformation/rain/util"
@@ -135,4 +136,89 @@ func GetStackResources(stackName string) []cloudformation.StackResource {
 	}
 
 	return res.StackResources
+}
+
+func createStack(template, stackName string) {
+	req := client.CreateStackRequest(&cloudformation.CreateStackInput{
+		Capabilities: []cloudformation.Capability{
+			"CAPABILITY_NAMED_IAM",
+			"CAPABILITY_AUTO_EXPAND",
+		},
+		OnFailure:    "DELETE",
+		StackName:    &stackName,
+		TemplateBody: &template,
+	})
+
+	_, err := req.Send()
+	if err != nil {
+		util.Die(err)
+	}
+}
+
+func updateStack(template, stackName string) {
+	req := client.UpdateStackRequest(&cloudformation.UpdateStackInput{
+		Capabilities: []cloudformation.Capability{
+			"CAPABILITY_NAMED_IAM",
+			"CAPABILITY_AUTO_EXPAND",
+		},
+		StackName:    &stackName,
+		TemplateBody: &template,
+	})
+
+	_, err := req.Send()
+	if err != nil {
+		util.Die(err)
+	}
+}
+
+func Deploy(templateFilename, stackName string) {
+	body, err := ioutil.ReadFile(templateFilename)
+	if err != nil {
+		util.Die(err)
+	}
+
+	template := string(body)
+
+	if stackExists(stackName) {
+		updateStack(template, stackName)
+	} else {
+		createStack(template, stackName)
+	}
+}
+
+func WaitUntilStackExists(stackName string) {
+	err := client.WaitUntilStackExists(&cloudformation.DescribeStacksInput{
+		StackName: &stackName,
+	})
+
+	if err != nil {
+		util.Die(err)
+	}
+}
+
+func WaitUntilStackCreateComplete(stackName string) {
+	err := client.WaitUntilStackCreateComplete(&cloudformation.DescribeStacksInput{
+		StackName: &stackName,
+	})
+
+	if err != nil {
+		util.Die(err)
+	}
+}
+
+func stackExists(stackName string) bool {
+	ch := make(chan bool)
+
+	go func() {
+		ListStacks(func(s cloudformation.StackSummary) {
+			if *s.StackName == stackName {
+				ch <- true
+			}
+		})
+
+		// Default
+		ch <- false
+	}()
+
+	return <-ch
 }

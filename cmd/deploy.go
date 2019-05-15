@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/aws-cloudformation/rain/client/cfn"
-	"github.com/aws-cloudformation/rain/diff"
 	"github.com/aws-cloudformation/rain/util"
-	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
-	"github.com/awslabs/aws-cloudformation-template-formatter/parse"
 )
 
 func init() {
@@ -21,8 +19,6 @@ func init() {
 }
 
 func deployCommand(args []string) {
-	var err error
-
 	if len(args) < 1 {
 		fmt.Fprintf(os.Stderr, "Usage: rain deploy <template> [stack]\n")
 		os.Exit(1)
@@ -35,10 +31,11 @@ func deployCommand(args []string) {
 	if len(args) > 1 {
 		stackName = args[1]
 	} else {
+		// Pick a stack name based on the folder name
 		dir := filepath.Base(filepath.Dir(fn))
 
 		if dir == "." {
-			dir, err = os.Getwd()
+			dir, err := os.Getwd()
 			if err != nil {
 				util.Die(err)
 			}
@@ -50,40 +47,27 @@ func deployCommand(args []string) {
 
 	fmt.Printf("Deploying %s => %s\n", filepath.Base(fn), stackName)
 
-	if stackExists(stackName) {
-		fmt.Println("Stack exists. Showing diff:")
-
-		template := cfn.GetStackTemplate(stackName)
-
-		left, err := parse.ReadString(template)
-		if err != nil {
-			util.Die(err)
-		}
-
-		right, err := parse.ReadFile(fn)
-		if err != nil {
-			util.Die(err)
-		}
-
-		fmt.Print(diff.Format(diff.Compare(left, right)))
-	}
-
-	fmt.Println("TODO: CONFIRM")
-}
-
-func stackExists(stackName string) bool {
+	// Start deployment
+	cfn.Deploy(fn, stackName)
+	cfn.WaitUntilStackExists(stackName)
 	ch := make(chan bool)
+	defer close(ch)
 
 	go func() {
-		cfn.ListStacks(func(s cloudformation.StackSummary) {
-			if *s.StackName == stackName {
-				ch <- true
-			}
-		})
-
-		// Default
-		ch <- false
+		cfn.WaitUntilStackCreateComplete(stackName)
+		ch <- true
 	}()
 
-	return <-ch
+	for {
+		select {
+		case <-ch:
+			listStack(stackName, true)
+			fmt.Println()
+			fmt.Println("Successfully deployed " + stackName)
+			return
+		default:
+			listStack(stackName, true)
+		}
+		time.Sleep(2 * time.Second)
+	}
 }
