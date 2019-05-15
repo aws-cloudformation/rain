@@ -9,19 +9,19 @@ func TestCompareScalar(t *testing.T) {
 	cases := []struct {
 		old      interface{}
 		new      interface{}
-		expected diff
+		expected Diff
 	}{
 		{
-			"foo", "foo", unchanged,
+			"foo", "foo", Unchanged,
 		},
 		{
-			"foo", "bar", diffValue{"bar", changed},
+			"foo", "bar", diffValue{"bar", Changed},
 		},
 		{
-			"foo", 1, diffValue{1, changed},
+			"foo", 1, diffValue{1, Changed},
 		},
 		{
-			"foo", []int{1, 2, 3}, diffValue{[]int{1, 2, 3}, changed},
+			"foo", []int{1, 2, 3}, diffValue{[]int{1, 2, 3}, Changed},
 		},
 	}
 
@@ -38,31 +38,31 @@ func TestCompareSlices(t *testing.T) {
 	cases := []struct {
 		old      []interface{}
 		new      []interface{}
-		expected diff
+		expected Diff
 	}{
 		{
-			[]interface{}{1, 2, 3}, []interface{}{1, 2, 3}, unchanged,
+			[]interface{}{1, 2, 3}, []interface{}{1, 2, 3}, Unchanged,
 		},
 		{
 			[]interface{}{1, 2, 3}, []interface{}{1, 2, 4}, diffSlice{
-				unchanged,
-				unchanged,
-				diffValue{4, changed},
+				Unchanged,
+				Unchanged,
+				diffValue{4, Changed},
 			},
 		},
 		{
 			[]interface{}{1, 2, 3}, []interface{}{1, 2, 3, 4}, diffSlice{
-				unchanged,
-				unchanged,
-				unchanged,
-				diffValue{4, added},
+				Unchanged,
+				Unchanged,
+				Unchanged,
+				diffValue{4, Added},
 			},
 		},
 		{
 			[]interface{}{1, 2, 3}, []interface{}{1, 2}, diffSlice{
-				unchanged,
-				unchanged,
-				removed,
+				Unchanged,
+				Unchanged,
+				Removed,
 			},
 		},
 	}
@@ -80,27 +80,27 @@ func TestCompareMaps(t *testing.T) {
 	cases := []struct {
 		old      map[string]interface{}
 		new      map[string]interface{}
-		expected diff
+		expected Diff
 	}{
 		{
 			map[string]interface{}{"foo": "bar"},
 			map[string]interface{}{"foo": "bar"},
-			unchanged,
+			Unchanged,
 		},
 		{
 			map[string]interface{}{"foo": "bar"},
 			map[string]interface{}{"foo": "baz"},
-			diffMap{"foo": diffValue{"baz", changed}},
+			diffMap{"foo": diffValue{"baz", Changed}},
 		},
 		{
 			map[string]interface{}{"foo": "bar"},
 			map[string]interface{}{"foo": "bar", "baz": "quux"},
-			diffMap{"foo": unchanged, "baz": diffValue{"quux", added}},
+			diffMap{"foo": Unchanged, "baz": diffValue{"quux", Added}},
 		},
 		{
 			map[string]interface{}{"foo": "bar"},
 			map[string]interface{}{},
-			diffMap{"foo": removed},
+			diffMap{"foo": Removed},
 		},
 	}
 
@@ -130,12 +130,12 @@ func TestCompare(t *testing.T) {
 	cases := []struct {
 		old      interface{}
 		new      interface{}
-		expected diff
+		expected Diff
 	}{
 		{
 			original,
 			original,
-			unchanged,
+			Unchanged,
 		},
 		{
 			original,
@@ -158,18 +158,18 @@ func TestCompare(t *testing.T) {
 			diffMap{
 				"foo": diffSlice{
 					diffMap{
-						"foo": unchanged,
+						"foo": Unchanged,
 						"baz": diffSlice{
-							unchanged,
-							unchanged,
-							diffValue{"baz", added},
+							Unchanged,
+							Unchanged,
+							diffValue{"baz", Added},
 						},
-						"quux": diffValue{"mooz", added},
+						"quux": diffValue{"mooz", Added},
 					},
-					unchanged,
-					diffValue{"bar", added},
+					Unchanged,
+					diffValue{"bar", Added},
 				},
-				"bar": diffValue{"baz", added},
+				"bar": diffValue{"baz", Added},
 			},
 		},
 		{
@@ -186,13 +186,13 @@ func TestCompare(t *testing.T) {
 			diffMap{
 				"foo": diffSlice{
 					diffMap{
-						"foo": removed,
+						"foo": Removed,
 						"baz": diffSlice{
-							unchanged,
-							removed,
+							Unchanged,
+							Removed,
 						},
 					},
-					removed,
+					Removed,
 				},
 			},
 		},

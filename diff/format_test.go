@@ -5,12 +5,12 @@ import (
 )
 
 var testCases = []struct {
-	diff     diff
+	value    Diff
 	expected string
 }{
 	{
 		// A single value
-		diffValue{"cake", added},
+		diffValue{"cake", Added},
 		"cake",
 	},
 	{
@@ -18,7 +18,7 @@ var testCases = []struct {
 		diffValue{map[string]interface{}{
 			"foo": "bar",
 			"baz": "quux",
-		}, added},
+		}, Added},
 		"baz: quux\nfoo: bar",
 	},
 	{
@@ -27,7 +27,7 @@ var testCases = []struct {
 			diffValue{map[string]interface{}{
 				"bar":  "baz",
 				"quux": "mooz",
-			}, added},
+			}, Added},
 		},
 		">>> [0]:\n>>>   bar: baz\n>>>   quux: mooz\n",
 	},
@@ -37,26 +37,26 @@ var testCases = []struct {
 			"foo": diffValue{[]interface{}{
 				"bar",
 				"baz",
-			}, changed},
+			}, Changed},
 		},
 		">>> foo:\n>>>   - bar\n>>>   - baz\n",
 	},
 	{
 		// Add and remove a value from a slice
 		diffSlice{
-			unchanged,
-			diffValue{"foo", changed},
-			unchanged,
-			removed,
-			unchanged,
+			Unchanged,
+			diffValue{"foo", Changed},
+			Unchanged,
+			Removed,
+			Unchanged,
 		},
 		">>> [1]: foo\n<<< [3]\n",
 	},
 	{
 		// Add and remove a value from a map
 		diffMap{
-			"foo": diffValue{"bar", changed},
-			"bar": removed,
+			"foo": diffValue{"bar", Changed},
+			"bar": Removed,
 		},
 		"<<< bar\n>>> foo: bar\n",
 	},
@@ -64,7 +64,7 @@ var testCases = []struct {
 		// A slice in a slice
 		diffSlice{
 			diffSlice{
-				diffValue{"foo", added},
+				diffValue{"foo", Added},
 			},
 		},
 		">>> [0]:\n>>>   [0]: foo\n",
@@ -73,7 +73,7 @@ var testCases = []struct {
 		// A map in a slice
 		diffSlice{
 			diffMap{
-				"foo": diffValue{"bar", changed},
+				"foo": diffValue{"bar", Changed},
 			},
 		},
 		"||| [0]:\n>>>   foo: bar\n",
@@ -82,7 +82,7 @@ var testCases = []struct {
 		// A map in a map
 		diffMap{
 			"foo": diffMap{
-				"bar": diffValue{"baz", added},
+				"bar": diffValue{"baz", Added},
 			},
 		},
 		">>> foo:\n>>>   bar: baz\n",
@@ -91,7 +91,7 @@ var testCases = []struct {
 		// A slice in a map
 		diffMap{
 			"foo": diffSlice{
-				diffValue{"bar", changed},
+				diffValue{"bar", Changed},
 			},
 		},
 		"||| foo:\n>>>   [0]: bar\n",
@@ -100,8 +100,8 @@ var testCases = []struct {
 		// All added slice in a slice
 		diffSlice{
 			diffSlice{
-				diffValue{"foo", changed},
-				diffValue{"bar", added},
+				diffValue{"foo", Changed},
+				diffValue{"bar", Added},
 			},
 		},
 		"||| [0]:\n>>>   [0]: foo\n>>>   [1]: bar\n",
@@ -110,8 +110,8 @@ var testCases = []struct {
 		// Mixed slice in a slice
 		diffSlice{
 			diffSlice{
-				diffValue{"foo", changed},
-				unchanged,
+				diffValue{"foo", Changed},
+				Unchanged,
 			},
 		},
 		"||| [0]:\n>>>   [0]: foo\n",
@@ -120,8 +120,8 @@ var testCases = []struct {
 		// Mixed map in a map
 		diffMap{
 			"foo": diffMap{
-				"bar":  diffValue{"baz", added},
-				"quux": unchanged,
+				"bar":  diffValue{"baz", Added},
+				"quux": Unchanged,
 			},
 		},
 		"||| foo:\n>>>   bar: baz\n",
@@ -131,7 +131,7 @@ var testCases = []struct {
 func TestFormat(t *testing.T) {
 
 	for _, testCase := range testCases {
-		actual := Format(testCase.diff)
+		actual := Format(testCase.value)
 
 		if actual != testCase.expected {
 			t.Errorf("%q\n!=\n%q", actual, testCase.expected)

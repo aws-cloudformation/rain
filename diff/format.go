@@ -19,14 +19,15 @@ var colorMap = map[string]string{
 }
 
 var modeStrings = map[mode]string{
-	added:   ">>> ",
-	removed: "<<< ",
-	changed: "||| ",
+	Added:     ">>> ",
+	Removed:   "<<< ",
+	Changed:   "||| ",
+	Unchanged: "=== ",
 }
 
 const indent = "  "
 
-func Format(d diff) string {
+func Format(d Diff) string {
 	switch v := d.(type) {
 	case diffSlice:
 		return formatSlice(v)
@@ -36,9 +37,15 @@ func Format(d diff) string {
 		f := format.NewFormatter()
 		f.SetCompact()
 		return f.Format(v.value)
+	case mode:
+		if v == Unchanged {
+			return "No changes\n"
+		}
+
+		return fmt.Sprintf("%sEverything!\n", modeStrings[v])
 	}
 
-	panic("Unimplemented comparison")
+	panic(fmt.Sprintf("Unexpected %#v\n", d))
 }
 
 func formatSlice(d diffSlice) string {
@@ -47,17 +54,17 @@ func formatSlice(d diffSlice) string {
 	for i, v := range d {
 		m := v.mode()
 
-		if m != unchanged {
+		if m != Unchanged {
 			// Always treat a value as added
 			if _, isValue := v.(diffValue); isValue {
-				output.WriteString(modeStrings[added])
+				output.WriteString(modeStrings[Added])
 			} else {
 				output.WriteString(modeStrings[m])
 			}
 
 			output.WriteString(fmt.Sprintf("[%d]", i))
 
-			if m == removed {
+			if m == Removed {
 				output.WriteString("\n")
 			} else {
 				output.WriteString(":")
@@ -85,17 +92,17 @@ func formatMap(d diffMap) string {
 		v := d[k]
 		m := v.mode()
 
-		if m != unchanged {
+		if m != Unchanged {
 			// Always treat a value as added
 			if _, isValue := v.(diffValue); isValue {
-				output.WriteString(modeStrings[added])
+				output.WriteString(modeStrings[Added])
 			} else {
 				output.WriteString(modeStrings[m])
 			}
 
 			output.WriteString(k)
 
-			if m == removed {
+			if m == Removed {
 				output.WriteString("\n")
 			} else {
 				output.WriteString(":")
@@ -107,7 +114,7 @@ func formatMap(d diffMap) string {
 	return output.String()
 }
 
-func formatSub(d diff) string {
+func formatSub(d Diff) string {
 	// Format the element
 	formatted := strings.Split(Format(d), "\n")
 
@@ -131,7 +138,7 @@ func formatSub(d diff) string {
 	output.WriteString("\n")
 	for _, part := range parts {
 		if isValue {
-			part = modeStrings[added] + indent + part
+			part = modeStrings[Added] + indent + part
 		} else {
 			part = part[:4] + indent + part[4:]
 		}

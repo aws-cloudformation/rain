@@ -6,75 +6,75 @@ import (
 
 func TestDiffMode(t *testing.T) {
 	cases := []struct {
-		diff     diff
+		value    Diff
 		expected mode
 	}{
 		{
-			diffValue{"foo", added},
-			added,
+			diffValue{"foo", Added},
+			Added,
 		},
 		{
-			diffValue{"foo", changed},
-			changed,
-		},
-		{
-			diffSlice{
-				added,
-			},
-			added,
+			diffValue{"foo", Changed},
+			Changed,
 		},
 		{
 			diffSlice{
-				added,
-				added,
+				Added,
 			},
-			added,
+			Added,
 		},
 		{
 			diffSlice{
-				removed,
-				removed,
+				Added,
+				Added,
 			},
-			removed,
+			Added,
 		},
 		{
 			diffSlice{
-				added,
-				removed,
+				Removed,
+				Removed,
 			},
-			changed,
+			Removed,
+		},
+		{
+			diffSlice{
+				Added,
+				Removed,
+			},
+			Changed,
 		},
 		{
 			diffMap{
-				"foo": added,
+				"foo": Added,
 			},
-			added,
+			Added,
 		},
 		{
 			diffMap{
-				"foo": added,
-				"bar": added,
+				"foo": Added,
+				"bar": Added,
 			},
-			added,
+			Added,
 		},
 		{
 			diffMap{
-				"foo": removed,
-				"bar": removed,
+				"foo": Removed,
+				"bar": Removed,
 			},
-			removed,
+			Removed,
 		},
 		{
 			diffMap{
-				"foo": added,
-				"bar": removed,
+				"foo": Added,
+				"bar": Removed,
 			},
-			changed,
+			Changed,
 		},
 	}
 
 	for _, testCase := range cases {
-		actual := testCase.diff.mode()
+		actual := testCase.value.mode()
 
 		if actual != testCase.expected {
 			t.Errorf("%#v\n!=\n%#v", actual, testCase.expected)

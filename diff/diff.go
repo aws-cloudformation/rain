@@ -3,13 +3,13 @@ package diff
 type mode int
 
 const (
-	added mode = iota
-	changed
-	removed
-	unchanged
+	Added mode = iota
+	Changed
+	Removed
+	Unchanged
 )
 
-type diff interface {
+type Diff interface {
 	mode() mode
 }
 
@@ -18,9 +18,9 @@ type diffValue struct {
 	valueMode mode
 }
 
-type diffSlice []diff
+type diffSlice []Diff
 
-type diffMap map[string]diff
+type diffMap map[string]Diff
 
 func (m mode) mode() mode {
 	return m
@@ -31,14 +31,14 @@ func (d diffValue) mode() mode {
 }
 
 func (d diffSlice) mode() mode {
-	mode := added
+	mode := Added
 
 	for i, v := range d {
 		if i == 0 {
 			mode = v.mode()
 		} else {
 			if mode != v.mode() {
-				mode = changed
+				mode = Changed
 			}
 		}
 	}

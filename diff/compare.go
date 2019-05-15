@@ -5,9 +5,9 @@ import (
 	"reflect"
 )
 
-func Compare(old, new interface{}) diff {
+func Compare(old, new interface{}) Diff {
 	if reflect.TypeOf(old) != reflect.TypeOf(new) {
-		return diffValue{new, changed}
+		return diffValue{new, Changed}
 	}
 
 	switch v := old.(type) {
@@ -17,16 +17,16 @@ func Compare(old, new interface{}) diff {
 		return compareMaps(v, new.(map[string]interface{}))
 	default:
 		if old != new {
-			return diffValue{new, changed}
+			return diffValue{new, Changed}
 		}
 	}
 
-	return unchanged
+	return Unchanged
 }
 
-func compareSlices(old, new []interface{}) diff {
+func compareSlices(old, new []interface{}) Diff {
 	if reflect.DeepEqual(old, new) {
-		return unchanged
+		return Unchanged
 	}
 
 	max := int(math.Max(float64(len(old)), float64(len(new))))
@@ -34,9 +34,9 @@ func compareSlices(old, new []interface{}) diff {
 
 	for i := 0; i < max; i++ {
 		if i >= len(old) {
-			d[i] = diffValue{new[i], added}
+			d[i] = diffValue{new[i], Added}
 		} else if i >= len(new) {
-			d[i] = removed
+			d[i] = Removed
 		} else {
 			d[i] = Compare(old[i], new[i])
 		}
@@ -45,9 +45,9 @@ func compareSlices(old, new []interface{}) diff {
 	return d
 }
 
-func compareMaps(old, new map[string]interface{}) diff {
+func compareMaps(old, new map[string]interface{}) Diff {
 	if reflect.DeepEqual(old, new) {
-		return unchanged
+		return Unchanged
 	}
 
 	d := make(diffMap)
@@ -55,7 +55,7 @@ func compareMaps(old, new map[string]interface{}) diff {
 	// New and updated keys
 	for key, value := range new {
 		if _, ok := old[key]; !ok {
-			d[key] = diffValue{value, added}
+			d[key] = diffValue{value, Added}
 		} else {
 			d[key] = Compare(old[key], value)
 		}
@@ -64,7 +64,7 @@ func compareMaps(old, new map[string]interface{}) diff {
 	// Removed keys
 	for key, _ := range old {
 		if _, ok := new[key]; !ok {
-			d[key] = removed
+			d[key] = Removed
 		}
 	}
 
