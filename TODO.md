@@ -26,6 +26,7 @@
     6. Store stack name in template metadata
 
 * Other ideas
+    * Add colour to diff output
     * `doc` - load documentation for a resource type
     * `minify` - try hard to get a template below the size limit
     * Move cfn-format and cfn-skeleton into this package
