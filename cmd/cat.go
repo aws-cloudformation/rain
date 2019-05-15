@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/aws-cloudformation/rain/util"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 )
 
 func init() {
@@ -21,11 +21,14 @@ func catCommand(args []string) {
 		os.Exit(1)
 	}
 
-	util.RunAttached(
-		"aws",
-		"cloudformation",
-		"get-template",
-		"--query", "TemplateBody",
-		"--stack-name", args[0],
-	)
+	req := cfnClient.GetTemplateRequest(&cloudformation.GetTemplateInput{
+		StackName: &args[0],
+	})
+
+	res, err := req.Send()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(*res.TemplateBody)
 }
