@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/aws-cloudformation/rain/diff"
+	"github.com/aws-cloudformation/rain/util"
 	"github.com/awslabs/aws-cloudformation-template-formatter/parse"
 )
 
@@ -26,12 +27,12 @@ func diffCommand(args []string) {
 
 	left, err := parse.ReadFile(leftFn)
 	if err != nil {
-		panic(err)
+		util.Die(err)
 	}
 
 	right, err := parse.ReadFile(rightFn)
 	if err != nil {
-		panic(err)
+		util.Die(err)
 	}
 
 	fmt.Print(diff.Format(diff.Compare(left, right)))

@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/aws-cloudformation/rain/lib"
+	"github.com/aws-cloudformation/rain/util"
 
 	"github.com/awslabs/aws-cloudformation-template-formatter/parse"
 )
@@ -28,7 +29,7 @@ func graphCommand(args []string) {
 
 	input, err := parse.ReadFile(fileName)
 	if err != nil {
-		panic(err)
+		util.Die(err)
 	}
 
 	template := lib.Template(input)

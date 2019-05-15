@@ -2,12 +2,14 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 
+	"github.com/aws-cloudformation/rain/client/cfn"
+	"github.com/aws-cloudformation/rain/diff"
 	"github.com/aws-cloudformation/rain/util"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/awslabs/aws-cloudformation-template-formatter/parse"
 )
 
 func init() {
@@ -38,7 +40,7 @@ func deployCommand(args []string) {
 		if dir == "." {
 			dir, err = os.Getwd()
 			if err != nil {
-				panic(err)
+				util.Die(err)
 			}
 			dir = filepath.Base(dir)
 		}
@@ -49,58 +51,39 @@ func deployCommand(args []string) {
 	fmt.Printf("Deploying %s => %s\n", filepath.Base(fn), stackName)
 
 	if stackExists(stackName) {
-		stackTemplateFn, err := ioutil.TempFile("", "")
+		fmt.Println("Stack exists. Showing diff:")
+
+		template := cfn.GetStackTemplate(stackName)
+
+		left, err := parse.ReadString(template)
 		if err != nil {
-			panic(err)
+			util.Die(err)
 		}
 
-		out, err := util.RunCapture(
-			"aws",
-			"cloudformation",
-			"get-template",
-			"--query", "TemplateBody",
-			"--stack-name", stackName,
-		)
-
+		right, err := parse.ReadFile(fn)
 		if err != nil {
-			panic(err)
+			util.Die(err)
 		}
 
-		ioutil.WriteFile(stackTemplateFn.Name(), []byte(out), 0600)
-
-		fmt.Println(stackTemplateFn.Name())
-
-		diffCommand([]string{fn, stackTemplateFn.Name()})
-
-		err = os.Remove(stackTemplateFn.Name())
-		if err != nil {
-			panic(err)
-		}
+		fmt.Print(diff.Format(diff.Compare(left, right)))
 	}
 
 	fmt.Println("TODO: CONFIRM")
 }
 
 func stackExists(stackName string) bool {
-	cmdArgs := append([]string{
-		"cloudformation",
-		"list-stacks",
-		"--output", "text",
-		"--query", "StackSummaries[].[StackName]",
-		"--stack-status-filter",
-	}, liveStatuses...)
+	ch := make(chan bool)
 
-	out, err := util.RunCapture("aws", cmdArgs...)
+	go func() {
+		cfn.ListStacks(func(s cloudformation.StackSummary) {
+			if *s.StackName == stackName {
+				ch <- true
+			}
+		})
 
-	if err != nil {
-		panic(err)
-	}
+		// Default
+		ch <- false
+	}()
 
-	for _, name := range strings.Split(out, "\n") {
-		if name == stackName {
-			return true
-		}
-	}
-
-	return false
+	return <-ch
 }

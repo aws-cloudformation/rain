@@ -128,20 +128,16 @@ func formatSub(d diff) string {
 
 	_, isValue := d.(diffValue)
 
-	if len(parts) == 0 {
-		panic("Something's gone wrong")
-	} else {
-		output.WriteString("\n")
-		for _, part := range parts {
-			if isValue {
-				part = modeStrings[added] + indent + part
-			} else {
-				part = part[:4] + indent + part[4:]
-			}
-
-			output.WriteString(part)
-			output.WriteString("\n")
+	output.WriteString("\n")
+	for _, part := range parts {
+		if isValue {
+			part = modeStrings[added] + indent + part
+		} else {
+			part = part[:4] + indent + part[4:]
 		}
+
+		output.WriteString(part)
+		output.WriteString("\n")
 	}
 
 	return output.String()

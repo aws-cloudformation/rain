@@ -7,6 +7,11 @@ import (
 	"os/exec"
 )
 
+func Die(err error) {
+	fmt.Fprintln(os.Stderr, err.Error())
+	os.Exit(1)
+}
+
 func RunAttached(command string, args ...string) {
 	cmd := exec.Command(command, args...)
 	cmd.Stdin = os.Stdin

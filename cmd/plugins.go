@@ -16,7 +16,7 @@ func init() {
 	for _, dir := range strings.Split(path, ":") {
 		bins, err := filepath.Glob(dir + "/cfn-*")
 		if err != nil {
-			panic(err)
+			util.Die(err)
 		}
 
 		for i, _ := range bins {
