@@ -6,15 +6,12 @@ import (
 	"runtime"
 
 	"github.com/aws-cloudformation/rain/util"
+	"github.com/aws-cloudformation/rain/version"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/defaults"
 	"github.com/aws/aws-sdk-go-v2/aws/external"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 )
-
-const NAME = "Rain"
-
-const VERSION = "v0.1.0"
 
 var liveStatuses = []cloudformation.StackStatus{
 	"CREATE_IN_PROGRESS",
@@ -46,8 +43,8 @@ func init() {
 	// Set the user agent
 	cfg.Handlers.Build.Remove(defaults.SDKVersionUserAgentHandler)
 	cfg.Handlers.Build.PushFront(aws.MakeAddToUserAgentHandler(
-		NAME,
-		VERSION,
+		version.NAME,
+		version.VERSION,
 		runtime.Version(),
 		runtime.GOOS,
 		runtime.GOARCH,
