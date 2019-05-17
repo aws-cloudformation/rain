@@ -1,10 +1,11 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
-	"os"
 
 	"github.com/aws-cloudformation/rain/client/cfn"
+	"github.com/aws-cloudformation/rain/util"
 )
 
 func init() {
@@ -17,8 +18,7 @@ func init() {
 
 func catCommand(args []string) {
 	if len(args) != 1 {
-		fmt.Fprintln(os.Stderr, "Usage: rain cat <stack name>")
-		os.Exit(1)
+		util.Die(errors.New("Usage: rain cat <stack name>"))
 	}
 
 	fmt.Println(cfn.GetStackTemplate(args[0]))

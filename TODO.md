@@ -26,7 +26,6 @@
     6. Store stack name in template metadata
 
 * Other ideas
-    * Add colour to diff output
     * `doc` - load documentation for a resource type
     * `minify` - try hard to get a template below the size limit
     * Move cfn-format and cfn-skeleton into this package
@@ -35,7 +34,7 @@
         * Certificates that don't exist in the correct region (e.g. non us-east-1)
         * Mismatching or existing "CNAMEs" for CloudFront distros
     * Blueprints (higher level constructs - maybe from CDK)
-    * Store metadata in template
+    * Store metadata in template?
         * stack name
-    * Magically add tags
+    * Magically add tags?
         * Commit ID

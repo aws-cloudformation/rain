@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/aws-cloudformation/rain/client/cfn"
@@ -50,24 +51,34 @@ func deployCommand(args []string) {
 	// Start deployment
 	cfn.Deploy(fn, stackName)
 	cfn.WaitUntilStackExists(stackName)
-	ch := make(chan bool)
-	defer close(ch)
-
-	go func() {
-		cfn.WaitUntilStackCreateComplete(stackName)
-		ch <- true
-	}()
 
 	for {
-		select {
-		case <-ch:
-			listStack(stackName, true)
-			fmt.Println()
-			fmt.Println("Successfully deployed " + stackName)
-			return
-		default:
-			listStack(stackName, true)
+		stack, err := cfn.GetStack(stackName)
+		if err != nil {
+			util.Die(err)
 		}
+
+		outputStack(stack, true)
+
+		message := ""
+
+		status := string(stack.StackStatus)
+
+		switch {
+		case status == "CREATE_COMPLETE":
+			message = "Successfully deployed " + stackName
+		case status == "UPDATE_COMPLETE":
+			message = "Successfully updated " + stackName
+		case strings.Contains(status, "ROLLBACK") && strings.HasSuffix(status, "_COMPLETE"), strings.HasSuffix(status, "_FAILED"):
+			message = "Failed deployment: " + stackName
+		}
+
+		if message != "" {
+			fmt.Println()
+			fmt.Println(message)
+			return
+		}
+
 		time.Sleep(2 * time.Second)
 	}
 }

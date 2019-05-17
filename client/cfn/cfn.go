@@ -105,7 +105,17 @@ func ListStacks(fn func(cloudformation.StackSummary)) {
 	}
 }
 
-//FIXME: What happens if the stack doesn't exist?
+func DeleteStack(stackName string) error {
+	// Get the stack properties
+	req := client.DeleteStackRequest(&cloudformation.DeleteStackInput{
+		StackName: &stackName,
+	})
+
+	_, err := req.Send()
+
+	return err
+}
+
 func GetStack(stackName string) (cloudformation.Stack, error) {
 	// Get the stack properties
 	req := client.DescribeStacksRequest(&cloudformation.DescribeStacksInput{
@@ -121,7 +131,7 @@ func GetStack(stackName string) (cloudformation.Stack, error) {
 	return res.Stacks[0], nil
 }
 
-func GetStackResources(stackName string) []cloudformation.StackResource {
+func GetStackResources(stackName string) ([]cloudformation.StackResource, error) {
 	// Get the stack resources
 	req := client.DescribeStackResourcesRequest(&cloudformation.DescribeStackResourcesInput{
 		StackName: &stackName,
@@ -129,10 +139,10 @@ func GetStackResources(stackName string) []cloudformation.StackResource {
 
 	res, err := req.Send()
 	if err != nil {
-		util.Die(err)
+		return nil, err
 	}
 
-	return res.StackResources
+	return res.StackResources, nil
 }
 
 func createStack(template, stackName string) {

@@ -2,45 +2,36 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/aws-cloudformation/rain/client/cfn"
 	"github.com/aws-cloudformation/rain/util"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 )
 
-const (
-	pending = util.Orange
-	fail    = util.Red
-	success = util.Green
-	deleted = util.Grey
-)
-
-var statusColours = map[string]util.Colour{
-	"CREATE_IN_PROGRESS":                           pending,
-	"CREATE_FAILED":                                fail,
-	"CREATE_COMPLETE":                              success,
-	"ROLLBACK_IN_PROGRESS":                         pending,
-	"ROLLBACK_FAILED":                              fail,
-	"ROLLBACK_COMPLETE":                            success,
-	"DELETE_COMPLETE":                              deleted,
-	"DELETE_IN_PROGRESS":                           pending,
-	"DELETE_FAILED":                                fail,
-	"UPDATE_IN_PROGRESS":                           pending,
-	"UPDATE_COMPLETE_CLEANUP_IN_PROGRESS":          pending,
-	"UPDATE_COMPLETE":                              success,
-	"UPDATE_ROLLBACK_IN_PROGRESS":                  pending,
-	"UPDATE_ROLLBACK_FAILED":                       fail,
-	"UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS": pending,
-	"UPDATE_ROLLBACK_COMPLETE":                     success,
-	"REVIEW_IN_PROGRESS":                           pending,
-}
-
 func init() {
 	Commands["ls"] = Command{
 		Type: STACK,
 		Run:  lsCommand,
-		Help: "Listrunningstacks",
+		Help: "List running stacks",
 	}
+}
+
+func colouriseStatus(status string) util.Text {
+	colour := util.None
+
+	switch {
+	case status == "DELETE_COMPLETE":
+		colour = util.Grey
+	case strings.HasSuffix(status, "_COMPLETE"):
+		colour = util.Green
+	case strings.HasSuffix(status, "_IN_PROGRESS"):
+		colour = util.Orange
+	case strings.HasSuffix(status, "_FAILED"):
+		colour = util.Red
+	}
+
+	return util.Text{status, colour}
 }
 
 func listStacks() {
@@ -53,28 +44,17 @@ func listStacks() {
 	fmt.Println(table.String())
 }
 
-func colouriseStatus(status string) util.Text {
-	colour, ok := statusColours[status]
-	if !ok {
-		return util.Text{status, util.None}
-	}
-
-	return util.Text{status, colour}
-}
-
-func listStack(name string, fullscreen bool) {
-	stack, err := cfn.GetStack(name)
+func outputStack(stack cloudformation.Stack, fullscreen bool) {
+	resources, err := cfn.GetStackResources(*stack.StackName)
 	if err != nil {
 		util.Die(err)
 	}
-
-	resources := cfn.GetStackResources(name)
 
 	if fullscreen {
 		fmt.Print("\033[0;0H\033[2J")
 	}
 
-	fmt.Printf("%s: %s\n", name, colouriseStatus(string(stack.StackStatus)))
+	fmt.Printf("%s: %s\n", *stack.StackName, colouriseStatus(string(stack.StackStatus)))
 	if stack.StackStatusReason != nil {
 		fmt.Printf("  Message: %s\n", *stack.StackStatusReason)
 	}
@@ -106,10 +86,19 @@ func listStack(name string, fullscreen bool) {
 	}
 }
 
+func listStack(name string) {
+	stack, err := cfn.GetStack(name)
+	if err != nil {
+		util.Die(err)
+	}
+
+	outputStack(stack, false)
+}
+
 func lsCommand(args []string) {
 	if len(args) == 0 {
 		listStacks()
 	} else if len(args) == 1 {
-		listStack(args[0], false)
+		listStack(args[0])
 	}
 }
