@@ -1,25 +1,21 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/aws-cloudformation/rain/client/cfn"
-	"github.com/aws-cloudformation/rain/util"
+	"github.com/spf13/cobra"
 )
 
-func init() {
-	Commands["cat"] = Command{
-		Type: STACK,
-		Help: "Get templates from stacks",
-		Run:  catCommand,
-	}
+var catCmd = &cobra.Command{
+	Use:   "cat [stack name]",
+	Short: "Get templates from stacks",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println(cfn.GetStackTemplate(args[0]))
+	},
 }
 
-func catCommand(args []string) {
-	if len(args) != 1 {
-		util.Die(errors.New("Usage: rain cat <stack name>"))
-	}
-
-	fmt.Println(cfn.GetStackTemplate(args[0]))
+func init() {
+	rootCmd.AddCommand(catCmd)
 }
