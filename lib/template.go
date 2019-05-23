@@ -30,7 +30,7 @@ type Dependency struct {
 }
 
 func (n Node) String() string {
-	return fmt.Sprintf("%s (%s)", n.Name, n.Type)
+	return fmt.Sprintf("%s / %s", n.Type, n.Name)
 }
 
 func (d Dependency) String() string {

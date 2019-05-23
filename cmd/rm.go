@@ -11,9 +11,11 @@ import (
 )
 
 var rmCmd = &cobra.Command{
-	Use:   "rm [stack name]",
-	Short: "Delete a stack",
-	Args:  cobra.ExactArgs(1),
+	Use:                   "rm [stack]",
+	Short:                 "Delete a CloudFormation stack",
+	Long:                  "Deletes the CloudFormation stack named [stack] and waits for the action to complete.",
+	Args:                  cobra.ExactArgs(1),
+	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		stackName := args[0]
 

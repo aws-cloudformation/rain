@@ -2,18 +2,19 @@ package cmd
 
 import (
 	"fmt"
-	"sort"
 
 	"github.com/aws-cloudformation/rain/lib"
 	"github.com/aws-cloudformation/rain/util"
+	"github.com/awslabs/aws-cloudformation-template-formatter/format"
 	"github.com/awslabs/aws-cloudformation-template-formatter/parse"
 	"github.com/spf13/cobra"
 )
 
 var graphCmd = &cobra.Command{
-	Use:   "graph [template file]",
-	Short: "Graph dependencies between resources in a template",
-	Args:  cobra.ExactArgs(1),
+	Use:                   "graph [template]",
+	Short:                 "Graph dependencies between resources in a CloudFormation template.",
+	Args:                  cobra.ExactArgs(1),
+	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		fileName := args[0]
 
@@ -24,36 +25,33 @@ var graphCmd = &cobra.Command{
 
 		template := lib.Template(input)
 
-		graph := make(map[string]map[string]bool)
+		graph := make(map[string]interface{})
 
 		for _, dep := range template.FindDependencies() {
-			from := dep.From.String()
-			to := dep.To.String()
+			fromType := fmt.Sprintf("%ss", dep.From.Type)
+			toType := fmt.Sprintf("%ss", dep.To.Type)
 
-			if _, ok := graph[from]; !ok {
-				graph[from] = make(map[string]bool)
+			fromTypeGraph, ok := graph[fromType].(map[string]interface{})
+			if !ok {
+				fromTypeGraph = make(map[string]interface{})
+				graph[fromType] = fromTypeGraph
 			}
 
-			graph[from][to] = true
-		}
-
-		froms := make([]string, 0)
-
-		for from, _ := range graph {
-			froms = append(froms, from)
-		}
-
-		sort.Strings(froms)
-
-		for _, from := range froms {
-			fmt.Println(from)
-
-			for to, _ := range graph[from] {
-				fmt.Println("  ->", to)
+			fromNameGraph, ok := fromTypeGraph[dep.From.Name].(map[string]interface{})
+			if !ok {
+				fromNameGraph = make(map[string]interface{})
+				fromTypeGraph[dep.From.Name] = fromNameGraph
 			}
 
-			fmt.Println()
+			_, ok = fromNameGraph[toType].([]string)
+			if !ok {
+				fromNameGraph[toType] = make([]string, 0)
+			}
+
+			fromNameGraph[toType] = append(fromNameGraph[toType].([]string), dep.To.Name)
 		}
+
+		fmt.Println(format.Yaml(graph))
 	},
 }
 

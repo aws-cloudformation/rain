@@ -12,9 +12,11 @@ import (
 )
 
 var deployCmd = &cobra.Command{
-	Use:   "deploy [template file] [stack name]",
-	Short: "Deploy templates to stacks",
-	Args:  cobra.ExactArgs(2),
+	Use:                   "deploy [template] [stack]",
+	Short:                 "Deploy a CloudFormation stack",
+	Long:                  "Creates or updates a CloudFormation stack named [stack] from the template file [template].",
+	Args:                  cobra.ExactArgs(2),
+	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		fn := args[0]
 		stackName := args[1]

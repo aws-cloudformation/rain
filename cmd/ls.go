@@ -10,10 +10,11 @@ import (
 )
 
 var lsCmd = &cobra.Command{
-	Use:   "ls [stack name]",
-	Short: "List running stacks.",
-	Long:  "Displays a table of all running stacks or the contents of a specific, named stack.",
-	Args:  cobra.MaximumNArgs(1),
+	Use:                   "ls [stack]",
+	Short:                 "List running CloudFormation stacks.",
+	Long:                  "Displays a table of all running stacks or the contents of [stack] if provided.",
+	Args:                  cobra.MaximumNArgs(1),
+	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
 			table := util.NewTable("Name", "Status")
@@ -21,6 +22,8 @@ var lsCmd = &cobra.Command{
 			cfn.ListStacks(func(s cloudformation.StackSummary) {
 				table.Append(*s.StackName, colouriseStatus(string(s.StackStatus)))
 			})
+
+			table.Sort()
 
 			fmt.Println(table.String())
 		} else if len(args) == 1 {

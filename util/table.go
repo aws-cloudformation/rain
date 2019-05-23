@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/awslabs/aws-cloudformation-template-formatter/format"
@@ -48,6 +49,24 @@ func (t *Table) Append(values ...interface{}) {
 	}
 
 	t.values = append(t.values, s)
+}
+
+func (t *Table) Sort() {
+	valueMap := make(map[string][]Text)
+	valueList := make([]string, len(t.values))
+
+	for i, v := range t.values {
+		vs := fmt.Sprint("%#v", v)
+
+		valueMap[vs] = v
+		valueList[i] = vs
+	}
+
+	sort.Strings(valueList)
+
+	for i, vs := range valueList {
+		t.values[i] = valueMap[vs]
+	}
 }
 
 func (t *Table) rowString(values []Text) string {

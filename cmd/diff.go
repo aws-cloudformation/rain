@@ -11,9 +11,11 @@ import (
 )
 
 var diffCmd = &cobra.Command{
-	Use:   "diff [left] [right]",
-	Short: "Compare templates with other templates or stacks",
-	Args:  cobra.ExactArgs(2),
+	Use:                   "diff [old] [new]",
+	Short:                 "Compare CloudFormation templates.",
+	Long:                  "Outputs a summary of the changes necessary to transform the CloudFormation template named [old] into the template named [new].",
+	Args:                  cobra.ExactArgs(2),
+	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		leftFn, rightFn := args[0], args[1]
 

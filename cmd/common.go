@@ -50,6 +50,9 @@ func listStacks() {
 		table.Append(*s.StackName, colouriseStatus(string(s.StackStatus)))
 	})
 
+	table.Sort()
+	fmt.Println("CAMEL")
+
 	fmt.Println(table.String())
 }
 
@@ -65,32 +68,32 @@ func outputStack(stack cloudformation.Stack, fullscreen bool) {
 
 	fmt.Printf("%s: %s\n", *stack.StackName, colouriseStatus(string(stack.StackStatus)))
 	if stack.StackStatusReason != nil {
-		fmt.Printf("  Message: %s\n", *stack.StackStatusReason)
+		fmt.Printf("  Message: %s\n", util.Text{*stack.StackStatusReason, util.Yellow})
 	}
 
 	if len(stack.Parameters) > 0 {
 		fmt.Println("  Parameters:")
 		for _, param := range stack.Parameters {
-			fmt.Printf("    %s: %s\n", *param.ParameterKey, *param.ParameterValue)
+			fmt.Printf("    %s: %s\n", *param.ParameterKey, util.Text{*param.ParameterValue, util.Yellow})
 		}
 	}
 
 	if len(stack.Outputs) > 0 {
 		fmt.Println("  Outputs:")
 		for _, output := range stack.Outputs {
-			fmt.Printf("    %s: %s\n", *output.OutputKey, *output.OutputValue)
+			fmt.Printf("    %s: %s\n", *output.OutputKey, util.Text{*output.OutputValue, util.Yellow})
 		}
 	}
 
 	fmt.Println("  Resources:")
 	for _, resource := range resources {
 		fmt.Printf("    %s: %s\n", *resource.LogicalResourceId, colouriseStatus(string(resource.ResourceStatus)))
-		fmt.Printf("      Type: %s\n", *resource.ResourceType)
+		fmt.Printf("      Type: %s\n", util.Text{*resource.ResourceType, util.Yellow})
 		if resource.PhysicalResourceId != nil {
-			fmt.Printf("      PhysicalID: %s\n", *resource.PhysicalResourceId)
+			fmt.Printf("      PhysicalID: %s\n", util.Text{*resource.PhysicalResourceId, util.Yellow})
 		}
 		if resource.ResourceStatusReason != nil {
-			fmt.Printf("      Message: %s\n", *resource.ResourceStatusReason)
+			fmt.Printf("      Message: %s\n", util.Text{*resource.ResourceStatusReason, util.Yellow})
 		}
 	}
 }

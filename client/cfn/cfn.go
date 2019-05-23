@@ -60,7 +60,7 @@ func GetStackTemplate(stackName string) string {
 
 	res, err := req.Send()
 	if err != nil {
-		util.Die(err)
+		util.Die(fmt.Errorf("Could not get the template for stack '%s'.\n", stackName))
 	}
 
 	return *res.TemplateBody

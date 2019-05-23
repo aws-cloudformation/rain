@@ -8,9 +8,11 @@ import (
 )
 
 var catCmd = &cobra.Command{
-	Use:   "cat [stack name]",
-	Short: "Get templates from stacks",
-	Args:  cobra.ExactArgs(1),
+	Use:                   "cat [stack]",
+	Short:                 "Get the CloudFormation template from a deployed stack",
+	Long:                  "Downloads the template used to deploy [stack] and prints it to stdout.",
+	Args:                  cobra.ExactArgs(1),
+	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println(cfn.GetStackTemplate(args[0]))
 	},
