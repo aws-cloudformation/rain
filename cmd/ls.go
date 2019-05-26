@@ -11,7 +11,7 @@ import (
 
 var lsCmd = &cobra.Command{
 	Use:                   "ls [stack]",
-	Short:                 "List running CloudFormation stacks.",
+	Short:                 "List running CloudFormation stacks",
 	Long:                  "Displays a table of all running stacks or the contents of [stack] if provided.",
 	Args:                  cobra.MaximumNArgs(1),
 	DisableFlagsInUseLine: true,

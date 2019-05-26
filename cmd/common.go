@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/aws-cloudformation/rain/client/cfn"
+	"github.com/aws-cloudformation/rain/client/s3"
+	"github.com/aws-cloudformation/rain/client/sts"
 	"github.com/aws-cloudformation/rain/util"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 )
@@ -96,4 +98,19 @@ func outputStack(stack cloudformation.Stack, fullscreen bool) {
 			fmt.Printf("      Message: %s\n", util.Text{*resource.ResourceStatusReason, util.Yellow})
 		}
 	}
+}
+
+func getRainBucket() string {
+	accountId := sts.GetAccountId()
+
+	bucketName := fmt.Sprintf("rain-artifacts-%s", accountId)
+
+	if !s3.BucketExists(bucketName) {
+		err := s3.CreateBucket(bucketName)
+		if err != nil {
+			util.Die(err)
+		}
+	}
+
+	return bucketName
 }

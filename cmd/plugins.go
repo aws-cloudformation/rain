@@ -1,15 +1,6 @@
 package cmd
 
-import (
-	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
-
-	"github.com/aws-cloudformation/rain/util"
-	"github.com/spf13/cobra"
-)
-
+/*
 func init() {
 	// Find plugins
 	path := os.Getenv("PATH")
@@ -41,3 +32,4 @@ func init() {
 		}
 	}
 }
+*/

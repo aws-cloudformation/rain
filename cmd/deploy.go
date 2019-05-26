@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -23,8 +25,25 @@ var deployCmd = &cobra.Command{
 
 		fmt.Printf("Deploying %s => %s\n", filepath.Base(fn), stackName)
 
+		outputFn, err := ioutil.TempFile("", "")
+		if err != nil {
+			util.Die(err)
+		}
+		fmt.Println(outputFn.Name())
+		defer os.Remove(outputFn.Name())
+
+		// Package it up
+		_, err = util.RunCapture("aws", "cloudformation", "package",
+			"--template-file", fn,
+			"--output-template-file", outputFn.Name(),
+			"--s3-bucket", getRainBucket(),
+		)
+		if err != nil {
+			util.Die(err)
+		}
+
 		// Start deployment
-		cfn.Deploy(fn, stackName)
+		cfn.Deploy(outputFn.Name(), stackName)
 		cfn.WaitUntilStackExists(stackName)
 
 		for {
