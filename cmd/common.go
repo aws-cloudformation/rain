@@ -32,8 +32,6 @@ func colouriseStatus(status string) util.Text {
 	colour := util.None
 
 	switch {
-	case status == "DELETE_COMPLETE":
-		colour = util.Grey
 	case strings.HasSuffix(status, "_COMPLETE"):
 		colour = util.Green
 	case strings.HasSuffix(status, "_IN_PROGRESS"):
@@ -59,10 +57,8 @@ func listStacks() {
 }
 
 func outputStack(stack cloudformation.Stack, fullscreen bool) {
-	resources, err := cfn.GetStackResources(*stack.StackName)
-	if err != nil {
-		util.Die(err)
-	}
+	resources, _ := cfn.GetStackResources(*stack.StackName)
+	// We ignore errors because it just means we'll list no resources
 
 	if fullscreen {
 		fmt.Print("\033[0;0H\033[2J")
@@ -87,15 +83,17 @@ func outputStack(stack cloudformation.Stack, fullscreen bool) {
 		}
 	}
 
-	fmt.Println("  Resources:")
-	for _, resource := range resources {
-		fmt.Printf("    %s: # %s\n", *resource.LogicalResourceId, colouriseStatus(string(resource.ResourceStatus)))
-		fmt.Printf("      Type: %s\n", util.Text{*resource.ResourceType, util.Yellow})
-		if resource.PhysicalResourceId != nil {
-			fmt.Printf("      PhysicalID: %s\n", util.Text{*resource.PhysicalResourceId, util.Yellow})
-		}
-		if resource.ResourceStatusReason != nil {
-			fmt.Printf("      Message: %s\n", util.Text{*resource.ResourceStatusReason, util.Yellow})
+	if len(resources) > 0 {
+		fmt.Println("  Resources:")
+		for _, resource := range resources {
+			fmt.Printf("    %s: # %s\n", *resource.LogicalResourceId, colouriseStatus(string(resource.ResourceStatus)))
+			fmt.Printf("      Type: %s\n", util.Text{*resource.ResourceType, util.Yellow})
+			if resource.PhysicalResourceId != nil {
+				fmt.Printf("      PhysicalID: %s\n", util.Text{*resource.PhysicalResourceId, util.Yellow})
+			}
+			if resource.ResourceStatusReason != nil {
+				fmt.Printf("      Message: %s\n", util.Text{*resource.ResourceStatusReason, util.Yellow})
+			}
 		}
 	}
 }

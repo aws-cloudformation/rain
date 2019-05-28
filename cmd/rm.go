@@ -24,11 +24,16 @@ var rmCmd = &cobra.Command{
 			util.Die(err)
 		}
 
+		stackId := stackName
+
 		for {
-			stack, err := cfn.GetStack(stackName)
+			stack, err := cfn.GetStack(stackId)
 			if err != nil {
 				util.Die(err)
 			}
+
+			// Swap out the stack name for its ID so we can deal with the stack once deleted
+			stackId = *stack.StackId
 
 			outputStack(stack, true)
 

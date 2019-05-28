@@ -29,7 +29,6 @@ var deployCmd = &cobra.Command{
 		if err != nil {
 			util.Die(err)
 		}
-		fmt.Println(outputFn.Name())
 		defer os.Remove(outputFn.Name())
 
 		// Package it up
@@ -42,15 +41,23 @@ var deployCmd = &cobra.Command{
 			util.Die(err)
 		}
 
+		// Find out if stack exists already
+		// If it does and it's not in a good state, offer to wait/delete
+
 		// Start deployment
 		cfn.Deploy(outputFn.Name(), stackName)
 		cfn.WaitUntilStackExists(stackName)
 
+		stackId := stackName
+
 		for {
-			stack, err := cfn.GetStack(stackName)
+			stack, err := cfn.GetStack(stackId)
 			if err != nil {
 				util.Die(err)
 			}
+
+			// Swap out the stack name for its ID so we can deal with deleted stacks ok
+			stackId = *stack.StackId
 
 			outputStack(stack, true)
 

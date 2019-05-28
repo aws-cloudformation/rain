@@ -123,7 +123,10 @@ func GetStack(stackName string) (cloudformation.Stack, error) {
 		StackName: &stackName,
 	})
 
-	res, _ := req.Send()
+	res, err := req.Send()
+	if err != nil {
+		return cloudformation.Stack{}, err
+	}
 
 	if res == nil || len(res.Stacks) != 1 {
 		return cloudformation.Stack{}, fmt.Errorf("No such stack: " + stackName)
@@ -152,7 +155,7 @@ func createStack(template, stackName string) {
 			"CAPABILITY_NAMED_IAM",
 			"CAPABILITY_AUTO_EXPAND",
 		},
-		OnFailure:    "DELETE",
+		OnFailure:    "DELETE", // ROLLBACK or DELETE
 		StackName:    &stackName,
 		TemplateBody: &template,
 	})
