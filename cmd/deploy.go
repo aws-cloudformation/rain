@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -9,7 +10,9 @@ import (
 	"time"
 
 	"github.com/aws-cloudformation/rain/client/cfn"
+	"github.com/aws-cloudformation/rain/diff"
 	"github.com/aws-cloudformation/rain/util"
+	"github.com/awslabs/aws-cloudformation-template-formatter/parse"
 	"github.com/spf13/cobra"
 )
 
@@ -43,6 +46,30 @@ var deployCmd = &cobra.Command{
 
 		// Find out if stack exists already
 		// If it does and it's not in a good state, offer to wait/delete
+		stack, err := cfn.GetStack(stackName)
+		if err == nil {
+			if !strings.HasSuffix(string(stack.StackStatus), "_COMPLETE") {
+				util.Die(fmt.Errorf("Stack '%s' could not be updated: %s", stackName, string(stack.StackStatus)))
+			} else {
+				oldTemplateString := cfn.GetStackTemplate(stackName)
+
+				oldTemplate, _ := parse.ReadString(oldTemplateString)
+				newTemplate, _ := parse.ReadFile(outputFn.Name())
+
+				d := diff.Compare(oldTemplate, newTemplate)
+
+				if d == diff.Unchanged {
+					util.Die(errors.New("No changes to deploy!"))
+				}
+
+				fmt.Println(colouriseDiff(d))
+
+				fmt.Println("Stack exists; see above diff")
+				fmt.Println("Continuting in 3 seconds...")
+
+				time.Sleep(3 * time.Second)
+			}
+		}
 
 		// Start deployment
 		cfn.Deploy(outputFn.Name(), stackName)

@@ -7,6 +7,7 @@ import (
 	"github.com/aws-cloudformation/rain/client/cfn"
 	"github.com/aws-cloudformation/rain/client/s3"
 	"github.com/aws-cloudformation/rain/client/sts"
+	"github.com/aws-cloudformation/rain/diff"
 	"github.com/aws-cloudformation/rain/util"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 )
@@ -111,4 +112,30 @@ func getRainBucket() string {
 	}
 
 	return bucketName
+}
+
+func colouriseDiff(d diff.Diff) string {
+	output := strings.Builder{}
+
+	for _, line := range strings.Split(diff.Format(d), "\n") {
+		colour := util.None
+
+		switch {
+		case strings.HasPrefix(line, ">>> "):
+			colour = util.Green
+		case strings.HasPrefix(line, "<<< "):
+			colour = util.Red
+		case strings.HasPrefix(line, "||| "):
+			colour = util.Orange
+		}
+
+		output.WriteString(util.Text{line, colour}.String())
+		output.WriteString("\n")
+	}
+
+	return output.String()
+}
+
+func init() {
+	rootCmd.AddCommand(diffCmd)
 }
