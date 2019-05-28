@@ -55,7 +55,8 @@ func init() {
 
 func GetStackTemplate(stackName string) string {
 	req := client.GetTemplateRequest(&cloudformation.GetTemplateInput{
-		StackName: &stackName,
+		StackName:     &stackName,
+		TemplateStage: "Original", //"Processed"
 	})
 
 	res, err := req.Send()

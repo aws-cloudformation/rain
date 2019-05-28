@@ -68,7 +68,7 @@ func outputStack(stack cloudformation.Stack, fullscreen bool) {
 		fmt.Print("\033[0;0H\033[2J")
 	}
 
-	fmt.Printf("%s: %s\n", *stack.StackName, colouriseStatus(string(stack.StackStatus)))
+	fmt.Printf("%s: # %s\n", *stack.StackName, colouriseStatus(string(stack.StackStatus)))
 	if stack.StackStatusReason != nil {
 		fmt.Printf("  Message: %s\n", util.Text{*stack.StackStatusReason, util.Yellow})
 	}
@@ -89,7 +89,7 @@ func outputStack(stack cloudformation.Stack, fullscreen bool) {
 
 	fmt.Println("  Resources:")
 	for _, resource := range resources {
-		fmt.Printf("    %s: %s\n", *resource.LogicalResourceId, colouriseStatus(string(resource.ResourceStatus)))
+		fmt.Printf("    %s: # %s\n", *resource.LogicalResourceId, colouriseStatus(string(resource.ResourceStatus)))
 		fmt.Printf("      Type: %s\n", util.Text{*resource.ResourceType, util.Yellow})
 		if resource.PhysicalResourceId != nil {
 			fmt.Printf("      PhysicalID: %s\n", util.Text{*resource.PhysicalResourceId, util.Yellow})
