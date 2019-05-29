@@ -4,6 +4,7 @@ package diff
 
 import (
 	"fmt"
+	"reflect"
 	"sort"
 	"strings"
 
@@ -110,8 +111,16 @@ func formatSub(d Diff) string {
 	// Format the element
 	formatted := strings.Split(Format(d), "\n")
 
-	// It's a scalar
-	if len(formatted) == 1 {
+	v, isValue := d.(diffValue)
+	if isValue {
+		k := reflect.ValueOf(v.value).Kind()
+
+		if k != reflect.Array && k != reflect.Map && k != reflect.Slice {
+			// It's a scalar
+			return fmt.Sprintf(" %s\n", formatted[0])
+		}
+	} else if len(formatted) == 1 {
+		// It's a scalar
 		return fmt.Sprintf(" %s\n", formatted[0])
 	}
 
@@ -124,8 +133,6 @@ func formatSub(d Diff) string {
 	}
 
 	output := strings.Builder{}
-
-	_, isValue := d.(diffValue)
 
 	output.WriteString("\n")
 	for _, part := range parts {

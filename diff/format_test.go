@@ -126,6 +126,44 @@ var testCases = []struct {
 		},
 		"||| foo:\n>>>   bar: baz\n",
 	},
+	{
+		// A new single-value map
+		diffMap{
+			"foo": diffValue{map[string]interface{}{
+				"bar": "baz",
+			}, Added},
+		},
+		">>> foo:\n>>>   bar: baz\n",
+	},
+	{
+		// A new single-value list
+		diffMap{
+			"foo": diffValue{[]interface{}{
+				"bar",
+			}, Added},
+		},
+		">>> foo:\n>>>   - bar\n",
+	},
+	{
+		// A new multi-value map
+		diffMap{
+			"foo": diffValue{map[string]interface{}{
+				"bar":  "baz",
+				"quux": "mooz",
+			}, Added},
+		},
+		">>> foo:\n>>>   bar: baz\n>>>   quux: mooz\n",
+	},
+	{
+		// A new multi-value list
+		diffMap{
+			"foo": diffValue{[]interface{}{
+				"bar",
+				"baz",
+			}, Added},
+		},
+		">>> foo:\n>>>   - bar\n>>>   - baz\n",
+	},
 }
 
 func TestFormat(t *testing.T) {
