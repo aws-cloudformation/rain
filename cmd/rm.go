@@ -2,8 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
-	"time"
 
 	"github.com/aws-cloudformation/rain/client/cfn"
 	"github.com/aws-cloudformation/rain/util"
@@ -24,38 +22,17 @@ var rmCmd = &cobra.Command{
 			util.Die(err)
 		}
 
-		stackId := stackName
+		status := waitForStackToSettle(stackName)
 
-		for {
-			stack, err := cfn.GetStack(stackId)
-			if err != nil {
-				util.Die(err)
-			}
+		fmt.Println()
 
-			// Swap out the stack name for its ID so we can deal with the stack once deleted
-			stackId = *stack.StackId
-
-			outputStack(stack, true)
-
-			message := ""
-
-			status := string(stack.StackStatus)
-
-			switch {
-			case status == "DELETE_COMPLETE":
-				message = "Successfully deleted " + stackName
-			case strings.HasSuffix(status, "_COMPLETE") || strings.HasSuffix(status, "_FAILED"):
-				message = "Failed to delete " + stackName
-			}
-
-			if message != "" {
-				fmt.Println()
-				fmt.Println(message)
-				return
-			}
-
-			time.Sleep(2 * time.Second)
+		if status == "DELETE_COMPLETE" {
+			fmt.Println("Successfully deleted " + stackName)
+		} else {
+			fmt.Println("Failed to delete " + stackName)
 		}
+
+		fmt.Println()
 	},
 }
 

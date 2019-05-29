@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/aws-cloudformation/rain/client/cfn"
 	"github.com/aws-cloudformation/rain/client/s3"
@@ -136,6 +137,33 @@ func colouriseDiff(d diff.Diff) string {
 	return output.String()
 }
 
-func init() {
-	rootCmd.AddCommand(diffCmd)
+func waitForStackToSettle(stackName string) string {
+	// Start the timer
+	start := time.Now()
+
+	stackId := stackName
+
+	for {
+		stack, err := cfn.GetStack(stackId)
+		if err != nil {
+			util.Die(err)
+		}
+
+		// Swap out the stack name for its ID so we can deal with deleted stacks ok
+		stackId = *stack.StackId
+
+		outputStack(stack, true)
+
+		// Timer
+		fmt.Println()
+		fmt.Println(time.Now().Sub(start).Truncate(time.Second))
+
+		status := string(stack.StackStatus)
+
+		if strings.HasSuffix(status, "_COMPLETE") || strings.HasSuffix(status, "_FAILED") {
+			return status
+		}
+
+		time.Sleep(time.Second)
+	}
 }

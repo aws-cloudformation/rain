@@ -49,8 +49,12 @@ var deployCmd = &cobra.Command{
 		stack, err := cfn.GetStack(stackName)
 		if err == nil {
 			if !strings.HasSuffix(string(stack.StackStatus), "_COMPLETE") {
-				util.Die(fmt.Errorf("Stack '%s' could not be updated: %s", stackName, string(stack.StackStatus)))
+				// Can't update
+				util.Die(fmt.Errorf("Stack '%s' could not be updated: %s", stackName, colouriseStatus(string(stack.StackStatus))))
 			} else {
+				// Can update, grab a diff
+				fmt.Println("Stack exists. Diff will follow...")
+
 				oldTemplateString := cfn.GetStackTemplate(stackName)
 
 				oldTemplate, _ := parse.ReadString(oldTemplateString)
@@ -65,9 +69,12 @@ var deployCmd = &cobra.Command{
 				fmt.Println(colouriseDiff(d))
 
 				fmt.Println("Stack exists; see above diff")
-				fmt.Println("Continuting in 3 seconds...")
 
-				time.Sleep(3 * time.Second)
+				for i := 5; i >= 0; i-- {
+					fmt.Printf("Continuting in %d seconds...", i)
+					time.Sleep(time.Second)
+					fmt.Print("\033[1G")
+				}
 			}
 		}
 
@@ -75,40 +82,19 @@ var deployCmd = &cobra.Command{
 		cfn.Deploy(outputFn.Name(), stackName)
 		cfn.WaitUntilStackExists(stackName)
 
-		stackId := stackName
+		status := waitForStackToSettle(stackName)
 
-		for {
-			stack, err := cfn.GetStack(stackId)
-			if err != nil {
-				util.Die(err)
-			}
+		fmt.Println()
 
-			// Swap out the stack name for its ID so we can deal with deleted stacks ok
-			stackId = *stack.StackId
-
-			outputStack(stack, true)
-
-			message := ""
-
-			status := string(stack.StackStatus)
-
-			switch {
-			case status == "CREATE_COMPLETE":
-				message = "Successfully deployed " + stackName
-			case status == "UPDATE_COMPLETE":
-				message = "Successfully updated " + stackName
-			case strings.Contains(status, "ROLLBACK") && strings.HasSuffix(status, "_COMPLETE"), strings.HasSuffix(status, "_FAILED"):
-				message = "Failed deployment: " + stackName
-			}
-
-			if message != "" {
-				fmt.Println()
-				fmt.Println(message)
-				return
-			}
-
-			time.Sleep(2 * time.Second)
+		if status == "CREATE_COMPLETE" {
+			fmt.Println("Successfully deployed " + stackName)
+		} else if status == "UPDATE_COMPLETE" {
+			fmt.Println("Successfully updated " + stackName)
+		} else {
+			fmt.Println("Failed deployment: " + stackName)
 		}
+
+		fmt.Println()
 	},
 }
 
