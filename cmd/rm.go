@@ -9,9 +9,9 @@ import (
 )
 
 var rmCmd = &cobra.Command{
-	Use:                   "rm [stack]",
-	Short:                 "Delete a CloudFormation stack",
-	Long:                  "Deletes the CloudFormation stack named [stack] and waits for the action to complete.",
+	Use:                   "rm <stack>",
+	Short:                 "Delete a running CloudFormation stack",
+	Long:                  "Deletes the CloudFormation stack named <stack> and waits for the action to complete.",
 	Args:                  cobra.ExactArgs(1),
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -24,12 +24,10 @@ var rmCmd = &cobra.Command{
 
 		status := waitForStackToSettle(stackName)
 
-		fmt.Println()
-
 		if status == "DELETE_COMPLETE" {
-			fmt.Println("Successfully deleted " + stackName)
+			fmt.Println(util.Text{"Successfully deleted " + stackName, util.Green})
 		} else {
-			fmt.Println("Failed to delete " + stackName)
+			fmt.Println(util.Text{"Failed to delete " + stackName, util.Red})
 		}
 
 		fmt.Println()

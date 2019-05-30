@@ -10,9 +10,9 @@ import (
 )
 
 var lsCmd = &cobra.Command{
-	Use:                   "ls [stack]",
+	Use:                   "ls <stack>",
 	Short:                 "List running CloudFormation stacks",
-	Long:                  "Displays a table of all running stacks or the contents of [stack] if provided.",
+	Long:                  "Displays a table of all running stacks or the contents of <stack> if provided.",
 	Args:                  cobra.MaximumNArgs(1),
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -32,7 +32,7 @@ var lsCmd = &cobra.Command{
 				util.Die(err)
 			}
 
-			outputStack(stack, false)
+			fmt.Println(getStackOutput(stack))
 		}
 	},
 }

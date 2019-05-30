@@ -17,9 +17,9 @@ import (
 )
 
 var deployCmd = &cobra.Command{
-	Use:                   "deploy [template] [stack]",
-	Short:                 "Deploy a CloudFormation stack",
-	Long:                  "Creates or updates a CloudFormation stack named [stack] from the template file [template].",
+	Use:                   "deploy <template> <stack>",
+	Short:                 "Deploy a CloudFormation stack from a local template",
+	Long:                  "Creates or updates a CloudFormation stack named <stack> from the template file <template>.",
 	Args:                  cobra.ExactArgs(2),
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -84,14 +84,12 @@ var deployCmd = &cobra.Command{
 
 		status := waitForStackToSettle(stackName)
 
-		fmt.Println()
-
 		if status == "CREATE_COMPLETE" {
-			fmt.Println("Successfully deployed " + stackName)
+			fmt.Println(util.Text{"Successfully deployed " + stackName, util.Green})
 		} else if status == "UPDATE_COMPLETE" {
-			fmt.Println("Successfully updated " + stackName)
+			fmt.Println(util.Text{"Successfully updated " + stackName, util.Green})
 		} else {
-			fmt.Println("Failed deployment: " + stackName)
+			fmt.Println(util.Text{"Failed deployment: " + stackName, util.Red})
 		}
 
 		fmt.Println()

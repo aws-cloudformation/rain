@@ -13,6 +13,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 )
 
+var spin = []string{
+	`-`, `\`, `|`, `/`,
+}
+
 func stackExists(stackName string) bool {
 	ch := make(chan bool)
 
@@ -53,51 +57,54 @@ func listStacks() {
 	})
 
 	table.Sort()
-	fmt.Println("CAMEL")
 
 	fmt.Println(table.String())
 }
 
-func outputStack(stack cloudformation.Stack, fullscreen bool) {
+func getStackOutput(stack cloudformation.Stack) string {
 	resources, _ := cfn.GetStackResources(*stack.StackName)
 	// We ignore errors because it just means we'll list no resources
 
-	if fullscreen {
-		fmt.Print("\033[0;0H\033[2J")
-	}
+	out := strings.Builder{}
 
-	fmt.Printf("%s: # %s\n", *stack.StackName, colouriseStatus(string(stack.StackStatus)))
+	out.WriteString(fmt.Sprintf("%s: # %s\n", *stack.StackName, colouriseStatus(string(stack.StackStatus))))
 	if stack.StackStatusReason != nil {
-		fmt.Printf("  Message: %s\n", util.Text{*stack.StackStatusReason, util.Yellow})
+		out.WriteString(fmt.Sprintf("  Message: %s\n", util.Text{*stack.StackStatusReason, util.Yellow}))
 	}
 
 	if len(stack.Parameters) > 0 {
-		fmt.Println("  Parameters:")
+		out.WriteString("  Parameters:\n")
 		for _, param := range stack.Parameters {
-			fmt.Printf("    %s: %s\n", *param.ParameterKey, util.Text{*param.ParameterValue, util.Yellow})
+			out.WriteString(fmt.Sprintf("    %s: %s\n", *param.ParameterKey, util.Text{*param.ParameterValue, util.Yellow}))
 		}
 	}
 
 	if len(stack.Outputs) > 0 {
-		fmt.Println("  Outputs:")
+		out.WriteString("  Outputs:\n")
 		for _, output := range stack.Outputs {
-			fmt.Printf("    %s: %s\n", *output.OutputKey, util.Text{*output.OutputValue, util.Yellow})
+			out.WriteString(fmt.Sprintf("    %s: %s\n", *output.OutputKey, util.Text{*output.OutputValue, util.Yellow}))
 		}
 	}
 
 	if len(resources) > 0 {
-		fmt.Println("  Resources:")
+		out.WriteString("  Resources:\n")
 		for _, resource := range resources {
-			fmt.Printf("    %s: # %s\n", *resource.LogicalResourceId, colouriseStatus(string(resource.ResourceStatus)))
-			fmt.Printf("      Type: %s\n", util.Text{*resource.ResourceType, util.Yellow})
+			out.WriteString(fmt.Sprintf("    %s: # %s\n", *resource.LogicalResourceId, colouriseStatus(string(resource.ResourceStatus))))
+			out.WriteString(fmt.Sprintf("      Type: %s\n", util.Text{*resource.ResourceType, util.Yellow}))
 			if resource.PhysicalResourceId != nil {
-				fmt.Printf("      PhysicalID: %s\n", util.Text{*resource.PhysicalResourceId, util.Yellow})
+				out.WriteString(fmt.Sprintf("      PhysicalID: %s\n", util.Text{*resource.PhysicalResourceId, util.Yellow}))
 			}
 			if resource.ResourceStatusReason != nil {
-				fmt.Printf("      Message: %s\n", util.Text{*resource.ResourceStatusReason, util.Yellow})
+				out.WriteString(fmt.Sprintf("      Message: %s\n", util.Text{*resource.ResourceStatusReason, util.Yellow}))
 			}
 		}
 	}
+
+	return out.String()
+}
+
+func clearScreen() {
+	fmt.Print("\033[0;0H\033[2J")
 }
 
 func getRainBucket() string {
@@ -140,30 +147,66 @@ func colouriseDiff(d diff.Diff) string {
 func waitForStackToSettle(stackName string) string {
 	// Start the timer
 	start := time.Now()
+	count := 0
 
-	stackId := stackName
+	// Channel for receiving new stack statuses
+	outputs := make(chan string)
+	finished := make(chan string)
+
+	defer close(outputs)
+	defer close(finished)
+
+	clearScreen()
+
+	go func(stackId string) {
+		for {
+			stack, err := cfn.GetStack(stackId)
+			if err != nil {
+				util.Die(err)
+			}
+
+			// Refresh the stack ID so we can deal with deleted stacks ok
+			stackId = *stack.StackId
+
+			// Send the output first
+			outputs <- getStackOutput(stack)
+
+			// Check to see if we've finished
+			status := string(stack.StackStatus)
+			if strings.HasSuffix(status, "_COMPLETE") || strings.HasSuffix(status, "_FAILED") {
+				finished <- status
+			}
+
+			time.Sleep(time.Second * 2)
+		}
+	}(stackName)
 
 	for {
-		stack, err := cfn.GetStack(stackId)
-		if err != nil {
-			util.Die(err)
+		select {
+		case output := <-outputs:
+			clearScreen()
+			fmt.Println(output)
+		default:
+			// Allow the display to update regardless
 		}
 
-		// Swap out the stack name for its ID so we can deal with deleted stacks ok
-		stackId = *stack.StackId
-
-		outputStack(stack, true)
-
-		// Timer
-		fmt.Println()
-		fmt.Println(time.Now().Sub(start).Truncate(time.Second))
-
-		status := string(stack.StackStatus)
-
-		if strings.HasSuffix(status, "_COMPLETE") || strings.HasSuffix(status, "_FAILED") {
+		select {
+		case status := <-finished:
 			return status
+		default:
+			// Allow the display to update regardless
 		}
 
-		time.Sleep(time.Second)
+		// Display timer
+		fmt.Print(spin[count])
+		fmt.Print(" ")
+		fmt.Print(time.Now().Sub(start).Truncate(time.Second))
+		fmt.Print("\033[0G")
+
+		count = (count + 1) % len(spin)
+
+		time.Sleep(time.Second / 2)
 	}
+
+	return ""
 }
