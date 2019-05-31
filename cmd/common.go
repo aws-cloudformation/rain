@@ -67,7 +67,7 @@ func getStackOutput(stack cloudformation.Stack) string {
 
 	out := strings.Builder{}
 
-	out.WriteString(fmt.Sprintf("%s: # %s\n", *stack.StackName, colouriseStatus(string(stack.StackStatus))))
+	out.WriteString(fmt.Sprintf("%s:  # %s\n", *stack.StackName, colouriseStatus(string(stack.StackStatus))))
 	if stack.StackStatusReason != nil {
 		out.WriteString(fmt.Sprintf("  Message: %s\n", util.Text{*stack.StackStatusReason, util.Yellow}))
 	}
@@ -89,7 +89,7 @@ func getStackOutput(stack cloudformation.Stack) string {
 	if len(resources) > 0 {
 		out.WriteString("  Resources:\n")
 		for _, resource := range resources {
-			out.WriteString(fmt.Sprintf("    %s: # %s\n", *resource.LogicalResourceId, colouriseStatus(string(resource.ResourceStatus))))
+			out.WriteString(fmt.Sprintf("    %s:  # %s\n", *resource.LogicalResourceId, colouriseStatus(string(resource.ResourceStatus))))
 			out.WriteString(fmt.Sprintf("      Type: %s\n", util.Text{*resource.ResourceType, util.Yellow}))
 			if resource.PhysicalResourceId != nil {
 				out.WriteString(fmt.Sprintf("      PhysicalID: %s\n", util.Text{*resource.PhysicalResourceId, util.Yellow}))
