@@ -17,17 +17,20 @@ var rmCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		stackName := args[0]
 
-		fmt.Printf("Deleting stack '%s'...", stackName)
+		fmt.Printf("Deleting stack '%s'...\n", stackName)
 
-		if !stackExists(stackName) {
-			util.ClearLine()
+		exists, err := cfn.StackExists(stackName)
+		if err != nil {
+			util.Die(fmt.Errorf("Unable to delete stack '%s': %s", stackName, err))
+		}
+
+		if !exists {
 			util.Die(fmt.Errorf("No such stack '%s'", stackName))
 		}
 
-		err := cfn.DeleteStack(stackName)
+		err = cfn.DeleteStack(stackName)
 		if err != nil {
-			util.ClearLine()
-			util.Die(err)
+			util.Die(fmt.Errorf("Unable to delete stack '%s': %s", stackName, err))
 		}
 
 		status := waitForStackToSettle(stackName)

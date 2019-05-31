@@ -72,7 +72,7 @@ var deployCmd = &cobra.Command{
 		fn := args[0]
 		stackName := args[1]
 
-		fmt.Printf("Preparing template '%s'...", filepath.Base(fn))
+		fmt.Printf("Preparing template '%s'... ", filepath.Base(fn))
 
 		outputFn, err := ioutil.TempFile("", "")
 		if err != nil {
@@ -91,7 +91,7 @@ var deployCmd = &cobra.Command{
 		}
 
 		util.ClearLine()
-		fmt.Printf("Checking current status of stack '%s'...", stackName)
+		fmt.Printf("Checking current status of stack '%s'... ", stackName)
 
 		// Find out if stack exists already
 		// If it does and it's not in a good state, offer to wait/delete
@@ -114,18 +114,23 @@ var deployCmd = &cobra.Command{
 				d := diff.Compare(oldTemplate, newTemplate)
 
 				if d == diff.Unchanged {
-					util.Die(errors.New("No changes to deploy!"))
+					fmt.Println(util.Green("No changes to deploy!"))
+					return
 				}
 
 				util.ClearLine()
 				if util.Confirm(true, fmt.Sprintf("Stack '%s' exists. Do you wish to see the diff before deploying?", stackName)) {
 					fmt.Print(colouriseDiff(d))
+
+					if !util.Confirm(true, "Do you wish to continue?") {
+						util.Die(errors.New("User cancelled deployment."))
+					}
 				}
 			}
 		}
 
 		util.ClearLine()
-		fmt.Printf("Deploying stack '%s'...", stackName)
+		fmt.Printf("Deploying stack '%s'... ", stackName)
 
 		// Load in the template file
 		t, err := ioutil.ReadFile(outputFn.Name())

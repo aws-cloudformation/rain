@@ -15,6 +15,7 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&config.Profile, "profile", "p", "", "AWS profile name; read from the AWS CLI configuration file")
+	rootCmd.PersistentFlags().StringVarP(&config.Region, "region", "r", "", "AWS region to use")
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

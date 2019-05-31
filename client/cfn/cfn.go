@@ -49,36 +49,33 @@ func GetStackTemplate(stackName string) (string, client.Error) {
 }
 
 func StackExists(stackName string) (bool, client.Error) {
-	req := getClient().ListStacksRequest(&cloudformation.ListStacksInput{
-		StackStatusFilter: liveStatuses,
-	})
+	stacks, err := ListStacks()
+	if err != nil {
+		return false, err
+	}
 
-	p := req.Paginate()
-
-	for p.Next() {
-		for _, s := range p.CurrentPage().StackSummaries {
-			if *s.StackName == stackName {
-				return true, nil
-			}
+	for _, s := range stacks {
+		if *s.StackName == stackName {
+			return true, nil
 		}
 	}
 
-	return false, client.NewError(p.Err())
+	return false, nil
 }
 
-func ListStacks(fn func(cloudformation.StackSummary)) client.Error {
+func ListStacks() ([]cloudformation.StackSummary, client.Error) {
 	req := getClient().ListStacksRequest(&cloudformation.ListStacksInput{
 		StackStatusFilter: liveStatuses,
 	})
 
+	stacks := make([]cloudformation.StackSummary, 0)
+
 	p := req.Paginate()
 	for p.Next() {
-		for _, s := range p.CurrentPage().StackSummaries {
-			fn(s)
-		}
+		stacks = append(stacks, p.CurrentPage().StackSummaries...)
 	}
 
-	return client.NewError(p.Err())
+	return stacks, client.NewError(p.Err())
 }
 
 func DeleteStack(stackName string) client.Error {
@@ -154,7 +151,12 @@ func updateStack(template string, params []cloudformation.Parameter, stackName s
 }
 
 func Deploy(template string, params []cloudformation.Parameter, stackName string) client.Error {
-	if stackExists(stackName) {
+	exists, err := StackExists(stackName)
+	if err != nil {
+		return err
+	}
+
+	if exists {
 		return updateStack(template, params, stackName)
 	}
 
@@ -175,21 +177,4 @@ func WaitUntilStackCreateComplete(stackName string) client.Error {
 	})
 
 	return client.NewError(err)
-}
-
-func stackExists(stackName string) bool {
-	ch := make(chan bool)
-
-	go func() {
-		ListStacks(func(s cloudformation.StackSummary) {
-			if *s.StackName == stackName {
-				ch <- true
-			}
-		})
-
-		// Default
-		ch <- false
-	}()
-
-	return <-ch
 }

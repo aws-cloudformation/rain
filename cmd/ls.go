@@ -5,7 +5,6 @@ import (
 
 	"github.com/aws-cloudformation/rain/client/cfn"
 	"github.com/aws-cloudformation/rain/util"
-	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/spf13/cobra"
 )
 
@@ -19,11 +18,13 @@ var lsCmd = &cobra.Command{
 		if len(args) == 0 {
 			table := util.NewTable("Name", "Status")
 
-			err := cfn.ListStacks(func(s cloudformation.StackSummary) {
-				table.Append(*s.StackName, colouriseStatus(string(s.StackStatus)))
-			})
+			stacks, err := cfn.ListStacks()
 			if err != nil {
 				util.Die(fmt.Errorf("Failed to list stacks: %s", err))
+			}
+
+			for _, stack := range stacks {
+				table.Append(*stack.StackName, colouriseStatus(string(stack.StackStatus)))
 			}
 
 			table.Sort()

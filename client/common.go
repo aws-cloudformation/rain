@@ -39,6 +39,14 @@ func GetConfig() aws.Config {
 			runtime.GOARCH,
 		))
 
+		if config.Region != "" {
+			cfg.Region = config.Region
+		}
+
+		if cfg.Region == "" {
+			util.Die(errors.New("Unable to load AWS config"))
+		}
+
 		awsCfg = &cfg
 	}
 

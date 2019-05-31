@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws-cloudformation/rain/client"
 	"github.com/aws-cloudformation/rain/client/cfn"
 	"github.com/aws-cloudformation/rain/client/s3"
 	"github.com/aws-cloudformation/rain/client/sts"
@@ -15,23 +16,6 @@ import (
 
 var spin = []string{
 	`-`, `\`, `|`, `/`,
-}
-
-func stackExists(stackName string) bool {
-	ch := make(chan bool)
-
-	go func() {
-		cfn.ListStacks(func(s cloudformation.StackSummary) {
-			if *s.StackName == stackName {
-				ch <- true
-			}
-		})
-
-		// Default
-		ch <- false
-	}()
-
-	return <-ch
 }
 
 func colouriseStatus(status string) util.Text {
@@ -45,18 +29,6 @@ func colouriseStatus(status string) util.Text {
 	default:
 		return util.Plain(status)
 	}
-}
-
-func listStacks() {
-	table := util.NewTable("Name", "Status")
-
-	cfn.ListStacks(func(s cloudformation.StackSummary) {
-		table.Append(*s.StackName, colouriseStatus(string(s.StackStatus)))
-	})
-
-	table.Sort()
-
-	fmt.Println(table.String())
 }
 
 func getStackOutput(stack cloudformation.Stack) string {
@@ -107,7 +79,9 @@ func getRainBucket() string {
 		util.Die(err)
 	}
 
-	bucketName := fmt.Sprintf("rain-artifacts-%s", accountId)
+	region := client.GetConfig().Region
+
+	bucketName := fmt.Sprintf("rain-artifacts-%s-%s", accountId, region)
 
 	if !s3.BucketExists(bucketName) {
 		err := s3.CreateBucket(bucketName)
@@ -158,7 +132,7 @@ func waitForStackToSettle(stackName string) string {
 		for {
 			stack, err := cfn.GetStack(stackId)
 			if err != nil {
-				util.Die(err)
+				util.Die(fmt.Errorf("Operation failed: %s", err))
 			}
 
 			// Refresh the stack ID so we can deal with deleted stacks ok

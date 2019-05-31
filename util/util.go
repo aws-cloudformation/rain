@@ -8,7 +8,6 @@ import (
 )
 
 func Die(err error) {
-	fmt.Println()
 	fmt.Fprintln(os.Stderr, Red(err.Error()))
 	os.Exit(1)
 }
