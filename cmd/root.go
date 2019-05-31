@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/aws-cloudformation/rain/config"
 	"github.com/spf13/cobra"
 )
 
@@ -10,6 +11,10 @@ import (
 var rootCmd = &cobra.Command{
 	Use:  "rain",
 	Long: "Rain is a development workflow tool for working with AWS CloudFormation.",
+}
+
+func init() {
+	rootCmd.PersistentFlags().StringVarP(&config.Profile, "profile", "p", "", "AWS profile name; read from the AWS CLI configuration file")
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

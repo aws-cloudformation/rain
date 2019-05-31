@@ -1,15 +1,7 @@
 package cfn
 
 import (
-	"fmt"
-	"runtime"
-
 	"github.com/aws-cloudformation/rain/client"
-	"github.com/aws-cloudformation/rain/util"
-	"github.com/aws-cloudformation/rain/version"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/defaults"
-	"github.com/aws/aws-sdk-go-v2/aws/external"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 )
 
@@ -34,41 +26,30 @@ var liveStatuses = []cloudformation.StackStatus{
 
 var cfnClient *cloudformation.CloudFormation
 
-func init() {
-	cfg, err := external.LoadDefaultAWSConfig()
-	if err != nil {
-		util.Die(err)
+func getClient() *cloudformation.CloudFormation {
+	if cfnClient == nil {
+		cfnClient = cloudformation.New(client.GetConfig())
 	}
 
-	// Set the user agent
-	cfg.Handlers.Build.Remove(defaults.SDKVersionUserAgentHandler)
-	cfg.Handlers.Build.PushFront(aws.MakeAddToUserAgentHandler(
-		version.NAME,
-		version.VERSION,
-		runtime.Version(),
-		runtime.GOOS,
-		runtime.GOARCH,
-	))
-
-	cfnClient = cloudformation.New(cfg)
+	return cfnClient
 }
 
-func GetStackTemplate(stackName string) string {
-	req := cfnClient.GetTemplateRequest(&cloudformation.GetTemplateInput{
+func GetStackTemplate(stackName string) (string, client.Error) {
+	req := getClient().GetTemplateRequest(&cloudformation.GetTemplateInput{
 		StackName:     &stackName,
 		TemplateStage: "Original", //"Processed"
 	})
 
 	res, err := req.Send()
 	if err != nil {
-		util.Die(fmt.Errorf("Could not get the template for stack '%s'.\n", stackName))
+		return "", client.NewError(err)
 	}
 
-	return *res.TemplateBody
+	return *res.TemplateBody, nil
 }
 
 func StackExists(stackName string) (bool, client.Error) {
-	req := cfnClient.ListStacksRequest(&cloudformation.ListStacksInput{
+	req := getClient().ListStacksRequest(&cloudformation.ListStacksInput{
 		StackStatusFilter: liveStatuses,
 	})
 
@@ -86,7 +67,7 @@ func StackExists(stackName string) (bool, client.Error) {
 }
 
 func ListStacks(fn func(cloudformation.StackSummary)) client.Error {
-	req := cfnClient.ListStacksRequest(&cloudformation.ListStacksInput{
+	req := getClient().ListStacksRequest(&cloudformation.ListStacksInput{
 		StackStatusFilter: liveStatuses,
 	})
 
@@ -102,7 +83,7 @@ func ListStacks(fn func(cloudformation.StackSummary)) client.Error {
 
 func DeleteStack(stackName string) client.Error {
 	// Get the stack properties
-	req := cfnClient.DeleteStackRequest(&cloudformation.DeleteStackInput{
+	req := getClient().DeleteStackRequest(&cloudformation.DeleteStackInput{
 		StackName: &stackName,
 	})
 
@@ -113,7 +94,7 @@ func DeleteStack(stackName string) client.Error {
 
 func GetStack(stackName string) (cloudformation.Stack, client.Error) {
 	// Get the stack properties
-	req := cfnClient.DescribeStacksRequest(&cloudformation.DescribeStacksInput{
+	req := getClient().DescribeStacksRequest(&cloudformation.DescribeStacksInput{
 		StackName: &stackName,
 	})
 
@@ -127,7 +108,7 @@ func GetStack(stackName string) (cloudformation.Stack, client.Error) {
 
 func GetStackResources(stackName string) ([]cloudformation.StackResource, client.Error) {
 	// Get the stack resources
-	req := cfnClient.DescribeStackResourcesRequest(&cloudformation.DescribeStackResourcesInput{
+	req := getClient().DescribeStackResourcesRequest(&cloudformation.DescribeStackResourcesInput{
 		StackName: &stackName,
 	})
 
@@ -140,7 +121,7 @@ func GetStackResources(stackName string) ([]cloudformation.StackResource, client
 }
 
 func createStack(template string, params []cloudformation.Parameter, stackName string) client.Error {
-	req := cfnClient.CreateStackRequest(&cloudformation.CreateStackInput{
+	req := getClient().CreateStackRequest(&cloudformation.CreateStackInput{
 		Capabilities: []cloudformation.Capability{
 			"CAPABILITY_NAMED_IAM",
 			"CAPABILITY_AUTO_EXPAND",
@@ -157,7 +138,7 @@ func createStack(template string, params []cloudformation.Parameter, stackName s
 }
 
 func updateStack(template string, params []cloudformation.Parameter, stackName string) client.Error {
-	req := cfnClient.UpdateStackRequest(&cloudformation.UpdateStackInput{
+	req := getClient().UpdateStackRequest(&cloudformation.UpdateStackInput{
 		Capabilities: []cloudformation.Capability{
 			"CAPABILITY_NAMED_IAM",
 			"CAPABILITY_AUTO_EXPAND",
@@ -181,7 +162,7 @@ func Deploy(template string, params []cloudformation.Parameter, stackName string
 }
 
 func WaitUntilStackExists(stackName string) client.Error {
-	err := cfnClient.WaitUntilStackExists(&cloudformation.DescribeStacksInput{
+	err := getClient().WaitUntilStackExists(&cloudformation.DescribeStacksInput{
 		StackName: &stackName,
 	})
 
@@ -189,7 +170,7 @@ func WaitUntilStackExists(stackName string) client.Error {
 }
 
 func WaitUntilStackCreateComplete(stackName string) client.Error {
-	err := cfnClient.WaitUntilStackCreateComplete(&cloudformation.DescribeStacksInput{
+	err := getClient().WaitUntilStackCreateComplete(&cloudformation.DescribeStacksInput{
 		StackName: &stackName,
 	})
 
