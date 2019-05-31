@@ -1,5 +1,6 @@
 package cmd
 
+// Disabled for now
 /*
 func init() {
 	// Find plugins
