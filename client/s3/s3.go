@@ -3,6 +3,7 @@ package s3
 import (
 	"runtime"
 
+	"github.com/aws-cloudformation/rain/client"
 	"github.com/aws-cloudformation/rain/util"
 	"github.com/aws-cloudformation/rain/version"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -11,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-var client *s3.S3
+var s3Client *s3.S3
 
 func init() {
 	cfg, err := external.LoadDefaultAWSConfig()
@@ -29,11 +30,11 @@ func init() {
 		runtime.GOARCH,
 	))
 
-	client = s3.New(cfg)
+	s3Client = s3.New(cfg)
 }
 
 func BucketExists(bucketName string) bool {
-	req := client.HeadBucketRequest(&s3.HeadBucketInput{
+	req := s3Client.HeadBucketRequest(&s3.HeadBucketInput{
 		Bucket: &bucketName,
 	})
 
@@ -42,11 +43,12 @@ func BucketExists(bucketName string) bool {
 	return err == nil
 }
 
-func CreateBucket(bucketName string) error {
-	req := client.CreateBucketRequest(&s3.CreateBucketInput{
+func CreateBucket(bucketName string) client.Error {
+	req := s3Client.CreateBucketRequest(&s3.CreateBucketInput{
 		Bucket: &bucketName,
 	})
 
 	_, err := req.Send()
-	return err
+
+	return client.NewError(err)
 }

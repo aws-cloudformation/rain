@@ -1,9 +1,9 @@
 package sts
 
 import (
-	"errors"
 	"runtime"
 
+	"github.com/aws-cloudformation/rain/client"
 	"github.com/aws-cloudformation/rain/util"
 	"github.com/aws-cloudformation/rain/version"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
-var client *sts.STS
+var stsClient *sts.STS
 
 func init() {
 	cfg, err := external.LoadDefaultAWSConfig()
@@ -30,16 +30,16 @@ func init() {
 		runtime.GOARCH,
 	))
 
-	client = sts.New(cfg)
+	stsClient = sts.New(cfg)
 }
 
-func GetAccountId() string {
-	req := client.GetCallerIdentityRequest(nil)
+func GetAccountId() (string, client.Error) {
+	req := stsClient.GetCallerIdentityRequest(nil)
 
 	res, err := req.Send()
 	if err != nil {
-		util.Die(errors.New("Could not get caller identity"))
+		return "", client.NewError(err)
 	}
 
-	return *res.Account
+	return *res.Account, nil
 }

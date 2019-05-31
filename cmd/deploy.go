@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/aws-cloudformation/rain/client/cfn"
 	"github.com/aws-cloudformation/rain/diff"
@@ -26,7 +25,7 @@ var deployCmd = &cobra.Command{
 		fn := args[0]
 		stackName := args[1]
 
-		fmt.Printf("Deploying %s => %s\n", filepath.Base(fn), stackName)
+		fmt.Printf("Preparing template '%s'...", filepath.Base(fn))
 
 		outputFn, err := ioutil.TempFile("", "")
 		if err != nil {
@@ -44,16 +43,19 @@ var deployCmd = &cobra.Command{
 			util.Die(err)
 		}
 
+		util.ClearLine()
+		fmt.Printf("Checking current status of stack '%s'...", stackName)
+
 		// Find out if stack exists already
 		// If it does and it's not in a good state, offer to wait/delete
 		stack, err := cfn.GetStack(stackName)
 		if err == nil {
 			if !strings.HasSuffix(string(stack.StackStatus), "_COMPLETE") {
 				// Can't update
+				util.ClearLine()
 				util.Die(fmt.Errorf("Stack '%s' could not be updated: %s", stackName, colouriseStatus(string(stack.StackStatus))))
 			} else {
 				// Can update, grab a diff
-				fmt.Println("Stack exists. Diff will follow...")
 
 				oldTemplateString := cfn.GetStackTemplate(stackName)
 
@@ -63,33 +65,39 @@ var deployCmd = &cobra.Command{
 				d := diff.Compare(oldTemplate, newTemplate)
 
 				if d == diff.Unchanged {
+					util.ClearLine()
 					util.Die(errors.New("No changes to deploy!"))
 				}
 
-				fmt.Println(colouriseDiff(d))
-
-				fmt.Println("Stack exists; see above diff")
-
-				for i := 5; i >= 0; i-- {
-					fmt.Printf("Continuting in %d seconds...", i)
-					time.Sleep(time.Second)
-					fmt.Print("\033[1G")
+				util.ClearLine()
+				if util.Confirm(true, fmt.Sprintf("Stack '%s' exists. Do you wish to see the diff before deploying?", stackName)) {
+					fmt.Print(colouriseDiff(d))
 				}
 			}
 		}
 
+		util.ClearLine()
+		fmt.Printf("Deploying stack '%s'...", stackName)
+
 		// Start deployment
-		cfn.Deploy(outputFn.Name(), stackName)
-		cfn.WaitUntilStackExists(stackName)
+		err = cfn.Deploy(outputFn.Name(), stackName)
+		if err != nil {
+			util.Die(err)
+		}
+
+		err = cfn.WaitUntilStackExists(stackName)
+		if err != nil {
+			util.Die(err)
+		}
 
 		status := waitForStackToSettle(stackName)
 
 		if status == "CREATE_COMPLETE" {
-			fmt.Println(util.Text{"Successfully deployed " + stackName, util.Green})
+			fmt.Println(util.Green("Successfully deployed " + stackName))
 		} else if status == "UPDATE_COMPLETE" {
-			fmt.Println(util.Text{"Successfully updated " + stackName, util.Green})
+			fmt.Println(util.Green("Successfully updated " + stackName))
 		} else {
-			fmt.Println(util.Text{"Failed deployment: " + stackName, util.Red})
+			util.Die(errors.New("Failed deployment: " + stackName))
 		}
 
 		fmt.Println()

@@ -32,18 +32,16 @@ var diffCmd = &cobra.Command{
 		output := diff.Format(diff.Compare(left, right))
 
 		for _, line := range strings.Split(output, "\n") {
-			colour := util.None
-
 			switch {
 			case strings.HasPrefix(line, ">>> "):
-				colour = util.Green
+				fmt.Println(util.Green(line))
 			case strings.HasPrefix(line, "<<< "):
-				colour = util.Red
+				fmt.Println(util.Red(line))
 			case strings.HasPrefix(line, "||| "):
-				colour = util.Orange
+				fmt.Println(util.Orange(line))
+			default:
+				fmt.Println(line)
 			}
-
-			fmt.Println(util.Text{line, colour})
 		}
 	},
 }

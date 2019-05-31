@@ -35,18 +35,16 @@ func stackExists(stackName string) bool {
 }
 
 func colouriseStatus(status string) util.Text {
-	colour := util.None
-
 	switch {
 	case strings.HasSuffix(status, "_COMPLETE"):
-		colour = util.Green
+		return util.Green(status)
 	case strings.HasSuffix(status, "_IN_PROGRESS"):
-		colour = util.Orange
+		return util.Orange(status)
 	case strings.HasSuffix(status, "_FAILED"):
-		colour = util.Red
+		return util.Red(status)
+	default:
+		return util.Plain(status)
 	}
-
-	return util.Text{status, colour}
 }
 
 func listStacks() {
@@ -69,20 +67,20 @@ func getStackOutput(stack cloudformation.Stack) string {
 
 	out.WriteString(fmt.Sprintf("%s:  # %s\n", *stack.StackName, colouriseStatus(string(stack.StackStatus))))
 	if stack.StackStatusReason != nil {
-		out.WriteString(fmt.Sprintf("  Message: %s\n", util.Text{*stack.StackStatusReason, util.Yellow}))
+		out.WriteString(fmt.Sprintf("  Message: %s\n", util.Yellow(*stack.StackStatusReason)))
 	}
 
 	if len(stack.Parameters) > 0 {
 		out.WriteString("  Parameters:\n")
 		for _, param := range stack.Parameters {
-			out.WriteString(fmt.Sprintf("    %s: %s\n", *param.ParameterKey, util.Text{*param.ParameterValue, util.Yellow}))
+			out.WriteString(fmt.Sprintf("    %s: %s\n", *param.ParameterKey, util.Yellow(*param.ParameterValue)))
 		}
 	}
 
 	if len(stack.Outputs) > 0 {
 		out.WriteString("  Outputs:\n")
 		for _, output := range stack.Outputs {
-			out.WriteString(fmt.Sprintf("    %s: %s\n", *output.OutputKey, util.Text{*output.OutputValue, util.Yellow}))
+			out.WriteString(fmt.Sprintf("    %s: %s\n", *output.OutputKey, util.Yellow(*output.OutputValue)))
 		}
 	}
 
@@ -90,12 +88,12 @@ func getStackOutput(stack cloudformation.Stack) string {
 		out.WriteString("  Resources:\n")
 		for _, resource := range resources {
 			out.WriteString(fmt.Sprintf("    %s:  # %s\n", *resource.LogicalResourceId, colouriseStatus(string(resource.ResourceStatus))))
-			out.WriteString(fmt.Sprintf("      Type: %s\n", util.Text{*resource.ResourceType, util.Yellow}))
+			out.WriteString(fmt.Sprintf("      Type: %s\n", util.Yellow(*resource.ResourceType)))
 			if resource.PhysicalResourceId != nil {
-				out.WriteString(fmt.Sprintf("      PhysicalID: %s\n", util.Text{*resource.PhysicalResourceId, util.Yellow}))
+				out.WriteString(fmt.Sprintf("      PhysicalID: %s\n", util.Yellow(*resource.PhysicalResourceId)))
 			}
 			if resource.ResourceStatusReason != nil {
-				out.WriteString(fmt.Sprintf("      Message: %s\n", util.Text{*resource.ResourceStatusReason, util.Yellow}))
+				out.WriteString(fmt.Sprintf("      Message: %s\n", util.Yellow(*resource.ResourceStatusReason)))
 			}
 		}
 	}
@@ -103,12 +101,11 @@ func getStackOutput(stack cloudformation.Stack) string {
 	return out.String()
 }
 
-func clearScreen() {
-	fmt.Print("\033[0;0H\033[2J")
-}
-
 func getRainBucket() string {
-	accountId := sts.GetAccountId()
+	accountId, err := sts.GetAccountId()
+	if err != nil {
+		util.Die(err)
+	}
 
 	bucketName := fmt.Sprintf("rain-artifacts-%s", accountId)
 
@@ -126,18 +123,17 @@ func colouriseDiff(d diff.Diff) string {
 	output := strings.Builder{}
 
 	for _, line := range strings.Split(diff.Format(d), "\n") {
-		colour := util.None
-
 		switch {
 		case strings.HasPrefix(line, ">>> "):
-			colour = util.Green
+			output.WriteString(util.Green(line).String())
 		case strings.HasPrefix(line, "<<< "):
-			colour = util.Red
+			output.WriteString(util.Red(line).String())
 		case strings.HasPrefix(line, "||| "):
-			colour = util.Orange
+			output.WriteString(util.Orange(line).String())
+		default:
+			output.WriteString(line)
 		}
 
-		output.WriteString(util.Text{line, colour}.String())
 		output.WriteString("\n")
 	}
 
@@ -156,7 +152,7 @@ func waitForStackToSettle(stackName string) string {
 	defer close(outputs)
 	defer close(finished)
 
-	clearScreen()
+	util.ClearScreen()
 
 	go func(stackId string) {
 		for {
@@ -181,32 +177,43 @@ func waitForStackToSettle(stackName string) string {
 		}
 	}(stackName)
 
+	lastOutput := ""
+
 	for {
 		select {
 		case output := <-outputs:
-			clearScreen()
-			fmt.Println(output)
+			if util.IsTTY {
+				util.ClearScreen()
+				fmt.Println(output)
+			}
+
+			lastOutput = output
 		default:
 			// Allow the display to update regardless
 		}
 
 		select {
 		case status := <-finished:
+			if !util.IsTTY {
+				fmt.Println()
+				fmt.Println(lastOutput)
+			}
+
 			return status
 		default:
 			// Allow the display to update regardless
 		}
 
 		// Display timer
-		fmt.Print(spin[count])
-		fmt.Print(" ")
-		fmt.Print(time.Now().Sub(start).Truncate(time.Second))
-		fmt.Print("\033[0G")
+		if util.IsTTY {
+			util.ClearLine()
+			fmt.Print(spin[count])
+			fmt.Print(" ")
+			fmt.Print(time.Now().Sub(start).Truncate(time.Second))
 
-		count = (count + 1) % len(spin)
+			count = (count + 1) % len(spin)
 
-		time.Sleep(time.Second / 2)
+			time.Sleep(time.Second / 2)
+		}
 	}
-
-	return ""
 }

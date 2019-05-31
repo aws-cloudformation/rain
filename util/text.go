@@ -1,3 +1,4 @@
+//go:generate go run generate/main.go
 package util
 
 import (
@@ -7,39 +8,50 @@ import (
 	"github.com/andrew-d/go-termutil"
 )
 
-var isTTY bool
+var IsTTY bool
 
 func init() {
-	isTTY = termutil.Isatty(os.Stdout.Fd())
+	IsTTY = termutil.Isatty(os.Stdout.Fd())
 }
+
+const end = "\033[0m"
 
 type Text struct {
-	Text   string
-	Colour Colour
+	text   string
+	colour string
 }
 
-type Colour string
-
-const (
-	None   Colour = ""
-	Bold   Colour = "\033[1;37m"
-	Orange Colour = "\033[0;33m"
-	Yellow Colour = "\033[1;33m"
-	Red    Colour = "\033[1;31m"
-	Green  Colour = "\033[0;32m"
-	Grey   Colour = "\033[0;37m"
-	White  Colour = "\033[0;30m"
-	End    Colour = "\033[0m"
-)
-
 func (t Text) String() string {
-	if t.Colour == None || !isTTY {
-		return t.Text
+	if t.colour == "" || !IsTTY {
+		return t.text
 	}
 
-	return fmt.Sprintf("%s%s%s", t.Colour, t.Text, End)
+	return fmt.Sprintf("%s%s%s", t.colour, t.text, end)
 }
 
 func (t Text) Len() int {
-	return len(t.Text)
+	return len(t.text)
+}
+
+func Plain(text string) Text {
+	return Text{
+		text:   text,
+		colour: "",
+	}
+}
+
+func ClearScreen() {
+	if IsTTY {
+		fmt.Print("\033[1;1H\033[2J")
+	} else {
+		fmt.Println()
+	}
+}
+
+func ClearLine() {
+	if IsTTY {
+		fmt.Print("\033[1G\033[2K")
+	} else {
+		fmt.Println()
+	}
 }

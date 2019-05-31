@@ -23,7 +23,7 @@ func NewTable(headings ...string) Table {
 
 	ch := make([]Text, len(headings))
 	for i, h := range headings {
-		ch[i] = Text{h, Bold}
+		ch[i] = Bold(h)
 	}
 
 	return Table{
@@ -40,7 +40,7 @@ func (t *Table) Append(values ...interface{}) {
 		if t, ok := v.(Text); ok {
 			s[i] = t
 		} else {
-			s[i] = Text{fmt.Sprint(v), None}
+			s[i] = Plain(fmt.Sprint(v))
 		}
 
 		if s[i].Len() > t.maxLengths[i] {
@@ -122,7 +122,7 @@ func (t *Table) YAML() string {
 		m := make(map[string]interface{})
 
 		for j, h := range t.headings {
-			m[h.Text] = v[j].Text
+			m[h.text] = v[j].text
 		}
 
 		out[i] = m
