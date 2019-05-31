@@ -4,6 +4,18 @@ Rain is a development workflow tool for working with AWS CloudFormation.
 
 > Rain is also what happens when you have a lot of CloudFormation
 
+Here's what it looks like:
+
+![Make it Rain](./media/rain.gif)
+
+## Installing
+
+First, you'll need [Go](https://golang.org/) installed.
+
+After that, to install rain, run the following:
+
+`go install github.com/aws-cloudformation/rain`
+
 ## License
 
 This library is licensed under the Apache 2.0 License. 
