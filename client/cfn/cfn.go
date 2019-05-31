@@ -2,7 +2,6 @@ package cfn
 
 import (
 	"fmt"
-	"io/ioutil"
 	"runtime"
 
 	"github.com/aws-cloudformation/rain/client"
@@ -140,7 +139,7 @@ func GetStackResources(stackName string) ([]cloudformation.StackResource, client
 	return res.StackResources, nil
 }
 
-func createStack(template, stackName string) client.Error {
+func createStack(template string, params []cloudformation.Parameter, stackName string) client.Error {
 	req := cfnClient.CreateStackRequest(&cloudformation.CreateStackInput{
 		Capabilities: []cloudformation.Capability{
 			"CAPABILITY_NAMED_IAM",
@@ -149,6 +148,7 @@ func createStack(template, stackName string) client.Error {
 		OnFailure:    "DELETE", // ROLLBACK or DELETE
 		StackName:    &stackName,
 		TemplateBody: &template,
+		Parameters:   params,
 	})
 
 	_, err := req.Send()
@@ -156,7 +156,7 @@ func createStack(template, stackName string) client.Error {
 	return client.NewError(err)
 }
 
-func updateStack(template, stackName string) client.Error {
+func updateStack(template string, params []cloudformation.Parameter, stackName string) client.Error {
 	req := cfnClient.UpdateStackRequest(&cloudformation.UpdateStackInput{
 		Capabilities: []cloudformation.Capability{
 			"CAPABILITY_NAMED_IAM",
@@ -164,6 +164,7 @@ func updateStack(template, stackName string) client.Error {
 		},
 		StackName:    &stackName,
 		TemplateBody: &template,
+		Parameters:   params,
 	})
 
 	_, err := req.Send()
@@ -171,19 +172,12 @@ func updateStack(template, stackName string) client.Error {
 	return client.NewError(err)
 }
 
-func Deploy(templateFilename, stackName string) client.Error {
-	body, err := ioutil.ReadFile(templateFilename)
-	if err != nil {
-		return client.NewError(err)
-	}
-
-	template := string(body)
-
+func Deploy(template string, params []cloudformation.Parameter, stackName string) client.Error {
 	if stackExists(stackName) {
-		return updateStack(template, stackName)
+		return updateStack(template, params, stackName)
 	}
 
-	return createStack(template, stackName)
+	return createStack(template, params, stackName)
 }
 
 func WaitUntilStackExists(stackName string) client.Error {

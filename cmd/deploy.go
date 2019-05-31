@@ -11,9 +11,56 @@ import (
 	"github.com/aws-cloudformation/rain/client/cfn"
 	"github.com/aws-cloudformation/rain/diff"
 	"github.com/aws-cloudformation/rain/util"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/awslabs/aws-cloudformation-template-formatter/parse"
 	"github.com/spf13/cobra"
 )
+
+func getParameters(t string, old []cloudformation.Parameter) []cloudformation.Parameter {
+	new := make([]cloudformation.Parameter, 0)
+
+	template, err := parse.ReadString(t)
+	if err != nil {
+		util.Die(err)
+	}
+
+	oldMap := make(map[string]cloudformation.Parameter)
+	for _, param := range old {
+		oldMap[*param.ParameterKey] = param
+	}
+
+	if params, ok := template["Parameters"]; ok {
+		for key, p := range params.(map[string]interface{}) {
+			extra := ""
+			param := p.(map[string]interface{})
+
+			hasExisting := false
+
+			if oldParam, ok := oldMap[key]; ok {
+				extra = fmt.Sprintf(" (existing value: %s)", *oldParam.ParameterValue)
+				hasExisting = true
+			} else if defaultValue, ok := param["Default"]; ok {
+				extra = fmt.Sprintf(" (default value: %s)", defaultValue)
+			}
+
+			value := util.Ask(fmt.Sprintf("Enter a value for parameter '%s'%s:", key, extra))
+
+			if value != "" {
+				new = append(new, cloudformation.Parameter{
+					ParameterKey:   &key,
+					ParameterValue: &value,
+				})
+			} else if hasExisting {
+				new = append(new, cloudformation.Parameter{
+					ParameterKey:     &key,
+					UsePreviousValue: &hasExisting,
+				})
+			}
+		}
+	}
+
+	return new
+}
 
 var deployCmd = &cobra.Command{
 	Use:                   "deploy <template> <stack>",
@@ -79,8 +126,17 @@ var deployCmd = &cobra.Command{
 		util.ClearLine()
 		fmt.Printf("Deploying stack '%s'...", stackName)
 
+		// Load in the template file
+		t, err := ioutil.ReadFile(outputFn.Name())
+		if err != nil {
+			util.Die(err)
+		}
+		template := string(t)
+
+		parameters := getParameters(template, stack.Parameters)
+
 		// Start deployment
-		err = cfn.Deploy(outputFn.Name(), stackName)
+		err = cfn.Deploy(template, parameters, stackName)
 		if err != nil {
 			util.Die(err)
 		}

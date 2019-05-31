@@ -188,16 +188,10 @@ func waitForStackToSettle(stackName string) string {
 			}
 
 			lastOutput = output
-		default:
-			// Allow the display to update regardless
-		}
-
-		select {
 		case status := <-finished:
-			if !util.IsTTY {
-				fmt.Println()
-				fmt.Println(lastOutput)
-			}
+			// Display the final status
+			util.ClearScreen()
+			fmt.Println(lastOutput)
 
 			return status
 		default:

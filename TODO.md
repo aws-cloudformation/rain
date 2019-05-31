@@ -1,12 +1,8 @@
 # To do
 
 * `deploy`
-    * Change diff timer to:
-        1. Do you want to view the diff?
-        2. Are you sure you want to deploy?
     * Add flag to enable no-confirm deployment.
     * Add `--yes` flag
-    * Prompt for parameter values
 
 * `rm`
     * List stack contents and ask for confirmation
