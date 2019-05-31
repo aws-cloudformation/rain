@@ -2,6 +2,8 @@
 
 Rain is a development workflow tool for working with AWS CloudFormation.
 
+*Rain is currently in preview and shouldn't yet be considered stable enough for production use. Please report any bugs you find [through GitHub issues](https://github.com/aws-cloudformation/rain/issues)*
+
 > Rain is also what happens when you have a lot of CloudFormation
 
 Here's what it looks like:
