@@ -1,3 +1,4 @@
+//go:generate bash generate.sh
 package version
 
 const NAME = "Rain"
