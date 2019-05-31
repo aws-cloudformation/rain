@@ -99,12 +99,14 @@ var deployCmd = &cobra.Command{
 		if err == nil {
 			if !strings.HasSuffix(string(stack.StackStatus), "_COMPLETE") {
 				// Can't update
-				util.ClearLine()
 				util.Die(fmt.Errorf("Stack '%s' could not be updated: %s", stackName, colouriseStatus(string(stack.StackStatus))))
 			} else {
 				// Can update, grab a diff
 
-				oldTemplateString := cfn.GetStackTemplate(stackName)
+				oldTemplateString, err := cfn.GetStackTemplate(stackName)
+				if err != nil {
+					util.Die(fmt.Errorf("Failed to get existing template for stack '%s': %s", stackName, err))
+				}
 
 				oldTemplate, _ := parse.ReadString(oldTemplateString)
 				newTemplate, _ := parse.ReadFile(outputFn.Name())
@@ -112,7 +114,6 @@ var deployCmd = &cobra.Command{
 				d := diff.Compare(oldTemplate, newTemplate)
 
 				if d == diff.Unchanged {
-					util.ClearLine()
 					util.Die(errors.New("No changes to deploy!"))
 				}
 

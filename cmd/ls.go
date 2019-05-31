@@ -19,17 +19,22 @@ var lsCmd = &cobra.Command{
 		if len(args) == 0 {
 			table := util.NewTable("Name", "Status")
 
-			cfn.ListStacks(func(s cloudformation.StackSummary) {
+			err := cfn.ListStacks(func(s cloudformation.StackSummary) {
 				table.Append(*s.StackName, colouriseStatus(string(s.StackStatus)))
 			})
+			if err != nil {
+				util.Die(fmt.Errorf("Failed to list stacks: %s", err))
+			}
 
 			table.Sort()
 
 			fmt.Println(table.String())
 		} else if len(args) == 1 {
-			stack, err := cfn.GetStack(args[0])
+			stackName := args[0]
+
+			stack, err := cfn.GetStack(stackName)
 			if err != nil {
-				util.Die(err)
+				util.Die(fmt.Errorf("Failed to list stack '%s': %s", stackName, err))
 			}
 
 			fmt.Println(getStackOutput(stack))
