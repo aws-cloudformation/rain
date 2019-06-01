@@ -56,7 +56,7 @@ func (t *Table) Sort() {
 	valueList := make([]string, len(t.values))
 
 	for i, v := range t.values {
-		vs := fmt.Sprint("%#v", v)
+		vs := fmt.Sprint(v)
 
 		valueMap[vs] = v
 		valueList[i] = vs
