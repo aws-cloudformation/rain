@@ -4,14 +4,17 @@ package util
 import (
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/andrew-d/go-termutil"
 )
 
 var IsTTY bool
+var hasColour bool
 
 func init() {
 	IsTTY = termutil.Isatty(os.Stdout.Fd())
+	hasColour = runtime.GOOS != "windows"
 }
 
 const end = "\033[0m"
@@ -22,7 +25,7 @@ type Text struct {
 }
 
 func (t Text) String() string {
-	if t.colour == "" || !IsTTY {
+	if t.colour == "" || !IsTTY || !hasColour {
 		return t.text
 	}
 
@@ -41,7 +44,7 @@ func Plain(text string) Text {
 }
 
 func ClearScreen() {
-	if IsTTY {
+	if IsTTY && hasColour {
 		fmt.Print("\033[1;1H\033[2J")
 	} else {
 		fmt.Println()
@@ -49,7 +52,7 @@ func ClearScreen() {
 }
 
 func ClearLine() {
-	if IsTTY {
+	if IsTTY && hasColour {
 		fmt.Print("\033[1G\033[2K")
 	} else {
 		fmt.Println()
