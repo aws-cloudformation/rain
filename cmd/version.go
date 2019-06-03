@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"runtime"
 
 	"github.com/aws-cloudformation/rain/version"
 	"github.com/spf13/cobra"
@@ -13,7 +12,7 @@ var versionCmd = &cobra.Command{
 	Short:                 "Display the installed version of rain",
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("%s %s %s/%s\n", version.NAME, version.VERSION, runtime.GOOS, runtime.GOARCH)
+		fmt.Println(version.String())
 	},
 }
 

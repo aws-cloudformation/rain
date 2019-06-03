@@ -15,13 +15,22 @@ func getClient() *sts.STS {
 	return stsClient
 }
 
-func GetAccountId() (string, client.Error) {
+func GetCallerId() (sts.GetCallerIdentityOutput, client.Error) {
 	req := getClient().GetCallerIdentityRequest(nil)
 
 	res, err := req.Send()
 	if err != nil {
+		return sts.GetCallerIdentityOutput{}, client.NewError(err)
+	}
+
+	return *res, nil
+}
+
+func GetAccountId() (string, client.Error) {
+	id, err := GetCallerId()
+	if err != nil {
 		return "", client.NewError(err)
 	}
 
-	return *res.Account, nil
+	return *id.Account, nil
 }
