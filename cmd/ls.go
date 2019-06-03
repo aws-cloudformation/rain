@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/aws-cloudformation/rain/client"
 	"github.com/aws-cloudformation/rain/client/cfn"
 	"github.com/aws-cloudformation/rain/util"
 	"github.com/spf13/cobra"
@@ -29,6 +30,8 @@ var lsCmd = &cobra.Command{
 
 			table.Sort()
 
+			fmt.Println()
+			fmt.Println(util.Yellow(fmt.Sprintf("CloudFormation stacks in %s:", client.GetConfig().Region)))
 			fmt.Println(table.String())
 		} else if len(args) == 1 {
 			stackName := args[0]
