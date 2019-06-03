@@ -80,8 +80,7 @@ var deployCmd = &cobra.Command{
 		}
 		defer os.Remove(outputFn.Name())
 
-		// Package it up
-		_, err = util.RunCapture("aws", "cloudformation", "package",
+		_, err = util.RunAwsCapture("cloudformation", "package",
 			"--template-file", fn,
 			"--output-template-file", outputFn.Name(),
 			"--s3-bucket", getRainBucket(),

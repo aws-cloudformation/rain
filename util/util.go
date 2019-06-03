@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+
+	"github.com/aws-cloudformation/rain/config"
 )
 
 func Die(err error) {
@@ -37,4 +39,16 @@ func RunCapture(command string, args ...string) (string, error) {
 	}
 
 	return out.String(), fmt.Errorf(err.String())
+}
+
+func RunAwsCapture(args ...string) (string, error) {
+	if config.Profile != "" {
+		args = append(args, "--profile", config.Profile)
+	}
+
+	if config.Region != "" {
+		args = append(args, "--region", config.Region)
+	}
+
+	return RunCapture("aws", args...)
 }
