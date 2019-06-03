@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/awslabs/aws-cloudformation-template-formatter/format"
+	"github.com/aws-cloudformation/rain/format"
 )
 
 var modeStrings = map[mode]string{

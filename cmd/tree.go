@@ -3,10 +3,10 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/aws-cloudformation/rain/format"
 	"github.com/aws-cloudformation/rain/lib"
+	"github.com/aws-cloudformation/rain/parse"
 	"github.com/aws-cloudformation/rain/util"
-	"github.com/awslabs/aws-cloudformation-template-formatter/format"
-	"github.com/awslabs/aws-cloudformation-template-formatter/parse"
 	"github.com/spf13/cobra"
 )
 

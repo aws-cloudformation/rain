@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/awslabs/aws-cloudformation-template-formatter/format"
+	"github.com/aws-cloudformation/rain/format"
 )
 
 type Table struct {

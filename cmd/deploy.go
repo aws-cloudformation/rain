@@ -10,9 +10,9 @@ import (
 
 	"github.com/aws-cloudformation/rain/client/cfn"
 	"github.com/aws-cloudformation/rain/diff"
+	"github.com/aws-cloudformation/rain/parse"
 	"github.com/aws-cloudformation/rain/util"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
-	"github.com/awslabs/aws-cloudformation-template-formatter/parse"
 	"github.com/spf13/cobra"
 )
 

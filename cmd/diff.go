@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/aws-cloudformation/rain/diff"
+	"github.com/aws-cloudformation/rain/parse"
 	"github.com/aws-cloudformation/rain/util"
-	"github.com/awslabs/aws-cloudformation-template-formatter/parse"
 	"github.com/spf13/cobra"
 )
 
