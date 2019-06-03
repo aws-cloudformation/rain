@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"reflect"
+	"strings"
 
 	"github.com/google/go-cmp/cmp"
 	yaml "github.com/sanathkr/go-yaml"
@@ -49,6 +50,13 @@ func (t *tagUnmarshalerType) UnmarshalYAMLTag(tag string, value reflect.Value) r
 		prefix = ""
 	}
 	tag = prefix + tag
+
+	// Deal with tricksy GetAtt
+	if tag == "Fn::GetAtt" {
+		if s, ok := value.Interface().(string); ok {
+			value = reflect.ValueOf(strings.SplitN(s, ".", 2))
+		}
+	}
 
 	output := reflect.ValueOf(make(map[interface{}]interface{}))
 	key := reflect.ValueOf(tag)

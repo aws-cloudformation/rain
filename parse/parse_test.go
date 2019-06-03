@@ -35,6 +35,24 @@ var expected = map[string]interface{}{
 			},
 		},
 	},
+	"Outputs": map[string]interface{}{
+		"Bucket1Arn": map[string]interface{}{
+			"Value": map[string]interface{}{
+				"Fn::GetAtt": []interface{}{
+					"Bucket1",
+					"Arn",
+				},
+			},
+		},
+		"Bucket2Arn": map[string]interface{}{
+			"Value": map[string]interface{}{
+				"Fn::GetAtt": []interface{}{
+					"Bucket2",
+					"Arn",
+				},
+			},
+		},
+	},
 }
 
 func init() {
