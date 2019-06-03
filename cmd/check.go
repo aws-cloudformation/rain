@@ -12,7 +12,7 @@ import (
 var checkCmd = &cobra.Command{
 	Use:                   "check",
 	Short:                 "Show your current configuration",
-	Long:                  "Take a rain check. See what account and region you're configured to use. And do nothing else for now :)",
+	Long:                  "Take a rain check.\n\nDisplay the AWS account and region that you're configured to use.\n\nAnd do nothing else for now :)",
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		id, err := sts.GetCallerId()
