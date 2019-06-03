@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/aws-cloudformation/rain/client/cfn"
 	"github.com/aws-cloudformation/rain/util"
@@ -16,7 +17,7 @@ var lsCmd = &cobra.Command{
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
-			table := util.NewTable("Name", "Status")
+			table := util.NewTable("Name", "Region", "Status")
 
 			stacks, err := cfn.ListStacks()
 			if err != nil {
@@ -24,7 +25,8 @@ var lsCmd = &cobra.Command{
 			}
 
 			for _, stack := range stacks {
-				table.Append(*stack.StackName, colouriseStatus(string(stack.StackStatus)))
+				region := strings.Split(*stack.StackId, ":")[3]
+				table.Append(*stack.StackName, region, colouriseStatus(string(stack.StackStatus)))
 			}
 
 			table.Sort()
