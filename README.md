@@ -14,13 +14,9 @@ Here's what it looks like:
 
 You can download the appropriate binary for your system from [the releases page](https://github.com/aws-cloudformation/rain/releases).
 
-Alternatively, if you have [Go](https://golang.org/) installed, clone this repository somewhere *outside* of your `$GOPATH` and then run `go install` from within the `rain` folder:
+Alternatively, [Go](https://golang.org) (v1.12 or higher) installed:
 
-```shell
-git clone https://github.com/aws-cloudformation/rain
-cd rain
-go install
-```
+`GO111MODULE=on go get github.com/aws-cloudformation/rain`
 
 ## License
 
