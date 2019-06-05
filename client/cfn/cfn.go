@@ -1,6 +1,8 @@
 package cfn
 
 import (
+	"context"
+
 	"github.com/aws-cloudformation/rain/client"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 )
@@ -24,9 +26,9 @@ var liveStatuses = []cloudformation.StackStatus{
 	"REVIEW_IN_PROGRESS",
 }
 
-var cfnClient *cloudformation.CloudFormation
+var cfnClient *cloudformation.Client
 
-func getClient() *cloudformation.CloudFormation {
+func getClient() *cloudformation.Client {
 	if cfnClient == nil {
 		cfnClient = cloudformation.New(client.Config())
 	}
@@ -40,7 +42,7 @@ func GetStackTemplate(stackName string) (string, client.Error) {
 		TemplateStage: "Original", //"Processed"
 	})
 
-	res, err := req.Send()
+	res, err := req.Send(context.Background())
 	if err != nil {
 		return "", client.NewError(err)
 	}
@@ -70,8 +72,8 @@ func ListStacks() ([]cloudformation.StackSummary, client.Error) {
 
 	stacks := make([]cloudformation.StackSummary, 0)
 
-	p := req.Paginate()
-	for p.Next() {
+	p := cloudformation.NewListStacksPaginator(req)
+	for p.Next(context.Background()) {
 		stacks = append(stacks, p.CurrentPage().StackSummaries...)
 	}
 
@@ -84,7 +86,7 @@ func DeleteStack(stackName string) client.Error {
 		StackName: &stackName,
 	})
 
-	_, err := req.Send()
+	_, err := req.Send(context.Background())
 
 	return client.NewError(err)
 }
@@ -95,7 +97,7 @@ func GetStack(stackName string) (cloudformation.Stack, client.Error) {
 		StackName: &stackName,
 	})
 
-	res, err := req.Send()
+	res, err := req.Send(context.Background())
 	if err != nil {
 		return cloudformation.Stack{}, client.NewError(err)
 	}
@@ -109,7 +111,7 @@ func GetStackResources(stackName string) ([]cloudformation.StackResource, client
 		StackName: &stackName,
 	})
 
-	res, err := req.Send()
+	res, err := req.Send(context.Background())
 	if err != nil {
 		return nil, client.NewError(err)
 	}
@@ -129,7 +131,7 @@ func createStack(template string, params []cloudformation.Parameter, stackName s
 		Parameters:   params,
 	})
 
-	_, err := req.Send()
+	_, err := req.Send(context.Background())
 
 	return client.NewError(err)
 }
@@ -145,7 +147,7 @@ func updateStack(template string, params []cloudformation.Parameter, stackName s
 		Parameters:   params,
 	})
 
-	_, err := req.Send()
+	_, err := req.Send(context.Background())
 
 	return client.NewError(err)
 }
@@ -164,7 +166,7 @@ func Deploy(template string, params []cloudformation.Parameter, stackName string
 }
 
 func WaitUntilStackExists(stackName string) client.Error {
-	err := getClient().WaitUntilStackExists(&cloudformation.DescribeStacksInput{
+	err := getClient().WaitUntilStackExists(context.Background(), &cloudformation.DescribeStacksInput{
 		StackName: &stackName,
 	})
 
@@ -172,7 +174,7 @@ func WaitUntilStackExists(stackName string) client.Error {
 }
 
 func WaitUntilStackCreateComplete(stackName string) client.Error {
-	err := getClient().WaitUntilStackCreateComplete(&cloudformation.DescribeStacksInput{
+	err := getClient().WaitUntilStackCreateComplete(context.Background(), &cloudformation.DescribeStacksInput{
 		StackName: &stackName,
 	})
 
