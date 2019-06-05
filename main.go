@@ -14,8 +14,23 @@
 
 package main
 
-import "github.com/aws-cloudformation/rain/cmd"
+import (
+	"fmt"
+	"os"
+
+	"github.com/aws-cloudformation/rain/cmd"
+	"github.com/aws-cloudformation/rain/util"
+)
 
 func main() {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println(util.Red(fmt.Sprint(r)))
+			os.Exit(1)
+		}
+
+		os.Exit(0)
+	}()
+
 	cmd.Execute()
 }

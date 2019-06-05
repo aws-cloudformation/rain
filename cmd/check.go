@@ -17,13 +17,11 @@ var checkCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		id, err := sts.GetCallerId()
 		if err != nil {
-			util.Die(err)
+			panic(err)
 		}
 
-		cfg := client.GetConfig()
-
 		fmt.Println("Account: ", util.Yellow(*id.Account))
-		fmt.Println("Region:  ", util.Yellow(cfg.Region))
+		fmt.Println("Region:  ", util.Yellow(client.Config().Region))
 		fmt.Println("Identity:", util.Yellow(*id.Arn))
 
 	},

@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/aws-cloudformation/rain/client"
 	"github.com/aws-cloudformation/rain/client/cfn"
 	"github.com/aws-cloudformation/rain/diff"
 	"github.com/aws-cloudformation/rain/parse"
@@ -21,7 +22,7 @@ func getParameters(t string, old []cloudformation.Parameter) []cloudformation.Pa
 
 	template, err := parse.ReadString(t)
 	if err != nil {
-		util.Die(err)
+		panic(err)
 	}
 
 	oldMap := make(map[string]cloudformation.Parameter)
@@ -43,7 +44,10 @@ func getParameters(t string, old []cloudformation.Parameter) []cloudformation.Pa
 				extra = fmt.Sprintf(" (default value: %s)", defaultValue)
 			}
 
-			value := util.Ask(fmt.Sprintf("Enter a value for parameter '%s'%s:", key, extra))
+			value, err := util.Ask(fmt.Sprintf("Enter a value for parameter '%s'%s:", key, extra))
+			if err != nil {
+				panic(err)
+			}
 
 			if value != "" {
 				new = append(new, cloudformation.Parameter{
@@ -72,11 +76,13 @@ var deployCmd = &cobra.Command{
 		fn := args[0]
 		stackName := args[1]
 
-		fmt.Printf("Preparing template '%s'... ", filepath.Base(fn))
+		fmt.Printf("Deploying '%s' as '%s' in %s:\n", filepath.Base(fn), stackName, client.Config().Region)
+
+		fmt.Print("Preparing template... ")
 
 		outputFn, err := ioutil.TempFile("", "")
 		if err != nil {
-			util.Die(err)
+			panic(err)
 		}
 		defer os.Remove(outputFn.Name())
 
@@ -86,7 +92,7 @@ var deployCmd = &cobra.Command{
 			"--s3-bucket", getRainBucket(),
 		)
 		if err != nil {
-			util.Die(err)
+			panic(err)
 		}
 
 		util.ClearLine()
@@ -98,13 +104,13 @@ var deployCmd = &cobra.Command{
 		if err == nil {
 			if !strings.HasSuffix(string(stack.StackStatus), "_COMPLETE") {
 				// Can't update
-				util.Die(fmt.Errorf("Stack '%s' could not be updated: %s", stackName, colouriseStatus(string(stack.StackStatus))))
+				panic(fmt.Errorf("Stack '%s' could not be updated: %s", stackName, colouriseStatus(string(stack.StackStatus))))
 			} else {
 				// Can update, grab a diff
 
 				oldTemplateString, err := cfn.GetStackTemplate(stackName)
 				if err != nil {
-					util.Die(fmt.Errorf("Failed to get existing template for stack '%s': %s", stackName, err))
+					panic(fmt.Errorf("Failed to get existing template for stack '%s': %s", stackName, err))
 				}
 
 				oldTemplate, _ := parse.ReadString(oldTemplateString)
@@ -118,23 +124,28 @@ var deployCmd = &cobra.Command{
 				}
 
 				util.ClearLine()
-				if util.Confirm(true, fmt.Sprintf("Stack '%s' exists. Do you wish to see the diff before deploying?", stackName)) {
+				confirm, err := util.Confirm(true, fmt.Sprintf("Stack '%s' exists. Do you wish to see the diff before deploying?", stackName))
+				if err != nil {
+					panic(err)
+				}
+				if confirm {
 					fmt.Print(colouriseDiff(d))
 
-					if !util.Confirm(true, "Do you wish to continue?") {
-						util.Die(errors.New("User cancelled deployment."))
+					confirm, err = util.Confirm(true, "Do you wish to continue?")
+					if err != nil {
+						panic(err)
+					}
+					if !confirm {
+						panic(errors.New("User cancelled deployment."))
 					}
 				}
 			}
 		}
 
-		util.ClearLine()
-		fmt.Printf("Deploying stack '%s'... ", stackName)
-
 		// Load in the template file
 		t, err := ioutil.ReadFile(outputFn.Name())
 		if err != nil {
-			util.Die(err)
+			panic(err)
 		}
 		template := string(t)
 
@@ -143,12 +154,12 @@ var deployCmd = &cobra.Command{
 		// Start deployment
 		err = cfn.Deploy(template, parameters, stackName)
 		if err != nil {
-			util.Die(err)
+			panic(err)
 		}
 
 		err = cfn.WaitUntilStackExists(stackName)
 		if err != nil {
-			util.Die(err)
+			panic(err)
 		}
 
 		status := waitForStackToSettle(stackName)
@@ -158,7 +169,7 @@ var deployCmd = &cobra.Command{
 		} else if status == "UPDATE_COMPLETE" {
 			fmt.Println(util.Green("Successfully updated " + stackName))
 		} else {
-			util.Die(errors.New("Failed deployment: " + stackName))
+			panic(errors.New("Failed deployment: " + stackName))
 		}
 
 		fmt.Println()

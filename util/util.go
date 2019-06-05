@@ -9,11 +9,6 @@ import (
 	"github.com/aws-cloudformation/rain/config"
 )
 
-func Die(err error) {
-	fmt.Fprintln(os.Stderr, Red(err.Error()))
-	os.Exit(1)
-}
-
 func RunAttached(command string, args ...string) {
 	cmd := exec.Command(command, args...)
 	cmd.Stdin = os.Stdin

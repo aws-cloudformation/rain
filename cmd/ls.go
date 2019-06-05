@@ -21,7 +21,7 @@ var lsCmd = &cobra.Command{
 
 			stacks, err := cfn.ListStacks()
 			if err != nil {
-				util.Die(fmt.Errorf("Failed to list stacks: %s", err))
+				panic(fmt.Errorf("Failed to list stacks: %s", err))
 			}
 
 			for _, stack := range stacks {
@@ -31,14 +31,14 @@ var lsCmd = &cobra.Command{
 			table.Sort()
 
 			fmt.Println()
-			fmt.Println(util.Yellow(fmt.Sprintf("CloudFormation stacks in %s:", client.GetConfig().Region)))
+			fmt.Println(util.Yellow(fmt.Sprintf("CloudFormation stacks in %s:", client.Config().Region)))
 			fmt.Println(table.String())
 		} else if len(args) == 1 {
 			stackName := args[0]
 
 			stack, err := cfn.GetStack(stackName)
 			if err != nil {
-				util.Die(fmt.Errorf("Failed to list stack '%s': %s", stackName, err))
+				panic(fmt.Errorf("Failed to list stack '%s': %s", stackName, err))
 			}
 
 			fmt.Println(getStackOutput(stack))

@@ -76,17 +76,15 @@ func getStackOutput(stack cloudformation.Stack) string {
 func getRainBucket() string {
 	accountId, err := sts.GetAccountId()
 	if err != nil {
-		util.Die(err)
+		panic(err)
 	}
 
-	region := client.GetConfig().Region
-
-	bucketName := fmt.Sprintf("rain-artifacts-%s-%s", accountId, region)
+	bucketName := fmt.Sprintf("rain-artifacts-%s-%s", accountId, client.Config().Region)
 
 	if !s3.BucketExists(bucketName) {
 		err := s3.CreateBucket(bucketName)
 		if err != nil {
-			util.Die(err)
+			panic(err)
 		}
 	}
 
@@ -132,7 +130,7 @@ func waitForStackToSettle(stackName string) string {
 		for {
 			stack, err := cfn.GetStack(stackId)
 			if err != nil {
-				util.Die(fmt.Errorf("Operation failed: %s", err))
+				panic(fmt.Errorf("Operation failed: %s", err))
 			}
 
 			// Refresh the stack ID so we can deal with deleted stacks ok

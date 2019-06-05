@@ -21,12 +21,12 @@ var diffCmd = &cobra.Command{
 
 		left, err := parse.ReadFile(leftFn)
 		if err != nil {
-			util.Die(err)
+			panic(err)
 		}
 
 		right, err := parse.ReadFile(rightFn)
 		if err != nil {
-			util.Die(err)
+			panic(err)
 		}
 
 		output := diff.Format(diff.Compare(left, right))

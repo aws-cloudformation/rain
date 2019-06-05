@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/aws-cloudformation/rain/client/cfn"
-	"github.com/aws-cloudformation/rain/util"
 	"github.com/spf13/cobra"
 )
 
@@ -19,7 +18,7 @@ var catCmd = &cobra.Command{
 
 		template, err := cfn.GetStackTemplate(stackName)
 		if err != nil {
-			util.Die(fmt.Errorf("Failed to get template for stack '%s': %s", stackName, err))
+			panic(fmt.Errorf("Failed to get template for stack '%s': %s", stackName, err))
 		}
 
 		fmt.Println(template)

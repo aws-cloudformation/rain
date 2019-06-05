@@ -9,7 +9,7 @@ var s3Client *s3.S3
 
 func getClient() *s3.S3 {
 	if s3Client == nil {
-		s3Client = s3.New(client.GetConfig())
+		s3Client = s3.New(client.Config())
 	}
 
 	return s3Client

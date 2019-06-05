@@ -9,7 +9,7 @@ var stsClient *sts.STS
 
 func getClient() *sts.STS {
 	if stsClient == nil {
-		stsClient = sts.New(client.GetConfig())
+		stsClient = sts.New(client.Config())
 	}
 
 	return stsClient

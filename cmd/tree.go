@@ -6,7 +6,6 @@ import (
 	"github.com/aws-cloudformation/rain/format"
 	"github.com/aws-cloudformation/rain/lib"
 	"github.com/aws-cloudformation/rain/parse"
-	"github.com/aws-cloudformation/rain/util"
 	"github.com/spf13/cobra"
 )
 
@@ -21,7 +20,7 @@ var graphCmd = &cobra.Command{
 
 		input, err := parse.ReadFile(fileName)
 		if err != nil {
-			util.Die(err)
+			panic(err)
 		}
 
 		template := lib.Template(input)

@@ -28,7 +28,7 @@ var cfnClient *cloudformation.CloudFormation
 
 func getClient() *cloudformation.CloudFormation {
 	if cfnClient == nil {
-		cfnClient = cloudformation.New(client.GetConfig())
+		cfnClient = cloudformation.New(client.Config())
 	}
 
 	return cfnClient

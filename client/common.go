@@ -6,7 +6,6 @@ import (
 	"runtime"
 
 	"github.com/aws-cloudformation/rain/config"
-	"github.com/aws-cloudformation/rain/util"
 	"github.com/aws-cloudformation/rain/version"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/awserr"
@@ -16,7 +15,7 @@ import (
 
 var awsCfg *aws.Config
 
-func GetConfig() aws.Config {
+func Config() aws.Config {
 	if awsCfg == nil {
 		configs := make([]external.Config, 0)
 
@@ -26,7 +25,7 @@ func GetConfig() aws.Config {
 
 		cfg, err := external.LoadDefaultAWSConfig(configs...)
 		if err != nil {
-			util.Die(fmt.Errorf("Unable to load AWS config: %s", err))
+			panic(fmt.Errorf("Unable to load AWS config: %s", err))
 		}
 
 		// Set the user agent
@@ -44,7 +43,7 @@ func GetConfig() aws.Config {
 		}
 
 		if cfg.Region == "" {
-			util.Die(errors.New("Unable to load AWS config"))
+			panic(errors.New("Unable to load AWS config"))
 		}
 
 		awsCfg = &cfg
