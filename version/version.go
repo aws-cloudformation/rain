@@ -2,4 +2,4 @@
 package version
 
 const NAME = "Rain"
-const VERSION = "v0.2.1"
+const VERSION = "v0.2.2"
