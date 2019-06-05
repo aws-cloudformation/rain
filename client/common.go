@@ -1,11 +1,18 @@
+//go:generate bash generate/generate.sh
 package client
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/aws-cloudformation/rain/config"
+	"github.com/aws-cloudformation/rain/util"
 	"github.com/aws-cloudformation/rain/version"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/awserr"
@@ -15,18 +22,109 @@ import (
 
 var awsCfg *aws.Config
 
+var defaultPython = []string{"/usr/bin/env", "python"}
+
+func findAws() string {
+	path := os.Getenv("PATH")
+
+	for _, dir := range strings.Split(path, ":") {
+		bins, err := filepath.Glob(dir + "/aws")
+		if err != nil {
+			panic(err)
+		}
+
+		if len(bins) == 1 {
+			return bins[0]
+		}
+	}
+
+	return ""
+}
+
+func getAwsPython() []string {
+	aws := findAws()
+
+	if aws == "" {
+		return defaultPython
+	}
+
+	script, err := ioutil.ReadFile(aws)
+	if err != nil {
+		return defaultPython
+	}
+
+	parts := strings.Split(string(script), "\n")
+
+	if strings.HasPrefix(parts[0], "#!") {
+		return strings.Split(parts[0][2:], " ")
+	}
+
+	return defaultPython
+}
+
+func checkConfig(cfg aws.Config) bool {
+	_, err := cfg.Credentials.Retrieve()
+	if err != nil {
+		return false
+	}
+
+	return true
+}
+
+func loadConfig() aws.Config {
+	var cfg aws.Config
+
+	configs := make([]external.Config, 0)
+
+	if config.Profile != "" {
+		configs = append(configs, external.WithSharedConfigProfile(config.Profile))
+	}
+
+	// Try to load just from the config
+	cfg, _ := external.LoadDefaultAWSConfig(configs...)
+	if err != nil && checkConfig(cfg) {
+		return cfg
+	}
+
+	// OK, let's try to load from dump_creds...
+	args := getAwsPython()
+	first := args[0]
+	args = args[1:]
+	args = append(args, "-c", credDumperPython)
+	output, err := util.RunCapture(first, args...)
+	if err != nil {
+		panic(fmt.Errorf("Unable to load AWS config"))
+	}
+
+	// This feels more horrible the further we get down...
+	var vars map[string]interface{}
+	err = json.Unmarshal([]byte(output), &vars)
+	if err != nil {
+		panic(fmt.Errorf("Unable to load AWS config"))
+	}
+
+	// But feel free to come up with a better mechanism...
+	for key, value := range vars {
+		// For dealing with how the aws cli loads plugins
+		os.Setenv(key, fmt.Sprint(value))
+	}
+
+	// Load from the new environment variables
+	cfg, err = external.LoadDefaultAWSConfig()
+	if err != nil {
+		panic(fmt.Errorf("Unable to load AWS config"))
+	}
+
+	if !checkConfig(cfg) {
+		panic(fmt.Errorf("Unable to load AWS config"))
+	}
+
+	return cfg
+}
+
 func Config() aws.Config {
 	if awsCfg == nil {
-		configs := make([]external.Config, 0)
-
-		if config.Profile != "" {
-			configs = append(configs, external.WithSharedConfigProfile(config.Profile))
-		}
-
-		cfg, err := external.LoadDefaultAWSConfig(configs...)
-		if err != nil {
-			panic(fmt.Errorf("Unable to load AWS config: %s", err))
-		}
+		cfg := loadConfig()
 
 		// Set the user agent
 		cfg.Handlers.Build.Remove(defaults.SDKVersionUserAgentHandler)
@@ -40,10 +138,6 @@ func Config() aws.Config {
 
 		if config.Region != "" {
 			cfg.Region = config.Region
-		}
-
-		if cfg.Region == "" {
-			panic(errors.New("Unable to load AWS config"))
 		}
 
 		awsCfg = &cfg
