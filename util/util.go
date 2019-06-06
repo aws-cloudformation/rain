@@ -9,6 +9,12 @@ import (
 	"github.com/aws-cloudformation/rain/config"
 )
 
+func Debug(message string, parts ...interface{}) {
+	if config.Debug {
+		fmt.Println(Orange("DEBUG: " + fmt.Sprintf(message, parts...)))
+	}
+}
+
 func RunAttached(command string, args ...string) {
 	cmd := exec.Command(command, args...)
 	cmd.Stdin = os.Stdin

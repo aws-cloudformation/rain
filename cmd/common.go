@@ -76,15 +76,17 @@ func getStackOutput(stack cloudformation.Stack) string {
 func getRainBucket() string {
 	accountId, err := sts.GetAccountId()
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("Unable to get account ID: %s", err))
 	}
 
 	bucketName := fmt.Sprintf("rain-artifacts-%s-%s", accountId, client.Config().Region)
 
+	util.Debug("Artifact bucket: %s", bucketName)
+
 	if !s3.BucketExists(bucketName) {
 		err := s3.CreateBucket(bucketName)
 		if err != nil {
-			panic(err)
+			panic(fmt.Errorf("Unable to create artifact bucket '%s': %s", bucketName, err))
 		}
 	}
 

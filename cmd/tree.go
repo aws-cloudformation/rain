@@ -20,7 +20,7 @@ var graphCmd = &cobra.Command{
 
 		input, err := parse.ReadFile(fileName)
 		if err != nil {
-			panic(err)
+			panic(fmt.Errorf("Unable to parse template '%s': %s", fileName, err))
 		}
 
 		template := lib.Template(input)

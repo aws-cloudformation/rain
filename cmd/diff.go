@@ -21,12 +21,12 @@ var diffCmd = &cobra.Command{
 
 		left, err := parse.ReadFile(leftFn)
 		if err != nil {
-			panic(err)
+			panic(fmt.Errorf("Unable to parse template '%s': %s", leftFn, err))
 		}
 
 		right, err := parse.ReadFile(rightFn)
 		if err != nil {
-			panic(err)
+			panic(fmt.Errorf("Unable to parse template '%s': %s", leftFn, err))
 		}
 
 		output := diff.Format(diff.Compare(left, right))

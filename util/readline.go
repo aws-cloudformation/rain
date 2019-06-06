@@ -2,46 +2,44 @@ package util
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/chzyer/readline"
 )
 
-func Ask(prompt string) (string, error) {
+func Ask(prompt string) string {
 	if !IsTTY {
-		return "", errors.New("No interactive terminal detected. Try running rain in non-interactive mode.")
+		panic(errors.New("No interactive terminal detected. Try running rain in non-interactive mode."))
 	}
 
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt: prompt + " ",
 	})
 	if err != nil {
-		return "", err
+		panic(fmt.Errorf("Unable to get user input: %s", err))
 	}
 
 	answer, err := rl.Readline()
 	if err != nil {
-		return "", err
+		panic(fmt.Errorf("Unable to get user input: %s", err))
 	}
 
-	return strings.TrimSpace(answer), nil
+	return strings.TrimSpace(answer)
 }
 
-func Confirm(defaultYes bool, prompt string) (bool, error) {
+func Confirm(defaultYes bool, prompt string) bool {
 	extra := " (y/N)"
 
 	if defaultYes {
 		extra = " (Y/n)"
 	}
 
-	answer, err := Ask(prompt + extra)
-	if err != nil {
-		return false, err
-	}
+	answer := Ask(prompt + extra)
 
 	if answer == "Y" || (defaultYes && answer == "") {
-		return true, nil
+		return true
 	}
 
-	return false, nil
+	return false
 }

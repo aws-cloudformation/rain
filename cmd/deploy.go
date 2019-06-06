@@ -22,7 +22,7 @@ func getParameters(t string, old []cloudformation.Parameter) []cloudformation.Pa
 
 	template, err := parse.ReadString(t)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("Unable to parse template: %s", err))
 	}
 
 	oldMap := make(map[string]cloudformation.Parameter)
@@ -44,10 +44,7 @@ func getParameters(t string, old []cloudformation.Parameter) []cloudformation.Pa
 				extra = fmt.Sprintf(" (default value: %s)", defaultValue)
 			}
 
-			value, err := util.Ask(fmt.Sprintf("Enter a value for parameter '%s'%s:", key, extra))
-			if err != nil {
-				panic(err)
-			}
+			value := util.Ask(fmt.Sprintf("Enter a value for parameter '%s'%s:", key, extra))
 
 			if value != "" {
 				new = append(new, cloudformation.Parameter{
@@ -84,16 +81,24 @@ var deployCmd = &cobra.Command{
 		if err != nil {
 			panic(err)
 		}
-		defer os.Remove(outputFn.Name())
+		defer func() {
+			util.Debug("Removing temporary template file: %s", outputFn.Name())
+			err := os.Remove(outputFn.Name())
+			if err != nil {
+				panic(fmt.Errorf("Error removing temporary template file '%s': %s", outputFn.Name(), err))
+			}
+		}()
 
-		_, err = util.RunAwsCapture("cloudformation", "package",
+		output, err := util.RunAwsCapture("cloudformation", "package",
 			"--template-file", fn,
 			"--output-template-file", outputFn.Name(),
 			"--s3-bucket", getRainBucket(),
 		)
 		if err != nil {
-			panic(err)
+			panic(fmt.Errorf("Unable to package template: %s", err))
 		}
+
+		util.Debug("Package output: %s", output)
 
 		util.ClearLine()
 		fmt.Printf("Checking current status of stack '%s'... ", stackName)
@@ -124,18 +129,10 @@ var deployCmd = &cobra.Command{
 				}
 
 				util.ClearLine()
-				confirm, err := util.Confirm(true, fmt.Sprintf("Stack '%s' exists. Do you wish to see the diff before deploying?", stackName))
-				if err != nil {
-					panic(err)
-				}
-				if confirm {
+				if util.Confirm(true, fmt.Sprintf("Stack '%s' exists. Do you wish to see the diff before deploying?", stackName)) {
 					fmt.Print(colouriseDiff(d))
 
-					confirm, err = util.Confirm(true, "Do you wish to continue?")
-					if err != nil {
-						panic(err)
-					}
-					if !confirm {
+					if !util.Confirm(true, "Do you wish to continue?") {
 						panic(errors.New("User cancelled deployment."))
 					}
 				}
@@ -145,21 +142,23 @@ var deployCmd = &cobra.Command{
 		// Load in the template file
 		t, err := ioutil.ReadFile(outputFn.Name())
 		if err != nil {
-			panic(err)
+			panic(fmt.Errorf("Can't load template '%s': %s", outputFn.Name(), err))
 		}
 		template := string(t)
 
 		parameters := getParameters(template, stack.Parameters)
 
+		util.Debug("Parameters: %s", parameters)
+
 		// Start deployment
 		err = cfn.Deploy(template, parameters, stackName)
 		if err != nil {
-			panic(err)
+			panic(fmt.Errorf("Error during deployment of '%s': %s", stackName, err))
 		}
 
 		err = cfn.WaitUntilStackExists(stackName)
 		if err != nil {
-			panic(err)
+			panic(fmt.Errorf("Error getting stack status '%s': %s", stackName, err))
 		}
 
 		status := waitForStackToSettle(stackName)

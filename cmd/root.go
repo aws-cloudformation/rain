@@ -14,6 +14,7 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
+	rootCmd.PersistentFlags().BoolVarP(&config.Debug, "debug", "", false, "Output debugging information")
 	rootCmd.PersistentFlags().StringVarP(&config.Profile, "profile", "p", "", "AWS profile name; read from the AWS CLI configuration file")
 	rootCmd.PersistentFlags().StringVarP(&config.Region, "region", "r", "", "AWS region to use")
 }

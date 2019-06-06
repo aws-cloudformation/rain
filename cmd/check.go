@@ -17,7 +17,7 @@ var checkCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		id, err := sts.GetCallerId()
 		if err != nil {
-			panic(err)
+			panic(fmt.Errorf("Unable to load identity: %s", err))
 		}
 
 		fmt.Println("Account: ", util.Yellow(*id.Account))

@@ -50,6 +50,7 @@ func getAwsPython() []string {
 
 	script, err := ioutil.ReadFile(aws)
 	if err != nil {
+		util.Debug("Couldn't load aws script: %s", err)
 		return defaultPython
 	}
 
@@ -73,6 +74,7 @@ func checkConfig(cfg aws.Config) bool {
 
 func loadConfig() aws.Config {
 	var cfg aws.Config
+	var err error
 
 	configs := make([]external.Config, 0)
 
@@ -81,18 +83,24 @@ func loadConfig() aws.Config {
 	}
 
 	// Try to load just from the config
-	cfg, _ := external.LoadDefaultAWSConfig(configs...)
-	if err != nil && checkConfig(cfg) {
+	cfg, err = external.LoadDefaultAWSConfig(configs...)
+	if err != nil {
+		util.Debug("Couldn't load default config: %s", err)
+	} else if checkConfig(cfg) {
+		util.Debug("Loaded credentials from default config")
 		return cfg
 	}
 
 	// OK, let's try to load from dump_creds...
 	args := getAwsPython()
+	util.Debug("AWS python: %s", args)
 	first := args[0]
 	args = args[1:]
 	args = append(args, "-c", credDumperPython)
 	output, err := util.RunCapture(first, args...)
+	util.Debug("Cred dumper output: %s", output)
 	if err != nil {
+		util.Debug("Couldn't run cred dumper: %s", err)
 		panic(fmt.Errorf("Unable to load AWS config"))
 	}
 
@@ -100,6 +108,7 @@ func loadConfig() aws.Config {
 	var vars map[string]interface{}
 	err = json.Unmarshal([]byte(output), &vars)
 	if err != nil {
+		util.Debug("Couldn't parse cred dumper output: %s", err)
 		panic(fmt.Errorf("Unable to load AWS config"))
 	}
 
@@ -112,13 +121,16 @@ func loadConfig() aws.Config {
 	// Load from the new environment variables
 	cfg, err = external.LoadDefaultAWSConfig()
 	if err != nil {
+		util.Debug("Couldn't use cred dumper output: %s", err)
 		panic(fmt.Errorf("Unable to load AWS config"))
 	}
 
 	if !checkConfig(cfg) {
+		util.Debug("Unusable creds from cred dumper: %s", err)
 		panic(fmt.Errorf("Unable to load AWS config"))
 	}
 
+	util.Debug("Loaded credentials from cred dumper")
 	return cfg
 }
 
