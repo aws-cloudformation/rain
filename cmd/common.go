@@ -119,9 +119,11 @@ func waitForStackToSettle(stackName string) string {
 
 	// Channel for receiving new stack statuses
 	outputs := make(chan string)
+	progress := make(chan string)
 	finished := make(chan string)
 
 	defer close(outputs)
+	defer close(progress)
 	defer close(finished)
 
 	util.ClearScreen()
@@ -139,6 +141,18 @@ func waitForStackToSettle(stackName string) string {
 			// Send the output first
 			outputs <- getStackOutput(stack)
 
+			// Figure out how many are complete
+			updating := 0
+			resources, _ := cfn.GetStackResources(*stack.StackName)
+			for _, resource := range resources {
+				if !strings.HasSuffix(string(resource.ResourceStatus), "_COMPLETE") {
+					updating++
+				}
+			}
+			if updating > 0 {
+				progress <- fmt.Sprintf("(%d remaining)", updating)
+			}
+
 			// Check to see if we've finished
 			status := string(stack.StackStatus)
 			if strings.HasSuffix(status, "_COMPLETE") || strings.HasSuffix(status, "_FAILED") {
@@ -150,6 +164,8 @@ func waitForStackToSettle(stackName string) string {
 	}(stackName)
 
 	lastOutput := ""
+
+	lastProgress := ""
 
 	for {
 		select {
@@ -166,16 +182,20 @@ func waitForStackToSettle(stackName string) string {
 			fmt.Println(lastOutput)
 
 			return status
+		case update := <-progress:
+			lastProgress = update
 		default:
 			// Allow the display to update regardless
 		}
 
-		// Display timer
+		// Display timer and counter
 		if util.IsTTY {
 			util.ClearLine()
 			fmt.Print(spin[count])
 			fmt.Print(" ")
 			fmt.Print(time.Now().Sub(start).Truncate(time.Second))
+			fmt.Print(" ")
+			fmt.Print(lastProgress)
 
 			count = (count + 1) % len(spin)
 
