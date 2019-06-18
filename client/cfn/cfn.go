@@ -119,6 +119,21 @@ func GetStackResources(stackName string) ([]cloudformation.StackResource, client
 	return res.StackResources, nil
 }
 
+func GetStackEvents(stackName string) ([]cloudformation.StackEvent, client.Error) {
+	req := getClient().DescribeStackEventsRequest(&cloudformation.DescribeStackEventsInput{
+		StackName: &stackName,
+	})
+
+	events := make([]cloudformation.StackEvent, 0)
+
+	p := cloudformation.NewDescribeStackEventsPaginator(req)
+	for p.Next(context.Background()) {
+		events = append(events, p.CurrentPage().StackEvents...)
+	}
+
+	return events, client.NewError(p.Err())
+}
+
 func createStack(template string, params []cloudformation.Parameter, stackName string) client.Error {
 	req := getClient().CreateStackRequest(&cloudformation.CreateStackInput{
 		Capabilities: []cloudformation.Capability{
