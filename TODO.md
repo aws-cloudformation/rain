@@ -8,8 +8,12 @@
     * List stack contents and ask for confirmation
     * Add `--yes` flag
 
+* `ls`
+    * Add `--all` flag to list all regions
+
 ## Other ideas
 
+* Multiple deployments. Use a rain.yaml to specify multiple stacks in multiple regions/accounts.
 * `doc` - load documentation for a resource type
 * `minify` - try hard to get a template below the size limit
 * Move cfn-format and cfn-skeleton into this package
