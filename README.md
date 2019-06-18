@@ -36,8 +36,10 @@ The following commands are available:
 
 ```
 cat         Get the CloudFormation template from a running stack
+check       Show your current configuration
 deploy      Deploy a CloudFormation stack from a local template
 diff        Compare CloudFormation templates
+logs        Show the event log for the named stack
 ls          List running CloudFormation stacks
 rm          Delete a running CloudFormation stack
 ```
