@@ -161,6 +161,10 @@ func Config() aws.Config {
 	return *awsCfg
 }
 
+func SetRegion(region string) {
+	awsCfg.Region = region
+}
+
 type Error error
 
 func NewError(err error) Error {

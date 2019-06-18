@@ -5,9 +5,12 @@ import (
 
 	"github.com/aws-cloudformation/rain/client"
 	"github.com/aws-cloudformation/rain/client/cfn"
+	"github.com/aws-cloudformation/rain/client/ec2"
 	"github.com/aws-cloudformation/rain/util"
 	"github.com/spf13/cobra"
 )
+
+var allRegions = false
 
 var lsCmd = &cobra.Command{
 	Use:                   "ls <stack>",
@@ -17,24 +20,8 @@ var lsCmd = &cobra.Command{
 	Aliases:               []string{"list"},
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) == 0 {
-			table := util.NewTable("Name", "Status")
 
-			stacks, err := cfn.ListStacks()
-			if err != nil {
-				panic(fmt.Errorf("Failed to list stacks: %s", err))
-			}
-
-			for _, stack := range stacks {
-				table.Append(*stack.StackName, colouriseStatus(string(stack.StackStatus)))
-			}
-
-			table.Sort()
-
-			fmt.Println()
-			fmt.Println(util.Yellow(fmt.Sprintf("CloudFormation stacks in %s:", client.Config().Region)))
-			fmt.Println(table.String())
-		} else if len(args) == 1 {
+		if len(args) == 1 {
 			stackName := args[0]
 
 			stack, err := cfn.GetStack(stackName)
@@ -43,10 +30,41 @@ var lsCmd = &cobra.Command{
 			}
 
 			fmt.Println(getStackOutput(stack))
+		} else {
+			var err error
+			regions := []string{client.Config().Region}
+
+			if allRegions {
+				regions, err = ec2.GetRegions()
+				if err != nil {
+					panic(fmt.Errorf("Unable to get region list: %s", err))
+				}
+			}
+
+			for _, region := range regions {
+				table := util.NewTable("Name", "Status")
+
+				client.SetRegion(region)
+				stacks, err := cfn.ListStacks()
+				if err != nil {
+					panic(fmt.Errorf("Failed to list stacks: %s", err))
+				}
+
+				for _, stack := range stacks {
+					table.Append(*stack.StackName, colouriseStatus(string(stack.StackStatus)))
+				}
+
+				table.Sort()
+
+				fmt.Println()
+				fmt.Println(util.Yellow(fmt.Sprintf("CloudFormation stacks in %s:", region)))
+				fmt.Println(table.String())
+			}
 		}
 	},
 }
 
 func init() {
+	lsCmd.Flags().BoolVarP(&allRegions, "all", "a", false, "List stacks across all regions")
 	rootCmd.AddCommand(lsCmd)
 }

@@ -1,8 +1,5 @@
 # To do
 
-* `ls`
-    * Add flag to list from all regions
-
 * `deploy`
     * Add flag to enable no-confirm deployment.
     * Add `--yes` flag
@@ -10,9 +7,6 @@
 * `rm`
     * List stack contents and ask for confirmation
     * Add `--yes` flag
-
-* `ls`
-    * Add `--all` flag to list all regions
 
 * `diff`
     * Change the `<<<`, `>>>`, and `===` symbols into something else for clarity
