@@ -14,6 +14,7 @@ var graphCmd = &cobra.Command{
 	Short:                 "Finds dependencies between entities in a CloudFormation template",
 	Long:                  "Find and display the dependencies between parameters, resources, and outputs in a CloudFormation template.",
 	Args:                  cobra.ExactArgs(1),
+	Aliases:               []string{"graph"},
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		fileName := args[0]

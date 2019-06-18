@@ -33,6 +33,7 @@ var logsCmd = &cobra.Command{
 	Short:                 "Show the event log for the named stack",
 	Long:                  "Shows a nicely-formatted list of the event log for the named stack, optionally limiting the results to a single resource.",
 	Args:                  cobra.RangeArgs(1, 2),
+	Aliases:               []string{"log"},
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		stackName := args[0]

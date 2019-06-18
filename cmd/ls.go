@@ -14,6 +14,7 @@ var lsCmd = &cobra.Command{
 	Short:                 "List running CloudFormation stacks",
 	Long:                  "Displays a table of all running stacks or the contents of <stack> if provided.",
 	Args:                  cobra.MaximumNArgs(1),
+	Aliases:               []string{"list"},
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
