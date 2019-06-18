@@ -10,6 +10,7 @@
 
 * `diff`
     * Change the `<<<`, `>>>`, and `===` symbols into something else for clarity
+    * Expand on hidden content with `{...}` and `[...]`
 
 ## Other ideas
 
