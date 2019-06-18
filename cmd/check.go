@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/aws-cloudformation/rain/client"
 	"github.com/aws-cloudformation/rain/client/sts"
+	"github.com/aws-cloudformation/rain/config"
 	"github.com/aws-cloudformation/rain/util"
 	"github.com/spf13/cobra"
 )
@@ -24,6 +26,11 @@ var checkCmd = &cobra.Command{
 		fmt.Println("Region:  ", util.Yellow(client.Config().Region))
 		fmt.Println("Identity:", util.Yellow(*id.Arn))
 
+		if config.Profile != "" {
+			fmt.Println("Profile: ", util.Yellow(config.Profile))
+		} else if profile, ok := os.LookupEnv("AWS_PROFILE"); ok {
+			fmt.Println("Profile: ", util.Yellow(profile))
+		}
 	},
 }
 

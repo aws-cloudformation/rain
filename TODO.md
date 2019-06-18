@@ -1,8 +1,5 @@
 # To do
 
-* `check`
-    * Display current profile if any
-
 * `ls`
     * Add flag to list from all regions
 
