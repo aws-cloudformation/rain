@@ -1,5 +1,11 @@
 # To do
 
+* `check`
+    * Display current profile if any
+
+* `ls`
+    * Add flag to list from all regions
+
 * `deploy`
     * Add flag to enable no-confirm deployment.
     * Add `--yes` flag
@@ -11,12 +17,14 @@
 * `ls`
     * Add `--all` flag to list all regions
 
+* `diff`
+    * Change the `<<<`, `>>>`, and `===` symbols into something else for clarity
+
 ## Other ideas
 
 * Multiple deployments. Use a rain.yaml to specify multiple stacks in multiple regions/accounts.
 * `doc` - load documentation for a resource type
 * `minify` - try hard to get a template below the size limit
-* Move cfn-format and cfn-skeleton into this package
 * Do template parameter validation (especially multiple-template stacks - checking clashing outputs etc.)
     * S3 buckets that exist or can't be created (e.g. recent deleted bucket with same name)
     * Certificates that don't exist in the correct region (e.g. non us-east-1)
