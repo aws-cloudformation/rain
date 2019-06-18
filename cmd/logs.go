@@ -12,26 +12,48 @@ import (
 
 var timeOrder = false
 var longFormat = false
+var allLogs = false
 
-func printLongLogs(logs []cloudformation.StackEvent, includeName bool) {
+var uninterestingMessages = map[string]bool{
+	"Resource creation Initiated": true,
+	"User Initiated":              true,
+}
+
+func printLogs(logs []cloudformation.StackEvent) {
 	for _, log := range logs {
-		fmt.Printf("- Timestamp: %s\n", util.Yellow(fmt.Sprint(*log.Timestamp)))
-		fmt.Printf("  Status: %s\n", colouriseStatus(string(log.ResourceStatus)))
-		if includeName {
-			fmt.Printf("  Name: %s\n", util.Yellow(*log.LogicalResourceId))
-			fmt.Printf("  Type: %s\n", *log.ResourceType)
+		fmt.Printf("- %s", colouriseStatus(string(log.ResourceStatus)))
+
+		if timeOrder {
+			fmt.Print(" ")
+			fmt.Print(util.Yellow(*log.LogicalResourceId))
+			fmt.Print(" ")
+			fmt.Print(*log.ResourceType)
+
 		}
-		fmt.Printf("  PhysicalID: %s\n", util.Yellow(*log.PhysicalResourceId))
+
+		if longFormat && *log.PhysicalResourceId != "" {
+			fmt.Print(" ")
+			fmt.Print(*log.PhysicalResourceId)
+		}
+
 		if log.ResourceStatusReason != nil {
-			fmt.Printf("  Message: %s\n", util.White(fmt.Sprintf("%q", *log.ResourceStatusReason)))
+			fmt.Print(" ")
+			fmt.Print(util.White(fmt.Sprintf("%q", *log.ResourceStatusReason)))
 		}
+
+		if longFormat {
+			fmt.Print(" ")
+			fmt.Print(*log.Timestamp)
+		}
+
+		fmt.Println()
 	}
 }
 
 var logsCmd = &cobra.Command{
 	Use:                   "logs <stack> (<resource>)",
 	Short:                 "Show the event log for the named stack",
-	Long:                  "Shows a nicely-formatted list of the event log for the named stack, optionally limiting the results to a single resource.",
+	Long:                  "Shows a nicely-formatted list of the event log for the named stack, optionally limiting the results to a single resource.\n\nBy default, rain will only show log entries that contain a message, for example a failure reason. You can use flags to change this behaviour.",
 	Args:                  cobra.RangeArgs(1, 2),
 	Aliases:               []string{"log"},
 	DisableFlagsInUseLine: true,
@@ -57,6 +79,20 @@ var logsCmd = &cobra.Command{
 			logs = newLogs
 		}
 
+		// Filter out uninteresting messages
+		newLogs := make([]cloudformation.StackEvent, 0)
+		for _, log := range logs {
+			if allLogs || (log.ResourceStatusReason != nil && !uninterestingMessages[*log.ResourceStatusReason]) {
+				newLogs = append(newLogs, log)
+			}
+		}
+		logs = newLogs
+
+		if len(logs) == 0 {
+			fmt.Println("No interesting log messages to display. To see everything, use the --all flag")
+			return
+		}
+
 		// Reverse order
 		for i := len(logs)/2 - 1; i >= 0; i-- {
 			j := len(logs) - 1 - i
@@ -64,25 +100,10 @@ var logsCmd = &cobra.Command{
 		}
 
 		if timeOrder {
-			if longFormat {
-				printLongLogs(logs, true)
-			} else {
-				for _, log := range logs {
-					if log.ResourceStatusReason == nil {
-						continue
-					}
-
-					fmt.Printf("- %s: %s  # %s\n",
-						*log.LogicalResourceId,
-						colouriseStatus(string(log.ResourceStatus)),
-						*log.ResourceStatusReason,
-					)
-				}
-			}
+			printLogs(logs)
 		} else {
-			names := make([]string, 0)
-
 			// Group by resource name
+			names := make([]string, 0)
 			groups := make(map[string][]cloudformation.StackEvent)
 			for _, log := range logs {
 				name := *log.LogicalResourceId
@@ -93,30 +114,13 @@ var logsCmd = &cobra.Command{
 
 				groups[name] = append(groups[name], log)
 			}
-
 			sort.Strings(names)
 
 			// Print by group
 			for _, name := range names {
 				groupLogs := groups[name]
-
-				fmt.Printf("%s:  # %s\n", name, util.Grey(*groupLogs[0].ResourceType))
-
-				if longFormat {
-					printLongLogs(groupLogs, false)
-				} else {
-					for _, log := range groupLogs {
-						if log.ResourceStatusReason == nil {
-							continue
-						} else {
-							fmt.Printf("- %s: %s\n",
-								colouriseStatus(string(log.ResourceStatus)),
-								util.White(fmt.Sprintf("%q", *log.ResourceStatusReason)),
-							)
-						}
-					}
-				}
-
+				fmt.Printf("%s:  # %s\n", util.Yellow(name), *groupLogs[0].ResourceType)
+				printLogs(groupLogs)
 				fmt.Println()
 			}
 		}
@@ -125,6 +129,7 @@ var logsCmd = &cobra.Command{
 
 func init() {
 	logsCmd.Flags().BoolVarP(&timeOrder, "time", "t", false, "Show results in order of time instead of grouped by resource")
-	logsCmd.Flags().BoolVarP(&longFormat, "long", "l", false, "Display full details and include uninteresting logg")
+	logsCmd.Flags().BoolVarP(&longFormat, "long", "l", false, "Display full details")
+	logsCmd.Flags().BoolVarP(&allLogs, "all", "a", false, "Include uninteresting logs")
 	rootCmd.AddCommand(logsCmd)
 }
