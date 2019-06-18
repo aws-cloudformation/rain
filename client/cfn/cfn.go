@@ -26,14 +26,8 @@ var liveStatuses = []cloudformation.StackStatus{
 	"REVIEW_IN_PROGRESS",
 }
 
-var cfnClient *cloudformation.Client
-
 func getClient() *cloudformation.Client {
-	if cfnClient == nil {
-		cfnClient = cloudformation.New(client.Config())
-	}
-
-	return cfnClient
+	return cloudformation.New(client.Config())
 }
 
 func GetStackTemplate(stackName string) (string, client.Error) {

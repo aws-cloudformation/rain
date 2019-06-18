@@ -7,14 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
-var stsClient *sts.Client
-
 func getClient() *sts.Client {
-	if stsClient == nil {
-		stsClient = sts.New(client.Config())
-	}
-
-	return stsClient
+	return sts.New(client.Config())
 }
 
 func GetCallerId() (sts.GetCallerIdentityOutput, client.Error) {

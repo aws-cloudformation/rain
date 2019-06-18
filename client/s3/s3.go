@@ -7,14 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-var s3Client *s3.Client
-
 func getClient() *s3.Client {
-	if s3Client == nil {
-		s3Client = s3.New(client.Config())
-	}
-
-	return s3Client
+	return s3.New(client.Config())
 }
 
 func BucketExists(bucketName string) bool {
