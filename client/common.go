@@ -144,13 +144,16 @@ func Config() aws.Config {
 			version.NAME,
 			version.VERSION,
 			runtime.Version(),
-			runtime.GOOS,
-			runtime.GOARCH,
+			fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
+			fmt.Sprintf("%s/%s", aws.SDKName, aws.SDKVersion),
 		))
 
 		if config.Region != "" {
 			cfg.Region = config.Region
 		}
+
+		// For debugging
+		// cfg.EndpointResolver = aws.ResolveWithEndpointURL("http://localhost:8000")
 
 		awsCfg = &cfg
 	}
