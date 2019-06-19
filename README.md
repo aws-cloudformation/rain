@@ -14,13 +14,13 @@ Here's what it looks like:
 
 You can download the appropriate binary for your system from [the releases page](https://github.com/aws-cloudformation/rain/releases).
 
-Alternatively, [Go](https://golang.org) (v1.12 or higher) installed:
+Alternatively, if you have [Go](https://golang.org) (v1.12 or higher) installed:
 
 `GO111MODULE=on go get github.com/aws-cloudformation/rain`
 
 ## License
 
-This library is licensed under the Apache 2.0 License. 
+Rain is licensed under the Apache 2.0 License. 
 
 ## Usage
 
