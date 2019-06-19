@@ -17,10 +17,12 @@ var checkCmd = &cobra.Command{
 	Long:                  "Take a rain check.\n\nDisplay the AWS account and region that you're configured to use.\n\nAnd do nothing else for now :)",
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
+		util.SpinStatus("Getting identity...")
 		id, err := sts.GetCallerId()
 		if err != nil {
 			panic(fmt.Errorf("Unable to load identity: %s", err))
 		}
+		util.SpinStop()
 
 		fmt.Println("Account: ", util.Yellow(*id.Account))
 		fmt.Println("Region:  ", util.Yellow(client.Config().Region))
