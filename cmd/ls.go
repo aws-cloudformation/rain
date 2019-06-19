@@ -34,6 +34,7 @@ var lsCmd = &cobra.Command{
 			var err error
 			regions := []string{client.Config().Region}
 
+			util.SpinStatus("Fetching region list...")
 			if allRegions {
 				regions, err = ec2.GetRegions()
 				if err != nil {
@@ -42,7 +43,7 @@ var lsCmd = &cobra.Command{
 			}
 
 			for _, region := range regions {
-				table := util.NewTable("Name", "Status")
+				util.SpinStatus(fmt.Sprintf("Fetching stacks in %s...", region))
 
 				client.SetRegion(region)
 				stacks, err := cfn.ListStacks()
@@ -50,13 +51,18 @@ var lsCmd = &cobra.Command{
 					panic(fmt.Errorf("Failed to list stacks: %s", err))
 				}
 
+				if len(stacks) == 0 && allRegions {
+					continue
+				}
+
+				table := util.NewTable("Name", "Status")
 				for _, stack := range stacks {
 					table.Append(*stack.StackName, colouriseStatus(string(stack.StackStatus)))
 				}
-
 				table.Sort()
 
-				fmt.Println()
+				util.SpinStop()
+
 				fmt.Println(util.Yellow(fmt.Sprintf("CloudFormation stacks in %s:", region)))
 				fmt.Println(table.String())
 			}

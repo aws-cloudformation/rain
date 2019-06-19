@@ -15,6 +15,8 @@ var hasColour bool
 func init() {
 	IsTTY = termutil.Isatty(os.Stdout.Fd())
 	hasColour = runtime.GOOS != "windows"
+
+	startSpinner()
 }
 
 const end = "\033[0m"

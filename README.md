@@ -84,11 +84,13 @@ Output should:
 * be easy to read, making good use of white-space while taking up the minimum of space needed to convey the important information
 * use colour to highlight things the user needs to be aware of
 * use colour to differentiate different kinds of information
+* show progress so that the user knows we haven't crashed
 
 Examples:
 
 * All commands colourise the stack/resource status
 * `logs` colours the message field so that it stands out
+* `deploy` shows a "spinner" while working
 
 ### Be machine-friendly
 

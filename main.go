@@ -24,6 +24,8 @@ import (
 
 func main() {
 	defer func() {
+		util.SpinStop()
+
 		if r := recover(); r != nil {
 			fmt.Println(util.Red(fmt.Sprint(r)))
 			os.Exit(1)

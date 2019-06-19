@@ -15,7 +15,6 @@
     * Expand on hidden content with `{...}` and `[...]`
 
 * `ls`
-    * Hide regions with no stacks
     * Display in yaml(ish) format
 
 * Add `watch` command
