@@ -45,12 +45,16 @@ func Plain(text string) Text {
 	}
 }
 
-func ClearScreen() {
+func ClearScreen(content string) {
 	if IsTTY && hasColour {
 		fmt.Print("\033[1;1H\033[2J")
 	} else {
 		fmt.Println()
 	}
+
+	fmt.Println(content)
+
+	spinUpdate()
 }
 
 func ClearLine() {

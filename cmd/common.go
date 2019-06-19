@@ -14,10 +14,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 )
 
-var spin = []string{
-	`-`, `\`, `|`, `/`,
-}
-
 func colouriseStatus(status string) util.Text {
 	switch {
 	case strings.HasSuffix(status, "_FAILED"):
@@ -118,92 +114,46 @@ func colouriseDiff(d diff.Diff) string {
 
 func waitForStackToSettle(stackName string) string {
 	// Start the timer
-	start := time.Now()
-	count := 0
+	util.SpinStartTimer()
 
-	// Channel for receiving new stack statuses
-	outputs := make(chan string)
-	progress := make(chan string)
-	finished := make(chan string)
-
-	defer close(outputs)
-	defer close(progress)
-	defer close(finished)
-
-	util.ClearScreen()
-
-	go func(stackId string) {
-		for {
-			stack, err := cfn.GetStack(stackId)
-			if err != nil {
-				panic(fmt.Errorf("Operation failed: %s", err))
-			}
-
-			// Refresh the stack ID so we can deal with deleted stacks ok
-			stackId = *stack.StackId
-
-			// Send the output first
-			outputs <- getStackOutput(stack)
-
-			// Figure out how many are complete
-			updating := 0
-			resources, _ := cfn.GetStackResources(*stack.StackName)
-			for _, resource := range resources {
-				if !strings.HasSuffix(string(resource.ResourceStatus), "_COMPLETE") {
-					updating++
-				}
-			}
-			if updating > 0 {
-				progress <- fmt.Sprintf("(%d remaining)", updating)
-			}
-
-			// Check to see if we've finished
-			status := string(stack.StackStatus)
-			if strings.HasSuffix(status, "_COMPLETE") || strings.HasSuffix(status, "_FAILED") {
-				finished <- status
-			}
-
-			time.Sleep(time.Second * 2)
-		}
-	}(stackName)
-
-	lastOutput := ""
-
-	lastProgress := ""
+	stackId := stackName
 
 	for {
-		select {
-		case output := <-outputs:
-			if util.IsTTY {
-				util.ClearScreen()
-				fmt.Println(output)
-			}
-
-			lastOutput = output
-		case status := <-finished:
-			// Display the final status
-			util.ClearScreen()
-			fmt.Println(lastOutput)
-
-			return status
-		case update := <-progress:
-			lastProgress = update
-		default:
-			// Allow the display to update regardless
+		stack, err := cfn.GetStack(stackId)
+		if err != nil {
+			panic(fmt.Errorf("Operation failed: %s", err))
 		}
 
-		// Display timer and counter
+		// Refresh the stack ID so we can deal with deleted stacks ok
+		stackId = *stack.StackId
+
+		output := getStackOutput(stack)
+
+		// Send the output first
 		if util.IsTTY {
-			util.ClearLine()
-			fmt.Print(spin[count])
-			fmt.Print(" ")
-			fmt.Print(time.Now().Sub(start).Truncate(time.Second))
-			fmt.Print(" ")
-			fmt.Print(lastProgress)
-
-			count = (count + 1) % len(spin)
-
-			time.Sleep(time.Second / 2)
+			util.ClearScreen(output)
 		}
+
+		// Figure out how many are complete
+		updating := 0
+		resources, _ := cfn.GetStackResources(*stack.StackName)
+		for _, resource := range resources {
+			if !strings.HasSuffix(string(resource.ResourceStatus), "_COMPLETE") {
+				updating++
+			}
+		}
+		if updating > 0 {
+			util.SpinStatus(fmt.Sprintf("(%d remaining)", updating))
+		}
+
+		// Check to see if we've finished
+		status := string(stack.StackStatus)
+		if strings.HasSuffix(status, "_COMPLETE") || strings.HasSuffix(status, "_FAILED") {
+			util.SpinStop()
+			util.ClearScreen(output)
+			return status
+		}
+
+		time.Sleep(time.Second * 2)
 	}
 }

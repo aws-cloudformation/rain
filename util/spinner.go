@@ -10,20 +10,35 @@ var spin = []string{
 }
 
 var spinRunning = false
+var spinHasTimer = false
+
 var spinStatus = ""
+var spinCount = 0
+var spinStartTime time.Time
+
+func spinUpdate() {
+	if spinRunning {
+		ClearLine()
+
+		if spinHasTimer {
+			fmt.Printf("%s %s %s",
+				spin[spinCount],
+				time.Now().Sub(spinStartTime).Truncate(time.Second),
+				spinStatus,
+			)
+		} else {
+			fmt.Printf("%s %s", spin[spinCount], spinStatus)
+		}
+	}
+
+}
 
 func startSpinner() {
 	if IsTTY {
 		go func() {
-			count := 0
-
 			for {
-				if spinRunning {
-					ClearLine()
-					fmt.Printf("%s %s", spin[count], spinStatus)
-					count = (count + 1) % len(spin)
-				}
-
+				spinUpdate()
+				spinCount = (spinCount + 1) % len(spin)
 				time.Sleep(time.Second / 2)
 			}
 		}()
@@ -31,11 +46,20 @@ func startSpinner() {
 }
 
 func SpinStatus(status string) {
-	spinStatus = status
 	spinRunning = true
+	spinStatus = status
+}
+
+func SpinStartTimer() {
+	spinRunning = true
+	spinStartTime = time.Now()
+	spinHasTimer = true
+	spinStatus = ""
 }
 
 func SpinStop() {
-	ClearLine()
+	spinHasTimer = false
 	spinRunning = false
+	spinStatus = ""
+	ClearLine()
 }

@@ -136,6 +136,8 @@ func loadConfig() aws.Config {
 
 func Config() aws.Config {
 	if awsCfg == nil {
+		util.SpinStatus("Loading AWS config...")
+
 		cfg := loadConfig()
 
 		// Set the user agent
@@ -156,6 +158,8 @@ func Config() aws.Config {
 		// cfg.EndpointResolver = aws.ResolveWithEndpointURL("http://localhost:8000")
 
 		awsCfg = &cfg
+
+		util.SpinStop()
 	}
 
 	return *awsCfg
