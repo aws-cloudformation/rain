@@ -1,8 +1,14 @@
 # To do
 
+* Write up design principles
+
+* Change colour of any status that includes `ROLLBACK` to orange
+
 * `deploy`
     * Add flag to enable no-confirm deployment.
     * Add `--yes` flag
+    * Only show changing resources
+    * Ensure update count reflects everything that has changed
 
 * `rm`
     * List stack contents and ask for confirmation
@@ -11,6 +17,13 @@
 * `diff`
     * Change the `<<<`, `>>>`, and `===` symbols into something else for clarity
     * Expand on hidden content with `{...}` and `[...]`
+
+* `ls`
+    * Hide regions with no stacks
+    * Display in yaml(ish) format
+
+* Add `watch` command
+    * Same as the last stage of a deploy - watch a stack that's in progress
 
 ## Other ideas
 
