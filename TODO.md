@@ -1,7 +1,5 @@
 # To do
 
-* Change colour of any status that includes `ROLLBACK` to orange
-
 * `deploy`
     * Add flag to enable no-confirm deployment.
     * Add `--yes` flag

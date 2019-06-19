@@ -20,12 +20,14 @@ var spin = []string{
 
 func colouriseStatus(status string) util.Text {
 	switch {
-	case strings.HasSuffix(status, "_COMPLETE"):
-		return util.Green(status)
-	case strings.HasSuffix(status, "_IN_PROGRESS"):
-		return util.Orange(status)
 	case strings.HasSuffix(status, "_FAILED"):
 		return util.Red(status)
+	case strings.Contains(status, "ROLLBACK"):
+		return util.Orange(status)
+	case strings.HasSuffix(status, "_IN_PROGRESS"):
+		return util.Orange(status)
+	case strings.HasSuffix(status, "_COMPLETE"):
+		return util.Green(status)
 	default:
 		return util.Plain(status)
 	}
