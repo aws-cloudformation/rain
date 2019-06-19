@@ -1,7 +1,5 @@
 # To do
 
-* Write up design principles
-
 * Change colour of any status that includes `ROLLBACK` to orange
 
 * `deploy`
