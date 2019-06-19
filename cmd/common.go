@@ -96,11 +96,11 @@ func colouriseDiff(d diff.Diff) string {
 
 	for _, line := range strings.Split(diff.Format(d), "\n") {
 		switch {
-		case strings.HasPrefix(line, ">>> "):
+		case strings.HasPrefix(line, diff.Added.String()):
 			output.WriteString(util.Green(line).String())
-		case strings.HasPrefix(line, "<<< "):
+		case strings.HasPrefix(line, diff.Removed.String()):
 			output.WriteString(util.Red(line).String())
-		case strings.HasPrefix(line, "||| "):
+		case strings.HasPrefix(line, diff.Changed.String()):
 			output.WriteString(util.Orange(line).String())
 		default:
 			output.WriteString(line)

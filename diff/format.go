@@ -11,13 +11,6 @@ import (
 	"github.com/aws-cloudformation/rain/format"
 )
 
-var modeStrings = map[mode]string{
-	Added:     ">>> ",
-	Removed:   "<<< ",
-	Changed:   "||| ",
-	Unchanged: "=== ",
-}
-
 const indent = "  "
 
 func Format(d Diff) string {
@@ -35,7 +28,7 @@ func Format(d Diff) string {
 			return "No changes\n"
 		}
 
-		return fmt.Sprintf("%sEverything!\n", modeStrings[v])
+		return fmt.Sprintf("%sEverything!\n", v)
 	}
 
 	panic(fmt.Sprintf("Unexpected %#v\n", d))
@@ -50,9 +43,9 @@ func formatSlice(d diffSlice) string {
 		if m != Unchanged {
 			// Always treat a value as added
 			if _, isValue := v.(diffValue); isValue {
-				output.WriteString(modeStrings[Added])
+				output.WriteString(Added.String())
 			} else {
-				output.WriteString(modeStrings[m])
+				output.WriteString(m.String())
 			}
 
 			output.WriteString(fmt.Sprintf("[%d]", i))
@@ -88,9 +81,9 @@ func formatMap(d diffMap) string {
 		if m != Unchanged {
 			// Always treat a value as added
 			if _, isValue := v.(diffValue); isValue {
-				output.WriteString(modeStrings[Added])
+				output.WriteString(Added.String())
 			} else {
-				output.WriteString(modeStrings[m])
+				output.WriteString(m.String())
 			}
 
 			output.WriteString(k)
@@ -137,9 +130,9 @@ func formatSub(d Diff) string {
 	output.WriteString("\n")
 	for _, part := range parts {
 		if isValue {
-			part = modeStrings[Added] + indent + part
+			part = Added.String() + indent + part
 		} else {
-			part = part[:4] + indent + part[4:]
+			part = part[:len(Added.String())] + indent + part[len(Added.String()):]
 		}
 
 		output.WriteString(part)

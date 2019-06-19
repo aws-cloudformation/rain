@@ -2,11 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/aws-cloudformation/rain/diff"
 	"github.com/aws-cloudformation/rain/parse"
-	"github.com/aws-cloudformation/rain/util"
 	"github.com/spf13/cobra"
 )
 
@@ -29,20 +27,7 @@ var diffCmd = &cobra.Command{
 			panic(fmt.Errorf("Unable to parse template '%s': %s", leftFn, err))
 		}
 
-		output := diff.Format(diff.Compare(left, right))
-
-		for _, line := range strings.Split(output, "\n") {
-			switch {
-			case strings.HasPrefix(line, ">>> "):
-				fmt.Println(util.Green(line))
-			case strings.HasPrefix(line, "<<< "):
-				fmt.Println(util.Red(line))
-			case strings.HasPrefix(line, "||| "):
-				fmt.Println(util.Orange(line))
-			default:
-				fmt.Println(line)
-			}
-		}
+		fmt.Print(colouriseDiff(diff.Compare(left, right)))
 	},
 }
 

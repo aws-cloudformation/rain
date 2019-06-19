@@ -1,12 +1,12 @@
 package diff
 
-type mode int
+type mode string
 
 const (
-	Added mode = iota
-	Changed
-	Removed
-	Unchanged
+	Added     mode = "+ "
+	Removed   mode = "- "
+	Changed   mode = "| "
+	Unchanged mode = "= "
 )
 
 type Diff interface {
@@ -21,6 +21,10 @@ type diffValue struct {
 type diffSlice []Diff
 
 type diffMap map[string]Diff
+
+func (m mode) String() string {
+	return string(m)
+}
 
 func (m mode) mode() mode {
 	return m
