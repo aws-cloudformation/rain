@@ -34,28 +34,33 @@ func Format(d Diff) string {
 	panic(fmt.Sprintf("Unexpected %#v\n", d))
 }
 
+func stubValue(v diffValue) string {
+	switch v.value.(type) {
+	case map[string]interface{}:
+		return "{...}"
+	case []interface{}:
+		return "[...]"
+	default:
+		return "..."
+	}
+}
+
 func formatSlice(d diffSlice) string {
 	output := strings.Builder{}
 
 	for i, v := range d {
 		m := v.mode()
 
-		if m != Unchanged {
-			// Always treat a value as added
-			if _, isValue := v.(diffValue); isValue {
-				output.WriteString(Added.String())
-			} else {
-				output.WriteString(m.String())
-			}
+		if m == Unchanged {
+			continue
+		}
 
-			output.WriteString(fmt.Sprintf("[%d]", i))
+		output.WriteString(fmt.Sprintf("%s[%d]:", m.String(), i))
 
-			if m == Removed {
-				output.WriteString("\n")
-			} else {
-				output.WriteString(":")
-				output.WriteString(formatSub(v))
-			}
+		if m == Removed {
+			output.WriteString(" " + stubValue(v.(diffValue)) + "\n")
+		} else {
+			output.WriteString(formatSub(v))
 		}
 	}
 
@@ -78,22 +83,16 @@ func formatMap(d diffMap) string {
 		v := d[k]
 		m := v.mode()
 
-		if m != Unchanged {
-			// Always treat a value as added
-			if _, isValue := v.(diffValue); isValue {
-				output.WriteString(Added.String())
-			} else {
-				output.WriteString(m.String())
-			}
+		if m == Unchanged {
+			continue
+		}
 
-			output.WriteString(k)
+		output.WriteString(fmt.Sprintf("%s%s:", m.String(), k))
 
-			if m == Removed {
-				output.WriteString("\n")
-			} else {
-				output.WriteString(":")
-				output.WriteString(formatSub(v))
-			}
+		if m == Removed {
+			output.WriteString(" " + stubValue(v.(diffValue)) + "\n")
+		} else {
+			output.WriteString(formatSub(v))
 		}
 	}
 

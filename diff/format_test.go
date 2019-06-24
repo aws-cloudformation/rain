@@ -29,7 +29,7 @@ var testCases = []struct {
 				"quux": "mooz",
 			}, Added},
 		},
-		">>> [0]:\n>>>   bar: baz\n>>>   quux: mooz\n",
+		"+ [0]:\n+   bar: baz\n+   quux: mooz\n",
 	},
 	{
 		// Complex value inside a map
@@ -39,7 +39,7 @@ var testCases = []struct {
 				"baz",
 			}, Changed},
 		},
-		">>> foo:\n>>>   - bar\n>>>   - baz\n",
+		"| foo:\n+   - bar\n+   - baz\n",
 	},
 	{
 		// Add and remove a value from a slice
@@ -47,18 +47,18 @@ var testCases = []struct {
 			Unchanged,
 			diffValue{"foo", Changed},
 			Unchanged,
-			Removed,
+			diffValue{"bar", Removed},
 			Unchanged,
 		},
-		">>> [1]: foo\n<<< [3]\n",
+		"| [1]: foo\n- [3]: ...\n",
 	},
 	{
 		// Add and remove a value from a map
 		diffMap{
 			"foo": diffValue{"bar", Changed},
-			"bar": Removed,
+			"bar": diffValue{"baz", Removed},
 		},
-		"<<< bar\n>>> foo: bar\n",
+		"- bar: ...\n| foo: bar\n",
 	},
 	{
 		// A slice in a slice
@@ -67,7 +67,7 @@ var testCases = []struct {
 				diffValue{"foo", Added},
 			},
 		},
-		">>> [0]:\n>>>   [0]: foo\n",
+		"+ [0]:\n+   [0]: foo\n",
 	},
 	{
 		// A map in a slice
@@ -76,7 +76,7 @@ var testCases = []struct {
 				"foo": diffValue{"bar", Changed},
 			},
 		},
-		"||| [0]:\n>>>   foo: bar\n",
+		"| [0]:\n|   foo: bar\n",
 	},
 	{
 		// A map in a map
@@ -85,7 +85,7 @@ var testCases = []struct {
 				"bar": diffValue{"baz", Added},
 			},
 		},
-		">>> foo:\n>>>   bar: baz\n",
+		"+ foo:\n+   bar: baz\n",
 	},
 	{
 		// A slice in a map
@@ -94,7 +94,7 @@ var testCases = []struct {
 				diffValue{"bar", Changed},
 			},
 		},
-		"||| foo:\n>>>   [0]: bar\n",
+		"| foo:\n|   [0]: bar\n",
 	},
 	{
 		// All added slice in a slice
@@ -104,7 +104,7 @@ var testCases = []struct {
 				diffValue{"bar", Added},
 			},
 		},
-		"||| [0]:\n>>>   [0]: foo\n>>>   [1]: bar\n",
+		"| [0]:\n|   [0]: foo\n+   [1]: bar\n",
 	},
 	{
 		// Mixed slice in a slice
@@ -114,7 +114,7 @@ var testCases = []struct {
 				Unchanged,
 			},
 		},
-		"||| [0]:\n>>>   [0]: foo\n",
+		"| [0]:\n|   [0]: foo\n",
 	},
 	{
 		// Mixed map in a map
@@ -124,7 +124,7 @@ var testCases = []struct {
 				"quux": Unchanged,
 			},
 		},
-		"||| foo:\n>>>   bar: baz\n",
+		"| foo:\n+   bar: baz\n",
 	},
 	{
 		// A new single-value map
@@ -133,7 +133,7 @@ var testCases = []struct {
 				"bar": "baz",
 			}, Added},
 		},
-		">>> foo:\n>>>   bar: baz\n",
+		"+ foo:\n+   bar: baz\n",
 	},
 	{
 		// A new single-value list
@@ -142,7 +142,7 @@ var testCases = []struct {
 				"bar",
 			}, Added},
 		},
-		">>> foo:\n>>>   - bar\n",
+		"+ foo:\n+   - bar\n",
 	},
 	{
 		// A new multi-value map
@@ -152,7 +152,7 @@ var testCases = []struct {
 				"quux": "mooz",
 			}, Added},
 		},
-		">>> foo:\n>>>   bar: baz\n>>>   quux: mooz\n",
+		"+ foo:\n+   bar: baz\n+   quux: mooz\n",
 	},
 	{
 		// A new multi-value list
@@ -162,7 +162,7 @@ var testCases = []struct {
 				"baz",
 			}, Added},
 		},
-		">>> foo:\n>>>   - bar\n>>>   - baz\n",
+		"+ foo:\n+   - bar\n+   - baz\n",
 	},
 }
 
