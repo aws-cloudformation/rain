@@ -36,7 +36,7 @@ func compareSlices(old, new []interface{}) Diff {
 		if i >= len(old) {
 			d[i] = diffValue{new[i], Added}
 		} else if i >= len(new) {
-			d[i] = Removed
+			d[i] = diffValue{old[i], Removed}
 		} else {
 			d[i] = Compare(old[i], new[i])
 		}
@@ -62,9 +62,9 @@ func compareMaps(old, new map[string]interface{}) Diff {
 	}
 
 	// Removed keys
-	for key, _ := range old {
+	for key, value := range old {
 		if _, ok := new[key]; !ok {
-			d[key] = Removed
+			d[key] = diffValue{value, Removed}
 		}
 	}
 

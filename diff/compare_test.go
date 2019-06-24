@@ -62,7 +62,7 @@ func TestCompareSlices(t *testing.T) {
 			[]interface{}{1, 2, 3}, []interface{}{1, 2}, diffSlice{
 				Unchanged,
 				Unchanged,
-				Removed,
+				diffValue{3, Removed},
 			},
 		},
 	}
@@ -100,7 +100,7 @@ func TestCompareMaps(t *testing.T) {
 		{
 			map[string]interface{}{"foo": "bar"},
 			map[string]interface{}{},
-			diffMap{"foo": Removed},
+			diffMap{"foo": diffValue{"bar", Removed}},
 		},
 	}
 
@@ -186,13 +186,13 @@ func TestCompare(t *testing.T) {
 			diffMap{
 				"foo": diffSlice{
 					diffMap{
-						"foo": Removed,
+						"foo": diffValue{"bar", Removed},
 						"baz": diffSlice{
 							Unchanged,
-							Removed,
+							diffValue{"bar", Removed},
 						},
 					},
-					Removed,
+					diffValue{"foo", Removed},
 				},
 			},
 		},
