@@ -12,7 +12,7 @@ func TestCompareScalar(t *testing.T) {
 		expected Diff
 	}{
 		{
-			"foo", "foo", Unchanged,
+			"foo", "foo", diffValue{"foo", Unchanged},
 		},
 		{
 			"foo", "bar", diffValue{"bar", Changed},
@@ -41,27 +41,27 @@ func TestCompareSlices(t *testing.T) {
 		expected Diff
 	}{
 		{
-			[]interface{}{1, 2, 3}, []interface{}{1, 2, 3}, Unchanged,
+			[]interface{}{1, 2, 3}, []interface{}{1, 2, 3}, diffValue{[]interface{}{1, 2, 3}, Unchanged},
 		},
 		{
 			[]interface{}{1, 2, 3}, []interface{}{1, 2, 4}, diffSlice{
-				Unchanged,
-				Unchanged,
+				diffValue{1, Unchanged},
+				diffValue{2, Unchanged},
 				diffValue{4, Changed},
 			},
 		},
 		{
 			[]interface{}{1, 2, 3}, []interface{}{1, 2, 3, 4}, diffSlice{
-				Unchanged,
-				Unchanged,
-				Unchanged,
+				diffValue{1, Unchanged},
+				diffValue{2, Unchanged},
+				diffValue{3, Unchanged},
 				diffValue{4, Added},
 			},
 		},
 		{
 			[]interface{}{1, 2, 3}, []interface{}{1, 2}, diffSlice{
-				Unchanged,
-				Unchanged,
+				diffValue{1, Unchanged},
+				diffValue{2, Unchanged},
 				diffValue{3, Removed},
 			},
 		},
@@ -85,7 +85,7 @@ func TestCompareMaps(t *testing.T) {
 		{
 			map[string]interface{}{"foo": "bar"},
 			map[string]interface{}{"foo": "bar"},
-			Unchanged,
+			diffValue{map[string]interface{}{"foo": "bar"}, Unchanged},
 		},
 		{
 			map[string]interface{}{"foo": "bar"},
@@ -95,7 +95,7 @@ func TestCompareMaps(t *testing.T) {
 		{
 			map[string]interface{}{"foo": "bar"},
 			map[string]interface{}{"foo": "bar", "baz": "quux"},
-			diffMap{"foo": Unchanged, "baz": diffValue{"quux", Added}},
+			diffMap{"foo": diffValue{"bar", Unchanged}, "baz": diffValue{"quux", Added}},
 		},
 		{
 			map[string]interface{}{"foo": "bar"},
@@ -135,7 +135,7 @@ func TestCompare(t *testing.T) {
 		{
 			original,
 			original,
-			Unchanged,
+			diffValue{original, Unchanged},
 		},
 		{
 			original,
@@ -158,15 +158,15 @@ func TestCompare(t *testing.T) {
 			diffMap{
 				"foo": diffSlice{
 					diffMap{
-						"foo": Unchanged,
+						"foo": diffValue{"bar", Unchanged},
 						"baz": diffSlice{
-							Unchanged,
-							Unchanged,
+							diffValue{"foo", Unchanged},
+							diffValue{"bar", Unchanged},
 							diffValue{"baz", Added},
 						},
 						"quux": diffValue{"mooz", Added},
 					},
-					Unchanged,
+					diffValue{"foo", Unchanged},
 					diffValue{"bar", Added},
 				},
 				"bar": diffValue{"baz", Added},
@@ -188,7 +188,7 @@ func TestCompare(t *testing.T) {
 					diffMap{
 						"foo": diffValue{"bar", Removed},
 						"baz": diffSlice{
-							Unchanged,
+							diffValue{"foo", Unchanged},
 							diffValue{"bar", Removed},
 						},
 					},

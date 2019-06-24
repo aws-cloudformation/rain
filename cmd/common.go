@@ -91,10 +91,10 @@ func getRainBucket() string {
 	return bucketName
 }
 
-func colouriseDiff(d diff.Diff) string {
+func colouriseDiff(d diff.Diff, longFormat bool) string {
 	output := strings.Builder{}
 
-	for _, line := range strings.Split(diff.Format(d), "\n") {
+	for _, line := range strings.Split(diff.Format(d, longFormat), "\n") {
 		switch {
 		case strings.HasPrefix(line, diff.Added.String()):
 			output.WriteString(util.Green(line).String())

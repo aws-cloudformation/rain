@@ -6,11 +6,11 @@ const (
 	Added     mode = "+ "
 	Removed   mode = "- "
 	Changed   mode = "| "
-	Unchanged mode = "= "
+	Unchanged mode = "  "
 )
 
 type Diff interface {
-	mode() mode
+	Mode() mode
 }
 
 type diffValue struct {
@@ -26,22 +26,18 @@ func (m mode) String() string {
 	return string(m)
 }
 
-func (m mode) mode() mode {
-	return m
-}
-
-func (d diffValue) mode() mode {
+func (d diffValue) Mode() mode {
 	return d.valueMode
 }
 
-func (d diffSlice) mode() mode {
+func (d diffSlice) Mode() mode {
 	mode := Added
 
 	for i, v := range d {
 		if i == 0 {
-			mode = v.mode()
+			mode = v.Mode()
 		} else {
-			if mode != v.mode() {
+			if mode != v.Mode() {
 				mode = Changed
 			}
 		}
@@ -50,14 +46,14 @@ func (d diffSlice) mode() mode {
 	return mode
 }
 
-func (d diffMap) mode() mode {
+func (d diffMap) Mode() mode {
 	slice := make(diffSlice, 0)
 
 	for _, v := range d {
 		slice = append(slice, v)
 	}
 
-	return slice.mode()
+	return slice.Mode()
 }
 
 func (d diffMap) Keys() []string {

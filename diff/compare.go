@@ -21,12 +21,12 @@ func Compare(old, new interface{}) Diff {
 		}
 	}
 
-	return Unchanged
+	return diffValue{old, Unchanged}
 }
 
 func compareSlices(old, new []interface{}) Diff {
 	if reflect.DeepEqual(old, new) {
-		return Unchanged
+		return diffValue{old, Unchanged}
 	}
 
 	max := int(math.Max(float64(len(old)), float64(len(new))))
@@ -47,7 +47,7 @@ func compareSlices(old, new []interface{}) Diff {
 
 func compareMaps(old, new map[string]interface{}) Diff {
 	if reflect.DeepEqual(old, new) {
-		return Unchanged
+		return diffValue{old, Unchanged}
 	}
 
 	d := make(diffMap)

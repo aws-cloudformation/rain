@@ -19,62 +19,62 @@ func TestDiffMode(t *testing.T) {
 		},
 		{
 			diffSlice{
-				Added,
+				diffValue{"foo", Added},
 			},
 			Added,
 		},
 		{
 			diffSlice{
-				Added,
-				Added,
+				diffValue{"foo", Added},
+				diffValue{"bar", Added},
 			},
 			Added,
 		},
 		{
 			diffSlice{
-				Removed,
-				Removed,
+				diffValue{"foo", Removed},
+				diffValue{"bar", Removed},
 			},
 			Removed,
 		},
 		{
 			diffSlice{
-				Added,
-				Removed,
+				diffValue{"foo", Added},
+				diffValue{"bar", Removed},
 			},
 			Changed,
 		},
 		{
 			diffMap{
-				"foo": Added,
+				"foo": diffValue{"bar", Added},
 			},
 			Added,
 		},
 		{
 			diffMap{
-				"foo": Added,
-				"bar": Added,
+				"foo": diffValue{"bar", Added},
+				"baz": diffValue{"quux", Added},
 			},
 			Added,
 		},
 		{
 			diffMap{
-				"foo": Removed,
-				"bar": Removed,
+				"foo": diffValue{"bar", Removed},
+				"baz": diffValue{"quux", Removed},
 			},
 			Removed,
 		},
 		{
 			diffMap{
-				"foo": Added,
-				"bar": Removed,
+				"foo": diffValue{"bar", Added},
+				"baz": diffValue{"quux", Removed},
 			},
 			Changed,
 		},
 	}
 
 	for _, testCase := range cases {
-		actual := testCase.value.mode()
+		actual := testCase.value.Mode()
 
 		if actual != testCase.expected {
 			t.Errorf("%#v\n!=\n%#v", actual, testCase.expected)

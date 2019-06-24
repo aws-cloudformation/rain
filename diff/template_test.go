@@ -49,7 +49,7 @@ func TestCompareTemplateIntrinsics(t *testing.T) {
 
 	actual := Compare(at, bt)
 
-	if actual != Unchanged {
-		t.Errorf("Templates are not equal! %s", Format(actual))
+	if actual.Mode() != Unchanged {
+		t.Errorf("Templates are not equal! %s", Format(actual, false))
 	}
 }

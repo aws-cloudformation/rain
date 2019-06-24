@@ -123,14 +123,14 @@ var deployCmd = &cobra.Command{
 
 				d := diff.Compare(oldTemplate, newTemplate)
 
-				if d == diff.Unchanged {
+				if d.Mode() == diff.Unchanged {
 					fmt.Println(util.Green("No changes to deploy!"))
 					return
 				}
 
 				util.ClearLine()
 				if util.Confirm(true, fmt.Sprintf("Stack '%s' exists. Do you wish to see the diff before deploying?", stackName)) {
-					fmt.Print(colouriseDiff(d))
+					fmt.Print(colouriseDiff(d, false))
 
 					if !util.Confirm(true, "Do you wish to continue?") {
 						panic(errors.New("User cancelled deployment."))

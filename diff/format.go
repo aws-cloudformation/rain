@@ -12,26 +12,20 @@ import (
 
 const indent = "  "
 
-func Format(d Diff) string {
-	return formatDiff(d, make([]interface{}, 0))
+func Format(d Diff, long bool) string {
+	return formatDiff(d, make([]interface{}, 0), long)
 }
 
-func formatDiff(d Diff, path []interface{}) string {
+func formatDiff(d Diff, path []interface{}, long bool) string {
 	switch v := d.(type) {
 	case diffSlice:
-		return formatSlice(v, path)
+		return formatSlice(v, path, long)
 	case diffMap:
-		return formatMap(v, path)
+		return formatMap(v, path, long)
 	case diffValue:
 		f := format.NewFormatter()
 		f.SetCompact()
 		return f.Format(v.value)
-	case mode:
-		if v == Unchanged {
-			return "No changes\n"
-		}
-
-		return fmt.Sprintf("%sEverything!\n", v)
 	}
 
 	panic(fmt.Sprintf("Unexpected %#v\n", d))
@@ -48,29 +42,29 @@ func stubValue(v diffValue) string {
 	}
 }
 
-func formatSlice(d diffSlice, path []interface{}) string {
+func formatSlice(d diffSlice, path []interface{}, long bool) string {
 	output := strings.Builder{}
 
 	for i, v := range d {
-		m := v.mode()
+		m := v.Mode()
 
-		if m == Unchanged {
+		if !long && m == Unchanged {
 			continue
 		}
 
 		output.WriteString(fmt.Sprintf("%s[%d]:", m.String(), i))
 
-		if m == Removed {
+		if m == Removed || m == Unchanged {
 			output.WriteString(" " + stubValue(v.(diffValue)) + "\n")
 		} else {
-			output.WriteString(formatSub(v, append(path, i)))
+			output.WriteString(formatSub(v, append(path, i), long))
 		}
 	}
 
 	return output.String()
 }
 
-func formatMap(d diffMap, path []interface{}) string {
+func formatMap(d diffMap, path []interface{}, long bool) string {
 	output := strings.Builder{}
 
 	keys := d.Keys()
@@ -78,27 +72,27 @@ func formatMap(d diffMap, path []interface{}) string {
 
 	for _, k := range keys {
 		v := d[k]
-		m := v.mode()
+		m := v.Mode()
 
-		if m == Unchanged {
+		if !long && m == Unchanged {
 			continue
 		}
 
 		output.WriteString(fmt.Sprintf("%s%s:", m.String(), k))
 
-		if m == Removed {
+		if m == Removed || m == Unchanged {
 			output.WriteString(" " + stubValue(v.(diffValue)) + "\n")
 		} else {
-			output.WriteString(formatSub(v, append(path, k)))
+			output.WriteString(formatSub(v, append(path, k), long))
 		}
 	}
 
 	return output.String()
 }
 
-func formatSub(d Diff, path []interface{}) string {
+func formatSub(d Diff, path []interface{}, long bool) string {
 	// Format the element
-	formatted := strings.Split(formatDiff(d, path), "\n")
+	formatted := strings.Split(formatDiff(d, path, long), "\n")
 
 	v, isValue := d.(diffValue)
 	if isValue {

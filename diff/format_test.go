@@ -44,13 +44,13 @@ var testCases = []struct {
 	{
 		// Add and remove a value from a slice
 		diffSlice{
-			Unchanged,
-			diffValue{"foo", Changed},
-			Unchanged,
-			diffValue{"bar", Removed},
-			Unchanged,
+			diffValue{"foo", Unchanged},
+			diffValue{"bar", Changed},
+			diffValue{"baz", Unchanged},
+			diffValue{"quux", Removed},
+			diffValue{"mooz", Unchanged},
 		},
-		"| [1]: foo\n- [3]: ...\n",
+		"| [1]: bar\n- [3]: ...\n",
 	},
 	{
 		// Add and remove a value from a map
@@ -111,7 +111,7 @@ var testCases = []struct {
 		diffSlice{
 			diffSlice{
 				diffValue{"foo", Changed},
-				Unchanged,
+				diffValue{"bar", Unchanged},
 			},
 		},
 		"| [0]:\n|   [0]: foo\n",
@@ -121,7 +121,7 @@ var testCases = []struct {
 		diffMap{
 			"foo": diffMap{
 				"bar":  diffValue{"baz", Added},
-				"quux": Unchanged,
+				"quux": diffValue{"mooz", Unchanged},
 			},
 		},
 		"| foo:\n+   bar: baz\n",
@@ -169,7 +169,7 @@ var testCases = []struct {
 func TestFormat(t *testing.T) {
 
 	for _, testCase := range testCases {
-		actual := Format(testCase.value)
+		actual := Format(testCase.value, false)
 
 		if actual != testCase.expected {
 			t.Errorf("%q\n!=\n%q", actual, testCase.expected)

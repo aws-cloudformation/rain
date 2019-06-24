@@ -8,6 +8,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var longDiff = false
+
 var diffCmd = &cobra.Command{
 	Use:                   "diff <from> <to>",
 	Short:                 "Compare CloudFormation templates",
@@ -27,10 +29,11 @@ var diffCmd = &cobra.Command{
 			panic(fmt.Errorf("Unable to parse template '%s': %s", leftFn, err))
 		}
 
-		fmt.Print(colouriseDiff(diff.Compare(left, right)))
+		fmt.Print(colouriseDiff(diff.Compare(left, right), longDiff))
 	},
 }
 
 func init() {
+	diffCmd.Flags().BoolVarP(&longDiff, "long", "l", false, "Include unchanged elements in diff output")
 	rootCmd.AddCommand(diffCmd)
 }
