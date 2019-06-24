@@ -5,7 +5,6 @@ package diff
 import (
 	"fmt"
 	"reflect"
-	"sort"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/format"
@@ -14,11 +13,15 @@ import (
 const indent = "  "
 
 func Format(d Diff) string {
+	return formatDiff(d, make([]interface{}, 0))
+}
+
+func formatDiff(d Diff, path []interface{}) string {
 	switch v := d.(type) {
 	case diffSlice:
-		return formatSlice(v)
+		return formatSlice(v, path)
 	case diffMap:
-		return formatMap(v)
+		return formatMap(v, path)
 	case diffValue:
 		f := format.NewFormatter()
 		f.SetCompact()
@@ -45,7 +48,7 @@ func stubValue(v diffValue) string {
 	}
 }
 
-func formatSlice(d diffSlice) string {
+func formatSlice(d diffSlice, path []interface{}) string {
 	output := strings.Builder{}
 
 	for i, v := range d {
@@ -60,24 +63,18 @@ func formatSlice(d diffSlice) string {
 		if m == Removed {
 			output.WriteString(" " + stubValue(v.(diffValue)) + "\n")
 		} else {
-			output.WriteString(formatSub(v))
+			output.WriteString(formatSub(v, append(path, i)))
 		}
 	}
 
 	return output.String()
 }
 
-func formatMap(d diffMap) string {
+func formatMap(d diffMap, path []interface{}) string {
 	output := strings.Builder{}
 
-	// Sort the keys
-	keys := make([]string, 0)
-
-	for k, _ := range d {
-		keys = append(keys, k)
-	}
-
-	sort.Strings(keys)
+	keys := d.Keys()
+	format.SortKeys(keys, path)
 
 	for _, k := range keys {
 		v := d[k]
@@ -92,16 +89,16 @@ func formatMap(d diffMap) string {
 		if m == Removed {
 			output.WriteString(" " + stubValue(v.(diffValue)) + "\n")
 		} else {
-			output.WriteString(formatSub(v))
+			output.WriteString(formatSub(v, append(path, k)))
 		}
 	}
 
 	return output.String()
 }
 
-func formatSub(d Diff) string {
+func formatSub(d Diff, path []interface{}) string {
 	// Format the element
-	formatted := strings.Split(Format(d), "\n")
+	formatted := strings.Split(formatDiff(d, path), "\n")
 
 	v, isValue := d.(diffValue)
 	if isValue {

@@ -59,3 +59,15 @@ func (d diffMap) mode() mode {
 
 	return slice.mode()
 }
+
+func (d diffMap) Keys() []string {
+	keys := make([]string, len(d))
+
+	i := 0
+	for k, _ := range d {
+		keys[i] = k
+		i++
+	}
+
+	return keys
+}

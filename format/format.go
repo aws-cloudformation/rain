@@ -88,3 +88,19 @@ func Json(data interface{}) string {
 func JsonWithComments(data interface{}, comments map[interface{}]interface{}) string {
 	return newEncoder(Formatter{JSON, false}, value{data, comments}).format()
 }
+
+// SortKeys sorts the given keys
+// based on their location within a CloudFormation template
+// as given by the path parameter
+func SortKeys(keys []string, path []interface{}) {
+	data := make(map[string]interface{}, len(keys))
+	for _, key := range keys {
+		data[key] = nil
+	}
+
+	newKeys := sortKeys(data, path)
+
+	for i, _ := range keys {
+		keys[i] = newKeys[i]
+	}
+}
