@@ -102,3 +102,29 @@ Examples:
 
 * All commands (except ls for now) output in YAML-compatible output
 * All commands strip formatting if stdout is not connected to a terminal
+
+## Other CloudFormation tools
+
+In alphabetical order:
+
+* [cfn-flip](https://github.com/awslabs/aws-cfn-template-flip)
+
+    cfn-flip converts AWS CloudFormation templates between JSON and YAML formats, making use of the YAML format's short function syntax where possible.
+
+* [cfn-format](https://github.com/awslabs/aws-cloudformation-template-formatter)
+
+    cfn-format reads in an existing AWS CloudFormation template and outputs a cleanly-formatted, easy-to-read copy of the same template adhering to standards as used in AWS documentation. cfn-format can output either YAML or JSON as desired.
+
+* [cfn-lint](https://github.com/aws-cloudformation/cfn-python-lint)
+
+    Validate CloudFormation yaml/json templates against the CloudFormation spec and additional checks. Includes checking valid values for resource properties and best practices.
+
+* [cfn-skeleton](https://github.com/awslabs/aws-cloudformation-template-builder)
+
+    cfn-skeleton that consumes the published CloudFormation specification and generates skeleton CloudFormation templates with mandatory and optional parameters of chosen resource types pre-filled with placeholder values.
+
+* [taskcat](https://github.com/aws-quickstart/taskcat)
+
+    taskcat is a tool that tests AWS CloudFormation templates. It deploys your AWS CloudFormation template in multiple AWS Regions and generates a report with a pass/fail grade for each region. You can specify the regions and number of Availability Zones you want to include in the test, and pass in parameter values from your AWS CloudFormation template. taskcat is implemented as a Python class that you import, instantiate, and run.
+
+Are we missing an excellent tool? Let us know via a GitHub issue.
