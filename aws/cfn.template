@@ -14,16 +14,11 @@ Parameters:
     Description: github.com repository name
 
 Resources:
-  Bucket:
-    Type: "AWS::S3::Bucket"
-
   Project:
     Type: "AWS::CodeBuild::Project"
     Properties:
       Artifacts:
-        Location: !Ref Bucket
-        Name: /
-        Type: S3
+        Type: NO_ARTIFACTS
       BadgeEnabled: true
       Environment:
         ComputeType: BUILD_GENERAL1_MEDIUM
@@ -70,16 +65,6 @@ Resources:
                   - "logs:PutLogEvents"
                 Resource:
                   - "*"
-              - Sid: S3Policy
-                Effect: Allow
-                Action:
-                  - "s3:GetBucketAcl"
-                  - "s3:GetBucketLocation"
-                  - "s3:GetObject"
-                  - "s3:GetObjectVersion"
-                  - "s3:PutObject"
-                Resource:
-                  - "Fn::GetAtt": Bucket.Arn
               - Sid: ECRPullPolicy
                 Effect: Allow
                 Action:
