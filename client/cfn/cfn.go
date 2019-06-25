@@ -134,7 +134,7 @@ func createStack(template string, params []cloudformation.Parameter, stackName s
 			"CAPABILITY_NAMED_IAM",
 			"CAPABILITY_AUTO_EXPAND",
 		},
-		OnFailure:    "DELETE", // ROLLBACK or DELETE
+		OnFailure:    "ROLLBACK", // ROLLBACK or DELETE
 		StackName:    &stackName,
 		TemplateBody: &template,
 		Parameters:   params,
