@@ -17,8 +17,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func getParameters(t string, old []cloudformation.Parameter) []cloudformation.Parameter {
-	new := make([]cloudformation.Parameter, 0)
+func getParameters(t string, old []cloudformation.Parameter, forceOldValue bool) []cloudformation.Parameter {
+	newParams := make([]cloudformation.Parameter, 0)
 
 	template, err := parse.ReadString(t)
 	if err != nil {
@@ -31,28 +31,37 @@ func getParameters(t string, old []cloudformation.Parameter) []cloudformation.Pa
 	}
 
 	if params, ok := template["Parameters"]; ok {
-		for key, p := range params.(map[string]interface{}) {
+		for k, p := range params.(map[string]interface{}) {
+			// New variable so we don't mess up the pointers below
+			key := k
+
 			extra := ""
 			param := p.(map[string]interface{})
 
 			hasExisting := false
 
+			value := ""
+
 			if oldParam, ok := oldMap[key]; ok {
 				extra = fmt.Sprintf(" (existing value: %s)", *oldParam.ParameterValue)
 				hasExisting = true
+
+				if forceOldValue {
+					value = *oldParam.ParameterValue
+				}
 			} else if defaultValue, ok := param["Default"]; ok {
 				extra = fmt.Sprintf(" (default value: %s)", defaultValue)
 			}
 
-			value := util.Ask(fmt.Sprintf("Enter a value for parameter '%s'%s:", key, extra))
+			value = util.Ask(fmt.Sprintf("Enter a value for parameter '%s'%s:", key, extra))
 
 			if value != "" {
-				new = append(new, cloudformation.Parameter{
+				newParams = append(newParams, cloudformation.Parameter{
 					ParameterKey:   &key,
 					ParameterValue: &value,
 				})
 			} else if hasExisting {
-				new = append(new, cloudformation.Parameter{
+				newParams = append(newParams, cloudformation.Parameter{
 					ParameterKey:     &key,
 					UsePreviousValue: &hasExisting,
 				})
@@ -60,7 +69,7 @@ func getParameters(t string, old []cloudformation.Parameter) []cloudformation.Pa
 		}
 	}
 
-	return new
+	return newParams
 }
 
 var deployCmd = &cobra.Command{
@@ -103,11 +112,27 @@ var deployCmd = &cobra.Command{
 		util.ClearLine()
 		fmt.Printf("Checking current status of stack '%s'... ", stackName)
 
+		forceOldParams := false
+
 		// Find out if stack exists already
 		// If it does and it's not in a good state, offer to wait/delete
 		stack, err := cfn.GetStack(stackName)
 		if err == nil {
-			if !strings.HasSuffix(string(stack.StackStatus), "_COMPLETE") {
+			if string(stack.StackStatus) == "ROLLBACK_COMPLETE" {
+				forceOldParams = true
+
+				fmt.Println("Stack is currently ROLLBACK_COMPLETE; deleting...")
+				err := cfn.DeleteStack(stackName)
+				if err != nil {
+					panic(fmt.Errorf("Unable to delete stack '%s': %s", stackName, err))
+				}
+
+				status := waitForStackToSettle(stackName)
+
+				if status != "DELETE_COMPLETE" {
+					panic(fmt.Errorf("Failed to delete " + stackName))
+				}
+			} else if !strings.HasSuffix(string(stack.StackStatus), "_COMPLETE") {
 				// Can't update
 				panic(fmt.Errorf("Stack '%s' could not be updated: %s", stackName, colouriseStatus(string(stack.StackStatus))))
 			} else {
@@ -146,7 +171,7 @@ var deployCmd = &cobra.Command{
 		}
 		template := string(t)
 
-		parameters := getParameters(template, stack.Parameters)
+		parameters := getParameters(template, stack.Parameters, forceOldParams)
 
 		util.Debug("Parameters: %s", parameters)
 
