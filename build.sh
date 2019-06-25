@@ -2,38 +2,40 @@
 
 # This script will build rain for all platforms
 
-# Run tests first
+set -e
 
 NAME=rain
-VERSION=$(git describe --abbrev=0)
+OUTPUT_DIR=dist
+
+VERSION=$(git describe)
 
 declare -A PLATFORMS=([linux]=linux [darwin]=osx [windows]=windows)
 declare -A ARCHITECTURES=([386]=i386 [amd64]=amd64)
 
+# Run tests first
 go vet ./... || exit 1
-
 go test ./... || exit 1
 
-echo "Building $NAME"
+echo "Building $NAME $VERSION..."
 
 for platform in ${!PLATFORMS[@]}; do
     for architecture in ${!ARCHITECTURES[@]}; do
-        echo "... $platform $architecture..."
+        echo "$platform/$architecture..."
 
-        full_name=${NAME}-${VERSION}_${PLATFORMS[$platform]}-${ARCHITECTURES[$architecture]}
-        bin_name=$NAME
+        full_name="${NAME}-${VERSION}_${PLATFORMS[$platform]}-${ARCHITECTURES[$architecture]}"
+        bin_name="$NAME"
 
         if [ "$platform" == "windows" ]; then
-            bin_name=${NAME}.exe
+            bin_name="${NAME}.exe"
         fi
 
-        mkdir $full_name
+        mkdir -p "$OUTPUT_DIR/$full_name"
 
-        GOOS=$platform GOARCH=$architecture go build -o ${full_name}/${bin_name}
+        GOOS=$platform GOARCH=$architecture go build -o "$OUTPUT_DIR/${full_name}/${bin_name}"
 
-        zip -9 -r ${full_name}.zip $full_name
+        zip -9 -r "$OUTPUT_DIR/${full_name}.zip" "$OUTPUT_DIR/$full_name"
 
-        rm -r $full_name
+        rm -r "$OUTPUT_DIR/$full_name"
     done
 done
 

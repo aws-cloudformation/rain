@@ -1,0 +1,96 @@
+Description: Rain pipeline
+
+Parameters:
+  GitHubBranch:
+    Type: String
+    Description: branch to build from
+
+  GitHubOwner:
+    Type: String
+    Description: github.com account
+
+  GitHubRepo:
+    Type: String
+    Description: github.com repository name
+
+Resources:
+  Bucket:
+    Type: "AWS::S3::Bucket"
+
+  Project:
+    Type: "AWS::CodeBuild::Project"
+    Properties:
+      Artifacts:
+        Location: !Ref Bucket
+        Name: /
+        Type: S3
+      BadgeEnabled: true
+      Environment:
+        ComputeType: BUILD_GENERAL1_MEDIUM
+        Image: "aws/codebuild/standard:2.0"
+        Type: LINUX_CONTAINER
+      ServiceRole: !GetAtt Role.Arn
+      Source:
+        BuildSpec: aws/buildspec.yml
+        Location: !Sub "https://github.com/${GitHubOwner}/${GitHubRepo}.git"
+        ReportBuildStatus: true
+        Type: GITHUB
+      SourceVersion: !Ref GitHubBranch
+      Triggers:
+        FilterGroups:
+          - - Pattern: PUSH
+              Type: EVENT
+            - Pattern: !Sub ^refs/heads/${GitHubBranch}$
+              Type: HEAD_REF
+        Webhook: true
+
+  Role:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+            Action: "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AdministratorAccess"
+      Policies:
+        - PolicyName: CodeBuild
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: CloudWatchLogsPolicy
+                Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource:
+                  - "*"
+              - Sid: S3Policy
+                Effect: Allow
+                Action:
+                  - "s3:GetBucketAcl"
+                  - "s3:GetBucketLocation"
+                  - "s3:GetObject"
+                  - "s3:GetObjectVersion"
+                  - "s3:PutObject"
+                Resource:
+                  - "Fn::GetAtt": Bucket.Arn
+              - Sid: ECRPullPolicy
+                Effect: Allow
+                Action:
+                  - "ecr:BatchCheckLayerAvailability"
+                  - "ecr:BatchGetImage"
+                  - "ecr:GetDownloadUrlForLayer"
+                Resource:
+                  - "*"
+              - Sid: ECRAuthPolicy
+                Effect: Allow
+                Action:
+                  - "ecr:GetAuthorizationToken"
+                Resource:
+                  - "*"

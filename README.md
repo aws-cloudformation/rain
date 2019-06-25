@@ -1,3 +1,5 @@
+![Build badge](https://codebuild.eu-west-2.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiVnhYMmtaSWhDa2Z4aGNUeXVralRXcGJudUVtOUk5YWhHRGN2VnVzVkkrWUFDRGNZamY2RDZHR0lxYUVkTmp1UCtVUG5oM2k5YWxBR1QrRnpCczhiZmh3PSIsIml2UGFyYW1ldGVyU3BlYyI6InZuekdoRlpPTDRRUlJHTjYiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master)
+
 # Rain
 
 Rain is a development workflow tool for working with AWS CloudFormation.
