@@ -57,10 +57,11 @@ func ordering(path []interface{}) []string {
 			"NotResource",
 			"Condition",
 		}
-	case len(path) > 2 && path[len(path)-3] == "Resources" && path[len(path)-1] == "Properties":
+	case len(path) > 2 && path[0] == "Resources" && path[1] == "Properties":
 		return []string{
 			"Name",
 			"Description",
+			"Type",
 		}
 	default:
 		return []string{}
