@@ -1,4 +1,4 @@
-package lib // FIXME: Rename this
+package template
 
 import (
 	"fmt"
@@ -6,80 +6,63 @@ import (
 	"strings"
 )
 
-const pseudoParameterType = "PseudoParameter"
-
 type Template map[string]interface{}
 type tree map[string]interface{}
 
-var typeMap = map[string]string{
-	"Resources":  "Resource",
-	"Outputs":    "Output",
-	"Parameters": "Parameter",
+type Element struct {
+	Name string
+	Type string
 }
+
+const pseudoParameterType = "Parameter"
 
 var subRe = regexp.MustCompile(`\$\{([^!].+?)\}`)
 
-type Node struct {
-	Type string
-	Name string
-}
-
-type Dependency struct {
-	From Node
-	To   Node
-}
-
-func (n Node) String() string {
-	return fmt.Sprintf("%s / %s", n.Type, n.Name)
-}
-
-func (d Dependency) String() string {
-	return fmt.Sprintf("%s -> %s", d.From, d.To)
-}
-
-func (t Template) FindDependencies() []Dependency {
-	deps := make([]Dependency, 0)
-
-	var entityTypes = make(map[string]string)
-
+func (t Template) Graph() Graph {
+	// Map out parameter and resource names so we know which is which
+	entities := make(map[string]string)
 	for typeName, entity := range t {
-		entityTree, ok := entity.(map[string]interface{})
-
-		if ok {
-			for entityName, _ := range entityTree {
-				entityTypes[entityName] = typeMap[typeName]
-			}
-		}
-	}
-
-	for typeKey, typeName := range typeMap {
-		if _, ok := t[typeKey]; !ok {
+		if typeName != "Parameters" && typeName != "Resources" {
 			continue
 		}
 
-		// Resources
-		for name, res := range t[typeKey].(map[string]interface{}) {
-			resource := tree(res.(map[string]interface{}))
-			for to := range resource.Refs() {
-				toType, ok := entityTypes[to]
-				if !ok {
-					switch {
-					case strings.HasPrefix(to, "AWS::"):
-						toType = pseudoParameterType
-					default:
-						toType = "Unknown"
-					}
-				}
-
-				deps = append(deps, Dependency{
-					From: Node{typeName, name},
-					To:   Node{toType, to}, // FIXME: Find out what type of thing this is
-				})
+		if entityTree, ok := entity.(map[string]interface{}); ok {
+			for entityName, _ := range entityTree {
+				entities[entityName] = typeName
 			}
 		}
 	}
 
-	return deps
+	// Now find the deps
+	graph := NewGraph()
+	for typeName, entity := range t {
+		if typeName != "Resources" && typeName != "Outputs" {
+			continue
+		}
+
+		if entityTree, ok := entity.(map[string]interface{}); ok {
+			for fromName, res := range entityTree {
+				from := Element{fromName, typeName}
+				graph.Add(from)
+
+				resource := tree(res.(map[string]interface{}))
+				for toName := range resource.Refs() {
+					toType, ok := entities[toName]
+					if !ok {
+						if strings.HasPrefix(toName, "AWS::") {
+							toType = "Parameters"
+						} else {
+							panic(fmt.Errorf("Template has unresolved dependency '%s' at %s: %s", toName, typeName, fromName))
+						}
+					}
+
+					graph.Link(from, Element{toName, toType})
+				}
+			}
+		}
+	}
+
+	return graph
 }
 
 func (t tree) Refs() chan string {
