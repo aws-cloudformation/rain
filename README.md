@@ -44,6 +44,7 @@ diff        Compare CloudFormation templates
 logs        Show the event log for the named stack
 ls          List running CloudFormation stacks
 rm          Delete a running CloudFormation stack
+tree        Find dependencies of Resources and Outputs in a local template
 ```
 
 You can get additional information about any command by running:
