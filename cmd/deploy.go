@@ -53,9 +53,14 @@ func getParameters(t string, old []cloudformation.Parameter, forceOldValue bool)
 				extra = fmt.Sprintf(" (default value: %s)", defaultValue)
 			}
 
-			value = util.Ask(fmt.Sprintf("Enter a value for parameter '%s'%s:", key, extra))
+			newValue := util.Ask(fmt.Sprintf("Enter a value for parameter '%s'%s:", key, extra))
 
-			if value != "" {
+			if newValue != "" {
+				newParams = append(newParams, cloudformation.Parameter{
+					ParameterKey:   &key,
+					ParameterValue: &newValue,
+				})
+			} else if value != "" && forceOldValue {
 				newParams = append(newParams, cloudformation.Parameter{
 					ParameterKey:   &key,
 					ParameterValue: &value,
