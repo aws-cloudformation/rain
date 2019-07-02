@@ -44,6 +44,18 @@ func init() {
 	}
 }
 
+func transformGetAtt(in interface{}) interface{} {
+	if s, ok := in.(string); ok {
+		out := make([]interface{}, 2)
+		for i, v := range strings.SplitN(s, ".", 2) {
+			out[i] = v
+		}
+		return out
+	}
+
+	return in
+}
+
 func (t *tagUnmarshalerType) UnmarshalYAMLTag(tag string, value reflect.Value) reflect.Value {
 	prefix := "Fn::"
 	if tag == "Ref" || tag == "Condition" {
@@ -53,9 +65,7 @@ func (t *tagUnmarshalerType) UnmarshalYAMLTag(tag string, value reflect.Value) r
 
 	// Deal with tricksy GetAtt
 	if tag == "Fn::GetAtt" {
-		if s, ok := value.Interface().(string); ok {
-			value = reflect.ValueOf(strings.SplitN(s, ".", 2))
-		}
+		value = reflect.ValueOf(transformGetAtt(value.Interface()))
 	}
 
 	output := reflect.ValueOf(make(map[interface{}]interface{}))
@@ -105,7 +115,18 @@ func VerifyOutput(source map[string]interface{}, output string) error {
 		return err
 	}
 
-	if diff := cmp.Diff(source, validate); diff != "" {
+	// Transform GetAtt so that foo.bar and [foo, bar] are seen as equivalent
+	trans := cmp.Transformer("GetAtt", func(in map[string]interface{}) map[string]interface{} {
+		for k, v := range in {
+			if k == "Fn::GetAtt" {
+				in[k] = transformGetAtt(v)
+			}
+		}
+
+		return in
+	})
+
+	if diff := cmp.Diff(source, validate, trans); diff != "" {
 		return fmt.Errorf("Semantic difference after formatting:\n%s", diff)
 	}
 

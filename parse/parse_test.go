@@ -100,14 +100,22 @@ func TestReadString(t *testing.T) {
 func TestVerifyOutput(t *testing.T) {
 	source := map[string]interface{}{
 		"foo": map[string]interface{}{
-			"bar": "baz",
+			"bar": map[string]interface{}{
+				"Fn::GetAtt": []interface{}{
+					"foo",
+					"bar",
+				},
+			},
+			"baz": map[string]interface{}{
+				"Fn::GetAtt": "foo.bar",
+			},
 			"quux": []interface{}{
 				"mooz",
 			},
 		},
 	}
 
-	goodCase := "foo:\n  bar: baz\n  quux:\n    - mooz"
+	goodCase := "foo:\n  bar: !GetAtt foo.bar\n  baz: !GetAtt\n    - foo\n    - bar\n  quux:\n    - mooz"
 	badCase := "foo:\n  bar: baz\n  quux: mooz"
 
 	var err error
