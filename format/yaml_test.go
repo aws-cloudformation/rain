@@ -291,11 +291,20 @@ func TestIntrinsics(t *testing.T) {
 				},
 			},
 		},
+		{
+			"foo": map[string]interface{}{
+				"Fn::GetAtt": []interface{}{
+					"Cake",
+					"Lie",
+				},
+			},
+		},
 	}
 
 	expecteds := []string{
 		"foo: !Ref bar",
 		"foo: !Sub\n  - The ${key} is a ${value}\n  - key: cake\n    value: lie",
+		"foo: !GetAtt Cake.Lie",
 	}
 
 	for i, testCase := range cases {

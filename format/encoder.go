@@ -73,8 +73,20 @@ func (p encoder) formatIntrinsic(key string) string {
 
 	fmtValue := p.format()
 
-	switch p.currentValue.(type) {
-	case map[string]interface{}, []interface{}:
+	switch v := p.currentValue.(type) {
+	case []interface{}:
+		// Deal with GetAtt
+		if shortKey == "GetAtt" {
+			parts := make([]string, len(v))
+			for i, part := range v {
+				parts[i] = fmt.Sprint(part)
+			}
+
+			return fmt.Sprintf("!%s %s", shortKey, strings.Join(parts, "."))
+		}
+
+		return fmt.Sprintf("!%s\n  %s", shortKey, p.indent(fmtValue))
+	case map[string]interface{}:
 		return fmt.Sprintf("!%s\n  %s", shortKey, p.indent(fmtValue))
 	default:
 		return fmt.Sprintf("!%s %s", shortKey, fmtValue)
