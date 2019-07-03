@@ -34,11 +34,13 @@ func TestFormatString(t *testing.T) {
 	cases := []string{
 		"foo",
 		"\"quoted\"",
+		"multi\nline",
 	}
 
 	expecteds := []string{
 		"foo",
 		"\"\\\"quoted\\\"\"",
+		"|\n  multi\n  line",
 	}
 
 	for i, testCase := range cases {

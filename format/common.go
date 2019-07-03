@@ -49,11 +49,14 @@ func intrinsicKey(data map[string]interface{}) (string, bool) {
 }
 
 func formatString(data string) string {
-	quote := false
-
 	switch {
-	case strings.ContainsAny(data, "\n"),
-		data == "",
+	case strings.ContainsAny(data, "\n"):
+		parts := strings.Split(strings.TrimSpace(data), "\n")
+		for i, part := range parts {
+			parts[i] = "  " + part
+		}
+		return fmt.Sprintf("|\n%s", strings.Join(parts, "\n"))
+	case data == "",
 		strings.ToLower(data) == "yes",
 		strings.ToLower(data) == "no",
 		strings.ToLower(data) == "y",
@@ -64,10 +67,6 @@ func formatString(data string) string {
 		strings.ContainsAny(string(data[0]), "0123456789!&%*?,|>@[{}]-\\ \t\n"),
 		strings.ContainsAny(string(data[len(data)-1]), " \t\n"),
 		strings.ContainsAny(data, "`\"':#"):
-		quote = true
-	}
-
-	if quote {
 		return fmt.Sprintf("%q", data)
 	}
 

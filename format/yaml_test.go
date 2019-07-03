@@ -340,7 +340,7 @@ func TestStrings(t *testing.T) {
 		"foo: \": thing\"",
 		"foo: \"Yes\"",
 		"foo: \"No\"",
-		"foo: \"multi\\nline\"",
+		"foo: |\n  multi\n  line",
 	}
 
 	for i, testCase := range cases {
