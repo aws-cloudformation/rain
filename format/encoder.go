@@ -6,7 +6,7 @@ import (
 )
 
 type encoder struct {
-	formatter      Formatter
+	Formatter
 	data           value
 	path           []interface{}
 	currentValue   interface{}
@@ -15,7 +15,7 @@ type encoder struct {
 
 func newEncoder(formatter Formatter, data value) encoder {
 	p := encoder{
-		formatter: formatter,
+		Formatter: formatter,
 		data:      data,
 		path:      make([]interface{}, 0),
 	}
@@ -43,7 +43,7 @@ func (p *encoder) pop() {
 func (p encoder) indent(in string) string {
 	indenter := "  "
 
-	if p.formatter.style == JSON {
+	if p.Options.Style == JSON {
 		indenter = "    "
 	}
 	parts := strings.Split(in, "\n")
@@ -54,7 +54,7 @@ func (p encoder) indent(in string) string {
 		}
 	}
 
-	if p.formatter.style == JSON {
+	if p.Options.Style == JSON {
 		return strings.Join(parts, "\n")
 	}
 
@@ -65,7 +65,7 @@ func (p encoder) formatIntrinsic(key string) string {
 	p.push(key)
 	defer p.pop()
 
-	if p.formatter.style == JSON {
+	if p.Options.Style == JSON {
 		return p.format()
 	}
 
@@ -98,7 +98,7 @@ func (p encoder) formatMap(data map[string]interface{}) string {
 		return "{}"
 	}
 
-	keys := sortKeys(data, p.path)
+	keys := p.sortKeys()
 
 	parts := make([]string, len(keys))
 
@@ -108,7 +108,7 @@ func (p encoder) formatMap(data map[string]interface{}) string {
 		p.push(key)
 		fmtValue := p.format()
 
-		if p.formatter.style == JSON {
+		if p.Options.Style == JSON {
 			fmtValue = fmt.Sprintf("%q: %s", key, fmtValue)
 			if i < len(keys)-1 {
 				fmtValue += ","
@@ -164,11 +164,11 @@ func (p encoder) formatMap(data map[string]interface{}) string {
 
 	// Double gap for top-level elements
 	joiner := "\n"
-	if !p.formatter.compact && len(p.path) <= 1 {
+	if !p.Options.Compact && len(p.path) <= 1 {
 		joiner = "\n\n"
 	}
 
-	if p.formatter.style == JSON {
+	if p.Options.Style == JSON {
 		if p.currentComment != "" {
 			return "{  // " + p.currentComment + "\n" + p.indent(strings.Join(parts, joiner)) + "\n}"
 		}
@@ -197,14 +197,14 @@ func (p encoder) formatList(data []interface{}) string {
 		p.push(i)
 		fmtValue := p.format()
 
-		if p.formatter.style == JSON {
+		if p.Options.Style == JSON {
 			parts[i] = p.indent(fmtValue)
 		} else {
 			parts[i] = fmt.Sprintf("- %s", p.indent(fmtValue))
 		}
 
 		if p.currentComment != "" {
-			if p.formatter.style == JSON {
+			if p.Options.Style == JSON {
 				parts[i] += "  // " + p.currentComment
 			} else {
 				parts[i] += "  # " + p.currentComment
@@ -214,7 +214,7 @@ func (p encoder) formatList(data []interface{}) string {
 		p.pop()
 	}
 
-	if p.formatter.style == JSON {
+	if p.Options.Style == JSON {
 		if p.currentComment != "" {
 			return "[  // " + p.currentComment + "\n" + strings.Join(parts, ",\n") + "\n]"
 		}
@@ -232,7 +232,7 @@ func (p encoder) format() string {
 	case []interface{}:
 		return p.formatList(v)
 	case string:
-		if p.formatter.style == JSON {
+		if p.Options.Style == JSON {
 			return fmt.Sprintf("%q", v)
 		}
 

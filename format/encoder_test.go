@@ -33,19 +33,28 @@ func init() {
 }
 
 func BenchmarkJson(b *testing.B) {
+	f := New(Options{
+		Style: JSON,
+	})
+
 	for n := 0; n < b.N; n++ {
-		Json(source)
+		f.Format(source)
 	}
 }
 
 func BenchmarkYaml(b *testing.B) {
+	f := New(Options{
+		Style: YAML,
+	})
+
 	for n := 0; n < b.N; n++ {
-		Yaml(source)
+		f.Format(source)
 	}
 }
 
 func BenchmarkVerifyJson(b *testing.B) {
-	output := Json(source)
+	f := New(Options{Style: JSON})
+	output := f.Format(source)
 	b.ResetTimer()
 
 	for n := 0; n < b.N; n++ {
@@ -54,7 +63,8 @@ func BenchmarkVerifyJson(b *testing.B) {
 }
 
 func BenchmarkVerifyYaml(b *testing.B) {
-	output := Yaml(source)
+	f := New(Options{Style: YAML})
+	output := f.Format(source)
 	b.ResetTimer()
 
 	for n := 0; n < b.N; n++ {

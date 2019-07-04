@@ -26,37 +26,26 @@ elements of arrays in the source data.
 */
 package format
 
+type Style int
+
 const (
-	YAML = iota
+	YAML Style = iota
 	JSON
 )
 
+type Options struct {
+	Style   Style
+	Compact bool
+}
+
 type Formatter struct {
-	style   int
-	compact bool
+	Options Options
 }
 
-func NewFormatter() Formatter {
+func New(options Options) Formatter {
 	return Formatter{
-		YAML,
-		false,
+		Options: options,
 	}
-}
-
-func (f *Formatter) SetYAML() {
-	f.style = YAML
-}
-
-func (f *Formatter) SetJSON() {
-	f.style = JSON
-}
-
-func (f *Formatter) SetCompact() {
-	f.compact = true
-}
-
-func (f *Formatter) SetExpanded() {
-	f.compact = false
 }
 
 func (f *Formatter) Format(data interface{}) string {
@@ -67,31 +56,11 @@ func (f *Formatter) FormatWithComments(data interface{}, comments map[interface{
 	return newEncoder(*f, value{data, comments}).format()
 }
 
-// Yaml formats the CloudFormation template as a Yaml string
-func Yaml(data interface{}) string {
-	return YamlWithComments(data, nil)
-}
-
-// YamlWithComments formats the CloudFormation template
-// as a Yaml string with comments as provided
-func YamlWithComments(data interface{}, comments map[interface{}]interface{}) string {
-	return newEncoder(Formatter{YAML, false}, value{data, comments}).format()
-}
-
-// Json formats the CloudFormation template as a Json string
-func Json(data interface{}) string {
-	return JsonWithComments(data, nil)
-}
-
-// JsonWithComments formats the CloudFormation template
-// as a Json string with comments as provided
-func JsonWithComments(data interface{}, comments map[interface{}]interface{}) string {
-	return newEncoder(Formatter{JSON, false}, value{data, comments}).format()
-}
-
+// FIXME: This needs to be refactored
 // SortKeys sorts the given keys
 // based on their location within a CloudFormation template
 // as given by the path parameter
+/*
 func SortKeys(keys []string, path []interface{}) {
 	data := make(map[string]interface{}, len(keys))
 	for _, key := range keys {
@@ -104,3 +73,4 @@ func SortKeys(keys []string, path []interface{}) {
 		keys[i] = newKeys[i]
 	}
 }
+*/

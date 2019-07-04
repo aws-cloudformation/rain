@@ -4,6 +4,12 @@ import (
 	"testing"
 )
 
+var yf Formatter
+
+func init() {
+	yf = New(Options{Style: YAML})
+}
+
 func TestYamlDirectValues(t *testing.T) {
 	cases := []interface{}{
 		1,
@@ -22,7 +28,7 @@ func TestYamlDirectValues(t *testing.T) {
 	for i, testCase := range cases {
 		expected := expecteds[i]
 
-		actual := Yaml(testCase)
+		actual := yf.Format(testCase)
 
 		if actual != expected {
 			t.Errorf("from %T %v:\n%#v != %#v\n", testCase, testCase, actual, expected)
@@ -39,10 +45,15 @@ func TestCompactYaml(t *testing.T) {
 		"baz: quux\nfoo: bar",
 	}
 
+	cyf := New(Options{
+		Style:   YAML,
+		Compact: true,
+	})
+
 	for i, testCase := range cases {
 		expected := expecteds[i]
 
-		actual := newEncoder(Formatter{YAML, true}, value{testCase, nil}).format()
+		actual := cyf.Format(testCase)
 
 		if actual != expected {
 			t.Errorf("from %T %v:\n%#v != %#v\n", testCase, testCase, actual, expected)
@@ -78,7 +89,7 @@ func TestYamlScalars(t *testing.T) {
 	for i, testCase := range cases {
 		expected := expecteds[i]
 
-		actual := Yaml(testCase)
+		actual := yf.Format(testCase)
 
 		if actual != expected {
 			t.Errorf("from %T %v:\n%#v != %#v\n", testCase, testCase, actual, expected)
@@ -135,7 +146,7 @@ func TestYamlList(t *testing.T) {
 	for i, testCase := range cases {
 		expected := expecteds[i]
 
-		actual := Yaml(testCase)
+		actual := yf.Format(testCase)
 
 		if actual != expected {
 			t.Errorf("from %T %v:\n%#v != %#v\n", testCase, testCase, actual, expected)
@@ -197,7 +208,7 @@ func TestYamlMap(t *testing.T) {
 	for i, testCase := range cases {
 		expected := expecteds[i]
 
-		actual := Yaml(testCase)
+		actual := yf.Format(testCase)
 
 		if actual != expected {
 			t.Errorf("from %T %v:\n%#v != %#v\n", testCase, testCase, actual, expected)
@@ -222,7 +233,7 @@ func TestCfnYaml(t *testing.T) {
 	for i, testCase := range cases {
 		expected := expecteds[i]
 
-		actual := Yaml(testCase)
+		actual := yf.Format(testCase)
 
 		if actual != expected {
 			t.Errorf("from %T %v:\n%#v != %#v\n", testCase, testCase, actual, expected)
@@ -310,7 +321,7 @@ func TestIntrinsics(t *testing.T) {
 	for i, testCase := range cases {
 		expected := expecteds[i]
 
-		actual := Yaml(testCase)
+		actual := yf.Format(testCase)
 
 		if actual != expected {
 			t.Errorf("from %T %v:\n%#v != %#v\n", testCase, testCase, actual, expected)
@@ -346,7 +357,7 @@ func TestStrings(t *testing.T) {
 	for i, testCase := range cases {
 		expected := expecteds[i]
 
-		actual := Yaml(testCase)
+		actual := yf.Format(testCase)
 
 		if actual != expected {
 			t.Errorf("from %T %v:\n%#v != %#v\n", testCase, testCase, actual, expected)
@@ -392,7 +403,7 @@ func TestYamlComments(t *testing.T) {
 	for i, comments := range commentCases {
 		expected := expecteds[i]
 
-		actual := YamlWithComments(data, comments)
+		actual := yf.FormatWithComments(data, comments)
 
 		if actual != expected {
 			t.Errorf("from %q != %q\n", actual, expected)

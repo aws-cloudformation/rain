@@ -4,6 +4,12 @@ import (
 	"testing"
 )
 
+var f Formatter
+
+func init() {
+	f = New(Options{Style: JSON})
+}
+
 func TestJsonScalars(t *testing.T) {
 	cases := []map[string]interface{}{
 		{"foo": 1},
@@ -32,7 +38,7 @@ func TestJsonScalars(t *testing.T) {
 	for i, testCase := range cases {
 		expected := expecteds[i]
 
-		actual := Json(testCase)
+		actual := f.Format(testCase)
 
 		if actual != expected {
 			t.Errorf("from %T %v:\n%#v != %#v\n", testCase, testCase, actual, expected)
@@ -89,7 +95,7 @@ func TestJsonList(t *testing.T) {
 	for i, testCase := range cases {
 		expected := expecteds[i]
 
-		actual := Json(testCase)
+		actual := f.Format(testCase)
 
 		if actual != expected {
 			t.Errorf("\n%v\n  is not\n%v\n", actual, expected)
@@ -145,7 +151,7 @@ func TestJsonMap(t *testing.T) {
 	for i, testCase := range cases {
 		expected := expecteds[i]
 
-		actual := Json(testCase)
+		actual := f.Format(testCase)
 
 		if actual != expected {
 			t.Errorf("\n%v\n---IS NOT---\n%v\n", actual, expected)
@@ -170,7 +176,7 @@ func TestCfnJson(t *testing.T) {
 	for i, testCase := range cases {
 		expected := expecteds[i]
 
-		actual := Json(testCase)
+		actual := f.Format(testCase)
 
 		if actual != expected {
 			t.Errorf("from %T %v:\n%#v != %#v\n", testCase, testCase, actual, expected)
@@ -216,7 +222,7 @@ func TestJsonComments(t *testing.T) {
 	for i, comments := range commentCases {
 		expected := expecteds[i]
 
-		actual := JsonWithComments(data, comments)
+		actual := f.FormatWithComments(data, comments)
 
 		if actual != expected {
 			t.Errorf("from %q != %q\n", actual, expected)
