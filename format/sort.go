@@ -1,6 +1,8 @@
 package format
 
-import "sort"
+import (
+	"sort"
+)
 
 var orders = map[string][]string{
 	"Template": {
@@ -72,19 +74,20 @@ func sortAs(keys []string, name string) []string {
 	known := make([]string, 0)
 	unknown := make([]string, 0)
 
-	var seen bool
-	for _, key := range keys {
-		seen = false
+	seen := make(map[string]bool)
 
-		for _, o := range orders[name] {
+	for _, o := range orders[name] {
+		for _, key := range keys {
 			if key == o {
 				known = append(known, key)
-				seen = true
+				seen[key] = true
 				break
 			}
 		}
+	}
 
-		if !seen {
+	for _, key := range keys {
+		if !seen[key] {
 			unknown = append(unknown, key)
 		}
 	}
