@@ -40,18 +40,12 @@ Resources:
               - !GetAtt ZBucket.Arn
 `
 
-var template map[string]interface{}
-
-func init() {
-	var err error
-
-	template, err = parse.ReadString(templateString)
-	if err != nil {
-		panic(err)
-	}
-}
-
 func TestOrdering(t *testing.T) {
+	template, err := parse.ReadString(templateString)
+	if err != nil {
+		t.Error(err)
+	}
+
 	testCases := []struct {
 		path []interface{}
 		keys []string

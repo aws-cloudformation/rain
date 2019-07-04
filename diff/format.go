@@ -22,6 +22,10 @@ func init() {
 const indent = "  "
 
 func Format(d Diff, long bool) string {
+	if !long && d.Mode() == Unchanged {
+		return ""
+	}
+
 	return formatDiff(d, make([]interface{}, 0), long)
 }
 

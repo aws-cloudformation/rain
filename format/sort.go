@@ -2,6 +2,8 @@ package format
 
 import (
 	"sort"
+
+	"github.com/aws-cloudformation/rain/template"
 )
 
 var orders = map[string][]string{
@@ -98,26 +100,53 @@ func sortAs(keys []string, name string) []string {
 func (p *encoder) sortKeys() []string {
 	keys := sortMapKeys(p.currentValue.(map[string]interface{}))
 
-	switch {
-	case len(p.path) == 0:
+	// Specific length paths
+	if len(p.path) == 0 {
 		return sortAs(keys, "Template")
-	case len(p.path) == 0:
-		return sortAs(keys, "Parameter")
-	case p.path[0] == "Transform" || p.path[len(p.path)-1] == "Fn::Transform":
-		return sortAs(keys, "Transform")
-	case p.path[0] == "Resources" && len(p.path) == 2:
-		return sortAs(keys, "Resource")
-	case p.path[0] == "Outputs" && len(p.path) == 2:
-		return sortAs(keys, "Outputs")
-	case len(p.path) > 2 && p.path[len(p.path)-2] == "Policies":
-		return sortAs(keys, "Policy")
-	case p.path[len(p.path)-1] == "PolicyDocument" || p.path[len(p.path)-1] == "AssumeRolePolicyDocument":
-		return sortAs(keys, "PolicyDocument")
-	case len(p.path) > 2 && p.path[len(p.path)-2] == "Statement":
-		return sortAs(keys, "PolicyStatement")
-	case len(p.path) > 3 && p.path[0] == "Resources" && p.path[2] == "Properties":
-		return sortAs(keys, "ResourceProperties")
-	default:
-		return keys
+	} else if len(p.path) == 1 {
+		if p.path[0] == "Resources" {
+			t := template.Template(p.data.Data.(map[string]interface{}))
+			g := t.Graph()
+			sort.Sort(g)
+
+			output := make([]string, 0)
+			for _, item := range g.Items() {
+				el := item.(template.Element)
+
+				if el.Type == "Resources" {
+					output = append(output, el.Name)
+				}
+			}
+
+			return output
+		}
+	} else if len(p.path) == 2 {
+		switch p.path[0] {
+		case "Parameters":
+			return sortAs(keys, "Parameter")
+		case "Resources":
+			return sortAs(keys, "Resource")
+		case "Outputs":
+			return sortAs(keys, "Outputs")
+		}
+	} else if len(p.path) > 3 {
+		if p.path[0] == "Resources" && p.path[2] == "Properties" {
+			return sortAs(keys, "ResourceProperties")
+		}
+	} else if len(p.path) > 2 {
+		if p.path[len(p.path)-2] == "Policies" {
+			return sortAs(keys, "Policy")
+		} else if p.path[len(p.path)-2] == "Statement" {
+			return sortAs(keys, "PolicyStatement")
+		}
 	}
+
+	// Paths that can live anywhere
+	if p.path[0] == "Transform" || p.path[len(p.path)-1] == "Fn::Transform" {
+		return sortAs(keys, "Transform")
+	} else if p.path[len(p.path)-1] == "PolicyDocument" || p.path[len(p.path)-1] == "AssumeRolePolicyDocument" {
+		return sortAs(keys, "PolicyDocument")
+	}
+
+	return keys
 }
