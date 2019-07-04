@@ -10,6 +10,15 @@ import (
 	"github.com/aws-cloudformation/rain/format"
 )
 
+var yaml format.Formatter
+
+func init() {
+	yaml = format.New(format.Options{
+		Style:   format.YAML,
+		Compact: true,
+	})
+}
+
 const indent = "  "
 
 func Format(d Diff, long bool) string {
@@ -23,9 +32,7 @@ func formatDiff(d Diff, path []interface{}, long bool) string {
 	case diffMap:
 		return formatMap(v, path, long)
 	case diffValue:
-		f := format.NewFormatter()
-		f.SetCompact()
-		return f.Format(v.value)
+		return yaml.Format(v.value)
 	}
 
 	panic(fmt.Sprintf("Unexpected %#v\n", d))
@@ -68,7 +75,7 @@ func formatMap(d diffMap, path []interface{}, long bool) string {
 	output := strings.Builder{}
 
 	keys := d.Keys()
-	format.SortKeys(keys, path)
+	keys = format.SortKeys(keys, path)
 
 	for _, k := range keys {
 		v := d[k]

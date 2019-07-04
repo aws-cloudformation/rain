@@ -56,21 +56,21 @@ func (f *Formatter) FormatWithComments(data interface{}, comments map[interface{
 	return newEncoder(*f, value{data, comments}).format()
 }
 
-// FIXME: This needs to be refactored
 // SortKeys sorts the given keys
 // based on their location within a CloudFormation template
 // as given by the path parameter
-/*
-func SortKeys(keys []string, path []interface{}) {
+func SortKeys(keys []string, path []interface{}) []string {
 	data := make(map[string]interface{}, len(keys))
 	for _, key := range keys {
 		data[key] = nil
 	}
 
-	newKeys := sortKeys(data, path)
-
-	for i, _ := range keys {
-		keys[i] = newKeys[i]
+	p := encoder{
+		Formatter:    New(Options{}),
+		data:         value{data, nil},
+		path:         path,
+		currentValue: data,
 	}
+
+	return p.sortKeys()
 }
-*/

@@ -8,6 +8,15 @@ import (
 	"github.com/aws-cloudformation/rain/format"
 )
 
+var yaml format.Formatter
+
+func init() {
+	yaml = format.New(format.Options{
+		Style:   format.YAML,
+		Compact: true,
+	})
+}
+
 type Table struct {
 	headings   []Text
 	values     [][]Text
@@ -128,8 +137,5 @@ func (t *Table) YAML() string {
 		out[i] = m
 	}
 
-	f := format.NewFormatter()
-	f.SetCompact()
-
-	return f.Format(out)
+	return yaml.Format(out)
 }

@@ -36,15 +36,16 @@ var fmtCmd = &cobra.Command{
 		}
 
 		// Format the output
-		formatter := format.NewFormatter()
+		options := format.Options{
+			Style:   format.YAML,
+			Compact: compactFlag,
+		}
 
 		if jsonFlag {
-			formatter.SetJSON()
+			options.Style = format.JSON
 		}
 
-		if compactFlag {
-			formatter.SetCompact()
-		}
+		formatter := format.New(options)
 
 		output := formatter.Format(source)
 
