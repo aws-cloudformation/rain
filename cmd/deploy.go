@@ -43,14 +43,14 @@ func getParameters(t string, old []cloudformation.Parameter, forceOldValue bool)
 			value := ""
 
 			if oldParam, ok := oldMap[key]; ok {
-				extra = fmt.Sprintf(" (existing value: %s)", *oldParam.ParameterValue)
+				extra = fmt.Sprintf(" (existing value: %s)", fmt.Sprint(*oldParam.ParameterValue))
 				hasExisting = true
 
 				if forceOldValue {
 					value = *oldParam.ParameterValue
 				}
 			} else if defaultValue, ok := param["Default"]; ok {
-				extra = fmt.Sprintf(" (default value: %s)", defaultValue)
+				extra = fmt.Sprintf(" (default value: %s)", fmt.Sprint(defaultValue))
 			}
 
 			newValue := util.Ask(fmt.Sprintf("Enter a value for parameter '%s'%s:", key, extra))
