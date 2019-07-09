@@ -26,6 +26,8 @@ elements of arrays in the source data.
 */
 package format
 
+import "sort"
+
 type Style int
 
 const (
@@ -72,5 +74,27 @@ func SortKeys(keys []string, path []interface{}) []string {
 		currentValue: data,
 	}
 
-	return p.sortKeys()
+	sorted := p.sortKeys()
+
+	// Because some of the formatters rely on template data that's missing
+	// go through the original keys and append any that have been removed
+	missing := make([]string, 0)
+	for _, orig := range keys {
+		found := false
+
+		for _, newKey := range sorted {
+			if newKey == orig {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			missing = append(missing, orig)
+		}
+	}
+
+	sort.Strings(missing)
+
+	return append(sorted, missing...)
 }
