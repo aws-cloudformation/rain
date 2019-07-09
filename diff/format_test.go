@@ -164,6 +164,38 @@ var testCases = []struct {
 		},
 		"+ foo:\n+   - bar\n+   - baz\n",
 	},
+	{
+		diffMap{
+			"Resources": diffMap{
+				"Bucket1": diffMap{
+					"Properties": diffValue{
+						value: map[string]interface{}{
+							"BucketName": map[string]interface{}{
+								"Ref": "BucketName",
+							},
+						},
+						valueMode: "- ",
+					},
+					"Type": diffValue{
+						value:     "AWS::S3::Bucket",
+						valueMode: "  ",
+					},
+				},
+				"Bucket2": diffValue{
+					value: map[string]interface{}{
+						"Properties": map[string]interface{}{
+							"BucketName": map[string]interface{}{
+								"Ref": "Bucket1",
+							},
+						},
+						"Type": "AWS::S3::Bucket",
+					},
+					valueMode: "+ ",
+				},
+			},
+		},
+		"| Resources:\n|   Bucket1:\n-     Properties: {...}\n+   Bucket2:\n+     Properties:\n+       BucketName: !Ref Bucket1\n+     Type: \"AWS::S3::Bucket\"\n",
+	},
 }
 
 func TestFormat(t *testing.T) {
@@ -172,7 +204,7 @@ func TestFormat(t *testing.T) {
 		actual := Format(testCase.value, false)
 
 		if actual != testCase.expected {
-			t.Errorf("%q\n!=\n%q", actual, testCase.expected)
+			t.Errorf("\n%s\nDOES NOT MATCH\n\n%s\n", actual, testCase.expected)
 		}
 	}
 }

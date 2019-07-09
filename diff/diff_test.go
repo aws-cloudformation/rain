@@ -71,6 +71,30 @@ func TestDiffMode(t *testing.T) {
 			},
 			Changed,
 		},
+		{
+			diffMap{
+				"foo": diffValue{"bar", Removed},
+				"baz": diffValue{"quux", Unchanged},
+			},
+			Changed,
+		},
+		{
+			diffMap{
+				"foo": diffValue{"bar", Changed},
+				"baz": diffValue{"quux", Added},
+			},
+			Changed,
+		},
+		{
+			diffMap{
+				"foo": diffMap{
+					"bar":  diffValue{"baz", Removed},
+					"quux": diffValue{"mooz", Unchanged},
+				},
+				"xyzzy": diffValue{"groop", Added},
+			},
+			Changed,
+		},
 	}
 
 	for _, testCase := range cases {
