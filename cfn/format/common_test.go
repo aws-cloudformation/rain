@@ -10,12 +10,20 @@ func TestIntrinsicKeys(t *testing.T) {
 		{"Ref": "cake"},
 		{"Fn::IncludeIf": "banana"},
 		{"Fn::IncludeIf": "banana", "Ref": "cake"},
+		{"Fn::Sub": "The cake is a lie"},
+		{"Fn::GetAtt": []string{"foo", "bar"}},
+		{"Fn::NotARealFn": "But we'll take it anyway"},
+		{"Func::Join": "We're not taking this one"},
 	}
 
 	expecteds := []string{
 		"",
 		"Ref",
 		"Fn::IncludeIf",
+		"",
+		"Fn::Sub",
+		"Fn::GetAtt",
+		"Fn::NotARealFn",
 		"",
 	}
 

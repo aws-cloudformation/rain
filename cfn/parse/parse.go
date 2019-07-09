@@ -1,3 +1,5 @@
+// Package parse provides functions for parsing
+// CloudFormation templates from JSON and YAML inputs.
 package parse
 
 import (
@@ -7,6 +9,8 @@ import (
 	"io/ioutil"
 	"reflect"
 	"strings"
+
+	"github.com/aws-cloudformation/rain/cfn"
 
 	"github.com/google/go-cmp/cmp"
 	yaml "github.com/sanathkr/go-yaml"
@@ -75,25 +79,28 @@ func (t *tagUnmarshalerType) UnmarshalYAMLTag(tag string, value reflect.Value) r
 	return output
 }
 
-func Read(r io.Reader) (map[string]interface{}, error) {
+// Reader returns a cfn.Template parsed from an io.Reader
+func Reader(r io.Reader) (cfn.Template, error) {
 	data, err := ioutil.ReadAll(r)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to read input: %s", err)
 	}
 
-	return ReadString(string(data))
+	return String(string(data))
 }
 
-func ReadFile(fileName string) (map[string]interface{}, error) {
+// Reader returns a cfn.Template parsed from a file specified by fileName
+func File(fileName string) (cfn.Template, error) {
 	source, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to read file: %s", err)
 	}
 
-	return ReadString(string(source))
+	return String(string(source))
 }
 
-func ReadString(input string) (map[string]interface{}, error) {
+// Reader returns a cfn.Template parsed from a string
+func String(input string) (cfn.Template, error) {
 	parsed, err := yamlwrapper.YAMLToJSON([]byte(input))
 	if err != nil {
 		return nil, fmt.Errorf("Invalid YAML: %s", err)
@@ -105,12 +112,16 @@ func ReadString(input string) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("Invalid YAML: %s", err)
 	}
 
-	return output, nil
+	return cfn.New(output), nil
 }
 
-func VerifyOutput(source map[string]interface{}, output string) error {
+// Verify confirms that there is no semantic difference between
+// the source cfn.Template and the string representation in output.
+// This can be used to ensure that the parse package hasn't done
+// anything unexpected to your template.
+func Verify(source cfn.Template, output string) error {
 	// Check it matches the original
-	validate, err := ReadString(output)
+	validate, err := String(output)
 	if err != nil {
 		return err
 	}
@@ -126,7 +137,7 @@ func VerifyOutput(source map[string]interface{}, output string) error {
 		return in
 	})
 
-	if diff := cmp.Diff(source, validate, trans); diff != "" {
+	if diff := cmp.Diff(source.Map(), validate.Map(), trans); diff != "" {
 		return fmt.Errorf("Semantic difference after formatting:\n%s", diff)
 	}
 

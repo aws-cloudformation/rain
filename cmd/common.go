@@ -5,11 +5,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws-cloudformation/rain/cfn/diff"
+	"github.com/aws-cloudformation/rain/cfn/format"
 	"github.com/aws-cloudformation/rain/client"
 	"github.com/aws-cloudformation/rain/client/cfn"
 	"github.com/aws-cloudformation/rain/client/s3"
 	"github.com/aws-cloudformation/rain/client/sts"
-	"github.com/aws-cloudformation/rain/diff"
 	"github.com/aws-cloudformation/rain/util"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 )
@@ -94,7 +95,7 @@ func getRainBucket() string {
 func colouriseDiff(d diff.Diff, longFormat bool) string {
 	output := strings.Builder{}
 
-	for _, line := range strings.Split(diff.Format(d, longFormat), "\n") {
+	for _, line := range strings.Split(format.Diff(d, format.Options{Compact: !longFormat}), "\n") {
 		switch {
 		case strings.HasPrefix(line, diff.Added.String()):
 			output.WriteString(util.Green(line).String())

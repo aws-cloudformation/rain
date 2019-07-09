@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/aws-cloudformation/rain/format"
-	"github.com/aws-cloudformation/rain/parse"
+	"github.com/aws-cloudformation/rain/cfn/format"
+	"github.com/aws-cloudformation/rain/cfn/parse"
 	"github.com/spf13/cobra"
 )
 
@@ -30,7 +30,7 @@ var fmtCmd = &cobra.Command{
 		}
 
 		// Parse the template
-		source, err := parse.ReadString(string(input))
+		source, err := parse.String(string(input))
 		if err != nil {
 			panic(fmt.Errorf("Unable to parse '%s': %s", fn, err.Error()))
 		}
@@ -45,9 +45,7 @@ var fmtCmd = &cobra.Command{
 			options.Style = format.JSON
 		}
 
-		formatter := format.New(options)
-
-		output := formatter.Format(source)
+		output := format.Template(source, options)
 
 		if verifyFlag {
 			if string(input) != output {
@@ -59,7 +57,7 @@ var fmtCmd = &cobra.Command{
 		}
 
 		// Verify the output is valid
-		err = parse.VerifyOutput(source, output)
+		err = parse.Verify(source, output)
 		if err != nil {
 			panic(err)
 		}

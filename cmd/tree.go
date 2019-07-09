@@ -2,10 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"sort"
 
-	"github.com/aws-cloudformation/rain/parse"
-	"github.com/aws-cloudformation/rain/template"
+	"github.com/aws-cloudformation/rain/cfn"
+	"github.com/aws-cloudformation/rain/cfn/graph"
+	"github.com/aws-cloudformation/rain/cfn/parse"
 	"github.com/aws-cloudformation/rain/util"
 	"github.com/spf13/cobra"
 )
@@ -15,7 +15,7 @@ var allLinks = false
 func printLinks(links []interface{}, typeFilter string) {
 	names := make([]string, 0)
 	for _, link := range links {
-		to := link.(template.Element)
+		to := link.(cfn.Element)
 		if to.Type == typeFilter {
 			names = append(names, to.Name)
 		}
@@ -31,12 +31,12 @@ func printLinks(links []interface{}, typeFilter string) {
 	}
 }
 
-func printGraph(graph template.Graph, typeFilter string) {
-	froms := make([]template.Element, 0)
-	fromLinks := make(map[template.Element][]interface{})
+func printGraph(graph graph.Graph, typeFilter string) {
+	froms := make([]cfn.Element, 0)
+	fromLinks := make(map[cfn.Element][]interface{})
 
-	for _, item := range graph.Items() {
-		from := item.(template.Element)
+	for _, item := range graph.Nodes() {
+		from := item.(cfn.Element)
 		if from.Type == typeFilter {
 			links := graph.Get(item)
 
@@ -74,15 +74,12 @@ var graphCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fileName := args[0]
 
-		input, err := parse.ReadFile(fileName)
+		t, err := parse.File(fileName)
 		if err != nil {
 			panic(fmt.Errorf("Unable to parse template '%s': %s", fileName, err))
 		}
 
-		t := template.Template(input)
-
 		graph := t.Graph()
-		sort.Sort(graph)
 
 		printGraph(graph, "Resources")
 		printGraph(graph, "Outputs")

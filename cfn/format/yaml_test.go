@@ -1,14 +1,10 @@
-package format
+package format_test
 
 import (
 	"testing"
+
+	"github.com/aws-cloudformation/rain/cfn/format"
 )
-
-var yf Formatter
-
-func init() {
-	yf = New(Options{Style: YAML})
-}
 
 func TestYamlDirectValues(t *testing.T) {
 	cases := []interface{}{
@@ -28,7 +24,7 @@ func TestYamlDirectValues(t *testing.T) {
 	for i, testCase := range cases {
 		expected := expecteds[i]
 
-		actual := yf.Format(testCase)
+		actual := format.Anything(testCase, format.Options{})
 
 		if actual != expected {
 			t.Errorf("from %T %v:\n%#v != %#v\n", testCase, testCase, actual, expected)
@@ -45,15 +41,10 @@ func TestCompactYaml(t *testing.T) {
 		"baz: quux\nfoo: bar",
 	}
 
-	cyf := New(Options{
-		Style:   YAML,
-		Compact: true,
-	})
-
 	for i, testCase := range cases {
 		expected := expecteds[i]
 
-		actual := cyf.Format(testCase)
+		actual := format.Anything(testCase, format.Options{Compact: true})
 
 		if actual != expected {
 			t.Errorf("from %T %v:\n%#v != %#v\n", testCase, testCase, actual, expected)
@@ -89,7 +80,7 @@ func TestYamlScalars(t *testing.T) {
 	for i, testCase := range cases {
 		expected := expecteds[i]
 
-		actual := yf.Format(testCase)
+		actual := format.Anything(testCase, format.Options{})
 
 		if actual != expected {
 			t.Errorf("from %T %v:\n%#v != %#v\n", testCase, testCase, actual, expected)
@@ -146,7 +137,7 @@ func TestYamlList(t *testing.T) {
 	for i, testCase := range cases {
 		expected := expecteds[i]
 
-		actual := yf.Format(testCase)
+		actual := format.Anything(testCase, format.Options{})
 
 		if actual != expected {
 			t.Errorf("from %T %v:\n%#v != %#v\n", testCase, testCase, actual, expected)
@@ -208,7 +199,7 @@ func TestYamlMap(t *testing.T) {
 	for i, testCase := range cases {
 		expected := expecteds[i]
 
-		actual := yf.Format(testCase)
+		actual := format.Anything(testCase, format.Options{})
 
 		if actual != expected {
 			t.Errorf("from %T %v:\n%#v != %#v\n", testCase, testCase, actual, expected)
@@ -233,52 +224,9 @@ func TestCfnYaml(t *testing.T) {
 	for i, testCase := range cases {
 		expected := expecteds[i]
 
-		actual := yf.Format(testCase)
+		actual := format.Anything(testCase, format.Options{})
 
 		if actual != expected {
-			t.Errorf("from %T %v:\n%#v != %#v\n", testCase, testCase, actual, expected)
-		}
-	}
-}
-
-func TestIntrinsicKey(t *testing.T) {
-	cases := []map[string]interface{}{
-		{
-			"Ref": "foo",
-		},
-		{
-			"Fn::Sub": "The cake is a lie",
-		},
-		{
-			"Fn::NotARealFn": "This is not real but we'll take it",
-		},
-		{
-			"Func::Join": "joined",
-		},
-		{
-			"NoFunc": "Not a func for sure!",
-		},
-	}
-
-	expecteds := []string{
-		"Ref",
-		"Fn::Sub",
-		"Fn::NotARealFn",
-		"",
-		"",
-	}
-
-	for i, testCase := range cases {
-		expected := expecteds[i]
-		expectedOk := true
-
-		if expected == "" {
-			expectedOk = false
-		}
-
-		actual, actualOk := intrinsicKey(testCase)
-
-		if actual != expected || actualOk != expectedOk {
 			t.Errorf("from %T %v:\n%#v != %#v\n", testCase, testCase, actual, expected)
 		}
 	}
@@ -321,7 +269,7 @@ func TestIntrinsics(t *testing.T) {
 	for i, testCase := range cases {
 		expected := expecteds[i]
 
-		actual := yf.Format(testCase)
+		actual := format.Anything(testCase, format.Options{})
 
 		if actual != expected {
 			t.Errorf("from %T %v:\n%#v != %#v\n", testCase, testCase, actual, expected)
@@ -357,7 +305,7 @@ func TestStrings(t *testing.T) {
 	for i, testCase := range cases {
 		expected := expecteds[i]
 
-		actual := yf.Format(testCase)
+		actual := format.Anything(testCase, format.Options{})
 
 		if actual != expected {
 			t.Errorf("from %T %v:\n%#v != %#v\n", testCase, testCase, actual, expected)
@@ -403,7 +351,9 @@ func TestYamlComments(t *testing.T) {
 	for i, comments := range commentCases {
 		expected := expecteds[i]
 
-		actual := yf.FormatWithComments(data, comments)
+		actual := format.Anything(data, format.Options{
+			Comments: comments,
+		})
 
 		if actual != expected {
 			t.Errorf("from %q != %q\n", actual, expected)

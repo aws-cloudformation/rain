@@ -5,9 +5,14 @@ import (
 	"reflect"
 )
 
-func Compare(old, new interface{}) Diff {
+// New returns a Diff that represents
+// the difference between two values of any type
+//
+// To be able to compare slices and maps recursively, they must of type
+// []interface{} and map[string]interface{}, respectively
+func New(old, new interface{}) Diff {
 	if reflect.TypeOf(old) != reflect.TypeOf(new) {
-		return diffValue{new, Changed}
+		return Value{new, Changed}
 	}
 
 	switch v := old.(type) {
@@ -16,29 +21,25 @@ func Compare(old, new interface{}) Diff {
 	case map[string]interface{}:
 		return compareMaps(v, new.(map[string]interface{}))
 	default:
-		if old != new {
-			return diffValue{new, Changed}
+		if !reflect.DeepEqual(old, new) {
+			return Value{new, Changed}
 		}
 	}
 
-	return diffValue{old, Unchanged}
+	return Value{old, Unchanged}
 }
 
 func compareSlices(old, new []interface{}) Diff {
-	if reflect.DeepEqual(old, new) {
-		return diffValue{old, Unchanged}
-	}
-
 	max := int(math.Max(float64(len(old)), float64(len(new))))
-	d := make(diffSlice, max)
+	d := make(Slice, max)
 
 	for i := 0; i < max; i++ {
 		if i >= len(old) {
-			d[i] = diffValue{new[i], Added}
+			d[i] = Value{new[i], Added}
 		} else if i >= len(new) {
-			d[i] = diffValue{old[i], Removed}
+			d[i] = Value{old[i], Removed}
 		} else {
-			d[i] = Compare(old[i], new[i])
+			d[i] = New(old[i], new[i])
 		}
 	}
 
@@ -46,25 +47,21 @@ func compareSlices(old, new []interface{}) Diff {
 }
 
 func compareMaps(old, new map[string]interface{}) Diff {
-	if reflect.DeepEqual(old, new) {
-		return diffValue{old, Unchanged}
-	}
-
-	d := make(diffMap)
+	d := make(Map)
 
 	// New and updated keys
 	for key, value := range new {
 		if _, ok := old[key]; !ok {
-			d[key] = diffValue{value, Added}
+			d[key] = Value{value, Added}
 		} else {
-			d[key] = Compare(old[key], value)
+			d[key] = New(old[key], value)
 		}
 	}
 
 	// Removed keys
 	for key, value := range old {
 		if _, ok := new[key]; !ok {
-			d[key] = diffValue{value, Removed}
+			d[key] = Value{value, Removed}
 		}
 	}
 

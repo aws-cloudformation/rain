@@ -1,10 +1,13 @@
-package parse
+package parse_test
 
 import (
+	"fmt"
 	"io/ioutil"
 	"strings"
 	"testing"
 
+	"github.com/aws-cloudformation/rain/cfn"
+	"github.com/aws-cloudformation/rain/cfn/parse"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -12,7 +15,7 @@ var testFile = "test.yaml"
 
 var testTemplate string
 
-var expected = map[string]interface{}{
+var expected = cfn.New(map[string]interface{}{
 	"Resources": map[string]interface{}{
 		"Bucket1": map[string]interface{}{
 			"Type": "AWS::S3::Bucket",
@@ -53,7 +56,7 @@ var expected = map[string]interface{}{
 			},
 		},
 	},
-}
+})
 
 func init() {
 	data, err := ioutil.ReadFile(testFile)
@@ -65,40 +68,40 @@ func init() {
 }
 
 func TestRead(t *testing.T) {
-	actual, err := Read(strings.NewReader(testTemplate))
+	actual, err := parse.Reader(strings.NewReader(testTemplate))
 	if err != nil {
 		t.Error(err)
 	}
 
-	if diff := cmp.Diff(actual, expected); diff != "" {
+	if diff := cmp.Diff(actual.Map(), expected.Map()); diff != "" {
 		t.Errorf(diff)
 	}
 }
 
 func TestReadFile(t *testing.T) {
-	actual, err := ReadFile(testFile)
+	actual, err := parse.File(testFile)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if diff := cmp.Diff(actual, expected); diff != "" {
+	if diff := cmp.Diff(actual.Map(), expected.Map()); diff != "" {
 		t.Errorf(diff)
 	}
 }
 
 func TestReadString(t *testing.T) {
-	actual, err := ReadString(testTemplate)
+	actual, err := parse.String(testTemplate)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if diff := cmp.Diff(actual, expected); diff != "" {
+	if diff := cmp.Diff(actual.Map(), expected.Map()); diff != "" {
 		t.Errorf(diff)
 	}
 }
 
 func TestVerifyOutput(t *testing.T) {
-	source := map[string]interface{}{
+	source := cfn.New(map[string]interface{}{
 		"foo": map[string]interface{}{
 			"bar": map[string]interface{}{
 				"Fn::GetAtt": []interface{}{
@@ -113,20 +116,32 @@ func TestVerifyOutput(t *testing.T) {
 				"mooz",
 			},
 		},
-	}
+	})
 
 	goodCase := "foo:\n  bar: !GetAtt foo.bar\n  baz: !GetAtt\n    - foo\n    - bar\n  quux:\n    - mooz"
 	badCase := "foo:\n  bar: baz\n  quux: mooz"
 
 	var err error
 
-	err = VerifyOutput(source, goodCase)
+	err = parse.Verify(source, goodCase)
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = VerifyOutput(source, badCase)
+	err = parse.Verify(source, badCase)
 	if err == nil {
 		t.Errorf("Verify did not pick up a difference!")
 	}
+}
+
+func Example() {
+	template, _ := parse.String(`
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+`)
+
+	fmt.Println(template.Map())
+	// Output:
+	// map[Resources:map[Bucket:map[Type:AWS::S3::Bucket]]]
 }

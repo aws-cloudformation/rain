@@ -3,21 +3,23 @@ package format
 import (
 	"fmt"
 	"strings"
+
+	"github.com/aws-cloudformation/rain/cfn/value"
 )
 
 type encoder struct {
-	Formatter
-	data           value
+	Options
+	value          value.Value
 	path           []interface{}
 	currentValue   interface{}
 	currentComment string
 }
 
-func newEncoder(formatter Formatter, data value) encoder {
+func newEncoder(options Options, data interface{}) encoder {
 	p := encoder{
-		Formatter: formatter,
-		data:      data,
-		path:      make([]interface{}, 0),
+		Options: options,
+		value:   value.New(data, options.Comments),
+		path:    make([]interface{}, 0),
 	}
 
 	p.get()
@@ -26,8 +28,8 @@ func newEncoder(formatter Formatter, data value) encoder {
 }
 
 func (p *encoder) get() {
-	p.currentValue = p.data.Get(p.path)
-	p.currentComment = p.data.GetComment(p.path)
+	p.currentValue = p.value.Get(p.path...)
+	p.currentComment = p.value.GetComment(p.path...)
 }
 
 func (p *encoder) push(key interface{}) {
@@ -43,7 +45,7 @@ func (p *encoder) pop() {
 func (p encoder) indent(in string) string {
 	indenter := "  "
 
-	if p.Options.Style == JSON {
+	if p.Style == JSON {
 		indenter = "    "
 	}
 	parts := strings.Split(in, "\n")
@@ -54,7 +56,7 @@ func (p encoder) indent(in string) string {
 		}
 	}
 
-	if p.Options.Style == JSON {
+	if p.Style == JSON {
 		return strings.Join(parts, "\n")
 	}
 
@@ -65,7 +67,7 @@ func (p encoder) formatIntrinsic(key string) string {
 	p.push(key)
 	defer p.pop()
 
-	if p.Options.Style == JSON {
+	if p.Style == JSON {
 		return p.format()
 	}
 
@@ -108,7 +110,7 @@ func (p encoder) formatMap(data map[string]interface{}) string {
 		p.push(key)
 		fmtValue := p.format()
 
-		if p.Options.Style == JSON {
+		if p.Style == JSON {
 			fmtValue = fmt.Sprintf("%q: %s", key, fmtValue)
 			if i < len(keys)-1 {
 				fmtValue += ","
@@ -164,11 +166,11 @@ func (p encoder) formatMap(data map[string]interface{}) string {
 
 	// Double gap for top-level elements
 	joiner := "\n"
-	if !p.Options.Compact && len(p.path) <= 1 {
+	if !p.Compact && len(p.path) <= 1 {
 		joiner = "\n\n"
 	}
 
-	if p.Options.Style == JSON {
+	if p.Style == JSON {
 		if p.currentComment != "" {
 			return "{  // " + p.currentComment + "\n" + p.indent(strings.Join(parts, joiner)) + "\n}"
 		}
@@ -197,14 +199,14 @@ func (p encoder) formatList(data []interface{}) string {
 		p.push(i)
 		fmtValue := p.format()
 
-		if p.Options.Style == JSON {
+		if p.Style == JSON {
 			parts[i] = p.indent(fmtValue)
 		} else {
 			parts[i] = fmt.Sprintf("- %s", p.indent(fmtValue))
 		}
 
 		if p.currentComment != "" {
-			if p.Options.Style == JSON {
+			if p.Style == JSON {
 				parts[i] += "  // " + p.currentComment
 			} else {
 				parts[i] += "  # " + p.currentComment
@@ -214,7 +216,7 @@ func (p encoder) formatList(data []interface{}) string {
 		p.pop()
 	}
 
-	if p.Options.Style == JSON {
+	if p.Style == JSON {
 		if p.currentComment != "" {
 			return "[  // " + p.currentComment + "\n" + strings.Join(parts, ",\n") + "\n]"
 		}
@@ -232,7 +234,7 @@ func (p encoder) format() string {
 	case []interface{}:
 		return p.formatList(v)
 	case string:
-		if p.Options.Style == JSON {
+		if p.Style == JSON {
 			return fmt.Sprintf("%q", v)
 		}
 

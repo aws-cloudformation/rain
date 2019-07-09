@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/aws-cloudformation/rain/cfn/diff"
+	"github.com/aws-cloudformation/rain/cfn/parse"
 	"github.com/aws-cloudformation/rain/client"
 	"github.com/aws-cloudformation/rain/client/cfn"
-	"github.com/aws-cloudformation/rain/diff"
-	"github.com/aws-cloudformation/rain/parse"
 	"github.com/aws-cloudformation/rain/util"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/spf13/cobra"
@@ -20,7 +20,7 @@ import (
 func getParameters(t string, old []cloudformation.Parameter, forceOldValue bool) []cloudformation.Parameter {
 	newParams := make([]cloudformation.Parameter, 0)
 
-	template, err := parse.ReadString(t)
+	template, err := parse.String(t)
 	if err != nil {
 		panic(fmt.Errorf("Unable to parse template: %s", err))
 	}
@@ -30,7 +30,7 @@ func getParameters(t string, old []cloudformation.Parameter, forceOldValue bool)
 		oldMap[*param.ParameterKey] = param
 	}
 
-	if params, ok := template["Parameters"]; ok {
+	if params, ok := template.Map()["Parameters"]; ok {
 		for k, p := range params.(map[string]interface{}) {
 			// New variable so we don't mess up the pointers below
 			key := k
@@ -148,10 +148,10 @@ var deployCmd = &cobra.Command{
 					panic(fmt.Errorf("Failed to get existing template for stack '%s': %s", stackName, err))
 				}
 
-				oldTemplate, _ := parse.ReadString(oldTemplateString)
-				newTemplate, _ := parse.ReadFile(outputFn.Name())
+				oldTemplate, _ := parse.String(oldTemplateString)
+				newTemplate, _ := parse.File(outputFn.Name())
 
-				d := diff.Compare(oldTemplate, newTemplate)
+				d := diff.New(oldTemplate, newTemplate)
 
 				if d.Mode() == diff.Unchanged {
 					fmt.Println(util.Green("No changes to deploy!"))

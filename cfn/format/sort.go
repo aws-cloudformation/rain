@@ -3,7 +3,7 @@ package format
 import (
 	"sort"
 
-	"github.com/aws-cloudformation/rain/template"
+	"github.com/aws-cloudformation/rain/cfn"
 )
 
 var orders = map[string][]string{
@@ -105,20 +105,20 @@ func (p *encoder) sortKeys() []string {
 		return sortAs(keys, "Template")
 	} else if len(p.path) == 1 {
 		if p.path[0] == "Resources" {
-			t := template.Template(p.data.Data.(map[string]interface{}))
-			g := t.Graph()
-			sort.Sort(g)
+			if t, ok := p.value.Get().(cfn.Template); ok {
+				g := t.Graph()
 
-			output := make([]string, 0)
-			for _, item := range g.Items() {
-				el := item.(template.Element)
+				output := make([]string, 0)
+				for _, item := range g.Nodes() {
+					el := item.(cfn.Element)
 
-				if el.Type == "Resources" {
-					output = append(output, el.Name)
+					if el.Type == "Resources" {
+						output = append(output, el.Name)
+					}
 				}
-			}
 
-			return output
+				return output
+			}
 		}
 	} else if len(p.path) == 2 {
 		switch p.path[0] {

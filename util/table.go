@@ -5,17 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/aws-cloudformation/rain/format"
+	"github.com/aws-cloudformation/rain/cfn/format"
 )
-
-var yaml format.Formatter
-
-func init() {
-	yaml = format.New(format.Options{
-		Style:   format.YAML,
-		Compact: true,
-	})
-}
 
 type Table struct {
 	headings   []Text
@@ -137,5 +128,5 @@ func (t *Table) YAML() string {
 		out[i] = m
 	}
 
-	return yaml.Format(out)
+	return format.Anything(out, format.Options{})
 }
