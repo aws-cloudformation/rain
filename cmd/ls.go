@@ -6,7 +6,9 @@ import (
 	"github.com/aws-cloudformation/rain/client"
 	"github.com/aws-cloudformation/rain/client/cfn"
 	"github.com/aws-cloudformation/rain/client/ec2"
-	"github.com/aws-cloudformation/rain/util"
+	"github.com/aws-cloudformation/rain/console/spinner"
+	"github.com/aws-cloudformation/rain/console/table"
+	"github.com/aws-cloudformation/rain/console/text"
 	"github.com/spf13/cobra"
 )
 
@@ -34,7 +36,7 @@ var lsCmd = &cobra.Command{
 			var err error
 			regions := []string{client.Config().Region}
 
-			util.SpinStatus("Fetching region list...")
+			spinner.Status("Fetching region list...")
 			if allRegions {
 				regions, err = ec2.GetRegions()
 				if err != nil {
@@ -43,7 +45,7 @@ var lsCmd = &cobra.Command{
 			}
 
 			for _, region := range regions {
-				util.SpinStatus(fmt.Sprintf("Fetching stacks in %s...", region))
+				spinner.Status(fmt.Sprintf("Fetching stacks in %s...", region))
 
 				client.SetRegion(region)
 				stacks, err := cfn.ListStacks()
@@ -55,15 +57,15 @@ var lsCmd = &cobra.Command{
 					continue
 				}
 
-				table := util.NewTable("Name", "Status")
+				table := table.New("Name", "Status")
 				for _, stack := range stacks {
 					table.Append(*stack.StackName, colouriseStatus(string(stack.StackStatus)))
 				}
 				table.Sort()
 
-				util.SpinStop()
+				spinner.Stop()
 
-				fmt.Println(util.Yellow(fmt.Sprintf("CloudFormation stacks in %s:", region)))
+				fmt.Println(text.Yellow(fmt.Sprintf("CloudFormation stacks in %s:", region)))
 				fmt.Println(table.String())
 			}
 		}

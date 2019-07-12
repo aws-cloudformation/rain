@@ -12,7 +12,8 @@ import (
 	"strings"
 
 	"github.com/aws-cloudformation/rain/config"
-	"github.com/aws-cloudformation/rain/util"
+	"github.com/aws-cloudformation/rain/console/run"
+	"github.com/aws-cloudformation/rain/console/spinner"
 	"github.com/aws-cloudformation/rain/version"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/awserr"
@@ -50,7 +51,7 @@ func getAwsPython() []string {
 
 	script, err := ioutil.ReadFile(aws)
 	if err != nil {
-		util.Debug("Couldn't load aws script: %s", err)
+		config.Debugf("Couldn't load aws script: %s", err)
 		return defaultPython
 	}
 
@@ -85,22 +86,22 @@ func loadConfig() aws.Config {
 	// Try to load just from the config
 	cfg, err = external.LoadDefaultAWSConfig(configs...)
 	if err != nil {
-		util.Debug("Couldn't load default config: %s", err)
+		config.Debugf("Couldn't load default config: %s", err)
 	} else if checkConfig(cfg) {
-		util.Debug("Loaded credentials from default config")
+		config.Debugf("Loaded credentials from default config")
 		return cfg
 	}
 
 	// OK, let's try to load from dump_creds...
 	args := getAwsPython()
-	util.Debug("AWS python: %s", args)
+	config.Debugf("AWS python: %s", args)
 	first := args[0]
 	args = args[1:]
 	args = append(args, "-c", credDumperPython)
-	output, err := util.RunCapture(first, args...)
-	util.Debug("Cred dumper output: %s", output)
+	output, err := run.Capture(first, args...)
+	config.Debugf("Cred dumper output: %s", output)
 	if err != nil {
-		util.Debug("Couldn't run cred dumper: %s", err)
+		config.Debugf("Couldn't run cred dumper: %s", err)
 		panic(fmt.Errorf("Unable to load AWS config"))
 	}
 
@@ -108,7 +109,7 @@ func loadConfig() aws.Config {
 	var vars map[string]interface{}
 	err = json.Unmarshal([]byte(output), &vars)
 	if err != nil {
-		util.Debug("Couldn't parse cred dumper output: %s", err)
+		config.Debugf("Couldn't parse cred dumper output: %s", err)
 		panic(fmt.Errorf("Unable to load AWS config"))
 	}
 
@@ -121,22 +122,22 @@ func loadConfig() aws.Config {
 	// Load from the new environment variables
 	cfg, err = external.LoadDefaultAWSConfig()
 	if err != nil {
-		util.Debug("Couldn't use cred dumper output: %s", err)
+		config.Debugf("Couldn't use cred dumper output: %s", err)
 		panic(fmt.Errorf("Unable to load AWS config"))
 	}
 
 	if !checkConfig(cfg) {
-		util.Debug("Unusable creds from cred dumper: %s", err)
+		config.Debugf("Unusable creds from cred dumper: %s", err)
 		panic(fmt.Errorf("Unable to load AWS config"))
 	}
 
-	util.Debug("Loaded credentials from cred dumper")
+	config.Debugf("Loaded credentials from cred dumper")
 	return cfg
 }
 
 func Config() aws.Config {
 	if awsCfg == nil {
-		util.SpinStatus("Loading AWS config...")
+		spinner.Status("Loading AWS config...")
 
 		cfg := loadConfig()
 
@@ -159,7 +160,7 @@ func Config() aws.Config {
 
 		awsCfg = &cfg
 
-		util.SpinStop()
+		spinner.Stop()
 	}
 
 	return *awsCfg

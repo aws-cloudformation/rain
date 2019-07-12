@@ -4,11 +4,11 @@ import (
 	"os"
 
 	"github.com/aws-cloudformation/rain/cmd"
-	"github.com/aws-cloudformation/rain/util"
+	"github.com/aws-cloudformation/rain/console"
 )
 
 func init() {
-	util.IsTTY = false
+	console.IsTTY = false
 }
 
 func Example_tree() {

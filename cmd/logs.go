@@ -5,7 +5,8 @@ import (
 	"sort"
 
 	"github.com/aws-cloudformation/rain/client/cfn"
-	"github.com/aws-cloudformation/rain/util"
+	"github.com/aws-cloudformation/rain/console/spinner"
+	"github.com/aws-cloudformation/rain/console/text"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/spf13/cobra"
 )
@@ -25,7 +26,7 @@ func printLogs(logs []cloudformation.StackEvent) {
 
 		if timeOrder {
 			fmt.Print(" ")
-			fmt.Print(util.Yellow(*log.LogicalResourceId))
+			fmt.Print(text.Yellow(*log.LogicalResourceId))
 			fmt.Print(" ")
 			fmt.Print(*log.ResourceType)
 
@@ -38,7 +39,7 @@ func printLogs(logs []cloudformation.StackEvent) {
 
 		if log.ResourceStatusReason != nil {
 			fmt.Print(" ")
-			fmt.Print(util.White(fmt.Sprintf("%q", *log.ResourceStatusReason)))
+			fmt.Print(text.White(fmt.Sprintf("%q", *log.ResourceStatusReason)))
 		}
 
 		if longFormat {
@@ -61,12 +62,12 @@ var logsCmd = &cobra.Command{
 		stackName := args[0]
 
 		// Get logs
-		util.SpinStatus(fmt.Sprintf("Getting logs for %s...", stackName))
+		spinner.Status(fmt.Sprintf("Getting logs for %s...", stackName))
 		logs, err := cfn.GetStackEvents(stackName)
 		if err != nil {
 			panic(fmt.Errorf("Failed to get events for '%s': %s", stackName, err))
 		}
-		util.SpinStop()
+		spinner.Stop()
 
 		// Filter by resource
 		if len(args) > 1 {
@@ -121,7 +122,7 @@ var logsCmd = &cobra.Command{
 			// Print by group
 			for _, name := range names {
 				groupLogs := groups[name]
-				fmt.Printf("%s:  # %s\n", util.Yellow(name), *groupLogs[0].ResourceType)
+				fmt.Printf("%s:  # %s\n", text.Yellow(name), *groupLogs[0].ResourceType)
 				printLogs(groupLogs)
 				fmt.Println()
 			}

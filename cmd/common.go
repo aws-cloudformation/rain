@@ -11,22 +11,26 @@ import (
 	"github.com/aws-cloudformation/rain/client/cfn"
 	"github.com/aws-cloudformation/rain/client/s3"
 	"github.com/aws-cloudformation/rain/client/sts"
-	"github.com/aws-cloudformation/rain/util"
+	"github.com/aws-cloudformation/rain/config"
+	"github.com/aws-cloudformation/rain/console"
+	"github.com/aws-cloudformation/rain/console/run"
+	"github.com/aws-cloudformation/rain/console/spinner"
+	"github.com/aws-cloudformation/rain/console/text"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 )
 
-func colouriseStatus(status string) util.Text {
+func colouriseStatus(status string) text.Text {
 	switch {
 	case strings.HasSuffix(status, "_FAILED"):
-		return util.Red(status)
+		return text.Red(status)
 	case strings.Contains(status, "ROLLBACK"):
-		return util.Orange(status)
+		return text.Orange(status)
 	case strings.HasSuffix(status, "_IN_PROGRESS"):
-		return util.Orange(status)
+		return text.Orange(status)
 	case strings.HasSuffix(status, "_COMPLETE"):
-		return util.Green(status)
+		return text.Green(status)
 	default:
-		return util.Plain(status)
+		return text.Plain(status)
 	}
 }
 
@@ -38,20 +42,20 @@ func getStackOutput(stack cloudformation.Stack) string {
 
 	out.WriteString(fmt.Sprintf("%s:  # %s\n", *stack.StackName, colouriseStatus(string(stack.StackStatus))))
 	if stack.StackStatusReason != nil {
-		out.WriteString(fmt.Sprintf("  Message: %s\n", util.Yellow(*stack.StackStatusReason)))
+		out.WriteString(fmt.Sprintf("  Message: %s\n", text.Yellow(*stack.StackStatusReason)))
 	}
 
 	if len(stack.Parameters) > 0 {
 		out.WriteString("  Parameters:\n")
 		for _, param := range stack.Parameters {
-			out.WriteString(fmt.Sprintf("    %s: %s\n", *param.ParameterKey, util.Yellow(*param.ParameterValue)))
+			out.WriteString(fmt.Sprintf("    %s: %s\n", *param.ParameterKey, text.Yellow(*param.ParameterValue)))
 		}
 	}
 
 	if len(stack.Outputs) > 0 {
 		out.WriteString("  Outputs:\n")
 		for _, output := range stack.Outputs {
-			out.WriteString(fmt.Sprintf("    %s: %s\n", *output.OutputKey, util.Yellow(*output.OutputValue)))
+			out.WriteString(fmt.Sprintf("    %s: %s\n", *output.OutputKey, text.Yellow(*output.OutputValue)))
 		}
 	}
 
@@ -59,12 +63,12 @@ func getStackOutput(stack cloudformation.Stack) string {
 		out.WriteString("  Resources:\n")
 		for _, resource := range resources {
 			out.WriteString(fmt.Sprintf("    %s:  # %s\n", *resource.LogicalResourceId, colouriseStatus(string(resource.ResourceStatus))))
-			out.WriteString(fmt.Sprintf("      Type: %s\n", util.Yellow(*resource.ResourceType)))
+			out.WriteString(fmt.Sprintf("      Type: %s\n", text.Yellow(*resource.ResourceType)))
 			if resource.PhysicalResourceId != nil {
-				out.WriteString(fmt.Sprintf("      PhysicalID: %s\n", util.Yellow(*resource.PhysicalResourceId)))
+				out.WriteString(fmt.Sprintf("      PhysicalID: %s\n", text.Yellow(*resource.PhysicalResourceId)))
 			}
 			if resource.ResourceStatusReason != nil {
-				out.WriteString(fmt.Sprintf("      Message: %s\n", util.Yellow(*resource.ResourceStatusReason)))
+				out.WriteString(fmt.Sprintf("      Message: %s\n", text.Yellow(*resource.ResourceStatusReason)))
 			}
 		}
 	}
@@ -80,7 +84,7 @@ func getRainBucket() string {
 
 	bucketName := fmt.Sprintf("rain-artifacts-%s-%s", accountId, client.Config().Region)
 
-	util.Debug("Artifact bucket: %s", bucketName)
+	config.Debugf("Artifact bucket: %s", bucketName)
 
 	if !s3.BucketExists(bucketName) {
 		err := s3.CreateBucket(bucketName)
@@ -98,11 +102,11 @@ func colouriseDiff(d diff.Diff, longFormat bool) string {
 	for _, line := range strings.Split(format.Diff(d, format.Options{Compact: !longFormat}), "\n") {
 		switch {
 		case strings.HasPrefix(line, diff.Added.String()):
-			output.WriteString(util.Green(line).String())
+			output.WriteString(text.Green(line).String())
 		case strings.HasPrefix(line, diff.Removed.String()):
-			output.WriteString(util.Red(line).String())
+			output.WriteString(text.Red(line).String())
 		case strings.HasPrefix(line, diff.Changed.String()):
-			output.WriteString(util.Orange(line).String())
+			output.WriteString(text.Orange(line).String())
 		default:
 			output.WriteString(line)
 		}
@@ -115,7 +119,7 @@ func colouriseDiff(d diff.Diff, longFormat bool) string {
 
 func waitForStackToSettle(stackName string) string {
 	// Start the timer
-	util.SpinStartTimer()
+	spinner.Timer()
 
 	stackId := stackName
 
@@ -131,8 +135,8 @@ func waitForStackToSettle(stackName string) string {
 		output := getStackOutput(stack)
 
 		// Send the output first
-		if util.IsTTY {
-			util.ClearScreen(output)
+		if console.IsTTY {
+			console.Clear(output)
 		}
 
 		// Figure out how many are complete
@@ -144,17 +148,29 @@ func waitForStackToSettle(stackName string) string {
 			}
 		}
 		if updating > 0 {
-			util.SpinStatus(fmt.Sprintf("(%d remaining)", updating))
+			spinner.Status(fmt.Sprintf("(%d remaining)", updating))
 		}
 
 		// Check to see if we've finished
 		status := string(stack.StackStatus)
 		if strings.HasSuffix(status, "_COMPLETE") || strings.HasSuffix(status, "_FAILED") {
-			util.SpinStop()
-			util.ClearScreen(output)
+			spinner.Stop()
+			console.Clear(output)
 			return status
 		}
 
 		time.Sleep(time.Second * 2)
 	}
+}
+
+func runAws(args ...string) (string, error) {
+	if config.Profile != "" {
+		args = append(args, "--profile", config.Profile)
+	}
+
+	if config.Region != "" {
+		args = append(args, "--region", config.Region)
+	}
+
+	return run.Capture("aws", args...)
 }

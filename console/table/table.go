@@ -1,4 +1,6 @@
-package util
+// Package table defines the Table type which can be used for displaying
+// tabular data with bold headings and properly spaced columns.
+package table
 
 import (
 	"fmt"
@@ -6,41 +8,45 @@ import (
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cfn/format"
+	"github.com/aws-cloudformation/rain/console/text"
 )
 
+// A Table holds column and row information and can be printed using String()
 type Table struct {
-	headings   []Text
-	values     [][]Text
+	headings   []text.Text
+	values     [][]text.Text
 	maxLengths []int
 }
 
-func NewTable(headings ...string) Table {
+// New returns a new Table with the supplied column headings
+func New(headings ...string) Table {
 	maxLengths := make([]int, len(headings))
 
 	for i, h := range headings {
 		maxLengths[i] = len(h)
 	}
 
-	ch := make([]Text, len(headings))
+	ch := make([]text.Text, len(headings))
 	for i, h := range headings {
-		ch[i] = Bold(h)
+		ch[i] = text.Bold(h)
 	}
 
 	return Table{
 		headings:   ch,
-		values:     make([][]Text, 0),
+		values:     make([][]text.Text, 0),
 		maxLengths: maxLengths,
 	}
 }
 
+// Append adds a new row to the table
 func (t *Table) Append(values ...interface{}) {
-	s := make([]Text, len(values))
+	s := make([]text.Text, len(values))
 
 	for i, v := range values {
-		if t, ok := v.(Text); ok {
+		if t, ok := v.(text.Text); ok {
 			s[i] = t
 		} else {
-			s[i] = Plain(fmt.Sprint(v))
+			s[i] = text.Plain(fmt.Sprint(v))
 		}
 
 		if s[i].Len() > t.maxLengths[i] {
@@ -51,8 +57,9 @@ func (t *Table) Append(values ...interface{}) {
 	t.values = append(t.values, s)
 }
 
+// Sort sorts the contents of the table alphabetically
 func (t *Table) Sort() {
-	valueMap := make(map[string][]Text)
+	valueMap := make(map[string][]text.Text)
 	valueList := make([]string, len(t.values))
 
 	for i, v := range t.values {
@@ -69,7 +76,7 @@ func (t *Table) Sort() {
 	}
 }
 
-func (t *Table) rowString(values []Text) string {
+func (t *Table) rowString(values []text.Text) string {
 	output := strings.Builder{}
 
 	for i, v := range values {
@@ -83,6 +90,7 @@ func (t *Table) rowString(values []Text) string {
 	return output.String()
 }
 
+// String converts the table into a string
 func (t *Table) String() string {
 	output := strings.Builder{}
 
@@ -115,6 +123,7 @@ func (t *Table) String() string {
 	return output.String()
 }
 
+// YAML returns a string presentation of the table as a YAML squence of mappings
 func (t *Table) YAML() string {
 	out := make([]interface{}, len(t.values))
 
@@ -122,7 +131,7 @@ func (t *Table) YAML() string {
 		m := make(map[string]interface{})
 
 		for j, h := range t.headings {
-			m[h.text] = v[j].text
+			m[h.Plain()] = v[j].Plain()
 		}
 
 		out[i] = m

@@ -12,7 +12,9 @@ import (
 	"github.com/aws-cloudformation/rain/cfn/parse"
 	"github.com/aws-cloudformation/rain/client"
 	"github.com/aws-cloudformation/rain/client/cfn"
-	"github.com/aws-cloudformation/rain/util"
+	"github.com/aws-cloudformation/rain/config"
+	"github.com/aws-cloudformation/rain/console"
+	"github.com/aws-cloudformation/rain/console/text"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/spf13/cobra"
 )
@@ -53,7 +55,7 @@ func getParameters(t string, old []cloudformation.Parameter, forceOldValue bool)
 				extra = fmt.Sprintf(" (default value: %s)", fmt.Sprint(defaultValue))
 			}
 
-			newValue := util.Ask(fmt.Sprintf("Enter a value for parameter '%s'%s:", key, extra))
+			newValue := console.Ask(fmt.Sprintf("Enter a value for parameter '%s'%s:", key, extra))
 
 			if newValue != "" {
 				newParams = append(newParams, cloudformation.Parameter{
@@ -96,14 +98,14 @@ var deployCmd = &cobra.Command{
 			panic(err)
 		}
 		defer func() {
-			util.Debug("Removing temporary template file: %s", outputFn.Name())
+			config.Debugf("Removing temporary template file: %s", outputFn.Name())
 			err := os.Remove(outputFn.Name())
 			if err != nil {
 				panic(fmt.Errorf("Error removing temporary template file '%s': %s", outputFn.Name(), err))
 			}
 		}()
 
-		output, err := util.RunAwsCapture("cloudformation", "package",
+		output, err := runAws("cloudformation", "package",
 			"--template-file", fn,
 			"--output-template-file", outputFn.Name(),
 			"--s3-bucket", getRainBucket(),
@@ -112,9 +114,9 @@ var deployCmd = &cobra.Command{
 			panic(fmt.Errorf("Unable to package template: %s", err))
 		}
 
-		util.Debug("Package output: %s", output)
+		config.Debugf("Package output: %s", output)
 
-		util.ClearLine()
+		console.ClearLine()
 		fmt.Printf("Checking current status of stack '%s'... ", stackName)
 
 		forceOldParams := false
@@ -154,15 +156,15 @@ var deployCmd = &cobra.Command{
 				d := diff.New(oldTemplate, newTemplate)
 
 				if d.Mode() == diff.Unchanged {
-					fmt.Println(util.Green("No changes to deploy!"))
+					fmt.Println(text.Green("No changes to deploy!"))
 					return
 				}
 
-				util.ClearLine()
-				if util.Confirm(true, fmt.Sprintf("Stack '%s' exists. Do you wish to see the diff before deploying?", stackName)) {
+				console.ClearLine()
+				if console.Confirm(true, fmt.Sprintf("Stack '%s' exists. Do you wish to see the diff before deploying?", stackName)) {
 					fmt.Print(colouriseDiff(d, false))
 
-					if !util.Confirm(true, "Do you wish to continue?") {
+					if !console.Confirm(true, "Do you wish to continue?") {
 						panic(errors.New("User cancelled deployment."))
 					}
 				}
@@ -178,7 +180,7 @@ var deployCmd = &cobra.Command{
 
 		parameters := getParameters(template, stack.Parameters, forceOldParams)
 
-		util.Debug("Parameters: %s", parameters)
+		config.Debugf("Parameters: %s", parameters)
 
 		// Start deployment
 		err = cfn.Deploy(template, parameters, stackName)
@@ -194,9 +196,9 @@ var deployCmd = &cobra.Command{
 		status := waitForStackToSettle(stackName)
 
 		if status == "CREATE_COMPLETE" {
-			fmt.Println(util.Green("Successfully deployed " + stackName))
+			fmt.Println(text.Green("Successfully deployed " + stackName))
 		} else if status == "UPDATE_COMPLETE" {
-			fmt.Println(util.Green("Successfully updated " + stackName))
+			fmt.Println(text.Green("Successfully updated " + stackName))
 		} else {
 			panic(errors.New("Failed deployment: " + stackName))
 		}

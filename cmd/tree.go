@@ -6,7 +6,7 @@ import (
 	"github.com/aws-cloudformation/rain/cfn"
 	"github.com/aws-cloudformation/rain/cfn/graph"
 	"github.com/aws-cloudformation/rain/cfn/parse"
-	"github.com/aws-cloudformation/rain/util"
+	"github.com/aws-cloudformation/rain/console/text"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +27,7 @@ func printLinks(links []interface{}, typeFilter string) {
 
 	fmt.Printf("    %s:\n", typeFilter)
 	for _, name := range names {
-		fmt.Printf("      - %s\n", util.Orange(name))
+		fmt.Printf("      - %s\n", text.Orange(name))
 	}
 }
 
@@ -56,7 +56,7 @@ func printGraph(graph graph.Graph, typeFilter string) {
 	fmt.Printf("%s:\n", typeFilter)
 
 	for _, from := range froms {
-		fmt.Printf("  %s:\n", util.Yellow(from.Name))
+		fmt.Printf("  %s:\n", text.Yellow(from.Name))
 		printLinks(fromLinks[from], "Parameters")
 		printLinks(fromLinks[from], "Resources")
 	}

@@ -19,15 +19,16 @@ import (
 	"os"
 
 	"github.com/aws-cloudformation/rain/cmd"
-	"github.com/aws-cloudformation/rain/util"
+	"github.com/aws-cloudformation/rain/console/spinner"
+	"github.com/aws-cloudformation/rain/console/text"
 )
 
 func main() {
 	defer func() {
-		util.SpinStop()
+		spinner.Stop()
 
 		if r := recover(); r != nil {
-			fmt.Println(util.Red(fmt.Sprint(r)))
+			fmt.Println(text.Red(fmt.Sprint(r)))
 			os.Exit(1)
 		}
 

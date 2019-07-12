@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws-cloudformation/rain/client"
 	"github.com/aws-cloudformation/rain/client/cfn"
-	"github.com/aws-cloudformation/rain/util"
+	"github.com/aws-cloudformation/rain/console/text"
 	"github.com/spf13/cobra"
 )
 
@@ -38,9 +38,9 @@ var rmCmd = &cobra.Command{
 		status := waitForStackToSettle(stackName)
 
 		if status == "DELETE_COMPLETE" {
-			fmt.Println(util.Green("Successfully deleted " + stackName))
+			fmt.Println(text.Green("Successfully deleted " + stackName))
 		} else {
-			fmt.Println(util.Red("Failed to delete " + stackName))
+			fmt.Println(text.Red("Failed to delete " + stackName))
 		}
 
 		fmt.Println()
