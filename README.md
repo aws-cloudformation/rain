@@ -122,6 +122,10 @@ In alphabetical order:
 
     Validate CloudFormation yaml/json templates against the CloudFormation spec and additional checks. Includes checking valid values for resource properties and best practices.
 
+* [cfn-nag](https://github.com/stelligent/cfn_nag)
+
+    The cfn-nag tool looks for patterns in CloudFormation templates that may indicate insecure infrastructure.
+
 * [cfn-skeleton](https://github.com/awslabs/aws-cloudformation-template-builder)
 
     cfn-skeleton that consumes the published CloudFormation specification and generates skeleton CloudFormation templates with mandatory and optional parameters of chosen resource types pre-filled with placeholder values.
