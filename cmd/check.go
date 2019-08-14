@@ -12,6 +12,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var checkCreds = false
+
 var checkCmd = &cobra.Command{
 	Use:                   "check",
 	Short:                 "Show your current configuration",
@@ -34,9 +36,27 @@ var checkCmd = &cobra.Command{
 		} else if profile, ok := os.LookupEnv("AWS_PROFILE"); ok {
 			fmt.Println("Profile: ", text.Yellow(profile))
 		}
+
+		if checkCreds {
+			fmt.Println()
+			c, err := client.Config().Credentials.Retrieve()
+			if err == nil {
+				fmt.Println("Credentials:")
+				fmt.Println("  Source:         ", text.Yellow(c.Source))
+				fmt.Println("  AccessKeyId:    ", text.Yellow(c.AccessKeyID))
+				fmt.Println("  SecretAccessKey:", text.Yellow(c.SecretAccessKey))
+				if c.SessionToken != "" {
+					fmt.Println("  SessionToken:   ", text.Yellow(c.SessionToken))
+				}
+				if !c.Expires.IsZero() {
+					fmt.Println("  Expires:        ", text.Yellow(fmt.Sprint(c.Expires)))
+				}
+			}
+		}
 	},
 }
 
 func init() {
+	checkCmd.Flags().BoolVarP(&checkCreds, "creds", "c", false, "Include current AWS credentials in check output")
 	Root.AddCommand(checkCmd)
 }
