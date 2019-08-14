@@ -59,6 +59,10 @@ var orders = map[string][]string{
 		"Description",
 		"Type",
 	},
+	"Swagger": {
+		"swagger",
+		"info",
+	},
 }
 
 func sortMapKeys(value map[string]interface{}) []string {
@@ -103,7 +107,10 @@ func (p *encoder) sortKeys() []string {
 	// Specific length paths
 	if len(p.path) == 0 {
 		return sortAs(keys, "Template")
-	} else if len(p.path) == 1 {
+	}
+
+	// Resources
+	if len(p.path) == 1 {
 		if p.path[0] == "Resources" {
 			if t, ok := p.value.Get().(cfn.Template); ok {
 				g := t.Graph()
@@ -120,7 +127,10 @@ func (p *encoder) sortKeys() []string {
 				return output
 			}
 		}
-	} else if len(p.path) == 2 {
+	}
+
+	// Top-level elements
+	if len(p.path) == 2 {
 		switch p.path[0] {
 		case "Parameters":
 			return sortAs(keys, "Parameter")
@@ -129,14 +139,14 @@ func (p *encoder) sortKeys() []string {
 		case "Outputs":
 			return sortAs(keys, "Outputs")
 		}
-	} else if len(p.path) > 3 {
-		if p.path[0] == "Resources" && p.path[2] == "Properties" {
-			return sortAs(keys, "ResourceProperties")
-		}
-	} else if len(p.path) > 2 {
-		if p.path[len(p.path)-2] == "Policies" {
+	}
+
+	// Known array types
+	if len(p.path) > 2 {
+		switch p.path[len(p.path)-2] {
+		case "Policies":
 			return sortAs(keys, "Policy")
-		} else if p.path[len(p.path)-2] == "Statement" {
+		case "Statement":
 			return sortAs(keys, "PolicyStatement")
 		}
 	}
@@ -144,8 +154,19 @@ func (p *encoder) sortKeys() []string {
 	// Paths that can live anywhere
 	if p.path[0] == "Transform" || p.path[len(p.path)-1] == "Fn::Transform" {
 		return sortAs(keys, "Transform")
-	} else if p.path[len(p.path)-1] == "PolicyDocument" || p.path[len(p.path)-1] == "AssumeRolePolicyDocument" {
+	}
+	if p.path[len(p.path)-1] == "PolicyDocument" || p.path[len(p.path)-1] == "AssumeRolePolicyDocument" {
 		return sortAs(keys, "PolicyDocument")
+	}
+	if p.path[len(p.path)-1] == "DefinitionBody" {
+		return sortAs(keys, "Swagger")
+	}
+
+	// General resource properties
+	if len(p.path) > 3 {
+		if p.path[0] == "Resources" && p.path[2] == "Properties" {
+			return sortAs(keys, "ResourceProperties")
+		}
 	}
 
 	return keys
