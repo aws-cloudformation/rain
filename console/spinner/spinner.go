@@ -27,8 +27,9 @@ func init() {
 				if spinRunning {
 					spinUpdate()
 					spinCount = (spinCount + 1) % len(spin)
-					time.Sleep(time.Second / 2)
 				}
+
+				time.Sleep(time.Second / 2)
 			}
 		}()
 	}
