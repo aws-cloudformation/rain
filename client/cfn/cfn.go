@@ -2,6 +2,8 @@ package cfn
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/aws-cloudformation/rain/client"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
@@ -126,6 +128,78 @@ func GetStackEvents(stackName string) ([]cloudformation.StackEvent, client.Error
 	}
 
 	return events, client.NewError(p.Err())
+}
+
+func CreateChangeSet(template string, params []cloudformation.Parameter, stackName string) (string, client.Error) {
+	changeSetType := "CREATE"
+
+	exists, err := StackExists(stackName)
+	if err != nil {
+		return "", err
+	}
+
+	if exists {
+		changeSetType = "UPDATE"
+	}
+
+	changeSetName := stackName + "-" + fmt.Sprint(time.Now().Unix())
+
+	req := getClient().CreateChangeSetRequest(&cloudformation.CreateChangeSetInput{
+		ChangeSetType: cloudformation.ChangeSetType(changeSetType),
+		ChangeSetName: &changeSetName,
+		StackName:     &stackName,
+		TemplateBody:  &template,
+		Parameters:    params,
+		Capabilities: []cloudformation.Capability{
+			"CAPABILITY_NAMED_IAM",
+			"CAPABILITY_AUTO_EXPAND",
+		},
+	})
+
+	_, err = req.Send(context.Background())
+	if err != nil {
+		return changeSetName, err
+	}
+
+	err = getClient().WaitUntilChangeSetCreateComplete(context.Background(), &cloudformation.DescribeChangeSetInput{
+		ChangeSetName: &changeSetName,
+		StackName:     &stackName,
+	})
+
+	return changeSetName, client.NewError(err)
+}
+
+func GetChangeSet(stackName, changeSetName string) ([]cloudformation.Change, client.Error) {
+	req := getClient().DescribeChangeSetRequest(&cloudformation.DescribeChangeSetInput{
+		ChangeSetName: &changeSetName,
+		StackName:     &stackName,
+	})
+
+	res, err := req.Send(context.Background())
+
+	return res.Changes, client.NewError(err)
+}
+
+func ExecuteChangeSet(stackName, changeSetName string) client.Error {
+	req := getClient().ExecuteChangeSetRequest(&cloudformation.ExecuteChangeSetInput{
+		ChangeSetName: &changeSetName,
+		StackName:     &stackName,
+	})
+
+	_, err := req.Send(context.Background())
+
+	return client.NewError(err)
+}
+
+func DeleteChangeSet(stackName, changeSetName string) client.Error {
+	req := getClient().DeleteChangeSetRequest(&cloudformation.DeleteChangeSetInput{
+		ChangeSetName: &changeSetName,
+		StackName:     &stackName,
+	})
+
+	_, err := req.Send(context.Background())
+
+	return client.NewError(err)
 }
 
 func createStack(template string, params []cloudformation.Parameter, stackName string) client.Error {
