@@ -57,7 +57,7 @@ func (v Value) String() string {
 type Slice []Diff
 
 func (s Slice) Mode() Mode {
-	mode := Added
+	mode := Unchanged
 
 	for i, v := range s {
 		if i == 0 {

@@ -31,6 +31,9 @@ func testCompare(t *testing.T, cases []compareTest) {
 func TestCompareScalar(t *testing.T) {
 	testCompare(t, []compareTest{
 		{
+			nil, nil, nil, diff.Unchanged,
+		},
+		{
 			"foo", "foo", "foo", diff.Unchanged,
 		},
 		{
@@ -47,6 +50,12 @@ func TestCompareScalar(t *testing.T) {
 
 func TestCompareSlices(t *testing.T) {
 	testCompare(t, []compareTest{
+		{
+			[]interface{}{},
+			[]interface{}{},
+			[]interface{}{},
+			diff.Unchanged,
+		},
 		{
 			[]interface{}{1, 2, 3},
 			[]interface{}{1, 2, 3},
@@ -89,6 +98,12 @@ func TestCompareSlices(t *testing.T) {
 
 func TestCompareMaps(t *testing.T) {
 	testCompare(t, []compareTest{
+		{
+			map[string]interface{}{},
+			map[string]interface{}{},
+			map[string]interface{}{},
+			diff.Unchanged,
+		},
 		{
 			map[string]interface{}{"foo": "bar"},
 			map[string]interface{}{"foo": "bar"},

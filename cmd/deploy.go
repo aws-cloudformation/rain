@@ -153,7 +153,7 @@ var deployCmd = &cobra.Command{
 				oldTemplate, _ := parse.String(oldTemplateString)
 				newTemplate, _ := parse.File(outputFn.Name())
 
-				d := diff.New(oldTemplate, newTemplate)
+				d := oldTemplate.Diff(newTemplate)
 
 				if d.Mode() == diff.Unchanged {
 					fmt.Println(text.Green("No changes to deploy!"))
