@@ -5,9 +5,13 @@ import (
 
 	"github.com/aws-cloudformation/rain/client"
 	"github.com/aws-cloudformation/rain/client/cfn"
+	"github.com/aws-cloudformation/rain/console"
+	"github.com/aws-cloudformation/rain/console/spinner"
 	"github.com/aws-cloudformation/rain/console/text"
 	"github.com/spf13/cobra"
 )
+
+var forceRm = false
 
 var rmCmd = &cobra.Command{
 	Use:                   "rm <stack>",
@@ -19,16 +23,26 @@ var rmCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		stackName := args[0]
 
-		fmt.Printf("Deleting '%s' in %s...\n", stackName, client.Config().Region)
-
-		exists, err := cfn.StackExists(stackName)
+		spinner.Status("Checking stack status...")
+		stack, err := cfn.GetStack(stackName)
 		if err != nil {
 			panic(fmt.Errorf("Unable to delete stack '%s': %s", stackName, err))
 		}
 
-		if !exists {
-			panic(fmt.Errorf("No such stack '%s'", stackName))
+		if !forceRm {
+			output := getStackOutput(stack)
+			spinner.Stop()
+
+			fmt.Println(output)
+
+			if !console.Confirm(true, "Are you sure you want to delete this stack?") {
+				panic(fmt.Errorf("User cancelled deletion of stack '%s'.", stackName))
+			}
 		}
+
+		spinner.Stop()
+
+		fmt.Printf("Deleting '%s' in %s...\n", stackName, client.Config().Region)
 
 		err = cfn.DeleteStack(stackName)
 		if err != nil {
@@ -48,5 +62,6 @@ var rmCmd = &cobra.Command{
 }
 
 func init() {
+	rmCmd.Flags().BoolVarP(&forceRm, "force", "f", false, "Do not ask; just delete")
 	rootCmd.AddCommand(rmCmd)
 }
