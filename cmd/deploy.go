@@ -179,7 +179,7 @@ var deployCmd = &cobra.Command{
 			} else if !force {
 				// Can update, grab a diff
 
-				oldTemplateString, err := cfn.GetStackTemplate(stackName)
+				oldTemplateString, err := cfn.GetStackTemplate(stackName, false)
 				if err != nil {
 					panic(fmt.Errorf("Failed to get existing template for stack '%s': %s", stackName, err))
 				}

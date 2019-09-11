@@ -32,10 +32,15 @@ func getClient() *cloudformation.Client {
 	return cloudformation.New(client.Config())
 }
 
-func GetStackTemplate(stackName string) (string, client.Error) {
+func GetStackTemplate(stackName string, processed bool) (string, client.Error) {
+	templateStage := "Original"
+	if processed {
+		templateStage = "Processed"
+	}
+
 	req := getClient().GetTemplateRequest(&cloudformation.GetTemplateInput{
 		StackName:     &stackName,
-		TemplateStage: "Original", //"Processed"
+		TemplateStage: cloudformation.TemplateStage(templateStage),
 	})
 
 	res, err := req.Send(context.Background())

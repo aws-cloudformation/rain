@@ -3,10 +3,15 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/aws-cloudformation/rain/cfn/format"
+	"github.com/aws-cloudformation/rain/cfn/parse"
 	"github.com/aws-cloudformation/rain/client/cfn"
 	"github.com/aws-cloudformation/rain/console/spinner"
 	"github.com/spf13/cobra"
 )
+
+var transformed = false
+var unformatted = false
 
 var catCmd = &cobra.Command{
 	Use:                   "cat <stack>",
@@ -18,16 +23,27 @@ var catCmd = &cobra.Command{
 		stackName := args[0]
 
 		spinner.Status(fmt.Sprintf("Getting template from %s...", stackName))
-		template, err := cfn.GetStackTemplate(stackName)
+		template, err := cfn.GetStackTemplate(stackName, transformed)
 		if err != nil {
 			panic(fmt.Errorf("Failed to get template for stack '%s': %s", stackName, err))
 		}
 		spinner.Stop()
 
-		fmt.Println(template)
+		if unformatted {
+			fmt.Println(template)
+		} else {
+			t, err := parse.String(template)
+			if err != nil {
+				panic(fmt.Errorf("Failed to parse template for stack '%s': %s", stackName, err))
+			}
+
+			fmt.Println(format.Template(t, format.Options{}))
+		}
 	},
 }
 
 func init() {
+	catCmd.Flags().BoolVarP(&transformed, "transformed", "t", false, "Get the template with transformations applied by CloudFormation.")
+	catCmd.Flags().BoolVarP(&unformatted, "unformatted", "u", false, "Output the template in its raw form and do not attempt to format it.")
 	rootCmd.AddCommand(catCmd)
 }
