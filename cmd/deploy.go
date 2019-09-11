@@ -20,6 +20,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var force = false
+
 func formatChangeSet(changes []cloudformation.Change) string {
 	out := strings.Builder{}
 
@@ -76,6 +78,10 @@ func getParameters(t string, old []cloudformation.Parameter, forceOldValue bool)
 				}
 			} else if defaultValue, ok := param["Default"]; ok {
 				extra = fmt.Sprintf(" (default value: %s)", fmt.Sprint(defaultValue))
+			}
+
+			if force {
+				panic(fmt.Errorf("Some parameters require values. Set defaults or deploy without the --force flag."))
 			}
 
 			newValue := console.Ask(fmt.Sprintf("Enter a value for parameter '%s'%s:", key, extra))
@@ -170,7 +176,7 @@ var deployCmd = &cobra.Command{
 			} else if !strings.HasSuffix(string(stack.StackStatus), "_COMPLETE") {
 				// Can't update
 				panic(fmt.Errorf("Stack '%s' could not be updated: %s", stackName, colouriseStatus(string(stack.StackStatus))))
-			} else {
+			} else if !force {
 				// Can update, grab a diff
 
 				oldTemplateString, err := cfn.GetStackTemplate(stackName)
@@ -221,7 +227,7 @@ var deployCmd = &cobra.Command{
 		fmt.Println("CloudFormation will make the following changes:")
 		fmt.Println(formatChangeSet(changes))
 
-		if !console.Confirm(true, "Do you wish to continue?") {
+		if !force && !console.Confirm(true, "Do you wish to continue?") {
 			err = cfn.DeleteChangeSet(stackName, changeSetName)
 			if err != nil {
 				panic(fmt.Errorf("Error while deleting changeset '%s': %s", changeSetName, err))
@@ -257,5 +263,6 @@ var deployCmd = &cobra.Command{
 }
 
 func init() {
+	deployCmd.Flags().BoolVarP(&force, "force", "f", false, "Don't ask questions; just deploy.")
 	rootCmd.AddCommand(deployCmd)
 }

@@ -1,14 +1,13 @@
 # To do
 
 * `deploy`
-    * Add flag to enable no-confirm deployment.
-    * Add `--yes` flag
     * Only show changing resources
     * Ensure update count reflects everything that has changed
+    * Detect whether a deployment requires capabilities rather than automatically applying them
 
 * `rm`
     * List stack contents and ask for confirmation
-    * Add `--yes` flag
+    * Add `--force` flag
 
 * `ls`
     * Display in yaml(ish) format
