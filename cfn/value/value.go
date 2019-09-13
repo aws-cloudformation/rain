@@ -4,6 +4,8 @@ package value
 
 import (
 	"fmt"
+
+	"github.com/aws-cloudformation/rain/cfn"
 )
 
 func get(data interface{}, path []interface{}) (interface{}, error) {
@@ -11,6 +13,8 @@ func get(data interface{}, path []interface{}) (interface{}, error) {
 
 	for _, part := range path {
 		switch v := out.(type) {
+		case cfn.Template:
+			return get(v.Map(), path)
 		case map[interface{}]interface{}:
 			out = v[part]
 		case map[string]interface{}:

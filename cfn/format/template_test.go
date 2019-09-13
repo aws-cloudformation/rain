@@ -11,9 +11,13 @@ func TestTemplate(t *testing.T) {
 	template, err := parse.String(`
 Outputs:
   Bucket:
-    Value: !Ref Bucket
+    Value: !Ref Bucket2
 Resources:
-  Bucket:
+  Bucket1:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${Bucket2}-newer
+  Bucket2:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref Name
@@ -27,14 +31,19 @@ Parameters:
     Type: String
 
 Resources:
-  Bucket:
+  Bucket2:
     Type: "AWS::S3::Bucket"
     Properties:
       BucketName: !Ref Name
 
+  Bucket1:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub ${Bucket2}-newer
+
 Outputs:
   Bucket:
-    Value: !Ref Bucket`
+    Value: !Ref Bucket2`
 
 	if err != nil {
 		t.Error(err)

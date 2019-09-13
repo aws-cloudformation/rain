@@ -33,7 +33,7 @@ func Anything(data interface{}, options Options) string {
 // Template returns a string representation of a cfn.Template
 // as either JSON or YAML depending on options.Style
 func Template(t cfn.Template, options Options) string {
-	return newEncoder(options, t.Map()).format()
+	return newEncoder(options, t).format()
 }
 
 // Diff returns a string representation of a diff.Diff.

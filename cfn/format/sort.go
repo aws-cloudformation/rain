@@ -102,7 +102,13 @@ func sortAs(keys []string, name string) []string {
 }
 
 func (p *encoder) sortKeys() []string {
-	keys := sortMapKeys(p.currentValue.(map[string]interface{}))
+	var keys []string
+
+	if t, ok := p.currentValue.(cfn.Template); ok {
+		keys = sortMapKeys(t.Map())
+	} else {
+		keys = sortMapKeys(p.currentValue.(map[string]interface{}))
+	}
 
 	// Specific length paths
 	if len(p.path) == 0 {
