@@ -152,15 +152,22 @@ func waitForStackToSettle(stackName string) string {
 		}
 
 		// Check to see if we've finished
-		status := string(stack.StackStatus)
-		if strings.HasSuffix(status, "_COMPLETE") || strings.HasSuffix(status, "_FAILED") {
+		if stackHasSettled(stack) {
 			spinner.Stop()
 			console.Clear(output)
-			return status
+			return string(stack.StackStatus)
 		}
 
 		time.Sleep(time.Second * 2)
 	}
+}
+
+func stackHasSettled(stack cloudformation.Stack) bool {
+	status := string(stack.StackStatus)
+	if strings.HasSuffix(status, "_COMPLETE") || strings.HasSuffix(status, "_FAILED") {
+		return true
+	}
+	return false
 }
 
 func runAws(args ...string) (string, error) {

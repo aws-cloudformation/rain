@@ -41,10 +41,13 @@ cat         Get the CloudFormation template from a running stack
 check       Show your current configuration
 deploy      Deploy a CloudFormation stack from a local template
 diff        Compare CloudFormation templates
+fmt         Format CloudFormation templates
 logs        Show the event log for the named stack
 ls          List running CloudFormation stacks
 rm          Delete a running CloudFormation stack
 tree        Find dependencies of Resources and Outputs in a local template
+version     Display the installed version of rain
+watch       Display an updating view of a CloudFormation stack
 ```
 
 You can get additional information about any command by running:

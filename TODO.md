@@ -12,9 +12,6 @@
 * `ls`
     * Display in yaml(ish) format
 
-* Add `watch` command
-    * Same as the last stage of a deploy - watch a stack that's in progress
-
 ## Other ideas
 
 * Multiple deployments. Use a rain.yaml to specify multiple stacks in multiple regions/accounts.
