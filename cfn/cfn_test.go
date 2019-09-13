@@ -5,9 +5,10 @@ import (
 	"testing"
 
 	"github.com/aws-cloudformation/rain/cfn"
+	"github.com/aws-cloudformation/rain/cfn/parse"
 )
 
-var testCase = cfn.New(map[string]interface{}{
+var testCase, _ = parse.Map(map[string]interface{}{
 	"Parameters": map[string]interface{}{
 		"Name": map[string]interface{}{
 			"Type": "String",

@@ -11,8 +11,9 @@ import (
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cfn"
+	"github.com/aws-cloudformation/rain/cfn/diff"
+	"github.com/aws-cloudformation/rain/cfn/format"
 
-	"github.com/google/go-cmp/cmp"
 	yaml "github.com/sanathkr/go-yaml"
 	yamlwrapper "github.com/sanathkr/yaml"
 )
@@ -48,18 +49,6 @@ func init() {
 	}
 }
 
-func transformGetAtt(in interface{}) interface{} {
-	if s, ok := in.(string); ok {
-		out := make([]interface{}, 2)
-		for i, v := range strings.SplitN(s, ".", 2) {
-			out[i] = v
-		}
-		return out
-	}
-
-	return in
-}
-
 func (t *tagUnmarshalerType) UnmarshalYAMLTag(tag string, value reflect.Value) reflect.Value {
 	prefix := "Fn::"
 	if tag == "Ref" || tag == "Condition" {
@@ -67,16 +56,29 @@ func (t *tagUnmarshalerType) UnmarshalYAMLTag(tag string, value reflect.Value) r
 	}
 	tag = prefix + tag
 
-	// Deal with tricksy GetAtt
-	if tag == "Fn::GetAtt" {
-		value = reflect.ValueOf(transformGetAtt(value.Interface()))
-	}
-
 	output := reflect.ValueOf(make(map[interface{}]interface{}))
 	key := reflect.ValueOf(tag)
 	output.SetMapIndex(key, value)
 
 	return output
+}
+
+func transform(in map[string]interface{}) map[string]interface{} {
+	for k, v := range in {
+		if k == "Fn::GetAtt" {
+			if s, ok := v.(string); ok {
+				value := make([]interface{}, 2)
+				for i, part := range strings.SplitN(s, ".", 2) {
+					value[i] = part
+				}
+				in[k] = value
+			}
+		} else if m, ok := v.(map[string]interface{}); ok {
+			in[k] = transform(m)
+		}
+	}
+
+	return in
 }
 
 // Reader returns a cfn.Template parsed from an io.Reader
@@ -112,7 +114,11 @@ func String(input string) (cfn.Template, error) {
 		return nil, fmt.Errorf("Invalid YAML: %s", err)
 	}
 
-	return cfn.New(output), nil
+	return Map(output)
+}
+
+func Map(input map[string]interface{}) (cfn.Template, error) {
+	return cfn.Template(transform(input)), nil
 }
 
 // Verify confirms that there is no semantic difference between
@@ -126,19 +132,10 @@ func Verify(source cfn.Template, output string) error {
 		return err
 	}
 
-	// Transform GetAtt so that foo.bar and [foo, bar] are seen as equivalent
-	trans := cmp.Transformer("GetAtt", func(in map[string]interface{}) map[string]interface{} {
-		for k, v := range in {
-			if k == "Fn::GetAtt" {
-				in[k] = transformGetAtt(v)
-			}
-		}
+	d := source.Diff(validate)
 
-		return in
-	})
-
-	if diff := cmp.Diff(source.Map(), validate.Map(), trans); diff != "" {
-		return fmt.Errorf("Semantic difference after formatting:\n%s", diff)
+	if d.Mode() != diff.Unchanged {
+		return fmt.Errorf("Semantic difference after formatting:\n%s", format.Diff(d, format.Options{Compact: true}))
 	}
 
 	return nil

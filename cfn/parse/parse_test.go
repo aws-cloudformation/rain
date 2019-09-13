@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/aws-cloudformation/rain/cfn"
 	"github.com/aws-cloudformation/rain/cfn/parse"
 	"github.com/google/go-cmp/cmp"
 )
@@ -15,7 +14,7 @@ var testFile = "test.yaml"
 
 var testTemplate string
 
-var expected = cfn.New(map[string]interface{}{
+var expected, _ = parse.Map(map[string]interface{}{
 	"Resources": map[string]interface{}{
 		"Bucket1": map[string]interface{}{
 			"Type": "AWS::S3::Bucket",
@@ -101,7 +100,7 @@ func TestReadString(t *testing.T) {
 }
 
 func TestVerifyOutput(t *testing.T) {
-	source := cfn.New(map[string]interface{}{
+	source, _ := parse.Map(map[string]interface{}{
 		"foo": map[string]interface{}{
 			"bar": map[string]interface{}{
 				"Fn::GetAtt": []interface{}{

@@ -28,12 +28,6 @@ type Template map[string]interface{}
 
 const pseudoParameterType = "Parameter"
 
-// New returns a Template from a map[string]interface{}
-// such as you might get from a yaml or json parser.
-func New(data map[string]interface{}) Template {
-	return Template(data)
-}
-
 // Map returns the template as a map[string]interface{}
 // This can be used for easy serialisation to e.g. JSON or YAML
 func (t Template) Map() map[string]interface{} {
