@@ -84,24 +84,20 @@ func formatMap(m diff.Map, path []interface{}, long bool) string {
 
 func formatSub(d diff.Diff, path []interface{}, long bool) string {
 	// Format the element
-	formatted := strings.Split(formatDiff(d, path, long), "\n")
+	formatted := formatDiff(d, path, long)
 
 	v, isValue := d.(diff.Value)
 	if isValue {
 		k := reflect.ValueOf(v.Value()).Kind()
 
 		if k != reflect.Array && k != reflect.Map && k != reflect.Slice {
-			// It's a scalar
-			return fmt.Sprintf(" %s\n", formatted[0])
+			return fmt.Sprintf(" %s\n", formatted)
 		}
-	} else if len(formatted) == 1 {
-		// It's a scalar
-		return fmt.Sprintf(" %s\n", formatted[0])
 	}
 
 	// Trim out blank lines
 	parts := make([]string, 0)
-	for _, part := range formatted {
+	for _, part := range strings.Split(formatted, "\n") {
 		if strings.TrimSpace(part) != "" {
 			parts = append(parts, part)
 		}
