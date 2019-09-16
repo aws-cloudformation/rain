@@ -31,7 +31,7 @@ var lsCmd = &cobra.Command{
 				panic(fmt.Errorf("Failed to list stack '%s': %s", stackName, err))
 			}
 
-			fmt.Println(getStackOutput(stack))
+			fmt.Println(getStackOutput(stack, false))
 		} else {
 			var err error
 			regions := []string{client.Config().Region}

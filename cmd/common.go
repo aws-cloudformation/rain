@@ -34,7 +34,7 @@ func colouriseStatus(status string) text.Text {
 	}
 }
 
-func getStackOutput(stack cloudformation.Stack) string {
+func getStackOutput(stack cloudformation.Stack, onlyChanging bool) string {
 	resources, _ := cfn.GetStackResources(*stack.StackName)
 	// We ignore errors because it just means we'll list no resources
 
@@ -62,13 +62,23 @@ func getStackOutput(stack cloudformation.Stack) string {
 	if len(resources) > 0 {
 		out.WriteString("  Resources:\n")
 		for _, resource := range resources {
-			out.WriteString(fmt.Sprintf("    %s:  # %s\n", *resource.LogicalResourceId, colouriseStatus(string(resource.ResourceStatus))))
-			out.WriteString(fmt.Sprintf("      Type: %s\n", text.Yellow(*resource.ResourceType)))
-			if resource.PhysicalResourceId != nil {
-				out.WriteString(fmt.Sprintf("      PhysicalID: %s\n", text.Yellow(*resource.PhysicalResourceId)))
-			}
-			if resource.ResourceStatusReason != nil {
-				out.WriteString(fmt.Sprintf("      Message: %s\n", text.Yellow(*resource.ResourceStatusReason)))
+			if onlyChanging && resourceHasSettled(resource) {
+				// Short output
+				out.WriteString(fmt.Sprintf("    %s: %s  # %s\n",
+					*resource.LogicalResourceId,
+					text.Yellow(*resource.ResourceType),
+					colouriseStatus(string(resource.ResourceStatus)),
+				))
+			} else {
+				// Long output
+				out.WriteString(fmt.Sprintf("    %s:  # %s\n", *resource.LogicalResourceId, colouriseStatus(string(resource.ResourceStatus))))
+				out.WriteString(fmt.Sprintf("      Type: %s\n", text.Yellow(*resource.ResourceType)))
+				if resource.PhysicalResourceId != nil {
+					out.WriteString(fmt.Sprintf("      PhysicalID: %s\n", text.Yellow(*resource.PhysicalResourceId)))
+				}
+				if resource.ResourceStatusReason != nil {
+					out.WriteString(fmt.Sprintf("      Message: %s\n", text.Yellow(*resource.ResourceStatusReason)))
+				}
 			}
 		}
 	}
@@ -132,7 +142,7 @@ func waitForStackToSettle(stackName string) string {
 		// Refresh the stack ID so we can deal with deleted stacks ok
 		stackId = *stack.StackId
 
-		output := getStackOutput(stack)
+		output := getStackOutput(stack, true)
 
 		// Send the output first
 		if console.IsTTY {
@@ -144,7 +154,7 @@ func waitForStackToSettle(stackName string) string {
 		updating := 0
 		resources, _ := cfn.GetStackResources(*stack.StackName)
 		for _, resource := range resources {
-			if !strings.HasSuffix(string(resource.ResourceStatus), "_COMPLETE") {
+			if resourceHasSettled(resource) {
 				updating++
 			}
 		}
@@ -163,12 +173,19 @@ func waitForStackToSettle(stackName string) string {
 	}
 }
 
-func stackHasSettled(stack cloudformation.Stack) bool {
-	status := string(stack.StackStatus)
+func statusIsSettled(status string) bool {
 	if strings.HasSuffix(status, "_COMPLETE") || strings.HasSuffix(status, "_FAILED") {
 		return true
 	}
 	return false
+}
+
+func stackHasSettled(stack cloudformation.Stack) bool {
+	return statusIsSettled(string(stack.StackStatus))
+}
+
+func resourceHasSettled(resource cloudformation.StackResource) bool {
+	return statusIsSettled(string(resource.ResourceStatus))
 }
 
 func runAws(args ...string) (string, error) {

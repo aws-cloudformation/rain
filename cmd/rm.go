@@ -30,7 +30,7 @@ var rmCmd = &cobra.Command{
 		}
 
 		if !forceRm {
-			output := getStackOutput(stack)
+			output := getStackOutput(stack, false)
 			spinner.Stop()
 
 			fmt.Println(output)
