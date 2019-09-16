@@ -137,6 +137,7 @@ func waitForStackToSettle(stackName string) string {
 		// Send the output first
 		if console.IsTTY {
 			console.Clear(output)
+			spinner.Update()
 		}
 
 		// Figure out how many are complete
@@ -148,7 +149,7 @@ func waitForStackToSettle(stackName string) string {
 			}
 		}
 		if updating > 0 {
-			spinner.Status(fmt.Sprintf("(%d remaining)", updating))
+			spinner.Status(fmt.Sprintf("(%d resources remaining)", updating))
 		}
 
 		// Check to see if we've finished
