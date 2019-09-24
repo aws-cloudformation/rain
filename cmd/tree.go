@@ -25,44 +25,77 @@ func printLinks(links []interface{}, typeFilter string) {
 		return
 	}
 
-	fmt.Printf("    %s:\n", typeFilter)
+	fmt.Printf("      %s:\n", typeFilter)
 	for _, name := range names {
-		fmt.Printf("      - %s\n", text.Orange(name))
+		fmt.Printf("        - %s\n", text.Orange(name))
 	}
 }
 
 func printGraph(graph graph.Graph, typeFilter string) {
-	froms := make([]cfn.Element, 0)
+	elements := make([]cfn.Element, 0)
 	fromLinks := make(map[cfn.Element][]interface{})
+	toLinks := make(map[cfn.Element][]interface{})
 
 	for _, item := range graph.Nodes() {
-		from := item.(cfn.Element)
-		if from.Type == typeFilter {
-			links := graph.Get(item)
+		el := item.(cfn.Element)
+		if el.Type == typeFilter {
+			elements = append(elements, el)
+			froms := graph.Get(item)
 
-			if !allLinks && len(links) == 0 {
-				continue
+			if allLinks || len(froms) > 0 {
+				fromLinks[el] = froms
 			}
 
-			froms = append(froms, from)
-			fromLinks[from] = links
+			if twoWayTree {
+				tos := graph.GetReverse(item)
+
+				if allLinks || len(tos) > 0 {
+					toLinks[el] = tos
+				}
+			}
 		}
 	}
 
-	if len(froms) == 0 {
+	if len(fromLinks) == 0 && len(toLinks) == 0 {
 		return
 	}
 
 	fmt.Printf("%s:\n", typeFilter)
 
-	for _, from := range froms {
-		fmt.Printf("  %s:  # Depends on...\n", text.Yellow(from.Name))
-		printLinks(fromLinks[from], "Parameters")
-		printLinks(fromLinks[from], "Resources")
+	for _, el := range elements {
+		if !allLinks && len(fromLinks[el]) == 0 && len(toLinks[el]) == 0 {
+			continue
+		}
+
+		fmt.Printf("  %s:\n", text.Yellow(el.Name))
+
+		if allLinks || len(fromLinks[el]) > 0 {
+			if len(fromLinks[el]) == 0 {
+				fmt.Println("    DependsOn: []")
+			} else {
+				fmt.Println("    DependsOn:")
+				printLinks(fromLinks[el], "Parameters")
+				printLinks(fromLinks[el], "Resources")
+				printLinks(fromLinks[el], "Outputs")
+			}
+		}
+
+		if twoWayTree && (allLinks || len(toLinks[el]) > 0) {
+			if len(toLinks[el]) == 0 {
+				fmt.Println("    UsedBy: []")
+			} else {
+				fmt.Println("    UsedBy:")
+				printLinks(toLinks[el], "Parameters")
+				printLinks(toLinks[el], "Resources")
+				printLinks(toLinks[el], "Outputs")
+			}
+		}
 	}
 
 	fmt.Println()
 }
+
+var twoWayTree = false
 
 var graphCmd = &cobra.Command{
 	Use:                   "tree [template]",
@@ -81,6 +114,7 @@ var graphCmd = &cobra.Command{
 
 		graph := t.Graph()
 
+		printGraph(graph, "Parameters")
 		printGraph(graph, "Resources")
 		printGraph(graph, "Outputs")
 	},
@@ -88,5 +122,6 @@ var graphCmd = &cobra.Command{
 
 func init() {
 	graphCmd.Flags().BoolVarP(&allLinks, "all", "a", false, "Display all elements, even those without any dependencies")
+	graphCmd.Flags().BoolVarP(&twoWayTree, "both", "b", false, "For each element, display both its dependencies and its dependents")
 	rootCmd.AddCommand(graphCmd)
 }

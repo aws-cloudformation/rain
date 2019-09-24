@@ -21,9 +21,10 @@ func Example_tree() {
 	cmd.Execute()
 	// Output:
 	// Resources:
-	//   Bucket1:  # Depends on...
-	//     Parameters:
-	//       - BucketName
+	//   Bucket1:
+	//     DependsOn:
+	//       Parameters:
+	//         - BucketName
 }
 
 func Example_diff() {
