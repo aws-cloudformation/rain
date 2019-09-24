@@ -31,3 +31,18 @@ func Example_get() {
 	// [quux]
 	// [foo]
 }
+
+func Example_getReverse() {
+	g := graph.New()
+	g.Add("foo", "bar", "baz")
+	g.Add("bar", "quux", "baz")
+	g.Add("baz", "foo") // Circular dependencies are fine
+
+	fmt.Println(g.GetReverse("foo"))
+	fmt.Println(g.GetReverse("bar"))
+	fmt.Println(g.GetReverse("baz"))
+	// Output:
+	// [baz]
+	// [foo]
+	// [bar foo]
+}

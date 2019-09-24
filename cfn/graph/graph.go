@@ -93,3 +93,19 @@ func (g Graph) Get(item interface{}) []interface{} {
 
 	return links
 }
+
+// GetReverse returns all nodes that connect to the item that you pass in.
+func (g Graph) GetReverse(item interface{}) []interface{} {
+	links := make([]interface{}, 0)
+	for from, deps := range g.nodes {
+		if _, ok := deps[item]; ok {
+			links = append(links, from)
+		}
+	}
+
+	sort.Slice(links, func(i, j int) bool {
+		return fmt.Sprint(links[i]) < fmt.Sprint(links[j])
+	})
+
+	return links
+}
