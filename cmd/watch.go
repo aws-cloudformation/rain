@@ -23,11 +23,11 @@ var watchCmd = &cobra.Command{
 
 		if stackHasSettled(stack) {
 			fmt.Println(getStackOutput(stack, false))
-			fmt.Println("Not watching unchanging stack:", colouriseStatus(string(stack.StackStatus)))
+			fmt.Println("Not watching unchanging stack.")
 			return
 		}
 
-		fmt.Printf("Final stack status:", colouriseStatus(waitForStackToSettle(stackName)))
+		fmt.Println("Final stack status:", colouriseStatus(waitForStackToSettle(stackName)))
 	},
 }
 

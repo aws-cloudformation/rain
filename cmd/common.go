@@ -156,12 +156,17 @@ func waitForStackToSettle(stackName string) string {
 		updating := 0
 		resources, _ := cfn.GetStackResources(*stack.StackName)
 		for _, resource := range resources {
-			if resourceHasSettled(resource) {
+			if !resourceHasSettled(resource) {
 				updating++
 			}
 		}
 		if updating > 0 {
-			spinner.Status(fmt.Sprintf("(%d resources remaining)", updating))
+			rs := "resources"
+			if updating == 1 {
+				rs = "resource"
+			}
+
+			spinner.Status(fmt.Sprintf("(%d %s remaining)", updating, rs))
 		}
 
 		// Check to see if we've finished
