@@ -21,7 +21,7 @@ func Example_tree() {
 	cmd.Execute()
 	// Output:
 	// Resources:
-	//   Bucket1:
+	//   Bucket1:  # Depends on...
 	//     Parameters:
 	//       - BucketName
 }

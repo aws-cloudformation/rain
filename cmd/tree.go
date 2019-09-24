@@ -56,7 +56,7 @@ func printGraph(graph graph.Graph, typeFilter string) {
 	fmt.Printf("%s:\n", typeFilter)
 
 	for _, from := range froms {
-		fmt.Printf("  %s:\n", text.Yellow(from.Name))
+		fmt.Printf("  %s:  # Depends on...\n", text.Yellow(from.Name))
 		printLinks(fromLinks[from], "Parameters")
 		printLinks(fromLinks[from], "Resources")
 	}
