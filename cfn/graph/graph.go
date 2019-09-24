@@ -6,11 +6,27 @@ package graph
 import (
 	"fmt"
 	"sort"
+	"strings"
 )
 
 type Graph struct {
 	nodes map[interface{}]map[interface{}]bool
 	order []interface{}
+}
+
+func (g *Graph) String() string {
+	out := strings.Builder{}
+
+	for _, left := range g.order {
+		if len(g.nodes[left]) > 0 {
+			out.WriteString(fmt.Sprintf("%s:\n", left))
+			for right, _ := range g.nodes[left] {
+				out.WriteString(fmt.Sprintf("- %s\n", right))
+			}
+		}
+	}
+
+	return out.String()
 }
 
 // New returns a new Graph
