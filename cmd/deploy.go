@@ -264,5 +264,5 @@ var deployCmd = &cobra.Command{
 
 func init() {
 	deployCmd.Flags().BoolVarP(&force, "force", "f", false, "Don't ask questions; just deploy.")
-	rootCmd.AddCommand(deployCmd)
+	Root.AddCommand(deployCmd)
 }

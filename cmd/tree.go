@@ -123,5 +123,5 @@ var graphCmd = &cobra.Command{
 func init() {
 	graphCmd.Flags().BoolVarP(&allLinks, "all", "a", false, "Display all elements, even those without any dependencies")
 	graphCmd.Flags().BoolVarP(&twoWayTree, "both", "b", false, "For each element, display both its dependencies and its dependents")
-	rootCmd.AddCommand(graphCmd)
+	Root.AddCommand(graphCmd)
 }

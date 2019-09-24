@@ -134,5 +134,5 @@ func init() {
 	logsCmd.Flags().BoolVarP(&timeOrder, "time", "t", false, "Show results in order of time instead of grouped by resource")
 	logsCmd.Flags().BoolVarP(&longFormat, "long", "l", false, "Display full details")
 	logsCmd.Flags().BoolVarP(&allLogs, "all", "a", false, "Include uninteresting logs")
-	rootCmd.AddCommand(logsCmd)
+	Root.AddCommand(logsCmd)
 }

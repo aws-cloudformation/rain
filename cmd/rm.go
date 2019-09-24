@@ -63,5 +63,5 @@ var rmCmd = &cobra.Command{
 
 func init() {
 	rmCmd.Flags().BoolVarP(&forceRm, "force", "f", false, "Do not ask; just delete")
-	rootCmd.AddCommand(rmCmd)
+	Root.AddCommand(rmCmd)
 }

@@ -29,7 +29,7 @@ func init() {
 				util.RunAttached(bin, "--help")
 			})
 
-			rootCmd.AddCommand(cmd)
+			Root.AddCommand(cmd)
 		}
 	}
 }

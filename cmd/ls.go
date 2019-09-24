@@ -74,5 +74,5 @@ var lsCmd = &cobra.Command{
 
 func init() {
 	lsCmd.Flags().BoolVarP(&allRegions, "all", "a", false, "List stacks across all regions")
-	rootCmd.AddCommand(lsCmd)
+	Root.AddCommand(lsCmd)
 }

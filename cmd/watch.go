@@ -32,5 +32,5 @@ var watchCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(watchCmd)
+	Root.AddCommand(watchCmd)
 }
