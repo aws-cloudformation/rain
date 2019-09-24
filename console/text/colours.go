@@ -22,7 +22,7 @@ func Green(text string) Text {
 func Grey(text string) Text {
 	return Text{
 		text:   text,
-		colour: "\x1b[0;37m",
+		colour: "\x1b[1;30m",
 	}
 }
 

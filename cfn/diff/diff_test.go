@@ -70,7 +70,7 @@ func TestCompareSlices(t *testing.T) {
 				2,
 				4,
 			},
-			diff.Changed,
+			diff.Involved,
 		},
 		{
 			[]interface{}{1, 2, 3},
@@ -81,7 +81,7 @@ func TestCompareSlices(t *testing.T) {
 				3,
 				4,
 			},
-			diff.Changed,
+			diff.Involved,
 		},
 		{
 			[]interface{}{1, 2, 3},
@@ -91,7 +91,7 @@ func TestCompareSlices(t *testing.T) {
 				2,
 				3,
 			},
-			diff.Changed,
+			diff.Involved,
 		},
 	})
 }
@@ -107,18 +107,14 @@ func TestCompareMaps(t *testing.T) {
 		{
 			map[string]interface{}{"foo": "bar"},
 			map[string]interface{}{"foo": "bar"},
-			map[string]interface{}{
-				"foo": "bar",
-			},
+			map[string]interface{}{"foo": "bar"},
 			diff.Unchanged,
 		},
 		{
 			map[string]interface{}{"foo": "bar"},
 			map[string]interface{}{"foo": "baz"},
-			map[string]interface{}{
-				"foo": "baz",
-			},
-			diff.Changed,
+			map[string]interface{}{"foo": "baz"},
+			diff.Involved,
 		},
 		{
 			map[string]interface{}{"foo": "bar"},
@@ -127,7 +123,7 @@ func TestCompareMaps(t *testing.T) {
 				"foo": "bar",
 				"baz": "quux",
 			},
-			diff.Changed,
+			diff.Involved,
 		},
 		{
 			map[string]interface{}{"foo": "bar"},
@@ -135,7 +131,7 @@ func TestCompareMaps(t *testing.T) {
 			map[string]interface{}{
 				"foo": "bar",
 			},
-			diff.Removed,
+			diff.Involved,
 		},
 	})
 }
@@ -195,7 +191,7 @@ func TestCompare(t *testing.T) {
 				},
 				"bar": "baz",
 			},
-			diff.Changed,
+			diff.Involved,
 		},
 		{
 			original,
@@ -220,7 +216,7 @@ func TestCompare(t *testing.T) {
 					"foo",
 				},
 			},
-			diff.Changed,
+			diff.Involved,
 		},
 	})
 }

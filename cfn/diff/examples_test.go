@@ -25,8 +25,8 @@ func ExampleSlice() {
 
 	// Output:
 	// (=)[(=)foo]
-	// (|)[(|)bar]
-	// (-)[(-)foo]
+	// (|)[(>)bar]
+	// (|)[(-)foo]
 	// (|)[(=)foo (+)bar]
 }
 
@@ -40,8 +40,8 @@ func ExampleMap() {
 
 	// Output:
 	// (=)map[(=)foo:bar]
-	// (|)map[(|)foo:baz]
-	// (-)map[(-)foo:bar]
+	// (|)map[(>)foo:baz]
+	// (|)map[(-)foo:bar]
 	// (|)map[(+)baz:quux (=)foo:bar]
 }
 

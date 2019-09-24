@@ -13,7 +13,7 @@ var colours = map[string]string{
 	"Yellow": "\033[1;33m",
 	"Red":    "\033[1;31m",
 	"Green":  "\033[0;32m",
-	"Grey":   "\033[0;37m",
+	"Grey":   "\033[1;30m",
 	"White":  "\033[1;37m",
 }
 

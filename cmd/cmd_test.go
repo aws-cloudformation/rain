@@ -36,7 +36,7 @@ func Example_diff() {
 
 	cmd.Execute()
 	// Output:
-	// (|) Description: This template fails
+	// (>) Description: This template fails
 	// (-) Parameters: {...}
 	// (|) Resources:
 	// (|)   Bucket1:

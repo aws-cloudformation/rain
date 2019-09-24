@@ -13,7 +13,8 @@ type Mode string
 const (
 	Added     Mode = "+"
 	Removed   Mode = "-"
-	Changed   Mode = "|"
+	Changed   Mode = ">"
+	Involved  Mode = "|"
 	Unchanged Mode = "="
 )
 
@@ -57,19 +58,13 @@ func (v Value) String() string {
 type Slice []Diff
 
 func (s Slice) Mode() Mode {
-	mode := Unchanged
-
-	for i, v := range s {
-		if i == 0 {
-			mode = v.Mode()
-		} else {
-			if mode != v.Mode() {
-				mode = Changed
-			}
+	for _, v := range s {
+		if v.Mode() != Unchanged {
+			return Involved
 		}
 	}
 
-	return mode
+	return Unchanged
 }
 
 func (s Slice) Value() interface{} {

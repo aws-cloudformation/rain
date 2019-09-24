@@ -117,6 +117,8 @@ func colouriseDiff(d diff.Diff, longFormat bool) string {
 			output.WriteString(text.Red(line).String())
 		case strings.HasPrefix(line, diff.Changed.String()):
 			output.WriteString(text.Orange(line).String())
+		case strings.HasPrefix(line, diff.Involved.String()):
+			output.WriteString(text.Grey(line).String())
 		default:
 			output.WriteString(line)
 		}

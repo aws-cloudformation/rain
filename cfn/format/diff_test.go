@@ -63,7 +63,7 @@ var diffCases = []struct {
 				"cake",
 			},
 		),
-		"(|) [1]: cake\n(-) [2]: ...\n",
+		"(>) [1]: cake\n(-) [2]: ...\n",
 	},
 	{
 		// Add and remove a value from a map
@@ -76,7 +76,7 @@ var diffCases = []struct {
 				"foo": "cake",
 			},
 		),
-		"(-) baz: ...\n(|) foo: cake\n",
+		"(-) baz: ...\n(>) foo: cake\n",
 	},
 }
 
