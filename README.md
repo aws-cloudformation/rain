@@ -10,7 +10,7 @@ Rain is a development workflow tool for working with AWS CloudFormation.
 
 Here's what it looks like:
 
-![Make it Rain](./media/rain.gif)
+[![Make it Rain](https://asciinema.org/a/269609.png)](https://asciinema.org/a/269609?autoplay=1)
 
 ## Installing
 
