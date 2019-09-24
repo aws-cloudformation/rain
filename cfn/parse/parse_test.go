@@ -46,6 +46,11 @@ var expected, _ = parse.Map(map[string]interface{}{
 				},
 			},
 		},
+		"Bucket1Name": map[string]interface{}{
+			"Value": map[string]interface{}{
+				"Ref": "Bucket1",
+			},
+		},
 		"Bucket2Arn": map[string]interface{}{
 			"Value": map[string]interface{}{
 				"Fn::GetAtt": []interface{}{
