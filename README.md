@@ -109,7 +109,7 @@ Output should:
 
 Examples:
 
-* All commands (except ls for now) output in YAML-compatible output
+* All commands have YAML-compatible output
 * All commands strip formatting if stdout is not connected to a terminal
 
 ## Other CloudFormation tools
