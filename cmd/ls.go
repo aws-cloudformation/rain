@@ -2,13 +2,14 @@ package cmd
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/aws-cloudformation/rain/client"
 	"github.com/aws-cloudformation/rain/client/cfn"
 	"github.com/aws-cloudformation/rain/client/ec2"
 	"github.com/aws-cloudformation/rain/console/spinner"
-	"github.com/aws-cloudformation/rain/console/table"
 	"github.com/aws-cloudformation/rain/console/text"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/spf13/cobra"
 )
 
@@ -17,7 +18,7 @@ var allRegions = false
 var lsCmd = &cobra.Command{
 	Use:                   "ls <stack>",
 	Short:                 "List running CloudFormation stacks",
-	Long:                  "Displays a table of all running stacks or the contents of <stack> if provided.",
+	Long:                  "Displays a list of all running stacks or the contents of <stack> if provided.",
 	Args:                  cobra.MaximumNArgs(1),
 	Aliases:               []string{"list"},
 	DisableFlagsInUseLine: true,
@@ -57,16 +58,24 @@ var lsCmd = &cobra.Command{
 					continue
 				}
 
-				table := table.New("Name", "Status")
+				stackNames := make(sort.StringSlice, 0)
+				stackMap := make(map[string]cloudformation.StackSummary)
 				for _, stack := range stacks {
-					table.Append(*stack.StackName, colouriseStatus(string(stack.StackStatus)))
+					stackNames = append(stackNames, *stack.StackName)
+					stackMap[*stack.StackName] = stack
 				}
-				table.Sort()
+				sort.Strings(stackNames)
 
 				spinner.Stop()
 
 				fmt.Println(text.Yellow(fmt.Sprintf("CloudFormation stacks in %s:", region)))
-				fmt.Println(table.String())
+				for _, stackName := range stackNames {
+					fmt.Printf("  %s: %s\n",
+						stackName,
+						colouriseStatus(string(stackMap[stackName].StackStatus)),
+					)
+				}
+				fmt.Println()
 			}
 		}
 	},
