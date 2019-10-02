@@ -1,11 +1,12 @@
 # To do
 
 * `deploy`
-    * Only show changing resources
     * Ensure update count reflects everything that has changed
     * Detect whether a deployment requires capabilities rather than automatically applying them
-    * Allow deploying over a stack that's REVIEW_IN_PROGRESS by killing the changset?
+    * Allow deploying over a stack that's REVIEW_IN_PROGRESS by killing the changeset?
     * After a failed deployment, show the logs
+    * Show details from nested stacks while deploying
+    * Handle deploying from a template URL
 
 * `rm`
     * List stack contents and ask for confirmation
