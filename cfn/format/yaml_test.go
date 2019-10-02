@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/aws-cloudformation/rain/cfn/format"
+	"github.com/aws-cloudformation/rain/cfn/value"
 )
 
 func TestYamlDirectValues(t *testing.T) {
@@ -332,36 +333,34 @@ func TestYamlComments(t *testing.T) {
 		},
 	}
 
-	commentCases := []map[interface{}]interface{}{
-		{},
-		{"": "Top-level comments"},
-		{"foo": "This is foo"},
-		{"baz": "This is baz"},
-		{"baz": map[string]interface{}{"": "This is also baz"}},
-		{"baz": map[string]interface{}{"quux": "This is quux"}},
-		{"xyzzy": "This is xyzzy"},
-		{"xyzzy": map[string]interface{}{"": "This is also xyzzy"}},
-		{"xyzzy": map[interface{}]interface{}{0: "This is lorem"}}, // BUGGGGGGG
+	comments := []struct {
+		path  []interface{}
+		value string
+	}{
+		{[]interface{}{}, "Top-level comment"},
+		{[]interface{}{"foo"}, "This is foo"},
+		{[]interface{}{"baz"}, "This is baz"},
+		{[]interface{}{"baz", "quux"}, "This is quux"},
+		{[]interface{}{"xyzzy"}, "This is xyzzy"},
+		{[]interface{}{"xyzzy", 0}, "This is lorem"},
 	}
 
 	expecteds := []string{
-		"baz:\n  quux: mooz\n\nfoo: bar\n\nxyzzy:\n  - lorem",
-		"# Top-level comments\nbaz:\n  quux: mooz\n\nfoo: bar\n\nxyzzy:\n  - lorem",
+		"# Top-level comment\nbaz:\n  quux: mooz\n\nfoo: bar\n\nxyzzy:\n  - lorem",
 		"baz:\n  quux: mooz\n\nfoo: bar  # This is foo\n\nxyzzy:\n  - lorem",
 		"baz:  # This is baz\n  quux: mooz\n\nfoo: bar\n\nxyzzy:\n  - lorem",
-		"baz:  # This is also baz\n  quux: mooz\n\nfoo: bar\n\nxyzzy:\n  - lorem",
 		"baz:\n  quux: mooz  # This is quux\n\nfoo: bar\n\nxyzzy:\n  - lorem",
 		"baz:\n  quux: mooz\n\nfoo: bar\n\nxyzzy:  # This is xyzzy\n  - lorem",
-		"baz:\n  quux: mooz\n\nfoo: bar\n\nxyzzy:  # This is also xyzzy\n  - lorem",
 		"baz:\n  quux: mooz\n\nfoo: bar\n\nxyzzy:\n  - lorem  # This is lorem",
 	}
 
-	for i, comments := range commentCases {
+	for i, comment := range comments {
 		expected := expecteds[i]
 
-		actual := format.Anything(data, format.Options{
-			Comments: comments,
-		})
+		v := value.New(data)
+		v.Get(comment.path...).SetComment(comment.value)
+
+		actual := format.Value(v, format.Options{})
 
 		if actual != expected {
 			t.Errorf("from %q != %q\n", actual, expected)

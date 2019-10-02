@@ -11,6 +11,8 @@ import (
 	"github.com/aws-cloudformation/rain/cfn/graph"
 )
 
+const pseudoParameterType = "Parameter"
+
 // Element represents a top-level entry in a CloudFormation template
 // for example a resource, parameter, or output
 type Element struct {
@@ -25,8 +27,6 @@ type Element struct {
 // Template represents a CloudFormation template. The Template type
 // is minimal for now but will likely grow new features as needed by rain.
 type Template map[string]interface{}
-
-const pseudoParameterType = "Parameter"
 
 // Map returns the template as a map[string]interface{}
 // This can be used for easy serialisation to e.g. JSON or YAML
@@ -46,7 +46,7 @@ func (t Template) Diff(other Template) diff.Diff {
 func (t Template) Graph() graph.Graph {
 	// Map out parameter and resource names so we know which is which
 	entities := make(map[string]string)
-	for typeName, entity := range t {
+	for typeName, entity := range t.Map() {
 		if typeName != "Parameters" && typeName != "Resources" {
 			continue
 		}
@@ -60,7 +60,7 @@ func (t Template) Graph() graph.Graph {
 
 	// Now find the deps
 	graph := graph.New()
-	for typeName, entity := range t {
+	for typeName, entity := range t.Map() {
 		if typeName != "Resources" && typeName != "Outputs" {
 			continue
 		}

@@ -1,92 +1,155 @@
-// Package value provides a Value type that can be used to contain structured data
-// of any type and comments that reference elements within it.
 package value
 
 import (
 	"fmt"
-
-	"github.com/aws-cloudformation/rain/cfn"
+	"reflect"
 )
 
-func get(data interface{}, path []interface{}) (interface{}, error) {
-	out := data
-
-	for _, part := range path {
-		switch v := out.(type) {
-		case cfn.Template:
-			return get(v.Map(), path)
-		case map[interface{}]interface{}:
-			out = v[part]
-		case map[string]interface{}:
-			stringPart, ok := part.(string)
-			if !ok {
-				return nil, fmt.Errorf("Path: Invalid map key '%s'", part)
-			}
-			out = v[stringPart]
-		case []interface{}:
-			intPart, ok := part.(int)
-			if !ok {
-				return nil, fmt.Errorf("Path: Invalid index '%s'", part)
-			}
-			out = v[intPart]
-		default:
-			return nil, fmt.Errorf("Path: No such entry '%s'", part)
-		}
-	}
-
-	return out, nil
+type Value interface {
+	Get(...interface{}) Value
+	Value() interface{}
+	Comment() string
+	SetComment(string)
 }
 
-// Value holds structured data of any type and associated comments.
-// Comments should be in the same format as the data it relates to
-// with the exception that a map key of the empty string ("")
-// will be taken to mean a comment related to the map as a whole
-type Value struct {
-	data     interface{}
-	comments map[interface{}]interface{}
+type scalarValue struct {
+	value   interface{}
+	comment string
 }
 
-// New creates a new Value from the supplied data and comments
-func New(data interface{}, comments map[interface{}]interface{}) Value {
-	return Value{
-		data:     data,
-		comments: comments,
+type mapValue struct {
+	values  map[string]Value
+	comment string
+}
+
+type listValue struct {
+	values  []Value
+	comment string
+}
+
+func New(in interface{}) Value {
+	v := reflect.ValueOf(in)
+
+	switch v.Kind() {
+	case reflect.Map:
+		return newMapValue(v)
+	case reflect.Slice, reflect.Array:
+		return newListValue(v)
+	default:
+		return newScalarValue(in)
 	}
 }
 
-// Get returns part of the Value's data by using a path given as a slice.
-// The slice should contain map keys and array indexes that identify where the data is.
-//
-// For eaxmple: '"foo", 1' would return the value from index 1 of an array
-// that is stored with they key foo in a map.
-func (v Value) Get(path ...interface{}) interface{} {
-	out, err := get(v.data, path)
+func newScalarValue(in interface{}) Value {
+	return &scalarValue{in, ""}
+}
 
-	if err != nil {
-		panic(err)
+func newMapValue(in reflect.Value) Value {
+	if in.Type().Key().String() != "string" {
+		panic(fmt.Errorf("s11n only supports maps with string keys, no: %T", in.Interface()))
 	}
 
+	out := mapValue{
+		values: make(map[string]Value),
+	}
+
+	for _, key := range in.MapKeys() {
+		out.values[key.String()] = New(in.MapIndex(key).Interface())
+	}
+
+	return &out
+}
+
+func newListValue(in reflect.Value) Value {
+	out := listValue{
+		values: make([]Value, in.Len()),
+	}
+
+	for i := 0; i < in.Len(); i++ {
+		out.values[i] = New(in.Index(i).Interface())
+	}
+
+	return &out
+}
+
+func (v *scalarValue) Value() interface{} {
+	return v.value
+}
+
+func (v *scalarValue) Get(path ...interface{}) Value {
+	if len(path) != 0 {
+		panic(fmt.Errorf("Attempt to index (%v) scalar: %v", path, v.value))
+	}
+
+	return v
+}
+
+func (v *scalarValue) Comment() string {
+	return v.comment
+}
+
+func (v *scalarValue) SetComment(c string) {
+	v.comment = c
+}
+
+func (v *mapValue) Value() interface{} {
+	out := make(map[string]interface{}, len(v.values))
+	for key, value := range v.values {
+		out[key] = value.Value()
+	}
 	return out
 }
 
-// GetComment returns the comment matching the path provided.
-// If no comment is found at the exact path, GetComment will try
-// looking for a comment with a map key of ""
-// as a special case where the associated data is a map
-func (v Value) GetComment(path ...interface{}) string {
-	value, err := get(v.comments, path)
-	comment, ok := value.(string)
-
-	if err != nil || !ok {
-		// Try looking for a root comment
-		value, err = get(v.comments, append(path, ""))
-		comment, ok = value.(string)
-
-		if err != nil || !ok {
-			// Ok, there's no comment
-			return ""
-		}
+func (v *mapValue) Get(path ...interface{}) Value {
+	if len(path) == 0 {
+		return v
 	}
 
-	return comment
+	s, ok := path[0].(string)
+	if !ok {
+		panic(fmt.Errorf("Maps only have string keys, not: %#v", path[0]))
+	}
+
+	out, ok := v.values[s]
+	if !ok {
+		return nil
+	}
+
+	return out.Get(path[1:]...)
+}
+
+func (v *mapValue) Comment() string {
+	return v.comment
+}
+
+func (v *mapValue) SetComment(c string) {
+	v.comment = c
+}
+
+func (v *listValue) Value() interface{} {
+	out := make([]interface{}, len(v.values))
+	for i, value := range v.values {
+		out[i] = value.Value()
+	}
+	return out
+}
+
+func (v *listValue) Get(path ...interface{}) Value {
+	if len(path) == 0 {
+		return v
+	}
+
+	i, ok := path[0].(int)
+	if !ok {
+		panic(fmt.Errorf("Lists only have int keys, not: %#v", path[0]))
+	}
+	return v.values[i].Get(path[1:]...)
+}
+
+func (v *listValue) Comment() string {
+	return v.comment
+}
+
+func (v *listValue) SetComment(c string) {
+	v.comment = c
 }

@@ -85,7 +85,7 @@ func transform(in map[string]interface{}) map[string]interface{} {
 func Reader(r io.Reader) (cfn.Template, error) {
 	data, err := ioutil.ReadAll(r)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to read input: %s", err)
+		return cfn.Template{}, fmt.Errorf("Unable to read input: %s", err)
 	}
 
 	return String(string(data))
@@ -95,7 +95,7 @@ func Reader(r io.Reader) (cfn.Template, error) {
 func File(fileName string) (cfn.Template, error) {
 	source, err := ioutil.ReadFile(fileName)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to read file: %s", err)
+		return cfn.Template{}, fmt.Errorf("Unable to read file: %s", err)
 	}
 
 	return String(string(source))
@@ -105,13 +105,13 @@ func File(fileName string) (cfn.Template, error) {
 func String(input string) (cfn.Template, error) {
 	parsed, err := yamlwrapper.YAMLToJSON([]byte(input))
 	if err != nil {
-		return nil, fmt.Errorf("Invalid YAML: %s", err)
+		return cfn.Template{}, fmt.Errorf("Invalid YAML: %s", err)
 	}
 
 	var output map[string]interface{}
 	err = json.Unmarshal(parsed, &output)
 	if err != nil {
-		return nil, fmt.Errorf("Invalid YAML: %s", err)
+		return cfn.Template{}, fmt.Errorf("Invalid YAML: %s", err)
 	}
 
 	return Map(output)

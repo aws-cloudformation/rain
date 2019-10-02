@@ -7,85 +7,58 @@ import (
 	"github.com/aws-cloudformation/rain/cfn/value"
 )
 
-var data = map[string]interface{}{
+var original = map[string]interface{}{
 	"foo": "bar",
-	"baz": map[string]interface{}{
-		"quux": []interface{}{
-			"mooz",
-		},
-		"xyzzy": "lorem",
-		"ipsum": "dolor", // Uncommented
+	"baz": []interface{}{42, "answer"},
+	"quux": map[string]interface{}{
+		"mooz": "xyzzy",
 	},
-}
-
-var comments = map[interface{}]interface{}{
-	"":    "Root comment",
-	"foo": "This is foo",
-	"baz": map[interface{}]interface{}{
-		"": "This is baz",
-		"quux": map[interface{}]interface{}{
-			"": "This is quux",
-			0:  "This is quux[0]",
-		},
-		"xyzzy": "This is xyzzy",
-	},
-}
-
-var v value.Value = value.New(
-	data,
-	comments,
-)
-
-var paths = [][]interface{}{
-	{},
-	{"foo"},
-	{"baz"},
-	{"baz", "quux"},
-	{"baz", "quux", 0},
-	{"baz", "xyzzy"},
-	{"baz", "ipsum"},
 }
 
 func TestGet(t *testing.T) {
-	expecteds := []interface{}{
-		data,
-		data["foo"],
-		data["baz"],
-		data["baz"].(map[string]interface{})["quux"],
-		data["baz"].(map[string]interface{})["quux"].([]interface{})[0],
-		data["baz"].(map[string]interface{})["xyzzy"],
-		data["baz"].(map[string]interface{})["ipsum"],
-	}
+	v := value.New(original)
 
-	for i, path := range paths {
-		expected := expecteds[i]
+	for _, testCase := range []struct {
+		path     []interface{}
+		expected interface{}
+	}{
+		{[]interface{}{}, original},
+		{[]interface{}{"foo"}, original["foo"]},
+		{[]interface{}{"baz"}, original["baz"]},
+		{[]interface{}{"baz", 0}, original["baz"].([]interface{})[0]},
+		{[]interface{}{"baz", 1}, original["baz"].([]interface{})[1]},
+		{[]interface{}{"quux"}, original["quux"]},
+		{[]interface{}{"quux", "mooz"}, original["quux"].(map[string]interface{})["mooz"]},
+	} {
+		actual := v.Get(testCase.path...).Value()
 
-		actual := v.Get(path...)
-
-		if !reflect.DeepEqual(actual, expected) {
-			t.Errorf("%v != %v\n", actual, expected)
+		if !reflect.DeepEqual(actual, testCase.expected) {
+			t.Errorf("'%#v' is not '%#v'", actual, testCase.expected)
 		}
 	}
 }
 
-func TestGetComment(t *testing.T) {
-	expecteds := []string{
-		"Root comment",
-		"This is foo",
-		"This is baz",
-		"This is quux",
-		"This is quux[0]",
-		"This is xyzzy",
-		"",
+func TestSetComments(t *testing.T) {
+	v := value.New(original)
+
+	comments := []struct {
+		path  []interface{}
+		value string
+	}{
+		{[]interface{}{}, "Top-level"},
+		{[]interface{}{"foo"}, "Comment on foo"},
+		{[]interface{}{"baz"}, "Comment on baz"},
+		{[]interface{}{"baz", 0}, "Life, the universe, and everything"},
+		{[]interface{}{"baz", 1}, "Ultimate"},
+		{[]interface{}{"quux"}, "Quuxy comment"},
+		{[]interface{}{"quux", "mooz"}, "Secret word"},
 	}
 
-	for i, path := range paths {
-		expected := expecteds[i]
+	for _, comment := range comments {
+		v.Get(comment.path...).SetComment(comment.value)
 
-		actual := v.GetComment(path...)
-
-		if actual != expected {
-			t.Errorf("%v != %v\n", actual, expected)
+		if v.Get(comment.path...).Comment() != comment.value {
+			t.Fail()
 		}
 	}
 }

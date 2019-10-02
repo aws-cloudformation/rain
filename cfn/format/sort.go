@@ -104,11 +104,11 @@ func sortAs(keys []string, name string) []string {
 func (p *encoder) sortKeys() []string {
 	var keys []string
 
-	if t, ok := p.currentValue.(cfn.Template); ok {
-		keys = sortMapKeys(t.Map())
-	} else {
-		keys = sortMapKeys(p.currentValue.(map[string]interface{}))
+	if p.currentValue == nil {
+		return keys
 	}
+
+	keys = sortMapKeys(p.currentValue.Value().(map[string]interface{}))
 
 	// Specific length paths
 	if len(p.path) == 0 {
@@ -118,8 +118,8 @@ func (p *encoder) sortKeys() []string {
 	// Resources
 	if len(p.path) == 1 {
 		if p.path[0] == "Resources" {
-			if t, ok := p.value.Get().(cfn.Template); ok {
-				g := t.Graph()
+			if t, ok := p.value.Value().(map[string]interface{}); ok {
+				g := cfn.Template(t).Graph()
 
 				output := make([]string, 0)
 				for _, item := range g.Nodes() {
