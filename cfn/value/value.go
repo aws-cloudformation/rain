@@ -5,29 +5,29 @@ import (
 	"reflect"
 )
 
-type Value interface {
-	Get(...interface{}) Value
+type Interface interface {
+	Get(...interface{}) Interface
 	Value() interface{}
 	Comment() string
 	SetComment(string)
 }
 
-type scalarValue struct {
+type Scalar struct {
 	value   interface{}
 	comment string
 }
 
-type mapValue struct {
-	values  map[string]Value
+type Map struct {
+	values  map[string]Interface
 	comment string
 }
 
-type listValue struct {
-	values  []Value
+type List struct {
+	values  []Interface
 	comment string
 }
 
-func New(in interface{}) Value {
+func New(in interface{}) Interface {
 	v := reflect.ValueOf(in)
 
 	switch v.Kind() {
@@ -40,17 +40,17 @@ func New(in interface{}) Value {
 	}
 }
 
-func newScalarValue(in interface{}) Value {
-	return &scalarValue{in, ""}
+func newScalarValue(in interface{}) Interface {
+	return &Scalar{in, ""}
 }
 
-func newMapValue(in reflect.Value) Value {
+func newMapValue(in reflect.Value) Interface {
 	if in.Type().Key().String() != "string" {
 		panic(fmt.Errorf("s11n only supports maps with string keys, no: %T", in.Interface()))
 	}
 
-	out := mapValue{
-		values: make(map[string]Value),
+	out := Map{
+		values: make(map[string]Interface),
 	}
 
 	for _, key := range in.MapKeys() {
@@ -60,9 +60,9 @@ func newMapValue(in reflect.Value) Value {
 	return &out
 }
 
-func newListValue(in reflect.Value) Value {
-	out := listValue{
-		values: make([]Value, in.Len()),
+func newListValue(in reflect.Value) Interface {
+	out := List{
+		values: make([]Interface, in.Len()),
 	}
 
 	for i := 0; i < in.Len(); i++ {
@@ -72,11 +72,11 @@ func newListValue(in reflect.Value) Value {
 	return &out
 }
 
-func (v *scalarValue) Value() interface{} {
+func (v *Scalar) Value() interface{} {
 	return v.value
 }
 
-func (v *scalarValue) Get(path ...interface{}) Value {
+func (v *Scalar) Get(path ...interface{}) Interface {
 	if len(path) != 0 {
 		panic(fmt.Errorf("Attempt to index (%v) scalar: %v", path, v.value))
 	}
@@ -84,15 +84,15 @@ func (v *scalarValue) Get(path ...interface{}) Value {
 	return v
 }
 
-func (v *scalarValue) Comment() string {
+func (v *Scalar) Comment() string {
 	return v.comment
 }
 
-func (v *scalarValue) SetComment(c string) {
+func (v *Scalar) SetComment(c string) {
 	v.comment = c
 }
 
-func (v *mapValue) Value() interface{} {
+func (v *Map) Value() interface{} {
 	out := make(map[string]interface{}, len(v.values))
 	for key, value := range v.values {
 		out[key] = value.Value()
@@ -100,7 +100,7 @@ func (v *mapValue) Value() interface{} {
 	return out
 }
 
-func (v *mapValue) Get(path ...interface{}) Value {
+func (v *Map) Get(path ...interface{}) Interface {
 	if len(path) == 0 {
 		return v
 	}
@@ -118,15 +118,23 @@ func (v *mapValue) Get(path ...interface{}) Value {
 	return out.Get(path[1:]...)
 }
 
-func (v *mapValue) Comment() string {
+func (v *Map) Comment() string {
 	return v.comment
 }
 
-func (v *mapValue) SetComment(c string) {
+func (v *Map) SetComment(c string) {
 	v.comment = c
 }
 
-func (v *listValue) Value() interface{} {
+func (v *Map) Keys() []string {
+	out := make([]string, 0)
+	for key, _ := range v.values {
+		out = append(out, key)
+	}
+	return out
+}
+
+func (v *List) Value() interface{} {
 	out := make([]interface{}, len(v.values))
 	for i, value := range v.values {
 		out[i] = value.Value()
@@ -134,7 +142,7 @@ func (v *listValue) Value() interface{} {
 	return out
 }
 
-func (v *listValue) Get(path ...interface{}) Value {
+func (v *List) Get(path ...interface{}) Interface {
 	if len(path) == 0 {
 		return v
 	}
@@ -146,10 +154,10 @@ func (v *listValue) Get(path ...interface{}) Value {
 	return v.values[i].Get(path[1:]...)
 }
 
-func (v *listValue) Comment() string {
+func (v *List) Comment() string {
 	return v.comment
 }
 
-func (v *listValue) SetComment(c string) {
+func (v *List) SetComment(c string) {
 	v.comment = c
 }

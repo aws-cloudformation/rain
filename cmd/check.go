@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/aws-cloudformation/rain/cfn/format"
 	"github.com/aws-cloudformation/rain/cfn/parse"
 	"github.com/spf13/cobra"
 )
@@ -21,12 +22,12 @@ var checkCmd = &cobra.Command{
 			panic(fmt.Errorf("Unable to parse template '%s': %s", fn, err))
 		}
 
-		err = t.Check()
-		if err != nil {
-			panic(err)
+		out, ok := t.Check()
+		if !ok {
+			fmt.Println(format.Value(out, format.Options{}))
+		} else {
+			fmt.Println("Template ok")
 		}
-
-		fmt.Println("Template ok")
 	},
 }
 

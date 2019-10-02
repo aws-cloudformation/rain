@@ -2,13 +2,12 @@ package cfn
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
 	"reflect"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cfn/spec"
 	"github.com/aws-cloudformation/rain/cfn/spec/models"
+	"github.com/aws-cloudformation/rain/cfn/value"
 )
 
 type CfnError struct {
@@ -16,99 +15,117 @@ type CfnError struct {
 	comments map[interface{}]interface{}
 }
 
-func (t Template) Check() error {
-	rs, ok := t.Map()["Resources"]
-	if !ok {
-		return errors.New("Template has no resources")
+func (t Template) Check() (value.Interface, bool) {
+	out := value.New(t.Map())
+
+	rs := out.Get("Resources")
+	if rs == nil {
+		out.SetComment("Missing Resources!")
+		return out, false
 	}
 
-	resources, ok := rs.(map[string]interface{})
+	resources, ok := rs.(*value.Map)
 	if !ok {
-		return errors.New("Resources isn't a map!")
+		rs.SetComment("Not a map!")
+		return out, false
 	}
+
+	return out, checkResources(resources)
+}
+
+func checkResources(resources *value.Map) bool {
+	outOk := true
 
 	// Check resources
-	for name, r := range resources {
-		resource, ok := r.(map[string]interface{})
+	for _, name := range resources.Keys() {
+		resource := resources.Get(name)
+		_, ok := resources.Get(name).(*value.Map)
 		if !ok {
-			return fmt.Errorf("Resource '%s' isn't a map!", name)
+			resource.SetComment("Not a map!")
+			outOk = false
+			continue
 		}
 
-		t, ok := resource["Type"]
-		if !ok {
-			return fmt.Errorf("Resource '%s' has no type!", name)
+		t := resource.Get("Type")
+		if t == nil {
+			resource.SetComment("Missing Type!")
+			outOk = false
+			continue
 		}
 
-		typeName, ok := t.(string)
+		typeName, ok := t.Value().(string)
 		if !ok {
-			return fmt.Errorf("Resource '%s' has an invalid type: %s", name, t)
+			t.SetComment("Invalid type!")
+			outOk = false
+			continue
 		}
 
-		p, ok := resource["Properties"]
-		if ok {
-			props, ok := p.(map[string]interface{})
+		rSpec, ok := spec.Cfn.ResourceTypes[typeName]
+		if !ok {
+			t.SetComment("Unknown type")
+			outOk = false
+			continue
+		}
+
+		p := resource.Get("Properties")
+		if p != nil {
+			props, ok := p.(*value.Map)
 			if !ok {
-				return fmt.Errorf("Resource '%s' has invalid properties: %s", name, p)
+				p.SetComment("Not a map!")
+				outOk = false
+				continue
 			}
 
-			rType, ok := spec.Cfn.ResourceTypes[typeName]
-			if !ok {
-				return fmt.Errorf("Unknown resource type: %s", typeName)
-			}
-
-			err := checkResourceType(rType, props)
-			if err != nil {
-				return fmt.Errorf("Resource '%s' has errors: %s", name, err)
-			}
+			outOk = outOk && checkProperties(rSpec, props)
 		}
 	}
 
-	return nil
+	return outOk
 }
 
-func checkResourceType(r models.ResourceType, in map[string]interface{}) error {
-	for name, p := range in {
-		prop, ok := r.Properties[name]
+func checkProperties(rSpec models.ResourceType, props *value.Map) bool {
+	outOk := true
+
+	for _, name := range props.Keys() {
+		pSpec, ok := rSpec.Properties[name]
 		if !ok {
-			return fmt.Errorf("Unknown property name: %s", name)
+			props.Get(name).SetComment("Unknown property")
+			outOk = false
 		}
 
-		err := checkProperty(prop, p)
-		if err != nil {
-			return fmt.Errorf("Parameter '%s' has errors: %s", name, err)
-		}
+		outOk = outOk && checkProperty(pSpec, props.Get(name))
 	}
 
-	return nil
+	return outOk
 }
 
-func checkProperty(p models.Property, in interface{}) error {
-	switch p.Type {
+func checkProperty(pSpec models.Property, prop value.Interface) bool {
+	switch pSpec.Type {
 	case "Map":
-		return checkMap(p, in)
+		return checkMap(pSpec, prop)
 	case "List":
-		return checkList(p, in)
+		return checkList(pSpec, prop)
 	}
 
-	switch p.PrimitiveType {
+	switch pSpec.PrimitiveType {
 	case "String":
-		return checkString(p, in)
+		return checkString(pSpec, prop)
 	case "Boolean":
-		return checkBool(p, in)
+		return checkBool(pSpec, prop)
 	case "Json":
-		return checkJson(p, in)
+		return checkJson(pSpec, prop)
 	case "Double", "Long", "Integer":
-		return checkNumber(p, in)
+		return checkNumber(pSpec, prop)
 	case "Timestamp":
-		return checkTimestamp(p, in)
+		return checkTimestamp(pSpec, prop)
 	case "Map":
-		return checkMap(p, in)
+		return checkMap(pSpec, prop)
 	case "List":
-		return checkList(p, in)
+		return checkList(pSpec, prop)
 	}
 
 	// TODO: Property types
-	return nil
+	return true
 }
 
 func isIntrinsic(in interface{}) bool {
@@ -129,73 +146,79 @@ func isIntrinsic(in interface{}) bool {
 	return false
 }
 
-func checkMap(p models.Property, in interface{}) error {
-	return nil
+func checkMap(pSpec models.Property, prop value.Interface) bool {
+	return true // TODO
 }
 
-func checkList(p models.Property, in interface{}) error {
-	return nil
+func checkList(pSpec models.Property, prop value.Interface) bool {
+	return true // TODO
 }
 
-func checkString(p models.Property, in interface{}) error {
-	if isIntrinsic(in) {
-		return nil
+func checkString(pSpec models.Property, prop value.Interface) bool {
+	if isIntrinsic(prop.Value()) {
+		return true
 	}
-	_, ok := in.(string)
+	_, ok := prop.Value().(string)
 	if !ok {
-		return fmt.Errorf("Not a string: %s", in)
+		prop.SetComment("Should be a string")
+		return false
 	}
-	return nil
+	return true
 }
 
-func checkBool(p models.Property, in interface{}) error {
-	if isIntrinsic(in) {
-		return nil
+func checkBool(pSpec models.Property, prop value.Interface) bool {
+	if isIntrinsic(prop.Value()) {
+		return true
 	}
-	_, ok := in.(bool)
+	_, ok := prop.Value().(bool)
 	if !ok {
-		return fmt.Errorf("Not a boolean: %s", in)
+		prop.SetComment("Should be a boolean")
+		return false
 	}
-	return nil
+	return true
 }
 
-func checkJson(p models.Property, in interface{}) error {
-	_, ok := in.(map[string]interface{})
+func checkJson(pSpec models.Property, prop value.Interface) bool {
+	_, ok := prop.(*value.Map)
 	if ok {
-		return nil
+		return true
 	}
 
-	s, ok := in.(string)
+	s, ok := prop.Value().(string)
 	if !ok {
-		return fmt.Errorf("Not a JSON string: %s", in)
+		prop.SetComment("Should be a JSON string")
+		return false
 	}
 
 	var out interface{}
 	err := json.Unmarshal([]byte(s), &out)
 	if err != nil {
-		return fmt.Errorf("Not a JSON string: %s", in)
+		prop.SetComment("Invalid JSON")
+		return false
 	}
 
-	return nil
+	return true
 }
 
-func checkNumber(p models.Property, in interface{}) error {
-	if isIntrinsic(in) {
-		return nil
+func checkNumber(pSpec models.Property, prop value.Interface) bool {
+	if isIntrinsic(prop.Value()) {
+		return true
 	}
-	_, ok := in.(float64)
+	_, ok := prop.Value().(float64)
 	if !ok {
-		return fmt.Errorf("Not a number: %s", in)
+		prop.SetComment("Should be a number")
+		return false
 	}
-	return nil
+	return true
 }
 
-func checkTimestamp(p models.Property, in interface{}) error {
-	_, ok := in.(string)
+func checkTimestamp(pSpec models.Property, prop value.Interface) bool {
+	_, ok := prop.Value().(string)
 	if !ok {
-		return fmt.Errorf("Not a timestamp: %s", in)
+		prop.SetComment("Should be a timestamp")
+		return false
 	}
-	return nil
+	return true
 }
 
 /*

@@ -10,12 +10,12 @@ import (
 
 type encoder struct {
 	Options
-	value        value.Value
+	value        value.Interface
 	path         []interface{}
-	currentValue value.Value
+	currentValue value.Interface
 }
 
-func newEncoder(options Options, data value.Value) encoder {
+func newEncoder(options Options, data value.Interface) encoder {
 	p := encoder{
 		Options: options,
 		value:   data,

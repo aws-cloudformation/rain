@@ -25,7 +25,7 @@ type Options struct {
 
 // Value returns a string representation of any given value
 // as either JSON or YAML depending on options.Style
-func Value(data value.Value, options Options) string {
+func Value(data value.Interface, options Options) string {
 	return newEncoder(options, data).format()
 }
 
