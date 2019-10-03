@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/aws-cloudformation/rain/cfn/format"
 	"github.com/aws-cloudformation/rain/cfn/parse"
 	"github.com/spf13/cobra"
 )
@@ -24,7 +23,11 @@ var checkCmd = &cobra.Command{
 
 		out, ok := t.Check()
 		if !ok {
-			fmt.Println(format.Value(out, format.Options{}))
+			for _, node := range out.Nodes() {
+				if node.Content.Comment() != "" {
+					fmt.Println(node)
+				}
+			}
 		} else {
 			fmt.Println("Template ok")
 		}
