@@ -4,10 +4,13 @@
     * Only show changing resources
     * Ensure update count reflects everything that has changed
     * Detect whether a deployment requires capabilities rather than automatically applying them
+    * Allow deploying over a stack that's REVIEW_IN_PROGRESS by killing the changset?
+    * After a failed deployment, show the logs
 
 * `rm`
     * List stack contents and ask for confirmation
     * Add `--force` flag
+    * Detect `y` as `Y`
 
 * `ls`
     * Display in yaml(ish) format
