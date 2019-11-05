@@ -110,3 +110,24 @@ func TestUnknownResourceProperty(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestMultipleBadResourceTypes(t *testing.T) {
+	out, ok := wrap(map[string]interface{}{
+		"Resources": map[string]interface{}{
+			"Bucket1": map[string]interface{}{
+				"Type": false,
+			},
+			"Bucket2": map[string]interface{}{
+				"Type": false,
+			},
+		},
+	})
+
+	if ok || out.Get("Resources", "Bucket1", "Type").Comment() != "Invalid type!" {
+		t.Fail()
+	}
+
+	if ok || out.Get("Resources", "Bucket2", "Type").Comment() != "Invalid type!" {
+		t.Fail()
+	}
+}

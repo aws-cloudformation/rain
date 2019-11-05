@@ -33,13 +33,32 @@ func (t Template) Check() (value.Interface, bool) {
 	return out, checkResources(resources)
 }
 
+func isIntrinsic(in interface{}) bool {
+	m, ok := in.(map[string]interface{})
+	if !ok {
+		return false
+	}
+
+	if len(m) != 1 {
+		return false
+	}
+
+	keys := reflect.ValueOf(m).MapKeys()
+	if keys[0].String() == "Ref" || strings.HasPrefix(keys[0].String(), "Fn::") {
+		return true
+	}
+
+	return false
+}
+
 func checkResources(resources *value.Map) bool {
 	outOk := true
 
 	// Check resources
 	for _, name := range resources.Keys() {
 		resource := resources.Get(name)
-		_, ok := resources.Get(name).(*value.Map)
+
+		_, ok := resource.(*value.Map)
 		if !ok {
 			resource.SetComment("Not a map!")
 			outOk = false
@@ -60,6 +79,10 @@ func checkResources(resources *value.Map) bool {
 			continue
 		}
 
+		if typeName == "AWS::CloudFormation::CustomResource" || strings.HasPrefix(typeName, "Custom::") {
+			continue
+		}
+
 		rSpec, ok := spec.Cfn.ResourceTypes[typeName]
 		if !ok {
 			t.SetComment("Unknown type")
@@ -76,7 +99,7 @@ func checkResources(resources *value.Map) bool {
 				continue
 			}
 
-			outOk = outOk && checkProperties(rSpec, props)
+			outOk = checkProperties(rSpec, props) && outOk
 		}
 	}
 
@@ -87,13 +110,15 @@ func checkProperties(rSpec models.ResourceType, props *value.Map) bool {
 	outOk := true
 
 	for _, name := range props.Keys() {
+		prop := props.Get(name)
+
 		pSpec, ok := rSpec.Properties[name]
 		if !ok {
-			props.Get(name).SetComment("Unknown property")
+			prop.SetComment("Unknown property")
 			outOk = false
 		}
 
-		outOk = outOk && checkProperty(pSpec, props.Get(name))
+		outOk = checkProperty(pSpec, prop) && outOk
 	}
 
 	return outOk
@@ -126,24 +151,6 @@ func checkProperty(pSpec models.Property, prop value.Interface) bool {
 
 	// TODO: Property types
 	return true
-}
-
-func isIntrinsic(in interface{}) bool {
-	m, ok := in.(map[string]interface{})
-	if !ok {
-		return false
-	}
-
-	if len(m) != 1 {
-		return false
-	}
-
-	keys := reflect.ValueOf(m).MapKeys()
-	if keys[0].String() == "Ref" || strings.HasPrefix(keys[0].String(), "Fn::") {
-		return true
-	}
-
-	return false
 }
 
 func checkMap(pSpec models.Property, prop value.Interface) bool {
