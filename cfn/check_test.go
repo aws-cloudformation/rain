@@ -74,7 +74,7 @@ func TestUnknownResourceType(t *testing.T) {
 		},
 	})
 
-	if !ok || out.Get("Resources", "Bucket", "Type").Comment() != "Unknown type 'SWA::3S::Tekcub'" {
+	if ok || out.Get("Resources", "Bucket", "Type").Comment() != "Unknown type 'SWA::3S::Tekcub'" {
 		t.Fail()
 	}
 }

@@ -87,7 +87,8 @@ func checkResources(resources *value.Map) bool {
 		rSpec, ok := spec.Cfn.ResourceTypes[typeName]
 		if !ok {
 			t.SetComment(fmt.Sprintf("Unknown type '%s'", typeName))
-			continue // Just a warning
+			outOk = false
+			continue
 		}
 
 		// Create empty properties if there aren't any
