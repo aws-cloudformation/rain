@@ -22,6 +22,8 @@ Alternatively, if you have [Go](https://golang.org) (v1.12 or higher) installed:
 
 `GO111MODULE=on go get github.com/aws-cloudformation/rain`
 
+You can find shell completion scripts in [docs/bash_completion.sh](./docs/bash_completion.sh) and [docs/zsh_completion.sh](./docs/zsh_completion.sh).
+
 ## License
 
 Rain is licensed under the Apache 2.0 License. 
