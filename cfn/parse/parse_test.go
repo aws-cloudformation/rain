@@ -15,6 +15,12 @@ var testFile = "test.yaml"
 var testTemplate string
 
 var expected, _ = parse.Map(map[string]interface{}{
+	"Parameters": map[string]interface{}{
+		"Number": map[string]interface{}{
+			"Type":    "Number",
+			"Default": float64(500000000),
+		},
+	},
 	"Resources": map[string]interface{}{
 		"Bucket1": map[string]interface{}{
 			"Type": "AWS::S3::Bucket",

@@ -242,6 +242,11 @@ func (p encoder) format() string {
 		}
 
 		return formatString(v)
+	case float64:
+		out := fmt.Sprintf("%f", v)
+		out = strings.TrimRight(out, "0")
+		out = strings.TrimRight(out, ".")
+		return out
 	default:
 		return fmt.Sprint(v)
 	}
