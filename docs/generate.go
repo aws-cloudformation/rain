@@ -65,4 +65,7 @@ func main() {
 	}
 
 	ioutil.WriteFile("../README.md", buf.Bytes(), 0644)
+
+	cmd.Root.GenBashCompletionFile("bash_completion.sh")
+	cmd.Root.GenZshCompletionFile("zsh_completion.sh")
 }
