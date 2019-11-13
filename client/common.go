@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/aws-cloudformation/rain/config"
+	"github.com/aws-cloudformation/rain/console"
 	"github.com/aws-cloudformation/rain/console/run"
 	"github.com/aws-cloudformation/rain/console/spinner"
 	"github.com/aws-cloudformation/rain/version"
@@ -20,6 +21,16 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/defaults"
 	"github.com/aws/aws-sdk-go-v2/aws/external"
 )
+
+func MFAProvider() (string, error) {
+	spinner.Pause()
+	defer func() {
+		fmt.Println()
+		spinner.Resume()
+	}()
+
+	return console.Ask("MFA Token:"), nil
+}
 
 var awsCfg *aws.Config
 
@@ -77,7 +88,9 @@ func loadConfig() aws.Config {
 	var cfg aws.Config
 	var err error
 
-	configs := make([]external.Config, 0)
+	configs := []external.Config{
+		external.WithMFATokenFunc(MFAProvider),
+	}
 
 	if config.Profile != "" {
 		configs = append(configs, external.WithSharedConfigProfile(config.Profile))

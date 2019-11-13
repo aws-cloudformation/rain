@@ -71,6 +71,14 @@ func Stop() {
 	console.ClearLine()
 }
 
+func Pause() {
+	spinRunning = false
+}
+
+func Resume() {
+	spinRunning = true
+}
+
 // Update redisplays the spinner. Use this if your programme has updated
 // the screen and may have interfered with the spinners display location.
 func Update() {
