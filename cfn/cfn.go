@@ -72,12 +72,15 @@ func (t Template) Graph() graph.Graph {
 
 				resource := res.(map[string]interface{})
 				for _, toName := range getRefs(resource) {
+					toName = strings.Split(toName, ".")[0]
+
 					toType, ok := entities[toName]
+
 					if !ok {
 						if strings.HasPrefix(toName, "AWS::") {
 							toType = "Parameters"
 						} else {
-							panic(fmt.Errorf("Template has unresolved dependency '%s' at %s: %s", toName, typeName, fromName))
+							panic(fmt.Sprintf("Template has unresolved dependency '%s' at %s: %s", toName, typeName, fromName))
 						}
 					}
 
