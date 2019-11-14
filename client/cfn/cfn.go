@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/aws-cloudformation/rain/client"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 )
 
@@ -135,7 +136,20 @@ func GetStackEvents(stackName string) ([]cloudformation.StackEvent, client.Error
 	return events, client.NewError(p.Err())
 }
 
-func CreateChangeSet(template string, params []cloudformation.Parameter, stackName string) (string, client.Error) {
+func makeTags(tags map[string]string) []cloudformation.Tag {
+	out := make([]cloudformation.Tag, 0)
+
+	for key, value := range tags {
+		out = append(out, cloudformation.Tag{
+			Key:   aws.String(key),
+			Value: aws.String(value),
+		})
+	}
+
+	return out
+}
+
+func CreateChangeSet(template string, params []cloudformation.Parameter, tags map[string]string, stackName string) (string, client.Error) {
 	changeSetType := "CREATE"
 
 	exists, err := StackExists(stackName)
@@ -154,6 +168,7 @@ func CreateChangeSet(template string, params []cloudformation.Parameter, stackNa
 		ChangeSetName: &changeSetName,
 		StackName:     &stackName,
 		TemplateBody:  &template,
+		Tags:          makeTags(tags),
 		Parameters:    params,
 		Capabilities: []cloudformation.Capability{
 			"CAPABILITY_NAMED_IAM",
@@ -205,52 +220,6 @@ func DeleteChangeSet(stackName, changeSetName string) client.Error {
 	_, err := req.Send(context.Background())
 
 	return client.NewError(err)
-}
-
-func createStack(template string, params []cloudformation.Parameter, stackName string) client.Error {
-	req := getClient().CreateStackRequest(&cloudformation.CreateStackInput{
-		Capabilities: []cloudformation.Capability{
-			"CAPABILITY_NAMED_IAM",
-			"CAPABILITY_AUTO_EXPAND",
-		},
-		OnFailure:    "ROLLBACK", // ROLLBACK or DELETE
-		StackName:    &stackName,
-		TemplateBody: &template,
-		Parameters:   params,
-	})
-
-	_, err := req.Send(context.Background())
-
-	return client.NewError(err)
-}
-
-func updateStack(template string, params []cloudformation.Parameter, stackName string) client.Error {
-	req := getClient().UpdateStackRequest(&cloudformation.UpdateStackInput{
-		Capabilities: []cloudformation.Capability{
-			"CAPABILITY_NAMED_IAM",
-			"CAPABILITY_AUTO_EXPAND",
-		},
-		StackName:    &stackName,
-		TemplateBody: &template,
-		Parameters:   params,
-	})
-
-	_, err := req.Send(context.Background())
-
-	return client.NewError(err)
-}
-
-func Deploy(template string, params []cloudformation.Parameter, stackName string) client.Error {
-	exists, err := StackExists(stackName)
-	if err != nil {
-		return err
-	}
-
-	if exists {
-		return updateStack(template, params, stackName)
-	}
-
-	return createStack(template, params, stackName)
 }
 
 func WaitUntilStackExists(stackName string) client.Error {

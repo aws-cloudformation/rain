@@ -21,6 +21,7 @@ import (
 )
 
 var force = false
+var tags []string
 
 func formatChangeSet(changes []cloudformation.Change) string {
 	out := strings.Builder{}
@@ -118,6 +119,25 @@ var deployCmd = &cobra.Command{
 		fn := args[0]
 		stackName := args[1]
 
+		// Parse tags
+		parsedTags := make(map[string]string, len(tags))
+		for _, tag := range tags {
+			parts := strings.SplitN(tag, "=", 2)
+
+			if len(parts) != 2 {
+				panic(fmt.Errorf("Unable to parse tag: %s", tag))
+			}
+
+			key := strings.TrimSpace(parts[0])
+			value := strings.TrimSpace(parts[1])
+
+			if _, ok := parsedTags[key]; ok {
+				panic(fmt.Errorf("Duplicate tag: %s", key))
+			}
+
+			parsedTags[key] = value
+		}
+
 		fmt.Printf("Deploying '%s' as '%s' in %s:\n", filepath.Base(fn), stackName, client.Config().Region)
 
 		fmt.Print("Preparing template... ")
@@ -214,7 +234,7 @@ var deployCmd = &cobra.Command{
 
 		// Create a change set
 		spinner.Status("Creating change set...")
-		changeSetName, err := cfn.CreateChangeSet(template, parameters, stackName)
+		changeSetName, err := cfn.CreateChangeSet(template, parameters, parsedTags, stackName)
 		if err != nil {
 			panic(fmt.Errorf("Error while creating changeset for '%s': %s", stackName, err))
 		}
@@ -264,5 +284,6 @@ var deployCmd = &cobra.Command{
 
 func init() {
 	deployCmd.Flags().BoolVarP(&force, "force", "f", false, "Don't ask questions; just deploy.")
+	deployCmd.Flags().StringSliceVar(&tags, "tags", []string{}, "Add tags to the stack. Use the format key1=value1,key2=value2.")
 	Root.AddCommand(deployCmd)
 }
