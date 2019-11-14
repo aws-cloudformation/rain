@@ -10,11 +10,11 @@ var orders = map[string][]string{
 	"Template": {
 		"AWSTemplateFormatVersion",
 		"Description",
-		"Metadata",
+		"Transform",
 		"Parameters",
+		"Metadata",
 		"Mappings",
 		"Conditions",
-		"Transform",
 		"Resources",
 		"Outputs",
 	},
