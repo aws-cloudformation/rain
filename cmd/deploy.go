@@ -16,12 +16,14 @@ import (
 	"github.com/aws-cloudformation/rain/console"
 	"github.com/aws-cloudformation/rain/console/spinner"
 	"github.com/aws-cloudformation/rain/console/text"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/spf13/cobra"
 )
 
 var force = false
 var tags []string
+var params []string
 
 func formatChangeSet(changes []cloudformation.Change) string {
 	out := strings.Builder{}
@@ -45,7 +47,7 @@ func formatChangeSet(changes []cloudformation.Change) string {
 	return out.String()
 }
 
-func getParameters(t string, old []cloudformation.Parameter, forceOldValue bool) []cloudformation.Parameter {
+func getParameters(t string, cliParams map[string]string, old []cloudformation.Parameter, forceOldValue bool) []cloudformation.Parameter {
 	newParams := make([]cloudformation.Parameter, 0)
 
 	template, err := parse.String(t)
@@ -59,54 +61,89 @@ func getParameters(t string, old []cloudformation.Parameter, forceOldValue bool)
 	}
 
 	if params, ok := template.Map()["Parameters"]; ok {
+		// Check we don't have any unknown params
+		for k, _ := range cliParams {
+			if _, ok := params.(map[string]interface{})[k]; !ok {
+				panic(fmt.Errorf("Unknown parameter: %s", k))
+			}
+		}
+
+		// Decide on a default value
 		for k, p := range params.(map[string]interface{}) {
 			// New variable so we don't mess up the pointers below
-			key := k
-
-			extra := ""
 			param := p.(map[string]interface{})
 
-			hasExisting := false
-
 			value := ""
+			usePrevious := false
 
-			if oldParam, ok := oldMap[key]; ok {
-				extra = fmt.Sprintf(" (existing value: %s)", fmt.Sprint(*oldParam.ParameterValue))
-				hasExisting = true
+			// Decide if we have an existing value
+			if cliParam, ok := cliParams[k]; ok {
+				value = cliParam
+			} else {
+				extra := ""
 
-				if forceOldValue {
-					value = *oldParam.ParameterValue
+				if oldParam, ok := oldMap[k]; ok {
+					extra = fmt.Sprintf(" (existing value: %s)", fmt.Sprint(*oldParam.ParameterValue))
+
+					if forceOldValue {
+						usePrevious = true
+					} else {
+						value = *oldParam.ParameterValue
+					}
+				} else if defaultValue, ok := param["Default"]; ok {
+					extra = fmt.Sprintf(" (default value: %s)", fmt.Sprint(defaultValue))
+					value = fmt.Sprint(defaultValue)
+				} else if force {
+					panic(fmt.Errorf("No default or existing value for parameter '%s'. Set a default, supply a --param flag, or deploy without the --force flag."))
 				}
-			} else if defaultValue, ok := param["Default"]; ok {
-				extra = fmt.Sprintf(" (default value: %s)", fmt.Sprint(defaultValue))
+
+				if !force {
+					newValue := console.Ask(fmt.Sprintf("Enter a value for parameter '%s'%s:", k, extra))
+					if newValue != "" {
+						value = newValue
+					}
+				}
 			}
 
-			if force {
-				panic(fmt.Errorf("Some parameters require values. Set defaults or deploy without the --force flag."))
-			}
-
-			newValue := console.Ask(fmt.Sprintf("Enter a value for parameter '%s'%s:", key, extra))
-
-			if newValue != "" {
+			if usePrevious {
 				newParams = append(newParams, cloudformation.Parameter{
-					ParameterKey:   &key,
-					ParameterValue: &newValue,
+					ParameterKey:     aws.String(k),
+					UsePreviousValue: aws.Bool(true),
 				})
-			} else if value != "" && forceOldValue {
+			} else if value != "" {
 				newParams = append(newParams, cloudformation.Parameter{
-					ParameterKey:   &key,
-					ParameterValue: &value,
+					ParameterKey:   aws.String(k),
+					ParameterValue: aws.String(value),
 				})
-			} else if hasExisting {
-				newParams = append(newParams, cloudformation.Parameter{
-					ParameterKey:     &key,
-					UsePreviousValue: &hasExisting,
-				})
+			} else {
+				panic(fmt.Errorf("Missing value for parameter: %s", k))
 			}
 		}
 	}
 
 	return newParams
+}
+
+func listToMap(name string, in []string) map[string]string {
+	out := make(map[string]string, len(in))
+	for _, v := range in {
+		parts := strings.SplitN(v, "=", 2)
+
+		if len(parts) != 2 {
+			panic(fmt.Errorf("Unable to parse %s: %s", name, v))
+		}
+
+		key := strings.TrimSpace(parts[0])
+		value := strings.TrimSpace(parts[1])
+
+		if _, ok := out[key]; ok {
+			panic(fmt.Errorf("Duplicate %s: %s", name, key))
+		}
+
+		out[key] = value
+	}
+
+	return out
 }
 
 var deployCmd = &cobra.Command{
@@ -120,23 +157,10 @@ var deployCmd = &cobra.Command{
 		stackName := args[1]
 
 		// Parse tags
-		parsedTags := make(map[string]string, len(tags))
-		for _, tag := range tags {
-			parts := strings.SplitN(tag, "=", 2)
+		parsedTags := listToMap("tag", tags)
 
-			if len(parts) != 2 {
-				panic(fmt.Errorf("Unable to parse tag: %s", tag))
-			}
-
-			key := strings.TrimSpace(parts[0])
-			value := strings.TrimSpace(parts[1])
-
-			if _, ok := parsedTags[key]; ok {
-				panic(fmt.Errorf("Duplicate tag: %s", key))
-			}
-
-			parsedTags[key] = value
-		}
+		// Parse params
+		parsedParams := listToMap("param", params)
 
 		fmt.Printf("Deploying '%s' as '%s' in %s:\n", filepath.Base(fn), stackName, client.Config().Region)
 
@@ -168,6 +192,7 @@ var deployCmd = &cobra.Command{
 		console.ClearLine()
 		fmt.Printf("Checking current status of stack '%s'... ", stackName)
 
+		// Used to copy parameters across from a stack that we delete and re-do
 		forceOldParams := false
 
 		// Find out if stack exists already
@@ -228,7 +253,7 @@ var deployCmd = &cobra.Command{
 		}
 		template := string(t)
 
-		parameters := getParameters(template, stack.Parameters, forceOldParams)
+		parameters := getParameters(template, parsedParams, stack.Parameters, forceOldParams)
 
 		config.Debugf("Parameters: %s", parameters)
 
@@ -285,5 +310,6 @@ var deployCmd = &cobra.Command{
 func init() {
 	deployCmd.Flags().BoolVarP(&force, "force", "f", false, "Don't ask questions; just deploy.")
 	deployCmd.Flags().StringSliceVar(&tags, "tags", []string{}, "Add tags to the stack. Use the format key1=value1,key2=value2.")
+	deployCmd.Flags().StringSliceVar(&params, "params", []string{}, "Set parameter values. Use the format key1=value1,key2=value2.")
 	Root.AddCommand(deployCmd)
 }
