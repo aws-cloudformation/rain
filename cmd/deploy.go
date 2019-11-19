@@ -234,14 +234,11 @@ var deployCmd = &cobra.Command{
 
 				d := oldTemplate.Diff(newTemplate)
 
-				if d.Mode() == diff.Unchanged {
-					fmt.Println(text.Green("No changes to deploy!"))
-					return
-				}
-
-				console.ClearLine()
-				if console.Confirm(true, fmt.Sprintf("Stack '%s' exists. Do you wish to compare the CloudFormation templates?", stackName)) {
-					fmt.Print(colouriseDiff(d, false))
+				if d.Mode() != diff.Unchanged {
+					console.ClearLine()
+					if console.Confirm(true, fmt.Sprintf("Stack '%s' exists. Do you wish to compare the CloudFormation templates?", stackName)) {
+						fmt.Print(colouriseDiff(d, false))
+					}
 				}
 			}
 		}
