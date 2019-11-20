@@ -75,7 +75,7 @@ func Confirm(defaultYes bool, prompt string) bool {
 
 	answer := Ask(prompt + extra)
 
-	if answer == "Y" || (defaultYes && answer == "") {
+	if strings.ToUpper(answer) == "Y" || (defaultYes && answer == "") {
 		return true
 	}
 
