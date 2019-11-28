@@ -67,6 +67,7 @@ func getParameters(t string, old []cloudformation.Parameter, forceOldValue bool)
 			param := p.(map[string]interface{})
 
 			hasExisting := false
+			hasDefault := false
 
 			value := ""
 
@@ -79,13 +80,19 @@ func getParameters(t string, old []cloudformation.Parameter, forceOldValue bool)
 				}
 			} else if defaultValue, ok := param["Default"]; ok {
 				extra = fmt.Sprintf(" (default value: %s)", fmt.Sprint(defaultValue))
+				hasDefault = true
 			}
+
+			newValue := ""
 
 			if force {
-				panic(fmt.Errorf("Some parameters require values. Set defaults or deploy without the --force flag."))
+				if !hasExisting && !hasDefault {
+					panic(fmt.Errorf("Some parameters require values. Set defaults or deploy without the --force flag."))
+				}
+			} else {
+				// Prompt for the parameter value from the user
+				newValue = console.Ask(fmt.Sprintf("Enter a value for parameter '%s'%s:", key, extra))
 			}
-
-			newValue := console.Ask(fmt.Sprintf("Enter a value for parameter '%s'%s:", key, extra))
 
 			if newValue != "" {
 				newParams = append(newParams, cloudformation.Parameter{
