@@ -288,28 +288,31 @@ If you don't specify a stack name, rain will use the template filename minus its
 		}
 		spinner.Stop()
 
-		fmt.Println("CloudFormation will make the following changes:")
-		fmt.Println(formatChangeSet(changes))
+		if !force {
+			fmt.Println("CloudFormation will make the following changes:")
+			fmt.Println(formatChangeSet(changes))
 
-		if !force && !console.Confirm(true, "Do you wish to continue?") {
-			err = cfn.DeleteChangeSet(stackName, changeSetName)
-			if err != nil {
-				panic(fmt.Errorf("Error while deleting changeset '%s': %s", changeSetName, err))
-			}
-
-			if !stackExists {
-				err = cfn.DeleteStack(stackName)
+			if !console.Confirm(true, "Do you wish to continue?") {
+				err = cfn.DeleteChangeSet(stackName, changeSetName)
 				if err != nil {
-					panic(fmt.Errorf("Error deleting empty stack '%s': %s", stackName, err))
+					panic(fmt.Errorf("Error while deleting changeset '%s': %s", changeSetName, err))
 				}
-			}
 
-			panic(errors.New("User cancelled deployment."))
-		} else {
-			err = cfn.ExecuteChangeSet(stackName, changeSetName)
-			if err != nil {
-				panic(fmt.Errorf("Error while executing changeset '%s': %s", changeSetName, err))
+				if !stackExists {
+					err = cfn.DeleteStack(stackName)
+					if err != nil {
+						panic(fmt.Errorf("Error deleting empty stack '%s': %s", stackName, err))
+					}
+				}
+
+				panic(errors.New("User cancelled deployment."))
 			}
+		}
+
+		// Deploy!
+		err = cfn.ExecuteChangeSet(stackName, changeSetName)
+		if err != nil {
+			panic(fmt.Errorf("Error while executing changeset '%s': %s", changeSetName, err))
 		}
 
 		status := waitForStackToSettle(stackName)
