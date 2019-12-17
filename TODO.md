@@ -1,6 +1,10 @@
 # To do
 
 * `deploy`
+    * Add global Include feature - with warning
+    * If there is a template issue, changeset creation fails but rain doesn't show the failure reason
+    * Ask for stack name if none supplied (default to template file name minus extension)
+    * Only show changing resources
     * Ensure update count reflects everything that has changed
     * Detect whether a deployment requires capabilities rather than automatically applying them
     * Allow deploying over a stack that's REVIEW_IN_PROGRESS by killing the changeset?
