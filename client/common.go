@@ -1,25 +1,21 @@
-//go:generate bash generate/generate.sh
 package client
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
-	"path/filepath"
 	"runtime"
-	"strings"
 
 	"github.com/aws-cloudformation/rain/config"
 	"github.com/aws-cloudformation/rain/console"
-	"github.com/aws-cloudformation/rain/console/run"
 	"github.com/aws-cloudformation/rain/console/spinner"
 	"github.com/aws-cloudformation/rain/version"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/aws/defaults"
 	"github.com/aws/aws-sdk-go-v2/aws/external"
+	"github.com/spf13/viper"
 )
 
 func MFAProvider() (string, error) {
@@ -34,118 +30,87 @@ func MFAProvider() (string, error) {
 
 var awsCfg *aws.Config
 
-var defaultPython = []string{"/usr/bin/env", "python"}
-
-func findAws() string {
-	path := os.Getenv("PATH")
-
-	for _, dir := range strings.Split(path, ":") {
-		bins, err := filepath.Glob(dir + "/aws")
-		if err != nil {
-			panic(err)
-		}
-
-		if len(bins) == 1 {
-			return bins[0]
-		}
-	}
-
-	return ""
-}
-
-func getAwsPython() []string {
-	aws := findAws()
-
-	if aws == "" {
-		return defaultPython
-	}
-
-	script, err := ioutil.ReadFile(aws)
+func tryConfig(configs external.Configs, resolvers []external.AWSConfigResolver) (aws.Config, bool) {
+	cfg, err := configs.ResolveAWSConfig(resolvers)
 	if err != nil {
-		config.Debugf("Couldn't load aws script: %s", err)
-		return defaultPython
+		config.Debugf("Credentials failed: %s", err)
+		return cfg, false
+	} else if _, err = cfg.Credentials.Retrieve(); err != nil {
+		config.Debugf("Invalid credentials: %s", err)
+		return cfg, false
 	}
 
-	parts := strings.Split(string(script), "\n")
-
-	if strings.HasPrefix(parts[0], "#!") {
-		return strings.Split(parts[0][2:], " ")
-	}
-
-	return defaultPython
-}
-
-func checkConfig(cfg aws.Config) bool {
-	_, err := cfg.Credentials.Retrieve()
-	if err != nil {
-		return false
-	}
-
-	return true
+	return cfg, true
 }
 
 func loadConfig() aws.Config {
 	var cfg aws.Config
 	var err error
+	var ok bool
 
-	configs := []external.Config{
-		external.WithMFATokenFunc(MFAProvider),
+	// Minimal resolvers
+	var resolvers = []external.AWSConfigResolver{
+		external.ResolveDefaultAWSConfig,
+		external.ResolveCustomCABundle,
+		external.ResolveRegion,
+		external.ResolveFallbackEC2Credentials, // Initial defauilt credentails provider.
+		external.ResolveEndpointCredentials,
+		external.ResolveContainerEndpointPathCredentials, // TODO is this order right?
 	}
 
+	// Minimal configs
+	var configs external.Configs = []external.Config{}
 	if config.Profile != "" {
 		configs = append(configs, external.WithSharedConfigProfile(config.Profile))
+	} else if os.Getenv("AWS_PROFILE") != "" {
+		config.Profile = os.Getenv("AWS_PROFILE")
+	}
+	if config.Region != "" {
+		configs = append(configs, external.WithRegion(config.Region))
+	}
+	configs, err = configs.AppendFromLoaders(external.DefaultConfigLoaders)
+	if err != nil {
+		panic(err)
 	}
 
-	// Try to load just from the config
-	cfg, err = external.LoadDefaultAWSConfig(configs...)
-	if err != nil {
-		config.Debugf("Couldn't load default config: %s", err)
-	} else if checkConfig(cfg) {
-		config.Debugf("Loaded credentials from default config")
+	// Try loading cached credentials
+	if viper.IsSet("credentials") {
+		config.Debugf("Found cached credentials...")
+
+		if viper.GetString("profile") != config.Profile {
+			config.Debugf("...but they don't match the requested profile")
+		} else {
+			var creds aws.Credentials
+
+			if json.Unmarshal([]byte(viper.GetString("credentials")), &creds) != nil {
+				config.Debugf("...but I couldn't load them: %s", err)
+			} else {
+				if creds.Expired() {
+					config.Debugf("...but they've expired")
+				} else {
+					configs = append(configs, external.WithCredentialsValue(creds))
+
+					resolvers = append(resolvers, external.ResolveCredentialsValue)
+
+					if cfg, ok = tryConfig(configs, resolvers); ok {
+						config.Debugf("...and they've valid :)")
+						return cfg
+					}
+				}
+			}
+		}
+	}
+
+	configs = append(configs, external.WithMFATokenFunc(MFAProvider))
+	resolvers = append(resolvers, external.ResolveAssumeRoleCredentials)
+
+	config.Debugf("Trying default configs...")
+	if cfg, ok = tryConfig(configs, resolvers); ok {
+		config.Debugf("...and they're valid")
 		return cfg
 	}
 
-	// OK, let's try to load from dump_creds...
-	args := getAwsPython()
-	config.Debugf("AWS python: %s", args)
-	first := args[0]
-	args = args[1:]
-	args = append(args, "-c", credDumperPython)
-	output, err := run.Capture(first, args...)
-	config.Debugf("Cred dumper output: %s", output)
-	if err != nil {
-		config.Debugf("Couldn't run cred dumper: %s", err)
-		panic(fmt.Errorf("Unable to load AWS config"))
-	}
-
-	// This feels more horrible the further we get down...
-	var vars map[string]interface{}
-	err = json.Unmarshal([]byte(output), &vars)
-	if err != nil {
-		config.Debugf("Couldn't parse cred dumper output: %s", err)
-		panic(fmt.Errorf("Unable to load AWS config"))
-	}
-
-	// But feel free to come up with a better mechanism...
-	for key, value := range vars {
-		// For dealing with how the aws cli loads plugins
-		os.Setenv(key, fmt.Sprint(value))
-	}
-
-	// Load from the new environment variables
-	cfg, err = external.LoadDefaultAWSConfig()
-	if err != nil {
-		config.Debugf("Couldn't use cred dumper output: %s", err)
-		panic(fmt.Errorf("Unable to load AWS config"))
-	}
-
-	if !checkConfig(cfg) {
-		config.Debugf("Unusable creds from cred dumper: %s", err)
-		panic(fmt.Errorf("Unable to load AWS config"))
-	}
-
-	config.Debugf("Loaded credentials from cred dumper")
-	return cfg
+	panic("Unable to find valid credentials")
 }
 
 func Config() aws.Config {
@@ -153,6 +118,17 @@ func Config() aws.Config {
 		spinner.Status("Loading AWS config...")
 
 		cfg := loadConfig()
+
+		// Save the creds
+		creds, _ := cfg.Credentials.Retrieve()
+		j, err := json.Marshal(creds)
+		if err != nil {
+			config.Debugf("Unable to save credentials: %s", err)
+		} else {
+			viper.Set("credentials", string(j))
+			viper.Set("profile", config.Profile)
+			viper.WriteConfig()
+		}
 
 		// Set the user agent
 		cfg.Handlers.Build.Remove(defaults.SDKVersionUserAgentHandler)
@@ -163,10 +139,6 @@ func Config() aws.Config {
 			fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
 			fmt.Sprintf("%s/%s", aws.SDKName, aws.SDKVersion),
 		))
-
-		if config.Region != "" {
-			cfg.Region = config.Region
-		}
 
 		// For debugging
 		// cfg.EndpointResolver = aws.ResolveWithEndpointURL("http://localhost:8000")
