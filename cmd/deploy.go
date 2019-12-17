@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cfn/diff"
@@ -24,6 +26,10 @@ import (
 var force = false
 var tags []string
 var params []string
+
+var fixStackNameRe *regexp.Regexp
+
+const maxStackNameLength = 128
 
 func formatChangeSet(changes []cloudformation.Change) string {
 	out := strings.Builder{}
@@ -147,14 +153,30 @@ func listToMap(name string, in []string) map[string]string {
 }
 
 var deployCmd = &cobra.Command{
-	Use:                   "deploy <template> <stack>",
-	Short:                 "Deploy a CloudFormation stack from a local template",
-	Long:                  "Creates or updates a CloudFormation stack named <stack> from the template file <template>.",
-	Args:                  cobra.ExactArgs(2),
+	Use:   "deploy <template> [stack]",
+	Short: "Deploy a CloudFormation stack from a local template",
+	Long: `Creates or updates a CloudFormation stack named <stack> from the template file <template>.
+If you don't specify a stack name, rain will use the template filename minus its extension.`,
+	Args:                  cobra.RangeArgs(1, 2),
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		fn := args[0]
-		stackName := args[1]
+
+		var stackName string
+
+		if len(args) == 2 {
+			stackName = args[1]
+		} else {
+			base := path.Base(fn)
+			stackName = base[:len(base)-len(path.Ext(base))]
+
+			// Now ensure it's a valid cfn name
+			stackName = fixStackNameRe.ReplaceAllString(stackName, "-")
+
+			if len(stackName) > maxStackNameLength {
+				stackName = stackName[:maxStackNameLength]
+			}
+		}
 
 		// Parse tags
 		parsedTags := listToMap("tag", tags)
@@ -305,6 +327,8 @@ var deployCmd = &cobra.Command{
 }
 
 func init() {
+	fixStackNameRe = regexp.MustCompile(`[^a-zA-Z0-9]+`)
+
 	deployCmd.Flags().BoolVarP(&force, "force", "f", false, "Don't ask questions; just deploy.")
 	deployCmd.Flags().StringSliceVar(&tags, "tags", []string{}, "Add tags to the stack. Use the format key1=value1,key2=value2.")
 	deployCmd.Flags().StringSliceVar(&params, "params", []string{}, "Set parameter values. Use the format key1=value1,key2=value2.")
