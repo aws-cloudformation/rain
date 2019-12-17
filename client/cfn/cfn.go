@@ -186,6 +186,10 @@ func CreateChangeSet(template string, params []cloudformation.Parameter, tags ma
 		StackName:     &stackName,
 	})
 
+	if err != nil {
+		panic(err)
+	}
+
 	return changeSetName, client.NewError(err)
 }
 
