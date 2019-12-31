@@ -322,6 +322,7 @@ If you don't specify a stack name, rain will use the template filename minus its
 		} else if status == "UPDATE_COMPLETE" {
 			fmt.Println(text.Green("Successfully updated " + stackName))
 		} else {
+			logsCmd.Run(Root, []string{stackName})
 			panic(errors.New("Failed deployment: " + stackName))
 		}
 
