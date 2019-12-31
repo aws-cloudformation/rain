@@ -31,10 +31,12 @@ var fixStackNameRe *regexp.Regexp
 
 const maxStackNameLength = 128
 
-func formatChangeSet(changes []cloudformation.Change) string {
+func formatChangeSet(status *cloudformation.DescribeChangeSetResponse) string {
 	out := strings.Builder{}
 
-	for _, change := range changes {
+	out.WriteString(fmt.Sprintf("Stack \"%s\": %s\n", aws.StringValue(status.StackName), aws.StringValue(status.StatusReason)))
+
+	for _, change := range status.Changes {
 		line := fmt.Sprintf("%s %s\n",
 			*change.ResourceChange.ResourceType,
 			*change.ResourceChange.LogicalResourceId,
@@ -278,19 +280,17 @@ If you don't specify a stack name, rain will use the template filename minus its
 
 		// Create a change set
 		spinner.Status("Creating change set...")
-		changeSetName, err := cfn.CreateChangeSet(template, parameters, parsedTags, stackName)
-		if err != nil {
-			panic(fmt.Errorf("Error while creating changeset for '%s': %s", stackName, err))
-		}
-		changes, err := cfn.GetChangeSet(stackName, changeSetName)
-		if err != nil {
-			panic(fmt.Errorf("Error while retrieving changeset '%s': %s", changeSetName, err))
-		}
+		changeSetName, createErr := cfn.CreateChangeSet(template, parameters, parsedTags, stackName)
+		changeSetStatus, err := cfn.GetChangeSet(stackName, changeSetName)
 		spinner.Stop()
+
+		if createErr != nil || err != nil {
+			panic(formatChangeSet(changeSetStatus))
+		}
 
 		if !force {
 			fmt.Println("CloudFormation will make the following changes:")
-			fmt.Println(formatChangeSet(changes))
+			fmt.Println(formatChangeSet(changeSetStatus))
 
 			if !console.Confirm(true, "Do you wish to continue?") {
 				err = cfn.DeleteChangeSet(stackName, changeSetName)

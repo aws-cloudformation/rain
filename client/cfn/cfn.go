@@ -185,15 +185,14 @@ func CreateChangeSet(template string, params []cloudformation.Parameter, tags ma
 		ChangeSetName: &changeSetName,
 		StackName:     &stackName,
 	})
-
 	if err != nil {
-		panic(err)
+		return changeSetName, err
 	}
 
 	return changeSetName, client.NewError(err)
 }
 
-func GetChangeSet(stackName, changeSetName string) ([]cloudformation.Change, client.Error) {
+func GetChangeSet(stackName, changeSetName string) (*cloudformation.DescribeChangeSetResponse, client.Error) {
 	req := getClient().DescribeChangeSetRequest(&cloudformation.DescribeChangeSetInput{
 		ChangeSetName: &changeSetName,
 		StackName:     &stackName,
@@ -201,7 +200,7 @@ func GetChangeSet(stackName, changeSetName string) ([]cloudformation.Change, cli
 
 	res, err := req.Send(context.Background())
 
-	return res.Changes, client.NewError(err)
+	return res, client.NewError(err)
 }
 
 func ExecuteChangeSet(stackName, changeSetName string) client.Error {

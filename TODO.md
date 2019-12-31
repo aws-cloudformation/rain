@@ -2,7 +2,6 @@
 
 * `deploy`
     * Add global Include feature - with warning
-    * If there is a template issue, changeset creation fails but rain doesn't show the failure reason
     * Ask for stack name if none supplied (default to template file name minus extension)
     * Only show changing resources
     * Ensure update count reflects everything that has changed
