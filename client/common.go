@@ -54,8 +54,10 @@ func loadConfig() aws.Config {
 		external.ResolveCustomCABundle,
 		external.ResolveRegion,
 		external.ResolveFallbackEC2Credentials, // Initial defauilt credentails provider.
+		external.ResolveCredentialsValue,
 		external.ResolveEndpointCredentials,
 		external.ResolveContainerEndpointPathCredentials, // TODO is this order right?
+		external.ResolveAssumeRoleCredentials,
 	}
 
 	// Minimal configs
