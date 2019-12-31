@@ -61,15 +61,8 @@ func getStackOutput(stack cloudformation.Stack, onlyChanging bool) string {
 
 	if len(resources) > 0 {
 		out.WriteString("  Resources:\n")
-		for _, resource := range resources {
-			if onlyChanging && resourceHasSettled(resource) {
-				// Short output
-				out.WriteString(fmt.Sprintf("    %s: %s  # %s\n",
-					*resource.LogicalResourceId,
-					text.Yellow(*resource.ResourceType),
-					colouriseStatus(string(resource.ResourceStatus)),
-				))
-			} else {
+		if !onlyChanging {
+			for _, resource := range resources {
 				// Long output
 				out.WriteString(fmt.Sprintf("    %s:  # %s\n", *resource.LogicalResourceId, colouriseStatus(string(resource.ResourceStatus))))
 				out.WriteString(fmt.Sprintf("      Type: %s\n", text.Yellow(*resource.ResourceType)))
@@ -79,6 +72,34 @@ func getStackOutput(stack cloudformation.Stack, onlyChanging bool) string {
 				if resource.ResourceStatusReason != nil {
 					out.WriteString(fmt.Sprintf("      Message: %s\n", text.Yellow(*resource.ResourceStatusReason)))
 				}
+			}
+		} else {
+			completed := make([]string, 0)
+			updating := strings.Builder{}
+
+			for _, resource := range resources {
+				if resourceHasSettled(resource) {
+					completed = append(completed, *resource.LogicalResourceId)
+				} else {
+					// Short output
+					updating.WriteString(fmt.Sprintf("      %s: %s  # %s\n",
+						*resource.LogicalResourceId,
+						text.Yellow(*resource.ResourceType),
+						colouriseStatus(string(resource.ResourceStatus)),
+					))
+				}
+			}
+
+			if len(completed) > 0 {
+				out.WriteString(fmt.Sprintf("    Complete: %s\n",
+					text.Green(strings.Join(completed, " ")),
+				))
+			}
+
+			if len(updating.String()) > 0 {
+				out.WriteString(fmt.Sprintf("    Changing:\n%s\n",
+					updating.String(),
+				))
 			}
 		}
 	}

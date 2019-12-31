@@ -317,6 +317,9 @@ If you don't specify a stack name, rain will use the template filename minus its
 
 		status := waitForStackToSettle(stackName)
 
+		stack, _ = cfn.GetStack(stackName)
+		console.Clear(getStackOutput(stack, false))
+
 		if status == "CREATE_COMPLETE" {
 			fmt.Println(text.Green("Successfully deployed " + stackName))
 		} else if status == "UPDATE_COMPLETE" {

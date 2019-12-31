@@ -2,7 +2,6 @@
 
 * `deploy`
     * Add global Include feature - with warning
-    * Only show changing resources
     * Ensure update count reflects everything that has changed
     * Detect whether a deployment requires capabilities rather than automatically applying them
     * Allow deploying over a stack that's REVIEW_IN_PROGRESS by killing the changeset?
