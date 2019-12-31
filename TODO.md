@@ -9,14 +9,6 @@
     * Show details from nested stacks while deploying
     * Handle deploying from a template URL
 
-* `rm`
-    * List stack contents and ask for confirmation
-    * Add `--force` flag
-    * Detect `y` as `Y`
-
-* `ls`
-    * Display in yaml(ish) format
-
 ## Other ideas
 
 * Multiple deployments. Use a rain.yaml to specify multiple stacks in multiple regions/accounts.
