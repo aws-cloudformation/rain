@@ -1,5 +1,7 @@
 # To do
 
+* If a token expires during an operation (for example watching a stack), rain should refresh it rather than die
+
 * `deploy`
     * Add global Include feature - with warning
     * Ensure update count reflects everything that has changed
