@@ -23,9 +23,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var force = false
-var tags []string
+var detachDeploy bool
+var forceDeploy bool
 var params []string
+var tags []string
 
 var fixStackNameRe *regexp.Regexp
 
@@ -101,11 +102,11 @@ func getParameters(t string, cliParams map[string]string, old []cloudformation.P
 				} else if defaultValue, ok := param["Default"]; ok {
 					extra = fmt.Sprintf(" (default value: %s)", fmt.Sprint(defaultValue))
 					value = fmt.Sprint(defaultValue)
-				} else if force {
-					panic(fmt.Errorf("No default or existing value for parameter '%s'. Set a default, supply a --param flag, or deploy without the --force flag."))
+				} else if forceDeploy {
+					panic(fmt.Errorf("No default or existing value for parameter '%s'. Set a default, supply a --param flag, or deploy without the --force flag.", k))
 				}
 
-				if !force {
+				if !forceDeploy {
 					newValue := console.Ask(fmt.Sprintf("Enter a value for parameter '%s'%s:", k, extra))
 					if newValue != "" {
 						value = newValue
@@ -245,7 +246,7 @@ If you don't specify a stack name, rain will use the template filename minus its
 			} else if !strings.HasSuffix(string(stack.StackStatus), "_COMPLETE") {
 				// Can't update
 				panic(fmt.Errorf("Stack '%s' could not be updated: %s", stackName, colouriseStatus(string(stack.StackStatus))))
-			} else if !force {
+			} else if !forceDeploy {
 				// Can update, grab a diff
 
 				oldTemplateString, err := cfn.GetStackTemplate(stackName, false)
@@ -288,7 +289,7 @@ If you don't specify a stack name, rain will use the template filename minus its
 			panic(formatChangeSet(changeSetStatus))
 		}
 
-		if !force {
+		if !forceDeploy {
 			fmt.Println("CloudFormation will make the following changes:")
 			fmt.Println(formatChangeSet(changeSetStatus))
 
@@ -315,18 +316,22 @@ If you don't specify a stack name, rain will use the template filename minus its
 			panic(fmt.Errorf("Error while executing changeset '%s': %s", changeSetName, err))
 		}
 
-		status := waitForStackToSettle(stackName)
-
-		stack, _ = cfn.GetStack(stackName)
-		console.Clear(getStackOutput(stack, false))
-
-		if status == "CREATE_COMPLETE" {
-			fmt.Println(text.Green("Successfully deployed " + stackName))
-		} else if status == "UPDATE_COMPLETE" {
-			fmt.Println(text.Green("Successfully updated " + stackName))
+		if detachDeploy {
+			fmt.Printf("Detaching. You can check your stack's status with: rain watch %s\n", stackName)
 		} else {
-			logsCmd.Run(Root, []string{stackName})
-			panic(errors.New("Failed deployment: " + stackName))
+			status := waitForStackToSettle(stackName)
+
+			stack, _ = cfn.GetStack(stackName)
+			console.Clear(getStackOutput(stack, false))
+
+			if status == "CREATE_COMPLETE" {
+				fmt.Println(text.Green("Successfully deployed " + stackName))
+			} else if status == "UPDATE_COMPLETE" {
+				fmt.Println(text.Green("Successfully updated " + stackName))
+			} else {
+				logsCmd.Run(Root, []string{stackName})
+				panic(errors.New("Failed deployment: " + stackName))
+			}
 		}
 
 		fmt.Println()
@@ -336,7 +341,8 @@ If you don't specify a stack name, rain will use the template filename minus its
 func init() {
 	fixStackNameRe = regexp.MustCompile(`[^a-zA-Z0-9]+`)
 
-	deployCmd.Flags().BoolVarP(&force, "force", "f", false, "Don't ask questions; just deploy.")
+	deployCmd.Flags().BoolVarP(&detachDeploy, "detach", "d", false, "Once deployment has started, don't wait around for it to finish.")
+	deployCmd.Flags().BoolVarP(&forceDeploy, "force", "f", false, "Don't ask questions; just deploy.")
 	deployCmd.Flags().StringSliceVar(&tags, "tags", []string{}, "Add tags to the stack. Use the format key1=value1,key2=value2.")
 	deployCmd.Flags().StringSliceVar(&params, "params", []string{}, "Set parameter values. Use the format key1=value1,key2=value2.")
 	Root.AddCommand(deployCmd)
