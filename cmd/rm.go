@@ -30,6 +30,17 @@ var rmCmd = &cobra.Command{
 			panic(fmt.Errorf("Unable to delete stack '%s': %s", stackName, err))
 		}
 
+		if *stack.EnableTerminationProtection {
+			if forceRm || console.Confirm(false, "This stack has termination protection enabled. Do you wish to disable it?") {
+				spinner.Status("Disabling termination protection...")
+				if err := cfn.SetTerminationProtection(stackName, false); err != nil {
+					panic(fmt.Errorf("Unable to set termination protection of stack '%s': %s", stackName, err))
+				}
+			} else {
+				panic(fmt.Errorf("User cancelled deletion of stack '%s'", stackName))
+			}
+		}
+
 		if !forceRm {
 			output := getStackOutput(stack, false)
 			spinner.Stop()

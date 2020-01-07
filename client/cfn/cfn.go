@@ -93,6 +93,22 @@ func DeleteStack(stackName string) client.Error {
 	return client.NewError(err)
 }
 
+func SetTerminationProtection(stackName string, protectionEnabled bool) client.Error {
+	// Set termination protection
+	req := getClient().UpdateTerminationProtectionRequest(&cloudformation.UpdateTerminationProtectionInput{
+		StackName:                   &stackName,
+		EnableTerminationProtection: aws.Bool(protectionEnabled),
+	})
+
+	_, err := req.Send(context.Background())
+
+	if err != nil {
+		return client.NewError(err)
+	}
+
+	return nil
+}
+
 func GetStack(stackName string) (cloudformation.Stack, client.Error) {
 	// Get the stack properties
 	req := getClient().DescribeStacksRequest(&cloudformation.DescribeStacksInput{
