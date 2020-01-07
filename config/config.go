@@ -40,7 +40,7 @@ func init() {
 		} else {
 			Debugf("Creating new config file")
 
-			err = os.Mkdir(path.Join(home, configDir), 0755)
+			err = os.Mkdir(path.Join(home, configDir), 0700)
 			if err != nil && !os.IsExist(err) {
 				panic(fmt.Errorf("Failed to create config directory: %s", err.Error()))
 			}
@@ -49,7 +49,7 @@ func init() {
 			if err != nil {
 				panic(fmt.Errorf("Failed to create config file: %s", err.Error()))
 			}
-			f.Chmod(0644)
+			f.Chmod(0600)
 			f.Close()
 
 			err = viper.WriteConfig()
