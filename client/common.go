@@ -61,15 +61,20 @@ func loadConfig() aws.Config {
 	}
 
 	// Minimal configs
-	var configs external.Configs = []external.Config{}
+	var configs external.Configs = []external.Config{
+		external.WithMFATokenFunc(MFAProvider),
+	}
+
 	if config.Profile != "" {
 		configs = append(configs, external.WithSharedConfigProfile(config.Profile))
 	} else if os.Getenv("AWS_PROFILE") != "" {
 		config.Profile = os.Getenv("AWS_PROFILE")
 	}
+
 	if config.Region != "" {
 		configs = append(configs, external.WithRegion(config.Region))
 	}
+
 	configs, err = configs.AppendFromLoaders(external.DefaultConfigLoaders)
 	if err != nil {
 		panic(err)
@@ -102,9 +107,6 @@ func loadConfig() aws.Config {
 			}
 		}
 	}
-
-	configs = append(configs, external.WithMFATokenFunc(MFAProvider))
-	resolvers = append(resolvers, external.ResolveAssumeRoleCredentials)
 
 	config.Debugf("Trying default configs...")
 	if cfg, ok = tryConfig(configs, resolvers); ok {
