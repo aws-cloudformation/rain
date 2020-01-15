@@ -2,6 +2,10 @@
 
 * If a token expires during an operation (for example watching a stack), rain should refresh it rather than die
 
+* Diff formatting does not handle multi-line strings very well
+
+* When watching a stack, show seconds since beginning of operation, not seconds since beginning of launching the `watch` command
+
 * `deploy`
     * Add global Include feature - with warning
     * Ensure update count reflects everything that has changed
