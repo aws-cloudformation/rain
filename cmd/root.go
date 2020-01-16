@@ -1,10 +1,13 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/config"
+	"github.com/aws-cloudformation/rain/version"
 	"github.com/spf13/cobra"
 )
 
@@ -26,7 +29,7 @@ type Command struct {
 var Root = &cobra.Command{
 	Use:     "rain",
 	Long:    "Rain is a development workflow tool for working with AWS CloudFormation.",
-	Version: "v0.7.2",
+	Version: version.VERSION,
 }
 
 const rootUsageTemplate = `Usage: {{.UseLine}} [command]
@@ -48,6 +51,7 @@ func init() {
 	Root.PersistentFlags().StringVarP(&config.Profile, "profile", "p", "", "AWS profile name; read from the AWS CLI configuration file")
 	Root.PersistentFlags().StringVarP(&config.Region, "region", "r", "", "AWS region to use")
 
+	// Customise usage
 	Root.Annotations = map[string]string{"Groups": strings.Join(groups, "|")}
 
 	cobra.AddTemplateFunc("groups", func() []string {
@@ -55,6 +59,13 @@ func init() {
 	})
 
 	Root.SetUsageTemplate(rootUsageTemplate)
+
+	// Customise version string
+	Root.SetVersionTemplate(fmt.Sprintf("%s {{.Version}} %s/%s\n",
+		version.NAME,
+		runtime.GOOS,
+		runtime.GOARCH,
+	))
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

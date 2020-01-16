@@ -1,5 +1,6 @@
-//go:generate bash generate.sh
 package version
 
-const NAME = "Rain"
-const VERSION = "v0.7.2"
+const (
+	NAME    = "Rain"
+	VERSION = "v0.7.2"
+)
