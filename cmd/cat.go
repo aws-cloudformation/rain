@@ -18,6 +18,7 @@ var catCmd = &cobra.Command{
 	Short:                 "Get the CloudFormation template from a running stack",
 	Long:                  "Downloads the template used to deploy <stack> and prints it to stdout.",
 	Args:                  cobra.ExactArgs(1),
+	Annotations:           map[string]string{"Group": stackGroup},
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		stackName := args[0]

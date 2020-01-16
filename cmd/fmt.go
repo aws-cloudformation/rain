@@ -20,6 +20,7 @@ var fmtCmd = &cobra.Command{
 	Short:                 "Format CloudFormation templates",
 	Long:                  "Reads the named template and outputs a nicely formatted copy.",
 	Args:                  cobra.ExactArgs(1),
+	Annotations:           map[string]string{"Group": templateGroup},
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Read the template

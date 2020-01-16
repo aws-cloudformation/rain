@@ -14,6 +14,7 @@ var checkCmd = &cobra.Command{
 	Short:                 "Validate a CloudFormation template against the spec",
 	Long:                  "Reads the specified CloudFormation template and validates it against the current CloudFormation specification.",
 	Args:                  cobra.ExactArgs(1),
+	Annotations:           map[string]string{"Group": templateGroup},
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		fn := args[0]

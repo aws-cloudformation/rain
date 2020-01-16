@@ -14,6 +14,7 @@ var diffCmd = &cobra.Command{
 	Short:                 "Compare CloudFormation templates",
 	Long:                  "Outputs a summary of the changes necessary to transform the CloudFormation template named <from> into the template named <to>.",
 	Args:                  cobra.ExactArgs(2),
+	Annotations:           map[string]string{"Group": templateGroup},
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		leftFn, rightFn := args[0], args[1]

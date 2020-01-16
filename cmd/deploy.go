@@ -161,6 +161,7 @@ var deployCmd = &cobra.Command{
 	Long: `Creates or updates a CloudFormation stack named <stack> from the template file <template>.
 If you don't specify a stack name, rain will use the template filename minus its extension.`,
 	Args:                  cobra.RangeArgs(1, 2),
+	Annotations:           map[string]string{"Group": stackGroup},
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		fn := args[0]

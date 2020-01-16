@@ -21,6 +21,7 @@ var lsCmd = &cobra.Command{
 	Long:                  "Displays a list of all running stacks or the contents of <stack> if provided.",
 	Args:                  cobra.MaximumNArgs(1),
 	Aliases:               []string{"list"},
+	Annotations:           map[string]string{"Group": stackGroup},
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 
