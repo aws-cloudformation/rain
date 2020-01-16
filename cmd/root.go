@@ -28,22 +28,30 @@ type Command struct {
 // Root represents the base command when called without any subcommands
 var Root = &cobra.Command{
 	Use:     "rain",
-	Long:    "Rain is a development workflow tool for working with AWS CloudFormation.",
+	Long:    "Rain is what happens when you have a lot of CloudFormation ;)",
 	Version: version.VERSION,
 }
 
-const rootUsageTemplate = `Usage: {{.UseLine}} [command]
+const usageTemplate = `Usage:{{if .Runnable}}
+  {{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}
+  {{.CommandPath}} [command]{{end}}{{if .HasAvailableSubCommands}}
 {{range $group := groups}}
 {{ $group }}: {{range $c := $.Commands}}{{if $c.IsAvailableCommand}}{{if eq $c.Annotations.Group $group}}
   {{rpad $c.Name $c.NamePadding }} {{$c.Short}}{{end}}{{end}}{{end}}
 {{end}}
 Other Commands: {{range .Commands}}{{if (or .IsAvailableCommand (eq .Name "help"))}}{{if .Annotations.Group}}{{else}}
-  {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{end}}
+  {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}
 
 Flags:
-{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}
+{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
 
-Use "{{.CommandPath}} [command] --help" for more information about a command.
+Global Flags:
+{{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasHelpSubCommands}}
+
+Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
+  {{rpad .CommandPath .CommandPathPadding}} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableSubCommands}}
+
+Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
 `
 
 func init() {
@@ -58,7 +66,7 @@ func init() {
 		return groups
 	})
 
-	Root.SetUsageTemplate(rootUsageTemplate)
+	Root.SetUsageTemplate(usageTemplate)
 
 	// Customise version string
 	Root.SetVersionTemplate(fmt.Sprintf("%s {{.Version}} %s/%s\n",
