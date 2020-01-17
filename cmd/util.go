@@ -130,7 +130,9 @@ func getRainBucket() string {
 func colouriseDiff(d diff.Diff, longFormat bool) string {
 	output := strings.Builder{}
 
-	for _, line := range strings.Split(format.Diff(d, format.Options{Compact: !longFormat}), "\n") {
+	parts := strings.Split(format.Diff(d, format.Options{Compact: !longFormat}), "\n")
+
+	for i, line := range parts {
 		switch {
 		case strings.HasPrefix(line, diff.Added.String()):
 			output.WriteString(text.Green(line).String())
@@ -144,7 +146,9 @@ func colouriseDiff(d diff.Diff, longFormat bool) string {
 			output.WriteString(line)
 		}
 
-		output.WriteString("\n")
+		if i < len(parts)-1 {
+			output.WriteString("\n")
+		}
 	}
 
 	return output.String()

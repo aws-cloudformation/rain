@@ -21,7 +21,15 @@ type Text struct {
 
 // String returns a formatted (if supported) string of the Text
 func (t Text) String() string {
-	if t.colour == "" || !console.IsTTY || !console.HasColour {
+	if !console.IsTTY || !console.HasColour {
+		return t.Plain()
+	}
+
+	return t.Format()
+}
+
+func (t Text) Format() string {
+	if t.colour == "" {
 		return t.Plain()
 	}
 
