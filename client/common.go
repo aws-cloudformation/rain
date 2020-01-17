@@ -84,12 +84,16 @@ func loadConfig() aws.Config {
 	if viper.IsSet("credentials") {
 		config.Debugf("Found cached credentials...")
 
-		if viper.GetString("profile") != config.Profile {
-			config.Debugf("...but they don't match the requested profile")
+		credConfig := viper.GetStringMapString("credentials")
+
+		credString, ok := credConfig[config.Profile]
+
+		if !ok {
+			config.Debugf("...but there are none matching the requested profile")
 		} else {
 			var creds aws.Credentials
 
-			if json.Unmarshal([]byte(viper.GetString("credentials")), &creds) != nil {
+			if json.Unmarshal([]byte(credString), &creds) != nil {
 				config.Debugf("...but I couldn't load them: %s", err)
 			} else {
 				if creds.Expired() {
@@ -102,6 +106,8 @@ func loadConfig() aws.Config {
 					if cfg, ok = tryConfig(configs, resolvers); ok {
 						config.Debugf("...and they've valid :)")
 						return cfg
+					} else {
+						config.Debugf("...but they're not valid :(")
 					}
 				}
 			}
@@ -129,8 +135,9 @@ func Config() aws.Config {
 		if err != nil {
 			config.Debugf("Unable to save credentials: %s", err)
 		} else {
-			viper.Set("credentials", string(j))
-			viper.Set("profile", config.Profile)
+			credConfig := viper.GetStringMapString("credentials")
+			credConfig[config.Profile] = string(j)
+			viper.Set("credentials", credConfig)
 			viper.WriteConfig()
 		}
 
