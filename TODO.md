@@ -4,7 +4,7 @@
 
 * Diff formatting does not handle multi-line strings very well
 
-* When watching a stack, show seconds since beginning of operation, not seconds since beginning of launching the `watch` command
+* When watching a stack, show seconds since beginning of operation, not seconds since beginning of launching the `watch` command - this might be too hard to determine
 
 * `deploy`
     * Add global Include feature - with warning
