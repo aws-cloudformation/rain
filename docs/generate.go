@@ -58,8 +58,16 @@ func main() {
 		panic(err)
 	}
 
+	// Generate usage
+	usage := bytes.Buffer{}
+	cmd.Root.SetOutput(&usage)
+	cmd.Root.Usage()
+
+	// Generate README
 	buf := bytes.Buffer{}
-	err = tmpl.Execute(&buf, cmd.Root)
+	err = tmpl.Execute(&buf, map[string]string{
+		"Usage": string(usage.Bytes()),
+	})
 	if err != nil {
 		panic(err)
 	}
