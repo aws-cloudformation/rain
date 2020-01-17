@@ -300,9 +300,6 @@ _rain_check()
     flags_with_completion=()
     flags_completion=()
 
-    flags+=("--creds")
-    flags+=("-c")
-    local_nonpersistent_flags+=("--creds")
     flags+=("--help")
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
@@ -333,12 +330,21 @@ _rain_deploy()
     flags_with_completion=()
     flags_completion=()
 
+    flags+=("--detach")
+    flags+=("-d")
+    local_nonpersistent_flags+=("--detach")
     flags+=("--force")
     flags+=("-f")
     local_nonpersistent_flags+=("--force")
     flags+=("--help")
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
+    flags+=("--params=")
+    two_word_flags+=("--params")
+    local_nonpersistent_flags+=("--params=")
+    flags+=("--tags=")
+    two_word_flags+=("--tags")
+    local_nonpersistent_flags+=("--tags=")
     flags+=("--debug")
     flags+=("--profile=")
     two_word_flags+=("--profile")
@@ -414,6 +420,39 @@ _rain_fmt()
     flags+=("--write")
     flags+=("-w")
     local_nonpersistent_flags+=("--write")
+    flags+=("--debug")
+    flags+=("--profile=")
+    two_word_flags+=("--profile")
+    two_word_flags+=("-p")
+    flags+=("--region=")
+    two_word_flags+=("--region")
+    two_word_flags+=("-r")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_rain_info()
+{
+    last_command="rain_info"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--creds")
+    flags+=("-c")
+    local_nonpersistent_flags+=("--creds")
+    flags+=("--help")
+    flags+=("-h")
+    local_nonpersistent_flags+=("--help")
     flags+=("--debug")
     flags+=("--profile=")
     two_word_flags+=("--profile")
@@ -513,6 +552,9 @@ _rain_rm()
     flags_with_completion=()
     flags_completion=()
 
+    flags+=("--detach")
+    flags+=("-d")
+    local_nonpersistent_flags+=("--detach")
     flags+=("--force")
     flags+=("-f")
     local_nonpersistent_flags+=("--force")
@@ -552,36 +594,6 @@ _rain_tree()
     flags+=("--both")
     flags+=("-b")
     local_nonpersistent_flags+=("--both")
-    flags+=("--help")
-    flags+=("-h")
-    local_nonpersistent_flags+=("--help")
-    flags+=("--debug")
-    flags+=("--profile=")
-    two_word_flags+=("--profile")
-    two_word_flags+=("-p")
-    flags+=("--region=")
-    two_word_flags+=("--region")
-    two_word_flags+=("-r")
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    noun_aliases=()
-}
-
-_rain_version()
-{
-    last_command="rain_version"
-
-    command_aliases=()
-
-    commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
     flags+=("--help")
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
@@ -644,6 +656,7 @@ _rain_root_command()
         command_aliases+=("format")
         aliashash["format"]="fmt"
     fi
+    commands+=("info")
     commands+=("logs")
     if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
         command_aliases+=("log")
@@ -668,7 +681,6 @@ _rain_root_command()
         command_aliases+=("graph")
         aliashash["graph"]="tree"
     fi
-    commands+=("version")
     commands+=("watch")
 
     flags=()

@@ -1,21 +1,20 @@
-## rain rm
+## rain info
 
-Delete a running CloudFormation stack
+Show your current configuration
 
 ### Synopsis
 
-Deletes the CloudFormation stack named <stack> and waits for the action to complete.
+Display the AWS account and region that you're configured to use.
 
 ```
-rain rm <stack>
+rain info
 ```
 
 ### Options
 
 ```
-  -d, --detach   Once removal has started, don't wait around for it to finish.
-  -f, --force    Do not ask; just delete
-  -h, --help     help for rm
+  -c, --creds   Include current AWS credentials
+  -h, --help    help for info
 ```
 
 ### Options inherited from parent commands
