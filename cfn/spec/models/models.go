@@ -54,6 +54,22 @@ type Attribute struct {
 	Type              string
 }
 
+func (a Attribute) TypeName() string {
+	if a.PrimitiveType != TypeEmpty {
+		if a.PrimitiveType == TypeList || a.PrimitiveType == TypeMap {
+			if a.PrimitiveItemType != "" {
+				return a.PrimitiveType + "/" + a.PrimitiveItemType
+			}
+
+			return a.PrimitiveType + "/" + a.ItemType
+		}
+
+		return a.PrimitiveType
+	}
+
+	return a.Type
+}
+
 func (p Property) TypeName() string {
 	if p.PrimitiveType != TypeEmpty {
 		if p.PrimitiveType == TypeList || p.PrimitiveType == TypeMap {
