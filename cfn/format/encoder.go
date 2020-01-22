@@ -16,6 +16,20 @@ type encoder struct {
 }
 
 func newEncoder(options Options, data value.Interface) encoder {
+	// Add comments if we have them
+	if options.Comments != nil {
+		for _, node := range value.New(options.Comments).Nodes() {
+			if comment, ok := node.Content.Value().(string); ok {
+				path := node.Path
+				if path[len(path)-1] == "" {
+					path = path[:len(path)-1]
+				}
+
+				data.Get(path...).SetComment(comment)
+			}
+		}
+	}
+
 	p := encoder{
 		Options: options,
 		value:   data,

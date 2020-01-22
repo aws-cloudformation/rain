@@ -19,8 +19,9 @@ const (
 
 // Options represents a collection of formatting options
 type Options struct {
-	Style   Style
-	Compact bool
+	Style    Style
+	Compact  bool
+	Comments map[string]interface{}
 }
 
 // Value returns a string representation of any given value
