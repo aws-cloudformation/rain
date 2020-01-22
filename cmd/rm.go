@@ -19,7 +19,7 @@ var rmCmd = &cobra.Command{
 	Short:                 "Delete a running CloudFormation stack",
 	Long:                  "Deletes the CloudFormation stack named <stack> and waits for the action to complete.",
 	Args:                  cobra.ExactArgs(1),
-	Annotations:           map[string]string{"Group": stackGroup},
+	Annotations:           stackAnnotation,
 	Aliases:               []string{"remove", "del", "delete"},
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
