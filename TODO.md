@@ -1,5 +1,11 @@
 # To do
 
+* Fix the bug where failed template validation results in a crash
+
+* Allow watch to watch non-existent or unchanging stacks indefinitely
+
+* Add "event" mode for watch (and related operations). Spit out YAML docs containing changes as they occur.
+
 * If a token expires during an operation (for example watching a stack), rain should refresh it rather than die
 
 * Diff formatting does not handle multi-line strings very well
