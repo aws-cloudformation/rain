@@ -12,14 +12,19 @@ import (
 )
 
 const (
-	stackGroup    = "Stack commands"
-	templateGroup = "Template commands"
+	groupAnnotationLabel = "Group"
+	stackGroup           = "Stack commands"
+	templateGroup        = "Template commands"
 )
 
-var groups = []string{
-	stackGroup,
-	templateGroup,
-}
+var (
+	groups = []string{
+		stackGroup,
+		templateGroup,
+	}
+	stackAnnotation    = map[string]string{groupAnnotationLabel: stackGroup}
+	templateAnnotation = map[string]string{groupAnnotationLabel: templateGroup}
+)
 
 type Command struct {
 	cobra.Command

@@ -13,6 +13,6 @@ func NewIamBuilder() IamBuilder {
 	return b
 }
 
-func (b IamBuilder) Policy() (interface{}, map[interface{}]interface{}) {
+func (b IamBuilder) Policy() (interface{}, interface{}) {
 	return b.newPropertyType("", "Policy")
 }

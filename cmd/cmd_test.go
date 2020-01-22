@@ -2,11 +2,18 @@ package cmd_test
 
 import (
 	"os"
+	"testing"
 
 	"github.com/aws-cloudformation/rain/cmd"
+	"github.com/aws-cloudformation/rain/console"
 )
 
-func Example_rain_help() {
+func TestMain(m *testing.M) {
+	console.HasColour = false
+	os.Exit(m.Run())
+}
+
+func Example_rainhelp() {
 	os.Args = []string{
 		os.Args[0],
 	}
@@ -27,6 +34,7 @@ func Example_rain_help() {
 	//   watch       Display an updating view of a CloudFormation stack
 	//
 	// Template commands:
+	//   build       Create CloudFormation templates
 	//   check       Validate a CloudFormation template against the spec
 	//   diff        Compare CloudFormation templates
 	//   fmt         Format CloudFormation templates

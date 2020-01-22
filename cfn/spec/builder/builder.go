@@ -25,7 +25,7 @@ func init() {
 	iamBuilder = NewIamBuilder()
 }
 
-func (b Builder) newResource(resourceType string) (map[string]interface{}, map[interface{}]interface{}) {
+func (b Builder) newResource(resourceType string) (map[string]interface{}, map[string]interface{}) {
 	rSpec, ok := b.Spec.ResourceTypes[resourceType]
 	if !ok {
 		panic("No such resource type: " + resourceType)
@@ -33,7 +33,7 @@ func (b Builder) newResource(resourceType string) (map[string]interface{}, map[i
 
 	// Generate properties
 	properties := make(map[string]interface{})
-	comments := make(map[interface{}]interface{})
+	comments := make(map[string]interface{})
 	for name, pSpec := range rSpec.Properties {
 		if b.IncludeOptionalProperties || pSpec.Required {
 			if b.BuildIamPolicies && (name == PolicyDocument || name == AssumeRolePolicyDocument) {
@@ -47,32 +47,32 @@ func (b Builder) newResource(resourceType string) (map[string]interface{}, map[i
 	return map[string]interface{}{
 			"Type":       resourceType,
 			"Properties": properties,
-		}, map[interface{}]interface{}{
+		}, map[string]interface{}{
 			"Properties": comments,
 		}
 }
 
-func (b Builder) newProperty(resourceType string, pSpec models.Property) (interface{}, map[interface{}]interface{}) {
+func (b Builder) newProperty(resourceType string, pSpec models.Property) (interface{}, interface{}) {
 	// Correct badly-formed entries
 	if pSpec.PrimitiveType == models.TypeMap {
 		pSpec.PrimitiveType = models.TypeEmpty
 		pSpec.Type = models.TypeMap
 	}
 
-	comments := make(map[interface{}]interface{})
-	if !pSpec.Required {
-		comments[""] = OptionalTag
-	}
-
 	// Primitive types
 	if pSpec.PrimitiveType != models.TypeEmpty {
-		return b.newPrimitive(pSpec.PrimitiveType), comments
+		if pSpec.Required {
+			return b.newPrimitive(pSpec.PrimitiveType), nil
+		}
+
+		return b.newPrimitive(pSpec.PrimitiveType), OptionalTag
 	}
 
 	if pSpec.Type == models.TypeList || pSpec.Type == models.TypeMap {
 		var value interface{}
-		var subComments map[interface{}]interface{}
+		var subComments interface{}
 
+		// Calculate a single item example
 		if pSpec.PrimitiveItemType != models.TypeEmpty {
 			value = b.newPrimitive(pSpec.PrimitiveItemType)
 		} else if pSpec.ItemType != models.TypeEmpty {
@@ -82,18 +82,24 @@ func (b Builder) newProperty(resourceType string, pSpec models.Property) (interf
 		}
 
 		if pSpec.Type == models.TypeList {
+			// Returning a list
+
+			var comments []interface{}
 			if subComments != nil {
-				comments[0] = subComments
+				comments = []interface{}{subComments}
 			}
 
 			return []interface{}{value}, comments
-		}
+		} else {
+			// Returning a map
 
-		if subComments != nil {
-			comments[ChangeMeTag] = subComments
-		}
+			comments := make(map[string]interface{})
+			if subComments != nil {
+				comments[ChangeMeTag] = subComments
+			}
 
-		return map[string]interface{}{ChangeMeTag: value}, comments
+			return map[string]interface{}{ChangeMeTag: value}, comments
+		}
 	}
 
 	// Fall through to property types
@@ -121,7 +127,7 @@ func (b Builder) newPrimitive(primitiveType string) interface{} {
 	}
 }
 
-func (b Builder) newPropertyType(resourceType, propertyType string) (interface{}, map[interface{}]interface{}) {
+func (b Builder) newPropertyType(resourceType, propertyType string) (interface{}, interface{}) {
 	var ptSpec models.PropertyType
 	var ok bool
 
@@ -139,7 +145,7 @@ func (b Builder) newPropertyType(resourceType, propertyType string) (interface{}
 		return b.newProperty(resourceType, ptSpec.Property)
 	}
 
-	comments := make(map[interface{}]interface{})
+	comments := make(map[string]interface{})
 
 	// Generate properties
 	properties := make(map[string]interface{})
