@@ -48,15 +48,15 @@ func loadConfig() aws.Config {
 	var err error
 	var ok bool
 
-	// Minimal resolvers
+	// Default resolver set as used in the SDK
 	var resolvers = []external.AWSConfigResolver{
 		external.ResolveDefaultAWSConfig,
 		external.ResolveCustomCABundle,
 		external.ResolveRegion,
-		external.ResolveFallbackEC2Credentials, // Initial defauilt credentails provider.
+		external.ResolveFallbackEC2Credentials,
 		external.ResolveCredentialsValue,
 		external.ResolveEndpointCredentials,
-		external.ResolveContainerEndpointPathCredentials, // TODO is this order right?
+		external.ResolveContainerEndpointPathCredentials,
 		external.ResolveAssumeRoleCredentials,
 	}
 
