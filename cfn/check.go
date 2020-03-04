@@ -10,11 +10,13 @@ import (
 	"github.com/aws-cloudformation/rain/cfn/value"
 )
 
-type CfnError struct {
+// Error holds errors messages pertaining to a cfn.Template
+type Error struct {
 	template *Template
 	comments map[interface{}]interface{}
 }
 
+// Check validates a cfn.Template against the cloudformation spec
 func (t Template) Check() (value.Interface, bool) {
 	out := value.New(t.Map())
 
@@ -138,7 +140,7 @@ func checkProperty(pSpec models.Property, prop value.Interface) bool {
 	case "Boolean":
 		return checkBool(pSpec, prop)
 	case "Json":
-		return checkJson(pSpec, prop)
+		return checkJSON(pSpec, prop)
 	case "Double", "Long", "Integer":
 		return checkNumber(pSpec, prop)
 	case "Timestamp":
@@ -185,7 +187,7 @@ func checkBool(pSpec models.Property, prop value.Interface) bool {
 	return true
 }
 
-func checkJson(pSpec models.Property, prop value.Interface) bool {
+func checkJSON(pSpec models.Property, prop value.Interface) bool {
 	_, ok := prop.(*value.Map)
 	if ok {
 		return true

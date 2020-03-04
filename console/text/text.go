@@ -28,6 +28,7 @@ func (t Text) String() string {
 	return t.Format()
 }
 
+// Format returns the Text as a formatted string
 func (t Text) Format() string {
 	if t.colour == "" {
 		return t.Plain()

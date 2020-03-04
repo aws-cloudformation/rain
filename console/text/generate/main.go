@@ -19,7 +19,7 @@ var colours = map[string]string{
 
 func main() {
 	names := make([]string, 0)
-	for key, _ := range colours {
+	for key := range colours {
 		names = append(names, key)
 	}
 	sort.Strings(names)

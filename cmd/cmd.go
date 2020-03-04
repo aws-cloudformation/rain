@@ -26,6 +26,7 @@ var (
 	templateAnnotation = map[string]string{groupAnnotationLabel: templateGroup}
 )
 
+// Command is a local type that simply wraps cobra.Command
 type Command struct {
 	cobra.Command
 }

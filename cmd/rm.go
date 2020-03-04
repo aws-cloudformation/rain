@@ -49,7 +49,7 @@ var rmCmd = &cobra.Command{
 			fmt.Println(output)
 
 			if !console.Confirm(true, "Are you sure you want to delete this stack?") {
-				panic(fmt.Errorf("User cancelled deletion of stack '%s'.", stackName))
+				panic(fmt.Errorf("User cancelled deletion of stack '%s'", stackName))
 			}
 		}
 

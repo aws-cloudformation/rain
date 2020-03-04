@@ -5,10 +5,12 @@ import (
 	"github.com/aws-cloudformation/rain/cfn/spec"
 )
 
+// CfnBuilder contains specific code for building cloudformation templates
 type CfnBuilder struct {
 	Builder
 }
 
+// NewCfnBuilder creates a new CfnBuilder
 func NewCfnBuilder(includeOptional, buildIamPolicies bool) CfnBuilder {
 	var b CfnBuilder
 	b.Spec = spec.Cfn

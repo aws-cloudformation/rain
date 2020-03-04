@@ -8,6 +8,7 @@ import (
 	"github.com/aws-cloudformation/rain/console/text"
 )
 
+// Diff colourises a diff.Diff
 func Diff(d diff.Diff, longFormat bool) string {
 	output := strings.Builder{}
 

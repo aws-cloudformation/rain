@@ -5,12 +5,13 @@ import (
 )
 
 const (
-	PolicyDocument           = "PolicyDocument"
-	AssumeRolePolicyDocument = "AssumeRolePolicyDocument"
-	OptionalTag              = "Optional"
-	ChangeMeTag              = "CHANGEME"
+	policyDocument           = "PolicyDocument"
+	assumeRolePolicyDocument = "AssumeRolePolicyDocument"
+	optionalTag              = "Optional"
+	changeMeTag              = "CHANGEME"
 )
 
+// Builder generates a template from its Spec
 type Builder struct {
 	Spec                      models.Spec
 	IncludeOptionalProperties bool
@@ -36,7 +37,7 @@ func (b Builder) newResource(resourceType string) (map[string]interface{}, map[s
 	comments := make(map[string]interface{})
 	for name, pSpec := range rSpec.Properties {
 		if b.IncludeOptionalProperties || pSpec.Required {
-			if b.BuildIamPolicies && (name == PolicyDocument || name == AssumeRolePolicyDocument) {
+			if b.BuildIamPolicies && (name == policyDocument || name == assumeRolePolicyDocument) {
 				properties[name], comments[name] = iamBuilder.Policy()
 			} else {
 				properties[name], comments[name] = b.newProperty(resourceType, pSpec)
@@ -65,7 +66,7 @@ func (b Builder) newProperty(resourceType string, pSpec models.Property) (interf
 			return b.newPrimitive(pSpec.PrimitiveType), nil
 		}
 
-		return b.newPrimitive(pSpec.PrimitiveType), OptionalTag
+		return b.newPrimitive(pSpec.PrimitiveType), optionalTag
 	}
 
 	if pSpec.Type == models.TypeList || pSpec.Type == models.TypeMap {
@@ -78,7 +79,7 @@ func (b Builder) newProperty(resourceType string, pSpec models.Property) (interf
 		} else if pSpec.ItemType != models.TypeEmpty {
 			value, subComments = b.newPropertyType(resourceType, pSpec.ItemType)
 		} else {
-			value = ChangeMeTag
+			value = changeMeTag
 		}
 
 		if pSpec.Type == models.TypeList {
@@ -90,16 +91,15 @@ func (b Builder) newProperty(resourceType string, pSpec models.Property) (interf
 			}
 
 			return []interface{}{value}, comments
-		} else {
-			// Returning a map
-
-			comments := make(map[string]interface{})
-			if subComments != nil {
-				comments[ChangeMeTag] = subComments
-			}
-
-			return map[string]interface{}{ChangeMeTag: value}, comments
 		}
+
+		// Returning a map
+		comments := make(map[string]interface{})
+		if subComments != nil {
+			comments[changeMeTag] = subComments
+		}
+
+		return map[string]interface{}{changeMeTag: value}, comments
 	}
 
 	// Fall through to property types
@@ -109,7 +109,7 @@ func (b Builder) newProperty(resourceType string, pSpec models.Property) (interf
 func (b Builder) newPrimitive(primitiveType string) interface{} {
 	switch primitiveType {
 	case "String":
-		return ChangeMeTag
+		return changeMeTag
 	case "Integer":
 		return 0
 	case "Double":
@@ -151,10 +151,10 @@ func (b Builder) newPropertyType(resourceType, propertyType string) (interface{}
 	properties := make(map[string]interface{})
 	for name, pSpec := range ptSpec.Properties {
 		if !pSpec.Required {
-			comments[name] = OptionalTag
+			comments[name] = optionalTag
 		}
 
-		if b.BuildIamPolicies && (name == PolicyDocument || name == AssumeRolePolicyDocument) {
+		if b.BuildIamPolicies && (name == policyDocument || name == assumeRolePolicyDocument) {
 			properties[name], comments[name] = iamBuilder.Policy()
 		} else if pSpec.Type == propertyType || pSpec.ItemType == propertyType {
 			properties[name] = make(map[string]interface{})

@@ -13,7 +13,10 @@ import (
 type Style int
 
 const (
+	// YAML specifies the YAML format
 	YAML Style = iota
+
+	// JSON specifies the JSON format
 	JSON
 )
 

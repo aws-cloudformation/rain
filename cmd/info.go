@@ -21,7 +21,7 @@ var infoCmd = &cobra.Command{
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		spinner.Status("Getting identity...")
-		id, err := sts.GetCallerId()
+		id, err := sts.GetCallerID()
 		if err != nil {
 			panic(fmt.Errorf("Unable to load identity: %s", err))
 		}

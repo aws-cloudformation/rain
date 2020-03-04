@@ -71,7 +71,7 @@ func getParameters(t string, cliParams map[string]string, old []cloudformation.P
 
 	if params, ok := template.Map()["Parameters"]; ok {
 		// Check we don't have any unknown params
-		for k, _ := range cliParams {
+		for k := range cliParams {
 			if _, ok := params.(map[string]interface{})[k]; !ok {
 				panic(fmt.Errorf("Unknown parameter: %s", k))
 			}
@@ -103,7 +103,7 @@ func getParameters(t string, cliParams map[string]string, old []cloudformation.P
 					extra = fmt.Sprintf(" (default value: %s)", fmt.Sprint(defaultValue))
 					value = fmt.Sprint(defaultValue)
 				} else if forceDeploy {
-					panic(fmt.Errorf("No default or existing value for parameter '%s'. Set a default, supply a --param flag, or deploy without the --force flag.", k))
+					panic(fmt.Errorf("No default or existing value for parameter '%s'. Set a default, supply a --param flag, or deploy without the --force flag", k))
 				}
 
 				if !forceDeploy {
@@ -313,7 +313,7 @@ If you don't specify a stack name, rain will use the template filename minus its
 					}
 				}
 
-				panic(errors.New("User cancelled deployment."))
+				panic(errors.New("User cancelled deployment"))
 			}
 		}
 

@@ -52,7 +52,7 @@ func (t Template) Graph() graph.Graph {
 		}
 
 		if entityTree, ok := entity.(map[string]interface{}); ok {
-			for entityName, _ := range entityTree {
+			for entityName := range entityTree {
 				entities[entityName] = typeName
 			}
 		}

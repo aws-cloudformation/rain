@@ -3,9 +3,14 @@ package models
 import "strings"
 
 const (
+	// TypeEmpty flags an empty type
 	TypeEmpty = ""
-	TypeMap   = "Map"
-	TypeList  = "List"
+
+	// TypeMap flags a map type
+	TypeMap = "Map"
+
+	// TypeList flags a list type
+	TypeList = "List"
 )
 
 // Spec is a representation of the CloudFormation specification document
@@ -36,6 +41,7 @@ type ResourceType struct {
 	AdditionalProperties bool
 }
 
+// Property represents a property within a spec
 type Property struct {
 	Documentation     string
 	DuplicatesAllowed bool
@@ -47,6 +53,7 @@ type Property struct {
 	UpdateType        string
 }
 
+// Attribute represents an attribute of a type
 type Attribute struct {
 	ItemType          string
 	PrimitiveItemType string
@@ -54,6 +61,7 @@ type Attribute struct {
 	Type              string
 }
 
+// TypeName returns the Attribute's name
 func (a Attribute) TypeName() string {
 	if a.PrimitiveType != TypeEmpty {
 		if a.PrimitiveType == TypeList || a.PrimitiveType == TypeMap {
@@ -70,6 +78,7 @@ func (a Attribute) TypeName() string {
 	return a.Type
 }
 
+// TypeName returns the Property's name
 func (p Property) TypeName() string {
 	if p.PrimitiveType != TypeEmpty {
 		if p.PrimitiveType == TypeList || p.PrimitiveType == TypeMap {
@@ -91,7 +100,7 @@ func (p Property) TypeName() string {
 func (s Spec) ResolveResource(suffix string) []string {
 	options := make([]string, 0)
 
-	for r, _ := range s.ResourceTypes {
+	for r := range s.ResourceTypes {
 		if strings.HasSuffix(r, suffix) {
 			options = append(options, r)
 		}

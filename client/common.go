@@ -18,6 +18,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+// MFAProvider is called by the AWS SDK when an MFA token number
+// is required during authentication
 func MFAProvider() (string, error) {
 	spinner.Pause()
 	defer func() {
@@ -106,9 +108,9 @@ func loadConfig() aws.Config {
 					if cfg, ok = tryConfig(configs, resolvers); ok {
 						config.Debugf("...and they've valid :)")
 						return cfg
-					} else {
-						config.Debugf("...but they're not valid :(")
 					}
+
+					config.Debugf("...but they're not valid :(")
 				}
 			}
 		}
@@ -123,6 +125,7 @@ func loadConfig() aws.Config {
 	panic("Unable to find valid credentials")
 }
 
+// Config loads an aws.Config based on current settings
 func Config() aws.Config {
 	if awsCfg == nil {
 		spinner.Status("Loading AWS config...")
@@ -162,12 +165,15 @@ func Config() aws.Config {
 	return *awsCfg
 }
 
+// SetRegion is used to set the current AWS region
 func SetRegion(region string) {
 	awsCfg.Region = region
 }
 
+// Error is used to wrap errors thrown from the client package
 type Error error
 
+// NewError wraps a standard error value as a client.Error
 func NewError(err error) Error {
 	if err == nil {
 		return nil

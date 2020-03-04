@@ -33,6 +33,7 @@ func getClient() *cloudformation.Client {
 	return cloudformation.New(client.Config())
 }
 
+// GetStackTemplate returns the template used to launch the named stack
 func GetStackTemplate(stackName string, processed bool) (string, client.Error) {
 	templateStage := "Original"
 	if processed {
@@ -52,6 +53,7 @@ func GetStackTemplate(stackName string, processed bool) (string, client.Error) {
 	return *res.TemplateBody, nil
 }
 
+// StackExists checks whether the named stack currently exists
 func StackExists(stackName string) (bool, client.Error) {
 	stacks, err := ListStacks()
 	if err != nil {
@@ -67,6 +69,7 @@ func StackExists(stackName string) (bool, client.Error) {
 	return false, nil
 }
 
+// ListStacks returns a list of all existing stacks
 func ListStacks() ([]cloudformation.StackSummary, client.Error) {
 	req := getClient().ListStacksRequest(&cloudformation.ListStacksInput{
 		StackStatusFilter: liveStatuses,
@@ -82,6 +85,7 @@ func ListStacks() ([]cloudformation.StackSummary, client.Error) {
 	return stacks, client.NewError(p.Err())
 }
 
+// DeleteStack deletes a stack
 func DeleteStack(stackName string) client.Error {
 	// Get the stack properties
 	req := getClient().DeleteStackRequest(&cloudformation.DeleteStackInput{
@@ -93,6 +97,7 @@ func DeleteStack(stackName string) client.Error {
 	return client.NewError(err)
 }
 
+// SetTerminationProtection enables or disables termination protection for a stack
 func SetTerminationProtection(stackName string, protectionEnabled bool) client.Error {
 	// Set termination protection
 	req := getClient().UpdateTerminationProtectionRequest(&cloudformation.UpdateTerminationProtectionInput{
@@ -109,6 +114,7 @@ func SetTerminationProtection(stackName string, protectionEnabled bool) client.E
 	return nil
 }
 
+// GetStack returns a cloudformation.Stack representing the named stack
 func GetStack(stackName string) (cloudformation.Stack, client.Error) {
 	// Get the stack properties
 	req := getClient().DescribeStacksRequest(&cloudformation.DescribeStacksInput{
@@ -123,6 +129,7 @@ func GetStack(stackName string) (cloudformation.Stack, client.Error) {
 	return res.Stacks[0], nil
 }
 
+// GetStackResources returns a list of the resources in the named stack
 func GetStackResources(stackName string) ([]cloudformation.StackResource, client.Error) {
 	// Get the stack resources
 	req := getClient().DescribeStackResourcesRequest(&cloudformation.DescribeStackResourcesInput{
@@ -137,6 +144,7 @@ func GetStackResources(stackName string) ([]cloudformation.StackResource, client
 	return res.StackResources, nil
 }
 
+// GetStackEvents returns all events associated with the named stack
 func GetStackEvents(stackName string) ([]cloudformation.StackEvent, client.Error) {
 	req := getClient().DescribeStackEventsRequest(&cloudformation.DescribeStackEventsInput{
 		StackName: &stackName,
@@ -165,6 +173,7 @@ func makeTags(tags map[string]string) []cloudformation.Tag {
 	return out
 }
 
+// CreateChangeSet creates a changeset
 func CreateChangeSet(template string, params []cloudformation.Parameter, tags map[string]string, stackName string) (string, client.Error) {
 	changeSetType := "CREATE"
 
@@ -208,6 +217,7 @@ func CreateChangeSet(template string, params []cloudformation.Parameter, tags ma
 	return changeSetName, client.NewError(err)
 }
 
+// GetChangeSet returns the named changeset
 func GetChangeSet(stackName, changeSetName string) (*cloudformation.DescribeChangeSetResponse, client.Error) {
 	req := getClient().DescribeChangeSetRequest(&cloudformation.DescribeChangeSetInput{
 		ChangeSetName: &changeSetName,
@@ -219,6 +229,7 @@ func GetChangeSet(stackName, changeSetName string) (*cloudformation.DescribeChan
 	return res, client.NewError(err)
 }
 
+// ExecuteChangeSet executes the named changeset
 func ExecuteChangeSet(stackName, changeSetName string) client.Error {
 	req := getClient().ExecuteChangeSetRequest(&cloudformation.ExecuteChangeSetInput{
 		ChangeSetName: &changeSetName,
@@ -230,6 +241,7 @@ func ExecuteChangeSet(stackName, changeSetName string) client.Error {
 	return client.NewError(err)
 }
 
+// DeleteChangeSet deletes the named changeset
 func DeleteChangeSet(stackName, changeSetName string) client.Error {
 	req := getClient().DeleteChangeSetRequest(&cloudformation.DeleteChangeSetInput{
 		ChangeSetName: &changeSetName,
@@ -241,6 +253,7 @@ func DeleteChangeSet(stackName, changeSetName string) client.Error {
 	return client.NewError(err)
 }
 
+// WaitUntilStackExists pauses execution until the named stack exists
 func WaitUntilStackExists(stackName string) client.Error {
 	err := getClient().WaitUntilStackExists(context.Background(), &cloudformation.DescribeStacksInput{
 		StackName: &stackName,
@@ -249,6 +262,7 @@ func WaitUntilStackExists(stackName string) client.Error {
 	return client.NewError(err)
 }
 
+// WaitUntilStackCreateComplete pauses execution until the stack is completed (or fails)
 func WaitUntilStackCreateComplete(stackName string) client.Error {
 	err := getClient().WaitUntilStackCreateComplete(context.Background(), &cloudformation.DescribeStacksInput{
 		StackName: &stackName,

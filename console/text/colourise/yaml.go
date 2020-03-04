@@ -7,6 +7,7 @@ import (
 	"github.com/aws-cloudformation/rain/console/text"
 )
 
+// Yaml colourises a Yaml string
 func Yaml(in string) string {
 	parts := strings.Split(in, "\n")
 

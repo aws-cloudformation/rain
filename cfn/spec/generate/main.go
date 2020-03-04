@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	cfnSpecUrl = "https://d2senuesg1djtx.cloudfront.net/latest/gzip/CloudFormationResourceSpecification.json"
+	cfnSpecURL = "https://d2senuesg1djtx.cloudfront.net/latest/gzip/CloudFormationResourceSpecification.json"
 	cfnSpecFn  = "generate/CloudFormationResourceSpecification.json"
 	iamSpecFn  = "generate/IamSpecification.json"
 )
@@ -28,7 +28,7 @@ func load(r io.Reader, s *models.Spec) {
 	}
 }
 
-func loadUrl(url string) models.Spec {
+func loadURL(url string) models.Spec {
 	var s models.Spec
 
 	resp, err := http.Get(url)
@@ -62,7 +62,8 @@ func saveSpec(s models.Spec, name string) {
 
 import "github.com/aws-cloudformation/rain/cfn/spec/models"
 
-var %s = %s`, name, s)
+// %s is generated from the specification file
+var %s = %s`, name, name, s)
 
 	out, err := format.Source([]byte(source))
 	if err != nil {
@@ -76,7 +77,7 @@ var %s = %s`, name, s)
 }
 
 func main() {
-	//saveSpec(loadUrl(cfnSpecUrl), "Cfn")
+	//saveSpec(loadURL(cfnSpecURL), "Cfn")
 	saveSpec(loadFile(cfnSpecFn), "Cfn")
 	saveSpec(loadFile(iamSpecFn), "Iam")
 }

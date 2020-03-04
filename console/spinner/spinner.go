@@ -71,10 +71,12 @@ func Stop() {
 	console.ClearLine()
 }
 
+// Pause stops the spinner until Resume is called
 func Pause() {
 	spinRunning = false
 }
 
+// Resume causes the spinner to restart following a call to Pause
 func Resume() {
 	spinRunning = true
 }

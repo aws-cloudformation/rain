@@ -108,12 +108,12 @@ func getStackOutput(stack cloudformation.Stack, onlyChanging bool) string {
 }
 
 func getRainBucket() string {
-	accountId, err := sts.GetAccountId()
+	accountID, err := sts.GetAccountID()
 	if err != nil {
 		panic(fmt.Errorf("Unable to get account ID: %s", err))
 	}
 
-	bucketName := fmt.Sprintf("rain-artifacts-%s-%s", accountId, client.Config().Region)
+	bucketName := fmt.Sprintf("rain-artifacts-%s-%s", accountID, client.Config().Region)
 
 	config.Debugf("Artifact bucket: %s", bucketName)
 
@@ -158,16 +158,16 @@ func waitForStackToSettle(stackName string) string {
 	// Start the timer
 	spinner.Timer()
 
-	stackId := stackName
+	stackID := stackName
 
 	for {
-		stack, err := cfn.GetStack(stackId)
+		stack, err := cfn.GetStack(stackID)
 		if err != nil {
 			panic(fmt.Errorf("Operation failed: %s", err))
 		}
 
 		// Refresh the stack ID so we can deal with deleted stacks ok
-		stackId = *stack.StackId
+		stackID = *stack.StackId
 
 		output := getStackOutput(stack, true)
 

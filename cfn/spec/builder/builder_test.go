@@ -10,13 +10,13 @@ var allResourceTypes map[string]string
 func init() {
 	allResourceTypes = make(map[string]string)
 
-	for resourceType, _ := range builder.Spec.ResourceTypes {
+	for resourceType := range builder.Spec.ResourceTypes {
 		allResourceTypes[resourceType] = resourceType
 	}
 }
 
 func TestAllResourceTypes(t *testing.T) {
-	for resourceType, _ := range builder.Spec.ResourceTypes {
+	for resourceType := range builder.Spec.ResourceTypes {
 		builder.Template(map[string]string{
 			"Res": resourceType,
 		})
@@ -25,7 +25,7 @@ func TestAllResourceTypes(t *testing.T) {
 
 func BenchmarkAllResourceTypesIndividually(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		for resourceType, _ := range allResourceTypes {
+		for resourceType := range allResourceTypes {
 			builder.Template(map[string]string{
 				"Res": resourceType,
 			})

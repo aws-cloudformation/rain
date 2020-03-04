@@ -67,7 +67,7 @@ var orders = map[string][]string{
 
 func sortMapKeys(value map[string]interface{}) []string {
 	keys := make([]string, 0)
-	for key, _ := range value {
+	for key := range value {
 		keys = append(keys, key)
 	}
 	sort.Strings(keys)

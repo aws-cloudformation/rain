@@ -11,6 +11,7 @@ func getClient() *s3.Client {
 	return s3.New(client.Config())
 }
 
+// BucketExists checks whether the named bucket exists
 func BucketExists(bucketName string) bool {
 	req := getClient().HeadBucketRequest(&s3.HeadBucketInput{
 		Bucket: &bucketName,
@@ -21,6 +22,7 @@ func BucketExists(bucketName string) bool {
 	return err == nil
 }
 
+// CreateBucket creates a new S3 bucket
 func CreateBucket(bucketName string) client.Error {
 	req := getClient().CreateBucketRequest(&s3.CreateBucketInput{
 		Bucket: &bucketName,

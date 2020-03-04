@@ -6,6 +6,7 @@ import (
 	"sort"
 )
 
+// Map represents a map[string]interface value
 type Map struct {
 	values  map[string]Interface
 	comment string
@@ -27,6 +28,7 @@ func newMap(in reflect.Value) Interface {
 	return &out
 }
 
+// Value returns the value of the Map
 func (v *Map) Value() interface{} {
 	out := make(map[string]interface{}, len(v.values))
 	for key, value := range v.values {
@@ -35,6 +37,7 @@ func (v *Map) Value() interface{} {
 	return out
 }
 
+// Get returns an element from the Map
 func (v *Map) Get(path ...interface{}) Interface {
 	if len(path) == 0 {
 		return v
@@ -53,22 +56,26 @@ func (v *Map) Get(path ...interface{}) Interface {
 	return out.Get(path[1:]...)
 }
 
+// Comment returns the Map's comment
 func (v *Map) Comment() string {
 	return v.comment
 }
 
+// SetComment sets the Map's comment
 func (v *Map) SetComment(c string) {
 	v.comment = c
 }
 
+// Keys returns the Map's keys
 func (v *Map) Keys() []string {
 	out := make([]string, 0)
-	for key, _ := range v.values {
+	for key := range v.values {
 		out = append(out, key)
 	}
 	return out
 }
 
+// Nodes returns the contents of the Map as a list of []Node
 func (v *Map) Nodes() []Node {
 	nodes := []Node{
 		{

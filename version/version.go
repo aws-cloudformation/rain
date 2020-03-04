@@ -1,6 +1,9 @@
 package version
 
 const (
-	NAME    = "Rain"
+	// NAME is the name of the application
+	NAME = "Rain"
+
+	// VERSION is the application's version string
 	VERSION = "v0.7.2"
 )
