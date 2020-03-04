@@ -2,6 +2,7 @@ package cfn
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -22,7 +23,7 @@ func (t Template) Check() (value.Interface, bool) {
 
 	rs := out.Get("Resources")
 	if rs == nil {
-		out.SetComment("Missing Resources!")
+		out.SetComment("Template has no Resources")
 		return out, false
 	}
 
@@ -76,7 +77,7 @@ func checkResources(resources *value.Map) bool {
 
 		typeName, ok := t.Value().(string)
 		if !ok {
-			t.SetComment("Invalid type!")
+			t.SetComment(fmt.Sprintf("Invalid type '%s'", typeName))
 			outOk = false
 			continue
 		}
@@ -87,9 +88,8 @@ func checkResources(resources *value.Map) bool {
 
 		rSpec, ok := spec.Cfn.ResourceTypes[typeName]
 		if !ok {
-			t.SetComment("Unknown type")
-			outOk = false
-			continue
+			t.SetComment(fmt.Sprintf("Unknown type '%s'", typeName))
+			continue // Just a warning
 		}
 
 		p := resource.Get("Properties")
@@ -116,7 +116,7 @@ func checkProperties(rSpec models.ResourceType, props *value.Map) bool {
 
 		pSpec, ok := rSpec.Properties[name]
 		if !ok {
-			prop.SetComment("Unknown property")
+			prop.SetComment(fmt.Sprintf("Unknown property", name))
 			outOk = false
 		}
 

@@ -5,9 +5,42 @@ import (
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cfn/parse"
+	"github.com/aws-cloudformation/rain/cfn/value"
 	"github.com/aws-cloudformation/rain/console/text"
 	"github.com/spf13/cobra"
 )
+
+func formatMessages(m value.Interface) string {
+	out := strings.Builder{}
+
+	var path []interface{}
+
+	if m.Comment() != "" {
+		out.WriteString(fmt.Sprintf(" %s", text.Red(m.Comment())))
+	}
+
+	for _, node := range m.Nodes() {
+		if node.Content.Comment() != "" {
+			for i, part := range node.Path {
+				if i >= len(path) || part != path[i] {
+					out.WriteString("\n")
+
+					out.WriteString(fmt.Sprintf("%s%s:",
+						strings.Repeat("  ", i+1),
+						text.Orange(fmt.Sprint(part)),
+					))
+
+					if i == len(node.Path)-1 {
+						out.WriteString(fmt.Sprintf(" %s", text.Red(node.Content.Comment())))
+					}
+				}
+			}
+			path = node.Path
+		}
+	}
+
+	return out.String()
+}
 
 var checkCmd = &cobra.Command{
 	Use:                   "check <template file>",
@@ -25,32 +58,17 @@ var checkCmd = &cobra.Command{
 		}
 
 		out, ok := t.Check()
+
+		messages := formatMessages(out)
+
 		if ok {
-			fmt.Println("Template ok")
-		} else {
-			fmt.Println("Errors:")
-
-			var path []interface{}
-
-			for _, node := range out.Nodes() {
-				if node.Content.Comment() != "" {
-					for i, part := range node.Path {
-						if i >= len(path) || part != path[i] {
-							fmt.Printf("%s%s:",
-								strings.Repeat("  ", i+1),
-								text.Orange(fmt.Sprint(part)),
-							)
-
-							if i == len(node.Path)-1 {
-								fmt.Printf(" %s", text.Red(node.Content.Comment()))
-							}
-
-							fmt.Println()
-						}
-					}
-					path = node.Path
-				}
+			if len(messages) == 0 {
+				fmt.Println("Template ok")
+			} else {
+				fmt.Printf("Warnings:%s", messages)
 			}
+		} else {
+			panic(fmt.Sprintf("Errors and warnings:%s", messages))
 		}
 	},
 }
