@@ -119,13 +119,11 @@ func getParameters(t string, cliParams map[string]string, old []cloudformation.P
 					ParameterKey:     aws.String(k),
 					UsePreviousValue: aws.Bool(true),
 				})
-			} else if value != "" {
+			} else {
 				newParams = append(newParams, cloudformation.Parameter{
 					ParameterKey:   aws.String(k),
 					ParameterValue: aws.String(value),
 				})
-			} else {
-				panic(fmt.Errorf("Missing value for parameter: %s", k))
 			}
 		}
 	}
@@ -224,8 +222,10 @@ If you don't specify a stack name, rain will use the template filename minus its
 		// Find out if stack exists already
 		// If it does and it's not in a good state, offer to wait/delete
 		stack, err := cfn.GetStack(stackName)
+
 		stackExists := false
 		if err == nil {
+			config.Debugf("Stack exists")
 			stackExists = true
 		}
 
@@ -270,12 +270,14 @@ If you don't specify a stack name, rain will use the template filename minus its
 		}
 
 		// Load in the template file
+		config.Debugf("Loading template file")
 		t, err := ioutil.ReadFile(outputFn.Name())
 		if err != nil {
 			panic(fmt.Errorf("Can't load template '%s': %s", outputFn.Name(), err))
 		}
 		template := string(t)
 
+		config.Debugf("Handling parameters")
 		parameters := getParameters(template, parsedParams, stack.Parameters, forceOldParams)
 
 		config.Debugf("Parameters: %s", parameters)
@@ -286,7 +288,11 @@ If you don't specify a stack name, rain will use the template filename minus its
 		changeSetStatus, err := cfn.GetChangeSet(stackName, changeSetName)
 		spinner.Stop()
 
-		if createErr != nil || err != nil {
+		if createErr != nil {
+			panic(createErr)
+		}
+
+		if err != nil {
 			panic(formatChangeSet(changeSetStatus))
 		}
 

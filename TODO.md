@@ -1,5 +1,7 @@
 # To do
 
+* Handle "allowed values" in parameters
+
 * Fix the bug where failed template validation results in a crash
 
 * Allow watch to watch non-existent or unchanging stacks indefinitely
