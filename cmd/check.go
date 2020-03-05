@@ -63,12 +63,12 @@ var checkCmd = &cobra.Command{
 
 		if ok {
 			if len(messages) == 0 {
-				fmt.Println("Template ok")
+				fmt.Printf("%s: ok\n", fn)
 			} else {
-				fmt.Printf("Warnings:%s", messages)
+				fmt.Printf("%s: ok but with warnings%s", fn, messages)
 			}
 		} else {
-			panic(fmt.Sprintf("Errors and warnings:%s", messages))
+			panic(fmt.Sprintf("%s: not ok%s", fn, messages))
 		}
 	},
 }
