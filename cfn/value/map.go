@@ -45,7 +45,7 @@ func (v *Map) Get(path ...interface{}) Interface {
 
 	s, ok := path[0].(string)
 	if !ok {
-		panic(fmt.Errorf("Maps only have string keys, not: %#v", path[0]))
+		panic(fmt.Errorf("Maps may only have string keys, not: %#v", path[0]))
 	}
 
 	out, ok := v.values[s]
@@ -64,6 +64,11 @@ func (v *Map) Comment() string {
 // SetComment sets the Map's comment
 func (v *Map) SetComment(c string) {
 	v.comment = c
+}
+
+// Set sets the value of a key within the Map
+func (v *Map) Set(key string, value interface{}) {
+	v.values[key] = New(value)
 }
 
 // Keys returns the Map's keys

@@ -59,25 +59,23 @@ func checkResources(resources *value.Map) bool {
 
 	// Check resources
 	for _, name := range resources.Keys() {
-		resource := resources.Get(name)
-
-		_, ok := resource.(*value.Map)
+		resource, ok := resources.Get(name).(*value.Map)
 		if !ok {
-			resource.SetComment("Not a map!")
+			resources.Get(name).SetComment("Resource must be a map")
 			outOk = false
 			continue
 		}
 
 		t := resource.Get("Type")
 		if t == nil {
-			resource.SetComment("Missing Type!")
+			resource.SetComment("Resource must define a Type")
 			outOk = false
 			continue
 		}
 
 		typeName, ok := t.Value().(string)
 		if !ok {
-			t.SetComment(fmt.Sprintf("Invalid type '%s'", typeName))
+			t.SetComment(fmt.Sprintf("Type must be a string"))
 			outOk = false
 			continue
 		}
@@ -92,17 +90,19 @@ func checkResources(resources *value.Map) bool {
 			continue // Just a warning
 		}
 
-		p := resource.Get("Properties")
-		if p != nil {
-			props, ok := p.(*value.Map)
-			if !ok {
-				p.SetComment("Not a map!")
-				outOk = false
-				continue
-			}
-
-			outOk = checkProperties(rSpec, props) && outOk
+		// Create empty properties if there aren't any
+		if resource.Get("Properties") == nil {
+			resource.Set("Properties", make(map[string]interface{}))
 		}
+
+		props, ok := resource.Get("Properties").(*value.Map)
+		if !ok {
+			resource.Get("Properties").SetComment("Properties must be a map")
+			outOk = false
+			continue
+		}
+
+		outOk = checkProperties(rSpec, props) && outOk
 	}
 
 	return outOk
@@ -111,12 +111,26 @@ func checkResources(resources *value.Map) bool {
 func checkProperties(rSpec models.ResourceType, props *value.Map) bool {
 	outOk := true
 
+	// Check for missing required properties
+	missing := make([]string, 0)
+	for name, prop := range rSpec.Properties {
+		if prop.Required && props.Get(name) == nil {
+			missing = append(missing, name)
+		}
+	}
+
+	if len(missing) > 0 {
+		props.SetComment(fmt.Sprintf("Missing required properties: %s", strings.Join(missing, ", ")))
+		outOk = false
+	}
+
+	// Check present properties for validity
 	for _, name := range props.Keys() {
 		prop := props.Get(name)
 
 		pSpec, ok := rSpec.Properties[name]
 		if !ok {
-			prop.SetComment(fmt.Sprintf("Unknown property", name))
+			prop.SetComment(fmt.Sprintf("Unknown property '%s'", name))
 			outOk = false
 		}
 

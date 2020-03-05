@@ -14,7 +14,7 @@ func wrap(data map[string]interface{}) (value.Interface, bool) {
 func TestNoResources(t *testing.T) {
 	out, ok := wrap(map[string]interface{}{})
 
-	if ok || out.Comment() != "Missing Resources!" {
+	if ok || out.Comment() != "Template has no Resources" {
 		t.Fail()
 	}
 }
@@ -34,7 +34,7 @@ func TestBadResource(t *testing.T) {
 		},
 	})
 
-	if ok || out.Get("Resources", "Bucket").Comment() != "Not a map!" {
+	if ok || out.Get("Resources", "Bucket").Comment() != "Resource must be a map" {
 		t.Fail()
 	}
 }
@@ -46,7 +46,7 @@ func TestNoResourceType(t *testing.T) {
 		},
 	})
 
-	if ok || out.Get("Resources", "Bucket").Comment() != "Missing Type!" {
+	if ok || out.Get("Resources", "Bucket").Comment() != "Resource must define a Type" {
 		t.Fail()
 	}
 }
@@ -60,7 +60,7 @@ func TestBadResourceType(t *testing.T) {
 		},
 	})
 
-	if ok || out.Get("Resources", "Bucket", "Type").Comment() != "Invalid type!" {
+	if ok || out.Get("Resources", "Bucket", "Type").Comment() != "Type must be a string" {
 		t.Fail()
 	}
 }
@@ -74,7 +74,7 @@ func TestUnknownResourceType(t *testing.T) {
 		},
 	})
 
-	if ok || out.Get("Resources", "Bucket", "Type").Comment() != "Unknown type" {
+	if !ok || out.Get("Resources", "Bucket", "Type").Comment() != "Unknown type 'SWA::3S::Tekcub'" {
 		t.Fail()
 	}
 }
@@ -89,7 +89,7 @@ func TestBadResourceProperties(t *testing.T) {
 		},
 	})
 
-	if ok || out.Get("Resources", "Bucket", "Properties").Comment() != "Not a map!" {
+	if ok || out.Get("Resources", "Bucket", "Properties").Comment() != "Properties must be a map" {
 		t.Fail()
 	}
 }
@@ -106,7 +106,7 @@ func TestUnknownResourceProperty(t *testing.T) {
 		},
 	})
 
-	if ok || out.Get("Resources", "Bucket", "Properties", "BananaPhone").Comment() != "Unknown property" {
+	if ok || out.Get("Resources", "Bucket", "Properties", "BananaPhone").Comment() != "Unknown property 'BananaPhone'" {
 		t.Fail()
 	}
 }
@@ -123,11 +123,25 @@ func TestMultipleBadResourceTypes(t *testing.T) {
 		},
 	})
 
-	if ok || out.Get("Resources", "Bucket1", "Type").Comment() != "Invalid type!" {
+	if ok || out.Get("Resources", "Bucket1", "Type").Comment() != "Type must be a string" {
 		t.Fail()
 	}
 
-	if ok || out.Get("Resources", "Bucket2", "Type").Comment() != "Invalid type!" {
+	if ok || out.Get("Resources", "Bucket2", "Type").Comment() != "Type must be a string" {
+		t.Fail()
+	}
+}
+
+func TestMissingProperties(t *testing.T) {
+	out, ok := wrap(map[string]interface{}{
+		"Resources": map[string]interface{}{
+			"RT": map[string]interface{}{
+				"Type": "AWS::EC2::RouteTable",
+			},
+		},
+	})
+
+	if ok || out.Get("Resources", "RT", "Properties").Comment() != "Missing required properties: VpcId" {
 		t.Fail()
 	}
 }
