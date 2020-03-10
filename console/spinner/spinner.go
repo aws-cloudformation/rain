@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aws-cloudformation/rain/config"
 	"github.com/aws-cloudformation/rain/console"
 )
 
@@ -53,6 +54,8 @@ func spinUpdate() {
 func Status(status string) {
 	spinRunning = true
 	spinStatus = status
+
+	config.Debugf(status)
 }
 
 // Timer enables the spinner and displays a timer counting upwards from 0

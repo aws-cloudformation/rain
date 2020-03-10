@@ -285,16 +285,16 @@ If you don't specify a stack name, rain will use the template filename minus its
 		// Create a change set
 		spinner.Status("Creating change set...")
 		changeSetName, createErr := cfn.CreateChangeSet(template, parameters, parsedTags, stackName)
-		changeSetStatus, err := cfn.GetChangeSet(stackName, changeSetName)
-		spinner.Stop()
-
 		if createErr != nil {
-			panic(createErr)
+			panic(fmt.Errorf("Error creating changeset: %s", createErr))
 		}
 
+		changeSetStatus, err := cfn.GetChangeSet(stackName, changeSetName)
 		if err != nil {
-			panic(formatChangeSet(changeSetStatus))
+			panic(fmt.Errorf("Error getting changeset status: %s", formatChangeSet(changeSetStatus)))
 		}
+
+		spinner.Stop()
 
 		if !forceDeploy {
 			fmt.Println("CloudFormation will make the following changes:")
