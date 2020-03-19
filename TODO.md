@@ -1,5 +1,7 @@
 # To do
 
+* Fix bug where using a previous parameter value from a rolled-back stack causes rain to fail deployment
+
 * Handle "allowed values" in parameters
 
 * Fix the bug where failed template validation results in a crash
