@@ -2,23 +2,41 @@ package cmd
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cfn/format"
+	"github.com/aws-cloudformation/rain/cfn/spec"
 	"github.com/aws-cloudformation/rain/cfn/spec/builder"
 	"github.com/aws-cloudformation/rain/console/text/colourise"
 	"github.com/spf13/cobra"
 )
 
+var buildListFlag = false
+
 var buildCmd = &cobra.Command{
 	Use:                   "build [<resource type>...]",
 	Short:                 "Create CloudFormation templates",
 	Long:                  "Outputs a CloudFormation template containing the named resource types.",
-	Args:                  cobra.MinimumNArgs(1),
 	Aliases:               []string{"docs"},
 	Annotations:           templateAnnotation,
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
+		if buildListFlag {
+			types := make([]string, 0)
+			for t := range spec.Cfn.ResourceTypes {
+				types = append(types, t)
+			}
+			sort.Strings(types)
+			fmt.Println(strings.Join(types, "\n"))
+
+			return
+		}
+
+		if len(args) == 0 {
+			panic("You didn't specify any resource types to build")
+		}
+
 		config := make(map[string]string)
 		for _, typeName := range args {
 			resourceName := "My" + strings.Split(typeName, "::")[2]
@@ -35,5 +53,6 @@ var buildCmd = &cobra.Command{
 }
 
 func init() {
+	buildCmd.Flags().BoolVarP(&buildListFlag, "list", "l", false, "List all CloudFormation resource types")
 	Root.AddCommand(buildCmd)
 }
