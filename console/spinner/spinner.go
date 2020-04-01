@@ -8,10 +8,15 @@ import (
 
 	"github.com/aws-cloudformation/rain/config"
 	"github.com/aws-cloudformation/rain/console"
+	"github.com/aws-cloudformation/rain/console/text"
 )
 
 var spin = []string{
-	`-`, `\`, `|`, `/`,
+	"' ,",
+	",  ",
+	" ' ",
+	" , ",
+	"  '",
 }
 
 var spinRunning = false
@@ -30,7 +35,7 @@ func init() {
 					spinCount = (spinCount + 1) % len(spin)
 				}
 
-				time.Sleep(time.Second / 2)
+				time.Sleep(time.Second / 7)
 			}
 		}()
 	}
@@ -46,7 +51,7 @@ func spinUpdate() {
 			spinStatus,
 		)
 	} else {
-		fmt.Printf("%s %s", spin[spinCount], spinStatus)
+		fmt.Printf("%s %s", spinStatus, text.Blue(spin[spinCount]))
 	}
 }
 

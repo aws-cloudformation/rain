@@ -2,6 +2,14 @@ package text
 
 // Code generated. DO NOT EDIT.
 
+// Blue returns a Text struct that wraps the supplied text in ANSI colour
+func Blue(text string) Text {
+	return Text{
+		text:   text,
+		colour: "\x1b[1;34m",
+	}
+}
+
 // Bold returns a Text struct that wraps the supplied text in ANSI colour
 func Bold(text string) Text {
 	return Text{

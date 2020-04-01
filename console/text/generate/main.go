@@ -8,13 +8,14 @@ import (
 )
 
 var colours = map[string]string{
+	"Blue":   "\033[1;34m",
 	"Bold":   "\033[1;37m",
-	"Orange": "\033[0;33m",
-	"Yellow": "\033[1;33m",
-	"Red":    "\033[1;31m",
 	"Green":  "\033[0;32m",
 	"Grey":   "\033[1;30m",
+	"Orange": "\033[0;33m",
+	"Red":    "\033[1;31m",
 	"White":  "\033[1;37m",
+	"Yellow": "\033[1;33m",
 }
 
 func main() {
