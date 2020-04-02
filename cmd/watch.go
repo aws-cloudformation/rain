@@ -2,10 +2,14 @@ package cmd
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/aws-cloudformation/rain/client/cfn"
+	"github.com/aws-cloudformation/rain/console/spinner"
 	"github.com/spf13/cobra"
 )
+
+var waitThenWatch = false
 
 var watchCmd = &cobra.Command{
 	Use:                   "watch <stack>",
@@ -23,9 +27,20 @@ var watchCmd = &cobra.Command{
 		}
 
 		if stackHasSettled(stack) {
-			fmt.Println(getStackOutput(stack, false))
-			fmt.Println("Not watching unchanging stack.")
-			return
+			if waitThenWatch {
+				spinner.Status("Waiting for stack to begin changing...")
+				for {
+					time.Sleep(time.Second * 2)
+					if !stackHasSettled(stack) {
+						break
+					}
+				}
+				spinner.Stop()
+			} else {
+				fmt.Println(getStackOutput(stack, false))
+				fmt.Println("Not watching unchanging stack.")
+				return
+			}
 		}
 
 		fmt.Println("Final stack status:", colouriseStatus(waitForStackToSettle(stackName)))
@@ -33,5 +48,6 @@ var watchCmd = &cobra.Command{
 }
 
 func init() {
+	watchCmd.Flags().BoolVarP(&waitThenWatch, "wait", "w", false, "Wait for changes to begin rather than refusing to watch an unchanging stack")
 	Root.AddCommand(watchCmd)
 }
