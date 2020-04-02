@@ -40,7 +40,7 @@ func formatString(data string) string {
 		strings.ContainsAny(string(data[len(data)-1]), " \t\n"),
 		strings.ContainsAny(data, "`\"':#"):
 		return fmt.Sprintf("%q", data)
+	default:
+		return data
 	}
-
-	return data
 }

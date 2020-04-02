@@ -1,5 +1,7 @@
 # To do
 
+* Use changeset information to be able to display To Do / In Progress / Done during deploy
+
 * Fix bug where using a previous parameter value from a rolled-back stack causes rain to fail deployment
 
 * Handle "allowed values" in parameters
