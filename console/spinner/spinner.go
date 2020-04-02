@@ -11,13 +11,8 @@ import (
 	"github.com/aws-cloudformation/rain/console/text"
 )
 
-var spin = []string{
-	"' ,",
-	",  ",
-	" ' ",
-	" , ",
-	"  '",
-}
+var spin = []string{"˙", "·", ".", " "}
+var drops = 3
 
 var spinRunning = false
 var spinHasTimer = false
@@ -45,13 +40,20 @@ func spinUpdate() {
 	console.ClearLine()
 
 	if spinHasTimer {
-		fmt.Printf("%s %s %s",
-			spin[spinCount],
+		fmt.Printf("%s%s%s %s %s",
+			text.Blue(spin[spinCount]),
+			text.Blue(spin[(spinCount+3)%len(spin)]),
+			text.Blue(spin[(spinCount+5)%len(spin)]),
 			time.Now().Sub(spinStartTime).Truncate(time.Second),
 			spinStatus,
 		)
 	} else {
-		fmt.Printf("%s %s", spinStatus, text.Blue(spin[spinCount]))
+		fmt.Printf("%s %s%s%s",
+			spinStatus,
+			text.Blue(spin[spinCount]),
+			text.Blue(spin[(spinCount+3)%len(spin)]),
+			text.Blue(spin[(spinCount+5)%len(spin)]),
+		)
 	}
 }
 
