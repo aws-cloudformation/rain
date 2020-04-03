@@ -20,7 +20,7 @@ var infoCmd = &cobra.Command{
 	Long:                  "Display the AWS account and region that you're configured to use.",
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		spinner.Status("Getting identity...")
+		spinner.Status("Getting identity")
 		id, err := sts.GetCallerID()
 		if err != nil {
 			panic(fmt.Errorf("Unable to load identity: %s", err))

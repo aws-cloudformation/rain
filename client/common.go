@@ -128,7 +128,7 @@ func loadConfig() aws.Config {
 // Config loads an aws.Config based on current settings
 func Config() aws.Config {
 	if awsCfg == nil {
-		spinner.Status("Loading AWS config...")
+		spinner.Status("Loading AWS config")
 
 		cfg := loadConfig()
 

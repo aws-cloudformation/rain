@@ -22,6 +22,7 @@ func Example_watch_help() {
 	//
 	// Flags:
 	//   -h, --help   help for watch
+	//   -w, --wait   Wait for changes to begin rather than refusing to watch an unchanging stack
 	//
 	// Global Flags:
 	//       --debug            Output debugging information

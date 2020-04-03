@@ -28,7 +28,7 @@ var watchCmd = &cobra.Command{
 
 		if stackHasSettled(stack) {
 			if waitThenWatch {
-				spinner.Status("Waiting for stack to begin changing...")
+				spinner.Status("Waiting for stack to begin changing")
 				for {
 					time.Sleep(time.Second * 2)
 					if !stackHasSettled(stack) {

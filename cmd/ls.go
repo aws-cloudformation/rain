@@ -38,7 +38,7 @@ var lsCmd = &cobra.Command{
 			var err error
 			regions := []string{client.Config().Region}
 
-			spinner.Status("Fetching region list...")
+			spinner.Status("Fetching region list")
 			if allRegions {
 				regions, err = ec2.GetRegions()
 				if err != nil {
@@ -47,7 +47,7 @@ var lsCmd = &cobra.Command{
 			}
 
 			for _, region := range regions {
-				spinner.Status(fmt.Sprintf("Fetching stacks in %s...", region))
+				spinner.Status(fmt.Sprintf("Fetching stacks in %s", region))
 
 				client.SetRegion(region)
 				stacks, err := cfn.ListStacks()

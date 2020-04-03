@@ -283,7 +283,7 @@ If you don't specify a stack name, rain will use the template filename minus its
 		config.Debugf("Parameters: %s", parameters)
 
 		// Create a change set
-		spinner.Status("Creating change set...")
+		spinner.Status("Creating change set")
 		changeSetName, createErr := cfn.CreateChangeSet(template, parameters, parsedTags, stackName)
 		if createErr != nil {
 			panic(fmt.Errorf("Error creating changeset: %s", createErr))

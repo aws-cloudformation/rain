@@ -25,7 +25,7 @@ var rmCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		stackName := args[0]
 
-		spinner.Status("Checking stack status...")
+		spinner.Status("Checking stack status")
 		stack, err := cfn.GetStack(stackName)
 		if err != nil {
 			panic(fmt.Errorf("Unable to delete stack '%s': %s", stackName, err))
@@ -33,7 +33,7 @@ var rmCmd = &cobra.Command{
 
 		if *stack.EnableTerminationProtection {
 			if forceRm || console.Confirm(false, "This stack has termination protection enabled. Do you wish to disable it?") {
-				spinner.Status("Disabling termination protection...")
+				spinner.Status("Disabling termination protection")
 				if err := cfn.SetTerminationProtection(stackName, false); err != nil {
 					panic(fmt.Errorf("Unable to set termination protection of stack '%s': %s", stackName, err))
 				}
