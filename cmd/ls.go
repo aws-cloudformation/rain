@@ -19,13 +19,30 @@ var showNested = false
 
 func formatStack(stack cloudformation.StackSummary, stackMap map[string]cloudformation.StackSummary) string {
 	out := strings.Builder{}
+	extra := ""
 
-	out.WriteString(fmt.Sprintf("%s: %s\n",
+	if !showNested {
+		has_children := false
+		for _, otherStack := range stackMap {
+			if otherStack.ParentId != nil && *otherStack.ParentId == *stack.StackId {
+				has_children = true
+				break
+			}
+		}
+
+		if has_children {
+			extra = " [...]"
+		}
+	}
+
+	out.WriteString(fmt.Sprintf("%s%s: %s\n",
 		*stack.StackName,
+		extra,
 		colouriseStatus(string(stack.StackStatus)),
 	))
 
 	if showNested {
+
 		for _, otherStack := range stackMap {
 			if otherStack.ParentId != nil && *otherStack.ParentId == *stack.StackId {
 				out.WriteString(indent("- ", formatStack(otherStack, stackMap)))
@@ -86,7 +103,6 @@ var lsCmd = &cobra.Command{
 				for _, stack := range stacks {
 					stackNames = append(stackNames, *stack.StackName)
 					stackMap[*stack.StackName] = stack
-					fmt.Println(stack)
 				}
 				sort.Strings(stackNames)
 
