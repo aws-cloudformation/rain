@@ -14,7 +14,7 @@ declare -A ARCHITECTURES=([386]=i386 [amd64]=amd64)
 declare -A VARIANTS=([default]="" [nocgo]="CGO_ENABLED=0")
 
 # Run tests first
-golint ./... || exit 1
+golint -set_exit_status ./... || exit 1
 go vet ./... || exit 1
 go test ./... || exit 1
 

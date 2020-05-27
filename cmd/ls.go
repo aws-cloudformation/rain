@@ -22,15 +22,15 @@ func formatStack(stack cloudformation.StackSummary, stackMap map[string]cloudfor
 	extra := ""
 
 	if !showNested {
-		has_children := false
+		hasChildren := false
 		for _, otherStack := range stackMap {
 			if otherStack.ParentId != nil && *otherStack.ParentId == *stack.StackId {
-				has_children = true
+				hasChildren = true
 				break
 			}
 		}
 
-		if has_children {
+		if hasChildren {
 			extra = " [...]"
 		}
 	}
