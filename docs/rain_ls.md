@@ -13,8 +13,9 @@ rain ls <stack>
 ### Options
 
 ```
-  -a, --all    List stacks across all regions
-  -h, --help   help for ls
+  -a, --all      List stacks across all regions
+  -h, --help     help for ls
+  -n, --nested   Show nested stacks (hidden by default)
 ```
 
 ### Options inherited from parent commands

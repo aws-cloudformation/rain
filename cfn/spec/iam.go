@@ -22,28 +22,27 @@ var Iam = models.Spec{
 		},
 		"Statement": models.PropertyType{
 			Properties: map[string]models.Property{
-				"Action": models.Property{
-					PrimitiveItemType: "String",
-					Type:              "List",
-				},
 				"NotResource": models.Property{
 					PrimitiveItemType: "String",
 					Type:              "List",
 				},
-				"Condition": models.Property{
-					PrimitiveItemType: "Json",
+				"Sid": models.Property{
+					PrimitiveType: "String",
+				},
+				"Principal": models.Property{
+					PrimitiveItemType: "String",
 					Type:              "Map",
 				},
 				"NotPrincipal": models.Property{
 					PrimitiveItemType: "String",
 					Type:              "Map",
 				},
-				"Principal": models.Property{
-					PrimitiveItemType: "String",
-					Type:              "Map",
-				},
 				"Effect": models.Property{
 					PrimitiveType: "String",
+				},
+				"Action": models.Property{
+					PrimitiveItemType: "String",
+					Type:              "List",
 				},
 				"NotAction": models.Property{
 					PrimitiveItemType: "String",
@@ -53,8 +52,9 @@ var Iam = models.Spec{
 					PrimitiveItemType: "String",
 					Type:              "List",
 				},
-				"Sid": models.Property{
-					PrimitiveType: "String",
+				"Condition": models.Property{
+					PrimitiveItemType: "Json",
+					Type:              "Map",
 				},
 			},
 		},
