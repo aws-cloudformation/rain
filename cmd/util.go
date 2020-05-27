@@ -19,6 +19,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 )
 
+func indent(prefix string, in string) string {
+	return prefix + strings.Join(strings.Split(strings.TrimSpace(in), "\n"), "\n"+prefix)
+}
+
 func colouriseStatus(status string) text.Text {
 	switch {
 	case strings.HasSuffix(status, "_FAILED"):

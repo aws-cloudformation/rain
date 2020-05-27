@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+
 	"github.com/aws-cloudformation/rain/cfn/diff"
 	"github.com/aws-cloudformation/rain/console"
 	"github.com/aws-cloudformation/rain/console/text"
@@ -95,5 +97,24 @@ func TestStatusIsSettled(t *testing.T) {
 		if statusIsSettled(input) != expected {
 			t.Fail()
 		}
+	}
+}
+
+func TestIndent(t *testing.T) {
+	input := `This
+has
+multiple
+lines
+`
+
+	expected := `  This
+  has
+  multiple
+  lines` // Should chomp ending blank lines
+
+	actual := indent("  ", input)
+
+	if d := cmp.Diff(actual, expected); d != "" {
+		t.Errorf(d)
 	}
 }

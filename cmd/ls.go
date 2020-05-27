@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/aws-cloudformation/rain/client"
 	"github.com/aws-cloudformation/rain/client/cfn"
@@ -14,6 +15,27 @@ import (
 )
 
 var allRegions = false
+var showNested = false
+
+func formatStack(stack cloudformation.StackSummary, stackMap map[string]cloudformation.StackSummary) string {
+	out := strings.Builder{}
+
+	out.WriteString(fmt.Sprintf("%s: %s\n",
+		*stack.StackName,
+		colouriseStatus(string(stack.StackStatus)),
+	))
+
+	if showNested {
+		for _, otherStack := range stackMap {
+			if otherStack.ParentId != nil && *otherStack.ParentId == *stack.StackId {
+				out.WriteString(indent("- ", formatStack(otherStack, stackMap)))
+				out.WriteString("\n")
+			}
+		}
+	}
+
+	return out.String()
+}
 
 var lsCmd = &cobra.Command{
 	Use:                   "ls <stack>",
@@ -64,6 +86,7 @@ var lsCmd = &cobra.Command{
 				for _, stack := range stacks {
 					stackNames = append(stackNames, *stack.StackName)
 					stackMap[*stack.StackName] = stack
+					fmt.Println(stack)
 				}
 				sort.Strings(stackNames)
 
@@ -71,10 +94,11 @@ var lsCmd = &cobra.Command{
 
 				fmt.Println(text.Yellow(fmt.Sprintf("CloudFormation stacks in %s:", region)))
 				for _, stackName := range stackNames {
-					fmt.Printf("  %s: %s\n",
-						stackName,
-						colouriseStatus(string(stackMap[stackName].StackStatus)),
-					)
+					stack := stackMap[stackName]
+
+					if stack.ParentId == nil {
+						fmt.Println(indent("  ", formatStack(stack, stackMap)))
+					}
 				}
 				fmt.Println()
 			}
@@ -84,5 +108,6 @@ var lsCmd = &cobra.Command{
 
 func init() {
 	lsCmd.Flags().BoolVarP(&allRegions, "all", "a", false, "List stacks across all regions")
+	lsCmd.Flags().BoolVarP(&showNested, "nested", "n", false, "Show nested stacks (hidden by default)")
 	Root.AddCommand(lsCmd)
 }
