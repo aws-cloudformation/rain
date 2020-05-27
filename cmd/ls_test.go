@@ -24,8 +24,9 @@ func Example_ls_help() {
 	//   ls, list
 	//
 	// Flags:
-	//   -a, --all    List stacks across all regions
-	//   -h, --help   help for ls
+	//   -a, --all      List stacks across all regions
+	//   -h, --help     help for ls
+	//   -n, --nested   Show nested stacks (hidden by default)
 	//
 	// Global Flags:
 	//       --debug            Output debugging information
