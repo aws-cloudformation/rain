@@ -11,6 +11,7 @@ VERSION=$(git describe)
 
 declare -A PLATFORMS=([linux]=linux [darwin]=osx [windows]=windows)
 declare -A ARCHITECTURES=([386]=i386 [amd64]=amd64)
+declare -A VARIANTS=([default]="" [nocgo]="CGO_ENABLED=0")
 
 # Run tests first
 golint ./... || exit 1
@@ -21,22 +22,29 @@ echo "Building $NAME $VERSION..."
 
 for platform in ${!PLATFORMS[@]}; do
     for architecture in ${!ARCHITECTURES[@]}; do
-        echo "$platform/$architecture..."
+        for variant in ${!VARIANTS[@]}; do
+            echo "$platform/$architecture/$variant..."
 
-        full_name="${NAME}-${VERSION}_${PLATFORMS[$platform]}-${ARCHITECTURES[$architecture]}"
-        bin_name="$NAME"
+            full_name="${NAME}-${VERSION}_${PLATFORMS[$platform]}-${ARCHITECTURES[$architecture]}"
+            bin_name="$NAME"
 
-        if [ "$platform" == "windows" ]; then
-            bin_name="${NAME}.exe"
-        fi
+            if [ "$variant" != "default" ]; then
+                full_name+="-$variant"
+            fi
 
-        mkdir -p "$OUTPUT_DIR/$full_name"
+            if [ "$platform" == "windows" ]; then
+                bin_name="${NAME}.exe"
+            fi
 
-        GOOS=$platform GOARCH=$architecture go build -o "$OUTPUT_DIR/${full_name}/${bin_name}"
+            mkdir -p "$OUTPUT_DIR/$full_name"
 
-        zip -9 -r "$OUTPUT_DIR/${full_name}.zip" "$OUTPUT_DIR/$full_name"
+            eval GOOS=$platform GOARCH=$architecture ${VARIANTS[$variant]} go build -o "$OUTPUT_DIR/${full_name}/${bin_name}"
 
-        rm -r "$OUTPUT_DIR/$full_name"
+            cd "$OUTPUT_DIR"
+            zip -9 -r "${full_name}.zip" "$full_name"
+            rm -r "$full_name"
+            cd -
+        done
     done
 done
 
