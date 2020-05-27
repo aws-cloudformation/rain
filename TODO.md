@@ -1,5 +1,10 @@
 # To do
 
+* If `aws` is not installed or doesn't run, use decreased functionality
+    * No `package` or `verify`
+
+* Add `aws cloudformation verify-template` to `rain check`
+
 * Use changeset information to be able to display To Do / In Progress / Done during deploy
 
 * Fix bug where using a previous parameter value from a rolled-back stack causes rain to fail deployment
