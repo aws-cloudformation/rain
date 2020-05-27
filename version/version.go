@@ -1,5 +1,9 @@
-//go:generate bash generate.sh
 package version
 
-const NAME = "Rain"
-const VERSION = "v0.7.2"
+const (
+	// NAME is the name of the application
+	NAME = "Rain"
+
+	// VERSION is the application's version string
+	VERSION = "v0.7.2"
+)

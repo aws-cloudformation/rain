@@ -11,6 +11,7 @@ require (
 	github.com/sanathkr/go-yaml v0.0.0-20170819195128-ed9d249f429b
 	github.com/sanathkr/yaml v1.0.1-0.20170819201035-0056894fa522
 	github.com/spf13/cobra v0.0.4
+	github.com/spf13/viper v1.3.2
 	github.com/stretchr/testify v1.3.0 // indirect
 	golang.org/x/sys v0.0.0-20190602015325-4c4f7f33c9ed // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect

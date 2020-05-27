@@ -8,13 +8,23 @@ import (
 	"strings"
 )
 
+// Mode represents a diff mode
 type Mode string
 
 const (
-	Added     Mode = "+"
-	Removed   Mode = "-"
-	Changed   Mode = ">"
-	Involved  Mode = "|"
+	// Added represents a new value
+	Added Mode = "+"
+
+	// Removed represents a removed value
+	Removed Mode = "-"
+
+	// Changed represents a modified value
+	Changed Mode = ">"
+
+	// Involved represents a value that contains changes but is not wholly new itself
+	Involved Mode = "|"
+
+	// Unchanged represents a value that has not changed
 	Unchanged Mode = "="
 )
 
@@ -42,10 +52,12 @@ type Value struct {
 	mode  Mode
 }
 
+// Mode returns the Value's mode
 func (v Value) Mode() Mode {
 	return v.mode
 }
 
+// Value returns the Value's value
 func (v Value) Value() interface{} {
 	return v.value
 }
@@ -57,6 +69,7 @@ func (v Value) String() string {
 // Slice represents a difference between two slices
 type Slice []Diff
 
+// Mode returns the Slice's mode
 func (s Slice) Mode() Mode {
 	for _, v := range s {
 		if v.Mode() != Unchanged {
@@ -67,6 +80,7 @@ func (s Slice) Mode() Mode {
 	return Unchanged
 }
 
+// Value returns the Slice's value
 func (s Slice) Value() interface{} {
 	out := make([]interface{}, len(s))
 
@@ -87,9 +101,10 @@ func (s Slice) String() string {
 	return fmt.Sprintf("%s[%s]", s.Mode(), strings.Join(parts, " "))
 }
 
-// Maps represents a difference between two maps
+// Map represents a difference between two maps
 type Map map[string]Diff
 
+// Mode returns the Map's mode
 func (m Map) Mode() Mode {
 	s := make(Slice, 0)
 
@@ -100,6 +115,7 @@ func (m Map) Mode() Mode {
 	return s.Mode()
 }
 
+// Value returns the Map's value
 func (m Map) Value() interface{} {
 	out := make(map[string]interface{})
 
@@ -110,11 +126,12 @@ func (m Map) Value() interface{} {
 	return out
 }
 
+// Keys returns the Map's keys
 func (m Map) Keys() []string {
 	keys := make([]string, len(m))
 
 	i := 0
-	for k, _ := range m {
+	for k := range m {
 		keys[i] = k
 		i++
 	}
@@ -124,7 +141,7 @@ func (m Map) Keys() []string {
 
 func (m Map) String() string {
 	keys := make([]string, 0)
-	for k, _ := range m {
+	for k := range m {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)

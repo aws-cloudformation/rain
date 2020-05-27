@@ -46,7 +46,7 @@ func ClearLine() {
 // Ask prints the supplied prompt and then waits for user input which is returned as a string.
 func Ask(prompt string) string {
 	if !IsTTY {
-		panic(errors.New("No interactive terminal detected. Try running rain in non-interactive mode."))
+		panic(errors.New("No interactive terminal detected. Try running rain in non-interactive mode"))
 	}
 
 	rl, err := readline.NewEx(&readline.Config{

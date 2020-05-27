@@ -1,19 +1,35 @@
 # To do
 
+* If `aws` is not installed or doesn't run, use decreased functionality
+    * No `package` or `verify`
+
+* Add `aws cloudformation verify-template` to `rain check`
+
+* Use changeset information to be able to display To Do / In Progress / Done during deploy
+
+* Fix bug where using a previous parameter value from a rolled-back stack causes rain to fail deployment
+
+* Handle "allowed values" in parameters
+
+* Fix the bug where failed template validation results in a crash
+
+* Allow watch to watch non-existent or unchanging stacks indefinitely
+
+* Add "event" mode for watch (and related operations). Spit out YAML docs containing changes as they occur.
+
+* If a token expires during an operation (for example watching a stack), rain should refresh it rather than die
+
+* Diff formatting does not handle multi-line strings very well
+
+* When watching a stack, show seconds since beginning of operation, not seconds since beginning of launching the `watch` command - this might be too hard to determine
+
 * `deploy`
-    * Only show changing resources
+    * Add global Include feature - with warning
     * Ensure update count reflects everything that has changed
     * Detect whether a deployment requires capabilities rather than automatically applying them
-    * Allow deploying over a stack that's REVIEW_IN_PROGRESS by killing the changset?
-    * After a failed deployment, show the logs
-
-* `rm`
-    * List stack contents and ask for confirmation
-    * Add `--force` flag
-    * Detect `y` as `Y`
-
-* `ls`
-    * Display in yaml(ish) format
+    * Allow deploying over a stack that's REVIEW_IN_PROGRESS by killing the changeset?
+    * Show details from nested stacks while deploying
+    * Handle deploying from a template URL
 
 ## Other ideas
 

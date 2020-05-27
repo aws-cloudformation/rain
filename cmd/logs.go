@@ -57,12 +57,13 @@ var logsCmd = &cobra.Command{
 	Long:                  "Shows a nicely-formatted list of the event log for the named stack, optionally limiting the results to a single resource.\n\nBy default, rain will only show log entries that contain a message, for example a failure reason. You can use flags to change this behaviour.",
 	Args:                  cobra.RangeArgs(1, 2),
 	Aliases:               []string{"log"},
+	Annotations:           stackAnnotation,
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		stackName := args[0]
 
 		// Get logs
-		spinner.Status(fmt.Sprintf("Getting logs for %s...", stackName))
+		spinner.Status(fmt.Sprintf("Getting logs for %s", stackName))
 		logs, err := cfn.GetStackEvents(stackName)
 		if err != nil {
 			panic(fmt.Errorf("Failed to get events for '%s': %s", stackName, err))

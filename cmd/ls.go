@@ -21,6 +21,7 @@ var lsCmd = &cobra.Command{
 	Long:                  "Displays a list of all running stacks or the contents of <stack> if provided.",
 	Args:                  cobra.MaximumNArgs(1),
 	Aliases:               []string{"list"},
+	Annotations:           stackAnnotation,
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 
@@ -37,7 +38,7 @@ var lsCmd = &cobra.Command{
 			var err error
 			regions := []string{client.Config().Region}
 
-			spinner.Status("Fetching region list...")
+			spinner.Status("Fetching region list")
 			if allRegions {
 				regions, err = ec2.GetRegions()
 				if err != nil {
@@ -46,7 +47,7 @@ var lsCmd = &cobra.Command{
 			}
 
 			for _, region := range regions {
-				spinner.Status(fmt.Sprintf("Fetching stacks in %s...", region))
+				spinner.Status(fmt.Sprintf("Fetching stacks in %s", region))
 
 				client.SetRegion(region)
 				stacks, err := cfn.ListStacks()

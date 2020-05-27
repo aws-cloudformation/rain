@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// Graph represents a directed, acyclic graph with ordered nodes
 type Graph struct {
 	nodes map[interface{}]map[interface{}]bool
 	order []interface{}
@@ -20,7 +21,7 @@ func (g *Graph) String() string {
 	for _, left := range g.order {
 		if len(g.nodes[left]) > 0 {
 			out.WriteString(fmt.Sprintf("%s:\n", left))
-			for right, _ := range g.nodes[left] {
+			for right := range g.nodes[left] {
 				out.WriteString(fmt.Sprintf("- %s\n", right))
 			}
 		}
@@ -63,7 +64,7 @@ func (g Graph) depth(item interface{}) int {
 	var dive func(interface{})
 
 	dive = func(from interface{}) {
-		for to, _ := range g.nodes[from] {
+		for to := range g.nodes[from] {
 			if !seen[to] {
 				seen[to] = true
 				count++
@@ -99,7 +100,7 @@ func (g Graph) Nodes() []interface{} {
 // Get returns all nodes that are connected to the item that you pass in.
 func (g Graph) Get(item interface{}) []interface{} {
 	links := make([]interface{}, 0)
-	for to, _ := range g.nodes[item] {
+	for to := range g.nodes[item] {
 		links = append(links, to)
 	}
 

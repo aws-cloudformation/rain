@@ -85,38 +85,39 @@ func transform(in map[string]interface{}) map[string]interface{} {
 func Reader(r io.Reader) (cfn.Template, error) {
 	data, err := ioutil.ReadAll(r)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to read input: %s", err)
+		return cfn.Template{}, fmt.Errorf("Unable to read input: %s", err)
 	}
 
 	return String(string(data))
 }
 
-// Reader returns a cfn.Template parsed from a file specified by fileName
+// File returns a cfn.Template parsed from a file specified by fileName
 func File(fileName string) (cfn.Template, error) {
 	source, err := ioutil.ReadFile(fileName)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to read file: %s", err)
+		return cfn.Template{}, fmt.Errorf("Unable to read file: %s", err)
 	}
 
 	return String(string(source))
 }
 
-// Reader returns a cfn.Template parsed from a string
+// String returns a cfn.Template parsed from a string
 func String(input string) (cfn.Template, error) {
 	parsed, err := yamlwrapper.YAMLToJSON([]byte(input))
 	if err != nil {
-		return nil, fmt.Errorf("Invalid YAML: %s", err)
+		return cfn.Template{}, fmt.Errorf("Invalid YAML: %s", err)
 	}
 
 	var output map[string]interface{}
 	err = json.Unmarshal(parsed, &output)
 	if err != nil {
-		return nil, fmt.Errorf("Invalid YAML: %s", err)
+		return cfn.Template{}, fmt.Errorf("Invalid YAML: %s", err)
 	}
 
 	return Map(output)
 }
 
+// Map returns a cfn.Template parsed from a map[string]interface{} value
 func Map(input map[string]interface{}) (cfn.Template, error) {
 	return cfn.Template(transform(input)), nil
 }

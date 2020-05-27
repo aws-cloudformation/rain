@@ -11,22 +11,35 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var forceRm = false
+var forceRm bool
+var detachRm bool
 
 var rmCmd = &cobra.Command{
 	Use:                   "rm <stack>",
 	Short:                 "Delete a running CloudFormation stack",
 	Long:                  "Deletes the CloudFormation stack named <stack> and waits for the action to complete.",
 	Args:                  cobra.ExactArgs(1),
+	Annotations:           stackAnnotation,
 	Aliases:               []string{"remove", "del", "delete"},
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		stackName := args[0]
 
-		spinner.Status("Checking stack status...")
+		spinner.Status("Checking stack status")
 		stack, err := cfn.GetStack(stackName)
 		if err != nil {
 			panic(fmt.Errorf("Unable to delete stack '%s': %s", stackName, err))
+		}
+
+		if *stack.EnableTerminationProtection {
+			if forceRm || console.Confirm(false, "This stack has termination protection enabled. Do you wish to disable it?") {
+				spinner.Status("Disabling termination protection")
+				if err := cfn.SetTerminationProtection(stackName, false); err != nil {
+					panic(fmt.Errorf("Unable to set termination protection of stack '%s': %s", stackName, err))
+				}
+			} else {
+				panic(fmt.Errorf("User cancelled deletion of stack '%s'", stackName))
+			}
 		}
 
 		if !forceRm {
@@ -36,7 +49,7 @@ var rmCmd = &cobra.Command{
 			fmt.Println(output)
 
 			if !console.Confirm(true, "Are you sure you want to delete this stack?") {
-				panic(fmt.Errorf("User cancelled deletion of stack '%s'.", stackName))
+				panic(fmt.Errorf("User cancelled deletion of stack '%s'", stackName))
 			}
 		}
 
@@ -49,12 +62,16 @@ var rmCmd = &cobra.Command{
 			panic(fmt.Errorf("Unable to delete stack '%s': %s", stackName, err))
 		}
 
-		status := waitForStackToSettle(stackName)
-
-		if status == "DELETE_COMPLETE" {
-			fmt.Println(text.Green("Successfully deleted " + stackName))
+		if detachRm {
+			fmt.Printf("Detaching. You can check your stack's status with: rain watch %s\n", stackName)
 		} else {
-			fmt.Println(text.Red("Failed to delete " + stackName))
+			status := waitForStackToSettle(stackName)
+
+			if status == "DELETE_COMPLETE" {
+				fmt.Println(text.Green("Successfully deleted " + stackName))
+			} else {
+				fmt.Println(text.Red("Failed to delete " + stackName))
+			}
 		}
 
 		fmt.Println()
@@ -62,6 +79,7 @@ var rmCmd = &cobra.Command{
 }
 
 func init() {
+	rmCmd.Flags().BoolVarP(&detachRm, "detach", "d", false, "Once removal has started, don't wait around for it to finish.")
 	rmCmd.Flags().BoolVarP(&forceRm, "force", "f", false, "Do not ask; just delete")
 	Root.AddCommand(rmCmd)
 }

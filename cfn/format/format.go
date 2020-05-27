@@ -13,7 +13,10 @@ import (
 type Style int
 
 const (
+	// YAML specifies the YAML format
 	YAML Style = iota
+
+	// JSON specifies the JSON format
 	JSON
 )
 
@@ -21,19 +24,25 @@ const (
 type Options struct {
 	Style    Style
 	Compact  bool
-	Comments map[interface{}]interface{}
+	Comments map[string]interface{}
+}
+
+// Value returns a string representation of any given value
+// as either JSON or YAML depending on options.Style
+func Value(data value.Interface, options Options) string {
+	return newEncoder(options, data).format()
 }
 
 // Anything returns a string representation of any given value
 // as either JSON or YAML depending on options.Style
 func Anything(data interface{}, options Options) string {
-	return newEncoder(options, data).format()
+	return newEncoder(options, value.New(data)).format()
 }
 
 // Template returns a string representation of a cfn.Template
 // as either JSON or YAML depending on options.Style
 func Template(t cfn.Template, options Options) string {
-	return newEncoder(options, t).format()
+	return newEncoder(options, value.New(t)).format()
 }
 
 // Diff returns a string representation of a diff.Diff.
@@ -56,11 +65,11 @@ func SortKeys(keys []string, path []interface{}) []string {
 	}
 
 	p := encoder{
-		Options:      Options{},
-		value:        value.New(data, nil),
-		path:         path,
-		currentValue: data,
+		Options: Options{},
+		value:   value.New(data),
+		path:    path,
 	}
+	p.get()
 
 	sorted := p.sortKeys()
 

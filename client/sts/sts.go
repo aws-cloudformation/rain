@@ -11,7 +11,8 @@ func getClient() *sts.Client {
 	return sts.New(client.Config())
 }
 
-func GetCallerId() (sts.GetCallerIdentityOutput, client.Error) {
+// GetCallerID returns the identity of the current IAM principal
+func GetCallerID() (sts.GetCallerIdentityOutput, client.Error) {
 	req := getClient().GetCallerIdentityRequest(nil)
 
 	res, err := req.Send(context.Background())
@@ -22,8 +23,9 @@ func GetCallerId() (sts.GetCallerIdentityOutput, client.Error) {
 	return *res.GetCallerIdentityOutput, nil
 }
 
-func GetAccountId() (string, client.Error) {
-	id, err := GetCallerId()
+// GetAccountID gets the account number of the current AWS account
+func GetAccountID() (string, client.Error) {
+	id, err := GetCallerID()
 	if err != nil {
 		return "", client.NewError(err)
 	}

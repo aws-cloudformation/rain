@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aws-cloudformation/rain/config"
 	"github.com/aws-cloudformation/rain/console"
+	"github.com/aws-cloudformation/rain/console/text"
 )
 
-var spin = []string{
-	`-`, `\`, `|`, `/`,
-}
+var spin = []string{"˙", "·", ".", " "}
+var drops = 3
 
 var spinRunning = false
 var spinHasTimer = false
@@ -29,7 +30,7 @@ func init() {
 					spinCount = (spinCount + 1) % len(spin)
 				}
 
-				time.Sleep(time.Second / 2)
+				time.Sleep(time.Second / 7)
 			}
 		}()
 	}
@@ -39,13 +40,20 @@ func spinUpdate() {
 	console.ClearLine()
 
 	if spinHasTimer {
-		fmt.Printf("%s %s %s",
-			spin[spinCount],
+		fmt.Printf("%s%s%s %s %s",
+			text.Blue(spin[spinCount]),
+			text.Blue(spin[(spinCount+3)%len(spin)]),
+			text.Blue(spin[(spinCount+5)%len(spin)]),
 			time.Now().Sub(spinStartTime).Truncate(time.Second),
 			spinStatus,
 		)
 	} else {
-		fmt.Printf("%s %s", spin[spinCount], spinStatus)
+		fmt.Printf("%s %s%s%s",
+			spinStatus,
+			text.Blue(spin[spinCount]),
+			text.Blue(spin[(spinCount+3)%len(spin)]),
+			text.Blue(spin[(spinCount+5)%len(spin)]),
+		)
 	}
 }
 
@@ -53,6 +61,8 @@ func spinUpdate() {
 func Status(status string) {
 	spinRunning = true
 	spinStatus = status
+
+	config.Debugf(status)
 }
 
 // Timer enables the spinner and displays a timer counting upwards from 0
@@ -71,10 +81,12 @@ func Stop() {
 	console.ClearLine()
 }
 
+// Pause stops the spinner until Resume is called
 func Pause() {
 	spinRunning = false
 }
 
+// Resume causes the spinner to restart following a call to Pause
 func Resume() {
 	spinRunning = true
 }

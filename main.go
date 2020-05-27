@@ -19,6 +19,7 @@ import (
 	"os"
 
 	"github.com/aws-cloudformation/rain/cmd"
+	"github.com/aws-cloudformation/rain/config"
 	"github.com/aws-cloudformation/rain/console/spinner"
 	"github.com/aws-cloudformation/rain/console/text"
 )
@@ -28,6 +29,10 @@ func main() {
 		spinner.Stop()
 
 		if r := recover(); r != nil {
+			if config.Debug {
+				panic(r)
+			}
+
 			fmt.Println(text.Red(fmt.Sprint(r)))
 			os.Exit(1)
 		}

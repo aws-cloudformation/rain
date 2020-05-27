@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cfn/diff"
+	"github.com/aws-cloudformation/rain/cfn/value"
 )
 
 const indent = "  "
@@ -17,7 +18,7 @@ func formatDiff(d diff.Diff, path []interface{}, long bool) string {
 	case diff.Map:
 		return formatMap(v, path, long)
 	case diff.Value:
-		return Anything(v.Value(), Options{Compact: true})
+		return Value(value.New(v.Value()), Options{Compact: true})
 	}
 
 	panic(fmt.Sprintf("Unexpected %#v\n", d))

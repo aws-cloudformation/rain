@@ -38,9 +38,24 @@ func findRefs(t map[string]interface{}) []string {
 					refs = append(refs, groups[1])
 				}
 			case []interface{}:
-				if parts, ok := v[1].(map[string]interface{}); ok {
-					for _, part := range parts {
-						refs = append(refs, part.(string))
+				switch {
+				case len(v) != 2:
+					fmt.Printf("Malformed Sub: %T\n", v)
+				default:
+					switch parts := v[1].(type) {
+					case map[string]interface{}:
+						for _, part := range parts {
+							switch p := part.(type) {
+							case string:
+								refs = append(refs, p)
+							case map[string]interface{}:
+								refs = append(refs, findRefs(p)...)
+							default:
+								fmt.Printf("Malformed Sub: %T\n", v)
+							}
+						}
+					default:
+						fmt.Printf("Malfored Sub: %T\n", v)
 					}
 				}
 			default:

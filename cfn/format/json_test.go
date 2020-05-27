@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/aws-cloudformation/rain/cfn/format"
+	"github.com/aws-cloudformation/rain/cfn/value"
 )
 
 func TestJsonScalars(t *testing.T) {
@@ -199,36 +200,35 @@ func TestJsonComments(t *testing.T) {
 		},
 	}
 
-	commentCases := []map[interface{}]interface{}{
-		{},
-		{"": "Top-level comment"},
-		{"foo": "This is foo"},
-		{"baz": "This is baz"},
-		{"baz": map[string]interface{}{"": "This is also baz"}},
-		{"baz": map[string]interface{}{"quux": "This is quux"}},
-		{"xyzzy": "This is xyzzy"},
-		{"xyzzy": map[string]interface{}{"": "This is also xyzzy"}},
-		{"xyzzy": map[interface{}]interface{}{0: "This is lorem"}}, // BUGGGGGGG
+	comments := []struct {
+		path  []interface{}
+		value string
+	}{
+		{[]interface{}{}, "Top-level comment"},
+		{[]interface{}{"foo"}, "This is foo"},
+		{[]interface{}{"baz"}, "This is baz"},
+		{[]interface{}{"baz", "quux"}, "This is quux"},
+		{[]interface{}{"xyzzy"}, "This is xyzzy"},
+		{[]interface{}{"xyzzy", 0}, "This is lorem"},
 	}
 
 	expecteds := []string{
-		"{\n    \"baz\": {\n        \"quux\": \"mooz\"\n    },\n\n    \"foo\": \"bar\",\n\n    \"xyzzy\": [\n        \"lorem\"\n    ]\n}",
 		"{  // Top-level comment\n    \"baz\": {\n        \"quux\": \"mooz\"\n    },\n\n    \"foo\": \"bar\",\n\n    \"xyzzy\": [\n        \"lorem\"\n    ]\n}",
 		"{\n    \"baz\": {\n        \"quux\": \"mooz\"\n    },\n\n    \"foo\": \"bar\",  // This is foo\n\n    \"xyzzy\": [\n        \"lorem\"\n    ]\n}",
 		"{\n    \"baz\": {  // This is baz\n        \"quux\": \"mooz\"\n    },\n\n    \"foo\": \"bar\",\n\n    \"xyzzy\": [\n        \"lorem\"\n    ]\n}",
-		"{\n    \"baz\": {  // This is also baz\n        \"quux\": \"mooz\"\n    },\n\n    \"foo\": \"bar\",\n\n    \"xyzzy\": [\n        \"lorem\"\n    ]\n}",
 		"{\n    \"baz\": {\n        \"quux\": \"mooz\"  // This is quux\n    },\n\n    \"foo\": \"bar\",\n\n    \"xyzzy\": [\n        \"lorem\"\n    ]\n}",
 		"{\n    \"baz\": {\n        \"quux\": \"mooz\"\n    },\n\n    \"foo\": \"bar\",\n\n    \"xyzzy\": [  // This is xyzzy\n        \"lorem\"\n    ]\n}",
-		"{\n    \"baz\": {\n        \"quux\": \"mooz\"\n    },\n\n    \"foo\": \"bar\",\n\n    \"xyzzy\": [  // This is also xyzzy\n        \"lorem\"\n    ]\n}",
 		"{\n    \"baz\": {\n        \"quux\": \"mooz\"\n    },\n\n    \"foo\": \"bar\",\n\n    \"xyzzy\": [\n        \"lorem\"  // This is lorem\n    ]\n}",
 	}
 
-	for i, comments := range commentCases {
+	for i, comment := range comments {
 		expected := expecteds[i]
 
-		actual := format.Anything(data, format.Options{
-			Style:    format.JSON,
-			Comments: comments,
+		v := value.New(data)
+		v.Get(comment.path...).SetComment(comment.value)
+
+		actual := format.Value(v, format.Options{
+			Style: format.JSON,
 		})
 
 		if actual != expected {

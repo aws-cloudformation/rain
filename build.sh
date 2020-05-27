@@ -13,6 +13,7 @@ declare -A PLATFORMS=([linux]=linux [darwin]=osx [windows]=windows)
 declare -A ARCHITECTURES=([386]=i386 [amd64]=amd64)
 
 # Run tests first
+golint ./... || exit 1
 go vet ./... || exit 1
 go test ./... || exit 1
 

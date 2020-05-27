@@ -2,61 +2,77 @@ package cmd
 
 import (
 	"fmt"
-	"os"
+	"strings"
 
-	"github.com/aws-cloudformation/rain/client"
-	"github.com/aws-cloudformation/rain/client/sts"
-	"github.com/aws-cloudformation/rain/config"
-	"github.com/aws-cloudformation/rain/console/spinner"
+	"github.com/aws-cloudformation/rain/cfn/parse"
+	"github.com/aws-cloudformation/rain/cfn/value"
 	"github.com/aws-cloudformation/rain/console/text"
 	"github.com/spf13/cobra"
 )
 
-var checkCreds = false
+func formatMessages(m value.Interface) string {
+	out := strings.Builder{}
 
-var checkCmd = &cobra.Command{
-	Use:                   "check",
-	Short:                 "Show your current configuration",
-	Long:                  "Take a rain check.\n\nDisplay the AWS account and region that you're configured to use.\n\nAnd do nothing else for now :)",
-	DisableFlagsInUseLine: true,
-	Run: func(cmd *cobra.Command, args []string) {
-		spinner.Status("Getting identity...")
-		id, err := sts.GetCallerId()
-		if err != nil {
-			panic(fmt.Errorf("Unable to load identity: %s", err))
-		}
-		spinner.Stop()
+	var path []interface{}
 
-		fmt.Println("Account: ", text.Yellow(*id.Account))
-		fmt.Println("Region:  ", text.Yellow(client.Config().Region))
-		fmt.Println("Identity:", text.Yellow(*id.Arn))
+	if m.Comment() != "" {
+		out.WriteString(fmt.Sprintf(" %s", text.Red(m.Comment())))
+	}
 
-		if config.Profile != "" {
-			fmt.Println("Profile: ", text.Yellow(config.Profile))
-		} else if profile, ok := os.LookupEnv("AWS_PROFILE"); ok {
-			fmt.Println("Profile: ", text.Yellow(profile))
-		}
+	for _, node := range m.Nodes() {
+		if node.Content.Comment() != "" {
+			for i, part := range node.Path {
+				if i >= len(path) || part != path[i] {
+					out.WriteString("\n")
 
-		if checkCreds {
-			fmt.Println()
-			c, err := client.Config().Credentials.Retrieve()
-			if err == nil {
-				fmt.Println("Credentials:")
-				fmt.Println("  Source:         ", text.Yellow(c.Source))
-				fmt.Println("  AccessKeyId:    ", text.Yellow(c.AccessKeyID))
-				fmt.Println("  SecretAccessKey:", text.Yellow(c.SecretAccessKey))
-				if c.SessionToken != "" {
-					fmt.Println("  SessionToken:   ", text.Yellow(c.SessionToken))
-				}
-				if !c.Expires.IsZero() {
-					fmt.Println("  Expires:        ", text.Yellow(fmt.Sprint(c.Expires)))
+					out.WriteString(fmt.Sprintf("%s%s:",
+						strings.Repeat("  ", i+1),
+						text.Orange(fmt.Sprint(part)),
+					))
+
+					if i == len(node.Path)-1 {
+						out.WriteString(fmt.Sprintf(" %s", text.Red(node.Content.Comment())))
+					}
 				}
 			}
+			path = node.Path
+		}
+	}
+
+	return out.String()
+}
+
+var checkCmd = &cobra.Command{
+	Use:                   "check <template file>",
+	Short:                 "Validate a CloudFormation template against the spec",
+	Long:                  "Reads the specified CloudFormation template and validates it against the current CloudFormation specification.",
+	Args:                  cobra.ExactArgs(1),
+	Annotations:           templateAnnotation,
+	DisableFlagsInUseLine: true,
+	Run: func(cmd *cobra.Command, args []string) {
+		fn := args[0]
+
+		t, err := parse.File(fn)
+		if err != nil {
+			panic(fmt.Errorf("Unable to parse template '%s': %s", fn, err))
+		}
+
+		out, ok := t.Check()
+
+		messages := formatMessages(out)
+
+		if ok {
+			if len(messages) == 0 {
+				fmt.Printf("%s: ok\n", fn)
+			} else {
+				fmt.Printf("%s: ok but with warnings%s", fn, messages)
+			}
+		} else {
+			panic(fmt.Sprintf("%s: not ok%s", fn, messages))
 		}
 	},
 }
 
 func init() {
-	checkCmd.Flags().BoolVarP(&checkCreds, "creds", "c", false, "Include current AWS credentials in check output")
 	Root.AddCommand(checkCmd)
 }

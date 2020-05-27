@@ -12,6 +12,7 @@ func getClient() *ec2.Client {
 	return ec2.New(client.Config())
 }
 
+// GetRegions returns all region names as strings
 func GetRegions() ([]string, client.Error) {
 	req := getClient().DescribeRegionsRequest(&ec2.DescribeRegionsInput{})
 

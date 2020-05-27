@@ -10,16 +10,29 @@ import (
 
 type encoder struct {
 	Options
-	value          value.Value
-	path           []interface{}
-	currentValue   interface{}
-	currentComment string
+	value        value.Interface
+	path         []interface{}
+	currentValue value.Interface
 }
 
-func newEncoder(options Options, data interface{}) encoder {
+func newEncoder(options Options, data value.Interface) encoder {
+	// Add comments if we have them
+	if options.Comments != nil {
+		for _, node := range value.New(options.Comments).Nodes() {
+			if comment, ok := node.Content.Value().(string); ok {
+				path := node.Path
+				if path[len(path)-1] == "" {
+					path = path[:len(path)-1]
+				}
+
+				data.Get(path...).SetComment(comment)
+			}
+		}
+	}
+
 	p := encoder{
 		Options: options,
-		value:   value.New(data, options.Comments),
+		value:   data,
 		path:    make([]interface{}, 0),
 	}
 
@@ -30,7 +43,6 @@ func newEncoder(options Options, data interface{}) encoder {
 
 func (p *encoder) get() {
 	p.currentValue = p.value.Get(p.path...)
-	p.currentComment = p.value.GetComment(p.path...)
 }
 
 func (p *encoder) push(key interface{}) {
@@ -76,7 +88,7 @@ func (p encoder) formatIntrinsic(key string) string {
 
 	fmtValue := p.format()
 
-	switch v := p.currentValue.(type) {
+	switch v := p.currentValue.Value().(type) {
 	case []interface{}:
 		// Deal with GetAtt
 		if shortKey == "GetAtt" {
@@ -123,8 +135,8 @@ func (p encoder) formatMap(data map[string]interface{}) string {
 				isScalar = false
 			}
 
-			if p.currentComment != "" && isScalar {
-				fmtValue += "  // " + p.currentComment
+			if p.currentValue.Comment() != "" && isScalar {
+				fmtValue += "  // " + p.currentValue.Comment()
 			}
 		} else {
 			needsIndent := false
@@ -146,14 +158,14 @@ func (p encoder) formatMap(data map[string]interface{}) string {
 			}
 
 			if needsIndent {
-				if p.currentComment != "" {
-					fmtValue = fmt.Sprintf("%s:  # %s\n  %s", key, p.currentComment, p.indent(fmtValue))
+				if p.currentValue.Comment() != "" {
+					fmtValue = fmt.Sprintf("%s:  # %s\n  %s", key, p.currentValue.Comment(), p.indent(fmtValue))
 				} else {
 					fmtValue = fmt.Sprintf("%s:\n  %s", key, p.indent(fmtValue))
 				}
 			} else {
-				if p.currentComment != "" {
-					fmtValue = fmt.Sprintf("%s: %s  # %s", key, fmtValue, p.currentComment)
+				if p.currentValue.Comment() != "" {
+					fmtValue = fmt.Sprintf("%s: %s  # %s", key, fmtValue, p.currentValue.Comment())
 				} else {
 					fmtValue = fmt.Sprintf("%s: %s", key, fmtValue)
 				}
@@ -172,8 +184,8 @@ func (p encoder) formatMap(data map[string]interface{}) string {
 	}
 
 	if p.Style == JSON {
-		if p.currentComment != "" {
-			return "{  // " + p.currentComment + "\n" + p.indent(strings.Join(parts, joiner)) + "\n}"
+		if p.currentValue.Comment() != "" {
+			return "{  // " + p.currentValue.Comment() + "\n" + p.indent(strings.Join(parts, joiner)) + "\n}"
 		}
 
 		return "{\n" + p.indent(strings.Join(parts, joiner)) + "\n}"
@@ -182,8 +194,8 @@ func (p encoder) formatMap(data map[string]interface{}) string {
 	output := strings.Join(parts, joiner)
 
 	// Add a top-level comment for yaml
-	if p.currentComment != "" && len(p.path) == 0 {
-		output = "# " + p.currentComment + "\n" + output
+	if p.currentValue.Comment() != "" && len(p.path) == 0 {
+		output = "# " + p.currentValue.Comment() + "\n" + output
 	}
 
 	return output
@@ -206,11 +218,11 @@ func (p encoder) formatList(data []interface{}) string {
 			parts[i] = fmt.Sprintf("- %s", p.indent(fmtValue))
 		}
 
-		if p.currentComment != "" {
+		if p.currentValue.Comment() != "" {
 			if p.Style == JSON {
-				parts[i] += "  // " + p.currentComment
+				parts[i] += "  // " + p.currentValue.Comment()
 			} else {
-				parts[i] += "  # " + p.currentComment
+				parts[i] += "  # " + p.currentValue.Comment()
 			}
 		}
 
@@ -218,8 +230,8 @@ func (p encoder) formatList(data []interface{}) string {
 	}
 
 	if p.Style == JSON {
-		if p.currentComment != "" {
-			return "[  // " + p.currentComment + "\n" + strings.Join(parts, ",\n") + "\n]"
+		if p.currentValue.Comment() != "" {
+			return "[  // " + p.currentValue.Comment() + "\n" + strings.Join(parts, ",\n") + "\n]"
 		}
 
 		return "[\n" + strings.Join(parts, ",\n") + "\n]"
@@ -229,9 +241,9 @@ func (p encoder) formatList(data []interface{}) string {
 }
 
 func (p encoder) format() string {
-	switch v := p.currentValue.(type) {
+	switch v := p.currentValue.Value().(type) {
 	case cfn.Template:
-		return p.formatMap(v)
+		return p.formatMap(v.Map())
 	case map[string]interface{}:
 		return p.formatMap(v)
 	case []interface{}:

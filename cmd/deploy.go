@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cfn/diff"
@@ -16,17 +18,26 @@ import (
 	"github.com/aws-cloudformation/rain/console"
 	"github.com/aws-cloudformation/rain/console/spinner"
 	"github.com/aws-cloudformation/rain/console/text"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/spf13/cobra"
 )
 
-var force = false
+var detachDeploy bool
+var forceDeploy bool
+var params []string
 var tags []string
 
-func formatChangeSet(changes []cloudformation.Change) string {
+var fixStackNameRe *regexp.Regexp
+
+const maxStackNameLength = 128
+
+func formatChangeSet(status *cloudformation.DescribeChangeSetResponse) string {
 	out := strings.Builder{}
 
-	for _, change := range changes {
+	out.WriteString(fmt.Sprintf("Stack \"%s\": %s\n", aws.StringValue(status.StackName), aws.StringValue(status.StatusReason)))
+
+	for _, change := range status.Changes {
 		line := fmt.Sprintf("%s %s\n",
 			*change.ResourceChange.ResourceType,
 			*change.ResourceChange.LogicalResourceId,
@@ -45,7 +56,7 @@ func formatChangeSet(changes []cloudformation.Change) string {
 	return out.String()
 }
 
-func getParameters(t string, old []cloudformation.Parameter, forceOldValue bool) []cloudformation.Parameter {
+func getParameters(t string, cliParams map[string]string, old []cloudformation.Parameter, forceOldValue bool) []cloudformation.Parameter {
 	newParams := make([]cloudformation.Parameter, 0)
 
 	template, err := parse.String(t)
@@ -59,48 +70,59 @@ func getParameters(t string, old []cloudformation.Parameter, forceOldValue bool)
 	}
 
 	if params, ok := template.Map()["Parameters"]; ok {
+		// Check we don't have any unknown params
+		for k := range cliParams {
+			if _, ok := params.(map[string]interface{})[k]; !ok {
+				panic(fmt.Errorf("Unknown parameter: %s", k))
+			}
+		}
+
+		// Decide on a default value
 		for k, p := range params.(map[string]interface{}) {
 			// New variable so we don't mess up the pointers below
-			key := k
-
-			extra := ""
 			param := p.(map[string]interface{})
 
-			hasExisting := false
-
 			value := ""
+			usePrevious := false
 
-			if oldParam, ok := oldMap[key]; ok {
-				extra = fmt.Sprintf(" (existing value: %s)", fmt.Sprint(*oldParam.ParameterValue))
-				hasExisting = true
+			// Decide if we have an existing value
+			if cliParam, ok := cliParams[k]; ok {
+				value = cliParam
+			} else {
+				extra := ""
 
-				if forceOldValue {
-					value = *oldParam.ParameterValue
+				if oldParam, ok := oldMap[k]; ok {
+					extra = fmt.Sprintf(" (existing value: %s)", fmt.Sprint(*oldParam.ParameterValue))
+
+					if forceOldValue {
+						usePrevious = true
+					} else {
+						value = *oldParam.ParameterValue
+					}
+				} else if defaultValue, ok := param["Default"]; ok {
+					extra = fmt.Sprintf(" (default value: %s)", fmt.Sprint(defaultValue))
+					value = fmt.Sprint(defaultValue)
+				} else if forceDeploy {
+					panic(fmt.Errorf("No default or existing value for parameter '%s'. Set a default, supply a --param flag, or deploy without the --force flag", k))
 				}
-			} else if defaultValue, ok := param["Default"]; ok {
-				extra = fmt.Sprintf(" (default value: %s)", fmt.Sprint(defaultValue))
+
+				if !forceDeploy {
+					newValue := console.Ask(fmt.Sprintf("Enter a value for parameter '%s'%s:", k, extra))
+					if newValue != "" {
+						value = newValue
+					}
+				}
 			}
 
-			if force {
-				panic(fmt.Errorf("Some parameters require values. Set defaults or deploy without the --force flag."))
-			}
-
-			newValue := console.Ask(fmt.Sprintf("Enter a value for parameter '%s'%s:", key, extra))
-
-			if newValue != "" {
+			if usePrevious {
 				newParams = append(newParams, cloudformation.Parameter{
-					ParameterKey:   &key,
-					ParameterValue: &newValue,
+					ParameterKey:     aws.String(k),
+					UsePreviousValue: aws.Bool(true),
 				})
-			} else if value != "" && forceOldValue {
+			} else {
 				newParams = append(newParams, cloudformation.Parameter{
-					ParameterKey:   &key,
-					ParameterValue: &value,
-				})
-			} else if hasExisting {
-				newParams = append(newParams, cloudformation.Parameter{
-					ParameterKey:     &key,
-					UsePreviousValue: &hasExisting,
+					ParameterKey:   aws.String(k),
+					ParameterValue: aws.String(value),
 				})
 			}
 		}
@@ -109,34 +131,60 @@ func getParameters(t string, old []cloudformation.Parameter, forceOldValue bool)
 	return newParams
 }
 
+func listToMap(name string, in []string) map[string]string {
+	out := make(map[string]string, len(in))
+	for _, v := range in {
+		parts := strings.SplitN(v, "=", 2)
+
+		if len(parts) != 2 {
+			panic(fmt.Errorf("Unable to parse %s: %s", name, v))
+		}
+
+		key := strings.TrimSpace(parts[0])
+		value := strings.TrimSpace(parts[1])
+
+		if _, ok := out[key]; ok {
+			panic(fmt.Errorf("Duplicate %s: %s", name, key))
+		}
+
+		out[key] = value
+	}
+
+	return out
+}
+
 var deployCmd = &cobra.Command{
-	Use:                   "deploy <template> <stack>",
-	Short:                 "Deploy a CloudFormation stack from a local template",
-	Long:                  "Creates or updates a CloudFormation stack named <stack> from the template file <template>.",
-	Args:                  cobra.ExactArgs(2),
+	Use:   "deploy <template> [stack]",
+	Short: "Deploy a CloudFormation stack from a local template",
+	Long: `Creates or updates a CloudFormation stack named <stack> from the template file <template>.
+If you don't specify a stack name, rain will use the template filename minus its extension.`,
+	Args:                  cobra.RangeArgs(1, 2),
+	Annotations:           stackAnnotation,
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		fn := args[0]
-		stackName := args[1]
+
+		var stackName string
+
+		if len(args) == 2 {
+			stackName = args[1]
+		} else {
+			base := path.Base(fn)
+			stackName = base[:len(base)-len(path.Ext(base))]
+
+			// Now ensure it's a valid cfn name
+			stackName = fixStackNameRe.ReplaceAllString(stackName, "-")
+
+			if len(stackName) > maxStackNameLength {
+				stackName = stackName[:maxStackNameLength]
+			}
+		}
 
 		// Parse tags
-		parsedTags := make(map[string]string, len(tags))
-		for _, tag := range tags {
-			parts := strings.SplitN(tag, "=", 2)
+		parsedTags := listToMap("tag", tags)
 
-			if len(parts) != 2 {
-				panic(fmt.Errorf("Unable to parse tag: %s", tag))
-			}
-
-			key := strings.TrimSpace(parts[0])
-			value := strings.TrimSpace(parts[1])
-
-			if _, ok := parsedTags[key]; ok {
-				panic(fmt.Errorf("Duplicate tag: %s", key))
-			}
-
-			parsedTags[key] = value
-		}
+		// Parse params
+		parsedParams := listToMap("param", params)
 
 		fmt.Printf("Deploying '%s' as '%s' in %s:\n", filepath.Base(fn), stackName, client.Config().Region)
 
@@ -168,13 +216,16 @@ var deployCmd = &cobra.Command{
 		console.ClearLine()
 		fmt.Printf("Checking current status of stack '%s'... ", stackName)
 
+		// Used to copy parameters across from a stack that we delete and re-do
 		forceOldParams := false
 
 		// Find out if stack exists already
 		// If it does and it's not in a good state, offer to wait/delete
 		stack, err := cfn.GetStack(stackName)
+
 		stackExists := false
 		if err == nil {
+			config.Debugf("Stack exists")
 			stackExists = true
 		}
 
@@ -196,7 +247,7 @@ var deployCmd = &cobra.Command{
 			} else if !strings.HasSuffix(string(stack.StackStatus), "_COMPLETE") {
 				// Can't update
 				panic(fmt.Errorf("Stack '%s' could not be updated: %s", stackName, colouriseStatus(string(stack.StackStatus))))
-			} else if !force {
+			} else if !forceDeploy {
 				// Can update, grab a diff
 
 				oldTemplateString, err := cfn.GetStackTemplate(stackName, false)
@@ -209,73 +260,85 @@ var deployCmd = &cobra.Command{
 
 				d := oldTemplate.Diff(newTemplate)
 
-				if d.Mode() == diff.Unchanged {
-					fmt.Println(text.Green("No changes to deploy!"))
-					return
-				}
-
-				console.ClearLine()
-				if console.Confirm(true, fmt.Sprintf("Stack '%s' exists. Do you wish to compare the CloudFormation templates?", stackName)) {
-					fmt.Print(colouriseDiff(d, false))
+				if d.Mode() != diff.Unchanged {
+					console.ClearLine()
+					if console.Confirm(true, fmt.Sprintf("Stack '%s' exists. Do you wish to compare the CloudFormation templates?", stackName)) {
+						fmt.Print(colouriseDiff(d, false))
+					}
 				}
 			}
 		}
 
 		// Load in the template file
+		config.Debugf("Loading template file")
 		t, err := ioutil.ReadFile(outputFn.Name())
 		if err != nil {
 			panic(fmt.Errorf("Can't load template '%s': %s", outputFn.Name(), err))
 		}
 		template := string(t)
 
-		parameters := getParameters(template, stack.Parameters, forceOldParams)
+		config.Debugf("Handling parameters")
+		parameters := getParameters(template, parsedParams, stack.Parameters, forceOldParams)
 
 		config.Debugf("Parameters: %s", parameters)
 
 		// Create a change set
-		spinner.Status("Creating change set...")
-		changeSetName, err := cfn.CreateChangeSet(template, parameters, parsedTags, stackName)
-		if err != nil {
-			panic(fmt.Errorf("Error while creating changeset for '%s': %s", stackName, err))
+		spinner.Status("Creating change set")
+		changeSetName, createErr := cfn.CreateChangeSet(template, parameters, parsedTags, stackName)
+		if createErr != nil {
+			panic(fmt.Errorf("Error creating changeset: %s", createErr))
 		}
-		changes, err := cfn.GetChangeSet(stackName, changeSetName)
+
+		changeSetStatus, err := cfn.GetChangeSet(stackName, changeSetName)
 		if err != nil {
-			panic(fmt.Errorf("Error while retrieving changeset '%s': %s", changeSetName, err))
+			panic(fmt.Errorf("Error getting changeset status: %s", formatChangeSet(changeSetStatus)))
 		}
+
 		spinner.Stop()
 
-		fmt.Println("CloudFormation will make the following changes:")
-		fmt.Println(formatChangeSet(changes))
+		if !forceDeploy {
+			fmt.Println("CloudFormation will make the following changes:")
+			fmt.Println(formatChangeSet(changeSetStatus))
 
-		if !force && !console.Confirm(true, "Do you wish to continue?") {
-			err = cfn.DeleteChangeSet(stackName, changeSetName)
-			if err != nil {
-				panic(fmt.Errorf("Error while deleting changeset '%s': %s", changeSetName, err))
-			}
-
-			if !stackExists {
-				err = cfn.DeleteStack(stackName)
+			if !console.Confirm(true, "Do you wish to continue?") {
+				err = cfn.DeleteChangeSet(stackName, changeSetName)
 				if err != nil {
-					panic(fmt.Errorf("Error deleting empty stack '%s': %s", stackName, err))
+					panic(fmt.Errorf("Error while deleting changeset '%s': %s", changeSetName, err))
 				}
-			}
 
-			panic(errors.New("User cancelled deployment."))
-		} else {
-			err = cfn.ExecuteChangeSet(stackName, changeSetName)
-			if err != nil {
-				panic(fmt.Errorf("Error while executing changeset '%s': %s", changeSetName, err))
+				if !stackExists {
+					err = cfn.DeleteStack(stackName)
+					if err != nil {
+						panic(fmt.Errorf("Error deleting empty stack '%s': %s", stackName, err))
+					}
+				}
+
+				panic(errors.New("User cancelled deployment"))
 			}
 		}
 
-		status := waitForStackToSettle(stackName)
+		// Deploy!
+		err = cfn.ExecuteChangeSet(stackName, changeSetName)
+		if err != nil {
+			panic(fmt.Errorf("Error while executing changeset '%s': %s", changeSetName, err))
+		}
 
-		if status == "CREATE_COMPLETE" {
-			fmt.Println(text.Green("Successfully deployed " + stackName))
-		} else if status == "UPDATE_COMPLETE" {
-			fmt.Println(text.Green("Successfully updated " + stackName))
+		if detachDeploy {
+			fmt.Printf("Detaching. You can check your stack's status with: rain watch %s\n", stackName)
 		} else {
-			panic(errors.New("Failed deployment: " + stackName))
+			status := waitForStackToSettle(stackName)
+
+			stack, _ = cfn.GetStack(stackName)
+			console.Clear(getStackOutput(stack, false))
+
+			if status == "CREATE_COMPLETE" {
+				fmt.Println(text.Green("Successfully deployed " + stackName))
+			} else if status == "UPDATE_COMPLETE" {
+				fmt.Println(text.Green("Successfully updated " + stackName))
+			} else {
+				logsCmd.Run(Root, []string{stackName})
+				panic(errors.New("Failed deployment: " + stackName))
+			}
 		}
 
 		fmt.Println()
@@ -283,7 +346,11 @@ var deployCmd = &cobra.Command{
 }
 
 func init() {
-	deployCmd.Flags().BoolVarP(&force, "force", "f", false, "Don't ask questions; just deploy.")
+	fixStackNameRe = regexp.MustCompile(`[^a-zA-Z0-9]+`)
+
+	deployCmd.Flags().BoolVarP(&detachDeploy, "detach", "d", false, "Once deployment has started, don't wait around for it to finish.")
+	deployCmd.Flags().BoolVarP(&forceDeploy, "force", "f", false, "Don't ask questions; just deploy.")
 	deployCmd.Flags().StringSliceVar(&tags, "tags", []string{}, "Add tags to the stack. Use the format key1=value1,key2=value2.")
+	deployCmd.Flags().StringSliceVar(&params, "params", []string{}, "Set parameter values. Use the format key1=value1,key2=value2.")
 	Root.AddCommand(deployCmd)
 }

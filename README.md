@@ -2,15 +2,15 @@
 
 # Rain
 
-Rain is a development workflow tool for working with AWS CloudFormation.
+> Rain is what happens when you have a lot of CloudFormation
 
-*Rain is currently in preview and shouldn't yet be considered stable enough for production use. Please report any bugs you find [through GitHub issues](https://github.com/aws-cloudformation/rain/issues).*
+*Rain is currently in preview and shouldn't yet be considered stable enough for production use.*
 
-> Rain is also what happens when you have a lot of CloudFormation
+Please report any bugs you find [through GitHub issues](https://github.com/aws-cloudformation/rain/issues).
 
 You can read the full documentation at <https://aws-cloudformation.github.io/rain/>.
 
-Here's what it looks like:
+Here's what rain looks like:
 
 [![Make it Rain](https://asciinema.org/a/269609.png)](https://asciinema.org/a/269609?autoplay=1)
 
@@ -24,6 +24,8 @@ Alternatively, if you have [Go](https://golang.org) (v1.12 or higher) installed:
 
 You can find shell completion scripts in [docs/bash_completion.sh](./docs/bash_completion.sh) and [docs/zsh_completion.sh](./docs/zsh_completion.sh).
 
+Rain requires the [AWS CLI](https://aws.amazon.com/cli/) to package CloudFormation templates for deployment. (See the `[aws cloudformation package](https://docs.aws.amazon.com/cli/latest/reference/cloudformation/package.html) command for details.)
+
 ## License
 
 Rain is licensed under the Apache 2.0 License. 
@@ -32,33 +34,38 @@ Rain is licensed under the Apache 2.0 License.
 
 You will need to make sure you have installed and configured [the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-welcome.html) as rain uses the same credentials and configuration.
 
-Rain is composed of a number of sub-commands. Invoke a command like this:
+Rain is composed of a number of sub-commands. Run `rain` without any arguments to get help.
 
 ```
-rain [command] [arguments...]
-```
+Usage:
+  rain [command]
 
-The following commands are available:
+Stack commands:
+  cat         Get the CloudFormation template from a running stack
+  deploy      Deploy a CloudFormation stack from a local template
+  logs        Show the event log for the named stack
+  ls          List running CloudFormation stacks
+  rm          Delete a running CloudFormation stack
+  watch       Display an updating view of a CloudFormation stack
 
-```
-cat          Get the CloudFormation template from a running stack
-check        Show your current configuration
-deploy       Deploy a CloudFormation stack from a local template
-diff         Compare CloudFormation templates
-fmt          Format CloudFormation templates
-help         Help about any command
-logs         Show the event log for the named stack
-ls           List running CloudFormation stacks
-rm           Delete a running CloudFormation stack
-tree         Find dependencies of Resources and Outputs in a local template
-version      Display the installed version of rain
-watch        Display an updating view of a CloudFormation stack
-```
+Template commands:
+  build       Create CloudFormation templates
+  check       Validate a CloudFormation template against the spec
+  diff        Compare CloudFormation templates
+  fmt         Format CloudFormation templates
+  tree        Find dependencies of Resources and Outputs in a local template
 
-You can get additional information about any command by running:
+Other Commands:
+  help        Help about any command
+  info        Show your current configuration
 
-```
-rain help [command]
+Flags:
+      --debug            Output debugging information
+  -h, --help             help for rain
+  -p, --profile string   AWS profile name; read from the AWS CLI configuration file
+  -r, --region string    AWS region to use
+
+Use "rain [command] --help" for more information about a command.
 ```
 
 ## Design Principles
