@@ -164,7 +164,7 @@ func Example_build_bucket() {
 	//             Status: CHANGEME
 	//       Tags:
 	//         - Key: CHANGEME
-	//           Value: CHANGEME  # Optional
+	//           Value: CHANGEME
 	//       VersioningConfiguration:
 	//         Status: CHANGEME
 	//       WebsiteConfiguration:

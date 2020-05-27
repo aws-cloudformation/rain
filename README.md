@@ -49,6 +49,7 @@ Stack commands:
   watch       Display an updating view of a CloudFormation stack
 
 Template commands:
+  build       Create CloudFormation templates
   check       Validate a CloudFormation template against the spec
   diff        Compare CloudFormation templates
   fmt         Format CloudFormation templates

@@ -250,6 +250,39 @@ __rain_handle_word()
     __rain_handle_word
 }
 
+_rain_build()
+{
+    last_command="rain_build"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--help")
+    flags+=("-h")
+    local_nonpersistent_flags+=("--help")
+    flags+=("--list")
+    flags+=("-l")
+    local_nonpersistent_flags+=("--list")
+    flags+=("--debug")
+    flags+=("--profile=")
+    two_word_flags+=("--profile")
+    two_word_flags+=("-p")
+    flags+=("--region=")
+    two_word_flags+=("--region")
+    two_word_flags+=("-r")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
 _rain_cat()
 {
     last_command="rain_cat"
@@ -627,6 +660,9 @@ _rain_watch()
     flags+=("--help")
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
+    flags+=("--wait")
+    flags+=("-w")
+    local_nonpersistent_flags+=("--wait")
     flags+=("--debug")
     flags+=("--profile=")
     two_word_flags+=("--profile")
@@ -647,6 +683,11 @@ _rain_root_command()
     command_aliases=()
 
     commands=()
+    commands+=("build")
+    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+        command_aliases+=("docs")
+        aliashash["docs"]="build"
+    fi
     commands+=("cat")
     commands+=("check")
     commands+=("deploy")

@@ -1,20 +1,20 @@
-## rain watch
+## rain build
 
-Display an updating view of a CloudFormation stack
+Create CloudFormation templates
 
 ### Synopsis
 
-Repeatedly displays the status of a CloudFormation stack. Useful for watching the progress of a deployment started from outside of Rain.
+Outputs a CloudFormation template containing the named resource types.
 
 ```
-rain watch <stack>
+rain build [<resource type>...]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for watch
-  -w, --wait   Wait for changes to begin rather than refusing to watch an unchanging stack
+  -h, --help   help for build
+  -l, --list   List all CloudFormation resource types
 ```
 
 ### Options inherited from parent commands
