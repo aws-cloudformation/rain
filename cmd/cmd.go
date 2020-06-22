@@ -26,17 +26,18 @@ var (
 	templateAnnotation = map[string]string{groupAnnotationLabel: templateGroup}
 )
 
-// Command is a local type that simply wraps cobra.Command
-type Command struct {
-	cobra.Command
-}
-
 // Root represents the base command when called without any subcommands
 var Root = &cobra.Command{
 	Use:     "rain",
 	Long:    "Rain is what happens when you have a lot of CloudFormation ;)",
 	Version: version.VERSION,
 }
+
+// Fmt is exposed to be available to the cfn-format command
+var Fmt = fmtCmd
+
+// Build is exposed to be available to the cfn-skeleton command
+var Build = buildCmd
 
 const usageTemplate = `Usage:{{if .Runnable}}
   {{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}
