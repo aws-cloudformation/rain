@@ -15,10 +15,16 @@ import (
 var buildListFlag = false
 
 var buildCmd = &cobra.Command{
-	Use:                   "build [<resource type>...]",
-	Short:                 "Create CloudFormation templates",
-	Long:                  "Outputs a CloudFormation template containing the named resource types.",
-	Aliases:               []string{"docs"},
+	Use:   "build [<resource type>...]",
+	Short: "Create CloudFormation templates",
+	Long:  "Outputs a CloudFormation template containing the named resource types.",
+	Args: func(cmd *cobra.Command, args []string) error {
+		if buildListFlag {
+			return nil
+		}
+
+		return cobra.MinimumNArgs(1)(cmd, args)
+	},
 	Annotations:           templateAnnotation,
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
