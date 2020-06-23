@@ -13,7 +13,7 @@ func Example_info_help() {
 		"info",
 	}
 
-	cmd.Execute()
+	cmd.Execute(cmd.Rain)
 	// Output:
 	// Display the AWS account and region that you're configured to use.
 	//

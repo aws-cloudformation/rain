@@ -13,7 +13,7 @@ func Example_build_bucket() {
 		"AWS::S3::Bucket",
 	}
 
-	cmd.Execute()
+	cmd.Execute(cmd.Rain)
 	// Output:
 	// AWSTemplateFormatVersion: "2010-09-09"
 	//

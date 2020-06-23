@@ -13,7 +13,7 @@ func Example_fmt_help() {
 		"fmt",
 	}
 
-	cmd.Execute()
+	cmd.Execute(cmd.Rain)
 	// Output:
 	// Reads the named template and outputs a nicely formatted copy.
 	//

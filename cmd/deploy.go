@@ -336,7 +336,7 @@ If you don't specify a stack name, rain will use the template filename minus its
 			} else if status == "UPDATE_COMPLETE" {
 				fmt.Println(text.Green("Successfully updated " + stackName))
 			} else {
-				logsCmd.Run(Root, []string{stackName})
+				logsCmd.Run(Rain, []string{stackName})
 				panic(errors.New("Failed deployment: " + stackName))
 			}
 		}
@@ -352,5 +352,5 @@ func init() {
 	deployCmd.Flags().BoolVarP(&forceDeploy, "force", "f", false, "Don't ask questions; just deploy.")
 	deployCmd.Flags().StringSliceVar(&tags, "tags", []string{}, "Add tags to the stack. Use the format key1=value1,key2=value2.")
 	deployCmd.Flags().StringSliceVar(&params, "params", []string{}, "Set parameter values. Use the format key1=value1,key2=value2.")
-	Root.AddCommand(deployCmd)
+	Rain.AddCommand(deployCmd)
 }

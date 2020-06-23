@@ -74,5 +74,5 @@ var checkCmd = &cobra.Command{
 }
 
 func init() {
-	Root.AddCommand(checkCmd)
+	Rain.AddCommand(checkCmd)
 }

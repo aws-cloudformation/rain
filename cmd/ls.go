@@ -125,5 +125,5 @@ var lsCmd = &cobra.Command{
 func init() {
 	lsCmd.Flags().BoolVarP(&allRegions, "all", "a", false, "List stacks across all regions")
 	lsCmd.Flags().BoolVarP(&showNested, "nested", "n", false, "Show nested stacks (hidden by default)")
-	Root.AddCommand(lsCmd)
+	Rain.AddCommand(lsCmd)
 }

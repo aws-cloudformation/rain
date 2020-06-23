@@ -29,7 +29,7 @@ func init() {
 				util.RunAttached(bin, "--help")
 			})
 
-			Root.AddCommand(cmd)
+			Rain.AddCommand(cmd)
 		}
 	}
 }

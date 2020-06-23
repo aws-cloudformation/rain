@@ -19,5 +19,7 @@ import (
 )
 
 func main() {
-	cmd.Execute(cmd.Rain)
+	root := cmd.Wrap("cfn-skeleton", cmd.Build)
+
+	cmd.Execute(root)
 }

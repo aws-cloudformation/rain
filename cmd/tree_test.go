@@ -13,7 +13,7 @@ func Example_tree() {
 		"../examples/success.template",
 	}
 
-	cmd.Execute()
+	cmd.Execute(cmd.Rain)
 	// Output:
 	// Resources:
 	//   Bucket1:

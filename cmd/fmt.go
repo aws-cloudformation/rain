@@ -76,5 +76,5 @@ func init() {
 	fmtCmd.Flags().BoolVarP(&jsonFlag, "json", "j", false, "Output the template as JSON (default format: YAML).")
 	fmtCmd.Flags().BoolVarP(&verifyFlag, "verify", "v", false, "Check if the input is already correctly formatted and exit.\nThe exit status will be 0 if so and 1 if not.")
 	fmtCmd.Flags().BoolVarP(&writeFlag, "write", "w", false, "Write the output back to the file rather than to stdout.")
-	Root.AddCommand(fmtCmd)
+	Rain.AddCommand(fmtCmd)
 }

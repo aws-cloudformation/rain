@@ -13,7 +13,7 @@ func Example_check_help() {
 		"check",
 	}
 
-	cmd.Execute()
+	cmd.Execute(cmd.Rain)
 	// Output:
 	// Reads the specified CloudFormation template and validates it against the current CloudFormation specification.
 	//

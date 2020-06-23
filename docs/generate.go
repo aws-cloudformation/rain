@@ -48,7 +48,7 @@ func identity(s string) string {
 }
 
 func main() {
-	err := doc.GenMarkdownTreeCustom(cmd.Root, "./", emptyStr, identity)
+	err := doc.GenMarkdownTreeCustom(cmd.Rain, "./", emptyStr, identity)
 	if err != nil {
 		panic(err)
 	}
@@ -60,8 +60,8 @@ func main() {
 
 	// Generate usage
 	usage := bytes.Buffer{}
-	cmd.Root.SetOutput(&usage)
-	cmd.Root.Usage()
+	cmd.Rain.SetOutput(&usage)
+	cmd.Rain.Usage()
 
 	// Generate README
 	buf := bytes.Buffer{}
@@ -74,6 +74,6 @@ func main() {
 
 	ioutil.WriteFile("../README.md", buf.Bytes(), 0644)
 
-	cmd.Root.GenBashCompletionFile("bash_completion.sh")
-	cmd.Root.GenZshCompletionFile("zsh_completion.sh")
+	cmd.Rain.GenBashCompletionFile("bash_completion.sh")
+	cmd.Rain.GenZshCompletionFile("zsh_completion.sh")
 }

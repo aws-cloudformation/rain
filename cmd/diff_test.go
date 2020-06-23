@@ -14,7 +14,7 @@ func Example_diff() {
 		"../examples/failure.template",
 	}
 
-	cmd.Execute()
+	cmd.Execute(cmd.Rain)
 	// Output:
 	// (>) Description: This template fails
 	// (-) Parameters: {...}
