@@ -81,5 +81,5 @@ var rmCmd = &cobra.Command{
 func init() {
 	rmCmd.Flags().BoolVarP(&detachRm, "detach", "d", false, "Once removal has started, don't wait around for it to finish.")
 	rmCmd.Flags().BoolVarP(&forceRm, "force", "f", false, "Do not ask; just delete")
-	Root.AddCommand(rmCmd)
+	Rain.AddCommand(rmCmd)
 }

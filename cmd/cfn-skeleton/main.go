@@ -15,43 +15,11 @@
 package main
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/aws-cloudformation/rain/cmd"
-	"github.com/aws-cloudformation/rain/config"
-	"github.com/aws-cloudformation/rain/console/spinner"
-	"github.com/aws-cloudformation/rain/console/text"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
-var root = &cobra.Command{
-	Use:  "cfn-skeleton [<resource type>...]",
-	Long: cmd.Build.Long,
-	Args: cmd.Build.Args,
-	Run:  cmd.Build.Run,
-}
-
 func main() {
-	defer func() {
-		spinner.Stop()
+	root := cmd.Wrap("cfn-skeleton", cmd.Build)
 
-		if r := recover(); r != nil {
-			if config.Debug {
-				panic(r)
-			}
-
-			fmt.Println(text.Red(fmt.Sprint(r)))
-			os.Exit(1)
-		}
-
-		os.Exit(0)
-	}()
-
-	cmd.Build.Flags().VisitAll(func(f *pflag.Flag) {
-		root.Flags().AddFlag(f)
-	})
-
-	root.Execute()
+	cmd.Execute(root)
 }

@@ -49,5 +49,5 @@ var watchCmd = &cobra.Command{
 
 func init() {
 	watchCmd.Flags().BoolVarP(&waitThenWatch, "wait", "w", false, "Wait for changes to begin rather than refusing to watch an unchanging stack")
-	Root.AddCommand(watchCmd)
+	Rain.AddCommand(watchCmd)
 }

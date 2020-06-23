@@ -58,5 +58,5 @@ var infoCmd = &cobra.Command{
 
 func init() {
 	infoCmd.Flags().BoolVarP(&checkCreds, "creds", "c", false, "Include current AWS credentials")
-	Root.AddCommand(infoCmd)
+	Rain.AddCommand(infoCmd)
 }

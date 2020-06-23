@@ -46,5 +46,5 @@ var catCmd = &cobra.Command{
 func init() {
 	catCmd.Flags().BoolVarP(&transformed, "transformed", "t", false, "Get the template with transformations applied by CloudFormation.")
 	catCmd.Flags().BoolVarP(&unformatted, "unformatted", "u", false, "Output the template in its raw form and do not attempt to format it.")
-	Root.AddCommand(catCmd)
+	Rain.AddCommand(catCmd)
 }

@@ -60,5 +60,5 @@ var buildCmd = &cobra.Command{
 
 func init() {
 	buildCmd.Flags().BoolVarP(&buildListFlag, "list", "l", false, "List all CloudFormation resource types")
-	Root.AddCommand(buildCmd)
+	Rain.AddCommand(buildCmd)
 }

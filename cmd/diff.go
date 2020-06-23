@@ -35,5 +35,5 @@ var diffCmd = &cobra.Command{
 
 func init() {
 	diffCmd.Flags().BoolVarP(&longDiff, "long", "l", false, "Include unchanged elements in diff output")
-	Root.AddCommand(diffCmd)
+	Rain.AddCommand(diffCmd)
 }
