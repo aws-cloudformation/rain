@@ -13,7 +13,7 @@ func Example_cat_help() {
 		"cat",
 	}
 
-	cmd.Execute()
+	cmd.Execute(cmd.Rain)
 	// Output:
 	// Downloads the template used to deploy <stack> and prints it to stdout.
 	//

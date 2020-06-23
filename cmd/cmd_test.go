@@ -18,7 +18,7 @@ func Example_rainhelp() {
 		os.Args[0],
 	}
 
-	cmd.Execute()
+	cmd.Execute(cmd.Rain)
 	// Output:
 	// Rain is what happens when you have a lot of CloudFormation ;)
 	//

@@ -13,7 +13,7 @@ func Example_watch_help() {
 		"watch",
 	}
 
-	cmd.Execute()
+	cmd.Execute(cmd.Rain)
 	// Output:
 	// Repeatedly displays the status of a CloudFormation stack. Useful for watching the progress of a deployment started from outside of Rain.
 	//

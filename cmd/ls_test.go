@@ -13,7 +13,7 @@ func Example_ls_help() {
 		"ls",
 	}
 
-	cmd.Execute()
+	cmd.Execute(cmd.Rain)
 	// Output:
 	// Displays a list of all running stacks or the contents of <stack> if provided.
 	//

@@ -13,7 +13,7 @@ func Example_rm_help() {
 		"rm",
 	}
 
-	cmd.Execute()
+	cmd.Execute(cmd.Rain)
 	// Output:
 	// Deletes the CloudFormation stack named <stack> and waits for the action to complete.
 	//

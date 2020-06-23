@@ -13,7 +13,7 @@ func Example_logs_help() {
 		"logs",
 	}
 
-	cmd.Execute()
+	cmd.Execute(cmd.Rain)
 	// Output:
 	// Shows a nicely-formatted list of the event log for the named stack, optionally limiting the results to a single resource.
 	//

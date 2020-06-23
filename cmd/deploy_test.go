@@ -13,7 +13,7 @@ func Example_deploy_help() {
 		"deploy",
 	}
 
-	cmd.Execute()
+	cmd.Execute(cmd.Rain)
 	// Output:
 	// Creates or updates a CloudFormation stack named <stack> from the template file <template>.
 	// If you don't specify a stack name, rain will use the template filename minus its extension.

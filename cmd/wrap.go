@@ -40,6 +40,9 @@ func addDefaults(c *cobra.Command) {
 	}
 }
 
+// Wrap creates a new command with the same functionality as src
+// but with a new name and default options added for executables
+// e.g. the --debug flag
 func Wrap(name string, src *cobra.Command) *cobra.Command {
 	use := strings.Split(src.Use, " ")
 	use[0] = name
