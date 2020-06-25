@@ -687,10 +687,6 @@ _rain_root_command()
 
     commands=()
     commands+=("build")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
-        command_aliases+=("docs")
-        aliashash["docs"]="build"
-    fi
     commands+=("cat")
     commands+=("check")
     commands+=("deploy")

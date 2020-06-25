@@ -6,45 +6,35 @@ import "github.com/aws-cloudformation/rain/cfn/spec/models"
 var Iam = models.Spec{
 	ResourceSpecificationVersion: "1.0.0",
 	PropertyTypes: map[string]models.PropertyType{
-		"Policy": models.PropertyType{
-			Properties: map[string]models.Property{
-				"Version": models.Property{
-					PrimitiveType: "String",
-				},
-				"Id": models.Property{
-					PrimitiveType: "String",
-				},
-				"Statement": models.Property{
-					ItemType: "Statement",
-					Type:     "List",
-				},
-			},
-		},
 		"Statement": models.PropertyType{
 			Properties: map[string]models.Property{
-				"NotResource": models.Property{
-					PrimitiveItemType: "String",
-					Type:              "List",
-				},
-				"Sid": models.Property{
-					PrimitiveType: "String",
-				},
-				"Principal": models.Property{
-					PrimitiveItemType: "String",
+				"Condition": models.Property{
+					PrimitiveItemType: "Json",
 					Type:              "Map",
 				},
 				"NotPrincipal": models.Property{
 					PrimitiveItemType: "String",
 					Type:              "Map",
 				},
-				"Effect": models.Property{
+				"Principal": models.Property{
+					PrimitiveItemType: "String",
+					Type:              "Map",
+				},
+				"Sid": models.Property{
 					PrimitiveType: "String",
 				},
 				"Action": models.Property{
 					PrimitiveItemType: "String",
 					Type:              "List",
 				},
+				"Effect": models.Property{
+					PrimitiveType: "String",
+				},
 				"NotAction": models.Property{
+					PrimitiveItemType: "String",
+					Type:              "List",
+				},
+				"NotResource": models.Property{
 					PrimitiveItemType: "String",
 					Type:              "List",
 				},
@@ -52,9 +42,19 @@ var Iam = models.Spec{
 					PrimitiveItemType: "String",
 					Type:              "List",
 				},
-				"Condition": models.Property{
-					PrimitiveItemType: "Json",
-					Type:              "Map",
+			},
+		},
+		"Policy": models.PropertyType{
+			Properties: map[string]models.Property{
+				"Id": models.Property{
+					PrimitiveType: "String",
+				},
+				"Statement": models.Property{
+					ItemType: "Statement",
+					Type:     "List",
+				},
+				"Version": models.Property{
+					PrimitiveType: "String",
 				},
 			},
 		},
