@@ -105,7 +105,17 @@ func (b Builder) newProperty(resourceType string, pSpec models.Property) (interf
 	}
 
 	// Fall through to property types
-	return b.newPropertyType(resourceType, pSpec.Type)
+	output, comments := b.newPropertyType(resourceType, pSpec.Type)
+
+	if !pSpec.Required {
+		if comments == nil {
+			comments = optionalTag
+		} else if commentMap, ok := comments.(map[string]interface{}); ok {
+			commentMap[""] = optionalTag
+		}
+	}
+
+	return output, comments
 }
 
 func (b Builder) newPrimitive(primitiveType string) interface{} {
