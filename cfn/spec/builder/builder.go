@@ -1,6 +1,8 @@
 package builder
 
 import (
+	"strings"
+
 	"github.com/aws-cloudformation/rain/cfn/spec/models"
 )
 
@@ -130,6 +132,13 @@ func (b Builder) newPrimitive(primitiveType string) interface{} {
 func (b Builder) newPropertyType(resourceType, propertyType string) (interface{}, interface{}) {
 	var ptSpec models.PropertyType
 	var ok bool
+
+	// If we've used a property from another resource type
+	// switch to that resource type for now
+	parts := strings.Split(propertyType, ".")
+	if len(parts) == 2 {
+		resourceType = parts[0]
+	}
 
 	ptSpec, ok = b.Spec.PropertyTypes[propertyType]
 	if !ok {
