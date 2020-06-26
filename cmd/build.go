@@ -14,6 +14,8 @@ import (
 
 var buildListFlag = false
 
+var bareTemplate = false
+
 var buildCmd = &cobra.Command{
 	Use:   "build [<resource type>...]",
 	Short: "Create CloudFormation templates",
@@ -49,7 +51,7 @@ var buildCmd = &cobra.Command{
 			config[resourceName] = typeName
 		}
 
-		b := builder.NewCfnBuilder(true, true)
+		b := builder.NewCfnBuilder(!bareTemplate, true)
 		t, c := b.Template(config)
 		out := format.Anything(t, format.Options{Comments: c})
 		out = colourise.Yaml(out)
@@ -60,5 +62,6 @@ var buildCmd = &cobra.Command{
 
 func init() {
 	buildCmd.Flags().BoolVarP(&buildListFlag, "list", "l", false, "List all CloudFormation resource types")
+	buildCmd.Flags().BoolVarP(&bareTemplate, "bare", "b", false, "Produce a minimal template, omitting all optional resource properties")
 	Rain.AddCommand(buildCmd)
 }
