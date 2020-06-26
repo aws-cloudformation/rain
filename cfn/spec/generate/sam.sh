@@ -14,10 +14,8 @@ declare -A types=(
     [List]=Composite
 )
 
-#d=$(mktemp -d)
-#git clone https://github.com/awsdocs/aws-sam-developer-guide.git $d
-
-d=/tmp/tmp.iwDlc23Wb6
+d=$(mktemp -d)
+git clone https://github.com/awsdocs/aws-sam-developer-guide.git $d
 
 cd "$d"
 echo "ResourceSpecificationVersion: $(git rev-parse HEAD)"
