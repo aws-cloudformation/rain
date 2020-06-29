@@ -17,16 +17,9 @@ var bareTemplate = false
 var buildJSON = false
 
 var buildCmd = &cobra.Command{
-	Use:   "build [<resource type>...]",
-	Short: "Create CloudFormation templates",
-	Long:  "Outputs a CloudFormation template containing the named resource types.",
-	Args: func(cmd *cobra.Command, args []string) error {
-		if buildListFlag {
-			return nil
-		}
-
-		return cobra.MinimumNArgs(1)(cmd, args)
-	},
+	Use:                   "build [<resource type>...]",
+	Short:                 "Create CloudFormation templates",
+	Long:                  "Outputs a CloudFormation template containing the named resource types.",
 	Annotations:           templateAnnotation,
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -42,7 +35,8 @@ var buildCmd = &cobra.Command{
 		}
 
 		if len(args) == 0 {
-			panic("You didn't specify any resource types to build")
+			cmd.Help()
+			return
 		}
 
 		config := make(map[string]string)

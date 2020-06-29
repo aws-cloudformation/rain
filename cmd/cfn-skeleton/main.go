@@ -21,5 +21,8 @@ import (
 func main() {
 	root := cmd.Wrap("cfn-skeleton", cmd.Build)
 
+	root.Long = `cfn-skeleton is a tool that generates CloudFormation templates
+containing definitions for the resource types that you specify.`
+
 	cmd.Execute(root)
 }
