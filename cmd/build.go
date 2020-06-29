@@ -13,8 +13,8 @@ import (
 )
 
 var buildListFlag = false
-
 var bareTemplate = false
+var buildJSON = false
 
 var buildCmd = &cobra.Command{
 	Use:   "build [<resource type>...]",
@@ -53,8 +53,20 @@ var buildCmd = &cobra.Command{
 
 		b := builder.NewCfnBuilder(!bareTemplate, true)
 		t, c := b.Template(config)
-		out := format.Anything(t, format.Options{Comments: c})
-		out = colourise.Yaml(out)
+
+		options := format.Options{
+			Comments: c,
+		}
+
+		if buildJSON {
+			options.Style = format.JSON
+		}
+
+		out := format.Template(t, options)
+
+		if !buildJSON {
+			out = colourise.Yaml(out)
+		}
 
 		fmt.Println(out)
 	},
@@ -63,5 +75,6 @@ var buildCmd = &cobra.Command{
 func init() {
 	buildCmd.Flags().BoolVarP(&buildListFlag, "list", "l", false, "List all CloudFormation resource types")
 	buildCmd.Flags().BoolVarP(&bareTemplate, "bare", "b", false, "Produce a minimal template, omitting all optional resource properties")
+	buildCmd.Flags().BoolVarP(&buildJSON, "json", "j", false, "Output the templates as JSON (default format: YAML)")
 	Rain.AddCommand(buildCmd)
 }
