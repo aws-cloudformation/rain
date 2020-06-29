@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/aws-cloudformation/rain/cfn"
 	"github.com/aws-cloudformation/rain/cfn/graph"
@@ -11,6 +12,8 @@ import (
 )
 
 var allLinks = false
+var dotGraph = false
+var twoWayTree = false
 
 func printLinks(links []interface{}, typeFilter string) {
 	names := make([]string, 0)
@@ -95,7 +98,55 @@ func printGraph(graph graph.Graph, typeFilter string) {
 	fmt.Println()
 }
 
-var twoWayTree = false
+var dotShapes map[string]string = map[string]string{
+	"Parameters": "diamond",
+	"Resources":  "Mrecord",
+	"Outputs":    "rectangle",
+}
+
+func printDot(graph graph.Graph) {
+	out := strings.Builder{}
+
+	out.WriteString("digraph {\n")
+	out.WriteString("    rankdir=LR;\n")
+	out.WriteString("    concentrate=true;\n")
+
+	// First pass, group types
+	doGroup := func(t string) {
+		out.WriteString(fmt.Sprintf("    subgraph cluster_%s {\n", t))
+		out.WriteString(fmt.Sprintf("        label=\"%s\";\n", t))
+		for _, from := range graph.Nodes() {
+			el := from.(cfn.Element)
+			if el.Type == t {
+				nodeName := fmt.Sprintf("%s: %s", el.Type, el.Name)
+
+				out.WriteString(fmt.Sprintf("    \"%s\" [label=\"%s\" shape=%s];\n", nodeName, el.Name, dotShapes[el.Type]))
+			}
+		}
+		out.WriteString("    }\n")
+		out.WriteString("\n")
+	}
+
+	doGroup("Parameters")
+	doGroup("Resources")
+	doGroup("Outputs")
+
+	for _, from := range graph.Nodes() {
+		fromEl := from.(cfn.Element)
+		fromStr := fmt.Sprintf("%s: %s", fromEl.Type, fromEl.Name)
+
+		for _, to := range graph.Get(from) {
+			toEl := to.(cfn.Element)
+			toStr := fmt.Sprintf("%s: %s", toEl.Type, toEl.Name)
+
+			out.WriteString(fmt.Sprintf("    \"%s\" -> \"%s\";\n", toStr, fromStr))
+		}
+	}
+
+	out.WriteString("}")
+
+	fmt.Println(out.String())
+}
 
 var graphCmd = &cobra.Command{
 	Use:                   "tree [template]",
@@ -115,14 +166,19 @@ var graphCmd = &cobra.Command{
 
 		graph := t.Graph()
 
-		printGraph(graph, "Parameters")
-		printGraph(graph, "Resources")
-		printGraph(graph, "Outputs")
+		if dotGraph {
+			printDot(graph)
+		} else {
+			printGraph(graph, "Parameters")
+			printGraph(graph, "Resources")
+			printGraph(graph, "Outputs")
+		}
 	},
 }
 
 func init() {
 	graphCmd.Flags().BoolVarP(&allLinks, "all", "a", false, "Display all elements, even those without any dependencies")
 	graphCmd.Flags().BoolVarP(&twoWayTree, "both", "b", false, "For each element, display both its dependencies and its dependents")
+	graphCmd.Flags().BoolVarP(&dotGraph, "dot", "d", false, "Output the graph in GraphViz DOT format")
 	Rain.AddCommand(graphCmd)
 }
