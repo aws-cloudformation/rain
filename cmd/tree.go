@@ -120,7 +120,7 @@ func printDot(graph graph.Graph) {
 			if el.Type == t {
 				nodeName := fmt.Sprintf("%s: %s", el.Type, el.Name)
 
-				out.WriteString(fmt.Sprintf("    \"%s\" [label=\"%s\" shape=%s];\n", nodeName, el.Name, dotShapes[el.Type]))
+				out.WriteString(fmt.Sprintf("        \"%s\" [label=\"%s\" shape=%s];\n", nodeName, el.Name, dotShapes[el.Type]))
 			}
 		}
 		out.WriteString("    }\n")
