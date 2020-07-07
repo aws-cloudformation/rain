@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aws-cloudformation/rain/cfn"
+	"github.com/aws-cloudformation/rain/cfn/format"
 	"github.com/aws-cloudformation/rain/client"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
@@ -174,7 +176,9 @@ func makeTags(tags map[string]string) []cloudformation.Tag {
 }
 
 // CreateChangeSet creates a changeset
-func CreateChangeSet(template string, params []cloudformation.Parameter, tags map[string]string, stackName string) (string, client.Error) {
+func CreateChangeSet(template cfn.Template, params []cloudformation.Parameter, tags map[string]string, stackName string) (string, client.Error) {
+	templateBody := format.Template(template, format.Options{})
+
 	changeSetType := "CREATE"
 
 	exists, err := StackExists(stackName)
@@ -192,7 +196,7 @@ func CreateChangeSet(template string, params []cloudformation.Parameter, tags ma
 		ChangeSetType: cloudformation.ChangeSetType(changeSetType),
 		ChangeSetName: &changeSetName,
 		StackName:     &stackName,
-		TemplateBody:  &template,
+		TemplateBody:  &templateBody,
 		Tags:          makeTags(tags),
 		Parameters:    params,
 		Capabilities: []cloudformation.Capability{

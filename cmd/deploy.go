@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 
+	cft "github.com/aws-cloudformation/rain/cfn"
 	"github.com/aws-cloudformation/rain/cfn/diff"
 	"github.com/aws-cloudformation/rain/cfn/parse"
 	"github.com/aws-cloudformation/rain/client"
@@ -56,13 +57,8 @@ func formatChangeSet(status *cloudformation.DescribeChangeSetResponse) string {
 	return out.String()
 }
 
-func getParameters(t string, cliParams map[string]string, old []cloudformation.Parameter, forceOldValue bool) []cloudformation.Parameter {
+func getParameters(template cft.Template, cliParams map[string]string, old []cloudformation.Parameter, stackExists bool) []cloudformation.Parameter {
 	newParams := make([]cloudformation.Parameter, 0)
-
-	template, err := parse.String(t)
-	if err != nil {
-		panic(fmt.Errorf("Unable to parse template: %s", err))
-	}
 
 	oldMap := make(map[string]cloudformation.Parameter)
 	for _, param := range old {
@@ -94,7 +90,7 @@ func getParameters(t string, cliParams map[string]string, old []cloudformation.P
 				if oldParam, ok := oldMap[k]; ok {
 					extra = fmt.Sprintf(" (existing value: %s)", fmt.Sprint(*oldParam.ParameterValue))
 
-					if forceOldValue {
+					if stackExists {
 						usePrevious = true
 					} else {
 						value = *oldParam.ParameterValue
@@ -110,6 +106,7 @@ func getParameters(t string, cliParams map[string]string, old []cloudformation.P
 					newValue := console.Ask(fmt.Sprintf("Enter a value for parameter '%s'%s:", k, extra))
 					if newValue != "" {
 						value = newValue
+						usePrevious = false
 					}
 				}
 			}
@@ -213,11 +210,15 @@ If you don't specify a stack name, rain will use the template filename minus its
 
 		config.Debugf("Package output: %s", output)
 
+		// Load in the packagedctemplate
+		config.Debugf("Loading packaed template file")
+		template, err := parse.File(outputFn.Name())
+		if err != nil {
+			panic(fmt.Errorf("Error reading packaged template '%s': %s", outputFn.Name(), err))
+		}
+
 		console.ClearLine()
 		fmt.Printf("Checking current status of stack '%s'... ", stackName)
-
-		// Used to copy parameters across from a stack that we delete and re-do
-		forceOldParams := false
 
 		// Find out if stack exists already
 		// If it does and it's not in a good state, offer to wait/delete
@@ -231,8 +232,6 @@ If you don't specify a stack name, rain will use the template filename minus its
 
 		if stackExists {
 			if string(stack.StackStatus) == "ROLLBACK_COMPLETE" {
-				forceOldParams = true
-
 				fmt.Println("Stack is currently ROLLBACK_COMPLETE; deleting...")
 				err := cfn.DeleteStack(stackName)
 				if err != nil {
@@ -244,6 +243,8 @@ If you don't specify a stack name, rain will use the template filename minus its
 				if status != "DELETE_COMPLETE" {
 					panic(fmt.Errorf("Failed to delete " + stackName))
 				}
+
+				stackExists = false
 			} else if !strings.HasSuffix(string(stack.StackStatus), "_COMPLETE") {
 				// Can't update
 				panic(fmt.Errorf("Stack '%s' could not be updated: %s", stackName, colouriseStatus(string(stack.StackStatus))))
@@ -256,9 +257,8 @@ If you don't specify a stack name, rain will use the template filename minus its
 				}
 
 				oldTemplate, _ := parse.String(oldTemplateString)
-				newTemplate, _ := parse.File(outputFn.Name())
 
-				d := oldTemplate.Diff(newTemplate)
+				d := oldTemplate.Diff(template)
 
 				if d.Mode() != diff.Unchanged {
 					console.ClearLine()
@@ -269,16 +269,8 @@ If you don't specify a stack name, rain will use the template filename minus its
 			}
 		}
 
-		// Load in the template file
-		config.Debugf("Loading template file")
-		t, err := ioutil.ReadFile(outputFn.Name())
-		if err != nil {
-			panic(fmt.Errorf("Can't load template '%s': %s", outputFn.Name(), err))
-		}
-		template := string(t)
-
 		config.Debugf("Handling parameters")
-		parameters := getParameters(template, parsedParams, stack.Parameters, forceOldParams)
+		parameters := getParameters(template, parsedParams, stack.Parameters, stackExists)
 
 		config.Debugf("Parameters: %s", parameters)
 

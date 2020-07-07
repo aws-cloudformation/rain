@@ -98,7 +98,7 @@ func printGraph(graph graph.Graph, typeFilter string) {
 	fmt.Println()
 }
 
-var dotShapes map[string]string = map[string]string{
+var dotShapes = map[string]string{
 	"Parameters": "diamond",
 	"Resources":  "Mrecord",
 	"Outputs":    "rectangle",
