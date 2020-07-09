@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/aws-cloudformation/rain/cfn"
 	"github.com/aws-cloudformation/rain/cfn/parse"
 	"github.com/google/go-cmp/cmp"
 )
@@ -14,11 +15,19 @@ var testFile = "test.yaml"
 
 var testTemplate string
 
-var expected, _ = parse.Map(map[string]interface{}{
+var expected = cfn.Template(map[string]interface{}{
 	"Parameters": map[string]interface{}{
-		"Number": map[string]interface{}{
+		"Int": map[string]interface{}{
 			"Type":    "Number",
-			"Default": float64(500000000),
+			"Default": int(500000000),
+		},
+		"Float": map[string]interface{}{
+			"Type":    "Number",
+			"Default": float64(12345.6789),
+		},
+		"AccountID": map[string]interface{}{
+			"Type":    "String",
+			"Default": "0123456789",
 		},
 	},
 	"Resources": map[string]interface{}{
@@ -111,7 +120,7 @@ func TestReadString(t *testing.T) {
 }
 
 func TestVerifyOutput(t *testing.T) {
-	source, _ := parse.Map(map[string]interface{}{
+	source := cfn.Template(map[string]interface{}{
 		"foo": map[string]interface{}{
 			"bar": map[string]interface{}{
 				"Fn::GetAtt": []interface{}{
@@ -120,7 +129,10 @@ func TestVerifyOutput(t *testing.T) {
 				},
 			},
 			"baz": map[string]interface{}{
-				"Fn::GetAtt": "foo.bar",
+				"Fn::GetAtt": []interface{}{
+					"foo",
+					"bar",
+				},
 			},
 			"quux": []interface{}{
 				"mooz",
