@@ -12,7 +12,8 @@ import (
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cfn/spec/models"
-	yamlwrapper "github.com/sanathkr/yaml"
+
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -23,19 +24,21 @@ const (
 )
 
 func load(r io.Reader, s *models.Spec) {
-	inYAML, err := ioutil.ReadAll(r)
+	var intermediate map[string]interface{}
+	yamlDecoder := yaml.NewDecoder(r)
+	err := yamlDecoder.Decode(&intermediate)
 	if err != nil {
 		panic(err)
 	}
 
-	inJSON, err := yamlwrapper.YAMLToJSON(inYAML)
+	inJSON, err := json.Marshal(intermediate)
 	if err != nil {
 		panic(err)
 	}
 
-	yamlReader := bytes.NewReader(inJSON)
+	jsonReader := bytes.NewReader(inJSON)
 
-	decoder := json.NewDecoder(yamlReader)
+	decoder := json.NewDecoder(jsonReader)
 	decoder.DisallowUnknownFields()
 	err = decoder.Decode(&s)
 	if err != nil {
