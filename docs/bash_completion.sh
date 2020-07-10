@@ -36,9 +36,71 @@ __rain_contains_word()
     return 1
 }
 
+__rain_handle_go_custom_completion()
+{
+    __rain_debug "${FUNCNAME[0]}: cur is ${cur}, words[*] is ${words[*]}, #words[@] is ${#words[@]}"
+
+    local out requestComp lastParam lastChar comp directive args
+
+    # Prepare the command to request completions for the program.
+    # Calling ${words[0]} instead of directly rain allows to handle aliases
+    args=("${words[@]:1}")
+    requestComp="${words[0]} __completeNoDesc ${args[*]}"
+
+    lastParam=${words[$((${#words[@]}-1))]}
+    lastChar=${lastParam:$((${#lastParam}-1)):1}
+    __rain_debug "${FUNCNAME[0]}: lastParam ${lastParam}, lastChar ${lastChar}"
+
+    if [ -z "${cur}" ] && [ "${lastChar}" != "=" ]; then
+        # If the last parameter is complete (there is a space following it)
+        # We add an extra empty parameter so we can indicate this to the go method.
+        __rain_debug "${FUNCNAME[0]}: Adding extra empty parameter"
+        requestComp="${requestComp} \"\""
+    fi
+
+    __rain_debug "${FUNCNAME[0]}: calling ${requestComp}"
+    # Use eval to handle any environment variables and such
+    out=$(eval "${requestComp}" 2>/dev/null)
+
+    # Extract the directive integer at the very end of the output following a colon (:)
+    directive=${out##*:}
+    # Remove the directive
+    out=${out%:*}
+    if [ "${directive}" = "${out}" ]; then
+        # There is not directive specified
+        directive=0
+    fi
+    __rain_debug "${FUNCNAME[0]}: the completion directive is: ${directive}"
+    __rain_debug "${FUNCNAME[0]}: the completions are: ${out[*]}"
+
+    if [ $((directive & 1)) -ne 0 ]; then
+        # Error code.  No completion.
+        __rain_debug "${FUNCNAME[0]}: received error from custom completion go code"
+        return
+    else
+        if [ $((directive & 2)) -ne 0 ]; then
+            if [[ $(type -t compopt) = "builtin" ]]; then
+                __rain_debug "${FUNCNAME[0]}: activating no space"
+                compopt -o nospace
+            fi
+        fi
+        if [ $((directive & 4)) -ne 0 ]; then
+            if [[ $(type -t compopt) = "builtin" ]]; then
+                __rain_debug "${FUNCNAME[0]}: activating no file completion"
+                compopt +o default
+            fi
+        fi
+
+        while IFS='' read -r comp; do
+            COMPREPLY+=("$comp")
+        done < <(compgen -W "${out[*]}" -- "$cur")
+    fi
+}
+
 __rain_handle_reply()
 {
     __rain_debug "${FUNCNAME[0]}"
+    local comp
     case $cur in
         -*)
             if [[ $(type -t compopt) = "builtin" ]]; then
@@ -50,7 +112,9 @@ __rain_handle_reply()
             else
                 allflags=("${flags[*]} ${two_word_flags[*]}")
             fi
-            COMPREPLY=( $(compgen -W "${allflags[*]}" -- "$cur") )
+            while IFS='' read -r comp; do
+                COMPREPLY+=("$comp")
+            done < <(compgen -W "${allflags[*]}" -- "$cur")
             if [[ $(type -t compopt) = "builtin" ]]; then
                 [[ "${COMPREPLY[0]}" == *= ]] || compopt +o nospace
             fi
@@ -96,14 +160,22 @@ __rain_handle_reply()
     completions=("${commands[@]}")
     if [[ ${#must_have_one_noun[@]} -ne 0 ]]; then
         completions=("${must_have_one_noun[@]}")
+    elif [[ -n "${has_completion_function}" ]]; then
+        # if a go completion function is provided, defer to that function
+        completions=()
+        __rain_handle_go_custom_completion
     fi
     if [[ ${#must_have_one_flag[@]} -ne 0 ]]; then
         completions+=("${must_have_one_flag[@]}")
     fi
-    COMPREPLY=( $(compgen -W "${completions[*]}" -- "$cur") )
+    while IFS='' read -r comp; do
+        COMPREPLY+=("$comp")
+    done < <(compgen -W "${completions[*]}" -- "$cur")
 
     if [[ ${#COMPREPLY[@]} -eq 0 && ${#noun_aliases[@]} -gt 0 && ${#must_have_one_noun[@]} -ne 0 ]]; then
-        COMPREPLY=( $(compgen -W "${noun_aliases[*]}" -- "$cur") )
+        while IFS='' read -r comp; do
+            COMPREPLY+=("$comp")
+        done < <(compgen -W "${noun_aliases[*]}" -- "$cur")
     fi
 
     if [[ ${#COMPREPLY[@]} -eq 0 ]]; then
@@ -138,7 +210,7 @@ __rain_handle_filename_extension_flag()
 __rain_handle_subdirs_in_dir_flag()
 {
     local dir="$1"
-    pushd "${dir}" >/dev/null 2>&1 && _filedir -d && popd >/dev/null 2>&1
+    pushd "${dir}" >/dev/null 2>&1 && _filedir -d && popd >/dev/null 2>&1 || return
 }
 
 __rain_handle_flag()
@@ -264,9 +336,15 @@ _rain_build()
     flags_with_completion=()
     flags_completion=()
 
+    flags+=("--bare")
+    flags+=("-b")
+    local_nonpersistent_flags+=("--bare")
     flags+=("--help")
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
+    flags+=("--json")
+    flags+=("-j")
+    local_nonpersistent_flags+=("--json")
     flags+=("--list")
     flags+=("-l")
     local_nonpersistent_flags+=("--list")
@@ -630,6 +708,9 @@ _rain_tree()
     flags+=("--both")
     flags+=("-b")
     local_nonpersistent_flags+=("--both")
+    flags+=("--dot")
+    flags+=("-d")
+    local_nonpersistent_flags+=("--dot")
     flags+=("--help")
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
@@ -765,6 +846,7 @@ __start_rain()
     local commands=("rain")
     local must_have_one_flag=()
     local must_have_one_noun=()
+    local has_completion_function
     local last_command
     local nouns=()
 
