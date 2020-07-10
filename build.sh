@@ -10,7 +10,7 @@ OUTPUT_DIR=dist
 VERSION=$(git describe)
 
 declare -A PLATFORMS=([linux]=linux [darwin]=osx [windows]=windows)
-declare -A ARCHITECTURES=([386]=i386 [amd64]=amd64)
+declare -A ARCHITECTURES=([386]=i386 [amd64]=amd64 [arm]=arm [arm64]=arm64)
 declare -A VARIANTS=([default]="" [nocgo]="CGO_ENABLED=0")
 
 # Run tests first
@@ -22,6 +22,10 @@ echo "Building $NAME $VERSION..."
 
 for platform in ${!PLATFORMS[@]}; do
     for architecture in ${!ARCHITECTURES[@]}; do
+        if [[ "$architecture" == arm* && "$platform" != "linux" ]]; then
+            continue
+        fi
+
         for variant in ${!VARIANTS[@]}; do
             echo "$platform/$architecture/$variant..."
 
