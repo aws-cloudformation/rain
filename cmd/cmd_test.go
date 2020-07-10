@@ -49,7 +49,7 @@ func Example_rainhelp() {
 	//   -h, --help             help for rain
 	//   -p, --profile string   AWS profile name; read from the AWS CLI configuration file
 	//   -r, --region string    AWS region to use
-	//       --version          version for rain
+	//   -v, --version          version for rain
 	//
 	// Use "rain [command] --help" for more information about a command.
 }

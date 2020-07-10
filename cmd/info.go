@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -39,7 +40,7 @@ var infoCmd = &cobra.Command{
 
 		if checkCreds {
 			fmt.Println()
-			c, err := client.Config().Credentials.Retrieve()
+			c, err := client.Config().Credentials.Retrieve(context.Background())
 			if err == nil {
 				fmt.Println("Credentials:")
 				fmt.Println("  Source:         ", text.Yellow(c.Source))

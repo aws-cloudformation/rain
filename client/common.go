@@ -1,7 +1,7 @@
 package client
 
 import (
-	"encoding/json"
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -15,7 +15,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/aws/defaults"
 	"github.com/aws/aws-sdk-go-v2/aws/external"
-	"github.com/spf13/viper"
 )
 
 // MFAProvider is called by the AWS SDK when an MFA token number
@@ -32,12 +31,12 @@ func MFAProvider() (string, error) {
 
 var awsCfg *aws.Config
 
-func tryConfig(configs external.Configs, resolvers []external.AWSConfigResolver) (aws.Config, bool) {
+func tryConfig(ctx context.Context, configs external.Configs, resolvers []external.AWSConfigResolver) (aws.Config, bool) {
 	cfg, err := configs.ResolveAWSConfig(resolvers)
 	if err != nil {
 		config.Debugf("Credentials failed: %s", err)
 		return cfg, false
-	} else if _, err = cfg.Credentials.Retrieve(); err != nil {
+	} else if _, err = cfg.Credentials.Retrieve(ctx); err != nil {
 		config.Debugf("Invalid credentials: %s", err)
 		return cfg, false
 	}
@@ -45,7 +44,7 @@ func tryConfig(configs external.Configs, resolvers []external.AWSConfigResolver)
 	return cfg, true
 }
 
-func loadConfig() aws.Config {
+func loadConfig(ctx context.Context) aws.Config {
 	var cfg aws.Config
 	var err error
 	var ok bool
@@ -53,13 +52,14 @@ func loadConfig() aws.Config {
 	// Default resolver set as used in the SDK
 	var resolvers = []external.AWSConfigResolver{
 		external.ResolveDefaultAWSConfig,
+		external.ResolveHandlersFunc,
+		external.ResolveEndpointResolverFunc,
 		external.ResolveCustomCABundle,
+		external.ResolveEnableEndpointDiscovery,
 		external.ResolveRegion,
-		external.ResolveFallbackEC2Credentials,
-		external.ResolveCredentialsValue,
-		external.ResolveEndpointCredentials,
-		external.ResolveContainerEndpointPathCredentials,
-		external.ResolveAssumeRoleCredentials,
+		external.ResolveEC2Region,
+		external.ResolveDefaultRegion,
+		external.ResolveCredentials,
 	}
 
 	// Minimal configs
@@ -82,42 +82,8 @@ func loadConfig() aws.Config {
 		panic(err)
 	}
 
-	// Try loading cached credentials
-	if viper.IsSet("credentials") {
-		config.Debugf("Found cached credentials...")
-
-		credConfig := viper.GetStringMapString("credentials")
-
-		credString, ok := credConfig[config.Profile]
-
-		if !ok {
-			config.Debugf("...but there are none matching the requested profile")
-		} else {
-			var creds aws.Credentials
-
-			if json.Unmarshal([]byte(credString), &creds) != nil {
-				config.Debugf("...but I couldn't load them: %s", err)
-			} else {
-				if creds.Expired() {
-					config.Debugf("...but they've expired")
-				} else {
-					configs = append(configs, external.WithCredentialsValue(creds))
-
-					resolvers = append(resolvers, external.ResolveCredentialsValue)
-
-					if cfg, ok = tryConfig(configs, resolvers); ok {
-						config.Debugf("...and they've valid :)")
-						return cfg
-					}
-
-					config.Debugf("...but they're not valid :(")
-				}
-			}
-		}
-	}
-
 	config.Debugf("Trying default configs...")
-	if cfg, ok = tryConfig(configs, resolvers); ok {
+	if cfg, ok = tryConfig(ctx, configs, resolvers); ok {
 		config.Debugf("...and they're valid")
 		return cfg
 	}
@@ -130,19 +96,7 @@ func Config() aws.Config {
 	if awsCfg == nil {
 		spinner.Status("Loading AWS config")
 
-		cfg := loadConfig()
-
-		// Save the creds
-		creds, _ := cfg.Credentials.Retrieve()
-		j, err := json.Marshal(creds)
-		if err != nil {
-			config.Debugf("Unable to save credentials: %s", err)
-		} else {
-			credConfig := viper.GetStringMapString("credentials")
-			credConfig[config.Profile] = string(j)
-			viper.Set("credentials", credConfig)
-			viper.WriteConfig()
-		}
+		cfg := loadConfig(context.Background())
 
 		// Set the user agent
 		cfg.Handlers.Build.Remove(defaults.SDKVersionUserAgentHandler)
