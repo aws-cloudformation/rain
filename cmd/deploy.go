@@ -185,7 +185,7 @@ If you don't specify a stack name, rain will use the template filename minus its
 
 		fmt.Printf("Deploying '%s' as '%s' in %s:\n", filepath.Base(fn), stackName, client.Config().Region)
 
-		fmt.Print("Preparing template... ")
+		spinner.Status("Preparing template")
 
 		outputFn, err := ioutil.TempFile("", "")
 		if err != nil {
@@ -211,14 +211,15 @@ If you don't specify a stack name, rain will use the template filename minus its
 		config.Debugf("Package output: %s", output)
 
 		// Load in the packagedctemplate
-		config.Debugf("Loading packaed template file")
+		config.Debugf("Loading packaged template file")
 		template, err := parse.File(outputFn.Name())
 		if err != nil {
 			panic(fmt.Errorf("Error reading packaged template '%s': %s", outputFn.Name(), err))
 		}
 
-		console.ClearLine()
-		fmt.Printf("Checking current status of stack '%s'... ", stackName)
+		spinner.Stop()
+
+		spinner.Status(fmt.Sprintf("Checking current status of stack '%s'... ", stackName))
 
 		// Find out if stack exists already
 		// If it does and it's not in a good state, offer to wait/delete
@@ -229,6 +230,8 @@ If you don't specify a stack name, rain will use the template filename minus its
 			config.Debugf("Stack exists")
 			stackExists = true
 		}
+
+		spinner.Stop()
 
 		if stackExists {
 			if string(stack.StackStatus) == "ROLLBACK_COMPLETE" {
