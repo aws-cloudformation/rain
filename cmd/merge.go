@@ -9,6 +9,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var forceMerge = false
+
 func checkMerge(name string, dst cfn.Template, src cfn.Template) {
 	if _, ok := dst[name]; !ok {
 		dst[name] = src[name]
@@ -18,7 +20,17 @@ func checkMerge(name string, dst cfn.Template, src cfn.Template) {
 
 		for key, value := range srcMap {
 			if _, ok := dstMap[key]; ok {
-				panic(fmt.Errorf("Templates have clashing %s: %s", name, key))
+				if forceMerge {
+					for i := 2; true; i++ {
+						newKey := fmt.Sprintf("%s_%d", key, i)
+						if _, ok := dst[newKey]; !ok {
+							key = newKey
+							break
+						}
+					}
+				} else {
+					panic(fmt.Errorf("Templates have clashing %s: %s", name, key))
+				}
 			}
 
 			dstMap[key] = value
@@ -89,5 +101,6 @@ var mergeCmd = &cobra.Command{
 }
 
 func init() {
+	mergeCmd.Flags().BoolVarP(&forceMerge, "force", "f", false, "Don't warn on clashing attributes; rename them instead. Note: this will not rename Refs, GetAtts, etc.")
 	Rain.AddCommand(mergeCmd)
 }
