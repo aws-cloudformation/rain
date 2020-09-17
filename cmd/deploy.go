@@ -157,9 +157,8 @@ var deployCmd = &cobra.Command{
 If you don't specify a stack name, rain will use the template filename minus its extension.
 
 If a template needs to be packaged before it can be deployed, rain will package the template first.
-Rain will attempt to create a bucket to store artificats packaged and deployed by the tool.
-This will be of the format rain-artefacts-${AWS AccountId}-${AWS Region}
-`,
+Rain will attempt to create an S3 bucket to store artifacts that it packages and deploys.
+The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS region>`,
 	Args:                  cobra.RangeArgs(1, 2),
 	Annotations:           stackAnnotation,
 	DisableFlagsInUseLine: true,
