@@ -154,7 +154,12 @@ var deployCmd = &cobra.Command{
 	Use:   "deploy <template> [stack]",
 	Short: "Deploy a CloudFormation stack from a local template",
 	Long: `Creates or updates a CloudFormation stack named <stack> from the template file <template>.
-If you don't specify a stack name, rain will use the template filename minus its extension.`,
+If you don't specify a stack name, rain will use the template filename minus its extension.
+
+If a template needs to be packaged before it can be deployed, rain will package the template first.
+Rain will attempt to create a bucket to store artificats packaged and deployed by the tool.
+This will be of the format rain-artefacts-${AWS AccountId}-${AWS Region}
+`,
 	Args:                  cobra.RangeArgs(1, 2),
 	Annotations:           stackAnnotation,
 	DisableFlagsInUseLine: true,
