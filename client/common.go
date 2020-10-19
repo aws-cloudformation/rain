@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"time"
 
 	"github.com/aws-cloudformation/rain/config"
 	"github.com/aws-cloudformation/rain/console"
@@ -31,17 +32,29 @@ func MFAProvider() (string, error) {
 
 var awsCfg *aws.Config
 
+func checkCreds(cfg aws.Config, ctx context.Context) bool {
+	creds, err := cfg.Credentials.Retrieve(ctx)
+	if err != nil {
+		config.Debugf("Invalid credentials: %s", err)
+		return false
+	}
+
+	if creds.CanExpire && time.Until(creds.Expires) < time.Minute {
+		config.Debugf("Creds expire in less than a minute")
+		return false
+	}
+
+	return true
+}
+
 func tryConfig(ctx context.Context, configs external.Configs, resolvers []external.AWSConfigResolver) (aws.Config, bool) {
 	cfg, err := configs.ResolveAWSConfig(resolvers)
 	if err != nil {
 		config.Debugf("Credentials failed: %s", err)
 		return cfg, false
-	} else if _, err = cfg.Credentials.Retrieve(ctx); err != nil {
-		config.Debugf("Invalid credentials: %s", err)
-		return cfg, false
 	}
 
-	return cfg, true
+	return cfg, checkCreds(cfg, ctx)
 }
 
 func loadConfig(ctx context.Context) aws.Config {
@@ -114,6 +127,13 @@ func Config() aws.Config {
 		awsCfg = &cfg
 
 		spinner.Stop()
+	}
+
+	// Check for expiry
+	if !checkCreds(*awsCfg, context.Background()) {
+		config.Debugf("Creds are not ok; trying again")
+		awsCfg = nil
+		return Config()
 	}
 
 	return *awsCfg
