@@ -28,21 +28,6 @@ func MFAProvider() (string, error) {
 
 var awsCfg *aws.Config
 
-func checkCreds(cfg aws.Config, ctx context.Context) bool {
-	creds, err := cfg.Credentials.Retrieve(ctx)
-	if err != nil {
-		rainConfig.Debugf("Invalid credentials: %s", err)
-		return false
-	}
-
-	if creds.CanExpire && time.Until(creds.Expires) < time.Minute {
-		rainConfig.Debugf("Creds expire in less than a minute")
-		return false
-	}
-
-	return true
-}
-
 func loadConfig(ctx context.Context) aws.Config {
 	// Credential configs
 	var configs = make([]config.Config, 0)
@@ -101,9 +86,16 @@ func Config() aws.Config {
 		spinner.Stop()
 	}
 
+	// Check for validity
+	creds, err := awsCfg.Credentials.Retrieve(context.Background())
+	if err != nil {
+		rainConfig.Debugf("Invalid credentials: %s", err)
+		panic(err)
+	}
+
 	// Check for expiry
-	if !checkCreds(*awsCfg, context.Background()) {
-		rainConfig.Debugf("Creds are not ok; trying again")
+	if creds.CanExpire && time.Until(creds.Expires) < time.Minute {
+		rainConfig.Debugf("Creds expire in less than a minute; refreshing")
 		awsCfg = nil
 		return Config()
 	}
