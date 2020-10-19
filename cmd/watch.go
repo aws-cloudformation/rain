@@ -21,26 +21,26 @@ var watchCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		stackName := args[0]
 
-		stack, err := cfn.GetStack(stackName)
-		if err != nil {
-			panic(fmt.Errorf("Error watching stack '%s': %s", stackName, err))
-		}
+		for {
+			stack, err := cfn.GetStack(stackName)
+			if err != nil {
+				panic(fmt.Errorf("Error watching stack '%s': %s", stackName, err))
+			}
 
-		if stackHasSettled(stack) {
-			if waitThenWatch {
-				spinner.Status("Waiting for stack to begin changing")
-				for {
-					time.Sleep(time.Second * 2)
-					if !stackHasSettled(stack) {
-						break
-					}
-				}
-				spinner.Stop()
-			} else {
+			if !stackHasSettled(stack) {
+				// Stack is changing
+				break
+			}
+
+			if !waitThenWatch {
+				// Not changing, not waiting for it
 				fmt.Println(getStackOutput(stack, false))
 				fmt.Println("Not watching unchanging stack.")
 				return
 			}
+
+			spinner.Status("Waiting for stack to begin changing")
+			time.Sleep(time.Second * 2)
 		}
 
 		fmt.Println("Final stack status:", colouriseStatus(waitForStackToSettle(stackName)))
