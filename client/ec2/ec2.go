@@ -9,16 +9,14 @@ import (
 )
 
 func getClient() *ec2.Client {
-	return ec2.New(client.Config())
+	return ec2.NewFromConfig(client.Config())
 }
 
 // GetRegions returns all region names as strings
-func GetRegions() ([]string, client.Error) {
-	req := getClient().DescribeRegionsRequest(&ec2.DescribeRegionsInput{})
-
-	res, err := req.Send(context.Background())
+func GetRegions() ([]string, error) {
+	res, err := getClient().DescribeRegions(context.Background(), &ec2.DescribeRegionsInput{})
 	if err != nil {
-		return nil, client.NewError(err)
+		return nil, err
 	}
 
 	regions := make([]string, len(res.Regions))

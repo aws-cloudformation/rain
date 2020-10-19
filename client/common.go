@@ -2,20 +2,16 @@ package client
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
-	"runtime"
 	"time"
 
-	"github.com/aws-cloudformation/rain/config"
+	rainConfig "github.com/aws-cloudformation/rain/config"
 	"github.com/aws-cloudformation/rain/console"
 	"github.com/aws-cloudformation/rain/console/spinner"
-	"github.com/aws-cloudformation/rain/version"
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
-	"github.com/aws/aws-sdk-go-v2/aws/defaults"
-	"github.com/aws/aws-sdk-go-v2/aws/external"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 )
 
 // MFAProvider is called by the AWS SDK when an MFA token number
@@ -35,73 +31,47 @@ var awsCfg *aws.Config
 func checkCreds(cfg aws.Config, ctx context.Context) bool {
 	creds, err := cfg.Credentials.Retrieve(ctx)
 	if err != nil {
-		config.Debugf("Invalid credentials: %s", err)
+		rainConfig.Debugf("Invalid credentials: %s", err)
 		return false
 	}
 
 	if creds.CanExpire && time.Until(creds.Expires) < time.Minute {
-		config.Debugf("Creds expire in less than a minute")
+		rainConfig.Debugf("Creds expire in less than a minute")
 		return false
 	}
 
 	return true
 }
 
-func tryConfig(ctx context.Context, configs external.Configs, resolvers []external.AWSConfigResolver) (aws.Config, bool) {
-	cfg, err := configs.ResolveAWSConfig(resolvers)
-	if err != nil {
-		config.Debugf("Credentials failed: %s", err)
-		return cfg, false
-	}
-
-	return cfg, checkCreds(cfg, ctx)
-}
-
 func loadConfig(ctx context.Context) aws.Config {
-	var cfg aws.Config
-	var err error
-	var ok bool
+	// Credential configs
+	var configs = make([]config.Config, 0)
 
-	// Default resolver set as used in the SDK
-	var resolvers = []external.AWSConfigResolver{
-		external.ResolveDefaultAWSConfig,
-		external.ResolveHandlersFunc,
-		external.ResolveEndpointResolverFunc,
-		external.ResolveCustomCABundle,
-		external.ResolveEnableEndpointDiscovery,
-		external.ResolveRegion,
-		external.ResolveEC2Region,
-		external.ResolveDefaultRegion,
-		external.ResolveCredentials,
+	// Add MFA provider
+	configs = append(configs, config.WithAssumeRoleCredentialOptions(func(options *stscreds.AssumeRoleOptions) {
+		options.TokenProvider = MFAProvider
+	}))
+
+	// Supplied profile
+	if rainConfig.Profile != "" {
+		configs = append(configs, config.WithSharedConfigProfile(rainConfig.Profile))
+	} else if p := os.Getenv("AWS_PROFILE"); p != "" {
+		rainConfig.Profile = p
 	}
 
-	// Minimal configs
-	var configs external.Configs = []external.Config{
-		external.WithMFATokenFunc(MFAProvider),
+	// Supplied region
+	if rainConfig.Region != "" {
+		configs = append(configs, config.WithRegion(rainConfig.Region))
+	} else if r := os.Getenv("AWS_DEFAULT_REGION"); r != "" {
+		rainConfig.Region = r
 	}
 
-	if config.Profile != "" {
-		configs = append(configs, external.WithSharedConfigProfile(config.Profile))
-	} else if os.Getenv("AWS_PROFILE") != "" {
-		config.Profile = os.Getenv("AWS_PROFILE")
-	}
-
-	if config.Region != "" {
-		configs = append(configs, external.WithRegion(config.Region))
-	}
-
-	configs, err = configs.AppendFromLoaders(external.DefaultConfigLoaders)
+	cfg, err := config.LoadDefaultConfig(configs...)
 	if err != nil {
-		panic(err)
+		panic("Unable to find valid credentials")
 	}
 
-	config.Debugf("Trying default configs...")
-	if cfg, ok = tryConfig(ctx, configs, resolvers); ok {
-		config.Debugf("...and they're valid")
-		return cfg
-	}
-
-	panic("Unable to find valid credentials")
+	return cfg
 }
 
 // Config loads an aws.Config based on current settings
@@ -111,15 +81,17 @@ func Config() aws.Config {
 
 		cfg := loadConfig(context.Background())
 
-		// Set the user agent
-		cfg.Handlers.Build.Remove(defaults.SDKVersionUserAgentHandler)
-		cfg.Handlers.Build.PushFront(aws.MakeAddToUserAgentHandler(
-			version.NAME,
-			version.VERSION,
-			runtime.Version(),
-			fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
-			fmt.Sprintf("%s/%s", aws.SDKName, aws.SDKVersion),
-		))
+		// Set the user agent - FIXME - bring this back
+		/*
+			cfg.Handlers.Build.Remove(defaults.SDKVersionUserAgentHandler)
+			cfg.Handlers.Build.PushFront(aws.MakeAddToUserAgentHandler(
+				version.NAME,
+				version.VERSION,
+				runtime.Version(),
+				fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
+				fmt.Sprintf("%s/%s", aws.SDKName, aws.SDKVersion),
+			))
+		*/
 
 		// For debugging
 		// cfg.EndpointResolver = aws.ResolveWithEndpointURL("http://localhost:8000")
@@ -131,7 +103,7 @@ func Config() aws.Config {
 
 	// Check for expiry
 	if !checkCreds(*awsCfg, context.Background()) {
-		config.Debugf("Creds are not ok; trying again")
+		rainConfig.Debugf("Creds are not ok; trying again")
 		awsCfg = nil
 		return Config()
 	}
@@ -142,20 +114,4 @@ func Config() aws.Config {
 // SetRegion is used to set the current AWS region
 func SetRegion(region string) {
 	awsCfg.Region = region
-}
-
-// Error is used to wrap errors thrown from the client package
-type Error error
-
-// NewError wraps a standard error value as a client.Error
-func NewError(err error) Error {
-	if err == nil {
-		return nil
-	}
-
-	if err, ok := err.(awserr.Error); ok {
-		return Error(errors.New(err.Message()))
-	}
-
-	return Error(err)
 }

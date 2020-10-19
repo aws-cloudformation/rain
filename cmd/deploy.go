@@ -21,6 +21,7 @@ import (
 	"github.com/aws-cloudformation/rain/console/text"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/spf13/cobra"
 )
 
@@ -33,10 +34,10 @@ var fixStackNameRe *regexp.Regexp
 
 const maxStackNameLength = 128
 
-func formatChangeSet(status *cloudformation.DescribeChangeSetResponse) string {
+func formatChangeSet(status *cloudformation.DescribeChangeSetOutput) string {
 	out := strings.Builder{}
 
-	out.WriteString(fmt.Sprintf("Stack \"%s\": %s\n", aws.StringValue(status.StackName), aws.StringValue(status.StatusReason)))
+	out.WriteString(fmt.Sprintf("Stack \"%s\": %s\n", aws.ToString(status.StackName), aws.ToString(status.StatusReason)))
 
 	for _, change := range status.Changes {
 		line := fmt.Sprintf("%s %s\n",
@@ -45,11 +46,11 @@ func formatChangeSet(status *cloudformation.DescribeChangeSetResponse) string {
 		)
 
 		switch change.ResourceChange.Action {
-		case cloudformation.ChangeAction("Add"):
+		case types.ChangeAction("Add"):
 			out.WriteString(text.Green("(+) " + line).String())
-		case cloudformation.ChangeAction("Modify"):
+		case types.ChangeAction("Modify"):
 			out.WriteString(text.Orange("(|) " + line).String())
-		case cloudformation.ChangeAction("Remove"):
+		case types.ChangeAction("Remove"):
 			out.WriteString(text.Red("(-) " + line).String())
 		}
 	}
@@ -57,10 +58,10 @@ func formatChangeSet(status *cloudformation.DescribeChangeSetResponse) string {
 	return out.String()
 }
 
-func getParameters(template cft.Template, cliParams map[string]string, old []cloudformation.Parameter, stackExists bool) []cloudformation.Parameter {
-	newParams := make([]cloudformation.Parameter, 0)
+func getParameters(template cft.Template, cliParams map[string]string, old []*types.Parameter, stackExists bool) []*types.Parameter {
+	newParams := make([]*types.Parameter, 0)
 
-	oldMap := make(map[string]cloudformation.Parameter)
+	oldMap := make(map[string]*types.Parameter)
 	for _, param := range old {
 		oldMap[*param.ParameterKey] = param
 	}
@@ -112,12 +113,12 @@ func getParameters(template cft.Template, cliParams map[string]string, old []clo
 			}
 
 			if usePrevious {
-				newParams = append(newParams, cloudformation.Parameter{
+				newParams = append(newParams, &types.Parameter{
 					ParameterKey:     aws.String(k),
 					UsePreviousValue: aws.Bool(true),
 				})
 			} else {
-				newParams = append(newParams, cloudformation.Parameter{
+				newParams = append(newParams, &types.Parameter{
 					ParameterKey:   aws.String(k),
 					ParameterValue: aws.String(value),
 				})

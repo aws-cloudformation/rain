@@ -16,7 +16,7 @@ import (
 	"github.com/aws-cloudformation/rain/console/run"
 	"github.com/aws-cloudformation/rain/console/spinner"
 	"github.com/aws-cloudformation/rain/console/text"
-	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 )
 
 func indent(prefix string, in string) string {
@@ -38,7 +38,7 @@ func colouriseStatus(status string) text.Text {
 	}
 }
 
-func getStackOutput(stack cloudformation.Stack, onlyChanging bool) string {
+func getStackOutput(stack *types.Stack, onlyChanging bool) string {
 	resources, _ := cfn.GetStackResources(*stack.StackName)
 	// We ignore errors because it just means we'll list no resources
 
@@ -216,11 +216,11 @@ func statusIsSettled(status string) bool {
 	return false
 }
 
-func stackHasSettled(stack cloudformation.Stack) bool {
+func stackHasSettled(stack *types.Stack) bool {
 	return statusIsSettled(string(stack.StackStatus))
 }
 
-func resourceHasSettled(resource cloudformation.StackResource) bool {
+func resourceHasSettled(resource *types.StackResource) bool {
 	return statusIsSettled(string(resource.ResourceStatus))
 }
 

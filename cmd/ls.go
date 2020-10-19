@@ -10,14 +10,14 @@ import (
 	"github.com/aws-cloudformation/rain/client/ec2"
 	"github.com/aws-cloudformation/rain/console/spinner"
 	"github.com/aws-cloudformation/rain/console/text"
-	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/spf13/cobra"
 )
 
 var allRegions = false
 var showNested = false
 
-func formatStack(stack cloudformation.StackSummary, stackMap map[string]cloudformation.StackSummary) string {
+func formatStack(stack *types.StackSummary, stackMap map[string]*types.StackSummary) string {
 	out := strings.Builder{}
 	extra := ""
 
@@ -99,7 +99,7 @@ var lsCmd = &cobra.Command{
 				}
 
 				stackNames := make(sort.StringSlice, 0)
-				stackMap := make(map[string]cloudformation.StackSummary)
+				stackMap := make(map[string]*types.StackSummary)
 				for _, stack := range stacks {
 					stackNames = append(stackNames, *stack.StackName)
 					stackMap[*stack.StackName] = stack
