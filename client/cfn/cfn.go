@@ -282,7 +282,7 @@ func WaitUntilStackExists(stackName string) error {
 			break
 		}
 
-		var apiErr smithy.GenericAPIError
+		var apiErr = &smithy.GenericAPIError{}
 		if !errors.As(err, &apiErr) {
 			return err
 		}

@@ -280,7 +280,7 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 		config.Debugf("Handling parameters")
 		parameters := getParameters(template, parsedParams, stack.Parameters, stackExists)
 
-		config.Debugf("Parameters: %s", parameters)
+		config.Debugf("Parameters: %v", parameters)
 
 		// Create a change set
 		spinner.Status("Creating change set")
