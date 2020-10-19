@@ -2,6 +2,7 @@ package cfn
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -214,11 +215,24 @@ func CreateChangeSet(template cfn.Template, params []cloudformation.Parameter, t
 		ChangeSetName: &changeSetName,
 		StackName:     &stackName,
 	})
+
 	if err != nil {
-		return changeSetName, err
+		// Get reason for failure
+		csr := getClient().DescribeChangeSetRequest(&cloudformation.DescribeChangeSetInput{
+			ChangeSetName: &changeSetName,
+			StackName:     &stackName,
+		})
+
+		info, err := csr.Send(context.Background())
+
+		if err != nil {
+			return changeSetName, err
+		}
+
+		return changeSetName, errors.New(*info.StatusReason)
 	}
 
-	return changeSetName, client.NewError(err)
+	return changeSetName, nil
 }
 
 // GetChangeSet returns the named changeset
