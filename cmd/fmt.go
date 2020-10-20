@@ -27,13 +27,13 @@ var fmtCmd = &cobra.Command{
 		fn := args[0]
 		input, err := ioutil.ReadFile(fn)
 		if err != nil {
-			panic(fmt.Errorf("Unable to read '%s': %s", fn, err.Error()))
+			panic(errorf(err, "Unable to read '%s'", fn))
 		}
 
 		// Parse the template
 		source, err := parse.String(string(input))
 		if err != nil {
-			panic(fmt.Errorf("Unable to parse '%s': %s", fn, err.Error()))
+			panic(errorf(err, "Unable to parse '%s'", fn))
 		}
 
 		// Format the output

@@ -18,6 +18,10 @@ func Example_deploy_help() {
 	// Creates or updates a CloudFormation stack named <stack> from the template file <template>.
 	// If you don't specify a stack name, rain will use the template filename minus its extension.
 	//
+	// If a template needs to be packaged before it can be deployed, rain will package the template first.
+	// Rain will attempt to create an S3 bucket to store artifacts that it packages and deploys.
+	// The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS region>
+	//
 	// Usage:
 	//   rain deploy <template> [stack]
 	//

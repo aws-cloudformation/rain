@@ -24,7 +24,7 @@ var infoCmd = &cobra.Command{
 		spinner.Status("Getting identity")
 		id, err := sts.GetCallerID()
 		if err != nil {
-			panic(fmt.Errorf("Unable to load identity: %s", err))
+			panic(errorf(err, "Unable to load identity"))
 		}
 		spinner.Stop()
 

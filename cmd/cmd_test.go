@@ -38,6 +38,7 @@ func Example_rainhelp() {
 	//   check       Validate a CloudFormation template against the spec
 	//   diff        Compare CloudFormation templates
 	//   fmt         Format CloudFormation templates
+	//   merge       Merge two or more CloudFormation templates
 	//   tree        Find dependencies of Resources and Outputs in a local template
 	//
 	// Other Commands:

@@ -21,6 +21,7 @@ import (
 	"github.com/aws-cloudformation/rain/console/text"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/spf13/cobra"
 )
 
@@ -33,10 +34,10 @@ var fixStackNameRe *regexp.Regexp
 
 const maxStackNameLength = 128
 
-func formatChangeSet(status *cloudformation.DescribeChangeSetResponse) string {
+func formatChangeSet(status *cloudformation.DescribeChangeSetOutput) string {
 	out := strings.Builder{}
 
-	out.WriteString(fmt.Sprintf("Stack \"%s\": %s\n", aws.StringValue(status.StackName), aws.StringValue(status.StatusReason)))
+	out.WriteString(fmt.Sprintf("Stack \"%s\": %s\n", aws.ToString(status.StackName), aws.ToString(status.StatusReason)))
 
 	for _, change := range status.Changes {
 		line := fmt.Sprintf("%s %s\n",
@@ -45,11 +46,11 @@ func formatChangeSet(status *cloudformation.DescribeChangeSetResponse) string {
 		)
 
 		switch change.ResourceChange.Action {
-		case cloudformation.ChangeAction("Add"):
+		case types.ChangeAction("Add"):
 			out.WriteString(text.Green("(+) " + line).String())
-		case cloudformation.ChangeAction("Modify"):
+		case types.ChangeAction("Modify"):
 			out.WriteString(text.Orange("(|) " + line).String())
-		case cloudformation.ChangeAction("Remove"):
+		case types.ChangeAction("Remove"):
 			out.WriteString(text.Red("(-) " + line).String())
 		}
 	}
@@ -57,10 +58,10 @@ func formatChangeSet(status *cloudformation.DescribeChangeSetResponse) string {
 	return out.String()
 }
 
-func getParameters(template cft.Template, cliParams map[string]string, old []cloudformation.Parameter, stackExists bool) []cloudformation.Parameter {
-	newParams := make([]cloudformation.Parameter, 0)
+func getParameters(template cft.Template, cliParams map[string]string, old []*types.Parameter, stackExists bool) []*types.Parameter {
+	newParams := make([]*types.Parameter, 0)
 
-	oldMap := make(map[string]cloudformation.Parameter)
+	oldMap := make(map[string]*types.Parameter)
 	for _, param := range old {
 		oldMap[*param.ParameterKey] = param
 	}
@@ -112,12 +113,12 @@ func getParameters(template cft.Template, cliParams map[string]string, old []clo
 			}
 
 			if usePrevious {
-				newParams = append(newParams, cloudformation.Parameter{
+				newParams = append(newParams, &types.Parameter{
 					ParameterKey:     aws.String(k),
 					UsePreviousValue: aws.Bool(true),
 				})
 			} else {
-				newParams = append(newParams, cloudformation.Parameter{
+				newParams = append(newParams, &types.Parameter{
 					ParameterKey:   aws.String(k),
 					ParameterValue: aws.String(value),
 				})
@@ -199,7 +200,7 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 			config.Debugf("Removing temporary template file: %s", outputFn.Name())
 			err := os.Remove(outputFn.Name())
 			if err != nil {
-				panic(fmt.Errorf("Error removing temporary template file '%s': %s", outputFn.Name(), err))
+				panic(errorf(err, "Error removing temporary template file '%s'", outputFn.Name()))
 			}
 		}()
 
@@ -209,7 +210,7 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 			"--s3-bucket", getRainBucket(),
 		)
 		if err != nil {
-			panic(fmt.Errorf("Unable to package template: %s", err))
+			panic(errorf(err, "Unable to package template"))
 		}
 
 		config.Debugf("Package output: %s", output)
@@ -218,7 +219,7 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 		config.Debugf("Loading packaged template file")
 		template, err := parse.File(outputFn.Name())
 		if err != nil {
-			panic(fmt.Errorf("Error reading packaged template '%s': %s", outputFn.Name(), err))
+			panic(errorf(err, "Error reading packaged template '%s'", outputFn.Name()))
 		}
 
 		spinner.Stop()
@@ -242,7 +243,7 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 				fmt.Println("Stack is currently ROLLBACK_COMPLETE; deleting...")
 				err := cfn.DeleteStack(stackName)
 				if err != nil {
-					panic(fmt.Errorf("Unable to delete stack '%s': %s", stackName, err))
+					panic(errorf(err, "Unable to delete stack '%s'", stackName))
 				}
 
 				status := waitForStackToSettle(stackName)
@@ -260,7 +261,7 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 
 				oldTemplateString, err := cfn.GetStackTemplate(stackName, false)
 				if err != nil {
-					panic(fmt.Errorf("Failed to get existing template for stack '%s': %s", stackName, err))
+					panic(errorf(err, "Failed to get existing template for stack '%s'", stackName))
 				}
 
 				oldTemplate, _ := parse.String(oldTemplateString)
@@ -279,13 +280,17 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 		config.Debugf("Handling parameters")
 		parameters := getParameters(template, parsedParams, stack.Parameters, stackExists)
 
-		config.Debugf("Parameters: %s", parameters)
+		if config.Debug {
+			for _, param := range parameters {
+				config.Debugf("  %s: %s", *param.ParameterKey, *param.ParameterValue)
+			}
+		}
 
 		// Create a change set
 		spinner.Status("Creating change set")
 		changeSetName, createErr := cfn.CreateChangeSet(template, parameters, parsedTags, stackName)
 		if createErr != nil {
-			panic(fmt.Errorf("Error creating changeset: %s", createErr))
+			panic(errorf(createErr, "Error creating changeset"))
 		}
 
 		changeSetStatus, err := cfn.GetChangeSet(stackName, changeSetName)
@@ -302,13 +307,13 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 			if !console.Confirm(true, "Do you wish to continue?") {
 				err = cfn.DeleteChangeSet(stackName, changeSetName)
 				if err != nil {
-					panic(fmt.Errorf("Error while deleting changeset '%s': %s", changeSetName, err))
+					panic(errorf(err, "Error while deleting changeset '%s'", changeSetName))
 				}
 
 				if !stackExists {
 					err = cfn.DeleteStack(stackName)
 					if err != nil {
-						panic(fmt.Errorf("Error deleting empty stack '%s': %s", stackName, err))
+						panic(errorf(err, "Error deleting empty stack '%s'", stackName))
 					}
 				}
 
@@ -319,7 +324,7 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 		// Deploy!
 		err = cfn.ExecuteChangeSet(stackName, changeSetName)
 		if err != nil {
-			panic(fmt.Errorf("Error while executing changeset '%s': %s", changeSetName, err))
+			panic(errorf(err, "Error while executing changeset '%s'", changeSetName))
 		}
 
 		if detachDeploy {

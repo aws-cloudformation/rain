@@ -8,27 +8,23 @@ import (
 )
 
 func getClient() *s3.Client {
-	return s3.New(client.Config())
+	return s3.NewFromConfig(client.Config())
 }
 
 // BucketExists checks whether the named bucket exists
 func BucketExists(bucketName string) bool {
-	req := getClient().HeadBucketRequest(&s3.HeadBucketInput{
+	_, err := getClient().HeadBucket(context.Background(), &s3.HeadBucketInput{
 		Bucket: &bucketName,
 	})
-
-	_, err := req.Send(context.Background())
 
 	return err == nil
 }
 
 // CreateBucket creates a new S3 bucket
-func CreateBucket(bucketName string) client.Error {
-	req := getClient().CreateBucketRequest(&s3.CreateBucketInput{
+func CreateBucket(bucketName string) error {
+	_, err := getClient().CreateBucket(context.Background(), &s3.CreateBucketInput{
 		Bucket: &bucketName,
 	})
 
-	_, err := req.Send(context.Background())
-
-	return client.NewError(err)
+	return err
 }

@@ -10,14 +10,14 @@ import (
 	"github.com/aws-cloudformation/rain/client/ec2"
 	"github.com/aws-cloudformation/rain/console/spinner"
 	"github.com/aws-cloudformation/rain/console/text"
-	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/spf13/cobra"
 )
 
 var allRegions = false
 var showNested = false
 
-func formatStack(stack cloudformation.StackSummary, stackMap map[string]cloudformation.StackSummary) string {
+func formatStack(stack *types.StackSummary, stackMap map[string]*types.StackSummary) string {
 	out := strings.Builder{}
 	extra := ""
 
@@ -69,7 +69,7 @@ var lsCmd = &cobra.Command{
 
 			stack, err := cfn.GetStack(stackName)
 			if err != nil {
-				panic(fmt.Errorf("Failed to list stack '%s': %s", stackName, err))
+				panic(errorf(err, "Failed to list stack '%s'", stackName))
 			}
 
 			fmt.Println(getStackOutput(stack, false))
@@ -81,7 +81,7 @@ var lsCmd = &cobra.Command{
 			if allRegions {
 				regions, err = ec2.GetRegions()
 				if err != nil {
-					panic(fmt.Errorf("Unable to get region list: %s", err))
+					panic(errorf(err, "Unable to get region list"))
 				}
 			}
 
@@ -91,7 +91,7 @@ var lsCmd = &cobra.Command{
 				client.SetRegion(region)
 				stacks, err := cfn.ListStacks()
 				if err != nil {
-					panic(fmt.Errorf("Failed to list stacks: %s", err))
+					panic(errorf(err, "Failed to list stacks"))
 				}
 
 				if len(stacks) == 0 && allRegions {
@@ -99,7 +99,7 @@ var lsCmd = &cobra.Command{
 				}
 
 				stackNames := make(sort.StringSlice, 0)
-				stackMap := make(map[string]cloudformation.StackSummary)
+				stackMap := make(map[string]*types.StackSummary)
 				for _, stack := range stacks {
 					stackNames = append(stackNames, *stack.StackName)
 					stackMap[*stack.StackName] = stack

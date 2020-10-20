@@ -4,16 +4,21 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
+
+	smithy "github.com/awslabs/smithy-go"
 
 	"github.com/aws-cloudformation/rain/cfn"
 	"github.com/aws-cloudformation/rain/cfn/format"
 	"github.com/aws-cloudformation/rain/client"
+	"github.com/aws-cloudformation/rain/config"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 )
 
-var liveStatuses = []cloudformation.StackStatus{
+var liveStatuses = []types.StackStatus{
 	"CREATE_IN_PROGRESS",
 	"CREATE_FAILED",
 	"CREATE_COMPLETE",
@@ -33,31 +38,29 @@ var liveStatuses = []cloudformation.StackStatus{
 }
 
 func getClient() *cloudformation.Client {
-	return cloudformation.New(client.Config())
+	return cloudformation.NewFromConfig(client.Config())
 }
 
 // GetStackTemplate returns the template used to launch the named stack
-func GetStackTemplate(stackName string, processed bool) (string, client.Error) {
+func GetStackTemplate(stackName string, processed bool) (string, error) {
 	templateStage := "Original"
 	if processed {
 		templateStage = "Processed"
 	}
 
-	req := getClient().GetTemplateRequest(&cloudformation.GetTemplateInput{
+	res, err := getClient().GetTemplate(context.Background(), &cloudformation.GetTemplateInput{
 		StackName:     &stackName,
-		TemplateStage: cloudformation.TemplateStage(templateStage),
+		TemplateStage: types.TemplateStage(templateStage),
 	})
-
-	res, err := req.Send(context.Background())
 	if err != nil {
-		return "", client.NewError(err)
+		return "", err
 	}
 
 	return *res.TemplateBody, nil
 }
 
 // StackExists checks whether the named stack currently exists
-func StackExists(stackName string) (bool, client.Error) {
+func StackExists(stackName string) (bool, error) {
 	stacks, err := ListStacks()
 	if err != nil {
 		return false, err
@@ -73,101 +76,113 @@ func StackExists(stackName string) (bool, client.Error) {
 }
 
 // ListStacks returns a list of all existing stacks
-func ListStacks() ([]cloudformation.StackSummary, client.Error) {
-	req := getClient().ListStacksRequest(&cloudformation.ListStacksInput{
-		StackStatusFilter: liveStatuses,
-	})
+func ListStacks() ([]*types.StackSummary, error) {
+	stacks := make([]*types.StackSummary, 0)
 
-	stacks := make([]cloudformation.StackSummary, 0)
+	var token *string
 
-	p := cloudformation.NewListStacksPaginator(req)
-	for p.Next(context.Background()) {
-		stacks = append(stacks, p.CurrentPage().StackSummaries...)
+	for {
+		res, err := getClient().ListStacks(context.Background(), &cloudformation.ListStacksInput{
+			NextToken:         token,
+			StackStatusFilter: liveStatuses,
+		})
+
+		if err != nil {
+			return stacks, err
+		}
+
+		stacks = append(stacks, res.StackSummaries...)
+
+		if res.NextToken == nil {
+			break
+		}
+
+		token = res.NextToken
 	}
 
-	return stacks, client.NewError(p.Err())
+	return stacks, nil
 }
 
 // DeleteStack deletes a stack
-func DeleteStack(stackName string) client.Error {
+func DeleteStack(stackName string) error {
 	// Get the stack properties
-	req := getClient().DeleteStackRequest(&cloudformation.DeleteStackInput{
+	_, err := getClient().DeleteStack(context.Background(), &cloudformation.DeleteStackInput{
 		StackName: &stackName,
 	})
 
-	_, err := req.Send(context.Background())
-
-	return client.NewError(err)
+	return err
 }
 
 // SetTerminationProtection enables or disables termination protection for a stack
-func SetTerminationProtection(stackName string, protectionEnabled bool) client.Error {
+func SetTerminationProtection(stackName string, protectionEnabled bool) error {
 	// Set termination protection
-	req := getClient().UpdateTerminationProtectionRequest(&cloudformation.UpdateTerminationProtectionInput{
+	_, err := getClient().UpdateTerminationProtection(context.Background(), &cloudformation.UpdateTerminationProtectionInput{
 		StackName:                   &stackName,
 		EnableTerminationProtection: aws.Bool(protectionEnabled),
 	})
 
-	_, err := req.Send(context.Background())
-
-	if err != nil {
-		return client.NewError(err)
-	}
-
-	return nil
+	return err
 }
 
 // GetStack returns a cloudformation.Stack representing the named stack
-func GetStack(stackName string) (cloudformation.Stack, client.Error) {
+func GetStack(stackName string) (*types.Stack, error) {
 	// Get the stack properties
-	req := getClient().DescribeStacksRequest(&cloudformation.DescribeStacksInput{
+	res, err := getClient().DescribeStacks(context.Background(), &cloudformation.DescribeStacksInput{
 		StackName: &stackName,
 	})
-
-	res, err := req.Send(context.Background())
 	if err != nil {
-		return cloudformation.Stack{}, client.NewError(err)
+		return &types.Stack{}, err
 	}
 
 	return res.Stacks[0], nil
 }
 
 // GetStackResources returns a list of the resources in the named stack
-func GetStackResources(stackName string) ([]cloudformation.StackResource, client.Error) {
+func GetStackResources(stackName string) ([]*types.StackResource, error) {
 	// Get the stack resources
-	req := getClient().DescribeStackResourcesRequest(&cloudformation.DescribeStackResourcesInput{
+	res, err := getClient().DescribeStackResources(context.Background(), &cloudformation.DescribeStackResourcesInput{
 		StackName: &stackName,
 	})
-
-	res, err := req.Send(context.Background())
 	if err != nil {
-		return nil, client.NewError(err)
+		return nil, err
 	}
 
 	return res.StackResources, nil
 }
 
 // GetStackEvents returns all events associated with the named stack
-func GetStackEvents(stackName string) ([]cloudformation.StackEvent, client.Error) {
-	req := getClient().DescribeStackEventsRequest(&cloudformation.DescribeStackEventsInput{
-		StackName: &stackName,
-	})
+func GetStackEvents(stackName string) ([]*types.StackEvent, error) {
+	events := make([]*types.StackEvent, 0)
 
-	events := make([]cloudformation.StackEvent, 0)
+	var token *string
 
-	p := cloudformation.NewDescribeStackEventsPaginator(req)
-	for p.Next(context.Background()) {
-		events = append(events, p.CurrentPage().StackEvents...)
+	for {
+		res, err := getClient().DescribeStackEvents(context.Background(), &cloudformation.DescribeStackEventsInput{
+			NextToken: token,
+			StackName: &stackName,
+		})
+
+		if err != nil {
+			return events, err
+		}
+
+		events = append(events, res.StackEvents...)
+
+		if res.NextToken == nil {
+			break
+		}
+
+		token = res.NextToken
 	}
 
-	return events, client.NewError(p.Err())
+	return events, nil
 }
 
-func makeTags(tags map[string]string) []cloudformation.Tag {
-	out := make([]cloudformation.Tag, 0)
+func makeTags(tags map[string]string) []*types.Tag {
+	out := make([]*types.Tag, 0)
 
 	for key, value := range tags {
-		out = append(out, cloudformation.Tag{
+		out = append(out, &types.Tag{
 			Key:   aws.String(key),
 			Value: aws.String(value),
 		})
@@ -177,7 +192,7 @@ func makeTags(tags map[string]string) []cloudformation.Tag {
 }
 
 // CreateChangeSet creates a changeset
-func CreateChangeSet(template cfn.Template, params []cloudformation.Parameter, tags map[string]string, stackName string) (string, client.Error) {
+func CreateChangeSet(template cfn.Template, params []*types.Parameter, tags map[string]string, stackName string) (string, error) {
 	templateBody := format.Template(template, format.Options{})
 
 	changeSetType := "CREATE"
@@ -193,98 +208,122 @@ func CreateChangeSet(template cfn.Template, params []cloudformation.Parameter, t
 
 	changeSetName := stackName + "-" + fmt.Sprint(time.Now().Unix())
 
-	req := getClient().CreateChangeSetRequest(&cloudformation.CreateChangeSetInput{
-		ChangeSetType: cloudformation.ChangeSetType(changeSetType),
+	_, err = getClient().CreateChangeSet(context.Background(), &cloudformation.CreateChangeSetInput{
+		ChangeSetType: types.ChangeSetType(changeSetType),
 		ChangeSetName: &changeSetName,
 		StackName:     &stackName,
 		TemplateBody:  &templateBody,
 		Tags:          makeTags(tags),
 		Parameters:    params,
-		Capabilities: []cloudformation.Capability{
+		Capabilities: []types.Capability{
 			"CAPABILITY_NAMED_IAM",
 			"CAPABILITY_AUTO_EXPAND",
 		},
 	})
-
-	_, err = req.Send(context.Background())
 	if err != nil {
 		return changeSetName, err
 	}
 
-	err = getClient().WaitUntilChangeSetCreateComplete(context.Background(), &cloudformation.DescribeChangeSetInput{
-		ChangeSetName: &changeSetName,
-		StackName:     &stackName,
-	})
-
-	if err != nil {
-		// Get reason for failure
-		csr := getClient().DescribeChangeSetRequest(&cloudformation.DescribeChangeSetInput{
+	for {
+		res, err := getClient().DescribeChangeSet(context.Background(), &cloudformation.DescribeChangeSetInput{
 			ChangeSetName: &changeSetName,
 			StackName:     &stackName,
 		})
-
-		info, err := csr.Send(context.Background())
-
 		if err != nil {
 			return changeSetName, err
 		}
 
-		return changeSetName, errors.New(*info.StatusReason)
+		status := string(res.Status)
+		config.Debugf("ChangeSet status: %s", status)
+
+		if status == "FAILED" {
+			return changeSetName, errors.New(aws.ToString(res.StatusReason))
+		}
+
+		if strings.HasSuffix(status, "_COMPLETE") {
+			break
+		}
+
+		time.Sleep(time.Second * 2)
 	}
 
 	return changeSetName, nil
 }
 
 // GetChangeSet returns the named changeset
-func GetChangeSet(stackName, changeSetName string) (*cloudformation.DescribeChangeSetResponse, client.Error) {
-	req := getClient().DescribeChangeSetRequest(&cloudformation.DescribeChangeSetInput{
+func GetChangeSet(stackName, changeSetName string) (*cloudformation.DescribeChangeSetOutput, error) {
+	return getClient().DescribeChangeSet(context.Background(), &cloudformation.DescribeChangeSetInput{
 		ChangeSetName: &changeSetName,
 		StackName:     &stackName,
 	})
-
-	res, err := req.Send(context.Background())
-
-	return res, client.NewError(err)
 }
 
 // ExecuteChangeSet executes the named changeset
-func ExecuteChangeSet(stackName, changeSetName string) client.Error {
-	req := getClient().ExecuteChangeSetRequest(&cloudformation.ExecuteChangeSetInput{
+func ExecuteChangeSet(stackName, changeSetName string) error {
+	_, err := getClient().ExecuteChangeSet(context.Background(), &cloudformation.ExecuteChangeSetInput{
 		ChangeSetName: &changeSetName,
 		StackName:     &stackName,
 	})
 
-	_, err := req.Send(context.Background())
-
-	return client.NewError(err)
+	return err
 }
 
 // DeleteChangeSet deletes the named changeset
-func DeleteChangeSet(stackName, changeSetName string) client.Error {
-	req := getClient().DeleteChangeSetRequest(&cloudformation.DeleteChangeSetInput{
+func DeleteChangeSet(stackName, changeSetName string) error {
+	_, err := getClient().DeleteChangeSet(context.Background(), &cloudformation.DeleteChangeSetInput{
 		ChangeSetName: &changeSetName,
 		StackName:     &stackName,
 	})
 
-	_, err := req.Send(context.Background())
-
-	return client.NewError(err)
+	return err
 }
 
 // WaitUntilStackExists pauses execution until the named stack exists
-func WaitUntilStackExists(stackName string) client.Error {
-	err := getClient().WaitUntilStackExists(context.Background(), &cloudformation.DescribeStacksInput{
-		StackName: &stackName,
-	})
+func WaitUntilStackExists(stackName string) error {
+	for {
+		_, err := getClient().DescribeStacks(context.Background(), &cloudformation.DescribeStacksInput{
+			StackName: aws.String(stackName),
+		})
 
-	return client.NewError(err)
+		if err == nil {
+			break
+		}
+
+		var apiErr = &smithy.GenericAPIError{}
+		if !errors.As(err, &apiErr) {
+			return err
+		}
+
+		time.Sleep(time.Second * 2)
+	}
+
+	return nil
 }
 
 // WaitUntilStackCreateComplete pauses execution until the stack is completed (or fails)
-func WaitUntilStackCreateComplete(stackName string) client.Error {
-	err := getClient().WaitUntilStackCreateComplete(context.Background(), &cloudformation.DescribeStacksInput{
-		StackName: &stackName,
-	})
+func WaitUntilStackCreateComplete(stackName string) error {
+	for {
+		res, err := getClient().DescribeStacks(context.Background(), &cloudformation.DescribeStacksInput{
+			StackName: aws.String(stackName),
+		})
 
-	return client.NewError(err)
+		if err != nil {
+			return err
+		}
+
+		if len(res.Stacks) != 1 {
+			return errors.New("Stack not found")
+		}
+
+		stack := *res.Stacks[0]
+
+		status := string(stack.StackStatus)
+		if strings.HasSuffix(status, "_COMPLETE") || strings.HasSuffix(status, "_FAILED") {
+			break
+		}
+
+		time.Sleep(time.Second * 2)
+	}
+
+	return nil
 }

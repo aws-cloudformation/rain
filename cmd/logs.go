@@ -7,7 +7,7 @@ import (
 	"github.com/aws-cloudformation/rain/client/cfn"
 	"github.com/aws-cloudformation/rain/console/spinner"
 	"github.com/aws-cloudformation/rain/console/text"
-	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/spf13/cobra"
 )
 
@@ -20,7 +20,7 @@ var uninterestingMessages = map[string]bool{
 	"User Initiated":              true,
 }
 
-func printLogs(logs []cloudformation.StackEvent) {
+func printLogs(logs []*types.StackEvent) {
 	for _, log := range logs {
 		fmt.Printf("- %s", colouriseStatus(string(log.ResourceStatus)))
 
@@ -66,13 +66,13 @@ var logsCmd = &cobra.Command{
 		spinner.Status(fmt.Sprintf("Getting logs for %s", stackName))
 		logs, err := cfn.GetStackEvents(stackName)
 		if err != nil {
-			panic(fmt.Errorf("Failed to get events for '%s': %s", stackName, err))
+			panic(errorf(err, "Failed to get events for '%s'", stackName))
 		}
 		spinner.Stop()
 
 		// Filter by resource
 		if len(args) > 1 {
-			newLogs := make([]cloudformation.StackEvent, 0)
+			newLogs := make([]*types.StackEvent, 0)
 
 			for _, log := range logs {
 				if *log.LogicalResourceId == args[1] {
@@ -84,7 +84,7 @@ var logsCmd = &cobra.Command{
 		}
 
 		// Filter out uninteresting messages
-		newLogs := make([]cloudformation.StackEvent, 0)
+		newLogs := make([]*types.StackEvent, 0)
 		for _, log := range logs {
 			if allLogs || (log.ResourceStatusReason != nil && !uninterestingMessages[*log.ResourceStatusReason]) {
 				newLogs = append(newLogs, log)
@@ -108,11 +108,11 @@ var logsCmd = &cobra.Command{
 		} else {
 			// Group by resource name
 			names := make([]string, 0)
-			groups := make(map[string][]cloudformation.StackEvent)
+			groups := make(map[string][]*types.StackEvent)
 			for _, log := range logs {
 				name := *log.LogicalResourceId
 				if _, ok := groups[name]; !ok {
-					groups[name] = make([]cloudformation.StackEvent, 0)
+					groups[name] = make([]*types.StackEvent, 0)
 					names = append(names, name)
 				}
 

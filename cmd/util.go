@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -16,8 +17,21 @@ import (
 	"github.com/aws-cloudformation/rain/console/run"
 	"github.com/aws-cloudformation/rain/console/spinner"
 	"github.com/aws-cloudformation/rain/console/text"
-	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	smithy "github.com/awslabs/smithy-go"
 )
+
+func errorf(err error, message string, parts ...interface{}) error {
+	message = fmt.Sprintf(message, parts...)
+
+	// Pull out API errors
+	var apiErr = &smithy.GenericAPIError{}
+	if errors.As(err, &apiErr) {
+		return fmt.Errorf("%s: %s", message, apiErr.Message)
+	}
+
+	return fmt.Errorf("%s: %w", message, err)
+}
 
 func indent(prefix string, in string) string {
 	return prefix + strings.Join(strings.Split(strings.TrimSpace(in), "\n"), "\n"+prefix)
@@ -38,7 +52,7 @@ func colouriseStatus(status string) text.Text {
 	}
 }
 
-func getStackOutput(stack cloudformation.Stack, onlyChanging bool) string {
+func getStackOutput(stack *types.Stack, onlyChanging bool) string {
 	resources, _ := cfn.GetStackResources(*stack.StackName)
 	// We ignore errors because it just means we'll list no resources
 
@@ -114,7 +128,7 @@ func getStackOutput(stack cloudformation.Stack, onlyChanging bool) string {
 func getRainBucket() string {
 	accountID, err := sts.GetAccountID()
 	if err != nil {
-		panic(fmt.Errorf("Unable to get account ID: %s", err))
+		panic(errorf(err, "Unable to get account ID"))
 	}
 
 	bucketName := fmt.Sprintf("rain-artifacts-%s-%s", accountID, client.Config().Region)
@@ -124,7 +138,7 @@ func getRainBucket() string {
 	if !s3.BucketExists(bucketName) {
 		err := s3.CreateBucket(bucketName)
 		if err != nil {
-			panic(fmt.Errorf("Unable to create artifact bucket '%s': %s", bucketName, err))
+			panic(errorf(err, "Unable to create artifact bucket '%s'", bucketName))
 		}
 	}
 
@@ -167,7 +181,7 @@ func waitForStackToSettle(stackName string) string {
 	for {
 		stack, err := cfn.GetStack(stackID)
 		if err != nil {
-			panic(fmt.Errorf("Operation failed: %s", err))
+			panic(errorf(err, "Operation failed"))
 		}
 
 		// Refresh the stack ID so we can deal with deleted stacks ok
@@ -216,11 +230,11 @@ func statusIsSettled(status string) bool {
 	return false
 }
 
-func stackHasSettled(stack cloudformation.Stack) bool {
+func stackHasSettled(stack *types.Stack) bool {
 	return statusIsSettled(string(stack.StackStatus))
 }
 
-func resourceHasSettled(resource cloudformation.StackResource) bool {
+func resourceHasSettled(resource *types.StackResource) bool {
 	return statusIsSettled(string(resource.ResourceStatus))
 }
 
