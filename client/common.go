@@ -9,9 +9,12 @@ import (
 	rainConfig "github.com/aws-cloudformation/rain/config"
 	"github.com/aws-cloudformation/rain/console"
 	"github.com/aws-cloudformation/rain/console/spinner"
+	"github.com/aws-cloudformation/rain/version"
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
+	smithymiddleware "github.com/awslabs/smithy-go/middleware"
 )
 
 // MFAProvider is called by the AWS SDK when an MFA token number
@@ -28,9 +31,29 @@ func MFAProvider() (string, error) {
 
 var awsCfg *aws.Config
 
+// For debug resolver
+type uaResolver string
+
+func (u uaResolver) ResolveEndpoint(service string, region string) (aws.Endpoint, error) {
+	return aws.Endpoint{
+		URL: string(u),
+	}, nil
+}
+
 func loadConfig(ctx context.Context) aws.Config {
 	// Credential configs
 	var configs = make([]config.Config, 0)
+
+	// Uncomment for testing against a local endpoint
+	//configs = append(configs, config.WithEndpointResolver(uaResolver("http://localhost:8000")))
+
+	// Add user-agent
+	configs = append(configs, config.WithAPIOptions(
+		append(
+			[]func(*smithymiddleware.Stack) error{},
+			middleware.AddUserAgentKeyValue(version.NAME, version.VERSION),
+		),
+	))
 
 	// Add MFA provider
 	configs = append(configs, config.WithAssumeRoleCredentialOptions(func(options *stscreds.AssumeRoleOptions) {
@@ -65,21 +88,6 @@ func Config() aws.Config {
 		spinner.Status("Loading AWS config")
 
 		cfg := loadConfig(context.Background())
-
-		// Set the user agent - FIXME - bring this back
-		/*
-			cfg.Handlers.Build.Remove(defaults.SDKVersionUserAgentHandler)
-			cfg.Handlers.Build.PushFront(aws.MakeAddToUserAgentHandler(
-				version.NAME,
-				version.VERSION,
-				runtime.Version(),
-				fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
-				fmt.Sprintf("%s/%s", aws.SDKName, aws.SDKVersion),
-			))
-		*/
-
-		// For debugging
-		// cfg.EndpointResolver = aws.ResolveWithEndpointURL("http://localhost:8000")
 
 		awsCfg = &cfg
 
