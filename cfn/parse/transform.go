@@ -32,6 +32,11 @@ func transform(node *yaml.Node) {
 		node.Tag = "!!str"
 	}
 
+	// Fix badly-parsed timestamps which are often used for versions in cloudformation
+	if node.ShortTag() == "!!timestamp" {
+		node.Tag = "!!str"
+	}
+
 	// See if we're dealing with a Fn:: tag
 	for _, tag := range tags {
 		if node.ShortTag() == "!"+tag {

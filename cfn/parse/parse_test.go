@@ -51,6 +51,22 @@ var expected = cfn.Template(map[string]interface{}{
 				},
 			},
 		},
+		"ExecutionRole": map[string]interface{}{
+			"Properties": map[string]interface{}{
+				"AssumeRolePolicyDocument": map[string]interface{}{
+					"Statement": []interface{}{
+						map[string]interface{}{
+							"Action":    "sts:AssumeRole",
+							"Effect":    "Allow",
+							"Principal": map[string]interface{}{"Service": "lambda.amazonaws.com"},
+						},
+					},
+					"Version": "2012-10-17",
+				},
+				"Path": "/",
+			},
+			"Type": "AWS::IAM::Role",
+		},
 	},
 	"Outputs": map[string]interface{}{
 		"Bucket1Arn": map[string]interface{}{
@@ -75,6 +91,7 @@ var expected = cfn.Template(map[string]interface{}{
 			},
 		},
 	},
+	"AWSTemplateFormatVersion": "2010-09-09",
 })
 
 func init() {
