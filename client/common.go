@@ -6,13 +6,13 @@ import (
 	"os"
 	"time"
 
-	rainConfig "github.com/aws-cloudformation/rain/config"
+	"github.com/aws-cloudformation/rain/config"
 	"github.com/aws-cloudformation/rain/console"
 	"github.com/aws-cloudformation/rain/console/spinner"
 	"github.com/aws-cloudformation/rain/version"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/config"
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	smithymiddleware "github.com/awslabs/smithy-go/middleware"
 )
@@ -42,13 +42,13 @@ func (u uaResolver) ResolveEndpoint(service string, region string) (aws.Endpoint
 
 func loadConfig(ctx context.Context) aws.Config {
 	// Credential configs
-	var configs = make([]config.Config, 0)
+	var configs = make([]awsconfig.Config, 0)
 
 	// Uncomment for testing against a local endpoint
-	//configs = append(configs, config.WithEndpointResolver(uaResolver("http://localhost:8000")))
+	//configs = append(configs, awsconfig.WithEndpointResolver(uaResolver("http://localhost:8000")))
 
 	// Add user-agent
-	configs = append(configs, config.WithAPIOptions(
+	configs = append(configs, awsconfig.WithAPIOptions(
 		append(
 			[]func(*smithymiddleware.Stack) error{},
 			middleware.AddUserAgentKeyValue(version.NAME, version.VERSION),
@@ -56,25 +56,25 @@ func loadConfig(ctx context.Context) aws.Config {
 	))
 
 	// Add MFA provider
-	configs = append(configs, config.WithAssumeRoleCredentialOptions(func(options *stscreds.AssumeRoleOptions) {
+	configs = append(configs, awsconfig.WithAssumeRoleCredentialOptions(func(options *stscreds.AssumeRoleOptions) {
 		options.TokenProvider = MFAProvider
 	}))
 
 	// Supplied profile
-	if rainConfig.Profile != "" {
-		configs = append(configs, config.WithSharedConfigProfile(rainConfig.Profile))
+	if config.Profile != "" {
+		configs = append(configs, awsconfig.WithSharedConfigProfile(config.Profile))
 	} else if p := os.Getenv("AWS_PROFILE"); p != "" {
-		rainConfig.Profile = p
+		config.Profile = p
 	}
 
 	// Supplied region
-	if rainConfig.Region != "" {
-		configs = append(configs, config.WithRegion(rainConfig.Region))
+	if config.Region != "" {
+		configs = append(configs, awsconfig.WithRegion(config.Region))
 	} else if r := os.Getenv("AWS_DEFAULT_REGION"); r != "" {
-		rainConfig.Region = r
+		config.Region = r
 	}
 
-	cfg, err := config.LoadDefaultConfig(configs...)
+	cfg, err := awsconfig.LoadDefaultConfig(configs...)
 	if err != nil {
 		panic("Unable to find valid credentials")
 	}
@@ -97,13 +97,13 @@ func Config() aws.Config {
 	// Check for validity
 	creds, err := awsCfg.Credentials.Retrieve(context.Background())
 	if err != nil {
-		rainConfig.Debugf("Invalid credentials: %s", err)
+		config.Debugf("Invalid credentials: %s", err)
 		panic(err)
 	}
 
 	// Check for expiry
 	if creds.CanExpire && time.Until(creds.Expires) < time.Minute {
-		rainConfig.Debugf("Creds expire in less than a minute; refreshing")
+		config.Debugf("Creds expire in less than a minute; refreshing")
 		awsCfg = nil
 		return Config()
 	}
