@@ -66,7 +66,7 @@ var logsCmd = &cobra.Command{
 		spinner.Status(fmt.Sprintf("Getting logs for %s", stackName))
 		logs, err := cfn.GetStackEvents(stackName)
 		if err != nil {
-			panic(fmt.Errorf("Failed to get events for '%s': %s", stackName, err))
+			panic(errorf(err, "Failed to get events for '%s'", stackName))
 		}
 		spinner.Stop()
 

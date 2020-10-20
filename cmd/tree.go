@@ -161,7 +161,7 @@ var graphCmd = &cobra.Command{
 
 		t, err := parse.File(fileName)
 		if err != nil {
-			panic(fmt.Errorf("Unable to parse template '%s': %s", fileName, err))
+			panic(errorf(err, "Unable to parse template '%s'", fileName))
 		}
 
 		graph := t.Graph()

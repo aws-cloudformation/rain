@@ -81,7 +81,7 @@ var mergeCmd = &cobra.Command{
 		for i, fn := range args {
 			templates[i], err = parse.File(fn)
 			if err != nil {
-				panic(fmt.Errorf("Unable to open template '%s': %s", fn, err))
+				panic(errorf(err, "Unable to open template '%s'", fn))
 			}
 		}
 
