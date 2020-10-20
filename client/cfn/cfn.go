@@ -12,6 +12,7 @@ import (
 	"github.com/aws-cloudformation/rain/cfn"
 	"github.com/aws-cloudformation/rain/cfn/format"
 	"github.com/aws-cloudformation/rain/client"
+	"github.com/aws-cloudformation/rain/config"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
@@ -233,7 +234,13 @@ func CreateChangeSet(template cfn.Template, params []*types.Parameter, tags map[
 		}
 
 		status := string(res.Status)
-		if strings.HasSuffix(status, "_COMPLETE") || strings.HasSuffix(status, "_FAILED") {
+		config.Debugf("ChangeSet status: %s", status)
+
+		if status == "FAILED" {
+			return changeSetName, errors.New(aws.ToString(res.StatusReason))
+		}
+
+		if strings.HasSuffix(status, "_COMPLETE") {
 			break
 		}
 
