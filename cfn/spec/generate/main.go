@@ -107,84 +107,11 @@ func saveJSON(s models.Spec, name string) {
 }
 
 func patchCfnSpec(s models.Spec) {
-	s.PropertyTypes["AWS::SSM::Association.ParameterValues"] = models.PropertyType{
-		Property: models.Property{
-			Type:              "List",
-			PrimitiveItemType: "String",
-		},
-	}
-
-	s.ResourceTypes["AWS::IoT::ProvisioningTemplate"].Properties["Tags"] = models.Property{
-		Type:              "List",
-		PrimitiveItemType: "Json",
-	}
+	// Any fixes required for bugs in spec - None as at 2020-10-20
 }
 
 func patchSamSpec(s models.Spec) {
-	s.ResourceTypes["AWS::Serverless::Api"].Properties["MethodSettings"] = models.Property{
-		Type:     "List",
-		ItemType: "AWS::ApiGateway::Stage.MethodSetting",
-	}
-
-	s.ResourceTypes["AWS::Serverless::Api"].Properties["CanarySetting"] = models.Property{
-		Type: "AWS::ApiGateway::Stage.CanarySetting",
-	}
-
-	s.ResourceTypes["AWS::Serverless::Api"].Properties["AccessLogSetting"] = models.Property{
-		Type: "AWS::ApiGateway::Stage.AccessLogSetting",
-	}
-
-	s.PropertyTypes["AWS::Serverless::Api.ApiUsagePlan"].Properties["Throttle"] = models.Property{
-		Type: "AWS::ApiGateway::UsagePlan.ThrottleSettings",
-	}
-
-	s.PropertyTypes["AWS::Serverless::Api.ApiUsagePlan"].Properties["Quota"] = models.Property{
-		Type: "AWS::ApiGateway::UsagePlan.QuotaSettings",
-	}
-
-	s.PropertyTypes["AWS::Serverless::Function.EventSource"].Properties["Properties"] = models.Property{
-		PrimitiveType: "Json",
-	}
-
-	s.ResourceTypes["AWS::Serverless::Function"].Properties["ProvisionedConcurrencyConfig"] = models.Property{
-		Type: "AWS::Lambda::Alias.ProvisionedConcurrencyConfiguration",
-	}
-
-	s.ResourceTypes["AWS::Serverless::Function"].Properties["VpcConfig"] = models.Property{
-		Type: "AWS::Lambda::Function.VpcConfig",
-	}
-
-	s.ResourceTypes["AWS::Serverless::Function"].Properties["Environment"] = models.Property{
-		Type: "AWS::Lambda::Function.Environment",
-	}
-
-	s.ResourceTypes["AWS::Serverless::HttpApi"].Properties["AccessLogSettings"] = models.Property{
-		Type: "AWS::ApiGatewayV2::Stage.AccessLogSettings",
-	}
-
-	s.ResourceTypes["AWS::Serverless::HttpApi"].Properties["DefaultRouteSettings"] = models.Property{
-		Type: "AWS::ApiGatewayV2::Stage.RouteSettings",
-	}
-
-	s.ResourceTypes["AWS::Serverless::HttpApi"].Properties["RouteSettings"] = models.Property{
-		Type: "AWS::ApiGatewayV2::Stage.RouteSettings",
-	}
-
-	s.ResourceTypes["AWS::Serverless::SimpleTable"].Properties["ProvisionedThroughput"] = models.Property{
-		Type: "AWS::DynamoDB::Table.ProvisionedThroughput",
-	}
-
-	s.ResourceTypes["AWS::Serverless::SimpleTable"].Properties["SSESpecification"] = models.Property{
-		Type: "AWS::DynamoDB::Table.SSESpecification",
-	}
-
-	s.ResourceTypes["AWS::Serverless::StateMachine"].Properties["DefinitionUri"] = models.Property{
-		Type: "AWS::StepFunctions::StateMachine.S3Location",
-	}
-
-	s.ResourceTypes["AWS::Serverless::StateMachine"].Properties["Logging"] = models.Property{
-		Type: "AWS::StepFunctions::StateMachine.LoggingConfiguration",
-	}
+	// Any fixes required for bugs in spec - None as at 2020-10-20
 }
 
 func main() {

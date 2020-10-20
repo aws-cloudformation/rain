@@ -56,6 +56,7 @@ type Property struct {
 // Attribute represents an attribute of a type
 type Attribute struct {
 	ItemType          string
+	DuplicatesAllowed bool
 	PrimitiveItemType string
 	PrimitiveType     string
 	Type              string
