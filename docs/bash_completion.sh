@@ -40,6 +40,12 @@ __rain_handle_go_custom_completion()
 {
     __rain_debug "${FUNCNAME[0]}: cur is ${cur}, words[*] is ${words[*]}, #words[@] is ${#words[@]}"
 
+    local shellCompDirectiveError=1
+    local shellCompDirectiveNoSpace=2
+    local shellCompDirectiveNoFileComp=4
+    local shellCompDirectiveFilterFileExt=8
+    local shellCompDirectiveFilterDirs=16
+
     local out requestComp lastParam lastChar comp directive args
 
     # Prepare the command to request completions for the program.
@@ -73,24 +79,50 @@ __rain_handle_go_custom_completion()
     __rain_debug "${FUNCNAME[0]}: the completion directive is: ${directive}"
     __rain_debug "${FUNCNAME[0]}: the completions are: ${out[*]}"
 
-    if [ $((directive & 1)) -ne 0 ]; then
+    if [ $((directive & shellCompDirectiveError)) -ne 0 ]; then
         # Error code.  No completion.
         __rain_debug "${FUNCNAME[0]}: received error from custom completion go code"
         return
     else
-        if [ $((directive & 2)) -ne 0 ]; then
+        if [ $((directive & shellCompDirectiveNoSpace)) -ne 0 ]; then
             if [[ $(type -t compopt) = "builtin" ]]; then
                 __rain_debug "${FUNCNAME[0]}: activating no space"
                 compopt -o nospace
             fi
         fi
-        if [ $((directive & 4)) -ne 0 ]; then
+        if [ $((directive & shellCompDirectiveNoFileComp)) -ne 0 ]; then
             if [[ $(type -t compopt) = "builtin" ]]; then
                 __rain_debug "${FUNCNAME[0]}: activating no file completion"
                 compopt +o default
             fi
         fi
+    fi
 
+    if [ $((directive & shellCompDirectiveFilterFileExt)) -ne 0 ]; then
+        # File extension filtering
+        local fullFilter filter filteringCmd
+        # Do not use quotes around the $out variable or else newline
+        # characters will be kept.
+        for filter in ${out[*]}; do
+            fullFilter+="$filter|"
+        done
+
+        filteringCmd="_filedir $fullFilter"
+        __rain_debug "File filtering command: $filteringCmd"
+        $filteringCmd
+    elif [ $((directive & shellCompDirectiveFilterDirs)) -ne 0 ]; then
+        # File completion for directories only
+        local subDir
+        # Use printf to strip any trailing newline
+        subdir=$(printf "%s" "${out[0]}")
+        if [ -n "$subdir" ]; then
+            __rain_debug "Listing directories in $subdir"
+            __rain_handle_subdirs_in_dir_flag "$subdir"
+        else
+            __rain_debug "Listing directories in ."
+            _filedir -d
+        fi
+    else
         while IFS='' read -r comp; do
             COMPREPLY+=("$comp")
         done < <(compgen -W "${out[*]}" -- "$cur")
@@ -159,10 +191,9 @@ __rain_handle_reply()
     local completions
     completions=("${commands[@]}")
     if [[ ${#must_have_one_noun[@]} -ne 0 ]]; then
-        completions=("${must_have_one_noun[@]}")
+        completions+=("${must_have_one_noun[@]}")
     elif [[ -n "${has_completion_function}" ]]; then
         # if a go completion function is provided, defer to that function
-        completions=()
         __rain_handle_go_custom_completion
     fi
     if [[ ${#must_have_one_flag[@]} -ne 0 ]]; then
@@ -339,15 +370,19 @@ _rain_build()
     flags+=("--bare")
     flags+=("-b")
     local_nonpersistent_flags+=("--bare")
+    local_nonpersistent_flags+=("-b")
     flags+=("--help")
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
     flags+=("--json")
     flags+=("-j")
     local_nonpersistent_flags+=("--json")
+    local_nonpersistent_flags+=("-j")
     flags+=("--list")
     flags+=("-l")
     local_nonpersistent_flags+=("--list")
+    local_nonpersistent_flags+=("-l")
     flags+=("--debug")
     flags+=("--profile=")
     two_word_flags+=("--profile")
@@ -378,12 +413,15 @@ _rain_cat()
     flags+=("--help")
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
     flags+=("--transformed")
     flags+=("-t")
     local_nonpersistent_flags+=("--transformed")
+    local_nonpersistent_flags+=("-t")
     flags+=("--unformatted")
     flags+=("-u")
     local_nonpersistent_flags+=("--unformatted")
+    local_nonpersistent_flags+=("-u")
     flags+=("--debug")
     flags+=("--profile=")
     two_word_flags+=("--profile")
@@ -414,6 +452,7 @@ _rain_check()
     flags+=("--help")
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
     flags+=("--debug")
     flags+=("--profile=")
     two_word_flags+=("--profile")
@@ -444,17 +483,22 @@ _rain_deploy()
     flags+=("--detach")
     flags+=("-d")
     local_nonpersistent_flags+=("--detach")
+    local_nonpersistent_flags+=("-d")
     flags+=("--force")
     flags+=("-f")
     local_nonpersistent_flags+=("--force")
+    local_nonpersistent_flags+=("-f")
     flags+=("--help")
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
     flags+=("--params=")
     two_word_flags+=("--params")
+    local_nonpersistent_flags+=("--params")
     local_nonpersistent_flags+=("--params=")
     flags+=("--tags=")
     two_word_flags+=("--tags")
+    local_nonpersistent_flags+=("--tags")
     local_nonpersistent_flags+=("--tags=")
     flags+=("--debug")
     flags+=("--profile=")
@@ -486,9 +530,11 @@ _rain_diff()
     flags+=("--help")
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
     flags+=("--long")
     flags+=("-l")
     local_nonpersistent_flags+=("--long")
+    local_nonpersistent_flags+=("-l")
     flags+=("--debug")
     flags+=("--profile=")
     two_word_flags+=("--profile")
@@ -519,18 +565,23 @@ _rain_fmt()
     flags+=("--compact")
     flags+=("-c")
     local_nonpersistent_flags+=("--compact")
+    local_nonpersistent_flags+=("-c")
     flags+=("--help")
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
     flags+=("--json")
     flags+=("-j")
     local_nonpersistent_flags+=("--json")
+    local_nonpersistent_flags+=("-j")
     flags+=("--verify")
     flags+=("-v")
     local_nonpersistent_flags+=("--verify")
+    local_nonpersistent_flags+=("-v")
     flags+=("--write")
     flags+=("-w")
     local_nonpersistent_flags+=("--write")
+    local_nonpersistent_flags+=("-w")
     flags+=("--debug")
     flags+=("--profile=")
     two_word_flags+=("--profile")
@@ -541,6 +592,34 @@ _rain_fmt()
 
     must_have_one_flag=()
     must_have_one_noun=()
+    noun_aliases=()
+}
+
+_rain_help()
+{
+    last_command="rain_help"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--debug")
+    flags+=("--profile=")
+    two_word_flags+=("--profile")
+    two_word_flags+=("-p")
+    flags+=("--region=")
+    two_word_flags+=("--region")
+    two_word_flags+=("-r")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    has_completion_function=1
     noun_aliases=()
 }
 
@@ -561,9 +640,11 @@ _rain_info()
     flags+=("--creds")
     flags+=("-c")
     local_nonpersistent_flags+=("--creds")
+    local_nonpersistent_flags+=("-c")
     flags+=("--help")
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
     flags+=("--debug")
     flags+=("--profile=")
     two_word_flags+=("--profile")
@@ -594,15 +675,19 @@ _rain_logs()
     flags+=("--all")
     flags+=("-a")
     local_nonpersistent_flags+=("--all")
+    local_nonpersistent_flags+=("-a")
     flags+=("--help")
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
     flags+=("--long")
     flags+=("-l")
     local_nonpersistent_flags+=("--long")
+    local_nonpersistent_flags+=("-l")
     flags+=("--time")
     flags+=("-t")
     local_nonpersistent_flags+=("--time")
+    local_nonpersistent_flags+=("-t")
     flags+=("--debug")
     flags+=("--profile=")
     two_word_flags+=("--profile")
@@ -633,12 +718,50 @@ _rain_ls()
     flags+=("--all")
     flags+=("-a")
     local_nonpersistent_flags+=("--all")
+    local_nonpersistent_flags+=("-a")
     flags+=("--help")
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
     flags+=("--nested")
     flags+=("-n")
     local_nonpersistent_flags+=("--nested")
+    local_nonpersistent_flags+=("-n")
+    flags+=("--debug")
+    flags+=("--profile=")
+    two_word_flags+=("--profile")
+    two_word_flags+=("-p")
+    flags+=("--region=")
+    two_word_flags+=("--region")
+    two_word_flags+=("-r")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_rain_merge()
+{
+    last_command="rain_merge"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--force")
+    flags+=("-f")
+    local_nonpersistent_flags+=("--force")
+    local_nonpersistent_flags+=("-f")
+    flags+=("--help")
+    flags+=("-h")
+    local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
     flags+=("--debug")
     flags+=("--profile=")
     two_word_flags+=("--profile")
@@ -669,12 +792,15 @@ _rain_rm()
     flags+=("--detach")
     flags+=("-d")
     local_nonpersistent_flags+=("--detach")
+    local_nonpersistent_flags+=("-d")
     flags+=("--force")
     flags+=("-f")
     local_nonpersistent_flags+=("--force")
+    local_nonpersistent_flags+=("-f")
     flags+=("--help")
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
     flags+=("--debug")
     flags+=("--profile=")
     two_word_flags+=("--profile")
@@ -705,15 +831,19 @@ _rain_tree()
     flags+=("--all")
     flags+=("-a")
     local_nonpersistent_flags+=("--all")
+    local_nonpersistent_flags+=("-a")
     flags+=("--both")
     flags+=("-b")
     local_nonpersistent_flags+=("--both")
+    local_nonpersistent_flags+=("-b")
     flags+=("--dot")
     flags+=("-d")
     local_nonpersistent_flags+=("--dot")
+    local_nonpersistent_flags+=("-d")
     flags+=("--help")
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
     flags+=("--debug")
     flags+=("--profile=")
     two_word_flags+=("--profile")
@@ -744,9 +874,11 @@ _rain_watch()
     flags+=("--help")
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
     flags+=("--wait")
     flags+=("-w")
     local_nonpersistent_flags+=("--wait")
+    local_nonpersistent_flags+=("-w")
     flags+=("--debug")
     flags+=("--profile=")
     two_word_flags+=("--profile")
@@ -777,6 +909,7 @@ _rain_root_command()
         command_aliases+=("format")
         aliashash["format"]="fmt"
     fi
+    commands+=("help")
     commands+=("info")
     commands+=("logs")
     if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
@@ -788,6 +921,7 @@ _rain_root_command()
         command_aliases+=("list")
         aliashash["list"]="ls"
     fi
+    commands+=("merge")
     commands+=("rm")
     if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
         command_aliases+=("del")
@@ -814,6 +948,7 @@ _rain_root_command()
     flags+=("--help")
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
     flags+=("--profile=")
     two_word_flags+=("--profile")
     two_word_flags+=("-p")

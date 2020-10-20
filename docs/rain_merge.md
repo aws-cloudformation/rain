@@ -1,19 +1,20 @@
-## rain check
+## rain merge
 
-Validate a CloudFormation template against the spec
+Merge two or more CloudFormation templates
 
 ### Synopsis
 
-Reads the specified CloudFormation template and validates it against the current CloudFormation specification.
+Merges all specified CloudFormation templates, print the resultant template to standard out
 
 ```
-rain check <template file>
+rain merge <template> <template> ...
 ```
 
 ### Options
 
 ```
-  -h, --help   help for check
+  -f, --force   Don't warn on clashing attributes; rename them instead. Note: this will not rename Refs, GetAtts, etc.
+  -h, --help    help for merge
 ```
 
 ### Options inherited from parent commands

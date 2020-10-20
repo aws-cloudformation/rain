@@ -8,9 +8,6 @@ var Iam = models.Spec{
 	PropertyTypes: map[string]models.PropertyType{
 		"Policy": models.PropertyType{
 			Properties: map[string]models.Property{
-				"Version": models.Property{
-					PrimitiveType: "String",
-				},
 				"Id": models.Property{
 					PrimitiveType: "String",
 				},
@@ -18,32 +15,23 @@ var Iam = models.Spec{
 					ItemType: "Statement",
 					Type:     "List",
 				},
+				"Version": models.Property{
+					PrimitiveType: "String",
+				},
 			},
 		},
 		"Statement": models.PropertyType{
 			Properties: map[string]models.Property{
-				"Effect": models.Property{
-					PrimitiveType: "String",
-				},
-				"Resource": models.Property{
-					PrimitiveItemType: "String",
-					Type:              "List",
-				},
 				"Action": models.Property{
 					PrimitiveItemType: "String",
 					Type:              "List",
 				},
-				"NotAction": models.Property{
-					PrimitiveItemType: "String",
-					Type:              "List",
+				"Effect": models.Property{
+					PrimitiveType: "String",
 				},
 				"NotPrincipal": models.Property{
 					PrimitiveItemType: "String",
 					Type:              "Map",
-				},
-				"NotResource": models.Property{
-					PrimitiveItemType: "String",
-					Type:              "List",
 				},
 				"Principal": models.Property{
 					PrimitiveItemType: "String",
@@ -55,6 +43,18 @@ var Iam = models.Spec{
 				"Condition": models.Property{
 					PrimitiveItemType: "Json",
 					Type:              "Map",
+				},
+				"NotAction": models.Property{
+					PrimitiveItemType: "String",
+					Type:              "List",
+				},
+				"NotResource": models.Property{
+					PrimitiveItemType: "String",
+					Type:              "List",
+				},
+				"Resource": models.Property{
+					PrimitiveItemType: "String",
+					Type:              "List",
 				},
 			},
 		},

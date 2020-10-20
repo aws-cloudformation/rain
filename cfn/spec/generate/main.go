@@ -132,7 +132,11 @@ func main() {
 		cfnSpec.PropertyTypes[name] = prop
 	}
 
+	// Save spec files
 	saveSpec(cfnSpec, "Cfn")
-
 	saveSpec(loadFile(iamSpecFn), "Iam")
+
+	// Clean up
+	os.Remove(cfnSpecFn)
+	os.Remove(samSpecFn)
 }
