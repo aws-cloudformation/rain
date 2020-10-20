@@ -8,6 +8,8 @@ import (
 
 func formatValue(v reflect.Value) string {
 	switch v.Kind() {
+	case reflect.Ptr:
+		return "&" + formatValue(v.Elem())
 	case reflect.Struct:
 		return formatStruct(v.Interface())
 	case reflect.Map:
@@ -20,10 +22,15 @@ func formatValue(v reflect.Value) string {
 func formatMap(in interface{}) string {
 	t := reflect.TypeOf(in)
 
+	name := "models." + t.Elem().Name()
+	if t.Elem().Kind() == reflect.Ptr {
+		name = "*models." + t.Elem().Elem().Name()
+	}
+
 	out := strings.Builder{}
-	out.WriteString(fmt.Sprintf("map[%s]models.%s",
+	out.WriteString(fmt.Sprintf("map[%s]%s",
 		t.Key().Name(),
-		t.Elem().Name(),
+		name,
 	))
 	out.WriteString("{\n")
 

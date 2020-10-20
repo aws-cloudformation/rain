@@ -16,8 +16,8 @@ const (
 // Spec is a representation of the CloudFormation specification document
 type Spec struct {
 	ResourceSpecificationVersion string
-	PropertyTypes                map[string]PropertyType
-	ResourceTypes                map[string]ResourceType
+	PropertyTypes                map[string]*PropertyType
+	ResourceTypes                map[string]*ResourceType
 }
 
 func (s Spec) String() string {
@@ -29,15 +29,15 @@ func (s Spec) String() string {
 type PropertyType struct {
 	Property
 	Documentation string
-	Properties    map[string]Property
+	Properties    map[string]*Property
 }
 
 // ResourceType represents a resourcetype node
 // in the CloudFormation specification
 type ResourceType struct {
-	Attributes           map[string]Attribute
+	Attributes           map[string]*Attribute
 	Documentation        string
-	Properties           map[string]Property
+	Properties           map[string]*Property
 	AdditionalProperties bool
 }
 

@@ -1,6 +1,10 @@
 package builder
 
 import (
+	"errors"
+	"fmt"
+	"os"
+
 	"github.com/aws-cloudformation/rain/cfn"
 	"github.com/aws-cloudformation/rain/cfn/spec"
 )
@@ -23,6 +27,22 @@ func NewCfnBuilder(includeOptional, buildIamPolicies bool) CfnBuilder {
 // Template produces a CloudFormation template for the
 // resources in the config map
 func (b CfnBuilder) Template(config map[string]string) (cfn.Template, map[string]interface{}) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Fprintln(os.Stderr, r)
+			if err, ok := r.(error); ok {
+				for err != nil {
+					fmt.Fprintln(os.Stderr, err.Error())
+					err = errors.Unwrap(err)
+				}
+
+				panic(err)
+			} else {
+				panic(r)
+			}
+		}
+	}()
+
 	// Generate resources
 	resources := make(map[string]interface{})
 	comments := make(map[string]interface{})

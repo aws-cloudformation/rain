@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -16,6 +17,7 @@ func init() {
 }
 
 func TestAllResourceTypes(t *testing.T) {
+	fmt.Println("GOO")
 	for resourceType := range builder.Spec.ResourceTypes {
 		builder.Template(map[string]string{
 			"Res": resourceType,

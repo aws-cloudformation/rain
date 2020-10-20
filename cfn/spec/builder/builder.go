@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cfn/spec/models"
@@ -29,9 +30,15 @@ func init() {
 }
 
 func (b Builder) newResource(resourceType string) (map[string]interface{}, map[string]interface{}) {
+	defer func() {
+		if r := recover(); r != nil {
+			panic(fmt.Errorf("Error building resource type '%s': %w", resourceType, r))
+		}
+	}()
+
 	rSpec, ok := b.Spec.ResourceTypes[resourceType]
 	if !ok {
-		panic("No such resource type: " + resourceType)
+		panic(fmt.Errorf("No such resource type: %s", resourceType))
 	}
 
 	// Generate properties
@@ -42,7 +49,7 @@ func (b Builder) newResource(resourceType string) (map[string]interface{}, map[s
 			if b.BuildIamPolicies && (name == policyDocument || name == assumeRolePolicyDocument) {
 				properties[name], comments[name] = iamBuilder.Policy()
 			} else {
-				properties[name], comments[name] = b.newProperty(resourceType, pSpec)
+				properties[name], comments[name] = b.newProperty(resourceType, name, pSpec)
 			}
 		}
 	}
@@ -55,7 +62,13 @@ func (b Builder) newResource(resourceType string) (map[string]interface{}, map[s
 		}
 }
 
-func (b Builder) newProperty(resourceType string, pSpec models.Property) (interface{}, interface{}) {
+func (b Builder) newProperty(resourceType, propertyName string, pSpec *models.Property) (interface{}, interface{}) {
+	defer func() {
+		if r := recover(); r != nil {
+			panic(fmt.Errorf("Error building property %s.%s: %w", resourceType, propertyName, r))
+		}
+	}()
+
 	// Correct badly-formed entries
 	if pSpec.PrimitiveType == models.TypeMap {
 		pSpec.PrimitiveType = models.TypeEmpty
@@ -135,12 +148,18 @@ func (b Builder) newPrimitive(primitiveType string) interface{} {
 	case "Json":
 		return "{\"JSON\": \"CHANGEME\"}"
 	default:
-		panic("PRIMITIVE NOT IMPLEMENTED: " + primitiveType)
+		panic(fmt.Errorf("PRIMITIVE NOT IMPLEMENTED: %s", primitiveType))
 	}
 }
 
 func (b Builder) newPropertyType(resourceType, propertyType string) (interface{}, interface{}) {
-	var ptSpec models.PropertyType
+	defer func() {
+		if r := recover(); r != nil {
+			panic(fmt.Errorf("Error building property type %s.%s: %w", resourceType, propertyType, r))
+		}
+	}()
+
+	var ptSpec *models.PropertyType
 	var ok bool
 
 	// If we've used a property from another resource type
@@ -155,13 +174,13 @@ func (b Builder) newPropertyType(resourceType, propertyType string) (interface{}
 		ptSpec, ok = b.Spec.PropertyTypes[resourceType+"."+propertyType]
 	}
 	if !ok {
-		panic("PTYPE NOT IMPLEMENTED: " + resourceType + "." + propertyType)
+		panic(fmt.Errorf("PTYPE NOT IMPLEMENTED: %s.%s", resourceType, propertyType))
 	}
 
 	// Deal with the case that a property type is directly a plain property
 	// for example AWS::Glue::SecurityConfiguration.S3Encryptions
 	if ptSpec.Property != emptyProp {
-		return b.newProperty(resourceType, ptSpec.Property)
+		return b.newProperty(resourceType, propertyType, &ptSpec.Property)
 	}
 
 	comments := make(map[string]interface{})
@@ -178,7 +197,7 @@ func (b Builder) newPropertyType(resourceType, propertyType string) (interface{}
 		} else if pSpec.Type == propertyType || pSpec.ItemType == propertyType {
 			properties[name] = make(map[string]interface{})
 		} else {
-			properties[name], _ = b.newProperty(resourceType, pSpec)
+			properties[name], _ = b.newProperty(resourceType, name, pSpec)
 		}
 	}
 

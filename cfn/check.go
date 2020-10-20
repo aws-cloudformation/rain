@@ -108,7 +108,7 @@ func checkResources(resources *value.Map) bool {
 	return outOk
 }
 
-func checkProperties(rSpec models.ResourceType, props *value.Map) bool {
+func checkProperties(rSpec *models.ResourceType, props *value.Map) bool {
 	outOk := true
 
 	// Check for missing required properties
@@ -132,15 +132,15 @@ func checkProperties(rSpec models.ResourceType, props *value.Map) bool {
 		if !ok {
 			prop.SetComment(fmt.Sprintf("Unknown property '%s'", name))
 			outOk = false
+		} else {
+			outOk = checkProperty(pSpec, prop) && outOk
 		}
-
-		outOk = checkProperty(pSpec, prop) && outOk
 	}
 
 	return outOk
 }
 
-func checkProperty(pSpec models.Property, prop value.Interface) bool {
+func checkProperty(pSpec *models.Property, prop value.Interface) bool {
 	switch pSpec.Type {
 	case "Map":
 		return checkMap(pSpec, prop)
@@ -169,15 +169,15 @@ func checkProperty(pSpec models.Property, prop value.Interface) bool {
 	return true
 }
 
-func checkMap(pSpec models.Property, prop value.Interface) bool {
+func checkMap(pSpec *models.Property, prop value.Interface) bool {
 	return true // TODO
 }
 
-func checkList(pSpec models.Property, prop value.Interface) bool {
+func checkList(pSpec *models.Property, prop value.Interface) bool {
 	return true // TODO
 }
 
-func checkString(pSpec models.Property, prop value.Interface) bool {
+func checkString(pSpec *models.Property, prop value.Interface) bool {
 	if isIntrinsic(prop.Value()) {
 		return true
 	}
@@ -189,7 +189,7 @@ func checkString(pSpec models.Property, prop value.Interface) bool {
 	return true
 }
 
-func checkBool(pSpec models.Property, prop value.Interface) bool {
+func checkBool(pSpec *models.Property, prop value.Interface) bool {
 	if isIntrinsic(prop.Value()) {
 		return true
 	}
@@ -201,7 +201,7 @@ func checkBool(pSpec models.Property, prop value.Interface) bool {
 	return true
 }
 
-func checkJSON(pSpec models.Property, prop value.Interface) bool {
+func checkJSON(pSpec *models.Property, prop value.Interface) bool {
 	_, ok := prop.(*value.Map)
 	if ok {
 		return true
@@ -223,7 +223,7 @@ func checkJSON(pSpec models.Property, prop value.Interface) bool {
 	return true
 }
 
-func checkNumber(pSpec models.Property, prop value.Interface) bool {
+func checkNumber(pSpec *models.Property, prop value.Interface) bool {
 	if isIntrinsic(prop.Value()) {
 		return true
 	}
@@ -235,7 +235,7 @@ func checkNumber(pSpec models.Property, prop value.Interface) bool {
 	return true
 }
 
-func checkTimestamp(pSpec models.Property, prop value.Interface) bool {
+func checkTimestamp(pSpec *models.Property, prop value.Interface) bool {
 	_, ok := prop.Value().(string)
 	if !ok {
 		prop.SetComment("Should be a timestamp")

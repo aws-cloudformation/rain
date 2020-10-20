@@ -85,6 +85,7 @@ var %s = %s`, name, name, s)
 
 	out, err := format.Source([]byte(source))
 	if err != nil {
+		fmt.Println(source)
 		panic(err)
 	}
 
@@ -107,11 +108,45 @@ func saveJSON(s models.Spec, name string) {
 }
 
 func patchCfnSpec(s models.Spec) {
-	// Any fixes required for bugs in spec - None as at 2020-10-20
+	for _, pt := range s.PropertyTypes {
+		for _, p := range pt.Properties {
+			if p.ItemType == "Json" {
+				p.ItemType = ""
+				p.PrimitiveItemType = "Json"
+			}
+		}
+	}
+
+	s.ResourceTypes["AWS::ECR::Repository"].Properties["RepositoryPolicyText"].PrimitiveType = "Json"
+
+	s.ResourceTypes["AWS::IoT::ProvisioningTemplate"].Properties["Tags"].PrimitiveItemType = "Json"
+	s.ResourceTypes["AWS::IoT::ProvisioningTemplate"].Properties["Tags"].Type = "List"
+
+	s.ResourceTypes["AWS::KMS::Key"].Properties["KeyPolicy"].PrimitiveType = "Json"
 }
 
 func patchSamSpec(s models.Spec) {
-	// Any fixes required for bugs in spec - None as at 2020-10-20
+	s.PropertyTypes["AWS::Serverless::Api.ApiUsagePlan"].Properties["Quota"].Type = "AWS::ApiGateway::UsagePlan.QuotaSettings"
+	s.PropertyTypes["AWS::Serverless::Api.ApiUsagePlan"].Properties["Throttle"].Type = "AWS::ApiGateway::UsagePlan.ThrottleSettings"
+	s.ResourceTypes["AWS::Serverless::Api"].Properties["AccessLogSetting"].Type = "AWS::ApiGateway::Stage.AccessLogSetting"
+	s.ResourceTypes["AWS::Serverless::Api"].Properties["CanarySetting"].Type = "AWS::ApiGateway::Stage.CanarySetting"
+	s.ResourceTypes["AWS::Serverless::Api"].Properties["MethodSettings"].ItemType = "AWS::ApiGateway::Stage.MethodSetting"
+	s.ResourceTypes["AWS::Serverless::Api"].Properties["MethodSettings"].Type = "List"
+
+	s.ResourceTypes["AWS::Serverless::Function"].Properties["Environment"].Type = "AWS::Lambda::Function.Environment"
+	s.ResourceTypes["AWS::Serverless::Function"].Properties["ProvisionedConcurrencyConfig"].Type = "AWS::Lambda::Alias.ProvisionedConcurrencyConfiguration"
+	s.ResourceTypes["AWS::Serverless::Function"].Properties["VpcConfig"].Type = "AWS::Lambda::Function.VpcConfig"
+
+	s.ResourceTypes["AWS::Serverless::HttpApi"].Properties["AccessLogSettings"].Type = "AWS::ApiGatewayV2::Stage.AccessLogSettings"
+	s.ResourceTypes["AWS::Serverless::HttpApi"].Properties["DefaultRouteSettings"].Type = "AWS::ApiGatewayV2::Stage.RouteSettings"
+	s.ResourceTypes["AWS::Serverless::HttpApi"].Properties["RouteSettings"].Type = "AWS::ApiGatewayV2::Stage.RouteSettings"
+
+	s.ResourceTypes["AWS::Serverless::SimpleTable"].Properties["ProvisionedThroughput"].Type = "AWS::DynamoDB::Table.ProvisionedThroughput"
+	s.ResourceTypes["AWS::Serverless::SimpleTable"].Properties["SSESpecification"].Type = "AWS::DynamoDB::Table.SSESpecification"
+
+	s.ResourceTypes["AWS::Serverless::StateMachine"].Properties["DefinitionUri"].Type = "AWS::StepFunctions::StateMachine.S3Location"
+	s.ResourceTypes["AWS::Serverless::StateMachine"].Properties["Logging"].Type = "AWS::StepFunctions::StateMachine.LoggingConfiguration"
+	s.ResourceTypes["AWS::Serverless::StateMachine"].Properties["Tracing"].Type = "AWS::StepFunctions::StateMachine.TracingConfiguration"
 }
 
 func main() {
@@ -132,7 +167,7 @@ func main() {
 		cfnSpec.PropertyTypes[name] = prop
 	}
 
-	// Save spec files
+	// Save specs
 	saveSpec(cfnSpec, "Cfn")
 	saveSpec(loadFile(iamSpecFn), "Iam")
 
