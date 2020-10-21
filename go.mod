@@ -14,6 +14,7 @@ require (
 	github.com/awslabs/smithy-go v0.2.0
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/google/go-cmp v0.5.2
+	github.com/google/uuid v1.1.2
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776

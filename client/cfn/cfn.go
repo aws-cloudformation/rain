@@ -12,6 +12,7 @@ import (
 	"github.com/aws-cloudformation/rain/cfn"
 	"github.com/aws-cloudformation/rain/cfn/format"
 	"github.com/aws-cloudformation/rain/client"
+	"github.com/aws-cloudformation/rain/client/s3"
 	"github.com/aws-cloudformation/rain/config"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
@@ -191,9 +192,32 @@ func makeTags(tags map[string]string) []*types.Tag {
 	return out
 }
 
+func checkTemplate(template cfn.Template) (string, error) {
+	templateBody := format.Template(template, format.Options{})
+
+	if len(templateBody) > 460800 {
+		return "", fmt.Errorf("Template is too large to deploy")
+	}
+
+	if len(templateBody) > 51200 {
+		config.Debugf("Template is too large to deploy directly; uploading to S3.")
+
+		bucket := s3.RainBucket()
+
+		key, err := s3.Upload(bucket, templateBody)
+
+		return fmt.Sprintf("http://%s.s3.amazonaws.com/%s", bucket, key), err
+	}
+
+	return templateBody, nil
+}
+
 // CreateChangeSet creates a changeset
 func CreateChangeSet(template cfn.Template, params []*types.Parameter, tags map[string]string, stackName string) (string, error) {
-	templateBody := format.Template(template, format.Options{})
+	templateBody, err := checkTemplate(template)
+	if err != nil {
+		return "", err
+	}
 
 	changeSetType := "CREATE"
 
@@ -208,18 +232,25 @@ func CreateChangeSet(template cfn.Template, params []*types.Parameter, tags map[
 
 	changeSetName := stackName + "-" + fmt.Sprint(time.Now().Unix())
 
-	_, err = getClient().CreateChangeSet(context.Background(), &cloudformation.CreateChangeSetInput{
+	input := &cloudformation.CreateChangeSetInput{
 		ChangeSetType: types.ChangeSetType(changeSetType),
-		ChangeSetName: &changeSetName,
-		StackName:     &stackName,
-		TemplateBody:  &templateBody,
+		ChangeSetName: aws.String(changeSetName),
+		StackName:     aws.String(stackName),
 		Tags:          makeTags(tags),
 		Parameters:    params,
 		Capabilities: []types.Capability{
 			"CAPABILITY_NAMED_IAM",
 			"CAPABILITY_AUTO_EXPAND",
 		},
-	})
+	}
+
+	if strings.HasPrefix(templateBody, "http://") {
+		input.TemplateURL = aws.String(templateBody)
+	} else {
+		input.TemplateBody = aws.String(templateBody)
+	}
+
+	_, err = getClient().CreateChangeSet(context.Background(), input)
 	if err != nil {
 		return changeSetName, err
 	}
