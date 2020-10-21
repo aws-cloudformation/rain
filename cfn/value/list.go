@@ -40,7 +40,7 @@ func (v *List) Get(path ...interface{}) Interface {
 
 	i, ok := path[0].(int)
 	if !ok {
-		panic(fmt.Errorf("Lists only have int keys, not: %#v", path[0]))
+		panic(fmt.Errorf("lists only have int keys, not '%#v'", path[0]))
 	}
 	return v.values[i].Get(path[1:]...)
 }

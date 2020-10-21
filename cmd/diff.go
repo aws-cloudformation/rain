@@ -21,12 +21,12 @@ var diffCmd = &cobra.Command{
 
 		left, err := parse.File(leftFn)
 		if err != nil {
-			panic(errorf(err, "Unable to parse template '%s'", leftFn))
+			panic(errorf(err, "unable to parse template '%s'", leftFn))
 		}
 
 		right, err := parse.File(rightFn)
 		if err != nil {
-			panic(errorf(err, "Unable to parse template '%s'", leftFn))
+			panic(errorf(err, "unable to parse template '%s'", leftFn))
 		}
 
 		fmt.Print(colouriseDiff(left.Diff(right), longDiff))

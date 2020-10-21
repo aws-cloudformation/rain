@@ -46,19 +46,19 @@ func ClearLine() {
 // Ask prints the supplied prompt and then waits for user input which is returned as a string.
 func Ask(prompt string) string {
 	if !IsTTY {
-		panic(errors.New("No interactive terminal detected. Try running rain in non-interactive mode"))
+		panic(errors.New("no interactive terminal detected; try running rain in non-interactive mode"))
 	}
 
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt: prompt + " ",
 	})
 	if err != nil {
-		panic(fmt.Errorf("Unable to get user input: %s", err))
+		panic(fmt.Errorf("unable to get user input: %w", err))
 	}
 
 	answer, err := rl.Readline()
 	if err != nil {
-		panic(fmt.Errorf("Unable to get user input: %s", err))
+		panic(fmt.Errorf("Unable to get user input: %w", err))
 	}
 
 	return strings.TrimSpace(answer)

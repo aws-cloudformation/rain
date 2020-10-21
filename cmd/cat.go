@@ -26,7 +26,7 @@ var catCmd = &cobra.Command{
 		spinner.Status(fmt.Sprintf("Getting template from %s", stackName))
 		template, err := cfn.GetStackTemplate(stackName, transformed)
 		if err != nil {
-			panic(errorf(err, "Failed to get template for stack '%s'", stackName))
+			panic(errorf(err, "failed to get template for stack '%s'", stackName))
 		}
 		spinner.Stop()
 
@@ -35,7 +35,7 @@ var catCmd = &cobra.Command{
 		} else {
 			t, err := parse.String(template)
 			if err != nil {
-				panic(errorf(err, "Failed to parse template for stack '%s'", stackName))
+				panic(errorf(err, "failed to parse template for stack '%s'", stackName))
 			}
 
 			fmt.Println(format.Template(t, format.Options{}))

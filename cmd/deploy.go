@@ -70,7 +70,7 @@ func getParameters(template cft.Template, cliParams map[string]string, old []*ty
 		// Check we don't have any unknown params
 		for k := range cliParams {
 			if _, ok := params.(map[string]interface{})[k]; !ok {
-				panic(fmt.Errorf("Unknown parameter: %s", k))
+				panic(fmt.Errorf("unknown parameter: %s", k))
 			}
 		}
 
@@ -100,7 +100,7 @@ func getParameters(template cft.Template, cliParams map[string]string, old []*ty
 					extra = fmt.Sprintf(" (default value: %s)", fmt.Sprint(defaultValue))
 					value = fmt.Sprint(defaultValue)
 				} else if forceDeploy {
-					panic(fmt.Errorf("No default or existing value for parameter '%s'. Set a default, supply a --params flag, or deploy without the --force flag", k))
+					panic(fmt.Errorf("no default or existing value for parameter '%s'. Set a default, supply a --params flag, or deploy without the --force flag", k))
 				}
 
 				if !forceDeploy {
@@ -135,14 +135,14 @@ func listToMap(name string, in []string) map[string]string {
 		parts := strings.SplitN(v, "=", 2)
 
 		if len(parts) != 2 {
-			panic(fmt.Errorf("Unable to parse %s: %s", name, v))
+			panic(fmt.Errorf("unable to parse %s: %s", name, v))
 		}
 
 		key := strings.TrimSpace(parts[0])
 		value := strings.TrimSpace(parts[1])
 
 		if _, ok := out[key]; ok {
-			panic(fmt.Errorf("Duplicate %s: %s", name, key))
+			panic(fmt.Errorf("duplicate %s: %s", name, key))
 		}
 
 		out[key] = value
@@ -160,7 +160,7 @@ func packageTemplate(fn string) cft.Template {
 		config.Debugf("Removing temporary template file: %s", outputFn.Name())
 		err := os.Remove(outputFn.Name())
 		if err != nil {
-			panic(errorf(err, "Error removing temporary template file '%s'", outputFn.Name()))
+			panic(errorf(err, "error removing temporary template file '%s'", outputFn.Name()))
 		}
 	}()
 
@@ -171,7 +171,7 @@ func packageTemplate(fn string) cft.Template {
 		"--s3-bucket", s3.RainBucket(),
 	)
 	if err != nil {
-		panic(errorf(err, "Unable to package template"))
+		panic(errorf(err, "unable to package template"))
 	}
 
 	config.Debugf("Package output: %s", output)
@@ -180,7 +180,7 @@ func packageTemplate(fn string) cft.Template {
 	config.Debugf("Loading packaged template file")
 	template, err := parse.File(outputFn.Name())
 	if err != nil {
-		panic(errorf(err, "Error reading packaged template '%s'", outputFn.Name()))
+		panic(errorf(err, "error reading packaged template '%s'", outputFn.Name()))
 	}
 
 	return template
@@ -204,19 +204,19 @@ func checkStack(stackName string) (*types.Stack, bool) {
 			fmt.Println("Stack is currently ROLLBACK_COMPLETE; deleting...")
 			err := cfn.DeleteStack(stackName)
 			if err != nil {
-				panic(errorf(err, "Unable to delete stack '%s'", stackName))
+				panic(errorf(err, "unable to delete stack '%s'", stackName))
 			}
 
 			status := waitForStackToSettle(stackName)
 
 			if status != "DELETE_COMPLETE" {
-				panic(fmt.Errorf("Failed to delete " + stackName))
+				panic(fmt.Errorf("failed to delete stack '%s'", stackName))
 			}
 
 			stackExists = false
 		} else if !strings.HasSuffix(string(stack.StackStatus), "_COMPLETE") {
 			// Can't update
-			panic(fmt.Errorf("Stack '%s' could not be updated: %s", stackName, colouriseStatus(string(stack.StackStatus))))
+			panic(fmt.Errorf("stack '%s' could not be updated: %s", stackName, colouriseStatus(string(stack.StackStatus))))
 		}
 	}
 
@@ -289,12 +289,12 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 		spinner.Status("Creating change set")
 		changeSetName, createErr := cfn.CreateChangeSet(template, parameters, parsedTags, stackName)
 		if createErr != nil {
-			panic(errorf(createErr, "Error creating changeset"))
+			panic(errorf(createErr, "error creating changeset"))
 		}
 
 		changeSetStatus, err := cfn.GetChangeSet(stackName, changeSetName)
 		if err != nil {
-			panic(fmt.Errorf("Error getting changeset status: %s", formatChangeSet(changeSetStatus)))
+			panic(errorf(err, "error getting changeset status '%s'", formatChangeSet(changeSetStatus)))
 		}
 
 		spinner.Stop()
@@ -307,24 +307,24 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 			if !console.Confirm(true, "Do you wish to continue?") {
 				err = cfn.DeleteChangeSet(stackName, changeSetName)
 				if err != nil {
-					panic(errorf(err, "Error while deleting changeset '%s'", changeSetName))
+					panic(errorf(err, "error while deleting changeset '%s'", changeSetName))
 				}
 
 				if !stackExists {
 					err = cfn.DeleteStack(stackName)
 					if err != nil {
-						panic(errorf(err, "Error deleting empty stack '%s'", stackName))
+						panic(errorf(err, "error deleting empty stack '%s'", stackName))
 					}
 				}
 
-				panic(errors.New("User cancelled deployment"))
+				panic(errors.New("user cancelled deployment"))
 			}
 		}
 
 		// Deploy!
 		err = cfn.ExecuteChangeSet(stackName, changeSetName)
 		if err != nil {
-			panic(errorf(err, "Error while executing changeset '%s'", changeSetName))
+			panic(errorf(err, "error while executing changeset '%s'", changeSetName))
 		}
 
 		if detachDeploy {
@@ -341,7 +341,7 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 				fmt.Println(text.Green("Successfully updated " + stackName))
 			} else {
 				logsCmd.Run(Rain, []string{stackName})
-				panic(errors.New("Failed deployment: " + stackName))
+				panic(fmt.Errorf("failed deploying stack '%s'", stackName))
 			}
 		}
 

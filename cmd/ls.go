@@ -69,7 +69,7 @@ var lsCmd = &cobra.Command{
 
 			stack, err := cfn.GetStack(stackName)
 			if err != nil {
-				panic(errorf(err, "Failed to list stack '%s'", stackName))
+				panic(errorf(err, "failed to list stack '%s'", stackName))
 			}
 
 			fmt.Println(getStackOutput(stack, false))
@@ -81,7 +81,7 @@ var lsCmd = &cobra.Command{
 			if allRegions {
 				regions, err = ec2.GetRegions()
 				if err != nil {
-					panic(errorf(err, "Unable to get region list"))
+					panic(errorf(err, "unable to get region list"))
 				}
 			}
 
@@ -91,7 +91,7 @@ var lsCmd = &cobra.Command{
 				client.SetRegion(region)
 				stacks, err := cfn.ListStacks()
 				if err != nil {
-					panic(errorf(err, "Failed to list stacks"))
+					panic(errorf(err, "failed to list stacks"))
 				}
 
 				if len(stacks) == 0 && allRegions {

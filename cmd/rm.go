@@ -28,17 +28,17 @@ var rmCmd = &cobra.Command{
 		spinner.Status("Checking stack status")
 		stack, err := cfn.GetStack(stackName)
 		if err != nil {
-			panic(errorf(err, "Unable to delete stack '%s'", stackName))
+			panic(errorf(err, "unable to delete stack '%s'", stackName))
 		}
 
 		if *stack.EnableTerminationProtection {
 			if forceRm || console.Confirm(false, "This stack has termination protection enabled. Do you wish to disable it?") {
 				spinner.Status("Disabling termination protection")
 				if err := cfn.SetTerminationProtection(stackName, false); err != nil {
-					panic(errorf(err, "Unable to set termination protection of stack '%s'", stackName))
+					panic(errorf(err, "unable to set termination protection of stack '%s'", stackName))
 				}
 			} else {
-				panic(fmt.Errorf("User cancelled deletion of stack '%s'", stackName))
+				panic(fmt.Errorf("user cancelled deletion of stack '%s'", stackName))
 			}
 		}
 
@@ -49,7 +49,7 @@ var rmCmd = &cobra.Command{
 			fmt.Println(output)
 
 			if !console.Confirm(true, "Are you sure you want to delete this stack?") {
-				panic(fmt.Errorf("User cancelled deletion of stack '%s'", stackName))
+				panic(fmt.Errorf("user cancelled deletion of stack '%s'", stackName))
 			}
 		}
 
@@ -59,7 +59,7 @@ var rmCmd = &cobra.Command{
 
 		err = cfn.DeleteStack(stackName)
 		if err != nil {
-			panic(errorf(err, "Unable to delete stack '%s'", stackName))
+			panic(errorf(err, "unable to delete stack '%s'", stackName))
 		}
 
 		if detachRm {

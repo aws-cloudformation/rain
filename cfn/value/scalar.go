@@ -22,7 +22,7 @@ func (v *Scalar) Value() interface{} {
 // Get returns the Scalar's value. Only an empty path is valid.
 func (v *Scalar) Get(path ...interface{}) Interface {
 	if len(path) != 0 {
-		panic(fmt.Errorf("Attempt to index (%v) scalar: %v", path, v.value))
+		panic(fmt.Errorf("attempt to index (%v) scalar '%v'", path, v.value))
 	}
 
 	return v

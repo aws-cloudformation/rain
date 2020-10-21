@@ -21,7 +21,7 @@ func formatDiff(d diff.Diff, path []interface{}, long bool) string {
 		return Value(value.New(v.Value()), Options{Compact: true})
 	}
 
-	panic(fmt.Sprintf("Unexpected %#v\n", d))
+	panic(fmt.Sprintf("unexpected %#v\n", d))
 }
 
 func stubValue(v diff.Value) string {

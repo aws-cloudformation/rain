@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -76,7 +77,7 @@ func loadConfig(ctx context.Context) aws.Config {
 
 	cfg, err := awsconfig.LoadDefaultConfig(configs...)
 	if err != nil {
-		panic("Unable to find valid credentials")
+		panic(errors.New("unable to find valid credentials"))
 	}
 
 	return cfg
@@ -97,8 +98,7 @@ func Config() aws.Config {
 	// Check for validity
 	creds, err := awsCfg.Credentials.Retrieve(context.Background())
 	if err != nil {
-		config.Debugf("Invalid credentials: %s", err)
-		panic(err)
+		panic(fmt.Errorf("Invalid credentials: %w", err))
 	}
 
 	// Check for expiry

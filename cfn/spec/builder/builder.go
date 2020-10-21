@@ -32,13 +32,13 @@ func init() {
 func (b Builder) newResource(resourceType string) (map[string]interface{}, map[string]interface{}) {
 	defer func() {
 		if r := recover(); r != nil {
-			panic(fmt.Errorf("Error building resource type '%s': %w", resourceType, r))
+			panic(fmt.Errorf("error building resource type '%s': %w", resourceType, r))
 		}
 	}()
 
 	rSpec, ok := b.Spec.ResourceTypes[resourceType]
 	if !ok {
-		panic(fmt.Errorf("No such resource type: %s", resourceType))
+		panic(fmt.Errorf("no such resource type '%s'", resourceType))
 	}
 
 	// Generate properties
@@ -65,7 +65,7 @@ func (b Builder) newResource(resourceType string) (map[string]interface{}, map[s
 func (b Builder) newProperty(resourceType, propertyName string, pSpec *models.Property) (interface{}, interface{}) {
 	defer func() {
 		if r := recover(); r != nil {
-			panic(fmt.Errorf("Error building property %s.%s: %w", resourceType, propertyName, r))
+			panic(fmt.Errorf("error building property %s.%s: %w", resourceType, propertyName, r))
 		}
 	}()
 
@@ -148,14 +148,14 @@ func (b Builder) newPrimitive(primitiveType string) interface{} {
 	case "Json":
 		return "{\"JSON\": \"CHANGEME\"}"
 	default:
-		panic(fmt.Errorf("PRIMITIVE NOT IMPLEMENTED: %s", primitiveType))
+		panic(fmt.Errorf("unimplemented primitive type '%s'", primitiveType))
 	}
 }
 
 func (b Builder) newPropertyType(resourceType, propertyType string) (interface{}, interface{}) {
 	defer func() {
 		if r := recover(); r != nil {
-			panic(fmt.Errorf("Error building property type %s.%s: %w", resourceType, propertyType, r))
+			panic(fmt.Errorf("error building property type '%s.%s': %w", resourceType, propertyType, r))
 		}
 	}()
 
@@ -174,7 +174,7 @@ func (b Builder) newPropertyType(resourceType, propertyType string) (interface{}
 		ptSpec, ok = b.Spec.PropertyTypes[resourceType+"."+propertyType]
 	}
 	if !ok {
-		panic(fmt.Errorf("PTYPE NOT IMPLEMENTED: %s.%s", resourceType, propertyType))
+		panic(fmt.Errorf("unimplemented property type '%s.%s'", resourceType, propertyType))
 	}
 
 	// Deal with the case that a property type is directly a plain property

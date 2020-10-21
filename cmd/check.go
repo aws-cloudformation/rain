@@ -54,7 +54,7 @@ var checkCmd = &cobra.Command{
 
 		t, err := parse.File(fn)
 		if err != nil {
-			panic(errorf(err, "Unable to parse template '%s'", fn))
+			panic(errorf(err, "unable to parse template '%s'", fn))
 		}
 
 		out, ok := t.Check()

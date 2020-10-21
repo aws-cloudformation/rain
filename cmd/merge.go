@@ -29,7 +29,7 @@ func checkMerge(name string, dst cfn.Template, src cfn.Template) {
 						}
 					}
 				} else {
-					panic(fmt.Errorf("Templates have clashing %s: %s", name, key))
+					panic(fmt.Errorf("templates have clashing %s: %s", name, key))
 				}
 			}
 
@@ -81,7 +81,7 @@ var mergeCmd = &cobra.Command{
 		for i, fn := range args {
 			templates[i], err = parse.File(fn)
 			if err != nil {
-				panic(errorf(err, "Unable to open template '%s'", fn))
+				panic(errorf(err, "unable to open template '%s'", fn))
 			}
 		}
 

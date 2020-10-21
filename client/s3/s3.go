@@ -62,10 +62,12 @@ func Upload(bucketName, content string) (string, error) {
 	return key, err
 }
 
+// RainBucket returns the name of the rain deployment bucket in the current region
+// and creates it if it does not exist
 func RainBucket() string {
 	accountID, err := sts.GetAccountID()
 	if err != nil {
-		panic(fmt.Errorf("Unable to get account ID: %w", err))
+		panic(fmt.Errorf("unable to get account ID: %w", err))
 	}
 
 	bucketName := fmt.Sprintf("rain-artifacts-%s-%s", accountID, client.Config().Region)
@@ -74,12 +76,12 @@ func RainBucket() string {
 
 	if !BucketExists(bucketName) {
 		if !console.Confirm(true, fmt.Sprintf("Rain needs to create an S3 bucket called '%s'. Continue?", bucketName)) {
-			panic(errors.New("You may create the bucket manually and then re-run this operation."))
+			panic(errors.New("you may create the bucket manually and then re-run this operation"))
 		}
 
 		err := CreateBucket(bucketName)
 		if err != nil {
-			panic(fmt.Errorf("Unable to create artifact bucket '%s': %w", bucketName, err))
+			panic(fmt.Errorf("unable to create artifact bucket '%s': %w", bucketName, err))
 		}
 	}
 

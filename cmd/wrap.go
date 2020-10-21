@@ -76,7 +76,7 @@ func Execute(cmd *cobra.Command) {
 				panic(r)
 			}
 
-			fmt.Println(text.Red(fmt.Sprint(r)))
+			fmt.Println(text.Red(fmt.Sprintf("Error: %s", r)))
 			os.Exit(1)
 		}
 	}()

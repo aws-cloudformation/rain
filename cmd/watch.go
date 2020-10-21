@@ -24,7 +24,7 @@ var watchCmd = &cobra.Command{
 		for {
 			stack, err := cfn.GetStack(stackName)
 			if err != nil {
-				panic(errorf(err, "Error watching stack '%s'", stackName))
+				panic(errorf(err, "error watching stack '%s'", stackName))
 			}
 
 			if !stackHasSettled(stack) {

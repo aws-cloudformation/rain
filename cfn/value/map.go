@@ -14,7 +14,7 @@ type Map struct {
 
 func newMap(in reflect.Value) Interface {
 	if in.Type().Key().String() != "string" {
-		panic(fmt.Errorf("s11n only supports maps with string keys, no: %T", in.Interface()))
+		panic(fmt.Errorf("s11n only supports maps with string keys, not '%T'", in.Interface()))
 	}
 
 	out := Map{
@@ -45,7 +45,7 @@ func (v *Map) Get(path ...interface{}) Interface {
 
 	s, ok := path[0].(string)
 	if !ok {
-		panic(fmt.Errorf("Maps may only have string keys, not: %#v", path[0]))
+		panic(fmt.Errorf("maps may only have string keys, not '%#v'", path[0]))
 	}
 
 	out, ok := v.values[s]

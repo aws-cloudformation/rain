@@ -80,7 +80,7 @@ func (t Template) Graph() graph.Graph {
 						if strings.HasPrefix(toName, "AWS::") {
 							toType = "Parameters"
 						} else {
-							panic(fmt.Errorf("Template has unresolved dependency '%s' at %s: %s", toName, typeName, fromName))
+							panic(fmt.Errorf("template has unresolved dependency '%s' at %s: %s", toName, typeName, fromName))
 						}
 					}
 

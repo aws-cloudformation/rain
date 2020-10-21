@@ -158,7 +158,7 @@ func waitForStackToSettle(stackName string) string {
 	for {
 		stack, err := cfn.GetStack(stackID)
 		if err != nil {
-			panic(errorf(err, "Operation failed"))
+			panic(errorf(err, "operation failed"))
 		}
 
 		// Refresh the stack ID so we can deal with deleted stacks ok
