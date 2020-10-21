@@ -22,6 +22,8 @@ func intrinsicKey(data map[string]interface{}) (string, bool) {
 
 func formatString(data string) string {
 	switch {
+	case strings.HasPrefix(data, " ") || strings.HasSuffix(data, " "):
+		return fmt.Sprintf("%q", data)
 	case strings.ContainsAny(data, "\n"):
 		parts := strings.Split(data, "\n")
 		endingNewlines := 0

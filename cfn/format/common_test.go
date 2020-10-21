@@ -42,6 +42,9 @@ func TestFormatString(t *testing.T) {
 	cases := []string{
 		"foo",
 		"\"quoted\"",
+		" space at start",
+		"space at end ",
+		" space and\nnewline",
 		"multi\nline",
 		"\nstarts with a newline",
 		"ends with a newline\n",
@@ -51,6 +54,9 @@ func TestFormatString(t *testing.T) {
 	expecteds := []string{
 		"foo",
 		"\"\\\"quoted\\\"\"",
+		"\" space at start\"",
+		"\"space at end \"",
+		"\" space and\\nnewline\"",
 		"|-\n  multi\n  line",
 		"|-\n\n  starts with a newline",
 		"|\n  ends with a newline\n",
