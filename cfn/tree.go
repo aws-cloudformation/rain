@@ -46,8 +46,6 @@ func findRefs(t map[string]interface{}) []string {
 					case map[string]interface{}:
 						for _, part := range parts {
 							switch p := part.(type) {
-							case string:
-								refs = append(refs, p)
 							case map[string]interface{}:
 								refs = append(refs, findRefs(p)...)
 							default:
@@ -55,7 +53,7 @@ func findRefs(t map[string]interface{}) []string {
 							}
 						}
 					default:
-						fmt.Printf("Malfored Sub: %T\n", v)
+						fmt.Printf("Malformed Sub: %T\n", v)
 					}
 				}
 			default:
