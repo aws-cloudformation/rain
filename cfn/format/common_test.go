@@ -45,14 +45,16 @@ func TestFormatString(t *testing.T) {
 		"multi\nline",
 		"\nstarts with a newline",
 		"ends with a newline\n",
+		"ends with\nmultiple newlines\n\n\n",
 	}
 
 	expecteds := []string{
 		"foo",
 		"\"\\\"quoted\\\"\"",
 		"|-\n  multi\n  line",
-		"\"\\nstarts with a newline\"",
-		"\"ends with a newline\\n\"",
+		"|-\n\n  starts with a newline",
+		"|\n  ends with a newline\n",
+		"|+\n  ends with\n  multiple newlines\n\n\n",
 	}
 
 	for i, testCase := range cases {
