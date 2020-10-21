@@ -11,10 +11,10 @@ import (
 	"strings"
 
 	cft "github.com/aws-cloudformation/rain/cfn"
-	"github.com/aws-cloudformation/rain/cfn/diff"
 	"github.com/aws-cloudformation/rain/cfn/parse"
 	"github.com/aws-cloudformation/rain/client"
 	"github.com/aws-cloudformation/rain/client/cfn"
+	"github.com/aws-cloudformation/rain/client/s3"
 	"github.com/aws-cloudformation/rain/config"
 	"github.com/aws-cloudformation/rain/console"
 	"github.com/aws-cloudformation/rain/console/spinner"
@@ -100,7 +100,7 @@ func getParameters(template cft.Template, cliParams map[string]string, old []*ty
 					extra = fmt.Sprintf(" (default value: %s)", fmt.Sprint(defaultValue))
 					value = fmt.Sprint(defaultValue)
 				} else if forceDeploy {
-					panic(fmt.Errorf("No default or existing value for parameter '%s'. Set a default, supply a --param flag, or deploy without the --force flag", k))
+					panic(fmt.Errorf("No default or existing value for parameter '%s'. Set a default, supply a --params flag, or deploy without the --force flag", k))
 				}
 
 				if !forceDeploy {
@@ -151,6 +151,78 @@ func listToMap(name string, in []string) map[string]string {
 	return out
 }
 
+func packageTemplate(fn string) cft.Template {
+	outputFn, err := ioutil.TempFile("", "")
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		config.Debugf("Removing temporary template file: %s", outputFn.Name())
+		err := os.Remove(outputFn.Name())
+		if err != nil {
+			panic(errorf(err, "Error removing temporary template file '%s'", outputFn.Name()))
+		}
+	}()
+
+	spinner.Stop()
+	output, err := runAws("cloudformation", "package",
+		"--template-file", fn,
+		"--output-template-file", outputFn.Name(),
+		"--s3-bucket", s3.RainBucket(),
+	)
+	if err != nil {
+		panic(errorf(err, "Unable to package template"))
+	}
+
+	config.Debugf("Package output: %s", output)
+
+	// Load in the packagedctemplate
+	config.Debugf("Loading packaged template file")
+	template, err := parse.File(outputFn.Name())
+	if err != nil {
+		panic(errorf(err, "Error reading packaged template '%s'", outputFn.Name()))
+	}
+
+	return template
+}
+
+func checkStack(stackName string) (*types.Stack, bool) {
+	// Find out if stack exists already
+	// If it does and it's not in a good state, offer to wait/delete
+	stack, err := cfn.GetStack(stackName)
+
+	stackExists := false
+	if err == nil {
+		config.Debugf("Stack exists")
+		stackExists = true
+	}
+
+	spinner.Stop()
+
+	if stackExists {
+		if string(stack.StackStatus) == "ROLLBACK_COMPLETE" {
+			fmt.Println("Stack is currently ROLLBACK_COMPLETE; deleting...")
+			err := cfn.DeleteStack(stackName)
+			if err != nil {
+				panic(errorf(err, "Unable to delete stack '%s'", stackName))
+			}
+
+			status := waitForStackToSettle(stackName)
+
+			if status != "DELETE_COMPLETE" {
+				panic(fmt.Errorf("Failed to delete " + stackName))
+			}
+
+			stackExists = false
+		} else if !strings.HasSuffix(string(stack.StackStatus), "_COMPLETE") {
+			// Can't update
+			panic(fmt.Errorf("Stack '%s' could not be updated: %s", stackName, colouriseStatus(string(stack.StackStatus))))
+		}
+	}
+
+	return stack, stackExists
+}
+
 var deployCmd = &cobra.Command{
 	Use:   "deploy <template> [stack]",
 	Short: "Deploy a CloudFormation stack from a local template",
@@ -190,103 +262,30 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 
 		fmt.Printf("Deploying '%s' as '%s' in %s:\n", filepath.Base(fn), stackName, client.Config().Region)
 
+		// Package template
 		spinner.Status("Preparing template")
-
-		outputFn, err := ioutil.TempFile("", "")
-		if err != nil {
-			panic(err)
-		}
-		defer func() {
-			config.Debugf("Removing temporary template file: %s", outputFn.Name())
-			err := os.Remove(outputFn.Name())
-			if err != nil {
-				panic(errorf(err, "Error removing temporary template file '%s'", outputFn.Name()))
-			}
-		}()
-
-		output, err := runAws("cloudformation", "package",
-			"--template-file", fn,
-			"--output-template-file", outputFn.Name(),
-			"--s3-bucket", getRainBucket(),
-		)
-		if err != nil {
-			panic(errorf(err, "Unable to package template"))
-		}
-
-		config.Debugf("Package output: %s", output)
-
-		// Load in the packagedctemplate
-		config.Debugf("Loading packaged template file")
-		template, err := parse.File(outputFn.Name())
-		if err != nil {
-			panic(errorf(err, "Error reading packaged template '%s'", outputFn.Name()))
-		}
-
+		template := packageTemplate(fn)
 		spinner.Stop()
 
+		// Check current stack status
 		spinner.Status(fmt.Sprintf("Checking current status of stack '%s'... ", stackName))
+		stack, stackExists := checkStack(stackName)
 
-		// Find out if stack exists already
-		// If it does and it's not in a good state, offer to wait/delete
-		stack, err := cfn.GetStack(stackName)
-
-		stackExists := false
-		if err == nil {
-			config.Debugf("Stack exists")
-			stackExists = true
-		}
-
-		spinner.Stop()
-
-		if stackExists {
-			if string(stack.StackStatus) == "ROLLBACK_COMPLETE" {
-				fmt.Println("Stack is currently ROLLBACK_COMPLETE; deleting...")
-				err := cfn.DeleteStack(stackName)
-				if err != nil {
-					panic(errorf(err, "Unable to delete stack '%s'", stackName))
-				}
-
-				status := waitForStackToSettle(stackName)
-
-				if status != "DELETE_COMPLETE" {
-					panic(fmt.Errorf("Failed to delete " + stackName))
-				}
-
-				stackExists = false
-			} else if !strings.HasSuffix(string(stack.StackStatus), "_COMPLETE") {
-				// Can't update
-				panic(fmt.Errorf("Stack '%s' could not be updated: %s", stackName, colouriseStatus(string(stack.StackStatus))))
-			} else if !forceDeploy {
-				// Can update, grab a diff
-
-				oldTemplateString, err := cfn.GetStackTemplate(stackName, false)
-				if err != nil {
-					panic(errorf(err, "Failed to get existing template for stack '%s'", stackName))
-				}
-
-				oldTemplate, _ := parse.String(oldTemplateString)
-
-				d := oldTemplate.Diff(template)
-
-				if d.Mode() != diff.Unchanged {
-					console.ClearLine()
-					if console.Confirm(true, fmt.Sprintf("Stack '%s' exists. Do you wish to compare the CloudFormation templates?", stackName)) {
-						fmt.Print(colouriseDiff(d, false))
-					}
-				}
-			}
-		}
-
+		// Parse params
 		config.Debugf("Handling parameters")
 		parameters := getParameters(template, parsedParams, stack.Parameters, stackExists)
 
 		if config.Debug {
 			for _, param := range parameters {
-				config.Debugf("  %s: %s", *param.ParameterKey, *param.ParameterValue)
+				val := aws.ToString(param.ParameterValue)
+				if aws.ToBool(param.UsePreviousValue) {
+					val = "<previous value>"
+				}
+				config.Debugf("  %s: %s", aws.ToString(param.ParameterKey), val)
 			}
 		}
 
-		// Create a change set
+		// Create change set
 		spinner.Status("Creating change set")
 		changeSetName, createErr := cfn.CreateChangeSet(template, parameters, parsedTags, stackName)
 		if createErr != nil {
@@ -300,6 +299,7 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 
 		spinner.Stop()
 
+		// Confirm changes
 		if !forceDeploy {
 			fmt.Println("CloudFormation will make the following changes:")
 			fmt.Println(formatChangeSet(changeSetStatus))

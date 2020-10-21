@@ -8,10 +8,7 @@ import (
 
 	"github.com/aws-cloudformation/rain/cfn/diff"
 	"github.com/aws-cloudformation/rain/cfn/format"
-	"github.com/aws-cloudformation/rain/client"
 	"github.com/aws-cloudformation/rain/client/cfn"
-	"github.com/aws-cloudformation/rain/client/s3"
-	"github.com/aws-cloudformation/rain/client/sts"
 	"github.com/aws-cloudformation/rain/config"
 	"github.com/aws-cloudformation/rain/console"
 	"github.com/aws-cloudformation/rain/console/run"
@@ -123,26 +120,6 @@ func getStackOutput(stack *types.Stack, onlyChanging bool) string {
 	}
 
 	return out.String()
-}
-
-func getRainBucket() string {
-	accountID, err := sts.GetAccountID()
-	if err != nil {
-		panic(errorf(err, "Unable to get account ID"))
-	}
-
-	bucketName := fmt.Sprintf("rain-artifacts-%s-%s", accountID, client.Config().Region)
-
-	config.Debugf("Artifact bucket: %s", bucketName)
-
-	if !s3.BucketExists(bucketName) {
-		err := s3.CreateBucket(bucketName)
-		if err != nil {
-			panic(errorf(err, "Unable to create artifact bucket '%s'", bucketName))
-		}
-	}
-
-	return bucketName
 }
 
 func colouriseDiff(d diff.Diff, longFormat bool) string {
