@@ -50,7 +50,7 @@ func TestFormatString(t *testing.T) {
 	expecteds := []string{
 		"foo",
 		"\"\\\"quoted\\\"\"",
-		"|\n  multi\n  line",
+		"|-\n  multi\n  line",
 		"\"\\nstarts with a newline\"",
 		"\"ends with a newline\\n\"",
 	}

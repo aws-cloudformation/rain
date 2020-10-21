@@ -25,11 +25,11 @@ func formatString(data string) string {
 	case strings.HasPrefix(data, "\n"), strings.HasSuffix(data, "\n"):
 		return fmt.Sprintf("%q", data)
 	case strings.ContainsAny(data, "\n"):
-		parts := strings.Split(strings.TrimSpace(data), "\n")
+		parts := strings.Split(data, "\n")
 		for i, part := range parts {
 			parts[i] = "  " + part
 		}
-		return fmt.Sprintf("|\n%s", strings.Join(parts, "\n"))
+		return fmt.Sprintf("|-\n%s", strings.Join(parts, "\n"))
 	case data == "",
 		strings.ToLower(data) == "yes",
 		strings.ToLower(data) == "no",
