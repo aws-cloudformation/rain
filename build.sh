@@ -47,6 +47,8 @@ for platform in ${!PLATFORMS[@]}; do
             mkdir -p "$OUTPUT_DIR/$full_name"
 
             eval GOOS=$platform GOARCH=$architecture ${VARIANTS[$variant]} go build -o "$OUTPUT_DIR/${full_name}/${bin_name}"
+            cp LICENSE "$OUTPUT_DIR/$full_name"
+            cp README.md "$OUTPUT_DIR/$full_name"
 
             cd "$OUTPUT_DIR"
             zip -9 -r "${full_name}.zip" "$full_name"
