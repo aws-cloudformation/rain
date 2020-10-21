@@ -22,14 +22,27 @@ func intrinsicKey(data map[string]interface{}) (string, bool) {
 
 func formatString(data string) string {
 	switch {
-	case strings.HasPrefix(data, "\n"), strings.HasSuffix(data, "\n"):
+	case strings.TrimSpace(data) == "" || strings.HasPrefix(data, " ") || strings.HasSuffix(data, " "):
 		return fmt.Sprintf("%q", data)
 	case strings.ContainsAny(data, "\n"):
-		parts := strings.Split(strings.TrimSpace(data), "\n")
+		parts := strings.Split(data, "\n")
+		endingNewlines := 0
 		for i, part := range parts {
 			parts[i] = "  " + part
+
+			if part == "" {
+				endingNewlines++
+			} else {
+				endingNewlines = 0
+			}
 		}
-		return fmt.Sprintf("|\n%s", strings.Join(parts, "\n"))
+		if endingNewlines == 1 {
+			return fmt.Sprintf("|\n%s", strings.Join(parts, "\n"))
+		} else if endingNewlines > 1 {
+			return fmt.Sprintf("|+\n%s", strings.Join(parts[:len(parts)-1], "\n"))
+		} else {
+			return fmt.Sprintf("|-\n%s", strings.Join(parts, "\n"))
+		}
 	case data == "",
 		strings.ToLower(data) == "yes",
 		strings.ToLower(data) == "no",
