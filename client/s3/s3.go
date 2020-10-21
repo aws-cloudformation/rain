@@ -32,9 +32,8 @@ func BucketExists(bucketName string) bool {
 // CreateBucket creates a new S3 bucket
 func CreateBucket(bucketName string) error {
 	_, err := getClient().CreateBucket(context.Background(), &s3.CreateBucketInput{
-		Bucket:                     aws.String(bucketName),
-		ACL:                        types.BucketCannedACLPrivate,
-		ObjectLockEnabledForBucket: aws.Bool(true),
+		Bucket: aws.String(bucketName),
+		ACL:    types.BucketCannedACLPrivate,
 		CreateBucketConfiguration: &types.CreateBucketConfiguration{
 			LocationConstraint: types.BucketLocationConstraint(client.Config().Region),
 		},
