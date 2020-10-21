@@ -26,6 +26,10 @@ for platform in ${!PLATFORMS[@]}; do
             continue
         fi
 
+        if [[ "$architecture" == "386" && "$platform" == "darwin" ]]; then
+            continue
+        fi
+
         for variant in ${!VARIANTS[@]}; do
             echo "$platform/$architecture/$variant..."
 
