@@ -59,6 +59,11 @@ func transform(node *yaml.Node) {
 
 			body.Tag = body.ShortTag()
 
+			// Fix empty Fn values (should never be null)
+			if body.Tag == "!!null" {
+				body.Tag = "!!str"
+			}
+
 			if tag == "GetAtt" && body.Tag == "!!str" {
 				body.Kind = yaml.SequenceNode
 

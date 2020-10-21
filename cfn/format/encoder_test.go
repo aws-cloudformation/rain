@@ -19,6 +19,14 @@ var input = map[string]interface{}{
 				"BucketName": map[string]interface{}{
 					"Ref": "Name",
 				},
+				"Tags": []interface{}{
+					map[string]interface{}{
+						"Key": "Empty",
+						"Value": map[string]interface{}{
+							"Fn::Sub": "",
+						},
+					},
+				},
 			},
 			"Type": "AWS::S3::Bucket",
 		},
@@ -56,6 +64,9 @@ Resources:
     Type: "AWS::S3::Bucket"
     Properties:
       BucketName: !Ref Name  # The name of the bucket
+      Tags:
+        - Key: Empty
+          Value: !Sub ""
 
 Outputs:  # Outputs from resources
   Cake:

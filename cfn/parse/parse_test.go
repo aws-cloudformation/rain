@@ -49,6 +49,14 @@ var expected = cfn.Template(map[string]interface{}{
 						"Ref": "Cakes",
 					},
 				},
+				"Tags": []interface{}{
+					map[string]interface{}{
+						"Key": "Empty",
+						"Value": map[string]interface{}{
+							"Fn::Sub": "",
+						},
+					},
+				},
 			},
 		},
 		"ExecutionRole": map[string]interface{}{
@@ -170,6 +178,23 @@ func TestVerifyOutput(t *testing.T) {
 	err = parse.Verify(source, badCase)
 	if err == nil {
 		t.Errorf("Verify did not pick up a difference!")
+	}
+}
+
+func TestEmptySub(t *testing.T) {
+	expected := cfn.Template(map[string]interface{}{
+		"Foo": map[string]interface{}{
+			"Fn::Sub": "",
+		},
+	})
+
+	actual, err := parse.String("Foo: !Sub \"\"")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if diff := cmp.Diff(actual.Map(), expected.Map()); diff != "" {
+		t.Errorf(diff)
 	}
 }
 
