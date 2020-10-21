@@ -49,6 +49,7 @@ func TestFormatString(t *testing.T) {
 		"\nstarts with a newline",
 		"ends with a newline\n",
 		"ends with\nmultiple newlines\n\n\n",
+		"\n", // All whitespace
 	}
 
 	expecteds := []string{
@@ -61,6 +62,7 @@ func TestFormatString(t *testing.T) {
 		"|-\n\n  starts with a newline",
 		"|\n  ends with a newline\n",
 		"|+\n  ends with\n  multiple newlines\n\n\n",
+		"\"\\n\"",
 	}
 
 	for i, testCase := range cases {
