@@ -227,12 +227,14 @@ func checkNumber(pSpec *models.Property, prop value.Interface) bool {
 	if isIntrinsic(prop.Value()) {
 		return true
 	}
-	_, ok := prop.Value().(float64)
-	if !ok {
+
+	switch prop.Value().(type) {
+	case float64, int:
+		return true
+	default:
 		prop.SetComment("Should be a number")
 		return false
 	}
-	return true
 }
 
 func checkTimestamp(pSpec *models.Property, prop value.Interface) bool {
