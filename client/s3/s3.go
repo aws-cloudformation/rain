@@ -31,13 +31,18 @@ func BucketExists(bucketName string) bool {
 
 // CreateBucket creates a new S3 bucket
 func CreateBucket(bucketName string) error {
-	_, err := getClient().CreateBucket(context.Background(), &s3.CreateBucketInput{
+	input := &s3.CreateBucketInput{
 		Bucket: aws.String(bucketName),
 		ACL:    types.BucketCannedACLPrivate,
-		CreateBucketConfiguration: &types.CreateBucketConfiguration{
-			LocationConstraint: types.BucketLocationConstraint(client.Config().Region),
-		},
-	})
+	}
+
+	if region := client.Config().Region; region != "us-east-1" {
+		input.CreateBucketConfiguration = &types.CreateBucketConfiguration{
+			LocationConstraint: types.BucketLocationConstraint(region),
+		}
+	}
+
+	_, err := getClient().CreateBucket(context.Background(), input)
 
 	return err
 }
