@@ -150,6 +150,10 @@ In alphabetical order:
 
     Sceptre is a tool to drive CloudFormation. Sceptre manages the creation, update and deletion of stacks while providing meta commands which allow users to retrieve information about their stacks.
 
+* [takomo](https://takomo.io)
+
+    Takomo makes it easy to organize, parameterize and deploy CloudFormation stacks across multiple regions and accounts. You can also manage your AWS organization, including its member accounts, organizational units and policies.
+
 * [taskcat](https://github.com/aws-quickstart/taskcat)
 
     taskcat is a tool that tests AWS CloudFormation templates. It deploys your AWS CloudFormation template in multiple AWS Regions and generates a report with a pass/fail grade for each region. You can specify the regions and number of Availability Zones you want to include in the test, and pass in parameter values from your AWS CloudFormation template. taskcat is implemented as a Python class that you import, instantiate, and run.
