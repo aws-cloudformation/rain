@@ -203,8 +203,13 @@ func checkStack(stackName string) (*types.Stack, bool) {
 	spinner.Stop()
 
 	if stackExists {
-		if string(stack.StackStatus) == "ROLLBACK_COMPLETE" {
-			fmt.Println("Stack is currently ROLLBACK_COMPLETE; deleting...")
+		switch {
+		case stack.StackStatus == types.StackStatusRollback_complete,
+			stack.StackStatus == types.StackStatusReview_in_progress,
+			stack.StackStatus == types.StackStatusCreate_failed:
+
+			spinner.Status("Existing stack is empty; deleting")
+
 			err := cfn.DeleteStack(stackName)
 			if err != nil {
 				panic(errorf(err, "unable to delete stack '%s'", stackName))
@@ -217,7 +222,7 @@ func checkStack(stackName string) (*types.Stack, bool) {
 			}
 
 			stackExists = false
-		} else if !strings.HasSuffix(string(stack.StackStatus), "_COMPLETE") {
+		case !strings.HasSuffix(string(stack.StackStatus), "_COMPLETE"):
 			// Can't update
 			panic(fmt.Errorf("stack '%s' could not be updated: %s", stackName, colouriseStatus(string(stack.StackStatus))))
 		}
