@@ -63,7 +63,10 @@ func getParameters(template cft.Template, cliParams map[string]string, old []*ty
 
 	oldMap := make(map[string]*types.Parameter)
 	for _, param := range old {
-		oldMap[*param.ParameterKey] = param
+		// Ignore NoEcho values
+		if stackExists || aws.ToString(param.ParameterValue) != "****" {
+			oldMap[aws.ToString(param.ParameterKey)] = param
+		}
 	}
 
 	if params, ok := template.Map()["Parameters"]; ok {
@@ -268,7 +271,7 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 		spinner.Stop()
 
 		// Check current stack status
-		spinner.Status(fmt.Sprintf("Checking current status of stack '%s'... ", stackName))
+		spinner.Status(fmt.Sprintf("Checking current status of stack '%s'", stackName))
 		stack, stackExists := checkStack(stackName)
 
 		// Parse params
