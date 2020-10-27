@@ -4,11 +4,11 @@
 package cfn
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cfn/diff"
 	"github.com/aws-cloudformation/rain/cfn/graph"
+	"github.com/aws-cloudformation/rain/config"
 )
 
 const pseudoParameterType = "Parameter"
@@ -80,7 +80,8 @@ func (t Template) Graph() graph.Graph {
 						if strings.HasPrefix(toName, "AWS::") {
 							toType = "Parameters"
 						} else {
-							panic(fmt.Errorf("template has unresolved dependency '%s' at %s: %s", toName, typeName, fromName))
+							config.Debugf("template has unresolved dependency '%s' at %s: %s", toName, typeName, fromName)
+							continue
 						}
 					}
 

@@ -193,7 +193,9 @@ func makeTags(tags map[string]string) []*types.Tag {
 }
 
 func checkTemplate(template cfn.Template) (string, error) {
-	templateBody := format.Template(template, format.Options{})
+	templateBody := format.Template(template, format.Options{
+		Unsorted: true,
+	})
 
 	if len(templateBody) > 460800 {
 		return "", fmt.Errorf("Template is too large to deploy")
