@@ -24,12 +24,13 @@ func Example_fmt_help() {
 	//   fmt, format
 	//
 	// Flags:
-	//   -c, --compact   Produce more compact output.
-	//   -h, --help      help for fmt
-	//   -j, --json      Output the template as JSON (default format: YAML).
-	//   -v, --verify    Check if the input is already correctly formatted and exit.
-	//                   The exit status will be 0 if so and 1 if not.
-	//   -w, --write     Write the output back to the file rather than to stdout.
+	//   -c, --compact    Produce more compact output.
+	//   -h, --help       help for fmt
+	//   -j, --json       Output the template as JSON (default format: YAML).
+	//   -u, --unsorted   Do not sort the template's properties.
+	//   -v, --verify     Check if the input is already correctly formatted and exit.
+	//                    The exit status will be 0 if so and 1 if not.
+	//   -w, --write      Write the output back to the file rather than to stdout.
 	//
 	// Global Flags:
 	//       --debug            Output debugging information

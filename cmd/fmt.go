@@ -13,6 +13,7 @@ var compactFlag bool
 var jsonFlag bool
 var verifyFlag bool
 var writeFlag bool
+var unsortedFlag bool
 
 var fmtCmd = &cobra.Command{
 	Use:                   "fmt <filename>",
@@ -38,8 +39,9 @@ var fmtCmd = &cobra.Command{
 
 		// Format the output
 		options := format.Options{
-			Style:   format.YAML,
-			Compact: compactFlag,
+			Style:    format.YAML,
+			Compact:  compactFlag,
+			Unsorted: unsortedFlag,
 		}
 
 		if jsonFlag {
@@ -76,5 +78,6 @@ func init() {
 	fmtCmd.Flags().BoolVarP(&jsonFlag, "json", "j", false, "Output the template as JSON (default format: YAML).")
 	fmtCmd.Flags().BoolVarP(&verifyFlag, "verify", "v", false, "Check if the input is already correctly formatted and exit.\nThe exit status will be 0 if so and 1 if not.")
 	fmtCmd.Flags().BoolVarP(&writeFlag, "write", "w", false, "Write the output back to the file rather than to stdout.")
+	fmtCmd.Flags().BoolVarP(&unsortedFlag, "unsorted", "u", false, "Do not sort the template's properties.")
 	Rain.AddCommand(fmtCmd)
 }
