@@ -25,6 +25,7 @@ type Options struct {
 	Style    Style
 	Compact  bool
 	Comments map[string]interface{}
+	Unsorted bool
 }
 
 // Value returns a string representation of any given value

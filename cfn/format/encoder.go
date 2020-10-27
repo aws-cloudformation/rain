@@ -113,7 +113,12 @@ func (p encoder) formatMap(data map[string]interface{}) string {
 		return "{}"
 	}
 
-	keys := p.sortKeys()
+	var keys []string
+	if p.Unsorted {
+		keys = p.keys()
+	} else {
+		keys = p.sortKeys()
+	}
 
 	parts := make([]string, len(keys))
 
@@ -238,6 +243,15 @@ func (p encoder) formatList(data []interface{}) string {
 	}
 
 	return strings.Join(parts, "\n")
+}
+
+func (p *encoder) keys() []string {
+	keys := make([]string, 0)
+	for key := range p.currentValue.Value().(map[string]interface{}) {
+		keys = append(keys, key)
+	}
+
+	return keys
 }
 
 func (p encoder) format() string {
