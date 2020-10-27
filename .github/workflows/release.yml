@@ -1,0 +1,59 @@
+on:
+  push:
+    tags:
+    - 'v*'
+
+name: Create release from tag
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    container: golang:latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - run: |
+          apt-get update && \
+          apt-get install -y hub zip && \
+          go get -u golang.org/x/lint/golint
+
+      - run: |
+          ./build.sh
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: ./dist/*.zip
+
+  release:
+    name: Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - run: '(echo ${GITHUB_REF##*/}; echo; git cherry -v $(git describe --abbrev=0 HEAD^) | cut -d" " -f3-) > CHANGELOG'
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: dist
+          path: dist
+
+      - run: ls -R
+
+      - run: cat CHANGELOG
+
+      - run: |
+          set -x
+          assets=()
+          for zip in ./dist/*.zip; do
+            assets+=("-a" "$zip")
+          done
+          hub release create "${assets[@]}" -F CHANGELOG "${GITHUB_REF##*/}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
