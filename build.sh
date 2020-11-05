@@ -13,10 +13,15 @@ declare -A PLATFORMS=([linux]=linux [darwin]=macos [windows]=windows)
 declare -A ARCHITECTURES=([386]=i386 [amd64]=amd64 [arm]=arm [arm64]=arm64)
 declare -A VARIANTS=([default]="" [nocgo]="CGO_ENABLED=0")
 
-# Run tests first
 golint -set_exit_status ./... || exit 1
+
+# Run tests
 go vet ./... || exit 1
 go test ./... || exit 1
+
+# Run functional tests
+go vet -tags=func_test ./... || exit 1
+go test -tags=func_test ./... || exit 1
 
 echo "Building $NAME $VERSION..."
 
@@ -46,7 +51,7 @@ for platform in ${!PLATFORMS[@]}; do
 
             mkdir -p "$OUTPUT_DIR/$full_name"
 
-            eval GOOS=$platform GOARCH=$architecture ${VARIANTS[$variant]} go build -o "$OUTPUT_DIR/${full_name}/${bin_name}"
+            eval GOOS=$platform GOARCH=$architecture ${VARIANTS[$variant]} go build -o "$OUTPUT_DIR/${full_name}/${bin_name}" ./cmd/rain
             cp LICENSE "$OUTPUT_DIR/$full_name"
             cp README.md "$OUTPUT_DIR/$full_name"
 

@@ -16,9 +16,9 @@ package main
 
 import (
 	"github.com/aws-cloudformation/rain/internal/cmd"
-	"github.com/aws-cloudformation/rain/internal/cmd/build"
+	"github.com/aws-cloudformation/rain/internal/cmd/rain"
 )
 
 func main() {
-	cmd.Wrap("cfn-skeleton", build.Cmd)
+	cmd.Execute(rain.Cmd)
 }

@@ -1,4 +1,4 @@
-// Copyright © 2019 NAME HERE <EMAIL ADDRESS>
+// Copyright © 2020 Amazon.com, Inc. or its affiliates.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,11 +15,10 @@
 package main
 
 import (
-	"github.com/aws-cloudformation/rain/cmd"
+	"github.com/aws-cloudformation/rain/internal/cmd"
+	"github.com/aws-cloudformation/rain/internal/cmd/fmt"
 )
 
 func main() {
-	root := cmd.Wrap("cfn-format", cmd.Fmt)
-
-	cmd.Execute(root)
+	cmd.Wrap("cfn-format", fmt.Cmd)
 }

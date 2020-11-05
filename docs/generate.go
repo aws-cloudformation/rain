@@ -9,7 +9,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/aws-cloudformation/rain/cmd"
+	"github.com/aws-cloudformation/rain/internal/cmd/rain"
 	"github.com/spf13/cobra/doc"
 )
 
@@ -48,7 +48,7 @@ func identity(s string) string {
 }
 
 func main() {
-	err := doc.GenMarkdownTreeCustom(cmd.Rain, "./", emptyStr, identity)
+	err := doc.GenMarkdownTreeCustom(rain.Cmd, "./", emptyStr, identity)
 	if err != nil {
 		panic(err)
 	}
@@ -60,8 +60,8 @@ func main() {
 
 	// Generate usage
 	usage := bytes.Buffer{}
-	cmd.Rain.SetOutput(&usage)
-	cmd.Rain.Usage()
+	rain.Cmd.SetOutput(&usage)
+	rain.Cmd.Usage()
 
 	// Generate README
 	buf := bytes.Buffer{}
@@ -74,6 +74,6 @@ func main() {
 
 	ioutil.WriteFile("../README.md", buf.Bytes(), 0644)
 
-	cmd.Rain.GenBashCompletionFile("bash_completion.sh")
-	cmd.Rain.GenZshCompletionFile("zsh_completion.sh")
+	rain.Cmd.GenBashCompletionFile("bash_completion.sh")
+	rain.Cmd.GenZshCompletionFile("zsh_completion.sh")
 }
