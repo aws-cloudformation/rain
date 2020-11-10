@@ -8,14 +8,16 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws-cloudformation/rain/internal/aws"
-	"github.com/aws-cloudformation/rain/internal/aws/sts"
-	"github.com/aws-cloudformation/rain/internal/config"
-	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/awslabs/smithy-go/ptr"
 	"github.com/google/uuid"
+
+	"github.com/aws-cloudformation/rain/internal/aws"
+	"github.com/aws-cloudformation/rain/internal/aws/sts"
+	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/console"
+	"github.com/aws-cloudformation/rain/internal/console/spinner"
 )
 
 func getClient() *s3.Client {
@@ -82,9 +84,11 @@ func RainBucket() string {
 	config.Debugf("Artifact bucket: %s", bucketName)
 
 	if !BucketExists(bucketName) {
+		spinner.Pause()
 		if !console.Confirm(true, fmt.Sprintf("Rain needs to create an S3 bucket called '%s'. Continue?", bucketName)) {
 			panic(errors.New("you may create the bucket manually and then re-run this operation"))
 		}
+		spinner.Resume()
 
 		err := CreateBucket(bucketName)
 		if err != nil {

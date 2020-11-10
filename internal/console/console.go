@@ -4,12 +4,14 @@ package console
 import (
 	"errors"
 	"fmt"
+	"math"
 	"os"
 	"runtime"
 	"strings"
 
 	"github.com/andrew-d/go-termutil"
 	"github.com/chzyer/readline"
+	"github.com/gookit/color"
 	"github.com/nathan-fiscaletti/consolesize-go"
 )
 
@@ -33,6 +35,12 @@ func Size() (int, int) {
 
 // CountLines returns the number of lines that would be taken up by the given string
 func CountLines(input string) int {
+	input = color.ClearCode(input)
+
+	if input == "" {
+		return 0
+	}
+
 	w, _ := Size()
 
 	if w == 0 {
@@ -41,7 +49,11 @@ func CountLines(input string) int {
 
 	count := 0
 	for _, line := range strings.Split(input, "\n") {
-		count += int(len(line)/w) + 1
+		d := int(math.Ceil(float64(len(line)) / float64(w)))
+		if d == 0 {
+			d = 1
+		}
+		count += d
 	}
 
 	return count

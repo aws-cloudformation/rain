@@ -68,7 +68,12 @@ func stackResourceStatuses(stack *types.Stack) (string, []string) {
 			colour := statusColour[rep.category]
 
 			if msg != "Resource creation cancelled" {
-				messages = append(messages, fmt.Sprintf("%s %s", console.Yellow(fmt.Sprintf("%s:", resourceID)), colour(msg)))
+				id := resourceID
+				if resource.PhysicalResourceId != nil {
+					id += " - " + ptr.ToString(resource.PhysicalResourceId)
+				}
+
+				messages = append(messages, fmt.Sprintf("%s %s", console.Yellow(fmt.Sprintf("%s:", id)), colour(msg)))
 			}
 		}
 
@@ -137,15 +142,19 @@ func stackResourceStatuses(stack *types.Stack) (string, []string) {
 		parts := make([]string, 0)
 
 		if pending > 0 {
-			parts = append(parts, console.Grey(fmt.Sprintf("%d pending", pending)))
+			word := "resources"
+			if pending == 1 {
+				word = "resource"
+			}
+			parts = append(parts, console.Grey(fmt.Sprintf("%d %s pending", pending, word)))
 		}
 
 		if inProgress > 0 {
-			parts = append(parts, console.Blue(fmt.Sprintf("%d in progress", inProgress)))
-		}
-
-		if complete > 0 {
-			parts = append(parts, console.Green(fmt.Sprintf("%d complete", complete)))
+			word := "resources"
+			if inProgress == 1 {
+				word = "resource"
+			}
+			parts = append(parts, console.Blue(fmt.Sprintf("%d %s in progress", inProgress, word)))
 		}
 
 		if len(parts) > 0 {
@@ -198,10 +207,9 @@ func WaitForStackToSettle(stackName string) (string, []string) {
 
 	collectedMessages := make(map[string]bool)
 
-	previousLines := 1
-
 	out := strings.Builder{}
 	outStr := ""
+	lastOutput := ""
 
 	for {
 		out.Reset()
@@ -226,25 +234,23 @@ func WaitForStackToSettle(stackName string) (string, []string) {
 				collectedMessages[message] = true
 				out.WriteString(fmt.Sprintf("  - %s\n", message))
 			}
-			out.WriteString("\n")
 		}
 
 		outStr = out.String()
-		console.ClearLines(previousLines)
 
+		spinner.Pause()
+		console.ClearLines(console.CountLines(lastOutput))
 		if console.IsTTY {
 			fmt.Print(outStr)
 		}
-
-		previousLines = console.CountLines(outStr)
-
-		spinner.Update()
+		lastOutput = outStr
+		spinner.Resume()
 
 		// Check to see if we've finished
 		if StackHasSettled(stack) {
 			spinner.StopTimer()
 
-			console.ClearLines(previousLines)
+			console.ClearLines(console.CountLines(lastOutput))
 
 			messages := make([]string, 0)
 			for message := range collectedMessages {
@@ -285,7 +291,6 @@ func GetStackSummary(stack *types.Stack, long bool) string {
 
 				out.WriteString("\n")
 			}
-			out.WriteString("\n")
 		}
 
 		// Resources
@@ -310,7 +315,6 @@ func GetStackSummary(stack *types.Stack, long bool) string {
 				out.WriteString(fmt.Sprintf("      %s\n", ptr.ToString(resource.PhysicalResourceId)))
 			}
 		}
-		out.WriteString("\n")
 	}
 
 	// Outputs
@@ -339,7 +343,6 @@ func GetStackSummary(stack *types.Stack, long bool) string {
 
 			out.WriteString("\n")
 		}
-		out.WriteString("\n")
 	}
 
 	return strings.TrimSpace(out.String())

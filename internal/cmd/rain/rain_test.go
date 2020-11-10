@@ -13,7 +13,7 @@ func Example_rainhelp() {
 
 	rain.Cmd.Execute()
 	// Output:
-	// Rain is what happens when you have a lot of CloudFormation ;)
+	// Rain is a command line tool for working with AWS CloudFormation templates and stacks
 	//
 	// Usage:
 	//   rain [command]
@@ -28,7 +28,6 @@ func Example_rainhelp() {
 	//
 	// Template commands:
 	//   build       Create CloudFormation templates
-	//   check       Validate a CloudFormation template against the spec
 	//   diff        Compare CloudFormation templates
 	//   fmt         Format CloudFormation templates
 	//   merge       Merge two or more CloudFormation templates
@@ -37,14 +36,4 @@ func Example_rainhelp() {
 	// Other Commands:
 	//   help        Help about any command
 	//   info        Show your current configuration
-	//
-	// Flags:
-	//       --debug            Output debugging information
-	//   -h, --help             help for rain
-	//       --no-colour        Disable colour output
-	//   -p, --profile string   AWS profile name; read from the AWS CLI configuration file
-	//   -r, --region string    AWS region to use
-	//   -v, --version          version for rain
-	//
-	// Use "rain [command] --help" for more information about a command.
 }

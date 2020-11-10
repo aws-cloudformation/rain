@@ -19,8 +19,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var detachDeploy bool
-var forceDeploy bool
+var detach bool
+var yes bool
 var params []string
 var tags []string
 
@@ -101,7 +101,7 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 		spinner.Pop()
 
 		// Confirm changes
-		if !forceDeploy {
+		if !yes {
 			fmt.Println("CloudFormation will make the following changes:")
 			fmt.Println(formatChangeSet(changeSetStatus))
 
@@ -128,26 +128,22 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 			panic(ui.Errorf(err, "error while executing changeset '%s'", changeSetName))
 		}
 
-		if detachDeploy {
+		if detach {
 			fmt.Printf("Detaching. You can check your stack's status with: rain watch %s\n", stackName)
 		} else {
 			fmt.Printf("Deploying template '%s' as stack '%s' in %s.\n", filepath.Base(fn), stackName, aws.Config().Region)
 
 			status, messages := ui.WaitForStackToSettle(stackName)
-
 			stack, _ = cfn.GetStack(stackName)
 			output := ui.GetStackSummary(stack, false)
 
-			fmt.Println()
 			fmt.Println(output)
-			fmt.Println()
 
 			if len(messages) > 0 {
 				fmt.Println(console.Yellow("Messages:"))
 				for _, message := range messages {
 					fmt.Printf("  - %s\n", message)
 				}
-				fmt.Println()
 			}
 
 			if status == "CREATE_COMPLETE" {
@@ -164,8 +160,8 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 func init() {
 	fixStackNameRe = regexp.MustCompile(`[^a-zA-Z0-9]+`)
 
-	Cmd.Flags().BoolVarP(&detachDeploy, "detach", "d", false, "Once deployment has started, don't wait around for it to finish.")
-	Cmd.Flags().BoolVarP(&forceDeploy, "force", "f", false, "Don't ask questions; just deploy.")
+	Cmd.Flags().BoolVarP(&detach, "detach", "d", false, "Once deployment has started, don't wait around for it to finish.")
+	Cmd.Flags().BoolVarP(&yes, "yes", "y", false, "Don't ask questions; just deploy.")
 	Cmd.Flags().StringSliceVar(&tags, "tags", []string{}, "Add tags to the stack. Use the format key1=value1,key2=value2.")
 	Cmd.Flags().StringSliceVar(&params, "params", []string{}, "Set parameter values. Use the format key1=value1,key2=value2.")
 }

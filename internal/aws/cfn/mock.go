@@ -51,18 +51,15 @@ var regions = map[string]regionConfig{
 	},
 }
 
-var noStackErr = errors.New("No such mock stack")
-var noChangeSetErr = errors.New("No such mock change set")
-var wrongChangeSetErr = errors.New("Mock change set does not match stack name")
-
 func region() regionConfig {
 	return regions[aws.Config().Region]
 }
 
-func now() *time.Time {
-	n := time.Now()
-	return &n
-}
+var noStackErr = errors.New("No such mock stack")
+var noChangeSetErr = errors.New("No such mock change set")
+var wrongChangeSetErr = errors.New("Mock change set does not match stack name")
+
+var now = time.Date(2010, time.September, 9, 0, 0, 0, 0, time.UTC)
 
 // GetStackTemplate returns the template used to launch the named stack
 func GetStackTemplate(stackName string, processed bool) (string, error) {
@@ -147,10 +144,11 @@ func GetStackEvents(stackName string) ([]*types.StackEvent, error) {
 		&types.StackEvent{
 			EventId:              ptr.String("mock event id"),
 			StackId:              ptr.String(stackName),
-			Timestamp:            now(),
+			StackName:            ptr.String(stackName),
+			Timestamp:            &now,
 			ClientRequestToken:   ptr.String("mock event token"),
-			LogicalResourceId:    ptr.String("mock logical resource id"),
-			PhysicalResourceId:   ptr.String("mock physical resource id"),
+			LogicalResourceId:    ptr.String("MockResourceId"),
+			PhysicalResourceId:   ptr.String("MockPhysicalId"),
 			ResourceProperties:   ptr.String("mock resource properties"),
 			ResourceStatus:       types.ResourceStatusCreateInProgress,
 			ResourceStatusReason: ptr.String("mock status reason"),
@@ -204,8 +202,8 @@ func GetChangeSet(stackName, changeSetName string) (*cloudformation.DescribeChan
 							},
 						},
 					},
-					LogicalResourceId:  ptr.String("mock logical resource id"),
-					PhysicalResourceId: ptr.String("mock physical resource id"),
+					LogicalResourceId:  ptr.String("MockResourceId"),
+					PhysicalResourceId: ptr.String("MockPhysicalId"),
 					Replacement:        types.ReplacementFalse,
 					ResourceType:       ptr.String("Mock::Resource::Type"),
 					Scope:              []types.ResourceAttribute{},
@@ -213,7 +211,7 @@ func GetChangeSet(stackName, changeSetName string) (*cloudformation.DescribeChan
 				Type: types.ChangeTypeResource,
 			},
 		},
-		CreationTime:          now(),
+		CreationTime:          &now,
 		Description:           ptr.String("Mock change set"),
 		ExecutionStatus:       types.ExecutionStatusAvailable,
 		NextToken:             nil,
@@ -250,7 +248,7 @@ func ExecuteChangeSet(stackName, changeSetName string) error {
 	}
 
 	s.stack = &types.Stack{
-		CreationTime:                now(),
+		CreationTime:                &now,
 		StackName:                   ptr.String(stackName),
 		StackStatus:                 types.StackStatusCreateComplete,
 		Capabilities:                []types.Capability{},
@@ -279,12 +277,12 @@ func ExecuteChangeSet(stackName, changeSetName string) error {
 
 	s.resources = []*types.StackResource{
 		&types.StackResource{
-			LogicalResourceId:    ptr.String("Mock logical resource id"),
+			LogicalResourceId:    ptr.String("MockResourceId"),
 			ResourceStatus:       types.ResourceStatusCreateComplete,
 			ResourceType:         ptr.String("Mock::Resource::Type"),
-			Timestamp:            now(),
+			Timestamp:            &now,
 			Description:          ptr.String("Mock resource description"),
-			PhysicalResourceId:   ptr.String("Mock physical resource id"),
+			PhysicalResourceId:   ptr.String("MockPhysicalId"),
 			ResourceStatusReason: ptr.String("Mock status reason"),
 			StackId:              ptr.String(stackName),
 			StackName:            ptr.String(stackName),

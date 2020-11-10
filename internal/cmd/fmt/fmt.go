@@ -2,12 +2,14 @@ package fmt
 
 import (
 	"fmt"
-	"github.com/aws-cloudformation/rain/cft/format"
-	"github.com/aws-cloudformation/rain/internal/cmd"
-	"github.com/aws-cloudformation/rain/internal/ui"
+	"io"
 	"io/ioutil"
 	"os"
 	"strings"
+
+	"github.com/aws-cloudformation/rain/cft/format"
+	"github.com/aws-cloudformation/rain/internal/cmd"
+	"github.com/aws-cloudformation/rain/internal/ui"
 
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/spf13/cobra"
@@ -23,22 +25,49 @@ var Cmd = &cobra.Command{
 	Use:                   "fmt <filename>",
 	Aliases:               []string{"format"},
 	Short:                 "Format CloudFormation templates",
-	Long:                  "Reads the named template and outputs a nicely formatted copy.",
-	Args:                  cobra.ExactArgs(1),
+	Long:                  "Reads a CloudFormation template from <filename> (or stdin if no filename is supplied) and formats it",
+	Args:                  cobra.MaximumNArgs(1),
 	Annotations:           cmd.TemplateAnnotation,
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
+		var r io.Reader
+		var err error
+
+		fn := "<stdin>"
+
+		if len(args) == 0 {
+			r = os.Stdin
+
+			// Check there's data
+			stat, err := os.Stdin.Stat()
+			if err != nil {
+				panic(ui.Errorf(err, "unable to open stdin"))
+			}
+
+			if stat.Mode()&os.ModeNamedPipe == 0 && stat.Size() == 0 {
+				fmt.Println("CAKES")
+				panic(cmd.Help())
+			}
+
+			writeFlag = false // Can't write back to stdin ;)
+		} else {
+			fn = args[0]
+			r, err = os.Open(args[0])
+			if err != nil {
+				panic(ui.Errorf(err, "unable to read '%s'", fn))
+			}
+		}
+
 		// Read the template
-		fn := args[0]
-		input, err := ioutil.ReadFile(fn)
+		input, err := ioutil.ReadAll(r)
 		if err != nil {
-			panic(ui.Errorf(err, "unable to read '%s'", fn))
+			panic(ui.Errorf(err, "unable to read input"))
 		}
 
 		// Parse the template
 		source, err := parse.String(string(input))
 		if err != nil {
-			panic(ui.Errorf(err, "unable to parse '%s'", fn))
+			panic(ui.Errorf(err, "unable to parse input"))
 		}
 
 		// Format the output
@@ -51,17 +80,15 @@ var Cmd = &cobra.Command{
 			fmt.Fprint(os.Stderr, fn+": ")
 
 			if strings.TrimSpace(string(input)) == strings.TrimSpace(output) {
-				fmt.Fprintln(os.Stderr, "formatted OK")
-				os.Exit(0)
-			} else {
-				fmt.Fprintln(os.Stderr, "would reformat")
-				os.Exit(1)
+				fmt.Println("formatted OK")
+				return
 			}
+
+			panic("would reformat")
 		}
 
 		// Verify the output is valid
-		err = parse.Verify(source, output)
-		if err != nil {
+		if err = parse.Verify(source, output); err != nil {
 			panic(err)
 		}
 

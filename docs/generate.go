@@ -9,8 +9,10 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/aws-cloudformation/rain/internal/cmd/rain"
 	"github.com/spf13/cobra/doc"
+
+	"github.com/aws-cloudformation/rain/internal/cmd/rain"
+	"github.com/aws-cloudformation/rain/internal/console"
 )
 
 var tmpl *template.Template
@@ -48,6 +50,8 @@ func identity(s string) string {
 }
 
 func main() {
+	console.NoColour = true
+
 	err := doc.GenMarkdownTreeCustom(rain.Cmd, "./", emptyStr, identity)
 	if err != nil {
 		panic(err)

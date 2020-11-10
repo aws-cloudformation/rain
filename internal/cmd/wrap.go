@@ -70,8 +70,7 @@ func Wrap(name string, src *cobra.Command) {
 	Execute(out)
 }
 
-// Execute wraps a command with error trapping that deals with the debug flag
-func Execute(cmd *cobra.Command) {
+func execute(cmd *cobra.Command) (code int) {
 	defer func() {
 		spinner.Stop()
 
@@ -80,12 +79,26 @@ func Execute(cmd *cobra.Command) {
 				panic(r)
 			}
 
-			fmt.Fprintln(os.Stderr, console.Red(fmt.Sprintf("%s", r)))
-			os.Exit(1)
+			fmt.Fprintln(os.Stderr, console.Red(fmt.Sprint(r)))
+
+			code = 1
 		}
 	}()
 
 	if err := cmd.Execute(); err != nil {
-		os.Exit(1)
+		code = 1
 	}
+
+	return
+}
+
+// Execute wraps a command with error trapping that deals with the debug flag
+func Execute(cmd *cobra.Command) {
+	os.Exit(execute(cmd))
+}
+
+// Test runs a command without calling os.Exit and instead returning the error code.
+// Use this in place of Execute for functional testing
+func Test(cmd *cobra.Command) int {
+	return execute(cmd)
 }

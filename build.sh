@@ -51,7 +51,10 @@ for platform in ${!PLATFORMS[@]}; do
 
             mkdir -p "$OUTPUT_DIR/$full_name"
 
-            eval GOOS=$platform GOARCH=$architecture ${VARIANTS[$variant]} go build -o "$OUTPUT_DIR/${full_name}/${bin_name}" ./cmd/rain
+            bin_path="$OUTPUT_DIR/$full_name/$bin_name"
+
+            eval GOOS=$platform GOARCH=$architecture ${VARIANTS[$variant]} go build -ldflags=-w -o "$bin_path" ./cmd/rain
+
             cp LICENSE "$OUTPUT_DIR/$full_name"
             cp README.md "$OUTPUT_DIR/$full_name"
 

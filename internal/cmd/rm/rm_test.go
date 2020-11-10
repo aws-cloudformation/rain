@@ -24,6 +24,6 @@ func Example_rm_help() {
 	//
 	// Flags:
 	//   -d, --detach   Once removal has started, don't wait around for it to finish.
-	//   -f, --force    Do not ask; just delete
 	//   -h, --help     help for rm
+	//   -y, --yes      Don't ask questions; just delete
 }

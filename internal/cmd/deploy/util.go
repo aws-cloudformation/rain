@@ -27,10 +27,10 @@ const maxStackNameLength = 128
 func formatChangeSet(status *cloudformation.DescribeChangeSetOutput) string {
 	out := strings.Builder{}
 
-	out.WriteString(fmt.Sprintf("%s: %s\n", console.Yellow(fmt.Sprintf("Stack %s", ptr.ToString(status.StackName))), ui.ColouriseStatus(ptr.ToString(status.StatusReason))))
+	out.WriteString(fmt.Sprintf("%s:\n", console.Yellow(fmt.Sprintf("Stack %s", ptr.ToString(status.StackName)))))
 
 	for _, change := range status.Changes {
-		line := fmt.Sprintf("%s %s\n",
+		line := fmt.Sprintf("%s %s",
 			*change.ResourceChange.ResourceType,
 			*change.ResourceChange.LogicalResourceId,
 		)
@@ -43,14 +43,15 @@ func formatChangeSet(status *cloudformation.DescribeChangeSetOutput) string {
 		case types.ChangeAction("Remove"):
 			out.WriteString(console.Red("  - " + line))
 		}
+
+		out.WriteString("\n")
 	}
 
-	return out.String()
+	return strings.TrimSpace(out.String())
 }
 
 func getParameters(template cft.Template, cliParams map[string]string, old []*types.Parameter, stackExists bool) []*types.Parameter {
 	newParams := make([]*types.Parameter, 0)
-	interacted := false
 
 	oldMap := make(map[string]*types.Parameter)
 	for _, param := range old {
@@ -93,20 +94,26 @@ func getParameters(template cft.Template, cliParams map[string]string, old []*ty
 				} else if defaultValue, ok := param["Default"]; ok {
 					extra = fmt.Sprintf(" (default value: %s)", fmt.Sprint(defaultValue))
 					value = fmt.Sprint(defaultValue)
-				} else if forceDeploy {
-					panic(fmt.Errorf("no default or existing value for parameter '%s'. Set a default, supply a --params flag, or deploy without the --force flag", k))
+				} else if yes {
+					panic(fmt.Errorf("no default or existing value for parameter '%s'. Set a default, supply a --params flag, or deploy without the --yes flag", k))
 				}
 
-				if !forceDeploy {
+				if !yes {
 					spinner.Pause()
 
-					newValue := console.Ask(fmt.Sprintf("Enter a value for parameter '%s'%s:", k, extra))
+					prompt := fmt.Sprintf("Enter a value for parameter '%s'", k)
+
+					if description, ok := param["Description"]; ok {
+						prompt += fmt.Sprintf(" \"%s\"", description)
+					}
+
+					prompt += fmt.Sprintf("%s:", extra)
+
+					newValue := console.Ask(prompt)
 					if newValue != "" {
 						value = newValue
 						usePrevious = false
 					}
-
-					interacted = true
 				}
 			}
 
@@ -122,10 +129,6 @@ func getParameters(template cft.Template, cliParams map[string]string, old []*ty
 				})
 			}
 		}
-	}
-
-	if interacted {
-		fmt.Println()
 	}
 
 	spinner.Resume()
@@ -208,7 +211,8 @@ func checkStack(stackName string) (*types.Stack, bool) {
 			stack.StackStatus == types.StackStatusReviewInProgress,
 			stack.StackStatus == types.StackStatusCreateFailed:
 
-			fmt.Println("Existing stack is empty; deleting it.")
+			message := "Existing stack is empty; deleting it."
+			fmt.Println(message)
 
 			err := cfn.DeleteStack(stackName)
 			if err != nil {
@@ -221,7 +225,7 @@ func checkStack(stackName string) (*types.Stack, bool) {
 				panic(fmt.Errorf("failed to delete stack '%s'", stackName))
 			}
 
-			console.ClearLines(2)
+			console.ClearLines(console.CountLines(message) + 1)
 			fmt.Println("Deleted existing, empty stack.")
 
 			stackExists = false

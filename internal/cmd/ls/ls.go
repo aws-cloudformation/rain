@@ -56,7 +56,7 @@ var Cmd = &cobra.Command{
 
 			origRegion := aws.Config().Region
 
-			for i, region := range regions {
+			for _, region := range regions {
 				spinner.Push(fmt.Sprintf("Fetching stacks in %s", region))
 				aws.SetRegion(region)
 				stacks, err := cfn.ListStacks()
@@ -84,10 +84,6 @@ var Cmd = &cobra.Command{
 					if stack.ParentId == nil {
 						fmt.Println(ui.Indent("  ", formatStack(stack, stackMap)))
 					}
-				}
-
-				if i < len(regions)-1 {
-					fmt.Println()
 				}
 			}
 

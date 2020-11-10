@@ -2,8 +2,8 @@ package rm
 
 import (
 	"fmt"
+	"os"
 
-	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
 	"github.com/aws-cloudformation/rain/internal/cmd"
 	"github.com/aws-cloudformation/rain/internal/console"
@@ -12,8 +12,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var forceRm bool
-var detachRm bool
+var yes bool
+var detach bool
 
 // Cmd is the rm command's entrypoint
 var Cmd = &cobra.Command{
@@ -34,7 +34,9 @@ var Cmd = &cobra.Command{
 		}
 
 		if *stack.EnableTerminationProtection {
-			if forceRm || console.Confirm(false, "This stack has termination protection enabled. Do you wish to disable it?") {
+			spinner.Pause()
+
+			if yes || console.Confirm(false, "This stack has termination protection enabled. Do you wish to disable it?") {
 				spinner.Push("Disabling termination protection")
 				if err := cfn.SetTerminationProtection(stackName, false); err != nil {
 					panic(ui.Errorf(err, "unable to set termination protection of stack '%s'", stackName))
@@ -43,14 +45,16 @@ var Cmd = &cobra.Command{
 			} else {
 				panic(fmt.Errorf("user cancelled deletion of stack '%s'", stackName))
 			}
+
+			spinner.Resume()
 		}
 
-		if !forceRm {
+		if !yes {
 			output, _ := ui.GetStackOutput(stack)
 
+			spinner.Pause()
 			fmt.Println(output)
 
-			spinner.Pause()
 			if !console.Confirm(true, "Are you sure you want to delete this stack?") {
 				panic(fmt.Errorf("user cancelled deletion of stack '%s'", stackName))
 			}
@@ -64,31 +68,32 @@ var Cmd = &cobra.Command{
 			panic(ui.Errorf(err, "unable to delete stack '%s'", stackName))
 		}
 
-		if detachRm {
+		if detach {
 			fmt.Printf("Detaching. You can check your stack's status with: rain watch %s\n", stackName)
 		} else {
-			fmt.Printf("Deleting stack '%s' in %s\n", stackName, aws.Config().Region)
-
 			status, messages := ui.WaitForStackToSettle(stackName)
+			stack, _ = cfn.GetStack(stackName)
 
 			if status == "DELETE_COMPLETE" {
 				fmt.Println(console.Green(fmt.Sprintf("Successfully deleted stack '%s'", stackName)))
-			} else {
-				fmt.Println(console.Red("Failed to delete " + stackName))
+				return
 			}
 
+			fmt.Fprintln(os.Stderr, console.Red(fmt.Sprintf("Failed to delete stack '%s'", stackName)))
+
 			if len(messages) > 0 {
-				fmt.Println()
-				fmt.Println(console.Yellow("Messages:"))
+				fmt.Fprintln(os.Stderr, console.Yellow("Messages:"))
 				for _, message := range messages {
-					fmt.Printf("  - %s\n", message)
+					fmt.Fprintf(os.Stderr, "  - %s\n", message)
 				}
 			}
+
+			os.Exit(1)
 		}
 	},
 }
 
 func init() {
-	Cmd.Flags().BoolVarP(&detachRm, "detach", "d", false, "Once removal has started, don't wait around for it to finish.")
-	Cmd.Flags().BoolVarP(&forceRm, "force", "f", false, "Do not ask; just delete")
+	Cmd.Flags().BoolVarP(&detach, "detach", "d", false, "Once removal has started, don't wait around for it to finish.")
+	Cmd.Flags().BoolVarP(&yes, "yes", "y", false, "Don't ask questions; just delete")
 }

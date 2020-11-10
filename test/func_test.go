@@ -7,16 +7,23 @@ import (
 	"os"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+
+	"github.com/aws-cloudformation/rain/internal/cmd"
 	"github.com/aws-cloudformation/rain/internal/cmd/rain"
 	"github.com/aws-cloudformation/rain/internal/console"
-	"github.com/google/go-cmp/cmp"
 )
 
-func wrap(t *testing.T, args []string, expected string) {
+func wrap(t *testing.T, args []string, expectedOut, expectedErr string, expectedCode int) {
 	// Capture stdout
 	realOut := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
+	ro, wo, _ := os.Pipe()
+	os.Stdout = wo
+
+	// Capture stderr
+	realErr := os.Stderr
+	re, we, _ := os.Pipe()
+	os.Stderr = we
 
 	console.IsTTY = false
 
@@ -27,15 +34,31 @@ func wrap(t *testing.T, args []string, expected string) {
 		"-r",
 		"mock-region-1",
 	}, args...)
-	rain.Cmd.Execute()
+	exitCode := cmd.Test(rain.Cmd)
+
+	// Reset stdout
+	os.Stdout = realOut
+	wo.Close()
+
+	// Reset stderr
+	os.Stderr = realErr
+	we.Close()
 
 	// Compare the output
-	os.Stdout = realOut
-	w.Close()
-	actual, _ := ioutil.ReadAll(r)
-
-	if d := cmp.Diff(expected, string(actual)); d != "" {
+	actualOut, _ := ioutil.ReadAll(ro)
+	if d := cmp.Diff(expectedOut, string(actualOut)); d != "" {
 		t.Error(d)
+	}
+
+	// Compare the err
+	actualErr, _ := ioutil.ReadAll(re)
+	if d := cmp.Diff(expectedErr, string(actualErr)); d != "" {
+		t.Error(d)
+	}
+
+	// Compare exit code
+	if exitCode != expectedCode {
+		t.Errorf("Unexpected error code: %d", exitCode)
 	}
 }
 
@@ -43,29 +66,22 @@ func TestFlow(t *testing.T) {
 	// Deploy
 	wrap(t, []string{
 		"deploy",
-		"-f",
+		"-y",
 		"--params",
 		"BucketName=foo",
 		"templates/success.template",
-	}, `Preparing template 'success.template'
-Loading AWS config
-Checking current status of stack 'success'
-Creating change set
-Deploying template 'success.template' as stack 'success' in mock-region-1.
-
+	}, `Deploying template 'success.template' as stack 'success' in mock-region-1.
 Stack success: CREATE_COMPLETE
   Outputs:
     MockKey: Mock value # Mock output description (exported as MockExport)
-
 Successfully deployed success
-`)
+`, "", 0)
 
 	// Cat
 	wrap(t, []string{
 		"cat",
 		"success",
-	}, `Getting template from stack 'success'
-Description: This template succeeds
+	}, `Description: This template succeeds
 
 Parameters:
   BucketName:
@@ -76,91 +92,73 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref BucketName
-`)
+`, "", 0)
 
 	// Logs
 	wrap(t, []string{
 		"logs",
 		"success",
-	}, `Getting logs for stack 'success'
-mock logical resource id:  # Mock::Resource::Type
-- CREATE_IN_PROGRESS "mock status reason"
-`)
+	}, `Sep  9 00:00:00 success/MockResourceId (Mock::Resource::Type) CREATE_IN_PROGRESS "mock status reason"
+`, "", 0)
 
 	// List current region
 	wrap(t, []string{
 		"ls",
-	}, `Fetching stacks in mock-region-1
-CloudFormation stacks in mock-region-1:
+	}, `CloudFormation stacks in mock-region-1:
   success: CREATE_COMPLETE
-`)
+`, "", 0)
 
 	// List all regions
 	wrap(t, []string{
 		"ls",
 		"-a",
-	}, `Fetching region list
-Fetching stacks in mock-region-1
-CloudFormation stacks in mock-region-1:
+	}, `CloudFormation stacks in mock-region-1:
   success: CREATE_COMPLETE
-
-Fetching stacks in mock-region-2
-Fetching stacks in mock-region-3
-`)
+`, "", 0)
 
 	// List stack
 	wrap(t, []string{
 		"ls",
 		"success",
-	}, `Fetching stack status
-Stack success: CREATE_COMPLETE
+	}, `Stack success: CREATE_COMPLETE
   Outputs:
     MockKey: Mock value # Mock output description (exported as MockExport)
-`)
+`, "", 0)
 
 	// List full stack
 	wrap(t, []string{
 		"ls",
 		"-a",
 		"success",
-	}, `Fetching stack status
-Stack success: CREATE_COMPLETE
+	}, `Stack success: CREATE_COMPLETE
   Parameters:
     MockKey: Mock value
-
   Resources:
-    Mock logical resource id: CREATE_COMPLETE
-      Mock physical resource id
-
+    MockResourceId: CREATE_COMPLETE
+      MockPhysicalId
   Outputs:
     MockKey: Mock value # Mock output description (exported as MockExport)
-`)
+`, "", 0)
 
 	// Watch stack
 	wrap(t, []string{
 		"watch",
 		"success",
 	}, `Stack success: CREATE_COMPLETE
-Not watching unchanging stack.
-`)
+`, `not watching unchanging stack
+`, 1)
 
 	// Remove stack
 	wrap(t, []string{
 		"rm",
-		"-f",
+		"-y",
 		"success",
-	}, `Fetching stack status
-Deleting stack 'success' in mock-region-1
-Successfully deleted stack 'success'
-`)
+	}, `Successfully deleted stack 'success'
+`, "", 0)
 
-	// List all stacks
+	// List all stacks again
 	wrap(t, []string{
 		"ls",
 		"-a",
-	}, `Fetching region list
-Fetching stacks in mock-region-1
-Fetching stacks in mock-region-2
-Fetching stacks in mock-region-3
-`)
+	}, "", "", 0)
 }

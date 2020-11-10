@@ -33,6 +33,7 @@ func MFAProvider() (string, error) {
 }
 
 var awsCfg *aws.Config
+var creds aws.Credentials
 
 // For debug resolver
 type uaResolver string
@@ -43,7 +44,7 @@ func (u uaResolver) ResolveEndpoint(service string, region string) (aws.Endpoint
 	}, nil
 }
 
-func loadConfig(ctx context.Context) aws.Config {
+func loadConfig(ctx context.Context) *aws.Config {
 	// Credential configs
 	var configs = make([]awsconfig.Config, 0)
 
@@ -82,32 +83,27 @@ func loadConfig(ctx context.Context) aws.Config {
 		panic(errors.New("unable to find valid credentials"))
 	}
 
-	return cfg
+	// Check for validity
+	creds, err = cfg.Credentials.Retrieve(context.Background())
+	if err != nil {
+		config.Debugf("Error retreiving creds: %s", err.Error())
+		panic(errors.New("could not establish AWS credentials; please run 'aws configure' or choose a profile"))
+	}
+
+	return &cfg
 }
 
 // Config loads an aws.Config based on current settings
 func Config() aws.Config {
 	if awsCfg == nil {
 		spinner.Push("Loading AWS config")
-
-		cfg := loadConfig(context.Background())
-
-		awsCfg = &cfg
-
+		awsCfg = loadConfig(context.Background())
 		spinner.Pop()
-	}
-
-	// Check for validity
-	creds, err := awsCfg.Credentials.Retrieve(context.Background())
-	if err != nil {
-		panic(fmt.Errorf("Invalid credentials: %w", err))
-	}
-
-	// Check for expiry
-	if creds.CanExpire && time.Until(creds.Expires) < time.Minute {
-		config.Debugf("Creds expire in less than a minute; refreshing")
-		awsCfg = nil
-		return Config()
+	} else if creds.CanExpire && time.Until(creds.Expires) < time.Minute {
+		// Check for expiry
+		spinner.Push("Refreshing AWS credentials")
+		awsCfg = loadConfig(context.Background())
+		spinner.Pop()
 	}
 
 	return *awsCfg

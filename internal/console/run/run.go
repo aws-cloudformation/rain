@@ -2,8 +2,6 @@
 package run
 
 import (
-	"bytes"
-	"fmt"
 	"os"
 	"os/exec"
 )
@@ -23,19 +21,9 @@ func Attached(command string, args ...string) {
 // Stdout as a string. Additionally, if there is any output from the command
 // in Stderr, an error will be returned.
 func Capture(command string, args ...string) (string, error) {
-	var out bytes.Buffer
-	var err bytes.Buffer
-
 	cmd := exec.Command(command, args...)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = &out
-	cmd.Stderr = &err
 
-	cmd.Run()
+	out, err := cmd.Output()
 
-	if err.String() == "" {
-		return out.String(), nil
-	}
-
-	return out.String(), fmt.Errorf(err.String())
+	return string(out), err
 }

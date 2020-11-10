@@ -1,6 +1,7 @@
 package watch
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -28,6 +29,10 @@ var Cmd = &cobra.Command{
 
 		first := true
 		for {
+			if first {
+				spinner.Push("Fetching stack status")
+			}
+
 			stack, err := cfn.GetStack(stackName)
 			if err != nil {
 				panic(ui.Errorf(err, "error watching stack '%s'", stackName))
@@ -42,11 +47,11 @@ var Cmd = &cobra.Command{
 				// Not changing, not waiting for it
 				status, _ := ui.GetStackOutput(stack)
 				fmt.Println(status)
-				fmt.Println("Not watching unchanging stack.")
-				return
+				panic(errors.New("not watching unchanging stack"))
 			}
 
 			if first {
+				spinner.Pop()
 				spinner.Push("Waiting for stack to begin changing")
 				first = false
 			}
@@ -61,7 +66,6 @@ var Cmd = &cobra.Command{
 		fmt.Println("Final stack status:", ui.ColouriseStatus(status))
 
 		if len(messages) > 0 {
-			fmt.Println()
 			fmt.Println(console.Yellow("Messages:"))
 			for _, message := range messages {
 				fmt.Printf("  - %s\n", message)

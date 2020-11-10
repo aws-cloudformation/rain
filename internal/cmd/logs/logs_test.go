@@ -14,9 +14,10 @@ func Example_logs_help() {
 
 	logs.Cmd.Execute()
 	// Output:
-	// Shows a nicely-formatted list of the event log for the named stack, optionally limiting the results to a single resource.
+	// Shows the event log for a stack and its nested stack. Optionally, filter by a specific resource by name.
 	//
-	// By default, rain will only show log entries that contain a message, for example a failure reason. You can use flags to change this behaviour.
+	// By default, only show log entries that contain a useful message (e.g. a failure message).
+	// You can use the --all flag to change this behaviour.
 	//
 	// Usage:
 	//   logs <stack> (<resource>)
@@ -27,6 +28,4 @@ func Example_logs_help() {
 	// Flags:
 	//   -a, --all    Include uninteresting logs
 	//   -h, --help   help for logs
-	//   -l, --long   Display full details
-	//   -t, --time   Show results in order of time instead of grouped by resource
 }
