@@ -24,9 +24,6 @@ func AddDefaults(c *cobra.Command) {
 	// Add the debug flag
 	c.PersistentFlags().BoolVarP(&config.Debug, "debug", "", false, "Output debugging information")
 
-	// Add the no colour flag
-	c.PersistentFlags().BoolVarP(&console.NoColour, "no-colour", "", false, "Disable colour output")
-
 	// Customise version string
 	if c.Name() == "rain" {
 		c.SetVersionTemplate(fmt.Sprintf("%s {{.Version}} %s/%s\n",

@@ -86,5 +86,7 @@ func init() {
 		return oldUsageFunc(c)
 	})
 
+	Cmd.PersistentFlags().BoolVarP(&console.NoColour, "no-colour", "", false, "Disable colour output")
+
 	cmd.AddDefaults(Cmd)
 }
