@@ -77,14 +77,12 @@ var Cmd = &cobra.Command{
 		})
 
 		if verifyFlag {
-			fmt.Fprint(os.Stderr, fn+": ")
-
-			if strings.TrimSpace(string(input)) == strings.TrimSpace(output) {
-				fmt.Println("formatted OK")
-				return
+			if strings.TrimSpace(string(input)) != strings.TrimSpace(output) {
+				panic(fmt.Errorf("%s: would reformat", fn))
 			}
 
-			panic("would reformat")
+			fmt.Printf("%s: formatted OK\n", fn)
+			return
 		}
 
 		// Verify the output is valid
