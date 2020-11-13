@@ -91,7 +91,7 @@ func (b builder) newProperty(resourceType, propertyName string, pSpec *spec.Prop
 			return b.newPrimitive(pSpec.PrimitiveType), make([]*cft.Comment, 0)
 		}
 
-		return b.newPrimitive(pSpec.PrimitiveType), []*cft.Comment{&cft.Comment{
+		return b.newPrimitive(pSpec.PrimitiveType), []*cft.Comment{{
 			Path:  []interface{}{},
 			Value: optionalTag,
 		}}

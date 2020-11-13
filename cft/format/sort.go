@@ -23,42 +23,42 @@ var orders = ordering{
 		"Outputs",
 	},
 	children: map[string]ordering{
-		"Transform": ordering{
+		"Transform": {
 			props: []string{},
 			children: map[string]ordering{
-				"*": ordering{
+				"*": {
 					props: []string{"Name", "Parameters"},
 				},
 			},
 		},
-		"Metadata": ordering{
+		"Metadata": {
 			props: []string{},
 			children: map[string]ordering{
-				"*": ordering{
+				"*": {
 					props: []string{"Description"},
 				},
 			},
 		},
-		"Parameters": ordering{
+		"Parameters": {
 			props: []string{},
 			children: map[string]ordering{
-				"*": ordering{
+				"*": {
 					props: []string{"Description", "Type", "AllowedValues", "Default"},
 				},
 			},
 		},
-		"Resources": ordering{
+		"Resources": {
 			props: []string{},
 			children: map[string]ordering{
-				"*": ordering{
+				"*": {
 					props: []string{"CreationPolicy", "DeletionPolicy", "UpdatePolicy", "UpdateReplacePolicy", "Type", "DependsOn", "Metadata", "Properties"},
 				},
 			},
 		},
-		"Outputs": ordering{
+		"Outputs": {
 			props: []string{},
 			children: map[string]ordering{
-				"*": ordering{
+				"*": {
 					props: []string{"Description", "Value", "Export"},
 				},
 			},

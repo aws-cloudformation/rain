@@ -4,53 +4,53 @@ package spec
 var Iam = Spec{
 	ResourceSpecificationVersion: "1.0.0",
 	PropertyTypes: map[string]*PropertyType{
-		"Policy": &PropertyType{
+		"Policy": {
 			Properties: map[string]*Property{
-				"Id": &Property{
+				"Id": {
 					PrimitiveType: "String",
 				},
-				"Statement": &Property{
+				"Statement": {
 					ItemType: "Statement",
 					Type:     "List",
 				},
-				"Version": &Property{
+				"Version": {
 					PrimitiveType: "String",
 				},
 			},
 		},
-		"Statement": &PropertyType{
+		"Statement": {
 			Properties: map[string]*Property{
-				"Principal": &Property{
+				"Principal": {
 					PrimitiveItemType: "String",
 					Type:              "Map",
 				},
-				"Condition": &Property{
+				"Condition": {
 					PrimitiveItemType: "Json",
 					Type:              "Map",
 				},
-				"NotAction": &Property{
+				"NotAction": {
 					PrimitiveItemType: "String",
 					Type:              "List",
 				},
-				"NotPrincipal": &Property{
+				"NotPrincipal": {
 					PrimitiveItemType: "String",
 					Type:              "Map",
 				},
-				"Resource": &Property{
+				"Resource": {
 					PrimitiveItemType: "String",
 					Type:              "List",
 				},
-				"Sid": &Property{
+				"Sid": {
 					PrimitiveType: "String",
 				},
-				"Action": &Property{
+				"Action": {
 					PrimitiveItemType: "String",
 					Type:              "List",
 				},
-				"Effect": &Property{
+				"Effect": {
 					PrimitiveType: "String",
 				},
-				"NotResource": &Property{
+				"NotResource": {
 					PrimitiveItemType: "String",
 					Type:              "List",
 				},

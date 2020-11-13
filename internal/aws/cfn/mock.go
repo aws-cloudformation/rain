@@ -141,7 +141,7 @@ func GetStackResources(stackName string) ([]*types.StackResource, error) {
 // GetStackEvents returns all events associated with the named stack
 func GetStackEvents(stackName string) ([]*types.StackEvent, error) {
 	return []*types.StackEvent{
-		&types.StackEvent{
+		{
 			EventId:              ptr.String("mock event id"),
 			StackId:              ptr.String(stackName),
 			StackName:            ptr.String(stackName),
@@ -187,11 +187,11 @@ func GetChangeSet(stackName, changeSetName string) (*cloudformation.DescribeChan
 		ChangeSetId:   ptr.String(changeSetName),
 		ChangeSetName: ptr.String(changeSetName),
 		Changes: []*types.Change{
-			&types.Change{
+			{
 				ResourceChange: &types.ResourceChange{
 					Action: types.ChangeActionAdd,
 					Details: []*types.ResourceChangeDetail{
-						&types.ResourceChangeDetail{
+						{
 							CausingEntity: ptr.String("mock entity"),
 							ChangeSource:  types.ChangeSourceResourceattribute,
 							Evaluation:    types.EvaluationTypeDynamic,
@@ -257,7 +257,7 @@ func ExecuteChangeSet(stackName, changeSetName string) error {
 		DisableRollback:             ptr.Bool(false),
 		EnableTerminationProtection: ptr.Bool(false),
 		Outputs: []*types.Output{
-			&types.Output{
+			{
 				Description: ptr.String("Mock output description"),
 				ExportName:  ptr.String("MockExport"),
 				OutputKey:   ptr.String("MockKey"),
@@ -265,7 +265,7 @@ func ExecuteChangeSet(stackName, changeSetName string) error {
 			},
 		},
 		Parameters: []*types.Parameter{
-			&types.Parameter{
+			{
 				ParameterKey:   ptr.String("MockKey"),
 				ParameterValue: ptr.String("Mock value"),
 			},
@@ -276,7 +276,7 @@ func ExecuteChangeSet(stackName, changeSetName string) error {
 	}
 
 	s.resources = []*types.StackResource{
-		&types.StackResource{
+		{
 			LogicalResourceId:    ptr.String("MockResourceId"),
 			ResourceStatus:       types.ResourceStatusCreateComplete,
 			ResourceType:         ptr.String("Mock::Resource::Type"),

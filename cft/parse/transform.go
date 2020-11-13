@@ -16,13 +16,13 @@ func parseGetAtt(n *yaml.Node) {
 		Kind: yaml.SequenceNode,
 
 		Content: []*yaml.Node{
-			&yaml.Node{
+			{
 				Kind:  yaml.ScalarNode,
 				Style: 0,
 				Tag:   "!!str",
 				Value: parts[0],
 			},
-			&yaml.Node{
+			{
 				Kind:  yaml.ScalarNode,
 				Style: 0,
 				Tag:   "!!str",
@@ -61,7 +61,7 @@ func parseNode(n *yaml.Node) {
 				Kind: yaml.MappingNode,
 				Tag:  "!!map",
 				Content: []*yaml.Node{
-					&yaml.Node{
+					{
 						Kind:  yaml.ScalarNode,
 						Style: 0,
 						Tag:   "!!str",

@@ -22,15 +22,15 @@ waldo: {}
 `
 
 	var comments = []*cft.Comment{
-		&cft.Comment{Path: []interface{}{}, Value: "Comment about the doc"},
-		&cft.Comment{Path: []interface{}{"foo"}, Value: "Comment about foo:bar"},
-		&cft.Comment{Path: []interface{}{"baz"}, Value: "Comment about baz"},
-		&cft.Comment{Path: []interface{}{"baz", "quux"}, Value: "Comment about quux:mooz"},
-		&cft.Comment{Path: []interface{}{"baz", "xyzzy"}, Value: "Comment about xyzzy"},
-		&cft.Comment{Path: []interface{}{"baz", "xyzzy", 0}, Value: "Comment about corge"},
-		&cft.Comment{Path: []interface{}{"baz", "xyzzy", 1}, Value: "Comment about grault"},
-		&cft.Comment{Path: []interface{}{"baz", "xyzzy", 1, "grault"}, Value: "Comment about grault:garply"},
-		&cft.Comment{Path: []interface{}{"waldo"}, Value: "Comment about waldo"},
+		{Path: []interface{}{}, Value: "Comment about the doc"},
+		{Path: []interface{}{"foo"}, Value: "Comment about foo:bar"},
+		{Path: []interface{}{"baz"}, Value: "Comment about baz"},
+		{Path: []interface{}{"baz", "quux"}, Value: "Comment about quux:mooz"},
+		{Path: []interface{}{"baz", "xyzzy"}, Value: "Comment about xyzzy"},
+		{Path: []interface{}{"baz", "xyzzy", 0}, Value: "Comment about corge"},
+		{Path: []interface{}{"baz", "xyzzy", 1}, Value: "Comment about grault"},
+		{Path: []interface{}{"baz", "xyzzy", 1, "grault"}, Value: "Comment about grault:garply"},
+		{Path: []interface{}{"waldo"}, Value: "Comment about waldo"},
 	}
 
 	expected := `# Comment about the doc
