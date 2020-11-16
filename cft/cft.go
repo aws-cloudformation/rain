@@ -7,6 +7,8 @@ import (
 	"fmt"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/aws-cloudformation/rain/internal/node"
 )
 
 // Template represents a CloudFormation template. The Template type
@@ -25,4 +27,15 @@ func (t Template) Map() map[string]interface{} {
 	}
 
 	return out
+}
+
+// Resolve returns a new template that has all values involving intrinsice functions resolved
+// into concrete values. The parameters passed in will be used to populate parameters defined
+// in the template or values of AWS pseudo parameters such as AWS::StackName
+func (t Template) Resolve(params map[string]string) Template {
+	n := node.Clone(&t.Node)
+
+	resolve(n, params)
+
+	return Template{*n}
 }
