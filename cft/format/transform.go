@@ -8,6 +8,18 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+func mergeComments(comments []string) string {
+	out := strings.Builder{}
+	for _, c := range comments {
+		c := strings.TrimSpace(strings.TrimLeft(c, "# "))
+		if c != "" {
+			out.WriteString(c)
+			out.WriteString(" ")
+		}
+	}
+	return strings.TrimSpace(out.String())
+}
+
 // Fix up yaml.Nodes on the way out of a template
 func formatNode(n *yaml.Node) *yaml.Node {
 	n = node.Clone(n)
@@ -19,6 +31,11 @@ func formatNode(n *yaml.Node) *yaml.Node {
 			// Is the key relevant?
 			for tag, funcName := range cft.Tags {
 				if n.Content[0].Value == funcName {
+					// Prepare comments
+					headComments := []string{n.HeadComment, n.Content[0].HeadComment, n.Content[1].HeadComment}
+					lineComments := []string{n.LineComment, n.Content[0].LineComment, n.Content[1].LineComment}
+					footComments := []string{n.FootComment, n.Content[0].FootComment, n.Content[1].FootComment}
+
 					n = n.Content[1]
 					n.Tag = tag
 
@@ -34,6 +51,10 @@ func formatNode(n *yaml.Node) *yaml.Node {
 							}
 
 							parts[i] = child.Value
+
+							headComments = append(headComments, child.HeadComment)
+							lineComments = append(lineComments, child.LineComment)
+							footComments = append(footComments, child.FootComment)
 						}
 
 						if allScalar {
@@ -41,6 +62,10 @@ func formatNode(n *yaml.Node) *yaml.Node {
 							n.Kind = yaml.ScalarNode
 							n.Value = strings.Join(parts, ".")
 						}
+
+						n.HeadComment = mergeComments(headComments)
+						n.LineComment = mergeComments(lineComments)
+						n.FootComment = mergeComments(footComments)
 					}
 
 					break

@@ -10,16 +10,16 @@ import (
 
 const input = `
 Outputs:
-  Bucket:
+  Bucket: # Bucket comment
     Value:
-      Fn::GetAtt:
+      Fn::GetAtt: # GetAtt comment
         - Bucket2
-        - Arn
+        - Arn # Arn comment
 
 Resources:
   Bucket2:
     Properties:
-      BucketName: !Ref Name
+      BucketName: !Ref Name # Ref: comment
     Type: "AWS::S3::Bucket"
   Bucket1:
     Type: AWS::S3::Bucket
@@ -38,7 +38,7 @@ Resources:
   Bucket2:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Ref Name
+      BucketName: !Ref Name # Ref: comment
 
   Bucket1:
     Type: AWS::S3::Bucket
@@ -46,18 +46,18 @@ Resources:
       BucketName: !Sub ${Bucket2}-newer
 
 Outputs:
-  Bucket:
-    Value: !GetAtt Bucket2.Arn
+  Bucket: # Bucket comment
+    Value: !GetAtt Bucket2.Arn # GetAtt comment Arn comment
 `
 
 const expectedYamlUnsorted = `Outputs:
-  Bucket:
-    Value: !GetAtt Bucket2.Arn
+  Bucket: # Bucket comment
+    Value: !GetAtt Bucket2.Arn # GetAtt comment Arn comment
 
 Resources:
   Bucket2:
     Properties:
-      BucketName: !Ref Name
+      BucketName: !Ref Name # Ref: comment
     Type: AWS::S3::Bucket
 
   Bucket1:
