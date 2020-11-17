@@ -122,9 +122,9 @@ var Cmd = &cobra.Command{
 
 			if verifyFlag {
 				if res.ok {
-					fmt.Println(console.Green(fmt.Sprintf("%s: formatted OK\n", res.name)))
+					fmt.Println(console.Green(fmt.Sprintf("%s: formatted OK", res.name)))
 				} else {
-					fmt.Fprintln(os.Stderr, console.Red(fmt.Sprintf("%s: would reformat\n", res.name)))
+					fmt.Fprintln(os.Stderr, console.Red(fmt.Sprintf("%s: would reformat", res.name)))
 					hasErr = true
 				}
 			} else if writeFlag {
