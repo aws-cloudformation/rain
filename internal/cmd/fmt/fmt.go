@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/internal/cmd"
+	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/ui"
 
 	"github.com/aws-cloudformation/rain/cft/parse"
@@ -20,25 +21,75 @@ var verifyFlag bool
 var writeFlag bool
 var unsortedFlag bool
 
+type result struct {
+	name   string
+	output string
+	ok     bool
+	err    error
+}
+
+func formatReader(name string, r io.Reader) result {
+	res := result{
+		name: name,
+	}
+
+	// Read the template
+	input, err := ioutil.ReadAll(r)
+	if err != nil {
+		res.err = ui.Errorf(err, "unable to read input")
+		return res
+	}
+
+	// Parse the template
+	source, err := parse.String(string(input))
+	if err != nil {
+		res.err = ui.Errorf(err, "unable to parse input")
+		return res
+	}
+
+	// Format the output
+	res.output = format.String(source, format.Options{
+		JSON:     jsonFlag,
+		Unsorted: unsortedFlag,
+	})
+
+	// Verify the output is valid
+	if err = parse.Verify(source, res.output); err != nil {
+		res.err = err
+		return res
+	}
+
+	res.ok = strings.TrimSpace(string(input)) == strings.TrimSpace(res.output)
+
+	return res
+}
+
+func formatFile(filename string) result {
+	r, err := os.Open(filename)
+	if err != nil {
+		return result{
+			name: filename,
+			err:  ui.Errorf(err, "unable to read '%s'", filename),
+		}
+	}
+
+	return formatReader(filename, r)
+}
+
 // Cmd is the fmt command's entrypoint
 var Cmd = &cobra.Command{
-	Use:                   "fmt <filename>",
+	Use:                   "fmt <filename>...",
 	Aliases:               []string{"format"},
 	Short:                 "Format CloudFormation templates",
-	Long:                  "Reads a CloudFormation template from <filename> (or stdin if no filename is supplied) and formats it",
-	Args:                  cobra.MaximumNArgs(1),
+	Long:                  "Reads CloudFormation templates from filename arguments (or stdin if no filenames are supplied) and formats them",
+	Args:                  cobra.MinimumNArgs(1),
 	Annotations:           cmd.TemplateAnnotation,
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		var r io.Reader
-		var err error
-
-		fn := "<stdin>"
+		var results []result
 
 		if len(args) == 0 {
-			r = os.Stdin
-
-			// Check there's data
+			// Check there's data on stdin
 			stat, err := os.Stdin.Stat()
 			if err != nil {
 				panic(ui.Errorf(err, "unable to open stdin"))
@@ -50,50 +101,50 @@ var Cmd = &cobra.Command{
 			}
 
 			writeFlag = false // Can't write back to stdin ;)
+
+			results = []result{
+				formatReader("<stdin>", os.Stdin),
+			}
 		} else {
-			fn = args[0]
-			r, err = os.Open(args[0])
-			if err != nil {
-				panic(ui.Errorf(err, "unable to read '%s'", fn))
+			results = make([]result, len(args))
+			for i, filename := range args {
+				results[i] = formatFile(filename)
 			}
 		}
 
-		// Read the template
-		input, err := ioutil.ReadAll(r)
-		if err != nil {
-			panic(ui.Errorf(err, "unable to read input"))
-		}
+		hasErr := false
 
-		// Parse the template
-		source, err := parse.String(string(input))
-		if err != nil {
-			panic(ui.Errorf(err, "unable to parse input"))
-		}
-
-		// Format the output
-		output := format.String(source, format.Options{
-			JSON:     jsonFlag,
-			Unsorted: unsortedFlag,
-		})
-
-		if verifyFlag {
-			if strings.TrimSpace(string(input)) != strings.TrimSpace(output) {
-				panic(fmt.Errorf("%s: would reformat", fn))
+		for i, res := range results {
+			if res.err != nil {
+				fmt.Fprintln(os.Stderr, console.Red(res.err))
+				hasErr = true
+				break
 			}
 
-			fmt.Printf("%s: formatted OK\n", fn)
-			return
+			if verifyFlag {
+				if res.ok {
+					fmt.Println(console.Green(fmt.Sprintf("%s: formatted OK\n", res.name)))
+				} else {
+					fmt.Fprintln(os.Stderr, console.Red(fmt.Sprintf("%s: would reformat\n", res.name)))
+					hasErr = true
+				}
+			} else if writeFlag {
+				ioutil.WriteFile(res.name, []byte(res.output), 0644)
+			} else {
+				if len(args) > 1 {
+					fmt.Printf("--- # %s\n", res.name)
+				}
+
+				fmt.Println(res.output)
+
+				if len(args) > 1 && i == len(args)-1 {
+					fmt.Println("...")
+				}
+			}
 		}
 
-		// Verify the output is valid
-		if err = parse.Verify(source, output); err != nil {
-			panic(err)
-		}
-
-		if writeFlag {
-			ioutil.WriteFile(fn, []byte(output), 0644)
-		} else {
-			fmt.Println(output)
+		if hasErr {
+			os.Exit(1)
 		}
 	},
 }
