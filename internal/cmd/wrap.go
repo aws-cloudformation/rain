@@ -50,10 +50,11 @@ func Wrap(name string, src *cobra.Command) {
 
 	// Create the new command
 	out := &cobra.Command{
-		Use:  strings.Join(use, " "),
-		Long: src.Long,
-		Args: src.Args,
-		Run:  src.Run,
+		Use:   strings.Join(use, " "),
+		Short: src.Short,
+		Long:  src.Long,
+		Args:  src.Args,
+		Run:   src.Run,
 	}
 
 	// Set default options
