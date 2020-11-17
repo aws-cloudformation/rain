@@ -60,11 +60,11 @@ func String(t cft.Template, opt Options) string {
 		lastIndent = indent
 	}
 
-	out := result.String()
+	out := strings.TrimSpace(result.String())
 
 	if opt.JSON {
 		out = convertToJSON(out)
 	}
 
-	return strings.TrimSpace(out)
+	return out + "\n"
 }

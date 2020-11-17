@@ -1,7 +1,6 @@
 package format_test
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/aws-cloudformation/rain/cft/format"
@@ -31,8 +30,7 @@ Parameters:
     Type: String
 `
 
-const expectedYaml = ` 
-Parameters:
+const expectedYaml = `Parameters:
   Name:
     Type: String
 
@@ -49,10 +47,10 @@ Resources:
 
 Outputs:
   Bucket:
-    Value: !GetAtt Bucket2.Arn`
+    Value: !GetAtt Bucket2.Arn
+`
 
-const expectedYamlUnsorted = `
-Outputs:
+const expectedYamlUnsorted = `Outputs:
   Bucket:
     Value: !GetAtt Bucket2.Arn
 
@@ -72,8 +70,7 @@ Parameters:
     Type: String
 `
 
-const expectedJson = ` 
-{
+const expectedJson = `{
     "Parameters": {
         "Name": {
             "Type": "String"
@@ -104,10 +101,10 @@ const expectedJson = `
             }
         }
     }
-}`
+}
+`
 
-const expectedUnsortedJson = ` 
-{
+const expectedUnsortedJson = `{
     "Outputs": {
         "Bucket": {
             "Value": {
@@ -138,7 +135,8 @@ const expectedUnsortedJson = `
             "Type": "String"
         }
     }
-}`
+}
+`
 
 func checkMatch(t *testing.T, expected string, opt format.Options) {
 	template, err := parse.String(input)
@@ -148,7 +146,7 @@ func checkMatch(t *testing.T, expected string, opt format.Options) {
 
 	actual := format.String(template, opt)
 
-	if d := cmp.Diff(strings.TrimSpace(expected), strings.TrimSpace(actual)); d != "" {
+	if d := cmp.Diff(expected, actual); d != "" {
 		t.Errorf(d)
 	}
 }

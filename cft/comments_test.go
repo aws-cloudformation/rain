@@ -45,7 +45,8 @@ baz: # Comment about baz
     # Comment about grault
     - grault: garply # Comment about grault:garply
 
-waldo: {} # Comment about waldo`
+waldo: {} # Comment about waldo
+`
 
 	var node yaml.Node
 	err := yaml.Unmarshal([]byte(base), &node)

@@ -82,7 +82,6 @@ var Cmd = &cobra.Command{
 	Aliases:               []string{"format"},
 	Short:                 "Format CloudFormation templates",
 	Long:                  "Reads CloudFormation templates from filename arguments (or stdin if no filenames are supplied) and formats them",
-	Args:                  cobra.MinimumNArgs(1),
 	Annotations:           cmd.TemplateAnnotation,
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -135,7 +134,7 @@ var Cmd = &cobra.Command{
 					fmt.Printf("--- # %s\n", res.name)
 				}
 
-				fmt.Println(res.output)
+				fmt.Print(res.output)
 
 				if len(args) > 1 && i == len(args)-1 {
 					fmt.Println("...")

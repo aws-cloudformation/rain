@@ -42,7 +42,7 @@ var Cmd = &cobra.Command{
 				panic(ui.Errorf(err, "failed to parse template for stack '%s'", stackName))
 			}
 
-			fmt.Println(format.String(t, format.Options{}))
+			fmt.Print(format.String(t, format.Options{}))
 		}
 	},
 }
