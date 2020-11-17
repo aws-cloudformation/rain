@@ -10,7 +10,9 @@ import (
 
 const input = `
 Outputs:
-  Bucket: # Bucket comment
+  Bucket1:
+    Value: !GetAtt Bucket1.Arn # Short GetAtt
+  Bucket2: # Bucket comment
     Value:
       Fn::GetAtt: # GetAtt comment
         - Bucket2
@@ -46,12 +48,18 @@ Resources:
       BucketName: !Sub ${Bucket2}-newer
 
 Outputs:
-  Bucket: # Bucket comment
+  Bucket1:
+    Value: !GetAtt Bucket1.Arn # Short GetAtt
+
+  Bucket2: # Bucket comment
     Value: !GetAtt Bucket2.Arn # GetAtt comment Arn comment
 `
 
 const expectedYamlUnsorted = `Outputs:
-  Bucket: # Bucket comment
+  Bucket1:
+    Value: !GetAtt Bucket1.Arn # Short GetAtt
+
+  Bucket2: # Bucket comment
     Value: !GetAtt Bucket2.Arn # GetAtt comment Arn comment
 
 Resources:
@@ -95,7 +103,12 @@ const expectedJson = `{
         }
     },
     "Outputs": {
-        "Bucket": {
+        "Bucket1": {
+            "Value": {
+                "Fn::GetAtt": "Bucket1.Arn"
+            }
+        },
+        "Bucket2": {
             "Value": {
                 "Fn::GetAtt": "Bucket2.Arn"
             }
@@ -106,7 +119,12 @@ const expectedJson = `{
 
 const expectedUnsortedJson = `{
     "Outputs": {
-        "Bucket": {
+        "Bucket1": {
+            "Value": {
+                "Fn::GetAtt": "Bucket1.Arn"
+            }
+        },
+        "Bucket2": {
             "Value": {
                 "Fn::GetAtt": "Bucket2.Arn"
             }

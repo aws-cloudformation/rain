@@ -15,6 +15,10 @@ func parseGetAtt(n *yaml.Node) {
 	*n = yaml.Node{
 		Kind: yaml.SequenceNode,
 
+		HeadComment: n.HeadComment,
+		LineComment: n.LineComment,
+		FootComment: n.FootComment,
+
 		Content: []*yaml.Node{
 			{
 				Kind:  yaml.ScalarNode,
