@@ -37,7 +37,11 @@ You can use the --all flag to change this behaviour.`,
 		}
 
 		if len(logs) == 0 {
-			fmt.Println("No interesting log messages to display. To see everything, use the --all flag")
+			if allLogs {
+				fmt.Println("No interesting log messages to display.")
+			} else {
+				fmt.Println("No interesting log messages to display. To see everything, use the --all flag")
+			}
 		} else {
 			printLogs(logs)
 		}
