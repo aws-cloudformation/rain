@@ -49,7 +49,7 @@ func CountLines(input string) int {
 
 	count := 0
 	for _, line := range strings.Split(input, "\n") {
-		d := int(math.Ceil(float64(len(line)) / float64(w)))
+		d := int(math.Ceil(float64(len([]rune(line))) / float64(w)))
 		if d == 0 {
 			d = 1
 		}
@@ -62,7 +62,7 @@ func CountLines(input string) int {
 // ClearLine removes all text from the current line and puts the cursor on the left
 func ClearLine() {
 	if IsTTY && isANSI {
-		fmt.Print("\033[1G\033[2K")
+		fmt.Print("\033[G\033[K")
 	} else {
 		fmt.Println()
 	}
