@@ -10,11 +10,13 @@ import (
 	"net/url"
 
 	"github.com/aws-cloudformation/rain/internal/aws"
+	"github.com/aws-cloudformation/rain/internal/aws/cfn"
+	"github.com/awslabs/smithy-go/ptr"
 )
 
 const signinURI = "https://signin.aws.amazon.com/federation"
 const issuer = "https://github.com/aws-cloudformation/rain"
-const destination = "https://console.aws.amazon.com/cloudformation/home"
+const cfnHome = "https://console.aws.amazon.com/cloudformation/home"
 
 func buildSessionString() (string, error) {
 	creds, err := aws.Config().Credentials.Retrieve(context.Background())
@@ -65,16 +67,28 @@ func getSigninToken() (string, error) {
 }
 
 // GetURI returns a sign-in uri for the current credentials and region
-func GetURI() (string, error) {
+func GetURI(stackName string) (string, error) {
 	token, err := getSigninToken()
 	if err != nil {
 		return "", err
 	}
 
+	destination := fmt.Sprintf("%s?region=%s", cfnHome, aws.Config().Region)
+
+	if stackName != "" {
+		if stack, err := cfn.GetStack(stackName); err == nil {
+			if stack.StackId != nil {
+				destination += fmt.Sprintf("#/stacks/stackinfo?stackId=%s&hideStacks=false&viewNested=true",
+					ptr.ToString(stack.StackId),
+				)
+			}
+		}
+	}
+
 	return fmt.Sprintf("%s?Action=login&Issuer=%s&Destination=%s&SigninToken=%s",
 		signinURI,
 		url.QueryEscape(issuer),
-		url.QueryEscape(fmt.Sprintf("%s?region=%s", destination, aws.Config().Region)),
+		url.QueryEscape(destination),
 		url.QueryEscape(token),
 	), nil
 }

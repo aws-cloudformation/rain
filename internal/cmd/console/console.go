@@ -15,13 +15,22 @@ var printOnly = false
 
 // Cmd is the console command's entrypoint
 var Cmd = &cobra.Command{
-	Use:                   "console",
-	Short:                 "Login to the AWS console",
-	Long:                  "Use your current credentials to create a sign-in URL for the AWS console and open it in a web browser. Only valid with an IAM role; not an IAM user.",
+	Use:   "console [stack]",
+	Short: "Login to the AWS CloudFormation console",
+	Long: `Use your current credentials to create a sign-in URL for the AWS console and open it in a web browser.
+If you supply a stack name, the browser will open with that stack selected.
+
+The console command is only valid with an IAM role; not an IAM user.`,
+	Args:                  cobra.MaximumNArgs(1),
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
+		stackName := ""
+		if len(args) == 1 {
+			stackName = args[0]
+		}
+
 		spinner.Push("Generating sign-in URL")
-		uri, err := console.GetURI()
+		uri, err := console.GetURI(stackName)
 		if err != nil {
 			panic(err)
 		}
