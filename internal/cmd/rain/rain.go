@@ -9,6 +9,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/cmd"
 	"github.com/aws-cloudformation/rain/internal/cmd/build"
 	"github.com/aws-cloudformation/rain/internal/cmd/cat"
+	consolecmd "github.com/aws-cloudformation/rain/internal/cmd/console"
 	"github.com/aws-cloudformation/rain/internal/cmd/deploy"
 	"github.com/aws-cloudformation/rain/internal/cmd/diff"
 	"github.com/aws-cloudformation/rain/internal/cmd/fmt"
@@ -55,6 +56,7 @@ Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
 func init() {
 	Cmd.AddCommand(build.Cmd)
 	Cmd.AddCommand(cat.Cmd)
+	Cmd.AddCommand(consolecmd.Cmd)
 	Cmd.AddCommand(deploy.Cmd)
 	Cmd.AddCommand(diff.Cmd)
 	Cmd.AddCommand(fmt.Cmd)
@@ -67,7 +69,7 @@ func init() {
 	Cmd.AddCommand(watch.Cmd)
 
 	for _, c := range Cmd.Commands() {
-		if c.Annotations[cmd.GroupAnnotationLabel] == cmd.StackGroup || c == info.Cmd {
+		if c.Annotations[cmd.GroupAnnotationLabel] == cmd.StackGroup || c == info.Cmd || c == consolecmd.Cmd {
 			c.Flags().StringVarP(&config.Profile, "profile", "p", "", "AWS profile name; read from the AWS CLI configuration file")
 			c.Flags().StringVarP(&config.Region, "region", "r", "", "AWS region to use")
 		}
