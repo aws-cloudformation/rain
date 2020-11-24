@@ -49,18 +49,18 @@ func update() {
 
 		if hasTimer {
 			lastLine = fmt.Sprintf("%s%s%s %s %s",
-				console.Blue(spin[count]),
-				console.Blue(spin[(count+3)%len(spin)]),
-				console.Blue(spin[(count+5)%len(spin)]),
+				console.Cyan(spin[count]),
+				console.Cyan(spin[(count+3)%len(spin)]),
+				console.Cyan(spin[(count+5)%len(spin)]),
 				time.Now().Sub(startTime).Truncate(time.Second),
 				status,
 			)
 		} else {
 			lastLine = fmt.Sprintf("%s %s%s%s",
 				status,
-				console.Blue(spin[count]),
-				console.Blue(spin[(count+3)%len(spin)]),
-				console.Blue(spin[(count+5)%len(spin)]),
+				console.Cyan(spin[count]),
+				console.Cyan(spin[(count+3)%len(spin)]),
+				console.Cyan(spin[(count+5)%len(spin)]),
 			)
 		}
 

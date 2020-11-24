@@ -30,6 +30,9 @@ func Sprint(in ...interface{}) string {
 // Blue returns the input as a string of blue-coloured text if the console supports colours
 var Blue = wrap(color.New(color.Blue))
 
+// Cyan returns the input as a string of cyan-coloured text if the console supports colours
+var Cyan = wrap(color.New(color.Cyan))
+
 // Green returns the input as a string of green-coloured text if the console supports colours
 var Green = wrap(color.New(color.Green))
 
