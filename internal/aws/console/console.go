@@ -17,6 +17,7 @@ import (
 const signinURI = "https://signin.aws.amazon.com/federation"
 const issuer = "https://github.com/aws-cloudformation/rain"
 const cfnHome = "https://console.aws.amazon.com/cloudformation/home"
+const sessionDuration = 43200
 
 func buildSessionString() (string, error) {
 	creds, err := aws.Config().Credentials.Retrieve(context.Background())
@@ -41,7 +42,7 @@ func getSigninToken() (string, error) {
 		return "", err
 	}
 
-	resp, err := http.Get(fmt.Sprintf("%s?Action=getSigninToken&Session=%s", signinURI, sessionString))
+	resp, err := http.Get(fmt.Sprintf("%s?Action=getSigninToken&Session=%s&SessionDuration=%d", signinURI, sessionString, sessionDuration))
 	if err != nil {
 		return "", err
 	}
