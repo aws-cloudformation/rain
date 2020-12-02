@@ -16,7 +16,8 @@ import (
 
 const signinURI = "https://signin.aws.amazon.com/federation"
 const issuer = "https://github.com/aws-cloudformation/rain"
-const cfnHome = "https://console.aws.amazon.com/cloudformation/home"
+const consoleURI = "https://console.aws.amazon.com"
+const defaultService = "cloudformation"
 const sessionDuration = 43200
 
 func buildSessionString() (string, error) {
@@ -68,15 +69,19 @@ func getSigninToken() (string, error) {
 }
 
 // GetURI returns a sign-in uri for the current credentials and region
-func GetURI(stackName string) (string, error) {
+func GetURI(service, stackName string) (string, error) {
 	token, err := getSigninToken()
 	if err != nil {
 		return "", err
 	}
 
-	destination := fmt.Sprintf("%s?region=%s", cfnHome, aws.Config().Region)
+	if service == "" {
+		service = defaultService
+	}
 
-	if stackName != "" {
+	destination := fmt.Sprintf("%s/%s/home?region=%s", consoleURI, service, aws.Config().Region)
+
+	if service == defaultService && stackName != "" {
 		if stack, err := cfn.GetStack(stackName); err == nil {
 			if stack.StackId != nil {
 				destination += fmt.Sprintf("#/stacks/stackinfo?stackId=%s&hideStacks=false&viewNested=true",
