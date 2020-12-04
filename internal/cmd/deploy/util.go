@@ -50,10 +50,10 @@ func formatChangeSet(status *cloudformation.DescribeChangeSetOutput) string {
 	return strings.TrimSpace(out.String())
 }
 
-func getParameters(template cft.Template, cliParams map[string]string, old []*types.Parameter, stackExists bool) []*types.Parameter {
-	newParams := make([]*types.Parameter, 0)
+func getParameters(template cft.Template, cliParams map[string]string, old []types.Parameter, stackExists bool) []types.Parameter {
+	newParams := make([]types.Parameter, 0)
 
-	oldMap := make(map[string]*types.Parameter)
+	oldMap := make(map[string]types.Parameter)
 	for _, param := range old {
 		// Ignore NoEcho values
 		if stackExists || ptr.ToString(param.ParameterValue) != "****" {
@@ -118,12 +118,12 @@ func getParameters(template cft.Template, cliParams map[string]string, old []*ty
 			}
 
 			if usePrevious {
-				newParams = append(newParams, &types.Parameter{
+				newParams = append(newParams, types.Parameter{
 					ParameterKey:     ptr.String(k),
 					UsePreviousValue: ptr.Bool(true),
 				})
 			} else {
-				newParams = append(newParams, &types.Parameter{
+				newParams = append(newParams, types.Parameter{
 					ParameterKey:   ptr.String(k),
 					ParameterValue: ptr.String(value),
 				})
@@ -192,7 +192,7 @@ func packageTemplate(fn string) cft.Template {
 	return template
 }
 
-func checkStack(stackName string) (*types.Stack, bool) {
+func checkStack(stackName string) (types.Stack, bool) {
 	// Find out if stack exists already
 	// If it does and it's not in a good state, offer to wait/delete
 	stack, err := cfn.GetStack(stackName)

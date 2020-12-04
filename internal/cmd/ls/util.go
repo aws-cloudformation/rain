@@ -2,13 +2,14 @@ package ls
 
 import (
 	"fmt"
-	"github.com/aws-cloudformation/rain/internal/ui"
 	"strings"
+
+	"github.com/aws-cloudformation/rain/internal/ui"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 )
 
-func formatStack(stack *types.StackSummary, stackMap map[string]*types.StackSummary) string {
+func formatStack(stack types.StackSummary, stackMap map[string]types.StackSummary) string {
 	out := strings.Builder{}
 
 	out.WriteString(fmt.Sprintf("%s: %s\n",

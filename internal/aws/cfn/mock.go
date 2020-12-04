@@ -20,13 +20,13 @@ import (
 type mockStack struct {
 	name      string
 	template  cft.Template
-	stack     *types.Stack
-	resources []*types.StackResource
+	stack     types.Stack
+	resources []types.StackResource
 }
 
 type mockChangeSet struct {
 	template  cft.Template
-	params    []*types.Parameter
+	params    []types.Parameter
 	tags      map[string]string
 	stackName string
 }
@@ -78,12 +78,12 @@ func StackExists(stackName string) (bool, error) {
 }
 
 // ListStacks returns a list of all existing stacks
-func ListStacks() ([]*types.StackSummary, error) {
-	out := make([]*types.StackSummary, 0)
+func ListStacks() ([]types.StackSummary, error) {
+	out := make([]types.StackSummary, 0)
 
 	for _, s := range region().stacks {
 		if s.stack.StackStatus != types.StackStatusCreateFailed && s.stack.StackStatus != types.StackStatusDeleteComplete {
-			out = append(out, &types.StackSummary{
+			out = append(out, types.StackSummary{
 				CreationTime:        s.stack.CreationTime,
 				StackName:           s.stack.StackName,
 				StackStatus:         s.stack.StackStatus,
@@ -121,16 +121,16 @@ func SetTerminationProtection(stackName string, protectionEnabled bool) error {
 }
 
 // GetStack returns a cloudformation.Stack representing the named stack
-func GetStack(stackName string) (*types.Stack, error) {
+func GetStack(stackName string) (types.Stack, error) {
 	if s, ok := region().stacks[stackName]; ok {
 		return s.stack, nil
 	}
 
-	return &types.Stack{}, noStackErr
+	return types.Stack{}, noStackErr
 }
 
 // GetStackResources returns a list of the resources in the named stack
-func GetStackResources(stackName string) ([]*types.StackResource, error) {
+func GetStackResources(stackName string) ([]types.StackResource, error) {
 	if s, ok := region().stacks[stackName]; ok {
 		return s.resources, nil
 	}
@@ -139,8 +139,8 @@ func GetStackResources(stackName string) ([]*types.StackResource, error) {
 }
 
 // GetStackEvents returns all events associated with the named stack
-func GetStackEvents(stackName string) ([]*types.StackEvent, error) {
-	return []*types.StackEvent{
+func GetStackEvents(stackName string) ([]types.StackEvent, error) {
+	return []types.StackEvent{
 		{
 			EventId:              ptr.String("mock event id"),
 			StackId:              ptr.String(stackName),
@@ -158,7 +158,7 @@ func GetStackEvents(stackName string) ([]*types.StackEvent, error) {
 }
 
 // CreateChangeSet creates a changeset
-func CreateChangeSet(template cft.Template, params []*types.Parameter, tags map[string]string, stackName string) (string, error) {
+func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[string]string, stackName string) (string, error) {
 	name := uuid.New().String()
 
 	region().changeSets[name] = &mockChangeSet{
@@ -186,11 +186,11 @@ func GetChangeSet(stackName, changeSetName string) (*cloudformation.DescribeChan
 		Capabilities:  []types.Capability{},
 		ChangeSetId:   ptr.String(changeSetName),
 		ChangeSetName: ptr.String(changeSetName),
-		Changes: []*types.Change{
+		Changes: []types.Change{
 			{
 				ResourceChange: &types.ResourceChange{
 					Action: types.ChangeActionAdd,
-					Details: []*types.ResourceChangeDetail{
+					Details: []types.ResourceChangeDetail{
 						{
 							CausingEntity: ptr.String("mock entity"),
 							ChangeSource:  types.ChangeSourceResourceattribute,
@@ -215,7 +215,7 @@ func GetChangeSet(stackName, changeSetName string) (*cloudformation.DescribeChan
 		Description:           ptr.String("Mock change set"),
 		ExecutionStatus:       types.ExecutionStatusAvailable,
 		NextToken:             nil,
-		NotificationARNs:      []*string{},
+		NotificationARNs:      []string{},
 		Parameters:            c.params,
 		RollbackConfiguration: &types.RollbackConfiguration{},
 		StackId:               ptr.String(stackName),
@@ -247,7 +247,7 @@ func ExecuteChangeSet(stackName, changeSetName string) error {
 		region().stacks[stackName] = s
 	}
 
-	s.stack = &types.Stack{
+	s.stack = types.Stack{
 		CreationTime:                &now,
 		StackName:                   ptr.String(stackName),
 		StackStatus:                 types.StackStatusCreateComplete,
@@ -256,7 +256,7 @@ func ExecuteChangeSet(stackName, changeSetName string) error {
 		Description:                 ptr.String("Mock stack description"),
 		DisableRollback:             ptr.Bool(false),
 		EnableTerminationProtection: ptr.Bool(false),
-		Outputs: []*types.Output{
+		Outputs: []types.Output{
 			{
 				Description: ptr.String("Mock output description"),
 				ExportName:  ptr.String("MockExport"),
@@ -264,7 +264,7 @@ func ExecuteChangeSet(stackName, changeSetName string) error {
 				OutputValue: ptr.String("Mock value"),
 			},
 		},
-		Parameters: []*types.Parameter{
+		Parameters: []types.Parameter{
 			{
 				ParameterKey:   ptr.String("MockKey"),
 				ParameterValue: ptr.String("Mock value"),
@@ -275,7 +275,7 @@ func ExecuteChangeSet(stackName, changeSetName string) error {
 		Tags:              makeTags(c.tags),
 	}
 
-	s.resources = []*types.StackResource{
+	s.resources = []types.StackResource{
 		{
 			LogicalResourceId:    ptr.String("MockResourceId"),
 			ResourceStatus:       types.ResourceStatusCreateComplete,

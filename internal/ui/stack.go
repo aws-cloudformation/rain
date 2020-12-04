@@ -23,7 +23,7 @@ func statusIsSettled(status string) bool {
 
 // StackHasSettled returns whether a given status represents
 // a stack that has settled, i.e. is not updating
-func StackHasSettled(stack *types.Stack) bool {
+func StackHasSettled(stack types.Stack) bool {
 	return statusIsSettled(string(stack.StackStatus))
 }
 
@@ -31,7 +31,7 @@ func resourceHasSettled(resource *types.StackResource) bool {
 	return statusIsSettled(string(resource.ResourceStatus))
 }
 
-func stackResourceStatuses(stack *types.Stack) (string, []string) {
+func stackResourceStatuses(stack types.Stack) (string, []string) {
 	stackName := ptr.ToString(stack.StackName)
 
 	statuses := make(map[string]string)
@@ -184,7 +184,7 @@ func stackResourceStatuses(stack *types.Stack) (string, []string) {
 }
 
 // GetStackOutput returns a pretty representation of a CloudFormation stack's status
-func GetStackOutput(stack *types.Stack) (string, []string) {
+func GetStackOutput(stack types.Stack) (string, []string) {
 	out := strings.Builder{}
 
 	stackStatus := string(stack.StackStatus)
@@ -220,7 +220,7 @@ func WaitForStackToSettle(stackName string) (string, []string) {
 		}
 
 		// Refresh the stack ID so we can deal with deleted stacks ok
-		stackID = *stack.StackId
+		stackID = ptr.ToString(stack.StackId)
 
 		output, messages := GetStackOutput(stack)
 
@@ -267,7 +267,7 @@ func WaitForStackToSettle(stackName string) (string, []string) {
 // GetStackSummary returns a string representation of an existing stack.
 // If long is false, only the stack status and stack outputs will be included.
 // If long is true, resources and parameters will be also included in the output.
-func GetStackSummary(stack *types.Stack, long bool) string {
+func GetStackSummary(stack types.Stack, long bool) string {
 	out := strings.Builder{}
 
 	stackStatus := string(stack.StackStatus)

@@ -20,7 +20,7 @@ var uninterestingMessages = map[string]bool{
 	"Transformation succeeded":    true,
 }
 
-type events []*types.StackEvent
+type events []types.StackEvent
 
 func (e events) Len() int {
 	return len(e)
@@ -66,7 +66,7 @@ func getLogs(stackName, resourceName string) (events, error) {
 
 	if resourceName != "" {
 		// Filter by resource
-		newLogs := make([]*types.StackEvent, 0)
+		newLogs := make([]types.StackEvent, 0)
 
 		for _, log := range logs {
 			if ptr.ToString(log.LogicalResourceId) == resourceName {
@@ -97,7 +97,7 @@ func getLogs(stackName, resourceName string) (events, error) {
 	}
 
 	// Filter out uninteresting messages
-	newLogs := make([]*types.StackEvent, 0)
+	newLogs := make([]types.StackEvent, 0)
 	for _, log := range logs {
 		if allLogs || (log.ResourceStatusReason != nil && !uninterestingMessages[*log.ResourceStatusReason]) {
 			newLogs = append(newLogs, log)

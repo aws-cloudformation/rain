@@ -70,7 +70,7 @@ var Cmd = &cobra.Command{
 				}
 
 				stackNames := make(sort.StringSlice, 0)
-				stackMap := make(map[string]*types.StackSummary)
+				stackMap := make(map[string]types.StackSummary)
 				for _, stack := range stacks {
 					stackNames = append(stackNames, *stack.StackName)
 					stackMap[*stack.StackName] = stack

@@ -58,8 +58,8 @@ func StackExists(stackName string) (bool, error) {
 }
 
 // ListStacks returns a list of all existing stacks
-func ListStacks() ([]*types.StackSummary, error) {
-	stacks := make([]*types.StackSummary, 0)
+func ListStacks() ([]types.StackSummary, error) {
+	stacks := make([]types.StackSummary, 0)
 
 	var token *string
 
@@ -107,20 +107,20 @@ func SetTerminationProtection(stackName string, protectionEnabled bool) error {
 }
 
 // GetStack returns a cloudformation.Stack representing the named stack
-func GetStack(stackName string) (*types.Stack, error) {
+func GetStack(stackName string) (types.Stack, error) {
 	// Get the stack properties
 	res, err := getClient().DescribeStacks(context.Background(), &cloudformation.DescribeStacksInput{
 		StackName: &stackName,
 	})
 	if err != nil {
-		return &types.Stack{}, err
+		return types.Stack{}, err
 	}
 
 	return res.Stacks[0], nil
 }
 
 // GetStackResources returns a list of the resources in the named stack
-func GetStackResources(stackName string) ([]*types.StackResource, error) {
+func GetStackResources(stackName string) ([]types.StackResource, error) {
 	// Get the stack resources
 	res, err := getClient().DescribeStackResources(context.Background(), &cloudformation.DescribeStackResourcesInput{
 		StackName: &stackName,
@@ -133,8 +133,8 @@ func GetStackResources(stackName string) ([]*types.StackResource, error) {
 }
 
 // GetStackEvents returns all events associated with the named stack
-func GetStackEvents(stackName string) ([]*types.StackEvent, error) {
-	events := make([]*types.StackEvent, 0)
+func GetStackEvents(stackName string) ([]types.StackEvent, error) {
+	events := make([]types.StackEvent, 0)
 
 	var token *string
 
@@ -161,7 +161,7 @@ func GetStackEvents(stackName string) ([]*types.StackEvent, error) {
 }
 
 // CreateChangeSet creates a changeset
-func CreateChangeSet(template cft.Template, params []*types.Parameter, tags map[string]string, stackName string) (string, error) {
+func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[string]string, stackName string) (string, error) {
 	templateBody, err := checkTemplate(template)
 	if err != nil {
 		return "", err
@@ -294,7 +294,7 @@ func WaitUntilStackCreateComplete(stackName string) error {
 			return errors.New("Stack not found")
 		}
 
-		stack := *res.Stacks[0]
+		stack := res.Stacks[0]
 
 		status := string(stack.StackStatus)
 		if strings.HasSuffix(status, "_COMPLETE") || strings.HasSuffix(status, "_FAILED") {

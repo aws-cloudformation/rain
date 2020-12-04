@@ -30,11 +30,11 @@ var liveStatuses = []types.StackStatus{
 	"REVIEW_IN_PROGRESS",
 }
 
-func makeTags(tags map[string]string) []*types.Tag {
-	out := make([]*types.Tag, 0)
+func makeTags(tags map[string]string) []types.Tag {
+	out := make([]types.Tag, 0)
 
 	for key, value := range tags {
-		out = append(out, &types.Tag{
+		out = append(out, types.Tag{
 			Key:   ptr.String(key),
 			Value: ptr.String(value),
 		})
