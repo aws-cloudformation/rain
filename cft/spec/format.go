@@ -3,8 +3,23 @@ package spec
 import (
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 )
+
+type sortableKeys []reflect.Value
+
+func (sk sortableKeys) Len() int {
+	return len(sk)
+}
+
+func (sk sortableKeys) Less(i, j int) bool {
+	return sk[i].String() < sk[j].String()
+}
+
+func (sk sortableKeys) Swap(i, j int) {
+	sk[i], sk[j] = sk[j], sk[i]
+}
 
 func formatValue(v reflect.Value) string {
 	switch v.Kind() {
@@ -35,8 +50,12 @@ func formatMap(in interface{}) string {
 	out.WriteString("{\n")
 
 	v := reflect.ValueOf(in)
-	for _, key := range v.MapKeys() {
 
+	// Sort keys
+	keys := sortableKeys(v.MapKeys())
+	sort.Sort(keys)
+
+	for _, key := range keys {
 		out.WriteString(fmt.Sprintf("%#v: ", key.Interface()))
 		out.WriteString(formatValue(v.MapIndex(key)))
 		out.WriteString(",\n")
@@ -56,12 +75,20 @@ func formatStruct(in interface{}) string {
 	out.WriteString(t.Name())
 	out.WriteString("{\n")
 
+	// Sort keys
+	keys := make([]string, 0)
 	for i := 0; i < v.NumField(); i++ {
 		if !v.Field(i).IsZero() {
-			out.WriteString(fmt.Sprintf("%s: ", t.Field(i).Name))
-			out.WriteString(formatValue(v.Field(i)))
-			out.WriteString(",\n")
+			keys = append(keys, t.Field(i).Name)
 		}
+	}
+
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		out.WriteString(fmt.Sprintf("%s: ", key))
+		out.WriteString(formatValue(v.FieldByName(key)))
+		out.WriteString(",\n")
 	}
 
 	out.WriteString("}")
