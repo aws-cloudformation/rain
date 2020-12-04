@@ -437,6 +437,54 @@ _rain_cat()
     noun_aliases=()
 }
 
+_rain_console()
+{
+    last_command="rain_console"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--help")
+    flags+=("-h")
+    local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
+    flags+=("--profile=")
+    two_word_flags+=("--profile")
+    two_word_flags+=("-p")
+    local_nonpersistent_flags+=("--profile")
+    local_nonpersistent_flags+=("--profile=")
+    local_nonpersistent_flags+=("-p")
+    flags+=("--region=")
+    two_word_flags+=("--region")
+    two_word_flags+=("-r")
+    local_nonpersistent_flags+=("--region")
+    local_nonpersistent_flags+=("--region=")
+    local_nonpersistent_flags+=("-r")
+    flags+=("--service=")
+    two_word_flags+=("--service")
+    two_word_flags+=("-s")
+    local_nonpersistent_flags+=("--service")
+    local_nonpersistent_flags+=("--service=")
+    local_nonpersistent_flags+=("-s")
+    flags+=("--url")
+    flags+=("-u")
+    local_nonpersistent_flags+=("--url")
+    local_nonpersistent_flags+=("-u")
+    flags+=("--debug")
+    flags+=("--no-colour")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
 _rain_deploy()
 {
     last_command="rain_deploy"
@@ -877,6 +925,7 @@ _rain_root_command()
     commands=()
     commands+=("build")
     commands+=("cat")
+    commands+=("console")
     commands+=("deploy")
     commands+=("diff")
     commands+=("fmt")

@@ -2,59 +2,59 @@ package spec
 
 // Iam is generated from the specification file
 var Iam = Spec{
-	ResourceSpecificationVersion: "1.0.0",
 	PropertyTypes: map[string]*PropertyType{
-		"Policy": {
+		"Policy": &PropertyType{
 			Properties: map[string]*Property{
-				"Id": {
+				"Id": &Property{
 					PrimitiveType: "String",
 				},
-				"Statement": {
+				"Statement": &Property{
 					ItemType: "Statement",
 					Type:     "List",
 				},
-				"Version": {
+				"Version": &Property{
 					PrimitiveType: "String",
 				},
 			},
 		},
-		"Statement": {
+		"Statement": &PropertyType{
 			Properties: map[string]*Property{
-				"Principal": {
+				"Action": &Property{
 					PrimitiveItemType: "String",
-					Type:              "Map",
+					Type:              "List",
 				},
-				"Condition": {
+				"Condition": &Property{
 					PrimitiveItemType: "Json",
 					Type:              "Map",
 				},
-				"NotAction": {
+				"Effect": &Property{
+					PrimitiveType: "String",
+				},
+				"NotAction": &Property{
 					PrimitiveItemType: "String",
 					Type:              "List",
 				},
-				"NotPrincipal": {
+				"NotPrincipal": &Property{
 					PrimitiveItemType: "String",
 					Type:              "Map",
 				},
-				"Resource": {
+				"NotResource": &Property{
 					PrimitiveItemType: "String",
 					Type:              "List",
 				},
-				"Sid": {
+				"Principal": &Property{
+					PrimitiveItemType: "String",
+					Type:              "Map",
+				},
+				"Resource": &Property{
+					PrimitiveItemType: "String",
+					Type:              "List",
+				},
+				"Sid": &Property{
 					PrimitiveType: "String",
-				},
-				"Action": {
-					PrimitiveItemType: "String",
-					Type:              "List",
-				},
-				"Effect": {
-					PrimitiveType: "String",
-				},
-				"NotResource": {
-					PrimitiveItemType: "String",
-					Type:              "List",
 				},
 			},
 		},
 	},
+	ResourceSpecificationVersion: "1.0.0",
 }

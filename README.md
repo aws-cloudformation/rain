@@ -49,6 +49,7 @@ Template commands:
   tree        Find dependencies of Resources and Outputs in a local template
 
 Other Commands:
+  console     Login to the AWS console
   help        Help about any command
   info        Show your current configuration
 ```
