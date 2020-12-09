@@ -59,8 +59,9 @@ func loadConfig(ctx context.Context) *aws.Config {
 		),
 	))
 
-	// Add MFA provider
+	// Add MFA provider and Rain session name
 	configs = append(configs, awsconfig.WithAssumeRoleCredentialOptions(func(options *stscreds.AssumeRoleOptions) {
+		options.RoleSessionName = fmt.Sprintf("%s-%s", config.NAME, config.VERSION)
 		options.TokenProvider = MFAProvider
 	}))
 
