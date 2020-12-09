@@ -15,7 +15,7 @@ import (
 )
 
 const signinURI = "https://signin.aws.amazon.com/federation"
-const issuer = "https://github.com/aws-cloudformation/rain"
+const issuer = "https://aws-cloudformation.github.io/rain/rain_console.html"
 const consoleURI = "https://console.aws.amazon.com"
 const defaultService = "cloudformation"
 const sessionDuration = 43200
