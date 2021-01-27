@@ -8,9 +8,11 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
+	"github.com/aws-cloudformation/rain/internal/aws/sts"
 	"github.com/awslabs/smithy-go/ptr"
 )
 
@@ -20,16 +22,24 @@ const consoleURI = "https://console.aws.amazon.com"
 const defaultService = "cloudformation"
 const sessionDuration = 43200
 
-const sessionName = "CLI"
-
 func buildSessionString() (string, error) {
-	creds, err := aws.NamedConfig(sessionName).Credentials.Retrieve(context.Background())
+	id, err := sts.GetCallerID()
 	if err != nil {
 		return "", err
 	}
 
-	if creds.SessionToken == "" {
+	idParts := strings.Split(ptr.ToString(id.Arn), ":")
+	nameParts := strings.Split(idParts[len(idParts)-1], "/")
+
+	if nameParts[0] == "user" {
 		panic(errors.New("sign-in URLs can only be constructed for assumed roles"))
+	}
+
+	sessionName := nameParts[1]
+
+	creds, err := aws.NamedConfig(sessionName).Credentials.Retrieve(context.Background())
+	if err != nil {
+		return "", err
 	}
 
 	return url.QueryEscape(fmt.Sprintf(`{"sessionId": "%s", "sessionKey": "%s", "sessionToken": "%s"}`,
