@@ -40,6 +40,7 @@ func CreateBucket(bucketName string) error {
 		ACL:    types.BucketCannedACLPrivate,
 	}
 
+	// We need a location constraint everywhere except us-east-1
 	if region := aws.Config().Region; region != "us-east-1" {
 		input.CreateBucketConfiguration = &types.CreateBucketConfiguration{
 			LocationConstraint: types.BucketLocationConstraint(region),
@@ -47,6 +48,65 @@ func CreateBucket(bucketName string) error {
 	}
 
 	_, err := getClient().CreateBucket(context.Background(), input)
+	if err != nil {
+		return err
+	}
+
+	// Encrypt the bucket
+	_, err = getClient().PutBucketEncryption(context.Background(), &s3.PutBucketEncryptionInput{
+		Bucket: ptr.String(bucketName),
+		ServerSideEncryptionConfiguration: &types.ServerSideEncryptionConfiguration{
+			Rules: []types.ServerSideEncryptionRule{
+				types.ServerSideEncryptionRule{
+					ApplyServerSideEncryptionByDefault: &types.ServerSideEncryptionByDefault{
+						SSEAlgorithm: types.ServerSideEncryptionAes256,
+					},
+				},
+			},
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	// Add public access block
+	_, err = getClient().PutPublicAccessBlock(context.Background(), &s3.PutPublicAccessBlockInput{
+		Bucket: ptr.String(bucketName),
+		PublicAccessBlockConfiguration: &types.PublicAccessBlockConfiguration{
+			BlockPublicAcls:       true,
+			BlockPublicPolicy:     true,
+			IgnorePublicAcls:      true,
+			RestrictPublicBuckets: true,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	// Add lifecycle config
+	_, err = getClient().PutBucketLifecycleConfiguration(context.Background(), &s3.PutBucketLifecycleConfigurationInput{
+		Bucket: ptr.String(bucketName),
+		LifecycleConfiguration: &types.BucketLifecycleConfiguration{
+			Rules: []types.LifecycleRule{
+				types.LifecycleRule{
+					Status: types.ExpirationStatusEnabled,
+					AbortIncompleteMultipartUpload: &types.AbortIncompleteMultipartUpload{
+						DaysAfterInitiation: 7,
+					},
+					Expiration: &types.LifecycleExpiration{
+						Days: 7,
+					},
+					Filter: &types.LifecycleRuleFilter{
+						Prefix: ptr.String(""),
+					},
+					ID: ptr.String("delete after 14 days"),
+					NoncurrentVersionExpiration: &types.NoncurrentVersionExpiration{
+						NoncurrentDays: 7,
+					},
+				},
+			},
+		},
+	})
 
 	return err
 }
