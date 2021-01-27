@@ -38,13 +38,16 @@ var creds aws.Credentials
 // For debug resolver
 type uaResolver string
 
+var defaultSessionName = fmt.Sprintf("%s-%s", config.NAME, config.VERSION)
+var lastSessionName = defaultSessionName
+
 func (u uaResolver) ResolveEndpoint(service string, region string) (aws.Endpoint, error) {
 	return aws.Endpoint{
 		URL: string(u),
 	}, nil
 }
 
-func loadConfig(ctx context.Context) *aws.Config {
+func loadConfig(ctx context.Context, sessionName string) *aws.Config {
 	// Credential configs
 	var configs = make([]awsconfig.Config, 0)
 
@@ -61,7 +64,7 @@ func loadConfig(ctx context.Context) *aws.Config {
 
 	// Add MFA provider and Rain session name
 	configs = append(configs, awsconfig.WithAssumeRoleCredentialOptions(func(options *stscreds.AssumeRoleOptions) {
-		options.RoleSessionName = fmt.Sprintf("%s-%s", config.NAME, config.VERSION)
+		options.RoleSessionName = sessionName
 		options.TokenProvider = MFAProvider
 	}))
 
@@ -96,14 +99,26 @@ func loadConfig(ctx context.Context) *aws.Config {
 
 // Config loads an aws.Config based on current settings
 func Config() aws.Config {
-	if awsCfg == nil {
-		spinner.Push("Loading AWS config")
-		awsCfg = loadConfig(context.Background())
-		spinner.Pop()
-	} else if creds.CanExpire && time.Until(creds.Expires) < time.Minute {
+	return NamedConfig(defaultSessionName)
+}
+
+// NamedConfig loads an aws.Config based on current settings
+// with configurable session name
+func NamedConfig(sessionName string) aws.Config {
+	message := "Loading AWS config"
+
+	if creds.CanExpire && time.Until(creds.Expires) < time.Minute {
 		// Check for expiry
-		spinner.Push("Refreshing AWS credentials")
-		awsCfg = loadConfig(context.Background())
+		message = "Refreshing AWS credentials"
+		awsCfg = nil
+	} else if lastSessionName != sessionName {
+		message = "Reloading AWS credentials"
+		awsCfg = nil
+	}
+
+	if awsCfg == nil {
+		spinner.Push(message)
+		awsCfg = loadConfig(context.Background(), sessionName)
 		spinner.Pop()
 	}
 

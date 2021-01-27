@@ -20,8 +20,10 @@ const consoleURI = "https://console.aws.amazon.com"
 const defaultService = "cloudformation"
 const sessionDuration = 43200
 
+const sessionName = "CLI"
+
 func buildSessionString() (string, error) {
-	creds, err := aws.Config().Credentials.Retrieve(context.Background())
+	creds, err := aws.NamedConfig(sessionName).Credentials.Retrieve(context.Background())
 	if err != nil {
 		return "", err
 	}
