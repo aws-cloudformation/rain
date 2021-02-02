@@ -1,23 +1,18 @@
 package main
 
 import (
-	"fmt"
-	"os/exec"
-	"runtime"
-
 	"github.com/spf13/cobra"
 
-	"github.com/aws-cloudformation/rain/internal/aws/console"
 	"github.com/aws-cloudformation/rain/internal/cmd"
+	"github.com/aws-cloudformation/rain/internal/cmd/console"
 	"github.com/aws-cloudformation/rain/internal/config"
-	"github.com/aws-cloudformation/rain/internal/console/spinner"
 )
 
 var printOnly = false
 
 // Cmd is the console command's entrypoint
 var Cmd = &cobra.Command{
-	Use:   "console [service]",
+	Use:   "aws-console [service]",
 	Short: "Login to the AWS console",
 	Long: `Use your current credentials to create a sign-in URL for the AWS console and open it in a web browser.
 
@@ -30,27 +25,7 @@ The console command is only valid with an IAM role; not an IAM user.`,
 			service = args[0]
 		}
 
-		spinner.Push("Generating sign-in URL")
-		uri, err := console.GetURI(service, "")
-		if err != nil {
-			panic(err)
-		}
-		spinner.Pop()
-
-		if !printOnly {
-			switch runtime.GOOS {
-			case "linux":
-				err = exec.Command("xdg-open", uri).Start()
-			case "windows":
-				err = exec.Command("rundll32", "url.dll,FileProtocolHandler", uri).Start()
-			case "darwin":
-				err = exec.Command("open", uri).Start()
-			}
-		}
-
-		if printOnly || err != nil {
-			fmt.Printf("Open the following URL in your browser: %s\n", uri)
-		}
+		console.Open(printOnly, service, "")
 	},
 }
 
