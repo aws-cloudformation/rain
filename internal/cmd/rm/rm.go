@@ -55,7 +55,7 @@ var Cmd = &cobra.Command{
 			spinner.Pause()
 			fmt.Println(output)
 
-			if !console.Confirm(true, "Are you sure you want to delete this stack?") {
+			if !console.Confirm(false, "Are you sure you want to delete this stack?") {
 				panic(fmt.Errorf("user cancelled deletion of stack '%s'", stackName))
 			}
 			spinner.Resume()
