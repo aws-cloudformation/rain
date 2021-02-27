@@ -165,6 +165,7 @@ func packageTemplate(fn string) cft.Template {
 	}
 	defer func() {
 		config.Debugf("Removing temporary template file: %s", outputFn.Name())
+		outputFn.Close()
 		err := os.Remove(outputFn.Name())
 		if err != nil {
 			panic(ui.Errorf(err, "error removing temporary template file '%s'", outputFn.Name()))
