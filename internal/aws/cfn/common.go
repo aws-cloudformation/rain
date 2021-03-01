@@ -53,7 +53,7 @@ func checkTemplate(template cft.Template) (string, error) {
 	if len(templateBody) > 51200 {
 		config.Debugf("Template is too large to deploy directly; uploading to S3.")
 
-		bucket := s3.RainBucket()
+		bucket := s3.RainBucket(false)
 
 		key, err := s3.Upload(bucket, templateBody)
 
