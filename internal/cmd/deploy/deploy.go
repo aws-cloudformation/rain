@@ -15,7 +15,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/ui"
 
-	"github.com/awslabs/smithy-go/ptr"
+	"github.com/aws/smithy-go/ptr"
 	"github.com/spf13/cobra"
 )
 

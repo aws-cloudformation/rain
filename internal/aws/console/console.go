@@ -13,7 +13,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
 	"github.com/aws-cloudformation/rain/internal/aws/sts"
-	"github.com/awslabs/smithy-go/ptr"
+	"github.com/aws/smithy-go/ptr"
 )
 
 const signinURI = "https://signin.aws.amazon.com/federation"

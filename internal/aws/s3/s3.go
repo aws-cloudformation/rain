@@ -10,7 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
-	"github.com/awslabs/smithy-go/ptr"
+	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
 
 	"github.com/aws-cloudformation/rain/internal/aws"
@@ -96,8 +96,8 @@ func CreateBucket(bucketName string) error {
 					Expiration: &types.LifecycleExpiration{
 						Days: 7,
 					},
-					Filter: &types.LifecycleRuleFilter{
-						Prefix: ptr.String(""),
+					Filter: &types.LifecycleRuleFilterMemberPrefix{
+						Value: "",
 					},
 					ID: ptr.String("delete after 14 days"),
 					NoncurrentVersionExpiration: &types.NoncurrentVersionExpiration{

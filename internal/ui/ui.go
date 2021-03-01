@@ -7,7 +7,7 @@ import (
 
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/run"
-	smithy "github.com/awslabs/smithy-go"
+	smithy "github.com/aws/smithy-go"
 )
 
 // Errorf wraps an error, extracting the AWS API error if it exists

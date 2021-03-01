@@ -14,7 +14,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	"github.com/awslabs/smithy-go/ptr"
+	"github.com/aws/smithy-go/ptr"
 )
 
 type mockStack struct {

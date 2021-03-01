@@ -9,14 +9,14 @@ import (
 	"strings"
 	"time"
 
-	smithy "github.com/awslabs/smithy-go"
+	smithy "github.com/aws/smithy-go"
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	"github.com/awslabs/smithy-go/ptr"
+	"github.com/aws/smithy-go/ptr"
 )
 
 func getClient() *cloudformation.Client {

@@ -17,7 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/middleware"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
-	smithymiddleware "github.com/awslabs/smithy-go/middleware"
+	smithymiddleware "github.com/aws/smithy-go/middleware"
 )
 
 // MFAProvider is called by the AWS SDK when an MFA token number
@@ -49,17 +49,16 @@ func (u uaResolver) ResolveEndpoint(service string, region string) (aws.Endpoint
 
 func loadConfig(ctx context.Context, sessionName string) *aws.Config {
 	// Credential configs
-	var configs = make([]awsconfig.Config, 0)
+	var configs = make([]func(*awsconfig.LoadOptions) error, 0)
 
 	// Uncomment for testing against a local endpoint
 	//configs = append(configs, awsconfig.WithEndpointResolver(uaResolver("http://localhost:8000")))
 
 	// Add user-agent
 	configs = append(configs, awsconfig.WithAPIOptions(
-		append(
-			[]func(*smithymiddleware.Stack) error{},
+		[]func(*smithymiddleware.Stack) error{
 			middleware.AddUserAgentKeyValue(config.NAME, config.VERSION),
-		),
+		},
 	))
 
 	// Add MFA provider and Rain session name
@@ -82,7 +81,7 @@ func loadConfig(ctx context.Context, sessionName string) *aws.Config {
 		config.Region = r
 	}
 
-	cfg, err := awsconfig.LoadDefaultConfig(configs...)
+	cfg, err := awsconfig.LoadDefaultConfig(context.Background(), configs...)
 	if err != nil {
 		panic(errors.New("unable to find valid credentials"))
 	}
