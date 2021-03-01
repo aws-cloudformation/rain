@@ -22,7 +22,7 @@ const (
 	cfnSpecURL = "https://d1uauaxba7bl26.cloudfront.net/latest/gzip/CloudFormationResourceSpecification.json"
 	cfnSpecFn  = "internal/CloudFormationResourceSpecification.json"
 	iamSpecFn  = "internal/IamSpecification.json"
-	samSpecFn  = "internal/SamSpecification.json"
+	samSpecFn  = "internal/SamSpecification.yaml"
 )
 
 func load(r io.Reader, s *spec.Spec) {

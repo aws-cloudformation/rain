@@ -1,7 +1,7 @@
 // Package spec contains generated models for CloudFormation and IAM
 package spec
 
-//go:generate bash -c "internal/sam.sh >internal/SamSpecification.json"
+//go:generate bash -c "internal/sam.sh >internal/SamSpecification.yaml"
 //go:generate go run internal/main.go
 
 import "strings"

@@ -23,6 +23,7 @@ echo "ResourceSpecificationVersion: $(git rev-parse HEAD)"
 cd doc_source
 
 declare -A prefix_types
+declare -A completed
 
 # Resource types
 echo "ResourceTypes:"
@@ -84,6 +85,10 @@ for file in sam-property-*.md; do
 
     prop_type_name="$(head -n1 $file | sed -e 's/^# //' -e 's/<.*$//')"
 
+    if [ -n "${completed[${resource_name}::${prop_type_name}]}" ]; then
+        continue
+    fi
+
     echo "  ${resource_name}.${prop_type_name}:"
 
     file_base=$(basename -s.md $file)
@@ -121,4 +126,6 @@ for file in sam-property-*.md; do
             echo "        Required: False"
         fi
     done
+
+    completed[${resource_name}::${prop_type_name}]="yes"
 done
