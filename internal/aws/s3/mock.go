@@ -35,13 +35,17 @@ func Upload(bucketName, content string) (string, error) {
 
 // RainBucket returns the name of the rain deployment bucket in the current region
 // and creates it if it does not exist
-func RainBucket() string {
+func RainBucket(forceCreation bool) string {
 	bucketName := fmt.Sprintf("rain-artifacts-1234567890-%s", aws.Config().Region)
 
 	config.Debugf("Artifact bucket: %s", bucketName)
 
 	if !BucketExists(bucketName) {
-		config.Debugf("Mock creating rain bucket '%s'", bucketName)
+		if forceCreation {
+			config.Debugf("Force creating rain bucket '%s'", bucketName)
+		} else {
+			config.Debugf("Mock creating rain bucket '%s'", bucketName)
+		}
 
 		err := CreateBucket(bucketName)
 		if err != nil {

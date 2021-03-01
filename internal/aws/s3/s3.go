@@ -132,8 +132,9 @@ func Upload(bucketName, content string) (string, error) {
 }
 
 // RainBucket returns the name of the rain deployment bucket in the current region
-// and creates it if it does not exist
-func RainBucket() string {
+// and asks the user if they wish it to be created if it does not exist
+// unless forceCreation is true, then it will not ask
+func RainBucket(forceCreation bool) string {
 	accountID, err := sts.GetAccountID()
 	if err != nil {
 		panic(fmt.Errorf("unable to get account ID: %w", err))
@@ -145,7 +146,7 @@ func RainBucket() string {
 
 	if !BucketExists(bucketName) {
 		spinner.Pause()
-		if !console.Confirm(true, fmt.Sprintf("Rain needs to create an S3 bucket called '%s'. Continue?", bucketName)) {
+		if !forceCreation && !console.Confirm(true, fmt.Sprintf("Rain needs to create an S3 bucket called '%s'. Continue?", bucketName)) {
 			panic(errors.New("you may create the bucket manually and then re-run this operation"))
 		}
 		spinner.Resume()

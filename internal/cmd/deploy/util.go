@@ -158,7 +158,7 @@ func listToMap(name string, in []string) map[string]string {
 	return out
 }
 
-func packageTemplate(fn string) cft.Template {
+func packageTemplate(fn string, yes bool) cft.Template {
 	outputFn, err := ioutil.TempFile("", "")
 	if err != nil {
 		panic(err)
@@ -175,7 +175,7 @@ func packageTemplate(fn string) cft.Template {
 	output, err := ui.RunAws("cloudformation", "package",
 		"--template-file", fn,
 		"--output-template-file", outputFn.Name(),
-		"--s3-bucket", s3.RainBucket(),
+		"--s3-bucket", s3.RainBucket(yes),
 	)
 	if err != nil {
 		panic(ui.Errorf(err, "unable to package template"))

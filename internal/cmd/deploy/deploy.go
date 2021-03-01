@@ -64,7 +64,7 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 
 		// Package template
 		spinner.Push(fmt.Sprintf("Preparing template '%s'", base))
-		template := packageTemplate(fn)
+		template := packageTemplate(fn, yes)
 		spinner.Pop()
 
 		// Check current stack status
