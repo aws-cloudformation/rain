@@ -52,12 +52,15 @@ func loadConfig(ctx context.Context, sessionName string) *aws.Config {
 	var configs = make([]func(*awsconfig.LoadOptions) error, 0)
 
 	// Uncomment for testing against a local endpoint
-	//configs = append(configs, awsconfig.WithEndpointResolver(uaResolver("http://localhost:8000")))
+	//configs = append(configs, awsconfig.WithEndpointResolver(aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
+	//	return aws.Endpoint{URL: "http://localhost:8000"}, nil
+	//})))
 
 	// Add user-agent
 	configs = append(configs, awsconfig.WithAPIOptions(
 		[]func(*smithymiddleware.Stack) error{
 			middleware.AddUserAgentKeyValue(config.NAME, config.VERSION),
+			middleware.AddSDKAgentKeyValue(middleware.ApplicationIdentifier, config.NAME, config.VERSION),
 		},
 	))
 
