@@ -193,7 +193,7 @@ func GetChangeSet(stackName, changeSetName string) (*cloudformation.DescribeChan
 					Details: []types.ResourceChangeDetail{
 						{
 							CausingEntity: ptr.String("mock entity"),
-							ChangeSource:  types.ChangeSourceResourceattribute,
+							ChangeSource:  types.ChangeSourceResourceAttribute,
 							Evaluation:    types.EvaluationTypeDynamic,
 							Target: &types.ResourceTargetDefinition{
 								Attribute:          types.ResourceAttributeProperties,

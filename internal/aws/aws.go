@@ -35,17 +35,8 @@ func MFAProvider() (string, error) {
 var awsCfg *aws.Config
 var creds aws.Credentials
 
-// For debug resolver
-type uaResolver string
-
 var defaultSessionName = fmt.Sprintf("%s-%s", config.NAME, config.VERSION)
 var lastSessionName = defaultSessionName
-
-func (u uaResolver) ResolveEndpoint(service string, region string) (aws.Endpoint, error) {
-	return aws.Endpoint{
-		URL: string(u),
-	}, nil
-}
 
 func loadConfig(ctx context.Context, sessionName string) *aws.Config {
 	// Credential configs

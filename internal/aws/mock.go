@@ -5,6 +5,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/aws-cloudformation/rain/internal/config"
@@ -14,7 +15,10 @@ import (
 
 var awsCfg *aws.Config
 
-func loadConfig(ctx context.Context) aws.Config {
+var defaultSessionName = fmt.Sprintf("%s-%s", config.NAME, config.VERSION)
+var lastSessionName = defaultSessionName
+
+func loadConfig(ctx context.Context, sessionName string) *aws.Config {
 	cfg := aws.Config{}
 
 	if config.Region != "" {
@@ -23,18 +27,29 @@ func loadConfig(ctx context.Context) aws.Config {
 		cfg.Region = r
 	}
 
-	return cfg
+	lastSessionName = sessionName
+
+	return &cfg
 }
 
 // Config loads an aws.Config based on current settings
 func Config() aws.Config {
+	return NamedConfig(defaultSessionName)
+}
+
+// NamedConfig loads an aws.Config based on current settings
+// with configurable session name
+func NamedConfig(sessionName string) aws.Config {
+	message := "Loading AWS config"
+
+	if sessionName != lastSessionName {
+		message = "Reloading AWS credentials"
+		awsCfg = nil
+	}
+
 	if awsCfg == nil {
-		spinner.Push("Loading AWS config")
-
-		cfg := loadConfig(context.Background())
-
-		awsCfg = &cfg
-
+		spinner.Push(message)
+		awsCfg = loadConfig(context.Background(), sessionName)
 		spinner.Pop()
 	}
 
