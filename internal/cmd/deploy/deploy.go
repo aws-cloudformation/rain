@@ -3,7 +3,6 @@ package deploy
 import (
 	"errors"
 	"fmt"
-	"path"
 	"path/filepath"
 	"regexp"
 
@@ -39,14 +38,14 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		fn := args[0]
-		base := path.Base(fn)
+		base := filepath.Base(fn)
 
 		var stackName string
 
 		if len(args) == 2 {
 			stackName = args[1]
 		} else {
-			stackName = base[:len(base)-len(path.Ext(base))]
+			stackName = base[:len(base)-len(filepath.Ext(base))]
 
 			// Now ensure it's a valid cfc name
 			stackName = fixStackNameRe.ReplaceAllString(stackName, "-")
