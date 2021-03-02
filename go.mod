@@ -3,7 +3,6 @@ module github.com/aws-cloudformation/rain
 go 1.15
 
 require (
-	github.com/andrew-d/go-termutil v0.0.0-20150726205930-009166a695a2
 	github.com/aws/aws-sdk-go-v2 v1.2.0
 	github.com/aws/aws-sdk-go-v2/config v1.1.1
 	github.com/aws/aws-sdk-go-v2/credentials v1.1.1
@@ -20,5 +19,7 @@ require (
 	github.com/nathan-fiscaletti/consolesize-go v0.0.0-20210105204122-a87d9f614b9d
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
+	golang.org/x/sys v0.0.0-20201119102817-f84b799fce68
+	golang.org/x/term v0.0.0-20210220032956-6a3ed077a48d
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )
