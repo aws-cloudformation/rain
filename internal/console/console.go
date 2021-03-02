@@ -6,26 +6,26 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"runtime"
 	"strings"
 
-	"github.com/andrew-d/go-termutil"
 	"github.com/chzyer/readline"
 	"github.com/gookit/color"
 	"github.com/nathan-fiscaletti/consolesize-go"
+	"golang.org/x/term"
 )
 
 // IsTTY will be true if stdout is connected to a true terminal
 var IsTTY bool
 
+// isANSI will be true if console supports ANSI escape code. It is for Windows only.
+var isANSI bool
+
 // NoColour should be false if you want output to be coloured
 var NoColour = false
 
-var isANSI bool
-
 func init() {
-	IsTTY = termutil.Isatty(os.Stdout.Fd())
-	isANSI = runtime.GOOS != "windows"
+	IsTTY = term.IsTerminal(int(os.Stdout.Fd()))
+	isANSI = true
 }
 
 // Size returns the width and height of the console in characters
