@@ -74,6 +74,16 @@ var expected, _ = parse.Map(map[string]interface{}{
 			},
 			"Type": "AWS::IAM::Role",
 		},
+		"Text": map[string]interface{}{
+			"Inline":       "This is inline.",
+			"Folded":       "No internal newline in this sentence.\nAnd one single trailing newline.\n",
+			"FoldedChomp":  "No internal newline here either.\n\nAnd no trailing newline.",
+			"FoldedKeep":   "No internal newline once again.\n\n\nAnd 3 newlines at the end.\n\n\n",
+			"Literal":      "An internal\nnewline in this sentence.\n\nAnd one single trailing newline.\n",
+			"LiteralChomp": "Two internal\nnewlines\nhere.\n\n\nAnd no trailing newline.",
+			"LiteralKeep":  "Three\ninternal newlines\nthis time\naround.\n\n\n\nAnd 3 newlines at the end.\n\n\n",
+			"Stop":         "Just to stop the newlines.",
+		},
 	},
 	"Outputs": map[string]interface{}{
 		"Bucket1Arn": map[string]interface{}{
