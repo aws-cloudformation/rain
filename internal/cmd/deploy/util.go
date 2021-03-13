@@ -242,13 +242,16 @@ func checkStack(stackName string) (types.Stack, bool) {
 	return stack, stackExists
 }
 
-//repairValuesWithCommas takes KeyValues which
-//must be a slice "key=value" style with
-//possibly broken (caused by using SliceVarP from Cobra)
-//entries such as
-//  []string{"key=value1" "value2" "key2=anothervalue"}
-//Will return the slice
-//  []string{"key=value1,value2" "key2=anothervalue"}
+// repairValuesWithCommas takes a []string{}
+// with entries on the fromat of "key=value" and fixes
+// possibly broken (caused by using SliceVarP from Cobra)
+// entries on the comma sign.
+//
+// Entries such as
+//   []string{"key=value1" "value2" "key2=anothervalue"}
+// Will return the slice
+//   []string{"key=value1,value2" "key2=anothervalue"}
+// Se tests for up2date usage and description ;)
 func repairValuesWithCommas(keyValues []string) ([]string, error) {
 
 	if len(keyValues) > 0 && !strings.ContainsAny(keyValues[0], "=") {
