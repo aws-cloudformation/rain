@@ -250,10 +250,8 @@ func checkStack(stackName string) (types.Stack, bool) {
 //Will return the slice
 //  []string{"key=value1,value2" "key2=anothervalue"}
 func repairValuesWithCommas(keyValues []string) ([]string, error) {
-	if len(keyValues) < 1 {
-		return []string{}, nil
-	}
-	if !strings.ContainsAny(keyValues[0], "=") {
+
+	if len(keyValues) > 0 && !strings.ContainsAny(keyValues[0], "=") {
 		return []string{}, errors.New("not on the correct key=value format")
 	}
 
