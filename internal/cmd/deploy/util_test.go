@@ -44,3 +44,36 @@ func TestListToMapMultipleEntriesValue(t *testing.T) {
 	)
 }
 
+func TestRepairValuesWithCommasOneBrokenParameter(t *testing.T) {
+	brokenCommaValue := []string{"key=value1", "value2"}
+	expectedRepairedValue := []string{"key=value1,value2"}
+
+	repairedValue, _ := repairValuesWithCommas(brokenCommaValue)
+	assert.Equal(t,
+		expectedRepairedValue,
+		repairedValue,
+	)
+}
+
+func TestRepairValuesWithCommasOneBrokenParameterAndOneCorrect(t *testing.T) {
+	brokenCommaValue := []string{"key=value1", "value2", "key2=anotherValue"}
+	expectedRepairedValue := []string{"key=value1,value2", "key2=anotherValue"}
+
+	repairedValue, _ := repairValuesWithCommas(brokenCommaValue)
+	assert.Equal(t,
+		expectedRepairedValue,
+		repairedValue,
+	)
+}
+
+func TestRepairValuesWithCommasPanicOnNoKeyStart(t *testing.T) {
+	faultyValues := []string{"NoKeyedValue"}
+
+	_, err := repairValuesWithCommas(faultyValues)
+	assert.NotNil(t, err)
+}
+
+func TestRepairValuesWithCommasReturnsEmptyOnEmptyInput(t *testing.T) {
+	repairedValuesEmpty, _ := repairValuesWithCommas([]string{})
+	assert.Equal(t, repairedValuesEmpty, []string{})
+}
