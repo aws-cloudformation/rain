@@ -1,0 +1,77 @@
+Outputs:
+  Bucket1:
+    Value: !GetAtt Bucket1.Arn # Short GetAtt
+  Bucket2: # Bucket comment
+    Value:
+      Fn::GetAtt: # GetAtt comment
+        - Bucket2
+        - Arn # Arn comment
+
+Resources:
+  Bucket2:
+    Properties:
+      BucketName: !Ref Name # Ref: comment
+    Type: "AWS::S3::Bucket"
+  Bucket1:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${Bucket2}-newer
+  Text:
+    Inline: This is inline.
+
+    Folded: >
+      No internal
+      newline in this sentence.
+
+      And one single trailing newline.
+
+
+    FoldedChomp: >-
+      No internal newline
+      here either.
+
+
+      And no trailing newline.
+
+
+    FoldedKeep: >+
+      No internal newline
+      once again.
+
+
+
+      And 3 newlines at the end.
+
+
+    Literal: |
+      An internal
+      newline in this sentence.
+
+      And one single trailing newline.
+
+
+    LiteralChomp: |-
+      Two internal
+      newlines
+      here.
+
+
+      And no trailing newline.
+
+
+    LiteralKeep: |+
+      Three
+      internal newlines
+      this time
+      around.
+
+
+
+      And 3 newlines at the end.
+
+
+    Stop: Just to stop the newlines.
+
+Parameters:
+  Name:
+    Type: String

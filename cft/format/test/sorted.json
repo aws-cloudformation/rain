@@ -1,0 +1,47 @@
+{
+    "Parameters": {
+        "Name": {
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "Bucket2": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+                "BucketName": {
+                    "Ref": "Name"
+                }
+            }
+        },
+        "Bucket1": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+                "BucketName": {
+                    "Fn::Sub": "${Bucket2}-newer"
+                }
+            }
+        },
+        "Text": {
+            "Inline": "This is inline.",
+            "Folded": "No internal newline in this sentence.\nAnd one single trailing newline.\n",
+            "FoldedChomp": "No internal newline here either.\n\nAnd no trailing newline.",
+            "FoldedKeep": "No internal newline once again.\n\n\nAnd 3 newlines at the end.\n\n\n",
+            "Literal": "An internal\nnewline in this sentence.\n\nAnd one single trailing newline.\n",
+            "LiteralChomp": "Two internal\nnewlines\nhere.\n\n\nAnd no trailing newline.",
+            "LiteralKeep": "Three\ninternal newlines\nthis time\naround.\n\n\n\nAnd 3 newlines at the end.\n\n\n",
+            "Stop": "Just to stop the newlines."
+        }
+    },
+    "Outputs": {
+        "Bucket1": {
+            "Value": {
+                "Fn::GetAtt": "Bucket1.Arn"
+            }
+        },
+        "Bucket2": {
+            "Value": {
+                "Fn::GetAtt": "Bucket2.Arn"
+            }
+        }
+    }
+}

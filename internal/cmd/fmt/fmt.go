@@ -54,10 +54,10 @@ func formatReader(name string, r io.Reader) result {
 	})
 
 	// Verify the output is valid
-	if err = parse.Verify(source, res.output); err != nil {
-		res.err = err
-		return res
-	}
+	//if err = parse.Verify(source, res.output); err != nil {
+	//	res.err = err
+	//	return res
+	//}
 
 	res.ok = strings.TrimSpace(string(input)) == strings.TrimSpace(res.output)
 

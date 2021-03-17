@@ -1,0 +1,37 @@
+{
+    "Outputs": {
+        "Bucket1": {
+            "Value": {
+                "Fn::GetAtt": "Bucket1.Arn"
+            }
+        },
+        "Bucket2": {
+            "Value": {
+                "Fn::GetAtt": "Bucket2.Arn"
+            }
+        }
+    },
+    "Resources": {
+        "Bucket2": {
+            "Properties": {
+                "BucketName": {
+                    "Ref": "Name"
+                }
+            },
+            "Type": "AWS::S3::Bucket"
+        },
+        "Bucket1": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+                "BucketName": {
+                    "Fn::Sub": "${Bucket2}-newer"
+                }
+            }
+        }
+    },
+    "Parameters": {
+        "Name": {
+            "Type": "String"
+        }
+    }
+}
