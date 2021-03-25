@@ -17,6 +17,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/cmd/logs"
 	"github.com/aws-cloudformation/rain/internal/cmd/ls"
 	"github.com/aws-cloudformation/rain/internal/cmd/merge"
+	"github.com/aws-cloudformation/rain/internal/cmd/pkg"
 	"github.com/aws-cloudformation/rain/internal/cmd/rm"
 	"github.com/aws-cloudformation/rain/internal/cmd/tree"
 	"github.com/aws-cloudformation/rain/internal/cmd/watch"
@@ -67,6 +68,7 @@ func init() {
 	Cmd.AddCommand(rm.Cmd)
 	Cmd.AddCommand(tree.Cmd)
 	Cmd.AddCommand(watch.Cmd)
+	Cmd.AddCommand(pkg.Cmd)
 
 	for _, c := range Cmd.Commands() {
 		if c.Annotations[cmd.GroupAnnotationLabel] == cmd.StackGroup || c == info.Cmd || c == consolecmd.Cmd {
