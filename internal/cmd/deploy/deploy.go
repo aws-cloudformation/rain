@@ -56,10 +56,10 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 		}
 
 		// Parse tags
-		parsedTags := listToMap("tag", tags)
+		parsedTags := ListToMap("tag", tags)
 
 		// Parse params
-		parsedParams := listToMap("param", params)
+		parsedParams := ListToMap("param", params)
 
 		// Package template
 		spinner.Push(fmt.Sprintf("Preparing template '%s'", base))

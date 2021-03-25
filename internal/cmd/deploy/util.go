@@ -136,23 +136,33 @@ func getParameters(template cft.Template, cliParams map[string]string, old []typ
 	return newParams
 }
 
-func listToMap(name string, in []string) map[string]string {
+// ListToMap converts a pflag parsed StringSlice into a map
+// where values are expected to be presented in the form
+// Foo=bar,Baz=quux,mooz,Xyzzy=garply
+func ListToMap(name string, in []string) map[string]string {
 	out := make(map[string]string, len(in))
+	lastKey := ""
 	for _, v := range in {
 		parts := strings.SplitN(v, "=", 2)
 
 		if len(parts) != 2 {
-			panic(fmt.Errorf("unable to parse %s: %s", name, v))
+			if lastKey == "" {
+				panic(fmt.Errorf("unable to parse %s: %s", name, v))
+			} else {
+				out[lastKey] += "," + parts[0]
+			}
+		} else {
+			key := strings.TrimSpace(parts[0])
+			value := strings.TrimSpace(parts[1])
+
+			if _, ok := out[key]; ok {
+				panic(fmt.Errorf("duplicate %s: %s", name, key))
+			}
+
+			out[key] = value
+
+			lastKey = key
 		}
-
-		key := strings.TrimSpace(parts[0])
-		value := strings.TrimSpace(parts[1])
-
-		if _, ok := out[key]; ok {
-			panic(fmt.Errorf("duplicate %s: %s", name, key))
-		}
-
-		out[key] = value
 	}
 
 	return out
