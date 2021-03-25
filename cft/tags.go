@@ -22,4 +22,7 @@ var Tags = map[string]string{
 	"!Condition":        "Condition",
 	"!Include::String":  "Include::String",
 	"!Include::Literal": "Include::Literal",
+	"!Include::S3Http":  "Include::S3Http",
+	"!Include::S3Uri":   "Include::S3Uri",
+	"!Include::S3":      "Include::S3",
 }
