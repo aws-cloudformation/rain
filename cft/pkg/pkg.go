@@ -27,6 +27,7 @@ import (
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
+	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"gopkg.in/yaml.v3"
@@ -193,51 +194,81 @@ func includeS3(n *yaml.Node) error {
 	}
 
 	n.Encode(out)
+
 	return nil
 }
 
-func transform(n *yaml.Node) error {
+func transform(n *yaml.Node) (bool, error) {
+	changed := false
+
 	if n.Kind == yaml.MappingNode && len(n.Content) == 2 {
-		if n.Content[0].Value == "Include::String" && n.Content[1].Kind == yaml.ScalarNode {
+		changed = true
+
+		switch {
+		case n.Content[0].Value == "Include::String" && n.Content[1].Kind == yaml.ScalarNode:
 			err := includeString(n)
 			if err != nil {
-				return err
+				return false, err
 			}
-		} else if n.Content[0].Value == "Include::Literal" && n.Content[1].Kind == yaml.ScalarNode {
+		case n.Content[0].Value == "Include::Literal" && n.Content[1].Kind == yaml.ScalarNode:
 			err := includeLiteral(n)
 			if err != nil {
-				return err
+				return false, err
 			}
-		} else if n.Content[0].Value == "Include::S3Http" && n.Content[1].Kind == yaml.ScalarNode {
+		case n.Content[0].Value == "Include::S3Http" && n.Content[1].Kind == yaml.ScalarNode:
 			err := includeS3Http(n)
 			if err != nil {
-				return err
+				return false, err
 			}
-		} else if n.Content[0].Value == "Include::S3Uri" && n.Content[1].Kind == yaml.ScalarNode {
+		case n.Content[0].Value == "Include::S3Uri" && n.Content[1].Kind == yaml.ScalarNode:
 			err := includeS3Uri(n)
 			if err != nil {
-				return err
+				return false, err
 			}
-		} else if n.Content[0].Value == "Include::S3" {
+		case n.Content[0].Value == "Include::S3":
 			err := includeS3(n)
 			if err != nil {
-				return err
+				return false, err
 			}
+		default:
+			changed = false
 		}
 	}
 
 	for _, child := range n.Content {
-		err := transform(child)
+		childChanged, err := transform(child)
 		if err != nil {
-			return err
+			return false, err
 		}
+
+		changed = changed || childChanged
 	}
 
-	return nil
+	return changed, nil
 }
 
 // Template returns a copy of the template with assets included as per the various `Include::` functions
 func Template(t cft.Template) (cft.Template, error) {
-	err := transform(&t.Node)
-	return t, err
+	node := &t.Node
+
+	// Keep transforming until we've recursed enough
+	for {
+		changed, err := transform(node)
+		if err != nil {
+			return t, err
+		}
+
+		t, err = parse.Node(*node)
+		if err != nil {
+			return t, err
+		}
+
+		if !changed {
+			break
+		}
+
+		node = &t.Node
+	}
+
+	return t, nil
 }
