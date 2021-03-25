@@ -3,15 +3,15 @@
 package s3
 
 import (
+	"bytes"
 	"context"
+	"crypto/sha256"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/smithy-go/ptr"
-	"github.com/google/uuid"
 
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/aws/sts"
@@ -112,18 +112,18 @@ func CreateBucket(bucketName string) error {
 }
 
 // Upload an artefact to the bucket with a unique name
-func Upload(bucketName, content string) (string, error) {
+func Upload(bucketName string, content []byte) (string, error) {
 	if !BucketExists(bucketName) {
 		return "", fmt.Errorf("Bucket does not exist: '%s'", bucketName)
 	}
 
-	key := uuid.New().String()
+	key := fmt.Sprintf("%x", sha256.Sum256(content))
 
 	_, err := getClient().PutObject(context.Background(), &s3.PutObjectInput{
 		Bucket: ptr.String(bucketName),
 		Key:    ptr.String(key),
 		ACL:    types.ObjectCannedACLPrivate,
-		Body:   strings.NewReader(content),
+		Body:   bytes.NewReader(content),
 	})
 
 	config.Debugf("Artifact key: %s", key)

@@ -55,7 +55,7 @@ func checkTemplate(template cft.Template) (string, error) {
 
 		bucket := s3.RainBucket(false)
 
-		key, err := s3.Upload(bucket, templateBody)
+		key, err := s3.Upload(bucket, []byte(templateBody))
 
 		return fmt.Sprintf("http://%s.s3.amazonaws.com/%s", bucket, key), err
 	}
