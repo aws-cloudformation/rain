@@ -4,12 +4,11 @@
 // To include content into your templates, use any of the following either as YAML tags
 // or as one-property objects, much as AWS instrinsic functions are used, e.g. "Fn::Join"
 //
-// `Include::Literal`: insert the content of the file into the template directly. The file must be in YAML or JSON format.
-// `Include::String`: insert the content of the file as a string
-// `Include::Base64`: insert the content of the file as a base64 string
-// `Include::S3Uri`: uploads the file or directory (zipping it first) to S3 and returns the S3 URI (i.e. `s3://bucket/key`)
-// `Include::S3Http`: uploads the file or directory (zipping it first) to S3 and returns the HTTP URI (i.e. `https://bucket.s3.region.amazonaws.com/key`)
-// `Include::S3`: Supply an object with the following properties
+// `Rain::Include`: insert the content of the file into the template directly. The file must be in YAML or JSON format.
+// `Rain::Embed`: insert the content of the file as a string
+// `Rain::S3Http`: uploads the file or directory (zipping it first) to S3 and returns the HTTP URI (i.e. `https://bucket.s3.region.amazonaws.com/key`)
+// `Rain::S3`: a string value uploads the file or directory (zipping it first) to S3 and returns the S3 URI (i.e. `s3://bucket/key`)
+// `Rain::S3`: an object with the following properties
 //    `Path`: path to the file or directory. If a directory is supplied, it will be zipped before uploading to S3
 //    `BucketProperty`: Name of returned property that will contain the bucket name
 //    `KeyProperty`: Name of returned property that will contain the object key
@@ -112,7 +111,7 @@ func includeString(n *yaml.Node) error {
 	fn := n.Content[1].Value
 
 	if isDir(fn) {
-		return fmt.Errorf("Include::String can not include a directory")
+		return fmt.Errorf("Rain::Embed can not include a directory")
 	}
 
 	content, err := ioutil.ReadFile(fn)
@@ -129,7 +128,7 @@ func includeLiteral(n *yaml.Node) error {
 	fn := n.Content[1].Value
 
 	if isDir(fn) {
-		return fmt.Errorf("Include::Literal can not include a directory")
+		return fmt.Errorf("Rain::Include can not include a directory")
 	}
 
 	content, err := ioutil.ReadFile(fn)
@@ -205,27 +204,27 @@ func transform(n *yaml.Node) (bool, error) {
 		changed = true
 
 		switch {
-		case n.Content[0].Value == "Include::String" && n.Content[1].Kind == yaml.ScalarNode:
+		case n.Content[0].Value == "Rain::Embed" && n.Content[1].Kind == yaml.ScalarNode:
 			err := includeString(n)
 			if err != nil {
 				return false, err
 			}
-		case n.Content[0].Value == "Include::Literal" && n.Content[1].Kind == yaml.ScalarNode:
+		case n.Content[0].Value == "Rain::Include" && n.Content[1].Kind == yaml.ScalarNode:
 			err := includeLiteral(n)
 			if err != nil {
 				return false, err
 			}
-		case n.Content[0].Value == "Include::S3Http" && n.Content[1].Kind == yaml.ScalarNode:
+		case n.Content[0].Value == "Rain::S3Http" && n.Content[1].Kind == yaml.ScalarNode:
 			err := includeS3Http(n)
 			if err != nil {
 				return false, err
 			}
-		case n.Content[0].Value == "Include::S3Uri" && n.Content[1].Kind == yaml.ScalarNode:
+		case n.Content[0].Value == "Rain::S3" && n.Content[1].Kind == yaml.ScalarNode:
 			err := includeS3Uri(n)
 			if err != nil {
 				return false, err
 			}
-		case n.Content[0].Value == "Include::S3":
+		case n.Content[0].Value == "Rain::S3" && n.Content[1].Kind == yaml.MappingNode:
 			err := includeS3(n)
 			if err != nil {
 				return false, err
