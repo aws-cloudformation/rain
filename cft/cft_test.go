@@ -124,6 +124,9 @@ func TestMatchPath(t *testing.T) {
 			toNode(get(tplMap, []interface{}{"Resources", "Queue", "Tags", 1, "Key"})),
 			toNode(get(tplMap, []interface{}{"Resources", "Queue", "Tags", 1, "Value"})),
 		}},
+		{path: "**/*|Tags", expected: []*yaml.Node{
+			toNode(get(tplMap, []interface{}{"Resources", "Queue"})),
+		}},
 	}
 
 	for _, testCase := range testCases {

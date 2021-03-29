@@ -146,11 +146,11 @@ func filter(n *yaml.Node, query []string) bool {
 			return false
 		}
 
-		if value.Kind != yaml.ScalarNode {
-			return false
-		}
-
 		if len(parts) == 2 && value.Value != parts[1] {
+			if value.Kind != yaml.ScalarNode {
+				return false
+			}
+
 			return false
 		}
 	}

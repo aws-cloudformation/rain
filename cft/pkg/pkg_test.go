@@ -55,16 +55,6 @@ func TestInclude(t *testing.T) {
 	compare(t, in, map[string]interface{}{"This": "is a test"})
 }
 
-func TestS3(t *testing.T) {
-	in, _ := parse.Map(map[string]interface{}{
-		"Test": map[string]interface{}{
-			"Rain::S3": "test.txt",
-		},
-	})
-
-	compare(t, in, fmt.Sprintf("s3://%s/%s", bucket, hash))
-}
-
 func TestS3Http(t *testing.T) {
 	in, _ := parse.Map(map[string]interface{}{
 		"Test": map[string]interface{}{
@@ -73,6 +63,16 @@ func TestS3Http(t *testing.T) {
 	})
 
 	compare(t, in, fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", bucket, region, hash))
+}
+
+func TestS3(t *testing.T) {
+	in, _ := parse.Map(map[string]interface{}{
+		"Test": map[string]interface{}{
+			"Rain::S3": "test.txt",
+		},
+	})
+
+	compare(t, in, fmt.Sprintf("s3://%s/%s", bucket, hash))
 }
 
 func TestS3Object(t *testing.T) {
@@ -90,4 +90,14 @@ func TestS3Object(t *testing.T) {
 		"RainS3Bucket": bucket,
 		"RainS3Key":    hash,
 	})
+}
+
+func TestRecursion(t *testing.T) {
+	in, _ := parse.Map(map[string]interface{}{
+		"Test": map[string]interface{}{
+			"Rain::Include": "recurse.yaml",
+		},
+	})
+
+	compare(t, in, map[string]interface{}{"This": "is a test"})
 }

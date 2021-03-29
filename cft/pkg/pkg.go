@@ -17,6 +17,7 @@ package pkg
 
 import (
 	"archive/zip"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -176,7 +177,7 @@ func includeS3Uri(n *yaml.Node) error {
 	return nil
 }
 
-func includeS3(n *yaml.Node) error {
+func includeS3Object(n *yaml.Node) error {
 	var props map[string]string
 
 	err := n.Content[1].Decode(&props)
@@ -201,50 +202,51 @@ func includeS3(n *yaml.Node) error {
 	return nil
 }
 
-func transform(n *yaml.Node) (bool, error) {
-	changed := false
+func includeS3(n *yaml.Node) error {
+	// Figure out if we're a string or an object
 
-	if n.Kind == yaml.MappingNode && len(n.Content) == 2 {
-		changed = true
-
-		switch {
-		case n.Content[0].Value == "Rain::Embed" && n.Content[1].Kind == yaml.ScalarNode:
-			err := includeString(n)
-			if err != nil {
-				return false, err
-			}
-		case n.Content[0].Value == "Rain::Include" && n.Content[1].Kind == yaml.ScalarNode:
-			err := includeLiteral(n)
-			if err != nil {
-				return false, err
-			}
-		case n.Content[0].Value == "Rain::S3Http" && n.Content[1].Kind == yaml.ScalarNode:
-			err := includeS3Http(n)
-			if err != nil {
-				return false, err
-			}
-		case n.Content[0].Value == "Rain::S3" && n.Content[1].Kind == yaml.ScalarNode:
-			err := includeS3Uri(n)
-			if err != nil {
-				return false, err
-			}
-		case n.Content[0].Value == "Rain::S3" && n.Content[1].Kind == yaml.MappingNode:
-			err := includeS3(n)
-			if err != nil {
-				return false, err
-			}
-		default:
-			changed = false
-		}
+	if n.Content[1].Kind == yaml.ScalarNode {
+		return includeS3Uri(n)
+	} else if n.Content[1].Kind == yaml.MappingNode {
+		return includeS3Object(n)
 	}
 
-	for _, child := range n.Content {
-		childChanged, err := transform(child)
+	return errors.New("Invalid Rain::S3 argument")
+}
+
+func transform(t cft.Template) (bool, error) {
+	changed := false
+
+	for n := range t.MatchPath("**/*|Rain::Embed") {
+		changed = true
+		err := includeString(n)
 		if err != nil {
 			return false, err
 		}
+	}
 
-		changed = changed || childChanged
+	for n := range t.MatchPath("**/*|Rain::Include") {
+		changed = true
+		err := includeLiteral(n)
+		if err != nil {
+			return false, err
+		}
+	}
+
+	for n := range t.MatchPath("**/*|Rain::S3Http") {
+		changed = true
+		err := includeS3Http(n)
+		if err != nil {
+			return false, err
+		}
+	}
+
+	for n := range t.MatchPath("**/*|Rain::S3") {
+		changed = true
+		err := includeS3(n)
+		if err != nil {
+			return false, err
+		}
 	}
 
 	return changed, nil
@@ -252,16 +254,14 @@ func transform(n *yaml.Node) (bool, error) {
 
 // Template returns a copy of the template with assets included as per the various `Include::` functions
 func Template(t cft.Template) (cft.Template, error) {
-	node := &t.Node
-
 	// Keep transforming until we've recursed enough
 	for {
-		changed, err := transform(node)
+		changed, err := transform(t)
 		if err != nil {
 			return t, err
 		}
 
-		t, err = parse.Node(*node)
+		t, err = parse.Node(t.Node)
 		if err != nil {
 			return t, err
 		}
@@ -269,8 +269,6 @@ func Template(t cft.Template) (cft.Template, error) {
 		if !changed {
 			break
 		}
-
-		node = &t.Node
 	}
 
 	return t, nil
