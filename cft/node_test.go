@@ -15,7 +15,7 @@ baz:
     - grault: garply
 `
 
-func TestFindNode(t *testing.T) {
+func TestGetNodePath(t *testing.T) {
 	var base yaml.Node
 	err := yaml.Unmarshal([]byte(nodeTestBase), &base)
 	if err != nil {
