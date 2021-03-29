@@ -33,19 +33,14 @@ func (t Template) Map() map[string]interface{} {
 // The path is a `/`-separated string that describes a path into the template's tree.
 // Wildcard elements (which can be map keys or array indices) are represented by a `*`.
 // Matching an arbitrary number (including zero) of descendents can be done with `**`.
-func (t Template) MatchPath(path string) []*yaml.Node {
+func (t Template) MatchPath(path string) <-chan *yaml.Node {
 	ch := make(chan *yaml.Node)
 	go func() {
 		matchPath(ch, &t.Node, strings.Split(path, "/"))
 		close(ch)
 	}()
 
-	results := make([]*yaml.Node, 0)
-	for n := range ch {
-		results = append(results, n)
-	}
-
-	return results
+	return ch
 }
 
 func matchPath(ch chan<- *yaml.Node, n *yaml.Node, path []string) {

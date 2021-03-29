@@ -127,7 +127,10 @@ func TestMatchPath(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		results := tpl.MatchPath(testCase.path)
+		results := make([]*yaml.Node, 0)
+		for n := range tpl.MatchPath(testCase.path) {
+			results = append(results, n)
+		}
 
 		if len(results) != len(testCase.expected) {
 			t.Errorf("%s: Expected %d results, got %d", testCase.path, len(testCase.expected), len(results))
