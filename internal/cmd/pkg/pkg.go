@@ -15,8 +15,8 @@ import (
 // Cmd is the merge command's entrypoint
 var Cmd = &cobra.Command{
 	Use:                   "pkg <template>",
-	Short:                 "Package local artifacts into the template through Include:: directives",
-	Long:                  "Package local artifacts into the template through Include:: directives",
+	Short:                 "Package local artifacts into the template through Rain:: directives",
+	Long:                  "Package local artifacts into the template through Rain:: directives",
 	Args:                  cobra.ExactArgs(1),
 	Annotations:           cmd.TemplateAnnotation,
 	DisableFlagsInUseLine: true,

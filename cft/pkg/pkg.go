@@ -76,7 +76,11 @@ func zipPath(root string) (string, error) {
 }
 
 func isDir(path string) bool {
-	info, _ := os.Stat(path)
+	info, err := os.Stat(path)
+
+	if err != nil {
+		panic(err)
+	}
 
 	return info.IsDir()
 }

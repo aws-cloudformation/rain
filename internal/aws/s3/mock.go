@@ -3,11 +3,11 @@
 package s3
 
 import (
+	"crypto/sha256"
 	"fmt"
 
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/config"
-	"github.com/google/uuid"
 )
 
 var buckets = make(map[string]bool)
@@ -25,12 +25,12 @@ func CreateBucket(bucketName string) error {
 }
 
 // Upload an artefact to the bucket with a unique name
-func Upload(bucketName, content string) (string, error) {
+func Upload(bucketName string, content []byte) (string, error) {
 	if !BucketExists(bucketName) {
 		return "", fmt.Errorf("Bucket does not exist: '%s'", bucketName)
 	}
 
-	return uuid.New().String(), nil
+	return fmt.Sprintf("%x", sha256.Sum256(content)), nil
 }
 
 // RainBucket returns the name of the rain deployment bucket in the current region

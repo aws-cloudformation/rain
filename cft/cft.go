@@ -29,6 +29,22 @@ func (t Template) Map() map[string]interface{} {
 	return out
 }
 
+// GetPath returns the yaml node that matches the provided path.
+// If zero or more than one node matches the provided path,
+// GetPath will return nil
+func (t Template) GetPath(path string) *yaml.Node {
+	results := make([]*yaml.Node, 0)
+	for n := range t.MatchPath(path) {
+		results = append(results, n)
+	}
+
+	if len(results) != 1 {
+		return nil
+	}
+
+	return results[0]
+}
+
 // MatchPath returns all yaml nodes that match the provided path.
 // The path is a `/`-separated string that describes a path into the template's tree.
 // Wildcard elements (which can be map keys or array indices) are represented by a `*`.

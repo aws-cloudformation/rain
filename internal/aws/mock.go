@@ -25,6 +25,8 @@ func loadConfig(ctx context.Context, sessionName string) *aws.Config {
 		cfg.Region = config.Region
 	} else if r := os.Getenv("AWS_DEFAULT_REGION"); r != "" {
 		cfg.Region = r
+	} else {
+		cfg.Region = "us-east-1"
 	}
 
 	lastSessionName = sessionName
