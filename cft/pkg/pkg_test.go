@@ -76,6 +76,18 @@ func TestS3(t *testing.T) {
 	compare(t, in, "Test", fmt.Sprintf("s3://%s/%s", bucket, hash))
 }
 
+func TestS3Defaults(t *testing.T) {
+	in, _ := parse.Map(map[string]interface{}{
+		"Test": map[string]interface{}{
+			"Rain::S3": map[string]interface{}{
+				"Path": "test.txt",
+			},
+		},
+	})
+
+	compare(t, in, "Test", fmt.Sprintf("s3://%s/%s", bucket, hash))
+}
+
 func TestS3Object(t *testing.T) {
 	in, _ := parse.Map(map[string]interface{}{
 		"Test": map[string]interface{}{
@@ -91,6 +103,33 @@ func TestS3Object(t *testing.T) {
 		"RainS3Bucket": bucket,
 		"RainS3Key":    hash,
 	})
+}
+
+func TestS3ObjectHttp(t *testing.T) {
+	in, _ := parse.Map(map[string]interface{}{
+		"Test": map[string]interface{}{
+			"Rain::S3": map[string]interface{}{
+				"Path":   "test.txt",
+				"Format": "Http",
+			},
+		},
+	})
+
+	compare(t, in, "Test", fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", bucket, region, hash))
+}
+
+func TestS3ObjectUriZip(t *testing.T) {
+	in, _ := parse.Map(map[string]interface{}{
+		"Test": map[string]interface{}{
+			"Rain::S3": map[string]interface{}{
+				"Path":   "test.txt",
+				"Format": "Uri",
+				"Zip":    true,
+			},
+		},
+	})
+
+	compare(t, in, "Test", fmt.Sprintf("s3://%s/%s", bucket, zipHash))
 }
 
 func TestRecursion(t *testing.T) {
