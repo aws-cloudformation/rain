@@ -65,7 +65,6 @@ func setNodePath(node *yaml.Node, path []interface{}, value *yaml.Node) error {
 	}
 
 	path, last := path[:len(path)-1], path[len(path)-1]
-	fmt.Println(path, "---", last)
 
 	node, err := getNodePath(node, path)
 	if err != nil {

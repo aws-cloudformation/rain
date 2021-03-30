@@ -154,12 +154,10 @@ func expectString(n *yaml.Node) (string, bool) {
 
 func expectProps(n *yaml.Node, names ...string) (map[string]string, bool) {
 	if len(n.Content) != 2 {
-		fmt.Println("Not enough")
 		return nil, false
 	}
 
 	if n.Content[1].Kind != yaml.MappingNode {
-		fmt.Println("Not map")
 		return nil, false
 	}
 

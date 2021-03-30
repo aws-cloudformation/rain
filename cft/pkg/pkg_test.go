@@ -17,6 +17,7 @@ const hash = "7e81f4270269cd5111c4926e19de731fb38c6dbf07059d14f4591ce5d8ddd770"
 const zipHash = "e1702ffd4ffb744158de6b9f7cb0af2788bbcea5a33d57d6b2df1c28cbff07f7"
 const bucket = "rain-artifacts-1234567890-us-east-1"
 const region = "us-east-1"
+const packagedTemplateHash = "28f611b4c6d562fa459e7131b167960cd1b5dc5a0238da157ee1196d4679a3cc"
 
 func compare(t *testing.T, in cft.Template, path string, expected interface{}) {
 	out, err := pkg.Template(in)
@@ -140,7 +141,7 @@ func TestRecursion(t *testing.T) {
 		},
 	})
 
-	compare(t, in, "Test", map[string]interface{}{"This": "is a test"})
+	compare(t, in, "Test", map[string]interface{}{"Description": map[string]interface{}{"This": "is a test"}})
 }
 
 func TestWrappedTypes(t *testing.T) {
@@ -170,12 +171,50 @@ func TestWrappedTypes(t *testing.T) {
 		{"AWS::Lambda::LayerVersion", "Content", map[string]interface{}{"S3Bucket": bucket, "S3Key": zipHash}},
 		{"AWS::ApiGateway::RestApi", "BodyS3Location", map[string]interface{}{"Bucket": bucket, "Key": hash}},
 		{"AWS::StepFunctions::StateMachine", "DefinitionS3Location", map[string]interface{}{"Bucket": bucket, "Key": hash}},
+		{"AWS::CloudFormation::Stack", "TemplateURL", httpUri},
 	} {
 		props := make(map[string]interface{})
 
 		parts := strings.Split(testCase.propName, "/")
 
 		props[parts[len(parts)-1]] = "test.txt"
+
+		for i := len(parts) - 2; i >= 0; i-- {
+			part := parts[i]
+			props = map[string]interface{}{
+				part: props,
+			}
+		}
+
+		in, _ := parse.Map(map[string]interface{}{
+			"Resources": map[string]interface{}{
+				"MyResource": map[string]interface{}{
+					"Type":       testCase.typeName,
+					"Properties": props,
+				},
+			},
+		})
+
+		compare(t, in, fmt.Sprintf("Resources/MyResource/Properties/%s", testCase.propName), testCase.expected)
+	}
+}
+
+func TestTemplates(t *testing.T) {
+	httpUri := fmt.Sprintf("https://%s.s3.us-east-1.amazonaws.com/%s", bucket, packagedTemplateHash)
+
+	for _, testCase := range []struct {
+		typeName string
+		propName string
+		expected interface{}
+	}{
+		{"AWS::Serverless::Application", "Location", httpUri},
+		{"AWS::CloudFormation::Stack", "TemplateURL", httpUri},
+	} {
+		props := make(map[string]interface{})
+
+		parts := strings.Split(testCase.propName, "/")
+
+		props[parts[len(parts)-1]] = "recurse.yaml"
 
 		for i := len(parts) - 2; i >= 0; i-- {
 			part := parts[i]

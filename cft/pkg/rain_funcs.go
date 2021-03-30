@@ -1,8 +1,12 @@
 package pkg
 
 import (
+	"io/ioutil"
+	"os"
 	"strings"
 
+	"github.com/aws-cloudformation/rain/cft/format"
+	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"gopkg.in/yaml.v3"
 )
@@ -44,7 +48,8 @@ func init() {
 		"Resources/*|Type==AWS::Glue::Job/Properties/Command/ScriptLocation":                                 wrapS3Uri,
 		"Resources/*|Type==AWS::Serverless::Function/Properties/CodeUri":                                     wrapS3ZipUri,
 		"Resources/*|Type==AWS::Serverless::LayerVersion/Properties/ContentUri":                              wrapS3ZipUri,
-		"Resources/*|Type==AWS::Serverless::Application/Properties/Location":                                 wrapS3Http,
+		"Resources/*|Type==AWS::CloudFormation::Stack/Properties/TemplateURL":                                wrapTemplate,
+		"Resources/*|Type==AWS::Serverless::Application/Properties/Location":                                 wrapTemplate,
 		"Resources/*|Type==AWS::Lambda::Function/Properties/Code":                                            wrapObject("S3Bucket", "S3Key", true),
 		"Resources/*|Type==AWS::ApiGateway::RestApi/Properties/BodyS3Location":                               wrapObject("Bucket", "Key", false),
 		"Resources/*|Type==AWS::ElasticBeanstalk::ApplicationVersion/Properties/SourceBundle":                wrapObject("S3Bucket", "S3Key", false),
@@ -241,23 +246,6 @@ func wrapS3Uri(n *yaml.Node) bool {
 	return changed
 }
 
-func wrapS3Http(n *yaml.Node) bool {
-	if n.Kind != yaml.ScalarNode {
-		return false
-	}
-
-	newNode, changed := handleS3(s3Options{
-		Path:   n.Value,
-		Format: s3Http,
-	})
-
-	if changed {
-		*n = *newNode
-	}
-
-	return changed
-}
-
 func wrapObject(bucket, key string, forceZip bool) rainFunc {
 	return func(n *yaml.Node) bool {
 		if n.Kind != yaml.ScalarNode {
@@ -278,4 +266,51 @@ func wrapObject(bucket, key string, forceZip bool) rainFunc {
 
 		return changed
 	}
+}
+
+func wrapTemplate(n *yaml.Node) bool {
+	if n.Kind != yaml.ScalarNode {
+		return false
+	}
+
+	content, err := readFile(n.Value)
+	if err != nil {
+		return false
+	}
+
+	tmpl, err := parse.String(string(content))
+	if err != nil {
+		return false
+	}
+
+	tmpl, err = Template(tmpl)
+	if err != nil {
+		return false
+	}
+
+	f, err := ioutil.TempFile(os.TempDir(), "*.template")
+	if err != nil {
+		return false
+	}
+
+	defer os.Remove(f.Name())
+
+	if _, err := f.Write([]byte(format.String(tmpl, format.Options{}))); err != nil {
+		return false
+	}
+
+	if err := f.Close(); err != nil {
+		return false
+	}
+
+	newNode, changed := handleS3(s3Options{
+		Path:   f.Name(),
+		Format: s3Http,
+	})
+
+	if changed {
+		*n = *newNode
+	}
+
+	return changed
 }
