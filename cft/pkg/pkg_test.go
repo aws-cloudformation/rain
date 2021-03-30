@@ -13,7 +13,7 @@ import (
 )
 
 const hash = "7e81f4270269cd5111c4926e19de731fb38c6dbf07059d14f4591ce5d8ddd770"
-const zipHash = "b9fdb841ff37426ce0fafee84026c55a1f14f506e2773d3db3b6963a70d926ab"
+const zipHash = "e1702ffd4ffb744158de6b9f7cb0af2788bbcea5a33d57d6b2df1c28cbff07f7"
 const bucket = "rain-artifacts-1234567890-us-east-1"
 const region = "us-east-1"
 

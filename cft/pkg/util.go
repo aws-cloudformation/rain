@@ -66,6 +66,15 @@ func zipPath(root string) (string, error) {
 	w := zip.NewWriter(tmpFile)
 	defer w.Close()
 
+	zRoot := root
+	info, err := os.Stat(zRoot)
+	if err != nil {
+		return "", err
+	}
+	if !info.IsDir() {
+		zRoot = filepath.Dir(zRoot)
+	}
+
 	err = filepath.Walk(root, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -81,7 +90,7 @@ func zipPath(root string) (string, error) {
 		}
 		defer in.Close()
 
-		zPath, err := filepath.Rel(root, path)
+		zPath, err := filepath.Rel(zRoot, path)
 		if err != nil {
 			return err
 		}
