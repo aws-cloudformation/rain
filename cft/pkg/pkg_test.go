@@ -14,7 +14,7 @@ import (
 )
 
 const hash = "7e81f4270269cd5111c4926e19de731fb38c6dbf07059d14f4591ce5d8ddd770"
-const zipHash = "e1702ffd4ffb744158de6b9f7cb0af2788bbcea5a33d57d6b2df1c28cbff07f7"
+const zipHash = "d8d16b729dc727b1241125149d5cfa4d91490ca5a75f2178f6d94a003e3572d2"
 const bucket = "rain-artifacts-1234567890-us-east-1"
 const region = "us-east-1"
 const packagedTemplateHash = "28f611b4c6d562fa459e7131b167960cd1b5dc5a0238da157ee1196d4679a3cc"

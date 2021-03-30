@@ -97,7 +97,15 @@ func zipPath(root string) (string, error) {
 
 		zPath = filepath.ToSlash(zPath)
 
-		out, err := w.Create(zPath)
+		fh, err := zip.FileInfoHeader(info)
+		if err != nil {
+			return err
+		}
+
+		fh.Name = zPath
+		fh.Method = zip.Deflate
+
+		out, err := w.CreateHeader(fh)
 		if err != nil {
 			return err
 		}
