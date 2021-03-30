@@ -25,13 +25,32 @@ type s3Options struct {
 
 type rainFunc func(*yaml.Node) bool
 
-var registry = map[string]rainFunc{
-	"**/*|Rain::Embed":   includeString,
-	"**/*|Rain::Include": includeLiteral,
-	"**/*|Rain::S3Http":  includeS3Http,
-	"**/*|Rain::S3":      includeS3,
-	"Resources/*|Type==AWS::Serverless::Function/Properties/CodeUri":  wrapS3ZipUri,
-	"Resources/*|Type==AWS::Serverless::Api/Properties/DefinitionUri": wrapS3ZipUri,
+var registry map[string]rainFunc
+
+func init() {
+	registry = map[string]rainFunc{
+		"**/*|Rain::Embed":   includeString,
+		"**/*|Rain::Include": includeLiteral,
+		"**/*|Rain::S3Http":  includeS3Http,
+		"**/*|Rain::S3":      includeS3,
+		"Resources/*|Type==AWS::Serverless::Api/Properties/DefinitionUri":                                    wrapS3Uri,
+		"Resources/*|Type==AWS::AppSync::GraphQLSchema/Properties/DefinitionS3Location":                      wrapS3Uri,
+		"Resources/*|Type==AWS::AppSync::Resolver/Properties/RequestMappingTemplateS3Location":               wrapS3Uri,
+		"Resources/*|Type==AWS::AppSync::Resolver/Properties/ResponseMappingTemplateS3Location":              wrapS3Uri,
+		"Resources/*|Type==AWS::AppSync::FunctionConfiguration/Properties/RequestMappingTemplateS3Location":  wrapS3Uri,
+		"Resources/*|Type==AWS::AppSync::FunctionConfiguration/Properties/ResponseMappingTemplateS3Location": wrapS3Uri,
+		"Resources/*|Type==AWS::ServerlessRepo::Application/Properties/ReadmeUrl":                            wrapS3Uri,
+		"Resources/*|Type==AWS::ServerlessRepo::Application/Properties/LicenseUrl":                           wrapS3Uri,
+		"Resources/*|Type==AWS::Glue::Job/Properties/Command/ScriptLocation":                                 wrapS3Uri,
+		"Resources/*|Type==AWS::Serverless::Function/Properties/CodeUri":                                     wrapS3ZipUri,
+		"Resources/*|Type==AWS::Serverless::LayerVersion/Properties/ContentUri":                              wrapS3ZipUri,
+		"Resources/*|Type==AWS::Serverless::Application/Properties/Location":                                 wrapS3Http,
+		"Resources/*|Type==AWS::Lambda::Function/Properties/Code":                                            wrapObject("S3Bucket", "S3Key", true),
+		"Resources/*|Type==AWS::ApiGateway::RestApi/Properties/BodyS3Location":                               wrapObject("Bucket", "Key", false),
+		"Resources/*|Type==AWS::ElasticBeanstalk::ApplicationVersion/Properties/SourceBundle":                wrapObject("S3Bucket", "S3Key", false),
+		"Resources/*|Type==AWS::Lambda::LayerVersion/Properties/Content":                                     wrapObject("S3Bucket", "S3Key", true),
+		"Resources/*|Type==AWS::StepFunctions::StateMachine/Properties/DefinitionS3Location":                 wrapObject("Bucket", "Key", false),
+	}
 }
 
 func includeString(n *yaml.Node) bool {
@@ -203,4 +222,60 @@ func wrapS3ZipUri(n *yaml.Node) bool {
 	}
 
 	return changed
+}
+
+func wrapS3Uri(n *yaml.Node) bool {
+	if n.Kind != yaml.ScalarNode {
+		return false
+	}
+
+	newNode, changed := handleS3(s3Options{
+		Path:   n.Value,
+		Format: s3Uri,
+	})
+
+	if changed {
+		*n = *newNode
+	}
+
+	return changed
+}
+
+func wrapS3Http(n *yaml.Node) bool {
+	if n.Kind != yaml.ScalarNode {
+		return false
+	}
+
+	newNode, changed := handleS3(s3Options{
+		Path:   n.Value,
+		Format: s3Http,
+	})
+
+	if changed {
+		*n = *newNode
+	}
+
+	return changed
+}
+
+func wrapObject(bucket, key string, forceZip bool) rainFunc {
+	return func(n *yaml.Node) bool {
+		if n.Kind != yaml.ScalarNode {
+			return false
+		}
+
+		newNode, changed := handleS3(s3Options{
+			Path:           n.Value,
+			Format:         s3Object,
+			BucketProperty: bucket,
+			KeyProperty:    key,
+			Zip:            forceZip,
+		})
+
+		if changed {
+			*n = *newNode
+		}
+
+		return changed
+	}
 }

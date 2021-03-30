@@ -4,6 +4,7 @@ package pkg_test
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/aws-cloudformation/rain/cft"
@@ -142,32 +143,56 @@ func TestRecursion(t *testing.T) {
 	compare(t, in, "Test", map[string]interface{}{"This": "is a test"})
 }
 
-func TestServerlessFunction(t *testing.T) {
-	in, _ := parse.Map(map[string]interface{}{
-		"Resources": map[string]interface{}{
-			"MyFunction": map[string]interface{}{
-				"Type": "AWS::Serverless::Function",
-				"Properties": map[string]interface{}{
-					"CodeUri": "test.txt",
+func TestWrappedTypes(t *testing.T) {
+	s3Uri := fmt.Sprintf("s3://%s/%s", bucket, hash)
+	s3ZipUri := fmt.Sprintf("s3://%s/%s", bucket, zipHash)
+	httpUri := fmt.Sprintf("https://%s.s3.us-east-1.amazonaws.com/%s", bucket, hash)
+
+	for _, testCase := range []struct {
+		typeName string
+		propName string
+		expected interface{}
+	}{
+		{"AWS::Serverless::Function", "CodeUri", s3ZipUri},
+		{"AWS::Serverless::Api", "DefinitionUri", s3Uri},
+		{"AWS::AppSync::GraphQLSchema", "DefinitionS3Location", s3Uri},
+		{"AWS::AppSync::Resolver", "RequestMappingTemplateS3Location", s3Uri},
+		{"AWS::AppSync::Resolver", "ResponseMappingTemplateS3Location", s3Uri},
+		{"AWS::AppSync::FunctionConfiguration", "RequestMappingTemplateS3Location", s3Uri},
+		{"AWS::AppSync::FunctionConfiguration", "ResponseMappingTemplateS3Location", s3Uri},
+		{"AWS::ServerlessRepo::Application", "ReadmeUrl", s3Uri},
+		{"AWS::ServerlessRepo::Application", "LicenseUrl", s3Uri},
+		{"AWS::Glue::Job", "Command/ScriptLocation", s3Uri},
+		{"AWS::Serverless::LayerVersion", "ContentUri", s3ZipUri},
+		{"AWS::Serverless::Application", "Location", httpUri},
+		{"AWS::Lambda::Function", "Code", map[string]interface{}{"S3Bucket": bucket, "S3Key": zipHash}},
+		{"AWS::ElasticBeanstalk::ApplicationVersion", "SourceBundle", map[string]interface{}{"S3Bucket": bucket, "S3Key": hash}},
+		{"AWS::Lambda::LayerVersion", "Content", map[string]interface{}{"S3Bucket": bucket, "S3Key": zipHash}},
+		{"AWS::ApiGateway::RestApi", "BodyS3Location", map[string]interface{}{"Bucket": bucket, "Key": hash}},
+		{"AWS::StepFunctions::StateMachine", "DefinitionS3Location", map[string]interface{}{"Bucket": bucket, "Key": hash}},
+	} {
+		props := make(map[string]interface{})
+
+		parts := strings.Split(testCase.propName, "/")
+
+		props[parts[len(parts)-1]] = "test.txt"
+
+		for i := len(parts) - 2; i >= 0; i-- {
+			part := parts[i]
+			props = map[string]interface{}{
+				part: props,
+			}
+		}
+
+		in, _ := parse.Map(map[string]interface{}{
+			"Resources": map[string]interface{}{
+				"MyResource": map[string]interface{}{
+					"Type":       testCase.typeName,
+					"Properties": props,
 				},
 			},
-		},
-	})
+		})
 
-	compare(t, in, "Resources/MyFunction/Properties/CodeUri", fmt.Sprintf("s3://%s/%s", bucket, zipHash))
-}
-
-func TestServerlessApi(t *testing.T) {
-	in, _ := parse.Map(map[string]interface{}{
-		"Resources": map[string]interface{}{
-			"MyApi": map[string]interface{}{
-				"Type": "AWS::Serverless::Api",
-				"Properties": map[string]interface{}{
-					"DefinitionUri": "test.txt",
-				},
-			},
-		},
-	})
-
-	compare(t, in, "Resources/MyApi/Properties/DefinitionUri", fmt.Sprintf("s3://%s/%s", bucket, zipHash))
+		compare(t, in, fmt.Sprintf("Resources/MyResource/Properties/%s", testCase.propName), testCase.expected)
+	}
 }
