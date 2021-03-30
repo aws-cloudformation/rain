@@ -7,6 +7,22 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type s3Format string
+
+const (
+	s3Uri    s3Format = "Uri"
+	s3Http   s3Format = "Http"
+	s3Object s3Format = "Object"
+)
+
+type s3Options struct {
+	Path           string   `yaml:"Path"`
+	BucketProperty string   `yaml:"BucketProperty"`
+	KeyProperty    string   `yaml:"KeyProperty"`
+	Zip            bool     `yaml:"Zip"`
+	Format         s3Format `yaml:"Format"`
+}
+
 type rainFunc func(*yaml.Node) bool
 
 var registry = map[string]rainFunc{
@@ -14,7 +30,8 @@ var registry = map[string]rainFunc{
 	"**/*|Rain::Include": includeLiteral,
 	"**/*|Rain::S3Http":  includeS3Http,
 	"**/*|Rain::S3":      includeS3,
-	"Resources/*|Type==AWS::Serverless::Function/Properties/CodeUri": serverlessFunction,
+	"Resources/*|Type==AWS::Serverless::Function/Properties/CodeUri":  wrapS3ZipUri,
+	"Resources/*|Type==AWS::Serverless::Api/Properties/DefinitionUri": wrapS3ZipUri,
 }
 
 func includeString(n *yaml.Node) bool {
@@ -58,21 +75,82 @@ func includeLiteral(n *yaml.Node) bool {
 	return true
 }
 
+func handleS3(options s3Options) (*yaml.Node, bool) {
+	s, err := upload(options.Path, options.Zip)
+	if err != nil {
+		config.Debugf("Error uploading '%s': %s", options.Path, err)
+		return nil, false
+	}
+
+	if options.Format == "" {
+		if options.BucketProperty != "" && options.KeyProperty != "" {
+			options.Format = s3Object
+		} else {
+			options.Format = s3Uri
+		}
+	}
+
+	var n yaml.Node
+
+	switch options.Format {
+	case s3Object:
+		if options.BucketProperty == "" || options.KeyProperty == "" {
+			return nil, false
+		}
+
+		out := map[string]string{
+			options.BucketProperty: s.bucket,
+			options.KeyProperty:    s.key,
+		}
+
+		n.Encode(out)
+	case s3Uri:
+		n.Encode(s.Uri())
+	case s3Http:
+		n.Encode(s.Http())
+	default:
+		return nil, false
+	}
+
+	return &n, true
+}
+
+func includeS3Object(n *yaml.Node) bool {
+	if n.Kind != yaml.MappingNode || len(n.Content) != 2 {
+		return false
+	}
+
+	// Parse the options
+	var options s3Options
+	err := n.Content[1].Decode(&options)
+	if err != nil {
+		return false
+	}
+
+	newNode, changed := handleS3(options)
+	if changed {
+		*n = *newNode
+	}
+
+	return changed
+}
+
 func includeS3Http(n *yaml.Node) bool {
 	path, ok := expectString(n)
 	if !ok {
 		return false
 	}
 
-	s, err := upload(path)
-	if err != nil {
-		config.Debugf("Error uploading '%s': %s", path, err)
-		return false
+	newNode, changed := handleS3(s3Options{
+		Path:   path,
+		Format: s3Http,
+	})
+
+	if changed {
+		*n = *newNode
 	}
 
-	n.Encode(s.Http())
-
-	return true
+	return changed
 }
 
 func includeS3Uri(n *yaml.Node) bool {
@@ -81,39 +159,16 @@ func includeS3Uri(n *yaml.Node) bool {
 		return false
 	}
 
-	s, err := upload(path)
-	if err != nil {
-		config.Debugf("Error uploading '%s': %s", path, err)
-		return false
+	newNode, changed := handleS3(s3Options{
+		Path:   path,
+		Format: s3Uri,
+	})
+
+	if changed {
+		*n = *newNode
 	}
 
-	n.Encode(s.Uri())
-
-	return true
-}
-
-func includeS3Object(n *yaml.Node) bool {
-	props, ok := expectProps(n, "Path", "BucketProperty", "KeyProperty")
-	if !ok {
-		return false
-	}
-
-	path := props["Path"]
-
-	s, err := upload(path)
-	if err != nil {
-		config.Debugf("Error uploading '%s': %s", path, err)
-		return false
-	}
-
-	out := map[string]string{
-		props["BucketProperty"]: s.bucket,
-		props["KeyProperty"]:    s.key,
-	}
-
-	n.Encode(out)
-
-	return true
+	return changed
 }
 
 func includeS3(n *yaml.Node) bool {
@@ -132,23 +187,19 @@ func includeS3(n *yaml.Node) bool {
 	return false
 }
 
-func serverlessFunction(n *yaml.Node) bool {
+func wrapS3ZipUri(n *yaml.Node) bool {
 	if n.Kind != yaml.ScalarNode {
 		return false
 	}
 
-	var newNode yaml.Node
-	err := newNode.Encode(map[string]interface{}{
-		"Rain::S3": n.Value,
+	newNode, changed := handleS3(s3Options{
+		Path:   n.Value,
+		Format: s3Uri,
+		Zip:    true,
 	})
-	if err != nil {
-		config.Debugf("Error converting to Rain::S3: %s", err)
-		return false
-	}
 
-	changed := includeS3Uri(&newNode)
 	if changed {
-		*n = newNode
+		*n = *newNode
 	}
 
 	return changed

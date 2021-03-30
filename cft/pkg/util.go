@@ -81,14 +81,14 @@ func zipPath(root string) (string, error) {
 		}
 		defer in.Close()
 
-		zipPath, err := filepath.Rel(filepath.Dir(root), path)
+		zPath, err := filepath.Rel(root, path)
 		if err != nil {
 			return err
 		}
 
-		zipPath = filepath.ToSlash(zipPath)
+		zPath = filepath.ToSlash(zPath)
 
-		out, err := w.Create(zipPath)
+		out, err := w.Create(zPath)
 		if err != nil {
 			return err
 		}
@@ -102,13 +102,13 @@ func zipPath(root string) (string, error) {
 
 // Upload a file or directory to S3.
 // If path is a directory, it will be zipped first.
-func upload(path string) (*s3Path, error) {
+func upload(path string, force bool) (*s3Path, error) {
 	info, err := os.Stat(path)
 	if err != nil {
 		return nil, err
 	}
 
-	if info.IsDir() {
+	if info.IsDir() || force {
 		// Zip it!
 		path, err = zipPath(path)
 		if err != nil {

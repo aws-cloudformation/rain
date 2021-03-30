@@ -60,6 +60,13 @@ func (t Template) MatchPath(path string) <-chan *yaml.Node {
 }
 
 func matchPath(ch chan<- *yaml.Node, n *yaml.Node, path []string) {
+	if n.Kind == yaml.DocumentNode {
+		for _, doc := range n.Content {
+			matchPath(ch, doc, path)
+		}
+		return
+	}
+
 	if len(path) == 0 {
 		ch <- n
 		return

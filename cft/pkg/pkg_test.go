@@ -13,6 +13,7 @@ import (
 )
 
 const hash = "7e81f4270269cd5111c4926e19de731fb38c6dbf07059d14f4591ce5d8ddd770"
+const zipHash = "b9fdb841ff37426ce0fafee84026c55a1f14f506e2773d3db3b6963a70d926ab"
 const bucket = "rain-artifacts-1234567890-us-east-1"
 const region = "us-east-1"
 
@@ -114,5 +115,20 @@ func TestServerlessFunction(t *testing.T) {
 		},
 	})
 
-	compare(t, in, "Resources/MyFunction/Properties/CodeUri", fmt.Sprintf("s3://%s/%s", bucket, hash))
+	compare(t, in, "Resources/MyFunction/Properties/CodeUri", fmt.Sprintf("s3://%s/%s", bucket, zipHash))
+}
+
+func TestServerlessApi(t *testing.T) {
+	in, _ := parse.Map(map[string]interface{}{
+		"Resources": map[string]interface{}{
+			"MyApi": map[string]interface{}{
+				"Type": "AWS::Serverless::Api",
+				"Properties": map[string]interface{}{
+					"DefinitionUri": "test.txt",
+				},
+			},
+		},
+	})
+
+	compare(t, in, "Resources/MyApi/Properties/DefinitionUri", fmt.Sprintf("s3://%s/%s", bucket, zipHash))
 }
