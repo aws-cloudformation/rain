@@ -46,8 +46,8 @@ func init() {
 		"Resources/*|Type==AWS::ServerlessRepo::Application/Properties/ReadmeUrl":                            wrapS3Uri,
 		"Resources/*|Type==AWS::ServerlessRepo::Application/Properties/LicenseUrl":                           wrapS3Uri,
 		"Resources/*|Type==AWS::Glue::Job/Properties/Command/ScriptLocation":                                 wrapS3Uri,
-		"Resources/*|Type==AWS::Serverless::Function/Properties/CodeUri":                                     wrapS3ZipUri,
-		"Resources/*|Type==AWS::Serverless::LayerVersion/Properties/ContentUri":                              wrapS3ZipUri,
+		"Resources/*|Type==AWS::Serverless::Function/Properties/CodeUri":                                     wrapS3ZipURI,
+		"Resources/*|Type==AWS::Serverless::LayerVersion/Properties/ContentUri":                              wrapS3ZipURI,
 		"Resources/*|Type==AWS::CloudFormation::Stack/Properties/TemplateURL":                                wrapTemplate,
 		"Resources/*|Type==AWS::Serverless::Application/Properties/Location":                                 wrapTemplate,
 		"Resources/*|Type==AWS::Lambda::Function/Properties/Code":                                            wrapObject("S3Bucket", "S3Key", true),
@@ -129,9 +129,9 @@ func handleS3(options s3Options) (*yaml.Node, bool) {
 
 		n.Encode(out)
 	case s3Uri:
-		n.Encode(s.Uri())
+		n.Encode(s.URI())
 	case s3Http:
-		n.Encode(s.Http())
+		n.Encode(s.HTTP())
 	default:
 		return nil, false
 	}
@@ -211,7 +211,7 @@ func includeS3(n *yaml.Node) bool {
 	return false
 }
 
-func wrapS3ZipUri(n *yaml.Node) bool {
+func wrapS3ZipURI(n *yaml.Node) bool {
 	if n.Kind != yaml.ScalarNode {
 		return false
 	}

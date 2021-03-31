@@ -35,8 +35,6 @@ func get(in interface{}, path []interface{}) interface{} {
 	default:
 		panic(fmt.Errorf("Unexpected path entry: %#v", head))
 	}
-
-	panic("Path not found")
 }
 
 func TestMatchPath(t *testing.T) {

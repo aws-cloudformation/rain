@@ -35,11 +35,11 @@ type s3Path struct {
 	region string
 }
 
-func (s *s3Path) Uri() string {
+func (s *s3Path) URI() string {
 	return fmt.Sprintf("s3://%s/%s", s.bucket, s.key)
 }
 
-func (s *s3Path) Http() string {
+func (s *s3Path) HTTP() string {
 	return fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", s.bucket, s.region, s.key)
 }
 
