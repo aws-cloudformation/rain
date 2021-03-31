@@ -2,13 +2,12 @@ package deploy
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"regexp"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
+	"github.com/aws-cloudformation/rain/cft/pkg"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
@@ -169,38 +168,20 @@ func ListToMap(name string, in []string) map[string]string {
 }
 
 func packageTemplate(fn string, yes bool) cft.Template {
-	outputFn, err := ioutil.TempFile("", "")
-	if err != nil {
-		panic(err)
-	}
-	defer func() {
-		config.Debugf("Removing temporary template file: %s", outputFn.Name())
-		outputFn.Close()
-		err := os.Remove(outputFn.Name())
-		if err != nil {
-			panic(ui.Errorf(err, "error removing temporary template file '%s'", outputFn.Name()))
-		}
-	}()
+	// Call RainBucket for side-effects in case we want to force bucket creation
+	s3.RainBucket(yes)
 
-	output, err := ui.RunAws("cloudformation", "package",
-		"--template-file", fn,
-		"--output-template-file", outputFn.Name(),
-		"--s3-bucket", s3.RainBucket(yes),
-	)
+	t, err := parse.File(fn)
 	if err != nil {
-		panic(ui.Errorf(err, "unable to package template"))
+		panic(ui.Errorf(err, "error reading template file '%s'", fn))
 	}
 
-	config.Debugf("Package output: %s", output)
-
-	// Load in the packaged template
-	config.Debugf("Loading packaged template file")
-	template, err := parse.File(outputFn.Name())
+	t, err = pkg.Template(t)
 	if err != nil {
-		panic(ui.Errorf(err, "error reading packaged template '%s'", outputFn.Name()))
+		panic(ui.Errorf(err, "error packaging template '%s'", fn))
 	}
 
-	return template
+	return t
 }
 
 func checkStack(stackName string) (types.Stack, bool) {
