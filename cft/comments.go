@@ -49,20 +49,20 @@ func (t Template) AddComments(comments []*Comment) error {
 
 		switch v := last.(type) {
 		case string:
-			kvp, err := s11n.GetMap(n, v)
-			if err != nil {
-				return err
+			key, value := s11n.GetMapValue(n, v)
+			if value == nil {
+				return fmt.Errorf("Can't find map key: '%s'", v)
 			}
 
-			switch kvp.Value.Kind {
+			switch value.Kind {
 			case yaml.MappingNode, yaml.SequenceNode:
-				if len(kvp.Value.Content) == 0 {
-					kvp.Value.LineComment = comment.Value
+				if len(value.Content) == 0 {
+					value.LineComment = comment.Value
 				} else {
-					kvp.Key.LineComment = comment.Value
+					key.LineComment = comment.Value
 				}
 			default:
-				kvp.Value.LineComment = comment.Value
+				value.LineComment = comment.Value
 			}
 		case int:
 			n, err = s11n.GetPath(node, comment.Path)

@@ -10,6 +10,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/cft/pkg"
+	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -25,7 +26,7 @@ func compare(t *testing.T, in cft.Template, path string, expected interface{}) {
 		t.Error(err)
 	}
 
-	n := out.GetPath(path)
+	n := s11n.MatchOne(&out.Node, path)
 
 	var actual interface{}
 	err = n.Decode(&actual)

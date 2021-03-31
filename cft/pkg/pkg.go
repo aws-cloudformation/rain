@@ -18,13 +18,14 @@ package pkg
 import (
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
+	"github.com/aws-cloudformation/rain/internal/s11n"
 )
 
 func transform(t cft.Template) bool {
 	changed := false
 
 	for path, fn := range registry {
-		for node := range t.MatchPath(path) {
+		for node := range s11n.MatchAll(&t.Node, path) {
 			changed = changed || fn(node)
 		}
 	}

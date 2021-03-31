@@ -1,10 +1,11 @@
-package cft_test
+package s11n_test
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/aws-cloudformation/rain/cft/parse"
+	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/google/go-cmp/cmp"
 	"gopkg.in/yaml.v3"
 )
@@ -81,8 +82,6 @@ func TestMatchPath(t *testing.T) {
 		},
 	}
 
-	tpl, _ := parse.Map(tplMap)
-
 	testCases := []struct {
 		path     string
 		expected []*yaml.Node
@@ -127,9 +126,12 @@ func TestMatchPath(t *testing.T) {
 		}},
 	}
 
+	tpl, _ := parse.Map(tplMap)
+	node := &tpl.Node
+
 	for _, testCase := range testCases {
 		results := make([]*yaml.Node, 0)
-		for n := range tpl.MatchPath(testCase.path) {
+		for n := range s11n.MatchAll(node, testCase.path) {
 			results = append(results, n)
 		}
 

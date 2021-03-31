@@ -6,14 +6,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type Map struct {
-	Key   *yaml.Node
-	Value *yaml.Node
-}
-
-func GetMap(node *yaml.Node, key string) (*Map, error) {
+// GetMapValue returns the key and value nodes from node that matches key.
+// if node is not a mapping node or the key does not exist, GetMapValue returns nil
+func GetMapValue(node *yaml.Node, key string) (*yaml.Node, *yaml.Node) {
 	if node.Kind != yaml.MappingNode {
-		return nil, fmt.Errorf("Attempt to index non-mapping node with '%s'", key)
+		return nil, nil
 	}
 
 	for i := 0; i < len(node.Content); i += 2 {
@@ -21,13 +18,14 @@ func GetMap(node *yaml.Node, key string) (*Map, error) {
 		valueNode := node.Content[i+1]
 
 		if keyNode.Value == key {
-			return &Map{keyNode, valueNode}, nil
+			return keyNode, valueNode
 		}
 	}
 
-	return nil, fmt.Errorf("Key not found '%s'", key)
+	return nil, nil
 }
 
+// GetPath returns the node by descending into map and array nodes for each element of path
 func GetPath(node *yaml.Node, path []interface{}) (*yaml.Node, error) {
 	if node.Kind == yaml.DocumentNode {
 		return GetPath(node.Content[0], path)
@@ -41,12 +39,12 @@ func GetPath(node *yaml.Node, path []interface{}) (*yaml.Node, error) {
 
 	switch v := next.(type) {
 	case string:
-		kvp, err := GetMap(node, v)
-		if err != nil {
-			return nil, err
+		_, value := GetMapValue(node, v)
+		if value == nil {
+			return nil, fmt.Errorf("Could not find map key: '%s'", v)
 		}
 
-		return GetPath(kvp.Value, path)
+		return GetPath(value, path)
 	case int:
 		if node.Kind != yaml.SequenceNode {
 			return nil, fmt.Errorf("Attempt to index non-sequence node with '%d'", v)
@@ -77,8 +75,8 @@ func setPath(node *yaml.Node, path []interface{}, value *yaml.Node) error {
 			return fmt.Errorf("Attempt to set index of non-mapping node with '%s'", v)
 		}
 
-		if kvp, err := GetMap(node, v); err == nil {
-			kvp.Value = value
+		if _, mapValue := GetMapValue(node, v); mapValue != nil {
+			*mapValue = *value
 		} else {
 			node.Content = append(node.Content, &yaml.Node{
 				Kind:  yaml.ScalarNode,
