@@ -3,6 +3,7 @@ package cft
 import (
 	"fmt"
 
+	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
 )
 
@@ -25,7 +26,7 @@ func (t Template) AddComments(comments []*Comment) error {
 		var err error
 
 		if len(comment.Path) == 0 {
-			n, err = getNodePath(node, comment.Path)
+			n, err = s11n.GetPath(node, comment.Path)
 			if err != nil {
 				return err
 			}
@@ -41,30 +42,30 @@ func (t Template) AddComments(comments []*Comment) error {
 
 		path, last := comment.Path[0:len(comment.Path)-1], comment.Path[len(comment.Path)-1]
 
-		n, err = getNodePath(node, path)
+		n, err = s11n.GetPath(node, path)
 		if err != nil {
 			return err
 		}
 
 		switch v := last.(type) {
 		case string:
-			kvp, err := getMapNode(n, v)
+			kvp, err := s11n.GetMap(n, v)
 			if err != nil {
 				return err
 			}
 
-			switch kvp.value.Kind {
+			switch kvp.Value.Kind {
 			case yaml.MappingNode, yaml.SequenceNode:
-				if len(kvp.value.Content) == 0 {
-					kvp.value.LineComment = comment.Value
+				if len(kvp.Value.Content) == 0 {
+					kvp.Value.LineComment = comment.Value
 				} else {
-					kvp.key.LineComment = comment.Value
+					kvp.Key.LineComment = comment.Value
 				}
 			default:
-				kvp.value.LineComment = comment.Value
+				kvp.Value.LineComment = comment.Value
 			}
 		case int:
-			n, err = getNodePath(node, comment.Path)
+			n, err = s11n.GetPath(node, comment.Path)
 			if err != nil {
 				return err
 			}

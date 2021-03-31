@@ -1,8 +1,9 @@
-package cft
+package s11n_test
 
 import (
 	"testing"
 
+	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
 )
 
@@ -37,7 +38,7 @@ func TestGetNodePath(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		actual, err := getNodePath(&base, testCase.path)
+		actual, err := s11n.GetPath(&base, testCase.path)
 		if err != nil {
 			t.Error(err)
 		}

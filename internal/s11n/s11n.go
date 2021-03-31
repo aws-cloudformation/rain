@@ -1,4 +1,4 @@
-package cft
+package s11n
 
 import (
 	"fmt"
@@ -6,12 +6,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type mapNode struct {
-	key   *yaml.Node
-	value *yaml.Node
+type Map struct {
+	Key   *yaml.Node
+	Value *yaml.Node
 }
 
-func getMapNode(node *yaml.Node, key string) (*mapNode, error) {
+func GetMap(node *yaml.Node, key string) (*Map, error) {
 	if node.Kind != yaml.MappingNode {
 		return nil, fmt.Errorf("Attempt to index non-mapping node with '%s'", key)
 	}
@@ -21,16 +21,16 @@ func getMapNode(node *yaml.Node, key string) (*mapNode, error) {
 		valueNode := node.Content[i+1]
 
 		if keyNode.Value == key {
-			return &mapNode{keyNode, valueNode}, nil
+			return &Map{keyNode, valueNode}, nil
 		}
 	}
 
 	return nil, fmt.Errorf("Key not found '%s'", key)
 }
 
-func getNodePath(node *yaml.Node, path []interface{}) (*yaml.Node, error) {
+func GetPath(node *yaml.Node, path []interface{}) (*yaml.Node, error) {
 	if node.Kind == yaml.DocumentNode {
-		return getNodePath(node.Content[0], path)
+		return GetPath(node.Content[0], path)
 	}
 
 	if len(path) == 0 {
@@ -41,24 +41,24 @@ func getNodePath(node *yaml.Node, path []interface{}) (*yaml.Node, error) {
 
 	switch v := next.(type) {
 	case string:
-		kvp, err := getMapNode(node, v)
+		kvp, err := GetMap(node, v)
 		if err != nil {
 			return nil, err
 		}
 
-		return getNodePath(kvp.value, path)
+		return GetPath(kvp.Value, path)
 	case int:
 		if node.Kind != yaml.SequenceNode {
 			return nil, fmt.Errorf("Attempt to index non-sequence node with '%d'", v)
 		}
 
-		return getNodePath(node.Content[v], path)
+		return GetPath(node.Content[v], path)
 	default:
 		return nil, fmt.Errorf("Unexpected path entry '%#v'", next)
 	}
 }
 
-func setNodePath(node *yaml.Node, path []interface{}, value *yaml.Node) error {
+func setPath(node *yaml.Node, path []interface{}, value *yaml.Node) error {
 	if len(path) == 0 {
 		*node = *value
 		return nil
@@ -66,7 +66,7 @@ func setNodePath(node *yaml.Node, path []interface{}, value *yaml.Node) error {
 
 	path, last := path[:len(path)-1], path[len(path)-1]
 
-	node, err := getNodePath(node, path)
+	node, err := GetPath(node, path)
 	if err != nil {
 		return err
 	}
@@ -77,8 +77,8 @@ func setNodePath(node *yaml.Node, path []interface{}, value *yaml.Node) error {
 			return fmt.Errorf("Attempt to set index of non-mapping node with '%s'", v)
 		}
 
-		if kvp, err := getMapNode(node, v); err == nil {
-			kvp.value = value
+		if kvp, err := GetMap(node, v); err == nil {
+			kvp.Value = value
 		} else {
 			node.Content = append(node.Content, &yaml.Node{
 				Kind:  yaml.ScalarNode,
