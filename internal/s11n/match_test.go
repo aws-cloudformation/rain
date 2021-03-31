@@ -127,7 +127,7 @@ func TestMatchPath(t *testing.T) {
 	}
 
 	tpl, _ := parse.Map(tplMap)
-	node := &tpl.Node
+	node := tpl.Node
 
 	for _, testCase := range testCases {
 		results := make([]*yaml.Node, 0)

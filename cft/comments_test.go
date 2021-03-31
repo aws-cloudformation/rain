@@ -54,7 +54,7 @@ waldo: {} # Comment about waldo
 		panic(err)
 	}
 
-	tmpl, _ := parse.Node(node)
+	tmpl, _ := parse.Node(&node)
 	tmpl.AddComments(comments)
 
 	actual := format.String(tmpl, format.Options{})

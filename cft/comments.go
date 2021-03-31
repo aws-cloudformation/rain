@@ -15,7 +15,7 @@ type Comment struct {
 
 // AddComments applies a set of comments to the template
 func (t Template) AddComments(comments []*Comment) error {
-	node := &t.Node
+	node := t.Node
 
 	if node.Kind == yaml.DocumentNode {
 		node = node.Content[0]

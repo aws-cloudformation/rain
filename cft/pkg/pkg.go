@@ -19,14 +19,15 @@ import (
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/s11n"
+	"gopkg.in/yaml.v3"
 )
 
-func transform(t cft.Template) bool {
+func transform(node *yaml.Node) bool {
 	changed := false
 
 	for path, fn := range registry {
-		for node := range s11n.MatchAll(&t.Node, path) {
-			changed = changed || fn(node)
+		for found := range s11n.MatchAll(node, path) {
+			changed = changed || fn(found)
 		}
 	}
 
@@ -37,18 +38,14 @@ func transform(t cft.Template) bool {
 func Template(t cft.Template) (cft.Template, error) {
 	var err error
 
-	// Keep transforming until we've recursed enough
-	for {
-		changed := transform(t)
+	node := t.Node
 
-		// Parse again, in case there are other things to deal with
-		t, err = parse.Node(t.Node)
+	changed := transform(node)
+
+	if changed {
+		t, err = parse.Node(node)
 		if err != nil {
 			return t, err
-		}
-
-		if !changed {
-			break
 		}
 	}
 

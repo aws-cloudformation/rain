@@ -81,20 +81,17 @@ func includeLiteral(n *yaml.Node) bool {
 		return false
 	}
 
-	content, err := readFile(path)
+	t, err := parse.File(path)
 	if err != nil {
-		config.Debugf("Error reading file '%s': %s", path, err)
+		config.Debugf("Error parsing file '%s': %s", path, err)
 		return false
 	}
 
-	err = yaml.Unmarshal(content, n)
-	if err != nil {
-		config.Debugf("Error unmarshaling file '%s': %s", path, err)
-		return false
-	}
+	// Recursive transform
+	transform(t.Node)
 
 	// Unwrap from the document node
-	*n = *n.Content[0]
+	*n = *t.Node.Content[0]
 
 	return true
 }

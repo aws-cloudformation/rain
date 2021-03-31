@@ -41,7 +41,7 @@ func Map(input map[string]interface{}) (cft.Template, error) {
 		return cft.Template{}, err
 	}
 
-	return Node(node)
+	return Node(&node)
 }
 
 // String returns a cft.Template parsed from a string
@@ -52,12 +52,12 @@ func String(input string) (cft.Template, error) {
 		return cft.Template{}, fmt.Errorf("Invalid YAML: %s", err)
 	}
 
-	return Node(node)
+	return Node(&node)
 }
 
-// Node returns a cft.Template parse from a yaml.Node
-func Node(node yaml.Node) (cft.Template, error) {
-	parseNode(&node)
+// Node returns a cft.Template parse from a *yaml.Node
+func Node(node *yaml.Node) (cft.Template, error) {
+	parseNode(node)
 	return cft.Template{Node: node}, nil
 }
 

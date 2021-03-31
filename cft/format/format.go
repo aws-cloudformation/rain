@@ -23,7 +23,7 @@ type Options struct {
 
 // String returns a string representation of the supplied cft.Template
 func String(t cft.Template, opt Options) string {
-	node := &t.Node
+	node := t.Node
 
 	buf := strings.Builder{}
 	enc := yaml.NewEncoder(&buf)

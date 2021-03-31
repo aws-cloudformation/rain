@@ -26,7 +26,7 @@ func compare(t *testing.T, in cft.Template, path string, expected interface{}) {
 		t.Error(err)
 	}
 
-	n := s11n.MatchOne(&out.Node, path)
+	n := s11n.MatchOne(out.Node, path)
 
 	var actual interface{}
 	err = n.Decode(&actual)

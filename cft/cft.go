@@ -12,7 +12,7 @@ import (
 // Template represents a CloudFormation template. The Template type
 // is minimal for now but will likely grow new features as needed by rain.
 type Template struct {
-	yaml.Node
+	*yaml.Node
 }
 
 // Map returns the template as a map[string]interface{}
