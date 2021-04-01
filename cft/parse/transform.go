@@ -36,8 +36,9 @@ func parseGetAtt(n *yaml.Node) {
 	}
 }
 
-// Fix up yaml.Nodes on the way in to a template
-func parseNode(n *yaml.Node) {
+// TransformNode takes a *yaml.Node and convert tag-style names into map-style,
+// and converts other scalars into a canonical format
+func TransformNode(n *yaml.Node) {
 	// Fix badly-parsed numbers
 	if n.ShortTag() == "!!float" && n.Value[0] == '0' {
 		n.Tag = "!!str"
@@ -48,7 +49,7 @@ func parseNode(n *yaml.Node) {
 		n.Tag = "!!str"
 	}
 
-	// Convert tag-style intrinsices into map-style
+	// Convert tag-style intrinsics into map-style
 	for tag, funcName := range cft.Tags {
 		if n.ShortTag() == tag {
 			body := node.Clone(n)
@@ -87,6 +88,6 @@ func parseNode(n *yaml.Node) {
 	}
 
 	for _, child := range n.Content {
-		parseNode(child)
+		TransformNode(child)
 	}
 }

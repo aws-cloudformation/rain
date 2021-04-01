@@ -22,16 +22,21 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func transform(node *yaml.Node) bool {
+func transform(node *yaml.Node) (bool, error) {
 	changed := false
 
 	for path, fn := range registry {
 		for found := range s11n.MatchAll(node, path) {
-			changed = changed || fn(found)
+			c, err := fn(found)
+			if err != nil {
+				return false, err
+			}
+
+			changed = changed || c
 		}
 	}
 
-	return changed
+	return changed, nil
 }
 
 // Template returns a copy of the template with assets included as per the various `Include::` functions
@@ -40,14 +45,11 @@ func Template(t cft.Template) (cft.Template, error) {
 
 	node := t.Node
 
-	changed := transform(node)
+	changed, err := transform(node)
 
 	if changed {
 		t, err = parse.Node(node)
-		if err != nil {
-			return t, err
-		}
 	}
 
-	return t, nil
+	return t, err
 }

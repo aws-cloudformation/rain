@@ -1,13 +1,14 @@
 package pkg
 
 import (
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/cft/parse"
-	"github.com/aws-cloudformation/rain/internal/config"
 	"gopkg.in/yaml.v3"
 )
 
@@ -27,7 +28,7 @@ type s3Options struct {
 	Format         s3Format `yaml:"Format"`
 }
 
-type rainFunc func(*yaml.Node) bool
+type rainFunc func(*yaml.Node) (bool, error)
 
 var registry map[string]rainFunc
 
@@ -58,49 +59,45 @@ func init() {
 	}
 }
 
-func includeString(n *yaml.Node) bool {
-	path, ok := expectString(n)
-	if !ok {
-		return false
-	}
-
-	content, err := readFile(path)
+func includeString(n *yaml.Node) (bool, error) {
+	content, err := expectFile(n)
 	if err != nil {
-		config.Debugf("Error reading file '%s': %s", path, err)
-		return false
+		return false, err
 	}
 
 	n.Encode(strings.TrimSpace(string(content)))
 
-	return true
+	return true, nil
 }
 
-func includeLiteral(n *yaml.Node) bool {
-	path, ok := expectString(n)
-	if !ok {
-		return false
-	}
-
-	t, err := parse.File(path)
+func includeLiteral(n *yaml.Node) (bool, error) {
+	content, err := expectFile(n)
 	if err != nil {
-		config.Debugf("Error parsing file '%s': %s", path, err)
-		return false
+		return false, err
 	}
 
-	// Recursive transform
-	transform(t.Node)
+	var node yaml.Node
+	err = yaml.Unmarshal(content, &node)
+	if err != nil {
+		return false, err
+	}
+
+	// Transform
+	parse.TransformNode(&node)
+	_, err = transform(&node)
+	if err != nil {
+		return false, err
+	}
 
 	// Unwrap from the document node
-	*n = *t.Node.Content[0]
-
-	return true
+	*n = *node.Content[0]
+	return true, nil
 }
 
-func handleS3(options s3Options) (*yaml.Node, bool) {
+func handleS3(options s3Options) (*yaml.Node, error) {
 	s, err := upload(options.Path, options.Zip)
 	if err != nil {
-		config.Debugf("Error uploading '%s': %s", options.Path, err)
-		return nil, false
+		return nil, err
 	}
 
 	if options.Format == "" {
@@ -116,7 +113,7 @@ func handleS3(options s3Options) (*yaml.Node, bool) {
 	switch options.Format {
 	case s3Object:
 		if options.BucketProperty == "" || options.KeyProperty == "" {
-			return nil, false
+			return nil, errors.New("Missing BucketProperty or KeyProperty")
 		}
 
 		out := map[string]string{
@@ -130,73 +127,78 @@ func handleS3(options s3Options) (*yaml.Node, bool) {
 	case s3Http:
 		n.Encode(s.HTTP())
 	default:
-		return nil, false
+		return nil, fmt.Errorf("Unexpected S3 output format: %s", options.Format)
 	}
 
-	return &n, true
+	return &n, nil
 }
 
-func includeS3Object(n *yaml.Node) bool {
+func includeS3Object(n *yaml.Node) (bool, error) {
 	if n.Kind != yaml.MappingNode || len(n.Content) != 2 {
-		return false
+		return false, errors.New("Expected a map")
 	}
 
 	// Parse the options
 	var options s3Options
 	err := n.Content[1].Decode(&options)
 	if err != nil {
-		return false
+		return false, err
 	}
 
-	newNode, changed := handleS3(options)
-	if changed {
-		*n = *newNode
+	newNode, err := handleS3(options)
+	if err != nil {
+		return false, err
 	}
 
-	return changed
+	*n = *newNode
+
+	return true, nil
 }
 
-func includeS3Http(n *yaml.Node) bool {
-	path, ok := expectString(n)
-	if !ok {
-		return false
+func includeS3Http(n *yaml.Node) (bool, error) {
+	path, err := expectString(n)
+	if err != nil {
+		return false, err
 	}
 
-	newNode, changed := handleS3(s3Options{
+	newNode, err := handleS3(s3Options{
 		Path:   path,
 		Format: s3Http,
 	})
 
-	if changed {
-		*n = *newNode
+	if err != nil {
+		return false, err
 	}
 
-	return changed
+	*n = *newNode
+
+	return true, nil
 }
 
-func includeS3Uri(n *yaml.Node) bool {
-	path, ok := expectString(n)
-	if !ok {
-		return false
+func includeS3Uri(n *yaml.Node) (bool, error) {
+	path, err := expectString(n)
+	if err != nil {
+		return false, err
 	}
 
-	newNode, changed := handleS3(s3Options{
+	newNode, err := handleS3(s3Options{
 		Path:   path,
 		Format: s3Uri,
 	})
 
-	if changed {
-		*n = *newNode
+	if err != nil {
+		return false, err
 	}
 
-	return changed
+	*n = *newNode
+
+	return true, nil
 }
 
-func includeS3(n *yaml.Node) bool {
+func includeS3(n *yaml.Node) (bool, error) {
 	// Figure out if we're a string or an object
-
 	if len(n.Content) != 2 {
-		return false
+		return false, errors.New("Expected exactly one key")
 	}
 
 	if n.Content[1].Kind == yaml.ScalarNode {
@@ -205,109 +207,98 @@ func includeS3(n *yaml.Node) bool {
 		return includeS3Object(n)
 	}
 
-	return false
+	return true, nil
 }
 
-func wrapS3ZipURI(n *yaml.Node) bool {
-	if n.Kind != yaml.ScalarNode {
+func wrapS3(n *yaml.Node, options s3Options) bool {
+	newNode, err := handleS3(options)
+	if err != nil {
 		return false
 	}
 
-	newNode, changed := handleS3(s3Options{
+	*n = *newNode
+
+	return true
+}
+
+func wrapS3ZipURI(n *yaml.Node) (bool, error) {
+	if n.Kind != yaml.ScalarNode {
+		// No need to error - this could be valid
+		return false, nil
+	}
+
+	return wrapS3(n, s3Options{
 		Path:   n.Value,
 		Format: s3Uri,
 		Zip:    true,
-	})
-
-	if changed {
-		*n = *newNode
-	}
-
-	return changed
+	}), nil
 }
 
-func wrapS3Uri(n *yaml.Node) bool {
+func wrapS3Uri(n *yaml.Node) (bool, error) {
 	if n.Kind != yaml.ScalarNode {
-		return false
+		// No need to error - this could be valid
+		return false, nil
 	}
 
-	newNode, changed := handleS3(s3Options{
+	return wrapS3(n, s3Options{
 		Path:   n.Value,
 		Format: s3Uri,
-	})
-
-	if changed {
-		*n = *newNode
-	}
-
-	return changed
+	}), nil
 }
 
 func wrapObject(bucket, key string, forceZip bool) rainFunc {
-	return func(n *yaml.Node) bool {
+	return func(n *yaml.Node) (bool, error) {
 		if n.Kind != yaml.ScalarNode {
-			return false
+			// No need to error - this could be valid
+			return false, nil
 		}
 
-		newNode, changed := handleS3(s3Options{
+		return wrapS3(n, s3Options{
 			Path:           n.Value,
 			Format:         s3Object,
 			BucketProperty: bucket,
 			KeyProperty:    key,
 			Zip:            forceZip,
-		})
-
-		if changed {
-			*n = *newNode
-		}
-
-		return changed
+		}), nil
 	}
 }
 
-func wrapTemplate(n *yaml.Node) bool {
+func wrapTemplate(n *yaml.Node) (bool, error) {
 	if n.Kind != yaml.ScalarNode {
-		return false
+		// No need to error - this could be valid
+		return false, nil
 	}
 
-	content, err := readFile(n.Value)
-	if err != nil {
-		return false
+	if strings.HasPrefix(n.Value, "http://") || strings.HasPrefix(n.Value, "https://") {
+		return false, nil // Already http
 	}
 
-	tmpl, err := parse.String(string(content))
+	tmpl, err := parse.File(n.Value)
 	if err != nil {
-		return false
+		return false, err
 	}
 
 	tmpl, err = Template(tmpl)
 	if err != nil {
-		return false
+		return false, err
 	}
 
 	f, err := ioutil.TempFile(os.TempDir(), "*.template")
 	if err != nil {
-		return false
+		return false, err
 	}
-
 	defer os.Remove(f.Name())
 
 	if _, err := f.Write([]byte(format.String(tmpl, format.Options{}))); err != nil {
-		return false
+		return false, err
 	}
 
 	if err := f.Close(); err != nil {
-		return false
+		return false, err
 	}
 
-	newNode, changed := handleS3(s3Options{
+	return wrapS3(n, s3Options{
 		Path:   f.Name(),
 		Format: s3Http,
-	})
-
-	if changed {
-		*n = *newNode
-	}
-
-	return changed
+	}), nil
 }

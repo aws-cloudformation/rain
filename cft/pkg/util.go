@@ -43,19 +43,6 @@ func (s *s3Path) HTTP() string {
 	return fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", s.bucket, s.region, s.key)
 }
 
-func readFile(path string) ([]byte, error) {
-	info, err := os.Stat(path)
-	if err != nil {
-		return nil, err
-	}
-
-	if info.IsDir() {
-		return nil, fmt.Errorf("'%s' is a directory", path)
-	}
-
-	return ioutil.ReadFile(path)
-}
-
 func zipPath(root string) (string, error) {
 	tmpFile, err := ioutil.TempFile(os.TempDir(), "*.zip")
 	if err != nil {
@@ -148,16 +135,34 @@ func upload(path string, force bool) (*s3Path, error) {
 	}, err
 }
 
-func expectString(n *yaml.Node) (string, bool) {
+func expectString(n *yaml.Node) (string, error) {
 	if len(n.Content) != 2 {
-		return "", false
+		return "", fmt.Errorf("Expected a mapping node")
 	}
 
 	if n.Content[1].Kind != yaml.ScalarNode {
-		return "", false
+		return "", fmt.Errorf("Expected a scalar value")
 	}
 
-	return n.Content[1].Value, true
+	return n.Content[1].Value, nil
+}
+
+func expectFile(n *yaml.Node) ([]byte, error) {
+	path, err := expectString(n)
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := os.Stat(path)
+	if err != nil {
+		return nil, err
+	}
+
+	if info.IsDir() {
+		return nil, fmt.Errorf("'%s' is a directory", path)
+	}
+
+	return ioutil.ReadFile(path)
 }
 
 func expectProps(n *yaml.Node, names ...string) (map[string]string, bool) {
