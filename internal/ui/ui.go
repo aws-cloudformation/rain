@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws-cloudformation/rain/internal/config"
-	"github.com/aws-cloudformation/rain/internal/console/run"
 	smithy "github.com/aws/smithy-go"
 )
 
@@ -26,17 +24,4 @@ func Errorf(err error, message string, parts ...interface{}) error {
 // Indent adds prefix to every line of in
 func Indent(prefix string, in string) string {
 	return prefix + strings.Join(strings.Split(strings.TrimSpace(in), "\n"), "\n"+prefix)
-}
-
-// RunAws runs the given aws command, passing in the current region and profile
-func RunAws(args ...string) (string, error) {
-	if config.Profile != "" {
-		args = append(args, "--profile", config.Profile)
-	}
-
-	if config.Region != "" {
-		args = append(args, "--region", config.Region)
-	}
-
-	return run.Capture("aws", args...)
 }
