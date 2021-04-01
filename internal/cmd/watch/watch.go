@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws-cloudformation/rain/internal/cmd"
 	"github.com/aws-cloudformation/rain/internal/ui"
 
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
@@ -22,7 +21,6 @@ var Cmd = &cobra.Command{
 	Short:                 "Display an updating view of a CloudFormation stack",
 	Long:                  "Repeatedly displays the status of a CloudFormation stack. Useful for watching the progress of a deployment started from outside of Rain.",
 	Args:                  cobra.ExactArgs(1),
-	Annotations:           cmd.StackAnnotation,
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		stackName := args[0]

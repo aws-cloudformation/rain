@@ -2,7 +2,6 @@ package build
 
 import (
 	"fmt"
-	"github.com/aws-cloudformation/rain/internal/cmd"
 	"sort"
 	"strings"
 
@@ -21,7 +20,6 @@ var Cmd = &cobra.Command{
 	Use:                   "build [<resource type>...]",
 	Short:                 "Create CloudFormation templates",
 	Long:                  "Outputs a CloudFormation template containing the named resource types.",
-	Annotations:           cmd.TemplateAnnotation,
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		if buildListFlag {

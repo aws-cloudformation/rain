@@ -31,7 +31,7 @@ func Example_rainhelp() {
 	//   diff        Compare CloudFormation templates
 	//   fmt         Format CloudFormation templates
 	//   merge       Merge two or more CloudFormation templates
-	//   pkg         Package local artifacts into the template through Rain:: directives
+	//   pkg         Package local artifacts into a template
 	//   tree        Find dependencies of Resources and Outputs in a local template
 	//
 	// Other Commands:

@@ -1,7 +1,6 @@
 package tree
 
 import (
-	"github.com/aws-cloudformation/rain/internal/cmd"
 	"github.com/aws-cloudformation/rain/internal/ui"
 
 	"github.com/aws-cloudformation/rain/cft/graph"
@@ -20,7 +19,6 @@ var Cmd = &cobra.Command{
 	Long:                  "Find and display the dependencies between Parameters, Resources, and Outputs in a CloudFormation template.",
 	Args:                  cobra.ExactArgs(1),
 	Aliases:               []string{"graph"},
-	Annotations:           cmd.TemplateAnnotation,
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		fileName := args[0]

@@ -8,7 +8,6 @@ import (
 
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
-	"github.com/aws-cloudformation/rain/internal/cmd"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
@@ -34,7 +33,6 @@ If a template needs to be packaged before it can be deployed, rain will package 
 Rain will attempt to create an S3 bucket to store artifacts that it packages and deploys.
 The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS region>`,
 	Args:                  cobra.RangeArgs(1, 2),
-	Annotations:           cmd.StackAnnotation,
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		fn := args[0]

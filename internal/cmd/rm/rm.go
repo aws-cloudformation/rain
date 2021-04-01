@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
-	"github.com/aws-cloudformation/rain/internal/cmd"
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/ui"
@@ -21,7 +20,6 @@ var Cmd = &cobra.Command{
 	Short:                 "Delete a running CloudFormation stack",
 	Long:                  "Deletes the CloudFormation stack named <stack> and waits for the action to complete.",
 	Args:                  cobra.ExactArgs(1),
-	Annotations:           cmd.StackAnnotation,
 	Aliases:               []string{"remove", "del", "delete"},
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {

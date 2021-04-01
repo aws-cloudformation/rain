@@ -1,7 +1,7 @@
 package rain
 
 import (
-	"strings"
+	"fmt"
 
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/spf13/cobra"
@@ -12,7 +12,7 @@ import (
 	consolecmd "github.com/aws-cloudformation/rain/internal/cmd/console"
 	"github.com/aws-cloudformation/rain/internal/cmd/deploy"
 	"github.com/aws-cloudformation/rain/internal/cmd/diff"
-	"github.com/aws-cloudformation/rain/internal/cmd/fmt"
+	rainfmt "github.com/aws-cloudformation/rain/internal/cmd/fmt"
 	"github.com/aws-cloudformation/rain/internal/cmd/info"
 	"github.com/aws-cloudformation/rain/internal/cmd/logs"
 	"github.com/aws-cloudformation/rain/internal/cmd/ls"
@@ -54,34 +54,48 @@ Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
   {{rpad .CommandPath .CommandPathPadding}} {{.Short}}{{end}}{{end}}{{end}}
 `
 
-func init() {
-	Cmd.AddCommand(build.Cmd)
-	Cmd.AddCommand(cat.Cmd)
-	Cmd.AddCommand(consolecmd.Cmd)
-	Cmd.AddCommand(deploy.Cmd)
-	Cmd.AddCommand(diff.Cmd)
-	Cmd.AddCommand(fmt.Cmd)
-	Cmd.AddCommand(info.Cmd)
-	Cmd.AddCommand(logs.Cmd)
-	Cmd.AddCommand(ls.Cmd)
-	Cmd.AddCommand(merge.Cmd)
-	Cmd.AddCommand(rm.Cmd)
-	Cmd.AddCommand(tree.Cmd)
-	Cmd.AddCommand(watch.Cmd)
-	Cmd.AddCommand(pkg.Cmd)
+const stackGroup = "Stack commands"
+const templateGroup = "Template commands"
 
-	for _, c := range Cmd.Commands() {
-		if c.Annotations[cmd.GroupAnnotationLabel] == cmd.StackGroup || c == info.Cmd || c == consolecmd.Cmd {
-			c.Flags().StringVarP(&config.Profile, "profile", "p", "", "AWS profile name; read from the AWS CLI configuration file")
-			c.Flags().StringVarP(&config.Region, "region", "r", "", "AWS region to use")
-		}
+func addCommand(label string, profileOptions bool, c *cobra.Command) {
+	if label != "" {
+		c.Annotations = map[string]string{"Group": label}
 	}
 
+	if profileOptions {
+		c.Flags().StringVarP(&config.Profile, "profile", "p", "", "AWS profile name; read from the AWS CLI configuration file")
+		c.Flags().StringVarP(&config.Region, "region", "r", "", "AWS region to use")
+	}
+
+	Cmd.AddCommand(c)
+}
+
+func init() {
+	// Stack commands
+	addCommand(stackGroup, true, cat.Cmd)
+	addCommand(stackGroup, true, deploy.Cmd)
+	addCommand(stackGroup, true, logs.Cmd)
+	addCommand(stackGroup, true, ls.Cmd)
+	addCommand(stackGroup, true, rm.Cmd)
+	addCommand(stackGroup, true, watch.Cmd)
+
+	// Template commands
+	addCommand(templateGroup, false, build.Cmd)
+	addCommand(templateGroup, false, diff.Cmd)
+	addCommand(templateGroup, false, rainfmt.Cmd)
+	addCommand(templateGroup, false, merge.Cmd)
+	addCommand(templateGroup, true, pkg.Cmd)
+	addCommand(templateGroup, false, tree.Cmd)
+
+	// Other commands
+	addCommand("", true, consolecmd.Cmd)
+	addCommand("", true, info.Cmd)
+
 	// Customise usage
-	Cmd.Annotations = map[string]string{"Groups": strings.Join(cmd.Groups, "|")}
+	Cmd.Annotations = map[string]string{"Groups": fmt.Sprintf("%s|%s", stackGroup, templateGroup)}
 
 	cobra.AddTemplateFunc("groups", func() []string {
-		return cmd.Groups
+		return []string{stackGroup, templateGroup}
 	})
 
 	oldUsageFunc := Cmd.UsageFunc()

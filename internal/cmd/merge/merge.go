@@ -6,7 +6,6 @@ import (
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/cft/parse"
-	"github.com/aws-cloudformation/rain/internal/cmd"
 	"github.com/aws-cloudformation/rain/internal/ui"
 	"github.com/spf13/cobra"
 )
@@ -19,7 +18,6 @@ var Cmd = &cobra.Command{
 	Short:                 "Merge two or more CloudFormation templates",
 	Long:                  "Merges all specified CloudFormation templates, print the resultant template to standard out",
 	Args:                  cobra.MinimumNArgs(2),
-	Annotations:           cmd.TemplateAnnotation,
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error

@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/aws-cloudformation/rain/cft/format"
-	"github.com/aws-cloudformation/rain/internal/cmd"
 	"github.com/aws-cloudformation/rain/internal/ui"
 
 	"github.com/aws-cloudformation/rain/cft/parse"
@@ -22,7 +21,6 @@ var Cmd = &cobra.Command{
 	Short:                 "Get the CloudFormation template from a running stack",
 	Long:                  "Downloads the template used to deploy <stack> and prints it to stdout.",
 	Args:                  cobra.ExactArgs(1),
-	Annotations:           cmd.StackAnnotation,
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		stackName := args[0]

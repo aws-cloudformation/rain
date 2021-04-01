@@ -3,7 +3,6 @@ package logs
 import (
 	"fmt"
 
-	"github.com/aws-cloudformation/rain/internal/cmd"
 	"github.com/aws-cloudformation/rain/internal/ui"
 
 	"github.com/spf13/cobra"
@@ -21,7 +20,6 @@ By default, only show log entries that contain a useful message (e.g. a failure 
 You can use the --all flag to change this behaviour.`,
 	Args:                  cobra.RangeArgs(1, 2),
 	Aliases:               []string{"log"},
-	Annotations:           cmd.StackAnnotation,
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		stackName := args[0]

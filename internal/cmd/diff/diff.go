@@ -3,7 +3,6 @@ package diff
 import (
 	"fmt"
 
-	"github.com/aws-cloudformation/rain/internal/cmd"
 	"github.com/aws-cloudformation/rain/internal/ui"
 
 	"github.com/aws-cloudformation/rain/cft/diff"
@@ -19,7 +18,6 @@ var Cmd = &cobra.Command{
 	Short:                 "Compare CloudFormation templates",
 	Long:                  "Outputs a summary of the changes necessary to transform the CloudFormation template named <from> into the template named <to>.",
 	Args:                  cobra.ExactArgs(2),
-	Annotations:           cmd.TemplateAnnotation,
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		leftFn, rightFn := args[0], args[1]

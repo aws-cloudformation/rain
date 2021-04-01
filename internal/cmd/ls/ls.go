@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/aws-cloudformation/rain/internal/cmd"
 	"github.com/aws-cloudformation/rain/internal/ui"
 
 	"github.com/aws-cloudformation/rain/internal/aws"
@@ -25,7 +24,6 @@ var Cmd = &cobra.Command{
 	Long:                  "Displays a list of all running stacks or the contents of <stack> if provided.",
 	Args:                  cobra.MaximumNArgs(1),
 	Aliases:               []string{"list"},
-	Annotations:           cmd.StackAnnotation,
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 1 {

@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft/format"
-	"github.com/aws-cloudformation/rain/internal/cmd"
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/ui"
 
@@ -82,7 +81,6 @@ var Cmd = &cobra.Command{
 	Aliases:               []string{"format"},
 	Short:                 "Format CloudFormation templates",
 	Long:                  "Reads CloudFormation templates from filename arguments (or stdin if no filenames are supplied) and formats them",
-	Annotations:           cmd.TemplateAnnotation,
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		var results []result

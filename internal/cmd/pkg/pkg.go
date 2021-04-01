@@ -5,7 +5,6 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft/format"
 	cftpkg "github.com/aws-cloudformation/rain/cft/pkg"
-	"github.com/aws-cloudformation/rain/internal/cmd"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/ui"
 	"github.com/spf13/cobra"
@@ -17,7 +16,6 @@ var Cmd = &cobra.Command{
 	Short:                 "Package local artifacts into the template through Rain:: directives",
 	Long:                  "Package local artifacts into the template through Rain:: directives",
 	Args:                  cobra.ExactArgs(1),
-	Annotations:           cmd.TemplateAnnotation,
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		fn := args[0]
