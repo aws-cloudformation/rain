@@ -147,22 +147,28 @@ func expectString(n *yaml.Node) (string, error) {
 	return n.Content[1].Value, nil
 }
 
-func expectFile(n *yaml.Node) ([]byte, error) {
+func expectFile(n *yaml.Node, root string) ([]byte, string, error) {
 	path, err := expectString(n)
 	if err != nil {
-		return nil, err
+		return nil, "", err
+	}
+
+	if !filepath.IsAbs(path) {
+		path = filepath.Join(root, path)
 	}
 
 	info, err := os.Stat(path)
 	if err != nil {
-		return nil, err
+		return nil, path, err
 	}
 
 	if info.IsDir() {
-		return nil, fmt.Errorf("'%s' is a directory", path)
+		return nil, path, fmt.Errorf("'%s' is a directory", path)
 	}
 
-	return ioutil.ReadFile(path)
+	content, err := ioutil.ReadFile(path)
+
+	return content, path, err
 }
 
 func expectProps(n *yaml.Node, names ...string) (map[string]string, bool) {

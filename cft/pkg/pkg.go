@@ -16,18 +16,20 @@
 package pkg
 
 import (
+	"path/filepath"
+
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
 )
 
-func transform(node *yaml.Node) (bool, error) {
+func transform(node *yaml.Node, root string) (bool, error) {
 	changed := false
 
 	for path, fn := range registry {
 		for found := range s11n.MatchAll(node, path) {
-			c, err := fn(found)
+			c, err := fn(found, root)
 			if err != nil {
 				return false, err
 			}
@@ -39,17 +41,29 @@ func transform(node *yaml.Node) (bool, error) {
 	return changed, nil
 }
 
-// Template returns a copy of the template with assets included as per the various `Include::` functions
-func Template(t cft.Template) (cft.Template, error) {
-	var err error
-
+// Template returns t with assets included as per AWS CLI packaging rules
+// and any Rain:: functions used.
+// root must be passed in so that any included assets can be loaded from the same directory
+func Template(t cft.Template, root string) (cft.Template, error) {
 	node := t.Node
 
-	changed, err := transform(node)
+	changed, err := transform(node, root)
 
 	if changed {
 		t, err = parse.Node(node)
 	}
 
 	return t, err
+}
+
+// File opens path as a CloudFormation template and returns a cft.Template
+// with assets included as per AWS CLI packaging rules
+// and any Rain:: functions used
+func File(path string) (cft.Template, error) {
+	t, err := parse.File(path)
+	if err != nil {
+		return t, err
+	}
+
+	return Template(t, filepath.Dir(path))
 }

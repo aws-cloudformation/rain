@@ -21,7 +21,7 @@ const region = "us-east-1"
 const packagedTemplateHash = "28f611b4c6d562fa459e7131b167960cd1b5dc5a0238da157ee1196d4679a3cc"
 
 func compare(t *testing.T, in cft.Template, path string, expected interface{}) {
-	out, err := pkg.Template(in)
+	out, err := pkg.Template(in, "./")
 	if err != nil {
 		t.Error(err)
 	}

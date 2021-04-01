@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
-	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/cft/pkg"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
@@ -171,12 +170,7 @@ func packageTemplate(fn string, yes bool) cft.Template {
 	// Call RainBucket for side-effects in case we want to force bucket creation
 	s3.RainBucket(yes)
 
-	t, err := parse.File(fn)
-	if err != nil {
-		panic(ui.Errorf(err, "error reading template file '%s'", fn))
-	}
-
-	t, err = pkg.Template(t)
+	t, err := pkg.File(fn)
 	if err != nil {
 		panic(ui.Errorf(err, "error packaging template '%s'", fn))
 	}

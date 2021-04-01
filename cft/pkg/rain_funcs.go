@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft/format"
@@ -28,7 +29,7 @@ type s3Options struct {
 	Format         s3Format `yaml:"Format"`
 }
 
-type rainFunc func(*yaml.Node) (bool, error)
+type rainFunc func(*yaml.Node, string) (bool, error)
 
 var registry map[string]rainFunc
 
@@ -59,8 +60,8 @@ func init() {
 	}
 }
 
-func includeString(n *yaml.Node) (bool, error) {
-	content, err := expectFile(n)
+func includeString(n *yaml.Node, root string) (bool, error) {
+	content, _, err := expectFile(n, root)
 	if err != nil {
 		return false, err
 	}
@@ -70,8 +71,8 @@ func includeString(n *yaml.Node) (bool, error) {
 	return true, nil
 }
 
-func includeLiteral(n *yaml.Node) (bool, error) {
-	content, err := expectFile(n)
+func includeLiteral(n *yaml.Node, root string) (bool, error) {
+	content, path, err := expectFile(n, root)
 	if err != nil {
 		return false, err
 	}
@@ -84,7 +85,7 @@ func includeLiteral(n *yaml.Node) (bool, error) {
 
 	// Transform
 	parse.TransformNode(&node)
-	_, err = transform(&node)
+	_, err = transform(&node, filepath.Dir(path))
 	if err != nil {
 		return false, err
 	}
@@ -133,7 +134,7 @@ func handleS3(options s3Options) (*yaml.Node, error) {
 	return &n, nil
 }
 
-func includeS3Object(n *yaml.Node) (bool, error) {
+func includeS3Object(n *yaml.Node, root string) (bool, error) {
 	if n.Kind != yaml.MappingNode || len(n.Content) != 2 {
 		return false, errors.New("Expected a map")
 	}
@@ -155,7 +156,7 @@ func includeS3Object(n *yaml.Node) (bool, error) {
 	return true, nil
 }
 
-func includeS3Http(n *yaml.Node) (bool, error) {
+func includeS3Http(n *yaml.Node, root string) (bool, error) {
 	path, err := expectString(n)
 	if err != nil {
 		return false, err
@@ -175,7 +176,7 @@ func includeS3Http(n *yaml.Node) (bool, error) {
 	return true, nil
 }
 
-func includeS3Uri(n *yaml.Node) (bool, error) {
+func includeS3Uri(n *yaml.Node, root string) (bool, error) {
 	path, err := expectString(n)
 	if err != nil {
 		return false, err
@@ -195,16 +196,16 @@ func includeS3Uri(n *yaml.Node) (bool, error) {
 	return true, nil
 }
 
-func includeS3(n *yaml.Node) (bool, error) {
+func includeS3(n *yaml.Node, root string) (bool, error) {
 	// Figure out if we're a string or an object
 	if len(n.Content) != 2 {
 		return false, errors.New("Expected exactly one key")
 	}
 
 	if n.Content[1].Kind == yaml.ScalarNode {
-		return includeS3Uri(n)
+		return includeS3Uri(n, root)
 	} else if n.Content[1].Kind == yaml.MappingNode {
-		return includeS3Object(n)
+		return includeS3Object(n, root)
 	}
 
 	return true, nil
@@ -221,7 +222,7 @@ func wrapS3(n *yaml.Node, options s3Options) bool {
 	return true
 }
 
-func wrapS3ZipURI(n *yaml.Node) (bool, error) {
+func wrapS3ZipURI(n *yaml.Node, root string) (bool, error) {
 	if n.Kind != yaml.ScalarNode {
 		// No need to error - this could be valid
 		return false, nil
@@ -234,7 +235,7 @@ func wrapS3ZipURI(n *yaml.Node) (bool, error) {
 	}), nil
 }
 
-func wrapS3Uri(n *yaml.Node) (bool, error) {
+func wrapS3Uri(n *yaml.Node, root string) (bool, error) {
 	if n.Kind != yaml.ScalarNode {
 		// No need to error - this could be valid
 		return false, nil
@@ -247,7 +248,7 @@ func wrapS3Uri(n *yaml.Node) (bool, error) {
 }
 
 func wrapObject(bucket, key string, forceZip bool) rainFunc {
-	return func(n *yaml.Node) (bool, error) {
+	return func(n *yaml.Node, root string) (bool, error) {
 		if n.Kind != yaml.ScalarNode {
 			// No need to error - this could be valid
 			return false, nil
@@ -263,7 +264,7 @@ func wrapObject(bucket, key string, forceZip bool) rainFunc {
 	}
 }
 
-func wrapTemplate(n *yaml.Node) (bool, error) {
+func wrapTemplate(n *yaml.Node, root string) (bool, error) {
 	if n.Kind != yaml.ScalarNode {
 		// No need to error - this could be valid
 		return false, nil
@@ -273,12 +274,12 @@ func wrapTemplate(n *yaml.Node) (bool, error) {
 		return false, nil // Already http
 	}
 
-	tmpl, err := parse.File(n.Value)
-	if err != nil {
-		return false, err
+	path := n.Value
+	if !filepath.IsAbs(path) {
+		path = filepath.Join(root, path)
 	}
 
-	tmpl, err = Template(tmpl)
+	tmpl, err := File(path)
 	if err != nil {
 		return false, err
 	}

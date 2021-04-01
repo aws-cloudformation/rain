@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/aws-cloudformation/rain/cft/format"
-	"github.com/aws-cloudformation/rain/cft/parse"
 	cftpkg "github.com/aws-cloudformation/rain/cft/pkg"
 	"github.com/aws-cloudformation/rain/internal/cmd"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
@@ -23,13 +22,8 @@ var Cmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fn := args[0]
 
-		template, err := parse.File(fn)
-		if err != nil {
-			panic(ui.Errorf(err, "unable to open template '%s'", fn))
-		}
-
 		spinner.Push(fmt.Sprintf("Packaging template '%s'", fn))
-		packaged, err := cftpkg.Template(template)
+		packaged, err := cftpkg.File(fn)
 		if err != nil {
 			panic(ui.Errorf(err, "unable to package template '%s'", fn))
 		}
