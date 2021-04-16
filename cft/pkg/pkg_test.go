@@ -3,7 +3,12 @@
 package pkg_test
 
 import (
+	"archive/zip"
+	"crypto/sha256"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -14,11 +19,62 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+const fileName = "test.txt"
 const hash = "7e81f4270269cd5111c4926e19de731fb38c6dbf07059d14f4591ce5d8ddd770"
-const zipHash = "6e0ac04e8eedda1797a1f269daa258b4e7928189beb65ae7289829777e6f30b5"
 const bucket = "rain-artifacts-1234567890-us-east-1"
 const region = "us-east-1"
 const packagedTemplateHash = "28f611b4c6d562fa459e7131b167960cd1b5dc5a0238da157ee1196d4679a3cc"
+
+var zipHash = "potato"
+
+func init() {
+	// Generate the zip so we can compare the hash
+	// we can't do this ahead of time because git will change the file's modification time
+	tmpFile, err := ioutil.TempFile(os.TempDir(), "*.zip")
+	if err != nil {
+		panic(err)
+	}
+	defer os.Remove(tmpFile.Name())
+
+	w := zip.NewWriter(tmpFile)
+
+	info, err := os.Stat(fileName)
+	if err != nil {
+		panic(err)
+	}
+
+	fh, err := zip.FileInfoHeader(info)
+	if err != nil {
+		panic(err)
+	}
+	fh.Name = fileName
+	fh.Method = zip.Deflate
+
+	out, err := w.CreateHeader(fh)
+	if err != nil {
+		panic(err)
+	}
+
+	in, err := os.Open(fileName)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = io.Copy(out, in)
+	if err != nil {
+		panic(err)
+	}
+
+	w.Close()
+	tmpFile.Close()
+
+	content, err := ioutil.ReadFile(tmpFile.Name())
+	if err != nil {
+		panic(err)
+	}
+
+	zipHash = fmt.Sprintf("%x", (sha256.Sum256(content)))
+}
 
 func compare(t *testing.T, in cft.Template, path string, expected interface{}) {
 	out, err := pkg.Template(in, "./")
@@ -42,7 +98,7 @@ func compare(t *testing.T, in cft.Template, path string, expected interface{}) {
 func TestEmbed(t *testing.T) {
 	in, _ := parse.Map(map[string]interface{}{
 		"Test": map[string]interface{}{
-			"Rain::Embed": "test.txt",
+			"Rain::Embed": fileName,
 		},
 	})
 
@@ -52,7 +108,7 @@ func TestEmbed(t *testing.T) {
 func TestInclude(t *testing.T) {
 	in, _ := parse.Map(map[string]interface{}{
 		"Test": map[string]interface{}{
-			"Rain::Include": "test.txt",
+			"Rain::Include": fileName,
 		},
 	})
 
@@ -62,7 +118,7 @@ func TestInclude(t *testing.T) {
 func TestS3Http(t *testing.T) {
 	in, _ := parse.Map(map[string]interface{}{
 		"Test": map[string]interface{}{
-			"Rain::S3Http": "test.txt",
+			"Rain::S3Http": fileName,
 		},
 	})
 
@@ -72,7 +128,7 @@ func TestS3Http(t *testing.T) {
 func TestS3(t *testing.T) {
 	in, _ := parse.Map(map[string]interface{}{
 		"Test": map[string]interface{}{
-			"Rain::S3": "test.txt",
+			"Rain::S3": fileName,
 		},
 	})
 
@@ -83,7 +139,7 @@ func TestS3Defaults(t *testing.T) {
 	in, _ := parse.Map(map[string]interface{}{
 		"Test": map[string]interface{}{
 			"Rain::S3": map[string]interface{}{
-				"Path": "test.txt",
+				"Path": fileName,
 			},
 		},
 	})
@@ -95,7 +151,7 @@ func TestS3Object(t *testing.T) {
 	in, _ := parse.Map(map[string]interface{}{
 		"Test": map[string]interface{}{
 			"Rain::S3": map[string]interface{}{
-				"Path":           "test.txt",
+				"Path":           fileName,
 				"BucketProperty": "RainS3Bucket",
 				"KeyProperty":    "RainS3Key",
 			},
@@ -112,7 +168,7 @@ func TestS3ObjectHttp(t *testing.T) {
 	in, _ := parse.Map(map[string]interface{}{
 		"Test": map[string]interface{}{
 			"Rain::S3": map[string]interface{}{
-				"Path":   "test.txt",
+				"Path":   fileName,
 				"Format": "Http",
 			},
 		},
@@ -125,7 +181,7 @@ func TestS3ObjectUriZip(t *testing.T) {
 	in, _ := parse.Map(map[string]interface{}{
 		"Test": map[string]interface{}{
 			"Rain::S3": map[string]interface{}{
-				"Path":   "test.txt",
+				"Path":   fileName,
 				"Format": "Uri",
 				"Zip":    true,
 			},
@@ -178,7 +234,7 @@ func TestWrappedTypes(t *testing.T) {
 
 		parts := strings.Split(testCase.propName, "/")
 
-		props[parts[len(parts)-1]] = "test.txt"
+		props[parts[len(parts)-1]] = fileName
 
 		for i := len(parts) - 2; i >= 0; i-- {
 			part := parts[i]
