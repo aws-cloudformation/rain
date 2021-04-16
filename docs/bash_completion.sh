@@ -790,6 +790,44 @@ _rain_merge()
     noun_aliases=()
 }
 
+_rain_pkg()
+{
+    last_command="rain_pkg"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--help")
+    flags+=("-h")
+    local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
+    flags+=("--profile=")
+    two_word_flags+=("--profile")
+    two_word_flags+=("-p")
+    local_nonpersistent_flags+=("--profile")
+    local_nonpersistent_flags+=("--profile=")
+    local_nonpersistent_flags+=("-p")
+    flags+=("--region=")
+    two_word_flags+=("--region")
+    two_word_flags+=("-r")
+    local_nonpersistent_flags+=("--region")
+    local_nonpersistent_flags+=("--region=")
+    local_nonpersistent_flags+=("-r")
+    flags+=("--debug")
+    flags+=("--no-colour")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
 _rain_rm()
 {
     last_command="rain_rm"
@@ -946,6 +984,11 @@ _rain_root_command()
         aliashash["list"]="ls"
     fi
     commands+=("merge")
+    commands+=("pkg")
+    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+        command_aliases+=("package")
+        aliashash["package"]="pkg"
+    fi
     commands+=("rm")
     if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
         command_aliases+=("del")

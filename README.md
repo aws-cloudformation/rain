@@ -26,9 +26,6 @@ Or you can download the appropriate binary for your system from [the releases pa
 
 Or if you're a [Gopher](https://blog.golang.org/gopher), you can `GO111MODULE=on go get github.com/aws-cloudformation/rain/cmd/rain`
 
-Rain requires the [AWS CLI](https://aws.amazon.com/cli/) to package CloudFormation templates when you use `rain deploy`.
-(See the [`aws cloudformation package`](https://docs.aws.amazon.com/cli/latest/reference/cloudformation/package.html) command for details.)
-
 ```
 Usage:
   rain [command]
@@ -46,6 +43,7 @@ Template commands:
   diff        Compare CloudFormation templates
   fmt         Format CloudFormation templates
   merge       Merge two or more CloudFormation templates
+  pkg         Package local artifacts into a template
   tree        Find dependencies of Resources and Outputs in a local template
 
 Other Commands:
