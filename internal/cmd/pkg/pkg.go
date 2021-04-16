@@ -39,6 +39,7 @@ You may use the following, rain-specific directives in templates packaged with "
                                The default Format is "Uri".
 `,
 	Args:                  cobra.ExactArgs(1),
+	Aliases:               []string{"package"},
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		fn := args[0]
