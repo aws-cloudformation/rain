@@ -67,7 +67,7 @@ func zipPath(root string) (string, error) {
 			return err
 		}
 
-		if info.IsDir() {
+		if !info.Mode().IsRegular() {
 			return nil
 		}
 
