@@ -17,7 +17,6 @@ var Tags = map[string]string{
 	"!Select":        "Fn::Select",
 	"!Split":         "Fn::Split",
 	"!Sub":           "Fn::Sub",
-	"!Transform":     "Fn::Transform",
 	"!Ref":           "Ref",
 	"!Condition":     "Condition",
 	"!Rain::Embed":   "Rain::Embed",
