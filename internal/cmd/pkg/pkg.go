@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"fmt"
+	"io/ioutil"
 
 	"github.com/aws-cloudformation/rain/cft/format"
 	cftpkg "github.com/aws-cloudformation/rain/cft/pkg"
@@ -9,6 +10,8 @@ import (
 	"github.com/aws-cloudformation/rain/internal/ui"
 	"github.com/spf13/cobra"
 )
+
+var outFn = ""
 
 // Cmd is the merge command's entrypoint
 var Cmd = &cobra.Command{
@@ -51,9 +54,16 @@ You may use the following, rain-specific directives in templates packaged with "
 		}
 		spinner.Pop()
 
-		fmt.Println(format.String(packaged, format.Options{}))
+		out := format.String(packaged, format.Options{})
+
+		if outFn != "" {
+			ioutil.WriteFile(outFn, []byte(out), 0644)
+		} else {
+			fmt.Println(out)
+		}
 	},
 }
 
 func init() {
+	Cmd.Flags().StringVarP(&outFn, "output", "o", "", "Output packaged template to a file")
 }
