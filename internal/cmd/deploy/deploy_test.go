@@ -25,9 +25,10 @@ func Example_deploy_help() {
 	//   deploy <template> [stack]
 	//
 	// Flags:
-	//   -d, --detach           Once deployment has started, don't wait around for it to finish.
-	//   -h, --help             help for deploy
-	//       --params strings   Set parameter values. Use the format key1=value1,key2=value2.
-	//       --tags strings     Add tags to the stack. Use the format key1=value1,key2=value2.
-	//   -y, --yes              Don't ask questions; just deploy.
+	//   -d, --detach                   Once deployment has started, don't wait around for it to finish.
+	//   -h, --help                     help for deploy
+	//       --params strings           Set parameter values. Use the format key1=value1,key2=value2.
+	//       --tags strings             Add tags to the stack. Use the format key1=value1,key2=value2.
+	//   -t, --termination-protection   Enable  termination protection on the stack.
+	//   -y, --yes                      Don't ask questions; just deploy.
 }
