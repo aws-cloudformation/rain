@@ -21,6 +21,7 @@ var detach bool
 var yes bool
 var params []string
 var tags []string
+var terminationProtection bool
 
 // Cmd is the deploy command's entrypoint
 var Cmd = &cobra.Command{
@@ -151,6 +152,14 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 				panic(fmt.Errorf("failed deploying stack '%s'", stackName))
 			}
 		}
+
+		// Enable termination protection
+		if terminationProtection {
+			err = cfn.SetTerminationProtection(stackName, true)
+			if err != nil {
+				panic(ui.Errorf(err, "error while enabling termination protection on stack '%s'", stackName))
+			}
+		}
 	},
 }
 
@@ -161,4 +170,5 @@ func init() {
 	Cmd.Flags().BoolVarP(&yes, "yes", "y", false, "Don't ask questions; just deploy.")
 	Cmd.Flags().StringSliceVar(&tags, "tags", []string{}, "Add tags to the stack. Use the format key1=value1,key2=value2.")
 	Cmd.Flags().StringSliceVar(&params, "params", []string{}, "Set parameter values. Use the format key1=value1,key2=value2.")
+	Cmd.Flags().BoolVarP(&terminationProtection, "termination-protection", "t", false, "Enable  termination protection on the stack.")
 }

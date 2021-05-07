@@ -67,6 +67,7 @@ func TestFlow(t *testing.T) {
 	wrap(t, []string{
 		"deploy",
 		"-y",
+		"-t",
 		"--params",
 		"BucketName=foo",
 		"templates/success.template",

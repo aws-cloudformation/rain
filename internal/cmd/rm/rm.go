@@ -31,6 +31,18 @@ var Cmd = &cobra.Command{
 			panic(ui.Errorf(err, "unable to delete stack '%s'", stackName))
 		}
 
+		if !yes {
+			output, _ := ui.GetStackOutput(stack)
+
+			spinner.Pause()
+			fmt.Println(output)
+
+			if !console.Confirm(false, "Are you sure you want to delete this stack?") {
+				panic(fmt.Errorf("user cancelled deletion of stack '%s'", stackName))
+			}
+			spinner.Resume()
+		}
+
 		if *stack.EnableTerminationProtection {
 			spinner.Pause()
 
@@ -44,18 +56,6 @@ var Cmd = &cobra.Command{
 				panic(fmt.Errorf("user cancelled deletion of stack '%s'", stackName))
 			}
 
-			spinner.Resume()
-		}
-
-		if !yes {
-			output, _ := ui.GetStackOutput(stack)
-
-			spinner.Pause()
-			fmt.Println(output)
-
-			if !console.Confirm(false, "Are you sure you want to delete this stack?") {
-				panic(fmt.Errorf("user cancelled deletion of stack '%s'", stackName))
-			}
 			spinner.Resume()
 		}
 
