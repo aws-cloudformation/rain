@@ -115,6 +115,7 @@ func DeleteStack(stackName string) error {
 func SetTerminationProtection(stackName string, protectionEnabled bool) error {
 	if s, ok := region().stacks[stackName]; ok {
 		s.stack.EnableTerminationProtection = ptr.Bool(true)
+		return nil
 	}
 
 	return noStackErr
