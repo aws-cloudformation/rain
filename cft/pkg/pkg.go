@@ -63,6 +63,8 @@ func Template(t cft.Template, root string) (cft.Template, error) {
 // with assets included as per AWS CLI packaging rules
 // and any Rain:: functions used
 func File(path string) (cft.Template, error) {
+	config.Debugf("Packaging template: %s\n", path)
+
 	t, err := parse.File(path)
 	if err != nil {
 		return t, err

@@ -26,6 +26,7 @@ import (
 
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
+	"github.com/aws-cloudformation/rain/internal/config"
 	"gopkg.in/yaml.v3"
 )
 
@@ -42,6 +43,8 @@ func (s *s3Path) URI() string {
 func (s *s3Path) HTTP() string {
 	return fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", s.bucket, s.region, s.key)
 }
+
+var uploads = map[string]*s3Path{}
 
 func zipPath(root string) (string, error) {
 	tmpFile, err := ioutil.TempFile(os.TempDir(), "*.zip")
@@ -109,13 +112,24 @@ func zipPath(root string) (string, error) {
 func upload(root, path string, force bool) (*s3Path, error) {
 	if !filepath.IsAbs(path) {
 		path = filepath.Join(root, path)
+		if abs, err := filepath.Abs(path); err == nil {
+			path = abs
+		}
 	}
+
+	if result, ok := uploads[path]; ok {
+		config.Debugf("Using existing upload for: %s\n", path)
+		return result, nil
+	}
+
+	config.Debugf("Uploading: %s\n", path)
 
 	info, err := os.Stat(path)
 	if err != nil {
 		return nil, err
 	}
 
+	origPath := path
 	if info.IsDir() || force {
 		// Zip it!
 		path, err = zipPath(path)
@@ -132,11 +146,13 @@ func upload(root, path string, force bool) (*s3Path, error) {
 	bucket := s3.RainBucket(false)
 	key, err := s3.Upload(bucket, content)
 
-	return &s3Path{
+	uploads[origPath] = &s3Path{
 		bucket: bucket,
 		key:    key,
 		region: aws.Config().Region,
-	}, err
+	}
+
+	return uploads[origPath], err
 }
 
 func expectString(n *yaml.Node) (string, error) {

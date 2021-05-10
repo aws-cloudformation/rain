@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft/format"
+	"github.com/aws-cloudformation/rain/internal/config"
 	"gopkg.in/yaml.v3"
 )
 
@@ -22,10 +23,10 @@ func init() {
 	registry["Resources/*|Type==AWS::Glue::Job/Properties/Command/ScriptLocation"] = wrapS3URI
 	registry["Resources/*|Type==AWS::Lambda::Function/Properties/Code"] = wrapObject("S3Bucket", "S3Key", true)
 	registry["Resources/*|Type==AWS::Lambda::LayerVersion/Properties/Content"] = wrapObject("S3Bucket", "S3Key", true)
-	registry["Resources/*|Type==AWS::Serverless::Api/Properties/DefinitionURI"] = wrapS3URI
+	registry["Resources/*|Type==AWS::Serverless::Api/Properties/DefinitionUri"] = wrapS3URI
 	registry["Resources/*|Type==AWS::Serverless::Application/Properties/Location"] = wrapTemplate
-	registry["Resources/*|Type==AWS::Serverless::Function/Properties/CodeURI"] = wrapS3ZipURI
-	registry["Resources/*|Type==AWS::Serverless::LayerVersion/Properties/ContentURI"] = wrapS3ZipURI
+	registry["Resources/*|Type==AWS::Serverless::Function/Properties/CodeUri"] = wrapS3ZipURI
+	registry["Resources/*|Type==AWS::Serverless::LayerVersion/Properties/ContentUri"] = wrapS3ZipURI
 	registry["Resources/*|Type==AWS::ServerlessRepo::Application/Properties/LicenseUrl"] = wrapS3URI
 	registry["Resources/*|Type==AWS::ServerlessRepo::Application/Properties/ReadmeUrl"] = wrapS3URI
 	registry["Resources/*|Type==AWS::StepFunctions::StateMachine/Properties/DefinitionS3Location"] = wrapObject("Bucket", "Key", false)
@@ -34,6 +35,7 @@ func init() {
 func wrapS3(n *yaml.Node, root string, options s3Options) bool {
 	newNode, err := handleS3(root, options)
 	if err != nil {
+		config.Debugf("Error handling S3: %s\n", err)
 		return false
 	}
 
