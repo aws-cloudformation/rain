@@ -20,6 +20,7 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
+	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
 )
@@ -29,8 +30,10 @@ func transform(node *yaml.Node, root string) (bool, error) {
 
 	for path, fn := range registry {
 		for found := range s11n.MatchAll(node, path) {
+			config.Debugf("Matched: %s\n", path)
 			c, err := fn(found, root)
 			if err != nil {
+				config.Debugf("Error packaging template: %s\n", err)
 				return false, err
 			}
 

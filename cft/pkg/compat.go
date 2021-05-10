@@ -11,28 +11,28 @@ import (
 )
 
 func init() {
-	registry["Resources/*|Type==AWS::Serverless::Api/Properties/DefinitionUri"] = wrapS3Uri
-	registry["Resources/*|Type==AWS::AppSync::GraphQLSchema/Properties/DefinitionS3Location"] = wrapS3Uri
-	registry["Resources/*|Type==AWS::AppSync::Resolver/Properties/RequestMappingTemplateS3Location"] = wrapS3Uri
-	registry["Resources/*|Type==AWS::AppSync::Resolver/Properties/ResponseMappingTemplateS3Location"] = wrapS3Uri
-	registry["Resources/*|Type==AWS::AppSync::FunctionConfiguration/Properties/RequestMappingTemplateS3Location"] = wrapS3Uri
-	registry["Resources/*|Type==AWS::AppSync::FunctionConfiguration/Properties/ResponseMappingTemplateS3Location"] = wrapS3Uri
-	registry["Resources/*|Type==AWS::ServerlessRepo::Application/Properties/ReadmeUrl"] = wrapS3Uri
-	registry["Resources/*|Type==AWS::ServerlessRepo::Application/Properties/LicenseUrl"] = wrapS3Uri
-	registry["Resources/*|Type==AWS::Glue::Job/Properties/Command/ScriptLocation"] = wrapS3Uri
-	registry["Resources/*|Type==AWS::Serverless::Function/Properties/CodeUri"] = wrapS3ZipURI
-	registry["Resources/*|Type==AWS::Serverless::LayerVersion/Properties/ContentUri"] = wrapS3ZipURI
-	registry["Resources/*|Type==AWS::CloudFormation::Stack/Properties/TemplateURL"] = wrapTemplate
-	registry["Resources/*|Type==AWS::Serverless::Application/Properties/Location"] = wrapTemplate
-	registry["Resources/*|Type==AWS::Lambda::Function/Properties/Code"] = wrapObject("S3Bucket", "S3Key", true)
 	registry["Resources/*|Type==AWS::ApiGateway::RestApi/Properties/BodyS3Location"] = wrapObject("Bucket", "Key", false)
+	registry["Resources/*|Type==AWS::AppSync::FunctionConfiguration/Properties/RequestMappingTemplateS3Location"] = wrapS3URI
+	registry["Resources/*|Type==AWS::AppSync::FunctionConfiguration/Properties/ResponseMappingTemplateS3Location"] = wrapS3URI
+	registry["Resources/*|Type==AWS::AppSync::GraphQLSchema/Properties/DefinitionS3Location"] = wrapS3URI
+	registry["Resources/*|Type==AWS::AppSync::Resolver/Properties/RequestMappingTemplateS3Location"] = wrapS3URI
+	registry["Resources/*|Type==AWS::AppSync::Resolver/Properties/ResponseMappingTemplateS3Location"] = wrapS3URI
+	registry["Resources/*|Type==AWS::CloudFormation::Stack/Properties/TemplateURL"] = wrapTemplate
 	registry["Resources/*|Type==AWS::ElasticBeanstalk::ApplicationVersion/Properties/SourceBundle"] = wrapObject("S3Bucket", "S3Key", false)
+	registry["Resources/*|Type==AWS::Glue::Job/Properties/Command/ScriptLocation"] = wrapS3URI
+	registry["Resources/*|Type==AWS::Lambda::Function/Properties/Code"] = wrapObject("S3Bucket", "S3Key", true)
 	registry["Resources/*|Type==AWS::Lambda::LayerVersion/Properties/Content"] = wrapObject("S3Bucket", "S3Key", true)
+	registry["Resources/*|Type==AWS::Serverless::Api/Properties/DefinitionURI"] = wrapS3URI
+	registry["Resources/*|Type==AWS::Serverless::Application/Properties/Location"] = wrapTemplate
+	registry["Resources/*|Type==AWS::Serverless::Function/Properties/CodeURI"] = wrapS3ZipURI
+	registry["Resources/*|Type==AWS::Serverless::LayerVersion/Properties/ContentURI"] = wrapS3ZipURI
+	registry["Resources/*|Type==AWS::ServerlessRepo::Application/Properties/LicenseUrl"] = wrapS3URI
+	registry["Resources/*|Type==AWS::ServerlessRepo::Application/Properties/ReadmeUrl"] = wrapS3URI
 	registry["Resources/*|Type==AWS::StepFunctions::StateMachine/Properties/DefinitionS3Location"] = wrapObject("Bucket", "Key", false)
 }
 
-func wrapS3(n *yaml.Node, options s3Options) bool {
-	newNode, err := handleS3(options)
+func wrapS3(n *yaml.Node, root string, options s3Options) bool {
+	newNode, err := handleS3(root, options)
 	if err != nil {
 		return false
 	}
@@ -48,14 +48,14 @@ func wrapS3ZipURI(n *yaml.Node, root string) (bool, error) {
 		return false, nil
 	}
 
-	return wrapS3(n, s3Options{
+	return wrapS3(n, root, s3Options{
 		Path:   n.Value,
-		Format: s3Uri,
+		Format: s3URI,
 		Zip:    true,
 	}), nil
 }
 
-func wrapS3Uri(n *yaml.Node, root string) (bool, error) {
+func wrapS3URI(n *yaml.Node, root string) (bool, error) {
 	if n.Kind != yaml.ScalarNode {
 		// No need to error - this could be valid
 		return false, nil
@@ -65,9 +65,9 @@ func wrapS3Uri(n *yaml.Node, root string) (bool, error) {
 		return false, nil // Already an s3 uri
 	}
 
-	return wrapS3(n, s3Options{
+	return wrapS3(n, root, s3Options{
 		Path:   n.Value,
-		Format: s3Uri,
+		Format: s3URI,
 	}), nil
 }
 
@@ -78,7 +78,7 @@ func wrapObject(bucket, key string, forceZip bool) rainFunc {
 			return false, nil
 		}
 
-		return wrapS3(n, s3Options{
+		return wrapS3(n, root, s3Options{
 			Path:           n.Value,
 			Format:         s3Object,
 			BucketProperty: bucket,
@@ -122,7 +122,7 @@ func wrapTemplate(n *yaml.Node, root string) (bool, error) {
 		return false, err
 	}
 
-	return wrapS3(n, s3Options{
+	return wrapS3(n, root, s3Options{
 		Path:   f.Name(),
 		Format: s3Http,
 	}), nil

@@ -13,7 +13,7 @@ import (
 type s3Format string
 
 const (
-	s3Uri    s3Format = "Uri"
+	s3URI    s3Format = "URI"
 	s3Http   s3Format = "Http"
 	s3Object s3Format = "Object"
 )
@@ -72,8 +72,8 @@ func includeLiteral(n *yaml.Node, root string) (bool, error) {
 	return true, nil
 }
 
-func handleS3(options s3Options) (*yaml.Node, error) {
-	s, err := upload(options.Path, options.Zip)
+func handleS3(root string, options s3Options) (*yaml.Node, error) {
+	s, err := upload(root, options.Path, options.Zip)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func handleS3(options s3Options) (*yaml.Node, error) {
 		if options.BucketProperty != "" && options.KeyProperty != "" {
 			options.Format = s3Object
 		} else {
-			options.Format = s3Uri
+			options.Format = s3URI
 		}
 	}
 
@@ -100,7 +100,7 @@ func handleS3(options s3Options) (*yaml.Node, error) {
 		}
 
 		n.Encode(out)
-	case s3Uri:
+	case s3URI:
 		n.Encode(s.URI())
 	case s3Http:
 		n.Encode(s.HTTP())
@@ -123,7 +123,7 @@ func includeS3Object(n *yaml.Node, root string) (bool, error) {
 		return false, err
 	}
 
-	newNode, err := handleS3(options)
+	newNode, err := handleS3(root, options)
 	if err != nil {
 		return false, err
 	}
@@ -139,7 +139,7 @@ func includeS3Http(n *yaml.Node, root string) (bool, error) {
 		return false, err
 	}
 
-	newNode, err := handleS3(s3Options{
+	newNode, err := handleS3(root, s3Options{
 		Path:   path,
 		Format: s3Http,
 	})
@@ -153,15 +153,15 @@ func includeS3Http(n *yaml.Node, root string) (bool, error) {
 	return true, nil
 }
 
-func includeS3Uri(n *yaml.Node, root string) (bool, error) {
+func includeS3URI(n *yaml.Node, root string) (bool, error) {
 	path, err := expectString(n)
 	if err != nil {
 		return false, err
 	}
 
-	newNode, err := handleS3(s3Options{
+	newNode, err := handleS3(root, s3Options{
 		Path:   path,
-		Format: s3Uri,
+		Format: s3URI,
 	})
 
 	if err != nil {
@@ -180,7 +180,7 @@ func includeS3(n *yaml.Node, root string) (bool, error) {
 	}
 
 	if n.Content[1].Kind == yaml.ScalarNode {
-		return includeS3Uri(n, root)
+		return includeS3URI(n, root)
 	} else if n.Content[1].Kind == yaml.MappingNode {
 		return includeS3Object(n, root)
 	}

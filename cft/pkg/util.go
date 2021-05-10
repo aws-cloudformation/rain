@@ -106,7 +106,11 @@ func zipPath(root string) (string, error) {
 
 // Upload a file or directory to S3.
 // If path is a directory, it will be zipped first.
-func upload(path string, force bool) (*s3Path, error) {
+func upload(root, path string, force bool) (*s3Path, error) {
+	if !filepath.IsAbs(path) {
+		path = filepath.Join(root, path)
+	}
+
 	info, err := os.Stat(path)
 	if err != nil {
 		return nil, err
