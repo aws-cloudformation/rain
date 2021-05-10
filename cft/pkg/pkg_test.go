@@ -177,12 +177,12 @@ func TestS3ObjectHttp(t *testing.T) {
 	compare(t, in, "Test", fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", bucket, region, hash))
 }
 
-func TestS3ObjectUriZip(t *testing.T) {
+func TestS3ObjectURIZip(t *testing.T) {
 	in, _ := parse.Map(map[string]interface{}{
 		"Test": map[string]interface{}{
 			"Rain::S3": map[string]interface{}{
 				"Path":   fileName,
-				"Format": "Uri",
+				"Format": "URI",
 				"Zip":    true,
 			},
 		},
@@ -202,33 +202,33 @@ func TestRecursion(t *testing.T) {
 }
 
 func TestWrappedTypes(t *testing.T) {
-	s3Uri := fmt.Sprintf("s3://%s/%s", bucket, hash)
-	s3ZipUri := fmt.Sprintf("s3://%s/%s", bucket, zipHash)
-	httpUri := fmt.Sprintf("https://%s.s3.us-east-1.amazonaws.com/%s", bucket, hash)
+	s3URI := fmt.Sprintf("s3://%s/%s", bucket, hash)
+	s3ZipURI := fmt.Sprintf("s3://%s/%s", bucket, zipHash)
+	httpURI := fmt.Sprintf("https://%s.s3.us-east-1.amazonaws.com/%s", bucket, hash)
 
 	for _, testCase := range []struct {
 		typeName string
 		propName string
 		expected interface{}
 	}{
-		{"AWS::Serverless::Function", "CodeUri", s3ZipUri},
-		{"AWS::Serverless::Api", "DefinitionUri", s3Uri},
-		{"AWS::AppSync::GraphQLSchema", "DefinitionS3Location", s3Uri},
-		{"AWS::AppSync::Resolver", "RequestMappingTemplateS3Location", s3Uri},
-		{"AWS::AppSync::Resolver", "ResponseMappingTemplateS3Location", s3Uri},
-		{"AWS::AppSync::FunctionConfiguration", "RequestMappingTemplateS3Location", s3Uri},
-		{"AWS::AppSync::FunctionConfiguration", "ResponseMappingTemplateS3Location", s3Uri},
-		{"AWS::ServerlessRepo::Application", "ReadmeUrl", s3Uri},
-		{"AWS::ServerlessRepo::Application", "LicenseUrl", s3Uri},
-		{"AWS::Glue::Job", "Command/ScriptLocation", s3Uri},
-		{"AWS::Serverless::LayerVersion", "ContentUri", s3ZipUri},
-		{"AWS::Serverless::Application", "Location", httpUri},
+		{"AWS::Serverless::Function", "CodeURI", s3ZipURI},
+		{"AWS::Serverless::Api", "DefinitionURI", s3URI},
+		{"AWS::AppSync::GraphQLSchema", "DefinitionS3Location", s3URI},
+		{"AWS::AppSync::Resolver", "RequestMappingTemplateS3Location", s3URI},
+		{"AWS::AppSync::Resolver", "ResponseMappingTemplateS3Location", s3URI},
+		{"AWS::AppSync::FunctionConfiguration", "RequestMappingTemplateS3Location", s3URI},
+		{"AWS::AppSync::FunctionConfiguration", "ResponseMappingTemplateS3Location", s3URI},
+		{"AWS::ServerlessRepo::Application", "ReadmeUrl", s3URI},
+		{"AWS::ServerlessRepo::Application", "LicenseUrl", s3URI},
+		{"AWS::Glue::Job", "Command/ScriptLocation", s3URI},
+		{"AWS::Serverless::LayerVersion", "ContentURI", s3ZipURI},
+		{"AWS::Serverless::Application", "Location", httpURI},
 		{"AWS::Lambda::Function", "Code", map[string]interface{}{"S3Bucket": bucket, "S3Key": zipHash}},
 		{"AWS::ElasticBeanstalk::ApplicationVersion", "SourceBundle", map[string]interface{}{"S3Bucket": bucket, "S3Key": hash}},
 		{"AWS::Lambda::LayerVersion", "Content", map[string]interface{}{"S3Bucket": bucket, "S3Key": zipHash}},
 		{"AWS::ApiGateway::RestApi", "BodyS3Location", map[string]interface{}{"Bucket": bucket, "Key": hash}},
 		{"AWS::StepFunctions::StateMachine", "DefinitionS3Location", map[string]interface{}{"Bucket": bucket, "Key": hash}},
-		{"AWS::CloudFormation::Stack", "TemplateURL", httpUri},
+		{"AWS::CloudFormation::Stack", "TemplateURL", httpURI},
 	} {
 		props := make(map[string]interface{})
 
@@ -257,15 +257,15 @@ func TestWrappedTypes(t *testing.T) {
 }
 
 func TestTemplates(t *testing.T) {
-	httpUri := fmt.Sprintf("https://%s.s3.us-east-1.amazonaws.com/%s", bucket, packagedTemplateHash)
+	httpURI := fmt.Sprintf("https://%s.s3.us-east-1.amazonaws.com/%s", bucket, packagedTemplateHash)
 
 	for _, testCase := range []struct {
 		typeName string
 		propName string
 		expected interface{}
 	}{
-		{"AWS::Serverless::Application", "Location", httpUri},
-		{"AWS::CloudFormation::Stack", "TemplateURL", httpUri},
+		{"AWS::Serverless::Application", "Location", httpURI},
+		{"AWS::CloudFormation::Stack", "TemplateURL", httpURI},
 	} {
 		props := make(map[string]interface{})
 
