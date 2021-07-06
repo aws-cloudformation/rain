@@ -255,6 +255,6 @@ func main() {
 	saveSpec(loadFile(iamSpecFn), "Iam")
 
 	// Clean up
-	os.Remove(cfnSpecFn)
+	//os.Remove(cfnSpecFn)
 	os.Remove(samSpecFn)
 }

@@ -25,20 +25,39 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type result struct {
+	changed bool
+	err     error
+}
+
+func runTransform(ch chan result, fn rainFunc, node *yaml.Node, root string) {
+	c, err := fn(node, root)
+	ch <- result{c, err}
+}
+
 func transform(node *yaml.Node, root string) (bool, error) {
 	changed := false
+
+	count := 0
+	ch := make(chan result)
 
 	for path, fn := range registry {
 		for found := range s11n.MatchAll(node, path) {
 			config.Debugf("Matched: %s\n", path)
-			c, err := fn(found, root)
-			if err != nil {
-				config.Debugf("Error packaging template: %s\n", err)
-				return false, err
-			}
-
-			changed = changed || c
+			count++
+			go runTransform(ch, fn, found, root)
 		}
+	}
+
+	for i := 0; i < count; i++ {
+		res := <-ch
+
+		if res.err != nil {
+			config.Debugf("Error packaging template: %s\n", res.err)
+			return false, res.err
+		}
+
+		changed = changed || res.changed
 	}
 
 	return changed, nil
