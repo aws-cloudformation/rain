@@ -22,20 +22,22 @@ const consoleURI = "https://console.aws.amazon.com"
 const defaultService = "cloudformation"
 const sessionDuration = 43200
 
-func buildSessionString() (string, error) {
-	id, err := sts.GetCallerID()
-	if err != nil {
-		return "", err
+func buildSessionString(sessionName string) (string, error) {
+	if sessionName == "" {
+		id, err := sts.GetCallerID()
+		if err != nil {
+			return "", err
+		}
+
+		idParts := strings.Split(ptr.ToString(id.Arn), ":")
+		nameParts := strings.Split(idParts[len(idParts)-1], "/")
+
+		if nameParts[0] == "user" {
+			panic(errors.New("sign-in URLs can only be constructed for assumed roles"))
+		}
+
+		sessionName = nameParts[1]
 	}
-
-	idParts := strings.Split(ptr.ToString(id.Arn), ":")
-	nameParts := strings.Split(idParts[len(idParts)-1], "/")
-
-	if nameParts[0] == "user" {
-		panic(errors.New("sign-in URLs can only be constructed for assumed roles"))
-	}
-
-	sessionName := nameParts[1]
 
 	creds, err := aws.NamedConfig(sessionName).Credentials.Retrieve(context.Background())
 	if err != nil {
@@ -49,8 +51,8 @@ func buildSessionString() (string, error) {
 	)), nil
 }
 
-func getSigninToken() (string, error) {
-	sessionString, err := buildSessionString()
+func getSigninToken(userName string) (string, error) {
+	sessionString, err := buildSessionString(userName)
 	if err != nil {
 		return "", err
 	}
@@ -81,8 +83,8 @@ func getSigninToken() (string, error) {
 }
 
 // GetURI returns a sign-in uri for the current credentials and region
-func GetURI(service, stackName string) (string, error) {
-	token, err := getSigninToken()
+func GetURI(service, stackName, userName string) (string, error) {
+	token, err := getSigninToken(userName)
 	if err != nil {
 		return "", err
 	}

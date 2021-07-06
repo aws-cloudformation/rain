@@ -13,9 +13,9 @@ import (
 // Open generates a sign-in URL to the AWS console with an optional service and resource
 // If printOnly is true, the URL is printed to the console
 // If printOnly is fale, Open attempts to call the OS's browser with the URL
-func Open(printOnly bool, service string, resource string) {
+func Open(printOnly bool, service, resource, userName string) {
 	spinner.Push("Generating sign-in URL")
-	uri, err := console.GetURI(service, resource)
+	uri, err := console.GetURI(service, resource, userName)
 	if err != nil {
 		panic(err)
 	}
