@@ -1,4 +1,4 @@
-//+build !func_test
+//go:build !func_test
 
 package s3
 
