@@ -1,4 +1,4 @@
-// +build windows
+//go:build windows
 
 // Package console contains utility functions for working with text consoles
 package console
