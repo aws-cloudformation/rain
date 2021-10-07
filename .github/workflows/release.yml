@@ -9,18 +9,43 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
     container: golang:latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - run: |
-          apt-get update && \
-          apt-get install -y awscli hub zip && \
-          go get -u golang.org/x/lint/golint
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y zip
 
-      - run: |
-          ./build.sh
+      - name: Build
+        run: |
+          declare -a platforms=(linux/amd64 linux/386 linux/arm darwin/amd64 windows/amd64 windows/386)
+          declare -A mapping=([darwin]=macos [linux]=linux [windows]=windows [amd64]=amd64 [386]=i386 [arm]=arm)
+
+          for platform in "${platforms[@]}"; do
+              os="${platform%/*}"
+              arch="${platform#*/}"
+              name="rain-${GITHUB_REF##*/}_${mapping[$os]}-${mapping[$arch]}"
+
+              echo "Building for $platform"
+
+              mkdir -p "dist/${name}"
+
+              GOOS="$os" GOARCH="$arch" go build -ldflags=-w -o "dist/${name}/" ./cmd/rain
+
+              cp LICENSE "dist/${name}/"
+              cp README.md "dist/${name}/"
+
+              cd dist || exit
+              zip -9 -r "${name}.zip" "$name"
+              rm -r "$name"
+              cd - || exit
+          done
 
       - uses: actions/upload-artifact@v2
         with:
@@ -37,19 +62,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - run: '(echo ${GITHUB_REF##*/}; echo; git cherry -v $(git describe --abbrev=0 HEAD^) | cut -d" " -f3-) > CHANGELOG'
-
       - uses: actions/download-artifact@v2
         with:
           name: dist
           path: dist
 
-      - run: ls -R
-
-      - run: cat CHANGELOG
-
       - run: |
           set -x
+          (echo "${GITHUB_REF##*/}"; echo; git cherry -v "$(git describe --abbrev=0 HEAD^)" | cut -d" " -f3-) > CHANGELOG
           assets=()
           for zip in ./dist/*.zip; do
             assets+=("-a" "$zip")

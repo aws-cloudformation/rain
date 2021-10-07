@@ -1,0 +1,34 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+name: Unit tests
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    container: golang:latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          go get -u golang.org/x/lint/golint
+
+      - name: Lint
+        run: |
+          golint -set_exit_status ./...
+          go vet ./...
+          go vet -tags=func_test ./...
+
+      - name: Run unit tests
+        run: go test ./...
+
+      - name: Run functional tests
+        run: go test -tags=func_test ./...
