@@ -22,6 +22,7 @@ var yes bool
 var params []string
 var tags []string
 var terminationProtection bool
+var keep bool
 
 // Cmd is the deploy command's entrypoint
 var Cmd = &cobra.Command{
@@ -121,7 +122,7 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 		}
 
 		// Deploy!
-		err = cfn.ExecuteChangeSet(stackName, changeSetName)
+		err = cfn.ExecuteChangeSet(stackName, changeSetName, keep)
 		if err != nil {
 			panic(ui.Errorf(err, "error while executing changeset '%s'", changeSetName))
 		}
@@ -171,4 +172,5 @@ func init() {
 	Cmd.Flags().StringSliceVar(&tags, "tags", []string{}, "Add tags to the stack. Use the format key1=value1,key2=value2.")
 	Cmd.Flags().StringSliceVar(&params, "params", []string{}, "Set parameter values. Use the format key1=value1,key2=value2.")
 	Cmd.Flags().BoolVarP(&terminationProtection, "termination-protection", "t", false, "Enable  termination protection on the stack.")
+	Cmd.Flags().BoolVarP(&keep, "keep", "k", false, "Keep deployed resources after a failure by disabling rollbacks.")
 }
