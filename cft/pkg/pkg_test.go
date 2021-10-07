@@ -211,8 +211,8 @@ func TestWrappedTypes(t *testing.T) {
 		propName string
 		expected interface{}
 	}{
-		{"AWS::Serverless::Function", "CodeURI", s3ZipURI},
-		{"AWS::Serverless::Api", "DefinitionURI", s3URI},
+		{"AWS::Serverless::Function", "CodeUri", s3ZipURI},
+		{"AWS::Serverless::Api", "DefinitionUri", s3URI},
 		{"AWS::AppSync::GraphQLSchema", "DefinitionS3Location", s3URI},
 		{"AWS::AppSync::Resolver", "RequestMappingTemplateS3Location", s3URI},
 		{"AWS::AppSync::Resolver", "ResponseMappingTemplateS3Location", s3URI},
@@ -221,7 +221,7 @@ func TestWrappedTypes(t *testing.T) {
 		{"AWS::ServerlessRepo::Application", "ReadmeUrl", s3URI},
 		{"AWS::ServerlessRepo::Application", "LicenseUrl", s3URI},
 		{"AWS::Glue::Job", "Command/ScriptLocation", s3URI},
-		{"AWS::Serverless::LayerVersion", "ContentURI", s3ZipURI},
+		{"AWS::Serverless::LayerVersion", "ContentUri", s3ZipURI},
 		{"AWS::Serverless::Application", "Location", httpURI},
 		{"AWS::Lambda::Function", "Code", map[string]interface{}{"S3Bucket": bucket, "S3Key": zipHash}},
 		{"AWS::ElasticBeanstalk::ApplicationVersion", "SourceBundle", map[string]interface{}{"S3Bucket": bucket, "S3Key": hash}},

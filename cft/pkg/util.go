@@ -117,26 +117,32 @@ func upload(root, path string, force bool) (*s3Path, error) {
 		}
 	}
 
-	if result, ok := uploads[path]; ok {
+	artifactName := path
+	if force {
+		artifactName = "zip:" + artifactName
+	}
+
+	if result, ok := uploads[artifactName]; ok {
 		config.Debugf("Using existing upload for: %s\n", path)
 		return result, nil
 	}
-
-	config.Debugf("Uploading: %s\n", path)
 
 	info, err := os.Stat(path)
 	if err != nil {
 		return nil, err
 	}
 
-	origPath := path
 	if info.IsDir() || force {
 		// Zip it!
-		path, err = zipPath(path)
+		zipped, err := zipPath(path)
 		if err != nil {
 			return nil, err
 		}
+		config.Debugf("Zipped %s as %s\n", path, zipped)
+		path = zipped
 	}
+
+	config.Debugf("Uploading: %s\n", path)
 
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -146,13 +152,13 @@ func upload(root, path string, force bool) (*s3Path, error) {
 	bucket := s3.RainBucket(false)
 	key, err := s3.Upload(bucket, content)
 
-	uploads[origPath] = &s3Path{
+	uploads[artifactName] = &s3Path{
 		bucket: bucket,
 		key:    key,
 		region: aws.Config().Region,
 	}
 
-	return uploads[origPath], err
+	return uploads[artifactName], err
 }
 
 func expectString(n *yaml.Node) (string, error) {
