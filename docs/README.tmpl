@@ -1,3 +1,5 @@
+[![Unit tests](https://github.com/aws-cloudformation/rain/actions/workflows/test.yml/badge.svg)](https://github.com/aws-cloudformation/rain/actions/workflows/test.yml)
+
 # Rain
 
 * Documentation: <https://aws-cloudformation.github.io/rain/>
