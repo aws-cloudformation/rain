@@ -238,10 +238,11 @@ func GetChangeSet(stackName, changeSetName string) (*cloudformation.DescribeChan
 }
 
 // ExecuteChangeSet executes the named changeset
-func ExecuteChangeSet(stackName, changeSetName string) error {
+func ExecuteChangeSet(stackName, changeSetName string, disableRollback bool) error {
 	_, err := getClient().ExecuteChangeSet(context.Background(), &cloudformation.ExecuteChangeSetInput{
-		ChangeSetName: &changeSetName,
-		StackName:     &stackName,
+		ChangeSetName:   &changeSetName,
+		StackName:       &stackName,
+		DisableRollback: &disableRollback,
 	})
 
 	return err

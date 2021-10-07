@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/mickep76/mapslice-json"
+	"github.com/ake-persson/mapslice-json"
 	"gopkg.in/yaml.v3"
 )
 

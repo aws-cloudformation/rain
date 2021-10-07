@@ -228,7 +228,7 @@ func GetChangeSet(stackName, changeSetName string) (*cloudformation.DescribeChan
 }
 
 // ExecuteChangeSet executes the named changeset
-func ExecuteChangeSet(stackName, changeSetName string) error {
+func ExecuteChangeSet(stackName, changeSetName string, disableRollback bool) error {
 	c, ok := region().changeSets[changeSetName]
 	if !ok {
 		return noChangeSetErr

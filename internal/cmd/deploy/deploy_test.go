@@ -27,6 +27,7 @@ func Example_deploy_help() {
 	// Flags:
 	//   -d, --detach                   Once deployment has started, don't wait around for it to finish.
 	//   -h, --help                     help for deploy
+	//   -k, --keep                     Keep deployed resources after a failure by disabling rollbacks.
 	//       --params strings           Set parameter values. Use the format key1=value1,key2=value2.
 	//       --tags strings             Add tags to the stack. Use the format key1=value1,key2=value2.
 	//   -t, --termination-protection   Enable  termination protection on the stack.
