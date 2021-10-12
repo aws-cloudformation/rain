@@ -1,60 +1,75 @@
 package spec
 
-// Iam is generated from the specification file
-var Iam = Spec{
-	PropertyTypes: map[string]*PropertyType{
-		"Policy": &PropertyType{
-			Properties: map[string]*Property{
-				"Id": &Property{
-					PrimitiveType: "String",
-				},
-				"Statement": &Property{
-					ItemType: "Statement",
-					Type:     "List",
-				},
-				"Version": &Property{
-					PrimitiveType: "String",
+var Iam = map[string]map[string]interface{}{
+	"Policy": map[string]interface{}{
+		"additionalProperties": false,
+		"definitions": map[string]interface{}{
+			"Statement": {
+				"additionalProperties": false,
+				"type":                 "object",
+				"properties": {
+					"Sid": {
+						"type": "string",
+					},
+					"Principal": {
+						"type": "object",
+						"additionalProperties": {
+							"type": "string",
+						},
+					},
+					"NotPrincipal": {
+						"type": "object",
+						"additionalProperties": {
+							"type": "string",
+						},
+					},
+					"Effect": {
+						"type": "string",
+					},
+					"Action": {
+						"type": "array",
+						"item": {
+							"type": "string",
+						},
+					},
+					"NotAction": {
+						"type": "array",
+						"item": {
+							"type": "string",
+						},
+					},
+					"Resource": {
+						"type": "array",
+						"item": {
+							"type": "string",
+						},
+					},
+					"NotResource": {
+						"type": "array",
+						"item": {
+							"type": "string",
+						},
+					},
+					"Condition": {
+						"type": "object",
+					},
 				},
 			},
 		},
-		"Statement": &PropertyType{
-			Properties: map[string]*Property{
-				"Action": &Property{
-					PrimitiveItemType: "String",
-					Type:              "List",
-				},
-				"Condition": &Property{
-					PrimitiveItemType: "Json",
-					Type:              "Map",
-				},
-				"Effect": &Property{
-					PrimitiveType: "String",
-				},
-				"NotAction": &Property{
-					PrimitiveItemType: "String",
-					Type:              "List",
-				},
-				"NotPrincipal": &Property{
-					PrimitiveItemType: "String",
-					Type:              "Map",
-				},
-				"NotResource": &Property{
-					PrimitiveItemType: "String",
-					Type:              "List",
-				},
-				"Principal": &Property{
-					PrimitiveItemType: "String",
-					Type:              "Map",
-				},
-				"Resource": &Property{
-					PrimitiveItemType: "String",
-					Type:              "List",
-				},
-				"Sid": &Property{
-					PrimitiveType: "String",
+		"description": "IAM Policy",
+		"properties": map[string]interface{}{
+			"Version": {
+				"type": "string",
+			},
+			"Id": {
+				"type": "string",
+			},
+			"Statement": {
+				"type": "array",
+				"items": {
+					"$ref": "#/definitions/Statement",
 				},
 			},
 		},
 	},
-	ResourceSpecificationVersion: "1.0.0",
 }
