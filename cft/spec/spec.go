@@ -5,6 +5,8 @@ package spec
 
 import "strings"
 
+type Schema map[string]interface{}
+
 // ResolveResource returns a list of possible Resource names for
 // the provided suffix
 func ResolveResource(suffix string) []string {

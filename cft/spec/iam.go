@@ -4,53 +4,53 @@ var Iam = map[string]map[string]interface{}{
 	"Policy": map[string]interface{}{
 		"additionalProperties": false,
 		"definitions": map[string]interface{}{
-			"Statement": {
+			"Statement": map[string]interface{}{
 				"additionalProperties": false,
 				"type":                 "object",
-				"properties": {
-					"Sid": {
+				"properties": map[string]interface{}{
+					"Sid": map[string]interface{}{
 						"type": "string",
 					},
-					"Principal": {
+					"Principal": map[string]interface{}{
 						"type": "object",
-						"additionalProperties": {
+						"additionalProperties": map[string]interface{}{
 							"type": "string",
 						},
 					},
-					"NotPrincipal": {
+					"NotPrincipal": map[string]interface{}{
 						"type": "object",
-						"additionalProperties": {
+						"additionalProperties": map[string]interface{}{
 							"type": "string",
 						},
 					},
-					"Effect": {
+					"Effect": map[string]interface{}{
 						"type": "string",
 					},
-					"Action": {
+					"Action": map[string]interface{}{
 						"type": "array",
-						"item": {
+						"item": map[string]interface{}{
 							"type": "string",
 						},
 					},
-					"NotAction": {
+					"NotAction": map[string]interface{}{
 						"type": "array",
-						"item": {
+						"item": map[string]interface{}{
 							"type": "string",
 						},
 					},
-					"Resource": {
+					"Resource": map[string]interface{}{
 						"type": "array",
-						"item": {
+						"item": map[string]interface{}{
 							"type": "string",
 						},
 					},
-					"NotResource": {
+					"NotResource": map[string]interface{}{
 						"type": "array",
-						"item": {
+						"item": map[string]interface{}{
 							"type": "string",
 						},
 					},
-					"Condition": {
+					"Condition": map[string]interface{}{
 						"type": "object",
 					},
 				},
@@ -58,15 +58,15 @@ var Iam = map[string]map[string]interface{}{
 		},
 		"description": "IAM Policy",
 		"properties": map[string]interface{}{
-			"Version": {
+			"Version": map[string]interface{}{
 				"type": "string",
 			},
-			"Id": {
+			"Id": map[string]interface{}{
 				"type": "string",
 			},
-			"Statement": {
+			"Statement": map[string]interface{}{
 				"type": "array",
-				"items": {
+				"items": map[string]interface{}{
 					"$ref": "#/definitions/Statement",
 				},
 			},

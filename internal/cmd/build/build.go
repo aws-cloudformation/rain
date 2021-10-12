@@ -24,7 +24,7 @@ var Cmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		if buildListFlag {
 			types := make([]string, 0)
-			for t := range spec.Cfn.ResourceTypes {
+			for t := range spec.Cfn {
 				types = append(types, t)
 			}
 			sort.Strings(types)

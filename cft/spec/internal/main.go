@@ -11,6 +11,7 @@ import (
 	"go/format"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/aws-cloudformation/rain/internal/aws"
@@ -116,6 +117,17 @@ func main() {
 	getThirdPartyTypes(schemas)
 	getFirstPartyTypes(schemas)
 
+	/*
+		schemas = map[string]map[string]interface{}{
+			"AWS::S3::Bucket": schemas["AWS::S3::Bucket"],
+		}
+	*/
+
+	// Ensure type name is in place
+	for typeName, schema := range schemas {
+		schema["typeName"] = typeName
+	}
+
 	data, err := json.MarshalIndent(schemas, "", "  ")
 	if err != nil {
 		panic(err)
@@ -123,14 +135,33 @@ func main() {
 
 	ioutil.WriteFile("schemas.json", data, 0644)
 
-	source := fmt.Sprintf(`package spec
+	source := strings.Builder{}
+
+	source.WriteString(`package spec
 
 // Cfn is generated from CloudFormation specifications
-var Cfn = %s`, formatMap(schemas))
+var Cfn = make(map[string]*Schema)
 
-	result, err := format.Source([]byte(source))
+var cfn = []Schema{
+`)
+
+	for _, schema := range schemas {
+		source.WriteString(fmt.Sprintf(`Schema(%s),
+`, formatMap(schema)))
+	}
+
+	source.WriteString(`}
+
+func init() {
+	for _, schema := range cfn {
+		Cfn[schema["typeName"].(string)] = &schema
+	}
+}
+`)
+
+	result, err := format.Source([]byte(source.String()))
 	if err != nil {
-		fmt.Println(source)
+		fmt.Println(source.String())
 		panic(err)
 	}
 

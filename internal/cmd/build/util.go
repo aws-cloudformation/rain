@@ -10,7 +10,7 @@ import (
 )
 
 func resolveType(suffix string) string {
-	options := spec.Cfn.ResolveResource(suffix)
+	options := spec.ResolveResource(suffix)
 
 	if len(options) == 0 {
 		fmt.Fprintf(os.Stderr, "No resource type found matching '%s'\n", suffix)

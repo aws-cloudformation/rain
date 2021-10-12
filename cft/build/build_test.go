@@ -1,23 +1,22 @@
 package build_test
 
 import (
+	"testing"
+
 	"github.com/aws-cloudformation/rain/cft/build"
 	"github.com/aws-cloudformation/rain/cft/spec"
-	"testing"
 )
 
-var allResourceTypes map[string]string
+var allResourceTypes = make(map[string]string)
 
 func init() {
-	allResourceTypes = make(map[string]string)
-
-	for resourceType := range spec.Cfn.ResourceTypes {
+	for resourceType := range spec.ResourceTypes {
 		allResourceTypes[resourceType] = resourceType
 	}
 }
 
 func TestAllResourceTypes(t *testing.T) {
-	for resourceType := range spec.Cfn.ResourceTypes {
+	for resourceType := range allResourceTypes {
 		build.Template(map[string]string{
 			"Res": resourceType,
 		}, true)
