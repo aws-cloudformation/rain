@@ -8,15 +8,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"go/format"
 	"io/ioutil"
 	"net/http"
 	"time"
 
+	"github.com/aws-cloudformation/rain/cft/spec"
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/smithy-go/ptr"
+	"github.com/santhosh-tekuri/jsonschema/v5"
 )
 
 const schemaUri = "https://schema.cloudformation.us-east-1.amazonaws.com/CloudformationSchema.zip"
@@ -110,6 +111,29 @@ func getThirdPartyTypes(schemas map[string]map[string]interface{}) {
 	}
 }
 
+// stripPatterns removes custom regexes
+// as the cfn-spec uses extended regexes
+// which the jsonschema package does not support
+func stripPatterns(in interface{}) {
+	switch v := in.(type) {
+	case spec.Schema:
+		stripPatterns(map[string]interface{}(v))
+	case map[string]interface{}:
+		delete(v, "patternProperties")
+		for key, value := range v {
+			if key == "pattern" || key == "format" {
+				v[key] = ".*"
+			} else {
+				stripPatterns(value)
+			}
+		}
+	case []interface{}:
+		for _, child := range v {
+			stripPatterns(child)
+		}
+	}
+}
+
 func main() {
 	schemas := make(map[string]map[string]interface{})
 
@@ -127,6 +151,22 @@ func main() {
 		schema["typeName"] = typeName
 	}
 
+	// Test that the schemas validate correctly
+	for typeName, schema := range spec.Cfn {
+		stripPatterns(schema)
+
+		data, err := json.Marshal(schema)
+		if err != nil {
+			panic(fmt.Errorf("%s: %w", typeName, err))
+		}
+
+		_, err = jsonschema.CompileString("schema.json", string(data))
+		if err != nil {
+			panic(fmt.Errorf("%s: %w", typeName, err))
+		}
+	}
+
+	// Write out as JSON
 	data, err := json.MarshalIndent(schemas, "", "  ")
 	if err != nil {
 		panic(err)

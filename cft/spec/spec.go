@@ -1,7 +1,7 @@
 // Package spec contains generated models for CloudFormation and IAM
 package spec
 
-//go:generate go run internal/main.go internal/format.go
+//go:generate go run internal/main.go
 
 import "strings"
 
