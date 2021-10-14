@@ -5,6 +5,7 @@ var Iam = map[string]map[string]interface{}{
 		"additionalProperties": false,
 		"definitions": map[string]interface{}{
 			"Statement": map[string]interface{}{
+				"$schema":              "http://json-schema.org/draft-07/schema#",
 				"additionalProperties": false,
 				"type":                 "object",
 				"properties": map[string]interface{}{

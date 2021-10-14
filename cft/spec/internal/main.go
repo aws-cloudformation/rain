@@ -11,7 +11,6 @@ import (
 	"go/format"
 	"io/ioutil"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/aws-cloudformation/rain/internal/aws"
@@ -134,39 +133,4 @@ func main() {
 	}
 
 	ioutil.WriteFile("schemas.json", data, 0644)
-
-	source := strings.Builder{}
-
-	source.WriteString(`package spec
-
-// Cfn is generated from CloudFormation specifications
-var Cfn = make(map[string]*Schema)
-
-var cfn = []Schema{
-`)
-
-	for _, schema := range schemas {
-		source.WriteString(fmt.Sprintf(`Schema(%s),
-`, formatMap(schema)))
-	}
-
-	source.WriteString(`}
-
-func init() {
-	for _, schema := range cfn {
-		Cfn[schema["typeName"].(string)] = &schema
-	}
-}
-`)
-
-	result, err := format.Source([]byte(source.String()))
-	if err != nil {
-		fmt.Println(source.String())
-		panic(err)
-	}
-
-	err = ioutil.WriteFile("cfn.go", result, 0644)
-	if err != nil {
-		panic(err)
-	}
 }
