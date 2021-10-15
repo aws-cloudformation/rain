@@ -1,6 +1,6 @@
 package spec
 
-var Iam = map[string]map[string]interface{}{
+var Iam = map[string]Schema{
 	"Policy": map[string]interface{}{
 		"additionalProperties": false,
 		"definitions": map[string]interface{}{

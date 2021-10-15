@@ -67,13 +67,15 @@ func (b cfnBuilder) Template(config map[string]string) (cft.Template, error) {
 	if b.IncludeOptionalProperties {
 		outputs := make(map[string]interface{})
 		for name, typeName := range config {
-			r := b.Spec.ResourceTypes[typeName]
+			r := b.Spec[typeName]
 
-			for attName := range r.Attributes {
-				outputs[name+attName] = map[string]interface{}{
-					"Value": map[string]interface{}{
-						"Fn::GetAtt": name + "." + attName,
-					},
+			if roProps, ok := r["readOnlyProperties"]; ok {
+				for _, attName := range roProps.([]interface{}) {
+					outputs[name+attName.(string)] = map[string]interface{}{
+						"Value": map[string]interface{}{
+							"Fn::GetAtt": name + "." + attName.(string),
+						},
+					}
 				}
 			}
 		}
