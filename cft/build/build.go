@@ -26,8 +26,6 @@ type builder struct {
 
 var iam iamBuilder
 
-var emptyProp = spec.Property{}
-
 func init() {
 	iam = newIamBuilder()
 }
@@ -39,7 +37,7 @@ func (b builder) newResource(resourceType string) (map[string]interface{}, []*cf
 		}
 	}()
 
-	rSpec, ok := b.Spec.ResourceTypes[resourceType]
+	schema, ok := b.Spec[resourceType]
 	if !ok {
 		panic(fmt.Errorf("no such resource type '%s'", resourceType))
 	}
@@ -47,7 +45,7 @@ func (b builder) newResource(resourceType string) (map[string]interface{}, []*cf
 	// Generate properties
 	properties := make(map[string]interface{})
 	comments := make([]*cft.Comment, 0)
-	for name, pSpec := range rSpec.Properties {
+	for name, pSpec := range schema["properties"].map[string]interface{} {
 		if b.IncludeOptionalProperties || pSpec.Required {
 			var p interface{}
 			var cs []*cft.Comment

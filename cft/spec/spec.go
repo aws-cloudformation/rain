@@ -7,6 +7,8 @@ import "strings"
 
 type Schema map[string]interface{}
 
+type Spec map[string]Schema
+
 // ResolveResource returns a list of possible Resource names for
 // the provided suffix
 func ResolveResource(suffix string) []string {
