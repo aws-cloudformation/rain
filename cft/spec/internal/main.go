@@ -80,6 +80,8 @@ func getThirdPartyTypes(schemas map[string]map[string]interface{}) {
 			panic(err)
 		}
 
+		fmt.Print(".")
+
 		for _, summary := range res.TypeSummaries {
 			desc, err := client.DescribeType(context.Background(), &cloudformation.DescribeTypeInput{
 				Arn: summary.TypeArn,
@@ -97,6 +99,8 @@ func getThirdPartyTypes(schemas map[string]map[string]interface{}) {
 			schemas[ptr.ToString(summary.TypeName)] = schema
 
 			time.Sleep(time.Second / 2)
+
+			fmt.Print(".")
 		}
 
 		if res.NextToken == nil {
@@ -169,8 +173,4 @@ func main() {
 	}
 
 	ioutil.WriteFile("schemas.json", data, 0644)
-
-	for key := range schemas {
-		fmt.Println(key)
-	}
 }
