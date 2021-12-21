@@ -93,7 +93,6 @@ var Cmd = &cobra.Command{
 			}
 
 			if stat.Mode()&os.ModeNamedPipe == 0 && stat.Size() == 0 {
-				fmt.Println("CAKES")
 				panic(cmd.Help())
 			}
 
