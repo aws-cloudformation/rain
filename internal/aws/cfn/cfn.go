@@ -133,11 +133,17 @@ func ListStacks() ([]types.StackSummary, error) {
 }
 
 // DeleteStack deletes a stack
-func DeleteStack(stackName string) error {
-	// Get the stack properties
-	_, err := getClient().DeleteStack(context.Background(), &cloudformation.DeleteStackInput{
+func DeleteStack(stackName string, roleArn string) error {
+	input := &cloudformation.DeleteStackInput{
 		StackName: &stackName,
-	})
+	}
+
+	// roleArn is optional
+	if roleArn != "" {
+		input.RoleARN = ptr.String(roleArn)
+	}
+
+	_, err := getClient().DeleteStack(context.Background(), input)
 
 	return err
 }

@@ -234,7 +234,7 @@ func checkStack(stackName string) (types.Stack, bool) {
 			message := "Existing stack is empty; deleting it."
 			fmt.Println(message)
 
-			err := cfn.DeleteStack(stackName)
+			err := cfn.DeleteStack(stackName, "")
 			if err != nil {
 				panic(ui.Errorf(err, "unable to delete stack '%s'", stackName))
 			}

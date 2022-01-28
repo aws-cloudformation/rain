@@ -187,7 +187,7 @@ YAML:
 				}
 
 				if !stackExists {
-					err = cfn.DeleteStack(stackName)
+					err = cfn.DeleteStack(stackName, "")
 					if err != nil {
 						panic(ui.Errorf(err, "error deleting empty stack '%s'", stackName))
 					}

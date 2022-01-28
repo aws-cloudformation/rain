@@ -13,6 +13,7 @@ import (
 
 var yes bool
 var detach bool
+var roleArn string
 
 // Cmd is the rm command's entrypoint
 var Cmd = &cobra.Command{
@@ -61,7 +62,7 @@ var Cmd = &cobra.Command{
 
 		spinner.Pop()
 
-		err = cfn.DeleteStack(stackName)
+		err = cfn.DeleteStack(stackName, roleArn)
 		if err != nil {
 			panic(ui.Errorf(err, "unable to delete stack '%s'", stackName))
 		}
@@ -94,4 +95,5 @@ var Cmd = &cobra.Command{
 func init() {
 	Cmd.Flags().BoolVarP(&detach, "detach", "d", false, "once removal has started, don't wait around for it to finish")
 	Cmd.Flags().BoolVarP(&yes, "yes", "y", false, "don't ask questions; just delete")
+	Cmd.Flags().StringVar(&roleArn, "role-arn", "", "ARN of an IAM role that CloudFormation should assume to remove the stack")
 }
