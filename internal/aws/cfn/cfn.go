@@ -161,7 +161,7 @@ func GetStackEvents(stackName string) ([]types.StackEvent, error) {
 }
 
 // CreateChangeSet creates a changeset
-func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[string]string, stackName string) (string, error) {
+func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[string]string, stackName string, roleArn string) (string, error) {
 	templateBody, err := checkTemplate(template)
 	if err != nil {
 		return "", err
@@ -190,6 +190,10 @@ func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[s
 			"CAPABILITY_NAMED_IAM",
 			"CAPABILITY_AUTO_EXPAND",
 		},
+	}
+
+	if roleArn != "" {
+		input.RoleARN = &roleArn
 	}
 
 	if strings.HasPrefix(templateBody, "http://") {
