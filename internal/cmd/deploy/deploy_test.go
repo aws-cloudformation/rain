@@ -19,12 +19,37 @@ func Example_deploy_help() {
 	//
 	// If a template needs to be packaged before it can be deployed, rain will package the template first.
 	// Rain will attempt to create an S3 bucket to store artifacts that it packages and deploys.
-	// The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS region>
+	// The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS region>.
+	//
+	// The config flag can be used to programmatically set tags and parameters.
+	// The format is similar to the "Template configuration file" for AWS CodePipeline just without the
+	// 'StackPolicy' key. The file can be in YAML or JSON format.
+	//
+	// JSON:
+	// {
+	//   "Parameters" : {
+	//     "NameOfTemplateParameter" : "ValueOfParameter",
+	//     ...
+	//   },
+	//   "Tags" : {
+	//     "TagKey" : "TagValue",
+	//     ...
+	//   }
+	// }
+	//
+	// YAML:
+	// Parameters:
+	//   NameOfTemplateParameter: ValueOfParameter
+	//   ...
+	// Tags:
+	//   TagKey: TagValue
+	//   ...
 	//
 	// Usage:
 	//   deploy <template> [stack]
 	//
 	// Flags:
+	//   -c, --config string            YAML or JSON file to set tags and parameters.
 	//   -d, --detach                   Once deployment has started, don't wait around for it to finish.
 	//   -h, --help                     help for deploy
 	//   -k, --keep                     Keep deployed resources after a failure by disabling rollbacks.
