@@ -193,7 +193,7 @@ func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[s
 	}
 
 	if roleArn != "" {
-		input.RoleARN = &roleArn
+		input.RoleARN = ptr.String(roleArn)
 	}
 
 	if strings.HasPrefix(templateBody, "http://") {
