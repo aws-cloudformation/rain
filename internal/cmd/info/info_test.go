@@ -20,6 +20,6 @@ func Example_info_help() {
 	//   info
 	//
 	// Flags:
-	//   -c, --creds   Include current AWS credentials
+	//   -c, --creds   include current AWS credentials
 	//   -h, --help    help for info
 }

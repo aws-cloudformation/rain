@@ -23,6 +23,6 @@ func Example_ls_help() {
 	//   ls, list
 	//
 	// Flags:
-	//   -a, --all    List stacks in all regions or if you specify a stack show more details
+	//   -a, --all    list stacks in all regions; if you specify a stack, show more details
 	//   -h, --help   help for ls
 }

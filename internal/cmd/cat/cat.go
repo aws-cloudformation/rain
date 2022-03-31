@@ -46,6 +46,6 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	Cmd.Flags().BoolVarP(&transformed, "transformed", "t", false, "Get the template with transformations applied by CloudFormation.")
-	Cmd.Flags().BoolVarP(&unformatted, "unformatted", "u", false, "Output the template in its raw form and do not attempt to format it.")
+	Cmd.Flags().BoolVarP(&transformed, "transformed", "t", false, "get the template with transformations applied by CloudFormation")
+	Cmd.Flags().BoolVarP(&unformatted, "unformatted", "u", false, "output the template in its raw form; do not attempt to format it")
 }

@@ -49,24 +49,24 @@ The format is similar to the "Template configuration file" for AWS CodePipeline 
 'StackPolicy' key. The file can be in YAML or JSON format.
 
 JSON:
-{
-  "Parameters" : {
-    "NameOfTemplateParameter" : "ValueOfParameter",
-    ...
-  },
-  "Tags" : {
-    "TagKey" : "TagValue",
-    ...
+  {
+    "Parameters" : {
+      "NameOfTemplateParameter" : "ValueOfParameter",
+      ...
+    },
+    "Tags" : {
+      "TagKey" : "TagValue",
+      ...
+    }
   }
-}
 
 YAML:
-Parameters:
-  NameOfTemplateParameter: ValueOfParameter
-  ...
-Tags:
-  TagKey: TagValue
-  ...
+  Parameters:
+    NameOfTemplateParameter: ValueOfParameter
+    ...
+  Tags:
+    TagKey: TagValue
+    ...
 `,
 	Args:                  cobra.RangeArgs(1, 2),
 	DisableFlagsInUseLine: true,
@@ -237,12 +237,12 @@ Tags:
 func init() {
 	fixStackNameRe = regexp.MustCompile(`[^a-zA-Z0-9]+`)
 
-	Cmd.Flags().BoolVarP(&detach, "detach", "d", false, "Once deployment has started, don't wait around for it to finish.")
-	Cmd.Flags().BoolVarP(&yes, "yes", "y", false, "Don't ask questions; just deploy.")
-	Cmd.Flags().StringSliceVar(&tags, "tags", []string{}, "Add tags to the stack. Use the format key1=value1,key2=value2.")
-	Cmd.Flags().StringSliceVar(&params, "params", []string{}, "Set parameter values. Use the format key1=value1,key2=value2.")
-	Cmd.Flags().StringVarP(&configFilePath, "config", "c", "", "YAML or JSON file to set tags and parameters.")
-	Cmd.Flags().BoolVarP(&terminationProtection, "termination-protection", "t", false, "Enable  termination protection on the stack.")
-	Cmd.Flags().BoolVarP(&keep, "keep", "k", false, "Keep deployed resources after a failure by disabling rollbacks.")
-	Cmd.Flags().StringVarP(&roleArn, "role-arn", "", "", "The ARN of IAM role that AWS CloudFormation assumes to deploy the stack.")
+	Cmd.Flags().BoolVarP(&detach, "detach", "d", false, "once deployment has started, don't wait around for it to finish")
+	Cmd.Flags().BoolVarP(&yes, "yes", "y", false, "don't ask questions; just deploy")
+	Cmd.Flags().StringSliceVar(&tags, "tags", []string{}, "add tags to the stack; use the format key1=value1,key2=value2")
+	Cmd.Flags().StringSliceVar(&params, "params", []string{}, "set parameter values; use the format key1=value1,key2=value2")
+	Cmd.Flags().StringVarP(&configFilePath, "config", "c", "", "YAML or JSON file to set tags and parameters")
+	Cmd.Flags().BoolVarP(&terminationProtection, "termination-protection", "t", false, "enable termination protection on the stack")
+	Cmd.Flags().BoolVarP(&keep, "keep", "k", false, "keep deployed resources after a failure by disabling rollbacks")
+	Cmd.Flags().StringVarP(&roleArn, "role-arn", "", "", "ARN of an IAM role that CloudFormation should assume to deploy the stack")
 }

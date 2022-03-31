@@ -35,7 +35,7 @@ func Example_rainhelp() {
 	//   tree        Find dependencies of Resources and Outputs in a local template
 	//
 	// Other Commands:
-	//   completion  generate the autocompletion script for the specified shell
+	//   completion  Generate the autocompletion script for the specified shell
 	//   console     Login to the AWS console
 	//   help        Help about any command
 	//   info        Show your current configuration
