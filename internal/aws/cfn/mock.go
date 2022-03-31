@@ -29,7 +29,7 @@ type mockChangeSet struct {
 	params    []types.Parameter
 	tags      map[string]string
 	stackName string
-	roleArn string
+	roleArn   string
 }
 
 type regionConfig struct {
@@ -56,9 +56,9 @@ func region() regionConfig {
 	return regions[aws.Config().Region]
 }
 
-var noStackErr = errors.New("No such mock stack")
-var noChangeSetErr = errors.New("No such mock change set")
-var wrongChangeSetErr = errors.New("Mock change set does not match stack name")
+var errNoStack = errors.New("no such mock stack")
+var errNoChangeSet = errors.New("no such mock change set")
+var errWrongChangeSet = errors.New("mock change set does not match stack name")
 
 var now = time.Date(2010, time.September, 9, 0, 0, 0, 0, time.UTC)
 
@@ -68,7 +68,7 @@ func GetStackTemplate(stackName string, processed bool) (string, error) {
 		return format.String(s.template, format.Options{}), nil
 	}
 
-	return "", noStackErr
+	return "", errNoStack
 }
 
 // StackExists checks whether the named stack currently exists
@@ -109,7 +109,7 @@ func DeleteStack(stackName string) error {
 		return nil
 	}
 
-	return noStackErr
+	return errNoStack
 }
 
 // SetTerminationProtection enables or disables termination protection for a stack
@@ -119,7 +119,7 @@ func SetTerminationProtection(stackName string, protectionEnabled bool) error {
 		return nil
 	}
 
-	return noStackErr
+	return errNoStack
 }
 
 // GetStack returns a cloudformation.Stack representing the named stack
@@ -128,7 +128,7 @@ func GetStack(stackName string) (types.Stack, error) {
 		return s.stack, nil
 	}
 
-	return types.Stack{}, noStackErr
+	return types.Stack{}, errNoStack
 }
 
 // GetStackResources returns a list of the resources in the named stack
@@ -137,7 +137,7 @@ func GetStackResources(stackName string) ([]types.StackResource, error) {
 		return s.resources, nil
 	}
 
-	return nil, noStackErr
+	return nil, errNoStack
 }
 
 // GetStackEvents returns all events associated with the named stack
@@ -168,7 +168,7 @@ func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[s
 		params:    params,
 		tags:      tags,
 		stackName: stackName,
-		roleArn: roleArn,
+		roleArn:   roleArn,
 	}
 
 	return name, nil
@@ -178,11 +178,11 @@ func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[s
 func GetChangeSet(stackName, changeSetName string) (*cloudformation.DescribeChangeSetOutput, error) {
 	c, ok := region().changeSets[changeSetName]
 	if !ok {
-		return nil, noChangeSetErr
+		return nil, errNoChangeSet
 	}
 
 	if c.stackName != stackName {
-		return nil, fmt.Errorf("Mock change set's stack name is not '%s'", stackName)
+		return nil, fmt.Errorf("mock change set's stack name is not '%s'", stackName)
 	}
 
 	return &cloudformation.DescribeChangeSetOutput{
@@ -233,11 +233,11 @@ func GetChangeSet(stackName, changeSetName string) (*cloudformation.DescribeChan
 func ExecuteChangeSet(stackName, changeSetName string, disableRollback bool) error {
 	c, ok := region().changeSets[changeSetName]
 	if !ok {
-		return noChangeSetErr
+		return errNoChangeSet
 	}
 
 	if c.stackName != stackName {
-		return wrongChangeSetErr
+		return errWrongChangeSet
 	}
 
 	s, ok := region().stacks[stackName]
@@ -299,11 +299,11 @@ func ExecuteChangeSet(stackName, changeSetName string, disableRollback bool) err
 func DeleteChangeSet(stackName, changeSetName string) error {
 	c, ok := region().changeSets[changeSetName]
 	if !ok {
-		return noChangeSetErr
+		return errNoChangeSet
 	}
 
 	if c.stackName != stackName {
-		return wrongChangeSetErr
+		return errWrongChangeSet
 	}
 
 	delete(region().changeSets, changeSetName)
@@ -313,7 +313,7 @@ func DeleteChangeSet(stackName, changeSetName string) error {
 // WaitUntilStackExists pauses execution until the named stack exists
 func WaitUntilStackExists(stackName string) error {
 	if _, ok := region().stacks[stackName]; !ok {
-		return noStackErr
+		return errNoStack
 	}
 
 	return nil
@@ -322,7 +322,7 @@ func WaitUntilStackExists(stackName string) error {
 // WaitUntilStackCreateComplete pauses execution until the stack is completed (or fails)
 func WaitUntilStackCreateComplete(stackName string) error {
 	if _, ok := region().stacks[stackName]; !ok {
-		return noStackErr
+		return errNoStack
 	}
 
 	return nil
