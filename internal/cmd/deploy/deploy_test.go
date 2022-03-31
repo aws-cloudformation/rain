@@ -54,6 +54,7 @@ func Example_deploy_help() {
 	//   -h, --help                     help for deploy
 	//   -k, --keep                     Keep deployed resources after a failure by disabling rollbacks.
 	//       --params strings           Set parameter values. Use the format key1=value1,key2=value2.
+	//       --role-arn string          The ARN of IAM role that AWS CloudFormation assumes to deploy the stack.
 	//       --tags strings             Add tags to the stack. Use the format key1=value1,key2=value2.
 	//   -t, --termination-protection   Enable  termination protection on the stack.
 	//   -y, --yes                      Don't ask questions; just deploy.

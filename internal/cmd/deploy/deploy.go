@@ -31,6 +31,7 @@ var tags []string
 var configFilePath string
 var terminationProtection bool
 var keep bool
+var roleArn string
 
 // Cmd is the deploy command's entrypoint
 var Cmd = &cobra.Command{
@@ -156,7 +157,7 @@ Tags:
 
 		// Create change set
 		spinner.Push("Creating change set")
-		changeSetName, createErr := cfn.CreateChangeSet(template, parameters, combinedTags, stackName)
+		changeSetName, createErr := cfn.CreateChangeSet(template, parameters, parsedTags, stackName, roleArn)
 		if createErr != nil {
 			panic(ui.Errorf(createErr, "error creating changeset"))
 		}
@@ -243,4 +244,5 @@ func init() {
 	Cmd.Flags().StringVarP(&configFilePath, "config", "c", "", "YAML or JSON file to set tags and parameters.")
 	Cmd.Flags().BoolVarP(&terminationProtection, "termination-protection", "t", false, "Enable  termination protection on the stack.")
 	Cmd.Flags().BoolVarP(&keep, "keep", "k", false, "Keep deployed resources after a failure by disabling rollbacks.")
+	Cmd.Flags().StringVarP(&roleArn, "role-arn", "", "", "The ARN of IAM role that AWS CloudFormation assumes to deploy the stack.")
 }

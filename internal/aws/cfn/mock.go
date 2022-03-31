@@ -29,6 +29,7 @@ type mockChangeSet struct {
 	params    []types.Parameter
 	tags      map[string]string
 	stackName string
+	roleArn string
 }
 
 type regionConfig struct {
@@ -159,7 +160,7 @@ func GetStackEvents(stackName string) ([]types.StackEvent, error) {
 }
 
 // CreateChangeSet creates a changeset
-func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[string]string, stackName string) (string, error) {
+func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[string]string, stackName string, roleArn string) (string, error) {
 	name := uuid.New().String()
 
 	region().changeSets[name] = &mockChangeSet{
@@ -167,6 +168,7 @@ func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[s
 		params:    params,
 		tags:      tags,
 		stackName: stackName,
+		roleArn: roleArn,
 	}
 
 	return name, nil
