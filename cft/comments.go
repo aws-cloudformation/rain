@@ -32,7 +32,7 @@ func (t Template) AddComments(comments []*Comment) error {
 			}
 
 			if len(n.Content) == 0 {
-				return fmt.Errorf("Unable to set head at node root")
+				return fmt.Errorf("unable to set head at node root")
 			}
 
 			n.Content[0].HeadComment = comment.Value
@@ -51,7 +51,7 @@ func (t Template) AddComments(comments []*Comment) error {
 		case string:
 			key, value := s11n.GetMapValue(n, v)
 			if value == nil {
-				return fmt.Errorf("Can't find map key: '%s'", v)
+				return fmt.Errorf("can't find map key: '%s'", v)
 			}
 
 			switch value.Kind {
@@ -76,7 +76,7 @@ func (t Template) AddComments(comments []*Comment) error {
 				n.HeadComment = comment.Value
 			}
 		default:
-			return fmt.Errorf("Unexpected path element '%#v'", v)
+			return fmt.Errorf("unexpected path element '%#v'", v)
 		}
 	}
 

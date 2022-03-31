@@ -76,7 +76,7 @@ func getSigninToken(userName string) (string, error) {
 
 	token, ok := out["SigninToken"]
 	if !ok {
-		return "", errors.New("No token present in the response")
+		return "", errors.New("no token present in the response")
 	}
 
 	return token, nil

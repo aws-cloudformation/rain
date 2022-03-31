@@ -17,7 +17,7 @@ import (
 func Reader(r io.Reader) (cft.Template, error) {
 	data, err := ioutil.ReadAll(r)
 	if err != nil {
-		return cft.Template{}, fmt.Errorf("Unable to read input: %s", err)
+		return cft.Template{}, fmt.Errorf("unable to read input: %s", err)
 	}
 
 	return String(string(data))
@@ -27,7 +27,7 @@ func Reader(r io.Reader) (cft.Template, error) {
 func File(fileName string) (cft.Template, error) {
 	source, err := ioutil.ReadFile(fileName)
 	if err != nil {
-		return cft.Template{}, fmt.Errorf("Unable to read file: %s", err)
+		return cft.Template{}, fmt.Errorf("unable to read file: %s", err)
 	}
 
 	return String(string(source))
@@ -49,7 +49,7 @@ func String(input string) (cft.Template, error) {
 	var node yaml.Node
 	err := yaml.Unmarshal([]byte(input), &node)
 	if err != nil {
-		return cft.Template{}, fmt.Errorf("Invalid YAML: %s", err)
+		return cft.Template{}, fmt.Errorf("invalid YAML: %s", err)
 	}
 
 	return Node(&node)
@@ -74,7 +74,7 @@ func Verify(source cft.Template, output string) error {
 
 	d := diff.New(source, validate)
 	if d.Mode() != diff.Unchanged {
-		return fmt.Errorf("Semantic difference after formatting:\n%s", d.Format(false))
+		return fmt.Errorf("semantic difference after formatting:\n%s", d.Format(false))
 	}
 
 	return nil

@@ -17,10 +17,6 @@ const (
 	pending
 )
 
-var statusOrder = []statusCategory{
-	pending, inProgress, failed, complete,
-}
-
 var statusColour = map[statusCategory]func(...interface{}) string{
 	pending:    console.Plain,
 	inProgress: console.Blue,

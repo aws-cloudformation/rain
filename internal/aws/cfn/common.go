@@ -47,7 +47,7 @@ func checkTemplate(template cft.Template) (string, error) {
 	templateBody := format.String(template, format.Options{})
 
 	if len(templateBody) > 460800 {
-		return "", fmt.Errorf("Template is too large to deploy")
+		return "", fmt.Errorf("template is too large to deploy")
 	}
 
 	if len(templateBody) > 51200 {

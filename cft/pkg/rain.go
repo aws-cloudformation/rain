@@ -91,7 +91,7 @@ func handleS3(root string, options s3Options) (*yaml.Node, error) {
 	switch options.Format {
 	case s3Object:
 		if options.BucketProperty == "" || options.KeyProperty == "" {
-			return nil, errors.New("Missing BucketProperty or KeyProperty")
+			return nil, errors.New("missing BucketProperty or KeyProperty")
 		}
 
 		out := map[string]string{
@@ -105,7 +105,7 @@ func handleS3(root string, options s3Options) (*yaml.Node, error) {
 	case s3Http:
 		n.Encode(s.HTTP())
 	default:
-		return nil, fmt.Errorf("Unexpected S3 output format: %s", options.Format)
+		return nil, fmt.Errorf("unexpected S3 output format: %s", options.Format)
 	}
 
 	return &n, nil
@@ -113,7 +113,7 @@ func handleS3(root string, options s3Options) (*yaml.Node, error) {
 
 func includeS3Object(n *yaml.Node, root string) (bool, error) {
 	if n.Kind != yaml.MappingNode || len(n.Content) != 2 {
-		return false, errors.New("Expected a map")
+		return false, errors.New("expected a map")
 	}
 
 	// Parse the options
@@ -176,7 +176,7 @@ func includeS3URI(n *yaml.Node, root string) (bool, error) {
 func includeS3(n *yaml.Node, root string) (bool, error) {
 	// Figure out if we're a string or an object
 	if len(n.Content) != 2 {
-		return false, errors.New("Expected exactly one key")
+		return false, errors.New("expected exactly one key")
 	}
 
 	if n.Content[1].Kind == yaml.ScalarNode {

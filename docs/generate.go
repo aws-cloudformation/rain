@@ -70,7 +70,7 @@ func main() {
 	// Generate README
 	buf := bytes.Buffer{}
 	err = tmpl.Execute(&buf, map[string]string{
-		"Usage": string(usage.Bytes()),
+		"Usage": usage.String(),
 	})
 	if err != nil {
 		panic(err)

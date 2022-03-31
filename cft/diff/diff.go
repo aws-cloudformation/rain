@@ -101,7 +101,7 @@ func (s slice) String() string {
 	parts := make([]string, len(s))
 
 	for i, v := range s {
-		parts[i] = fmt.Sprintf("%s", v)
+		parts[i] = v.String()
 	}
 
 	return fmt.Sprintf("%s[%s]", s.Mode(), strings.Join(parts, " "))

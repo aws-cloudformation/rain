@@ -99,7 +99,7 @@ func Ask(prompt string) string {
 
 	answer, err := rl.Readline()
 	if err != nil {
-		panic(fmt.Errorf("Unable to get user input: %w", err))
+		panic(fmt.Errorf("unable to get user input: %w", err))
 	}
 
 	return strings.TrimSpace(answer)
