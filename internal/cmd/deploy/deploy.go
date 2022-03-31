@@ -3,6 +3,7 @@ package deploy
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"path/filepath"
 	"regexp"
 
@@ -12,15 +13,22 @@ import (
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/ui"
+	"gopkg.in/yaml.v3"
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/spf13/cobra"
 )
 
+type configFileFormat struct {
+    Parameters map[string]string `yaml:"Parameters"`
+    Tags map[string]string `yaml:"Tags"`
+}
+
 var detach bool
 var yes bool
 var params []string
 var tags []string
+var configFilePath string
 var terminationProtection bool
 var keep bool
 var roleArn string
@@ -34,7 +42,32 @@ If you don't specify a stack name, rain will use the template filename minus its
 
 If a template needs to be packaged before it can be deployed, rain will package the template first.
 Rain will attempt to create an S3 bucket to store artifacts that it packages and deploys.
-The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS region>`,
+The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS region>.
+
+The config flag can be used to programmatically set tags and parameters.
+The format is similar to the "Template configuration file" for AWS CodePipeline just without the
+'StackPolicy' key. The file can be in YAML or JSON format.
+
+JSON:
+{
+  "Parameters" : {
+    "NameOfTemplateParameter" : "ValueOfParameter",
+    ...
+  },
+  "Tags" : {
+    "TagKey" : "TagValue",
+    ...
+  }
+}
+
+YAML:
+Parameters:
+  NameOfTemplateParameter: ValueOfParameter
+  ...
+Tags:
+  TagKey: TagValue
+  ...
+`,
 	Args:                  cobra.RangeArgs(1, 2),
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -57,10 +90,46 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 		}
 
 		// Parse tags
-		parsedTags := ListToMap("tag", tags)
+		parsedTagFlag := ListToMap("tag", tags)
 
 		// Parse params
-		parsedParams := ListToMap("param", params)
+		parsedParamFlag := ListToMap("param", params)
+
+		var combinedTags map[string]string
+		var combinedParameters map[string]string
+
+		if len(configFilePath) != 0 {
+			configFileContent, err := ioutil.ReadFile(configFilePath)
+			if err != nil {
+				panic(ui.Errorf(err, "unable to read config file '%s'", configFilePath))
+			}
+
+			var configFile configFileFormat
+			err = yaml.Unmarshal([]byte(configFileContent), &configFile)
+			if err != nil {
+				panic(ui.Errorf(err, "unable to parse yaml in '%s'", configFilePath))
+			}
+
+			combinedTags = configFile.Tags
+			combinedParameters = configFile.Parameters
+
+			for k, v := range parsedTagFlag {
+				if _, ok := combinedTags[k]; ok {
+					fmt.Println(console.Yellow(fmt.Sprintf("tags flag overrides tag in config file: %s", k)))
+				}
+				combinedTags[k] = v
+			}
+	
+			for k, v := range parsedParamFlag {
+				if _, ok := combinedParameters[k]; ok {
+					fmt.Println(console.Yellow(fmt.Sprintf("params flag overrides parameter in config file: %s", k)))
+				}
+				combinedParameters[k] = v
+			}
+		} else {
+			combinedTags = parsedTagFlag
+			combinedParameters = parsedParamFlag
+		}
 
 		// Package template
 		spinner.Push(fmt.Sprintf("Preparing template '%s'", base))
@@ -74,7 +143,7 @@ The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS reg
 
 		// Parse params
 		config.Debugf("Handling parameters")
-		parameters := getParameters(template, parsedParams, stack.Parameters, stackExists)
+		parameters := getParameters(template, combinedParameters, stack.Parameters, stackExists)
 
 		if config.Debug {
 			for _, param := range parameters {
@@ -172,6 +241,7 @@ func init() {
 	Cmd.Flags().BoolVarP(&yes, "yes", "y", false, "Don't ask questions; just deploy.")
 	Cmd.Flags().StringSliceVar(&tags, "tags", []string{}, "Add tags to the stack. Use the format key1=value1,key2=value2.")
 	Cmd.Flags().StringSliceVar(&params, "params", []string{}, "Set parameter values. Use the format key1=value1,key2=value2.")
+	Cmd.Flags().StringVarP(&configFilePath, "config", "c", "", "YAML or JSON file to set tags and parameters.")
 	Cmd.Flags().BoolVarP(&terminationProtection, "termination-protection", "t", false, "Enable  termination protection on the stack.")
 	Cmd.Flags().BoolVarP(&keep, "keep", "k", false, "Keep deployed resources after a failure by disabling rollbacks.")
 	Cmd.Flags().StringVarP(&roleArn, "role-arn", "", "", "The ARN of IAM role that AWS CloudFormation assumes to deploy the stack.")
