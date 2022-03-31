@@ -151,7 +151,8 @@ func patchSamSpec(s spec.Spec) {
 	s.PropertyTypes["AWS::Serverless::Function.SNS"].Properties["FilterPolicy"].PrimitiveType = "Json"
 	s.PropertyTypes["AWS::Serverless::Function.SNS"].Properties["FilterPolicy"].Type = spec.TypeEmpty
 	s.PropertyTypes["AWS::Serverless::Function.SQS"].Properties["FilterCriteria"].Type = "AWS::Lambda::EventSourceMapping.FilterCriteria"
-	s.PropertyTypes["AWS::Serverless::Function.SelfManagedKafka"].Properties["SourceAccessConfigurations"].Type = "AWS::Lambda::EventSourceMapping.SourceAccessConfiguration"
+	s.PropertyTypes["AWS::Serverless::Function.SelfManagedKafka"].Properties["SourceAccessConfigurations"].Type = spec.TypeList
+	s.PropertyTypes["AWS::Serverless::Function.SelfManagedKafka"].Properties["SourceAccessConfigurations"].ItemType = "AWS::Lambda::EventSourceMapping.SourceAccessConfiguration"
 	s.PropertyTypes["AWS::Serverless::Function.Schedule"].Properties["RetryPolicy"].Type = "AWS::Events::Rule.RetryPolicy"
 	s.PropertyTypes["AWS::Serverless::HttpApi.HttpApiDomainConfiguration"].Properties["MutualTlsAuthentication"].Type = "AWS::ApiGateway::DomainName.MutualTlsAuthentication"
 	s.PropertyTypes["AWS::Serverless::StateMachine.CloudWatchEvent"].Properties["Pattern"].PrimitiveType = "Json"
