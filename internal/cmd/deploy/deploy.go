@@ -20,8 +20,8 @@ import (
 )
 
 type configFileFormat struct {
-    Parameters map[string]string `yaml:"Parameters"`
-    Tags map[string]string `yaml:"Tags"`
+	Parameters map[string]string `yaml:"Parameters"`
+	Tags       map[string]string `yaml:"Tags"`
 }
 
 var detach bool
@@ -119,7 +119,7 @@ Tags:
 				}
 				combinedTags[k] = v
 			}
-	
+
 			for k, v := range parsedParamFlag {
 				if _, ok := combinedParameters[k]; ok {
 					fmt.Println(console.Yellow(fmt.Sprintf("params flag overrides parameter in config file: %s", k)))
@@ -157,7 +157,7 @@ Tags:
 
 		// Create change set
 		spinner.Push("Creating change set")
-		changeSetName, createErr := cfn.CreateChangeSet(template, parameters, parsedTags, stackName, roleArn)
+		changeSetName, createErr := cfn.CreateChangeSet(template, parameters, combinedTags, stackName, roleArn)
 		if createErr != nil {
 			panic(ui.Errorf(createErr, "error creating changeset"))
 		}
