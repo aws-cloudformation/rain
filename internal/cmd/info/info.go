@@ -61,5 +61,5 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	Cmd.Flags().BoolVarP(&checkCreds, "creds", "c", false, "Include current AWS credentials")
+	Cmd.Flags().BoolVarP(&checkCreds, "creds", "c", false, "include current AWS credentials")
 }

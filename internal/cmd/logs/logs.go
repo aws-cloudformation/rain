@@ -47,5 +47,5 @@ You can use the --all flag to change this behaviour.`,
 }
 
 func init() {
-	Cmd.Flags().BoolVarP(&allLogs, "all", "a", false, "Include uninteresting logs")
+	Cmd.Flags().BoolVarP(&allLogs, "all", "a", false, "include uninteresting logs")
 }

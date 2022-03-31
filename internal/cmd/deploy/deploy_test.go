@@ -26,36 +26,36 @@ func Example_deploy_help() {
 	// 'StackPolicy' key. The file can be in YAML or JSON format.
 	//
 	// JSON:
-	// {
-	//   "Parameters" : {
-	//     "NameOfTemplateParameter" : "ValueOfParameter",
-	//     ...
-	//   },
-	//   "Tags" : {
-	//     "TagKey" : "TagValue",
-	//     ...
+	//   {
+	//     "Parameters" : {
+	//       "NameOfTemplateParameter" : "ValueOfParameter",
+	//       ...
+	//     },
+	//     "Tags" : {
+	//       "TagKey" : "TagValue",
+	//       ...
+	//     }
 	//   }
-	// }
 	//
 	// YAML:
-	// Parameters:
-	//   NameOfTemplateParameter: ValueOfParameter
-	//   ...
-	// Tags:
-	//   TagKey: TagValue
-	//   ...
+	//   Parameters:
+	//     NameOfTemplateParameter: ValueOfParameter
+	//     ...
+	//   Tags:
+	//     TagKey: TagValue
+	//     ...
 	//
 	// Usage:
 	//   deploy <template> [stack]
 	//
 	// Flags:
-	//   -c, --config string            YAML or JSON file to set tags and parameters.
-	//   -d, --detach                   Once deployment has started, don't wait around for it to finish.
+	//   -c, --config string            YAML or JSON file to set tags and parameters
+	//   -d, --detach                   once deployment has started, don't wait around for it to finish
 	//   -h, --help                     help for deploy
-	//   -k, --keep                     Keep deployed resources after a failure by disabling rollbacks.
-	//       --params strings           Set parameter values. Use the format key1=value1,key2=value2.
-	//       --role-arn string          The ARN of IAM role that AWS CloudFormation assumes to deploy the stack.
-	//       --tags strings             Add tags to the stack. Use the format key1=value1,key2=value2.
-	//   -t, --termination-protection   Enable  termination protection on the stack.
-	//   -y, --yes                      Don't ask questions; just deploy.
+	//   -k, --keep                     keep deployed resources after a failure by disabling rollbacks
+	//       --params strings           set parameter values; use the format key1=value1,key2=value2
+	//       --role-arn string          ARN of an IAM role that CloudFormation should assume to deploy the stack
+	//       --tags strings             add tags to the stack; use the format key1=value1,key2=value2
+	//   -t, --termination-protection   enable termination protection on the stack
+	//   -y, --yes                      don't ask questions; just deploy
 }

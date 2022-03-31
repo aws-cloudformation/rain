@@ -92,6 +92,6 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	Cmd.Flags().BoolVarP(&detach, "detach", "d", false, "Once removal has started, don't wait around for it to finish.")
-	Cmd.Flags().BoolVarP(&yes, "yes", "y", false, "Don't ask questions; just delete")
+	Cmd.Flags().BoolVarP(&detach, "detach", "d", false, "once removal has started, don't wait around for it to finish")
+	Cmd.Flags().BoolVarP(&yes, "yes", "y", false, "don't ask questions; just delete")
 }

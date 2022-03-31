@@ -21,6 +21,6 @@ func Example_cat_help() {
 	//
 	// Flags:
 	//   -h, --help          help for cat
-	//   -t, --transformed   Get the template with transformations applied by CloudFormation.
-	//   -u, --unformatted   Output the template in its raw form and do not attempt to format it.
+	//   -t, --transformed   get the template with transformations applied by CloudFormation
+	//   -u, --unformatted   output the template in its raw form; do not attempt to format it
 }

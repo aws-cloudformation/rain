@@ -20,5 +20,6 @@ func newIamBuilder() iamBuilder {
 
 // Policy generates a an IAM policy body
 func (b iamBuilder) Policy() (interface{}, []*cft.Comment) {
+	b.tracker = newTracker()
 	return b.newPropertyType("", "Policy")
 }

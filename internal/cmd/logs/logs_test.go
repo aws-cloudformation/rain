@@ -26,6 +26,6 @@ func Example_logs_help() {
 	//   logs, log
 	//
 	// Flags:
-	//   -a, --all    Include uninteresting logs
+	//   -a, --all    include uninteresting logs
 	//   -h, --help   help for logs
 }

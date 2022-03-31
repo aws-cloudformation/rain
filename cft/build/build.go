@@ -17,11 +17,36 @@ const (
 	changeMeTag              = "CHANGEME"
 )
 
+type tracker struct {
+	done map[string]bool
+	last []string
+}
+
+func newTracker() *tracker {
+	return &tracker{done: make(map[string]bool), last: make([]string, 0)}
+}
+
+func (t *tracker) push(s string) bool {
+	if _, ok := t.done[s]; ok {
+		return false
+	}
+
+	t.last = append(t.last, s)
+	t.done[s] = true
+	return true
+}
+
+func (t *tracker) pop() {
+	delete(t.done, t.last[len(t.last)-1])
+	t.last = t.last[:len(t.last)-1]
+}
+
 // builder generates a template from its Spec
 type builder struct {
 	Spec                      spec.Spec
 	IncludeOptionalProperties bool
 	BuildIamPolicies          bool
+	tracker                   *tracker
 }
 
 var iam iamBuilder
@@ -43,6 +68,8 @@ func (b builder) newResource(resourceType string) (map[string]interface{}, []*cf
 	if !ok {
 		panic(fmt.Errorf("no such resource type '%s'", resourceType))
 	}
+
+	b.tracker = newTracker()
 
 	// Generate properties
 	properties := make(map[string]interface{})
@@ -73,6 +100,12 @@ func (b builder) newResource(resourceType string) (map[string]interface{}, []*cf
 }
 
 func (b builder) newProperty(resourceType, propertyName string, pSpec *spec.Property) (interface{}, []*cft.Comment) {
+	if !b.tracker.push(fmt.Sprintf("%s/%s", resourceType, propertyName)) {
+		return nil, nil
+	}
+
+	defer b.tracker.pop()
+
 	defer func() {
 		if r := recover(); r != nil {
 			panic(fmt.Errorf("error building property %s.%s: %v", resourceType, propertyName, r))
@@ -128,6 +161,8 @@ func (b builder) newProperty(resourceType, propertyName string, pSpec *spec.Prop
 	}
 
 	// Fall through to property types
+	b.tracker.pop()
+	defer b.tracker.push(fmt.Sprintf("%s/%s", resourceType, propertyName))
 	output, comments := b.newPropertyType(resourceType, pSpec.Type)
 
 	if !pSpec.Required {
@@ -162,6 +197,12 @@ func (b builder) newPrimitive(primitiveType string) interface{} {
 }
 
 func (b builder) newPropertyType(resourceType, propertyType string) (interface{}, []*cft.Comment) {
+	if !b.tracker.push(fmt.Sprintf("%s/%s", resourceType, propertyType)) {
+		return nil, nil
+	}
+
+	defer b.tracker.pop()
+
 	defer func() {
 		if r := recover(); r != nil {
 			panic(fmt.Errorf("error building property type '%s.%s': %v", resourceType, propertyType, r))

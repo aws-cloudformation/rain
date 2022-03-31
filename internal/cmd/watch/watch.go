@@ -73,5 +73,5 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	Cmd.Flags().BoolVarP(&waitThenWatch, "wait", "w", false, "Wait for changes to begin rather than refusing to watch an unchanging stack")
+	Cmd.Flags().BoolVarP(&waitThenWatch, "wait", "w", false, "wait for changes to begin rather than refusing to watch an unchanging stack")
 }
