@@ -163,11 +163,11 @@ func upload(root, path string, force bool) (*s3Path, error) {
 
 func expectString(n *yaml.Node) (string, error) {
 	if len(n.Content) != 2 {
-		return "", fmt.Errorf("Expected a mapping node")
+		return "", fmt.Errorf("expected a mapping node")
 	}
 
 	if n.Content[1].Kind != yaml.ScalarNode {
-		return "", fmt.Errorf("Expected a scalar value")
+		return "", fmt.Errorf("expected a scalar value")
 	}
 
 	return n.Content[1].Value, nil
@@ -197,6 +197,7 @@ func expectFile(n *yaml.Node, root string) ([]byte, string, error) {
 	return content, path, err
 }
 
+/*
 func expectProps(n *yaml.Node, names ...string) (map[string]string, bool) {
 	if len(n.Content) != 2 {
 		return nil, false
@@ -231,3 +232,4 @@ func expectProps(n *yaml.Node, names ...string) (map[string]string, bool) {
 
 	return props, true
 }
+*/

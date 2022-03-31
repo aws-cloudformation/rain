@@ -292,7 +292,7 @@ func WaitUntilStackCreateComplete(stackName string) error {
 		}
 
 		if len(res.Stacks) != 1 {
-			return errors.New("Stack not found")
+			return errors.New("stack not found")
 		}
 
 		stack := res.Stacks[0]

@@ -35,7 +35,7 @@ func init() {
 func (b builder) newResource(resourceType string) (map[string]interface{}, []*cft.Comment) {
 	defer func() {
 		if r := recover(); r != nil {
-			panic(fmt.Errorf("error building resource type '%s': %w", resourceType, r))
+			panic(fmt.Errorf("error building resource type '%s': %v", resourceType, r))
 		}
 	}()
 
@@ -75,7 +75,7 @@ func (b builder) newResource(resourceType string) (map[string]interface{}, []*cf
 func (b builder) newProperty(resourceType, propertyName string, pSpec *spec.Property) (interface{}, []*cft.Comment) {
 	defer func() {
 		if r := recover(); r != nil {
-			panic(fmt.Errorf("error building property %s.%s: %w", resourceType, propertyName, r))
+			panic(fmt.Errorf("error building property %s.%s: %v", resourceType, propertyName, r))
 		}
 	}()
 
@@ -164,7 +164,7 @@ func (b builder) newPrimitive(primitiveType string) interface{} {
 func (b builder) newPropertyType(resourceType, propertyType string) (interface{}, []*cft.Comment) {
 	defer func() {
 		if r := recover(); r != nil {
-			panic(fmt.Errorf("error building property type '%s.%s': %w", resourceType, propertyType, r))
+			panic(fmt.Errorf("error building property type '%s.%s': %v", resourceType, propertyType, r))
 		}
 	}()
 

@@ -114,7 +114,7 @@ func CreateBucket(bucketName string) error {
 // Upload an artefact to the bucket with a unique name
 func Upload(bucketName string, content []byte) (string, error) {
 	if !BucketExists(bucketName) {
-		return "", fmt.Errorf("Bucket does not exist: '%s'", bucketName)
+		return "", fmt.Errorf("bucket does not exist: '%s'", bucketName)
 	}
 
 	key := fmt.Sprintf("%x", sha256.Sum256(content))

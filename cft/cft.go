@@ -21,7 +21,7 @@ func (t Template) Map() map[string]interface{} {
 
 	err := t.Decode(&out)
 	if err != nil {
-		panic(fmt.Errorf("Error converting template to map: %s", err))
+		panic(fmt.Errorf("error converting template to map: %s", err))
 	}
 
 	return out

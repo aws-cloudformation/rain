@@ -41,21 +41,22 @@ func GetPath(node *yaml.Node, path []interface{}) (*yaml.Node, error) {
 	case string:
 		_, value := GetMapValue(node, v)
 		if value == nil {
-			return nil, fmt.Errorf("Could not find map key: '%s'", v)
+			return nil, fmt.Errorf("could not find map key: '%s'", v)
 		}
 
 		return GetPath(value, path)
 	case int:
 		if node.Kind != yaml.SequenceNode {
-			return nil, fmt.Errorf("Attempt to index non-sequence node with '%d'", v)
+			return nil, fmt.Errorf("attempt to index non-sequence node with '%d'", v)
 		}
 
 		return GetPath(node.Content[v], path)
 	default:
-		return nil, fmt.Errorf("Unexpected path entry '%#v'", next)
+		return nil, fmt.Errorf("unexpected path entry '%#v'", next)
 	}
 }
 
+/*
 func setPath(node *yaml.Node, path []interface{}, value *yaml.Node) error {
 	if len(path) == 0 {
 		*node = *value
@@ -72,7 +73,7 @@ func setPath(node *yaml.Node, path []interface{}, value *yaml.Node) error {
 	switch v := last.(type) {
 	case string:
 		if node.Kind != yaml.MappingNode {
-			return fmt.Errorf("Attempt to set index of non-mapping node with '%s'", v)
+			return fmt.Errorf("attempt to set index of non-mapping node with '%s'", v)
 		}
 
 		if _, mapValue := GetMapValue(node, v); mapValue != nil {
@@ -88,7 +89,7 @@ func setPath(node *yaml.Node, path []interface{}, value *yaml.Node) error {
 		return nil
 	case int:
 		if node.Kind != yaml.SequenceNode {
-			return fmt.Errorf("Attempt to set index of non-sequence node with '%d'", v)
+			return fmt.Errorf("attempt to set index of non-sequence node with '%d'", v)
 		}
 
 		if v < len(node.Content) {
@@ -99,6 +100,7 @@ func setPath(node *yaml.Node, path []interface{}, value *yaml.Node) error {
 
 		return nil
 	default:
-		return fmt.Errorf("Unexpected path entry '%#v'", last)
+		return fmt.Errorf("unexpected path entry '%#v'", last)
 	}
 }
+*/

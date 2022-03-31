@@ -27,10 +27,6 @@ func StackHasSettled(stack types.Stack) bool {
 	return statusIsSettled(string(stack.StackStatus))
 }
 
-func resourceHasSettled(resource *types.StackResource) bool {
-	return statusIsSettled(string(resource.ResourceStatus))
-}
-
 func stackResourceStatuses(stack types.Stack) (string, []string) {
 	stackName := ptr.ToString(stack.StackName)
 

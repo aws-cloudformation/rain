@@ -56,7 +56,7 @@ func formatDiff(d Diff, path []interface{}, long bool) string {
 	case value:
 		return v.Format(long)
 	default:
-		panic(fmt.Errorf("Unexpected type '%T'", d))
+		panic(fmt.Errorf("unexpected type '%T'", d))
 	}
 }
 
