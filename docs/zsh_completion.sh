@@ -125,7 +125,7 @@ _rain()
         _arguments '*:filename:'"$filteringCmd"
     elif [ $((directive & shellCompDirectiveFilterDirs)) -ne 0 ]; then
         # File completion for directories only
-        local subDir
+        local subdir
         subdir="${completions[1]}"
         if [ -n "$subdir" ]; then
             __rain_debug "Listing directories in $subdir"
@@ -173,5 +173,5 @@ _rain()
 
 # don't run the completion function when being source-ed or eval-ed
 if [ "$funcstack[1]" = "_rain" ]; then
-	_rain
+    _rain
 fi
