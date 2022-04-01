@@ -19,6 +19,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const noChangeFoundMsg = "The submitted information didn't contain changes. Submit different information to create a change set."
+
 type configFileFormat struct {
 	Parameters map[string]string `yaml:"Parameters"`
 	Tags       map[string]string `yaml:"Tags"`
@@ -159,12 +161,11 @@ YAML:
 		spinner.Push("Creating change set")
 		changeSetName, createErr := cfn.CreateChangeSet(template, parameters, combinedTags, stackName, roleArn)
 		if createErr != nil {
-			switch createErr {
-				case cfn.ErrNoChange:
-					fmt.Println(console.Green("\nChange set was created, but there is no change. Deploy was skipped."))
-					return
-				default:
-					panic(ui.Errorf(createErr, "error creating changeset"))
+			if createErr.Error() == noChangeFoundMsg {
+				fmt.Println(console.Green("\nChange set was created, but there is no change. Deploy was skipped."))
+				return
+			} else {
+				panic(ui.Errorf(createErr, "error creating changeset"))
 			}
 		}
 
