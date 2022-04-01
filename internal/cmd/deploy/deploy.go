@@ -162,7 +162,8 @@ YAML:
 		changeSetName, createErr := cfn.CreateChangeSet(template, parameters, combinedTags, stackName, roleArn)
 		if createErr != nil {
 			if createErr.Error() == noChangeFoundMsg {
-				fmt.Println(console.Green("\nChange set was created, but there is no change. Deploy was skipped."))
+				spinner.Pop()
+				fmt.Println(console.Green("Change set was created, but there is no change. Deploy was skipped."))
 				return
 			} else {
 				panic(ui.Errorf(createErr, "error creating changeset"))
