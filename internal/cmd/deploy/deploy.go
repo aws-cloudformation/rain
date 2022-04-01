@@ -159,7 +159,13 @@ YAML:
 		spinner.Push("Creating change set")
 		changeSetName, createErr := cfn.CreateChangeSet(template, parameters, combinedTags, stackName, roleArn)
 		if createErr != nil {
-			panic(ui.Errorf(createErr, "error creating changeset"))
+			switch createErr {
+				case cfn.ErrNoChange:
+					fmt.Println(console.Green("\nChange set was created, but there is no change. Deploy was skipped."))
+					return
+				default:
+					panic(ui.Errorf(createErr, "error creating changeset"))
+			}
 		}
 
 		changeSetStatus, err := cfn.GetChangeSet(stackName, changeSetName)

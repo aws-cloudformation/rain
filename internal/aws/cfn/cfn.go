@@ -21,6 +21,10 @@ import (
 	"github.com/aws/smithy-go/ptr"
 )
 
+const noChangeFoundMsg = "The submitted information didn't contain changes. Submit different information to create a change set."
+
+var ErrNoChange = errors.New(noChangeFoundMsg)
+
 var liveStatuses = []types.StackStatus{
 	"CREATE_IN_PROGRESS",
 	"CREATE_FAILED",
@@ -261,7 +265,11 @@ func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[s
 		config.Debugf("ChangeSet status: %s", status)
 
 		if status == "FAILED" {
-			return changeSetName, errors.New(ptr.ToString(res.StatusReason))
+			if ptr.ToString(res.StatusReason) == noChangeFoundMsg {
+				return changeSetName, ErrNoChange
+			} else {
+				return changeSetName, errors.New(ptr.ToString(res.StatusReason))
+			}
 		}
 
 		if strings.HasSuffix(status, "_COMPLETE") {
