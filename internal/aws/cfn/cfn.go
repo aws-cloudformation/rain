@@ -222,11 +222,12 @@ func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[s
 	changeSetName := stackName + "-" + fmt.Sprint(time.Now().Unix())
 
 	input := &cloudformation.CreateChangeSetInput{
-		ChangeSetType: types.ChangeSetType(changeSetType),
-		ChangeSetName: ptr.String(changeSetName),
-		StackName:     ptr.String(stackName),
-		Tags:          makeTags(tags),
-		Parameters:    params,
+		ChangeSetType:       types.ChangeSetType(changeSetType),
+		ChangeSetName:       ptr.String(changeSetName),
+		StackName:           ptr.String(stackName),
+		Tags:                makeTags(tags),
+		IncludeNestedStacks: ptr.Bool(true),
+		Parameters:          params,
 		Capabilities: []types.Capability{
 			"CAPABILITY_NAMED_IAM",
 			"CAPABILITY_AUTO_EXPAND",
@@ -276,10 +277,16 @@ func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[s
 
 // GetChangeSet returns the named changeset
 func GetChangeSet(stackName, changeSetName string) (*cloudformation.DescribeChangeSetOutput, error) {
-	return getClient().DescribeChangeSet(context.Background(), &cloudformation.DescribeChangeSetInput{
-		ChangeSetName: &changeSetName,
-		StackName:     &stackName,
-	})
+	input := &cloudformation.DescribeChangeSetInput{
+		ChangeSetName: ptr.String(changeSetName),
+	}
+
+	// Stack name is optional
+	if stackName != "" {
+		input.StackName = ptr.String(stackName)
+	}
+
+	return getClient().DescribeChangeSet(context.Background(), input)
 }
 
 // ExecuteChangeSet executes the named changeset

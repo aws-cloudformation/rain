@@ -13,7 +13,6 @@ import (
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/ui"
-	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/smithy-go/ptr"
 )
@@ -22,12 +21,23 @@ var fixStackNameRe *regexp.Regexp
 
 const maxStackNameLength = 128
 
-func formatChangeSet(status *cloudformation.DescribeChangeSetOutput) string {
+func formatChangeSet(stackName, changeSetName string) string {
+	status, err := cfn.GetChangeSet(stackName, changeSetName)
+	if err != nil {
+		panic(ui.Errorf(err, "error getting changeset '%s' for stack '%s'", changeSetName, stackName))
+	}
+
 	out := strings.Builder{}
 
 	out.WriteString(fmt.Sprintf("%s:\n", console.Yellow(fmt.Sprintf("Stack %s", ptr.ToString(status.StackName)))))
 
+	// Non-stack resources
 	for _, change := range status.Changes {
+		if change.ResourceChange.ChangeSetId != nil {
+			// Bunch up nested stacks to the end
+			continue
+		}
+
 		line := fmt.Sprintf("%s %s",
 			*change.ResourceChange.ResourceType,
 			*change.ResourceChange.LogicalResourceId,
@@ -42,6 +52,30 @@ func formatChangeSet(status *cloudformation.DescribeChangeSetOutput) string {
 			out.WriteString(console.Red("  - " + line))
 		}
 
+		out.WriteString("\n")
+	}
+
+	// Nested stacks
+	for _, change := range status.Changes {
+		if change.ResourceChange.ChangeSetId == nil {
+			continue
+		}
+
+		child := formatChangeSet("", ptr.ToString(change.ResourceChange.ChangeSetId))
+		parts := strings.SplitN(child, "\n", 2)
+		header, body := parts[0], parts[1]
+
+		switch change.ResourceChange.Action {
+		case types.ChangeAction("Add"):
+			out.WriteString(console.Green("  + " + header))
+		case types.ChangeAction("Modify"):
+			out.WriteString(console.Blue("  > " + header))
+		case types.ChangeAction("Remove"):
+			out.WriteString(console.Red("  - " + header))
+		}
+		out.WriteString("\n")
+
+		out.WriteString(ui.Indent("  ", body))
 		out.WriteString("\n")
 	}
 
