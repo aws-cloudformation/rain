@@ -25,12 +25,19 @@ func getClient() *s3.Client {
 }
 
 // BucketExists checks whether the named bucket exists
-func BucketExists(bucketName string) bool {
+func BucketExists(bucketName string) (bool, error) {
 	_, err := getClient().HeadBucket(context.Background(), &s3.HeadBucketInput{
 		Bucket: ptr.String(bucketName),
 	})
 
-	return err == nil
+	if err != nil {
+		var nf *types.NotFound
+		if errors.As(err, &nf) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
 
 // CreateBucket creates a new S3 bucket
@@ -113,7 +120,12 @@ func CreateBucket(bucketName string) error {
 
 // Upload an artefact to the bucket with a unique name
 func Upload(bucketName string, content []byte) (string, error) {
-	if !BucketExists(bucketName) {
+	isBucketExists, errBucketExists := BucketExists(bucketName)
+	if errBucketExists != nil {
+		panic(fmt.Errorf("unable to confirm whether artifact bucket exists: %w", errBucketExists))
+	}
+
+	if !isBucketExists {
 		return "", fmt.Errorf("bucket does not exist: '%s'", bucketName)
 	}
 
@@ -144,7 +156,12 @@ func RainBucket(forceCreation bool) string {
 
 	config.Debugf("Artifact bucket: %s", bucketName)
 
-	if !BucketExists(bucketName) {
+	isBucketExists, err := BucketExists(bucketName)
+	if err != nil {
+		panic(fmt.Errorf("unable to confirm whether artifact bucket exists: %w", err))
+	}
+
+	if !isBucketExists {
 		spinner.Pause()
 		if !forceCreation && !console.Confirm(true, fmt.Sprintf("Rain needs to create an S3 bucket called '%s'. Continue?", bucketName)) {
 			panic(errors.New("you may create the bucket manually and then re-run this operation"))
