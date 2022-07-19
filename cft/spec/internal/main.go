@@ -85,7 +85,6 @@ var %s = %s`, name, name, s)
 
 	out, err := format.Source([]byte(source))
 	if err != nil {
-		fmt.Println(source)
 		panic(err)
 	}
 
@@ -130,7 +129,8 @@ func patchCfnSpec(s spec.Spec) {
 		}
 	}
 
-	s.PropertyTypes["AWS::DataBrew::Recipe.Action"].Properties["Parameters"].PrimitiveType = "Json"
+	s.ResourceTypes["AWS::Rekognition::StreamProcessor"].Properties["PolygonRegionsOfInterest"].Type = spec.TypeEmpty
+	s.ResourceTypes["AWS::Rekognition::StreamProcessor"].Properties["PolygonRegionsOfInterest"].PrimitiveType = "Json"
 }
 
 func patchSamSpec(s spec.Spec) {
@@ -144,6 +144,7 @@ func patchSamSpec(s spec.Spec) {
 	s.PropertyTypes["AWS::Serverless::Function.EventBridgeRule"].Properties["Pattern"].PrimitiveType = "Json"
 	s.PropertyTypes["AWS::Serverless::Function.EventBridgeRule"].Properties["Pattern"].Type = spec.TypeEmpty
 	s.PropertyTypes["AWS::Serverless::Function.EventBridgeRule"].Properties["RetryPolicy"].Type = "AWS::Events::Rule.RetryPolicy"
+	s.PropertyTypes["AWS::Serverless::Function.FunctionUrlConfig"].Properties["Cors"].Type = "AWS::Lambda::Url.Cors"
 	s.PropertyTypes["AWS::Serverless::Function.HttpApi"].Properties["RouteSettings"].Type = "AWS::ApiGatewayV2::Stage.RouteSettings"
 	s.PropertyTypes["AWS::Serverless::Function.Kinesis"].Properties["DestinationConfig"].Type = "AWS::Lambda::EventSourceMapping.DestinationConfig"
 	s.PropertyTypes["AWS::Serverless::Function.Kinesis"].Properties["FilterCriteria"].Type = "AWS::Lambda::EventSourceMapping.FilterCriteria"
@@ -151,9 +152,9 @@ func patchSamSpec(s spec.Spec) {
 	s.PropertyTypes["AWS::Serverless::Function.SNS"].Properties["FilterPolicy"].PrimitiveType = "Json"
 	s.PropertyTypes["AWS::Serverless::Function.SNS"].Properties["FilterPolicy"].Type = spec.TypeEmpty
 	s.PropertyTypes["AWS::Serverless::Function.SQS"].Properties["FilterCriteria"].Type = "AWS::Lambda::EventSourceMapping.FilterCriteria"
-	s.PropertyTypes["AWS::Serverless::Function.SelfManagedKafka"].Properties["SourceAccessConfigurations"].Type = spec.TypeList
-	s.PropertyTypes["AWS::Serverless::Function.SelfManagedKafka"].Properties["SourceAccessConfigurations"].ItemType = "AWS::Lambda::EventSourceMapping.SourceAccessConfiguration"
 	s.PropertyTypes["AWS::Serverless::Function.Schedule"].Properties["RetryPolicy"].Type = "AWS::Events::Rule.RetryPolicy"
+	s.PropertyTypes["AWS::Serverless::Function.SelfManagedKafka"].Properties["SourceAccessConfigurations"].ItemType = "AWS::Lambda::EventSourceMapping.SourceAccessConfiguration"
+	s.PropertyTypes["AWS::Serverless::Function.SelfManagedKafka"].Properties["SourceAccessConfigurations"].Type = spec.TypeList
 	s.PropertyTypes["AWS::Serverless::HttpApi.HttpApiDomainConfiguration"].Properties["MutualTlsAuthentication"].Type = "AWS::ApiGateway::DomainName.MutualTlsAuthentication"
 	s.PropertyTypes["AWS::Serverless::StateMachine.CloudWatchEvent"].Properties["Pattern"].PrimitiveType = "Json"
 	s.PropertyTypes["AWS::Serverless::StateMachine.CloudWatchEvent"].Properties["Pattern"].Type = spec.TypeEmpty
@@ -170,6 +171,8 @@ func patchSamSpec(s spec.Spec) {
 	s.ResourceTypes["AWS::Serverless::Function"].Properties["AssumeRolePolicyDocument"].PrimitiveType = "Json"
 	s.ResourceTypes["AWS::Serverless::Function"].Properties["AssumeRolePolicyDocument"].Type = spec.TypeEmpty
 	s.ResourceTypes["AWS::Serverless::Function"].Properties["Environment"].Type = "AWS::Lambda::Function.Environment"
+	s.ResourceTypes["AWS::Serverless::Function"].Properties["EphemeralStorage"].PrimitiveType = "Integer"
+	s.ResourceTypes["AWS::Serverless::Function"].Properties["EphemeralStorage"].Type = spec.TypeEmpty
 	s.ResourceTypes["AWS::Serverless::Function"].Properties["ImageConfig"].Type = "AWS::Lambda::Function.ImageConfig"
 	s.ResourceTypes["AWS::Serverless::Function"].Properties["ProvisionedConcurrencyConfig"].Type = "AWS::Lambda::Alias.ProvisionedConcurrencyConfiguration"
 	s.ResourceTypes["AWS::Serverless::Function"].Properties["VpcConfig"].Type = "AWS::Lambda::Function.VpcConfig"
@@ -257,7 +260,7 @@ func main() {
 	}
 
 	if !checkIntegrity(cfnSpec) {
-		os.Exit(1)
+		panic("Failed integrity check")
 	}
 
 	// Save specs

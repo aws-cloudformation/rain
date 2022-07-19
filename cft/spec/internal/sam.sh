@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 DOC_BASE="https://docs.aws.amazon.com/serverless-application-model/latest/developerguide"
 
