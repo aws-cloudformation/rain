@@ -1,6 +1,7 @@
 package parse
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
@@ -9,8 +10,12 @@ import (
 )
 
 // Convert string GetAtt into array format so that it it's easier to compare
-func parseGetAtt(n *yaml.Node) {
+func parseGetAtt(n *yaml.Node) error {
 	parts := strings.SplitN(n.Value, ".", 2)
+
+	if len(parts) != 2 {
+		return errors.New("GetAtt requires two parameters.")
+	}
 
 	*n = yaml.Node{
 		Kind: yaml.SequenceNode,
@@ -34,11 +39,12 @@ func parseGetAtt(n *yaml.Node) {
 			},
 		},
 	}
+	return nil
 }
 
 // TransformNode takes a *yaml.Node and convert tag-style names into map-style,
 // and converts other scalars into a canonical format
-func TransformNode(n *yaml.Node) {
+func TransformNode(n *yaml.Node) error {
 	// Fix badly-parsed numbers
 	if n.ShortTag() == "!!float" && n.Value[0] == '0' {
 		n.Tag = "!!str"
@@ -83,11 +89,19 @@ func TransformNode(n *yaml.Node) {
 	// Convert GetAtts
 	if n.Kind == yaml.MappingNode && len(n.Content) == 2 {
 		if n.Content[0].Value == "Fn::GetAtt" && n.Content[1].Kind == yaml.ScalarNode {
-			parseGetAtt(n.Content[1])
+			err := parseGetAtt(n.Content[1])
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	for _, child := range n.Content {
-		TransformNode(child)
+		err := TransformNode(child)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
