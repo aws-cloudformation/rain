@@ -343,3 +343,85 @@ func GetStackSummary(stack types.Stack, long bool) string {
 
 	return strings.TrimSpace(out.String())
 }
+
+//
+func GetStackSetSummary(stackSet types.StackSet, long bool) string {
+	out := strings.Builder{}
+
+	stackSetStatus := string(stackSet.Status)
+	stackSetName := ptr.ToString(stackSet.StackSetName)
+
+	// Stack status
+	out.WriteString(fmt.Sprintf("%s: %s\n", console.Yellow(fmt.Sprintf("StackSet %s", stackSetName)), ColouriseStatus(stackSetStatus)))
+
+	if long {
+		// Params
+		if len(stackSet.Parameters) > 0 {
+			out.WriteString(fmt.Sprintf("  %s:\n", console.Yellow("Parameters")))
+			for _, param := range stackSet.Parameters {
+				out.WriteString(fmt.Sprintf("    %s: ", console.Yellow(ptr.ToString(param.ParameterKey))))
+
+				if param.ResolvedValue != nil {
+					out.WriteString(ptr.ToString(param.ResolvedValue))
+				} else {
+					out.WriteString(ptr.ToString(param.ParameterValue))
+				}
+
+				out.WriteString("\n")
+			}
+		}
+
+		// Resources
+		out.WriteString(fmt.Sprintf("  %s:\n", console.Yellow("Resources")))
+		resources, _ := cfn.GetStackResources(stackSetName) // Ignore errors - it just means we'll get no resources
+		for _, resource := range resources {
+			out.WriteString(fmt.Sprintf("    %s: %s\n",
+				console.Yellow(ptr.ToString(resource.LogicalResourceId)),
+				ColouriseStatus(string(resource.ResourceStatus)),
+			))
+
+			if ptr.ToString(resource.ResourceType) == "AWS::CloudFormation::Stack" {
+				nestedStack, err := cfn.GetStack(ptr.ToString(resource.PhysicalResourceId))
+				if err == nil {
+					nestedSummary := GetStackSummary(nestedStack, long)
+
+					for _, line := range strings.Split(nestedSummary, "\n") {
+						out.WriteString(fmt.Sprintf("      %s\n", line))
+					}
+				}
+			} else {
+				out.WriteString(fmt.Sprintf("      %s\n", ptr.ToString(resource.PhysicalResourceId)))
+			}
+		}
+	}
+
+	// Outputs
+	// if len(stackSet.Outputs) > 0 {
+	// 	out.WriteString(fmt.Sprintf("%s:\n", console.Yellow("  Outputs")))
+	// 	for _, output := range stackSet.Outputs {
+	// 		out.WriteString(fmt.Sprintf("    %s: %s", console.Yellow(ptr.ToString(output.OutputKey)), ptr.ToString(output.OutputValue)))
+
+	// 		if output.Description != nil || output.ExportName != nil {
+	// 			out.WriteString(console.Grey(" # "))
+
+	// 			if output.Description != nil {
+	// 				out.WriteString(console.Grey(ptr.ToString(output.Description)))
+	// 			}
+
+	// 			if output.ExportName != nil {
+	// 				msg := fmt.Sprintf("exported as %s", ptr.ToString(output.ExportName))
+
+	// 				if output.Description != nil {
+	// 					msg = " (" + msg + ")"
+	// 				}
+
+	// 				out.WriteString(console.Grey(msg))
+	// 			}
+	// 		}
+
+	// 		out.WriteString("\n")
+	// 	}
+	// }
+
+	return strings.TrimSpace(out.String())
+}

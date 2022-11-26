@@ -126,6 +126,33 @@ func ListStacks() ([]types.StackSummary, error) {
 	return stacks, nil
 }
 
+// ListStackSets returns a list of all existing stack sets
+func ListStackSets() ([]types.StackSetSummary, error) {
+	stacks := make([]types.StackSetSummary, 0)
+
+	var token *string
+
+	for {
+		res, err := getClient().ListStackSets(context.Background(), &cloudformation.ListStackSetsInput{
+			NextToken: token,
+		})
+
+		if err != nil {
+			return stacks, err
+		}
+
+		stacks = append(stacks, res.Summaries...)
+
+		if res.NextToken == nil {
+			break
+		}
+
+		token = res.NextToken
+	}
+
+	return stacks, nil
+}
+
 // DeleteStack deletes a stack
 func DeleteStack(stackName string) error {
 	// Get the stack properties
@@ -158,6 +185,19 @@ func GetStack(stackName string) (types.Stack, error) {
 	}
 
 	return res.Stacks[0], nil
+}
+
+// GetStackSet returns a cloudformation.Stack representing the named stack
+func GetStackSet(stackSetName string) (*types.StackSet, error) {
+	// Get the stack properties
+	res, err := getClient().DescribeStackSet(context.Background(), &cloudformation.DescribeStackSetInput{
+		StackSetName: &stackSetName,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return res.StackSet, nil
 }
 
 // GetStackResources returns a list of the resources in the named stack
