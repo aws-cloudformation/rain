@@ -28,18 +28,20 @@ var LsCmd = &cobra.Command{
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 1 {
-			stackName := args[0]
+			stackSetName := args[0]
 
 			spinner.Push("Fetching stack set status")
-			stackSet, err := cfn.GetStackSet(stackName)
+			stackSet, err := cfn.GetStackSet(stackSetName)
 			if err != nil {
-				panic(ui.Errorf(err, "failed to list stack set '%s'", stackName))
+				panic(ui.Errorf(err, "failed to list stack set '%s'", stackSetName))
 			}
 
 			output := ui.GetStackSetSummary(*stackSet, all)
 			spinner.Pop()
 
 			fmt.Println(output)
+
+			fmt.Println(ui.Indent("  ", formatStackSetInstances(string(stackSetName))))
 		} else {
 			var err error
 			regions := []string{aws.Config().Region}
@@ -76,7 +78,7 @@ var LsCmd = &cobra.Command{
 				}
 				sort.Strings(stackSetNames)
 
-				fmt.Println(console.Yellow(fmt.Sprintf("CloudFormation stacks sets in %s:", region)))
+				fmt.Println(console.Yellow(fmt.Sprintf("CloudFormation stack sets in %s:", region)))
 				for _, stackSetName := range stackSetNames {
 					out := strings.Builder{}
 					out.WriteString(fmt.Sprintf("%s: %s\n",
@@ -97,4 +99,27 @@ var LsCmd = &cobra.Command{
 
 func init() {
 	LsCmd.Flags().BoolVarP(&all, "all", "a", false, "list stacks in all regions; if you specify a stack, show more details")
+}
+
+func formatStackSetInstances(stackSetName string) string {
+	out := strings.Builder{}
+	out.WriteString(console.Yellow("Instances: (Name/Account/Region/Status) \n"))
+	spinner.Push(fmt.Sprintf("Fetching stack set instances for '%s'", stackSetName))
+	stackSetInstances, err := cfn.ListStackInstances(stackSetName)
+	if err != nil {
+		panic(ui.Errorf(err, "failed to list stack sets"))
+	}
+	spinner.Pop()
+
+	for _, instance := range stackSetInstances {
+		out.WriteString(ui.Indent(" - ", fmt.Sprintf("%s / %s / %s / %s\n",
+			*instance.StackSetId,
+			*instance.Account,
+			*instance.Region,
+			ui.ColouriseStatus(string(instance.StackInstanceStatus.DetailedStatus)), // TODO: implement status colouring for stack set instances
+		)))
+	}
+	out.WriteString("\n")
+
+	return out.String()
 }

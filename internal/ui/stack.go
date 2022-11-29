@@ -352,7 +352,7 @@ func GetStackSetSummary(stackSet types.StackSet, long bool) string {
 	stackSetName := ptr.ToString(stackSet.StackSetName)
 
 	// Stack status
-	out.WriteString(fmt.Sprintf("%s: %s\n", console.Yellow(fmt.Sprintf("StackSet %s", stackSetName)), ColouriseStatus(stackSetStatus)))
+	out.WriteString(fmt.Sprintf("%s: %s %s\n", console.Yellow("StackSet"), stackSetName, stackSetStatus))
 
 	if long {
 		// Params

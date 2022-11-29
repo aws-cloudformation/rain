@@ -153,6 +153,33 @@ func ListStackSets() ([]types.StackSetSummary, error) {
 	return stacks, nil
 }
 
+// ListStackInstances returns a list of all instances for a given stack sets
+func ListStackInstances(stackSetName string) ([]types.StackInstanceSummary, error) {
+	stackInstances := make([]types.StackInstanceSummary, 0)
+	var token *string
+
+	for {
+		res, err := getClient().ListStackInstances(context.Background(), &cloudformation.ListStackInstancesInput{
+			NextToken:    token,
+			StackSetName: &stackSetName,
+		})
+
+		if err != nil {
+			return stackInstances, err
+		}
+
+		stackInstances = append(stackInstances, res.Summaries...)
+
+		if res.NextToken == nil {
+			break
+		}
+
+		token = res.NextToken
+	}
+
+	return stackInstances, nil
+}
+
 // DeleteStack deletes a stack
 func DeleteStack(stackName string) error {
 	// Get the stack properties
