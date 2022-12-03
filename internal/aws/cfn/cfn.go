@@ -153,8 +153,8 @@ func ListStackSets() ([]types.StackSetSummary, error) {
 	return stacks, nil
 }
 
-// ListStackInstances returns a list of all instances for a given stack sets
-func ListStackInstances(stackSetName string) ([]types.StackInstanceSummary, error) {
+// ListStackSetInstances returns a list of all instances for a given stack sets
+func ListStackSetInstances(stackSetName string) ([]types.StackInstanceSummary, error) {
 	stackInstances := make([]types.StackInstanceSummary, 0)
 	var token *string
 
@@ -190,6 +190,42 @@ func DeleteStack(stackName string) error {
 	return err
 }
 
+// DeleteStackSet deletes a stack set
+func DeleteStackSet(stackSetName string) error {
+	_, err := getClient().DeleteStackSet(context.Background(), &cloudformation.DeleteStackSetInput{
+		StackSetName: &stackSetName,
+	})
+
+	return err
+}
+
+// DeleteStackSet deletes a stack set
+func DeleteAllChangeSetInstances(stackSetName string) error {
+	stackSet, err := GetStackSet(stackSetName)
+	if err != nil {
+		fmt.Printf("Could not find stack set '%s'", stackSetName)
+		return err
+	}
+	instances, err := ListStackSetInstances(*stackSet.StackSetName)
+	if err != nil {
+		fmt.Printf("Could not fetch instances for stack set '%s'", stackSetName)
+		return err
+	}
+	var input = &cloudformation.DeleteStackInstancesInput{
+		Accounts:     []string{},
+		Regions:      []string{},
+		RetainStacks: false, //TODO: add flag
+		StackSetName: &stackSetName,
+	}
+	for _, i := range instances {
+		input.Accounts = append(input.Accounts, *i.Account)
+		input.Regions = append(input.Regions, *i.Region)
+	}
+
+	_, err = getClient().DeleteStackInstances(context.Background(), input)
+	return err
+}
+
 // SetTerminationProtection enables or disables termination protection for a stack
 func SetTerminationProtection(stackName string, protectionEnabled bool) error {
 	// Set termination protection
@@ -214,17 +250,17 @@ func GetStack(stackName string) (types.Stack, error) {
 	return res.Stacks[0], nil
 }
 
-// GetStackSet returns a cloudformation.Stack representing the named stack
-func GetStackSet(stackSetName string) (*types.StackSet, error) {
+// GetStackSet returns a cloudformation.StackSet
+func GetStackSet(stackSetName string) (types.StackSet, error) {
 	// Get the stack properties
 	res, err := getClient().DescribeStackSet(context.Background(), &cloudformation.DescribeStackSetInput{
 		StackSetName: &stackSetName,
 	})
 	if err != nil {
-		return nil, err
+		return types.StackSet{}, err
 	}
 
-	return res.StackSet, nil
+	return *res.StackSet, nil
 }
 
 // GetStackResources returns a list of the resources in the named stack
@@ -354,6 +390,64 @@ func GetChangeSet(stackName, changeSetName string) (*cloudformation.DescribeChan
 	}
 
 	return getClient().DescribeChangeSet(context.Background(), input)
+}
+
+// CreateStackSet creates stack set
+func CreateStackSet(StackSetName string,
+	template cft.Template,
+	params []types.Parameter,
+	tags map[string]string,
+	roleArn string,
+	disableRollback bool) error {
+
+	templateBody, err := checkTemplate(template)
+	if err != nil {
+		return errors.New("error occured while extracting template body")
+	}
+
+	_, err = GetStackSet(StackSetName)
+	if err == nil {
+		return errors.New("can't create stack set. It already exists")
+	}
+
+	input := &cloudformation.CreateStackSetInput{
+		StackSetName: &StackSetName,
+		Parameters:   params,
+		Tags:         makeTags(tags),
+		Capabilities: []types.Capability{
+			"CAPABILITY_NAMED_IAM",
+			"CAPABILITY_AUTO_EXPAND",
+		},
+	}
+
+	if roleArn != "" {
+		input.AdministrationRoleARN = ptr.String(roleArn)
+	}
+
+	if strings.HasPrefix(templateBody, "http://") {
+		input.TemplateURL = ptr.String(templateBody)
+	} else {
+		input.TemplateBody = ptr.String(templateBody)
+	}
+
+	res, err := getClient().CreateStackSet(context.Background(), input)
+
+	fmt.Println(res)
+	return err
+}
+
+func CreateStackSetInstances(StackSetName string) error {
+
+	input := &cloudformation.CreateStackInstancesInput{ //TODO
+		StackSetName: &StackSetName,
+		Regions:      []string{"us-east-1"},
+		Accounts:     []string{"577613639135"},
+	}
+
+	res, err := getClient().CreateStackInstances(context.Background(), input)
+
+	fmt.Printf("%+v", res)
+	return err
 }
 
 // ExecuteChangeSet executes the named changeset

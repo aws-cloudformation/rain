@@ -18,8 +18,8 @@ import (
 
 var all = false
 
-// LsCmd is the ls command's entrypoint
-var LsCmd = &cobra.Command{
+// StackSetLsCmd is the ls command's entrypoint
+var StackSetLsCmd = &cobra.Command{
 	Use:                   "ls <stack set>",
 	Short:                 "List CloudFormation stack sets in a given region",
 	Long:                  "List CloudFormation stack sets in a given region",
@@ -36,7 +36,7 @@ var LsCmd = &cobra.Command{
 				panic(ui.Errorf(err, "failed to list stack set '%s'", stackSetName))
 			}
 
-			output := ui.GetStackSetSummary(*stackSet, all)
+			output := ui.GetStackSetSummary(stackSet, all)
 			spinner.Pop()
 
 			fmt.Println(output)
@@ -98,26 +98,32 @@ var LsCmd = &cobra.Command{
 }
 
 func init() {
-	LsCmd.Flags().BoolVarP(&all, "all", "a", false, "list stacks in all regions; if you specify a stack, show more details")
+	StackSetLsCmd.Flags().BoolVarP(&all, "all", "a", false, "list stacks in all regions; if you specify a stack, show more details")
 }
 
 func formatStackSetInstances(stackSetName string) string {
 	out := strings.Builder{}
-	out.WriteString(console.Yellow("Instances: (Name/Account/Region/Status) \n"))
+	out.WriteString(console.Yellow("Instances: (StackSet Name/Account/Region/Status/Reason)\n"))
 	spinner.Push(fmt.Sprintf("Fetching stack set instances for '%s'", stackSetName))
-	stackSetInstances, err := cfn.ListStackInstances(stackSetName)
+	stackSetInstances, err := cfn.ListStackSetInstances(stackSetName)
 	if err != nil {
-		panic(ui.Errorf(err, "failed to list stack sets"))
+		panic(ui.Errorf(err, "failed to list stack set instancess"))
 	}
 	spinner.Pop()
 
 	for _, instance := range stackSetInstances {
-		out.WriteString(ui.Indent(" - ", fmt.Sprintf("%s / %s / %s / %s\n",
+		out.WriteString(fmt.Sprintf(" - %s / %s / %s / %s ",
 			*instance.StackSetId,
 			*instance.Account,
 			*instance.Region,
 			ui.ColouriseStatus(string(instance.StackInstanceStatus.DetailedStatus)), // TODO: implement status colouring for stack set instances
-		)))
+		))
+		if instance.StatusReason != nil {
+			out.WriteString(fmt.Sprintf("/ %s \n", *instance.StatusReason))
+		} else {
+			out.WriteString("\n")
+		}
+
 	}
 	out.WriteString("\n")
 

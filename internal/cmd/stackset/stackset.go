@@ -17,10 +17,14 @@ Aliases:
 Examples: {{.Example}}{{end}}
 {{if .HasAvailableSubCommands}} 
 Available commands:
-  {{range $c := $.Commands}}{{if $c.IsAvailableCommand}}<cyan>{{rpad $c.Name $c.NamePadding }}</> {{$c.Short}}{{end}}{{end}}
+  {{range $c := $.Commands}}{{if $c.IsAvailableCommand}}<cyan>{{rpad $c.Name $c.NamePadding }}</> {{$c.Short}}
+  {{end}}{{end}}
 
 Flags:
-{{.Flags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasHelpSubCommands}}
+{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
+
+Global Flags:
+{{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasHelpSubCommands}}
 
 Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
   {{rpad .CommandPath .CommandPathPadding}} {{.Short}}{{end}}{{end}}
@@ -44,7 +48,9 @@ var StackSetCmd = &cobra.Command{
 }
 
 func init() {
-	addCommand(true, LsCmd)
+	addCommand(true, StackSetLsCmd)
+	addCommand(true, StackSetDeployCmd)
+	addCommand(true, StackSetRmCmd)
 
 	oldUsageFunc := StackSetCmd.UsageFunc()
 	StackSetCmd.SetUsageFunc(func(c *cobra.Command) error {
