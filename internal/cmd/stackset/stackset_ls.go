@@ -35,10 +35,9 @@ var StackSetLsCmd = &cobra.Command{
 			if err != nil {
 				panic(ui.Errorf(err, "failed to list stack set '%s'", stackSetName))
 			}
-
-			output := ui.GetStackSetSummary(stackSet, all)
 			spinner.Pop()
 
+			output := ui.GetStackSetSummary(stackSet, all)
 			fmt.Println(output)
 
 			fmt.Println(ui.Indent("  ", formatStackSetInstances(string(stackSetName))))
@@ -73,8 +72,10 @@ var StackSetLsCmd = &cobra.Command{
 				stackSetNames := make(sort.StringSlice, 0)
 				stackSetMap := make(map[string]types.StackSetSummary)
 				for _, stack := range stackSets {
-					stackSetNames = append(stackSetNames, *stack.StackSetName)
-					stackSetMap[*stack.StackSetName] = stack
+					if stack.Status != types.StackSetStatusDeleted {
+						stackSetNames = append(stackSetNames, *stack.StackSetName)
+						stackSetMap[*stack.StackSetName+region] = stack
+					}
 				}
 				sort.Strings(stackSetNames)
 
@@ -83,7 +84,7 @@ var StackSetLsCmd = &cobra.Command{
 					out := strings.Builder{}
 					out.WriteString(fmt.Sprintf("%s: %s\n",
 						stackSetName,
-						ui.ColouriseStatus(string(stackSetMap[stackSetName].Status)),
+						ui.ColouriseStatus(string(stackSetMap[stackSetName+region].Status)),
 					))
 					fmt.Println(ui.Indent("  ", out.String()))
 				}
@@ -116,7 +117,7 @@ func formatStackSetInstances(stackSetName string) string {
 			*instance.StackSetId,
 			*instance.Account,
 			*instance.Region,
-			ui.ColouriseStatus(string(instance.StackInstanceStatus.DetailedStatus)), // TODO: implement status colouring for stack set instances
+			ui.ColouriseStatus(string(instance.StackInstanceStatus.DetailedStatus)),
 		))
 		if instance.StatusReason != nil {
 			out.WriteString(fmt.Sprintf("/ %s \n", *instance.StatusReason))

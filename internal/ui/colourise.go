@@ -15,6 +15,7 @@ const (
 	complete
 	inProgress
 	pending
+	cancelled
 )
 
 var statusColour = map[statusCategory]func(...interface{}) string{
@@ -22,6 +23,7 @@ var statusColour = map[statusCategory]func(...interface{}) string{
 	inProgress: console.Blue,
 	failed:     console.Red,
 	complete:   console.Green,
+	cancelled:  console.Grey,
 }
 
 type statusRep struct {
@@ -49,6 +51,25 @@ func mapStatus(status string) *statusRep {
 
 	case strings.HasSuffix(status, "_COMPLETE"):
 		rep.category = complete
+
+	// stack set statuses
+	case strings.HasSuffix(status, "ACTIVE"):
+		rep.category = complete
+
+	// stack set instance statuses
+	case strings.HasSuffix(status, "SUCCEEDED"):
+		rep.category = complete
+
+	case strings.HasSuffix(status, "CANCELLED"):
+	case strings.HasSuffix(status, "OUTDATED"):
+		rep.category = cancelled
+
+	case strings.HasSuffix(status, "FAILED"):
+	case strings.HasSuffix(status, "INOPERABLE"):
+		rep.category = failed
+
+	case strings.HasSuffix(status, "RUNNING"):
+		rep.category = inProgress
 
 	default:
 		rep.category = pending

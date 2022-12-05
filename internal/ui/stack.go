@@ -368,7 +368,7 @@ func GetStackSetSummary(stackSet types.StackSet, long bool) string {
 	stackSetName := ptr.ToString(stackSet.StackSetName)
 
 	// Stack status
-	out.WriteString(fmt.Sprintf("%s: %s %s\n", console.Yellow("StackSet"), stackSetName, stackSetStatus))
+	out.WriteString(fmt.Sprintf("%s: %s %s\n", console.Yellow("StackSet"), stackSetName, ColouriseStatus(stackSetStatus)))
 
 	if long {
 		// Params
@@ -384,29 +384,6 @@ func GetStackSetSummary(stackSet types.StackSet, long bool) string {
 				}
 
 				out.WriteString("\n")
-			}
-		}
-
-		// Resources
-		out.WriteString(fmt.Sprintf("  %s:\n", console.Yellow("Resources")))
-		resources, _ := cfn.GetStackResources(stackSetName) // Ignore errors - it just means we'll get no resources
-		for _, resource := range resources {
-			out.WriteString(fmt.Sprintf("    %s: %s\n",
-				console.Yellow(ptr.ToString(resource.LogicalResourceId)),
-				ColouriseStatus(string(resource.ResourceStatus)),
-			))
-
-			if ptr.ToString(resource.ResourceType) == "AWS::CloudFormation::Stack" {
-				nestedStack, err := cfn.GetStack(ptr.ToString(resource.PhysicalResourceId))
-				if err == nil {
-					nestedSummary := GetStackSummary(nestedStack, long)
-
-					for _, line := range strings.Split(nestedSummary, "\n") {
-						out.WriteString(fmt.Sprintf("      %s\n", line))
-					}
-				}
-			} else {
-				out.WriteString(fmt.Sprintf("      %s\n", ptr.ToString(resource.PhysicalResourceId)))
 			}
 		}
 	}
