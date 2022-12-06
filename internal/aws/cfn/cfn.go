@@ -128,7 +128,7 @@ func ListStacks() ([]types.StackSummary, error) {
 
 // ListStackSets returns a list of all existing stack sets
 func ListStackSets() ([]types.StackSetSummary, error) {
-	stacks := make([]types.StackSetSummary, 0)
+	stackSets := make([]types.StackSetSummary, 0)
 
 	var token *string
 
@@ -138,10 +138,10 @@ func ListStackSets() ([]types.StackSetSummary, error) {
 		})
 
 		if err != nil {
-			return stacks, err
+			return stackSets, err
 		}
 
-		stacks = append(stacks, res.Summaries...)
+		stackSets = append(stackSets, res.Summaries...)
 
 		if res.NextToken == nil {
 			break
@@ -150,12 +150,12 @@ func ListStackSets() ([]types.StackSetSummary, error) {
 		token = res.NextToken
 	}
 
-	return stacks, nil
+	return stackSets, nil
 }
 
-// ListStackSetInstances returns a list of all instances for a given stack sets
+// ListStackSetInstances returns a list of all stack set instances for a given stack set
 func ListStackSetInstances(stackSetName string) ([]types.StackInstanceSummary, error) {
-	stackInstances := make([]types.StackInstanceSummary, 0)
+	instances := make([]types.StackInstanceSummary, 0)
 	var token *string
 
 	for {
@@ -165,10 +165,10 @@ func ListStackSetInstances(stackSetName string) ([]types.StackInstanceSummary, e
 		})
 
 		if err != nil {
-			return stackInstances, err
+			return instances, err
 		}
 
-		stackInstances = append(stackInstances, res.Summaries...)
+		instances = append(instances, res.Summaries...)
 
 		if res.NextToken == nil {
 			break
@@ -177,7 +177,7 @@ func ListStackSetInstances(stackSetName string) ([]types.StackInstanceSummary, e
 		token = res.NextToken
 	}
 
-	return stackInstances, nil
+	return instances, nil
 }
 
 // ListLast10StackSetOperations returns a list of last 10 operations for a given stack sets
@@ -230,8 +230,8 @@ func DeleteStackSet(stackSetName string) error {
 	return err
 }
 
-// DeleteStackSet deletes a stack set
-func DeleteAllChangeSetInstances(stackSetName string, wait bool) error {
+// DeleteAllStackSetInstances deletes all instances for a given stack set
+func DeleteAllStackSetInstances(stackSetName string, wait bool) error {
 	stackSet, err := GetStackSet(stackSetName)
 	if err != nil {
 		fmt.Printf("Could not find stack set '%s'", stackSetName)

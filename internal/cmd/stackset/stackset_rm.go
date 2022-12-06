@@ -42,7 +42,7 @@ var StackSetRmCmd = &cobra.Command{
 				if console.Confirm(true, "Do you wish to delete all the stack set instances?") {
 
 					spinner.Push("Deleting all stack set instances")
-					err := cfn.DeleteAllChangeSetInstances(stackSetName, true)
+					err := cfn.DeleteAllStackSetInstances(stackSetName, true)
 					spinner.Pop()
 					if err != nil {
 						panic(ui.Errorf(err, "error while deleting stack set instances "))
