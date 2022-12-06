@@ -142,7 +142,7 @@ YAML:
 		spinner.Pop()
 		stackSetExists := false
 		if err == nil {
-			fmt.Println("Can't create stack set. It already exists")
+			fmt.Println("can't create stack set. It already exists")
 			stackSetExists = true
 		}
 
@@ -160,49 +160,11 @@ YAML:
 			}
 		}
 
-		//changeSetName, createErr := cfn.CreateChangeSet(template, parameters, combinedTags, stackSetName, roleArn)
-		// if createErr != nil {
-		// 	if createErr.Error() == noChangeFoundMsg {
-		// 		spinner.Pop()
-		// 		fmt.Println(console.Green("Change set was created, but there is no change. Deploy was skipped."))
-		// 		return
-		// 	} else {
-		// 		panic(ui.Errorf(createErr, "error creating changeset"))
-		// 	}
-		// }
-		// spinner.Pop()
-
-		// // Confirm changes
-		// if !yes {
-		// 	spinner.Push("Formatting change set")
-		// 	status := formatChangeSet(stackSetName, changeSetName)
-		// 	spinner.Pop()
-
-		// 	fmt.Println("CloudFormation will make the following changes:")
-		// 	fmt.Println(status)
-
-		// 	if !console.Confirm(true, "Do you wish to continue?") {
-		// 		err := cfn.DeleteChangeSet(stackSetName, changeSetName)
-		// 		if err != nil {
-		// 			panic(ui.Errorf(err, "error while deleting changeset '%s'", changeSetName))
-		// 		}
-
-		// 		if !stackExists {
-		// 			err = cfn.DeleteStack(stackSetName)
-		// 			if err != nil {
-		// 				panic(ui.Errorf(err, "error deleting empty stack set '%s'", stackSetName))
-		// 			}
-		// 		}
-
-		// 		panic(errors.New("user cancelled deployment"))
-		// 	}
-		// }
-
 		spinner.Push("Creating stack set")
 		err = cfn.CreateStackSet(stackSetName, template, parameters, combinedTags, roleArn, keep)
 		spinner.Pop()
 		if err != nil {
-			panic(ui.Errorf(err, "error while creating stack set '%s' \n", stackSetName))
+			panic(ui.Errorf(err, "error while creating stack set '%s' ", stackSetName))
 		} else {
 			fmt.Printf("Stack set '%s' has been created successfuly", stackSetName)
 		}

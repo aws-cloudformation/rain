@@ -180,6 +180,37 @@ func ListStackSetInstances(stackSetName string) ([]types.StackInstanceSummary, e
 	return stackInstances, nil
 }
 
+// ListLast10StackSetOperations returns a list of last 10 operations for a given stack sets
+func ListLast10StackSetOperations(stackSetName string) ([]types.StackSetOperationSummary, error) {
+	stackOps := make([]types.StackSetOperationSummary, 0)
+
+	res, err := getClient().ListStackSetOperations(context.Background(), &cloudformation.ListStackSetOperationsInput{
+		MaxResults:   ptr.Int32(10),
+		StackSetName: &stackSetName,
+	})
+
+	if err != nil {
+		return stackOps, err
+	}
+
+	stackOps = append(stackOps, res.Summaries...)
+	return stackOps, nil
+}
+
+// GetStackSetOperationsResult  returns an operation result for a given stack sets operation id
+func GetStackSetOperationsResult(stackSetName *string, operationId *string) (*types.StackSetOperationResultSummary, error) {
+	res, err := getClient().ListStackSetOperationResults(context.Background(), &cloudformation.ListStackSetOperationResultsInput{
+		MaxResults:   ptr.Int32(1),
+		OperationId:  operationId,
+		StackSetName: stackSetName,
+	})
+
+	if err == nil && res != nil && len(res.Summaries) == 1 {
+		return &res.Summaries[0], err
+	}
+	return nil, nil
+}
+
 // DeleteStack deletes a stack
 func DeleteStack(stackName string) error {
 	// Get the stack properties
@@ -200,7 +231,7 @@ func DeleteStackSet(stackSetName string) error {
 }
 
 // DeleteStackSet deletes a stack set
-func DeleteAllChangeSetInstances(stackSetName string) error {
+func DeleteAllChangeSetInstances(stackSetName string, wait bool) error {
 	stackSet, err := GetStackSet(stackSetName)
 	if err != nil {
 		fmt.Printf("Could not find stack set '%s'", stackSetName)
@@ -217,12 +248,33 @@ func DeleteAllChangeSetInstances(stackSetName string) error {
 		RetainStacks: false, //TODO: add flag
 		StackSetName: &stackSetName,
 	}
+	fmt.Println("\nStack set instances to be deleted:  ")
 	for _, i := range instances {
-		input.Accounts = append(input.Accounts, *i.Account)
-		input.Regions = append(input.Regions, *i.Region)
+		if i.StackInstanceStatus.DetailedStatus != types.StackInstanceDetailedStatusRunning { //TODO: do we need to wait only for RUNNING?
+			fmt.Printf("%s \n", *i.StackId)
+			input.Accounts = append(input.Accounts, *i.Account)
+			input.Regions = append(input.Regions, *i.Region)
+		}
 	}
 
-	_, err = getClient().DeleteStackInstances(context.Background(), input)
+	res, err := getClient().DeleteStackInstances(context.Background(), input)
+	if err != nil {
+		fmt.Print("error occurred while tried to delete instances")
+		return err
+	}
+
+	if wait {
+		for {
+			operation, err := getClient().DescribeStackSetOperation(context.Background(), &cloudformation.DescribeStackSetOperationInput{
+				OperationId:  res.OperationId,
+				StackSetName: &stackSetName,
+			})
+			if err != nil || operation == nil || operation.StackSetOperation.Status != types.StackSetOperationStatusRunning {
+				break
+			}
+			time.Sleep(time.Second * 2)
+		}
+	}
 	return err
 }
 
@@ -432,7 +484,7 @@ func CreateStackSet(StackSetName string,
 
 	res, err := getClient().CreateStackSet(context.Background(), input)
 
-	fmt.Println(res)
+	config.Debugf("%s", res)
 	return err
 }
 
@@ -441,12 +493,12 @@ func CreateStackSetInstances(StackSetName string) error {
 	input := &cloudformation.CreateStackInstancesInput{ //TODO
 		StackSetName: &StackSetName,
 		Regions:      []string{"us-east-1"},
-		Accounts:     []string{"577613639135"},
+		Accounts:     []string{"xxx"},
 	}
 
 	res, err := getClient().CreateStackInstances(context.Background(), input)
 
-	fmt.Printf("%+v", res)
+	config.Debugf("%+v", res)
 	return err
 }
 

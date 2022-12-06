@@ -40,7 +40,8 @@ var StackSetLsCmd = &cobra.Command{
 			output := ui.GetStackSetSummary(stackSet, all)
 			fmt.Println(output)
 
-			fmt.Println(ui.Indent("  ", formatStackSetInstances(string(stackSetName))))
+			fmt.Println(ui.Indent("  ", getStackSetInstances(stackSetName)))
+			fmt.Println(ui.Indent("  ", getStackSetOperations(stackSetName)))
 		} else {
 			var err error
 			regions := []string{aws.Config().Region}
@@ -102,17 +103,22 @@ func init() {
 	StackSetLsCmd.Flags().BoolVarP(&all, "all", "a", false, "list stacks in all regions; if you specify a stack, show more details")
 }
 
-func formatStackSetInstances(stackSetName string) string {
+func getStackSetInstances(stackSetName string) string {
 	out := strings.Builder{}
-	out.WriteString(console.Yellow("Instances: (StackSet Name/Account/Region/Status/Reason)\n"))
+	out.WriteString(console.Yellow("Instances (StackSet Name/Account/Region/Status/Reason):\n"))
 	spinner.Push(fmt.Sprintf("Fetching stack set instances for '%s'", stackSetName))
-	stackSetInstances, err := cfn.ListStackSetInstances(stackSetName)
+	instances, err := cfn.ListStackSetInstances(stackSetName)
 	if err != nil {
 		panic(ui.Errorf(err, "failed to list stack set instancess"))
 	}
 	spinner.Pop()
 
-	for _, instance := range stackSetInstances {
+	if len(instances) == 0 {
+		out.WriteString("empty \n")
+		return out.String()
+	}
+
+	for _, instance := range instances {
 		out.WriteString(fmt.Sprintf(" - %s / %s / %s / %s ",
 			*instance.StackSetId,
 			*instance.Account,
@@ -125,6 +131,50 @@ func formatStackSetInstances(stackSetName string) string {
 			out.WriteString("\n")
 		}
 
+	}
+	out.WriteString("\n")
+
+	return out.String()
+}
+
+func getStackSetOperations(stackSetName string) string {
+	out := strings.Builder{}
+	out.WriteString(console.Yellow("Last 10 operations (ID/Type/Status/Created/Completed):\n"))
+	spinner.Push(fmt.Sprintf("Fetching stack set operations for '%s'", stackSetName))
+	stackSetOps, err := cfn.ListLast10StackSetOperations(stackSetName)
+	if err != nil {
+		panic(ui.Errorf(err, "failed to list stack set operations"))
+	}
+	spinner.Pop()
+
+	for _, operation := range stackSetOps {
+		endStatus := " - "
+		if operation.EndTimestamp != nil {
+			endStatus = operation.EndTimestamp.Local().String()
+		}
+
+		out.WriteString(fmt.Sprintf(" - %s / %s / %s / %s / %s",
+			*operation.OperationId,
+			operation.Action,
+			ui.ColouriseStatus(string(operation.Status)),
+			operation.CreationTimestamp.Local().String(),
+			endStatus,
+		))
+		if operation.Status == types.StackSetOperationStatusFailed {
+			spinner.Push(fmt.Sprintf("Fetching stack set operation result for operation '%s'", *operation.OperationId))
+			operationResult, err := cfn.GetStackSetOperationsResult(&stackSetName, operation.OperationId)
+			if err != nil {
+				panic(ui.Errorf(err, "failed to list stack set operation results"))
+			}
+			spinner.Pop()
+			if operationResult != nil {
+				out.WriteString(fmt.Sprintf(" - %s / %s ",
+					*operationResult.StatusReason,
+					*operationResult.AccountGateResult.StatusReason,
+				))
+			}
+		}
+		out.WriteString("\n")
 	}
 	out.WriteString("\n")
 

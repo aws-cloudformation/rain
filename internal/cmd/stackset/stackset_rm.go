@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// StackSetRmCmd is the ls command's entrypoint
+// StackSetRmCmd is the rm command's entrypoint
 var StackSetRmCmd = &cobra.Command{
 	Use:                   "rm <stack set>",
 	Short:                 "Delete CloudFormation stack sets in a given region",
@@ -42,7 +42,8 @@ var StackSetRmCmd = &cobra.Command{
 				if console.Confirm(true, "Do you wish to delete all the stack set instances?") {
 
 					spinner.Push("Deleting all stack set instances")
-					err := cfn.DeleteAllChangeSetInstances(stackSetName)
+					err := cfn.DeleteAllChangeSetInstances(stackSetName, true)
+					spinner.Pop()
 					if err != nil {
 						panic(ui.Errorf(err, "error while deleting stack set instances "))
 					} else {
@@ -51,12 +52,16 @@ var StackSetRmCmd = &cobra.Command{
 						spinner.Pop()
 						if err != nil {
 							panic(ui.Errorf(err, "Could not delete stack set '%s'", stackSetName))
+						} else {
+							fmt.Println("Success!")
 						}
 					}
 				} else {
 					panic(errors.New("user cancelled deployment"))
 				}
 
+			} else {
+				panic(ui.Errorf(err, "Could not delete stack set '%s'", stackSetName))
 			}
 
 		} else {
