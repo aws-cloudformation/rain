@@ -7,6 +7,7 @@ import (
 	"regexp"
 
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
+	"github.com/aws-cloudformation/rain/internal/cmd/deploy"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
@@ -82,18 +83,18 @@ YAML:
 			stackSetName = base[:len(base)-len(filepath.Ext(base))]
 
 			// Now ensure it's a valid cfc name
-			stackSetName = fixStackNameRe.ReplaceAllString(stackSetName, "-")
+			stackSetName = deploy.FixStackNameRe.ReplaceAllString(stackSetName, "-")
 
-			if len(stackSetName) > maxStackNameLength {
-				stackSetName = stackSetName[:maxStackNameLength]
+			if len(stackSetName) > deploy.MaxStackNameLength {
+				stackSetName = stackSetName[:deploy.MaxStackNameLength]
 			}
 		}
 
 		// Parse tags
-		parsedTagFlag := ListToMap("tag", tags)
+		parsedTagFlag := deploy.ListToMap("tag", tags)
 
 		// Parse params
-		parsedParamFlag := ListToMap("param", params)
+		parsedParamFlag := deploy.ListToMap("param", params)
 
 		var combinedTags map[string]string
 		var combinedParameters map[string]string
@@ -133,7 +134,7 @@ YAML:
 
 		// Package template
 		spinner.Push(fmt.Sprintf("Preparing template '%s'", base))
-		template := packageTemplate(fn, yes)
+		template := deploy.PackageTemplate(fn, yes)
 		spinner.Pop()
 
 		// Check current stack set status
@@ -148,7 +149,7 @@ YAML:
 
 		// Parse params
 		config.Debugf("Handling parameters")
-		parameters := getParameters(template, combinedParameters, stackSet.Parameters, stackSetExists)
+		parameters := deploy.GetParameters(template, combinedParameters, stackSet.Parameters, stackSetExists)
 
 		if config.Debug {
 			for _, param := range parameters {
@@ -216,7 +217,7 @@ YAML:
 }
 
 func init() {
-	fixStackNameRe = regexp.MustCompile(`[^a-zA-Z0-9]+`)
+	deploy.FixStackNameRe = regexp.MustCompile(`[^a-zA-Z0-9]+`)
 
 	StackSetDeployCmd.Flags().BoolVarP(&detach, "detach", "d", false, "once deployment has started, don't wait around for it to finish")
 	StackSetDeployCmd.Flags().BoolVarP(&yes, "yes", "y", false, "don't ask questions; just deploy")

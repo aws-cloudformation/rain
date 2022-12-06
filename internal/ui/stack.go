@@ -372,33 +372,5 @@ func GetStackSetSummary(stackSet types.StackSet, long bool) string {
 		}
 	}
 
-	// Outputs
-	// if len(stackSet.Outputs) > 0 {
-	// 	out.WriteString(fmt.Sprintf("%s:\n", console.Yellow("  Outputs")))
-	// 	for _, output := range stackSet.Outputs {
-	// 		out.WriteString(fmt.Sprintf("    %s: %s", console.Yellow(ptr.ToString(output.OutputKey)), ptr.ToString(output.OutputValue)))
-
-	// 		if output.Description != nil || output.ExportName != nil {
-	// 			out.WriteString(console.Grey(" # "))
-
-	// 			if output.Description != nil {
-	// 				out.WriteString(console.Grey(ptr.ToString(output.Description)))
-	// 			}
-
-	// 			if output.ExportName != nil {
-	// 				msg := fmt.Sprintf("exported as %s", ptr.ToString(output.ExportName))
-
-	// 				if output.Description != nil {
-	// 					msg = " (" + msg + ")"
-	// 				}
-
-	// 				out.WriteString(console.Grey(msg))
-	// 			}
-	// 		}
-
-	// 		out.WriteString("\n")
-	// 	}
-	// }
-
 	return strings.TrimSpace(out.String())
 }
