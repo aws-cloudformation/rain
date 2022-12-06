@@ -193,22 +193,6 @@ func GetStackOutput(stack types.Stack) (string, []string) {
 	return strings.TrimSpace(out.String()), messages
 }
 
-// GetStackSetOutput returns a pretty representation of a CloudFormation stack's status
-func GetStackSetOutput(stackSet types.StackSet) (string, []string) { //TODO:
-	out := strings.Builder{}
-
-	// stackStatus := string(stackSet.Status)
-	// stackSetName := ptr.ToString(stackSet.StackSetName)
-
-	// rs, messages := stackResourceStatuses(stackSet)
-
-	// out.WriteString(fmt.Sprintf("%s: %s %s", console.Yellow(fmt.Sprintf("Stack %s", stackSetName)), ColouriseStatus(stackStatus), rs))
-
-	out.WriteString("invoked GetStackSetOutput")
-	var messages []string
-	return strings.TrimSpace(out.String()), messages
-}
-
 // WaitForStackToSettle blocks excute until a stack has finished updating
 // and then returns its status
 func WaitForStackToSettle(stackName string) (string, []string) {
