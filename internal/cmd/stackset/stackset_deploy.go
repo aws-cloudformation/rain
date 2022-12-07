@@ -12,6 +12,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/ui"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/smithy-go/ptr"
 	"gopkg.in/yaml.v3"
 
@@ -21,8 +22,10 @@ import (
 const noChangeFoundMsg = "The submitted information didn't contain changes. Submit different information to create a change set."
 
 type configFileFormat struct {
-	Parameters map[string]string `yaml:"Parameters"`
-	Tags       map[string]string `yaml:"Tags"`
+	Parameters        map[string]string `yaml:"Parameters"`
+	Tags              map[string]string `yaml:"Tags"`
+	StackSet          cfn.StackSetConfig
+	StackSetInstanses cfn.StackSetInstancesConfig
 }
 
 var detach bool
@@ -32,7 +35,6 @@ var tags []string
 var configFilePath string
 var terminationProtection bool
 var keep bool
-var roleArn string
 
 // StackSetDeployCmd is the deploy command's entrypoint
 var StackSetDeployCmd = &cobra.Command{
@@ -90,22 +92,23 @@ YAML:
 			}
 		}
 
-		// Parse tags
-		parsedTagFlag := deploy.ListToMap("tag", tags)
+		// Parse cli tags
+		cliTagFlags := deploy.ListToMap("tag", tags)
 
-		// Parse params
-		parsedParamFlag := deploy.ListToMap("param", params)
+		// Parse cli params
+		clidParamFlags := deploy.ListToMap("param", params)
 
 		var combinedTags map[string]string
 		var combinedParameters map[string]string
+		var configFile configFileFormat
 
+		// Read configuration from file
 		if len(configFilePath) != 0 {
 			configFileContent, err := ioutil.ReadFile(configFilePath)
 			if err != nil {
 				panic(ui.Errorf(err, "unable to read config file '%s'", configFilePath))
 			}
 
-			var configFile configFileFormat
 			err = yaml.Unmarshal([]byte(configFileContent), &configFile)
 			if err != nil {
 				panic(ui.Errorf(err, "unable to parse yaml in '%s'", configFilePath))
@@ -114,22 +117,24 @@ YAML:
 			combinedTags = configFile.Tags
 			combinedParameters = configFile.Parameters
 
-			for k, v := range parsedTagFlag {
+			// Merge Tags
+			for k, v := range cliTagFlags {
 				if _, ok := combinedTags[k]; ok {
 					fmt.Println(console.Yellow(fmt.Sprintf("tags flag overrides tag in config file: %s", k)))
 				}
 				combinedTags[k] = v
 			}
 
-			for k, v := range parsedParamFlag {
+			// Merge Params
+			for k, v := range clidParamFlags {
 				if _, ok := combinedParameters[k]; ok {
 					fmt.Println(console.Yellow(fmt.Sprintf("params flag overrides parameter in config file: %s", k)))
 				}
 				combinedParameters[k] = v
 			}
 		} else {
-			combinedTags = parsedTagFlag
-			combinedParameters = parsedParamFlag
+			combinedTags = cliTagFlags
+			combinedParameters = clidParamFlags
 		}
 
 		// Package template
@@ -141,13 +146,14 @@ YAML:
 		spinner.Push(fmt.Sprintf("Checking current status of stack set '%s'", stackSetName))
 		stackSet, err := cfn.GetStackSet(stackSetName)
 		spinner.Pop()
+
 		stackSetExists := false
-		if err == nil {
-			fmt.Println("can't create stack set. It already exists")
+		if err == nil && stackSet.Status != types.StackSetStatusDeleted { // TODO: implement update existing stackset
+			//fmt.Println("can't create stack set. It already exists")
 			stackSetExists = true
 		}
 
-		// Parse params
+		// Build params
 		config.Debugf("Handling parameters")
 		parameters := deploy.GetParameters(template, combinedParameters, stackSet.Parameters, stackSetExists)
 
@@ -161,70 +167,48 @@ YAML:
 			}
 		}
 
+		stackSetConfig := configFile.StackSet
+		stackSetConfig.StackSetName = &stackSetName
+		stackSetConfig.Parameters = parameters
+		stackSetConfig.Tags = cfn.MakeTags(combinedTags)
+		stackSetConfig.Template = template
+		config.Debugf("Stack Set Configuration: \n%s\n", ui.PrettyPrint(stackSetConfig))
+
+		// Create Stack Set
 		spinner.Push("Creating stack set")
-		err = cfn.CreateStackSet(stackSetName, template, parameters, combinedTags, roleArn, keep)
+		err = cfn.CreateStackSet(stackSetConfig)
 		spinner.Pop()
 		if err != nil {
 			panic(ui.Errorf(err, "error while creating stack set '%s' ", stackSetName))
 		} else {
-			fmt.Printf("Stack set '%s' has been created successfuly", stackSetName)
+			fmt.Printf("Stack set '%s' has been created successfuly\n", stackSetName)
 		}
 
+		stackSetInstancesConfig := configFile.StackSetInstanses
+
+		config.Debugf("Stack Set Instances Configuration: \n%s\n", ui.PrettyPrint(stackSetInstancesConfig))
+
+		// Create Stack Set instances
 		spinner.Push("Creating stack set instances")
-		err = cfn.CreateStackSetInstances(stackSetName)
+		err = cfn.CreateStackSetInstances(stackSetInstancesConfig)
 		spinner.Pop()
 		if err != nil {
 			panic(ui.Errorf(err, "error while creating stack set instances"))
 		} else {
-			fmt.Printf("Stack set instances have been created successfuly")
+			fmt.Println("Stack set instances have been created successfuly")
 		}
 
-		// if detach {
-		// 	fmt.Printf("Detaching. You can check your stack's status with: rain watch %s\n", stackSetName)
-		// } else {
-		// 	fmt.Printf("Deploying template '%s' as stack set '%s' in %s.\n", filepath.Base(fn), stackSetName, aws.Config().Region)
-
-		// 	status, messages := ui.WaitForStackToSettle(stackSetName)
-		// 	stack, _ = cfn.GetStack(stackSetName)
-		// 	output := ui.GetStackSummary(stack, false)
-
-		// 	fmt.Println(output)
-
-		// 	if len(messages) > 0 {
-		// 		fmt.Println(console.Yellow("Messages:"))
-		// 		for _, message := range messages {
-		// 			fmt.Printf("  - %s\n", message)
-		// 		}
-		// 	}
-
-		// 	if status == "CREATE_COMPLETE" {
-		// 		fmt.Println(console.Green("Successfully deployed " + stackSetName))
-		// 	} else if status == "UPDATE_COMPLETE" {
-		// 		fmt.Println(console.Green("Successfully updated " + stackSetName))
-		// 	} else {
-		// 		panic(fmt.Errorf("failed deploying stack set '%s'", stackSetName))
-		// 	}
-		// }
-
-		// // Enable termination protection
-		// if terminationProtection {
-		// 	err = cfn.SetTerminationProtection(stackSetName, true)
-		// 	if err != nil {
-		// 		panic(ui.Errorf(err, "error while enabling termination protection on stack set '%s'", stackSetName))
-		// 	}
-		// }
 	},
 }
 
 func init() {
 	deploy.FixStackNameRe = regexp.MustCompile(`[^a-zA-Z0-9]+`)
 
-	StackSetDeployCmd.Flags().BoolVarP(&detach, "detach", "d", false, "once deployment has started, don't wait around for it to finish")
-	StackSetDeployCmd.Flags().BoolVarP(&yes, "yes", "y", false, "don't ask questions; just deploy")
+	// StackSetDeployCmd.Flags().BoolVarP(&detach, "detach", "d", false, "once deployment has started, don't wait around for it to finish")
+	// StackSetDeployCmd.Flags().BoolVarP(&yes, "yes", "y", false, "don't ask questions; just deploy")
 	StackSetDeployCmd.Flags().StringSliceVar(&tags, "tags", []string{}, "add tags to the stack; use the format key1=value1,key2=value2")
 	StackSetDeployCmd.Flags().StringSliceVar(&params, "params", []string{}, "set parameter values; use the format key1=value1,key2=value2")
 	StackSetDeployCmd.Flags().StringVarP(&configFilePath, "config", "c", "", "YAML or JSON file to set tags and parameters")
-	StackSetDeployCmd.Flags().BoolVarP(&terminationProtection, "termination-protection", "t", false, "enable termination protection on the stack")
-	StackSetDeployCmd.Flags().BoolVarP(&keep, "keep", "k", false, "keep deployed resources after a failure by disabling rollbacks")
-	StackSetDeployCmd.Flags().StringVarP(&roleArn, "role-arn", "", "", "ARN of an IAM role that CloudFormation should assume to deploy the stack")
+	// StackSetDeployCmd.Flags().BoolVarP(&terminationProtection, "termination-protection", "t", false, "enable termination protection on the stack")
+	// StackSetDeployCmd.Flags().BoolVarP(&keep, "keep", "k", false, "keep deployed resources after a failure by disabling rollbacks")
 }

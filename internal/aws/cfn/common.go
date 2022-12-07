@@ -5,7 +5,7 @@ import (
 	"github.com/aws/smithy-go/ptr"
 )
 
-func makeTags(tags map[string]string) []types.Tag {
+func MakeTags(tags map[string]string) []types.Tag {
 	out := make([]types.Tag, 0)
 
 	for key, value := range tags {

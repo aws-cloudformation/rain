@@ -4,6 +4,7 @@ package cfn
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -380,7 +381,7 @@ func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[s
 		ChangeSetType:       types.ChangeSetType(changeSetType),
 		ChangeSetName:       ptr.String(changeSetName),
 		StackName:           ptr.String(stackName),
-		Tags:                makeTags(tags),
+		Tags:                MakeTags(tags),
 		IncludeNestedStacks: ptr.Bool(true),
 		Parameters:          params,
 		Capabilities: []types.Capability{
@@ -445,35 +446,30 @@ func GetChangeSet(stackName, changeSetName string) (*cloudformation.DescribeChan
 }
 
 // CreateStackSet creates stack set
-func CreateStackSet(StackSetName string,
-	template cft.Template,
-	params []types.Parameter,
-	tags map[string]string,
-	roleArn string,
-	disableRollback bool) error {
+func CreateStackSet(c StackSetConfig) error {
 
-	templateBody, err := checkTemplate(template)
+	templateBody, err := checkTemplate(c.Template)
 	if err != nil {
 		return errors.New("error occured while extracting template body")
 	}
 
-	_, err = GetStackSet(StackSetName)
+	_, err = GetStackSet(*c.StackSetName)
 	if err == nil {
 		return errors.New("can't create stack set. It already exists")
 	}
 
 	input := &cloudformation.CreateStackSetInput{
-		StackSetName: &StackSetName,
-		Parameters:   params,
-		Tags:         makeTags(tags),
-		Capabilities: []types.Capability{
-			"CAPABILITY_NAMED_IAM",
-			"CAPABILITY_AUTO_EXPAND",
-		},
-	}
-
-	if roleArn != "" {
-		input.AdministrationRoleARN = ptr.String(roleArn)
+		StackSetName:          c.StackSetName,
+		Parameters:            c.Parameters,
+		Tags:                  c.Tags,
+		Capabilities:          c.Capabilities,
+		Description:           c.Description,
+		AdministrationRoleARN: c.AdministrationRoleARN,
+		AutoDeployment:        c.AutoDeployment,
+		CallAs:                c.CallAs,
+		ExecutionRoleName:     c.ExecutionRoleName,
+		ManagedExecution:      c.ManagedExecution,
+		PermissionModel:       c.PermissionModel,
 	}
 
 	if strings.HasPrefix(templateBody, "http://") {
@@ -484,22 +480,28 @@ func CreateStackSet(StackSetName string,
 
 	res, err := getClient().CreateStackSet(context.Background(), input)
 
-	config.Debugf("%s", res)
+	config.Debugf("Stack set create operation result: \n%s\n", PrettyPrint(res))
 	return err
 }
 
-func CreateStackSetInstances(StackSetName string) error {
+func PrettyPrint(i interface{}) string { //TODO
+	s, _ := json.MarshalIndent(i, "", "\t")
+	return string(s)
+}
 
-	input := &cloudformation.CreateStackInstancesInput{ //TODO
-		StackSetName: &StackSetName,
-		Regions:      []string{"us-east-1"},
-		Accounts:     []string{"xxx"},
-	}
+func CreateStackSetInstances(stackSetInstancesConfig StackSetInstancesConfig) error {
 
-	res, err := getClient().CreateStackInstances(context.Background(), input)
+	// input := &cloudformation.CreateStackInstancesInput{ //TODO
+	// 	StackSetName: &StackSetName,
+	// 	Regions:      []string{"us-east-1"},
+	// 	Accounts:     []string{"xxx"},
+	// }
 
-	config.Debugf("%+v", res)
-	return err
+	// res, err := getClient().CreateStackInstances(context.Background(), input)
+
+	// config.Debugf("%+v", res)
+	// return err
+	return nil
 }
 
 // ExecuteChangeSet executes the named changeset

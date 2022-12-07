@@ -114,7 +114,7 @@ func getStackSetInstances(stackSetName string) string {
 	spinner.Pop()
 
 	if len(instances) == 0 {
-		out.WriteString("empty \n")
+		out.WriteString(" - \n")
 		return out.String()
 	}
 
@@ -146,6 +146,11 @@ func getStackSetOperations(stackSetName string) string {
 		panic(ui.Errorf(err, "failed to list stack set operations"))
 	}
 	spinner.Pop()
+
+	if len(stackSetOps) == 0 {
+		out.WriteString(" - \n")
+		return out.String()
+	}
 
 	for _, operation := range stackSetOps {
 		endStatus := " - "
