@@ -42,7 +42,7 @@ var StackSetRmCmd = &cobra.Command{
 				if console.Confirm(true, "Do you wish to delete all the stack set instances?") {
 
 					spinner.Push("Deleting all stack set instances")
-					err := cfn.DeleteAllStackSetInstances(stackSetName, true)
+					err := cfn.DeleteAllStackSetInstances(stackSetName, !detach)
 					spinner.Pop()
 					if err != nil {
 						panic(ui.Errorf(err, "error while deleting stack set instances "))
@@ -72,5 +72,5 @@ var StackSetRmCmd = &cobra.Command{
 }
 
 func init() {
-
+	StackSetRmCmd.Flags().BoolVarP(&detach, "detach", "d", false, "once delete has started, don't wait around for it to finish")
 }

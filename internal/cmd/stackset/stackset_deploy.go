@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"regexp"
 
+	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
 	"github.com/aws-cloudformation/rain/internal/cmd/deploy"
 	"github.com/aws-cloudformation/rain/internal/config"
@@ -171,31 +172,35 @@ YAML:
 		stackSetConfig.StackSetName = &stackSetName
 		stackSetConfig.Parameters = parameters
 		stackSetConfig.Tags = cfn.MakeTags(combinedTags)
+		config.Debugf("Stack Set Configuration: \n%s\n", format.PrettyPrint(stackSetConfig))
 		stackSetConfig.Template = template
-		config.Debugf("Stack Set Configuration: \n%s\n", ui.PrettyPrint(stackSetConfig))
 
 		// Create Stack Set
 		spinner.Push("Creating stack set")
-		err = cfn.CreateStackSet(stackSetConfig)
+		stackSetId, err := cfn.CreateStackSet(stackSetConfig)
 		spinner.Pop()
-		if err != nil {
+		if err != nil || stackSetId == nil {
 			panic(ui.Errorf(err, "error while creating stack set '%s' ", stackSetName))
 		} else {
-			fmt.Printf("Stack set '%s' has been created successfuly\n", stackSetName)
+			fmt.Printf("Stack set has been created successfuly with ID: %s\n", *stackSetId)
 		}
 
 		stackSetInstancesConfig := configFile.StackSetInstanses
+		stackSetInstancesConfig.StackSetName = &stackSetName
 
-		config.Debugf("Stack Set Instances Configuration: \n%s\n", ui.PrettyPrint(stackSetInstancesConfig))
+		config.Debugf("Stack Set Instances Configuration: \n%s\n", format.PrettyPrint(stackSetInstancesConfig))
 
 		// Create Stack Set instances
 		spinner.Push("Creating stack set instances")
-		err = cfn.CreateStackSetInstances(stackSetInstancesConfig)
+		err = cfn.CreateStackSetInstances(stackSetInstancesConfig, !detach)
 		spinner.Pop()
 		if err != nil {
 			panic(ui.Errorf(err, "error while creating stack set instances"))
-		} else {
+		}
+		if !detach {
 			fmt.Println("Stack set instances have been created successfuly")
+		} else {
+			fmt.Println("Stack set instances creation was initiated successfuly")
 		}
 
 	},
@@ -204,7 +209,7 @@ YAML:
 func init() {
 	deploy.FixStackNameRe = regexp.MustCompile(`[^a-zA-Z0-9]+`)
 
-	// StackSetDeployCmd.Flags().BoolVarP(&detach, "detach", "d", false, "once deployment has started, don't wait around for it to finish")
+	StackSetDeployCmd.Flags().BoolVarP(&detach, "detach", "d", false, "once deployment has started, don't wait around for it to finish")
 	// StackSetDeployCmd.Flags().BoolVarP(&yes, "yes", "y", false, "don't ask questions; just deploy")
 	StackSetDeployCmd.Flags().StringSliceVar(&tags, "tags", []string{}, "add tags to the stack; use the format key1=value1,key2=value2")
 	StackSetDeployCmd.Flags().StringSliceVar(&params, "params", []string{}, "set parameter values; use the format key1=value1,key2=value2")

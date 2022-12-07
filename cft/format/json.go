@@ -80,3 +80,8 @@ func convertToJSON(in string) string {
 	}
 	return string(out)
 }
+
+func PrettyPrint(i interface{}) string {
+	s, _ := json.MarshalIndent(i, "", "\t")
+	return string(s)
+}

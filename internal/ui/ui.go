@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -25,9 +24,4 @@ func Errorf(err error, message string, parts ...interface{}) error {
 // Indent adds prefix to every line of in
 func Indent(prefix string, in string) string {
 	return prefix + strings.Join(strings.Split(strings.TrimSpace(in), "\n"), "\n"+prefix)
-}
-
-func PrettyPrint(i interface{}) string {
-	s, _ := json.MarshalIndent(i, "", "\t")
-	return string(s)
 }

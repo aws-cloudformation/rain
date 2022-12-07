@@ -4,7 +4,6 @@ package cfn
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -249,14 +248,19 @@ func DeleteAllStackSetInstances(stackSetName string, wait bool) error {
 		RetainStacks: false, //TODO: add flag
 		StackSetName: &stackSetName,
 	}
-	fmt.Println("\nStack set instances to be deleted:  ")
+	fmt.Println("\nStack set instances:")
+	accounts := []string{}
+	regions := []string{}
 	for _, i := range instances {
-		if i.StackInstanceStatus.DetailedStatus != types.StackInstanceDetailedStatusRunning { //TODO: do we need to wait only for RUNNING?
-			fmt.Printf("%s \n", *i.StackId)
-			input.Accounts = append(input.Accounts, *i.Account)
-			input.Regions = append(input.Regions, *i.Region)
+		if i.StackInstanceStatus.DetailedStatus != types.StackInstanceDetailedStatusRunning { //TODO: do we need to process not RUNNING only?
+			fmt.Printf("%s\n", *i.StackId)
+			accounts = append(accounts, *i.Account)
+			regions = append(regions, *i.Region)
 		}
 	}
+
+	input.Accounts = uniqueStrings(accounts)
+	input.Regions = uniqueStrings(regions)
 
 	res, err := getClient().DeleteStackInstances(context.Background(), input)
 	if err != nil {
@@ -446,30 +450,30 @@ func GetChangeSet(stackName, changeSetName string) (*cloudformation.DescribeChan
 }
 
 // CreateStackSet creates stack set
-func CreateStackSet(c StackSetConfig) error {
+func CreateStackSet(conf StackSetConfig) (*string, error) {
 
-	templateBody, err := checkTemplate(c.Template)
+	templateBody, err := checkTemplate(conf.Template)
 	if err != nil {
-		return errors.New("error occured while extracting template body")
+		return nil, errors.New("error occured while extracting template body")
 	}
 
-	_, err = GetStackSet(*c.StackSetName)
+	_, err = GetStackSet(*conf.StackSetName)
 	if err == nil {
-		return errors.New("can't create stack set. It already exists")
+		return nil, errors.New("can't create stack set. It already exists")
 	}
 
 	input := &cloudformation.CreateStackSetInput{
-		StackSetName:          c.StackSetName,
-		Parameters:            c.Parameters,
-		Tags:                  c.Tags,
-		Capabilities:          c.Capabilities,
-		Description:           c.Description,
-		AdministrationRoleARN: c.AdministrationRoleARN,
-		AutoDeployment:        c.AutoDeployment,
-		CallAs:                c.CallAs,
-		ExecutionRoleName:     c.ExecutionRoleName,
-		ManagedExecution:      c.ManagedExecution,
-		PermissionModel:       c.PermissionModel,
+		StackSetName:          conf.StackSetName,
+		Parameters:            conf.Parameters,
+		Tags:                  conf.Tags,
+		Capabilities:          conf.Capabilities,
+		Description:           conf.Description,
+		AdministrationRoleARN: conf.AdministrationRoleARN,
+		AutoDeployment:        conf.AutoDeployment,
+		CallAs:                conf.CallAs,
+		ExecutionRoleName:     conf.ExecutionRoleName,
+		ManagedExecution:      conf.ManagedExecution,
+		PermissionModel:       conf.PermissionModel,
 	}
 
 	if strings.HasPrefix(templateBody, "http://") {
@@ -480,28 +484,23 @@ func CreateStackSet(c StackSetConfig) error {
 
 	res, err := getClient().CreateStackSet(context.Background(), input)
 
-	config.Debugf("Stack set create operation result: \n%s\n", PrettyPrint(res))
+	return res.StackSetId, err
+}
+
+func CreateStackSetInstances(conf StackSetInstancesConfig, wait bool) error {
+
+	input := &cloudformation.CreateStackInstancesInput{
+		StackSetName:         conf.StackSetName,
+		Regions:              conf.Regions,
+		Accounts:             conf.Accounts,
+		DeploymentTargets:    conf.DeploymentTargets,
+		CallAs:               conf.CallAs,
+		OperationPreferences: conf.OperationPreferences,
+	}
+
+	res, err := getClient().CreateStackInstances(context.Background(), input)
+	config.Debugf("%s", format.PrettyPrint(res))
 	return err
-}
-
-func PrettyPrint(i interface{}) string { //TODO
-	s, _ := json.MarshalIndent(i, "", "\t")
-	return string(s)
-}
-
-func CreateStackSetInstances(stackSetInstancesConfig StackSetInstancesConfig) error {
-
-	// input := &cloudformation.CreateStackInstancesInput{ //TODO
-	// 	StackSetName: &StackSetName,
-	// 	Regions:      []string{"us-east-1"},
-	// 	Accounts:     []string{"xxx"},
-	// }
-
-	// res, err := getClient().CreateStackInstances(context.Background(), input)
-
-	// config.Debugf("%+v", res)
-	// return err
-	return nil
 }
 
 // ExecuteChangeSet executes the named changeset

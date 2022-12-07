@@ -82,7 +82,7 @@ func formatChangeSet(stackName, changeSetName string) string {
 	return strings.TrimSpace(out.String())
 }
 
-func GetParameters(template cft.Template, cliParams map[string]string, old []types.Parameter, stackExists bool) []types.Parameter {
+func GetParameters(template cft.Template, combinedParameters map[string]string, old []types.Parameter, stackExists bool) []types.Parameter {
 	newParams := make([]types.Parameter, 0)
 
 	oldMap := make(map[string]types.Parameter)
@@ -95,7 +95,7 @@ func GetParameters(template cft.Template, cliParams map[string]string, old []typ
 
 	if params, ok := template.Map()["Parameters"]; ok {
 		// Check we don't have any unknown params
-		for k := range cliParams {
+		for k := range combinedParameters {
 			if _, ok := params.(map[string]interface{})[k]; !ok {
 				panic(fmt.Errorf("unknown parameter: %s", k))
 			}
@@ -110,7 +110,7 @@ func GetParameters(template cft.Template, cliParams map[string]string, old []typ
 			usePrevious := false
 
 			// Decide if we have an existing value
-			if cliParam, ok := cliParams[k]; ok {
+			if cliParam, ok := combinedParameters[k]; ok {
 				value = cliParam
 			} else {
 				extra := ""
