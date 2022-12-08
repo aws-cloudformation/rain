@@ -256,7 +256,7 @@ func WaitForStackToSettle(stackName string) (string, []string) {
 			return string(stack.StackStatus), messages
 		}
 
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second * cfn.WAIT_PERIOD_IN_SECONDS)
 	}
 }
 

@@ -7,14 +7,6 @@ import (
 
 type StackSetConfig struct {
 
-	// The name to associate with the stack set. The name must be unique in the Region
-	// where you create your stack set. A stack name can contain only alphanumeric
-	// characters (case-sensitive) and hyphens. It must start with an alphabetic
-	// character and can't be longer than 128 characters.
-	//
-	// This member is required.
-	StackSetName *string
-
 	// The Amazon Resource Number (ARN) of the IAM role to use to create this stack
 	// set. Specify an IAM role only if you are using customized administrator roles to
 	// control which users or groups can manage specific stack sets within the same
@@ -140,9 +132,6 @@ type StackSetConfig struct {
 	// queues conflicting operations.
 	ManagedExecution *types.ManagedExecution
 
-	// The input parameters for the stack set template.
-	Parameters []types.Parameter
-
 	// Describes how the IAM roles required for stack set operations are created. By
 	// default, SELF-MANAGED is specified.
 	//
@@ -158,21 +147,11 @@ type StackSetConfig struct {
 	// (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-service-managed.html).
 	PermissionModel types.PermissionModels
 
-	// The stack ID you are importing into a new stack set. Specify the Amazon Resource
-	// Number (ARN) of the stack.
-	StackId *string
-
-	// The key-value pairs to associate with this stack set and the stacks created from
-	// it. CloudFormation also propagates these tags to supported resources that are
-	// created in the stacks. A maximum number of 50 tags can be specified. If you
-	// specify tags as part of a CreateStackSet action, CloudFormation checks to see if
-	// you have the required IAM permission to tag resources. If you don't, the entire
-	// CreateStackSet action fails with an access denied error, and the stack set is
-	// not created.
-	Tags []types.Tag
-
-	// service fields
-	Template cft.Template
+	// service fields, not to be used in configuration file
+	StackSetName *string           `yaml:"-"`
+	Template     cft.Template      `yaml:"-"`
+	Parameters   []types.Parameter `yaml:"-"`
+	Tags         []types.Tag       `yaml:"-"`
 }
 
 type StackSetInstancesConfig struct {
@@ -183,32 +162,10 @@ type StackSetInstancesConfig struct {
 	// This member is required.
 	Regions []string
 
-	// The name or unique ID of the stack set that you want to create stack instances
-	// from.
-	//
-	// This member is required.
-	StackSetName *string
-
-	// [Self-managed permissions] The names of one or more Amazon Web Services accounts
-	// that you want to create stack instances in the specified Region(s) for. You can
-	// specify Accounts or DeploymentTargets, but not both.
+	// [Service-managed permissions] The Organizations accounts for which to create
+	// stack instances in the specified Amazon Web Services Regions. You can specify
+	// Accounts or DeploymentTargets, but not both.
 	Accounts []string
-
-	// [Service-managed permissions] Specifies whether you are acting as an account
-	// administrator in the organization's management account or as a delegated
-	// administrator in a member account. By default, SELF is specified. Use SELF for
-	// stack sets with self-managed permissions.
-	//
-	// * If you are signed in to the
-	// management account, specify SELF.
-	//
-	// * If you are signed in to a delegated
-	// administrator account, specify DELEGATED_ADMIN. Your Amazon Web Services account
-	// must be registered as a delegated administrator in the management account. For
-	// more information, see Register a delegated administrator
-	// (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-orgs-delegated-admin.html)
-	// in the CloudFormation User Guide.
-	CallAs types.CallAs
 
 	// [Service-managed permissions] The Organizations accounts for which to create
 	// stack instances in the specified Amazon Web Services Regions. You can specify
@@ -217,4 +174,8 @@ type StackSetInstancesConfig struct {
 
 	// Preferences for how CloudFormation performs this stack set operation.
 	OperationPreferences *types.StackSetOperationPreferences
+
+	// service fields, not to be used in configuration file
+	StackSetName *string      `yaml:"-"`
+	CallAs       types.CallAs `yaml:"-"`
 }

@@ -83,6 +83,14 @@ func formatChangeSet(stackName, changeSetName string) string {
 }
 
 func GetParameters(template cft.Template, combinedParameters map[string]string, old []types.Parameter, stackExists bool) []types.Parameter {
+
+	defer func() { //catch or finally
+		if err := recover(); err != nil { //catch
+			//fmt.Fprintf(os.Stderr, "Exception occured while handling parameters: %v\n", err)
+			panic(fmt.Errorf("exception occured while handling parameters: %v", err))
+		}
+	}()
+
 	newParams := make([]types.Parameter, 0)
 
 	oldMap := make(map[string]types.Parameter)

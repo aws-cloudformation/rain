@@ -16,6 +16,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/smithy-go/ptr"
@@ -39,6 +40,8 @@ var liveStatuses = []types.StackStatus{
 	"UPDATE_ROLLBACK_COMPLETE",
 	"REVIEW_IN_PROGRESS",
 }
+
+const WAIT_PERIOD_IN_SECONDS = 2
 
 func checkTemplate(template cft.Template) (string, error) {
 	templateBody := format.String(template, format.Options{})
@@ -248,7 +251,10 @@ func DeleteAllStackSetInstances(stackSetName string, wait bool) error {
 		RetainStacks: false, //TODO: add flag
 		StackSetName: &stackSetName,
 	}
-	fmt.Println("\nStack set instances:")
+
+	spinner.Pause()
+	fmt.Println("Stack set instances to be deleted:")
+
 	accounts := []string{}
 	regions := []string{}
 	for _, i := range instances {
@@ -267,7 +273,8 @@ func DeleteAllStackSetInstances(stackSetName string, wait bool) error {
 		fmt.Print("error occurred while tried to delete instances")
 		return err
 	}
-
+	fmt.Printf("Stack set DELETE instances operation ID: %s\n", *res.OperationId)
+	spinner.Resume()
 	if wait {
 		for {
 			operation, err := getClient().DescribeStackSetOperation(context.Background(), &cloudformation.DescribeStackSetOperationInput{
@@ -277,7 +284,7 @@ func DeleteAllStackSetInstances(stackSetName string, wait bool) error {
 			if err != nil || operation == nil || operation.StackSetOperation.Status != types.StackSetOperationStatusRunning {
 				break
 			}
-			time.Sleep(time.Second * 2)
+			time.Sleep(time.Second * WAIT_PERIOD_IN_SECONDS)
 		}
 	}
 	return err
@@ -429,7 +436,7 @@ func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[s
 			break
 		}
 
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second * WAIT_PERIOD_IN_SECONDS)
 	}
 
 	return changeSetName, nil
@@ -499,7 +506,30 @@ func CreateStackSetInstances(conf StackSetInstancesConfig, wait bool) error {
 	}
 
 	res, err := getClient().CreateStackInstances(context.Background(), input)
-	config.Debugf("%s", format.PrettyPrint(res))
+	config.Debugf("Create stack instances API result:\n%s", format.PrettyPrint(res))
+	if err != nil {
+		fmt.Print("error occurred durin stack set instance(s) deployment ")
+		return err
+	}
+
+	spinner.Pause()
+	fmt.Printf("Stack set CREATE instances operation ID: %s\n", *res.OperationId)
+	spinner.Resume()
+
+	if wait {
+		for {
+			operation, err := getClient().DescribeStackSetOperation(context.Background(), &cloudformation.DescribeStackSetOperationInput{
+				OperationId:  res.OperationId,
+				StackSetName: conf.StackSetName,
+			})
+			if err != nil || operation == nil || operation.StackSetOperation.Status != types.StackSetOperationStatusRunning {
+				break
+			}
+
+			time.Sleep(time.Second * WAIT_PERIOD_IN_SECONDS)
+		}
+	}
+
 	return err
 }
 
@@ -540,7 +570,7 @@ func WaitUntilStackExists(stackName string) error {
 			return err
 		}
 
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second * WAIT_PERIOD_IN_SECONDS)
 	}
 
 	return nil
@@ -568,7 +598,7 @@ func WaitUntilStackCreateComplete(stackName string) error {
 			break
 		}
 
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second * WAIT_PERIOD_IN_SECONDS)
 	}
 
 	return nil

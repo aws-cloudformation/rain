@@ -23,10 +23,10 @@ import (
 const noChangeFoundMsg = "The submitted information didn't contain changes. Submit different information to create a change set."
 
 type configFileFormat struct {
-	Parameters        map[string]string `yaml:"Parameters"`
-	Tags              map[string]string `yaml:"Tags"`
-	StackSet          cfn.StackSetConfig
-	StackSetInstanses cfn.StackSetInstancesConfig
+	Parameters        map[string]string           `yaml:"Parameters"`
+	Tags              map[string]string           `yaml:"Tags"`
+	StackSet          cfn.StackSetConfig          `yaml:"StackSet"`
+	StackSetInstanses cfn.StackSetInstancesConfig `yaml:"StackSetInstanses"`
 }
 
 var detach bool
@@ -48,7 +48,7 @@ If a template needs to be packaged before it can be deployed, rain will package 
 Rain will attempt to create an S3 bucket to store artifacts that it packages and deploys.
 The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS region>.
 
-The config flag can be used to programmatically set tags and parameters.
+The config flags can be used to programmatically set tags and parameters.
 The format is similar to the "Template configuration file" for AWS CodePipeline just without the
 'StackPolicy' key. The file can be in YAML or JSON format.
 
@@ -187,6 +187,7 @@ YAML:
 
 		stackSetInstancesConfig := configFile.StackSetInstanses
 		stackSetInstancesConfig.StackSetName = &stackSetName
+		stackSetInstancesConfig.CallAs = configFile.StackSet.CallAs
 
 		config.Debugf("Stack Set Instances Configuration: \n%s\n", format.PrettyPrint(stackSetInstancesConfig))
 
