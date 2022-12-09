@@ -86,8 +86,7 @@ func GetParameters(template cft.Template, combinedParameters map[string]string, 
 
 	defer func() { //catch or finally
 		if err := recover(); err != nil { //catch
-			//fmt.Fprintf(os.Stderr, "Exception occured while handling parameters: %v\n", err)
-			panic(fmt.Errorf("exception occured while handling parameters: %v", err))
+			panic(fmt.Errorf("error occured while handling parameters: %v", err))
 		}
 	}()
 

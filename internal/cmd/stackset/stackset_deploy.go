@@ -22,7 +22,7 @@ import (
 
 const noChangeFoundMsg = "The submitted information didn't contain changes. Submit different information to create a change set."
 
-type configFileFormat struct {
+type configFormat struct {
 	Parameters        map[string]string           `yaml:"Parameters"`
 	Tags              map[string]string           `yaml:"Tags"`
 	StackSet          cfn.StackSetConfig          `yaml:"StackSet"`
@@ -75,11 +75,10 @@ YAML:
 	Args:                  cobra.RangeArgs(1, 2),
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		fn := args[0]
-		base := filepath.Base(fn)
+		templateFilePath := args[0]
+		base := filepath.Base(templateFilePath)
 
 		var stackSetName string
-
 		if len(args) == 2 {
 			stackSetName = args[1]
 		} else {
@@ -97,50 +96,15 @@ YAML:
 		cliTagFlags := deploy.ListToMap("tag", tags)
 
 		// Parse cli params
-		clidParamFlags := deploy.ListToMap("param", params)
+		cliParamFlags := deploy.ListToMap("param", params)
 
-		var combinedTags map[string]string
-		var combinedParameters map[string]string
-		var configFile configFileFormat
+		configData := readConfiguration(configFilePath)
 
-		// Read configuration from file
-		if len(configFilePath) != 0 {
-			configFileContent, err := ioutil.ReadFile(configFilePath)
-			if err != nil {
-				panic(ui.Errorf(err, "unable to read config file '%s'", configFilePath))
-			}
-
-			err = yaml.Unmarshal([]byte(configFileContent), &configFile)
-			if err != nil {
-				panic(ui.Errorf(err, "unable to parse yaml in '%s'", configFilePath))
-			}
-
-			combinedTags = configFile.Tags
-			combinedParameters = configFile.Parameters
-
-			// Merge Tags
-			for k, v := range cliTagFlags {
-				if _, ok := combinedTags[k]; ok {
-					fmt.Println(console.Yellow(fmt.Sprintf("tags flag overrides tag in config file: %s", k)))
-				}
-				combinedTags[k] = v
-			}
-
-			// Merge Params
-			for k, v := range clidParamFlags {
-				if _, ok := combinedParameters[k]; ok {
-					fmt.Println(console.Yellow(fmt.Sprintf("params flag overrides parameter in config file: %s", k)))
-				}
-				combinedParameters[k] = v
-			}
-		} else {
-			combinedTags = cliTagFlags
-			combinedParameters = clidParamFlags
-		}
+		mergeCliFlagsToConfigData(&configData, cliParamFlags, cliTagFlags)
 
 		// Package template
 		spinner.Push(fmt.Sprintf("Preparing template '%s'", base))
-		template := deploy.PackageTemplate(fn, yes)
+		template := deploy.PackageTemplate(templateFilePath, yes)
 		spinner.Pop()
 
 		// Check current stack set status
@@ -154,9 +118,9 @@ YAML:
 			stackSetExists = true
 		}
 
-		// Build params
+		// Build types.Parameter from configuration data
 		config.Debugf("Handling parameters")
-		parameters := deploy.GetParameters(template, combinedParameters, stackSet.Parameters, stackSetExists)
+		parameters := deploy.GetParameters(template, configData.Parameters, stackSet.Parameters, stackSetExists)
 
 		if config.Debug {
 			for _, param := range parameters {
@@ -168,10 +132,10 @@ YAML:
 			}
 		}
 
-		stackSetConfig := configFile.StackSet
+		stackSetConfig := configData.StackSet
 		stackSetConfig.StackSetName = &stackSetName
 		stackSetConfig.Parameters = parameters
-		stackSetConfig.Tags = cfn.MakeTags(combinedTags)
+		stackSetConfig.Tags = cfn.MakeTags(configData.Tags)
 		config.Debugf("Stack Set Configuration: \n%s\n", format.PrettyPrint(stackSetConfig))
 		stackSetConfig.Template = template
 
@@ -185,9 +149,9 @@ YAML:
 			fmt.Printf("Stack set has been created successfuly with ID: %s\n", *stackSetId)
 		}
 
-		stackSetInstancesConfig := configFile.StackSetInstanses
+		stackSetInstancesConfig := configData.StackSetInstanses
 		stackSetInstancesConfig.StackSetName = &stackSetName
-		stackSetInstancesConfig.CallAs = configFile.StackSet.CallAs
+		stackSetInstancesConfig.CallAs = configData.StackSet.CallAs
 
 		config.Debugf("Stack Set Instances Configuration: \n%s\n", format.PrettyPrint(stackSetInstancesConfig))
 
@@ -217,4 +181,41 @@ func init() {
 	StackSetDeployCmd.Flags().StringVarP(&configFilePath, "config", "c", "", "YAML or JSON file to set tags and parameters")
 	// StackSetDeployCmd.Flags().BoolVarP(&terminationProtection, "termination-protection", "t", false, "enable termination protection on the stack")
 	// StackSetDeployCmd.Flags().BoolVarP(&keep, "keep", "k", false, "keep deployed resources after a failure by disabling rollbacks")
+}
+
+func readConfiguration(configFilePath string) configFormat {
+
+	var configData configFormat
+
+	// Read configuration file
+	if len(configFilePath) != 0 {
+		configFileContent, err := ioutil.ReadFile(configFilePath)
+		if err != nil {
+			panic(ui.Errorf(err, "unable to read config file '%s'", configFilePath))
+		}
+
+		err = yaml.Unmarshal([]byte(configFileContent), &configData)
+		if err != nil {
+			panic(ui.Errorf(err, "unable to parse yaml in '%s'", configFilePath))
+		}
+	}
+	return configData
+}
+
+func mergeCliFlagsToConfigData(configData *configFormat, cliParams map[string]string, cliTags map[string]string) {
+	// Merge Tags
+	for k, v := range cliTags {
+		if _, ok := configData.Tags[k]; ok {
+			fmt.Println(console.Yellow(fmt.Sprintf("tags flag overrides tag in config file: %s", k)))
+		}
+		configData.Tags[k] = v
+	}
+
+	// Merge Params
+	for k, v := range cliParams {
+		if _, ok := configData.Parameters[k]; ok {
+			fmt.Println(console.Yellow(fmt.Sprintf("params flag overrides parameter in config file: %s", k)))
+		}
+		configData.Parameters[k] = v
+	}
 }
