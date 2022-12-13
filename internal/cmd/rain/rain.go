@@ -13,6 +13,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/cmd/deploy"
 	"github.com/aws-cloudformation/rain/internal/cmd/diff"
 	rainfmt "github.com/aws-cloudformation/rain/internal/cmd/fmt"
+	"github.com/aws-cloudformation/rain/internal/cmd/forecast"
 	"github.com/aws-cloudformation/rain/internal/cmd/info"
 	"github.com/aws-cloudformation/rain/internal/cmd/logs"
 	"github.com/aws-cloudformation/rain/internal/cmd/ls"
@@ -86,6 +87,7 @@ func init() {
 	addCommand(templateGroup, false, merge.Cmd)
 	addCommand(templateGroup, true, pkg.Cmd)
 	addCommand(templateGroup, false, tree.Cmd)
+	addCommand(templateGroup, true, forecast.Cmd)
 
 	// Other commands
 	addCommand("", true, consolecmd.Cmd)

@@ -160,6 +160,19 @@ func GetStack(stackName string) (types.Stack, error) {
 	return res.Stacks[0], nil
 }
 
+// Get a single deployed stack resource
+func GetStackResource(stackName string, logicalId string) (*types.StackResourceDetail, error) {
+	res, err := getClient().DescribeStackResource(context.Background(),
+		&cloudformation.DescribeStackResourceInput{
+			StackName:         &stackName,
+			LogicalResourceId: &logicalId,
+		})
+	if err != nil {
+		return nil, err
+	}
+	return res.StackResourceDetail, nil
+}
+
 // GetStackResources returns a list of the resources in the named stack
 func GetStackResources(stackName string) ([]types.StackResource, error) {
 	// Get the stack resources
