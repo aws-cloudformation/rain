@@ -56,6 +56,7 @@ func checkBucketPermissions(input PredictionInput, bucket *types.StackResourceDe
 	return false
 }
 
+// Check everything that could go wrong with an AWS::S3::Bucket resource
 func checkBucket(input PredictionInput) (int, int) {
 
 	res, err := cfn.GetStackResource(input.stackName, input.logicalId)
@@ -104,15 +105,21 @@ func predict(source cft.Template, stackName string) {
 	numChecked := 0
 	numFailed := 0
 
+	// A map of resource type names to prediction functions
+	// The function returns (numFailed, numChecked)
+	forecasters := make(map[string]func(input PredictionInput) (int, int))
+
+	forecasters["AWS::S3::Bucket"] = checkBucket
+
 	m := source.Map()
 	for t, section := range m {
 		if t == "Resources" {
 			// Iterate over each resource
 			for logicalId, resource := range section.(map[string]interface{}) {
-				config.Debugf("%v %v", logicalId, resource)
+				config.Debugf("resource %v %v", logicalId, resource)
 				// Iterate over each element in the resource
 				for elementName, element := range resource.(map[string]interface{}) {
-					config.Debugf("%v %v", elementName, element)
+					config.Debugf("element %v %v", elementName, element)
 
 					input := PredictionInput{}
 					input.logicalId = logicalId
@@ -123,14 +130,18 @@ func predict(source cft.Template, stackName string) {
 					input.stack = stack
 
 					// Check the type and call functions that make checks
-					// on that type of resource. For now we can hard code the
-					// function calls, but eventually we will want a map
-					// of resource types to functions.
+					// on that type of resource.
 
-					if elementName == "Type" && element == "AWS::S3::Bucket" {
-						nf, nc := checkBucket(input)
-						numFailed += nf
-						numChecked += nc
+					if elementName == "Type" {
+
+						// See if we have a forecaster for this type
+						fn, ok := forecasters[element.(string)]
+						if ok {
+							// Call the prediction function
+							nf, nc := fn(input)
+							numFailed += nf
+							numChecked += nc
+						}
 					}
 				}
 			}
@@ -141,7 +152,7 @@ func predict(source cft.Template, stackName string) {
 		fmt.Println("Stormy weather ahead!")
 		fmt.Println(numFailed, "checks failed out of", numChecked, "total checks")
 	} else {
-		fmt.Println("All", numChecked, "checks passed!")
+		fmt.Println("Clear skies! All", numChecked, "checks passed.")
 	}
 
 	// TODO - We might be able to incorporate AWS Config proactive controls here
