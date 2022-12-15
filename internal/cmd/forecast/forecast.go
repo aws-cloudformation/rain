@@ -1,3 +1,5 @@
+// Forecast looks at your account and tries to predict things that will
+// go wrong when you attempt to CREATE, UPDATE, or DELETE a stack
 package forecast
 
 import (
@@ -16,6 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 )
 
+// Input to forecast prediction functions
 type PredictionInput struct {
 	source      cft.Template
 	stackName   string
@@ -32,19 +35,7 @@ func checkBucketNotEmpty(input PredictionInput, bucket *types.StackResourceDetai
 	}
 	config.Debugf("Checking if the bucket %v is not empty", *bucket.PhysicalResourceId)
 
-	// Iterate over each element in the resource
-
-	// resourceMap := input.resource.(map[string]interface{})
-	// for elementName, element := range resourceMap {
-	// 	config.Debugf(elementName, element)
-	// 	if elementName == "Properties" {
-	// 		// Iterate over resource properties
-	// 		for propName, prop := range element.(map[string]interface{}) {
-	// 			config.Debugf(propName, prop)
-
-	// 		}
-	// 	}
-	// }
+	// TODO
 
 	return true
 }
@@ -52,6 +43,8 @@ func checkBucketNotEmpty(input PredictionInput, bucket *types.StackResourceDetai
 func checkBucketPermissions(input PredictionInput, bucket *types.StackResourceDetail) bool {
 
 	config.Debugf("Checking if the user has permissions on %v", *bucket.PhysicalResourceId)
+
+	// TODO
 
 	return false
 }
@@ -69,6 +62,7 @@ func checkBucket(input PredictionInput) (int, int) {
 	bucketName := *res.PhysicalResourceId
 	config.Debugf("Physical bucket name is: %v", bucketName)
 
+	// TODO - Put these in a map
 	numFailed := 0
 	if !checkBucketPermissions(input, res) {
 		numFailed += 1
