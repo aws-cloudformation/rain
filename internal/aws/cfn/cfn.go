@@ -276,16 +276,7 @@ func DeleteAllStackSetInstances(stackSetName string, wait bool) error {
 	fmt.Printf("Submitted DELETE instances operation with ID: %s\n", *res.OperationId)
 	spinner.Resume()
 	if wait {
-		for {
-			operation, err := getClient().DescribeStackSetOperation(context.Background(), &cloudformation.DescribeStackSetOperationInput{
-				OperationId:  res.OperationId,
-				StackSetName: &stackSetName,
-			})
-			if err != nil || operation == nil || operation.StackSetOperation.Status != types.StackSetOperationStatusRunning {
-				break
-			}
-			time.Sleep(time.Second * WAIT_PERIOD_IN_SECONDS)
-		}
+		WaitUntilStackSetOperationCompleted(*res.OperationId, stackSetName)
 	}
 	return err
 }
@@ -315,16 +306,16 @@ func GetStack(stackName string) (types.Stack, error) {
 }
 
 // GetStackSet returns a cloudformation.StackSet
-func GetStackSet(stackSetName string) (types.StackSet, error) {
+func GetStackSet(stackSetName string) (*types.StackSet, error) {
 	// Get the stack properties
 	res, err := getClient().DescribeStackSet(context.Background(), &cloudformation.DescribeStackSetInput{
 		StackSetName: &stackSetName,
 	})
 	if err != nil {
-		return types.StackSet{}, err
+		return nil, err
 	}
 
-	return *res.StackSet, nil
+	return res.StackSet, nil
 }
 
 // GetStackResources returns a list of the resources in the named stack
@@ -494,6 +485,61 @@ func CreateStackSet(conf StackSetConfig) (*string, error) {
 	return res.StackSetId, err
 }
 
+// UpdateStackSet updates stack set and its instances
+func UpdateStackSet(conf StackSetConfig, wait bool) error {
+
+	templateBody, err := checkTemplate(conf.Template)
+	if err != nil {
+		return errors.New("error occured while extracting template body")
+	}
+
+	_, err = GetStackSet(*conf.StackSetName)
+	if err != nil {
+		return errors.New("can't update stack set. It does not exists or in wron state")
+	}
+
+	input := &cloudformation.UpdateStackSetInput{
+		StackSetName:          conf.StackSetName,
+		Parameters:            conf.Parameters,
+		Tags:                  conf.Tags,
+		Capabilities:          conf.Capabilities,
+		Description:           conf.Description,
+		AdministrationRoleARN: conf.AdministrationRoleARN,
+		AutoDeployment:        conf.AutoDeployment,
+		CallAs:                conf.CallAs,
+		ExecutionRoleName:     conf.ExecutionRoleName,
+		ManagedExecution:      conf.ManagedExecution,
+		PermissionModel:       conf.PermissionModel,
+	}
+
+	if strings.HasPrefix(templateBody, "http://") {
+		input.TemplateURL = ptr.String(templateBody)
+	} else {
+		input.TemplateBody = ptr.String(templateBody)
+	}
+
+	res, err := getClient().UpdateStackSet(context.Background(), input)
+
+	config.Debugf("Update stack instances API result:\n%s", format.PrettyPrint(res))
+	if err != nil {
+		fmt.Println("error occurred durin stack set update")
+		return err
+	}
+
+	spinner.Pause()
+	fmt.Printf("Submitted UPDATE stack set operation with ID: %s\n", *res.OperationId)
+	spinner.Resume()
+
+	if err != nil {
+		return err
+	}
+
+	if wait {
+		err = WaitUntilStackSetOperationCompleted(*res.OperationId, *conf.StackSetName)
+	}
+	return err
+}
+
 func CreateStackSetInstances(conf StackSetInstancesConfig, wait bool) error {
 
 	input := &cloudformation.CreateStackInstancesInput{
@@ -508,7 +554,7 @@ func CreateStackSetInstances(conf StackSetInstancesConfig, wait bool) error {
 	res, err := getClient().CreateStackInstances(context.Background(), input)
 	config.Debugf("Create stack instances API result:\n%s", format.PrettyPrint(res))
 	if err != nil {
-		fmt.Print("error occurred durin stack set instance(s) deployment ")
+		fmt.Println("error occurred durin stack set instance(s) deployment ")
 		return err
 	}
 
@@ -517,17 +563,7 @@ func CreateStackSetInstances(conf StackSetInstancesConfig, wait bool) error {
 	spinner.Resume()
 
 	if wait {
-		for {
-			operation, err := getClient().DescribeStackSetOperation(context.Background(), &cloudformation.DescribeStackSetOperationInput{
-				OperationId:  res.OperationId,
-				StackSetName: conf.StackSetName,
-			})
-			if err != nil || operation == nil || operation.StackSetOperation.Status != types.StackSetOperationStatusRunning {
-				break
-			}
-
-			time.Sleep(time.Second * WAIT_PERIOD_IN_SECONDS)
-		}
+		WaitUntilStackSetOperationCompleted(*res.OperationId, *conf.StackSetName)
 	}
 
 	return err
@@ -574,6 +610,31 @@ func WaitUntilStackExists(stackName string) error {
 	}
 
 	return nil
+}
+
+func WaitUntilStackSetOperationCompleted(operationId string, stacksetName string) error {
+	var operation *cloudformation.DescribeStackSetOperationOutput
+	var err error
+	for {
+		operation, err = getClient().DescribeStackSetOperation(context.Background(), &cloudformation.DescribeStackSetOperationInput{
+			OperationId:  &operationId,
+			StackSetName: &stacksetName,
+		})
+		if err != nil || operation == nil ||
+			operation.StackSetOperation.Status == types.StackSetOperationStatusStopped ||
+			operation.StackSetOperation.Status == types.StackSetOperationStatusSucceeded ||
+			operation.StackSetOperation.Status == types.StackSetOperationStatusFailed {
+			break
+		}
+
+		time.Sleep(time.Second * WAIT_PERIOD_IN_SECONDS)
+	}
+	if err == nil && operation != nil {
+		spinner.Pause()
+		fmt.Printf("Stack set operation resulted with state: %s\n", operation.StackSetOperation.Status)
+		spinner.Resume()
+	}
+	return err
 }
 
 // WaitUntilStackCreateComplete pauses execution until the stack is completed (or fails)

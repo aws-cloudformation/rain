@@ -345,7 +345,7 @@ func GetStackSummary(stack types.Stack, long bool) string {
 }
 
 //
-func GetStackSetSummary(stackSet types.StackSet, long bool) string {
+func GetStackSetSummary(stackSet *types.StackSet, long bool) string {
 	out := strings.Builder{}
 
 	stackSetStatus := string(stackSet.Status)

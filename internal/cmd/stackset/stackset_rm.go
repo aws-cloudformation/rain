@@ -53,7 +53,7 @@ var StackSetRmCmd = &cobra.Command{
 						if err != nil {
 							panic(ui.Errorf(err, "Could not delete stack set '%s'", stackSetName))
 						} else {
-							fmt.Println("Success!")
+							fmt.Println("Stack set deletion has been completed.")
 						}
 					}
 				} else {
