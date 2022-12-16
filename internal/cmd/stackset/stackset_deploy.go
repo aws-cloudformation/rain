@@ -29,6 +29,8 @@ type configFormat struct {
 	StackSetInstanses cfn.StackSetInstancesConfig `yaml:"StackSetInstanses"`
 }
 
+var accounts []string
+var regions []string
 var detach bool
 var yes bool
 var params []string
@@ -75,35 +77,23 @@ YAML:
 	Args:                  cobra.RangeArgs(1, 2),
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		templateFilePath := args[0]
-		base := filepath.Base(templateFilePath)
 
-		var stackSetName string
-		if len(args) == 2 {
-			stackSetName = args[1]
-		} else {
-			stackSetName = base[:len(base)-len(filepath.Ext(base))]
+		stackSetName := createStackSetName(args)
 
-			// Now ensure it's a valid cfc name
-			stackSetName = deploy.FixStackNameRe.ReplaceAllString(stackSetName, "-")
-
-			if len(stackSetName) > deploy.MaxStackNameLength {
-				stackSetName = stackSetName[:deploy.MaxStackNameLength]
-			}
-		}
-
-		// Parse cli tags
+		// Convert cli flags to maps
 		cliTagFlags := deploy.ListToMap("tag", tags)
-
-		// Parse cli params
 		cliParamFlags := deploy.ListToMap("param", params)
 
+		// Read configuration data from a file
 		configData := readConfiguration(configFilePath)
 
-		mergeCliFlagsToConfigData(&configData, cliParamFlags, cliTagFlags)
+		//ovveride config data with CLI flag values
+		overideConfigDataWithCliFlags(&configData, cliParamFlags, cliTagFlags, accounts, regions) //TODO: confirm if config Tags/Params should be overriden or merged with CLI args
 
 		// Package template
-		spinner.Push(fmt.Sprintf("Preparing template '%s'", base))
+		spinner.Push(fmt.Sprintf("Preparing template '%s'", templateFilePath))
 		template := deploy.PackageTemplate(templateFilePath, yes)
 		spinner.Pop()
 
@@ -111,19 +101,21 @@ YAML:
 		spinner.Push(fmt.Sprintf("Checking current status of stack set '%s'", stackSetName))
 		stackSet, err := cfn.GetStackSet(stackSetName)
 		spinner.Pop()
-
 		stackSetExists := false
-		if err == nil && stackSet.Status != types.StackSetStatusDeleted { // TODO: implement update existing stackset
-			//fmt.Println("can't create stack set. It already exists")
+		if err == nil && stackSet.Status != types.StackSetStatusDeleted {
 			stackSetExists = true
 		}
 
-		// Build types.Parameter from configuration data
-		config.Debugf("Handling parameters")
-		parameters := deploy.GetParameters(template, configData.Parameters, stackSet.Parameters, stackSetExists)
+		// Build []types.Parameter from configuration data
+		config.Debugln("Handling parameters")
+		parameterTypes := deploy.GetParameters(template, configData.Parameters, stackSet.Parameters, stackSetExists)
+
+		// Build []types.Tag from configuration data
+		config.Debugln("Handling tags")
+		tagTypes := cfn.MakeTags(configData.Tags)
 
 		if config.Debug {
-			for _, param := range parameters {
+			for _, param := range parameterTypes {
 				val := ptr.ToString(param.ParameterValue)
 				if ptr.ToBool(param.UsePreviousValue) {
 					val = "<previous value>"
@@ -134,8 +126,8 @@ YAML:
 
 		stackSetConfig := configData.StackSet
 		stackSetConfig.StackSetName = &stackSetName
-		stackSetConfig.Parameters = parameters
-		stackSetConfig.Tags = cfn.MakeTags(configData.Tags)
+		stackSetConfig.Parameters = parameterTypes
+		stackSetConfig.Tags = tagTypes
 		config.Debugf("Stack Set Configuration: \n%s\n", format.PrettyPrint(stackSetConfig))
 		stackSetConfig.Template = template
 
@@ -149,23 +141,28 @@ YAML:
 			fmt.Printf("Stack set has been created successfuly with ID: %s\n", *stackSetId)
 		}
 
-		stackSetInstancesConfig := configData.StackSetInstanses
-		stackSetInstancesConfig.StackSetName = &stackSetName
-		stackSetInstancesConfig.CallAs = configData.StackSet.CallAs
+		// we create instances only if there is enough configuration data was provided in a config file or as cli arguments
+		if isConfigDataValid(&configData.StackSetInstanses) {
+			stackSetInstancesConfig := configData.StackSetInstanses
+			stackSetInstancesConfig.StackSetName = &stackSetName
+			stackSetInstancesConfig.CallAs = configData.StackSet.CallAs
 
-		config.Debugf("Stack Set Instances Configuration: \n%s\n", format.PrettyPrint(stackSetInstancesConfig))
+			config.Debugf("Stack Set Instances Configuration: \n%s\n", format.PrettyPrint(stackSetInstancesConfig))
 
-		// Create Stack Set instances
-		spinner.Push("Creating stack set instances")
-		err = cfn.CreateStackSetInstances(stackSetInstancesConfig, !detach)
-		spinner.Pop()
-		if err != nil {
-			panic(ui.Errorf(err, "error while creating stack set instances"))
-		}
-		if !detach {
-			fmt.Println("Stack set instances have been created successfuly")
+			// Create Stack Set instances
+			spinner.Push("Creating stack set instances")
+			err = cfn.CreateStackSetInstances(stackSetInstancesConfig, !detach)
+			spinner.Pop()
+			if err != nil {
+				panic(ui.Errorf(err, "error while creating stack set instances"))
+			}
+			if !detach {
+				fmt.Println("Stack set instances have been created successfuly")
+			} else {
+				fmt.Println("Stack set instances creation was initiated successfuly")
+			}
 		} else {
-			fmt.Println("Stack set instances creation was initiated successfuly")
+			fmt.Println("Not enough information provided to create stack set instance(s). Please use configuration file or provide account(s) and region(s) for deployment as command argiments")
 		}
 
 	},
@@ -174,6 +171,8 @@ YAML:
 func init() {
 	deploy.FixStackNameRe = regexp.MustCompile(`[^a-zA-Z0-9]+`)
 
+	StackSetDeployCmd.Flags().StringSliceVar(&accounts, "accounts", []string{}, "accounts for which to create stack instances")
+	StackSetDeployCmd.Flags().StringSliceVar(&regions, "regions", []string{}, "regions where you want to create stack instances")
 	StackSetDeployCmd.Flags().BoolVarP(&detach, "detach", "d", false, "once deployment has started, don't wait around for it to finish")
 	// StackSetDeployCmd.Flags().BoolVarP(&yes, "yes", "y", false, "don't ask questions; just deploy")
 	StackSetDeployCmd.Flags().StringSliceVar(&tags, "tags", []string{}, "add tags to the stack; use the format key1=value1,key2=value2")
@@ -202,11 +201,14 @@ func readConfiguration(configFilePath string) configFormat {
 	return configData
 }
 
-func mergeCliFlagsToConfigData(configData *configFormat, cliParams map[string]string, cliTags map[string]string) {
+func overideConfigDataWithCliFlags(configData *configFormat, cliParams map[string]string, cliTags map[string]string, cliAccounts []string, cliRegions []string) {
 	// Merge Tags
 	for k, v := range cliTags {
 		if _, ok := configData.Tags[k]; ok {
 			fmt.Println(console.Yellow(fmt.Sprintf("tags flag overrides tag in config file: %s", k)))
+		}
+		if configData.Tags == nil {
+			configData.Tags = make(map[string]string)
 		}
 		configData.Tags[k] = v
 	}
@@ -216,6 +218,48 @@ func mergeCliFlagsToConfigData(configData *configFormat, cliParams map[string]st
 		if _, ok := configData.Parameters[k]; ok {
 			fmt.Println(console.Yellow(fmt.Sprintf("params flag overrides parameter in config file: %s", k)))
 		}
+		if configData.Parameters == nil {
+			configData.Parameters = make(map[string]string)
+		}
 		configData.Parameters[k] = v
+	}
+
+	if len(cliAccounts) > 0 {
+		configData.StackSetInstanses.Accounts = cliAccounts
+	}
+
+	if len(cliRegions) > 0 {
+		configData.StackSetInstanses.Regions = cliRegions
+	}
+}
+
+// builds stack set name out of the template filename or takes it from the cli args
+func createStackSetName(args []string) string {
+	var stackSetName string
+
+	base := filepath.Base(args[0])
+	if len(args) == 2 {
+		stackSetName = args[1]
+	} else {
+		stackSetName = base[:len(base)-len(filepath.Ext(base))]
+
+		// Now ensure it's a valid cfc name
+		stackSetName = deploy.FixStackNameRe.ReplaceAllString(stackSetName, "-")
+
+		if len(stackSetName) > deploy.MaxStackNameLength {
+			stackSetName = stackSetName[:deploy.MaxStackNameLength]
+		}
+	}
+	return stackSetName
+}
+
+//Validate if we have enough configuration data to create/update stack set instances
+func isConfigDataValid(config *cfn.StackSetInstancesConfig) bool {
+	if config != nil &&
+		config.Accounts != nil && len(config.Accounts) > 0 &&
+		config.Regions != nil && len(config.Regions) > 0 {
+		return true
+	} else {
+		return false
 	}
 }

@@ -273,7 +273,7 @@ func DeleteAllStackSetInstances(stackSetName string, wait bool) error {
 		fmt.Print("error occurred while tried to delete instances")
 		return err
 	}
-	fmt.Printf("Stack set DELETE instances operation ID: %s\n", *res.OperationId)
+	fmt.Printf("Submitted DELETE instances operation with ID: %s\n", *res.OperationId)
 	spinner.Resume()
 	if wait {
 		for {
@@ -513,7 +513,7 @@ func CreateStackSetInstances(conf StackSetInstancesConfig, wait bool) error {
 	}
 
 	spinner.Pause()
-	fmt.Printf("Stack set CREATE instances operation ID: %s\n", *res.OperationId)
+	fmt.Printf("Submitted CREATE instances operation with ID: %s\n", *res.OperationId)
 	spinner.Resume()
 
 	if wait {

@@ -21,3 +21,9 @@ func Debugf(message string, parts ...interface{}) {
 		fmt.Println(console.Grey("DEBUG: " + fmt.Sprintf(message, parts...)))
 	}
 }
+
+func Debugln(message string) {
+	if Debug {
+		fmt.Println(console.Grey("DEBUG: " + fmt.Sprintln(message)))
+	}
+}
