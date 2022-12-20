@@ -234,41 +234,40 @@ func DeleteStackSet(stackSetName string) error {
 }
 
 // DeleteAllStackSetInstances deletes all instances for a given stack set
-func DeleteAllStackSetInstances(stackSetName string, wait bool) error {
-	stackSet, err := GetStackSet(stackSetName)
-	if err != nil {
-		fmt.Printf("Could not find stack set '%s'", stackSetName)
-		return err
-	}
-	instances, err := ListStackSetInstances(*stackSet.StackSetName)
+func DeleteAllStackSetInstances(stackSetName string, wait bool, retainStacks bool) error {
+	instances, err := ListStackSetInstances(stackSetName)
 	if err != nil {
 		fmt.Printf("Could not fetch instances for stack set '%s'", stackSetName)
 		return err
 	}
-	var input = &cloudformation.DeleteStackInstancesInput{
-		Accounts:     []string{},
-		Regions:      []string{},
-		RetainStacks: false, //TODO: add flag
-		StackSetName: &stackSetName,
-	}
-
-	spinner.Pause()
-	fmt.Println("Stack set instances to be deleted:")
-
 	accounts := []string{}
 	regions := []string{}
 	for _, i := range instances {
-		if i.StackInstanceStatus.DetailedStatus != types.StackInstanceDetailedStatusRunning { //TODO: do we need to process not RUNNING only?
-			fmt.Printf("%s\n", *i.StackId)
+		if i.StackInstanceStatus.DetailedStatus != types.StackInstanceDetailedStatusRunning { //TODO: do we need to skipp RUNNING only?
 			accounts = append(accounts, *i.Account)
 			regions = append(regions, *i.Region)
 		}
 	}
+	return DeleteStackSetInstances(stackSetName, accounts, regions, wait, retainStacks)
+}
 
-	input.Accounts = uniqueStrings(accounts)
-	input.Regions = uniqueStrings(regions)
+// DeleteStackSetInstances deletes instances for a given stack set in specified accounts and regions
+func DeleteStackSetInstances(stackSetName string, accounts []string, regions []string, wait bool, retainStacks bool) error {
+	_, err := GetStackSet(stackSetName)
+	if err != nil {
+		fmt.Printf("Could not find stack set '%s'", stackSetName)
+		return err
+	}
+
+	var input = &cloudformation.DeleteStackInstancesInput{
+		Accounts:     uniqueStrings(accounts),
+		Regions:      uniqueStrings(regions),
+		RetainStacks: retainStacks,
+		StackSetName: &stackSetName,
+	}
 
 	res, err := getClient().DeleteStackInstances(context.Background(), input)
+	spinner.Pause()
 	if err != nil {
 		fmt.Print("error occurred while tried to delete instances")
 		return err
@@ -486,7 +485,7 @@ func CreateStackSet(conf StackSetConfig) (*string, error) {
 }
 
 // UpdateStackSet updates stack set and its instances
-func UpdateStackSet(conf StackSetConfig, wait bool) error {
+func UpdateStackSet(conf StackSetConfig, instanceConf StackSetInstancesConfig, wait bool) error {
 
 	templateBody, err := checkTemplate(conf.Template)
 	if err != nil {
@@ -495,7 +494,7 @@ func UpdateStackSet(conf StackSetConfig, wait bool) error {
 
 	_, err = GetStackSet(*conf.StackSetName)
 	if err != nil {
-		return errors.New("can't update stack set. It does not exists or in wron state")
+		return errors.New("can't update stack set. It does not exists or it is in a wrong state")
 	}
 
 	input := &cloudformation.UpdateStackSetInput{
@@ -510,6 +509,11 @@ func UpdateStackSet(conf StackSetConfig, wait bool) error {
 		ExecutionRoleName:     conf.ExecutionRoleName,
 		ManagedExecution:      conf.ManagedExecution,
 		PermissionModel:       conf.PermissionModel,
+		// instance configuration
+		Accounts:             instanceConf.Accounts,
+		Regions:              instanceConf.Regions,
+		DeploymentTargets:    instanceConf.DeploymentTargets,
+		OperationPreferences: instanceConf.OperationPreferences,
 	}
 
 	if strings.HasPrefix(templateBody, "http://") {
@@ -517,6 +521,10 @@ func UpdateStackSet(conf StackSetConfig, wait bool) error {
 	} else {
 		input.TemplateBody = ptr.String(templateBody)
 	}
+
+	spinner.Pause()
+	fmt.Printf("Updating stack sets in...\naccounts: %+v\nregions: %+v\n", input.Accounts, input.Regions)
+	spinner.Resume()
 
 	res, err := getClient().UpdateStackSet(context.Background(), input)
 

@@ -3,6 +3,7 @@ package stackset
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"regexp"
 
@@ -95,30 +96,30 @@ YAML:
 
 		// Package template
 		spinner.Push(fmt.Sprintf("Preparing template '%s'", templateFilePath))
-		template := deploy.PackageTemplate(templateFilePath, yes)
+		configData.StackSet.Template = deploy.PackageTemplate(templateFilePath, yes)
 		spinner.Pop()
 
 		// Get current stack set if exist
 		spinner.Push(fmt.Sprintf("Checking current status of stack set '%s'", stackSetName))
-		stackSet, err := cfn.GetStackSet(stackSetName)
+		existingStackSet, err := cfn.GetStackSet(stackSetName)
 		spinner.Pop()
 
 		// Decide if we going to create or update stack set
 		isUpdate := false
-		if err == nil && stackSet.Status != types.StackSetStatusDeleted {
+		if err == nil && existingStackSet.Status != types.StackSetStatusDeleted {
 			isUpdate = true
 		}
 
 		// Build []types.Parameter from configuration data
 		config.Debugln("Handling parameters")
-		parameterTypes := buildParameterTypes(template, configData.Parameters, stackSet)
+		configData.StackSet.Parameters = buildParameterTypes(configData.StackSet.Template, configData.Parameters, existingStackSet)
 
 		// Build []types.Tag from configuration data
 		config.Debugln("Handling tags")
-		tagTypes := cfn.MakeTags(configData.Tags)
+		configData.StackSet.Tags = cfn.MakeTags(configData.Tags)
 
 		if config.Debug {
-			for _, param := range parameterTypes {
+			for _, param := range configData.StackSet.Parameters {
 				val := ptr.ToString(param.ParameterValue)
 				if ptr.ToBool(param.UsePreviousValue) {
 					val = "<previous value>"
@@ -130,9 +131,13 @@ YAML:
 		configData.StackSet.StackSetName = &stackSetName
 
 		if isUpdate {
-			updateStackSet(configData, template, parameterTypes, tagTypes)
+			if console.Confirm(true, "Stack set already exists. Do you want to update it?") {
+				updateStackSet(configData)
+			} else {
+				fmt.Println(console.Yellow("operation was cancelled by user"))
+			}
 		} else {
-			createStackSet(configData, template, parameterTypes, tagTypes)
+			createStackSet(configData)
 		}
 	},
 }
@@ -223,25 +228,25 @@ func createStackSetName(args []string) string {
 }
 
 //Validate if we have enough configuration data to create/update stack set instances
-func isConfigDataValid(c *cfn.StackSetInstancesConfig) bool {
+func isConfigDataValidForInstanceHandling(c *cfn.StackSetInstancesConfig) bool {
 	if c != nil &&
 		c.Accounts != nil && len(c.Accounts) > 0 &&
 		c.Regions != nil && len(c.Regions) > 0 {
-		config.Debugf("ConfigData is NOT valid \n")
+		config.Debugf("ConfigData is valid\n")
 		return true
 	} else {
-		config.Debugf("ConfigDta is valid\n")
+		config.Debugf("ConfigData NOT valid\n")
 		return false
 	}
 }
 
-func createStackSet(configData configFormat, template cft.Template, parameterTypes []types.Parameter, tagTypes []types.Tag) {
+func createStackSet(configData configFormat) {
 	stackSetConfig := configData.StackSet
 	stackSetConfig.StackSetName = configData.StackSet.StackSetName
-	stackSetConfig.Parameters = parameterTypes
-	stackSetConfig.Tags = tagTypes
+	stackSetConfig.Parameters = configData.StackSet.Parameters
+	stackSetConfig.Tags = configData.StackSet.Tags
 	config.Debugf("Stack Set Configuration: \n%s\n", format.PrettyPrint(stackSetConfig))
-	stackSetConfig.Template = template
+	stackSetConfig.Template = configData.StackSet.Template
 
 	// Create Stack Set
 	spinner.Push("Creating stack set")
@@ -254,7 +259,7 @@ func createStackSet(configData configFormat, template cft.Template, parameterTyp
 	}
 
 	// we create instances only if there is enough configuration data was provided in a config file or as cli arguments
-	if isConfigDataValid(&configData.StackSetInstanses) {
+	if isConfigDataValidForInstanceHandling(&configData.StackSetInstanses) {
 		stackSetInstancesConfig := configData.StackSetInstanses
 		stackSetInstancesConfig.StackSetName = configData.StackSet.StackSetName
 		stackSetInstancesConfig.CallAs = configData.StackSet.CallAs
@@ -279,6 +284,13 @@ func createStackSet(configData configFormat, template cft.Template, parameterTyp
 }
 
 func buildParameterTypes(template cft.Template, combinedParams map[string]string, stackSet *types.StackSet) []types.Parameter {
+
+	defer func() { //catch or finally
+		if err := recover(); err != nil { //catch
+			panic(fmt.Errorf("error occured while handling parameters: %v", err))
+		}
+	}()
+
 	var oldParams []types.Parameter
 	var stackSetExist = false
 	if stackSet != nil {
@@ -288,21 +300,20 @@ func buildParameterTypes(template cft.Template, combinedParams map[string]string
 	return deploy.GetParameters(template, combinedParams, oldParams, stackSetExist)
 }
 
-func updateStackSet(configData configFormat, template cft.Template, parameterTypes []types.Parameter, tagTypes []types.Tag) {
-	stackSetConfig := configData.StackSet
-	stackSetConfig.StackSetName = configData.StackSet.StackSetName
-	stackSetConfig.Parameters = parameterTypes
-	stackSetConfig.Tags = tagTypes
-	config.Debugf("Stack Set Configuration: \n%s\n", format.PrettyPrint(stackSetConfig))
-	stackSetConfig.Template = template
+func updateStackSet(configData configFormat) {
+	config.Debugf("Updating Stack Set: %s\nStack Set Configuration: \n%s\nStack Set Instances Configuration: \n%s\n",
+		*configData.StackSet.StackSetName, format.PrettyPrint(configData.StackSet), format.PrettyPrint(configData.StackSetInstanses))
 
-	if !isConfigDataValid(&configData.StackSetInstanses) { //TODO
-		fmt.Println("You did not provide Accounts and Regions. All associated stack sets will be updated.")
+	if !isConfigDataValidForInstanceHandling(&configData.StackSetInstanses) {
+		if !console.Confirm(true, "You did not provide Accounts and Regions for stack set instances. Do you wnat to update all associated stack set instances?") {
+			fmt.Println(console.Yellow("operation was cancelled by user"))
+			os.Exit(0)
+		}
 	}
 
 	// Update Stack Set
 	spinner.Push("Updating stack set")
-	err := cfn.UpdateStackSet(stackSetConfig, !detach)
+	err := cfn.UpdateStackSet(configData.StackSet, configData.StackSetInstanses, !detach)
 	spinner.Pop()
 	if err != nil {
 		panic(ui.Errorf(err, "error while updating stack set '%s' ", configData.StackSet.StackSetName))

@@ -28,20 +28,7 @@ var StackSetLsCmd = &cobra.Command{
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 1 {
-			stackSetName := args[0]
-
-			spinner.Push("Fetching stack set status")
-			stackSet, err := cfn.GetStackSet(stackSetName)
-			if err != nil {
-				panic(ui.Errorf(err, "failed to list stack set '%s'", stackSetName))
-			}
-			spinner.Pop()
-
-			output := ui.GetStackSetSummary(stackSet, all)
-			fmt.Println(output)
-
-			fmt.Println(ui.Indent("  ", getStackSetInstances(stackSetName)))
-			fmt.Println(ui.Indent("  ", getStackSetOperations(stackSetName)))
+			displayStackSetSummaryWithInstancesAndLast10Operations(args[0])
 		} else {
 			var err error
 			regions := []string{aws.Config().Region}
@@ -184,4 +171,16 @@ func getStackSetOperations(stackSetName string) string {
 	out.WriteString("\n")
 
 	return out.String()
+}
+
+func displayStackSetSummaryWithInstancesAndLast10Operations(stackSetName string) {
+	spinner.Push("Fetching stack set status")
+	stackSet, err := cfn.GetStackSet(stackSetName)
+	if err != nil {
+		panic(ui.Errorf(err, "failed to list stack set '%s'", stackSetName))
+	}
+	spinner.Pop()
+	fmt.Println(ui.GetStackSetSummary(stackSet, all))
+	fmt.Println(ui.Indent("  ", getStackSetInstances(stackSetName)))
+	fmt.Println(ui.Indent("  ", getStackSetOperations(stackSetName)))
 }
