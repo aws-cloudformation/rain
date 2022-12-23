@@ -523,7 +523,11 @@ func UpdateStackSet(conf StackSetConfig, instanceConf StackSetInstancesConfig, w
 	}
 
 	spinner.Pause()
-	fmt.Printf("Updating stack sets in...\naccounts: %+v\nregions: %+v\n", input.Accounts, input.Regions)
+	if len(input.Accounts) == 0 {
+		fmt.Println("Updating stack sets in all previously deployed accounts and regions")
+	} else {
+		fmt.Printf("Updating stack sets in...\naccounts: %+v\nregions: %+v\n", input.Accounts, input.Regions)
+	}
 	spinner.Resume()
 
 	res, err := getClient().UpdateStackSet(context.Background(), input)
