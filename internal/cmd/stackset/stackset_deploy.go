@@ -40,13 +40,15 @@ var tags []string
 var configFilePath string
 var terminationProtection bool
 var keep bool
+var add bool
 
 // StackSetDeployCmd is the deploy command's entrypoint
 var StackSetDeployCmd = &cobra.Command{
-	Use:   "deploy <template> [stack]",
+	Use:   "deploy <template location> [stack set name]",
 	Short: "Deploy a CloudFormation stack set from a local template",
 	Long: `Creates or updates a CloudFormation stack set <stackset> from the template file <template>.
 If you don't specify a stack set name, rain will use the template filename minus its extension.
+If you do not specify a template it will asume that you want to add new instances to an existing template,
 
 If a template needs to be packaged before it can be deployed, rain will package the template first.
 Rain will attempt to create an S3 bucket to store artifacts that it packages and deploys.
@@ -77,7 +79,7 @@ YAML:
     ...
 `,
 	Args:                  cobra.RangeArgs(1, 2),
-	DisableFlagsInUseLine: true,
+	DisableFlagsInUseLine: false, //TODO: why flags are not shown in help?
 	Run: func(cmd *cobra.Command, args []string) {
 
 		templateFilePath := args[0]
@@ -92,45 +94,57 @@ YAML:
 		configData := readConfiguration(configFilePath)
 
 		//ovveride config data with CLI flag values
-		overideConfigDataWithCliFlags(&configData, cliParamFlags, cliTagFlags, accounts, regions) //TODO: confirm if config Tags/Params should be overriden or merged with CLI args
-
-		// Package template
-		spinner.Push(fmt.Sprintf("Preparing template '%s'", templateFilePath))
-		configData.StackSet.Template = deploy.PackageTemplate(templateFilePath, yes)
-		spinner.Pop()
+		overideConfigDataWithCliFlags(&configData, cliParamFlags, cliTagFlags, accounts, regions) //TODO: confirm if config Tags/Params from file should be overriden or merged with CLI args
 
 		// Get current stack set if exist
 		spinner.Push(fmt.Sprintf("Checking current status of stack set '%s'", stackSetName))
 		existingStackSet, err := cfn.GetStackSet(stackSetName)
 		spinner.Pop()
-
-		// Decide if we going to create or update stack set
-		isUpdate := false
+		isStacksetExists := false
 		if err == nil && existingStackSet.Status != types.StackSetStatusDeleted {
-			isUpdate = true
+			isStacksetExists = true
 		}
 
-		// Build []types.Parameter from configuration data
-		config.Debugln("Handling parameters")
-		configData.StackSet.Parameters = buildParameterTypes(configData.StackSet.Template, configData.Parameters, existingStackSet)
+		// Handle Template, Parameters and Tags in case we do not add new instances to the existing stack set
+		if !add {
+			// Package template, if we add new instances templay is not needed
+			spinner.Push(fmt.Sprintf("Preparing template '%s'", templateFilePath))
+			configData.StackSet.Template = deploy.PackageTemplate(templateFilePath, yes)
+			spinner.Pop()
 
-		// Build []types.Tag from configuration data
-		config.Debugln("Handling tags")
-		configData.StackSet.Tags = cfn.MakeTags(configData.Tags)
+			// Build []types.Parameter from configuration data
+			config.Debugln("Handling parameters")
+			configData.StackSet.Parameters = buildParameterTypes(configData.StackSet.Template, configData.Parameters, existingStackSet)
 
-		if config.Debug {
-			for _, param := range configData.StackSet.Parameters {
-				val := ptr.ToString(param.ParameterValue)
-				if ptr.ToBool(param.UsePreviousValue) {
-					val = "<previous value>"
+			// Build []types.Tag from configuration data
+			config.Debugln("Handling tags")
+			configData.StackSet.Tags = cfn.MakeTags(configData.Tags)
+
+			if config.Debug {
+				for _, param := range configData.StackSet.Parameters {
+					val := ptr.ToString(param.ParameterValue)
+					if ptr.ToBool(param.UsePreviousValue) {
+						val = "<previous value>"
+					}
+					config.Debugf("  %s: %s", ptr.ToString(param.ParameterKey), val)
 				}
-				config.Debugf("  %s: %s", ptr.ToString(param.ParameterKey), val)
 			}
+
 		}
 
 		configData.StackSet.StackSetName = &stackSetName
 
-		if isUpdate {
+		// add new instances if requested
+		if add {
+			if isStacksetExists {
+				addInstances(configData)
+			} else {
+				fmt.Println(console.Yellow("Stack set is not found! Instances can be added to existing stack set only"))
+			}
+			return
+		}
+
+		if isStacksetExists {
 			if console.Confirm(true, "Stack set already exists. Do you want to update it?") {
 				updateStackSet(configData)
 			} else {
@@ -148,6 +162,7 @@ func init() {
 	StackSetDeployCmd.Flags().StringSliceVar(&accounts, "accounts", []string{}, "accounts for which to create stack instances")
 	StackSetDeployCmd.Flags().StringSliceVar(&regions, "regions", []string{}, "regions where you want to create stack instances")
 	StackSetDeployCmd.Flags().BoolVarP(&detach, "detach", "d", false, "once deployment has started, don't wait around for it to finish")
+	StackSetDeployCmd.Flags().BoolVarP(&add, "add", "a", false, "add new instances to an existing stack set")
 	// StackSetDeployCmd.Flags().BoolVarP(&yes, "yes", "y", false, "don't ask questions; just deploy")
 	StackSetDeployCmd.Flags().StringSliceVar(&tags, "tags", []string{}, "add tags to the stack; use the format key1=value1,key2=value2")
 	StackSetDeployCmd.Flags().StringSliceVar(&params, "params", []string{}, "set parameter values; use the format key1=value1,key2=value2")
@@ -228,7 +243,7 @@ func createStackSetName(args []string) string {
 }
 
 //Validate if we have enough configuration data to create/update stack set instances
-func isConfigDataValidForInstanceHandling(c *cfn.StackSetInstancesConfig) bool {
+func isInstanceConfigDataValid(c *cfn.StackSetInstancesConfig) bool {
 	if c != nil &&
 		c.Accounts != nil && len(c.Accounts) > 0 &&
 		c.Regions != nil && len(c.Regions) > 0 {
@@ -259,7 +274,7 @@ func createStackSet(configData configFormat) {
 	}
 
 	// we create instances only if there is enough configuration data was provided in a config file or as cli arguments
-	if isConfigDataValidForInstanceHandling(&configData.StackSetInstanses) {
+	if isInstanceConfigDataValid(&configData.StackSetInstanses) {
 		stackSetInstancesConfig := configData.StackSetInstanses
 		stackSetInstancesConfig.StackSetName = configData.StackSet.StackSetName
 		stackSetInstancesConfig.CallAs = configData.StackSet.CallAs
@@ -304,7 +319,8 @@ func updateStackSet(configData configFormat) {
 	config.Debugf("Updating Stack Set: %s\nStack Set Configuration: \n%s\nStack Set Instances Configuration: \n%s\n",
 		*configData.StackSet.StackSetName, format.PrettyPrint(configData.StackSet), format.PrettyPrint(configData.StackSetInstanses))
 
-	if !isConfigDataValidForInstanceHandling(&configData.StackSetInstanses) {
+	if !isInstanceConfigDataValid(&configData.StackSetInstanses) {
+
 		if !console.Confirm(true, "You did not provide Accounts and Regions for stack set instances. Do you wnat to update all associated stack set instances?") {
 			fmt.Println(console.Yellow("operation was cancelled by user"))
 			os.Exit(0)
@@ -316,7 +332,27 @@ func updateStackSet(configData configFormat) {
 	err := cfn.UpdateStackSet(configData.StackSet, configData.StackSetInstanses, !detach)
 	spinner.Pop()
 	if err != nil {
-		panic(ui.Errorf(err, "error while updating stack set '%s' ", configData.StackSet.StackSetName))
+		panic(ui.Errorf(err, "error occurred while updating stack set '%s' ", configData.StackSet.StackSetName))
+	} else {
+		fmt.Println("Stack set update has been completed.")
+	}
+
+}
+
+func addInstances(configData configFormat) {
+	config.Debugf("Adding Stack Set instance(s): %s\nStack Set Configuration: \n%s\nStack Set Instances Configuration: \n%s\n",
+		*configData.StackSet.StackSetName, format.PrettyPrint(configData.StackSet), format.PrettyPrint(configData.StackSetInstanses))
+
+	if !isInstanceConfigDataValid(&configData.StackSetInstanses) {
+		fmt.Println(console.Red("Please provide account(d) and region(s) for new instances to be created in"))
+		os.Exit(0)
+	}
+
+	spinner.Push("Adding stack set instances")
+	err := cfn.AddStackSetInstances(configData.StackSet, configData.StackSetInstanses, !detach)
+	spinner.Pop()
+	if err != nil {
+		panic(ui.Errorf(err, "error occurred while adding stack set instances for stack set'%s' ", configData.StackSet.StackSetName))
 	} else {
 		fmt.Println("Stack set update has been completed.")
 	}

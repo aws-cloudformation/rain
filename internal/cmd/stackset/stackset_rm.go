@@ -42,7 +42,7 @@ var StackSetRmCmd = &cobra.Command{
 			if errors.As(err, &notEmptyException) {
 
 				instancesOut, instances := getStackInstances(stackSetName)
-				fmt.Printf("Stack set is not empty.\n %s", instancesOut)
+				fmt.Printf("%s", instancesOut)
 				inputString := console.Ask("Select instances number to delete or 0 to delete all. For multiple selects separate with comma:")
 
 				accounts, regions, deleteAll := convertInputString(inputString, instances)
@@ -86,7 +86,7 @@ func init() {
 
 func getStackInstances(stackSetName string) (string, []types.StackInstanceSummary) {
 	out := strings.Builder{}
-	out.WriteString(console.Yellow("Instances (StackSet Name/Account/Region/Status/Reason):\n"))
+	out.WriteString(console.Yellow("Instances (StackID/Account/Region/Status/Reason):\n"))
 	spinner.Push(fmt.Sprintf("Fetching stack set instances for '%s'", stackSetName))
 	instances, err := cfn.ListStackSetInstances(stackSetName)
 	if err != nil {
@@ -100,9 +100,10 @@ func getStackInstances(stackSetName string) (string, []types.StackInstanceSummar
 	}
 
 	for i, instance := range instances {
+		stackId := (*instance.StackId)[strings.Index(*instance.StackId, "stack/")+6 : len(*instance.StackId)]
 		out.WriteString(fmt.Sprintf(" [%d] - %s / %s / %s / %s ",
 			i+1,
-			*instance.StackSetId,
+			stackId,
 			*instance.Account,
 			*instance.Region,
 			ui.ColouriseStatus(string(instance.StackInstanceStatus.DetailedStatus)),

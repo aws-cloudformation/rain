@@ -92,7 +92,7 @@ func init() {
 
 func getStackSetInstances(stackSetName string) string {
 	out := strings.Builder{}
-	out.WriteString(console.Yellow("Instances (StackSet Name/Account/Region/Status/Reason):\n"))
+	out.WriteString(console.Yellow("Instances (StackID/Account/Region/Status/Reason):\n"))
 	spinner.Push(fmt.Sprintf("Fetching stack set instances for '%s'", stackSetName))
 	instances, err := cfn.ListStackSetInstances(stackSetName)
 	if err != nil {
@@ -106,8 +106,10 @@ func getStackSetInstances(stackSetName string) string {
 	}
 
 	for _, instance := range instances {
+
+		stackId := (*instance.StackId)[strings.Index(*instance.StackId, "stack/")+6 : len(*instance.StackId)]
 		out.WriteString(fmt.Sprintf(" - %s / %s / %s / %s ",
-			*instance.StackSetId,
+			stackId,
 			*instance.Account,
 			*instance.Region,
 			ui.ColouriseStatus(string(instance.StackInstanceStatus.DetailedStatus)),

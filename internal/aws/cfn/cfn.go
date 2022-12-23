@@ -534,12 +534,57 @@ func UpdateStackSet(conf StackSetConfig, instanceConf StackSetInstancesConfig, w
 
 	config.Debugf("Update stack instances API result:\n%s", format.PrettyPrint(res))
 	if err != nil {
-		fmt.Println("error occurred durin stack set update")
-		return err
+		return errors.New("error occurred durin stack set update")
 	}
 
 	spinner.Pause()
 	fmt.Printf("Submitted UPDATE stack set operation with ID: %s\n", *res.OperationId)
+	spinner.Resume()
+
+	if err != nil {
+		return err
+	}
+
+	if wait {
+		err = WaitUntilStackSetOperationCompleted(*res.OperationId, *conf.StackSetName)
+	}
+	return err
+}
+
+// AddStackSetInstances adds instances to a stack set
+func AddStackSetInstances(conf StackSetConfig, instanceConf StackSetInstancesConfig, wait bool) error {
+
+	_, err := GetStackSet(*conf.StackSetName)
+	if err != nil {
+		return errors.New("can't update stack set. It does not exists or it is in a wrong state")
+	}
+
+	spinner.Pause()
+	if len(instanceConf.Accounts) == 0 || len(instanceConf.Regions) == 0 {
+		return errors.New("can't update stack set. Account(s) and region(s) must be provided")
+	} else {
+		fmt.Printf("Adding stack set instances in...\naccounts: %+v\nregions: %+v\n", instanceConf.Accounts, instanceConf.Regions)
+	}
+	spinner.Resume()
+
+	input := &cloudformation.CreateStackInstancesInput{
+		StackSetName:         conf.StackSetName,
+		Accounts:             instanceConf.Accounts,
+		Regions:              instanceConf.Regions,
+		DeploymentTargets:    instanceConf.DeploymentTargets,
+		OperationPreferences: instanceConf.OperationPreferences,
+		CallAs:               conf.CallAs,
+	}
+
+	res, err := getClient().CreateStackInstances(context.Background(), input)
+
+	config.Debugf("CreateStackInstances API result:\n%s", format.PrettyPrint(res))
+	if err != nil {
+		return errors.New("error occurred durin stack set update")
+	}
+
+	spinner.Pause()
+	fmt.Printf("Submitted CREATE stack set instance(s) operation with ID: %s\n", *res.OperationId)
 	spinner.Resume()
 
 	if err != nil {
