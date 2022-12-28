@@ -21,8 +21,8 @@ var all = false
 // StackSetLsCmd is the ls command's entrypoint
 var StackSetLsCmd = &cobra.Command{
 	Use:                   "ls <stack set>",
-	Short:                 "List CloudFormation stack sets in a given region",
-	Long:                  "List CloudFormation stack sets in a given region",
+	Short:                 "List a CloudFormation stack sets in a given region",
+	Long:                  "List a CloudFormation stack sets in a given region. If you specify a stack set name it will show all the stack instances and last 10 operations.",
 	Args:                  cobra.MaximumNArgs(1),
 	Aliases:               []string{"list"},
 	DisableFlagsInUseLine: true,
@@ -87,7 +87,7 @@ var StackSetLsCmd = &cobra.Command{
 }
 
 func init() {
-	StackSetLsCmd.Flags().BoolVarP(&all, "all", "a", false, "list stacks in all regions; if you specify a stack, show more details")
+	StackSetLsCmd.Flags().BoolVarP(&all, "all", "a", false, "list stacks in all regions; if you specify a stack set name, show more details")
 }
 
 func getStackSetInstances(stackSetName string) string {

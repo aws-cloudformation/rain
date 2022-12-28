@@ -44,39 +44,35 @@ var add bool
 
 // StackSetDeployCmd is the deploy command's entrypoint
 var StackSetDeployCmd = &cobra.Command{
-	Use:   "deploy <template location> [stack set name]",
+	Use:   "deploy <template> [stackset] [flags]",
 	Short: "Deploy a CloudFormation stack set from a local template",
 	Long: `Creates or updates a CloudFormation stack set <stackset> from the template file <template>.
 If you don't specify a stack set name, rain will use the template filename minus its extension.
-If you do not specify a template it will asume that you want to add new instances to an existing template,
-
+If you do not specify a template file, rain will asume that you want to add a new instance to an existing template,
 If a template needs to be packaged before it can be deployed, rain will package the template first.
 Rain will attempt to create an S3 bucket to store artifacts that it packages and deploys.
 The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS region>.
 
-The config flags can be used to programmatically set tags and parameters.
-The format is similar to the "Template configuration file" for AWS CodePipeline just without the
-'StackPolicy' key. The file can be in YAML or JSON format.
-
-JSON:
-  {
-    "Parameters" : {
-      "NameOfTemplateParameter" : "ValueOfParameter",
-      ...
-    },
-    "Tags" : {
-      "TagKey" : "TagValue",
-      ...
-    }
-  }
+The config flags can be used to set accounts, regions to operate and tags with parameters to use.
+Configuration file with extended options can be provided along with '--config' flag in YAML or JSON format (see example file for details).
 
 YAML:
-  Parameters:
-    NameOfTemplateParameter: ValueOfParameter
-    ...
-  Tags:
-    TagKey: TagValue
-    ...
+Parameters:
+	Name: Value
+Tags:
+	Name: Value
+StackSet:
+	description: "test description"
+	...
+StackSetInstanses:
+	accounts:
+		- "123456789123"
+	regions:
+		- us-east-1
+		- us-east-2
+...
+
+Account(s) and region(s) provideed as flags OVERRIDE values from configuration files. Tags and parameters from the configuration file are MERGED with CLI flag values. 
 `,
 	Args:                  cobra.RangeArgs(1, 2),
 	DisableFlagsInUseLine: false, //TODO: why flags are not shown in help?
@@ -94,7 +90,7 @@ YAML:
 		configData := readConfiguration(configFilePath)
 
 		//ovveride config data with CLI flag values
-		overideConfigDataWithCliFlags(&configData, cliParamFlags, cliTagFlags, accounts, regions) //TODO: confirm if config Tags/Params from file should be overriden or merged with CLI args
+		combineConfigDataWithCliFlags(&configData, cliParamFlags, cliTagFlags, accounts, regions)
 
 		// Get current stack set if exist
 		spinner.Push(fmt.Sprintf("Checking current status of stack set '%s'", stackSetName))
@@ -104,8 +100,8 @@ YAML:
 		if err == nil && existingStackSet.Status != types.StackSetStatusDeleted {
 			isStacksetExists = true
 		}
+		configData.StackSet.StackSetName = &stackSetName
 
-		// Handle Template, Parameters and Tags in case we do not add new instances to the existing stack set
 		if !add {
 			// Package template, if we add new instances templay is not needed
 			spinner.Push(fmt.Sprintf("Preparing template '%s'", templateFilePath))
@@ -130,28 +126,22 @@ YAML:
 				}
 			}
 
-		}
+			if isStacksetExists {
+				if console.Confirm(true, "Stack set already exists. Do you want to update it?") {
+					updateStackSet(configData)
+				} else {
+					fmt.Println(console.Yellow("operation was cancelled by user"))
+				}
+			} else {
+				createStackSet(configData)
+			}
 
-		configData.StackSet.StackSetName = &stackSetName
-
-		// add new instances if requested
-		if add {
+		} else {
 			if isStacksetExists {
 				addInstances(configData)
 			} else {
 				fmt.Println(console.Yellow("Stack set is not found! Instances can be added to existing stack set only"))
 			}
-			return
-		}
-
-		if isStacksetExists {
-			if console.Confirm(true, "Stack set already exists. Do you want to update it?") {
-				updateStackSet(configData)
-			} else {
-				fmt.Println(console.Yellow("operation was cancelled by user"))
-			}
-		} else {
-			createStackSet(configData)
 		}
 	},
 }
@@ -159,16 +149,13 @@ YAML:
 func init() {
 	deploy.FixStackNameRe = regexp.MustCompile(`[^a-zA-Z0-9]+`)
 
-	StackSetDeployCmd.Flags().StringSliceVar(&accounts, "accounts", []string{}, "accounts for which to create stack instances")
-	StackSetDeployCmd.Flags().StringSliceVar(&regions, "regions", []string{}, "regions where you want to create stack instances")
+	StackSetDeployCmd.Flags().StringSliceVar(&accounts, "accounts", []string{}, "accounts for which to create stack set instances")
+	StackSetDeployCmd.Flags().StringSliceVar(&regions, "regions", []string{}, "regions where you want to create stack set instances")
 	StackSetDeployCmd.Flags().BoolVarP(&detach, "detach", "d", false, "once deployment has started, don't wait around for it to finish")
 	StackSetDeployCmd.Flags().BoolVarP(&add, "add", "a", false, "add new instances to an existing stack set")
-	// StackSetDeployCmd.Flags().BoolVarP(&yes, "yes", "y", false, "don't ask questions; just deploy")
 	StackSetDeployCmd.Flags().StringSliceVar(&tags, "tags", []string{}, "add tags to the stack; use the format key1=value1,key2=value2")
 	StackSetDeployCmd.Flags().StringSliceVar(&params, "params", []string{}, "set parameter values; use the format key1=value1,key2=value2")
-	StackSetDeployCmd.Flags().StringVarP(&configFilePath, "config", "c", "", "YAML or JSON file to set tags and parameters")
-	// StackSetDeployCmd.Flags().BoolVarP(&terminationProtection, "termination-protection", "t", false, "enable termination protection on the stack")
-	// StackSetDeployCmd.Flags().BoolVarP(&keep, "keep", "k", false, "keep deployed resources after a failure by disabling rollbacks")
+	StackSetDeployCmd.Flags().StringVarP(&configFilePath, "config", "c", "", "YAML or JSON file to set additional configuration parameters")
 }
 
 func readConfiguration(configFilePath string) configFormat {
@@ -190,7 +177,7 @@ func readConfiguration(configFilePath string) configFormat {
 	return configData
 }
 
-func overideConfigDataWithCliFlags(configData *configFormat, cliParams map[string]string, cliTags map[string]string, cliAccounts []string, cliRegions []string) {
+func combineConfigDataWithCliFlags(configData *configFormat, cliParams map[string]string, cliTags map[string]string, cliAccounts []string, cliRegions []string) {
 	// Merge Tags
 	for k, v := range cliTags {
 		if _, ok := configData.Tags[k]; ok {
@@ -213,10 +200,12 @@ func overideConfigDataWithCliFlags(configData *configFormat, cliParams map[strin
 		configData.Parameters[k] = v
 	}
 
+	// Override  accounts with CLI values
 	if len(cliAccounts) > 0 {
 		configData.StackSetInstanses.Accounts = cliAccounts
 	}
 
+	// Override regions with CLI values
 	if len(cliRegions) > 0 {
 		configData.StackSetInstanses.Regions = cliRegions
 	}

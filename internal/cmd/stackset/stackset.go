@@ -1,7 +1,6 @@
 package stackset
 
 import (
-	"github.com/aws-cloudformation/rain/internal/cmd"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/spf13/cobra"
@@ -11,14 +10,13 @@ const usageTemplate = `Usage:{{if .Runnable}}
   <cyan>{{.UseLine}}</>{{end}}{{if .HasAvailableSubCommands}}
   <cyan>{{.CommandPath}}</> [<gray>command</>]{{end}}{{if gt (len .Aliases) 0}}
 
-Aliases: 
-{{.NameAndAliases}}{{end}}{{if .HasExample}}
+Aliases: {{.NameAndAliases}}{{end}}{{if .HasExample}}
 
-Examples: {{.Example}}{{end}}
-{{if .HasAvailableSubCommands}} 
-Available commands:
-  {{range $c := $.Commands}}{{if $c.IsAvailableCommand}}<cyan>{{rpad $c.Name $c.NamePadding }}</> {{$c.Short}}
-  {{end}}{{end}}
+Examples:
+{{.Example}}{{end}}{{if .HasAvailableSubCommands}}
+
+Available Commands:{{range .Commands}}{{if (or .IsAvailableCommand (eq .Name "help"))}}
+  <cyan>{{rpad .Name .NamePadding }}</> {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}
 
 Flags:
 {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
@@ -27,9 +25,9 @@ Global Flags:
 {{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasHelpSubCommands}}
 
 Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
-  {{rpad .CommandPath .CommandPathPadding}} {{.Short}}{{end}}{{end}}
+{{rpad .CommandPath .CommandPathPadding}} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableSubCommands}}
 
-{{end}}
+Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
 `
 
 func addCommand(profileOptions bool, c *cobra.Command) {
@@ -43,8 +41,8 @@ func addCommand(profileOptions bool, c *cobra.Command) {
 
 var StackSetCmd = &cobra.Command{
 	Use:   "stackset <stack_set command>",
-	Short: "This command allows to manipulate with stack sets.",
-	Long:  "This command allows to manipulate with stack sets. It has no action if specific stack set command is not added.",
+	Short: "This command allows to manipulate stack sets.",
+	Long:  "This command allows to manipulate stack sets. It has no action if specific stack set command is not added.",
 }
 
 func init() {
@@ -59,6 +57,4 @@ func init() {
 	})
 
 	StackSetCmd.PersistentFlags().BoolVarP(&console.NoColour, "no-colour", "", false, "Disable colour output")
-
-	cmd.AddDefaults(StackSetCmd)
 }
