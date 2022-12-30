@@ -105,9 +105,14 @@ func getStackSetInstances(stackSetName string) string {
 		return out.String()
 	}
 
+	stackId := "N/A"
 	for _, instance := range instances {
 
-		stackId := (*instance.StackId)[strings.Index(*instance.StackId, "stack/")+6 : len(*instance.StackId)]
+		if instance.StackId != nil {
+			stackId = (*instance.StackId)[strings.Index(*instance.StackId, "stack/")+6 : len(*instance.StackId)]
+		} else {
+			stackId = "N/A"
+		}
 		out.WriteString(fmt.Sprintf(" - %s / %s / %s / %s ",
 			stackId,
 			*instance.Account,
