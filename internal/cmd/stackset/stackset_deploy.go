@@ -17,6 +17,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/ui"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/smithy-go/ptr"
+	"golang.org/x/exp/constraints"
 	"gopkg.in/yaml.v3"
 
 	"github.com/spf13/cobra"
@@ -40,7 +41,6 @@ var tags []string
 var configFilePath string
 var terminationProtection bool
 var keep bool
-var add bool
 
 // StackSetDeployCmd is the deploy command's entrypoint
 var StackSetDeployCmd = &cobra.Command{
@@ -75,7 +75,7 @@ StackSetInstanses:
 Account(s) and region(s) provideed as flags OVERRIDE values from configuration files. Tags and parameters from the configuration file are MERGED with CLI flag values. 
 `,
 	Args:                  cobra.RangeArgs(1, 2),
-	DisableFlagsInUseLine: false, //TODO: why flags are not shown in help?
+	DisableFlagsInUseLine: false,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		templateFilePath := args[0]
@@ -100,48 +100,42 @@ Account(s) and region(s) provideed as flags OVERRIDE values from configuration f
 		if err == nil && existingStackSet.Status != types.StackSetStatusDeleted {
 			isStacksetExists = true
 		}
-		configData.StackSet.StackSetName = &stackSetName
+		configData.StackSet.StackSetName = stackSetName
+		configData.StackSetInstanses.StackSetName = stackSetName
 
-		if !add {
-			// Package template, if we add new instances templay is not needed
-			spinner.Push(fmt.Sprintf("Preparing template '%s'", templateFilePath))
-			configData.StackSet.Template = deploy.PackageTemplate(templateFilePath, yes)
-			spinner.Pop()
+		// Package template, if we add new instances templay is not needed
+		spinner.Push(fmt.Sprintf("Preparing template '%s'", templateFilePath))
+		configData.StackSet.Template = deploy.PackageTemplate(templateFilePath, yes)
+		spinner.Pop()
 
-			// Build []types.Parameter from configuration data
-			config.Debugln("Handling parameters")
-			configData.StackSet.Parameters = buildParameterTypes(configData.StackSet.Template, configData.Parameters, existingStackSet)
+		// Build []types.Parameter from configuration data
+		config.Debugln("Handling parameters")
+		configData.StackSet.Parameters = buildParameterTypes(configData.StackSet.Template, configData.Parameters, existingStackSet)
 
-			// Build []types.Tag from configuration data
-			config.Debugln("Handling tags")
-			configData.StackSet.Tags = cfn.MakeTags(configData.Tags)
+		// Build []types.Tag from configuration data
+		config.Debugln("Handling tags")
+		configData.StackSet.Tags = cfn.MakeTags(configData.Tags)
 
-			if config.Debug {
-				for _, param := range configData.StackSet.Parameters {
-					val := ptr.ToString(param.ParameterValue)
-					if ptr.ToBool(param.UsePreviousValue) {
-						val = "<previous value>"
-					}
-					config.Debugf("  %s: %s", ptr.ToString(param.ParameterKey), val)
+		if config.Debug {
+			for _, param := range configData.StackSet.Parameters {
+				val := ptr.ToString(param.ParameterValue)
+				if ptr.ToBool(param.UsePreviousValue) {
+					val = "<previous value>"
 				}
+				config.Debugf("  %s: %s", ptr.ToString(param.ParameterKey), val)
 			}
+		}
 
-			if isStacksetExists {
-				if console.Confirm(true, "Stack set already exists. Do you want to update it?") {
-					updateStackSet(configData)
-				} else {
-					fmt.Println(console.Yellow("operation was cancelled by user"))
-				}
-			} else {
-				createStackSet(configData)
-			}
-
-		} else {
-			if isStacksetExists {
+		if isStacksetExists {
+			if console.Confirm(true, "Stack set already exists. Do you want to update it?") {
+				updateStackSet(configData)
 				addInstances(configData)
+
 			} else {
-				fmt.Println(console.Yellow("Stack set is not found! Instances can be added to existing stack set only"))
+				fmt.Println(console.Yellow("operation was cancelled by user"))
 			}
+		} else {
+			createStackSet(configData)
 		}
 	},
 }
@@ -152,7 +146,6 @@ func init() {
 	StackSetDeployCmd.Flags().StringSliceVar(&accounts, "accounts", []string{}, "accounts for which to create stack set instances")
 	StackSetDeployCmd.Flags().StringSliceVar(&regions, "regions", []string{}, "regions where you want to create stack set instances")
 	StackSetDeployCmd.Flags().BoolVarP(&detach, "detach", "d", false, "once deployment has started, don't wait around for it to finish")
-	StackSetDeployCmd.Flags().BoolVarP(&add, "add", "a", false, "add new instances to an existing stack set")
 	StackSetDeployCmd.Flags().StringSliceVar(&tags, "tags", []string{}, "add tags to the stack; use the format key1=value1,key2=value2")
 	StackSetDeployCmd.Flags().StringSliceVar(&params, "params", []string{}, "set parameter values; use the format key1=value1,key2=value2")
 	StackSetDeployCmd.Flags().StringVarP(&configFilePath, "config", "c", "", "YAML or JSON file to set additional configuration parameters")
@@ -244,6 +237,83 @@ func isInstanceConfigDataValid(c *cfn.StackSetInstancesConfig) bool {
 	}
 }
 
+// removes non existing instances from the StackSetInstancesConfig.
+func removeNonExistingInstances(c *cfn.StackSetInstancesConfig) {
+	// Get current stack set instances
+	instances, err := cfn.ListStackSetInstances(c.StackSetName)
+	if err != nil {
+		panic(ui.Errorf(err, "unable to fetch instances for stack set - '%s'", c.StackSetName))
+	}
+	var existingAccounts []string
+	var existingRegions []string
+
+	for _, instance := range instances {
+		existingAccounts = append(existingAccounts, *instance.Account)
+		existingRegions = append(existingRegions, *instance.Region)
+	}
+
+	c.Accounts = intersection(c.Accounts, existingAccounts)
+	c.Regions = intersection(c.Regions, existingRegions)
+}
+
+// removes existing instances from the StackSetInstancesConfig.
+// We do not remove accounts because we accept list of provided
+// accounts and regions as requirement to have instances in all provided
+// accounts weather updated or created(added)
+func removeExistingInstances(c *cfn.StackSetInstancesConfig) {
+	// Get current stack set instances
+	instances, err := cfn.ListStackSetInstances(c.StackSetName)
+	if err != nil {
+		panic(ui.Errorf(err, "unable to fetch instances for stack set - '%s'", c.StackSetName))
+	}
+
+	var existingRegions []string
+
+	for _, instance := range instances {
+		existingRegions = append(existingRegions, *instance.Region)
+	}
+	c.Regions = difference(c.Regions, existingRegions)
+}
+
+// difference returns the elements in `a` that aren't in `b`.
+func difference(a, b []string) []string {
+	mb := make(map[string]struct{}, len(b))
+	for _, x := range b {
+		mb[x] = struct{}{}
+	}
+	var diff []string
+	for _, x := range a {
+		if _, found := mb[x]; !found {
+			diff = append(diff, x)
+		}
+	}
+	return diff
+}
+
+// returns two slices intersection
+func intersection[T constraints.Ordered](pS ...[]T) []T {
+	hash := make(map[T]*int) // value, counter
+	result := make([]T, 0)
+	for _, slice := range pS {
+		duplicationHash := make(map[T]bool) // duplication checking for individual slice
+		for _, value := range slice {
+			if _, isDup := duplicationHash[value]; !isDup { // is not duplicated in slice
+				if counter := hash[value]; counter != nil { // is found in hash counter map
+					if *counter++; *counter >= len(pS) { // is found in every slice
+						result = append(result, value)
+					}
+				} else { // not found in hash counter map
+					i := 1
+					hash[value] = &i
+				}
+				duplicationHash[value] = true
+			}
+		}
+	}
+	return result
+}
+
+// creates stack set along with stack instances
 func createStackSet(configData configFormat) {
 	stackSetConfig := configData.StackSet
 	stackSetConfig.StackSetName = configData.StackSet.StackSetName
@@ -287,6 +357,7 @@ func createStackSet(configData configFormat) {
 	}
 }
 
+// converts 'string' parameters to typed objects
 func buildParameterTypes(template cft.Template, combinedParams map[string]string, stackSet *types.StackSet) []types.Parameter {
 
 	defer func() { //catch or finally
@@ -304,36 +375,43 @@ func buildParameterTypes(template cft.Template, combinedParams map[string]string
 	return deploy.GetParameters(template, combinedParams, oldParams, stackSetExist)
 }
 
+// updates existing stack set and all its instances
 func updateStackSet(configData configFormat) {
 	config.Debugf("Updating Stack Set: %s\nStack Set Configuration: \n%s\nStack Set Instances Configuration: \n%s\n",
-		*configData.StackSet.StackSetName, format.PrettyPrint(configData.StackSet), format.PrettyPrint(configData.StackSetInstanses))
+		configData.StackSet.StackSetName, format.PrettyPrint(configData.StackSet), format.PrettyPrint(configData.StackSetInstanses))
 
+	// remove accounts and regions for the instances that do not exist, removed instances supposed to be created but not updated
+	removeNonExistingInstances(&configData.StackSetInstanses)
+
+	// check if we have instances left to update after filtering
 	if !isInstanceConfigDataValid(&configData.StackSetInstanses) {
-
-		if !console.Confirm(true, "You did not provide Accounts and Regions for stack set instances. Do you wnat to update all associated stack set instances?") {
-			fmt.Println(console.Yellow("operation was cancelled by user"))
-			os.Exit(0)
-		}
+		fmt.Println("There is no instances to update.")
+		return
 	}
 
-	// Update Stack Set
+	// Update Stack Set with its instances
 	spinner.Push("Updating stack set")
 	err := cfn.UpdateStackSet(configData.StackSet, configData.StackSetInstanses, !detach)
 	spinner.Pop()
 	if err != nil {
-		panic(ui.Errorf(err, "error occurred while updating stack set '%s' ", configData.StackSet.StackSetName))
+		panic(ui.Errorf(err, "error occurred while updating stack set '%s' ", configData.StackSetInstanses.StackSetName))
 	} else {
 		fmt.Println("Stack set update has been completed.")
 	}
 
 }
 
+// adds stack set instances to an existing stack set
 func addInstances(configData configFormat) {
 	config.Debugf("Adding Stack Set instance(s): %s\nStack Set Configuration: \n%s\nStack Set Instances Configuration: \n%s\n",
-		*configData.StackSet.StackSetName, format.PrettyPrint(configData.StackSet), format.PrettyPrint(configData.StackSetInstanses))
+		configData.StackSet.StackSetName, format.PrettyPrint(configData.StackSet), format.PrettyPrint(configData.StackSetInstanses))
 
+	// remove existing instances from configData
+	removeExistingInstances(&configData.StackSetInstanses)
+
+	// check if we have accounts and regions to update
 	if !isInstanceConfigDataValid(&configData.StackSetInstanses) {
-		fmt.Println(console.Red("Please provide account(d) and region(s) for new instances to be created in"))
+		fmt.Println("There are no new instances to be created.")
 		os.Exit(0)
 	}
 

@@ -90,6 +90,7 @@ func init() {
 	StackSetLsCmd.Flags().BoolVarP(&all, "all", "a", false, "list stacks in all regions; if you specify a stack set name, show more details")
 }
 
+// returns a string with stack set instances for a given stack set
 func getStackSetInstances(stackSetName string) string {
 	out := strings.Builder{}
 	out.WriteString(console.Yellow("Instances (StackID/Account/Region/Status/Reason):\n"))
@@ -131,6 +132,7 @@ func getStackSetInstances(stackSetName string) string {
 	return out.String()
 }
 
+// returns a display string with last 10 stack set operations for a given stack set
 func getStackSetOperations(stackSetName string) string {
 	out := strings.Builder{}
 	out.WriteString(console.Yellow("Last 10 operations (ID/Type/Status/Created/Completed):\n"))
@@ -146,7 +148,10 @@ func getStackSetOperations(stackSetName string) string {
 		return out.String()
 	}
 
-	for _, operation := range stackSetOps {
+	for i, operation := range stackSetOps {
+		if i > 9 {
+			break
+		}
 		endStatus := " - "
 		if operation.EndTimestamp != nil {
 			endStatus = operation.EndTimestamp.Local().String()
@@ -167,10 +172,7 @@ func getStackSetOperations(stackSetName string) string {
 			}
 			spinner.Pop()
 			if operationResult != nil {
-				out.WriteString(fmt.Sprintf(" - %s / %s ",
-					*operationResult.StatusReason,
-					*operationResult.AccountGateResult.StatusReason,
-				))
+				out.WriteString(fmt.Sprintf(" - %s ", *operationResult.StatusReason))
 			}
 		}
 		out.WriteString("\n")

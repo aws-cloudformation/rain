@@ -148,12 +148,14 @@ type StackSetConfig struct {
 	PermissionModel types.PermissionModels
 
 	// service fields, not to be used in configuration file
-	StackSetName *string           `yaml:"-"`
+	StackSetName string            `yaml:"-"`
 	Template     cft.Template      `yaml:"-"`
 	Parameters   []types.Parameter `yaml:"-"`
 	Tags         []types.Tag       `yaml:"-"`
 }
 
+// we treat list of provided accounts and regions as requirement to have instances in all the provided
+// accounts weather updated or created(added).
 type StackSetInstancesConfig struct {
 
 	// The names of one or more Amazon Web Services Regions where you want to create
@@ -176,6 +178,6 @@ type StackSetInstancesConfig struct {
 	OperationPreferences *types.StackSetOperationPreferences
 
 	// service fields, not to be used in configuration file
-	StackSetName *string      `yaml:"-"`
+	StackSetName string       `yaml:"-"`
 	CallAs       types.CallAs `yaml:"-"`
 }

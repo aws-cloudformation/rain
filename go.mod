@@ -13,7 +13,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.16.3
 	github.com/aws/smithy-go v1.11.2
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
-	github.com/google/go-cmp v0.5.7
+	github.com/google/go-cmp v0.5.8
 	github.com/google/uuid v1.3.0
 	github.com/gookit/color v1.5.0
 	github.com/nathan-fiscaletti/consolesize-go v0.0.0-20220204101620-317176b6684d
@@ -44,6 +44,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778 // indirect
+	golang.org/x/exp v0.0.0-20221230185412-738e83a70c30
 	golang.org/x/net v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

@@ -454,13 +454,13 @@ func CreateStackSet(conf StackSetConfig) (*string, error) {
 		return nil, errors.New("error occured while extracting template body")
 	}
 
-	_, err = GetStackSet(*conf.StackSetName)
+	_, err = GetStackSet(conf.StackSetName)
 	if err == nil {
 		return nil, errors.New("can't create stack set. It already exists")
 	}
 
 	input := &cloudformation.CreateStackSetInput{
-		StackSetName:          conf.StackSetName,
+		StackSetName:          &conf.StackSetName,
 		Parameters:            conf.Parameters,
 		Tags:                  conf.Tags,
 		Capabilities:          conf.Capabilities,
@@ -492,13 +492,13 @@ func UpdateStackSet(conf StackSetConfig, instanceConf StackSetInstancesConfig, w
 		return errors.New("error occured while extracting template body")
 	}
 
-	_, err = GetStackSet(*conf.StackSetName)
+	_, err = GetStackSet(conf.StackSetName)
 	if err != nil {
 		return errors.New("can't update stack set. It does not exists or it is in a wrong state")
 	}
 
 	input := &cloudformation.UpdateStackSetInput{
-		StackSetName:          conf.StackSetName,
+		StackSetName:          &conf.StackSetName,
 		Parameters:            conf.Parameters,
 		Tags:                  conf.Tags,
 		Capabilities:          conf.Capabilities,
@@ -524,9 +524,9 @@ func UpdateStackSet(conf StackSetConfig, instanceConf StackSetInstancesConfig, w
 
 	spinner.Pause()
 	if len(input.Accounts) == 0 {
-		fmt.Println("Updating stack sets in all previously deployed accounts and regions")
+		fmt.Println("Updating stack set instances in all previously deployed accounts and regions")
 	} else {
-		fmt.Printf("Updating stack sets in...\naccounts: %+v\nregions: %+v\n", input.Accounts, input.Regions)
+		fmt.Printf("Updating stack set instances in...\naccounts: %+v\nregions: %+v\n", input.Accounts, input.Regions)
 	}
 	spinner.Resume()
 
@@ -534,7 +534,7 @@ func UpdateStackSet(conf StackSetConfig, instanceConf StackSetInstancesConfig, w
 
 	config.Debugf("Update stack instances API result:\n%s", format.PrettyPrint(res))
 	if err != nil {
-		return errors.New("error occurred durin stack set update")
+		return err
 	}
 
 	spinner.Pause()
@@ -546,7 +546,7 @@ func UpdateStackSet(conf StackSetConfig, instanceConf StackSetInstancesConfig, w
 	}
 
 	if wait {
-		err = WaitUntilStackSetOperationCompleted(*res.OperationId, *conf.StackSetName)
+		err = WaitUntilStackSetOperationCompleted(*res.OperationId, conf.StackSetName)
 	}
 	return err
 }
@@ -554,7 +554,7 @@ func UpdateStackSet(conf StackSetConfig, instanceConf StackSetInstancesConfig, w
 // AddStackSetInstances adds instances to a stack set
 func AddStackSetInstances(conf StackSetConfig, instanceConf StackSetInstancesConfig, wait bool) error {
 
-	_, err := GetStackSet(*conf.StackSetName)
+	_, err := GetStackSet(conf.StackSetName)
 	if err != nil {
 		return errors.New("can't update stack set. It does not exists or it is in a wrong state")
 	}
@@ -568,7 +568,7 @@ func AddStackSetInstances(conf StackSetConfig, instanceConf StackSetInstancesCon
 	spinner.Resume()
 
 	input := &cloudformation.CreateStackInstancesInput{
-		StackSetName:         conf.StackSetName,
+		StackSetName:         &conf.StackSetName,
 		Accounts:             instanceConf.Accounts,
 		Regions:              instanceConf.Regions,
 		DeploymentTargets:    instanceConf.DeploymentTargets,
@@ -592,7 +592,7 @@ func AddStackSetInstances(conf StackSetConfig, instanceConf StackSetInstancesCon
 	}
 
 	if wait {
-		err = WaitUntilStackSetOperationCompleted(*res.OperationId, *conf.StackSetName)
+		err = WaitUntilStackSetOperationCompleted(*res.OperationId, conf.StackSetName)
 	}
 	return err
 }
@@ -600,7 +600,7 @@ func AddStackSetInstances(conf StackSetConfig, instanceConf StackSetInstancesCon
 func CreateStackSetInstances(conf StackSetInstancesConfig, wait bool) error {
 
 	input := &cloudformation.CreateStackInstancesInput{
-		StackSetName:         conf.StackSetName,
+		StackSetName:         &conf.StackSetName,
 		Regions:              conf.Regions,
 		Accounts:             conf.Accounts,
 		DeploymentTargets:    conf.DeploymentTargets,
@@ -620,7 +620,7 @@ func CreateStackSetInstances(conf StackSetInstancesConfig, wait bool) error {
 	spinner.Resume()
 
 	if wait {
-		WaitUntilStackSetOperationCompleted(*res.OperationId, *conf.StackSetName)
+		WaitUntilStackSetOperationCompleted(*res.OperationId, conf.StackSetName)
 	}
 
 	return err
