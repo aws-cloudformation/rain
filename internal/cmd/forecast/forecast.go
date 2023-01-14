@@ -10,6 +10,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
+	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/cmd/deploy"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/ui"
@@ -35,9 +36,30 @@ func checkBucketNotEmpty(input PredictionInput, bucket *types.StackResourceDetai
 	}
 	config.Debugf("Checking if the bucket %v is not empty", *bucket.PhysicalResourceId)
 
-	// TODO
+	exists, err := s3.BucketExists(*bucket.PhysicalResourceId)
+	if err != nil || !exists {
+		// The bucket might not exist if this is an UPDATE with new resources
+		// But we should have already handled this when we got resource details
+		fmt.Println(*bucket.LogicalResourceId, "does not exist.", err)
+		return false
+	}
 
-	return true
+	hasContents, _ := s3.BucketHasContents(*bucket.PhysicalResourceId)
+	if hasContents {
+		// Check the deletion policy
+		for elementName, element := range input.resource.(map[string]interface{}) {
+			config.Debugf("checkBucketNotEmpty element %v %v", elementName, element)
+			if elementName == "DeletionPolicy" {
+				if element == "Retain" {
+					// The bucket is not empty but it is set to retain,
+					// so a stack DELETE will not fail
+					return true
+				}
+			}
+		}
+		fmt.Println(*bucket.LogicalResourceId, "is not empty, so a stack DELETE will fail")
+	}
+	return !hasContents
 }
 
 func checkBucketPermissions(input PredictionInput, bucket *types.StackResourceDetail) bool {
@@ -55,7 +77,8 @@ func checkBucket(input PredictionInput) (int, int) {
 	res, err := cfn.GetStackResource(input.stackName, input.logicalId)
 
 	if err != nil {
-		fmt.Println("Unable to get details for ", input.logicalId, ": ", err)
+		// If this is an update, the bucket might not exist yet
+		config.Debugf("Unable to get details for %v: %v", input.logicalId, err)
 		return 0, 0
 	}
 
@@ -103,6 +126,11 @@ func predict(source cft.Template, stackName string) {
 	// The function returns (numFailed, numChecked)
 	forecasters := make(map[string]func(input PredictionInput) (int, int))
 
+	// If you want to add a prediction for a type that is not already covered, add it here
+	// The function must return (numFailed, numChecked)
+	// For example:
+	// forecasters["AWS::New::Type"] = checkTheNewType
+
 	forecasters["AWS::S3::Bucket"] = checkBucket
 
 	m := source.Map()
@@ -115,14 +143,6 @@ func predict(source cft.Template, stackName string) {
 				for elementName, element := range resource.(map[string]interface{}) {
 					config.Debugf("element %v %v", elementName, element)
 
-					input := PredictionInput{}
-					input.logicalId = logicalId
-					input.source = source
-					input.resource = resource
-					input.stackName = stackName
-					input.stackExists = stackExists
-					input.stack = stack
-
 					// Check the type and call functions that make checks
 					// on that type of resource.
 
@@ -131,6 +151,15 @@ func predict(source cft.Template, stackName string) {
 						// See if we have a forecaster for this type
 						fn, ok := forecasters[element.(string)]
 						if ok {
+
+							input := PredictionInput{}
+							input.logicalId = logicalId
+							input.source = source
+							input.resource = resource
+							input.stackName = stackName
+							input.stackExists = stackExists
+							input.stack = stack
+
 							// Call the prediction function
 							nf, nc := fn(input)
 							numFailed += nf
@@ -166,6 +195,10 @@ var Cmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fn := args[0]
 		stackName := args[1]
+
+		// ? Should we include the command (create/update/delete) in the args?
+		// ? Should this run on a change set?
+		// TODO - Only look at the diff for updates
 
 		config.Debugf("Generating forecast...", fn)
 

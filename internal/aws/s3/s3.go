@@ -24,6 +24,22 @@ func getClient() *s3.Client {
 	return s3.NewFromConfig(aws.Config())
 }
 
+// Returns true if the bucket is not empty
+func BucketHasContents(bucketName string) (bool, error) {
+
+	res, err := getClient().ListObjectsV2(context.Background(),
+		&s3.ListObjectsV2Input{
+			Bucket: ptr.String(bucketName),
+		})
+	if err != nil {
+		return false, err
+	}
+	if res.Contents != nil && len(res.Contents) > 0 {
+		return true, nil
+	}
+	return false, nil
+}
+
 // BucketExists checks whether the named bucket exists
 func BucketExists(bucketName string) (bool, error) {
 	_, err := getClient().HeadBucket(context.Background(), &s3.HeadBucketInput{
@@ -64,7 +80,7 @@ func CreateBucket(bucketName string) error {
 		Bucket: ptr.String(bucketName),
 		ServerSideEncryptionConfiguration: &types.ServerSideEncryptionConfiguration{
 			Rules: []types.ServerSideEncryptionRule{
-				types.ServerSideEncryptionRule{
+				{
 					ApplyServerSideEncryptionByDefault: &types.ServerSideEncryptionByDefault{
 						SSEAlgorithm: types.ServerSideEncryptionAes256,
 					},
@@ -95,7 +111,7 @@ func CreateBucket(bucketName string) error {
 		Bucket: ptr.String(bucketName),
 		LifecycleConfiguration: &types.BucketLifecycleConfiguration{
 			Rules: []types.LifecycleRule{
-				types.LifecycleRule{
+				{
 					Status: types.ExpirationStatusEnabled,
 					AbortIncompleteMultipartUpload: &types.AbortIncompleteMultipartUpload{
 						DaysAfterInitiation: 7,
@@ -121,7 +137,7 @@ func CreateBucket(bucketName string) error {
 // Upload an artefact to the bucket with a unique name
 func Upload(bucketName string, content []byte) (string, error) {
 	isBucketExists, errBucketExists := BucketExists(bucketName)
-	
+
 	if errBucketExists != nil {
 		return "", fmt.Errorf("unable to confirm whether artifact bucket exists: %w", errBucketExists)
 	}
