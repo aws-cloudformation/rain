@@ -5,6 +5,7 @@ import (
 	"github.com/aws/smithy-go/ptr"
 )
 
+// converts map of strings to a slice of types.Tag
 func MakeTags(tags map[string]string) []types.Tag {
 	out := make([]types.Tag, 0)
 

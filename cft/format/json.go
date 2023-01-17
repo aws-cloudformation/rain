@@ -81,6 +81,7 @@ func convertToJSON(in string) string {
 	return string(out)
 }
 
+// converts struct to a JSON formatted string
 func PrettyPrint(i interface{}) string {
 	s, _ := json.MarshalIndent(i, "", "\t")
 	return string(s)
