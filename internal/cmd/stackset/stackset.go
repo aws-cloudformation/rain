@@ -41,8 +41,8 @@ func addCommand(profileOptions bool, c *cobra.Command) {
 
 var StackSetCmd = &cobra.Command{
 	Use:   "stackset <stack_set command>",
-	Short: "This command allows to manipulate stack sets.",
-	Long:  "This command allows to manipulate stack sets. It has no action if specific stack set command is not added.",
+	Short: "This command manipulates stack sets.",
+	Long:  "This command manipulates stack sets. It has no action if specific stack set command is not added.",
 }
 
 func init() {

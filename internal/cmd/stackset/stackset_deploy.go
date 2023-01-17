@@ -259,7 +259,7 @@ func removeNonExistingInstances(c *cfn.StackSetInstancesConfig) {
 // removes existing instances from the StackSetInstancesConfig.
 // We do not remove accounts because we accept list of provided
 // accounts and regions as requirement to have instances in all provided
-// accounts weather updated or created(added)
+// accounts whether updated or created(added)
 func removeExistingInstances(c *cfn.StackSetInstancesConfig) {
 	// Get current stack set instances
 	instances, err := cfn.ListStackSetInstances(c.StackSetName)
@@ -348,7 +348,7 @@ func createStackSet(configData configFormat) {
 			panic(ui.Errorf(err, "error while creating stack set instances"))
 		}
 		if !detach {
-			fmt.Println("Stack set instances have been created successfuly")
+			fmt.Println("Stack set instances have been created successfully")
 		} else {
 			fmt.Println("Stack set instances creation was initiated successfuly")
 		}
