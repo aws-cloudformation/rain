@@ -348,7 +348,7 @@ func createStackSet(configData configFormat) {
 			panic(ui.Errorf(err, "error while creating stack set instances"))
 		}
 		if !detach {
-			fmt.Println("Stack set instances have been created successfuly")
+			fmt.Println("Stack set instances have been created successfully")
 		} else {
 			fmt.Println("Stack set instances creation was initiated successfuly")
 		}
