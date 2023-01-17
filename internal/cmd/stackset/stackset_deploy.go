@@ -259,7 +259,7 @@ func removeNonExistingInstances(c *cfn.StackSetInstancesConfig) {
 // removes existing instances from the StackSetInstancesConfig.
 // We do not remove accounts because we accept list of provided
 // accounts and regions as requirement to have instances in all provided
-// accounts weather updated or created(added)
+// accounts whether updated or created(added)
 func removeExistingInstances(c *cfn.StackSetInstancesConfig) {
 	// Get current stack set instances
 	instances, err := cfn.ListStackSetInstances(c.StackSetName)
