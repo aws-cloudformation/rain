@@ -40,11 +40,10 @@ func getCallerArn(config awsgo.Config, iamClient *iam.Client) (string, error) {
 }
 
 // Simulate an action on a resource
-func Simulate(action string, resource string) (bool, error) {
+func Simulate(actions []string, resource string) (bool, error) {
 	config := aws.Config()
 	client := iam.NewFromConfig(config)
 	input := &iam.SimulatePrincipalPolicyInput{}
-	input.ActionNames = []string{action}
 	input.ResourceArns = []string{resource}
 
 	arn, err := getCallerArn(config, client)
@@ -55,31 +54,54 @@ func Simulate(action string, resource string) (bool, error) {
 	// TODO: Allow user to specify a role as a command line arg
 	input.PolicySourceArn = &arn
 
-	res, err := client.SimulatePrincipalPolicy(context.Background(), input)
-	if err != nil {
-		fmt.Println("Policy simulation failed", err)
-		/*
-			Policy simulation failed operation error IAM:
-			SimulatePrincipalPolicy, https response error StatusCode: 400,
-			RequestID: 2d02e533-05ae-4202-acad-caeefa16757e,
-			InvalidInput: Invalid Entity Arn:
-			arn:aws:sts::755952356119:assumed-role/Admin/ezbeard-Isengard
-			does not clearly define entity type and name.
-
-			This is the actual role: arn:aws:iam::755952356119:role/Admin
-
-			(Correcting for this in getCallerArn)
-
-		*/
-		return false, err
-	}
+	// Return value
 	allowed := true
-	for _, evalResult := range res.EvaluationResults {
-		if evalResult.EvalDecision != types.PolicyEvaluationDecisionTypeAllowed {
-			fmt.Println(evalResult.EvalActionName, "not allowed on", evalResult.EvalResourceName)
-			allowed = false
+
+	// We have to check these one at a time since we can't easily predict
+	// which of the actions we get from the type description schema have
+	// different authorization types
+	for _, action := range actions {
+		input.ActionNames = []string{action}
+
+		res, err := client.SimulatePrincipalPolicy(context.Background(), input)
+
+		if err != nil {
+			fmt.Println("Policy simulation failed", err)
+			/*
+				Policy simulation failed operation error IAM:
+				SimulatePrincipalPolicy, https response error StatusCode: 400,
+				RequestID: 2d02e533-05ae-4202-acad-caeefa16757e,
+				InvalidInput: Invalid Entity Arn:
+				arn:aws:sts::755952356119:assumed-role/Admin/ezbeard-Isengard
+				does not clearly define entity type and name.
+
+				This is the actual role: arn:aws:iam::755952356119:role/Admin
+
+				(Correcting for this in getCallerArn)
+
+			*/
+
+			/*
+				Policy simulation failed operation error IAM:
+				SimulatePrincipalPolicy, https response error StatusCode: 400,
+				RequestID: 0f38824c-7f07-491b-a156-b5fb9fdd03fc,
+				InvalidInput: Invalid Input Actions:
+				[s3:CreateBucket,s3:PutBucketTagging,s3:PutAnalyticsConfiguration,s3:PutEncryptionConfiguration,s3:PutBucketCORS,s3:PutInventoryConfiguration,s3:PutLifecycleConfiguration,s3:PutMetricsConfiguration,s3:PutBucketNotification,s3:PutBucketWebsite,s3:PutAccelerateConfiguration,s3:PutBucketPublicAccessBlock,s3:PutReplicationConfiguration,s3:PutObjectAcl,s3:PutBucketObjectLockConfiguration,s3:GetBucketAcl,s3:ListBucket,iam:PassRole,s3:DeleteObject,s3:PutBucketLogging,s3:PutBucketVersioning,s3:PutBucketOwnershipControls]
+				and
+				[s3:PutBucketReplication,s3:PutObjectLockConfiguration,s3:PutBucketIntelligentTieringConfiguration]
+				require different authorization information.
+				Please refer to the documentation for more details: https://docs.aws.amazon.com/IAM/latest/APIReference/API_SimulatePrincipalPolicy.html
+
+				(The docs don't have any more details...)
+			*/
+			return false, err
+		}
+		for _, evalResult := range res.EvaluationResults {
+			if evalResult.EvalDecision != types.PolicyEvaluationDecisionTypeAllowed {
+				fmt.Println(*evalResult.EvalActionName, "not allowed on", *evalResult.EvalResourceName)
+				allowed = false
+			}
 		}
 	}
-
 	return allowed, nil
 }

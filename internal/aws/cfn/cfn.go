@@ -4,6 +4,7 @@ package cfn
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -371,4 +372,51 @@ func WaitUntilStackCreateComplete(stackName string) error {
 	}
 
 	return nil
+}
+
+// Get the schema for a CloudFormation resource type
+func GetTypeSchema(name string) (string, error) {
+	res, err := getClient().DescribeType(context.Background(), &cloudformation.DescribeTypeInput{
+		Type: "RESOURCE", TypeName: &name,
+	})
+	if err != nil {
+		return "", nil
+	}
+	return *res.Schema, nil
+}
+
+// Get the list of action required to invoke a CloudFormation handler
+func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
+	schema, err := GetTypeSchema(name)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the schema and return the array of actions
+	var result map[string]any
+	json.Unmarshal([]byte(schema), &result)
+	/* "handlers": {
+	   "create": {
+	       "permissions": [
+	           "s3:CreateBucket",
+	           "s3:PutBucketTagging",
+
+	*/
+	handlers := result["handlers"].(map[string]any)
+	handler := handlers[handlerVerb].(map[string]any)
+	config.Debugf("handler: %v", handler)
+	permissions := handler["permissions"].([]interface{})
+	config.Debugf("Got permissions for %v %v: %v", name, handlerVerb, permissions)
+	retval := make([]string, 0)
+	for _, p := range permissions {
+		if p == "iam:PassRole" {
+			// This will fail even for admin roles, and is not actually necessary
+			// to create resources like buckets, despite being in the schema
+			continue
+		}
+		retval = append(retval, fmt.Sprintf("%v", p))
+	}
+	config.Debugf("retval is %v", retval)
+	return retval, nil
 }

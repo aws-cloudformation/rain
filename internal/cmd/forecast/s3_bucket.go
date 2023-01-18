@@ -49,59 +49,22 @@ func checkBucketPermissions(input PredictionInput, bucket *types.StackResourceDe
 
 	config.Debugf("Checking if the user has permissions on %v", *bucket.PhysicalResourceId)
 
-	bucketArn := fmt.Sprintf("arn:aws:s3:::%v", bucket.PhysicalResourceId)
+	bucketArn := fmt.Sprintf("arn:aws:s3:::%v", *bucket.PhysicalResourceId)
 	allAllowed := true
 
-	result, err := iam.Simulate("s3:CreateBucket", bucketArn)
+	// Go get the list of permissions from the registry
+	actions, err := cfn.GetTypePermissions("AWS::S3::Bucket", "create")
+	if err != nil {
+		fmt.Println("Unable to get type permissions", err)
+		return false
+	}
+	result, err := iam.Simulate(actions, bucketArn)
 	if err != nil {
 		return false
 	}
 	if !result {
 		allAllowed = false
 	}
-
-	result, err = iam.Simulate("s3:DeleteBucket", bucketArn)
-	if err != nil {
-		return false
-	}
-	if !result {
-		allAllowed = false
-	}
-
-	// TODO - Should we go get the list of permissions from the registry?
-	// (retrieve programatically or just hard code them here?)
-	//
-	// for example:
-	//
-	/* "handlers": {
-	   "create": {
-	       "permissions": [
-	           "s3:CreateBucket",
-	           "s3:PutBucketTagging",
-	           "s3:PutAnalyticsConfiguration",
-	           "s3:PutEncryptionConfiguration",
-	           "s3:PutBucketCORS",
-	           "s3:PutInventoryConfiguration",
-	           "s3:PutLifecycleConfiguration",
-	           "s3:PutMetricsConfiguration",
-	           "s3:PutBucketNotification",
-	           "s3:PutBucketReplication",
-	           "s3:PutBucketWebsite",
-	           "s3:PutAccelerateConfiguration",
-	           "s3:PutBucketPublicAccessBlock",
-	           "s3:PutReplicationConfiguration",
-	           "s3:PutObjectAcl",
-	           "s3:PutBucketObjectLockConfiguration",
-	           "s3:GetBucketAcl",
-	           "s3:ListBucket",
-	           "iam:PassRole",
-	           "s3:DeleteObject",
-	           "s3:PutBucketLogging",
-	           "s3:PutBucketVersioning",
-	           "s3:PutObjectLockConfiguration",
-	           "s3:PutBucketOwnershipControls",
-	           "s3:PutBucketIntelligentTieringConfiguration"
-	*/
 
 	return allAllowed
 }
