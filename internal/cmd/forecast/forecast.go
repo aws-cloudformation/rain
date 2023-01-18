@@ -17,6 +17,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 )
 
+// The role name to use for the IAM policy simulator
+var Role string
+
 // Input to forecast prediction functions
 type PredictionInput struct {
 	source      cft.Template
@@ -27,8 +30,9 @@ type PredictionInput struct {
 	stack       types.Stack
 }
 
-// Query the account to make predictions about deployment failures
-func predict(source cft.Template, stackName string) {
+// Query the account to make predictions about deployment failures.
+// Returns true if no failures are predicted.
+func predict(source cft.Template, stackName string) bool {
 
 	config.Debugf("About to make API calls for failure prediction...")
 
@@ -39,6 +43,10 @@ func predict(source cft.Template, stackName string) {
 	// If so, check for possible update issues, and for reasons we can't delete the stack
 	// Otherwise, only check for possible create failures
 	stack, stackExists := deploy.CheckStack(stackName)
+
+	// Decided against running this on change sets for updates, since we
+	// would then need to require the user to supply params, etc.
+	// Is that ok? Maybe, since they would need to do that for `rain deploy`...
 
 	msg := ""
 	if stackExists {
@@ -103,8 +111,10 @@ func predict(source cft.Template, stackName string) {
 	if numFailed > 0 {
 		fmt.Println("Stormy weather ahead!")
 		fmt.Println(numFailed, "checks failed out of", numChecked, "total checks")
+		return false
 	} else {
 		fmt.Println("Clear skies! All", numChecked, "checks passed.")
+		return true
 	}
 
 	// TODO - We might be able to incorporate AWS Config proactive controls here
@@ -125,10 +135,6 @@ var Cmd = &cobra.Command{
 		fn := args[0]
 		stackName := args[1]
 
-		// ? Should we include the command (create/update/delete) in the args?
-		// ? Should this run on a change set?
-		// TODO - Only look at the diff for updates
-
 		config.Debugf("Generating forecast...", fn)
 
 		r, err := os.Open(fn)
@@ -148,11 +154,15 @@ var Cmd = &cobra.Command{
 			panic(ui.Errorf(err, "unable to parse input"))
 		}
 
-		predict(source, stackName)
+		if !predict(source, stackName) {
+			os.Exit(1)
+		}
 
 	},
 }
 
 func init() {
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
+	Cmd.Flags().StringVar(&Role, "role", "", "An optional execution role to use for predicting IAM failures")
+	// TODO - --op "create", "update", "delete", default: "all"
 }

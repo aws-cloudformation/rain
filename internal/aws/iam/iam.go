@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	aws "github.com/aws-cloudformation/rain/internal/aws"
+	"github.com/aws-cloudformation/rain/internal/config"
 	awsgo "github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
@@ -17,7 +18,7 @@ import (
 // }
 
 // Get the role arn of the caller based on the aws config
-func getCallerArn(config awsgo.Config, iamClient *iam.Client) (string, error) {
+func getCallerArn(config awsgo.Config, iamClient *iam.Client, role string) (string, error) {
 	stsClient := sts.NewFromConfig(config)
 	stsRes, stsErr := stsClient.GetCallerIdentity(context.Background(),
 		&sts.GetCallerIdentityInput{})
@@ -32,26 +33,32 @@ func getCallerArn(config awsgo.Config, iamClient *iam.Client) (string, error) {
 	//
 	// Will this work consistently for other SSO providers?
 	// Is there a programmatic way to retrieve the actual role?
+
 	sts := strings.Split(*stsRes.Arn, "sts::")[1]
 	accountId := strings.Split(sts, ":")[0]
-	assumedRole := strings.Split(*stsRes.Arn, "assumed-role/")[1]
-	actualRoleName := strings.Split(assumedRole, "/")[0]
-	return fmt.Sprintf("arn:aws:iam::%v:role/%v", accountId, actualRoleName), nil
+	if role == "" {
+		assumedRole := strings.Split(*stsRes.Arn, "assumed-role/")[1]
+		actualRoleName := strings.Split(assumedRole, "/")[0]
+		return fmt.Sprintf("arn:aws:iam::%v:role/%v", accountId, actualRoleName), nil
+	} else {
+		return fmt.Sprintf("arn:aws:iam::%v:role/%v", accountId, role), nil
+	}
 }
 
-// Simulate an action on a resource
-func Simulate(actions []string, resource string) (bool, error) {
-	config := aws.Config()
-	client := iam.NewFromConfig(config)
+// Simulate actions on a resource.
+// The role arg is optional, if not provided, the current aws config will be used.
+func Simulate(actions []string, resource string, role string) (bool, error) {
+	awsConfig := aws.Config()
+	client := iam.NewFromConfig(awsConfig)
 	input := &iam.SimulatePrincipalPolicyInput{}
 	input.ResourceArns = []string{resource}
 
-	arn, err := getCallerArn(config, client)
+	arn, err := getCallerArn(awsConfig, client, role)
 	if err != nil {
 		fmt.Println("Could not get caller arn", err)
 		return false, err
 	}
-	// TODO: Allow user to specify a role as a command line arg
+	config.Debugf("Caller role arn: %v", arn)
 	input.PolicySourceArn = &arn
 
 	// Return value
@@ -93,6 +100,7 @@ func Simulate(actions []string, resource string) (bool, error) {
 				Please refer to the documentation for more details: https://docs.aws.amazon.com/IAM/latest/APIReference/API_SimulatePrincipalPolicy.html
 
 				(The docs don't have any more details...)
+				Checking them one at a time to get around this.
 			*/
 			return false, err
 		}

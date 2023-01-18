@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
-	"github.com/aws-cloudformation/rain/internal/aws/iam"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
@@ -44,31 +43,6 @@ func checkBucketNotEmpty(input PredictionInput, bucket *types.StackResourceDetai
 	return !hasContents
 }
 
-// Returns true if the user has the required permissions on the bucket
-func checkBucketPermissions(input PredictionInput, bucket *types.StackResourceDetail) bool {
-
-	config.Debugf("Checking if the user has permissions on %v", *bucket.PhysicalResourceId)
-
-	bucketArn := fmt.Sprintf("arn:aws:s3:::%v", *bucket.PhysicalResourceId)
-	allAllowed := true
-
-	// Go get the list of permissions from the registry
-	actions, err := cfn.GetTypePermissions("AWS::S3::Bucket", "create")
-	if err != nil {
-		fmt.Println("Unable to get type permissions", err)
-		return false
-	}
-	result, err := iam.Simulate(actions, bucketArn)
-	if err != nil {
-		return false
-	}
-	if !result {
-		allAllowed = false
-	}
-
-	return allAllowed
-}
-
 // Check everything that could go wrong with an AWS::S3::Bucket resource
 func checkBucket(input PredictionInput) (int, int) {
 
@@ -83,15 +57,37 @@ func checkBucket(input PredictionInput) (int, int) {
 	bucketName := *res.PhysicalResourceId
 	config.Debugf("Physical bucket name is: %v", bucketName)
 
+	bucketArn := fmt.Sprintf("arn:aws:s3:::%v", *res.PhysicalResourceId)
+
 	// TODO - Put these in a map
 	numFailed := 0
-	if !checkBucketPermissions(input, res) {
-		numFailed += 1
+	numChecked := 0
+	// TODO - Can we make the permissions check generic so we can
+	// run it on all types? What if we can't predict what the arn will be?
+	if input.stackExists {
+		if !checkPermissions(input, bucketArn, "update") {
+			fmt.Println("Insufficient permissions to update", bucketArn)
+			numFailed += 1
+		}
+		numChecked += 1
+		if !checkPermissions(input, bucketArn, "delete") {
+			fmt.Println("Insufficient permissions to delete", bucketArn)
+			numFailed += 1
+		}
+		numChecked += 1
+	} else {
+		if !checkPermissions(input, bucketArn, "create") {
+			fmt.Println("Insufficient permissions to create", bucketArn)
+			numFailed += 1
+		}
+		numChecked += 1
 	}
+
 	if !checkBucketNotEmpty(input, res) {
 		numFailed += 1
+		numChecked += 1
 	}
-	numChecked := 2
+
 	return numFailed, numChecked
 
 }
