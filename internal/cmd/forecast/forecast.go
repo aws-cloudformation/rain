@@ -10,6 +10,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
+	"github.com/aws-cloudformation/rain/internal/aws/iam"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/cmd/deploy"
 	"github.com/aws-cloudformation/rain/internal/config"
@@ -29,7 +30,8 @@ type PredictionInput struct {
 	stack       types.Stack
 }
 
-// An empty bucket cannot be deleted, which will cause a stack DELETE to fail
+// An empty bucket cannot be deleted, which will cause a stack DELETE to fail.
+// Returns true if the stack operation will succeed.
 func checkBucketNotEmpty(input PredictionInput, bucket *types.StackResourceDetail) bool {
 	if !input.stackExists {
 		return true
@@ -62,13 +64,69 @@ func checkBucketNotEmpty(input PredictionInput, bucket *types.StackResourceDetai
 	return !hasContents
 }
 
+// Returns true if the user has the required permissions on the bucket
 func checkBucketPermissions(input PredictionInput, bucket *types.StackResourceDetail) bool {
 
 	config.Debugf("Checking if the user has permissions on %v", *bucket.PhysicalResourceId)
 
 	// TODO
+	// https://github.com/aws/aws-sdk-go-v2/blob/main/service/iam/api_op_SimulatePrincipalPolicy.go
 
-	return false
+	bucketArn := fmt.Sprintf("arn:aws:s3:::%v", bucket.PhysicalResourceId)
+	allAllowed := true
+
+	result, err := iam.Simulate("s3:CreateBucket", bucketArn)
+	if err != nil {
+		return false
+	}
+	if !result {
+		allAllowed = false
+	}
+
+	result, err = iam.Simulate("s3:DeleteBucket", bucketArn)
+	if err != nil {
+		return false
+	}
+	if !result {
+		allAllowed = false
+	}
+
+	// TODO - Should we go get the list of permissions from the registry?
+	// (retrieve programatically or just hard code them here?)
+	//
+	// for example:
+	//
+	/* "handlers": {
+	   "create": {
+	       "permissions": [
+	           "s3:CreateBucket",
+	           "s3:PutBucketTagging",
+	           "s3:PutAnalyticsConfiguration",
+	           "s3:PutEncryptionConfiguration",
+	           "s3:PutBucketCORS",
+	           "s3:PutInventoryConfiguration",
+	           "s3:PutLifecycleConfiguration",
+	           "s3:PutMetricsConfiguration",
+	           "s3:PutBucketNotification",
+	           "s3:PutBucketReplication",
+	           "s3:PutBucketWebsite",
+	           "s3:PutAccelerateConfiguration",
+	           "s3:PutBucketPublicAccessBlock",
+	           "s3:PutReplicationConfiguration",
+	           "s3:PutObjectAcl",
+	           "s3:PutBucketObjectLockConfiguration",
+	           "s3:GetBucketAcl",
+	           "s3:ListBucket",
+	           "iam:PassRole",
+	           "s3:DeleteObject",
+	           "s3:PutBucketLogging",
+	           "s3:PutBucketVersioning",
+	           "s3:PutObjectLockConfiguration",
+	           "s3:PutBucketOwnershipControls",
+	           "s3:PutBucketIntelligentTieringConfiguration"
+	*/
+
+	return allAllowed
 }
 
 // Check everything that could go wrong with an AWS::S3::Bucket resource
