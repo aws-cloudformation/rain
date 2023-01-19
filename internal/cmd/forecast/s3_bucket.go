@@ -7,6 +7,8 @@ import (
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+
+	"github.com/google/uuid"
 )
 
 // An empty bucket cannot be deleted, which will cause a stack DELETE to fail.
@@ -46,22 +48,32 @@ func checkBucketNotEmpty(input PredictionInput, bucket *types.StackResourceDetai
 // Check everything that could go wrong with an AWS::S3::Bucket resource
 func checkBucket(input PredictionInput) (int, int) {
 
-	res, err := cfn.GetStackResource(input.stackName, input.logicalId)
-
-	if err != nil {
-		// If this is an update, the bucket might not exist yet
-		config.Debugf("Unable to get details for %v: %v", input.logicalId, err)
-		return 0, 0
-	}
-
-	bucketName := *res.PhysicalResourceId
-	config.Debugf("Physical bucket name is: %v", bucketName)
-
-	bucketArn := fmt.Sprintf("arn:aws:s3:::%v", *res.PhysicalResourceId)
-
-	// TODO - Put these in a map
+	// A uuid will be used for policy silumation if the bucket does not already exist
+	bucketName := fmt.Sprintf("rain-%v", uuid.New())
+	bucketArn := ""
 	numFailed := 0
 	numChecked := 0
+
+	if input.stackExists {
+		res, err := cfn.GetStackResource(input.stackName, input.logicalId)
+
+		if err != nil {
+			// If this is an update, the bucket might not exist yet
+			config.Debugf("Unable to get details for %v: %v", input.logicalId, err)
+		} else {
+			// The bucket exists
+			bucketName := *res.PhysicalResourceId
+			config.Debugf("Physical bucket name is: %v", bucketName)
+
+			if !checkBucketNotEmpty(input, res) {
+				numFailed += 1
+				numChecked += 1
+			}
+		}
+	}
+
+	bucketArn = fmt.Sprintf("arn:aws:s3:::%v", bucketName)
+
 	// TODO - Can we make the permissions check generic so we can
 	// run it on all types? What if we can't predict what the arn will be?
 	if input.stackExists {
@@ -80,11 +92,6 @@ func checkBucket(input PredictionInput) (int, int) {
 			fmt.Println("Insufficient permissions to create", bucketArn)
 			numFailed += 1
 		}
-		numChecked += 1
-	}
-
-	if !checkBucketNotEmpty(input, res) {
-		numFailed += 1
 		numChecked += 1
 	}
 

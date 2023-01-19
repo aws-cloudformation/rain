@@ -3,6 +3,7 @@ package iam
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	aws "github.com/aws-cloudformation/rain/internal/aws"
@@ -13,9 +14,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
-// func getClient() *iam.Client {
-// 	return iam.NewFromConfig(aws.Config())
-// }
+func getClient() *iam.Client {
+	return iam.NewFromConfig(aws.Config())
+}
 
 // Get the role arn of the caller based on the aws config
 func getCallerArn(config awsgo.Config, iamClient *iam.Client, role string) (string, error) {
@@ -112,4 +113,114 @@ func Simulate(actions []string, resource string, role string) (bool, error) {
 		}
 	}
 	return allowed, nil
+}
+
+// Check to see if a role exists in the account
+func RoleExists(roleArn string) bool {
+	tokens := strings.Split(roleArn, ":role/")
+	lastToken := tokens[len(tokens)-1]
+	config.Debugf("RoleExists %v %v", roleArn, lastToken)
+	res, err := getClient().GetRole(context.Background(), &iam.GetRoleInput{
+		RoleName: &lastToken,
+	})
+	if err != nil {
+		config.Debugf("RoleExists GetRole Error for %v: %v", err)
+		return false
+	}
+	config.Debugf("RoleExists found %v: %v", roleArn, res)
+	return true
+}
+
+// Check to see if the principal exists in the account
+func PrincipalExists(principal string) (bool, error) {
+
+	config.Debugf("PrincipalExists %v", principal)
+
+	if principal == "*" {
+		return true, nil
+	}
+
+	// TODO - need to check if it's created in this template and hasn't been deployed
+
+	// What kind of principal is it?
+	// Is there a way to simply ask the API "does a resource with this arn exist?"
+	// If not then we need to figure out what type of resource it is and ask the service
+
+	// https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_principal.html
+
+	// Regex to see if it's a number, arn, etc
+
+	var accountIdRegex = regexp.MustCompile(`^\d{12}$`)
+	if accountIdRegex.MatchString(principal) {
+		config.Debugf("PrincipalExists %v is an account id", principal)
+		// Assume that the account exists
+		return true, nil
+	}
+
+	var rootRegex = regexp.MustCompile(`arn:aws:iam::\d{12}:root`)
+	if rootRegex.MatchString(principal) {
+		config.Debugf("PrincipalExists %v is an account root", principal)
+		// Assume that the account exists
+		return true, nil
+	}
+
+	var roleRegex = regexp.MustCompile(`arn:aws:iam::\d{12}:role/[a-zA-Z0-9_@=\\-]+`)
+	if roleRegex.MatchString(principal) {
+		config.Debugf("PrincipalExists %v is a role", principal)
+		if RoleExists(principal) {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+// Check a PolicyDocument to make sure it will not result in failures
+func CheckPolicyDocument(element interface{}) (bool, error) {
+
+	policyOk := true
+
+	for propName, prop := range element.(map[string]interface{}) {
+		config.Debugf("PolicyDocument prop %v %v", propName, prop)
+
+		if propName == "Statement" {
+			for _, statement := range prop.([]interface{}) {
+				config.Debugf("statement: %v", statement)
+				for spropElementName, spropElement := range statement.(map[string]interface{}) {
+					config.Debugf("spropElement: %v %v", spropElementName, spropElement)
+
+					// Check the principals to make sure they exist
+					if spropElementName == "Principal" {
+						for pType, pArray := range spropElement.(map[string]interface{}) {
+							if pType == "AWS" {
+								for _, principal := range pArray.([]interface{}) {
+									config.Debugf("About to check if principal exists: %v", principal)
+									pMap, isMap := principal.(map[string]interface{})
+									if isMap {
+										config.Debugf("principal is a map: %v", pMap)
+
+										// This is.. hard. We need to resolve !Sub, !Ref, etc
+										// TODO
+									}
+									pString, isString := principal.(string)
+									if isString {
+										config.Debugf("principal is a string: %v", pString)
+
+										exists, err := PrincipalExists(pString)
+										if err != nil || !exists {
+											fmt.Println("Principal not found: ", principal)
+											policyOk = false
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+	}
+
+	return policyOk, nil
 }

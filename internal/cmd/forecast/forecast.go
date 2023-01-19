@@ -17,8 +17,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 )
 
-// The role name to use for the IAM policy simulator
+// The role name to use for the IAM policy simulator (optional --role)
 var Role string
+
+// The resource type to check (optional --type to limit checks to one type)
+var ResourceType string
 
 // Input to forecast prediction functions
 type PredictionInput struct {
@@ -69,6 +72,7 @@ func predict(source cft.Template, stackName string) bool {
 	// forecasters["AWS::New::Type"] = checkTheNewType
 
 	forecasters["AWS::S3::Bucket"] = checkBucket
+	forecasters["AWS::S3::BucketPolicy"] = checkBucketPolicy
 
 	m := source.Map()
 	for t, section := range m {
@@ -87,7 +91,7 @@ func predict(source cft.Template, stackName string) bool {
 
 						// See if we have a forecaster for this type
 						fn, ok := forecasters[element.(string)]
-						if ok {
+						if ok && (ResourceType == "" || ResourceType == element.(string)) {
 
 							input := PredictionInput{}
 							input.logicalId = logicalId
@@ -98,9 +102,11 @@ func predict(source cft.Template, stackName string) bool {
 							input.stack = stack
 
 							// Call the prediction function
+							fmt.Println("Checking", element, logicalId)
 							nf, nc := fn(input)
 							numFailed += nf
 							numChecked += nc
+							fmt.Printf("%v %v: %v of %v checks failed\n", element, logicalId, nf, nc)
 						}
 					}
 				}
@@ -165,4 +171,5 @@ func init() {
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
 	Cmd.Flags().StringVar(&Role, "role", "", "An optional execution role to use for predicting IAM failures")
 	// TODO - --op "create", "update", "delete", default: "all"
+	Cmd.Flags().StringVar(&ResourceType, "type", "", "Optional resource type to limit checks to only that type")
 }

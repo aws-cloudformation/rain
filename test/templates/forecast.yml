@@ -8,6 +8,31 @@ Resources:
   NoRetainBucket:
     Type: AWS::S3::Bucket
 
+  BucketPolicy1:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref RetainBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: Sid1
+            Effect: Allow
+            Principal:
+              AWS: 
+                - !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/RainTestRole1"
+                - "arn:aws:iam::123456789012:role/DoesNotExist"
+                - "arn:aws:iam::755952356119:role/Admin"
+                - "arn:aws:iam::123456789012:root"
+                - "123456789012"
+            Action: 
+              - s3:Put*
+              - s3:Get*
+              - s3:List*
+            Resource: 
+              - !Sub "arn:${AWS::Partition}:s3:::${RetainBucket}"
+              - !Sub "arn:${AWS::Partition}:s3:::${RetainBucket}/*" 
+
+
 Outputs:
 
   RetainBucketName:
