@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
+	"github.com/aws-cloudformation/rain/internal/aws/cfn"
 	"github.com/aws-cloudformation/rain/internal/cmd/deploy"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/ui"
@@ -71,7 +72,7 @@ func predict(source cft.Template, stackName string) bool {
 	// For example:
 	// forecasters["AWS::New::Type"] = checkTheNewType
 
-	forecasters["AWS::S3::Bucket"] = checkBucket
+	//forecasters["AWS::S3::Bucket"] = checkBucket
 	forecasters["AWS::S3::BucketPolicy"] = checkBucketPolicy
 
 	m := source.Map()
@@ -89,9 +90,11 @@ func predict(source cft.Template, stackName string) bool {
 
 					if elementName == "Type" {
 
-						// See if we have a forecaster for this type
-						fn, ok := forecasters[element.(string)]
-						if ok && (ResourceType == "" || ResourceType == element.(string)) {
+						typeName := element.(string) // Should be something like AWS::S3::Bucket
+
+						// Only run the forecaster if it matches the optional --type arg,
+						// or if that arg was not provided.
+						if ResourceType == "" || ResourceType == typeName {
 
 							input := PredictionInput{}
 							input.logicalId = logicalId
@@ -101,12 +104,32 @@ func predict(source cft.Template, stackName string) bool {
 							input.stackExists = stackExists
 							input.stack = stack
 
-							// Call the prediction function
 							fmt.Println("Checking", element, logicalId)
-							nf, nc := fn(input)
-							numFailed += nf
-							numChecked += nc
-							fmt.Printf("%v %v: %v of %v checks failed\n", element, logicalId, nf, nc)
+
+							// Call generic prediction functions that we can run against
+							// all resources, even if there is not a predictor.
+
+							// Make sure the resource does not already exist
+							if cfn.ResourceAlreadyExists(typeName,
+								resource.(map[string]interface{}), stackExists) {
+								fmt.Printf("%v %v already exists\n", typeName, logicalId)
+								numFailed += 1
+							}
+							numChecked += 1
+
+							// Check permissions (see S3 example, we would need to figure out the arn for each service)
+							// TODO - Not sure if this is practical in a generic way
+
+							// See if we have a specific forecaster for this type
+							fn, ok := forecasters[typeName]
+
+							if ok {
+								// Call the prediction function
+								nf, nc := fn(input)
+								numFailed += nf
+								numChecked += nc
+								fmt.Printf("%v %v: %v of %v specific checks failed\n", element, logicalId, nf, nc)
+							}
 						}
 					}
 				}

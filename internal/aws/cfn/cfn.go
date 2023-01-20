@@ -15,6 +15,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/internal/aws"
+	"github.com/aws-cloudformation/rain/internal/aws/ccapi"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
@@ -419,4 +420,80 @@ func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
 	}
 	config.Debugf("retval is %v", retval)
 	return retval, nil
+}
+
+// Get the primaryIdentifier of a resource type from the schema
+func GetTypeIdentifier(name string) ([]string, error) {
+	schema, err := GetTypeSchema(name)
+	if err != nil {
+		return nil, err
+	}
+	var result map[string]any
+	json.Unmarshal([]byte(schema), &result)
+
+	pi := result["primaryIdentifier"].([]interface{})
+	retval := make([]string, 0)
+	for _, pid := range pi {
+		retval = append(retval, strings.Replace(fmt.Sprintf("%v", pid), "/properties/", "", 1))
+	}
+	config.Debugf("GetTypeIdentifier for %v: %v", name, retval)
+	return retval, nil
+}
+
+// Get the values specified for primary identifiers in the template.
+// The return value will only have values if they are set.
+func GetPrimaryIdentifierValues(primaryIdentifier []string,
+	resource map[string]interface{}) []string {
+
+	piValues := make([]string, 0)
+
+	for elementName, element := range resource {
+		config.Debugf("GetPrimaryIdentifierValues element %v %v", elementName, element)
+
+		if elementName == "Properties" {
+			for propName, prop := range element.(map[string]interface{}) {
+				for _, pi := range primaryIdentifier {
+					if pi == propName {
+						piValues = append(piValues, fmt.Sprintf("%v", prop))
+						// TODO - What if it's a Ref, Sub, etc?
+					}
+				}
+			}
+		}
+	}
+	// TODO - values need to be in the same order as the identifier are in the schema
+	return piValues
+}
+
+func ResourceAlreadyExists(typeName string,
+	resource map[string]interface{}, stackExists bool) bool {
+
+	if !stackExists {
+		primaryIdentifiers, err := GetTypeIdentifier(typeName)
+		if err != nil {
+			fmt.Println("Unable to get primary identifier for ", err)
+		} else {
+			// See if the primary identifier was user-specified in the template
+			piValues := GetPrimaryIdentifierValues(primaryIdentifiers, resource)
+			config.Debugf("piValues: %v", piValues)
+
+			if len(piValues) == len(primaryIdentifiers) {
+				// All primary identifiers were specified in the template
+				// Ask CCAPI if the resource already exists
+
+				// TODO - Make sure the type is actually supported by CCAPI
+				// Something like this:
+				// aws cloudformation list-types --type RESOURCE --visibility PUBLIC --provisioning-type FULLY_MUTABLE --max-results 100
+
+				if ccapi.ResourceExists(typeName, piValues) {
+					return true
+				}
+			}
+		}
+	} else {
+		// TODO - Look at the change set for newly added resources
+		config.Debugf("Checking change set for new resources")
+	}
+
+	return false
 }
