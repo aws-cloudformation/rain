@@ -72,7 +72,7 @@ func predict(source cft.Template, stackName string) bool {
 	// For example:
 	// forecasters["AWS::New::Type"] = checkTheNewType
 
-	//forecasters["AWS::S3::Bucket"] = checkBucket
+	forecasters["AWS::S3::Bucket"] = checkBucket
 	forecasters["AWS::S3::BucketPolicy"] = checkBucketPolicy
 
 	m := source.Map()
