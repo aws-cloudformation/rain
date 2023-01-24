@@ -3,7 +3,7 @@
 package test
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 
@@ -45,13 +45,13 @@ func wrap(t *testing.T, args []string, expectedOut, expectedErr string, expected
 	we.Close()
 
 	// Compare the output
-	actualOut, _ := ioutil.ReadAll(ro)
+	actualOut, _ := io.ReadAll(ro)
 	if d := cmp.Diff(expectedOut, string(actualOut)); d != "" {
 		t.Error(d)
 	}
 
 	// Compare the err
-	actualErr, _ := ioutil.ReadAll(re)
+	actualErr, _ := io.ReadAll(re)
 	if d := cmp.Diff(expectedErr, string(actualErr)); d != "" {
 		t.Error(d)
 	}

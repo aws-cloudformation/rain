@@ -2,7 +2,7 @@ package pkg
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/aws-cloudformation/rain/cft/format"
 	cftpkg "github.com/aws-cloudformation/rain/cft/pkg"
@@ -57,7 +57,7 @@ You may use the following, rain-specific directives in templates packaged with "
 		out := format.String(packaged, format.Options{})
 
 		if outFn != "" {
-			ioutil.WriteFile(outFn, []byte(out), 0644)
+			os.WriteFile(outFn, []byte(out), 0644)
 		} else {
 			fmt.Println(out)
 		}
