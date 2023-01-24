@@ -22,7 +22,7 @@ func checkPermissions(input PredictionInput, resourceArn string, verb string) bo
 		fmt.Println("Unable to get type permissions", err)
 		return false
 	}
-	result, err := iam.Simulate(actions, resourceArn, Role)
+	result, err := iam.Simulate(actions, resourceArn, RoleArn)
 	if err != nil {
 		return false
 	}

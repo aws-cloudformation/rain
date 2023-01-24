@@ -19,10 +19,16 @@ import (
 )
 
 // The role name to use for the IAM policy simulator (optional --role)
-var Role string
+var RoleArn string
 
 // The resource type to check (optional --type to limit checks to one type)
 var ResourceType string
+
+// The optional parameters to use to create a change set for update predictions (--params)
+var Params []string
+
+// The optional path to a file that contains params (--config)
+var ConfigFilePath string
 
 // Input to forecast prediction functions
 type PredictionInput struct {
@@ -48,9 +54,8 @@ func predict(source cft.Template, stackName string) bool {
 	// Otherwise, only check for possible create failures
 	stack, stackExists := deploy.CheckStack(stackName)
 
-	// Decided against running this on change sets for updates, since we
-	// would then need to require the user to supply params, etc.
-	// Is that ok? Maybe, since they would need to do that for `rain deploy`...
+	// TODO: Add all the same params as the `deploy` command has so we can create
+	// a change set for updates.
 
 	msg := ""
 	if stackExists {
@@ -117,7 +122,8 @@ func predict(source cft.Template, stackName string) bool {
 							}
 							numChecked += 1
 
-							// Check permissions (see S3 example, we would need to figure out the arn for each service)
+							// Check permissions
+							// (see S3 example, we would need to figure out the arn for each service)
 							// TODO - Not sure if this is practical in a generic way
 
 							// See if we have a specific forecaster for this type
@@ -192,7 +198,10 @@ var Cmd = &cobra.Command{
 
 func init() {
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
-	Cmd.Flags().StringVar(&Role, "role", "", "An optional execution role to use for predicting IAM failures")
+	Cmd.Flags().StringVar(&RoleArn, "role-arn", "", "An optional execution role arn to use for predicting IAM failures")
 	// TODO - --op "create", "update", "delete", default: "all"
 	Cmd.Flags().StringVar(&ResourceType, "type", "", "Optional resource type to limit checks to only that type")
+	Cmd.Flags().StringSliceVar(&Params, "params", []string{}, "set parameter values; use the format key1=value1,key2=value2")
+	Cmd.Flags().StringVarP(&ConfigFilePath, "config", "c", "", "YAML or JSON file to set tags and parameters")
+
 }

@@ -19,7 +19,7 @@ func getClient() *iam.Client {
 }
 
 // Get the role arn of the caller based on the aws config
-func getCallerArn(config awsgo.Config, iamClient *iam.Client, role string) (string, error) {
+func getCallerArn(config awsgo.Config, iamClient *iam.Client) (string, error) {
 	stsClient := sts.NewFromConfig(config)
 	stsRes, stsErr := stsClient.GetCallerIdentity(context.Background(),
 		&sts.GetCallerIdentityInput{})
@@ -37,30 +37,29 @@ func getCallerArn(config awsgo.Config, iamClient *iam.Client, role string) (stri
 
 	sts := strings.Split(*stsRes.Arn, "sts::")[1]
 	accountId := strings.Split(sts, ":")[0]
-	if role == "" {
-		assumedRole := strings.Split(*stsRes.Arn, "assumed-role/")[1]
-		actualRoleName := strings.Split(assumedRole, "/")[0]
-		return fmt.Sprintf("arn:aws:iam::%v:role/%v", accountId, actualRoleName), nil
-	} else {
-		return fmt.Sprintf("arn:aws:iam::%v:role/%v", accountId, role), nil
-	}
+	assumedRole := strings.Split(*stsRes.Arn, "assumed-role/")[1]
+	actualRoleName := strings.Split(assumedRole, "/")[0]
+	return fmt.Sprintf("arn:aws:iam::%v:role/%v", accountId, actualRoleName), nil
 }
 
 // Simulate actions on a resource.
 // The role arg is optional, if not provided, the current aws config will be used.
-func Simulate(actions []string, resource string, role string) (bool, error) {
+func Simulate(actions []string, resource string, roleArn string) (bool, error) {
 	awsConfig := aws.Config()
 	client := iam.NewFromConfig(awsConfig)
 	input := &iam.SimulatePrincipalPolicyInput{}
 	input.ResourceArns = []string{resource}
 
-	arn, err := getCallerArn(awsConfig, client, role)
-	if err != nil {
-		fmt.Println("Could not get caller arn", err)
-		return false, err
+	var err error
+	if roleArn == "" {
+		roleArn, err = getCallerArn(awsConfig, client)
+		if err != nil {
+			fmt.Println("Could not get caller arn", err)
+			return false, err
+		}
 	}
-	config.Debugf("Caller role arn: %v", arn)
-	input.PolicySourceArn = &arn
+	config.Debugf("Caller role arn: %v", roleArn)
+	input.PolicySourceArn = &roleArn
 
 	// Return value
 	allowed := true
