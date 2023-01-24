@@ -20,6 +20,7 @@ func init() {
 
 func TestAllResourceTypes(t *testing.T) {
 	for resourceType := range spec.Cfn.ResourceTypes {
+		// fmt.Printf("About to build template for %v\n", resourceType)
 		_, err := build.Template(map[string]string{
 			"Res": resourceType,
 		}, true)

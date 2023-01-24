@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"go/format"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -88,7 +87,7 @@ var %s = %s`, name, name, s)
 		panic(err)
 	}
 
-	err = ioutil.WriteFile(strings.ToLower(name)+".go", out, 0644)
+	err = os.WriteFile(strings.ToLower(name)+".go", out, 0644)
 	if err != nil {
 		panic(err)
 	}
@@ -100,7 +99,7 @@ func saveJSON(s spec.Spec, name string) {
 		panic(err)
 	}
 
-	err = ioutil.WriteFile(name, data, 0644)
+	err = os.WriteFile(name, data, 0644)
 	if err != nil {
 		panic(err)
 	}
