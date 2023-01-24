@@ -3,7 +3,6 @@ package fmt
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -33,7 +32,7 @@ func formatReader(name string, r io.Reader) result {
 	}
 
 	// Read the template
-	input, err := ioutil.ReadAll(r)
+	input, err := io.ReadAll(r)
 	if err != nil {
 		res.err = ui.Errorf(err, "unable to read input")
 		return res
@@ -126,7 +125,7 @@ var Cmd = &cobra.Command{
 					hasErr = true
 				}
 			} else if writeFlag {
-				ioutil.WriteFile(res.name, []byte(res.output), 0644)
+				os.WriteFile(res.name, []byte(res.output), 0644)
 			} else {
 				if len(args) > 1 {
 					fmt.Printf("--- # %s\n", res.name)

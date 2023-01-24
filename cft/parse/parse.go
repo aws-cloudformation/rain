@@ -5,7 +5,7 @@ package parse
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
+	"os"
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/diff"
@@ -15,7 +15,7 @@ import (
 
 // Reader returns a cft.Template parsed from an io.Reader
 func Reader(r io.Reader) (cft.Template, error) {
-	data, err := ioutil.ReadAll(r)
+	data, err := io.ReadAll(r)
 	if err != nil {
 		return cft.Template{}, fmt.Errorf("unable to read input: %s", err)
 	}
@@ -25,7 +25,7 @@ func Reader(r io.Reader) (cft.Template, error) {
 
 // File returns a cft.Template parsed from a file specified by fileName
 func File(fileName string) (cft.Template, error) {
-	source, err := ioutil.ReadFile(fileName)
+	source, err := os.ReadFile(fileName)
 	if err != nil {
 		return cft.Template{}, fmt.Errorf("unable to read file: %s", err)
 	}

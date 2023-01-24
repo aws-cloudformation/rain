@@ -14,7 +14,7 @@ func parseGetAtt(n *yaml.Node) error {
 	parts := strings.SplitN(n.Value, ".", 2)
 
 	if len(parts) != 2 {
-		return errors.New("GetAtt requires two parameters.")
+		return errors.New("GetAtt requires two parameters")
 	}
 
 	*n = yaml.Node{
