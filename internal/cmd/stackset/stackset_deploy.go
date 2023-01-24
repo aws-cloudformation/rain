@@ -2,7 +2,6 @@ package stackset
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -23,8 +22,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const noChangeFoundMsg = "The submitted information didn't contain changes. Submit different information to create a change set."
-
 type configFormat struct {
 	Parameters        map[string]string           `yaml:"Parameters"`
 	Tags              map[string]string           `yaml:"Tags"`
@@ -39,8 +36,6 @@ var yes bool
 var params []string
 var tags []string
 var configFilePath string
-var terminationProtection bool
-var keep bool
 
 // StackSetDeployCmd is the deploy command's entrypoint
 var StackSetDeployCmd = &cobra.Command{
@@ -157,7 +152,7 @@ func readConfiguration(configFilePath string) configFormat {
 
 	// Read configuration file
 	if len(configFilePath) != 0 {
-		configFileContent, err := ioutil.ReadFile(configFilePath)
+		configFileContent, err := os.ReadFile(configFilePath)
 		if err != nil {
 			panic(ui.Errorf(err, "unable to read config file '%s'", configFilePath))
 		}
