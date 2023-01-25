@@ -7,7 +7,6 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -30,7 +29,7 @@ var zipHash = "potato"
 func init() {
 	// Generate the zip so we can compare the hash
 	// we can't do this ahead of time because git will change the file's modification time
-	tmpFile, err := ioutil.TempFile(os.TempDir(), "*.zip")
+	tmpFile, err := os.CreateTemp(os.TempDir(), "*.zip")
 	if err != nil {
 		panic(err)
 	}
@@ -68,7 +67,7 @@ func init() {
 	w.Close()
 	tmpFile.Close()
 
-	content, err := ioutil.ReadFile(tmpFile.Name())
+	content, err := os.ReadFile(tmpFile.Name())
 	if err != nil {
 		panic(err)
 	}

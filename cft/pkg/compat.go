@@ -1,7 +1,6 @@
 package pkg
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -110,7 +109,7 @@ func wrapTemplate(n *yaml.Node, root string) (bool, error) {
 		return false, err
 	}
 
-	f, err := ioutil.TempFile(os.TempDir(), "*.template")
+	f, err := os.CreateTemp(os.TempDir(), "*.template")
 	if err != nil {
 		return false, err
 	}

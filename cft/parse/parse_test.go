@@ -2,7 +2,7 @@ package parse_test
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -102,7 +102,7 @@ var expected, _ = parse.Map(map[string]interface{}{
 })
 
 func init() {
-	data, err := ioutil.ReadFile(testFile)
+	data, err := os.ReadFile(testFile)
 	if err != nil {
 		panic(err)
 	}

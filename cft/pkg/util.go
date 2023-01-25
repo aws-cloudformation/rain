@@ -9,10 +9,11 @@
 // `Rain::S3Http`: uploads the file or directory (zipping it first) to S3 and returns the HTTP URI (i.e. `https://bucket.s3.region.amazonaws.com/key`)
 // `Rain::S3`: a string value uploads the file or directory (zipping it first) to S3 and returns the S3 URI (i.e. `s3://bucket/key`)
 // `Rain::S3`: an object with the following properties
-//    `Path`: path to the file or directory. If a directory is supplied, it will be zipped before uploading to S3
-//    `BucketProperty`: Name of returned property that will contain the bucket name
-//    `KeyProperty`: Name of returned property that will contain the object key
-//    `VersionProperty`: (optional) Name of returned property that will contain the object version
+//
+//	`Path`: path to the file or directory. If a directory is supplied, it will be zipped before uploading to S3
+//	`BucketProperty`: Name of returned property that will contain the bucket name
+//	`KeyProperty`: Name of returned property that will contain the object key
+//	`VersionProperty`: (optional) Name of returned property that will contain the object version
 package pkg
 
 import (
@@ -20,7 +21,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -47,7 +47,7 @@ func (s *s3Path) HTTP() string {
 var uploads = map[string]*s3Path{}
 
 func zipPath(root string) (string, error) {
-	tmpFile, err := ioutil.TempFile(os.TempDir(), "*.zip")
+	tmpFile, err := os.CreateTemp(os.TempDir(), "*.zip")
 	if err != nil {
 		return "", err
 	}
@@ -144,7 +144,7 @@ func upload(root, path string, force bool) (*s3Path, error) {
 
 	config.Debugf("Uploading: %s\n", path)
 
-	content, err := ioutil.ReadFile(path)
+	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +192,7 @@ func expectFile(n *yaml.Node, root string) ([]byte, string, error) {
 		return nil, path, fmt.Errorf("'%s' is a directory", path)
 	}
 
-	content, err := ioutil.ReadFile(path)
+	content, err := os.ReadFile(path)
 
 	return content, path, err
 }
