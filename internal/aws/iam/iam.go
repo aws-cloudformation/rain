@@ -123,7 +123,7 @@ func RoleExists(roleArn string) bool {
 		RoleName: &lastToken,
 	})
 	if err != nil {
-		config.Debugf("RoleExists GetRole Error for %v: %v", err)
+		config.Debugf("RoleExists GetRole Error for %v: %v", roleArn, err)
 		return false
 	}
 	config.Debugf("RoleExists found %v: %v", roleArn, res)

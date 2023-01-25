@@ -170,7 +170,7 @@ var Cmd = &cobra.Command{
 		fn := args[0]
 		stackName := args[1]
 
-		config.Debugf("Generating forecast...", fn)
+		config.Debugf("Generating forecast for %v", fn)
 
 		r, err := os.Open(fn)
 		if err != nil {

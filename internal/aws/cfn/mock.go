@@ -140,6 +140,11 @@ func GetStackResources(stackName string) ([]types.StackResource, error) {
 	return nil, errNoStack
 }
 
+func GetStackResource(stackName string, logicalId string) (*types.StackResourceDetail, error) {
+	// TODO
+	return nil, nil
+}
+
 // GetStackEvents returns all events associated with the named stack
 func GetStackEvents(stackName string) ([]types.StackEvent, error) {
 	return []types.StackEvent{
@@ -326,4 +331,26 @@ func WaitUntilStackCreateComplete(stackName string) error {
 	}
 
 	return nil
+}
+
+func ResourceAlreadyExists(typeName string,
+	resource map[string]interface{}, stackExists bool) bool {
+	return true
+}
+
+func GetTypeSchema(name string) (string, error) {
+	return "", nil
+}
+
+func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
+	return make([]string, 0), nil
+}
+
+func GetTypeIdentifier(name string) ([]string, error) {
+	return make([]string, 0), nil
+}
+
+func GetPrimaryIdentifierValues(primaryIdentifier []string,
+	resource map[string]interface{}) []string {
+	return make([]string, 0)
 }
