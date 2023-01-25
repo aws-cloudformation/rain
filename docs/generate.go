@@ -4,7 +4,6 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"strings"
 	"text/template"
@@ -76,7 +75,7 @@ func main() {
 		panic(err)
 	}
 
-	ioutil.WriteFile("../README.md", buf.Bytes(), 0644)
+	os.WriteFile("../README.md", buf.Bytes(), 0644)
 
 	rain.Cmd.GenBashCompletionFile("bash_completion.sh")
 	rain.Cmd.GenZshCompletionFile("zsh_completion.sh")

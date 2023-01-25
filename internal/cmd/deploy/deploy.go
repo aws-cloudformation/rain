@@ -3,7 +3,7 @@ package deploy
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"regexp"
 
@@ -101,7 +101,7 @@ YAML:
 		var combinedParameters map[string]string
 
 		if len(configFilePath) != 0 {
-			configFileContent, err := ioutil.ReadFile(configFilePath)
+			configFileContent, err := os.ReadFile(configFilePath)
 			if err != nil {
 				panic(ui.Errorf(err, "unable to read config file '%s'", configFilePath))
 			}

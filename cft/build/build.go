@@ -69,12 +69,17 @@ func (b builder) newResource(resourceType string) (map[string]interface{}, []*cf
 		panic(fmt.Errorf("no such resource type '%s'", resourceType))
 	}
 
+	// fmt.Printf("%#v\n", rSpec)
+
 	b.tracker = newTracker()
 
 	// Generate properties
 	properties := make(map[string]interface{})
 	comments := make([]*cft.Comment, 0)
 	for name, pSpec := range rSpec.Properties {
+
+		// fmt.Printf("Generating prop %v, pSpec: %#v \n", name, pSpec)
+
 		if b.IncludeOptionalProperties || pSpec.Required {
 			var p interface{}
 			var cs []*cft.Comment
@@ -116,6 +121,22 @@ func (b builder) newProperty(resourceType, propertyName string, pSpec *spec.Prop
 	if pSpec.PrimitiveType == spec.TypeMap {
 		pSpec.PrimitiveType = spec.TypeEmpty
 		pSpec.Type = spec.TypeMap
+	}
+
+	// Attempt to fix failures do to lack of types in some properties
+	// TODO - This is a hack, figure out why they are missing
+	/*
+		Example from cfn.go
+
+		"DialerConfig": &Property{
+						Documentation: "http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-connectcampaigns-campaign.html#cfn-connectcampaigns-campaign-dialerconfig",
+						Required:      true,
+						UpdateType:    "Mutable",
+					},
+
+	*/
+	if pSpec.PrimitiveType == spec.TypeEmpty && pSpec.Type == spec.TypeEmpty {
+		pSpec.PrimitiveType = "String"
 	}
 
 	// Primitive types
@@ -224,6 +245,9 @@ func (b builder) newPropertyType(resourceType, propertyType string) (interface{}
 		ptSpec, ok = b.Spec.PropertyTypes[resourceType+"."+propertyType]
 	}
 	if !ok {
+		// TODO - Why is this failing during tests?
+		// fmt.Println("About to fail? on", propertyType) // propertyType is ""
+
 		panic(fmt.Errorf("unimplemented property type '%s.%s'", resourceType, propertyType))
 	}
 
