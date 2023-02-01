@@ -105,7 +105,7 @@ func ListStacks() ([]types.StackSummary, error) {
 }
 
 // DeleteStack deletes a stack
-func DeleteStack(stackName string) error {
+func DeleteStack(stackName string, roleArn string) error {
 	if s, ok := region().stacks[stackName]; ok {
 		s.stack.StackStatus = types.StackStatusDeleteComplete
 		return nil

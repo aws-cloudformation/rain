@@ -23,7 +23,8 @@ func Example_rm_help() {
 	//   rm, remove, del, delete
 	//
 	// Flags:
-	//   -d, --detach   once removal has started, don't wait around for it to finish
-	//   -h, --help     help for rm
-	//   -y, --yes      don't ask questions; just delete
+	//   -d, --detach            once removal has started, don't wait around for it to finish
+	//   -h, --help              help for rm
+	//       --role-arn string   ARN of an IAM role that CloudFormation should assume to remove the stack
+	//   -y, --yes               don't ask questions; just delete
 }
