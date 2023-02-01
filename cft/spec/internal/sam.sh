@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+if [ "${BASH_VERSINFO:-0}" -lt "4" ]; then
+    >&2 echo "Your bash version does not support associative arrays. Please update to use this script"
+    exit 1
+fi
+
 DOC_BASE="https://docs.aws.amazon.com/serverless-application-model/latest/developerguide"
 
 declare -A types=(
@@ -18,6 +23,22 @@ d=$(mktemp -d)
 git clone https://github.com/awsdocs/aws-sam-developer-guide.git $d
 
 cd "$d"
+
+#  The Name property was declared twice.
+echo "diff --git a/doc_source/sam-property-function-eventbridgerule.md b/doc_source/sam-property-function-eventbridgerule.md
+index 7a88e81..1d4a8ac 100644
+--- a/doc_source/sam-property-function-eventbridgerule.md
++++ b/doc_source/sam-property-function-eventbridgerule.md
+@@ -14,7 +14,6 @@ To declare this entity in your AWS Serverless Application Model \(AWS SAM\) temp
+   [DeadLetterConfig](#sam-function-eventbridgerule-deadletterconfig): DeadLetterConfig
+   [EventBusName](#sam-function-eventbridgerule-eventbusname): String
+   [Input](#sam-function-eventbridgerule-input): String
+-  [Name](#sam-function-eventbridgerule-name): String
+   [InputPath](#sam-function-eventbridgerule-inputpath): String
+   [Name](#sam-function-eventbridgerule-name): String
+   [Pattern](#sam-function-eventbridgerule-pattern): [EventPattern](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-events-rule.html#cfn-events-rule-eventpattern)
+" | git apply
+
 echo "ResourceSpecificationVersion: $(git rev-parse HEAD)"
 
 cd doc_source
@@ -43,7 +64,7 @@ for file in sam-resource-*.md; do
 
     IFS=$'\n'
     for line in $(head -n$((second-1)) $file | tail -n$((second-first-3))); do
-        prop_name="$(echo "$line" | sed -e 's/^ *\[//' -e 's/\].*$//')"
+        prop_name="$(echo "$line" | grep -o '[A-Z]\w\+' | head -n1)"
         echo "      $prop_name:"
 
         echo "        Documentation: ${DOC_BASE}/${file_base}.html#${file_base/resource-/}-${prop_name,,}"
@@ -101,7 +122,7 @@ for file in sam-property-*.md; do
 
     IFS=$'\n'
     for line in $(head -n$((second-1)) $file | tail -n$((second-first-1))); do
-        prop_name="$(echo "$line" | sed -e 's/^ *\[//' -e 's/\].*$//')"
+        prop_name="$(echo "$line" | grep -o '[A-Z]\w\+' | head -n1)"
         echo "      $prop_name:"
 
         echo "        Documentation: ${DOC_BASE}/${file_base}.html#${file_base/property-/}-${prop_name,,}"
@@ -129,3 +150,5 @@ for file in sam-property-*.md; do
 
     completed[${resource_name}::${prop_type_name}]="yes"
 done
+
+rm -rf "$d"
