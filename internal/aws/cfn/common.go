@@ -20,7 +20,7 @@ func MakeTags(tags map[string]string) []types.Tag {
 }
 
 // uniqueStrings returns a unique subset of the string slice provided.
-func uniqueStrings(input []string) []string {
+func UniqueStrings(input []string) []string {
 	u := make([]string, 0, len(input))
 	m := make(map[string]bool)
 

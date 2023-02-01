@@ -17,6 +17,8 @@ import (
 	"github.com/aws/smithy-go/ptr"
 )
 
+const WAIT_PERIOD_IN_SECONDS = 2
+
 type mockStack struct {
 	name      string
 	template  cft.Template
@@ -225,7 +227,7 @@ func GetChangeSet(stackName, changeSetName string) (*cloudformation.DescribeChan
 		StackName:             ptr.String(stackName),
 		Status:                types.ChangeSetStatusCreateComplete,
 		StatusReason:          ptr.String("Mock status reason"),
-		Tags:                  makeTags(c.tags),
+		Tags:                  MakeTags(c.tags),
 	}, nil
 }
 
@@ -275,7 +277,7 @@ func ExecuteChangeSet(stackName, changeSetName string, disableRollback bool) err
 		},
 		StackId:           ptr.String(stackName),
 		StackStatusReason: ptr.String("Mock status reason"),
-		Tags:              makeTags(c.tags),
+		Tags:              MakeTags(c.tags),
 	}
 
 	s.resources = []types.StackResource{
@@ -325,5 +327,55 @@ func WaitUntilStackCreateComplete(stackName string) error {
 		return errNoStack
 	}
 
+	return nil
+}
+
+// TODO - Fill out the mocks for stacksets
+
+func GetStackSet(stackSetName string) (*types.StackSet, error) {
+	return nil, nil
+}
+
+func ListStackSetInstances(stackSetName string) ([]types.StackInstanceSummary, error) {
+	return nil, nil
+}
+
+func CreateStackSet(conf StackSetConfig) (*string, error) {
+	return nil, nil
+}
+
+func UpdateStackSet(conf StackSetConfig, instanceConf StackSetInstancesConfig, wait bool) error {
+	return nil
+}
+
+func ListLast10StackSetOperations(stackSetName string) ([]types.StackSetOperationSummary, error) {
+	return nil, nil
+}
+
+func DeleteStackSet(stackSetName string) error {
+	return nil
+}
+
+func DeleteAllStackSetInstances(stackSetName string, wait bool, retainStacks bool) error {
+	return nil
+}
+
+func CreateStackSetInstances(conf StackSetInstancesConfig, wait bool) error {
+	return nil
+}
+
+func AddStackSetInstances(conf StackSetConfig, instanceConf StackSetInstancesConfig, wait bool) error {
+	return nil
+}
+
+func ListStackSets() ([]types.StackSetSummary, error) {
+	return nil, nil
+}
+
+func GetStackSetOperationsResult(stackSetName *string, operationId *string) (*types.StackSetOperationResultSummary, error) {
+	return nil, nil
+}
+
+func DeleteStackSetInstances(stackSetName string, accounts []string, regions []string, wait bool, retainStacks bool) error {
 	return nil
 }

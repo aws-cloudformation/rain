@@ -266,8 +266,8 @@ func DeleteStackSetInstances(stackSetName string, accounts []string, regions []s
 	}
 
 	var input = &cloudformation.DeleteStackInstancesInput{
-		Accounts:     uniqueStrings(accounts),
-		Regions:      uniqueStrings(regions),
+		Accounts:     UniqueStrings(accounts),
+		Regions:      UniqueStrings(regions),
 		RetainStacks: retainStacks,
 		StackSetName: &stackSetName,
 	}

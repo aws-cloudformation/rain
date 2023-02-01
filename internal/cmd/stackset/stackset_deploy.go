@@ -219,7 +219,7 @@ func createStackSetName(args []string) string {
 	return stackSetName
 }
 
-//Validate if we have enough configuration data to create/update stack set instances
+// Validate if we have enough configuration data to create/update stack set instances
 func isInstanceConfigDataValid(c *cfn.StackSetInstancesConfig) bool {
 	if c != nil &&
 		c.Accounts != nil && len(c.Accounts) > 0 &&
