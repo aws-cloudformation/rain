@@ -54,7 +54,7 @@ var Cmd = &cobra.Command{
 				first = false
 			}
 
-			time.Sleep(time.Second * 2)
+			time.Sleep(time.Second * cfn.WAIT_PERIOD_IN_SECONDS)
 		}
 
 		spinner.Pop()

@@ -13,18 +13,19 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.16.3
 	github.com/aws/smithy-go v1.11.2
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
-	github.com/google/go-cmp v0.5.7
+	github.com/google/go-cmp v0.5.8
 	github.com/google/uuid v1.3.0
 	github.com/gookit/color v1.5.0
 	github.com/nathan-fiscaletti/consolesize-go v0.0.0-20220204101620-317176b6684d
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
-	golang.org/x/sys v0.0.0-20220330033206-e17cdc41300f
-	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
+	golang.org/x/sys v0.2.0
+	golang.org/x/term v0.2.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )
 
 require (
+	github.com/aws/aws-sdk-go v1.44.151 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.1 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.9 // indirect
@@ -40,7 +41,11 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778 // indirect
+	golang.org/x/exp v0.0.0-20221230185412-738e83a70c30
+	golang.org/x/net v0.2.0 // indirect
+	golang.org/x/text v0.4.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

@@ -5,7 +5,8 @@ import (
 	"github.com/aws/smithy-go/ptr"
 )
 
-func makeTags(tags map[string]string) []types.Tag {
+// converts map of strings to a slice of types.Tag
+func MakeTags(tags map[string]string) []types.Tag {
 	out := make([]types.Tag, 0)
 
 	for key, value := range tags {
@@ -16,4 +17,19 @@ func makeTags(tags map[string]string) []types.Tag {
 	}
 
 	return out
+}
+
+// uniqueStrings returns a unique subset of the string slice provided.
+func UniqueStrings(input []string) []string {
+	u := make([]string, 0, len(input))
+	m := make(map[string]bool)
+
+	for _, val := range input {
+		if _, ok := m[val]; !ok {
+			m[val] = true
+			u = append(u, val)
+		}
+	}
+
+	return u
 }

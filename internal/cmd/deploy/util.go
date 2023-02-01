@@ -17,9 +17,9 @@ import (
 	"github.com/aws/smithy-go/ptr"
 )
 
-var fixStackNameRe *regexp.Regexp
+var FixStackNameRe *regexp.Regexp
 
-const maxStackNameLength = 128
+const MaxStackNameLength = 128
 
 func formatChangeSet(stackName, changeSetName string) string {
 	status, err := cfn.GetChangeSet(stackName, changeSetName)
@@ -82,7 +82,8 @@ func formatChangeSet(stackName, changeSetName string) string {
 	return strings.TrimSpace(out.String())
 }
 
-func getParameters(template cft.Template, cliParams map[string]string, old []types.Parameter, stackExists bool) []types.Parameter {
+func GetParameters(template cft.Template, combinedParameters map[string]string, old []types.Parameter, stackExists bool) []types.Parameter {
+
 	newParams := make([]types.Parameter, 0)
 
 	oldMap := make(map[string]types.Parameter)
@@ -95,7 +96,7 @@ func getParameters(template cft.Template, cliParams map[string]string, old []typ
 
 	if params, ok := template.Map()["Parameters"]; ok {
 		// Check we don't have any unknown params
-		for k := range cliParams {
+		for k := range combinedParameters {
 			if _, ok := params.(map[string]interface{})[k]; !ok {
 				panic(fmt.Errorf("unknown parameter: %s", k))
 			}
@@ -110,7 +111,7 @@ func getParameters(template cft.Template, cliParams map[string]string, old []typ
 			usePrevious := false
 
 			// Decide if we have an existing value
-			if cliParam, ok := cliParams[k]; ok {
+			if cliParam, ok := combinedParameters[k]; ok {
 				value = cliParam
 			} else {
 				extra := ""
@@ -200,7 +201,7 @@ func ListToMap(name string, in []string) map[string]string {
 	return out
 }
 
-func packageTemplate(fn string, yes bool) cft.Template {
+func PackageTemplate(fn string, yes bool) cft.Template {
 	// Call RainBucket for side-effects in case we want to force bucket creation
 	s3.RainBucket(yes)
 
@@ -261,5 +262,5 @@ func checkStack(stackName string) (types.Stack, bool) {
 }
 
 func init() {
-	fixStackNameRe = regexp.MustCompile(`[^a-zA-Z0-9]+`)
+	FixStackNameRe = regexp.MustCompile(`[^a-zA-Z0-9]+`)
 }

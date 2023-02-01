@@ -121,7 +121,7 @@ func CreateBucket(bucketName string) error {
 // Upload an artefact to the bucket with a unique name
 func Upload(bucketName string, content []byte) (string, error) {
 	isBucketExists, errBucketExists := BucketExists(bucketName)
-	
+
 	if errBucketExists != nil {
 		return "", fmt.Errorf("unable to confirm whether artifact bucket exists: %w", errBucketExists)
 	}
