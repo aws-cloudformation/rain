@@ -161,11 +161,15 @@ YAML:
 		spinner.Push("Creating change set")
 		changeSetName, createErr := cfn.CreateChangeSet(template, parameters, combinedTags, stackName, roleArn)
 		if createErr != nil {
+			config.Debugf("Got createErr: %v", createErr.Error())
 			if createErr.Error() == noChangeFoundMsg {
 				spinner.Pop()
 				fmt.Println(console.Green("Change set was created, but there is no change. Deploy was skipped."))
 				return
 			} else {
+				/*
+					error creating changeset: The submitted information didn't contain changes. Submit different information to create a change set.
+				*/
 				panic(ui.Errorf(createErr, "error creating changeset"))
 			}
 		}
