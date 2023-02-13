@@ -87,6 +87,10 @@ func loadConfig(ctx context.Context, sessionName string) *aws.Config {
 		panic(errors.New("could not establish AWS credentials; please run 'aws configure' or choose a profile"))
 	}
 
+	if cfg.Region == "" {
+		panic(errors.New("a region was not specified. You can run 'aws configure' or choose a profile with a region"))
+	}
+
 	return &cfg
 }
 
