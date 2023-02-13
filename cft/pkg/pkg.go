@@ -9,10 +9,18 @@
 // `Rain::S3Http`: uploads the file or directory (zipping it first) to S3 and returns the HTTP URI (i.e. `https://bucket.s3.region.amazonaws.com/key`)
 // `Rain::S3`: a string value uploads the file or directory (zipping it first) to S3 and returns the S3 URI (i.e. `s3://bucket/key`)
 // `Rain::S3`: an object with the following properties
-//    `Path`: path to the file or directory. If a directory is supplied, it will be zipped before uploading to S3
-//    `BucketProperty`: Name of returned property that will contain the bucket name
-//    `KeyProperty`: Name of returned property that will contain the object key
-//    `VersionProperty`: (optional) Name of returned property that will contain the object version
+//
+//	`Path`: path to the file or directory. If a directory is supplied, it will be zipped before uploading to S3
+//	`BucketProperty`: Name of returned property that will contain the bucket name
+//	`KeyProperty`: Name of returned property that will contain the object key
+//	`VersionProperty`: (optional) Name of returned property that will contain the object version
+//
+// `Rain::Module`: Supply a URL to a rain module, which is similar to a CloudFormation module,
+//
+//	but allows for type inheritance. One of the resources in the module yaml file
+//	must be called "ModuleExtension", and it must have a Metadata entry called
+//	"Extends" that supplies the existing type to be extended. The Parameters section
+//	of the module can be used to define additional properties for the extension.
 package pkg
 
 import (
@@ -28,7 +36,9 @@ import (
 func transform(node *yaml.Node, root string) (bool, error) {
 	changed := false
 
+	// registry is a map of functions defined in rain.go
 	for path, fn := range registry {
+		// config.Debugf("transform path: %v", path)
 		for found := range s11n.MatchAll(node, path) {
 			config.Debugf("Matched: %s\n", path)
 			c, err := fn(found, root)
@@ -67,6 +77,7 @@ func File(path string) (cft.Template, error) {
 
 	t, err := parse.File(path)
 	if err != nil {
+		config.Debugf("pkg.File unable to parse %v", path)
 		return t, err
 	}
 

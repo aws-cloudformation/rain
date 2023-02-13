@@ -23,4 +23,5 @@ var Tags = map[string]string{
 	"!Rain::Include": "Rain::Include",
 	"!Rain::S3Http":  "Rain::S3Http",
 	"!Rain::S3":      "Rain::S3",
+	"!Rain::Module":  "Rain::Module",
 }

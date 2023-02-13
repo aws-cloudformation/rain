@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft/format"
 	cftpkg "github.com/aws-cloudformation/rain/cft/pkg"
+	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/ui"
 	"github.com/spf13/cobra"
@@ -13,10 +14,10 @@ import (
 
 var outFn = ""
 
-// Cmd is the merge command's entrypoint
+// Cmd is the pkg command's entrypoint
 var Cmd = &cobra.Command{
 	Use:   "pkg <template>",
-	Short: "Package local artifacts into a template",
+	Short: "Package local or remote artifacts into a template",
 	Long: `Performs the same functions as "aws cloudformation package" but with added functionality.
 
 You may use the following, rain-specific directives in templates packaged with "rain pkg":
@@ -40,6 +41,12 @@ You may use the following, rain-specific directives in templates packaged with "
     Format: Uri|Http           Specify which format rain pkg should return the S3 location as.
                                Do not specify this property if you supply BucketProperty and KeyProperty.
                                The default Format is "Uri".
+
+  !Rain::Module <url>		   Supply a URL to a rain module, which is similar to a CloudFormation module, 
+  						       but allows for type inheritance. One of the resources in the module yaml file 
+							   must be called "ModuleExtension", and it must have a Metadata entry called 
+							   "Extends" that supplies the existing type to be extended. The Parameters section 
+							   of the module can be used to define additional properties for the extension.
 `,
 	Args:                  cobra.ExactArgs(1),
 	Aliases:               []string{"package"},
@@ -66,4 +73,5 @@ You may use the following, rain-specific directives in templates packaged with "
 
 func init() {
 	Cmd.Flags().StringVarP(&outFn, "output", "o", "", "Output packaged template to a file")
+	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
 }
