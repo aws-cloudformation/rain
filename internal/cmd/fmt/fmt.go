@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft/format"
+	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/ui"
 
@@ -150,4 +151,5 @@ func init() {
 	Cmd.Flags().BoolVarP(&verifyFlag, "verify", "v", false, "Check if the input is already correctly formatted and exit.\nThe exit status will be 0 if so and 1 if not.")
 	Cmd.Flags().BoolVarP(&writeFlag, "write", "w", false, "Write the output back to the file rather than to stdout.")
 	Cmd.Flags().BoolVarP(&unsortedFlag, "unsorted", "u", false, "Do not sort the template's properties.")
+	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
 }

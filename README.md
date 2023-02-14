@@ -11,7 +11,15 @@ Rain is also a command line tool for working with [AWS CloudFormation](https://a
 
 [![Make it Rain](./docs/rain.svg)](https://asciinema.org/a/vtbAXkriC0zg0T2UzP0t63G4S?autoplay=1)
 
-Key features:
+## Discord
+
+Join us on Discord to discuss rain and all things CloudFormation! Connect & interact with CloudFormation developers &
+experts, find channels to discuss rain, the CloudFormation registry, StackSets,
+cfn-lint, Guard and more:
+
+[![Join our Discord](https://discordapp.com/api/guilds/981586120448020580/widget.png?style=banner3)](https://discord.gg/9zpd7TTRwq)
+
+## Key features
 
 * **Interactive deployments**: With `rain deploy`, rain packages your CloudFormation templates using [`aws cloudformation package`](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/cloudformation/package.html), prompts you for any parameters that have not yet been defined, shows you a summary of the changes that will be made, and then displays real-time updates as your stack is being deployed. Once finished, you get a summary of the outcome along with any error messages collected along the way - including errors messages for stacks that have been rolled back and no longer exist.
 
@@ -29,7 +37,7 @@ If you have [homebrew](https://brew.sh/) installed, `brew install rain`
 
 Or you can download the appropriate binary for your system from [the releases page](https://github.com/aws-cloudformation/rain/releases).
 
-Or if you're a [Gopher](https://blog.golang.org/gopher), you can `GO111MODULE=on go get github.com/aws-cloudformation/rain/cmd/rain`
+Or if you're a [Gopher](https://blog.golang.org/gopher), you can `GO111MODULE=on go install github.com/aws-cloudformation/rain/cmd/rain`
 
 ```
 Usage:
