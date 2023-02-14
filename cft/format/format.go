@@ -45,12 +45,33 @@ func String(t cft.Template, opt Options) string {
 
 	lastIndent := 0
 	indent := 0
+	lastPartWasComment := false
+	lastLineWasEmpty := false
 
 	for _, part := range parts {
-		indent = len(part) - len(strings.TrimLeft(part, " "))
 
-		// Add spaces between 1st and 2nd level properties
+		trimmedPart := strings.TrimLeft(part, " ")
+		indent = len(part) - len(trimmedPart)
+
+		isComment := false
+		if len(part) > 0 && strings.HasPrefix(trimmedPart, "#") {
+			isComment = true
+		}
+
+		isEmpty := len(part) == 0 // This should never be true
+
+		// Add spaces between 1st and 2nd level properties, except for comments
 		if indent <= lastIndent && (indent == 0 || indent == 2) {
+			if !lastPartWasComment {
+				// If the last line was a comment, don't newline here,
+				// since we want the comment to stick to the thing it was above
+				result.WriteString("\n")
+				lastLineWasEmpty = true
+			}
+		}
+
+		// Put a space above first/only comment lines
+		if !lastPartWasComment && isComment && !lastLineWasEmpty {
 			result.WriteString("\n")
 		}
 
@@ -58,6 +79,8 @@ func String(t cft.Template, opt Options) string {
 		result.WriteString("\n")
 
 		lastIndent = indent
+		lastPartWasComment = isComment
+		lastLineWasEmpty = isEmpty
 	}
 
 	out := strings.TrimSpace(result.String())

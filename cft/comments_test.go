@@ -34,7 +34,6 @@ waldo: {}
 	}
 
 	expected := `# Comment about the doc
-
 foo: bar # Comment about foo:bar
 
 baz: # Comment about baz
@@ -42,6 +41,7 @@ baz: # Comment about baz
 
   xyzzy: # Comment about xyzzy
     - corge # Comment about corge
+
     # Comment about grault
     - grault: garply # Comment about grault:garply
 
