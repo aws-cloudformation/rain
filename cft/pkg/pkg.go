@@ -33,7 +33,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func transform(node *yaml.Node, root string) (bool, error) {
+func transform(node *yaml.Node, rootDir string, t cft.Template) (bool, error) {
 	changed := false
 
 	// registry is a map of functions defined in rain.go
@@ -41,7 +41,7 @@ func transform(node *yaml.Node, root string) (bool, error) {
 		// config.Debugf("transform path: %v", path)
 		for found := range s11n.MatchAll(node, path) {
 			config.Debugf("Matched: %s\n", path)
-			c, err := fn(found, root)
+			c, err := fn(found, rootDir, t)
 			if err != nil {
 				config.Debugf("Error packaging template: %s\n", err)
 				return false, err
@@ -56,11 +56,11 @@ func transform(node *yaml.Node, root string) (bool, error) {
 
 // Template returns t with assets included as per AWS CLI packaging rules
 // and any Rain:: functions used.
-// root must be passed in so that any included assets can be loaded from the same directory
-func Template(t cft.Template, root string) (cft.Template, error) {
+// rootDir must be passed in so that any included assets can be loaded from the same directory
+func Template(t cft.Template, rootDir string) (cft.Template, error) {
 	node := t.Node
 
-	changed, err := transform(node, root)
+	changed, err := transform(node, rootDir, t)
 
 	if changed {
 		t, err = parse.Node(node)

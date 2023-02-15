@@ -1,11 +1,14 @@
+// This file contains implementations for `!Rain::` directives
 package pkg
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
 
+	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/s11n"
@@ -28,7 +31,7 @@ type s3Options struct {
 	Format         s3Format `yaml:"Format"`
 }
 
-type rainFunc func(*yaml.Node, string) (bool, error)
+type rainFunc func(*yaml.Node, string, cft.Template) (bool, error)
 
 var registry = make(map[string]rainFunc)
 
@@ -40,7 +43,7 @@ func init() {
 	registry["**/*|Rain::Module"] = module
 }
 
-func includeString(n *yaml.Node, root string) (bool, error) {
+func includeString(n *yaml.Node, root string, t cft.Template) (bool, error) {
 	content, _, err := expectFile(n, root)
 	if err != nil {
 		return false, err
@@ -51,7 +54,7 @@ func includeString(n *yaml.Node, root string) (bool, error) {
 	return true, nil
 }
 
-func includeLiteral(n *yaml.Node, root string) (bool, error) {
+func includeLiteral(n *yaml.Node, root string, t cft.Template) (bool, error) {
 	content, path, err := expectFile(n, root)
 	if err != nil {
 		return false, err
@@ -65,7 +68,7 @@ func includeLiteral(n *yaml.Node, root string) (bool, error) {
 
 	// Transform
 	parse.TransformNode(&node)
-	_, err = transform(&node, filepath.Dir(path))
+	_, err = transform(&node, filepath.Dir(path), t)
 	if err != nil {
 		return false, err
 	}
@@ -114,7 +117,7 @@ func handleS3(root string, options s3Options) (*yaml.Node, error) {
 	return &n, nil
 }
 
-func includeS3Object(n *yaml.Node, root string) (bool, error) {
+func includeS3Object(n *yaml.Node, root string, t cft.Template) (bool, error) {
 	if n.Kind != yaml.MappingNode || len(n.Content) != 2 {
 		return false, errors.New("expected a map")
 	}
@@ -136,7 +139,7 @@ func includeS3Object(n *yaml.Node, root string) (bool, error) {
 	return true, nil
 }
 
-func includeS3Http(n *yaml.Node, root string) (bool, error) {
+func includeS3Http(n *yaml.Node, root string, t cft.Template) (bool, error) {
 	path, err := expectString(n)
 	if err != nil {
 		return false, err
@@ -156,7 +159,7 @@ func includeS3Http(n *yaml.Node, root string) (bool, error) {
 	return true, nil
 }
 
-func includeS3URI(n *yaml.Node, root string) (bool, error) {
+func includeS3URI(n *yaml.Node, root string, t cft.Template) (bool, error) {
 	path, err := expectString(n)
 	if err != nil {
 		return false, err
@@ -176,29 +179,24 @@ func includeS3URI(n *yaml.Node, root string) (bool, error) {
 	return true, nil
 }
 
-func includeS3(n *yaml.Node, root string) (bool, error) {
+func includeS3(n *yaml.Node, root string, t cft.Template) (bool, error) {
 	// Figure out if we're a string or an object
 	if len(n.Content) != 2 {
 		return false, errors.New("expected exactly one key")
 	}
 
 	if n.Content[1].Kind == yaml.ScalarNode {
-		return includeS3URI(n, root)
+		return includeS3URI(n, root, t)
 	} else if n.Content[1].Kind == yaml.MappingNode {
-		return includeS3Object(n, root)
+		return includeS3Object(n, root, t)
 	}
 
 	return true, nil
 }
 
 // Convert the module into a node for the packaged template
-func processModule(module *yaml.Node, outputNode *yaml.Node) (bool, error) {
+func processModule(module *yaml.Node, outputNode *yaml.Node, t cft.Template) (bool, error) {
 	config.Debugf("processModule module: %v", module)
-	// TODO
-
-	// *outputNode = *module
-	// That would just insert the module contents, just like Rain::Include
-	// We need to take each resource out of the module and insert it
 
 	outputNode.Content = make([]*yaml.Node, 0)
 
@@ -217,16 +215,17 @@ func processModule(module *yaml.Node, outputNode *yaml.Node) (bool, error) {
 	_, moduleExtension := s11n.GetMapValue(resources, "ModuleExtension")
 	if moduleExtension == nil {
 		return false, errors.New("expected the module to have a single ModuleExtension resource")
-		// TODO: What if the module is not an extension but a collection of resources?
 	}
 
-	config.Debugln("Found ModuleExtension")
-
+	// Get additional resources and add them to the output
 	for i, resource := range resources.Content {
-		config.Debugf("resource: %v, %v", resource.ShortTag(), resource.Value)
+		tag := resource.ShortTag()
+		config.Debugf("resource: %v, %v", tag, resource.Value)
 		if resource.Kind == yaml.MappingNode {
-			if resource.Value != "ModuleExtension" {
+			name := resources.Content[i-1].Value
+			if name != "ModuleExtension" {
 				// This is an additional resource to be added
+				config.Debugf("Adding additional resource to output node: %v", name)
 				outputNode.Content = append(outputNode.Content, resources.Content[i-1])
 				outputNode.Content = append(outputNode.Content, resource)
 			}
@@ -237,11 +236,13 @@ func processModule(module *yaml.Node, outputNode *yaml.Node) (bool, error) {
 }
 
 // Type: !Rain::Module
-func module(n *yaml.Node, root string) (bool, error) {
+func module(n *yaml.Node, root string, t cft.Template) (bool, error) {
 
 	if len(n.Content) != 2 {
 		return false, errors.New("expected !Rain::Module <URI>")
 	}
+
+	// TODO - remove these after testing
 	config.Debugf("module node: %v", n)
 	config.Debugf("module node.Content: %v", n.Content)
 	for i, c := range n.Content {
@@ -267,25 +268,35 @@ func module(n *yaml.Node, root string) (bool, error) {
 
 		// Transform
 		parse.TransformNode(&node)
-		_, err = transform(&node, filepath.Dir(path))
+		_, err = transform(&node, filepath.Dir(path), t)
 		if err != nil {
 			return false, err
 		}
 
 		// Create a new node to represent the processed module
 		var outputNode yaml.Node
-		_, err = processModule(&node, &outputNode)
+		_, err = processModule(&node, &outputNode, t)
 		if err != nil {
 			return false, err
 		}
 
-		var out map[string]interface{}
-		outputNode.Decode(&out)
-		config.Debugf("module after processing: %v", out)
+		// TODO - remove these after testing
+		j, _ := json.Marshal(outputNode)
+		config.Debugf("module outputNode: %v", string(j))
+
+		j, _ = json.Marshal(t.Node)
+		config.Debugf("t: %v", string(j))
+
+		// Find the resource node in the template
+		_, resourceNode := s11n.GetMapValue(t.Node.Content[0], "Resources")
+		if resourceNode == nil {
+			return false, errors.New("expected template to have Resources")
+		}
 
 		// Insert into the template
-		*n = *outputNode.Content[0]
-
+		for i, c := range outputNode.Content {
+			resourceNode.Content = append(resourceNode.Content, outputNode.Content[i])
+		}
 	} else if strings.HasPrefix(uri, "https://") {
 		// Download the file and then parse it
 		// TODO
