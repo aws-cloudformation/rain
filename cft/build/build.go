@@ -98,10 +98,16 @@ func (b builder) newResource(resourceType string) (map[string]interface{}, []*cf
 		}
 	}
 
-	return map[string]interface{}{
+	resource := map[string]interface{}{
 		"Type":       resourceType,
 		"Properties": properties,
-	}, comments
+	}
+
+	if len(properties) == 0 {
+		delete(resource, "Properties")
+	}
+
+	return resource, comments
 }
 
 func (b builder) newProperty(resourceType, propertyName string, pSpec *spec.Property) (interface{}, []*cft.Comment) {
