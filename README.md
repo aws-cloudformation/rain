@@ -88,10 +88,6 @@ Rain is licensed under the Apache 2.0 License.
 
 In alphabetical order:
 
-* [cfn-flip](https://github.com/awslabs/aws-cfn-template-flip)
-
-    cfn-flip converts AWS CloudFormation templates between JSON and YAML formats, making use of the YAML format's short function syntax where possible.
-
 * [cfn-lint](https://github.com/aws-cloudformation/cfn-python-lint)
 
     Validate CloudFormation yaml/json templates against the CloudFormation spec and additional checks. Includes checking valid values for resource properties and best practices.
