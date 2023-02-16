@@ -24,24 +24,28 @@
 package pkg
 
 import (
+	"encoding/json"
 	"path/filepath"
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
 )
 
-func transform(node *yaml.Node, rootDir string, t cft.Template) (bool, error) {
+func transform(nodeToTransform *yaml.Node, rootDir string, t cft.Template) (bool, error) {
 	changed := false
 
 	// registry is a map of functions defined in rain.go
 	for path, fn := range registry {
 		// config.Debugf("transform path: %v", path)
-		for found := range s11n.MatchAll(node, path) {
-			config.Debugf("Matched: %s\n", path)
-			c, err := fn(found, rootDir, t)
+		for found := range s11n.MatchAll(nodeToTransform, path) {
+			config.Debugf("Matched: %s", path)
+			config.Debugf("Found: %s", node.ToJson(found))
+			parent := node.GetParent(found, nodeToTransform, nil)
+			c, err := fn(found, rootDir, t, parent)
 			if err != nil {
 				config.Debugf("Error packaging template: %s\n", err)
 				return false, err
@@ -58,12 +62,15 @@ func transform(node *yaml.Node, rootDir string, t cft.Template) (bool, error) {
 // and any Rain:: functions used.
 // rootDir must be passed in so that any included assets can be loaded from the same directory
 func Template(t cft.Template, rootDir string) (cft.Template, error) {
-	node := t.Node
+	templateNode := t.Node
 
-	changed, err := transform(node, rootDir, t)
+	j, _ := json.MarshalIndent(t.Node, "", "  ")
+	config.Debugf("Original template: %v", string(j))
+
+	changed, err := transform(templateNode, rootDir, t)
 
 	if changed {
-		t, err = parse.Node(node)
+		t, err = parse.Node(templateNode)
 	}
 
 	return t, err

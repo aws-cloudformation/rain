@@ -17,7 +17,7 @@ var outFn = ""
 // Cmd is the pkg command's entrypoint
 var Cmd = &cobra.Command{
 	Use:   "pkg <template>",
-	Short: "Package local or remote artifacts into a template",
+	Short: "Package local artifacts into a template",
 	Long: `Performs the same functions as "aws cloudformation package" but with added functionality.
 
 You may use the following, rain-specific directives in templates packaged with "rain pkg":

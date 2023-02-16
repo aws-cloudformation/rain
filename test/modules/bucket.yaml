@@ -4,48 +4,54 @@ Description: |
   This is a rain module, which allows for existing resources to 
   be extended, similar to a sub-class in an object oriented language.
 
-Extends: AWS::S3::Bucket
-
 # New properties that the user can set
-AdditionalProperties:
+Parameters:
 
   LogBucketName:
     Type: String
     Description: The name of the log bucket
 
-Metadata:
-  Comment: A bucket that will pass cfn_nag checks
-  cfn_nag:
-    rules_to_suppress:
-      - id: W51
-        reason: "Will be added by the consumer"
-DeletionPolicy: Retain
-UpdateReplacePolicy: Retain
-
-# Inherits all properties of a regular bucket
-# The user can override any of these defaults in the template that uses this module
-Properties:
-  LoggingConfiguration:
-    DestinationBucketName: !Ref LogBucket
-  BucketEncryption:
-    ServerSideEncryptionConfiguration:
-      - ServerSideEncryptionByDefault:
-         SSEAlgorithm: AES256
-  VersioningConfiguration:
-    Status: Enabled
-  PublicAccessBlockConfiguration:
-    BlockPublicAcls: true
-    BlockPublicPolicy: true
-    IgnorePublicAcls: true
-    RestrictPublicBuckets: true
-  Tags:
-    - Key: test-tag
-      Value: test-value1
-
 # Additional resources to be added to the template
 
 Resources:
+
+  # This is a reserved name that means this is the extended resource
+  ModuleExtension:
+
+    Metadata:
+      # This is required to tell rain what resource we are extending
+      Extends: AWS::S3::Bucket
+      Comment: A bucket that will pass cfn_nag checks
+      cfn_nag:
+        rules_to_suppress:
+          - id: W51
+            reason: "Will be added by the consumer"
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+
+    # Inherits all properties of a regular bucket
+    # The user can override any of these defaults in the template that uses this module
+    Properties:
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LogBucket
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+             SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: test-tag
+          Value: test-value1
   
+  # Any other resources we define will be added to the template
+  # The logical name will be the user-defined resource name plus this name, 
+  # for example "ModuleExample-LogBucket"
   LogBucket:
     Type: AWS::S3::Bucket
     Metadata:
@@ -71,5 +77,9 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+
+  AdditionalResource:
+    # Testing to make sure 2nd resource gets added
+    Type: AWS::S3::Bucket
 
 
