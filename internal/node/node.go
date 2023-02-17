@@ -2,7 +2,6 @@ package node
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/aws-cloudformation/rain/internal/config"
@@ -95,9 +94,7 @@ func GetParent(node *yaml.Node, rootNode *yaml.Node, priorNode *yaml.Node) NodeP
 				before = priorNode
 				break
 			}
-			var prior *yaml.Node
-			prior = rootNode.Content[i]
-			pair = GetParent(node, n, prior)
+			pair = GetParent(node, n, rootNode.Content[i])
 			if pair.Value != nil {
 				found = pair.Value
 				before = pair.Key
@@ -134,7 +131,7 @@ func RemoveFromMap(node *yaml.Node, name string) error {
 	}
 
 	if idx == -1 {
-		return errors.New(fmt.Sprintf("Unable to remove %v from map", name))
+		return fmt.Errorf("unable to remove %v from map", name)
 	}
 
 	newContent := make([]*yaml.Node, 0)

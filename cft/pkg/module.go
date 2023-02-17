@@ -15,6 +15,43 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Clone a property-like node from the module and replace any overridden values
+func cloneAndReplaceProps(ext *yaml.Node, name string, moduleProps *yaml.Node, templateProps *yaml.Node) *yaml.Node {
+
+	// Not all property-like attributes are required
+	if moduleProps == nil {
+		return nil
+	}
+
+	// Add the node to the output
+	ext.Content = append(ext.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: name})
+
+	// Start by cloning the properties in the module
+	props := node.Clone(moduleProps)
+
+	// Replace any property values overridden in the parent template
+	if templateProps != nil {
+		for i, tprop := range templateProps.Content {
+			for j, mprop := range props.Content {
+				// Property names are even-indexed array elements
+				if tprop.Value == mprop.Value && i%2 == 0 && j%2 == 0 {
+					config.Debugf("Found overridden prop %v", tprop.Value)
+					// Is a clone good enough here? Could get weird.
+					// Maybe we just require that you replace the entire property if it's nested
+					// Otherwise we have to do a diff
+					props.Content[j+1] = node.Clone(templateProps.Content[i+1])
+				}
+			}
+		}
+	} else {
+		// This is Ok. It's not required to override any props.
+		config.Debugf("templateProps is nil")
+	}
+
+	ext.Content = append(ext.Content, props)
+	return props
+}
+
 // Convert the module into a node for the packaged template
 func processModule(module *yaml.Node,
 	outputNode *yaml.Node, t cft.Template,
@@ -31,8 +68,6 @@ func processModule(module *yaml.Node,
 	// Get the logical id of the resource we are transforming
 	logicalId := parent.Key.Value
 	config.Debugf("logicalId: %v", logicalId)
-
-	_, templateProps := s11n.GetMapValue(parent.Value, "Properties") // Might be nil
 
 	// Make a new node that will hold our additions to the original template
 	outputNode.Content = make([]*yaml.Node, 0)
@@ -84,34 +119,22 @@ func processModule(module *yaml.Node,
 	ext.Content = append(ext.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: "Type"})
 	ext.Content = append(ext.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: extends.Value})
 
-	// Properties:
-	ext.Content = append(ext.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: "Properties"})
+	// TODO CreationPolicy, DeletionPolicy, DependsOn, Metadata, UpdatePolicy, UpdateReplacePolicy
+	// Just like Properties: CreationPolicy, Metadata, UpdatePolicy
+	// Single scalar value: DeletionPolicy, UpdateReplacePolicy
+	// Array of scalar: DependsOn
 
-	// Start by cloning the properties in the module
-	props := node.Clone(moduleProps)
-
-	// Replace any property values overridden in the parent template
-	if templateProps != nil {
-		for i, tprop := range templateProps.Content {
-			for j, mprop := range props.Content {
-				// Property names are even-indexed array elements
-				if tprop.Value == mprop.Value && i%2 == 0 && j%2 == 0 {
-					config.Debugf("Found overridden prop %v", tprop.Value)
-					// Is a clone good enough here? Could get weird.
-					// Maybe we just require that you replace the entire property if it's nested
-					// Otherwise we have to do a diff
-					props.Content[j+1] = node.Clone(templateProps.Content[i+1])
-				}
-			}
+	// Clone attributes that are like Properties, and replace overridden values
+	propLike := []string{"Properties", "CreationPolicy", "Metadata", "UpdatePolicy"}
+	for _, pl := range propLike {
+		_, plProps := s11n.GetMapValue(moduleExtension, pl)
+		_, plTemplateProps := s11n.GetMapValue(parent.Value, pl)
+		outProps := cloneAndReplaceProps(ext, pl, plProps, plTemplateProps)
+		if pl == "Metadata" {
+			// Remove the Extends attribute
+			node.RemoveFromMap(outProps, "Extends")
 		}
-	} else {
-		// This is Ok. It's not required to override any props.
-		config.Debugf("templateProps is nil")
 	}
-
-	// TODO Metadata, etc
-
-	ext.Content = append(ext.Content, props)
 
 	// Add the extension to the output node
 	outputNode.Content = append(outputNode.Content, &yaml.Node{
