@@ -2,6 +2,7 @@ package node
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/aws-cloudformation/rain/internal/config"
@@ -114,4 +115,34 @@ func ToJson(node *yaml.Node) string {
 		return fmt.Sprintf("Failed to marshal node to json: %v:", err)
 	}
 	return string(j)
+}
+
+// Remove a map key-value pair from node.Content
+func RemoveFromMap(node *yaml.Node, name string) error {
+
+	if len(node.Content) == 0 {
+		return nil
+	}
+
+	idx := -1
+
+	for i, n := range node.Content {
+		if n.Value == name {
+			idx = i
+			break
+		}
+	}
+
+	if idx == -1 {
+		return errors.New(fmt.Sprintf("Unable to remove %v from map", name))
+	}
+
+	newContent := make([]*yaml.Node, 0)
+	newContent = append(newContent, node.Content[:idx]...)
+	// Remove 2 elements, since the key and value are consecutive elements in the Content array
+	newContent = append(newContent, node.Content[idx+2:]...)
+
+	node.Content = newContent
+
+	return nil
 }

@@ -76,3 +76,45 @@ func TestGetParentFound(t *testing.T) {
 		t.Errorf("childKey should have been found as key for childOfChild")
 	}
 }
+
+func TestRemoveFromMap(t *testing.T) {
+
+	m := &yaml.Node{
+		Kind:    yaml.MappingNode,
+		Content: make([]*yaml.Node, 4),
+	}
+
+	m.Content[0] = &yaml.Node{
+		Kind:  yaml.ScalarNode,
+		Value: "KeepKey",
+	}
+
+	m.Content[1] = &yaml.Node{
+		Kind:  yaml.ScalarNode,
+		Value: "KeepVal",
+	}
+
+	m.Content[2] = &yaml.Node{
+		Kind:  yaml.ScalarNode,
+		Value: "RemoveKey",
+	}
+
+	m.Content[3] = &yaml.Node{
+		Kind:  yaml.ScalarNode,
+		Value: "RemoveVal",
+	}
+
+	err := node.RemoveFromMap(m, "RemoveKey")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(m.Content) != 2 {
+		t.Errorf("m.Content len is %v", len(m.Content))
+	}
+
+	if m.Content[0].Value != "KeepKey" && m.Content[1].Value != "KeepVal" {
+		t.Errorf("m.Content[0] is %v, [1] is %v", m.Content[0].Value, m.Content[1].Value)
+	}
+
+}
