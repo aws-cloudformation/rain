@@ -118,3 +118,15 @@ func TestRemoveFromMap(t *testing.T) {
 	}
 
 }
+
+func TestSetMapValue(t *testing.T) {
+	n := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
+	node.SetMapValue(n, "Test", &yaml.Node{Kind: yaml.ScalarNode, Value: "Val"})
+	if len(n.Content) != 2 || n.Content[0].Value != "Test" || n.Content[1].Value != "Val" {
+		t.Errorf("Unexpected length or content, len is %v", len(n.Content))
+	}
+	node.SetMapValue(n, "Test", &yaml.Node{Kind: yaml.ScalarNode, Value: "Val2"})
+	if n.Content[1].Value != "Val2" {
+		t.Errorf("Unexpected value: %v", n.Content[1].Value)
+	}
+}

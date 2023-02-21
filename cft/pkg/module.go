@@ -2,7 +2,6 @@
 package pkg
 
 import (
-	"encoding/json"
 	"errors"
 	"path/filepath"
 	"strings"
@@ -35,7 +34,6 @@ func cloneAndReplaceProps(ext *yaml.Node, name string, moduleProps *yaml.Node, t
 			for j, mprop := range props.Content {
 				// Property names are even-indexed array elements
 				if tprop.Value == mprop.Value && i%2 == 0 && j%2 == 0 {
-					config.Debugf("Found overridden prop %v", tprop.Value)
 					// Is a clone good enough here? Could get weird.
 					// Maybe we just require that you replace the entire property if it's nested
 					// Otherwise we have to do a diff
@@ -52,14 +50,39 @@ func cloneAndReplaceProps(ext *yaml.Node, name string, moduleProps *yaml.Node, t
 	return props
 }
 
+// Add DeletionPolicy and UpdateReplacePolicy
+func addPolicy(ext *yaml.Node, name string, moduleExtension *yaml.Node, templateResource *yaml.Node) {
+	_, templatePolicy := s11n.GetMapValue(templateResource, name)
+	_, modulePolicy := s11n.GetMapValue(moduleExtension, name)
+	if templatePolicy != nil || modulePolicy != nil {
+		policy := &yaml.Node{Kind: yaml.ScalarNode, Value: name}
+		var policyValue yaml.Node
+		policyValue.Kind = yaml.ScalarNode
+		if templatePolicy != nil {
+			policyValue.Value = templatePolicy.Value
+		} else {
+			policyValue.Value = modulePolicy.Value
+		}
+		ext.Content = append(ext.Content, policy)
+		ext.Content = append(ext.Content, &policyValue)
+	}
+}
+
+// Rename a resource defined in the module to add the template resource name
+func rename(logicalId string, resourceName string) string {
+	return logicalId + resourceName
+}
+
 // Convert the module into a node for the packaged template
 func processModule(module *yaml.Node,
 	outputNode *yaml.Node, t cft.Template,
 	typeNode *yaml.Node, parent node.NodePair) (bool, error) {
 
 	// The parent arg is the map in the template resource's Content[1] that contains Type, Properties, etc
-	p, _ := json.MarshalIndent(parent, "", "  ")
-	config.Debugf("parent: %v", string(p))
+	// p, _ := json.MarshalIndent(parent, "", "  ")
+	// config.Debugf("parent: %v", string(p))
+
+	config.Debugf("module: %v", node.ToJson(module))
 
 	if parent.Key == nil {
 		return false, errors.New("expected parent.Key to not be nil. The !Rain::Module directive should come after Type: ")
@@ -119,22 +142,67 @@ func processModule(module *yaml.Node,
 	ext.Content = append(ext.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: "Type"})
 	ext.Content = append(ext.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: extends.Value})
 
-	// TODO CreationPolicy, DeletionPolicy, DependsOn, Metadata, UpdatePolicy, UpdateReplacePolicy
-	// Just like Properties: CreationPolicy, Metadata, UpdatePolicy
-	// Single scalar value: DeletionPolicy, UpdateReplacePolicy
-	// Array of scalar: DependsOn
+	templateResource := parent.Value // The !!map node of the resource with Type !Rain::Module
 
 	// Clone attributes that are like Properties, and replace overridden values
 	propLike := []string{"Properties", "CreationPolicy", "Metadata", "UpdatePolicy"}
 	for _, pl := range propLike {
 		_, plProps := s11n.GetMapValue(moduleExtension, pl)
-		_, plTemplateProps := s11n.GetMapValue(parent.Value, pl)
+		_, plTemplateProps := s11n.GetMapValue(templateResource, pl)
 		outProps := cloneAndReplaceProps(ext, pl, plProps, plTemplateProps)
 		if pl == "Metadata" {
 			// Remove the Extends attribute
 			node.RemoveFromMap(outProps, "Extends")
 		}
 	}
+
+	// DeletionPolicy
+	addPolicy(ext, "DeletionPolicy", moduleExtension, templateResource)
+
+	// UpdateReplacePolicy
+	addPolicy(ext, "UpdateReplacePolicy", moduleExtension, templateResource)
+
+	// DependsOn is an array of scalars or a single scalar
+	_, moduleDependsOn := s11n.GetMapValue(moduleExtension, "DependsOn")
+	_, templateDependsOn := s11n.GetMapValue(templateResource, "DependsOn")
+	if moduleDependsOn != nil || templateDependsOn != nil {
+		ext.Content = append(ext.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: "DependsOn"})
+		dependsOnValue := &yaml.Node{Kind: yaml.SequenceNode, Content: make([]*yaml.Node, 0)}
+		if moduleDependsOn != nil {
+			config.Debugf("moduleDependsOn not nil: %v", node.ToJson(moduleDependsOn))
+			// Change the names to the modified resource name for the template
+			c := make([]*yaml.Node, 0)
+			if moduleDependsOn.Kind == yaml.ScalarNode {
+				for _, v := range strings.Split(moduleDependsOn.Value, " ") {
+					c = append(c, &yaml.Node{Kind: yaml.ScalarNode, Value: v})
+				}
+			} else {
+				// Arrays get converted to space delimited strings
+				for _, content := range moduleDependsOn.Content {
+					for _, v := range strings.Split(content.Value, " ") {
+						c = append(c, &yaml.Node{Kind: yaml.ScalarNode, Value: v})
+					}
+				}
+			}
+			for _, r := range c {
+				dependsOnValue.Content = append(dependsOnValue.Content,
+					&yaml.Node{Kind: yaml.ScalarNode, Value: rename(logicalId, r.Value)})
+			}
+		}
+		if templateDependsOn != nil {
+			if templateDependsOn.Kind == yaml.ScalarNode {
+				dependsOnValue.Content = append(dependsOnValue.Content, node.Clone(templateDependsOn))
+			} else {
+				for _, r := range templateDependsOn.Content {
+					dependsOnValue.Content = append(dependsOnValue.Content, node.Clone(r))
+				}
+			}
+		}
+		ext.Content = append(ext.Content, dependsOnValue)
+	}
+
+	// Resolve Refs in the module
+	// TODO
 
 	// Add the extension to the output node
 	outputNode.Content = append(outputNode.Content, &yaml.Node{
@@ -145,15 +213,34 @@ func processModule(module *yaml.Node,
 
 	// Get additional resources and add them to the output
 	for i, resource := range moduleResources.Content {
-		tag := resource.ShortTag()
-		config.Debugf("resource: %v, %v", tag, resource.Value)
 		if resource.Kind == yaml.MappingNode {
 			name := moduleResources.Content[i-1].Value
 			if name != "ModuleExtension" {
 				// This is an additional resource to be added
-				config.Debugf("Adding additional resource to output node: %v", name)
-				outputNode.Content = append(outputNode.Content, moduleResources.Content[i-1])
-				outputNode.Content = append(outputNode.Content, resource)
+				nameNode := node.Clone(moduleResources.Content[i-1])
+				nameNode.Value = rename(logicalId, nameNode.Value)
+				outputNode.Content = append(outputNode.Content, nameNode)
+				clonedResource := node.Clone(resource)
+				// Modify referenced resource names
+				_, dependsOn := s11n.GetMapValue(clonedResource, "DependsOn")
+				if dependsOn != nil {
+					replaceDependsOn := &yaml.Node{Kind: yaml.SequenceNode, Content: make([]*yaml.Node, 0)}
+					if dependsOn.Kind == yaml.ScalarNode {
+						for _, v := range strings.Split(dependsOn.Value, " ") {
+							replaceDependsOn.Content = append(replaceDependsOn.Content,
+								&yaml.Node{Kind: yaml.ScalarNode, Value: rename(logicalId, v)})
+						}
+					} else {
+						for _, c := range dependsOn.Content {
+							for _, v := range strings.Split(c.Value, " ") {
+								replaceDependsOn.Content = append(replaceDependsOn.Content,
+									&yaml.Node{Kind: yaml.ScalarNode, Value: rename(logicalId, v)})
+							}
+						}
+					}
+					node.SetMapValue(clonedResource, "DependsOn", replaceDependsOn)
+				}
+				outputNode.Content = append(outputNode.Content, clonedResource)
 			}
 		}
 	}
@@ -206,11 +293,11 @@ func module(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bo
 			return false, errors.New("expected template to have Resources")
 		}
 
-		j, _ := json.MarshalIndent(resourceNode, "", "  ")
-		config.Debugf("resourceNode: %v", string(j))
+		// j, _ := json.MarshalIndent(resourceNode, "", "  ")
+		// config.Debugf("resourceNode: %v", string(j))
 
-		j, _ = json.MarshalIndent(outputNode, "", "  ")
-		config.Debugf("outputNode: %v", string(j))
+		// j, _ = json.MarshalIndent(outputNode, "", "  ")
+		// config.Debugf("outputNode: %v", string(j))
 
 		// Remove the original from the template
 		err = node.RemoveFromMap(resourceNode, parent.Key.Value)

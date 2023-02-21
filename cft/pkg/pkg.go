@@ -24,7 +24,6 @@
 package pkg
 
 import (
-	"encoding/json"
 	"path/filepath"
 
 	"github.com/aws-cloudformation/rain/cft"
@@ -41,8 +40,6 @@ func transform(nodeToTransform *yaml.Node, rootDir string, t cft.Template) (bool
 	// registry is a map of functions defined in rain.go
 	for path, fn := range registry {
 		for found := range s11n.MatchAll(nodeToTransform, path) {
-			config.Debugf("Matched: %s", path)
-			config.Debugf("Found: %s", node.ToJson(found))
 			parent := node.GetParent(found, nodeToTransform, nil)
 			c, err := fn(found, rootDir, t, parent)
 			if err != nil {
@@ -63,13 +60,13 @@ func transform(nodeToTransform *yaml.Node, rootDir string, t cft.Template) (bool
 func Template(t cft.Template, rootDir string) (cft.Template, error) {
 	templateNode := t.Node
 
-	j, _ := json.MarshalIndent(t.Node, "", "  ")
-	config.Debugf("Original template: %v", string(j))
+	// j, _ := json.MarshalIndent(t.Node, "", "  ")
+	// config.Debugf("Original template: %v", string(j))
 
 	changed, err := transform(templateNode, rootDir, t)
 
-	j, _ = json.MarshalIndent(templateNode, "", "  ")
-	config.Debugf("Transformed template: %v", string(j))
+	// j, _ = json.MarshalIndent(templateNode, "", "  ")
+	// config.Debugf("Transformed template: %v", string(j))
 
 	if changed {
 		t, err = parse.Node(templateNode)
@@ -82,7 +79,7 @@ func Template(t cft.Template, rootDir string) (cft.Template, error) {
 // with assets included as per AWS CLI packaging rules
 // and any Rain:: functions used
 func File(path string) (cft.Template, error) {
-	config.Debugf("Packaging template: %s\n", path)
+	// config.Debugf("Packaging template: %s\n", path)
 
 	t, err := parse.File(path)
 	if err != nil {

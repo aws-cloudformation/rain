@@ -143,3 +143,19 @@ func RemoveFromMap(node *yaml.Node, name string) error {
 
 	return nil
 }
+
+// Add or replace a map value
+func SetMapValue(parent *yaml.Node, name string, val *yaml.Node) {
+	found := false
+	for i, v := range parent.Content {
+		if v.Kind == yaml.ScalarNode && v.Value == name {
+			found = true
+			parent.Content[i+1] = val
+			break
+		}
+	}
+	if !found {
+		parent.Content = append(parent.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: name})
+		parent.Content = append(parent.Content, val)
+	}
+}
