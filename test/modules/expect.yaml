@@ -3,10 +3,13 @@ Resources:
     Type: AWS::SQS::Queue
 
   ModuleExample:
-    Type: AWS::S3::Bucket
     DeletionPolicy: Retain
     UpdateReplacePolicy: Delete
-    DependsOn: 
+    Type: AWS::S3::Bucket
+    DependsOn:
+      - ModuleExampleAdditionalResource1
+      - ModuleExampleAdditionalResource2
+      - SecondResourceInOriginal
     Metadata:
       Comment: A bucket that will pass cfn_nag checks
       cfn_nag:
@@ -31,12 +34,13 @@ Resources:
         - Key: test-tag
           Value: test-value2
 
-  LogBucket:
+  ModuleExampleLogBucket:
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Type: AWS::S3::Bucket
     DependsOn:
-      - AdditionalResource1 AdditionalResource2
+      - ModuleExampleAdditionalResource1
+      - ModuleExampleAdditionalResource2
     Metadata:
       Comment: This bucket records access logs for MyBucket
       cfn_nag:
@@ -59,8 +63,9 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
 
-  AdditionalResource1:
+  ModuleExampleAdditionalResource1:
     Type: AWS::S3::Bucket
 
-  AdditionalResource2:
+  ModuleExampleAdditionalResource2:
     Type: AWS::S3::Bucket
+
