@@ -3,6 +3,8 @@ package pkg
 
 import (
 	"errors"
+	"io"
+	"net/http"
 	"path/filepath"
 	"strings"
 
@@ -256,64 +258,75 @@ func module(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bo
 	}
 
 	uri := n.Content[1].Value
+	var content []byte
+	var err error
+	var path string
 
 	// Is this a local file or a URL?
 	if strings.HasPrefix(uri, "file://") {
 		// Read the local file
-		content, path, err := expectFile(n, root)
+		content, path, err = expectFile(n, root)
 		if err != nil {
 			return false, err
 		}
-
-		// Parse the file
-		var moduleNode yaml.Node
-		err = yaml.Unmarshal(content, &moduleNode)
-		if err != nil {
-			return false, err
-		}
-
-		// Transform
-		parse.TransformNode(&moduleNode)
-		// TODO: I think this allows us to nest modules. Test it.
-		_, err = transform(&moduleNode, filepath.Dir(path), t)
-		if err != nil {
-			return false, err
-		}
-
-		// Create a new node to represent the processed module
-		var outputNode yaml.Node
-		_, err = processModule(&moduleNode, &outputNode, t, n, parent)
-		if err != nil {
-			return false, err
-		}
-
-		// Find the resource node in the template
-		_, resourceNode := s11n.GetMapValue(t.Node.Content[0], "Resources")
-		if resourceNode == nil {
-			return false, errors.New("expected template to have Resources")
-		}
-
-		// j, _ := json.MarshalIndent(resourceNode, "", "  ")
-		// config.Debugf("resourceNode: %v", string(j))
-
-		// j, _ = json.MarshalIndent(outputNode, "", "  ")
-		// config.Debugf("outputNode: %v", string(j))
-
-		// Remove the original from the template
-		err = node.RemoveFromMap(resourceNode, parent.Key.Value)
-		if err != nil {
-			return false, err
-		}
-
-		// Insert the transformed resource into the template
-		resourceNode.Content = append(resourceNode.Content, outputNode.Content...)
-
 	} else if strings.HasPrefix(uri, "https://") {
 		// Download the file and then parse it
-		// TODO
+		resp, err := http.Get(uri)
+		if err != nil {
+			return false, err
+		}
+		defer resp.Body.Close()
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return false, err
+		}
+		content = []byte(body)
 	} else {
 		return false, errors.New("expected either file://path or https://path")
 	}
+
+	// Parse the file
+	var moduleNode yaml.Node
+	err = yaml.Unmarshal(content, &moduleNode)
+	if err != nil {
+		return false, err
+	}
+
+	// Transform
+	parse.TransformNode(&moduleNode)
+	// TODO: I think this allows us to nest modules. Test it.
+	_, err = transform(&moduleNode, filepath.Dir(path), t)
+	if err != nil {
+		return false, err
+	}
+
+	// Create a new node to represent the processed module
+	var outputNode yaml.Node
+	_, err = processModule(&moduleNode, &outputNode, t, n, parent)
+	if err != nil {
+		return false, err
+	}
+
+	// Find the resource node in the template
+	_, resourceNode := s11n.GetMapValue(t.Node.Content[0], "Resources")
+	if resourceNode == nil {
+		return false, errors.New("expected template to have Resources")
+	}
+
+	// j, _ := json.MarshalIndent(resourceNode, "", "  ")
+	// config.Debugf("resourceNode: %v", string(j))
+
+	// j, _ = json.MarshalIndent(outputNode, "", "  ")
+	// config.Debugf("outputNode: %v", string(j))
+
+	// Remove the original from the template
+	err = node.RemoveFromMap(resourceNode, parent.Key.Value)
+	if err != nil {
+		return false, err
+	}
+
+	// Insert the transformed resource into the template
+	resourceNode.Content = append(resourceNode.Content, outputNode.Content...)
 
 	return true, nil
 
