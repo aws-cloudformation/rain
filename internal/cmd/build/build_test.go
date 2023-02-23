@@ -22,5 +22,4 @@ func Example_build_bucket() {
 	// Resources:
 	//   MyBucket:
 	//     Type: AWS::S3::Bucket
-	//     Properties: {}
 }
