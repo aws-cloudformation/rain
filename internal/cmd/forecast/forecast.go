@@ -40,6 +40,53 @@ type PredictionInput struct {
 	stack       types.Stack
 }
 
+// forecasters is a map of resource type names to prediction functions.
+var forecasters = make(map[string]func(input PredictionInput) (numFailed int, numChecked int))
+
+// Run all forecasters for the type
+func forecastForType(typeName string, input PredictionInput) (numFailed int, numChecked int) {
+
+	// Only run the forecaster if it matches the optional --type arg,
+	// or if that arg was not provided.
+	if ResourceType != "" && ResourceType != typeName {
+		config.Debugf("Not running forecasters for %v", typeName)
+		return
+	}
+
+	fmt.Println("Checking", input.logicalId, typeName)
+
+	// Call generic prediction functions that we can run against
+	// all resources, even if there is not a predictor.
+
+	// Make sure the resource does not already exist
+	if cfn.ResourceAlreadyExists(typeName,
+		input.resource.(map[string]interface{}), input.stackExists) {
+		fmt.Printf("%v %v already exists\n", typeName, input.logicalId)
+
+		numFailed += 1
+	}
+
+	numChecked += 1
+
+	// Check permissions
+	// (see S3 example, we would need to figure out the arn for each service)
+	// TODO - Not sure if this is practical in a generic way
+
+	// See if we have a specific forecaster for this type
+	fn, ok := forecasters[typeName]
+
+	if ok {
+		// Call the prediction function
+		nf, nc := fn(input)
+		numFailed += nf
+		numChecked += nc
+		fmt.Printf("%v %v: %v of %v specific checks failed\n",
+			typeName, input.logicalId, nf, nc)
+	}
+
+	return numFailed, numChecked
+}
+
 // Query the account to make predictions about deployment failures.
 // Returns true if no failures are predicted.
 func predict(source cft.Template, stackName string) bool {
@@ -68,79 +115,32 @@ func predict(source cft.Template, stackName string) bool {
 	numChecked := 0
 	numFailed := 0
 
-	// A map of resource type names to prediction functions
-	// The function returns (numFailed, numChecked)
-	forecasters := make(map[string]func(input PredictionInput) (int, int))
-
-	// If you want to add a prediction for a type that is not already covered, add it here
-	// The function must return (numFailed, numChecked)
-	// For example:
-	// forecasters["AWS::New::Type"] = checkTheNewType
-
-	forecasters["AWS::S3::Bucket"] = checkBucket
-	forecasters["AWS::S3::BucketPolicy"] = checkBucketPolicy
-
 	m := source.Map()
-	for t, section := range m {
-		if t == "Resources" {
-			// Iterate over each resource
-			for logicalId, resource := range section.(map[string]interface{}) {
-				config.Debugf("resource %v %v", logicalId, resource)
-				// Iterate over each element in the resource
-				for elementName, element := range resource.(map[string]interface{}) {
-					config.Debugf("element %v %v", elementName, element)
+	resources := m["Resources"]
 
-					// Check the type and call functions that make checks
-					// on that type of resource.
+	// Iterate over each resource
+	for logicalId, resource := range resources.(map[string]interface{}) {
+		config.Debugf("resource %v %v", logicalId, resource)
 
-					if elementName == "Type" {
+		t := resource.(map[string]interface{})["Type"]
 
-						typeName := element.(string) // Should be something like AWS::S3::Bucket
+		// Check the type and call functions that make checks
+		// on that type of resource.
 
-						// Only run the forecaster if it matches the optional --type arg,
-						// or if that arg was not provided.
-						if ResourceType == "" || ResourceType == typeName {
+		typeName := t.(string) // Should be something like AWS::S3::Bucket
+		config.Debugf("typeName: %v", typeName)
 
-							input := PredictionInput{}
-							input.logicalId = logicalId
-							input.source = source
-							input.resource = resource
-							input.stackName = stackName
-							input.stackExists = stackExists
-							input.stack = stack
+		input := PredictionInput{}
+		input.logicalId = logicalId
+		input.source = source
+		input.resource = resource
+		input.stackName = stackName
+		input.stackExists = stackExists
+		input.stack = stack
 
-							fmt.Println("Checking", element, logicalId)
-
-							// Call generic prediction functions that we can run against
-							// all resources, even if there is not a predictor.
-
-							// Make sure the resource does not already exist
-							if cfn.ResourceAlreadyExists(typeName,
-								resource.(map[string]interface{}), stackExists) {
-								fmt.Printf("%v %v already exists\n", typeName, logicalId)
-								numFailed += 1
-							}
-							numChecked += 1
-
-							// Check permissions
-							// (see S3 example, we would need to figure out the arn for each service)
-							// TODO - Not sure if this is practical in a generic way
-
-							// See if we have a specific forecaster for this type
-							fn, ok := forecasters[typeName]
-
-							if ok {
-								// Call the prediction function
-								nf, nc := fn(input)
-								numFailed += nf
-								numChecked += nc
-								fmt.Printf("%v %v: %v of %v specific checks failed\n", element, logicalId, nf, nc)
-							}
-						}
-					}
-				}
-			}
-		}
+		nf, nc := forecastForType(typeName, input)
+		numFailed += nf
+		numChecked += nc
 	}
 
 	if numFailed > 0 {
@@ -203,5 +203,13 @@ func init() {
 	Cmd.Flags().StringVar(&ResourceType, "type", "", "Optional resource type to limit checks to only that type")
 	Cmd.Flags().StringSliceVar(&Params, "params", []string{}, "set parameter values; use the format key1=value1,key2=value2")
 	Cmd.Flags().StringVarP(&ConfigFilePath, "config", "c", "", "YAML or JSON file to set tags and parameters")
+
+	// If you want to add a prediction for a type that is not already covered, add it here
+	// The function must return (numFailed, numChecked)
+	// For example:
+	// forecasters["AWS::New::Type"] = checkTheNewType
+
+	forecasters["AWS::S3::Bucket"] = checkBucket
+	forecasters["AWS::S3::BucketPolicy"] = checkBucketPolicy
 
 }
