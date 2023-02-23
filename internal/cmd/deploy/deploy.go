@@ -84,10 +84,10 @@ YAML:
 			stackName = base[:len(base)-len(filepath.Ext(base))]
 
 			// Now ensure it's a valid cfc name
-			stackName = fixStackNameRe.ReplaceAllString(stackName, "-")
+			stackName = FixStackNameRe.ReplaceAllString(stackName, "-")
 
-			if len(stackName) > maxStackNameLength {
-				stackName = stackName[:maxStackNameLength]
+			if len(stackName) > MaxStackNameLength {
+				stackName = stackName[:MaxStackNameLength]
 			}
 		}
 
@@ -135,7 +135,7 @@ YAML:
 
 		// Package template
 		spinner.Push(fmt.Sprintf("Preparing template '%s'", base))
-		template := packageTemplate(fn, yes)
+		template := PackageTemplate(fn, yes)
 		spinner.Pop()
 
 		// Check current stack status
@@ -145,7 +145,7 @@ YAML:
 
 		// Parse params
 		config.Debugf("Handling parameters")
-		parameters := getParameters(template, combinedParameters, stack.Parameters, stackExists)
+		parameters := GetParameters(template, combinedParameters, stack.Parameters, stackExists)
 
 		if config.Debug {
 			for _, param := range parameters {
@@ -187,7 +187,7 @@ YAML:
 				}
 
 				if !stackExists {
-					err = cfn.DeleteStack(stackName)
+					err = cfn.DeleteStack(stackName, "")
 					if err != nil {
 						panic(ui.Errorf(err, "error deleting empty stack '%s'", stackName))
 					}
@@ -241,7 +241,7 @@ YAML:
 }
 
 func init() {
-	fixStackNameRe = regexp.MustCompile(`[^a-zA-Z0-9]+`)
+	FixStackNameRe = regexp.MustCompile(`[^a-zA-Z0-9]+`)
 
 	Cmd.Flags().BoolVarP(&detach, "detach", "d", false, "once deployment has started, don't wait around for it to finish")
 	Cmd.Flags().BoolVarP(&yes, "yes", "y", false, "don't ask questions; just deploy")

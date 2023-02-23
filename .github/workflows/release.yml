@@ -36,7 +36,7 @@ jobs:
 
               mkdir -p "dist/${name}"
 
-              GOOS="$os" GOARCH="$arch" go build -ldflags=-w -o "dist/${name}/" ./cmd/rain
+              GOOS="$os" GOARCH="$arch" go build -buildvcs=false -ldflags=-w -o "dist/${name}/" ./cmd/rain
 
               cp LICENSE "dist/${name}/"
               cp README.md "dist/${name}/"
@@ -74,6 +74,6 @@ jobs:
           for zip in ./dist/*.zip; do
             assets+=("-a" "$zip")
           done
-          hub release create "${assets[@]}" -F CHANGELOG "${GITHUB_REF##*/}"
+          hub release edit "${assets[@]}" -F CHANGELOG "${GITHUB_REF##*/}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

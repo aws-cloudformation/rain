@@ -18,6 +18,8 @@ Outputs:
         - Bucket2
         - Arn # Arn comment
 
+# Multiline comment
+# starting at indent 0
 Resources:
   Bucket2:
     Properties:
@@ -36,6 +38,8 @@ const expectedYaml = `Parameters:
   Name:
     Type: String
 
+# Multiline comment
+# starting at indent 0
 Resources:
   Bucket2:
     Type: AWS::S3::Bucket
@@ -62,6 +66,8 @@ const expectedYamlUnsorted = `Outputs:
   Bucket2: # Bucket comment
     Value: !GetAtt Bucket2.Arn # GetAtt comment Arn comment
 
+# Multiline comment
+# starting at indent 0
 Resources:
   Bucket2:
     Properties:

@@ -256,7 +256,7 @@ func WaitForStackToSettle(stackName string) (string, []string) {
 			return string(stack.StackStatus), messages
 		}
 
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second * cfn.WAIT_PERIOD_IN_SECONDS)
 	}
 }
 
@@ -338,6 +338,37 @@ func GetStackSummary(stack types.Stack, long bool) string {
 			}
 
 			out.WriteString("\n")
+		}
+	}
+
+	return strings.TrimSpace(out.String())
+}
+
+//
+func GetStackSetSummary(stackSet *types.StackSet, long bool) string {
+	out := strings.Builder{}
+
+	stackSetStatus := string(stackSet.Status)
+	stackSetName := ptr.ToString(stackSet.StackSetName)
+
+	// Stack status
+	out.WriteString(fmt.Sprintf("%s: %s %s\n", console.Yellow("StackSet"), stackSetName, ColouriseStatus(stackSetStatus)))
+
+	if long {
+		// Params
+		if len(stackSet.Parameters) > 0 {
+			out.WriteString(fmt.Sprintf("  %s:\n", console.Yellow("Parameters")))
+			for _, param := range stackSet.Parameters {
+				out.WriteString(fmt.Sprintf("    %s: ", console.Yellow(ptr.ToString(param.ParameterKey))))
+
+				if param.ResolvedValue != nil {
+					out.WriteString(ptr.ToString(param.ResolvedValue))
+				} else {
+					out.WriteString(ptr.ToString(param.ParameterValue))
+				}
+
+				out.WriteString("\n")
+			}
 		}
 	}
 

@@ -1,9 +1,10 @@
 package deploy_test
 
 import (
+	"testing"
+
 	"github.com/aws-cloudformation/rain/internal/cmd/deploy"
 	"github.com/google/go-cmp/cmp"
-	"testing"
 )
 
 func TestListToMap(t *testing.T) {
