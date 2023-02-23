@@ -3,6 +3,7 @@ package pkg
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"path/filepath"
@@ -43,9 +44,6 @@ func cloneAndReplaceProps(ext *yaml.Node, name string, moduleProps *yaml.Node, t
 				}
 			}
 		}
-	} else {
-		// This is Ok. It's not required to override any props.
-		config.Debugf("templateProps is nil")
 	}
 
 	ext.Content = append(ext.Content, props)
@@ -75,6 +73,93 @@ func rename(logicalId string, resourceName string) string {
 	return logicalId + resourceName
 }
 
+// Recursive function to find all refs in properties
+func renamePropRefs(propName string, prop *yaml.Node, ext *yaml.Node,
+	moduleParams *yaml.Node, moduleResources *yaml.Node, logicalId string,
+	templateProps *yaml.Node) error {
+
+	// Properties:
+	//   SimpleProp: Val
+	//   RefParam: !Ref NameOfParam
+	//   RefResource: !Ref NameOfResource
+	//   Complex:
+	//     AnArray:
+	//       - Element0
+	//           A: B
+	//           C: !Ref D
+
+	if prop.Kind == yaml.ScalarNode {
+		config.Debugf("Scalar %v %v", propName, node.ToJson(prop))
+		if propName == "Ref" {
+			_, param := s11n.GetMapValue(moduleParams, prop.Value)
+			if param != nil {
+				config.Debugf("Found param for %v", prop.Value)
+				// We need to get the parameter value from the parent template
+				_, parentVal := s11n.GetMapValue(templateProps, prop.Value)
+				if parentVal == nil {
+					return fmt.Errorf("did not find %v in parent template Resource Properties", prop.Value)
+				}
+				// We can't just set prop.Value, since we would end up with Prop: !Ref Value instead of just Prop: Value
+				// Get the property's parent and set the entire map value for the property
+				refMap := node.GetParent(prop, ext, nil)
+				propParentPair := node.GetParent(refMap.Value, ext, nil)
+				config.Debugf("propParentPair: %v", node.ToJson(propParentPair.Value))
+				newValue := &yaml.Node{Kind: yaml.ScalarNode, Value: parentVal.Value}
+				config.Debugf("newValue: %v", node.ToJson(newValue))
+				node.SetMapValue(propParentPair.Value, propParentPair.Value.Content[0].Value, newValue)
+			} else {
+				config.Debugf("Did not find param for %v", prop.Value)
+				// Look for a resource in the module
+				_, resource := s11n.GetMapValue(moduleResources, prop.Value)
+				if resource == nil {
+					return fmt.Errorf("did not find !Ref %v", prop.Value)
+				}
+				fixedName := rename(logicalId, prop.Value)
+				prop.Value = fixedName
+			}
+		}
+	} else if prop.Kind == yaml.SequenceNode {
+		config.Debugf("Sequence %v %v", propName, node.ToJson(prop))
+	} else if prop.Kind == yaml.MappingNode {
+		config.Debugf("Mapping %v %v", propName, node.ToJson(prop))
+		for i, p := range prop.Content {
+			if i%2 == 0 {
+				return renamePropRefs(p.Value, prop.Content[i+1], ext, moduleParams, moduleResources, logicalId, templateProps)
+			}
+		}
+	} else {
+		return fmt.Errorf("unexpected prop Kind: %v", prop.Kind)
+	}
+
+	return nil
+}
+
+// Convert !Ref values
+func resolveRefs(ext *yaml.Node, moduleParams *yaml.Node,
+	moduleResources *yaml.Node, logicalId string, templateProps *yaml.Node) error {
+	// Replace references to the module's parameters with the value supplied
+	// by the parent template. Rename refs to other resources in the module.
+
+	_, extProps := s11n.GetMapValue(ext, "Properties")
+	if extProps == nil {
+		// Not all module resources have properties
+		return nil
+	}
+	for i, prop := range extProps.Content {
+		if i%2 == 0 {
+			propName := prop.Value
+			config.Debugf("Resolving refs for %v", propName)
+			err := renamePropRefs(propName, extProps.Content[i+1], ext, moduleParams, moduleResources, logicalId, templateProps)
+			if err != nil {
+				config.Debugf("%v", err)
+				return fmt.Errorf("unable to resolve refs for %v", propName)
+			}
+		}
+	}
+
+	return nil
+}
+
 // Convert the module into a node for the packaged template
 func processModule(module *yaml.Node,
 	outputNode *yaml.Node, t cft.Template,
@@ -84,7 +169,7 @@ func processModule(module *yaml.Node,
 	// p, _ := json.MarshalIndent(parent, "", "  ")
 	// config.Debugf("parent: %v", string(p))
 
-	config.Debugf("module: %v", node.ToJson(module))
+	// config.Debugf("module: %v", node.ToJson(module))
 
 	if parent.Key == nil {
 		return false, errors.New("expected parent.Key to not be nil. The !Rain::Module directive should come after Type: ")
@@ -92,7 +177,7 @@ func processModule(module *yaml.Node,
 
 	// Get the logical id of the resource we are transforming
 	logicalId := parent.Key.Value
-	config.Debugf("logicalId: %v", logicalId)
+	//config.Debugf("logicalId: %v", logicalId)
 
 	// Make a new node that will hold our additions to the original template
 	outputNode.Content = make([]*yaml.Node, 0)
@@ -109,6 +194,9 @@ func processModule(module *yaml.Node,
 	if moduleResources == nil {
 		return false, errors.New("expected the module to have a Resources section")
 	}
+
+	// Locate the Parameters: section in the module (might be nil)
+	_, moduleParams := s11n.GetMapValue(curNode, "Parameters")
 
 	// Locate the ModuleExtension: resource. There should be exactly 1.
 	_, moduleExtension := s11n.GetMapValue(moduleResources, "ModuleExtension")
@@ -171,7 +259,6 @@ func processModule(module *yaml.Node,
 		ext.Content = append(ext.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: "DependsOn"})
 		dependsOnValue := &yaml.Node{Kind: yaml.SequenceNode, Content: make([]*yaml.Node, 0)}
 		if moduleDependsOn != nil {
-			config.Debugf("moduleDependsOn not nil: %v", node.ToJson(moduleDependsOn))
 			// Change the names to the modified resource name for the template
 			c := make([]*yaml.Node, 0)
 			if moduleDependsOn.Kind == yaml.ScalarNode {
@@ -204,7 +291,10 @@ func processModule(module *yaml.Node,
 	}
 
 	// Resolve Refs in the module
-	// TODO
+	// Some refs are to other resources in the module
+	// Other refs are to the module's parameters
+	_, templateProps := s11n.GetMapValue(templateResource, "Properties")
+	resolveRefs(ext, moduleParams, moduleResources, logicalId, templateProps)
 
 	// Add the extension to the output node
 	outputNode.Content = append(outputNode.Content, &yaml.Node{
@@ -242,6 +332,7 @@ func processModule(module *yaml.Node,
 					}
 					node.SetMapValue(clonedResource, "DependsOn", replaceDependsOn)
 				}
+				resolveRefs(clonedResource, moduleParams, moduleResources, logicalId, templateProps)
 				outputNode.Content = append(outputNode.Content, clonedResource)
 			}
 		}
