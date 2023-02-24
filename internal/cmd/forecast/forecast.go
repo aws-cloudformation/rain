@@ -45,6 +45,9 @@ type PredictionInput struct {
 	typeName    string
 }
 
+// The current line number in the template
+var LineNumber int
+
 // Forecast represents predictions for a single resource in the template
 type Forecast struct {
 	TypeName  string
@@ -72,8 +75,7 @@ func (f *Forecast) Append(forecast Forecast) {
 
 // Add adds a pass or fail message, formatting it to include the type name and logical id
 func (f *Forecast) Add(passed bool, message string) {
-	// TODO - Add line numbers
-	msg := fmt.Sprintf("%v %v - %v", f.TypeName, f.LogicalId, message)
+	msg := fmt.Sprintf("%v: %v %v - %v", LineNumber, f.TypeName, f.LogicalId, message)
 	if passed {
 		f.Passed = append(f.Passed, msg)
 	} else {
@@ -191,6 +193,7 @@ func predict(source cft.Template, stackName string) bool {
 			continue
 		}
 		logicalId := r.Value
+		LineNumber = r.Line
 		config.Debugf("logicalId: %v", logicalId)
 
 		resource := resources.Content[i+1]
