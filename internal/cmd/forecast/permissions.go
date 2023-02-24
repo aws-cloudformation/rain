@@ -1,34 +1,31 @@
 package forecast
 
 import (
-	"fmt"
-
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
 	"github.com/aws-cloudformation/rain/internal/aws/iam"
-	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/console/spinner"
 )
 
 // Returns true if the user has the required permissions on the resource
 // verb is create, delete, or update
-func checkPermissions(input PredictionInput, resourceArn string, verb string) bool {
+func checkPermissions(input PredictionInput, resourceArn string, verb string) (bool, string) {
 
-	config.Debugf("Checking for permissions on %v", resourceArn)
-
-	allAllowed := true
+	spin(input.typeName, input.logicalId, "permitted?")
 
 	// Go get the list of permissions from the registry
 	actions, err := cfn.GetTypePermissions("AWS::S3::Bucket", verb)
 	if err != nil {
-		fmt.Println("Unable to get type permissions", err)
-		return false
+		return false, err.Error()
 	}
 	result, err := iam.Simulate(actions, resourceArn, RoleArn)
 	if err != nil {
-		return false
+		return false, err.Error()
 	}
 	if !result {
-		allAllowed = false
+		return false, "Insufficient permissions"
 	}
 
-	return allAllowed
+	spinner.Pop()
+
+	return true, ""
 }

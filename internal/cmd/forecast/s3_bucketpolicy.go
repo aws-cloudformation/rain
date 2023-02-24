@@ -6,6 +6,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
 	"github.com/aws-cloudformation/rain/internal/aws/iam"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/console/spinner"
 )
 
 // Check everything that could go wrong with an AWS::S3::Bucket resource.
@@ -13,6 +14,8 @@ import (
 func checkBucketPolicy(input PredictionInput) Forecast {
 
 	forecast := makeForecast(input.typeName, input.logicalId)
+
+	spin(input.typeName, input.logicalId, "bucket policy")
 
 	if input.stackExists {
 		_, err := cfn.GetStackResource(input.stackName, input.logicalId)
@@ -51,6 +54,8 @@ func checkBucketPolicy(input PredictionInput) Forecast {
 			}
 		}
 	}
+
+	spinner.Pop()
 
 	return forecast
 }

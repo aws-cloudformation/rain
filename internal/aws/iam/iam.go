@@ -179,6 +179,8 @@ func CheckPolicyDocument(element interface{}) (bool, error) {
 
 	policyOk := true
 
+	// TODO - Convert to yaml Node to preserve line numbers
+
 	for propName, prop := range element.(map[string]interface{}) {
 		config.Debugf("PolicyDocument prop %v %v", propName, prop)
 
@@ -207,7 +209,7 @@ func CheckPolicyDocument(element interface{}) (bool, error) {
 
 										exists, err := PrincipalExists(pString)
 										if err != nil || !exists {
-											fmt.Println("Principal not found: ", principal)
+											config.Debugf("Principal not found: %v", principal)
 											policyOk = false
 										}
 									}

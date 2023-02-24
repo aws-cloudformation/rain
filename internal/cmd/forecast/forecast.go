@@ -44,68 +44,75 @@ type PredictionInput struct {
 
 // Forecast represents predictions for a single resource in the template
 type Forecast struct {
-	ResourceType string
-	LogicalId    string
-	Passed       []string
-	Failed       []string
+	TypeName  string
+	LogicalId string
+	Passed    []string
+	Failed    []string
 }
 
-func (f Forecast) GetNumChecked() int {
+func (f *Forecast) GetNumChecked() int {
 	return len(f.Passed) + len(f.Failed)
 }
 
-func (f Forecast) GetNumFailed() int {
+func (f *Forecast) GetNumFailed() int {
 	return len(f.Failed)
 }
 
-func (f Forecast) GetNumPassed() int {
+func (f *Forecast) GetNumPassed() int {
 	return len(f.Passed)
 }
 
-func (f Forecast) Append(forecast Forecast) {
+func (f *Forecast) Append(forecast Forecast) {
 	f.Failed = append(f.Failed, forecast.Failed...)
-	f.Passed = append(f.Failed, forecast.Passed...)
+	f.Passed = append(f.Passed, forecast.Passed...)
 }
 
-func (f Forecast) Add(passed bool, message string) {
+func (f *Forecast) Add(passed bool, message string) {
+	// TODO - Add line numbers
+	msg := fmt.Sprintf("%v %v - %v", f.TypeName, f.LogicalId, message)
 	if passed {
-		f.Passed = append(f.Passed, message)
+		f.Passed = append(f.Passed, msg)
 	} else {
-		f.Failed = append(f.Failed, message)
+		f.Failed = append(f.Failed, msg)
 	}
 }
 
 func makeForecast(typeName string, logicalId string) Forecast {
 	return Forecast{
-		ResourceType: typeName,
-		LogicalId:    logicalId,
-		Passed:       make([]string, 0),
-		Failed:       make([]string, 0),
+		TypeName:  typeName,
+		LogicalId: logicalId,
+		Passed:    make([]string, 0),
+		Failed:    make([]string, 0),
 	}
 }
 
 // forecasters is a map of resource type names to prediction functions.
 var forecasters = make(map[string]func(input PredictionInput) Forecast)
 
-// Run all forecasters for the type
-func forecastForType(typeName string, input PredictionInput) Forecast {
+// Push a message about checking a resource onto the spinner
+func spin(typeName string, logicalId string, message string) {
+	spinner.Push(fmt.Sprintf("%v %v - %v", typeName, logicalId, message))
+}
 
-	forecast := makeForecast(typeName, input.logicalId)
+// Run all forecasters for the type
+func forecastForType(input PredictionInput) Forecast {
+
+	forecast := makeForecast(input.typeName, input.logicalId)
 
 	// Only run the forecaster if it matches the optional --type arg,
 	// or if that arg was not provided.
-	if ResourceType != "" && ResourceType != typeName {
-		config.Debugf("Not running forecasters for %v", typeName)
+	if ResourceType != "" && ResourceType != input.typeName {
+		config.Debugf("Not running forecasters for %v", input.typeName)
 		return forecast
 	}
 
-	spinner.Push(fmt.Sprintf("Checking %v %v", input.logicalId, typeName))
+	spin(input.typeName, input.logicalId, "exists already?")
 
 	// Call generic prediction functions that we can run against
 	// all resources, even if there is not a predictor.
 
 	// Make sure the resource does not already exist
-	if cfn.ResourceAlreadyExists(typeName, input.resource.(map[string]interface{}), input.stackExists) {
+	if cfn.ResourceAlreadyExists(input.typeName, input.resource.(map[string]interface{}), input.stackExists) {
 		forecast.Add(false, "Already exists")
 	} else {
 		forecast.Add(true, "Does not exist")
@@ -116,12 +123,14 @@ func forecastForType(typeName string, input PredictionInput) Forecast {
 	// TODO - Not sure if this is practical in a generic way
 
 	// See if we have a specific forecaster for this type
-	fn, ok := forecasters[typeName]
+	fn, ok := forecasters[input.typeName]
 
 	if ok {
 		// Call the prediction function and append the results
 		forecast.Append(fn(input))
 	}
+
+	spinner.Pop()
 
 	return forecast
 }
@@ -151,8 +160,7 @@ func predict(source cft.Template, stackName string) bool {
 	}
 	config.Debugf("Stack %v %v", stackName, msg)
 
-	numChecked := 0
-	numFailed := 0
+	forecast := makeForecast("", "")
 
 	m := source.Map()
 	resources := m["Resources"]
@@ -178,17 +186,21 @@ func predict(source cft.Template, stackName string) bool {
 		input.stack = stack
 		input.typeName = typeName
 
-		forecast := forecastForType(typeName, input)
-		numFailed += forecast.GetNumFailed()
-		numChecked += forecast.GetNumChecked()
+		forecast.Append(forecastForType(input))
 	}
 
-	if numFailed > 0 {
+	spinner.Stop()
+
+	if forecast.GetNumFailed() > 0 {
 		fmt.Println("Stormy weather ahead!")
-		fmt.Println(numFailed, "checks failed out of", numChecked, "total checks")
+		fmt.Println(forecast.GetNumFailed(), "checks failed out of", forecast.GetNumChecked(), "total checks")
+		for _, reason := range forecast.Failed {
+			fmt.Println()
+			fmt.Println(reason)
+		}
 		return false
 	} else {
-		fmt.Println("Clear skies! All", numChecked, "checks passed.")
+		fmt.Println("Clear skies! All", forecast.GetNumChecked(), "checks passed.")
 		return true
 	}
 
