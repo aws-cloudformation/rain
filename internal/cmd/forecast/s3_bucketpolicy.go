@@ -7,6 +7,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/aws/iam"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
+	"github.com/aws-cloudformation/rain/internal/s11n"
 )
 
 // Check everything that could go wrong with an AWS::S3::Bucket resource.
@@ -32,25 +33,20 @@ func checkBucketPolicy(input PredictionInput) Forecast {
 
 	// Check the policy for invalid principals
 	// TODO: switch to yaml nodes so we retain the line number
-	for elementName, element := range input.resource.(map[string]interface{}) {
-		config.Debugf("BucketPolicy element %v %v", elementName, element)
+	_, props := s11n.GetMapValue(input.resource, "Properties")
+	if props != nil {
+		_, policyDocument := s11n.GetMapValue(props, "PolicyDocument")
+		if policyDocument != nil {
+			res, err := iam.CheckPolicyDocument(policyDocument)
 
-		if elementName == "Properties" {
-			for propName, prop := range element.(map[string]interface{}) {
+			if err != nil {
+				forecast.Add(false, fmt.Sprintf("Unable to check policy document: %v", err))
+			}
 
-				if propName == "PolicyDocument" {
-					res, err := iam.CheckPolicyDocument(prop)
-
-					if err != nil {
-						forecast.Add(false, fmt.Sprintf("Unable to check policy document: %v", err))
-					}
-
-					if !res {
-						forecast.Add(false, "Invalid principal in policy document")
-					} else {
-						forecast.Add(true, "Principal is valid")
-					}
-				}
+			if !res {
+				forecast.Add(false, "Invalid principal in policy document")
+			} else {
+				forecast.Add(true, "Principal is valid")
 			}
 		}
 	}

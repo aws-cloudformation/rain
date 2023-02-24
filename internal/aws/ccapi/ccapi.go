@@ -14,7 +14,9 @@ func getClient() *cloudcontrol.Client {
 
 // Returns true if the resource already exists
 func ResourceExists(typeName string, identifier []string) bool {
+
 	id := ""
+
 	// CCAPI expects the identifier to match the order that the
 	// primaryIdentifier is documented in the schema
 	for i, idValue := range identifier {
@@ -23,6 +25,8 @@ func ResourceExists(typeName string, identifier []string) bool {
 			id += "|"
 		}
 	}
+
+	config.Debugf("ResourceExists %v %v", typeName, id)
 
 	_, err := getClient().GetResource(context.Background(), &cloudcontrol.GetResourceInput{
 		Identifier: &id,
@@ -33,5 +37,6 @@ func ResourceExists(typeName string, identifier []string) bool {
 		config.Debugf("ResourceExists error: %v", err)
 		return false
 	}
+
 	return true
 }

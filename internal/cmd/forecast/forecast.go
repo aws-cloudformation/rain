@@ -3,6 +3,7 @@
 package forecast
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -13,8 +14,10 @@ import (
 	"github.com/aws-cloudformation/rain/internal/cmd/deploy"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
+	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/aws-cloudformation/rain/internal/ui"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 )
@@ -35,7 +38,7 @@ var ConfigFilePath string
 type PredictionInput struct {
 	source      cft.Template
 	stackName   string
-	resource    interface{}
+	resource    *yaml.Node
 	logicalId   string
 	stackExists bool
 	stack       types.Stack
@@ -67,6 +70,7 @@ func (f *Forecast) Append(forecast Forecast) {
 	f.Passed = append(f.Passed, forecast.Passed...)
 }
 
+// Add adds a pass or fail message, formatting it to include the type name and logical id
 func (f *Forecast) Add(passed bool, message string) {
 	// TODO - Add line numbers
 	msg := fmt.Sprintf("%v %v - %v", f.TypeName, f.LogicalId, message)
@@ -112,7 +116,7 @@ func forecastForType(input PredictionInput) Forecast {
 	// all resources, even if there is not a predictor.
 
 	// Make sure the resource does not already exist
-	if cfn.ResourceAlreadyExists(input.typeName, input.resource.(map[string]interface{}), input.stackExists) {
+	if cfn.ResourceAlreadyExists(input.typeName, input.resource, input.stackExists) {
 		forecast.Add(false, "Already exists")
 	} else {
 		forecast.Add(true, "Does not exist")
@@ -123,9 +127,9 @@ func forecastForType(input PredictionInput) Forecast {
 	// TODO - Not sure if this is practical in a generic way
 
 	// See if we have a specific forecaster for this type
-	fn, ok := forecasters[input.typeName]
+	fn, found := forecasters[input.typeName]
 
-	if ok {
+	if found {
 		// Call the prediction function and append the results
 		forecast.Append(fn(input))
 	}
@@ -133,6 +137,15 @@ func forecastForType(input PredictionInput) Forecast {
 	spinner.Pop()
 
 	return forecast
+}
+
+// Convert a node to JSON
+func toJson(node *yaml.Node) string {
+	j, err := json.MarshalIndent(node, "", "  ")
+	if err != nil {
+		return fmt.Sprintf("Failed to marshal node to json: %v:", err)
+	}
+	return string(j)
 }
 
 // Query the account to make predictions about deployment failures.
@@ -162,19 +175,34 @@ func predict(source cft.Template, stackName string) bool {
 
 	forecast := makeForecast("", "")
 
-	m := source.Map()
-	resources := m["Resources"]
+	rootMap := source.Node.Content[0]
+
+	// Uncomment this to see a json version of the yaml node data model for the template
+	// config.Debugf("node: %v", toJson(rootMap))
 
 	// Iterate over each resource
-	for logicalId, resource := range resources.(map[string]interface{}) {
-		config.Debugf("resource %v %v", logicalId, resource)
+	_, resources := s11n.GetMapValue(rootMap, "Resources")
+	if resources == nil {
+		panic("Expected to find a Resources section in the template")
+	}
 
-		t := resource.(map[string]interface{})["Type"]
+	for i, r := range resources.Content {
+		if i%2 != 0 {
+			continue
+		}
+		logicalId := r.Value
+		config.Debugf("logicalId: %v", logicalId)
+
+		resource := resources.Content[i+1]
+		_, typeNode := s11n.GetMapValue(resource, "Type")
+		if typeNode == nil {
+			panic(fmt.Sprintf("Expected %v to have a Type", logicalId))
+		}
 
 		// Check the type and call functions that make checks
 		// on that type of resource.
 
-		typeName := t.(string) // Should be something like AWS::S3::Bucket
+		typeName := typeNode.Value // Should be something like AWS::S3::Bucket
 		config.Debugf("typeName: %v", typeName)
 
 		input := PredictionInput{}
@@ -192,7 +220,7 @@ func predict(source cft.Template, stackName string) bool {
 	spinner.Stop()
 
 	if forecast.GetNumFailed() > 0 {
-		fmt.Println("Stormy weather ahead!")
+		fmt.Println("Stormy weather ahead! 🌪") // 🌩️⛈
 		fmt.Println(forecast.GetNumFailed(), "checks failed out of", forecast.GetNumChecked(), "total checks")
 		for _, reason := range forecast.Failed {
 			fmt.Println()
@@ -200,7 +228,7 @@ func predict(source cft.Template, stackName string) bool {
 		}
 		return false
 	} else {
-		fmt.Println("Clear skies! All", forecast.GetNumChecked(), "checks passed.")
+		fmt.Println("Clear skies! 🌤  All", forecast.GetNumChecked(), "checks passed.")
 		return true
 	}
 

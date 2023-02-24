@@ -8,10 +8,13 @@ import (
 
 	aws "github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/console/spinner"
+	"github.com/aws-cloudformation/rain/internal/s11n"
 	awsgo "github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"gopkg.in/yaml.v3"
 )
 
 func getClient() *iam.Client {
@@ -44,18 +47,20 @@ func getCallerArn(config awsgo.Config, iamClient *iam.Client) (string, error) {
 
 // Simulate actions on a resource.
 // The role arg is optional, if not provided, the current aws config will be used.
-func Simulate(actions []string, resource string, roleArn string) (bool, error) {
+func Simulate(actions []string, resource string, roleArn string, spinnerCallback func(string)) (bool, []string) {
 	awsConfig := aws.Config()
 	client := iam.NewFromConfig(awsConfig)
 	input := &iam.SimulatePrincipalPolicyInput{}
 	input.ResourceArns = []string{resource}
 
+	messages := make([]string, 0)
+
 	var err error
 	if roleArn == "" {
 		roleArn, err = getCallerArn(awsConfig, client)
 		if err != nil {
-			fmt.Println("Could not get caller arn", err)
-			return false, err
+			messages = append(messages, fmt.Sprintf("Could not get caller arn: %v", err))
+			return false, messages
 		}
 	}
 	config.Debugf("Caller role arn: %v", roleArn)
@@ -70,10 +75,13 @@ func Simulate(actions []string, resource string, roleArn string) (bool, error) {
 	for _, action := range actions {
 		input.ActionNames = []string{action}
 
+		spinnerCallback(action)
+
 		res, err := client.SimulatePrincipalPolicy(context.Background(), input)
 
+		spinner.Pop()
+
 		if err != nil {
-			fmt.Println("Policy simulation failed", err)
 			/*
 				Policy simulation failed operation error IAM:
 				SimulatePrincipalPolicy, https response error StatusCode: 400,
@@ -102,16 +110,17 @@ func Simulate(actions []string, resource string, roleArn string) (bool, error) {
 				(The docs don't have any more details...)
 				Checking them one at a time to get around this.
 			*/
-			return false, err
+			messages = append(messages, err.Error())
+			return false, messages
 		}
 		for _, evalResult := range res.EvaluationResults {
 			if evalResult.EvalDecision != types.PolicyEvaluationDecisionTypeAllowed {
-				fmt.Println(*evalResult.EvalActionName, "not allowed on", *evalResult.EvalResourceName)
+				messages = append(messages, fmt.Sprintf("%v not allowed on %v", *evalResult.EvalActionName, *evalResult.EvalResourceName))
 				allowed = false
 			}
 		}
 	}
-	return allowed, nil
+	return allowed, messages
 }
 
 // Check to see if a role exists in the account
@@ -175,44 +184,29 @@ func PrincipalExists(principal string) (bool, error) {
 }
 
 // Check a PolicyDocument to make sure it will not result in failures
-func CheckPolicyDocument(element interface{}) (bool, error) {
+func CheckPolicyDocument(doc *yaml.Node) (bool, error) {
 
 	policyOk := true
 
-	// TODO - Convert to yaml Node to preserve line numbers
+	_, statements := s11n.GetMapValue(doc, "Statement")
+	if statements != nil {
+		for _, statement := range statements.Content {
+			_, principals := s11n.GetMapValue(statement, "Principal")
+			if principals != nil {
+				for i, principal := range principals.Content {
+					if i%2 == 0 && principal.Value == "AWS" {
+						for _, p := range principals.Content[i+1].Content {
+							config.Debugf("About to check if principal exists: %v", p)
+							if p.Kind == yaml.MappingNode {
+								config.Debugf("principal is a map")
 
-	for propName, prop := range element.(map[string]interface{}) {
-		config.Debugf("PolicyDocument prop %v %v", propName, prop)
-
-		if propName == "Statement" {
-			for _, statement := range prop.([]interface{}) {
-				config.Debugf("statement: %v", statement)
-				for spropElementName, spropElement := range statement.(map[string]interface{}) {
-					config.Debugf("spropElement: %v %v", spropElementName, spropElement)
-
-					// Check the principals to make sure they exist
-					if spropElementName == "Principal" {
-						for pType, pArray := range spropElement.(map[string]interface{}) {
-							if pType == "AWS" {
-								for _, principal := range pArray.([]interface{}) {
-									config.Debugf("About to check if principal exists: %v", principal)
-									pMap, isMap := principal.(map[string]interface{})
-									if isMap {
-										config.Debugf("principal is a map: %v", pMap)
-
-										// This is.. hard. We need to resolve !Sub, !Ref, etc
-										// TODO
-									}
-									pString, isString := principal.(string)
-									if isString {
-										config.Debugf("principal is a string: %v", pString)
-
-										exists, err := PrincipalExists(pString)
-										if err != nil || !exists {
-											config.Debugf("Principal not found: %v", principal)
-											policyOk = false
-										}
-									}
+								// This is.. hard. We need to resolve !Sub, !Ref, etc
+								// TODO
+							} else {
+								exists, err := PrincipalExists(p.Value)
+								if err != nil || !exists {
+									config.Debugf("Principal not found: %v", principal)
+									policyOk = false
 								}
 							}
 						}
@@ -220,7 +214,6 @@ func CheckPolicyDocument(element interface{}) (bool, error) {
 				}
 			}
 		}
-
 	}
 
 	return policyOk, nil
