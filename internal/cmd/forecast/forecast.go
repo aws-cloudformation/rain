@@ -12,6 +12,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
 	"github.com/aws-cloudformation/rain/internal/cmd/deploy"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/ui"
 	"github.com/spf13/cobra"
 
@@ -38,35 +39,77 @@ type PredictionInput struct {
 	logicalId   string
 	stackExists bool
 	stack       types.Stack
+	typeName    string
+}
+
+// Forecast represents predictions for a single resource in the template
+type Forecast struct {
+	ResourceType string
+	LogicalId    string
+	Passed       []string
+	Failed       []string
+}
+
+func (f Forecast) GetNumChecked() int {
+	return len(f.Passed) + len(f.Failed)
+}
+
+func (f Forecast) GetNumFailed() int {
+	return len(f.Failed)
+}
+
+func (f Forecast) GetNumPassed() int {
+	return len(f.Passed)
+}
+
+func (f Forecast) Append(forecast Forecast) {
+	f.Failed = append(f.Failed, forecast.Failed...)
+	f.Passed = append(f.Failed, forecast.Passed...)
+}
+
+func (f Forecast) Add(passed bool, message string) {
+	if passed {
+		f.Passed = append(f.Passed, message)
+	} else {
+		f.Failed = append(f.Failed, message)
+	}
+}
+
+func makeForecast(typeName string, logicalId string) Forecast {
+	return Forecast{
+		ResourceType: typeName,
+		LogicalId:    logicalId,
+		Passed:       make([]string, 0),
+		Failed:       make([]string, 0),
+	}
 }
 
 // forecasters is a map of resource type names to prediction functions.
-var forecasters = make(map[string]func(input PredictionInput) (numFailed int, numChecked int))
+var forecasters = make(map[string]func(input PredictionInput) Forecast)
 
 // Run all forecasters for the type
-func forecastForType(typeName string, input PredictionInput) (numFailed int, numChecked int) {
+func forecastForType(typeName string, input PredictionInput) Forecast {
+
+	forecast := makeForecast(typeName, input.logicalId)
 
 	// Only run the forecaster if it matches the optional --type arg,
 	// or if that arg was not provided.
 	if ResourceType != "" && ResourceType != typeName {
 		config.Debugf("Not running forecasters for %v", typeName)
-		return
+		return forecast
 	}
 
-	fmt.Println("Checking", input.logicalId, typeName)
+	spinner.Push(fmt.Sprintf("Checking %v %v", input.logicalId, typeName))
 
 	// Call generic prediction functions that we can run against
 	// all resources, even if there is not a predictor.
 
 	// Make sure the resource does not already exist
-	if cfn.ResourceAlreadyExists(typeName,
-		input.resource.(map[string]interface{}), input.stackExists) {
-		fmt.Printf("%v %v already exists\n", typeName, input.logicalId)
-
-		numFailed += 1
+	if cfn.ResourceAlreadyExists(typeName, input.resource.(map[string]interface{}), input.stackExists) {
+		forecast.Add(false, "Already exists")
+	} else {
+		forecast.Add(true, "Does not exist")
 	}
-
-	numChecked += 1
 
 	// Check permissions
 	// (see S3 example, we would need to figure out the arn for each service)
@@ -76,15 +119,11 @@ func forecastForType(typeName string, input PredictionInput) (numFailed int, num
 	fn, ok := forecasters[typeName]
 
 	if ok {
-		// Call the prediction function
-		nf, nc := fn(input)
-		numFailed += nf
-		numChecked += nc
-		fmt.Printf("%v %v: %v of %v specific checks failed\n",
-			typeName, input.logicalId, nf, nc)
+		// Call the prediction function and append the results
+		forecast.Append(fn(input))
 	}
 
-	return numFailed, numChecked
+	return forecast
 }
 
 // Query the account to make predictions about deployment failures.
@@ -137,10 +176,11 @@ func predict(source cft.Template, stackName string) bool {
 		input.stackName = stackName
 		input.stackExists = stackExists
 		input.stack = stack
+		input.typeName = typeName
 
-		nf, nc := forecastForType(typeName, input)
-		numFailed += nf
-		numChecked += nc
+		forecast := forecastForType(typeName, input)
+		numFailed += forecast.GetNumFailed()
+		numChecked += forecast.GetNumChecked()
 	}
 
 	if numFailed > 0 {

@@ -13,18 +13,21 @@ import (
 
 // An empty bucket cannot be deleted, which will cause a stack DELETE to fail.
 // Returns true if the stack operation will succeed.
-func checkBucketNotEmpty(input PredictionInput, bucket *types.StackResourceDetail) bool {
+func checkBucketNotEmpty(input PredictionInput, bucket *types.StackResourceDetail) (bool, string) {
 	if !input.stackExists {
-		return true
+		return true, "Stack does not exist"
 	}
 	config.Debugf("Checking if the bucket %v is not empty", *bucket.PhysicalResourceId)
 
 	exists, err := s3.BucketExists(*bucket.PhysicalResourceId)
-	if err != nil || !exists {
+	if err != nil {
+		return false, fmt.Sprintf("Unable to check if bucket exists: %v", err)
+	}
+
+	if !exists {
 		// The bucket might not exist if this is an UPDATE with new resources
 		// But we should have already handled this when we got resource details
-		fmt.Println(*bucket.LogicalResourceId, "does not exist.", err)
-		return false
+		return false, "Bucket does not exist"
 	}
 
 	hasContents, _ := s3.BucketHasContents(*bucket.PhysicalResourceId)
@@ -36,23 +39,24 @@ func checkBucketNotEmpty(input PredictionInput, bucket *types.StackResourceDetai
 				if element == "Retain" {
 					// The bucket is not empty but it is set to retain,
 					// so a stack DELETE will not fail
-					return true
+					return true, "Bucket is not empty but is set to RETAIN"
 				}
 			}
 		}
-		fmt.Println(*bucket.LogicalResourceId, "is not empty, so a stack DELETE will fail")
+		return false, "Bucket is not empty, so a stack DELETE will fail"
 	}
-	return !hasContents
+
+	return true, ""
 }
 
 // Check everything that could go wrong with an AWS::S3::Bucket resource
-func checkBucket(input PredictionInput) (int, int) {
+func checkBucket(input PredictionInput) Forecast {
 
 	// A uuid will be used for policy silumation if the bucket does not already exist
 	bucketName := fmt.Sprintf("rain-%v", uuid.New())
 	bucketArn := ""
-	numFailed := 0
-	numChecked := 0
+
+	forecast := makeForecast(input.typeName, input.logicalId)
 
 	if input.stackExists {
 		res, err := cfn.GetStackResource(input.stackName, input.logicalId)
@@ -65,9 +69,11 @@ func checkBucket(input PredictionInput) (int, int) {
 			bucketName := *res.PhysicalResourceId
 			config.Debugf("Physical bucket name is: %v", bucketName)
 
-			if !checkBucketNotEmpty(input, res) {
-				numFailed += 1
-				numChecked += 1
+			empty, reason := checkBucketNotEmpty(input, res)
+			if !empty {
+				forecast.Add(false, reason)
+			} else {
+				forecast.Add(true, "Bucket is empty")
 			}
 		}
 	}
@@ -78,23 +84,23 @@ func checkBucket(input PredictionInput) (int, int) {
 	// run it on all types? What if we can't predict what the arn will be?
 	if input.stackExists {
 		if !checkPermissions(input, bucketArn, "update") {
-			fmt.Println("Insufficient permissions to update", bucketArn)
-			numFailed += 1
+			forecast.Add(false, fmt.Sprintf("Insufficient permissions to update %v", bucketArn))
+		} else {
+			forecast.Add(true, "Role has update permissions")
 		}
-		numChecked += 1
+
 		if !checkPermissions(input, bucketArn, "delete") {
-			fmt.Println("Insufficient permissions to delete", bucketArn)
-			numFailed += 1
+			forecast.Add(false, fmt.Sprintf("Insufficient permissions to delete %v", bucketArn))
+		} else {
+			forecast.Add(true, "Role has delete permissions")
 		}
-		numChecked += 1
 	} else {
 		if !checkPermissions(input, bucketArn, "create") {
-			fmt.Println("Insufficient permissions to create", bucketArn)
-			numFailed += 1
+			forecast.Add(false, fmt.Sprintf("Insufficient permissions to create %v", bucketArn))
+		} else {
+			forecast.Add(true, "Role has create permissions")
 		}
-		numChecked += 1
 	}
 
-	return numFailed, numChecked
-
+	return forecast
 }

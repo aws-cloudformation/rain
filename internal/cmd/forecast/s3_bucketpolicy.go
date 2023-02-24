@@ -10,10 +10,9 @@ import (
 
 // Check everything that could go wrong with an AWS::S3::Bucket resource.
 // Returns numFailed, numChecked
-func checkBucketPolicy(input PredictionInput) (int, int) {
+func checkBucketPolicy(input PredictionInput) Forecast {
 
-	numFailed := 0
-	numChecked := 0
+	forecast := makeForecast(input.typeName, input.logicalId)
 
 	if input.stackExists {
 		_, err := cfn.GetStackResource(input.stackName, input.logicalId)
@@ -29,6 +28,7 @@ func checkBucketPolicy(input PredictionInput) (int, int) {
 	// Go back to the template to get the referenced bucket
 
 	// Check the policy for invalid principals
+	// TODO: switch to yaml nodes so we retain the line number
 	for elementName, element := range input.resource.(map[string]interface{}) {
 		config.Debugf("BucketPolicy element %v %v", elementName, element)
 
@@ -39,18 +39,18 @@ func checkBucketPolicy(input PredictionInput) (int, int) {
 					res, err := iam.CheckPolicyDocument(prop)
 
 					if err != nil {
-						fmt.Printf("Unable to check policy document: %v", err)
-						return 1, 1
+						forecast.Add(false, fmt.Sprintf("Unable to check policy document: %v", err))
 					}
 
-					numChecked += 1
 					if !res {
-						numFailed += 1
+						forecast.Add(false, "Invalid principal in policy document")
+					} else {
+						forecast.Add(true, "Principal is valid")
 					}
 				}
 			}
 		}
 	}
 
-	return numFailed, numChecked
+	return forecast
 }
