@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gopkg.in/yaml.v3"
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/format"
@@ -336,7 +337,7 @@ func WaitUntilStackCreateComplete(stackName string) error {
 }
 
 func ResourceAlreadyExists(typeName string,
-	resource map[string]interface{}, stackExists bool) bool {
+	resource *yaml.Node, stackExists bool) bool {
 	return true
 }
 

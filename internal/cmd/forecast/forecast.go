@@ -179,8 +179,8 @@ func predict(source cft.Template, stackName string) bool {
 
 	rootMap := source.Node.Content[0]
 
-	// Uncomment this to see a json version of the yaml node data model for the template
-	// config.Debugf("node: %v", toJson(rootMap))
+	// Add the --debug arg to see a json version of the yaml node data model for the template
+	config.Debugf("node: %v", toJson(rootMap))
 
 	// Iterate over each resource
 	_, resources := s11n.GetMapValue(rootMap, "Resources")
