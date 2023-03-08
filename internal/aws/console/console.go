@@ -21,7 +21,8 @@ const signinURI = "https://signin.aws.amazon.com/federation"
 const issuer = "https://aws-cloudformation.github.io/rain/rain_console.html"
 const consoleURI = "https://console.aws.amazon.com"
 const defaultService = "cloudformation"
-const sessionDuration = 43200
+
+//const sessionDuration = 43200
 
 func buildSessionString(sessionName string) (string, error) {
 	if sessionName == "" {
@@ -83,7 +84,7 @@ func getSigninToken(userName string) (string, error) {
 	resp, err := http.Get(uri)
 	config.Debugf("resp.StatusCode: %v", resp.StatusCode)
 	if resp.StatusCode >= 300 && err == nil {
-		err = fmt.Errorf("Call to signin.aws.amazon.com resulted in a %v: %v", resp.StatusCode, resp.Status)
+		err = fmt.Errorf("call to signin.aws.amazon.com resulted in a %v: %v", resp.StatusCode, resp.Status)
 	}
 	if err != nil {
 		return "", err
