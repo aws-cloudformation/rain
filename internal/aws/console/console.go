@@ -13,6 +13,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
 	"github.com/aws-cloudformation/rain/internal/aws/sts"
+	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws/smithy-go/ptr"
 )
 
@@ -39,25 +40,56 @@ func buildSessionString(sessionName string) (string, error) {
 		sessionName = nameParts[1]
 	}
 
+	config.Debugf("sessionName: %v", sessionName)
+
 	creds, err := aws.NamedConfig(sessionName).Credentials.Retrieve(context.Background())
 	if err != nil {
 		return "", err
 	}
 
-	return url.QueryEscape(fmt.Sprintf(`{"sessionId": "%s", "sessionKey": "%s", "sessionToken": "%s"}`,
-		creds.AccessKeyID,
-		creds.SecretAccessKey,
-		creds.SessionToken,
-	)), nil
+	unescaped := fmt.Sprintf(`{"sessionId": "%s", "sessionKey": "%s", "sessionToken": "%s"}`,
+		creds.AccessKeyID, creds.SecretAccessKey, creds.SessionToken)
+
+	config.Debugf("unescaped session string: %v", unescaped)
+
+	return url.QueryEscape(unescaped), nil
 }
 
 func getSigninToken(userName string) (string, error) {
 	sessionString, err := buildSessionString(userName)
 	if err != nil {
+		config.Debugf("buildSessionString failed")
 		return "", err
 	}
+	config.Debugf("sessionString: %v", sessionString)
 
-	resp, err := http.Get(fmt.Sprintf("%s?Action=getSigninToken&Session=%s&SessionDuration=%d", signinURI, sessionString, sessionDuration))
+	// Broken with source_profile and a role arn in .aws/config
+	uriWithSessionDuration := fmt.Sprintf("%s?Action=getSigninToken&Session=%s&SessionDuration=%d",
+		signinURI, sessionString, sessionDuration)
+
+	// Try it without session duration (console sessions will be limited to 1 hour)
+	uriWithoutSessionDuration := fmt.Sprintf("%s?Action=getSigninToken&Session=%s",
+		signinURI, sessionString)
+
+	// SessionDuration is only valid when AssumeRole
+	// is called, so when source_profile is used, it must cause a call to
+	// GetFederationToken, which would require the use of DurationSeconds.
+	// It's not clear how we could predict reliably which one will be used,
+	// so we try both URIs and see which one works. Not ideal.
+
+	// This page provides a good explanation of what we're doing here:
+	// https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_enable-console-custom-url.html
+
+	resp, err := http.Get(uriWithSessionDuration)
+	config.Debugf("resp.StatusCode: %v", resp.StatusCode)
+	if resp.StatusCode >= 300 && err == nil {
+		config.Debugf("Retrying without SessionDuration after call to signin.aws.amazon.com resulted in a %v: %v",
+			resp.StatusCode, resp.Status)
+		resp, err = http.Get(uriWithoutSessionDuration)
+		if resp.StatusCode >= 300 && err == nil {
+			err = fmt.Errorf("call to signin.aws.amazon.com resulted in a %v: %v", resp.StatusCode, resp.Status)
+		}
+	}
 	if err != nil {
 		return "", err
 	}
@@ -67,6 +99,8 @@ func getSigninToken(userName string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	config.Debugf("body: %s", body)
 
 	var out map[string]string
 	err = json.Unmarshal(body, &out)
@@ -84,10 +118,16 @@ func getSigninToken(userName string) (string, error) {
 
 // GetURI returns a sign-in uri for the current credentials and region
 func GetURI(service, stackName, userName string) (string, error) {
+
+	config.Debugf("GetURI %v, %v, %v", service, stackName, userName)
+
 	token, err := getSigninToken(userName)
 	if err != nil {
+		config.Debugf("getSigninToken failed")
 		return "", err
 	}
+
+	config.Debugf("token: %v", token)
 
 	if service == "" {
 		service = defaultService
