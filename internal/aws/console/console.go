@@ -21,8 +21,7 @@ const signinURI = "https://signin.aws.amazon.com/federation"
 const issuer = "https://aws-cloudformation.github.io/rain/rain_console.html"
 const consoleURI = "https://console.aws.amazon.com"
 const defaultService = "cloudformation"
-
-//const sessionDuration = 43200
+const sessionDuration = 43200
 
 func buildSessionString(sessionName string) (string, error) {
 	if sessionName == "" {
@@ -65,26 +64,31 @@ func getSigninToken(userName string) (string, error) {
 	config.Debugf("sessionString: %v", sessionString)
 
 	// Broken with source_profile and a role arn in .aws/config
-	//uri := fmt.Sprintf("%s?Action=getSigninToken&Session=%s&SessionDuration=%d",
-	//	signinURI, sessionString, sessionDuration)
+	uriWithSessionDuration := fmt.Sprintf("%s?Action=getSigninToken&Session=%s&SessionDuration=%d",
+		signinURI, sessionString, sessionDuration)
 
 	// Try it without session duration (console sessions will be limited to 1 hour)
-	uri := fmt.Sprintf("%s?Action=getSigninToken&Session=%s",
+	uriWithoutSessionDuration := fmt.Sprintf("%s?Action=getSigninToken&Session=%s",
 		signinURI, sessionString)
 
-	// Looks like this is the problem. SessionDuration is only valid when AssumeRole
+	// SessionDuration is only valid when AssumeRole
 	// is called, so when source_profile is used, it must cause a call to
 	// GetFederationToken, which would require the use of DurationSeconds.
-
-	config.Debugf("uri: %v", uri)
+	// It's not clear how we could predict reliably which one will be used,
+	// so we try both URIs and see which one works. Not ideal.
 
 	// This page provides a good explanation of what we're doing here:
 	// https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_enable-console-custom-url.html
 
-	resp, err := http.Get(uri)
+	resp, err := http.Get(uriWithSessionDuration)
 	config.Debugf("resp.StatusCode: %v", resp.StatusCode)
 	if resp.StatusCode >= 300 && err == nil {
-		err = fmt.Errorf("call to signin.aws.amazon.com resulted in a %v: %v", resp.StatusCode, resp.Status)
+		config.Debugf("Retrying without SessionDuration after call to signin.aws.amazon.com resulted in a %v: %v",
+			resp.StatusCode, resp.Status)
+		resp, err = http.Get(uriWithoutSessionDuration)
+		if resp.StatusCode >= 300 && err == nil {
+			err = fmt.Errorf("call to signin.aws.amazon.com resulted in a %v: %v", resp.StatusCode, resp.Status)
+		}
 	}
 	if err != nil {
 		return "", err
