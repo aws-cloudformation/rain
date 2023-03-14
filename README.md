@@ -13,7 +13,7 @@ Rain is also a command line tool for working with [AWS CloudFormation](https://a
 
 ## Discord
 
-Join us on Discord to discuss rain and all things CloudFormation! Connect & interact with CloudFormation developers &
+Join us on Discord to discuss rain and all things CloudFormation! Connect and interact with CloudFormation developers and
 experts, find channels to discuss rain, the CloudFormation registry, StackSets,
 cfn-lint, Guard and more:
 
@@ -37,7 +37,7 @@ If you have [homebrew](https://brew.sh/) installed, `brew install rain`
 
 Or you can download the appropriate binary for your system from [the releases page](https://github.com/aws-cloudformation/rain/releases).
 
-Or if you're a [Gopher](https://blog.golang.org/gopher), you can `GO111MODULE=on go install github.com/aws-cloudformation/rain/cmd/rain`
+Or if you're a [Gopher](https://blog.golang.org/gopher), you can `GO111MODULE=on go get github.com/aws-cloudformation/rain/cmd/rain`
 
 ```
 Usage:
@@ -49,7 +49,7 @@ Stack commands:
   logs        Show the event log for the named stack
   ls          List running CloudFormation stacks
   rm          Delete a running CloudFormation stack
-  stackset    This command allows to manipulate stack sets.
+  stackset    This command manipulates stack sets.
   watch       Display an updating view of a CloudFormation stack
 
 Template commands:
@@ -95,10 +95,6 @@ In alphabetical order:
 * [cfn-nag](https://github.com/stelligent/cfn_nag)
 
     The cfn-nag tool looks for patterns in CloudFormation templates that may indicate insecure infrastructure.
-
-* [sceptre](https://sceptre.cloudreach.com/)
-
-    Sceptre is a tool to drive CloudFormation. Sceptre manages the creation, update and deletion of stacks while providing meta commands which allow users to retrieve information about their stacks.
 
 * [taskcat](https://github.com/aws-quickstart/taskcat)
 

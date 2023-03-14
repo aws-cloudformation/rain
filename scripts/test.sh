@@ -2,6 +2,9 @@
 
 set -eoux pipefail
 
+# This should be run regularly, but in its own PR
+# go generate ./...
+
 go build ./cmd/rain
 staticcheck ./...
 staticcheck -tags=func_test ./...

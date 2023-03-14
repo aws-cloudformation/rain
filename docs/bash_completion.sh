@@ -898,10 +898,237 @@ _rain_rm()
     local_nonpersistent_flags+=("--region")
     local_nonpersistent_flags+=("--region=")
     local_nonpersistent_flags+=("-r")
+    flags+=("--role-arn=")
+    two_word_flags+=("--role-arn")
+    local_nonpersistent_flags+=("--role-arn")
+    local_nonpersistent_flags+=("--role-arn=")
     flags+=("--yes")
     flags+=("-y")
     local_nonpersistent_flags+=("--yes")
     local_nonpersistent_flags+=("-y")
+    flags+=("--debug")
+    flags+=("--no-colour")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_rain_stackset_deploy()
+{
+    last_command="rain_stackset_deploy"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--accounts=")
+    two_word_flags+=("--accounts")
+    local_nonpersistent_flags+=("--accounts")
+    local_nonpersistent_flags+=("--accounts=")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    two_word_flags+=("-c")
+    local_nonpersistent_flags+=("--config")
+    local_nonpersistent_flags+=("--config=")
+    local_nonpersistent_flags+=("-c")
+    flags+=("--detach")
+    flags+=("-d")
+    local_nonpersistent_flags+=("--detach")
+    local_nonpersistent_flags+=("-d")
+    flags+=("--help")
+    flags+=("-h")
+    local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
+    flags+=("--params=")
+    two_word_flags+=("--params")
+    local_nonpersistent_flags+=("--params")
+    local_nonpersistent_flags+=("--params=")
+    flags+=("--profile=")
+    two_word_flags+=("--profile")
+    two_word_flags+=("-p")
+    local_nonpersistent_flags+=("--profile")
+    local_nonpersistent_flags+=("--profile=")
+    local_nonpersistent_flags+=("-p")
+    flags+=("--region=")
+    two_word_flags+=("--region")
+    two_word_flags+=("-r")
+    local_nonpersistent_flags+=("--region")
+    local_nonpersistent_flags+=("--region=")
+    local_nonpersistent_flags+=("-r")
+    flags+=("--regions=")
+    two_word_flags+=("--regions")
+    local_nonpersistent_flags+=("--regions")
+    local_nonpersistent_flags+=("--regions=")
+    flags+=("--tags=")
+    two_word_flags+=("--tags")
+    local_nonpersistent_flags+=("--tags")
+    local_nonpersistent_flags+=("--tags=")
+    flags+=("--debug")
+    flags+=("--no-colour")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_rain_stackset_help()
+{
+    last_command="rain_stackset_help"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--debug")
+    flags+=("--no-colour")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    has_completion_function=1
+    noun_aliases=()
+}
+
+_rain_stackset_ls()
+{
+    last_command="rain_stackset_ls"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--all")
+    flags+=("-a")
+    local_nonpersistent_flags+=("--all")
+    local_nonpersistent_flags+=("-a")
+    flags+=("--help")
+    flags+=("-h")
+    local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
+    flags+=("--profile=")
+    two_word_flags+=("--profile")
+    two_word_flags+=("-p")
+    local_nonpersistent_flags+=("--profile")
+    local_nonpersistent_flags+=("--profile=")
+    local_nonpersistent_flags+=("-p")
+    flags+=("--region=")
+    two_word_flags+=("--region")
+    two_word_flags+=("-r")
+    local_nonpersistent_flags+=("--region")
+    local_nonpersistent_flags+=("--region=")
+    local_nonpersistent_flags+=("-r")
+    flags+=("--debug")
+    flags+=("--no-colour")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_rain_stackset_rm()
+{
+    last_command="rain_stackset_rm"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--detach")
+    flags+=("-d")
+    local_nonpersistent_flags+=("--detach")
+    local_nonpersistent_flags+=("-d")
+    flags+=("--help")
+    flags+=("-h")
+    local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
+    flags+=("--profile=")
+    two_word_flags+=("--profile")
+    two_word_flags+=("-p")
+    local_nonpersistent_flags+=("--profile")
+    local_nonpersistent_flags+=("--profile=")
+    local_nonpersistent_flags+=("-p")
+    flags+=("--region=")
+    two_word_flags+=("--region")
+    two_word_flags+=("-r")
+    local_nonpersistent_flags+=("--region")
+    local_nonpersistent_flags+=("--region=")
+    local_nonpersistent_flags+=("-r")
+    flags+=("--debug")
+    flags+=("--no-colour")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_rain_stackset()
+{
+    last_command="rain_stackset"
+
+    command_aliases=()
+
+    commands=()
+    commands+=("deploy")
+    commands+=("help")
+    commands+=("ls")
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
+        command_aliases+=("list")
+        aliashash["list"]="ls"
+    fi
+    commands+=("rm")
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
+        command_aliases+=("delete")
+        aliashash["delete"]="rm"
+        command_aliases+=("remove")
+        aliashash["remove"]="rm"
+    fi
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--help")
+    flags+=("-h")
+    local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
+    flags+=("--profile=")
+    two_word_flags+=("--profile")
+    two_word_flags+=("-p")
+    local_nonpersistent_flags+=("--profile")
+    local_nonpersistent_flags+=("--profile=")
+    local_nonpersistent_flags+=("-p")
+    flags+=("--region=")
+    two_word_flags+=("--region")
+    two_word_flags+=("-r")
+    local_nonpersistent_flags+=("--region")
+    local_nonpersistent_flags+=("--region=")
+    local_nonpersistent_flags+=("-r")
     flags+=("--debug")
     flags+=("--no-colour")
 
@@ -1034,6 +1261,7 @@ _rain_root_command()
         command_aliases+=("remove")
         aliashash["remove"]="rm"
     fi
+    commands+=("stackset")
     commands+=("tree")
     if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("graph")
