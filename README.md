@@ -13,7 +13,7 @@ Rain is also a command line tool for working with [AWS CloudFormation](https://a
 
 ## Discord
 
-Join us on Discord to discuss rain and all things CloudFormation! Connect & interact with CloudFormation developers &
+Join us on Discord to discuss rain and all things CloudFormation! Connect and interact with CloudFormation developers and
 experts, find channels to discuss rain, the CloudFormation registry, StackSets,
 cfn-lint, Guard and more:
 
@@ -37,7 +37,7 @@ If you have [homebrew](https://brew.sh/) installed, `brew install rain`
 
 Or you can download the appropriate binary for your system from [the releases page](https://github.com/aws-cloudformation/rain/releases).
 
-Or if you're a [Gopher](https://blog.golang.org/gopher), you can `GO111MODULE=on go install github.com/aws-cloudformation/rain/cmd/rain`
+Or if you're a [Gopher](https://blog.golang.org/gopher), you can `GO111MODULE=on go get github.com/aws-cloudformation/rain/cmd/rain`
 
 ```
 Usage:
@@ -49,7 +49,7 @@ Stack commands:
   logs        Show the event log for the named stack
   ls          List running CloudFormation stacks
   rm          Delete a running CloudFormation stack
-  stackset    This command allows to manipulate stack sets.
+  stackset    This command manipulates stack sets.
   watch       Display an updating view of a CloudFormation stack
 
 Template commands:
@@ -88,6 +88,14 @@ Rain is licensed under the Apache 2.0 License.
 
 In alphabetical order:
 
+* [cfn-flip](https://github.com/awslabs/aws-cfn-template-flip)
+
+    cfn-flip converts AWS CloudFormation templates between JSON and YAML formats, making use of the YAML format's short function syntax where possible.
+
+* [cfn-format](https://github.com/awslabs/aws-cloudformation-template-formatter)
+
+    cfn-format reads in an existing AWS CloudFormation template and outputs a cleanly-formatted, easy-to-read copy of the same template adhering to standards as used in AWS documentation. cfn-format can output either YAML or JSON as desired.
+
 * [cfn-lint](https://github.com/aws-cloudformation/cfn-python-lint)
 
     Validate CloudFormation yaml/json templates against the CloudFormation spec and additional checks. Includes checking valid values for resource properties and best practices.
@@ -95,6 +103,10 @@ In alphabetical order:
 * [cfn-nag](https://github.com/stelligent/cfn_nag)
 
     The cfn-nag tool looks for patterns in CloudFormation templates that may indicate insecure infrastructure.
+
+* [cfn-skeleton](https://github.com/awslabs/aws-cloudformation-template-builder)
+
+    cfn-skeleton that consumes the published CloudFormation specification and generates skeleton CloudFormation templates with mandatory and optional parameters of chosen resource types pre-filled with placeholder values.
 
 * [sceptre](https://sceptre.cloudreach.com/)
 
