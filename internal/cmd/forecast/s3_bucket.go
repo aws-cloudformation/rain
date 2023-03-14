@@ -46,6 +46,10 @@ func checkBucketNotEmpty(input PredictionInput, bucket *types.StackResourceDetai
 			return true, "Bucket is not empty but is set to RETAIN"
 		}
 		return false, "Bucket is not empty, so a stack DELETE will fail"
+
+		// TODO - Should we check to see if they are using something like
+		// AwsCommunity::S3::DeleteBucketContents?
+		// (or a similar custom resource? .. not sure how to do this reliably)
 	}
 
 	spinner.Pop()
@@ -54,7 +58,7 @@ func checkBucketNotEmpty(input PredictionInput, bucket *types.StackResourceDetai
 }
 
 // Check everything that could go wrong with an AWS::S3::Bucket resource
-func checkBucket(input PredictionInput) Forecast {
+func checkS3Bucket(input PredictionInput) Forecast {
 
 	// A uuid will be used for policy silumation if the bucket does not already exist
 	bucketName := fmt.Sprintf("rain-%v", uuid.New())
@@ -86,6 +90,7 @@ func checkBucket(input PredictionInput) Forecast {
 
 	// TODO - Can we make the permissions check generic so we can
 	// run it on all types? What if we can't predict what the arn will be?
+	// We could have a map of resource names to functions that provide the arn..
 	var ok bool
 	var reason []string
 	if input.stackExists {

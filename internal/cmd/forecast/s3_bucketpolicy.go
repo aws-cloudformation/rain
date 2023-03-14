@@ -12,7 +12,7 @@ import (
 
 // Check everything that could go wrong with an AWS::S3::Bucket resource.
 // Returns numFailed, numChecked
-func checkBucketPolicy(input PredictionInput) Forecast {
+func checkS3BucketPolicy(input PredictionInput) Forecast {
 
 	forecast := makeForecast(input.typeName, input.logicalId)
 
@@ -32,7 +32,6 @@ func checkBucketPolicy(input PredictionInput) Forecast {
 	// Go back to the template to get the referenced bucket
 
 	// Check the policy for invalid principals
-	// TODO: switch to yaml nodes so we retain the line number
 	_, props := s11n.GetMapValue(input.resource, "Properties")
 	if props != nil {
 		_, policyDocument := s11n.GetMapValue(props, "PolicyDocument")
@@ -44,6 +43,7 @@ func checkBucketPolicy(input PredictionInput) Forecast {
 			}
 
 			if !res {
+				LineNumber = policyDocument.Line
 				forecast.Add(false, "Invalid principal in policy document")
 			} else {
 				forecast.Add(true, "Principal is valid")

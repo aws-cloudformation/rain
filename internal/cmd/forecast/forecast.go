@@ -112,10 +112,10 @@ func forecastForType(input PredictionInput) Forecast {
 		return forecast
 	}
 
-	spin(input.typeName, input.logicalId, "exists already?")
-
 	// Call generic prediction functions that we can run against
 	// all resources, even if there is not a predictor.
+
+	spin(input.typeName, input.logicalId, "exists already?")
 
 	// Make sure the resource does not already exist
 	if cfn.ResourceAlreadyExists(input.typeName, input.resource, input.stackExists) {
@@ -124,9 +124,21 @@ func forecastForType(input PredictionInput) Forecast {
 		forecast.Add(true, "Does not exist")
 	}
 
+	// Below are some ideas for things we might be able to check in a generic way
+
 	// Check permissions
 	// (see S3 example, we would need to figure out the arn for each service)
 	// TODO - Not sure if this is practical in a generic way
+
+	// Check service quotas
+	// TODO - Can we do this in a generic way?
+	// https://docs.aws.amazon.com/sdk-for-go/api/service/servicequotas/#ServiceQuotas.GetServiceQuota
+	// https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/servicequotas
+
+	// TODO - What about drift errors? Can we predict what will fail based on
+	// a drift detection report for the stack if it already exists?
+
+	// TODO - Regional capabilities. Does this service/feature exist in the region?
 
 	// See if we have a specific forecaster for this type
 	fn, found := forecasters[input.typeName]
@@ -183,6 +195,7 @@ func predict(source cft.Template, stackName string) bool {
 	config.Debugf("node: %v", toJson(rootMap))
 
 	// Iterate over each resource
+
 	_, resources := s11n.GetMapValue(rootMap, "Resources")
 	if resources == nil {
 		panic("Expected to find a Resources section in the template")
@@ -244,9 +257,30 @@ func predict(source cft.Template, stackName string) bool {
 
 // Cmd is the forecast command's entrypoint
 var Cmd = &cobra.Command{
-	Use:                   "forecast <template> <stackName>",
-	Short:                 "Predict deployment failures",
-	Long:                  "Outputs warnings about potential deployment failures due to constraints in the account or misconfigurations in the template related to dependencies in the account.",
+	Use:   "forecast <template> <stackName>",
+	Short: "Predict deployment failures",
+	Long: `Outputs warnings about potential deployment failures due to constraints in 
+the account or misconfigurations in the template related to dependencies in 
+the account.
+
+NOTE: This is an experimental feature!
+
+This command is not a linter! Use cfn-lint for that. The forecast command 
+is concerned with things that could go wrong after the template has been 
+checked to make sure it has a valid syntax.
+
+This command checks for some common issues across all resources:
+
+- The resource already exists
+- You do not have permissions to create/update/delete the resource
+- (More to come.. service quotas, drift issues)
+
+Resource-specific checks:
+
+- S3 bucket is not empty
+- S3 bucket policy has an invalid principal
+- (Many more to come...)
+`,
 	Args:                  cobra.ExactArgs(2),
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -288,11 +322,13 @@ func init() {
 	Cmd.Flags().StringVarP(&ConfigFilePath, "config", "c", "", "YAML or JSON file to set tags and parameters")
 
 	// If you want to add a prediction for a type that is not already covered, add it here
-	// The function must return (numFailed, numChecked)
+	// The function must return a Forecast struct
 	// For example:
 	// forecasters["AWS::New::Type"] = checkTheNewType
 
-	forecasters["AWS::S3::Bucket"] = checkBucket
-	forecasters["AWS::S3::BucketPolicy"] = checkBucketPolicy
+	forecasters["AWS::S3::Bucket"] = checkS3Bucket
+	forecasters["AWS::S3::BucketPolicy"] = checkS3BucketPolicy
+	forecasters["AWS::EC2::Instance"] = checkEC2Instance
+	forecasters["AWS::EC2::SecurityGroup"] = checkEC2SecurityGroup
 
 }
