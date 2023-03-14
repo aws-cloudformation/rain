@@ -138,6 +138,11 @@ func patchSamSpec(s spec.Spec) {
 	s.PropertyTypes["AWS::Serverless::Api.DomainConfiguration"].Properties["MutualTlsAuthentication"].Type = "AWS::ApiGateway::DomainName.MutualTlsAuthentication"
 	s.PropertyTypes["AWS::Serverless::Function.CloudWatchEvent"].Properties["Pattern"].PrimitiveType = "Json"
 	s.PropertyTypes["AWS::Serverless::Function.CloudWatchEvent"].Properties["Pattern"].Type = spec.TypeEmpty
+	s.PropertyTypes["AWS::Serverless::Function.DocumentDB"].Properties["Cluster"].ItemType = ""
+	s.PropertyTypes["AWS::Serverless::Function.DocumentDB"].Properties["Cluster"].PrimitiveItemType = ""
+	s.PropertyTypes["AWS::Serverless::Function.DocumentDB"].Properties["Cluster"].Type = ""
+	s.PropertyTypes["AWS::Serverless::Function.DocumentDB"].Properties["Cluster"].PrimitiveType = "String"
+	s.PropertyTypes["AWS::Serverless::Function.DocumentDB"].Properties["FilterCriteria"].Type = "AWS::Lambda::EventSourceMapping.FilterCriteria"
 	s.PropertyTypes["AWS::Serverless::Function.DynamoDB"].Properties["DestinationConfig"].Type = "AWS::Lambda::EventSourceMapping.DestinationConfig"
 	s.PropertyTypes["AWS::Serverless::Function.DynamoDB"].Properties["FilterCriteria"].Type = "AWS::Lambda::EventSourceMapping.FilterCriteria"
 	s.PropertyTypes["AWS::Serverless::Function.EventBridgeRule"].Properties["Pattern"].PrimitiveType = "Json"
@@ -149,6 +154,8 @@ func patchSamSpec(s spec.Spec) {
 	s.PropertyTypes["AWS::Serverless::Function.Kinesis"].Properties["FilterCriteria"].Type = "AWS::Lambda::EventSourceMapping.FilterCriteria"
 	s.PropertyTypes["AWS::Serverless::Function.MQ"].Properties["FilterCriteria"].Type = "AWS::Lambda::EventSourceMapping.FilterCriteria"
 	s.PropertyTypes["AWS::Serverless::Function.MSK"].Properties["FilterCriteria"].Type = "AWS::Lambda::EventSourceMapping.FilterCriteria"
+	s.PropertyTypes["AWS::Serverless::Function.MSK"].Properties["SourceAccessConfigurations"].ItemType = "AWS::Lambda::EventSourceMapping.SourceAccessConfiguration"
+	s.PropertyTypes["AWS::Serverless::Function.MSK"].Properties["SourceAccessConfigurations"].Type = spec.TypeList
 	s.PropertyTypes["AWS::Serverless::Function.S3"].Properties["Filter"].Type = "AWS::S3::Bucket.NotificationFilter"
 	s.PropertyTypes["AWS::Serverless::Function.SNS"].Properties["FilterPolicy"].PrimitiveType = "Json"
 	s.PropertyTypes["AWS::Serverless::Function.SNS"].Properties["FilterPolicy"].Type = spec.TypeEmpty
@@ -183,6 +190,7 @@ func patchSamSpec(s spec.Spec) {
 	s.ResourceTypes["AWS::Serverless::Function"].Properties["ImageConfig"].Type = "AWS::Lambda::Function.ImageConfig"
 	s.ResourceTypes["AWS::Serverless::Function"].Properties["ProvisionedConcurrencyConfig"].Type = "AWS::Lambda::Alias.ProvisionedConcurrencyConfiguration"
 	s.ResourceTypes["AWS::Serverless::Function"].Properties["RuntimeManagementConfig"].Type = "AWS::Lambda::Function.RuntimeManagementConfig"
+	s.ResourceTypes["AWS::Serverless::Function"].Properties["SnapStart"].Type = "AWS::Lambda::Function.SnapStart"
 	s.ResourceTypes["AWS::Serverless::Function"].Properties["VpcConfig"].Type = "AWS::Lambda::Function.VpcConfig"
 	s.ResourceTypes["AWS::Serverless::HttpApi"].Properties["AccessLogSettings"].Type = "AWS::ApiGatewayV2::Stage.AccessLogSettings"
 	s.ResourceTypes["AWS::Serverless::HttpApi"].Properties["DefaultRouteSettings"].Type = "AWS::ApiGatewayV2::Stage.RouteSettings"
