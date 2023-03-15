@@ -4,6 +4,17 @@ func checkEC2SecurityGroup(input PredictionInput) Forecast {
 
 	// TODO - Cannot delete a security group that still has instances
 	// (See if there are instances not in this stack)
+	/* CLI commands
+
+	aws ec2 describe-network-interfaces --filters Name=group-id,Values=<group-id> --region <region> --output json
+
+	*/
+
+	//	filters := []types.Filter{}
+
+	//	input := *ec2.DescribeNetworkInterfacesInput{
+	//		Filters:
+	//	}
 
 	// TODO - Make sure security group exists in VPC
 	/*

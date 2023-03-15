@@ -25,6 +25,9 @@ import (
 // The role name to use for the IAM policy simulator (optional --role)
 var RoleArn string
 
+// This is an experimental feature that might break between minor releases
+var Experimental bool
+
 // The resource type to check (optional --type to limit checks to one type)
 var ResourceType string
 
@@ -81,6 +84,7 @@ func (f *Forecast) Add(passed bool, message string) {
 	} else {
 		f.Failed = append(f.Failed, msg)
 	}
+	// TODO - Do we want each failure to have a code so that it can be ignored?
 }
 
 func makeForecast(typeName string, logicalId string) Forecast {
@@ -176,8 +180,7 @@ func predict(source cft.Template, stackName string) bool {
 	// Otherwise, only check for possible create failures
 	stack, stackExists := deploy.CheckStack(stackName)
 
-	// TODO: Add all the same params as the `deploy` command has so we can create
-	// a change set for updates.
+	// TODO: Create a changeset to evalutate updates
 
 	msg := ""
 	if stackExists {
@@ -257,7 +260,7 @@ func predict(source cft.Template, stackName string) bool {
 
 // Cmd is the forecast command's entrypoint
 var Cmd = &cobra.Command{
-	Use:   "forecast <template> <stackName>",
+	Use:   "forecast --experimental <template> <stackName>",
 	Short: "Predict deployment failures",
 	Long: `Outputs warnings about potential deployment failures due to constraints in 
 the account or misconfigurations in the template related to dependencies in 
@@ -265,9 +268,11 @@ the account.
 
 NOTE: This is an experimental feature!
 
+To use this command, add --experimental or -x as an argument.
+
 This command is not a linter! Use cfn-lint for that. The forecast command 
-is concerned with things that could go wrong after the template has been 
-checked to make sure it has a valid syntax.
+is concerned with things that could go wrong during deployment, after the 
+template has been checked to make sure it has a valid syntax.
 
 This command checks for some common issues across all resources:
 
@@ -286,6 +291,11 @@ Resource-specific checks:
 	Run: func(cmd *cobra.Command, args []string) {
 		fn := args[0]
 		stackName := args[1]
+
+		// TODO: Remove this when the design stabilizes
+		if !Experimental {
+			panic("Please add the --experimental arg to use this feature")
+		}
 
 		config.Debugf("Generating forecast for %v", fn)
 
@@ -315,6 +325,7 @@ Resource-specific checks:
 
 func init() {
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
+	Cmd.Flags().BoolVarP(&Experimental, "experimental", "x", false, "Acknowledge that this is an experimental feature")
 	Cmd.Flags().StringVar(&RoleArn, "role-arn", "", "An optional execution role arn to use for predicting IAM failures")
 	// TODO - --op "create", "update", "delete", default: "all"
 	Cmd.Flags().StringVar(&ResourceType, "type", "", "Optional resource type to limit checks to only that type")
