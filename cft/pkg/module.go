@@ -344,6 +344,10 @@ func processModule(module *yaml.Node,
 // Type: !Rain::Module
 func module(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
 
+	if !Experimental {
+		panic("You must add the --experimental arg to use the ~Rain:Module directive")
+	}
+
 	if len(n.Content) != 2 {
 		return false, errors.New("expected !Rain::Module <URI>")
 	}

@@ -34,6 +34,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Must be set to true to enable !Rain::Module
+var Experimental bool
+
 func transform(nodeToTransform *yaml.Node, rootDir string, t cft.Template) (bool, error) {
 	changed := false
 

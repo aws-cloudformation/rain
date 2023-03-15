@@ -14,6 +14,9 @@ import (
 
 var outFn = ""
 
+// Experimental is an optional argument that enables experimental features
+var Experimental bool
+
 // Cmd is the pkg command's entrypoint
 var Cmd = &cobra.Command{
 	Use:   "pkg <template>",
@@ -47,12 +50,16 @@ You may use the following, rain-specific directives in templates packaged with "
 							   must be called "ModuleExtension", and it must have a Metadata entry called 
 							   "Extends" that supplies the existing type to be extended. The Parameters section 
 							   of the module can be used to define additional properties for the extension.
+							   This is an experimental directive that must be enabled by adding the 
+							   --experimental arg on the command line.
 `,
 	Args:                  cobra.ExactArgs(1),
 	Aliases:               []string{"package"},
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		fn := args[0]
+
+		cftpkg.Experimental = Experimental
 
 		spinner.Push(fmt.Sprintf("Packaging template '%s'", fn))
 		packaged, err := cftpkg.File(fn)
@@ -73,5 +80,6 @@ You may use the following, rain-specific directives in templates packaged with "
 
 func init() {
 	Cmd.Flags().StringVarP(&outFn, "output", "o", "", "Output packaged template to a file")
+	Cmd.Flags().BoolVarP(&Experimental, "experimental", "x", false, "Enable experimental features")
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
 }
