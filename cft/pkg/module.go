@@ -198,110 +198,116 @@ func processModule(module *yaml.Node,
 	// Locate the Parameters: section in the module (might be nil)
 	_, moduleParams := s11n.GetMapValue(curNode, "Parameters")
 
-	// Locate the ModuleExtension: resource. There should be exactly 1.
+	templateResource := parent.Value // The !!map node of the resource with Type !Rain::Module
+	_, templateProps := s11n.GetMapValue(templateResource, "Properties")
+	if templateProps == nil {
+		return false, errors.New("expected template resource to have Properties")
+	}
+
+	// Locate the ModuleExtension: resource. There should be 0 or 1
 	_, moduleExtension := s11n.GetMapValue(moduleResources, "ModuleExtension")
 	if moduleExtension == nil {
-		return false, errors.New("expected the module to have a single ModuleExtension resource")
-	}
+		config.Debugf("the module does not have a ModuleExtension resource")
+	} else {
 
-	// Process the ModuleExtension resource.
+		// Process the ModuleExtension resource.
 
-	_, meta := s11n.GetMapValue(moduleExtension, "Metadata")
-	if meta == nil {
-		return false, errors.New("expected ModuleExtension.Metadata")
-	}
+		// Add the logical id to the output node, which will replace the original
+		outputNode.Content = append(outputNode.Content, &yaml.Node{
+			Kind:  yaml.ScalarNode,
+			Value: logicalId, // This is the logical name of the resource from the parent template
+		})
 
-	_, extends := s11n.GetMapValue(meta, "Extends")
-	if extends == nil {
-		return false, errors.New("expected ModuleExtension.Metadata.Extends")
-	}
-
-	_, moduleProps := s11n.GetMapValue(moduleExtension, "Properties")
-	if moduleProps == nil {
-		return false, errors.New("expected ModuleExtension.Properties")
-	}
-
-	// Create a new node to contain the extended resource.
-	// This will be added to the template, and the original resource node will be removed
-	ext := &yaml.Node{}
-	ext.Kind = yaml.MappingNode
-	ext.Content = make([]*yaml.Node, 0)
-
-	// Type:
-	// Replace the !Rain::Module directive with the extended type from the module
-	ext.Content = append(ext.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: "Type"})
-	ext.Content = append(ext.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: extends.Value})
-
-	templateResource := parent.Value // The !!map node of the resource with Type !Rain::Module
-
-	// Clone attributes that are like Properties, and replace overridden values
-	propLike := []string{"Properties", "CreationPolicy", "Metadata", "UpdatePolicy"}
-	for _, pl := range propLike {
-		_, plProps := s11n.GetMapValue(moduleExtension, pl)
-		_, plTemplateProps := s11n.GetMapValue(templateResource, pl)
-		outProps := cloneAndReplaceProps(ext, pl, plProps, plTemplateProps)
-		if pl == "Metadata" {
-			// Remove the Extends attribute
-			node.RemoveFromMap(outProps, "Extends")
+		_, meta := s11n.GetMapValue(moduleExtension, "Metadata")
+		if meta == nil {
+			return false, errors.New("expected ModuleExtension.Metadata")
 		}
-	}
 
-	// DeletionPolicy
-	addPolicy(ext, "DeletionPolicy", moduleExtension, templateResource)
+		_, extends := s11n.GetMapValue(meta, "Extends")
+		if extends == nil {
+			return false, errors.New("expected ModuleExtension.Metadata.Extends")
+		}
 
-	// UpdateReplacePolicy
-	addPolicy(ext, "UpdateReplacePolicy", moduleExtension, templateResource)
+		_, moduleProps := s11n.GetMapValue(moduleExtension, "Properties")
+		if moduleProps == nil {
+			return false, errors.New("expected ModuleExtension.Properties")
+		}
 
-	// DependsOn is an array of scalars or a single scalar
-	_, moduleDependsOn := s11n.GetMapValue(moduleExtension, "DependsOn")
-	_, templateDependsOn := s11n.GetMapValue(templateResource, "DependsOn")
-	if moduleDependsOn != nil || templateDependsOn != nil {
-		ext.Content = append(ext.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: "DependsOn"})
-		dependsOnValue := &yaml.Node{Kind: yaml.SequenceNode, Content: make([]*yaml.Node, 0)}
-		if moduleDependsOn != nil {
-			// Change the names to the modified resource name for the template
-			c := make([]*yaml.Node, 0)
-			if moduleDependsOn.Kind == yaml.ScalarNode {
-				for _, v := range strings.Split(moduleDependsOn.Value, " ") {
-					c = append(c, &yaml.Node{Kind: yaml.ScalarNode, Value: v})
-				}
-			} else {
-				// Arrays get converted to space delimited strings
-				for _, content := range moduleDependsOn.Content {
-					for _, v := range strings.Split(content.Value, " ") {
+		// Create a new node to contain the extended resource.
+		// This will be added to the template, and the original resource node will be removed
+		ext := &yaml.Node{}
+		ext.Kind = yaml.MappingNode
+		ext.Content = make([]*yaml.Node, 0)
+
+		// Type:
+		// Replace the !Rain::Module directive with the extended type from the module
+		ext.Content = append(ext.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: "Type"})
+		ext.Content = append(ext.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: extends.Value})
+
+		// Clone attributes that are like Properties, and replace overridden values
+		propLike := []string{"Properties", "CreationPolicy", "Metadata", "UpdatePolicy"}
+		for _, pl := range propLike {
+			_, plProps := s11n.GetMapValue(moduleExtension, pl)
+			_, plTemplateProps := s11n.GetMapValue(templateResource, pl)
+			outProps := cloneAndReplaceProps(ext, pl, plProps, plTemplateProps)
+			if pl == "Metadata" {
+				// Remove the Extends attribute
+				node.RemoveFromMap(outProps, "Extends")
+			}
+		}
+
+		// DeletionPolicy
+		addPolicy(ext, "DeletionPolicy", moduleExtension, templateResource)
+
+		// UpdateReplacePolicy
+		addPolicy(ext, "UpdateReplacePolicy", moduleExtension, templateResource)
+
+		// DependsOn is an array of scalars or a single scalar
+		_, moduleDependsOn := s11n.GetMapValue(moduleExtension, "DependsOn")
+		_, templateDependsOn := s11n.GetMapValue(templateResource, "DependsOn")
+		if moduleDependsOn != nil || templateDependsOn != nil {
+			ext.Content = append(ext.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: "DependsOn"})
+			dependsOnValue := &yaml.Node{Kind: yaml.SequenceNode, Content: make([]*yaml.Node, 0)}
+			if moduleDependsOn != nil {
+				// Change the names to the modified resource name for the template
+				c := make([]*yaml.Node, 0)
+				if moduleDependsOn.Kind == yaml.ScalarNode {
+					for _, v := range strings.Split(moduleDependsOn.Value, " ") {
 						c = append(c, &yaml.Node{Kind: yaml.ScalarNode, Value: v})
+					}
+				} else {
+					// Arrays get converted to space delimited strings
+					for _, content := range moduleDependsOn.Content {
+						for _, v := range strings.Split(content.Value, " ") {
+							c = append(c, &yaml.Node{Kind: yaml.ScalarNode, Value: v})
+						}
+					}
+				}
+				for _, r := range c {
+					dependsOnValue.Content = append(dependsOnValue.Content,
+						&yaml.Node{Kind: yaml.ScalarNode, Value: rename(logicalId, r.Value)})
+				}
+			}
+			if templateDependsOn != nil {
+				if templateDependsOn.Kind == yaml.ScalarNode {
+					dependsOnValue.Content = append(dependsOnValue.Content, node.Clone(templateDependsOn))
+				} else {
+					for _, r := range templateDependsOn.Content {
+						dependsOnValue.Content = append(dependsOnValue.Content, node.Clone(r))
 					}
 				}
 			}
-			for _, r := range c {
-				dependsOnValue.Content = append(dependsOnValue.Content,
-					&yaml.Node{Kind: yaml.ScalarNode, Value: rename(logicalId, r.Value)})
-			}
+			ext.Content = append(ext.Content, dependsOnValue)
 		}
-		if templateDependsOn != nil {
-			if templateDependsOn.Kind == yaml.ScalarNode {
-				dependsOnValue.Content = append(dependsOnValue.Content, node.Clone(templateDependsOn))
-			} else {
-				for _, r := range templateDependsOn.Content {
-					dependsOnValue.Content = append(dependsOnValue.Content, node.Clone(r))
-				}
-			}
-		}
-		ext.Content = append(ext.Content, dependsOnValue)
+
+		// Resolve Refs in the module extension
+		// Some refs are to other resources in the module
+		// Other refs are to the module's parameters
+		resolveRefs(ext, moduleParams, moduleResources, logicalId, templateProps)
+
+		// Add the extension to the output node
+		outputNode.Content = append(outputNode.Content, ext)
 	}
-
-	// Resolve Refs in the module
-	// Some refs are to other resources in the module
-	// Other refs are to the module's parameters
-	_, templateProps := s11n.GetMapValue(templateResource, "Properties")
-	resolveRefs(ext, moduleParams, moduleResources, logicalId, templateProps)
-
-	// Add the extension to the output node
-	outputNode.Content = append(outputNode.Content, &yaml.Node{
-		Kind:  yaml.ScalarNode,
-		Value: logicalId, // This is the logical name of the resource from the parent template
-	})
-	outputNode.Content = append(outputNode.Content, ext)
 
 	// Get additional resources and add them to the output
 	for i, resource := range moduleResources.Content {
