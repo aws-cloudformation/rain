@@ -1,0 +1,23 @@
+Resources:
+
+  ModuleExample:
+    #Type: !Rain::Module "https://raw.githubusercontent.com/ericzbeard/rain/modules/test/modules/bucket.yaml"
+    Type: !Rain::Module "file://../../modules/bucket.yaml"
+    UpdateReplacePolicy: Delete
+    DependsOn: SecondResourceInOriginal
+    Properties:
+      LogBucketName: ezbeard-cep-test-module-log-bucket
+      BucketName: ezbeard-cep-test-module-bucket
+      Tags:
+        - Key: test-tag
+          Value: test-value2
+
+  SecondResourceInOriginal:
+    Type: AWS::SQS::Queue
+
+  WithoutExtension:
+    Type: !Rain::Module "file://../../modules/composite.yaml"
+    Properties:
+      AName: "AAA"
+      BName: "BBB"
+

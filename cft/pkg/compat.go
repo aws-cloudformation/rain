@@ -5,8 +5,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/node"
 	"gopkg.in/yaml.v3"
 )
 
@@ -43,7 +45,7 @@ func wrapS3(n *yaml.Node, root string, options s3Options) bool {
 	return true
 }
 
-func wrapS3ZipURI(n *yaml.Node, root string) (bool, error) {
+func wrapS3ZipURI(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
 	if n.Kind != yaml.ScalarNode {
 		// No need to error - this could be valid
 		return false, nil
@@ -56,7 +58,7 @@ func wrapS3ZipURI(n *yaml.Node, root string) (bool, error) {
 	}), nil
 }
 
-func wrapS3URI(n *yaml.Node, root string) (bool, error) {
+func wrapS3URI(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
 	if n.Kind != yaml.ScalarNode {
 		// No need to error - this could be valid
 		return false, nil
@@ -73,7 +75,7 @@ func wrapS3URI(n *yaml.Node, root string) (bool, error) {
 }
 
 func wrapObject(bucket, key string, forceZip bool) rainFunc {
-	return func(n *yaml.Node, root string) (bool, error) {
+	return func(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
 		if n.Kind != yaml.ScalarNode {
 			// No need to error - this could be valid
 			return false, nil
@@ -89,7 +91,7 @@ func wrapObject(bucket, key string, forceZip bool) rainFunc {
 	}
 }
 
-func wrapTemplate(n *yaml.Node, root string) (bool, error) {
+func wrapTemplate(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
 	if n.Kind != yaml.ScalarNode {
 		// No need to error - this could be valid
 		return false, nil

@@ -1,3 +1,4 @@
+// This file contains implementations for `!Rain::` directives
 package pkg
 
 import (
@@ -6,7 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
+	"github.com/aws-cloudformation/rain/internal/node"
 	"gopkg.in/yaml.v3"
 )
 
@@ -26,7 +29,8 @@ type s3Options struct {
 	Format         s3Format `yaml:"Format"`
 }
 
-type rainFunc func(*yaml.Node, string) (bool, error)
+// A !Rain directive implementation
+type rainFunc func(n *yaml.Node, rootDir string, t cft.Template, parent node.NodePair) (bool, error)
 
 var registry = make(map[string]rainFunc)
 
@@ -35,9 +39,11 @@ func init() {
 	registry["**/*|Rain::Include"] = includeLiteral
 	registry["**/*|Rain::S3Http"] = includeS3Http
 	registry["**/*|Rain::S3"] = includeS3
+	registry["**/*|Rain::Module"] = module
 }
 
-func includeString(n *yaml.Node, root string) (bool, error) {
+func includeString(n *yaml.Node,
+	root string, t cft.Template, parent node.NodePair) (bool, error) {
 	content, _, err := expectFile(n, root)
 	if err != nil {
 		return false, err
@@ -48,27 +54,27 @@ func includeString(n *yaml.Node, root string) (bool, error) {
 	return true, nil
 }
 
-func includeLiteral(n *yaml.Node, root string) (bool, error) {
+func includeLiteral(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
 	content, path, err := expectFile(n, root)
 	if err != nil {
 		return false, err
 	}
 
-	var node yaml.Node
-	err = yaml.Unmarshal(content, &node)
+	var contentNode yaml.Node
+	err = yaml.Unmarshal(content, &contentNode)
 	if err != nil {
 		return false, err
 	}
 
 	// Transform
-	parse.TransformNode(&node)
-	_, err = transform(&node, filepath.Dir(path))
+	parse.TransformNode(&contentNode)
+	_, err = transform(&contentNode, filepath.Dir(path), t)
 	if err != nil {
 		return false, err
 	}
 
 	// Unwrap from the document node
-	*n = *node.Content[0]
+	*n = *contentNode.Content[0]
 	return true, nil
 }
 
@@ -111,7 +117,7 @@ func handleS3(root string, options s3Options) (*yaml.Node, error) {
 	return &n, nil
 }
 
-func includeS3Object(n *yaml.Node, root string) (bool, error) {
+func includeS3Object(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
 	if n.Kind != yaml.MappingNode || len(n.Content) != 2 {
 		return false, errors.New("expected a map")
 	}
@@ -133,7 +139,7 @@ func includeS3Object(n *yaml.Node, root string) (bool, error) {
 	return true, nil
 }
 
-func includeS3Http(n *yaml.Node, root string) (bool, error) {
+func includeS3Http(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
 	path, err := expectString(n)
 	if err != nil {
 		return false, err
@@ -153,7 +159,7 @@ func includeS3Http(n *yaml.Node, root string) (bool, error) {
 	return true, nil
 }
 
-func includeS3URI(n *yaml.Node, root string) (bool, error) {
+func includeS3URI(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
 	path, err := expectString(n)
 	if err != nil {
 		return false, err
@@ -173,16 +179,16 @@ func includeS3URI(n *yaml.Node, root string) (bool, error) {
 	return true, nil
 }
 
-func includeS3(n *yaml.Node, root string) (bool, error) {
+func includeS3(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
 	// Figure out if we're a string or an object
 	if len(n.Content) != 2 {
 		return false, errors.New("expected exactly one key")
 	}
 
 	if n.Content[1].Kind == yaml.ScalarNode {
-		return includeS3URI(n, root)
+		return includeS3URI(n, root, t, parent)
 	} else if n.Content[1].Kind == yaml.MappingNode {
-		return includeS3Object(n, root)
+		return includeS3Object(n, root, t, parent)
 	}
 
 	return true, nil
