@@ -641,6 +641,66 @@ _rain_fmt()
     noun_aliases=()
 }
 
+_rain_forecast()
+{
+    last_command="rain_forecast"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    two_word_flags+=("-c")
+    local_nonpersistent_flags+=("--config")
+    local_nonpersistent_flags+=("--config=")
+    local_nonpersistent_flags+=("-c")
+    flags+=("--experimental")
+    flags+=("-x")
+    local_nonpersistent_flags+=("--experimental")
+    local_nonpersistent_flags+=("-x")
+    flags+=("--help")
+    flags+=("-h")
+    local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
+    flags+=("--params=")
+    two_word_flags+=("--params")
+    local_nonpersistent_flags+=("--params")
+    local_nonpersistent_flags+=("--params=")
+    flags+=("--profile=")
+    two_word_flags+=("--profile")
+    two_word_flags+=("-p")
+    local_nonpersistent_flags+=("--profile")
+    local_nonpersistent_flags+=("--profile=")
+    local_nonpersistent_flags+=("-p")
+    flags+=("--region=")
+    two_word_flags+=("--region")
+    two_word_flags+=("-r")
+    local_nonpersistent_flags+=("--region")
+    local_nonpersistent_flags+=("--region=")
+    local_nonpersistent_flags+=("-r")
+    flags+=("--role-arn=")
+    two_word_flags+=("--role-arn")
+    local_nonpersistent_flags+=("--role-arn")
+    local_nonpersistent_flags+=("--role-arn=")
+    flags+=("--type=")
+    two_word_flags+=("--type")
+    local_nonpersistent_flags+=("--type")
+    local_nonpersistent_flags+=("--type=")
+    flags+=("--debug")
+    flags+=("--no-colour")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
 _rain_help()
 {
     last_command="rain_help"
@@ -1234,6 +1294,7 @@ _rain_root_command()
         command_aliases+=("format")
         aliashash["format"]="fmt"
     fi
+    commands+=("forecast")
     commands+=("help")
     commands+=("info")
     commands+=("logs")

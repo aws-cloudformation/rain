@@ -213,7 +213,7 @@ func PackageTemplate(fn string, yes bool) cft.Template {
 	return t
 }
 
-func checkStack(stackName string) (types.Stack, bool) {
+func CheckStack(stackName string) (types.Stack, bool) {
 	// Find out if stack exists already
 	// If it does and it's not in a good state, offer to wait/delete
 	stack, err := cfn.GetStack(stackName)

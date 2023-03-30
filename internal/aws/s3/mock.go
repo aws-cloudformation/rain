@@ -57,3 +57,7 @@ func RainBucket(forceCreation bool) string {
 
 	return bucketName
 }
+
+func BucketHasContents(bucketName string) (bool, error) {
+	return true, nil
+}

@@ -140,7 +140,7 @@ YAML:
 
 		// Check current stack status
 		spinner.Push(fmt.Sprintf("Checking current status of stack '%s'", stackName))
-		stack, stackExists := checkStack(stackName)
+		stack, stackExists := CheckStack(stackName)
 		spinner.Pop()
 
 		// Parse params
