@@ -18,6 +18,8 @@ func TestModule(t *testing.T) {
 		return
 	}
 
+	pkg.Experimental = true
+
 	packaged, err := pkg.File("../../test/templates/module.yaml")
 	if err != nil {
 		t.Error(err)
