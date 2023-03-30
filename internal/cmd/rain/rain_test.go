@@ -31,6 +31,7 @@ func Example_rainhelp() {
 	//   build       Create CloudFormation templates
 	//   diff        Compare CloudFormation templates
 	//   fmt         Format CloudFormation templates
+	//   forecast    Predict deployment failures
 	//   merge       Merge two or more CloudFormation templates
 	//   pkg         Package local artifacts into a template
 	//   tree        Find dependencies of Resources and Outputs in a local template

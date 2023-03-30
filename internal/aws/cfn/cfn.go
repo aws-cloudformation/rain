@@ -4,19 +4,23 @@ package cfn
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	smithy "github.com/aws/smithy-go"
+	"gopkg.in/yaml.v3"
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/internal/aws"
+	"github.com/aws-cloudformation/rain/internal/aws/ccapi"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
+	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/smithy-go/ptr"
@@ -314,6 +318,19 @@ func GetStack(stackName string) (types.Stack, error) {
 	}
 
 	return res.Stacks[0], nil
+}
+
+// Get a single deployed stack resource
+func GetStackResource(stackName string, logicalId string) (*types.StackResourceDetail, error) {
+	res, err := getClient().DescribeStackResource(context.Background(),
+		&cloudformation.DescribeStackResourceInput{
+			StackName:         &stackName,
+			LogicalResourceId: &logicalId,
+		})
+	if err != nil {
+		return nil, err
+	}
+	return res.StackResourceDetail, nil
 }
 
 // GetStackSet returns a cloudformation.StackSet
@@ -732,4 +749,132 @@ func WaitUntilStackCreateComplete(stackName string) error {
 	}
 
 	return nil
+}
+
+// Get the schema for a CloudFormation resource type
+func GetTypeSchema(name string) (string, error) {
+	res, err := getClient().DescribeType(context.Background(), &cloudformation.DescribeTypeInput{
+		Type: "RESOURCE", TypeName: &name,
+	})
+	if err != nil {
+		return "", nil
+	}
+	return *res.Schema, nil
+}
+
+// Get the list of action required to invoke a CloudFormation handler
+func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
+	schema, err := GetTypeSchema(name)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the schema and return the array of actions
+	var result map[string]any
+	json.Unmarshal([]byte(schema), &result)
+	/* "handlers": {
+	   "create": {
+	       "permissions": [
+	           "s3:CreateBucket",
+	           "s3:PutBucketTagging",
+
+	*/
+	handlers := result["handlers"].(map[string]any)
+	handler := handlers[handlerVerb].(map[string]any)
+	config.Debugf("handler: %v", handler)
+	permissions := handler["permissions"].([]interface{})
+	config.Debugf("Got permissions for %v %v: %v", name, handlerVerb, permissions)
+	retval := make([]string, 0)
+	for _, p := range permissions {
+		if p == "iam:PassRole" {
+			// This will fail even for admin roles, and is not actually necessary
+			// to create resources like buckets, despite being in the schema
+			continue
+		}
+		retval = append(retval, fmt.Sprintf("%v", p))
+	}
+	config.Debugf("retval is %v", retval)
+	return retval, nil
+}
+
+// Get the primaryIdentifier of a resource type from the schema
+func GetTypeIdentifier(name string) ([]string, error) {
+	schema, err := GetTypeSchema(name)
+	if err != nil {
+		return nil, err
+	}
+	var result map[string]any
+	json.Unmarshal([]byte(schema), &result)
+
+	pi := result["primaryIdentifier"].([]interface{})
+	retval := make([]string, 0)
+	for _, pid := range pi {
+		retval = append(retval, strings.Replace(fmt.Sprintf("%v", pid), "/properties/", "", 1))
+	}
+	config.Debugf("GetTypeIdentifier for %v: %v", name, retval)
+	return retval, nil
+}
+
+// Get the values specified for primary identifiers in the template.
+// The return value will only have values if they are set.
+func GetPrimaryIdentifierValues(primaryIdentifier []string, resource *yaml.Node) []string {
+
+	piValues := make([]string, 0)
+
+	_, props := s11n.GetMapValue(resource, "Properties")
+	if props == nil {
+		return piValues
+	}
+	for i, prop := range props.Content {
+		if i%2 != 0 {
+			continue
+		}
+		propName := prop.Value
+		for _, pi := range primaryIdentifier {
+			if pi == propName {
+				piValues = append(piValues, propName)
+				// TODO - What if it's a Ref, Sub, etc?
+			}
+		}
+	}
+
+	// TODO - values need to be in the same order as the identifier are in the schema
+	return piValues
+}
+
+func ResourceAlreadyExists(typeName string, resource *yaml.Node, stackExists bool) bool {
+
+	// TODO - Unit test
+
+	if !stackExists {
+		primaryIdentifiers, err := GetTypeIdentifier(typeName)
+		if err != nil {
+			fmt.Println("Unable to get primary identifier for ", err)
+		} else {
+			config.Debugf("PrimaryIdentifiers: %v", primaryIdentifiers)
+
+			// See if the primary identifier was user-specified in the template
+			piValues := GetPrimaryIdentifierValues(primaryIdentifiers, resource)
+			config.Debugf("piValues: %v", piValues)
+
+			if len(piValues) == len(primaryIdentifiers) {
+				// All primary identifiers were specified in the template
+				// Ask CCAPI if the resource already exists
+
+				// TODO - Make sure the type is actually supported by CCAPI
+				// Something like this:
+				// aws cloudformation list-types --type RESOURCE --visibility PUBLIC --provisioning-type FULLY_MUTABLE --max-results 100
+
+				if ccapi.ResourceExists(typeName, piValues) {
+					return true
+				}
+			}
+		}
+	} else {
+		// TODO - Look at the change set for newly added resources
+		config.Debugf("Checking change set for new resources")
+	}
+
+	return false
 }
