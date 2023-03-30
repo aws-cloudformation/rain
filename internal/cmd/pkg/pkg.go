@@ -45,13 +45,13 @@ You may use the following, rain-specific directives in templates packaged with "
                                Do not specify this property if you supply BucketProperty and KeyProperty.
                                The default Format is "Uri".
 
-  !Rain::Module <url>		   Supply a URL to a rain module, which is similar to a CloudFormation module, 
-  						       but allows for type inheritance. One of the resources in the module yaml file 
-							   must be called "ModuleExtension", and it must have a Metadata entry called 
-							   "Extends" that supplies the existing type to be extended. The Parameters section 
-							   of the module can be used to define additional properties for the extension.
-							   This is an experimental directive that must be enabled by adding the 
-							   --experimental arg on the command line.
+  !Rain::Module <url>          Supply a URL to a rain module, which is similar to a CloudFormation module, 
+                               but allows for type inheritance. One of the resources in the module yaml file 
+                               must be called "ModuleExtension", and it must have a Metadata entry called 
+                               "Extends" that supplies the existing type to be extended. The Parameters section 
+                               of the module can be used to define additional properties for the extension.
+                               This is an experimental directive that must be enabled by adding the 
+                               --experimental arg on the command line.
 `,
 	Args:                  cobra.ExactArgs(1),
 	Aliases:               []string{"package"},
