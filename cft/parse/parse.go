@@ -9,6 +9,8 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/diff"
+	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/node"
 
 	"gopkg.in/yaml.v3"
 )
@@ -71,6 +73,9 @@ func Verify(source cft.Template, output string) error {
 	if err != nil {
 		return err
 	}
+
+	config.Debugf("source: \n%v", node.ToJson(source.Node))
+	config.Debugf("validate: \n%v", node.ToJson(validate.Node))
 
 	d := diff.New(source, validate)
 	if d.Mode() != diff.Unchanged {

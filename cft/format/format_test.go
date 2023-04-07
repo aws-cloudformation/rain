@@ -29,6 +29,21 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub ${Bucket2}-newer
+  Func1:
+    Type: AWS::Lambda::Function
+    Properties:
+      Role: !Sub "arn:aws:iam::${AWS::AccountID}:role/lambda-basic"
+      Runtime: python3.7
+      Handler: index.handler
+      Code:
+        ZipFile: |
+          import boto3
+
+          def handler: 
+            """Example."""
+
+            print('hello')
+
 Parameters:
   Name:
     Type: String
@@ -50,6 +65,15 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub ${Bucket2}-newer
+
+  Func1:
+    Type: AWS::Lambda::Function
+    Properties:
+      Role: !Sub "arn:aws:iam::${AWS::AccountID}:role/lambda-basic"
+      Runtime: python3.7
+      Handler: index.handler
+      Code:
+        ZipFile: "import boto3\n\ndef handler: \n  \"\"\"Example.\"\"\"\n\n  print('hello')\n"
 
 Outputs:
   Bucket1:
@@ -79,6 +103,15 @@ Resources:
     Properties:
       BucketName: !Sub ${Bucket2}-newer
 
+  Func1:
+    Type: AWS::Lambda::Function
+    Properties:
+      Role: !Sub "arn:aws:iam::${AWS::AccountID}:role/lambda-basic"
+      Runtime: python3.7
+      Handler: index.handler
+      Code:
+        ZipFile: "import boto3\n\ndef handler: \n  \"\"\"Example.\"\"\"\n\n  print('hello')\n"
+
 Parameters:
   Name:
     Type: String
@@ -104,6 +137,19 @@ const expectedJson = `{
             "Properties": {
                 "BucketName": {
                     "Fn::Sub": "${Bucket2}-newer"
+                }
+            }
+        },
+        "Func1": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Role": {
+                    "Fn::Sub": "arn:aws:iam::${AWS::AccountID}:role/lambda-basic"
+                },
+                "Runtime": "python3.7",
+                "Handler": "index.handler",
+                "Code": {
+                    "ZipFile": "import boto3\n\ndef handler: \n  \"\"\"Example.\"\"\"\n\n  print('hello')\n"
                 }
             }
         }
@@ -150,6 +196,19 @@ const expectedUnsortedJson = `{
             "Properties": {
                 "BucketName": {
                     "Fn::Sub": "${Bucket2}-newer"
+                }
+            }
+        },
+        "Func1": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Role": {
+                    "Fn::Sub": "arn:aws:iam::${AWS::AccountID}:role/lambda-basic"
+                },
+                "Runtime": "python3.7",
+                "Handler": "index.handler",
+                "Code": {
+                    "ZipFile": "import boto3\n\ndef handler: \n  \"\"\"Example.\"\"\"\n\n  print('hello')\n"
                 }
             }
         }
