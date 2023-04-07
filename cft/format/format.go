@@ -47,11 +47,30 @@ func String(t cft.Template, opt Options) string {
 	indent := 0
 	lastPartWasComment := false
 	lastLineWasEmpty := false
+	startMultilineIndent := -1
 
 	for _, part := range parts {
 
 		trimmedPart := strings.TrimLeft(part, " ")
 		indent = len(part) - len(trimmedPart)
+
+		// Leave lines alone if they are in a multiline block
+		// Note: CloudFormation does not comply with the YAML spec. It treats > just like |
+		// https://yaml-multiline.info/
+		// https://stackoverflow.com/questions/3790454/how-do-i-break-a-string-in-yaml-over-multiple-lines
+		// https://yaml.org/spec/1.2-old/spec.html#id2760844
+		isMultiline := false
+		if startMultilineIndent > -1 {
+			if startMultilineIndent <= indent {
+				startMultilineIndent = -1
+			} else {
+				isMultiline = true
+			}
+		}
+		trimmedRight := strings.TrimRight(part, " ")
+		if strings.HasSuffix(trimmedRight, "|") || strings.HasSuffix(trimmedRight, ">") {
+			startMultilineIndent = indent
+		}
 
 		isComment := false
 		if len(part) > 0 && strings.HasPrefix(trimmedPart, "#") {
@@ -60,9 +79,9 @@ func String(t cft.Template, opt Options) string {
 
 		isEmpty := len(part) == 0 // This should never be true
 
-		// Add spaces between 1st and 2nd level properties, except for comments
+		// Add lines between 1st and 2nd level properties, except for comments
 		if indent <= lastIndent && (indent == 0 || indent == 2) {
-			if !lastPartWasComment {
+			if !lastPartWasComment && !isMultiline {
 				// If the last line was a comment, don't newline here,
 				// since we want the comment to stick to the thing it was above
 				result.WriteString("\n")
@@ -70,8 +89,8 @@ func String(t cft.Template, opt Options) string {
 			}
 		}
 
-		// Put a space above first/only comment lines
-		if !lastPartWasComment && isComment && !lastLineWasEmpty {
+		// Put a line break above first/only comment lines
+		if !lastPartWasComment && isComment && !lastLineWasEmpty && !isMultiline {
 			result.WriteString("\n")
 		}
 

@@ -1,0 +1,24 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Reproduce "semantic difference after formatting" error
+
+Parameters:
+  EnvironmentParam:
+    Default: dev
+    Type: String
+    AllowedValues:
+      - dev
+      - prod
+
+Mappings:
+  EnvironmentMap:
+    MappedParam:
+      dev: my-dev-topic
+      prod: my-prod-topic
+
+Resources:
+  Topic:
+    Type: AWS::SNS::Topic
+    Properties: 
+      TopicName: !FindInMap [ EnvironmentMap, MappedParam, !Ref EnvironmentParam ]
+
