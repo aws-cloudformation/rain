@@ -157,12 +157,18 @@ const expectedJson = `{
     "Outputs": {
         "Bucket1": {
             "Value": {
-                "Fn::GetAtt": "Bucket1.Arn"
+                "Fn::GetAtt": [
+                    "Bucket1",
+                    "Arn"
+                ]
             }
         },
         "Bucket2": {
             "Value": {
-                "Fn::GetAtt": "Bucket2.Arn"
+                "Fn::GetAtt": [
+                    "Bucket2",
+                    "Arn"
+                ]
             }
         }
     }
@@ -173,12 +179,18 @@ const expectedUnsortedJson = `{
     "Outputs": {
         "Bucket1": {
             "Value": {
-                "Fn::GetAtt": "Bucket1.Arn"
+                "Fn::GetAtt": [
+                    "Bucket1",
+                    "Arn"
+                ]
             }
         },
         "Bucket2": {
             "Value": {
-                "Fn::GetAtt": "Bucket2.Arn"
+                "Fn::GetAtt": [
+                    "Bucket2",
+                    "Arn"
+                ]
             }
         }
     },

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/ake-persson/mapslice-json"
+	"github.com/aws-cloudformation/rain/cft/parse"
 	"gopkg.in/yaml.v3"
 )
 
@@ -67,7 +68,13 @@ func jsonise(node *yaml.Node) interface{} {
 
 func convertToJSON(in string) string {
 	var d yaml.Node
+
 	err := yaml.Unmarshal([]byte(in), &d)
+	if err != nil {
+		panic(err)
+	}
+
+	err = parse.TransformNode(&d)
 	if err != nil {
 		panic(err)
 	}
