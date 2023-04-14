@@ -70,7 +70,11 @@ func addPolicy(ext *yaml.Node, name string, moduleExtension *yaml.Node, template
 
 // Rename a resource defined in the module to add the template resource name
 func rename(logicalId string, resourceName string) string {
-	return logicalId + resourceName
+	if resourceName == "ModuleExtension" {
+		return logicalId
+	} else {
+		return logicalId + resourceName
+	}
 }
 
 // Recursive function to find all refs in properties
@@ -226,11 +230,6 @@ func processModule(module *yaml.Node,
 		_, extends := s11n.GetMapValue(meta, "Extends")
 		if extends == nil {
 			return false, errors.New("expected ModuleExtension.Metadata.Extends")
-		}
-
-		_, moduleProps := s11n.GetMapValue(moduleExtension, "Properties")
-		if moduleProps == nil {
-			return false, errors.New("expected ModuleExtension.Properties")
 		}
 
 		// Create a new node to contain the extended resource.
