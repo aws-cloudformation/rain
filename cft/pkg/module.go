@@ -56,15 +56,14 @@ func addPolicy(ext *yaml.Node, name string, moduleExtension *yaml.Node, template
 	_, modulePolicy := s11n.GetMapValue(moduleExtension, name)
 	if templatePolicy != nil || modulePolicy != nil {
 		policy := &yaml.Node{Kind: yaml.ScalarNode, Value: name}
-		var policyValue yaml.Node
-		policyValue.Kind = yaml.ScalarNode
+		var policyValue *yaml.Node
 		if templatePolicy != nil {
-			policyValue.Value = templatePolicy.Value
+			policyValue = node.Clone(templatePolicy)
 		} else {
-			policyValue.Value = modulePolicy.Value
+			policyValue = node.Clone(modulePolicy)
 		}
 		ext.Content = append(ext.Content, policy)
-		ext.Content = append(ext.Content, &policyValue)
+		ext.Content = append(ext.Content, policyValue)
 	}
 }
 
@@ -78,8 +77,15 @@ func rename(logicalId string, resourceName string) string {
 }
 
 // Recursive function to find all refs in properties
-func renamePropRefs(propName string, prop *yaml.Node, ext *yaml.Node,
-	moduleParams *yaml.Node, moduleResources *yaml.Node, logicalId string,
+// Also handles DeletionPolicy, UpdateRetainPolicy
+func renamePropRefs(
+	parentName string,
+	propName string,
+	prop *yaml.Node,
+	ext *yaml.Node,
+	moduleParams *yaml.Node,
+	moduleResources *yaml.Node,
+	logicalId string,
 	templateProps *yaml.Node) error {
 
 	// Properties:
@@ -95,22 +101,32 @@ func renamePropRefs(propName string, prop *yaml.Node, ext *yaml.Node,
 	if prop.Kind == yaml.ScalarNode {
 		config.Debugf("Scalar %v %v", propName, node.ToJson(prop))
 		if propName == "Ref" {
+
+			// Find the module parameter that matches the !Ref
 			_, param := s11n.GetMapValue(moduleParams, prop.Value)
 			if param != nil {
 				config.Debugf("Found param for %v", prop.Value)
-				// We need to get the parameter value from the parent template
+				// We need to get the parameter value from the parent template.
+				// Module params are set by the parent template resource properties.
 				_, parentVal := s11n.GetMapValue(templateProps, prop.Value)
 				if parentVal == nil {
 					return fmt.Errorf("did not find %v in parent template Resource Properties", prop.Value)
 				}
 				// We can't just set prop.Value, since we would end up with Prop: !Ref Value instead of just Prop: Value
 				// Get the property's parent and set the entire map value for the property
+				config.Debugf("Calling GetParent for %v\nroot:\n%v", node.ToJson(prop), node.ToJson(ext))
 				refMap := node.GetParent(prop, ext, nil)
+				if refMap.Value == nil {
+					return fmt.Errorf("could not find parent for %v", prop)
+				}
+				config.Debugf("refMap.Value: %v", node.ToJson(refMap.Value))
 				propParentPair := node.GetParent(refMap.Value, ext, nil)
-				config.Debugf("propParentPair: %v", node.ToJson(propParentPair.Value))
+				config.Debugf("propParentPair.Value: %v", node.ToJson(propParentPair.Value))
 				newValue := &yaml.Node{Kind: yaml.ScalarNode, Value: parentVal.Value}
-				config.Debugf("newValue: %v", node.ToJson(newValue))
-				node.SetMapValue(propParentPair.Value, propParentPair.Value.Content[0].Value, newValue)
+				config.Debugf("About to set %v to newValue: %v", prop.Value, node.ToJson(newValue))
+				// TODO - Bug - look up the map value to replace, not [0]
+				node.SetMapValue(propParentPair.Value, parentName, newValue)
+				config.Debugf("propParentPair.Value after: %v", node.ToJson(propParentPair.Value))
 			} else {
 				config.Debugf("Did not find param for %v", prop.Value)
 				// Look for a resource in the module
@@ -128,7 +144,8 @@ func renamePropRefs(propName string, prop *yaml.Node, ext *yaml.Node,
 		config.Debugf("Mapping %v %v", propName, node.ToJson(prop))
 		for i, p := range prop.Content {
 			if i%2 == 0 {
-				return renamePropRefs(p.Value, prop.Content[i+1], ext, moduleParams, moduleResources, logicalId, templateProps)
+				return renamePropRefs(propName,
+					p.Value, prop.Content[i+1], ext, moduleParams, moduleResources, logicalId, templateProps)
 			}
 		}
 	} else {
@@ -144,19 +161,34 @@ func resolveRefs(ext *yaml.Node, moduleParams *yaml.Node,
 	// Replace references to the module's parameters with the value supplied
 	// by the parent template. Rename refs to other resources in the module.
 
+	config.Debugf("resolveRefs ext: %v", node.ToJson(ext))
+
 	_, extProps := s11n.GetMapValue(ext, "Properties")
-	if extProps == nil {
-		// Not all module resources have properties
-		return nil
+	if extProps != nil {
+		for i, prop := range extProps.Content {
+			if i%2 == 0 {
+				propName := prop.Value
+				config.Debugf("Resolving refs for %v", propName)
+				err := renamePropRefs(propName,
+					propName, extProps.Content[i+1], ext, moduleParams, moduleResources, logicalId, templateProps)
+				if err != nil {
+					config.Debugf("%v", err)
+					return fmt.Errorf("unable to resolve refs for %v", propName)
+				}
+			}
+		}
 	}
-	for i, prop := range extProps.Content {
-		if i%2 == 0 {
-			propName := prop.Value
-			config.Debugf("Resolving refs for %v", propName)
-			err := renamePropRefs(propName, extProps.Content[i+1], ext, moduleParams, moduleResources, logicalId, templateProps)
+
+	// DeletionPolicy, UpdateReplacePolicy
+	policies := []string{"DeletionPolicy", "UpdateReplacePolicy"}
+	for _, policy := range policies {
+		_, policyNode := s11n.GetMapValue(ext, policy)
+		if policyNode != nil {
+			config.Debugf("policyNode: %v", node.ToJson(policyNode))
+			err := renamePropRefs(policy, policy, policyNode, ext, moduleParams, moduleResources, logicalId, templateProps)
 			if err != nil {
 				config.Debugf("%v", err)
-				return fmt.Errorf("unable to resolve refs for %v", propName)
+				return fmt.Errorf("unable to resolve refs for %v", policy)
 			}
 		}
 	}

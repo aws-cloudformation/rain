@@ -64,6 +64,11 @@ func GetParent(node *yaml.Node, rootNode *yaml.Node, priorNode *yaml.Node) NodeP
 		return NodePair{node, node}
 	}
 
+	if node == nil {
+		config.Debugf("node is nil")
+		return NodePair{nil, nil}
+	}
+
 	var found *yaml.Node
 	var before *yaml.Node
 	var pair NodePair
