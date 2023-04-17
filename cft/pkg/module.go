@@ -99,34 +99,39 @@ func renamePropRefs(
 	//           C: !Ref D
 
 	if prop.Kind == yaml.ScalarNode {
-		config.Debugf("Scalar %v %v", propName, node.ToJson(prop))
 		if propName == "Ref" {
-
 			// Find the module parameter that matches the !Ref
 			_, param := s11n.GetMapValue(moduleParams, prop.Value)
 			if param != nil {
-				config.Debugf("Found param for %v", prop.Value)
 				// We need to get the parameter value from the parent template.
 				// Module params are set by the parent template resource properties.
+
+				// Look for this property name in the parent template
 				_, parentVal := s11n.GetMapValue(templateProps, prop.Value)
 				if parentVal == nil {
 					return fmt.Errorf("did not find %v in parent template Resource Properties", prop.Value)
 				}
+
+				config.Debugf("parentVal: %v", node.ToJson(parentVal))
+
 				// We can't just set prop.Value, since we would end up with Prop: !Ref Value instead of just Prop: Value
 				// Get the property's parent and set the entire map value for the property
-				config.Debugf("Calling GetParent for %v\nroot:\n%v", node.ToJson(prop), node.ToJson(ext))
+
+				// Get the map parent within the extension node we created
 				refMap := node.GetParent(prop, ext, nil)
 				if refMap.Value == nil {
 					return fmt.Errorf("could not find parent for %v", prop)
 				}
-				config.Debugf("refMap.Value: %v", node.ToJson(refMap.Value))
 				propParentPair := node.GetParent(refMap.Value, ext, nil)
+
 				config.Debugf("propParentPair.Value: %v", node.ToJson(propParentPair.Value))
-				newValue := &yaml.Node{Kind: yaml.ScalarNode, Value: parentVal.Value}
-				config.Debugf("About to set %v to newValue: %v", prop.Value, node.ToJson(newValue))
-				// TODO - Bug - look up the map value to replace, not [0]
+
+				// Create a new node to replace what's defined in the module
+				newValue := node.Clone(parentVal)
+
+				config.Debugf("Setting %v to:\n%v", parentName, node.ToJson(newValue))
+
 				node.SetMapValue(propParentPair.Value, parentName, newValue)
-				config.Debugf("propParentPair.Value after: %v", node.ToJson(propParentPair.Value))
 			} else {
 				config.Debugf("Did not find param for %v", prop.Value)
 				// Look for a resource in the module
@@ -202,10 +207,6 @@ func processModule(module *yaml.Node,
 	typeNode *yaml.Node, parent node.NodePair) (bool, error) {
 
 	// The parent arg is the map in the template resource's Content[1] that contains Type, Properties, etc
-	// p, _ := json.MarshalIndent(parent, "", "  ")
-	// config.Debugf("parent: %v", string(p))
-
-	// config.Debugf("module: %v", node.ToJson(module))
 
 	if parent.Key == nil {
 		return false, errors.New("expected parent.Key to not be nil. The !Rain::Module directive should come after Type: ")
@@ -213,7 +214,6 @@ func processModule(module *yaml.Node,
 
 	// Get the logical id of the resource we are transforming
 	logicalId := parent.Key.Value
-	//config.Debugf("logicalId: %v", logicalId)
 
 	// Make a new node that will hold our additions to the original template
 	outputNode.Content = make([]*yaml.Node, 0)
@@ -345,6 +345,32 @@ func processModule(module *yaml.Node,
 		if resource.Kind == yaml.MappingNode {
 			name := moduleResources.Content[i-1].Value
 			if name != "ModuleExtension" {
+
+				// Resolve Conditions. Rain handles this differently, since a rain
+				// module cannot have a Condition section. This value must be a module parameter
+				// name, and the value must be set in the parent template as the name of
+				// a Condition that is defined in the parent.
+				_, condition := s11n.GetMapValue(resource, "Condition")
+				if condition != nil {
+					conditionErr := errors.New("a Condition in a rain module must be the name of a Parameter that is set the name of a Condition in the parent template")
+					// The value must be present in the module's parameters
+					if condition.Kind != yaml.ScalarNode {
+						return false, conditionErr
+					}
+					_, param := s11n.GetMapValue(moduleParams, condition.Value)
+					if param == nil {
+						return false, conditionErr
+					}
+					_, conditionVal := s11n.GetMapValue(templateProps, condition.Value)
+					if conditionVal == nil {
+						return false, conditionErr
+					}
+					if conditionVal.Kind != yaml.ScalarNode {
+						return false, conditionErr
+					}
+					condition.Value = conditionVal.Value
+				}
+
 				// This is an additional resource to be added
 				nameNode := node.Clone(moduleResources.Content[i-1])
 				nameNode.Value = rename(logicalId, nameNode.Value)
