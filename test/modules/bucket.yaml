@@ -8,6 +8,8 @@ Parameters:
   LogBucketName:
     Type: String
     Description: The name of the log bucket
+  RetentionPolicy:
+    Type: String
 
 Resources:
   ModuleExtension:
@@ -21,8 +23,8 @@ Resources:
     DependsOn: 
       - AdditionalResource1
         AdditionalResource2
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
+    DeletionPolicy: !Ref RetentionPolicy
+    UpdateReplacePolicy: Delete
     Properties:
       LoggingConfiguration:
         DestinationBucketName: !Ref LogBucket
@@ -51,8 +53,8 @@ Resources:
             reason: "This is the log bucket"
           - id: W51
             reason: "Will be added by the consumer"
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: !Ref RetentionPolicy
     DependsOn:
       - AdditionalResource1
         AdditionalResource2
