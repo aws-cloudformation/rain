@@ -1,3 +1,10 @@
+Parameters:
+  BucketRetentionPolicy:
+    Type: String
+    AllowedValues:
+      - Delete
+      - Retain
+
 Conditions:
   ConditionA:
     !Equals:
@@ -9,7 +16,7 @@ Resources:
     Type: AWS::SQS::Queue
 
   ModuleExample:
-    DeletionPolicy: Retain
+    DeletionPolicy: !Ref BucketRetentionPolicy
     UpdateReplacePolicy: Delete
     Type: AWS::S3::Bucket
     DependsOn:
@@ -42,7 +49,7 @@ Resources:
 
   ModuleExampleLogBucket:
     DeletionPolicy: Delete
-    UpdateReplacePolicy: Retain
+    UpdateReplacePolicy: !Ref BucketRetentionPolicy
     Type: AWS::S3::Bucket
     DependsOn:
       - ModuleExampleAdditionalResource1
