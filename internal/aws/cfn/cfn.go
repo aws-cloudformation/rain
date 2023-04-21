@@ -826,20 +826,25 @@ func GetPrimaryIdentifierValues(primaryIdentifier []string, resource *yaml.Node)
 	if props == nil {
 		return piValues
 	}
-	for i, prop := range props.Content {
-		if i%2 != 0 {
-			continue
-		}
-		propName := prop.Value
-		for _, pi := range primaryIdentifier {
+	for _, pi := range primaryIdentifier {
+		for i, prop := range props.Content {
+			if i%2 != 0 {
+				continue
+			}
+			propName := prop.Value
 			if pi == propName {
-				piValues = append(piValues, propName)
-				// TODO - What if it's a Ref, Sub, etc?
+				val := props.Content[i+1].Value
+				config.Debugf("pi %v = %v", pi, val)
+				if strings.Contains(val, "!Ref") || strings.Contains(val, "!Sub") {
+					// TODO: Can we resolve these reliably?
+					// If we don't, this function will only give us hard-coded identifiers
+					continue
+				}
+				piValues = append(piValues, val)
 			}
 		}
 	}
 
-	// TODO - values need to be in the same order as the identifier are in the schema
 	return piValues
 }
 
