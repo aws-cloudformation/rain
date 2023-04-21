@@ -18,7 +18,12 @@ import (
 )
 
 // Clone a property-like node from the module and replace any overridden values
-func cloneAndReplaceProps(ext *yaml.Node, name string, moduleProps *yaml.Node, templateProps *yaml.Node) *yaml.Node {
+func cloneAndReplaceProps(
+	ext *yaml.Node,
+	name string,
+	moduleProps *yaml.Node,
+	templateProps *yaml.Node,
+	moduleParams *yaml.Node) *yaml.Node {
 
 	// Not all property-like attributes are required
 	if moduleProps == nil {
@@ -34,6 +39,23 @@ func cloneAndReplaceProps(ext *yaml.Node, name string, moduleProps *yaml.Node, t
 	// Replace any property values overridden in the parent template
 	if templateProps != nil {
 		for i, tprop := range templateProps.Content {
+
+			// Only look at the names, which have even indexes
+			if i%2 != 0 {
+				continue
+			}
+
+			found := false
+
+			_, moduleParam := s11n.GetMapValue(moduleParams, tprop.Value)
+
+			// Don't clone template props that are module parameters.
+			// Module params are used when we resolve Refs later
+			if moduleParam != nil {
+				continue
+			}
+
+			// Override anything hard coded into the module that is present in the parent template
 			for j, mprop := range props.Content {
 				// Property names are even-indexed array elements
 				if tprop.Value == mprop.Value && i%2 == 0 && j%2 == 0 {
@@ -41,8 +63,15 @@ func cloneAndReplaceProps(ext *yaml.Node, name string, moduleProps *yaml.Node, t
 					// Maybe we just require that you replace the entire property if it's nested
 					// Otherwise we have to do a diff
 					props.Content[j+1] = node.Clone(templateProps.Content[i+1])
+					found = true
 				}
 			}
+
+			if !found && i%2 == 0 {
+				props.Content = append(props.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: tprop.Value})
+				props.Content = append(props.Content, node.Clone(templateProps.Content[i+1]))
+			}
+
 		}
 	}
 
@@ -280,7 +309,7 @@ func processModule(module *yaml.Node,
 		for _, pl := range propLike {
 			_, plProps := s11n.GetMapValue(moduleExtension, pl)
 			_, plTemplateProps := s11n.GetMapValue(templateResource, pl)
-			outProps := cloneAndReplaceProps(ext, pl, plProps, plTemplateProps)
+			outProps := cloneAndReplaceProps(ext, pl, plProps, plTemplateProps, moduleParams)
 			if pl == "Metadata" {
 				// Remove the Extends attribute
 				node.RemoveFromMap(outProps, "Extends")
