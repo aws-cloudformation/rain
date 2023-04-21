@@ -336,6 +336,13 @@ func processModule(module *yaml.Node,
 		// Other refs are to the module's parameters
 		resolveRefs(ext, moduleParams, moduleResources, logicalId, templateProps)
 
+		// Add the Condition from the parent template
+		_, parentCondition := s11n.GetMapValue(templateResource, "Condition")
+		if parentCondition != nil {
+			ext.Content = append(ext.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: "Condition"})
+			ext.Content = append(ext.Content, node.Clone(parentCondition))
+		}
+
 		// Add the extension to the output node
 		outputNode.Content = append(outputNode.Content, ext)
 	}
