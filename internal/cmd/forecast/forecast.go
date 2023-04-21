@@ -180,7 +180,7 @@ func predict(source cft.Template, stackName string) bool {
 	// Otherwise, only check for possible create failures
 	stack, stackExists := deploy.CheckStack(stackName)
 
-	// TODO: Create a changeset to evalutate updates
+	// TODO: Create a changeset to evaluate updates
 
 	msg := ""
 	if stackExists {
@@ -195,7 +195,7 @@ func predict(source cft.Template, stackName string) bool {
 	rootMap := source.Node.Content[0]
 
 	// Add the --debug arg to see a json version of the yaml node data model for the template
-	config.Debugf("node: %v", toJson(rootMap))
+	//config.Debugf("node: %v", toJson(rootMap))
 
 	// Iterate over each resource
 

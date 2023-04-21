@@ -84,6 +84,8 @@ func checkS3Bucket(input PredictionInput) Forecast {
 				forecast.Add(true, "Bucket is empty")
 			}
 		}
+	} else {
+		config.Debugf("Stack does not exist, not checking if bucket is empty")
 	}
 
 	bucketArn = fmt.Sprintf("arn:aws:s3:::%v", bucketName)
