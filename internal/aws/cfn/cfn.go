@@ -20,6 +20,8 @@ import (
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
+	"github.com/aws-cloudformation/rain/internal/dc"
+	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
@@ -411,7 +413,7 @@ func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[s
 		ChangeSetType:       types.ChangeSetType(changeSetType),
 		ChangeSetName:       ptr.String(changeSetName),
 		StackName:           ptr.String(stackName),
-		Tags:                MakeTags(tags),
+		Tags:                dc.MakeTags(tags),
 		IncludeNestedStacks: ptr.Bool(true),
 		Parameters:          params,
 		Capabilities: []types.Capability{
@@ -818,7 +820,11 @@ func GetTypeIdentifier(name string) ([]string, error) {
 
 // Get the values specified for primary identifiers in the template.
 // The return value will only have values if they are set.
-func GetPrimaryIdentifierValues(primaryIdentifier []string, resource *yaml.Node) []string {
+func GetPrimaryIdentifierValues(
+	primaryIdentifier []string,
+	resource *yaml.Node,
+	template *yaml.Node,
+	dc *dc.DeployConfig) []string {
 
 	piValues := make([]string, 0)
 
@@ -833,14 +839,28 @@ func GetPrimaryIdentifierValues(primaryIdentifier []string, resource *yaml.Node)
 			}
 			propName := prop.Value
 			if pi == propName {
-				val := props.Content[i+1].Value
-				config.Debugf("pi %v = %v", pi, val)
-				if strings.Contains(val, "!Ref") || strings.Contains(val, "!Sub") {
-					// TODO: Can we resolve these reliably?
-					// If we don't, this function will only give us hard-coded identifiers
-					continue
+				content := props.Content[i+1]
+				if content.Kind == yaml.ScalarNode {
+					val := content.Value
+					config.Debugf("pi %v = %v", pi, val)
+					piValues = append(piValues, val)
+				} else {
+					// Likely a !Ref or !Sub
+					config.Debugf("PrimaryIdentifier: %v", node.ToJson(content))
+					if content.Kind == yaml.MappingNode {
+						if content.Content[0].Value == "Ref" && content.Content[1].Kind == yaml.ScalarNode {
+							val, err := resolveRef(content.Content[1].Value, template, dc)
+							if err != nil {
+								config.Debugf("Resolved Ref %v: %v", content.Content[1].Value, val)
+								piValues = append(piValues, val)
+							} else {
+								config.Debugf("%v", err)
+							}
+						} else {
+							config.Debugf("PrimaryIdentifier, unable to resolve %v", content.Content[0].Value)
+						}
+					}
 				}
-				piValues = append(piValues, val)
 			}
 		}
 	}
@@ -848,9 +868,36 @@ func GetPrimaryIdentifierValues(primaryIdentifier []string, resource *yaml.Node)
 	return piValues
 }
 
-func ResourceAlreadyExists(typeName string, resource *yaml.Node, stackExists bool) bool {
+// resolveRef resolves a scalar reference if we have enough information
+// Returns "", error if the Ref can't be resolved (not a panic condition)
+func resolveRef(name string, template *yaml.Node, dc *dc.DeployConfig) (string, error) {
+	_, params := s11n.GetMapValue(template, "Parameters")
+	if params != nil {
+		for i, param := range params.Content {
+			if i%2 != 0 {
+				continue
+			}
+			if param.Kind == yaml.ScalarNode && param.Value == name {
+				// Get the value of the parameter from command line args
+				config.Debugf("Checking DeployConfig for %v", name)
 
-	// TODO - Unit test
+				// TODO
+			}
+		}
+	}
+
+	return "", errors.New("could not resolve Ref")
+}
+
+// ResourceAlreadyExists returns true if the resource has all of its primary
+// identifiers hard coded into the template, and this is not a stack update,
+// and a resource with those identifiers already exists.
+func ResourceAlreadyExists(
+	typeName string,
+	resource *yaml.Node,
+	stackExists bool,
+	template *yaml.Node,
+	dc *dc.DeployConfig) bool {
 
 	if !stackExists {
 		primaryIdentifiers, err := GetTypeIdentifier(typeName)
@@ -860,7 +907,7 @@ func ResourceAlreadyExists(typeName string, resource *yaml.Node, stackExists boo
 			config.Debugf("PrimaryIdentifiers: %v", primaryIdentifiers)
 
 			// See if the primary identifier was user-specified in the template
-			piValues := GetPrimaryIdentifierValues(primaryIdentifiers, resource)
+			piValues := GetPrimaryIdentifierValues(primaryIdentifiers, resource, template, dc)
 			config.Debugf("piValues: %v", piValues)
 
 			if len(piValues) == len(primaryIdentifiers) {

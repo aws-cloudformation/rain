@@ -13,6 +13,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
+	"github.com/aws-cloudformation/rain/internal/dc"
 	"github.com/aws-cloudformation/rain/internal/ui"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/smithy-go/ptr"
@@ -78,8 +79,8 @@ Account(s) and region(s) provideed as flags OVERRIDE values from configuration f
 		stackSetName := createStackSetName(args)
 
 		// Convert cli flags to maps
-		cliTagFlags := deploy.ListToMap("tag", tags)
-		cliParamFlags := deploy.ListToMap("param", params)
+		cliTagFlags := dc.ListToMap("tag", tags)
+		cliParamFlags := dc.ListToMap("param", params)
 
 		// Read configuration data from a file
 		configData := readConfiguration(configFilePath)
@@ -109,7 +110,7 @@ Account(s) and region(s) provideed as flags OVERRIDE values from configuration f
 
 		// Build []types.Tag from configuration data
 		config.Debugln("Handling tags")
-		configData.StackSet.Tags = cfn.MakeTags(configData.Tags)
+		configData.StackSet.Tags = dc.MakeTags(configData.Tags)
 
 		if config.Debug {
 			for _, param := range configData.StackSet.Parameters {
@@ -136,7 +137,7 @@ Account(s) and region(s) provideed as flags OVERRIDE values from configuration f
 }
 
 func init() {
-	deploy.FixStackNameRe = regexp.MustCompile(`[^a-zA-Z0-9]+`)
+	dc.FixStackNameRe = regexp.MustCompile(`[^a-zA-Z0-9]+`)
 
 	StackSetDeployCmd.Flags().StringSliceVar(&accounts, "accounts", []string{}, "accounts for which to create stack set instances")
 	StackSetDeployCmd.Flags().StringSliceVar(&regions, "regions", []string{}, "regions where you want to create stack set instances")
@@ -210,10 +211,10 @@ func createStackSetName(args []string) string {
 		stackSetName = base[:len(base)-len(filepath.Ext(base))]
 
 		// Now ensure it's a valid cfc name
-		stackSetName = deploy.FixStackNameRe.ReplaceAllString(stackSetName, "-")
+		stackSetName = dc.FixStackNameRe.ReplaceAllString(stackSetName, "-")
 
-		if len(stackSetName) > deploy.MaxStackNameLength {
-			stackSetName = stackSetName[:deploy.MaxStackNameLength]
+		if len(stackSetName) > dc.MaxStackNameLength {
+			stackSetName = stackSetName[:dc.MaxStackNameLength]
 		}
 	}
 	return stackSetName
@@ -367,7 +368,7 @@ func buildParameterTypes(template cft.Template, combinedParams map[string]string
 		oldParams = stackSet.Parameters
 		stackSetExist = true
 	}
-	return deploy.GetParameters(template, combinedParams, oldParams, stackSetExist)
+	return dc.GetParameters(template, combinedParams, oldParams, stackSetExist, true)
 }
 
 // updates existing stack set and all its instances

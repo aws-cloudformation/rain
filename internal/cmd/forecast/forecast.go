@@ -3,10 +3,10 @@
 package forecast
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
@@ -14,6 +14,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/cmd/deploy"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
+	"github.com/aws-cloudformation/rain/internal/dc"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/aws-cloudformation/rain/internal/ui"
 	"github.com/spf13/cobra"
@@ -32,10 +33,13 @@ var Experimental bool
 var ResourceType string
 
 // The optional parameters to use to create a change set for update predictions (--params)
-var Params []string
+var params []string
+
+// The optional tags to use to create a change set for update predictions (--tags)
+var tags []string
 
 // The optional path to a file that contains params (--config)
-var ConfigFilePath string
+var configFilePath string
 
 // Input to forecast prediction functions
 type PredictionInput struct {
@@ -46,6 +50,7 @@ type PredictionInput struct {
 	stackExists bool
 	stack       types.Stack
 	typeName    string
+	dc          *dc.DeployConfig
 }
 
 // The current line number in the template
@@ -122,7 +127,8 @@ func forecastForType(input PredictionInput) Forecast {
 	spin(input.typeName, input.logicalId, "exists already?")
 
 	// Make sure the resource does not already exist
-	if cfn.ResourceAlreadyExists(input.typeName, input.resource, input.stackExists) {
+	if cfn.ResourceAlreadyExists(input.typeName, input.resource,
+		input.stackExists, input.source.Node, input.dc) {
 		forecast.Add(false, "Already exists")
 	} else {
 		forecast.Add(true, "Does not exist")
@@ -157,38 +163,16 @@ func forecastForType(input PredictionInput) Forecast {
 	return forecast
 }
 
-// Convert a node to JSON
-func toJson(node *yaml.Node) string {
-	j, err := json.MarshalIndent(node, "", "  ")
-	if err != nil {
-		return fmt.Sprintf("Failed to marshal node to json: %v:", err)
-	}
-	return string(j)
-}
-
 // Query the account to make predictions about deployment failures.
 // Returns true if no failures are predicted.
-func predict(source cft.Template, stackName string) bool {
+func predict(source cft.Template, stackName string, stack types.Stack, stackExists bool, dc *dc.DeployConfig) bool {
 
 	config.Debugf("About to make API calls for failure prediction...")
 
 	// Visit each resource in the template and see if it matches
 	// one of our predictions
 
-	// First check to see if the stack already exists.
-	// If so, check for possible update issues, and for reasons we can't delete the stack
-	// Otherwise, only check for possible create failures
-	stack, stackExists := deploy.CheckStack(stackName)
-
 	// TODO: Create a changeset to evaluate updates
-
-	msg := ""
-	if stackExists {
-		msg = "exists"
-	} else {
-		msg = "does not exist"
-	}
-	config.Debugf("Stack %v %v", stackName, msg)
 
 	forecast := makeForecast("", "")
 
@@ -260,7 +244,7 @@ func predict(source cft.Template, stackName string) bool {
 
 // Cmd is the forecast command's entrypoint
 var Cmd = &cobra.Command{
-	Use:   "forecast --experimental <template> <stackName>",
+	Use:   "forecast --experimental <template> [stackName]",
 	Short: "Predict deployment failures",
 	Long: `Outputs warnings about potential deployment failures due to constraints in 
 the account or misconfigurations in the template related to dependencies in 
@@ -290,7 +274,14 @@ Resource-specific checks:
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		fn := args[0]
-		stackName := args[1]
+		base := filepath.Base(fn)
+		var suppliedStackName string
+
+		if len(args) == 2 {
+			suppliedStackName = args[1]
+		} else {
+			suppliedStackName = ""
+		}
 
 		// TODO: Remove this when the design stabilizes
 		if !Experimental {
@@ -316,7 +307,28 @@ Resource-specific checks:
 			panic(ui.Errorf(err, "unable to parse input"))
 		}
 
-		if !predict(source, stackName) {
+		stackName := dc.GetStackName(suppliedStackName, base)
+
+		// Check current stack status
+		spinner.Push(fmt.Sprintf("Checking current status of stack '%s'", stackName))
+		stack, stackExists := deploy.CheckStack(stackName)
+		spinner.Pop()
+
+		msg := ""
+		if stackExists {
+			msg = "exists"
+		} else {
+			msg = "does not exist"
+		}
+		config.Debugf("Stack %v %v", stackName, msg)
+
+		dc, err := dc.GetDeployConfig(tags, params, configFilePath, base,
+			source, stack, stackExists, true)
+		if err != nil {
+			panic(err)
+		}
+
+		if !predict(source, stackName, stack, stackExists, dc) {
 			os.Exit(1)
 		}
 
@@ -329,8 +341,9 @@ func init() {
 	Cmd.Flags().StringVar(&RoleArn, "role-arn", "", "An optional execution role arn to use for predicting IAM failures")
 	// TODO - --op "create", "update", "delete", default: "all"
 	Cmd.Flags().StringVar(&ResourceType, "type", "", "Optional resource type to limit checks to only that type")
-	Cmd.Flags().StringSliceVar(&Params, "params", []string{}, "set parameter values; use the format key1=value1,key2=value2")
-	Cmd.Flags().StringVarP(&ConfigFilePath, "config", "c", "", "YAML or JSON file to set tags and parameters")
+	Cmd.Flags().StringSliceVar(&tags, "tags", []string{}, "add tags to the stack; use the format key1=value1,key2=value2")
+	Cmd.Flags().StringSliceVar(&params, "params", []string{}, "set parameter values; use the format key1=value1,key2=value2")
+	Cmd.Flags().StringVarP(&configFilePath, "config", "c", "", "YAML or JSON file to set tags and parameters")
 
 	// If you want to add a prediction for a type that is not already covered, add it here
 	// The function must return a Forecast struct

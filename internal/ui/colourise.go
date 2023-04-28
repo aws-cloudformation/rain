@@ -11,86 +11,86 @@ import (
 type statusCategory int
 
 const (
-	failed statusCategory = iota
-	complete
-	inProgress
-	pending
-	cancelled
+	Failed statusCategory = iota
+	Complete
+	InProgress
+	Pending
+	Cancelled
 )
 
-var statusColour = map[statusCategory]func(...interface{}) string{
-	pending:    console.Plain,
-	inProgress: console.Blue,
-	failed:     console.Red,
-	complete:   console.Green,
-	cancelled:  console.Grey,
+var StatusColour = map[statusCategory]func(...interface{}) string{
+	Pending:    console.Plain,
+	InProgress: console.Blue,
+	Failed:     console.Red,
+	Complete:   console.Green,
+	Cancelled:  console.Grey,
 }
 
-type statusRep struct {
-	category statusCategory
-	symbol   string
+type StatusRep struct {
+	Category statusCategory
+	Symbol   string
 }
 
-func (s *statusRep) String() string {
-	return fmt.Sprint(statusColour[s.category](s.symbol))
+func (s *StatusRep) String() string {
+	return fmt.Sprint(StatusColour[s.Category](s.Symbol))
 }
 
-func mapStatus(status string) *statusRep {
-	rep := statusRep{}
+func MapStatus(status string) *StatusRep {
+	rep := StatusRep{}
 
 	// Colour
 	switch {
 	case status == "REVIEW_IN_PROGRESS":
-		rep.category = pending
+		rep.Category = Pending
 
 	case strings.HasSuffix(status, "_FAILED"), strings.HasPrefix(status, "DELETE_"), strings.Contains(status, "ROLLBACK"):
-		rep.category = failed
+		rep.Category = Failed
 
 	case strings.HasSuffix(status, "_IN_PROGRESS"):
-		rep.category = inProgress
+		rep.Category = InProgress
 
 	case strings.HasSuffix(status, "_COMPLETE"):
-		rep.category = complete
+		rep.Category = Complete
 
 	// stack set statuses
 	case strings.HasSuffix(status, "ACTIVE"):
-		rep.category = complete
+		rep.Category = Complete
 
 	// stack set instance statuses
 	case strings.HasSuffix(status, "SUCCEEDED"):
-		rep.category = complete
+		rep.Category = Complete
 
 	case strings.HasSuffix(status, "CANCELLED"):
 	case strings.HasSuffix(status, "OUTDATED"):
-		rep.category = cancelled
+		rep.Category = Cancelled
 
 	case strings.HasSuffix(status, "FAILED"):
 	case strings.HasSuffix(status, "INOPERABLE"):
-		rep.category = failed
+		rep.Category = Failed
 
 	case strings.HasSuffix(status, "RUNNING"):
-		rep.category = inProgress
+		rep.Category = InProgress
 
 	default:
-		rep.category = pending
+		rep.Category = Pending
 	}
 
 	// Symbol
 	switch {
 	case status == "REVIEW_IN_PROGRESS":
-		rep.symbol = "."
+		rep.Symbol = "."
 
 	case strings.HasSuffix(status, "_FAILED"):
-		rep.symbol = "x"
+		rep.Symbol = "x"
 
 	case strings.HasSuffix(status, "_IN_PROGRESS"):
-		rep.symbol = "o"
+		rep.Symbol = "o"
 
 	case strings.HasSuffix(status, "_COMPLETE"):
-		rep.symbol = "✓"
+		rep.Symbol = "✓"
 
 	default:
-		rep.symbol = "."
+		rep.Symbol = "."
 	}
 
 	return &rep
@@ -99,9 +99,9 @@ func mapStatus(status string) *statusRep {
 // Colourise wraps a message in an appropriate colour
 // based on the accompanying status string
 func Colourise(msg, status string) string {
-	rep := mapStatus(status)
+	rep := MapStatus(status)
 
-	return statusColour[rep.category](msg)
+	return StatusColour[rep.Category](msg)
 }
 
 // ColouriseStatus wraps a status code in an appropriate colour

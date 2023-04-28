@@ -1,4 +1,4 @@
-package ui
+package cfn
 
 import (
 	"fmt"
@@ -6,15 +6,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/smithy-go/ptr"
-
-	"github.com/aws-cloudformation/rain/internal/aws/cfn"
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
+	"github.com/aws-cloudformation/rain/internal/ui"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	"github.com/aws/smithy-go/ptr"
 )
 
-func statusIsSettled(status string) bool {
+func StatusIsSettled(status string) bool {
 	if strings.HasSuffix(status, "_COMPLETE") || strings.HasSuffix(status, "_FAILED") {
 		return true
 	}
@@ -24,7 +23,7 @@ func statusIsSettled(status string) bool {
 // StackHasSettled returns whether a given status represents
 // a stack that has settled, i.e. is not updating
 func StackHasSettled(stack types.Stack) bool {
-	return statusIsSettled(string(stack.StackStatus))
+	return StatusIsSettled(string(stack.StackStatus))
 }
 
 func stackResourceStatuses(stack types.Stack) (string, []string) {
@@ -35,7 +34,7 @@ func stackResourceStatuses(stack types.Stack) (string, []string) {
 	nested := make(map[string]string)
 
 	// Get changeset details if possible
-	changeset, err := cfn.GetChangeSet(stackName, ptr.ToString(stack.ChangeSetId))
+	changeset, err := GetChangeSet(stackName, ptr.ToString(stack.ChangeSetId))
 	if err == nil {
 		for _, change := range changeset.Changes {
 			resourceID := ptr.ToString(change.ResourceChange.LogicalResourceId)
@@ -49,19 +48,19 @@ func stackResourceStatuses(stack types.Stack) (string, []string) {
 	}
 
 	// We ignore errors because it just means we'll list no resources
-	resources, _ := cfn.GetStackResources(stackName)
+	resources, _ := GetStackResources(stackName)
 	for _, resource := range resources {
 		resourceID := ptr.ToString(resource.LogicalResourceId)
 
 		status := string(resource.ResourceStatus)
-		rep := mapStatus(status)
+		rep := ui.MapStatus(status)
 
 		statuses[resourceID] = status
 
 		// Store messages
-		if resource.ResourceStatusReason != nil && rep.category == failed {
+		if resource.ResourceStatusReason != nil && rep.Category == ui.Failed {
 			msg := ptr.ToString(resource.ResourceStatusReason)
-			colour := statusColour[rep.category]
+			colour := ui.StatusColour[rep.Category]
 
 			if msg != "Resource creation cancelled" {
 				id := resourceID
@@ -75,7 +74,7 @@ func stackResourceStatuses(stack types.Stack) (string, []string) {
 
 		// Store nested stacks
 		if ptr.ToString(resource.ResourceType) == "AWS::CloudFormation::Stack" {
-			stack, err := cfn.GetStack(ptr.ToString(resource.PhysicalResourceId))
+			stack, err := GetStack(ptr.ToString(resource.PhysicalResourceId))
 			if err == nil {
 				rs, rMessages := GetStackOutput(stack)
 				nested[resourceID] = rs
@@ -188,7 +187,7 @@ func GetStackOutput(stack types.Stack) (string, []string) {
 
 	rs, messages := stackResourceStatuses(stack)
 
-	out.WriteString(fmt.Sprintf("%s: %s %s", console.Yellow(fmt.Sprintf("Stack %s", stackName)), ColouriseStatus(stackStatus), rs))
+	out.WriteString(fmt.Sprintf("%s: %s %s", console.Yellow(fmt.Sprintf("Stack %s", stackName)), ui.ColouriseStatus(stackStatus), rs))
 
 	return strings.TrimSpace(out.String()), messages
 }
@@ -210,9 +209,9 @@ func WaitForStackToSettle(stackName string) (string, []string) {
 	for {
 		out.Reset()
 
-		stack, err := cfn.GetStack(stackID)
+		stack, err := GetStack(stackID)
 		if err != nil {
-			panic(Errorf(err, "operation failed"))
+			panic(ui.Errorf(err, "operation failed"))
 		}
 
 		// Refresh the stack ID so we can deal with deleted stacks ok
@@ -256,7 +255,7 @@ func WaitForStackToSettle(stackName string) (string, []string) {
 			return string(stack.StackStatus), messages
 		}
 
-		time.Sleep(time.Second * cfn.WAIT_PERIOD_IN_SECONDS)
+		time.Sleep(time.Second * WAIT_PERIOD_IN_SECONDS)
 	}
 }
 
@@ -270,7 +269,7 @@ func GetStackSummary(stack types.Stack, long bool) string {
 	stackName := ptr.ToString(stack.StackName)
 
 	// Stack status
-	out.WriteString(fmt.Sprintf("%s: %s\n", console.Yellow(fmt.Sprintf("Stack %s", stackName)), ColouriseStatus(stackStatus)))
+	out.WriteString(fmt.Sprintf("%s: %s\n", console.Yellow(fmt.Sprintf("Stack %s", stackName)), ui.ColouriseStatus(stackStatus)))
 
 	if long {
 		// Params
@@ -291,15 +290,15 @@ func GetStackSummary(stack types.Stack, long bool) string {
 
 		// Resources
 		out.WriteString(fmt.Sprintf("  %s:\n", console.Yellow("Resources")))
-		resources, _ := cfn.GetStackResources(stackName) // Ignore errors - it just means we'll get no resources
+		resources, _ := GetStackResources(stackName) // Ignore errors - it just means we'll get no resources
 		for _, resource := range resources {
 			out.WriteString(fmt.Sprintf("    %s: %s\n",
 				console.Yellow(ptr.ToString(resource.LogicalResourceId)),
-				ColouriseStatus(string(resource.ResourceStatus)),
+				ui.ColouriseStatus(string(resource.ResourceStatus)),
 			))
 
 			if ptr.ToString(resource.ResourceType) == "AWS::CloudFormation::Stack" {
-				nestedStack, err := cfn.GetStack(ptr.ToString(resource.PhysicalResourceId))
+				nestedStack, err := GetStack(ptr.ToString(resource.PhysicalResourceId))
 				if err == nil {
 					nestedSummary := GetStackSummary(nestedStack, long)
 
@@ -344,7 +343,6 @@ func GetStackSummary(stack types.Stack, long bool) string {
 	return strings.TrimSpace(out.String())
 }
 
-//
 func GetStackSetSummary(stackSet *types.StackSet, long bool) string {
 	out := strings.Builder{}
 
@@ -352,7 +350,7 @@ func GetStackSetSummary(stackSet *types.StackSet, long bool) string {
 	stackSetName := ptr.ToString(stackSet.StackSetName)
 
 	// Stack status
-	out.WriteString(fmt.Sprintf("%s: %s %s\n", console.Yellow("StackSet"), stackSetName, ColouriseStatus(stackSetStatus)))
+	out.WriteString(fmt.Sprintf("%s: %s %s\n", console.Yellow("StackSet"), stackSetName, ui.ColouriseStatus(stackSetStatus)))
 
 	if long {
 		// Params

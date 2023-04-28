@@ -189,7 +189,7 @@ func displayStackSetSummaryWithInstancesAndLast10Operations(stackSetName string)
 		panic(ui.Errorf(err, "failed to list stack set '%s'", stackSetName))
 	}
 	spinner.Pop()
-	fmt.Println(ui.GetStackSetSummary(stackSet, all))
+	fmt.Println(cfn.GetStackSetSummary(stackSet, all))
 	fmt.Println(ui.Indent("  ", getStackSetInstances(stackSetName)))
 	fmt.Println(ui.Indent("  ", getStackSetOperations(stackSetName)))
 }

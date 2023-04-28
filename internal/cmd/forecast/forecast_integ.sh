@@ -29,6 +29,13 @@ update_result=$(./rain forecast --debug test/templates/forecast-succeed.yml fore
 echo $create_result | grep "All 5 checks passed"
 echo "Result: $?"
 
+# TODO Add an object to the bucket
+# Make sure we get the warning about a bucket not being empty
+# Delete the object
+# Make sure we still get the warning, since there is an object version
+# Delete all object versions
+# Check to make sure we don't get the warning
+
 # Delete the stack
 ./rain delete forecast-integ -y
 

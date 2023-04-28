@@ -33,7 +33,7 @@ var Cmd = &cobra.Command{
 		}
 
 		if !yes {
-			output, _ := ui.GetStackOutput(stack)
+			output, _ := cfn.GetStackOutput(stack)
 
 			spinner.Pause()
 			fmt.Println(output)
@@ -70,7 +70,7 @@ var Cmd = &cobra.Command{
 		if detach {
 			fmt.Printf("Detaching. You can check your stack's status with: rain watch %s\n", stackName)
 		} else {
-			status, messages := ui.WaitForStackToSettle(stackName)
+			status, messages := cfn.WaitForStackToSettle(stackName)
 			stack, _ = cfn.GetStack(stackName)
 
 			if status == "DELETE_COMPLETE" {

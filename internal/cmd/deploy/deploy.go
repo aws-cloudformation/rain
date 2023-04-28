@@ -3,28 +3,19 @@ package deploy
 import (
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
-	"regexp"
 
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
-	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
+	"github.com/aws-cloudformation/rain/internal/dc"
 	"github.com/aws-cloudformation/rain/internal/ui"
-	"gopkg.in/yaml.v3"
 
-	"github.com/aws/smithy-go/ptr"
 	"github.com/spf13/cobra"
 )
 
 const noChangeFoundMsg = "The submitted information didn't contain changes. Submit different information to create a change set."
-
-type configFileFormat struct {
-	Parameters map[string]string `yaml:"Parameters"`
-	Tags       map[string]string `yaml:"Tags"`
-}
 
 var detach bool
 var yes bool
@@ -76,61 +67,12 @@ YAML:
 		fn := args[0]
 		base := filepath.Base(fn)
 
-		var stackName string
+		var suppliedStackName string
 
 		if len(args) == 2 {
-			stackName = args[1]
+			suppliedStackName = args[1]
 		} else {
-			stackName = base[:len(base)-len(filepath.Ext(base))]
-
-			// Now ensure it's a valid cfc name
-			stackName = FixStackNameRe.ReplaceAllString(stackName, "-")
-
-			if len(stackName) > MaxStackNameLength {
-				stackName = stackName[:MaxStackNameLength]
-			}
-		}
-
-		// Parse tags
-		parsedTagFlag := ListToMap("tag", tags)
-
-		// Parse params
-		parsedParamFlag := ListToMap("param", params)
-
-		var combinedTags map[string]string
-		var combinedParameters map[string]string
-
-		if len(configFilePath) != 0 {
-			configFileContent, err := os.ReadFile(configFilePath)
-			if err != nil {
-				panic(ui.Errorf(err, "unable to read config file '%s'", configFilePath))
-			}
-
-			var configFile configFileFormat
-			err = yaml.Unmarshal([]byte(configFileContent), &configFile)
-			if err != nil {
-				panic(ui.Errorf(err, "unable to parse yaml in '%s'", configFilePath))
-			}
-
-			combinedTags = configFile.Tags
-			combinedParameters = configFile.Parameters
-
-			for k, v := range parsedTagFlag {
-				if _, ok := combinedTags[k]; ok {
-					fmt.Println(console.Yellow(fmt.Sprintf("tags flag overrides tag in config file: %s", k)))
-				}
-				combinedTags[k] = v
-			}
-
-			for k, v := range parsedParamFlag {
-				if _, ok := combinedParameters[k]; ok {
-					fmt.Println(console.Yellow(fmt.Sprintf("params flag overrides parameter in config file: %s", k)))
-				}
-				combinedParameters[k] = v
-			}
-		} else {
-			combinedTags = parsedTagFlag
-			combinedParameters = parsedParamFlag
+			suppliedStackName = ""
 		}
 
 		// Package template
@@ -138,28 +80,22 @@ YAML:
 		template := PackageTemplate(fn, yes)
 		spinner.Pop()
 
+		stackName := dc.GetStackName(suppliedStackName, base)
+
 		// Check current stack status
 		spinner.Push(fmt.Sprintf("Checking current status of stack '%s'", stackName))
 		stack, stackExists := CheckStack(stackName)
 		spinner.Pop()
 
-		// Parse params
-		config.Debugf("Handling parameters")
-		parameters := GetParameters(template, combinedParameters, stack.Parameters, stackExists)
-
-		if config.Debug {
-			for _, param := range parameters {
-				val := ptr.ToString(param.ParameterValue)
-				if ptr.ToBool(param.UsePreviousValue) {
-					val = "<previous value>"
-				}
-				config.Debugf("  %s: %s", ptr.ToString(param.ParameterKey), val)
-			}
+		dc, err := dc.GetDeployConfig(tags, params, configFilePath, base,
+			template, stack, stackExists, yes)
+		if err != nil {
+			panic(err)
 		}
 
 		// Create change set
 		spinner.Push("Creating change set")
-		changeSetName, createErr := cfn.CreateChangeSet(template, parameters, combinedTags, stackName, roleArn)
+		changeSetName, createErr := cfn.CreateChangeSet(template, dc.Params, dc.Tags, stackName, roleArn)
 		if createErr != nil {
 			if createErr.Error() == noChangeFoundMsg {
 				spinner.Pop()
@@ -198,7 +134,7 @@ YAML:
 		}
 
 		// Deploy!
-		err := cfn.ExecuteChangeSet(stackName, changeSetName, keep)
+		err = cfn.ExecuteChangeSet(stackName, changeSetName, keep)
 		if err != nil {
 			panic(ui.Errorf(err, "error while executing changeset '%s'", changeSetName))
 		}
@@ -208,9 +144,9 @@ YAML:
 		} else {
 			fmt.Printf("Deploying template '%s' as stack '%s' in %s.\n", filepath.Base(fn), stackName, aws.Config().Region)
 
-			status, messages := ui.WaitForStackToSettle(stackName)
+			status, messages := cfn.WaitForStackToSettle(stackName)
 			stack, _ = cfn.GetStack(stackName)
-			output := ui.GetStackSummary(stack, false)
+			output := cfn.GetStackSummary(stack, false)
 
 			fmt.Println(output)
 
@@ -241,7 +177,6 @@ YAML:
 }
 
 func init() {
-	FixStackNameRe = regexp.MustCompile(`[^a-zA-Z0-9]+`)
 
 	Cmd.Flags().BoolVarP(&detach, "detach", "d", false, "once deployment has started, don't wait around for it to finish")
 	Cmd.Flags().BoolVarP(&yes, "yes", "y", false, "don't ask questions; just deploy")

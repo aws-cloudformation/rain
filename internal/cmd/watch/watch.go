@@ -36,14 +36,14 @@ var Cmd = &cobra.Command{
 				panic(ui.Errorf(err, "error watching stack '%s'", stackName))
 			}
 
-			if !ui.StackHasSettled(stack) {
+			if !cfn.StackHasSettled(stack) {
 				// Stack is changing
 				break
 			}
 
 			if !waitThenWatch {
 				// Not changing, not waiting for it
-				status, _ := ui.GetStackOutput(stack)
+				status, _ := cfn.GetStackOutput(stack)
 				fmt.Println(status)
 				panic(errors.New("not watching unchanging stack"))
 			}
@@ -59,7 +59,7 @@ var Cmd = &cobra.Command{
 
 		spinner.Pop()
 
-		status, messages := ui.WaitForStackToSettle(stackName)
+		status, messages := cfn.WaitForStackToSettle(stackName)
 
 		fmt.Println("Final stack status:", ui.ColouriseStatus(status))
 
