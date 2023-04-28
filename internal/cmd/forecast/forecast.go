@@ -32,6 +32,9 @@ var Experimental bool
 // The resource type to check (optional --type to limit checks to one type)
 var ResourceType string
 
+// If true, don't perform permissions checks to save time
+var SkipIAM bool
+
 // The optional parameters to use to create a change set for update predictions (--params)
 var params []string
 
@@ -216,6 +219,7 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 		input.stackExists = stackExists
 		input.stack = stack
 		input.typeName = typeName
+		input.dc = dc
 
 		forecast.Append(forecastForType(input))
 	}
@@ -337,6 +341,7 @@ Resource-specific checks:
 
 func init() {
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
+	Cmd.Flags().BoolVar(&SkipIAM, "skip-iam", false, "Skip permissions checks, which can take a long time")
 	Cmd.Flags().BoolVarP(&Experimental, "experimental", "x", false, "Acknowledge that this is an experimental feature")
 	Cmd.Flags().StringVar(&RoleArn, "role-arn", "", "An optional execution role arn to use for predicting IAM failures")
 	// TODO - --op "create", "update", "delete", default: "all"

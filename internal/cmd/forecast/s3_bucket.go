@@ -93,28 +93,33 @@ func checkS3Bucket(input PredictionInput) Forecast {
 	// TODO - Can we make the permissions check generic so we can
 	// run it on all types? What if we can't predict what the arn will be?
 	// We could have a map of resource names to functions that provide the arn..
-	var ok bool
-	var reason []string
-	if input.stackExists {
-		ok, reason = checkPermissions(input, bucketArn, "update")
-		if !ok {
-			forecast.Add(false, fmt.Sprintf("Insufficient permissions to update %v\n\t%v", bucketArn, strings.Join(reason, "\n\t")))
-		} else {
-			forecast.Add(true, "Role has update permissions")
-		}
+	if !SkipIAM {
+		var ok bool
+		var reason []string
+		if input.stackExists {
+			ok, reason = checkPermissions(input, bucketArn, "update")
+			if !ok {
+				forecast.Add(false,
+					fmt.Sprintf("Insufficient permissions to update %v\n\t%v", bucketArn, strings.Join(reason, "\n\t")))
+			} else {
+				forecast.Add(true, "Role has update permissions")
+			}
 
-		ok, reason = checkPermissions(input, bucketArn, "delete")
-		if !ok {
-			forecast.Add(false, fmt.Sprintf("Insufficient permissions to delete %v\n\t%v", bucketArn, strings.Join(reason, "\n\t")))
+			ok, reason = checkPermissions(input, bucketArn, "delete")
+			if !ok {
+				forecast.Add(false,
+					fmt.Sprintf("Insufficient permissions to delete %v\n\t%v", bucketArn, strings.Join(reason, "\n\t")))
+			} else {
+				forecast.Add(true, "Role has delete permissions")
+			}
 		} else {
-			forecast.Add(true, "Role has delete permissions")
-		}
-	} else {
-		ok, reason = checkPermissions(input, bucketArn, "create")
-		if !ok {
-			forecast.Add(false, fmt.Sprintf("Insufficient permissions to create %v\n\t%v", bucketArn, strings.Join(reason, "\n\t")))
-		} else {
-			forecast.Add(true, "Role has create permissions")
+			ok, reason = checkPermissions(input, bucketArn, "create")
+			if !ok {
+				forecast.Add(false,
+					fmt.Sprintf("Insufficient permissions to create %v\n\t%v", bucketArn, strings.Join(reason, "\n\t")))
+			} else {
+				forecast.Add(true, "Role has create permissions")
+			}
 		}
 	}
 

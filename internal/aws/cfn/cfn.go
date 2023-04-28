@@ -850,7 +850,7 @@ func GetPrimaryIdentifierValues(
 					if content.Kind == yaml.MappingNode {
 						if content.Content[0].Value == "Ref" && content.Content[1].Kind == yaml.ScalarNode {
 							val, err := resolveRef(content.Content[1].Value, template, dc)
-							if err != nil {
+							if err == nil {
 								config.Debugf("Resolved Ref %v: %v", content.Content[1].Value, val)
 								piValues = append(piValues, val)
 							} else {
@@ -871,7 +871,8 @@ func GetPrimaryIdentifierValues(
 // resolveRef resolves a scalar reference if we have enough information
 // Returns "", error if the Ref can't be resolved (not a panic condition)
 func resolveRef(name string, template *yaml.Node, dc *dc.DeployConfig) (string, error) {
-	_, params := s11n.GetMapValue(template, "Parameters")
+	_, params := s11n.GetMapValue(template.Content[0], "Parameters")
+	config.Debugf("resolveRef params: %v", node.ToJson(params))
 	if params != nil {
 		for i, param := range params.Content {
 			if i%2 != 0 {
@@ -881,7 +882,11 @@ func resolveRef(name string, template *yaml.Node, dc *dc.DeployConfig) (string, 
 				// Get the value of the parameter from command line args
 				config.Debugf("Checking DeployConfig for %v", name)
 
-				// TODO
+				for _, param := range dc.Params {
+					if *param.ParameterKey == name {
+						return *param.ParameterValue, nil
+					}
+				}
 			}
 		}
 	}
