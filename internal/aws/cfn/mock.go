@@ -13,6 +13,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/internal/aws"
+	"github.com/aws-cloudformation/rain/internal/dc"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/smithy-go/ptr"
@@ -233,7 +234,7 @@ func GetChangeSet(stackName, changeSetName string) (*cloudformation.DescribeChan
 		StackName:             ptr.String(stackName),
 		Status:                types.ChangeSetStatusCreateComplete,
 		StatusReason:          ptr.String("Mock status reason"),
-		Tags:                  MakeTags(c.tags),
+		Tags:                  dc.MakeTags(c.tags),
 	}, nil
 }
 
@@ -283,7 +284,7 @@ func ExecuteChangeSet(stackName, changeSetName string, disableRollback bool) err
 		},
 		StackId:           ptr.String(stackName),
 		StackStatusReason: ptr.String("Mock status reason"),
-		Tags:              MakeTags(c.tags),
+		Tags:              dc.MakeTags(c.tags),
 	}
 
 	s.resources = []types.StackResource{
@@ -336,8 +337,12 @@ func WaitUntilStackCreateComplete(stackName string) error {
 	return nil
 }
 
-func ResourceAlreadyExists(typeName string,
-	resource *yaml.Node, stackExists bool) bool {
+func ResourceAlreadyExists(
+	typeName string,
+	resource *yaml.Node,
+	stackExists bool,
+	template *yaml.Node,
+	dc *dc.DeployConfig) bool {
 	return true
 }
 

@@ -68,21 +68,6 @@ func TestColouriseDiff(t *testing.T) {
 	}
 }
 
-func TestStatusIsSettled(t *testing.T) {
-	for input, expected := range map[string]bool{
-		"STACK_COMPLETE":     true,
-		"STACK_FAILED":       true,
-		"SOMETHING_COMPLETE": true,
-		"SOMETHING_FAILED":   true,
-		"COMPLETE_STACK":     false,
-		"FAILED_STACK":       false,
-	} {
-		if statusIsSettled(input) != expected {
-			t.Fail()
-		}
-	}
-}
-
 func TestIndent(t *testing.T) {
 	input := `This
 has

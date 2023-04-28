@@ -35,7 +35,7 @@ var Cmd = &cobra.Command{
 				panic(ui.Errorf(err, "failed to list stack '%s'", stackName))
 			}
 
-			output := ui.GetStackSummary(stack, all)
+			output := cfn.GetStackSummary(stack, all)
 			spinner.Pop()
 
 			fmt.Println(output)

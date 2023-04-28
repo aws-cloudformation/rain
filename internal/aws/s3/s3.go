@@ -27,14 +27,14 @@ func getClient() *s3.Client {
 // Returns true if the bucket is not empty
 func BucketHasContents(bucketName string) (bool, error) {
 
-	res, err := getClient().ListObjectsV2(context.Background(),
-		&s3.ListObjectsV2Input{
+	res, err := getClient().ListObjectVersions(context.Background(),
+		&s3.ListObjectVersionsInput{
 			Bucket: ptr.String(bucketName),
 		})
 	if err != nil {
 		return false, err
 	}
-	if res.Contents != nil && len(res.Contents) > 0 {
+	if res.Versions != nil && len(res.Versions) > 0 {
 		return true, nil
 	}
 	return false, nil
