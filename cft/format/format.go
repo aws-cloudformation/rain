@@ -61,7 +61,9 @@ func String(t cft.Template, opt Options) string {
 		// https://yaml.org/spec/1.2-old/spec.html#id2760844
 		isMultiline := false
 		if startMultilineIndent > -1 {
-			if startMultilineIndent <= indent {
+			// Note: len(part) == 0 means empty line without indentation
+			// https://github.com/aws-cloudformation/rain/issues/126
+			if indent < startMultilineIndent && len(part) != 0 {
 				startMultilineIndent = -1
 			} else {
 				isMultiline = true
