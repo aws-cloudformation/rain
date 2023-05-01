@@ -43,7 +43,16 @@ Resources:
             """Example."""
 
             print('hello')
+  Instance1:
+    Type: AWS::EC2::Instance
+    Properties:
+      UserData: !Base64
+        Fn::Sub:
+          - |
+            #!/bin/bash -xe
+            apt-get update
 
+            apt-get upgrade -y
 Parameters:
   Name:
     Type: String
@@ -74,6 +83,17 @@ Resources:
       Handler: index.handler
       Code:
         ZipFile: "import boto3\n\ndef handler: \n  \"\"\"Example.\"\"\"\n\n  print('hello')\n"
+
+  Instance1:
+    Type: AWS::EC2::Instance
+    Properties:
+      UserData: !Base64
+        Fn::Sub:
+          - |
+            #!/bin/bash -xe
+            apt-get update
+
+            apt-get upgrade -y
 
 Outputs:
   Bucket1:
@@ -111,6 +131,17 @@ Resources:
       Handler: index.handler
       Code:
         ZipFile: "import boto3\n\ndef handler: \n  \"\"\"Example.\"\"\"\n\n  print('hello')\n"
+
+  Instance1:
+    Type: AWS::EC2::Instance
+    Properties:
+      UserData: !Base64
+        Fn::Sub:
+          - |
+            #!/bin/bash -xe
+            apt-get update
+
+            apt-get upgrade -y
 
 Parameters:
   Name:
@@ -150,6 +181,18 @@ const expectedJson = `{
                 "Handler": "index.handler",
                 "Code": {
                     "ZipFile": "import boto3\n\ndef handler: \n  \"\"\"Example.\"\"\"\n\n  print('hello')\n"
+                }
+            }
+        },
+        "Instance1": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": [
+                            "#!/bin/bash -xe\napt-get update\n\napt-get upgrade -y\n"
+                        ]
+                    }
                 }
             }
         }
@@ -221,6 +264,18 @@ const expectedUnsortedJson = `{
                 "Handler": "index.handler",
                 "Code": {
                     "ZipFile": "import boto3\n\ndef handler: \n  \"\"\"Example.\"\"\"\n\n  print('hello')\n"
+                }
+            }
+        },
+        "Instance1": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": [
+                            "#!/bin/bash -xe\napt-get update\n\napt-get upgrade -y\n"
+                        ]
+                    }
                 }
             }
         }
