@@ -53,6 +53,16 @@ Resources:
             apt-get update
 
             apt-get upgrade -y
+Rules:
+  Rule1:
+    RuleCondition: !Equals
+      - !Ref Environment
+      - test
+    Assertions:
+      - Assert:
+          Fn::Contains:
+            - - a1.medium
+            - !Ref InstanceType
 Parameters:
   Name:
     Type: String
@@ -61,6 +71,17 @@ Parameters:
 const expectedYaml = `Parameters:
   Name:
     Type: String
+
+Rules:
+  Rule1:
+    RuleCondition: !Equals
+      - !Ref Environment
+      - test
+    Assertions:
+      - Assert:
+          Fn::Contains:
+            - - a1.medium
+            - !Ref InstanceType
 
 # Multiline comment
 # starting at indent 0
@@ -143,6 +164,17 @@ Resources:
 
             apt-get upgrade -y
 
+Rules:
+  Rule1:
+    RuleCondition: !Equals
+      - !Ref Environment
+      - test
+    Assertions:
+      - Assert:
+          Fn::Contains:
+            - - a1.medium
+            - !Ref InstanceType
+
 Parameters:
   Name:
     Type: String
@@ -152,6 +184,32 @@ const expectedJson = `{
     "Parameters": {
         "Name": {
             "Type": "String"
+        }
+    },
+    "Rules": {
+        "Rule1": {
+            "RuleCondition": {
+                "Fn::Equals": [
+                    {
+                        "Ref": "Environment"
+                    },
+                    "test"
+                ]
+            },
+            "Assertions": [
+                {
+                    "Assert": {
+                        "Fn::Contains": [
+                            [
+                                "a1.medium"
+                            ],
+                            {
+                                "Ref": "InstanceType"
+                            }
+                        ]
+                    }
+                }
+            ]
         }
     },
     "Resources": {
@@ -278,6 +336,32 @@ const expectedUnsortedJson = `{
                     }
                 }
             }
+        }
+    },
+    "Rules": {
+        "Rule1": {
+            "RuleCondition": {
+                "Fn::Equals": [
+                    {
+                        "Ref": "Environment"
+                    },
+                    "test"
+                ]
+            },
+            "Assertions": [
+                {
+                    "Assert": {
+                        "Fn::Contains": [
+                            [
+                                "a1.medium"
+                            ],
+                            {
+                                "Ref": "InstanceType"
+                            }
+                        ]
+                    }
+                }
+            ]
         }
     },
     "Parameters": {
