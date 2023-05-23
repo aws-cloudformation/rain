@@ -15,6 +15,7 @@ var orders = ordering{
 		"Description",
 		"Metadata",
 		"Parameters",
+		"Rules",
 		"Mappings",
 		"Conditions",
 		"Transform",
