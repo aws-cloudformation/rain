@@ -24,6 +24,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/cmd/tree"
 	"github.com/aws-cloudformation/rain/internal/cmd/watch"
 	"github.com/aws-cloudformation/rain/internal/console"
+	"github.com/aws-cloudformation/rain/internal/aws/s3"
 )
 
 // Cmd is the rain command's entrypoint
@@ -59,7 +60,7 @@ Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
 const stackGroup = "Stack commands"
 const templateGroup = "Template commands"
 
-func addCommand(label string, profileOptions bool, c *cobra.Command) {
+func addCommand(label string, profileOptions, bucketOptions bool, c *cobra.Command) {
 	if label != "" {
 		c.Annotations = map[string]string{"Group": label}
 	}
@@ -69,31 +70,36 @@ func addCommand(label string, profileOptions bool, c *cobra.Command) {
 		c.Flags().StringVarP(&config.Region, "region", "r", "", "AWS region to use")
 	}
 
+	if bucketOptions {
+		c.Flags().StringVar(&s3.BucketName, "s3-bucket", "", "Name of the S3 bucket that is used to upload assets")
+		c.Flags().StringVar(&s3.BucketKeyPrefix, "s3-prefix", "", "Prefix to add to objects uploaded to S3 bucket")
+	}
+
 	Cmd.AddCommand(c)
 }
 
 func init() {
 	// Stack commands
-	addCommand(stackGroup, true, cat.Cmd)
-	addCommand(stackGroup, true, deploy.Cmd)
-	addCommand(stackGroup, true, logs.Cmd)
-	addCommand(stackGroup, true, ls.Cmd)
-	addCommand(stackGroup, true, rm.Cmd)
-	addCommand(stackGroup, true, watch.Cmd)
-	addCommand(stackGroup, true, stackset.StackSetCmd)
+	addCommand(stackGroup, true, false, cat.Cmd)
+	addCommand(stackGroup, true, true,  deploy.Cmd)
+	addCommand(stackGroup, true, false, logs.Cmd)
+	addCommand(stackGroup, true, false, ls.Cmd)
+	addCommand(stackGroup, true, false, rm.Cmd)
+	addCommand(stackGroup, true, false, watch.Cmd)
+	addCommand(stackGroup, true, false, stackset.StackSetCmd)
 
 	// Template commands
-	addCommand(templateGroup, false, build.Cmd)
-	addCommand(templateGroup, false, diff.Cmd)
-	addCommand(templateGroup, false, rainfmt.Cmd)
-	addCommand(templateGroup, false, merge.Cmd)
-	addCommand(templateGroup, true, pkg.Cmd)
-	addCommand(templateGroup, false, tree.Cmd)
-	addCommand(templateGroup, true, forecast.Cmd)
+	addCommand(templateGroup, false, false, build.Cmd)
+	addCommand(templateGroup, false, false, diff.Cmd)
+	addCommand(templateGroup, false, false, rainfmt.Cmd)
+	addCommand(templateGroup, false, false, merge.Cmd)
+	addCommand(templateGroup, true,  true,  pkg.Cmd)
+	addCommand(templateGroup, false, false, tree.Cmd)
+	addCommand(templateGroup, true,  false, forecast.Cmd)
 
 	// Other commands
-	addCommand("", true, consolecmd.Cmd)
-	addCommand("", true, info.Cmd)
+	addCommand("", true, false, consolecmd.Cmd)
+	addCommand("", true, false, info.Cmd)
 
 	// Customise usage
 	Cmd.Annotations = map[string]string{"Groups": fmt.Sprintf("%s|%s", stackGroup, templateGroup)}
