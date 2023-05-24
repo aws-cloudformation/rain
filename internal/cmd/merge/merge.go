@@ -2,6 +2,7 @@ package merge
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/format"
@@ -11,6 +12,7 @@ import (
 )
 
 var forceMerge = false
+var outFn = ""
 
 // Cmd is the merge command's entrypoint
 var Cmd = &cobra.Command{
@@ -45,10 +47,16 @@ var Cmd = &cobra.Command{
 			}
 		}
 
-		fmt.Println(format.String(merged, format.Options{}))
+		out := format.String(merged, format.Options{})
+		if outFn != "" {
+			os.WriteFile(outFn, []byte(out), 0644)
+		} else {
+			fmt.Println(out)
+		}
 	},
 }
 
 func init() {
+	Cmd.Flags().StringVarP(&outFn, "output", "o", "", "Output merged template to a file")
 	Cmd.Flags().BoolVarP(&forceMerge, "force", "f", false, "Don't warn on clashing attributes; rename them instead. Note: this will not rename Refs, GetAtts, etc.")
 }

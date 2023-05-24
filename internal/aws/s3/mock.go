@@ -10,6 +10,8 @@ import (
 	"github.com/aws-cloudformation/rain/internal/config"
 )
 
+var BucketName = ""
+var BucketKeyPrefix = ""
 var buckets = make(map[string]bool)
 
 // BucketExists checks whether the named bucket exists
@@ -37,7 +39,10 @@ func Upload(bucketName string, content []byte) (string, error) {
 // RainBucket returns the name of the rain deployment bucket in the current region
 // and creates it if it does not exist
 func RainBucket(forceCreation bool) string {
-	bucketName := fmt.Sprintf("rain-artifacts-1234567890-%s", aws.Config().Region)
+	bucketName := BucketName
+	if bucketName == "" {
+		bucketName = fmt.Sprintf("rain-artifacts-1234567890-%s", aws.Config().Region)
+	}
 
 	config.Debugf("Artifact bucket: %s", bucketName)
 

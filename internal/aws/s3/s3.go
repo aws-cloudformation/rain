@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"path/filepath"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
@@ -19,6 +20,9 @@ import (
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 )
+
+var BucketName = ""
+var BucketKeyPrefix = "" 
 
 func getClient() *s3.Client {
 	return s3.NewFromConfig(aws.Config())
@@ -146,7 +150,7 @@ func Upload(bucketName string, content []byte) (string, error) {
 		return "", fmt.Errorf("bucket does not exist: '%s'", bucketName)
 	}
 
-	key := fmt.Sprintf("%x", sha256.Sum256(content))
+	key := filepath.Join ( BucketKeyPrefix, fmt.Sprintf("%x", sha256.Sum256(content)) )
 
 	_, err := getClient().PutObject(context.Background(), &s3.PutObjectInput{
 		Bucket: ptr.String(bucketName),
@@ -169,7 +173,10 @@ func RainBucket(forceCreation bool) string {
 		panic(fmt.Errorf("unable to get account ID: %w", err))
 	}
 
-	bucketName := fmt.Sprintf("rain-artifacts-%s-%s", accountID, aws.Config().Region)
+	bucketName := BucketName
+	if bucketName == "" {
+		bucketName = fmt.Sprintf("rain-artifacts-%s-%s", accountID, aws.Config().Region)
+	}
 
 	config.Debugf("Artifact bucket: %s", bucketName)
 
