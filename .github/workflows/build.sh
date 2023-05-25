@@ -4,7 +4,7 @@ set -eou pipefail
 
 declare -a platforms=(linux/amd64 linux/386 linux/arm darwin/amd64 windows/amd64 windows/386)
 declare -A mapping=([darwin]=macos [linux]=linux [windows]=windows [amd64]=amd64 [386]=i386 [arm]=arm)
-declare -a CGO=(0, 1)
+declare -a CGO=(0 1)
 
 for platform in "${platforms[@]}"; do
     os="${platform%/*}"
