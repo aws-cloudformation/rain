@@ -26,23 +26,23 @@ jobs:
         run: |
           declare -a platforms=(linux/amd64 linux/386 linux/arm darwin/amd64 windows/amd64 windows/386)
           declare -A mapping=([darwin]=macos [linux]=linux [windows]=windows [amd64]=amd64 [386]=i386 [arm]=arm)
-          declare -A VARIANTS=([default]="" [nocgo]="CGO_ENABLED=0")
+          declare -a CGO=(0, 1)
 
           for platform in "${platforms[@]}"; do
               os="${platform%/*}"
               arch="${platform#*/}"
               name="rain-${GITHUB_REF##*/}_${mapping[$os]}-${mapping[$arch]}"
 
-              for variant in ${!VARIANTS[@]}; do
+              for cgo in "${CGO[@]}"; do
                   echo "Building for $platform $variant"
                   
-                  if [ "$variant" != "default" ]; then
-                      name+="-$variant"
+                  if [ "$cgo" == "0" ]; then
+                      name+="-nocgo"
                   fi
 
                   mkdir -p "dist/${name}"
 
-                  GOOS="$os" GOARCH="$arch" ${VARIANTS[$variant]} go build -buildvcs=false -ldflags=-w -o "dist/${name}/" ./cmd/rain
+                  GOOS="$os" GOARCH="$arch" CGO_ENABLED="$cgo" go build -buildvcs=false -ldflags=-w -o "dist/${name}/" ./cmd/rain
 
                   cp LICENSE "dist/${name}/"
                   cp README.md "dist/${name}/"
