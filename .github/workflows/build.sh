@@ -16,9 +16,6 @@ for platform in "${platforms[@]}"; do
       echo "$os $arch $cgo"
       
       if [ "$cgo" == "0" ]; then
-          if [ "$arch" != "amd64" ]; then
-              continue
-          fi
           name+="-nocgo"
       fi
 
