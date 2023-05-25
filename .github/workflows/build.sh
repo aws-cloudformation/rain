@@ -9,10 +9,10 @@ declare -a CGO=(0 1)
 for platform in "${platforms[@]}"; do
     os="${platform%/*}"
     arch="${platform#*/}"
-    name="rain-${GITHUB_REF##*/}_${mapping[$os]}-${mapping[$arch]}"
     cgo_env=""
 
     for cgo in "${CGO[@]}"; do
+      name="rain-${GITHUB_REF##*/}_${mapping[$os]}-${mapping[$arch]}"
       echo "$os $arch $cgo"
       
       if [ "$cgo" == "0" ]; then
@@ -22,6 +22,7 @@ for platform in "${platforms[@]}"; do
           name+="-nocgo"
       fi
 
+      echo "Building $name"
       echo "Building for $platform"
 
       if [ "$cgo" == "0" ]; then
