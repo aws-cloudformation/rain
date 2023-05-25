@@ -10,6 +10,7 @@ for platform in "${platforms[@]}"; do
     os="${platform%/*}"
     arch="${platform#*/}"
     name="rain-${GITHUB_REF##*/}_${mapping[$os]}-${mapping[$arch]}"
+    cgo_env=""
 
     for cgo in "${CGO[@]}"; do
       echo "$os $arch $cgo"
@@ -22,13 +23,16 @@ for platform in "${platforms[@]}"; do
       fi
 
       echo "Building for $platform"
+
       if [ "$cgo" == "0" ]; then
           echo "nocgo"
+          cgo_env="CGO_ENABLED=0"
       fi
 
       mkdir -p "dist/${name}"
 
-      GOOS="$os" GOARCH="$arch" CGO_ENABLED="$cgo" go build -buildvcs=false -ldflags=-w -o "dist/${name}/" ./cmd/rain
+      # We eval for CGO_ENABLED, which we don't wan't explicitly set if it's 1, which means we want the default behavior
+      eval GOOS="$os" GOARCH="$arch" "$cgo_env" go build -buildvcs=false -ldflags=-w -o "dist/${name}/" ./cmd/rain
 
       cp LICENSE "dist/${name}/"
       cp README.md "dist/${name}/"
