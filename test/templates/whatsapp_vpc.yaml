@@ -1,0 +1,570 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  AWS CloudFormation Template to create network. It's believed that network
+  typically exists for most of the customers using AWS and the same could be
+  reused. This template is for reference purpose for customers who want to
+  create VPC & subnets.
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Availability Zones configuration"
+        Parameters:
+          - AZs
+          - NumAZs
+      - Label:
+          default: "VPC configuration"
+        Parameters:
+          - VPCCidr
+          - VPCTenancy
+      - Label:
+          default: "Public Subnet configuration"
+        Parameters:
+          - PublicSubnet1Cidr
+          - PublicSubnet2Cidr
+          - PublicSubnet3Cidr
+          - PublicSubnet4Cidr
+      - Label:
+          default: "Private subnet configuration"
+        Parameters:
+          - CreatePrivateSubnets
+          - PrivateSubnet1Cidr
+          - PrivateSubnet2Cidr
+          - PrivateSubnet3Cidr
+          - PrivateSubnet4Cidr
+    ParameterLabels:
+      AZs:
+        default: "Availability Zones"
+      NumAZs:
+        default: "Number of Availability Zones"
+      VPCCidr:
+        default: "Enter IP address range for VPC"
+      VPCTenancy:
+        default: "VPC Tenancy"
+      PublicSubnet1Cidr:
+        default: "Public subnet #1 IP address range"
+      PublicSubnet2Cidr:
+        default: "Public subnet #2 IP address range"
+      PublicSubnet3Cidr:
+        default: "Public subnet #3 IP address range"
+      PublicSubnet4Cidr:
+        default: "Public subnet #4 IP address range"
+      CreatePrivateSubnets:
+        default: "Should private subnets be created in this VPC?"
+      PrivateSubnet1Cidr:
+        default: "Private subnet #1 IP address range"
+      PrivateSubnet2Cidr:
+        default: "Private subnet #2 IP address range"
+      PrivateSubnet3Cidr:
+        default: "Private subnet #3 IP address range"
+      PrivateSubnet4Cidr:
+        default: "Private subnet #4 IP address range"
+Parameters:
+  AZs:
+    Description: >-
+      List of AZs to use for the subnets in the VPC.
+      Note: The logical order is preserved.
+    Type: List<AWS::EC2::AvailabilityZone::Name>
+  NumAZs:
+    AllowedValues: [2, 3, 4]
+    Description: >-
+      Number of AZs to use in the VPC. This must match your
+      selections in the list of AZs parameter.
+    Default: 2
+    Type: Number
+  VPCCidr:
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+    Default: 10.0.0.0/16
+    Description: The IP address range for this VPC
+    MaxLength: '18'
+    MinLength: '9'
+    Type: String
+  VPCTenancy:
+    AllowedValues: [default, dedicated]
+    Default: default
+    Description: The allowed tenancy of instances launched into the VPC
+    Type: String
+  PublicSubnet1Cidr:
+    Description: >-
+      The IP address range for 'public' subnet in AZ 1
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+    Default: 10.0.128.0/20
+  PublicSubnet2Cidr:
+    Description: >-
+      The IP address range for 'public' subnet in AZ 2
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+    Default: 10.0.144.0/20
+  PublicSubnet3Cidr:
+    Description: >-
+      The IP address range for 'public' subnet in AZ 3
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+    Default: 10.0.160.0/20
+  PublicSubnet4Cidr:
+    Description: >-
+      The IP address range for 'public' subnet in AZ 4
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+    Default: 10.0.176.0/20
+  CreatePrivateSubnets:
+    Description: >-
+      Create private subnets in the VPC?
+    Type: String
+    Default: true
+    AllowedValues: [true, false]
+  PrivateSubnet1Cidr:
+    Description: >-
+      The IP address range for 'private' subnet in AZ 1
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+    Default: 10.0.0.0/19
+  PrivateSubnet2Cidr:
+    Description: >-
+      The IP address range for 'private' subnet in AZ 2
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+    Default: 10.0.32.0/19
+  PrivateSubnet3Cidr:
+    Description: >-
+      The IP address range for 'private' subnet in AZ 3
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+    Default: 10.0.64.0/19
+  PrivateSubnet4Cidr:
+    Description: >-
+      The IP address range for 'private' subnet in AZ 4
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+    Default: 10.0.96.0/19
+Conditions:
+  Cond3AZ: !Or [!Equals [!Ref NumAZs, 3], !Condition Cond4AZ]
+  Cond4AZ: !Equals [!Ref NumAZs, 4]
+  CondPrivateSubnet: !Equals [!Ref CreatePrivateSubnets, true]
+  CondPrivateSubnet&3AZ: !And [!Equals [!Ref CreatePrivateSubnets, true], !Condition Cond3AZ]
+  CondPrivateSubnet&4AZ: !And [!Equals [!Ref CreatePrivateSubnets, true], !Condition Cond4AZ]
+  CondNATGateway: !Condition CondPrivateSubnet
+  CondNATGateway&3AZ: !And [!Condition CondPrivateSubnet, !Condition Cond3AZ]
+  CondNATGateway&4AZ: !And [!Condition CondPrivateSubnet, !Condition Cond4AZ]
+  CondNVirginiaRegion: !Equals [!Ref 'AWS::Region', 'us-east-1']
+Resources:
+  DHCPOptions:
+    Type: 'AWS::EC2::DHCPOptions'
+    Properties:
+      DomainName: !If
+        - CondNVirginiaRegion
+        - ec2.internal
+        - !Join 
+          - ''
+          - - !Ref 'AWS::Region'
+            - .compute.internal
+      DomainNameServers:
+        - AmazonProvidedDNS
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: !Ref VPCCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      InstanceTenancy: !Ref VPCTenancy
+      Tags:
+        - Key: Application
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Sub 'vpc-${AWS::StackName}'
+  VPCDHCPOptionsAssociation:
+    Type: 'AWS::EC2::VPCDHCPOptionsAssociation'
+    Properties:
+      VpcId: !Ref VPC
+      DhcpOptionsId: !Ref DHCPOptions
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Application
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Ref 'AWS::StackName'
+  AttachGateway:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+  PrivateSubnet1:
+    Condition: CondPrivateSubnet
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: !Select [0, !Ref AZs]
+      CidrBlock: !Ref PrivateSubnet1Cidr
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Application
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Sub 'Private subnet 1 (${AWS::StackName})'
+  PrivateSubnet2:
+    Condition: CondPrivateSubnet
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: !Select [1, !Ref AZs]
+      CidrBlock: !Ref PrivateSubnet2Cidr
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Application
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Sub 'Private subnet 2 (${AWS::StackName})'
+  PrivateSubnet3:
+    Condition: CondPrivateSubnet&3AZ
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: !Select [2, !Ref AZs]
+      CidrBlock: !Ref PrivateSubnet3Cidr
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Application
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Sub 'Private subnet 3 (${AWS::StackName})'
+  PrivateSubnet4:
+    Condition: CondPrivateSubnet&4AZ
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: !Select [3, !Ref AZs]
+      CidrBlock: !Ref PrivateSubnet4Cidr
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Application
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Sub 'Private subnet 4 (${AWS::StackName})'
+  PublicSubnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: !Select [0, !Ref AZs]
+      CidrBlock: !Ref PublicSubnet1Cidr
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Application
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Sub 'Public subnet 1 (${AWS::StackName})'
+  PublicSubnet2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: !Select [1, !Ref AZs]
+      CidrBlock: !Ref PublicSubnet2Cidr
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Application
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Sub 'Public subnet 2 (${AWS::StackName})'
+  PublicSubnet3:
+    Condition: Cond3AZ
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: !Select [2, !Ref AZs]
+      CidrBlock: !Ref PublicSubnet3Cidr
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Application
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Sub 'Public subnet 3 (${AWS::StackName})'
+  PublicSubnet4:
+    Condition: Cond4AZ
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: !Select [3, !Ref AZs]
+      CidrBlock: !Ref PublicSubnet4Cidr
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Application
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Sub 'Public subnet 4 (${AWS::StackName})'
+  PublicSubnetRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Application
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Sub 'Public RT (${AWS::StackName})'
+  PublicSubnetRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PublicSubnetRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+  PublicSubnet1RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref PublicSubnetRouteTable
+  PublicSubnet2RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref PublicSubnetRouteTable
+  PublicSubnet3RouteTableAssociation:
+    Condition: Cond3AZ
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnet3
+      RouteTableId: !Ref PublicSubnetRouteTable
+  PublicSubnet4RouteTableAssociation:
+    Condition: Cond4AZ
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnet4
+      RouteTableId: !Ref PublicSubnetRouteTable
+  NAT1EIP:
+    Condition: CondPrivateSubnet
+    DependsOn: AttachGateway
+    Type: 'AWS::EC2::EIP'
+    Properties:
+      Domain: vpc
+  NAT2EIP:
+    Condition: CondPrivateSubnet
+    DependsOn: AttachGateway
+    Type: 'AWS::EC2::EIP'
+    Properties:
+      Domain: vpc
+  NAT3EIP:
+    Condition: CondPrivateSubnet&3AZ
+    DependsOn: AttachGateway
+    Type: 'AWS::EC2::EIP'
+    Properties:
+      Domain: vpc
+  NAT4EIP:
+    Condition: CondPrivateSubnet&4AZ
+    DependsOn: AttachGateway
+    Type: 'AWS::EC2::EIP'
+    Properties:
+      Domain: vpc
+  NATGateway1:
+    Condition: CondNATGateway
+    DependsOn: AttachGateway
+    Type: 'AWS::EC2::NatGateway'
+    Properties:
+      AllocationId: !GetAtt NAT1EIP.AllocationId
+      SubnetId: !Ref PublicSubnet1
+  NATGateway2:
+    Condition: CondNATGateway
+    DependsOn: AttachGateway
+    Type: 'AWS::EC2::NatGateway'
+    Properties:
+      AllocationId: !GetAtt NAT2EIP.AllocationId
+      SubnetId: !Ref PublicSubnet2
+  NATGateway3:
+    Condition: CondNATGateway&3AZ
+    DependsOn: AttachGateway
+    Type: 'AWS::EC2::NatGateway'
+    Properties:
+      AllocationId: !GetAtt NAT3EIP.AllocationId
+      SubnetId: !Ref PublicSubnet3
+  NATGateway4:
+    Condition: CondNATGateway&4AZ
+    DependsOn: AttachGateway
+    Type: 'AWS::EC2::NatGateway'
+    Properties:
+      AllocationId: !GetAtt NAT4EIP.AllocationId
+      SubnetId: !Ref PublicSubnet4
+  PrivateSubnet1RouteTable:
+    Condition: CondPrivateSubnet
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub 'Private RT 1 (${AWS::StackName})'
+  PrivateSubnet1Route:
+    Condition: CondPrivateSubnet
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId: !Ref PrivateSubnet1RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NATGateway1
+  PrivateSubnet1RouteTableAssociation:
+    Condition: CondPrivateSubnet
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      RouteTableId: !Ref PrivateSubnet1RouteTable
+  PrivateSubnet2RouteTable:
+    Condition: CondPrivateSubnet
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub 'Private RT 2 (${AWS::StackName})'
+  PrivateSubnet2Route:
+    Condition: CondPrivateSubnet
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId: !Ref PrivateSubnet2RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NATGateway2
+  PrivateSubnet2RouteTableAssociation:
+    Condition: CondPrivateSubnet
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PrivateSubnet2
+      RouteTableId: !Ref PrivateSubnet2RouteTable
+  PrivateSubnet3RouteTable:
+    Condition: CondPrivateSubnet&3AZ
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub 'Private RT 3 (${AWS::StackName})'
+  PrivateSubnet3Route:
+    Condition: CondPrivateSubnet&3AZ
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId: !Ref PrivateSubnet3RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NATGateway3
+  PrivateSubnet3RouteTableAssociation:
+    Condition: CondPrivateSubnet&3AZ
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PrivateSubnet3
+      RouteTableId: !Ref PrivateSubnet3RouteTable
+  PrivateSubnet4RouteTable:
+    Condition: CondPrivateSubnet&4AZ
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub 'Private RT 4 (${AWS::StackName})'
+  PrivateSubnet4Route:
+    Condition: CondPrivateSubnet&4AZ
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId: !Ref PrivateSubnet4RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NATGateway4
+  PrivateSubnet4RouteTableAssociation:
+    Condition: CondPrivateSubnet&4AZ
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PrivateSubnet4
+      RouteTableId: !Ref PrivateSubnet4RouteTable
+Outputs:
+  VPC:
+    Description: Newly created VPC
+    Value: !Ref VPC
+    Export:
+      Name: !Sub '${AWS::StackName}-VPC'
+  PublicSubnet1:
+    Description: Public Subnet 1
+    Value: !Ref PublicSubnet1
+    Export:
+      Name: !Sub '${AWS::StackName}-PublicSubnet1'
+  PublicSubnet2:
+    Description: Public Subnet 2
+    Value: !Ref PublicSubnet2
+    Export:
+      Name: !Sub '${AWS::StackName}-PublicSubnet2'
+  PublicSubnet3:
+    Condition: Cond3AZ
+    Description: Public Subnet 3
+    Value: !Ref PublicSubnet3
+    Export:
+      Name: !Sub '${AWS::StackName}-PublicSubnet3'
+  PublicSubnet4:
+    Condition: Cond4AZ
+    Description: Public Subnet 4
+    Value: !Ref PublicSubnet4
+    Export:
+      Name: !Sub '${AWS::StackName}-PublicSubnet4'
+  PrivateSubnet1:
+    Condition: CondPrivateSubnet
+    Description: Private Subnet 1
+    Value: !Ref PrivateSubnet1
+    Export:
+      Name: !Sub '${AWS::StackName}-PrivateSubnet1'
+  PrivateSubnet2:
+    Condition: CondPrivateSubnet
+    Description: Private Subnet 2
+    Value: !Ref PrivateSubnet2
+    Export:
+      Name: !Sub '${AWS::StackName}-PrivateSubnet2'
+  PrivateSubnet3:
+    Condition: CondPrivateSubnet&3AZ
+    Description: Private Subnet 3
+    Value: !Ref PrivateSubnet3
+    Export:
+      Name: !Sub '${AWS::StackName}-PrivateSubnet3'
+  PrivateSubnet4:
+    Condition: CondPrivateSubnet&4AZ
+    Description: Private Subnet 4
+    Value: !Ref PrivateSubnet4
+    Export:
+      Name: !Sub '${AWS::StackName}-PrivateSubnet4'
+  NAT1EIP:
+    Condition: CondPrivateSubnet
+    Description: NAT 1 IP address
+    Value: !Ref NAT1EIP
+    Export:
+      Name: !Sub '${AWS::StackName}-NAT1EIP'
+  NAT2EIP:
+    Condition: CondPrivateSubnet
+    Description: NAT 2 IP address
+    Value: !Ref NAT2EIP
+    Export:
+      Name: !Sub '${AWS::StackName}-NAT2EIP'
+  NAT3EIP:
+    Condition: CondPrivateSubnet&3AZ
+    Description: NAT 3 IP address
+    Value: !Ref NAT3EIP
+    Export:
+      Name: !Sub '${AWS::StackName}-NAT3EIP'
+  NAT4EIP:
+    Condition: CondPrivateSubnet&4AZ
+    Description: NAT 4 IP address
+    Value: !Ref NAT4EIP
+    Export:
+      Name: !Sub '${AWS::StackName}-NAT4EIP'
