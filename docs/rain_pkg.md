@@ -12,6 +12,8 @@ You may use the following, rain-specific directives in templates packaged with "
 
   !Rain::Include <path>        Reads the file at <path> as YAML/JSON and inserts the resulting object into the template
 
+  !Rain::Env <name>            Reads the <name> environmental variable and inserts value into the template as a string
+
   !Rain::S3Http <path>         Uploads <path> (zipping first if it is a directory) to S3
                                and embeds the S3 HTTP URL into the template as a string
 

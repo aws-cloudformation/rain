@@ -110,8 +110,26 @@ func TestInclude(t *testing.T) {
 			"Rain::Include": fileName,
 		},
 	})
-
 	compare(t, in, "Test", map[string]interface{}{"This": "is a test"})
+}
+
+func TestEnv(t *testing.T) {
+	os.Setenv("RAIN_TEST_ENV_EXISTS", "foo")
+	in1, _ := parse.Map(map[string]interface{}{
+		"Success": map[string]interface{}{
+			"Rain::Env": "RAIN_TEST_ENV_EXISTS",
+		},
+	})
+	in2, _ := parse.Map(map[string]interface{}{
+		"Failure": map[string]interface{}{
+			"Rain::Env": "RAIN_TEST_ENV_DOESNT_EXISTS",
+		},
+	})
+	compare(t, in1, "Success", "foo")
+	_, err2 := pkg.Template(in2, "./")
+	if err2 == nil {
+		t.Errorf("Expected error since %q environment variable doesn't exist", "RAIN_TEST_ENV_DOESNT_EXISTS")
+	}
 }
 
 func TestS3Http(t *testing.T) {

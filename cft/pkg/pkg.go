@@ -5,6 +5,7 @@
 // or as one-property objects, much as AWS instrinsic functions are used, e.g. "Fn::Join"
 //
 // `Rain::Include`: insert the content of the file into the template directly. The file must be in YAML or JSON format.
+// `Rain::Env`: inserts environmental variable value into the template as a string. Variable must be set.
 // `Rain::Embed`: insert the content of the file as a string
 // `Rain::S3Http`: uploads the file or directory (zipping it first) to S3 and returns the HTTP URI (i.e. `https://bucket.s3.region.amazonaws.com/key`)
 // `Rain::S3`: a string value uploads the file or directory (zipping it first) to S3 and returns the S3 URI (i.e. `s3://bucket/key`)
