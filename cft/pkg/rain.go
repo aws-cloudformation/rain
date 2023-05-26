@@ -2,6 +2,7 @@
 package pkg
 
 import (
+	"os"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -37,6 +38,7 @@ var registry = make(map[string]rainFunc)
 func init() {
 	registry["**/*|Rain::Embed"] = includeString
 	registry["**/*|Rain::Include"] = includeLiteral
+	registry["**/*|Rain::Env"] = includeEnv
 	registry["**/*|Rain::S3Http"] = includeS3Http
 	registry["**/*|Rain::S3"] = includeS3
 	registry["**/*|Rain::Module"] = module
@@ -75,6 +77,24 @@ func includeLiteral(n *yaml.Node, root string, t cft.Template, parent node.NodeP
 
 	// Unwrap from the document node
 	*n = *contentNode.Content[0]
+	return true, nil
+}
+
+func includeEnv(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
+	name, err := expectString(n)
+	if err != nil {
+		return false, err
+	}
+	val, present := os.LookupEnv( name )
+	if !present {
+		return false, fmt.Errorf("missing environmental variable %q", name)
+	}
+	var newNode yaml.Node
+	newNode.Encode ( val )
+	if err != nil {
+		return false, err
+	}
+	*n = newNode
 	return true, nil
 }
 
