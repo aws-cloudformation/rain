@@ -5,6 +5,7 @@ package s3
 import (
 	"crypto/sha256"
 	"fmt"
+	"path/filepath"
 
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/config"
@@ -32,8 +33,7 @@ func Upload(bucketName string, content []byte) (string, error) {
 	if !isBucketExists {
 		return "", fmt.Errorf("bucket does not exist: '%s'", bucketName)
 	}
-
-	return fmt.Sprintf("%x", sha256.Sum256(content)), nil
+	return filepath.Join ( BucketKeyPrefix, fmt.Sprintf("%x", sha256.Sum256(content)) ), nil
 }
 
 // RainBucket returns the name of the rain deployment bucket in the current region
