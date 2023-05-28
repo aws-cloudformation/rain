@@ -21,5 +21,5 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	Cmd.Flags().BoolVarP(&force, "yes", "y", false, "list stacks in all regions; if you specify a stack, show more details")
+	Cmd.Flags().BoolVarP(&force, "yes", "y", false, "creates the bucket in the account without any user confirmation")
 }

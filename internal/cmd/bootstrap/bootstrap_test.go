@@ -13,16 +13,19 @@ func Example_bootstrap_help() {
 	}
 
 	bootstrap.Cmd.Execute()
-	// Output:
-	// Displays a list of all running stacks or the contents of <stack> if provided.
-	//
+	// Creates a s3 bucket to hold all the artifacts generated and referenced by rain cli
+
 	// Usage:
-	//   ls <stack>
-	//
+	//   rain bootstrap
+
 	// Aliases:
-	//   ls, list
-	//
+	//   bootstrap, bootstrap
+
 	// Flags:
-	//   -a, --all    list stacks in all regions; if you specify a stack, show more details
-	//   -h, --help   help for ls
+	//       --debug            Output debugging information
+	//   -h, --help             help for bootstrap
+	//       --no-colour        Disable colour output
+	//   -p, --profile string   AWS profile name; read from the AWS CLI configuration file
+	//   -r, --region string    AWS region to use
+	//   -y, --yes              creates the bucket in the account without any user confirmation
 }
