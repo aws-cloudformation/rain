@@ -3,7 +3,7 @@
 
 # Rain
 
-- Documentation: <https://aws-cloudformation.github.io/rain/>
+* Documentation: <https://aws-cloudformation.github.io/rain/>
 
 > Rain is what happens when you have a lot of CloudFormation
 
@@ -21,17 +21,17 @@ cfn-lint, Guard and more:
 
 ## Key features
 
-- **Interactive deployments**: With `rain deploy`, rain packages your CloudFormation templates using [`aws cloudformation package`](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/cloudformation/package.html), prompts you for any parameters that have not yet been defined, shows you a summary of the changes that will be made, and then displays real-time updates as your stack is being deployed. Once finished, you get a summary of the outcome along with any error messages collected along the way - including errors messages for stacks that have been rolled back and no longer exist.
+* **Interactive deployments**: With `rain deploy`, rain packages your CloudFormation templates using [`aws cloudformation package`](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/cloudformation/package.html), prompts you for any parameters that have not yet been defined, shows you a summary of the changes that will be made, and then displays real-time updates as your stack is being deployed. Once finished, you get a summary of the outcome along with any error messages collected along the way - including errors messages for stacks that have been rolled back and no longer exist.
 
-- **Consistent formatting of CloudFormation templates**: Using `rain fmt`, you can format your CloudFormation templates to a consistent standard or reformat a template from JSON to YAML (or YAML to JSON if you prefer). Rain preserves your comments when using YAML and switches use of [intrinsic functions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html) to use the short syntax where possible.
+* **Consistent formatting of CloudFormation templates**: Using `rain fmt`, you can format your CloudFormation templates to a consistent standard or reformat a template from JSON to YAML (or YAML to JSON if you prefer). Rain preserves your comments when using YAML and switches use of [intrinsic functions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html) to use the short syntax where possible.
 
-- **Combined logs for nested stacks with sensible filtering**: When you run `rain log`, you will see a combined stream of logs from the stack you specified along with any nested stack associated with it. Rain also filters out uninteresting log messages by default so you just see the errors that require attention.
+* **Combined logs for nested stacks with sensible filtering**: When you run `rain log`, you will see a combined stream of logs from the stack you specified along with any nested stack associated with it. Rain also filters out uninteresting log messages by default so you just see the errors that require attention.
 
-- **Build new CloudFormation templates**: `rain build` generates new CloudFormation templates containing skeleton resources that you specify. This saves you having to look up which properties are available and which are required vs. optional.
+* **Build new CloudFormation templates**: `rain build` generates new CloudFormation templates containing skeleton resources that you specify. This saves you having to look up which properties are available and which are required vs. optional.
 
-- **Manipulate CloudFormation stack sets**: `rain stackset deploy` creates a new stackset, updates an existing one or adds a stack instance(s) to an existing stack set. You can list stack sets using `rain stackset ls`, review stack set details with `rain stackset ls <stack set name>` and delete stack set and\or its instances with `rain stackset rm <stack set name>`
+* **Manipulate CloudFormation stack sets**: `rain stackset deploy` creates a new stackset, updates an existing one or adds a stack instance(s) to an existing stack set. You can list stack sets using `rain stackset ls`, review stack set details with `rain stackset ls <stack set name>` and delete stack set and\or its instances with `rain stackset rm <stack set name>`
 
-- **Predict deployment failures** (EXPERIMENTAL): `rain forecast` analyzes a template and the target deployment account to predict things that might go wrong when you attempt to create, update, or delete a stack. This command speeds up development by giving you advanced notice for issues like missing permissions, resources that already exist, and a variety of other common resource-specific deployment blockers.
+* **Predict deployment failures** (EXPERIMENTAL): `rain forecast` analyzes a template and the target deployment account to predict things that might go wrong when you attempt to create, update, or delete a stack. This command speeds up development by giving you advanced notice for issues like missing permissions, resources that already exist, and a variety of other common resource-specific deployment blockers.
 
 _Note that in order to use experimental commands, you have to add `--experimental` or `-x` as an argument._
 
@@ -57,7 +57,6 @@ Stack commands:
   watch       Display an updating view of a CloudFormation stack
 
 Template commands:
-  bootstrap   Create the artifacts S3 bucket
   build       Create CloudFormation templates
   diff        Compare CloudFormation templates
   fmt         Format CloudFormation templates
@@ -86,7 +85,7 @@ The `README.md`, documentation in `docs/`, the auto completion scripts and a cop
 
 ## License
 
-Rain is licensed under the Apache 2.0 License.
+Rain is licensed under the Apache 2.0 License. 
 
 ---
 
@@ -94,16 +93,16 @@ Rain is licensed under the Apache 2.0 License.
 
 In alphabetical order:
 
-- [cfn-lint](https://github.com/aws-cloudformation/cfn-python-lint)
+* [cfn-lint](https://github.com/aws-cloudformation/cfn-python-lint)
 
-  Validate CloudFormation yaml/json templates against the CloudFormation spec and additional checks. Includes checking valid values for resource properties and best practices.
+    Validate CloudFormation yaml/json templates against the CloudFormation spec and additional checks. Includes checking valid values for resource properties and best practices.
 
-- [cfn-nag](https://github.com/stelligent/cfn_nag)
+* [cfn-nag](https://github.com/stelligent/cfn_nag)
 
-  The cfn-nag tool looks for patterns in CloudFormation templates that may indicate insecure infrastructure.
+    The cfn-nag tool looks for patterns in CloudFormation templates that may indicate insecure infrastructure.
 
-- [taskcat](https://github.com/aws-quickstart/taskcat)
+* [taskcat](https://github.com/aws-quickstart/taskcat)
 
-  taskcat is a tool that tests AWS CloudFormation templates. It deploys your AWS CloudFormation template in multiple AWS Regions and generates a report with a pass/fail grade for each region. You can specify the regions and number of Availability Zones you want to include in the test, and pass in parameter values from your AWS CloudFormation template. taskcat is implemented as a Python class that you import, instantiate, and run.
+    taskcat is a tool that tests AWS CloudFormation templates. It deploys your AWS CloudFormation template in multiple AWS Regions and generates a report with a pass/fail grade for each region. You can specify the regions and number of Availability Zones you want to include in the test, and pass in parameter values from your AWS CloudFormation template. taskcat is implemented as a Python class that you import, instantiate, and run.
 
 Are we missing an excellent tool? Let us know via a GitHub issue.
