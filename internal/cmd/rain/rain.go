@@ -6,7 +6,9 @@ import (
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/spf13/cobra"
 
+	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/cmd"
+	"github.com/aws-cloudformation/rain/internal/cmd/bootstrap"
 	"github.com/aws-cloudformation/rain/internal/cmd/build"
 	"github.com/aws-cloudformation/rain/internal/cmd/cat"
 	consolecmd "github.com/aws-cloudformation/rain/internal/cmd/console"
@@ -24,7 +26,6 @@ import (
 	"github.com/aws-cloudformation/rain/internal/cmd/tree"
 	"github.com/aws-cloudformation/rain/internal/cmd/watch"
 	"github.com/aws-cloudformation/rain/internal/console"
-	"github.com/aws-cloudformation/rain/internal/aws/s3"
 )
 
 // Cmd is the rain command's entrypoint
@@ -81,7 +82,7 @@ func addCommand(label string, profileOptions, bucketOptions bool, c *cobra.Comma
 func init() {
 	// Stack commands
 	addCommand(stackGroup, true, false, cat.Cmd)
-	addCommand(stackGroup, true, true,  deploy.Cmd)
+	addCommand(stackGroup, true, true, deploy.Cmd)
 	addCommand(stackGroup, true, false, logs.Cmd)
 	addCommand(stackGroup, true, false, ls.Cmd)
 	addCommand(stackGroup, true, false, rm.Cmd)
@@ -89,13 +90,14 @@ func init() {
 	addCommand(stackGroup, true, false, stackset.StackSetCmd)
 
 	// Template commands
+	addCommand(templateGroup, true, false, bootstrap.Cmd)
 	addCommand(templateGroup, false, false, build.Cmd)
 	addCommand(templateGroup, false, false, diff.Cmd)
 	addCommand(templateGroup, false, false, rainfmt.Cmd)
 	addCommand(templateGroup, false, false, merge.Cmd)
-	addCommand(templateGroup, true,  true,  pkg.Cmd)
+	addCommand(templateGroup, true, true, pkg.Cmd)
 	addCommand(templateGroup, false, false, tree.Cmd)
-	addCommand(templateGroup, true,  false, forecast.Cmd)
+	addCommand(templateGroup, true, false, forecast.Cmd)
 
 	// Other commands
 	addCommand("", true, false, consolecmd.Cmd)
