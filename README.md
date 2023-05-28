@@ -57,6 +57,7 @@ Stack commands:
   watch       Display an updating view of a CloudFormation stack
 
 Template commands:
+  bootstrap   Create the artifacts S3 bucket
   build       Create CloudFormation templates
   diff        Compare CloudFormation templates
   fmt         Format CloudFormation templates
