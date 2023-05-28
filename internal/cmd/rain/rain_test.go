@@ -28,6 +28,7 @@ func Example_rainhelp() {
 	//   watch       Display an updating view of a CloudFormation stack
 	//
 	// Template commands:
+	//   bootstrap   Creates the artifacts bucket
 	//   build       Create CloudFormation templates
 	//   diff        Compare CloudFormation templates
 	//   fmt         Format CloudFormation templates

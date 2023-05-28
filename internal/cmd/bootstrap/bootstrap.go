@@ -10,7 +10,7 @@ var force = false
 // Cmd is the bootstrap command's entrypoint
 var Cmd = &cobra.Command{
 	Use:                   "bootstrap",
-	Short:                 "Creates the artifacts bucket.",
+	Short:                 "Creates the artifacts bucket",
 	Long:                  "Creates a s3 bucket to hold all the artifacts generated and referenced by rain cli",
 	Args:                  cobra.MaximumNArgs(0),
 	Aliases:               []string{"bootstrap"},
