@@ -37,6 +37,7 @@ var yes bool
 var params []string
 var tags []string
 var configFilePath string
+var forceUpdate bool
 
 // StackSetDeployCmd is the deploy command's entrypoint
 var StackSetDeployCmd = &cobra.Command{
@@ -123,7 +124,7 @@ Account(s) and region(s) provideed as flags OVERRIDE values from configuration f
 		}
 
 		if isStacksetExists {
-			if console.Confirm(true, "Stack set already exists. Do you want to update it?") {
+			if forceUpdate || console.Confirm(true, "Stack set already exists. Do you want to update it?") {
 				updateStackSet(configData)
 				addInstances(configData)
 
@@ -145,6 +146,7 @@ func init() {
 	StackSetDeployCmd.Flags().StringSliceVar(&tags, "tags", []string{}, "add tags to the stack; use the format key1=value1,key2=value2")
 	StackSetDeployCmd.Flags().StringSliceVar(&params, "params", []string{}, "set parameter values; use the format key1=value1,key2=value2")
 	StackSetDeployCmd.Flags().StringVarP(&configFilePath, "config", "c", "", "YAML or JSON file to set additional configuration parameters")
+	StackSetDeployCmd.Flags().BoolVarP(&forceUpdate, "force", "f", false, "update the stackset without confirmation")
 }
 
 func readConfiguration(configFilePath string) configFormat {
