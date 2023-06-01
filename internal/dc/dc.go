@@ -55,7 +55,7 @@ func GetParameters(
 		// Check we don't have any unknown params
 		for k := range combinedParameters {
 			if _, ok := params.(map[string]interface{})[k]; !ok {
-				panic(fmt.Errorf("unknown parameter: %s", k))
+				fmt.Println(console.Yellow(fmt.Sprintf("unknown parameter: %s", k)))
 			}
 		}
 
