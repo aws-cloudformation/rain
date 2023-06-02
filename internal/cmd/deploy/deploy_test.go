@@ -52,6 +52,7 @@ func Example_deploy_help() {
 	//   -c, --config string            YAML or JSON file to set tags and parameters
 	//   -d, --detach                   once deployment has started, don't wait around for it to finish
 	//   -h, --help                     help for deploy
+	//       --ignore-unknown-params    Ignore unknown parameters
 	//   -k, --keep                     keep deployed resources after a failure by disabling rollbacks
 	//       --params strings           set parameter values; use the format key1=value1,key2=value2
 	//       --role-arn string          ARN of an IAM role that CloudFormation should assume to deploy the stack

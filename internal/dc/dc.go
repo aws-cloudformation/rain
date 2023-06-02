@@ -39,7 +39,8 @@ func GetParameters(
 	combinedParameters map[string]string,
 	old []types.Parameter,
 	stackExists bool,
-	yes bool) []types.Parameter {
+	yes bool,
+	ignoreUnknownParams bool) []types.Parameter {
 
 	newParams := make([]types.Parameter, 0)
 
@@ -55,7 +56,11 @@ func GetParameters(
 		// Check we don't have any unknown params
 		for k := range combinedParameters {
 			if _, ok := params.(map[string]interface{})[k]; !ok {
-				panic(fmt.Errorf("unknown parameter: %s", k))
+				if ignoreUnknownParams {
+					fmt.Println(console.Yellow(fmt.Sprintf("unknown parameter: %s", k)))
+				} else {
+					panic(fmt.Errorf("unknown parameter: %s\nif you want to proceed as is, add the --ignore-unknown-params flag", k))
+				}
 			}
 		}
 
@@ -187,7 +192,8 @@ func GetDeployConfig(
 	template cft.Template,
 	stack types.Stack,
 	stackExists bool,
-	yes bool) (*DeployConfig, error) {
+	yes bool,
+	ignoreUnknownParams bool) (*DeployConfig, error) {
 
 	dc := &DeployConfig{}
 
@@ -238,7 +244,7 @@ func GetDeployConfig(
 	// Parse params
 	config.Debugf("Handling parameters")
 	parameters := GetParameters(template, combinedParameters,
-		stack.Parameters, stackExists, yes)
+		stack.Parameters, stackExists, yes, ignoreUnknownParams)
 
 	if config.Debug {
 		for _, param := range parameters {

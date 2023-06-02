@@ -327,7 +327,7 @@ Resource-specific checks:
 		config.Debugf("Stack %v %v", stackName, msg)
 
 		dc, err := dc.GetDeployConfig(tags, params, configFilePath, base,
-			source, stack, stackExists, true)
+			source, stack, stackExists, true, false)
 		if err != nil {
 			panic(err)
 		}

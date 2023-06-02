@@ -368,7 +368,7 @@ func buildParameterTypes(template cft.Template, combinedParams map[string]string
 		oldParams = stackSet.Parameters
 		stackSetExist = true
 	}
-	return dc.GetParameters(template, combinedParams, oldParams, stackSetExist, true)
+	return dc.GetParameters(template, combinedParams, oldParams, stackSetExist, true, false)
 }
 
 // updates existing stack set and all its instances

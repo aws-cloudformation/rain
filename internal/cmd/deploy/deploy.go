@@ -25,6 +25,7 @@ var configFilePath string
 var terminationProtection bool
 var keep bool
 var roleArn string
+var ignoreUnknownParams bool
 
 // Cmd is the deploy command's entrypoint
 var Cmd = &cobra.Command{
@@ -88,7 +89,7 @@ YAML:
 		spinner.Pop()
 
 		dc, err := dc.GetDeployConfig(tags, params, configFilePath, base,
-			template, stack, stackExists, yes)
+			template, stack, stackExists, yes, ignoreUnknownParams)
 		if err != nil {
 			panic(err)
 		}
@@ -186,4 +187,5 @@ func init() {
 	Cmd.Flags().BoolVarP(&terminationProtection, "termination-protection", "t", false, "enable termination protection on the stack")
 	Cmd.Flags().BoolVarP(&keep, "keep", "k", false, "keep deployed resources after a failure by disabling rollbacks")
 	Cmd.Flags().StringVarP(&roleArn, "role-arn", "", "", "ARN of an IAM role that CloudFormation should assume to deploy the stack")
+	Cmd.Flags().BoolVarP(&ignoreUnknownParams, "ignore-unknown-params", "", false, "Ignore unknown parameters")
 }
