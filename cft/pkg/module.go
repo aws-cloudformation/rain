@@ -47,12 +47,14 @@ func cloneAndReplaceProps(
 
 			found := false
 
-			_, moduleParam := s11n.GetMapValue(moduleParams, tprop.Value)
+			if moduleParams != nil {
+				_, moduleParam := s11n.GetMapValue(moduleParams, tprop.Value)
 
-			// Don't clone template props that are module parameters.
-			// Module params are used when we resolve Refs later
-			if moduleParam != nil {
-				continue
+				// Don't clone template props that are module parameters.
+				// Module params are used when we resolve Refs later
+				if moduleParam != nil {
+					continue
+				}
 			}
 
 			// Override anything hard coded into the module that is present in the parent template
@@ -121,6 +123,7 @@ func renamePropRefs(
 	//   SimpleProp: Val
 	//   RefParam: !Ref NameOfParam
 	//   RefResource: !Ref NameOfResource
+	//   GetAtt: !GetAtt ModuleExtension.Arn
 	//   Complex:
 	//     AnArray:
 	//       - Element0
@@ -128,40 +131,46 @@ func renamePropRefs(
 	//           C: !Ref D
 
 	if prop.Kind == yaml.ScalarNode {
+		refFoundInParams := false
 		if propName == "Ref" {
-			// Find the module parameter that matches the !Ref
-			_, param := s11n.GetMapValue(moduleParams, prop.Value)
-			if param != nil {
-				// We need to get the parameter value from the parent template.
-				// Module params are set by the parent template resource properties.
+			if moduleParams != nil {
+				// Find the module parameter that matches the !Ref
+				_, param := s11n.GetMapValue(moduleParams, prop.Value)
+				if param != nil {
+					// We need to get the parameter value from the parent template.
+					// Module params are set by the parent template resource properties.
 
-				// Look for this property name in the parent template
-				_, parentVal := s11n.GetMapValue(templateProps, prop.Value)
-				if parentVal == nil {
-					return fmt.Errorf("did not find %v in parent template Resource Properties", prop.Value)
+					// Look for this property name in the parent template
+					_, parentVal := s11n.GetMapValue(templateProps, prop.Value)
+					if parentVal == nil {
+						return fmt.Errorf("did not find %v in parent template Resource Properties", prop.Value)
+					}
+
+					config.Debugf("parentVal: %v", node.ToJson(parentVal))
+
+					// We can't just set prop.Value, since we would end up with Prop: !Ref Value instead of just Prop: Value
+					// Get the property's parent and set the entire map value for the property
+
+					// Get the map parent within the extension node we created
+					refMap := node.GetParent(prop, ext, nil)
+					if refMap.Value == nil {
+						return fmt.Errorf("could not find parent for %v", prop)
+					}
+					propParentPair := node.GetParent(refMap.Value, ext, nil)
+
+					config.Debugf("propParentPair.Value: %v", node.ToJson(propParentPair.Value))
+
+					// Create a new node to replace what's defined in the module
+					newValue := node.Clone(parentVal)
+
+					config.Debugf("Setting %v to:\n%v", parentName, node.ToJson(newValue))
+
+					node.SetMapValue(propParentPair.Value, parentName, newValue)
+
+					refFoundInParams = true
 				}
-
-				config.Debugf("parentVal: %v", node.ToJson(parentVal))
-
-				// We can't just set prop.Value, since we would end up with Prop: !Ref Value instead of just Prop: Value
-				// Get the property's parent and set the entire map value for the property
-
-				// Get the map parent within the extension node we created
-				refMap := node.GetParent(prop, ext, nil)
-				if refMap.Value == nil {
-					return fmt.Errorf("could not find parent for %v", prop)
-				}
-				propParentPair := node.GetParent(refMap.Value, ext, nil)
-
-				config.Debugf("propParentPair.Value: %v", node.ToJson(propParentPair.Value))
-
-				// Create a new node to replace what's defined in the module
-				newValue := node.Clone(parentVal)
-
-				config.Debugf("Setting %v to:\n%v", parentName, node.ToJson(newValue))
-
-				node.SetMapValue(propParentPair.Value, parentName, newValue)
-			} else {
+			}
+			if !refFoundInParams {
 				config.Debugf("Did not find param for %v", prop.Value)
 				// Look for a resource in the module
 				_, resource := s11n.GetMapValue(moduleResources, prop.Value)
@@ -174,6 +183,19 @@ func renamePropRefs(
 		}
 	} else if prop.Kind == yaml.SequenceNode {
 		config.Debugf("Sequence %v %v", propName, node.ToJson(prop))
+		if propName == "Fn::GetAtt" {
+			// Convert !GetAtt ModuleExtension.Property to !GetAtt LogicalId.Property
+			fixedName := rename(logicalId, prop.Content[0].Value)
+			prop.Content[0].Value = fixedName
+			config.Debugf("Fixed GetAtt: %v", fixedName)
+		} else {
+			// Recurse over array elements
+			for i, p := range prop.Content {
+				return renamePropRefs(propName,
+					p.Value, prop.Content[i], ext, moduleParams, moduleResources, logicalId, templateProps)
+			}
+		}
+
 	} else if prop.Kind == yaml.MappingNode {
 		config.Debugf("Mapping %v %v", propName, node.ToJson(prop))
 		for i, p := range prop.Content {
@@ -457,13 +479,7 @@ func module(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bo
 	var path string
 
 	// Is this a local file or a URL?
-	if strings.HasPrefix(uri, "file://") {
-		// Read the local file
-		content, path, err = expectFile(n, root)
-		if err != nil {
-			return false, err
-		}
-	} else if strings.HasPrefix(uri, "https://") {
+	if strings.HasPrefix(uri, "https://") {
 		// Download the file and then parse it
 		resp, err := http.Get(uri)
 		if err != nil {
@@ -476,7 +492,11 @@ func module(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bo
 		}
 		content = []byte(body)
 	} else {
-		return false, errors.New("expected either file://path or https://path")
+		// Read the local file
+		content, path, err = expectFile(n, root)
+		if err != nil {
+			return false, err
+		}
 	}
 
 	// Parse the file
