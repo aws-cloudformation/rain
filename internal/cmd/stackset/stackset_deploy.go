@@ -146,7 +146,7 @@ func init() {
 	StackSetDeployCmd.Flags().StringSliceVar(&tags, "tags", []string{}, "add tags to the stack; use the format key1=value1,key2=value2")
 	StackSetDeployCmd.Flags().StringSliceVar(&params, "params", []string{}, "set parameter values; use the format key1=value1,key2=value2")
 	StackSetDeployCmd.Flags().StringVarP(&configFilePath, "config", "c", "", "YAML or JSON file to set additional configuration parameters")
-	StackSetDeployCmd.Flags().BoolVarP(&forceUpdate, "force", "f", false, "update the stackset without confirmation")
+	StackSetDeployCmd.Flags().BoolVarP(&forceUpdate, "yes", "y", false, "update the stackset without confirmation")
 }
 
 func readConfiguration(configFilePath string) configFormat {

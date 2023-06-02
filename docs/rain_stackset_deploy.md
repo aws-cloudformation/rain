@@ -43,13 +43,13 @@ rain stackset deploy <template> [stackset] [flags]
       --accounts strings   accounts for which to create stack set instances
   -c, --config string      YAML or JSON file to set additional configuration parameters
   -d, --detach             once deployment has started, don't wait around for it to finish
-  -f, --force              update the stackset without confirmation
   -h, --help               help for deploy
       --params strings     set parameter values; use the format key1=value1,key2=value2
   -p, --profile string     AWS profile name; read from the AWS CLI configuration file
   -r, --region string      AWS region to use
       --regions strings    regions where you want to create stack set instances
       --tags strings       add tags to the stack; use the format key1=value1,key2=value2
+  -y, --yes                update the stackset without confirmation
 ```
 
 ### Options inherited from parent commands
