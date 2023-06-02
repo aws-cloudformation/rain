@@ -130,6 +130,8 @@ func renamePropRefs(
 	//           A: B
 	//           C: !Ref D
 
+	config.Debugf("renamePropRefs parentName: %v, propName: %v, prop.Kind: %v", parentName, propName, prop.Kind)
+
 	if prop.Kind == yaml.ScalarNode {
 		refFoundInParams := false
 		if propName == "Ref" {
@@ -175,7 +177,10 @@ func renamePropRefs(
 				// Look for a resource in the module
 				_, resource := s11n.GetMapValue(moduleResources, prop.Value)
 				if resource == nil {
-					return fmt.Errorf("did not find !Ref %v", prop.Value)
+					config.Debugf("did not find !Ref %v", prop.Value)
+					// If we can't find the Ref, leave it alone and assume it's
+					// expected to be in the parent template to be resolved at deploy time.
+					return nil
 				}
 				fixedName := rename(logicalId, prop.Value)
 				prop.Value = fixedName
@@ -191,8 +196,11 @@ func renamePropRefs(
 		} else {
 			// Recurse over array elements
 			for i, p := range prop.Content {
-				return renamePropRefs(propName,
+				result := renamePropRefs(propName,
 					p.Value, prop.Content[i], ext, moduleParams, moduleResources, logicalId, templateProps)
+				if result != nil {
+					return result
+				}
 			}
 		}
 
@@ -200,8 +208,12 @@ func renamePropRefs(
 		config.Debugf("Mapping %v %v", propName, node.ToJson(prop))
 		for i, p := range prop.Content {
 			if i%2 == 0 {
-				return renamePropRefs(propName,
+				config.Debugf("About to renamePropRefs for Mapping Content: %v", p.Value)
+				result := renamePropRefs(propName,
 					p.Value, prop.Content[i+1], ext, moduleParams, moduleResources, logicalId, templateProps)
+				if result != nil {
+					return result
+				}
 			}
 		}
 	} else {
