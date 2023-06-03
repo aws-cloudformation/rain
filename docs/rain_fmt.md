@@ -1,4 +1,4 @@
-# rain fmt
+## rain fmt
 
 Format CloudFormation templates
 
