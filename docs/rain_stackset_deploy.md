@@ -49,6 +49,7 @@ rain stackset deploy <template> [stackset] [flags]
   -r, --region string      AWS region to use
       --regions strings    regions where you want to create stack set instances
       --tags strings       add tags to the stack; use the format key1=value1,key2=value2
+  -y, --yes                update the stackset without confirmation
 ```
 
 ### Options inherited from parent commands
