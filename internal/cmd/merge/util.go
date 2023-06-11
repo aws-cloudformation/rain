@@ -65,7 +65,7 @@ func mergeTemplates(dstTemplate, srcTemplate cft.Template) (cft.Template, error)
 		case "Metadata": // Combine metadata
 			dstMap := dst[key].(map[string]interface{})
 			srcMap := src[key].(map[string]interface{})
-			for k, _ := range srcMap {
+			for k := range srcMap {
 				if _, ok := dstMap[k]; !ok {
 					dstMap[k] = srcMap[k]
 				} else {
