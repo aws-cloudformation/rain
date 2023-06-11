@@ -12,6 +12,25 @@ func TestMergeTemplatesSuccess(t *testing.T) {
 		"AWSTemplateFormatVersion": "overwritten",
 		"Description":              "Line 1",
 		"Metadata": map[string]interface{}{
+			"AWS::CloudFormation::Interface": map[string]interface{}{
+				"ParameterGroups": []interface{}{
+					map[string]interface{}{
+						"Label": map[string]interface{}{
+							"default": "Network Configuration",
+						},
+						"Parameters": []interface{}{
+							"VPCID",
+							"SubnetId",
+							"SecurityGroupID",
+						},
+					},
+				},
+				"ParameterLabels": map[string]interface{}{
+					"VPCID": map[string]interface{}{
+						"default": "Which VPC should this be deployed to?",
+					},
+				},
+			},
 			"Foo": "bar",
 		},
 		"Transform": "AWS::Serverless",
@@ -21,6 +40,25 @@ func TestMergeTemplatesSuccess(t *testing.T) {
 		"AWSTemplateFormatVersion": "ok to overwrite",
 		"Description":              "Line 2",
 		"Metadata": map[string]interface{}{
+			"AWS::CloudFormation::Interface": map[string]interface{}{
+				"ParameterGroups": []interface{}{
+					map[string]interface{}{
+						"Label": map[string]interface{}{
+							"default": "Amazon EC2 Configuration",
+						},
+						"Parameters": []interface{}{
+							"InstanceType",
+							"KeyName",
+						},
+					},
+				},
+				"ParameterLabels": map[string]interface{}{
+					"KeyName": map[string]interface{}{
+						"default": "EC2 Instance Ker Pair",
+					},
+				},
+			},
+
 			"Baz": "quux",
 		},
 		"Parameters": map[string]interface{}{
@@ -40,6 +78,37 @@ func TestMergeTemplatesSuccess(t *testing.T) {
 		"AWSTemplateFormatVersion": "ok to overwrite",
 		"Description":              "Line 1\nLine 2",
 		"Metadata": map[string]interface{}{
+			"AWS::CloudFormation::Interface": map[string]interface{}{
+				"ParameterGroups": []interface{}{
+					map[string]interface{}{
+						"Label": map[string]interface{}{
+							"default": "Network Configuration",
+						},
+						"Parameters": []interface{}{
+							"VPCID",
+							"SubnetId",
+							"SecurityGroupID",
+						},
+					},
+					map[string]interface{}{
+						"Label": map[string]interface{}{
+							"default": "Amazon EC2 Configuration",
+						},
+						"Parameters": []interface{}{
+							"InstanceType",
+							"KeyName",
+						},
+					},
+				},
+				"ParameterLabels": map[string]interface{}{
+					"VPCID": map[string]interface{}{
+						"default": "Which VPC should this be deployed to?",
+					},
+					"KeyName": map[string]interface{}{
+						"default": "EC2 Instance Ker Pair",
+					},
+				},
+			},
 			"Foo": "bar",
 			"Baz": "quux",
 		},
