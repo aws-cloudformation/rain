@@ -58,7 +58,11 @@ func formatChangeSet(stackName, changeSetName string) string {
 
 		child := formatChangeSet("", ptr.ToString(change.ResourceChange.ChangeSetId))
 		parts := strings.SplitN(child, "\n", 2)
-		header, body := parts[0], parts[1]
+		header := parts[0]
+		body := console.Grey("    (no changes in resources)\n")
+		if len(parts) == 2 {
+			body = parts[1]
+		}
 
 		switch change.ResourceChange.Action {
 		case types.ChangeAction("Add"):
