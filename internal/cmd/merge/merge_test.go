@@ -127,6 +127,86 @@ func TestMergeTemplatesSuccess(t *testing.T) {
 		},
 	})
 
+	forceMerge = false
+	actual, err := mergeTemplates(dst, src)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if d := cmp.Diff(actual.Map(), expected.Map()); d != "" {
+		t.Errorf(d)
+	}
+}
+
+func TestForceMergeTemplatesSuccess(t *testing.T) {
+	dst, _ := parse.Map(map[string]interface{}{
+		"AWSTemplateFormatVersion": "overwritten",
+		"Description":              "Line 1",
+		"Metadata": map[string]interface{}{
+			"AWS::CloudFormation::Interface": map[string]interface{}{
+				"ParameterLabels": map[string]interface{}{
+					"VPCID": map[string]interface{}{
+						"default": "Which VPC should this be deployed to?",
+					},
+				},
+			},
+			"Foo": "bar",
+		},
+		"Parameters": map[string]interface{}{
+			"Name": map[string]interface{}{
+				"Type": "String",
+			},
+		},
+	})
+
+	src, _ := parse.Map(map[string]interface{}{
+		"AWSTemplateFormatVersion": "ok to overwrite",
+		"Description":              "Line 2",
+		"Metadata": map[string]interface{}{
+			"AWS::CloudFormation::Interface": map[string]interface{}{
+				"ParameterLabels": map[string]interface{}{
+					"VPCID": map[string]interface{}{
+						"default": "Which VPC should this be deployed to?",
+					},
+				},
+			},
+			"Foo": "quux",
+		},
+		"Parameters": map[string]interface{}{
+			"Name": map[string]interface{}{
+				"Type": "String",
+			},
+		},
+	})
+
+	expected, _ := parse.Map(map[string]interface{}{
+		"AWSTemplateFormatVersion": "ok to overwrite",
+		"Description":              "Line 1\nLine 2",
+		"Metadata": map[string]interface{}{
+			"AWS::CloudFormation::Interface": map[string]interface{}{
+				"ParameterLabels": map[string]interface{}{
+					"VPCID": map[string]interface{}{
+						"default": "Which VPC should this be deployed to?",
+					},
+					"VPCID_2": map[string]interface{}{
+						"default": "Which VPC should this be deployed to?",
+					},
+				},
+			},
+			"Foo":   "bar",
+			"Foo_2": "quux",
+		},
+		"Parameters": map[string]interface{}{
+			"Name": map[string]interface{}{
+				"Type": "String",
+			},
+			"Name_2": map[string]interface{}{
+				"Type": "String",
+			},
+		},
+	})
+
+	forceMerge = true
 	actual, err := mergeTemplates(dst, src)
 	if err != nil {
 		t.Fatal(err)
@@ -186,6 +266,7 @@ func TestEmptyMergeTemplatesSuccess(t *testing.T) {
 
 	empty, _ := parse.Map(map[string]interface{}{})
 
+	forceMerge = false
 	// rain merge src.yaml /dev/null
 	{
 		actual, err := mergeTemplates(src, empty)
@@ -227,6 +308,7 @@ func TestMergeTemplatesClash(t *testing.T) {
 		},
 	})
 
+	forceMerge = false
 	if _, err := mergeTemplates(dst, src); err == nil {
 		t.Fail()
 	}
