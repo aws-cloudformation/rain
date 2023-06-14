@@ -63,46 +63,75 @@ func mergeTemplates(dstTemplate, srcTemplate cft.Template) (cft.Template, error)
 			}
 
 		case "Metadata": // Combine metadata
-			dstMap := dst[key].(map[string]interface{})
-			srcMap := src[key].(map[string]interface{})
-			for k := range srcMap {
-				if _, ok := dstMap[k]; !ok {
-					dstMap[k] = srcMap[k]
-				} else {
-					if k == "AWS::CloudFormation::Interface" {
-						dstInterface := dstMap[k].(map[string]interface{})
-						srcInterface := srcMap[k].(map[string]interface{})
+			if _, ok := dst[key]; !ok {
+				dst[key] = map[string]interface{}{}
+			}
 
-						// Concatenate ParameterGroups
-						if srcParameterGroups, ok := srcInterface["ParameterGroups"].([]interface{}); ok {
-							dstParameterGroups, ok := dstInterface["ParameterGroups"].([]interface{})
-							if !ok {
-								dstParameterGroups = srcParameterGroups
-							} else {
-								dstParameterGroups = append(dstParameterGroups, srcParameterGroups...)
-							}
-							dstInterface["ParameterGroups"] = dstParameterGroups
+			dstMap, ok := dst[key].(map[string]interface{})
+			if !ok {
+				return cft.Template{}, fmt.Errorf("metadata section is not an object (key-value pairs)")
+			}
+			srcMap, ok := src[key].(map[string]interface{})
+			if !ok {
+				return cft.Template{}, fmt.Errorf("metadata section is not an object (key-value pairs)")
+			}
+
+			for k := range srcMap {
+				if k == "AWS::CloudFormation::Interface" {
+					if _, ok := dstMap[k]; !ok {
+						dstMap[k] = map[string]interface{}{}
+					}
+
+					dstInterface, ok := dstMap[k].(map[string]interface{})
+					if !ok {
+						return cft.Template{}, fmt.Errorf("metadata key %s is not an object (key-value pairs)", k)
+					}
+					srcInterface, ok := srcMap[k].(map[string]interface{})
+					if !ok {
+						return cft.Template{}, fmt.Errorf("metadata key %s is not an object (key-value pairs)", k)
+					}
+
+					// Concatenate ParameterGroups
+					if _, ok := srcInterface["ParameterGroups"]; ok {
+						if _, ok := dstInterface["ParameterGroups"]; !ok {
+							dstInterface["ParameterGroups"] = []interface{}{}
 						}
-						// Combine ParameterLabels
-						if _, ok := srcInterface["ParameterLabels"]; ok {
-							if err := checkMerge("ParameterLabels", dstInterface, srcInterface); err != nil {
-								return cft.Template{}, err
-							}
+						dstParameterGroups, ok := dstInterface["ParameterGroups"].([]interface{})
+						if !ok {
+							return cft.Template{}, fmt.Errorf("metadata key ParameterGroups is not an array")
 						}
+						srcParameterGroups, ok := srcInterface["ParameterGroups"].([]interface{})
+						if !ok {
+							return cft.Template{}, fmt.Errorf("metadata key ParameterGroups is not an array")
+						}
+
+						dstInterface["ParameterGroups"] = append(dstParameterGroups, srcParameterGroups...)
+					}
+
+					// Combine ParameterLabels
+					if _, ok := srcInterface["ParameterLabels"]; ok {
+						if err := checkMerge("ParameterLabels", dstInterface, srcInterface); err != nil {
+							return cft.Template{}, err
+						}
+					}
+					dstMap[k] = dstInterface
+				} else {
+					if _, ok = dstMap[k]; !ok {
+						dstMap[k] = srcMap[k]
 					} else {
 						if forceMerge {
 							for i := 2; true; i++ {
 								newKey := fmt.Sprintf("%s_%d", k, i)
 								if _, ok := dstMap[newKey]; !ok {
-									k = newKey
+									dstMap[newKey] = srcMap[k]
 									break
 								}
 							}
 						} else {
 							return cft.Template{}, fmt.Errorf("templates have clashing %s: %s", key, k)
 						}
-						dstMap[k] = value
 					}
+					dst[key] = dstMap
 				}
 			}
 
