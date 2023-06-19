@@ -15,8 +15,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const noChangeFoundMsg = "The submitted information didn't contain changes. Submit different information to create a change set."
-
 var detach bool
 var yes bool
 var params []string
@@ -98,7 +96,7 @@ YAML:
 		spinner.Push("Creating change set")
 		changeSetName, createErr := cfn.CreateChangeSet(template, dc.Params, dc.Tags, stackName, roleArn)
 		if createErr != nil {
-			if createErr.Error() == noChangeFoundMsg {
+			if changeSetHasNoChanges(createErr.Error()) {
 				spinner.Pop()
 				fmt.Println(console.Green("Change set was created, but there is no change. Deploy was skipped."))
 				return
@@ -175,6 +173,20 @@ YAML:
 			}
 		}
 	},
+}
+
+func changeSetHasNoChanges(msg string) bool {
+	// mesages returned as error when the change set is empty
+	noChangeFoundMsg := []string{
+		"The submitted information didn't contain changes. Submit different information to create a change set.",
+		"No updates are to be performed.",
+	}
+	for _, m := range noChangeFoundMsg {
+		if m == msg {
+			return true
+		}
+	}
+	return false
 }
 
 func init() {
