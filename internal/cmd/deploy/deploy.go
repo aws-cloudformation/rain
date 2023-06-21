@@ -173,6 +173,9 @@ YAML:
 			}
 		}
 	},
+	PostRun: func(cmd *cobra.Command, args []string) {
+		params = nil
+	},
 }
 
 func changeSetHasNoChanges(msg string) bool {

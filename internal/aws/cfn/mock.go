@@ -179,6 +179,9 @@ func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[s
 		stackName: stackName,
 		roleArn:   roleArn,
 	}
+	if stackName == "emptychangeset" {
+		return name, fmt.Errorf("%so updates are to be performed%s", "N", ".")
+	}
 
 	return name, nil
 }

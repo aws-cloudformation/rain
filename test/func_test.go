@@ -77,6 +77,15 @@ Stack success: CREATE_COMPLETE
     MockKey: Mock value # Mock output description (exported as MockExport)
 Successfully deployed success
 `, "", 0)
+	wrap(t, []string{
+		"deploy",
+		"-y",
+		"-t",
+		"--params",
+		"BucketName=foo",
+		"templates/emptychangeset.template",
+	}, `Change set was created, but there is no change. Deploy was skipped.
+`, "", 0)
 
 	// Cat
 	wrap(t, []string{
