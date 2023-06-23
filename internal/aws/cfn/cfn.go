@@ -512,6 +512,9 @@ func CreateStackSet(conf StackSetConfig) (*string, error) {
 
 	res, err := getClient().CreateStackSet(context.Background(), input)
 
+	if err != nil {
+		return nil, err
+	}
 	return res.StackSetId, err
 }
 
