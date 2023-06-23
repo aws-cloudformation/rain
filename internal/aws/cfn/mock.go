@@ -180,7 +180,8 @@ func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[s
 		roleArn:   roleArn,
 	}
 	if stackName == "emptychangeset" {
-		return name, fmt.Errorf("%so updates are to be performed%s", "N", ".")
+		//lint:ignore ST1005 we want to create errors with upper case and punctuation for mock
+		return name, fmt.Errorf("No updates are to be performed.")
 	}
 
 	return name, nil
