@@ -18,6 +18,9 @@ Outputs:
         - Bucket2
         - Arn # Arn comment
 
+Description: |
+  An example template for testing rain fmt command.
+
 # Multiline comment
 # starting at indent 0
 Resources:
@@ -68,7 +71,10 @@ Parameters:
     Type: String
 `
 
-const expectedYaml = `Parameters:
+const expectedYaml = `Description: |
+  An example template for testing rain fmt command.
+
+Parameters:
   Name:
     Type: String
 
@@ -131,6 +137,9 @@ const expectedYamlUnsorted = `Outputs:
   Bucket2: # Bucket comment
     Value: !GetAtt Bucket2.Arn # GetAtt comment Arn comment
 
+Description: |
+  An example template for testing rain fmt command.
+
 # Multiline comment
 # starting at indent 0
 Resources:
@@ -181,6 +190,7 @@ Parameters:
 `
 
 const expectedJson = `{
+    "Description": "An example template for testing rain fmt command.\n",
     "Parameters": {
         "Name": {
             "Type": "String"
@@ -295,6 +305,7 @@ const expectedUnsortedJson = `{
             }
         }
     },
+    "Description": "An example template for testing rain fmt command.\n",
     "Resources": {
         "Bucket2": {
             "Properties": {
