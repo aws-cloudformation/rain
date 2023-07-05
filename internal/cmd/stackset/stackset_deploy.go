@@ -38,6 +38,7 @@ var params []string
 var tags []string
 var configFilePath string
 var forceUpdate bool
+var ignoreStackInstances bool
 
 // StackSetDeployCmd is the deploy command's entrypoint
 var StackSetDeployCmd = &cobra.Command{
@@ -126,7 +127,9 @@ Account(s) and region(s) provideed as flags OVERRIDE values from configuration f
 		if isStacksetExists {
 			if forceUpdate || console.Confirm(true, "Stack set already exists. Do you want to update it?") {
 				updateStackSet(configData)
-				addInstances(configData)
+				if !ignoreStackInstances {
+					addInstances(configData)
+				}
 
 			} else {
 				fmt.Println(console.Yellow("operation was cancelled by user"))
@@ -147,6 +150,7 @@ func init() {
 	StackSetDeployCmd.Flags().StringSliceVar(&params, "params", []string{}, "set parameter values; use the format key1=value1,key2=value2")
 	StackSetDeployCmd.Flags().StringVarP(&configFilePath, "config", "c", "", "YAML or JSON file to set additional configuration parameters")
 	StackSetDeployCmd.Flags().BoolVarP(&forceUpdate, "yes", "y", false, "update the stackset without confirmation")
+	StackSetDeployCmd.Flags().BoolVarP(&ignoreStackInstances, "ignore-stack-instances", "i", false, "ignores adding or removing stack instances while updating, useful if you are managing the stack instances separately")
 }
 
 func readConfiguration(configFilePath string) configFormat {
@@ -379,17 +383,26 @@ func updateStackSet(configData configFormat) {
 		configData.StackSet.StackSetName, format.PrettyPrint(configData.StackSet), format.PrettyPrint(configData.StackSetInstanses))
 
 	// remove accounts and regions for the instances that do not exist, removed instances supposed to be created but not updated
-	removeNonExistingInstances(&configData.StackSetInstanses)
+	if !ignoreStackInstances {
+		removeNonExistingInstances(&configData.StackSetInstanses)
+	}
 
 	// check if we have instances left to update after filtering
-	if !isInstanceConfigDataValid(&configData.StackSetInstanses) {
+	if !ignoreStackInstances && !isInstanceConfigDataValid(&configData.StackSetInstanses) {
 		fmt.Println("There is no instances to update.")
 		return
 	}
 
 	// Update Stack Set with its instances
 	spinner.Push("Updating stack set")
-	err := cfn.UpdateStackSet(configData.StackSet, configData.StackSetInstanses, !detach)
+
+	// making a copy to avoid mutating the global configuration
+	stackSetInstances := configData.StackSetInstanses
+	if ignoreStackInstances {
+		stackSetInstances.Accounts = nil
+		stackSetInstances.Regions = nil
+	}
+	err := cfn.UpdateStackSet(configData.StackSet, stackSetInstances, !detach)
 	spinner.Pop()
 	if err != nil {
 		panic(ui.Errorf(err, "error occurred while updating stack set '%s' ", configData.StackSetInstanses.StackSetName))
