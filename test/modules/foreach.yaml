@@ -1,0 +1,18 @@
+Transform: AWS::LanguageExtensions
+
+Parameters:
+  NamePrefix:
+    Type: String
+  Handles:
+    Type: CommaDelimitedList
+
+Resources:
+
+  Fn::ForEach::MakeHandles:
+    - HandleName
+    - !Ref Handles
+    - "${NamePrefix}Handle${HandleName}":
+        Type: AWS::CloudFormation::WaitConditionHandle
+        Metadata: 
+          Comment: !Sub "This is wait handle ${HandleName}"
+
