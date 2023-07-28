@@ -304,10 +304,58 @@ func processModule(module *yaml.Node,
 	}
 
 	// Locate the ModuleExtension: resource. There should be 0 or 1
-	_, moduleExtension := s11n.GetMapValue(moduleResources, "ModuleExtension")
+	var moduleExtension *yaml.Node
+	var fnForEach *yaml.Node
+
+	_, moduleExtension = s11n.GetMapValue(moduleResources, "ModuleExtension")
 	if moduleExtension == nil {
 		config.Debugf("the module does not have a ModuleExtension resource")
-	} else {
+
+		// Fn::ForEach
+
+		// Iterate through all resources and see if any of them start with Fn::ForEach
+		for i := 0; i < len(moduleResources.Content); i += 2 {
+			keyNode := moduleResources.Content[i]
+			valueNode := moduleResources.Content[i+1]
+
+			if strings.HasPrefix(keyNode.Value, "Fn::ForEach") {
+				config.Debugf("Found a foreach: %v:\n%v", keyNode.Value, node.ToJson(valueNode))
+				if valueNode.Kind != yaml.SequenceNode {
+					return false, errors.New("expected Fn::ForEach to be a sequence")
+				}
+				if len(valueNode.Content) != 3 {
+					return false, errors.New("expected Fn::ForEach to have 3 items")
+				}
+				feIdentifier := valueNode.Content[0]
+				feItems := valueNode.Content[1]
+				feBody := valueNode.Content[2]
+				config.Debugf("Identifier: %v\nItems: %v\nBody: %v", feIdentifier, feItems, feBody)
+
+				// TODO: Items might be a Ref to a property set by the parent template
+				// We need to try and resolve that Ref like any other
+
+				if feBody.Kind != yaml.MappingNode {
+					return false, errors.New("expected Fn::ForEach Body to be a mapping")
+				}
+
+				feLogicalId := feBody.Content[0].Value
+				feOutputMap := feBody.Content[1]
+				config.Debugf("LogicalId: %v\nOutputMap: %v", feLogicalId, feOutputMap)
+
+				// Store this for later as we handle special cases for moduleExtension
+				fnForEach = valueNode
+				config.Debugf("Fn::ForEach fnForEach: %v", node.ToJson(fnForEach))
+
+				// Create node that looks like a regular ModuleExtenstion resource
+				moduleExtension = node.Clone(feOutputMap)
+
+				config.Debugf("Fn::ForEach moduleExtension: %v", node.ToJson(moduleExtension))
+			}
+		}
+
+	}
+
+	if moduleExtension != nil {
 
 		// Process the ModuleExtension resource.
 
@@ -415,6 +463,8 @@ func processModule(module *yaml.Node,
 		if resource.Kind == yaml.MappingNode {
 			name := moduleResources.Content[i-1].Value
 			if name != "ModuleExtension" {
+
+				// TODO: Add Fn::ForEach that are not ModuleExtensions
 
 				// Resolve Conditions. Rain handles this differently, since a rain
 				// module cannot have a Condition section. This value must be a module parameter

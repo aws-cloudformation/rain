@@ -1,6 +1,7 @@
 package pkg_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/aws-cloudformation/rain/cft/diff"
@@ -10,24 +11,30 @@ import (
 
 func TestModule(t *testing.T) {
 
-	path := "../../test/modules/expect.yaml"
+	// There should be 3 files for each test, for example:
+	// bucket-module.yaml, bucket-template.yaml, bucket-expect.yaml
+	tests := []string{"bucket", "foreach"}
 
-	expectedTemplate, err := parse.File(path)
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	for _, test := range tests {
+		path := fmt.Sprintf("./%v-expect.yaml", test)
 
-	pkg.Experimental = true
+		expectedTemplate, err := parse.File(path)
+		if err != nil {
+			t.Error(err)
+			return
+		}
 
-	packaged, err := pkg.File("../../test/templates/module.yaml")
-	if err != nil {
-		t.Error(err)
-		return
-	}
+		pkg.Experimental = true
 
-	d := diff.New(packaged, expectedTemplate)
-	if d.Mode() != "=" {
-		t.Errorf("Output does not match expected: %v", d.Format(true))
+		packaged, err := pkg.File(fmt.Sprintf("./%v-template.yaml", test))
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		d := diff.New(packaged, expectedTemplate)
+		if d.Mode() != "=" {
+			t.Errorf("Output does not match expected: %v", d.Format(true))
+		}
 	}
 }
