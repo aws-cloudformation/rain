@@ -224,8 +224,13 @@ func renamePropRefs(
 }
 
 // Convert !Ref values
-func resolveRefs(ext *yaml.Node, moduleParams *yaml.Node,
-	moduleResources *yaml.Node, logicalId string, templateProps *yaml.Node) error {
+func resolveRefs(
+	ext *yaml.Node,
+	moduleParams *yaml.Node,
+	moduleResources *yaml.Node,
+	logicalId string,
+	templateProps *yaml.Node) error {
+
 	// Replace references to the module's parameters with the value supplied
 	// by the parent template. Rename refs to other resources in the module.
 
@@ -245,6 +250,8 @@ func resolveRefs(ext *yaml.Node, moduleParams *yaml.Node,
 				}
 			}
 		}
+	} else {
+		config.Debugf("resolveRefs - there were no Properties")
 	}
 
 	// DeletionPolicy, UpdateReplacePolicy
@@ -265,9 +272,12 @@ func resolveRefs(ext *yaml.Node, moduleParams *yaml.Node,
 }
 
 // Convert the module into a node for the packaged template
-func processModule(module *yaml.Node,
-	outputNode *yaml.Node, t cft.Template,
-	typeNode *yaml.Node, parent node.NodePair) (bool, error) {
+func processModule(
+	module *yaml.Node,
+	outputNode *yaml.Node,
+	t cft.Template,
+	typeNode *yaml.Node,
+	parent node.NodePair) (bool, error) {
 
 	// The parent arg is the map in the template resource's Content[1] that contains Type, Properties, etc
 
@@ -303,10 +313,15 @@ func processModule(module *yaml.Node,
 		return false, errors.New("expected template resource to have Properties")
 	}
 
-	// Locate the ModuleExtension: resource. There should be 0 or 1
 	var moduleExtension *yaml.Node
+	var fnForEachKey string
+	var fnForEachName string
+	var fnForEachItems *yaml.Node
 	var fnForEach *yaml.Node
+	var fnForEachSequence *yaml.Node
+	var fnForEachLogicalId string
 
+	// Locate the ModuleExtension: resource. There should be 0 or 1
 	_, moduleExtension = s11n.GetMapValue(moduleResources, "ModuleExtension")
 	if moduleExtension == nil {
 		config.Debugf("the module does not have a ModuleExtension resource")
@@ -318,18 +333,20 @@ func processModule(module *yaml.Node,
 			keyNode := moduleResources.Content[i]
 			valueNode := moduleResources.Content[i+1]
 
-			if strings.HasPrefix(keyNode.Value, "Fn::ForEach") {
-				config.Debugf("Found a foreach: %v:\n%v", keyNode.Value, node.ToJson(valueNode))
+			fnForEachKey = keyNode.Value
+
+			if strings.HasPrefix(fnForEachKey, "Fn::ForEach") {
+				config.Debugf("Found a foreach: %v:\n%v", fnForEachKey, node.ToJson(valueNode))
 				if valueNode.Kind != yaml.SequenceNode {
 					return false, errors.New("expected Fn::ForEach to be a sequence")
 				}
 				if len(valueNode.Content) != 3 {
 					return false, errors.New("expected Fn::ForEach to have 3 items")
 				}
-				feIdentifier := valueNode.Content[0]
-				feItems := valueNode.Content[1]
+				// The Fn::ForEach intrinsic takes 3 array elements as input
+				fnForEachName = valueNode.Content[0].Value
+				fnForEachItems = node.Clone(valueNode.Content[1]) // TODO - Resolve refs
 				feBody := valueNode.Content[2]
-				config.Debugf("Identifier: %v\nItems: %v\nBody: %v", feIdentifier, feItems, feBody)
 
 				// TODO: Items might be a Ref to a property set by the parent template
 				// We need to try and resolve that Ref like any other
@@ -338,9 +355,9 @@ func processModule(module *yaml.Node,
 					return false, errors.New("expected Fn::ForEach Body to be a mapping")
 				}
 
-				feLogicalId := feBody.Content[0].Value
+				fnForEachLogicalId = feBody.Content[0].Value
 				feOutputMap := feBody.Content[1]
-				config.Debugf("LogicalId: %v\nOutputMap: %v", feLogicalId, feOutputMap)
+				config.Debugf("LogicalId: %v\nOutputMap: %v", fnForEachLogicalId, feOutputMap)
 
 				// Store this for later as we handle special cases for moduleExtension
 				fnForEach = valueNode
@@ -359,11 +376,35 @@ func processModule(module *yaml.Node,
 
 		// Process the ModuleExtension resource.
 
-		// Add the logical id to the output node, which will replace the original
-		outputNode.Content = append(outputNode.Content, &yaml.Node{
-			Kind:  yaml.ScalarNode,
-			Value: logicalId, // This is the logical name of the resource from the parent template
-		})
+		if fnForEach == nil {
+			// Add the logical id to the output node, which will replace the original
+			outputNode.Content = append(outputNode.Content, &yaml.Node{
+				Kind:  yaml.ScalarNode,
+				Value: logicalId, // This is the logical name of the resource from the parent template
+			})
+		} else {
+			// Add the key for the Fn::ForEach from the module
+			outputNode.Content = append(outputNode.Content, &yaml.Node{
+				Kind:  yaml.ScalarNode,
+				Value: fnForEachKey,
+			})
+
+			config.Debugf("foreach items: %v", node.ToJson(fnForEachItems))
+			config.Debugf("foreach name: %v", fnForEachName)
+
+			fnForEachSequence = &yaml.Node{}
+			fnForEachSequence.Kind = yaml.SequenceNode
+			fnForEachSequence.Content = make([]*yaml.Node, 0)
+			outputNode.Content = append(outputNode.Content, fnForEachSequence)
+
+			fnForEachSequence.Content = append(fnForEachSequence.Content,
+				&yaml.Node{Kind: yaml.ScalarNode, Value: fnForEachName})
+
+			fnForEachSequence.Content = append(fnForEachSequence.Content, fnForEachItems)
+
+			config.Debugf("fnForEachSequence: %v", node.ToJson(fnForEachSequence))
+
+		}
 
 		_, meta := s11n.GetMapValue(moduleExtension, "Metadata")
 		if meta == nil {
@@ -454,15 +495,38 @@ func processModule(module *yaml.Node,
 			ext.Content = append(ext.Content, node.Clone(parentCondition))
 		}
 
-		// Add the extension to the output node
-		outputNode.Content = append(outputNode.Content, ext)
+		if fnForEachSequence == nil {
+			// Add the extension to the output node
+			config.Debugf("Adding ext to the output node")
+			outputNode.Content = append(outputNode.Content, ext)
+		} else {
+			// If the module has a ForEach extension, add it to the sequence instead
+			config.Debugf("Adding ext to the fnForEachSequence node")
+			// "ModuleExtension${HandleName}":
+			// "LogicalId${HandleName}"
+			fnForEachMap := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
+			newLogicalId := strings.Replace(fnForEachLogicalId, "ModuleExtension", logicalId, 1)
+			fnForEachMap.Content = append(fnForEachMap.Content,
+				&yaml.Node{Kind: yaml.ScalarNode, Value: newLogicalId})
+			fnForEachMap.Content = append(fnForEachMap.Content, ext)
+			fnForEachSequence.Content = append(fnForEachSequence.Content, fnForEachMap)
+		}
+
+		config.Debugf("outputNode after adding ext: %v", node.ToJson(outputNode))
 	}
+
+	config.Debugf("About to add additional resouces after the extension")
+
+	config.Debugf("moduleResources: %v", node.ToJson(moduleResources))
 
 	// Get additional resources and add them to the output
 	for i, resource := range moduleResources.Content {
+		config.Debugf("i = %v, resource = %v", i, resource)
 		if resource.Kind == yaml.MappingNode {
 			name := moduleResources.Content[i-1].Value
 			if name != "ModuleExtension" {
+
+				config.Debugf("Additional resource: %v", name)
 
 				// TODO: Add Fn::ForEach that are not ModuleExtensions
 
@@ -472,7 +536,8 @@ func processModule(module *yaml.Node,
 				// a Condition that is defined in the parent.
 				_, condition := s11n.GetMapValue(resource, "Condition")
 				if condition != nil {
-					conditionErr := errors.New("a Condition in a rain module must be the name of a Parameter that is set the name of a Condition in the parent template")
+					conditionErr := errors.New("a Condition in a rain module must be the name of " +
+						"a Parameter that is set the name of a Condition in the parent template")
 					// The value must be present in the module's parameters
 					if condition.Kind != yaml.ScalarNode {
 						return false, conditionErr
@@ -521,6 +586,8 @@ func processModule(module *yaml.Node,
 		}
 	}
 
+	config.Debugf("Returning from processModule")
+
 	return true, nil
 }
 
@@ -528,7 +595,7 @@ func processModule(module *yaml.Node,
 func module(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
 
 	if !Experimental {
-		panic("You must add the --experimental arg to use the ~Rain:Module directive")
+		panic("You must add the --experimental arg to use the !Rain::Module directive")
 	}
 
 	if len(n.Content) != 2 {
@@ -589,11 +656,9 @@ func module(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bo
 		return false, errors.New("expected template to have Resources")
 	}
 
-	// j, _ := json.MarshalIndent(resourceNode, "", "  ")
-	// config.Debugf("resourceNode: %v", string(j))
+	config.Debugf("resourceNode: %v", node.ToJson(resourceNode))
 
-	// j, _ = json.MarshalIndent(outputNode, "", "  ")
-	// config.Debugf("outputNode: %v", string(j))
+	config.Debugf("outputNode: %v", node.ToJson(&outputNode))
 
 	// Remove the original from the template
 	err = node.RemoveFromMap(resourceNode, parent.Key.Value)
@@ -603,6 +668,8 @@ func module(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bo
 
 	// Insert the transformed resource into the template
 	resourceNode.Content = append(resourceNode.Content, outputNode.Content...)
+
+	config.Debugf("Returning from module")
 
 	return true, nil
 
