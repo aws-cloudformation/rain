@@ -68,18 +68,54 @@ Rain is licensed under the Apache 2.0 License.
 
 ## Other CloudFormation tools
 
-In alphabetical order:
-
 * [cfn-lint](https://github.com/aws-cloudformation/cfn-python-lint)
 
     Validate CloudFormation yaml/json templates against the CloudFormation spec and additional checks. Includes checking valid values for resource properties and best practices.
 
-* [cfn-nag](https://github.com/stelligent/cfn_nag)
+* [cfn-guard](https://docs.aws.amazon.com/cfn-guard/latest/ug/what-is-guard.html)
 
-    The cfn-nag tool looks for patterns in CloudFormation templates that may indicate insecure infrastructure.
+    Guard is a policy evaluation tool that allows you to build your own rules with a custom DSL. You can also pull rules from the 
+    [guard registry](https://github.com/aws-cloudformation/aws-guard-rules-registry) to scan your templates for resources that don't comply with common best practices.
 
 * [taskcat](https://github.com/aws-quickstart/taskcat)
 
     taskcat is a tool that tests AWS CloudFormation templates. It deploys your AWS CloudFormation template in multiple AWS Regions and generates a report with a pass/fail grade for each region. You can specify the regions and number of Availability Zones you want to include in the test, and pass in parameter values from your AWS CloudFormation template. taskcat is implemented as a Python class that you import, instantiate, and run.
 
 Are we missing an excellent tool? Let us know via a GitHub issue.
+
+## Example Usage
+
+### Packaging
+
+The `rain pkg` command can be used as a replacement for the `aws cloudformation package` CLI command, and has some similarities to the `sam package` command. When packaging a template, `rain` looks for specific directives to appear embedded in resources.
+
+`!Rain::Embed`
+
+The `Embed` directive simply inserts the contents of a file into the template as a string.
+
+The template:
+
+```yaml
+Resources:
+  Test:
+    Type: AWS::CloudFormation:WaitHandle
+    Metadata:
+      Comment: !Rain::Embed embed.txt
+```
+The contents of `embed.txt`, which is in the same directory as the template:
+
+```txt
+This is a test
+```
+
+The resulting packaged template:
+
+```yaml
+Resources:
+  Test:
+    Type: AWS::CloudFormation:WaitHandle
+    Metadata:
+      Comment: This is a test
+```
+
+

@@ -17,7 +17,7 @@ func TestModule(t *testing.T) {
 	tests := []string{"bucket", "foreach"}
 
 	for _, test := range tests {
-		path := fmt.Sprintf("./%v-expect.yaml", test)
+		path := fmt.Sprintf("./tmpl/%v-expect.yaml", test)
 
 		expectedTemplate, err := parse.File(path)
 		if err != nil {
@@ -27,7 +27,7 @@ func TestModule(t *testing.T) {
 
 		pkg.Experimental = true
 
-		packaged, err := pkg.File(fmt.Sprintf("./%v-template.yaml", test))
+		packaged, err := pkg.File(fmt.Sprintf("./tmpl/%v-template.yaml", test))
 		if err != nil {
 			t.Error(err)
 			return
