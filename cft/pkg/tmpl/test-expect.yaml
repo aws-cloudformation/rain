@@ -1,0 +1,110 @@
+Parameters:
+  BucketRetentionPolicy:
+    Type: String
+    AllowedValues:
+      - Delete
+      - Retain
+
+Conditions:
+  ConditionA:
+    !Equals:
+      - true
+      - true
+
+Resources:
+  SecondResourceInOriginal:
+    Type: AWS::SQS::Queue
+
+  ModuleExample:
+    DeletionPolicy: !Ref BucketRetentionPolicy
+    UpdateReplacePolicy: Delete
+    Type: AWS::S3::Bucket
+    DependsOn:
+      - ModuleExampleAdditionalResource1
+      - ModuleExampleAdditionalResource2
+      - SecondResourceInOriginal
+    Metadata:
+      Comment: A bucket that will pass cfn_nag checks
+      cfn_nag:
+        rules_to_suppress:
+          - id: W51
+            reason: Will be added by the consumer
+    Properties:
+      LoggingConfiguration:
+        DestinationBucketName: !Ref ModuleExampleLogBucket
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: test-tag
+          Value: test-value2
+      BucketName: ezbeard-cep-test-module-bucket
+      VersioningConfiguration:
+        Status: Enabled
+    Condition: ConditionA
+
+  ModuleExampleLogBucket:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: !Ref BucketRetentionPolicy
+    Type: AWS::S3::Bucket
+    DependsOn:
+      - ModuleExampleAdditionalResource1
+      - ModuleExampleAdditionalResource2
+    Metadata:
+      Comment: This bucket records access logs for MyBucket
+      cfn_nag:
+        rules_to_suppress:
+          - id: W35
+            reason: This is the log bucket
+          - id: W51
+            reason: Will be added by the consumer
+    Properties:
+      BucketName: ezbeard-cep-test-module-log-bucket
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  ModuleExampleAdditionalResource1:
+    Type: AWS::S3::Bucket
+    Properties:
+      X: !Ref NotFound
+      A: !GetAtt ModuleExample.Arn
+      B:
+        - !GetAtt ModuleExample.Arn
+        - C: !GetAtt ModuleExample.Arn
+
+  ModuleExampleAdditionalResource2:
+    Type: AWS::S3::Bucket
+
+  ModuleExampleDependsOnModuleExtension:
+    Type: AWS::S3::Bucket
+    DependsOn:
+      - ModuleExample
+
+  ModuleExampleConditionalResource:
+    Type: AWS::S3::Bucket
+    Condition: ConditionA
+
+  WithoutExtensionBucketA:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: AAA
+
+  WithoutExtensionBucketB:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: BBB

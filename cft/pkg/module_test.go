@@ -14,7 +14,7 @@ func TestModule(t *testing.T) {
 
 	// There should be 3 files for each test, for example:
 	// bucket-module.yaml, bucket-template.yaml, bucket-expect.yaml
-	tests := []string{"bucket", "foreach"}
+	tests := []string{"test", "foreach"}
 
 	for _, test := range tests {
 		path := fmt.Sprintf("./tmpl/%v-expect.yaml", test)
