@@ -43,9 +43,6 @@ func transform(nodeToTransform *yaml.Node, rootDir string, t cft.Template) (bool
 
 	// registry is a map of functions defined in rain.go
 	for path, fn := range registry {
-		config.Debugf("path: %v", path)
-		config.Debugf("nodeToTransform: %v", nodeToTransform)
-		config.Debugf("nodeToTransform: %v", node.ToJson(nodeToTransform))
 		for found := range s11n.MatchAll(nodeToTransform, path) {
 			parent := node.GetParent(found, nodeToTransform, nil)
 			c, err := fn(found, rootDir, t, parent)

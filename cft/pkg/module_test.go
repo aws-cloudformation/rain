@@ -7,6 +7,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft/diff"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/cft/pkg"
+	"gopkg.in/yaml.v3"
 )
 
 func TestModule(t *testing.T) {
@@ -36,5 +37,18 @@ func TestModule(t *testing.T) {
 		if d.Mode() != "=" {
 			t.Errorf("Output does not match expected: %v", d.Format(true))
 		}
+	}
+}
+
+func TestCsvToSequence(t *testing.T) {
+	csv := "A,B,C"
+	seq := pkg.ConvertCsvToSequence(csv)
+	if seq == nil || seq.Kind != yaml.SequenceNode {
+		t.Errorf("expected a sequence node")
+	}
+	if seq.Content[0].Value != "A" ||
+		seq.Content[1].Value != "B" ||
+		seq.Content[2].Value != "C" {
+		t.Errorf("Unexpected sequence")
 	}
 }
