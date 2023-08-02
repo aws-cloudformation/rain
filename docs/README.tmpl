@@ -87,11 +87,13 @@ Are we missing an excellent tool? Let us know via a GitHub issue.
 
 ### Packaging
 
-The `rain pkg` command can be used as a replacement for the `aws cloudformation package` CLI command, and has some similarities to the `sam package` command. When packaging a template, `rain` looks for specific directives to appear embedded in resources.
+The `rain pkg` command can be used as a replacement for the `aws cloudformation
+package` CLI command.  When packaging a template, `rain` looks for specific
+directives to appear in resources.
 
-`!Rain::Embed`
+#### Embed
 
-The `Embed` directive simply inserts the contents of a file into the template as a string.
+The `!Rain::Embed` directive simply inserts the contents of a file into the template as a string.
 
 The template:
 
@@ -118,4 +120,138 @@ Resources:
       Comment: This is a test
 ```
 
+#### Include
+
+The `!Rain::Include` directive parses a YAML or JSON file and inserts the object into the template.
+
+The template:
+
+```yaml
+Resources:
+  Test:
+    !Rain::Include include-file.yaml
+```
+
+The file to be included:
+
+```yaml
+Type: AWS::S3::Bucket
+Properties:
+  BucketName: test
+```
+
+The resulting packaged template:
+
+```yaml
+Resources:
+  Test:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: test
+```
+
+#### Env
+
+The `!Rain::Env` directive reads environment variables and inserts them into the template as strings.
+
+The template:
+
+```yaml
+Resources:
+  Test:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Rain::Env BUCKET_NAME
+```
+
+The resulting packaged template, if you have exported an environment variable named `BUCKET_NAME` with value `abc`:
+
+```yaml
+Resources:
+  Test:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: abc
+```
+
+#### S3Http
+
+The `!Rain::S3Http` directive uploads a file or directory to S3 and inserts the
+HTTPS URL into the template as a string.
+
+The template:
+
+```yaml
+Resources:
+  Test:
+    Type: A::B::C
+    Properties:
+      TheS3URL: !Rain::S3Http s3http.txt
+```
+
+If you have a file called `s3http.txt` in the same directory as the template,
+rain will use your current default profile to upload the file to the artifact
+bucket that rain creates as a part of bootstrapping. If the path provided is a 
+directory and not a file, the directory will be zipped first.
+
+```yaml
+Resources:
+  Test:
+    Type: A::B::C
+    Properties:
+      TheS3URL: https://rain-artifacts-012345678912-us-east-1.s3.us-east-1.amazonaws.com/a84b588aa54068ed4b027b6e06e5e0bb283f83cf0d5a6720002d36af2225dfc3
+```
+
+#### S3 
+
+The `!Rain::S3` directive is basically the same as `S3Http`, but it inserts the S3 URI instead of an HTTPS URL.
+
+The template:
+
+```yaml
+Resources:
+  Test:
+    Type: A::B::C
+    Properties:
+      TheS3URI: !Rain::S3 s3.txt
+```
+
+If you have a file called `s3.txt` in the same directory as the template,
+rain will use your current default profile to upload the file to the artifact
+bucket that rain creates as a part of bootstrapping. If the path provided is a 
+directory and not a file, the directory will be zipped first.
+
+```yaml
+Resources:
+  Test:
+    Type: A::B::C
+    Properties:
+      TheS3URI: s3://rain-artifacts-755952356119-us-east-1/a84b588aa54068ed4b027b6e06e5e0bb283f83cf0d5a6720002d36af2225dfc3 
+```
+
+If instead of providing a path to a file, you supply an object with properties, you can exercise more control over how the object is uploaded to S3. The following example is a common pattern for uploading Lambda function code.
+
+```yaml
+Resources:
+  MyFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code: !Rain::S3 
+        Path: lambda-src 
+        Zip: true
+        BucketProperty: S3Bucket
+        KeyProperty: S3Key
+```
+
+The packaged template:
+
+```yaml
+Resources:
+  MyFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: rain-artifacts-012345678912-us-east-1
+        S3Key: 1b4844dacc843f09941c11c94f80981d3be8ae7578952c71e875ef7add37b1a7
+```
 
