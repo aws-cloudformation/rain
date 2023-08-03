@@ -20,7 +20,7 @@ declare -A types=(
 )
 
 d=$(mktemp -d)
-git clone https://github.com/awsdocs/aws-sam-developer-guide.git $d
+git clone --branch main https://github.com/awsdocs/aws-sam-developer-guide.git $d
 
 cd "$d"
 

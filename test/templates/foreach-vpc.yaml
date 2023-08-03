@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::LanguageExtensions
+
+Parameters:
+  AvailabilityTypes:
+    Type: CommaDelimitedList
+    Description: Types of subnets availability - public, private, or both
+    AllowedValues:
+      - Public
+      - Private
+    Default: Public,Private
+
+Mappings:
+  SubnetOne:
+    Public: 
+      Cidr:  10.215.0.0/24 
+    Private: 
+      Cidr:  10.215.1.0/24 
+  SubnetTwo:
+    Public: 
+      Cidr:  10.215.2.0/24
+    Private: 
+      Cidr:  10.215.3.0/24
+  SubnetThree:
+    Public: 
+      Cidr:  10.215.4.0/24
+    Private: 
+      Cidr:  10.215.5.0/24
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.215.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+
+  Fn::ForEach::Subnets:
+    - SubnetIdentifier
+    - - SubnetOne
+      - SubnetTwo
+      - SubnetThree
+    - Fn::ForEach::SubnetAvailabilityType:
+      - AvailabilityType
+      - !Ref AvailabilityTypes
+      - "${SubnetIdentifier}${AvailabilityType}":
+          Type: AWS::EC2::Subnet
+          Properties:
+            VpcId: !Ref VPC
+            CidrBlock: !FindInMap
+              - !Ref SubnetIdentifier
+              - !Ref AvailabilityType
+              - Cidr
+

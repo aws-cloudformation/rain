@@ -130,7 +130,7 @@ func renamePropRefs(
 	//           A: B
 	//           C: !Ref D
 
-	config.Debugf("renamePropRefs parentName: %v, propName: %v, prop.Kind: %v", parentName, propName, prop.Kind)
+	// config.Debugf("renamePropRefs parentName: %v, propName: %v, prop.Kind: %v", parentName, propName, prop.Kind)
 
 	if prop.Kind == yaml.ScalarNode {
 		refFoundInParams := false
@@ -148,7 +148,7 @@ func renamePropRefs(
 						return fmt.Errorf("did not find %v in parent template Resource Properties", prop.Value)
 					}
 
-					config.Debugf("parentVal: %v", node.ToJson(parentVal))
+					// config.Debugf("parentVal: %v", node.ToJson(parentVal))
 
 					// We can't just set prop.Value, since we would end up with Prop: !Ref Value instead of just Prop: Value
 					// Get the property's parent and set the entire map value for the property
@@ -160,12 +160,12 @@ func renamePropRefs(
 					}
 					propParentPair := node.GetParent(refMap.Value, ext, nil)
 
-					config.Debugf("propParentPair.Value: %v", node.ToJson(propParentPair.Value))
+					// config.Debugf("propParentPair.Value: %v", node.ToJson(propParentPair.Value))
 
 					// Create a new node to replace what's defined in the module
 					newValue := node.Clone(parentVal)
 
-					config.Debugf("Setting %v to:\n%v", parentName, node.ToJson(newValue))
+					// config.Debugf("Setting %v to:\n%v", parentName, node.ToJson(newValue))
 
 					node.SetMapValue(propParentPair.Value, parentName, newValue)
 
@@ -173,11 +173,11 @@ func renamePropRefs(
 				}
 			}
 			if !refFoundInParams {
-				config.Debugf("Did not find param for %v", prop.Value)
+				// config.Debugf("Did not find param for %v", prop.Value)
 				// Look for a resource in the module
 				_, resource := s11n.GetMapValue(moduleResources, prop.Value)
 				if resource == nil {
-					config.Debugf("did not find !Ref %v", prop.Value)
+					// config.Debugf("did not find !Ref %v", prop.Value)
 					// If we can't find the Ref, leave it alone and assume it's
 					// expected to be in the parent template to be resolved at deploy time.
 					return nil
@@ -187,12 +187,12 @@ func renamePropRefs(
 			}
 		}
 	} else if prop.Kind == yaml.SequenceNode {
-		config.Debugf("Sequence %v %v", propName, node.ToJson(prop))
+		// config.Debugf("Sequence %v %v", propName, node.ToJson(prop))
 		if propName == "Fn::GetAtt" {
 			// Convert !GetAtt ModuleExtension.Property to !GetAtt LogicalId.Property
 			fixedName := rename(logicalId, prop.Content[0].Value)
 			prop.Content[0].Value = fixedName
-			config.Debugf("Fixed GetAtt: %v", fixedName)
+			// config.Debugf("Fixed GetAtt: %v", fixedName)
 		} else {
 			// Recurse over array elements
 			for i, p := range prop.Content {
@@ -205,10 +205,10 @@ func renamePropRefs(
 		}
 
 	} else if prop.Kind == yaml.MappingNode {
-		config.Debugf("Mapping %v %v", propName, node.ToJson(prop))
+		// config.Debugf("Mapping %v %v", propName, node.ToJson(prop))
 		for i, p := range prop.Content {
 			if i%2 == 0 {
-				config.Debugf("About to renamePropRefs for Mapping Content: %v", p.Value)
+				// config.Debugf("About to renamePropRefs for Mapping Content: %v", p.Value)
 				result := renamePropRefs(propName,
 					p.Value, prop.Content[i+1], ext, moduleParams, moduleResources, logicalId, templateProps)
 				if result != nil {
@@ -224,23 +224,28 @@ func renamePropRefs(
 }
 
 // Convert !Ref values
-func resolveRefs(ext *yaml.Node, moduleParams *yaml.Node,
-	moduleResources *yaml.Node, logicalId string, templateProps *yaml.Node) error {
+func resolveRefs(
+	ext *yaml.Node,
+	moduleParams *yaml.Node,
+	moduleResources *yaml.Node,
+	logicalId string,
+	templateProps *yaml.Node) error {
+
 	// Replace references to the module's parameters with the value supplied
 	// by the parent template. Rename refs to other resources in the module.
 
-	config.Debugf("resolveRefs ext: %v", node.ToJson(ext))
+	// config.Debugf("resolveRefs ext: %v", node.ToJson(ext))
 
 	_, extProps := s11n.GetMapValue(ext, "Properties")
 	if extProps != nil {
 		for i, prop := range extProps.Content {
 			if i%2 == 0 {
 				propName := prop.Value
-				config.Debugf("Resolving refs for %v", propName)
+				// config.Debugf("Resolving refs for %v", propName)
 				err := renamePropRefs(propName,
 					propName, extProps.Content[i+1], ext, moduleParams, moduleResources, logicalId, templateProps)
 				if err != nil {
-					config.Debugf("%v", err)
+					// config.Debugf("%v", err)
 					return fmt.Errorf("unable to resolve refs for %v", propName)
 				}
 			}
@@ -252,10 +257,10 @@ func resolveRefs(ext *yaml.Node, moduleParams *yaml.Node,
 	for _, policy := range policies {
 		_, policyNode := s11n.GetMapValue(ext, policy)
 		if policyNode != nil {
-			config.Debugf("policyNode: %v", node.ToJson(policyNode))
+			// config.Debugf("policyNode: %v", node.ToJson(policyNode))
 			err := renamePropRefs(policy, policy, policyNode, ext, moduleParams, moduleResources, logicalId, templateProps)
 			if err != nil {
-				config.Debugf("%v", err)
+				// config.Debugf("%v", err)
 				return fmt.Errorf("unable to resolve refs for %v", policy)
 			}
 		}
@@ -265,9 +270,12 @@ func resolveRefs(ext *yaml.Node, moduleParams *yaml.Node,
 }
 
 // Convert the module into a node for the packaged template
-func processModule(module *yaml.Node,
-	outputNode *yaml.Node, t cft.Template,
-	typeNode *yaml.Node, parent node.NodePair) (bool, error) {
+func processModule(
+	module *yaml.Node,
+	outputNode *yaml.Node,
+	t cft.Template,
+	typeNode *yaml.Node,
+	parent node.NodePair) (bool, error) {
 
 	// The parent arg is the map in the template resource's Content[1] that contains Type, Properties, etc
 
@@ -303,19 +311,162 @@ func processModule(module *yaml.Node,
 		return false, errors.New("expected template resource to have Properties")
 	}
 
+	var moduleExtension *yaml.Node
+	var fnForEachKey string
+	var fnForEachName string
+	var fnForEachItems *yaml.Node
+	var fnForEach *yaml.Node
+	var fnForEachSequence *yaml.Node
+	var fnForEachLogicalId string
+
 	// Locate the ModuleExtension: resource. There should be 0 or 1
-	_, moduleExtension := s11n.GetMapValue(moduleResources, "ModuleExtension")
+	_, moduleExtension = s11n.GetMapValue(moduleResources, "ModuleExtension")
 	if moduleExtension == nil {
-		config.Debugf("the module does not have a ModuleExtension resource")
-	} else {
+		// config.Debugf("the module does not have a ModuleExtension resource")
+
+		// Fn::ForEach
+
+		// Iterate through all resources and see if any of them start with Fn::ForEach
+		for i := 0; i < len(moduleResources.Content); i += 2 {
+			keyNode := moduleResources.Content[i]
+			valueNode := moduleResources.Content[i+1]
+
+			fnForEachKey = keyNode.Value
+
+			if strings.HasPrefix(fnForEachKey, "Fn::ForEach") {
+				config.Debugf("Found a foreach: %v:\n%v", fnForEachKey, node.ToJson(valueNode))
+				if valueNode.Kind != yaml.SequenceNode {
+					return false, errors.New("expected Fn::ForEach to be a sequence")
+				}
+				if len(valueNode.Content) != 3 {
+					return false, errors.New("expected Fn::ForEach to have 3 items")
+				}
+				// The Fn::ForEach intrinsic takes 3 array elements as input
+				fnForEachName = valueNode.Content[0].Value
+				fnForEachItems = node.Clone(valueNode.Content[1]) // TODO - Resolve refs
+				feBody := valueNode.Content[2]
+
+				// TODO: Items might be a Ref to a property set by the parent template
+				// We need to try and resolve that Ref like any other
+
+				if feBody.Kind != yaml.MappingNode {
+					return false, errors.New("expected Fn::ForEach Body to be a mapping")
+				}
+
+				fnForEachLogicalId = feBody.Content[0].Value
+				feOutputMap := feBody.Content[1]
+				config.Debugf("LogicalId: %v\nOutputMap: %v", fnForEachLogicalId, feOutputMap)
+
+				// Store this for later as we handle special cases for moduleExtension
+				fnForEach = valueNode
+				config.Debugf("Fn::ForEach fnForEach: %v", node.ToJson(fnForEach))
+
+				// Create node that looks like a regular ModuleExtenstion resource
+				moduleExtension = node.Clone(feOutputMap)
+
+				config.Debugf("Fn::ForEach moduleExtension: %v", node.ToJson(moduleExtension))
+
+				// Make sure the parent template has Transform: AWS::LanguageExtensions
+				docMap := t.Node.Content[0]
+				_, transformNode := s11n.GetMapValue(docMap, "Transform")
+				if transformNode == nil {
+					config.Debugf("Adding Transform node")
+					docMap.Content = append(docMap.Content,
+						&yaml.Node{Kind: yaml.ScalarNode, Value: "Transform"})
+					docMap.Content = append(docMap.Content,
+						&yaml.Node{Kind: yaml.ScalarNode, Value: "AWS::LanguageExtensions"})
+				} else {
+					config.Debugf("Found Transform node")
+				}
+
+			}
+		}
+
+	}
+
+	if moduleExtension != nil {
 
 		// Process the ModuleExtension resource.
 
-		// Add the logical id to the output node, which will replace the original
-		outputNode.Content = append(outputNode.Content, &yaml.Node{
-			Kind:  yaml.ScalarNode,
-			Value: logicalId, // This is the logical name of the resource from the parent template
-		})
+		if fnForEach == nil {
+			// Add the logical id to the output node, which will replace the original
+			outputNode.Content = append(outputNode.Content, &yaml.Node{
+				Kind:  yaml.ScalarNode,
+				Value: logicalId, // This is the logical name of the resource from the parent template
+			})
+		} else {
+			// Add the key for the Fn::ForEach from the module
+
+			// We need to alter the name of the key to make sure it's unique, if the
+			// module is used more than once in a template.
+			// In the module if we have Fn::ForEach::MakeHandles:
+			// and in the parent template the logical id is ForeachTest
+			// then the key will be Fn::ForEach::ForeachTestMakeHandles:
+			fixedKey := strings.Replace(fnForEachKey, "Fn::ForEach::", "Fn::ForEach::"+logicalId, 1)
+
+			outputNode.Content = append(outputNode.Content, &yaml.Node{
+				Kind:  yaml.ScalarNode,
+				Value: fixedKey,
+			})
+
+			config.Debugf("foreach items: %v", node.ToJson(fnForEachItems))
+			config.Debugf("foreach name: %v", fnForEachName)
+
+			fnForEachSequence = &yaml.Node{}
+			fnForEachSequence.Kind = yaml.SequenceNode
+			fnForEachSequence.Content = make([]*yaml.Node, 0)
+			outputNode.Content = append(outputNode.Content, fnForEachSequence)
+
+			fnForEachSequence.Content = append(fnForEachSequence.Content,
+				&yaml.Node{Kind: yaml.ScalarNode, Value: fnForEachName})
+
+			// The second array element is the list of items to iterate over. It might be
+			// a Ref to a parameter that supplies the values. Resolve the Ref.
+			var resolvedItems *yaml.Node
+			if fnForEachItems.Kind == yaml.SequenceNode {
+				// TODO - Do we need to resolve individual items themselves? Will this be handled elsewhere?
+				resolvedItems = fnForEachItems
+			} else if fnForEachItems.Kind == yaml.MappingNode {
+				if fnForEachItems.Content[0].Value == "Ref" {
+					refName := fnForEachItems.Content[1].Value
+					config.Debugf("Fn::ForEach resolving items Ref %v", refName)
+					_, p := s11n.GetMapValue(moduleParams, refName)
+					if p != nil {
+						// Look up the value provided in the template props
+						_, refval := s11n.GetMapValue(templateProps, refName)
+						if refval != nil {
+							// This should be a comma separated value that we need to convert to a sequence
+							resolvedItems = ConvertCsvToSequence(refval.Value)
+						} else {
+							// If it's not there, do we have a default in the module params?
+							_, d := s11n.GetMapValue(p, "Default")
+							if d != nil {
+								resolvedItems = ConvertCsvToSequence(d.Value)
+							} else {
+								// If not, leave it alone
+								resolvedItems = fnForEachItems
+							}
+						}
+					} else {
+						// This is not a Ref to a module parameter.
+						// TODO - Can this be a ref to something else in the module?
+						// Leave it alone
+						resolvedItems = fnForEachItems
+					}
+
+				} else {
+					return false, errors.New("expected Fn::ForEach item map to be a Ref")
+				}
+			} else {
+				return false, errors.New("expected Fn::ForEach items to be a sequence or a map")
+			}
+			config.Debugf("resolvedItems: %v", node.ToJson(resolvedItems))
+
+			fnForEachSequence.Content = append(fnForEachSequence.Content, resolvedItems)
+
+			config.Debugf("fnForEachSequence: %v", node.ToJson(fnForEachSequence))
+
+		}
 
 		_, meta := s11n.GetMapValue(moduleExtension, "Metadata")
 		if meta == nil {
@@ -406,15 +557,42 @@ func processModule(module *yaml.Node,
 			ext.Content = append(ext.Content, node.Clone(parentCondition))
 		}
 
-		// Add the extension to the output node
-		outputNode.Content = append(outputNode.Content, ext)
+		if fnForEachSequence == nil {
+			// Add the extension to the output node
+			config.Debugf("Adding ext to the output node")
+			outputNode.Content = append(outputNode.Content, ext)
+		} else {
+			// If the module has a ForEach extension, add it to the sequence instead
+			config.Debugf("Adding ext to the fnForEachSequence node")
+
+			// The Fn::ForEach resource is a map, so we create that and append ext to it
+			fnForEachMap := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
+			newLogicalId := strings.Replace(fnForEachLogicalId, "ModuleExtension", logicalId, 1)
+			fnForEachMap.Content = append(fnForEachMap.Content,
+				&yaml.Node{Kind: yaml.ScalarNode, Value: newLogicalId})
+			fnForEachMap.Content = append(fnForEachMap.Content, ext)
+
+			// Add the map as the 3rd array element in the Fn::ForEach sequence
+			fnForEachSequence.Content = append(fnForEachSequence.Content, fnForEachMap)
+		}
+
+		config.Debugf("outputNode after adding ext: %v", node.ToJson(outputNode))
 	}
+
+	// config.Debugf("About to add additional resouces after the extension")
+
+	// config.Debugf("moduleResources: %v", node.ToJson(moduleResources))
 
 	// Get additional resources and add them to the output
 	for i, resource := range moduleResources.Content {
+		// config.Debugf("i = %v, resource = %v", i, resource)
 		if resource.Kind == yaml.MappingNode {
 			name := moduleResources.Content[i-1].Value
 			if name != "ModuleExtension" {
+
+				// config.Debugf("Additional resource: %v", name)
+
+				// TODO: Add Fn::ForEach that are not ModuleExtensions
 
 				// Resolve Conditions. Rain handles this differently, since a rain
 				// module cannot have a Condition section. This value must be a module parameter
@@ -422,7 +600,8 @@ func processModule(module *yaml.Node,
 				// a Condition that is defined in the parent.
 				_, condition := s11n.GetMapValue(resource, "Condition")
 				if condition != nil {
-					conditionErr := errors.New("a Condition in a rain module must be the name of a Parameter that is set the name of a Condition in the parent template")
+					conditionErr := errors.New("a Condition in a rain module must be the name of " +
+						"a Parameter that is set the name of a Condition in the parent template")
 					// The value must be present in the module's parameters
 					if condition.Kind != yaml.ScalarNode {
 						return false, conditionErr
@@ -471,6 +650,8 @@ func processModule(module *yaml.Node,
 		}
 	}
 
+	// config.Debugf("Returning from processModule")
+
 	return true, nil
 }
 
@@ -478,7 +659,7 @@ func processModule(module *yaml.Node,
 func module(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
 
 	if !Experimental {
-		panic("You must add the --experimental arg to use the ~Rain:Module directive")
+		panic("You must add the --experimental arg to use the !Rain::Module directive")
 	}
 
 	if len(n.Content) != 2 {
@@ -539,11 +720,9 @@ func module(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bo
 		return false, errors.New("expected template to have Resources")
 	}
 
-	// j, _ := json.MarshalIndent(resourceNode, "", "  ")
-	// config.Debugf("resourceNode: %v", string(j))
+	// config.Debugf("resourceNode: %v", node.ToJson(resourceNode))
 
-	// j, _ = json.MarshalIndent(outputNode, "", "  ")
-	// config.Debugf("outputNode: %v", string(j))
+	// config.Debugf("outputNode: %v", node.ToJson(&outputNode))
 
 	// Remove the original from the template
 	err = node.RemoveFromMap(resourceNode, parent.Key.Value)
@@ -553,6 +732,9 @@ func module(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bo
 
 	// Insert the transformed resource into the template
 	resourceNode.Content = append(resourceNode.Content, outputNode.Content...)
+
+	// config.Debugf("Returning from module")
+	config.Debugf("t.Node: %v", node.ToJson(t.Node))
 
 	return true, nil
 

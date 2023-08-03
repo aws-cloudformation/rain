@@ -19,6 +19,7 @@ import (
 )
 
 const fileName = "test.txt"
+
 const hash = "7e81f4270269cd5111c4926e19de731fb38c6dbf07059d14f4591ce5d8ddd770"
 const bucket = "rain-artifacts-1234567890-us-east-1"
 const region = "us-east-1"
