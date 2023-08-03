@@ -137,11 +137,10 @@ func forecastForType(input PredictionInput) Forecast {
 		forecast.Add(true, "Does not exist")
 	}
 
-	// Below are some ideas for things we might be able to check in a generic way
-
 	// Check permissions
-	// (see S3 example, we would need to figure out the arn for each service)
-	// TODO - Not sure if this is practical in a generic way
+	if !SkipIAM {
+		checkPermissions(input, &forecast)
+	}
 
 	// Check service quotas
 	// TODO - Can we do this in a generic way?
