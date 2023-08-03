@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::LanguageExtensions
+
+Parameters:
+
+  InstancesToManage:
+    Type: CommaDelimitedList
+    Description: Instances to be managed
+    Default: FirstInstance,SecondInstance,ThirdInstance
+
+  Environment:
+    Description: Lifecycle environment.
+    Type: String
+    AllowedValues:
+      - sandbox
+      - dev
+      - qa
+      - prod
+    Default: dev
+
+  LatestAmiId:
+    Description: Region-specific image to use.
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+
+Mappings:
+  dev:
+    FirstInstance:
+      InstanceType: t2.micro
+    SecondInstance:
+      InstanceType: t2.micro
+    ThirdInstance:
+      InstanceType: t2.micro
+  qa:
+    FirstInstance:
+      InstanceType: t2.medium
+    SecondInstance:
+      InstanceType: t2.medium
+    ThirdInstance:
+      InstanceType: t2.large
+  prod:
+    FirstInstance:
+      InstanceType: t2.large
+    SecondInstance:
+      InstanceType: t2.xlarge
+    ThirdInstance:
+      InstanceType: t2.2xlarge
+
+Resources:
+
+  Fn::ForEach::Instances:
+    - InstanceLogicalId
+    - [FirstInstance, SecondInstance, ThirdInstance]
+    - ${InstanceLogicalId}:
+        Type: AWS::EC2::Instance
+        Properties:
+          ImageId: !Ref LatestAmiId
+          InstanceType: !FindInMap
+            - !Ref Environment
+            - !Ref InstanceLogicalId
+            - InstanceType
+            - DefaultValue: t2.micro
+
+
+Outputs:
+  Fn::ForEach::InstanceOutputs:
+    - InstanceLogicalId
+    - !Ref InstancesToManage
+    - "${InstanceLogicalId}Id":
+        Export:
+          Name: !Sub ${AWS::AccountId}-${InstanceLogicalId}Id
+        Value: !Ref
+          Ref: InstanceLogicalId
+
+      "${InstanceLogicalId}AvailabilityZone":
+        Value:
+          Fn::GetAtt:
+            - !Ref InstanceLogicalId
+            - AvailabilityZone
+
+

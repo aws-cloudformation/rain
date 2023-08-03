@@ -1,0 +1,45 @@
+Description: |
+  This module extends AWS::S3::Bucket
+
+Parameters:
+  LogBucketName:
+    Type: String
+
+Resources:
+  ModuleExtension:
+    Metadata:
+      Extends: AWS::S3::Bucket
+    DeletionPolicy: !Ref RetentionPolicy
+    Properties:
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LogBucket
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+             SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: test-tag
+          Value: test-value1
+  
+  LogBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Ref LogBucketName
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+

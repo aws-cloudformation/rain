@@ -1,0 +1,42 @@
+Parameters:
+
+  BucketRetentionPolicy:
+    Type: String
+    AllowedValues:
+      - Delete
+      - Retain
+
+Conditions:
+
+  ConditionA:
+    !Equals:
+      - true
+      - true
+
+Resources:
+
+  ModuleExample:
+    Type: !Rain::Module "./test-module.yaml"
+    UpdateReplacePolicy: Delete
+    Condition: ConditionA
+    DependsOn: SecondResourceInOriginal
+    Properties:
+      LogBucketName: ezbeard-cep-test-module-log-bucket
+      BucketName: ezbeard-cep-test-module-bucket
+      RetentionPolicy: !Ref BucketRetentionPolicy
+      VersioningConfiguration:
+        Status: Enabled
+      ConditionName: ConditionA
+      Tags:
+        - Key: test-tag
+          Value: test-value2
+
+  SecondResourceInOriginal:
+    Type: AWS::SQS::Queue
+
+  WithoutExtension:
+    Type: !Rain::Module "./composite.yaml"
+    Properties:
+      AName: "AAA"
+      BName: "BBB"
+
