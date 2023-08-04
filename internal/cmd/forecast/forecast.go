@@ -7,10 +7,13 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
+	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
+	"github.com/aws-cloudformation/rain/internal/aws/iam"
 	"github.com/aws-cloudformation/rain/internal/cmd/deploy"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
@@ -44,6 +47,12 @@ var tags []string
 // The optional path to a file that contains params (--config)
 var configFilePath string
 
+type Env struct {
+	partition string
+	region    string
+	account   string
+}
+
 // Input to forecast prediction functions
 type PredictionInput struct {
 	source      cft.Template
@@ -54,6 +63,8 @@ type PredictionInput struct {
 	stack       types.Stack
 	typeName    string
 	dc          *dc.DeployConfig
+	env         Env
+	roleArn     string
 }
 
 // The current line number in the template
@@ -219,6 +230,20 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 		input.stack = stack
 		input.typeName = typeName
 		input.dc = dc
+		cfg := aws.Config()
+		callerArn, err := iam.GetCallerArn(cfg) // arn:aws:iam::755952356119:role/Admin
+		if err != nil {
+			panic("unable to get caller arn")
+		}
+		arnTokens := strings.Split(callerArn, ":")
+		if len(arnTokens) != 6 {
+			panic(fmt.Sprintf("unexpected number of tokens in caller arn: %v", callerArn))
+		}
+		input.env = Env{partition: arnTokens[1], region: cfg.Region, account: arnTokens[4]}
+		input.roleArn = RoleArn
+		if input.roleArn == "" {
+			input.roleArn = callerArn
+		}
 
 		forecast.Append(forecastForType(input))
 	}
