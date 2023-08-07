@@ -767,8 +767,10 @@ func GetTypeSchema(name string) (string, error) {
 	return *res.Schema, nil
 }
 
-// Get the list of action required to invoke a CloudFormation handler
+// Get the list of actions required to invoke a CloudFormation handler
 func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
+
+	// TODO - Use a generator to store this data in the code
 	schema, err := GetTypeSchema(name)
 
 	if err != nil {
@@ -785,12 +787,74 @@ func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
 	           "s3:PutBucketTagging",
 
 	*/
-	handlers := result["handlers"].(map[string]any)
+
+	config.Debugf("GetTypePermissions result: %v", result)
+
+	retval := make([]string, 0)
+
+	handlerMap, exists := result["handlers"]
+	if !exists {
+		// Resources that have not been fully migrated to the registry won't have this.
+		// AWS::EC2::Instance.
+		// This is a best guess.. don't think legacy resource permissions are documented anywhere
+		if name == "AWS::EC2::Instance" {
+			handlerMap = map[string]any{
+				"create": map[string]any{
+					"permissions": []any{
+						"ec2:AttachVolume",
+						"ec2:CreateTags",
+						"ec2:RunInstances",
+						"ec2:StartInstances",
+					},
+				},
+				"read": map[string]any{
+					"permissions": []any{
+						"ec2:DescribeInstanceAttribute",
+						"ec2:DescribeInstanceStatus",
+						"ec2:DescribeInstances",
+						"ec2:DescribeTags",
+					},
+				},
+				"update": map[string]any{
+					"permissions": []any{
+						"ec2:AttachVolume",
+						"ec2:CreateTags",
+						"ec2:DeleteTags",
+						"ec2:DescribeInstanceAttribute",
+						"ec2:DescribeInstanceStatus",
+						"ec2:DescribeInstances",
+						"ec2:DescribeTags",
+						"ec2:DetachVolume",
+						"ec2:ModifyInstanceAttribute",
+						"ec2:StartInstances",
+						"ec2:StopInstances",
+						"ec2:TerminateInstances",
+					},
+				},
+				"delete": map[string]any{
+					"permissions": []any{
+						"ec2:DeleteTags",
+						"ec2:DescribeInstanceAttribute",
+						"ec2:DescribeInstanceStatus",
+						"ec2:DescribeInstances",
+						"ec2:DescribeTags",
+						"ec2:DetachVolume",
+						"ec2:StopInstances",
+						"ec2:TerminateInstances",
+					},
+				},
+			}
+		} else {
+			// Return an empty array
+			config.Debugf("No data on what permissions are required for %v", name)
+			return retval, nil
+		}
+	}
+	handlers := handlerMap.(map[string]any)
 	handler := handlers[handlerVerb].(map[string]any)
 	config.Debugf("handler: %v", handler)
 	permissions := handler["permissions"].([]interface{})
 	config.Debugf("Got permissions for %v %v: %v", name, handlerVerb, permissions)
-	retval := make([]string, 0)
 	for _, p := range permissions {
 		if p == "iam:PassRole" {
 			// This will fail even for admin roles, and is not actually necessary
