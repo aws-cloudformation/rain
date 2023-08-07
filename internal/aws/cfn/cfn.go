@@ -55,6 +55,8 @@ var liveStatuses = []types.StackStatus{
 
 const WAIT_PERIOD_IN_SECONDS = 2
 
+var Schemas map[string]string
+
 func checkTemplate(template cft.Template) (string, error) {
 	templateBody := format.String(template, format.Options{})
 
@@ -758,21 +760,26 @@ func WaitUntilStackCreateComplete(stackName string) error {
 
 // Get the schema for a CloudFormation resource type
 func GetTypeSchema(name string) (string, error) {
-	res, err := getClient().DescribeType(context.Background(), &cloudformation.DescribeTypeInput{
-		Type: "RESOURCE", TypeName: &name,
-	})
-	if err != nil {
-		return "", nil
+	schema, exists := Schemas[name]
+	if exists {
+		return schema, nil
+	} else {
+		res, err := getClient().DescribeType(context.Background(), &cloudformation.DescribeTypeInput{
+			Type: "RESOURCE", TypeName: &name,
+		})
+		if err != nil {
+			return "", err
+		}
+		Schemas[name] = *res.Schema
+		return schema, nil
 	}
-	return *res.Schema, nil
 }
 
 // Get the list of actions required to invoke a CloudFormation handler
 func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
 
-	// TODO - Use a generator to store this data in the code
+	// Get the schema, checking to see if we cached it
 	schema, err := GetTypeSchema(name)
-
 	if err != nil {
 		return nil, err
 	}
@@ -1001,4 +1008,8 @@ func ResourceAlreadyExists(
 	}
 
 	return false
+}
+
+func init() {
+	Schemas = make(map[string]string)
 }
