@@ -298,7 +298,7 @@ Resource-specific checks:
 - S3 bucket policy has an invalid principal
 - (Many more to come...)
 `,
-	Args:                  cobra.ExactArgs(2),
+	Args:                  cobra.RangeArgs(1, 2),
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		fn := args[0]

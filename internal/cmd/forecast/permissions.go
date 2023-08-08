@@ -54,6 +54,9 @@ func checkTypePermissions(input PredictionInput, resourceArn string, verb string
 		actionsToRemove = append(actionsToRemove, "iam:DeleteRolePolicy")
 		actionsToRemove = append(actionsToRemove, "iam:DeleteUserPolicy")
 		actionsToRemove = append(actionsToRemove, "iam:DeleteGroupPolicy")
+		actionsToRemove = append(actionsToRemove, "iam:GetRolePolicy")
+		actionsToRemove = append(actionsToRemove, "iam:GetUserPolicy")
+		actionsToRemove = append(actionsToRemove, "iam:GetGroupPolicy")
 	}
 
 	// Make a new slice with the actions we care about
