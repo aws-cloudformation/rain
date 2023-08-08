@@ -886,14 +886,68 @@ func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
 					},
 				},
 			}
+		} else if name == "AWS::Lambda::Version" {
+			handlerMap = map[string]any{
+				"create": map[string]any{
+					"permissions": []any{
+						"lambda:GetFunctionConfiguration",
+						"lambda:CreateFunction",
+						"lambda:GetFunction",
+						"lambda:PutFunctionConcurrency",
+						"lambda:GetCodeSigningConfig",
+						"lambda:GetFunctionCodeSigningConfig",
+						"lambda:GetRuntimeManagementConfig",
+						"lambda:PutRuntimeManagementConfig",
+					},
+				},
+				"read": map[string]any{
+					"permissions": []any{
+						"lambda:GetFunctionConfiguration",
+						"lambda:GetFunction",
+						"lambda:GetFunctionCodeSigningConfig",
+					},
+				},
+				"update": map[string]any{
+					"permissions": []any{
+						"lambda:GetFunctionConfiguration",
+						"lambda:DeleteFunctionConcurrency",
+						"lambda:GetFunction",
+						"lambda:PutFunctionConcurrency",
+						"lambda:ListTags",
+						"lambda:TagResource",
+						"lambda:UntagResource",
+						"lambda:UpdateFunctionConfiguration",
+						"lambda:UpdateFunctionCode",
+						"lambda:PutFunctionCodeSigningConfig",
+						"lambda:DeleteFunctionCodeSigningConfig",
+						"lambda:GetCodeSigningConfig",
+						"lambda:GetFunctionCodeSigningConfig",
+						"lambda:GetRuntimeManagementConfig",
+						"lambda:PutRuntimeManagementConfig",
+					},
+				},
+				"delete": map[string]any{
+					"permissions": []any{
+						"lambda:GetFunctionConfiguration",
+						"lambda:DeleteFunction",
+					},
+				},
+			}
 		} else {
 			// Return an empty array
 			config.Debugf("No data on what permissions are required for %v", name)
 			return retval, nil
 		}
 	}
+	config.Debugf("handlerMap: %v", handlerMap)
 	handlers := handlerMap.(map[string]any)
-	handler := handlers[handlerVerb].(map[string]any)
+	handlerVerbMap, exists := handlers[handlerVerb]
+	if !exists {
+		config.Debugf("handler verb is missing: %v", handlerVerb)
+		// Some resources can't be updated, for example
+		return retval, nil
+	}
+	handler := handlerVerbMap.(map[string]any)
 	config.Debugf("handler: %v", handler)
 	permissions := handler["permissions"].([]interface{})
 	config.Debugf("Got permissions for %v %v: %v", name, handlerVerb, permissions)

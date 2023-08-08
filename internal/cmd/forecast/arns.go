@@ -25,32 +25,21 @@ func predictResourceArn(input PredictionInput) string {
 	// Make up an id if it doesn't exist yet
 	physicalId := fmt.Sprintf("rain-%v", uuid.New())
 
-	// TODO - Get the physical ID from the template if it was specified
-	// there but the stack has not yet been deployed.
-	// Will need to re-use code that parses the registry schema and
-	// figures out what the physical id is.
-
 	if input.stackExists {
+
+		config.Debugf("predictResourceArn stack exists")
+
 		res, err := cfn.GetStackResource(input.stackName, input.logicalId)
-		if err != nil {
+		if err == nil {
 			// The resource exists
 			physicalId = *res.PhysicalResourceId
 
+			// This physical id is not super useful
+			// It's often an internal id that is not part of the arn
+
 			config.Debugf("predictResourceArn physicalId: %v", physicalId)
-		}
-	} else {
-		// Get the primary identifier from the schema
-		primaryIdentifier, err := cfn.GetTypeIdentifier(input.typeName)
-		if err != nil {
-			config.Debugf("Unable to get primary identifier for %v: %v",
-				input.typeName, err)
-			return "" // TODO - return an error?
-		}
-		vals := cfn.GetPrimaryIdentifierValues(primaryIdentifier,
-			input.resource, input.source.Node, input.dc)
-		if vals != nil && len(vals) > 0 {
-			// TODO
-			// How do multiple values translate to PhysicalId?
+		} else {
+			config.Debugf("predictResourceArn got an error trying to get stack resource: %v", err)
 		}
 	}
 
@@ -342,12 +331,62 @@ func predictResourceArn(input PredictionInput) string {
 				node.ToJson(input.resource))
 			return ""
 		}
+		fn := functionName.Value
+		if fn == "" {
+			fn = physicalId
+			if fn == "" {
+				fn = "function-name"
+			}
+		}
 		return fmt.Sprintf("arn:%v:lambda:%v:%v:function:%v:%v",
 			input.env.partition, input.env.region, input.env.account,
-			functionName.Value, name.Value)
+			fn, name.Value)
+	case "AWS::Lambda::CodeSigningConfig":
+		// arn:${Partition}:lambda:${Region}:${Account}:code-signing-config:${CodeSigningConfigId}
+		return colonFormat("lambda", "code-signing-config", input, physicalId)
+	case "AWS::Lambda::EventInvokeConfig":
+		return ""
+	case "AWS::Lambda::EventSourceMapping":
+		// arn:${Partition}:lambda:${Region}:${Account}:event-source-mapping:${UUID}
+		return colonFormat("lambda", "event-source-mapping", input, physicalId)
 	case "AWS::Lambda::Function":
 		// arn:${Partition}:lambda:${Region}:${Account}:function:${FunctionName}
 		return colonFormat("lambda", "function", input, physicalId)
+	case "AWS::Lambda::LayerVersion":
+		// arn:${Partition}:lambda:${Region}:${Account}:layer:${LayerName}:${LayerVersion}
+		return fmt.Sprintf("arn:%v:lambda:%v:%v:layer:%v:%v",
+			input.env.partition, input.env.region, input.env.account,
+			"layername", "1") // TODO - Layer Name is not required so it might not be on the template
+	case "AWS::Lambda::LayerVersionPermission":
+		return ""
+	case "AWS::Lambda::Permission":
+		return ""
+	case "AWS::Lambda::Url":
+		return ""
+	case "AWS::Lambda::Version":
+		// arn:${Partition}:lambda:${Region}:${Account}:function:${FunctionName}:${Version}
+		_, props := s11n.GetMapValue(input.resource, "Properties")
+		if props == nil {
+			config.Debugf("unexpected, AWS::Lambda::Version props are nil: %v",
+				node.ToJson(input.resource))
+			return ""
+		}
+		_, functionName := s11n.GetMapValue(props, "FunctionName")
+		if functionName == nil {
+			config.Debugf("unexpected, AWS::Lambda::Version FunctionName is nil: %v",
+				node.ToJson(input.resource))
+			return ""
+		}
+		fn := functionName.Value
+		if fn == "" {
+			fn = physicalId
+			if fn == "" {
+				fn = "function-name"
+			}
+		}
+		return fmt.Sprintf("arn:%v:lambda:%v:%v:function:%v:%v",
+			input.env.partition, input.env.region, input.env.account,
+			fn, "1")
 	default:
 		return ""
 	}

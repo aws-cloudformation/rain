@@ -259,7 +259,7 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 		}
 		return false
 	} else {
-		fmt.Println("Clear skies! 🌤  All", forecast.GetNumChecked(), "checks passed.")
+		fmt.Println("Clear skies! 🌞 All", forecast.GetNumChecked(), "checks passed.")
 		return true
 	}
 
