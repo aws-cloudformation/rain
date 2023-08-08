@@ -27,6 +27,10 @@ func checkTypePermissions(input PredictionInput, resourceArn string, verb string
 	// schema also includes permissions for related services.
 	// For example, the create permissions on a lambda function include s3:GetObject,
 	// and we don't know what the arn would be.
+	// This means we are not checking everything that could go wrong.
+	// TODO - Is there a way we can figure out the arns for related services?
+	// This would likely not be practical in a generic way,
+	// but it's something we should eventually add to custom handling for each service.
 	svcLower := strings.ToLower(strings.Split(input.typeName, "::")[1])
 	actionsToRemove := make([]string, 0)
 	for _, action := range actions {
@@ -37,9 +41,19 @@ func checkTypePermissions(input PredictionInput, resourceArn string, verb string
 	}
 
 	// Exceptions
+	// Sometimes the registry documents actions that the resource type
+	// might need in some situations, but these checks will fail under
+	// other circumstances, and it's not easy to know when they are relevant.
 	if svcLower == "lambda" {
-		// Don't know why this fails
 		actionsToRemove = append(actionsToRemove, "lambda:GetCodeSigningConfig")
+	}
+	if input.typeName == "AWS::IAM::Policy" {
+		actionsToRemove = append(actionsToRemove, "iam:PutUserPolicy")
+		actionsToRemove = append(actionsToRemove, "iam:PutRolePolicy")
+		actionsToRemove = append(actionsToRemove, "iam:PutGroupPolicy")
+		actionsToRemove = append(actionsToRemove, "iam:DeleteRolePolicy")
+		actionsToRemove = append(actionsToRemove, "iam:DeleteUserPolicy")
+		actionsToRemove = append(actionsToRemove, "iam:DeleteGroupPolicy")
 	}
 
 	// Make a new slice with the actions we care about

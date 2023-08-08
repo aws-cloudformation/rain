@@ -354,9 +354,26 @@ func predictResourceArn(input PredictionInput) string {
 		return colonFormat("lambda", "function", input, physicalId)
 	case "AWS::Lambda::LayerVersion":
 		// arn:${Partition}:lambda:${Region}:${Account}:layer:${LayerName}:${LayerVersion}
+		_, props := s11n.GetMapValue(input.resource, "Properties")
+		if props == nil {
+			config.Debugf("unexpected, AWS::Lambda::Alias props are nil: %v",
+				node.ToJson(input.resource))
+			return ""
+		}
+		_, layerNameProp := s11n.GetMapValue(props, "LayerName")
+		layerName := ""
+		if layerNameProp != nil {
+			layerName = layerNameProp.Value
+		}
+		if layerName == "" {
+			layerName = physicalId
+			if layerName == "" {
+				layerName = "layername"
+			}
+		}
 		return fmt.Sprintf("arn:%v:lambda:%v:%v:layer:%v:%v",
 			input.env.partition, input.env.region, input.env.account,
-			"layername", "1") // TODO - Layer Name is not required so it might not be on the template
+			layerName, "1")
 	case "AWS::Lambda::LayerVersionPermission":
 		return ""
 	case "AWS::Lambda::Permission":
@@ -387,6 +404,49 @@ func predictResourceArn(input PredictionInput) string {
 		return fmt.Sprintf("arn:%v:lambda:%v:%v:function:%v:%v",
 			input.env.partition, input.env.region, input.env.account,
 			fn, "1")
+	case "AWS::IAM::AccessKey":
+		return ""
+	case "AWS::IAM::Group":
+		// arn:${Partition}:iam::${Account}:group/${GroupNameWithPath}
+		return globalFormat("iam", "group", input, physicalId)
+	case "AWS::IAM::GroupPolicy":
+		// arn:${Partition}:iam::${Account}:policy/${PolicyNameWithPath}
+		return globalFormat("iam", "policy", input, physicalId)
+	case "AWS::IAM::InstanceProfile":
+		// arn:${Partition}:iam::${Account}:instance-profile/${InstanceProfileNameWithPath}
+		return globalFormat("iam", "instance-profile", input, physicalId)
+	case "AWS::IAM::ManagedPolicy":
+		// arn:${Partition}:iam::${Account}:policy/${PolicyNameWithPath}
+		return globalFormat("iam", "policy", input, physicalId)
+	case "AWS::IAM::OIDCProvider":
+		// arn:${Partition}:iam::${Account}:oidc-provider/${OidcProviderName}
+		return globalFormat("iam", "oidc-provider", input, physicalId)
+	case "AWS::IAM::Policy":
+		// arn:${Partition}:iam::${Account}:policy/${PolicyNameWithPath}
+		return globalFormat("iam", "policy", input, physicalId)
+	case "AWS::IAM::Role":
+		// arn:${Partition}:iam::${Account}:role/${RoleNameWithPath}
+		return globalFormat("iam", "role", input, physicalId)
+	case "AWS::IAM::RolePolicy":
+		return ""
+	case "AWS::IAM::SAMLProvider":
+		// arn:${Partition}:iam::${Account}:saml-provider/${SamlProviderName}
+		return globalFormat("iam", "saml-provider", input, physicalId)
+	case "AWS::IAM::ServerCertificate":
+		// arn:${Partition}:iam::${Account}:server-certificate/${CertificateNameWithPath}
+		return globalFormat("iam", "server-provider", input, physicalId)
+	case "AWS::IAM::ServiceLinkedRole":
+		return ""
+	case "AWS::IAM::User":
+		// arn:${Partition}:iam::${Account}:user/${UserNameWithPath}
+		return globalFormat("iam", "user", input, physicalId)
+	case "AWS::IAM::UserPolicy":
+		// arn:${Partition}:iam::${Account}:policy/${PolicyNameWithPath}
+		return globalFormat("iam", "policy", input, physicalId)
+	case "AWS::IAM::UserToGroupAddition":
+		return ""
+	case "AWS::IAM::VirtualMFADevice":
+		return ""
 	default:
 		return ""
 	}
@@ -406,4 +466,12 @@ func standardFormat(service string, subType string, input PredictionInput, physi
 func colonFormat(service string, subType string, input PredictionInput, physicalId string) string {
 	return fmt.Sprintf("arn:%v:%v:%v:%v:%v:%v",
 		input.env.partition, service, input.env.region, input.env.account, subType, physicalId)
+}
+
+// GlobalFormat returns an arn that fits IAM and other non-regional services
+// for example
+// arn:${Partition}:iam::${Account}:group/${GroupNameWithPath}
+func globalFormat(service string, subType string, input PredictionInput, physicalId string) string {
+	return fmt.Sprintf("arn:%v:%v::%v:%v:%v",
+		input.env.partition, service, input.env.account, subType, physicalId)
 }
