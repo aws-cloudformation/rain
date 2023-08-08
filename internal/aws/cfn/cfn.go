@@ -762,16 +762,19 @@ func WaitUntilStackCreateComplete(stackName string) error {
 func GetTypeSchema(name string) (string, error) {
 	schema, exists := Schemas[name]
 	if exists {
+		config.Debugf("Already downloaded schema for %v", name)
 		return schema, nil
 	} else {
+		config.Debugf("Downloading schema for %v", name)
 		res, err := getClient().DescribeType(context.Background(), &cloudformation.DescribeTypeInput{
 			Type: "RESOURCE", TypeName: &name,
 		})
 		if err != nil {
+			config.Debugf("GetTypeSchema SDK error: %v", err)
 			return "", err
 		}
 		Schemas[name] = *res.Schema
-		return schema, nil
+		return *res.Schema, nil
 	}
 }
 
@@ -802,8 +805,8 @@ func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
 	handlerMap, exists := result["handlers"]
 	if !exists {
 		// Resources that have not been fully migrated to the registry won't have this.
-		// AWS::EC2::Instance.
 		// This is a best guess.. don't think legacy resource permissions are documented anywhere
+		// This will become dead code as soon as the permissions are available from the registry.
 		if name == "AWS::EC2::Instance" {
 			handlerMap = map[string]any{
 				"create": map[string]any{
@@ -851,6 +854,38 @@ func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
 					},
 				},
 			}
+		} else if name == "AWS::Lambda::Alias" {
+			handlerMap = map[string]any{
+				"create": map[string]any{
+					"permissions": []any{
+						"lambda:CreateAlias",
+						"lambda:GetAlias",
+						"lambda:GetFunctionConfiguration",
+					},
+				},
+				"read": map[string]any{
+					"permissions": []any{
+						"lambda:GetAlias",
+						"lambda:GetFunctionConfiguration",
+					},
+				},
+				"update": map[string]any{
+					"permissions": []any{
+						"lambda:CreateAlias",
+						"lambda:DeleteAlias",
+						"lambda:GetAlias",
+						"lambda:GetFunctionConfiguration",
+						"lambda:UpdateAlias",
+					},
+				},
+				"delete": map[string]any{
+					"permissions": []any{
+						"lambda:DeleteAlias",
+						"lambda:GetAlias",
+						"lambda:GetFunctionConfiguration",
+					},
+				},
+			}
 		} else {
 			// Return an empty array
 			config.Debugf("No data on what permissions are required for %v", name)
@@ -880,16 +915,30 @@ func GetTypeIdentifier(name string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	if schema == "" {
+		return nil, errors.New("schema is empty")
+	}
+
 	var result map[string]any
 	json.Unmarshal([]byte(schema), &result)
 
-	pi := result["primaryIdentifier"].([]interface{})
-	retval := make([]string, 0)
-	for _, pid := range pi {
-		retval = append(retval, strings.Replace(fmt.Sprintf("%v", pid), "/properties/", "", 1))
+	config.Debugf("GetTypeIdentifier schema for %s: %v", name, result)
+
+	piNode, exists := result["primaryIdentifier"]
+	if !exists {
+		// The schema does not have a primary identifier.
+		// TODO
+		config.Debugf("GetTypeIdentifier %v does not have a primaryIdentifier", name)
+		return nil, errors.New("no primary identifier")
+	} else {
+		pi := piNode.([]interface{})
+		retval := make([]string, 0)
+		for _, pid := range pi {
+			retval = append(retval, strings.Replace(fmt.Sprintf("%v", pid), "/properties/", "", 1))
+		}
+		config.Debugf("GetTypeIdentifier for %v: %v", name, retval)
+		return retval, nil
 	}
-	config.Debugf("GetTypeIdentifier for %v: %v", name, retval)
-	return retval, nil
 }
 
 // Get the values specified for primary identifiers in the template.
@@ -981,7 +1030,8 @@ func ResourceAlreadyExists(
 	if !stackExists {
 		primaryIdentifiers, err := GetTypeIdentifier(typeName)
 		if err != nil {
-			fmt.Println("Unable to get primary identifier for ", err)
+			config.Debugf("Unable to get primary identifier for %v: %v", typeName, err)
+			return false
 		} else {
 			config.Debugf("PrimaryIdentifiers: %v", primaryIdentifiers)
 

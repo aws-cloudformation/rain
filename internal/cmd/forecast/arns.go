@@ -4,6 +4,9 @@ import (
 	"fmt"
 
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
+	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/node"
+	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/google/uuid"
 )
 
@@ -32,6 +35,22 @@ func predictResourceArn(input PredictionInput) string {
 		if err != nil {
 			// The resource exists
 			physicalId = *res.PhysicalResourceId
+
+			config.Debugf("predictResourceArn physicalId: %v", physicalId)
+		}
+	} else {
+		// Get the primary identifier from the schema
+		primaryIdentifier, err := cfn.GetTypeIdentifier(input.typeName)
+		if err != nil {
+			config.Debugf("Unable to get primary identifier for %v: %v",
+				input.typeName, err)
+			return "" // TODO - return an error?
+		}
+		vals := cfn.GetPrimaryIdentifierValues(primaryIdentifier,
+			input.resource, input.source.Node, input.dc)
+		if vals != nil && len(vals) > 0 {
+			// TODO
+			// How do multiple values translate to PhysicalId?
 		}
 	}
 
@@ -302,6 +321,33 @@ func predictResourceArn(input PredictionInput) string {
 		return standardFormat("ec2", "vpn-gateway", input, physicalId)
 	case "AWS::EC2::VPNGatewayRoutePropagation":
 		return ""
+	case "AWS::Lambda::Alias":
+		// arn:${Partition}:lambda:${Region}:${Account}:function:${FunctionName}:${Alias}
+		// Get the function name and alias from the template
+		_, props := s11n.GetMapValue(input.resource, "Properties")
+		if props == nil {
+			config.Debugf("unexpected, AWS::Lambda::Alias props are nil: %v",
+				node.ToJson(input.resource))
+			return ""
+		}
+		_, functionName := s11n.GetMapValue(props, "FunctionName")
+		if functionName == nil {
+			config.Debugf("unexpected, AWS::Lambda::Alias FunctionName is nil: %v",
+				node.ToJson(input.resource))
+			return ""
+		}
+		_, name := s11n.GetMapValue(props, "Name")
+		if name == nil {
+			config.Debugf("unexpected, AWS::Lambda::Alias Name is nil: %v",
+				node.ToJson(input.resource))
+			return ""
+		}
+		return fmt.Sprintf("arn:%v:lambda:%v:%v:function:%v:%v",
+			input.env.partition, input.env.region, input.env.account,
+			functionName.Value, name.Value)
+	case "AWS::Lambda::Function":
+		// arn:${Partition}:lambda:${Region}:${Account}:function:${FunctionName}
+		return colonFormat("lambda", "function", input, physicalId)
 	default:
 		return ""
 	}
@@ -312,5 +358,13 @@ func predictResourceArn(input PredictionInput) string {
 // arn:${Partition}:ec2:${Region}:${Account}:capacity-reservation/${CapacityReservationId}
 func standardFormat(service string, subType string, input PredictionInput, physicalId string) string {
 	return fmt.Sprintf("arn:%v:%v:%v:%v:%v/%v",
+		input.env.partition, service, input.env.region, input.env.account, subType, physicalId)
+}
+
+// colonFormat returns an arn that fits the (other) standard arn format.
+// for example
+// arn:${Partition}:ec2:${Region}:${Account}:capacity-reservation:${CapacityReservationId}
+func colonFormat(service string, subType string, input PredictionInput, physicalId string) string {
+	return fmt.Sprintf("arn:%v:%v:%v:%v:%v:%v",
 		input.env.partition, service, input.env.region, input.env.account, subType, physicalId)
 }
