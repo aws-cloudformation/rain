@@ -1,0 +1,62 @@
+Resources:
+  MyFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          def handler(evt, ctx)
+            print("Hello")
+      Runtime: python3.9
+      Role: !GetAtt MyFunctionRole.Arn
+      Handler: index.handler
+
+  MyFunctionAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref MyFunction
+      Name: aaa
+      FunctionVersion: $LATEST
+
+  MyFunctionPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: lambdaexec
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource: '*'
+      Roles:
+        - !Ref MyFunctionRole
+
+  MyFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSLambdaExecute
+      Path: /
+
+  MyFunctionVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref MyFunction
+
+  MyLayer:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      Content:
+        S3Bucket: rain-artifacts-755952356119-us-east-1
+        S3Key: cec8e526ef89eb818a06d9800ac079be326db9dfcab87c1ec34c59e70fedc1b3
+

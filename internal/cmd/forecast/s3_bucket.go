@@ -2,7 +2,6 @@ package forecast
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
@@ -10,8 +9,6 @@ import (
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-
-	"github.com/google/uuid"
 )
 
 // An empty bucket cannot be deleted, which will cause a stack DELETE to fail.
@@ -60,10 +57,6 @@ func checkBucketNotEmpty(input PredictionInput, bucket *types.StackResourceDetai
 // Check everything that could go wrong with an AWS::S3::Bucket resource
 func checkS3Bucket(input PredictionInput) Forecast {
 
-	// A uuid will be used for policy silumation if the bucket does not already exist
-	bucketName := fmt.Sprintf("rain-%v", uuid.New())
-	bucketArn := ""
-
 	forecast := makeForecast(input.typeName, input.logicalId)
 
 	if input.stackExists {
@@ -86,41 +79,6 @@ func checkS3Bucket(input PredictionInput) Forecast {
 		}
 	} else {
 		config.Debugf("Stack does not exist, not checking if bucket is empty")
-	}
-
-	bucketArn = fmt.Sprintf("arn:aws:s3:::%v", bucketName)
-
-	// TODO - Can we make the permissions check generic so we can
-	// run it on all types? What if we can't predict what the arn will be?
-	// We could have a map of resource names to functions that provide the arn..
-	if !SkipIAM {
-		var ok bool
-		var reason []string
-		if input.stackExists {
-			ok, reason = checkPermissions(input, bucketArn, "update")
-			if !ok {
-				forecast.Add(false,
-					fmt.Sprintf("Insufficient permissions to update %v\n\t%v", bucketArn, strings.Join(reason, "\n\t")))
-			} else {
-				forecast.Add(true, "Role has update permissions")
-			}
-
-			ok, reason = checkPermissions(input, bucketArn, "delete")
-			if !ok {
-				forecast.Add(false,
-					fmt.Sprintf("Insufficient permissions to delete %v\n\t%v", bucketArn, strings.Join(reason, "\n\t")))
-			} else {
-				forecast.Add(true, "Role has delete permissions")
-			}
-		} else {
-			ok, reason = checkPermissions(input, bucketArn, "create")
-			if !ok {
-				forecast.Add(false,
-					fmt.Sprintf("Insufficient permissions to create %v\n\t%v", bucketArn, strings.Join(reason, "\n\t")))
-			} else {
-				forecast.Add(true, "Role has create permissions")
-			}
-		}
 	}
 
 	return forecast

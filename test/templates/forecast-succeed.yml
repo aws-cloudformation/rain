@@ -26,6 +26,24 @@ Resources:
               - !Sub "arn:${AWS::Partition}:s3:::${RetainBucket}"
               - !Sub "arn:${AWS::Partition}:s3:::${RetainBucket}/*" 
 
+  Instance1:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.micro
+      SecurityGroups: [!Ref 'Instance1SecurityGroup']
+      KeyName: abc
+      ImageId: "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+
+  Instance1SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH access via port 22
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 54.240.196.187/1
+
 
 Outputs:
 

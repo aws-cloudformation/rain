@@ -22,7 +22,7 @@ func getClient() *iam.Client {
 }
 
 // Get the role arn of the caller based on the aws config
-func getCallerArn(config awsgo.Config, iamClient *iam.Client) (string, error) {
+func GetCallerArn(config awsgo.Config) (string, error) {
 	stsClient := sts.NewFromConfig(config)
 	stsRes, stsErr := stsClient.GetCallerIdentity(context.Background(),
 		&sts.GetCallerIdentityInput{})
@@ -47,7 +47,12 @@ func getCallerArn(config awsgo.Config, iamClient *iam.Client) (string, error) {
 
 // Simulate actions on a resource.
 // The role arg is optional, if not provided, the current aws config will be used.
-func Simulate(actions []string, resource string, roleArn string, spinnerCallback func(string)) (bool, []string) {
+func Simulate(
+	actions []string,
+	resource string,
+	roleArn string,
+	spinnerCallback func(string)) (bool, []string) {
+
 	awsConfig := aws.Config()
 	client := iam.NewFromConfig(awsConfig)
 	input := &iam.SimulatePrincipalPolicyInput{}
@@ -55,15 +60,6 @@ func Simulate(actions []string, resource string, roleArn string, spinnerCallback
 
 	messages := make([]string, 0)
 
-	var err error
-	if roleArn == "" {
-		roleArn, err = getCallerArn(awsConfig, client)
-		if err != nil {
-			messages = append(messages, fmt.Sprintf("Could not get caller arn: %v", err))
-			return false, messages
-		}
-	}
-	config.Debugf("Caller role arn: %v", roleArn)
 	input.PolicySourceArn = &roleArn
 
 	// Return value
