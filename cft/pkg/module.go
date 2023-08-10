@@ -701,8 +701,7 @@ func module(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bo
 
 	// Transform
 	parse.TransformNode(&moduleNode)
-	// TODO: I think this allows us to nest modules. Test it.
-	_, err = transform(&moduleNode, filepath.Dir(path), t)
+	_, err = transform(&moduleNode, filepath.Dir(path), t, &parent)
 	if err != nil {
 		return false, err
 	}
