@@ -149,26 +149,18 @@ func includeS3Object(n *yaml.Node, root string, t cft.Template, parent node.Node
 	// and the Ref points to one of the properties set in the parent template
 	_, pathOption := s11n.GetMapValue(n.Content[1], "Path")
 	if pathOption != nil && pathOption.Kind == yaml.MappingNode {
-		config.Debugf("includeS3Object Path is a map: %v", node.ToJson(pathOption))
 		if pathOption.Content[0].Value == "Ref" {
-			// If this S3 directive is embedded in a module, we need to look at the
-			// resource in the parent template and get the Property with the same name
-			config.Debugf("Path Ref %v, root is %v, parent.Key: %v, parent.Value: %v",
-				pathOption.Content[1].Value, root, node.ToJson(parent.Key), node.ToJson(parent.Value))
-			// How do we get a reference to the parent template resource?
-			config.Debugf("t is %v", node.ToJson(t.Node))
-			// t is the parent template that references the module, but we don't know
-			// what resource within the template to reference
 			if parent.Parent != nil {
-				config.Debugf("parent.Parent is not nil: Key: %v, Value: %v",
-					node.ToJson(parent.Parent.Key), node.ToJson(parent.Parent.Value))
 				moduleParentMap := parent.Parent.Value
 				_, moduleParentProps := s11n.GetMapValue(moduleParentMap, "Properties")
 				if moduleParentProps != nil {
 					_, pathProp := s11n.GetMapValue(moduleParentProps, pathOption.Content[1].Value)
-					// Replace the Ref with the value
-					node.SetMapValue(n.Content[1], "Path", node.Clone(pathProp))
-					config.Debugf("After replacing path node, options: %v", node.ToJson(n.Content[1]))
+					if pathProp != nil {
+						// Replace the Ref with the value
+						node.SetMapValue(n.Content[1], "Path", node.Clone(pathProp))
+					} else {
+						config.Debugf("expected Properties to have Path")
+					}
 				} else {
 					config.Debugf("expected parent resource to have Properties")
 				}
@@ -182,8 +174,6 @@ func includeS3Object(n *yaml.Node, root string, t cft.Template, parent node.Node
 	if err != nil {
 		return false, err
 	}
-
-	config.Debugf("includeS3Object options: %v", options)
 
 	newNode, err := handleS3(root, options)
 	if err != nil {
