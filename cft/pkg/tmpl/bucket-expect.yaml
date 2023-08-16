@@ -1,0 +1,41 @@
+Resources:
+  ModuleExample:
+    DeletionPolicy: !Ref RetentionPolicy
+    UpdateReplacePolicy: Delete
+    Type: AWS::S3::Bucket
+    Metadata: {}
+    Properties:
+      LoggingConfiguration:
+        DestinationBucketName: !Ref ModuleExampleLogBucket
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: test-tag
+          Value: test-value2
+      VersioningConfiguration:
+        Status: Enabled
+
+  ModuleExampleLogBucket:
+    DeletionPolicy: Retain
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: test-module-log-bucket
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+

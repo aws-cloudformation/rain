@@ -38,14 +38,16 @@ import (
 // Must be set to true to enable !Rain::Module
 var Experimental bool
 
-func transform(nodeToTransform *yaml.Node, rootDir string, t cft.Template) (bool, error) {
+func transform(nodeToTransform *yaml.Node, rootDir string, t cft.Template, parent *node.NodePair) (bool, error) {
 	changed := false
 
 	// registry is a map of functions defined in rain.go
 	for path, fn := range registry {
 		for found := range s11n.MatchAll(nodeToTransform, path) {
-			parent := node.GetParent(found, nodeToTransform, nil)
-			c, err := fn(found, rootDir, t, parent)
+			config.Debugf("transform path: %v", path)
+			nodeParent := node.GetParent(found, nodeToTransform, nil)
+			nodeParent.Parent = parent
+			c, err := fn(found, rootDir, t, nodeParent)
 			if err != nil {
 				config.Debugf("Error packaging template: %s\n", err)
 				return false, err
@@ -67,7 +69,7 @@ func Template(t cft.Template, rootDir string) (cft.Template, error) {
 	// j, _ := json.MarshalIndent(t.Node, "", "  ")
 	// config.Debugf("Original template: %v", string(j))
 
-	changed, err := transform(templateNode, rootDir, t)
+	changed, err := transform(templateNode, rootDir, t, nil)
 
 	// j, _ = json.MarshalIndent(templateNode, "", "  ")
 	// config.Debugf("Transformed template: %v", string(j))

@@ -24,6 +24,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
@@ -204,6 +205,21 @@ func expectFile(n *yaml.Node, root string) ([]byte, string, error) {
 	content, err := os.ReadFile(path)
 
 	return content, path, err
+}
+
+// Convert a comma delimted string to a sequence node
+func ConvertCsvToSequence(csv string) *yaml.Node {
+	retval := &yaml.Node{
+		Kind:    yaml.SequenceNode,
+		Tag:     "!!seq",
+		Content: make([]*yaml.Node, 0),
+	}
+	tokens := strings.Split(csv, ",")
+	for _, t := range tokens {
+		retval.Content = append(retval.Content,
+			&yaml.Node{Kind: yaml.ScalarNode, Value: strings.TrimSpace(t)})
+	}
+	return retval
 }
 
 /*

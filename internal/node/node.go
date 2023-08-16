@@ -12,6 +12,9 @@ import (
 type NodePair struct {
 	Key   *yaml.Node
 	Value *yaml.Node
+
+	// Parent is used by modules to reference the parent template resource
+	Parent *NodePair
 }
 
 // Clone returns a copy of the provided node
@@ -61,12 +64,12 @@ func Clone(node *yaml.Node) *yaml.Node {
 func GetParent(node *yaml.Node, rootNode *yaml.Node, priorNode *yaml.Node) NodePair {
 	if node == rootNode {
 		config.Debugf("getParent node and rootNode are the same")
-		return NodePair{node, node}
+		return NodePair{Key: node, Value: node}
 	}
 
 	if node == nil {
 		config.Debugf("node is nil")
-		return NodePair{nil, nil}
+		return NodePair{nil, nil, nil}
 	}
 
 	var found *yaml.Node

@@ -64,22 +64,336 @@ The `README.md`, documentation in `docs/`, the auto completion scripts and a cop
 
 Rain is licensed under the Apache 2.0 License. 
 
----
+## Example Usage
+
+### Packaging
+
+The `rain pkg` command can be used as a replacement for the `aws cloudformation
+package` CLI command.  When packaging a template, `rain` looks for specific
+directives to appear in resources.
+
+#### Embed
+
+The `!Rain::Embed` directive simply inserts the contents of a file into the template as a string.
+
+The template:
+
+```yaml
+Resources:
+  Test:
+    Type: AWS::CloudFormation:WaitHandle
+    Metadata:
+      Comment: !Rain::Embed embed.txt
+```
+The contents of `embed.txt`, which is in the same directory as the template:
+
+```txt
+This is a test
+```
+
+The resulting packaged template:
+
+```yaml
+Resources:
+  Test:
+    Type: AWS::CloudFormation:WaitHandle
+    Metadata:
+      Comment: This is a test
+```
+
+#### Include
+
+The `!Rain::Include` directive parses a YAML or JSON file and inserts the object into the template.
+
+The template:
+
+```yaml
+Resources:
+  Test:
+    !Rain::Include include-file.yaml
+```
+
+The file to be included:
+
+```yaml
+Type: AWS::S3::Bucket
+Properties:
+  BucketName: test
+```
+
+The resulting packaged template:
+
+```yaml
+Resources:
+  Test:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: test
+```
+
+#### Env
+
+The `!Rain::Env` directive reads environment variables and inserts them into the template as strings.
+
+The template:
+
+```yaml
+Resources:
+  Test:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Rain::Env BUCKET_NAME
+```
+
+The resulting packaged template, if you have exported an environment variable named `BUCKET_NAME` with value `abc`:
+
+```yaml
+Resources:
+  Test:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: abc
+```
+
+#### S3Http
+
+The `!Rain::S3Http` directive uploads a file or directory to S3 and inserts the
+HTTPS URL into the template as a string.
+
+The template:
+
+```yaml
+Resources:
+  Test:
+    Type: A::B::C
+    Properties:
+      TheS3URL: !Rain::S3Http s3http.txt
+```
+
+If you have a file called `s3http.txt` in the same directory as the template,
+rain will use your current default profile to upload the file to the artifact
+bucket that rain creates as a part of bootstrapping. If the path provided is a 
+directory and not a file, the directory will be zipped first.
+
+```yaml
+Resources:
+  Test:
+    Type: A::B::C
+    Properties:
+      TheS3URL: https://rain-artifacts-012345678912-us-east-1.s3.us-east-1.amazonaws.com/a84b588aa54068ed4b027b6e06e5e0bb283f83cf0d5a6720002d36af2225dfc3
+```
+
+#### S3 
+
+The `!Rain::S3` directive is basically the same as `S3Http`, but it inserts the S3 URI instead of an HTTPS URL.
+
+The template:
+
+```yaml
+Resources:
+  Test:
+    Type: A::B::C
+    Properties:
+      TheS3URI: !Rain::S3 s3.txt
+```
+
+If you have a file called `s3.txt` in the same directory as the template,
+rain will use your current default profile to upload the file to the artifact
+bucket that rain creates as a part of bootstrapping. If the path provided is a 
+directory and not a file, the directory will be zipped first.
+
+```yaml
+Resources:
+  Test:
+    Type: A::B::C
+    Properties:
+      TheS3URI: s3://rain-artifacts-755952356119-us-east-1/a84b588aa54068ed4b027b6e06e5e0bb283f83cf0d5a6720002d36af2225dfc3 
+```
+
+If instead of providing a path to a file, you supply an object with properties, you can exercise more control over how the object is uploaded to S3. The following example is a common pattern for uploading Lambda function code.
+
+```yaml
+Resources:
+  MyFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code: !Rain::S3 
+        Path: lambda-src 
+        Zip: true
+        BucketProperty: S3Bucket
+        KeyProperty: S3Key
+```
+
+The packaged template:
+
+```yaml
+Resources:
+  MyFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: rain-artifacts-012345678912-us-east-1
+        S3Key: 1b4844dacc843f09941c11c94f80981d3be8ae7578952c71e875ef7add37b1a7
+```
+
+#### Module
+
+The `!Rain::Module` directive is an experimental feature that allows you to
+create local modules of reuseable code that can be inserted into templates. A
+rain module is similar in some ways to a CDK construct, in that a module can
+extend an existing resource, allowing the user of the module to override
+properties. For example, your module could extend an S3 bucket to provide a
+default implementation that passes static security scans. Users of the module
+would inherit these best practices by default, but they would still have the
+ability to configure any of the original properties on `AWS::S3::Bucket`, in
+addition to the properties defined as module parameters.
+
+In order to use this feature, you have to acknowledge that it's experimental by
+adding a flag on the command line:
+
+`rain pkg -x my-template.yaml`
+
+Keep in mind that with new versions of rain, this functionality could change,
+so use caution if you decide to use this feature for production applications.
+The `rain pkg` command does not actually deploy any resources if the template
+does not upload any objects to S3, so you always have a chance to review the
+packaged template. It's recommended to run linters and scanners on the packaged
+template, rather than a pre-processed template that makes use of these advanced
+directives.
+
+A sample module:
+
+```yaml
+Description: |
+  This module extends AWS::S3::Bucket
+
+Parameters:
+  LogBucketName:
+    Type: String
+
+Resources:
+  ModuleExtension:
+    Metadata:
+      Extends: AWS::S3::Bucket
+    Properties:
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LogBucket
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+             SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: test-tag
+          Value: test-value1
+  
+  LogBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Ref LogBucketName
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+```
+
+A module must include a resource called `ModuleExtension`, and it must indicate 
+which resource it is extending with a Metadata entry called `Extends`.
+
+Note that we defined a single parameter to the module called `LogBucketName`.
+In the module, we create an additional bucket to hold logs, and we apply the
+name to that bucket. In the template that uses the module, we specify that name
+as a property. This shows how we have extended the basic behavior of a bucket
+to add something new. 
+
+A template that uses the module:
+
+```yaml
+Resources:
+  ModuleExample:
+    Type: !Rain::Module "./bucket-module.yaml"
+    UpdateReplacePolicy: Delete
+    Properties:
+      LogBucketName: test-module-log-bucket
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: test-tag
+          Value: test-value2
+```
+
+Note that in addition to supplying the expected `LogBucketName` property, we have also 
+decided to override a few of the properties on the underlying `AWS::S3::Bucket` resource, 
+which shows the flexibility of the inheritance model.
+
+The resulting template after running `rain pkg`:
+
+```yaml
+Resources:
+  ModuleExample:
+    Type: AWS::S3::Bucket
+    Properties:
+      LoggingConfiguration:
+        DestinationBucketName: !Ref ModuleExampleLogBucket
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: test-tag
+          Value: test-value2
+      VersioningConfiguration:
+        Status: Enabled
+
+  ModuleExampleLogBucket:
+    DeletionPolicy: Retain
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: test-module-log-bucket
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+```
 
 ## Other CloudFormation tools
-
-In alphabetical order:
 
 * [cfn-lint](https://github.com/aws-cloudformation/cfn-python-lint)
 
     Validate CloudFormation yaml/json templates against the CloudFormation spec and additional checks. Includes checking valid values for resource properties and best practices.
 
-* [cfn-nag](https://github.com/stelligent/cfn_nag)
+* [cfn-guard](https://docs.aws.amazon.com/cfn-guard/latest/ug/what-is-guard.html)
 
-    The cfn-nag tool looks for patterns in CloudFormation templates that may indicate insecure infrastructure.
+    Guard is a policy evaluation tool that allows you to build your own rules with a custom DSL. You can also pull rules from the 
+    [guard registry](https://github.com/aws-cloudformation/aws-guard-rules-registry) to scan your templates for resources that don't comply with common best practices.
 
 * [taskcat](https://github.com/aws-quickstart/taskcat)
 
     taskcat is a tool that tests AWS CloudFormation templates. It deploys your AWS CloudFormation template in multiple AWS Regions and generates a report with a pass/fail grade for each region. You can specify the regions and number of Availability Zones you want to include in the test, and pass in parameter values from your AWS CloudFormation template. taskcat is implemented as a Python class that you import, instantiate, and run.
 
 Are we missing an excellent tool? Let us know via a GitHub issue.
+

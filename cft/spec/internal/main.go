@@ -199,6 +199,7 @@ func patchSamSpec(s spec.Spec) {
 	s.ResourceTypes["AWS::Serverless::HttpApi"].Properties["RouteSettings"].Type = "AWS::ApiGatewayV2::Stage.RouteSettings"
 	s.ResourceTypes["AWS::Serverless::SimpleTable"].Properties["ProvisionedThroughput"].Type = "AWS::DynamoDB::Table.ProvisionedThroughput"
 	s.ResourceTypes["AWS::Serverless::SimpleTable"].Properties["SSESpecification"].Type = "AWS::DynamoDB::Table.SSESpecification"
+	s.ResourceTypes["AWS::Serverless::SimpleTable"].Properties["PointInTimeRecoverySpecification"].Type = "AWS::DynamoDB::Table.PointInTimeRecoverySpecification"
 	s.ResourceTypes["AWS::Serverless::StateMachine"].Properties["DefinitionUri"].Type = "AWS::StepFunctions::StateMachine.S3Location"
 	s.ResourceTypes["AWS::Serverless::StateMachine"].Properties["Logging"].Type = "AWS::StepFunctions::StateMachine.LoggingConfiguration"
 	s.ResourceTypes["AWS::Serverless::StateMachine"].Properties["Tracing"].Type = "AWS::StepFunctions::StateMachine.TracingConfiguration"

@@ -55,6 +55,8 @@ var liveStatuses = []types.StackStatus{
 
 const WAIT_PERIOD_IN_SECONDS = 2
 
+var Schemas map[string]string
+
 func checkTemplate(template cft.Template) (string, error) {
 	templateBody := format.String(template, format.Options{})
 
@@ -758,19 +760,29 @@ func WaitUntilStackCreateComplete(stackName string) error {
 
 // Get the schema for a CloudFormation resource type
 func GetTypeSchema(name string) (string, error) {
-	res, err := getClient().DescribeType(context.Background(), &cloudformation.DescribeTypeInput{
-		Type: "RESOURCE", TypeName: &name,
-	})
-	if err != nil {
-		return "", nil
+	schema, exists := Schemas[name]
+	if exists {
+		config.Debugf("Already downloaded schema for %v", name)
+		return schema, nil
+	} else {
+		config.Debugf("Downloading schema for %v", name)
+		res, err := getClient().DescribeType(context.Background(), &cloudformation.DescribeTypeInput{
+			Type: "RESOURCE", TypeName: &name,
+		})
+		if err != nil {
+			config.Debugf("GetTypeSchema SDK error: %v", err)
+			return "", err
+		}
+		Schemas[name] = *res.Schema
+		return *res.Schema, nil
 	}
-	return *res.Schema, nil
 }
 
-// Get the list of action required to invoke a CloudFormation handler
+// Get the list of actions required to invoke a CloudFormation handler
 func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
-	schema, err := GetTypeSchema(name)
 
+	// Get the schema, checking to see if we cached it
+	schema, err := GetTypeSchema(name)
 	if err != nil {
 		return nil, err
 	}
@@ -785,12 +797,160 @@ func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
 	           "s3:PutBucketTagging",
 
 	*/
-	handlers := result["handlers"].(map[string]any)
-	handler := handlers[handlerVerb].(map[string]any)
+
+	config.Debugf("GetTypePermissions result: %v", result)
+
+	retval := make([]string, 0)
+
+	handlerMap, exists := result["handlers"]
+	if !exists {
+		// Resources that have not been fully migrated to the registry won't have this.
+		// This is a best guess.. don't think legacy resource permissions are documented anywhere
+		// This will become dead code as soon as the permissions are available from the registry.
+		if name == "AWS::EC2::Instance" {
+			handlerMap = map[string]any{
+				"create": map[string]any{
+					"permissions": []any{
+						"ec2:AttachVolume",
+						"ec2:CreateTags",
+						"ec2:RunInstances",
+						"ec2:StartInstances",
+					},
+				},
+				"read": map[string]any{
+					"permissions": []any{
+						"ec2:DescribeInstanceAttribute",
+						"ec2:DescribeInstanceStatus",
+						"ec2:DescribeInstances",
+						"ec2:DescribeTags",
+					},
+				},
+				"update": map[string]any{
+					"permissions": []any{
+						"ec2:AttachVolume",
+						"ec2:CreateTags",
+						"ec2:DeleteTags",
+						"ec2:DescribeInstanceAttribute",
+						"ec2:DescribeInstanceStatus",
+						"ec2:DescribeInstances",
+						"ec2:DescribeTags",
+						"ec2:DetachVolume",
+						"ec2:ModifyInstanceAttribute",
+						"ec2:StartInstances",
+						"ec2:StopInstances",
+						"ec2:TerminateInstances",
+					},
+				},
+				"delete": map[string]any{
+					"permissions": []any{
+						"ec2:DeleteTags",
+						"ec2:DescribeInstanceAttribute",
+						"ec2:DescribeInstanceStatus",
+						"ec2:DescribeInstances",
+						"ec2:DescribeTags",
+						"ec2:DetachVolume",
+						"ec2:StopInstances",
+						"ec2:TerminateInstances",
+					},
+				},
+			}
+		} else if name == "AWS::Lambda::Alias" {
+			handlerMap = map[string]any{
+				"create": map[string]any{
+					"permissions": []any{
+						"lambda:CreateAlias",
+						"lambda:GetAlias",
+						"lambda:GetFunctionConfiguration",
+					},
+				},
+				"read": map[string]any{
+					"permissions": []any{
+						"lambda:GetAlias",
+						"lambda:GetFunctionConfiguration",
+					},
+				},
+				"update": map[string]any{
+					"permissions": []any{
+						"lambda:CreateAlias",
+						"lambda:DeleteAlias",
+						"lambda:GetAlias",
+						"lambda:GetFunctionConfiguration",
+						"lambda:UpdateAlias",
+					},
+				},
+				"delete": map[string]any{
+					"permissions": []any{
+						"lambda:DeleteAlias",
+						"lambda:GetAlias",
+						"lambda:GetFunctionConfiguration",
+					},
+				},
+			}
+		} else if name == "AWS::Lambda::Version" {
+			handlerMap = map[string]any{
+				"create": map[string]any{
+					"permissions": []any{
+						"lambda:GetFunctionConfiguration",
+						"lambda:CreateFunction",
+						"lambda:GetFunction",
+						"lambda:PutFunctionConcurrency",
+						"lambda:GetCodeSigningConfig",
+						"lambda:GetFunctionCodeSigningConfig",
+						"lambda:GetRuntimeManagementConfig",
+						"lambda:PutRuntimeManagementConfig",
+					},
+				},
+				"read": map[string]any{
+					"permissions": []any{
+						"lambda:GetFunctionConfiguration",
+						"lambda:GetFunction",
+						"lambda:GetFunctionCodeSigningConfig",
+					},
+				},
+				"update": map[string]any{
+					"permissions": []any{
+						"lambda:GetFunctionConfiguration",
+						"lambda:DeleteFunctionConcurrency",
+						"lambda:GetFunction",
+						"lambda:PutFunctionConcurrency",
+						"lambda:ListTags",
+						"lambda:TagResource",
+						"lambda:UntagResource",
+						"lambda:UpdateFunctionConfiguration",
+						"lambda:UpdateFunctionCode",
+						"lambda:PutFunctionCodeSigningConfig",
+						"lambda:DeleteFunctionCodeSigningConfig",
+						"lambda:GetCodeSigningConfig",
+						"lambda:GetFunctionCodeSigningConfig",
+						"lambda:GetRuntimeManagementConfig",
+						"lambda:PutRuntimeManagementConfig",
+					},
+				},
+				"delete": map[string]any{
+					"permissions": []any{
+						"lambda:GetFunctionConfiguration",
+						"lambda:DeleteFunction",
+					},
+				},
+			}
+		} else {
+			// Return an empty array
+			config.Debugf("No data on what permissions are required for %v", name)
+			return retval, nil
+		}
+	}
+	config.Debugf("handlerMap: %v", handlerMap)
+	handlers := handlerMap.(map[string]any)
+	handlerVerbMap, exists := handlers[handlerVerb]
+	if !exists {
+		config.Debugf("handler verb is missing: %v", handlerVerb)
+		// Some resources can't be updated, for example
+		return retval, nil
+	}
+	handler := handlerVerbMap.(map[string]any)
 	config.Debugf("handler: %v", handler)
 	permissions := handler["permissions"].([]interface{})
 	config.Debugf("Got permissions for %v %v: %v", name, handlerVerb, permissions)
-	retval := make([]string, 0)
 	for _, p := range permissions {
 		if p == "iam:PassRole" {
 			// This will fail even for admin roles, and is not actually necessary
@@ -809,16 +969,30 @@ func GetTypeIdentifier(name string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	if schema == "" {
+		return nil, errors.New("schema is empty")
+	}
+
 	var result map[string]any
 	json.Unmarshal([]byte(schema), &result)
 
-	pi := result["primaryIdentifier"].([]interface{})
-	retval := make([]string, 0)
-	for _, pid := range pi {
-		retval = append(retval, strings.Replace(fmt.Sprintf("%v", pid), "/properties/", "", 1))
+	config.Debugf("GetTypeIdentifier schema for %s: %v", name, result)
+
+	piNode, exists := result["primaryIdentifier"]
+	if !exists {
+		// The schema does not have a primary identifier.
+		// TODO
+		config.Debugf("GetTypeIdentifier %v does not have a primaryIdentifier", name)
+		return nil, errors.New("no primary identifier")
+	} else {
+		pi := piNode.([]interface{})
+		retval := make([]string, 0)
+		for _, pid := range pi {
+			retval = append(retval, strings.Replace(fmt.Sprintf("%v", pid), "/properties/", "", 1))
+		}
+		config.Debugf("GetTypeIdentifier for %v: %v", name, retval)
+		return retval, nil
 	}
-	config.Debugf("GetTypeIdentifier for %v: %v", name, retval)
-	return retval, nil
 }
 
 // Get the values specified for primary identifiers in the template.
@@ -910,7 +1084,8 @@ func ResourceAlreadyExists(
 	if !stackExists {
 		primaryIdentifiers, err := GetTypeIdentifier(typeName)
 		if err != nil {
-			fmt.Println("Unable to get primary identifier for ", err)
+			config.Debugf("Unable to get primary identifier for %v: %v", typeName, err)
+			return false
 		} else {
 			config.Debugf("PrimaryIdentifiers: %v", primaryIdentifiers)
 
@@ -937,4 +1112,8 @@ func ResourceAlreadyExists(
 	}
 
 	return false
+}
+
+func init() {
+	Schemas = make(map[string]string)
 }
