@@ -21,10 +21,6 @@ var verifyFlag bool
 var writeFlag bool
 var unsortedFlag bool
 
-//var newTemplateName string
-//var stackId string
-//var templateName string
-
 type result struct {
 	name   string
 	output string
@@ -57,12 +53,6 @@ func formatReader(name string, r io.Reader) result {
 		Unsorted: unsortedFlag,
 		ForEach:  forEachFlag,
 	})
-
-	// Verify the output is valid
-	if err = parse.Verify(source, res.output); err != nil {
-		res.err = err
-		return res
-	}
 
 	res.ok = strings.TrimSpace(string(input)) == strings.TrimSpace(res.output)
 
