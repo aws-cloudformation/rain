@@ -242,7 +242,7 @@ func addToTemplate(out *yaml.Node, key string, value modifyMap, line int, column
 		}
 	} else {
 		if strings.Contains(value.key, "Ref: ") {
-			strings.Replace(value.key, "Ref: ", "", 0)
+			value.key = strings.Replace(value.key, "Ref: ", "", 1)
 			tempValueNode.Tag = "!Ref"
 		} else {
 			tempValueNode.Tag = "!!str"
