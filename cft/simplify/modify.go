@@ -1,3 +1,5 @@
+//
+
 package simplify
 
 import (
@@ -6,30 +8,16 @@ import (
 	"strings"
 )
 
-var valueMap map[string][]string
-
-var isResOutCond bool
-
 var resOutCond = []string{"Resources", "Outputs", "Conditions"}
-
-var finalIsh map[string]modifyMap
-
-//var forEachAdd []modifyMap
 
 func modifyTemplate(node *yaml.Node) *yaml.Node {
 	if node.Kind == yaml.DocumentNode {
 		node = node.Content[0]
 	}
 
-	keyValueMap := modifyNode(node, orders)
+	keyValueMap := modifyNode(node)
 
 	return keyValueMap
-}
-
-type nodeMap0 struct {
-	keys   []*yaml.Node
-	keyMap map[string]*yaml.Node
-	values map[string]*yaml.Node
 }
 
 type modifyMap struct {
@@ -69,6 +57,7 @@ func checkIfAddForEach(key string) bool {
 	return false
 }
 
+// Compares the values in the parameters to the parameter values in Fn::ForEach
 func compareValue(key string, value modifyMap, forEachVal modifyMap, forEachAdd []modifyMap) modifyMap {
 	for index := range forEachAdd {
 		if forEachVal.key == "" {
@@ -99,31 +88,35 @@ func compareValue(key string, value modifyMap, forEachVal modifyMap, forEachAdd 
 	return forEachVal
 }
 
-func addForEach(m modifyMap, forEachAdd []modifyMap, key string) modifyMap {
-	if m.key == "" {
-		for key1, value1 := range m.values {
+// Create a Fn::forEach function
+func addForEach(templateMap modifyMap, forEachAdd []modifyMap, key string) modifyMap {
+	if templateMap.key == "" {
+		for key1, value1 := range templateMap.values {
+			// the first resource/output/condition is added to the Fn::ForEach function and the parameters are added
+			// as to the OutputKey and OutputValue
 			if len(forEachAdd) <= 0 {
 				forEachAdd = append(forEachAdd, modifyMap{key: "Variable" + strconv.Itoa(len(forEachAdd)), values: value1.values})
-				delete(m.values, key1)
+				delete(templateMap.values, key1)
 			} else {
 				for key2, value2 := range value1.values {
-					for index, element := range forEachAdd {
-						val, ok := element.values[key2]
+					for index, parameter := range forEachAdd {
+						val, ok := parameter.values[key2]
 						if ok {
 							if val.values != nil {
-								element = compareValue(key2, value2, val, forEachAdd)
-								if element.key == "REMOVE" {
+								parameter = compareValue(key2, value2, val, forEachAdd)
+								// parameter has been added to Fn::ForEach, so it will be removed
+								if parameter.key == "REMOVE" {
 									break
 								}
-								for _, elem := range element.list {
+								for _, elem := range parameter.list {
 									forEachAdd[index].list = append(forEachAdd[index].list, elem)
 								}
-								delete(m.values, key1)
+								delete(templateMap.values, key1)
 								break
 							} else if val.key != value2.key {
-								element.list = append(element.list, val.key, value2.key)
-								element.values[key2] = modifyMap{key: "Ref: Variable" + strconv.Itoa(index)}
-								delete(m.values, key1)
+								parameter.list = append(parameter.list, val.key, value2.key)
+								parameter.values[key2] = modifyMap{key: "Ref: Variable" + strconv.Itoa(index)}
+								delete(templateMap.values, key1)
 							}
 						} else {
 							break
@@ -133,24 +126,25 @@ func addForEach(m modifyMap, forEachAdd []modifyMap, key string) modifyMap {
 			}
 		}
 	} else {
-		return m
+		return templateMap
 	}
 
+	// Modify Fn::ForEach OutputKey
 	for i := 0; i < len(forEachAdd); i++ {
 		if forEachAdd[i].list != nil {
 			tempVal := forEachAdd[i].values
 			forEachAdd[i].values = make(map[string]modifyMap)
 			forEachAdd[i].values[strings.TrimSuffix(key, "s")+"${"+forEachAdd[i].key+"}"] = modifyMap{values: tempVal}
-			m.values["Fn::ForEach::Loop"+strconv.Itoa(i)] = forEachAdd[i]
+			templateMap.values["Fn::ForEach::Loop"+strconv.Itoa(i)] = forEachAdd[i]
 		} else {
 
 		}
 	}
 
-	return m
+	return templateMap
 }
 
-func modifyNode(node *yaml.Node, order ordering) *yaml.Node {
+func modifyNode(node *yaml.Node) *yaml.Node {
 	if node == nil {
 		return nil
 	}
@@ -159,11 +153,11 @@ func modifyNode(node *yaml.Node, order ordering) *yaml.Node {
 		return node
 	}
 
-	m := createMap(node)
+	templateMap := createMap(node)
 	forEachAdd := []modifyMap{}
-	for key, value := range m {
+	for key, value := range templateMap {
 		if checkIfAddForEach(key) {
-			m[key] = addForEach(value, forEachAdd, key)
+			templateMap[key] = addForEach(value, forEachAdd, key)
 		}
 	}
 
@@ -172,10 +166,11 @@ func modifyNode(node *yaml.Node, order ordering) *yaml.Node {
 		Kind: yaml.MappingNode,
 	}
 
-	for key, value := range m {
+	// Create yaml.Node using templateMap
+	for key, value := range templateMap {
 		node = addToTemplate(&yaml.Node{Kind: yaml.MappingNode}, key, value, 1, 1)
-		for int := range node.Content {
-			out.Content = append(out.Content, node.Content[int])
+		for contentIndex := range node.Content {
+			out.Content = append(out.Content, node.Content[contentIndex])
 		}
 	}
 
@@ -201,28 +196,40 @@ func addToTemplate(out *yaml.Node, key string, value modifyMap, line int, column
 		tempKeyNode.Value = value.key
 		out.Content = append(out.Content, tempKeyNode)
 	}
+
+	// add map to yaml.Node
 	if value.values != nil {
 		for key1, value1 := range value.values {
 			tempValueNode.Column = tempKeyNode.Column + 1
 			tempValueNode.Line = line + 1
 			newContent := addToTemplate(&yaml.Node{Kind: yaml.MappingNode}, key1, value1, line+1, tempKeyNode.Column)
+			// Adding Fn::ForEach to yaml
 			if len(value1.list) > 0 {
 				tempValueNode.Kind = yaml.MappingNode
-				tempValueNode.Content = append(tempValueNode.Content, &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Line: line + 1, Column: tempKeyNode.Column + 1, Value: key1})
-				tempValueNode.Content = append(tempValueNode.Content, &yaml.Node{Kind: yaml.SequenceNode, Line: line + 1, Column: tempKeyNode.Column + 1})
-				tempValueNode.Content[1].Content = append(tempValueNode.Content[1].Content, &yaml.Node{Kind: yaml.ScalarNode, Line: line + 1, Value: value1.key})
-				tempValueNode.Content[1].Content = append(tempValueNode.Content[1].Content, &yaml.Node{Kind: yaml.SequenceNode, Line: line + 1, Column: tempKeyNode.Column + 1})
+				tempValueNode.Content = append(tempValueNode.Content, &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str",
+					Line: line + 1, Column: tempKeyNode.Column + 1, Value: key1}) // Fn::ForEach Loop Name
+				tempValueNode.Content = append(tempValueNode.Content, &yaml.Node{Kind: yaml.SequenceNode,
+					Line: line + 1, Column: tempKeyNode.Column + 1}) // body of Fn::ForEach
+				tempValueNode.Content[1].Content = append(tempValueNode.Content[1].Content,
+					&yaml.Node{Kind: yaml.ScalarNode, Line: line + 1, Value: value1.key}) // Fn::ForEach Identifier
+				tempValueNode.Content[1].Content = append(tempValueNode.Content[1].Content,
+					&yaml.Node{Kind: yaml.SequenceNode, Line: line + 1, Column: tempKeyNode.Column + 1}) // Fn::ForEach Collection
+				// Adding values to Collection
 				for _, elem := range value1.list {
-					tempValueNode.Content[1].Content[1].Content = append(tempValueNode.Content[1].Content[1].Content, &yaml.Node{Kind: yaml.ScalarNode, Value: elem})
+					tempValueNode.Content[1].Content[1].Content = append(tempValueNode.Content[1].Content[1].Content,
+						&yaml.Node{Kind: yaml.ScalarNode, Value: elem})
 				}
-				tempValueNode.Content[1].Content = append(tempValueNode.Content[1].Content, &yaml.Node{Kind: yaml.MappingNode, Line: line + 1, Column: tempKeyNode.Column + 1})
+				tempValueNode.Content[1].Content = append(tempValueNode.Content[1].Content,
+					&yaml.Node{Kind: yaml.MappingNode, Line: line + 1, Column: tempKeyNode.Column + 1}) // OutputKey and OutputValue Map
+				// Adding OutputKey and OutputValue
 				for elem2, value2 := range value1.values {
-					//tempValueNode.Content[1].Content[2].Content = append(tempValueNode.Content[1].Content[2].Content, &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Line: line + 1, Column: tempKeyNode.Column + 1, Value: elem2})
-					tempValueNode.Content[1].Content[2].Content = append(tempValueNode.Content[1].Content[2].Content, &yaml.Node{Kind: yaml.ScalarNode, Line: line + 1, Column: tempKeyNode.Column + 1, Value: elem2})
-					tempValueNode.Content[1].Content[2].Content = append(tempValueNode.Content[1].Content[2].Content, &yaml.Node{Kind: yaml.MappingNode, Line: line + 1, Column: tempKeyNode.Column + 1})
+					tempValueNode.Content[1].Content[2].Content = append(tempValueNode.Content[1].Content[2].Content,
+						&yaml.Node{Kind: yaml.ScalarNode, Line: line + 1, Column: tempKeyNode.Column + 1, Value: elem2}) // OutputKey
+					tempValueNode.Content[1].Content[2].Content = append(tempValueNode.Content[1].Content[2].Content,
+						&yaml.Node{Kind: yaml.MappingNode, Line: line + 1, Column: tempKeyNode.Column + 1}) // OutputValue Map
+					// Adding OutputValues
 					for elem3, value3 := range value2.values {
 						print(value3.key)
-						//tempValueNode.Content[1].Content[2].Content[1].Content = append(tempValueNode.Content[1].Content[2].Content, value2)
 						newContent := addToTemplate(&yaml.Node{Kind: yaml.MappingNode}, elem3, value3, line+1, tempKeyNode.Column)
 						for _, value4 := range newContent.Content {
 							tempValueNode.Content[1].Content[2].Content[1].Content = append(tempValueNode.Content[1].Content[2].Content[1].Content, value4)
