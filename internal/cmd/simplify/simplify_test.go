@@ -22,16 +22,16 @@ func Example_simplify_foreach() {
 	// Resources:
 	//   Fn::ForEach::Loop0:
 	//     - Variable0
-	//     - - Table8
-	//       - Table1
+	//     - - Table1
+	//       - Table10
+	//       - Table2
 	//       - Table3
+	//       - Table4
 	//       - Table5
 	//       - Table6
 	//       - Table7
+	//       - Table8
 	//       - Table9
-	//       - Table10
-	//       - Table2
-	//       - Table4
 	//     - Resource${Variable0}:
 	//         Properties:
 	//           AttributeDefinitions:
@@ -43,6 +43,6 @@ func Example_simplify_foreach() {
 	//           ProvisionedThroughput:
 	//             ReadCapacityUnits: "5"
 	//             WriteCapacityUnits: "5"
-	//           TableName: !Ref TableName
-	//         Type: 'AWS::DynamoDB::Variable0'
+	//           TableName: !Ref Variable0
+	//         Type: AWS::DynamoDB::Table
 }

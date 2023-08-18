@@ -1,4 +1,4 @@
-// Package format contains functionality to render a cft.Template
+// Package simplify contains functionality to modify templates to use Fn::ForEach
 // into YAML or JSON
 package simplify
 

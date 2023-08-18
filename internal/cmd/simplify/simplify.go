@@ -144,11 +144,7 @@ var Cmd = &cobra.Command{
 func init() {
 	Cmd.Flags().BoolVarP(&jsonFlag, "json", "j", false, "Output the template as JSON (default format: YAML).")
 	Cmd.Flags().BoolVarP(&forEachFlag, "foreach", "f", false, "Modify template to include Fn::ForEach")
-	//Cmd.Flags().BoolVarP(&verifyFlag, "verify", "v", false, "Check if the input is already correctly formatted and exit.\nThe exit status will be 0 if so and 1 if not.")
 	Cmd.Flags().BoolVarP(&writeFlag, "write", "w", false, "Write the output back to the file rather than to stdout.")
 	Cmd.Flags().BoolVarP(&unsortedFlag, "unsorted", "u", false, "Do not sort the template's properties.")
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
-	//Cmd.Flags().StringVarP(&stackId, "stack-id", "s", "", "Use the template from the stackId")
-	//Cmd.Flags().StringVarP(&newTemplateName, "n", "new-file", "", "Write what the new template will be named")
-	//Cmd.Flags().StringVarP(&templateName, "template-name", "t", "", "Use the template name")
 }
