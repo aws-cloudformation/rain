@@ -105,7 +105,7 @@ func addForEach(templateMap modifyMap, forEachAdd []modifyMap, key string) modif
 	if templateMap.key == "" {
 		for key1, value1 := range templateMap.values {
 			// the first resource/output/condition is added to the Fn::ForEach function and the parameters are added
-			// as to the OutputKey and OutputValue
+			// to the OutputKey and OutputValue
 			if len(forEachAdd) <= 0 {
 				forEachAdd = append(forEachAdd, modifyMap{key: "Variable" + strconv.Itoa(len(forEachAdd)), values: value1.values})
 				delete(templateMap.values, key1)
@@ -211,20 +211,20 @@ func addToTemplate(out *yaml.Node, key string, value modifyMap, line int, column
 		out.Content = append(out.Content, tempKeyNode)
 	}
 
-	// add map to yaml.Node
+	// Add map to yaml.Node
 	if value.values != nil {
 		keys1 := sortKeys(value.values)
 		for _, key1 := range keys1 {
 			tempValueNode.Column = tempKeyNode.Column + 1
 			tempValueNode.Line = line + 1
 			newContent := addToTemplate(&yaml.Node{Kind: yaml.MappingNode}, key1, value.values[key1], line+1, tempKeyNode.Column)
-			// Adding Fn::ForEach to yaml
+			// Adding Fn::ForEach to yaml.Node
 			if len(value.values[key1].list) > 0 {
 				tempValueNode.Kind = yaml.MappingNode
 				tempValueNode.Content = append(tempValueNode.Content, &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str",
-					Line: line + 1, Column: tempKeyNode.Column + 1, Value: key1}) // Fn::ForEach Loop Name
+					Line: line + 1, Column: tempValueNode.Column, Value: key1}) // Fn::ForEach Loop Name
 				tempValueNode.Content = append(tempValueNode.Content, &yaml.Node{Kind: yaml.SequenceNode,
-					Line: line + 1, Column: tempKeyNode.Column + 1}) // body of Fn::ForEach
+					Line: line + 1, Column: tempValueNode.Column}) // body of Fn::ForEach
 				tempValueNode.Content[1].Content = append(tempValueNode.Content[1].Content,
 					&yaml.Node{Kind: yaml.ScalarNode, Line: line + 1, Value: value.values[key1].key}) // Fn::ForEach Identifier
 				tempValueNode.Content[1].Content = append(tempValueNode.Content[1].Content,

@@ -35,7 +35,6 @@ func String(t cft.Template, opt Options) string {
 	node = formatNode(node)
 
 	if opt.ForEach {
-		//node = orderTemplate(node)
 		node = modifyTemplate(node)
 	}
 
