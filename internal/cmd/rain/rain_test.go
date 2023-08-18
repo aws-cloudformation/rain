@@ -35,6 +35,7 @@ func Example_rainhelp() {
 	//   forecast    Predict deployment failures
 	//   merge       Merge two or more CloudFormation templates
 	//   pkg         Package local artifacts into a template
+	//   simplify    Simplifies CloudFormation templates to use Fn::ForEach
 	//   tree        Find dependencies of Resources and Outputs in a local template
 	//
 	// Other Commands:
