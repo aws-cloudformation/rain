@@ -120,9 +120,7 @@ func addForEach(templateMap modifyMap, forEachAdd []modifyMap, key string) modif
 								if parameter.key == "REMOVE" {
 									break
 								}
-								for _, elem := range parameter.list {
-									forEachAdd[index].list = append(forEachAdd[index].list, elem)
-								}
+								forEachAdd[index].list = append(forEachAdd[index].list, parameter.list...)
 								delete(templateMap.values, key1)
 								break
 							} else if val.key != value2.key {
@@ -148,8 +146,6 @@ func addForEach(templateMap modifyMap, forEachAdd []modifyMap, key string) modif
 			forEachAdd[i].values = make(map[string]modifyMap)
 			forEachAdd[i].values[strings.TrimSuffix(key, "s")+"${"+forEachAdd[i].key+"}"] = modifyMap{values: tempVal}
 			templateMap.values["Fn::ForEach::Loop"+strconv.Itoa(i)] = forEachAdd[i]
-		} else {
-
 		}
 	}
 
@@ -182,9 +178,7 @@ func modifyNode(node *yaml.Node) *yaml.Node {
 
 	for _, k := range keys {
 		node = addToTemplate(&yaml.Node{Kind: yaml.MappingNode}, k, templateMap[k], 1, 1)
-		for contentIndex := range node.Content {
-			out.Content = append(out.Content, node.Content[contentIndex])
-		}
+		out.Content = append(out.Content, node.Content...)
 	}
 
 	out = orderTemplate(out)
@@ -249,9 +243,7 @@ func addToTemplate(out *yaml.Node, key string, value modifyMap, line int, column
 					// Adding OutputValues
 					for _, k := range keys {
 						newContent := addToTemplate(&yaml.Node{Kind: yaml.MappingNode}, k, value2.values[k], line+1, tempKeyNode.Column)
-						for _, value4 := range newContent.Content {
-							tempValueNode.Content[1].Content[2].Content[1].Content = append(tempValueNode.Content[1].Content[2].Content[1].Content, value4)
-						}
+						tempValueNode.Content[1].Content[2].Content[1].Content = append(tempValueNode.Content[1].Content[2].Content[1].Content, newContent.Content...)
 					}
 				}
 			} else {
@@ -260,9 +252,7 @@ func addToTemplate(out *yaml.Node, key string, value modifyMap, line int, column
 				} else {
 					tempValueNode.Kind = yaml.MappingNode
 				}
-				for _, value2 := range newContent.Content {
-					tempValueNode.Content = append(tempValueNode.Content, value2)
-				}
+				tempValueNode.Content = append(tempValueNode.Content, newContent.Content...)
 			}
 		}
 	} else {
