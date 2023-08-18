@@ -4,6 +4,7 @@ package simplify
 
 import (
 	"gopkg.in/yaml.v3"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -24,6 +25,17 @@ type modifyMap struct {
 	key    string
 	list   []string
 	values map[string]modifyMap
+}
+
+func sortKeys(templateMap map[string]modifyMap) []string {
+	keys := make([]string, 0, len(templateMap))
+
+	for k := range templateMap {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	return keys
 }
 
 func createMap(node *yaml.Node) map[string]modifyMap {
@@ -166,13 +178,16 @@ func modifyNode(node *yaml.Node) *yaml.Node {
 		Kind: yaml.MappingNode,
 	}
 
-	// Create yaml.Node using templateMap
-	for key, value := range templateMap {
-		node = addToTemplate(&yaml.Node{Kind: yaml.MappingNode}, key, value, 1, 1)
+	keys := sortKeys(templateMap)
+
+	for _, k := range keys {
+		node = addToTemplate(&yaml.Node{Kind: yaml.MappingNode}, k, templateMap[k], 1, 1)
 		for contentIndex := range node.Content {
 			out.Content = append(out.Content, node.Content[contentIndex])
 		}
 	}
+
+	out = orderTemplate(out)
 
 	return out
 }
@@ -185,7 +200,6 @@ func addToTemplate(out *yaml.Node, key string, value modifyMap, line int, column
 		Column: column,
 	}
 	tempValueNode := &yaml.Node{
-		//Tag:  "!!map",
 		Line: line,
 	}
 
@@ -199,38 +213,42 @@ func addToTemplate(out *yaml.Node, key string, value modifyMap, line int, column
 
 	// add map to yaml.Node
 	if value.values != nil {
-		for key1, value1 := range value.values {
+		keys1 := sortKeys(value.values)
+		for _, key1 := range keys1 {
 			tempValueNode.Column = tempKeyNode.Column + 1
 			tempValueNode.Line = line + 1
-			newContent := addToTemplate(&yaml.Node{Kind: yaml.MappingNode}, key1, value1, line+1, tempKeyNode.Column)
+			newContent := addToTemplate(&yaml.Node{Kind: yaml.MappingNode}, key1, value.values[key1], line+1, tempKeyNode.Column)
 			// Adding Fn::ForEach to yaml
-			if len(value1.list) > 0 {
+			if len(value.values[key1].list) > 0 {
 				tempValueNode.Kind = yaml.MappingNode
 				tempValueNode.Content = append(tempValueNode.Content, &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str",
 					Line: line + 1, Column: tempKeyNode.Column + 1, Value: key1}) // Fn::ForEach Loop Name
 				tempValueNode.Content = append(tempValueNode.Content, &yaml.Node{Kind: yaml.SequenceNode,
 					Line: line + 1, Column: tempKeyNode.Column + 1}) // body of Fn::ForEach
 				tempValueNode.Content[1].Content = append(tempValueNode.Content[1].Content,
-					&yaml.Node{Kind: yaml.ScalarNode, Line: line + 1, Value: value1.key}) // Fn::ForEach Identifier
+					&yaml.Node{Kind: yaml.ScalarNode, Line: line + 1, Value: value.values[key1].key}) // Fn::ForEach Identifier
 				tempValueNode.Content[1].Content = append(tempValueNode.Content[1].Content,
 					&yaml.Node{Kind: yaml.SequenceNode, Line: line + 1, Column: tempKeyNode.Column + 1}) // Fn::ForEach Collection
 				// Adding values to Collection
-				for _, elem := range value1.list {
+				sort.Strings(value.values[key1].list)
+				for _, elem := range value.values[key1].list {
 					tempValueNode.Content[1].Content[1].Content = append(tempValueNode.Content[1].Content[1].Content,
 						&yaml.Node{Kind: yaml.ScalarNode, Value: elem})
 				}
 				tempValueNode.Content[1].Content = append(tempValueNode.Content[1].Content,
 					&yaml.Node{Kind: yaml.MappingNode, Line: line + 1, Column: tempKeyNode.Column + 1}) // OutputKey and OutputValue Map
 				// Adding OutputKey and OutputValue
-				for elem2, value2 := range value1.values {
+				for elem2, value2 := range value.values[key1].values {
 					tempValueNode.Content[1].Content[2].Content = append(tempValueNode.Content[1].Content[2].Content,
 						&yaml.Node{Kind: yaml.ScalarNode, Line: line + 1, Column: tempKeyNode.Column + 1, Value: elem2}) // OutputKey
 					tempValueNode.Content[1].Content[2].Content = append(tempValueNode.Content[1].Content[2].Content,
 						&yaml.Node{Kind: yaml.MappingNode, Line: line + 1, Column: tempKeyNode.Column + 1}) // OutputValue Map
+
+					keys := sortKeys(value2.values)
+
 					// Adding OutputValues
-					for elem3, value3 := range value2.values {
-						print(value3.key)
-						newContent := addToTemplate(&yaml.Node{Kind: yaml.MappingNode}, elem3, value3, line+1, tempKeyNode.Column)
+					for _, k := range keys {
+						newContent := addToTemplate(&yaml.Node{Kind: yaml.MappingNode}, k, value2.values[k], line+1, tempKeyNode.Column)
 						for _, value4 := range newContent.Content {
 							tempValueNode.Content[1].Content[2].Content[1].Content = append(tempValueNode.Content[1].Content[2].Content[1].Content, value4)
 						}

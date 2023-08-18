@@ -10,9 +10,7 @@ import (
 
 const input = `
 AWSTemplateFormatVersion: 2010-09-09
-
 Transform: 'AWS::LanguageExtensions'
-
 Resources:
   DynamoDBTable1:
     Type: 'AWS::DynamoDB::Table'
@@ -146,26 +144,24 @@ Resources:
         WriteCapacityUnits: '5'
 `
 
-const expectedForEach = `
-AWSTemplateFormatVersion: "2010-09-09"
+const expectedForEach = `AWSTemplateFormatVersion: "2010-09-09"
 
 Transform: AWS::LanguageExtensions
 
 Resources:
-  'Fn::ForEach::Loop0':
-     - Variable0
-     - - Table9",
-       - Table10",
-       - Table5",
-       - Table7",
-       - Table3",
-       - Table4",
-       - Table6",
-       - Table8",
-       - Table1",
-       - Table2",
-    - 'Resource&{Variable0}':
-        Type: 'AWS::DynamoDB::Variable0'
+  Fn::ForEach::Loop0:
+    - Variable0
+    - - Table1
+      - Table10
+      - Table2
+      - Table3
+      - Table4
+      - Table5
+      - Table6
+      - Table7
+      - Table8
+      - Table9
+    - Resource${Variable0}:
         Properties:
           AttributeDefinitions:
             - AttributeName: id
@@ -174,9 +170,10 @@ Resources:
             - AttributeName: id
               KeyType: HASH
           ProvisionedThroughput:
-            ReadCapacityUnits: '5'
-            WriteCapacityUnits: '5'
-          TableName: !Ref TableName
+            ReadCapacityUnits: "5"
+            WriteCapacityUnits: "5"
+          TableName: !Ref Variable0
+        Type: AWS::DynamoDB::Table
 `
 
 func checkMatch(t *testing.T, expected string, opt simplify.Options) {
