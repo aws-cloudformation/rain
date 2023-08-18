@@ -74,7 +74,7 @@ func formatFile(filename string) result {
 // Cmd is the simplify command's entrypoint
 var Cmd = &cobra.Command{
 	Use:                   "simplify <tag> <filename>...",
-	Short:                 "Simplify CloudFormation templates",
+	Short:                 "Simplifies CloudFormation templates to use Fn::ForEach",
 	Long:                  "Reads CloudFormation templates from filename arguments (or stdin if no filenames are supplied) and modifies them to include Fn::ForEach",
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
