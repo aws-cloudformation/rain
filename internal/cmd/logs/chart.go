@@ -16,6 +16,7 @@ import (
 //go:embed chart-template.html
 var template string
 
+// Create a type to wrap StackEvent so we can sort it
 type evt []types.StackEvent
 
 func (e evt) Len() int {
@@ -66,17 +67,6 @@ func createChart(stackName string) error {
 	sb.WriteString("]")
 
 	data := sb.String()
-
-	/*
-			data := ` [
-		                {
-		                    "Id": "ecs-cw-eval",
-		                    "Type": "AWS::CloudFormation::Stack",
-		                    "Timestamp": "2023-08-22T17:28:30.019000+00:00",
-		                    "Status": "CREATE_COMPLETE"
-		                },
-			`
-	*/
 
 	rendered := strings.Replace(template, "__DATA__", data, 1)
 

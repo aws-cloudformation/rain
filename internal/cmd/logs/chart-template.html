@@ -118,11 +118,14 @@
             let stackCreateTs = undefined
             let stackCompleteTs = undefined
 
+            var stackName = "[Stack Name]"
+
             for (let i = 0; i < data.length; i++) {
                 const evt = data[i]
                 const ts = new Date(evt.Timestamp)
                 if (evt.Type == "AWS::CloudFormation::Stack") {
                     if (evt.Status === "CREATE_IN_PROGRESS" || evt.Status == "UPDATE_IN_PROGRESS") {
+                        stackName = evt.Id
                         if (stackCreateTs === undefined || stackCreateTs < ts) {
                             stackCreateTs = ts
                             idxOfStart = i
@@ -208,8 +211,6 @@
                 const tbody = table.getElementsByTagName("tbody")[0];
                 tbody.appendChild(tr)
             }
-
-            const stackName = "My Stack"
 
             document.getElementById("stack-name-header").innerText = stackName
             document.getElementById("stack-name-caption").innerText = stackName
