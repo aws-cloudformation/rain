@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html>
+    <!-- 
+    aws cloudformation describe-stack-events --stack-name ecs-cw-eval --no-cli-pager --query "StackEvents[].{Id:LogicalResourceId,Type:ResourceType,Timestamp:Timestamp,Status:ResourceStatus}" > data.json
+    -->
+    <head>
+
+        
+    <style>
+        table {
+              border-collapse: collapse;
+              border: 2px solid rgb(200,200,200);
+              letter-spacing: 1px;
+              font-size: 0.8rem;
+              width:90%;
+            }
+
+            td, th {
+              border: 1px solid rgb(190,190,190);
+              padding: 10px 20px;
+            }
+
+            th {
+              background-color: rgb(235,235,235);
+            }
+
+            td {
+              text-align: center;
+            }
+
+            thead th:nth-child(1) {
+                width: 16%;
+            }
+
+            thead th:nth-child(2) {
+                width: 7%;
+            }
+
+            thead th:nth-child(3) {
+                width: 77%;
+            }
+
+            tr:nth-child(even) td {
+              background-color: rgb(250,250,250);
+            }
+
+            tr:nth-child(odd) td {
+              background-color: rgb(245,245,245);
+            }
+
+            caption {
+              padding: 10px;
+            }
+
+            .histo {
+                display:flex;
+                flex-wrap:no-wrap;
+            }
+
+            .active {
+                background-color: gray;
+            }
+
+            .inactive {
+                background-color: white;
+            }
+
+            .elapsed {
+                width:23%;
+                text-align:left;
+            }
+
+            .total {
+                width: 8%;
+                text-align: right;
+            }
+        </style>
+    </head>
+    <body>
+        <h1><span id="stack-name-header"></span></h1>
+
+        <div id="container">
+            
+            <table id="waterfall">
+                <caption>Stack events for <span id="stack-name-caption"></span></caption>
+
+                <thead>
+                    <tr>
+                        <th scope="col">Resource</th>
+                        <th scope="col">Elapsed</th>
+                        <th scope="col">Time</th>
+                    </tr>
+                </thead>
+
+                <tbody id="resourceRows">
+                </tbody>
+
+                <tfoot>
+                    <tr>
+                        <th scope="row">Total</th>
+                        <td><span id="total-elapsed-time"></span></td>
+                        <td>
+                            <div class="histo">
+                                <div class="elapsed"><span id="elapsed1"></span></div>
+                                <div class="elapsed"><span id="elapsed2"></span></div>
+                                <div class="elapsed"><span id="elapsed3"></span></div>
+                                <div class="elapsed"><span id="elapsed4"></span></div>
+                                <div class="total"><span id="elapsed5"></span></div>
+                            </div>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <script>
+            const data = [
+                {
+                    "Id": "ecs-cw-eval",
+                    "Type": "AWS::CloudFormation::Stack",
+                    "Timestamp": "2023-08-22T17:28:30.019000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "Service",
+                    "Type": "AWS::ECS::Service",
+                    "Timestamp": "2023-08-22T17:28:28.849000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "Service",
+                    "Type": "AWS::ECS::Service",
+                    "Timestamp": "2023-08-22T17:03:55.105000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "Service",
+                    "Type": "AWS::ECS::Service",
+                    "Timestamp": "2023-08-22T17:03:53.247000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "LoadBalancerListener",
+                    "Type": "AWS::ElasticLoadBalancingV2::Listener",
+                    "Timestamp": "2023-08-22T17:03:52.572000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "LoadBalancerListener",
+                    "Type": "AWS::ElasticLoadBalancingV2::Listener",
+                    "Timestamp": "2023-08-22T17:03:52.277000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "LoadBalancerListener",
+                    "Type": "AWS::ElasticLoadBalancingV2::Listener",
+                    "Timestamp": "2023-08-22T17:03:50.787000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "LoadBalancer",
+                    "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+                    "Timestamp": "2023-08-22T17:03:50.170000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "PrivateSubnet1DefaultRoute",
+                    "Type": "AWS::EC2::Route",
+                    "Timestamp": "2023-08-22T17:03:43.595000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "PrivateSubnet1DefaultRoute",
+                    "Type": "AWS::EC2::Route",
+                    "Timestamp": "2023-08-22T17:03:43.269000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PrivateSubnet1DefaultRoute",
+                    "Type": "AWS::EC2::Route",
+                    "Timestamp": "2023-08-22T17:03:41.125000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet1NATGateway",
+                    "Type": "AWS::EC2::NatGateway",
+                    "Timestamp": "2023-08-22T17:03:40.461000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "PrivateSubnet2DefaultRoute",
+                    "Type": "AWS::EC2::Route",
+                    "Timestamp": "2023-08-22T17:03:14.939000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "PrivateSubnet2DefaultRoute",
+                    "Type": "AWS::EC2::Route",
+                    "Timestamp": "2023-08-22T17:03:14.708000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PrivateSubnet2DefaultRoute",
+                    "Type": "AWS::EC2::Route",
+                    "Timestamp": "2023-08-22T17:03:12.817000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet2NATGateway",
+                    "Type": "AWS::EC2::NatGateway",
+                    "Timestamp": "2023-08-22T17:03:12.115000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "PublicSubnet1NATGateway",
+                    "Type": "AWS::EC2::NatGateway",
+                    "Timestamp": "2023-08-22T17:01:49.687000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "LoadBalancer",
+                    "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+                    "Timestamp": "2023-08-22T17:01:48.886000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet1NATGateway",
+                    "Type": "AWS::EC2::NatGateway",
+                    "Timestamp": "2023-08-22T17:01:48.492000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "LoadBalancer",
+                    "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+                    "Timestamp": "2023-08-22T17:01:48.087000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet2NATGateway",
+                    "Type": "AWS::EC2::NatGateway",
+                    "Timestamp": "2023-08-22T17:01:47.534000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet1RouteTableAssociation",
+                    "Type": "AWS::EC2::SubnetRouteTableAssociation",
+                    "Timestamp": "2023-08-22T17:01:47.431000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "PublicSubnet2NATGateway",
+                    "Type": "AWS::EC2::NatGateway",
+                    "Timestamp": "2023-08-22T17:01:46.050000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet2DefaultRoute",
+                    "Type": "AWS::EC2::Route",
+                    "Timestamp": "2023-08-22T17:01:44.931000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "PublicSubnet1DefaultRoute",
+                    "Type": "AWS::EC2::Route",
+                    "Timestamp": "2023-08-22T17:01:44.638000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "PublicSubnet2DefaultRoute",
+                    "Type": "AWS::EC2::Route",
+                    "Timestamp": "2023-08-22T17:01:44.577000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet1DefaultRoute",
+                    "Type": "AWS::EC2::Route",
+                    "Timestamp": "2023-08-22T17:01:44.357000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "TaskExecutionPolicy",
+                    "Type": "AWS::IAM::Policy",
+                    "Timestamp": "2023-08-22T17:01:43.366000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "PublicSubnet2DefaultRoute",
+                    "Type": "AWS::EC2::Route",
+                    "Timestamp": "2023-08-22T17:01:43.080000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet1DefaultRoute",
+                    "Type": "AWS::EC2::Route",
+                    "Timestamp": "2023-08-22T17:01:43.049000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PrivateSubnet1RouteTableAssociation",
+                    "Type": "AWS::EC2::SubnetRouteTableAssociation",
+                    "Timestamp": "2023-08-22T17:01:42.579000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "VPCGW",
+                    "Type": "AWS::EC2::VPCGatewayAttachment",
+                    "Timestamp": "2023-08-22T17:01:42.485000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "PrivateSubnet1RouteTableAssociation",
+                    "Type": "AWS::EC2::SubnetRouteTableAssociation",
+                    "Timestamp": "2023-08-22T17:01:42.272000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PrivateSubnet1RouteTableAssociation",
+                    "Type": "AWS::EC2::SubnetRouteTableAssociation",
+                    "Timestamp": "2023-08-22T17:01:40.768000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "TargetGroup",
+                    "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+                    "Timestamp": "2023-08-22T17:01:40.498000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "PrivateSubnet1RouteTable",
+                    "Type": "AWS::EC2::RouteTable",
+                    "Timestamp": "2023-08-22T17:01:40.210000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "PrivateSubnet2RouteTableAssociation",
+                    "Type": "AWS::EC2::SubnetRouteTableAssociation",
+                    "Timestamp": "2023-08-22T17:01:37.290000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "PublicSubnet2RouteTableAssociation",
+                    "Type": "AWS::EC2::SubnetRouteTableAssociation",
+                    "Timestamp": "2023-08-22T17:01:37.145000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "PrivateSubnet2RouteTableAssociation",
+                    "Type": "AWS::EC2::SubnetRouteTableAssociation",
+                    "Timestamp": "2023-08-22T17:01:37.047000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet2RouteTableAssociation",
+                    "Type": "AWS::EC2::SubnetRouteTableAssociation",
+                    "Timestamp": "2023-08-22T17:01:36.898000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet1RouteTableAssociation",
+                    "Type": "AWS::EC2::SubnetRouteTableAssociation",
+                    "Timestamp": "2023-08-22T17:01:36.865000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PrivateSubnet2RouteTableAssociation",
+                    "Type": "AWS::EC2::SubnetRouteTableAssociation",
+                    "Timestamp": "2023-08-22T17:01:35.645000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet2RouteTableAssociation",
+                    "Type": "AWS::EC2::SubnetRouteTableAssociation",
+                    "Timestamp": "2023-08-22T17:01:35.499000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet1RouteTableAssociation",
+                    "Type": "AWS::EC2::SubnetRouteTableAssociation",
+                    "Timestamp": "2023-08-22T17:01:35.433000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PrivateSubnet2RouteTable",
+                    "Type": "AWS::EC2::RouteTable",
+                    "Timestamp": "2023-08-22T17:01:35.125000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "PublicSubnet2RouteTable",
+                    "Type": "AWS::EC2::RouteTable",
+                    "Timestamp": "2023-08-22T17:01:34.942000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "PublicSubnet1RouteTable",
+                    "Type": "AWS::EC2::RouteTable",
+                    "Timestamp": "2023-08-22T17:01:34.850000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "LoadBalancerEgress",
+                    "Type": "AWS::EC2::SecurityGroupEgress",
+                    "Timestamp": "2023-08-22T17:01:34.044000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "Ingress",
+                    "Type": "AWS::EC2::SecurityGroupIngress",
+                    "Timestamp": "2023-08-22T17:01:33.554000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "LoadBalancerEgress",
+                    "Type": "AWS::EC2::SecurityGroupEgress",
+                    "Timestamp": "2023-08-22T17:01:33.336000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "Ingress",
+                    "Type": "AWS::EC2::SecurityGroupIngress",
+                    "Timestamp": "2023-08-22T17:01:32.954000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "Ingress",
+                    "Type": "AWS::EC2::SecurityGroupIngress",
+                    "Timestamp": "2023-08-22T17:01:32.758000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "LoadBalancerEgress",
+                    "Type": "AWS::EC2::SecurityGroupEgress",
+                    "Timestamp": "2023-08-22T17:01:32.706000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "ServiceSecurityGroup",
+                    "Type": "AWS::EC2::SecurityGroup",
+                    "Timestamp": "2023-08-22T17:01:32.233000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "ServiceSecurityGroup",
+                    "Type": "AWS::EC2::SecurityGroup",
+                    "Timestamp": "2023-08-22T17:01:31.231000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "LoadBalancerSecurityGroup",
+                    "Type": "AWS::EC2::SecurityGroup",
+                    "Timestamp": "2023-08-22T17:01:29.113000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "TaskDefinition",
+                    "Type": "AWS::ECS::TaskDefinition",
+                    "Timestamp": "2023-08-22T17:01:28.142000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "LoadBalancerSecurityGroup",
+                    "Type": "AWS::EC2::SecurityGroup",
+                    "Timestamp": "2023-08-22T17:01:28.081000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "TaskDefinition",
+                    "Type": "AWS::ECS::TaskDefinition",
+                    "Timestamp": "2023-08-22T17:01:27.821000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet2",
+                    "Type": "AWS::EC2::Subnet",
+                    "Timestamp": "2023-08-22T17:01:27.707000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "TaskExecutionPolicy",
+                    "Type": "AWS::IAM::Policy",
+                    "Timestamp": "2023-08-22T17:01:27.593000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet1",
+                    "Type": "AWS::EC2::Subnet",
+                    "Timestamp": "2023-08-22T17:01:27.453000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "VPCGW",
+                    "Type": "AWS::EC2::VPCGatewayAttachment",
+                    "Timestamp": "2023-08-22T17:01:27.123000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PrivateSubnet2Subnet",
+                    "Type": "AWS::EC2::Subnet",
+                    "Timestamp": "2023-08-22T17:01:27.042000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "PrivateSubnet1Subnet",
+                    "Type": "AWS::EC2::Subnet",
+                    "Timestamp": "2023-08-22T17:01:26.970000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "PublicSubnet2EIP",
+                    "Type": "AWS::EC2::EIP",
+                    "Timestamp": "2023-08-22T17:01:26.761000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "VPCGW",
+                    "Type": "AWS::EC2::VPCGatewayAttachment",
+                    "Timestamp": "2023-08-22T17:01:26.727000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet1EIP",
+                    "Type": "AWS::EC2::EIP",
+                    "Timestamp": "2023-08-22T17:01:26.592000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "TaskExecutionPolicy",
+                    "Type": "AWS::IAM::Policy",
+                    "Timestamp": "2023-08-22T17:01:26.486000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "TaskDefinition",
+                    "Type": "AWS::ECS::TaskDefinition",
+                    "Timestamp": "2023-08-22T17:01:26.449000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "ServiceSecurityGroup",
+                    "Type": "AWS::EC2::SecurityGroup",
+                    "Timestamp": "2023-08-22T17:01:26.387000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "InternetGateway",
+                    "Type": "AWS::EC2::InternetGateway",
+                    "Timestamp": "2023-08-22T17:01:26.253000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "TaskRole",
+                    "Type": "AWS::IAM::Role",
+                    "Timestamp": "2023-08-22T17:01:25.592000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "TaskExecutionRole",
+                    "Type": "AWS::IAM::Role",
+                    "Timestamp": "2023-08-22T17:01:25.464000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "TargetGroup",
+                    "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+                    "Timestamp": "2023-08-22T17:01:24.840000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PrivateSubnet2RouteTable",
+                    "Type": "AWS::EC2::RouteTable",
+                    "Timestamp": "2023-08-22T17:01:24.585000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet1",
+                    "Type": "AWS::EC2::Subnet",
+                    "Timestamp": "2023-08-22T17:01:24.577000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet2",
+                    "Type": "AWS::EC2::Subnet",
+                    "Timestamp": "2023-08-22T17:01:24.566000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet2RouteTable",
+                    "Type": "AWS::EC2::RouteTable",
+                    "Timestamp": "2023-08-22T17:01:24.453000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PrivateSubnet2Subnet",
+                    "Type": "AWS::EC2::Subnet",
+                    "Timestamp": "2023-08-22T17:01:24.442000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PrivateSubnet1RouteTable",
+                    "Type": "AWS::EC2::RouteTable",
+                    "Timestamp": "2023-08-22T17:01:24.438000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet1RouteTable",
+                    "Type": "AWS::EC2::RouteTable",
+                    "Timestamp": "2023-08-22T17:01:24.342000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PrivateSubnet1Subnet",
+                    "Type": "AWS::EC2::Subnet",
+                    "Timestamp": "2023-08-22T17:01:24.331000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "LoadBalancerSecurityGroup",
+                    "Type": "AWS::EC2::SecurityGroup",
+                    "Timestamp": "2023-08-22T17:01:23.316000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet1",
+                    "Type": "AWS::EC2::Subnet",
+                    "Timestamp": "2023-08-22T17:01:23.313000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PrivateSubnet2RouteTable",
+                    "Type": "AWS::EC2::RouteTable",
+                    "Timestamp": "2023-08-22T17:01:23.294000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet2RouteTable",
+                    "Type": "AWS::EC2::RouteTable",
+                    "Timestamp": "2023-08-22T17:01:23.275000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet2",
+                    "Type": "AWS::EC2::Subnet",
+                    "Timestamp": "2023-08-22T17:01:23.271000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PrivateSubnet2Subnet",
+                    "Type": "AWS::EC2::Subnet",
+                    "Timestamp": "2023-08-22T17:01:23.266000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PrivateSubnet1RouteTable",
+                    "Type": "AWS::EC2::RouteTable",
+                    "Timestamp": "2023-08-22T17:01:23.260000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet1RouteTable",
+                    "Type": "AWS::EC2::RouteTable",
+                    "Timestamp": "2023-08-22T17:01:23.253000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "TargetGroup",
+                    "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+                    "Timestamp": "2023-08-22T17:01:23.250000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PrivateSubnet1Subnet",
+                    "Type": "AWS::EC2::Subnet",
+                    "Timestamp": "2023-08-22T17:01:23.245000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "VPC",
+                    "Type": "AWS::EC2::VPC",
+                    "Timestamp": "2023-08-22T17:01:22.707000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "Cluster",
+                    "Type": "AWS::ECS::Cluster",
+                    "Timestamp": "2023-08-22T17:01:14.292000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "VPC",
+                    "Type": "AWS::EC2::VPC",
+                    "Timestamp": "2023-08-22T17:01:11.168000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "Logs",
+                    "Type": "AWS::Logs::LogGroup",
+                    "Timestamp": "2023-08-22T17:01:11.028000+00:00",
+                    "Status": "CREATE_COMPLETE"
+                },
+                {
+                    "Id": "PublicSubnet2EIP",
+                    "Type": "AWS::EC2::EIP",
+                    "Timestamp": "2023-08-22T17:01:11.011000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet1EIP",
+                    "Type": "AWS::EC2::EIP",
+                    "Timestamp": "2023-08-22T17:01:10.831000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "Cluster",
+                    "Type": "AWS::ECS::Cluster",
+                    "Timestamp": "2023-08-22T17:01:10.792000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "Logs",
+                    "Type": "AWS::Logs::LogGroup",
+                    "Timestamp": "2023-08-22T17:01:10.742000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "InternetGateway",
+                    "Type": "AWS::EC2::InternetGateway",
+                    "Timestamp": "2023-08-22T17:01:10.718000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "TaskExecutionRole",
+                    "Type": "AWS::IAM::Role",
+                    "Timestamp": "2023-08-22T17:01:09.951000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "TaskRole",
+                    "Type": "AWS::IAM::Role",
+                    "Timestamp": "2023-08-22T17:01:09.938000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet2EIP",
+                    "Type": "AWS::EC2::EIP",
+                    "Timestamp": "2023-08-22T17:01:09.719000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "VPC",
+                    "Type": "AWS::EC2::VPC",
+                    "Timestamp": "2023-08-22T17:01:09.688000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "TaskExecutionRole",
+                    "Type": "AWS::IAM::Role",
+                    "Timestamp": "2023-08-22T17:01:09.650000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "Cluster",
+                    "Type": "AWS::ECS::Cluster",
+                    "Timestamp": "2023-08-22T17:01:09.641000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "PublicSubnet1EIP",
+                    "Type": "AWS::EC2::EIP",
+                    "Timestamp": "2023-08-22T17:01:09.634000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "Logs",
+                    "Type": "AWS::Logs::LogGroup",
+                    "Timestamp": "2023-08-22T17:01:09.632000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "InternetGateway",
+                    "Type": "AWS::EC2::InternetGateway",
+                    "Timestamp": "2023-08-22T17:01:09.629000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "TaskRole",
+                    "Type": "AWS::IAM::Role",
+                    "Timestamp": "2023-08-22T17:01:09.609000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "ecs-cw-eval",
+                    "Type": "AWS::CloudFormation::Stack",
+                    "Timestamp": "2023-08-22T17:01:07.030000+00:00",
+                    "Status": "CREATE_IN_PROGRESS"
+                },
+                {
+                    "Id": "ecs-cw-eval",
+                    "Type": "AWS::CloudFormation::Stack",
+                    "Timestamp": "2023-08-22T17:00:59.245000+00:00",
+                    "Status": "REVIEW_IN_PROGRESS"
+                }
+            ];
+
+
+            /*
+            const sample = [
+                {
+                    id: "TaskRole", 
+                    type: "AWS::IAM::Role",
+                    begin: "2023-08-22T17:01:09.609000+00:00",
+                    end: "2023-08-22T17:01:25.592000+00:00",
+                    action: "create"
+                },
+                {
+                    id: "InternetGateway",
+                    type: "AWS::EC2::InternetGateway",
+                    begin: "2023-08-22T17:01:09.629000+00:00",
+                    end: "2023-08-22T17:01:26.253000+00:00",
+                    action: "create"
+                }
+            ];
+            */
+
+            // Look for the latest stack action (create/update) and ignore older events
+
+            let idxOfStart = -1
+            let idxOfEnd = -1
+            let stackCreateTs = undefined
+            let stackCompleteTs = undefined
+
+            for (let i = 0; i < data.length; i++) {
+                const evt = data[i]
+                const ts = new Date(evt.Timestamp)
+                if (evt.Type == "AWS::CloudFormation::Stack") {
+                    if (evt.Status === "CREATE_IN_PROGRESS" || evt.Status == "UPDATE_IN_PROGRESS") {
+                        if (stackCreateTs === undefined || stackCreateTs < ts) {
+                            stackCreateTs = ts
+                            idxOfStart = i
+                        }
+                    } else if (evt.Status === "CREATE_COMPLETE" || evt.Status === "UPDATE_COMPLETE") {
+                        if (stackCompleteTs === undefined || stackCompleteTs < ts) {
+                            stackCompleteTs = ts
+                            idxOfEnd = i
+                        }
+                    }
+                }
+            }
+
+            const resources = {}
+            for (let i = idxOfStart; i >= idxOfEnd; i--) {
+                const evt = data[i]
+                if (!resources[evt.Id]) {
+                    resources[evt.Id] = {}
+                }
+                const r = resources[evt.Id]
+                r.id = evt.Id
+                r.type = evt.Type
+                const ts = new Date(evt.Timestamp)
+                
+                // Data is sorted descended but we're iterating backwards
+                if (r.begin === undefined) r.begin = ts
+                r.end = ts
+            }
+
+            const model = []
+
+            for (const [k,v] of Object.entries(resources)) {
+                model.push(v)
+            }
+
+            model.sort((a,b) => {a.begin < b.begin})
+
+            console.log(model)
+
+            // Find the earliest and the latest time. Determine the total elapsed time.
+            // For each resource, determine pre and post percentages for the width of the white parts
+            // The remaining is the div width percentage for the active portion.
+            let earliest = undefined
+            let latest = undefined
+
+            for (const r of model) {
+                r.begints = Date.parse(r.begin)
+                r.endts = Date.parse(r.end)
+                r.elapsed = r.endts - r.begints
+
+                if (!earliest || earliest > r.begints) earliest = r.begints
+                if (!latest || latest < r.endts) latest = r.endts
+            }
+
+            const total = latest - earliest
+
+            const template = `
+                        <th scope="row">RESOURCE</td>
+                        <td>ELAPSED</td>
+                        <td>
+                            <div class="histo">
+                                <div class="inactive" style="width:PRE%">&nbsp;</div>
+                                <div class="active" style="width:ACTIVE%">&nbsp;</div>
+                                <div class="inactive" style="width:POST%">&nbsp;</div>
+                            </div>
+                        </td>
+                    `
+
+            for (const r of model) {
+                r.pre = ((r.begints - earliest)/total)*100
+                r.active = ((r.endts - r.begints)/total)*100
+                r.post = ((latest - r.endts)/total)*100
+
+                let rendered = template.replace("RESOURCE", r.id)
+                rendered = rendered.replace("PRE", r.pre)
+                rendered = rendered.replace("ACTIVE", r.active)
+                rendered = rendered.replace("POST", r.post)
+                rendered = rendered.replace("ELAPSED", r.elapsed/1000 + "s")
+                const tr = document.createElement("tr")
+                tr.innerHTML = rendered;
+
+                const table = document.getElementById("waterfall")
+                const tbody = table.getElementsByTagName("tbody")[0];
+                tbody.appendChild(tr)
+            }
+
+            const stackName = "My Stack"
+
+            document.getElementById("stack-name-header").innerText = stackName
+            document.getElementById("stack-name-caption").innerText = stackName
+
+            const totalSec = Math.round(total/1000)
+            const quarter = Math.round(totalSec/4)
+            document.getElementById("total-elapsed-time").innerText = totalSec + "s"
+            document.getElementById("elapsed1").innerText = "0s"
+            document.getElementById("elapsed2").innerText = quarter + "s"
+            document.getElementById("elapsed3").innerText = quarter*2 + "s"
+            document.getElementById("elapsed4").innerText = quarter*3 + "s"
+            document.getElementById("elapsed5").innerText = totalSec + "s"
+
+        </script>
+    </body>
+</html>
