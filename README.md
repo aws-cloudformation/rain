@@ -107,7 +107,7 @@ The template:
 ```yaml
 Resources:
   Test:
-    Type: AWS::CloudFormation:WaitHandle
+    Type: AWS::CloudFormation::WaitConditionHandle
     Metadata:
       Comment: !Rain::Embed embed.txt
 ```
@@ -122,7 +122,7 @@ The resulting packaged template:
 ```yaml
 Resources:
   Test:
-    Type: AWS::CloudFormation:WaitHandle
+    Type: AWS::CloudFormation::WaitConditionHandle
     Metadata:
       Comment: This is a test
 ```
