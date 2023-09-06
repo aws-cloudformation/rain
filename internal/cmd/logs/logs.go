@@ -3,6 +3,7 @@ package logs
 import (
 	"fmt"
 
+	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/ui"
 
 	"github.com/spf13/cobra"
@@ -57,4 +58,5 @@ You can use the --all flag to change this behaviour.`,
 func init() {
 	Cmd.Flags().BoolVarP(&allLogs, "all", "a", false, "include uninteresting logs")
 	Cmd.Flags().BoolVarP(&chart, "chart", "c", false, "Output a gantt chart of the most recent action as an html file")
+	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
 }
