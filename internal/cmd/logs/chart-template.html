@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            table {
+                  border-collapse: collapse;
+                  border: 2px solid rgb(200,200,200);
+                  letter-spacing: 1px;
+                  font-size: 0.8rem;
+                  width:90%;
+            }
+
+            td, th {
+              border: 1px solid rgb(190,190,190);
+              padding: 10px 20px;
+            }
+
+            th {
+              background-color: rgb(235,235,235);
+            }
+
+            td {
+              text-align: center;
+            }
+
+            thead th:nth-child(1) {
+                width: 16%;
+            }
+
+            thead th:nth-child(2) {
+                width: 7%;
+            }
+
+            thead th:nth-child(3) {
+                width: 77%;
+            }
+
+            tr:nth-child(even) td {
+              background-color: rgb(250,250,250);
+            }
+
+            tr:nth-child(odd) td {
+              background-color: rgb(245,245,245);
+            }
+
+            caption {
+              padding: 10px;
+            }
+
+            .histo {
+                display:flex;
+                flex-wrap:no-wrap;
+            }
+
+            .active {
+                background-color: gray;
+            }
+
+            .inactive {
+                background-color: white;
+            }
+
+            .elapsed {
+                width:23%;
+                text-align:left;
+            }
+
+            .total {
+                width: 8%;
+                text-align: right;
+            }
+        </style>
+    </head>
+    <body>
+        <h1><span id="stack-name-header"></span></h1>
+
+        <div id="container">
+            
+            <table id="waterfall">
+                <caption>Stack events for <span id="stack-name-caption"></span></caption>
+
+                <thead>
+                    <tr>
+                        <th scope="col">Resource</th>
+                        <th scope="col">Elapsed</th>
+                        <th scope="col">Time</th>
+                    </tr>
+                </thead>
+
+                <tbody id="resourceRows">
+                </tbody>
+
+                <tfoot>
+                    <tr>
+                        <th scope="row">Total</th>
+                        <td><span id="total-elapsed-time"></span></td>
+                        <td>
+                            <div class="histo">
+                                <div class="elapsed"><span id="elapsed1"></span></div>
+                                <div class="elapsed"><span id="elapsed2"></span></div>
+                                <div class="elapsed"><span id="elapsed3"></span></div>
+                                <div class="elapsed"><span id="elapsed4"></span></div>
+                                <div class="total"><span id="elapsed5"></span></div>
+                            </div>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <script>
+            const data = __DATA__
+
+            // Look for the latest stack action (create/update) and ignore older events
+
+            let idxOfStart = -1
+            let idxOfEnd = -1
+            let stackCreateTs = undefined
+            let stackCompleteTs = undefined
+
+            var stackName = "[Stack Name]"
+
+            for (let i = 0; i < data.length; i++) {
+                const evt = data[i]
+                const ts = new Date(evt.Timestamp)
+                if (evt.Type == "AWS::CloudFormation::Stack") {
+                    if (evt.Status === "CREATE_IN_PROGRESS" || evt.Status == "UPDATE_IN_PROGRESS") {
+                        stackName = evt.Id
+                        if (stackCreateTs === undefined || stackCreateTs < ts) {
+                            stackCreateTs = ts
+                            idxOfStart = i
+                        }
+                    } else if (evt.Status === "CREATE_COMPLETE" || evt.Status === "UPDATE_COMPLETE") {
+                        if (stackCompleteTs === undefined || stackCompleteTs < ts) {
+                            stackCompleteTs = ts
+                            idxOfEnd = i
+                        }
+                    }
+                }
+            }
+
+            const resources = {}
+            for (let i = idxOfStart; i >= idxOfEnd; i--) {
+                const evt = data[i]
+                if (!resources[evt.Id]) {
+                    resources[evt.Id] = {}
+                }
+                const r = resources[evt.Id]
+                r.id = evt.Id
+                r.type = evt.Type
+                const ts = new Date(evt.Timestamp)
+                
+                // Data is sorted descended but we're iterating backwards
+                if (r.begin === undefined) r.begin = ts
+                r.end = ts
+            }
+
+            const model = []
+
+            for (const [k,v] of Object.entries(resources)) {
+                model.push(v)
+            }
+
+            model.sort((a,b) => {a.begin < b.begin})
+
+            console.log(model)
+
+            // Find the earliest and the latest time. Determine the total elapsed time.
+            // For each resource, determine pre and post percentages for the width of the white parts
+            // The remaining is the div width percentage for the active portion.
+            let earliest = undefined
+            let latest = undefined
+
+            for (const r of model) {
+                r.begints = Date.parse(r.begin)
+                r.endts = Date.parse(r.end)
+                r.elapsed = r.endts - r.begints
+
+                if (!earliest || earliest > r.begints) earliest = r.begints
+                if (!latest || latest < r.endts) latest = r.endts
+            }
+
+            const total = latest - earliest
+
+            const template = `
+                        <th scope="row">RESOURCE</td>
+                        <td>ELAPSED</td>
+                        <td>
+                            <div class="histo">
+                                <div class="inactive" style="width:PRE%">&nbsp;</div>
+                                <div class="active" style="width:ACTIVE%">&nbsp;</div>
+                                <div class="inactive" style="width:POST%">&nbsp;</div>
+                            </div>
+                        </td>
+                    `
+
+            for (const r of model) {
+                r.pre = ((r.begints - earliest)/total)*100
+                r.active = ((r.endts - r.begints)/total)*100
+                r.post = ((latest - r.endts)/total)*100
+
+                let rendered = template.replace("RESOURCE", r.id)
+                rendered = rendered.replace("PRE", r.pre)
+                rendered = rendered.replace("ACTIVE", r.active)
+                rendered = rendered.replace("POST", r.post)
+                rendered = rendered.replace("ELAPSED", r.elapsed/1000 + "s")
+                const tr = document.createElement("tr")
+                tr.innerHTML = rendered;
+
+                const table = document.getElementById("waterfall")
+                const tbody = table.getElementsByTagName("tbody")[0];
+                tbody.appendChild(tr)
+            }
+
+            document.getElementById("stack-name-header").innerText = stackName
+            document.getElementById("stack-name-caption").innerText = stackName
+
+            const totalSec = Math.round(total/1000)
+            const quarter = Math.round(totalSec/4)
+            document.getElementById("total-elapsed-time").innerText = totalSec + "s"
+            document.getElementById("elapsed1").innerText = "0s"
+            document.getElementById("elapsed2").innerText = quarter + "s"
+            document.getElementById("elapsed3").innerText = quarter*2 + "s"
+            document.getElementById("elapsed4").innerText = quarter*3 + "s"
+            document.getElementById("elapsed5").innerText = totalSec + "s"
+
+        </script>
+    </body>
+</html>

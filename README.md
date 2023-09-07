@@ -25,7 +25,7 @@ cfn-lint, Guard and more:
 
 * **Consistent formatting of CloudFormation templates**: Using `rain fmt`, you can format your CloudFormation templates to a consistent standard or reformat a template from JSON to YAML (or YAML to JSON if you prefer). Rain preserves your comments when using YAML and switches use of [intrinsic functions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html) to use the short syntax where possible.
 
-* **Combined logs for nested stacks with sensible filtering**: When you run `rain log`, you will see a combined stream of logs from the stack you specified along with any nested stack associated with it. Rain also filters out uninteresting log messages by default so you just see the errors that require attention.
+* **Combined logs for nested stacks with sensible filtering**: When you run `rain log`, you will see a combined stream of logs from the stack you specified along with any nested stack associated with it. Rain also filters out uninteresting log messages by default so you just see the errors that require attention. You can also use `rain log --chart` to see a Gantt chart that shows you how long each operation took for a given stack.
 
 * **Build new CloudFormation templates**: `rain build` generates new CloudFormation templates containing skeleton resources that you specify. This saves you having to look up which properties are available and which are required vs. optional.
 
@@ -107,7 +107,7 @@ The template:
 ```yaml
 Resources:
   Test:
-    Type: AWS::CloudFormation:WaitHandle
+    Type: AWS::CloudFormation::WaitConditionHandle
     Metadata:
       Comment: !Rain::Embed embed.txt
 ```
@@ -122,7 +122,7 @@ The resulting packaged template:
 ```yaml
 Resources:
   Test:
-    Type: AWS::CloudFormation:WaitHandle
+    Type: AWS::CloudFormation::WaitConditionHandle
     Metadata:
       Comment: This is a test
 ```
@@ -405,6 +405,14 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
 ```
+
+### Gantt Chart
+
+Output a chart to an HTML file that you can view with a browser to look at how long stack operations take for each resource.
+
+`rain log --chart CDKToolkit > ~/Desktop/chart.html`
+
+<img src="./docs/chart.png" />
 
 ## Other CloudFormation tools
 

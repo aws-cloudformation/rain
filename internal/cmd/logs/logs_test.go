@@ -14,7 +14,7 @@ func Example_logs_help() {
 
 	logs.Cmd.Execute()
 	// Output:
-	// Shows the event log for a stack and its nested stack. Optionally, filter by a specific resource by name.
+	// Shows the event log for a stack and its nested stack. Optionally, filter by a specific resource by name, or see a gantt chart of the most recent stack action.
 	//
 	// By default, only show log entries that contain a useful message (e.g. a failure message).
 	// You can use the --all flag to change this behaviour.
@@ -26,6 +26,8 @@ func Example_logs_help() {
 	//   logs, log
 	//
 	// Flags:
-	//   -a, --all    include uninteresting logs
-	//   -h, --help   help for logs
+	//   -a, --all     include uninteresting logs
+	//   -c, --chart   Output a gantt chart of the most recent action as an html file
+	//       --debug   Output debugging information
+	//   -h, --help    help for logs
 }
