@@ -384,4 +384,7 @@ func init() {
 	forecasters["AWS::EC2::Instance"] = checkEC2Instance
 	forecasters["AWS::EC2::SecurityGroup"] = checkEC2SecurityGroup
 
+	// Initialize estimates map
+	InitEstimates()
+
 }
