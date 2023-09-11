@@ -1,11 +1,18 @@
 package forecast
 
 import (
-	"errors"
 	"fmt"
+
+	"github.com/aws-cloudformation/rain/cft"
+	"github.com/aws-cloudformation/rain/cft/graph"
+	"github.com/aws-cloudformation/rain/internal/config"
 )
 
+// Estimates is a map of resource type name to ResourceEstimates, which are based on historical averages
 var Estimates map[string]ResourceEstimate
+
+// EstimatesById is a map of logical ids in the stack to the estimated seconds to complete the action
+var EstimatesById map[string]int
 
 // ResourceEstimate stores the estimated time, in seconds, to create,
 // update, or delete a specific resource type.
@@ -31,8 +38,8 @@ type StackAction string
 
 const (
 	Create StackAction = "create"
-	Update             = "update"
-	Delete             = "delete"
+	Update StackAction = "update"
+	Delete StackAction = "delete"
 )
 
 // GetResourceEstimate returns the estimated time an action will take for the given resource type
@@ -50,14 +57,50 @@ func GetResourceEstimate(resourceType string, action StackAction) (int, error) {
 		}
 		return 0, nil
 	} else {
-		return 0, errors.New(fmt.Sprintf("no estimate available for %v", resourceType))
+		return 0, fmt.Errorf("no estimate available for %v", resourceType)
 	}
+}
+
+// PredictTotalEstimate returns the total number of seconds expected to deploy the stack.
+// This function takes into account resources that will be deployed in parallel.
+func PredictTotalEstimate(source cft.Template, stackExists bool) int {
+	total := 0
+
+	// Naive estimate. Doesn't take into account parallelism
+	//for _, v := range EstimatesById {
+	//	total += v
+	//}
+
+	// TODO - Try to predict what resources will be deployed in parallel
+	// Build a graph of dependencies
+	g := graph.New(source)
+
+	config.Debugf("g: %v", g.String())
+
+	// Evaluate each independent branch of the tree, starting from the top
+	// Whichever branch takes the longest is the total duration, since
+	// operations happen in parallel.
+	//
+	// We can't group resources by depth, since execution starts from the
+	// bottom up on each branch.
+	//
+	// Maybe just a DFS on each top level node, and the longest duration wins?
+
+	return total
+}
+
+// FormatEstimate returns a string in human readable format to represent the number of seconds.
+// For example, 61 would return "1 minute, 1 second"
+func FormatEstimate(total int) string {
+	// TODO
+	return fmt.Sprintf("%v seconds", total)
 }
 
 // init initializes the Estimates map for all AWS resource types
 func InitEstimates() {
 
 	Estimates = make(map[string]ResourceEstimate, 0)
+	EstimatesById = make(map[string]int, 0)
 
 	// TODO - Fill in the values with historically average create, update, delete times
 

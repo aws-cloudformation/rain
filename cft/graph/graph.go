@@ -56,6 +56,8 @@ func New(t cft.Template) Graph {
 		order: make([]Node, 0),
 	}
 
+	// TODO - Also consider DependsOn
+
 	for typeName, entity := range t.Map() {
 		if typeName != "Resources" && typeName != "Outputs" {
 			continue

@@ -17,11 +17,14 @@ Parameters:
 Resources:
   Bucket:
     Type: AWS::S3::Bucket
+	DependsOn: LogBucket
     Properties:
       BucketName: !Ref Name
       Tags:
         - Key: Account
         - Value: !Ref AWS::AccountId
+  LogBucket:
+  	Type: AWS::S3::Bucket
 Outputs:
   BucketName:
     Value: !Ref Bucket
