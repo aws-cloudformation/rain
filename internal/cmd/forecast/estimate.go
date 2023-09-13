@@ -6,6 +6,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/graph"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/s11n"
 )
 
 // Estimates is a map of resource type name to ResourceEstimates, which are based on historical averages
@@ -61,30 +62,158 @@ func GetResourceEstimate(resourceType string, action StackAction) (int, error) {
 	}
 }
 
+// getResourceType returns the resource type for the logical id
+// For example, "MyBucket" would return "AWS::S3::Bucket" if it is present,
+// otherwise "" is returned
+func getResourceType(t cft.Template, logicalId string) string {
+	rootMap := t.Node.Content[0]
+	_, resources := s11n.GetMapValue(rootMap, "Resources")
+	if resources == nil {
+		panic("Expected to find a Resources section in the template")
+	}
+	for i, r := range resources.Content {
+		if i%2 != 0 {
+			continue
+		}
+		if logicalId == r.Value {
+			resource := resources.Content[i+1]
+			_, typeNode := s11n.GetMapValue(resource, "Type")
+			if typeNode == nil {
+				panic(fmt.Sprintf("Expected %v to have a Type", logicalId))
+			}
+			return typeNode.Value
+		}
+	}
+	return ""
+}
+
+type Visited struct {
+	nodes []graph.Node
+}
+
+func (v *Visited) AddVisited(n graph.Node) {
+	v.nodes = append(v.nodes, n)
+}
+
+func (v *Visited) AlreadySaw(n graph.Node) bool {
+	for _, saw := range v.nodes {
+		if saw.Name == n.Name {
+			return true
+		}
+	}
+	return false
+}
+
+func NewVisited() Visited {
+	return Visited{nodes: make([]graph.Node, 0)}
+}
+
+// addDurations is a recursive function that dives down dependencies to add
+// the total duration estimated for stack actions
+func addDurations(
+	g graph.Graph,
+	t cft.Template,
+	action StackAction,
+	dependencies []graph.Node,
+	duration *int,
+	indent string,
+	v *Visited) {
+
+	if len(dependencies) == 0 {
+		return
+	}
+
+	for _, d := range dependencies {
+		if d.Type != "Resources" {
+			continue
+		}
+		if v.AlreadySaw(d) {
+			config.Debugf("%v- already saw %v", indent, d.Name)
+			continue
+		}
+		drt := getResourceType(t, d.Name)
+		if drt == "" {
+			panic(fmt.Sprintf("unexpected: no Type for %v", d.Name))
+		}
+		dd, err := GetResourceEstimate(drt, action)
+		if err != nil {
+			config.Debugf("no estimate for %v", drt)
+			continue
+		}
+		config.Debugf("%v- depends on %v (%vs)", indent, d, dd)
+		*duration += dd
+
+		v.AddVisited(d)
+		addDurations(g, t, action, g.Get(d), duration, indent+"  ", v)
+	}
+}
+
 // PredictTotalEstimate returns the total number of seconds expected to deploy the stack.
 // This function takes into account resources that will be deployed in parallel.
-func PredictTotalEstimate(source cft.Template, stackExists bool) int {
+func PredictTotalEstimate(t cft.Template, stackExists bool) int {
 	total := 0
 
-	// Naive estimate. Doesn't take into account parallelism
-	//for _, v := range EstimatesById {
-	//	total += v
-	//}
+	var action StackAction
+	action = "create"
+	if stackExists {
+		action = "update"
+	}
 
-	// TODO - Try to predict what resources will be deployed in parallel
 	// Build a graph of dependencies
-	g := graph.New(source)
+	g := graph.New(t)
 
-	config.Debugf("g: %v", g.String())
+	config.Debugf("g:\n%v", g.String())
 
-	// Evaluate each independent branch of the tree, starting from the top
-	// Whichever branch takes the longest is the total duration, since
-	// operations happen in parallel.
+	// DFS down each path, add up durations. Longest duration from the top wins.. ?
 	//
-	// We can't group resources by depth, since execution starts from the
-	// bottom up on each branch.
+	// (Downward is "depends on")
 	//
-	// Maybe just a DFS on each top level node, and the longest duration wins?
+	//       A   E  F      A: 2s
+	//      / \ /    \     B: 4s
+	//     B   C      G    C: 1s
+	//          \          D: 6s
+	//           D         E: 8s
+	//                     F: 2s
+	//                     G: 1s
+	//
+	// Deployment order:
+	//
+	// B-A		= 6s
+	// D-C-A    = 9s
+	// D-C-E    = 15s
+	// G-F      = 3s
+	//
+	// Expected deployment time is 15s
+
+	nodes := g.Nodes()
+	for _, n := range nodes {
+		if n.Type != "Resources" {
+			continue
+		}
+		// For every node in the graph, walk down its dependencies and
+		// add up the total duration.
+
+		resourceType := getResourceType(t, n.Name)
+		if resourceType == "" {
+			panic(fmt.Sprintf("unexpected: no Type for %v", n.Name))
+		}
+		duration, err := GetResourceEstimate(resourceType, action)
+		if err != nil {
+			config.Debugf("no estimate for %v", resourceType)
+			continue
+		}
+		config.Debugf("%v duration: %v", n.Name, duration)
+
+		dependencies := g.Get(n)
+		visited := NewVisited()
+		visited.AddVisited(n)
+		addDurations(g, t, action, dependencies, &duration, "  ", &visited)
+
+		config.Debugf("total duration for %v is %vs", n.Name, duration)
+		if total < duration {
+			total = duration
+		}
+	}
 
 	return total
 }
@@ -120,7 +249,7 @@ func InitEstimates() {
 	Estimates["AWS::AmplifyUIBuilder::Component"] = NewResourceEstimate("AWS::AmplifyUIBuilder::Component", 1, 1, 1)
 	Estimates["AWS::AmplifyUIBuilder::Form"] = NewResourceEstimate("AWS::AmplifyUIBuilder::Form", 1, 1, 1)
 	Estimates["AWS::AmplifyUIBuilder::Theme"] = NewResourceEstimate("AWS::AmplifyUIBuilder::Theme", 1, 1, 1)
-	Estimates["AWS::ApiGateway::Account"] = NewResourceEstimate("AWS::ApiGateway::Account", 1, 1, 1)
+	Estimates["AWS::ApiGateway::Account"] = NewResourceEstimate("AWS::ApiGateway::Account", 2, 2, 2)
 	Estimates["AWS::ApiGateway::ApiKey"] = NewResourceEstimate("AWS::ApiGateway::ApiKey", 1, 1, 1)
 	Estimates["AWS::ApiGateway::Authorizer"] = NewResourceEstimate("AWS::ApiGateway::Authorizer", 1, 1, 1)
 	Estimates["AWS::ApiGateway::BasePathMapping"] = NewResourceEstimate("AWS::ApiGateway::BasePathMapping", 1, 1, 1)
@@ -134,8 +263,8 @@ func InitEstimates() {
 	Estimates["AWS::ApiGateway::Model"] = NewResourceEstimate("AWS::ApiGateway::Model", 1, 1, 1)
 	Estimates["AWS::ApiGateway::RequestValidator"] = NewResourceEstimate("AWS::ApiGateway::RequestValidator", 1, 1, 1)
 	Estimates["AWS::ApiGateway::Resource"] = NewResourceEstimate("AWS::ApiGateway::Resource", 1, 1, 1)
-	Estimates["AWS::ApiGateway::RestApi"] = NewResourceEstimate("AWS::ApiGateway::RestApi", 1, 1, 1)
-	Estimates["AWS::ApiGateway::Stage"] = NewResourceEstimate("AWS::ApiGateway::Stage", 1, 1, 1)
+	Estimates["AWS::ApiGateway::RestApi"] = NewResourceEstimate("AWS::ApiGateway::RestApi", 2, 2, 2)
+	Estimates["AWS::ApiGateway::Stage"] = NewResourceEstimate("AWS::ApiGateway::Stage", 2, 2, 2)
 	Estimates["AWS::ApiGateway::UsagePlan"] = NewResourceEstimate("AWS::ApiGateway::UsagePlan", 1, 1, 1)
 	Estimates["AWS::ApiGateway::UsagePlanKey"] = NewResourceEstimate("AWS::ApiGateway::UsagePlanKey", 1, 1, 1)
 	Estimates["AWS::ApiGateway::VpcLink"] = NewResourceEstimate("AWS::ApiGateway::VpcLink", 1, 1, 1)
@@ -428,11 +557,11 @@ func InitEstimates() {
 	Estimates["AWS::EC2::IPAMResourceDiscovery"] = NewResourceEstimate("AWS::EC2::IPAMResourceDiscovery", 1, 1, 1)
 	Estimates["AWS::EC2::IPAMResourceDiscoveryAssociation"] = NewResourceEstimate("AWS::EC2::IPAMResourceDiscoveryAssociation", 1, 1, 1)
 	Estimates["AWS::EC2::IPAMScope"] = NewResourceEstimate("AWS::EC2::IPAMScope", 1, 1, 1)
-	Estimates["AWS::EC2::Instance"] = NewResourceEstimate("AWS::EC2::Instance", 1, 1, 1)
+	Estimates["AWS::EC2::Instance"] = NewResourceEstimate("AWS::EC2::Instance", 30, 15, 10)
 	Estimates["AWS::EC2::InstanceConnectEndpoint"] = NewResourceEstimate("AWS::EC2::InstanceConnectEndpoint", 1, 1, 1)
 	Estimates["AWS::EC2::InternetGateway"] = NewResourceEstimate("AWS::EC2::InternetGateway", 1, 1, 1)
 	Estimates["AWS::EC2::KeyPair"] = NewResourceEstimate("AWS::EC2::KeyPair", 1, 1, 1)
-	Estimates["AWS::EC2::LaunchTemplate"] = NewResourceEstimate("AWS::EC2::LaunchTemplate", 1, 1, 1)
+	Estimates["AWS::EC2::LaunchTemplate"] = NewResourceEstimate("AWS::EC2::LaunchTemplate", 7, 6, 5)
 	Estimates["AWS::EC2::LocalGatewayRoute"] = NewResourceEstimate("AWS::EC2::LocalGatewayRoute", 1, 1, 1)
 	Estimates["AWS::EC2::LocalGatewayRouteTable"] = NewResourceEstimate("AWS::EC2::LocalGatewayRouteTable", 1, 1, 1)
 	Estimates["AWS::EC2::LocalGatewayRouteTableVPCAssociation"] = NewResourceEstimate("AWS::EC2::LocalGatewayRouteTableVPCAssociation", 1, 1, 1)
@@ -648,8 +777,8 @@ func InitEstimates() {
 	Estimates["AWS::IAM::InstanceProfile"] = NewResourceEstimate("AWS::IAM::InstanceProfile", 1, 1, 1)
 	Estimates["AWS::IAM::ManagedPolicy"] = NewResourceEstimate("AWS::IAM::ManagedPolicy", 1, 1, 1)
 	Estimates["AWS::IAM::OIDCProvider"] = NewResourceEstimate("AWS::IAM::OIDCProvider", 1, 1, 1)
-	Estimates["AWS::IAM::Policy"] = NewResourceEstimate("AWS::IAM::Policy", 1, 1, 1)
-	Estimates["AWS::IAM::Role"] = NewResourceEstimate("AWS::IAM::Role", 1, 1, 1)
+	Estimates["AWS::IAM::Policy"] = NewResourceEstimate("AWS::IAM::Policy", 17, 17, 17)
+	Estimates["AWS::IAM::Role"] = NewResourceEstimate("AWS::IAM::Role", 16, 16, 16)
 	Estimates["AWS::IAM::RolePolicy"] = NewResourceEstimate("AWS::IAM::RolePolicy", 1, 1, 1)
 	Estimates["AWS::IAM::SAMLProvider"] = NewResourceEstimate("AWS::IAM::SAMLProvider", 1, 1, 1)
 	Estimates["AWS::IAM::ServerCertificate"] = NewResourceEstimate("AWS::IAM::ServerCertificate", 1, 1, 1)
@@ -776,7 +905,7 @@ func InitEstimates() {
 	Estimates["AWS::Lambda::CodeSigningConfig"] = NewResourceEstimate("AWS::Lambda::CodeSigningConfig", 1, 1, 1)
 	Estimates["AWS::Lambda::EventInvokeConfig"] = NewResourceEstimate("AWS::Lambda::EventInvokeConfig", 1, 1, 1)
 	Estimates["AWS::Lambda::EventSourceMapping"] = NewResourceEstimate("AWS::Lambda::EventSourceMapping", 1, 1, 1)
-	Estimates["AWS::Lambda::Function"] = NewResourceEstimate("AWS::Lambda::Function", 1, 1, 1)
+	Estimates["AWS::Lambda::Function"] = NewResourceEstimate("AWS::Lambda::Function", 9, 9, 9)
 	Estimates["AWS::Lambda::LayerVersion"] = NewResourceEstimate("AWS::Lambda::LayerVersion", 1, 1, 1)
 	Estimates["AWS::Lambda::LayerVersionPermission"] = NewResourceEstimate("AWS::Lambda::LayerVersionPermission", 1, 1, 1)
 	Estimates["AWS::Lambda::Permission"] = NewResourceEstimate("AWS::Lambda::Permission", 1, 1, 1)
@@ -1048,8 +1177,8 @@ func InitEstimates() {
 	Estimates["AWS::Route53Resolver::ResolverRule"] = NewResourceEstimate("AWS::Route53Resolver::ResolverRule", 1, 1, 1)
 	Estimates["AWS::Route53Resolver::ResolverRuleAssociation"] = NewResourceEstimate("AWS::Route53Resolver::ResolverRuleAssociation", 1, 1, 1)
 	Estimates["AWS::S3::AccessPoint"] = NewResourceEstimate("AWS::S3::AccessPoint", 1, 1, 1)
-	Estimates["AWS::S3::Bucket"] = NewResourceEstimate("AWS::S3::Bucket", 1, 1, 1)
-	Estimates["AWS::S3::BucketPolicy"] = NewResourceEstimate("AWS::S3::BucketPolicy", 1, 1, 1)
+	Estimates["AWS::S3::Bucket"] = NewResourceEstimate("AWS::S3::Bucket", 10, 5, 3)
+	Estimates["AWS::S3::BucketPolicy"] = NewResourceEstimate("AWS::S3::BucketPolicy", 5, 5, 5)
 	Estimates["AWS::S3::MultiRegionAccessPoint"] = NewResourceEstimate("AWS::S3::MultiRegionAccessPoint", 1, 1, 1)
 	Estimates["AWS::S3::MultiRegionAccessPointPolicy"] = NewResourceEstimate("AWS::S3::MultiRegionAccessPointPolicy", 1, 1, 1)
 	Estimates["AWS::S3::StorageLens"] = NewResourceEstimate("AWS::S3::StorageLens", 1, 1, 1)

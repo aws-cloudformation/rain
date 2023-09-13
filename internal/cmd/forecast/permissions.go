@@ -46,6 +46,7 @@ func checkTypePermissions(input PredictionInput, resourceArn string, verb string
 	// other circumstances, and it's not easy to know when they are relevant.
 	if svcLower == "lambda" {
 		actionsToRemove = append(actionsToRemove, "lambda:GetCodeSigningConfig")
+		actionsToRemove = append(actionsToRemove, "lambda:GetLayerVersion")
 	}
 	if input.typeName == "AWS::IAM::Policy" {
 		actionsToRemove = append(actionsToRemove, "iam:PutUserPolicy")

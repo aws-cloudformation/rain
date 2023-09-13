@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/aws-cloudformation/rain/internal/config"
 )
 
 var subRe = regexp.MustCompile(`\$\{([^!].+?)\}`)
@@ -17,6 +19,17 @@ func findRefs(t map[string]interface{}) []string {
 
 	for key, value := range t {
 		switch key {
+		case "DependsOn":
+			switch v := value.(type) {
+			case string:
+				refs = append(refs, v)
+			case []interface{}:
+				for _, d := range v {
+					refs = append(refs, d.(string))
+				}
+			default:
+				config.Debugf("invalid DependsOn: %v, %v", key, value)
+			}
 		case "Ref":
 			refs = append(refs, value.(string))
 		case "Fn::GetAtt":
