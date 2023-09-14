@@ -12,9 +12,6 @@ import (
 // Estimates is a map of resource type name to ResourceEstimates, which are based on historical averages
 var Estimates map[string]ResourceEstimate
 
-// EstimatesById is a map of logical ids in the stack to the estimated seconds to complete the action
-var EstimatesById map[string]int
-
 // ResourceEstimate stores the estimated time, in seconds, to create,
 // update, or delete a specific resource type.
 // The Name is something like "AWS::S3::Bucket"
@@ -115,7 +112,7 @@ func addDurations(
 	t cft.Template,
 	action StackAction,
 	dependencies []graph.Node,
-	duration *int,
+	parentDuration *int,
 	indent string,
 	v *Visited) {
 
@@ -123,14 +120,16 @@ func addDurations(
 		return
 	}
 
+	maxDuration := 0
+
 	for _, d := range dependencies {
 		if d.Type != "Resources" {
 			continue
 		}
-		if v.AlreadySaw(d) {
-			config.Debugf("%v- already saw %v", indent, d.Name)
-			continue
-		}
+		//if v.AlreadySaw(d) {
+		//	config.Debugf("%v- already saw %v", indent, d.Name)
+		//	continue
+		//}
 		drt := getResourceType(t, d.Name)
 		if drt == "" {
 			panic(fmt.Sprintf("unexpected: no Type for %v", d.Name))
@@ -140,12 +139,17 @@ func addDurations(
 			config.Debugf("no estimate for %v", drt)
 			continue
 		}
-		config.Debugf("%v- depends on %v (%vs)", indent, d, dd)
-		*duration += dd
+		config.Debugf("%v- depends on %v (%vs)", indent, d.Name, dd)
 
-		v.AddVisited(d)
-		addDurations(g, t, action, g.Get(d), duration, indent+"  ", v)
+		//v.AddVisited(d)
+		childDuration := dd
+		addDurations(g, t, action, g.Get(d), &childDuration, indent+"  ", v)
+		if maxDuration < childDuration {
+			maxDuration = childDuration
+		}
 	}
+
+	*parentDuration += maxDuration
 }
 
 // PredictTotalEstimate returns the total number of seconds expected to deploy the stack.
@@ -219,17 +223,15 @@ func PredictTotalEstimate(t cft.Template, stackExists bool) int {
 }
 
 // FormatEstimate returns a string in human readable format to represent the number of seconds.
-// For example, 61 would return "1 minute, 1 second"
+// For example, 61 would return "0h, 1m, 1s"
 func FormatEstimate(total int) string {
-	// TODO
-	return fmt.Sprintf("%v seconds", total)
+	return fmt.Sprintf("%vh, %vm, %vs", total/360, total/60, total%60)
 }
 
 // init initializes the Estimates map for all AWS resource types
 func InitEstimates() {
 
 	Estimates = make(map[string]ResourceEstimate, 0)
-	EstimatesById = make(map[string]int, 0)
 
 	// TODO - Fill in the values with historically average create, update, delete times
 
@@ -543,7 +545,7 @@ func InitEstimates() {
 	Estimates["AWS::EC2::CustomerGateway"] = NewResourceEstimate("AWS::EC2::CustomerGateway", 1, 1, 1)
 	Estimates["AWS::EC2::DHCPOptions"] = NewResourceEstimate("AWS::EC2::DHCPOptions", 1, 1, 1)
 	Estimates["AWS::EC2::EC2Fleet"] = NewResourceEstimate("AWS::EC2::EC2Fleet", 1, 1, 1)
-	Estimates["AWS::EC2::EIP"] = NewResourceEstimate("AWS::EC2::EIP", 1, 1, 1)
+	Estimates["AWS::EC2::EIP"] = NewResourceEstimate("AWS::EC2::EIP", 17, 17, 17)
 	Estimates["AWS::EC2::EIPAssociation"] = NewResourceEstimate("AWS::EC2::EIPAssociation", 1, 1, 1)
 	Estimates["AWS::EC2::EgressOnlyInternetGateway"] = NewResourceEstimate("AWS::EC2::EgressOnlyInternetGateway", 1, 1, 1)
 	Estimates["AWS::EC2::EnclaveCertificateIamRoleAssociation"] = NewResourceEstimate("AWS::EC2::EnclaveCertificateIamRoleAssociation", 1, 1, 1)
@@ -559,14 +561,14 @@ func InitEstimates() {
 	Estimates["AWS::EC2::IPAMScope"] = NewResourceEstimate("AWS::EC2::IPAMScope", 1, 1, 1)
 	Estimates["AWS::EC2::Instance"] = NewResourceEstimate("AWS::EC2::Instance", 30, 15, 10)
 	Estimates["AWS::EC2::InstanceConnectEndpoint"] = NewResourceEstimate("AWS::EC2::InstanceConnectEndpoint", 1, 1, 1)
-	Estimates["AWS::EC2::InternetGateway"] = NewResourceEstimate("AWS::EC2::InternetGateway", 1, 1, 1)
+	Estimates["AWS::EC2::InternetGateway"] = NewResourceEstimate("AWS::EC2::InternetGateway", 16, 16, 16)
 	Estimates["AWS::EC2::KeyPair"] = NewResourceEstimate("AWS::EC2::KeyPair", 1, 1, 1)
 	Estimates["AWS::EC2::LaunchTemplate"] = NewResourceEstimate("AWS::EC2::LaunchTemplate", 7, 6, 5)
 	Estimates["AWS::EC2::LocalGatewayRoute"] = NewResourceEstimate("AWS::EC2::LocalGatewayRoute", 1, 1, 1)
 	Estimates["AWS::EC2::LocalGatewayRouteTable"] = NewResourceEstimate("AWS::EC2::LocalGatewayRouteTable", 1, 1, 1)
 	Estimates["AWS::EC2::LocalGatewayRouteTableVPCAssociation"] = NewResourceEstimate("AWS::EC2::LocalGatewayRouteTableVPCAssociation", 1, 1, 1)
 	Estimates["AWS::EC2::LocalGatewayRouteTableVirtualInterfaceGroupAssociation"] = NewResourceEstimate("AWS::EC2::LocalGatewayRouteTableVirtualInterfaceGroupAssociation", 1, 1, 1)
-	Estimates["AWS::EC2::NatGateway"] = NewResourceEstimate("AWS::EC2::NatGateway", 1, 1, 1)
+	Estimates["AWS::EC2::NatGateway"] = NewResourceEstimate("AWS::EC2::NatGateway", 107, 107, 107)
 	Estimates["AWS::EC2::NetworkAcl"] = NewResourceEstimate("AWS::EC2::NetworkAcl", 1, 1, 1)
 	Estimates["AWS::EC2::NetworkAclEntry"] = NewResourceEstimate("AWS::EC2::NetworkAclEntry", 1, 1, 1)
 	Estimates["AWS::EC2::NetworkInsightsAccessScope"] = NewResourceEstimate("AWS::EC2::NetworkInsightsAccessScope", 1, 1, 1)
@@ -580,15 +582,15 @@ func InitEstimates() {
 	Estimates["AWS::EC2::PlacementGroup"] = NewResourceEstimate("AWS::EC2::PlacementGroup", 1, 1, 1)
 	Estimates["AWS::EC2::PrefixList"] = NewResourceEstimate("AWS::EC2::PrefixList", 1, 1, 1)
 	Estimates["AWS::EC2::Route"] = NewResourceEstimate("AWS::EC2::Route", 1, 1, 1)
-	Estimates["AWS::EC2::RouteTable"] = NewResourceEstimate("AWS::EC2::RouteTable", 1, 1, 1)
-	Estimates["AWS::EC2::SecurityGroup"] = NewResourceEstimate("AWS::EC2::SecurityGroup", 1, 1, 1)
+	Estimates["AWS::EC2::RouteTable"] = NewResourceEstimate("AWS::EC2::RouteTable", 14, 14, 14)
+	Estimates["AWS::EC2::SecurityGroup"] = NewResourceEstimate("AWS::EC2::SecurityGroup", 6, 6, 6)
 	Estimates["AWS::EC2::SecurityGroupEgress"] = NewResourceEstimate("AWS::EC2::SecurityGroupEgress", 1, 1, 1)
 	Estimates["AWS::EC2::SecurityGroupIngress"] = NewResourceEstimate("AWS::EC2::SecurityGroupIngress", 1, 1, 1)
 	Estimates["AWS::EC2::SpotFleet"] = NewResourceEstimate("AWS::EC2::SpotFleet", 1, 1, 1)
-	Estimates["AWS::EC2::Subnet"] = NewResourceEstimate("AWS::EC2::Subnet", 1, 1, 1)
+	Estimates["AWS::EC2::Subnet"] = NewResourceEstimate("AWS::EC2::Subnet", 5, 5, 5)
 	Estimates["AWS::EC2::SubnetCidrBlock"] = NewResourceEstimate("AWS::EC2::SubnetCidrBlock", 1, 1, 1)
 	Estimates["AWS::EC2::SubnetNetworkAclAssociation"] = NewResourceEstimate("AWS::EC2::SubnetNetworkAclAssociation", 1, 1, 1)
-	Estimates["AWS::EC2::SubnetRouteTableAssociation"] = NewResourceEstimate("AWS::EC2::SubnetRouteTableAssociation", 1, 1, 1)
+	Estimates["AWS::EC2::SubnetRouteTableAssociation"] = NewResourceEstimate("AWS::EC2::SubnetRouteTableAssociation", 2, 2, 2)
 	Estimates["AWS::EC2::TrafficMirrorFilter"] = NewResourceEstimate("AWS::EC2::TrafficMirrorFilter", 1, 1, 1)
 	Estimates["AWS::EC2::TrafficMirrorFilterRule"] = NewResourceEstimate("AWS::EC2::TrafficMirrorFilterRule", 1, 1, 1)
 	Estimates["AWS::EC2::TrafficMirrorSession"] = NewResourceEstimate("AWS::EC2::TrafficMirrorSession", 1, 1, 1)
@@ -606,7 +608,7 @@ func InitEstimates() {
 	Estimates["AWS::EC2::TransitGatewayRouteTableAssociation"] = NewResourceEstimate("AWS::EC2::TransitGatewayRouteTableAssociation", 1, 1, 1)
 	Estimates["AWS::EC2::TransitGatewayRouteTablePropagation"] = NewResourceEstimate("AWS::EC2::TransitGatewayRouteTablePropagation", 1, 1, 1)
 	Estimates["AWS::EC2::TransitGatewayVpcAttachment"] = NewResourceEstimate("AWS::EC2::TransitGatewayVpcAttachment", 1, 1, 1)
-	Estimates["AWS::EC2::VPC"] = NewResourceEstimate("AWS::EC2::VPC", 1, 1, 1)
+	Estimates["AWS::EC2::VPC"] = NewResourceEstimate("AWS::EC2::VPC", 12, 12, 12)
 	Estimates["AWS::EC2::VPCCidrBlock"] = NewResourceEstimate("AWS::EC2::VPCCidrBlock", 1, 1, 1)
 	Estimates["AWS::EC2::VPCDHCPOptionsAssociation"] = NewResourceEstimate("AWS::EC2::VPCDHCPOptionsAssociation", 1, 1, 1)
 	Estimates["AWS::EC2::VPCEndpoint"] = NewResourceEstimate("AWS::EC2::VPCEndpoint", 1, 1, 1)
@@ -631,11 +633,11 @@ func InitEstimates() {
 	Estimates["AWS::ECR::ReplicationConfiguration"] = NewResourceEstimate("AWS::ECR::ReplicationConfiguration", 1, 1, 1)
 	Estimates["AWS::ECR::Repository"] = NewResourceEstimate("AWS::ECR::Repository", 1, 1, 1)
 	Estimates["AWS::ECS::CapacityProvider"] = NewResourceEstimate("AWS::ECS::CapacityProvider", 1, 1, 1)
-	Estimates["AWS::ECS::Cluster"] = NewResourceEstimate("AWS::ECS::Cluster", 1, 1, 1)
+	Estimates["AWS::ECS::Cluster"] = NewResourceEstimate("AWS::ECS::Cluster", 4, 4, 4)
 	Estimates["AWS::ECS::ClusterCapacityProviderAssociations"] = NewResourceEstimate("AWS::ECS::ClusterCapacityProviderAssociations", 1, 1, 1)
 	Estimates["AWS::ECS::PrimaryTaskSet"] = NewResourceEstimate("AWS::ECS::PrimaryTaskSet", 1, 1, 1)
-	Estimates["AWS::ECS::Service"] = NewResourceEstimate("AWS::ECS::Service", 1, 1, 1)
-	Estimates["AWS::ECS::TaskDefinition"] = NewResourceEstimate("AWS::ECS::TaskDefinition", 1, 1, 1)
+	Estimates["AWS::ECS::Service"] = NewResourceEstimate("AWS::ECS::Service", 92, 92, 92)
+	Estimates["AWS::ECS::TaskDefinition"] = NewResourceEstimate("AWS::ECS::TaskDefinition", 2, 2, 2)
 	Estimates["AWS::ECS::TaskSet"] = NewResourceEstimate("AWS::ECS::TaskSet", 1, 1, 1)
 	Estimates["AWS::EFS::AccessPoint"] = NewResourceEstimate("AWS::EFS::AccessPoint", 1, 1, 1)
 	Estimates["AWS::EFS::FileSystem"] = NewResourceEstimate("AWS::EFS::FileSystem", 1, 1, 1)
@@ -668,12 +670,12 @@ func InitEstimates() {
 	Estimates["AWS::ElasticBeanstalk::ApplicationVersion"] = NewResourceEstimate("AWS::ElasticBeanstalk::ApplicationVersion", 1, 1, 1)
 	Estimates["AWS::ElasticBeanstalk::ConfigurationTemplate"] = NewResourceEstimate("AWS::ElasticBeanstalk::ConfigurationTemplate", 1, 1, 1)
 	Estimates["AWS::ElasticBeanstalk::Environment"] = NewResourceEstimate("AWS::ElasticBeanstalk::Environment", 1, 1, 1)
-	Estimates["AWS::ElasticLoadBalancing::LoadBalancer"] = NewResourceEstimate("AWS::ElasticLoadBalancing::LoadBalancer", 1, 1, 1)
-	Estimates["AWS::ElasticLoadBalancingV2::Listener"] = NewResourceEstimate("AWS::ElasticLoadBalancingV2::Listener", 1, 1, 1)
+	Estimates["AWS::ElasticLoadBalancing::LoadBalancer"] = NewResourceEstimate("AWS::ElasticLoadBalancing::LoadBalancer", 122, 122, 122)
+	Estimates["AWS::ElasticLoadBalancingV2::Listener"] = NewResourceEstimate("AWS::ElasticLoadBalancingV2::Listener", 2, 2, 2)
 	Estimates["AWS::ElasticLoadBalancingV2::ListenerCertificate"] = NewResourceEstimate("AWS::ElasticLoadBalancingV2::ListenerCertificate", 1, 1, 1)
 	Estimates["AWS::ElasticLoadBalancingV2::ListenerRule"] = NewResourceEstimate("AWS::ElasticLoadBalancingV2::ListenerRule", 1, 1, 1)
-	Estimates["AWS::ElasticLoadBalancingV2::LoadBalancer"] = NewResourceEstimate("AWS::ElasticLoadBalancingV2::LoadBalancer", 1, 1, 1)
-	Estimates["AWS::ElasticLoadBalancingV2::TargetGroup"] = NewResourceEstimate("AWS::ElasticLoadBalancingV2::TargetGroup", 1, 1, 1)
+	Estimates["AWS::ElasticLoadBalancingV2::LoadBalancer"] = NewResourceEstimate("AWS::ElasticLoadBalancingV2::LoadBalancer", 122, 122, 122)
+	Estimates["AWS::ElasticLoadBalancingV2::TargetGroup"] = NewResourceEstimate("AWS::ElasticLoadBalancingV2::TargetGroup", 17, 17, 17)
 	Estimates["AWS::Elasticsearch::Domain"] = NewResourceEstimate("AWS::Elasticsearch::Domain", 1, 1, 1)
 	Estimates["AWS::EntityResolution::MatchingWorkflow"] = NewResourceEstimate("AWS::EntityResolution::MatchingWorkflow", 1, 1, 1)
 	Estimates["AWS::EntityResolution::SchemaMapping"] = NewResourceEstimate("AWS::EntityResolution::SchemaMapping", 1, 1, 1)

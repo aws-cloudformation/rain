@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/aws-cloudformation/rain/cft/parse"
-	"github.com/aws-cloudformation/rain/internal/config"
 )
 
 func TestResourceEstimate(t *testing.T) {
@@ -30,37 +29,59 @@ Parameters:
 
 Resources:
 
+  # 10s
   A:
     Type: AWS::S3::Bucket
     DependsOn: B
     Properties:
       BucketName: !Ref N
 
+  # 5s
   B: 
     Type: AWS::S3::BucketPolicy
     DependsOn: E
 
+  # 30s 
   C:
     Type: AWS::EC2::Instance
-    DependsOn: [B, D]
+    DependsOn: [B, D, F, G]
 
+  # 7s 
   D:
     Type: AWS::EC2::LaunchTemplate
     DependsOn: E
 
+  # 10s 
   E: 
     Type: AWS::S3::Bucket
 
+  # 10s
+  F:
+    Type: AWS::S3::Bucket
+
+  # 10s
+  G:
+    Type: AWS::S3::Bucket
+
 `
+	/*
+			       A   C
+				    \ / \ \ \
+					 B   D F G
+					  \ /
+					   E
+
+		    Longest is C-D-E = 47
+	*/
 	// Parse the template
 	tt, err := parse.String(string(template))
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	config.Debug = true
+	// config.Debug = true
 	total := PredictTotalEstimate(tt, false)
-	expected := 52 // will need to adjust this when we modify the database of estimates
+	expected := 47 // will need to adjust this when we modify the database of estimates
 	if total != expected {
 		t.Errorf("expected total to be %v, got %v", expected, total)
 	}

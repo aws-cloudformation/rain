@@ -136,7 +136,7 @@ func forecastForType(input PredictionInput) Forecast {
 	}
 
 	// Estimate how long the action will take
-	// TODO - We need to figure out which resources will be created in parallel
+	// (This is only for spinner output, we calculate total time separately)
 	var action StackAction
 	if input.stackExists {
 		action = Update
@@ -150,7 +150,6 @@ func forecastForType(input PredictionInput) Forecast {
 	}
 	config.Debugf("Got resource estimate for %v: %v", input.logicalId, est)
 	spin(input.typeName, input.logicalId, fmt.Sprintf("estimate: %v seconds", est))
-	EstimatesById[input.logicalId] = est
 
 	// Call generic prediction functions that we can run against
 	// all resources, even if there is not a predictor.
