@@ -1,6 +1,7 @@
 package format_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/aws-cloudformation/rain/cft/format"
@@ -383,6 +384,35 @@ const expectedUnsortedJson = `{
 }
 `
 
+const correctMultilineBlockHeaders = `
+|+
+|2+
+|+2
+|-
+|2-
+|-2
+>+
+>2+
+>+2
+>-
+>2-
+>-2
+|10+
+|+10
+>10+
+>+10
+`
+
+const wrongMultilineBlockHeaders = `
+|2+2
+>2+2
+|+2+
+>+2+
+|++
+>++
+>2+ a
+`
+
 func checkMatch(t *testing.T, expected string, opt format.Options) {
 	template, err := parse.String(input)
 	if err != nil {
@@ -393,6 +423,18 @@ func checkMatch(t *testing.T, expected string, opt format.Options) {
 
 	if d := cmp.Diff(expected, actual); d != "" {
 		t.Errorf(d)
+	}
+}
+
+func checkMultilineBlockHeaders(t *testing.T, s string, expected bool) {
+	parts := strings.Split(s, "\n")
+	for _, part := range parts {
+		if part == "" {
+			continue
+		}
+		if format.CheckMultilineBegin(part) != expected {
+			t.Errorf(part)
+		}
 	}
 }
 
@@ -408,4 +450,6 @@ func TestFormatDefault(t *testing.T) {
 		JSON:     true,
 		Unsorted: true,
 	})
+	checkMultilineBlockHeaders(t, correctMultilineBlockHeaders, true)
+	checkMultilineBlockHeaders(t, wrongMultilineBlockHeaders, false)
 }
