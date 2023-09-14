@@ -3,6 +3,7 @@
 package format
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
@@ -19,6 +20,13 @@ type Options struct {
 	// If false, the formatter will rearrange the template elements into
 	// canonical order.
 	Unsorted bool
+}
+
+func CheckMultilineBegin(s string) bool {
+	// Match block header
+	// https://yaml.org/spec/1.2.2/#8112-block-chomping-indicator
+	r, _ := regexp.Compile("[|>](([0-9]*[+-])|([+-][0-9]*))?$")
+	return r.MatchString(s)
 }
 
 // String returns a string representation of the supplied cft.Template
@@ -70,7 +78,7 @@ func String(t cft.Template, opt Options) string {
 			}
 		}
 		trimmedRight := strings.TrimRight(part, " ")
-		if strings.HasSuffix(trimmedRight, "|") || strings.HasSuffix(trimmedRight, ">") {
+		if CheckMultilineBegin(trimmedRight) {
 			startMultilineIndent = indent
 		}
 
