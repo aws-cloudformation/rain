@@ -32,6 +32,14 @@ type Graph struct {
 	order []Node
 }
 
+// Empty returns a new, empty graph
+func Empty() Graph {
+	return Graph{
+		nodes: make(map[Node]map[Node]bool),
+		order: make([]Node, 0),
+	}
+}
+
 // New returns a Graph representing the connections
 // between elements in the provided template.
 // The type of each item in the graph is Node
@@ -64,7 +72,7 @@ func New(t cft.Template) Graph {
 		if entityTree, ok := entity.(map[string]interface{}); ok {
 			for fromName, res := range entityTree {
 				from := Node{typeName, fromName}
-				graph.link(from)
+				graph.Link(from)
 
 				resource := res.(map[string]interface{})
 				for _, toName := range getRefs(resource) {
@@ -81,7 +89,7 @@ func New(t cft.Template) Graph {
 						}
 					}
 
-					graph.link(from, Node{toType, toName})
+					graph.Link(from, Node{toType, toName})
 				}
 			}
 		}
@@ -94,8 +102,8 @@ func (g *Graph) String() string {
 	out := strings.Builder{}
 
 	for _, left := range g.order {
+		out.WriteString(fmt.Sprintf("%s:\n", left))
 		if len(g.nodes[left]) > 0 {
-			out.WriteString(fmt.Sprintf("%s:\n", left))
 			for right := range g.nodes[left] {
 				out.WriteString(fmt.Sprintf("- %s\n", right))
 			}
@@ -113,7 +121,7 @@ func (g *Graph) add(item Node) {
 }
 
 // link creates a connection between two nodes in the graph
-func (g *Graph) link(item Node, links ...Node) {
+func (g *Graph) Link(item Node, links ...Node) {
 	g.add(item)
 
 	for _, to := range links {
