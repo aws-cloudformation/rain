@@ -18,7 +18,7 @@ var outFn = ""
 var Cmd = &cobra.Command{
 	Use:                   "merge <template> <template> ...",
 	Short:                 "Merge two or more CloudFormation templates",
-	Long:                  "Merges all specified CloudFormation templates, print the resultant template to standard out",
+	Long:                  `Merges all specified CloudFormation templates, print the resultant template to standard out.`,
 	Args:                  cobra.MinimumNArgs(2),
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {

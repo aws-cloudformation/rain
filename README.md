@@ -55,7 +55,7 @@ Stack commands:
   logs        Show the event log for the named stack
   ls          List running CloudFormation stacks
   rm          Delete a running CloudFormation stack
-  stackset    This command manipulates stack sets.
+  stackset    This command manipulates stack sets
   watch       Display an updating view of a CloudFormation stack
 
 Template commands:

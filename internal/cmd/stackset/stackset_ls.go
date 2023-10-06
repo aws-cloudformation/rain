@@ -22,7 +22,7 @@ var all = false
 var StackSetLsCmd = &cobra.Command{
 	Use:                   "ls <stack set>",
 	Short:                 "List a CloudFormation stack sets in a given region",
-	Long:                  "List a CloudFormation stack sets in a given region. If you specify a stack set name it will show all the stack instances and last 10 operations.",
+	Long:                  `List a CloudFormation stack sets in a given region. If you specify a stack set name it will show all the stack instances and last 10 operations.`,
 	Args:                  cobra.MaximumNArgs(1),
 	Aliases:               []string{"list"},
 	DisableFlagsInUseLine: true,

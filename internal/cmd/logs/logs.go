@@ -19,7 +19,7 @@ var Cmd = &cobra.Command{
 	Long: `Shows the event log for a stack and its nested stack. Optionally, filter by a specific resource by name, or see a gantt chart of the most recent stack action.
 
 By default, only show log entries that contain a useful message (e.g. a failure message).
-You can use the --all flag to change this behaviour.`,
+You can use the "--all" / "-a" flag to change this behaviour.`,
 	Args:                  cobra.RangeArgs(1, 2),
 	Aliases:               []string{"log"},
 	DisableFlagsInUseLine: true,

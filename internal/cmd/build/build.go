@@ -19,7 +19,7 @@ var buildJSON = false
 var Cmd = &cobra.Command{
 	Use:                   "build [<resource type>...]",
 	Short:                 "Create CloudFormation templates",
-	Long:                  "Outputs a CloudFormation template containing the named resource types.",
+	Long:                  `Outputs a CloudFormation template containing the named resource types.`,
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		if buildListFlag {

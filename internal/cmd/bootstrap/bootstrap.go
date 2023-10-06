@@ -11,7 +11,7 @@ var force = false
 var Cmd = &cobra.Command{
 	Use:                   "bootstrap",
 	Short:                 "Creates the artifacts bucket",
-	Long:                  "Creates a s3 bucket to hold all the artifacts generated and referenced by rain cli",
+	Long:                  `Creates an S3 Bucket to hold all the artifacts generated and referenced by rain cli.`,
 	Args:                  cobra.MaximumNArgs(0),
 	Aliases:               []string{"bootstrap"},
 	DisableFlagsInUseLine: true,
