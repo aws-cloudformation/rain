@@ -11,14 +11,18 @@ import (
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
+	"github.com/aws-cloudformation/rain/internal/node"
+	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/aws-cloudformation/rain/internal/ui"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 var params []string
 var tags []string
 var configFilePath string
 var Experimental bool
+var template cft.Template
 
 type ResourceState int
 
@@ -70,9 +74,36 @@ func PackageTemplate(fn string, yes bool) cft.Template {
 
 // TODO - Set ResourceState with a mutex?
 
+// getTemplateResource returns the yaml node based on the logical id
+func getTemplateResource(logicalId string) (*yaml.Node, error) {
+	rootMap := template.Node.Content[0]
+	_, resources := s11n.GetMapValue(rootMap, "Resources")
+	if resources == nil {
+		panic("Expected to find a Resources section in the template")
+	}
+	for i, r := range resources.Content {
+		if i%2 != 0 {
+			continue
+		}
+		if logicalId == r.Value {
+			resource := resources.Content[i+1]
+			return resource, nil
+		}
+	}
+	return nil, fmt.Errorf("could not find Resource %v", logicalId)
+}
+
 // deploy calls the Cloud Control API to deploy the resource
 func deploy(resource *Resource) {
 	config.Debugf("Simulate deploying %v...", resource)
+
+	y, err := getTemplateResource(resource.Node.Name)
+	if err != nil {
+		panic(fmt.Sprintf("%v not found", resource.Node.Name))
+	}
+
+	config.Debugf("deploy:\n%v", node.ToSJson(y))
+
 	resource.State = Deploying
 	time.Sleep(time.Second * 3)
 	resource.State = Deployed
@@ -117,7 +148,7 @@ func run(cmd *cobra.Command, args []string) {
 
 	// Package template
 	spinner.Push(fmt.Sprintf("Preparing template '%s'", base))
-	template := PackageTemplate(fn, true)
+	template = PackageTemplate(fn, true)
 	spinner.Pop()
 
 	// TODO - Get DeployConfig (modified to remove stack references...)

@@ -113,6 +113,49 @@ func GetParent(node *yaml.Node, rootNode *yaml.Node, priorNode *yaml.Node) NodeP
 	return NodePair{Key: before, Value: found}
 }
 
+type SNode struct {
+	Kind    string
+	Value   string
+	Content []*SNode
+}
+
+func makeSNode(node *yaml.Node) *SNode {
+	var k string
+	switch node.Kind {
+	case yaml.DocumentNode:
+		k = "Document"
+	case yaml.SequenceNode:
+		k = "Sequence"
+	case yaml.MappingNode:
+		k = "Mapping"
+	case yaml.ScalarNode:
+		k = "Scalar"
+	case yaml.AliasNode:
+		k = "Alias"
+	default:
+		k = "?"
+	}
+
+	content := make([]*SNode, 0)
+	if node.Content != nil {
+		for _, child := range node.Content {
+			content = append(content, makeSNode(child))
+		}
+	}
+
+	s := SNode{k, node.Value, content}
+	return &s
+}
+
+// Convert a node to a shortened JSON for easier debugging
+func ToSJson(node *yaml.Node) string {
+	j, err := json.MarshalIndent(makeSNode(node), "", "  ")
+	if err != nil {
+		return fmt.Sprintf("Failed to marshal node to short json: %v:", err)
+	}
+	return string(j)
+}
+
 // Convert a node to JSON
 func ToJson(node *yaml.Node) string {
 	j, err := json.MarshalIndent(node, "", "  ")
