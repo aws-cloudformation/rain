@@ -275,12 +275,11 @@ var Cmd = &cobra.Command{
 	Use:   "forecast --experimental <template> [stackName]",
 	Short: "Predict deployment failures",
 	Long: `Outputs warnings about potential deployment failures due to constraints in 
-the account or misconfigurations in the template related to dependencies in 
-the account.
+the account or misconfigurations in the template related to dependencies in the account.
 
 NOTE: This is an experimental feature!
 
-To use this command, add --experimental or -x as an argument.
+To use this command, add "--experimental" / "-x" as an argument.
 
 This command is not a linter! Use cfn-lint for that. The forecast command 
 is concerned with things that could go wrong during deployment, after the 

@@ -31,7 +31,7 @@ import (
 // Cmd is the rain command's entrypoint
 var Cmd = &cobra.Command{
 	Use:     "rain",
-	Long:    "Rain is a command line tool for working with AWS CloudFormation templates and stacks",
+	Long:    `Rain is a command line tool for working with AWS CloudFormation templates and stacks`,
 	Version: config.VERSION,
 }
 

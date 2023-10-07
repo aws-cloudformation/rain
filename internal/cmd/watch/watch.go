@@ -19,7 +19,7 @@ var waitThenWatch = false
 var Cmd = &cobra.Command{
 	Use:                   "watch <stack>",
 	Short:                 "Display an updating view of a CloudFormation stack",
-	Long:                  "Repeatedly displays the status of a CloudFormation stack. Useful for watching the progress of a deployment started from outside of Rain.",
+	Long:                  `Repeatedly displays the status of a CloudFormation stack. Useful for watching the progress of a deployment started from outside of Rain.`,
 	Args:                  cobra.ExactArgs(1),
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {

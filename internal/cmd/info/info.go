@@ -21,7 +21,7 @@ var checkCreds = false
 var Cmd = &cobra.Command{
 	Use:                   "info",
 	Short:                 "Show your current configuration",
-	Long:                  "Display the AWS account and region that you're configured to use.",
+	Long:                  `Display the AWS account and region that you're configured to use.`,
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		spinner.Push("Getting identity")

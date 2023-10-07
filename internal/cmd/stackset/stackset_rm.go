@@ -18,8 +18,8 @@ import (
 // StackSetRmCmd is the rm command's entrypoint
 var StackSetRmCmd = &cobra.Command{
 	Use:                   "rm <stackset>",
-	Short:                 "Delete a CloudFormation stack set and/or its instances.",
-	Long:                  "Delete a CloudFormation stack set <stackset> and/or its instances.",
+	Short:                 "Delete a CloudFormation stack set and/or its instances",
+	Long:                  `Delete a CloudFormation stack set "\<stackset\>" and/or its instances.`,
 	Args:                  cobra.ExactArgs(1),
 	Aliases:               []string{"delete", "remove"},
 	DisableFlagsInUseLine: true,

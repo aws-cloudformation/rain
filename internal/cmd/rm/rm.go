@@ -19,7 +19,7 @@ var roleArn string
 var Cmd = &cobra.Command{
 	Use:                   "rm <stack>",
 	Short:                 "Delete a running CloudFormation stack",
-	Long:                  "Deletes the CloudFormation stack named <stack> and waits for the action to complete.",
+	Long:                  `Deletes the CloudFormation stack named "\<stack\>" and waits for the action to complete.`,
 	Args:                  cobra.ExactArgs(1),
 	Aliases:               []string{"remove", "del", "delete"},
 	DisableFlagsInUseLine: true,

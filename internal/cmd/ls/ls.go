@@ -21,7 +21,7 @@ var all = false
 var Cmd = &cobra.Command{
 	Use:                   "ls <stack>",
 	Short:                 "List running CloudFormation stacks",
-	Long:                  "Displays a list of all running stacks or the contents of <stack> if provided.",
+	Long:                  `Displays a list of all running stacks or the contents of "\<stack\>" if provided.`,
 	Args:                  cobra.MaximumNArgs(1),
 	Aliases:               []string{"list"},
 	DisableFlagsInUseLine: true,

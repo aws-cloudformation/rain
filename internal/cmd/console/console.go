@@ -14,11 +14,11 @@ var Cmd = &cobra.Command{
 	Short: "Login to the AWS console",
 	Long: `Use your current credentials to create a sign-in URL for the AWS console and open it in a web browser.
 
-If you supply a stack name (and didn't use the --service option), the browser will open with that stack selected.
+If you supply a stack name (and didn't use the "--service" option), the browser will open with that stack selected.
 
 The console command is only valid with an IAM role; not an IAM user.
 
-Unless you specify the --name/-n flag, your AWS console user name will be derived from the role name.`,
+Unless you specify the "--name" / "-n" flag, your AWS console user name will be derived from the role name.`,
 	Args:                  cobra.MaximumNArgs(1),
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {

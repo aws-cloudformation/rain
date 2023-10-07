@@ -29,18 +29,19 @@ var ignoreUnknownParams bool
 var Cmd = &cobra.Command{
 	Use:   "deploy <template> [stack]",
 	Short: "Deploy a CloudFormation stack from a local template",
-	Long: `Creates or updates a CloudFormation stack named <stack> from the template file <template>.
+	Long: `Creates or updates a CloudFormation stack named "\<stack\>" from the template file <template>.
 If you don't specify a stack name, rain will use the template filename minus its extension.
 
 If a template needs to be packaged before it can be deployed, rain will package the template first.
 Rain will attempt to create an S3 bucket to store artifacts that it packages and deploys.
-The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS region>.
+The bucket's name will be of the format "rain-artifacts-\<AWS account id\>-\<AWS region\>".
 
 The config flag can be used to programmatically set tags and parameters.
 The format is similar to the "Template configuration file" for AWS CodePipeline just without the
-'StackPolicy' key. The file can be in YAML or JSON format.
+"StackPolicy" key. The file can be in YAML or JSON format.
 
 JSON:
+~~~json
   {
     "Parameters" : {
       "NameOfTemplateParameter" : "ValueOfParameter",
@@ -51,14 +52,17 @@ JSON:
       ...
     }
   }
+~~~
 
 YAML:
+~~~yaml
   Parameters:
     NameOfTemplateParameter: ValueOfParameter
     ...
   Tags:
     TagKey: TagValue
     ...
+~~~
 `,
 	Args:                  cobra.RangeArgs(1, 2),
 	DisableFlagsInUseLine: true,
