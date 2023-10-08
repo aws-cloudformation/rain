@@ -1,0 +1,13 @@
+{
+    "Arn": "arn:aws:cloudformation:us-east-1::type/resource/AWS-EC2-SubnetCidrBlock",
+    "Type": "RESOURCE",
+    "TypeName": "AWS::EC2::SubnetCidrBlock",
+    "IsDefaultVersion": true,
+    "Description": "The AWS::EC2::SubnetCidrBlock resource creates association between subnet and IPv6 CIDR",
+    "Schema": "{\n  \"typeName\": \"AWS::EC2::SubnetCidrBlock\",\n  \"$schema\": \"https://schema.cloudformation.us-east-1.amazonaws.com/provider.definition.schema.v1.json\",\n  \"description\": \"The AWS::EC2::SubnetCidrBlock resource creates association between subnet and IPv6 CIDR\",\n  \"sourceUrl\": \"https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-ec2/subnetcidrblock\",\n  \"additionalProperties\": false,\n  \"properties\": {\n    \"Id\": {\n      \"description\": \"Information about the IPv6 association.\",\n      \"type\": \"string\"\n    },\n    \"Ipv6CidrBlock\": {\n      \"description\": \"The IPv6 network range for the subnet, in CIDR notation. The subnet size must use a /64 prefix length\",\n      \"type\": \"string\",\n      \"maxLength\": 42\n    },\n    \"SubnetId\": {\n      \"description\": \"The ID of the subnet\",\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\n    \"Ipv6CidrBlock\",\n    \"SubnetId\"\n  ],\n  \"createOnlyProperties\": [\n    \"/properties/Ipv6CidrBlock\",\n    \"/properties/SubnetId\"\n  ],\n  \"readOnlyProperties\": [\n    \"/properties/Id\"\n  ],\n  \"primaryIdentifier\": [\n    \"/properties/Id\"\n  ],\n  \"propertyTransform\": {\n    \"/properties/Ipv6CidrBlock\": \"$join([$match($replace(Ipv6CidrBlock, /(^|:)(0{1,4})([0-9a-fA-F]{1,4})/, \\\"$1$3\\\"), /^([0-9a-fA-F]{1,4}:){4}/).match, \\\":/64\\\"])\"\n  },\n  \"tagging\": {\n    \"taggable\": false,\n    \"tagOnCreate\": false,\n    \"tagUpdatable\": false,\n    \"cloudFormationSystemTags\": false\n  },\n  \"handlers\": {\n    \"create\": {\n      \"permissions\": [\n        \"ec2:AssociateSubnetCidrBlock\",\n        \"ec2:DescribeSubnets\"\n      ]\n    },\n    \"delete\": {\n      \"permissions\": [\n        \"ec2:DisassociateSubnetCidrBlock\",\n        \"ec2:DescribeSubnets\"\n      ]\n    },\n    \"list\": {\n      \"permissions\": [\n        \"ec2:DescribeSubnets\"\n      ]\n    },\n    \"read\": {\n      \"permissions\": [\n        \"ec2:DescribeSubnets\"\n      ]\n    }\n  }\n}\n",
+    "ProvisioningType": "IMMUTABLE",
+    "DeprecatedStatus": "LIVE",
+    "Visibility": "PUBLIC",
+    "SourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-ec2/subnetcidrblock",
+    "TimeCreated": "2021-06-09T15:18:01.839000+00:00"
+}

@@ -105,6 +105,9 @@ func deploy(resource *Resource) {
 	config.Debugf("deploy:\n%v", node.ToSJson(y))
 
 	resource.State = Deploying
+
+	// Get the properties and call ccapi
+
 	time.Sleep(time.Second * 3)
 	resource.State = Deployed
 }
