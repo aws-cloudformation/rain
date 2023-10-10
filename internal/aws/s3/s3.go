@@ -22,7 +22,7 @@ import (
 )
 
 var BucketName = ""
-var BucketKeyPrefix = "" 
+var BucketKeyPrefix = ""
 
 func getClient() *s3.Client {
 	return s3.NewFromConfig(aws.Config())
@@ -150,7 +150,7 @@ func Upload(bucketName string, content []byte) (string, error) {
 		return "", fmt.Errorf("bucket does not exist: '%s'", bucketName)
 	}
 
-	key := filepath.Join ( BucketKeyPrefix, fmt.Sprintf("%x", sha256.Sum256(content)) )
+	key := filepath.Join(BucketKeyPrefix, fmt.Sprintf("%x", sha256.Sum256(content)))
 
 	_, err := getClient().PutObject(context.Background(), &s3.PutObjectInput{
 		Bucket: ptr.String(bucketName),
@@ -200,3 +200,6 @@ func RainBucket(forceCreation bool) string {
 
 	return bucketName
 }
+
+// TODO - GetObject
+// TODO - UploadObject
