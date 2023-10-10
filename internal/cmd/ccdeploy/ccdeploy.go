@@ -147,6 +147,7 @@ func ready(resource *Resource, g *graph.Graph) bool {
 
 func run(cmd *cobra.Command, args []string) {
 	fn := args[0]
+	name := args[1]
 	base := filepath.Base(fn)
 
 	// Package template
@@ -158,6 +159,13 @@ func run(cmd *cobra.Command, args []string) {
 
 	// Compare against the current state to see what has changed, if this
 	// is an update
+	stateError := checkState(name, template)
+	if stateError != nil {
+		panic(stateError)
+	}
+
+	// Create a diff between the current state and template
+	// TODO
 
 	// Create a dependency graph of the template
 	g := graph.New(template)
@@ -234,7 +242,7 @@ func run(cmd *cobra.Command, args []string) {
 }
 
 var Cmd = &cobra.Command{
-	Use:   "ccdeploy <template>",
+	Use:   "ccdeploy <template> <name>",
 	Short: "Deploy a local template directly using the Cloud Control API (Experimental!)",
 	Long: `Creates or updates resources directly using Cloud Control API from the template file <template>.
 You must pass the --experimental (-x) flag to use this command, to acknowledge that it is experimental and likely to be unstable!
