@@ -64,8 +64,8 @@ func getTemplateResource(logicalId string) (*yaml.Node, error) {
 	return nil, fmt.Errorf("could not find Resource %v", logicalId)
 }
 
-// deploy calls the Cloud Control API to deploy the resource
-func deploy(resource *Resource) {
+// deployResource calls the Cloud Control API to deploy the resource
+func deployResource(resource *Resource) {
 	config.Debugf("Simulate deploying %v...", resource)
 
 	y, err := getTemplateResource(resource.Node.Name)
@@ -114,6 +114,7 @@ func ready(resource *Resource, g *graph.Graph) bool {
 	return true
 }
 
+// deployTemplate deloys the CloudFormation template using the Cloud Control API
 func deployTemplate(template cft.Template) {
 
 	// Create a dependency graph of the template
@@ -138,7 +139,7 @@ func deployTemplate(template cft.Template) {
 
 	*/
 
-	// Wrap Nodes in a Resource to add fields like Deployed
+	// Wrap Nodes in a Resource to add state
 	resources := make([]*Resource, 0)
 	for _, n := range nodes {
 		config.Debugf("node: %v", n)
@@ -174,7 +175,7 @@ func deployTemplate(template cft.Template) {
 			// Recurse dependencies to see if it's ok to deploy this one now
 			if ready(r, &g) {
 				// Start a goroutine to do the actual deployment
-				go deploy(r)
+				go deployResource(r)
 			}
 		}
 

@@ -20,10 +20,10 @@ var tags []string
 var configFilePath string
 var Experimental bool
 var template cft.Template
+var resMap map[graph.Node]*Resource
 
 // PackageTemplate reads the template and performs any necessary packaging on it
 // before deployment. The rain bucket will be created if it does not already exist.
-// TODO - What about state management? Do we initialize that here?
 func PackageTemplate(fn string, yes bool) cft.Template {
 
 	t, err := pkg.File(fn)
@@ -33,8 +33,6 @@ func PackageTemplate(fn string, yes bool) cft.Template {
 
 	return t
 }
-
-var resMap map[graph.Node]*Resource
 
 func run(cmd *cobra.Command, args []string) {
 	fn := args[0]
