@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/graph"
+	"github.com/aws-cloudformation/rain/internal/aws/ccapi"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
@@ -17,12 +18,16 @@ type ResourceState int
 const (
 	Waiting ResourceState = iota
 	Deploying
+	Failed
 	Deployed
+	Canceled
 )
 
 type Resource struct {
-	Node  graph.Node
-	State ResourceState
+	Name    string
+	Node    *yaml.Node
+	State   ResourceState
+	Message string
 }
 
 func (r Resource) String() string {
@@ -34,14 +39,22 @@ func (r Resource) String() string {
 		state = "Deploying"
 	case Deployed:
 		state = "Deployed"
+	case Failed:
+		state = "Failed"
+	case Canceled:
+		state = "Canceled"
 	}
-	return fmt.Sprintf("%s/%s: %s", r.Node.Type, r.Node.Name, state)
+	if r.State == Failed {
+		return fmt.Sprintf("%s: %s: %v", r.Name, state, r.Message)
+	} else {
+		return fmt.Sprintf("%s: %s", r.Name, state)
+	}
 }
 
 // NewResource creates a new Resource and adds it to the map
-func NewResource(n graph.Node, state ResourceState) *Resource {
-	r := &Resource{n, state}
-	resMap[n] = r
+func NewResource(name string, state ResourceState, node *yaml.Node) *Resource {
+	r := &Resource{Name: name, State: state, Node: node}
+	resMap[name] = r
 	return r
 }
 
@@ -68,35 +81,33 @@ func getTemplateResource(logicalId string) (*yaml.Node, error) {
 func deployResource(resource *Resource) {
 	config.Debugf("Simulate deploying %v...", resource)
 
-	y, err := getTemplateResource(resource.Node.Name)
-	if err != nil {
-		panic(fmt.Sprintf("%v not found", resource.Node.Name))
-	}
-
-	config.Debugf("deploy:\n%v", node.ToSJson(y))
-
 	resource.State = Deploying
 
 	// Get the properties and call ccapi
-
-	time.Sleep(time.Second * 3)
-	resource.State = Deployed
+	err := ccapi.CreateResource(resource.Name, resource.Node)
+	if err != nil {
+		config.Debugf("deployResource failed: %v", err)
+		resource.State = Failed
+		resource.Message = fmt.Sprintf("%v", err)
+	} else {
+		resource.State = Deployed
+		resource.Message = "Success"
+	}
 }
 
 // ready returns true if the resource has no undeployed dependencies
 func ready(resource *Resource, g *graph.Graph) bool {
-	n := resource.Node
 
 	// Iterate over each of this resource's dependencies
-	for _, dep := range g.Get(n) {
+	for _, dep := range g.Get(graph.Node{Name: resource.Name, Type: "Resources"}) {
 
-		config.Debugf("ready: %v depends on %v", resource.Node.Name, dep)
+		config.Debugf("ready: %v depends on %v", resource.Name, dep)
 
 		if dep.Type != "Resources" {
 			continue
 		}
 
-		depr := resMap[dep]
+		depr := resMap[dep.Name]
 
 		// If the dependency is not deployed, terminate
 		if depr.State != Deployed {
@@ -114,8 +125,23 @@ func ready(resource *Resource, g *graph.Graph) bool {
 	return true
 }
 
+// DeploymentResults captures everything that happened as a result of deployment
+type DeploymentResults struct {
+	Succeeded bool
+	State     cft.Template
+	Resources map[string]*Resource
+}
+
 // deployTemplate deloys the CloudFormation template using the Cloud Control API
-func deployTemplate(template cft.Template) {
+func deployTemplate(template cft.Template) DeploymentResults {
+
+	results := DeploymentResults{
+		Succeeded: true,
+		State:     cft.Template{},
+		Resources: make(map[string]*Resource),
+	}
+
+	results.State.Node = node.Clone(template.Node)
 
 	// Create a dependency graph of the template
 	g := graph.New(template)
@@ -127,7 +153,7 @@ func deployTemplate(template cft.Template) {
 		Downwards is "depends on"
 
 		   A   E  F
-		  / \ /    \\
+		   /    \\
 		 B   C      GH
 			  \
 			   D
@@ -144,13 +170,20 @@ func deployTemplate(template cft.Template) {
 	for _, n := range nodes {
 		config.Debugf("node: %v", n)
 		if n.Type == "Resources" {
-			r := NewResource(n, Waiting)
+			y, err := getTemplateResource(n.Name)
+			if err != nil {
+				panic(fmt.Sprintf("%v not found", n.Name))
+			}
+
+			config.Debugf("resource Node:\n%v", node.ToSJson(y))
+			r := NewResource(n.Name, Waiting, y)
 			resources = append(resources, r)
 		}
 	}
 
 	numResources := len(resources)
 	numDone := 0
+	failed := false
 
 	config.Debugf("About to deploy %v resources", numResources)
 
@@ -172,10 +205,22 @@ func deployTemplate(template cft.Template) {
 				continue
 			}
 
-			// Recurse dependencies to see if it's ok to deploy this one now
-			if ready(r, &g) {
-				// Start a goroutine to do the actual deployment
-				go deployResource(r)
+			if r.State == Failed {
+				// This will prevent any additional resources from deploying,
+				// but any that had already started creation will complete
+				failed = true
+			}
+
+			if !failed {
+				// Recurse dependencies to see if it's ok to deploy this one now
+				if ready(r, &g) {
+					// Start a goroutine to do the actual deployment
+					go deployResource(r)
+				}
+			} else {
+				if r.State == Waiting {
+					r.State = Canceled
+				}
 			}
 		}
 
@@ -188,5 +233,14 @@ func deployTemplate(template cft.Template) {
 		time.Sleep(time.Second * 1)
 	}
 
-	fmt.Println("Deployment complete")
+	for _, r := range resources {
+		results.Resources[r.Name] = r
+	}
+
+	if failed {
+		results.Succeeded = false
+	}
+
+	return results
+
 }

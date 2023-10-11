@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 
 	"github.com/aws-cloudformation/rain/cft"
-	"github.com/aws-cloudformation/rain/cft/graph"
 	"github.com/aws-cloudformation/rain/cft/pkg"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
@@ -20,7 +19,7 @@ var tags []string
 var configFilePath string
 var Experimental bool
 var template cft.Template
-var resMap map[graph.Node]*Resource
+var resMap map[string]*Resource
 
 // PackageTemplate reads the template and performs any necessary packaging on it
 // before deployment. The rain bucket will be created if it does not already exist.
@@ -61,7 +60,19 @@ func run(cmd *cobra.Command, args []string) {
 	// Create a diff between the current state and template
 	// TODO
 
-	deployTemplate(template)
+	results := deployTemplate(template)
+
+	if !results.Succeeded {
+		fmt.Println("Deployment failed.")
+		// TODO - Error message?
+		// TODO - Instructions on what to do now?
+	} else {
+		fmt.Println("Deployment completed successfully!")
+	}
+
+	for name, resource := range results.Resources {
+		fmt.Printf("%v: %v\n", name, resource)
+	}
 
 }
 
@@ -84,6 +95,6 @@ func init() {
 	Cmd.Flags().StringVarP(&configFilePath, "config", "c", "", "YAML or JSON file to set tags and parameters")
 	Cmd.Flags().BoolVarP(&Experimental, "experimental", "x", false, "Acknowledge that this is an experimental feature")
 
-	resMap = make(map[graph.Node]*Resource)
+	resMap = make(map[string]*Resource)
 
 }
