@@ -25,9 +25,11 @@ const (
 
 type Resource struct {
 	Name    string
+	Type    string
 	Node    *yaml.Node
 	State   ResourceState
 	Message string
+	// TODO - Add elapsed time
 }
 
 func (r Resource) String() string {
@@ -45,15 +47,17 @@ func (r Resource) String() string {
 		state = "Canceled"
 	}
 	if r.State == Failed {
-		return fmt.Sprintf("%s: %s: %v", r.Name, state, r.Message)
+		return fmt.Sprintf("%s %s: %s: %v", r.Type, r.Name, state, r.Message)
 	} else {
-		return fmt.Sprintf("%s: %s", r.Name, state)
+		return fmt.Sprintf("%s %s: %s", r.Type, r.Name, state)
 	}
 }
 
 // NewResource creates a new Resource and adds it to the map
-func NewResource(name string, state ResourceState, node *yaml.Node) *Resource {
-	r := &Resource{Name: name, State: state, Node: node}
+func NewResource(name string,
+	resourceType string, state ResourceState, node *yaml.Node) *Resource {
+
+	r := &Resource{Name: name, Type: resourceType, State: state, Node: node}
 	resMap[name] = r
 	return r
 }
@@ -133,9 +137,12 @@ type DeploymentResults struct {
 }
 
 // deployTemplate deloys the CloudFormation template using the Cloud Control API
-func deployTemplate(template cft.Template) DeploymentResults {
+// A failed deployment will result in DeploymentResults.Succeeded = false
+// A non-nil error is returned when something unexpected caused a failure
+// not related to actually deploying resources, like an invalid template
+func deployTemplate(template cft.Template) (*DeploymentResults, error) {
 
-	results := DeploymentResults{
+	results := &DeploymentResults{
 		Succeeded: true,
 		State:     cft.Template{},
 		Resources: make(map[string]*Resource),
@@ -176,7 +183,14 @@ func deployTemplate(template cft.Template) DeploymentResults {
 			}
 
 			config.Debugf("resource Node:\n%v", node.ToSJson(y))
-			r := NewResource(n.Name, Waiting, y)
+
+			_, typeNode := s11n.GetMapValue(y, "Type")
+			if typeNode == nil {
+				return nil, fmt.Errorf("expected resource %v to have a Type", n.Name)
+			}
+			typeName := typeNode.Value
+
+			r := NewResource(n.Name, typeName, Waiting, y)
 			resources = append(resources, r)
 		}
 	}
@@ -196,7 +210,7 @@ func deployTemplate(template cft.Template) DeploymentResults {
 
 		for _, r := range resources {
 
-			if r.State == Deployed {
+			if r.State == Deployed || r.State == Canceled {
 				numDone += 1
 				continue
 			}
@@ -209,6 +223,8 @@ func deployTemplate(template cft.Template) DeploymentResults {
 				// This will prevent any additional resources from deploying,
 				// but any that had already started creation will complete
 				failed = true
+				numDone += 1
+				continue
 			}
 
 			if !failed {
@@ -241,6 +257,6 @@ func deployTemplate(template cft.Template) DeploymentResults {
 		results.Succeeded = false
 	}
 
-	return results
+	return results, nil
 
 }

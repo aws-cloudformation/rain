@@ -60,7 +60,11 @@ func run(cmd *cobra.Command, args []string) {
 	// Create a diff between the current state and template
 	// TODO
 
-	results := deployTemplate(template)
+	results, err := deployTemplate(template)
+	if err != nil {
+		// An unexpected error that prevented deployment from starting
+		panic(err)
+	}
 
 	if !results.Succeeded {
 		fmt.Println("Deployment failed.")
@@ -70,8 +74,8 @@ func run(cmd *cobra.Command, args []string) {
 		fmt.Println("Deployment completed successfully!")
 	}
 
-	for name, resource := range results.Resources {
-		fmt.Printf("%v: %v\n", name, resource)
+	for _, resource := range results.Resources {
+		fmt.Printf("%v\n", resource)
 	}
 
 }

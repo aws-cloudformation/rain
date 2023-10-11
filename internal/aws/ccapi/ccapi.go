@@ -10,6 +10,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/aws/aws-sdk-go-v2/service/cloudcontrol"
+	"github.com/aws/aws-sdk-go-v2/service/cloudcontrol/types"
 	"github.com/google/uuid"
 	"gopkg.in/yaml.v3"
 )
@@ -57,6 +58,15 @@ func toJsonProps(resource *yaml.Node) string {
 	return string(p)
 }
 
+func printProgress(p *types.ProgressEvent) string {
+	status := ""
+	if p.StatusMessage != nil {
+		status = *p.StatusMessage
+	}
+	return fmt.Sprintf("ErrorCode: %v, Identifier: %v, OperationStatus: %v, ResourceModel: %v, StatusMessage: %v",
+		p.ErrorCode, p.Identifier, p.OperationStatus, p.ResourceModel, status)
+}
+
 // CreateResource creates a resource based on the YAML node from the template,
 // and blocks until resource creation is complete.
 func CreateResource(logicalId string, resource *yaml.Node) error {
@@ -75,7 +85,7 @@ func CreateResource(logicalId string, resource *yaml.Node) error {
 	}
 	output, err := getClient().CreateResource(context.Background(), &input)
 
-	config.Debugf("CreateResource output:\n%v", output)
+	config.Debugf("CreateResource output:\n%v", printProgress(output.ProgressEvent))
 
 	if err != nil {
 		return err
@@ -96,6 +106,11 @@ func CreateResource(logicalId string, resource *yaml.Node) error {
 			done = true
 		case "FAILED":
 			done = true
+			msg := string(progress.ErrorCode)
+			if progress.StatusMessage != nil {
+				msg = *progress.StatusMessage
+			}
+			return fmt.Errorf("%v", msg)
 		case "CANCEL_IN_PROGRESS":
 			done = false
 		case "CANCEL_COMPLETE":
@@ -112,7 +127,8 @@ func CreateResource(logicalId string, resource *yaml.Node) error {
 			if statusErr != nil {
 				return statusErr // Is this terminal?
 			}
-			config.Debugf("CreateResource status:\n%v", status)
+			config.Debugf("CreateResource status:\n%v", printProgress(status.ProgressEvent))
+
 			progress = status.ProgressEvent
 		}
 	}
