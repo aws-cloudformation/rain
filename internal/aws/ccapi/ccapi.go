@@ -71,7 +71,11 @@ func printProgress(p *types.ProgressEvent) string {
 // and blocks until resource creation is complete.
 func CreateResource(logicalId string, resource *yaml.Node) error {
 	clientToken := uuid.New().String()
+
+	// Intrinsics have already been resolved, so there should not
+	// be any !Refs or !GetAtts, etc
 	props := toJsonProps(resource)
+
 	config.Debugf("CreateResource props: %v", props)
 	_, typeNode := s11n.GetMapValue(resource, "Type")
 	if typeNode == nil {

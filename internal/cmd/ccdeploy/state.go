@@ -48,6 +48,10 @@ func checkState(
 
 	result := &StateResult{}
 
+	// TODO: Handle race conditions (which seem unlikely but who knows...)
+	// Double check before writing a lock that someone else didn't grab it?
+	// Want to avoid using another service like DDB for this. Keep it simple.
+
 	obj, err := s3.GetObject(bucketName, key)
 	if err != nil {
 		config.Debugf("checkState GetObject: %v", err)

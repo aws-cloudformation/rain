@@ -13,55 +13,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type ResourceState int
-
-const (
-	Waiting ResourceState = iota
-	Deploying
-	Failed
-	Deployed
-	Canceled
-)
-
-type Resource struct {
-	Name    string
-	Type    string
-	Node    *yaml.Node
-	State   ResourceState
-	Message string
-	// TODO - Add elapsed time
-}
-
-func (r Resource) String() string {
-	state := ""
-	switch r.State {
-	case Waiting:
-		state = "Waiting"
-	case Deploying:
-		state = "Deploying"
-	case Deployed:
-		state = "Deployed"
-	case Failed:
-		state = "Failed"
-	case Canceled:
-		state = "Canceled"
-	}
-	if r.State == Failed {
-		return fmt.Sprintf("%s %s: %s: %v", r.Type, r.Name, state, r.Message)
-	} else {
-		return fmt.Sprintf("%s %s: %s", r.Type, r.Name, state)
-	}
-}
-
-// NewResource creates a new Resource and adds it to the map
-func NewResource(name string,
-	resourceType string, state ResourceState, node *yaml.Node) *Resource {
-
-	r := &Resource{Name: name, Type: resourceType, State: state, Node: node}
-	resMap[name] = r
-	return r
-}
-
 // getTemplateResource returns the yaml node based on the logical id
 func getTemplateResource(logicalId string) (*yaml.Node, error) {
 	rootMap := template.Node.Content[0]
@@ -83,12 +34,19 @@ func getTemplateResource(logicalId string) (*yaml.Node, error) {
 
 // deployResource calls the Cloud Control API to deploy the resource
 func deployResource(resource *Resource) {
-	config.Debugf("Simulate deploying %v...", resource)
+	config.Debugf("Deploying %v...", resource)
 
 	resource.State = Deploying
 
+	// TODO - Resolve instrinsics before creating the resource
+	// This will depend on the post-deployment state of dependencies
+	resolvedNode, err := resolve(resource)
+	if err != nil {
+		panic(err)
+	}
+
 	// Get the properties and call ccapi
-	err := ccapi.CreateResource(resource.Name, resource.Node)
+	err = ccapi.CreateResource(resource.Name, resolvedNode)
 	if err != nil {
 		config.Debugf("deployResource failed: %v", err)
 		resource.State = Failed

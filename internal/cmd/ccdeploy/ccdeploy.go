@@ -59,10 +59,21 @@ func run(cmd *cobra.Command, args []string) {
 	config.Debugf("StateFile:\n%v", format.String(stateResult.StateFile,
 		format.Options{JSON: false, Unsorted: false}))
 
-	// Create a diff between the current state and template
-	// TODO
+	var changes cft.Template
 
-	results, err := deployTemplate(template)
+	if stateResult.IsUpdate {
+		// Create a diff between the current state and template
+		// TODO
+		// Create a new template that contains only the resources to be deployed
+
+	} else {
+		// Deploy the provided template for the first time
+		changes = template
+	}
+
+	// TODO - Resolve intrinsics (yikes!)
+
+	results, err := deployTemplate(changes)
 	if err != nil {
 		// An unexpected error that prevented deployment from starting
 		panic(err)
