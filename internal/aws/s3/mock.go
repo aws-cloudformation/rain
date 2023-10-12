@@ -33,7 +33,7 @@ func Upload(bucketName string, content []byte) (string, error) {
 	if !isBucketExists {
 		return "", fmt.Errorf("bucket does not exist: '%s'", bucketName)
 	}
-	return filepath.Join ( BucketKeyPrefix, fmt.Sprintf("%x", sha256.Sum256(content)) ), nil
+	return filepath.Join(BucketKeyPrefix, fmt.Sprintf("%x", sha256.Sum256(content))), nil
 }
 
 // RainBucket returns the name of the rain deployment bucket in the current region
@@ -65,4 +65,12 @@ func RainBucket(forceCreation bool) string {
 
 func BucketHasContents(bucketName string) (bool, error) {
 	return true, nil
+}
+
+func PutObject(bucketName string, key string, body []byte) error {
+	return nil
+}
+
+func GetObject(bucketName string, key string) ([]byte, error) {
+	return make([]byte, 0), nil
 }

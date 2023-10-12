@@ -75,7 +75,7 @@ func CreateResource(logicalId string, resource *yaml.Node) error {
 	config.Debugf("CreateResource props: %v", props)
 	_, typeNode := s11n.GetMapValue(resource, "Type")
 	if typeNode == nil {
-		return fmt.Errorf("expected resource to have a Type", logicalId)
+		return fmt.Errorf("expected resource %v to have a Type", logicalId)
 	}
 	typeName := typeNode.Value
 	input := cloudcontrol.CreateResourceInput{
@@ -126,6 +126,7 @@ func CreateResource(logicalId string, resource *yaml.Node) error {
 				})
 			if statusErr != nil {
 				return statusErr // Is this terminal?
+				// This is not a deployment failure. Network issue?
 			}
 			config.Debugf("CreateResource status:\n%v", printProgress(status.ProgressEvent))
 

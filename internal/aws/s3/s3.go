@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"io"
 	"path/filepath"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -201,5 +202,30 @@ func RainBucket(forceCreation bool) string {
 	return bucketName
 }
 
-// TODO - GetObject
-// TODO - UploadObject
+// GetObject gets an object by key from an S3 bucket
+func GetObject(bucketName string, key string) ([]byte, error) {
+	result, err := getClient().GetObject(context.Background(),
+		&s3.GetObjectInput{
+			Bucket: &bucketName,
+			Key:    &key,
+		})
+	if err != nil {
+		return nil, err
+	}
+	body, err := io.ReadAll(result.Body)
+	if err != nil {
+		return nil, err
+	}
+	return body, nil
+}
+
+// PutObject puts an object into a bucket
+func PutObject(bucketName string, key string, body []byte) error {
+	_, err := getClient().PutObject(context.Background(),
+		&s3.PutObjectInput{
+			Bucket: &bucketName,
+			Key:    &key,
+			Body:   bytes.NewReader(body),
+		})
+	return err
+}

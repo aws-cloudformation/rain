@@ -5,11 +5,11 @@ import (
 	"path/filepath"
 
 	"github.com/aws-cloudformation/rain/cft"
+	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/cft/pkg"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
-	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/ui"
 	"github.com/spf13/cobra"
 )
@@ -50,12 +50,14 @@ func run(cmd *cobra.Command, args []string) {
 
 	// Compare against the current state to see what has changed, if this
 	// is an update
-	stateTemplate, stateError := checkState(name, template, bucketName)
+	stateResult, stateError := checkState(name, template, bucketName, "")
 	if stateError != nil {
-		panic(stateError)
+		msg := fmt.Sprintf("Found a locked state file (%v). This means another process is currently deploying this template, or a deployment failed to complete. You will need to manually resolve the issue, or you can try to resume the deployment by running ccdeploy with --continue <lock>", stateError)
+		panic(msg)
 	}
 
-	config.Debugf("stateTemplate:\n%v", node.ToSJson(stateTemplate.Node))
+	config.Debugf("StateFile:\n%v", format.String(stateResult.StateFile,
+		format.Options{JSON: false, Unsorted: false}))
 
 	// Create a diff between the current state and template
 	// TODO
@@ -68,8 +70,6 @@ func run(cmd *cobra.Command, args []string) {
 
 	if !results.Succeeded {
 		fmt.Println("Deployment failed.")
-		// TODO - Error message?
-		// TODO - Instructions on what to do now?
 	} else {
 		fmt.Println("Deployment completed successfully!")
 	}

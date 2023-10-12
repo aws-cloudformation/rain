@@ -18,8 +18,8 @@ func TestReady(t *testing.T) {
 
 	g.Link(a, b)
 
-	ar := NewResource(a, Waiting)
-	br := NewResource(b, Waiting)
+	ar := NewResource(a.Name, "AWS::S3::Bucket", Waiting, nil)
+	br := NewResource(b.Name, "AWS::S3::Bucket", Waiting, nil)
 
 	if ready(ar, &g) {
 		t.Errorf("ar should not be ready")
@@ -32,7 +32,7 @@ func TestReady(t *testing.T) {
 	c := graph.Node{Name: "c", Type: "Resources"}
 	ar.State = Waiting
 	br.State = Deployed
-	cr := NewResource(c, Waiting)
+	cr := NewResource(c.Name, "AWS::S3::Bucket", Waiting, nil)
 	g.Link(b, c)
 
 	if !ready(cr, &g) {
