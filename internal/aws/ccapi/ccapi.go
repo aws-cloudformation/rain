@@ -69,7 +69,8 @@ func printProgress(p *types.ProgressEvent) string {
 
 // CreateResource creates a resource based on the YAML node from the template,
 // and blocks until resource creation is complete.
-func CreateResource(logicalId string, resource *yaml.Node) error {
+func CreateResource(logicalId string, resource *yaml.Node) (identifier string, model string, err error) {
+
 	clientToken := uuid.New().String()
 
 	// Intrinsics have already been resolved, so there should not
@@ -79,7 +80,7 @@ func CreateResource(logicalId string, resource *yaml.Node) error {
 	config.Debugf("CreateResource props: %v", props)
 	_, typeNode := s11n.GetMapValue(resource, "Type")
 	if typeNode == nil {
-		return fmt.Errorf("expected resource %v to have a Type", logicalId)
+		return identifier, model, fmt.Errorf("expected resource %v to have a Type", logicalId)
 	}
 	typeName := typeNode.Value
 	input := cloudcontrol.CreateResourceInput{
@@ -92,7 +93,7 @@ func CreateResource(logicalId string, resource *yaml.Node) error {
 	config.Debugf("CreateResource output:\n%v", printProgress(output.ProgressEvent))
 
 	if err != nil {
-		return err
+		return identifier, model, err
 	}
 
 	done := false
@@ -100,6 +101,15 @@ func CreateResource(logicalId string, resource *yaml.Node) error {
 
 	// Poll for completion
 	for !done {
+
+		if progress.Identifier != nil {
+			identifier = *progress.Identifier
+		}
+		if progress.ResourceModel != nil {
+			model = *progress.ResourceModel
+		}
+
+		config.Debugf("About to check OperationStatus, identifier: %v, model: %v", identifier, model)
 
 		switch progress.OperationStatus {
 		case "PENDING":
@@ -114,7 +124,7 @@ func CreateResource(logicalId string, resource *yaml.Node) error {
 			if progress.StatusMessage != nil {
 				msg = *progress.StatusMessage
 			}
-			return fmt.Errorf("%v", msg)
+			return identifier, model, fmt.Errorf("%v", msg)
 		case "CANCEL_IN_PROGRESS":
 			done = false
 		case "CANCEL_COMPLETE":
@@ -129,7 +139,7 @@ func CreateResource(logicalId string, resource *yaml.Node) error {
 					RequestToken: progress.RequestToken,
 				})
 			if statusErr != nil {
-				return statusErr // Is this terminal?
+				return identifier, model, statusErr // Is this terminal?
 				// This is not a deployment failure. Network issue?
 			}
 			config.Debugf("CreateResource status:\n%v", printProgress(status.ProgressEvent))
@@ -138,7 +148,33 @@ func CreateResource(logicalId string, resource *yaml.Node) error {
 		}
 	}
 
-	return nil
+	// Call GetResource to fill in the model, which for some reason is
+	// not populated on the ProgressEvent above.
+	model, err = GetResource(identifier, typeName)
+	if err != nil {
+		return identifier, model, err
+	}
+
+	return identifier, model, nil
+}
+
+// GetResource gets a resource from cloud control api
+// It returns the resource model as a string
+func GetResource(identifier string, typeName string) (string, error) {
+
+	input := &cloudcontrol.GetResourceInput{
+		Identifier: &identifier,
+		TypeName:   &typeName,
+	}
+
+	result, err := getClient().GetResource(context.Background(), input)
+
+	if err != nil {
+		return "", err
+	}
+
+	return *result.ResourceDescription.Properties, nil
+
 }
 
 // TODO - Update

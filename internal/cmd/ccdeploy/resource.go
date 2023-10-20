@@ -17,11 +17,13 @@ const (
 )
 
 type Resource struct {
-	Name    string
-	Type    string
-	Node    *yaml.Node
-	State   ResourceState
-	Message string
+	Name       string
+	Type       string
+	Node       *yaml.Node
+	State      ResourceState
+	Message    string
+	Identifier string
+	Model      string
 	// TODO - Add elapsed time
 }
 

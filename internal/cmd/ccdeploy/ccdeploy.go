@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/aws-cloudformation/rain/cft"
+	"github.com/aws-cloudformation/rain/cft/diff"
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/cft/pkg"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
@@ -65,6 +66,8 @@ func run(cmd *cobra.Command, args []string) {
 		// Create a diff between the current state and template
 		// TODO
 		// Create a new template that contains only the resources to be deployed
+		d := diff.New(template, stateResult.StateFile)
+		config.Debugf("update diff:\nMode:%v\n%v", d.Mode(), d.String())
 
 	} else {
 		// Deploy the provided template for the first time
@@ -81,8 +84,13 @@ func run(cmd *cobra.Command, args []string) {
 
 	if !results.Succeeded {
 		fmt.Println("Deployment failed.")
+
+		// Leave the state file locked. Needs to be resolved manually.
 	} else {
 		fmt.Println("Deployment completed successfully!")
+
+		// Unlock the state file and record current values
+		writeState(template, results, bucketName, name)
 	}
 
 	for _, resource := range results.Resources {

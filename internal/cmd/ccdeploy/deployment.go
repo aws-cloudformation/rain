@@ -46,7 +46,9 @@ func deployResource(resource *Resource) {
 	}
 
 	// Get the properties and call ccapi
-	err = ccapi.CreateResource(resource.Name, resolvedNode)
+	var identifier string
+	var model string
+	identifier, model, err = ccapi.CreateResource(resource.Name, resolvedNode)
 	if err != nil {
 		config.Debugf("deployResource failed: %v", err)
 		resource.State = Failed
@@ -54,6 +56,8 @@ func deployResource(resource *Resource) {
 	} else {
 		resource.State = Deployed
 		resource.Message = "Success"
+		resource.Identifier = identifier
+		resource.Model = model
 	}
 }
 

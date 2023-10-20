@@ -1,8 +1,10 @@
 package ccdeploy
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/format"
@@ -33,7 +35,7 @@ type StateResult struct {
 // owns the lock.  If priorLock matches, then we are in the middle of an update
 // and for some reason we needed to re-check state
 //
-// If one exists and there is no lock, this is an update
+// If one exists and there is no lock, this is an update.
 // Save the state file back with a lock that we own
 func checkState(
 	name string,
@@ -73,14 +75,10 @@ func checkState(
 		result.IsUpdate = false
 
 		// Edit the state template to add a new top level "State" section
-		state.Node.Content[0].Content = append(state.Node.Content[0].Content,
-			&yaml.Node{Kind: yaml.ScalarNode, Value: "State"})
-		stateMap := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
-		state.Node.Content[0].Content = append(state.Node.Content[0].Content, stateMap)
-		stateMap.Content = append(stateMap.Content,
-			&yaml.Node{Kind: yaml.ScalarNode, Value: "Lock"})
-		stateMap.Content = append(stateMap.Content,
-			&yaml.Node{Kind: yaml.ScalarNode, Value: lock})
+		stateMap := appendStateMap(state)
+
+		// Lock it
+		add(stateMap, "Lock", lock)
 
 		// Write the state file to the bucket
 		str := format.String(state, format.Options{JSON: false, Unsorted: false})
@@ -126,9 +124,106 @@ func checkState(
 			return nil, fmt.Errorf("lock: %v", lock)
 		}
 
-		// Otherwise we are safe to proceed with an update
-
+		// We are safe to proceed with an update.
+		// Write a new lock back to the state file stored in S3.
+		lock = uuid.New().String()
+		add(stateMap, "Lock", lock)
+		str := format.String(state, format.Options{JSON: false, Unsorted: false})
+		err = s3.PutObject(bucketName, key, []byte(str))
+		if err != nil {
+			return nil, fmt.Errorf("unable to write updated state file to bucket: %v", err)
+		}
+		spinner.Push(fmt.Sprintf("State file updated with lock: %v", lock))
 	}
 
 	return result, nil
+}
+
+// appendStateMap appends a "State" section to the template
+func appendStateMap(state cft.Template) *yaml.Node {
+	state.Node.Content[0].Content = append(state.Node.Content[0].Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: "State"})
+	stateMap := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
+	state.Node.Content[0].Content = append(state.Node.Content[0].Content, stateMap)
+	return stateMap
+}
+
+// add adds a new property to the state map
+func add(stateMap *yaml.Node, name string, val string) {
+	stateMap.Content = append(stateMap.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: name})
+	stateMap.Content = append(stateMap.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: val})
+}
+
+// addMap adds a new map to the parent node
+func addMap(parent *yaml.Node, name string) *yaml.Node {
+	parent.Content = append(parent.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: name})
+	m := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
+	parent.Content = append(parent.Content, m)
+	return m
+}
+
+// writeState writes updated state to the state file in S3 and unlocks it
+// The state passed in should be the original template, since we will
+// overwrite state with current values.
+func writeState(
+	state cft.Template,
+	results *DeploymentResults,
+	bucketName string,
+	name string) error {
+
+	stateMap := appendStateMap(state)
+	add(stateMap, "LastWriteTime", time.Now().Format(time.RFC3339))
+
+	// Iterate over each resource in the results.
+	// Add a State section to the state resource and write the resource model
+
+	rootMap := state.Node.Content[0]
+	_, resourceMap := s11n.GetMapValue(rootMap, "Resources")
+	if resourceMap == nil {
+		panic("Expected to find a Resources section in the template")
+	}
+
+	for name, resource := range results.Resources {
+		config.Debugf("writeState resource %v\n%v", name, resource.Model)
+
+		stateResource, _ := s11n.GetMapValue(resourceMap, name)
+		if stateResource == nil {
+			return fmt.Errorf("did not find %v in the state template", name)
+		}
+		config.Debugf("stateResource: %v", node.ToSJson(stateResource))
+		// ? Not a map?
+		// Iterate, GetMapValue is not what I want...?
+
+		resourceStateMap := addMap(stateResource, "State")
+		add(resourceStateMap, "Identifier", resource.Identifier)
+		modelMap := addMap(resourceStateMap, "Model")
+		var parsed map[string]any
+		json.Unmarshal([]byte(resource.Model), &parsed)
+		var n yaml.Node
+		err := n.Encode(parsed)
+		if err != nil {
+			return err
+		}
+		config.Debugf("ResourceModel node: %v", node.ToSJson(&n))
+		for _, c := range n.Content {
+			modelMap.Content = append(modelMap.Content, c)
+		}
+
+		config.Debugf("ResourceModel map: %v", node.ToSJson(modelMap))
+		config.Debugf("stateResource: %v", node.ToSJson(stateResource))
+	}
+
+	str := format.String(state, format.Options{JSON: false, Unsorted: false})
+	config.Debugf("About to write state file:\n%v", str)
+	key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
+	err := s3.PutObject(bucketName, key, []byte(str))
+	if err != nil {
+		return fmt.Errorf("unable to write unlocked state file to bucket: %v", err)
+	}
+	spinner.Push(fmt.Sprintf("State file written and unlocked"))
+
+	return nil
 }
