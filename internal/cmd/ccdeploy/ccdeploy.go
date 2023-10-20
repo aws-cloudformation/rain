@@ -64,10 +64,31 @@ func run(cmd *cobra.Command, args []string) {
 
 	if stateResult.IsUpdate {
 		// Create a diff between the current state and template
-		// TODO
-		// Create a new template that contains only the resources to be deployed
 		d := diff.New(template, stateResult.StateFile)
-		config.Debugf("update diff:\nMode:%v\n%v", d.Mode(), d.String())
+		config.Debugf("update diff:\nMode:%v\n%v", d.Mode(), d.Format(false))
+
+		// Each modified resource needs to be tagged with create-update-delete-none,
+		// so that deployResource knows which action to take.
+		// We don't need a deep diff, only to identify what has changed.
+
+		// In the template, write a node to the resource's State
+		/*
+			   Resources:
+			     MyBucket:
+				 	Type: AWS::S3::Bucket
+					State:
+					  Action: Create or Update or Delete or None
+
+		*/
+
+		changes = stateResult.StateFile
+
+		// Iterate through the diff
+		// TODO
+
+		// Stop here for now
+		// TODO - remove this
+		return
 
 	} else {
 		// Deploy the provided template for the first time

@@ -56,7 +56,6 @@ func checkState(
 
 	obj, err := s3.GetObject(bucketName, key)
 	if err != nil {
-		config.Debugf("checkState GetObject: %v", err)
 
 		// Make sure it's a NotFound error
 		var nf *types.NoSuchKey
@@ -92,8 +91,6 @@ func checkState(
 	} else {
 		// The state file exists. Inspect it to see if it's locked
 
-		config.Debugf("checkState state file exists")
-
 		spinner.Push("Found existing state file")
 
 		state, err := parse.String(string(obj))
@@ -107,8 +104,6 @@ func checkState(
 		if stateMap == nil {
 			return nil, fmt.Errorf("did not find State in state file")
 		}
-
-		config.Debugf("stateMap:\n%v", node.ToSJson(stateMap))
 
 		result.StateFile = state
 		result.IsUpdate = true
@@ -186,11 +181,7 @@ func writeState(
 		panic("Expected to find a Resources section in the template")
 	}
 
-	config.Debugf("resourceMap: %v", node.ToSJson(resourceMap))
-
 	for name, resource := range results.Resources {
-		config.Debugf("writeState resource %v\n%v", name, resource.Model)
-
 		var stateResource *yaml.Node
 		for i, r := range resourceMap.Content {
 			if r.Value == name {
@@ -201,7 +192,6 @@ func writeState(
 		if stateResource == nil {
 			return fmt.Errorf("did not find %v in the state template", name)
 		}
-		config.Debugf("stateResource: %v", node.ToSJson(stateResource))
 
 		resourceStateMap := addMap(stateResource, "State")
 		add(resourceStateMap, "Identifier", resource.Identifier)
@@ -213,13 +203,9 @@ func writeState(
 		if err != nil {
 			return err
 		}
-		config.Debugf("ResourceModel node: %v", node.ToSJson(&n))
 		for _, c := range n.Content {
 			modelMap.Content = append(modelMap.Content, c)
 		}
-
-		config.Debugf("ResourceModel map: %v", node.ToSJson(modelMap))
-		config.Debugf("stateResource: %v", node.ToSJson(stateResource))
 	}
 
 	str := format.String(state, format.Options{JSON: false, Unsorted: false})

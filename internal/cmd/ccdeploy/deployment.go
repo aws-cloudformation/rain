@@ -45,20 +45,35 @@ func deployResource(resource *Resource) {
 		panic(err)
 	}
 
-	// Get the properties and call ccapi
-	var identifier string
-	var model string
-	identifier, model, err = ccapi.CreateResource(resource.Name, resolvedNode)
-	if err != nil {
-		config.Debugf("deployResource failed: %v", err)
-		resource.State = Failed
-		resource.Message = fmt.Sprintf("%v", err)
-	} else {
-		resource.State = Deployed
-		resource.Message = "Success"
-		resource.Identifier = identifier
-		resource.Model = model
+	switch resource.Action {
+	case Create:
+
+		// Get the properties and call ccapi
+		var identifier string
+		var model string
+		identifier, model, err = ccapi.CreateResource(resource.Name, resolvedNode)
+		if err != nil {
+			config.Debugf("deployResource failed: %v", err)
+			resource.State = Failed
+			resource.Message = fmt.Sprintf("%v", err)
+		} else {
+			resource.State = Deployed
+			resource.Message = "Success"
+			resource.Identifier = identifier
+			resource.Model = model
+		}
+	case Update:
+
+		config.Debugf("deployResource Update TODO")
+
+	case Delete:
+
+		config.Debugf("deployResource Delete TODO")
+	default:
+		// None means this is an update with no change to the model
+		config.Debugf("deployResource not deploying unchanged %v", resource.Name)
 	}
+
 }
 
 // ready returns true if the resource has no undeployed dependencies
@@ -66,8 +81,6 @@ func ready(resource *Resource, g *graph.Graph) bool {
 
 	// Iterate over each of this resource's dependencies
 	for _, dep := range g.Get(graph.Node{Name: resource.Name, Type: "Resources"}) {
-
-		config.Debugf("ready: %v depends on %v", resource.Name, dep)
 
 		if dep.Type != "Resources" {
 			continue
@@ -77,7 +90,6 @@ func ready(resource *Resource, g *graph.Graph) bool {
 
 		// If the dependency is not deployed, terminate
 		if depr.State != Deployed {
-			config.Debugf("ready: %v has not been deployed", depr)
 			return false
 		}
 
@@ -116,14 +128,12 @@ func deployTemplate(template cft.Template) (*DeploymentResults, error) {
 	g := graph.New(template)
 	nodes := g.Nodes()
 
-	config.Debugf("Found %v nodes in the template", len(nodes))
-
 	/*
 		Downwards is "depends on"
 
-		   A   E  F
-		   /    \\
-		 B   C      GH
+		   A   E   F
+		  / \   \\
+		 B   C   GH
 			  \
 			   D
 
@@ -132,19 +142,21 @@ func deployTemplate(template cft.Template) (*DeploymentResults, error) {
 		We work our way up from the bottom, deploying resources concurrently
 		as soon as they have no more undeployed dependencies.
 
+		Deletes have to go in the reverse order.
+		A depends on B, if I'm deleting both, A has to be deleted first.
+
+		TODO: Make a separate graph for deletes, do them all first.
+		Verify that we are not deleting anything depended on by a live resource.
 	*/
 
 	// Wrap Nodes in a Resource to add state
 	resources := make([]*Resource, 0)
 	for _, n := range nodes {
-		config.Debugf("node: %v", n)
 		if n.Type == "Resources" {
 			y, err := getTemplateResource(n.Name)
 			if err != nil {
 				panic(fmt.Sprintf("%v not found", n.Name))
 			}
-
-			config.Debugf("resource Node:\n%v", node.ToSJson(y))
 
 			_, typeNode := s11n.GetMapValue(y, "Type")
 			if typeNode == nil {
@@ -152,7 +164,31 @@ func deployTemplate(template cft.Template) (*DeploymentResults, error) {
 			}
 			typeName := typeNode.Value
 
+			// Determine if this is a create, update, or delete
+			var action ActionType
+			_, stateNode := s11n.GetMapValue(y, "State")
+			if stateNode == nil {
+				// Assume this is a new deployment
+				action = Create
+			} else {
+				for i, s := range stateNode.Content {
+					if s.Value == "Action" {
+						a := stateNode.Content[i+1].Value
+						action = ActionType(a)
+						isValid := false
+						switch action {
+						case Create, Update, Delete, None:
+							isValid = true
+						}
+						if !isValid {
+							return nil, fmt.Errorf("invalid Action %v for %v", a, n.Name)
+						}
+					}
+				}
+			}
+
 			r := NewResource(n.Name, typeName, Waiting, y)
+			r.Action = action
 			resources = append(resources, r)
 		}
 	}

@@ -16,6 +16,15 @@ const (
 	Canceled
 )
 
+type ActionType string
+
+const (
+	Create ActionType = "Create"
+	Update ActionType = "Update"
+	Delete ActionType = "Delete"
+	None   ActionType = "None"
+)
+
 type Resource struct {
 	Name       string
 	Type       string
@@ -24,6 +33,7 @@ type Resource struct {
 	Message    string
 	Identifier string
 	Model      string
+	Action     ActionType
 	// TODO - Add elapsed time
 }
 
