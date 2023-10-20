@@ -186,16 +186,22 @@ func writeState(
 		panic("Expected to find a Resources section in the template")
 	}
 
+	config.Debugf("resourceMap: %v", node.ToSJson(resourceMap))
+
 	for name, resource := range results.Resources {
 		config.Debugf("writeState resource %v\n%v", name, resource.Model)
 
-		stateResource, _ := s11n.GetMapValue(resourceMap, name)
+		var stateResource *yaml.Node
+		for i, r := range resourceMap.Content {
+			if r.Value == name {
+				stateResource = resourceMap.Content[i+1]
+				break
+			}
+		}
 		if stateResource == nil {
 			return fmt.Errorf("did not find %v in the state template", name)
 		}
 		config.Debugf("stateResource: %v", node.ToSJson(stateResource))
-		// ? Not a map?
-		// Iterate, GetMapValue is not what I want...?
 
 		resourceStateMap := addMap(stateResource, "State")
 		add(resourceStateMap, "Identifier", resource.Identifier)
