@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 
 	"github.com/aws-cloudformation/rain/cft"
-	"github.com/aws-cloudformation/rain/cft/diff"
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/cft/pkg"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
@@ -63,29 +62,11 @@ func run(cmd *cobra.Command, args []string) {
 	var changes cft.Template
 
 	if stateResult.IsUpdate {
-		// Create a diff between the current state and template
-		d := diff.New(template, stateResult.StateFile)
-		config.Debugf("update diff:\nMode:%v\n%v", d.Mode(), d.Format(false))
-
-		// Each modified resource needs to be tagged with create-update-delete-none,
-		// so that deployResource knows which action to take.
-		// We don't need a deep diff, only to identify what has changed.
-
-		// In the template, write a node to the resource's State
-		/*
-			   Resources:
-			     MyBucket:
-				 	Type: AWS::S3::Bucket
-					State:
-					  Action: Create or Update or Delete or None
-
-		*/
-
-		changes = stateResult.StateFile
-
-		// Iterate through the diff
-		// TODO
-
+		var err error
+		changes, err = update(stateResult.StateFile, template)
+		if err != nil {
+			panic(err)
+		}
 		// Stop here for now
 		// TODO - remove this
 		return

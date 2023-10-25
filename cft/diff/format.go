@@ -28,7 +28,7 @@ func (v value) Format(long bool) string {
 	e := yaml.NewEncoder(&buf)
 	e.SetIndent(2)
 
-	err := e.Encode(v.value())
+	err := e.Encode(v.Value())
 	if err != nil {
 		panic(err)
 	}
@@ -37,7 +37,7 @@ func (v value) Format(long bool) string {
 }
 
 func stubValue(v value) string {
-	switch v.value().(type) {
+	switch v.Value().(type) {
 	case map[string]interface{}:
 		return "{...}"
 	case []interface{}:
@@ -114,7 +114,7 @@ func formatSub(d Diff, path []interface{}, long bool) string {
 
 	v, isValue := d.(value)
 	if isValue {
-		k := reflect.ValueOf(v.value()).Kind()
+		k := reflect.ValueOf(v.Value()).Kind()
 
 		if k != reflect.Array && k != reflect.Map && k != reflect.Slice {
 			return fmt.Sprintf(" %s\n", formatted)

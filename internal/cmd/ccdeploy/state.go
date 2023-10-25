@@ -98,8 +98,6 @@ func checkState(
 			return nil, fmt.Errorf("unable to parse state file: %v", err)
 		}
 
-		config.Debugf("state:\n%v", node.ToSJson(state.Node))
-
 		_, stateMap := s11n.GetMapValue(state.Node.Content[0], "State")
 		if stateMap == nil {
 			return nil, fmt.Errorf("did not find State in state file")
@@ -171,6 +169,7 @@ func writeState(
 
 	stateMap := appendStateMap(state)
 	add(stateMap, "LastWriteTime", time.Now().Format(time.RFC3339))
+	resourceModels := addMap(stateMap, "ResourceModels")
 
 	// Iterate over each resource in the results.
 	// Add a State section to the state resource and write the resource model
@@ -193,7 +192,7 @@ func writeState(
 			return fmt.Errorf("did not find %v in the state template", name)
 		}
 
-		resourceStateMap := addMap(stateResource, "State")
+		resourceStateMap := addMap(resourceModels, name)
 		add(resourceStateMap, "Identifier", resource.Identifier)
 		modelMap := addMap(resourceStateMap, "Model")
 		var parsed map[string]any

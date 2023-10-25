@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aws-cloudformation/rain/cft"
+	"github.com/aws-cloudformation/rain/cft/diff"
 	"github.com/aws-cloudformation/rain/cft/graph"
 	"github.com/aws-cloudformation/rain/internal/aws/ccapi"
 	"github.com/aws-cloudformation/rain/internal/config"
@@ -46,7 +47,7 @@ func deployResource(resource *Resource) {
 	}
 
 	switch resource.Action {
-	case Create:
+	case diff.Create:
 
 		// Get the properties and call ccapi
 		var identifier string
@@ -62,11 +63,11 @@ func deployResource(resource *Resource) {
 			resource.Identifier = identifier
 			resource.Model = model
 		}
-	case Update:
+	case diff.Update:
 
 		config.Debugf("deployResource Update TODO")
 
-	case Delete:
+	case diff.Delete:
 
 		config.Debugf("deployResource Delete TODO")
 	default:
@@ -165,19 +166,19 @@ func deployTemplate(template cft.Template) (*DeploymentResults, error) {
 			typeName := typeNode.Value
 
 			// Determine if this is a create, update, or delete
-			var action ActionType
+			var action diff.ActionType
 			_, stateNode := s11n.GetMapValue(y, "State")
 			if stateNode == nil {
 				// Assume this is a new deployment
-				action = Create
+				action = diff.Create
 			} else {
 				for i, s := range stateNode.Content {
 					if s.Value == "Action" {
 						a := stateNode.Content[i+1].Value
-						action = ActionType(a)
+						action = diff.ActionType(a)
 						isValid := false
 						switch action {
-						case Create, Update, Delete, None:
+						case diff.Create, diff.Update, diff.Delete, diff.None:
 							isValid = true
 						}
 						if !isValid {
