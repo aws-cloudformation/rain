@@ -172,34 +172,30 @@ const (
 	None   ActionType = "None"
 )
 
-// ResourceAction looks for the resource in the diff and
-// returns the deployment action to take: Create, Update, Delete, or "" for no action
-func ResourceAction(d Diff, name string) ActionType {
+func GetResourceActions(d Diff) map[string]ActionType {
+	actions := make(map[string]ActionType)
 
 	dm := d.(dmap)
 	for k, v := range dm {
 		if k == "Resources" {
 			vm := v.(dmap)
 			for rname, resource := range vm {
-				if rname == name {
-					config.Debugf("ResourceAction %v %v", rname, resource)
-					switch resource.Mode() {
-					case Added:
-						return Create
-					case Removed:
-						return Delete
-					case Involved:
-						return Update
-					case Unchanged:
-						return None
-					case Changed:
-						return Update
-					}
+				config.Debugf("ResourceAction %v %v", rname, resource)
+				switch resource.Mode() {
+				case Added:
+					actions[rname] = Create
+				case Removed:
+					actions[rname] = Delete
+				case Involved:
+					actions[rname] = Update
+				case Unchanged:
+					actions[rname] = None
+				case Changed:
+					actions[rname] = Update
 				}
 			}
 		}
 	}
 
-	// Is this an error? TODO
-	return None
+	return actions
 }
