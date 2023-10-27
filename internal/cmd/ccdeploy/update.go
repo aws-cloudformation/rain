@@ -45,6 +45,29 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 	if stateResourceMap == nil {
 		panic("Expected to find a Resources section in the state template")
 	}
+	_, stateStateMap := s11n.GetMapValue(stateRootMap, "State")
+	if stateStateMap == nil {
+		panic("Expected to find a State section in the state template")
+	}
+	_, stateResourceModels := s11n.GetMapValue(stateStateMap, "ResourceModels")
+	if stateResourceModels == nil {
+		panic("Expected to find State.ResourceModels in the state template")
+	}
+	identifiers := make(map[string]string, 0)
+	models := make(map[string]*yaml.Node, 0)
+	for i, v := range stateResourceModels.Content {
+		if i%2 == 0 {
+			_, identifier := s11n.GetMapValue(stateResourceModels.Content[i+1], "Identifier")
+			if identifier != nil {
+				identifiers[v.Value] = identifier.Value
+			}
+			_, model := s11n.GetMapValue(stateResourceModels.Content[i+1], "Model")
+			if model != nil {
+				models[v.Value] = node.Clone(model)
+			}
+		}
+	}
+	config.Debugf("identifiers: %v", identifiers)
 
 	// Make a copy of the template so the caller still has the original as the user wrote it
 	newTemplate := cft.Template{}
@@ -75,6 +98,7 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 		}
 	}
 
+	// Iterate over the diff and add actions to the output file
 	for k, v := range actions {
 		rmap, ok := resourceActionStates[k]
 		if !ok {
@@ -89,11 +113,24 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 			cloned := node.Clone(stateResources[k])
 			clonedStateMap := addMap(cloned, "State")
 			add(clonedStateMap, "Action", string(v))
-			// TODO: Add the identifier from the state file so we know what to delete
+			// Add the identifier so we know what to delete
+			if identifier, ok := identifiers[k]; ok {
+				add(clonedStateMap, "Identifier", identifier)
+			}
 			newResourceMap.Content = append(newResourceMap.Content, cloned)
 		} else {
 			// Create, Update, None
 			add(rmap, "Action", string(v))
+			// Add the identifier so we know what to update
+			if identifier, ok := identifiers[k]; ok {
+				add(rmap, "Identifier", identifier)
+			}
+			// Add the resource model that represents the current actual state of
+			// the resource based on the ccapi GetResource call
+			if model, ok := models[k]; ok {
+				modelMap := addMap(rmap, "Model")
+				modelMap.Content = model.Content
+			}
 		}
 	}
 
@@ -101,8 +138,53 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 	// How do we handle that? Ask to apply it to the template?
 	// Ask to undo the drift?
 
-	config.Debugf("About to return new template:\n%v",
-		format.String(newTemplate, format.Options{JSON: false, Unsorted: false}))
-
 	return newTemplate, nil
+}
+
+// summarizeChanges prints out a summary of the changes that will be made
+// when the template is deployed. This function expects the State property
+// to be populated on each resource.
+func summarizeChanges(changes cft.Template) {
+
+	d := format.String(changes, format.Options{
+		JSON:     false,
+		Unsorted: false,
+	})
+	config.Debugf("change template: %v", d)
+
+	rootMap := changes.Node.Content[0]
+	_, resourceMap := s11n.GetMapValue(rootMap, "Resources")
+	if resourceMap == nil {
+		panic("expected Resources")
+	}
+	fmt.Println("Summary of deployment changes:")
+	for i, v := range resourceMap.Content {
+		if i%2 == 0 {
+			var action string
+			var t string
+			var ident string
+			name := v.Value
+			_, stateMap := s11n.GetMapValue(resourceMap.Content[i+1], "State")
+			if stateMap == nil {
+				panic(fmt.Sprintf("expected State on resource %v", name))
+			}
+			_, typeNode := s11n.GetMapValue(resourceMap.Content[i+1], "Type")
+			if typeNode == nil {
+				panic(fmt.Sprintf("expected Type on resource %v", name))
+			}
+			t = typeNode.Value
+			for si, sv := range stateMap.Content {
+				if si%2 == 0 {
+					val := stateMap.Content[si+1].Value
+					if sv.Value == "Action" {
+						action = val
+					} else if sv.Value == "Identifier" {
+						ident = val
+					}
+				}
+			}
+			fmt.Printf("%v\t%v\t%v\t%v\n", name, t, action, ident)
+		}
+	}
+
 }

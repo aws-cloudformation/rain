@@ -1,6 +1,7 @@
 package ccdeploy
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft/pkg"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/ui"
 	"github.com/spf13/cobra"
@@ -18,7 +20,8 @@ var params []string
 var tags []string
 var configFilePath string
 var Experimental bool
-var template cft.Template
+
+// var template cft.Template
 var resMap map[string]*Resource
 
 // PackageTemplate reads the template and performs any necessary packaging on it
@@ -43,7 +46,7 @@ func run(cmd *cobra.Command, args []string) {
 
 	// Package template
 	spinner.Push(fmt.Sprintf("Preparing template '%s'", base))
-	template = PackageTemplate(fn, true)
+	template := PackageTemplate(fn, true)
 	spinner.Pop()
 
 	// TODO - Get DeployConfig (modified to remove stack references...)
@@ -67,9 +70,13 @@ func run(cmd *cobra.Command, args []string) {
 		if err != nil {
 			panic(err)
 		}
-		// Stop here for now
-		// TODO - remove this
-		return
+		summarizeChanges(changes)
+
+		spinner.Pop()
+
+		if !console.Confirm(true, "Do you wish to continue?") {
+			panic(errors.New("user cancelled deployment"))
+		}
 
 	} else {
 		// Deploy the provided template for the first time

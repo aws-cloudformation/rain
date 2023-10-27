@@ -15,7 +15,7 @@ import (
 )
 
 // getTemplateResource returns the yaml node based on the logical id
-func getTemplateResource(logicalId string) (*yaml.Node, error) {
+func getTemplateResource(template cft.Template, logicalId string) (*yaml.Node, error) {
 	rootMap := template.Node.Content[0]
 	_, resources := s11n.GetMapValue(rootMap, "Resources")
 	if resources == nil {
@@ -54,7 +54,7 @@ func deployResource(resource *Resource) {
 		var model string
 		identifier, model, err = ccapi.CreateResource(resource.Name, resolvedNode)
 		if err != nil {
-			config.Debugf("deployResource failed: %v", err)
+			config.Debugf("deployResource create failed: %v", err)
 			resource.State = Failed
 			resource.Message = fmt.Sprintf("%v", err)
 		} else {
@@ -65,14 +65,35 @@ func deployResource(resource *Resource) {
 		}
 	case diff.Update:
 
-		config.Debugf("deployResource Update TODO")
+		var model string
+		model, err = ccapi.UpdateResource(resource.Name, resource.Identifier, resolvedNode)
+		if err != nil {
+			config.Debugf("deployResource update failed: %v", err)
+			resource.State = Failed
+			resource.Message = fmt.Sprintf("%v", err)
+		} else {
+			resource.State = Deployed
+			resource.Message = "Success"
+			resource.Model = model
+		}
 
 	case diff.Delete:
 
-		config.Debugf("deployResource Delete TODO")
+		err = ccapi.DeleteResource(resource.Name, resource.Identifier, resolvedNode)
+		if err != nil {
+			config.Debugf("deployResource delete failed: %v", err)
+			resource.State = Failed
+			resource.Message = fmt.Sprintf("%v", err)
+		} else {
+			resource.State = Deployed
+			resource.Message = "Success"
+		}
+
 	default:
 		// None means this is an update with no change to the model
 		config.Debugf("deployResource not deploying unchanged %v", resource.Name)
+		resource.State = Deployed
+		resource.Message = "Success"
 	}
 
 }
@@ -154,9 +175,9 @@ func deployTemplate(template cft.Template) (*DeploymentResults, error) {
 	resources := make([]*Resource, 0)
 	for _, n := range nodes {
 		if n.Type == "Resources" {
-			y, err := getTemplateResource(n.Name)
+			y, err := getTemplateResource(template, n.Name)
 			if err != nil {
-				panic(fmt.Sprintf("%v not found", n.Name))
+				panic(fmt.Sprintf("%v not found in Resources", n.Name))
 			}
 
 			_, typeNode := s11n.GetMapValue(y, "Type")
@@ -167,6 +188,7 @@ func deployTemplate(template cft.Template) (*DeploymentResults, error) {
 
 			// Determine if this is a create, update, or delete
 			var action diff.ActionType
+			var ident string
 			_, stateNode := s11n.GetMapValue(y, "State")
 			if stateNode == nil {
 				// Assume this is a new deployment
@@ -184,12 +206,16 @@ func deployTemplate(template cft.Template) (*DeploymentResults, error) {
 						if !isValid {
 							return nil, fmt.Errorf("invalid Action %v for %v", a, n.Name)
 						}
+					} else if s.Value == "Identifier" {
+						ident = stateNode.Content[i+1].Value
 					}
+					// TODO - Do we need the resource model here?
 				}
 			}
 
 			r := NewResource(n.Name, typeName, Waiting, y)
 			r.Action = action
+			r.Identifier = ident
 			resources = append(resources, r)
 		}
 	}
