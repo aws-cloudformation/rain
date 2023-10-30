@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/internal/aws"
@@ -193,10 +194,112 @@ func pollForCompletion(progress *types.ProgressEvent) (string, string, error) {
 
 // patch is used to construct a PatchDocument
 type patch struct {
-	Op    string `json:"op"`
-	Path  string `json:"path"`
-	Value string `json:"value"`
-	// TODO: Value has to be an any: convert ints and bools
+	// add, remove, replace, move, copy, and test
+	Op string `json:"op"`
+
+	// For example, /PropertyName
+	Path string `json:"path"`
+
+	// Ints and Bools have to be converted from strings to match the schema
+	Value any `json:"value"`
+}
+
+// yamlVal converts node.Value to a string, int, or bool based on the Tag
+func yamlVal(n *yaml.Node) (any, error) {
+	var v any
+	var err error
+	switch n.Tag {
+	case "!!bool":
+		v, err = strconv.ParseBool(n.Value)
+		if err != nil {
+			return "", err
+		}
+	case "!!int":
+		v, err = strconv.ParseInt(n.Value, 10, 32)
+		if err != nil {
+			return "", err
+		}
+	default:
+		v = string(n.Value)
+	}
+	return v, nil
+}
+
+// patchPath is a recursive function that builds the PatchDocument
+func patchPath(patches []patch, props *yaml.Node, path string) ([]patch, error) {
+
+	var err error
+	for i, p := range props.Content {
+		if i%2 == 0 {
+			name := p.Value
+			newPath := path + "/" + name
+			val := props.Content[i+1]
+			if val.Kind == yaml.ScalarNode {
+				v, err := yamlVal(val)
+				if err != nil {
+					return patches, err
+				}
+				patches = append(patches, patch{Op: "replace", Path: newPath, Value: v})
+			} else if val.Kind == yaml.SequenceNode {
+				// TODO
+			} else if val.Kind == yaml.MappingNode {
+				// Recurse
+				patches, err = patchPath(patches, val, newPath)
+				if err != nil {
+					return patches, err
+				}
+			}
+		}
+	}
+
+	return patches, nil
+}
+
+// createPatch converts the template properties into a JSON Patch Document
+func createPatch(props *yaml.Node) (string, error) {
+
+	/*
+		We have to create a PatchDocument here with json.
+		op: add, remove, replace, move, copy, and test
+
+		[
+		  {
+			"op": "test",
+			"path": "/RetentionInDays",
+			"value":3653
+		  },
+		  {
+			"op": "replace",
+			"path": "/RetentionInDays",
+			"value":180
+		  }
+		]
+	*/
+	patches := make([]patch, 0)
+
+	// Iterate through all changes to the properties on the resource
+	// A:1 becomes path: /A, value: 1
+	// A:
+	//   B:
+	//     C: 1
+	// becomes path: /A/B/C, value 1
+
+	config.Debugf("patchPath: %v", node.ToJson(props))
+
+	var err error
+	patches, err = patchPath(patches, props, "")
+	if err != nil {
+		return "", err
+	}
+
+	config.Debugf("patches: %v", patches)
+
+	m, err := json.Marshal(patches)
+	if err != nil {
+		return "", err
+	}
+	p := string(m)
+	return p, nil
 }
 
 // UpdateResource updates a resource based on the YAML node from the template,
@@ -224,55 +327,15 @@ func UpdateResource(logicalId string, identifier string, resource *yaml.Node) (m
 	_, props := s11n.GetMapValue(resource, "Properties")
 	config.Debugf("UpdateResource %v props: %v", logicalId, node.ToSJson(props))
 
-	/*
-		We have to create a PatchDocument here with json.
-		op: add, remove, replace, move, copy, and test
-
-		[
-		  {
-			"op": "test",
-			"path": "/RetentionInDays",
-			"value":3653
-		  },
-		  {
-			"op": "replace",
-			"path": "/RetentionInDays",
-			"value":180
-		  }
-		]
-	*/
-	patches := make([]patch, 0)
-
-	// Iterate through all changes to the properties on the resource
-	// A:1 becomes path: /A, value: 1
-	// A:
-	//   B:
-	//     C: 1
-	// becomes path: /A/B/C, value 1
-	for i, p := range props.Content {
-		if i%2 == 0 {
-			name := p.Value
-			val := props.Content[i+1]
-			if val.Kind == yaml.ScalarNode {
-				patches = append(patches, patch{Op: "replace", Path: fmt.Sprintf("/%v", name), Value: val.Value})
-				// TODO: BUG: val.Value got converted from an int to a string
-				// DEBUG: PatchDocument for A: [{"op":"replace","path":"/DelaySeconds","value":"2"}]
-				// DEBUG: deployResource update failed: operation error CloudControl: UpdateResource, https response error StatusCode: 400, RequestID: f63aa040-e7ae-4608-8ce9-ed72e6fb135a, api error ValidationException: Model validation failed (#/DelaySeconds: expected type: Integer, found: String)
-			} else if val.Kind == yaml.SequenceNode {
-				// TODO
-			} else if val.Kind == yaml.MappingNode {
-				// TODO - recurse
-			}
-		}
+	patchDocument, err := createPatch(props)
+	if err != nil {
+		return model, nil
 	}
-	config.Debugf("patches: %v", patches)
 
-	m, _ := json.Marshal(patches)
-	p := string(m)
-	config.Debugf("PatchDocument for %v: %v", logicalId, p)
+	config.Debugf("PatchDocument for %v: %v", logicalId, patchDocument)
 	input := cloudcontrol.UpdateResourceInput{
 		ClientToken:   &clientToken,
-		PatchDocument: &p,
+		PatchDocument: &patchDocument,
 		TypeName:      &typeName,
 		Identifier:    &identifier,
 	}
