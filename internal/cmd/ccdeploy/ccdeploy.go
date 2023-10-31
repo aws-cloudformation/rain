@@ -40,6 +40,7 @@ func run(cmd *cobra.Command, args []string) {
 	fn := args[0]
 	name := args[1]
 	base := filepath.Base(fn)
+	absPath, _ := filepath.Abs(fn)
 
 	// Call RainBucket for side-effects in case we want to force bucket creation
 	bucketName := s3.RainBucket(true)
@@ -53,7 +54,7 @@ func run(cmd *cobra.Command, args []string) {
 
 	// Compare against the current state to see what has changed, if this
 	// is an update
-	stateResult, stateError := checkState(name, template, bucketName, "")
+	stateResult, stateError := checkState(name, template, bucketName, "", absPath)
 	if stateError != nil {
 		msg := fmt.Sprintf("Found a locked state file (%v). This means another process is currently deploying this template, or a deployment failed to complete. You will need to manually resolve the issue, or you can try to resume the deployment by running ccdeploy with --continue <lock>", stateError)
 		panic(msg)
@@ -99,7 +100,10 @@ func run(cmd *cobra.Command, args []string) {
 		fmt.Println("Deployment completed successfully!")
 
 		// Unlock the state file and record current values
-		writeState(template, results, bucketName, name)
+		err := writeState(template, results, bucketName, name, absPath)
+		if err != nil {
+			panic(fmt.Errorf("Unable to write state file: %v", err))
+		}
 	}
 
 	for _, resource := range results.Resources {

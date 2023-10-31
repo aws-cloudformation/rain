@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/aws-cloudformation/rain/cft"
+	"github.com/aws-cloudformation/rain/cft/diff"
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
@@ -20,11 +21,25 @@ import (
 )
 
 const STATE_DIR string = "deployments"
+const FILE_PATH string = "FilePath"
 
 type StateResult struct {
 	StateFile cft.Template
 	Lock      string
 	IsUpdate  bool
+}
+
+// addCommon adds common elements to the state file
+// If the elements already exist, they are replaced
+func addCommon(stateMap *yaml.Node, absPath string) {
+	// Record the absolute path (helps figure out who/where the template came from)
+	if _, fp := s11n.GetMapValue(stateMap, FILE_PATH); fp != nil {
+		config.Debugf("addCommon overwriting")
+		fp.Value = absPath
+	} else {
+		config.Debugf("addCommon adding")
+		add(stateMap, FILE_PATH, absPath)
+	}
 }
 
 // checkState looks for an existing state file.
@@ -41,7 +56,8 @@ func checkState(
 	name string,
 	template cft.Template,
 	bucketName string,
-	priorLock string) (*StateResult, error) {
+	priorLock string,
+	absPath string) (*StateResult, error) {
 
 	spinner.Push("Checking state")
 
@@ -78,6 +94,9 @@ func checkState(
 
 		// Lock it
 		add(stateMap, "Lock", lock)
+
+		// Add common elements
+		addCommon(stateMap, absPath)
 
 		// Write the state file to the bucket
 		str := format.String(state, format.Options{JSON: false, Unsorted: false})
@@ -121,6 +140,10 @@ func checkState(
 		// Write a new lock back to the state file stored in S3.
 		lock = uuid.New().String()
 		add(stateMap, "Lock", lock)
+
+		// Add common elements
+		addCommon(stateMap, absPath)
+
 		str := format.String(state, format.Options{JSON: false, Unsorted: false})
 		err = s3.PutObject(bucketName, key, []byte(str))
 		if err != nil {
@@ -165,10 +188,15 @@ func writeState(
 	state cft.Template,
 	results *DeploymentResults,
 	bucketName string,
-	name string) error {
+	name string,
+	absPath string) error {
+
+	original := format.String(state, format.Options{JSON: false, Unsorted: false})
+	config.Debugf("writeState original template: %v", original)
 
 	stateMap := appendStateMap(state)
 	add(stateMap, "LastWriteTime", time.Now().Format(time.RFC3339))
+	addCommon(stateMap, absPath)
 	resourceModels := addMap(stateMap, "ResourceModels")
 
 	// Iterate over each resource in the results.
@@ -181,6 +209,11 @@ func writeState(
 	}
 
 	for name, resource := range results.Resources {
+		if resource.Action == diff.Delete {
+			config.Debugf("Resource %v was deleted, not writing to state", name)
+			continue
+		}
+		config.Debugf("Writing %v to state file", name)
 		var stateResource *yaml.Node
 		for i, r := range resourceMap.Content {
 			if r.Value == name {
@@ -202,9 +235,7 @@ func writeState(
 		if err != nil {
 			return err
 		}
-		for _, c := range n.Content {
-			modelMap.Content = append(modelMap.Content, c)
-		}
+		modelMap.Content = append(modelMap.Content, n.Content...)
 	}
 
 	str := format.String(state, format.Options{JSON: false, Unsorted: false})
@@ -214,7 +245,7 @@ func writeState(
 	if err != nil {
 		return fmt.Errorf("unable to write unlocked state file to bucket: %v", err)
 	}
-	spinner.Push(fmt.Sprintf("State file written and unlocked"))
+	spinner.Push("State file written and unlocked")
 
 	return nil
 }
