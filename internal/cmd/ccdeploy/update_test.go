@@ -10,7 +10,7 @@ import (
 
 func TestUpdate(t *testing.T) {
 
-	config.Debug = true
+	// config.Debug = true
 
 	left, err := parse.File("../../../test/templates/ccdeploy1-state.yaml")
 	if err != nil {

@@ -98,11 +98,21 @@ func deployResource(resource *Resource) {
 
 }
 
-// ready returns true if the resource has no undeployed dependencies
+// ready returns true if the resource has no undeployed dependencies,
+// TODO: unless the Action is Delete, in which case it returns true if it has
+// no undeleted dependents
 func ready(resource *Resource, g *graph.Graph) bool {
 
-	// Iterate over each of this resource's dependencies
-	for _, dep := range g.Get(graph.Node{Name: resource.Name, Type: "Resources"}) {
+	node := graph.Node{Name: resource.Name, Type: "Resources"}
+	var deps []graph.Node
+	if resource.Action == diff.Delete {
+		deps = g.GetReverse(node)
+	} else {
+		deps = g.Get(node)
+	}
+
+	// Iterate over each of this resource's dependencies (or dependents for deletes)
+	for _, dep := range deps {
 
 		if dep.Type != "Resources" {
 			continue
@@ -132,17 +142,144 @@ type DeploymentResults struct {
 	Resources map[string]*Resource
 }
 
-// deployTemplate deloys the CloudFormation template using the Cloud Control API
-// A failed deployment will result in DeploymentResults.Succeeded = false
+// canDelete returns true if the resource can be deleted.
+// This is not the same as the ready function, which tells
+// you if it can be deleted "right now". This function looks
+// for any dependent resources that are not marked for deletion
+func canDelete(resource *Resource, g *graph.Graph, resourceMap map[string]*Resource) bool {
+
+	dependents := g.GetReverse(graph.Node{Name: resource.Name, Type: "Resources"})
+	for _, n := range dependents {
+		depResource, ok := resourceMap[n.Name]
+		if !ok {
+			// This should not happen
+			panic(fmt.Errorf("did not find %v in resourceMap", n.Name))
+		}
+		if depResource.Action != diff.Delete {
+			return false
+		}
+		// Recurse
+		if !canDelete(depResource, g, resourceMap) {
+			return false
+		}
+	}
+	return true
+}
+
+// verifyDeletes returns an error if any of the resources have dependents in the graph that are
+// not also being deleted. All resources passed in must have Action = Delete
+func verifyDeletes(resources []*Resource, g *graph.Graph, resourceMap map[string]*Resource) error {
+
+	/*
+		Down is depends on
+
+		         A
+		        / \
+		       B   C
+			        \
+					 D
+
+		If we are deleting C or D, but not A, fail.
+	*/
+
+	for _, resource := range resources {
+		if resource.Action != diff.Delete {
+			return fmt.Errorf("cannot verify deletes on resource %v that is not being deleted", resource.Name)
+		}
+		if !canDelete(resource, g, resourceMap) {
+			return fmt.Errorf("resource %v has dependent resources that will not be deleted", resource.Name)
+		}
+	}
+
+	return nil
+}
+
+// deployResources deploys a set of resources - either all the deletes, or
+// all of the creates and updates. Deletes are handled in reverse dependency order.
+func deployResources(resources []*Resource, results *DeploymentResults, g *graph.Graph) error {
+
+	numResources := len(resources)
+	numDone := 0
+	failed := false
+
+	config.Debugf("About to deploy %v resources", numResources)
+
+	// TODO - Instead of re-evaluating readiness for each resource in a loop,
+	// it might be better to create a deployment plan, with a pre-determined
+	// order of operations, and then simply iterate over that plan.
+
+	for numDone < numResources {
+
+		config.Debugf("Starting an iteration over resources (%v/%v done)",
+			numDone, numResources)
+
+		numDone = 0
+
+		for _, r := range resources {
+
+			if r.State == Deployed || r.State == Canceled {
+				numDone += 1
+				continue
+			}
+
+			if r.State == Deploying {
+				continue
+			}
+
+			if r.State == Failed {
+				// This will prevent any additional resources from deploying,
+				// but any that had already started creation will complete
+				failed = true
+				numDone += 1
+				continue
+			}
+
+			if !failed {
+				// Recurse dependencies to see if it's ok to deploy this one now
+				if ready(r, g) {
+					// Start a goroutine to do the actual deployment
+					go deployResource(r)
+				}
+			} else {
+				if r.State == Waiting {
+					r.State = Canceled
+				}
+			}
+		}
+
+		for _, r := range resources {
+			config.Debugf("%v", r)
+		}
+
+		// Give deployment routines time to finish
+		// TODO: We could be smarter about this with channels...
+		time.Sleep(time.Second * 1)
+	}
+
+	for _, r := range resources {
+		results.Resources[r.Name] = r
+	}
+
+	if failed {
+		results.Succeeded = false
+	}
+
+	return nil
+}
+
+// deployTemplate deloys the CloudFormation template using the Cloud Control API.
+// A failed deployment will result in DeploymentResults.Succeeded = false.
 // A non-nil error is returned when something unexpected caused a failure
-// not related to actually deploying resources, like an invalid template
-func deployTemplate(template cft.Template) (*DeploymentResults, error) {
+// not related to actually deploying resources, like an invalid template.
+func DeployTemplate(template cft.Template) (*DeploymentResults, error) {
 
 	results := &DeploymentResults{
 		Succeeded: true,
 		State:     cft.Template{},
 		Resources: make(map[string]*Resource),
 	}
+
+	var err error
 
 	results.State.Node = node.Clone(template.Node)
 
@@ -166,13 +303,14 @@ func deployTemplate(template cft.Template) (*DeploymentResults, error) {
 
 		Deletes have to go in the reverse order.
 		A depends on B, if I'm deleting both, A has to be deleted first.
-
-		TODO: Make a separate graph for deletes, do them all first.
 		Verify that we are not deleting anything depended on by a live resource.
+		Fail before deploying anything if a delete would remove a dependency.
 	*/
 
 	// Wrap Nodes in a Resource to add state
-	resources := make([]*Resource, 0)
+	deletes := make([]*Resource, 0)
+	createsUpdates := make([]*Resource, 0)
+	resourceMap := make(map[string]*Resource)
 	for _, n := range nodes {
 		if n.Type == "Resources" {
 			y, err := getTemplateResource(template, n.Name)
@@ -216,70 +354,36 @@ func deployTemplate(template cft.Template) (*DeploymentResults, error) {
 			r := NewResource(n.Name, typeName, Waiting, y)
 			r.Action = action
 			r.Identifier = ident
-			resources = append(resources, r)
-		}
-	}
-
-	numResources := len(resources)
-	numDone := 0
-	failed := false
-
-	config.Debugf("About to deploy %v resources", numResources)
-
-	for numDone < numResources {
-
-		config.Debugf("Starting an iteration over resources (%v/%v done)",
-			numDone, numResources)
-
-		numDone = 0
-
-		for _, r := range resources {
-
-			if r.State == Deployed || r.State == Canceled {
-				numDone += 1
-				continue
-			}
-
-			if r.State == Deploying {
-				continue
-			}
-
-			if r.State == Failed {
-				// This will prevent any additional resources from deploying,
-				// but any that had already started creation will complete
-				failed = true
-				numDone += 1
-				continue
-			}
-
-			if !failed {
-				// Recurse dependencies to see if it's ok to deploy this one now
-				if ready(r, &g) {
-					// Start a goroutine to do the actual deployment
-					go deployResource(r)
-				}
+			if r.Action == diff.Delete {
+				deletes = append(deletes, r)
 			} else {
-				if r.State == Waiting {
-					r.State = Canceled
-				}
+				createsUpdates = append(createsUpdates, r)
 			}
+			resourceMap[r.Name] = r
 		}
-
-		for _, r := range resources {
-			config.Debugf("%v", r)
-		}
-
-		// Give deployment routines time to finish
-		// TODO: We could be smarter about this with channels...
-		time.Sleep(time.Second * 1)
 	}
 
-	for _, r := range resources {
-		results.Resources[r.Name] = r
+	// Check to make sure there are no deletes with dependents that are not being deleted
+	if err = verifyDeletes(deletes, &g, resourceMap); err != nil {
+		return nil, fmt.Errorf("unable to deploy, deleted resources have one or more dependents: %v", err)
 	}
 
-	if failed {
-		results.Succeeded = false
+	// Check to make sure there are no circular dependencies
+	// TODO - Does the graph do this for us already?
+
+	// Delete everything that needs to be deleted first
+	err = deployResources(deletes, results, &g)
+	if err != nil {
+		return nil, err
+	}
+	if !results.Succeeded {
+		return nil, fmt.Errorf("unable to delete resources: %v", err)
+	}
+
+	// Deploy the rest of the resources
+	err = deployResources(createsUpdates, results, &g)
+	if err != nil {
+		return nil, err
 	}
 
 	return results, nil

@@ -55,6 +55,6 @@ func NewResource(name string,
 	resourceType string, state ResourceState, node *yaml.Node) *Resource {
 
 	r := &Resource{Name: name, Type: resourceType, State: state, Node: node}
-	resMap[name] = r
+	resMap[name] = r // TODO - This is global, do we really need it?
 	return r
 }

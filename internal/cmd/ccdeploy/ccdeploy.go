@@ -22,7 +22,7 @@ var configFilePath string
 var Experimental bool
 
 // var template cft.Template
-var resMap map[string]*Resource
+var resMap map[string]*Resource // TODO - This is kinda bad
 
 // PackageTemplate reads the template and performs any necessary packaging on it
 // before deployment. The rain bucket will be created if it does not already exist.
@@ -86,7 +86,7 @@ func run(cmd *cobra.Command, args []string) {
 
 	// TODO - Resolve intrinsics (yikes!)
 
-	results, err := deployTemplate(changes)
+	results, err := DeployTemplate(changes)
 	if err != nil {
 		// An unexpected error that prevented deployment from starting
 		panic(err)
@@ -102,7 +102,7 @@ func run(cmd *cobra.Command, args []string) {
 		// Unlock the state file and record current values
 		err := writeState(template, results, bucketName, name, absPath)
 		if err != nil {
-			panic(fmt.Errorf("Unable to write state file: %v", err))
+			panic(fmt.Errorf("unable to write state file: %v", err))
 		}
 	}
 
