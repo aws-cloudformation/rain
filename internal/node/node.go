@@ -210,3 +210,20 @@ func SetMapValue(parent *yaml.Node, name string, val *yaml.Node) {
 		parent.Content = append(parent.Content, val)
 	}
 }
+
+// Add adds a new scalar property to the map
+func Add(m *yaml.Node, name string, val string) {
+	m.Content = append(m.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: name})
+	m.Content = append(m.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: val})
+}
+
+// AddMap adds a new map to the parent node
+func AddMap(parent *yaml.Node, name string) *yaml.Node {
+	parent.Content = append(parent.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: name})
+	m := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
+	parent.Content = append(parent.Content, m)
+	return m
+}

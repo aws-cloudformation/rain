@@ -74,3 +74,7 @@ func PutObject(bucketName string, key string, body []byte) error {
 func GetObject(bucketName string, key string) ([]byte, error) {
 	return make([]byte, 0), nil
 }
+
+func DeleteObject(bucketName string, key string) error {
+	return nil
+}

@@ -12,7 +12,6 @@ import (
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
-	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
@@ -38,7 +37,7 @@ func addCommon(stateMap *yaml.Node, absPath string) {
 		fp.Value = absPath
 	} else {
 		config.Debugf("addCommon adding")
-		add(stateMap, FILE_PATH, absPath)
+		node.Add(stateMap, FILE_PATH, absPath)
 	}
 }
 
@@ -59,8 +58,6 @@ func checkState(
 	priorLock string,
 	absPath string) (*StateResult, error) {
 
-	spinner.Push("Checking state")
-
 	key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
 	var state cft.Template
 
@@ -79,7 +76,7 @@ func checkState(
 			return nil, err
 		}
 
-		spinner.Push("No state file found, creating")
+		config.Debugf("No state file found, creating")
 
 		// This is a create operation. Create a state file and lock it.
 		lock := uuid.New().String()
@@ -90,10 +87,10 @@ func checkState(
 		result.IsUpdate = false
 
 		// Edit the state template to add a new top level "State" section
-		stateMap := appendStateMap(state)
+		stateMap := cft.AppendStateMap(state)
 
 		// Lock it
-		add(stateMap, "Lock", lock)
+		node.Add(stateMap, "Lock", lock)
 
 		// Add common elements
 		addCommon(stateMap, absPath)
@@ -105,12 +102,12 @@ func checkState(
 			return nil, fmt.Errorf("unable to write state to bucket: %v", err)
 		}
 
-		spinner.Push(fmt.Sprintf("State file created with lock: %v", lock))
+		config.Debugf("State file created with lock: %v", lock)
 
 	} else {
 		// The state file exists. Inspect it to see if it's locked
 
-		spinner.Push("Found existing state file")
+		config.Debugf("Found existing state file")
 
 		state, err := parse.String(string(obj))
 		if err != nil {
@@ -139,7 +136,7 @@ func checkState(
 		// We are safe to proceed with an update.
 		// Write a new lock back to the state file stored in S3.
 		lock = uuid.New().String()
-		add(stateMap, "Lock", lock)
+		node.Add(stateMap, "Lock", lock)
 
 		// Add common elements
 		addCommon(stateMap, absPath)
@@ -149,36 +146,10 @@ func checkState(
 		if err != nil {
 			return nil, fmt.Errorf("unable to write updated state file to bucket: %v", err)
 		}
-		spinner.Push(fmt.Sprintf("State file updated with lock: %v", lock))
+		config.Debugf("State file updated with lock: %v", lock)
 	}
 
 	return result, nil
-}
-
-// appendStateMap appends a "State" section to the template
-func appendStateMap(state cft.Template) *yaml.Node {
-	state.Node.Content[0].Content = append(state.Node.Content[0].Content,
-		&yaml.Node{Kind: yaml.ScalarNode, Value: "State"})
-	stateMap := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
-	state.Node.Content[0].Content = append(state.Node.Content[0].Content, stateMap)
-	return stateMap
-}
-
-// add adds a new property to the state map
-func add(stateMap *yaml.Node, name string, val string) {
-	stateMap.Content = append(stateMap.Content,
-		&yaml.Node{Kind: yaml.ScalarNode, Value: name})
-	stateMap.Content = append(stateMap.Content,
-		&yaml.Node{Kind: yaml.ScalarNode, Value: val})
-}
-
-// addMap adds a new map to the parent node
-func addMap(parent *yaml.Node, name string) *yaml.Node {
-	parent.Content = append(parent.Content,
-		&yaml.Node{Kind: yaml.ScalarNode, Value: name})
-	m := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
-	parent.Content = append(parent.Content, m)
-	return m
 }
 
 // writeState writes updated state to the state file in S3 and unlocks it
@@ -194,10 +165,10 @@ func writeState(
 	original := format.String(state, format.Options{JSON: false, Unsorted: false})
 	config.Debugf("writeState original template: %v", original)
 
-	stateMap := appendStateMap(state)
-	add(stateMap, "LastWriteTime", time.Now().Format(time.RFC3339))
+	stateMap := cft.AppendStateMap(state)
+	node.Add(stateMap, "LastWriteTime", time.Now().Format(time.RFC3339))
 	addCommon(stateMap, absPath)
-	resourceModels := addMap(stateMap, "ResourceModels")
+	resourceModels := node.AddMap(stateMap, "ResourceModels")
 
 	// Iterate over each resource in the results.
 	// Add a State section to the state resource and write the resource model
@@ -225,9 +196,9 @@ func writeState(
 			return fmt.Errorf("did not find %v in the state template", name)
 		}
 
-		resourceStateMap := addMap(resourceModels, name)
-		add(resourceStateMap, "Identifier", resource.Identifier)
-		modelMap := addMap(resourceStateMap, "Model")
+		resourceStateMap := node.AddMap(resourceModels, name)
+		node.Add(resourceStateMap, "Identifier", resource.Identifier)
+		modelMap := node.AddMap(resourceStateMap, "Model")
 		var parsed map[string]any
 		json.Unmarshal([]byte(resource.Model), &parsed)
 		var n yaml.Node
@@ -245,7 +216,6 @@ func writeState(
 	if err != nil {
 		return fmt.Errorf("unable to write unlocked state file to bucket: %v", err)
 	}
-	spinner.Push("State file written and unlocked")
 
 	return nil
 }

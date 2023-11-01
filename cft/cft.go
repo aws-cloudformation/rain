@@ -33,3 +33,12 @@ func (t Template) Map() map[string]interface{} {
 
 	return out
 }
+
+// AppendStateMap appends a "State" section to the template
+func AppendStateMap(state Template) *yaml.Node {
+	state.Node.Content[0].Content = append(state.Node.Content[0].Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: "State"})
+	stateMap := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
+	state.Node.Content[0].Content = append(state.Node.Content[0].Content, stateMap)
+	return stateMap
+}

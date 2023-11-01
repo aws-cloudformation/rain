@@ -97,6 +97,9 @@ func StopTimer() {
 	hasTimer = false
 
 	Pop()
+
+	// TODO: Return the elapsed time:
+	// time.Since(startTime).Truncate(time.Second),
 }
 
 // Pop removes the move recent status and stops the spinner if there are no more messages

@@ -46,7 +46,7 @@ func (r Resource) String() string {
 	if r.State == Failed {
 		return fmt.Sprintf("%s %s: %s: %v", r.Type, r.Name, state, r.Message)
 	} else {
-		return fmt.Sprintf("%s %s: %s", r.Type, r.Name, state)
+		return fmt.Sprintf("%s %s: %s (%v)", r.Type, r.Name, state, r.Action)
 	}
 }
 

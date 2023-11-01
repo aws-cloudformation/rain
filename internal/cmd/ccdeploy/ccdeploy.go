@@ -22,7 +22,7 @@ var configFilePath string
 var Experimental bool
 
 // var template cft.Template
-var resMap map[string]*Resource // TODO - This is kinda bad
+var resMap map[string]*Resource // TODO - This is kinda bad (global)
 
 // PackageTemplate reads the template and performs any necessary packaging on it
 // before deployment. The rain bucket will be created if it does not already exist.
@@ -54,11 +54,13 @@ func run(cmd *cobra.Command, args []string) {
 
 	// Compare against the current state to see what has changed, if this
 	// is an update
+	spinner.Push("Checking state")
 	stateResult, stateError := checkState(name, template, bucketName, "", absPath)
 	if stateError != nil {
 		msg := fmt.Sprintf("Found a locked state file (%v). This means another process is currently deploying this template, or a deployment failed to complete. You will need to manually resolve the issue, or you can try to resume the deployment by running ccdeploy with --continue <lock>", stateError)
 		panic(msg)
 	}
+	spinner.Pop()
 
 	config.Debugf("StateFile:\n%v", format.String(stateResult.StateFile,
 		format.Options{JSON: false, Unsorted: false}))
@@ -73,8 +75,6 @@ func run(cmd *cobra.Command, args []string) {
 		}
 		summarizeChanges(changes)
 
-		spinner.Pop()
-
 		if !console.Confirm(true, "Do you wish to continue?") {
 			panic(errors.New("user cancelled deployment"))
 		}
@@ -86,11 +86,13 @@ func run(cmd *cobra.Command, args []string) {
 
 	// TODO - Resolve intrinsics (yikes!)
 
+	spinner.StartTimer(fmt.Sprintf("Deploying %v", name))
 	results, err := DeployTemplate(changes)
 	if err != nil {
 		// An unexpected error that prevented deployment from starting
 		panic(err)
 	}
+	spinner.StopTimer()
 
 	if !results.Succeeded {
 		fmt.Println("Deployment failed.")

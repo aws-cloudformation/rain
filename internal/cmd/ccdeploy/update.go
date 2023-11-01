@@ -94,7 +94,7 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 		if i%2 == 0 {
 			name := r.Value
 			newResources[name] = newResourceMap.Content[i+1]
-			resourceActionStates[name] = addMap(newResources[name], "State")
+			resourceActionStates[name] = node.AddMap(newResources[name], "State")
 		}
 	}
 
@@ -111,24 +111,24 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 			newResourceMap.Content = append(newResourceMap.Content,
 				&yaml.Node{Kind: yaml.ScalarNode, Value: k})
 			cloned := node.Clone(stateResources[k])
-			clonedStateMap := addMap(cloned, "State")
-			add(clonedStateMap, "Action", string(v))
+			clonedStateMap := node.AddMap(cloned, "State")
+			node.Add(clonedStateMap, "Action", string(v))
 			// Add the identifier so we know what to delete
 			if identifier, ok := identifiers[k]; ok {
-				add(clonedStateMap, "Identifier", identifier)
+				node.Add(clonedStateMap, "Identifier", identifier)
 			}
 			newResourceMap.Content = append(newResourceMap.Content, cloned)
 		} else {
 			// Create, Update, None
-			add(rmap, "Action", string(v))
+			node.Add(rmap, "Action", string(v))
 			// Add the identifier so we know what to update
 			if identifier, ok := identifiers[k]; ok {
-				add(rmap, "Identifier", identifier)
+				node.Add(rmap, "Identifier", identifier)
 			}
 			// Add the resource model that represents the current actual state of
 			// the resource based on the ccapi GetResource call
 			if model, ok := models[k]; ok {
-				modelMap := addMap(rmap, "Model")
+				modelMap := node.AddMap(rmap, "Model")
 				modelMap.Content = model.Content
 			}
 		}

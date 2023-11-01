@@ -229,3 +229,13 @@ func PutObject(bucketName string, key string, body []byte) error {
 		})
 	return err
 }
+
+// DeleteObject deletes an object from a bucket
+func DeleteObject(bucketName string, key string) error {
+	_, err := getClient().DeleteObject(context.Background(),
+		&s3.DeleteObjectInput{
+			Bucket: &bucketName,
+			Key:    &key,
+		})
+	return err
+}
