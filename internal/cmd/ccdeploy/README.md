@@ -114,7 +114,13 @@ properties and compare them to the stored state.
 To use this command, supply the same arguments that you would supply to the `deploy` command:
 
 ```sh
-$ rain deploy my-template.yaml my-deployment-name
+$ rain ccdeploy my-template.yaml my-deployment-name
+```
+
+To remove resources deployed with `ccdeploy`, use the `ccrm` command:
+
+```sh
+$ rain ccrm my-deployment-name
 ```
 
 ## Unsupported features
