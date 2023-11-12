@@ -63,4 +63,5 @@ func init() {
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
 	Cmd.Flags().IntVarP(&logsLength, "length", "l", 0, "Number of logs to display")
 	Cmd.Flags().IntVarP(&logsDays, "days", "d", 0, "Age of the logs to display in days")
+	Cmd.MarkFlagsMutuallyExclusive("days", "length")
 }
