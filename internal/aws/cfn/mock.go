@@ -151,21 +151,46 @@ func GetStackResource(stackName string, logicalId string) (*types.StackResourceD
 
 // GetStackEvents returns all events associated with the named stack
 func GetStackEvents(stackName string) ([]types.StackEvent, error) {
-	return []types.StackEvent{
-		{
-			EventId:              ptr.String("mock event id"),
-			StackId:              ptr.String(stackName),
-			StackName:            ptr.String(stackName),
-			Timestamp:            &now,
-			ClientRequestToken:   ptr.String("mock event token"),
-			LogicalResourceId:    ptr.String("MockResourceId"),
-			PhysicalResourceId:   ptr.String("MockPhysicalId"),
-			ResourceProperties:   ptr.String("mock resource properties"),
-			ResourceStatus:       types.ResourceStatusCreateInProgress,
-			ResourceStatusReason: ptr.String("mock status reason"),
-			ResourceType:         ptr.String("Mock::Resource::Type"),
-		},
-	}, nil
+
+	if stackName == "logsrange-test-mock-stack" {
+		templogTimeStamp := now
+		var logs []types.StackEvent
+		for i := 0; i < 30; i++ {
+			logEntry := types.StackEvent{
+				EventId:              ptr.String("mock event id"),
+				StackId:              ptr.String(stackName),
+				StackName:            ptr.String(stackName),
+				ClientRequestToken:   ptr.String("mock event token"),
+				LogicalResourceId:    ptr.String("MockResourceId"),
+				PhysicalResourceId:   ptr.String("MockPhysicalId"),
+				ResourceProperties:   ptr.String("mock resource properties"),
+				ResourceStatus:       types.ResourceStatusCreateInProgress,
+				ResourceStatusReason: ptr.String("mock status reason"),
+				ResourceType:         ptr.String("Mock::Resource::Type"),
+			}
+			tempTimeStamp := templogTimeStamp.Add(time.Hour * -24)
+			templogTimeStamp = tempTimeStamp
+			logEntry.Timestamp = &tempTimeStamp
+			logs = append(logs, logEntry)
+		}
+		return logs, nil
+	} else {
+		return []types.StackEvent{
+			{
+				EventId:              ptr.String("mock event id"),
+				StackId:              ptr.String(stackName),
+				StackName:            ptr.String(stackName),
+				Timestamp:            &now,
+				ClientRequestToken:   ptr.String("mock event token"),
+				LogicalResourceId:    ptr.String("MockResourceId"),
+				PhysicalResourceId:   ptr.String("MockPhysicalId"),
+				ResourceProperties:   ptr.String("mock resource properties"),
+				ResourceStatus:       types.ResourceStatusCreateInProgress,
+				ResourceStatusReason: ptr.String("mock status reason"),
+				ResourceType:         ptr.String("Mock::Resource::Type"),
+			},
+		}, nil
+	}
 }
 
 // CreateChangeSet creates a changeset
