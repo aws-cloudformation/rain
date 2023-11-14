@@ -171,15 +171,15 @@ func canDelete(resource *Resource, g *graph.Graph, resourceMap map[string]*Resou
 func verifyDeletes(resources []*Resource, g *graph.Graph, resourceMap map[string]*Resource) error {
 
 	/*
-		Down is depends on
+				Down is depends on
 
-		         A
-		        / \
-		       B   C
-			        \
-					 D
+				         A
+				        / \
+				       B   C
+		                    \
+		                     D
 
-		If we are deleting C or D, but not A, fail.
+				If we are deleting C or D, but not A, fail.
 	*/
 
 	for _, resource := range resources {

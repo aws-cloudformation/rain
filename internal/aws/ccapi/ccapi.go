@@ -304,7 +304,11 @@ func createPatch(props *yaml.Node) (string, error) {
 
 // UpdateResource updates a resource based on the YAML node from the template,
 // and blocks until resource update is complete.
-func UpdateResource(logicalId string, identifier string, resource *yaml.Node) (model string, err error) {
+func UpdateResource(
+	logicalId string,
+	identifier string,
+	resource *yaml.Node,
+	priorModel string) (model string, err error) {
 
 	if logicalId == "" {
 		return model, fmt.Errorf("logicalId is required for UpdateResource")
@@ -326,6 +330,9 @@ func UpdateResource(logicalId string, identifier string, resource *yaml.Node) (m
 
 	_, props := s11n.GetMapValue(resource, "Properties")
 	config.Debugf("UpdateResource %v props: %v", logicalId, node.ToSJson(props))
+
+	// TODO - To create a patch document correctly, we need to compare the props
+	// to the prior model.
 
 	patchDocument, err := createPatch(props)
 	if err != nil {

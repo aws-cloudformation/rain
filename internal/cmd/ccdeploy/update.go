@@ -134,9 +134,70 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 		}
 	}
 
-	// TODO - What about drift? We should check the resource model for differences.
-	// How do we handle that? Ask to apply it to the template?
-	// Ask to undo the drift?
+	/*
+		    Drift remediation.
+
+			Several scenarios are possible here, based on various versions of the resource model:
+
+			1. The current template being submitted.
+			2. The prior template, as recorded in the state file.
+			3. The actual state of the resource.
+
+			For example, the current template has
+
+			MyQueue:
+			  Type: AWS::SQS::Queue
+			  Properties:
+			  	DelaySeconds: 1
+
+			The new template has
+
+			MyQueue:
+			  Type: AWS::SQS::Queue
+			  Properties:
+			  	DelaySeconds: 2
+
+			And the current state is
+
+			Model:
+				Arn: arn:aws:sqs:us-east-1:755952356119:ccdeploy-a
+				DelaySeconds: 3
+				MaximumMessageSize: 262144
+				MessageRetentionPeriod: 345600
+				QueueName: ccdeploy-a
+				QueueUrl: https://sqs.us-east-1.amazonaws.com/755952356119/ccdeploy-a
+				ReceiveMessageWaitTimeSeconds: 0
+				SqsManagedSseEnabled: true
+				VisibilityTimeout: 30
+
+			The message to the user would be:
+
+				Resource MyQueue has drifted from the prior known state
+				and does not match the template you are deploying:
+
+				Current actual state:
+					DelaySeconds: 3
+				Prior recorded state:
+					DelaySeconds: 1
+				New template desired state:
+				    DelaySeconds: 2
+
+				What would you like to do?
+				1) Stop the deployment.
+				2) Deploy anyway, applying my latest template as the source of truth
+				3) Deploy anyway, applying all of my changes except the drifted properties
+				??? Any other choices? Does 3 make sense?
+
+				For CICD, we need to be able to specify the choice with args.
+
+			How much do we care about this? Should this be default behavior, or should
+			we add a flag like --warn-on-drift?
+
+			This makes our diff generation more complicated, since there are two
+			different diffs to consider.
+
+
+	*/
 
 	return newTemplate, nil
 }
