@@ -49,9 +49,10 @@ __rain_handle_go_custom_completion()
     local out requestComp lastParam lastChar comp directive args
 
     # Prepare the command to request completions for the program.
-    # Calling ${words[0]} instead of directly rain allows to handle aliases
+    # Calling ${words[0]} instead of directly rain allows handling aliases
     args=("${words[@]:1}")
-    requestComp="${words[0]} __completeNoDesc ${args[*]}"
+    # Disable ActiveHelp which is not supported for bash completion v1
+    requestComp="RAIN_ACTIVE_HELP=0 ${words[0]} __completeNoDesc ${args[*]}"
 
     lastParam=${words[$((${#words[@]}-1))]}
     lastChar=${lastParam:$((${#lastParam}-1)):1}
@@ -77,7 +78,7 @@ __rain_handle_go_custom_completion()
         directive=0
     fi
     __rain_debug "${FUNCNAME[0]}: the completion directive is: ${directive}"
-    __rain_debug "${FUNCNAME[0]}: the completions are: ${out[*]}"
+    __rain_debug "${FUNCNAME[0]}: the completions are: ${out}"
 
     if [ $((directive & shellCompDirectiveError)) -ne 0 ]; then
         # Error code.  No completion.
@@ -103,7 +104,7 @@ __rain_handle_go_custom_completion()
         local fullFilter filter filteringCmd
         # Do not use quotes around the $out variable or else newline
         # characters will be kept.
-        for filter in ${out[*]}; do
+        for filter in ${out}; do
             fullFilter+="$filter|"
         done
 
@@ -114,7 +115,7 @@ __rain_handle_go_custom_completion()
         # File completion for directories only
         local subdir
         # Use printf to strip any trailing newline
-        subdir=$(printf "%s" "${out[0]}")
+        subdir=$(printf "%s" "${out}")
         if [ -n "$subdir" ]; then
             __rain_debug "Listing directories in $subdir"
             __rain_handle_subdirs_in_dir_flag "$subdir"
@@ -125,7 +126,7 @@ __rain_handle_go_custom_completion()
     else
         while IFS='' read -r comp; do
             COMPREPLY+=("$comp")
-        done < <(compgen -W "${out[*]}" -- "$cur")
+        done < <(compgen -W "${out}" -- "$cur")
     fi
 }
 
@@ -665,6 +666,8 @@ _rain_fmt()
     flags_with_completion=()
     flags_completion=()
 
+    flags+=("--debug")
+    local_nonpersistent_flags+=("--debug")
     flags+=("--help")
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
@@ -685,7 +688,6 @@ _rain_fmt()
     flags+=("-w")
     local_nonpersistent_flags+=("--write")
     local_nonpersistent_flags+=("-w")
-    flags+=("--debug")
     flags+=("--no-colour")
 
     must_have_one_flag=()
@@ -713,6 +715,8 @@ _rain_forecast()
     local_nonpersistent_flags+=("--config")
     local_nonpersistent_flags+=("--config=")
     local_nonpersistent_flags+=("-c")
+    flags+=("--debug")
+    local_nonpersistent_flags+=("--debug")
     flags+=("--experimental")
     flags+=("-x")
     local_nonpersistent_flags+=("--experimental")
@@ -751,7 +755,6 @@ _rain_forecast()
     two_word_flags+=("--type")
     local_nonpersistent_flags+=("--type")
     local_nonpersistent_flags+=("--type=")
-    flags+=("--debug")
     flags+=("--no-colour")
 
     must_have_one_flag=()
@@ -846,10 +849,24 @@ _rain_logs()
     flags+=("-c")
     local_nonpersistent_flags+=("--chart")
     local_nonpersistent_flags+=("-c")
+    flags+=("--days=")
+    two_word_flags+=("--days")
+    two_word_flags+=("-d")
+    local_nonpersistent_flags+=("--days")
+    local_nonpersistent_flags+=("--days=")
+    local_nonpersistent_flags+=("-d")
+    flags+=("--debug")
+    local_nonpersistent_flags+=("--debug")
     flags+=("--help")
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
     local_nonpersistent_flags+=("-h")
+    flags+=("--length=")
+    two_word_flags+=("--length")
+    two_word_flags+=("-l")
+    local_nonpersistent_flags+=("--length")
+    local_nonpersistent_flags+=("--length=")
+    local_nonpersistent_flags+=("-l")
     flags+=("--profile=")
     two_word_flags+=("--profile")
     two_word_flags+=("-p")
@@ -862,7 +879,6 @@ _rain_logs()
     local_nonpersistent_flags+=("--region")
     local_nonpersistent_flags+=("--region=")
     local_nonpersistent_flags+=("-r")
-    flags+=("--debug")
     flags+=("--no-colour")
 
     must_have_one_flag=()
@@ -962,6 +978,8 @@ _rain_pkg()
     flags_with_completion=()
     flags_completion=()
 
+    flags+=("--debug")
+    local_nonpersistent_flags+=("--debug")
     flags+=("--experimental")
     flags+=("-x")
     local_nonpersistent_flags+=("--experimental")
@@ -996,7 +1014,6 @@ _rain_pkg()
     two_word_flags+=("--s3-prefix")
     local_nonpersistent_flags+=("--s3-prefix")
     local_nonpersistent_flags+=("--s3-prefix=")
-    flags+=("--debug")
     flags+=("--no-colour")
 
     must_have_one_flag=()
@@ -1265,6 +1282,7 @@ _rain_stackset()
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
     local_nonpersistent_flags+=("-h")
+    flags+=("--no-colour")
     flags+=("--profile=")
     two_word_flags+=("--profile")
     two_word_flags+=("-p")
@@ -1278,7 +1296,6 @@ _rain_stackset()
     local_nonpersistent_flags+=("--region=")
     local_nonpersistent_flags+=("-r")
     flags+=("--debug")
-    flags+=("--no-colour")
 
     must_have_one_flag=()
     must_have_one_noun=()

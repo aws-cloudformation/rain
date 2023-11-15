@@ -26,8 +26,10 @@ func Example_logs_help() {
 	//   logs, log
 	//
 	// Flags:
-	//   -a, --all     include uninteresting logs
-	//   -c, --chart   Output a gantt chart of the most recent action as an html file
-	//       --debug   Output debugging information
-	//   -h, --help    help for logs
+	//   -a, --all           include uninteresting logs
+	//   -c, --chart         Output a gantt chart of the most recent action as an html file
+	//   -d, --days uint     Age of the logs to display in days
+	//       --debug         Output debugging information
+	//   -h, --help          help for logs
+	//   -l, --length uint   Number of logs to display
 }
