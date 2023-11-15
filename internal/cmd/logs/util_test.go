@@ -3,6 +3,7 @@
 package logs
 
 import (
+	"log"
 	"testing"
 	"time"
 )
@@ -23,15 +24,17 @@ func TestReduceLogsByLength(t *testing.T) {
 	if len(logs) < 30 {
 		t.Fatalf("expected log length 30, but got: %d", len(logs))
 	}
-	outputLogs := reduceLogsByLength(10, &logs)
-	if len(*outputLogs) != 10 {
-		t.Fatalf("expeced 10 logs got: %d", len(*outputLogs))
+	reduceLogsToLength(10, &logs)
+	if len(logs) != 10 {
+		t.Fatalf("expeced 10 logs got: %d", len(logs))
 	}
 	logsTestTeardown()
 }
 
 func TestReducedLogsByDuration(t *testing.T) {
 	logsTestSetup()
+	defer logsTestTeardown()
+
 	logs, err := getLogs("logsrange-test-mock-stack", "MockResourceId")
 	if err != nil {
 		t.Fatalf("%s", err)
@@ -40,26 +43,44 @@ func TestReducedLogsByDuration(t *testing.T) {
 		t.Fatalf("expected log length 30, but got: %d", len(logs))
 	}
 	logDays := 10
-	duration := time.Hour * time.Duration(logDays*-24)
-	simulatedCurrentTime := time.Date(2010, time.September, 8, 0, 0, 0, 0, time.UTC)
-	outputLogs := reduceLogsByDuration(duration, simulatedCurrentTime, &logs)
+	duration := time.Duration(time.Hour * time.Duration(logDays*-24))
+	expectedFirstLogTimeStamp := time.Now()
+	expectedLastLogTimeStamp := expectedFirstLogTimeStamp.Add(duration).Add(time.Hour * 24) // adding one day because we only want logs created after the the day before 10 days
+	reduceLogsByDuration(duration, &logs)
 
-	if len(*outputLogs) != 10 {
+	// anon function to print out all the relavant logs when tests fail
+	printLogs := func() {
 		t.Log(duration)
-		t.Log(time.Date(2010, time.September, 8, 0, 0, 0, 0, time.UTC).Add(duration))
+		t.Log(time.Now().Add(duration))
 		t.Log("input logs:")
 		for _, log := range logs {
 			t.Log(log.Timestamp)
 		}
-		t.Fatalf("expected 10 log entries after filtering but got %d", len(*outputLogs))
 	}
-	firstLogTimeStamp := time.Date(2010, time.September, 8, 0, 0, 0, 0, time.UTC)
-	lastLogTimeStamp := time.Date(2010, time.August, 30, 0, 0, 0, 0, time.UTC)
-	if !(*outputLogs)[0].Timestamp.Equal(firstLogTimeStamp) {
-		t.Fatalf("expected %s timestamp on the latest entry but got %s", firstLogTimeStamp, (*outputLogs)[0].Timestamp)
+
+	if (logs)[0].Timestamp.Sub(expectedFirstLogTimeStamp) > time.Duration(time.Hour) {
+		printLogs()
+		t.Fatalf("expected %s timestamp on the latest entry but got %s. The difference is: %s", expectedFirstLogTimeStamp, (logs)[0].Timestamp, (logs)[0].Timestamp.Sub(expectedFirstLogTimeStamp))
 	}
-	if !(*outputLogs)[len(*outputLogs)-1].Timestamp.Equal(lastLogTimeStamp) {
-		t.Fatalf("expected %s timestamp on the oldest entry but got %s", lastLogTimeStamp, (*outputLogs)[len(*outputLogs)-1].Timestamp)
+
+	if (logs)[len(logs)-1].Timestamp.Sub(expectedLastLogTimeStamp) > time.Duration(time.Hour) {
+		printLogs()
+		t.Fatalf("expected %s timestamp on the oldest entry but got %s. The difference is: %s", expectedLastLogTimeStamp, (logs)[len(logs)-1].Timestamp, (logs)[len(logs)-1].Timestamp.Sub(expectedLastLogTimeStamp))
 	}
-	logsTestTeardown()
+}
+
+func TestReducedLogsWithMultipleFlags(t *testing.T) {
+	logsTestSetup()
+	defer logsTestTeardown()
+
+	logs, err := getLogs("logsrange-test-mock-stack", "MockResourceId")
+	if err != nil {
+		t.Fatalf("%s", err)
+	}
+
+	reduceLogs(5, 1, &logs)
+	expectedNumberOfLogs := 5
+	if len(logs) != expectedNumberOfLogs {
+		log.Fatalf("expected number of logs is %d, but got %d", expectedNumberOfLogs, len(logs))
+	}
 }

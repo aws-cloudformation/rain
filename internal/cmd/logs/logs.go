@@ -11,8 +11,8 @@ import (
 
 var allLogs = false
 var chart = false
-var logsLength int
-var logsDays int
+var logsLength uint
+var logsDays uint
 
 // Cmd is the logs command's entrypoint
 var Cmd = &cobra.Command{
@@ -61,7 +61,6 @@ func init() {
 	Cmd.Flags().BoolVarP(&allLogs, "all", "a", false, "include uninteresting logs")
 	Cmd.Flags().BoolVarP(&chart, "chart", "c", false, "Output a gantt chart of the most recent action as an html file")
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
-	Cmd.Flags().IntVarP(&logsLength, "length", "l", 0, "Number of logs to display")
-	Cmd.Flags().IntVarP(&logsDays, "days", "d", 0, "Age of the logs to display in days")
-	Cmd.MarkFlagsMutuallyExclusive("days", "length")
+	Cmd.Flags().UintVarP(&logsLength, "length", "l", 0, "Number of logs to display")
+	Cmd.Flags().UintVarP(&logsDays, "days", "d", 0, "Age of the logs to display in days")
 }

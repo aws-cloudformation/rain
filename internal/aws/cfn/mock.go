@@ -153,25 +153,29 @@ func GetStackResource(stackName string, logicalId string) (*types.StackResourceD
 func GetStackEvents(stackName string) ([]types.StackEvent, error) {
 
 	if stackName == "logsrange-test-mock-stack" {
-		templogTimeStamp := now
+		templogTimeStamp := time.Now()
 		var logs []types.StackEvent
-		for i := 0; i < 30; i++ {
-			logEntry := types.StackEvent{
-				EventId:              ptr.String("mock event id"),
-				StackId:              ptr.String(stackName),
-				StackName:            ptr.String(stackName),
-				ClientRequestToken:   ptr.String("mock event token"),
-				LogicalResourceId:    ptr.String("MockResourceId"),
-				PhysicalResourceId:   ptr.String("MockPhysicalId"),
-				ResourceProperties:   ptr.String("mock resource properties"),
-				ResourceStatus:       types.ResourceStatusCreateInProgress,
-				ResourceStatusReason: ptr.String("mock status reason"),
-				ResourceType:         ptr.String("Mock::Resource::Type"),
+		var mockLogLength int = 30
+		var logsPerDay int = 6
+		for i := 0; i < mockLogLength; i++ {
+			for i := 0; i < logsPerDay; i++ {
+				logEntry := types.StackEvent{
+					EventId:              ptr.String("mock event id"),
+					StackId:              ptr.String(stackName),
+					StackName:            ptr.String(stackName),
+					ClientRequestToken:   ptr.String("mock event token"),
+					LogicalResourceId:    ptr.String("MockResourceId"),
+					PhysicalResourceId:   ptr.String("MockPhysicalId"),
+					ResourceProperties:   ptr.String("mock resource properties"),
+					ResourceStatus:       types.ResourceStatusCreateInProgress,
+					ResourceStatusReason: ptr.String("mock status reason"),
+					ResourceType:         ptr.String("Mock::Resource::Type"),
+				}
+				tempTimeStamp := templogTimeStamp
+				logEntry.Timestamp = &tempTimeStamp
+				logs = append(logs, logEntry)
 			}
-			tempTimeStamp := templogTimeStamp.Add(time.Hour * -24)
-			templogTimeStamp = tempTimeStamp
-			logEntry.Timestamp = &tempTimeStamp
-			logs = append(logs, logEntry)
+			templogTimeStamp = templogTimeStamp.Add(time.Hour * -24)
 		}
 		return logs, nil
 	} else {

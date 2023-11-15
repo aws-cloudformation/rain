@@ -34,38 +34,43 @@ func (e events) Less(i, j int) bool {
 	return ptr.ToTime(e[i].Timestamp).Unix() < ptr.ToTime(e[j].Timestamp).Unix()
 }
 
-func reduceLogsByLength(logsRange int, logs *events) *events {
-	if logsRange >= len(*logs) {
-		return logs
+func reduceLogsToLength(logsRange uint, logs *events) {
+	if int(logsRange) >= len(*logs) {
+		return
 	}
 	var reducedLogs events
-	for i := 0; i < logsRange; i++ {
+	for i := 0; i < int(logsRange); i++ {
 		reducedLogs = append(reducedLogs, (*logs)[i])
 	}
-	return &reducedLogs
-
+	*logs = reducedLogs
 }
 
-func reduceLogsByDuration(logsRange time.Duration, currentTime time.Time, logs *events) *events {
-	timeNow := currentTime
+func reduceLogsByDuration(logsRange time.Duration, logs *events) {
+	timeNow := time.Now()
 	logLimitTime := timeNow.Add(logsRange)
 	var reducedLogs events
 	for _, log := range *logs {
 		if log.Timestamp.After(logLimitTime) {
 			reducedLogs = append(reducedLogs, log)
 		}
+
 	}
-	return &reducedLogs
+	*logs = reducedLogs
 }
 
-func printLogs(logsRange int, logsDays int, logs events) {
+func reduceLogs(logsRange uint, logsDays uint, logs *events) {
 	if logsDays > 0 {
-		duration := time.Duration(time.Hour * time.Duration(logsDays*-24))
-		logs = *reduceLogsByDuration(duration, time.Now(), &logs)
+		duration := time.Duration(time.Hour * time.Duration(int(logsDays)*-24))
+		reduceLogsByDuration(duration, logs)
 	}
 	if logsRange > 0 {
-		logs = *reduceLogsByLength(logsRange, &logs)
+		reduceLogsToLength(logsRange, logs)
 	}
+
+}
+
+func printLogs(logsRange uint, logsDays uint, logs events) {
+	reduceLogs(logsRange, logsDays, &logs)
 	for _, log := range logs {
 		fmt.Printf("%s %s/%s (%s) %s",
 			console.White(ptr.ToTime(log.Timestamp).Format(time.Stamp)),
