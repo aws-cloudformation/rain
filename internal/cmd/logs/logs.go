@@ -11,6 +11,8 @@ import (
 
 var allLogs = false
 var chart = false
+var logsLength uint
+var logsDays uint
 
 // Cmd is the logs command's entrypoint
 var Cmd = &cobra.Command{
@@ -44,7 +46,7 @@ You can use the --all flag to change this behaviour.`,
 					fmt.Println("No interesting log messages to display. To see everything, use the --all flag")
 				}
 			} else {
-				printLogs(logs)
+				printLogs(logsLength, logsDays, logs)
 			}
 		} else {
 			err := createChart(stackName)
@@ -59,4 +61,6 @@ func init() {
 	Cmd.Flags().BoolVarP(&allLogs, "all", "a", false, "include uninteresting logs")
 	Cmd.Flags().BoolVarP(&chart, "chart", "c", false, "Output a gantt chart of the most recent action as an html file")
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
+	Cmd.Flags().UintVarP(&logsLength, "length", "l", 0, "Number of logs to display")
+	Cmd.Flags().UintVarP(&logsDays, "days", "d", 0, "Age of the logs to display in days")
 }
