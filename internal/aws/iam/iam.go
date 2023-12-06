@@ -30,19 +30,29 @@ func GetCallerArn(config awsgo.Config) (string, error) {
 		fmt.Println("Unable to get caller identity", stsErr)
 		return "", stsErr
 	}
-	// Convert this
-	// arn:aws:sts::755952356119:assumed-role/Admin/ezbeard-Isengard
-	// to this:
-	// arn:aws:iam::755952356119:role/Admin
-	//
-	// Will this work consistently for other SSO providers?
-	// Is there a programmatic way to retrieve the actual role?
+	return TransformCallerArn(*stsRes.Arn), nil
+}
 
-	sts := strings.Split(*stsRes.Arn, "sts::")[1]
+func TransformCallerArn(stsResArn string) string {
+	if strings.Split(stsResArn, ":")[2] == "sts" {
+		return convertAssumeRoleToRole(stsResArn)
+	}
+	return stsResArn
+}
+
+// Convert this
+// arn:aws:sts::755952356119:assumed-role/Admin/ezbeard-Isengard
+// to this:
+// arn:aws:iam::755952356119:role/Admin
+//
+// Will this work consistently for other SSO providers?
+// Is there a programmatic way to retrieve the actual role?
+func convertAssumeRoleToRole(stsResArn string) string {
+	sts := strings.Split(stsResArn, "sts::")[1]
 	accountId := strings.Split(sts, ":")[0]
-	assumedRole := strings.Split(*stsRes.Arn, "assumed-role/")[1]
+	assumedRole := strings.Split(stsResArn, "assumed-role/")[1]
 	actualRoleName := strings.Split(assumedRole, "/")[0]
-	return fmt.Sprintf("arn:aws:iam::%v:role/%v", accountId, actualRoleName), nil
+	return fmt.Sprintf("arn:aws:iam::%v:role/%v", accountId, actualRoleName)
 }
 
 // Simulate actions on a resource.
