@@ -14,7 +14,7 @@ func TestResourceEstimate(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	if est != 1 {
+	if est != 3 {
 		t.Errorf("expected AWS::ACMPCA::Certificate create to return 1")
 	}
 }
@@ -29,37 +29,37 @@ Parameters:
 
 Resources:
 
-  # 10s
+  # 30s
   A:
     Type: AWS::S3::Bucket
     DependsOn: B
     Properties:
       BucketName: !Ref N
 
-  # 5s
+  # 12
   B: 
     Type: AWS::S3::BucketPolicy
     DependsOn: E
 
-  # 30s 
+  # 16 
   C:
     Type: AWS::EC2::Instance
     DependsOn: [B, D, F, G]
 
-  # 7s 
+  # 6s 
   D:
     Type: AWS::EC2::LaunchTemplate
     DependsOn: E
 
-  # 10s 
+  # 30s 
   E: 
     Type: AWS::S3::Bucket
 
-  # 10s
+  # 30s
   F:
     Type: AWS::S3::Bucket
 
-  # 10s
+  # 30s
   G:
     Type: AWS::S3::Bucket
 
@@ -71,7 +71,7 @@ Resources:
 					  \ /
 					   E
 
-		    Longest is C-D-E = 47
+		    Longest is C-D-E = 72
 	*/
 	// Parse the template
 	tt, err := parse.String(string(template))
@@ -81,7 +81,7 @@ Resources:
 	}
 	// config.Debug = true
 	total := PredictTotalEstimate(tt, false)
-	expected := 47 // will need to adjust this when we modify the database of estimates
+	expected := 72 // will need to adjust this when we modify the database of estimates
 	if total != expected {
 		t.Errorf("expected total to be %v, got %v", expected, total)
 	}
