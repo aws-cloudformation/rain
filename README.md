@@ -43,7 +43,7 @@ If you have [homebrew](https://brew.sh/) installed, `brew install rain`
 
 Or you can download the appropriate binary for your system from [the releases page](https://github.com/aws-cloudformation/rain/releases).
 
-Or if you're a [Gopher](https://blog.golang.org/gopher), you can `GO111MODULE=on go install github.com/aws-cloudformation/rain/cmd/rain`
+Or if you're a [Gopher](https://blog.golang.org/gopher), you can `go install github.com/aws-cloudformation/rain/cmd/rain@latest`
 
 ```
 Usage:
