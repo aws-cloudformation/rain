@@ -94,8 +94,8 @@ func (g *Graph) String() string {
 	out := strings.Builder{}
 
 	for _, left := range g.order {
+		out.WriteString(fmt.Sprintf("%s:\n", left))
 		if len(g.nodes[left]) > 0 {
-			out.WriteString(fmt.Sprintf("%s:\n", left))
 			for right := range g.nodes[left] {
 				out.WriteString(fmt.Sprintf("- %s\n", right))
 			}
