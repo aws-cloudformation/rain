@@ -92,6 +92,10 @@ YAML:
 			panic(err)
 		}
 
+		// Figure out how long we thing the stack will take to execute
+		//totalSeconds := forecast.PredictTotalEstimate(template, stackExists)
+		// TODO - Wait until the forecast command is GA and add this to output
+
 		// Create change set
 		spinner.Push("Creating change set")
 		changeSetName, createErr := cfn.CreateChangeSet(template, dc.Params, dc.Tags, stackName, roleArn)

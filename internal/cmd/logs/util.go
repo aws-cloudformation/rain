@@ -34,7 +34,43 @@ func (e events) Less(i, j int) bool {
 	return ptr.ToTime(e[i].Timestamp).Unix() < ptr.ToTime(e[j].Timestamp).Unix()
 }
 
-func printLogs(logs events) {
+func reduceLogsToLength(logsRange uint, logs *events) {
+	if int(logsRange) >= len(*logs) {
+		return
+	}
+	var reducedLogs events
+	for i := 0; i < int(logsRange); i++ {
+		reducedLogs = append(reducedLogs, (*logs)[i])
+	}
+	*logs = reducedLogs
+}
+
+func reduceLogsByDuration(logsRange time.Duration, logs *events) {
+	timeNow := time.Now()
+	logLimitTime := timeNow.Add(logsRange)
+	var reducedLogs events
+	for _, log := range *logs {
+		if log.Timestamp.After(logLimitTime) {
+			reducedLogs = append(reducedLogs, log)
+		}
+
+	}
+	*logs = reducedLogs
+}
+
+func reduceLogs(logsRange uint, logsDays uint, logs *events) {
+	if logsDays > 0 {
+		duration := time.Duration(time.Hour * time.Duration(int(logsDays)*-24))
+		reduceLogsByDuration(duration, logs)
+	}
+	if logsRange > 0 {
+		reduceLogsToLength(logsRange, logs)
+	}
+
+}
+
+func printLogs(logsRange uint, logsDays uint, logs events) {
+	reduceLogs(logsRange, logsDays, &logs)
 	for _, log := range logs {
 		fmt.Printf("%s %s/%s (%s) %s",
 			console.White(ptr.ToTime(log.Timestamp).Format(time.Stamp)),

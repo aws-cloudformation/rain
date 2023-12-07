@@ -135,6 +135,22 @@ func forecastForType(input PredictionInput) Forecast {
 		return forecast
 	}
 
+	// Estimate how long the action will take
+	// (This is only for spinner output, we calculate total time separately)
+	var action StackAction
+	if input.stackExists {
+		action = Update
+	} else {
+		action = Create
+	}
+	est, esterr := GetResourceEstimate(input.typeName, action)
+	if esterr != nil {
+		config.Debugf("could not get estimate: %v", esterr)
+		est = 1
+	}
+	config.Debugf("Got resource estimate for %v: %v", input.logicalId, est)
+	spin(input.typeName, input.logicalId, fmt.Sprintf("estimate: %v seconds", est))
+
 	// Call generic prediction functions that we can run against
 	// all resources, even if there is not a predictor.
 
@@ -250,6 +266,9 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 
 	spinner.Stop()
 
+	// Figure out how long we thing the stack will take to execute
+	totalSeconds := PredictTotalEstimate(source, stackExists)
+
 	if forecast.GetNumFailed() > 0 {
 		fmt.Println("Stormy weather ahead! 🌪") // 🌩️⛈
 		fmt.Println(forecast.GetNumFailed(), "checks failed out of", forecast.GetNumChecked(), "total checks")
@@ -259,7 +278,8 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 		}
 		return false
 	} else {
-		fmt.Println("Clear skies! 🌞 All", forecast.GetNumChecked(), "checks passed.")
+		fmt.Println("Clear skies! 🌞 All", forecast.GetNumChecked(), "checks passed. Estimated time:",
+			FormatEstimate(totalSeconds))
 		return true
 	}
 
@@ -383,5 +403,8 @@ func init() {
 	forecasters["AWS::S3::BucketPolicy"] = checkS3BucketPolicy
 	forecasters["AWS::EC2::Instance"] = checkEC2Instance
 	forecasters["AWS::EC2::SecurityGroup"] = checkEC2SecurityGroup
+
+	// Initialize estimates map
+	InitEstimates()
 
 }

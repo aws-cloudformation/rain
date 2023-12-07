@@ -17,11 +17,14 @@ Parameters:
 Resources:
   Bucket:
     Type: AWS::S3::Bucket
+    DependsOn: LogBucket
     Properties:
       BucketName: !Ref Name
       Tags:
         - Key: Account
         - Value: !Ref AWS::AccountId
+  LogBucket:
+    Type: AWS::S3::Bucket
 Outputs:
   BucketName:
     Value: !Ref Bucket
@@ -52,6 +55,7 @@ func Example_nodes() {
 	// Output:
 	// Parameters/AWS::AccountId
 	// Parameters/Name
+	// Resources/LogBucket
 	// Resources/Bucket
 	// Outputs/BucketArn
 	// Outputs/BucketName
@@ -63,7 +67,7 @@ func Example_get() {
 	fmt.Println(g.Get(graph.Node{"Outputs", "BucketName"}))
 	// Output:
 	// []
-	// [Parameters/AWS::AccountId Parameters/Name]
+	// [Parameters/AWS::AccountId Parameters/Name Resources/LogBucket]
 	// [Resources/Bucket]
 }
 

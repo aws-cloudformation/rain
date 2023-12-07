@@ -229,8 +229,9 @@ func createStackSetName(args []string) string {
 // Validate if we have enough configuration data to create/update stack set instances
 func isInstanceConfigDataValid(c *cfn.StackSetInstancesConfig) bool {
 	if c != nil &&
-		c.Accounts != nil && len(c.Accounts) > 0 &&
-		c.Regions != nil && len(c.Regions) > 0 {
+		c.Regions != nil && len(c.Regions) > 0 &&
+		((c.Accounts != nil && len(c.Accounts) > 0) ||
+		(c.DeploymentTargets != nil && c.DeploymentTargets.OrganizationalUnitIds != nil && len(c.DeploymentTargets.OrganizationalUnitIds) > 0)) {
 		config.Debugf("ConfigData is valid\n")
 		return true
 	} else {
