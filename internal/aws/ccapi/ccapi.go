@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 
+	"github.com/appscode/jsonpatch"
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/config"
@@ -204,6 +204,7 @@ type patch struct {
 	Value any `json:"value"`
 }
 
+/*
 // yamlVal converts node.Value to a string, int, or bool based on the Tag
 func yamlVal(n *yaml.Node) (any, error) {
 	var v any
@@ -224,82 +225,39 @@ func yamlVal(n *yaml.Node) (any, error) {
 	}
 	return v, nil
 }
+*/
 
-// patchPath is a recursive function that builds the PatchDocument
-func patchPath(patches []patch, props *yaml.Node, path string) ([]patch, error) {
+// Create a json patch document based on the new props and the prior model
+func CreatePatch(props *yaml.Node, priorModel string) (string, error) {
 
-	var err error
-	for i, p := range props.Content {
-		if i%2 == 0 {
-			name := p.Value
-			newPath := path + "/" + name
-			val := props.Content[i+1]
-			if val.Kind == yaml.ScalarNode {
-				v, err := yamlVal(val)
-				if err != nil {
-					return patches, err
-				}
-				patches = append(patches, patch{Op: "replace", Path: newPath, Value: v})
-			} else if val.Kind == yaml.SequenceNode {
-				// TODO
-			} else if val.Kind == yaml.MappingNode {
-				// Recurse
-				patches, err = patchPath(patches, val, newPath)
-				if err != nil {
-					return patches, err
-				}
-			}
+	config.Debugf("props: %v", node.ToSJson(props))
+
+	jsonProps, err := json.Marshal(format.Jsonise(props))
+	if err != nil {
+		return "", err
+	}
+	operations, err := jsonpatch.CreatePatch([]byte(priorModel), jsonProps)
+	if err != nil {
+		return "", err
+	}
+
+	patchDocument := "[\n"
+	first := true
+	for _, operation := range operations {
+		if first {
+			first = false
+		} else {
+			patchDocument += ",\n"
 		}
+		patchDocument += fmt.Sprintf("    %s", operation.Json())
 	}
+	patchDocument += "\n]"
+	// TODO - sort these so tests are consistent
 
-	return patches, nil
-}
+	config.Debugf("CreatePatch\n%v\n\n%v\n\nPatchDocument:\n%v",
+		jsonProps, priorModel, string(patchDocument))
 
-// createPatch converts the template properties into a JSON Patch Document
-func createPatch(props *yaml.Node) (string, error) {
-
-	/*
-		We have to create a PatchDocument here with json.
-		op: add, remove, replace, move, copy, and test
-
-		[
-		  {
-			"op": "test",
-			"path": "/RetentionInDays",
-			"value":3653
-		  },
-		  {
-			"op": "replace",
-			"path": "/RetentionInDays",
-			"value":180
-		  }
-		]
-	*/
-	patches := make([]patch, 0)
-
-	// Iterate through all changes to the properties on the resource
-	// A:1 becomes path: /A, value: 1
-	// A:
-	//   B:
-	//     C: 1
-	// becomes path: /A/B/C, value 1
-
-	config.Debugf("patchPath: %v", node.ToJson(props))
-
-	var err error
-	patches, err = patchPath(patches, props, "")
-	if err != nil {
-		return "", err
-	}
-
-	config.Debugf("patches: %v", patches)
-
-	m, err := json.Marshal(patches)
-	if err != nil {
-		return "", err
-	}
-	p := string(m)
-	return p, nil
+	return patchDocument, nil
 }
 
 // UpdateResource updates a resource based on the YAML node from the template,
@@ -331,10 +289,8 @@ func UpdateResource(
 	_, props := s11n.GetMapValue(resource, "Properties")
 	config.Debugf("UpdateResource %v props: %v", logicalId, node.ToSJson(props))
 
-	// TODO - To create a patch document correctly, we need to compare the props
-	// to the prior model.
-
-	patchDocument, err := createPatch(props)
+	// Create the patch document
+	patchDocument, err := CreatePatch(props, priorModel)
 	if err != nil {
 		return model, nil
 	}

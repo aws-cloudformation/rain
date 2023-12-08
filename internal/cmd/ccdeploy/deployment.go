@@ -43,7 +43,9 @@ func deployResource(resource *Resource) {
 	// This will depend on the post-deployment state of dependencies
 	resolvedNode, err := resolve(resource)
 	if err != nil {
-		panic(err)
+		config.Debugf("deployResource resolve failed: %v", err)
+		resource.State = Failed
+		resource.Message = fmt.Sprintf("%v", err)
 	}
 
 	switch resource.Action {
@@ -65,8 +67,17 @@ func deployResource(resource *Resource) {
 		}
 	case diff.Update:
 
+		// First get the current state of the resource
+		priorModel, err := ccapi.GetResource(resource.Identifier, resource.Type)
+		if err != nil {
+			config.Debugf("deployResource update get prior failed: %v", err)
+			resource.State = Failed
+			resource.Message = fmt.Sprintf("%v", err)
+		}
+
 		var model string
-		model, err = ccapi.UpdateResource(resource.Name, resource.Identifier, resolvedNode)
+		model, err = ccapi.UpdateResource(resource.Name,
+			resource.Identifier, resolvedNode, priorModel)
 		if err != nil {
 			config.Debugf("deployResource update failed: %v", err)
 			resource.State = Failed
