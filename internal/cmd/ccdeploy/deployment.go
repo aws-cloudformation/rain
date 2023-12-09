@@ -67,22 +67,27 @@ func deployResource(resource *Resource) {
 		}
 	case diff.Update:
 
-		// First get the current state of the resource
-		priorModel, err := ccapi.GetResource(resource.Identifier, resource.Type)
-		if err != nil {
-			config.Debugf("deployResource update get prior failed: %v", err)
-			resource.State = Failed
-			resource.Message = fmt.Sprintf("%v", err)
-		}
+		// // First get the current state of the resource
+		// priorModel, err := ccapi.GetResource(resource.Identifier, resource.Type)
+		// if err != nil {
+		// 	config.Debugf("deployResource update get prior failed: %v", err)
+		// 	resource.State = Failed
+		// 	resource.Message = fmt.Sprintf("%v", err)
+		// }
+		//
+		// We would need that at an earlier state for drift detection
+
+		priorJson := resource.PriorJson
 
 		var model string
 		model, err = ccapi.UpdateResource(resource.Name,
-			resource.Identifier, resolvedNode, priorModel)
+			resource.Identifier, resolvedNode, priorJson)
 		if err != nil {
 			config.Debugf("deployResource update failed: %v", err)
 			resource.State = Failed
 			resource.Message = fmt.Sprintf("%v", err)
 		} else {
+			config.Debugf("deployResource update succeeded: %v", model)
 			resource.State = Deployed
 			resource.Message = "Success"
 			resource.Model = model
@@ -221,8 +226,8 @@ func deployResources(resources []*Resource, results *DeploymentResults, g *graph
 
 	for numDone < numResources {
 
-		config.Debugf("Starting an iteration over resources (%v/%v done)",
-			numDone, numResources)
+		// config.Debugf("Starting an iteration over resources (%v/%v done)",
+		// 	numDone, numResources)
 
 		numDone = 0
 
@@ -258,9 +263,9 @@ func deployResources(resources []*Resource, results *DeploymentResults, g *graph
 			}
 		}
 
-		for _, r := range resources {
-			config.Debugf("%v", r)
-		}
+		// for _, r := range resources {
+		// 	config.Debugf("%v", r)
+		// }
 
 		// Give deployment routines time to finish
 		// TODO: We could be smarter about this with channels...
@@ -338,33 +343,47 @@ func DeployTemplate(template cft.Template) (*DeploymentResults, error) {
 			// Determine if this is a create, update, or delete
 			var action diff.ActionType
 			var ident string
+			var model string
+			var priorJson string
 			_, stateNode := s11n.GetMapValue(y, "State")
 			if stateNode == nil {
 				// Assume this is a new deployment
 				action = diff.Create
 			} else {
 				for i, s := range stateNode.Content {
-					if s.Value == "Action" {
-						a := stateNode.Content[i+1].Value
-						action = diff.ActionType(a)
-						isValid := false
-						switch action {
-						case diff.Create, diff.Update, diff.Delete, diff.None:
-							isValid = true
+					if i%2 == 0 {
+						if s.Value == "Action" {
+							a := stateNode.Content[i+1].Value
+							action = diff.ActionType(a)
+							isValid := false
+							switch action {
+							case diff.Create, diff.Update, diff.Delete, diff.None:
+								isValid = true
+							}
+							if !isValid {
+								return nil, fmt.Errorf("invalid Action %v for %v", a, n.Name)
+							}
+						} else if s.Value == "Identifier" {
+							ident = stateNode.Content[i+1].Value
+						} else if s.Value == "ResourceModel" {
+							model = stateNode.Content[i+1].Value
+						} else if s.Value == "PriorJson" {
+							priorJson = stateNode.Content[i+1].Value
+						} else {
+							config.Debugf("Unexpected State key %v", s.Value)
 						}
-						if !isValid {
-							return nil, fmt.Errorf("invalid Action %v for %v", a, n.Name)
-						}
-					} else if s.Value == "Identifier" {
-						ident = stateNode.Content[i+1].Value
 					}
-					// TODO - Do we need the resource model here?
 				}
 			}
 
 			r := NewResource(n.Name, typeName, Waiting, y)
 			r.Action = action
 			r.Identifier = ident
+			r.Model = model         // This will get overwritten. Do we need it here?
+			r.PriorJson = priorJson // We need this for ccapi update
+
+			config.Debugf("deployment set r.Model to %v", r.Model)
+
 			if r.Action == diff.Delete {
 				deletes = append(deletes, r)
 			} else {

@@ -26,6 +26,7 @@ type Resource struct {
 	Identifier string
 	Model      string
 	Action     diff.ActionType
+	PriorJson  string
 	// TODO - Add elapsed time
 }
 

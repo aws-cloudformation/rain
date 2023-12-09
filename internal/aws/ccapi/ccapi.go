@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 
 	"github.com/appscode/jsonpatch"
 	"github.com/aws-cloudformation/rain/cft/format"
@@ -51,7 +52,7 @@ func ResourceExists(typeName string, identifier []string) bool {
 }
 
 // toJsonProps converts properties in a resource node to the JSON representation
-func toJsonProps(resource *yaml.Node) string {
+func ToJsonProps(resource *yaml.Node) string {
 	_, props := s11n.GetMapValue(resource, "Properties")
 	if props == nil {
 		return "{}"
@@ -77,7 +78,7 @@ func CreateResource(logicalId string, resource *yaml.Node) (identifier string, m
 
 	// Intrinsics have already been resolved, so there should not
 	// be any !Refs or !GetAtts, etc
-	props := toJsonProps(resource)
+	props := ToJsonProps(resource)
 
 	config.Debugf("CreateResource props: %v", props)
 	_, typeNode := s11n.GetMapValue(resource, "Type")
@@ -150,7 +151,7 @@ func pollForCompletion(progress *types.ProgressEvent) (string, string, error) {
 			model = *progress.ResourceModel
 		}
 
-		config.Debugf("About to check OperationStatus, identifier: %v, model: %v", identifier, model)
+		// config.Debugf("About to check OperationStatus, identifier: %v, model: %v", identifier, model)
 
 		switch progress.OperationStatus {
 		case "PENDING":
@@ -183,7 +184,7 @@ func pollForCompletion(progress *types.ProgressEvent) (string, string, error) {
 				return identifier, model, statusErr // Is this terminal?
 				// This is not a deployment failure. Network issue?
 			}
-			config.Debugf("status:\n%v", printProgress(status.ProgressEvent))
+			// config.Debugf("status:\n%v", printProgress(status.ProgressEvent))
 
 			progress = status.ProgressEvent
 		}
@@ -192,43 +193,9 @@ func pollForCompletion(progress *types.ProgressEvent) (string, string, error) {
 	return identifier, model, nil
 }
 
-// patch is used to construct a PatchDocument
-type patch struct {
-	// add, remove, replace, move, copy, and test
-	Op string `json:"op"`
-
-	// For example, /PropertyName
-	Path string `json:"path"`
-
-	// Ints and Bools have to be converted from strings to match the schema
-	Value any `json:"value"`
-}
-
-/*
-// yamlVal converts node.Value to a string, int, or bool based on the Tag
-func yamlVal(n *yaml.Node) (any, error) {
-	var v any
-	var err error
-	switch n.Tag {
-	case "!!bool":
-		v, err = strconv.ParseBool(n.Value)
-		if err != nil {
-			return "", err
-		}
-	case "!!int":
-		v, err = strconv.ParseInt(n.Value, 10, 32)
-		if err != nil {
-			return "", err
-		}
-	default:
-		v = string(n.Value)
-	}
-	return v, nil
-}
-*/
-
-// Create a json patch document based on the new props and the prior model
-func CreatePatch(props *yaml.Node, priorModel string) (string, error) {
+// Create a json patch document based on the new props and the prior json
+// from the last version of the template (not the property model)
+func CreatePatch(props *yaml.Node, priorJson string) (string, error) {
 
 	config.Debugf("props: %v", node.ToSJson(props))
 
@@ -236,10 +203,21 @@ func CreatePatch(props *yaml.Node, priorModel string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	operations, err := jsonpatch.CreatePatch([]byte(priorModel), jsonProps)
+
+	// This is not right. The props might be a single required property,
+	// and the priorModel will have everything, which then renders
+	// a PatchDocument with a bunch of remove operations.
+	// priorModel should be priorJson (from the old template)
+
+	operations, err := jsonpatch.CreatePatch([]byte(priorJson), jsonProps)
 	if err != nil {
 		return "", err
 	}
+
+	// Sort the operations so tests are consistent
+	sort.Slice(operations, func(i, j int) bool {
+		return operations[i].Path < operations[j].Path
+	})
 
 	patchDocument := "[\n"
 	first := true
@@ -252,10 +230,9 @@ func CreatePatch(props *yaml.Node, priorModel string) (string, error) {
 		patchDocument += fmt.Sprintf("    %s", operation.Json())
 	}
 	patchDocument += "\n]"
-	// TODO - sort these so tests are consistent
 
-	config.Debugf("CreatePatch\n%v\n\n%v\n\nPatchDocument:\n%v",
-		jsonProps, priorModel, string(patchDocument))
+	config.Debugf("CreatePatch\n\njsonProps:\n%v\n\npriorJson:\n%v\n\nPatchDocument\nPatchDocument:\n%v",
+		string(jsonProps), priorJson, string(patchDocument))
 
 	return patchDocument, nil
 }
@@ -266,7 +243,7 @@ func UpdateResource(
 	logicalId string,
 	identifier string,
 	resource *yaml.Node,
-	priorModel string) (model string, err error) {
+	priorJson string) (model string, err error) {
 
 	if logicalId == "" {
 		return model, fmt.Errorf("logicalId is required for UpdateResource")
@@ -290,10 +267,16 @@ func UpdateResource(
 	config.Debugf("UpdateResource %v props: %v", logicalId, node.ToSJson(props))
 
 	// Create the patch document
-	patchDocument, err := CreatePatch(props, priorModel)
+	patchDocument, err := CreatePatch(props, priorJson)
 	if err != nil {
 		return model, nil
 	}
+
+	// AWS::SQS::Queue A: Failed: operation error CloudControl:
+	// UpdateResource, https response error StatusCode: 400,
+	// RequestID: 7773a459-504a-4562-a728-f0f2b6f9cd35,
+	// api error ValidationException: Invalid patch update:
+	// readOnlyProperties [/properties/QueueUrl, /properties/Arn] cannot be updated
 
 	config.Debugf("PatchDocument for %v: %v", logicalId, patchDocument)
 	input := cloudcontrol.UpdateResourceInput{

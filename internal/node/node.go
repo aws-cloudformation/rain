@@ -3,6 +3,7 @@ package node
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/aws-cloudformation/rain/internal/config"
 	"gopkg.in/yaml.v3"
@@ -226,4 +227,25 @@ func AddMap(parent *yaml.Node, name string) *yaml.Node {
 	m := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
 	parent.Content = append(parent.Content, m)
 	return m
+}
+
+// YamlVal converts node.Value to a string, int, or bool based on the Tag
+func YamlVal(n *yaml.Node) (any, error) {
+	var v any
+	var err error
+	switch n.Tag {
+	case "!!bool":
+		v, err = strconv.ParseBool(n.Value)
+		if err != nil {
+			return "", err
+		}
+	case "!!int":
+		v, err = strconv.ParseInt(n.Value, 10, 32)
+		if err != nil {
+			return "", err
+		}
+	default:
+		v = string(n.Value)
+	}
+	return v, nil
 }

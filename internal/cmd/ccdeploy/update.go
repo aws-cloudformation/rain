@@ -6,6 +6,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/diff"
 	"github.com/aws-cloudformation/rain/cft/format"
+	"github.com/aws-cloudformation/rain/internal/aws/ccapi"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
@@ -32,7 +33,8 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 			 State:
 				Action: Create or Update or Delete or None
 				Identifier: ...
-				ResourceModel: ? Do we need this for ccapi update? Drift detection?
+				ResourceModel: (Might need this for drift detection)
+				PriorJson: (We need this for ccapi update)
 
 	*/
 
@@ -128,8 +130,14 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 			// Add the resource model that represents the current actual state of
 			// the resource based on the ccapi GetResource call
 			if model, ok := models[k]; ok {
-				modelMap := node.AddMap(rmap, "Model")
+				modelMap := node.AddMap(rmap, "ResourceModel")
 				modelMap.Content = model.Content
+			}
+			// Add PriorJson to represent the prior properties set by the user
+			if v == diff.Update {
+				priorProps := ccapi.ToJsonProps(stateResources[k])
+				config.Debugf("update setting priorProps: %v", priorProps)
+				node.Add(rmap, "PriorJson", priorProps)
 			}
 		}
 	}
