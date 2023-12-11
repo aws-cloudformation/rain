@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/cft/parse"
+	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -452,4 +453,185 @@ func TestFormatDefault(t *testing.T) {
 	})
 	checkMultilineBlockHeaders(t, correctMultilineBlockHeaders, true)
 	checkMultilineBlockHeaders(t, wrongMultilineBlockHeaders, false)
+}
+
+func TestFindInMap(t *testing.T) {
+	yaml := `
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Reproduce "semantic difference after formatting" error
+
+Parameters:
+  EnvironmentParam:
+    Default: dev
+    Type: String
+    AllowedValues:
+      - dev
+      - prod
+
+Mappings:
+  EnvironmentMap:
+    MappedParam:
+      dev: my-dev-topic
+      prod: my-prod-topic
+
+Resources:
+  Topic:
+    Type: AWS::SNS::Topic
+    Properties: 
+      TopicName: !FindInMap [EnvironmentMap, MappedParam, !Ref EnvironmentParam]
+`
+
+	expect := `AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Reproduce "semantic difference after formatting" error
+
+Parameters:
+  EnvironmentParam:
+    Default: dev
+    Type: String
+    AllowedValues:
+      - dev
+      - prod
+
+Mappings:
+  EnvironmentMap:
+    MappedParam:
+      dev: my-dev-topic
+      prod: my-prod-topic
+
+Resources:
+  Topic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !FindInMap [EnvironmentMap, MappedParam, !Ref EnvironmentParam]
+`
+
+	template, err := parse.String(yaml)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	actual := format.String(template, format.Options{
+		Unsorted: true,
+	})
+
+	if d := cmp.Diff(expect, actual); d != "" {
+		t.Fatalf(d)
+	}
+}
+
+func TestZipLines(t *testing.T) {
+	yaml := `
+  AWSTemplateFormatVersion: "2010-09-09"
+
+  Description: Example AWS CloudFormation template snippet.
+  
+  Resources:
+    Test:
+      Type: AWS::Lambda::Function
+      Properties:
+        Role: arn:aws:iam::755952356119:role/lambda-basic
+        Runtime: python3.7
+        Handler: index.handler
+        Code:
+          ZipFile: |
+            import boto3
+  
+            def handler: 
+  
+              """Example."""
+  
+              print('hello')
+   
+  `
+
+	expect := `AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Example AWS CloudFormation template snippet.
+
+Resources:
+  Test:
+    Type: AWS::Lambda::Function
+    Properties:
+      Role: arn:aws:iam::755952356119:role/lambda-basic
+      Runtime: python3.7
+      Handler: index.handler
+      Code:
+        ZipFile: "import boto3\n\ndef handler: \n\n  \"\"\"Example.\"\"\"\n\n  print('hello')\n"
+`
+
+	template, err := parse.String(yaml)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	actual := format.String(template, format.Options{
+		Unsorted: true,
+	})
+
+	if d := cmp.Diff(expect, actual); d != "" {
+		t.Fatalf(d)
+	}
+}
+
+func TestMultiWithGT(t *testing.T) {
+	yaml := `
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Example AWS CloudFormation template snippet.
+
+Resources:
+  Test:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          """Example."""
+
+          import boto3
+
+          breaks = """
+          >
+          """
+
+          TEST = 1
+  `
+
+	expect := `AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Example AWS CloudFormation template snippet.
+
+Resources:
+  Test:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          """Example."""
+
+          import boto3
+
+          breaks = """
+          >
+          """
+
+          TEST = 1
+`
+
+	template, err := parse.String(yaml)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	actual := format.String(template, format.Options{
+		Unsorted: true,
+	})
+
+	config.Debug = true
+	config.Debugf(actual)
+
+	if d := cmp.Diff(expect, actual); d != "" {
+		t.Fatalf(d)
+	}
 }
