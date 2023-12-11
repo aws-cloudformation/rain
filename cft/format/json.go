@@ -41,24 +41,24 @@ func handleScalar(node *yaml.Node) interface{} {
 	return out
 }
 
-func jsonise(node *yaml.Node) interface{} {
+func Jsonise(node *yaml.Node) interface{} {
 	switch node.Kind {
 	case yaml.DocumentNode:
-		return jsonise(node.Content[0])
+		return Jsonise(node.Content[0])
 	case yaml.MappingNode:
 		out := make(mapslice.MapSlice, len(node.Content)/2)
 		for i := 0; i < len(node.Content); i += 2 {
 			key, value := node.Content[i], node.Content[i+1]
 			out[i/2] = mapslice.MapItem{
-				Key:   jsonise(key),
-				Value: jsonise(value),
+				Key:   Jsonise(key),
+				Value: Jsonise(value),
 			}
 		}
 		return out
 	case yaml.SequenceNode:
 		out := make([]interface{}, len(node.Content))
 		for i, n := range node.Content {
-			out[i] = jsonise(n)
+			out[i] = Jsonise(n)
 		}
 		return out
 	default:
@@ -79,7 +79,7 @@ func convertToJSON(in string) string {
 		panic(err)
 	}
 
-	intermediate := jsonise(&d)
+	intermediate := Jsonise(&d)
 
 	out, err := json.MarshalIndent(&intermediate, "", "    ")
 	if err != nil {

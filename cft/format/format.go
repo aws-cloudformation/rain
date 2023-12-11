@@ -120,3 +120,8 @@ func String(t cft.Template, opt Options) string {
 
 	return out + "\n"
 }
+
+// CftToYaml converts a template to a YAML string
+func CftToYaml(t cft.Template) string {
+	return String(t, Options{JSON: false, Unsorted: false})
+}

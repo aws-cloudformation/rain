@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/aws-cloudformation/rain/internal/config"
 )
 
 // Mode represents a diff mode
@@ -47,7 +49,7 @@ type Diff interface {
 	Format(bool) string
 
 	// Value returns the value represented by the Diff
-	value() interface{}
+	Value() interface{}
 }
 
 // value represents a difference between values of any type
@@ -62,13 +64,13 @@ func (v value) Mode() Mode {
 }
 
 // value returns the value's value ;)
-func (v value) value() interface{} {
+func (v value) Value() interface{} {
 	return v.val
 }
 
 // String returns a string representation of the value
 func (v value) String() string {
-	return fmt.Sprintf("%s%v", v.Mode(), v.value())
+	return fmt.Sprintf("%s%v", v.Mode(), v.Value())
 }
 
 // slice represents a difference between two slices
@@ -86,11 +88,11 @@ func (s slice) Mode() Mode {
 }
 
 // value returns the slice's value
-func (s slice) value() interface{} {
+func (s slice) Value() interface{} {
 	out := make([]interface{}, len(s))
 
 	for i, v := range s {
-		out[i] = v.value()
+		out[i] = v.Value()
 	}
 
 	return out
@@ -122,11 +124,11 @@ func (m dmap) Mode() Mode {
 }
 
 // value returns the dmap's value
-func (m dmap) value() interface{} {
+func (m dmap) Value() interface{} {
 	out := make(map[string]interface{})
 
 	for k, v := range m {
-		out[k] = v.value()
+		out[k] = v.Value()
 	}
 
 	return out
@@ -159,4 +161,41 @@ func (m dmap) String() string {
 	}
 
 	return fmt.Sprintf("%smap[%s]", m.Mode(), strings.Join(parts, " "))
+}
+
+type ActionType string
+
+const (
+	Create ActionType = "Create"
+	Update ActionType = "Update"
+	Delete ActionType = "Delete"
+	None   ActionType = "None"
+)
+
+func GetResourceActions(d Diff) map[string]ActionType {
+	actions := make(map[string]ActionType)
+
+	dm := d.(dmap)
+	for k, v := range dm {
+		if k == "Resources" {
+			vm := v.(dmap)
+			for rname, resource := range vm {
+				config.Debugf("ResourceAction %v %v", rname, resource)
+				switch resource.Mode() {
+				case Added:
+					actions[rname] = Create
+				case Removed:
+					actions[rname] = Delete
+				case Involved:
+					actions[rname] = Update
+				case Unchanged:
+					actions[rname] = None
+				case Changed:
+					actions[rname] = Update
+				}
+			}
+		}
+	}
+
+	return actions
 }

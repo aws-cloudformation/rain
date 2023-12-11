@@ -3,6 +3,7 @@ package node
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/aws-cloudformation/rain/internal/config"
 	"gopkg.in/yaml.v3"
@@ -113,6 +114,49 @@ func GetParent(node *yaml.Node, rootNode *yaml.Node, priorNode *yaml.Node) NodeP
 	return NodePair{Key: before, Value: found}
 }
 
+type SNode struct {
+	Kind    string
+	Value   string
+	Content []*SNode `json:",omitempty"`
+}
+
+func makeSNode(node *yaml.Node) *SNode {
+	var k string
+	switch node.Kind {
+	case yaml.DocumentNode:
+		k = "Document"
+	case yaml.SequenceNode:
+		k = "Sequence"
+	case yaml.MappingNode:
+		k = "Mapping"
+	case yaml.ScalarNode:
+		k = "Scalar"
+	case yaml.AliasNode:
+		k = "Alias"
+	default:
+		k = "?"
+	}
+
+	content := make([]*SNode, 0)
+	if node.Content != nil {
+		for _, child := range node.Content {
+			content = append(content, makeSNode(child))
+		}
+	}
+
+	s := SNode{k, node.Value, content}
+	return &s
+}
+
+// Convert a node to a shortened JSON for easier debugging
+func ToSJson(node *yaml.Node) string {
+	j, err := json.MarshalIndent(makeSNode(node), "", "  ")
+	if err != nil {
+		return fmt.Sprintf("Failed to marshal node to short json: %v:", err)
+	}
+	return string(j)
+}
+
 // Convert a node to JSON
 func ToJson(node *yaml.Node) string {
 	j, err := json.MarshalIndent(node, "", "  ")
@@ -166,4 +210,42 @@ func SetMapValue(parent *yaml.Node, name string, val *yaml.Node) {
 		parent.Content = append(parent.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: name})
 		parent.Content = append(parent.Content, val)
 	}
+}
+
+// Add adds a new scalar property to the map
+func Add(m *yaml.Node, name string, val string) {
+	m.Content = append(m.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: name})
+	m.Content = append(m.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: val})
+}
+
+// AddMap adds a new map to the parent node
+func AddMap(parent *yaml.Node, name string) *yaml.Node {
+	parent.Content = append(parent.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: name})
+	m := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
+	parent.Content = append(parent.Content, m)
+	return m
+}
+
+// YamlVal converts node.Value to a string, int, or bool based on the Tag
+func YamlVal(n *yaml.Node) (any, error) {
+	var v any
+	var err error
+	switch n.Tag {
+	case "!!bool":
+		v, err = strconv.ParseBool(n.Value)
+		if err != nil {
+			return "", err
+		}
+	case "!!int":
+		v, err = strconv.ParseInt(n.Value, 10, 32)
+		if err != nil {
+			return "", err
+		}
+	default:
+		v = string(n.Value)
+	}
+	return v, nil
 }

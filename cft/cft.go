@@ -15,6 +15,13 @@ type Template struct {
 	*yaml.Node
 }
 
+// TODO - We really need a convenient Template data structure
+// that lets us easily access elements.
+// t.Resources["MyResource"].Properties["MyProp"]
+//
+// Add a Model attribute to the struct and an Init function to populate it.
+// t.Model.Resources
+
 // Map returns the template as a map[string]interface{}
 func (t Template) Map() map[string]interface{} {
 	var out map[string]interface{}
@@ -25,4 +32,13 @@ func (t Template) Map() map[string]interface{} {
 	}
 
 	return out
+}
+
+// AppendStateMap appends a "State" section to the template
+func AppendStateMap(state Template) *yaml.Node {
+	state.Node.Content[0].Content = append(state.Node.Content[0].Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: "State"})
+	stateMap := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
+	state.Node.Content[0].Content = append(state.Node.Content[0].Content, stateMap)
+	return stateMap
 }

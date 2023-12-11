@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"io"
 	"path/filepath"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -22,7 +23,7 @@ import (
 )
 
 var BucketName = ""
-var BucketKeyPrefix = "" 
+var BucketKeyPrefix = ""
 
 func getClient() *s3.Client {
 	return s3.NewFromConfig(aws.Config())
@@ -150,7 +151,7 @@ func Upload(bucketName string, content []byte) (string, error) {
 		return "", fmt.Errorf("bucket does not exist: '%s'", bucketName)
 	}
 
-	key := filepath.Join ( BucketKeyPrefix, fmt.Sprintf("%x", sha256.Sum256(content)) )
+	key := filepath.Join(BucketKeyPrefix, fmt.Sprintf("%x", sha256.Sum256(content)))
 
 	_, err := getClient().PutObject(context.Background(), &s3.PutObjectInput{
 		Bucket: ptr.String(bucketName),
@@ -199,4 +200,42 @@ func RainBucket(forceCreation bool) string {
 	}
 
 	return bucketName
+}
+
+// GetObject gets an object by key from an S3 bucket
+func GetObject(bucketName string, key string) ([]byte, error) {
+	result, err := getClient().GetObject(context.Background(),
+		&s3.GetObjectInput{
+			Bucket: &bucketName,
+			Key:    &key,
+		})
+	if err != nil {
+		return nil, err
+	}
+	body, err := io.ReadAll(result.Body)
+	if err != nil {
+		return nil, err
+	}
+	return body, nil
+}
+
+// PutObject puts an object into a bucket
+func PutObject(bucketName string, key string, body []byte) error {
+	_, err := getClient().PutObject(context.Background(),
+		&s3.PutObjectInput{
+			Bucket: &bucketName,
+			Key:    &key,
+			Body:   bytes.NewReader(body),
+		})
+	return err
+}
+
+// DeleteObject deletes an object from a bucket
+func DeleteObject(bucketName string, key string) error {
+	_, err := getClient().DeleteObject(context.Background(),
+		&s3.DeleteObjectInput{
+			Bucket: &bucketName,
+			Key:    &key,
+		})
+	return err
 }

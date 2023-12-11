@@ -11,6 +11,8 @@ import (
 	"github.com/aws-cloudformation/rain/internal/cmd/bootstrap"
 	"github.com/aws-cloudformation/rain/internal/cmd/build"
 	"github.com/aws-cloudformation/rain/internal/cmd/cat"
+	"github.com/aws-cloudformation/rain/internal/cmd/ccdeploy"
+	"github.com/aws-cloudformation/rain/internal/cmd/ccrm"
 	consolecmd "github.com/aws-cloudformation/rain/internal/cmd/console"
 	"github.com/aws-cloudformation/rain/internal/cmd/deploy"
 	"github.com/aws-cloudformation/rain/internal/cmd/diff"
@@ -83,6 +85,8 @@ func init() {
 	// Stack commands
 	addCommand(stackGroup, true, false, cat.Cmd)
 	addCommand(stackGroup, true, true, deploy.Cmd)
+	addCommand(stackGroup, true, true, ccdeploy.Cmd)
+	addCommand(stackGroup, true, true, ccrm.Cmd)
 	addCommand(stackGroup, true, false, logs.Cmd)
 	addCommand(stackGroup, true, false, ls.Cmd)
 	addCommand(stackGroup, true, false, rm.Cmd)
