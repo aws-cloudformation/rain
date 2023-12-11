@@ -78,7 +78,7 @@ func String(t cft.Template, opt Options) string {
 			}
 		}
 		trimmedRight := strings.TrimRight(part, " ")
-		if CheckMultilineBegin(trimmedRight) {
+		if !isMultiline && CheckMultilineBegin(trimmedRight) {
 			startMultilineIndent = indent
 		}
 
