@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
@@ -196,6 +197,34 @@ func RainBucket(forceCreation bool) string {
 		err := CreateBucket(bucketName)
 		if err != nil {
 			panic(fmt.Errorf("unable to create artifact bucket '%s': %w", bucketName, err))
+		}
+	}
+
+	// Sleep for 2 seconds to give the bucket time to stabilize
+	time.Sleep(2 * time.Second)
+
+	// #213
+	// Confirm that the bucket really does exist.
+	// Seems unnecessary but bug 213 looks like a race condition. Maybe
+	// checking here and pausing a few seconds will be enough?
+	isBucketExists, err = BucketExists(bucketName)
+	if err != nil {
+		config.Debugf("unable to confirm bucket after creation: %v", err)
+	}
+
+	if !isBucketExists {
+		// Sleep for 5 seconds
+		time.Sleep(5 * time.Second)
+
+		// Check again
+		isBucketExists, err = BucketExists(bucketName)
+		if err != nil {
+			panic(fmt.Errorf("unable to re-confirm whether artifact bucket exists: %w", err))
+		}
+
+		// Give up
+		if !isBucketExists {
+			panic(fmt.Errorf("cannot confirm that artifact bucket '%s' exists", bucketName))
 		}
 	}
 
