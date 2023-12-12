@@ -70,8 +70,12 @@ func checkTemplate(template cft.Template) (string, error) {
 		bucket := s3.RainBucket(false)
 
 		key, err := s3.Upload(bucket, []byte(templateBody))
-
-		return fmt.Sprintf("http://%s.s3.amazonaws.com/%s", bucket, key), err
+		region := aws.Config().Region
+		if strings.HasPrefix(region, "cn-") {
+			return fmt.Sprintf("https://%s.s3.%s.amazonaws.com.cn/%s", bucket, region, key), err
+		} else {
+			return fmt.Sprintf("http://%s.s3.amazonaws.com/%s", bucket, key), err
+		}
 	}
 
 	return templateBody, nil
@@ -428,7 +432,7 @@ func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[s
 		input.RoleARN = ptr.String(roleArn)
 	}
 
-	if strings.HasPrefix(templateBody, "http://") {
+	if strings.HasPrefix(templateBody, "http") {
 		input.TemplateURL = ptr.String(templateBody)
 	} else {
 		input.TemplateBody = ptr.String(templateBody)
@@ -552,7 +556,7 @@ func UpdateStackSet(conf StackSetConfig, instanceConf StackSetInstancesConfig, w
 		OperationPreferences: instanceConf.OperationPreferences,
 	}
 
-	if strings.HasPrefix(templateBody, "http://") {
+	if strings.HasPrefix(templateBody, "http") {
 		input.TemplateURL = ptr.String(templateBody)
 	} else {
 		input.TemplateBody = ptr.String(templateBody)
