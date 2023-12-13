@@ -32,7 +32,10 @@ const (
 	claudeV2ModelID    = "anthropic.claude-v2"
 )
 
+// Invoke invokes the Claude V2 model with the provided prompt.
 func Invoke(p string) (string, error) {
+
+	// Create the Claude 2 payload
 	payload := Request{
 		Prompt:            fmt.Sprintf(claudePromptFormat, p),
 		MaxTokensToSample: 2048,
@@ -41,11 +44,13 @@ func Invoke(p string) (string, error) {
 		TopP:              1,
 	}
 
+	// Convert the request to JSON
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		return "", fmt.Errorf("error marshalling payload: %w", err)
 	}
 
+	// Make the SDK call to the API
 	output, err := getClient().InvokeModel(context.Background(),
 		&bedrockruntime.InvokeModelInput{
 			Body:        payloadBytes,

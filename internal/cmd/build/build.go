@@ -40,6 +40,7 @@ var Cmd = &cobra.Command{
 			return
 		}
 
+		// Invoke Bedrock with Claude 2 to generate the template
 		if promptFlag {
 			prompt(strings.Join(args, " "))
 			return
