@@ -1,11 +1,13 @@
 package format
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"strings"
 
-	"github.com/ake-persson/mapslice-json"
 	"github.com/aws-cloudformation/rain/cft/parse"
+	"github.com/aws-cloudformation/rain/internal/config"
 	"gopkg.in/yaml.v3"
 )
 
@@ -18,8 +20,8 @@ func handleScalar(node *yaml.Node) interface{} {
 			tag = "Fn::" + tag
 		}
 
-		return mapslice.MapSlice{
-			mapslice.MapItem{
+		return MapSlice{
+			MapItem{
 				Key:   tag,
 				Value: node.Value,
 			},
@@ -46,10 +48,10 @@ func Jsonise(node *yaml.Node) interface{} {
 	case yaml.DocumentNode:
 		return Jsonise(node.Content[0])
 	case yaml.MappingNode:
-		out := make(mapslice.MapSlice, len(node.Content)/2)
+		out := make(MapSlice, len(node.Content)/2)
 		for i := 0; i < len(node.Content); i += 2 {
 			key, value := node.Content[i], node.Content[i+1]
-			out[i/2] = mapslice.MapItem{
+			out[i/2] = MapItem{
 				Key:   Jsonise(key),
 				Value: Jsonise(value),
 			}
@@ -67,6 +69,9 @@ func Jsonise(node *yaml.Node) interface{} {
 }
 
 func convertToJSON(in string) string {
+
+	config.Debugf("convertToJson: %v", in)
+
 	var d yaml.Node
 
 	err := yaml.Unmarshal([]byte(in), &d)
@@ -81,15 +86,30 @@ func convertToJSON(in string) string {
 
 	intermediate := Jsonise(&d)
 
-	out, err := json.MarshalIndent(&intermediate, "", "    ")
+	out, err := ToJson(intermediate, "    ")
 	if err != nil {
 		panic(err)
 	}
-	return string(out)
+	s := string(out)
+	return s
 }
 
 // converts struct to a JSON formatted string
 func PrettyPrint(i interface{}) string {
-	s, _ := json.MarshalIndent(i, "", "\t")
+	s, _ := ToJson(i, "\t")
 	return string(s)
+}
+
+// ToJson overrides the default behavior of json.Marshal to leave < > alone
+func ToJson(i interface{}, indent string) ([]byte, error) {
+	si := fmt.Sprintf("%#v", i)
+	config.Debugf("ToJson(%s)", si)
+	buf := &bytes.Buffer{}
+	enc := json.NewEncoder(buf)
+	enc.SetEscapeHTML(false)
+	enc.SetIndent("", indent)
+	err := enc.Encode(i)
+	retval := bytes.TrimRight(buf.Bytes(), "\n")
+	config.Debugf("ToJson retval: %s", retval)
+	return retval, err
 }

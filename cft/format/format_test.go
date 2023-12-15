@@ -1,12 +1,12 @@
 package format_test
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/cft/parse"
-	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -628,10 +628,74 @@ Resources:
 		Unsorted: true,
 	})
 
-	config.Debug = true
-	config.Debugf(actual)
-
 	if d := cmp.Diff(expect, actual); d != "" {
 		t.Fatalf(d)
 	}
+}
+
+func TestToJson(t *testing.T) {
+	s := "Test<String>"
+	j, err := format.ToJson(s, "    ")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if fmt.Sprintf("\"%s\"", s) != string(j) {
+		t.Fatalf("j is \"%s\", expected \"%s\"", j, s)
+	}
+
+	m := make(map[string]string, 0)
+	m["Type"] = "AWS::SSM::Parameter::Value<String>"
+	j, err = format.ToJson(m, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := "{\"Type\":\"AWS::SSM::Parameter::Value<String>\"}"
+	if expected != string(j) {
+		t.Fatalf("j is \"%s\", expected \"%s\"", j, expected)
+	}
+}
+
+func TestUnicodeJson(t *testing.T) {
+	input := `
+Parameters:
+  pBotToken:
+    Description: Bot Token
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /token/bot
+    NoEcho: "true"
+`
+
+	// Parse the template
+	source, err := parse.String(string(input))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	output := format.String(source, format.Options{
+		JSON:     true,
+		Unsorted: true,
+	})
+
+	// Verify the output is valid
+	if err = parse.Verify(source, output); err != nil {
+		t.Fatal(err)
+	}
+
+	expected := `
+{
+    "Parameters": {
+        "pBotToken": {
+            "Description": "Bot Token",
+            "Type": "AWS::SSM::Parameter::Value<String>",
+            "Default": "/token/bot",
+            "NoEcho": "true"
+        }
+    }
+}
+`
+
+	if strings.TrimSpace(output) != strings.TrimSpace(expected) {
+		t.Fatalf("Got:\n%s\n\nExpected:\n%s", output, expected)
+	}
+
 }
