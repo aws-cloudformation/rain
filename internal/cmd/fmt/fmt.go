@@ -54,7 +54,6 @@ func formatReader(name string, r io.Reader) result {
 
 	// Verify the output is valid
 	if err = parse.Verify(source, res.output); err != nil {
-		config.Debugf("formatted output:\n%s\n", res.output)
 		res.err = err
 		return res
 	}

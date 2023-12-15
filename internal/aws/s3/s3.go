@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"time"
 
+	awssdk "github.com/aws/aws-sdk-go-v2/aws"
+
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/smithy-go/ptr"
@@ -102,10 +104,10 @@ func CreateBucket(bucketName string) error {
 	_, err = getClient().PutPublicAccessBlock(context.Background(), &s3.PutPublicAccessBlockInput{
 		Bucket: ptr.String(bucketName),
 		PublicAccessBlockConfiguration: &types.PublicAccessBlockConfiguration{
-			BlockPublicAcls:       true,
-			BlockPublicPolicy:     true,
-			IgnorePublicAcls:      true,
-			RestrictPublicBuckets: true,
+			BlockPublicAcls:       awssdk.Bool(true),
+			BlockPublicPolicy:     awssdk.Bool(true),
+			IgnorePublicAcls:      awssdk.Bool(true),
+			RestrictPublicBuckets: awssdk.Bool(true),
 		},
 	})
 	if err != nil {
@@ -120,17 +122,17 @@ func CreateBucket(bucketName string) error {
 				{
 					Status: types.ExpirationStatusEnabled,
 					AbortIncompleteMultipartUpload: &types.AbortIncompleteMultipartUpload{
-						DaysAfterInitiation: 7,
+						DaysAfterInitiation: awssdk.Int32(7),
 					},
 					Expiration: &types.LifecycleExpiration{
-						Days: 7,
+						Days: awssdk.Int32(7),
 					},
 					Filter: &types.LifecycleRuleFilterMemberPrefix{
 						Value: "",
 					},
 					ID: ptr.String("delete after 14 days"),
 					NoncurrentVersionExpiration: &types.NoncurrentVersionExpiration{
-						NoncurrentDays: 7,
+						NoncurrentDays: awssdk.Int32(7),
 					},
 				},
 			},
