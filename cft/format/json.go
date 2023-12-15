@@ -86,9 +86,6 @@ func convertToJSON(in string) string {
 
 	intermediate := Jsonise(&d)
 
-	// Ignores SetEscapeHTML(false) because of this:
-	// https://github.com/ake-persson/mapslice-json/blob/22c8edf57807/mapslice.go#L36
-
 	out, err := ToJson(intermediate, "    ")
 	if err != nil {
 		panic(err)

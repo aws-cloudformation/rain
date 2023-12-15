@@ -1,5 +1,8 @@
 package format
 
+// Borrowed this so that I could customize the encoder
+// https://github.com/ake-persson/mapslice-json/blob/22c8edf57807/mapslice.go
+
 import (
 	"bytes"
 	"encoding/json"
