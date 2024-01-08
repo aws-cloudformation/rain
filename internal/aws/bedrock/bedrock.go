@@ -29,7 +29,7 @@ func getClient() *bedrockruntime.Client {
 
 const (
 	claudePromptFormat = "\n\nHuman:%s\n\nAssistant:"
-	claudeV2ModelID    = "anthropic.claude-v2"
+	claudeV2ModelID    = "anthropic.claude-v2:1"
 )
 
 // Invoke invokes the Claude V2 model with the provided prompt.
