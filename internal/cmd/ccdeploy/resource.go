@@ -2,6 +2,7 @@ package ccdeploy
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/aws-cloudformation/rain/cft/diff"
 	"gopkg.in/yaml.v3"
@@ -27,7 +28,8 @@ type Resource struct {
 	Model      string
 	Action     diff.ActionType
 	PriorJson  string
-	// TODO - Add elapsed time
+	Start      time.Time
+	End        time.Time
 }
 
 func (r Resource) String() string {

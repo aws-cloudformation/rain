@@ -5,12 +5,16 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft/diff"
 	"github.com/aws-cloudformation/rain/cft/graph"
+	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/dc"
+	"github.com/aws-cloudformation/rain/internal/node"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 )
 
 func TestReady(t *testing.T) {
 
-	config.Debug = true
+	// config.Debug = true
 
 	g := graph.Empty()
 
@@ -87,4 +91,85 @@ func TestVerifyDeletes(t *testing.T) {
 		t.Fatalf("Should not have failed: %v", err)
 	}
 
+}
+
+func TestResolveRefParam(t *testing.T) {
+	source := `
+Parameters:
+    A:
+        Type: String
+    Missing:
+        Type: String
+        Default: a
+Resources:
+    B:
+        Type: AWS::S3::Bucket
+        Properties:
+            BucketName: 
+                Ref: A
+    C:
+        Type: AWS::S3::Bucket
+        Properties:
+            BucketName: 
+                Ref: Missing
+`
+	template, err := parse.String(source)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	config.Debug = true
+	config.Debugf("template: %v", node.ToSJson(template.Node))
+
+	// Set globals
+	deployedTemplate = template
+	stack := types.Stack{} // Not relevant here
+	stack.Parameters = make([]types.Parameter, 0)
+	testParams := make([]string, 0)
+	testTags := make([]string, 0)
+	testParams = append(testParams, "A=aaa")
+	dc, err := dc.GetDeployConfig(testTags, testParams, "", "",
+		template, stack, false, true, false)
+	if err != nil {
+		panic(err)
+	}
+	templateConfig = dc
+
+	resourceNode, err := template.GetResource("B")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resource := NewResource("B", "AWS::S3::Bucket", Waiting, resourceNode)
+
+	resolved, err := Resolve(resource)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	config.Debugf("resolved node B: %v", node.ToSJson(resolved))
+
+	// Make sure the value is what we expect
+	if resolved.Content[1].Value != "aaa" {
+		t.Fatalf("Expected aaa for B, got %s", resolved.Content[1].Value)
+	}
+
+	// Check a missing parameter to make sure the default is applied
+	resourceNode, err = template.GetResource("C")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resource = NewResource("C", "AWS::S3::Bucket", Waiting, resourceNode)
+
+	resolved, err = Resolve(resource)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	config.Debugf("resolved node C: %v", node.ToSJson(resolved))
+
+	if resolved.Content[1].Value != "a" {
+		t.Fatalf("Expected a for C, got %s", resolved.Content[1].Value)
+	}
 }

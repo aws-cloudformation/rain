@@ -9,20 +9,28 @@ import (
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/cft/pkg"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
+	"github.com/aws-cloudformation/rain/internal/cmd/forecast"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
+	"github.com/aws-cloudformation/rain/internal/dc"
 	"github.com/aws-cloudformation/rain/internal/ui"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/spf13/cobra"
 )
 
+// Args
 var params []string
 var tags []string
 var configFilePath string
 var Experimental bool
+var yes bool
+var ignoreUnknownParams bool
 
-// var template cft.Template
-var resMap map[string]*Resource // TODO - This is kinda bad (global)
+// Globals (seems bad..? but cumbersome to pass them around)
+var deployedTemplate cft.Template
+var resMap map[string]*Resource
+var templateConfig *dc.DeployConfig
 
 // PackageTemplate reads the template and performs any necessary packaging on it
 // before deployment. The rain bucket will be created if it does not already exist.
@@ -51,6 +59,14 @@ func run(cmd *cobra.Command, args []string) {
 	spinner.Pop()
 
 	// TODO - Get DeployConfig (modified to remove stack references...)
+	stack := types.Stack{} // Not relevant here
+	stack.Parameters = make([]types.Parameter, 0)
+	dc, err := dc.GetDeployConfig(tags, params, configFilePath, base,
+		template, stack, false, yes, ignoreUnknownParams)
+	if err != nil {
+		panic(err)
+	}
+	templateConfig = dc
 
 	// Compare against the current state to see what has changed, if this
 	// is an update
@@ -73,6 +89,7 @@ func run(cmd *cobra.Command, args []string) {
 		if err != nil {
 			panic(err)
 		}
+		// TODO: update needs to take parameters into account
 		summarizeChanges(changes)
 
 		if !console.Confirm(true, "Do you wish to continue?") {
@@ -84,7 +101,11 @@ func run(cmd *cobra.Command, args []string) {
 		changes = template
 	}
 
-	// TODO - Resolve intrinsics (yikes!)
+	deployedTemplate = changes
+
+	// Figure out how long we thing the stack will take to execute
+	totalSeconds := forecast.PredictTotalEstimate(template, stateResult.IsUpdate)
+	fmt.Printf("Predicted deployment time: %v", forecast.FormatEstimate(totalSeconds))
 
 	spinner.StartTimer(fmt.Sprintf("Deploying %v", name))
 	results, err := DeployTemplate(changes)
@@ -128,10 +149,12 @@ You must pass the --experimental (-x) flag to use this command, to acknowledge t
 func init() {
 
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
+	Cmd.Flags().BoolVarP(&yes, "yes", "y", false, "don't ask questions; just deploy")
 	Cmd.Flags().StringSliceVar(&tags, "tags", []string{}, "add tags to the stack; use the format key1=value1,key2=value2")
 	Cmd.Flags().StringSliceVar(&params, "params", []string{}, "set parameter values; use the format key1=value1,key2=value2")
 	Cmd.Flags().StringVarP(&configFilePath, "config", "c", "", "YAML or JSON file to set tags and parameters")
 	Cmd.Flags().BoolVarP(&Experimental, "experimental", "x", false, "Acknowledge that this is an experimental feature")
+	Cmd.Flags().BoolVarP(&ignoreUnknownParams, "ignore-unknown-params", "", false, "Ignore unknown parameters")
 
 	resMap = make(map[string]*Resource)
 

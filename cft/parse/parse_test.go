@@ -212,3 +212,23 @@ Resources:
 	// Output:
 	// map[Resources:map[Bucket:map[Type:AWS::S3::Bucket]]]
 }
+
+func TestGetResource(t *testing.T) {
+	source := `
+Resources:
+    B:
+        Type: AWS::S3::Bucket
+`
+	template, err := parse.String(source)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resource, err := template.GetResource("B")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resource == nil {
+		t.Error("Unexpected: resource is nil")
+	}
+}

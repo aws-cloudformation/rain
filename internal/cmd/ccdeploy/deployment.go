@@ -41,12 +41,15 @@ func deployResource(resource *Resource) {
 
 	// TODO - Resolve instrinsics before creating the resource
 	// This will depend on the post-deployment state of dependencies
-	resolvedNode, err := resolve(resource)
+	resolvedNode, err := Resolve(resource)
 	if err != nil {
 		config.Debugf("deployResource resolve failed: %v", err)
 		resource.State = Failed
 		resource.Message = fmt.Sprintf("%v", err)
 	}
+
+	resource.Start = time.Now()
+	defer func() { resource.End = time.Now() }()
 
 	switch resource.Action {
 	case diff.Create:

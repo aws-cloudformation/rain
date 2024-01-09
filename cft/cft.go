@@ -6,6 +6,7 @@ package cft
 import (
 	"fmt"
 
+	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
 )
 
@@ -41,4 +42,44 @@ func AppendStateMap(state Template) *yaml.Node {
 	stateMap := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
 	state.Node.Content[0].Content = append(state.Node.Content[0].Content, stateMap)
 	return stateMap
+}
+
+// Section represents a top level section of a template, like Resources
+type Section string
+
+const (
+	AWSTemplateFormatVersion Section = "AWSTemplateFormatVersion"
+	Resources                Section = "Resources"
+	Description              Section = "Description "
+	Metadata                 Section = "Metadata"
+	Parameters               Section = "Parameters"
+	Rules                    Section = "Rules"
+	Mappings                 Section = "Mappings"
+	Conditions               Section = "Conditions"
+	Transform                Section = "Transform"
+	Outputs                  Section = "Outputs"
+)
+
+// GetResource returns the yaml node for a resource by logical id
+func (t Template) GetResource(name string) (*yaml.Node, error) {
+	return t.GetNode(Resources, name)
+}
+
+// GetParameter returns the yaml node for a parameter by name
+func (t Template) GetParameter(name string) (*yaml.Node, error) {
+	return t.GetNode(Parameters, name)
+}
+
+// GetNode returns a yaml node by section and name
+func (t Template) GetNode(section Section, name string) (*yaml.Node, error) {
+	_, resMap := s11n.GetMapValue(t.Node.Content[0], string(section))
+	if resMap == nil {
+		return nil, fmt.Errorf("Unable to locate the %s node", section)
+	}
+	// TODO: Some Sections are not Maps
+	_, resource := s11n.GetMapValue(resMap, name)
+	if resource == nil {
+		return nil, fmt.Errorf("Unable to locate %s %s", section, name)
+	}
+	return resource, nil
 }

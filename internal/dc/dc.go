@@ -32,6 +32,19 @@ type DeployConfig struct {
 	Tags   map[string]string
 }
 
+// GetParam gets the value of a supplied parameter
+func (dc DeployConfig) GetParam(name string) (string, bool) {
+	for _, p := range dc.Params {
+		if *p.ParameterKey == name {
+			if p.ResolvedValue != nil {
+				return *p.ResolvedValue, true
+			}
+			return *p.ParameterValue, true
+		}
+	}
+	return "", false
+}
+
 // GetParameters checks the combined params supplied as args and in a file
 // and asks the user to supply any values that are missing
 func GetParameters(
