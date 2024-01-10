@@ -1,6 +1,7 @@
 package ccdeploy
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/aws-cloudformation/rain/internal/config"
@@ -90,8 +91,22 @@ func resolveNode(n *yaml.Node, resource *Resource) (*yaml.Node, error) {
 
 					retval = &yaml.Node{Kind: yaml.ScalarNode, Value: refVal}
 
+				} else if v.Kind == yaml.ScalarNode && v.Value == "Fn::GetAtt" {
+
+					config.Debugf("This is a GetAtt")
+					getatt := n.Content[i+1]
+					getAttVal, err := resolveGetAtt(getatt, resource)
+					if err != nil {
+						return nil, err
+					}
+
+					// Same as with Ref above, we need to replace the node
+
+					retval = &yaml.Node{Kind: yaml.ScalarNode, Value: getAttVal}
+
 				} else if n.Content[i+1].Kind == yaml.MappingNode {
 					// Recurse on a child Mapping node
+					config.Debugf("Recursing on child Mapping node")
 					rn, err := resolveNode(n.Content[i+1], resource)
 					if err != nil {
 						return nil, err
@@ -174,4 +189,50 @@ func resolveRef(refNode *yaml.Node, resource *Resource) (string, error) {
 
 	// Error if we can't find it anywhere
 	return "", fmt.Errorf("Cannot resolve %s", refNode.Value)
+}
+
+// resolveGetAtt resolves a node with Fn::GetAtt
+func resolveGetAtt(n *yaml.Node, resource *Resource) (string, error) {
+	if n.Kind != yaml.SequenceNode {
+		return "", fmt.Errorf("GetAtt Value is not a Sequence for %v", resource.Name)
+	}
+
+	name := n.Content[0].Value
+	attr := n.Content[1].Value
+
+	config.Debugf("GetAtt %v.%v", name, attr)
+
+	reffedResource, err := deployedTemplate.GetResource(name)
+	if err == nil {
+		config.Debugf("reffedResource: %v", reffedResource)
+
+		// Get a reference to the Resource we deployed from the global map
+		reffed, exists := resMap[name]
+		if !exists {
+			return "", fmt.Errorf("Resource %s missing from global resource map", name)
+		}
+
+		// Look at the resource model returned from when we deployed that resource
+		config.Debugf("reffed id: %s,  model: %v", reffed.Identifier, reffed.Model)
+
+		// Parse the model to get the attribute
+		var j map[string]any
+		err := json.Unmarshal([]byte(reffed.Model), &j)
+		if err != nil {
+			return "", fmt.Errorf("Unable to parse model: %v", err)
+		}
+
+		attrValue, exists := j[attr]
+		if !exists {
+			return "", fmt.Errorf("Unable to find %s.%s in the deployed Model", name, attr)
+		}
+
+		return attrValue.(string), nil
+
+	} else {
+		config.Debugf("Can't find resource %s: %v", name, err)
+	}
+
+	// Error if we can't find it anywhere
+	return "", fmt.Errorf("Cannot resolve %s.%s", name, attr)
 }

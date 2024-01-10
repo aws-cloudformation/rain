@@ -1,6 +1,7 @@
 package ccdeploy
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/aws-cloudformation/rain/cft/diff"
@@ -11,6 +12,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	"gopkg.in/yaml.v3"
 )
 
 func TestReady(t *testing.T) {
@@ -255,5 +257,85 @@ Resources:
 	gotVal := resolved.Content[3].Content[1].Content[1].Value
 	if gotVal != "bname" {
 		t.Fatalf("Expected DestinationBucketName to be bname, got %s", gotVal)
+	}
+}
+
+// Test to make sure we can resolve GetAtts
+func TestResolveGetAtt(t *testing.T) {
+	source := `
+Resources:
+    MyFunc:
+        Type: AWS::Lambda::Function
+        Properties:
+            Role: 
+                Fn::GetAtt: [ MyBucket, Arn ]
+    MyFunc2:
+        Type: AWS::Lambda::Function
+        Properties:
+            Role: !GetAtt MyBucket.Arn
+    MyBucket:
+        Type: AWS::S3::Bucket
+`
+
+	// Note that MyFunc and MyFunc2 look the same in the parsed YAML
+
+	template, err := parse.String(source)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	config.Debug = true
+	config.Debugf("template: %v", node.ToSJson(template.Node))
+
+	// Set globals
+	deployedTemplate = template
+	stack := types.Stack{} // Not relevant here
+	stack.Parameters = make([]types.Parameter, 0)
+	testParams := make([]string, 0)
+	testTags := make([]string, 0)
+	dc, err := dc.GetDeployConfig(testTags, testParams, "", "",
+		template, stack, false, true, false)
+	if err != nil {
+		panic(err)
+	}
+	templateConfig = dc
+
+	logicalId := "MyBucket"
+	bNode, err := template.GetResource(logicalId)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Put it into the resource map, as if we had deployed it
+	bResource := NewResource(logicalId, "AWS::S3::Bucket", Waiting, bNode)
+	bResource.Identifier = "bname"
+	arn := "arn:aws:s3:::bname"
+	bResource.Model = `
+{
+	"BucketName": "bname",
+	"Arn": "ARN" 
+}
+`
+	bResource.Model = strings.Replace(bResource.Model, "ARN", arn, -1)
+	config.Debugf("bResource.Model: %s", bResource.Model)
+	resMap[logicalId] = bResource
+
+	myfuncNode, _ := template.GetResource("MyFunc")
+	myfunc := NewResource("MyFunc", "AWS::Lambda::Function", Waiting, myfuncNode)
+
+	resolved, err := Resolve(myfunc)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	config.Debugf("resolved MyFunc node: %v", node.ToSJson(resolved))
+
+	// Make sure the value is what we expect
+	if resolved.Content[3].Content[1].Kind != yaml.ScalarNode {
+		t.Fatalf("Expected resolved Arn to be a scalar")
+	}
+	gotVal := resolved.Content[3].Content[1].Value
+	if gotVal != arn {
+		t.Fatalf("Expected %s but got %s", arn, gotVal)
 	}
 }
