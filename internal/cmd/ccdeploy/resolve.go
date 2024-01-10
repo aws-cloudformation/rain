@@ -203,36 +203,31 @@ func resolveGetAtt(n *yaml.Node, resource *Resource) (string, error) {
 	config.Debugf("GetAtt %v.%v", name, attr)
 
 	reffedResource, err := deployedTemplate.GetResource(name)
-	if err == nil {
-		config.Debugf("reffedResource: %v", reffedResource)
+	if err != nil {
+		return "", fmt.Errorf("Can't find resource %s: %v", name, err)
+	}
+	config.Debugf("reffedResource: %v", reffedResource)
 
-		// Get a reference to the Resource we deployed from the global map
-		reffed, exists := resMap[name]
-		if !exists {
-			return "", fmt.Errorf("Resource %s missing from global resource map", name)
-		}
-
-		// Look at the resource model returned from when we deployed that resource
-		config.Debugf("reffed id: %s,  model: %v", reffed.Identifier, reffed.Model)
-
-		// Parse the model to get the attribute
-		var j map[string]any
-		err := json.Unmarshal([]byte(reffed.Model), &j)
-		if err != nil {
-			return "", fmt.Errorf("Unable to parse model: %v", err)
-		}
-
-		attrValue, exists := j[attr]
-		if !exists {
-			return "", fmt.Errorf("Unable to find %s.%s in the deployed Model", name, attr)
-		}
-
-		return attrValue.(string), nil
-
-	} else {
-		config.Debugf("Can't find resource %s: %v", name, err)
+	// Get a reference to the Resource we deployed from the global map
+	reffed, exists := resMap[name]
+	if !exists {
+		return "", fmt.Errorf("Resource %s missing from global resource map", name)
 	}
 
-	// Error if we can't find it anywhere
-	return "", fmt.Errorf("Cannot resolve %s.%s", name, attr)
+	// Look at the resource model returned from when we deployed that resource
+	config.Debugf("reffed id: %s,  model: %v", reffed.Identifier, reffed.Model)
+
+	// Parse the model to get the attribute
+	var j map[string]any
+	err = json.Unmarshal([]byte(reffed.Model), &j)
+	if err != nil {
+		return "", fmt.Errorf("Unable to parse model: %v", err)
+	}
+
+	attrValue, exists := j[attr]
+	if !exists {
+		return "", fmt.Errorf("Unable to find %s.%s in the deployed Model", name, attr)
+	}
+
+	return attrValue.(string), nil
 }
