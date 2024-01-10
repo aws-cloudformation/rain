@@ -45,7 +45,7 @@ func resolveNode(n *yaml.Node, resource *Resource) (*yaml.Node, error) {
 	config.Debugf("resolveNode: %s", node.ToSJson(n))
 
 	// We'll return a clone of the node, with intrinsics resolved
-	cloned := node.Clone(n)
+	retval := node.Clone(n)
 
 	switch n.Kind {
 	case yaml.MappingNode:
@@ -59,11 +59,44 @@ func resolveNode(n *yaml.Node, resource *Resource) (*yaml.Node, error) {
 					if err != nil {
 						return nil, err
 					}
-					cloned.Content[i+1] = node.Clone(n.Content[i+1])
-					cloned.Content[i+1].Value = refVal
+
+					/* We need to convert the entire Mapping node to a scalar
+
+					n is:
+
+					{
+					  "Kind": "Mapping",
+					  "Value": "",
+					  "Content": [
+						{
+						  "Kind": "Scalar",
+						  "Value": "Ref"
+						},
+						{
+						  "Kind": "Scalar",
+						  "Value": "aaa"
+						}
+					  ]
+					}
+
+					n needs to be:
+
+					{
+					  "Kind": "Scalar",
+					  "Value": "aaa"
+					}
+
+					*/
+
+					retval = &yaml.Node{Kind: yaml.ScalarNode, Value: refVal}
+
 				} else if n.Content[i+1].Kind == yaml.MappingNode {
 					// Recurse on a child Mapping node
-					return resolveNode(n.Content[i+1], resource)
+					rn, err := resolveNode(n.Content[i+1], resource)
+					if err != nil {
+						return nil, err
+					}
+					retval.Content[i+1] = rn
 				}
 			}
 		}
@@ -76,10 +109,9 @@ func resolveNode(n *yaml.Node, resource *Resource) (*yaml.Node, error) {
 
 	default:
 		config.Debugf("Unexpected Kind: %v", n.Kind)
-		return cloned, nil
 	}
 
-	return cloned, nil
+	return retval, nil
 }
 
 func resolveRef(refNode *yaml.Node, resource *Resource) (string, error) {
@@ -104,7 +136,41 @@ func resolveRef(refNode *yaml.Node, resource *Resource) (string, error) {
 		}
 	}
 
+	config.Debugf("Did not find %s in Parameters, checking Resources", refNode.Value)
+
 	// Check to see if it is a reference to another resource
+	reffedResource, err := deployedTemplate.GetResource(refNode.Value)
+	config.Debugf("reffedResource: %v", reffedResource)
+	if err == nil {
+		/*
+			// Get the Type of the reffed resource
+			_, t := s11n.GetMapValue(reffedResource, "Type")
+			if t == nil {
+				return "", fmt.Errorf("Resource %s does not have a Type?", refNode.Value)
+			}
+			reffedType := t.Value
+		*/
+
+		// Now we need to know, what does "Ref" mean for this resource type?
+		// For now assume it's always primaryIdentifier
+
+		// We don't need to query CCAPI to look at the schema for the type.
+		// Because we already set resource.Identifier in deployment.go
+
+		// Get a reference to the Resource we deployed from the global map
+		reffed, exists := resMap[refNode.Value]
+		if !exists {
+			return "", fmt.Errorf("Resource %s missing from global resource map", refNode.Value)
+		}
+
+		// Look at the resource model returned from when we deployed that resource
+		config.Debugf("reffed id: %s,  model: %v", reffed.Identifier, reffed.Model)
+
+		return reffed.Identifier, nil
+
+	} else {
+		config.Debugf("%v", err)
+	}
 
 	// Error if we can't find it anywhere
 	return "", fmt.Errorf("Cannot resolve %s", refNode.Value)

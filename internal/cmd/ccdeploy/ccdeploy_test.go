@@ -9,6 +9,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/dc"
 	"github.com/aws-cloudformation/rain/internal/node"
+	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 )
 
@@ -93,6 +94,7 @@ func TestVerifyDeletes(t *testing.T) {
 
 }
 
+// Test to make sure we can resolve Refs to Parameters
 func TestResolveRefParam(t *testing.T) {
 	source := `
 Parameters:
@@ -110,8 +112,7 @@ Resources:
     C:
         Type: AWS::S3::Bucket
         Properties:
-            BucketName: 
-                Ref: Missing
+            BucketName: !Ref Missing
 `
 	template, err := parse.String(source)
 	if err != nil {
@@ -150,8 +151,16 @@ Resources:
 	config.Debugf("resolved node B: %v", node.ToSJson(resolved))
 
 	// Make sure the value is what we expect
-	if resolved.Content[1].Value != "aaa" {
-		t.Fatalf("Expected aaa for B, got %s", resolved.Content[1].Value)
+	_, props := s11n.GetMapValue(resolved, "Properties")
+	if props == nil {
+		t.Fatalf("B Properties is missing")
+	}
+	_, bucketName := s11n.GetMapValue(props, "BucketName")
+	if bucketName == nil {
+		t.Fatalf("B Properties BucketName is missing")
+	}
+	if bucketName.Value != "aaa" {
+		t.Fatalf("Expected BucketName for B to be aaa, got %v", bucketName.Value)
 	}
 
 	// Check a missing parameter to make sure the default is applied
@@ -169,7 +178,82 @@ Resources:
 
 	config.Debugf("resolved node C: %v", node.ToSJson(resolved))
 
-	if resolved.Content[1].Value != "a" {
-		t.Fatalf("Expected a for C, got %s", resolved.Content[1].Value)
+	_, props = s11n.GetMapValue(resolved, "Properties")
+	if props == nil {
+		t.Fatalf("C Properties is missing")
+	}
+	_, bucketName = s11n.GetMapValue(props, "BucketName")
+	if bucketName == nil {
+		t.Fatalf("C Properties BucketName is missing")
+	}
+	if bucketName.Value != "a" {
+		t.Fatalf("Expected BucketName for C to be a, got %v", bucketName.Value)
+	}
+}
+
+// Test to make sure we can resolve Refs to Resources
+func TestResolveRefResource(t *testing.T) {
+	source := `
+Resources:
+    B:
+        Type: AWS::S3::Bucket
+        Properties:
+            BucketName: mybucket
+    C:
+        Type: AWS::S3::Bucket
+        Properties:
+            LoggingConfiguration:
+                DestinationBucketName: !Ref B
+`
+	template, err := parse.String(source)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	config.Debug = true
+	config.Debugf("template: %v", node.ToSJson(template.Node))
+
+	// Set globals
+	deployedTemplate = template
+	stack := types.Stack{} // Not relevant here
+	stack.Parameters = make([]types.Parameter, 0)
+	testParams := make([]string, 0)
+	testTags := make([]string, 0)
+	dc, err := dc.GetDeployConfig(testTags, testParams, "", "",
+		template, stack, false, true, false)
+	if err != nil {
+		panic(err)
+	}
+	templateConfig = dc
+
+	resourceNode, err := template.GetResource("C")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resource := NewResource("C", "AWS::S3::Bucket", Waiting, resourceNode)
+
+	// Put B into the resource map, as if we had deployed it
+	bNode, _ := deployedTemplate.GetResource("B")
+	bResource := NewResource("B", "AWS::S3::Bucket", Waiting, bNode)
+	bResource.Identifier = "bname"
+	bResource.Model = `
+{
+	"BucketName": "bname"	
+}
+`
+	resMap["B"] = bResource
+
+	resolved, err := Resolve(resource)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	config.Debugf("resolved node C: %v", node.ToSJson(resolved))
+
+	// Make sure the value is what we expect
+	gotVal := resolved.Content[3].Content[1].Content[1].Value
+	if gotVal != "bname" {
+		t.Fatalf("Expected DestinationBucketName to be bname, got %s", gotVal)
 	}
 }
