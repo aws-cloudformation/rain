@@ -339,3 +339,88 @@ Resources:
 		t.Fatalf("Expected %s but got %s", arn, gotVal)
 	}
 }
+
+// Test to make sure we can resolve Subs
+func TestResolveSub(t *testing.T) {
+	source := `
+Resources:
+    MyFunc:
+        Type: AWS::Lambda::Function
+        Properties:
+            Role: 
+                Fn::Sub: "${MyBucket.Arn}"
+    MyFunc2:
+        Type: AWS::Lambda::Function
+        Properties:
+            Role: !Sub "${MyBucket.Arn}"
+    MyBucket:
+        Type: AWS::S3::Bucket
+        Properties:
+            BucketName: 
+                Fn::Sub:
+                  - "Test${A}"
+                  - A: 1
+`
+
+	// Note that MyFunc and MyFunc2 look the same in the parsed YAML
+
+	template, err := parse.String(source)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	config.Debug = true
+	config.Debugf("template: %v", node.ToSJson(template.Node))
+
+	// Set globals
+	deployedTemplate = template
+	stack := types.Stack{} // Not relevant here
+	stack.Parameters = make([]types.Parameter, 0)
+	testParams := make([]string, 0)
+	testTags := make([]string, 0)
+	dc, err := dc.GetDeployConfig(testTags, testParams, "", "",
+		template, stack, false, true, false)
+	if err != nil {
+		panic(err)
+	}
+	templateConfig = dc
+
+	logicalId := "MyBucket"
+	bNode, err := template.GetResource(logicalId)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Put it into the resource map, as if we had deployed it
+	bResource := NewResource(logicalId, "AWS::S3::Bucket", Waiting, bNode)
+	bResource.Identifier = "Test1"
+	arn := "arn:aws:s3:::Test"
+	bResource.Model = `
+{
+	"BucketName": "Test1",
+	"Arn": "ARN" 
+}
+`
+	bResource.Model = strings.Replace(bResource.Model, "ARN", arn, -1)
+	config.Debugf("bResource.Model: %s", bResource.Model)
+	resMap[logicalId] = bResource
+
+	myfuncNode, _ := template.GetResource("MyFunc")
+	myfunc := NewResource("MyFunc", "AWS::Lambda::Function", Waiting, myfuncNode)
+
+	resolved, err := Resolve(myfunc)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	config.Debugf("resolved MyFunc node: %v", node.ToSJson(resolved))
+
+	// Make sure the value is what we expect
+	if resolved.Content[3].Content[1].Kind != yaml.ScalarNode {
+		t.Fatalf("Expected resolved Arn to be a scalar")
+	}
+	gotVal := resolved.Content[3].Content[1].Value
+	if gotVal != arn {
+		t.Fatalf("Expected %s but got %s", arn, gotVal)
+	}
+}

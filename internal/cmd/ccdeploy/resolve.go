@@ -2,6 +2,7 @@ package ccdeploy
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/aws-cloudformation/rain/internal/config"
@@ -17,6 +18,7 @@ import (
 // Supported:
 //
 //	Ref
+//	Fn::GetAtt
 //
 // Not Supported:
 //
@@ -25,7 +27,6 @@ import (
 //	Condition functions
 //	Fn::FindInMap
 //	Fn::ForEach
-//	Fn::GetAtt
 //	Fn::GetAZs
 //	Fn::ImportValue
 //	Fn::Join
@@ -39,91 +40,94 @@ func Resolve(resource *Resource) (*yaml.Node, error) {
 	return resolveNode(resource.Node, resource)
 }
 
+// TODO: What about intrinsics outside of Resources?
+
 // resolveNode is a recursive function that resolves all
 // intrinsics in the resource node and its children
 func resolveNode(n *yaml.Node, resource *Resource) (*yaml.Node, error) {
 
 	config.Debugf("resolveNode: %s", node.ToSJson(n))
 
+	if n.Kind != yaml.MappingNode {
+		return nil, errors.New("expected resource node to be a Mapping")
+	}
+
 	// We'll return a clone of the node, with intrinsics resolved
 	retval := node.Clone(n)
 
-	switch n.Kind {
-	case yaml.MappingNode:
-		config.Debugf("Mapping Node")
-		for i, v := range n.Content {
-			if i%2 == 0 {
-				if v.Kind == yaml.ScalarNode && v.Value == "Ref" {
-					config.Debugf("This is a Ref")
-					refNode := n.Content[i+1]
-					refVal, err := resolveRef(refNode, resource)
-					if err != nil {
-						return nil, err
-					}
-
-					/* We need to convert the entire Mapping node to a scalar
-
-					n is:
-
-					{
-					  "Kind": "Mapping",
-					  "Value": "",
-					  "Content": [
-						{
-						  "Kind": "Scalar",
-						  "Value": "Ref"
-						},
-						{
-						  "Kind": "Scalar",
-						  "Value": "aaa"
-						}
-					  ]
-					}
-
-					n needs to be:
-
-					{
-					  "Kind": "Scalar",
-					  "Value": "aaa"
-					}
-
-					*/
-
-					retval = &yaml.Node{Kind: yaml.ScalarNode, Value: refVal}
-
-				} else if v.Kind == yaml.ScalarNode && v.Value == "Fn::GetAtt" {
-
-					config.Debugf("This is a GetAtt")
-					getatt := n.Content[i+1]
-					getAttVal, err := resolveGetAtt(getatt, resource)
-					if err != nil {
-						return nil, err
-					}
-
-					// Same as with Ref above, we need to replace the node
-
-					retval = &yaml.Node{Kind: yaml.ScalarNode, Value: getAttVal}
-
-				} else if n.Content[i+1].Kind == yaml.MappingNode {
-					// Recurse on a child Mapping node
-					config.Debugf("Recursing on child Mapping node")
-					rn, err := resolveNode(n.Content[i+1], resource)
-					if err != nil {
-						return nil, err
-					}
-					retval.Content[i+1] = rn
-				}
+	for i := 0; i < len(n.Content); i += 2 {
+		mapkey := n.Content[i]
+		mapval := n.Content[i+1]
+		if mapkey.Kind == yaml.ScalarNode && mapkey.Value == "Ref" {
+			config.Debugf("This is a Ref")
+			refVal, err := resolveRef(mapval, resource)
+			if err != nil {
+				return nil, err
 			}
+
+			/* We need to convert the entire Mapping node to a scalar
+
+			n is:
+
+			{
+			  "Kind": "Mapping",
+			  "Value": "",
+			  "Content": [
+				{
+				  "Kind": "Scalar",
+				  "Value": "Ref"
+				},
+				{
+				  "Kind": "Scalar",
+				  "Value": "aaa"
+				}
+			  ]
+			}
+
+			n needs to be:
+
+			{
+			  "Kind": "Scalar",
+			  "Value": "aaa"
+			}
+
+			*/
+
+			retval = &yaml.Node{Kind: yaml.ScalarNode, Value: refVal}
+
+		} else if mapkey.Kind == yaml.ScalarNode && mapkey.Value == "Fn::GetAtt" {
+
+			config.Debugf("This is a GetAtt")
+			getAttVal, err := resolveGetAtt(mapval, resource)
+			if err != nil {
+				return nil, err
+			}
+
+			// Same as with Ref above, we need to replace the node
+
+			retval = &yaml.Node{Kind: yaml.ScalarNode, Value: getAttVal}
+
+		} else if mapkey.Kind == yaml.ScalarNode && mapkey.Value == "Fn::Sub" {
+
+			config.Debugf("This is a Sub")
+			subVal, err := resolveSub(mapval, resource)
+			if err != nil {
+				return nil, err
+			}
+
+			// Same as with Ref above, we need to replace the node
+
+			retval = &yaml.Node{Kind: yaml.ScalarNode, Value: subVal}
+
+		} else if mapval.Kind == yaml.MappingNode {
+			// Recurse on a child Mapping node
+			config.Debugf("Recursing on child Mapping node")
+			rn, err := resolveNode(mapval, resource)
+			if err != nil {
+				return nil, err
+			}
+			retval.Content[i+1] = rn
 		}
-
-	case yaml.ScalarNode:
-		config.Debugf("Scalar Node")
-
-	case yaml.SequenceNode:
-		config.Debugf("Sequence Node")
-
-	default:
-		config.Debugf("Unexpected Kind: %v", n.Kind)
 	}
 
 	return retval, nil
@@ -131,7 +135,7 @@ func resolveNode(n *yaml.Node, resource *Resource) (*yaml.Node, error) {
 
 func resolveRef(refNode *yaml.Node, resource *Resource) (string, error) {
 	if refNode.Kind != yaml.ScalarNode {
-		return "", fmt.Errorf("Ref Value is not a scalar for %v", resource.Name)
+		return "", fmt.Errorf("ref Value is not a scalar for %v", resource.Name)
 	}
 
 	// Now we have a name that we need to find.
@@ -161,7 +165,7 @@ func resolveRef(refNode *yaml.Node, resource *Resource) (string, error) {
 			// Get the Type of the reffed resource
 			_, t := s11n.GetMapValue(reffedResource, "Type")
 			if t == nil {
-				return "", fmt.Errorf("Resource %s does not have a Type?", refNode.Value)
+				return "", fmt.Errorf("resource %s does not have a Type?", refNode.Value)
 			}
 			reffedType := t.Value
 		*/
@@ -175,7 +179,7 @@ func resolveRef(refNode *yaml.Node, resource *Resource) (string, error) {
 		// Get a reference to the Resource we deployed from the global map
 		reffed, exists := resMap[refNode.Value]
 		if !exists {
-			return "", fmt.Errorf("Resource %s missing from global resource map", refNode.Value)
+			return "", fmt.Errorf("resource %s missing from global resource map", refNode.Value)
 		}
 
 		// Look at the resource model returned from when we deployed that resource
@@ -188,13 +192,13 @@ func resolveRef(refNode *yaml.Node, resource *Resource) (string, error) {
 	}
 
 	// Error if we can't find it anywhere
-	return "", fmt.Errorf("Cannot resolve %s", refNode.Value)
+	return "", fmt.Errorf("cannot resolve %s", refNode.Value)
 }
 
 // resolveGetAtt resolves a node with Fn::GetAtt
 func resolveGetAtt(n *yaml.Node, resource *Resource) (string, error) {
 	if n.Kind != yaml.SequenceNode {
-		return "", fmt.Errorf("GetAtt Value is not a Sequence for %v", resource.Name)
+		return "", fmt.Errorf("getAtt Value is not a Sequence for %v", resource.Name)
 	}
 
 	name := n.Content[0].Value
@@ -204,14 +208,14 @@ func resolveGetAtt(n *yaml.Node, resource *Resource) (string, error) {
 
 	reffedResource, err := deployedTemplate.GetResource(name)
 	if err != nil {
-		return "", fmt.Errorf("Can't find resource %s: %v", name, err)
+		return "", fmt.Errorf("can't find resource %s: %v", name, err)
 	}
 	config.Debugf("reffedResource: %v", reffedResource)
 
 	// Get a reference to the Resource we deployed from the global map
 	reffed, exists := resMap[name]
 	if !exists {
-		return "", fmt.Errorf("Resource %s missing from global resource map", name)
+		return "", fmt.Errorf("resource %s missing from global resource map", name)
 	}
 
 	// Look at the resource model returned from when we deployed that resource
@@ -221,13 +225,35 @@ func resolveGetAtt(n *yaml.Node, resource *Resource) (string, error) {
 	var j map[string]any
 	err = json.Unmarshal([]byte(reffed.Model), &j)
 	if err != nil {
-		return "", fmt.Errorf("Unable to parse model: %v", err)
+		return "", fmt.Errorf("unable to parse model: %v", err)
 	}
 
 	attrValue, exists := j[attr]
 	if !exists {
-		return "", fmt.Errorf("Unable to find %s.%s in the deployed Model", name, attr)
+		return "", fmt.Errorf("unable to find %s.%s in the deployed Model", name, attr)
 	}
 
 	return attrValue.(string), nil
+}
+
+// resolveSub resolves a node with Fn::Sub
+func resolveSub(n *yaml.Node, resource *Resource) (string, error) {
+
+	// A Sub will either have a Scalar string,
+	// or a sequence of [String, Key:Val, Key:Val...]
+
+	if n.Kind == yaml.ScalarNode {
+
+		// ${X.Y} for GetAtt
+		// AWS:: variables
+		// Ref for single strings like ${MyParam} or ${MyBucket}
+		// Map values
+		// ${!Literal}
+		return "", errors.New("not implemented")
+
+	} else if n.Kind == yaml.SequenceNode {
+		return "", errors.New("not implemented")
+	} else {
+		return "", errors.New("Expected a Scalar or a Sequence")
+	}
 }
