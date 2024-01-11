@@ -249,10 +249,27 @@ func resolveSub(n *yaml.Node, resource *Resource) (string, error) {
 		// Ref for single strings like ${MyParam} or ${MyBucket}
 		// Map values
 		// ${!Literal}
-		return "", errors.New("not implemented")
+		words, err := ParseSub(n.Value)
+		if err != nil {
+			return "", err
+		}
+
+		config.Debugf("Parsed \"%s\", got: %v", n.Value, words)
+
+		// TODO
+		return "TODO", nil
 
 	} else if n.Kind == yaml.SequenceNode {
-		return "", errors.New("not implemented")
+		sub := n.Content[0].Value
+		words, err := ParseSub(sub)
+		if err != nil {
+			return "", err
+		}
+
+		config.Debugf("Parsed \"%s\", got: %v", sub, words)
+
+		// TODO
+		return "TODO", nil
 	} else {
 		return "", errors.New("Expected a Scalar or a Sequence")
 	}
