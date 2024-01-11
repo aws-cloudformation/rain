@@ -7,14 +7,12 @@ import (
 	"github.com/aws-cloudformation/rain/internal/config"
 )
 
-type token rune
-
 const (
-	DATA   token = ' ' // Any other rune
-	DOLLAR       = '$'
-	OPEN         = '{'
-	CLOSE        = '}'
-	BANG         = '!'
+	DATA   rune = ' ' // Any other rune
+	DOLLAR rune = '$'
+	OPEN   rune = '{'
+	CLOSE  rune = '}'
+	BANG   rune = '!'
 )
 
 type wordtype int
@@ -134,7 +132,7 @@ func ParseSub(sub string) ([]word, error) {
 	// Handle malformed strings, like "ABC${XYZ"
 	if state != READSTR {
 		// Ended the string in the middle of a variable?
-		return nil, errors.New("Invalid string, unclosed variable")
+		return nil, errors.New("invalid string, unclosed variable")
 	}
 
 	return words, nil

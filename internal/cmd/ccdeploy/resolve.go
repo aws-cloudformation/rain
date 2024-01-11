@@ -257,6 +257,11 @@ func resolveGetAtt(n *yaml.Node, resource *Resource) (string, error) {
 	name := n.Content[0].Value
 	attr := n.Content[1].Value
 
+	return resolveGetAttBy(name, attr, resource)
+}
+
+func resolveGetAttBy(name string, attr string, resource *Resource) (string, error) {
+
 	config.Debugf("GetAtt %v.%v", name, attr)
 
 	reffedResource, err := deployedTemplate.GetResource(name)
@@ -325,7 +330,11 @@ func resolveSub(n *yaml.Node, resource *Resource) (string, error) {
 				}
 				retval += resolved
 			case GETATT:
-
+				left, right, found := strings.Cut(word.w, ".")
+				if !found {
+					return "", fmt.Errorf("unexpected GetAtt %s", word.w)
+				}
+				return resolveGetAttBy(left, right, resource)
 			default:
 				return "", fmt.Errorf("unexpected word type %v for %s", word.t, word.w)
 			}
@@ -345,6 +354,6 @@ func resolveSub(n *yaml.Node, resource *Resource) (string, error) {
 		// TODO
 		return "TODO", nil
 	} else {
-		return "", errors.New("Expected a Scalar or a Sequence")
+		return "", errors.New("expected a Scalar or a Sequence")
 	}
 }
