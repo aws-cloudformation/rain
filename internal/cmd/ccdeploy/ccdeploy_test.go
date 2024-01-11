@@ -424,3 +424,60 @@ Resources:
 		t.Fatalf("Expected %s but got %s", arn, gotVal)
 	}
 }
+
+// Test to make sure we can resolve Refs to pseudo params (AWS::X)
+// Commenting this out since it should actually be an integ test.
+// It has to make network calls to get aws config.
+// TODO: Move to integ test
+/*
+func TestResolvePseudo(t *testing.T) {
+	source := `
+Resources:
+    A:
+        Type: A::B::C
+        Properties:
+            AccountId: !Sub "${AWS::AccountId}"
+            Region: !Sub "${AWS::Region}"
+            Partition: !Sub "${AWS::Partition}"
+`
+
+	template, err := parse.String(source)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	config.Debug = true
+	config.Debugf("template: %v", node.ToSJson(template.Node))
+
+	// Set globals
+	deployedTemplate = template
+	stack := types.Stack{} // Not relevant here
+	stack.Parameters = make([]types.Parameter, 0)
+	testParams := make([]string, 0)
+	testTags := make([]string, 0)
+	dc, err := dc.GetDeployConfig(testTags, testParams, "", "",
+		template, stack, false, true, false)
+	if err != nil {
+		panic(err)
+	}
+	templateConfig = dc
+
+	logicalName := "A"
+
+	resourceNode, err := template.GetResource(logicalName)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resource := NewResource(logicalName, "AWS::S3::Bucket", Waiting, resourceNode)
+
+	resolved, err := Resolve(resource)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	config.Debugf("resolved node : %v", node.ToSJson(resolved))
+
+	// TODO: Verify values
+}
+*/

@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
+	"github.com/aws-cloudformation/rain/internal/aws"
+	"github.com/aws-cloudformation/rain/internal/aws/sts"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"gopkg.in/yaml.v3"
@@ -39,6 +42,8 @@ import (
 func Resolve(resource *Resource) (*yaml.Node, error) {
 	return resolveNode(resource.Node, resource)
 }
+
+const AWS_PREFIX = "AWS::"
 
 // TODO: What about intrinsics outside of Resources?
 
@@ -138,34 +143,82 @@ func resolveRef(refNode *yaml.Node, resource *Resource) (string, error) {
 		return "", fmt.Errorf("ref Value is not a scalar for %v", resource.Name)
 	}
 
-	// Now we have a name that we need to find.
-	config.Debugf("refNode Value %v", refNode.Value)
+	return resolveRefByName(refNode.Value, resource)
+}
+
+func resolvePseudoParam(name string) (string, error) {
+
+	p := strings.Replace(name, AWS_PREFIX, "", 1)
+	switch p {
+	case "AccountId":
+		return sts.GetAccountID()
+	case "Region":
+		return aws.Config().Region, nil
+	case "NotificationARNs":
+		// TODO: Can't return a string for this!
+		return "", errors.New("unsupported: AWS::NotificationARNs")
+	case "NoValue":
+		// TODO: Needs special handling to remove nodes from the template
+		return "", errors.New("unsupported: AWS::NoValue")
+	case "Partition":
+		region := aws.Config().Region
+		if strings.HasPrefix(region, "us-gov") {
+			return "aws-us-gov", nil
+		}
+		if strings.HasPrefix(region, "cn-") {
+			return "aws-cn", nil
+		}
+		if strings.HasPrefix(region, "us-iso-") {
+			return "aws-iso", nil
+		}
+		if strings.HasPrefix(region, "us-isob-") {
+			return "aws-iso-b", nil
+		}
+		return "aws", nil
+	case "StackId":
+		return "", errors.New("unsupported: AWS::StackId")
+	case "StackName":
+		return "", errors.New("unsupported: AWS::StackName")
+	case "URLSuffix":
+		return "", errors.New("unsupported: AWS::URLSuffix")
+	default:
+		return "", fmt.Errorf("unexpected AWS::%s", p)
+	}
+}
+
+func resolveRefByName(name string, resource *Resource) (string, error) {
+	config.Debugf("resolveRefByName %v", name)
+
+	// Handle pseudo-parameters
+	if strings.HasPrefix(name, AWS_PREFIX) {
+		return resolvePseudoParam(name)
+	}
 
 	// Check to see if it is a Parameter
-	p, _ := deployedTemplate.GetParameter(refNode.Value)
+	p, _ := deployedTemplate.GetParameter(name)
 	if p != nil {
 		config.Debugf("Found parameter %v", node.ToSJson(p))
 
 		// If the parameter value was supplied, use that value.
 		// DeployConfig already takes default values into account.
 
-		if pval, exists := templateConfig.GetParam(refNode.Value); exists {
+		if pval, exists := templateConfig.GetParam(name); exists {
 			config.Debugf("Supplied param value: %v", pval)
 			return pval, nil
 		}
 	}
 
-	config.Debugf("Did not find %s in Parameters, checking Resources", refNode.Value)
+	config.Debugf("Did not find %s in Parameters, checking Resources", name)
 
 	// Check to see if it is a reference to another resource
-	reffedResource, err := deployedTemplate.GetResource(refNode.Value)
+	reffedResource, err := deployedTemplate.GetResource(name)
 	config.Debugf("reffedResource: %v", reffedResource)
 	if err == nil {
 		/*
 			// Get the Type of the reffed resource
 			_, t := s11n.GetMapValue(reffedResource, "Type")
 			if t == nil {
-				return "", fmt.Errorf("resource %s does not have a Type?", refNode.Value)
+				return "", fmt.Errorf("resource %s does not have a Type?", name)
 			}
 			reffedType := t.Value
 		*/
@@ -177,9 +230,9 @@ func resolveRef(refNode *yaml.Node, resource *Resource) (string, error) {
 		// Because we already set resource.Identifier in deployment.go
 
 		// Get a reference to the Resource we deployed from the global map
-		reffed, exists := resMap[refNode.Value]
+		reffed, exists := resMap[name]
 		if !exists {
-			return "", fmt.Errorf("resource %s missing from global resource map", refNode.Value)
+			return "", fmt.Errorf("resource %s missing from global resource map", name)
 		}
 
 		// Look at the resource model returned from when we deployed that resource
@@ -192,7 +245,7 @@ func resolveRef(refNode *yaml.Node, resource *Resource) (string, error) {
 	}
 
 	// Error if we can't find it anywhere
-	return "", fmt.Errorf("cannot resolve %s", refNode.Value)
+	return "", fmt.Errorf("cannot resolve %s", name)
 }
 
 // resolveGetAtt resolves a node with Fn::GetAtt
@@ -255,9 +308,30 @@ func resolveSub(n *yaml.Node, resource *Resource) (string, error) {
 		}
 
 		config.Debugf("Parsed \"%s\", got: %v", n.Value, words)
+		retval := ""
+		prefix := ""
 
-		// TODO
-		return "TODO", nil
+		for _, word := range words {
+			switch word.t {
+			case STR:
+				retval += word.w
+			case AWS:
+				prefix = AWS_PREFIX
+				fallthrough
+			case REF:
+				resolved, err := resolveRefByName(prefix+word.w, resource)
+				if err != nil {
+					return "", err
+				}
+				retval += resolved
+			case GETATT:
+
+			default:
+				return "", fmt.Errorf("unexpected word type %v for %s", word.t, word.w)
+			}
+		}
+
+		return retval, nil
 
 	} else if n.Kind == yaml.SequenceNode {
 		sub := n.Content[0].Value
