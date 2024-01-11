@@ -22,6 +22,7 @@ import (
 //
 //	Ref
 //	Fn::GetAtt
+//	Fn::Sub
 //
 // Not Supported:
 //
@@ -36,7 +37,6 @@ import (
 //	Fn::Length
 //	Fn::Select
 //	Fn::Split
-//	Fn::Sub
 //	Fn::ToJsonString
 //	Fn::Transform
 func Resolve(resource *Resource) (*yaml.Node, error) {
@@ -143,7 +143,7 @@ func resolveRef(refNode *yaml.Node, resource *Resource) (string, error) {
 		return "", fmt.Errorf("ref Value is not a scalar for %v", resource.Name)
 	}
 
-	return resolveRefByName(refNode.Value, resource)
+	return resolveRefByName(refNode.Value, resource, make(map[string]string))
 }
 
 func resolvePseudoParam(name string) (string, error) {
@@ -186,12 +186,17 @@ func resolvePseudoParam(name string) (string, error) {
 	}
 }
 
-func resolveRefByName(name string, resource *Resource) (string, error) {
+func resolveRefByName(name string, resource *Resource, extra map[string]string) (string, error) {
 	config.Debugf("resolveRefByName %v", name)
 
 	// Handle pseudo-parameters
 	if strings.HasPrefix(name, AWS_PREFIX) {
 		return resolvePseudoParam(name)
+	}
+
+	// If extra has the name, use that. This comes from Fn::Sub
+	if val, ok := extra[name]; ok {
+		return val, nil
 	}
 
 	// Check to see if it is a Parameter
@@ -294,6 +299,38 @@ func resolveGetAttBy(name string, attr string, resource *Resource) (string, erro
 	return attrValue.(string), nil
 }
 
+func resolveSubWords(words []word, resource *Resource, extra map[string]string) (string, error) {
+
+	retval := ""
+	prefix := ""
+
+	for _, word := range words {
+		switch word.t {
+		case STR:
+			retval += word.w
+		case AWS:
+			prefix = AWS_PREFIX
+			fallthrough
+		case REF:
+			resolved, err := resolveRefByName(prefix+word.w, resource, extra)
+			if err != nil {
+				return "", err
+			}
+			retval += resolved
+		case GETATT:
+			left, right, found := strings.Cut(word.w, ".")
+			if !found {
+				return "", fmt.Errorf("unexpected GetAtt %s", word.w)
+			}
+			return resolveGetAttBy(left, right, resource)
+		default:
+			return "", fmt.Errorf("unexpected word type %v for %s", word.t, word.w)
+		}
+	}
+
+	return retval, nil
+}
+
 // resolveSub resolves a node with Fn::Sub
 func resolveSub(n *yaml.Node, resource *Resource) (string, error) {
 
@@ -313,37 +350,16 @@ func resolveSub(n *yaml.Node, resource *Resource) (string, error) {
 		}
 
 		config.Debugf("Parsed \"%s\", got: %v", n.Value, words)
-		retval := ""
-		prefix := ""
 
-		for _, word := range words {
-			switch word.t {
-			case STR:
-				retval += word.w
-			case AWS:
-				prefix = AWS_PREFIX
-				fallthrough
-			case REF:
-				resolved, err := resolveRefByName(prefix+word.w, resource)
-				if err != nil {
-					return "", err
-				}
-				retval += resolved
-			case GETATT:
-				left, right, found := strings.Cut(word.w, ".")
-				if !found {
-					return "", fmt.Errorf("unexpected GetAtt %s", word.w)
-				}
-				return resolveGetAttBy(left, right, resource)
-			default:
-				return "", fmt.Errorf("unexpected word type %v for %s", word.t, word.w)
-			}
-		}
-
-		return retval, nil
-
+		return resolveSubWords(words, resource, make(map[string]string))
 	} else if n.Kind == yaml.SequenceNode {
 		sub := n.Content[0].Value
+		if len(n.Content) != 2 {
+			return "", fmt.Errorf("expected Sub %s sequence to have two elements, got %v", sub, len(n.Content))
+		}
+		if n.Content[1].Kind != yaml.MappingNode {
+			return "", fmt.Errorf("expected Sub %s Content[1] to be a Mapping", sub)
+		}
 		words, err := ParseSub(sub)
 		if err != nil {
 			return "", err
@@ -351,8 +367,36 @@ func resolveSub(n *yaml.Node, resource *Resource) (string, error) {
 
 		config.Debugf("Parsed \"%s\", got: %v", sub, words)
 
-		// TODO
-		return "TODO", nil
+		// Inline map values can be provided in array elements 1..n
+		m := make(map[string]string)
+
+		mapping := n.Content[1]
+		for i := 0; i < len(mapping.Content); i += 2 {
+			key := mapping.Content[i].Value
+			subNode := mapping.Content[i+1]
+			var subVal string
+			if subNode.Kind == yaml.MappingNode {
+				// Resolve this node like normal
+				// Likely something like:
+				// [ "${A}", "A", Map [ "Ref", "B" ] ]
+				resolvedNode, err := resolveNode(subNode, resource)
+				config.Debugf("Sub sequence mapping resolved: %v", node.ToSJson(resolvedNode))
+				if resolvedNode.Kind != yaml.ScalarNode {
+					return "", fmt.Errorf("expected resolved %s: %s to be a Scalar", sub, key)
+				}
+				subVal = resolvedNode.Value
+				if err != nil {
+					return "", err
+				}
+			} else if subNode.Kind == yaml.ScalarNode {
+				subVal = subNode.Value
+			} else {
+				return "", fmt.Errorf("expected a Mapping or Scalar for Sub value %s: %s", sub, key)
+			}
+			m[key] = subVal
+		}
+
+		return resolveSubWords(words, resource, m)
 	} else {
 		return "", errors.New("expected a Scalar or a Sequence")
 	}

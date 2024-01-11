@@ -423,6 +423,19 @@ Resources:
 	if gotVal != arn {
 		t.Fatalf("Expected %s but got %s", arn, gotVal)
 	}
+
+	// Now resolve the Sub with a Sequence in MyBucket
+	resolved, err = Resolve(bResource)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	config.Debugf("resolved MyBucket node: %v", node.ToSJson(resolved))
+
+	gotVal = resolved.Content[3].Content[1].Value
+	if gotVal != "Test1" {
+		t.Fatalf("Got %s for MyBucket Name, expected Test1", gotVal)
+	}
 }
 
 // Test to make sure we can resolve Refs to pseudo params (AWS::X)
