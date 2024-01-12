@@ -1,4 +1,4 @@
-package ccrm
+package cc
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
-	"github.com/aws-cloudformation/rain/internal/cmd/ccdeploy"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
@@ -17,24 +16,23 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var yes bool
-var detach bool
-var roleArn string
-var Experimental bool
-
 // Cmd is the rm command's entrypoint
-var Cmd = &cobra.Command{
-	Use:                   "ccrm <name>",
-	Short:                 "Delete a deployment created by ccdeploy (Experimental!)",
-	Long:                  "Deletes the resources in the ccdeploy deployment named <name> and waits for all CloudControl API calls to complete. This is an experimental feature that requires the -x flag to run.",
+var CCRmCmd = &cobra.Command{
+	Use:                   "rm <name>",
+	Short:                 "Delete a deployment created by cc deploy (Experimental!)",
+	Long:                  "Deletes the resources in the cc deploy deployment named <name> and waits for all CloudControl API calls to complete. This is an experimental feature that requires the -x flag to run.",
 	Args:                  cobra.ExactArgs(1),
 	Aliases:               []string{"ccremove", "ccdel", "ccdelete"},
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		name := args[0]
 
+		if !Experimental {
+			panic("Please add the --experimental arg to use this feature")
+		}
+
 		spinner.Push("Fetching deployment status")
-		key := fmt.Sprintf("%v/%v.yaml", ccdeploy.STATE_DIR, name) // deployments/name
+		key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
 		var state cft.Template
 
 		// Call RainBucket for side-effects in case we want to force bucket creation
@@ -113,7 +111,7 @@ var Cmd = &cobra.Command{
 
 		config.Debugf("About to delete deployment: %v", format.CftToYaml(template))
 
-		results, err := ccdeploy.DeployTemplate(template)
+		results, err := DeployTemplate(template)
 		if err != nil {
 			panic(err)
 		}
@@ -136,8 +134,7 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	Cmd.Flags().BoolVarP(&detach, "detach", "d", false, "once removal has started, don't wait around for it to finish")
-	Cmd.Flags().BoolVarP(&yes, "yes", "y", false, "don't ask questions; just delete")
-	Cmd.Flags().StringVar(&roleArn, "role-arn", "", "ARN of an IAM role that CloudFormation should assume to remove the stack")
-	Cmd.Flags().BoolVarP(&Experimental, "experimental", "x", false, "Acknowledge that this is an experimental feature")
+	CCRmCmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
+	CCRmCmd.Flags().BoolVarP(&Experimental, "experimental", "x", false, "Acknowledge that this is an experimental feature")
+	CCRmCmd.Flags().BoolVarP(&yes, "yes", "y", false, "don't ask questions; just delete")
 }

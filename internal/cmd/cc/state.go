@@ -1,4 +1,4 @@
-package ccdeploy
+package cc
 
 import (
 	"encoding/json"
@@ -16,6 +16,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/google/uuid"
+	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
 
@@ -218,4 +219,41 @@ func writeState(
 	}
 
 	return nil
+}
+
+// run is the cobra command for rain cc state
+func runState(cmd *cobra.Command, args []string) {
+	name := args[0]
+
+	if !Experimental {
+		panic("Please add the --experimental arg to use this feature")
+	}
+
+	// Call RainBucket for side-effects in case we want to force bucket creation
+	bucketName := s3.RainBucket(true)
+
+	key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
+
+	obj, err := s3.GetObject(bucketName, key)
+	if err != nil {
+		fmt.Printf("Unable to download state: %v", err)
+		return
+	}
+
+	fmt.Println(string(obj))
+}
+
+var CCStateCmd = &cobra.Command{
+	Use:   "state <name>",
+	Short: "Download the state file for a template deployed with cc deploy",
+	Long: `When deploying templates with the cc command, a state file is created and stored in the rain assets bucket. This command outputs the contents of that file.
+`,
+	Args:                  cobra.ExactArgs(1),
+	DisableFlagsInUseLine: true,
+	Run:                   runState,
+}
+
+func init() {
+	CCStateCmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
+	CCStateCmd.Flags().BoolVarP(&Experimental, "experimental", "x", false, "Acknowledge that this is an experimental feature")
 }

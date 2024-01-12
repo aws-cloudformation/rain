@@ -1,4 +1,4 @@
-package ccdeploy
+package cc
 
 import (
 	"testing"
