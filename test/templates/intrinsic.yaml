@@ -1,23 +1,24 @@
 Parameters:
-  AppName:
+  LogName: 
     Type: String
 Resources:
-  App:
-    Type: AWS::AppConfig::Application
+  Log:
+    Type: AWS::Logs::LogGroup
     Properties:
-      Name: !Ref AppName
-  Beta:
-    Type: AWS::AppConfig::Environment
+      LogGroupName: !Ref LogName
+  Query1:
+    Type: AWS::Logs::QueryDefinition
     Properties:
-      ApplicationId: !Ref App
-      Name: !Sub "${AppName}-Beta"
-  Gamma:
-    Type: AWS::AppConfig::Environment
+      Name: Query1
+      QueryString: "fields @message"
+      LogGroupNames:
+      - !Sub "${Log.LogGroupName}"
+  Query2:
+    Type: AWS::Logs::QueryDefinition
     Properties:
-      ApplicationId: !Ref App
-      Name: !Sub "${AppName}-Gamma"
-  Prod:
-    Type: AWS::AppConfig::Environment
-    Properties:
-      ApplicationId: !Ref App
-      Name: !Sub "${AppName}-Prod"
+      Name: Query2
+      QueryString: "fields @timestamp"
+      LogGroupNames:
+      - !Sub "${Log.LogGroupName}"
+
+

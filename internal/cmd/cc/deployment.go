@@ -1,6 +1,7 @@
 package cc
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft/graph"
 	"github.com/aws-cloudformation/rain/internal/aws/ccapi"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
@@ -38,18 +40,29 @@ func deployResource(resource *Resource) {
 	config.Debugf("Deploying %v...", resource)
 
 	resource.State = Deploying
-
-	// TODO - Resolve instrinsics before creating the resource
-	// This will depend on the post-deployment state of dependencies
-	resolvedNode, err := Resolve(resource)
-	if err != nil {
-		config.Debugf("deployResource resolve failed: %v", err)
-		resource.State = Failed
-		resource.Message = fmt.Sprintf("%v", err)
-	}
-
 	resource.Start = time.Now()
 	defer func() { resource.End = time.Now() }()
+
+	// Resolve instrinsics before creating the resource.
+	// This depends on the post-deployment state of dependencies
+	var resolvedNode *yaml.Node
+	var err error
+	if resource.Action == diff.Delete {
+		// We don't need to resolve resources we are deleting.
+		resolvedNode = resource.Node
+	} else {
+		resolvedNode, err = Resolve(resource)
+		// TODO: Failing due to empty Model on updates
+		// If the dependencies didn't change, they don't get deployed,
+		// so we need to get the Model from the state file.
+		// Or.. query ccapi for the live state?
+		if err != nil {
+			config.Debugf("deployResource resolve failed: %v", err)
+			resource.State = Failed
+			resource.Message = fmt.Sprintf("%v", err)
+			return
+		}
+	}
 
 	switch resource.Action {
 	case diff.Create:
@@ -410,7 +423,11 @@ func DeployTemplate(template cft.Template) (*DeploymentResults, error) {
 		return nil, err
 	}
 	if !results.Succeeded {
-		return nil, fmt.Errorf("unable to delete resources: %v", err)
+		spinner.StopTimer()
+		for _, resource := range results.Resources {
+			fmt.Printf("%v\n", resource)
+		}
+		return nil, errors.New("unable to delete resources")
 	}
 
 	// Deploy the rest of the resources

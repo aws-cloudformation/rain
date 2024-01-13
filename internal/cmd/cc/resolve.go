@@ -132,6 +132,15 @@ func resolveNode(n *yaml.Node, resource *Resource) (*yaml.Node, error) {
 				return nil, err
 			}
 			retval.Content[i+1] = rn
+		} else if mapval.Kind == yaml.SequenceNode {
+			// Recurse on each element in the sequence
+			for s, sNode := range mapval.Content {
+				rn, err := resolveNode(sNode, resource)
+				if err != nil {
+					return nil, err
+				}
+				retval.Content[i+1].Content[s] = rn
+			}
 		}
 	}
 
@@ -217,7 +226,7 @@ func resolveRefByName(name string, resource *Resource, extra map[string]string) 
 
 	// Check to see if it is a reference to another resource
 	reffedResource, err := deployedTemplate.GetResource(name)
-	config.Debugf("reffedResource: %v", reffedResource)
+	config.Debugf("reffedResource: %v", node.ToSJson(reffedResource))
 	if err == nil {
 		/*
 			// Get the Type of the reffed resource
@@ -273,7 +282,7 @@ func resolveGetAttBy(name string, attr string, resource *Resource) (string, erro
 	if err != nil {
 		return "", fmt.Errorf("can't find resource %s: %v", name, err)
 	}
-	config.Debugf("reffedResource: %v", reffedResource)
+	config.Debugf("reffedResource: %v", node.ToSJson(reffedResource))
 
 	// Get a reference to the Resource we deployed from the global map
 	reffed, exists := resMap[name]

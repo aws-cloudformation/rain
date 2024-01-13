@@ -44,25 +44,12 @@ func deploy(cmd *cobra.Command, args []string) {
 	// Call RainBucket for side-effects in case we want to force bucket creation
 	bucketName := s3.RainBucket(true)
 
-	if downloadState {
-		key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
-
-		obj, err := s3.GetObject(bucketName, key)
-		if err != nil {
-			fmt.Printf("Unable to download state: %v", err)
-			return
-		}
-
-		fmt.Println(string(obj))
-		return
-	}
-
 	// Package template
 	spinner.Push(fmt.Sprintf("Preparing template '%s'", base))
 	template := PackageTemplate(fn, true)
 	spinner.Pop()
 
-	// TODO - Get DeployConfig (modified to remove stack references...)
+	// Get parameters and tags
 	stack := types.Stack{} // Not relevant here
 	stack.Parameters = make([]types.Parameter, 0)
 	dc, err := dc.GetDeployConfig(tags, params, configFilePath, base,
@@ -72,13 +59,11 @@ func deploy(cmd *cobra.Command, args []string) {
 	}
 	templateConfig = dc
 
-	// Compare against the current state to see what has changed, if this
-	// is an update
+	// Compare against the current state to see what has changed, if this is an update
 	spinner.Push("Checking state")
-	stateResult, stateError := checkState(name, template, bucketName, "", absPath)
+	stateResult, stateError := checkState(name, template, bucketName, "", absPath, unlock)
 	if stateError != nil {
-		msg := fmt.Sprintf("Found a locked state file (%v). This means another process is currently deploying this template, or a deployment failed to complete. You will need to manually resolve the issue, or you can try to resume the deployment by running cc deploy with --continue <lock>", stateError)
-		panic(msg)
+		panic(stateError)
 	}
 	spinner.Pop()
 
@@ -119,8 +104,13 @@ func deploy(cmd *cobra.Command, args []string) {
 	}
 	spinner.StopTimer()
 
+	for _, resource := range results.Resources {
+		fmt.Println()
+		fmt.Printf("%v\n", resource)
+	}
+
 	if !results.Succeeded {
-		fmt.Println("Deployment failed.")
+		panic("deployment failed")
 
 		// Leave the state file locked. Needs to be resolved manually.
 	} else {
@@ -131,10 +121,6 @@ func deploy(cmd *cobra.Command, args []string) {
 		if err != nil {
 			panic(fmt.Errorf("unable to write state file: %v", err))
 		}
-	}
-
-	for _, resource := range results.Resources {
-		fmt.Printf("%v\n", resource)
 	}
 
 }
@@ -158,6 +144,7 @@ func init() {
 	CCDeployCmd.Flags().StringSliceVar(&tags, "tags", []string{}, "add tags to the stack; use the format key1=value1,key2=value2")
 	CCDeployCmd.Flags().StringSliceVar(&params, "params", []string{}, "set parameter values; use the format key1=value1,key2=value2")
 	CCDeployCmd.Flags().StringVarP(&configFilePath, "config", "c", "", "YAML or JSON file to set tags and parameters")
+	CCDeployCmd.Flags().StringVarP(&unlock, "unlock", "u", "", "Unlock <lockid> and continue")
 	CCDeployCmd.Flags().BoolVarP(&ignoreUnknownParams, "ignore-unknown-params", "", false, "Ignore unknown parameters")
 
 	resMap = make(map[string]*Resource)

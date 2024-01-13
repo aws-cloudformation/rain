@@ -16,6 +16,7 @@ var Experimental bool
 var yes bool
 var ignoreUnknownParams bool
 var downloadState bool
+var unlock string
 
 // Globals (seems bad..? but cumbersome to pass them around)
 var deployedTemplate cft.Template

@@ -57,7 +57,8 @@ func checkState(
 	template cft.Template,
 	bucketName string,
 	priorLock string,
-	absPath string) (*StateResult, error) {
+	absPath string,
+	unlockId string) (*StateResult, error) {
 
 	key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
 	var state cft.Template
@@ -130,14 +131,29 @@ func checkState(
 		}
 		result.Lock = lock
 
+		ignoreLock := false
 		if lock != "" {
-			return nil, fmt.Errorf("lock: %v", lock)
+			if unlockId != "" {
+				if lock != unlockId {
+					return nil, fmt.Errorf("unlock %v does not match found lock %v", unlockId, lock)
+				} else {
+					fmt.Println("Unlocking the locked state file")
+					ignoreLock = true
+				}
+			} else {
+				msg := fmt.Sprintf("Found a locked state file (lock: %v). This means another process is currently deploying this template, or a deployment failed to complete. You will need to manually resolve the issue, or you can try to resume the deployment by running cc deploy with --unlock <lock>", lock)
+				return nil, errors.New(msg)
+			}
 		}
 
 		// We are safe to proceed with an update.
 		// Write a new lock back to the state file stored in S3.
-		lock = uuid.New().String()
-		node.Add(stateMap, "Lock", lock)
+		// If we're unlocking to continue a failed deployment, leave it
+		// since we would need to re-lock it here anyway
+		if !ignoreLock {
+			lock = uuid.New().String()
+			node.Add(stateMap, "Lock", lock)
+		}
 
 		// Add common elements
 		addCommon(stateMap, absPath)
