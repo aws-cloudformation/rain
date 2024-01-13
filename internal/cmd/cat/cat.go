@@ -22,13 +22,13 @@ var Cmd = &cobra.Command{
 	Long: `Downloads the template or the configuration file used to deploy <stack> and prints it to stdout.
 
 The config flag can be used to get the rain config file for the stack instead of the template.
-	
-Example: 
-  // Get the template for the "my-stack" stack 
-  rain cat my-stack
 
-  // Get the config file for the "my-stack" stack
-  rain cat --config my-stack
+	Example:
+	  // Get the template for the "my-stack" stack
+	  rain cat my-stack
+
+	  // Get the config file for the "my-stack" stack
+	  rain cat --config my-stack
 
 `,
 	Args:                  cobra.ExactArgs(1),
