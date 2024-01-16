@@ -1,12 +1,14 @@
 package cc
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/diff"
+	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/cft/graph"
 	"github.com/aws-cloudformation/rain/internal/aws/ccapi"
 	"github.com/aws-cloudformation/rain/internal/config"
@@ -91,7 +93,7 @@ func deployResource(resource *Resource) {
 		// 	resource.Message = fmt.Sprintf("%v", err)
 		// }
 		//
-		// We would need that at an earlier state for drift detection
+		// We would need that at an earlier step for drift detection
 
 		priorJson := resource.PriorJson
 
@@ -123,9 +125,12 @@ func deployResource(resource *Resource) {
 
 	default:
 		// None means this is an update with no change to the model
-		config.Debugf("deployResource not deploying unchanged %v", resource.Name)
+		config.Debugf("deployResource not deploying unchanged %v. Identifier: %v, Model: %v",
+			resource.Name, resource.Identifier, resource.Model)
 		resource.State = Deployed
 		resource.Message = "Success"
+
+		// TODO: Are we missing the Model here?
 	}
 
 }
@@ -366,6 +371,7 @@ func DeployTemplate(template cft.Template) (*DeploymentResults, error) {
 				// Assume this is a new deployment
 				action = diff.Create
 			} else {
+				config.Debugf("DeployTemplate stateNode: %v", node.ToSJson(stateNode))
 				for i, s := range stateNode.Content {
 					if i%2 == 0 {
 						if s.Value == "Action" {
@@ -382,7 +388,9 @@ func DeployTemplate(template cft.Template) (*DeploymentResults, error) {
 						} else if s.Value == "Identifier" {
 							ident = stateNode.Content[i+1].Value
 						} else if s.Value == "ResourceModel" {
-							model = stateNode.Content[i+1].Value
+							j := format.Jsonise(stateNode.Content[i+1])
+							m, _ := json.Marshal(j)
+							model = string(m)
 						} else if s.Value == "PriorJson" {
 							priorJson = stateNode.Content[i+1].Value
 						} else {
@@ -399,6 +407,7 @@ func DeployTemplate(template cft.Template) (*DeploymentResults, error) {
 			r.PriorJson = priorJson // We need this for ccapi update
 
 			config.Debugf("deployment set r.Model to %v", r.Model)
+			// TODO: This is blank when we update
 
 			if r.Action == diff.Delete {
 				deletes = append(deletes, r)

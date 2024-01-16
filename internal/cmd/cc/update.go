@@ -33,7 +33,7 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 			 State:
 				Action: Create or Update or Delete or None
 				Identifier: ...
-				ResourceModel: (Might need this for drift detection)
+				ResourceModel: ...
 				PriorJson: (We need this for ccapi update)
 
 	*/
@@ -55,6 +55,7 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 	if stateResourceModels == nil {
 		panic("Expected to find State.ResourceModels in the state template")
 	}
+
 	identifiers := make(map[string]string, 0)
 	models := make(map[string]*yaml.Node, 0)
 	for i, v := range stateResourceModels.Content {
@@ -123,16 +124,24 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 		} else {
 			// Create, Update, None
 			node.Add(rmap, "Action", string(v))
+
 			// Add the identifier so we know what to update
 			if identifier, ok := identifiers[k]; ok {
 				node.Add(rmap, "Identifier", identifier)
+				// TODO: When would we not have the identifier?
+				// We need it below when there is no model and we have to query for it
 			}
+
 			// Add the resource model that represents the current actual state of
 			// the resource based on the ccapi GetResource call
 			if model, ok := models[k]; ok {
+				// TODO: We always need this.
+				// Do we query for it here if it's missing? Or during deployment?
+
 				modelMap := node.AddMap(rmap, "ResourceModel")
 				modelMap.Content = model.Content
 			}
+
 			// Add PriorJson to represent the prior properties set by the user
 			if v == diff.Update {
 				priorProps := ccapi.ToJsonProps(stateResources[k])
@@ -190,8 +199,10 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 				New template desired state:
 				    DelaySeconds: 2
 
+				(If any resources resulted in the above message)
+
 				What would you like to do?
-				1) Stop the deployment.
+				1) Do not deploy anything
 				2) Deploy anyway, applying my latest template as the source of truth
 				3) Deploy anyway, applying all of my changes except the drifted properties
 				??? Any other choices? Does 3 make sense?
@@ -203,6 +214,8 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 
 			This makes our diff generation more complicated, since there are two
 			different diffs to consider.
+
+			A table view might be better, with a colorized 3-way diff.
 
 
 	*/

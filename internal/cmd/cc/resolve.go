@@ -135,11 +135,13 @@ func resolveNode(n *yaml.Node, resource *Resource) (*yaml.Node, error) {
 		} else if mapval.Kind == yaml.SequenceNode {
 			// Recurse on each element in the sequence
 			for s, sNode := range mapval.Content {
-				rn, err := resolveNode(sNode, resource)
-				if err != nil {
-					return nil, err
-				}
-				retval.Content[i+1].Content[s] = rn
+				if sNode.Kind == yaml.MappingNode {
+					rn, err := resolveNode(sNode, resource)
+					if err != nil {
+						return nil, err
+					}
+					retval.Content[i+1].Content[s] = rn
+				} // otherwise it's a Scalar and we leave it alone
 			}
 		}
 	}
