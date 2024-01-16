@@ -14,12 +14,15 @@ func Example_cat_help() {
 
 	cat.Cmd.Execute()
 	// Output:
-	// Downloads the template used to deploy <stack> and prints it to stdout.
+	// Downloads the template or the configuration file used to deploy <stack> and prints it to stdout.
+	//
+	// The  `--config` flag can be used to get the rain config file for the stack instead of the template.
 	//
 	// Usage:
 	//   cat <stack>
 	//
 	// Flags:
+	//   -c, --config        output the config file for the existing stack
 	//   -h, --help          help for cat
 	//   -t, --transformed   get the template with transformations applied by CloudFormation
 	//   -u, --unformatted   output the template in its raw form; do not attempt to format it

@@ -21,15 +21,7 @@ var Cmd = &cobra.Command{
 	Short: "Get the CloudFormation template from a running stack",
 	Long: `Downloads the template or the configuration file used to deploy <stack> and prints it to stdout.
 
-The config flag can be used to get the rain config file for the stack instead of the template.
-
-	Example:
-	  // Get the template for the "my-stack" stack
-	  rain cat my-stack
-
-	  // Get the config file for the "my-stack" stack
-	  rain cat --config my-stack
-
+The  ` + "`" + `--config` + "`" + ` flag can be used to get the rain config file for the stack instead of the template.
 `,
 	Args:                  cobra.ExactArgs(1),
 	DisableFlagsInUseLine: true,
