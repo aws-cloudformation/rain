@@ -179,6 +179,14 @@ type DeploymentResults struct {
 	Resources map[string]*Resource
 }
 
+// Summarize prints out a summary of deployment results
+func (results *DeploymentResults) Summarize() {
+	for _, resource := range results.Resources {
+		fmt.Println()
+		fmt.Printf("%v\n", resource)
+	}
+}
+
 // canDelete returns true if the resource can be deleted.
 // This is not the same as the ready function, which tells
 // you if it can be deleted "right now". This function looks

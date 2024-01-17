@@ -10,6 +10,8 @@ import (
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
+	"github.com/aws-cloudformation/rain/internal/table"
+	"github.com/fatih/color"
 	"gopkg.in/yaml.v3"
 )
 
@@ -239,34 +241,62 @@ func summarizeChanges(changes cft.Template) {
 	if resourceMap == nil {
 		panic("expected Resources")
 	}
-	fmt.Println("Summary of deployment changes:")
+	fmt.Println("Deployment Action Summary")
+	fmt.Println()
+
+	tbl := table.New("Action", "Type", "LogicalId", "Identifier")
+	headerFmt := color.New(color.FgBlue, color.Underline).SprintfFunc()
+	tbl.WithHeaderFormatter(headerFmt)
+	createFormat := color.New(color.FgGreen).SprintfFunc()
+	updateFormat := color.New(color.FgCyan).SprintfFunc()
+	deleteFormat := color.New(color.FgRed).SprintfFunc()
+
 	for i, v := range resourceMap.Content {
 		if i%2 == 0 {
 			var action string
 			var t string
 			var ident string
 			name := v.Value
-			_, stateMap := s11n.GetMapValue(resourceMap.Content[i+1], "State")
-			if stateMap == nil {
-				panic(fmt.Sprintf("expected State on resource %v", name))
-			}
+
+			// Get the Type
 			_, typeNode := s11n.GetMapValue(resourceMap.Content[i+1], "Type")
 			if typeNode == nil {
 				panic(fmt.Sprintf("expected Type on resource %v", name))
 			}
 			t = typeNode.Value
-			for si, sv := range stateMap.Content {
-				if si%2 == 0 {
-					val := stateMap.Content[si+1].Value
-					if sv.Value == "Action" {
-						action = val
-					} else if sv.Value == "Identifier" {
-						ident = val
+
+			// Get the action and identifier
+			_, stateMap := s11n.GetMapValue(resourceMap.Content[i+1], "State")
+			if stateMap == nil {
+				action = "Create"
+				ident = ""
+			} else {
+				for si, sv := range stateMap.Content {
+					if si%2 == 0 {
+						val := stateMap.Content[si+1].Value
+						if sv.Value == "Action" {
+							action = val
+						} else if sv.Value == "Identifier" {
+							ident = val
+						}
 					}
 				}
 			}
-			fmt.Printf("%v\t%v\t%v\t%v\n", name, t, action, ident)
+			//fmt.Printf("%v\t%v\t%v\t%v\n", name, t, action, ident)
+			var formatter table.Formatter
+			switch action {
+			case "Create":
+				formatter = createFormat
+			case "Update":
+				formatter = updateFormat
+			case "Delete":
+				formatter = deleteFormat
+			default:
+				formatter = nil
+			}
+			tbl.AddRowf(formatter, action, t, name, ident)
 		}
 	}
-
+	tbl.Print()
+	fmt.Println()
 }

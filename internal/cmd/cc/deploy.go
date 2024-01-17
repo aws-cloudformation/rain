@@ -79,22 +79,39 @@ func deploy(cmd *cobra.Command, args []string) {
 			panic(err)
 		}
 		// TODO: update needs to take parameters into account
-		summarizeChanges(changes)
-
-		if !console.Confirm(true, "Do you wish to continue?") {
-			panic(errors.New("user cancelled deployment"))
-		}
 
 	} else {
 		// Deploy the provided template for the first time
 		changes = template
 	}
 
+	summarizeChanges(changes)
+
+	if !console.Confirm(true, "Do you wish to continue?") {
+		// Unlock the state file
+		if !stateResult.IsUpdate {
+			err := deleteState(name, bucketName)
+			if err != nil {
+				panic(fmt.Errorf("unable to remove state file: %v", err))
+			}
+		} else {
+			err := writeState(template, nil, bucketName, name, absPath)
+			if err != nil {
+				panic(fmt.Errorf("unable to unlock state file: %v", err))
+			}
+		}
+
+		// Exit
+		panic(errors.New("user cancelled deployment"))
+	}
+
+	// Set the global reference that anything in this package can access
 	deployedTemplate = changes
 
 	// Figure out how long we thing the stack will take to execute
-	totalSeconds := forecast.PredictTotalEstimate(template, stateResult.IsUpdate)
-	fmt.Printf("Predicted deployment time: %v", forecast.FormatEstimate(totalSeconds))
+	totalSeconds := forecast.PredictTotalEstimate(changes, stateResult.IsUpdate)
+	// TODO: Forecast can be more accurate here since we know the actions
+	fmt.Printf("Predicted deployment time: %v\n", forecast.FormatEstimate(totalSeconds))
 
 	spinner.StartTimer(fmt.Sprintf("Deploying %v", name))
 	results, err := DeployTemplate(changes)
@@ -104,13 +121,10 @@ func deploy(cmd *cobra.Command, args []string) {
 	}
 	spinner.StopTimer()
 
-	for _, resource := range results.Resources {
-		fmt.Println()
-		fmt.Printf("%v\n", resource)
-	}
+	results.Summarize()
 
 	if !results.Succeeded {
-		panic("deployment failed")
+		panic("Deployment failed! The state file is locked and will need to be resolved manually.")
 
 		// Leave the state file locked. Needs to be resolved manually.
 	} else {
