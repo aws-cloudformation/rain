@@ -118,9 +118,7 @@ var CCRmCmd = &cobra.Command{
 
 		spinner.StopTimer()
 
-		for _, resource := range results.Resources {
-			fmt.Printf("Removed %v\n", resource)
-		}
+		results.Summarize()
 		fmt.Printf("Deployment %v successfully removed\n", name)
 
 		spinner.Push("Deleting state file")

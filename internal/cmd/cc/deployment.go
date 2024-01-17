@@ -12,11 +12,20 @@ import (
 	"github.com/aws-cloudformation/rain/cft/graph"
 	"github.com/aws-cloudformation/rain/internal/aws/ccapi"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
+	"github.com/aws-cloudformation/rain/internal/table"
+	"github.com/fatih/color"
 	"gopkg.in/yaml.v3"
 )
+
+var createFormat table.Formatter
+var updateFormat table.Formatter
+var deleteFormat table.Formatter
+var failFormat table.Formatter
+var successFormat table.Formatter
 
 // getTemplateResource returns the yaml node based on the logical id
 func getTemplateResource(template cft.Template, logicalId string) (*yaml.Node, error) {
@@ -181,9 +190,75 @@ type DeploymentResults struct {
 
 // Summarize prints out a summary of deployment results
 func (results *DeploymentResults) Summarize() {
+
+	fmt.Println("Deployment results summary")
+	fmt.Println()
+
+	tbl := table.New("Action", "Message", "Type", "LogicalId", "Identifier")
+	headerFmt := color.New(color.FgBlue, color.Underline).SprintfFunc()
+	tbl.WithHeaderFormatter(headerFmt)
+
+	failureMessages := make([]string, 0)
 	for _, resource := range results.Resources {
-		fmt.Println()
-		fmt.Printf("%v\n", resource)
+		var action, message, t, logicalId, ident string
+		var formatter table.Formatter
+
+		switch resource.Action {
+		case diff.Create:
+			action = "Created"
+			if resource.State == Failed {
+				action = "Create"
+			}
+		case diff.Update:
+			action = "Updated"
+			if resource.State == Failed {
+				action = "Update"
+			}
+		case diff.Delete:
+			action = "Deleted"
+			if resource.State == Failed {
+				action = "Delete"
+			}
+		default:
+			action = "None"
+			formatter = nil
+		}
+		if resource.State == Failed {
+			formatter = failFormat
+		} else {
+			formatter = successFormat
+		}
+		// state = stateIcons[resource.State]
+		switch resource.State {
+		case Waiting:
+			message = "Waiting"
+		case Deploying:
+			message = "Deploying"
+		case Failed:
+			message = "Failed"
+			msg := fmt.Sprintf("%s: %s", resource.Name, resource.Message)
+			failureMessages = append(failureMessages, msg)
+		case Deployed:
+			message = "Success"
+		case Canceled:
+			message = "Canceled"
+		}
+		if action == "None" {
+			message = ""
+			formatter = nil
+		}
+		t = resource.Type
+		logicalId = resource.Name
+		ident = resource.Identifier
+
+		tbl.AddRowf(formatter, action, message, t, logicalId, ident)
+	}
+	tbl.Print()
+	fmt.Println()
+	if len(failureMessages) > 0 {
+		for _, m := range failureMessages {
+			fmt.Println(console.Red(m))
+		}
 	}
 }
 
@@ -455,4 +530,12 @@ func DeployTemplate(template cft.Template) (*DeploymentResults, error) {
 
 	return results, nil
 
+}
+
+func init() {
+	createFormat = color.New(color.FgCyan).SprintfFunc()
+	updateFormat = color.New(color.FgYellow).SprintfFunc()
+	deleteFormat = color.New(color.FgMagenta).SprintfFunc()
+	failFormat = color.New(color.FgRed).Add(color.Bold).SprintfFunc()
+	successFormat = color.New(color.FgGreen).SprintfFunc()
 }

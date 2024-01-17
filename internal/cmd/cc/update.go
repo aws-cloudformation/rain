@@ -241,15 +241,13 @@ func summarizeChanges(changes cft.Template) {
 	if resourceMap == nil {
 		panic("expected Resources")
 	}
-	fmt.Println("Deployment Action Summary")
+
+	fmt.Println("Review the resources that are about to be deployed")
 	fmt.Println()
 
 	tbl := table.New("Action", "Type", "LogicalId", "Identifier")
 	headerFmt := color.New(color.FgBlue, color.Underline).SprintfFunc()
 	tbl.WithHeaderFormatter(headerFmt)
-	createFormat := color.New(color.FgGreen).SprintfFunc()
-	updateFormat := color.New(color.FgCyan).SprintfFunc()
-	deleteFormat := color.New(color.FgRed).SprintfFunc()
 
 	for i, v := range resourceMap.Content {
 		if i%2 == 0 {
