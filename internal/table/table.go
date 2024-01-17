@@ -272,7 +272,7 @@ func (t *table) printRow(format string, r row) {
 
 	// Apply custom row formatting
 	if r.f != nil {
-		for i, _ := range vals {
+		for i := range vals {
 			vals[i] = r.f("%s", vals[i])
 		}
 	}
