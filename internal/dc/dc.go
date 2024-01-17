@@ -183,6 +183,24 @@ func GetStackName(stackName string, base string) string {
 	return stackName
 }
 
+// ConfigFromStack returns a yaml string containing the tags and parameters of the given stack
+func ConfigFromStack(stack types.Stack) (string, error) {
+	configFile := &configFileFormat{
+		Parameters: make(map[string]string),
+		Tags:       make(map[string]string),
+	}
+
+	for _, tag := range stack.Tags {
+		configFile.Tags[*tag.Key] = *tag.Value
+	}
+	for _, parameter := range stack.Parameters {
+		configFile.Parameters[*parameter.ParameterKey] = *parameter.ParameterValue
+	}
+
+	configFileContent, err := yaml.Marshal(configFile)
+	return string(configFileContent), err
+}
+
 // GetDeployConfig populates an instance of DeployConfig based on user-supplied values
 func GetDeployConfig(
 	tags []string,
