@@ -2,12 +2,9 @@ package build
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
-	"github.com/aws-cloudformation/rain/cft/build"
-	"github.com/aws-cloudformation/rain/cft/format"
-	"github.com/aws-cloudformation/rain/cft/spec"
+	"github.com/aws-cloudformation/rain/internal/aws/cfn"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/spf13/cobra"
 )
@@ -25,12 +22,16 @@ var Cmd = &cobra.Command{
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		if buildListFlag {
-			types := make([]string, 0)
-			for t := range spec.Cfn.ResourceTypes {
-				types = append(types, t)
+
+			types, err := cfn.ListResourceTypes()
+
+			if err != nil {
+				panic(err)
 			}
-			sort.Strings(types)
-			fmt.Println(strings.Join(types, "\n"))
+
+			for _, t := range types {
+				fmt.Println(t)
+			}
 
 			return
 		}
@@ -40,24 +41,28 @@ var Cmd = &cobra.Command{
 			return
 		}
 
+		// --prompt -p
 		// Invoke Bedrock with Claude 2 to generate the template
 		if promptFlag {
 			prompt(strings.Join(args, " "))
 			return
 		}
 
-		resources := resolveResources(args)
+		/*
+			resources := resolveResources(args)
 
-		t, err := build.Template(resources, !bareTemplate)
-		if err != nil {
-			panic(err)
-		}
+			t, err := build.Template(resources, !bareTemplate)
+			if err != nil {
+				panic(err)
+			}
 
-		out := format.String(t, format.Options{
-			JSON: buildJSON,
-		})
+			out := format.String(t, format.Options{
+				JSON: buildJSON,
+			})
 
-		fmt.Println(out)
+			fmt.Println(out)
+		*/
+		fmt.Println("TODO")
 	},
 }
 
