@@ -92,5 +92,8 @@ func formatNode(n *yaml.Node) *yaml.Node {
 		n.Content[i] = formatNode(child)
 	}
 
+	// Always set Style to 0 for consistent formatting
+	n.Style = 0
+
 	return n
 }
