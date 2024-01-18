@@ -1,16 +1,15 @@
-package ccdeploy
+package cc
 
 import (
 	"testing"
 
 	"github.com/aws-cloudformation/rain/cft/diff"
 	"github.com/aws-cloudformation/rain/cft/graph"
-	"github.com/aws-cloudformation/rain/internal/config"
 )
 
 func TestReady(t *testing.T) {
 
-	config.Debug = true
+	// config.Debug = true
 
 	g := graph.Empty()
 

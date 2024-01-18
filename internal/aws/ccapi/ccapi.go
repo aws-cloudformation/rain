@@ -93,11 +93,11 @@ func CreateResource(logicalId string, resource *yaml.Node) (identifier string, m
 	}
 	output, err := getClient().CreateResource(context.Background(), &input)
 
-	config.Debugf("CreateResource output:\n%v", printProgress(output.ProgressEvent))
-
 	if err != nil {
 		return identifier, model, err
 	}
+
+	config.Debugf("CreateResource output:\n%v", printProgress(output.ProgressEvent))
 
 	progress := output.ProgressEvent
 	identifier, model, err = pollForCompletion(progress)
@@ -315,6 +315,9 @@ func DeleteResource(logicalId string, identifier string, resource *yaml.Node) er
 	}
 	if identifier == "" {
 		return fmt.Errorf("identifier is blank for DeleteResource %v", logicalId)
+	}
+	if resource == nil {
+		return fmt.Errorf("resource is nil for %v %v", logicalId, identifier)
 	}
 
 	clientToken := uuid.New().String()

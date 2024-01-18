@@ -1,7 +1,8 @@
-package ccdeploy
+package cc
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/aws-cloudformation/rain/cft/diff"
 	"gopkg.in/yaml.v3"
@@ -17,6 +18,8 @@ const (
 	Canceled
 )
 
+var stateIcons map[ResourceState]string
+
 type Resource struct {
 	Name       string
 	Type       string
@@ -27,7 +30,8 @@ type Resource struct {
 	Model      string
 	Action     diff.ActionType
 	PriorJson  string
-	// TODO - Add elapsed time
+	Start      time.Time
+	End        time.Time
 }
 
 func (r Resource) String() string {
@@ -58,4 +62,13 @@ func NewResource(name string,
 	r := &Resource{Name: name, Type: resourceType, State: state, Node: node}
 	resMap[name] = r // TODO - This is global, do we really need it?
 	return r
+}
+
+func init() {
+	stateIcons = make(map[ResourceState]string)
+	stateIcons[Waiting] = "⏳"
+	stateIcons[Deploying] = "⏩"
+	stateIcons[Failed] = "❌"
+	stateIcons[Canceled] = "🚫"
+	stateIcons[Deployed] = "✅"
 }

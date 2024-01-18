@@ -1001,6 +1001,7 @@ func GetTypeIdentifier(name string) ([]string, error) {
 
 // Get the values specified for primary identifiers in the template.
 // The return value will only have values if they are set.
+// TODO: Use ccapi to look at the deployed resource model for updates
 func GetPrimaryIdentifierValues(
 	primaryIdentifier []string,
 	resource *yaml.Node,
@@ -1051,6 +1052,7 @@ func GetPrimaryIdentifierValues(
 
 // resolveRef resolves a scalar reference if we have enough information
 // Returns "", error if the Ref can't be resolved (not a panic condition)
+// TODO: ccdeploy.resolve does this better
 func resolveRef(name string, template *yaml.Node, dc *dc.DeployConfig) (string, error) {
 	_, params := s11n.GetMapValue(template.Content[0], "Parameters")
 	config.Debugf("resolveRef params: %v", node.ToJson(params))

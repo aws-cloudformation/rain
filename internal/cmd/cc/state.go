@@ -1,4 +1,4 @@
-package ccdeploy
+package cc
 
 import (
 	"encoding/json"
@@ -16,6 +16,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/google/uuid"
+	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
 
@@ -41,6 +42,13 @@ func addCommon(stateMap *yaml.Node, absPath string) {
 	}
 }
 
+// deleteState removes the state file.
+// This is necessary when the user cancels a fresh deployment
+func deleteState(name string, bucketName string) error {
+	key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
+	return s3.DeleteObject(bucketName, key)
+}
+
 // checkState looks for an existing state file.
 //
 // If one does not exist, it is created.
@@ -56,7 +64,8 @@ func checkState(
 	template cft.Template,
 	bucketName string,
 	priorLock string,
-	absPath string) (*StateResult, error) {
+	absPath string,
+	unlockId string) (*StateResult, error) {
 
 	key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
 	var state cft.Template
@@ -129,14 +138,29 @@ func checkState(
 		}
 		result.Lock = lock
 
+		ignoreLock := false
 		if lock != "" {
-			return nil, fmt.Errorf("lock: %v", lock)
+			if unlockId != "" {
+				if lock != unlockId {
+					return nil, fmt.Errorf("unlock %v does not match found lock %v", unlockId, lock)
+				} else {
+					fmt.Println("Unlocking the locked state file")
+					ignoreLock = true
+				}
+			} else {
+				msg := fmt.Sprintf("Found a locked state file (lock: %v). This means another process is currently deploying this template, or a deployment failed to complete. You will need to manually resolve the issue, or you can try to resume the deployment by running cc deploy with --unlock <lock>", lock)
+				return nil, errors.New(msg)
+			}
 		}
 
 		// We are safe to proceed with an update.
 		// Write a new lock back to the state file stored in S3.
-		lock = uuid.New().String()
-		node.Add(stateMap, "Lock", lock)
+		// If we're unlocking to continue a failed deployment, leave it
+		// since we would need to re-lock it here anyway
+		if !ignoreLock {
+			lock = uuid.New().String()
+			node.Add(stateMap, "Lock", lock)
+		}
 
 		// Add common elements
 		addCommon(stateMap, absPath)
@@ -165,48 +189,50 @@ func writeState(
 	original := format.String(state, format.Options{JSON: false, Unsorted: false})
 	config.Debugf("writeState original template: %v", original)
 
-	stateMap := cft.AppendStateMap(state)
-	node.Add(stateMap, "LastWriteTime", time.Now().Format(time.RFC3339))
-	addCommon(stateMap, absPath)
-	resourceModels := node.AddMap(stateMap, "ResourceModels")
+	if results != nil {
+		stateMap := cft.AppendStateMap(state)
+		node.Add(stateMap, "LastWriteTime", time.Now().Format(time.RFC3339))
+		addCommon(stateMap, absPath)
+		resourceModels := node.AddMap(stateMap, "ResourceModels")
 
-	// Iterate over each resource in the results.
-	// Add a State section to the state resource and write the resource model
+		// Iterate over each resource in the results.
+		// Add a State section to the state resource and write the resource model
 
-	rootMap := state.Node.Content[0]
-	_, resourceMap := s11n.GetMapValue(rootMap, "Resources")
-	if resourceMap == nil {
-		panic("Expected to find a Resources section in the template")
-	}
-
-	for name, resource := range results.Resources {
-		if resource.Action == diff.Delete {
-			config.Debugf("Resource %v was deleted, not writing to state", name)
-			continue
+		rootMap := state.Node.Content[0]
+		_, resourceMap := s11n.GetMapValue(rootMap, "Resources")
+		if resourceMap == nil {
+			panic("Expected to find a Resources section in the template")
 		}
-		config.Debugf("Writing %v to state file", name)
-		var stateResource *yaml.Node
-		for i, r := range resourceMap.Content {
-			if r.Value == name {
-				stateResource = resourceMap.Content[i+1]
-				break
+
+		for name, resource := range results.Resources {
+			if resource.Action == diff.Delete {
+				config.Debugf("Resource %v was deleted, not writing to state", name)
+				continue
 			}
-		}
-		if stateResource == nil {
-			return fmt.Errorf("did not find %v in the state template", name)
-		}
+			config.Debugf("Writing %v to state file", name)
+			var stateResource *yaml.Node
+			for i, r := range resourceMap.Content {
+				if r.Value == name {
+					stateResource = resourceMap.Content[i+1]
+					break
+				}
+			}
+			if stateResource == nil {
+				return fmt.Errorf("did not find %v in the state template", name)
+			}
 
-		resourceStateMap := node.AddMap(resourceModels, name)
-		node.Add(resourceStateMap, "Identifier", resource.Identifier)
-		modelMap := node.AddMap(resourceStateMap, "Model")
-		var parsed map[string]any
-		json.Unmarshal([]byte(resource.Model), &parsed)
-		var n yaml.Node
-		err := n.Encode(parsed)
-		if err != nil {
-			return err
+			resourceStateMap := node.AddMap(resourceModels, name)
+			node.Add(resourceStateMap, "Identifier", resource.Identifier)
+			modelMap := node.AddMap(resourceStateMap, "Model")
+			var parsed map[string]any
+			json.Unmarshal([]byte(resource.Model), &parsed)
+			var n yaml.Node
+			err := n.Encode(parsed)
+			if err != nil {
+				return err
+			}
+			modelMap.Content = append(modelMap.Content, n.Content...)
 		}
-		modelMap.Content = append(modelMap.Content, n.Content...)
 	}
 
 	str := format.String(state, format.Options{JSON: false, Unsorted: false})
@@ -218,4 +244,41 @@ func writeState(
 	}
 
 	return nil
+}
+
+// run is the cobra command for rain cc state
+func runState(cmd *cobra.Command, args []string) {
+	name := args[0]
+
+	if !Experimental {
+		panic("Please add the --experimental arg to use this feature")
+	}
+
+	// Call RainBucket for side-effects in case we want to force bucket creation
+	bucketName := s3.RainBucket(true)
+
+	key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
+
+	obj, err := s3.GetObject(bucketName, key)
+	if err != nil {
+		fmt.Printf("Unable to download state: %v", err)
+		return
+	}
+
+	fmt.Println(string(obj))
+}
+
+var CCStateCmd = &cobra.Command{
+	Use:   "state <name>",
+	Short: "Download the state file for a template deployed with cc deploy",
+	Long: `When deploying templates with the cc command, a state file is created and stored in the rain assets bucket. This command outputs the contents of that file.
+`,
+	Args:                  cobra.ExactArgs(1),
+	DisableFlagsInUseLine: true,
+	Run:                   runState,
+}
+
+func init() {
+	CCStateCmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
+	CCStateCmd.Flags().BoolVarP(&Experimental, "experimental", "x", false, "Acknowledge that this is an experimental feature")
 }

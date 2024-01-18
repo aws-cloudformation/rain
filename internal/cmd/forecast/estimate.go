@@ -1198,7 +1198,7 @@ func InitEstimates() {
 	Estimates["AWS::SNS::Topic"] = NewResourceEstimate("AWS::SNS::Topic", 4, 7, 1)
 	Estimates["AWS::SNS::TopicInlinePolicy"] = NewResourceEstimate("AWS::SNS::TopicInlinePolicy", 32, 32, 1)
 	Estimates["AWS::SNS::TopicPolicy"] = NewResourceEstimate("AWS::SNS::TopicPolicy", 1, 1, 1)
-	Estimates["AWS::SQS::Queue"] = NewResourceEstimate("AWS::SQS::Queue", 72, 2, 1)
+	Estimates["AWS::SQS::Queue"] = NewResourceEstimate("AWS::SQS::Queue", 72, 2, 60)
 	Estimates["AWS::SQS::QueueInlinePolicy"] = NewResourceEstimate("AWS::SQS::QueueInlinePolicy", 32, 1, 1)
 	Estimates["AWS::SQS::QueuePolicy"] = NewResourceEstimate("AWS::SQS::QueuePolicy", 1, 0, 1)
 	Estimates["AWS::SSM::Association"] = NewResourceEstimate("AWS::SSM::Association", 2, 0, 1)

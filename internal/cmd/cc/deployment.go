@@ -1,18 +1,31 @@
-package ccdeploy
+package cc
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/diff"
+	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/cft/graph"
 	"github.com/aws-cloudformation/rain/internal/aws/ccapi"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/console"
+	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
+	"github.com/aws-cloudformation/rain/internal/table"
+	"github.com/fatih/color"
 	"gopkg.in/yaml.v3"
 )
+
+var createFormat table.Formatter
+var updateFormat table.Formatter
+var deleteFormat table.Formatter
+var failFormat table.Formatter
+var successFormat table.Formatter
 
 // getTemplateResource returns the yaml node based on the logical id
 func getTemplateResource(template cft.Template, logicalId string) (*yaml.Node, error) {
@@ -38,14 +51,28 @@ func deployResource(resource *Resource) {
 	config.Debugf("Deploying %v...", resource)
 
 	resource.State = Deploying
+	resource.Start = time.Now()
+	defer func() { resource.End = time.Now() }()
 
-	// TODO - Resolve instrinsics before creating the resource
-	// This will depend on the post-deployment state of dependencies
-	resolvedNode, err := resolve(resource)
-	if err != nil {
-		config.Debugf("deployResource resolve failed: %v", err)
-		resource.State = Failed
-		resource.Message = fmt.Sprintf("%v", err)
+	// Resolve instrinsics before creating the resource.
+	// This depends on the post-deployment state of dependencies
+	var resolvedNode *yaml.Node
+	var err error
+	if resource.Action == diff.Delete {
+		// We don't need to resolve resources we are deleting.
+		resolvedNode = resource.Node
+	} else {
+		resolvedNode, err = Resolve(resource)
+		// TODO: Failing due to empty Model on updates
+		// If the dependencies didn't change, they don't get deployed,
+		// so we need to get the Model from the state file.
+		// Or.. query ccapi for the live state?
+		if err != nil {
+			config.Debugf("deployResource resolve failed: %v", err)
+			resource.State = Failed
+			resource.Message = fmt.Sprintf("%v", err)
+			return
+		}
 	}
 
 	switch resource.Action {
@@ -75,7 +102,7 @@ func deployResource(resource *Resource) {
 		// 	resource.Message = fmt.Sprintf("%v", err)
 		// }
 		//
-		// We would need that at an earlier state for drift detection
+		// We would need that at an earlier step for drift detection
 
 		priorJson := resource.PriorJson
 
@@ -107,9 +134,12 @@ func deployResource(resource *Resource) {
 
 	default:
 		// None means this is an update with no change to the model
-		config.Debugf("deployResource not deploying unchanged %v", resource.Name)
+		config.Debugf("deployResource not deploying unchanged %v. Identifier: %v, Model: %v",
+			resource.Name, resource.Identifier, resource.Model)
 		resource.State = Deployed
 		resource.Message = "Success"
+
+		// TODO: Are we missing the Model here?
 	}
 
 }
@@ -156,6 +186,80 @@ type DeploymentResults struct {
 	Succeeded bool
 	State     cft.Template
 	Resources map[string]*Resource
+}
+
+// Summarize prints out a summary of deployment results
+func (results *DeploymentResults) Summarize() {
+
+	fmt.Println("Deployment results summary")
+	fmt.Println()
+
+	tbl := table.New("Action", "Message", "Type", "LogicalId", "Identifier")
+	headerFmt := color.New(color.FgBlue, color.Underline).SprintfFunc()
+	tbl.WithHeaderFormatter(headerFmt)
+
+	failureMessages := make([]string, 0)
+	for _, resource := range results.Resources {
+		var action, message, t, logicalId, ident string
+		var formatter table.Formatter
+
+		switch resource.Action {
+		case diff.Create:
+			action = "Created"
+			if resource.State == Failed {
+				action = "Create"
+			}
+		case diff.Update:
+			action = "Updated"
+			if resource.State == Failed {
+				action = "Update"
+			}
+		case diff.Delete:
+			action = "Deleted"
+			if resource.State == Failed {
+				action = "Delete"
+			}
+		default:
+			action = "None"
+			formatter = nil
+		}
+		if resource.State == Failed {
+			formatter = failFormat
+		} else {
+			formatter = successFormat
+		}
+		// state = stateIcons[resource.State]
+		switch resource.State {
+		case Waiting:
+			message = "Waiting"
+		case Deploying:
+			message = "Deploying"
+		case Failed:
+			message = "Failed"
+			msg := fmt.Sprintf("%s: %s", resource.Name, resource.Message)
+			failureMessages = append(failureMessages, msg)
+		case Deployed:
+			message = "Success"
+		case Canceled:
+			message = "Canceled"
+		}
+		if action == "None" {
+			message = ""
+			formatter = nil
+		}
+		t = resource.Type
+		logicalId = resource.Name
+		ident = resource.Identifier
+
+		tbl.AddRowf(formatter, action, message, t, logicalId, ident)
+	}
+	tbl.Print()
+	fmt.Println()
+	if len(failureMessages) > 0 {
+		for _, m := range failureMessages {
+			fmt.Println(console.Red(m))
+		}
+	}
 }
 
 // canDelete returns true if the resource can be deleted.
@@ -350,6 +454,7 @@ func DeployTemplate(template cft.Template) (*DeploymentResults, error) {
 				// Assume this is a new deployment
 				action = diff.Create
 			} else {
+				config.Debugf("DeployTemplate stateNode: %v", node.ToSJson(stateNode))
 				for i, s := range stateNode.Content {
 					if i%2 == 0 {
 						if s.Value == "Action" {
@@ -366,7 +471,9 @@ func DeployTemplate(template cft.Template) (*DeploymentResults, error) {
 						} else if s.Value == "Identifier" {
 							ident = stateNode.Content[i+1].Value
 						} else if s.Value == "ResourceModel" {
-							model = stateNode.Content[i+1].Value
+							j := format.Jsonise(stateNode.Content[i+1])
+							m, _ := json.Marshal(j)
+							model = string(m)
 						} else if s.Value == "PriorJson" {
 							priorJson = stateNode.Content[i+1].Value
 						} else {
@@ -383,6 +490,7 @@ func DeployTemplate(template cft.Template) (*DeploymentResults, error) {
 			r.PriorJson = priorJson // We need this for ccapi update
 
 			config.Debugf("deployment set r.Model to %v", r.Model)
+			// TODO: This is blank when we update
 
 			if r.Action == diff.Delete {
 				deletes = append(deletes, r)
@@ -407,7 +515,11 @@ func DeployTemplate(template cft.Template) (*DeploymentResults, error) {
 		return nil, err
 	}
 	if !results.Succeeded {
-		return nil, fmt.Errorf("unable to delete resources: %v", err)
+		spinner.StopTimer()
+		for _, resource := range results.Resources {
+			fmt.Printf("%v\n", resource)
+		}
+		return nil, errors.New("unable to delete resources")
 	}
 
 	// Deploy the rest of the resources
@@ -418,4 +530,12 @@ func DeployTemplate(template cft.Template) (*DeploymentResults, error) {
 
 	return results, nil
 
+}
+
+func init() {
+	createFormat = color.New(color.FgCyan).SprintfFunc()
+	updateFormat = color.New(color.FgYellow).SprintfFunc()
+	deleteFormat = color.New(color.FgMagenta).SprintfFunc()
+	failFormat = color.New(color.FgRed).Add(color.Bold).SprintfFunc()
+	successFormat = color.New(color.FgGreen).SprintfFunc()
 }

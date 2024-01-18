@@ -1,4 +1,4 @@
-package ccdeploy
+package cc
 
 import (
 	"fmt"
@@ -10,6 +10,8 @@ import (
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
+	"github.com/aws-cloudformation/rain/internal/table"
+	"github.com/fatih/color"
 	"gopkg.in/yaml.v3"
 )
 
@@ -33,7 +35,7 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 			 State:
 				Action: Create or Update or Delete or None
 				Identifier: ...
-				ResourceModel: (Might need this for drift detection)
+				ResourceModel: ...
 				PriorJson: (We need this for ccapi update)
 
 	*/
@@ -55,6 +57,7 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 	if stateResourceModels == nil {
 		panic("Expected to find State.ResourceModels in the state template")
 	}
+
 	identifiers := make(map[string]string, 0)
 	models := make(map[string]*yaml.Node, 0)
 	for i, v := range stateResourceModels.Content {
@@ -123,16 +126,24 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 		} else {
 			// Create, Update, None
 			node.Add(rmap, "Action", string(v))
+
 			// Add the identifier so we know what to update
 			if identifier, ok := identifiers[k]; ok {
 				node.Add(rmap, "Identifier", identifier)
+				// TODO: When would we not have the identifier?
+				// We need it below when there is no model and we have to query for it
 			}
+
 			// Add the resource model that represents the current actual state of
 			// the resource based on the ccapi GetResource call
 			if model, ok := models[k]; ok {
+				// TODO: We always need this.
+				// Do we query for it here if it's missing? Or during deployment?
+
 				modelMap := node.AddMap(rmap, "ResourceModel")
 				modelMap.Content = model.Content
 			}
+
 			// Add PriorJson to represent the prior properties set by the user
 			if v == diff.Update {
 				priorProps := ccapi.ToJsonProps(stateResources[k])
@@ -190,8 +201,10 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 				New template desired state:
 				    DelaySeconds: 2
 
+				(If any resources resulted in the above message)
+
 				What would you like to do?
-				1) Stop the deployment.
+				1) Do not deploy anything
 				2) Deploy anyway, applying my latest template as the source of truth
 				3) Deploy anyway, applying all of my changes except the drifted properties
 				??? Any other choices? Does 3 make sense?
@@ -203,6 +216,8 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 
 			This makes our diff generation more complicated, since there are two
 			different diffs to consider.
+
+			A table view might be better, with a colorized 3-way diff.
 
 
 	*/
@@ -226,34 +241,60 @@ func summarizeChanges(changes cft.Template) {
 	if resourceMap == nil {
 		panic("expected Resources")
 	}
-	fmt.Println("Summary of deployment changes:")
+
+	fmt.Println("Review the resources that are about to be deployed")
+	fmt.Println()
+
+	tbl := table.New("Action", "Type", "LogicalId", "Identifier")
+	headerFmt := color.New(color.FgBlue, color.Underline).SprintfFunc()
+	tbl.WithHeaderFormatter(headerFmt)
+
 	for i, v := range resourceMap.Content {
 		if i%2 == 0 {
 			var action string
 			var t string
 			var ident string
 			name := v.Value
-			_, stateMap := s11n.GetMapValue(resourceMap.Content[i+1], "State")
-			if stateMap == nil {
-				panic(fmt.Sprintf("expected State on resource %v", name))
-			}
+
+			// Get the Type
 			_, typeNode := s11n.GetMapValue(resourceMap.Content[i+1], "Type")
 			if typeNode == nil {
 				panic(fmt.Sprintf("expected Type on resource %v", name))
 			}
 			t = typeNode.Value
-			for si, sv := range stateMap.Content {
-				if si%2 == 0 {
-					val := stateMap.Content[si+1].Value
-					if sv.Value == "Action" {
-						action = val
-					} else if sv.Value == "Identifier" {
-						ident = val
+
+			// Get the action and identifier
+			_, stateMap := s11n.GetMapValue(resourceMap.Content[i+1], "State")
+			if stateMap == nil {
+				action = "Create"
+				ident = ""
+			} else {
+				for si, sv := range stateMap.Content {
+					if si%2 == 0 {
+						val := stateMap.Content[si+1].Value
+						if sv.Value == "Action" {
+							action = val
+						} else if sv.Value == "Identifier" {
+							ident = val
+						}
 					}
 				}
 			}
-			fmt.Printf("%v\t%v\t%v\t%v\n", name, t, action, ident)
+			//fmt.Printf("%v\t%v\t%v\t%v\n", name, t, action, ident)
+			var formatter table.Formatter
+			switch action {
+			case "Create":
+				formatter = createFormat
+			case "Update":
+				formatter = updateFormat
+			case "Delete":
+				formatter = deleteFormat
+			default:
+				formatter = nil
+			}
+			tbl.AddRowf(formatter, action, t, name, ident)
 		}
 	}
-
+	tbl.Print()
+	fmt.Println()
 }

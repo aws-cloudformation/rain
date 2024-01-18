@@ -27,8 +27,19 @@ require (
 )
 
 require (
+	github.com/fatih/color v1.16.0
+	github.com/mattn/go-runewidth v0.0.15
+	github.com/stretchr/testify v1.8.4
+)
+
+require (
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.2.9 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.21.5 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/rivo/uniseg v0.2.0 // indirect
 )
 
 require (

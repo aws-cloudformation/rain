@@ -1,6 +1,6 @@
-# ccdeploy
+# Cloud Control API Deployments 
 
-The `rain ccdeploy` command provisions resources using the AWS Cloud Control
+The `rain cc deploy` command provisions resources using the AWS Cloud Control
 API (CCAPI). It does not submit templates to CloudFormation, so there will be
 no managed stack to interact with after running this command. API calls are
 made directly from the client to CCAPI, and the state for the resources is
@@ -16,7 +16,7 @@ provisioning is still done by the same back-end resource providers that
 CloudFormation uses. Those are available on GitHub under the
 `aws-cloudformation` organization, for example
 [RDS](https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-rds).
-The `ccdeploy` command makes client-side calls to CCAPI endpoints like `CreateResource`, 
+The `cc deploy` command makes client-side calls to CCAPI endpoints like `CreateResource`, 
 but then CCAPI itself is the one making SDK calls into specific services.
 
 The following is an excerpt from a blog post: [The history and future roadmap
@@ -79,7 +79,7 @@ It is obviously very important to store the state in a way that it cannot be
 lost or associated with the wrong AWS environment. It is also important to make
 sure two processes don't try to deploy the same template at the same time.
 
-The state file for `rain ccdeploy` is stored as a YAML file that has the same
+The state file for `rain cc deploy` is stored as a YAML file that has the same
 format as the source CloudFormation template. Extra sections are added to the
 file to associate state with the deployed resources.
 
@@ -114,13 +114,13 @@ properties and compare them to the stored state.
 To use this command, supply the same arguments that you would supply to the `deploy` command:
 
 ```sh
-$ rain ccdeploy my-template.yaml my-deployment-name
+$ rain cc deploy my-template.yaml my-deployment-name
 ```
 
-To remove resources deployed with `ccdeploy`, use the `ccrm` command:
+To remove resources deployed with `cc deploy`, use the `cc rm` command:
 
 ```sh
-$ rain ccrm my-deployment-name
+$ rain cc rm my-deployment-name
 ```
 
 ## Unsupported features
