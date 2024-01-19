@@ -1134,7 +1134,6 @@ func ListResourceTypes() ([]string, error) {
 		hasMore := true
 		for hasMore {
 			input.Visibility = v
-			config.Debugf("About to call ListTypes: %v", input)
 			res, err := getClient().ListTypes(context.Background(), input)
 			if err != nil {
 				return retval, err

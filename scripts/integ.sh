@@ -19,10 +19,12 @@ set -eoux pipefail
 ./rain rm success-test -y
 
 ./rain build AWS::S3::Bucket
+./rain build -l
 
 ./rain fmt test/templates/fmtfindinmap.yaml
 ./rain fmt test/templates/fmtmultiwithgt.yaml
 ./rain fmt test/templates/fmtziplinesok.yaml
 
 ./rain pkg cft/pkg/tmpl/s3-props-template.yaml
+
 

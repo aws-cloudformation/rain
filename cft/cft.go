@@ -4,8 +4,10 @@
 package cft
 
 import (
+	"errors"
 	"fmt"
 
+	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
 )
@@ -50,7 +52,7 @@ type Section string
 const (
 	AWSTemplateFormatVersion Section = "AWSTemplateFormatVersion"
 	Resources                Section = "Resources"
-	Description              Section = "Description "
+	Description              Section = "Description"
 	Metadata                 Section = "Metadata"
 	Parameters               Section = "Parameters"
 	Rules                    Section = "Rules"
@@ -82,4 +84,17 @@ func (t Template) GetNode(section Section, name string) (*yaml.Node, error) {
 		return nil, fmt.Errorf("unable to locate %s %s", section, name)
 	}
 	return resource, nil
+}
+
+func (t Template) AddScalarSection(section Section, val string) error {
+	if t.Node == nil {
+		return errors.New("t.Node is nil")
+	}
+	if len(t.Node.Content) == 0 {
+		return errors.New("missing Document Content")
+	}
+	m := t.Node.Content[0]
+	node.Add(m, string(section), val)
+
+	return nil
 }
