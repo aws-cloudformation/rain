@@ -5,7 +5,7 @@ go 1.18
 require (
 	//github.com/ake-persson/mapslice-json v0.0.0-20210720081907-22c8edf57807
 	github.com/appscode/jsonpatch v1.0.1
-	github.com/aws/aws-sdk-go-v2 v1.24.0
+	github.com/aws/aws-sdk-go-v2 v1.24.1
 	github.com/aws/aws-sdk-go-v2/config v1.26.1
 	github.com/aws/aws-sdk-go-v2/credentials v1.16.12
 	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.5.5
