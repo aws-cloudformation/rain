@@ -17,9 +17,10 @@ import (
 	"github.com/aws/smithy-go/ptr"
 )
 
-const signinURI = "https://signin.aws.amazon.com/federation"
+var signinURI string
+var consoleURI string
+
 const issuer = "https://aws-cloudformation.github.io/rain/rain_console.html"
-const consoleURI = "https://console.aws.amazon.com"
 const defaultService = "cloudformation"
 const sessionDuration = 43200
 
@@ -120,6 +121,17 @@ func getSigninToken(userName string) (string, error) {
 func GetURI(service, stackName, userName string) (string, error) {
 
 	config.Debugf("GetURI %v, %v, %v", service, stackName, userName)
+
+	region := aws.Config().Region
+
+	signinURI = "https://signin.aws.amazon.com/federation"
+	consoleURI = "https://console.aws.amazon.com"
+
+	// Different URIs for GovCloud
+	if strings.HasPrefix(region, "us-gov-") {
+		signinURI = "https://signin.amazonaws-us-gov.com/federation"
+		consoleURI = "https://console.amazonaws-us-gov.com"
+	}
 
 	token, err := getSigninToken(userName)
 	if err != nil {
