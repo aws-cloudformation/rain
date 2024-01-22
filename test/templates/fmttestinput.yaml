@@ -1,0 +1,61 @@
+Outputs:
+  Bucket1:
+    Value: !GetAtt Bucket1.Arn # Short GetAtt
+  Bucket2: # Bucket comment
+    Value:
+      Fn::GetAtt: # GetAtt comment
+        - Bucket2
+        - Arn # Arn comment
+
+Description: |
+  An example template for testing rain fmt command.
+
+# Multiline comment
+# starting at indent 0
+Resources:
+  Bucket2:
+    Properties:
+      BucketName: !Ref Name # Ref: comment
+    Type: "AWS::S3::Bucket"
+  Bucket1:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${Bucket2}-newer
+  Func1:
+    Type: AWS::Lambda::Function
+    Properties:
+      Role: !Sub "arn:aws:iam::${AWS::AccountID}:role/lambda-basic"
+      Runtime: python3.7
+      Handler: index.handler
+      Code:
+        ZipFile: |
+          import boto3
+
+          def handler: 
+            """Example."""
+
+            print('hello')
+  Instance1:
+    Type: AWS::EC2::Instance
+    Properties:
+      UserData: !Base64
+        Fn::Sub:
+          - |
+            #!/bin/bash -xe
+            apt-get update
+
+            apt-get upgrade -y
+Rules:
+  Rule1:
+    RuleCondition: !Equals
+      - !Ref Environment
+      - test
+    Assertions:
+      - Assert:
+          Fn::Contains:
+            - - a1.medium
+            - !Ref InstanceType
+Parameters:
+  Name:
+    Type: String
+
