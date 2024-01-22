@@ -11,7 +11,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.5.6
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.42.4
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.144.1
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.47.5
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.48.0
 	github.com/aws/aws-sdk-go-v2/service/sts v1.26.7
 	github.com/aws/smithy-go v1.19.0
 	github.com/chzyer/readline v1.5.1
@@ -33,7 +33,7 @@ require (
 )
 
 require (
-	github.com/aws/aws-sdk-go-v2/internal/v4a v1.2.9 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/v4a v1.2.10 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.21.7 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -51,9 +51,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudcontrol v1.15.5
 	github.com/aws/aws-sdk-go-v2/service/iam v1.28.7
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.10.4 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.2.9 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.2.10 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.10.10 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.16.9 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.16.10 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.18.7 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
