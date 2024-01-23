@@ -86,6 +86,7 @@ func (t Template) GetNode(section Section, name string) (*yaml.Node, error) {
 	return resource, nil
 }
 
+// AddScalarSection adds a section like Description to the template
 func (t Template) AddScalarSection(section Section, val string) error {
 	if t.Node == nil {
 		return errors.New("t.Node is nil")
@@ -97,4 +98,18 @@ func (t Template) AddScalarSection(section Section, val string) error {
 	node.Add(m, string(section), val)
 
 	return nil
+}
+
+// AddMapSection adds a section like Resources to the template
+func (t Template) AddMapSection(section Section) (*yaml.Node, error) {
+
+	if t.Node == nil {
+		return nil, errors.New("t.Node is nil")
+	}
+	if len(t.Node.Content) == 0 {
+		return nil, errors.New("missing Document Content")
+	}
+
+	m := t.Node.Content[0]
+	return node.AddMap(m, string(section)), nil
 }
