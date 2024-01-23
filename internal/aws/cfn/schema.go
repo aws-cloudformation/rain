@@ -2,22 +2,37 @@ package cfn
 
 import "encoding/json"
 
+type SchemaLike interface {
+	GetRequired() []string
+	GetProperties() map[string]*Prop
+}
+
 // Represents a registry schema property or definition
 type Prop struct {
-	Description          string   `json:"description"`
-	Items                *Prop    `json:"items"`
-	Type                 string   `json:"type"`
-	UniqueItems          bool     `json:"uniqueItems"`
-	InsertionOrder       bool     `json:"insertionOrder"`
-	Ref                  string   `json:"$ref"`
-	MaxLength            int      `json:"maxLength"`
-	MinLength            int      `json:"minLength"`
-	Pattern              string   `json:"pattern"`
-	Examples             []string `json:"examples"`
-	AdditionalProperties bool     `json:"additionalProperties"`
-	Properties           *Prop    `json:"properties"`
-	Enum                 []string `json:"enum"`
-	Required             []string `json:"required"`
+	Description          string           `json:"description"`
+	Items                *Prop            `json:"items"`
+	Type                 string           `json:"type"`
+	UniqueItems          bool             `json:"uniqueItems"`
+	InsertionOrder       bool             `json:"insertionOrder"`
+	Ref                  string           `json:"$ref"`
+	MaxLength            int              `json:"maxLength"`
+	MinLength            int              `json:"minLength"`
+	Pattern              string           `json:"pattern"`
+	Examples             []string         `json:"examples"`
+	AdditionalProperties bool             `json:"additionalProperties"`
+	Properties           map[string]*Prop `json:"properties"`
+	Enum                 []string         `json:"enum"`
+	Required             []string         `json:"required"`
+	OneOf                []*Prop          `json:"oneOf"`
+	AnyOf                []*Prop          `json:"anyOf"`
+}
+
+func (p *Prop) GetProperties() map[string]*Prop {
+	return p.Properties
+}
+
+func (p *Prop) GetRequired() []string {
+	return p.Required
 }
 
 // Represents a registry schema for a resource type like AWS::S3::Bucket
@@ -35,6 +50,14 @@ type Schema struct {
 	ReadOnlyProperties   []string         `json:"readOnlyProperties"`
 	WriteOnlyProperties  []string         `json:"writeOnlyProperties"`
 	CreateOnlyProperties []string         `json:"createOnlyProperties"`
+}
+
+func (s *Schema) GetProperties() map[string]*Prop {
+	return s.Properties
+}
+
+func (s *Schema) GetRequired() []string {
+	return s.Required
 }
 
 // ParseSchema unmarshals the text of a registry schema into a struct

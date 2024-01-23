@@ -34,6 +34,8 @@ func handleScalar(node *yaml.Node) interface{} {
 		panic(err)
 	}
 
+	config.Debugf("intermediate: %v", string(intermediate))
+
 	var out interface{}
 	err = yaml.Unmarshal(intermediate, &out)
 	if err != nil {

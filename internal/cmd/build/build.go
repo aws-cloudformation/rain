@@ -1,6 +1,7 @@
 package build
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -19,56 +20,109 @@ var buildJSON = false
 var promptFlag = false
 var showSchema = false
 
+func addScalar(n *yaml.Node, propName string, val string) error {
+	if n.Kind == yaml.MappingNode {
+		node.Add(n, propName, val)
+	} else if n.Kind == yaml.SequenceNode {
+		n.Content = append(n.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: val})
+	} else {
+		return fmt.Errorf("unexpected kind %v for %s:%s", n.Kind, propName, val)
+	}
+	return nil
+}
+
+// buildProp adds boilerplate code to the node, depending on the shape of the property
 func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema) error {
-	// "$ref"
-	// node.Add(n, propName, "TODO") // TODO - complex properties
-	config.Debugf("%s: %v", propName, prop)
+
+	j, _ := json.Marshal(prop)
+	config.Debugf("%s: %s", propName, j)
 
 	switch prop.Type {
 	case "string":
 		if len(prop.Enum) > 0 {
-			node.Add(n, propName, strings.Join(prop.Enum, " or "))
+			return addScalar(n, propName, strings.Join(prop.Enum, " or "))
 		} else {
-			node.Add(n, propName, "STRING")
+			return addScalar(n, propName, "STRING")
 		}
 	case "object":
-		node.Add(n, propName, "TODO")
 		var objectProps *cfn.Prop
 		if prop.Properties != nil {
-			objectProps = prop.Properties
-		} else if prop.Ref != "" {
-			reffed := strings.Replace(prop.Ref, "#/definitions/", "", 1)
-			var hasDef bool
-			if objectProps, hasDef = schema.Definitions[reffed]; !hasDef {
-				config.Debugf("%s: %s not found in definitions", propName, reffed)
-				node.Add(n, propName, "{?}")
-			}
+			objectProps = &prop
+		} else if len(prop.OneOf) > 0 {
+			objectProps = prop.OneOf[0]
+		} else if len(prop.AnyOf) > 0 {
+			objectProps = prop.AnyOf[0]
 		} else {
-			config.Debugf("%s: object type without properties or ref?", propName)
-			node.Add(n, propName, "??")
+			config.Debugf("%s: object type without properties", propName)
+			return addScalar(n, propName, "{JSON}")
 		}
 		if objectProps != nil {
-			// TODO - recurse on this to add sub properties
-			node.Add(n, propName, "{complex-TODO}")
+			// Make a mapping node and recurse to add sub properties
+			m := node.AddMap(n, propName)
+			return buildNode(m, objectProps, &schema)
 		}
 	case "array":
 		// Look at items to see what type is in the array
 		if prop.Items != nil {
 			// TODO - Add a sequence node, then add 2 sample elements
+			n.Content = append(n.Content,
+				&yaml.Node{Kind: yaml.ScalarNode, Value: propName})
+			samples := make([]*yaml.Node, 0)
+
+			n.Content = append(n.Content,
+				&yaml.Node{Kind: yaml.SequenceNode, Content: samples})
+			return nil
+
 		} else {
-			config.Debugf("%s: array without items?", propName)
-			node.Add(n, propName, "[?]")
+			return fmt.Errorf("%s: array without items?", propName)
 		}
 	case "boolean":
-		node.Add(n, propName, "BOOLEAN")
+		return addScalar(n, propName, "BOOLEAN")
 	case "number":
-		node.Add(n, propName, "NUMBER")
+		return addScalar(n, propName, "NUMBER")
 	case "integer":
-		node.Add(n, propName, "INTEGER")
+		return addScalar(n, propName, "INTEGER")
+	case "":
+		if prop.Ref != "" {
+			reffed := strings.Replace(prop.Ref, "#/definitions/", "", 1)
+			if objectProps, hasDef := schema.Definitions[reffed]; !hasDef {
+				return fmt.Errorf("%s: %s not found in definitions", propName, reffed)
+			} else {
+				return buildProp(n, propName, *objectProps, schema)
+			}
+		} else {
+			return fmt.Errorf("expected blank type to have $ref: %s", propName)
+		}
 	default:
-		node.Add(n, propName, "?")
+		return fmt.Errorf("unexpected prop type for %s: %s", propName, prop.Type)
 	}
 
+	return nil
+}
+
+// buildNode recursively builds a node for a schema-like object
+func buildNode(n *yaml.Node, s cfn.SchemaLike, schema *cfn.Schema) error {
+
+	// Add all props or just the required ones
+	if bareTemplate {
+		for _, requiredName := range s.GetRequired() {
+			if p, hasProp := schema.Properties[requiredName]; hasProp {
+				err := buildProp(n, requiredName, *p, *schema)
+				if err != nil {
+					return err
+				}
+			} else {
+				return fmt.Errorf("required: %s not found in properties", requiredName)
+			}
+		}
+	} else {
+		for k, p := range s.GetProperties() {
+			err := buildProp(n, k, *p, *schema)
+			if err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 
@@ -96,6 +150,7 @@ func build(typeNames []string) (cft.Template, error) {
 			return t, err
 		}
 
+		// Parse the schema JSON string
 		schema, err := cfn.ParseSchema(schemaSource)
 		if err != nil {
 			return t, err
@@ -107,26 +162,12 @@ func build(typeNames []string) (cft.Template, error) {
 		node.Add(r, "Type", typeName)
 		props := node.AddMap(r, "Properties")
 
-		// Add all props or just the required ones
-		if bareTemplate {
-			for _, requiredName := range schema.Required {
-				if p, hasProp := schema.Properties[requiredName]; hasProp {
-					err = buildProp(props, requiredName, *p, *schema)
-					if err != nil {
-						return t, err
-					}
-				} else {
-					return t, fmt.Errorf("required: %s not found in properties", requiredName)
-				}
-			}
-		} else {
-			for k, p := range schema.Properties {
-				err = buildProp(props, k, *p, *schema)
-				if err != nil {
-					return t, err
-				}
-			}
+		// Recursively build the node
+		err = buildNode(props, schema, schema)
+		if err != nil {
+			return t, err
 		}
+
 	}
 
 	return t, nil

@@ -17,6 +17,9 @@ func TestSchema(t *testing.T) {
 		"DefA": {
 			"type": "string",
 			"enum": [ "Foo", "Bar" ]
+		},
+		"DefB": {
+			"type": "string"
 		}
 	},
     "properties": {
@@ -26,7 +29,18 @@ func TestSchema(t *testing.T) {
         },
 		"PropA": {
 			"$ref": "#/definitions/DefA"
-		}
+		}, 
+		"PropB": {
+			"type": "object", 
+			"oneOf": [
+				{
+					"$ref": "#/definitions/DefA"
+				},
+				{
+					"$ref": "#/definitions/DefB"
+				}
+			]
+		}			
     },
     "additionalProperties": false,
     "tagging": {

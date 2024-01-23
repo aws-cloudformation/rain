@@ -117,6 +117,7 @@ func GetParent(node *yaml.Node, rootNode *yaml.Node, priorNode *yaml.Node) NodeP
 type SNode struct {
 	Kind    string
 	Value   string
+	Anchor  string   `json:",omitempty"`
 	Content []*SNode `json:",omitempty"`
 }
 
@@ -144,7 +145,7 @@ func makeSNode(node *yaml.Node) *SNode {
 		}
 	}
 
-	s := SNode{k, node.Value, content}
+	s := SNode{Kind: k, Value: node.Value, Content: content, Anchor: node.Anchor}
 	return &s
 }
 
