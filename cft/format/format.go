@@ -7,8 +7,6 @@ import (
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
-	"github.com/aws-cloudformation/rain/internal/config"
-	rnode "github.com/aws-cloudformation/rain/internal/node"
 	"gopkg.in/yaml.v3"
 )
 
@@ -35,7 +33,7 @@ func CheckMultilineBegin(s string) bool {
 func String(t cft.Template, opt Options) string {
 	node := t.Node
 
-	config.Debugf("%v", rnode.ToSJson(node))
+	// config.Debugf("%v", rnode.ToSJson(node))
 
 	buf := strings.Builder{}
 	enc := yaml.NewEncoder(&buf)
