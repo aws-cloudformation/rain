@@ -1,8 +1,10 @@
 package build
 
 import (
+	_ "embed"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
@@ -19,6 +21,13 @@ var bareTemplate = false
 var buildJSON = false
 var promptFlag = false
 var showSchema = false
+
+// Borrowing a simplified SAM spec file from goformation
+// Ideally we would autogenerate from the full SAM spec but that thing is huge
+// Full spec: https://github.com/aws/serverless-application-model/blob/develop/samtranslator/schema/schema.json
+
+//go:embed sam-2016-10-31.json
+var samSpecSource string
 
 func addScalar(n *yaml.Node, propName string, val string) error {
 	if n.Kind == yaml.MappingNode {
@@ -174,6 +183,20 @@ func startTemplate() cft.Template {
 	return t
 }
 
+// isSAM returns true if the type is a SAM transform
+func isSAM(typeName string) bool {
+	transforms := []string{
+		"AWS::Serverless::Function",
+		"AWS::Serverless::Api",
+		"AWS::Serverless::HttpApi",
+		"AWS::Serverless::Application",
+		"AWS::Serverless::SimpleTable",
+		"AWS::Serverless::LayerVersion",
+		"AWS::Serverless::StateMachine",
+	}
+	return slices.Contains(transforms, typeName)
+}
+
 func build(typeNames []string) (cft.Template, error) {
 
 	t := startTemplate()
@@ -185,17 +208,33 @@ func build(typeNames []string) (cft.Template, error) {
 	}
 
 	for _, typeName := range typeNames {
-		// Call CCAPI to get the schema for the resource
-		schemaSource, err := cfn.GetTypeSchema(typeName)
-		config.Debugf("schema source: %s", schemaSource)
-		if err != nil {
-			return t, err
-		}
 
-		// Parse the schema JSON string
-		schema, err := cfn.ParseSchema(schemaSource)
-		if err != nil {
-			return t, err
+		var schema *cfn.Schema
+
+		// Check to see if it's a SAM resource
+		if isSAM(typeName) {
+			t.AddScalarSection(cft.Transform, "AWS::Serverless-2016-10-31")
+
+			// Convert the spec to a cfn.Schema and skip downloading from the registry
+			schema, err = convertSAMSpec(samSpecSource, typeName)
+			if err != nil {
+				return t, err
+			}
+
+		} else {
+
+			// Call CCAPI to get the schema for the resource
+			schemaSource, err := cfn.GetTypeSchema(typeName)
+			config.Debugf("schema source: %s", schemaSource)
+			if err != nil {
+				return t, err
+			}
+
+			// Parse the schema JSON string
+			schema, err = cfn.ParseSchema(schemaSource)
+			if err != nil {
+				return t, err
+			}
 		}
 
 		// Add a node for the resource
