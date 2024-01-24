@@ -107,7 +107,7 @@ Resources:
   Func1:
     Type: AWS::Lambda::Function
     Properties:
-      Role: !Sub "arn:aws:iam::${AWS::AccountID}:role/lambda-basic"
+      Role: !Sub arn:aws:iam::${AWS::AccountID}:role/lambda-basic
       Runtime: python3.7
       Handler: index.handler
       Code:
@@ -158,7 +158,7 @@ Resources:
   Func1:
     Type: AWS::Lambda::Function
     Properties:
-      Role: !Sub "arn:aws:iam::${AWS::AccountID}:role/lambda-basic"
+      Role: !Sub arn:aws:iam::${AWS::AccountID}:role/lambda-basic
       Runtime: python3.7
       Handler: index.handler
       Code:
@@ -439,19 +439,34 @@ func checkMultilineBlockHeaders(t *testing.T, s string, expected bool) {
 	}
 }
 
-func TestFormatDefault(t *testing.T) {
+func TestFormatYaml(t *testing.T) {
 	checkMatch(t, expectedYaml, format.Options{})
+}
+
+func TestFormatYamlUnsorted(t *testing.T) {
 	checkMatch(t, expectedYamlUnsorted, format.Options{
 		Unsorted: true,
 	})
+}
+
+func TestFormatJson(t *testing.T) {
 	checkMatch(t, expectedJson, format.Options{
 		JSON: true,
 	})
+}
+
+func TestFormatUnsortedJson(t *testing.T) {
 	checkMatch(t, expectedUnsortedJson, format.Options{
 		JSON:     true,
 		Unsorted: true,
 	})
+}
+
+func TestFormatMultiLineBlock(t *testing.T) {
 	checkMultilineBlockHeaders(t, correctMultilineBlockHeaders, true)
+}
+
+func TestFormatMultiLineBlockWrong(t *testing.T) {
 	checkMultilineBlockHeaders(t, wrongMultilineBlockHeaders, false)
 }
 
@@ -504,7 +519,10 @@ Resources:
   Topic:
     Type: AWS::SNS::Topic
     Properties:
-      TopicName: !FindInMap [EnvironmentMap, MappedParam, !Ref EnvironmentParam]
+      TopicName: !FindInMap
+        - EnvironmentMap
+        - MappedParam
+        - !Ref EnvironmentParam
 `
 
 	template, err := parse.String(yaml)
