@@ -42,7 +42,7 @@ type Schema struct {
 	SourceUrl            string           `json:"sourceUrl"`
 	Definitions          map[string]*Prop `json:"definitions"`
 	Handlers             map[string]any   `json:"handlers"`
-	PrimaryIdentifier    []string         `json:"primaryIdentifier    "`
+	PrimaryIdentifier    []string         `json:"primaryIdentifier"`
 	Properties           map[string]*Prop `json:"properties"`
 	AdditionalProperties bool             `json:"additionalProperties"`
 	Tagging              map[string]any   `json:"tagging"`

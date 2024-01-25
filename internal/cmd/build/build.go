@@ -221,6 +221,9 @@ func build(typeNames []string) (cft.Template, error) {
 				return t, err
 			}
 
+			j, _ := json.Marshal(schema)
+			config.Debugf("Converted SAM schema: %s", j)
+
 		} else {
 
 			// Call CCAPI to get the schema for the resource
