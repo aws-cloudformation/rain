@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"github.com/aws-cloudformation/rain/cft"
-	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
-	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 )
+
+const SCHEMAS = "../../../test/schemas/"
 
 func fromFile(path string, rt string, short string, t *testing.T) cft.Template {
 	source, err := os.ReadFile(path)
@@ -30,7 +30,8 @@ func fromFile(path string, rt string, short string, t *testing.T) cft.Template {
 	node.Add(r, "Type", rt)
 	props := node.AddMap(r, "Properties")
 
-	err = buildNode(props, schema, schema)
+	ancestorTypes := make([]string, 0)
+	err = buildNode(props, schema, schema, ancestorTypes)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,17 +44,18 @@ func TestBucket(t *testing.T) {
 	// schema and test building it.
 	// TODO: Add a few more complex schemas to make sure we don't miss
 	// any use cases.
-	fromFile("../../../test/schemas/aws-s3-bucket.json", "AWS::S3::Bucket", "MyBucket", t)
+	fromFile(SCHEMAS+"aws-s3-bucket.json", "AWS::S3::Bucket", "MyBucket", t)
 
 	// TODO: Validate the output? Mostly we're happy if this didn't crash
 }
 
 func TestArrays(t *testing.T) {
-	config.Debug = true
-	path := "../../../test/schemas/arrays.json"
-	template := fromFile(path, "AWS::Test::Arrays", "MyArrays", t)
-	out := format.String(template, format.Options{
-		JSON: buildJSON,
-	})
-	config.Debugf(out)
+	path := SCHEMAS + "arrays.json"
+	fromFile(path, "AWS::Test::Arrays", "MyArrays", t)
+}
+
+func TestAmplifyUIBuilderComponent(t *testing.T) {
+	// This one has cycles
+	path := SCHEMAS + "aws-amplifyuibuilder-component.json"
+	fromFile(path, "AWS::AmplifyUIBuilder::Component", "MyComponent", t)
 }

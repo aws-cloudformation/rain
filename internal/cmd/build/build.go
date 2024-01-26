@@ -40,12 +40,14 @@ func addScalar(n *yaml.Node, propName string, val string) error {
 	return nil
 }
 
-// buildProp adds boilerplate code to the node, depending on the shape of the property
-func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema) error {
+func fixRef(ref string) string {
+	return strings.Replace(ref, "#/definitions/", "", 1)
+}
 
-	config.Debugf("%s n: %s", propName, node.ToSJson(n))
-	j, _ := json.Marshal(prop)
-	config.Debugf("%s prop: %s", propName, j)
+// buildProp adds boilerplate code to the node, depending on the shape of the property
+func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema, ancestorTypes []string) error {
+
+	isCircular := false
 
 	switch prop.Type {
 	case "string":
@@ -63,23 +65,23 @@ func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema) 
 		} else if len(prop.AnyOf) > 0 {
 			objectProps = prop.AnyOf[0]
 		} else {
-			config.Debugf("%s: object type without properties", propName)
 			return addScalar(n, propName, "{JSON}")
 		}
 		if objectProps != nil {
+			// We don't need to check for cycles here, since
+			// we will check when eventually buildProp is called again
+
 			if n.Kind == yaml.MappingNode {
 				// Make a mapping node and recurse to add sub properties
 				m := node.AddMap(n, propName)
-				return buildNode(m, objectProps, &schema)
+				return buildNode(m, objectProps, &schema, ancestorTypes)
 			} else if n.Kind == yaml.SequenceNode {
 				// We're adding objects to an array,
 				// so we don't need the Scalar node for the name,
 				// since propName will be a placeholder like 0 or 1
-				j, _ := json.Marshal(objectProps)
-				config.Debugf("array objectProps: %s", j)
 				sequenceMap := &yaml.Node{Kind: yaml.MappingNode}
 				n.Content = append(n.Content, sequenceMap)
-				return buildNode(sequenceMap, objectProps, &schema)
+				return buildNode(sequenceMap, objectProps, &schema, ancestorTypes)
 			} else {
 				return fmt.Errorf("unexpected kind %v for %s", n.Kind, propName)
 			}
@@ -96,25 +98,37 @@ func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema) 
 
 			// Resolve array items ref
 			if prop.Items.Ref != "" {
-				reffed := strings.Replace(prop.Items.Ref, "#/definitions/", "", 1)
+				reffed := fixRef(prop.Items.Ref)
 				var hasDef bool
 				if arrayItems, hasDef = schema.Definitions[reffed]; !hasDef {
 					return fmt.Errorf("%s: Items.%s not found in definitions", propName, reffed)
 				}
+
+				// Whenever we see a Ref, we need to track it to avoid infinite recursion
+				if slices.Contains(ancestorTypes, reffed) {
+					isCircular = true
+				}
+				ancestorTypes = append(ancestorTypes, reffed)
 			} else {
 				arrayItems = prop.Items
 			}
 
-			// Add the samples to the sequence node
-			err := buildProp(sequence, "0", *arrayItems, schema)
-			if err != nil {
-				return err
+			// Stop infinite recursion when a prop refers to an ancestor
+			if isCircular {
+				return addScalar(sequence, "", "{CIRCULAR}")
+			} else {
+
+				// Add the samples to the sequence node
+				err := buildProp(sequence, "0", *arrayItems, schema, ancestorTypes)
+				if err != nil {
+					return err
+				}
+				err = buildProp(sequence, "1", *arrayItems, schema, ancestorTypes)
+				if err != nil {
+					return err
+				}
+				return nil
 			}
-			err = buildProp(sequence, "1", *arrayItems, schema)
-			if err != nil {
-				return err
-			}
-			return nil
 
 		} else {
 			return fmt.Errorf("%s: array without items?", propName)
@@ -127,11 +141,20 @@ func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema) 
 		return addScalar(n, propName, "INTEGER")
 	case "":
 		if prop.Ref != "" {
-			reffed := strings.Replace(prop.Ref, "#/definitions/", "", 1)
+			reffed := fixRef(prop.Ref)
 			if objectProps, hasDef := schema.Definitions[reffed]; !hasDef {
 				return fmt.Errorf("%s: blank type Ref %s not found in definitions", propName, reffed)
 			} else {
-				return buildProp(n, propName, *objectProps, schema)
+				// Whenever we see a Ref, we need to track it to avoid infinite recursion
+				if slices.Contains(ancestorTypes, reffed) {
+					isCircular = true
+				}
+				ancestorTypes = append(ancestorTypes, reffed)
+				if isCircular {
+					return addScalar(n, propName, "{CIRCULAR}")
+				} else {
+					return buildProp(n, propName, *objectProps, schema, ancestorTypes)
+				}
 			}
 		} else {
 			return fmt.Errorf("expected blank type to have $ref: %s", propName)
@@ -144,13 +167,13 @@ func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema) 
 }
 
 // buildNode recursively builds a node for a schema-like object
-func buildNode(n *yaml.Node, s cfn.SchemaLike, schema *cfn.Schema) error {
+func buildNode(n *yaml.Node, s cfn.SchemaLike, schema *cfn.Schema, ancestorTypes []string) error {
 
 	// Add all props or just the required ones
 	if bareTemplate {
 		for _, requiredName := range s.GetRequired() {
 			if p, hasProp := schema.Properties[requiredName]; hasProp {
-				err := buildProp(n, requiredName, *p, *schema)
+				err := buildProp(n, requiredName, *p, *schema, ancestorTypes)
 				if err != nil {
 					return err
 				}
@@ -160,7 +183,7 @@ func buildNode(n *yaml.Node, s cfn.SchemaLike, schema *cfn.Schema) error {
 		}
 	} else {
 		for k, p := range s.GetProperties() {
-			err := buildProp(n, k, *p, *schema)
+			err := buildProp(n, k, *p, *schema, ancestorTypes)
 			if err != nil {
 				return err
 			}
@@ -247,7 +270,8 @@ func build(typeNames []string) (cft.Template, error) {
 		props := node.AddMap(r, "Properties")
 
 		// Recursively build the node
-		err = buildNode(props, schema, schema)
+		ancestorTypes := make([]string, 0)
+		err = buildNode(props, schema, schema, ancestorTypes)
 		if err != nil {
 			return t, err
 		}
@@ -270,7 +294,18 @@ var Cmd = &cobra.Command{
 				panic(err)
 			}
 			for _, t := range types {
-				fmt.Println(t)
+				show := false
+				if len(args) == 1 {
+					// Filter by a prefix
+					if strings.HasPrefix(t, args[0]) {
+						show = true
+					}
+				} else {
+					show = true
+				}
+				if show {
+					fmt.Println(t)
+				}
 			}
 			return
 		}
@@ -283,11 +318,24 @@ var Cmd = &cobra.Command{
 		// --schema -s
 		// Download and print out the registry schema
 		if showSchema {
-			schema, err := cfn.GetTypeSchema(args[0])
-			if err != nil {
-				panic(err)
+			typeName := args[0]
+			// Use the local converted SAM schemas for serverless resources
+			if isSAM(typeName) {
+				// Convert the spec to a cfn.Schema and skip downloading from the registry
+				schema, err := convertSAMSpec(samSpecSource, typeName)
+				if err != nil {
+					panic(err)
+				}
+
+				j, _ := json.MarshalIndent(schema, "", "    ")
+				fmt.Println(string(j))
+			} else {
+				schema, err := cfn.GetTypeSchema(typeName)
+				if err != nil {
+					panic(err)
+				}
+				fmt.Println(schema)
 			}
-			fmt.Println(schema)
 			return
 		}
 

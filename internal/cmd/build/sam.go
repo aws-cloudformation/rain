@@ -64,6 +64,10 @@ func convertPrimitiveType(t string) string {
 	}
 }
 
+func makeRef(name string) string {
+	return "#/definitions/" + name
+}
+
 // convertSAMProp translates a SAM (old Cfn spec) type to a registry schema type
 func convertSAMProp(samType *SamType) (*cfn.Prop, error) {
 
@@ -84,7 +88,7 @@ func convertSAMProp(samType *SamType) (*cfn.Prop, error) {
 					}
 					cfnProp.Items = &cfn.Prop{Type: pt}
 				} else if samProp.ItemType != "" {
-					cfnProp.Items = &cfn.Prop{Type: "object", Ref: samProp.ItemType}
+					cfnProp.Items = &cfn.Prop{Type: "object", Ref: makeRef(samProp.ItemType)}
 				} else if len(samProp.InclusivePrimitiveItemTypes) > 0 {
 					ipt := convertPrimitiveType(samProp.InclusivePrimitiveItemTypes[0])
 					if ipt == "" {
@@ -96,9 +100,14 @@ func convertSAMProp(samType *SamType) (*cfn.Prop, error) {
 				}
 			case "Map":
 				cfnProp.Type = "object"
+				if samProp.ItemType != "" {
+					cfnProp.Ref = makeRef(samProp.ItemType)
+				} else {
+					cfnProp.Ref = convertPrimitiveType(samProp.PrimitiveItemType)
+				}
 			default:
-				// TODO: Ref?
 				cfnProp.Type = "object"
+				cfnProp.Ref = makeRef(samProp.Type)
 			}
 		case samProp.PrimitiveType != "":
 			cfnProp.Type = convertPrimitiveType(samProp.PrimitiveType)
@@ -155,6 +164,7 @@ func convertSAMSpec(source string, typeName string) (*cfn.Schema, error) {
 		if strings.HasPrefix(k, typeName) {
 			propName := strings.Replace(k, typeName+".", "", 1)
 			def, err := convertSAMProp(v)
+			def.Type = "object"
 			if err != nil {
 				return nil, err
 			}
