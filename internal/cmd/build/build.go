@@ -183,6 +183,11 @@ func buildNode(n *yaml.Node, s cfn.SchemaLike, schema *cfn.Schema, ancestorTypes
 		}
 	} else {
 		for k, p := range s.GetProperties() {
+			propPath := "/properties/" + k
+			// Don't emit read-only properties
+			if slices.Contains(schema.ReadOnlyProperties, propPath) {
+				continue
+			}
 			err := buildProp(n, k, *p, *schema, ancestorTypes)
 			if err != nil {
 				return err
