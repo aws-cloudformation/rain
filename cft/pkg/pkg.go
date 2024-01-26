@@ -25,7 +25,6 @@
 package pkg
 
 import (
-	"encoding/json"
 	"path/filepath"
 
 	"github.com/aws-cloudformation/rain/cft"
@@ -67,16 +66,16 @@ func transform(nodeToTransform *yaml.Node, rootDir string, t cft.Template, paren
 func Template(t cft.Template, rootDir string) (cft.Template, error) {
 	templateNode := t.Node
 
-	j, _ := json.MarshalIndent(t.Node, "", "  ")
-	config.Debugf("Original template: %v", string(j))
+	// j, _ := json.MarshalIndent(t.Node, "", "  ")
+	// config.Debugf("Original template: %v", string(j))
 
 	changed, err := transform(templateNode, rootDir, t, nil)
 	if err != nil {
 		return t, err
 	}
 
-	j, _ = json.MarshalIndent(templateNode, "", "  ")
-	config.Debugf("Transformed template: %v", string(j))
+	// j, _ = json.MarshalIndent(templateNode, "", "  ")
+	// config.Debugf("Transformed template: %v", string(j))
 
 	if changed {
 		t, err = parse.Node(templateNode)
@@ -85,7 +84,7 @@ func Template(t cft.Template, rootDir string) (cft.Template, error) {
 		}
 	}
 
-	// Encode and Decode to resolve anchors... ?
+	// Encode and Decode to resolve anchors
 	var decoded interface{}
 	err = templateNode.Decode(&decoded)
 	if err != nil {
