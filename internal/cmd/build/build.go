@@ -21,6 +21,7 @@ var bareTemplate = false
 var buildJSON = false
 var promptFlag = false
 var showSchema = false
+var omitPatches = false
 
 // Borrowing a simplified SAM spec file from goformation
 // Ideally we would autogenerate from the full SAM spec but that thing is huge
@@ -268,6 +269,16 @@ func build(typeNames []string) (cft.Template, error) {
 			}
 		}
 
+		// Apply patches to the schema
+		if !omitPatches {
+			err := schema.Patch()
+			if err != nil {
+				return t, err
+			}
+			j, _ := json.MarshalIndent(schema, "", "    ")
+			config.Debugf("patched schema: %s", j)
+		}
+
 		// Add a node for the resource
 		shortName := strings.Split(typeName, "::")[2]
 		r := node.AddMap(resourceMap, "My"+shortName)
@@ -369,4 +380,5 @@ func init() {
 	Cmd.Flags().BoolVarP(&buildJSON, "json", "j", false, "Output the template as JSON (default format: YAML)")
 	Cmd.Flags().BoolVarP(&showSchema, "schema", "s", false, "Output the registry schema for a resource type")
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
+	Cmd.Flags().BoolVarP(&omitPatches, "omit-patches", "o", false, "Omit patches and use the raw schema")
 }
