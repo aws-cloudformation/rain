@@ -1,0 +1,18 @@
+Resources:
+  MyLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code: &code
+        ZipFile: "print(\"Hello World!\")\n"
+      FunctionName: my-lambda
+      Handler: index.lambda_handler
+      Role: !ImportValue 'MyLambdaRoleArn'
+      Runtime: python3.8
+      Tags:
+        - Key: foo
+          Value: &fooval myval
+        - Key: bar
+          Value: *fooval
+        - Key: baz
+          Value: *code
+
