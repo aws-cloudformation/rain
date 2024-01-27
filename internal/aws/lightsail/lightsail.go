@@ -34,3 +34,72 @@ func GetBlueprints() ([]string, error) {
 	}
 	return nil, errors.New("unexpected: GetBlueprints API called 10 times")
 }
+
+// GetBundles gets all available lightsail instance bundles in this region
+func GetBundles() ([]string, error) {
+	var nextPageToken *string
+	retval := make([]string, 0)
+	for sanity := 0; sanity < 10; sanity += 1 {
+		res, err := getClient().GetBundles(context.Background(),
+			&lightsail.GetBundlesInput{PageToken: nextPageToken})
+		if err != nil {
+			return nil, err
+		}
+
+		for _, b := range res.Bundles {
+			retval = append(retval, *b.BundleId)
+		}
+
+		if res.NextPageToken == nil {
+			return retval, nil
+		}
+		nextPageToken = res.NextPageToken
+	}
+	return nil, errors.New("unexpected: GetBundles API called 10 times")
+}
+
+// GetRelationalDatabaseBlueprints gets all available lightsail database blueprints in this region
+func GetRelationalDatabaseBlueprints() ([]string, error) {
+	var nextPageToken *string
+	retval := make([]string, 0)
+	for sanity := 0; sanity < 10; sanity += 1 {
+		res, err := getClient().GetRelationalDatabaseBlueprints(context.Background(),
+			&lightsail.GetRelationalDatabaseBlueprintsInput{PageToken: nextPageToken})
+		if err != nil {
+			return nil, err
+		}
+
+		for _, b := range res.Blueprints {
+			retval = append(retval, *b.BlueprintId)
+		}
+
+		if res.NextPageToken == nil {
+			return retval, nil
+		}
+		nextPageToken = res.NextPageToken
+	}
+	return nil, errors.New("unexpected: GetRelationalDatabaseBlueprints API called 10 times")
+}
+
+// GetRelationalDatabaseBundles gets all available lightsail database bundles in this region
+func GetRelationalDatabaseBundles() ([]string, error) {
+	var nextPageToken *string
+	retval := make([]string, 0)
+	for sanity := 0; sanity < 10; sanity += 1 {
+		res, err := getClient().GetRelationalDatabaseBundles(context.Background(),
+			&lightsail.GetRelationalDatabaseBundlesInput{PageToken: nextPageToken})
+		if err != nil {
+			return nil, err
+		}
+
+		for _, b := range res.Bundles {
+			retval = append(retval, *b.BundleId)
+		}
+
+		if res.NextPageToken == nil {
+			return retval, nil
+		}
+		nextPageToken = res.NextPageToken
+	}
+	return nil, errors.New("unexpected: GetRelationalDatabaseBundles API called 10 times")
+}

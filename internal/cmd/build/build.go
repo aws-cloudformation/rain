@@ -301,7 +301,7 @@ func build(typeNames []string) (cft.Template, error) {
 var Cmd = &cobra.Command{
 	Use:                   "build [<resource type>] or <prompt>",
 	Short:                 "Create CloudFormation templates",
-	Long:                  "Outputs a CloudFormation template containing the named resource types.",
+	Long:                  "The build command interacts with the CloudFormation registry to list types, output schema files, and build starter CloudFormation templates containing the named resource types.",
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		if buildListFlag {
@@ -378,7 +378,7 @@ func init() {
 	Cmd.Flags().BoolVarP(&promptFlag, "prompt", "p", false, "Generate a template using Bedrock and a prompt")
 	Cmd.Flags().BoolVarP(&bareTemplate, "bare", "b", false, "Produce a minimal template, omitting all optional resource properties")
 	Cmd.Flags().BoolVarP(&buildJSON, "json", "j", false, "Output the template as JSON (default format: YAML)")
-	Cmd.Flags().BoolVarP(&showSchema, "schema", "s", false, "Output the registry schema for a resource type")
+	Cmd.Flags().BoolVarP(&showSchema, "schema", "s", false, "Output the raw un-patched registry schema for a resource type")
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
 	Cmd.Flags().BoolVarP(&omitPatches, "omit-patches", "o", false, "Omit patches and use the raw schema")
 }

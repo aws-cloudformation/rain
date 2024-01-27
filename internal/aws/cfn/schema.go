@@ -2,9 +2,7 @@ package cfn
 
 import (
 	"encoding/json"
-	"fmt"
 
-	"github.com/aws-cloudformation/rain/internal/aws/lightsail"
 	"github.com/aws-cloudformation/rain/internal/config"
 )
 
@@ -81,18 +79,11 @@ func (schema *Schema) Patch() error {
 	config.Debugf("Patching %s", schema.TypeName)
 	switch schema.TypeName {
 	case "AWS::Lightsail::Instance":
-		blueprintId, found := schema.Properties["BlueprintId"]
-		if !found {
-			return fmt.Errorf("expected AWS::Lightsail::Instance to have Blueprints")
-		}
-		// aws lightsail get-blueprints | jq -r ".blueprints" | jq -r ".[] | .blueprintId"
-		// Should we call that here to always be accurate?
-		blueprints, err := lightsail.GetBlueprints()
-		if err != nil {
-			return fmt.Errorf("unable to call aws api to get available lightsail blueprints")
-		}
-		blueprintId.Enum = blueprints
-		config.Debugf("Set blueprintId.Enum to %s", blueprintId.Enum)
+		return patchLightsailInstance(schema)
+	case "AWS::Lightsail::Bucket":
+		return patchLightsailBucket(schema)
+	case "AWS::Lightsail::Database":
+		return patchLightsailDatabase(schema)
 
 	}
 	return nil
