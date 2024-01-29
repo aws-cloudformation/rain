@@ -445,3 +445,7 @@ func GetStackSetOperationsResult(stackSetName *string, operationId *string) (*ty
 func DeleteStackSetInstances(stackSetName string, accounts []string, regions []string, wait bool, retainStacks bool) error {
 	return nil
 }
+
+func ListResourceTypes() ([]string, error) {
+	return []string{"AWS::S3::Bucket", "AWS::Lambda::Function"}, nil
+}

@@ -33,6 +33,8 @@ func CheckMultilineBegin(s string) bool {
 func String(t cft.Template, opt Options) string {
 	node := t.Node
 
+	// config.Debugf("%v", rnode.ToSJson(node))
+
 	buf := strings.Builder{}
 	enc := yaml.NewEncoder(&buf)
 	enc.SetIndent(2)

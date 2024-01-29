@@ -1120,6 +1120,43 @@ func ResourceAlreadyExists(
 	return false
 }
 
+// ListResourceTypes lists all live registry resource types
+func ListResourceTypes() ([]string, error) {
+	input := &cloudformation.ListTypesInput{
+		DeprecatedStatus: types.DeprecatedStatusLive,
+		Type:             types.RegistryTypeResource,
+	}
+
+	retval := make([]string, 0)
+	vis := []types.Visibility{types.VisibilityPublic, types.VisibilityPrivate}
+
+	for _, v := range vis {
+		hasMore := true
+		for hasMore {
+			input.Visibility = v
+			res, err := getClient().ListTypes(context.Background(), input)
+			if err != nil {
+				return retval, err
+			}
+
+			for _, s := range res.TypeSummaries {
+				retval = append(retval, *s.TypeName)
+			}
+
+			if res.NextToken != nil {
+				hasMore = true
+				input.NextToken = res.NextToken
+			} else {
+				hasMore = false
+				input.NextToken = nil
+			}
+		}
+	}
+
+	return retval, nil
+
+}
+
 func init() {
 	Schemas = make(map[string]string)
 }
