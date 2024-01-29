@@ -103,3 +103,35 @@ func GetRelationalDatabaseBundles() ([]string, error) {
 	}
 	return nil, errors.New("unexpected: GetRelationalDatabaseBundles API called 10 times")
 }
+
+// GetBucketBundles gets all available lightsail bucket bundles in this region
+func GetBucketBundles() ([]string, error) {
+	retval := make([]string, 0)
+	res, err := getClient().GetBucketBundles(context.Background(),
+		&lightsail.GetBucketBundlesInput{})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, b := range res.Bundles {
+		retval = append(retval, *b.BundleId)
+	}
+
+	return retval, nil
+}
+
+// GetDistributionBundles gets all available lightsail distribution bundles in this region
+func GetDistributionBundles() ([]string, error) {
+	retval := make([]string, 0)
+	res, err := getClient().GetDistributionBundles(context.Background(),
+		&lightsail.GetDistributionBundlesInput{})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, b := range res.Bundles {
+		retval = append(retval, *b.BundleId)
+	}
+
+	return retval, nil
+}

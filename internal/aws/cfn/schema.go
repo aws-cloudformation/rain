@@ -86,6 +86,8 @@ func (schema *Schema) Patch() error {
 		return patchLightsailDatabase(schema)
 	case "AWS::Lightsail::Alarm":
 		return patchLightsailAlarm(schema)
+	case "AWS::Lightsail::Distribution":
+		return patchLightsailDistribution(schema)
 
 	}
 	return nil

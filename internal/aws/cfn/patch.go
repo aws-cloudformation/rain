@@ -36,9 +36,23 @@ func patchLightsailBucket(schema *Schema) error {
 	if !found {
 		return fmt.Errorf("expected AWS::Lightsail::Bucket to have BundleId")
 	}
-	bundles, err := lightsail.GetBundles()
+	bundles, err := lightsail.GetBucketBundles()
 	if err != nil {
-		return fmt.Errorf("unable to call aws api to get available lightsail bundles")
+		return fmt.Errorf("unable to call aws api to get available lightsail bucket bundles")
+	}
+	bundleId.Enum = bundles
+
+	return nil
+}
+
+func patchLightsailDistribution(schema *Schema) error {
+	bundleId, found := schema.Properties["BundleId"]
+	if !found {
+		return fmt.Errorf("expected AWS::Lightsail::Distribution to have BundleId")
+	}
+	bundles, err := lightsail.GetDistributionBundles()
+	if err != nil {
+		return fmt.Errorf("unable to call aws api to get available lightsail distribution bundles")
 	}
 	bundleId.Enum = bundles
 
