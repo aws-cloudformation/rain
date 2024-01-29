@@ -1,6 +1,7 @@
 package cfn
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/aws-cloudformation/rain/internal/aws/lightsail"
@@ -65,5 +66,21 @@ func patchLightsailDatabase(schema *Schema) error {
 	}
 	bundleId.Enum = bundles
 
+	return nil
+}
+
+func patchLightsailAlarm(schema *Schema) error {
+	// These are documented but not in the schema
+	valid := []string{
+		"GreaterThanOrEqualToThreshold",
+		"GreaterThanThreshold",
+		"LessThanThreshold",
+		"LessThanOrEqualToThreshold",
+	}
+	comparisonOperator, found := schema.Properties["ComparisonOperator"]
+	if !found {
+		return errors.New("expected AWS::Lightsail::Alarm to have ComparisonOperator")
+	}
+	comparisonOperator.Enum = valid
 	return nil
 }
