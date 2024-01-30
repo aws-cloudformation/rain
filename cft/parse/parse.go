@@ -46,19 +46,19 @@ func Map(input map[string]interface{}) (cft.Template, error) {
 
 // String returns a cft.Template parsed from a string
 func String(input string) (cft.Template, error) {
-	var node yaml.Node
-	err := yaml.Unmarshal([]byte(input), &node)
+	var n yaml.Node
+	err := yaml.Unmarshal([]byte(input), &n)
 	if err != nil {
 		return cft.Template{}, fmt.Errorf("invalid YAML: %s", err)
 	}
 
-	return Node(&node)
+	return Node(&n)
 }
 
 // Node returns a cft.Template parse from a *yaml.Node
-func Node(node *yaml.Node) (cft.Template, error) {
-	err := TransformNode(node)
-	return cft.Template{Node: node}, err
+func Node(n *yaml.Node) (cft.Template, error) {
+	err := TransformNode(n)
+	return cft.Template{Node: n}, err
 }
 
 // Verify confirms that there is no semantic difference between

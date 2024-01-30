@@ -32,11 +32,12 @@ var Cmd = &cobra.Command{
 }
 
 func run(cmd *cobra.Command, args []string) {
-	fmt.Println("Usage: cc deploy|rm|state")
+	fmt.Println("Usage: cc deploy|rm|state|drift")
 }
 
 func init() {
 	Cmd.AddCommand(CCDeployCmd)
 	Cmd.AddCommand(CCRmCmd)
 	Cmd.AddCommand(CCStateCmd)
+	Cmd.AddCommand(CCDriftCmd)
 }

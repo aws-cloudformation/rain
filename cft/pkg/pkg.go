@@ -90,14 +90,18 @@ func Template(t cft.Template, rootDir string) (cft.Template, error) {
 	if err != nil {
 		return t, err
 	}
-	config.Debugf("decoded: %v", decoded)
 
 	err = templateNode.Encode(&decoded)
 	if err != nil {
 		return t, err
 	}
 
-	return t, err
+	// We lose the Document node here
+	retval := cft.Template{}
+	retval.Node = &yaml.Node{Kind: yaml.DocumentNode, Content: make([]*yaml.Node, 0)}
+	retval.Node.Content = append(retval.Node.Content, templateNode)
+
+	return retval, err
 }
 
 // File opens path as a CloudFormation template and returns a cft.Template
