@@ -14,6 +14,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/s11n"
+	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -86,7 +87,10 @@ func runDrift(cmd *cobra.Command, args []string) {
 
 	fmt.Println()
 
+	selections := make([]selection, 0)
+
 	// Query each resource and stop to ask how to handle drift after each one
+
 	for i := 0; i < len(resources.Content); i += 2 {
 		resourceName := resources.Content[i].Value
 		resourceNode := resources.Content[i+1]
@@ -94,23 +98,68 @@ func runDrift(cmd *cobra.Command, args []string) {
 		if resourceModel == nil {
 			panic(fmt.Errorf("expected %s to have a ResourceModel", resourceName))
 		}
-		err := handleDrift(resourceName, resourceNode, resourceModel)
+		selection, err := handleDrift(resourceName, resourceNode, resourceModel)
 		if err != nil {
 			panic(err)
 		}
+		selections = append(selections, selection)
 	}
 
+	// Check to see if the user elected to change anything
+	hasChanges := false
+	for _, selection := range selections {
+		if selection.Action != doNothing {
+			hasChanges = true
+			break
+		}
+	}
+
+	// Summarize all changes that will be made and ask the user to confirm
+	if !hasChanges {
+		fmt.Println("No changes will be made to your infrastructure or to the state file.")
+	} else {
+		fmt.Println("The following changes will be made:")
+		fmt.Println()
+		for _, selection := range selections {
+			switch selection.Action {
+			case changeLiveState:
+				fmt.Println("Change Live State for", selection.ResourceName)
+				// TODO
+			case changeStateFile:
+				fmt.Println("Change state file for", selection.ResourceName)
+				// TODO
+			}
+		}
+	}
+
+	// TODO: Confirm and then actually make the changes
 }
 
-func handleDrift(resourceName string, resourceNode *yaml.Node, model *yaml.Node) error {
+type action int
+
+const (
+	changeLiveState action = 1
+	changeStateFile action = 2
+	doNothing       action = 3
+)
+
+type selection struct {
+	ResourceName string
+	Action       action
+	Text         string
+}
+
+func handleDrift(resourceName string, resourceNode *yaml.Node, model *yaml.Node) (selection, error) {
+
+	retval := selection{ResourceName: resourceName, Action: doNothing}
 
 	_, t := s11n.GetMapValue(resourceNode, "Type")
 	if t == nil {
-		return fmt.Errorf("resource %s expected to have Type", resourceName)
+		return retval, fmt.Errorf("resource %s expected to have Type", resourceName)
 	}
 	_, id := s11n.GetMapValue(model, "Identifier")
 	if id == nil {
-		return fmt.Errorf("resource model %s expected to have Identifier", resourceName)
+		return retval, fmt.Errorf("resource model %s expected to have Identifier", resourceName)
 	}
 	title := fmt.Sprintf("%s (%s %s)", resourceName, t.Value, id.Value)
 
@@ -118,21 +167,19 @@ func handleDrift(resourceName string, resourceNode *yaml.Node, model *yaml.Node)
 
 	liveModelString, err := ccapi.GetResource(id.Value, t.Value)
 	if err != nil {
-		return err
+		return retval, err
 	}
 	spinner.Pop()
 
 	_, stateModel := s11n.GetMapValue(model, "Model")
 	if stateModel == nil {
-		return fmt.Errorf("expected State %s to have Model", resourceName)
+		return retval, fmt.Errorf("expected State %s to have Model", resourceName)
 	}
-
-	//modelString, _ := json.MarshalIndent(format.Jsonise(stateModel), "", "    ")
 
 	var liveModelMap map[string]any
 	err = json.Unmarshal([]byte(liveModelString), &liveModelMap)
 	if err != nil {
-		return err
+		return retval, err
 	}
 
 	var modelMap map[string]any
@@ -148,26 +195,45 @@ func handleDrift(resourceName string, resourceNode *yaml.Node, model *yaml.Node)
 	} else {
 		fmt.Println(console.Red(title + "... Drift detected!"))
 		fmt.Println()
+
+		// Show a diff of the live state and stored state
 		fmt.Println("Live state")
 		fmt.Println(colorDiff(d.Format(true)))
 		reverse := diff.CompareMaps(liveModelMap, modelMap)
 		fmt.Println("Stored state")
 		fmt.Println(colorDiff(reverse.Format(true)))
+
+		// Ask the user that they want to do
+
+		selections := []selection{
+			{Action: changeLiveState, Text: "Change the live state so it matches the state file (changes your infrastructure!)"},
+			{Action: changeStateFile, Text: "Change the state file so that it matches live state"},
+			{Action: doNothing, Text: "Do nothing"},
+		}
+
+		prompt := promptui.Select{
+			Label: "What would you like to do with this resource?",
+			Items: selections,
+			Templates: &promptui.SelectTemplates{
+				Label:    "{{ . }}",
+				Active:   "✅ {{ .Text | magenta }}",
+				Inactive: "  {{ .Text }}",
+				Selected: "✅ {{ .Text | blue }}",
+			},
+		}
+
+		idx, _, err := prompt.Run()
+
+		if err != nil {
+			fmt.Printf("Prompt failed %v\n", err)
+			return retval, err
+		}
+
+		retval.Action = selections[idx].Action
 	}
 
-	// TODO
-	//
-	// What would you like to do with this resource?
-	//
-	// 1. Fix the live state so it matches the state file
-	// 2. Apply the live state to the state file
-	// 3. Do nothing
-	//
-	// [Continue asking about each resource, remembering answers]
-	// [Confirm the changes that will be made using the normal deployment flow]
-
 	fmt.Println()
-	return nil
+	return retval, nil
 }
 
 // colorDiff hacks the diff output to colorize it

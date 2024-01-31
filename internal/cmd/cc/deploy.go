@@ -8,6 +8,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/cft/pkg"
+	"github.com/aws-cloudformation/rain/internal/aws/cfn"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/cmd/forecast"
 	"github.com/aws-cloudformation/rain/internal/config"
@@ -58,6 +59,31 @@ func deploy(cmd *cobra.Command, args []string) {
 		panic(err)
 	}
 	templateConfig = dc
+
+	// Before we do anything else, make sure that all types in the template
+	// are fully supported by Cloud Control API
+	types, err := template.GetTypes()
+	if err != nil {
+		panic(err)
+	}
+	config.Debugf("types: %v", types)
+	anyUnsupported := false
+	for _, typ := range types {
+		supported, err := cfn.IsCCAPI(typ)
+		if err != nil {
+			panic(err)
+		}
+		if !supported {
+			anyUnsupported = true
+			fmt.Println(console.Red(fmt.Sprintf("%s is not full supported by CCAPI", typ)))
+		}
+	}
+	if anyUnsupported {
+		panic("Unable to deploy this template due to unsupported resources")
+	}
+
+	// TODO - Check for drift somewhere.. maybe in checkState..
+	// Go through the UI in drift before locking the state file
 
 	// Compare against the current state to see what has changed, if this is an update
 	spinner.Push("Checking state")
