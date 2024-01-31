@@ -190,18 +190,19 @@ func handleDrift(resourceName string, resourceNode *yaml.Node, model *yaml.Node)
 
 	d := diff.CompareMaps(modelMap, liveModelMap)
 
+	resourceSymbol := "🔎 "
 	if d.Mode() == diff.Unchanged {
-		fmt.Println(console.Green(title + "... Ok!"))
+		fmt.Println(console.Green(resourceSymbol + title + "... Ok!"))
 	} else {
-		fmt.Println(console.Red(title + "... Drift detected!"))
+		fmt.Println(console.Red(resourceSymbol + title + "... Drift detected!"))
 		fmt.Println()
 
 		// Show a diff of the live state and stored state
-		fmt.Println("Live state")
-		fmt.Println(colorDiff(d.Format(true)))
+		fmt.Println("    ========== ⚡ Live state ⚡ ==========")
+		fmt.Println("   ", colorDiff(d.Format(true)))
 		reverse := diff.CompareMaps(liveModelMap, modelMap)
-		fmt.Println("Stored state")
-		fmt.Println(colorDiff(reverse.Format(true)))
+		fmt.Println("    ========== 📄 Stored state 📄 ==========")
+		fmt.Println("   ", colorDiff(reverse.Format(true)))
 
 		// Ask the user that they want to do
 
@@ -212,12 +213,12 @@ func handleDrift(resourceName string, resourceNode *yaml.Node, model *yaml.Node)
 		}
 
 		prompt := promptui.Select{
-			Label: "What would you like to do with this resource?",
+			Label: fmt.Sprintf("What would you like to do with %s?", resourceName),
 			Items: selections,
 			Templates: &promptui.SelectTemplates{
 				Label:    "{{ . }}",
 				Active:   "✅ {{ .Text | magenta }}",
-				Inactive: "  {{ .Text }}",
+				Inactive: "   {{ .Text }}",
 				Selected: "✅ {{ .Text | blue }}",
 			},
 		}
@@ -258,7 +259,7 @@ func colorDiff(s string) string {
 			}
 		}
 	}
-	return strings.Join(ret, "\n")
+	return strings.Join(ret, "\n    ")
 }
 
 var CCDriftCmd = &cobra.Command{
