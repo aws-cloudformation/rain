@@ -60,6 +60,7 @@ const (
 	Conditions               Section = "Conditions"
 	Transform                Section = "Transform"
 	Outputs                  Section = "Outputs"
+	State                    Section = "State"
 )
 
 // GetResource returns the yaml node for a resource by logical id
@@ -112,4 +113,13 @@ func (t Template) AddMapSection(section Section) (*yaml.Node, error) {
 
 	m := t.Node.Content[0]
 	return node.AddMap(m, string(section)), nil
+}
+
+// GetSection returns the yaml node for the section
+func (t Template) GetSection(section Section) (*yaml.Node, error) {
+	_, s := s11n.GetMapValue(t.Node.Content[0], string(section))
+	if s == nil {
+		return nil, fmt.Errorf("unable to locate the %s node", section)
+	}
+	return s, nil
 }

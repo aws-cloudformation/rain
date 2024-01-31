@@ -9,7 +9,7 @@ import (
 
 // New returns a Diff that represents the difference between two templates
 func New(a, b cft.Template) Diff {
-	return compareMaps(a.Map(), b.Map())
+	return CompareMaps(a.Map(), b.Map())
 }
 
 func compareValues(old, new interface{}) Diff {
@@ -21,7 +21,7 @@ func compareValues(old, new interface{}) Diff {
 	case []interface{}:
 		return compareSlices(v, new.([]interface{}))
 	case map[string]interface{}:
-		return compareMaps(v, new.(map[string]interface{}))
+		return CompareMaps(v, new.(map[string]interface{}))
 	default:
 		if !reflect.DeepEqual(old, new) {
 			return value{new, Changed}
@@ -48,7 +48,7 @@ func compareSlices(old, new []interface{}) Diff {
 	return d
 }
 
-func compareMaps(old, new map[string]interface{}) Diff {
+func CompareMaps(old, new map[string]interface{}) Diff {
 	d := make(dmap)
 
 	// New and updated keys
