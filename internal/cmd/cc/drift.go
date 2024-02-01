@@ -3,6 +3,7 @@ package cc
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/aws/ccapi"
+	"github.com/aws-cloudformation/rain/internal/aws/cfn"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
@@ -100,6 +102,7 @@ func runDrift(cmd *cobra.Command, args []string) {
 		if resourceModel == nil {
 			panic(fmt.Errorf("expected %s to have a ResourceModel", resourceName))
 		}
+
 		selection, err := handleDrift(resourceName, resourceNode, resourceModel)
 		if err != nil {
 			panic(err)
@@ -140,17 +143,69 @@ func runDrift(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	// Set the global template reference for resolving intrinsics
+	deployedTemplate = template
+
 	hasStateFileChanges := false
 	for _, selection := range selections {
 		switch selection.Action {
 		case changeLiveState:
-			spinner.Push(fmt.Sprintf("   ⚡ Changing Live State for", selection.ResourceName))
-			// TODO
+			spinner.Push(fmt.Sprintf("   ⚡ Changing Live State for %s", selection.ResourceName))
+
+			// Download the schema
+			schema, err := cfn.GetTypeSchema(selection.ResourceType)
+			if err != nil {
+				console.Errorf("unable to load schema for %s: %v", selection.ResourceName, err)
+				break
+			}
+
+			// Look at the schema to get read only props and remove them
+			var schemaMap map[string]any
+			json.Unmarshal([]byte(schema), &schemaMap)
+
+			roProps := make([]string, 0)
+
+			readOnly, exists := schemaMap["readOnlyProperties"]
+			if exists {
+				config.Debugf("readOnly: %v", readOnly)
+				for _, p := range readOnly.([]any) {
+					roProps = append(roProps, strings.Replace(p.(string), "/properties/", "", 1))
+				}
+			}
+
+			// Resolve intrinsics
+			resolvedNode, err := Resolve(selection.DeploymentResource)
+			if err != nil {
+				console.Errorf("Unable to resolve %s: %v", selection.ResourceName, err)
+				break
+			}
+
+			newPriorMap := make(map[string]any)
+			for k, v := range selection.LiveModel {
+				if !slices.Contains(roProps, k) {
+					newPriorMap[k] = v
+				}
+			}
+
+			priorJson, _ := json.Marshal(newPriorMap)
+
+			model, err := ccapi.UpdateResource(selection.ResourceName,
+				selection.ResourceIdentifier, resolvedNode, string(priorJson))
+			if err != nil {
+				msg := "unable to update live state for %s: %v"
+				console.Errorf(msg, selection.ResourceName, err)
+				break
+			}
+			config.Debugf("Updated %s, got model: %s", selection.ResourceName, model)
+
 			spinner.Pop()
+
+			fmt.Println(console.Green(fmt.Sprintf("Updated %s", selection.ResourceName)))
+
 		case changeStateFile:
 			hasStateFileChanges = true
 
-			spinner.Push(fmt.Sprintf("   📄 Changing state file for", selection.ResourceName))
+			spinner.Push(fmt.Sprintf("   📄 Changing state file for %s", selection.ResourceName))
 
 			_, resourceModel := s11n.GetMapValue(resourceModels, selection.ResourceName)
 			config.Debugf("About to change state ResoureModel for %s: %v", selection.ResourceName, selection.LiveModel)
@@ -167,7 +222,7 @@ func runDrift(cmd *cobra.Command, args []string) {
 		str := format.String(template, format.Options{JSON: false, Unsorted: false})
 		err = s3.PutObject(bucketName, key, []byte(str))
 		if err != nil {
-			fmt.Println(console.Red(fmt.Sprintf("unable to write updated state file to bucket: %v", err)))
+			console.Errorf("unable to write updated state file to bucket: %v", err)
 		} else {
 			fmt.Println("State file updated successfully")
 		}
@@ -183,11 +238,15 @@ const (
 )
 
 type selection struct {
-	ResourceName string
-	Action       action
-	Text         string
-	LiveModel    map[string]any
-	StateModel   map[string]any
+	ResourceName       string
+	Action             action
+	Text               string
+	LiveModel          map[string]any
+	StateModel         map[string]any
+	ResourceIdentifier string
+	ResourceNode       *yaml.Node
+	ResourceType       string
+	DeploymentResource *Resource
 }
 
 func handleDrift(resourceName string, resourceNode *yaml.Node, model *yaml.Node) (selection, error) {
@@ -206,7 +265,7 @@ func handleDrift(resourceName string, resourceNode *yaml.Node, model *yaml.Node)
 
 	spinner.Push(fmt.Sprintf("Querying CCAPI: %s", title))
 
-	liveModelString, err := ccapi.GetResource(id.Value, t.Value)
+	liveModelJson, err := ccapi.GetResource(id.Value, t.Value)
 	if err != nil {
 		return retval, err
 	}
@@ -218,7 +277,7 @@ func handleDrift(resourceName string, resourceNode *yaml.Node, model *yaml.Node)
 	}
 
 	var liveModelMap map[string]any
-	err = json.Unmarshal([]byte(liveModelString), &liveModelMap)
+	err = json.Unmarshal([]byte(liveModelJson), &liveModelMap)
 	if err != nil {
 		return retval, err
 	}
@@ -228,6 +287,26 @@ func handleDrift(resourceName string, resourceNode *yaml.Node, model *yaml.Node)
 	if err != nil {
 		panic(err)
 	}
+
+	stateModelJsonb, _ := json.Marshal(modelMap)
+	stateModelJson := string(stateModelJsonb)
+
+	// In order to resolve intrinsics, we need to store the resources
+	// in the global resMap as *Resource pointers
+	r := &Resource{
+		Name:       resourceName,
+		Type:       t.Value,
+		Node:       resourceNode,
+		Identifier: id.Value,
+		Model:      stateModelJson,
+		PriorJson:  liveModelJson,
+	}
+
+	retval.DeploymentResource = r
+
+	// Also store a reference in the global map for later if we
+	// need to resolve intrinsics
+	resMap[resourceName] = r
 
 	d := diff.CompareMaps(modelMap, liveModelMap)
 
@@ -274,6 +353,10 @@ func handleDrift(resourceName string, resourceNode *yaml.Node, model *yaml.Node)
 		retval.Action = selections[idx].Action
 		retval.LiveModel = liveModelMap
 		retval.StateModel = modelMap
+		retval.ResourceIdentifier = id.Value
+		retval.ResourceNode = resourceNode
+		retval.ResourceType = t.Value
+
 	}
 
 	fmt.Println()

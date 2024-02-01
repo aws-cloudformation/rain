@@ -204,11 +204,6 @@ func CreatePatch(props *yaml.Node, priorJson string) (string, error) {
 		return "", err
 	}
 
-	// This is not right. The props might be a single required property,
-	// and the priorModel will have everything, which then renders
-	// a PatchDocument with a bunch of remove operations.
-	// priorModel should be priorJson (from the old template)
-
 	operations, err := jsonpatch.CreatePatch([]byte(priorJson), jsonProps)
 	if err != nil {
 		return "", err
