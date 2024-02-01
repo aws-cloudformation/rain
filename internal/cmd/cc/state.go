@@ -153,6 +153,8 @@ func checkState(
 			}
 		}
 
+		// TODO - This would be the place to stop and check drift before deployment
+
 		// We are safe to proceed with an update.
 		// Write a new lock back to the state file stored in S3.
 		// If we're unlocking to continue a failed deployment, leave it

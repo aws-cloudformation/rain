@@ -4,15 +4,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/diff"
+	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/aws/ccapi"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
+	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
@@ -90,7 +93,6 @@ func runDrift(cmd *cobra.Command, args []string) {
 	selections := make([]selection, 0)
 
 	// Query each resource and stop to ask how to handle drift after each one
-
 	for i := 0; i < len(resources.Content); i += 2 {
 		resourceName := resources.Content[i].Value
 		resourceNode := resources.Content[i+1]
@@ -116,23 +118,60 @@ func runDrift(cmd *cobra.Command, args []string) {
 
 	// Summarize all changes that will be made and ask the user to confirm
 	if !hasChanges {
-		fmt.Println("No changes will be made to your infrastructure or to the state file.")
-	} else {
-		fmt.Println("The following changes will be made:")
-		fmt.Println()
-		for _, selection := range selections {
-			switch selection.Action {
-			case changeLiveState:
-				fmt.Println("Change Live State for", selection.ResourceName)
-				// TODO
-			case changeStateFile:
-				fmt.Println("Change state file for", selection.ResourceName)
-				// TODO
-			}
+		fmt.Println("No changes were made to your infrastructure or to the state file.")
+		return
+	}
+
+	fmt.Println("The following changes will be made:")
+	fmt.Println()
+	for _, selection := range selections {
+		switch selection.Action {
+		case changeLiveState:
+			fmt.Println("   ⚡ Change Live State for", selection.ResourceName)
+		case changeStateFile:
+			fmt.Println("   📄 Change state file for", selection.ResourceName)
+		}
+	}
+	fmt.Println()
+
+	// Confirm and then actually make the changes
+	if !console.Confirm(true, "Do you wish to continue?") {
+		fmt.Println("Deployment cancelled. No changes have been made to the state file or to live state")
+		return
+	}
+
+	hasStateFileChanges := false
+	for _, selection := range selections {
+		switch selection.Action {
+		case changeLiveState:
+			spinner.Push(fmt.Sprintf("   ⚡ Changing Live State for", selection.ResourceName))
+			// TODO
+			spinner.Pop()
+		case changeStateFile:
+			hasStateFileChanges = true
+
+			spinner.Push(fmt.Sprintf("   📄 Changing state file for", selection.ResourceName))
+
+			_, resourceModel := s11n.GetMapValue(resourceModels, selection.ResourceName)
+			config.Debugf("About to change state ResoureModel for %s: %v", selection.ResourceName, selection.LiveModel)
+			var replacementNode yaml.Node
+			replacementNode.Encode(selection.LiveModel)
+			node.SetMapValue(resourceModel, "Model", &replacementNode)
+
+			spinner.Pop()
 		}
 	}
 
-	// TODO: Confirm and then actually make the changes
+	if hasStateFileChanges {
+		lastWrite.Value = time.Now().Format(time.RFC3339)
+		str := format.String(template, format.Options{JSON: false, Unsorted: false})
+		err = s3.PutObject(bucketName, key, []byte(str))
+		if err != nil {
+			fmt.Println(console.Red(fmt.Sprintf("unable to write updated state file to bucket: %v", err)))
+		} else {
+			fmt.Println("State file updated successfully")
+		}
+	}
 }
 
 type action int
@@ -147,6 +186,8 @@ type selection struct {
 	ResourceName string
 	Action       action
 	Text         string
+	LiveModel    map[string]any
+	StateModel   map[string]any
 }
 
 func handleDrift(resourceName string, resourceNode *yaml.Node, model *yaml.Node) (selection, error) {
@@ -231,6 +272,8 @@ func handleDrift(resourceName string, resourceNode *yaml.Node, model *yaml.Node)
 		}
 
 		retval.Action = selections[idx].Action
+		retval.LiveModel = liveModelMap
+		retval.StateModel = modelMap
 	}
 
 	fmt.Println()
@@ -241,7 +284,6 @@ func handleDrift(resourceName string, resourceNode *yaml.Node, model *yaml.Node)
 func colorDiff(s string) string {
 	lines := strings.Split(s, "\n")
 	f := "%s "
-	//changed := []string{diff.Added, diff.Removed, diff.Changed, diff.Involved}
 	unchanged := fmt.Sprintf(f, diff.Unchanged)
 	ret := make([]string, 0)
 	for _, line := range lines {
