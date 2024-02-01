@@ -40,7 +40,7 @@ func runDrift(cmd *cobra.Command, args []string) {
 
 	obj, err := s3.GetObject(bucketName, key)
 	if err != nil {
-		panic(fmt.Errorf("Unable to download state: %v", err))
+		panic(fmt.Errorf("unable to download state: %v", err))
 	}
 
 	config.Debugf("State file: %s", obj)

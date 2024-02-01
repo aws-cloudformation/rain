@@ -449,3 +449,7 @@ func DeleteStackSetInstances(stackSetName string, accounts []string, regions []s
 func ListResourceTypes() ([]string, error) {
 	return []string{"AWS::S3::Bucket", "AWS::Lambda::Function"}, nil
 }
+
+func IsCCAPI(t string) (bool, error) {
+	return true, nil
+}
