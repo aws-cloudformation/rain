@@ -12,6 +12,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
@@ -67,6 +68,8 @@ func checkState(
 	absPath string,
 	unlockId string) (*StateResult, error) {
 
+	spinner.Push("Checking state")
+
 	key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
 	var state cft.Template
 
@@ -77,6 +80,7 @@ func checkState(
 	// Want to avoid using another service like DDB for this. Keep it simple.
 
 	obj, err := s3.GetObject(bucketName, key)
+	spinner.Pop()
 	if err != nil {
 
 		// Make sure it's a NotFound error
@@ -88,6 +92,7 @@ func checkState(
 		config.Debugf("No state file found, creating")
 
 		// This is a create operation. Create a state file and lock it.
+		spinner.Push("Creating a new state file")
 		lock := uuid.New().String()
 		config.Debugf("Creating new state file with lock %v", lock)
 		state = cft.Template{Node: node.Clone(template.Node)}
@@ -107,6 +112,7 @@ func checkState(
 		// Write the state file to the bucket
 		str := format.String(state, format.Options{JSON: false, Unsorted: false})
 		err := s3.PutObject(bucketName, key, []byte(str))
+		spinner.Pop()
 		if err != nil {
 			return nil, fmt.Errorf("unable to write state to bucket: %v", err)
 		}
@@ -153,7 +159,10 @@ func checkState(
 			}
 		}
 
-		// TODO - This would be the place to stop and check drift before deployment
+		// Check to see if the deployment has drifted
+		if err := runDriftOnState(name, state, bucketName, key); err != nil {
+			return nil, err
+		}
 
 		// We are safe to proceed with an update.
 		// Write a new lock back to the state file stored in S3.
