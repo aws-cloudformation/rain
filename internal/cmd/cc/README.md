@@ -17,18 +17,20 @@ CloudFormation uses. Those are available on GitHub under the
 `aws-cloudformation` organization, for example
 [RDS](https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-rds).
 The `cc deploy` command makes client-side calls to CCAPI endpoints like `CreateResource`, 
-but then CCAPI itself is the one making SDK calls into specific services.
+but then CCAPI itself is the one invoking resource providers, which make SDK
+calls into specific services.
 
-The following is an excerpt from a blog post: [The history and future roadmap
-of the AWS CloudFormation
+If you want to learn a bit more about the CloudFormation registry and the
+history of Cloud Control API, check out this blog post: [The history and future
+roadmap of the AWS CloudFormation
 Registry](https://aws.amazon.com/blogs/devops/cloudformation-coverage/)
 
-If you want to see if a given CloudFormation resource is on the new registry
+If you want to see if a CloudFormation resource is on the new registry
 model or not, check if the provisioning type is either Fully Mutable or
 Immutable by invoking the DescribeType API and inspecting the ProvisioningType
 response element.
 
-Here is a sample CLI command that gets a description for the
+Here is a CLI command that gets a description for the
 AWS::Lambda::Function resource, which is on the new registry model.
 
 ```
@@ -38,8 +40,8 @@ sh $ aws cloudformation describe-type --type RESOURCE \ --type-name AWS::Lambda:
 ```
 
 The difference between FULLY\_MUTABLE and IMMUTABLE is the presence of the
-Update handler. FULLY\_MUTABLE types includes an update handler to process
-updates to the type during stack update operations. Whereas, IMMUTABLE types do
+Update handler. FULLY\_MUTABLE types include an update handler to process
+updates to the type during stack update operations. IMMUTABLE types do
 not include an update handler, so the type can’t be updated and must instead be
 replaced during stack update operations. Legacy resource types will be
 NON\_PROVISIONABLE.
@@ -94,7 +96,7 @@ State:
 ```
 
 Each deployment has its own state file in the rain artifacts bucket in the
-region where you are deploying. If a user tries a deploymemnt while there is a
+region where you are deploying. If a user tries a deployment while there is a
 locked state file, the command gives an error message with instructions on how
 to remediate the issue. Often times, this will result from a deployment that
 failed halfway through.
@@ -107,29 +109,45 @@ rain-artifacts-0123456789012-us-east-1/
 ```
 
 Drift detection can be run on the state file to inspect the actual resource
-properties and compare them to the stored state.
+properties and compare them to the stored state. When you deploy a change to 
+a template with this command, drift from the stored state will be pointed out 
+and you will be able to resolve it before continuing with the update.
 
 ## Usage
 
 To use this command, supply the same arguments that you would supply to the `deploy` command:
 
 ```sh
-$ rain cc deploy my-template.yaml my-deployment-name
+$ rain cc deploy -x my-template.yaml my-deployment-name
 ```
+
+(The `-x` argument stands for `--experimental`. This is a nag to make sure you understand this feature is still in active development!)
 
 To remove resources deployed with `cc deploy`, use the `cc rm` command:
 
 ```sh
-$ rain cc rm my-deployment-name
+$ rain cc rm -x my-deployment-name
+```
+
+To view the state file for a deployment:
+
+```sh
+rain cc state -x my-deployment-name
+```
+
+To remediate drift on a deployment (also runs when you `deploy`)
+
+```sh
+rain cc drift -x my-deployment name
 ```
 
 ## Unsupported features
 
 Since this is a prototype, some features are not yet supported:
 
-- Instrinsic functions (`Fn::*`, `GetAtt`, `Sub`)
-- Parameters
-- Tags
+- Not all instrinsic functions have been implemented
+- Tags are ignored
+- Any resource not yet migrated to the new registry model
 - Retention policies
 - Probably more stuff that is totally necessary for production use
 
