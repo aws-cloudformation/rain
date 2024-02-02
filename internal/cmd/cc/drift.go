@@ -315,12 +315,14 @@ func handleDrift(resourceName string, resourceNode *yaml.Node, model *yaml.Node)
 	checkIcon := "✅"
 	resourceIcon := "🔎 "
 
-	if console.NoColour {
-		liveIcon = "*"
-		storedIcon = "."
-		checkIcon = "> "
-		resourceIcon = "-> "
-	}
+	// Is there any reason not to show the icons?
+	//
+	// if console.NoColour {
+	// 	liveIcon = "*"
+	// 	storedIcon = "."
+	// 	checkIcon = "> "
+	// 	resourceIcon = "-> "
+	// }
 
 	if d.Mode() == diff.Unchanged {
 		fmt.Println(console.Green(resourceIcon + title + "... Ok!"))
