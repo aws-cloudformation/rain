@@ -310,18 +310,29 @@ func handleDrift(resourceName string, resourceNode *yaml.Node, model *yaml.Node)
 
 	d := diff.CompareMaps(modelMap, liveModelMap)
 
-	resourceSymbol := "🔎 "
+	liveIcon := "⚡"
+	storedIcon := "📄"
+	checkIcon := "✅"
+	resourceIcon := "🔎 "
+
+	if console.NoColour {
+		liveIcon = "*"
+		storedIcon = "."
+		checkIcon = "> "
+		resourceIcon = "-> "
+	}
+
 	if d.Mode() == diff.Unchanged {
-		fmt.Println(console.Green(resourceSymbol + title + "... Ok!"))
+		fmt.Println(console.Green(resourceIcon + title + "... Ok!"))
 	} else {
-		fmt.Println(console.Red(resourceSymbol + title + "... Drift detected!"))
+		fmt.Println(console.Red(resourceIcon + title + "... Drift detected!"))
 		fmt.Println()
 
 		// Show a diff of the live state and stored state
-		fmt.Println("    ========== ⚡ Live state ⚡ ==========")
+		fmt.Println("    ========== " + liveIcon + " Live state " + liveIcon + " ==========")
 		fmt.Println("   ", colorDiff(d.Format(true)))
 		reverse := diff.CompareMaps(liveModelMap, modelMap)
-		fmt.Println("    ========== 📄 Stored state 📄 ==========")
+		fmt.Println("    ========== " + storedIcon + " Stored state " + storedIcon + " ==========")
 		fmt.Println("   ", colorDiff(reverse.Format(true)))
 
 		// Ask the user that they want to do
@@ -332,14 +343,22 @@ func handleDrift(resourceName string, resourceNode *yaml.Node, model *yaml.Node)
 			{Action: doNothing, Text: "Do nothing"},
 		}
 
+		activeFormat := " {{ .Text | magenta }}"
+		selectedFormat := " {{ .Text | blue }}"
+
+		if console.NoColour {
+			activeFormat = " {{ .Text }}"
+			selectedFormat = " {{ .Text }}"
+		}
+
 		prompt := promptui.Select{
 			Label: fmt.Sprintf("What would you like to do with %s?", resourceName),
 			Items: selections,
 			Templates: &promptui.SelectTemplates{
 				Label:    "{{ . }}",
-				Active:   "✅ {{ .Text | magenta }}",
+				Active:   checkIcon + activeFormat,
 				Inactive: "   {{ .Text }}",
-				Selected: "✅ {{ .Text | blue }}",
+				Selected: checkIcon + selectedFormat,
 			},
 		}
 
@@ -380,11 +399,20 @@ func colorDiff(s string) string {
 			if tokens[0] == unchanged {
 				ret = append(ret, console.Green(tokens[1]))
 			} else {
-				ret = append(ret, console.Red(tokens[1]))
+				if console.NoColour {
+					ret = append(ret, "! "+tokens[1])
+				} else {
+					ret = append(ret, console.Red(tokens[1]))
+				}
 			}
 		}
 	}
-	return strings.Join(ret, "\n    ")
+	retval := strings.Join(ret, "\n    ")
+	if console.NoColour {
+		// Offset the ! so it stands out and the props are still aligned
+		retval = strings.Replace(retval, "    ! ", "  ! ", -1)
+	}
+	return retval
 }
 
 var CCDriftCmd = &cobra.Command{
