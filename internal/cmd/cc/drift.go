@@ -398,6 +398,5 @@ var CCDriftCmd = &cobra.Command{
 }
 
 func init() {
-	CCDriftCmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
-	CCDriftCmd.Flags().BoolVarP(&Experimental, "experimental", "x", false, "Acknowledge that this is an experimental feature")
+	addCommonParams(CCDriftCmd)
 }

@@ -132,7 +132,6 @@ var CCRmCmd = &cobra.Command{
 }
 
 func init() {
-	CCRmCmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
-	CCRmCmd.Flags().BoolVarP(&Experimental, "experimental", "x", false, "Acknowledge that this is an experimental feature")
 	CCRmCmd.Flags().BoolVarP(&yes, "yes", "y", false, "don't ask questions; just delete")
+	addCommonParams(CCRmCmd)
 }

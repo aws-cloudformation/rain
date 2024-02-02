@@ -178,15 +178,15 @@ You must pass the --experimental (-x) flag to use this command, to acknowledge t
 }
 
 func init() {
-	CCDeployCmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
-	CCDeployCmd.Flags().BoolVarP(&Experimental, "experimental", "x", false, "Acknowledge that this is an experimental feature")
 	CCDeployCmd.Flags().BoolVarP(&yes, "yes", "y", false, "don't ask questions; just deploy")
-	CCDeployCmd.Flags().BoolVarP(&downloadState, "state", "s", false, "Instead of deploying, download the state file")
+	//CCDeployCmd.Flags().BoolVarP(&downloadState, "state", "s", false, "Instead of deploying, download the state file")
 	CCDeployCmd.Flags().StringSliceVar(&tags, "tags", []string{}, "add tags to the stack; use the format key1=value1,key2=value2")
 	CCDeployCmd.Flags().StringSliceVar(&params, "params", []string{}, "set parameter values; use the format key1=value1,key2=value2")
 	CCDeployCmd.Flags().StringVarP(&configFilePath, "config", "c", "", "YAML or JSON file to set tags and parameters")
 	CCDeployCmd.Flags().StringVarP(&unlock, "unlock", "u", "", "Unlock <lockid> and continue")
 	CCDeployCmd.Flags().BoolVarP(&ignoreUnknownParams, "ignore-unknown-params", "", false, "Ignore unknown parameters")
+
+	addCommonParams(CCDeployCmd)
 
 	resMap = make(map[string]*Resource)
 
