@@ -257,7 +257,7 @@ func runState(cmd *cobra.Command, args []string) {
 	}
 
 	// Call RainBucket for side-effects in case we want to force bucket creation
-	bucketName := s3.RainBucket(true)
+	bucketName := s3.RainBucket(false)
 
 	key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
 

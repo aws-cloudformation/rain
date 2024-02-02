@@ -36,7 +36,7 @@ var CCRmCmd = &cobra.Command{
 		var state cft.Template
 
 		// Call RainBucket for side-effects in case we want to force bucket creation
-		bucketName := s3.RainBucket(true)
+		bucketName := s3.RainBucket(yes)
 
 		obj, err := s3.GetObject(bucketName, key)
 		if err != nil {

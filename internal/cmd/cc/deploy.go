@@ -44,7 +44,7 @@ func deploy(cmd *cobra.Command, args []string) {
 
 	// Call RainBucket for side-effects in case we want to force bucket creation
 	// TODO: Use the 'yes' arg instead of true
-	bucketName := s3.RainBucket(true)
+	bucketName := s3.RainBucket(yes)
 
 	// Package template
 	spinner.Push(fmt.Sprintf("Preparing template '%s'", base))

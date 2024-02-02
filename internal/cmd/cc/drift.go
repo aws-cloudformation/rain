@@ -34,7 +34,7 @@ func runDrift(cmd *cobra.Command, args []string) {
 
 	spinner.Push("Downloading state file")
 
-	bucketName := s3.RainBucket(true)
+	bucketName := s3.RainBucket(false)
 
 	key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
 
