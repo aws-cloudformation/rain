@@ -50,20 +50,29 @@ func runDrift(cmd *cobra.Command, args []string) {
 		panic(err)
 	}
 
+	spinner.Pop()
+
+	if err := runDriftOnState(name, template, bucketName, key); err != nil {
+		panic(err)
+	}
+}
+
+func runDriftOnState(name string, template cft.Template, bucketName string, key string) error {
+
 	resources, err := template.GetSection(cft.Resources)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	_, err = template.GetSection(cft.State)
 	if err != nil {
-		panic(err)
+		return err
 	}
-
-	spinner.Pop()
 
 	// Display deployment meta-data
 
+	fmt.Println()
+	fmt.Println("Checking for drift on existing deployment")
 	fmt.Println()
 	fmt.Print(console.Blue("Deployment name:  "))
 	fmt.Print(console.Cyan(fmt.Sprintf("%s\n", name)))
@@ -122,7 +131,7 @@ func runDrift(cmd *cobra.Command, args []string) {
 	// Summarize all changes that will be made and ask the user to confirm
 	if !hasChanges {
 		fmt.Println("No changes were made to your infrastructure or to the state file.")
-		return
+		return nil
 	}
 
 	fmt.Println("The following changes will be made:")
@@ -140,7 +149,7 @@ func runDrift(cmd *cobra.Command, args []string) {
 	// Confirm and then actually make the changes
 	if !console.Confirm(true, "Do you wish to continue?") {
 		fmt.Println("Deployment cancelled. No changes have been made to the state file or to live state")
-		return
+		return nil
 	}
 
 	// Set the global template reference for resolving intrinsics
@@ -227,6 +236,7 @@ func runDrift(cmd *cobra.Command, args []string) {
 			fmt.Println("State file updated successfully")
 		}
 	}
+	return nil
 }
 
 type action int
