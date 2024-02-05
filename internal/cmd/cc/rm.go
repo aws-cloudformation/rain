@@ -32,7 +32,7 @@ var CCRmCmd = &cobra.Command{
 		}
 
 		spinner.Push("Fetching deployment status")
-		key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
+		key := getStateFileKey(name)
 		var state cft.Template
 
 		// Call RainBucket for side-effects in case we want to force bucket creation

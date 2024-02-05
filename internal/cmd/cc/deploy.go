@@ -83,9 +83,6 @@ func deploy(cmd *cobra.Command, args []string) {
 		panic("Unable to deploy this template due to unsupported resources")
 	}
 
-	// TODO - Check for drift somewhere.. maybe in checkState..
-	// Go through the UI in drift before locking the state file
-
 	// Compare against the current state to see what has changed, if this is an update
 	stateResult, stateError := checkState(name, template, bucketName, "", absPath, unlock)
 	if stateError != nil {

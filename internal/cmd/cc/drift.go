@@ -36,7 +36,7 @@ func runDrift(cmd *cobra.Command, args []string) {
 
 	bucketName := s3.RainBucket(false)
 
-	key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
+	key := getStateFileKey(name)
 
 	obj, err := s3.GetObject(bucketName, key)
 	if err != nil {

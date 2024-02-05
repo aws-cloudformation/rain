@@ -21,7 +21,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const STATE_DIR string = "deployments"
 const FILE_PATH string = "FilePath"
 
 type StateResult struct {
@@ -46,8 +45,17 @@ func addCommon(stateMap *yaml.Node, absPath string) {
 // deleteState removes the state file.
 // This is necessary when the user cancels a fresh deployment
 func deleteState(name string, bucketName string) error {
-	key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
+	key := getStateFileKey(name)
 	return s3.DeleteObject(bucketName, key)
+}
+
+// Get the object key for the state file in S3
+func getStateFileKey(name string) string {
+	key := fmt.Sprintf("deployments/%v.yaml", name)
+	if s3.BucketKeyPrefix != "" {
+		key = fmt.Sprintf("%s/%s", s3.BucketKeyPrefix, key)
+	}
+	return key
 }
 
 // checkState looks for an existing state file.
@@ -70,7 +78,7 @@ func checkState(
 
 	spinner.Push("Checking state")
 
-	key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
+	key := getStateFileKey(name)
 	var state cft.Template
 
 	result := &StateResult{}
@@ -248,7 +256,7 @@ func writeState(
 
 	str := format.String(state, format.Options{JSON: false, Unsorted: false})
 	config.Debugf("About to write state file:\n%v", str)
-	key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
+	key := getStateFileKey(name)
 	err := s3.PutObject(bucketName, key, []byte(str))
 	if err != nil {
 		return fmt.Errorf("unable to write unlocked state file to bucket: %v", err)
@@ -268,7 +276,7 @@ func runState(cmd *cobra.Command, args []string) {
 	// Call RainBucket for side-effects in case we want to force bucket creation
 	bucketName := s3.RainBucket(false)
 
-	key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
+	key := getStateFileKey(name)
 
 	obj, err := s3.GetObject(bucketName, key)
 	if err != nil {
