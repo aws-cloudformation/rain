@@ -53,3 +53,6 @@ var Bold = wrap(color.New(color.Bold))
 
 // Plain returns the input as a string of normal-coloured text if the console supports colours
 var Plain = wrap(color.New(color.Normal))
+
+// Magenta returns the input as a string of magenta-coloured text if the console supports colours
+var Magenta = wrap(color.New(color.Magenta))

@@ -782,6 +782,28 @@ func GetTypeSchema(name string) (string, error) {
 	}
 }
 
+// IsCCAPI returns true if the type is fully supported by CCAPI
+func IsCCAPI(name string) (bool, error) {
+	res, err := getClient().DescribeType(context.Background(), &cloudformation.DescribeTypeInput{
+		Type: "RESOURCE", TypeName: &name,
+	})
+	if err != nil {
+		config.Debugf("SDK error: %v", err)
+		return false, err
+	}
+	// Check 3rd party types to see if they have been activated in this region
+	if res.IsActivated != nil && !*res.IsActivated {
+		return false, nil
+	}
+
+	// Make sure it's fully mutable
+	if res.ProvisioningType != types.ProvisioningTypeFullyMutable {
+		return false, nil
+	}
+
+	return true, nil
+}
+
 // Get the list of actions required to invoke a CloudFormation handler
 func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
 

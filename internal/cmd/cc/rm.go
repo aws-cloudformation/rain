@@ -32,11 +32,11 @@ var CCRmCmd = &cobra.Command{
 		}
 
 		spinner.Push("Fetching deployment status")
-		key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
+		key := getStateFileKey(name)
 		var state cft.Template
 
 		// Call RainBucket for side-effects in case we want to force bucket creation
-		bucketName := s3.RainBucket(true)
+		bucketName := s3.RainBucket(yes)
 
 		obj, err := s3.GetObject(bucketName, key)
 		if err != nil {
@@ -132,7 +132,6 @@ var CCRmCmd = &cobra.Command{
 }
 
 func init() {
-	CCRmCmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
-	CCRmCmd.Flags().BoolVarP(&Experimental, "experimental", "x", false, "Acknowledge that this is an experimental feature")
 	CCRmCmd.Flags().BoolVarP(&yes, "yes", "y", false, "don't ask questions; just delete")
+	addCommonParams(CCRmCmd)
 }

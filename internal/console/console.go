@@ -122,3 +122,8 @@ func Confirm(defaultYes bool, prompt string) bool {
 
 	return false
 }
+
+// Errorf prints a red message to standard out
+func Errorf(f string, args ...any) {
+	fmt.Println(Red(fmt.Sprintf(f, args...)))
+}

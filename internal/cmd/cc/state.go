@@ -12,6 +12,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
@@ -20,7 +21,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const STATE_DIR string = "deployments"
 const FILE_PATH string = "FilePath"
 
 type StateResult struct {
@@ -45,8 +45,17 @@ func addCommon(stateMap *yaml.Node, absPath string) {
 // deleteState removes the state file.
 // This is necessary when the user cancels a fresh deployment
 func deleteState(name string, bucketName string) error {
-	key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
+	key := getStateFileKey(name)
 	return s3.DeleteObject(bucketName, key)
+}
+
+// Get the object key for the state file in S3
+func getStateFileKey(name string) string {
+	key := fmt.Sprintf("deployments/%v.yaml", name)
+	if s3.BucketKeyPrefix != "" {
+		key = fmt.Sprintf("%s/%s", s3.BucketKeyPrefix, key)
+	}
+	return key
 }
 
 // checkState looks for an existing state file.
@@ -67,7 +76,9 @@ func checkState(
 	absPath string,
 	unlockId string) (*StateResult, error) {
 
-	key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
+	spinner.Push("Checking state")
+
+	key := getStateFileKey(name)
 	var state cft.Template
 
 	result := &StateResult{}
@@ -77,6 +88,7 @@ func checkState(
 	// Want to avoid using another service like DDB for this. Keep it simple.
 
 	obj, err := s3.GetObject(bucketName, key)
+	spinner.Pop()
 	if err != nil {
 
 		// Make sure it's a NotFound error
@@ -88,6 +100,7 @@ func checkState(
 		config.Debugf("No state file found, creating")
 
 		// This is a create operation. Create a state file and lock it.
+		spinner.Push("Creating a new state file")
 		lock := uuid.New().String()
 		config.Debugf("Creating new state file with lock %v", lock)
 		state = cft.Template{Node: node.Clone(template.Node)}
@@ -107,6 +120,7 @@ func checkState(
 		// Write the state file to the bucket
 		str := format.String(state, format.Options{JSON: false, Unsorted: false})
 		err := s3.PutObject(bucketName, key, []byte(str))
+		spinner.Pop()
 		if err != nil {
 			return nil, fmt.Errorf("unable to write state to bucket: %v", err)
 		}
@@ -151,6 +165,11 @@ func checkState(
 				msg := fmt.Sprintf("Found a locked state file (lock: %v). This means another process is currently deploying this template, or a deployment failed to complete. You will need to manually resolve the issue, or you can try to resume the deployment by running cc deploy with --unlock <lock>", lock)
 				return nil, errors.New(msg)
 			}
+		}
+
+		// Check to see if the deployment has drifted
+		if err := runDriftOnState(name, state, bucketName, key); err != nil {
+			return nil, err
 		}
 
 		// We are safe to proceed with an update.
@@ -237,7 +256,7 @@ func writeState(
 
 	str := format.String(state, format.Options{JSON: false, Unsorted: false})
 	config.Debugf("About to write state file:\n%v", str)
-	key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
+	key := getStateFileKey(name)
 	err := s3.PutObject(bucketName, key, []byte(str))
 	if err != nil {
 		return fmt.Errorf("unable to write unlocked state file to bucket: %v", err)
@@ -255,9 +274,9 @@ func runState(cmd *cobra.Command, args []string) {
 	}
 
 	// Call RainBucket for side-effects in case we want to force bucket creation
-	bucketName := s3.RainBucket(true)
+	bucketName := s3.RainBucket(false)
 
-	key := fmt.Sprintf("%v/%v.yaml", STATE_DIR, name) // deployments/name
+	key := getStateFileKey(name)
 
 	obj, err := s3.GetObject(bucketName, key)
 	if err != nil {
@@ -279,6 +298,5 @@ var CCStateCmd = &cobra.Command{
 }
 
 func init() {
-	CCStateCmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
-	CCStateCmd.Flags().BoolVarP(&Experimental, "experimental", "x", false, "Acknowledge that this is an experimental feature")
+	addCommonParams(CCStateCmd)
 }

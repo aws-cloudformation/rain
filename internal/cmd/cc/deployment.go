@@ -63,10 +63,6 @@ func deployResource(resource *Resource) {
 		resolvedNode = resource.Node
 	} else {
 		resolvedNode, err = Resolve(resource)
-		// TODO: Failing due to empty Model on updates
-		// If the dependencies didn't change, they don't get deployed,
-		// so we need to get the Model from the state file.
-		// Or.. query ccapi for the live state?
 		if err != nil {
 			config.Debugf("deployResource resolve failed: %v", err)
 			resource.State = Failed
@@ -93,16 +89,6 @@ func deployResource(resource *Resource) {
 			resource.Model = model
 		}
 	case diff.Update:
-
-		// // First get the current state of the resource
-		// priorModel, err := ccapi.GetResource(resource.Identifier, resource.Type)
-		// if err != nil {
-		// 	config.Debugf("deployResource update get prior failed: %v", err)
-		// 	resource.State = Failed
-		// 	resource.Message = fmt.Sprintf("%v", err)
-		// }
-		//
-		// We would need that at an earlier step for drift detection
 
 		priorJson := resource.PriorJson
 
@@ -387,7 +373,7 @@ func deployResources(resources []*Resource, results *DeploymentResults, g *graph
 	return nil
 }
 
-// deployTemplate deloys the CloudFormation template using the Cloud Control API.
+// deployTemplate deploys the CloudFormation template using the Cloud Control API.
 // A failed deployment will result in DeploymentResults.Succeeded = false.
 // A non-nil error is returned when something unexpected caused a failure
 // not related to actually deploying resources, like an invalid template.
@@ -490,7 +476,6 @@ func DeployTemplate(template cft.Template) (*DeploymentResults, error) {
 			r.PriorJson = priorJson // We need this for ccapi update
 
 			config.Debugf("deployment set r.Model to %v", r.Model)
-			// TODO: This is blank when we update
 
 			if r.Action == diff.Delete {
 				deletes = append(deletes, r)
