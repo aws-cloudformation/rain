@@ -30,7 +30,7 @@ var successFormat table.Formatter
 // getTemplateResource returns the yaml node based on the logical id
 func getTemplateResource(template cft.Template, logicalId string) (*yaml.Node, error) {
 	rootMap := template.Node.Content[0]
-	_, resources := s11n.GetMapValue(rootMap, "Resources")
+	_, resources, _ := s11n.GetMapValue(rootMap, "Resources")
 	if resources == nil {
 		panic("Expected to find a Resources section in the template")
 	}
@@ -424,7 +424,7 @@ func DeployTemplate(template cft.Template) (*DeploymentResults, error) {
 				panic(fmt.Sprintf("%v not found in Resources", n.Name))
 			}
 
-			_, typeNode := s11n.GetMapValue(y, "Type")
+			_, typeNode, _ := s11n.GetMapValue(y, "Type")
 			if typeNode == nil {
 				return nil, fmt.Errorf("expected resource %v to have a Type", n.Name)
 			}
@@ -435,7 +435,7 @@ func DeployTemplate(template cft.Template) (*DeploymentResults, error) {
 			var ident string
 			var model string
 			var priorJson string
-			_, stateNode := s11n.GetMapValue(y, "State")
+			_, stateNode, _ := s11n.GetMapValue(y, "State")
 			if stateNode == nil {
 				// Assume this is a new deployment
 				action = diff.Create

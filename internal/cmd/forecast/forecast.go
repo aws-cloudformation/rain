@@ -212,7 +212,7 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 
 	// Iterate over each resource
 
-	_, resources := s11n.GetMapValue(rootMap, "Resources")
+	_, resources, _ := s11n.GetMapValue(rootMap, "Resources")
 	if resources == nil {
 		panic("Expected to find a Resources section in the template")
 	}
@@ -226,7 +226,7 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 		config.Debugf("logicalId: %v", logicalId)
 
 		resource := resources.Content[i+1]
-		_, typeNode := s11n.GetMapValue(resource, "Type")
+		_, typeNode, _ := s11n.GetMapValue(resource, "Type")
 		if typeNode == nil {
 			panic(fmt.Sprintf("Expected %v to have a Type", logicalId))
 		}

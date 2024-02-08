@@ -48,7 +48,7 @@ var CCRmCmd = &cobra.Command{
 			panic(fmt.Errorf("unable to parse state file: %v", err))
 		}
 
-		_, stateMap := s11n.GetMapValue(state.Node.Content[0], "State")
+		_, stateMap, _ := s11n.GetMapValue(state.Node.Content[0], "State")
 		if stateMap == nil {
 			panic(fmt.Errorf("did not find State in state file"))
 		}
@@ -80,14 +80,14 @@ var CCRmCmd = &cobra.Command{
 		template := cft.Template{Node: node.Clone(state.Node)}
 		rootMap := template.Node.Content[0]
 
-		_, stateResourceModels := s11n.GetMapValue(stateMap, "ResourceModels")
+		_, stateResourceModels, _ := s11n.GetMapValue(stateMap, "ResourceModels")
 		if stateResourceModels == nil {
 			panic("Expected to find State.ResourceModels in the state template")
 		}
 		identifiers := make(map[string]string, 0)
 		for i, v := range stateResourceModels.Content {
 			if i%2 == 0 {
-				_, identifier := s11n.GetMapValue(stateResourceModels.Content[i+1], "Identifier")
+				_, identifier, _ := s11n.GetMapValue(stateResourceModels.Content[i+1], "Identifier")
 				if identifier != nil {
 					identifiers[v.Value] = identifier.Value
 				}
@@ -95,7 +95,7 @@ var CCRmCmd = &cobra.Command{
 		}
 		config.Debugf("identifiers: %v", identifiers)
 
-		_, resourceMap := s11n.GetMapValue(rootMap, "Resources")
+		_, resourceMap, _ := s11n.GetMapValue(rootMap, "Resources")
 		for i, resource := range resourceMap.Content {
 			if i%2 == 0 {
 				if identifier, ok := identifiers[resource.Value]; !ok {

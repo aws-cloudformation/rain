@@ -49,7 +49,7 @@ func (t Template) AddComments(comments []*Comment) error {
 
 		switch v := last.(type) {
 		case string:
-			key, value := s11n.GetMapValue(n, v)
+			key, value, _ := s11n.GetMapValue(n, v)
 			if value == nil {
 				return fmt.Errorf("can't find map key: '%s'", v)
 			}

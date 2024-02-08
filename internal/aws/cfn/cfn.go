@@ -1032,7 +1032,7 @@ func GetPrimaryIdentifierValues(
 
 	piValues := make([]string, 0)
 
-	_, props := s11n.GetMapValue(resource, "Properties")
+	_, props, _ := s11n.GetMapValue(resource, "Properties")
 	if props == nil {
 		return piValues
 	}
@@ -1076,7 +1076,7 @@ func GetPrimaryIdentifierValues(
 // Returns "", error if the Ref can't be resolved (not a panic condition)
 // TODO: ccdeploy.resolve does this better
 func resolveRef(name string, template *yaml.Node, dc *dc.DeployConfig) (string, error) {
-	_, params := s11n.GetMapValue(template.Content[0], "Parameters")
+	_, params, _ := s11n.GetMapValue(template.Content[0], "Parameters")
 	config.Debugf("resolveRef params: %v", node.ToJson(params))
 	if params != nil {
 		for i, param := range params.Content {

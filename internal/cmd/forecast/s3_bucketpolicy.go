@@ -32,9 +32,9 @@ func checkS3BucketPolicy(input PredictionInput) Forecast {
 	// Go back to the template to get the referenced bucket
 
 	// Check the policy for invalid principals
-	_, props := s11n.GetMapValue(input.resource, "Properties")
+	_, props, _ := s11n.GetMapValue(input.resource, "Properties")
 	if props != nil {
-		_, policyDocument := s11n.GetMapValue(props, "PolicyDocument")
+		_, policyDocument, _ := s11n.GetMapValue(props, "PolicyDocument")
 		if policyDocument != nil {
 			res, err := iam.CheckPolicyDocument(policyDocument)
 

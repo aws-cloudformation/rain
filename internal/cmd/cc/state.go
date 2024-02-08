@@ -33,7 +33,7 @@ type StateResult struct {
 // If the elements already exist, they are replaced
 func addCommon(stateMap *yaml.Node, absPath string) {
 	// Record the absolute path (helps figure out who/where the template came from)
-	if _, fp := s11n.GetMapValue(stateMap, FILE_PATH); fp != nil {
+	if _, fp, _ := s11n.GetMapValue(stateMap, FILE_PATH); fp != nil {
 		config.Debugf("addCommon overwriting")
 		fp.Value = absPath
 	} else {
@@ -137,7 +137,7 @@ func checkState(
 			return nil, fmt.Errorf("unable to parse state file: %v", err)
 		}
 
-		_, stateMap := s11n.GetMapValue(state.Node.Content[0], "State")
+		_, stateMap, _ := s11n.GetMapValue(state.Node.Content[0], "State")
 		if stateMap == nil {
 			return nil, fmt.Errorf("did not find State in state file")
 		}
@@ -218,7 +218,7 @@ func writeState(
 		// Add a State section to the state resource and write the resource model
 
 		rootMap := state.Node.Content[0]
-		_, resourceMap := s11n.GetMapValue(rootMap, "Resources")
+		_, resourceMap, _ := s11n.GetMapValue(rootMap, "Resources")
 		if resourceMap == nil {
 			panic("Expected to find a Resources section in the template")
 		}

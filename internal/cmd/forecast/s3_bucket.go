@@ -36,7 +36,7 @@ func checkBucketNotEmpty(input PredictionInput, bucket *types.StackResourceDetai
 	hasContents, _ := s3.BucketHasContents(*bucket.PhysicalResourceId)
 	if hasContents {
 		// Check the deletion policy
-		_, deletionPolicy := s11n.GetMapValue(input.resource, "DeletionPolicy")
+		_, deletionPolicy, _ := s11n.GetMapValue(input.resource, "DeletionPolicy")
 		if deletionPolicy != nil && deletionPolicy.Value == "Retain" {
 			// The bucket is not empty but it is set to retain,
 			// so a stack DELETE will not fail
