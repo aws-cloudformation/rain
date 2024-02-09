@@ -53,7 +53,7 @@ func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema, 
 	switch prop.Type {
 	case "string":
 		if len(prop.Enum) > 0 {
-			sa := make([]string, len(prop.Enum))
+			sa := make([]string, 0)
 			for _, s := range prop.Enum {
 				sa = append(sa, fmt.Sprintf("%s", s))
 			}
@@ -292,7 +292,7 @@ func build(typeNames []string) (cft.Template, error) {
 
 		// Add a node for the resource
 		shortName := strings.Split(typeName, "::")[2]
-		r := node.AddMap(resourceMap, "My"+shortName)
+		r := node.AddMap(resourceMap, shortName)
 		node.Add(r, "Type", typeName)
 		props := node.AddMap(r, "Properties")
 

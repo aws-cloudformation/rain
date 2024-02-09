@@ -8,7 +8,7 @@ import (
 )
 
 func convertStrings(sa []string) []any {
-	r := make([]any, len(sa))
+	r := make([]any, 0)
 	for _, s := range sa {
 		r = append(r, s)
 	}
