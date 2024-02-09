@@ -22,6 +22,7 @@ var buildJSON = false
 var promptFlag = false
 var showSchema = false
 var omitPatches = false
+var recommendFlag = false
 
 // Borrowing a simplified SAM spec file from goformation
 // Ideally we would autogenerate from the full SAM spec but that thing is huge
@@ -337,6 +338,12 @@ var Cmd = &cobra.Command{
 			return
 		}
 
+		// Output a recommended architecture
+		if recommendFlag {
+			recommend(args)
+			return
+		}
+
 		if len(args) == 0 {
 			cmd.Help()
 			return
@@ -392,4 +399,5 @@ func init() {
 	Cmd.Flags().BoolVarP(&showSchema, "schema", "s", false, "Output the raw un-patched registry schema for a resource type")
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
 	Cmd.Flags().BoolVarP(&omitPatches, "omit-patches", "o", false, "Omit patches and use the raw schema")
+	Cmd.Flags().BoolVarP(&recommendFlag, "recommend", "r", false, "Output a recommended architecture for the chosen use case")
 }
