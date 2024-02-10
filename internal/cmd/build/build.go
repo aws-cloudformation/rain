@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"os"
 	"slices"
 	"strings"
 
@@ -23,6 +24,7 @@ var promptFlag = false
 var showSchema = false
 var omitPatches = false
 var recommendFlag = false
+var outFn = ""
 
 // Borrowing a simplified SAM spec file from goformation
 // Ideally we would autogenerate from the full SAM spec but that thing is huge
@@ -309,6 +311,14 @@ func build(typeNames []string) (cft.Template, error) {
 	return t, nil
 }
 
+func output(out string) {
+	if outFn != "" {
+		os.WriteFile(outFn, []byte(out), 0644)
+	} else {
+		fmt.Println(out)
+	}
+}
+
 // Cmd is the build command's entrypoint
 var Cmd = &cobra.Command{
 	Use:                   "build [<resource type>] or <prompt>",
@@ -332,7 +342,7 @@ var Cmd = &cobra.Command{
 					show = true
 				}
 				if show {
-					fmt.Println(t)
+					output(t)
 				}
 			}
 			return
@@ -362,13 +372,13 @@ var Cmd = &cobra.Command{
 				}
 
 				j, _ := json.MarshalIndent(schema, "", "    ")
-				fmt.Println(string(j))
+				output(string(j))
 			} else {
 				schema, err := cfn.GetTypeSchema(typeName)
 				if err != nil {
 					panic(err)
 				}
-				fmt.Println(schema)
+				output(schema)
 			}
 			return
 		}
@@ -387,17 +397,18 @@ var Cmd = &cobra.Command{
 		out := format.String(t, format.Options{
 			JSON: buildJSON,
 		})
-		fmt.Println(out)
+		output(out)
 	},
 }
 
 func init() {
-	Cmd.Flags().BoolVarP(&buildListFlag, "list", "l", false, "List all CloudFormation resource types")
+	Cmd.Flags().BoolVarP(&buildListFlag, "list", "l", false, "List all CloudFormation resource types with an optional name prefix")
 	Cmd.Flags().BoolVarP(&promptFlag, "prompt", "p", false, "Generate a template using Bedrock and a prompt")
 	Cmd.Flags().BoolVarP(&bareTemplate, "bare", "b", false, "Produce a minimal template, omitting all optional resource properties")
 	Cmd.Flags().BoolVarP(&buildJSON, "json", "j", false, "Output the template as JSON (default format: YAML)")
 	Cmd.Flags().BoolVarP(&showSchema, "schema", "s", false, "Output the raw un-patched registry schema for a resource type")
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
-	Cmd.Flags().BoolVarP(&omitPatches, "omit-patches", "o", false, "Omit patches and use the raw schema")
+	Cmd.Flags().BoolVar(&omitPatches, "omit-patches", false, "Omit patches and use the raw schema")
 	Cmd.Flags().BoolVarP(&recommendFlag, "recommend", "r", false, "Output a recommended architecture for the chosen use case")
+	Cmd.Flags().StringVarP(&outFn, "output", "o", "", "Output to a file")
 }

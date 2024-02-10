@@ -76,7 +76,7 @@ func deploy(cmd *cobra.Command, args []string) {
 		}
 		if !supported {
 			anyUnsupported = true
-			fmt.Println(console.Red(fmt.Sprintf("%s is not full supported by CCAPI", typ)))
+			fmt.Println(console.Red(fmt.Sprintf("%s is not fully supported by CCAPI", typ)))
 		}
 	}
 	if anyUnsupported {

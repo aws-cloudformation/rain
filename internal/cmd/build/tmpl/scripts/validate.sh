@@ -2,7 +2,7 @@
 
 set -eou pipefail
 
-BASE="internal/cmd/build/reco"
+BASE="internal/cmd/build/tmpl"
 FILES="${BASE}/**/*.yaml"
 RULES="${BASE}/scripts/rules.guard"
 
