@@ -434,10 +434,18 @@ _rain_build()
     flags+=("-l")
     local_nonpersistent_flags+=("--list")
     local_nonpersistent_flags+=("-l")
+    flags+=("--omit-patches")
+    flags+=("-o")
+    local_nonpersistent_flags+=("--omit-patches")
+    local_nonpersistent_flags+=("-o")
     flags+=("--prompt")
     flags+=("-p")
     local_nonpersistent_flags+=("--prompt")
     local_nonpersistent_flags+=("-p")
+    flags+=("--schema")
+    flags+=("-s")
+    local_nonpersistent_flags+=("--schema")
+    local_nonpersistent_flags+=("-s")
     flags+=("--no-colour")
 
     must_have_one_flag=()
@@ -495,9 +503,9 @@ _rain_cat()
     noun_aliases=()
 }
 
-_rain_ccdeploy()
+_rain_cc_deploy()
 {
-    last_command="rain_ccdeploy"
+    last_command="rain_cc_deploy"
 
     command_aliases=()
 
@@ -525,6 +533,8 @@ _rain_ccdeploy()
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
     local_nonpersistent_flags+=("-h")
+    flags+=("--ignore-unknown-params")
+    local_nonpersistent_flags+=("--ignore-unknown-params")
     flags+=("--params=")
     two_word_flags+=("--params")
     local_nonpersistent_flags+=("--params")
@@ -553,6 +563,16 @@ _rain_ccdeploy()
     two_word_flags+=("--tags")
     local_nonpersistent_flags+=("--tags")
     local_nonpersistent_flags+=("--tags=")
+    flags+=("--unlock=")
+    two_word_flags+=("--unlock")
+    two_word_flags+=("-u")
+    local_nonpersistent_flags+=("--unlock")
+    local_nonpersistent_flags+=("--unlock=")
+    local_nonpersistent_flags+=("-u")
+    flags+=("--yes")
+    flags+=("-y")
+    local_nonpersistent_flags+=("--yes")
+    local_nonpersistent_flags+=("-y")
     flags+=("--no-colour")
 
     must_have_one_flag=()
@@ -560,9 +580,9 @@ _rain_ccdeploy()
     noun_aliases=()
 }
 
-_rain_ccrm()
+_rain_cc_drift()
 {
-    last_command="rain_ccrm"
+    last_command="rain_cc_drift"
 
     command_aliases=()
 
@@ -574,10 +594,8 @@ _rain_ccrm()
     flags_with_completion=()
     flags_completion=()
 
-    flags+=("--detach")
-    flags+=("-d")
-    local_nonpersistent_flags+=("--detach")
-    local_nonpersistent_flags+=("-d")
+    flags+=("--debug")
+    local_nonpersistent_flags+=("--debug")
     flags+=("--experimental")
     flags+=("-x")
     local_nonpersistent_flags+=("--experimental")
@@ -598,10 +616,80 @@ _rain_ccrm()
     local_nonpersistent_flags+=("--region")
     local_nonpersistent_flags+=("--region=")
     local_nonpersistent_flags+=("-r")
-    flags+=("--role-arn=")
-    two_word_flags+=("--role-arn")
-    local_nonpersistent_flags+=("--role-arn")
-    local_nonpersistent_flags+=("--role-arn=")
+    flags+=("--s3-bucket=")
+    two_word_flags+=("--s3-bucket")
+    local_nonpersistent_flags+=("--s3-bucket")
+    local_nonpersistent_flags+=("--s3-bucket=")
+    flags+=("--s3-prefix=")
+    two_word_flags+=("--s3-prefix")
+    local_nonpersistent_flags+=("--s3-prefix")
+    local_nonpersistent_flags+=("--s3-prefix=")
+    flags+=("--no-colour")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_rain_cc_help()
+{
+    last_command="rain_cc_help"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--debug")
+    flags+=("--no-colour")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    has_completion_function=1
+    noun_aliases=()
+}
+
+_rain_cc_rm()
+{
+    last_command="rain_cc_rm"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--debug")
+    local_nonpersistent_flags+=("--debug")
+    flags+=("--experimental")
+    flags+=("-x")
+    local_nonpersistent_flags+=("--experimental")
+    local_nonpersistent_flags+=("-x")
+    flags+=("--help")
+    flags+=("-h")
+    local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
+    flags+=("--profile=")
+    two_word_flags+=("--profile")
+    two_word_flags+=("-p")
+    local_nonpersistent_flags+=("--profile")
+    local_nonpersistent_flags+=("--profile=")
+    local_nonpersistent_flags+=("-p")
+    flags+=("--region=")
+    two_word_flags+=("--region")
+    two_word_flags+=("-r")
+    local_nonpersistent_flags+=("--region")
+    local_nonpersistent_flags+=("--region=")
+    local_nonpersistent_flags+=("-r")
     flags+=("--s3-bucket=")
     two_word_flags+=("--s3-bucket")
     local_nonpersistent_flags+=("--s3-bucket")
@@ -614,6 +702,115 @@ _rain_ccrm()
     flags+=("-y")
     local_nonpersistent_flags+=("--yes")
     local_nonpersistent_flags+=("-y")
+    flags+=("--no-colour")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_rain_cc_state()
+{
+    last_command="rain_cc_state"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--debug")
+    local_nonpersistent_flags+=("--debug")
+    flags+=("--experimental")
+    flags+=("-x")
+    local_nonpersistent_flags+=("--experimental")
+    local_nonpersistent_flags+=("-x")
+    flags+=("--help")
+    flags+=("-h")
+    local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
+    flags+=("--profile=")
+    two_word_flags+=("--profile")
+    two_word_flags+=("-p")
+    local_nonpersistent_flags+=("--profile")
+    local_nonpersistent_flags+=("--profile=")
+    local_nonpersistent_flags+=("-p")
+    flags+=("--region=")
+    two_word_flags+=("--region")
+    two_word_flags+=("-r")
+    local_nonpersistent_flags+=("--region")
+    local_nonpersistent_flags+=("--region=")
+    local_nonpersistent_flags+=("-r")
+    flags+=("--s3-bucket=")
+    two_word_flags+=("--s3-bucket")
+    local_nonpersistent_flags+=("--s3-bucket")
+    local_nonpersistent_flags+=("--s3-bucket=")
+    flags+=("--s3-prefix=")
+    two_word_flags+=("--s3-prefix")
+    local_nonpersistent_flags+=("--s3-prefix")
+    local_nonpersistent_flags+=("--s3-prefix=")
+    flags+=("--no-colour")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_rain_cc()
+{
+    last_command="rain_cc"
+
+    command_aliases=()
+
+    commands=()
+    commands+=("deploy")
+    commands+=("drift")
+    commands+=("help")
+    commands+=("rm")
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
+        command_aliases+=("ccdel")
+        aliashash["ccdel"]="rm"
+        command_aliases+=("ccdelete")
+        aliashash["ccdelete"]="rm"
+        command_aliases+=("ccremove")
+        aliashash["ccremove"]="rm"
+    fi
+    commands+=("state")
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--help")
+    flags+=("-h")
+    local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
+    flags+=("--profile=")
+    two_word_flags+=("--profile")
+    two_word_flags+=("-p")
+    local_nonpersistent_flags+=("--profile")
+    local_nonpersistent_flags+=("--profile=")
+    local_nonpersistent_flags+=("-p")
+    flags+=("--region=")
+    two_word_flags+=("--region")
+    two_word_flags+=("-r")
+    local_nonpersistent_flags+=("--region")
+    local_nonpersistent_flags+=("--region=")
+    local_nonpersistent_flags+=("-r")
+    flags+=("--s3-bucket=")
+    two_word_flags+=("--s3-bucket")
+    local_nonpersistent_flags+=("--s3-bucket")
+    local_nonpersistent_flags+=("--s3-bucket=")
+    flags+=("--s3-prefix=")
+    two_word_flags+=("--s3-prefix")
+    local_nonpersistent_flags+=("--s3-prefix")
+    local_nonpersistent_flags+=("--s3-prefix=")
     flags+=("--debug")
     flags+=("--no-colour")
 
@@ -640,6 +837,10 @@ _rain_console()
     flags+=("-h")
     local_nonpersistent_flags+=("--help")
     local_nonpersistent_flags+=("-h")
+    flags+=("--logout")
+    flags+=("-l")
+    local_nonpersistent_flags+=("--logout")
+    local_nonpersistent_flags+=("-l")
     flags+=("--name=")
     two_word_flags+=("--name")
     two_word_flags+=("-n")
@@ -1532,16 +1733,7 @@ _rain_root_command()
     fi
     commands+=("build")
     commands+=("cat")
-    commands+=("ccdeploy")
-    commands+=("ccrm")
-    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
-        command_aliases+=("ccdel")
-        aliashash["ccdel"]="ccrm"
-        command_aliases+=("ccdelete")
-        aliashash["ccdelete"]="ccrm"
-        command_aliases+=("ccremove")
-        aliashash["ccremove"]="ccrm"
-    fi
+    commands+=("cc")
     commands+=("console")
     commands+=("deploy")
     commands+=("diff")
