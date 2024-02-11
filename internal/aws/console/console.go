@@ -20,6 +20,7 @@ import (
 var signinURI string
 var consoleURI string
 
+const signoutURI = "https://signin.aws.amazon.com/oauth?Action=logout&redirect_uri=https://aws.amazon.com"
 const issuer = "https://aws-cloudformation.github.io/rain/rain_console.html"
 const defaultService = "cloudformation"
 const sessionDuration = 43200
@@ -118,7 +119,10 @@ func getSigninToken(userName string) (string, error) {
 }
 
 // GetURI returns a sign-in uri for the current credentials and region
-func GetURI(service, stackName, userName string) (string, error) {
+func GetURI(logout bool, service, stackName, userName string) (string, error) {
+	if logout {
+		return signoutURI, nil
+	}
 
 	config.Debugf("GetURI %v, %v, %v", service, stackName, userName)
 
