@@ -6,14 +6,10 @@ Parameters:
   ArtifactBucket:
     Type: String
     Description: The name of the bucket to use for storing pipeline artifacts
-    Default: ezbeard-test-build-us-east-1-755952356119
-
-# TODO: Delete the defaults after testing
 
   AppName:
     Type: String
     Description: This will be used for resource names
-    Default: raintest3
 
   Branch:
     Description: The name of the source branch in CodeCommit
@@ -24,16 +20,14 @@ Resources:
 
   Repo:
     Type: AWS::CodeCommit::Repository
-    Metadata:
-      Comment: Replicated from GitFarm Repo-metrics
     Properties:
       RepositoryName: !Ref AppName 
-      RepositoryDescription: Repository for repo metrics source code 
+      RepositoryDescription: Sample source code repository
 
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
-      Name: !Sub "${AppName}"
+      Name: !Ref AppName
       RoleArn: !GetAtt PipelineRole.Arn
       ArtifactStore:
         Type: S3
@@ -139,7 +133,14 @@ Resources:
           - Effect: Allow
             Action: 'codepipeline:StartPipelineExecution'
             Resource: 
-              - !Sub "arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${Pipeline}"
+              - !Join
+                - ""
+                - - "arn:aws:codepipeline:"
+                  - !Ref AWS::Region
+                  - ":"
+                  - !Ref AWS::AccountId
+                  - ":"
+                  - !Ref Pipeline
       Roles:
         - !Ref SourceChangeEventRole
 
@@ -152,7 +153,14 @@ Resources:
         detail-type:
           - CodeCommit Repository State Change
         resources: 
-          - !Sub "arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${Repo.Name}"
+          - !Join
+            - ""
+            - - "arn:aws:codecommit:"
+              - !Ref AWS::Region
+              - ":"
+              - !Ref AWS::AccountId
+              - ":"
+              - !Ref Repo
         detail:
           event:
             - referenceCreated
@@ -162,9 +170,16 @@ Resources:
           referenceName:
             - main
       Targets:
-        - Arn: !Sub "arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${Pipeline}"
+        - Arn: !Join
+            - ""
+            - - "arn:aws:codepipeline:"
+              - !Ref AWS::Region
+              - ":"
+              - !Ref AWS::AccountId
+              - ":"
+              - !Ref Pipeline
           RoleArn: !GetAtt SourceChangeEventRole.Arn
-          Id: !Sub "${AppName}-${Pipeline}"
+          Id: !Sub "${AppName}-pipeline-target"
 
   Project:
     Type: AWS::CodeBuild::Project
