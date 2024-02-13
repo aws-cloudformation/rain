@@ -21,14 +21,8 @@ var checkIcon = "✅"
 var fs embed.FS
 
 func writeFile(args []string) {
-	var path string
 	raw := strings.Join(args, "/")
-	switch raw {
-	case "bucket":
-		path = "tmpl/bucket/bucket.yaml"
-	default:
-		path = "tmpl/" + raw + ".yaml"
-	}
+	path := "tmpl/" + raw + ".yaml"
 	b, err := fs.ReadFile(path)
 	if err != nil {
 		fmt.Println(console.Red(fmt.Sprintf("Not found: %s", raw)))
@@ -90,7 +84,12 @@ func recommend(args []string) {
 
 	// Recursively prompt for selections
 	selections := []reco{
-		{Name: "bucket", Text: "A secure S3 bucket"},
+		{Name: "bucket", Text: "S3 buckets",
+			Sub: []reco{
+				{Name: "bucket", Text: "A secure S3 bucket"},
+				{Name: "website", Text: "A static website with a bucket and CloudFront distribution"},
+			},
+		},
 		{Name: "pipeline", Text: "A CodePipeline pipeline",
 			Sub: []reco{
 				{Name: "s3", Text: "A pipeline with an S3 source"},
