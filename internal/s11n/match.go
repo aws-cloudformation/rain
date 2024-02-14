@@ -86,7 +86,7 @@ func matchPath(ch chan<- *yaml.Node, n *yaml.Node, path []string) {
 			key := n.Content[i]
 
 			if head == "*" || key.Value == head {
-				if len(n.Content) >= i+1 {
+				if len(n.Content) <= i+1 {
 					config.Debugf("About to step over array at head == \"*\", i=%v, key=%v, n=\n%v",
 						i, key.Value, node.ToSJson(n))
 				}

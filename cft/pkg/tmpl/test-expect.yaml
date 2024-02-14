@@ -4,14 +4,17 @@ Parameters:
     AllowedValues:
       - Delete
       - Retain
+
 Conditions:
   ConditionA:
     !Equals:
       - true
       - true
+
 Resources:
   SecondResourceInOriginal:
     Type: AWS::SQS::Queue
+
   MyBucketBucket:
     DeletionPolicy: !Ref BucketRetentionPolicy
     UpdateReplacePolicy: Delete
@@ -40,16 +43,17 @@ Resources:
         Status: Enabled
     Condition: ConditionA
   MyBucketLogBucket:
+    Condition: ConditionA
     DeletionPolicy: Delete
     UpdateReplacePolicy: !Ref BucketRetentionPolicy
     Type: AWS::S3::Bucket
     DependsOn:
-       MyBucketAdditionalResource1
+      - MyBucketAdditionalResource1
       - MyBucketAdditionalResource2
     Metadata:
       Comment: This bucket records access logs for MyBucket
     Properties:
-      BucketName: ezbeard-cep-test-module-log-bucket
+      BucketName: my-log-bucket
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
@@ -69,19 +73,24 @@ Resources:
       B:
         - !GetAtt MyBucketBucket.Arn
         - C: !GetAtt MyBucketBucket.Arn
+
   MyBucketAdditionalResource2:
     Type: AWS::S3::Bucket
-  MyBucketDependsOnModuleExtension:
+
+  MyBucketDependsOnBucket:
     Type: AWS::S3::Bucket
     DependsOn:
       - MyBucketBucket
+
   MyBucketConditionalResource:
     Type: AWS::S3::Bucket
     Condition: ConditionA
+
   WithoutExtensionBucketA:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: AAA
+
   WithoutExtensionBucketB:
     Type: AWS::S3::Bucket
     Properties:

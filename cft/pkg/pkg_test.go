@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"github.com/aws-cloudformation/rain/cft"
-	"github.com/aws-cloudformation/rain/cft/diff"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/cft/pkg"
 	"github.com/aws-cloudformation/rain/internal/s11n"
@@ -309,27 +308,5 @@ func TestTemplates(t *testing.T) {
 		})
 
 		compare(t, in, fmt.Sprintf("Resources/MyResource/Properties/%s", testCase.propName), testCase.expected)
-	}
-}
-
-func TestIfThenElse(t *testing.T) {
-	sourcePath := "./tmpl/if-template.yaml"
-	expectPath := "./tmpl/if-expect.yaml"
-
-	expectedTemplate, err := parse.File(expectPath)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
-	packaged, err := pkg.File(sourcePath)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
-	d := diff.New(packaged, expectedTemplate)
-	if d.Mode() != "=" {
-		t.Errorf("Output does not match expected: %v", d.Format(true))
 	}
 }

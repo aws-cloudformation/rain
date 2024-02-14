@@ -9,9 +9,10 @@ Parameters:
     Type: String
 Resources:
   Bucket:
+    Type: AWS::S3::Bucket
     DependsOn: 
       - AdditionalResource1
-        AdditionalResource2
+      - AdditionalResource2
     DeletionPolicy: !Ref RetentionPolicy
     UpdateReplacePolicy: Delete
     Properties:
@@ -33,17 +34,11 @@ Resources:
     Type: AWS::S3::Bucket
     Metadata:
       Comment: This bucket records access logs for MyBucket
-      cfn_nag:
-        rules_to_suppress:
-          - id: W35
-            reason: "This is the log bucket"
-          - id: W51
-            reason: "Will be added by the consumer"
     DeletionPolicy: Delete
     UpdateReplacePolicy: !Ref RetentionPolicy
     DependsOn:
       - AdditionalResource1
-        AdditionalResource2
+      - AdditionalResource2
     Properties:
       BucketName: !Ref LogBucketName
       BucketEncryption:
@@ -71,6 +66,6 @@ Resources:
     Type: AWS::S3::Bucket
     DependsOn: Bucket
   ConditionalResource:
-    Condition: ConditionName
+    Condition: !Ref ConditionName
     Type: AWS::S3::Bucket
 

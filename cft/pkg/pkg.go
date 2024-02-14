@@ -87,6 +87,8 @@ func Template(t cft.Template, rootDir string) (cft.Template, error) {
 
 	// Encode and Decode to resolve anchors
 	var decoded interface{}
+
+	config.Debugf("About to decode:\n%v", node.ToSJson(templateNode))
 	err = templateNode.Decode(&decoded)
 	if err != nil {
 		return t, err

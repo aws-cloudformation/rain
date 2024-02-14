@@ -82,10 +82,13 @@ func cloneAndReplaceProps(
 	return props
 }
 
-// Add DeletionPolicy and UpdateReplacePolicy
-func addPolicy(out *yaml.Node, name string, moduleResource *yaml.Node, templateOverrides *yaml.Node) {
+// Add DeletionPolicy, UpdateReplacePolicy, and Condition
+func addScalarAttribute(out *yaml.Node, name string, moduleResource *yaml.Node, templateOverrides *yaml.Node) {
 	_, templatePolicy, _ := s11n.GetMapValue(templateOverrides, name)
 	_, modulePolicy, _ := s11n.GetMapValue(moduleResource, name)
+	if modulePolicy != nil {
+		node.RemoveFromMap(out, name)
+	}
 	if templatePolicy != nil || modulePolicy != nil {
 		policy := &yaml.Node{Kind: yaml.ScalarNode, Value: name}
 		var policyValue *yaml.Node
@@ -249,8 +252,8 @@ func resolveRefs(
 		}
 	}
 
-	// DeletionPolicy, UpdateReplacePolicy
-	policies := []string{"DeletionPolicy", "UpdateReplacePolicy"}
+	// DeletionPolicy, UpdateReplacePolicy, Condition
+	policies := []string{"DeletionPolicy", "UpdateReplacePolicy", "Condition"}
 	for _, policy := range policies {
 		_, policyNode, _ := s11n.GetMapValue(ext, policy)
 		if policyNode != nil {
@@ -310,140 +313,10 @@ func processModule(
 	// Overrides have overridden values for module resources. Anything in a module can be overridden.
 	_, overrides, _ := s11n.GetMapValue(templateResource, "Overrides")
 
-	var fnForEachKey string
-	var fnForEachName string
-	var fnForEachItems *yaml.Node
-	var fnForEach *yaml.Node
-	var fnForEachSequence *yaml.Node
-	var fnForEachLogicalId string
-
-	// Fn::ForEach
-
-	// Iterate through all resources and see if any of them start with Fn::ForEach
-	for i := 0; i < len(moduleResources.Content); i += 2 {
-		keyNode := moduleResources.Content[i]
-		valueNode := moduleResources.Content[i+1]
-
-		fnForEachKey = keyNode.Value
-
-		if strings.HasPrefix(fnForEachKey, "Fn::ForEach") {
-			//config.Debugf("Found a foreach: %v:\n%v", fnForEachKey, node.ToJson(valueNode))
-			if valueNode.Kind != yaml.SequenceNode {
-				return false, errors.New("expected Fn::ForEach to be a sequence")
-			}
-			if len(valueNode.Content) != 3 {
-				return false, errors.New("expected Fn::ForEach to have 3 items")
-			}
-			// The Fn::ForEach intrinsic takes 3 array elements as input
-			fnForEachName = valueNode.Content[0].Value
-			fnForEachItems = node.Clone(valueNode.Content[1]) // TODO - Resolve refs
-			feBody := valueNode.Content[2]
-
-			// TODO: Items might be a Ref to a property set by the parent template
-			// We need to try and resolve that Ref like any other
-
-			if feBody.Kind != yaml.MappingNode {
-				return false, errors.New("expected Fn::ForEach Body to be a mapping")
-			}
-
-			fnForEachLogicalId = feBody.Content[0].Value
-			//feOutputMap := feBody.Content[1]
-			//config.Debugf("LogicalId: %v\nOutputMap: %v", fnForEachLogicalId, feOutputMap)
-
-			// Store this for later as we handle special cases for moduleExtension
-			fnForEach = valueNode
-			//config.Debugf("Fn::ForEach fnForEach: %v", node.ToJson(fnForEach))
-
-			// Create node that looks like a regular ModuleExtenstion resource
-			//moduleExtension := node.Clone(feOutputMap)
-			// TODO: There is no ModuleExtension now
-
-			//config.Debugf("Fn::ForEach moduleExtension: %v", node.ToJson(moduleExtension))
-
-			// Make sure the parent template has Transform: AWS::LanguageExtensions
-			docMap := t.Node.Content[0]
-			_, transformNode, _ := s11n.GetMapValue(docMap, "Transform")
-			if transformNode == nil {
-				//config.Debugf("Adding Transform node")
-				docMap.Content = append(docMap.Content,
-					&yaml.Node{Kind: yaml.ScalarNode, Value: "Transform"})
-				docMap.Content = append(docMap.Content,
-					&yaml.Node{Kind: yaml.ScalarNode, Value: "AWS::LanguageExtensions"})
-			}
-		}
-	}
-
-	if fnForEach != nil {
-		// Add the key for the Fn::ForEach from the module
-
-		// We need to alter the name of the key to make sure it's unique, if the
-		// module is used more than once in a template.
-		// In the module if we have Fn::ForEach::MakeHandles:
-		// and in the parent template the logical id is ForeachTest
-		// then the key will be Fn::ForEach::ForeachTestMakeHandles:
-		fixedKey := strings.Replace(fnForEachKey, "Fn::ForEach::", "Fn::ForEach::"+logicalId, 1)
-
-		outputNode.Content = append(outputNode.Content, &yaml.Node{
-			Kind:  yaml.ScalarNode,
-			Value: fixedKey,
-		})
-
-		//config.Debugf("foreach items: %v", node.ToJson(fnForEachItems))
-		//config.Debugf("foreach name: %v", fnForEachName)
-
-		fnForEachSequence = &yaml.Node{}
-		fnForEachSequence.Kind = yaml.SequenceNode
-		fnForEachSequence.Content = make([]*yaml.Node, 0)
-		outputNode.Content = append(outputNode.Content, fnForEachSequence)
-
-		fnForEachSequence.Content = append(fnForEachSequence.Content,
-			&yaml.Node{Kind: yaml.ScalarNode, Value: fnForEachName})
-
-		// The second array element is the list of items to iterate over. It might be
-		// a Ref to a parameter that supplies the values. Resolve the Ref.
-		var resolvedItems *yaml.Node
-		if fnForEachItems.Kind == yaml.SequenceNode {
-			// TODO - Do we need to resolve individual items themselves? Will this be handled elsewhere?
-			resolvedItems = fnForEachItems
-		} else if fnForEachItems.Kind == yaml.MappingNode {
-			if fnForEachItems.Content[0].Value == "Ref" {
-				refName := fnForEachItems.Content[1].Value
-				//config.Debugf("Fn::ForEach resolving items Ref %v", refName)
-				_, p, _ := s11n.GetMapValue(moduleParams, refName)
-				if p != nil {
-					// Look up the value provided in the template props
-					_, refval, _ := s11n.GetMapValue(templateProps, refName)
-					if refval != nil {
-						// This should be a comma separated value that we need to convert to a sequence
-						resolvedItems = ConvertCsvToSequence(refval.Value)
-					} else {
-						// If it's not there, do we have a default in the module params?
-						_, d, _ := s11n.GetMapValue(p, "Default")
-						if d != nil {
-							resolvedItems = ConvertCsvToSequence(d.Value)
-						} else {
-							// If not, leave it alone
-							resolvedItems = fnForEachItems
-						}
-					}
-				} else {
-					// This is not a Ref to a module parameter.
-					// TODO - Can this be a ref to something else in the module?
-					// Leave it alone
-					resolvedItems = fnForEachItems
-				}
-
-			} else {
-				return false, errors.New("expected Fn::ForEach item map to be a Ref")
-			}
-		} else {
-			return false, errors.New("expected Fn::ForEach items to be a sequence or a map")
-		}
-		//config.Debugf("resolvedItems: %v", node.ToJson(resolvedItems))
-
-		fnForEachSequence.Content = append(fnForEachSequence.Content, resolvedItems)
-
-		//config.Debugf("fnForEachSequence: %v", node.ToJson(fnForEachSequence))
+	fe, err := handleForEach(moduleResources, t, logicalId, outputNode,
+		moduleParams, templateProps)
+	if err != nil {
+		return false, err
 	}
 
 	// Get module resources and add them to the output
@@ -480,10 +353,13 @@ func processModule(
 		}
 
 		// DeletionPolicy
-		addPolicy(clonedResource, "DeletionPolicy", moduleResource, templateOverrides)
+		addScalarAttribute(clonedResource, "DeletionPolicy", moduleResource, templateOverrides)
 
 		// UpdateReplacePolicy
-		addPolicy(clonedResource, "UpdateReplacePolicy", moduleResource, templateOverrides)
+		addScalarAttribute(clonedResource, "UpdateReplacePolicy", moduleResource, templateOverrides)
+
+		// Condition
+		addScalarAttribute(clonedResource, "Condition", moduleResource, templateOverrides)
 
 		// DependsOn is an array of scalars or a single scalar
 		_, moduleDependsOn, _ := s11n.GetMapValue(moduleResource, "DependsOn")
@@ -492,6 +368,9 @@ func processModule(
 			clonedResource.Content = append(clonedResource.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: "DependsOn"})
 			dependsOnValue := &yaml.Node{Kind: yaml.SequenceNode, Content: make([]*yaml.Node, 0)}
 			if moduleDependsOn != nil {
+				// Remove the original DependsOn so we don't end up with two
+				node.RemoveFromMap(clonedResource, "DependsOn")
+
 				// Change the names to the modified resource name for the template
 				c := make([]*yaml.Node, 0)
 				if moduleDependsOn.Kind == yaml.ScalarNode {
@@ -523,61 +402,65 @@ func processModule(
 			clonedResource.Content = append(clonedResource.Content, dependsOnValue)
 		}
 
-		// Resolve Refs in the module extension
+		/*
+			// Add the Condition from the parent template
+			_, parentCondition, _ := s11n.GetMapValue(templateOverrides, "Condition")
+			if parentCondition != nil {
+				clonedResource.Content = append(clonedResource.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: "Condition"})
+				clonedResource.Content = append(clonedResource.Content, node.Clone(parentCondition))
+			}
+		*/
+
+		// Resolve Refs in the module
 		// Some refs are to other resources in the module
 		// Other refs are to the module's parameters
 		resolveRefs(clonedResource, moduleParams, moduleResources, logicalId, templateProps)
 
-		// Add the Condition from the parent template
-		_, parentCondition, _ := s11n.GetMapValue(templateOverrides, "Condition")
-		if parentCondition != nil {
-			clonedResource.Content = append(clonedResource.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: "Condition"})
-			clonedResource.Content = append(clonedResource.Content, node.Clone(parentCondition))
-		}
-
-		if fnForEachSequence != nil {
+		if fe != nil && fe.fnForEachSequence != nil {
 			// If the module has a ForEach extension, add it to the sequence instead
 			//config.Debugf("Adding ext to the fnForEachSequence node")
 
 			// The Fn::ForEach resource is a map, so we create that and append ext to it
 			fnForEachMap := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
 			// TODO
-			newLogicalId := strings.Replace(fnForEachLogicalId, "ModuleExtension", logicalId, 1)
+			newLogicalId := strings.Replace(fe.fnForEachLogicalId, "ModuleExtension", logicalId, 1)
 			fnForEachMap.Content = append(fnForEachMap.Content,
 				&yaml.Node{Kind: yaml.ScalarNode, Value: newLogicalId})
 			fnForEachMap.Content = append(fnForEachMap.Content, clonedResource)
 
 			// Add the map as the 3rd array element in the Fn::ForEach sequence
-			fnForEachSequence.Content = append(fnForEachSequence.Content, fnForEachMap)
+			fe.fnForEachSequence.Content = append(fe.fnForEachSequence.Content, fnForEachMap)
 
 			//config.Debugf("outputNode after adding ext: %v", node.ToJson(outputNode))
 		}
 
-		// Resolve Conditions. Rain handles this differently, since a rain
-		// module cannot have a Condition section. This value must be a module parameter
-		// name, and the value must be set in the parent template as the name of
-		// a Condition that is defined in the parent.
-		_, condition, _ := s11n.GetMapValue(moduleResource, "Condition")
-		if condition != nil {
-			conditionErr := errors.New("a Condition in a rain module must be the name of " +
-				"a Parameter that is set the name of a Condition in the parent template")
-			// The value must be present in the module's parameters
-			if condition.Kind != yaml.ScalarNode {
-				return false, conditionErr
+		/*
+			// Resolve Conditions. Rain handles this differently, since a rain
+			// module cannot have a Condition section. This value must be a module parameter
+			// name, and the value must be set in the parent template as the name of
+			// a Condition that is defined in the parent.
+			_, condition, _ := s11n.GetMapValue(moduleResource, "Condition")
+			if condition != nil {
+				conditionErr := errors.New("a Condition in a rain module must be the name of " +
+					"a Parameter that is set the name of a Condition in the parent template")
+				// The value must be present in the module's parameters
+				if condition.Kind != yaml.ScalarNode {
+					return false, conditionErr
+				}
+				_, param, _ := s11n.GetMapValue(moduleParams, condition.Value)
+				if param == nil {
+					return false, conditionErr
+				}
+				_, conditionVal, _ := s11n.GetMapValue(templateProps, condition.Value)
+				if conditionVal == nil {
+					return false, conditionErr
+				}
+				if conditionVal.Kind != yaml.ScalarNode {
+					return false, conditionErr
+				}
+				condition.Value = conditionVal.Value
 			}
-			_, param, _ := s11n.GetMapValue(moduleParams, condition.Value)
-			if param == nil {
-				return false, conditionErr
-			}
-			_, conditionVal, _ := s11n.GetMapValue(templateProps, condition.Value)
-			if conditionVal == nil {
-				return false, conditionErr
-			}
-			if conditionVal.Kind != yaml.ScalarNode {
-				return false, conditionErr
-			}
-			condition.Value = conditionVal.Value
-		}
+		*/
 
 		/*
 			// Modify referenced resource names

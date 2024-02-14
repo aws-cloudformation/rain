@@ -27,4 +27,6 @@ set -eoux pipefail
 
 ./rain pkg cft/pkg/tmpl/s3-props-template.yaml
 
+# Make sure build recommendations work
+./internal/cmd/build/tmpl/scripts/validate.sh
 
