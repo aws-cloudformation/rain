@@ -1,0 +1,274 @@
+Description: Creates a static website using S3 and CloudFront
+
+Resources:
+  LogBucket:
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+
+  LogBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref LogBucket
+      PolicyDocument:
+        Statement:
+          - Action: s3:*
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"
+            Effect: Deny
+            Principal:
+              AWS: '*'
+            Resource:
+              - !GetAtt LogBucket.Arn
+              - !Join
+                - ""
+                - - !GetAtt LogBucket.Arn
+                  - /*
+          - Action: s3:PutObject
+            Condition:
+              ArnLike:
+                aws:SourceArn: !GetAtt Bucket.Arn
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+            Effect: Allow
+            Principal:
+              Service: logging.s3.amazonaws.com
+            Resource: !Join
+              - ""
+              - - !GetAtt LogBucket.Arn
+                - /*
+        Version: "2012-10-17"
+
+  Bucket:
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - NoncurrentVersionTransitions:
+              - StorageClass: GLACIER
+                TransitionInDays: 90
+            Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LogBucket
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: aws-cdk:cr-owned:0ff41d4f
+          Value: "true"
+      VersioningConfiguration:
+        Status: Enabled
+
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref Bucket
+      PolicyDocument:
+        Statement:
+          - Action: s3:*
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"
+            Effect: Deny
+            Principal:
+              AWS: '*'
+            Resource:
+              - !GetAtt Bucket.Arn
+              - !Join
+                - ""
+                - - !GetAtt Bucket.Arn
+                  - /*
+          - Action: s3:GetObject
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Join
+                  - ""
+                  - - 'arn:aws:cloudfront::'
+                    - !Ref AWS::AccountId
+                    - :distribution/
+                    - !Ref Distribution
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Resource: !Join
+              - ""
+              - - !GetAtt Bucket.Arn
+                - /*
+        Version: "2012-10-17"
+
+  SecurityHeaders:
+    Type: AWS::CloudFront::Function
+    Properties:
+      AutoPublish: true
+      FunctionCode: 'function handler(event) { var response = event.response; var headers = response.headers; headers[''strict-transport-security''] = { value: ''max-age=63072000; includeSubdomains; preload''}; headers[''content-security-policy''] = { value: "default-src ''none''; img-src ''self''; script-src ''self''; style-src ''self''; object-src ''none''"}; headers[''x-content-type-options''] = { value: ''nosniff''}; headers[''x-frame-options''] = {value: ''DENY''}; headers[''x-xss-protection''] = {value: ''1; mode=block''}; return response; }'
+      FunctionConfig:
+        Comment: SetHttpSecurityHeadersc876981af0ddffc7454da8dcf76a116580471cc611
+        Runtime: cloudfront-js-1.0
+      Name: SetHttpSecurityHeadersc876981af0ddffc7454da8dcf76a116580471cc611
+
+  AccessBucket:
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: ObjectWriter
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+
+  AccessBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref AccessBucket
+      PolicyDocument:
+        Statement:
+          - Action: s3:*
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"
+            Effect: Deny
+            Principal:
+              AWS: '*'
+            Resource:
+              - !GetAtt AccessBucket.Arn
+              - !Join
+                - ""
+                - - !GetAtt AccessBucket.Arn
+                  - /*
+          - Action: s3:PutObject
+            Condition:
+              ArnLike:
+                aws:SourceArn: !GetAtt CloudFrontLogBucket.Arn
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+            Effect: Allow
+            Principal:
+              Service: logging.s3.amazonaws.com
+            Resource: !Join
+              - ""
+              - - !GetAtt AccessBucket.Arn
+                - /*
+        Version: "2012-10-17"
+
+  CloudFrontLogBucket:
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: LogDeliveryWrite
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LoggingConfiguration:
+        DestinationBucketName: !Ref AccessBucket
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: ObjectWriter
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+
+  CloudFrontLogBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref CloudFrontLogBucket
+      PolicyDocument:
+        Statement:
+          - Action: s3:*
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"
+            Effect: Deny
+            Principal:
+              AWS: '*'
+            Resource:
+              - !GetAtt CloudFrontLogBucket.Arn
+              - !Join
+                - ""
+                - - !GetAtt CloudFrontLogBucket.Arn
+                  - /*
+        Version: "2012-10-17"
+
+  OriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Description: Origin access control provisioned by aws-cloudfront-s3
+        Name: !Join
+          - ""
+          - - aws-cloudfront-s3-CloutToS3-
+            - !Select
+              - 2
+              - !Split
+                - /
+                - !Ref AWS::StackId
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        DefaultCacheBehavior:
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+          Compress: true
+          FunctionAssociations:
+            - EventType: viewer-response
+              FunctionARN: !GetAtt SecurityHeaders.FunctionARN
+          TargetOriginId: S3StaticWebsiteStackCloudFrontToS3CloudFrontDistributionOrigin1F7C9B507
+          ViewerProtocolPolicy: redirect-to-https
+        DefaultRootObject: index.html
+        Enabled: true
+        HttpVersion: http2
+        IPV6Enabled: true
+        Logging:
+          Bucket: !GetAtt CloudFrontLogBucket.RegionalDomainName
+        Origins:
+          - DomainName: !GetAtt Bucket.RegionalDomainName
+            Id: S3StaticWebsiteStackCloudFrontToS3CloudFrontDistributionOrigin1F7C9B507
+            OriginAccessControlId: !GetAtt OriginAccessControl.Id
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+
+Outputs:
+  SiteURL:
+    Value: !Sub "https://${Distribution.DomainName}"
+
+

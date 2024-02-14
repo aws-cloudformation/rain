@@ -17,6 +17,10 @@ type reco struct {
 
 var checkIcon = "✅"
 
+// TODO: Instead of embedding the final template,
+// embed the source and modules, and use pkg to build
+// the template on the fly. Reduce copy-paste.
+
 //go:embed tmpl
 var fs embed.FS
 
