@@ -1,6 +1,5 @@
 Description: |
   This module is used for unit testing the Module directive
-
 Parameters:
   LogBucketName:
     Type: String
@@ -8,16 +7,8 @@ Parameters:
     Type: String
   ConditionName:
     Type: String
-
 Resources:
-  ModuleExtension:
-    Metadata:
-      Extends: AWS::S3::Bucket
-      Comment: A bucket that will pass cfn_nag checks
-      cfn_nag:
-        rules_to_suppress:
-          - id: W51
-            reason: "Will be added by the consumer"
+  Bucket:
     DependsOn: 
       - AdditionalResource1
         AdditionalResource2
@@ -38,7 +29,6 @@ Resources:
       Tags:
         - Key: test-tag
           Value: test-value1
-  
   LogBucket:
     Type: AWS::S3::Bucket
     Metadata:
@@ -67,25 +57,20 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
-
   AdditionalResource1:
     Type: AWS::S3::Bucket
     Properties:
       X: !Ref NotFound
-      A: !GetAtt ModuleExtension.Arn
+      A: !GetAtt Bucket.Arn
       B:
-        - !GetAtt ModuleExtension.Arn
-        - C: !GetAtt ModuleExtension.Arn
-
+        - !GetAtt Bucket.Arn
+        - C: !GetAtt Bucket.Arn
   AdditionalResource2:
     Type: AWS::S3::Bucket
-
-  DependsOnModuleExtension:
+  DependsOnBucket:
     Type: AWS::S3::Bucket
-    DependsOn: ModuleExtension
-
+    DependsOn: Bucket
   ConditionalResource:
     Condition: ConditionName
     Type: AWS::S3::Bucket
-
 

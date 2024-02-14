@@ -107,7 +107,7 @@ func runDriftOnState(name string, template cft.Template, bucketName string, key 
 	for i := 0; i < len(resources.Content); i += 2 {
 		resourceName := resources.Content[i].Value
 		resourceNode := resources.Content[i+1]
-		_, resourceModel := s11n.GetMapValue(resourceModels, resourceName)
+		_, resourceModel, _ := s11n.GetMapValue(resourceModels, resourceName)
 		if resourceModel == nil {
 			panic(fmt.Errorf("expected %s to have a ResourceModel", resourceName))
 		}
@@ -216,7 +216,7 @@ func runDriftOnState(name string, template cft.Template, bucketName string, key 
 
 			spinner.Push(fmt.Sprintf("   📄 Changing state file for %s", selection.ResourceName))
 
-			_, resourceModel := s11n.GetMapValue(resourceModels, selection.ResourceName)
+			_, resourceModel, _ := s11n.GetMapValue(resourceModels, selection.ResourceName)
 			config.Debugf("About to change state ResoureModel for %s: %v", selection.ResourceName, selection.LiveModel)
 			var replacementNode yaml.Node
 			replacementNode.Encode(selection.LiveModel)
@@ -263,11 +263,11 @@ func handleDrift(resourceName string, resourceNode *yaml.Node, model *yaml.Node)
 
 	retval := selection{ResourceName: resourceName, Action: doNothing}
 
-	_, t := s11n.GetMapValue(resourceNode, "Type")
+	_, t, _ := s11n.GetMapValue(resourceNode, "Type")
 	if t == nil {
 		return retval, fmt.Errorf("resource %s expected to have Type", resourceName)
 	}
-	_, id := s11n.GetMapValue(model, "Identifier")
+	_, id, _ := s11n.GetMapValue(model, "Identifier")
 	if id == nil {
 		return retval, fmt.Errorf("resource model %s expected to have Identifier", resourceName)
 	}
@@ -281,7 +281,7 @@ func handleDrift(resourceName string, resourceNode *yaml.Node, model *yaml.Node)
 	}
 	spinner.Pop()
 
-	_, stateModel := s11n.GetMapValue(model, "Model")
+	_, stateModel, _ := s11n.GetMapValue(model, "Model")
 	if stateModel == nil {
 		return retval, fmt.Errorf("expected State %s to have Model", resourceName)
 	}

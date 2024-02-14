@@ -194,10 +194,10 @@ func CheckPolicyDocument(doc *yaml.Node) (bool, error) {
 
 	policyOk := true
 
-	_, statements := s11n.GetMapValue(doc, "Statement")
+	_, statements, _ := s11n.GetMapValue(doc, "Statement")
 	if statements != nil {
 		for _, statement := range statements.Content {
-			_, principals := s11n.GetMapValue(statement, "Principal")
+			_, principals, _ := s11n.GetMapValue(statement, "Principal")
 			if principals != nil {
 				for i, principal := range principals.Content {
 					if i%2 == 0 && principal.Value == "AWS" {

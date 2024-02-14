@@ -53,7 +53,7 @@ func ResourceExists(typeName string, identifier []string) bool {
 
 // toJsonProps converts properties in a resource node to the JSON representation
 func ToJsonProps(resource *yaml.Node) string {
-	_, props := s11n.GetMapValue(resource, "Properties")
+	_, props, _ := s11n.GetMapValue(resource, "Properties")
 	if props == nil {
 		return "{}"
 	}
@@ -81,7 +81,7 @@ func CreateResource(logicalId string, resource *yaml.Node) (identifier string, m
 	props := ToJsonProps(resource)
 
 	config.Debugf("CreateResource props: %v", props)
-	_, typeNode := s11n.GetMapValue(resource, "Type")
+	_, typeNode, _ := s11n.GetMapValue(resource, "Type")
 	if typeNode == nil {
 		return identifier, model, fmt.Errorf("expected resource %v to have a Type", logicalId)
 	}
@@ -249,7 +249,7 @@ func UpdateResource(
 
 	clientToken := uuid.New().String()
 
-	_, typeNode := s11n.GetMapValue(resource, "Type")
+	_, typeNode, _ := s11n.GetMapValue(resource, "Type")
 	if typeNode == nil {
 		return model, fmt.Errorf("expected resource %v to have a Type", logicalId)
 	}
@@ -258,7 +258,7 @@ func UpdateResource(
 	// Intrinsics have already been resolved, so there should not
 	// be any !Refs or !GetAtts, etc
 
-	_, props := s11n.GetMapValue(resource, "Properties")
+	_, props, _ := s11n.GetMapValue(resource, "Properties")
 	config.Debugf("UpdateResource %v props: %v", logicalId, node.ToSJson(props))
 
 	// Create the patch document
@@ -317,7 +317,7 @@ func DeleteResource(logicalId string, identifier string, resource *yaml.Node) er
 
 	clientToken := uuid.New().String()
 
-	_, typeNode := s11n.GetMapValue(resource, "Type")
+	_, typeNode, _ := s11n.GetMapValue(resource, "Type")
 	if typeNode == nil {
 		return fmt.Errorf("expected resource %v to have a Type", logicalId)
 	}

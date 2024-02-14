@@ -3,26 +3,40 @@ package s11n
 import (
 	"fmt"
 
+	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/node"
 	"gopkg.in/yaml.v3"
 )
 
 // GetMapValue returns the key and value nodes from node that matches key.
 // if node is not a mapping node or the key does not exist, GetMapValue returns nil
-func GetMapValue(node *yaml.Node, key string) (*yaml.Node, *yaml.Node) {
-	if node.Kind != yaml.MappingNode {
-		return nil, nil
+func GetMapValue(n *yaml.Node, key string) (*yaml.Node, *yaml.Node, error) {
+	if n == nil {
+		return nil, nil, fmt.Errorf("node is nil for key %s", key)
 	}
 
-	for i := 0; i < len(node.Content); i += 2 {
-		keyNode := node.Content[i]
-		valueNode := node.Content[i+1]
+	if n.Kind != yaml.MappingNode {
+		return nil, nil, fmt.Errorf("kind is %v for key %s", n.Kind, key)
+	}
+
+	if len(n.Content)%2 != 0 {
+		return nil, nil, fmt.Errorf("uneven length %v for key %s", len(n.Content), key)
+	}
+
+	for i := 0; i < len(n.Content); i += 2 {
+		keyNode := n.Content[i]
+		if len(n.Content) <= i+1 {
+			config.Debugf("GetMapValue about to step over array at i=%v, n:\n%s",
+				i, node.ToSJson(n))
+		}
+		valueNode := n.Content[i+1]
 
 		if keyNode.Value == key {
-			return keyNode, valueNode
+			return keyNode, valueNode, nil
 		}
 	}
 
-	return nil, nil
+	return nil, nil, fmt.Errorf("key %s not found", key)
 }
 
 // GetPath returns the node by descending into map and array nodes for each element of path
@@ -39,7 +53,7 @@ func GetPath(node *yaml.Node, path []interface{}) (*yaml.Node, error) {
 
 	switch v := next.(type) {
 	case string:
-		_, value := GetMapValue(node, v)
+		_, value, _ := GetMapValue(node, v)
 		if value == nil {
 			return nil, fmt.Errorf("could not find map key: '%s'", v)
 		}

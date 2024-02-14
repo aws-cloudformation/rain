@@ -141,7 +141,11 @@ func makeSNode(node *yaml.Node) *SNode {
 	content := make([]*SNode, 0)
 	if node.Content != nil {
 		for _, child := range node.Content {
-			content = append(content, makeSNode(child))
+			if child == nil {
+				content = append(content, &SNode{Kind: "?", Value: "nil!"})
+			} else {
+				content = append(content, makeSNode(child))
+			}
 		}
 	}
 
@@ -151,6 +155,9 @@ func makeSNode(node *yaml.Node) *SNode {
 
 // Convert a node to a shortened JSON for easier debugging
 func ToSJson(node *yaml.Node) string {
+	if node == nil {
+		return "nil"
+	}
 	j, err := json.MarshalIndent(makeSNode(node), "", "  ")
 	if err != nil {
 		return fmt.Sprintf("Failed to marshal node to short json: %v:", err)

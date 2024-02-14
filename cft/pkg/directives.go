@@ -83,6 +83,7 @@ func includeLiteral(n *yaml.Node, root string, t cft.Template, parent node.NodeP
 }
 
 func includeEnv(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
+	config.Debugf("includeEnv n: %v", node.ToSJson(n))
 	name, err := expectString(n)
 	if err != nil {
 		return false, err
@@ -147,14 +148,14 @@ func includeS3Object(n *yaml.Node, root string, t cft.Template, parent node.Node
 	// Check to see if the Path is a Ref.
 	// The only valid use case is if the !Rain::S3 directive is inside a module,
 	// and the Ref points to one of the properties set in the parent template
-	_, pathOption := s11n.GetMapValue(n.Content[1], "Path")
+	_, pathOption, _ := s11n.GetMapValue(n.Content[1], "Path")
 	if pathOption != nil && pathOption.Kind == yaml.MappingNode {
 		if pathOption.Content[0].Value == "Ref" {
 			if parent.Parent != nil {
 				moduleParentMap := parent.Parent.Value
-				_, moduleParentProps := s11n.GetMapValue(moduleParentMap, "Properties")
+				_, moduleParentProps, _ := s11n.GetMapValue(moduleParentMap, "Properties")
 				if moduleParentProps != nil {
-					_, pathProp := s11n.GetMapValue(moduleParentProps, pathOption.Content[1].Value)
+					_, pathProp, _ := s11n.GetMapValue(moduleParentProps, pathOption.Content[1].Value)
 					if pathProp != nil {
 						// Replace the Ref with the value
 						node.SetMapValue(n.Content[1], "Path", node.Clone(pathProp))

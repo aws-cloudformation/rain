@@ -313,19 +313,19 @@ func predictResourceArn(input PredictionInput) string {
 	case "AWS::Lambda::Alias":
 		// arn:${Partition}:lambda:${Region}:${Account}:function:${FunctionName}:${Alias}
 		// Get the function name and alias from the template
-		_, props := s11n.GetMapValue(input.resource, "Properties")
+		_, props, _ := s11n.GetMapValue(input.resource, "Properties")
 		if props == nil {
 			config.Debugf("unexpected, AWS::Lambda::Alias props are nil: %v",
 				node.ToJson(input.resource))
 			return ""
 		}
-		_, functionName := s11n.GetMapValue(props, "FunctionName")
+		_, functionName, _ := s11n.GetMapValue(props, "FunctionName")
 		if functionName == nil {
 			config.Debugf("unexpected, AWS::Lambda::Alias FunctionName is nil: %v",
 				node.ToJson(input.resource))
 			return ""
 		}
-		_, name := s11n.GetMapValue(props, "Name")
+		_, name, _ := s11n.GetMapValue(props, "Name")
 		if name == nil {
 			config.Debugf("unexpected, AWS::Lambda::Alias Name is nil: %v",
 				node.ToJson(input.resource))
@@ -354,13 +354,13 @@ func predictResourceArn(input PredictionInput) string {
 		return colonFormat("lambda", "function", input, physicalId)
 	case "AWS::Lambda::LayerVersion":
 		// arn:${Partition}:lambda:${Region}:${Account}:layer:${LayerName}:${LayerVersion}
-		_, props := s11n.GetMapValue(input.resource, "Properties")
+		_, props, _ := s11n.GetMapValue(input.resource, "Properties")
 		if props == nil {
 			config.Debugf("unexpected, AWS::Lambda::Alias props are nil: %v",
 				node.ToJson(input.resource))
 			return ""
 		}
-		_, layerNameProp := s11n.GetMapValue(props, "LayerName")
+		_, layerNameProp, _ := s11n.GetMapValue(props, "LayerName")
 		layerName := ""
 		if layerNameProp != nil {
 			layerName = layerNameProp.Value
@@ -382,13 +382,13 @@ func predictResourceArn(input PredictionInput) string {
 		return ""
 	case "AWS::Lambda::Version":
 		// arn:${Partition}:lambda:${Region}:${Account}:function:${FunctionName}:${Version}
-		_, props := s11n.GetMapValue(input.resource, "Properties")
+		_, props, _ := s11n.GetMapValue(input.resource, "Properties")
 		if props == nil {
 			config.Debugf("unexpected, AWS::Lambda::Version props are nil: %v",
 				node.ToJson(input.resource))
 			return ""
 		}
-		_, functionName := s11n.GetMapValue(props, "FunctionName")
+		_, functionName, _ := s11n.GetMapValue(props, "FunctionName")
 		if functionName == nil {
 			config.Debugf("unexpected, AWS::Lambda::Version FunctionName is nil: %v",
 				node.ToJson(input.resource))
