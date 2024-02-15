@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws-cloudformation/rain/cft/format"
+	"github.com/aws-cloudformation/rain/cft/parse"
+	"github.com/aws-cloudformation/rain/cft/pkg"
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/manifoldco/promptui"
 )
@@ -17,9 +20,7 @@ type reco struct {
 
 var checkIcon = "✅"
 
-// TODO: Instead of embedding the final template,
-// embed the source and modules, and use pkg to build
-// the template on the fly. Reduce copy-paste.
+// We are embedding the entire tmpl directory into the binary as a file system
 
 //go:embed tmpl
 var fs embed.FS
@@ -31,7 +32,18 @@ func writeFile(args []string) {
 	if err != nil {
 		fmt.Println(console.Red(fmt.Sprintf("Not found: %s", raw)))
 	}
-	output(string(b))
+	// Package and transform the template to resolve module references
+	packaged, err := parse.String(string(b))
+	if err != nil {
+		fmt.Println(console.Red(err))
+		return
+	}
+	transformed, err := pkg.Template(packaged, "", &fs)
+	if err != nil {
+		fmt.Println(console.Red(err))
+		return
+	}
+	output(format.CftToYaml(transformed))
 }
 
 func showPrompt(selections []reco, path string) {

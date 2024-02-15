@@ -537,7 +537,14 @@ func module(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bo
 
 	// Transform
 	parse.TransformNode(&moduleNode)
-	_, err = transform(&moduleNode, filepath.Dir(path), t, &parent)
+	ctx := &transformContext{
+		nodeToTransform: &moduleNode,
+		rootDir:         filepath.Dir(path),
+		t:               t,
+		parent:          &parent,
+		fs:              nil,
+	}
+	_, err = transform(ctx)
 	if err != nil {
 		return false, err
 	}

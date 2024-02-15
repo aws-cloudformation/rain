@@ -25,6 +25,7 @@
 package pkg
 
 import (
+	"embed"
 	"path/filepath"
 
 	"github.com/aws-cloudformation/rain/cft"
@@ -38,17 +39,25 @@ import (
 // Must be set to true to enable !Rain::Module
 var Experimental bool
 
-func transform(nodeToTransform *yaml.Node, rootDir string, t cft.Template, parent *node.NodePair) (bool, error) {
+type transformContext struct {
+	nodeToTransform *yaml.Node
+	rootDir         string // Using normal files
+	t               cft.Template
+	parent          *node.NodePair
+	fs              *embed.FS // Used by build with embedded filesytem
+}
+
+func transform(ctx *transformContext) (bool, error) {
 	changed := false
 
 	// registry is a map of functions defined in rain.go
 	for path, fn := range registry {
 		//config.Debugf("transform path: %v, nodeToTransform:\n%v", path,
 		//	node.ToSJson(nodeToTransform))
-		for found := range s11n.MatchAll(nodeToTransform, path) {
-			nodeParent := node.GetParent(found, nodeToTransform, nil)
-			nodeParent.Parent = parent
-			c, err := fn(found, rootDir, t, nodeParent)
+		for found := range s11n.MatchAll(ctx.nodeToTransform, path) {
+			nodeParent := node.GetParent(found, ctx.nodeToTransform, nil)
+			nodeParent.Parent = ctx.parent
+			c, err := fn(found, ctx.rootDir, ctx.t, nodeParent)
 			if err != nil {
 				config.Debugf("Error packaging template: %s\n", err)
 				return false, err
@@ -64,13 +73,20 @@ func transform(nodeToTransform *yaml.Node, rootDir string, t cft.Template, paren
 // Template returns t with assets included as per AWS CLI packaging rules
 // and any Rain:: functions used.
 // rootDir must be passed in so that any included assets can be loaded from the same directory
-func Template(t cft.Template, rootDir string) (cft.Template, error) {
+func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error) {
 	templateNode := t.Node
 
 	// j, _ := json.MarshalIndent(t.Node, "", "  ")
 	// config.Debugf("Original template: %v", string(j))
 
-	changed, err := transform(templateNode, rootDir, t, nil)
+	ctx := &transformContext{
+		nodeToTransform: templateNode,
+		rootDir:         rootDir,
+		t:               t,
+		parent:          nil,
+		fs:              nil,
+	}
+	changed, err := transform(ctx)
 	if err != nil {
 		return t, err
 	}
@@ -119,5 +135,5 @@ func File(path string) (cft.Template, error) {
 		return t, err
 	}
 
-	return Template(t, filepath.Dir(path))
+	return Template(t, filepath.Dir(path), nil)
 }

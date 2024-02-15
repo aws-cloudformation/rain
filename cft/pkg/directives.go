@@ -72,7 +72,14 @@ func includeLiteral(n *yaml.Node, root string, t cft.Template, parent node.NodeP
 
 	// Transform
 	parse.TransformNode(&contentNode)
-	_, err = transform(&contentNode, filepath.Dir(path), t, nil)
+	ctx := &transformContext{
+		nodeToTransform: &contentNode,
+		rootDir:         filepath.Dir(path),
+		t:               t,
+		parent:          nil,
+		fs:              nil,
+	}
+	_, err = transform(ctx)
 	if err != nil {
 		return false, err
 	}
