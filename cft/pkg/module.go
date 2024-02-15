@@ -492,7 +492,12 @@ func processModule(
 }
 
 // Type: !Rain::Module
-func module(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
+func module(ctx *directiveContext) (bool, error) {
+
+	n := ctx.n
+	root := ctx.rootDir
+	t := ctx.t
+	parent := ctx.parent
 
 	if !Experimental {
 		panic("You must add the --experimental arg to use the !Rain::Module directive")
@@ -537,14 +542,13 @@ func module(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bo
 
 	// Transform
 	parse.TransformNode(&moduleNode)
-	ctx := &transformContext{
+	_, err = transform(&transformContext{
 		nodeToTransform: &moduleNode,
 		rootDir:         filepath.Dir(path),
 		t:               t,
 		parent:          &parent,
 		fs:              nil,
-	}
-	_, err = transform(ctx)
+	})
 	if err != nil {
 		return false, err
 	}

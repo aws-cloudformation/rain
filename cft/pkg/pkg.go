@@ -57,7 +57,7 @@ func transform(ctx *transformContext) (bool, error) {
 		for found := range s11n.MatchAll(ctx.nodeToTransform, path) {
 			nodeParent := node.GetParent(found, ctx.nodeToTransform, nil)
 			nodeParent.Parent = ctx.parent
-			c, err := fn(found, ctx.rootDir, ctx.t, nodeParent)
+			c, err := fn(&directiveContext{found, ctx.rootDir, ctx.t, nodeParent, ctx.fs})
 			if err != nil {
 				config.Debugf("Error packaging template: %s\n", err)
 				return false, err
