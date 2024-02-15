@@ -18,6 +18,11 @@ type NodePair struct {
 	Parent *NodePair
 }
 
+func (np *NodePair) String() string {
+	return fmt.Sprintf("Key: %v\nValue: %v",
+		ToSJson(np.Key), ToSJson(np.Value))
+}
+
 // Clone returns a copy of the provided node
 func Clone(node *yaml.Node) *yaml.Node {
 	if node == nil {

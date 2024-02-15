@@ -42,9 +42,9 @@ func parseGetAtt(n *yaml.Node) error {
 	return nil
 }
 
-// TransformNode takes a *yaml.Node and convert tag-style names into map-style,
+// NormalizeNode takes a *yaml.Node and convert tag-style names into map-style,
 // and converts other scalars into a canonical format
-func TransformNode(n *yaml.Node) error {
+func NormalizeNode(n *yaml.Node) error {
 	// Fix badly-parsed numbers
 	if n.ShortTag() == "!!float" && n.Value[0] == '0' {
 		n.Tag = "!!str"
@@ -97,7 +97,7 @@ func TransformNode(n *yaml.Node) error {
 	}
 
 	for _, child := range n.Content {
-		err := TransformNode(child)
+		err := NormalizeNode(child)
 		if err != nil {
 			return err
 		}

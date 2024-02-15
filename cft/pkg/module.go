@@ -11,6 +11,7 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
+	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
@@ -555,13 +556,26 @@ func module(ctx *directiveContext) (bool, error) {
 		return false, err
 	}
 
-	// Transform
-	parse.TransformNode(&moduleNode)
+	config.Debugf("module t.Node: %v", node.ToSJson(t.Node))
+	config.Debugf("module moduleNode: %v", node.ToSJson(&moduleNode))
+	config.Debugf("module n: %v", node.ToSJson(n))
+	config.Debugf("module parent:\n%s", parent.String())
+
+	// Recurse on directives in the module itself
+	parse.NormalizeNode(&moduleNode)
+	var newParent node.NodePair
+	if parent.Parent != nil && parent.Parent.Value != nil {
+		newParent = node.GetParent(n, parent.Parent.Value, nil)
+		newParent.Parent = &parent
+	}
+
+	config.Debugf("module newParent: %s", newParent.String())
+
 	_, err = transform(&transformContext{
 		nodeToTransform: &moduleNode,
 		rootDir:         filepath.Dir(path),
-		t:               t,
-		parent:          &parent,
+		t:               cft.Template{Node: &moduleNode},
+		parent:          &newParent,
 		fs:              ctx.fs,
 	})
 	if err != nil {
@@ -583,12 +597,14 @@ func module(ctx *directiveContext) (bool, error) {
 
 	// config.Debugf("resourceNode: %v", node.ToJson(resourceNode))
 
-	// config.Debugf("outputNode: %v", node.ToJson(&outputNode))
+	config.Debugf("outputNode: %v", node.ToSJson(&outputNode))
 
 	// Remove the original from the template
 	err = node.RemoveFromMap(resourceNode, parent.Key.Value)
 	if err != nil {
-		return false, err
+		config.Debugf("err removing original: %s\n%v",
+			parent.Key.Value, node.ToSJson(resourceNode))
+		return false, fmt.Errorf("can't remove original from template: %v", err)
 	}
 
 	// Insert the transformed resource into the template

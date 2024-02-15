@@ -57,7 +57,7 @@ func String(input string) (cft.Template, error) {
 
 // Node returns a cft.Template parse from a *yaml.Node
 func Node(n *yaml.Node) (cft.Template, error) {
-	err := TransformNode(n)
+	err := NormalizeNode(n)
 	return cft.Template{Node: n}, err
 }
 

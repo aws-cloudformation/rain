@@ -5,10 +5,8 @@ import (
 	"testing"
 
 	"github.com/aws-cloudformation/rain/cft/diff"
-	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/cft/pkg"
-	"github.com/aws-cloudformation/rain/internal/config"
 	"gopkg.in/yaml.v3"
 )
 
@@ -20,13 +18,16 @@ func TestSimple(t *testing.T) {
 	runTest("simple", t)
 }
 
+func TestModInMod(t *testing.T) {
+	runTest("modinmod", t)
+}
+
 // TODO: This was broken in the refactor, come back to it later
 //func TestForeach(t *testing.T) {
 //	runTest("foreach", t)
 //}
 
 func runTest(test string, t *testing.T) {
-	//config.Debug = true
 
 	// There should be 3 files for each test, for example:
 	// bucket-module.yaml, bucket-template.yaml, bucket-expect.yaml
@@ -47,11 +48,10 @@ func runTest(test string, t *testing.T) {
 		return
 	}
 
-	y := format.String(packaged, format.Options{
-		JSON:     false,
-		Unsorted: false,
-	})
-	config.Debugf("packaged: \n%s", y)
+	//y := format.String(packaged, format.Options{
+	//	JSON:     false,
+	//	Unsorted: false,
+	//})
 
 	d := diff.New(packaged, expectedTemplate)
 	if d.Mode() != "=" {

@@ -81,7 +81,7 @@ func convertToJSON(in string) string {
 		panic(err)
 	}
 
-	err = parse.TransformNode(&d)
+	err = parse.NormalizeNode(&d)
 	if err != nil {
 		panic(err)
 	}

@@ -80,7 +80,7 @@ func includeLiteral(ctx *directiveContext) (bool, error) {
 	}
 
 	// Transform
-	parse.TransformNode(&contentNode)
+	parse.NormalizeNode(&contentNode)
 	_, err = transform(&transformContext{
 		nodeToTransform: &contentNode,
 		rootDir:         filepath.Dir(path),
