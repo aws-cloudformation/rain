@@ -84,7 +84,7 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 		rootDir:         rootDir,
 		t:               t,
 		parent:          nil,
-		fs:              nil,
+		fs:              fs,
 	}
 	changed, err := transform(ctx)
 	if err != nil {

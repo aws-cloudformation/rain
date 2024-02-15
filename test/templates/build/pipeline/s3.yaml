@@ -1,4 +1,4 @@
-Description: | 
+Description: |
   This pipeline watches for changes to the source bucket.
   Apache-2.0 License. Adapt this template to your needs and thoruoughly test
   it before introducing it in a production environment. **WARNING** This
@@ -6,56 +6,49 @@ Description: |
   charges.
 
 Parameters:
-
-  SourceBucket:
+  AppName:
+    Description: This will be used for resource names
     Type: String
-    Description: The name of the bucket to use for source code
 
   ArtifactBucket:
-    Type: String
     Description: The name of the bucket to use for storing pipeline artifacts
-
-  AppName:
     Type: String
-    Description: This will be used for resource names
+
+  SourceBucket:
+    Description: The name of the bucket to use for source code
+    Type: String
 
 Resources:
-
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
+      ArtifactStore:
+        Location: !Ref ArtifactBucket
+        Type: S3
       Name: !Ref AppName
       RoleArn: !GetAtt PipelineRole.Arn
-      ArtifactStore:
-        Type: S3
-        Location: !Ref ArtifactBucket
       Stages:
-        - Name: Source
-          Actions:
-            - Name: S3Source
-              ActionTypeId:
+        - Actions:
+            - ActionTypeId:
                 Category: Source
                 Owner: AWS
                 Provider: S3
                 Version: 1
               Configuration:
+                PollForSourceChanges: true
                 S3Bucket: !Ref SourceBucket
                 S3ObjectKey: source.zip
-                PollForSourceChanges: true
+              Name: S3Source
               OutputArtifacts:
                 - Name: source
-        - Name: Build
-          Actions:
-            - Name: Rain
-              InputArtifacts:
-                - Name: source
-              ActionTypeId:
+          Name: Source
+        - Actions:
+            - ActionTypeId:
                 Category: Build
                 Owner: AWS
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: !Ref Project
                 EnvironmentVariables: |-
                   [
                     {
@@ -64,25 +57,16 @@ Resources:
                       "value": "abc"
                     }
                   ]
+                ProjectName: !Ref Project
+              InputArtifacts:
+                - Name: source
+              Name: Rain
               RunOrder: 1
-
-  PipelineRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service: codepipeline.amazonaws.com
-        Version: '2012-10-17'
+          Name: Build
 
   PipelinePolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: !Sub "${AppName}-pipeline-policy"
-      Roles:
-        - !Ref PipelineRole
       PolicyDocument:
         Statement:
           - Action:
@@ -94,16 +78,16 @@ Resources:
               - s3:Abort*
             Effect: Allow
             Resource:
-              - !Sub "arn:aws:s3:::${ArtifactBucket}"
-              - !Sub "arn:aws:s3:::${ArtifactBucket}/*"
+              - !Sub arn:aws:s3:::${ArtifactBucket}
+              - !Sub arn:aws:s3:::${ArtifactBucket}/*
           - Action:
               - s3:GetObject*
               - s3:GetBucket*
               - s3:List*
             Effect: Allow
             Resource:
-              - !Sub "arn:aws:s3:::${SourceBucket}"
-              - !Sub "arn:aws:s3:::${SourceBucket}/*"
+              - !Sub arn:aws:s3:::${SourceBucket}
+              - !Sub arn:aws:s3:::${SourceBucket}/*
           - Action:
               - codebuild:StartBuild
               - codebuild:BatchGetBuilds
@@ -115,24 +99,37 @@ Resources:
             Effect: Allow
             Resource:
               - !GetAtt Project.Arn
+      PolicyName: !Sub ${AppName}-pipeline-policy
+      Roles:
+        - !Ref PipelineRole
+
+  PipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codepipeline.amazonaws.com
+        Version: "2012-10-17"
 
   Project:
     Type: AWS::CodeBuild::Project
     Properties:
-      Name: !Sub "${AppName}-build" 
       Artifacts:
         Type: CODEPIPELINE
       Environment:
-        Image: aws/codebuild/amazonlinux2-x86_64-standard:5.0
         ComputeType: BUILD_GENERAL1_LARGE
-        Type: LINUX_CONTAINER
         EnvironmentVariables:
-        - Name: MY_VAR
-          Type: PLAINTEXT
-          Value: "xyz"
+          - Name: MY_VAR
+            Type: PLAINTEXT
+            Value: xyz
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:5.0
+        Type: LINUX_CONTAINER
+      Name: !Sub ${AppName}-build
       ServiceRole: !GetAtt ProjectRole.Arn
       Source:
-        Type: CODEPIPELINE
         BuildSpec: |
           version: 0.2
           phases:
@@ -141,18 +138,8 @@ Resources:
                 - pwd
                 - ls
                 - # TODO: Add your build commands here
+        Type: CODEPIPELINE
       TimeoutInMinutes: 480
-
-  ProjectRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service: codebuild.amazonaws.com
-        Version: '2012-10-17'
 
   ProjectPolicy:
     Type: AWS::IAM::Policy
@@ -165,13 +152,13 @@ Resources:
             Resource:
               - !Join
                 - ""
-                - - "arn:aws:logs:"
+                - - 'arn:aws:logs:'
                   - !Ref AWS::Region
-                  - ":"
+                  - ':'
                   - !Ref AWS::AccountId
-                  - ":log-group:/aws/codebuild/"
+                  - :log-group:/aws/codebuild/
                   - !Ref Project
-                  - ":*"
+                  - :*
           - Action:
               - codebuild:StartBuild
               - codebuild:BatchGetBuilds
@@ -187,13 +174,22 @@ Resources:
               - s3:Get*
               - s3:List*
             Effect: Allow
-            Resource: 
-              - !Sub "arn:aws:s3:::${ArtifactBucket}"
-              - !Sub "arn:aws:s3:::${ArtifactBucket}/*"
-        Version: 2012-10-17
-      PolicyName: !Sub "${AppName}-build-project-policy"
+            Resource:
+              - !Sub arn:aws:s3:::${ArtifactBucket}
+              - !Sub arn:aws:s3:::${ArtifactBucket}/*
+        Version: "2012-10-17"
+      PolicyName: !Sub ${AppName}-build-project-policy
       Roles:
         - !Ref ProjectRole
 
-
+  ProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: "2012-10-17"
 

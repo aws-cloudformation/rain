@@ -498,6 +498,7 @@ func module(ctx *directiveContext) (bool, error) {
 	root := ctx.rootDir
 	t := ctx.t
 	parent := ctx.parent
+	templateFiles := ctx.fs
 
 	if !Experimental {
 		panic("You must add the --experimental arg to use the !Rain::Module directive")
@@ -526,10 +527,24 @@ func module(ctx *directiveContext) (bool, error) {
 		}
 		content = []byte(body)
 	} else {
-		// Read the local file
-		content, path, err = expectFile(n, root)
-		if err != nil {
-			return false, err
+		if templateFiles != nil {
+			// Read from the embedded file system (for the build -r command)
+			path, err := expectString(n)
+			if err != nil {
+				return false, err
+			}
+			// We have to hack this since embed doesn't understand "path/../"
+			embeddedPath := root + "/" + strings.Replace(path, "../", "", 1)
+			content, err = templateFiles.ReadFile(embeddedPath)
+			if err != nil {
+				return false, err
+			}
+		} else {
+			// Read the local file
+			content, path, err = expectFile(n, root)
+			if err != nil {
+				return false, err
+			}
 		}
 	}
 
@@ -547,7 +562,7 @@ func module(ctx *directiveContext) (bool, error) {
 		rootDir:         filepath.Dir(path),
 		t:               t,
 		parent:          &parent,
-		fs:              nil,
+		fs:              ctx.fs,
 	})
 	if err != nil {
 		return false, err

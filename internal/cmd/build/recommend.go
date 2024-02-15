@@ -23,22 +23,24 @@ var checkIcon = "✅"
 // We are embedding the entire tmpl directory into the binary as a file system
 
 //go:embed tmpl
-var fs embed.FS
+var templateFiles embed.FS
 
 func writeFile(args []string) {
 	raw := strings.Join(args, "/")
-	path := "tmpl/" + raw + ".yaml"
-	b, err := fs.ReadFile(path)
+	tmpl := "tmpl/" + raw
+	path := tmpl + ".yaml"
+	b, err := templateFiles.ReadFile(path)
 	if err != nil {
 		fmt.Println(console.Red(fmt.Sprintf("Not found: %s", raw)))
 	}
 	// Package and transform the template to resolve module references
+	pkg.Experimental = true
 	packaged, err := parse.String(string(b))
 	if err != nil {
 		fmt.Println(console.Red(err))
 		return
 	}
-	transformed, err := pkg.Template(packaged, "", &fs)
+	transformed, err := pkg.Template(packaged, "tmpl", &templateFiles)
 	if err != nil {
 		fmt.Println(console.Red(err))
 		return
