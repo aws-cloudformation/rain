@@ -19,6 +19,7 @@ import (
 
 var signinURI string
 var consoleURI string
+var signoutURI string
 
 const issuer = "https://aws-cloudformation.github.io/rain/rain_console.html"
 const defaultService = "cloudformation"
@@ -118,19 +119,24 @@ func getSigninToken(userName string) (string, error) {
 }
 
 // GetURI returns a sign-in uri for the current credentials and region
-func GetURI(service, stackName, userName string) (string, error) {
-
+func GetURI(logout bool, service, stackName, userName string) (string, error) {
 	config.Debugf("GetURI %v, %v, %v", service, stackName, userName)
 
 	region := aws.Config().Region
 
 	signinURI = "https://signin.aws.amazon.com/federation"
 	consoleURI = "https://console.aws.amazon.com"
+	signoutURI = "https://signin.aws.amazon.com/oauth?Action=logout&redirect_uri=https://aws.amazon.com"
 
 	// Different URIs for GovCloud
 	if strings.HasPrefix(region, "us-gov-") {
 		signinURI = "https://signin.amazonaws-us-gov.com/federation"
 		consoleURI = "https://console.amazonaws-us-gov.com"
+		signoutURI = "https://signin.amazonaws-us-gov.com/oauth?Action=logout&redirect_uri=https://amazonaws-us-gov.com"
+	}
+
+	if logout {
+		return signoutURI, nil
 	}
 
 	token, err := getSigninToken(userName)

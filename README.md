@@ -21,7 +21,7 @@ cfn-lint, Guard and more:
 
 ## Key features
 
-* **Interactive deployments**: With `rain deploy`, rain packages your CloudFormation templates using [`aws cloudformation package`](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/cloudformation/package.html), prompts you for any parameters that have not yet been defined, shows you a summary of the changes that will be made, and then displays real-time updates as your stack is being deployed. Once finished, you get a summary of the outcome along with any error messages collected along the way - including errors messages for stacks that have been rolled back and no longer exist.
+* **Interactive deployments**: With `rain deploy`, rain packages your CloudFormation templates, prompts you for any parameters that have not yet been defined, shows you a summary of the changes that will be made, and then displays real-time updates as your stack is being deployed. Once finished, you get a summary of the outcome along with any error messages collected along the way - including errors messages for stacks that have been rolled back and no longer exist.
 
 * **Consistent formatting of CloudFormation templates**: Using `rain fmt`, you can format your CloudFormation templates to a consistent standard or reformat a template from JSON to YAML (or YAML to JSON if you prefer). Rain preserves your comments when using YAML and switches use of [intrinsic functions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html) to use the short syntax where possible.
 
@@ -51,8 +51,7 @@ Usage:
 
 Stack commands:
   cat         Get the CloudFormation template from a running stack
-  ccdeploy    Deploy a local template directly using the Cloud Control API (Experimental!)
-  ccrm        Delete a deployment created by ccdeploy (Experimental!)
+  cc          Interact with templates using Cloud Control API instead of CloudFormation
   deploy      Deploy a CloudFormation stack from a local template
   logs        Show the event log for the named stack
   ls          List running CloudFormation stacks
