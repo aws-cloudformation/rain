@@ -22,6 +22,10 @@ func TestModInMod(t *testing.T) {
 	runTest("modinmod", t)
 }
 
+func TestSub(t *testing.T) {
+	runTest("sub", t)
+}
+
 // TODO: This was broken in the refactor, come back to it later
 //func TestForeach(t *testing.T) {
 //	runTest("foreach", t)

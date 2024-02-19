@@ -53,12 +53,12 @@ func transform(ctx *transformContext) (bool, error) {
 	// registry is a map of functions defined in rain.go
 	for path, fn := range registry {
 		for found := range s11n.MatchAll(ctx.nodeToTransform, path) {
-			config.Debugf("pkg transform path: %v, nodeToTransform:\n%v", path,
-				node.ToSJson(ctx.nodeToTransform))
-			config.Debugf("pkg transform found: %v", node.ToSJson(found))
+			//config.Debugf("pkg transform path: %v, nodeToTransform:\n%v", path,
+			//	node.ToSJson(ctx.nodeToTransform))
+			//config.Debugf("pkg transform found: %v", node.ToSJson(found))
 			nodeParent := node.GetParent(found, ctx.nodeToTransform, nil)
 			nodeParent.Parent = ctx.parent
-			config.Debugf("pkg transform nodeParent: %s", nodeParent.String())
+			//config.Debugf("pkg transform nodeParent: %s", nodeParent.String())
 			c, err := fn(&directiveContext{found, ctx.rootDir, ctx.t, nodeParent, ctx.fs})
 			if err != nil {
 				config.Debugf("Error packaging template: %s\n", err)
@@ -106,7 +106,7 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 	// Encode and Decode to resolve anchors
 	var decoded interface{}
 
-	config.Debugf("About to decode:\n%v", node.ToSJson(templateNode))
+	//config.Debugf("About to decode:\n%v", node.ToSJson(templateNode))
 	err = templateNode.Decode(&decoded)
 	if err != nil {
 		return t, err
