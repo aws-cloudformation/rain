@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/aws/sts"
 	"github.com/aws-cloudformation/rain/internal/config"
@@ -310,32 +311,37 @@ func resolveGetAttBy(name string, attr string, resource *Resource) (string, erro
 	return attrValue.(string), nil
 }
 
-func resolveSubWords(words []word, resource *Resource, extra map[string]string) (string, error) {
+func resolveSubWords(words []parse.SubWord, resource *Resource, extra map[string]string) (string, error) {
 
 	retval := ""
 	prefix := ""
 
 	for _, word := range words {
-		switch word.t {
-		case STR:
-			retval += word.w
-		case AWS:
+		switch word.T {
+		case parse.STR:
+			retval += word.W
+		case parse.AWS:
 			prefix = AWS_PREFIX
 			fallthrough
-		case REF:
-			resolved, err := resolveRefByName(prefix+word.w, resource, extra)
+		case parse.REF:
+			resolved, err := resolveRefByName(prefix+word.W, resource, extra)
 			if err != nil {
 				return "", err
 			}
 			retval += resolved
-		case GETATT:
-			left, right, found := strings.Cut(word.w, ".")
+		case parse.GETATT:
+			left, right, found := strings.Cut(word.W, ".")
 			if !found {
-				return "", fmt.Errorf("unexpected GetAtt %s", word.w)
+				return "", fmt.Errorf("unexpected GetAtt %s", word.W)
 			}
-			return resolveGetAttBy(left, right, resource)
+			//return resolveGetAttBy(left, right, resource)
+			resolved, err := resolveGetAttBy(left, right, resource)
+			if err != nil {
+				return "", err
+			}
+			retval += resolved
 		default:
-			return "", fmt.Errorf("unexpected word type %v for %s", word.t, word.w)
+			return "", fmt.Errorf("unexpected word type %v for %s", word.T, word.W)
 		}
 	}
 
@@ -355,7 +361,7 @@ func resolveSub(n *yaml.Node, resource *Resource) (string, error) {
 		// Ref for single strings like ${MyParam} or ${MyBucket}
 		// Map values
 		// ${!Literal}
-		words, err := ParseSub(n.Value)
+		words, err := parse.ParseSub(n.Value)
 		if err != nil {
 			return "", err
 		}
@@ -371,7 +377,7 @@ func resolveSub(n *yaml.Node, resource *Resource) (string, error) {
 		if n.Content[1].Kind != yaml.MappingNode {
 			return "", fmt.Errorf("expected Sub %s Content[1] to be a Mapping", sub)
 		}
-		words, err := ParseSub(sub)
+		words, err := parse.ParseSub(sub)
 		if err != nil {
 			return "", err
 		}

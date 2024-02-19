@@ -1,4 +1,4 @@
-package cc
+package parse
 
 import (
 	"errors"
@@ -24,9 +24,9 @@ const (
 	GETATT                 // ${X.Y}
 )
 
-type word struct {
-	t wordtype
-	w string // Does not include the ${} if it's not a STR
+type SubWord struct {
+	T wordtype
+	W string // Does not include the ${} if it's not a STR
 }
 
 type state int
@@ -45,13 +45,13 @@ const (
 //
 // returns a slice containing:
 //
-//	word { t: STR, w: "ABC-" }
-//	word { t: REF, w: "XYZ" }
-//	word { t: STR, w: "-123" }
+//	SubWord { T: STR, W: "ABC-" }
+//	SubWord { T: REF, W: "XYZ" }
+//	SubWord { T: STR, W: "-123" }
 //
 // Invalid syntax like "${AAA" returns an error
-func ParseSub(sub string) ([]word, error) {
-	words := make([]word, 0)
+func ParseSub(sub string) ([]SubWord, error) {
+	words := make([]SubWord, 0)
 	state := READSTR
 	var last rune
 	var buf string
@@ -80,7 +80,7 @@ func ParseSub(sub string) ([]word, error) {
 					// Append the last word in the buffer if it's not empty
 					if len(buf) > 0 {
 						wt = STR
-						words = append(words, word{t: wt, w: buf})
+						words = append(words, SubWord{T: wt, W: buf})
 						buf = ""
 					}
 				}
@@ -98,7 +98,7 @@ func ParseSub(sub string) ([]word, error) {
 					wt = REF
 				}
 				buf = strings.Replace(buf, "AWS::", "", 1)
-				words = append(words, word{t: wt, w: buf})
+				words = append(words, SubWord{T: wt, W: buf})
 				buf = ""
 				state = READSTR
 			} else {
@@ -125,7 +125,7 @@ func ParseSub(sub string) ([]word, error) {
 
 	if len(buf) > 0 {
 		wt = STR
-		words = append(words, word{t: wt, w: buf})
+		words = append(words, SubWord{T: wt, W: buf})
 		buf = ""
 	}
 

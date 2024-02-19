@@ -108,17 +108,95 @@ func rename(logicalId string, resourceName string) string {
 	return logicalId + resourceName
 }
 
+// Common context needed to resolve Refs in the module.
+// This is all the common stuff that is the same for this module.
+type refctx struct {
+	// The module's Parameters
+	moduleParams *yaml.Node
+
+	// The parent template's Properties
+	templateProps *yaml.Node
+
+	// The node we're writing to for output to the resulting template
+	outNode *yaml.Node
+
+	// The logical id of the resource in the parent template
+	logicalId string
+
+	// The module's Resources map
+	moduleResources *yaml.Node
+}
+
+func resolveModuleRef(parentName string, prop *yaml.Node, ctx *refctx) error {
+
+	moduleParams := ctx.moduleParams
+	templateProps := ctx.templateProps
+	outNode := ctx.outNode
+	logicalId := ctx.logicalId
+	moduleResources := ctx.moduleResources
+
+	refFoundInParams := false
+
+	if moduleParams != nil {
+		// Find the module parameter that matches the !Ref
+		_, param, _ := s11n.GetMapValue(moduleParams, prop.Value)
+		if param != nil {
+			// We need to get the parameter value from the parent template.
+			// Module params are set by the parent template resource properties.
+
+			// Look for this property name in the parent template
+			_, parentVal, _ := s11n.GetMapValue(templateProps, prop.Value)
+			if parentVal == nil {
+				return fmt.Errorf("did not find %v in parent template Resource Properties", prop.Value)
+			}
+
+			// config.Debugf("parentVal: %v", node.ToJson(parentVal))
+
+			// We can't just set prop.Value, since we would end up with
+			// Prop: !Ref Value instead of just Prop: Value. Get the
+			// property's parent and set the entire map value for the
+			// property
+
+			// Get the map parent within the extension node we created
+			refMap := node.GetParent(prop, outNode, nil)
+			if refMap.Value == nil {
+				return fmt.Errorf("could not find parent for %v", prop)
+			}
+			propParentPair := node.GetParent(refMap.Value, outNode, nil)
+
+			// config.Debugf("propParentPair.Value: %v", node.ToJson(propParentPair.Value))
+
+			// Create a new node to replace what's defined in the module
+			newValue := node.Clone(parentVal)
+
+			// config.Debugf("Setting %v to:\n%v", parentName, node.ToJson(newValue))
+
+			node.SetMapValue(propParentPair.Value, parentName, newValue)
+
+			refFoundInParams = true
+		}
+	}
+	if !refFoundInParams {
+		// config.Debugf("Did not find param for %v", prop.Value)
+		// Look for a resource in the module
+		_, resource, _ := s11n.GetMapValue(moduleResources, prop.Value)
+		if resource == nil {
+			// config.Debugf("did not find !Ref %v", prop.Value)
+			// If we can't find the Ref, leave it alone and assume it's
+			// expected to be in the parent template to be resolved at deploy time.
+			return nil
+		}
+		fixedName := rename(logicalId, prop.Value)
+		prop.Value = fixedName
+	}
+	return nil
+}
+
 // Recursive function to find all refs in properties
 // Also handles DeletionPolicy, UpdateRetainPolicy
-func renamePropRefs(
-	parentName string,
-	propName string,
-	prop *yaml.Node,
-	ext *yaml.Node,
-	moduleParams *yaml.Node,
-	moduleResources *yaml.Node,
-	logicalId string,
-	templateProps *yaml.Node) error {
+func renamePropRefs(parentName string, propName string, prop *yaml.Node, ctx *refctx) error {
+
+	logicalId := ctx.logicalId
 
 	// Properties:
 	//   SimpleProp: Val
@@ -134,58 +212,50 @@ func renamePropRefs(
 	// config.Debugf("renamePropRefs parentName: %v, propName: %v, prop.Kind: %v", parentName, propName, prop.Kind)
 
 	if prop.Kind == yaml.ScalarNode {
-		refFoundInParams := false
 		if propName == "Ref" {
-			if moduleParams != nil {
-				// Find the module parameter that matches the !Ref
-				_, param, _ := s11n.GetMapValue(moduleParams, prop.Value)
-				if param != nil {
-					// We need to get the parameter value from the parent template.
-					// Module params are set by the parent template resource properties.
 
-					// Look for this property name in the parent template
-					_, parentVal, _ := s11n.GetMapValue(templateProps, prop.Value)
-					if parentVal == nil {
-						return fmt.Errorf("did not find %v in parent template Resource Properties", prop.Value)
-					}
+			// TODO: Refactor the below
+			resolveModuleRef(parentName, prop, ctx)
 
-					// config.Debugf("parentVal: %v", node.ToJson(parentVal))
+		} else if propName == "Sub" {
+			// TODO!
+			config.Debugf("Sub prop: %v", node.ToSJson(prop))
 
-					// We can't just set prop.Value, since we would end up with Prop: !Ref Value instead of just Prop: Value
-					// Get the property's parent and set the entire map value for the property
+			words, err := parse.ParseSub(prop.Value)
+			if err != nil {
+				return err
+			}
 
-					// Get the map parent within the extension node we created
-					refMap := node.GetParent(prop, ext, nil)
-					if refMap.Value == nil {
-						return fmt.Errorf("could not find parent for %v", prop)
-					}
-					propParentPair := node.GetParent(refMap.Value, ext, nil)
-
-					// config.Debugf("propParentPair.Value: %v", node.ToJson(propParentPair.Value))
-
-					// Create a new node to replace what's defined in the module
-					newValue := node.Clone(parentVal)
-
-					// config.Debugf("Setting %v to:\n%v", parentName, node.ToJson(newValue))
-
-					node.SetMapValue(propParentPair.Value, parentName, newValue)
-
-					refFoundInParams = true
+			config.Debugf("Sub prop words: %v", words)
+			sub := ""
+			for _, word := range words {
+				switch word.T {
+				case parse.STR:
+					fallthrough
+				case parse.AWS:
+					sub += word.W
+				case parse.REF:
+					/*
+						resolved, err := "TODO"
+						if err != nil {
+							return "", err
+						}
+						retval += resolved
+					*/
+				case parse.GETATT:
+					/*
+						left, right, found := strings.Cut(word.W, ".")
+						if !found {
+							return fmt.Errorf("unexpected GetAtt %s", word.W)
+						}
+						// TODO
+					*/
+				default:
+					return fmt.Errorf("unexpected word type %v for %s", word.T, word.W)
 				}
 			}
-			if !refFoundInParams {
-				// config.Debugf("Did not find param for %v", prop.Value)
-				// Look for a resource in the module
-				_, resource, _ := s11n.GetMapValue(moduleResources, prop.Value)
-				if resource == nil {
-					// config.Debugf("did not find !Ref %v", prop.Value)
-					// If we can't find the Ref, leave it alone and assume it's
-					// expected to be in the parent template to be resolved at deploy time.
-					return nil
-				}
-				fixedName := rename(logicalId, prop.Value)
-				prop.Value = fixedName
-			}
+
+			// TODO: Also handle Seq Subs
 		}
 	} else if prop.Kind == yaml.SequenceNode {
 		// config.Debugf("Sequence %v %v", propName, node.ToJson(prop))
@@ -197,8 +267,7 @@ func renamePropRefs(
 		} else {
 			// Recurse over array elements
 			for i, p := range prop.Content {
-				result := renamePropRefs(propName,
-					p.Value, prop.Content[i], ext, moduleParams, moduleResources, logicalId, templateProps)
+				result := renamePropRefs(parentName, p.Value, prop.Content[i], ctx)
 				if result != nil {
 					return result
 				}
@@ -206,12 +275,10 @@ func renamePropRefs(
 		}
 
 	} else if prop.Kind == yaml.MappingNode {
-		// config.Debugf("Mapping %v %v", propName, node.ToJson(prop))
+		// Iterate over all map elements and recurse on the contents
 		for i, p := range prop.Content {
 			if i%2 == 0 {
-				// config.Debugf("About to renamePropRefs for Mapping Content: %v", p.Value)
-				result := renamePropRefs(propName,
-					p.Value, prop.Content[i+1], ext, moduleParams, moduleResources, logicalId, templateProps)
+				result := renamePropRefs(propName, p.Value, prop.Content[i+1], ctx)
 				if result != nil {
 					return result
 				}
@@ -225,28 +292,20 @@ func renamePropRefs(
 }
 
 // Convert !Ref values
-func resolveRefs(
-	ext *yaml.Node,
-	moduleParams *yaml.Node,
-	moduleResources *yaml.Node,
-	logicalId string,
-	templateProps *yaml.Node) error {
+func resolveRefs(ctx *refctx) error {
+
+	outNode := ctx.outNode
 
 	// Replace references to the module's parameters with the value supplied
 	// by the parent template. Rename refs to other resources in the module.
 
-	// config.Debugf("resolveRefs ext: %v", node.ToJson(ext))
-
-	_, extProps, _ := s11n.GetMapValue(ext, "Properties")
-	if extProps != nil {
-		for i, prop := range extProps.Content {
+	_, outNodeProps, _ := s11n.GetMapValue(outNode, "Properties")
+	if outNodeProps != nil {
+		for i, prop := range outNodeProps.Content {
 			if i%2 == 0 {
 				propName := prop.Value
-				// config.Debugf("Resolving refs for %v", propName)
-				err := renamePropRefs(propName,
-					propName, extProps.Content[i+1], ext, moduleParams, moduleResources, logicalId, templateProps)
+				err := renamePropRefs(propName, propName, outNodeProps.Content[i+1], ctx)
 				if err != nil {
-					// config.Debugf("%v", err)
 					return fmt.Errorf("unable to resolve refs for %v", propName)
 				}
 			}
@@ -256,10 +315,10 @@ func resolveRefs(
 	// DeletionPolicy, UpdateReplacePolicy, Condition
 	policies := []string{"DeletionPolicy", "UpdateReplacePolicy", "Condition"}
 	for _, policy := range policies {
-		_, policyNode, _ := s11n.GetMapValue(ext, policy)
+		_, policyNode, _ := s11n.GetMapValue(outNode, policy)
 		if policyNode != nil {
 			// config.Debugf("policyNode: %v", node.ToJson(policyNode))
-			err := renamePropRefs(policy, policy, policyNode, ext, moduleParams, moduleResources, logicalId, templateProps)
+			err := renamePropRefs(policy, policy, policyNode, ctx)
 			if err != nil {
 				// config.Debugf("%v", err)
 				return fmt.Errorf("unable to resolve refs for %v", policy)
@@ -415,13 +474,20 @@ func processModule(
 		// Resolve Refs in the module
 		// Some refs are to other resources in the module
 		// Other refs are to the module's parameters
-		resolveRefs(clonedResource, moduleParams, moduleResources, logicalId, templateProps)
+		ctx := &refctx{
+			moduleParams:    moduleParams,
+			templateProps:   templateProps,
+			outNode:         clonedResource,
+			logicalId:       logicalId,
+			moduleResources: moduleResources,
+		}
+		resolveRefs(ctx)
 
 		if fe != nil && fe.fnForEachSequence != nil {
 			// If the module has a ForEach extension, add it to the sequence instead
-			//config.Debugf("Adding ext to the fnForEachSequence node")
+			//config.Debugf("Adding outNode to the fnForEachSequence node")
 
-			// The Fn::ForEach resource is a map, so we create that and append ext to it
+			// The Fn::ForEach resource is a map, so we create that and append outNode to it
 			fnForEachMap := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
 			// TODO
 			newLogicalId := strings.Replace(fe.fnForEachLogicalId, "ModuleExtension", logicalId, 1)
@@ -432,7 +498,7 @@ func processModule(
 			// Add the map as the 3rd array element in the Fn::ForEach sequence
 			fe.fnForEachSequence.Content = append(fe.fnForEachSequence.Content, fnForEachMap)
 
-			//config.Debugf("outputNode after adding ext: %v", node.ToJson(outputNode))
+			//config.Debugf("outputNode after adding outNode: %v", node.ToJson(outputNode))
 		}
 
 		/*
@@ -513,6 +579,7 @@ func module(ctx *directiveContext) (bool, error) {
 	var content []byte
 	var err error
 	var path string
+	var newRootDir string
 
 	// Is this a local file or a URL?
 	if strings.HasPrefix(uri, "https://") {
@@ -530,22 +597,29 @@ func module(ctx *directiveContext) (bool, error) {
 	} else {
 		if templateFiles != nil {
 			// Read from the embedded file system (for the build -r command)
-			path, err := expectString(n)
+			path, err = expectString(n)
 			if err != nil {
 				return false, err
 			}
 			// We have to hack this since embed doesn't understand "path/../"
-			embeddedPath := root + "/" + strings.Replace(path, "../", "", 1)
+			embeddedPath := strings.Replace(root, "../", "", 1) +
+				"/" + strings.Replace(path, "../", "", 1)
+
+			config.Debugf("path: %s, embeddedPath: %s, root: %s",
+				path, embeddedPath, root)
+
 			content, err = templateFiles.ReadFile(embeddedPath)
 			if err != nil {
 				return false, err
 			}
+			newRootDir = filepath.Dir(embeddedPath)
 		} else {
 			// Read the local file
 			content, path, err = expectFile(n, root)
 			if err != nil {
 				return false, err
 			}
+			newRootDir = filepath.Dir(path)
 		}
 	}
 
@@ -573,7 +647,7 @@ func module(ctx *directiveContext) (bool, error) {
 
 	_, err = transform(&transformContext{
 		nodeToTransform: &moduleNode,
-		rootDir:         filepath.Dir(path),
+		rootDir:         newRootDir,
 		t:               cft.Template{Node: &moduleNode},
 		parent:          &newParent,
 		fs:              ctx.fs,

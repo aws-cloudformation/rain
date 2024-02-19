@@ -1,8 +1,11 @@
-
-  LogBucketPolicy:
+Parameters:
+  PolicyBucketName:
+    Type: String
+Resources:
+  Policy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref LogBucket
+      Bucket: !Ref PolicyBucketName
       PolicyDocument:
         Statement:
           - Action: s3:*
@@ -13,11 +16,8 @@
             Principal:
               AWS: '*'
             Resource:
-              - !GetAtt LogBucket.Arn
-              - !Join
-                - ""
-                - - !GetAtt LogBucket.Arn
-                  - /*
+              - !Sub "arn:aws:s3:::${PolicyBucketName}"
+              - !Sub "arn:aws:s3:::${PolicyBucketName}/*"
           - Action: s3:PutObject
             Condition:
               ArnLike:
@@ -27,8 +27,6 @@
             Effect: Allow
             Principal:
               Service: logging.s3.amazonaws.com
-            Resource: !Join
-              - ""
-              - - !GetAtt LogBucket.Arn
-                - /*
+            Resource:
+              - !Sub "arn:aws:s3:::${PolicyBucketName}/*"
         Version: "2012-10-17"
