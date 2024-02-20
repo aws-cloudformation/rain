@@ -50,12 +50,12 @@ func writeFile(args []string) {
 
 func showPrompt(selections []reco, path string) {
 
-	activeFormat := " {{ .Text | magenta }}"
-	selectedFormat := " {{ .Text | blue }}"
+	activeFormat := " {{ .Name | magenta }}: {{ .Text | magenta }}"
+	selectedFormat := " {{ .Name | magenta }}: {{ .Text | blue }}"
 
 	if console.NoColour {
-		activeFormat = " {{ .Text }}"
-		selectedFormat = " {{ .Text }}"
+		activeFormat = " {{ .Name }}: {{ .Text }}"
+		selectedFormat = " {{ .Name }}: {{ .Text }}"
 	}
 
 	p := promptui.Select{
@@ -64,7 +64,7 @@ func showPrompt(selections []reco, path string) {
 		Templates: &promptui.SelectTemplates{
 			Label:    "{{ . }}",
 			Active:   checkIcon + activeFormat,
-			Inactive: "   {{ .Text }}",
+			Inactive: "  {{ .Name }}: {{ .Text }}",
 			Selected: checkIcon + selectedFormat,
 		},
 	}
