@@ -131,7 +131,7 @@ type refctx struct {
 	overrides *yaml.Node
 }
 
-func replaceProp(prop *yaml.Node, parentName string, v *yaml.Node, outNode *yaml.Node) error {
+func replaceProp(prop *yaml.Node, parentName string, v *yaml.Node, outNode *yaml.Node, sidx int) error {
 
 	// We can't just set prop.Value, since we would end up with
 	// Prop: !Ref Value instead of just Prop: Value. Get the
@@ -148,7 +148,12 @@ func replaceProp(prop *yaml.Node, parentName string, v *yaml.Node, outNode *yaml
 	// Create a new node to replace what's defined in the module
 	newValue := node.Clone(v)
 
-	node.SetMapValue(propParentPair.Value, parentName, newValue)
+	if sidx < 0 {
+		node.SetMapValue(propParentPair.Value, parentName, newValue)
+	} else {
+		// The node is a sequence element
+		node.SetSequenceValue(propParentPair.Value, parentName, newValue, sidx)
+	}
 	return nil
 }
 
@@ -156,7 +161,7 @@ func replaceProp(prop *yaml.Node, parentName string, v *yaml.Node, outNode *yaml
 // parentName is the name of the Property with the Ref in it.
 // prop is the Scalar node with the value for the Ref.
 // The output node is modified by this function (or the prop, which is part of the output)
-func resolveModuleRef(parentName string, prop *yaml.Node, ctx *refctx) error {
+func resolveModuleRef(parentName string, prop *yaml.Node, sidx int, ctx *refctx) error {
 
 	// MyProperty: !Ref NameOfParam
 	//
@@ -203,7 +208,7 @@ func resolveModuleRef(parentName string, prop *yaml.Node, ctx *refctx) error {
 					prop.Value)
 			}
 
-			replaceProp(prop, parentName, parentVal, outNode)
+			replaceProp(prop, parentName, parentVal, outNode, sidx)
 
 			refFoundInParams = true
 		}
@@ -238,8 +243,9 @@ func resolveModuleRef(parentName string, prop *yaml.Node, ctx *refctx) error {
 // which must resolve to strings and not objects.
 //
 // prop.Value is the Sub string
+// sidx is the sequence index if it's > -1
 // ctx.outNode will be modified to replace prop.Value with the references
-func resolveModuleSub(parentName string, prop *yaml.Node, ctx *refctx) error {
+func resolveModuleSub(parentName string, prop *yaml.Node, sidx int, ctx *refctx) error {
 
 	moduleParams := ctx.moduleParams
 	templateProps := ctx.templateProps
@@ -265,13 +271,14 @@ func resolveModuleSub(parentName string, prop *yaml.Node, ctx *refctx) error {
 			sub += "${AWS::" + word.W + "}"
 			needSub = true
 		case parse.REF:
-			resolved := word.W // By default leave it alone
+			resolved := fmt.Sprintf("${%s}", word.W)
 
-			config.Debugf("resolving %s", resolved)
+			config.Debugf("resolving %s", word.W)
 
 			// Look for the name in module params
 			if moduleParams != nil {
 				// Find the module parameter that matches the !Ref
+				config.Debugf("moduleParams: %v", node.ToSJson(moduleParams))
 				_, param, _ := s11n.GetMapValue(moduleParams, word.W)
 				if param != nil {
 					config.Debugf("templateProps: %v", node.ToSJson(templateProps))
@@ -279,8 +286,22 @@ func resolveModuleSub(parentName string, prop *yaml.Node, ctx *refctx) error {
 					if parentVal == nil {
 						return fmt.Errorf("did not find %v in parent template Properties", prop.Value)
 					}
-					config.Debugf("setting resolved to %v", parentVal.Value)
-					resolved = parentVal.Value // This won't work if the parent val is an object
+					config.Debugf("parentVal: %v", node.ToSJson(parentVal))
+					if parentVal.Kind == yaml.MappingNode {
+						// In the parent template, the property is a Sub
+						// This would need to resolve to a string so assume a len of 2
+						if len(parentVal.Content) == 2 {
+							needSub = true
+							if parentVal.Content[0].Value == "Ref" {
+								resolved = fmt.Sprintf("${%s}", parentVal.Content[1].Value)
+							} else {
+								resolved = parentVal.Content[1].Value
+							}
+						}
+					} else {
+						// It's a string
+						resolved = parentVal.Value
+					}
 					refFoundInParams = true
 				} else {
 					needSub = true
@@ -329,6 +350,8 @@ func resolveModuleSub(parentName string, prop *yaml.Node, ctx *refctx) error {
 		}
 	}
 
+	config.Debugf("sub is %s", sub)
+
 	// Put the sub back if there were any unresolved variables
 	var newProp *yaml.Node
 	if needSub {
@@ -343,14 +366,15 @@ func resolveModuleSub(parentName string, prop *yaml.Node, ctx *refctx) error {
 	}
 
 	// Replace the prop in the output node
-	replaceProp(prop, parentName, newProp, ctx.outNode)
+	replaceProp(prop, parentName, newProp, ctx.outNode, sidx)
 
 	return nil
 }
 
 // Recursive function to find all refs in properties
 // Also handles DeletionPolicy, UpdateRetainPolicy
-func renamePropRefs(parentName string, propName string, prop *yaml.Node, ctx *refctx) error {
+// If sidx is > -1, this prop is in a sequence
+func renamePropRefs(parentName string, propName string, prop *yaml.Node, sidx int, ctx *refctx) error {
 
 	logicalId := ctx.logicalId
 
@@ -368,21 +392,20 @@ func renamePropRefs(parentName string, propName string, prop *yaml.Node, ctx *re
 	//           A: B
 	//           C: !Ref D
 
-	// config.Debugf("renamePropRefs parentName: %v, propName: %v, prop.Kind: %v", parentName, propName, prop.Kind)
-
 	if prop.Kind == yaml.ScalarNode {
 		if propName == "Ref" {
-			if err := resolveModuleRef(parentName, prop, ctx); err != nil {
+			if err := resolveModuleRef(parentName, prop, sidx, ctx); err != nil {
 				return err
 			}
 		} else if propName == "Fn::Sub" {
 			config.Debugf("Sub prop: %v", node.ToSJson(prop))
 
-			if err := resolveModuleSub(parentName, prop, ctx); err != nil {
+			if err := resolveModuleSub(parentName, prop, sidx, ctx); err != nil {
 				return err
 			}
 
-			config.Debugf("after Sub prop: %v", node.ToSJson(prop))
+			// Misleading. TODO: Return the changed node
+			//config.Debugf("after Sub prop: %v", node.ToSJson(prop))
 
 			// TODO: Also handle Seq Subs
 		}
@@ -394,7 +417,8 @@ func renamePropRefs(parentName string, propName string, prop *yaml.Node, ctx *re
 		} else {
 			// Recurse over array elements
 			for i, p := range prop.Content {
-				result := renamePropRefs(parentName, p.Value, prop.Content[i], ctx)
+				// propName is blank so the next parentName is blank
+				result := renamePropRefs(parentName, p.Value, prop.Content[i], i, ctx)
 				if result != nil {
 					return result
 				}
@@ -404,7 +428,13 @@ func renamePropRefs(parentName string, propName string, prop *yaml.Node, ctx *re
 		// Iterate over all map elements and recurse on the contents
 		for i, p := range prop.Content {
 			if i%2 == 0 {
-				result := renamePropRefs(propName, p.Value, prop.Content[i+1], ctx)
+				var result error
+				if propName == "" && sidx > -1 {
+					// This is inside a sequence
+					result = renamePropRefs(parentName, p.Value, prop.Content[i+1], sidx, ctx)
+				} else {
+					result = renamePropRefs(propName, p.Value, prop.Content[i+1], -1, ctx)
+				}
 				if result != nil {
 					return result
 				}
@@ -430,7 +460,7 @@ func resolveRefs(ctx *refctx) error {
 		for i, prop := range outNodeProps.Content {
 			if i%2 == 0 {
 				propName := prop.Value
-				err := renamePropRefs(propName, propName, outNodeProps.Content[i+1], ctx)
+				err := renamePropRefs(propName, propName, outNodeProps.Content[i+1], -1, ctx)
 				if err != nil {
 					return fmt.Errorf("unable to resolve refs for %v: %v", propName, err)
 				}
@@ -444,7 +474,7 @@ func resolveRefs(ctx *refctx) error {
 		_, policyNode, _ := s11n.GetMapValue(outNode, policy)
 		if policyNode != nil {
 			// config.Debugf("policyNode: %v", node.ToJson(policyNode))
-			err := renamePropRefs(policy, policy, policyNode, ctx)
+			err := renamePropRefs(policy, policy, policyNode, -1, ctx)
 			if err != nil {
 				return fmt.Errorf("unable to resolve refs for %v, %v", policy, err)
 			}
@@ -489,6 +519,8 @@ func processModule(
 
 	// Locate the Parameters: section in the module (might be nil)
 	_, moduleParams, _ := s11n.GetMapValue(curNode, "Parameters")
+
+	config.Debugf("processModule moduleParams: %v", node.ToSJson(moduleParams))
 
 	templateResource := parent.Value // The !!map node of the resource with Type !Rain::Module
 
