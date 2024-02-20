@@ -117,7 +117,7 @@ Resources:
       PolicyBucketName: !Sub ${AppName}-replicas-${AWS::Region}-${AWS::AccountId}
 
   ReplicationPolicy:
-    Type: AWS::IAM::Policy # TODO: Switch to RolePolicy or ManagedPolicy
+    Type: AWS::IAM::RolePolicy
     Properties:
       PolicyDocument:
         Statement:
@@ -140,8 +140,7 @@ Resources:
             Resource: !Sub arn:aws:s3:::${AppName}-replicas-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
       PolicyName: bucket-replication-policy
-      Roles:
-        - !Ref ReplicationRole
+      RoleName: !Ref ReplicationRole
 
   ReplicationRole:
     Type: AWS::IAM::Role

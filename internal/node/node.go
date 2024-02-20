@@ -226,9 +226,9 @@ func SetMapValue(parent *yaml.Node, name string, val *yaml.Node) {
 }
 
 // Set the value of a sequence element within the node
-func SetSequenceValue(parent *yaml.Node, name string, val *yaml.Node, sidx int) {
-	config.Debugf("SetSequenceValue parent: %s, name: %s, val: %s, sidx: %v",
-		ToSJson(parent), name, ToSJson(val), sidx)
+func SetSequenceValue(parent *yaml.Node, val *yaml.Node, sidx int) {
+	config.Debugf("SetSequenceValue parent: %s, val: %s, sidx: %v",
+		ToSJson(parent), ToSJson(val), sidx)
 
 	if len(parent.Content) <= sidx {
 		return

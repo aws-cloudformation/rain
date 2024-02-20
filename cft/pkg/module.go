@@ -133,6 +133,15 @@ type refctx struct {
 
 func replaceProp(prop *yaml.Node, parentName string, v *yaml.Node, outNode *yaml.Node, sidx int) error {
 
+	if sidx > -1 {
+		// The node is a sequence element
+
+		newVal := node.Clone(v)
+		*prop = *newVal
+		return nil
+	}
+	// TODO Is the above good enough for the below?
+
 	// We can't just set prop.Value, since we would end up with
 	// Prop: !Ref Value instead of just Prop: Value. Get the
 	// property's parent and set the entire map value for the
@@ -148,12 +157,8 @@ func replaceProp(prop *yaml.Node, parentName string, v *yaml.Node, outNode *yaml
 	// Create a new node to replace what's defined in the module
 	newValue := node.Clone(v)
 
-	if sidx < 0 {
-		node.SetMapValue(propParentPair.Value, parentName, newValue)
-	} else {
-		// The node is a sequence element
-		node.SetSequenceValue(propParentPair.Value, parentName, newValue, sidx)
-	}
+	node.SetMapValue(propParentPair.Value, parentName, newValue)
+
 	return nil
 }
 
@@ -201,7 +206,6 @@ func resolveModuleRef(parentName string, prop *yaml.Node, sidx int, ctx *refctx)
 			// Inside the module, we replace !Ref Foo with bar
 
 			// Look for this property name in the parent template
-			config.Debugf("templateProps: %v", node.ToSJson(templateProps))
 			_, parentVal, _ := s11n.GetMapValue(templateProps, prop.Value)
 			if parentVal == nil {
 				return fmt.Errorf("did not find %v in parent template Properties",
@@ -259,8 +263,6 @@ func resolveModuleSub(parentName string, prop *yaml.Node, sidx int, ctx *refctx)
 		return err
 	}
 
-	config.Debugf("Sub prop words: %v", words)
-
 	sub := ""
 	needSub := false // If we can fully resolve everything, we can remove the !Sub
 	for _, word := range words {
@@ -273,20 +275,15 @@ func resolveModuleSub(parentName string, prop *yaml.Node, sidx int, ctx *refctx)
 		case parse.REF:
 			resolved := fmt.Sprintf("${%s}", word.W)
 
-			config.Debugf("resolving %s", word.W)
-
 			// Look for the name in module params
 			if moduleParams != nil {
 				// Find the module parameter that matches the !Ref
-				config.Debugf("moduleParams: %v", node.ToSJson(moduleParams))
 				_, param, _ := s11n.GetMapValue(moduleParams, word.W)
 				if param != nil {
-					config.Debugf("templateProps: %v", node.ToSJson(templateProps))
 					_, parentVal, _ := s11n.GetMapValue(templateProps, word.W)
 					if parentVal == nil {
 						return fmt.Errorf("did not find %v in parent template Properties", prop.Value)
 					}
-					config.Debugf("parentVal: %v", node.ToSJson(parentVal))
 					if parentVal.Kind == yaml.MappingNode {
 						// In the parent template, the property is a Sub
 						// This would need to resolve to a string so assume a len of 2
@@ -305,27 +302,22 @@ func resolveModuleSub(parentName string, prop *yaml.Node, sidx int, ctx *refctx)
 					refFoundInParams = true
 				} else {
 					needSub = true
-					config.Debugf("param not found in parent")
 				}
 			} else {
 				needSub = true
-				config.Debugf("moduleParams is nil")
 			}
 			if !refFoundInParams {
 				// Look for a resource in the module
 				_, resource, _ := s11n.GetMapValue(moduleResources, word.W)
 				if resource != nil {
 					resolved = rename(logicalId, word.W)
-					config.Debugf("found resource, renamed to %s", resolved)
 				} else {
-					config.Debugf("resource not found in module")
 					needSub = true
 				}
 			}
 
 			// If we didn't change the word, it is either an intrinsic like AWS::Region or
 			// a value that is expected to be in the parent template, which is up to the user
-			config.Debugf("resolved: %s", resolved)
 
 			sub += resolved
 		case parse.GETATT:
@@ -339,9 +331,6 @@ func resolveModuleSub(parentName string, prop *yaml.Node, sidx int, ctx *refctx)
 			_, resource, _ := s11n.GetMapValue(moduleResources, left)
 			if resource != nil {
 				left = rename(logicalId, left)
-				config.Debugf("found resource, renamed to %s", left)
-			} else {
-				config.Debugf("resource not found in module")
 			}
 			sub += fmt.Sprintf("${%s.%s}", left, right)
 			needSub = true
@@ -350,11 +339,9 @@ func resolveModuleSub(parentName string, prop *yaml.Node, sidx int, ctx *refctx)
 		}
 	}
 
-	config.Debugf("sub is %s", sub)
-
 	// Put the sub back if there were any unresolved variables
 	var newProp *yaml.Node
-	if needSub {
+	if needSub && sidx < 0 {
 		newProp = &yaml.Node{Kind: yaml.MappingNode, Value: parentName}
 		newProp.Content = make([]*yaml.Node, 0)
 		newProp.Content = append(newProp.Content,
@@ -378,9 +365,6 @@ func renamePropRefs(parentName string, propName string, prop *yaml.Node, sidx in
 
 	logicalId := ctx.logicalId
 
-	config.Debugf("renamePropRefs parentName: %s, propName: %s, prop: %v",
-		parentName, propName, node.ToSJson(prop))
-
 	// Properties:
 	//   SimpleProp: Val
 	//   RefParam: !Ref NameOfParam
@@ -395,17 +379,13 @@ func renamePropRefs(parentName string, propName string, prop *yaml.Node, sidx in
 	if prop.Kind == yaml.ScalarNode {
 		if propName == "Ref" {
 			if err := resolveModuleRef(parentName, prop, sidx, ctx); err != nil {
-				return err
+				return fmt.Errorf("resolving module ref %s: %v", parentName, err)
 			}
 		} else if propName == "Fn::Sub" {
-			config.Debugf("Sub prop: %v", node.ToSJson(prop))
 
 			if err := resolveModuleSub(parentName, prop, sidx, ctx); err != nil {
-				return err
+				return fmt.Errorf("resolving module sub %s: %v", parentName, err)
 			}
-
-			// Misleading. TODO: Return the changed node
-			//config.Debugf("after Sub prop: %v", node.ToSJson(prop))
 
 			// TODO: Also handle Seq Subs
 		}
@@ -420,7 +400,7 @@ func renamePropRefs(parentName string, propName string, prop *yaml.Node, sidx in
 				// propName is blank so the next parentName is blank
 				result := renamePropRefs(parentName, p.Value, prop.Content[i], i, ctx)
 				if result != nil {
-					return result
+					return fmt.Errorf("recursing over array %s: %v", parentName, result)
 				}
 			}
 		}
@@ -428,15 +408,9 @@ func renamePropRefs(parentName string, propName string, prop *yaml.Node, sidx in
 		// Iterate over all map elements and recurse on the contents
 		for i, p := range prop.Content {
 			if i%2 == 0 {
-				var result error
-				if propName == "" && sidx > -1 {
-					// This is inside a sequence
-					result = renamePropRefs(parentName, p.Value, prop.Content[i+1], sidx, ctx)
-				} else {
-					result = renamePropRefs(propName, p.Value, prop.Content[i+1], -1, ctx)
-				}
+				result := renamePropRefs(propName, p.Value, prop.Content[i+1], sidx, ctx)
 				if result != nil {
-					return result
+					return fmt.Errorf("recursing over mapping node %s: %v", propName, result)
 				}
 			}
 		}
@@ -473,7 +447,6 @@ func resolveRefs(ctx *refctx) error {
 	for _, policy := range policies {
 		_, policyNode, _ := s11n.GetMapValue(outNode, policy)
 		if policyNode != nil {
-			// config.Debugf("policyNode: %v", node.ToJson(policyNode))
 			err := renamePropRefs(policy, policy, policyNode, -1, ctx)
 			if err != nil {
 				return fmt.Errorf("unable to resolve refs for %v, %v", policy, err)
@@ -520,8 +493,6 @@ func processModule(
 	// Locate the Parameters: section in the module (might be nil)
 	_, moduleParams, _ := s11n.GetMapValue(curNode, "Parameters")
 
-	config.Debugf("processModule moduleParams: %v", node.ToSJson(moduleParams))
-
 	templateResource := parent.Value // The !!map node of the resource with Type !Rain::Module
 
 	// Properties are the args that match module params
@@ -538,7 +509,6 @@ func processModule(
 
 	// Get module resources and add them to the output
 	for i, moduleResource := range moduleResources.Content {
-		//config.Debugf("i = %v, resource = %v", i, moduleResource)
 		if moduleResource.Kind != yaml.MappingNode {
 			continue
 		}
@@ -644,12 +614,11 @@ func processModule(
 		}
 		err := resolveRefs(ctx)
 		if err != nil {
-			return false, err
+			return false, fmt.Errorf("failed to resolve refs: %v", err)
 		}
 
 		if fe != nil && fe.fnForEachSequence != nil {
 			// If the module has a ForEach extension, add it to the sequence instead
-			//config.Debugf("Adding outNode to the fnForEachSequence node")
 
 			// The Fn::ForEach resource is a map, so we create that and append outNode to it
 			fnForEachMap := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
@@ -662,7 +631,6 @@ func processModule(
 			// Add the map as the 3rd array element in the Fn::ForEach sequence
 			fe.fnForEachSequence.Content = append(fe.fnForEachSequence.Content, fnForEachMap)
 
-			//config.Debugf("outputNode after adding outNode: %v", node.ToJson(outputNode))
 		}
 
 		/*
@@ -769,9 +737,6 @@ func module(ctx *directiveContext) (bool, error) {
 			embeddedPath := strings.Replace(root, "../", "", 1) +
 				"/" + strings.Replace(path, "../", "", 1)
 
-			//config.Debugf("path: %s, embeddedPath: %s, root: %s",
-			//	path, embeddedPath, root)
-
 			content, err = templateFiles.ReadFile(embeddedPath)
 			if err != nil {
 				return false, err
@@ -794,11 +759,6 @@ func module(ctx *directiveContext) (bool, error) {
 		return false, err
 	}
 
-	//config.Debugf("module t.Node: %v", node.ToSJson(t.Node))
-	//config.Debugf("module moduleNode: %v", node.ToSJson(&moduleNode))
-	//config.Debugf("module n: %v", node.ToSJson(n))
-	//config.Debugf("module parent:\n%s", parent.String())
-
 	// Recurse on directives in the module itself
 	parse.NormalizeNode(&moduleNode)
 	var newParent node.NodePair
@@ -806,8 +766,6 @@ func module(ctx *directiveContext) (bool, error) {
 		newParent = node.GetParent(n, parent.Parent.Value, nil)
 		newParent.Parent = &parent
 	}
-
-	// config.Debugf("module newParent: %s", newParent.String())
 
 	_, err = transform(&transformContext{
 		nodeToTransform: &moduleNode,
@@ -824,7 +782,7 @@ func module(ctx *directiveContext) (bool, error) {
 	var outputNode yaml.Node
 	_, err = processModule(&moduleNode, &outputNode, t, n, parent)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to process module %s: %v", uri, err)
 	}
 
 	// Find the resource node in the template
@@ -832,10 +790,6 @@ func module(ctx *directiveContext) (bool, error) {
 	if resourceNode == nil {
 		return false, errors.New("expected template to have Resources")
 	}
-
-	// config.Debugf("resourceNode: %v", node.ToJson(resourceNode))
-
-	// config.Debugf("outputNode: %v", node.ToSJson(&outputNode))
 
 	// Remove the original from the template
 	err = node.RemoveFromMap(resourceNode, parent.Key.Value)
@@ -847,9 +801,6 @@ func module(ctx *directiveContext) (bool, error) {
 
 	// Insert the transformed resource into the template
 	resourceNode.Content = append(resourceNode.Content, outputNode.Content...)
-
-	// config.Debugf("Returning from module")
-	//config.Debugf("t.Node: %v", node.ToJson(t.Node))
 
 	return true, nil
 

@@ -3,8 +3,6 @@ package parse
 import (
 	"errors"
 	"strings"
-
-	"github.com/aws-cloudformation/rain/internal/config"
 )
 
 const (
@@ -57,7 +55,7 @@ func ParseSub(sub string) ([]SubWord, error) {
 	var buf string
 	var wt wordtype
 	for i, r := range sub {
-		config.Debugf("%#U", r)
+		//config.Debugf("%#U", r)
 		switch r {
 		case DOLLAR:
 			if state != READVAR {

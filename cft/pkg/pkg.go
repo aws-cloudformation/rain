@@ -26,6 +26,7 @@ package pkg
 
 import (
 	"embed"
+	"fmt"
 	"path/filepath"
 
 	"github.com/aws-cloudformation/rain/cft"
@@ -109,12 +110,13 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 	//config.Debugf("About to decode:\n%v", node.ToSJson(templateNode))
 	err = templateNode.Decode(&decoded)
 	if err != nil {
-		return t, err
+		config.Debugf("templateNode: %v", node.ToSJson(templateNode))
+		return t, fmt.Errorf("failed to decode template: %v", err)
 	}
 
 	err = templateNode.Encode(&decoded)
 	if err != nil {
-		return t, err
+		return t, fmt.Errorf("failed to encode template: %v", err)
 	}
 
 	// We lose the Document node here
