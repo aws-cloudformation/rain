@@ -16,11 +16,68 @@ Parameters:
     Type: String
 
 Resources:
-  AccessBucket:
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
+  CloudFrontLogsBucket:
     Type: AWS::S3::Bucket
     Metadata:
+      guard:
+        SuppressedRules:
+          - S3_BUCKET_DEFAULT_LOCK_ENABLED
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      BucketName: !Sub ${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}
+      LoggingConfiguration:
+        DestinationBucketName: !Ref CloudFrontLogsLogBucket
+      ObjectLockEnabled: false
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      ReplicationConfiguration:
+        Role: !GetAtt CloudFrontLogsReplicationRole.Arn
+        Rules:
+          - Destination:
+              Bucket: !GetAtt CloudFrontLogsReplicaBucket.Arn
+            Status: Enabled
+      VersioningConfiguration:
+        Status: Enabled
+
+  CloudFrontLogsBucketPolicyPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Sub ${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}
+      PolicyDocument:
+        Statement:
+          - Action: s3:*
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+            Effect: Deny
+            Principal:
+              AWS: '*'
+            Resource:
+              - !Sub arn:aws:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}
+              - !Sub arn:aws:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}/*
+          - Action: s3:PutObject
+            Condition:
+              ArnLike:
+                aws:SourceArn: !Sub arn:aws:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+            Effect: Allow
+            Principal:
+              Service: logging.s3.amazonaws.com
+            Resource:
+              - !Sub arn:aws:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}/*
+        Version: "2012-10-17"
+
+  CloudFrontLogsLogBucket:
+    Type: AWS::S3::Bucket
+    Metadata:
+      Comment: This bucket records access logs for the main bucket
       checkov:
         skip:
           - comment: This is the log bucket
@@ -34,7 +91,7 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
-      BucketName: !Sub ${AppName}-access-${AWS::Region}-${AWS::AccountId}
+      BucketName: !Sub ${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
       ObjectLockConfiguration:
         ObjectLockEnabled: Enabled
         Rule:
@@ -42,61 +99,141 @@ Resources:
             Mode: COMPLIANCE
             Years: 1
       ObjectLockEnabled: true
-      OwnershipControls:
-        Rules:
-          - ObjectOwnership: ObjectWriter
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
-      ReplicationConfiguration:
-        Role: !GetAtt ReplicationRole.Arn
-        Rules:
-          - Destination:
-              Bucket: !GetAtt ReplicaBucket.Arn
-            Prefix: access
-            Status: Enabled
       VersioningConfiguration:
         Status: Enabled
 
-  AccessBucketPolicy:
+  CloudFrontLogsLogBucketPolicyPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref AccessBucket
+      Bucket: !Sub ${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
           - Action: s3:*
             Condition:
               Bool:
-                aws:SecureTransport: "false"
+                aws:SecureTransport: false
             Effect: Deny
             Principal:
               AWS: '*'
             Resource:
-              - !GetAtt AccessBucket.Arn
-              - !Join
-                - ""
-                - - !GetAtt AccessBucket.Arn
-                  - /*
+              - !Sub arn:aws:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
+              - !Sub arn:aws:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}/*
           - Action: s3:PutObject
             Condition:
               ArnLike:
-                aws:SourceArn: !GetAtt CloudFrontLogBucket.Arn
+                aws:SourceArn: !Sub arn:aws:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
               StringEquals:
                 aws:SourceAccount: !Ref AWS::AccountId
             Effect: Allow
             Principal:
               Service: logging.s3.amazonaws.com
-            Resource: !Join
-              - ""
-              - - !GetAtt AccessBucket.Arn
-                - /*
+            Resource:
+              - !Sub arn:aws:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
-  Bucket:
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
+  CloudFrontLogsReplicaBucket:
+    Type: AWS::S3::Bucket
+    Metadata:
+      Comment: This bucket is used as a target for replicas from the main bucket
+      checkov:
+        skip:
+          - comment: This is the replica bucket
+            id: CKV_AWS_18
+      guard:
+        SuppressedRules:
+          - S3_BUCKET_DEFAULT_LOCK_ENABLED
+          - S3_BUCKET_REPLICATION_ENABLED
+          - S3_BUCKET_LOGGING_ENABLED
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      BucketName: !Sub ${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
+      ObjectLockEnabled: false
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+
+  CloudFrontLogsReplicaBucketPolicyPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Sub ${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
+      PolicyDocument:
+        Statement:
+          - Action: s3:*
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+            Effect: Deny
+            Principal:
+              AWS: '*'
+            Resource:
+              - !Sub arn:aws:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
+              - !Sub arn:aws:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}/*
+          - Action: s3:PutObject
+            Condition:
+              ArnLike:
+                aws:SourceArn: !Sub arn:aws:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+            Effect: Allow
+            Principal:
+              Service: logging.s3.amazonaws.com
+            Resource:
+              - !Sub arn:aws:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}/*
+        Version: "2012-10-17"
+
+  CloudFrontLogsReplicationPolicy:
+    Type: AWS::IAM::RolePolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:GetReplicationConfiguration
+              - s3:ListBucket
+            Effect: Allow
+            Resource: !Sub arn:aws:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}
+          - Action:
+              - s3:GetObjectVersionForReplication
+              - s3:GetObjectVersionAcl
+              - s3:GetObjectVersionTagging
+            Effect: Allow
+            Resource: !Sub arn:aws:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}/*
+          - Action:
+              - s3:ReplicateObject
+              - s3:ReplicateDelete
+              - s3:ReplicationTags
+            Effect: Allow
+            Resource: !Sub arn:aws:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}/*
+        Version: "2012-10-17"
+      PolicyName: bucket-replication-policy
+      RoleName: !Ref CloudFrontLogsReplicationRole
+
+  CloudFrontLogsReplicationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - s3.amazonaws.com
+        Version: "2012-10-17"
+      Path: /
+
+  ContentBucket:
     Type: AWS::S3::Bucket
     Metadata:
       guard:
@@ -107,166 +244,57 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
-      BucketName: !Sub ${AppName}-website-${AWS::Region}-${AWS::AccountId}
-      LifecycleConfiguration:
-        Rules:
-          - NoncurrentVersionTransitions:
-              - StorageClass: GLACIER
-                TransitionInDays: 90
-            Status: Enabled
+      BucketName: !Sub ${AppName}-${AWS::Region}-${AWS::AccountId}
       LoggingConfiguration:
-        DestinationBucketName: !Ref LogBucket
+        DestinationBucketName: !Ref ContentLogBucket
+      ObjectLockEnabled: false
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
       ReplicationConfiguration:
-        Role: !GetAtt ReplicationRole.Arn
+        Role: !GetAtt ContentReplicationRole.Arn
         Rules:
           - Destination:
-              Bucket: !GetAtt ReplicaBucket.Arn
-            Prefix: website
+              Bucket: !GetAtt ContentReplicaBucket.Arn
             Status: Enabled
       VersioningConfiguration:
         Status: Enabled
 
-  BucketPolicy:
+  ContentBucketPolicyPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref Bucket
+      Bucket: !Sub ${AppName}-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
           - Action: s3:*
             Condition:
               Bool:
-                aws:SecureTransport: "false"
+                aws:SecureTransport: false
             Effect: Deny
             Principal:
               AWS: '*'
             Resource:
-              - !GetAtt Bucket.Arn
-              - !Join
-                - ""
-                - - !GetAtt Bucket.Arn
-                  - /*
-          - Action: s3:GetObject
+              - !Sub arn:aws:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}
+              - !Sub arn:aws:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*
+          - Action: s3:PutObject
             Condition:
+              ArnLike:
+                aws:SourceArn: !Sub arn:aws:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}
               StringEquals:
-                AWS:SourceArn: !Join
-                  - ""
-                  - - 'arn:aws:cloudfront::'
-                    - !Ref AWS::AccountId
-                    - :distribution/
-                    - !Ref Distribution
+                aws:SourceAccount: !Ref AWS::AccountId
             Effect: Allow
             Principal:
-              Service: cloudfront.amazonaws.com
-            Resource: !Join
-              - ""
-              - - !GetAtt Bucket.Arn
-                - /*
-        Version: "2012-10-17"
-
-  CloudFrontLogBucket:
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Type: AWS::S3::Bucket
-    Properties:
-      AccessControl: LogDeliveryWrite
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      BucketName: !Sub ${AppName}-cf-logs-${AWS::Region}-${AWS::AccountId}
-      LoggingConfiguration:
-        DestinationBucketName: !Ref AccessBucket
-      ObjectLockConfiguration:
-        ObjectLockEnabled: Enabled
-        Rule:
-          DefaultRetention:
-            Mode: COMPLIANCE
-            Years: 1
-      ObjectLockEnabled: true
-      OwnershipControls:
-        Rules:
-          - ObjectOwnership: ObjectWriter
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-      ReplicationConfiguration:
-        Role: !GetAtt ReplicationRole.Arn
-        Rules:
-          - Destination:
-              Bucket: !GetAtt ReplicaBucket.Arn
-            Prefix: cf-logs
-            Status: Enabled
-      VersioningConfiguration:
-        Status: Enabled
-
-  CloudFrontLogBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Ref CloudFrontLogBucket
-      PolicyDocument:
-        Statement:
-          - Action: s3:*
-            Condition:
-              Bool:
-                aws:SecureTransport: "false"
-            Effect: Deny
-            Principal:
-              AWS: '*'
+              Service: logging.s3.amazonaws.com
             Resource:
-              - !GetAtt CloudFrontLogBucket.Arn
-              - !Join
-                - ""
-                - - !GetAtt CloudFrontLogBucket.Arn
-                  - /*
+              - !Sub arn:aws:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
-  Distribution:
-    Type: AWS::CloudFront::Distribution
-    Metadata:
-      checkov:
-        skip:
-          - comment: Using the default cloudfront certificate with no aliases
-            id: CKV_AWS_174
-      guard:
-        SuppressedRules:
-          - CLOUDFRONT_CUSTOM_SSL_CERTIFICATE
-          - CLOUDFRONT_ORIGIN_FAILOVER_ENABLED
-          - CLOUDFRONT_SNI_ENABLED
-    Properties:
-      DistributionConfig:
-        DefaultCacheBehavior:
-          CachePolicyId: rain-build-cache-policy-1
-          Compress: true
-          TargetOriginId: rain-build-origin-1
-          ViewerProtocolPolicy: redirect-to-https
-        DefaultRootObject: index.html
-        Enabled: true
-        HttpVersion: http2
-        IPV6Enabled: true
-        Logging:
-          Bucket: !GetAtt CloudFrontLogBucket.RegionalDomainName
-        Origins:
-          - DomainName: !GetAtt Bucket.RegionalDomainName
-            Id: rain-build-origin-1
-            OriginAccessControlId: !GetAtt OriginAccessControl.Id
-            S3OriginConfig:
-              OriginAccessIdentity: ""
-        ViewerCertificate:
-          CloudFrontDefaultCertificate: true
-        WebACLId: !Ref WebACL
-
-  LogBucket:
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
+  ContentLogBucket:
     Type: AWS::S3::Bucket
     Metadata:
+      Comment: This bucket records access logs for the main bucket
       checkov:
         skip:
           - comment: This is the log bucket
@@ -296,10 +324,10 @@ Resources:
       VersioningConfiguration:
         Status: Enabled
 
-  LogBucketPolicy:
+  ContentLogBucketPolicyPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref LogBucket
+      Bucket: !Sub ${AppName}-logs-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
           - Action: s3:*
@@ -310,43 +338,22 @@ Resources:
             Principal:
               AWS: '*'
             Resource:
-              - !GetAtt LogBucket.Arn
-              - !Join
-                - ""
-                - - !GetAtt LogBucket.Arn
-                  - /*
+              - !Sub arn:aws:s3:::${AppName}-logs-${AWS::Region}-${AWS::AccountId}
+              - !Sub arn:aws:s3:::${AppName}-logs-${AWS::Region}-${AWS::AccountId}/*
           - Action: s3:PutObject
             Condition:
               ArnLike:
-                aws:SourceArn: !GetAtt Bucket.Arn
+                aws:SourceArn: !Sub arn:aws:s3:::${AppName}-logs-${AWS::Region}-${AWS::AccountId}
               StringEquals:
                 aws:SourceAccount: !Ref AWS::AccountId
             Effect: Allow
             Principal:
               Service: logging.s3.amazonaws.com
-            Resource: !Join
-              - ""
-              - - !GetAtt LogBucket.Arn
-                - /*
+            Resource:
+              - !Sub arn:aws:s3:::${AppName}-logs-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
-  OriginAccessControl:
-    Type: AWS::CloudFront::OriginAccessControl
-    Properties:
-      OriginAccessControlConfig:
-        Name: !Join
-          - ""
-          - - rain-build-website-
-            - !Select
-              - 2
-              - !Split
-                - /
-                - !Ref AWS::StackId
-        OriginAccessControlOriginType: s3
-        SigningBehavior: always
-        SigningProtocol: sigv4
-
-  ReplicaBucket:
+  ContentReplicaBucket:
     Type: AWS::S3::Bucket
     Metadata:
       Comment: This bucket is used as a target for replicas from the main bucket
@@ -374,25 +381,51 @@ Resources:
       VersioningConfiguration:
         Status: Enabled
 
-  ReplicationPolicy:
-    Type: AWS::IAM::Policy
+  ContentReplicaBucketPolicyPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Sub ${AppName}-replicas-${AWS::Region}-${AWS::AccountId}
+      PolicyDocument:
+        Statement:
+          - Action: s3:*
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+            Effect: Deny
+            Principal:
+              AWS: '*'
+            Resource:
+              - !Sub arn:aws:s3:::${AppName}-replicas-${AWS::Region}-${AWS::AccountId}
+              - !Sub arn:aws:s3:::${AppName}-replicas-${AWS::Region}-${AWS::AccountId}/*
+          - Action: s3:PutObject
+            Condition:
+              ArnLike:
+                aws:SourceArn: !Sub arn:aws:s3:::${AppName}-replicas-${AWS::Region}-${AWS::AccountId}
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+            Effect: Allow
+            Principal:
+              Service: logging.s3.amazonaws.com
+            Resource:
+              - !Sub arn:aws:s3:::${AppName}-replicas-${AWS::Region}-${AWS::AccountId}/*
+        Version: "2012-10-17"
+
+  ContentReplicationPolicy:
+    Type: AWS::IAM::RolePolicy
     Properties:
       PolicyDocument:
         Statement:
           - Action:
               - s3:GetReplicationConfiguration
               - s3:ListBucket
+            Effect: Allow
+            Resource: !Sub arn:aws:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}
+          - Action:
               - s3:GetObjectVersionForReplication
               - s3:GetObjectVersionAcl
               - s3:GetObjectVersionTagging
             Effect: Allow
-            Resource:
-              - !Sub arn:aws:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}
-              - !Sub arn:aws:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*
-              - !Sub arn:aws:s3:::${AppName}-access-${AWS::Region}-${AWS::AccountId}
-              - !Sub arn:aws:s3:::${AppName}-access-${AWS::Region}-${AWS::AccountId}/*
-              - !Sub arn:aws:s3:::${AppName}-cf-logs-${AWS::Region}-${AWS::AccountId}
-              - !Sub arn:aws:s3:::${AppName}-cf-logs-${AWS::Region}-${AWS::AccountId}/*
+            Resource: !Sub arn:aws:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*
           - Action:
               - s3:ReplicateObject
               - s3:ReplicateDelete
@@ -401,10 +434,9 @@ Resources:
             Resource: !Sub arn:aws:s3:::${AppName}-replicas-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
       PolicyName: bucket-replication-policy
-      Roles:
-        - !Ref ReplicationRole
+      RoleName: !Ref ContentReplicationRole
 
-  ReplicationRole:
+  ContentReplicationRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -417,6 +449,57 @@ Resources:
                 - s3.amazonaws.com
         Version: "2012-10-17"
       Path: /
+
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Metadata:
+      checkov:
+        skip:
+          - comment: Using the default cloudfront certificate with no aliases
+            id: CKV_AWS_174
+      guard:
+        SuppressedRules:
+          - CLOUDFRONT_CUSTOM_SSL_CERTIFICATE
+          - CLOUDFRONT_ORIGIN_FAILOVER_ENABLED
+          - CLOUDFRONT_SNI_ENABLED
+    Properties:
+      DistributionConfig:
+        DefaultCacheBehavior:
+          CachePolicyId: rain-build-cache-policy-1
+          Compress: true
+          TargetOriginId: rain-build-origin-1
+          ViewerProtocolPolicy: redirect-to-https
+        DefaultRootObject: index.html
+        Enabled: true
+        HttpVersion: http2
+        IPV6Enabled: true
+        Logging:
+          Bucket: !GetAtt CloudFrontLogsBucket.RegionalDomainName
+        Origins:
+          - DomainName: !GetAtt ContentBucket.RegionalDomainName
+            Id: rain-build-origin-1
+            OriginAccessControlId: !GetAtt OriginAccessControl.Id
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+        WebACLId: !Ref WebACL
+
+  OriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Join
+          - ""
+          - - rain-build-website-
+            - !Select
+              - 2
+              - !Split
+                - /
+                - !Ref AWS::StackId
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
 
 Outputs:
   SiteURL:
