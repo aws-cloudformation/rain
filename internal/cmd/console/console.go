@@ -5,6 +5,7 @@ import (
 )
 
 var printOnlyFlag = false
+var logoutFlag = false
 var serviceParam = "cloudformation"
 var userName = ""
 
@@ -27,12 +28,13 @@ Unless you specify the --name/-n flag, your AWS console user name will be derive
 			stackName = args[0]
 		}
 
-		Open(printOnlyFlag, serviceParam, stackName, userName)
+		Open(printOnlyFlag, logoutFlag, serviceParam, stackName, userName)
 	},
 }
 
 func init() {
 	Cmd.Flags().BoolVarP(&printOnlyFlag, "url", "u", false, "Just construct the sign-in URL; don't attempt to open it")
+	Cmd.Flags().BoolVarP(&logoutFlag, "logout", "l", false, "Log out of the AWS console")
 	Cmd.Flags().StringVarP(&serviceParam, "service", "s", "cloudformation", "Choose an AWS service home page to launch")
 	Cmd.Flags().StringVarP(&userName, "name", "n", "", "Specify a user name to use in the AWS console")
 }

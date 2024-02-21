@@ -9,6 +9,7 @@ import (
 )
 
 var printOnly = false
+var logout = false
 var userName = ""
 
 // Cmd is the console command's entrypoint
@@ -28,12 +29,13 @@ Unless you specify the --name/-n flag, your AWS console user name will be derive
 			service = args[0]
 		}
 
-		console.Open(printOnly, service, "", userName)
+		console.Open(printOnly, logout, service, "", userName)
 	},
 }
 
 func init() {
 	Cmd.Flags().BoolVarP(&printOnly, "url", "u", false, "Just construct the sign-in URL; don't attempt to open it")
+	Cmd.Flags().BoolVarP(&logout, "logout", "l", false, "Log out of the AWS console")
 	Cmd.Flags().StringVarP(&config.Profile, "profile", "p", "", "AWS profile name; read from the AWS CLI configuration file")
 	Cmd.Flags().StringVarP(&config.Region, "region", "r", "", "AWS region to use")
 	Cmd.Flags().StringVarP(&userName, "name", "n", "", "Specify a user name to use in the AWS console")
