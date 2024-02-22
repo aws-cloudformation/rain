@@ -2,6 +2,9 @@
 
 set -eou pipefail
 
+echo "Building rain..."
+./scripts/build.sh
+
 SOURCE="internal/cmd/build/tmpl"
 OUT="test/templates/build"
 FILES="${OUT}/**/*.yaml"
@@ -12,6 +15,8 @@ echo "Building templates..."
 ./rain build -r bucket website -o ${OUT}/bucket/website.yaml
 ./rain build -r pipeline codecommit -o ${OUT}/pipeline/codecommit.yaml
 ./rain build -r pipeline s3 -o ${OUT}/pipeline/s3.yaml
+./rain build -r ecs cluster -o ${OUT}/ecs/cluster.yaml
+./rain build -r vpc vpc -o ${OUT}/vpc/vpc.yaml
 
 echo "Linting..."
 cfn-lint ${FILES}
@@ -21,5 +26,8 @@ checkov --framework cloudformation --quiet -f ${FILES}
 
 echo "Guard..."
 cfn-guard validate --data ${OUT}/bucket --rules ${RULES} --show-summary fail
+cfn-guard validate --data ${OUT}/pipeline --rules ${RULES} --show-summary fail
+cfn-guard validate --data ${OUT}/ecs --rules ${RULES} --show-summary fail
+cfn-guard validate --data ${OUT}/vpc --rules ${RULES} --show-summary fail
 
 echo "Success"

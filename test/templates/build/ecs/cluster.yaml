@@ -1,0 +1,437 @@
+Description: |
+  Create a VPC, load balancer, and ECS cluster
+
+Parameters:
+  AppName:
+    Description: This will be used as part of resource names
+    Type: String
+
+  CertificateArn:
+    Description: The arn to the certificate for the load balancer
+    Type: String
+
+  ImageURL:
+    Description: The URL to the container image
+    Type: String
+
+Resources:
+  ELBLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    DependsOn:
+      - NetworkPublicSubnet1DefaultRoute
+      - NetworkPublicSubnet1RouteTableAssociation
+      - NetworkPublicSubnet2DefaultRoute
+      - NetworkPublicSubnet2RouteTableAssociation
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_91
+      guard:
+        SuppressedRules:
+          - ELB_DELETION_PROTECTION_ENABLED
+    Properties:
+      LoadBalancerAttributes:
+        - Key: deletion_protection.enabled
+          Value: false
+        - Key: routing.http.drop_invalid_header_fields.enabled
+          Value: true
+      Scheme: internet-facing
+      SecurityGroups:
+        - !GetAtt ELBLoadBalancerSecurityGroup.GroupId
+      Subnets:
+        - !Ref
+          Ref: NetworkPublicSubnet1
+        - !Ref
+          Ref: NetworkPublicSubnet2
+      Type: application
+
+  ELBLoadBalancerEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      Description: Load balancer to target
+      DestinationSecurityGroupId: !GetAtt ServiceSecurityGroup.GroupId
+      FromPort: 80
+      GroupId: !GetAtt ELBLoadBalancerSecurityGroup.GroupId
+      IpProtocol: tcp
+      ToPort: 80
+
+  ELBLoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Metadata:
+      guard:
+        SuppressedRules:
+          - ELBV2_ACM_CERTIFICATE_REQUIRED
+    Properties:
+      Certificates:
+        - CertificateArn: !Ref
+            Ref: CertificateArn
+      DefaultActions:
+        - TargetGroupArn: !Ref ELBTargetGroup
+          Type: forward
+      LoadBalancerArn: !Ref ELBLoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      SslPolicy: ELBSecurityPolicy-TLS13-1-2-2021-06
+
+  ELBLoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Automatically created Security Group for ELB
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow from anyone on port 443
+          FromPort: 443
+          IpProtocol: tcp
+          ToPort: 443
+      VpcId: !Ref VPC
+
+  ELBTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 443
+      Protocol: HTTP
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: "10"
+        - Key: stickiness.enabled
+          Value: "false"
+      TargetType: ip
+      VpcId: !Ref VPC
+
+  Ingress:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: TaskRole
+    Properties:
+      Description: Load balancer to target
+      FromPort: 80
+      GroupId: !GetAtt ServiceSecurityGroup.GroupId
+      IpProtocol: tcp
+      SourceSecurityGroupId: !GetAtt LoadBalancerSecurityGroup.GroupId
+      ToPort: 80
+
+  LogGroup:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Type: AWS::Logs::LogGroup
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_158
+      guard:
+        SuppressedRules:
+          - CLOUDWATCH_LOG_GROUP_ENCRYPTED
+    Properties:
+      LogGroupName: !Sub ${AppName}-svc-logs
+      RetentionInDays: 30
+
+  NetworkInternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  NetworkPrivateSubnet1DefaultRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NetworkPublicSubnet1NATGateway
+      RouteTableId: !Ref NetworkPrivateSubnet1RouteTable
+
+  NetworkPrivateSubnet1RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref NetworkVPC
+
+  NetworkPrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref NetworkPrivateSubnet1RouteTable
+      SubnetId: !Ref NetworkPrivateSubnet1Subnet
+
+  NetworkPrivateSubnet1Subnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs
+          Ref: AWS::Region
+      CidrBlock: 10.0.128.0/18
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref NetworkVPC
+
+  NetworkPrivateSubnet2DefaultRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NetworkPublicSubnet2NATGateway
+      RouteTableId: !Ref NetworkPrivateSubnet2RouteTable
+
+  NetworkPrivateSubnet2RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref NetworkVPC
+
+  NetworkPrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref NetworkPrivateSubnet2RouteTable
+      SubnetId: !Ref NetworkPrivateSubnet2Subnet
+
+  NetworkPrivateSubnet2Subnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select
+        - 1
+        - !GetAZs
+          Ref: AWS::Region
+      CidrBlock: 10.0.192.0/18
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref NetworkVPC
+
+  NetworkPublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Metadata:
+      guard:
+        SuppressedRules:
+          - SUBNET_AUTO_ASSIGN_PUBLIC_IP_DISABLED
+    Properties:
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs
+          Ref: AWS::Region
+      CidrBlock: 10.0.0.0/18
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref NetworkVPC
+
+  NetworkPublicSubnet1DefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn:
+      - NetworkVPCGW
+    Metadata:
+      guard:
+        SuppressedRules:
+          - NO_UNRESTRICTED_ROUTE_TO_IGW
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref NetworkInternetGateway
+      RouteTableId: !Ref NetworkPublicSubnet1RouteTable
+
+  NetworkPublicSubnet1EIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  NetworkPublicSubnet1NATGateway:
+    Type: AWS::EC2::NatGateway
+    DependsOn:
+      - NetworkPublicSubnet1DefaultRoute
+      - NetworkPublicSubnet1RouteTableAssociation
+    Properties:
+      AllocationId: !GetAtt NetworkPublicSubnet1EIP.AllocationId
+      SubnetId: !Ref NetworkPublicSubnet1
+
+  NetworkPublicSubnet1RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref NetworkVPC
+
+  NetworkPublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref NetworkPublicSubnet1RouteTable
+      SubnetId: !Ref NetworkPublicSubnet1
+
+  NetworkPublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Metadata:
+      guard:
+        SuppressedRules:
+          - SUBNET_AUTO_ASSIGN_PUBLIC_IP_DISABLED
+    Properties:
+      AvailabilityZone: !Select
+        - 1
+        - !GetAZs
+          Ref: AWS::Region
+      CidrBlock: 10.0.64.0/18
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref NetworkVPC
+
+  NetworkPublicSubnet2DefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn:
+      - NetworkVPCGW
+    Metadata:
+      guard:
+        SuppressedRules:
+          - NO_UNRESTRICTED_ROUTE_TO_IGW
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref NetworkInternetGateway
+      RouteTableId: !Ref NetworkPublicSubnet2RouteTable
+
+  NetworkPublicSubnet2EIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  NetworkPublicSubnet2NATGateway:
+    Type: AWS::EC2::NatGateway
+    DependsOn:
+      - NetworkPublicSubnet2DefaultRoute
+      - NetworkPublicSubnet2RouteTableAssociation
+    Properties:
+      AllocationId: !GetAtt NetworkPublicSubnet2EIP.AllocationId
+      SubnetId: !Ref NetworkPublicSubnet2
+
+  NetworkPublicSubnet2RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref NetworkVPC
+
+  NetworkPublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref NetworkPublicSubnet2RouteTable
+      SubnetId: !Ref NetworkPublicSubnet2
+
+  NetworkVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+
+  NetworkVPCGW:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref NetworkInternetGateway
+      VpcId: !Ref NetworkVPC
+
+  Service:
+    Type: AWS::ECS::Service
+    DependsOn:
+      - LoadBalancerListener
+      - TaskRole
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - E3002
+    Properties:
+      Cluster: !Ref Cluster
+      DeploymentConfiguration:
+        Alarms:
+          AlarmNames: []
+          Enable: false
+          Rollback: false
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DesiredCount: 1
+      EnableECSManagedTags: false
+      HealthCheckGracePeriodSeconds: 60
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: app
+          ContainerPort: 80
+          TargetGroupArn: !Ref TargetGroup
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - !GetAtt ServiceSecurityGroup.GroupId
+          Subnets:
+            - !Ref NetworkPrivateSubnet1Subnet
+            - !Ref NetworkPrivateSubnet2Subnet
+      TaskDefinition: !Ref TaskDefinition
+
+  ServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    DependsOn:
+      - TaskRole
+    Properties:
+      GroupDescription: !Sub ${AppName}-svc-service/SecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      VpcId: !Ref VPC
+
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Cpu: 1024
+          Essential: true
+          Image: !Ref ImageURL
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Sub ${LogGroup}
+              awslogs-region: !Sub ${AWS::Region}
+              awslogs-stream-prefix: !Sub ${AppName}-svc
+          Memory: 2048
+          Name: app
+          PortMappings:
+            - ContainerPort: 80
+              Protocol: tcp
+          Ulimits:
+            - HardLimit: 1024000
+              Name: nofile
+              SoftLimit: 1024000
+      Cpu: "1024"
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      Family: !Ref AppName
+      Memory: "2048"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - EC2
+        - FARGATE
+      TaskRoleArn: !GetAtt TaskRole.Arn
+
+  TaskExecutionPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - ecr:BatchCheckLayerAvailability
+              - ecr:BatchGetImage
+              - ecr:GetDownloadUrlForLayer
+            Effect: Allow
+            Resource: '*'
+          - Action: ecr:GetAuthorizationToken
+            Effect: Allow
+            Resource: '*'
+          - Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource: !GetAtt LogGroup.Arn
+        Version: "2012-10-17"
+      PolicyName: !Sub ${AppName}-exec-policy
+      Roles:
+        - !Ref TaskExecutionRole
+
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: "2012-10-17"
+
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: "2012-10-17"
+
+Outputs:
+  LoadBalancerDNS:
+    Value: !GetAtt ELBLoadBalancer.DNSName

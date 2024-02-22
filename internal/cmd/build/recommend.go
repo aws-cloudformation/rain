@@ -114,6 +114,16 @@ func recommend(args []string) {
 				{Name: "codecommit", Text: "A pipeline with a codecommit source"},
 			},
 		},
+		{Name: "ecs", Text: "ECS Clusters",
+			Sub: []reco{
+				{Name: "cluster", Text: "An ECS Cluster"},
+			},
+		},
+		{Name: "vpc", Text: "Networking",
+			Sub: []reco{
+				{Name: "vpc", Text: "A VPC with 2 private and 2 public subnets"},
+			},
+		},
 	}
 
 	showPrompt(selections, "")
