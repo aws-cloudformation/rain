@@ -1,7 +1,60 @@
-Description: |
-  This template creates a VPC, two public and two private subnets
+Description: "This template creates a VPC with two public and two private subnets. \nFlow logs are saved to CloudWatch.\n"
 
 Resources:
+  FlowLogsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_158
+      guard:
+        SuppressedRules:
+          - CLOUDWATCH_LOG_GROUP_ENCRYPTED
+    Properties:
+      RetentionInDays: 30
+
+  FlowLogsPolicy:
+    Type: AWS::IAM::RolePolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              - logs:DescribeLogGroups
+              - logs:DescribeLogStreams
+            Effect: Allow
+            Resource: !GetAtt FlowLogsLogGroup.Arn
+            Sid: CloudWatchLogs
+        Version: "2012-10-17"
+      PolicyName: vpc-flow-logs
+      RoleName: !Ref FlowLogsRole
+
+  FlowLogsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - vpc-flow-logs.amazonaws.com
+        Version: "2012-10-17"
+      Path: /
+
+  FlowLogsToCloudWatch:
+    Type: AWS::EC2::FlowLog
+    Properties:
+      DeliverLogsPermissionArn: !GetAtt FlowLogsRole.Arn
+      LogDestinationType: cloud-watch-logs
+      LogFormat: '${version} ${account-id} ${interface-id} ${srcaddr} ${dstaddr} ${srcport} ${dstport} ${protocol} ${packets} ${bytes} ${start} ${end} ${action} ${log-status} '
+      LogGroupName: !Ref FlowLogsLogGroup
+      MaxAggregationInterval: 600
+      ResourceId: !Ref NetworkVPC
+      ResourceType: VPC
+      TrafficType: REJECT
+
   NetworkInternetGateway:
     Type: AWS::EC2::InternetGateway
 

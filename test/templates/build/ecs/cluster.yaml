@@ -15,6 +15,13 @@ Parameters:
     Type: String
 
 Resources:
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+
   ELBLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     DependsOn:
@@ -39,10 +46,8 @@ Resources:
       SecurityGroups:
         - !GetAtt ELBLoadBalancerSecurityGroup.GroupId
       Subnets:
-        - !Ref
-          Ref: NetworkPublicSubnet1
-        - !Ref
-          Ref: NetworkPublicSubnet2
+        - !Ref NetworkPublicSubnet1
+        - !Ref NetworkPublicSubnet2
       Type: application
 
   ELBLoadBalancerEgress:
@@ -63,8 +68,7 @@ Resources:
           - ELBV2_ACM_CERTIFICATE_REQUIRED
     Properties:
       Certificates:
-        - CertificateArn: !Ref
-            Ref: CertificateArn
+        - CertificateArn: !Ref CertificateArn
       DefaultActions:
         - TargetGroupArn: !Ref ELBTargetGroup
           Type: forward
@@ -83,7 +87,7 @@ Resources:
           FromPort: 443
           IpProtocol: tcp
           ToPort: 443
-      VpcId: !Ref VPC
+      VpcId: !Ref NetworkVPC
 
   ELBTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
@@ -96,7 +100,7 @@ Resources:
         - Key: stickiness.enabled
           Value: "false"
       TargetType: ip
-      VpcId: !Ref VPC
+      VpcId: !Ref NetworkVPC
 
   Ingress:
     Type: AWS::EC2::SecurityGroupIngress
@@ -106,7 +110,7 @@ Resources:
       FromPort: 80
       GroupId: !GetAtt ServiceSecurityGroup.GroupId
       IpProtocol: tcp
-      SourceSecurityGroupId: !GetAtt LoadBalancerSecurityGroup.GroupId
+      SourceSecurityGroupId: !GetAtt ELBLoadBalancerSecurityGroup.GroupId
       ToPort: 80
 
   LogGroup:
@@ -308,7 +312,7 @@ Resources:
   Service:
     Type: AWS::ECS::Service
     DependsOn:
-      - LoadBalancerListener
+      - ELBLoadBalancerListener
       - TaskRole
     Metadata:
       cfn-lint:
@@ -331,7 +335,7 @@ Resources:
       LoadBalancers:
         - ContainerName: app
           ContainerPort: 80
-          TargetGroupArn: !Ref TargetGroup
+          TargetGroupArn: !Ref ELBTargetGroup
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: DISABLED
@@ -352,7 +356,7 @@ Resources:
         - CidrIp: 0.0.0.0/0
           Description: Allow all outbound traffic by default
           IpProtocol: "-1"
-      VpcId: !Ref VPC
+      VpcId: !Ref NetworkVPC
 
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition

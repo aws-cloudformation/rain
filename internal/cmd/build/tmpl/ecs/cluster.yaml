@@ -23,6 +23,7 @@ Resources:
   ELB:
     Type: !Rain::Module "../modules/load-balancer.yaml"
     Properties:
+      VPCId: !Ref NetworkVPC
       PublicSubnet1: !Ref NetworkPublicSubnet1
       PublicSubnet2: !Ref NetworkPublicSubnet2
       DestinationSecurityGroupId: !GetAtt ServiceSecurityGroup.GroupId
@@ -34,6 +35,13 @@ Resources:
           - NetworkPublicSubnet1RouteTableAssociation
           - NetworkPublicSubnet2DefaultRoute
           - NetworkPublicSubnet2RouteTableAssociation
+
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
 
   TaskRole:
     Type: AWS::IAM::Role
@@ -155,7 +163,7 @@ Resources:
       LoadBalancers:
         - ContainerName: app
           ContainerPort: 80
-          TargetGroupArn: !Ref TargetGroup
+          TargetGroupArn: !Ref ELBTargetGroup
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: DISABLED
@@ -166,7 +174,7 @@ Resources:
             - !Ref NetworkPrivateSubnet2Subnet
       TaskDefinition: !Ref TaskDefinition
     DependsOn:
-      - LoadBalancerListener
+      - ELBLoadBalancerListener
       - TaskRole
 
   ServiceSecurityGroup:
@@ -177,7 +185,7 @@ Resources:
         - CidrIp: 0.0.0.0/0
           Description: Allow all outbound traffic by default
           IpProtocol: "-1"
-      VpcId: !Ref VPC
+      VpcId: !Ref NetworkVPC
     DependsOn:
       - TaskRole
 
@@ -188,7 +196,7 @@ Resources:
       FromPort: 80
       GroupId: !GetAtt ServiceSecurityGroup.GroupId
       IpProtocol: tcp
-      SourceSecurityGroupId: !GetAtt LoadBalancerSecurityGroup.GroupId
+      SourceSecurityGroupId: !GetAtt ELBLoadBalancerSecurityGroup.GroupId
       ToPort: 80
     DependsOn: TaskRole
 
