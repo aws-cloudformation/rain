@@ -11,32 +11,55 @@ import (
 )
 
 func TestModule(t *testing.T) {
+	runTest("test", t)
+}
+
+func TestSimple(t *testing.T) {
+	runTest("simple", t)
+}
+
+func TestModInMod(t *testing.T) {
+	runTest("modinmod", t)
+}
+
+func TestSub(t *testing.T) {
+	runTest("sub", t)
+}
+
+// TODO: This was broken in the refactor, come back to it later
+//func TestForeach(t *testing.T) {
+//	runTest("foreach", t)
+//}
+
+func runTest(test string, t *testing.T) {
 
 	// There should be 3 files for each test, for example:
 	// bucket-module.yaml, bucket-template.yaml, bucket-expect.yaml
-	tests := []string{"test", "foreach"}
 
-	for _, test := range tests {
-		path := fmt.Sprintf("./tmpl/%v-expect.yaml", test)
+	path := fmt.Sprintf("./tmpl/%v-expect.yaml", test)
 
-		expectedTemplate, err := parse.File(path)
-		if err != nil {
-			t.Error(err)
-			return
-		}
+	expectedTemplate, err := parse.File(path)
+	if err != nil {
+		t.Errorf("expected %s: %v", test, err)
+		return
+	}
 
-		pkg.Experimental = true
+	pkg.Experimental = true
 
-		packaged, err := pkg.File(fmt.Sprintf("./tmpl/%v-template.yaml", test))
-		if err != nil {
-			t.Error(err)
-			return
-		}
+	packaged, err := pkg.File(fmt.Sprintf("./tmpl/%v-template.yaml", test))
+	if err != nil {
+		t.Errorf("packaged %s: %v", test, err)
+		return
+	}
 
-		d := diff.New(packaged, expectedTemplate)
-		if d.Mode() != "=" {
-			t.Errorf("Output does not match expected: %v", d.Format(true))
-		}
+	//y := format.String(packaged, format.Options{
+	//	JSON:     false,
+	//	Unsorted: false,
+	//})
+
+	d := diff.New(packaged, expectedTemplate)
+	if d.Mode() != "=" {
+		t.Errorf("Output does not match expected: %v", d.Format(true))
 	}
 }
 

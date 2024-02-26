@@ -5,10 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/internal/config"
-	"github.com/aws-cloudformation/rain/internal/node"
 	"gopkg.in/yaml.v3"
 )
 
@@ -45,7 +43,9 @@ func wrapS3(n *yaml.Node, root string, options s3Options) bool {
 	return true
 }
 
-func wrapS3ZipURI(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
+func wrapS3ZipURI(ctx *directiveContext) (bool, error) {
+	n := ctx.n
+	root := ctx.rootDir
 	if n.Kind != yaml.ScalarNode {
 		// No need to error - this could be valid
 		return false, nil
@@ -58,7 +58,8 @@ func wrapS3ZipURI(n *yaml.Node, root string, t cft.Template, parent node.NodePai
 	}), nil
 }
 
-func wrapS3URI(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
+func wrapS3URI(ctx *directiveContext) (bool, error) {
+	n := ctx.n
 	if n.Kind != yaml.ScalarNode {
 		// No need to error - this could be valid
 		return false, nil
@@ -68,14 +69,16 @@ func wrapS3URI(n *yaml.Node, root string, t cft.Template, parent node.NodePair) 
 		return false, nil // Already an s3 uri
 	}
 
-	return wrapS3(n, root, s3Options{
+	return wrapS3(n, ctx.rootDir, s3Options{
 		Path:   n.Value,
 		Format: s3URI,
 	}), nil
 }
 
-func wrapObject(bucket, key string, forceZip bool) rainFunc {
-	return func(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
+func wrapObject(bucket, key string, forceZip bool) directiveFunc {
+	return func(ctx *directiveContext) (bool, error) {
+		n := ctx.n
+		root := ctx.rootDir
 		if n.Kind != yaml.ScalarNode {
 			// No need to error - this could be valid
 			return false, nil
@@ -91,7 +94,9 @@ func wrapObject(bucket, key string, forceZip bool) rainFunc {
 	}
 }
 
-func wrapTemplate(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
+func wrapTemplate(ctx *directiveContext) (bool, error) {
+	n := ctx.n
+	root := ctx.rootDir
 	if n.Kind != yaml.ScalarNode {
 		// No need to error - this could be valid
 		return false, nil

@@ -1,0 +1,62 @@
+Description: |
+  This template creates a VPC with two public and two private subnets. 
+  Flow logs are saved to CloudWatch.
+
+Resources:
+
+  Network:
+    Type: !Rain::Module "../modules/vpc.yaml"
+
+  FlowLogsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service:
+                - vpc-flow-logs.amazonaws.com
+      Path: /
+
+  FlowLogsPolicy:
+    Type: AWS::IAM::RolePolicy
+    Properties:
+      PolicyName: vpc-flow-logs
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: CloudWatchLogs
+            Effect: Allow
+            Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              - logs:DescribeLogGroups
+              - logs:DescribeLogStreams
+            Resource: !GetAtt FlowLogsLogGroup.Arn
+      RoleName: !Ref FlowLogsRole
+
+  FlowLogsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_158
+      guard:
+        SuppressedRules:
+          - CLOUDWATCH_LOG_GROUP_ENCRYPTED
+    Properties:
+      RetentionInDays: 30
+
+  FlowLogsToCloudWatch:
+    Type: AWS::EC2::FlowLog
+    Properties:
+      LogDestinationType: cloud-watch-logs
+      LogGroupName: !Ref FlowLogsLogGroup
+      DeliverLogsPermissionArn: !GetAtt FlowLogsRole.Arn
+      MaxAggregationInterval: 600
+      ResourceId: !Ref NetworkVPC
+      ResourceType: VPC
+      TrafficType: REJECT 
+

@@ -18,6 +18,11 @@ type NodePair struct {
 	Parent *NodePair
 }
 
+func (np *NodePair) String() string {
+	return fmt.Sprintf("Key: %v\nValue: %v",
+		ToSJson(np.Key), ToSJson(np.Value))
+}
+
 // Clone returns a copy of the provided node
 func Clone(node *yaml.Node) *yaml.Node {
 	if node == nil {
@@ -141,7 +146,11 @@ func makeSNode(node *yaml.Node) *SNode {
 	content := make([]*SNode, 0)
 	if node.Content != nil {
 		for _, child := range node.Content {
-			content = append(content, makeSNode(child))
+			if child == nil {
+				content = append(content, &SNode{Kind: "?", Value: "nil!"})
+			} else {
+				content = append(content, makeSNode(child))
+			}
 		}
 	}
 
@@ -151,6 +160,9 @@ func makeSNode(node *yaml.Node) *SNode {
 
 // Convert a node to a shortened JSON for easier debugging
 func ToSJson(node *yaml.Node) string {
+	if node == nil {
+		return "nil"
+	}
 	j, err := json.MarshalIndent(makeSNode(node), "", "  ")
 	if err != nil {
 		return fmt.Sprintf("Failed to marshal node to short json: %v:", err)
@@ -211,6 +223,18 @@ func SetMapValue(parent *yaml.Node, name string, val *yaml.Node) {
 		parent.Content = append(parent.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: name})
 		parent.Content = append(parent.Content, val)
 	}
+}
+
+// Set the value of a sequence element within the node
+func SetSequenceValue(parent *yaml.Node, val *yaml.Node, sidx int) {
+	config.Debugf("SetSequenceValue parent: %s, val: %s, sidx: %v",
+		ToSJson(parent), ToSJson(val), sidx)
+
+	if len(parent.Content) <= sidx {
+		return
+	}
+
+	parent.Content[sidx] = val
 }
 
 // Add adds a new scalar property to the map

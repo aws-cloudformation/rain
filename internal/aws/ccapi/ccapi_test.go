@@ -28,9 +28,9 @@ Resources:
 	}
 	// Dive down to the yaml resource properties
 	rootMap := template.Node.Content[0]
-	_, resources := s11n.GetMapValue(rootMap, "Resources")
-	_, myResource := s11n.GetMapValue(resources, "MyResource")
-	_, props := s11n.GetMapValue(myResource, "Properties")
+	_, resources, _ := s11n.GetMapValue(rootMap, "Resources")
+	_, myResource, _ := s11n.GetMapValue(resources, "MyResource")
+	_, props, _ := s11n.GetMapValue(myResource, "Properties")
 
 	// Create the patch string
 	patchDocument, err := CreatePatch(props, "{}")

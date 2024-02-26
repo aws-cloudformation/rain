@@ -70,11 +70,11 @@ Resources:
 	config.Debugf("resolved node B: %v", node.ToSJson(resolved))
 
 	// Make sure the value is what we expect
-	_, props := s11n.GetMapValue(resolved, "Properties")
+	_, props, _ := s11n.GetMapValue(resolved, "Properties")
 	if props == nil {
 		t.Fatalf("B Properties is missing")
 	}
-	_, bucketName := s11n.GetMapValue(props, "BucketName")
+	_, bucketName, _ := s11n.GetMapValue(props, "BucketName")
 	if bucketName == nil {
 		t.Fatalf("B Properties BucketName is missing")
 	}
@@ -97,11 +97,11 @@ Resources:
 
 	config.Debugf("resolved node C: %v", node.ToSJson(resolved))
 
-	_, props = s11n.GetMapValue(resolved, "Properties")
+	_, props, _ = s11n.GetMapValue(resolved, "Properties")
 	if props == nil {
 		t.Fatalf("C Properties is missing")
 	}
-	_, bucketName = s11n.GetMapValue(props, "BucketName")
+	_, bucketName, _ = s11n.GetMapValue(props, "BucketName")
 	if bucketName == nil {
 		t.Fatalf("C Properties BucketName is missing")
 	}

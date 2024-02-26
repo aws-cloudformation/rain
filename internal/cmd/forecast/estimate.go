@@ -64,7 +64,7 @@ func GetResourceEstimate(resourceType string, action StackAction) (int, error) {
 // otherwise "" is returned
 func getResourceType(t cft.Template, logicalId string) string {
 	rootMap := t.Node.Content[0]
-	_, resources := s11n.GetMapValue(rootMap, "Resources")
+	_, resources, _ := s11n.GetMapValue(rootMap, "Resources")
 	if resources == nil {
 		panic("Expected to find a Resources section in the template")
 	}
@@ -74,7 +74,7 @@ func getResourceType(t cft.Template, logicalId string) string {
 		}
 		if logicalId == r.Value {
 			resource := resources.Content[i+1]
-			_, typeNode := s11n.GetMapValue(resource, "Type")
+			_, typeNode, _ := s11n.GetMapValue(resource, "Type")
 			if typeNode == nil {
 				panic(fmt.Sprintf("Expected %v to have a Type", logicalId))
 			}

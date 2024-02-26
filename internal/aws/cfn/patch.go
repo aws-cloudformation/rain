@@ -7,6 +7,14 @@ import (
 	"github.com/aws-cloudformation/rain/internal/aws/lightsail"
 )
 
+func convertStrings(sa []string) []any {
+	r := make([]any, 0)
+	for _, s := range sa {
+		r = append(r, s)
+	}
+	return r
+}
+
 func patchLightsailInstance(schema *Schema) error {
 	blueprintId, found := schema.Properties["BlueprintId"]
 	if !found {
@@ -16,7 +24,7 @@ func patchLightsailInstance(schema *Schema) error {
 	if err != nil {
 		return fmt.Errorf("unable to call aws api to get available lightsail blueprints")
 	}
-	blueprintId.Enum = blueprints
+	blueprintId.Enum = convertStrings(blueprints)
 
 	bundleId, found := schema.Properties["BundleId"]
 	if !found {
@@ -26,7 +34,7 @@ func patchLightsailInstance(schema *Schema) error {
 	if err != nil {
 		return fmt.Errorf("unable to call aws api to get available lightsail bundles")
 	}
-	bundleId.Enum = bundles
+	bundleId.Enum = convertStrings(bundles)
 
 	return nil
 }
@@ -40,7 +48,7 @@ func patchLightsailBucket(schema *Schema) error {
 	if err != nil {
 		return fmt.Errorf("unable to call aws api to get available lightsail bucket bundles")
 	}
-	bundleId.Enum = bundles
+	bundleId.Enum = convertStrings(bundles)
 
 	return nil
 }
@@ -54,7 +62,7 @@ func patchLightsailDistribution(schema *Schema) error {
 	if err != nil {
 		return fmt.Errorf("unable to call aws api to get available lightsail distribution bundles")
 	}
-	bundleId.Enum = bundles
+	bundleId.Enum = convertStrings(bundles)
 
 	return nil
 }
@@ -68,7 +76,7 @@ func patchLightsailDatabase(schema *Schema) error {
 	if err != nil {
 		return fmt.Errorf("unable to call aws api to get available lightsail blueprints")
 	}
-	blueprintId.Enum = blueprints
+	blueprintId.Enum = convertStrings(blueprints)
 
 	bundleId, found := schema.Properties["RelationalDatabaseBundleId"]
 	if !found {
@@ -78,7 +86,7 @@ func patchLightsailDatabase(schema *Schema) error {
 	if err != nil {
 		return fmt.Errorf("unable to call aws api to get available lightsail bundles")
 	}
-	bundleId.Enum = bundles
+	bundleId.Enum = convertStrings(bundles)
 
 	return nil
 }
@@ -95,6 +103,47 @@ func patchLightsailAlarm(schema *Schema) error {
 	if !found {
 		return errors.New("expected AWS::Lightsail::Alarm to have ComparisonOperator")
 	}
-	comparisonOperator.Enum = valid
+	comparisonOperator.Enum = convertStrings(valid)
+	return nil
+}
+
+func patchSESConfigurationSetEventDestination(schema *Schema) error {
+	valid := []string{
+		"send",
+		"reject",
+		"bounce",
+		"complaint",
+		"delivery",
+		"open",
+		"click",
+		"renderingFailure",
+		"deliveryDelay",
+		"subscription",
+	}
+	eventDest, found := schema.Definitions["EventDestination"]
+	if !found {
+		return errors.New("expected AWS::SES::ConfigurationSetEventDestination to have EventDestination")
+	}
+	eventTypes, found := eventDest.Properties["MatchingEventTypes"]
+	if !found {
+		return errors.New("expected AWS::SES::ConfigurationSetEventDestination.EventDestination to have MatchingEventTypes")
+	}
+	eventTypes.Items.Enum = convertStrings(valid)
+	return nil
+}
+
+func patchSESContactList(schema *Schema) error {
+	valid := []string{"OPT_IN", "OPT_OUT"}
+
+	topic, found := schema.Definitions["Topic"]
+	if !found {
+		return errors.New("expected AWS::SES::ContactList to have Topic")
+	}
+
+	dss, found := topic.Properties["DefaultSubscriptionStatus"]
+	if !found {
+		return errors.New("expected AWS::SES::ContactList to have Topic.DefaultSubscriptionStatus")
+	}
+	dss.Enum = convertStrings(valid)
 	return nil
 }

@@ -4,6 +4,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/node"
 	"gopkg.in/yaml.v3"
 )
 
@@ -59,6 +61,10 @@ func matchPath(ch chan<- *yaml.Node, n *yaml.Node, path []string) {
 
 		if n.Kind == yaml.MappingNode {
 			for i := 0; i < len(n.Content); i += 2 {
+				if len(n.Content) <= i+1 {
+					config.Debugf("About to step over array at %v:%s", i, n.Content[i].Value)
+					config.Debugf("n:\n%v", node.ToSJson(n))
+				}
 				matchPath(ch, n.Content[i+1], path)
 			}
 		} else if n.Kind == yaml.SequenceNode {
@@ -80,6 +86,10 @@ func matchPath(ch chan<- *yaml.Node, n *yaml.Node, path []string) {
 			key := n.Content[i]
 
 			if head == "*" || key.Value == head {
+				if len(n.Content) <= i+1 {
+					config.Debugf("About to step over array at head == \"*\", i=%v, key=%v, n=\n%v",
+						i, key.Value, node.ToSJson(n))
+				}
 				value := n.Content[i+1]
 				if filter(value, query) {
 					matchPath(ch, value, tail)

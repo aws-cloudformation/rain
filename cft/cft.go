@@ -76,12 +76,12 @@ func (t Template) GetParameter(name string) (*yaml.Node, error) {
 
 // GetNode returns a yaml node by section and name
 func (t Template) GetNode(section Section, name string) (*yaml.Node, error) {
-	_, resMap := s11n.GetMapValue(t.Node.Content[0], string(section))
+	_, resMap, _ := s11n.GetMapValue(t.Node.Content[0], string(section))
 	if resMap == nil {
 		return nil, fmt.Errorf("unable to locate the %s node", section)
 	}
 	// TODO: Some Sections are not Maps
-	_, resource := s11n.GetMapValue(resMap, name)
+	_, resource, _ := s11n.GetMapValue(resMap, name)
 	if resource == nil {
 		return nil, fmt.Errorf("unable to locate %s %s", section, name)
 	}
@@ -118,7 +118,7 @@ func (t Template) AddMapSection(section Section) (*yaml.Node, error) {
 
 // GetSection returns the yaml node for the section
 func (t Template) GetSection(section Section) (*yaml.Node, error) {
-	_, s := s11n.GetMapValue(t.Node.Content[0], string(section))
+	_, s, _ := s11n.GetMapValue(t.Node.Content[0], string(section))
 	if s == nil {
 		return nil, fmt.Errorf("unable to locate the %s node", section)
 	}
@@ -136,7 +136,7 @@ func (t Template) GetTypes() ([]string, error) {
 	for i := 0; i < len(resources.Content); i += 2 {
 		logicalId := resources.Content[i].Value
 		resource := resources.Content[i+1]
-		_, typ := s11n.GetMapValue(resource, "Type")
+		_, typ, _ := s11n.GetMapValue(resource, "Type")
 		if typ == nil {
 			return nil, fmt.Errorf("expected %s to have Type", logicalId)
 		}

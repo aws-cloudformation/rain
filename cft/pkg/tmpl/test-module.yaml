@@ -1,6 +1,5 @@
 Description: |
   This module is used for unit testing the Module directive
-
 Parameters:
   LogBucketName:
     Type: String
@@ -8,19 +7,12 @@ Parameters:
     Type: String
   ConditionName:
     Type: String
-
 Resources:
-  ModuleExtension:
-    Metadata:
-      Extends: AWS::S3::Bucket
-      Comment: A bucket that will pass cfn_nag checks
-      cfn_nag:
-        rules_to_suppress:
-          - id: W51
-            reason: "Will be added by the consumer"
+  Bucket:
+    Type: AWS::S3::Bucket
     DependsOn: 
       - AdditionalResource1
-        AdditionalResource2
+      - AdditionalResource2
     DeletionPolicy: !Ref RetentionPolicy
     UpdateReplacePolicy: Delete
     Properties:
@@ -38,22 +30,15 @@ Resources:
       Tags:
         - Key: test-tag
           Value: test-value1
-  
   LogBucket:
     Type: AWS::S3::Bucket
     Metadata:
       Comment: This bucket records access logs for MyBucket
-      cfn_nag:
-        rules_to_suppress:
-          - id: W35
-            reason: "This is the log bucket"
-          - id: W51
-            reason: "Will be added by the consumer"
     DeletionPolicy: Delete
     UpdateReplacePolicy: !Ref RetentionPolicy
     DependsOn:
       - AdditionalResource1
-        AdditionalResource2
+      - AdditionalResource2
     Properties:
       BucketName: !Ref LogBucketName
       BucketEncryption:
@@ -67,25 +52,25 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
-
   AdditionalResource1:
     Type: AWS::S3::Bucket
     Properties:
       X: !Ref NotFound
-      A: !GetAtt ModuleExtension.Arn
+      A: !GetAtt Bucket.Arn
       B:
-        - !GetAtt ModuleExtension.Arn
-        - C: !GetAtt ModuleExtension.Arn
-
+        - !GetAtt Bucket.Arn
+        - C: !GetAtt Bucket.Arn
   AdditionalResource2:
     Type: AWS::S3::Bucket
-
-  DependsOnModuleExtension:
+  DependsOnBucket:
     Type: AWS::S3::Bucket
-    DependsOn: ModuleExtension
-
+    DependsOn: Bucket
   ConditionalResource:
-    Condition: ConditionName
+    Condition: !Ref ConditionName
     Type: AWS::S3::Bucket
-
+  SubResource:
+    Type: AWS::S3::Bucket
+    Properties:
+      X: !Sub "abc-${AWS::Region}-${LogBucketName}"
+      Y: !Sub "abc-${AdditionalResource2.Name}"
 

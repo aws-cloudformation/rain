@@ -15,23 +15,17 @@ Resources:
   SecondResourceInOriginal:
     Type: AWS::SQS::Queue
 
-  ModuleExample:
+  MyBucketBucket:
     DeletionPolicy: !Ref BucketRetentionPolicy
     UpdateReplacePolicy: Delete
     Type: AWS::S3::Bucket
     DependsOn:
-      - ModuleExampleAdditionalResource1
-      - ModuleExampleAdditionalResource2
+      - MyBucketAdditionalResource1
+      - MyBucketAdditionalResource2
       - SecondResourceInOriginal
-    Metadata:
-      Comment: A bucket that will pass cfn_nag checks
-      cfn_nag:
-        rules_to_suppress:
-          - id: W51
-            reason: Will be added by the consumer
     Properties:
       LoggingConfiguration:
-        DestinationBucketName: !Ref ModuleExampleLogBucket
+        DestinationBucketName: !Ref MyBucketLogBucket
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
@@ -48,24 +42,18 @@ Resources:
       VersioningConfiguration:
         Status: Enabled
     Condition: ConditionA
-
-  ModuleExampleLogBucket:
+  MyBucketLogBucket:
+    Condition: ConditionA
     DeletionPolicy: Delete
     UpdateReplacePolicy: !Ref BucketRetentionPolicy
     Type: AWS::S3::Bucket
     DependsOn:
-      - ModuleExampleAdditionalResource1
-      - ModuleExampleAdditionalResource2
+      - MyBucketAdditionalResource1
+      - MyBucketAdditionalResource2
     Metadata:
       Comment: This bucket records access logs for MyBucket
-      cfn_nag:
-        rules_to_suppress:
-          - id: W35
-            reason: This is the log bucket
-          - id: W51
-            reason: Will be added by the consumer
     Properties:
-      BucketName: ezbeard-cep-test-module-log-bucket
+      BucketName: my-log-bucket
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
@@ -77,25 +65,24 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
-
-  ModuleExampleAdditionalResource1:
+  MyBucketAdditionalResource1:
     Type: AWS::S3::Bucket
     Properties:
       X: !Ref NotFound
-      A: !GetAtt ModuleExample.Arn
+      A: !GetAtt MyBucketBucket.Arn
       B:
-        - !GetAtt ModuleExample.Arn
-        - C: !GetAtt ModuleExample.Arn
+        - !GetAtt MyBucketBucket.Arn
+        - C: !GetAtt MyBucketBucket.Arn
 
-  ModuleExampleAdditionalResource2:
+  MyBucketAdditionalResource2:
     Type: AWS::S3::Bucket
 
-  ModuleExampleDependsOnModuleExtension:
+  MyBucketDependsOnBucket:
     Type: AWS::S3::Bucket
     DependsOn:
-      - ModuleExample
+      - MyBucketBucket
 
-  ModuleExampleConditionalResource:
+  MyBucketConditionalResource:
     Type: AWS::S3::Bucket
     Condition: ConditionA
 
@@ -108,3 +95,10 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: BBB
+
+  MyBucketSubResource:
+    Type: AWS::S3::Bucket
+    Properties:
+      X: !Sub "abc-${AWS::Region}-my-log-bucket"
+      Y: !Sub "abc-${MyBucketAdditionalResource2.Name}"
+

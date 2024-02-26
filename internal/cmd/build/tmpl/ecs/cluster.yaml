@@ -1,0 +1,206 @@
+Description: |
+  Create a VPC, load balancer, and ECS cluster
+
+Parameters:
+
+  ImageURL:
+    Type: String
+    Description: The URL to the container image
+
+  CertificateArn:
+    Type: String
+    Description: The arn to the certificate for the load balancer
+
+  AppName:
+    Type: String
+    Description: This will be used as part of resource names
+
+Resources:
+
+  Network:
+    Type: !Rain::Module "../modules/vpc.yaml"
+
+  ELB:
+    Type: !Rain::Module "../modules/load-balancer.yaml"
+    Properties:
+      VPCId: !Ref NetworkVPC
+      PublicSubnet1: !Ref NetworkPublicSubnet1
+      PublicSubnet2: !Ref NetworkPublicSubnet2
+      DestinationSecurityGroupId: !GetAtt ServiceSecurityGroup.GroupId
+      CertificateArn: !Ref CertificateArn
+    Overrides:
+      LoadBalancer:
+        DependsOn:
+          - NetworkPublicSubnet1DefaultRoute
+          - NetworkPublicSubnet1RouteTableAssociation
+          - NetworkPublicSubnet2DefaultRoute
+          - NetworkPublicSubnet2RouteTableAssociation
+
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: "2012-10-17"
+
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Cpu: 1024
+          Essential: true
+          Image: !Ref ImageURL
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Sub "${LogGroup}"
+              awslogs-stream-prefix: !Sub ${AppName}-svc
+              awslogs-region: !Sub "${AWS::Region}"
+          Memory: 2048
+          Name: app
+          PortMappings:
+            - ContainerPort: 80
+              Protocol: tcp
+          Ulimits:
+            - HardLimit: 1024000
+              Name: nofile
+              SoftLimit: 1024000
+      Cpu: "1024"
+      ExecutionRoleArn:
+        Fn::GetAtt:
+          - TaskExecutionRole
+          - Arn
+      Family: !Ref AppName
+      Memory: "2048"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - EC2
+        - FARGATE
+      TaskRoleArn: !GetAtt TaskRole.Arn
+
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: "2012-10-17"
+
+  TaskExecutionPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - ecr:BatchCheckLayerAvailability
+              - ecr:BatchGetImage
+              - ecr:GetDownloadUrlForLayer
+            Effect: Allow
+            Resource: "*"
+          - Action: ecr:GetAuthorizationToken
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource: !GetAtt LogGroup.Arn
+        Version: "2012-10-17"
+      PolicyName: !Sub ${AppName}-exec-policy
+      Roles:
+        - !Ref TaskExecutionRole
+
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_158
+      guard:
+        SuppressedRules:
+          - CLOUDWATCH_LOG_GROUP_ENCRYPTED
+    Properties:
+      LogGroupName: !Sub ${AppName}-svc-logs
+      RetentionInDays: 30
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+
+  Service:
+    Type: AWS::ECS::Service
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - E3002
+    Properties:
+      Cluster:
+        !Ref Cluster
+      DeploymentConfiguration:
+        Alarms:
+          AlarmNames: []
+          Enable: false
+          Rollback: false
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DesiredCount: 1
+      EnableECSManagedTags: false
+      HealthCheckGracePeriodSeconds: 60
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: app
+          ContainerPort: 80
+          TargetGroupArn: !Ref ELBTargetGroup
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups: 
+            - !GetAtt ServiceSecurityGroup.GroupId
+          Subnets:
+            - !Ref NetworkPrivateSubnet1Subnet
+            - !Ref NetworkPrivateSubnet2Subnet
+      TaskDefinition: !Ref TaskDefinition
+    DependsOn:
+      - ELBLoadBalancerListener
+      - TaskRole
+
+  ServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub ${AppName}-svc-service/SecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      VpcId: !Ref NetworkVPC
+    DependsOn:
+      - TaskRole
+
+  Ingress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Load balancer to target
+      FromPort: 80
+      GroupId: !GetAtt ServiceSecurityGroup.GroupId
+      IpProtocol: tcp
+      SourceSecurityGroupId: !GetAtt ELBLoadBalancerSecurityGroup.GroupId
+      ToPort: 80
+    DependsOn: TaskRole
+
+Outputs:
+  LoadBalancerDNS:
+    Value: !GetAtt ELBLoadBalancer.DNSName
+

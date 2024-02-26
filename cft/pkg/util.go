@@ -29,7 +29,6 @@ import (
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
-	"github.com/aws-cloudformation/rain/internal/node"
 	"gopkg.in/yaml.v3"
 )
 
@@ -178,7 +177,7 @@ func expectString(n *yaml.Node) (string, error) {
 
 func expectFile(n *yaml.Node, root string) ([]byte, string, error) {
 
-	config.Debugf("expectFile: %v", node.ToJson(n))
+	//config.Debugf("expectFile: %v", node.ToJson(n))
 
 	path, err := expectString(n)
 	if err != nil {

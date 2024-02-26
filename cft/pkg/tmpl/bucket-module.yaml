@@ -1,14 +1,14 @@
 Description: |
-  This module extends AWS::S3::Bucket
-
+  This module creates a secure bucket and related resources
 Parameters:
-  LogBucketName:
-    Type: String
-
+  CreateLogBucket:
+    Type: Boolean
+Conditions:
+  HasLogBucket: !Equals
+    - !Ref CreateLogBucket
+    - true
 Resources:
-  ModuleExtension:
-    Metadata:
-      Extends: AWS::S3::Bucket
+  Bucket:
     DeletionPolicy: !Ref RetentionPolicy
     Properties:
       LoggingConfiguration:
@@ -25,9 +25,9 @@ Resources:
       Tags:
         - Key: test-tag
           Value: test-value1
-  
   LogBucket:
     Type: AWS::S3::Bucket
+    Condition: HasLogBucket
     DeletionPolicy: Retain
     Properties:
       BucketName: !Ref LogBucketName

@@ -45,15 +45,15 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 
 	// Iterate through the state resources and check the diff
 	stateRootMap := stateTemplate.Node.Content[0]
-	_, stateResourceMap := s11n.GetMapValue(stateRootMap, "Resources")
+	_, stateResourceMap, _ := s11n.GetMapValue(stateRootMap, "Resources")
 	if stateResourceMap == nil {
 		panic("Expected to find a Resources section in the state template")
 	}
-	_, stateStateMap := s11n.GetMapValue(stateRootMap, "State")
+	_, stateStateMap, _ := s11n.GetMapValue(stateRootMap, "State")
 	if stateStateMap == nil {
 		panic("Expected to find a State section in the state template")
 	}
-	_, stateResourceModels := s11n.GetMapValue(stateStateMap, "ResourceModels")
+	_, stateResourceModels, _ := s11n.GetMapValue(stateStateMap, "ResourceModels")
 	if stateResourceModels == nil {
 		panic("Expected to find State.ResourceModels in the state template")
 	}
@@ -62,11 +62,11 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 	models := make(map[string]*yaml.Node, 0)
 	for i, v := range stateResourceModels.Content {
 		if i%2 == 0 {
-			_, identifier := s11n.GetMapValue(stateResourceModels.Content[i+1], "Identifier")
+			_, identifier, _ := s11n.GetMapValue(stateResourceModels.Content[i+1], "Identifier")
 			if identifier != nil {
 				identifiers[v.Value] = identifier.Value
 			}
-			_, model := s11n.GetMapValue(stateResourceModels.Content[i+1], "Model")
+			_, model, _ := s11n.GetMapValue(stateResourceModels.Content[i+1], "Model")
 			if model != nil {
 				models[v.Value] = node.Clone(model)
 			}
@@ -80,7 +80,7 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 
 	// Get a reference to the resources in the new template
 	newRootMap := newTemplate.Node.Content[0]
-	_, newResourceMap := s11n.GetMapValue(newRootMap, "Resources")
+	_, newResourceMap, _ := s11n.GetMapValue(newRootMap, "Resources")
 	if newResourceMap == nil {
 		panic("Expected to find a Resources section in the new template")
 	}
@@ -237,7 +237,7 @@ func summarizeChanges(changes cft.Template) {
 	config.Debugf("change template: %v", d)
 
 	rootMap := changes.Node.Content[0]
-	_, resourceMap := s11n.GetMapValue(rootMap, "Resources")
+	_, resourceMap, _ := s11n.GetMapValue(rootMap, "Resources")
 	if resourceMap == nil {
 		panic("expected Resources")
 	}
@@ -257,14 +257,14 @@ func summarizeChanges(changes cft.Template) {
 			name := v.Value
 
 			// Get the Type
-			_, typeNode := s11n.GetMapValue(resourceMap.Content[i+1], "Type")
+			_, typeNode, _ := s11n.GetMapValue(resourceMap.Content[i+1], "Type")
 			if typeNode == nil {
 				panic(fmt.Sprintf("expected Type on resource %v", name))
 			}
 			t = typeNode.Value
 
 			// Get the action and identifier
-			_, stateMap := s11n.GetMapValue(resourceMap.Content[i+1], "State")
+			_, stateMap, _ := s11n.GetMapValue(resourceMap.Content[i+1], "State")
 			if stateMap == nil {
 				action = "Create"
 				ident = ""

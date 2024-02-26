@@ -77,7 +77,7 @@ func init() {
 }
 
 func compare(t *testing.T, in cft.Template, path string, expected interface{}) {
-	out, err := pkg.Template(in, "./")
+	out, err := pkg.Template(in, "./", nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -127,7 +127,7 @@ func TestEnv(t *testing.T) {
 		},
 	})
 	compare(t, in1, "Success", "foo")
-	_, err2 := pkg.Template(in2, "./")
+	_, err2 := pkg.Template(in2, "./", nil)
 	if err2 == nil {
 		t.Errorf("Expected error since %q environment variable doesn't exist", "RAIN_TEST_ENV_DOESNT_EXISTS")
 	}

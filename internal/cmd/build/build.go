@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"os"
 	"slices"
 	"strings"
 
@@ -22,6 +23,8 @@ var buildJSON = false
 var promptFlag = false
 var showSchema = false
 var omitPatches = false
+var recommendFlag = false
+var outFn = ""
 
 // Borrowing a simplified SAM spec file from goformation
 // Ideally we would autogenerate from the full SAM spec but that thing is huge
@@ -46,14 +49,20 @@ func fixRef(ref string) string {
 }
 
 // buildProp adds boilerplate code to the node, depending on the shape of the property
-func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema, ancestorTypes []string) error {
+func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema, ancestorTypes []string, bare bool) error {
 
 	isCircular := false
 
 	switch prop.Type {
 	case "string":
 		if len(prop.Enum) > 0 {
-			return addScalar(n, propName, strings.Join(prop.Enum, " or "))
+			sa := make([]string, 0)
+			for _, s := range prop.Enum {
+				sa = append(sa, fmt.Sprintf("%s", s))
+			}
+			return addScalar(n, propName, strings.Join(sa, " or "))
+		} else if len(prop.Pattern) > 0 {
+			return addScalar(n, propName, strings.Replace(prop.Pattern, "|", " or ", -1))
 		} else {
 			return addScalar(n, propName, "STRING")
 		}
@@ -75,14 +84,14 @@ func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema, 
 			if n.Kind == yaml.MappingNode {
 				// Make a mapping node and recurse to add sub properties
 				m := node.AddMap(n, propName)
-				return buildNode(m, objectProps, &schema, ancestorTypes)
+				return buildNode(m, objectProps, &schema, ancestorTypes, bare)
 			} else if n.Kind == yaml.SequenceNode {
 				// We're adding objects to an array,
 				// so we don't need the Scalar node for the name,
 				// since propName will be a placeholder like 0 or 1
 				sequenceMap := &yaml.Node{Kind: yaml.MappingNode}
 				n.Content = append(n.Content, sequenceMap)
-				return buildNode(sequenceMap, objectProps, &schema, ancestorTypes)
+				return buildNode(sequenceMap, objectProps, &schema, ancestorTypes, bare)
 			} else {
 				return fmt.Errorf("unexpected kind %v for %s", n.Kind, propName)
 			}
@@ -120,11 +129,11 @@ func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema, 
 			} else {
 
 				// Add the samples to the sequence node
-				err := buildProp(sequence, "0", *arrayItems, schema, ancestorTypes)
+				err := buildProp(sequence, "0", *arrayItems, schema, ancestorTypes, bare)
 				if err != nil {
 					return err
 				}
-				err = buildProp(sequence, "1", *arrayItems, schema, ancestorTypes)
+				err = buildProp(sequence, "1", *arrayItems, schema, ancestorTypes, bare)
 				if err != nil {
 					return err
 				}
@@ -154,7 +163,7 @@ func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema, 
 				if isCircular {
 					return addScalar(n, propName, "{CIRCULAR}")
 				} else {
-					return buildProp(n, propName, *objectProps, schema, ancestorTypes)
+					return buildProp(n, propName, *objectProps, schema, ancestorTypes, bare)
 				}
 			}
 		} else {
@@ -168,18 +177,23 @@ func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema, 
 }
 
 // buildNode recursively builds a node for a schema-like object
-func buildNode(n *yaml.Node, s cfn.SchemaLike, schema *cfn.Schema, ancestorTypes []string) error {
+func buildNode(n *yaml.Node, s cfn.SchemaLike, schema *cfn.Schema, ancestorTypes []string, bare bool) error {
 
 	// Add all props or just the required ones
-	if bareTemplate {
-		for _, requiredName := range s.GetRequired() {
-			if p, hasProp := schema.Properties[requiredName]; hasProp {
-				err := buildProp(n, requiredName, *p, *schema, ancestorTypes)
+	// TODO: Bug - we need them all, just don't output anything... ?
+	if bare {
+		requiredProps := s.GetRequired()
+		props := s.GetProperties()
+		for _, requiredName := range requiredProps {
+			p, hasProp := props[requiredName]
+			if hasProp {
+				err := buildProp(n, requiredName, *p, *schema, ancestorTypes, bare)
 				if err != nil {
 					return err
 				}
 			} else {
-				return fmt.Errorf("required: %s not found in properties", requiredName)
+				config.Debugf("invalid: %+v", s)
+				return fmt.Errorf("invalid schema: required property %s not found in properties", requiredName)
 			}
 		}
 	} else {
@@ -189,7 +203,7 @@ func buildNode(n *yaml.Node, s cfn.SchemaLike, schema *cfn.Schema, ancestorTypes
 			if slices.Contains(schema.ReadOnlyProperties, propPath) {
 				continue
 			}
-			err := buildProp(n, k, *p, *schema, ancestorTypes)
+			err := buildProp(n, k, *p, *schema, ancestorTypes, bare)
 			if err != nil {
 				return err
 			}
@@ -281,13 +295,13 @@ func build(typeNames []string) (cft.Template, error) {
 
 		// Add a node for the resource
 		shortName := strings.Split(typeName, "::")[2]
-		r := node.AddMap(resourceMap, "My"+shortName)
+		r := node.AddMap(resourceMap, shortName)
 		node.Add(r, "Type", typeName)
 		props := node.AddMap(r, "Properties")
 
 		// Recursively build the node
 		ancestorTypes := make([]string, 0)
-		err = buildNode(props, schema, schema, ancestorTypes)
+		err = buildNode(props, schema, schema, ancestorTypes, bareTemplate)
 		if err != nil {
 			return t, err
 		}
@@ -295,6 +309,14 @@ func build(typeNames []string) (cft.Template, error) {
 	}
 
 	return t, nil
+}
+
+func output(out string) {
+	if outFn != "" {
+		os.WriteFile(outFn, []byte(out), 0644)
+	} else {
+		fmt.Println(out)
+	}
 }
 
 // Cmd is the build command's entrypoint
@@ -320,9 +342,15 @@ var Cmd = &cobra.Command{
 					show = true
 				}
 				if show {
-					fmt.Println(t)
+					output(t)
 				}
 			}
+			return
+		}
+
+		// Output a recommended architecture
+		if recommendFlag {
+			recommend(args)
 			return
 		}
 
@@ -344,13 +372,13 @@ var Cmd = &cobra.Command{
 				}
 
 				j, _ := json.MarshalIndent(schema, "", "    ")
-				fmt.Println(string(j))
+				output(string(j))
 			} else {
 				schema, err := cfn.GetTypeSchema(typeName)
 				if err != nil {
 					panic(err)
 				}
-				fmt.Println(schema)
+				output(schema)
 			}
 			return
 		}
@@ -369,16 +397,18 @@ var Cmd = &cobra.Command{
 		out := format.String(t, format.Options{
 			JSON: buildJSON,
 		})
-		fmt.Println(out)
+		output(out)
 	},
 }
 
 func init() {
-	Cmd.Flags().BoolVarP(&buildListFlag, "list", "l", false, "List all CloudFormation resource types")
+	Cmd.Flags().BoolVarP(&buildListFlag, "list", "l", false, "List all CloudFormation resource types with an optional name prefix")
 	Cmd.Flags().BoolVarP(&promptFlag, "prompt", "p", false, "Generate a template using Bedrock and a prompt")
 	Cmd.Flags().BoolVarP(&bareTemplate, "bare", "b", false, "Produce a minimal template, omitting all optional resource properties")
 	Cmd.Flags().BoolVarP(&buildJSON, "json", "j", false, "Output the template as JSON (default format: YAML)")
 	Cmd.Flags().BoolVarP(&showSchema, "schema", "s", false, "Output the raw un-patched registry schema for a resource type")
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
-	Cmd.Flags().BoolVarP(&omitPatches, "omit-patches", "o", false, "Omit patches and use the raw schema")
+	Cmd.Flags().BoolVar(&omitPatches, "omit-patches", false, "Omit patches and use the raw schema")
+	Cmd.Flags().BoolVarP(&recommendFlag, "recommend", "r", false, "Output a recommended architecture for the chosen use case")
+	Cmd.Flags().StringVarP(&outFn, "output", "o", "", "Output to a file")
 }

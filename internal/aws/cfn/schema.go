@@ -25,7 +25,7 @@ type Prop struct {
 	Examples             []string         `json:"examples"`
 	AdditionalProperties bool             `json:"additionalProperties"`
 	Properties           map[string]*Prop `json:"properties"`
-	Enum                 []string         `json:"enum"`
+	Enum                 []any            `json:"enum"`
 	Required             []string         `json:"required"`
 	OneOf                []*Prop          `json:"oneOf"`
 	AnyOf                []*Prop          `json:"anyOf"`
@@ -88,6 +88,10 @@ func (schema *Schema) Patch() error {
 		return patchLightsailAlarm(schema)
 	case "AWS::Lightsail::Distribution":
 		return patchLightsailDistribution(schema)
+	case "AWS::SES::ConfigurationSetEventDestination":
+		return patchSESConfigurationSetEventDestination(schema)
+	case "AWS::SES::ContactList":
+		return patchSESContactList(schema)
 
 	}
 	return nil

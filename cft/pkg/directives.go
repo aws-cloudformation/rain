@@ -2,6 +2,7 @@
 package pkg
 
 import (
+	"embed"
 	"errors"
 	"fmt"
 	"os"
@@ -32,10 +33,18 @@ type s3Options struct {
 	Format         s3Format `yaml:"Format"`
 }
 
-// A !Rain directive implementation
-type rainFunc func(n *yaml.Node, rootDir string, t cft.Template, parent node.NodePair) (bool, error)
+type directiveContext struct {
+	n       *yaml.Node
+	rootDir string
+	t       cft.Template
+	parent  node.NodePair
+	fs      *embed.FS
+}
 
-var registry = make(map[string]rainFunc)
+// A !Rain directive implementation
+type directiveFunc func(ctx *directiveContext) (bool, error)
+
+var registry = make(map[string]directiveFunc)
 
 func init() {
 	registry["**/*|Rain::Embed"] = includeString
@@ -46,20 +55,20 @@ func init() {
 	registry["**/*|Rain::Module"] = module
 }
 
-func includeString(n *yaml.Node,
-	root string, t cft.Template, parent node.NodePair) (bool, error) {
-	content, _, err := expectFile(n, root)
+func includeString(ctx *directiveContext) (bool, error) {
+
+	content, _, err := expectFile(ctx.n, ctx.rootDir)
 	if err != nil {
 		return false, err
 	}
 
-	n.Encode(strings.TrimSpace(string(content)))
+	ctx.n.Encode(strings.TrimSpace(string(content)))
 
 	return true, nil
 }
 
-func includeLiteral(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
-	content, path, err := expectFile(n, root)
+func includeLiteral(ctx *directiveContext) (bool, error) {
+	content, path, err := expectFile(ctx.n, ctx.rootDir)
 	if err != nil {
 		return false, err
 	}
@@ -71,19 +80,26 @@ func includeLiteral(n *yaml.Node, root string, t cft.Template, parent node.NodeP
 	}
 
 	// Transform
-	parse.TransformNode(&contentNode)
-	_, err = transform(&contentNode, filepath.Dir(path), t, nil)
+	parse.NormalizeNode(&contentNode)
+	_, err = transform(&transformContext{
+		nodeToTransform: &contentNode,
+		rootDir:         filepath.Dir(path),
+		t:               ctx.t,
+		parent:          nil,
+		fs:              nil,
+	})
 	if err != nil {
 		return false, err
 	}
 
 	// Unwrap from the document node
-	*n = *contentNode.Content[0]
+	*ctx.n = *contentNode.Content[0]
 	return true, nil
 }
 
-func includeEnv(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
-	name, err := expectString(n)
+func includeEnv(ctx *directiveContext) (bool, error) {
+	config.Debugf("includeEnv n: %v", node.ToSJson(ctx.n))
+	name, err := expectString(ctx.n)
 	if err != nil {
 		return false, err
 	}
@@ -96,7 +112,7 @@ func includeEnv(n *yaml.Node, root string, t cft.Template, parent node.NodePair)
 	if err != nil {
 		return false, err
 	}
-	*n = newNode
+	*ctx.n = newNode
 	return true, nil
 }
 
@@ -139,7 +155,9 @@ func handleS3(root string, options s3Options) (*yaml.Node, error) {
 	return &n, nil
 }
 
-func includeS3Object(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
+func includeS3Object(ctx *directiveContext) (bool, error) {
+	n := ctx.n
+	parent := ctx.parent
 	if n.Kind != yaml.MappingNode || len(n.Content) != 2 {
 		return false, errors.New("expected a map")
 	}
@@ -147,14 +165,14 @@ func includeS3Object(n *yaml.Node, root string, t cft.Template, parent node.Node
 	// Check to see if the Path is a Ref.
 	// The only valid use case is if the !Rain::S3 directive is inside a module,
 	// and the Ref points to one of the properties set in the parent template
-	_, pathOption := s11n.GetMapValue(n.Content[1], "Path")
+	_, pathOption, _ := s11n.GetMapValue(n.Content[1], "Path")
 	if pathOption != nil && pathOption.Kind == yaml.MappingNode {
 		if pathOption.Content[0].Value == "Ref" {
 			if parent.Parent != nil {
 				moduleParentMap := parent.Parent.Value
-				_, moduleParentProps := s11n.GetMapValue(moduleParentMap, "Properties")
+				_, moduleParentProps, _ := s11n.GetMapValue(moduleParentMap, "Properties")
 				if moduleParentProps != nil {
-					_, pathProp := s11n.GetMapValue(moduleParentProps, pathOption.Content[1].Value)
+					_, pathProp, _ := s11n.GetMapValue(moduleParentProps, pathOption.Content[1].Value)
 					if pathProp != nil {
 						// Replace the Ref with the value
 						node.SetMapValue(n.Content[1], "Path", node.Clone(pathProp))
@@ -175,7 +193,7 @@ func includeS3Object(n *yaml.Node, root string, t cft.Template, parent node.Node
 		return false, err
 	}
 
-	newNode, err := handleS3(root, options)
+	newNode, err := handleS3(ctx.rootDir, options)
 	if err != nil {
 		return false, err
 	}
@@ -185,13 +203,13 @@ func includeS3Object(n *yaml.Node, root string, t cft.Template, parent node.Node
 	return true, nil
 }
 
-func includeS3Http(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
-	path, err := expectString(n)
+func includeS3Http(ctx *directiveContext) (bool, error) {
+	path, err := expectString(ctx.n)
 	if err != nil {
 		return false, err
 	}
 
-	newNode, err := handleS3(root, s3Options{
+	newNode, err := handleS3(ctx.rootDir, s3Options{
 		Path:   path,
 		Format: s3Http,
 	})
@@ -200,18 +218,18 @@ func includeS3Http(n *yaml.Node, root string, t cft.Template, parent node.NodePa
 		return false, err
 	}
 
-	*n = *newNode
+	*ctx.n = *newNode
 
 	return true, nil
 }
 
-func includeS3URI(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
-	path, err := expectString(n)
+func includeS3URI(ctx *directiveContext) (bool, error) {
+	path, err := expectString(ctx.n)
 	if err != nil {
 		return false, err
 	}
 
-	newNode, err := handleS3(root, s3Options{
+	newNode, err := handleS3(ctx.rootDir, s3Options{
 		Path:   path,
 		Format: s3URI,
 	})
@@ -220,21 +238,25 @@ func includeS3URI(n *yaml.Node, root string, t cft.Template, parent node.NodePai
 		return false, err
 	}
 
-	*n = *newNode
+	*ctx.n = *newNode
 
 	return true, nil
 }
 
-func includeS3(n *yaml.Node, root string, t cft.Template, parent node.NodePair) (bool, error) {
+func includeS3(ctx *directiveContext) (bool, error) {
+	n := ctx.n
+	root := ctx.rootDir
+	t := ctx.t
+	parent := ctx.parent
 	// Figure out if we're a string or an object
 	if len(n.Content) != 2 {
 		return false, errors.New("expected exactly one key")
 	}
 
 	if n.Content[1].Kind == yaml.ScalarNode {
-		return includeS3URI(n, root, t, parent)
+		return includeS3URI(&directiveContext{n, root, t, parent, nil})
 	} else if n.Content[1].Kind == yaml.MappingNode {
-		return includeS3Object(n, root, t, parent)
+		return includeS3Object(&directiveContext{n, root, t, parent, nil})
 	}
 
 	return true, nil

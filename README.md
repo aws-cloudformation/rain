@@ -27,7 +27,7 @@ cfn-lint, Guard and more:
 
 * **Combined logs for nested stacks with sensible filtering**: When you run `rain log`, you will see a combined stream of logs from the stack you specified along with any nested stack associated with it. Rain also filters out uninteresting log messages by default so you just see the errors that require attention. You can also use `rain log --chart` to see a Gantt chart that shows you how long each operation took for a given stack.
 
-* **Build new CloudFormation templates**: `rain build` generates new CloudFormation templates containing skeleton resources that you specify. This saves you having to look up which properties are available and which are required vs. optional.  Build skeleton templates by specifying a resource name like `AWS::S3::Bucket`, or enable the Bedrock Claude model in your account to use generative AI with a command like `rain build -p "A VPC with 2 subnets"`. (Note that Bedrock is not free, and requires some [setup](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html)).
+* **Build new CloudFormation templates**: `rain build` generates new CloudFormation templates containing skeleton resources that you specify. This saves you having to look up which properties are available and which are required vs. optional. Build skeleton templates by specifying a resource name like `AWS::S3::Bucket`, or enable the Bedrock Claude model in your account to use generative AI with a command like `rain build -p "A VPC with 2 subnets"`. (Note that Bedrock is not free, and requires some [setup](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html)). **NEW** Use the `rain build -r` command to pick from a list of functional templates that will pass typical compliance checks by default. These templates are great starting points for infrastructure projects.
 
 * **Manipulate CloudFormation stack sets**: `rain stackset deploy` creates a new stackset, updates an existing one or adds a stack instance(s) to an existing stack set. You can list stack sets using `rain stackset ls`, review stack set details with `rain stackset ls <stack set name>` and delete stack set and\or its instances with `rain stackset rm <stack set name>`
 
@@ -268,7 +268,7 @@ Resources:
 The `!Rain::Module` directive is an experimental feature that allows you to
 create local modules of reuseable code that can be inserted into templates. A
 rain module is similar in some ways to a CDK construct, in that a module can
-extend an existing resource, allowing the user of the module to override
+extend existing resources, allowing the user of the module to override
 properties. For example, your module could extend an S3 bucket to provide a
 default implementation that passes static security scans. Users of the module
 would inherit these best practices by default, but they would still have the
@@ -299,9 +299,8 @@ Parameters:
     Type: String
 
 Resources:
-  ModuleExtension:
-    Metadata:
-      Extends: AWS::S3::Bucket
+  Bucket:
+    Type: AWS::S3::Bucket
     Properties:
       LoggingConfiguration:
         DestinationBucketName: !Ref LogBucket
@@ -336,9 +335,6 @@ Resources:
         RestrictPublicBuckets: true
 ```
 
-A module must include a resource called `ModuleExtension`, and it must indicate 
-which resource it is extending with a Metadata entry called `Extends`.
-
 Note that we defined a single parameter to the module called `LogBucketName`.
 In the module, we create an additional bucket to hold logs, and we apply the
 name to that bucket. In the template that uses the module, we specify that name
@@ -351,14 +347,17 @@ A template that uses the module:
 Resources:
   ModuleExample:
     Type: !Rain::Module "./bucket-module.yaml"
-    UpdateReplacePolicy: Delete
     Properties:
       LogBucketName: test-module-log-bucket
-      VersioningConfiguration:
-        Status: Enabled
-      Tags:
-        - Key: test-tag
-          Value: test-value2
+    Overrides:
+      Bucket:
+        UpdateReplacePolicy: Delete
+        Properties:
+          VersioningConfiguration:
+            Status: Enabled
+          Tags:
+            - Key: test-tag
+              Value: test-value2
 ```
 
 Note that in addition to supplying the expected `LogBucketName` property, we have also 
@@ -369,7 +368,7 @@ The resulting template after running `rain pkg`:
 
 ```yaml
 Resources:
-  ModuleExample:
+  ModuleExampleBucket:
     Type: AWS::S3::Bucket
     Properties:
       LoggingConfiguration:
