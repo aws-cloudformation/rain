@@ -14,15 +14,16 @@ func Example_ls_help() {
 
 	ls.Cmd.Execute()
 	// Output:
-	// Displays a list of all running stacks or the contents of <stack> if provided.
+	// Displays a list of all running stacks or the contents of <stack> if provided. If the -c arg is supplied, operates on changesets instead of stacks
 	//
 	// Usage:
-	//   ls <stack>
+	//   ls <stack> [changeset]
 	//
 	// Aliases:
 	//   ls, list
 	//
 	// Flags:
-	//   -a, --all    list stacks in all regions; if you specify a stack, show more details
-	//   -h, --help   help for ls
+	//   -a, --all         list stacks in all regions; if you specify a stack, show more details
+	//   -c, --changeset   List changesets instead of stacks
+	//   -h, --help        help for ls
 }

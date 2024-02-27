@@ -19,6 +19,29 @@ import (
 var all = false
 var changeset = false
 
+func ShowChangeSetsForStack(stackName string) error {
+	sets, err := cfn.ListChangeSets(stackName)
+	if err != nil {
+		return err
+	}
+
+	if len(sets) == 0 {
+		return nil
+	}
+
+	for _, cs := range sets {
+		if cs.ChangeSetName == nil {
+			continue
+		}
+		fmt.Printf("    %s %v/%v\n",
+			*cs.ChangeSetName,
+			ui.ColouriseStatus(string(cs.ExecutionStatus)),
+			ui.ColouriseStatus(string(cs.Status)))
+	}
+
+	return nil
+}
+
 // Cmd is the ls command's entrypoint
 var Cmd = &cobra.Command{
 	Use:                   "ls <stack> [changeset]",
@@ -31,9 +54,12 @@ var Cmd = &cobra.Command{
 		if len(args) > 0 {
 
 			if changeset {
+				// Get the status of a single changeset
+
 				if len(args) != 2 {
 					panic("Usage: rain ls -c stackName changeSetName")
 				}
+
 				stackName := args[0]
 				changeSetName := args[1]
 				spinner.Push("Fetching changeset details")
@@ -71,7 +97,7 @@ var Cmd = &cobra.Command{
 					if p.ParameterValue != nil {
 						v = *p.ParameterValue
 					}
-					out += fmt.Sprintf("    %s: %s", k, v)
+					out += fmt.Sprintf("    %s: %s\n", k, v)
 				}
 				// TODO: Convert changes to table
 				out += "Changes: \n"
@@ -107,13 +133,13 @@ var Cmd = &cobra.Command{
 						pid)
 
 				}
-				// TODO: Paging
 
 				spinner.Pop()
 
 				fmt.Println(out)
 
 			} else {
+				// Get the status for a single stack
 				stackName := args[0]
 				spinner.Push("Fetching stack status")
 				stack, err := cfn.GetStack(stackName)
@@ -125,8 +151,15 @@ var Cmd = &cobra.Command{
 				spinner.Pop()
 
 				fmt.Println(output)
+				fmt.Println(console.Yellow("  ChangeSets:"))
+				err = ShowChangeSetsForStack(*stack.StackName)
+				if err != nil {
+					panic(err)
+				}
 			}
 		} else {
+			// List all stacks or changesets
+
 			var err error
 			regions := []string{aws.Config().Region}
 
@@ -160,34 +193,19 @@ var Cmd = &cobra.Command{
 				// For changesets, we need to now call ListChangeSets for
 				// each stack and see if it has any active changesets
 				if changeset {
-					out := ""
 					for _, stack := range stacks {
 						if stack.StackName == nil {
 							continue
 						}
 						config.Debugf("Checking stack %s", *stack.StackName)
 
-						sets, err := cfn.ListChangeSets(*stack.StackName)
+						fmt.Printf("Stack: %s\n", *stack.StackName)
+						err := ShowChangeSetsForStack(*stack.StackName)
 						if err != nil {
 							panic(err)
 						}
 
-						if len(sets) == 0 {
-							continue
-						}
-
-						out += fmt.Sprintf("Stack: %s\n", *stack.StackName)
-
-						for _, cs := range sets {
-							if cs.ChangeSetName == nil {
-								continue
-							}
-							out += fmt.Sprintf("    %s\n", *cs.ChangeSetName)
-						}
-
 					}
-
-					fmt.Println(out)
 
 				} else {
 
