@@ -27,7 +27,7 @@ require (
 )
 
 require (
-	github.com/aws/aws-sdk-go-v2/service/lightsail v1.34.0
+	github.com/aws/aws-sdk-go-v2/service/lightsail v1.36.1
 	github.com/fatih/color v1.16.0
 	github.com/manifoldco/promptui v0.9.0
 	github.com/mattn/go-runewidth v0.0.15
