@@ -29,6 +29,7 @@ func ShowChangeSetsForStack(stackName string) error {
 		return nil
 	}
 
+	fmt.Printf("  %s\n", stackName)
 	for _, cs := range sets {
 		if cs.ChangeSetName == nil {
 			continue
@@ -193,13 +194,13 @@ var Cmd = &cobra.Command{
 				// For changesets, we need to now call ListChangeSets for
 				// each stack and see if it has any active changesets
 				if changeset {
+					fmt.Println(console.Yellow(fmt.Sprintf("Stacks with changesets in %s:", region)))
 					for _, stack := range stacks {
 						if stack.StackName == nil {
 							continue
 						}
 						config.Debugf("Checking stack %s", *stack.StackName)
 
-						fmt.Printf("Stack: %s\n", *stack.StackName)
 						err := ShowChangeSetsForStack(*stack.StackName)
 						if err != nil {
 							panic(err)
