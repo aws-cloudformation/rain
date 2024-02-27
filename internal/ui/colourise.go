@@ -61,14 +61,28 @@ func MapStatus(status string) *StatusRep {
 		rep.Category = Complete
 
 	case strings.HasSuffix(status, "CANCELLED"):
+		fallthrough
 	case strings.HasSuffix(status, "OUTDATED"):
 		rep.Category = Cancelled
 
 	case strings.HasSuffix(status, "FAILED"):
+		fallthrough
 	case strings.HasSuffix(status, "INOPERABLE"):
 		rep.Category = Failed
 
 	case strings.HasSuffix(status, "RUNNING"):
+		rep.Category = InProgress
+
+	// changesets
+	case strings.HasSuffix(status, "CREATE_COMPLETE"):
+		fallthrough
+	case strings.HasSuffix(status, "AVAILABLE"):
+		rep.Category = Complete
+	case strings.HasSuffix(status, "OBSOLETE"):
+		fallthrough
+	case strings.HasSuffix(status, "UNAVAILABLE"):
+		rep.Category = Cancelled
+	case strings.HasSuffix(status, "CREATE_IN_PROGRESS"):
 		rep.Category = InProgress
 
 	default:
