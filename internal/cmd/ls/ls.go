@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/ui"
 
 	"github.com/aws-cloudformation/rain/internal/aws"
@@ -41,8 +42,6 @@ var Cmd = &cobra.Command{
 					panic(ui.Errorf(err, "failed to get changeset '%s'", changeSetName))
 				}
 				out := ""
-				// TODO
-
 				out += fmt.Sprintf("Arn: %v\n", *cs.ChangeSetId)
 				out += fmt.Sprintf("Created: %v\n", cs.CreationTime)
 				descr := ""
@@ -144,8 +143,6 @@ var Cmd = &cobra.Command{
 
 			for _, region := range regions {
 
-				// TODO - if changeset
-
 				spinner.Push(fmt.Sprintf("Fetching stacks in %s", region))
 				aws.SetRegion(region)
 				stacks, err := cfn.ListStacks()
@@ -159,19 +156,55 @@ var Cmd = &cobra.Command{
 				}
 
 				stackNames := make(sort.StringSlice, 0)
-				stackMap := make(map[string]types.StackSummary)
-				for _, stack := range stacks {
-					stackNames = append(stackNames, *stack.StackName)
-					stackMap[*stack.StackName] = stack
-				}
-				sort.Strings(stackNames)
 
-				fmt.Println(console.Yellow(fmt.Sprintf("CloudFormation stacks in %s:", region)))
-				for _, stackName := range stackNames {
-					stack := stackMap[stackName]
+				// For changesets, we need to now call ListChangeSets for
+				// each stack and see if it has any active changesets
+				if changeset {
+					out := ""
+					for _, stack := range stacks {
+						if stack.StackName == nil {
+							continue
+						}
+						config.Debugf("Checking stack %s", *stack.StackName)
 
-					if stack.ParentId == nil {
-						fmt.Println(ui.Indent("  ", formatStack(stack, stackMap)))
+						sets, err := cfn.ListChangeSets(*stack.StackName)
+						if err != nil {
+							panic(err)
+						}
+
+						if len(sets) == 0 {
+							continue
+						}
+
+						out += fmt.Sprintf("Stack: %s\n", *stack.StackName)
+
+						for _, cs := range sets {
+							if cs.ChangeSetName == nil {
+								continue
+							}
+							out += fmt.Sprintf("    %s\n", *cs.ChangeSetName)
+						}
+
+					}
+
+					fmt.Println(out)
+
+				} else {
+
+					stackMap := make(map[string]types.StackSummary)
+					for _, stack := range stacks {
+						stackNames = append(stackNames, *stack.StackName)
+						stackMap[*stack.StackName] = stack
+					}
+					sort.Strings(stackNames)
+
+					fmt.Println(console.Yellow(fmt.Sprintf("CloudFormation stacks in %s:", region)))
+					for _, stackName := range stackNames {
+						stack := stackMap[stackName]
+
+						if stack.ParentId == nil {
+							fmt.Println(ui.Indent("  ", formatStack(stack, stackMap)))
+						}
 					}
 				}
 			}
