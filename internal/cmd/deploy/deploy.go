@@ -250,5 +250,5 @@ func init() {
 	Cmd.Flags().StringVarP(&roleArn, "role-arn", "", "", "ARN of an IAM role that CloudFormation should assume to deploy the stack")
 	Cmd.Flags().BoolVarP(&ignoreUnknownParams, "ignore-unknown-params", "", false, "Ignore unknown parameters")
 	Cmd.Flags().BoolVarP(&noexec, "no-exec", "x", false, "do not execute the changeset")
-	Cmd.Flags().BoolVarP(&changeset, "changeset", "s", false, "execute the changeset, rain deploy -s <stackName> <changeSetName>")
+	Cmd.Flags().BoolVar(&changeset, "changeset", false, "execute the changeset, rain deploy --changeset <stackName> <changeSetName>")
 }
