@@ -98,7 +98,7 @@ var Cmd = &cobra.Command{
 					if p.ParameterValue != nil {
 						v = *p.ParameterValue
 					}
-					out += fmt.Sprintf("    %s: %s\n", k, v)
+					out += fmt.Sprintf("  %s: %s\n", k, v)
 				}
 				// TODO: Convert changes to table
 				out += "Changes: \n"
@@ -126,7 +126,7 @@ var Cmd = &cobra.Command{
 					case "Conditional":
 						replace = " [Might replace]"
 					}
-					out += fmt.Sprintf("%s%s: %s (%s) %s\n",
+					out += fmt.Sprintf("  %s%s: %s (%s) %s\n",
 						string(change.Action),
 						replace,
 						rid,

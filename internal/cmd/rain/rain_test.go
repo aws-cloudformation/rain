@@ -21,7 +21,7 @@ func Example_rainhelp() {
 	// Stack commands:
 	//   cat         Get the CloudFormation template from a running stack
 	//   cc          Interact with templates using Cloud Control API instead of CloudFormation
-	//   deploy      Deploy a CloudFormation stack from a local template
+	//   deploy      Deploy a CloudFormation stack or changeset from a local template
 	//   logs        Show the event log for the named stack
 	//   ls          List running CloudFormation stacks or changesets
 	//   rm          Delete a CloudFormation stack or changeset
