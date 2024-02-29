@@ -119,6 +119,33 @@ func StackExists(stackName string) (bool, error) {
 	return false, nil
 }
 
+// List the active change sets associated with a stack
+func ListChangeSets(stackName string) ([]types.ChangeSetSummary, error) {
+	var token *string
+	retval := make([]types.ChangeSetSummary, 0)
+	for {
+		res, err := getClient().ListChangeSets(context.Background(), &cloudformation.ListChangeSetsInput{
+			StackName: &stackName,
+			NextToken: token,
+		})
+
+		if err != nil {
+			return retval, nil
+		}
+
+		retval = append(retval, res.Summaries...)
+
+		if res.NextToken == nil {
+			break
+		}
+
+		token = res.NextToken
+	}
+
+	return retval, nil
+
+}
+
 // ListStacks returns a list of all existing stacks
 func ListStacks() ([]types.StackSummary, error) {
 	stacks := make([]types.StackSummary, 0)

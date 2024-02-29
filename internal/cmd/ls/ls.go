@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/ui"
 
 	"github.com/aws-cloudformation/rain/internal/aws"
@@ -16,30 +17,150 @@ import (
 )
 
 var all = false
+var changeset = false
+
+func ShowChangeSetsForStack(stackName string) error {
+	sets, err := cfn.ListChangeSets(stackName)
+	if err != nil {
+		return err
+	}
+
+	if len(sets) == 0 {
+		return nil
+	}
+
+	fmt.Printf("  %s\n", stackName)
+	for _, cs := range sets {
+		if cs.ChangeSetName == nil {
+			continue
+		}
+		fmt.Printf("    %s %v/%v\n",
+			*cs.ChangeSetName,
+			ui.ColouriseStatus(string(cs.ExecutionStatus)),
+			ui.ColouriseStatus(string(cs.Status)))
+	}
+
+	return nil
+}
 
 // Cmd is the ls command's entrypoint
 var Cmd = &cobra.Command{
-	Use:                   "ls <stack>",
-	Short:                 "List running CloudFormation stacks",
-	Long:                  "Displays a list of all running stacks or the contents of <stack> if provided.",
-	Args:                  cobra.MaximumNArgs(1),
+	Use:                   "ls <stack> [changeset]",
+	Short:                 "List running CloudFormation stacks or changesets",
+	Long:                  "Displays a list of all running stacks or the contents of <stack> if provided. If the -c arg is supplied, operates on changesets instead of stacks",
+	Args:                  cobra.MaximumNArgs(2),
 	Aliases:               []string{"list"},
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) == 1 {
-			stackName := args[0]
+		if len(args) > 0 {
 
-			spinner.Push("Fetching stack status")
-			stack, err := cfn.GetStack(stackName)
-			if err != nil {
-				panic(ui.Errorf(err, "failed to list stack '%s'", stackName))
+			if changeset {
+				// Get the status of a single changeset
+
+				if len(args) != 2 {
+					panic("Usage: rain ls -c stackName changeSetName")
+				}
+
+				stackName := args[0]
+				changeSetName := args[1]
+				spinner.Push("Fetching changeset details")
+				cs, err := cfn.GetChangeSet(stackName, changeSetName)
+				if err != nil {
+					panic(ui.Errorf(err, "failed to get changeset '%s'", changeSetName))
+				}
+				out := ""
+				out += fmt.Sprintf("Arn: %v\n", *cs.ChangeSetId)
+				out += fmt.Sprintf("Created: %v\n", cs.CreationTime)
+				descr := ""
+				if cs.Description != nil {
+					descr = *cs.Description
+				}
+				out += fmt.Sprintf("Description: %v\n", descr)
+				reason := ""
+				if cs.StatusReason != nil {
+					reason = "(" + *cs.StatusReason + ")"
+				}
+				out += fmt.Sprintf("Status: %v/%v %v\n",
+					ui.ColouriseStatus(string(cs.ExecutionStatus)),
+					ui.ColouriseStatus(string(cs.Status)),
+					reason)
+				out += "Parameters: "
+				if len(cs.Parameters) == 0 {
+					out += "(None)\n"
+				} else {
+					out += "\n"
+				}
+				for _, p := range cs.Parameters {
+					k, v := "", ""
+					if p.ParameterKey != nil {
+						k = *p.ParameterKey
+					}
+					if p.ParameterValue != nil {
+						v = *p.ParameterValue
+					}
+					out += fmt.Sprintf("  %s: %s\n", k, v)
+				}
+				// TODO: Convert changes to table
+				out += "Changes: \n"
+				for _, csch := range cs.Changes {
+					if csch.ResourceChange == nil {
+						continue
+					}
+					change := csch.ResourceChange
+					rid := ""
+					if change.LogicalResourceId != nil {
+						rid = *change.LogicalResourceId
+					}
+					rt := ""
+					if change.ResourceType != nil {
+						rt = *change.ResourceType
+					}
+					pid := ""
+					if change.PhysicalResourceId != nil {
+						pid = *change.PhysicalResourceId
+					}
+					replace := ""
+					switch string(change.Replacement) {
+					case "True":
+						replace = " [Replace]"
+					case "Conditional":
+						replace = " [Might replace]"
+					}
+					out += fmt.Sprintf("  %s%s: %s (%s) %s\n",
+						string(change.Action),
+						replace,
+						rid,
+						rt,
+						pid)
+
+				}
+
+				spinner.Pop()
+
+				fmt.Println(out)
+
+			} else {
+				// Get the status for a single stack
+				stackName := args[0]
+				spinner.Push("Fetching stack status")
+				stack, err := cfn.GetStack(stackName)
+				if err != nil {
+					panic(ui.Errorf(err, "failed to list stack '%s'", stackName))
+				}
+
+				output := cfn.GetStackSummary(stack, all)
+				spinner.Pop()
+
+				fmt.Println(output)
+				fmt.Println(console.Yellow("  ChangeSets:"))
+				err = ShowChangeSetsForStack(*stack.StackName)
+				if err != nil {
+					panic(err)
+				}
 			}
-
-			output := cfn.GetStackSummary(stack, all)
-			spinner.Pop()
-
-			fmt.Println(output)
 		} else {
+			// List all stacks or changesets
+
 			var err error
 			regions := []string{aws.Config().Region}
 
@@ -55,6 +176,7 @@ var Cmd = &cobra.Command{
 			origRegion := aws.Config().Region
 
 			for _, region := range regions {
+
 				spinner.Push(fmt.Sprintf("Fetching stacks in %s", region))
 				aws.SetRegion(region)
 				stacks, err := cfn.ListStacks()
@@ -68,19 +190,40 @@ var Cmd = &cobra.Command{
 				}
 
 				stackNames := make(sort.StringSlice, 0)
-				stackMap := make(map[string]types.StackSummary)
-				for _, stack := range stacks {
-					stackNames = append(stackNames, *stack.StackName)
-					stackMap[*stack.StackName] = stack
-				}
-				sort.Strings(stackNames)
 
-				fmt.Println(console.Yellow(fmt.Sprintf("CloudFormation stacks in %s:", region)))
-				for _, stackName := range stackNames {
-					stack := stackMap[stackName]
+				// For changesets, we need to now call ListChangeSets for
+				// each stack and see if it has any active changesets
+				if changeset {
+					fmt.Println(console.Yellow(fmt.Sprintf("Stacks with changesets in %s:", region)))
+					for _, stack := range stacks {
+						if stack.StackName == nil {
+							continue
+						}
+						config.Debugf("Checking stack %s", *stack.StackName)
 
-					if stack.ParentId == nil {
-						fmt.Println(ui.Indent("  ", formatStack(stack, stackMap)))
+						err := ShowChangeSetsForStack(*stack.StackName)
+						if err != nil {
+							panic(err)
+						}
+
+					}
+
+				} else {
+
+					stackMap := make(map[string]types.StackSummary)
+					for _, stack := range stacks {
+						stackNames = append(stackNames, *stack.StackName)
+						stackMap[*stack.StackName] = stack
+					}
+					sort.Strings(stackNames)
+
+					fmt.Println(console.Yellow(fmt.Sprintf("CloudFormation stacks in %s:", region)))
+					for _, stackName := range stackNames {
+						stack := stackMap[stackName]
+
+						if stack.ParentId == nil {
+							fmt.Println(ui.Indent("  ", formatStack(stack, stackMap)))
+						}
 					}
 				}
 			}
@@ -95,4 +238,5 @@ var Cmd = &cobra.Command{
 
 func init() {
 	Cmd.Flags().BoolVarP(&all, "all", "a", false, "list stacks in all regions; if you specify a stack, show more details")
+	Cmd.Flags().BoolVarP(&changeset, "changeset", "c", false, "List changesets instead of stacks")
 }

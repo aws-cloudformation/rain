@@ -453,3 +453,7 @@ func ListResourceTypes() ([]string, error) {
 func IsCCAPI(t string) (bool, error) {
 	return true, nil
 }
+
+func ListChangeSets(stackName string) ([]types.ChangeSetSummary, error) {
+	return make([]types.ChangeSetSummary, 0), nil
+}

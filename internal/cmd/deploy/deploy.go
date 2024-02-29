@@ -11,6 +11,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/dc"
 	"github.com/aws-cloudformation/rain/internal/ui"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 
 	"github.com/spf13/cobra"
 )
@@ -24,12 +25,15 @@ var terminationProtection bool
 var keep bool
 var roleArn string
 var ignoreUnknownParams bool
+var noexec bool
+var changeset bool
 
 // Cmd is the deploy command's entrypoint
 var Cmd = &cobra.Command{
 	Use:   "deploy <template> [stack]",
-	Short: "Deploy a CloudFormation stack from a local template",
-	Long: `Creates or updates a CloudFormation stack named <stack> from the template file <template>.
+	Short: "Deploy a CloudFormation stack or changeset from a local template",
+	Long: `Creates or updates a CloudFormation stack named <stack> from the template file <template>. 
+You can also create and execute changesets with this command.
 If you don't specify a stack name, rain will use the template filename minus its extension.
 
 If a template needs to be packaged before it can be deployed, rain will package the template first.
@@ -59,80 +63,113 @@ YAML:
   Tags:
     TagKey: TagValue
     ...
+
+To create a changeset:
+
+rain deploy --no-exec <template> [stackName]
+
+To execute a changeset:
+
+rain deploy --changeset <stackName> <changeSetName>
+
+To list and delete changesets, use the ls and rm commands.
 `,
 	Args:                  cobra.RangeArgs(1, 2),
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		fn := args[0]
-		base := filepath.Base(fn)
 
-		var suppliedStackName string
+		var stackName, changeSetName, fn string
+		var err error
+		var stack types.Stack
 
-		if len(args) == 2 {
-			suppliedStackName = args[1]
-		} else {
-			suppliedStackName = ""
-		}
+		if changeset {
 
-		// Package template
-		spinner.Push(fmt.Sprintf("Preparing template '%s'", base))
-		template := PackageTemplate(fn, yes)
-		spinner.Pop()
-
-		stackName := dc.GetStackName(suppliedStackName, base)
-
-		// Check current stack status
-		spinner.Push(fmt.Sprintf("Checking current status of stack '%s'", stackName))
-		stack, stackExists := CheckStack(stackName)
-		spinner.Pop()
-
-		dc, err := dc.GetDeployConfig(tags, params, configFilePath, base,
-			template, stack, stackExists, yes, ignoreUnknownParams)
-		if err != nil {
-			panic(err)
-		}
-
-		// Figure out how long we thing the stack will take to execute
-		//totalSeconds := forecast.PredictTotalEstimate(template, stackExists)
-		// TODO - Wait until the forecast command is GA and add this to output
-
-		// Create change set
-		spinner.Push("Creating change set")
-		changeSetName, createErr := cfn.CreateChangeSet(template, dc.Params, dc.Tags, stackName, roleArn)
-		if createErr != nil {
-			if changeSetHasNoChanges(createErr.Error()) {
-				spinner.Pop()
-				fmt.Println(console.Green("Change set was created, but there is no change. Deploy was skipped."))
-				return
-			} else {
-				panic(ui.Errorf(createErr, "error creating changeset"))
+			if len(args) != 2 {
+				panic("expected 2 args: rain deploy --changeset <stackName> <changeSetName>")
 			}
-		}
-		spinner.Pop()
 
-		// Confirm changes
-		if !yes {
-			spinner.Push("Formatting change set")
-			status := formatChangeSet(stackName, changeSetName)
+			stackName = args[0]
+			changeSetName = args[1]
+
+		} else {
+
+			fn = args[0]
+			base := filepath.Base(fn)
+
+			var suppliedStackName string
+
+			if len(args) == 2 {
+				suppliedStackName = args[1]
+			} else {
+				suppliedStackName = ""
+			}
+
+			// Package template
+			spinner.Push(fmt.Sprintf("Preparing template '%s'", base))
+			template := PackageTemplate(fn, yes)
 			spinner.Pop()
 
-			fmt.Println("CloudFormation will make the following changes:")
-			fmt.Println(status)
+			stackName = dc.GetStackName(suppliedStackName, base)
 
-			if !console.Confirm(true, "Do you wish to continue?") {
-				err := cfn.DeleteChangeSet(stackName, changeSetName)
-				if err != nil {
-					panic(ui.Errorf(err, "error while deleting changeset '%s'", changeSetName))
+			// Check current stack status
+			spinner.Push(fmt.Sprintf("Checking current status of stack '%s'", stackName))
+			stack, stackExists := CheckStack(stackName)
+			spinner.Pop()
+
+			dc, err := dc.GetDeployConfig(tags, params, configFilePath, base,
+				template, stack, stackExists, yes, ignoreUnknownParams)
+			if err != nil {
+				panic(err)
+			}
+
+			// Figure out how long we thing the stack will take to execute
+			//totalSeconds := forecast.PredictTotalEstimate(template, stackExists)
+			// TODO - Wait until the forecast command is GA and add this to output
+
+			// Create change set
+			spinner.Push("Creating change set")
+			var createErr error
+			changeSetName, createErr = cfn.CreateChangeSet(template, dc.Params, dc.Tags, stackName, roleArn)
+			if createErr != nil {
+				if changeSetHasNoChanges(createErr.Error()) {
+					spinner.Pop()
+					fmt.Println(console.Green("Change set was created, but there is no change. Deploy was skipped."))
+					return
+				} else {
+					panic(ui.Errorf(createErr, "error creating changeset"))
 				}
+			}
+			spinner.Pop()
 
-				if !stackExists {
-					err = cfn.DeleteStack(stackName, "")
+			// Confirm changes
+			if !yes {
+				spinner.Push("Formatting change set")
+				status := formatChangeSet(stackName, changeSetName)
+				spinner.Pop()
+
+				fmt.Println("CloudFormation will make the following changes:")
+				fmt.Println(status)
+
+				if !console.Confirm(true, "Do you wish to continue?") {
+					err := cfn.DeleteChangeSet(stackName, changeSetName)
 					if err != nil {
-						panic(ui.Errorf(err, "error deleting empty stack '%s'", stackName))
+						panic(ui.Errorf(err, "error while deleting changeset '%s'", changeSetName))
 					}
-				}
 
-				panic(errors.New("user cancelled deployment"))
+					if !stackExists {
+						err = cfn.DeleteStack(stackName, "")
+						if err != nil {
+							panic(ui.Errorf(err, "error deleting empty stack '%s'", stackName))
+						}
+					}
+
+					panic(errors.New("user cancelled deployment"))
+				}
+			}
+
+			if noexec {
+				fmt.Println("changeset created but not executed:", changeSetName)
+				return
 			}
 		}
 
@@ -145,8 +182,13 @@ YAML:
 		if detach {
 			fmt.Printf("Detaching. You can check your stack's status with: rain watch %s\n", stackName)
 		} else {
-			fmt.Printf("Deploying template '%s' as stack '%s' in %s.\n", filepath.Base(fn), stackName, aws.Config().Region)
-
+			if changeset {
+				fmt.Printf("Executing changeset '%s' as stack '%s' in %s.\n",
+					changeSetName, stackName, aws.Config().Region)
+			} else {
+				fmt.Printf("Deploying template '%s' as stack '%s' in %s.\n",
+					filepath.Base(fn), stackName, aws.Config().Region)
+			}
 			status, messages := cfn.WaitForStackToSettle(stackName)
 			stack, _ = cfn.GetStack(stackName)
 			output := cfn.GetStackSummary(stack, false)
@@ -207,4 +249,6 @@ func init() {
 	Cmd.Flags().BoolVarP(&keep, "keep", "k", false, "keep deployed resources after a failure by disabling rollbacks")
 	Cmd.Flags().StringVarP(&roleArn, "role-arn", "", "", "ARN of an IAM role that CloudFormation should assume to deploy the stack")
 	Cmd.Flags().BoolVarP(&ignoreUnknownParams, "ignore-unknown-params", "", false, "Ignore unknown parameters")
+	Cmd.Flags().BoolVarP(&noexec, "no-exec", "x", false, "do not execute the changeset")
+	Cmd.Flags().BoolVar(&changeset, "changeset", false, "execute the changeset, rain deploy --changeset <stackName> <changeSetName>")
 }

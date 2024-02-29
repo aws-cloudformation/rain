@@ -133,6 +133,7 @@ Resources:
 	}, `Stack success: CREATE_COMPLETE
   Outputs:
     MockKey: Mock value # Mock output description (exported as MockExport)
+  ChangeSets:
 `, "", 0)
 
 	// List full stack
@@ -148,6 +149,7 @@ Resources:
       MockPhysicalId
   Outputs:
     MockKey: Mock value # Mock output description (exported as MockExport)
+  ChangeSets:
 `, "", 0)
 
 	// Watch stack
