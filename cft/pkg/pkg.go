@@ -54,12 +54,11 @@ func transform(ctx *transformContext) (bool, error) {
 	// registry is a map of functions defined in rain.go
 	for path, fn := range registry {
 		for found := range s11n.MatchAll(ctx.nodeToTransform, path) {
-			//config.Debugf("pkg transform path: %v, nodeToTransform:\n%v", path,
-			//	node.ToSJson(ctx.nodeToTransform))
-			//config.Debugf("pkg transform found: %v", node.ToSJson(found))
 			nodeParent := node.GetParent(found, ctx.nodeToTransform, nil)
 			nodeParent.Parent = ctx.parent
-			//config.Debugf("pkg transform nodeParent: %s", nodeParent.String())
+			if path == "**/*|Rain::Module" {
+				config.Debugf("found a Module at line %v", nodeParent.Value.Line)
+			}
 			c, err := fn(&directiveContext{found, ctx.rootDir, ctx.t, nodeParent, ctx.fs})
 			if err != nil {
 				config.Debugf("Error packaging template: %s\n", err)
