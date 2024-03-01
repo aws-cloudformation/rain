@@ -25,19 +25,6 @@ func MatchOne(node *yaml.Node, path string) *yaml.Node {
 	return results[0]
 }
 
-// TODO: There's a bug in here that's missing some nodes
-// also it's super annoying to troubleshoot since things
-// happen in an unpredictable order on goroutines.
-// Do we *really* need the channel?
-//
-// I *think* what's happening is that Modules modify the document by
-// adding new nodes, and MatchAll gets confused because it wasn't
-// expecting new nodes to be added. All of the other directives only
-// add or change content underneath where the directive appears.
-// Probably an array index thing... when we started there were
-// n resources, now there are n+m, so it doesn't fail, it just doesn't finish.
-// This is likely to be unsafe on a goroutine
-
 // MatchAll returns all yaml nodes that match the provided path.
 // The path is a `/`-separated string that describes a path into the template's tree.
 // Wildcard elements (which can be map keys or array indices) are represented by a `*`.

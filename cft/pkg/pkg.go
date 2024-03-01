@@ -26,6 +26,7 @@ package pkg
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -88,14 +89,34 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 		parent:          &node.NodePair{Key: t.Node, Value: t.Node},
 		fs:              fs,
 	}
-	changed, err := transform(ctx)
-	if err != nil {
-		return t, err
+	var changed bool = false
+	passes := 0
+	maxPasses := 100
+	for {
+		passes += 1
+		// Modules can add new nodes to the template, which
+		// breaks s11n.MatchAll, since it expects the length to stay the same.
+		// Just start over a transform the whole template again.
+		changedThisPass, err := transform(ctx)
+		if err != nil {
+			return t, err
+		}
+		if changedThisPass {
+			config.Debugf("Need another pass: %d", passes)
+			changed = true
+		}
+		if !changedThisPass {
+			config.Debugf("No changes this pass: %d", passes)
+			break
+		}
+		if passes > maxPasses {
+			return t, errors.New("reached maxPasses while transforming")
+		}
 	}
 
 	// j, _ = json.MarshalIndent(templateNode, "", "  ")
 	// config.Debugf("Transformed template: %v", string(j))
-
+	var err error
 	if changed {
 		t, err = parse.Node(templateNode)
 		if err != nil {
