@@ -184,13 +184,13 @@ func expectFile(n *yaml.Node, root string) ([]byte, string, error) {
 		return nil, "", err
 	}
 
-	config.Debugf("root: %v, path: %v", root, path)
+	//config.Debugf("root: %v, path: %v", root, path)
 
 	if !filepath.IsAbs(path) {
 		path = filepath.Join(root, path)
 	}
 
-	config.Debugf("path: %v", path)
+	//config.Debugf("path: %v", path)
 
 	info, err := os.Stat(path)
 	if err != nil {

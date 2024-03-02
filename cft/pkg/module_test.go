@@ -26,6 +26,10 @@ func TestSub(t *testing.T) {
 	runTest("sub", t)
 }
 
+func TestMany(t *testing.T) {
+	runTest("many", t)
+}
+
 // TODO: This was broken in the refactor, come back to it later
 //func TestForeach(t *testing.T) {
 //	runTest("foreach", t)

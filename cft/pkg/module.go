@@ -133,8 +133,8 @@ type refctx struct {
 
 func replaceProp(prop *yaml.Node, parentName string, v *yaml.Node, outNode *yaml.Node, sidx int) error {
 
-	config.Debugf("replaceProp prop: %s, parentName: %s, v: %s, sidx: %d",
-		node.ToSJson(prop), parentName, node.ToSJson(v), sidx)
+	// config.Debugf("replaceProp prop: %s, parentName: %s, v: %s, sidx: %d",
+	//  	node.ToSJson(prop), parentName, node.ToSJson(v), sidx)
 
 	if sidx > -1 {
 		// The node is a sequence element
@@ -146,7 +146,7 @@ func replaceProp(prop *yaml.Node, parentName string, v *yaml.Node, outNode *yaml
 
 		if v.Kind == yaml.MappingNode {
 			parentNode := node.GetParent(prop, outNode, nil)
-			config.Debugf("replaceProp parentNode: %s", parentNode.String())
+			//config.Debugf("replaceProp parentNode: %s", parentNode.String())
 			*parentNode.Value = *newVal
 		} else {
 			*prop = *newVal
@@ -227,7 +227,7 @@ func resolveModuleRef(parentName string, prop *yaml.Node, sidx int, ctx *refctx)
 					prop.Value)
 			}
 
-			config.Debugf("resolveModuleRef about to call replaceProp")
+			//config.Debugf("resolveModuleRef about to call replaceProp")
 
 			replaceProp(prop, parentName, parentVal, outNode, sidx)
 
@@ -380,8 +380,8 @@ func resolveModuleSub(parentName string, prop *yaml.Node, sidx int, ctx *refctx)
 // If sidx is > -1, this prop is in a sequence
 func renamePropRefs(parentName string, propName string, prop *yaml.Node, sidx int, ctx *refctx) error {
 
-	config.Debugf("renamePropRefs parentName: %s, propName: %s, prop: %s, sidx: %d",
-		parentName, propName, node.ToSJson(prop), sidx)
+	//config.Debugf("renamePropRefs parentName: %s, propName: %s, prop: %s, sidx: %d",
+	//	parentName, propName, node.ToSJson(prop), sidx)
 
 	logicalId := ctx.logicalId
 
@@ -419,7 +419,7 @@ func renamePropRefs(parentName string, propName string, prop *yaml.Node, sidx in
 			for i, p := range prop.Content {
 				// propName is blank so the next parentName is blank
 
-				config.Debugf("About to call renamePropRefs, propName is %s", propName)
+				//config.Debugf("About to call renamePropRefs, propName is %s", propName)
 
 				//result := renamePropRefs(parentName, p.Value, prop.Content[i], i, ctx)
 				result := renamePropRefs(propName, p.Value, prop.Content[i], i, ctx)
