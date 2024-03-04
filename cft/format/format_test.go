@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/cft/parse"
+	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -710,6 +711,53 @@ Parameters:
         }
     }
 }
+`
+
+	if strings.TrimSpace(output) != strings.TrimSpace(expected) {
+		t.Fatalf("Got:\n%s\n\nExpected:\n%s", output, expected)
+	}
+
+}
+
+func TestFnGetAZs(t *testing.T) {
+	input := `
+Resources:
+  PrivateSubnet1Subnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs ""
+`
+
+	// Parse the template
+	source, err := parse.String(string(input))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	config.Debug = true
+
+	output := format.String(source, format.Options{
+		JSON:     false,
+		Unsorted: true,
+	})
+
+	config.Debugf("TestFnGetAZs output: %s", output)
+
+	// Verify the output is valid
+	if err = parse.Verify(source, output); err != nil {
+		t.Fatal(err)
+	}
+
+	expected := `
+Resources:
+  PrivateSubnet1Subnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs 
 `
 
 	if strings.TrimSpace(output) != strings.TrimSpace(expected) {

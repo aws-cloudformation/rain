@@ -14,6 +14,12 @@ func New(a, b cft.Template) Diff {
 
 func compareValues(old, new interface{}) Diff {
 	if reflect.TypeOf(old) != reflect.TypeOf(new) {
+
+		// In YAML there is no difference between "" and null
+		if old == "" && new == nil {
+			return value{new, Unchanged}
+		}
+
 		return value{new, Changed}
 	}
 
