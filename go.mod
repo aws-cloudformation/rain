@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.26.6
 	github.com/aws/aws-sdk-go-v2/credentials v1.16.16
 	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.7.1
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.46.1
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.47.0
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.149.1
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.51.1
 	github.com/aws/aws-sdk-go-v2/service/sts v1.27.2
