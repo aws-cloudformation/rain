@@ -28,6 +28,7 @@ func formatNode(n *yaml.Node) *yaml.Node {
 	if n.Kind == yaml.MappingNode {
 		// Does it have just one key/value pair?
 		if len(n.Content) == 2 {
+
 			// Is the key relevant?
 			for tag, funcName := range cft.Tags {
 				if n.Content[0].Value == funcName {
@@ -85,6 +86,7 @@ func formatNode(n *yaml.Node) *yaml.Node {
 					n.Style = newNode.Content[0].Style
 				}
 			}
+
 		}
 	}
 
