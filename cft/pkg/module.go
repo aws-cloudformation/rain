@@ -133,23 +133,21 @@ type refctx struct {
 
 func replaceProp(prop *yaml.Node, parentName string, v *yaml.Node, outNode *yaml.Node, sidx int) error {
 
-	// config.Debugf("replaceProp prop: %s, parentName: %s, v: %s, sidx: %d",
-	//  	node.ToSJson(prop), parentName, node.ToSJson(v), sidx)
-
 	if sidx > -1 {
 		// The node is a sequence element
 
 		newVal := node.Clone(v)
 
-		// TODO: Find the sequence in outNode and use the parent to replace it
-		// if v is a Mapping like a Ref
-
 		if v.Kind == yaml.MappingNode {
 			parentNode := node.GetParent(prop, outNode, nil)
-			//config.Debugf("replaceProp parentNode: %s", parentNode.String())
 			*parentNode.Value = *newVal
 		} else {
-			*prop = *newVal
+			parentNode := node.GetParent(prop, outNode, nil)
+			if parentNode.Key != nil {
+				*parentNode.Value = *newVal
+			} else {
+				*prop = *newVal
+			}
 		}
 		return nil
 	}
@@ -226,8 +224,6 @@ func resolveModuleRef(parentName string, prop *yaml.Node, sidx int, ctx *refctx)
 				return fmt.Errorf("did not find %v in parent template Properties",
 					prop.Value)
 			}
-
-			//config.Debugf("resolveModuleRef about to call replaceProp")
 
 			replaceProp(prop, parentName, parentVal, outNode, sidx)
 
@@ -380,9 +376,6 @@ func resolveModuleSub(parentName string, prop *yaml.Node, sidx int, ctx *refctx)
 // If sidx is > -1, this prop is in a sequence
 func renamePropRefs(parentName string, propName string, prop *yaml.Node, sidx int, ctx *refctx) error {
 
-	//config.Debugf("renamePropRefs parentName: %s, propName: %s, prop: %s, sidx: %d",
-	//	parentName, propName, node.ToSJson(prop), sidx)
-
 	logicalId := ctx.logicalId
 
 	// Properties:
@@ -418,10 +411,6 @@ func renamePropRefs(parentName string, propName string, prop *yaml.Node, sidx in
 			// Recurse over array elements
 			for i, p := range prop.Content {
 				// propName is blank so the next parentName is blank
-
-				//config.Debugf("About to call renamePropRefs, propName is %s", propName)
-
-				//result := renamePropRefs(parentName, p.Value, prop.Content[i], i, ctx)
 				result := renamePropRefs(propName, p.Value, prop.Content[i], i, ctx)
 				if result != nil {
 					return fmt.Errorf("recursing over array %s: %v", parentName, result)
@@ -433,23 +422,12 @@ func renamePropRefs(parentName string, propName string, prop *yaml.Node, sidx in
 		for i, p := range prop.Content {
 			if i%2 == 0 {
 
-				// TODO: If this Mapping is inside a Sequence, we need to be able
-				// to replace the entire mapping element.
-				//
-				// Prop:
-				//   - !Ref Foo
-				//
-				// Foo might resolve to a Sub, so the output should be:
-				//
-				// Prop:
-				//   - !Sub ${Foo}
-				//
-				// Right now what we get is:
-				//
-				// Prop:
-				//   - !Ref
-				//   Fn::Sub: ${Foo}
-				result := renamePropRefs(propName, p.Value, prop.Content[i+1], sidx, ctx)
+				// Don't pass sidx through if we're in a child node of the sequence
+				passSidx := sidx
+				if propName != "" {
+					passSidx = -1
+				}
+				result := renamePropRefs(propName, p.Value, prop.Content[i+1], passSidx, ctx)
 				if result != nil {
 					return fmt.Errorf("recursing over mapping node %s: %v", propName, result)
 				}

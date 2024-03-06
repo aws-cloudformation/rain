@@ -30,6 +30,10 @@ func TestMany(t *testing.T) {
 	runTest("many", t)
 }
 
+func TestRefFalse(t *testing.T) {
+	runTest("ref-false", t)
+}
+
 // TODO: This was broken in the refactor, come back to it later
 //func TestForeach(t *testing.T) {
 //	runTest("foreach", t)
