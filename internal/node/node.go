@@ -66,7 +66,9 @@ func Clone(node *yaml.Node) *yaml.Node {
 //
 // In the above, if I want b's parent node pair, I get [Name, Map]
 // This allows us to ask "what is the parent's name",
-// which is useful for knowing the logical name of the resource a node belongs to
+// which is useful for knowing the logical name of the resource a node belongs to.
+//
+// For sequence elements that are maps, the Key will be nil
 func GetParent(node *yaml.Node, rootNode *yaml.Node, priorNode *yaml.Node) NodePair {
 	if node == rootNode {
 		config.Debugf("getParent node and rootNode are the same")
@@ -83,17 +85,13 @@ func GetParent(node *yaml.Node, rootNode *yaml.Node, priorNode *yaml.Node) NodeP
 	var pair NodePair
 
 	if rootNode.Kind == yaml.DocumentNode || rootNode.Kind == yaml.SequenceNode {
-		for i, n := range rootNode.Content {
+		for _, n := range rootNode.Content {
 			if n == node {
 				found = rootNode
 				before = priorNode
 				break
 			}
-			var prior *yaml.Node
-			if i > 0 {
-				prior = rootNode.Content[i-1]
-			}
-			pair = GetParent(node, n, prior)
+			pair = GetParent(node, n, nil)
 			if pair.Value != nil {
 				found = pair.Value
 				before = pair.Key
@@ -227,8 +225,6 @@ func SetMapValue(parent *yaml.Node, name string, val *yaml.Node) {
 
 // Set the value of a sequence element within the node
 func SetSequenceValue(parent *yaml.Node, val *yaml.Node, sidx int) {
-	config.Debugf("SetSequenceValue parent: %s, val: %s, sidx: %v",
-		ToSJson(parent), ToSJson(val), sidx)
 
 	if len(parent.Content) <= sidx {
 		return

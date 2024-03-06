@@ -64,7 +64,7 @@ func TestGetParentFound(t *testing.T) {
 		Value: "ChildOfChild",
 	}
 
-	childValue.Content = make([]*yaml.Node, 2)
+	childValue.Content = make([]*yaml.Node, 4)
 	childValue.Content[0] = &yaml.Node{Kind: yaml.ScalarNode, Value: "ChildOfChildKey"}
 	childValue.Content[1] = childOfChild
 
@@ -75,6 +75,53 @@ func TestGetParentFound(t *testing.T) {
 	if pair.Key != childKey {
 		t.Errorf("childKey should have been found as key for childOfChild")
 	}
+
+	sequenceKey := &yaml.Node{Kind: yaml.ScalarNode, Value: "ChildSequence"}
+	childValue.Content[2] = sequenceKey
+	sequence := &yaml.Node{Kind: yaml.SequenceNode, Content: make([]*yaml.Node, 2)}
+	childValue.Content[3] = sequence
+
+	sequence.Content[0] = &yaml.Node{Kind: yaml.ScalarNode, Value: "Seq0"}
+	sequence.Content[1] = &yaml.Node{Kind: yaml.ScalarNode, Value: "Seq1"}
+
+	// For a sequence, the parent Key should be  ??
+	pair = node.GetParent(sequence.Content[0], parent, nil)
+	if pair.Key != sequenceKey {
+		t.Errorf("Seq0 pair Key should be sequenceKey")
+	}
+	if pair.Value != sequence {
+		t.Errorf("Seq0 pair Value should be sequence")
+	}
+
+	pair = node.GetParent(sequence.Content[1], parent, nil)
+	if pair.Key != sequenceKey {
+		t.Errorf("Seq1 pair Key should be sequenceKey")
+	}
+	if pair.Value != sequence {
+		t.Errorf("Seq1 pair Value should be sequence")
+	}
+
+	// Replace the sequence content with Maps
+	map0 := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 2)}
+	map1 := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 2)}
+	sequence.Content[0] = map0
+	sequence.Content[1] = map1
+
+	map0.Content[0] = &yaml.Node{Kind: yaml.ScalarNode, Value: "Ref"}
+	map0.Content[1] = &yaml.Node{Kind: yaml.ScalarNode, Value: "Foo"}
+	map1.Content[0] = &yaml.Node{Kind: yaml.ScalarNode, Value: "Ref"}
+	map1.Content[1] = &yaml.Node{Kind: yaml.ScalarNode, Value: "Bar"}
+
+	pair = node.GetParent(map0.Content[1], parent, nil)
+	if pair.Key != nil {
+		t.Errorf("Foo pair Key should be nil")
+	}
+
+	pair = node.GetParent(map1.Content[1], parent, nil)
+	if pair.Key != nil {
+		t.Errorf("Bar pair Key should be nil")
+	}
+
 }
 
 func TestRemoveFromMap(t *testing.T) {
