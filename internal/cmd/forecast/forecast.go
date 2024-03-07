@@ -4,13 +4,13 @@ package forecast
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
-	"github.com/aws-cloudformation/rain/cft/parse"
+	"github.com/aws-cloudformation/rain/cft/format"
+	"github.com/aws-cloudformation/rain/cft/pkg"
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
 	"github.com/aws-cloudformation/rain/internal/aws/iam"
@@ -19,7 +19,6 @@ import (
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/dc"
 	"github.com/aws-cloudformation/rain/internal/s11n"
-	"github.com/aws-cloudformation/rain/internal/ui"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
@@ -123,6 +122,40 @@ func spin(typeName string, logicalId string, message string) {
 	spinner.Push(fmt.Sprintf("%v %v - %v", typeName, logicalId, message))
 }
 
+// recurse over properties to resolve Refs
+func resolveParamRefs(name string, prop *yaml.Node, input PredictionInput, parent *yaml.Node) {
+	if name == "Ref" && prop.Kind == yaml.ScalarNode {
+
+		for _, param := range input.dc.Params {
+			if *param.ParameterKey == prop.Value {
+				if parent.Kind == yaml.MappingNode {
+					// Replace the parent Mapping node
+					*parent = yaml.Node{Kind: yaml.ScalarNode, Value: *param.ParameterValue}
+				}
+				// would it be any other Kind?
+			}
+		}
+
+	} else if prop.Kind == yaml.MappingNode {
+		for i := 0; i < len(prop.Content); i += 2 {
+			resolveParamRefs(prop.Content[i].Value, prop.Content[i+1], input, prop)
+		}
+	} else if prop.Kind == yaml.SequenceNode {
+		for _, p := range prop.Content {
+			resolveParamRefs("", p, input, prop)
+		}
+	}
+}
+
+func resolveRefs(input PredictionInput) {
+	_, props, _ := s11n.GetMapValue(input.resource, "Properties")
+	if props != nil {
+		for i := 0; i < len(props.Content); i += 2 {
+			resolveParamRefs(props.Content[i].Value, props.Content[i+1], input, props)
+		}
+	}
+}
+
 // Run all forecasters for the type
 func forecastForType(input PredictionInput) Forecast {
 
@@ -134,6 +167,11 @@ func forecastForType(input PredictionInput) Forecast {
 		config.Debugf("Not running forecasters for %v", input.typeName)
 		return forecast
 	}
+
+	// Resolve parameter refs
+	config.Debugf("before resolveRefs: %s", format.CftToYaml(input.source))
+	resolveRefs(input)
+	config.Debugf("after resolveRefs: %s", format.CftToYaml(input.source))
 
 	// Estimate how long the action will take
 	// (This is only for spinner output, we calculate total time separately)
@@ -268,6 +306,7 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 
 	// Figure out how long we thing the stack will take to execute
 	totalSeconds := PredictTotalEstimate(source, stackExists)
+	config.Debugf("totalSeconds: %d", totalSeconds)
 
 	if forecast.GetNumFailed() > 0 {
 		fmt.Println("Stormy weather ahead! 🌪") // 🌩️⛈
@@ -335,25 +374,33 @@ Resource-specific checks:
 		if !Experimental {
 			panic("Please add the --experimental arg to use this feature")
 		}
+		pkg.Experimental = Experimental
 
 		config.Debugf("Generating forecast for %v", fn)
 
-		r, err := os.Open(fn)
+		source, err := pkg.File(fn)
 		if err != nil {
-			panic(ui.Errorf(err, "unable to read '%s'", fn))
+			panic(err)
 		}
 
-		// Read the template
-		input, err := io.ReadAll(r)
-		if err != nil {
-			panic(ui.Errorf(err, "unable to read input"))
-		}
+		/*
+			r, err := os.Open(fn)
+			if err != nil {
+				panic(ui.Errorf(err, "unable to read '%s'", fn))
+			}
 
-		// Parse the template
-		source, err := parse.String(string(input))
-		if err != nil {
-			panic(ui.Errorf(err, "unable to parse input"))
-		}
+			// Read the template
+			input, err := io.ReadAll(r)
+			if err != nil {
+				panic(ui.Errorf(err, "unable to read input"))
+			}
+
+			// Parse the template
+			source, err := parse.String(string(input))
+			if err != nil {
+				panic(ui.Errorf(err, "unable to parse input"))
+			}
+		*/
 
 		stackName := dc.GetStackName(suppliedStackName, base)
 
@@ -403,6 +450,7 @@ func init() {
 	forecasters["AWS::S3::BucketPolicy"] = checkS3BucketPolicy
 	forecasters["AWS::EC2::Instance"] = checkEC2Instance
 	forecasters["AWS::EC2::SecurityGroup"] = checkEC2SecurityGroup
+	forecasters["AWS::RDS::DBCluster"] = checkRDSDBCluster
 
 	// Initialize estimates map
 	InitEstimates()

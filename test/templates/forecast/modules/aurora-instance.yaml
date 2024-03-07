@@ -1,0 +1,34 @@
+Parameters:
+  EngineVersion:
+    Type: String
+
+Resources:
+
+  Instance:
+    Type: AWS::RDS::DBInstance
+    Metadata:
+      Comment: |
+        Disabled guard rules are handled by the cluster for Aurora.
+      guard:
+        SuppressedRules:
+          - RDS_INSTANCE_LOGGING_ENABLED
+          - DB_INSTANCE_BACKUP_ENABLED
+          - RDS_MULTI_AZ_SUPPORT
+          - RDS_SNAPSHOT_ENCRYPTED
+          - RDS_INSTANCE_DELETION_PROTECTION_ENABLED
+          - RDS_STORAGE_ENCRYPTED
+          - RDS_ENHANCED_MONITORING_ENABLED
+          - RDS_INSTANCE_PUBLIC_ACCESS_CHECK
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      AutoMinorVersionUpgrade: true
+      DBInstanceClass: db.t3.medium
+      DBClusterIdentifier: !Ref Cluster
+      DBSubnetGroupName: !Ref ClusterSubnets
+      Engine: aurora-postgresql
+      EngineVersion: !Ref EngineVersion 
+      PubliclyAccessible: true 
+      MonitoringInterval: 0
+
+

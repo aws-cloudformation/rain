@@ -196,7 +196,7 @@ func PredictTotalEstimate(t cft.Template, stackExists bool) int {
 // FormatEstimate returns a string in human readable format to represent the number of seconds.
 // For example, 61 would return "0h, 1m, 1s"
 func FormatEstimate(total int) string {
-	return fmt.Sprintf("%vh, %vm, %vs", total/360, total/60, total%60)
+	return fmt.Sprintf("%vh, %vm, %vs", total/3600, total/60, total%60)
 }
 
 // init initializes the Estimates map for all AWS resource types
