@@ -17,6 +17,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/aws/iam"
 	"github.com/aws-cloudformation/rain/internal/cmd/deploy"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/dc"
 	"github.com/aws-cloudformation/rain/internal/s11n"
@@ -173,9 +174,7 @@ func forecastForType(input PredictionInput) Forecast {
 	}
 
 	// Resolve parameter refs
-	config.Debugf("before resolveRefs: %s", format.CftToYaml(input.source))
 	resolveRefs(input)
-	config.Debugf("after resolveRefs: %s", format.CftToYaml(input.source))
 
 	// Estimate how long the action will take
 	// (This is only for spinner output, we calculate total time separately)
@@ -192,6 +191,7 @@ func forecastForType(input PredictionInput) Forecast {
 	}
 	config.Debugf("Got resource estimate for %v: %v", input.logicalId, est)
 	spin(input.typeName, input.logicalId, fmt.Sprintf("estimate: %v seconds", est))
+	spinner.Pop()
 
 	// Call generic prediction functions that we can run against
 	// all resources, even if there is not a predictor.
@@ -206,6 +206,8 @@ func forecastForType(input PredictionInput) Forecast {
 		LineNumber = input.resource.Line
 		forecast.Add(true, "Does not exist")
 	}
+
+	spinner.Pop()
 
 	// Check permissions
 	if !SkipIAM {
@@ -241,6 +243,8 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 
 	config.Debugf("About to make API calls for failure prediction...")
 
+	spinner.Push("Making predictions")
+
 	// Visit each resource in the template and see if it matches
 	// one of our predictions
 
@@ -261,6 +265,7 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 	}
 
 	for i, r := range resources.Content {
+
 		if i%2 != 0 {
 			continue
 		}
@@ -279,6 +284,8 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 
 		typeName := typeNode.Value // Should be something like AWS::S3::Bucket
 		config.Debugf("typeName: %v", typeName)
+
+		spinner.Push(fmt.Sprintf("Checking %s: %s", typeName, logicalId))
 
 		input := PredictionInput{}
 		input.logicalId = logicalId
@@ -305,6 +312,8 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 		}
 
 		forecast.Append(forecastForType(input))
+
+		spinner.Pop()
 	}
 
 	spinner.Stop()
@@ -314,27 +323,36 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 	config.Debugf("totalSeconds: %d", totalSeconds)
 
 	if forecast.GetNumFailed() > 0 {
-		fmt.Println("Stormy weather ahead! 🌪") // 🌩️⛈
-		fmt.Println(forecast.GetNumFailed(), "checks failed out of", forecast.GetNumChecked(), "total checks")
+		fmt.Println(console.Red("Stormy weather ahead! 🌪")) // 🌩️⛈
+		fmt.Println()
+		fmt.Println(console.Red(fmt.Sprintf(
+			"%d checks failed out of %d total checks",
+			forecast.GetNumFailed(),
+			forecast.GetNumChecked())))
 		for _, reason := range forecast.Failed {
-			fmt.Println()
-			fmt.Println(reason)
+			fmt.Println(console.Red(reason))
 		}
 		if all {
 			fmt.Println()
-			fmt.Println(forecast.GetNumPassed(), "checks passed out of", forecast.GetNumChecked(), "total checks")
+			fmt.Println(console.Green(fmt.Sprintf(
+				"%d checks passed out of %d total checks",
+				forecast.GetNumPassed(),
+				forecast.GetNumChecked())))
 			for _, reason := range forecast.Passed {
-				fmt.Println(reason)
+				fmt.Println(console.Green(reason))
 			}
 		}
 
 		return false
 	} else {
-		fmt.Println("Clear skies! 🌞 All", forecast.GetNumChecked(), "checks passed. Estimated time:",
-			FormatEstimate(totalSeconds))
+		fmt.Println(console.Green(fmt.Sprintf(
+			"Clear skies! 🌞 All %d checks passed. Estimated time: %s",
+			forecast.GetNumChecked(),
+			FormatEstimate(totalSeconds))))
 		if all {
+			fmt.Println()
 			for _, reason := range forecast.Passed {
-				fmt.Println(reason)
+				fmt.Println(console.Green(reason))
 			}
 		}
 		return true

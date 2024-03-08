@@ -27,3 +27,12 @@ func GetValidEngineVersions(engine string) ([]string, error) {
 
 	return retval, nil
 }
+
+func GetNumClusters() (int, error) {
+	res, err := getClient().DescribeDBClusters(context.Background(),
+		&rds.DescribeDBClustersInput{})
+	if err != nil {
+		return -1, err
+	}
+	return len(res.DBClusters), nil
+}

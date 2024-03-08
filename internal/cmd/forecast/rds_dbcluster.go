@@ -2,12 +2,16 @@ package forecast
 
 import (
 	"fmt"
+	"math"
 
+	"github.com/aws-cloudformation/rain/internal/aws/iam"
 	"github.com/aws-cloudformation/rain/internal/aws/rds"
+	"github.com/aws-cloudformation/rain/internal/aws/servicequotas"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
+	"gopkg.in/yaml.v3"
 )
 
 // Checks configuration issues with RDS clusters
@@ -62,6 +66,51 @@ func checkRDSDBCluster(input PredictionInput) Forecast {
 	}
 
 	spinner.Pop()
+
+	spin(input.typeName, input.logicalId, "db cluster has MonitoringRoleARN?")
+
+	// Resource handler returned message: A MonitoringRoleARN value is required if you specify a MonitoringInterval value other than 0.
+	_, monitoringRoleARN, _ := s11n.GetMapValue(props, "MonitoringRoleARN")
+	_, monitoringInterval, _ := s11n.GetMapValue(props, "MonitoringInterval")
+	if monitoringInterval != nil && monitoringInterval.Value != "0" {
+		if monitoringRoleARN == nil {
+			forecast.Add(false, "a MonitoringRoleARN value is required if you specify a MonitoringInterval value other than 0.")
+		} else {
+			// Make sure the role actually exists
+			if monitoringRoleARN.Kind == yaml.ScalarNode &&
+				!iam.RoleExists(monitoringRoleARN.Value) {
+				forecast.Add(false,
+					fmt.Sprintf("MonitoringRoleARN not found: %s",
+						monitoringRoleARN.Value))
+			} else {
+				forecast.Add(true, "MonitoringRoleARN set")
+			}
+		}
+	} else {
+		forecast.Add(true, "MonitoringInterval not set to something other than 0")
+	}
+
+	// Check to make sure we're not at quota
+	if !input.stackExists {
+		quota, err := servicequotas.GetQuota("rds", "L-952B80B8")
+		if err != nil {
+			forecast.Add(false, fmt.Sprintf("failed: %v", err))
+		} else {
+			// Get the number of clusters
+			numClusters, err := rds.GetNumClusters()
+			if err != nil {
+				forecast.Add(false, fmt.Sprintf("failed: %v", err))
+			} else {
+				if numClusters >= int(math.Round(quota)) {
+					forecast.Add(false, "already at quota for number of clusters")
+				} else {
+					forecast.Add(true,
+						fmt.Sprintf("quota for clusters ok: %v/%v",
+							numClusters, quota))
+				}
+			}
+		}
+	}
 
 	return forecast
 }
