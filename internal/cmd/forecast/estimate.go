@@ -113,7 +113,6 @@ func addDurations(
 			config.Debugf("no estimate for %v", drt)
 			continue
 		}
-		config.Debugf("%v- depends on %v (%vs)", indent, d.Name, dd)
 
 		childDuration := dd
 		addDurations(g, t, action, g.Get(d), &childDuration, indent+"  ")
@@ -138,8 +137,6 @@ func PredictTotalEstimate(t cft.Template, stackExists bool) int {
 
 	// Build a graph of dependencies
 	g := graph.New(t)
-
-	config.Debugf("g:\n%v", g.String())
 
 	// Dive down each path, add up durations. Longest duration from the top wins.
 	//
@@ -179,12 +176,10 @@ func PredictTotalEstimate(t cft.Template, stackExists bool) int {
 			config.Debugf("no estimate for %v", resourceType)
 			continue
 		}
-		config.Debugf("%v duration: %v", n.Name, duration)
 
 		dependencies := g.Get(n)
 		addDurations(g, t, action, dependencies, &duration, "  ")
 
-		config.Debugf("total duration for %v is %vs", n.Name, duration)
 		if total < duration {
 			total = duration
 		}

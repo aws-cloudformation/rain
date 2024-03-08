@@ -21,7 +21,6 @@ import (
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/dc"
-	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
@@ -793,10 +792,8 @@ func WaitUntilStackCreateComplete(stackName string) error {
 func GetTypeSchema(name string) (string, error) {
 	schema, exists := Schemas[name]
 	if exists {
-		config.Debugf("Already downloaded schema for %v", name)
 		return schema, nil
 	} else {
-		config.Debugf("Downloading schema for %v", name)
 		res, err := getClient().DescribeType(context.Background(), &cloudformation.DescribeTypeInput{
 			Type: "RESOURCE", TypeName: &name,
 		})
@@ -1095,7 +1092,6 @@ func GetPrimaryIdentifierValues(
 //	What else uses this?
 func resolveRef(name string, template *yaml.Node, dc *dc.DeployConfig) (string, error) {
 	_, params, _ := s11n.GetMapValue(template.Content[0], "Parameters")
-	config.Debugf("resolveRef params: %v", node.ToJson(params))
 	if params != nil {
 		for i, param := range params.Content {
 			if i%2 != 0 {

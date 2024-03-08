@@ -88,6 +88,23 @@ Resources:
           - NetworkPublicSubnet1DefaultRoute
           - NetworkPublicSubnet2DefaultRoute
 
+  Db3Instance:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Type: AWS::RDS::DBInstance
+    DependsOn:
+      - NetworkPublicSubnet1DefaultRoute
+      - NetworkPublicSubnet2DefaultRoute
+    Properties:
+      AutoMinorVersionUpgrade: true
+      DBClusterIdentifier: !Ref Cluster
+      DBInstanceClass: db.t3.medium
+      DBSubnetGroupName: !Ref ClusterSubnets
+      Engine: aurora-postgresql
+      EngineVersion: "00.00"
+      MonitoringInterval: 0
+      PubliclyAccessible: true
+
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:

@@ -128,10 +128,10 @@ func spin(typeName string, logicalId string, message string) {
 }
 
 // recurse over properties to resolve Refs
-func resolveParamRefs(name string, prop *yaml.Node, input PredictionInput, parent *yaml.Node) {
+func resolveParamRefs(name string, prop *yaml.Node, dc *dc.DeployConfig, parent *yaml.Node) {
 	if name == "Ref" && prop.Kind == yaml.ScalarNode {
 
-		for _, param := range input.dc.Params {
+		for _, param := range dc.Params {
 			if *param.ParameterKey == prop.Value {
 				if parent.Kind == yaml.MappingNode {
 					// Replace the parent Mapping node
@@ -143,11 +143,11 @@ func resolveParamRefs(name string, prop *yaml.Node, input PredictionInput, paren
 
 	} else if prop.Kind == yaml.MappingNode {
 		for i := 0; i < len(prop.Content); i += 2 {
-			resolveParamRefs(prop.Content[i].Value, prop.Content[i+1], input, prop)
+			resolveParamRefs(prop.Content[i].Value, prop.Content[i+1], dc, prop)
 		}
 	} else if prop.Kind == yaml.SequenceNode {
 		for _, p := range prop.Content {
-			resolveParamRefs("", p, input, prop)
+			resolveParamRefs("", p, dc, prop)
 		}
 	}
 }
@@ -156,7 +156,7 @@ func resolveRefs(input PredictionInput) {
 	_, props, _ := s11n.GetMapValue(input.resource, "Properties")
 	if props != nil {
 		for i := 0; i < len(props.Content); i += 2 {
-			resolveParamRefs(props.Content[i].Value, props.Content[i+1], input, props)
+			resolveParamRefs(props.Content[i].Value, props.Content[i+1], input.dc, props)
 		}
 	}
 }
@@ -427,25 +427,6 @@ Resource-specific checks:
 		if err != nil {
 			panic(err)
 		}
-
-		/*
-			r, err := os.Open(fn)
-			if err != nil {
-				panic(ui.Errorf(err, "unable to read '%s'", fn))
-			}
-
-			// Read the template
-			input, err := io.ReadAll(r)
-			if err != nil {
-				panic(ui.Errorf(err, "unable to read input"))
-			}
-
-			// Parse the template
-			source, err := parse.String(string(input))
-			if err != nil {
-				panic(ui.Errorf(err, "unable to parse input"))
-			}
-		*/
 
 		stackName := dc.GetStackName(suppliedStackName, base)
 

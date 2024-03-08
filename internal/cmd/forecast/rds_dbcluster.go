@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/internal/aws/iam"
 	"github.com/aws-cloudformation/rain/internal/aws/rds"
 	"github.com/aws-cloudformation/rain/internal/aws/servicequotas"
@@ -29,9 +30,12 @@ func checkRDSDBCluster(input PredictionInput) Forecast {
 
 	spin(input.typeName, input.logicalId, "db cluster has correct engine version?")
 
+	var clusterEngineVersion string
+
 	_, engine, _ := s11n.GetMapValue(props, "Engine")
 	_, engineVersion, _ := s11n.GetMapValue(props, "EngineVersion")
 	if engineVersion != nil {
+		clusterEngineVersion = engineVersion.Value
 		switch engine.Value {
 		case "aurora-mysql":
 			fallthrough
@@ -90,6 +94,10 @@ func checkRDSDBCluster(input PredictionInput) Forecast {
 		forecast.Add(true, "MonitoringInterval not set to something other than 0")
 	}
 
+	spinner.Pop()
+
+	spin(input.typeName, input.logicalId, "db clusters not at quota")
+
 	// Check to make sure we're not at quota
 	if !input.stackExists {
 		quota, err := servicequotas.GetQuota("rds", "L-952B80B8")
@@ -111,6 +119,54 @@ func checkRDSDBCluster(input PredictionInput) Forecast {
 			}
 		}
 	}
+
+	spinner.Pop()
+
+	// The engine version that you requested for your DB instance (a.b) does not match the engine version of your DB cluster (c.d)
+	// This kind of thing might be better in cfn-lint
+
+	spin(input.typeName, input.logicalId, "db cluster engine version matches instances")
+
+	// TODO: Move this to DBInstance checks when we implement them
+
+	resources, err := input.source.GetSection(cft.Resources)
+	if err == nil {
+		for i := 0; i < len(resources.Content); i += 2 {
+			logicalId := resources.Content[i].Value
+			config.Debugf("Looking for instances: %s", logicalId)
+			r := resources.Content[i+1]
+			_, t, _ := s11n.GetMapValue(r, "Type")
+			if t != nil && t.Value == "AWS::RDS::DBInstance" {
+				config.Debugf("Found instance")
+				_, instanceProps, _ := s11n.GetMapValue(r, "Properties")
+				if instanceProps != nil {
+					for j := 0; j < len(instanceProps.Content); j += 2 {
+						propName := instanceProps.Content[j].Value
+						if propName == "EngineVersion" {
+							evNode := instanceProps.Content[j+1]
+							config.Debugf("instanceVersion: %s", node.ToSJson(evNode))
+
+							// Resolve refs first
+							resolveParamRefs(propName, evNode, input.dc, instanceProps)
+
+							config.Debugf("instanceVersion after: %s", node.ToSJson(evNode))
+
+							instanceVersion := evNode.Value
+							if evNode.Kind == yaml.ScalarNode && instanceVersion != clusterEngineVersion {
+								forecast.Add(false, fmt.Sprintf(
+									"engine mismatch with %s: %s != %s",
+									logicalId, instanceVersion, clusterEngineVersion))
+							} else {
+								forecast.Add(true, "instance engine version matches")
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	spinner.Pop()
 
 	return forecast
 }
