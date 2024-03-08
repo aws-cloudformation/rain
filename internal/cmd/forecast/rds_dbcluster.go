@@ -6,14 +6,13 @@ import (
 	"github.com/aws-cloudformation/rain/internal/aws/rds"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
+	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 )
 
 // Checks configuration issues with RDS clusters
 func checkRDSDBCluster(input PredictionInput) Forecast {
 	forecast := makeForecast(input.typeName, input.logicalId)
-
-	// TODO
 
 	// Resource handler returned message: "Cannot find version 11.16 for aurora-postgresql (Service: Rds, Status Code: 400
 	// https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-rds-dbcluster.html#cfn-rds-dbcluster-engineversion
@@ -49,6 +48,8 @@ func checkRDSDBCluster(input PredictionInput) Forecast {
 				}
 			}
 			if unexpected {
+				LineNumber = input.resource.Line
+				config.Debugf("db cluster resource: %s", node.ToJson(input.resource))
 				forecast.Add(false, fmt.Sprintf("unexpected EngineVersion: %s", engineVersion.Value))
 			} else {
 				forecast.Add(true, "EngineVersion ok")

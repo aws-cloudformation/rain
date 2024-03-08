@@ -114,8 +114,6 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 		}
 	}
 
-	// j, _ = json.MarshalIndent(templateNode, "", "  ")
-	// config.Debugf("Transformed template: %v", string(j))
 	var err error
 	if changed {
 		t, err = parse.Node(templateNode)
@@ -127,12 +125,14 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 	// Encode and Decode to resolve anchors
 	var decoded interface{}
 
-	//config.Debugf("About to decode:\n%v", node.ToSJson(templateNode))
 	err = templateNode.Decode(&decoded)
 	if err != nil {
 		config.Debugf("templateNode: %v", node.ToSJson(templateNode))
 		return t, fmt.Errorf("failed to decode template: %v", err)
 	}
+
+	// We just lost line numbers, so if we need them, we have to
+	// convert the template to a string and parse it again.
 
 	err = templateNode.Encode(&decoded)
 	if err != nil {

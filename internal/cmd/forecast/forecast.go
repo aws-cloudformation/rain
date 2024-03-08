@@ -10,6 +10,7 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/format"
+	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/cft/pkg"
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
@@ -45,6 +46,9 @@ var tags []string
 
 // The optional path to a file that contains params (--config)
 var configFilePath string
+
+// Show success in addition to failures
+var all bool
 
 type Env struct {
 	partition string
@@ -199,6 +203,7 @@ func forecastForType(input PredictionInput) Forecast {
 		input.stackExists, input.source.Node, input.dc) {
 		forecast.Add(false, "Already exists")
 	} else {
+		LineNumber = input.resource.Line
 		forecast.Add(true, "Does not exist")
 	}
 
@@ -315,10 +320,23 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 			fmt.Println()
 			fmt.Println(reason)
 		}
+		if all {
+			fmt.Println()
+			fmt.Println(forecast.GetNumPassed(), "checks passed out of", forecast.GetNumChecked(), "total checks")
+			for _, reason := range forecast.Passed {
+				fmt.Println(reason)
+			}
+		}
+
 		return false
 	} else {
 		fmt.Println("Clear skies! 🌞 All", forecast.GetNumChecked(), "checks passed. Estimated time:",
 			FormatEstimate(totalSeconds))
+		if all {
+			for _, reason := range forecast.Passed {
+				fmt.Println(reason)
+			}
+		}
 		return true
 	}
 
@@ -383,6 +401,15 @@ Resource-specific checks:
 			panic(err)
 		}
 
+		// Packaging is necessary if we want to forecast a template with
+		// modules or anything else that needs packaging.
+		// But.. we lost line numbers, so we need to re-parse the file
+		content := format.CftToYaml(source)
+		source, err = parse.String(content)
+		if err != nil {
+			panic(err)
+		}
+
 		/*
 			r, err := os.Open(fn)
 			if err != nil {
@@ -433,6 +460,7 @@ Resource-specific checks:
 func init() {
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
 	Cmd.Flags().BoolVar(&SkipIAM, "skip-iam", false, "Skip permissions checks, which can take a long time")
+	Cmd.Flags().BoolVarP(&all, "all", "a", false, "Show all checks, not just failed ones")
 	Cmd.Flags().BoolVarP(&Experimental, "experimental", "x", false, "Acknowledge that this is an experimental feature")
 	Cmd.Flags().StringVar(&RoleArn, "role-arn", "", "An optional execution role arn to use for predicting IAM failures")
 	// TODO - --op "create", "update", "delete", default: "all"

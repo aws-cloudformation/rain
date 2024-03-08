@@ -8,11 +8,13 @@ import (
 	cftpkg "github.com/aws-cloudformation/rain/cft/pkg"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
+	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/ui"
 	"github.com/spf13/cobra"
 )
 
 var outFn = ""
+var dataModel bool
 
 // Experimental is an optional argument that enables experimental features
 var Experimental bool
@@ -70,7 +72,12 @@ You may use the following, rain-specific directives in templates packaged with "
 		}
 		spinner.Pop()
 
-		out := format.String(packaged, format.Options{})
+		var out string
+		if dataModel {
+			out = node.ToJson(packaged.Node)
+		} else {
+			out = format.String(packaged, format.Options{})
+		}
 
 		if outFn != "" {
 			os.WriteFile(outFn, []byte(out), 0644)
@@ -84,4 +91,5 @@ func init() {
 	Cmd.Flags().StringVarP(&outFn, "output", "o", "", "Output packaged template to a file")
 	Cmd.Flags().BoolVarP(&Experimental, "experimental", "x", false, "Enable experimental features")
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
+	Cmd.Flags().BoolVar(&dataModel, "datamodel", false, "Output the go yaml data model")
 }
