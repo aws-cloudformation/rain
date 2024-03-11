@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.27.5
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.5
 	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.7.1
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.47.0
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.47.1
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.149.3
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.51.2
 	github.com/aws/aws-sdk-go-v2/service/sts v1.28.2
@@ -28,6 +28,8 @@ require (
 
 require (
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.36.1
+	github.com/aws/aws-sdk-go-v2/service/rds v1.75.1
+	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.21.2
 	github.com/fatih/color v1.16.0
 	github.com/manifoldco/promptui v0.9.0
 	github.com/mattn/go-runewidth v0.0.15
@@ -36,8 +38,6 @@ require (
 
 require (
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/rds v1.75.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.21.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.23.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
