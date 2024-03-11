@@ -1,0 +1,163 @@
+Parameters:
+  EngineVersion: 
+    Type: String
+    Default: "16.10000"
+
+Resources:
+
+  Network:
+    Type: !Rain::Module "./modules/vpc.yaml"
+
+  ClusterSubnets:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnets for Cluster database
+      SubnetIds:
+        - !Ref NetworkPublicSubnet1
+        - !Ref NetworkPublicSubnet2
+
+  ClusterSecret:
+    Type: AWS::SecretsManager::Secret
+    Metadata:
+      guard:
+        SuppressedRules:
+          - SECRETSMANAGER_USING_CMK
+          - SECRETSMANAGER_ROTATION_ENABLED_CHECK
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      Name: !Sub "${AWS::StackName}-cluster"
+      Description: !Sub "${AWS::StackName} Cluster"
+      GenerateSecretString:
+        ExcludeCharacters: ' %+~`#$&*()|[]{}:;<>?!''/@"\'
+        GenerateStringKey: password
+        PasswordLength: 30
+        SecretStringTemplate: '{"username":"postgres"}'
+
+  ClusterSecretAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId: !Ref ClusterSecret
+      TargetId: !Ref Cluster
+      TargetType: AWS::RDS::DBCluster
+
+  Cluster:
+    DeletionPolicy: Snapshot
+    UpdateReplacePolicy: Snapshot
+    Type: AWS::RDS::DBCluster
+    Properties:
+      Engine: aurora-postgresql
+      BackupRetentionPeriod: 7
+      CopyTagsToSnapshot: true
+      DatabaseName: repos
+      DBSubnetGroupName: !Ref ClusterSubnets
+      EngineVersion: !Ref EngineVersion
+      MasterUsername: !Join
+        - ""
+        - - '{{resolve:secretsmanager:'
+          - !Ref ClusterSecret
+          - :SecretString:username::}}
+      MasterUserPassword: !Join
+        - ""
+        - - '{{resolve:secretsmanager:'
+          - !Ref ClusterSecret
+          - :SecretString:password::}}
+      MonitoringInterval: 60
+      MonitoringRoleARN: abc
+      Port: 5432
+      VpcSecurityGroupIds:
+        - !GetAtt SecurityGroup.GroupId
+
+  Db1:
+    Type: !Rain::Module "./modules/aurora-instance.yaml"
+    Properties:
+      EngineVersion: !Ref EngineVersion
+    Overrides:
+      Instance:
+        DependsOn:
+          - NetworkPublicSubnet1DefaultRoute
+          - NetworkPublicSubnet2DefaultRoute
+
+  Db2:
+    Type: !Rain::Module "./modules/aurora-instance.yaml"
+    Properties: 
+      EngineVersion: !Ref EngineVersion
+    Overrides:
+      Instance:
+        DependsOn:
+          - NetworkPublicSubnet1DefaultRoute
+          - NetworkPublicSubnet2DefaultRoute
+
+  Db3Instance:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Type: AWS::RDS::DBInstance
+    DependsOn:
+      - NetworkPublicSubnet1DefaultRoute
+      - NetworkPublicSubnet2DefaultRoute
+    Properties:
+      AutoMinorVersionUpgrade: true
+      DBClusterIdentifier: !Ref Cluster
+      DBInstanceClass: db.t3.medium
+      DBSubnetGroupName: !Ref ClusterSubnets
+      Engine: aurora-postgresql
+      EngineVersion: "00.00"
+      MonitoringInterval: 0
+      PubliclyAccessible: true
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: repo-metrics/sg
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      SecurityGroupIngress:
+        - CidrIp: 52.23.63.224/27
+          Description: from 52.23.63.224/27:5432
+          FromPort: 5432
+          IpProtocol: tcp
+          ToPort: 5432
+        - CidrIp: 54.70.204.128/27
+          Description: from 54.70.204.128/27:5432
+          FromPort: 5432
+          IpProtocol: tcp
+          ToPort: 5432
+        - CidrIp: !GetAtt NetworkVPC.CidrBlock
+          Description: !Join
+            - ""
+            - - 'from '
+              - !GetAtt NetworkVPC.CidrBlock
+              - :443
+          FromPort: 443
+          IpProtocol: tcp
+          ToPort: 443
+      VpcId: !Ref NetworkVPC
+
+  Ingress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: tcp
+      FromPort: 5432
+      GroupId: !GetAtt SecurityGroup.GroupId
+      SourceSecurityGroupId: !GetAtt SecurityGroup.GroupId
+      ToPort: 5432
+
+  IngressFromPrefix:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: tcp
+      Description: from amazon corp 
+      FromPort: 5432
+      GroupId: !GetAtt SecurityGroup.GroupId
+      SourcePrefixListId: pl-f8a64391
+      ToPort: 5432
+
+Outputs:
+  WriterEndpoint:
+    Value: !GetAtt Cluster.Endpoint.Address
+
+  ReaderEndpoint:
+    Value: !GetAtt Cluster.ReadEndpoint.Address
+

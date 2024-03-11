@@ -27,8 +27,6 @@ func predictResourceArn(input PredictionInput) string {
 
 	if input.stackExists {
 
-		config.Debugf("predictResourceArn stack exists")
-
 		res, err := cfn.GetStackResource(input.stackName, input.logicalId)
 		if err == nil {
 			// The resource exists
@@ -37,7 +35,6 @@ func predictResourceArn(input PredictionInput) string {
 			// This physical id is not super useful
 			// It's often an internal id that is not part of the arn
 
-			config.Debugf("predictResourceArn physicalId: %v", physicalId)
 		} else {
 			config.Debugf("predictResourceArn got an error trying to get stack resource: %v", err)
 		}

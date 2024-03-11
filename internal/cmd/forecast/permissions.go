@@ -84,7 +84,6 @@ func checkTypePermissions(input PredictionInput, resourceArn string, verb string
 // Check permissions to make sure the current role can create-update-delete
 func checkPermissions(input PredictionInput, forecast *Forecast) error {
 	resourceArn := predictResourceArn(input)
-	config.Debugf("checkPermissions arn: %v", resourceArn)
 	if resourceArn == "" {
 		// We don't know how to make an arn for this type
 		config.Debugf("Can't check permissions for %v %v, ARN unknown", input.typeName, input.logicalId)

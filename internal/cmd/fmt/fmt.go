@@ -9,6 +9,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
+	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/ui"
 
 	"github.com/aws-cloudformation/rain/cft/parse"
@@ -19,6 +20,7 @@ var jsonFlag bool
 var verifyFlag bool
 var writeFlag bool
 var unsortedFlag bool
+var dataModel bool
 
 type result struct {
 	name   string
@@ -46,19 +48,23 @@ func formatReader(name string, r io.Reader) result {
 		return res
 	}
 
-	// Format the output
-	res.output = format.String(source, format.Options{
-		JSON:     jsonFlag,
-		Unsorted: unsortedFlag,
-	})
+	if dataModel {
+		res.output = node.ToJson(source.Node)
+	} else {
+		// Format the output
+		res.output = format.String(source, format.Options{
+			JSON:     jsonFlag,
+			Unsorted: unsortedFlag,
+		})
 
-	// Verify the output is valid
-	if err = parse.Verify(source, res.output); err != nil {
-		res.err = err
-		return res
+		// Verify the output is valid
+		if err = parse.Verify(source, res.output); err != nil {
+			res.err = err
+			return res
+		}
+
+		res.ok = strings.TrimSpace(string(input)) == strings.TrimSpace(res.output)
 	}
-
-	res.ok = strings.TrimSpace(string(input)) == strings.TrimSpace(res.output)
 
 	return res
 }
@@ -152,4 +158,5 @@ func init() {
 	Cmd.Flags().BoolVarP(&writeFlag, "write", "w", false, "Write the output back to the file rather than to stdout.")
 	Cmd.Flags().BoolVarP(&unsortedFlag, "unsorted", "u", false, "Do not sort the template's properties.")
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
+	Cmd.Flags().BoolVar(&dataModel, "datamodel", false, "Output the go yaml data model")
 }

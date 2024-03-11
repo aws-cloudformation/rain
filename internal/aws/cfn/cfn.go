@@ -21,7 +21,6 @@ import (
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/dc"
-	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
@@ -793,10 +792,8 @@ func WaitUntilStackCreateComplete(stackName string) error {
 func GetTypeSchema(name string) (string, error) {
 	schema, exists := Schemas[name]
 	if exists {
-		config.Debugf("Already downloaded schema for %v", name)
 		return schema, nil
 	} else {
-		config.Debugf("Downloading schema for %v", name)
 		res, err := getClient().DescribeType(context.Background(), &cloudformation.DescribeTypeInput{
 			Type: "RESOURCE", TypeName: &name,
 		})
@@ -851,7 +848,7 @@ func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
 
 	*/
 
-	config.Debugf("GetTypePermissions result: %v", result)
+	//config.Debugf("GetTypePermissions result: %v", result)
 
 	retval := make([]string, 0)
 
@@ -992,18 +989,14 @@ func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
 			return retval, nil
 		}
 	}
-	config.Debugf("handlerMap: %v", handlerMap)
 	handlers := handlerMap.(map[string]any)
 	handlerVerbMap, exists := handlers[handlerVerb]
 	if !exists {
-		config.Debugf("handler verb is missing: %v", handlerVerb)
 		// Some resources can't be updated, for example
 		return retval, nil
 	}
 	handler := handlerVerbMap.(map[string]any)
-	config.Debugf("handler: %v", handler)
 	permissions := handler["permissions"].([]interface{})
-	config.Debugf("Got permissions for %v %v: %v", name, handlerVerb, permissions)
 	for _, p := range permissions {
 		if p == "iam:PassRole" {
 			// This will fail even for admin roles, and is not actually necessary
@@ -1012,7 +1005,6 @@ func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
 		}
 		retval = append(retval, fmt.Sprintf("%v", p))
 	}
-	config.Debugf("retval is %v", retval)
 	return retval, nil
 }
 
@@ -1029,13 +1021,10 @@ func GetTypeIdentifier(name string) ([]string, error) {
 	var result map[string]any
 	json.Unmarshal([]byte(schema), &result)
 
-	config.Debugf("GetTypeIdentifier schema for %s: %v", name, result)
-
 	piNode, exists := result["primaryIdentifier"]
 	if !exists {
 		// The schema does not have a primary identifier.
 		// TODO
-		config.Debugf("GetTypeIdentifier %v does not have a primaryIdentifier", name)
 		return nil, errors.New("no primary identifier")
 	} else {
 		pi := piNode.([]interface{})
@@ -1043,7 +1032,6 @@ func GetTypeIdentifier(name string) ([]string, error) {
 		for _, pid := range pi {
 			retval = append(retval, strings.Replace(fmt.Sprintf("%v", pid), "/properties/", "", 1))
 		}
-		config.Debugf("GetTypeIdentifier for %v: %v", name, retval)
 		return retval, nil
 	}
 }
@@ -1073,16 +1061,13 @@ func GetPrimaryIdentifierValues(
 				content := props.Content[i+1]
 				if content.Kind == yaml.ScalarNode {
 					val := content.Value
-					config.Debugf("pi %v = %v", pi, val)
 					piValues = append(piValues, val)
 				} else {
 					// Likely a !Ref or !Sub
-					config.Debugf("PrimaryIdentifier: %v", node.ToJson(content))
 					if content.Kind == yaml.MappingNode {
 						if content.Content[0].Value == "Ref" && content.Content[1].Kind == yaml.ScalarNode {
 							val, err := resolveRef(content.Content[1].Value, template, dc)
 							if err == nil {
-								config.Debugf("Resolved Ref %v: %v", content.Content[1].Value, val)
 								piValues = append(piValues, val)
 							} else {
 								config.Debugf("%v", err)
@@ -1102,9 +1087,11 @@ func GetPrimaryIdentifierValues(
 // resolveRef resolves a scalar reference if we have enough information
 // Returns "", error if the Ref can't be resolved (not a panic condition)
 // TODO: ccdeploy.resolve does this better
+// TODO: Is this dead code now? We resolve refs early in forecast.
+//
+//	What else uses this?
 func resolveRef(name string, template *yaml.Node, dc *dc.DeployConfig) (string, error) {
 	_, params, _ := s11n.GetMapValue(template.Content[0], "Parameters")
-	config.Debugf("resolveRef params: %v", node.ToJson(params))
 	if params != nil {
 		for i, param := range params.Content {
 			if i%2 != 0 {

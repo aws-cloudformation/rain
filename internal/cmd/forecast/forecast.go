@@ -4,22 +4,23 @@ package forecast
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
+	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/cft/parse"
+	"github.com/aws-cloudformation/rain/cft/pkg"
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
 	"github.com/aws-cloudformation/rain/internal/aws/iam"
 	"github.com/aws-cloudformation/rain/internal/cmd/deploy"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/dc"
 	"github.com/aws-cloudformation/rain/internal/s11n"
-	"github.com/aws-cloudformation/rain/internal/ui"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
@@ -46,6 +47,9 @@ var tags []string
 
 // The optional path to a file that contains params (--config)
 var configFilePath string
+
+// Show success in addition to failures
+var all bool
 
 type Env struct {
 	partition string
@@ -123,6 +127,40 @@ func spin(typeName string, logicalId string, message string) {
 	spinner.Push(fmt.Sprintf("%v %v - %v", typeName, logicalId, message))
 }
 
+// recurse over properties to resolve Refs
+func resolveParamRefs(name string, prop *yaml.Node, dc *dc.DeployConfig, parent *yaml.Node) {
+	if name == "Ref" && prop.Kind == yaml.ScalarNode {
+
+		for _, param := range dc.Params {
+			if *param.ParameterKey == prop.Value {
+				if parent.Kind == yaml.MappingNode {
+					// Replace the parent Mapping node
+					*parent = yaml.Node{Kind: yaml.ScalarNode, Value: *param.ParameterValue}
+				}
+				// would it be any other Kind?
+			}
+		}
+
+	} else if prop.Kind == yaml.MappingNode {
+		for i := 0; i < len(prop.Content); i += 2 {
+			resolveParamRefs(prop.Content[i].Value, prop.Content[i+1], dc, prop)
+		}
+	} else if prop.Kind == yaml.SequenceNode {
+		for _, p := range prop.Content {
+			resolveParamRefs("", p, dc, prop)
+		}
+	}
+}
+
+func resolveRefs(input PredictionInput) {
+	_, props, _ := s11n.GetMapValue(input.resource, "Properties")
+	if props != nil {
+		for i := 0; i < len(props.Content); i += 2 {
+			resolveParamRefs(props.Content[i].Value, props.Content[i+1], input.dc, props)
+		}
+	}
+}
+
 // Run all forecasters for the type
 func forecastForType(input PredictionInput) Forecast {
 
@@ -134,6 +172,9 @@ func forecastForType(input PredictionInput) Forecast {
 		config.Debugf("Not running forecasters for %v", input.typeName)
 		return forecast
 	}
+
+	// Resolve parameter refs
+	resolveRefs(input)
 
 	// Estimate how long the action will take
 	// (This is only for spinner output, we calculate total time separately)
@@ -150,6 +191,7 @@ func forecastForType(input PredictionInput) Forecast {
 	}
 	config.Debugf("Got resource estimate for %v: %v", input.logicalId, est)
 	spin(input.typeName, input.logicalId, fmt.Sprintf("estimate: %v seconds", est))
+	spinner.Pop()
 
 	// Call generic prediction functions that we can run against
 	// all resources, even if there is not a predictor.
@@ -161,8 +203,11 @@ func forecastForType(input PredictionInput) Forecast {
 		input.stackExists, input.source.Node, input.dc) {
 		forecast.Add(false, "Already exists")
 	} else {
+		LineNumber = input.resource.Line
 		forecast.Add(true, "Does not exist")
 	}
+
+	spinner.Pop()
 
 	// Check permissions
 	if !SkipIAM {
@@ -198,6 +243,8 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 
 	config.Debugf("About to make API calls for failure prediction...")
 
+	spinner.Push("Making predictions")
+
 	// Visit each resource in the template and see if it matches
 	// one of our predictions
 
@@ -218,6 +265,7 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 	}
 
 	for i, r := range resources.Content {
+
 		if i%2 != 0 {
 			continue
 		}
@@ -236,6 +284,8 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 
 		typeName := typeNode.Value // Should be something like AWS::S3::Bucket
 		config.Debugf("typeName: %v", typeName)
+
+		spinner.Push(fmt.Sprintf("Checking %s: %s", typeName, logicalId))
 
 		input := PredictionInput{}
 		input.logicalId = logicalId
@@ -262,24 +312,49 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 		}
 
 		forecast.Append(forecastForType(input))
+
+		spinner.Pop()
 	}
 
 	spinner.Stop()
 
 	// Figure out how long we thing the stack will take to execute
 	totalSeconds := PredictTotalEstimate(source, stackExists)
+	config.Debugf("totalSeconds: %d", totalSeconds)
 
 	if forecast.GetNumFailed() > 0 {
-		fmt.Println("Stormy weather ahead! 🌪") // 🌩️⛈
-		fmt.Println(forecast.GetNumFailed(), "checks failed out of", forecast.GetNumChecked(), "total checks")
+		fmt.Println(console.Red("Stormy weather ahead! 🌪")) // 🌩️⛈
+		fmt.Println()
+		fmt.Println(console.Red(fmt.Sprintf(
+			"%d checks failed out of %d total checks",
+			forecast.GetNumFailed(),
+			forecast.GetNumChecked())))
 		for _, reason := range forecast.Failed {
-			fmt.Println()
-			fmt.Println(reason)
+			fmt.Println(console.Red(reason))
 		}
+		if all {
+			fmt.Println()
+			fmt.Println(console.Green(fmt.Sprintf(
+				"%d checks passed out of %d total checks",
+				forecast.GetNumPassed(),
+				forecast.GetNumChecked())))
+			for _, reason := range forecast.Passed {
+				fmt.Println(console.Green(reason))
+			}
+		}
+
 		return false
 	} else {
-		fmt.Println("Clear skies! 🌞 All", forecast.GetNumChecked(), "checks passed. Estimated time:",
-			FormatEstimate(totalSeconds))
+		fmt.Println(console.Green(fmt.Sprintf(
+			"Clear skies! 🌞 All %d checks passed. Estimated time: %s",
+			forecast.GetNumChecked(),
+			FormatEstimate(totalSeconds))))
+		if all {
+			fmt.Println()
+			for _, reason := range forecast.Passed {
+				fmt.Println(console.Green(reason))
+			}
+		}
 		return true
 	}
 
@@ -335,24 +410,22 @@ Resource-specific checks:
 		if !Experimental {
 			panic("Please add the --experimental arg to use this feature")
 		}
+		pkg.Experimental = Experimental
 
 		config.Debugf("Generating forecast for %v", fn)
 
-		r, err := os.Open(fn)
+		source, err := pkg.File(fn)
 		if err != nil {
-			panic(ui.Errorf(err, "unable to read '%s'", fn))
+			panic(err)
 		}
 
-		// Read the template
-		input, err := io.ReadAll(r)
+		// Packaging is necessary if we want to forecast a template with
+		// modules or anything else that needs packaging.
+		// But.. we lost line numbers, so we need to re-parse the file
+		content := format.CftToYaml(source)
+		source, err = parse.String(content)
 		if err != nil {
-			panic(ui.Errorf(err, "unable to read input"))
-		}
-
-		// Parse the template
-		source, err := parse.String(string(input))
-		if err != nil {
-			panic(ui.Errorf(err, "unable to parse input"))
+			panic(err)
 		}
 
 		stackName := dc.GetStackName(suppliedStackName, base)
@@ -386,6 +459,7 @@ Resource-specific checks:
 func init() {
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
 	Cmd.Flags().BoolVar(&SkipIAM, "skip-iam", false, "Skip permissions checks, which can take a long time")
+	Cmd.Flags().BoolVarP(&all, "all", "a", false, "Show all checks, not just failed ones")
 	Cmd.Flags().BoolVarP(&Experimental, "experimental", "x", false, "Acknowledge that this is an experimental feature")
 	Cmd.Flags().StringVar(&RoleArn, "role-arn", "", "An optional execution role arn to use for predicting IAM failures")
 	// TODO - --op "create", "update", "delete", default: "all"
@@ -403,6 +477,7 @@ func init() {
 	forecasters["AWS::S3::BucketPolicy"] = checkS3BucketPolicy
 	forecasters["AWS::EC2::Instance"] = checkEC2Instance
 	forecasters["AWS::EC2::SecurityGroup"] = checkEC2SecurityGroup
+	forecasters["AWS::RDS::DBCluster"] = checkRDSDBCluster
 
 	// Initialize estimates map
 	InitEstimates()
