@@ -28,6 +28,8 @@ require (
 
 require (
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.36.1
+	github.com/aws/aws-sdk-go-v2/service/rds v1.75.1
+	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.21.2
 	github.com/fatih/color v1.16.0
 	github.com/manifoldco/promptui v0.9.0
 	github.com/mattn/go-runewidth v0.0.15
@@ -36,8 +38,6 @@ require (
 
 require (
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/rds v1.75.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.21.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.23.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -52,7 +52,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.0 // indirect
-	github.com/aws/aws-sdk-go-v2/service/cloudcontrol v1.18.1
+	github.com/aws/aws-sdk-go-v2/service/cloudcontrol v1.18.2
 	github.com/aws/aws-sdk-go-v2/service/iam v1.31.1
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.3 // indirect
