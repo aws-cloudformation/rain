@@ -1,8 +1,8 @@
 // Represents a CloudFormation template that creates buckets
 
 amends "modules/template.pkl"
-import "modules/s3.pkl"
-import "modules/patterns/bucket.pkl"
+import "modules/aws/s3/bucket.pkl" as bucket
+import "modules/patterns/bucket.pkl" as pattern
 
 Description = "Create a bucket"
 
@@ -27,22 +27,22 @@ Resources {
         }
     }
 
-    ["TypedBucket1"] = new s3.Bucket {
+    ["TypedBucket1"] = new bucket.Bucket {
         BucketName = "foo"
     }
 
-    ["TypedBucket2"] = new s3.Bucket {
+    ["TypedBucket2"] = new bucket.Bucket {
         BucketName = Ref("Name")
     }
 
     for (name in List("bucketx", "buckety", "bucketz")) {
-        [name] = new s3.Bucket {
+        [name] = new bucket.Bucket {
             BucketName = name
         }
     }
 
     // Import multiple resources from a pattern module 
-    for (_key, _val in bucket.resources()) {
+    for (_key, _val in pattern.resources("my-app")) {
         ["My" + _key] = _val
     }
 

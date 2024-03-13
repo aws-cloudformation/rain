@@ -1,7 +1,25 @@
 import "../cloudformation.pkl"
-import "../s3.pkl"
+import "../aws/s3/bucket.pkl" as bucket
 
-open class SecureBucket extends s3.Bucket {
+open class SecureBucket extends bucket.Bucket {
+    Metadata = new Mapping {
+        ["Comment"] = "Records access logs for the main bucket"
+        ["checkov"] {
+            skip = new Listing {
+                new {
+                    comment = "This is the log bucket"
+                    id = "CKV_AWS_18"
+                }
+            }
+        }
+        ["guard"] {
+            SuppressedRules = new Listing {
+                "S3_BUCKET_LOGGING_ENABLED"
+                "S3_BUCKET_REPLICATION_ENABLED"
+            }
+        }
+    }
+                
     BucketEncryption {
         ServerSideEncryptionConfiguration {
             new {
@@ -11,10 +29,40 @@ open class SecureBucket extends s3.Bucket {
             }
         }
     }
+
+    ObjectLockConfiguration {
+        ObjectLockEnabled = "Enabled"
+        Rule {
+            DefaultRetention {
+                Mode = "COMPLIANCE"
+                Years = 1
+            }
+        }
+    }
+
+    ObjectLockEnabled = true
+
+    PublicAccessBlockConfiguration {
+        BlockPublicAcls = true
+        BlockPublicPolicy = true
+        IgnorePublicAcls = true
+        RestrictPublicBuckets = true
+    }
+
+    VersioningConfiguration {
+        Status = "Enabled"
+    }
 }
 
-function resources(): Mapping<String, cloudformation.Resource> = new Mapping {
-    ["SecureBucket"] = new SecureBucket {}
+// TODO: LogBucket, etc (like rain module)
+
+function resources(appName: String): Mapping<String, cloudformation.Resource> = new Mapping {
+    ["SecureBucket"] = new SecureBucket {
+        BucketName = new Mapping {
+            ["Fn::Sub"] = "\(appName)-${AWS::Region}-${AWS::AccountId}"
+        }
+    }
+
     ["OtherBucket"] = new SecureBucket {}
 }
 
