@@ -1,0 +1,44 @@
+// Represents a CloudFormation template that creates buckets
+
+amends "template.pkl"
+import "s3.pkl"
+
+Description = "Create a bucket"
+
+Metadata { 
+    ["Foo"] = "bar"
+}
+
+Parameters {
+    ["Name"] {
+        Type = "String"
+        Default = "baz"
+    }
+}
+
+Resources {
+    ["MyUntypedBucket"] {
+        Type = "AWS::S3::Bucket"
+        Properties {
+           ["BucketName"] {
+                ["Ref"] = "Name"
+           }
+        }
+    }
+
+    ["TypedBucket1"] = new s3.Bucket {
+        BucketName = "foo"
+    }
+
+    ["TypedBucket2"] = new s3.Bucket {
+        BucketName = Ref("Name")
+    }
+
+    ["SecureBucket"] = s3.SecureBucket("bar")
+
+    ["SecureBucket2"] = new s3.SecureBucketExt {
+        BucketName = Ref("Name")
+    }
+
+}
+

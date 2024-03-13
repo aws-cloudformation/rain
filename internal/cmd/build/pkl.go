@@ -63,6 +63,17 @@ func printCls(cls *pklDefClass) {
 	fmt.Printf("}\n")
 }
 
+// Returns the alias name and adds it to the class
+func createTypeAlias(defName string, propName string, cls *pklDefClass, enum []any) string {
+	aliasName := fmt.Sprintf("%s%s", defName, propName)
+	alias := &stringAlias{Name: aliasName, Values: make([]string, 0)}
+	for _, e := range enum {
+		alias.Values = append(alias.Values, fmt.Sprintf("%s", e))
+	}
+	cls.Aliases = append(cls.Aliases, alias)
+	return aliasName
+}
+
 func getPropType(defName string, propName string,
 	prop *cfn.Prop, cls *pklDefClass, required bool) (string, error) {
 
@@ -72,31 +83,52 @@ func getPropType(defName string, propName string,
 		if len(prop.Enum) > 0 {
 			// Create a type alias
 			// Example: typealias SSEAlgorithmTypes = "aws:kms"|"AES256"|"aws:kms:dsse"
-			aliasName := fmt.Sprintf("%s%s", defName, propName)
-			alias := &stringAlias{Name: aliasName, Values: make([]string, 0)}
-			for _, e := range prop.Enum {
-				alias.Values = append(alias.Values, fmt.Sprintf("%s", e))
-			}
-			cls.Aliases = append(cls.Aliases, alias)
+			aliasName := createTypeAlias(defName, propName, cls, prop.Enum)
 			retval = aliasName + "|Mapping"
 		} else if len(prop.Pattern) > 0 {
-			retval = fmt.Sprintf("String(matches(Regex(%s)))|Mapping", prop.Pattern)
+			retval = fmt.Sprintf("String(matches(Regex(#\"%s\"#)))|Mapping", prop.Pattern)
 		} else {
 			retval = "String|Mapping"
 		}
 	case "object":
 		// TODO
 	case "array":
-		// TODO
+		if prop.Items != nil {
+			if prop.Items.Ref != "" {
+				clsName := strings.Replace(prop.Items.Ref, "#/definitions/", "", 1)
+				retval = fmt.Sprintf("Listing<%s>", clsName)
+			} else {
+				switch prop.Items.Type {
+				case "string":
+					if len(prop.Items.Enum) > 0 {
+						aliasName := createTypeAlias(defName, propName, cls, prop.Items.Enum)
+						retval = fmt.Sprintf("Listing<%s|Mapping>", aliasName)
+					} else {
+						retval = "Listing<String|Mapping>"
+					}
+				case "boolean":
+					retval = "Listing<Boolean|Mapping>"
+				case "number":
+					retval = "Listing<Number|Mapping>"
+				case "integer":
+					retval = "Listing<Int|Mapping>"
+				default:
+					return "", fmt.Errorf("no item type for %s", propName)
+				}
+			}
+		} else {
+			return "", fmt.Errorf("array has no items: %s", propName)
+		}
 	case "boolean":
-		// TODO
+		retval = "Boolean|Mapping"
 	case "number":
-		// TODO
+		retval = "Number|Mapping"
 	case "integer":
-		// TODO
+		retval = "Int|Mapping"
 	case "":
 		if prop.Ref != "" {
-			// TODO
+			clsName := strings.Replace(prop.Ref, "#/definitions/", "", 1)
+			retval = clsName
 		} else {
 			return "", fmt.Errorf("expected blank type to have $ref: %s", propName)
 		}
@@ -120,7 +152,7 @@ func generatePklClass(typeName string) error {
 	}
 
 	// TODO: Needs to be on a URI somewhere public
-	fmt.Println("import cloudformation.pkl")
+	fmt.Println("import \"cloudformation.pkl\"")
 
 	classes := make([]*pklDefClass, 0)
 
@@ -156,7 +188,7 @@ func generatePklClass(typeName string) error {
 	fmt.Println()
 	fmt.Printf("open class %s {\n", shortName)
 	fmt.Println()
-	fmt.Printf("    Type = %s\n", typeName)
+	fmt.Printf("    Type = \"%s\"\n", typeName)
 	fmt.Println()
 
 	propNames := make([]string, 0)
@@ -189,6 +221,13 @@ func generatePklClass(typeName string) error {
 	fmt.Printf("    }\n\n")
 
 	fmt.Println("}")
+
+	if len(cls.Aliases) > 0 {
+		fmt.Println()
+		for _, alias := range cls.Aliases {
+			printTypeAlias(alias)
+		}
+	}
 
 	return nil
 }

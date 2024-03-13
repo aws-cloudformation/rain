@@ -1,0 +1,443 @@
+import "cloudformation.pkl"
+
+typealias RuleStatus = "Enabled"|"Disabled"
+
+open class Rule {
+    Prefix: String|Mapping?
+    ObjectSizeGreaterThan: String(matches(Regex(#"[0-9]+"#)))|Mapping?
+    Transitions: Listing<Transition>?
+    ExpiredObjectDeleteMarker: Boolean|Mapping?
+    NoncurrentVersionExpiration: NoncurrentVersionExpiration?
+    NoncurrentVersionTransition: NoncurrentVersionTransition?
+    ExpirationInDays: Int|Mapping?
+    NoncurrentVersionExpirationInDays: Int|Mapping?
+    NoncurrentVersionTransitions: Listing<NoncurrentVersionTransition>?
+    Status: RuleStatus|Mapping
+    TagFilters: Listing<TagFilter>?
+    ObjectSizeLessThan: String(matches(Regex(#"[0-9]+"#)))|Mapping?
+    Transition: Transition?
+    AbortIncompleteMultipartUpload: AbortIncompleteMultipartUpload?
+    ExpirationDate: iso8601UTC?
+    Id: String|Mapping?
+}
+
+open class AbortIncompleteMultipartUpload {
+    DaysAfterInitiation: Int|Mapping
+}
+
+open class MetricsConfiguration {
+    TagFilters: Listing<TagFilter>?
+    AccessPointArn: String|Mapping?
+    Id: String|Mapping
+    Prefix: String|Mapping?
+}
+
+open class EventBridgeConfiguration {
+    EventBridgeEnabled: Boolean|Mapping
+}
+
+open class TopicConfiguration {
+    Event: String|Mapping
+    Filter: NotificationFilter?
+    Topic: String|Mapping
+}
+
+open class PublicAccessBlockConfiguration {
+    BlockPublicAcls: Boolean|Mapping?
+    BlockPublicPolicy: Boolean|Mapping?
+    IgnorePublicAcls: Boolean|Mapping?
+    RestrictPublicBuckets: Boolean|Mapping?
+}
+
+typealias RedirectRuleProtocol = "http"|"https"
+
+open class RedirectRule {
+    HttpRedirectCode: String|Mapping?
+    Protocol: RedirectRuleProtocol|Mapping?
+    ReplaceKeyPrefixWith: String|Mapping?
+    ReplaceKeyWith: String|Mapping?
+    HostName: String|Mapping?
+}
+
+open class RoutingRuleCondition {
+    KeyPrefixEquals: String|Mapping?
+    HttpErrorCodeReturnedEquals: String|Mapping?
+}
+
+open class ReplicationTimeValue {
+    Minutes: Int|Mapping
+}
+
+typealias ReplicationTimeStatus = "Disabled"|"Enabled"
+
+open class ReplicationTime {
+    Status: ReplicationTimeStatus|Mapping
+    Time: ReplicationTimeValue
+}
+
+open class ReplicationRuleFilter {
+    And: ReplicationRuleAndOperator?
+    Prefix: String|Mapping?
+    TagFilter: TagFilter?
+}
+
+open class Tag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+open class TagFilter {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+open class CorsConfiguration {
+    CorsRules: Listing<CorsRule>
+}
+
+typealias TieringAccessTier = "ARCHIVE_ACCESS"|"DEEP_ARCHIVE_ACCESS"
+
+open class Tiering {
+    AccessTier: TieringAccessTier|Mapping
+    Days: Int|Mapping
+}
+
+typealias VersioningConfigurationStatus = "Enabled"|"Suspended"
+
+open class VersioningConfiguration {
+    Status: VersioningConfigurationStatus|Mapping
+}
+
+open class RoutingRule {
+    RedirectRule: RedirectRule
+    RoutingRuleCondition: RoutingRuleCondition?
+}
+
+typealias CorsRuleAllowedMethods = "GET"|"PUT"|"HEAD"|"POST"|"DELETE"
+
+open class CorsRule {
+    AllowedHeaders: Listing<String|Mapping>?
+    AllowedMethods: Listing<CorsRuleAllowedMethods|Mapping>
+    AllowedOrigins: Listing<String|Mapping>
+    ExposedHeaders: Listing<String|Mapping>?
+    Id: String|Mapping?
+    MaxAge: Int|Mapping?
+}
+
+typealias TransitionStorageClass = "DEEP_ARCHIVE"|"GLACIER"|"Glacier"|"GLACIER_IR"|"INTELLIGENT_TIERING"|"ONEZONE_IA"|"STANDARD_IA"
+
+open class Transition {
+    TransitionDate: iso8601UTC?
+    TransitionInDays: Int|Mapping?
+    StorageClass: TransitionStorageClass|Mapping
+}
+
+typealias PartitionedPrefixPartitionDateSource = "EventTime"|"DeliveryTime"
+
+open class PartitionedPrefix {
+    PartitionDateSource: PartitionedPrefixPartitionDateSource|Mapping?
+}
+
+open class SourceSelectionCriteria {
+    ReplicaModifications: ReplicaModifications?
+    SseKmsEncryptedObjects: SseKmsEncryptedObjects?
+}
+
+typealias MetricsStatus = "Disabled"|"Enabled"
+
+open class Metrics {
+    EventThreshold: ReplicationTimeValue?
+    Status: MetricsStatus|Mapping
+}
+
+open class WebsiteConfiguration {
+    IndexDocument: String|Mapping?
+    RoutingRules: Listing<RoutingRule>?
+    RedirectAllRequestsTo: RedirectAllRequestsTo?
+    ErrorDocument: String|Mapping?
+}
+
+open class Arn {
+}
+
+typealias AccelerateConfigurationAccelerationStatus = "Enabled"|"Suspended"
+
+open class AccelerateConfiguration {
+    AccelerationStatus: AccelerateConfigurationAccelerationStatus|Mapping
+}
+
+typealias ServerSideEncryptionByDefaultSSEAlgorithm = "aws:kms"|"AES256"|"aws:kms:dsse"
+
+open class ServerSideEncryptionByDefault {
+    KMSMasterKeyID: String|Mapping?
+    SSEAlgorithm: ServerSideEncryptionByDefaultSSEAlgorithm|Mapping
+}
+
+open class TargetObjectKeyFormat {
+}
+
+open class QueueConfiguration {
+    Event: String|Mapping
+    Filter: NotificationFilter?
+    Queue: String|Mapping
+}
+
+open class ObjectLockConfiguration {
+    ObjectLockEnabled: String|Mapping?
+    Rule: ObjectLockRule?
+}
+
+typealias ReplicationDestinationStorageClass = "DEEP_ARCHIVE"|"GLACIER"|"GLACIER_IR"|"INTELLIGENT_TIERING"|"ONEZONE_IA"|"REDUCED_REDUNDANCY"|"STANDARD"|"STANDARD_IA"
+
+open class ReplicationDestination {
+    Metrics: Metrics?
+    ReplicationTime: ReplicationTime?
+    StorageClass: ReplicationDestinationStorageClass|Mapping?
+    AccessControlTranslation: AccessControlTranslation?
+    Account: String|Mapping?
+    Bucket: String|Mapping
+    EncryptionConfiguration: EncryptionConfiguration?
+}
+
+typealias RedirectAllRequestsToProtocol = "http"|"https"
+
+open class RedirectAllRequestsTo {
+    HostName: String|Mapping
+    Protocol: RedirectAllRequestsToProtocol|Mapping?
+}
+
+open class StorageClassAnalysis {
+    DataExport: DataExport?
+}
+
+open class DataExport {
+    Destination: Destination
+    OutputSchemaVersion: String|Mapping
+}
+
+open class BucketEncryption {
+    ServerSideEncryptionConfiguration: Listing<ServerSideEncryptionRule>
+}
+
+open class NotificationConfiguration {
+    QueueConfigurations: Listing<QueueConfiguration>?
+    TopicConfigurations: Listing<TopicConfiguration>?
+    EventBridgeConfiguration: EventBridgeConfiguration?
+    LambdaConfigurations: Listing<LambdaConfiguration>?
+}
+
+typealias ReplicationRuleStatus = "Disabled"|"Enabled"
+
+open class ReplicationRule {
+    Status: ReplicationRuleStatus|Mapping
+    DeleteMarkerReplication: DeleteMarkerReplication?
+    Destination: ReplicationDestination
+    Filter: ReplicationRuleFilter?
+    Id: String|Mapping?
+    Prefix: String|Mapping?
+    Priority: Int|Mapping?
+    SourceSelectionCriteria: SourceSelectionCriteria?
+}
+
+typealias SseKmsEncryptedObjectsStatus = "Disabled"|"Enabled"
+
+open class SseKmsEncryptedObjects {
+    Status: SseKmsEncryptedObjectsStatus|Mapping
+}
+
+open class iso8601UTC {
+}
+
+open class EncryptionConfiguration {
+    ReplicaKmsKeyID: String|Mapping
+}
+
+open class LoggingConfiguration {
+    LogFilePrefix: String|Mapping?
+    TargetObjectKeyFormat: TargetObjectKeyFormat?
+    DestinationBucketName: String|Mapping?
+}
+
+open class S3KeyFilter {
+    Rules: Listing<FilterRule>
+}
+
+open class FilterRule {
+    Name: String|Mapping
+    Value: String|Mapping
+}
+
+open class OwnershipControls {
+    Rules: Listing<OwnershipControlsRule>
+}
+
+open class ReplicationConfiguration {
+    Role: String|Mapping
+    Rules: Listing<ReplicationRule>
+}
+
+typealias NoncurrentVersionTransitionStorageClass = "DEEP_ARCHIVE"|"GLACIER"|"Glacier"|"GLACIER_IR"|"INTELLIGENT_TIERING"|"ONEZONE_IA"|"STANDARD_IA"
+
+open class NoncurrentVersionTransition {
+    StorageClass: NoncurrentVersionTransitionStorageClass|Mapping
+    TransitionInDays: Int|Mapping
+    NewerNoncurrentVersions: Int|Mapping?
+}
+
+typealias DefaultRetentionMode = "COMPLIANCE"|"GOVERNANCE"
+
+open class DefaultRetention {
+    Years: Int|Mapping?
+    Days: Int|Mapping?
+    Mode: DefaultRetentionMode|Mapping?
+}
+
+typealias ReplicaModificationsStatus = "Enabled"|"Disabled"
+
+open class ReplicaModifications {
+    Status: ReplicaModificationsStatus|Mapping
+}
+
+typealias DestinationFormat = "CSV"|"ORC"|"Parquet"
+
+open class Destination {
+    BucketArn: String|Mapping
+    BucketAccountId: String|Mapping?
+    Format: DestinationFormat|Mapping
+    Prefix: String|Mapping?
+}
+
+typealias IntelligentTieringConfigurationStatus = "Disabled"|"Enabled"
+
+open class IntelligentTieringConfiguration {
+    Tierings: Listing<Tiering>
+    Id: String|Mapping
+    Prefix: String|Mapping?
+    Status: IntelligentTieringConfigurationStatus|Mapping
+    TagFilters: Listing<TagFilter>?
+}
+
+typealias DeleteMarkerReplicationStatus = "Disabled"|"Enabled"
+
+open class DeleteMarkerReplication {
+    Status: DeleteMarkerReplicationStatus|Mapping?
+}
+
+open class LifecycleConfiguration {
+    Rules: Listing<Rule>
+}
+
+typealias OwnershipControlsRuleObjectOwnership = "ObjectWriter"|"BucketOwnerPreferred"|"BucketOwnerEnforced"
+
+open class OwnershipControlsRule {
+    ObjectOwnership: OwnershipControlsRuleObjectOwnership|Mapping?
+}
+
+typealias InventoryConfigurationOptionalFields = "Size"|"LastModifiedDate"|"StorageClass"|"ETag"|"IsMultipartUploaded"|"ReplicationStatus"|"EncryptionStatus"|"ObjectLockRetainUntilDate"|"ObjectLockMode"|"ObjectLockLegalHoldStatus"|"IntelligentTieringAccessTier"|"BucketKeyStatus"|"ChecksumAlgorithm"|"ObjectAccessControlList"|"ObjectOwner"
+
+typealias InventoryConfigurationScheduleFrequency = "Daily"|"Weekly"
+
+typealias InventoryConfigurationIncludedObjectVersions = "All"|"Current"
+
+open class InventoryConfiguration {
+    OptionalFields: Listing<InventoryConfigurationOptionalFields|Mapping>?
+    Prefix: String|Mapping?
+    ScheduleFrequency: InventoryConfigurationScheduleFrequency|Mapping
+    Destination: Destination
+    Enabled: Boolean|Mapping
+    Id: String|Mapping
+    IncludedObjectVersions: InventoryConfigurationIncludedObjectVersions|Mapping
+}
+
+open class LambdaConfiguration {
+    Event: String|Mapping
+    Filter: NotificationFilter?
+    Function: String|Mapping
+}
+
+open class AccessControlTranslation {
+    Owner: String|Mapping
+}
+
+open class AnalyticsConfiguration {
+    TagFilters: Listing<TagFilter>?
+    StorageClassAnalysis: StorageClassAnalysis
+    Id: String|Mapping
+    Prefix: String|Mapping?
+}
+
+open class NoncurrentVersionExpiration {
+    NoncurrentDays: Int|Mapping
+    NewerNoncurrentVersions: Int|Mapping?
+}
+
+open class ObjectLockRule {
+    DefaultRetention: DefaultRetention?
+}
+
+open class ReplicationRuleAndOperator {
+    Prefix: String|Mapping?
+    TagFilters: Listing<TagFilter>?
+}
+
+open class NotificationFilter {
+    S3Key: S3KeyFilter
+}
+
+open class ServerSideEncryptionRule {
+    BucketKeyEnabled: Boolean|Mapping?
+    ServerSideEncryptionByDefault: ServerSideEncryptionByDefault?
+}
+
+open class Bucket {
+
+    Type = "AWS::S3::Bucket"
+
+    hidden InventoryConfigurations: Listing<InventoryConfiguration>?
+    hidden VersioningConfiguration: VersioningConfiguration?
+    hidden WebsiteConfiguration: WebsiteConfiguration?
+    hidden MetricsConfigurations: Listing<MetricsConfiguration>?
+    hidden ObjectLockEnabled: Boolean|Mapping?
+    hidden LifecycleConfiguration: LifecycleConfiguration?
+    hidden NotificationConfiguration: NotificationConfiguration?
+    hidden Tags: Listing<Tag>?
+    hidden AccessControl: BucketAccessControl|Mapping?
+    hidden LoggingConfiguration: LoggingConfiguration?
+    hidden OwnershipControls: OwnershipControls?
+    hidden PublicAccessBlockConfiguration: PublicAccessBlockConfiguration?
+    hidden AccelerateConfiguration: AccelerateConfiguration?
+    hidden ReplicationConfiguration: ReplicationConfiguration?
+    hidden BucketName: String(matches(Regex(#"^[a-z0-9][a-z0-9//.//-]*[a-z0-9]$"#)))|Mapping?
+    hidden ObjectLockConfiguration: ObjectLockConfiguration?
+    hidden AnalyticsConfigurations: Listing<AnalyticsConfiguration>?
+    hidden BucketEncryption: BucketEncryption?
+    hidden CorsConfiguration: CorsConfiguration?
+    hidden IntelligentTieringConfigurations: Listing<IntelligentTieringConfiguration>?
+
+    Properties {
+        ["InventoryConfigurations"] = if (InventoryConfigurations == null) null else InventoryConfigurations
+        ["VersioningConfiguration"] = if (VersioningConfiguration == null) null else VersioningConfiguration
+        ["WebsiteConfiguration"] = if (WebsiteConfiguration == null) null else WebsiteConfiguration
+        ["MetricsConfigurations"] = if (MetricsConfigurations == null) null else MetricsConfigurations
+        ["ObjectLockEnabled"] = if (ObjectLockEnabled == null) null else ObjectLockEnabled
+        ["LifecycleConfiguration"] = if (LifecycleConfiguration == null) null else LifecycleConfiguration
+        ["NotificationConfiguration"] = if (NotificationConfiguration == null) null else NotificationConfiguration
+        ["Tags"] = if (Tags == null) null else Tags
+        ["AccessControl"] = if (AccessControl == null) null else AccessControl
+        ["LoggingConfiguration"] = if (LoggingConfiguration == null) null else LoggingConfiguration
+        ["OwnershipControls"] = if (OwnershipControls == null) null else OwnershipControls
+        ["PublicAccessBlockConfiguration"] = if (PublicAccessBlockConfiguration == null) null else PublicAccessBlockConfiguration
+        ["AccelerateConfiguration"] = if (AccelerateConfiguration == null) null else AccelerateConfiguration
+        ["ReplicationConfiguration"] = if (ReplicationConfiguration == null) null else ReplicationConfiguration
+        ["BucketName"] = if (BucketName == null) null else BucketName
+        ["ObjectLockConfiguration"] = if (ObjectLockConfiguration == null) null else ObjectLockConfiguration
+        ["AnalyticsConfigurations"] = if (AnalyticsConfigurations == null) null else AnalyticsConfigurations
+        ["BucketEncryption"] = if (BucketEncryption == null) null else BucketEncryption
+        ["CorsConfiguration"] = if (CorsConfiguration == null) null else CorsConfiguration
+        ["IntelligentTieringConfigurations"] = if (IntelligentTieringConfigurations == null) null else IntelligentTieringConfigurations
+    }
+
+}
+
+
+typealias BucketAccessControl = "AuthenticatedRead"|"AwsExecRead"|"BucketOwnerFullControl"|"BucketOwnerRead"|"LogDeliveryWrite"|"Private"|"PublicRead"|"PublicReadWrite"
