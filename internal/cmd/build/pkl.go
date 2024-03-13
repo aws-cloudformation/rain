@@ -140,7 +140,7 @@ func getPropType(defName string, propName string,
 		retval = "Todo"
 	}
 	if !required {
-		retval = retval + "?"
+		retval = fmt.Sprintf("(%s)?", retval)
 	}
 	return retval, nil
 }
@@ -186,7 +186,7 @@ func generatePklClass(typeName string) error {
 	// Create a class for the type itself
 	shortName := strings.Split(typeName, "::")[2]
 	fmt.Println()
-	fmt.Printf("open class %s {\n", shortName)
+	fmt.Printf("open class %s extends cloudformation.Resource {\n", shortName)
 	fmt.Println()
 	fmt.Printf("    Type = \"%s\"\n", typeName)
 	fmt.Println()
