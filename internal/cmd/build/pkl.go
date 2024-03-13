@@ -91,7 +91,7 @@ func getPropType(defName string, propName string,
 			retval = "String|Mapping"
 		}
 	case "object":
-		// TODO
+		return "", fmt.Errorf("unexpected object type: %s", propName)
 	case "array":
 		if prop.Items != nil {
 			if prop.Items.Ref != "" {

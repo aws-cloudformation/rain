@@ -1,0 +1,20 @@
+import "../cloudformation.pkl"
+import "../s3.pkl"
+
+open class SecureBucket extends s3.Bucket {
+    BucketEncryption {
+        ServerSideEncryptionConfiguration {
+            new {
+                ServerSideEncryptionByDefault {
+                    SSEAlgorithm = "AES256"
+                }
+            }
+        }
+    }
+}
+
+function resources(): Mapping<String, cloudformation.Resource> = new Mapping {
+    ["SecureBucket"] = new SecureBucket {}
+    ["OtherBucket"] = new SecureBucket {}
+}
+
