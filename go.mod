@@ -1,6 +1,8 @@
 module github.com/aws-cloudformation/rain
 
-go 1.18
+go 1.21
+
+toolchain go1.21.1
 
 require (
 	//github.com/ake-persson/mapslice-json v0.0.0-20210720081907-22c8edf57807
@@ -35,6 +37,7 @@ require (
 )
 
 require (
+	github.com/apple/pkl-go v0.6.0 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/rds v1.75.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.21.2 // indirect
@@ -44,6 +47,8 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
+	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 )
 
 require (

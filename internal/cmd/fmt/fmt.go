@@ -1,11 +1,13 @@
 package fmt
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"strings"
 
+	"github.com/apple/pkl-go/pkl"
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
@@ -29,23 +31,13 @@ type result struct {
 	err    error
 }
 
-func formatReader(name string, r io.Reader) result {
-	res := result{
-		name: name,
-	}
-
-	// Read the template
-	input, err := io.ReadAll(r)
-	if err != nil {
-		res.err = ui.Errorf(err, "unable to read input")
-		return res
-	}
+func formatString(input string, res *result) {
 
 	// Parse the template
 	source, err := parse.String(string(input))
 	if err != nil {
 		res.err = ui.Errorf(err, "unable to parse input")
-		return res
+		return
 	}
 
 	if dataModel {
@@ -60,16 +52,60 @@ func formatReader(name string, r io.Reader) result {
 		// Verify the output is valid
 		if err = parse.Verify(source, res.output); err != nil {
 			res.err = err
-			return res
+			return
 		}
 
 		res.ok = strings.TrimSpace(string(input)) == strings.TrimSpace(res.output)
 	}
+}
+
+func formatReader(name string, r io.Reader) result {
+	res := result{
+		name: name,
+	}
+
+	// Read the template
+	input, err := io.ReadAll(r)
+	if err != nil {
+		res.err = ui.Errorf(err, "unable to read input")
+		return res
+	}
+
+	formatString(string(input), &res)
 
 	return res
 }
 
 func formatFile(filename string) result {
+
+	// Read pkl files
+	if strings.HasSuffix(filename, ".pkl") {
+		// Don't need this?
+		//cfg, err := template.LoadFromPath(context.Background(), filename)
+
+		res := result{
+			name: filename,
+		}
+
+		// TODO: Convert the template to YAML
+		evaluator, err := pkl.NewEvaluator(context.Background(), pkl.PreconfiguredOptions)
+		if err != nil {
+			panic(err)
+		}
+		defer evaluator.Close()
+		yaml, err :=
+			evaluator.EvaluateOutputText(context.Background(), pkl.FileSource(filename))
+		if err != nil {
+			panic(err)
+		}
+
+		config.Debugf("pkl yaml: %s", yaml)
+
+		formatString(yaml, &res)
+
+		return res
+	}
+
 	r, err := os.Open(filename)
 	if err != nil {
 		return result{
