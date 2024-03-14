@@ -1,6 +1,7 @@
 // Represents a CloudFormation template that creates buckets
 
 amends "modules/template.pkl"
+import "modules/cloudformation.pkl" as cfn
 import "modules/aws/s3/bucket.pkl" as bucket
 import "modules/patterns/bucket.pkl" as pattern
 
@@ -32,7 +33,7 @@ Resources {
     }
 
     ["TypedBucket2"] = new bucket.Bucket {
-        BucketName = Ref("Name")
+        BucketName = cfn.Ref("Name")
     }
 
     for (name in List("bucketx", "buckety", "bucketz")) {
@@ -42,8 +43,8 @@ Resources {
     }
 
     // Import multiple resources from a pattern module 
-    for (_key, _val in pattern.resources("my-app")) {
-        ["My" + _key] = _val
+    for (_key, _val in pattern.resources("my-app", "SecureBucket")) {
+        [_key] = _val
     }
 
 }

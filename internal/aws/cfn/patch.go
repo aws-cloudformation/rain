@@ -147,3 +147,21 @@ func patchSESContactList(schema *Schema) error {
 	dss.Enum = convertStrings(valid)
 	return nil
 }
+
+func patchIAMRole(schema *Schema) error {
+	policy, found := schema.Definitions["Policy"]
+	if !found {
+		return errors.New("expected AWS::IAM::Role to have Policy")
+	}
+	policyDocument, found := policy.Properties["PolicyDocument"]
+	if !found {
+		return errors.New("expected AWS::IAM::Role to have Policy.PolicyDocument")
+	}
+	policyDocument.Type = "object"
+	arpd, found := schema.Properties["AssumeRolePolicyDocument"]
+	if !found {
+		return errors.New("expected AWS::IAM::Role to have AssumeRolePolicyDocument")
+	}
+	arpd.Type = "object"
+	return nil
+}

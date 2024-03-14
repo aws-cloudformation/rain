@@ -54,6 +54,10 @@ func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema, 
 
 	isCircular := false
 
+	if prop.Type == nil {
+		prop.Type = ""
+	}
+
 	switch prop.Type {
 	case "string":
 		if len(prop.Enum) > 0 {

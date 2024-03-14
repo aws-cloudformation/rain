@@ -15,7 +15,7 @@ type SchemaLike interface {
 type Prop struct {
 	Description          string           `json:"description"`
 	Items                *Prop            `json:"items"`
-	Type                 string           `json:"type"`
+	Type                 any              `json:"type"`
 	UniqueItems          bool             `json:"uniqueItems"`
 	InsertionOrder       bool             `json:"insertionOrder"`
 	Ref                  string           `json:"$ref"`
@@ -92,6 +92,8 @@ func (schema *Schema) Patch() error {
 		return patchSESConfigurationSetEventDestination(schema)
 	case "AWS::SES::ContactList":
 		return patchSESContactList(schema)
+	case "AWS::IAM::Role":
+		return patchIAMRole(schema)
 
 	}
 	return nil

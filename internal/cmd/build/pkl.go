@@ -1,6 +1,7 @@
 package build
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -28,9 +29,10 @@ type pklDefProp struct {
 
 // A class that represents a definition in a registry resource schema
 type pklDefClass struct {
-	Name    string
-	Props   []*pklDefProp
-	Aliases []*stringAlias
+	Name        string
+	Description string
+	Props       []*pklDefProp
+	Aliases     []*stringAlias
 }
 
 func printTypeAlias(alias *stringAlias) {
@@ -54,6 +56,7 @@ func printCls(cls *pklDefClass) {
 
 	fmt.Println()
 
+	printDescription(cls.Description)
 	fmt.Printf("open class %s {\n", cls.Name)
 
 	for _, prop := range cls.Props {
@@ -77,6 +80,9 @@ func createTypeAlias(defName string, propName string, cls *pklDefClass, enum []a
 func getPropType(defName string, propName string,
 	prop *cfn.Prop, cls *pklDefClass, required bool) (string, error) {
 
+	if prop.Type == nil {
+		prop.Type = ""
+	}
 	var retval string
 	switch prop.Type {
 	case "string":
@@ -91,13 +97,16 @@ func getPropType(defName string, propName string,
 			retval = "String|Mapping"
 		}
 	case "object":
-		return "", fmt.Errorf("unexpected object type: %s", propName)
+		retval = "Dynamic"
 	case "array":
 		if prop.Items != nil {
 			if prop.Items.Ref != "" {
 				clsName := strings.Replace(prop.Items.Ref, "#/definitions/", "", 1)
 				retval = fmt.Sprintf("Listing<%s>", clsName)
 			} else {
+				if prop.Items.Type == nil {
+					prop.Items.Type = ""
+				}
 				switch prop.Items.Type {
 				case "string":
 					if len(prop.Items.Enum) > 0 {
@@ -135,14 +144,22 @@ func getPropType(defName string, propName string,
 	}
 
 	if retval == "" {
-		//return "", errors.New("unable to determine type for " + propName)
-		// TODO
-		retval = "Todo"
+		return "", errors.New("unable to determine type for " + propName)
 	}
 	if !required {
 		retval = fmt.Sprintf("(%s)?", retval)
 	}
 	return retval, nil
+}
+
+func printDescription(description string) {
+	descTokens := strings.Split(description, "\n")
+	for i, d := range descTokens {
+		fmt.Println("///", d)
+		if i == 0 && len(descTokens) > 1 {
+			fmt.Println("///")
+		}
+	}
 }
 
 func generatePklClass(typeName string) error {
@@ -157,7 +174,6 @@ func generatePklClass(typeName string) error {
 	fmt.Println("module", strings.ToLower(strings.Replace(typeName, "::", ".", -1)))
 	fmt.Println()
 
-	// TODO: Needs to be on a URI somewhere public
 	fmt.Println("import \"../../cloudformation.pkl\"")
 
 	classes := make([]*pklDefClass, 0)
@@ -165,9 +181,10 @@ func generatePklClass(typeName string) error {
 	// Iterate over definitions, creating a class for each one
 	for name, def := range schema.Definitions {
 		cls := &pklDefClass{
-			Name:    name,
-			Props:   make([]*pklDefProp, 0),
-			Aliases: make([]*stringAlias, 0),
+			Name:        name,
+			Description: def.Description,
+			Props:       make([]*pklDefProp, 0),
+			Aliases:     make([]*stringAlias, 0),
 		}
 		classes = append(classes, cls)
 
@@ -185,13 +202,13 @@ func generatePklClass(typeName string) error {
 
 	// Print out each of the classes
 	for _, cls := range classes {
-
 		printCls(cls)
 	}
 
 	// Create a class for the type itself
 	shortName := strings.Split(typeName, "::")[2]
 	fmt.Println()
+	printDescription(schema.Description)
 	fmt.Printf("open class %s extends cloudformation.Resource {\n", shortName)
 	fmt.Println()
 	fmt.Printf("    Type = \"%s\"\n", typeName)
@@ -199,9 +216,10 @@ func generatePklClass(typeName string) error {
 
 	propNames := make([]string, 0)
 	cls := &pklDefClass{
-		Name:    shortName,
-		Props:   make([]*pklDefProp, 0),
-		Aliases: make([]*stringAlias, 0),
+		Name:        shortName,
+		Description: schema.Description,
+		Props:       make([]*pklDefProp, 0),
+		Aliases:     make([]*stringAlias, 0),
 	}
 	requiredProps := schema.GetRequired()
 	for propName, prop := range schema.Properties {
@@ -215,6 +233,9 @@ func generatePklClass(typeName string) error {
 		if err != nil {
 			return err
 		}
+		fmt.Println()
+
+		printDescription(prop.Description)
 		fmt.Printf("    hidden %s: %s\n", propName, propType)
 		propNames = append(propNames, propName)
 	}
