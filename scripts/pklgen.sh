@@ -5,6 +5,11 @@ set -eou pipefail
 echo "Building rain..."
 ./scripts/build.sh
 
+echo "Generating go pkl modules..."
+# We don't actually need these for anything yet...
+pkl-gen-go pkl/cloudformation.pkl --base-path github.com/aws-cloudformation/rain
+pkl-gen-go pkl/template.pkl --base-path github.com/aws-cloudformation/rain
+
 echo "Building pkl classes..."
 
 echo "AWS::S3::Bucket"

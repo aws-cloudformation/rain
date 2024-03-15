@@ -43,8 +43,14 @@ Resources {
     }
 
     // Import multiple resources from a pattern module 
-    for (_key, _val in pattern.resources("my-app", "SecureBucket")) {
-        [_key] = _val
+    for (logicalId, resource in pattern.resources("my-app", "SecureBucket")) {
+        [logicalId] = (resource) {
+            // This adds a Metadata key to each Resource in the pattern
+            // It leaves existing keys alone
+            Metadata {
+                ["TestAmendingObjects..."] = "Test"
+            }
+        }
     }
 
 }

@@ -1,13 +1,13 @@
 package fmt
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
 	"strings"
 
-	"github.com/apple/pkl-go/pkl"
+	rainpkl "github.com/aws-cloudformation/rain/pkl"
+
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
@@ -87,19 +87,10 @@ func formatFile(filename string) result {
 			name: filename,
 		}
 
-		// TODO: Convert the template to YAML
-		evaluator, err := pkl.NewEvaluator(context.Background(), pkl.PreconfiguredOptions)
+		yaml, err := rainpkl.Yaml(filename)
 		if err != nil {
 			panic(err)
 		}
-		defer evaluator.Close()
-		yaml, err :=
-			evaluator.EvaluateOutputText(context.Background(), pkl.FileSource(filename))
-		if err != nil {
-			panic(err)
-		}
-
-		config.Debugf("pkl yaml: %s", yaml)
 
 		formatString(yaml, &res)
 

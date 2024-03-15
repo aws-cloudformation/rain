@@ -28,7 +28,9 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	rainpkl "github.com/aws-cloudformation/rain/pkl"
 	"path/filepath"
+	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
@@ -153,10 +155,23 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 func File(path string) (cft.Template, error) {
 	// config.Debugf("Packaging template: %s\n", path)
 
-	t, err := parse.File(path)
-	if err != nil {
-		config.Debugf("pkg.File unable to parse %v", path)
-		return t, err
+	var t cft.Template
+	var err error
+	if strings.HasSuffix(path, ".pkl") {
+		yaml, err := rainpkl.Yaml(path)
+		if err != nil {
+			return t, err
+		}
+		t, err = parse.String(yaml)
+		if err != nil {
+			return t, err
+		}
+	} else {
+		t, err = parse.File(path)
+		if err != nil {
+			config.Debugf("pkg.File unable to parse %v", path)
+			return t, err
+		}
 	}
 
 	return Template(t, filepath.Dir(path), nil)
