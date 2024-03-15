@@ -21,6 +21,13 @@ type Resource interface {
 
 var _ Resource = (*ResourceImpl)(nil)
 
+// A CloudFormation resource.
+//
+// Note that in subclasses of Resource, properties are elevated
+// to the top level, so we have to rename any properties that
+// conflict with resource attribute names such as `Type` and `DependsOn`.
+//
+// Any property that conflicts will be suffixed with `Property`.
 type ResourceImpl struct {
 	Type string `pkl:"Type"`
 

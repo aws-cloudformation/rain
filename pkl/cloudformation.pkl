@@ -3,8 +3,15 @@ module cloudformation
 
 import "package://pkg.pkl-lang.org/pkl-go/pkl.golang@0.6.0#/go.pkl"
 
+/// A CloudFormation resource.
+///
+/// Note that in subclasses of Resource, properties are elevated 
+/// to the top level, so we have to rename any properties that 
+/// conflict with resource attribute names such as `Type` and `DependsOn`.
+/// 
+/// Any property that conflicts will be suffixed with `Property`.
 open class Resource {
-    Type: String
+    Type: String(matches(Regex(#"^.*::.*::.*$"#)))
     Properties: Any?
     CreationPolicy: Mapping? 
     DeletionPolicy: String?

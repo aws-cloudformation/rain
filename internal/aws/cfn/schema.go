@@ -2,6 +2,7 @@ package cfn
 
 import (
 	"encoding/json"
+	"reflect"
 
 	"github.com/aws-cloudformation/rain/internal/config"
 )
@@ -97,4 +98,19 @@ func (schema *Schema) Patch() error {
 
 	}
 	return nil
+}
+
+func ConvertPropType(t any) any {
+	if t == nil {
+		return ""
+	}
+	rt := reflect.TypeOf(t)
+	switch rt.Kind() {
+	case reflect.Slice:
+		fallthrough
+	case reflect.Array:
+		// Things like PolicyDocument are [string, object]
+		return "object"
+	}
+	return t
 }
