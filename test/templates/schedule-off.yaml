@@ -1,0 +1,13 @@
+Resources:
+  Schedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      GroupName: !Ref ScheduleGroupName
+      ScheduleExpression: rate(5 minutes)
+      ScheduleExpressionTimezone: Europe/Berlin
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      State: ENABLED
+      Target:
+        Arn: !GetAtt LambdaFunction.Arn
+        RoleArn: !GetAtt ScheduleRole.Arn

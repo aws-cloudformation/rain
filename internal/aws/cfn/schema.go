@@ -30,6 +30,7 @@ type Prop struct {
 	Required             []string         `json:"required"`
 	OneOf                []*Prop          `json:"oneOf"`
 	AnyOf                []*Prop          `json:"anyOf"`
+	PatternProperties    any              `json:"patternProperties"`
 }
 
 func (p *Prop) GetProperties() map[string]*Prop {

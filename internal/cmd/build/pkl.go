@@ -8,6 +8,9 @@ import (
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
 )
 
+// #definition classes
+var classes map[string]*pklDefClass
+
 // Names that shouldn't be used as property names,
 // but sometimes they are, so we suffix any property
 // with one of these name with `Property`.
@@ -22,9 +25,10 @@ var reservedNames = []string{
 	"UpdateReplacePolicy",
 }
 
-type stringAlias struct {
+type defAlias struct {
 	Name   string
 	Values []string
+	IsMap  bool
 }
 
 // Represents a definition property
@@ -45,7 +49,7 @@ type pklDefClass struct {
 	Name        string
 	Description string
 	Props       []*pklDefProp
-	Aliases     []*stringAlias
+	Aliases     []*defAlias
 }
 
 // getDefName renames definition class names to avoid
@@ -63,7 +67,7 @@ func fixPropName(propName string) string {
 	return propName
 }
 
-func printTypeAlias(alias *stringAlias) {
+func printTypeAlias(alias *defAlias) {
 	fmt.Println()
 	fmt.Printf("typealias %s = ", alias.Name)
 	for i, v := range alias.Values {
@@ -71,6 +75,9 @@ func printTypeAlias(alias *stringAlias) {
 			fmt.Print("|")
 		}
 		fmt.Printf("\"%s\"", v)
+	}
+	if alias.IsMap {
+		fmt.Print("Mapping<String, Any>")
 	}
 	fmt.Print("\n")
 }
@@ -97,7 +104,7 @@ func printCls(cls *pklDefClass) {
 // Returns the alias name and adds it to the class
 func createTypeAlias(defName string, propName string, cls *pklDefClass, enum []any) string {
 	aliasName := fmt.Sprintf("%s%s", defName, propName)
-	alias := &stringAlias{Name: aliasName, Values: make([]string, 0)}
+	alias := &defAlias{Name: aliasName, Values: make([]string, 0)}
 	for _, e := range enum {
 		alias.Values = append(alias.Values, fmt.Sprintf("%s", e))
 	}
@@ -215,17 +222,18 @@ func generatePklClass(typeName string) error {
 
 	fmt.Println("import \"../../cloudformation.pkl\"")
 
-	classes := make([]*pklDefClass, 0)
+	classes = make(map[string]*pklDefClass, 0)
 
 	// Iterate over definitions, creating a class for each one
 	for name, def := range schema.Definitions {
+
 		cls := &pklDefClass{
 			Name:        getDefName(shortName, name),
 			Description: def.Description,
 			Props:       make([]*pklDefProp, 0),
-			Aliases:     make([]*stringAlias, 0),
+			Aliases:     make([]*defAlias, 0),
 		}
-		classes = append(classes, cls)
+		classes[name] = cls
 
 		r := def.GetRequired()
 
@@ -237,11 +245,49 @@ func generatePklClass(typeName string) error {
 			}
 			cls.Props = append(cls.Props, &pklDefProp{Name: propName, Type: propType})
 		}
+
+		if len(cls.Props) == 0 && def.PatternProperties != nil {
+			// Create a type alias
+			alias := &defAlias{Name: shortName + name, IsMap: true}
+			cls.Aliases = append(cls.Aliases, alias)
+		}
+
+		// Descriptions should all have type "object" but some of
+		// them are primitive types.
+		if def.Type != "object" {
+			if len(cls.Props) > 0 {
+				return fmt.Errorf("unexpected: defintion %s with type %s has %d props",
+					name, def.Type, len(cls.Props))
+			}
+
+			if def.Type == "string" {
+				if len(def.Enum) == 0 {
+					return fmt.Errorf("unexpected: definition %s has no enum", name)
+				}
+				// Create a type definition instead
+				createTypeAlias(shortName+name, "", cls, def.Enum)
+			} else {
+				return fmt.Errorf("unable to create class for definition %s", name)
+			}
+		}
 	}
 
 	// Print out each of the classes
-	for _, cls := range classes {
-		printCls(cls)
+	for name, cls := range classes {
+		if len(cls.Props) > 0 {
+			// This is an object definition
+			printCls(cls)
+		} else {
+			// Print a type alias instead
+			if len(cls.Aliases) == 0 {
+				return fmt.Errorf("unexpected: definition %s has no Props and no Aliases",
+					name)
+			}
+			for _, alias := range cls.Aliases {
+				printTypeAlias(alias)
+			}
+			fmt.Println()
+		}
 	}
 
 	// Create a class for the type itself
@@ -257,7 +303,7 @@ func generatePklClass(typeName string) error {
 		Name:        shortName,
 		Description: schema.Description,
 		Props:       make([]*pklDefProp, 0),
-		Aliases:     make([]*stringAlias, 0),
+		Aliases:     make([]*defAlias, 0),
 	}
 	requiredProps := schema.GetRequired()
 	for propName, prop := range schema.Properties {
