@@ -1,0 +1,29 @@
+
+on:
+  push:
+    tags:
+    - 'pkl-v*'
+
+name: Create Pkl package release from tag
+
+jobs:
+  pkl:
+    name: Pkl
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - run: |
+          set -x
+          sudo curl -L -o pkl https://github.com/apple/pkl/releases/download/0.25.2/pkl-linux-amd64
+          sudo chmod +x pkl
+          ./pkl --version
+          pkl project package pkl
+          gh release upload "${GITHUB_REF##*/}" .out/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
