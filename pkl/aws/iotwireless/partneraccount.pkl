@@ -6,24 +6,24 @@ module aws.iotwireless.partneraccount
 import "../../cloudformation.pkl"
 
 /// 
-open class SidewalkAccountInfo {
+open class PartnerAccountSidewalkAccountInfo {
     AppServerPrivateKey: String(matches(Regex(#"[a-fA-F0-9]{64}"#)))|Mapping
 }
 
 /// 
-open class SidewalkAccountInfoWithFingerprint {
+open class PartnerAccountSidewalkAccountInfoWithFingerprint {
+    Arn: (String|Mapping)?
     AmazonId: (String|Mapping)?
     Fingerprint: (String(matches(Regex(#"[a-fA-F0-9]{64}"#)))|Mapping)?
-    Arn: (String|Mapping)?
 }
 
 /// 
-open class SidewalkUpdateAccount {
+open class PartnerAccountSidewalkUpdateAccount {
     AppServerPrivateKey: (String(matches(Regex(#"[a-fA-F0-9]{64}"#)))|Mapping)?
 }
 
 /// 
-open class Tag {
+open class PartnerAccountTag {
     Key: (String|Mapping)?
     Value: (String|Mapping)?
 }
@@ -34,34 +34,34 @@ open class PartnerAccount extends cloudformation.Resource {
     Type = "AWS::IoTWireless::PartnerAccount"
 
 
+    /// The Sidewalk account credentials.
+    hidden Sidewalk: (PartnerAccountSidewalkAccountInfo)?
+
     /// The partner account ID to disassociate from the AWS account
     hidden PartnerAccountId: (String|Mapping)?
-
-    /// The Sidewalk account credentials.
-    hidden SidewalkResponse: (SidewalkAccountInfoWithFingerprint)?
-
-    /// The Sidewalk account credentials.
-    hidden SidewalkUpdate: (SidewalkUpdateAccount)?
-
-    /// The Sidewalk account credentials.
-    hidden Sidewalk: (SidewalkAccountInfo)?
 
     /// The partner type
     hidden PartnerType: (PartnerAccountPartnerType|Mapping)?
 
+    /// The Sidewalk account credentials.
+    hidden SidewalkResponse: (PartnerAccountSidewalkAccountInfoWithFingerprint)?
+
     /// Whether the partner account is linked to the AWS account.
     hidden AccountLinked: (Boolean|Mapping)?
 
+    /// The Sidewalk account credentials.
+    hidden SidewalkUpdate: (PartnerAccountSidewalkUpdateAccount)?
+
     /// A list of key-value pairs that contain metadata for the destination.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<PartnerAccountTag>)?
 
     Properties {
-        ["PartnerAccountId"] = if (PartnerAccountId == null) null else PartnerAccountId
-        ["SidewalkResponse"] = if (SidewalkResponse == null) null else SidewalkResponse
-        ["SidewalkUpdate"] = if (SidewalkUpdate == null) null else SidewalkUpdate
         ["Sidewalk"] = if (Sidewalk == null) null else Sidewalk
+        ["PartnerAccountId"] = if (PartnerAccountId == null) null else PartnerAccountId
         ["PartnerType"] = if (PartnerType == null) null else PartnerType
+        ["SidewalkResponse"] = if (SidewalkResponse == null) null else SidewalkResponse
         ["AccountLinked"] = if (AccountLinked == null) null else AccountLinked
+        ["SidewalkUpdate"] = if (SidewalkUpdate == null) null else SidewalkUpdate
         ["Tags"] = if (Tags == null) null else Tags
     }
 

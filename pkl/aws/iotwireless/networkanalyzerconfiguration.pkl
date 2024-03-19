@@ -5,28 +5,23 @@ module aws.iotwireless.networkanalyzerconfiguration
 
 import "../../cloudformation.pkl"
 
-/// 
-open class WirelessDeviceFrameInfo {
-}
+typealias NetworkAnalyzerConfigurationLogLevel = "INFO"|"ERROR"|"DISABLED"
 
-/// 
-open class LogLevel {
-}
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class NetworkAnalyzerConfigurationTag {
     Key: String|Mapping
     Value: String|Mapping
 }
+
+typealias NetworkAnalyzerConfigurationWirelessDeviceFrameInfo = "ENABLED"|"DISABLED"
+
 
 /// Create and manage NetworkAnalyzerConfiguration resource.
 open class NetworkAnalyzerConfiguration extends cloudformation.Resource {
 
     Type = "AWS::IoTWireless::NetworkAnalyzerConfiguration"
 
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
 
     /// Name of the network analyzer configuration
     hidden Name: String(matches(Regex(#"^[a-zA-Z0-9-_]+$"#)))|Mapping
@@ -43,13 +38,16 @@ open class NetworkAnalyzerConfiguration extends cloudformation.Resource {
     /// List of wireless gateway resources that have been added to the network analyzer configuration
     hidden WirelessGateways: (Listing<String|Mapping>)?
 
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<NetworkAnalyzerConfigurationTag>)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
         ["Description"] = if (Description == null) null else Description
         ["TraceContent"] = if (TraceContent == null) null else TraceContent
         ["WirelessDevices"] = if (WirelessDevices == null) null else WirelessDevices
         ["WirelessGateways"] = if (WirelessGateways == null) null else WirelessGateways
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

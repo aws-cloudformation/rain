@@ -5,18 +5,16 @@ module aws.customerprofiles.eventstream
 
 import "../../cloudformation.pkl"
 
+typealias EventStreamUri = String|Mapping
+
+
+typealias EventStreamStatus = String|Mapping
+
+
 /// A key-value pair to associate with a resource.
-open class Tag {
-    Value: String|Mapping
+open class EventStreamTag {
     Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
-}
-
-/// The StreamARN of the destination to deliver profile events to. For example, arn:aws:kinesis:region:account-id:stream/stream-name
-open class Uri {
-}
-
-/// The status of enabling the Kinesis stream as a destination for export.
-open class Status {
+    Value: String|Mapping
 }
 
 /// An Event Stream resource of Amazon Connect Customer Profiles
@@ -25,23 +23,23 @@ open class EventStream extends cloudformation.Resource {
     Type = "AWS::CustomerProfiles::EventStream"
 
 
+    /// 
+    hidden Uri: EventStreamUri
+
+    /// The tags used to organize, track, or control access for this resource.
+    hidden Tags: (Listing<EventStreamTag>)?
+
     /// The unique name of the domain.
     hidden DomainName: String(matches(Regex(#"^[a-zA-Z0-9_-]+$"#)))|Mapping
 
     /// The name of the event stream.
     hidden EventStreamName: String(matches(Regex(#"^[a-zA-Z0-9_-]+$"#)))|Mapping
 
-    /// 
-    hidden Uri: Uri
-
-    /// The tags used to organize, track, or control access for this resource.
-    hidden Tags: (Listing<Tag>)?
-
     Properties {
-        ["DomainName"] = if (DomainName == null) null else DomainName
-        ["EventStreamName"] = if (EventStreamName == null) null else EventStreamName
         ["Uri"] = if (Uri == null) null else Uri
         ["Tags"] = if (Tags == null) null else Tags
+        ["DomainName"] = if (DomainName == null) null else DomainName
+        ["EventStreamName"] = if (EventStreamName == null) null else EventStreamName
     }
 
 }

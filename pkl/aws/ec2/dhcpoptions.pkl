@@ -6,9 +6,9 @@ module aws.ec2.dhcpoptions
 import "../../cloudformation.pkl"
 
 /// 
-open class Tag {
-    Value: String|Mapping
+open class DHCPOptionsTag {
     Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// Resource Type definition for AWS::EC2::DHCPOptions
@@ -16,6 +16,9 @@ open class DHCPOptions extends cloudformation.Resource {
 
     Type = "AWS::EC2::DHCPOptions"
 
+
+    /// The IPv4 addresses of up to four NetBIOS name servers.
+    hidden NetbiosNameServers: (Listing<String|Mapping>)?
 
     /// The NetBIOS node type (1, 2, 4, or 8).
     hidden NetbiosNodeType: (Int|Mapping)?
@@ -27,7 +30,7 @@ open class DHCPOptions extends cloudformation.Resource {
     hidden Ipv6AddressPreferredLeaseTime: (Int|Mapping)?
 
     /// Any tags assigned to the DHCP options set.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<DHCPOptionsTag>)?
 
     /// This value is used to complete unqualified DNS hostnames.
     hidden DomainName: (String|Mapping)?
@@ -35,17 +38,14 @@ open class DHCPOptions extends cloudformation.Resource {
     /// The IPv4 addresses of up to four domain name servers, or AmazonProvidedDNS.
     hidden DomainNameServers: (Listing<String|Mapping>)?
 
-    /// The IPv4 addresses of up to four NetBIOS name servers.
-    hidden NetbiosNameServers: (Listing<String|Mapping>)?
-
     Properties {
+        ["NetbiosNameServers"] = if (NetbiosNameServers == null) null else NetbiosNameServers
         ["NetbiosNodeType"] = if (NetbiosNodeType == null) null else NetbiosNodeType
         ["NtpServers"] = if (NtpServers == null) null else NtpServers
         ["Ipv6AddressPreferredLeaseTime"] = if (Ipv6AddressPreferredLeaseTime == null) null else Ipv6AddressPreferredLeaseTime
         ["Tags"] = if (Tags == null) null else Tags
         ["DomainName"] = if (DomainName == null) null else DomainName
         ["DomainNameServers"] = if (DomainNameServers == null) null else DomainNameServers
-        ["NetbiosNameServers"] = if (NetbiosNameServers == null) null else NetbiosNameServers
     }
 
 }

@@ -5,19 +5,17 @@ module aws.iotwireless.wirelessdeviceimporttask
 
 import "../../cloudformation.pkl"
 
-/// sidewalk role
-open class Role {
-}
-
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class WirelessDeviceImportTaskTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
-/// sidewalk create device's file path
-open class DeviceCreationFileList {
-}
+typealias WirelessDeviceImportTaskDeviceCreationFileList = Listing<(String|Mapping)?>
+
+
+typealias WirelessDeviceImportTaskRole = String
+
 
 /// Wireless Device Import Tasks
 open class WirelessDeviceImportTask extends cloudformation.Resource {
@@ -25,19 +23,19 @@ open class WirelessDeviceImportTask extends cloudformation.Resource {
     Type = "AWS::IoTWireless::WirelessDeviceImportTask"
 
 
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<WirelessDeviceImportTaskTag>)?
+
     /// Destination Name for import task
     hidden DestinationName: String(matches(Regex(#"[a-zA-Z0-9-_]+"#)))|Mapping
 
     /// sidewalk contain file for created device and role
     hidden Sidewalk: Dynamic
 
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
-
     Properties {
+        ["Tags"] = if (Tags == null) null else Tags
         ["DestinationName"] = if (DestinationName == null) null else DestinationName
         ["Sidewalk"] = if (Sidewalk == null) null else Sidewalk
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

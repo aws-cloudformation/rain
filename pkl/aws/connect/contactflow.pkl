@@ -6,7 +6,7 @@ module aws.connect.contactflow
 import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class ContactFlowTag {
     Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
     Value: String|Mapping
 }
@@ -16,6 +16,9 @@ open class ContactFlow extends cloudformation.Resource {
 
     Type = "AWS::Connect::ContactFlow"
 
+
+    /// The identifier of the Amazon Connect instance (ARN).
+    hidden InstanceArn: String(matches(Regex(#"^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$"#)))|Mapping
 
     /// The name of the contact flow.
     hidden Name: String|Mapping
@@ -33,19 +36,16 @@ open class ContactFlow extends cloudformation.Resource {
     hidden TypeProperty: ContactFlowType|Mapping
 
     /// One or more tags.
-    hidden Tags: (Listing<Tag>)?
-
-    /// The identifier of the Amazon Connect instance (ARN).
-    hidden InstanceArn: String(matches(Regex(#"^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$"#)))|Mapping
+    hidden Tags: (Listing<ContactFlowTag>)?
 
     Properties {
+        ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
         ["Name"] = if (Name == null) null else Name
         ["Content"] = if (Content == null) null else Content
         ["Description"] = if (Description == null) null else Description
         ["State"] = if (State == null) null else State
         ["Type"] = if (TypeProperty == null) null else TypeProperty
         ["Tags"] = if (Tags == null) null else Tags
-        ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
     }
 
 }

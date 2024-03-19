@@ -6,33 +6,33 @@ module aws.elasticache.cachecluster
 import "../../cloudformation.pkl"
 
 /// 
-open class LogDeliveryConfigurationRequest {
+open class CacheClusterLogDeliveryConfigurationRequest {
+    DestinationDetails: CacheClusterDestinationDetails
     LogType: String|Mapping
     LogFormat: String|Mapping
     DestinationType: String|Mapping
-    DestinationDetails: DestinationDetails
 }
 
 /// 
-open class KinesisFirehoseDestinationDetails {
+open class CacheClusterKinesisFirehoseDestinationDetails {
     DeliveryStream: String|Mapping
 }
 
 /// 
-open class CloudWatchLogsDestinationDetails {
+open class CacheClusterCloudWatchLogsDestinationDetails {
     LogGroup: String|Mapping
 }
 
 /// 
-open class Tag {
+open class CacheClusterTag {
     Value: String|Mapping
     Key: String|Mapping
 }
 
 /// 
-open class DestinationDetails {
-    CloudWatchLogsDetails: (CloudWatchLogsDestinationDetails)?
-    KinesisFirehoseDetails: (KinesisFirehoseDestinationDetails)?
+open class CacheClusterDestinationDetails {
+    CloudWatchLogsDetails: (CacheClusterCloudWatchLogsDestinationDetails)?
+    KinesisFirehoseDetails: (CacheClusterKinesisFirehoseDestinationDetails)?
 }
 
 /// Resource Type definition for AWS::ElastiCache::CacheCluster
@@ -42,28 +42,31 @@ open class CacheCluster extends cloudformation.Resource {
 
 
     /// 
+    hidden RedisEndpointPort: (String|Mapping)?
+
+    /// 
+    hidden CacheSubnetGroupName: (String|Mapping)?
+
+    /// 
+    hidden SnapshotRetentionLimit: (Int|Mapping)?
+
+    /// 
+    hidden CacheSecurityGroupNames: (Listing<String|Mapping>)?
+
+    /// 
     hidden SnapshotArns: (Listing<String|Mapping>)?
 
     /// 
-    hidden Port: (Int|Mapping)?
+    hidden ConfigurationEndpointAddress: (String|Mapping)?
 
     /// 
-    hidden ClusterName: (String|Mapping)?
+    hidden PreferredAvailabilityZones: (Listing<String|Mapping>)?
 
     /// 
-    hidden Tags: (Listing<Tag>)?
+    hidden PreferredAvailabilityZone: (String|Mapping)?
 
     /// 
-    hidden PreferredMaintenanceWindow: (String|Mapping)?
-
-    /// 
-    hidden CacheNodeType: String|Mapping
-
-    /// 
-    hidden ConfigurationEndpointPort: (String|Mapping)?
-
-    /// 
-    hidden AZMode: (String|Mapping)?
+    hidden LogDeliveryConfigurations: (Listing<CacheClusterLogDeliveryConfigurationRequest>)?
 
     /// 
     hidden NotificationTopicArn: (String|Mapping)?
@@ -72,92 +75,89 @@ open class CacheCluster extends cloudformation.Resource {
     hidden RedisEndpointAddress: (String|Mapping)?
 
     /// 
-    hidden EngineVersion: (String|Mapping)?
+    hidden Engine: String|Mapping
 
     /// 
-    hidden RedisEndpointPort: (String|Mapping)?
-
-    /// 
-    hidden IpDiscovery: (String|Mapping)?
-
-    /// 
-    hidden CacheSecurityGroupNames: (Listing<String|Mapping>)?
-
-    /// 
-    hidden SnapshotRetentionLimit: (Int|Mapping)?
-
-    /// 
-    hidden LogDeliveryConfigurations: (Listing<LogDeliveryConfigurationRequest>)?
+    hidden Tags: (Listing<CacheClusterTag>)?
 
     /// 
     hidden SnapshotName: (String|Mapping)?
 
     /// 
+    hidden AutoMinorVersionUpgrade: (Boolean|Mapping)?
+
+    /// 
+    hidden Port: (Int|Mapping)?
+
+    /// 
+    hidden PreferredMaintenanceWindow: (String|Mapping)?
+
+    /// 
     hidden NetworkType: (String|Mapping)?
 
     /// 
-    hidden PreferredAvailabilityZones: (Listing<String|Mapping>)?
-
-    /// 
-    hidden VpcSecurityGroupIds: (Listing<String|Mapping>)?
-
-    /// 
-    hidden Engine: String|Mapping
-
-    /// 
-    hidden CacheSubnetGroupName: (String|Mapping)?
+    hidden ClusterName: (String|Mapping)?
 
     /// 
     hidden CacheParameterGroupName: (String|Mapping)?
 
     /// 
-    hidden AutoMinorVersionUpgrade: (Boolean|Mapping)?
-
-    /// 
     hidden SnapshotWindow: (String|Mapping)?
-
-    /// 
-    hidden PreferredAvailabilityZone: (String|Mapping)?
-
-    /// 
-    hidden ConfigurationEndpointAddress: (String|Mapping)?
 
     /// 
     hidden NumCacheNodes: Int|Mapping
 
     /// 
+    hidden VpcSecurityGroupIds: (Listing<String|Mapping>)?
+
+    /// 
+    hidden EngineVersion: (String|Mapping)?
+
+    /// 
+    hidden AZMode: (String|Mapping)?
+
+    /// 
     hidden TransitEncryptionEnabled: (Boolean|Mapping)?
 
+    /// 
+    hidden CacheNodeType: String|Mapping
+
+    /// 
+    hidden ConfigurationEndpointPort: (String|Mapping)?
+
+    /// 
+    hidden IpDiscovery: (String|Mapping)?
+
     Properties {
+        ["RedisEndpointPort"] = if (RedisEndpointPort == null) null else RedisEndpointPort
+        ["CacheSubnetGroupName"] = if (CacheSubnetGroupName == null) null else CacheSubnetGroupName
+        ["SnapshotRetentionLimit"] = if (SnapshotRetentionLimit == null) null else SnapshotRetentionLimit
+        ["CacheSecurityGroupNames"] = if (CacheSecurityGroupNames == null) null else CacheSecurityGroupNames
         ["SnapshotArns"] = if (SnapshotArns == null) null else SnapshotArns
-        ["Port"] = if (Port == null) null else Port
-        ["ClusterName"] = if (ClusterName == null) null else ClusterName
-        ["Tags"] = if (Tags == null) null else Tags
-        ["PreferredMaintenanceWindow"] = if (PreferredMaintenanceWindow == null) null else PreferredMaintenanceWindow
-        ["CacheNodeType"] = if (CacheNodeType == null) null else CacheNodeType
-        ["ConfigurationEndpointPort"] = if (ConfigurationEndpointPort == null) null else ConfigurationEndpointPort
-        ["AZMode"] = if (AZMode == null) null else AZMode
+        ["ConfigurationEndpointAddress"] = if (ConfigurationEndpointAddress == null) null else ConfigurationEndpointAddress
+        ["PreferredAvailabilityZones"] = if (PreferredAvailabilityZones == null) null else PreferredAvailabilityZones
+        ["PreferredAvailabilityZone"] = if (PreferredAvailabilityZone == null) null else PreferredAvailabilityZone
+        ["LogDeliveryConfigurations"] = if (LogDeliveryConfigurations == null) null else LogDeliveryConfigurations
         ["NotificationTopicArn"] = if (NotificationTopicArn == null) null else NotificationTopicArn
         ["RedisEndpointAddress"] = if (RedisEndpointAddress == null) null else RedisEndpointAddress
-        ["EngineVersion"] = if (EngineVersion == null) null else EngineVersion
-        ["RedisEndpointPort"] = if (RedisEndpointPort == null) null else RedisEndpointPort
-        ["IpDiscovery"] = if (IpDiscovery == null) null else IpDiscovery
-        ["CacheSecurityGroupNames"] = if (CacheSecurityGroupNames == null) null else CacheSecurityGroupNames
-        ["SnapshotRetentionLimit"] = if (SnapshotRetentionLimit == null) null else SnapshotRetentionLimit
-        ["LogDeliveryConfigurations"] = if (LogDeliveryConfigurations == null) null else LogDeliveryConfigurations
-        ["SnapshotName"] = if (SnapshotName == null) null else SnapshotName
-        ["NetworkType"] = if (NetworkType == null) null else NetworkType
-        ["PreferredAvailabilityZones"] = if (PreferredAvailabilityZones == null) null else PreferredAvailabilityZones
-        ["VpcSecurityGroupIds"] = if (VpcSecurityGroupIds == null) null else VpcSecurityGroupIds
         ["Engine"] = if (Engine == null) null else Engine
-        ["CacheSubnetGroupName"] = if (CacheSubnetGroupName == null) null else CacheSubnetGroupName
-        ["CacheParameterGroupName"] = if (CacheParameterGroupName == null) null else CacheParameterGroupName
+        ["Tags"] = if (Tags == null) null else Tags
+        ["SnapshotName"] = if (SnapshotName == null) null else SnapshotName
         ["AutoMinorVersionUpgrade"] = if (AutoMinorVersionUpgrade == null) null else AutoMinorVersionUpgrade
+        ["Port"] = if (Port == null) null else Port
+        ["PreferredMaintenanceWindow"] = if (PreferredMaintenanceWindow == null) null else PreferredMaintenanceWindow
+        ["NetworkType"] = if (NetworkType == null) null else NetworkType
+        ["ClusterName"] = if (ClusterName == null) null else ClusterName
+        ["CacheParameterGroupName"] = if (CacheParameterGroupName == null) null else CacheParameterGroupName
         ["SnapshotWindow"] = if (SnapshotWindow == null) null else SnapshotWindow
-        ["PreferredAvailabilityZone"] = if (PreferredAvailabilityZone == null) null else PreferredAvailabilityZone
-        ["ConfigurationEndpointAddress"] = if (ConfigurationEndpointAddress == null) null else ConfigurationEndpointAddress
         ["NumCacheNodes"] = if (NumCacheNodes == null) null else NumCacheNodes
+        ["VpcSecurityGroupIds"] = if (VpcSecurityGroupIds == null) null else VpcSecurityGroupIds
+        ["EngineVersion"] = if (EngineVersion == null) null else EngineVersion
+        ["AZMode"] = if (AZMode == null) null else AZMode
         ["TransitEncryptionEnabled"] = if (TransitEncryptionEnabled == null) null else TransitEncryptionEnabled
+        ["CacheNodeType"] = if (CacheNodeType == null) null else CacheNodeType
+        ["ConfigurationEndpointPort"] = if (ConfigurationEndpointPort == null) null else ConfigurationEndpointPort
+        ["IpDiscovery"] = if (IpDiscovery == null) null else IpDiscovery
     }
 
 }

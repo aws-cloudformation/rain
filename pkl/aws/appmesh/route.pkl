@@ -6,28 +6,17 @@ module aws.appmesh.route
 import "../../cloudformation.pkl"
 
 /// 
-open class RouteHttpRetryPolicy {
-    PerRetryTimeout: RouteDuration
-    HttpRetryEvents: (Listing<String|Mapping>)?
-    MaxRetries: Int|Mapping
-    TcpRetryEvents: (Listing<String|Mapping>)?
+open class RouteHttpRoute {
+    Action: RouteHttpRouteAction
+    RetryPolicy: (RouteHttpRetryPolicy)?
+    Timeout: (RouteHttpTimeout)?
+    Match: RouteHttpRouteMatch
 }
 
 /// 
-open class RouteGrpcTimeout {
-    Idle: (RouteDuration)?
-    PerRequest: (RouteDuration)?
-}
-
-/// 
-open class RouteDuration {
-    Value: Int|Mapping
-    Unit: String|Mapping
-}
-
-/// 
-open class RouteGrpcRouteAction {
-    WeightedTargets: Listing<RouteWeightedTarget>
+open class RouteHttpPathMatch {
+    Regex: (String|Mapping)?
+    Exact: (String|Mapping)?
 }
 
 /// 
@@ -35,36 +24,6 @@ open class RouteTcpRoute {
     Action: RouteTcpRouteAction
     Timeout: (RouteTcpTimeout)?
     Match: (RouteTcpRouteMatch)?
-}
-
-/// 
-open class RouteTcpRouteAction {
-    WeightedTargets: Listing<RouteWeightedTarget>
-}
-
-/// 
-open class RouteHttpRouteMatch {
-    Scheme: (String|Mapping)?
-    Headers: (Listing<RouteHttpRouteHeader>)?
-    Port: (Int|Mapping)?
-    Prefix: (String|Mapping)?
-    Method: (String|Mapping)?
-    QueryParameters: (Listing<RouteQueryParameter>)?
-    Path: (RouteHttpPathMatch)?
-}
-
-/// 
-open class RouteHttpRouteAction {
-    WeightedTargets: Listing<RouteWeightedTarget>
-}
-
-/// 
-open class RouteGrpcRouteMetadataMatchMethod {
-    Suffix: (String|Mapping)?
-    Exact: (String|Mapping)?
-    Prefix: (String|Mapping)?
-    Regex: (String|Mapping)?
-    Range: (RouteMatchRange)?
 }
 
 /// 
@@ -77,9 +36,107 @@ open class RouteRouteSpec {
 }
 
 /// 
+open class RouteHttpRetryPolicy {
+    TcpRetryEvents: (Listing<String|Mapping>)?
+    PerRetryTimeout: RouteDuration
+    HttpRetryEvents: (Listing<String|Mapping>)?
+    MaxRetries: Int|Mapping
+}
+
+/// 
+open class RouteQueryParameter {
+    Name: String|Mapping
+    Match: (RouteHttpQueryParameterMatch)?
+}
+
+/// 
+open class RouteGrpcTimeout {
+    Idle: (RouteDuration)?
+    PerRequest: (RouteDuration)?
+}
+
+/// 
+open class RouteTcpRouteAction {
+    WeightedTargets: Listing<RouteWeightedTarget>
+}
+
+/// 
+open class RouteHttpTimeout {
+    PerRequest: (RouteDuration)?
+    Idle: (RouteDuration)?
+}
+
+/// 
+open class RouteMatchRange {
+    End: Int|Mapping
+    Start: Int|Mapping
+}
+
+/// 
+open class RouteTcpRouteMatch {
+    Port: (Int|Mapping)?
+}
+
+/// 
+open class RouteWeightedTarget {
+    VirtualNode: String|Mapping
+    Weight: Int|Mapping
+    Port: (Int|Mapping)?
+}
+
+/// 
+open class RouteGrpcRetryPolicy {
+    MaxRetries: Int|Mapping
+    TcpRetryEvents: (Listing<String|Mapping>)?
+    PerRetryTimeout: RouteDuration
+    GrpcRetryEvents: (Listing<String|Mapping>)?
+    HttpRetryEvents: (Listing<String|Mapping>)?
+}
+
+/// 
+open class RouteGrpcRouteAction {
+    WeightedTargets: Listing<RouteWeightedTarget>
+}
+
+/// 
+open class RouteGrpcRouteMetadata {
+    Invert: (Boolean|Mapping)?
+    Name: String|Mapping
+    Match: (RouteGrpcRouteMetadataMatchMethod)?
+}
+
+/// 
+open class RouteHttpRouteMatch {
+    Prefix: (String|Mapping)?
+    Method: (String|Mapping)?
+    QueryParameters: (Listing<RouteQueryParameter>)?
+    Path: (RouteHttpPathMatch)?
+    Scheme: (String|Mapping)?
+    Headers: (Listing<RouteHttpRouteHeader>)?
+    Port: (Int|Mapping)?
+}
+
+/// 
 open class RouteTag {
-    Key: String|Mapping
     Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// 
+open class RouteHttpRouteHeader {
+    Invert: (Boolean|Mapping)?
+    Name: String|Mapping
+    Match: (RouteHeaderMatchMethod)?
+}
+
+/// 
+open class RouteHttpQueryParameterMatch {
+    Exact: (String|Mapping)?
+}
+
+/// 
+open class RouteTcpTimeout {
+    Idle: (RouteDuration)?
 }
 
 /// 
@@ -91,40 +148,12 @@ open class RouteGrpcRouteMatch {
 }
 
 /// 
-open class RouteQueryParameter {
-    Match: (RouteHttpQueryParameterMatch)?
-    Name: String|Mapping
-}
-
-/// 
-open class RouteWeightedTarget {
-    VirtualNode: String|Mapping
-    Weight: Int|Mapping
-    Port: (Int|Mapping)?
-}
-
-/// 
-open class RouteHttpPathMatch {
+open class RouteGrpcRouteMetadataMatchMethod {
+    Exact: (String|Mapping)?
+    Prefix: (String|Mapping)?
     Regex: (String|Mapping)?
-    Exact: (String|Mapping)?
-}
-
-/// 
-open class RouteMatchRange {
-    Start: Int|Mapping
-    End: Int|Mapping
-}
-
-/// 
-open class RouteHttpQueryParameterMatch {
-    Exact: (String|Mapping)?
-}
-
-/// 
-open class RouteGrpcRouteMetadata {
-    Invert: (Boolean|Mapping)?
-    Name: String|Mapping
-    Match: (RouteGrpcRouteMetadataMatchMethod)?
+    Range: (RouteMatchRange)?
+    Suffix: (String|Mapping)?
 }
 
 /// 
@@ -137,27 +166,14 @@ open class RouteHeaderMatchMethod {
 }
 
 /// 
-open class RouteHttpTimeout {
-    Idle: (RouteDuration)?
-    PerRequest: (RouteDuration)?
+open class RouteHttpRouteAction {
+    WeightedTargets: Listing<RouteWeightedTarget>
 }
 
 /// 
-open class RouteTcpTimeout {
-    Idle: (RouteDuration)?
-}
-
-/// 
-open class RouteTcpRouteMatch {
-    Port: (Int|Mapping)?
-}
-
-/// 
-open class RouteHttpRoute {
-    Timeout: (RouteHttpTimeout)?
-    Match: RouteHttpRouteMatch
-    Action: RouteHttpRouteAction
-    RetryPolicy: (RouteHttpRetryPolicy)?
+open class RouteDuration {
+    Value: Int|Mapping
+    Unit: String|Mapping
 }
 
 /// 
@@ -168,33 +184,11 @@ open class RouteGrpcRoute {
     Match: RouteGrpcRouteMatch
 }
 
-/// 
-open class RouteHttpRouteHeader {
-    Name: String|Mapping
-    Match: (RouteHeaderMatchMethod)?
-    Invert: (Boolean|Mapping)?
-}
-
-/// 
-open class RouteGrpcRetryPolicy {
-    MaxRetries: Int|Mapping
-    TcpRetryEvents: (Listing<String|Mapping>)?
-    PerRetryTimeout: RouteDuration
-    GrpcRetryEvents: (Listing<String|Mapping>)?
-    HttpRetryEvents: (Listing<String|Mapping>)?
-}
-
 /// Resource Type definition for AWS::AppMesh::Route
 open class Route extends cloudformation.Resource {
 
     Type = "AWS::AppMesh::Route"
 
-
-    /// 
-    hidden Spec: RouteRouteSpec
-
-    /// 
-    hidden VirtualRouterName: String|Mapping
 
     /// 
     hidden MeshOwner: (String|Mapping)?
@@ -203,17 +197,23 @@ open class Route extends cloudformation.Resource {
     hidden RouteName: (String|Mapping)?
 
     /// 
+    hidden Spec: RouteRouteSpec
+
+    /// 
     hidden Tags: (Listing<RouteTag>)?
+
+    /// 
+    hidden VirtualRouterName: String|Mapping
 
     /// 
     hidden MeshName: String|Mapping
 
     Properties {
-        ["Spec"] = if (Spec == null) null else Spec
-        ["VirtualRouterName"] = if (VirtualRouterName == null) null else VirtualRouterName
         ["MeshOwner"] = if (MeshOwner == null) null else MeshOwner
         ["RouteName"] = if (RouteName == null) null else RouteName
+        ["Spec"] = if (Spec == null) null else Spec
         ["Tags"] = if (Tags == null) null else Tags
+        ["VirtualRouterName"] = if (VirtualRouterName == null) null else VirtualRouterName
         ["MeshName"] = if (MeshName == null) null else MeshName
     }
 

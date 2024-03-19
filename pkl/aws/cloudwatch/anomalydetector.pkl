@@ -6,60 +6,60 @@ module aws.cloudwatch.anomalydetector
 import "../../cloudformation.pkl"
 
 /// 
-open class MetricDataQuery {
-    Id: String|Mapping
-    AccountId: (String|Mapping)?
-    ReturnData: (Boolean|Mapping)?
-    Expression: (String|Mapping)?
-    MetricStat: (MetricStat)?
-    Label: (String|Mapping)?
-    Period: (Int|Mapping)?
-}
-
-/// 
-open class Range {
+open class AnomalyDetectorRange {
     EndTime: String|Mapping
     StartTime: String|Mapping
 }
 
 /// 
-open class SingleMetricAnomalyDetector {
+open class AnomalyDetectorSingleMetricAnomalyDetector {
     MetricName: (String|Mapping)?
-    Dimensions: (Listing<Dimension>)?
+    Dimensions: (Listing<AnomalyDetectorDimension>)?
     Stat: (String|Mapping)?
     Namespace: (String|Mapping)?
 }
 
 /// 
-open class MetricMathAnomalyDetector {
-    MetricDataQueries: (Listing<MetricDataQuery>)?
+open class AnomalyDetectorMetricMathAnomalyDetector {
+    MetricDataQueries: (Listing<AnomalyDetectorMetricDataQuery>)?
 }
 
 /// 
-open class Configuration {
+open class AnomalyDetectorConfiguration {
+    ExcludedTimeRanges: (Listing<AnomalyDetectorRange>)?
     MetricTimeZone: (String|Mapping)?
-    ExcludedTimeRanges: (Listing<Range>)?
 }
 
 /// 
-open class MetricStat {
+open class AnomalyDetectorMetricStat {
     Period: Int|Mapping
-    Metric: Metric
+    Metric: AnomalyDetectorMetric
     Stat: String|Mapping
     Unit: (String|Mapping)?
 }
 
 /// 
-open class Metric {
-    MetricName: String|Mapping
-    Dimensions: (Listing<Dimension>)?
+open class AnomalyDetectorMetric {
     Namespace: String|Mapping
+    MetricName: String|Mapping
+    Dimensions: (Listing<AnomalyDetectorDimension>)?
 }
 
 /// 
-open class Dimension {
+open class AnomalyDetectorDimension {
     Value: String|Mapping
     Name: String|Mapping
+}
+
+/// 
+open class AnomalyDetectorMetricDataQuery {
+    AccountId: (String|Mapping)?
+    ReturnData: (Boolean|Mapping)?
+    Expression: (String|Mapping)?
+    MetricStat: (AnomalyDetectorMetricStat)?
+    Label: (String|Mapping)?
+    Period: (Int|Mapping)?
+    Id: String|Mapping
 }
 
 /// Resource Type definition for AWS::CloudWatch::AnomalyDetector
@@ -69,10 +69,7 @@ open class AnomalyDetector extends cloudformation.Resource {
 
 
     /// 
-    hidden Namespace: (String|Mapping)?
-
-    /// 
-    hidden SingleMetricAnomalyDetector: (SingleMetricAnomalyDetector)?
+    hidden SingleMetricAnomalyDetector: (AnomalyDetectorSingleMetricAnomalyDetector)?
 
     /// 
     hidden MetricName: (String|Mapping)?
@@ -81,22 +78,25 @@ open class AnomalyDetector extends cloudformation.Resource {
     hidden Stat: (String|Mapping)?
 
     /// 
-    hidden Configuration: (Configuration)?
+    hidden Configuration: (AnomalyDetectorConfiguration)?
 
     /// 
-    hidden MetricMathAnomalyDetector: (MetricMathAnomalyDetector)?
+    hidden MetricMathAnomalyDetector: (AnomalyDetectorMetricMathAnomalyDetector)?
 
     /// 
-    hidden Dimensions: (Listing<Dimension>)?
+    hidden Dimensions: (Listing<AnomalyDetectorDimension>)?
+
+    /// 
+    hidden Namespace: (String|Mapping)?
 
     Properties {
-        ["Namespace"] = if (Namespace == null) null else Namespace
         ["SingleMetricAnomalyDetector"] = if (SingleMetricAnomalyDetector == null) null else SingleMetricAnomalyDetector
         ["MetricName"] = if (MetricName == null) null else MetricName
         ["Stat"] = if (Stat == null) null else Stat
         ["Configuration"] = if (Configuration == null) null else Configuration
         ["MetricMathAnomalyDetector"] = if (MetricMathAnomalyDetector == null) null else MetricMathAnomalyDetector
         ["Dimensions"] = if (Dimensions == null) null else Dimensions
+        ["Namespace"] = if (Namespace == null) null else Namespace
     }
 
 }

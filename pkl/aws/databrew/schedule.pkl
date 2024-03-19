@@ -5,12 +5,11 @@ module aws.databrew.schedule
 
 import "../../cloudformation.pkl"
 
-/// Job name
-open class JobName {
-}
+typealias ScheduleJobName = String
+
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class ScheduleTag {
     Key: String|Mapping
     Value: String|Mapping
 }
@@ -21,23 +20,23 @@ open class Schedule extends cloudformation.Resource {
     Type = "AWS::DataBrew::Schedule"
 
 
-    /// 
-    hidden JobNames: (Listing<JobName>)?
-
-    /// Schedule cron
-    hidden CronExpression: String|Mapping
-
     /// Schedule Name
     hidden Name: String|Mapping
 
     /// 
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<ScheduleTag>)?
+
+    /// 
+    hidden JobNames: (Listing<ScheduleJobName>)?
+
+    /// Schedule cron
+    hidden CronExpression: String|Mapping
 
     Properties {
-        ["JobNames"] = if (JobNames == null) null else JobNames
-        ["CronExpression"] = if (CronExpression == null) null else CronExpression
         ["Name"] = if (Name == null) null else Name
         ["Tags"] = if (Tags == null) null else Tags
+        ["JobNames"] = if (JobNames == null) null else JobNames
+        ["CronExpression"] = if (CronExpression == null) null else CronExpression
     }
 
 }

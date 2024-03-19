@@ -6,125 +6,39 @@ module aws.appmesh.virtualnode
 import "../../cloudformation.pkl"
 
 /// 
-open class VirtualNodeTag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class VirtualNodeAccessLog {
-    File: (VirtualNodeFileAccessLog)?
-}
-
-/// 
-open class VirtualNodeTlsValidationContextAcmTrust {
-    CertificateAuthorityArns: Listing<String|Mapping>
-}
-
-/// 
-open class VirtualNodeFileAccessLog {
-    Path: String|Mapping
-    Format: (VirtualNodeLoggingFormat)?
-}
-
-/// 
-open class VirtualNodeListenerTlsCertificate {
-    SDS: (VirtualNodeListenerTlsSdsCertificate)?
-    ACM: (VirtualNodeListenerTlsAcmCertificate)?
-    File: (VirtualNodeListenerTlsFileCertificate)?
-}
-
-/// 
-open class VirtualNodeTcpTimeout {
-    Idle: (VirtualNodeDuration)?
-}
-
-/// 
-open class VirtualNodeDnsServiceDiscovery {
-    Hostname: String|Mapping
-    IpPreference: (String|Mapping)?
-    ResponseType: (String|Mapping)?
-}
-
-/// 
-open class VirtualNodeSubjectAlternativeNames {
-    Match: VirtualNodeSubjectAlternativeNameMatchers
-}
-
-/// 
-open class VirtualNodeVirtualNodeSpec {
-    BackendDefaults: (VirtualNodeBackendDefaults)?
-    ServiceDiscovery: (VirtualNodeServiceDiscovery)?
-    Logging: (VirtualNodeLogging)?
-    Backends: (Listing<VirtualNodeBackend>)?
-    Listeners: (Listing<VirtualNodeListener>)?
-}
-
-/// 
-open class VirtualNodeVirtualNodeHttp2ConnectionPool {
-    MaxRequests: Int|Mapping
-}
-
-/// 
-open class VirtualNodeJsonFormatRef {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class VirtualNodeAwsCloudMapInstanceAttribute {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class VirtualNodeBackendDefaults {
-    ClientPolicy: (VirtualNodeClientPolicy)?
-}
-
-/// 
-open class VirtualNodeListenerTlsSdsCertificate {
-    SecretName: String|Mapping
-}
-
-/// 
 open class VirtualNodeVirtualNodeGrpcConnectionPool {
     MaxRequests: Int|Mapping
 }
 
 /// 
-open class VirtualNodeTlsValidationContextTrust {
-    SDS: (VirtualNodeTlsValidationContextSdsTrust)?
-    ACM: (VirtualNodeTlsValidationContextAcmTrust)?
-    File: (VirtualNodeTlsValidationContextFileTrust)?
-}
-
-/// 
-open class VirtualNodeListenerTlsValidationContextTrust {
-    File: (VirtualNodeTlsValidationContextFileTrust)?
-    SDS: (VirtualNodeTlsValidationContextSdsTrust)?
-}
-
-/// 
-open class VirtualNodeLogging {
-    AccessLog: (VirtualNodeAccessLog)?
-}
-
-/// 
-open class VirtualNodeTlsValidationContext {
-    SubjectAlternativeNames: (VirtualNodeSubjectAlternativeNames)?
-    Trust: VirtualNodeTlsValidationContextTrust
-}
-
-/// 
-open class VirtualNodeDuration {
-    Unit: String|Mapping
-    Value: Int|Mapping
+open class VirtualNodeListenerTlsFileCertificate {
+    CertificateChain: String|Mapping
+    PrivateKey: String|Mapping
 }
 
 /// 
 open class VirtualNodeListenerTlsAcmCertificate {
     CertificateArn: String|Mapping
+}
+
+/// 
+open class VirtualNodeHttpTimeout {
+    PerRequest: (VirtualNodeDuration)?
+    Idle: (VirtualNodeDuration)?
+}
+
+/// 
+open class VirtualNodeOutlierDetection {
+    MaxEjectionPercent: Int|Mapping
+    BaseEjectionDuration: VirtualNodeDuration
+    MaxServerErrors: Int|Mapping
+    Interval: VirtualNodeDuration
+}
+
+/// 
+open class VirtualNodeDuration {
+    Value: Int|Mapping
+    Unit: String|Mapping
 }
 
 /// 
@@ -136,17 +50,150 @@ open class VirtualNodeClientPolicyTls {
 }
 
 /// 
+open class VirtualNodeFileAccessLog {
+    Path: String|Mapping
+    Format: (VirtualNodeLoggingFormat)?
+}
+
+/// 
 open class VirtualNodeVirtualServiceBackend {
     VirtualServiceName: String|Mapping
     ClientPolicy: (VirtualNodeClientPolicy)?
 }
 
 /// 
-open class VirtualNodeOutlierDetection {
-    MaxServerErrors: Int|Mapping
-    Interval: VirtualNodeDuration
-    MaxEjectionPercent: Int|Mapping
-    BaseEjectionDuration: VirtualNodeDuration
+open class VirtualNodeTlsValidationContextFileTrust {
+    CertificateChain: String|Mapping
+}
+
+/// 
+open class VirtualNodeAccessLog {
+    File: (VirtualNodeFileAccessLog)?
+}
+
+/// 
+open class VirtualNodeTlsValidationContextSdsTrust {
+    SecretName: String|Mapping
+}
+
+/// 
+open class VirtualNodeJsonFormatRef {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// 
+open class VirtualNodeVirtualNodeSpec {
+    ServiceDiscovery: (VirtualNodeServiceDiscovery)?
+    Logging: (VirtualNodeLogging)?
+    Backends: (Listing<VirtualNodeBackend>)?
+    Listeners: (Listing<VirtualNodeListener>)?
+    BackendDefaults: (VirtualNodeBackendDefaults)?
+}
+
+/// 
+open class VirtualNodeAwsCloudMapServiceDiscovery {
+    Attributes: (Listing<VirtualNodeAwsCloudMapInstanceAttribute>)?
+    NamespaceName: String|Mapping
+    ServiceName: String|Mapping
+    IpPreference: (String|Mapping)?
+}
+
+/// 
+open class VirtualNodeBackendDefaults {
+    ClientPolicy: (VirtualNodeClientPolicy)?
+}
+
+/// 
+open class VirtualNodeClientPolicy {
+    TLS: (VirtualNodeClientPolicyTls)?
+}
+
+/// 
+open class VirtualNodeTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// 
+open class VirtualNodeListenerTimeout {
+    HTTP2: (VirtualNodeHttpTimeout)?
+    GRPC: (VirtualNodeGrpcTimeout)?
+    TCP: (VirtualNodeTcpTimeout)?
+    HTTP: (VirtualNodeHttpTimeout)?
+}
+
+/// 
+open class VirtualNodeListenerTlsValidationContext {
+    SubjectAlternativeNames: (VirtualNodeSubjectAlternativeNames)?
+    Trust: VirtualNodeListenerTlsValidationContextTrust
+}
+
+/// 
+open class VirtualNodeGrpcTimeout {
+    PerRequest: (VirtualNodeDuration)?
+    Idle: (VirtualNodeDuration)?
+}
+
+/// 
+open class VirtualNodeSubjectAlternativeNameMatchers {
+    Exact: (Listing<String|Mapping>)?
+}
+
+/// 
+open class VirtualNodeTlsValidationContextAcmTrust {
+    CertificateAuthorityArns: Listing<String|Mapping>
+}
+
+/// 
+open class VirtualNodeListenerTls {
+    Mode: String|Mapping
+    Certificate: VirtualNodeListenerTlsCertificate
+    Validation: (VirtualNodeListenerTlsValidationContext)?
+}
+
+/// 
+open class VirtualNodeListenerTlsCertificate {
+    SDS: (VirtualNodeListenerTlsSdsCertificate)?
+    ACM: (VirtualNodeListenerTlsAcmCertificate)?
+    File: (VirtualNodeListenerTlsFileCertificate)?
+}
+
+/// 
+open class VirtualNodeSubjectAlternativeNames {
+    Match: VirtualNodeSubjectAlternativeNameMatchers
+}
+
+/// 
+open class VirtualNodeVirtualNodeHttpConnectionPool {
+    MaxConnections: Int|Mapping
+    MaxPendingRequests: (Int|Mapping)?
+}
+
+/// 
+open class VirtualNodeTcpTimeout {
+    Idle: (VirtualNodeDuration)?
+}
+
+/// 
+open class VirtualNodeClientTlsCertificate {
+    File: (VirtualNodeListenerTlsFileCertificate)?
+    SDS: (VirtualNodeListenerTlsSdsCertificate)?
+}
+
+/// 
+open class VirtualNodeListener {
+    PortMapping: VirtualNodePortMapping
+    OutlierDetection: (VirtualNodeOutlierDetection)?
+    ConnectionPool: (VirtualNodeVirtualNodeConnectionPool)?
+    Timeout: (VirtualNodeListenerTimeout)?
+    HealthCheck: (VirtualNodeHealthCheck)?
+    TLS: (VirtualNodeListenerTls)?
+}
+
+/// 
+open class VirtualNodeVirtualNodeTcpConnectionPool {
+    MaxConnections: Int|Mapping
 }
 
 /// 
@@ -158,8 +205,9 @@ open class VirtualNodeVirtualNodeConnectionPool {
 }
 
 /// 
-open class VirtualNodeVirtualNodeTcpConnectionPool {
-    MaxConnections: Int|Mapping
+open class VirtualNodePortMapping {
+    Protocol: String|Mapping
+    Port: Int|Mapping
 }
 
 /// 
@@ -169,109 +217,28 @@ open class VirtualNodeLoggingFormat {
 }
 
 /// 
-open class VirtualNodeAwsCloudMapServiceDiscovery {
-    ServiceName: String|Mapping
-    IpPreference: (String|Mapping)?
-    Attributes: (Listing<VirtualNodeAwsCloudMapInstanceAttribute>)?
-    NamespaceName: String|Mapping
+open class VirtualNodeTlsValidationContextTrust {
+    SDS: (VirtualNodeTlsValidationContextSdsTrust)?
+    ACM: (VirtualNodeTlsValidationContextAcmTrust)?
+    File: (VirtualNodeTlsValidationContextFileTrust)?
 }
 
 /// 
-open class VirtualNodeSubjectAlternativeNameMatchers {
-    Exact: (Listing<String|Mapping>)?
-}
-
-/// 
-open class VirtualNodeVirtualNodeHttpConnectionPool {
-    MaxPendingRequests: (Int|Mapping)?
-    MaxConnections: Int|Mapping
-}
-
-/// 
-open class VirtualNodeHealthCheck {
-    UnhealthyThreshold: Int|Mapping
-    Port: (Int|Mapping)?
-    HealthyThreshold: Int|Mapping
-    TimeoutMillis: Int|Mapping
-    Protocol: String|Mapping
-    IntervalMillis: Int|Mapping
-    Path: (String|Mapping)?
-}
-
-/// 
-open class VirtualNodeGrpcTimeout {
-    Idle: (VirtualNodeDuration)?
-    PerRequest: (VirtualNodeDuration)?
-}
-
-/// 
-open class VirtualNodeTlsValidationContextFileTrust {
-    CertificateChain: String|Mapping
-}
-
-/// 
-open class VirtualNodePortMapping {
-    Protocol: String|Mapping
-    Port: Int|Mapping
-}
-
-/// 
-open class VirtualNodeClientPolicy {
-    TLS: (VirtualNodeClientPolicyTls)?
-}
-
-/// 
-open class VirtualNodeListener {
-    HealthCheck: (VirtualNodeHealthCheck)?
-    TLS: (VirtualNodeListenerTls)?
-    PortMapping: VirtualNodePortMapping
-    OutlierDetection: (VirtualNodeOutlierDetection)?
-    ConnectionPool: (VirtualNodeVirtualNodeConnectionPool)?
-    Timeout: (VirtualNodeListenerTimeout)?
-}
-
-/// 
-open class VirtualNodeListenerTls {
-    Validation: (VirtualNodeListenerTlsValidationContext)?
-    Mode: String|Mapping
-    Certificate: VirtualNodeListenerTlsCertificate
-}
-
-/// 
-open class VirtualNodeHttpTimeout {
-    PerRequest: (VirtualNodeDuration)?
-    Idle: (VirtualNodeDuration)?
+open class VirtualNodeVirtualNodeHttp2ConnectionPool {
+    MaxRequests: Int|Mapping
 }
 
 /// 
 open class VirtualNodeServiceDiscovery {
-    DNS: (VirtualNodeDnsServiceDiscovery)?
     AWSCloudMap: (VirtualNodeAwsCloudMapServiceDiscovery)?
+    DNS: (VirtualNodeDnsServiceDiscovery)?
 }
 
 /// 
-open class VirtualNodeListenerTlsValidationContext {
-    SubjectAlternativeNames: (VirtualNodeSubjectAlternativeNames)?
-    Trust: VirtualNodeListenerTlsValidationContextTrust
-}
-
-/// 
-open class VirtualNodeListenerTimeout {
-    TCP: (VirtualNodeTcpTimeout)?
-    HTTP: (VirtualNodeHttpTimeout)?
-    HTTP2: (VirtualNodeHttpTimeout)?
-    GRPC: (VirtualNodeGrpcTimeout)?
-}
-
-/// 
-open class VirtualNodeListenerTlsFileCertificate {
-    CertificateChain: String|Mapping
-    PrivateKey: String|Mapping
-}
-
-/// 
-open class VirtualNodeTlsValidationContextSdsTrust {
-    SecretName: String|Mapping
+open class VirtualNodeDnsServiceDiscovery {
+    IpPreference: (String|Mapping)?
+    ResponseType: (String|Mapping)?
+    Hostname: String|Mapping
 }
 
 /// 
@@ -280,9 +247,42 @@ open class VirtualNodeBackend {
 }
 
 /// 
-open class VirtualNodeClientTlsCertificate {
-    File: (VirtualNodeListenerTlsFileCertificate)?
-    SDS: (VirtualNodeListenerTlsSdsCertificate)?
+open class VirtualNodeListenerTlsSdsCertificate {
+    SecretName: String|Mapping
+}
+
+/// 
+open class VirtualNodeLogging {
+    AccessLog: (VirtualNodeAccessLog)?
+}
+
+/// 
+open class VirtualNodeAwsCloudMapInstanceAttribute {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// 
+open class VirtualNodeListenerTlsValidationContextTrust {
+    SDS: (VirtualNodeTlsValidationContextSdsTrust)?
+    File: (VirtualNodeTlsValidationContextFileTrust)?
+}
+
+/// 
+open class VirtualNodeTlsValidationContext {
+    Trust: VirtualNodeTlsValidationContextTrust
+    SubjectAlternativeNames: (VirtualNodeSubjectAlternativeNames)?
+}
+
+/// 
+open class VirtualNodeHealthCheck {
+    TimeoutMillis: Int|Mapping
+    Protocol: String|Mapping
+    IntervalMillis: Int|Mapping
+    Path: (String|Mapping)?
+    UnhealthyThreshold: Int|Mapping
+    Port: (Int|Mapping)?
+    HealthyThreshold: Int|Mapping
 }
 
 /// Resource Type definition for AWS::AppMesh::VirtualNode
@@ -292,26 +292,26 @@ open class VirtualNode extends cloudformation.Resource {
 
 
     /// 
+    hidden MeshName: String|Mapping
+
+    /// 
+    hidden Spec: VirtualNodeVirtualNodeSpec
+
+    /// 
     hidden VirtualNodeName: (String|Mapping)?
 
     /// 
     hidden Tags: (Listing<VirtualNodeTag>)?
 
     /// 
-    hidden MeshName: String|Mapping
-
-    /// 
     hidden MeshOwner: (String|Mapping)?
 
-    /// 
-    hidden Spec: VirtualNodeVirtualNodeSpec
-
     Properties {
+        ["MeshName"] = if (MeshName == null) null else MeshName
+        ["Spec"] = if (Spec == null) null else Spec
         ["VirtualNodeName"] = if (VirtualNodeName == null) null else VirtualNodeName
         ["Tags"] = if (Tags == null) null else Tags
-        ["MeshName"] = if (MeshName == null) null else MeshName
         ["MeshOwner"] = if (MeshOwner == null) null else MeshOwner
-        ["Spec"] = if (Spec == null) null else Spec
     }
 
 }

@@ -5,44 +5,40 @@ module aws.ecr.replicationconfiguration
 
 import "../../cloudformation.pkl"
 
-/// An array of objects representing the details of a repository filter.
-open class RepositoryFilter {
-    Filter: Filter
-    FilterType: FilterType
-}
-
-/// The repository filter to be applied for replication.
-open class Filter {
-}
-
-/// Type of repository filter
-open class FilterType {
-}
-
-/// An array of objects representing the details of a replication destination.
-open class ReplicationDestination {
-    Region: Region
-    RegistryId: RegistryId
-}
-
-/// The account ID of the destination registry to replicate to.
-open class RegistryId {
-}
-
-/// A Region to replicate to.
-open class Region {
-}
-
 /// An object representing the replication configuration for a registry.
-open class ReplicationConfiguration {
-    Rules: Listing<ReplicationRule>
+open class ReplicationConfigurationReplicationConfiguration {
+    Rules: Listing<ReplicationConfigurationReplicationRule>
 }
 
 /// An array of objects representing the details of a replication destination.
-open class ReplicationRule {
-    RepositoryFilters: (Listing<RepositoryFilter>)?
-    Destinations: Listing<ReplicationDestination>
+open class ReplicationConfigurationReplicationRule {
+    RepositoryFilters: (Listing<ReplicationConfigurationRepositoryFilter>)?
+    Destinations: Listing<ReplicationConfigurationReplicationDestination>
 }
+
+/// An array of objects representing the details of a repository filter.
+open class ReplicationConfigurationRepositoryFilter {
+    Filter: ReplicationConfigurationFilter
+    FilterType: ReplicationConfigurationFilterType
+}
+
+typealias ReplicationConfigurationFilter = String
+
+
+typealias ReplicationConfigurationFilterType = "PREFIX_MATCH"
+
+
+/// An array of objects representing the details of a replication destination.
+open class ReplicationConfigurationReplicationDestination {
+    Region: ReplicationConfigurationRegion
+    RegistryId: ReplicationConfigurationRegistryId
+}
+
+typealias ReplicationConfigurationRegistryId = String
+
+
+typealias ReplicationConfigurationRegion = String
+
 
 /// The AWS::ECR::ReplicationConfiguration resource configures the replication destinations for an Amazon Elastic Container Registry (Amazon Private ECR). For more information, see https://docs.aws.amazon.com/AmazonECR/latest/userguide/replication.html
 open class ReplicationConfiguration extends cloudformation.Resource {
@@ -51,7 +47,7 @@ open class ReplicationConfiguration extends cloudformation.Resource {
 
 
     /// 
-    hidden ReplicationConfiguration: ReplicationConfiguration
+    hidden ReplicationConfiguration: ReplicationConfigurationReplicationConfiguration
 
     Properties {
         ["ReplicationConfiguration"] = if (ReplicationConfiguration == null) null else ReplicationConfiguration

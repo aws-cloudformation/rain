@@ -6,80 +6,80 @@ module aws.autoscalingplans.scalingplan
 import "../../cloudformation.pkl"
 
 /// 
-open class ScalingInstruction {
-    PredictiveScalingMaxCapacityBehavior: (String|Mapping)?
-    ResourceId: String|Mapping
-    ScheduledActionBufferTime: (Int|Mapping)?
-    MinCapacity: Int|Mapping
-    CustomizedLoadMetricSpecification: (CustomizedLoadMetricSpecification)?
-    ScalingPolicyUpdateBehavior: (String|Mapping)?
-    TargetTrackingConfigurations: Listing<TargetTrackingConfiguration>
-    MaxCapacity: Int|Mapping
-    DisableDynamicScaling: (Boolean|Mapping)?
-    ScalableDimension: String|Mapping
-    PredefinedLoadMetricSpecification: (PredefinedLoadMetricSpecification)?
-    PredictiveScalingMode: (String|Mapping)?
-    ServiceNamespace: String|Mapping
-    PredictiveScalingMaxCapacityBuffer: (Int|Mapping)?
-}
-
-/// 
-open class ApplicationSource {
-    CloudFormationStackARN: (String|Mapping)?
-    TagFilters: (Listing<TagFilter>)?
-}
-
-/// 
-open class PredefinedLoadMetricSpecification {
-    PredefinedLoadMetricType: String|Mapping
-    ResourceLabel: (String|Mapping)?
-}
-
-/// 
-open class PredefinedScalingMetricSpecification {
-    ResourceLabel: (String|Mapping)?
-    PredefinedScalingMetricType: String|Mapping
-}
-
-/// 
-open class MetricDimension {
-    Value: String|Mapping
-    Name: String|Mapping
-}
-
-/// 
-open class TargetTrackingConfiguration {
-    EstimatedInstanceWarmup: (Int|Mapping)?
-    CustomizedScalingMetricSpecification: (CustomizedScalingMetricSpecification)?
-    ScaleOutCooldown: (Int|Mapping)?
-    TargetValue: Number|Mapping
-    PredefinedScalingMetricSpecification: (PredefinedScalingMetricSpecification)?
-    DisableScaleIn: (Boolean|Mapping)?
-    ScaleInCooldown: (Int|Mapping)?
-}
-
-/// 
-open class CustomizedLoadMetricSpecification {
-    Unit: (String|Mapping)?
-    Namespace: String|Mapping
-    MetricName: String|Mapping
-    Statistic: String|Mapping
-    Dimensions: (Listing<MetricDimension>)?
-}
-
-/// 
-open class TagFilter {
+open class ScalingPlanTagFilter {
     Values: (Listing<String|Mapping>)?
     Key: String|Mapping
 }
 
 /// 
-open class CustomizedScalingMetricSpecification {
-    MetricName: String|Mapping
+open class ScalingPlanPredefinedScalingMetricSpecification {
+    ResourceLabel: (String|Mapping)?
+    PredefinedScalingMetricType: String|Mapping
+}
+
+/// 
+open class ScalingPlanTargetTrackingConfiguration {
+    PredefinedScalingMetricSpecification: (ScalingPlanPredefinedScalingMetricSpecification)?
+    DisableScaleIn: (Boolean|Mapping)?
+    ScaleInCooldown: (Int|Mapping)?
+    EstimatedInstanceWarmup: (Int|Mapping)?
+    CustomizedScalingMetricSpecification: (ScalingPlanCustomizedScalingMetricSpecification)?
+    ScaleOutCooldown: (Int|Mapping)?
+    TargetValue: Number|Mapping
+}
+
+/// 
+open class ScalingPlanApplicationSource {
+    CloudFormationStackARN: (String|Mapping)?
+    TagFilters: (Listing<ScalingPlanTagFilter>)?
+}
+
+/// 
+open class ScalingPlanMetricDimension {
+    Value: String|Mapping
+    Name: String|Mapping
+}
+
+/// 
+open class ScalingPlanCustomizedLoadMetricSpecification {
     Statistic: String|Mapping
-    Dimensions: (Listing<MetricDimension>)?
+    Dimensions: (Listing<ScalingPlanMetricDimension>)?
     Unit: (String|Mapping)?
     Namespace: String|Mapping
+    MetricName: String|Mapping
+}
+
+/// 
+open class ScalingPlanPredefinedLoadMetricSpecification {
+    PredefinedLoadMetricType: String|Mapping
+    ResourceLabel: (String|Mapping)?
+}
+
+/// 
+open class ScalingPlanScalingInstruction {
+    TargetTrackingConfigurations: Listing<ScalingPlanTargetTrackingConfiguration>
+    PredictiveScalingMaxCapacityBuffer: (Int|Mapping)?
+    PredefinedLoadMetricSpecification: (ScalingPlanPredefinedLoadMetricSpecification)?
+    DisableDynamicScaling: (Boolean|Mapping)?
+    MinCapacity: Int|Mapping
+    MaxCapacity: Int|Mapping
+    PredictiveScalingMode: (String|Mapping)?
+    ServiceNamespace: String|Mapping
+    ScalingPolicyUpdateBehavior: (String|Mapping)?
+    CustomizedLoadMetricSpecification: (ScalingPlanCustomizedLoadMetricSpecification)?
+    PredictiveScalingMaxCapacityBehavior: (String|Mapping)?
+    ScalableDimension: String|Mapping
+    ResourceId: String|Mapping
+    ScheduledActionBufferTime: (Int|Mapping)?
+}
+
+/// 
+open class ScalingPlanCustomizedScalingMetricSpecification {
+    Dimensions: (Listing<ScalingPlanMetricDimension>)?
+    Unit: (String|Mapping)?
+    Namespace: String|Mapping
+    MetricName: String|Mapping
+    Statistic: String|Mapping
 }
 
 /// Resource Type definition for AWS::AutoScalingPlans::ScalingPlan
@@ -89,10 +89,10 @@ open class ScalingPlan extends cloudformation.Resource {
 
 
     /// 
-    hidden ApplicationSource: ApplicationSource
+    hidden ApplicationSource: ScalingPlanApplicationSource
 
     /// 
-    hidden ScalingInstructions: Listing<ScalingInstruction>
+    hidden ScalingInstructions: Listing<ScalingPlanScalingInstruction>
 
     Properties {
         ["ApplicationSource"] = if (ApplicationSource == null) null else ApplicationSource

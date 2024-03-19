@@ -6,39 +6,39 @@ module aws.cloudfront.streamingdistribution
 import "../../cloudformation.pkl"
 
 /// 
-open class S3Origin {
-    DomainName: String|Mapping
-    OriginAccessIdentity: String|Mapping
-}
-
-/// 
-open class StreamingDistributionConfig {
-    Comment: String|Mapping
-    PriceClass: (String|Mapping)?
-    S3Origin: S3Origin
-    Enabled: Boolean|Mapping
-    Aliases: (Listing<String|Mapping>)?
-    TrustedSigners: TrustedSigners
-    Logging: (Logging)?
-}
-
-/// 
-open class Tag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// 
-open class TrustedSigners {
+open class StreamingDistributionTrustedSigners {
     Enabled: Boolean|Mapping
     AwsAccountNumbers: (Listing<String|Mapping>)?
 }
 
 /// 
-open class Logging {
-    Bucket: String|Mapping
+open class StreamingDistributionLogging {
     Enabled: Boolean|Mapping
     Prefix: String|Mapping
+    Bucket: String|Mapping
+}
+
+/// 
+open class StreamingDistributionS3Origin {
+    DomainName: String|Mapping
+    OriginAccessIdentity: String|Mapping
+}
+
+/// 
+open class StreamingDistributionStreamingDistributionConfig {
+    Enabled: Boolean|Mapping
+    Aliases: (Listing<String|Mapping>)?
+    TrustedSigners: StreamingDistributionTrustedSigners
+    Logging: (StreamingDistributionLogging)?
+    Comment: String|Mapping
+    PriceClass: (String|Mapping)?
+    S3Origin: StreamingDistributionS3Origin
+}
+
+/// 
+open class StreamingDistributionTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// Resource Type definition for AWS::CloudFront::StreamingDistribution
@@ -48,14 +48,14 @@ open class StreamingDistribution extends cloudformation.Resource {
 
 
     /// 
-    hidden StreamingDistributionConfig: StreamingDistributionConfig
+    hidden Tags: Listing<StreamingDistributionTag>
 
     /// 
-    hidden Tags: Listing<Tag>
+    hidden StreamingDistributionConfig: StreamingDistributionStreamingDistributionConfig
 
     Properties {
-        ["StreamingDistributionConfig"] = if (StreamingDistributionConfig == null) null else StreamingDistributionConfig
         ["Tags"] = if (Tags == null) null else Tags
+        ["StreamingDistributionConfig"] = if (StreamingDistributionConfig == null) null else StreamingDistributionConfig
     }
 
 }

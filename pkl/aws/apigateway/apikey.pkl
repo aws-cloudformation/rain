@@ -5,16 +5,16 @@ module aws.apigateway.apikey
 
 import "../../cloudformation.pkl"
 
+/// 
+open class ApiKeyTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
 /// ``StageKey`` is a property of the [AWS::ApiGateway::ApiKey](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigateway-apikey.html) resource that specifies the stage to associate with the API key. This association allows only clients with the key to make requests to methods in that stage.
 open class ApiKeyStageKey {
     RestApiId: (String|Mapping)?
     StageName: (String|Mapping)?
-}
-
-/// 
-open class ApiKeyTag {
-    Key: String|Mapping
-    Value: String|Mapping
 }
 
 /// The ``AWS::ApiGateway::ApiKey`` resource creates a unique key that you can distribute to clients who are executing API Gateway ``Method`` resources that require an API key. To specify which API key clients must use, map the API key with the ``RestApi`` and ``Stage`` resources that include the methods that require a key.
@@ -23,17 +23,17 @@ open class ApiKey extends cloudformation.Resource {
     Type = "AWS::ApiGateway::ApiKey"
 
 
+    /// An MKT customer identifier, when integrating with the AWS SaaS Marketplace.
+    hidden CustomerId: (String|Mapping)?
+
     /// The description of the ApiKey.
     hidden Description: (String|Mapping)?
 
     /// DEPRECATED FOR USAGE PLANS - Specifies stages associated with the API key.
     hidden StageKeys: (Listing<ApiKeyStageKey>)?
 
-    /// The key-value map of strings. The valid character set is [a-zA-Z+-=._:/]. The tag key can be up to 128 characters and must not start with ``aws:``. The tag value can be up to 256 characters.
-    hidden Tags: (Listing<ApiKeyTag>)?
-
-    /// An MKT customer identifier, when integrating with the AWS SaaS Marketplace.
-    hidden CustomerId: (String|Mapping)?
+    /// Specifies a value of the API key.
+    hidden Value: (String|Mapping)?
 
     /// Specifies whether the ApiKey can be used by callers.
     hidden Enabled: (Boolean|Mapping)?
@@ -46,18 +46,18 @@ open class ApiKey extends cloudformation.Resource {
     ///  If you specify a name, you cannot perform updates that require replacement of this resource. You can perform updates that require no or some interruption. If you must replace the resource, specify a new name.
     hidden Name: (String|Mapping)?
 
-    /// Specifies a value of the API key.
-    hidden Value: (String|Mapping)?
+    /// The key-value map of strings. The valid character set is [a-zA-Z+-=._:/]. The tag key can be up to 128 characters and must not start with ``aws:``. The tag value can be up to 256 characters.
+    hidden Tags: (Listing<ApiKeyTag>)?
 
     Properties {
+        ["CustomerId"] = if (CustomerId == null) null else CustomerId
         ["Description"] = if (Description == null) null else Description
         ["StageKeys"] = if (StageKeys == null) null else StageKeys
-        ["Tags"] = if (Tags == null) null else Tags
-        ["CustomerId"] = if (CustomerId == null) null else CustomerId
+        ["Value"] = if (Value == null) null else Value
         ["Enabled"] = if (Enabled == null) null else Enabled
         ["GenerateDistinctId"] = if (GenerateDistinctId == null) null else GenerateDistinctId
         ["Name"] = if (Name == null) null else Name
-        ["Value"] = if (Value == null) null else Value
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

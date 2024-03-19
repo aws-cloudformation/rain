@@ -6,34 +6,34 @@ module aws.config.configurationrecorder
 import "../../cloudformation.pkl"
 
 /// 
-open class RecordingStrategy {
+open class ConfigurationRecorderRecordingStrategy {
     UseOnly: String|Mapping
 }
 
 /// 
-open class ExclusionByResourceTypes {
+open class ConfigurationRecorderExclusionByResourceTypes {
     ResourceTypes: Listing<String|Mapping>
 }
 
 /// 
-open class RecordingModeOverride {
+open class ConfigurationRecorderRecordingModeOverride {
+    Description: (String|Mapping)?
     ResourceTypes: Listing<String|Mapping>
     RecordingFrequency: String|Mapping
-    Description: (String|Mapping)?
 }
 
 /// 
-open class RecordingGroup {
-    RecordingStrategy: (RecordingStrategy)?
-    ExclusionByResourceTypes: (ExclusionByResourceTypes)?
-    AllSupported: (Boolean|Mapping)?
+open class ConfigurationRecorderRecordingGroup {
     IncludeGlobalResourceTypes: (Boolean|Mapping)?
     ResourceTypes: (Listing<String|Mapping>)?
+    RecordingStrategy: (ConfigurationRecorderRecordingStrategy)?
+    ExclusionByResourceTypes: (ConfigurationRecorderExclusionByResourceTypes)?
+    AllSupported: (Boolean|Mapping)?
 }
 
 /// 
-open class RecordingMode {
-    RecordingModeOverrides: (Listing<RecordingModeOverride>)?
+open class ConfigurationRecorderRecordingMode {
+    RecordingModeOverrides: (Listing<ConfigurationRecorderRecordingModeOverride>)?
     RecordingFrequency: String|Mapping
 }
 
@@ -44,22 +44,22 @@ open class ConfigurationRecorder extends cloudformation.Resource {
 
 
     /// 
+    hidden RecordingMode: (ConfigurationRecorderRecordingMode)?
+
+    /// 
     hidden RoleARN: String|Mapping
 
     /// 
     hidden Name: (String|Mapping)?
 
     /// 
-    hidden RecordingGroup: (RecordingGroup)?
-
-    /// 
-    hidden RecordingMode: (RecordingMode)?
+    hidden RecordingGroup: (ConfigurationRecorderRecordingGroup)?
 
     Properties {
+        ["RecordingMode"] = if (RecordingMode == null) null else RecordingMode
         ["RoleARN"] = if (RoleARN == null) null else RoleARN
         ["Name"] = if (Name == null) null else Name
         ["RecordingGroup"] = if (RecordingGroup == null) null else RecordingGroup
-        ["RecordingMode"] = if (RecordingMode == null) null else RecordingMode
     }
 
 }

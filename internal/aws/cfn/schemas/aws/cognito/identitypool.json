@@ -1,0 +1,170 @@
+{
+  "typeName": "AWS::Cognito::IdentityPool",
+  "description": "Resource Type definition for AWS::Cognito::IdentityPool",
+  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+  "additionalProperties": false,
+  "tagging": {
+    "taggable": false,
+    "tagOnCreate": false,
+    "tagUpdatable": false,
+    "cloudFormationSystemTags": false
+  },
+  "definitions": {
+    "PushSync": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ApplicationArns": {
+          "type": "array",
+          "uniqueItems": false,
+          "insertionOrder": false,
+          "items": {
+            "type": "string"
+          }
+        },
+        "RoleArn": {
+          "type": "string"
+        }
+      }
+    },
+    "CognitoIdentityProvider": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ServerSideTokenCheck": {
+          "type": "boolean"
+        },
+        "ProviderName": {
+          "type": "string"
+        },
+        "ClientId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "ProviderName",
+        "ClientId"
+      ]
+    },
+    "CognitoStreams": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "StreamingStatus": {
+          "type": "string"
+        },
+        "StreamName": {
+          "type": "string"
+        },
+        "RoleArn": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "properties": {
+    "PushSync": {
+      "$ref": "#/definitions/PushSync"
+    },
+    "CognitoIdentityProviders": {
+      "type": "array",
+      "uniqueItems": false,
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/CognitoIdentityProvider"
+      }
+    },
+    "DeveloperProviderName": {
+      "type": "string"
+    },
+    "CognitoStreams": {
+      "$ref": "#/definitions/CognitoStreams"
+    },
+    "SupportedLoginProviders": {
+      "type": "object"
+    },
+    "Name": {
+      "type": "string"
+    },
+    "CognitoEvents": {
+      "type": "object"
+    },
+    "Id": {
+      "type": "string"
+    },
+    "IdentityPoolName": {
+      "type": "string"
+    },
+    "AllowUnauthenticatedIdentities": {
+      "type": "boolean"
+    },
+    "SamlProviderARNs": {
+      "type": "array",
+      "uniqueItems": false,
+      "insertionOrder": false,
+      "items": {
+        "type": "string"
+      }
+    },
+    "OpenIdConnectProviderARNs": {
+      "type": "array",
+      "uniqueItems": false,
+      "insertionOrder": false,
+      "items": {
+        "type": "string"
+      }
+    },
+    "AllowClassicFlow": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "AllowUnauthenticatedIdentities"
+  ],
+  "primaryIdentifier": [
+    "/properties/Id"
+  ],
+  "readOnlyProperties": [
+    "/properties/Id",
+    "/properties/Name"
+  ],
+  "writeOnlyProperties": [
+    "/properties/PushSync",
+    "/properties/CognitoStreams",
+    "/properties/CognitoEvents"
+  ],
+  "handlers": {
+    "create": {
+      "permissions": [
+        "cognito-identity:CreateIdentityPool",
+        "cognito-sync:SetIdentityPoolConfiguration",
+        "cognito-sync:SetCognitoEvents",
+        "iam:PassRole"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "cognito-identity:DescribeIdentityPool"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "cognito-identity:UpdateIdentityPool",
+        "cognito-identity:DescribeIdentityPool",
+        "cognito-sync:SetIdentityPoolConfiguration",
+        "cognito-sync:SetCognitoEvents",
+        "iam:PassRole"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "cognito-identity:DeleteIdentityPool"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "cognito-identity:ListIdentityPools"
+      ]
+    }
+  }
+}

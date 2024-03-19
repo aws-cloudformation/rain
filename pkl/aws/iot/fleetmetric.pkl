@@ -5,20 +5,19 @@ module aws.iot.fleetmetric
 
 import "../../cloudformation.pkl"
 
-/// A key-value pair to associate with a resource
-open class Tag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
 /// Aggregation types supported by Fleet Indexing
-open class AggregationType {
+open class FleetMetricAggregationType {
     Name: String|Mapping
     Values: Listing<String|Mapping>
 }
 
-/// The datetime value in ISO 8601 format. The timezone is always UTC. (YYYY-MM-DDThh:mm:ss.sssZ)
-open class iso8601UTC {
+typealias FleetMetriciso8601UTC = String
+
+
+/// A key-value pair to associate with a resource
+open class FleetMetricTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// An aggregated metric of certain devices in your fleet
@@ -27,46 +26,46 @@ open class FleetMetric extends cloudformation.Resource {
     Type = "AWS::IoT::FleetMetric"
 
 
-    /// The index name of a fleet metric
-    hidden IndexName: (String|Mapping)?
-
-    /// An array of key-value pairs to apply to this resource
-    hidden Tags: (Listing<Tag>)?
-
-    /// The name of the fleet metric
-    hidden MetricName: String|Mapping
-
-    /// The version of a Fleet Indexing query used by a fleet metric
-    hidden QueryVersion: (String|Mapping)?
-
     /// The Fleet Indexing query used by a fleet metric
     hidden QueryString: (String|Mapping)?
 
     /// The aggregation field to perform aggregation and metric emission
     hidden AggregationField: (String|Mapping)?
 
+    /// The version of a Fleet Indexing query used by a fleet metric
+    hidden QueryVersion: (String|Mapping)?
+
+    /// The name of the fleet metric
+    hidden MetricName: String|Mapping
+
     /// The description of a fleet metric
     hidden Description: (String|Mapping)?
 
-    /// The period of metric emission in seconds
-    hidden Period: (Int|Mapping)?
+    /// An array of key-value pairs to apply to this resource
+    hidden Tags: (Listing<FleetMetricTag>)?
+
+    /// The index name of a fleet metric
+    hidden IndexName: (String|Mapping)?
 
     /// The unit of data points emitted by a fleet metric
     hidden Unit: (String|Mapping)?
 
+    /// The period of metric emission in seconds
+    hidden Period: (Int|Mapping)?
+
     /// 
-    hidden AggregationType: (AggregationType)?
+    hidden AggregationType: (FleetMetricAggregationType)?
 
     Properties {
-        ["IndexName"] = if (IndexName == null) null else IndexName
-        ["Tags"] = if (Tags == null) null else Tags
-        ["MetricName"] = if (MetricName == null) null else MetricName
-        ["QueryVersion"] = if (QueryVersion == null) null else QueryVersion
         ["QueryString"] = if (QueryString == null) null else QueryString
         ["AggregationField"] = if (AggregationField == null) null else AggregationField
+        ["QueryVersion"] = if (QueryVersion == null) null else QueryVersion
+        ["MetricName"] = if (MetricName == null) null else MetricName
         ["Description"] = if (Description == null) null else Description
-        ["Period"] = if (Period == null) null else Period
+        ["Tags"] = if (Tags == null) null else Tags
+        ["IndexName"] = if (IndexName == null) null else IndexName
         ["Unit"] = if (Unit == null) null else Unit
+        ["Period"] = if (Period == null) null else Period
         ["AggregationType"] = if (AggregationType == null) null else AggregationType
     }
 

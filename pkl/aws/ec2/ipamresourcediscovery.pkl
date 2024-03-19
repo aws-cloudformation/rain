@@ -5,15 +5,15 @@ module aws.ec2.ipamresourcediscovery
 
 import "../../cloudformation.pkl"
 
-/// The regions IPAM Resource Discovery is enabled for. Allows for monitoring.
-open class IpamOperatingRegion {
-    RegionName: String|Mapping
-}
-
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class IPAMResourceDiscoveryTag {
     Key: String|Mapping
     Value: String|Mapping
+}
+
+/// The regions IPAM Resource Discovery is enabled for. Allows for monitoring.
+open class IPAMResourceDiscoveryIpamOperatingRegion {
+    RegionName: String|Mapping
 }
 
 /// Resource Schema of AWS::EC2::IPAMResourceDiscovery Type
@@ -22,19 +22,19 @@ open class IPAMResourceDiscovery extends cloudformation.Resource {
     Type = "AWS::EC2::IPAMResourceDiscovery"
 
 
-    /// The regions Resource Discovery is enabled for. Allows resource discoveries to be created in these regions, as well as enabling monitoring
-    hidden OperatingRegions: (Listing<IpamOperatingRegion>)?
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
-
     /// 
     hidden Description: (String|Mapping)?
 
+    /// The regions Resource Discovery is enabled for. Allows resource discoveries to be created in these regions, as well as enabling monitoring
+    hidden OperatingRegions: (Listing<IPAMResourceDiscoveryIpamOperatingRegion>)?
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<IPAMResourceDiscoveryTag>)?
+
     Properties {
+        ["Description"] = if (Description == null) null else Description
         ["OperatingRegions"] = if (OperatingRegions == null) null else OperatingRegions
         ["Tags"] = if (Tags == null) null else Tags
-        ["Description"] = if (Description == null) null else Description
     }
 
 }

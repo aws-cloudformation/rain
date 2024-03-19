@@ -6,7 +6,7 @@ module aws.codestarnotifications.notificationrule
 import "../../cloudformation.pkl"
 
 /// 
-open class Target {
+open class NotificationRuleTarget {
     TargetType: String|Mapping
     TargetAddress: String|Mapping
 }
@@ -18,7 +18,7 @@ open class NotificationRule extends cloudformation.Resource {
 
 
     /// 
-    hidden CreatedBy: (String|Mapping)?
+    hidden EventTypeIds: Listing<String|Mapping>
 
     /// 
     hidden Status: (NotificationRuleStatus|Mapping)?
@@ -27,37 +27,37 @@ open class NotificationRule extends cloudformation.Resource {
     hidden DetailType: NotificationRuleDetailType|Mapping
 
     /// 
-    hidden Targets: Listing<Target>
+    hidden Targets: Listing<NotificationRuleTarget>
+
+    /// 
+    hidden Tags: (NotificationRuleNotificationRuleTags)?
+
+    /// 
+    hidden Name: String(matches(Regex(#"[A-Za-z0-9\-_ ]+$"#)))|Mapping
 
     /// 
     hidden EventTypeId: (String|Mapping)?
 
     /// 
-    hidden TargetAddress: (String|Mapping)?
+    hidden CreatedBy: (String|Mapping)?
 
     /// 
-    hidden EventTypeIds: Listing<String|Mapping>
+    hidden TargetAddress: (String|Mapping)?
 
     /// 
     hidden Resource: String(matches(Regex(#"^arn:aws[^:\s]*:[^:\s]*:[^:\s]*:[0-9]{12}:[^\s]+$"#)))|Mapping
 
-    /// 
-    hidden Tags: (Dynamic)?
-
-    /// 
-    hidden Name: String(matches(Regex(#"[A-Za-z0-9\-_ ]+$"#)))|Mapping
-
     Properties {
-        ["CreatedBy"] = if (CreatedBy == null) null else CreatedBy
+        ["EventTypeIds"] = if (EventTypeIds == null) null else EventTypeIds
         ["Status"] = if (Status == null) null else Status
         ["DetailType"] = if (DetailType == null) null else DetailType
         ["Targets"] = if (Targets == null) null else Targets
-        ["EventTypeId"] = if (EventTypeId == null) null else EventTypeId
-        ["TargetAddress"] = if (TargetAddress == null) null else TargetAddress
-        ["EventTypeIds"] = if (EventTypeIds == null) null else EventTypeIds
-        ["Resource"] = if (Resource == null) null else Resource
         ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
+        ["EventTypeId"] = if (EventTypeId == null) null else EventTypeId
+        ["CreatedBy"] = if (CreatedBy == null) null else CreatedBy
+        ["TargetAddress"] = if (TargetAddress == null) null else TargetAddress
+        ["Resource"] = if (Resource == null) null else Resource
     }
 
 }
@@ -66,3 +66,5 @@ open class NotificationRule extends cloudformation.Resource {
 typealias NotificationRuleStatus = "ENABLED"|"DISABLED"
 
 typealias NotificationRuleDetailType = "BASIC"|"FULL"
+
+typealias NotificationRuleNotificationRuleTags = Mapping<String, Any>

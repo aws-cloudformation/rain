@@ -6,72 +6,71 @@ module aws.iotanalytics.pipeline
 import "../../cloudformation.pkl"
 
 /// 
-open class Tag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// 
-open class DeviceShadowEnrich {
-    Attribute: String|Mapping
-    Next: (String|Mapping)?
-    ThingName: String|Mapping
-    RoleArn: String|Mapping
-    Name: String|Mapping
-}
-
-/// 
-open class Filter {
-    Filter: String|Mapping
-    Next: (String|Mapping)?
-    Name: String|Mapping
-}
-
-/// 
-open class RemoveAttributes {
+open class PipelineRemoveAttributes {
     Next: (String|Mapping)?
     Attributes: Listing<String|Mapping>
     Name: String|Mapping
 }
 
 /// 
-open class Datastore {
+open class PipelineLambda {
+    Next: (String|Mapping)?
+    LambdaName: String(matches(Regex(#"[a-zA-Z0-9_-]+"#)))|Mapping
+    Name: String|Mapping
+    BatchSize: Int|Mapping
+}
+
+/// 
+open class PipelineSelectAttributes {
+    Next: (String|Mapping)?
+    Attributes: Listing<String|Mapping>
+    Name: String|Mapping
+}
+
+/// 
+open class PipelineDeviceShadowEnrich {
+    RoleArn: String|Mapping
+    Name: String|Mapping
+    Attribute: String|Mapping
+    Next: (String|Mapping)?
+    ThingName: String|Mapping
+}
+
+/// 
+open class PipelineFilter {
+    Next: (String|Mapping)?
+    Name: String|Mapping
+    Filter: String|Mapping
+}
+
+/// 
+open class PipelineDatastore {
     DatastoreName: String(matches(Regex(#"[a-zA-Z0-9_]+"#)))|Mapping
     Name: String|Mapping
 }
 
 /// 
-open class Channel {
+open class PipelineChannel {
     ChannelName: String(matches(Regex(#"[a-zA-Z0-9_]+"#)))|Mapping
     Next: (String|Mapping)?
     Name: String|Mapping
 }
 
 /// 
-open class SelectAttributes {
-    Name: String|Mapping
-    Next: (String|Mapping)?
-    Attributes: Listing<String|Mapping>
-}
-
-/// 
-open class DeviceRegistryEnrich {
-    Name: String|Mapping
-    Attribute: String|Mapping
-    Next: (String|Mapping)?
-    ThingName: String|Mapping
-    RoleArn: String|Mapping
-}
-
-/// 
-open class AddAttributes {
-    Name: String|Mapping
+open class PipelineAddAttributes {
     Next: (String|Mapping)?
     Attributes: Dynamic
+    Name: String|Mapping
 }
 
 /// 
-open class Math {
+open class PipelineTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class PipelineMath {
     Attribute: String|Mapping
     Next: (String|Mapping)?
     Math: String|Mapping
@@ -79,25 +78,26 @@ open class Math {
 }
 
 /// 
-open class Activity {
-    Datastore: (Datastore)?
-    AddAttributes: (AddAttributes)?
-    DeviceShadowEnrich: (DeviceShadowEnrich)?
-    Lambda: (Lambda)?
-    SelectAttributes: (SelectAttributes)?
-    Channel: (Channel)?
-    Math: (Math)?
-    DeviceRegistryEnrich: (DeviceRegistryEnrich)?
-    RemoveAttributes: (RemoveAttributes)?
-    Filter: (Filter)?
+open class PipelineDeviceRegistryEnrich {
+    Attribute: String|Mapping
+    Next: (String|Mapping)?
+    ThingName: String|Mapping
+    RoleArn: String|Mapping
+    Name: String|Mapping
 }
 
 /// 
-open class Lambda {
-    LambdaName: String(matches(Regex(#"[a-zA-Z0-9_-]+"#)))|Mapping
-    Name: String|Mapping
-    BatchSize: Int|Mapping
-    Next: (String|Mapping)?
+open class PipelineActivity {
+    AddAttributes: (PipelineAddAttributes)?
+    Lambda: (PipelineLambda)?
+    RemoveAttributes: (PipelineRemoveAttributes)?
+    SelectAttributes: (PipelineSelectAttributes)?
+    Datastore: (PipelineDatastore)?
+    Filter: (PipelineFilter)?
+    DeviceRegistryEnrich: (PipelineDeviceRegistryEnrich)?
+    Channel: (PipelineChannel)?
+    DeviceShadowEnrich: (PipelineDeviceShadowEnrich)?
+    Math: (PipelineMath)?
 }
 
 /// Resource Type definition for AWS::IoTAnalytics::Pipeline
@@ -107,18 +107,18 @@ open class Pipeline extends cloudformation.Resource {
 
 
     /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden PipelineActivities: Listing<Activity>
+    hidden PipelineActivities: Listing<PipelineActivity>
 
     /// 
     hidden PipelineName: (String(matches(Regex(#"[a-zA-Z0-9_]+"#)))|Mapping)?
 
+    /// 
+    hidden Tags: (Listing<PipelineTag>)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
         ["PipelineActivities"] = if (PipelineActivities == null) null else PipelineActivities
         ["PipelineName"] = if (PipelineName == null) null else PipelineName
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

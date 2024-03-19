@@ -6,15 +6,21 @@ module aws.greengrassv2.deployment
 import "../../cloudformation.pkl"
 
 /// 
-open class SystemResourceLimits {
-    Memory: (Int|Mapping)?
-    Cpus: (Number|Mapping)?
+open class DeploymentIoTJobTimeoutConfig {
+    InProgressTimeoutInMinutes: (Int|Mapping)?
 }
 
 /// 
-open class ComponentConfigurationUpdate {
-    Merge: (String|Mapping)?
-    Reset: (Listing<String|Mapping>)?
+open class DeploymentIoTJobExponentialRolloutRate {
+    BaseRatePerMinute: Int|Mapping
+    IncrementFactor: Number|Mapping
+    RateIncreaseCriteria: DeploymentIoTJobRateIncreaseCriteria
+}
+
+/// 
+open class DeploymentSystemResourceLimits {
+    Memory: (Int|Mapping)?
+    Cpus: (Number|Mapping)?
 }
 
 typealias IoTJobAbortCriteriaFailureType = "FAILED"|"REJECTED"|"TIMED_OUT"|"ALL"
@@ -22,122 +28,30 @@ typealias IoTJobAbortCriteriaFailureType = "FAILED"|"REJECTED"|"TIMED_OUT"|"ALL"
 typealias IoTJobAbortCriteriaAction = "CANCEL"
 
 /// 
-open class IoTJobAbortCriteria {
+open class DeploymentIoTJobAbortCriteria {
+    MinNumberOfExecutedThings: Int|Mapping
     FailureType: IoTJobAbortCriteriaFailureType|Mapping
     Action: IoTJobAbortCriteriaAction|Mapping
     ThresholdPercentage: Number|Mapping
-    MinNumberOfExecutedThings: Int|Mapping
 }
 
 /// 
-open class NumberOfThings {
+open class DeploymentDeploymentConfigurationValidationPolicy {
+    TimeoutInSeconds: (Int|Mapping)?
 }
 
 typealias DeploymentPoliciesFailureHandlingPolicy = "ROLLBACK"|"DO_NOTHING"
 
 /// 
-open class DeploymentPolicies {
+open class DeploymentDeploymentPolicies {
+    ConfigurationValidationPolicy: (DeploymentDeploymentConfigurationValidationPolicy)?
     FailureHandlingPolicy: (DeploymentPoliciesFailureHandlingPolicy|Mapping)?
-    ComponentUpdatePolicy: (DeploymentComponentUpdatePolicy)?
-    ConfigurationValidationPolicy: (DeploymentConfigurationValidationPolicy)?
+    ComponentUpdatePolicy: (DeploymentDeploymentComponentUpdatePolicy)?
 }
 
 /// 
-open class DeploymentConfigurationValidationPolicy {
-    TimeoutInSeconds: (Int|Mapping)?
-}
-
-/// 
-open class ComponentDeploymentSpecification {
-    RunWith: (ComponentRunWith)?
-    ComponentVersion: (String|Mapping)?
-    ConfigurationUpdate: (ComponentConfigurationUpdate)?
-}
-
-/// 
-open class DeploymentIoTJobConfiguration {
-    JobExecutionsRolloutConfig: (IoTJobExecutionsRolloutConfig)?
-    AbortConfig: (IoTJobAbortConfig)?
-    TimeoutConfig: (IoTJobTimeoutConfig)?
-}
-
-/// 
-open class IoTJobAbortConfig {
-    CriteriaList: Listing<IoTJobAbortCriteria>
-}
-
-/// 
-open class IoTJobRateIncreaseCriteria {
-}
-
-typealias DeploymentComponentUpdatePolicyAction = "NOTIFY_COMPONENTS"|"SKIP_NOTIFY_COMPONENTS"
-
-/// 
-open class DeploymentComponentUpdatePolicy {
-    TimeoutInSeconds: (Int|Mapping)?
-    Action: (DeploymentComponentUpdatePolicyAction|Mapping)?
-}
-
-/// 
-open class ComponentRunWith {
-    SystemResourceLimits: (SystemResourceLimits)?
-    WindowsUser: (String|Mapping)?
-    PosixUser: (String|Mapping)?
-}
-
-/// 
-open class IoTJobTimeoutConfig {
-    InProgressTimeoutInMinutes: (Int|Mapping)?
-}
-
-/// 
-open class IoTJobExponentialRolloutRate {
-    IncrementFactor: Number|Mapping
-    RateIncreaseCriteria: IoTJobRateIncreaseCriteria
-    BaseRatePerMinute: Int|Mapping
-}
-
-/// 
-open class IoTJobExecutionsRolloutConfig {
-    ExponentialRate: (IoTJobExponentialRolloutRate)?
-    MaximumPerMinute: (Int|Mapping)?
-}
-
-/// Resource for Greengrass V2 deployment.
-open class Deployment extends cloudformation.Resource {
-
-    Type = "AWS::GreengrassV2::Deployment"
-
-
-    /// 
-    hidden Components: (Dynamic)?
-
-    /// 
-    hidden IotJobConfiguration: (DeploymentIoTJobConfiguration)?
-
-    /// 
-    hidden DeploymentPolicies: (DeploymentPolicies)?
-
-    /// 
-    hidden Tags: (Dynamic)?
-
-    /// 
-    hidden TargetArn: String(matches(Regex(#"arn:[^:]*:iot:[^:]*:[0-9]+:(thing|thinggroup)/.+"#)))|Mapping
-
-    /// 
-    hidden ParentTargetArn: (String(matches(Regex(#"arn:[^:]*:iot:[^:]*:[0-9]+:thinggroup/.+"#)))|Mapping)?
-
-    /// 
-    hidden DeploymentName: (String|Mapping)?
-
-    Properties {
-        ["Components"] = if (Components == null) null else Components
-        ["IotJobConfiguration"] = if (IotJobConfiguration == null) null else IotJobConfiguration
-        ["DeploymentPolicies"] = if (DeploymentPolicies == null) null else DeploymentPolicies
-        ["Tags"] = if (Tags == null) null else Tags
-        ["TargetArn"] = if (TargetArn == null) null else TargetArn
-        ["ParentTargetArn"] = if (ParentTargetArn == null) null else ParentTargetArn
-        ["DeploymentName"] = if (DeploymentName == null) null else DeploymentName
-    }
-
+open class DeploymentDeploymentIoTJobConfiguration {
+    JobExecutionsRolloutConfig: (DeploymentIoTJobExecutionsRolloutConfig)?
+    AbortConfig: (DeploymentIoTJobAbortConfig)?
+    TimeoutConfig: (DeploymentIoTJobTimeoutConfig)?
 }

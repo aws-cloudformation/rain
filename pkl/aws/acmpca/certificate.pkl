@@ -5,93 +5,13 @@ module aws.acmpca.certificate
 
 import "../../cloudformation.pkl"
 
-/// 
-open class CertificateCertificatePolicyList {
-}
+typealias CertificateDnsName = String|Mapping
 
-/// String that contains X.509 UniformResourceIdentifier information.
-open class CertificateUniformResourceIdentifier {
-}
 
-/// 
-open class CertificateExtendedKeyUsageList {
-}
-
-/// Array of X.509 extensions for a certificate.
-open class CertificateCustomExtensionList {
-}
-
-/// 
-open class CertificatePolicyQualifierInfoList {
-}
-
-/// Defines a custom ASN.1 X.400 ``GeneralName`` using an object identifier (OID) and value. The OID must satisfy the regular expression shown below. For more information, see NIST's definition of [Object Identifier (OID)](https://docs.aws.amazon.com/https://csrc.nist.gov/glossary/term/Object_Identifier).
-open class CertificateOtherName {
-    TypeId: CertificateCustomObjectIdentifier
-    Value: String|Mapping
-}
-
-/// Specifies the X.509 extension information for a certificate.
-///
-///  Extensions present in ``CustomExtensions`` follow the ``ApiPassthrough`` [template rules](https://docs.aws.amazon.com/privateca/latest/userguide/UsingTemplates.html#template-order-of-operations).
-open class CertificateCustomExtension {
-    Critical: (Boolean|Mapping)?
-    ObjectIdentifier: CertificateCustomObjectIdentifier
-    Value: String|Mapping
-}
-
-/// Describes an ASN.1 X.400 ``GeneralName`` as defined in [RFC 5280](https://docs.aws.amazon.com/https://datatracker.ietf.org/doc/html/rfc5280). Only one of the following naming options should be provided. Providing more than one option results in an ``InvalidArgsException`` error.
-open class CertificateGeneralName {
-    OtherName: (CertificateOtherName)?
-    Rfc822Name: (CertificateRfc822Name)?
-    DnsName: (CertificateDnsName)?
-    DirectoryName: (CertificateSubject)?
-    EdiPartyName: (CertificateEdiPartyName)?
-    UniformResourceIdentifier: (CertificateUniformResourceIdentifier)?
-    IpAddress: (CertificateIpAddress)?
-    RegisteredId: (CertificateCustomObjectIdentifier)?
-}
-
-/// Defines a ``PolicyInformation`` qualifier. AWS Private CA supports the [certification practice statement (CPS) qualifier](https://docs.aws.amazon.com/https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.4) defined in RFC 5280.
-open class CertificateQualifier {
-    CpsUri: String|Mapping
-}
-
-/// Array of X.500 attribute type and value. CustomAttributes cannot be used along with pre-defined attributes.
-open class CertificateCustomAttributeList {
-}
-
-/// Defines the X.500 relative distinguished name (RDN).
-open class CertificateCustomAttribute {
-    ObjectIdentifier: CertificateCustomObjectIdentifier
-    Value: String|Mapping
-}
-
-/// Contains X.509 certificate information to be placed in an issued certificate. An ``APIPassthrough`` or ``APICSRPassthrough`` template variant must be selected, or else this parameter is ignored. 
-///
-///  If conflicting or duplicate certificate information is supplied from other sources, AWS Private CA applies [order of operation rules](https://docs.aws.amazon.com/privateca/latest/userguide/UsingTemplates.html#template-order-of-operations) to determine what information is used.
-open class CertificateApiPassthrough {
-    Extensions: (CertificateExtensions)?
-    Subject: (CertificateSubject)?
-}
-
-/// Length of time for which the certificate issued by your private certificate authority (CA), or by the private CA itself, is valid in days, months, or years. You can issue a certificate by calling the ``IssueCertificate`` operation.
-open class CertificateValidity {
-    Value: Number|Mapping
-    Type: String|Mapping
-}
-
-/// Defines one or more purposes for which the key contained in the certificate can be used. Default value for each option is false.
-open class CertificateKeyUsage {
-    EncipherOnly: (Boolean|Mapping)?
-    DecipherOnly: (Boolean|Mapping)?
-    DigitalSignature: (Boolean|Mapping)?
-    NonRepudiation: (Boolean|Mapping)?
-    KeyEncipherment: (Boolean|Mapping)?
-    CRLSign: (Boolean|Mapping)?
-    DataEncipherment: (Boolean|Mapping)?
-    KeyAgreement: (Boolean|Mapping)?
-    KeyCertSign: (Boolean|Mapping)?
+/// Defines the X.509 ``CertificatePolicies`` extension.
+open class CertificatePolicyInformation {
+    CertPolicyId: CertificateCustomObjectIdentifier
+    PolicyQualifiers: (CertificatePolicyQualifierInfoList)?
 }
 
 /// Modifies the ``CertPolicyId`` of a ``PolicyInformation`` object with a qualifier. AWS Private CA supports the certification practice statement (CPS) qualifier.
@@ -100,8 +20,118 @@ open class CertificatePolicyQualifierInfo {
     Qualifier: CertificateQualifier
 }
 
-/// String that contains X.509 ObjectIdentifier information.
-open class CertificateCustomObjectIdentifier {
+/// Contains information about the certificate subject. The ``Subject`` field in the certificate identifies the entity that owns or controls the public key in the certificate. The entity can be a user, computer, device, or service. The ``Subject``must contain an X.500 distinguished name (DN). A DN is a sequence of relative distinguished names (RDNs). The RDNs are separated by commas in the certificate.
+open class CertificateSubject {
+    Country: (String|Mapping)?
+    Organization: (String|Mapping)?
+    GivenName: (String|Mapping)?
+    Initials: (String|Mapping)?
+    Pseudonym: (String|Mapping)?
+    DistinguishedNameQualifier: (String|Mapping)?
+    Locality: (String|Mapping)?
+    Title: (String|Mapping)?
+    Surname: (String|Mapping)?
+    GenerationQualifier: (String|Mapping)?
+    SerialNumber: (String|Mapping)?
+    CustomAttributes: (CertificateCustomAttributeList)?
+    OrganizationalUnit: (String|Mapping)?
+    State: (String|Mapping)?
+    CommonName: (String|Mapping)?
+}
+
+/// Defines one or more purposes for which the key contained in the certificate can be used. Default value for each option is false.
+open class CertificateKeyUsage {
+    KeyEncipherment: (Boolean|Mapping)?
+    DataEncipherment: (Boolean|Mapping)?
+    KeyAgreement: (Boolean|Mapping)?
+    CRLSign: (Boolean|Mapping)?
+    DecipherOnly: (Boolean|Mapping)?
+    DigitalSignature: (Boolean|Mapping)?
+    NonRepudiation: (Boolean|Mapping)?
+    KeyCertSign: (Boolean|Mapping)?
+    EncipherOnly: (Boolean|Mapping)?
+}
+
+typealias CertificateCustomAttributeList = Listing<(CertificateCustomAttribute)?>
+
+
+typealias CertificateIpAddress = String|Mapping
+
+
+/// Defines a ``PolicyInformation`` qualifier. AWS Private CA supports the [certification practice statement (CPS) qualifier](https://docs.aws.amazon.com/https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.4) defined in RFC 5280.
+open class CertificateQualifier {
+    CpsUri: String|Mapping
+}
+
+/// Describes an ASN.1 X.400 ``GeneralName`` as defined in [RFC 5280](https://docs.aws.amazon.com/https://datatracker.ietf.org/doc/html/rfc5280). Only one of the following naming options should be provided. Providing more than one option results in an ``InvalidArgsException`` error.
+open class CertificateGeneralName {
+    DnsName: (CertificateDnsName)?
+    DirectoryName: (CertificateSubject)?
+    EdiPartyName: (CertificateEdiPartyName)?
+    UniformResourceIdentifier: (CertificateUniformResourceIdentifier)?
+    IpAddress: (CertificateIpAddress)?
+    RegisteredId: (CertificateCustomObjectIdentifier)?
+    OtherName: (CertificateOtherName)?
+    Rfc822Name: (CertificateRfc822Name)?
+}
+
+typealias CertificateExtendedKeyUsageList = Listing<(CertificateExtendedKeyUsage)?>
+
+
+typealias CertificateCustomExtensionList = Listing<(CertificateCustomExtension)?>
+
+
+typealias CertificateUniformResourceIdentifier = String|Mapping
+
+
+typealias CertificatePolicyQualifierInfoList = Listing<(CertificatePolicyQualifierInfo)?>
+
+
+/// Defines a custom ASN.1 X.400 ``GeneralName`` using an object identifier (OID) and value. The OID must satisfy the regular expression shown below. For more information, see NIST's definition of [Object Identifier (OID)](https://docs.aws.amazon.com/https://csrc.nist.gov/glossary/term/Object_Identifier).
+open class CertificateOtherName {
+    TypeId: CertificateCustomObjectIdentifier
+    Value: String|Mapping
+}
+
+/// Describes an Electronic Data Interchange (EDI) entity as described in as defined in [Subject Alternative Name](https://docs.aws.amazon.com/https://datatracker.ietf.org/doc/html/rfc5280) in RFC 5280.
+open class CertificateEdiPartyName {
+    PartyName: String|Mapping
+    NameAssigner: String|Mapping
+}
+
+/// Specifies additional purposes for which the certified public key may be used other than basic purposes indicated in the ``KeyUsage`` extension.
+open class CertificateExtendedKeyUsage {
+    ExtendedKeyUsageType: (String|Mapping)?
+    ExtendedKeyUsageObjectIdentifier: (CertificateCustomObjectIdentifier)?
+}
+
+/// Length of time for which the certificate issued by your private certificate authority (CA), or by the private CA itself, is valid in days, months, or years. You can issue a certificate by calling the ``IssueCertificate`` operation.
+open class CertificateValidity {
+    Value: Number|Mapping
+    Type: String|Mapping
+}
+
+typealias CertificateArn = String|Mapping
+
+
+/// Defines the X.500 relative distinguished name (RDN).
+open class CertificateCustomAttribute {
+    ObjectIdentifier: CertificateCustomObjectIdentifier
+    Value: String|Mapping
+}
+
+typealias CertificateCertificatePolicyList = Listing<(CertificatePolicyInformation)?>
+
+
+typealias CertificateCustomObjectIdentifier = String|Mapping
+
+
+/// Contains X.509 certificate information to be placed in an issued certificate. An ``APIPassthrough`` or ``APICSRPassthrough`` template variant must be selected, or else this parameter is ignored. 
+///
+///  If conflicting or duplicate certificate information is supplied from other sources, AWS Private CA applies [order of operation rules](https://docs.aws.amazon.com/privateca/latest/userguide/UsingTemplates.html#template-order-of-operations) to determine what information is used.
+open class CertificateApiPassthrough {
+    Extensions: (CertificateExtensions)?
+    Subject: (CertificateSubject)?
 }
 
 /// Contains X.509 extension information for a certificate.
@@ -113,61 +143,19 @@ open class CertificateExtensions {
     CertificatePolicies: (CertificateCertificatePolicyList)?
 }
 
-/// Contains information about the certificate subject. The ``Subject`` field in the certificate identifies the entity that owns or controls the public key in the certificate. The entity can be a user, computer, device, or service. The ``Subject``must contain an X.500 distinguished name (DN). A DN is a sequence of relative distinguished names (RDNs). The RDNs are separated by commas in the certificate.
-open class CertificateSubject {
-    State: (String|Mapping)?
-    GivenName: (String|Mapping)?
-    Initials: (String|Mapping)?
-    Country: (String|Mapping)?
-    OrganizationalUnit: (String|Mapping)?
-    DistinguishedNameQualifier: (String|Mapping)?
-    Organization: (String|Mapping)?
-    CommonName: (String|Mapping)?
-    CustomAttributes: (CertificateCustomAttributeList)?
-    SerialNumber: (String|Mapping)?
-    Locality: (String|Mapping)?
-    Title: (String|Mapping)?
-    Surname: (String|Mapping)?
-    Pseudonym: (String|Mapping)?
-    GenerationQualifier: (String|Mapping)?
-}
+typealias CertificateRfc822Name = String|Mapping
 
-/// String that contains X.509 Rfc822Name information.
-open class CertificateRfc822Name {
-}
 
-/// String that contains X.509 DnsName information.
-open class CertificateDnsName {
-}
+typealias CertificateGeneralNameList = Listing<(CertificateGeneralName)?>
 
-/// String that contains X.509 IpAddress information.
-open class CertificateIpAddress {
-}
 
-/// Specifies additional purposes for which the certified public key may be used other than basic purposes indicated in the ``KeyUsage`` extension.
-open class CertificateExtendedKeyUsage {
-    ExtendedKeyUsageType: (String|Mapping)?
-    ExtendedKeyUsageObjectIdentifier: (CertificateCustomObjectIdentifier)?
-}
-
-/// Defines the X.509 ``CertificatePolicies`` extension.
-open class CertificatePolicyInformation {
-    CertPolicyId: CertificateCustomObjectIdentifier
-    PolicyQualifiers: (CertificatePolicyQualifierInfoList)?
-}
-
-/// Describes an Electronic Data Interchange (EDI) entity as described in as defined in [Subject Alternative Name](https://docs.aws.amazon.com/https://datatracker.ietf.org/doc/html/rfc5280) in RFC 5280.
-open class CertificateEdiPartyName {
-    PartyName: String|Mapping
-    NameAssigner: String|Mapping
-}
-
-/// 
-open class CertificateArn {
-}
-
-/// 
-open class CertificateGeneralNameList {
+/// Specifies the X.509 extension information for a certificate.
+///
+///  Extensions present in ``CustomExtensions`` follow the ``ApiPassthrough`` [template rules](https://docs.aws.amazon.com/privateca/latest/userguide/UsingTemplates.html#template-order-of-operations).
+open class CertificateCustomExtension {
+    Critical: (Boolean|Mapping)?
+    ObjectIdentifier: CertificateCustomObjectIdentifier
+    Value: String|Mapping
 }
 
 /// The ``AWS::ACMPCA::Certificate`` resource is used to issue a certificate using your private certificate authority. For more information, see the [IssueCertificate](https://docs.aws.amazon.com/privateca/latest/APIReference/API_IssueCertificate.html) action.
@@ -179,20 +167,11 @@ open class Certificate extends cloudformation.Resource {
     /// The Amazon Resource Name (ARN) for the private CA issues the certificate.
     hidden CertificateAuthorityArn: CertificateArn
 
-    /// Specifies X.509 certificate information to be included in the issued certificate. An ``APIPassthrough`` or ``APICSRPassthrough`` template variant must be selected, or else this parameter is ignored.
-    hidden ApiPassthrough: (CertificateApiPassthrough)?
-
     /// The name of the algorithm that will be used to sign the certificate to be issued. 
     ///
     ///  This parameter should not be confused with the ``SigningAlgorithm`` parameter used to sign a CSR in the ``CreateCertificateAuthority`` action.
     ///   The specified signing algorithm family (RSA or ECDSA) must match the algorithm family of the CA's secret key.
     hidden SigningAlgorithm: String|Mapping
-
-    /// Specifies a custom configuration template to use when issuing a certificate. If this parameter is not provided, PCAshort defaults to the ``EndEntityCertificate/V1`` template. For more information about PCAshort templates, see [Using Templates](https://docs.aws.amazon.com/privateca/latest/userguide/UsingTemplates.html).
-    hidden TemplateArn: (CertificateArn)?
-
-    /// The period of time during which the certificate will be valid.
-    hidden Validity: CertificateValidity
 
     /// Information describing the start of the validity period of the certificate. This parameter sets the ?Not Before" date for the certificate.
     ///
@@ -201,17 +180,26 @@ open class Certificate extends cloudformation.Resource {
     ///  The ``ValidityNotBefore`` value is expressed as an explicit date and time, using the ``Validity`` type value ``ABSOLUTE``.
     hidden ValidityNotBefore: (CertificateValidity)?
 
+    /// Specifies X.509 certificate information to be included in the issued certificate. An ``APIPassthrough`` or ``APICSRPassthrough`` template variant must be selected, or else this parameter is ignored.
+    hidden ApiPassthrough: (CertificateApiPassthrough)?
+
     /// The certificate signing request (CSR) for the certificate.
     hidden CertificateSigningRequest: String|Mapping
 
+    /// Specifies a custom configuration template to use when issuing a certificate. If this parameter is not provided, PCAshort defaults to the ``EndEntityCertificate/V1`` template. For more information about PCAshort templates, see [Using Templates](https://docs.aws.amazon.com/privateca/latest/userguide/UsingTemplates.html).
+    hidden TemplateArn: (CertificateArn)?
+
+    /// The period of time during which the certificate will be valid.
+    hidden Validity: CertificateValidity
+
     Properties {
         ["CertificateAuthorityArn"] = if (CertificateAuthorityArn == null) null else CertificateAuthorityArn
-        ["ApiPassthrough"] = if (ApiPassthrough == null) null else ApiPassthrough
         ["SigningAlgorithm"] = if (SigningAlgorithm == null) null else SigningAlgorithm
+        ["ValidityNotBefore"] = if (ValidityNotBefore == null) null else ValidityNotBefore
+        ["ApiPassthrough"] = if (ApiPassthrough == null) null else ApiPassthrough
+        ["CertificateSigningRequest"] = if (CertificateSigningRequest == null) null else CertificateSigningRequest
         ["TemplateArn"] = if (TemplateArn == null) null else TemplateArn
         ["Validity"] = if (Validity == null) null else Validity
-        ["ValidityNotBefore"] = if (ValidityNotBefore == null) null else ValidityNotBefore
-        ["CertificateSigningRequest"] = if (CertificateSigningRequest == null) null else CertificateSigningRequest
     }
 
 }

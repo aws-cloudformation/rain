@@ -5,12 +5,11 @@ module aws.ec2.localgatewayroutetablevpcassociation
 
 import "../../cloudformation.pkl"
 
-/// 
-open class Tags {
-}
+typealias LocalGatewayRouteTableVPCAssociationTags = Listing<(LocalGatewayRouteTableVPCAssociationTag)?>
+
 
 /// 
-open class Tag {
+open class LocalGatewayRouteTableVPCAssociationTag {
     Key: (String(matches(Regex(#"^(?!aws:.*)"#)))|Mapping)?
     Value: (String(matches(Regex(#"^(?!aws:.*)"#)))|Mapping)?
 }
@@ -21,19 +20,19 @@ open class LocalGatewayRouteTableVPCAssociation extends cloudformation.Resource 
     Type = "AWS::EC2::LocalGatewayRouteTableVPCAssociation"
 
 
+    /// The tags for the association.
+    hidden Tags: (LocalGatewayRouteTableVPCAssociationTags)?
+
     /// The ID of the local gateway route table.
     hidden LocalGatewayRouteTableId: String|Mapping
 
     /// The ID of the VPC.
     hidden VpcId: String|Mapping
 
-    /// The tags for the association.
-    hidden Tags: (Tags)?
-
     Properties {
+        ["Tags"] = if (Tags == null) null else Tags
         ["LocalGatewayRouteTableId"] = if (LocalGatewayRouteTableId == null) null else LocalGatewayRouteTableId
         ["VpcId"] = if (VpcId == null) null else VpcId
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

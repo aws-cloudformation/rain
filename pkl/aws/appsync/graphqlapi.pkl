@@ -6,13 +6,13 @@ module aws.appsync.graphqlapi
 import "../../cloudformation.pkl"
 
 /// 
-open class Tag {
+open class GraphQLApiTag {
     Value: String|Mapping
     Key: String|Mapping
 }
 
 /// 
-open class UserPoolConfig {
+open class GraphQLApiUserPoolConfig {
     AwsRegion: (String|Mapping)?
     DefaultAction: (String|Mapping)?
     AppIdClientRegex: (String|Mapping)?
@@ -20,22 +20,22 @@ open class UserPoolConfig {
 }
 
 /// 
-open class AdditionalAuthenticationProvider {
-    LambdaAuthorizerConfig: (LambdaAuthorizerConfig)?
-    OpenIDConnectConfig: (OpenIDConnectConfig)?
-    UserPoolConfig: (CognitoUserPoolConfig)?
+open class GraphQLApiAdditionalAuthenticationProvider {
+    OpenIDConnectConfig: (GraphQLApiOpenIDConnectConfig)?
+    UserPoolConfig: (GraphQLApiCognitoUserPoolConfig)?
     AuthenticationType: String|Mapping
+    LambdaAuthorizerConfig: (GraphQLApiLambdaAuthorizerConfig)?
 }
 
 /// 
-open class LogConfig {
+open class GraphQLApiLogConfig {
     ExcludeVerboseContent: (Boolean|Mapping)?
     FieldLogLevel: (String|Mapping)?
     CloudWatchLogsRoleArn: (String|Mapping)?
 }
 
 /// 
-open class OpenIDConnectConfig {
+open class GraphQLApiOpenIDConnectConfig {
     ClientId: (String|Mapping)?
     AuthTTL: (Number|Mapping)?
     Issuer: (String|Mapping)?
@@ -43,24 +43,24 @@ open class OpenIDConnectConfig {
 }
 
 /// 
-open class EnhancedMetricsConfig {
-    DataSourceLevelMetricsBehavior: String|Mapping
+open class GraphQLApiEnhancedMetricsConfig {
     OperationLevelMetricsConfig: String|Mapping
     ResolverLevelMetricsBehavior: String|Mapping
+    DataSourceLevelMetricsBehavior: String|Mapping
 }
 
 /// 
-open class CognitoUserPoolConfig {
+open class GraphQLApiCognitoUserPoolConfig {
     AppIdClientRegex: (String|Mapping)?
     UserPoolId: (String|Mapping)?
     AwsRegion: (String|Mapping)?
 }
 
 /// 
-open class LambdaAuthorizerConfig {
-    IdentityValidationExpression: (String|Mapping)?
+open class GraphQLApiLambdaAuthorizerConfig {
     AuthorizerUri: (String|Mapping)?
     AuthorizerResultTtlInSeconds: (Number|Mapping)?
+    IdentityValidationExpression: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::AppSync::GraphQLApi
@@ -70,10 +70,13 @@ open class GraphQLApi extends cloudformation.Resource {
 
 
     /// 
-    hidden QueryDepthLimit: (Int|Mapping)?
+    hidden Name: String|Mapping
 
     /// 
-    hidden LogConfig: (LogConfig)?
+    hidden AuthenticationType: String|Mapping
+
+    /// 
+    hidden UserPoolConfig: (GraphQLApiUserPoolConfig)?
 
     /// 
     hidden EnvironmentVariables: (Dynamic)?
@@ -82,40 +85,37 @@ open class GraphQLApi extends cloudformation.Resource {
     hidden ApiType: (String|Mapping)?
 
     /// 
-    hidden OwnerContact: (String|Mapping)?
-
-    /// 
-    hidden Name: String|Mapping
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
+    hidden QueryDepthLimit: (Int|Mapping)?
 
     /// 
     hidden XrayEnabled: (Boolean|Mapping)?
 
     /// 
-    hidden UserPoolConfig: (UserPoolConfig)?
+    hidden Tags: (Listing<GraphQLApiTag>)?
 
     /// 
-    hidden AdditionalAuthenticationProviders: (Listing<AdditionalAuthenticationProvider>)?
+    hidden OwnerContact: (String|Mapping)?
 
     /// 
-    hidden OpenIDConnectConfig: (OpenIDConnectConfig)?
-
-    /// 
-    hidden MergedApiExecutionRoleArn: (String|Mapping)?
-
-    /// 
-    hidden EnhancedMetricsConfig: (EnhancedMetricsConfig)?
-
-    /// 
-    hidden AuthenticationType: String|Mapping
+    hidden EnhancedMetricsConfig: (GraphQLApiEnhancedMetricsConfig)?
 
     /// 
     hidden IntrospectionConfig: (String|Mapping)?
 
     /// 
-    hidden LambdaAuthorizerConfig: (LambdaAuthorizerConfig)?
+    hidden MergedApiExecutionRoleArn: (String|Mapping)?
+
+    /// 
+    hidden OpenIDConnectConfig: (GraphQLApiOpenIDConnectConfig)?
+
+    /// 
+    hidden LambdaAuthorizerConfig: (GraphQLApiLambdaAuthorizerConfig)?
+
+    /// 
+    hidden AdditionalAuthenticationProviders: (Listing<GraphQLApiAdditionalAuthenticationProvider>)?
+
+    /// 
+    hidden LogConfig: (GraphQLApiLogConfig)?
 
     /// 
     hidden ResolverCountLimit: (Int|Mapping)?
@@ -124,22 +124,22 @@ open class GraphQLApi extends cloudformation.Resource {
     hidden Visibility: (String|Mapping)?
 
     Properties {
-        ["QueryDepthLimit"] = if (QueryDepthLimit == null) null else QueryDepthLimit
-        ["LogConfig"] = if (LogConfig == null) null else LogConfig
+        ["Name"] = if (Name == null) null else Name
+        ["AuthenticationType"] = if (AuthenticationType == null) null else AuthenticationType
+        ["UserPoolConfig"] = if (UserPoolConfig == null) null else UserPoolConfig
         ["EnvironmentVariables"] = if (EnvironmentVariables == null) null else EnvironmentVariables
         ["ApiType"] = if (ApiType == null) null else ApiType
-        ["OwnerContact"] = if (OwnerContact == null) null else OwnerContact
-        ["Name"] = if (Name == null) null else Name
-        ["Tags"] = if (Tags == null) null else Tags
+        ["QueryDepthLimit"] = if (QueryDepthLimit == null) null else QueryDepthLimit
         ["XrayEnabled"] = if (XrayEnabled == null) null else XrayEnabled
-        ["UserPoolConfig"] = if (UserPoolConfig == null) null else UserPoolConfig
-        ["AdditionalAuthenticationProviders"] = if (AdditionalAuthenticationProviders == null) null else AdditionalAuthenticationProviders
-        ["OpenIDConnectConfig"] = if (OpenIDConnectConfig == null) null else OpenIDConnectConfig
-        ["MergedApiExecutionRoleArn"] = if (MergedApiExecutionRoleArn == null) null else MergedApiExecutionRoleArn
+        ["Tags"] = if (Tags == null) null else Tags
+        ["OwnerContact"] = if (OwnerContact == null) null else OwnerContact
         ["EnhancedMetricsConfig"] = if (EnhancedMetricsConfig == null) null else EnhancedMetricsConfig
-        ["AuthenticationType"] = if (AuthenticationType == null) null else AuthenticationType
         ["IntrospectionConfig"] = if (IntrospectionConfig == null) null else IntrospectionConfig
+        ["MergedApiExecutionRoleArn"] = if (MergedApiExecutionRoleArn == null) null else MergedApiExecutionRoleArn
+        ["OpenIDConnectConfig"] = if (OpenIDConnectConfig == null) null else OpenIDConnectConfig
         ["LambdaAuthorizerConfig"] = if (LambdaAuthorizerConfig == null) null else LambdaAuthorizerConfig
+        ["AdditionalAuthenticationProviders"] = if (AdditionalAuthenticationProviders == null) null else AdditionalAuthenticationProviders
+        ["LogConfig"] = if (LogConfig == null) null else LogConfig
         ["ResolverCountLimit"] = if (ResolverCountLimit == null) null else ResolverCountLimit
         ["Visibility"] = if (Visibility == null) null else Visibility
     }

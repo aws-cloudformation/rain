@@ -6,9 +6,9 @@ module aws.iot.rolealias
 import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
-open class Tag {
-    Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
+open class RoleAliasTag {
     Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
+    Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
 }
 
 /// Use the AWS::IoT::RoleAlias resource to declare an AWS IoT RoleAlias.
@@ -18,22 +18,22 @@ open class RoleAlias extends cloudformation.Resource {
 
 
     /// 
-    hidden CredentialDurationSeconds: (Int|Mapping)?
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
     hidden RoleAlias: (String(matches(Regex(#"[\w=,@-]+"#)))|Mapping)?
 
     /// 
     hidden RoleArn: String(matches(Regex(#"arn:(aws[a-zA-Z-]*)?:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+"#)))|Mapping
 
+    /// 
+    hidden CredentialDurationSeconds: (Int|Mapping)?
+
+    /// 
+    hidden Tags: (Listing<RoleAliasTag>)?
+
     Properties {
-        ["CredentialDurationSeconds"] = if (CredentialDurationSeconds == null) null else CredentialDurationSeconds
-        ["Tags"] = if (Tags == null) null else Tags
         ["RoleAlias"] = if (RoleAlias == null) null else RoleAlias
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
+        ["CredentialDurationSeconds"] = if (CredentialDurationSeconds == null) null else CredentialDurationSeconds
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

@@ -6,10 +6,34 @@ module aws.amazonmq.broker
 import "../../cloudformation.pkl"
 
 /// 
+open class BrokerLdapServerMetadata {
+    UserRoleName: (String|Mapping)?
+    RoleName: (String|Mapping)?
+    UserSearchSubtree: (Boolean|Mapping)?
+    RoleBase: String|Mapping
+    ServiceAccountPassword: String|Mapping
+    RoleSearchSubtree: (Boolean|Mapping)?
+    Hosts: Listing<String|Mapping>
+    UserSearchMatching: String|Mapping
+    UserBase: String|Mapping
+    RoleSearchMatching: String|Mapping
+    ServiceAccountUsername: String|Mapping
+}
+
+/// 
+open class BrokerUser {
+    ReplicationUser: (Boolean|Mapping)?
+    ConsoleAccess: (Boolean|Mapping)?
+    Username: String|Mapping
+    Groups: (Listing<String|Mapping>)?
+    Password: String|Mapping
+}
+
+/// 
 open class BrokerMaintenanceWindow {
+    TimeOfDay: String|Mapping
     TimeZone: String|Mapping
     DayOfWeek: String|Mapping
-    TimeOfDay: String|Mapping
 }
 
 /// 
@@ -36,30 +60,6 @@ open class BrokerLogList {
     General: (Boolean|Mapping)?
 }
 
-/// 
-open class BrokerLdapServerMetadata {
-    ServiceAccountPassword: String|Mapping
-    Hosts: Listing<String|Mapping>
-    RoleName: (String|Mapping)?
-    UserBase: String|Mapping
-    UserSearchSubtree: (Boolean|Mapping)?
-    RoleSearchMatching: String|Mapping
-    RoleBase: String|Mapping
-    UserRoleName: (String|Mapping)?
-    UserSearchMatching: String|Mapping
-    ServiceAccountUsername: String|Mapping
-    RoleSearchSubtree: (Boolean|Mapping)?
-}
-
-/// 
-open class BrokerUser {
-    ReplicationUser: (Boolean|Mapping)?
-    ConsoleAccess: (Boolean|Mapping)?
-    Username: String|Mapping
-    Groups: (Listing<String|Mapping>)?
-    Password: String|Mapping
-}
-
 /// Resource Type definition for AWS::AmazonMQ::Broker
 open class Broker extends cloudformation.Resource {
 
@@ -67,58 +67,31 @@ open class Broker extends cloudformation.Resource {
 
 
     /// 
-    hidden EngineType: String|Mapping
-
-    /// 
-    hidden DataReplicationMode: (String|Mapping)?
-
-    /// 
-    hidden Tags: (Listing<BrokerTagsEntry>)?
-
-    /// 
-    hidden MaintenanceWindowStartTime: (BrokerMaintenanceWindow)?
+    hidden LdapServerMetadata: (BrokerLdapServerMetadata)?
 
     /// 
     hidden EncryptionOptions: (BrokerEncryptionOptions)?
 
     /// 
-    hidden HostInstanceType: String|Mapping
-
-    /// 
-    hidden BrokerName: String|Mapping
-
-    /// 
-    hidden LdapServerMetadata: (BrokerLdapServerMetadata)?
-
-    /// 
-    hidden PubliclyAccessible: Boolean|Mapping
-
-    /// 
-    hidden AuthenticationStrategy: (String|Mapping)?
-
-    /// 
-    hidden Users: Listing<BrokerUser>
+    hidden MaintenanceWindowStartTime: (BrokerMaintenanceWindow)?
 
     /// 
     hidden AutoMinorVersionUpgrade: Boolean|Mapping
 
     /// 
-    hidden Logs: (BrokerLogList)?
+    hidden Configuration: (BrokerConfigurationId)?
 
     /// 
-    hidden Configuration: (BrokerConfigurationId)?
+    hidden Users: Listing<BrokerUser>
 
     /// 
     hidden SubnetIds: (Listing<String|Mapping>)?
 
     /// 
-    hidden DeploymentMode: String|Mapping
-
-    /// 
     hidden StorageType: (String|Mapping)?
 
     /// 
-    hidden SecurityGroups: (Listing<String|Mapping>)?
+    hidden HostInstanceType: String|Mapping
 
     /// 
     hidden DataReplicationPrimaryBrokerArn: (String|Mapping)?
@@ -126,27 +99,54 @@ open class Broker extends cloudformation.Resource {
     /// 
     hidden EngineVersion: String|Mapping
 
+    /// 
+    hidden Logs: (BrokerLogList)?
+
+    /// 
+    hidden BrokerName: String|Mapping
+
+    /// 
+    hidden SecurityGroups: (Listing<String|Mapping>)?
+
+    /// 
+    hidden AuthenticationStrategy: (String|Mapping)?
+
+    /// 
+    hidden PubliclyAccessible: Boolean|Mapping
+
+    /// 
+    hidden EngineType: String|Mapping
+
+    /// 
+    hidden Tags: (Listing<BrokerTagsEntry>)?
+
+    /// 
+    hidden DeploymentMode: String|Mapping
+
+    /// 
+    hidden DataReplicationMode: (String|Mapping)?
+
     Properties {
-        ["EngineType"] = if (EngineType == null) null else EngineType
-        ["DataReplicationMode"] = if (DataReplicationMode == null) null else DataReplicationMode
-        ["Tags"] = if (Tags == null) null else Tags
-        ["MaintenanceWindowStartTime"] = if (MaintenanceWindowStartTime == null) null else MaintenanceWindowStartTime
-        ["EncryptionOptions"] = if (EncryptionOptions == null) null else EncryptionOptions
-        ["HostInstanceType"] = if (HostInstanceType == null) null else HostInstanceType
-        ["BrokerName"] = if (BrokerName == null) null else BrokerName
         ["LdapServerMetadata"] = if (LdapServerMetadata == null) null else LdapServerMetadata
-        ["PubliclyAccessible"] = if (PubliclyAccessible == null) null else PubliclyAccessible
-        ["AuthenticationStrategy"] = if (AuthenticationStrategy == null) null else AuthenticationStrategy
-        ["Users"] = if (Users == null) null else Users
+        ["EncryptionOptions"] = if (EncryptionOptions == null) null else EncryptionOptions
+        ["MaintenanceWindowStartTime"] = if (MaintenanceWindowStartTime == null) null else MaintenanceWindowStartTime
         ["AutoMinorVersionUpgrade"] = if (AutoMinorVersionUpgrade == null) null else AutoMinorVersionUpgrade
-        ["Logs"] = if (Logs == null) null else Logs
         ["Configuration"] = if (Configuration == null) null else Configuration
+        ["Users"] = if (Users == null) null else Users
         ["SubnetIds"] = if (SubnetIds == null) null else SubnetIds
-        ["DeploymentMode"] = if (DeploymentMode == null) null else DeploymentMode
         ["StorageType"] = if (StorageType == null) null else StorageType
-        ["SecurityGroups"] = if (SecurityGroups == null) null else SecurityGroups
+        ["HostInstanceType"] = if (HostInstanceType == null) null else HostInstanceType
         ["DataReplicationPrimaryBrokerArn"] = if (DataReplicationPrimaryBrokerArn == null) null else DataReplicationPrimaryBrokerArn
         ["EngineVersion"] = if (EngineVersion == null) null else EngineVersion
+        ["Logs"] = if (Logs == null) null else Logs
+        ["BrokerName"] = if (BrokerName == null) null else BrokerName
+        ["SecurityGroups"] = if (SecurityGroups == null) null else SecurityGroups
+        ["AuthenticationStrategy"] = if (AuthenticationStrategy == null) null else AuthenticationStrategy
+        ["PubliclyAccessible"] = if (PubliclyAccessible == null) null else PubliclyAccessible
+        ["EngineType"] = if (EngineType == null) null else EngineType
+        ["Tags"] = if (Tags == null) null else Tags
+        ["DeploymentMode"] = if (DeploymentMode == null) null else DeploymentMode
+        ["DataReplicationMode"] = if (DataReplicationMode == null) null else DataReplicationMode
     }
 
 }

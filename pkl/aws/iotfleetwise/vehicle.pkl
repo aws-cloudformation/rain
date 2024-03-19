@@ -5,19 +5,17 @@ module aws.iotfleetwise.vehicle
 
 import "../../cloudformation.pkl"
 
-/// 
-open class VehicleAssociationBehavior {
-}
+typealias VehicleattributesMap = Mapping<String, Any>
+
 
 /// 
-open class attributesMap {
-}
-
-/// 
-open class Tag {
+open class VehicleTag {
     Key: String|Mapping
     Value: String|Mapping
 }
+
+typealias VehicleVehicleAssociationBehavior = "CreateIotThing"|"ValidateIotThingExists"
+
 
 /// Definition of AWS::IoTFleetWise::Vehicle Resource Type
 open class Vehicle extends cloudformation.Resource {
@@ -26,30 +24,30 @@ open class Vehicle extends cloudformation.Resource {
 
 
     /// 
-    hidden Attributes: (attributesMap)?
+    hidden ModelManifestArn: String|Mapping
+
+    /// 
+    hidden AssociationBehavior: (VehicleVehicleAssociationBehavior)?
 
     /// 
     hidden DecoderManifestArn: String|Mapping
 
     /// 
-    hidden ModelManifestArn: String|Mapping
-
-    /// 
-    hidden AssociationBehavior: (VehicleAssociationBehavior)?
-
-    /// 
     hidden Name: String(matches(Regex(#"^[a-zA-Z\d\-_:]+$"#)))|Mapping
 
     /// 
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<VehicleTag>)?
+
+    /// 
+    hidden Attributes: (VehicleattributesMap)?
 
     Properties {
-        ["Attributes"] = if (Attributes == null) null else Attributes
-        ["DecoderManifestArn"] = if (DecoderManifestArn == null) null else DecoderManifestArn
         ["ModelManifestArn"] = if (ModelManifestArn == null) null else ModelManifestArn
         ["AssociationBehavior"] = if (AssociationBehavior == null) null else AssociationBehavior
+        ["DecoderManifestArn"] = if (DecoderManifestArn == null) null else DecoderManifestArn
         ["Name"] = if (Name == null) null else Name
         ["Tags"] = if (Tags == null) null else Tags
+        ["Attributes"] = if (Attributes == null) null else Attributes
     }
 
 }

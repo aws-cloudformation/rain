@@ -6,36 +6,36 @@ module aws.glue.database
 import "../../cloudformation.pkl"
 
 /// 
-open class DatabaseInput {
-    TargetDatabase: (DatabaseIdentifier)?
-    FederatedDatabase: (FederatedDatabase)?
-    Name: (String|Mapping)?
+open class DatabaseDatabaseInput {
     LocationUri: (String|Mapping)?
-    CreateTableDefaultPermissions: (Listing<PrincipalPrivileges>)?
+    CreateTableDefaultPermissions: (Listing<DatabasePrincipalPrivileges>)?
     Description: (String|Mapping)?
     Parameters: (Dynamic)?
+    TargetDatabase: (DatabaseDatabaseIdentifier)?
+    FederatedDatabase: (DatabaseFederatedDatabase)?
+    Name: (String|Mapping)?
 }
 
 /// 
-open class DatabaseIdentifier {
+open class DatabaseDatabaseIdentifier {
     DatabaseName: (String|Mapping)?
     Region: (String|Mapping)?
     CatalogId: (String|Mapping)?
 }
 
 /// 
-open class PrincipalPrivileges {
+open class DatabasePrincipalPrivileges {
     Permissions: (Listing<String|Mapping>)?
-    Principal: (DataLakePrincipal)?
+    Principal: (DatabaseDataLakePrincipal)?
 }
 
 /// 
-open class DataLakePrincipal {
+open class DatabaseDataLakePrincipal {
     DataLakePrincipalIdentifier: (String|Mapping)?
 }
 
 /// 
-open class FederatedDatabase {
+open class DatabaseFederatedDatabase {
     ConnectionName: (String|Mapping)?
     Identifier: (String|Mapping)?
 }
@@ -47,14 +47,14 @@ open class Database extends cloudformation.Resource {
 
 
     /// 
-    hidden CatalogId: String|Mapping
+    hidden DatabaseInput: DatabaseDatabaseInput
 
     /// 
-    hidden DatabaseInput: DatabaseInput
+    hidden CatalogId: String|Mapping
 
     Properties {
-        ["CatalogId"] = if (CatalogId == null) null else CatalogId
         ["DatabaseInput"] = if (DatabaseInput == null) null else DatabaseInput
+        ["CatalogId"] = if (CatalogId == null) null else CatalogId
     }
 
 }

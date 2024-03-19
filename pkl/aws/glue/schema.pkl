@@ -6,21 +6,21 @@ module aws.glue.schema
 import "../../cloudformation.pkl"
 
 /// Identifier for the registry which the schema is part of.
-open class Registry {
+open class SchemaRegistry {
     Name: (String|Mapping)?
     Arn: (String(matches(Regex(#"arn:aws(-(cn|us-gov|iso(-[bef])?))?:glue:.*"#)))|Mapping)?
 }
 
 /// Specify checkpoint version for update. This is only required to update the Compatibility.
-open class SchemaVersion {
+open class SchemaSchemaVersion {
     IsLatest: (Boolean|Mapping)?
     VersionNumber: (Int|Mapping)?
 }
 
 /// 
-open class Tag {
-    Key: String|Mapping
+open class SchemaTag {
     Value: String|Mapping
+    Key: String|Mapping
 }
 
 /// This resource represents a schema of Glue Schema Registry.
@@ -29,44 +29,44 @@ open class Schema extends cloudformation.Resource {
     Type = "AWS::Glue::Schema"
 
 
+    /// List of tags to tag the schema
+    hidden Tags: (Listing<SchemaTag>)?
+
     /// A description of the schema. If description is not provided, there will not be any default value for this.
     hidden Description: (String|Mapping)?
-
-    /// 
-    hidden CheckpointVersion: (SchemaVersion)?
-
-    /// List of tags to tag the schema
-    hidden Tags: (Listing<Tag>)?
-
-    /// Data format name to use for the schema. Accepted values: 'AVRO', 'JSON', 'PROTOBUF'
-    hidden DataFormat: SchemaDataFormat|Mapping
-
-    /// Compatibility setting for the schema.
-    hidden Compatibility: SchemaCompatibility|Mapping
 
     /// Definition for the initial schema version in plain-text.
     hidden SchemaDefinition: String|Mapping
 
+    /// Compatibility setting for the schema.
+    hidden Compatibility: SchemaCompatibility|Mapping
+
     /// 
-    hidden Registry: (Registry)?
+    hidden CheckpointVersion: (SchemaSchemaVersion)?
+
+    /// 
+    hidden Registry: (SchemaRegistry)?
 
     /// Name of the schema.
     hidden Name: String|Mapping
 
+    /// Data format name to use for the schema. Accepted values: 'AVRO', 'JSON', 'PROTOBUF'
+    hidden DataFormat: SchemaDataFormat|Mapping
+
     Properties {
-        ["Description"] = if (Description == null) null else Description
-        ["CheckpointVersion"] = if (CheckpointVersion == null) null else CheckpointVersion
         ["Tags"] = if (Tags == null) null else Tags
-        ["DataFormat"] = if (DataFormat == null) null else DataFormat
-        ["Compatibility"] = if (Compatibility == null) null else Compatibility
+        ["Description"] = if (Description == null) null else Description
         ["SchemaDefinition"] = if (SchemaDefinition == null) null else SchemaDefinition
+        ["Compatibility"] = if (Compatibility == null) null else Compatibility
+        ["CheckpointVersion"] = if (CheckpointVersion == null) null else CheckpointVersion
         ["Registry"] = if (Registry == null) null else Registry
         ["Name"] = if (Name == null) null else Name
+        ["DataFormat"] = if (DataFormat == null) null else DataFormat
     }
 
 }
 
 
-typealias SchemaDataFormat = "AVRO"|"JSON"|"PROTOBUF"
-
 typealias SchemaCompatibility = "NONE"|"DISABLED"|"BACKWARD"|"BACKWARD_ALL"|"FORWARD"|"FORWARD_ALL"|"FULL"|"FULL_ALL"
+
+typealias SchemaDataFormat = "AVRO"|"JSON"|"PROTOBUF"

@@ -6,13 +6,13 @@ module aws.ec2.verifiedaccessgroup
 import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
-open class Tag {
-    Value: String|Mapping
+open class VerifiedAccessGroupTag {
     Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// The configuration options for customer provided KMS encryption.
-open class SseSpecification {
+open class VerifiedAccessGroupSseSpecification {
     KmsKeyArn: (String|Mapping)?
     CustomerManagedKeyEnabled: (Boolean|Mapping)?
 }
@@ -32,22 +32,22 @@ open class VerifiedAccessGroup extends cloudformation.Resource {
     /// The status of the Verified Access policy.
     hidden PolicyEnabled: (Boolean|Mapping)?
 
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
-
-    /// The configuration options for customer provided KMS encryption.
-    hidden SseSpecification: (SseSpecification)?
-
     /// The ID of the AWS Verified Access instance.
     hidden VerifiedAccessInstanceId: String|Mapping
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<VerifiedAccessGroupTag>)?
+
+    /// The configuration options for customer provided KMS encryption.
+    hidden SseSpecification: (VerifiedAccessGroupSseSpecification)?
 
     Properties {
         ["Description"] = if (Description == null) null else Description
         ["PolicyDocument"] = if (PolicyDocument == null) null else PolicyDocument
         ["PolicyEnabled"] = if (PolicyEnabled == null) null else PolicyEnabled
+        ["VerifiedAccessInstanceId"] = if (VerifiedAccessInstanceId == null) null else VerifiedAccessInstanceId
         ["Tags"] = if (Tags == null) null else Tags
         ["SseSpecification"] = if (SseSpecification == null) null else SseSpecification
-        ["VerifiedAccessInstanceId"] = if (VerifiedAccessInstanceId == null) null else VerifiedAccessInstanceId
     }
 
 }

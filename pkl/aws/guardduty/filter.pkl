@@ -6,29 +6,29 @@ module aws.guardduty.filter
 import "../../cloudformation.pkl"
 
 /// 
-open class TagItem {
+open class FilterTagItem {
     Key: String|Mapping
     Value: String|Mapping
 }
 
 /// 
-open class Condition {
+open class FilterCondition {
+    Gt: (Int|Mapping)?
+    Neq: (Listing<String|Mapping>)?
+    Eq: (Listing<String|Mapping>)?
     LessThan: (Int|Mapping)?
     NotEquals: (Listing<String|Mapping>)?
-    Eq: (Listing<String|Mapping>)?
+    Lt: (Int|Mapping)?
+    Gte: (Int|Mapping)?
     Lte: (Int|Mapping)?
-    GreaterThanOrEqual: (Int|Mapping)?
-    Neq: (Listing<String|Mapping>)?
     Equals: (Listing<String|Mapping>)?
     GreaterThan: (Int|Mapping)?
+    GreaterThanOrEqual: (Int|Mapping)?
     LessThanOrEqual: (Int|Mapping)?
-    Lt: (Int|Mapping)?
-    Gt: (Int|Mapping)?
-    Gte: (Int|Mapping)?
 }
 
 /// 
-open class FindingCriteria {
+open class FilterFindingCriteria {
     Criterion: (Dynamic)?
 }
 
@@ -39,7 +39,13 @@ open class Filter extends cloudformation.Resource {
 
 
     /// 
-    hidden FindingCriteria: FindingCriteria
+    hidden Description: (String|Mapping)?
+
+    /// 
+    hidden DetectorId: (String|Mapping)?
+
+    /// 
+    hidden FindingCriteria: FilterFindingCriteria
 
     /// 
     hidden Rank: (Int|Mapping)?
@@ -48,25 +54,19 @@ open class Filter extends cloudformation.Resource {
     hidden Name: (String|Mapping)?
 
     /// 
-    hidden Tags: (Listing<TagItem>)?
+    hidden Tags: (Listing<FilterTagItem>)?
 
     /// 
     hidden Action: (String|Mapping)?
 
-    /// 
-    hidden Description: (String|Mapping)?
-
-    /// 
-    hidden DetectorId: (String|Mapping)?
-
     Properties {
+        ["Description"] = if (Description == null) null else Description
+        ["DetectorId"] = if (DetectorId == null) null else DetectorId
         ["FindingCriteria"] = if (FindingCriteria == null) null else FindingCriteria
         ["Rank"] = if (Rank == null) null else Rank
         ["Name"] = if (Name == null) null else Name
         ["Tags"] = if (Tags == null) null else Tags
         ["Action"] = if (Action == null) null else Action
-        ["Description"] = if (Description == null) null else Description
-        ["DetectorId"] = if (DetectorId == null) null else DetectorId
     }
 
 }

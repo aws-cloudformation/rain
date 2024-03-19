@@ -6,25 +6,17 @@ module aws.cleanrooms.analysistemplate
 import "../../cloudformation.pkl"
 
 /// 
-open class TableName {
+open class AnalysisTemplateAnalysisSchema {
+    ReferencedTables: AnalysisTemplateReferencedTables
 }
 
 /// 
-open class ReferencedTables {
-}
-
-/// 
-open class AnalysisSchema {
-    ReferencedTables: ReferencedTables
-}
-
-/// 
-open class AnalysisSource {
+open class AnalysisTemplateAnalysisSource {
     Text: String|Mapping
 }
 
 /// 
-open class Tag {
+open class AnalysisTemplateTag {
     Key: String|Mapping
     Value: String|Mapping
 }
@@ -32,11 +24,17 @@ open class Tag {
 typealias AnalysisParameterType = "SMALLINT"|"INTEGER"|"BIGINT"|"DECIMAL"|"REAL"|"DOUBLE_PRECISION"|"BOOLEAN"|"CHAR"|"VARCHAR"|"DATE"|"TIMESTAMP"|"TIMESTAMPTZ"|"TIME"|"TIMETZ"|"VARBYTE"
 
 /// 
-open class AnalysisParameter {
+open class AnalysisTemplateAnalysisParameter {
+    DefaultValue: (String|Mapping)?
     Name: String(matches(Regex(#"[0-9a-zA-Z_]+"#)))|Mapping
     Type: AnalysisParameterType|Mapping
-    DefaultValue: (String|Mapping)?
 }
+
+typealias AnalysisTemplateTableName = String|Mapping
+
+
+typealias AnalysisTemplateReferencedTables = Listing<(AnalysisTemplateTableName)?>
+
 
 /// Represents a stored analysis within a collaboration
 open class AnalysisTemplate extends cloudformation.Resource {
@@ -44,35 +42,35 @@ open class AnalysisTemplate extends cloudformation.Resource {
     Type = "AWS::CleanRooms::AnalysisTemplate"
 
 
+    /// 
+    hidden MembershipIdentifier: String(matches(Regex(#"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"#)))|Mapping
+
+    /// The member who can query can provide this placeholder for a literal data value in an analysis template
+    hidden AnalysisParameters: (Listing<AnalysisTemplateAnalysisParameter>)?
+
+    /// 
+    hidden Description: (String(matches(Regex(#"^[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDBFF-\uDC00\uDFFF\t\r\\n]*$"#)))|Mapping)?
+
     /// An arbitrary set of tags (key-value pairs) for this cleanrooms analysis template.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<AnalysisTemplateTag>)?
 
     /// 
-    hidden Description: (String(matches(Regex(#"^[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDBFF-\uDC00\uDFFF\t\r\n]*$"#)))|Mapping)?
-
-    /// 
-    hidden Name: String(matches(Regex(#"^[a-zA-Z0-9_](([a-zA-Z0-9_ ]+-)*([a-zA-Z0-9_ ]+))?$"#)))|Mapping
+    hidden Source: AnalysisTemplateAnalysisSource
 
     /// 
     hidden Format: AnalysisTemplateFormat|Mapping
 
-    /// The member who can query can provide this placeholder for a literal data value in an analysis template
-    hidden AnalysisParameters: (Listing<AnalysisParameter>)?
-
     /// 
-    hidden MembershipIdentifier: String(matches(Regex(#"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"#)))|Mapping
-
-    /// 
-    hidden Source: AnalysisSource
+    hidden Name: String(matches(Regex(#"^[a-zA-Z0-9_](([a-zA-Z0-9_ ]+-)*([a-zA-Z0-9_ ]+))?$"#)))|Mapping
 
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Description"] = if (Description == null) null else Description
-        ["Name"] = if (Name == null) null else Name
-        ["Format"] = if (Format == null) null else Format
-        ["AnalysisParameters"] = if (AnalysisParameters == null) null else AnalysisParameters
         ["MembershipIdentifier"] = if (MembershipIdentifier == null) null else MembershipIdentifier
+        ["AnalysisParameters"] = if (AnalysisParameters == null) null else AnalysisParameters
+        ["Description"] = if (Description == null) null else Description
+        ["Tags"] = if (Tags == null) null else Tags
         ["Source"] = if (Source == null) null else Source
+        ["Format"] = if (Format == null) null else Format
+        ["Name"] = if (Name == null) null else Name
     }
 
 }

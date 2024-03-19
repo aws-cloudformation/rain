@@ -5,192 +5,194 @@ module aws.iotevents.detectormodel
 
 import "../../cloudformation.pkl"
 
-/// A structure that contains value information. For more information, see [AssetPropertyValue](https://docs.aws.amazon.com/iot-sitewise/latest/APIReference/API_AssetPropertyValue.html) in the *AWS IoT SiteWise API Reference*.
-open class AssetPropertyValue {
-    Value: AssetPropertyVariant
-    Quality: (String|Mapping)?
-    Timestamp: (AssetPropertyTimestamp)?
+/// Information required to publish the MQTT message through the AWS IoT message broker.
+open class DetectorModelIotTopicPublish {
+    Payload: (DetectorModelPayload)?
+    MqttTopic: String|Mapping
 }
 
-/// Information that defines a state of a detector.
-open class State {
-    StateName: String|Mapping
-    OnEnter: (OnEnter)?
-    OnExit: (OnExit)?
-    OnInput: (OnInput)?
-}
-
-/// When entering this state, perform these `actions` if the `condition` is `TRUE`.
-open class OnEnter {
-    Events: (Listing<Event>)?
-}
-
-/// Information required to publish the Amazon SNS message.
-open class Sns {
-    Payload: (Payload)?
-    TargetArn: String|Mapping
-}
-
+/// Information needed to configure the payload.
+///
 /// 
-open class Lambda {
-    Payload: (Payload)?
-    FunctionArn: String|Mapping
+/// By default, AWS IoT Events generates a standard payload in JSON for any action. This action payload contains all attribute-value pairs that have the information about the detector model instance and the event triggered the action. To configure the action payload, you can use `contentExpression`.
+open class DetectorModelPayload {
+    ContentExpression: String|Mapping
+    Type: String|Mapping
 }
 
-/// Information needed to set the timer.
-open class SetTimer {
-    TimerName: String|Mapping
-    DurationExpression: (String|Mapping)?
-    Seconds: (Int|Mapping)?
-}
-
-/// Tags to be applied to Input.
-open class Tag {
-    Key: String|Mapping
-    Value: String|Mapping
+/// Defines an action to write to the Amazon DynamoDB table that you created. The default action payload contains all attribute-value pairs that have the information about the detector model instance and the event that triggered the action. You can also customize the [payload](https://docs.aws.amazon.com/iotevents/latest/apireference/API_Payload.html). A separate column of the DynamoDB table receives one attribute-value pair in the payload that you specify.
+///
+/// 
+/// You can use expressions for parameters that are strings. For more information, see [Expressions](https://docs.aws.amazon.com/iotevents/latest/developerguide/iotevents-expressions.html) in the *AWS IoT Events Developer Guide*.
+open class DetectorModelDynamoDBv2 {
+    Payload: (DetectorModelPayload)?
+    TableName: String|Mapping
 }
 
 /// The actions to be performed.
-open class Action {
-    Sqs: (Sqs)?
-    DynamoDB: (DynamoDB)?
-    Firehose: (Firehose)?
-    IotEvents: (IotEvents)?
-    ResetTimer: (ResetTimer)?
-    SetTimer: (SetTimer)?
-    Sns: (Sns)?
-    DynamoDBv2: (DynamoDBv2)?
-    SetVariable: (SetVariable)?
-    ClearTimer: (ClearTimer)?
-    Lambda: (Lambda)?
-    IotSiteWise: (IotSiteWise)?
-    IotTopicPublish: (IotTopicPublish)?
+open class DetectorModelAction {
+    DynamoDB: (DetectorModelDynamoDB)?
+    SetTimer: (DetectorModelSetTimer)?
+    SetVariable: (DetectorModelSetVariable)?
+    IotEvents: (DetectorModelIotEvents)?
+    IotTopicPublish: (DetectorModelIotTopicPublish)?
+    Sns: (DetectorModelSns)?
+    ClearTimer: (DetectorModelClearTimer)?
+    IotSiteWise: (DetectorModelIotSiteWise)?
+    ResetTimer: (DetectorModelResetTimer)?
+    Sqs: (DetectorModelSqs)?
+    DynamoDBv2: (DetectorModelDynamoDBv2)?
+    Firehose: (DetectorModelFirehose)?
+    Lambda: (DetectorModelLambda)?
 }
 
-/// Sends an AWS IoT Events input, passing in information about the detector model instance and the event that triggered the action.
-open class IotEvents {
-    InputName: String(matches(Regex(#"^[a-zA-Z][a-zA-Z0-9_]*$"#)))|Mapping
-    Payload: (Payload)?
+/// A structure that contains value information. For more information, see [AssetPropertyValue](https://docs.aws.amazon.com/iot-sitewise/latest/APIReference/API_AssetPropertyValue.html) in the *AWS IoT SiteWise API Reference*.
+open class DetectorModelAssetPropertyValue {
+    Quality: (String|Mapping)?
+    Timestamp: (DetectorModelAssetPropertyTimestamp)?
+    Value: DetectorModelAssetPropertyVariant
 }
 
-/// Sends information about the detector model instance and the event that triggered the action to a specified asset property in AWS IoT SiteWise.
-open class IotSiteWise {
-    PropertyValue: AssetPropertyValue
-    AssetId: (String|Mapping)?
-    EntryId: (String|Mapping)?
-    PropertyAlias: (String|Mapping)?
-    PropertyId: (String|Mapping)?
+/// Information about the variable and its new value.
+open class DetectorModelSetVariable {
+    Value: String|Mapping
+    VariableName: String(matches(Regex(#"^[a-zA-Z][a-zA-Z0-9_]*$"#)))|Mapping
+}
+
+/// 
+open class DetectorModelLambda {
+    FunctionArn: String|Mapping
+    Payload: (DetectorModelPayload)?
+}
+
+/// Information required to publish the Amazon SNS message.
+open class DetectorModelSns {
+    Payload: (DetectorModelPayload)?
+    TargetArn: String|Mapping
+}
+
+/// A structure that contains timestamp information. For more information, see [TimeInNanos](https://docs.aws.amazon.com/iot-sitewise/latest/APIReference/API_TimeInNanos.html) in the *AWS IoT SiteWise API Reference*.
+open class DetectorModelAssetPropertyTimestamp {
+    TimeInSeconds: String|Mapping
+    OffsetInNanos: (String|Mapping)?
 }
 
 /// A structure that contains an asset property value. For more information, see [Variant](https://docs.aws.amazon.com/iot-sitewise/latest/APIReference/API_Variant.html) in the *AWS IoT SiteWise API Reference*.
-open class AssetPropertyVariant {
+open class DetectorModelAssetPropertyVariant {
     BooleanValue: (String|Mapping)?
     DoubleValue: (String|Mapping)?
     IntegerValue: (String|Mapping)?
     StringValue: (String|Mapping)?
 }
 
+/// When an input is received and the `condition` is `TRUE`, perform the specified `actions`.
+open class DetectorModelOnInput {
+    Events: (Listing<DetectorModelEvent>)?
+    TransitionEvents: (Listing<DetectorModelTransitionEvent>)?
+}
+
+/// When entering this state, perform these `actions` if the `condition` is `TRUE`.
+open class DetectorModelOnEnter {
+    Events: (Listing<DetectorModelEvent>)?
+}
+
 /// Specifies the `actions` to be performed when the `condition` evaluates to `TRUE`.
-open class Event {
+open class DetectorModelEvent {
+    EventName: String|Mapping
+    Actions: (Listing<DetectorModelAction>)?
     Condition: (String|Mapping)?
-    EventName: String|Mapping
-    Actions: (Listing<Action>)?
 }
 
-/// Information required to publish the MQTT message through the AWS IoT message broker.
-open class IotTopicPublish {
-    MqttTopic: String|Mapping
-    Payload: (Payload)?
-}
-
-/// Information that defines how a detector operates.
-open class DetectorModelDefinition {
-    InitialStateName: String|Mapping
-    States: Listing<State>
-}
-
-/// Writes to the DynamoDB table that you created. The default action payload contains all attribute-value pairs that have the information about the detector model instance and the event that triggered the action. You can also customize the [payload](https://docs.aws.amazon.com/iotevents/latest/apireference/API_Payload.html). One column of the DynamoDB table receives all attribute-value pairs in the payload that you specify. For more information, see [Actions](https://docs.aws.amazon.com/iotevents/latest/developerguide/iotevents-event-actions.html) in *AWS IoT Events Developer Guide*.
-open class DynamoDB {
-    RangeKeyType: (String|Mapping)?
-    TableName: String|Mapping
-    HashKeyType: (String|Mapping)?
-    Operation: (String|Mapping)?
-    Payload: (Payload)?
-    PayloadField: (String|Mapping)?
-    RangeKeyField: (String|Mapping)?
-    HashKeyField: String|Mapping
-    HashKeyValue: String|Mapping
-    RangeKeyValue: (String|Mapping)?
-}
-
-/// A structure that contains timestamp information. For more information, see [TimeInNanos](https://docs.aws.amazon.com/iot-sitewise/latest/APIReference/API_TimeInNanos.html) in the *AWS IoT SiteWise API Reference*.
-open class AssetPropertyTimestamp {
-    OffsetInNanos: (String|Mapping)?
-    TimeInSeconds: String|Mapping
-}
-
-/// When exiting this state, perform these `actions` if the specified `condition` is `TRUE`.
-open class OnExit {
-    Events: (Listing<Event>)?
-}
-
-/// Specifies the `actions `performed and the next `state` entered when a `condition` evaluates to `TRUE`.
-open class TransitionEvent {
-    NextState: String|Mapping
-    Actions: (Listing<Action>)?
-    Condition: String|Mapping
-    EventName: String|Mapping
+/// Sends an AWS IoT Events input, passing in information about the detector model instance and the event that triggered the action.
+open class DetectorModelIotEvents {
+    InputName: String(matches(Regex(#"^[a-zA-Z][a-zA-Z0-9_]*$"#)))|Mapping
+    Payload: (DetectorModelPayload)?
 }
 
 /// Sends information about the detector model instance and the event that triggered the action to an Amazon Kinesis Data Firehose delivery stream.
-open class Firehose {
+open class DetectorModelFirehose {
     DeliveryStreamName: String|Mapping
-    Payload: (Payload)?
-    Separator: (String(matches(Regex(#"([\n\t])|(\r\n)|(,)"#)))|Mapping)?
+    Payload: (DetectorModelPayload)?
+    Separator: (String(matches(Regex(#"([\\n\t])|(\r\\n)|(,)"#)))|Mapping)?
 }
 
-/// Information about the variable and its new value.
-open class SetVariable {
-    Value: String|Mapping
-    VariableName: String(matches(Regex(#"^[a-zA-Z][a-zA-Z0-9_]*$"#)))|Mapping
+/// Information that defines a state of a detector.
+open class DetectorModelState {
+    OnEnter: (DetectorModelOnEnter)?
+    OnExit: (DetectorModelOnExit)?
+    OnInput: (DetectorModelOnInput)?
+    StateName: String|Mapping
 }
 
 /// 
-open class Sqs {
-    Payload: (Payload)?
+open class DetectorModelSqs {
+    Payload: (DetectorModelPayload)?
     QueueUrl: String|Mapping
     UseBase64: (Boolean|Mapping)?
 }
 
-/// When an input is received and the `condition` is `TRUE`, perform the specified `actions`.
-open class OnInput {
-    Events: (Listing<Event>)?
-    TransitionEvents: (Listing<TransitionEvent>)?
+/// Tags to be applied to Input.
+open class DetectorModelTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
-/// Information needed to clear the timer.
-open class ClearTimer {
-    TimerName: String|Mapping
-}
-
-/// Defines an action to write to the Amazon DynamoDB table that you created. The default action payload contains all attribute-value pairs that have the information about the detector model instance and the event that triggered the action. You can also customize the [payload](https://docs.aws.amazon.com/iotevents/latest/apireference/API_Payload.html). A separate column of the DynamoDB table receives one attribute-value pair in the payload that you specify.
-////// 
-/// You can use expressions for parameters that are strings. For more information, see [Expressions](https://docs.aws.amazon.com/iotevents/latest/developerguide/iotevents-expressions.html) in the *AWS IoT Events Developer Guide*.
-open class DynamoDBv2 {
-    Payload: (Payload)?
-    TableName: String|Mapping
-}
-
-/// Information needed to configure the payload.
-////// 
-/// By default, AWS IoT Events generates a standard payload in JSON for any action. This action payload contains all attribute-value pairs that have the information about the detector model instance and the event triggered the action. To configure the action payload, you can use `contentExpression`.
-open class Payload {
-    ContentExpression: String|Mapping
-    Type: String|Mapping
+/// Sends information about the detector model instance and the event that triggered the action to a specified asset property in AWS IoT SiteWise.
+open class DetectorModelIotSiteWise {
+    PropertyAlias: (String|Mapping)?
+    PropertyId: (String|Mapping)?
+    PropertyValue: DetectorModelAssetPropertyValue
+    AssetId: (String|Mapping)?
+    EntryId: (String|Mapping)?
 }
 
 /// Information required to reset the timer. The timer is reset to the previously evaluated result of the duration. The duration expression isn't reevaluated when you reset the timer.
-open class ResetTimer {
+open class DetectorModelResetTimer {
+    TimerName: String|Mapping
+}
+
+/// Information needed to set the timer.
+open class DetectorModelSetTimer {
+    DurationExpression: (String|Mapping)?
+    Seconds: (Int|Mapping)?
+    TimerName: String|Mapping
+}
+
+/// When exiting this state, perform these `actions` if the specified `condition` is `TRUE`.
+open class DetectorModelOnExit {
+    Events: (Listing<DetectorModelEvent>)?
+}
+
+/// Specifies the `actions `performed and the next `state` entered when a `condition` evaluates to `TRUE`.
+open class DetectorModelTransitionEvent {
+    Actions: (Listing<DetectorModelAction>)?
+    Condition: String|Mapping
+    EventName: String|Mapping
+    NextState: String|Mapping
+}
+
+/// Information that defines how a detector operates.
+open class DetectorModelDetectorModelDefinition {
+    InitialStateName: String|Mapping
+    States: Listing<DetectorModelState>
+}
+
+/// Writes to the DynamoDB table that you created. The default action payload contains all attribute-value pairs that have the information about the detector model instance and the event that triggered the action. You can also customize the [payload](https://docs.aws.amazon.com/iotevents/latest/apireference/API_Payload.html). One column of the DynamoDB table receives all attribute-value pairs in the payload that you specify. For more information, see [Actions](https://docs.aws.amazon.com/iotevents/latest/developerguide/iotevents-event-actions.html) in *AWS IoT Events Developer Guide*.
+open class DetectorModelDynamoDB {
+    Payload: (DetectorModelPayload)?
+    HashKeyType: (String|Mapping)?
+    HashKeyValue: String|Mapping
+    Operation: (String|Mapping)?
+    PayloadField: (String|Mapping)?
+    RangeKeyField: (String|Mapping)?
+    RangeKeyType: (String|Mapping)?
+    RangeKeyValue: (String|Mapping)?
+    TableName: String|Mapping
+    HashKeyField: String|Mapping
+}
+
+/// Information needed to clear the timer.
+open class DetectorModelClearTimer {
     TimerName: String|Mapping
 }
 
@@ -199,14 +201,6 @@ open class DetectorModel extends cloudformation.Resource {
 
     Type = "AWS::IoTEvents::DetectorModel"
 
-
-    /// An array of key-value pairs to apply to this resource.
-    ///    /// 
-    /// For more information, see [Tag](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-resource-tags.html).
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden DetectorModelDefinition: DetectorModelDefinition
 
     /// A brief description of the detector model.
     hidden DetectorModelDescription: (String|Mapping)?
@@ -218,21 +212,31 @@ open class DetectorModel extends cloudformation.Resource {
     hidden EvaluationMethod: (DetectorModelEvaluationMethod|Mapping)?
 
     /// The value used to identify a detector instance. When a device or system sends input, a new detector instance with a unique key value is created. AWS IoT Events can continue to route input to its corresponding detector instance based on this identifying information.
-    ///    /// 
+    ///
+    /// 
     /// This parameter uses a JSON-path expression to select the attribute-value pair in the message payload that is used for identification. To route the message to the correct detector instance, the device must send a message payload that contains the same attribute-value.
     hidden Key: (String(matches(Regex(#"^((`[\w\- ]+`)|([\w\-]+))(\.((`[\w\- ]+`)|([\w\-]+)))*$"#)))|Mapping)?
 
     /// The ARN of the role that grants permission to AWS IoT Events to perform its operations.
     hidden RoleArn: String|Mapping
 
+    /// An array of key-value pairs to apply to this resource.
+    ///
+    /// 
+    /// For more information, see [Tag](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-resource-tags.html).
+    hidden Tags: (Listing<DetectorModelTag>)?
+
+    /// 
+    hidden DetectorModelDefinition: DetectorModelDetectorModelDefinition
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["DetectorModelDefinition"] = if (DetectorModelDefinition == null) null else DetectorModelDefinition
         ["DetectorModelDescription"] = if (DetectorModelDescription == null) null else DetectorModelDescription
         ["DetectorModelName"] = if (DetectorModelName == null) null else DetectorModelName
         ["EvaluationMethod"] = if (EvaluationMethod == null) null else EvaluationMethod
         ["Key"] = if (Key == null) null else Key
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
+        ["Tags"] = if (Tags == null) null else Tags
+        ["DetectorModelDefinition"] = if (DetectorModelDefinition == null) null else DetectorModelDefinition
     }
 
 }

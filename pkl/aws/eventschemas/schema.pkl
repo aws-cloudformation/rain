@@ -6,9 +6,9 @@ module aws.eventschemas.schema
 import "../../cloudformation.pkl"
 
 /// 
-open class TagsEntry {
-    Key: String|Mapping
+open class SchemaTagsEntry {
     Value: String|Mapping
+    Key: String|Mapping
 }
 
 /// Resource Type definition for AWS::EventSchemas::Schema
@@ -17,6 +17,9 @@ open class Schema extends cloudformation.Resource {
     Type = "AWS::EventSchemas::Schema"
 
 
+    /// A description of the schema.
+    hidden Description: (String|Mapping)?
+
     /// The source of the schema definition.
     hidden Content: String|Mapping
 
@@ -24,23 +27,20 @@ open class Schema extends cloudformation.Resource {
     hidden RegistryName: String|Mapping
 
     /// Tags associated with the resource.
-    hidden Tags: (Listing<TagsEntry>)?
+    hidden Tags: (Listing<SchemaTagsEntry>)?
 
     /// The type of schema. Valid types include OpenApi3 and JSONSchemaDraft4.
     hidden TypeProperty: String|Mapping
-
-    /// A description of the schema.
-    hidden Description: (String|Mapping)?
 
     /// The name of the schema.
     hidden SchemaName: (String|Mapping)?
 
     Properties {
+        ["Description"] = if (Description == null) null else Description
         ["Content"] = if (Content == null) null else Content
         ["RegistryName"] = if (RegistryName == null) null else RegistryName
         ["Tags"] = if (Tags == null) null else Tags
         ["Type"] = if (TypeProperty == null) null else TypeProperty
-        ["Description"] = if (Description == null) null else Description
         ["SchemaName"] = if (SchemaName == null) null else SchemaName
     }
 

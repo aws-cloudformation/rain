@@ -5,87 +5,74 @@ module aws.connect.user
 
 import "../../cloudformation.pkl"
 
-/// The last name. This is required if you are using Amazon Connect or SAML for identity management.
-open class LastName {
-}
-
-/// The Auto accept setting.
-open class AutoAccept {
-}
-
-/// The value of user's proficiency. You must use value of predefined attribute present in the Amazon Connect instance.
-open class AttributeValue {
-}
-
-/// The first name. This is required if you are using Amazon Connect or SAML for identity management.
-open class FirstName {
-}
-
-/// The After Call Work (ACW) timeout setting, in seconds.
-open class AfterContactWorkTimeLimit {
-}
-
-/// Contains information about the identity of a user.
-open class UserIdentityInfo {
-    FirstName: (FirstName)?
-    LastName: (LastName)?
-    Email: (Email)?
-    SecondaryEmail: (SecondaryEmail)?
-    Mobile: (Mobile)?
-}
-
-/// The name of user's proficiency. You must use name of predefined attribute present in the Amazon Connect instance.
-open class AttributeName {
-}
-
-/// Proficiency of a user.
-open class UserProficiency {
-    Level: Level
-    AttributeName: AttributeName
-    AttributeValue: AttributeValue
-}
-
-/// The email address. If you are using SAML for identity management and include this parameter, an error is returned.
-open class Email {
-}
-
-/// The secondary email address. If you provide a secondary email, the user receives email notifications -- other than password reset notifications -- to this email address instead of to their primary email address.
-open class SecondaryEmail {
-}
-
-/// The phone number for the user's desk phone.
-open class DeskPhoneNumber {
-}
-
-/// The phone type.
-open class PhoneType {
-}
-
 /// Contains information about the phone configuration settings for a user.
-open class UserPhoneConfig {
-    AutoAccept: (AutoAccept)?
-    DeskPhoneNumber: (DeskPhoneNumber)?
-    PhoneType: PhoneType
-    AfterContactWorkTimeLimit: (AfterContactWorkTimeLimit)?
+open class UserUserPhoneConfig {
+    AfterContactWorkTimeLimit: (UserAfterContactWorkTimeLimit)?
+    AutoAccept: (UserAutoAccept)?
+    DeskPhoneNumber: (UserDeskPhoneNumber)?
+    PhoneType: UserPhoneType
 }
 
-/// The mobile phone number.
-open class Mobile {
-}
+typealias UserLevel = Number|Mapping
 
-/// The identifier of the security profile for the user.
-open class SecurityProfileArn {
-}
+
+typealias UserFirstName = String|Mapping
+
+
+typealias UserAfterContactWorkTimeLimit = Int|Mapping
+
+
+typealias UserDeskPhoneNumber = String|Mapping
+
+
+typealias UserAttributeName = String|Mapping
+
+
+typealias UserEmail = String|Mapping
+
+
+typealias UserMobile = String|Mapping
+
 
 /// A key-value pair to associate with a resource.
-open class Tag {
-    Value: String|Mapping
+open class UserTag {
     Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
+    Value: String|Mapping
 }
 
-/// The level of the proficiency. The valid values are 1, 2, 3, 4 and 5.
-open class Level {
+typealias UserAutoAccept = Boolean|Mapping
+
+
+typealias UserPhoneType = String|Mapping
+
+
+typealias UserAttributeValue = String|Mapping
+
+
+typealias UserSecondaryEmail = String|Mapping
+
+
+/// Proficiency of a user.
+open class UserUserProficiency {
+    AttributeName: UserAttributeName
+    AttributeValue: UserAttributeValue
+    Level: UserLevel
 }
+
+typealias UserLastName = String|Mapping
+
+
+/// Contains information about the identity of a user.
+open class UserUserIdentityInfo {
+    SecondaryEmail: (UserSecondaryEmail)?
+    Mobile: (UserMobile)?
+    FirstName: (UserFirstName)?
+    LastName: (UserLastName)?
+    Email: (UserEmail)?
+}
+
+typealias UserSecurityProfileArn = String|Mapping
+
 
 /// Resource Type definition for AWS::Connect::User
 open class User extends cloudformation.Resource {
@@ -95,6 +82,21 @@ open class User extends cloudformation.Resource {
 
     /// The identifier of the Amazon Connect instance.
     hidden InstanceArn: String(matches(Regex(#"^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$"#)))|Mapping
+
+    /// The identifier of the routing profile for the user.
+    hidden RoutingProfileArn: String(matches(Regex(#"^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/routing-profile/[-a-zA-Z0-9]*$"#)))|Mapping
+
+    /// The information about the identity of the user.
+    hidden IdentityInfo: (UserUserIdentityInfo)?
+
+    /// One or more security profile arns for the user
+    hidden SecurityProfileArns: Listing<UserSecurityProfileArn>
+
+    /// One or more tags.
+    hidden Tags: (Listing<UserTag>)?
+
+    /// The identifier of the user account in the directory used for identity management.
+    hidden DirectoryUserId: (String|Mapping)?
 
     /// The identifier of the hierarchy group for the user.
     hidden HierarchyGroupArn: (String(matches(Regex(#"^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/agent-group/[-a-zA-Z0-9]*$"#)))|Mapping)?
@@ -106,38 +108,23 @@ open class User extends cloudformation.Resource {
     hidden Password: (String(matches(Regex(#"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d\S]{8,64}$"#)))|Mapping)?
 
     /// The phone settings for the user.
-    hidden PhoneConfig: UserPhoneConfig
+    hidden PhoneConfig: UserUserPhoneConfig
 
     /// One or more predefined attributes assigned to a user, with a level that indicates how skilled they are.
-    hidden UserProficiencies: (Listing<UserProficiency>)?
-
-    /// The identifier of the user account in the directory used for identity management.
-    hidden DirectoryUserId: (String|Mapping)?
-
-    /// The identifier of the routing profile for the user.
-    hidden RoutingProfileArn: String(matches(Regex(#"^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/routing-profile/[-a-zA-Z0-9]*$"#)))|Mapping
-
-    /// The information about the identity of the user.
-    hidden IdentityInfo: (UserIdentityInfo)?
-
-    /// One or more security profile arns for the user
-    hidden SecurityProfileArns: Listing<SecurityProfileArn>
-
-    /// One or more tags.
-    hidden Tags: (Listing<Tag>)?
+    hidden UserProficiencies: (Listing<UserUserProficiency>)?
 
     Properties {
         ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
+        ["RoutingProfileArn"] = if (RoutingProfileArn == null) null else RoutingProfileArn
+        ["IdentityInfo"] = if (IdentityInfo == null) null else IdentityInfo
+        ["SecurityProfileArns"] = if (SecurityProfileArns == null) null else SecurityProfileArns
+        ["Tags"] = if (Tags == null) null else Tags
+        ["DirectoryUserId"] = if (DirectoryUserId == null) null else DirectoryUserId
         ["HierarchyGroupArn"] = if (HierarchyGroupArn == null) null else HierarchyGroupArn
         ["Username"] = if (Username == null) null else Username
         ["Password"] = if (Password == null) null else Password
         ["PhoneConfig"] = if (PhoneConfig == null) null else PhoneConfig
         ["UserProficiencies"] = if (UserProficiencies == null) null else UserProficiencies
-        ["DirectoryUserId"] = if (DirectoryUserId == null) null else DirectoryUserId
-        ["RoutingProfileArn"] = if (RoutingProfileArn == null) null else RoutingProfileArn
-        ["IdentityInfo"] = if (IdentityInfo == null) null else IdentityInfo
-        ["SecurityProfileArns"] = if (SecurityProfileArns == null) null else SecurityProfileArns
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

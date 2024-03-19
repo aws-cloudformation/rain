@@ -6,64 +6,64 @@ module aws.greengrass.resourcedefinitionversion
 import "../../cloudformation.pkl"
 
 /// 
-open class ResourceDownloadOwnerSetting {
+open class ResourceDefinitionVersionLocalVolumeResourceData {
+    DestinationPath: String|Mapping
+    GroupOwnerSetting: (ResourceDefinitionVersionGroupOwnerSetting)?
+    SourcePath: String|Mapping
+}
+
+/// 
+open class ResourceDefinitionVersionS3MachineLearningModelResourceData {
+    DestinationPath: String|Mapping
+    S3Uri: String|Mapping
+    OwnerSetting: (ResourceDefinitionVersionResourceDownloadOwnerSetting)?
+}
+
+/// 
+open class ResourceDefinitionVersionResourceDownloadOwnerSetting {
     GroupPermission: String|Mapping
     GroupOwner: String|Mapping
 }
 
 /// 
-open class ResourceDataContainer {
-    S3MachineLearningModelResourceData: (S3MachineLearningModelResourceData)?
-    SecretsManagerSecretResourceData: (SecretsManagerSecretResourceData)?
-    SageMakerMachineLearningModelResourceData: (SageMakerMachineLearningModelResourceData)?
-    LocalVolumeResourceData: (LocalVolumeResourceData)?
-    LocalDeviceResourceData: (LocalDeviceResourceData)?
-}
-
-/// 
-open class LocalDeviceResourceData {
-    SourcePath: String|Mapping
-    GroupOwnerSetting: (GroupOwnerSetting)?
-}
-
-/// 
-open class ResourceInstance {
-    ResourceDataContainer: ResourceDataContainer
-    Id: String|Mapping
-    Name: String|Mapping
-}
-
-/// 
-open class LocalVolumeResourceData {
-    GroupOwnerSetting: (GroupOwnerSetting)?
-    SourcePath: String|Mapping
-    DestinationPath: String|Mapping
-}
-
-/// 
-open class S3MachineLearningModelResourceData {
-    S3Uri: String|Mapping
-    OwnerSetting: (ResourceDownloadOwnerSetting)?
-    DestinationPath: String|Mapping
-}
-
-/// 
-open class GroupOwnerSetting {
+open class ResourceDefinitionVersionGroupOwnerSetting {
     AutoAddGroupOwner: Boolean|Mapping
     GroupOwner: (String|Mapping)?
 }
 
 /// 
-open class SecretsManagerSecretResourceData {
+open class ResourceDefinitionVersionSecretsManagerSecretResourceData {
     ARN: String|Mapping
     AdditionalStagingLabelsToDownload: (Listing<String|Mapping>)?
 }
 
 /// 
-open class SageMakerMachineLearningModelResourceData {
-    OwnerSetting: (ResourceDownloadOwnerSetting)?
+open class ResourceDefinitionVersionResourceInstance {
+    ResourceDataContainer: ResourceDefinitionVersionResourceDataContainer
+    Id: String|Mapping
+    Name: String|Mapping
+}
+
+/// 
+open class ResourceDefinitionVersionSageMakerMachineLearningModelResourceData {
+    OwnerSetting: (ResourceDefinitionVersionResourceDownloadOwnerSetting)?
     SageMakerJobArn: String|Mapping
     DestinationPath: String|Mapping
+}
+
+/// 
+open class ResourceDefinitionVersionLocalDeviceResourceData {
+    SourcePath: String|Mapping
+    GroupOwnerSetting: (ResourceDefinitionVersionGroupOwnerSetting)?
+}
+
+/// 
+open class ResourceDefinitionVersionResourceDataContainer {
+    LocalVolumeResourceData: (ResourceDefinitionVersionLocalVolumeResourceData)?
+    LocalDeviceResourceData: (ResourceDefinitionVersionLocalDeviceResourceData)?
+    S3MachineLearningModelResourceData: (ResourceDefinitionVersionS3MachineLearningModelResourceData)?
+    SecretsManagerSecretResourceData: (ResourceDefinitionVersionSecretsManagerSecretResourceData)?
+    SageMakerMachineLearningModelResourceData: (ResourceDefinitionVersionSageMakerMachineLearningModelResourceData)?
 }
 
 /// Resource Type definition for AWS::Greengrass::ResourceDefinitionVersion
@@ -76,7 +76,7 @@ open class ResourceDefinitionVersion extends cloudformation.Resource {
     hidden ResourceDefinitionId: String|Mapping
 
     /// 
-    hidden Resources: Listing<ResourceInstance>
+    hidden Resources: Listing<ResourceDefinitionVersionResourceInstance>
 
     Properties {
         ["ResourceDefinitionId"] = if (ResourceDefinitionId == null) null else ResourceDefinitionId

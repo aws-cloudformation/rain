@@ -6,40 +6,40 @@ module aws.cloudfront.cachepolicy
 import "../../cloudformation.pkl"
 
 /// 
-open class ParametersInCacheKeyAndForwardedToOrigin {
-    CookiesConfig: CookiesConfig
-    EnableAcceptEncodingBrotli: (Boolean|Mapping)?
-    EnableAcceptEncodingGzip: Boolean|Mapping
-    HeadersConfig: HeadersConfig
-    QueryStringsConfig: QueryStringsConfig
-}
-
-/// 
-open class QueryStringsConfig {
-    QueryStrings: (Listing<String|Mapping>)?
-    QueryStringBehavior: String(matches(Regex(#"^(none|whitelist|allExcept|all)$"#)))|Mapping
-}
-
-/// 
-open class CachePolicyConfig {
+open class CachePolicyCachePolicyConfig {
+    ParametersInCacheKeyAndForwardedToOrigin: CachePolicyParametersInCacheKeyAndForwardedToOrigin
     Comment: (String|Mapping)?
     DefaultTTL: Number|Mapping
     MaxTTL: Number|Mapping
     MinTTL: Number|Mapping
     Name: String|Mapping
-    ParametersInCacheKeyAndForwardedToOrigin: ParametersInCacheKeyAndForwardedToOrigin
 }
 
 /// 
-open class CookiesConfig {
+open class CachePolicyCookiesConfig {
     CookieBehavior: String(matches(Regex(#"^(none|whitelist|allExcept|all)$"#)))|Mapping
     Cookies: (Listing<String|Mapping>)?
 }
 
 /// 
-open class HeadersConfig {
+open class CachePolicyHeadersConfig {
     HeaderBehavior: String(matches(Regex(#"^(none|whitelist)$"#)))|Mapping
     Headers: (Listing<String|Mapping>)?
+}
+
+/// 
+open class CachePolicyParametersInCacheKeyAndForwardedToOrigin {
+    CookiesConfig: CachePolicyCookiesConfig
+    EnableAcceptEncodingBrotli: (Boolean|Mapping)?
+    EnableAcceptEncodingGzip: Boolean|Mapping
+    HeadersConfig: CachePolicyHeadersConfig
+    QueryStringsConfig: CachePolicyQueryStringsConfig
+}
+
+/// 
+open class CachePolicyQueryStringsConfig {
+    QueryStringBehavior: String(matches(Regex(#"^(none|whitelist|allExcept|all)$"#)))|Mapping
+    QueryStrings: (Listing<String|Mapping>)?
 }
 
 /// Resource Type definition for AWS::CloudFront::CachePolicy
@@ -49,7 +49,7 @@ open class CachePolicy extends cloudformation.Resource {
 
 
     /// 
-    hidden CachePolicyConfig: CachePolicyConfig
+    hidden CachePolicyConfig: CachePolicyCachePolicyConfig
 
     Properties {
         ["CachePolicyConfig"] = if (CachePolicyConfig == null) null else CachePolicyConfig

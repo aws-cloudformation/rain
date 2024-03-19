@@ -5,25 +5,25 @@ module aws.connect.hoursofoperation
 
 import "../../cloudformation.pkl"
 
-/// The start time or end time for an hours of operation.
-open class HoursOfOperationTimeSlice {
-    Hours: Int|Mapping
-    Minutes: Int|Mapping
-}
-
 typealias HoursOfOperationConfigDay = "SUNDAY"|"MONDAY"|"TUESDAY"|"WEDNESDAY"|"THURSDAY"|"FRIDAY"|"SATURDAY"
 
 /// Contains information about the hours of operation.
-open class HoursOfOperationConfig {
+open class HoursOfOperationHoursOfOperationConfig {
+    StartTime: HoursOfOperationHoursOfOperationTimeSlice
+    EndTime: HoursOfOperationHoursOfOperationTimeSlice
     Day: HoursOfOperationConfigDay|Mapping
-    StartTime: HoursOfOperationTimeSlice
-    EndTime: HoursOfOperationTimeSlice
 }
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class HoursOfOperationTag {
     Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
     Value: String|Mapping
+}
+
+/// The start time or end time for an hours of operation.
+open class HoursOfOperationHoursOfOperationTimeSlice {
+    Minutes: Int|Mapping
+    Hours: Int|Mapping
 }
 
 /// Resource Type definition for AWS::Connect::HoursOfOperation
@@ -31,6 +31,12 @@ open class HoursOfOperation extends cloudformation.Resource {
 
     Type = "AWS::Connect::HoursOfOperation"
 
+
+    /// One or more tags.
+    hidden Tags: (Listing<HoursOfOperationTag>)?
+
+    /// The identifier of the Amazon Connect instance.
+    hidden InstanceArn: String(matches(Regex(#"^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$"#)))|Mapping
 
     /// The name of the hours of operation.
     hidden Name: String|Mapping
@@ -42,21 +48,15 @@ open class HoursOfOperation extends cloudformation.Resource {
     hidden TimeZone: String|Mapping
 
     /// Configuration information for the hours of operation: day, start time, and end time.
-    hidden Config: Listing<HoursOfOperationConfig>
-
-    /// One or more tags.
-    hidden Tags: (Listing<Tag>)?
-
-    /// The identifier of the Amazon Connect instance.
-    hidden InstanceArn: String(matches(Regex(#"^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$"#)))|Mapping
+    hidden Config: Listing<HoursOfOperationHoursOfOperationConfig>
 
     Properties {
+        ["Tags"] = if (Tags == null) null else Tags
+        ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
         ["Name"] = if (Name == null) null else Name
         ["Description"] = if (Description == null) null else Description
         ["TimeZone"] = if (TimeZone == null) null else TimeZone
         ["Config"] = if (Config == null) null else Config
-        ["Tags"] = if (Tags == null) null else Tags
-        ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
     }
 
 }

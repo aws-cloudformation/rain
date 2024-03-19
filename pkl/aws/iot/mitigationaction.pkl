@@ -6,58 +6,58 @@ module aws.iot.mitigationaction
 import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class MitigationActionTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
 /// The set of parameters for this mitigation action. You can specify only one type of parameter (in other words, you can apply only one action for each defined mitigation action).
-open class ActionParams {
-    AddThingsToThingGroupParams: (AddThingsToThingGroupParams)?
-    EnableIoTLoggingParams: (EnableIoTLoggingParams)?
-    PublishFindingToSnsParams: (PublishFindingToSnsParams)?
-    ReplaceDefaultPolicyVersionParams: (ReplaceDefaultPolicyVersionParams)?
-    UpdateCACertificateParams: (UpdateCACertificateParams)?
-    UpdateDeviceCertificateParams: (UpdateDeviceCertificateParams)?
+open class MitigationActionActionParams {
+    AddThingsToThingGroupParams: (MitigationActionAddThingsToThingGroupParams)?
+    EnableIoTLoggingParams: (MitigationActionEnableIoTLoggingParams)?
+    PublishFindingToSnsParams: (MitigationActionPublishFindingToSnsParams)?
+    ReplaceDefaultPolicyVersionParams: (MitigationActionReplaceDefaultPolicyVersionParams)?
+    UpdateCACertificateParams: (MitigationActionUpdateCACertificateParams)?
+    UpdateDeviceCertificateParams: (MitigationActionUpdateDeviceCertificateParams)?
 }
 
 /// Parameters to define a mitigation action that moves devices associated with a certificate to one or more specified thing groups, typically for quarantine.
-open class AddThingsToThingGroupParams {
-    OverrideDynamicGroups: (Boolean|Mapping)?
+open class MitigationActionAddThingsToThingGroupParams {
     ThingGroupNames: Listing<String|Mapping>
+    OverrideDynamicGroups: (Boolean|Mapping)?
 }
 
 typealias EnableIoTLoggingParamsLogLevel = "DEBUG"|"INFO"|"ERROR"|"WARN"|"UNSET_VALUE"
 
 /// Parameters to define a mitigation action that enables AWS IoT logging at a specified level of detail.
-open class EnableIoTLoggingParams {
+open class MitigationActionEnableIoTLoggingParams {
     LogLevel: EnableIoTLoggingParamsLogLevel|Mapping
     RoleArnForLogging: String|Mapping
 }
 
 /// Parameters, to define a mitigation action that publishes findings to Amazon SNS. You can implement your own custom actions in response to the Amazon SNS messages.
-open class PublishFindingToSnsParams {
+open class MitigationActionPublishFindingToSnsParams {
     TopicArn: String|Mapping
 }
 
 typealias ReplaceDefaultPolicyVersionParamsTemplateName = "BLANK_POLICY"|"UNSET_VALUE"
 
 /// Parameters to define a mitigation action that adds a blank policy to restrict permissions.
-open class ReplaceDefaultPolicyVersionParams {
+open class MitigationActionReplaceDefaultPolicyVersionParams {
     TemplateName: ReplaceDefaultPolicyVersionParamsTemplateName|Mapping
 }
 
 typealias UpdateCACertificateParamsAction = "DEACTIVATE"|"UNSET_VALUE"
 
 /// Parameters to define a mitigation action that changes the state of the CA certificate to inactive.
-open class UpdateCACertificateParams {
+open class MitigationActionUpdateCACertificateParams {
     Action: UpdateCACertificateParamsAction|Mapping
 }
 
 typealias UpdateDeviceCertificateParamsAction = "DEACTIVATE"|"UNSET_VALUE"
 
 /// Parameters to define a mitigation action that changes the state of the device certificate to inactive.
-open class UpdateDeviceCertificateParams {
+open class MitigationActionUpdateDeviceCertificateParams {
     Action: UpdateDeviceCertificateParamsAction|Mapping
 }
 
@@ -67,23 +67,23 @@ open class MitigationAction extends cloudformation.Resource {
     Type = "AWS::IoT::MitigationAction"
 
 
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden ActionParams: ActionParams
-
     /// A unique identifier for the mitigation action.
     hidden ActionName: (String(matches(Regex(#"[a-zA-Z0-9:_-]+"#)))|Mapping)?
 
     /// 
     hidden RoleArn: String|Mapping
 
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<MitigationActionTag>)?
+
+    /// 
+    hidden ActionParams: MitigationActionActionParams
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["ActionParams"] = if (ActionParams == null) null else ActionParams
         ["ActionName"] = if (ActionName == null) null else ActionName
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
+        ["Tags"] = if (Tags == null) null else Tags
+        ["ActionParams"] = if (ActionParams == null) null else ActionParams
     }
 
 }

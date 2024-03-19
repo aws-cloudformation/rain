@@ -6,13 +6,13 @@ module aws.billingconductor.pricingrule
 import "../../cloudformation.pkl"
 
 /// 
-open class Tag {
+open class PricingRuleTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
 /// The possible customizable free tier configurations.
-open class FreeTier {
+open class PricingRuleFreeTier {
     Activated: Boolean|Mapping
 }
 
@@ -25,26 +25,26 @@ open class PricingRule extends cloudformation.Resource {
     /// Pricing rule description
     hidden Description: (String|Mapping)?
 
+    /// The service which a pricing rule is applied on
+    hidden Service: (String(matches(Regex(#"[a-zA-Z0-9\.\-]+"#)))|Mapping)?
+
     /// Pricing rule name
     hidden Name: String(matches(Regex(#"[a-zA-Z0-9_\+=\.\-@]+"#)))|Mapping
 
     /// Pricing rule modifier percentage
     hidden ModifierPercentage: (Number|Mapping)?
 
-    /// The service which a pricing rule is applied on
-    hidden Service: (String(matches(Regex(#"[a-zA-Z0-9\.\-]+"#)))|Mapping)?
-
-    /// The seller of services provided by AWS, their affiliates, or third-party providers selling services via AWS Marketplaces. Supported billing entities are AWS, AWS Marketplace, and AISPL.
-    hidden BillingEntity: (PricingRuleBillingEntity|Mapping)?
-
     /// The set of tiering configurations for the pricing rule.
     hidden Tiering: (Dynamic)?
 
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
     /// A term used to categorize the granularity of a Pricing Rule.
     hidden Scope: PricingRuleScope|Mapping
+
+    /// One of MARKUP, DISCOUNT or TIERING that describes the behaviour of the pricing rule.
+    hidden TypeProperty: PricingRuleType|Mapping
+
+    /// The seller of services provided by AWS, their affiliates, or third-party providers selling services via AWS Marketplaces. Supported billing entities are AWS, AWS Marketplace, and AISPL.
+    hidden BillingEntity: (PricingRuleBillingEntity|Mapping)?
 
     /// The UsageType which a SKU pricing rule is modifying
     hidden UsageType: (String(matches(Regex(#"^\S+$"#)))|Mapping)?
@@ -52,28 +52,28 @@ open class PricingRule extends cloudformation.Resource {
     /// The Operation which a SKU pricing rule is modifying
     hidden Operation: (String(matches(Regex(#"^\S+$"#)))|Mapping)?
 
-    /// One of MARKUP, DISCOUNT or TIERING that describes the behaviour of the pricing rule.
-    hidden TypeProperty: PricingRuleType|Mapping
+    /// 
+    hidden Tags: (Listing<PricingRuleTag>)?
 
     Properties {
         ["Description"] = if (Description == null) null else Description
+        ["Service"] = if (Service == null) null else Service
         ["Name"] = if (Name == null) null else Name
         ["ModifierPercentage"] = if (ModifierPercentage == null) null else ModifierPercentage
-        ["Service"] = if (Service == null) null else Service
-        ["BillingEntity"] = if (BillingEntity == null) null else BillingEntity
         ["Tiering"] = if (Tiering == null) null else Tiering
-        ["Tags"] = if (Tags == null) null else Tags
         ["Scope"] = if (Scope == null) null else Scope
+        ["Type"] = if (TypeProperty == null) null else TypeProperty
+        ["BillingEntity"] = if (BillingEntity == null) null else BillingEntity
         ["UsageType"] = if (UsageType == null) null else UsageType
         ["Operation"] = if (Operation == null) null else Operation
-        ["Type"] = if (TypeProperty == null) null else TypeProperty
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }
 
 
-typealias PricingRuleBillingEntity = "AWS"|"AWS Marketplace"|"AISPL"
-
 typealias PricingRuleScope = "GLOBAL"|"SERVICE"|"BILLING_ENTITY"|"SKU"
 
 typealias PricingRuleType = "MARKUP"|"DISCOUNT"|"TIERING"
+
+typealias PricingRuleBillingEntity = "AWS"|"AWS Marketplace"|"AISPL"

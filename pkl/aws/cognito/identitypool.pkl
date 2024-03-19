@@ -6,23 +6,23 @@ module aws.cognito.identitypool
 import "../../cloudformation.pkl"
 
 /// 
-open class CognitoStreams {
-    StreamingStatus: (String|Mapping)?
-    StreamName: (String|Mapping)?
-    RoleArn: (String|Mapping)?
-}
-
-/// 
-open class PushSync {
+open class IdentityPoolPushSync {
     ApplicationArns: (Listing<String|Mapping>)?
     RoleArn: (String|Mapping)?
 }
 
 /// 
-open class CognitoIdentityProvider {
+open class IdentityPoolCognitoIdentityProvider {
     ServerSideTokenCheck: (Boolean|Mapping)?
     ProviderName: String|Mapping
     ClientId: String|Mapping
+}
+
+/// 
+open class IdentityPoolCognitoStreams {
+    StreamingStatus: (String|Mapping)?
+    StreamName: (String|Mapping)?
+    RoleArn: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::Cognito::IdentityPool
@@ -32,50 +32,50 @@ open class IdentityPool extends cloudformation.Resource {
 
 
     /// 
+    hidden AllowUnauthenticatedIdentities: Boolean|Mapping
+
+    /// 
+    hidden SupportedLoginProviders: (Dynamic)?
+
+    /// 
+    hidden CognitoStreams: (IdentityPoolCognitoStreams)?
+
+    /// 
+    hidden SamlProviderARNs: (Listing<String|Mapping>)?
+
+    /// 
+    hidden DeveloperProviderName: (String|Mapping)?
+
+    /// 
     hidden CognitoEvents: (Dynamic)?
 
     /// 
     hidden IdentityPoolName: (String|Mapping)?
 
     /// 
+    hidden CognitoIdentityProviders: (Listing<IdentityPoolCognitoIdentityProvider>)?
+
+    /// 
     hidden OpenIdConnectProviderARNs: (Listing<String|Mapping>)?
-
-    /// 
-    hidden CognitoIdentityProviders: (Listing<CognitoIdentityProvider>)?
-
-    /// 
-    hidden DeveloperProviderName: (String|Mapping)?
-
-    /// 
-    hidden PushSync: (PushSync)?
-
-    /// 
-    hidden AllowUnauthenticatedIdentities: Boolean|Mapping
-
-    /// 
-    hidden SamlProviderARNs: (Listing<String|Mapping>)?
-
-    /// 
-    hidden SupportedLoginProviders: (Dynamic)?
 
     /// 
     hidden AllowClassicFlow: (Boolean|Mapping)?
 
     /// 
-    hidden CognitoStreams: (CognitoStreams)?
+    hidden PushSync: (IdentityPoolPushSync)?
 
     Properties {
+        ["AllowUnauthenticatedIdentities"] = if (AllowUnauthenticatedIdentities == null) null else AllowUnauthenticatedIdentities
+        ["SupportedLoginProviders"] = if (SupportedLoginProviders == null) null else SupportedLoginProviders
+        ["CognitoStreams"] = if (CognitoStreams == null) null else CognitoStreams
+        ["SamlProviderARNs"] = if (SamlProviderARNs == null) null else SamlProviderARNs
+        ["DeveloperProviderName"] = if (DeveloperProviderName == null) null else DeveloperProviderName
         ["CognitoEvents"] = if (CognitoEvents == null) null else CognitoEvents
         ["IdentityPoolName"] = if (IdentityPoolName == null) null else IdentityPoolName
-        ["OpenIdConnectProviderARNs"] = if (OpenIdConnectProviderARNs == null) null else OpenIdConnectProviderARNs
         ["CognitoIdentityProviders"] = if (CognitoIdentityProviders == null) null else CognitoIdentityProviders
-        ["DeveloperProviderName"] = if (DeveloperProviderName == null) null else DeveloperProviderName
-        ["PushSync"] = if (PushSync == null) null else PushSync
-        ["AllowUnauthenticatedIdentities"] = if (AllowUnauthenticatedIdentities == null) null else AllowUnauthenticatedIdentities
-        ["SamlProviderARNs"] = if (SamlProviderARNs == null) null else SamlProviderARNs
-        ["SupportedLoginProviders"] = if (SupportedLoginProviders == null) null else SupportedLoginProviders
+        ["OpenIdConnectProviderARNs"] = if (OpenIdConnectProviderARNs == null) null else OpenIdConnectProviderARNs
         ["AllowClassicFlow"] = if (AllowClassicFlow == null) null else AllowClassicFlow
-        ["CognitoStreams"] = if (CognitoStreams == null) null else CognitoStreams
+        ["PushSync"] = if (PushSync == null) null else PushSync
     }
 
 }

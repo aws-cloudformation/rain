@@ -6,7 +6,7 @@ module aws.evidently.segment
 import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class SegmentTag {
     Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
     Value: String|Mapping
 }
@@ -17,8 +17,11 @@ open class Segment extends cloudformation.Resource {
     Type = "AWS::Evidently::Segment"
 
 
+    /// 
+    hidden Pattern: (String|Mapping)?
+
     /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<SegmentTag>)?
 
     /// 
     hidden Name: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
@@ -26,14 +29,11 @@ open class Segment extends cloudformation.Resource {
     /// 
     hidden Description: (String|Mapping)?
 
-    /// 
-    hidden Pattern: (String|Mapping)?
-
     Properties {
+        ["Pattern"] = if (Pattern == null) null else Pattern
         ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
         ["Description"] = if (Description == null) null else Description
-        ["Pattern"] = if (Pattern == null) null else Pattern
     }
 
 }

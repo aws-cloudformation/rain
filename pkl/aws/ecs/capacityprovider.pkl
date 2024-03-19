@@ -5,16 +5,10 @@ module aws.ecs.capacityprovider
 
 import "../../cloudformation.pkl"
 
-/// 
-open class Tag {
-    Key: (String|Mapping)?
-    Value: (String|Mapping)?
-}
-
 typealias ManagedScalingStatus = "DISABLED"|"ENABLED"
 
 /// The managed scaling settings for the Auto Scaling group capacity provider.
-open class ManagedScaling {
+open class CapacityProviderManagedScaling {
     MinimumScalingStepSize: (Int|Mapping)?
     MaximumScalingStepSize: (Int|Mapping)?
     Status: (ManagedScalingStatus|Mapping)?
@@ -27,11 +21,17 @@ typealias AutoScalingGroupProviderManagedTerminationProtection = "DISABLED"|"ENA
 typealias AutoScalingGroupProviderManagedDraining = "DISABLED"|"ENABLED"
 
 /// 
-open class AutoScalingGroupProvider {
-    AutoScalingGroupArn: String|Mapping
-    ManagedScaling: (ManagedScaling)?
+open class CapacityProviderAutoScalingGroupProvider {
     ManagedTerminationProtection: (AutoScalingGroupProviderManagedTerminationProtection|Mapping)?
     ManagedDraining: (AutoScalingGroupProviderManagedDraining|Mapping)?
+    AutoScalingGroupArn: String|Mapping
+    ManagedScaling: (CapacityProviderManagedScaling)?
+}
+
+/// 
+open class CapacityProviderTag {
+    Value: (String|Mapping)?
+    Key: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::ECS::CapacityProvider.
@@ -41,18 +41,18 @@ open class CapacityProvider extends cloudformation.Resource {
 
 
     /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden AutoScalingGroupProvider: AutoScalingGroupProvider
+    hidden AutoScalingGroupProvider: CapacityProviderAutoScalingGroupProvider
 
     /// 
     hidden Name: (String|Mapping)?
 
+    /// 
+    hidden Tags: (Listing<CapacityProviderTag>)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
         ["AutoScalingGroupProvider"] = if (AutoScalingGroupProvider == null) null else AutoScalingGroupProvider
         ["Name"] = if (Name == null) null else Name
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

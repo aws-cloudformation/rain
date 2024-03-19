@@ -6,56 +6,56 @@ module aws.guardduty.detector
 import "../../cloudformation.pkl"
 
 /// 
-open class CFNKubernetesConfiguration {
-    AuditLogs: CFNKubernetesAuditLogsConfiguration
-}
-
-/// 
-open class CFNFeatureAdditionalConfiguration {
+open class DetectorCFNFeatureAdditionalConfiguration {
     Name: (String|Mapping)?
     Status: (String|Mapping)?
 }
 
 /// 
-open class CFNKubernetesAuditLogsConfiguration {
+open class DetectorCFNKubernetesAuditLogsConfiguration {
     Enable: Boolean|Mapping
 }
 
 /// 
-open class CFNDataSourceConfigurations {
-    S3Logs: (CFNS3LogsConfiguration)?
-    Kubernetes: (CFNKubernetesConfiguration)?
-    MalwareProtection: (CFNMalwareProtectionConfiguration)?
+open class DetectorCFNDataSourceConfigurations {
+    S3Logs: (DetectorCFNS3LogsConfiguration)?
+    Kubernetes: (DetectorCFNKubernetesConfiguration)?
+    MalwareProtection: (DetectorCFNMalwareProtectionConfiguration)?
 }
 
 /// 
-open class CFNMalwareProtectionConfiguration {
-    ScanEc2InstanceWithFindings: (CFNScanEc2InstanceWithFindingsConfiguration)?
-}
-
-/// 
-open class CFNScanEc2InstanceWithFindingsConfiguration {
+open class DetectorCFNScanEc2InstanceWithFindingsConfiguration {
     EbsVolumes: (Boolean|Mapping)?
+}
+
+/// 
+open class DetectorCFNMalwareProtectionConfiguration {
+    ScanEc2InstanceWithFindings: (DetectorCFNScanEc2InstanceWithFindingsConfiguration)?
+}
+
+/// 
+open class DetectorCFNS3LogsConfiguration {
+    Enable: Boolean|Mapping
+}
+
+/// 
+open class DetectorTagItem {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// 
+open class DetectorCFNKubernetesConfiguration {
+    AuditLogs: DetectorCFNKubernetesAuditLogsConfiguration
 }
 
 typealias CFNFeatureConfigurationStatus = "ENABLED"|"DISABLED"
 
 /// 
-open class CFNFeatureConfiguration {
+open class DetectorCFNFeatureConfiguration {
+    AdditionalConfiguration: (Listing<DetectorCFNFeatureAdditionalConfiguration>)?
     Name: String|Mapping
     Status: CFNFeatureConfigurationStatus|Mapping
-    AdditionalConfiguration: (Listing<CFNFeatureAdditionalConfiguration>)?
-}
-
-/// 
-open class TagItem {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// 
-open class CFNS3LogsConfiguration {
-    Enable: Boolean|Mapping
 }
 
 /// Resource Type definition for AWS::GuardDuty::Detector
@@ -65,13 +65,10 @@ open class Detector extends cloudformation.Resource {
 
 
     /// 
-    hidden DataSources: (CFNDataSourceConfigurations)?
+    hidden Features: (Listing<DetectorCFNFeatureConfiguration>)?
 
     /// 
-    hidden Features: (Listing<CFNFeatureConfiguration>)?
-
-    /// 
-    hidden Tags: (Listing<TagItem>)?
+    hidden Tags: (Listing<DetectorTagItem>)?
 
     /// 
     hidden FindingPublishingFrequency: (String|Mapping)?
@@ -79,12 +76,15 @@ open class Detector extends cloudformation.Resource {
     /// 
     hidden Enable: Boolean|Mapping
 
+    /// 
+    hidden DataSources: (DetectorCFNDataSourceConfigurations)?
+
     Properties {
-        ["DataSources"] = if (DataSources == null) null else DataSources
         ["Features"] = if (Features == null) null else Features
         ["Tags"] = if (Tags == null) null else Tags
         ["FindingPublishingFrequency"] = if (FindingPublishingFrequency == null) null else FindingPublishingFrequency
         ["Enable"] = if (Enable == null) null else Enable
+        ["DataSources"] = if (DataSources == null) null else DataSources
     }
 
 }

@@ -6,17 +6,17 @@ module aws.cloudformation.stack
 import "../../cloudformation.pkl"
 
 /// 
-open class Tag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// 
-open class Output {
+open class StackOutput {
     Description: (String|Mapping)?
     ExportName: (String|Mapping)?
     OutputKey: (String|Mapping)?
     OutputValue: (String|Mapping)?
+}
+
+/// 
+open class StackTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// The AWS::CloudFormation::Stack resource nests a stack as a resource in a top-level template.
@@ -26,7 +26,25 @@ open class Stack extends cloudformation.Resource {
 
 
     /// 
-    hidden TemplateBody: (Dynamic)?
+    hidden RoleARN: (String|Mapping)?
+
+    /// 
+    hidden NotificationARNs: (Listing<String|Mapping>)?
+
+    /// 
+    hidden Parameters: (StackStackParameters)?
+
+    /// 
+    hidden StackName: String|Mapping
+
+    /// 
+    hidden StackPolicyBody: (Dynamic)?
+
+    /// 
+    hidden StackPolicyURL: (String|Mapping)?
+
+    /// 
+    hidden StackStatusReason: (String|Mapping)?
 
     /// 
     hidden TimeoutInMinutes: (Int|Mapping)?
@@ -35,60 +53,44 @@ open class Stack extends cloudformation.Resource {
     hidden Description: (String|Mapping)?
 
     /// 
-    hidden DisableRollback: (Boolean|Mapping)?
-
-    /// 
     hidden EnableTerminationProtection: (Boolean|Mapping)?
 
     /// 
-    hidden StackName: String|Mapping
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
+    hidden TemplateBody: (Dynamic)?
 
     /// 
     hidden Capabilities: (Listing<StackCapabilities|Mapping>)?
 
     /// 
-    hidden NotificationARNs: (Listing<String|Mapping>)?
+    hidden DisableRollback: (Boolean|Mapping)?
 
     /// 
-    hidden Parameters: (Dynamic)?
-
-    /// 
-    hidden StackStatusReason: (String|Mapping)?
+    hidden Tags: (Listing<StackTag>)?
 
     /// 
     hidden TemplateURL: (String|Mapping)?
 
-    /// 
-    hidden RoleARN: (String|Mapping)?
-
-    /// 
-    hidden StackPolicyBody: (Dynamic)?
-
-    /// 
-    hidden StackPolicyURL: (String|Mapping)?
-
     Properties {
-        ["TemplateBody"] = if (TemplateBody == null) null else TemplateBody
-        ["TimeoutInMinutes"] = if (TimeoutInMinutes == null) null else TimeoutInMinutes
-        ["Description"] = if (Description == null) null else Description
-        ["DisableRollback"] = if (DisableRollback == null) null else DisableRollback
-        ["EnableTerminationProtection"] = if (EnableTerminationProtection == null) null else EnableTerminationProtection
-        ["StackName"] = if (StackName == null) null else StackName
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Capabilities"] = if (Capabilities == null) null else Capabilities
+        ["RoleARN"] = if (RoleARN == null) null else RoleARN
         ["NotificationARNs"] = if (NotificationARNs == null) null else NotificationARNs
         ["Parameters"] = if (Parameters == null) null else Parameters
-        ["StackStatusReason"] = if (StackStatusReason == null) null else StackStatusReason
-        ["TemplateURL"] = if (TemplateURL == null) null else TemplateURL
-        ["RoleARN"] = if (RoleARN == null) null else RoleARN
+        ["StackName"] = if (StackName == null) null else StackName
         ["StackPolicyBody"] = if (StackPolicyBody == null) null else StackPolicyBody
         ["StackPolicyURL"] = if (StackPolicyURL == null) null else StackPolicyURL
+        ["StackStatusReason"] = if (StackStatusReason == null) null else StackStatusReason
+        ["TimeoutInMinutes"] = if (TimeoutInMinutes == null) null else TimeoutInMinutes
+        ["Description"] = if (Description == null) null else Description
+        ["EnableTerminationProtection"] = if (EnableTerminationProtection == null) null else EnableTerminationProtection
+        ["TemplateBody"] = if (TemplateBody == null) null else TemplateBody
+        ["Capabilities"] = if (Capabilities == null) null else Capabilities
+        ["DisableRollback"] = if (DisableRollback == null) null else DisableRollback
+        ["Tags"] = if (Tags == null) null else Tags
+        ["TemplateURL"] = if (TemplateURL == null) null else TemplateURL
     }
 
 }
 
+
+typealias StackStackParameters = Mapping<String, Any>
 
 typealias StackCapabilities = "CAPABILITY_IAM"|"CAPABILITY_NAMED_IAM"|"CAPABILITY_AUTO_EXPAND"

@@ -5,89 +5,86 @@ module aws.cassandra.table
 
 import "../../cloudformation.pkl"
 
-typealias ClusteringKeyColumnOrderBy = "ASC"|"DESC"
-
-/// 
-open class ClusteringKeyColumn {
-    OrderBy: (ClusteringKeyColumnOrderBy|Mapping)?
-    Column: Column
+/// Represents replica specifications.
+open class TableReplicaSpecification {
+    ReadCapacityUnits: (Int|Mapping)?
+    ReadCapacityAutoScaling: (TableAutoScalingSetting)?
+    Region: String|Mapping
 }
 
+typealias TableKmsKeyIdentifier = String|Mapping
+
+
 /// Throughput for the specified table, which consists of values for ReadCapacityUnits and WriteCapacityUnits
-open class ProvisionedThroughput {
+open class TableProvisionedThroughput {
     ReadCapacityUnits: Int|Mapping
     WriteCapacityUnits: Int|Mapping
 }
 
-/// A key-value pair to apply to the resource
-open class Tag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// The AWS KMS customer master key (CMK) that should be used for the AWS KMS encryption. To specify a CMK, use its key ID, Amazon Resource Name (ARN), alias name, or alias ARN. 
-open class KmsKeyIdentifier {
-}
-
-/// Represents configuration for auto scaling.
-open class AutoScalingSetting {
-    ScalingPolicy: (ScalingPolicy)?
-    AutoScalingDisabled: (Boolean|Mapping)?
-    MinimumUnits: (Int|Mapping)?
-    MaximumUnits: (Int|Mapping)?
-}
-
-/// Represents scaling policy.
-open class ScalingPolicy {
-    TargetTrackingScalingPolicyConfiguration: (TargetTrackingScalingPolicyConfiguration)?
-}
-
-/// Represents replica specifications.
-open class ReplicaSpecification {
-    Region: String|Mapping
-    ReadCapacityUnits: (Int|Mapping)?
-    ReadCapacityAutoScaling: (AutoScalingSetting)?
-}
-
 /// 
-open class BillingMode {
-    Mode: Mode
-    ProvisionedThroughput: (ProvisionedThroughput)?
-}
-
-/// Represents the settings used to enable server-side encryption
-open class EncryptionSpecification {
-    EncryptionType: EncryptionType
-    KmsKeyIdentifier: (KmsKeyIdentifier)?
-}
-
-/// Represents configuration for target tracking scaling policy.
-open class TargetTrackingScalingPolicyConfiguration {
-    DisableScaleIn: (Boolean|Mapping)?
-    ScaleInCooldown: (Int|Mapping)?
-    ScaleOutCooldown: (Int|Mapping)?
-    TargetValue: Int|Mapping
-}
-
-/// 
-open class Column {
+open class TableColumn {
     ColumnName: String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9_]{1,47}$"#)))|Mapping
     ColumnType: String|Mapping
 }
 
-/// Capacity mode for the specified table
-open class Mode {
+/// Represents configuration for target tracking scaling policy.
+open class TableTargetTrackingScalingPolicyConfiguration {
+    ScaleOutCooldown: (Int|Mapping)?
+    TargetValue: Int|Mapping
+    DisableScaleIn: (Boolean|Mapping)?
+    ScaleInCooldown: (Int|Mapping)?
 }
 
-/// Server-side encryption type
-open class EncryptionType {
+typealias TableEncryptionType = String|Mapping
+
+
+/// 
+open class TableBillingMode {
+    Mode: TableMode
+    ProvisionedThroughput: (TableProvisionedThroughput)?
+}
+
+/// Represents configuration for auto scaling.
+open class TableAutoScalingSetting {
+    AutoScalingDisabled: (Boolean|Mapping)?
+    MinimumUnits: (Int|Mapping)?
+    MaximumUnits: (Int|Mapping)?
+    ScalingPolicy: (TableScalingPolicy)?
+}
+
+/// Represents the settings used to enable server-side encryption
+open class TableEncryptionSpecification {
+    EncryptionType: TableEncryptionType
+    KmsKeyIdentifier: (TableKmsKeyIdentifier)?
 }
 
 /// Represents the read and write settings used for AutoScaling.
-open class AutoScalingSpecification {
-    WriteCapacityAutoScaling: (AutoScalingSetting)?
-    ReadCapacityAutoScaling: (AutoScalingSetting)?
+open class TableAutoScalingSpecification {
+    ReadCapacityAutoScaling: (TableAutoScalingSetting)?
+    WriteCapacityAutoScaling: (TableAutoScalingSetting)?
 }
+
+/// Represents scaling policy.
+open class TableScalingPolicy {
+    TargetTrackingScalingPolicyConfiguration: (TableTargetTrackingScalingPolicyConfiguration)?
+}
+
+/// A key-value pair to apply to the resource
+open class TableTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+typealias ClusteringKeyColumnOrderBy = "ASC"|"DESC"
+
+/// 
+open class TableClusteringKeyColumn {
+    Column: TableColumn
+    OrderBy: (ClusteringKeyColumnOrderBy|Mapping)?
+}
+
+typealias TableMode = String|Mapping
+
 
 /// Resource schema for AWS::Cassandra::Table
 open class Table extends cloudformation.Resource {
@@ -95,59 +92,59 @@ open class Table extends cloudformation.Resource {
     Type = "AWS::Cassandra::Table"
 
 
-    /// 
-    hidden EncryptionSpecification: (EncryptionSpecification)?
-
-    /// 
-    hidden BillingMode: (BillingMode)?
-
-    /// Indicates whether point in time recovery is enabled (true) or disabled (false) on the table
-    hidden PointInTimeRecoveryEnabled: (Boolean|Mapping)?
-
-    /// Indicates whether client side timestamps are enabled (true) or disabled (false) on the table. False by default, once it is enabled it cannot be disabled again.
-    hidden ClientSideTimestampsEnabled: (Boolean|Mapping)?
-
-    /// Default TTL (Time To Live) in seconds, where zero is disabled. If the value is greater than zero, TTL is enabled for the entire table and an expiration timestamp is added to each column.
-    hidden DefaultTimeToLive: (Int|Mapping)?
-
-    /// Name for Cassandra table
-    hidden TableName: (String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9_]{1,47}$"#)))|Mapping)?
-
     /// Non-key columns of the table
-    hidden RegularColumns: (Listing<Column>)?
-
-    /// Partition key columns of the table
-    hidden PartitionKeyColumns: Listing<Column>
+    hidden RegularColumns: (Listing<TableColumn>)?
 
     /// Clustering key columns of the table
-    hidden ClusteringKeyColumns: (Listing<ClusteringKeyColumn>)?
-
-    /// 
-    hidden ReplicaSpecifications: (Listing<ReplicaSpecification>)?
+    hidden ClusteringKeyColumns: (Listing<TableClusteringKeyColumn>)?
 
     /// Name for Cassandra keyspace
     hidden KeyspaceName: String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9_]{1,47}$"#)))|Mapping
 
+    /// Indicates whether client side timestamps are enabled (true) or disabled (false) on the table. False by default, once it is enabled it cannot be disabled again.
+    hidden ClientSideTimestampsEnabled: (Boolean|Mapping)?
+
     /// An array of key-value pairs to apply to this resource
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<TableTag>)?
+
+    /// Default TTL (Time To Live) in seconds, where zero is disabled. If the value is greater than zero, TTL is enabled for the entire table and an expiration timestamp is added to each column.
+    hidden DefaultTimeToLive: (Int|Mapping)?
 
     /// 
-    hidden AutoScalingSpecifications: (AutoScalingSpecification)?
+    hidden EncryptionSpecification: (TableEncryptionSpecification)?
+
+    /// 
+    hidden AutoScalingSpecifications: (TableAutoScalingSpecification)?
+
+    /// Indicates whether point in time recovery is enabled (true) or disabled (false) on the table
+    hidden PointInTimeRecoveryEnabled: (Boolean|Mapping)?
+
+    /// 
+    hidden BillingMode: (TableBillingMode)?
+
+    /// Partition key columns of the table
+    hidden PartitionKeyColumns: Listing<TableColumn>
+
+    /// 
+    hidden ReplicaSpecifications: (Listing<TableReplicaSpecification>)?
+
+    /// Name for Cassandra table
+    hidden TableName: (String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9_]{1,47}$"#)))|Mapping)?
 
     Properties {
-        ["EncryptionSpecification"] = if (EncryptionSpecification == null) null else EncryptionSpecification
-        ["BillingMode"] = if (BillingMode == null) null else BillingMode
-        ["PointInTimeRecoveryEnabled"] = if (PointInTimeRecoveryEnabled == null) null else PointInTimeRecoveryEnabled
-        ["ClientSideTimestampsEnabled"] = if (ClientSideTimestampsEnabled == null) null else ClientSideTimestampsEnabled
-        ["DefaultTimeToLive"] = if (DefaultTimeToLive == null) null else DefaultTimeToLive
-        ["TableName"] = if (TableName == null) null else TableName
         ["RegularColumns"] = if (RegularColumns == null) null else RegularColumns
-        ["PartitionKeyColumns"] = if (PartitionKeyColumns == null) null else PartitionKeyColumns
         ["ClusteringKeyColumns"] = if (ClusteringKeyColumns == null) null else ClusteringKeyColumns
-        ["ReplicaSpecifications"] = if (ReplicaSpecifications == null) null else ReplicaSpecifications
         ["KeyspaceName"] = if (KeyspaceName == null) null else KeyspaceName
+        ["ClientSideTimestampsEnabled"] = if (ClientSideTimestampsEnabled == null) null else ClientSideTimestampsEnabled
         ["Tags"] = if (Tags == null) null else Tags
+        ["DefaultTimeToLive"] = if (DefaultTimeToLive == null) null else DefaultTimeToLive
+        ["EncryptionSpecification"] = if (EncryptionSpecification == null) null else EncryptionSpecification
         ["AutoScalingSpecifications"] = if (AutoScalingSpecifications == null) null else AutoScalingSpecifications
+        ["PointInTimeRecoveryEnabled"] = if (PointInTimeRecoveryEnabled == null) null else PointInTimeRecoveryEnabled
+        ["BillingMode"] = if (BillingMode == null) null else BillingMode
+        ["PartitionKeyColumns"] = if (PartitionKeyColumns == null) null else PartitionKeyColumns
+        ["ReplicaSpecifications"] = if (ReplicaSpecifications == null) null else ReplicaSpecifications
+        ["TableName"] = if (TableName == null) null else TableName
     }
 
 }

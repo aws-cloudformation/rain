@@ -5,54 +5,54 @@ module aws.evidently.launch
 
 import "../../cloudformation.pkl"
 
-/// 
-open class MetricDefinitionObject {
-    MetricName: String(matches(Regex(#"^[\S]+$"#)))|Mapping
-    EntityIdKey: String|Mapping
-    ValueKey: String|Mapping
-    EventPattern: (String|Mapping)?
-    UnitLabel: (String(matches(Regex(#".*"#)))|Mapping)?
-}
-
 /// A key-value pair to associate with a resource.
-open class Tag {
-    Value: String|Mapping
+open class LaunchTag {
     Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
+    Value: String|Mapping
 }
 
 /// 
-open class ExecutionStatusObject {
+open class LaunchExecutionStatusObject {
     Status: String|Mapping
     DesiredState: (String|Mapping)?
     Reason: (String|Mapping)?
 }
 
 /// 
-open class LaunchGroupObject {
-    Variation: String|Mapping
+open class LaunchLaunchGroupObject {
     GroupName: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
     Description: (String|Mapping)?
     Feature: String|Mapping
+    Variation: String|Mapping
 }
 
 /// 
-open class GroupToWeight {
+open class LaunchGroupToWeight {
     GroupName: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
     SplitWeight: Int|Mapping
 }
 
 /// 
-open class SegmentOverride {
-    EvaluationOrder: Int|Mapping
-    Weights: Listing<GroupToWeight>
+open class LaunchSegmentOverride {
     Segment: String(matches(Regex(#"([-a-zA-Z0-9._]*)|(arn:[^:]*:[^:]*:[^:]*:[^:]*:segment/[-a-zA-Z0-9._]*)"#)))|Mapping
+    EvaluationOrder: Int|Mapping
+    Weights: Listing<LaunchGroupToWeight>
 }
 
 /// 
-open class StepConfig {
+open class LaunchStepConfig {
     StartTime: String|Mapping
-    GroupWeights: Listing<GroupToWeight>
-    SegmentOverrides: (Listing<SegmentOverride>)?
+    GroupWeights: Listing<LaunchGroupToWeight>
+    SegmentOverrides: (Listing<LaunchSegmentOverride>)?
+}
+
+/// 
+open class LaunchMetricDefinitionObject {
+    EventPattern: (String|Mapping)?
+    UnitLabel: (String(matches(Regex(#".*"#)))|Mapping)?
+    MetricName: String(matches(Regex(#"^[\S]+$"#)))|Mapping
+    EntityIdKey: String|Mapping
+    ValueKey: String|Mapping
 }
 
 /// Resource Type definition for AWS::Evidently::Launch.
@@ -62,42 +62,42 @@ open class Launch extends cloudformation.Resource {
 
 
     /// 
-    hidden RandomizationSalt: (String(matches(Regex(#".*"#)))|Mapping)?
-
-    /// 
-    hidden Description: (String|Mapping)?
-
-    /// 
-    hidden ScheduledSplitsConfig: Listing<StepConfig>
-
-    /// 
-    hidden Groups: Listing<LaunchGroupObject>
-
-    /// 
-    hidden MetricMonitors: (Listing<MetricDefinitionObject>)?
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
+    hidden MetricMonitors: (Listing<LaunchMetricDefinitionObject>)?
 
     /// Start or Stop Launch Launch. Default is not started.
-    hidden ExecutionStatus: (ExecutionStatusObject)?
+    hidden ExecutionStatus: (LaunchExecutionStatusObject)?
+
+    /// 
+    hidden Project: String(matches(Regex(#"([-a-zA-Z0-9._]*)|(arn:[^:]*:[^:]*:[^:]*:[^:]*:project/[-a-zA-Z0-9._]*)"#)))|Mapping
+
+    /// 
+    hidden ScheduledSplitsConfig: Listing<LaunchStepConfig>
+
+    /// 
+    hidden Groups: Listing<LaunchLaunchGroupObject>
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<LaunchTag>)?
 
     /// 
     hidden Name: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
 
     /// 
-    hidden Project: String(matches(Regex(#"([-a-zA-Z0-9._]*)|(arn:[^:]*:[^:]*:[^:]*:[^:]*:project/[-a-zA-Z0-9._]*)"#)))|Mapping
+    hidden Description: (String|Mapping)?
+
+    /// 
+    hidden RandomizationSalt: (String(matches(Regex(#".*"#)))|Mapping)?
 
     Properties {
-        ["RandomizationSalt"] = if (RandomizationSalt == null) null else RandomizationSalt
-        ["Description"] = if (Description == null) null else Description
+        ["MetricMonitors"] = if (MetricMonitors == null) null else MetricMonitors
+        ["ExecutionStatus"] = if (ExecutionStatus == null) null else ExecutionStatus
+        ["Project"] = if (Project == null) null else Project
         ["ScheduledSplitsConfig"] = if (ScheduledSplitsConfig == null) null else ScheduledSplitsConfig
         ["Groups"] = if (Groups == null) null else Groups
-        ["MetricMonitors"] = if (MetricMonitors == null) null else MetricMonitors
         ["Tags"] = if (Tags == null) null else Tags
-        ["ExecutionStatus"] = if (ExecutionStatus == null) null else ExecutionStatus
         ["Name"] = if (Name == null) null else Name
-        ["Project"] = if (Project == null) null else Project
+        ["Description"] = if (Description == null) null else Description
+        ["RandomizationSalt"] = if (RandomizationSalt == null) null else RandomizationSalt
     }
 
 }

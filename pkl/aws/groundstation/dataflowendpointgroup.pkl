@@ -5,78 +5,76 @@ module aws.groundstation.dataflowendpointgroup
 
 import "../../cloudformation.pkl"
 
-/// The status of AgentEndpoint.
-open class AgentStatus {
-}
-
-/// A socket address with a port range.
-open class RangedSocketAddress {
-    Name: (String|Mapping)?
-    PortRange: (IntegerRange)?
-}
-
-/// Ingress address of AgentEndpoint with a port range and an optional mtu.
-open class RangedConnectionDetails {
-    SocketAddress: (RangedSocketAddress)?
-    Mtu: (Int|Mapping)?
-}
-
 /// Information about AwsGroundStationAgentEndpoint.
-open class AwsGroundStationAgentEndpoint {
+open class DataflowEndpointGroupAwsGroundStationAgentEndpoint {
+    AuditResults: (DataflowEndpointGroupAuditResults)?
     Name: (String(matches(Regex(#"^[ a-zA-Z0-9_:-]{1,256}$"#)))|Mapping)?
-    EgressAddress: (ConnectionDetails)?
-    IngressAddress: (RangedConnectionDetails)?
-    AgentStatus: (AgentStatus)?
-    AuditResults: (AuditResults)?
+    EgressAddress: (DataflowEndpointGroupConnectionDetails)?
+    IngressAddress: (DataflowEndpointGroupRangedConnectionDetails)?
+    AgentStatus: (DataflowEndpointGroupAgentStatus)?
 }
 
 /// 
-open class DataflowEndpoint {
-    Address: (SocketAddress)?
+open class DataflowEndpointGroupDataflowEndpoint {
     Mtu: (Int|Mapping)?
     Name: (String(matches(Regex(#"^[ a-zA-Z0-9_:-]{1,256}$"#)))|Mapping)?
+    Address: (DataflowEndpointGroupSocketAddress)?
 }
 
 /// 
-open class SecurityDetails {
+open class DataflowEndpointGroupTag {
+    Key: String(matches(Regex(#"^[ a-zA-Z0-9\+\-=._:/@]{1,128}$"#)))|Mapping
+    Value: String(matches(Regex(#"^[ a-zA-Z0-9\+\-=._:/@]{1,256}$"#)))|Mapping
+}
+
+/// Egress address of AgentEndpoint with an optional mtu.
+open class DataflowEndpointGroupConnectionDetails {
+    SocketAddress: (DataflowEndpointGroupSocketAddress)?
+    Mtu: (Int|Mapping)?
+}
+
+/// 
+open class DataflowEndpointGroupSecurityDetails {
     SubnetIds: (Listing<String|Mapping>)?
     SecurityGroupIds: (Listing<String|Mapping>)?
     RoleArn: (String|Mapping)?
 }
 
 /// 
-open class EndpointDetails {
-    SecurityDetails: (SecurityDetails)?
-    Endpoint: (DataflowEndpoint)?
-    AwsGroundStationAgentEndpoint: (AwsGroundStationAgentEndpoint)?
-}
-
-/// 
-open class SocketAddress {
-    Name: (String|Mapping)?
-    Port: (Int|Mapping)?
+open class DataflowEndpointGroupEndpointDetails {
+    SecurityDetails: (DataflowEndpointGroupSecurityDetails)?
+    Endpoint: (DataflowEndpointGroupDataflowEndpoint)?
+    AwsGroundStationAgentEndpoint: (DataflowEndpointGroupAwsGroundStationAgentEndpoint)?
 }
 
 /// An integer range that has a minimum and maximum value.
-open class IntegerRange {
+open class DataflowEndpointGroupIntegerRange {
     Minimum: (Int|Mapping)?
     Maximum: (Int|Mapping)?
 }
 
-/// Egress address of AgentEndpoint with an optional mtu.
-open class ConnectionDetails {
-    SocketAddress: (SocketAddress)?
+/// Ingress address of AgentEndpoint with a port range and an optional mtu.
+open class DataflowEndpointGroupRangedConnectionDetails {
     Mtu: (Int|Mapping)?
+    SocketAddress: (DataflowEndpointGroupRangedSocketAddress)?
 }
+
+typealias DataflowEndpointGroupAgentStatus = "SUCCESS"|"FAILED"|"ACTIVE"|"INACTIVE"
+
+
+typealias DataflowEndpointGroupAuditResults = "HEALTHY"|"UNHEALTHY"
+
 
 /// 
-open class Tag {
-    Key: String(matches(Regex(#"^[ a-zA-Z0-9\+\-=._:/@]{1,128}$"#)))|Mapping
-    Value: String(matches(Regex(#"^[ a-zA-Z0-9\+\-=._:/@]{1,256}$"#)))|Mapping
+open class DataflowEndpointGroupSocketAddress {
+    Name: (String|Mapping)?
+    Port: (Int|Mapping)?
 }
 
-/// The results of the audit.
-open class AuditResults {
+/// A socket address with a port range.
+open class DataflowEndpointGroupRangedSocketAddress {
+    Name: (String|Mapping)?
+    PortRange: (DataflowEndpointGroupIntegerRange)?
 }
 
 /// AWS Ground Station DataflowEndpointGroup schema for CloudFormation
@@ -85,23 +83,23 @@ open class DataflowEndpointGroup extends cloudformation.Resource {
     Type = "AWS::GroundStation::DataflowEndpointGroup"
 
 
-    /// Amount of time, in seconds, after a contact ends that the Ground Station Dataflow Endpoint Group will be in a POSTPASS state. A Ground Station Dataflow Endpoint Group State Change event will be emitted when the Dataflow Endpoint Group enters and exits the POSTPASS state.
-    hidden ContactPostPassDurationSeconds: (Int|Mapping)?
+    /// 
+    hidden Tags: (Listing<DataflowEndpointGroupTag>)?
 
     /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden EndpointDetails: Listing<EndpointDetails>
+    hidden EndpointDetails: Listing<DataflowEndpointGroupEndpointDetails>
 
     /// Amount of time, in seconds, before a contact starts that the Ground Station Dataflow Endpoint Group will be in a PREPASS state. A Ground Station Dataflow Endpoint Group State Change event will be emitted when the Dataflow Endpoint Group enters and exits the PREPASS state.
     hidden ContactPrePassDurationSeconds: (Int|Mapping)?
 
+    /// Amount of time, in seconds, after a contact ends that the Ground Station Dataflow Endpoint Group will be in a POSTPASS state. A Ground Station Dataflow Endpoint Group State Change event will be emitted when the Dataflow Endpoint Group enters and exits the POSTPASS state.
+    hidden ContactPostPassDurationSeconds: (Int|Mapping)?
+
     Properties {
-        ["ContactPostPassDurationSeconds"] = if (ContactPostPassDurationSeconds == null) null else ContactPostPassDurationSeconds
         ["Tags"] = if (Tags == null) null else Tags
         ["EndpointDetails"] = if (EndpointDetails == null) null else EndpointDetails
         ["ContactPrePassDurationSeconds"] = if (ContactPrePassDurationSeconds == null) null else ContactPrePassDurationSeconds
+        ["ContactPostPassDurationSeconds"] = if (ContactPostPassDurationSeconds == null) null else ContactPostPassDurationSeconds
     }
 
 }

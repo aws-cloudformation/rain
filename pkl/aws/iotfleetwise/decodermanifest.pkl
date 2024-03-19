@@ -5,96 +5,95 @@ module aws.iotfleetwise.decodermanifest
 
 import "../../cloudformation.pkl"
 
-/// 
-open class ObdSignal {
-    Scaling: Dynamic
-    BitRightShift: (Dynamic)?
-    BitMaskLength: (Dynamic)?
-    PidResponseLength: Dynamic
-    ServiceMode: Dynamic
-    Pid: Dynamic
-    Offset: Dynamic
-    StartByte: Dynamic
-    ByteLength: Dynamic
-}
-
 typealias CanSignalDecoderType = "CAN_SIGNAL"
 
 /// 
-open class CanSignalDecoder {
+open class DecoderManifestCanSignalDecoder {
+    InterfaceId: String|Mapping
+    CanSignal: DecoderManifestCanSignal
     FullyQualifiedName: String|Mapping
     Type: CanSignalDecoderType|Mapping
-    InterfaceId: String|Mapping
-    CanSignal: CanSignal
+}
+
+/// 
+open class DecoderManifestObdInterface {
+    UseExtendedIds: (Dynamic)?
+    HasTransmissionEcu: (Dynamic)?
+    Name: String|Mapping
+    RequestMessageId: Dynamic
+    ObdStandard: (String|Mapping)?
+    PidRequestIntervalSeconds: (Dynamic)?
+    DtcRequestIntervalSeconds: (Dynamic)?
 }
 
 typealias ObdSignalDecoderType = "OBD_SIGNAL"
 
 /// 
-open class ObdSignalDecoder {
+open class DecoderManifestObdSignalDecoder {
+    ObdSignal: DecoderManifestObdSignal
     FullyQualifiedName: String|Mapping
     Type: ObdSignalDecoderType|Mapping
     InterfaceId: String|Mapping
-    ObdSignal: ObdSignal
 }
 
 /// 
-open class CanInterface {
+open class DecoderManifestTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// 
+open class DecoderManifestCanInterface {
+    Name: String|Mapping
     ProtocolName: (String|Mapping)?
     ProtocolVersion: (String|Mapping)?
-    Name: String|Mapping
+}
+
+typealias ObdNetworkInterfaceType = "OBD_INTERFACE"
+
+/// 
+open class DecoderManifestObdNetworkInterface {
+    InterfaceId: String|Mapping
+    Type: ObdNetworkInterfaceType|Mapping
+    ObdInterface: DecoderManifestObdInterface
+}
+
+typealias CanNetworkInterfaceType = "CAN_INTERFACE"
+
+/// 
+open class DecoderManifestCanNetworkInterface {
+    InterfaceId: String|Mapping
+    Type: CanNetworkInterfaceType|Mapping
+    CanInterface: DecoderManifestCanInterface
 }
 
 /// 
-open class CanSignal {
-    MessageId: Dynamic
-    IsBigEndian: Dynamic
+open class DecoderManifestObdSignal {
+    StartByte: Dynamic
+    ByteLength: Dynamic
+    BitRightShift: (Dynamic)?
+    BitMaskLength: (Dynamic)?
+    PidResponseLength: Dynamic
+    ServiceMode: Dynamic
+    Pid: Dynamic
+    Scaling: Dynamic
+    Offset: Dynamic
+}
+
+/// 
+open class DecoderManifestCanSignal {
     IsSigned: Dynamic
     StartBit: Dynamic
     Offset: Dynamic
     Factor: Dynamic
     Length: Dynamic
     Name: (String|Mapping)?
+    MessageId: Dynamic
+    IsBigEndian: Dynamic
 }
 
-typealias CanNetworkInterfaceType = "CAN_INTERFACE"
+typealias DecoderManifestManifestStatus = "ACTIVE"|"DRAFT"
 
-/// 
-open class CanNetworkInterface {
-    InterfaceId: String|Mapping
-    Type: CanNetworkInterfaceType|Mapping
-    CanInterface: CanInterface
-}
-
-typealias ObdNetworkInterfaceType = "OBD_INTERFACE"
-
-/// 
-open class ObdNetworkInterface {
-    InterfaceId: String|Mapping
-    Type: ObdNetworkInterfaceType|Mapping
-    ObdInterface: ObdInterface
-}
-
-/// 
-open class ObdInterface {
-    ObdStandard: (String|Mapping)?
-    PidRequestIntervalSeconds: (Dynamic)?
-    DtcRequestIntervalSeconds: (Dynamic)?
-    UseExtendedIds: (Dynamic)?
-    HasTransmissionEcu: (Dynamic)?
-    Name: String|Mapping
-    RequestMessageId: Dynamic
-}
-
-/// 
-open class Tag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// 
-open class ManifestStatus {
-}
 
 /// Definition of AWS::IoTFleetWise::DecoderManifest Resource Type
 open class DecoderManifest extends cloudformation.Resource {
@@ -104,3 +103,12 @@ open class DecoderManifest extends cloudformation.Resource {
 
     /// 
     hidden Name: String(matches(Regex(#"^[a-zA-Z\d\-_:]+$"#)))|Mapping
+
+    /// 
+    hidden Status: (DecoderManifestManifestStatus)?
+
+    /// 
+    hidden Description: (String(matches(Regex(#"^[^\u0000-\u001F\u007F]+$"#)))|Mapping)?
+
+    /// 
+    hidden ModelManifestArn: String|Mapping

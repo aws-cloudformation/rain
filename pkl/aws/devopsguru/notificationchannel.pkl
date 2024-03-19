@@ -5,37 +5,33 @@ module aws.devopsguru.notificationchannel
 
 import "../../cloudformation.pkl"
 
-/// Information about filters of a notification channel configured in DevOpsGuru to filter for insights.
-open class NotificationFilterConfig {
-    Severities: (InsightSeveritiesFilterList)?
-    MessageTypes: (NotificationMessageTypesFilterList)?
-}
+typealias NotificationChannelInsightSeverity = "LOW"|"MEDIUM"|"HIGH"
 
-/// DevOps Guru Insight Severity Enum
-open class InsightSeverity {
-}
 
-/// DevOps Guru NotificationMessageType Enum
-open class NotificationMessageType {
-}
+typealias NotificationChannelNotificationMessageType = "NEW_INSIGHT"|"CLOSED_INSIGHT"|"NEW_ASSOCIATION"|"SEVERITY_UPGRADED"|"NEW_RECOMMENDATION"
 
-/// DevOps Guru insight severities to filter for
-open class InsightSeveritiesFilterList {
-}
 
-/// DevOps Guru message types to filter for
-open class NotificationMessageTypesFilterList {
-}
+typealias NotificationChannelInsightSeveritiesFilterList = Listing<(NotificationChannelInsightSeverity)?>
+
+
+typealias NotificationChannelNotificationMessageTypesFilterList = Listing<(NotificationChannelNotificationMessageType)?>
+
 
 /// Information about notification channels you have configured with DevOps Guru.
-open class NotificationChannelConfig {
-    Sns: (SnsChannelConfig)?
-    Filters: (NotificationFilterConfig)?
+open class NotificationChannelNotificationChannelConfig {
+    Sns: (NotificationChannelSnsChannelConfig)?
+    Filters: (NotificationChannelNotificationFilterConfig)?
 }
 
 /// Information about a notification channel configured in DevOps Guru to send notifications when insights are created.
-open class SnsChannelConfig {
+open class NotificationChannelSnsChannelConfig {
     TopicArn: (String(matches(Regex(#"^arn:aws[a-z0-9-]*:sns:[a-z0-9-]+:\d{12}:[^:]+$"#)))|Mapping)?
+}
+
+/// Information about filters of a notification channel configured in DevOpsGuru to filter for insights.
+open class NotificationChannelNotificationFilterConfig {
+    Severities: (NotificationChannelInsightSeveritiesFilterList)?
+    MessageTypes: (NotificationChannelNotificationMessageTypesFilterList)?
 }
 
 /// This resource schema represents the NotificationChannel resource in the Amazon DevOps Guru.
@@ -45,7 +41,7 @@ open class NotificationChannel extends cloudformation.Resource {
 
 
     /// 
-    hidden Config: NotificationChannelConfig
+    hidden Config: NotificationChannelNotificationChannelConfig
 
     Properties {
         ["Config"] = if (Config == null) null else Config

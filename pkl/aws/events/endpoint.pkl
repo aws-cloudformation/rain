@@ -6,54 +6,49 @@ module aws.events.endpoint
 import "../../cloudformation.pkl"
 
 /// 
-open class Primary {
-    HealthCheck: HealthCheck
+open class EndpointFailoverConfig {
+    Primary: EndpointPrimary
+    Secondary: EndpointSecondary
 }
 
 /// 
-open class Secondary {
-    Route: Route
+open class EndpointEndpointEventBus {
+    EventBusArn: EndpointEventBusArn
+}
+
+typealias EndpointRoute = String
+
+
+typealias EndpointReplicationState = "ENABLED"|"DISABLED"
+
+
+typealias EndpointEventBusArn = String
+
+
+typealias EndpointEventBuses = Listing<(EndpointEndpointEventBus)?>
+
+
+typealias EndpointHealthCheck = String
+
+
+/// 
+open class EndpointPrimary {
+    HealthCheck: EndpointHealthCheck
 }
 
 /// 
-open class RoutingConfig {
-    FailoverConfig: FailoverConfig
+open class EndpointSecondary {
+    Route: EndpointRoute
 }
 
 /// 
-open class ReplicationState {
+open class EndpointReplicationConfig {
+    State: EndpointReplicationState
 }
 
 /// 
-open class ReplicationConfig {
-    State: ReplicationState
-}
-
-/// 
-open class HealthCheck {
-}
-
-/// 
-open class Route {
-}
-
-/// 
-open class FailoverConfig {
-    Primary: Primary
-    Secondary: Secondary
-}
-
-/// 
-open class EventBusArn {
-}
-
-/// 
-open class EndpointEventBus {
-    EventBusArn: EventBusArn
-}
-
-/// 
-open class EventBuses {
+open class EndpointRoutingConfig {
+    FailoverConfig: EndpointFailoverConfig
 }
 
 /// Resource Type definition for AWS::Events::Endpoint.
@@ -66,13 +61,10 @@ open class Endpoint extends cloudformation.Resource {
     hidden Description: (String(matches(Regex(#".*"#)))|Mapping)?
 
     /// 
-    hidden RoutingConfig: RoutingConfig
+    hidden ReplicationConfig: (EndpointReplicationConfig)?
 
     /// 
-    hidden ReplicationConfig: (ReplicationConfig)?
-
-    /// 
-    hidden EventBuses: EventBuses
+    hidden EventBuses: EndpointEventBuses
 
     /// 
     hidden Name: (String(matches(Regex(#"^[\.\-_A-Za-z0-9]+$"#)))|Mapping)?
@@ -80,13 +72,16 @@ open class Endpoint extends cloudformation.Resource {
     /// 
     hidden RoleArn: (String(matches(Regex(#"^arn:aws[a-z-]*:iam::\d{12}:role\/[\w+=,.@/-]+$"#)))|Mapping)?
 
+    /// 
+    hidden RoutingConfig: EndpointRoutingConfig
+
     Properties {
         ["Description"] = if (Description == null) null else Description
-        ["RoutingConfig"] = if (RoutingConfig == null) null else RoutingConfig
         ["ReplicationConfig"] = if (ReplicationConfig == null) null else ReplicationConfig
         ["EventBuses"] = if (EventBuses == null) null else EventBuses
         ["Name"] = if (Name == null) null else Name
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
+        ["RoutingConfig"] = if (RoutingConfig == null) null else RoutingConfig
     }
 
 }

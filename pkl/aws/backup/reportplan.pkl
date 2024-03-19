@@ -6,7 +6,7 @@ module aws.backup.reportplan
 import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class ReportPlanTag {
     Key: (String|Mapping)?
     Value: (String|Mapping)?
 }
@@ -17,14 +17,11 @@ open class ReportPlan extends cloudformation.Resource {
     Type = "AWS::Backup::ReportPlan"
 
 
-    /// The unique name of the report plan. The name must be between 1 and 256 characters, starting with a letter, and consisting of letters (a-z, A-Z), numbers (0-9), and underscores (_).
-    hidden ReportPlanName: (String(matches(Regex(#"[a-zA-Z][_a-zA-Z0-9]*"#)))|Mapping)?
-
     /// An optional description of the report plan with a maximum of 1,024 characters.
     hidden ReportPlanDescription: (String(matches(Regex(#".*\S.*"#)))|Mapping)?
 
     /// Metadata that you can assign to help organize the report plans that you create. Each tag is a key-value pair.
-    hidden ReportPlanTags: (Listing<Tag>)?
+    hidden ReportPlanTags: (Listing<ReportPlanTag>)?
 
     /// A structure that contains information about where and how to deliver your reports, specifically your Amazon S3 bucket name, S3 key prefix, and the formats of your reports.
     hidden ReportDeliveryChannel: Dynamic
@@ -32,12 +29,15 @@ open class ReportPlan extends cloudformation.Resource {
     /// Identifies the report template for the report. Reports are built using a report template.
     hidden ReportSetting: Dynamic
 
+    /// The unique name of the report plan. The name must be between 1 and 256 characters, starting with a letter, and consisting of letters (a-z, A-Z), numbers (0-9), and underscores (_).
+    hidden ReportPlanName: (String(matches(Regex(#"[a-zA-Z][_a-zA-Z0-9]*"#)))|Mapping)?
+
     Properties {
-        ["ReportPlanName"] = if (ReportPlanName == null) null else ReportPlanName
         ["ReportPlanDescription"] = if (ReportPlanDescription == null) null else ReportPlanDescription
         ["ReportPlanTags"] = if (ReportPlanTags == null) null else ReportPlanTags
         ["ReportDeliveryChannel"] = if (ReportDeliveryChannel == null) null else ReportDeliveryChannel
         ["ReportSetting"] = if (ReportSetting == null) null else ReportSetting
+        ["ReportPlanName"] = if (ReportPlanName == null) null else ReportPlanName
     }
 
 }

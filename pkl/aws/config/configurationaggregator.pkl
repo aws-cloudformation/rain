@@ -6,21 +6,21 @@ module aws.config.configurationaggregator
 import "../../cloudformation.pkl"
 
 /// 
-open class AccountAggregationSource {
+open class ConfigurationAggregatorAccountAggregationSource {
     AllAwsRegions: (Boolean|Mapping)?
     AwsRegions: (Listing<String|Mapping>)?
     AccountIds: Listing<String|Mapping>
 }
 
 /// 
-open class OrganizationAggregationSource {
+open class ConfigurationAggregatorOrganizationAggregationSource {
+    RoleArn: String|Mapping
     AllAwsRegions: (Boolean|Mapping)?
     AwsRegions: (Listing<String|Mapping>)?
-    RoleArn: String|Mapping
 }
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class ConfigurationAggregatorTag {
     Key: String|Mapping
     Value: String|Mapping
 }
@@ -31,23 +31,23 @@ open class ConfigurationAggregator extends cloudformation.Resource {
     Type = "AWS::Config::ConfigurationAggregator"
 
 
+    /// The tags for the configuration aggregator.
+    hidden Tags: (Listing<ConfigurationAggregatorTag>)?
+
     /// 
-    hidden AccountAggregationSources: (Listing<AccountAggregationSource>)?
+    hidden AccountAggregationSources: (Listing<ConfigurationAggregatorAccountAggregationSource>)?
 
     /// The name of the aggregator.
     hidden ConfigurationAggregatorName: (String(matches(Regex(#"[\w\-]+"#)))|Mapping)?
 
     /// 
-    hidden OrganizationAggregationSource: (OrganizationAggregationSource)?
-
-    /// The tags for the configuration aggregator.
-    hidden Tags: (Listing<Tag>)?
+    hidden OrganizationAggregationSource: (ConfigurationAggregatorOrganizationAggregationSource)?
 
     Properties {
+        ["Tags"] = if (Tags == null) null else Tags
         ["AccountAggregationSources"] = if (AccountAggregationSources == null) null else AccountAggregationSources
         ["ConfigurationAggregatorName"] = if (ConfigurationAggregatorName == null) null else ConfigurationAggregatorName
         ["OrganizationAggregationSource"] = if (OrganizationAggregationSource == null) null else OrganizationAggregationSource
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

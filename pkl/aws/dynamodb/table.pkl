@@ -5,131 +5,134 @@ module aws.dynamodb.table
 
 import "../../cloudformation.pkl"
 
-/// The settings used to enable point in time recovery.
-open class PointInTimeRecoverySpecification {
-    PointInTimeRecoveryEnabled: (Boolean|Mapping)?
-}
-
-/// 
-open class DeprecatedKeySchema {
-    HashKeyElement: DeprecatedHashKeyElement
-}
-
-/// Describes a tag. A tag is a key-value pair. You can add up to 50 tags to a single DynamoDB table. 
-//////   AWS-assigned tag names and values are automatically assigned the ``aws:`` prefix, which the user cannot assign. AWS-assigned tag names do not count towards the tag limit of 50. User-assigned tag names have the prefix ``user:`` in the Cost Allocation Report. You cannot backdate the application of a tag.
-///  For an overview on tagging DynamoDB resources, see [Tagging for DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tagging.html) in the *Amazon DynamoDB Developer Guide*.
-open class Tag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// Represents the settings used to enable or disable Time to Live (TTL) for the specified table.
-open class TimeToLiveSpecification {
-    Enabled: Boolean|Mapping
-    AttributeName: (String|Mapping)?
-}
-
-/// Specifies the properties of data being imported from the S3 bucket source to the table.
-open class ImportSourceSpecification {
-    S3BucketSource: S3BucketSource
-    InputFormat: String|Mapping
-    InputFormatOptions: (InputFormatOptions)?
-    InputCompressionType: (String|Mapping)?
-}
-
-/// The format options for the data that was imported into the target table. There is one value, CsvOption.
-open class InputFormatOptions {
-    Csv: (Csv)?
-}
-
-/// The options for imported source files in CSV format. The values are Delimiter and HeaderList.
-open class Csv {
-    Delimiter: (String|Mapping)?
-    HeaderList: (Listing<String|Mapping>)?
-}
-
-/// Represents *a single element* of a key schema. A key schema specifies the attributes that make up the primary key of a table, or the key attributes of an index.
-//////  A ``KeySchemaElement`` represents exactly one attribute of the primary key. For example, a simple primary key would be represented by one ``KeySchemaElement`` (for the partition key). A composite primary key would require one ``KeySchemaElement`` for the partition key, and another ``KeySchemaElement`` for the sort key.
-///  A ``KeySchemaElement`` must be a scalar, top-level attribute (not a nested attribute). The data type must be one of String, Number, or Binary. The attribute cannot be nested within a List or a Map.
-open class KeySchema {
-    AttributeName: String|Mapping
-    KeyType: String|Mapping
-}
-
-/// 
-open class DeprecatedHashKeyElement {
-    AttributeType: String|Mapping
-    AttributeName: String|Mapping
-}
-
-/// Represents the settings used to enable server-side encryption.
-open class SSESpecification {
-    KMSMasterKeyId: (String|Mapping)?
-    SSEEnabled: Boolean|Mapping
-    SSEType: (String|Mapping)?
-}
-
-typealias KinesisStreamSpecificationApproximateCreationDateTimePrecision = "MICROSECOND"|"MILLISECOND"
-
-/// The Kinesis Data Streams configuration for the specified table.
-open class KinesisStreamSpecification {
-    ApproximateCreationDateTimePrecision: (KinesisStreamSpecificationApproximateCreationDateTimePrecision|Mapping)?
-    StreamArn: String|Mapping
-}
-
-/// Represents an attribute for describing the schema for the table and indexes.
-open class AttributeDefinition {
-    AttributeType: String|Mapping
-    AttributeName: String|Mapping
-}
-
-/// Represents attributes that are copied (projected) from the table into an index. These are in addition to the primary key attributes and index key attributes, which are automatically projected.
-open class Projection {
-    NonKeyAttributes: (Listing<String|Mapping>)?
-    ProjectionType: (String|Mapping)?
-}
-
-/// Throughput for the specified table, which consists of values for ``ReadCapacityUnits`` and ``WriteCapacityUnits``. For more information about the contents of a provisioned throughput structure, see [Table ProvisionedThroughput](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_ProvisionedThroughput.html).
-open class ProvisionedThroughput {
-    WriteCapacityUnits: Int|Mapping
-    ReadCapacityUnits: Int|Mapping
-}
-
-/// Represents the properties of a global secondary index.
-open class GlobalSecondaryIndex {
-    IndexName: String|Mapping
-    ContributorInsightsSpecification: (ContributorInsightsSpecification)?
-    Projection: Projection
-    ProvisionedThroughput: (ProvisionedThroughput)?
-    KeySchema: Listing<KeySchema>
-}
-
 /// The S3 bucket that is being imported from.
-open class S3BucketSource {
+open class TableS3BucketSource {
     S3Bucket: String|Mapping
     S3KeyPrefix: (String|Mapping)?
     S3BucketOwner: (String|Mapping)?
 }
 
-/// Represents the properties of a local secondary index. A local secondary index can only be created when its parent table is created.
-open class LocalSecondaryIndex {
-    IndexName: String|Mapping
-    Projection: Projection
-    KeySchema: Listing<KeySchema>
+/// Represents an attribute for describing the schema for the table and indexes.
+open class TableAttributeDefinition {
+    AttributeType: String|Mapping
+    AttributeName: String|Mapping
 }
 
-/// The settings used to enable or disable CloudWatch Contributor Insights.
-open class ContributorInsightsSpecification {
+/// Represents the settings used to enable server-side encryption.
+open class TableSSESpecification {
+    SSEEnabled: Boolean|Mapping
+    SSEType: (String|Mapping)?
+    KMSMasterKeyId: (String|Mapping)?
+}
+
+/// The settings used to enable point in time recovery.
+open class TablePointInTimeRecoverySpecification {
+    PointInTimeRecoveryEnabled: (Boolean|Mapping)?
+}
+
+/// 
+open class TableDeprecatedKeySchema {
+    HashKeyElement: TableDeprecatedHashKeyElement
+}
+
+/// Specifies the properties of data being imported from the S3 bucket source to the table.
+open class TableImportSourceSpecification {
+    InputCompressionType: (String|Mapping)?
+    S3BucketSource: TableS3BucketSource
+    InputFormat: String|Mapping
+    InputFormatOptions: (TableInputFormatOptions)?
+}
+
+/// Throughput for the specified table, which consists of values for ``ReadCapacityUnits`` and ``WriteCapacityUnits``. For more information about the contents of a provisioned throughput structure, see [Table ProvisionedThroughput](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_ProvisionedThroughput.html).
+open class TableProvisionedThroughput {
+    WriteCapacityUnits: Int|Mapping
+    ReadCapacityUnits: Int|Mapping
+}
+
+/// Represents the settings used to enable or disable Time to Live (TTL) for the specified table.
+open class TableTimeToLiveSpecification {
+    AttributeName: (String|Mapping)?
     Enabled: Boolean|Mapping
 }
 
+/// The format options for the data that was imported into the target table. There is one value, CsvOption.
+open class TableInputFormatOptions {
+    Csv: (TableCsv)?
+}
+
+/// Represents *a single element* of a key schema. A key schema specifies the attributes that make up the primary key of a table, or the key attributes of an index.
+///
+///  A ``KeySchemaElement`` represents exactly one attribute of the primary key. For example, a simple primary key would be represented by one ``KeySchemaElement`` (for the partition key). A composite primary key would require one ``KeySchemaElement`` for the partition key, and another ``KeySchemaElement`` for the sort key.
+///  A ``KeySchemaElement`` must be a scalar, top-level attribute (not a nested attribute). The data type must be one of String, Number, or Binary. The attribute cannot be nested within a List or a Map.
+open class TableKeySchema {
+    AttributeName: String|Mapping
+    KeyType: String|Mapping
+}
+
+/// Describes a tag. A tag is a key-value pair. You can add up to 50 tags to a single DynamoDB table. 
+///
+///   AWS-assigned tag names and values are automatically assigned the ``aws:`` prefix, which the user cannot assign. AWS-assigned tag names do not count towards the tag limit of 50. User-assigned tag names have the prefix ``user:`` in the Cost Allocation Report. You cannot backdate the application of a tag.
+///  For an overview on tagging DynamoDB resources, see [Tagging for DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tagging.html) in the *Amazon DynamoDB Developer Guide*.
+open class TableTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// The options for imported source files in CSV format. The values are Delimiter and HeaderList.
+open class TableCsv {
+    Delimiter: (String|Mapping)?
+    HeaderList: (Listing<String|Mapping>)?
+}
+
 /// Represents the DynamoDB Streams configuration for a table in DynamoDB.
-open class StreamSpecification {
+open class TableStreamSpecification {
     StreamViewType: String|Mapping
 }
 
+/// The settings used to enable or disable CloudWatch Contributor Insights.
+open class TableContributorInsightsSpecification {
+    Enabled: Boolean|Mapping
+}
+
+/// Represents the properties of a local secondary index. A local secondary index can only be created when its parent table is created.
+open class TableLocalSecondaryIndex {
+    IndexName: String|Mapping
+    Projection: TableProjection
+    KeySchema: Listing<TableKeySchema>
+}
+
+typealias KinesisStreamSpecificationApproximateCreationDateTimePrecision = "MICROSECOND"|"MILLISECOND"
+
+/// The Kinesis Data Streams configuration for the specified table.
+open class TableKinesisStreamSpecification {
+    ApproximateCreationDateTimePrecision: (KinesisStreamSpecificationApproximateCreationDateTimePrecision|Mapping)?
+    StreamArn: String|Mapping
+}
+
+/// Represents attributes that are copied (projected) from the table into an index. These are in addition to the primary key attributes and index key attributes, which are automatically projected.
+open class TableProjection {
+    ProjectionType: (String|Mapping)?
+    NonKeyAttributes: (Listing<String|Mapping>)?
+}
+
+/// Represents the properties of a global secondary index.
+open class TableGlobalSecondaryIndex {
+    Projection: TableProjection
+    ProvisionedThroughput: (TableProvisionedThroughput)?
+    KeySchema: Listing<TableKeySchema>
+    IndexName: String|Mapping
+    ContributorInsightsSpecification: (TableContributorInsightsSpecification)?
+}
+
+/// 
+open class TableDeprecatedHashKeyElement {
+    AttributeType: String|Mapping
+    AttributeName: String|Mapping
+}
+
 /// The ``AWS::DynamoDB::Table`` resource creates a DDB table. For more information, see [CreateTable](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_CreateTable.html) in the *API Reference*.
-//////  You should be aware of the following behaviors when working with DDB tables:
+///
+///  You should be aware of the following behaviors when working with DDB tables:
 ///   +  CFNlong typically creates DDB tables in parallel. However, if your template includes multiple DDB tables with indexes, you must declare dependencies so that the tables are created sequentially. DDBlong limits the number of tables with secondary indexes that are in the creating state. If you create multiple tables with indexes at the same time, DDB returns an error and the stack operation fails. For an example, see [DynamoDB Table with a DependsOn Attribute](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dynamodb-table.html#aws-resource-dynamodb-table--examples--DynamoDB_Table_with_a_DependsOn_Attribute).
 ///   
 ///    Our guidance is to use the latest schema documented here for your CFNlong templates. This schema supports the provisioning of all table settings below. When using this schema in your CFNlong templates, please ensure that your Identity and Access Management (IAM) policies are updated with appropriate permissions to allow for the authorization of these setting changes.
@@ -138,64 +141,27 @@ open class Table extends cloudformation.Resource {
     Type = "AWS::DynamoDB::Table"
 
 
+    /// The settings used to enable point in time recovery.
+    hidden PointInTimeRecoverySpecification: (TablePointInTimeRecoverySpecification)?
+
+    /// Specifies the Time to Live (TTL) settings for the table.
+    ///
+    ///   For detailed information about the limits in DynamoDB, see [Limits in Amazon DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Limits.html) in the Amazon DynamoDB Developer Guide.
+    hidden TimeToLiveSpecification: (TableTimeToLiveSpecification)?
+
+    /// Specifies the settings to enable server-side encryption.
+    hidden SSESpecification: (TableSSESpecification)?
+
     /// Specifies the properties of data being imported from the S3 bucket source to the table.
-    ///    ///   If you specify the ``ImportSourceSpecification`` property, and also specify either the ``StreamSpecification``, the ``TableClass`` property, or the ``DeletionProtectionEnabled`` property, the IAM entity creating/updating stack must have ``UpdateTable`` permission.
-    hidden ImportSourceSpecification: (ImportSourceSpecification)?
-
-    /// A name for the table. If you don't specify a name, CFNlong generates a unique physical ID and uses that ID for the table name. For more information, see [Name Type](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-name.html).
-    ///    ///   If you specify a name, you cannot perform updates that require replacement of this resource. You can perform updates that require no or some interruption. If you must replace the resource, specify a new name.
-    hidden TableName: (String|Mapping)?
-
-    /// A list of attributes that describe the key schema for the table and indexes.
-    ///    ///  This property is required to create a DDB table.
-    ///  Update requires: [Some interruptions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-some-interrupt). Replacement if you edit an existing AttributeDefinition.
-    hidden AttributeDefinitions: (Listing<AttributeDefinition>)?
-
-    /// The table class of the new table. Valid values are ``STANDARD`` and ``STANDARD_INFREQUENT_ACCESS``.
-    hidden TableClass: (String|Mapping)?
+    ///
+    ///   If you specify the ``ImportSourceSpecification`` property, and also specify either the ``StreamSpecification``, the ``TableClass`` property, or the ``DeletionProtectionEnabled`` property, the IAM entity creating/updating stack must have ``UpdateTable`` permission.
+    hidden ImportSourceSpecification: (TableImportSourceSpecification)?
 
     /// Global secondary indexes to be created on the table. You can create up to 20 global secondary indexes.
-    ///    ///   If you update a table to include a new global secondary index, CFNlong initiates the index creation and then proceeds with the stack update. CFNlong doesn't wait for the index to complete creation because the backfilling phase can take a long time, depending on the size of the table. You can't use the index or update the table until the index's status is ``ACTIVE``. You can track its status by using the DynamoDB [DescribeTable](https://docs.aws.amazon.com/cli/latest/reference/dynamodb/describe-table.html) command.
+    ///
+    ///   If you update a table to include a new global secondary index, CFNlong initiates the index creation and then proceeds with the stack update. CFNlong doesn't wait for the index to complete creation because the backfilling phase can take a long time, depending on the size of the table. You can't use the index or update the table until the index's status is ``ACTIVE``. You can track its status by using the DynamoDB [DescribeTable](https://docs.aws.amazon.com/cli/latest/reference/dynamodb/describe-table.html) command.
     ///  If you add or delete an index during an update, we recommend that you don't update any other resources. If your stack fails to update and is rolled back while adding a new index, you must manually delete the index. 
     ///  Updates are not supported. The following are exceptions:
     ///   +  If you update either the contributor insights specification or the provisioned throughput values of global secondary indexes, you can update the table without interruption.
     ///   +  You can delete or add one global secondary index without interruption. If you do both in the same update (for example, by changing the index's logical ID), the update fails.
-    hidden GlobalSecondaryIndexes: (Listing<GlobalSecondaryIndex>)?
-
-    /// The settings for the DDB table stream, which capture changes to items stored in the table.
-    hidden StreamSpecification: (StreamSpecification)?
-
-    /// The settings used to enable or disable CloudWatch Contributor Insights for the specified table.
-    hidden ContributorInsightsSpecification: (ContributorInsightsSpecification)?
-
-    /// The settings used to enable point in time recovery.
-    hidden PointInTimeRecoverySpecification: (PointInTimeRecoverySpecification)?
-
-    /// Specify how you are charged for read and write throughput and how you manage capacity.
-    ///    ///  Valid values include:
-    ///   +   ``PROVISIONED`` - We recommend using ``PROVISIONED`` for predictable workloads. ``PROVISIONED`` sets the billing mode to [Provisioned Mode](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadWriteCapacityMode.html#HowItWorks.ProvisionedThroughput.Manual).
-    ///   +   ``PAY_PER_REQUEST`` - We recommend using ``PAY_PER_REQUEST`` for unpredictable workloads. ``PAY_PER_REQUEST`` sets the billing mode to [On-Demand Mode](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadWriteCapacityMode.html#HowItWorks.OnDemand).
-    ///   
-    ///  If not specified, the default is ``PROVISIONED``.
-    hidden BillingMode: (String|Mapping)?
-
-    /// Specifies the settings to enable server-side encryption.
-    hidden SSESpecification: (SSESpecification)?
-
-    /// The Kinesis Data Streams configuration for the specified table.
-    hidden KinesisStreamSpecification: (KinesisStreamSpecification)?
-
-    /// Determines if a table is protected from deletion. When enabled, the table cannot be deleted by any user or process. This setting is disabled by default. For more information, see [Using deletion protection](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/WorkingWithTables.Basics.html#WorkingWithTables.Basics.DeletionProtection) in the *Developer Guide*.
-    hidden DeletionProtectionEnabled: (Boolean|Mapping)?
-
-    /// An array of key-value pairs to apply to this resource.
-    ///    ///  For more information, see [Tag](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-resource-tags.html).
-    hidden Tags: (Listing<Tag>)?
-
-    /// Specifies the Time to Live (TTL) settings for the table.
-    ///    ///   For detailed information about the limits in DynamoDB, see [Limits in Amazon DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Limits.html) in the Amazon DynamoDB Developer Guide.
-    hidden TimeToLiveSpecification: (TimeToLiveSpecification)?
-
-    /// Throughput for the specified table, which consists of values for ``ReadCapacityUnits`` and ``WriteCapacityUnits``. For more information about the contents of a provisioned throughput structure, see [Amazon DynamoDB Table ProvisionedThroughput](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_ProvisionedThroughput.html). 
-    ///    ///  If you set ``BillingMode`` as ``PROVISIONED``, you must specify this property. If you set ``BillingMode`` as ``PAY_PER_REQUEST``, you cannot specify this property.
-    hidden ProvisionedThroughput: (ProvisionedThroughput)?
+    hidden GlobalSecondaryIndexes: (Listing<TableGlobalSecondaryIndex>)?

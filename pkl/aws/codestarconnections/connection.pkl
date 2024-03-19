@@ -6,9 +6,9 @@ module aws.codestarconnections.connection
 import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
-open class Tag {
-    Value: String|Mapping
+open class ConnectionTag {
     Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// Schema for AWS::CodeStarConnections::Connection resource which can be used to connect external source providers with AWS CodePipeline
@@ -17,23 +17,23 @@ open class Connection extends cloudformation.Resource {
     Type = "AWS::CodeStarConnections::Connection"
 
 
-    /// The host arn configured to represent the infrastructure where your third-party provider is installed. You must specify either a ProviderType or a HostArn.
-    hidden HostArn: (String(matches(Regex(#"arn:aws(-[\w]+)*:.+:.+:[0-9]{12}:.+"#)))|Mapping)?
-
-    /// Specifies the tags applied to a connection.
-    hidden Tags: (Listing<Tag>)?
-
     /// The name of the connection. Connection names must be unique in an AWS user account.
     hidden ConnectionName: String|Mapping
 
     /// The name of the external provider where your third-party code repository is configured. You must specify either a ProviderType or a HostArn.
     hidden ProviderType: (String|Mapping)?
 
+    /// The host arn configured to represent the infrastructure where your third-party provider is installed. You must specify either a ProviderType or a HostArn.
+    hidden HostArn: (String(matches(Regex(#"arn:aws(-[\w]+)*:.+:.+:[0-9]{12}:.+"#)))|Mapping)?
+
+    /// Specifies the tags applied to a connection.
+    hidden Tags: (Listing<ConnectionTag>)?
+
     Properties {
-        ["HostArn"] = if (HostArn == null) null else HostArn
-        ["Tags"] = if (Tags == null) null else Tags
         ["ConnectionName"] = if (ConnectionName == null) null else ConnectionName
         ["ProviderType"] = if (ProviderType == null) null else ProviderType
+        ["HostArn"] = if (HostArn == null) null else HostArn
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

@@ -5,54 +5,54 @@ module aws.events.connection
 
 import "../../cloudformation.pkl"
 
-/// 
-open class BasicAuthParameters {
-    Username: String|Mapping
-    Password: String|Mapping
-}
-
 typealias OAuthParametersHttpMethod = "GET"|"POST"|"PUT"
 
 /// 
-open class OAuthParameters {
-    ClientParameters: ClientParameters
+open class ConnectionOAuthParameters {
+    OAuthHttpParameters: (ConnectionConnectionHttpParameters)?
+    ClientParameters: ConnectionClientParameters
     AuthorizationEndpoint: String|Mapping
     HttpMethod: OAuthParametersHttpMethod|Mapping
-    OAuthHttpParameters: (ConnectionHttpParameters)?
 }
 
 /// 
-open class ApiKeyAuthParameters {
+open class ConnectionApiKeyAuthParameters {
     ApiKeyName: String|Mapping
     ApiKeyValue: String|Mapping
 }
 
 /// 
-open class ClientParameters {
-    ClientID: String|Mapping
+open class ConnectionClientParameters {
     ClientSecret: String|Mapping
+    ClientID: String|Mapping
 }
 
 /// 
-open class ConnectionHttpParameters {
-    HeaderParameters: (Listing<Parameter>)?
-    QueryStringParameters: (Listing<Parameter>)?
-    BodyParameters: (Listing<Parameter>)?
+open class ConnectionConnectionHttpParameters {
+    HeaderParameters: (Listing<ConnectionParameter>)?
+    QueryStringParameters: (Listing<ConnectionParameter>)?
+    BodyParameters: (Listing<ConnectionParameter>)?
 }
 
 /// 
-open class Parameter {
+open class ConnectionParameter {
     Key: String|Mapping
     Value: String|Mapping
     IsValueSecret: (Boolean|Mapping)?
 }
 
 /// 
-open class AuthParameters {
-    OAuthParameters: (OAuthParameters)?
-    InvocationHttpParameters: (ConnectionHttpParameters)?
-    ApiKeyAuthParameters: (ApiKeyAuthParameters)?
-    BasicAuthParameters: (BasicAuthParameters)?
+open class ConnectionAuthParameters {
+    ApiKeyAuthParameters: (ConnectionApiKeyAuthParameters)?
+    BasicAuthParameters: (ConnectionBasicAuthParameters)?
+    OAuthParameters: (ConnectionOAuthParameters)?
+    InvocationHttpParameters: (ConnectionConnectionHttpParameters)?
+}
+
+/// 
+open class ConnectionBasicAuthParameters {
+    Username: String|Mapping
+    Password: String|Mapping
 }
 
 /// Resource Type definition for AWS::Events::Connection.
@@ -68,7 +68,7 @@ open class Connection extends cloudformation.Resource {
     hidden AuthorizationType: (ConnectionAuthorizationType|Mapping)?
 
     /// 
-    hidden AuthParameters: (AuthParameters)?
+    hidden AuthParameters: (ConnectionAuthParameters)?
 
     /// Name of the connection.
     hidden Name: (String|Mapping)?

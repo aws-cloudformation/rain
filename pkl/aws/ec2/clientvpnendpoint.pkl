@@ -6,58 +6,58 @@ module aws.ec2.clientvpnendpoint
 import "../../cloudformation.pkl"
 
 /// 
-open class TagSpecification {
-    ResourceType: String|Mapping
-    Tags: Listing<Tag>
-}
-
-/// 
-open class FederatedAuthenticationRequest {
-    SAMLProviderArn: String|Mapping
-    SelfServiceSAMLProviderArn: (String|Mapping)?
-}
-
-/// 
-open class ClientLoginBannerOptions {
-    Enabled: Boolean|Mapping
-    BannerText: (String|Mapping)?
-}
-
-/// 
-open class DirectoryServiceAuthenticationRequest {
-    DirectoryId: String|Mapping
-}
-
-/// 
-open class CertificateAuthenticationRequest {
-    ClientRootCertificateChainArn: String|Mapping
-}
-
-/// 
-open class ClientAuthenticationRequest {
-    MutualAuthentication: (CertificateAuthenticationRequest)?
-    Type: String|Mapping
-    ActiveDirectory: (DirectoryServiceAuthenticationRequest)?
-    FederatedAuthentication: (FederatedAuthenticationRequest)?
-}
-
-/// 
-open class Tag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class ConnectionLogOptions {
+open class ClientVpnEndpointConnectionLogOptions {
     Enabled: Boolean|Mapping
     CloudwatchLogGroup: (String|Mapping)?
     CloudwatchLogStream: (String|Mapping)?
 }
 
 /// 
-open class ClientConnectOptions {
+open class ClientVpnEndpointClientLoginBannerOptions {
     Enabled: Boolean|Mapping
+    BannerText: (String|Mapping)?
+}
+
+/// 
+open class ClientVpnEndpointClientAuthenticationRequest {
+    MutualAuthentication: (ClientVpnEndpointCertificateAuthenticationRequest)?
+    Type: String|Mapping
+    ActiveDirectory: (ClientVpnEndpointDirectoryServiceAuthenticationRequest)?
+    FederatedAuthentication: (ClientVpnEndpointFederatedAuthenticationRequest)?
+}
+
+/// 
+open class ClientVpnEndpointClientConnectOptions {
     LambdaFunctionArn: (String|Mapping)?
+    Enabled: Boolean|Mapping
+}
+
+/// 
+open class ClientVpnEndpointCertificateAuthenticationRequest {
+    ClientRootCertificateChainArn: String|Mapping
+}
+
+/// 
+open class ClientVpnEndpointDirectoryServiceAuthenticationRequest {
+    DirectoryId: String|Mapping
+}
+
+/// 
+open class ClientVpnEndpointTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// 
+open class ClientVpnEndpointTagSpecification {
+    Tags: Listing<ClientVpnEndpointTag>
+    ResourceType: String|Mapping
+}
+
+/// 
+open class ClientVpnEndpointFederatedAuthenticationRequest {
+    SAMLProviderArn: String|Mapping
+    SelfServiceSAMLProviderArn: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::EC2::ClientVpnEndpoint
@@ -67,70 +67,70 @@ open class ClientVpnEndpoint extends cloudformation.Resource {
 
 
     /// 
-    hidden AuthenticationOptions: Listing<ClientAuthenticationRequest>
-
-    /// 
-    hidden ServerCertificateArn: String|Mapping
-
-    /// 
     hidden SplitTunnel: (Boolean|Mapping)?
 
     /// 
-    hidden VpnPort: (Int|Mapping)?
-
-    /// 
-    hidden ClientCidrBlock: String|Mapping
-
-    /// 
-    hidden ConnectionLogOptions: ConnectionLogOptions
-
-    /// 
-    hidden TransportProtocol: (String|Mapping)?
-
-    /// 
-    hidden ClientConnectOptions: (ClientConnectOptions)?
-
-    /// 
-    hidden SecurityGroupIds: (Listing<String|Mapping>)?
+    hidden ClientLoginBannerOptions: (ClientVpnEndpointClientLoginBannerOptions)?
 
     /// 
     hidden VpcId: (String|Mapping)?
 
     /// 
-    hidden SelfServicePortal: (String|Mapping)?
+    hidden DnsServers: (Listing<String|Mapping>)?
 
     /// 
-    hidden TagSpecifications: (Listing<TagSpecification>)?
+    hidden Description: (String|Mapping)?
+
+    /// 
+    hidden TagSpecifications: (Listing<ClientVpnEndpointTagSpecification>)?
+
+    /// 
+    hidden ConnectionLogOptions: ClientVpnEndpointConnectionLogOptions
+
+    /// 
+    hidden VpnPort: (Int|Mapping)?
+
+    /// 
+    hidden ClientConnectOptions: (ClientVpnEndpointClientConnectOptions)?
+
+    /// 
+    hidden ServerCertificateArn: String|Mapping
 
     /// 
     hidden SessionTimeoutHours: (Int|Mapping)?
 
     /// 
-    hidden DnsServers: (Listing<String|Mapping>)?
+    hidden SecurityGroupIds: (Listing<String|Mapping>)?
 
     /// 
-    hidden ClientLoginBannerOptions: (ClientLoginBannerOptions)?
+    hidden AuthenticationOptions: Listing<ClientVpnEndpointClientAuthenticationRequest>
 
     /// 
-    hidden Description: (String|Mapping)?
+    hidden SelfServicePortal: (String|Mapping)?
+
+    /// 
+    hidden TransportProtocol: (String|Mapping)?
+
+    /// 
+    hidden ClientCidrBlock: String|Mapping
 
     Properties {
-        ["AuthenticationOptions"] = if (AuthenticationOptions == null) null else AuthenticationOptions
-        ["ServerCertificateArn"] = if (ServerCertificateArn == null) null else ServerCertificateArn
         ["SplitTunnel"] = if (SplitTunnel == null) null else SplitTunnel
-        ["VpnPort"] = if (VpnPort == null) null else VpnPort
-        ["ClientCidrBlock"] = if (ClientCidrBlock == null) null else ClientCidrBlock
-        ["ConnectionLogOptions"] = if (ConnectionLogOptions == null) null else ConnectionLogOptions
-        ["TransportProtocol"] = if (TransportProtocol == null) null else TransportProtocol
-        ["ClientConnectOptions"] = if (ClientConnectOptions == null) null else ClientConnectOptions
-        ["SecurityGroupIds"] = if (SecurityGroupIds == null) null else SecurityGroupIds
-        ["VpcId"] = if (VpcId == null) null else VpcId
-        ["SelfServicePortal"] = if (SelfServicePortal == null) null else SelfServicePortal
-        ["TagSpecifications"] = if (TagSpecifications == null) null else TagSpecifications
-        ["SessionTimeoutHours"] = if (SessionTimeoutHours == null) null else SessionTimeoutHours
-        ["DnsServers"] = if (DnsServers == null) null else DnsServers
         ["ClientLoginBannerOptions"] = if (ClientLoginBannerOptions == null) null else ClientLoginBannerOptions
+        ["VpcId"] = if (VpcId == null) null else VpcId
+        ["DnsServers"] = if (DnsServers == null) null else DnsServers
         ["Description"] = if (Description == null) null else Description
+        ["TagSpecifications"] = if (TagSpecifications == null) null else TagSpecifications
+        ["ConnectionLogOptions"] = if (ConnectionLogOptions == null) null else ConnectionLogOptions
+        ["VpnPort"] = if (VpnPort == null) null else VpnPort
+        ["ClientConnectOptions"] = if (ClientConnectOptions == null) null else ClientConnectOptions
+        ["ServerCertificateArn"] = if (ServerCertificateArn == null) null else ServerCertificateArn
+        ["SessionTimeoutHours"] = if (SessionTimeoutHours == null) null else SessionTimeoutHours
+        ["SecurityGroupIds"] = if (SecurityGroupIds == null) null else SecurityGroupIds
+        ["AuthenticationOptions"] = if (AuthenticationOptions == null) null else AuthenticationOptions
+        ["SelfServicePortal"] = if (SelfServicePortal == null) null else SelfServicePortal
+        ["TransportProtocol"] = if (TransportProtocol == null) null else TransportProtocol
+        ["ClientCidrBlock"] = if (ClientCidrBlock == null) null else ClientCidrBlock
     }
 
 }

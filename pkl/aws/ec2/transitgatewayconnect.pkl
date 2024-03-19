@@ -6,12 +6,12 @@ module aws.ec2.transitgatewayconnect
 import "../../cloudformation.pkl"
 
 /// 
-open class TransitGatewayConnectOptions {
+open class TransitGatewayConnectTransitGatewayConnectOptions {
     Protocol: (String|Mapping)?
 }
 
 /// 
-open class Tag {
+open class TransitGatewayConnectTag {
     Key: (String|Mapping)?
     Value: (String|Mapping)?
 }
@@ -22,19 +22,19 @@ open class TransitGatewayConnect extends cloudformation.Resource {
     Type = "AWS::EC2::TransitGatewayConnect"
 
 
+    /// The tags for the attachment.
+    hidden Tags: (Listing<TransitGatewayConnectTag>)?
+
+    /// The Connect attachment options.
+    hidden Options: TransitGatewayConnectTransitGatewayConnectOptions
+
     /// The ID of the attachment from which the Connect attachment was created.
     hidden TransportTransitGatewayAttachmentId: String|Mapping
 
-    /// The tags for the attachment.
-    hidden Tags: (Listing<Tag>)?
-
-    /// The Connect attachment options.
-    hidden Options: TransitGatewayConnectOptions
-
     Properties {
-        ["TransportTransitGatewayAttachmentId"] = if (TransportTransitGatewayAttachmentId == null) null else TransportTransitGatewayAttachmentId
         ["Tags"] = if (Tags == null) null else Tags
         ["Options"] = if (Options == null) null else Options
+        ["TransportTransitGatewayAttachmentId"] = if (TransportTransitGatewayAttachmentId == null) null else TransportTransitGatewayAttachmentId
     }
 
 }

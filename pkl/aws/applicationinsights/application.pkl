@@ -5,65 +5,24 @@ module aws.applicationinsights.application
 
 import "../../cloudformation.pkl"
 
-/// The NetWeaver Prometheus Exporter Settings.
-open class NetWeaverPrometheusExporter {
-    SAPSID: String|Mapping
-    InstanceNumbers: Listing<String|Mapping>
-    PrometheusPort: (String|Mapping)?
+/// The log pattern set.
+open class ApplicationLogPatternSet {
+    LogPatterns: Listing<ApplicationLogPattern>
+    PatternSetName: String(matches(Regex(#"[a-zA-Z0-9.-_]*"#)))|Mapping
 }
 
-/// A Windows Event to be monitored for the component.
-open class WindowsEvent {
-    EventLevels: Listing<EventLevel>
-    PatternSet: (String(matches(Regex(#"[a-zA-Z0-9.-_]*"#)))|Mapping)?
-    LogGroupName: String(matches(Regex(#"[\.\-_/#A-Za-z0-9]+"#)))|Mapping
-    EventName: String(matches(Regex(#"^[a-zA-Z0-9_ \\/-]+$"#)))|Mapping
-}
+typealias ApplicationEventLevel = String|Mapping
 
-typealias AlarmSeverity = "HIGH"|"MEDIUM"|"LOW"
-
-/// A CloudWatch alarm to be monitored for the component.
-open class Alarm {
-    AlarmName: String|Mapping
-    Severity: (AlarmSeverity|Mapping)?
-}
-
-/// The log pattern.
-open class LogPattern {
-    PatternName: String(matches(Regex(#"[a-zA-Z0-9.-_]*"#)))|Mapping
-    Pattern: String|Mapping
-    Rank: Int|Mapping
-}
-
-typealias ComponentMonitoringSettingComponentConfigurationMode = "DEFAULT"|"DEFAULT_WITH_OVERWRITE"|"CUSTOM"
-
-/// The monitoring setting of the component.
-open class ComponentMonitoringSetting {
-    Tier: String(matches(Regex(#"^[A-Z][[A-Z]_]*$"#)))|Mapping
-    ComponentConfigurationMode: ComponentMonitoringSettingComponentConfigurationMode|Mapping
-    DefaultOverwriteComponentConfiguration: (ComponentConfiguration)?
-    CustomComponentConfiguration: (ComponentConfiguration)?
-    ComponentName: (String(matches(Regex(#"^[\d\w\-_.+]*$"#)))|Mapping)?
-    ComponentARN: (String(matches(Regex(#"^arn:aws(-[\w]+)*:[\w\d-]+:([\w\d-]*)?:[\w\d_-]*([:/].+)*$"#)))|Mapping)?
-}
-
-/// The configuration settings of sub components.
-open class SubComponentConfigurationDetails {
-    Processes: (Listing<Process>)?
-    AlarmMetrics: (Listing<AlarmMetric>)?
-    Logs: (Listing<Log>)?
-    WindowsEvents: (Listing<WindowsEvent>)?
-}
 
 /// The HA cluster Prometheus Exporter settings.
-open class HAClusterPrometheusExporter {
+open class ApplicationHAClusterPrometheusExporter {
     PrometheusPort: (String|Mapping)?
 }
 
 typealias LogEncoding = "utf-8"|"utf-16"|"ascii"
 
 /// A log to be monitored for the component.
-open class Log {
+open class ApplicationLog {
     LogGroupName: (String(matches(Regex(#"[\.\-_/#A-Za-z0-9]+"#)))|Mapping)?
     LogPath: (String(matches(Regex(#"^([a-zA-Z]:\\[\\\S|*\S]?.*|/[^"']*)$"#)))|Mapping)?
     LogType: String(matches(Regex(#"^[A-Z][[A-Z]_]*$"#)))|Mapping
@@ -71,74 +30,122 @@ open class Log {
     PatternSet: (String(matches(Regex(#"[a-zA-Z0-9.-_]*"#)))|Mapping)?
 }
 
-/// A process to be monitored for the component.
-open class Process {
-    ProcessName: String(matches(Regex(#"^[a-zA-Z0-9_,-]+$"#)))|Mapping
-    AlarmMetrics: Listing<AlarmMetric>
-}
-
-/// A key-value pair to associate with a resource.
-open class Tag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// The custom grouped component.
-open class CustomComponent {
-    ComponentName: String(matches(Regex(#"^[\d\w\-_.+]*$"#)))|Mapping
-    ResourceList: Listing<String|Mapping>
-}
-
-/// The JMX Prometheus Exporter settings.
-open class JMXPrometheusExporter {
-    PrometheusPort: (String|Mapping)?
-    JMXURL: (String|Mapping)?
-    HostPort: (String|Mapping)?
-}
-
-/// A metric to be monitored for the component.
-open class AlarmMetric {
-    AlarmMetricName: String|Mapping
+/// The configuration settings of the component.
+open class ApplicationComponentConfiguration {
+    ConfigurationDetails: (ApplicationConfigurationDetails)?
+    SubComponentTypeConfigurations: (Listing<ApplicationSubComponentTypeConfiguration>)?
 }
 
 /// The configuration settings.
-open class ConfigurationDetails {
-    WindowsEvents: (Listing<WindowsEvent>)?
-    Processes: (Listing<Process>)?
-    Alarms: (Listing<Alarm>)?
-    JMXPrometheusExporter: (JMXPrometheusExporter)?
-    HANAPrometheusExporter: (HANAPrometheusExporter)?
-    NetWeaverPrometheusExporter: (NetWeaverPrometheusExporter)?
-    SQLServerPrometheusExporter: (SQLServerPrometheusExporter)?
-    AlarmMetrics: (Listing<AlarmMetric>)?
-    HAClusterPrometheusExporter: (HAClusterPrometheusExporter)?
-    Logs: (Listing<Log>)?
+open class ApplicationConfigurationDetails {
+    Logs: (Listing<ApplicationLog>)?
+    Processes: (Listing<ApplicationProcess>)?
+    JMXPrometheusExporter: (ApplicationJMXPrometheusExporter)?
+    HANAPrometheusExporter: (ApplicationHANAPrometheusExporter)?
+    HAClusterPrometheusExporter: (ApplicationHAClusterPrometheusExporter)?
+    NetWeaverPrometheusExporter: (ApplicationNetWeaverPrometheusExporter)?
+    SQLServerPrometheusExporter: (ApplicationSQLServerPrometheusExporter)?
+    AlarmMetrics: (Listing<ApplicationAlarmMetric>)?
+    WindowsEvents: (Listing<ApplicationWindowsEvent>)?
+    Alarms: (Listing<ApplicationAlarm>)?
+}
+
+/// A Windows Event to be monitored for the component.
+open class ApplicationWindowsEvent {
+    LogGroupName: String(matches(Regex(#"[\.\-_/#A-Za-z0-9]+"#)))|Mapping
+    EventName: String(matches(Regex(#"^[a-zA-Z0-9_ \\/-]+$"#)))|Mapping
+    EventLevels: Listing<ApplicationEventLevel>
+    PatternSet: (String(matches(Regex(#"[a-zA-Z0-9.-_]*"#)))|Mapping)?
+}
+
+/// A key-value pair to associate with a resource.
+open class ApplicationTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// The SQL prometheus exporter settings.
-open class SQLServerPrometheusExporter {
+open class ApplicationSQLServerPrometheusExporter {
     PrometheusPort: String|Mapping
     SQLSecretName: String|Mapping
 }
 
-/// The level of event to log.
-open class EventLevel {
+typealias AlarmSeverity = "HIGH"|"MEDIUM"|"LOW"
+
+/// A CloudWatch alarm to be monitored for the component.
+open class ApplicationAlarm {
+    AlarmName: String|Mapping
+    Severity: (AlarmSeverity|Mapping)?
 }
 
-/// The log pattern set.
-open class LogPatternSet {
-    PatternSetName: String(matches(Regex(#"[a-zA-Z0-9.-_]*"#)))|Mapping
-    LogPatterns: Listing<LogPattern>
+typealias ComponentMonitoringSettingComponentConfigurationMode = "DEFAULT"|"DEFAULT_WITH_OVERWRITE"|"CUSTOM"
+
+/// The monitoring setting of the component.
+open class ApplicationComponentMonitoringSetting {
+    ComponentName: (String(matches(Regex(#"^[\d\w\-_.+]*$"#)))|Mapping)?
+    ComponentARN: (String(matches(Regex(#"^arn:aws(-[\w]+)*:[\w\d-]+:([\w\d-]*)?:[\w\d_-]*([:/].+)*$"#)))|Mapping)?
+    Tier: String(matches(Regex(#"^[A-Z][[A-Z]_]*$"#)))|Mapping
+    ComponentConfigurationMode: ComponentMonitoringSettingComponentConfigurationMode|Mapping
+    DefaultOverwriteComponentConfiguration: (ApplicationComponentConfiguration)?
+    CustomComponentConfiguration: (ApplicationComponentConfiguration)?
 }
 
-/// The configuration settings of the component.
-open class ComponentConfiguration {
-    ConfigurationDetails: (ConfigurationDetails)?
-    SubComponentTypeConfigurations: (Listing<SubComponentTypeConfiguration>)?
+/// The JMX Prometheus Exporter settings.
+open class ApplicationJMXPrometheusExporter {
+    HostPort: (String|Mapping)?
+    PrometheusPort: (String|Mapping)?
+    JMXURL: (String|Mapping)?
+}
+
+/// The NetWeaver Prometheus Exporter Settings.
+open class ApplicationNetWeaverPrometheusExporter {
+    SAPSID: String|Mapping
+    InstanceNumbers: Listing<String|Mapping>
+    PrometheusPort: (String|Mapping)?
+}
+
+/// A process to be monitored for the component.
+open class ApplicationProcess {
+    ProcessName: String(matches(Regex(#"^[a-zA-Z0-9_,-]+$"#)))|Mapping
+    AlarmMetrics: Listing<ApplicationAlarmMetric>
+}
+
+typealias SubComponentTypeConfigurationSubComponentType = "AWS::EC2::Instance"|"AWS::EC2::Volume"
+
+/// One type sub component configurations for the component.
+open class ApplicationSubComponentTypeConfiguration {
+    SubComponentType: SubComponentTypeConfigurationSubComponentType|Mapping
+    SubComponentConfigurationDetails: ApplicationSubComponentConfigurationDetails
+}
+
+/// The configuration settings of sub components.
+open class ApplicationSubComponentConfigurationDetails {
+    AlarmMetrics: (Listing<ApplicationAlarmMetric>)?
+    Logs: (Listing<ApplicationLog>)?
+    WindowsEvents: (Listing<ApplicationWindowsEvent>)?
+    Processes: (Listing<ApplicationProcess>)?
+}
+
+/// The log pattern.
+open class ApplicationLogPattern {
+    PatternName: String(matches(Regex(#"[a-zA-Z0-9.-_]*"#)))|Mapping
+    Pattern: String|Mapping
+    Rank: Int|Mapping
+}
+
+/// A metric to be monitored for the component.
+open class ApplicationAlarmMetric {
+    AlarmMetricName: String|Mapping
+}
+
+/// The custom grouped component.
+open class ApplicationCustomComponent {
+    ComponentName: String(matches(Regex(#"^[\d\w\-_.+]*$"#)))|Mapping
+    ResourceList: Listing<String|Mapping>
 }
 
 /// The HANA DB Prometheus Exporter settings.
-open class HANAPrometheusExporter {
+open class ApplicationHANAPrometheusExporter {
     HANASID: String|Mapping
     HANAPort: String|Mapping
     HANASecretName: String|Mapping
@@ -146,28 +153,11 @@ open class HANAPrometheusExporter {
     PrometheusPort: (String|Mapping)?
 }
 
-typealias SubComponentTypeConfigurationSubComponentType = "AWS::EC2::Instance"|"AWS::EC2::Volume"
-
-/// One type sub component configurations for the component.
-open class SubComponentTypeConfiguration {
-    SubComponentType: SubComponentTypeConfigurationSubComponentType|Mapping
-    SubComponentConfigurationDetails: SubComponentConfigurationDetails
-}
-
 /// Resource schema for AWS::ApplicationInsights::Application
 open class Application extends cloudformation.Resource {
 
     Type = "AWS::ApplicationInsights::Application"
 
-
-    /// The tags of Application Insights application.
-    hidden Tags: (Listing<Tag>)?
-
-    /// The log pattern sets.
-    hidden LogPatternSets: (Listing<LogPatternSet>)?
-
-    /// If set to true, the managed policies for SSM and CW will be attached to the instance roles if they are missing
-    hidden AttachMissingPermission: (Boolean|Mapping)?
 
     /// The name of the resource group.
     hidden ResourceGroupName: String(matches(Regex(#"[a-zA-Z0-9.-_]*"#)))|Mapping
@@ -178,33 +168,42 @@ open class Application extends cloudformation.Resource {
     /// The SNS topic provided to Application Insights that is associated to the created opsItem.
     hidden OpsItemSNSTopicArn: (String(matches(Regex(#"^arn:aws(-[\w]+)*:[\w\d-]+:([\w\d-]*)?:[\w\d_-]*([:/].+)*$"#)))|Mapping)?
 
+    /// The tags of Application Insights application.
+    hidden Tags: (Listing<ApplicationTag>)?
+
+    /// The custom grouped components.
+    hidden CustomComponents: (Listing<ApplicationCustomComponent>)?
+
+    /// If set to true, application will be configured with recommended monitoring configuration.
+    hidden AutoConfigurationEnabled: (Boolean|Mapping)?
+
+    /// The monitoring settings of the components.
+    hidden ComponentMonitoringSettings: (Listing<ApplicationComponentMonitoringSetting>)?
+
     /// The grouping type of the application
     hidden GroupingType: (ApplicationGroupingType|Mapping)?
 
     /// When set to true, creates opsItems for any problems detected on an application.
     hidden OpsCenterEnabled: (Boolean|Mapping)?
 
-    /// The custom grouped components.
-    hidden CustomComponents: (Listing<CustomComponent>)?
+    /// The log pattern sets.
+    hidden LogPatternSets: (Listing<ApplicationLogPatternSet>)?
 
-    /// If set to true, application will be configured with recommended monitoring configuration.
-    hidden AutoConfigurationEnabled: (Boolean|Mapping)?
-
-    /// The monitoring settings of the components.
-    hidden ComponentMonitoringSettings: (Listing<ComponentMonitoringSetting>)?
+    /// If set to true, the managed policies for SSM and CW will be attached to the instance roles if they are missing
+    hidden AttachMissingPermission: (Boolean|Mapping)?
 
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["LogPatternSets"] = if (LogPatternSets == null) null else LogPatternSets
-        ["AttachMissingPermission"] = if (AttachMissingPermission == null) null else AttachMissingPermission
         ["ResourceGroupName"] = if (ResourceGroupName == null) null else ResourceGroupName
         ["CWEMonitorEnabled"] = if (CWEMonitorEnabled == null) null else CWEMonitorEnabled
         ["OpsItemSNSTopicArn"] = if (OpsItemSNSTopicArn == null) null else OpsItemSNSTopicArn
-        ["GroupingType"] = if (GroupingType == null) null else GroupingType
-        ["OpsCenterEnabled"] = if (OpsCenterEnabled == null) null else OpsCenterEnabled
+        ["Tags"] = if (Tags == null) null else Tags
         ["CustomComponents"] = if (CustomComponents == null) null else CustomComponents
         ["AutoConfigurationEnabled"] = if (AutoConfigurationEnabled == null) null else AutoConfigurationEnabled
         ["ComponentMonitoringSettings"] = if (ComponentMonitoringSettings == null) null else ComponentMonitoringSettings
+        ["GroupingType"] = if (GroupingType == null) null else GroupingType
+        ["OpsCenterEnabled"] = if (OpsCenterEnabled == null) null else OpsCenterEnabled
+        ["LogPatternSets"] = if (LogPatternSets == null) null else LogPatternSets
+        ["AttachMissingPermission"] = if (AttachMissingPermission == null) null else AttachMissingPermission
     }
 
 }

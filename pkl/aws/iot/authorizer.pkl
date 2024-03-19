@@ -6,9 +6,9 @@ module aws.iot.authorizer
 import "../../cloudformation.pkl"
 
 /// 
-open class Tag {
-    Key: String|Mapping
+open class AuthorizerTag {
     Value: String|Mapping
+    Key: String|Mapping
 }
 
 /// Creates an authorizer.
@@ -18,38 +18,38 @@ open class Authorizer extends cloudformation.Resource {
 
 
     /// 
-    hidden AuthorizerName: (String(matches(Regex(#"[\w=,@-]+"#)))|Mapping)?
+    hidden SigningDisabled: (Boolean|Mapping)?
 
     /// 
     hidden Status: (AuthorizerStatus|Mapping)?
 
     /// 
-    hidden TokenKeyName: (String|Mapping)?
-
-    /// 
     hidden TokenSigningPublicKeys: (Dynamic)?
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden AuthorizerFunctionArn: String|Mapping
 
     /// 
     hidden EnableCachingForHttp: (Boolean|Mapping)?
 
     /// 
-    hidden SigningDisabled: (Boolean|Mapping)?
+    hidden Tags: (Listing<AuthorizerTag>)?
+
+    /// 
+    hidden AuthorizerFunctionArn: String|Mapping
+
+    /// 
+    hidden AuthorizerName: (String(matches(Regex(#"[\w=,@-]+"#)))|Mapping)?
+
+    /// 
+    hidden TokenKeyName: (String|Mapping)?
 
     Properties {
-        ["AuthorizerName"] = if (AuthorizerName == null) null else AuthorizerName
+        ["SigningDisabled"] = if (SigningDisabled == null) null else SigningDisabled
         ["Status"] = if (Status == null) null else Status
-        ["TokenKeyName"] = if (TokenKeyName == null) null else TokenKeyName
         ["TokenSigningPublicKeys"] = if (TokenSigningPublicKeys == null) null else TokenSigningPublicKeys
+        ["EnableCachingForHttp"] = if (EnableCachingForHttp == null) null else EnableCachingForHttp
         ["Tags"] = if (Tags == null) null else Tags
         ["AuthorizerFunctionArn"] = if (AuthorizerFunctionArn == null) null else AuthorizerFunctionArn
-        ["EnableCachingForHttp"] = if (EnableCachingForHttp == null) null else EnableCachingForHttp
-        ["SigningDisabled"] = if (SigningDisabled == null) null else SigningDisabled
+        ["AuthorizerName"] = if (AuthorizerName == null) null else AuthorizerName
+        ["TokenKeyName"] = if (TokenKeyName == null) null else TokenKeyName
     }
 
 }

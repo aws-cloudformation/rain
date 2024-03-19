@@ -11,6 +11,12 @@ open class LifecycleHook extends cloudformation.Resource {
     Type = "AWS::AutoScaling::LifecycleHook"
 
 
+    /// The ARN of the IAM role that allows the Auto Scaling group to publish to the specified notification target, for example, an Amazon SNS topic or an Amazon SQS queue.
+    hidden RoleARN: (String|Mapping)?
+
+    /// The name of the Auto Scaling group for the lifecycle hook.
+    hidden AutoScalingGroupName: String|Mapping
+
     /// The action the Auto Scaling group takes when the lifecycle hook timeout elapses or if an unexpected failure occurs. The valid values are CONTINUE and ABANDON (default).
     hidden DefaultResult: (String|Mapping)?
 
@@ -29,21 +35,15 @@ open class LifecycleHook extends cloudformation.Resource {
     /// The Amazon Resource Name (ARN) of the notification target that Amazon EC2 Auto Scaling uses to notify you when an instance is in the transition state for the lifecycle hook. You can specify an Amazon SQS queue or an Amazon SNS topic. The notification message includes the following information: lifecycle action token, user account ID, Auto Scaling group name, lifecycle hook name, instance ID, lifecycle transition, and notification metadata.
     hidden NotificationTargetARN: (String|Mapping)?
 
-    /// The ARN of the IAM role that allows the Auto Scaling group to publish to the specified notification target, for example, an Amazon SNS topic or an Amazon SQS queue.
-    hidden RoleARN: (String|Mapping)?
-
-    /// The name of the Auto Scaling group for the lifecycle hook.
-    hidden AutoScalingGroupName: String|Mapping
-
     Properties {
+        ["RoleARN"] = if (RoleARN == null) null else RoleARN
+        ["AutoScalingGroupName"] = if (AutoScalingGroupName == null) null else AutoScalingGroupName
         ["DefaultResult"] = if (DefaultResult == null) null else DefaultResult
         ["HeartbeatTimeout"] = if (HeartbeatTimeout == null) null else HeartbeatTimeout
         ["LifecycleHookName"] = if (LifecycleHookName == null) null else LifecycleHookName
         ["LifecycleTransition"] = if (LifecycleTransition == null) null else LifecycleTransition
         ["NotificationMetadata"] = if (NotificationMetadata == null) null else NotificationMetadata
         ["NotificationTargetARN"] = if (NotificationTargetARN == null) null else NotificationTargetARN
-        ["RoleARN"] = if (RoleARN == null) null else RoleARN
-        ["AutoScalingGroupName"] = if (AutoScalingGroupName == null) null else AutoScalingGroupName
     }
 
 }

@@ -11,17 +11,11 @@ open class ReportDefinition extends cloudformation.Resource {
     Type = "AWS::CUR::ReportDefinition"
 
 
-    /// The format that AWS saves the report in.
-    hidden Format: ReportDefinitionFormat|Mapping
-
-    /// The S3 bucket where AWS delivers the report.
-    hidden S3Bucket: String(matches(Regex(#"[A-Za-z0-9_\.\-]+"#)))|Mapping
-
     /// The prefix that AWS adds to the report name when AWS delivers the report. Your prefix can't include spaces.
     hidden S3Prefix: String(matches(Regex(#"[0-9A-Za-z!\-_.*\'()/]*"#)))|Mapping
 
-    /// The region of the S3 bucket that AWS delivers the report into.
-    hidden S3Region: String|Mapping
+    /// A list of manifests that you want Amazon Web Services to create for this report.
+    hidden AdditionalArtifacts: (Listing<ReportDefinitionAdditionalArtifacts|Mapping>)?
 
     /// The name of the report that you want to create. The name must be unique, is case sensitive, and can't include spaces.
     hidden ReportName: String(matches(Regex(#"[0-9A-Za-z!\-_.*\'()]+"#)))|Mapping
@@ -29,14 +23,11 @@ open class ReportDefinition extends cloudformation.Resource {
     /// The granularity of the line items in the report.
     hidden TimeUnit: ReportDefinitionTimeUnit|Mapping
 
-    /// The compression format that AWS uses for the report.
-    hidden Compression: ReportDefinitionCompression|Mapping
+    /// The S3 bucket where AWS delivers the report.
+    hidden S3Bucket: String(matches(Regex(#"[A-Za-z0-9_\.\-]+"#)))|Mapping
 
-    /// A list of strings that indicate additional content that Amazon Web Services includes in the report, such as individual resource IDs.
-    hidden AdditionalSchemaElements: (Listing<ReportDefinitionAdditionalSchemaElements|Mapping>)?
-
-    /// A list of manifests that you want Amazon Web Services to create for this report.
-    hidden AdditionalArtifacts: (Listing<ReportDefinitionAdditionalArtifacts|Mapping>)?
+    /// The region of the S3 bucket that AWS delivers the report into.
+    hidden S3Region: String|Mapping
 
     /// Whether you want Amazon Web Services to update your reports after they have been finalized if Amazon Web Services detects charges related to previous months. These charges can include refunds, credits, or support fees.
     hidden RefreshClosedReports: Boolean|Mapping
@@ -47,32 +38,41 @@ open class ReportDefinition extends cloudformation.Resource {
     /// The Amazon resource name of the billing view. You can get this value by using the billing view service public APIs.
     hidden BillingViewArn: (String(matches(Regex(#"(arn:aws(-cn)?:billing::[0-9]{12}:billingview/)?[a-zA-Z0-9_\+=\.\-@].{1,30}"#)))|Mapping)?
 
+    /// The format that AWS saves the report in.
+    hidden Format: ReportDefinitionFormat|Mapping
+
+    /// The compression format that AWS uses for the report.
+    hidden Compression: ReportDefinitionCompression|Mapping
+
+    /// A list of strings that indicate additional content that Amazon Web Services includes in the report, such as individual resource IDs.
+    hidden AdditionalSchemaElements: (Listing<ReportDefinitionAdditionalSchemaElements|Mapping>)?
+
     Properties {
-        ["Format"] = if (Format == null) null else Format
-        ["S3Bucket"] = if (S3Bucket == null) null else S3Bucket
         ["S3Prefix"] = if (S3Prefix == null) null else S3Prefix
-        ["S3Region"] = if (S3Region == null) null else S3Region
+        ["AdditionalArtifacts"] = if (AdditionalArtifacts == null) null else AdditionalArtifacts
         ["ReportName"] = if (ReportName == null) null else ReportName
         ["TimeUnit"] = if (TimeUnit == null) null else TimeUnit
-        ["Compression"] = if (Compression == null) null else Compression
-        ["AdditionalSchemaElements"] = if (AdditionalSchemaElements == null) null else AdditionalSchemaElements
-        ["AdditionalArtifacts"] = if (AdditionalArtifacts == null) null else AdditionalArtifacts
+        ["S3Bucket"] = if (S3Bucket == null) null else S3Bucket
+        ["S3Region"] = if (S3Region == null) null else S3Region
         ["RefreshClosedReports"] = if (RefreshClosedReports == null) null else RefreshClosedReports
         ["ReportVersioning"] = if (ReportVersioning == null) null else ReportVersioning
         ["BillingViewArn"] = if (BillingViewArn == null) null else BillingViewArn
+        ["Format"] = if (Format == null) null else Format
+        ["Compression"] = if (Compression == null) null else Compression
+        ["AdditionalSchemaElements"] = if (AdditionalSchemaElements == null) null else AdditionalSchemaElements
     }
 
 }
 
 
-typealias ReportDefinitionFormat = "textORcsv"|"Parquet"
+typealias ReportDefinitionAdditionalArtifacts = "REDSHIFT"|"QUICKSIGHT"|"ATHENA"
 
 typealias ReportDefinitionTimeUnit = "HOURLY"|"DAILY"|"MONTHLY"
+
+typealias ReportDefinitionReportVersioning = "CREATE_NEW_REPORT"|"OVERWRITE_REPORT"
+
+typealias ReportDefinitionFormat = "textORcsv"|"Parquet"
 
 typealias ReportDefinitionCompression = "ZIP"|"GZIP"|"Parquet"
 
 typealias ReportDefinitionAdditionalSchemaElements = "RESOURCES"
-
-typealias ReportDefinitionAdditionalArtifacts = "REDSHIFT"|"QUICKSIGHT"|"ATHENA"
-
-typealias ReportDefinitionReportVersioning = "CREATE_NEW_REPORT"|"OVERWRITE_REPORT"

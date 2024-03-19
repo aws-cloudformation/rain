@@ -13,8 +13,8 @@ open class EnvironmentMonitor {
 
 /// Metadata to assign to the environment. Tags help organize and categorize your AWS AppConfig resources. Each tag consists of a key and an optional value, both of which you define.
 open class EnvironmentTag {
-    Key: String(matches(Regex(#"^(?!aws:.)[a-zA-Z1-9+=._:/-]*$"#)))|Mapping
     Value: String|Mapping
+    Key: String(matches(Regex(#"^(?!aws:.)[a-zA-Z1-9+=._:/-]*$"#)))|Mapping
 }
 
 /// Resource Type definition for AWS::AppConfig::Environment
@@ -22,12 +22,6 @@ open class Environment extends cloudformation.Resource {
 
     Type = "AWS::AppConfig::Environment"
 
-
-    /// A name for the environment.
-    hidden Name: String|Mapping
-
-    /// A description of the environment.
-    hidden Description: (String|Mapping)?
 
     /// Amazon CloudWatch alarms to monitor during the deployment process.
     hidden Monitors: (Listing<EnvironmentMonitor>)?
@@ -38,12 +32,18 @@ open class Environment extends cloudformation.Resource {
     /// The application ID.
     hidden ApplicationId: String(matches(Regex(#"[a-z0-9]{4,7}"#)))|Mapping
 
+    /// A name for the environment.
+    hidden Name: String|Mapping
+
+    /// A description of the environment.
+    hidden Description: (String|Mapping)?
+
     Properties {
-        ["Name"] = if (Name == null) null else Name
-        ["Description"] = if (Description == null) null else Description
         ["Monitors"] = if (Monitors == null) null else Monitors
         ["Tags"] = if (Tags == null) null else Tags
         ["ApplicationId"] = if (ApplicationId == null) null else ApplicationId
+        ["Name"] = if (Name == null) null else Name
+        ["Description"] = if (Description == null) null else Description
     }
 
 }

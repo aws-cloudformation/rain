@@ -5,28 +5,23 @@ module aws.config.conformancepack
 
 import "../../cloudformation.pkl"
 
-/// Key part of key-value pair with value being parameter value
-open class ParameterName {
-}
+typealias ConformancePackParameterValue = String|Mapping
 
-/// Value part of key-value pair with key being parameter Name
-open class ParameterValue {
-}
 
 /// Input parameters in the form of key-value pairs for the conformance pack.
-open class ConformancePackInputParameter {
-    ParameterValue: ParameterValue
-    ParameterName: ParameterName
+open class ConformancePackConformancePackInputParameter {
+    ParameterName: ConformancePackParameterName
+    ParameterValue: ConformancePackParameterValue
 }
+
+typealias ConformancePackParameterName = String|Mapping
+
 
 /// A conformance pack is a collection of AWS Config rules and remediation actions that can be easily deployed as a single entity in an account and a region or across an entire AWS Organization.
 open class ConformancePack extends cloudformation.Resource {
 
     Type = "AWS::Config::ConformancePack"
 
-
-    /// The prefix for delivery S3 bucket.
-    hidden DeliveryS3KeyPrefix: (String|Mapping)?
 
     /// A string containing full conformance pack template body. You can only specify one of the template body or template S3Uri fields.
     hidden TemplateBody: (String|Mapping)?
@@ -38,7 +33,7 @@ open class ConformancePack extends cloudformation.Resource {
     hidden TemplateSSMDocumentDetails: (Dynamic)?
 
     /// A list of ConformancePackInputParameter objects.
-    hidden ConformancePackInputParameters: (Listing<ConformancePackInputParameter>)?
+    hidden ConformancePackInputParameters: (Listing<ConformancePackConformancePackInputParameter>)?
 
     /// Name of the conformance pack which will be assigned as the unique identifier.
     hidden ConformancePackName: String(matches(Regex(#"[a-zA-Z][-a-zA-Z0-9]*"#)))|Mapping
@@ -46,14 +41,17 @@ open class ConformancePack extends cloudformation.Resource {
     /// AWS Config stores intermediate files while processing conformance pack template.
     hidden DeliveryS3Bucket: (String|Mapping)?
 
+    /// The prefix for delivery S3 bucket.
+    hidden DeliveryS3KeyPrefix: (String|Mapping)?
+
     Properties {
-        ["DeliveryS3KeyPrefix"] = if (DeliveryS3KeyPrefix == null) null else DeliveryS3KeyPrefix
         ["TemplateBody"] = if (TemplateBody == null) null else TemplateBody
         ["TemplateS3Uri"] = if (TemplateS3Uri == null) null else TemplateS3Uri
         ["TemplateSSMDocumentDetails"] = if (TemplateSSMDocumentDetails == null) null else TemplateSSMDocumentDetails
         ["ConformancePackInputParameters"] = if (ConformancePackInputParameters == null) null else ConformancePackInputParameters
         ["ConformancePackName"] = if (ConformancePackName == null) null else ConformancePackName
         ["DeliveryS3Bucket"] = if (DeliveryS3Bucket == null) null else DeliveryS3Bucket
+        ["DeliveryS3KeyPrefix"] = if (DeliveryS3KeyPrefix == null) null else DeliveryS3KeyPrefix
     }
 
 }

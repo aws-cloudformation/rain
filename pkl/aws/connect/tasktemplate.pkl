@@ -5,77 +5,69 @@ module aws.connect.tasktemplate
 
 import "../../cloudformation.pkl"
 
+typealias TaskTemplateFieldValue = String|Mapping
+
+
+typealias TaskTemplateFieldType = String|Mapping
+
+
+typealias TaskTemplateFieldOption = String|Mapping
+
+
+/// Invisible field info
+open class TaskTemplateInvisibleFieldInfo {
+    Id: TaskTemplateFieldIdentifier
+}
+
 /// the identifier (name) for the task template field
-open class FieldIdentifier {
+open class TaskTemplateFieldIdentifier {
     Name: String|Mapping
 }
 
-/// Single select field identifier
-open class FieldOption {
+/// A key-value pair to associate with a resource.
+open class TaskTemplateTag {
+    Value: String|Mapping
+    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
 }
+
+typealias TaskTemplateReadOnlyTaskTemplateFields = Listing<(TaskTemplateReadOnlyFieldInfo)?>
+
 
 /// ReadOnly field info
-open class ReadOnlyFieldInfo {
-    Id: FieldIdentifier
+open class TaskTemplateReadOnlyFieldInfo {
+    Id: TaskTemplateFieldIdentifier
 }
 
 /// the default value for the task template's field
-open class FieldValue {
+open class TaskTemplateDefaultFieldValue {
+    Id: TaskTemplateFieldIdentifier
+    DefaultValue: TaskTemplateFieldValue
 }
 
-/// The type of the task template's field
-open class FieldType {
-}
+typealias TaskTemplateInvisibleTaskTemplateFields = Listing<(TaskTemplateInvisibleFieldInfo)?>
 
-/// A task template field object.
-open class Field {
-    SingleSelectOptions: (Listing<FieldOption>)?
-    Id: FieldIdentifier
-    Description: (String|Mapping)?
-    Type: FieldType
-}
-
-/// The list of the task template's read only fields
-open class ReadOnlyTaskTemplateFields {
-}
-
-/// the default value for the task template's field
-open class DefaultFieldValue {
-    Id: FieldIdentifier
-    DefaultValue: FieldValue
-}
-
-/// The list of the task template's invisible fields
-open class InvisibleTaskTemplateFields {
-}
-
-/// The list of the task template's required fields
-open class RequiredTaskTemplateFields {
-}
-
-/// A key-value pair to associate with a resource.
-open class Tag {
-    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
-    Value: String|Mapping
-}
-
-/// The status of the task template
-open class Status {
-}
-
-/// Invisible field info
-open class InvisibleFieldInfo {
-    Id: FieldIdentifier
-}
 
 /// Required field info
-open class RequiredFieldInfo {
-    Id: FieldIdentifier
+open class TaskTemplateRequiredFieldInfo {
+    Id: TaskTemplateFieldIdentifier
 }
 
-/// the client token string in uuid format
-open class ClientToken {
+typealias TaskTemplateClientToken = String|Mapping
+
+
+/// A task template field object.
+open class TaskTemplateField {
+    Id: TaskTemplateFieldIdentifier
+    Description: (String|Mapping)?
+    Type: TaskTemplateFieldType
+    SingleSelectOptions: (Listing<TaskTemplateFieldOption>)?
 }
+
+typealias TaskTemplateRequiredTaskTemplateFields = Listing<(TaskTemplateRequiredFieldInfo)?>
+
+
+typealias TaskTemplateStatus = String|Mapping
+
 
 /// Resource Type definition for AWS::Connect::TaskTemplate.
 open class TaskTemplate extends cloudformation.Resource {
@@ -84,16 +76,16 @@ open class TaskTemplate extends cloudformation.Resource {
 
 
     /// 
-    hidden Defaults: (Listing<DefaultFieldValue>)?
+    hidden Defaults: (Listing<TaskTemplateDefaultFieldValue>)?
 
     /// The list of task template's fields
-    hidden Fields: (Listing<Field>)?
+    hidden Fields: (Listing<TaskTemplateField>)?
 
-    /// The identifier (arn) of the instance.
-    hidden InstanceArn: String(matches(Regex(#"^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$"#)))|Mapping
+    /// 
+    hidden Status: (TaskTemplateStatus)?
 
-    /// The description of the task template.
-    hidden Description: (String|Mapping)?
+    /// 
+    hidden ClientToken: (TaskTemplateClientToken)?
 
     /// The identifier of the contact flow.
     hidden ContactFlowArn: (String(matches(Regex(#"^$|arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/contact-flow/[-a-zA-Z0-9]*$"#)))|Mapping)?
@@ -104,26 +96,26 @@ open class TaskTemplate extends cloudformation.Resource {
     /// The name of the task template.
     hidden Name: (String|Mapping)?
 
-    /// 
-    hidden Status: (Status)?
-
-    /// 
-    hidden ClientToken: (ClientToken)?
+    /// The description of the task template.
+    hidden Description: (String|Mapping)?
 
     /// One or more tags.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<TaskTemplateTag>)?
+
+    /// The identifier (arn) of the instance.
+    hidden InstanceArn: String(matches(Regex(#"^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$"#)))|Mapping
 
     Properties {
         ["Defaults"] = if (Defaults == null) null else Defaults
         ["Fields"] = if (Fields == null) null else Fields
-        ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
-        ["Description"] = if (Description == null) null else Description
+        ["Status"] = if (Status == null) null else Status
+        ["ClientToken"] = if (ClientToken == null) null else ClientToken
         ["ContactFlowArn"] = if (ContactFlowArn == null) null else ContactFlowArn
         ["Constraints"] = if (Constraints == null) null else Constraints
         ["Name"] = if (Name == null) null else Name
-        ["Status"] = if (Status == null) null else Status
-        ["ClientToken"] = if (ClientToken == null) null else ClientToken
+        ["Description"] = if (Description == null) null else Description
         ["Tags"] = if (Tags == null) null else Tags
+        ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
     }
 
 }

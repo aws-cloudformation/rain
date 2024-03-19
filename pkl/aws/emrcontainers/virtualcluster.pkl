@@ -6,24 +6,24 @@ module aws.emrcontainers.virtualcluster
 import "../../cloudformation.pkl"
 
 /// 
-open class ContainerProvider {
+open class VirtualClusterContainerProvider {
+    Info: VirtualClusterContainerInfo
     Type: String|Mapping
     Id: String(matches(Regex(#"^[0-9A-Za-z][A-Za-z0-9\-_]*"#)))|Mapping
-    Info: ContainerInfo
 }
 
 /// 
-open class ContainerInfo {
-    EksInfo: EksInfo
+open class VirtualClusterContainerInfo {
+    EksInfo: VirtualClusterEksInfo
 }
 
 /// 
-open class EksInfo {
+open class VirtualClusterEksInfo {
     Namespace: String(matches(Regex(#"[a-z0-9]([-a-z0-9]*[a-z0-9])?"#)))|Mapping
 }
 
 /// An arbitrary set of tags (key-value pairs) for this virtual cluster.
-open class Tag {
+open class VirtualClusterTag {
     Key: String|Mapping
     Value: String|Mapping
 }
@@ -35,13 +35,13 @@ open class VirtualCluster extends cloudformation.Resource {
 
 
     /// Container provider of the virtual cluster.
-    hidden ContainerProvider: ContainerProvider
+    hidden ContainerProvider: VirtualClusterContainerProvider
 
     /// Name of the virtual cluster.
     hidden Name: String(matches(Regex(#"[\.\-_/#A-Za-z0-9]+"#)))|Mapping
 
     /// An array of key-value pairs to apply to this virtual cluster.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<VirtualClusterTag>)?
 
     Properties {
         ["ContainerProvider"] = if (ContainerProvider == null) null else ContainerProvider

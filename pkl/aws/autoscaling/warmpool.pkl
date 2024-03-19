@@ -6,7 +6,7 @@ module aws.autoscaling.warmpool
 import "../../cloudformation.pkl"
 
 /// 
-open class InstanceReusePolicy {
+open class WarmPoolInstanceReusePolicy {
     ReuseOnScaleIn: (Boolean|Mapping)?
 }
 
@@ -17,6 +17,12 @@ open class WarmPool extends cloudformation.Resource {
 
 
     /// 
+    hidden PoolState: (String|Mapping)?
+
+    /// 
+    hidden InstanceReusePolicy: (WarmPoolInstanceReusePolicy)?
+
+    /// 
     hidden AutoScalingGroupName: String|Mapping
 
     /// 
@@ -25,18 +31,12 @@ open class WarmPool extends cloudformation.Resource {
     /// 
     hidden MinSize: (Int|Mapping)?
 
-    /// 
-    hidden PoolState: (String|Mapping)?
-
-    /// 
-    hidden InstanceReusePolicy: (InstanceReusePolicy)?
-
     Properties {
+        ["PoolState"] = if (PoolState == null) null else PoolState
+        ["InstanceReusePolicy"] = if (InstanceReusePolicy == null) null else InstanceReusePolicy
         ["AutoScalingGroupName"] = if (AutoScalingGroupName == null) null else AutoScalingGroupName
         ["MaxGroupPreparedCapacity"] = if (MaxGroupPreparedCapacity == null) null else MaxGroupPreparedCapacity
         ["MinSize"] = if (MinSize == null) null else MinSize
-        ["PoolState"] = if (PoolState == null) null else PoolState
-        ["InstanceReusePolicy"] = if (InstanceReusePolicy == null) null else InstanceReusePolicy
     }
 
 }

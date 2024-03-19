@@ -6,74 +6,74 @@ module aws.budgets.budget
 import "../../cloudformation.pkl"
 
 /// 
-open class AutoAdjustData {
-    HistoricalOptions: (HistoricalOptions)?
-    AutoAdjustType: String|Mapping
-}
-
-/// 
-open class Notification {
-    ComparisonOperator: String|Mapping
-    NotificationType: String|Mapping
-    Threshold: Number|Mapping
-    ThresholdType: (String|Mapping)?
-}
-
-/// 
-open class BudgetData {
-    TimePeriod: (TimePeriod)?
-    AutoAdjustData: (AutoAdjustData)?
+open class BudgetBudgetData {
+    BudgetType: String|Mapping
+    BudgetLimit: (BudgetSpend)?
+    TimePeriod: (BudgetTimePeriod)?
+    AutoAdjustData: (BudgetAutoAdjustData)?
+    BudgetName: (String|Mapping)?
+    CostTypes: (BudgetCostTypes)?
     TimeUnit: String|Mapping
     PlannedBudgetLimits: (Dynamic)?
-    BudgetName: (String|Mapping)?
-    BudgetLimit: (Spend)?
     CostFilters: (Dynamic)?
-    CostTypes: (CostTypes)?
-    BudgetType: String|Mapping
 }
 
 /// 
-open class Spend {
-    Unit: String|Mapping
-    Amount: Number|Mapping
-}
-
-/// 
-open class TimePeriod {
+open class BudgetTimePeriod {
     Start: (String|Mapping)?
     End: (String|Mapping)?
 }
 
 /// 
-open class NotificationWithSubscribers {
-    Subscribers: Listing<Subscriber>
-    Notification: Notification
+open class BudgetSpend {
+    Unit: String|Mapping
+    Amount: Number|Mapping
 }
 
 /// 
-open class CostTypes {
-    IncludeSupport: (Boolean|Mapping)?
-    IncludeTax: (Boolean|Mapping)?
-    IncludeUpfront: (Boolean|Mapping)?
-    UseAmortized: (Boolean|Mapping)?
-    IncludeRefund: (Boolean|Mapping)?
-    IncludeOtherSubscription: (Boolean|Mapping)?
-    IncludeSubscription: (Boolean|Mapping)?
-    UseBlended: (Boolean|Mapping)?
-    IncludeDiscount: (Boolean|Mapping)?
-    IncludeCredit: (Boolean|Mapping)?
-    IncludeRecurring: (Boolean|Mapping)?
+open class BudgetNotificationWithSubscribers {
+    Subscribers: Listing<BudgetSubscriber>
+    Notification: BudgetNotification
 }
 
 /// 
-open class HistoricalOptions {
+open class BudgetHistoricalOptions {
     BudgetAdjustmentPeriod: Int|Mapping
 }
 
 /// 
-open class Subscriber {
+open class BudgetSubscriber {
     Address: String|Mapping
     SubscriptionType: String|Mapping
+}
+
+/// 
+open class BudgetAutoAdjustData {
+    HistoricalOptions: (BudgetHistoricalOptions)?
+    AutoAdjustType: String|Mapping
+}
+
+/// 
+open class BudgetCostTypes {
+    IncludeSupport: (Boolean|Mapping)?
+    IncludeOtherSubscription: (Boolean|Mapping)?
+    IncludeSubscription: (Boolean|Mapping)?
+    UseBlended: (Boolean|Mapping)?
+    IncludeUpfront: (Boolean|Mapping)?
+    IncludeDiscount: (Boolean|Mapping)?
+    IncludeTax: (Boolean|Mapping)?
+    IncludeCredit: (Boolean|Mapping)?
+    IncludeRecurring: (Boolean|Mapping)?
+    UseAmortized: (Boolean|Mapping)?
+    IncludeRefund: (Boolean|Mapping)?
+}
+
+/// 
+open class BudgetNotification {
+    NotificationType: String|Mapping
+    Threshold: Number|Mapping
+    ThresholdType: (String|Mapping)?
+    ComparisonOperator: String|Mapping
 }
 
 /// Resource Type definition for AWS::Budgets::Budget
@@ -83,10 +83,10 @@ open class Budget extends cloudformation.Resource {
 
 
     /// 
-    hidden NotificationsWithSubscribers: (Listing<NotificationWithSubscribers>)?
+    hidden NotificationsWithSubscribers: (Listing<BudgetNotificationWithSubscribers>)?
 
     /// 
-    hidden Budget: BudgetData
+    hidden Budget: BudgetBudgetData
 
     Properties {
         ["NotificationsWithSubscribers"] = if (NotificationsWithSubscribers == null) null else NotificationsWithSubscribers

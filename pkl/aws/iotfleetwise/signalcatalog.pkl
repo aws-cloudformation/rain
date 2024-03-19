@@ -6,72 +6,89 @@ module aws.iotfleetwise.signalcatalog
 import "../../cloudformation.pkl"
 
 /// 
-open class Attribute {
-    DataType: NodeDataType
-    Description: (String(matches(Regex(#"^[^\u0000-\u001F\u007F]+$"#)))|Mapping)?
-    Min: (Number|Mapping)?
-    AssignedValue: (String|Mapping)?
-    DefaultValue: (String|Mapping)?
-    FullyQualifiedName: String|Mapping
-    Unit: (String|Mapping)?
-    AllowedValues: (AllowedValues)?
-    Max: (Number|Mapping)?
-}
-
-/// 
-open class NodeCounts {
-    TotalActuators: (Number|Mapping)?
+open class SignalCatalogNodeCounts {
     TotalNodes: (Number|Mapping)?
     TotalBranches: (Number|Mapping)?
     TotalSensors: (Number|Mapping)?
     TotalAttributes: (Number|Mapping)?
+    TotalActuators: (Number|Mapping)?
 }
 
 /// 
-open class Sensor {
+open class SignalCatalogTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class SignalCatalogNodeActuator {
+    Actuator: (SignalCatalogActuator)?
+}
+
+/// 
+open class SignalCatalogNodeSensor {
+    Sensor: (SignalCatalogSensor)?
+}
+
+/// 
+open class SignalCatalogNodeAttribute {
+    Attribute: (SignalCatalogAttribute)?
+}
+
+/// 
+open class SignalCatalogSensor {
+    DataType: SignalCatalogNodeDataType
+    Description: (String(matches(Regex(#"^[^\u0000-\u001F\u007F]+$"#)))|Mapping)?
+    Unit: (String|Mapping)?
+    AllowedValues: (SignalCatalogAllowedValues)?
     Min: (Number|Mapping)?
     Max: (Number|Mapping)?
     FullyQualifiedName: String|Mapping
-    DataType: NodeDataType
-    Description: (String(matches(Regex(#"^[^\u0000-\u001F\u007F]+$"#)))|Mapping)?
-    Unit: (String|Mapping)?
-    AllowedValues: (AllowedValues)?
 }
 
 /// 
-open class Actuator {
-    DataType: NodeDataType
-    Description: (String(matches(Regex(#"^[^\u0000-\u001F\u007F]+$"#)))|Mapping)?
+open class SignalCatalogAttribute {
     Unit: (String|Mapping)?
-    AllowedValues: (AllowedValues)?
+    AllowedValues: (SignalCatalogAllowedValues)?
+    Min: (Number|Mapping)?
+    Max: (Number|Mapping)?
+    DefaultValue: (String|Mapping)?
+    FullyQualifiedName: String|Mapping
+    DataType: SignalCatalogNodeDataType
+    Description: (String(matches(Regex(#"^[^\u0000-\u001F\u007F]+$"#)))|Mapping)?
+    AssignedValue: (String|Mapping)?
+}
+
+/// 
+open class SignalCatalogBranch {
+    FullyQualifiedName: String|Mapping
+    Description: (String(matches(Regex(#"^[^\u0000-\u001F\u007F]+$"#)))|Mapping)?
+}
+
+typealias SignalCatalogAllowedValues = Listing<(String|Mapping)?>
+
+
+/// 
+open class SignalCatalogActuator {
+    AllowedValues: (SignalCatalogAllowedValues)?
     Min: (Number|Mapping)?
     Max: (Number|Mapping)?
     AssignedValue: (String|Mapping)?
     FullyQualifiedName: String|Mapping
-}
-
-/// 
-open class AllowedValues {
-}
-
-/// 
-open class Branch {
-    FullyQualifiedName: String|Mapping
+    DataType: SignalCatalogNodeDataType
     Description: (String(matches(Regex(#"^[^\u0000-\u001F\u007F]+$"#)))|Mapping)?
+    Unit: (String|Mapping)?
 }
 
-/// 
-open class Node {
-}
+typealias SignalCatalogNodeDataType = "INT8"|"UINT8"|"INT16"|"UINT16"|"INT32"|"UINT32"|"INT64"|"UINT64"|"BOOLEAN"|"FLOAT"|"DOUBLE"|"STRING"|"UNIX_TIMESTAMP"|"INT8_ARRAY"|"UINT8_ARRAY"|"INT16_ARRAY"|"UINT16_ARRAY"|"INT32_ARRAY"|"UINT32_ARRAY"|"INT64_ARRAY"|"UINT64_ARRAY"|"BOOLEAN_ARRAY"|"FLOAT_ARRAY"|"DOUBLE_ARRAY"|"STRING_ARRAY"|"UNIX_TIMESTAMP_ARRAY"|"UNKNOWN"
+
+
+typealias SignalCatalogNode = SignalCatalogNodeBranch|SignalCatalogNodeSensor|SignalCatalogNodeActuator|SignalCatalogNodeAttribute
+
 
 /// 
-open class NodeDataType {
-}
-
-/// 
-open class Tag {
-    Key: String|Mapping
-    Value: String|Mapping
+open class SignalCatalogNodeBranch {
+    Branch: (SignalCatalogBranch)?
 }
 
 /// Definition of AWS::IoTFleetWise::SignalCatalog Resource Type
@@ -81,26 +98,26 @@ open class SignalCatalog extends cloudformation.Resource {
 
 
     /// 
-    hidden NodeCounts: (NodeCounts)?
+    hidden Name: (String(matches(Regex(#"^[a-zA-Z\d\-_:]+$"#)))|Mapping)?
 
     /// 
-    hidden Nodes: (Listing<Node>)?
+    hidden NodeCounts: (SignalCatalogNodeCounts)?
 
     /// 
-    hidden Tags: (Listing<Tag>)?
+    hidden Nodes: (Listing<SignalCatalogNode>)?
+
+    /// 
+    hidden Tags: (Listing<SignalCatalogTag>)?
 
     /// 
     hidden Description: (String(matches(Regex(#"^[^\u0000-\u001F\u007F]+$"#)))|Mapping)?
 
-    /// 
-    hidden Name: (String(matches(Regex(#"^[a-zA-Z\d\-_:]+$"#)))|Mapping)?
-
     Properties {
+        ["Name"] = if (Name == null) null else Name
         ["NodeCounts"] = if (NodeCounts == null) null else NodeCounts
         ["Nodes"] = if (Nodes == null) null else Nodes
         ["Tags"] = if (Tags == null) null else Tags
         ["Description"] = if (Description == null) null else Description
-        ["Name"] = if (Name == null) null else Name
     }
 
 }

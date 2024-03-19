@@ -5,29 +5,32 @@ module aws.config.organizationconformancepack
 
 import "../../cloudformation.pkl"
 
-/// 
-open class ParameterValue {
-}
+typealias OrganizationConformancePackAccountId = String|Mapping
 
-/// 
-open class AccountId {
-}
 
 /// Input parameters in the form of key-value pairs for the conformance pack.
-open class ConformancePackInputParameter {
-    ParameterValue: ParameterValue
-    ParameterName: ParameterName
+open class OrganizationConformancePackConformancePackInputParameter {
+    ParameterName: OrganizationConformancePackParameterName
+    ParameterValue: OrganizationConformancePackParameterValue
 }
 
-/// 
-open class ParameterName {
-}
+typealias OrganizationConformancePackParameterName = String|Mapping
+
+
+typealias OrganizationConformancePackParameterValue = String|Mapping
+
 
 /// Resource schema for AWS::Config::OrganizationConformancePack.
 open class OrganizationConformancePack extends cloudformation.Resource {
 
     Type = "AWS::Config::OrganizationConformancePack"
 
+
+    /// Location of file containing the template body.
+    hidden TemplateS3Uri: (String(matches(Regex(#"s3://.*"#)))|Mapping)?
+
+    /// A string containing full conformance pack template body.
+    hidden TemplateBody: (String|Mapping)?
 
     /// AWS Config stores intermediate files while processing conformance pack template.
     hidden DeliveryS3Bucket: (String|Mapping)?
@@ -36,28 +39,22 @@ open class OrganizationConformancePack extends cloudformation.Resource {
     hidden DeliveryS3KeyPrefix: (String|Mapping)?
 
     /// A list of ConformancePackInputParameter objects.
-    hidden ConformancePackInputParameters: (Listing<ConformancePackInputParameter>)?
+    hidden ConformancePackInputParameters: (Listing<OrganizationConformancePackConformancePackInputParameter>)?
 
     /// A list of AWS accounts to be excluded from an organization conformance pack while deploying a conformance pack.
-    hidden ExcludedAccounts: (Listing<AccountId>)?
+    hidden ExcludedAccounts: (Listing<OrganizationConformancePackAccountId>)?
 
     /// The name of the organization conformance pack.
     hidden OrganizationConformancePackName: String(matches(Regex(#"[a-zA-Z][-a-zA-Z0-9]*"#)))|Mapping
 
-    /// Location of file containing the template body.
-    hidden TemplateS3Uri: (String(matches(Regex(#"s3://.*"#)))|Mapping)?
-
-    /// A string containing full conformance pack template body.
-    hidden TemplateBody: (String|Mapping)?
-
     Properties {
+        ["TemplateS3Uri"] = if (TemplateS3Uri == null) null else TemplateS3Uri
+        ["TemplateBody"] = if (TemplateBody == null) null else TemplateBody
         ["DeliveryS3Bucket"] = if (DeliveryS3Bucket == null) null else DeliveryS3Bucket
         ["DeliveryS3KeyPrefix"] = if (DeliveryS3KeyPrefix == null) null else DeliveryS3KeyPrefix
         ["ConformancePackInputParameters"] = if (ConformancePackInputParameters == null) null else ConformancePackInputParameters
         ["ExcludedAccounts"] = if (ExcludedAccounts == null) null else ExcludedAccounts
         ["OrganizationConformancePackName"] = if (OrganizationConformancePackName == null) null else OrganizationConformancePackName
-        ["TemplateS3Uri"] = if (TemplateS3Uri == null) null else TemplateS3Uri
-        ["TemplateBody"] = if (TemplateBody == null) null else TemplateBody
     }
 
 }

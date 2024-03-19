@@ -6,17 +6,6 @@ module aws.amplify.branch
 import "../../cloudformation.pkl"
 
 /// 
-open class BranchBackend {
-    StackArn: (String|Mapping)?
-}
-
-/// 
-open class BranchEnvironmentVariable {
-    Value: String(matches(Regex(#"(?s).*"#)))|Mapping
-    Name: String(matches(Regex(#"(?s).*"#)))|Mapping
-}
-
-/// 
 open class BranchTag {
     Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
     Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
@@ -29,44 +18,22 @@ open class BranchBasicAuthConfig {
     Password: String|Mapping
 }
 
+/// 
+open class BranchBackend {
+    StackArn: (String|Mapping)?
+}
+
+/// 
+open class BranchEnvironmentVariable {
+    Name: String(matches(Regex(#"(?s).*"#)))|Mapping
+    Value: String(matches(Regex(#"(?s).*"#)))|Mapping
+}
+
 /// The AWS::Amplify::Branch resource creates a new branch within an app.
 open class Branch extends cloudformation.Resource {
 
     Type = "AWS::Amplify::Branch"
 
-
-    /// 
-    hidden BranchName: String(matches(Regex(#"(?s).+"#)))|Mapping
-
-    /// 
-    hidden EnableAutoBuild: (Boolean|Mapping)?
-
-    /// 
-    hidden PullRequestEnvironmentName: (String(matches(Regex(#"(?s).*"#)))|Mapping)?
-
-    /// 
-    hidden AppId: String(matches(Regex(#"d[a-z0-9]+"#)))|Mapping
-
-    /// 
-    hidden BasicAuthConfig: (BranchBasicAuthConfig)?
-
-    /// 
-    hidden EnablePullRequestPreview: (Boolean|Mapping)?
-
-    /// 
-    hidden EnvironmentVariables: (Listing<BranchEnvironmentVariable>)?
-
-    /// 
-    hidden Tags: (Listing<BranchTag>)?
-
-    /// 
-    hidden EnablePerformanceMode: (Boolean|Mapping)?
-
-    /// 
-    hidden Framework: (String(matches(Regex(#"(?s).*"#)))|Mapping)?
-
-    /// 
-    hidden Backend: (BranchBackend)?
 
     /// 
     hidden BuildSpec: (String(matches(Regex(#"(?s).+"#)))|Mapping)?
@@ -75,23 +42,56 @@ open class Branch extends cloudformation.Resource {
     hidden Description: (String(matches(Regex(#"(?s).*"#)))|Mapping)?
 
     /// 
+    hidden EnablePerformanceMode: (Boolean|Mapping)?
+
+    /// 
+    hidden EnvironmentVariables: (Listing<BranchEnvironmentVariable>)?
+
+    /// 
+    hidden PullRequestEnvironmentName: (String(matches(Regex(#"(?s).*"#)))|Mapping)?
+
+    /// 
     hidden Stage: (BranchStage|Mapping)?
 
+    /// 
+    hidden AppId: String(matches(Regex(#"d[a-z0-9]+"#)))|Mapping
+
+    /// 
+    hidden Backend: (BranchBackend)?
+
+    /// 
+    hidden BranchName: String(matches(Regex(#"(?s).+"#)))|Mapping
+
+    /// 
+    hidden Framework: (String(matches(Regex(#"(?s).*"#)))|Mapping)?
+
+    /// 
+    hidden EnablePullRequestPreview: (Boolean|Mapping)?
+
+    /// 
+    hidden Tags: (Listing<BranchTag>)?
+
+    /// 
+    hidden BasicAuthConfig: (BranchBasicAuthConfig)?
+
+    /// 
+    hidden EnableAutoBuild: (Boolean|Mapping)?
+
     Properties {
-        ["BranchName"] = if (BranchName == null) null else BranchName
-        ["EnableAutoBuild"] = if (EnableAutoBuild == null) null else EnableAutoBuild
-        ["PullRequestEnvironmentName"] = if (PullRequestEnvironmentName == null) null else PullRequestEnvironmentName
-        ["AppId"] = if (AppId == null) null else AppId
-        ["BasicAuthConfig"] = if (BasicAuthConfig == null) null else BasicAuthConfig
-        ["EnablePullRequestPreview"] = if (EnablePullRequestPreview == null) null else EnablePullRequestPreview
-        ["EnvironmentVariables"] = if (EnvironmentVariables == null) null else EnvironmentVariables
-        ["Tags"] = if (Tags == null) null else Tags
-        ["EnablePerformanceMode"] = if (EnablePerformanceMode == null) null else EnablePerformanceMode
-        ["Framework"] = if (Framework == null) null else Framework
-        ["Backend"] = if (Backend == null) null else Backend
         ["BuildSpec"] = if (BuildSpec == null) null else BuildSpec
         ["Description"] = if (Description == null) null else Description
+        ["EnablePerformanceMode"] = if (EnablePerformanceMode == null) null else EnablePerformanceMode
+        ["EnvironmentVariables"] = if (EnvironmentVariables == null) null else EnvironmentVariables
+        ["PullRequestEnvironmentName"] = if (PullRequestEnvironmentName == null) null else PullRequestEnvironmentName
         ["Stage"] = if (Stage == null) null else Stage
+        ["AppId"] = if (AppId == null) null else AppId
+        ["Backend"] = if (Backend == null) null else Backend
+        ["BranchName"] = if (BranchName == null) null else BranchName
+        ["Framework"] = if (Framework == null) null else Framework
+        ["EnablePullRequestPreview"] = if (EnablePullRequestPreview == null) null else EnablePullRequestPreview
+        ["Tags"] = if (Tags == null) null else Tags
+        ["BasicAuthConfig"] = if (BasicAuthConfig == null) null else BasicAuthConfig
+        ["EnableAutoBuild"] = if (EnableAutoBuild == null) null else EnableAutoBuild
     }
 
 }

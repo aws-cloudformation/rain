@@ -6,29 +6,29 @@ module aws.elasticbeanstalk.application
 import "../../cloudformation.pkl"
 
 /// 
-open class ApplicationResourceLifecycleConfig {
-    ServiceRole: (String|Mapping)?
-    VersionLifecycleConfig: (ApplicationVersionLifecycleConfig)?
-}
-
-/// 
-open class ApplicationVersionLifecycleConfig {
-    MaxAgeRule: (MaxAgeRule)?
-    MaxCountRule: (MaxCountRule)?
-}
-
-/// 
-open class MaxAgeRule {
-    Enabled: (Boolean|Mapping)?
-    MaxAgeInDays: (Int|Mapping)?
-    DeleteSourceFromS3: (Boolean|Mapping)?
-}
-
-/// 
-open class MaxCountRule {
+open class ApplicationMaxCountRule {
     Enabled: (Boolean|Mapping)?
     MaxCount: (Int|Mapping)?
     DeleteSourceFromS3: (Boolean|Mapping)?
+}
+
+/// 
+open class ApplicationApplicationResourceLifecycleConfig {
+    ServiceRole: (String|Mapping)?
+    VersionLifecycleConfig: (ApplicationApplicationVersionLifecycleConfig)?
+}
+
+/// 
+open class ApplicationApplicationVersionLifecycleConfig {
+    MaxAgeRule: (ApplicationMaxAgeRule)?
+    MaxCountRule: (ApplicationMaxCountRule)?
+}
+
+/// 
+open class ApplicationMaxAgeRule {
+    DeleteSourceFromS3: (Boolean|Mapping)?
+    Enabled: (Boolean|Mapping)?
+    MaxAgeInDays: (Int|Mapping)?
 }
 
 /// The AWS::ElasticBeanstalk::Application resource specifies an Elastic Beanstalk application.
@@ -44,7 +44,7 @@ open class Application extends cloudformation.Resource {
     hidden Description: (String|Mapping)?
 
     /// Specifies an application resource lifecycle configuration to prevent your application from accumulating too many versions.
-    hidden ResourceLifecycleConfig: (ApplicationResourceLifecycleConfig)?
+    hidden ResourceLifecycleConfig: (ApplicationApplicationResourceLifecycleConfig)?
 
     Properties {
         ["ApplicationName"] = if (ApplicationName == null) null else ApplicationName

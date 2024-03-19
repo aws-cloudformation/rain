@@ -6,14 +6,13 @@ module aws.iotfleetwise.modelmanifest
 import "../../cloudformation.pkl"
 
 /// 
-open class ManifestStatus {
+open class ModelManifestTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
-/// 
-open class Tag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
+typealias ModelManifestManifestStatus = "ACTIVE"|"DRAFT"
+
 
 /// Definition of AWS::IoTFleetWise::ModelManifest Resource Type
 open class ModelManifest extends cloudformation.Resource {
@@ -22,29 +21,29 @@ open class ModelManifest extends cloudformation.Resource {
 
 
     /// 
+    hidden Nodes: (Listing<String|Mapping>)?
+
+    /// 
+    hidden SignalCatalogArn: String|Mapping
+
+    /// 
+    hidden Tags: (Listing<ModelManifestTag>)?
+
+    /// 
     hidden Description: (String(matches(Regex(#"^[^\u0000-\u001F\u007F]+$"#)))|Mapping)?
 
     /// 
     hidden Name: String(matches(Regex(#"^[a-zA-Z\d\-_:]+$"#)))|Mapping
 
     /// 
-    hidden Nodes: (Listing<String|Mapping>)?
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden SignalCatalogArn: String|Mapping
-
-    /// 
-    hidden Status: (ManifestStatus)?
+    hidden Status: (ModelManifestManifestStatus)?
 
     Properties {
+        ["Nodes"] = if (Nodes == null) null else Nodes
+        ["SignalCatalogArn"] = if (SignalCatalogArn == null) null else SignalCatalogArn
+        ["Tags"] = if (Tags == null) null else Tags
         ["Description"] = if (Description == null) null else Description
         ["Name"] = if (Name == null) null else Name
-        ["Nodes"] = if (Nodes == null) null else Nodes
-        ["Tags"] = if (Tags == null) null else Tags
-        ["SignalCatalogArn"] = if (SignalCatalogArn == null) null else SignalCatalogArn
         ["Status"] = if (Status == null) null else Status
     }
 

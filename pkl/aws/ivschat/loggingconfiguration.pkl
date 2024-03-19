@@ -5,32 +5,32 @@ module aws.ivschat.loggingconfiguration
 
 import "../../cloudformation.pkl"
 
+/// Destination configuration for IVS Chat logging.
+open class LoggingConfigurationDestinationConfiguration {
+    CloudWatchLogs: (LoggingConfigurationCloudWatchLogsDestinationConfiguration)?
+    Firehose: (LoggingConfigurationFirehoseDestinationConfiguration)?
+    S3: (LoggingConfigurationS3DestinationConfiguration)?
+}
+
+/// CloudWatch destination configuration for IVS Chat logging.
+open class LoggingConfigurationCloudWatchLogsDestinationConfiguration {
+    LogGroupName: String(matches(Regex(#"^[\.\-_/#A-Za-z0-9]+$"#)))|Mapping
+}
+
 /// Kinesis Firehose destination configuration for IVS Chat logging.
-open class FirehoseDestinationConfiguration {
+open class LoggingConfigurationFirehoseDestinationConfiguration {
     DeliveryStreamName: String(matches(Regex(#"^[a-zA-Z0-9_.-]+$"#)))|Mapping
 }
 
 /// S3 destination configuration for IVS Chat logging.
-open class S3DestinationConfiguration {
+open class LoggingConfigurationS3DestinationConfiguration {
     BucketName: String(matches(Regex(#"^[a-z0-9-.]+$"#)))|Mapping
 }
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class LoggingConfigurationTag {
     Key: String|Mapping
     Value: String|Mapping
-}
-
-/// Destination configuration for IVS Chat logging.
-open class DestinationConfiguration {
-    Firehose: (FirehoseDestinationConfiguration)?
-    S3: (S3DestinationConfiguration)?
-    CloudWatchLogs: (CloudWatchLogsDestinationConfiguration)?
-}
-
-/// CloudWatch destination configuration for IVS Chat logging.
-open class CloudWatchLogsDestinationConfiguration {
-    LogGroupName: String(matches(Regex(#"^[\.\-_/#A-Za-z0-9]+$"#)))|Mapping
 }
 
 /// Resource type definition for AWS::IVSChat::LoggingConfiguration.
@@ -39,19 +39,19 @@ open class LoggingConfiguration extends cloudformation.Resource {
     Type = "AWS::IVSChat::LoggingConfiguration"
 
 
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<LoggingConfigurationTag>)?
+
     /// 
-    hidden DestinationConfiguration: DestinationConfiguration
+    hidden DestinationConfiguration: LoggingConfigurationDestinationConfiguration
 
     /// The name of the logging configuration. The value does not need to be unique.
     hidden Name: (String(matches(Regex(#"^[a-zA-Z0-9-_]*$"#)))|Mapping)?
 
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
-
     Properties {
+        ["Tags"] = if (Tags == null) null else Tags
         ["DestinationConfiguration"] = if (DestinationConfiguration == null) null else DestinationConfiguration
         ["Name"] = if (Name == null) null else Name
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

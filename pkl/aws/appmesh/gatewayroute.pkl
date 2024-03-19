@@ -6,14 +6,11 @@ module aws.appmesh.gatewayroute
 import "../../cloudformation.pkl"
 
 /// 
-open class GatewayRouteHttpGatewayRouteMatch {
-    QueryParameters: (Listing<GatewayRouteQueryParameter>)?
-    Path: (GatewayRouteHttpPathMatch)?
-    Headers: (Listing<GatewayRouteHttpGatewayRouteHeader>)?
-    Port: (Int|Mapping)?
-    Hostname: (GatewayRouteGatewayRouteHostnameMatch)?
-    Prefix: (String|Mapping)?
-    Method: (String|Mapping)?
+open class GatewayRouteGatewayRouteSpec {
+    HttpRoute: (GatewayRouteHttpGatewayRoute)?
+    Http2Route: (GatewayRouteHttpGatewayRoute)?
+    GrpcRoute: (GatewayRouteGrpcGatewayRoute)?
+    Priority: (Int|Mapping)?
 }
 
 /// 
@@ -23,63 +20,9 @@ open class GatewayRouteTag {
 }
 
 /// 
-open class GatewayRouteHttpPathMatch {
-    Regex: (String|Mapping)?
-    Exact: (String|Mapping)?
-}
-
-/// 
-open class GatewayRouteGatewayRouteHostnameRewrite {
-    DefaultTargetHostname: (String|Mapping)?
-}
-
-/// 
-open class GatewayRouteGrpcGatewayRouteMatch {
-    Hostname: (GatewayRouteGatewayRouteHostnameMatch)?
-    Metadata: (Listing<GatewayRouteGrpcGatewayRouteMetadata>)?
-    ServiceName: (String|Mapping)?
-    Port: (Int|Mapping)?
-}
-
-/// 
-open class GatewayRouteGatewayRouteTarget {
-    VirtualService: GatewayRouteGatewayRouteVirtualService
-    Port: (Int|Mapping)?
-}
-
-/// 
-open class GatewayRouteGrpcGatewayRouteMetadata {
-    Invert: (Boolean|Mapping)?
-    Name: String|Mapping
-    Match: (GatewayRouteGatewayRouteMetadataMatch)?
-}
-
-/// 
-open class GatewayRouteGrpcGatewayRoute {
-    Action: GatewayRouteGrpcGatewayRouteAction
-    Match: GatewayRouteGrpcGatewayRouteMatch
-}
-
-/// 
-open class GatewayRouteGrpcGatewayRouteRewrite {
-    Hostname: (GatewayRouteGatewayRouteHostnameRewrite)?
-}
-
-/// 
-open class GatewayRouteGrpcGatewayRouteAction {
-    Target: GatewayRouteGatewayRouteTarget
-    Rewrite: (GatewayRouteGrpcGatewayRouteRewrite)?
-}
-
-/// 
-open class GatewayRouteGatewayRouteVirtualService {
-    VirtualServiceName: String|Mapping
-}
-
-/// 
-open class GatewayRouteHttpGatewayRouteAction {
-    Target: GatewayRouteGatewayRouteTarget
-    Rewrite: (GatewayRouteHttpGatewayRouteRewrite)?
+open class GatewayRouteHttpGatewayRoutePrefixRewrite {
+    Value: (String|Mapping)?
+    DefaultPrefix: (String|Mapping)?
 }
 
 /// 
@@ -92,8 +35,66 @@ open class GatewayRouteHttpGatewayRouteHeaderMatch {
 }
 
 /// 
-open class GatewayRouteHttpGatewayRoutePathRewrite {
+open class GatewayRouteHttpGatewayRoute {
+    Action: GatewayRouteHttpGatewayRouteAction
+    Match: GatewayRouteHttpGatewayRouteMatch
+}
+
+/// 
+open class GatewayRouteGrpcGatewayRouteMetadata {
+    Invert: (Boolean|Mapping)?
+    Name: String|Mapping
+    Match: (GatewayRouteGatewayRouteMetadataMatch)?
+}
+
+/// 
+open class GatewayRouteHttpPathMatch {
+    Regex: (String|Mapping)?
     Exact: (String|Mapping)?
+}
+
+/// 
+open class GatewayRouteHttpQueryParameterMatch {
+    Exact: (String|Mapping)?
+}
+
+/// 
+open class GatewayRouteGatewayRouteVirtualService {
+    VirtualServiceName: String|Mapping
+}
+
+/// 
+open class GatewayRouteGrpcGatewayRouteMatch {
+    Metadata: (Listing<GatewayRouteGrpcGatewayRouteMetadata>)?
+    ServiceName: (String|Mapping)?
+    Port: (Int|Mapping)?
+    Hostname: (GatewayRouteGatewayRouteHostnameMatch)?
+}
+
+/// 
+open class GatewayRouteGatewayRouteMetadataMatch {
+    Prefix: (String|Mapping)?
+    Regex: (String|Mapping)?
+    Range: (GatewayRouteGatewayRouteRangeMatch)?
+    Suffix: (String|Mapping)?
+    Exact: (String|Mapping)?
+}
+
+/// 
+open class GatewayRouteGatewayRouteHostnameRewrite {
+    DefaultTargetHostname: (String|Mapping)?
+}
+
+/// 
+open class GatewayRouteQueryParameter {
+    Name: String|Mapping
+    Match: (GatewayRouteHttpQueryParameterMatch)?
+}
+
+/// 
+open class GatewayRouteHttpGatewayRouteAction {
+    Target: GatewayRouteGatewayRouteTarget
+    Rewrite: (GatewayRouteHttpGatewayRouteRewrite)?
 }
 
 /// 
@@ -104,28 +105,36 @@ open class GatewayRouteHttpGatewayRouteRewrite {
 }
 
 /// 
-open class GatewayRouteHttpQueryParameterMatch {
+open class GatewayRouteHttpGatewayRoutePathRewrite {
     Exact: (String|Mapping)?
 }
 
 /// 
-open class GatewayRouteQueryParameter {
-    Name: String|Mapping
-    Match: (GatewayRouteHttpQueryParameterMatch)?
+open class GatewayRouteGatewayRouteHostnameMatch {
+    Suffix: (String|Mapping)?
+    Exact: (String|Mapping)?
 }
 
 /// 
-open class GatewayRouteHttpGatewayRoutePrefixRewrite {
-    Value: (String|Mapping)?
-    DefaultPrefix: (String|Mapping)?
+open class GatewayRouteHttpGatewayRouteMatch {
+    Prefix: (String|Mapping)?
+    Method: (String|Mapping)?
+    QueryParameters: (Listing<GatewayRouteQueryParameter>)?
+    Path: (GatewayRouteHttpPathMatch)?
+    Headers: (Listing<GatewayRouteHttpGatewayRouteHeader>)?
+    Port: (Int|Mapping)?
+    Hostname: (GatewayRouteGatewayRouteHostnameMatch)?
 }
 
 /// 
-open class GatewayRouteGatewayRouteSpec {
-    HttpRoute: (GatewayRouteHttpGatewayRoute)?
-    Http2Route: (GatewayRouteHttpGatewayRoute)?
-    GrpcRoute: (GatewayRouteGrpcGatewayRoute)?
-    Priority: (Int|Mapping)?
+open class GatewayRouteGrpcGatewayRouteRewrite {
+    Hostname: (GatewayRouteGatewayRouteHostnameRewrite)?
+}
+
+/// 
+open class GatewayRouteGatewayRouteTarget {
+    VirtualService: GatewayRouteGatewayRouteVirtualService
+    Port: (Int|Mapping)?
 }
 
 /// 
@@ -137,29 +146,20 @@ open class GatewayRouteHttpGatewayRouteHeader {
 
 /// 
 open class GatewayRouteGatewayRouteRangeMatch {
-    Start: Int|Mapping
     End: Int|Mapping
+    Start: Int|Mapping
 }
 
 /// 
-open class GatewayRouteGatewayRouteMetadataMatch {
-    Exact: (String|Mapping)?
-    Prefix: (String|Mapping)?
-    Regex: (String|Mapping)?
-    Range: (GatewayRouteGatewayRouteRangeMatch)?
-    Suffix: (String|Mapping)?
+open class GatewayRouteGrpcGatewayRouteAction {
+    Target: GatewayRouteGatewayRouteTarget
+    Rewrite: (GatewayRouteGrpcGatewayRouteRewrite)?
 }
 
 /// 
-open class GatewayRouteHttpGatewayRoute {
-    Action: GatewayRouteHttpGatewayRouteAction
-    Match: GatewayRouteHttpGatewayRouteMatch
-}
-
-/// 
-open class GatewayRouteGatewayRouteHostnameMatch {
-    Suffix: (String|Mapping)?
-    Exact: (String|Mapping)?
+open class GatewayRouteGrpcGatewayRoute {
+    Action: GatewayRouteGrpcGatewayRouteAction
+    Match: GatewayRouteGrpcGatewayRouteMatch
 }
 
 /// Resource Type definition for AWS::AppMesh::GatewayRoute
@@ -169,10 +169,16 @@ open class GatewayRoute extends cloudformation.Resource {
 
 
     /// 
-    hidden Tags: (Listing<GatewayRouteTag>)?
+    hidden GatewayRouteName: (String|Mapping)?
 
     /// 
     hidden Spec: GatewayRouteGatewayRouteSpec
+
+    /// 
+    hidden MeshOwner: (String|Mapping)?
+
+    /// 
+    hidden Tags: (Listing<GatewayRouteTag>)?
 
     /// 
     hidden MeshName: String|Mapping
@@ -180,19 +186,13 @@ open class GatewayRoute extends cloudformation.Resource {
     /// 
     hidden VirtualGatewayName: String|Mapping
 
-    /// 
-    hidden MeshOwner: (String|Mapping)?
-
-    /// 
-    hidden GatewayRouteName: (String|Mapping)?
-
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
+        ["GatewayRouteName"] = if (GatewayRouteName == null) null else GatewayRouteName
         ["Spec"] = if (Spec == null) null else Spec
+        ["MeshOwner"] = if (MeshOwner == null) null else MeshOwner
+        ["Tags"] = if (Tags == null) null else Tags
         ["MeshName"] = if (MeshName == null) null else MeshName
         ["VirtualGatewayName"] = if (VirtualGatewayName == null) null else VirtualGatewayName
-        ["MeshOwner"] = if (MeshOwner == null) null else MeshOwner
-        ["GatewayRouteName"] = if (GatewayRouteName == null) null else GatewayRouteName
     }
 
 }

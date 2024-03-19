@@ -11,24 +11,24 @@ open class ResourceSpecificLogging extends cloudformation.Resource {
     Type = "AWS::IoT::ResourceSpecificLogging"
 
 
+    /// The target type. Value must be THING_GROUP, CLIENT_ID, SOURCE_IP, PRINCIPAL_ID, or EVENT_TYPE.
+    hidden TargetType: ResourceSpecificLoggingTargetType|Mapping
+
     /// The target name.
     hidden TargetName: String(matches(Regex(#"[a-zA-Z0-9.:\s_\-]+"#)))|Mapping
 
     /// The log level for a specific target. Valid values are: ERROR, WARN, INFO, DEBUG, or DISABLED.
     hidden LogLevel: ResourceSpecificLoggingLogLevel|Mapping
 
-    /// The target type. Value must be THING_GROUP, CLIENT_ID, SOURCE_IP, PRINCIPAL_ID, or EVENT_TYPE.
-    hidden TargetType: ResourceSpecificLoggingTargetType|Mapping
-
     Properties {
+        ["TargetType"] = if (TargetType == null) null else TargetType
         ["TargetName"] = if (TargetName == null) null else TargetName
         ["LogLevel"] = if (LogLevel == null) null else LogLevel
-        ["TargetType"] = if (TargetType == null) null else TargetType
     }
 
 }
 
 
-typealias ResourceSpecificLoggingLogLevel = "ERROR"|"WARN"|"INFO"|"DEBUG"|"DISABLED"
-
 typealias ResourceSpecificLoggingTargetType = "THING_GROUP"|"CLIENT_ID"|"SOURCE_IP"|"PRINCIPAL_ID"|"EVENT_TYPE"
+
+typealias ResourceSpecificLoggingLogLevel = "ERROR"|"WARN"|"INFO"|"DEBUG"|"DISABLED"

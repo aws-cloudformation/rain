@@ -6,9 +6,9 @@ module aws.ec2.ipamscope
 import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
-open class Tag {
-    Value: String|Mapping
+open class IPAMScopeTag {
     Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// Resource Schema of AWS::EC2::IPAMScope Type
@@ -17,18 +17,18 @@ open class IPAMScope extends cloudformation.Resource {
     Type = "AWS::EC2::IPAMScope"
 
 
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<IPAMScopeTag>)?
+
     /// 
     hidden Description: (String|Mapping)?
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
 
     /// The Id of the IPAM this scope is a part of.
     hidden IpamId: String|Mapping
 
     Properties {
-        ["Description"] = if (Description == null) null else Description
         ["Tags"] = if (Tags == null) null else Tags
+        ["Description"] = if (Description == null) null else Description
         ["IpamId"] = if (IpamId == null) null else IpamId
     }
 

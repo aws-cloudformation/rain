@@ -8,13 +8,13 @@ import "../../cloudformation.pkl"
 typealias SampleType = "FIRST_N"|"LAST_N"|"RANDOM"
 
 /// 
-open class Sample {
+open class ProjectSample {
     Size: (Int|Mapping)?
     Type: SampleType|Mapping
 }
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class ProjectTag {
     Key: String|Mapping
     Value: String|Mapping
 }
@@ -24,6 +24,12 @@ open class Project extends cloudformation.Resource {
 
     Type = "AWS::DataBrew::Project"
 
+
+    /// Sample
+    hidden Sample: (ProjectSample)?
+
+    /// 
+    hidden Tags: (Listing<ProjectTag>)?
 
     /// Dataset name
     hidden DatasetName: String|Mapping
@@ -37,19 +43,13 @@ open class Project extends cloudformation.Resource {
     /// Role arn
     hidden RoleArn: String|Mapping
 
-    /// Sample
-    hidden Sample: (Sample)?
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
     Properties {
+        ["Sample"] = if (Sample == null) null else Sample
+        ["Tags"] = if (Tags == null) null else Tags
         ["DatasetName"] = if (DatasetName == null) null else DatasetName
         ["Name"] = if (Name == null) null else Name
         ["RecipeName"] = if (RecipeName == null) null else RecipeName
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
-        ["Sample"] = if (Sample == null) null else Sample
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

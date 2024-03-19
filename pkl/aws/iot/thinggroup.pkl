@@ -6,14 +6,14 @@ module aws.iot.thinggroup
 import "../../cloudformation.pkl"
 
 /// 
-open class AttributePayload {
+open class ThingGroupAttributePayload {
     Attributes: (Dynamic)?
 }
 
 /// A key-value pair to associate with a resource.
-open class Tag {
-    Value: String|Mapping
+open class ThingGroupTag {
     Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
+    Value: String|Mapping
 }
 
 /// Resource Type definition for AWS::IoT::ThingGroup
@@ -21,9 +21,6 @@ open class ThingGroup extends cloudformation.Resource {
 
     Type = "AWS::IoT::ThingGroup"
 
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
 
     /// 
     hidden ThingGroupName: (String(matches(Regex(#"[a-zA-Z0-9:_-]+"#)))|Mapping)?
@@ -37,12 +34,15 @@ open class ThingGroup extends cloudformation.Resource {
     /// 
     hidden ThingGroupProperties: (Dynamic)?
 
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<ThingGroupTag>)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
         ["ThingGroupName"] = if (ThingGroupName == null) null else ThingGroupName
         ["ParentGroupName"] = if (ParentGroupName == null) null else ParentGroupName
         ["QueryString"] = if (QueryString == null) null else QueryString
         ["ThingGroupProperties"] = if (ThingGroupProperties == null) null else ThingGroupProperties
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

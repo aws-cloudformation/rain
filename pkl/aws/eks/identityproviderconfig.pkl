@@ -6,26 +6,26 @@ module aws.eks.identityproviderconfig
 import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class IdentityProviderConfigTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
 /// The key value pairs that describe required claims in the identity token. If set, each claim is verified to be present in the token with a matching value.
-open class RequiredClaim {
+open class IdentityProviderConfigRequiredClaim {
     Key: String|Mapping
     Value: String|Mapping
 }
 
 /// An object representing an OpenID Connect (OIDC) configuration.
-open class OidcIdentityProviderConfig {
-    GroupsPrefix: (String|Mapping)?
+open class IdentityProviderConfigOidcIdentityProviderConfig {
     IssuerUrl: String|Mapping
-    RequiredClaims: (Listing<RequiredClaim>)?
+    RequiredClaims: (Listing<IdentityProviderConfigRequiredClaim>)?
     UsernameClaim: (String|Mapping)?
     UsernamePrefix: (String|Mapping)?
     ClientId: String|Mapping
     GroupsClaim: (String|Mapping)?
+    GroupsPrefix: (String|Mapping)?
 }
 
 /// An object representing an Amazon EKS IdentityProviderConfig.
@@ -33,9 +33,6 @@ open class IdentityProviderConfig extends cloudformation.Resource {
 
     Type = "AWS::EKS::IdentityProviderConfig"
 
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
 
     /// The name of the identity provider configuration.
     hidden ClusterName: String|Mapping
@@ -47,14 +44,17 @@ open class IdentityProviderConfig extends cloudformation.Resource {
     hidden IdentityProviderConfigName: (String|Mapping)?
 
     /// 
-    hidden Oidc: (OidcIdentityProviderConfig)?
+    hidden Oidc: (IdentityProviderConfigOidcIdentityProviderConfig)?
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<IdentityProviderConfigTag>)?
 
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
         ["ClusterName"] = if (ClusterName == null) null else ClusterName
         ["Type"] = if (TypeProperty == null) null else TypeProperty
         ["IdentityProviderConfigName"] = if (IdentityProviderConfigName == null) null else IdentityProviderConfigName
         ["Oidc"] = if (Oidc == null) null else Oidc
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

@@ -6,24 +6,24 @@ module aws.applicationautoscaling.scalabletarget
 import "../../cloudformation.pkl"
 
 /// specifies whether the scaling activities for a scalable target are in a suspended state
-open class SuspendedState {
+open class ScalableTargetSuspendedState {
     DynamicScalingInSuspended: (Boolean|Mapping)?
     ScheduledScalingSuspended: (Boolean|Mapping)?
     DynamicScalingOutSuspended: (Boolean|Mapping)?
 }
 
 /// specifies a scheduled action for a scalable target
-open class ScheduledAction {
-    Timezone: (String|Mapping)?
-    ScheduledActionName: String|Mapping
+open class ScalableTargetScheduledAction {
     EndTime: (String|Mapping)?
     Schedule: String|Mapping
     StartTime: (String|Mapping)?
-    ScalableTargetAction: (ScalableTargetAction)?
+    ScalableTargetAction: (ScalableTargetScalableTargetAction)?
+    Timezone: (String|Mapping)?
+    ScheduledActionName: String|Mapping
 }
 
 /// specifies the minimum and maximum capacity
-open class ScalableTargetAction {
+open class ScalableTargetScalableTargetAction {
     MinCapacity: (Int|Mapping)?
     MaxCapacity: (Int|Mapping)?
 }
@@ -40,33 +40,33 @@ open class ScalableTarget extends cloudformation.Resource {
     /// The identifier of the resource associated with the scalable target
     hidden ResourceId: String|Mapping
 
-    /// Specify the Amazon Resource Name (ARN) of an Identity and Access Management (IAM) role that allows Application Auto Scaling to modify the scalable target on your behalf. 
-    hidden RoleARN: (String|Mapping)?
-
-    /// The scheduled actions for the scalable target. Duplicates aren't allowed.
-    hidden ScheduledActions: (Listing<ScheduledAction>)?
+    /// The scalable dimension associated with the scalable target. This string consists of the service namespace, resource type, and scaling property
+    hidden ScalableDimension: String|Mapping
 
     /// The namespace of the AWS service that provides the resource, or a custom-resource
     hidden ServiceNamespace: String|Mapping
 
+    /// An embedded object that contains attributes and attribute values that are used to suspend and resume automatic scaling. Setting the value of an attribute to true suspends the specified scaling activities. Setting it to false (default) resumes the specified scaling activities.
+    hidden SuspendedState: (ScalableTargetSuspendedState)?
+
     /// The maximum value that you plan to scale in to. When a scaling policy is in effect, Application Auto Scaling can scale in (contract) as needed to the minimum capacity limit in response to changing demand
     hidden MaxCapacity: Int|Mapping
 
-    /// The scalable dimension associated with the scalable target. This string consists of the service namespace, resource type, and scaling property
-    hidden ScalableDimension: String|Mapping
+    /// Specify the Amazon Resource Name (ARN) of an Identity and Access Management (IAM) role that allows Application Auto Scaling to modify the scalable target on your behalf. 
+    hidden RoleARN: (String|Mapping)?
 
-    /// An embedded object that contains attributes and attribute values that are used to suspend and resume automatic scaling. Setting the value of an attribute to true suspends the specified scaling activities. Setting it to false (default) resumes the specified scaling activities.
-    hidden SuspendedState: (SuspendedState)?
+    /// The scheduled actions for the scalable target. Duplicates aren't allowed.
+    hidden ScheduledActions: (Listing<ScalableTargetScheduledAction>)?
 
     Properties {
         ["MinCapacity"] = if (MinCapacity == null) null else MinCapacity
         ["ResourceId"] = if (ResourceId == null) null else ResourceId
+        ["ScalableDimension"] = if (ScalableDimension == null) null else ScalableDimension
+        ["ServiceNamespace"] = if (ServiceNamespace == null) null else ServiceNamespace
+        ["SuspendedState"] = if (SuspendedState == null) null else SuspendedState
+        ["MaxCapacity"] = if (MaxCapacity == null) null else MaxCapacity
         ["RoleARN"] = if (RoleARN == null) null else RoleARN
         ["ScheduledActions"] = if (ScheduledActions == null) null else ScheduledActions
-        ["ServiceNamespace"] = if (ServiceNamespace == null) null else ServiceNamespace
-        ["MaxCapacity"] = if (MaxCapacity == null) null else MaxCapacity
-        ["ScalableDimension"] = if (ScalableDimension == null) null else ScalableDimension
-        ["SuspendedState"] = if (SuspendedState == null) null else SuspendedState
     }
 
 }

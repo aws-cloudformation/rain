@@ -6,13 +6,13 @@ module aws.iot.provisioningtemplate
 import "../../cloudformation.pkl"
 
 /// 
-open class ProvisioningHook {
+open class ProvisioningTemplateProvisioningHook {
     TargetArn: (String|Mapping)?
     PayloadVersion: (String|Mapping)?
 }
 
 /// 
-open class Tag {
+open class ProvisioningTemplateTag {
     Key: String|Mapping
     Value: String|Mapping
 }
@@ -24,38 +24,38 @@ open class ProvisioningTemplate extends cloudformation.Resource {
 
 
     /// 
+    hidden TemplateName: (String(matches(Regex(#"^[0-9A-Za-z_-]+$"#)))|Mapping)?
+
+    /// 
+    hidden ProvisioningRoleArn: String|Mapping
+
+    /// 
+    hidden TemplateBody: String|Mapping
+
+    /// 
+    hidden TemplateType: (ProvisioningTemplateTemplateType|Mapping)?
+
+    /// 
+    hidden Tags: (Listing<ProvisioningTemplateTag>)?
+
+    /// 
     hidden Description: (String|Mapping)?
 
     /// 
     hidden Enabled: (Boolean|Mapping)?
 
     /// 
-    hidden TemplateBody: String|Mapping
-
-    /// 
-    hidden PreProvisioningHook: (ProvisioningHook)?
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden ProvisioningRoleArn: String|Mapping
-
-    /// 
-    hidden TemplateType: (ProvisioningTemplateTemplateType|Mapping)?
-
-    /// 
-    hidden TemplateName: (String(matches(Regex(#"^[0-9A-Za-z_-]+$"#)))|Mapping)?
+    hidden PreProvisioningHook: (ProvisioningTemplateProvisioningHook)?
 
     Properties {
+        ["TemplateName"] = if (TemplateName == null) null else TemplateName
+        ["ProvisioningRoleArn"] = if (ProvisioningRoleArn == null) null else ProvisioningRoleArn
+        ["TemplateBody"] = if (TemplateBody == null) null else TemplateBody
+        ["TemplateType"] = if (TemplateType == null) null else TemplateType
+        ["Tags"] = if (Tags == null) null else Tags
         ["Description"] = if (Description == null) null else Description
         ["Enabled"] = if (Enabled == null) null else Enabled
-        ["TemplateBody"] = if (TemplateBody == null) null else TemplateBody
         ["PreProvisioningHook"] = if (PreProvisioningHook == null) null else PreProvisioningHook
-        ["Tags"] = if (Tags == null) null else Tags
-        ["ProvisioningRoleArn"] = if (ProvisioningRoleArn == null) null else ProvisioningRoleArn
-        ["TemplateType"] = if (TemplateType == null) null else TemplateType
-        ["TemplateName"] = if (TemplateName == null) null else TemplateName
     }
 
 }

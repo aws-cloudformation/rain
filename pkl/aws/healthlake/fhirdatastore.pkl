@@ -5,71 +5,65 @@ module aws.healthlake.fhirdatastore
 
 import "../../cloudformation.pkl"
 
-/// The time that a Data Store was created.
-open class CreatedAt {
-    Seconds: String|Mapping
-    Nanos: Int|Mapping
-}
+typealias FHIRDatastoreDatastoreStatus = "CREATING"|"ACTIVE"|"DELETING"|"DELETED"
 
-/// The Amazon Resource Name used in the creation of the Data Store.
-open class DatastoreArn {
-}
 
-/// The FHIR version. Only R4 version data is supported.
-open class DatastoreTypeVersion {
-}
+typealias FHIRDatastoreDatastoreId = String
 
-typealias KmsEncryptionConfigCmkType = "CUSTOMER_MANAGED_KMS_KEY"|"AWS_OWNED_KMS_KEY"
 
-/// The customer-managed-key (CMK) used when creating a Data Store. If a customer owned key is not specified, an AWS owned key will be used for encryption.
-open class KmsEncryptionConfig {
-    CmkType: KmsEncryptionConfigCmkType|Mapping
-    KmsKeyId: (String(matches(Regex(#"(arn:aws((-us-gov)|(-iso)|(-iso-b)|(-cn))?:kms:)?([a-z]{2}-[a-z]+(-[a-z]+)?-\d:)?(\d{12}:)?(((key/)?[a-zA-Z0-9-_]+)|(alias/[a-zA-Z0-9:/_-]+))"#)))|Mapping)?
-}
+typealias FHIRDatastoreDatastoreTypeVersion = "R4"
 
-/// A key-value pair. A tag consists of a tag key and a tag value. Tag keys and tag values are both required, but tag values can be empty (null) strings.
-open class Tag {
-    Key: String|Mapping
-    Value: String|Mapping
+
+/// The server-side encryption key configuration for a customer provided encryption key.
+open class FHIRDatastoreSseConfiguration {
+    KmsEncryptionConfig: FHIRDatastoreKmsEncryptionConfig
 }
 
 typealias IdentityProviderConfigurationAuthorizationStrategy = "SMART_ON_FHIR_V1"|"AWS_AUTH"
 
 /// The identity provider configuration for the datastore
-open class IdentityProviderConfiguration {
+open class FHIRDatastoreIdentityProviderConfiguration {
     AuthorizationStrategy: IdentityProviderConfigurationAuthorizationStrategy|Mapping
     FineGrainedAuthorizationEnabled: (Boolean|Mapping)?
     Metadata: (String|Mapping)?
     IdpLambdaArn: (String(matches(Regex(#"arn:aws[-a-z]*:lambda:[a-z]{2}-[a-z]+-\d{1}:\d{12}:function:[a-zA-Z0-9\-_\.]+(:(\$LATEST|[a-zA-Z0-9\-_]+))?"#)))|Mapping)?
 }
 
-/// The AWS endpoint for the Data Store. Each Data Store will have it's own endpoint with Data Store ID in the endpoint URL.
-open class DatastoreEndpoint {
+/// The time that a Data Store was created.
+open class FHIRDatastoreCreatedAt {
+    Seconds: String|Mapping
+    Nanos: Int|Mapping
 }
 
-/// The AWS-generated ID number for the Data Store.
-open class DatastoreId {
-}
+typealias FHIRDatastoreDatastoreArn = String
 
-/// The user-generated name for the Data Store.
-open class DatastoreName {
-}
 
-/// The status of the Data Store. Possible statuses are 'CREATING', 'ACTIVE', 'DELETING', or 'DELETED'.
-open class DatastoreStatus {
+typealias FHIRDatastoreDatastoreEndpoint = String
+
+
+typealias KmsEncryptionConfigCmkType = "CUSTOMER_MANAGED_KMS_KEY"|"AWS_OWNED_KMS_KEY"
+
+/// The customer-managed-key (CMK) used when creating a Data Store. If a customer owned key is not specified, an AWS owned key will be used for encryption.
+open class FHIRDatastoreKmsEncryptionConfig {
+    CmkType: KmsEncryptionConfigCmkType|Mapping
+    KmsKeyId: (String(matches(Regex(#"(arn:aws((-us-gov)|(-iso)|(-iso-b)|(-cn))?:kms:)?([a-z]{2}-[a-z]+(-[a-z]+)?-\d:)?(\d{12}:)?(((key/)?[a-zA-Z0-9-_]+)|(alias/[a-zA-Z0-9:/_-]+))"#)))|Mapping)?
 }
 
 typealias PreloadDataConfigPreloadDataType = "SYNTHEA"
 
 /// The preloaded data configuration for the Data Store. Only data preloaded from Synthea is supported.
-open class PreloadDataConfig {
+open class FHIRDatastorePreloadDataConfig {
     PreloadDataType: PreloadDataConfigPreloadDataType|Mapping
 }
 
-/// The server-side encryption key configuration for a customer provided encryption key.
-open class SseConfiguration {
-    KmsEncryptionConfig: KmsEncryptionConfig
+/// A key-value pair. A tag consists of a tag key and a tag value. Tag keys and tag values are both required, but tag values can be empty (null) strings.
+open class FHIRDatastoreTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
+
+typealias FHIRDatastoreDatastoreName = String
+
 
 /// HealthLake FHIR Datastore
 open class FHIRDatastore extends cloudformation.Resource {
@@ -78,30 +72,30 @@ open class FHIRDatastore extends cloudformation.Resource {
 
 
     /// 
-    hidden PreloadDataConfig: (PreloadDataConfig)?
+    hidden DatastoreName: (FHIRDatastoreDatastoreName)?
 
     /// 
-    hidden SseConfiguration: (SseConfiguration)?
+    hidden DatastoreTypeVersion: FHIRDatastoreDatastoreTypeVersion
 
     /// 
-    hidden IdentityProviderConfiguration: (IdentityProviderConfiguration)?
+    hidden SseConfiguration: (FHIRDatastoreSseConfiguration)?
 
     /// 
-    hidden Tags: (Listing<Tag>)?
+    hidden IdentityProviderConfiguration: (FHIRDatastoreIdentityProviderConfiguration)?
 
     /// 
-    hidden DatastoreName: (DatastoreName)?
+    hidden Tags: (Listing<FHIRDatastoreTag>)?
 
     /// 
-    hidden DatastoreTypeVersion: DatastoreTypeVersion
+    hidden PreloadDataConfig: (FHIRDatastorePreloadDataConfig)?
 
     Properties {
-        ["PreloadDataConfig"] = if (PreloadDataConfig == null) null else PreloadDataConfig
+        ["DatastoreName"] = if (DatastoreName == null) null else DatastoreName
+        ["DatastoreTypeVersion"] = if (DatastoreTypeVersion == null) null else DatastoreTypeVersion
         ["SseConfiguration"] = if (SseConfiguration == null) null else SseConfiguration
         ["IdentityProviderConfiguration"] = if (IdentityProviderConfiguration == null) null else IdentityProviderConfiguration
         ["Tags"] = if (Tags == null) null else Tags
-        ["DatastoreName"] = if (DatastoreName == null) null else DatastoreName
-        ["DatastoreTypeVersion"] = if (DatastoreTypeVersion == null) null else DatastoreTypeVersion
+        ["PreloadDataConfig"] = if (PreloadDataConfig == null) null else PreloadDataConfig
     }
 
 }

@@ -5,67 +5,62 @@ module aws.billingconductor.customlineitem
 
 import "../../cloudformation.pkl"
 
-/// 
-open class Tag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
 typealias LineItemFilterAttribute = "LINE_ITEM_TYPE"
 
 typealias LineItemFilterMatchOption = "NOT_EQUAL"
 
 /// 
-open class LineItemFilter {
+open class CustomLineItemLineItemFilter {
     Attribute: LineItemFilterAttribute|Mapping
     MatchOption: LineItemFilterMatchOption|Mapping
-    Values: Listing<LineItemFilterValue>
+    Values: Listing<CustomLineItemLineItemFilterValue>
 }
 
-/// 
-open class LineItemFilterValue {
-}
+typealias CustomLineItemExclusiveEndBillingPeriod = String|Mapping
+
+
+typealias CustomLineItemType = String|Mapping
+
 
 /// 
-open class ExclusiveEndBillingPeriod {
-}
-
-/// 
-open class Type {
-}
-
-/// 
-open class CustomLineItemPercentageChargeDetails {
+open class CustomLineItemCustomLineItemPercentageChargeDetails {
     ChildAssociatedResources: (Listing<String|Mapping>)?
     PercentageValue: Number|Mapping
 }
 
 /// 
-open class CustomLineItemFlatChargeDetails {
+open class CustomLineItemBillingPeriodRange {
+    InclusiveStartBillingPeriod: (CustomLineItemInclusiveStartBillingPeriod)?
+    ExclusiveEndBillingPeriod: (CustomLineItemExclusiveEndBillingPeriod)?
+}
+
+/// 
+open class CustomLineItemTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class CustomLineItemCustomLineItemFlatChargeDetails {
     ChargeValue: Number|Mapping
 }
 
-/// 
-open class LineItemFilters {
-}
+typealias CustomLineItemLineItemFilterValue = String|Mapping
+
+
+typealias CustomLineItemLineItemFilters = Listing<(CustomLineItemLineItemFilter)?>
+
 
 /// 
-open class CustomLineItemChargeDetails {
-    Flat: (CustomLineItemFlatChargeDetails)?
-    Percentage: (CustomLineItemPercentageChargeDetails)?
-    Type: Type
-    LineItemFilters: (LineItemFilters)?
+open class CustomLineItemCustomLineItemChargeDetails {
+    Type: CustomLineItemType
+    LineItemFilters: (CustomLineItemLineItemFilters)?
+    Flat: (CustomLineItemCustomLineItemFlatChargeDetails)?
+    Percentage: (CustomLineItemCustomLineItemPercentageChargeDetails)?
 }
 
-/// 
-open class InclusiveStartBillingPeriod {
-}
+typealias CustomLineItemInclusiveStartBillingPeriod = String|Mapping
 
-/// 
-open class BillingPeriodRange {
-    InclusiveStartBillingPeriod: (InclusiveStartBillingPeriod)?
-    ExclusiveEndBillingPeriod: (ExclusiveEndBillingPeriod)?
-}
 
 /// A custom line item is an one time charge that is applied to a specific billing group's bill.
 open class CustomLineItem extends cloudformation.Resource {
@@ -76,32 +71,32 @@ open class CustomLineItem extends cloudformation.Resource {
     /// 
     hidden Description: (String|Mapping)?
 
+    /// Billing Group ARN
+    hidden BillingGroupArn: String(matches(Regex(#"arn:aws(-cn)?:billingconductor::[0-9]{12}:billinggroup/?[0-9]{12}"#)))|Mapping
+
     /// The account which this custom line item will be charged to
     hidden AccountId: (String(matches(Regex(#"[0-9]{12}"#)))|Mapping)?
+
+    /// 
+    hidden BillingPeriodRange: (CustomLineItemBillingPeriodRange)?
 
     /// 
     hidden Name: String(matches(Regex(#"[a-zA-Z0-9_\+=\.\-@]+"#)))|Mapping
 
     /// 
-    hidden BillingPeriodRange: (BillingPeriodRange)?
+    hidden CustomLineItemChargeDetails: (CustomLineItemCustomLineItemChargeDetails)?
 
     /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden CustomLineItemChargeDetails: (CustomLineItemChargeDetails)?
-
-    /// Billing Group ARN
-    hidden BillingGroupArn: String(matches(Regex(#"arn:aws(-cn)?:billingconductor::[0-9]{12}:billinggroup/?[0-9]{12}"#)))|Mapping
+    hidden Tags: (Listing<CustomLineItemTag>)?
 
     Properties {
         ["Description"] = if (Description == null) null else Description
-        ["AccountId"] = if (AccountId == null) null else AccountId
-        ["Name"] = if (Name == null) null else Name
-        ["BillingPeriodRange"] = if (BillingPeriodRange == null) null else BillingPeriodRange
-        ["Tags"] = if (Tags == null) null else Tags
-        ["CustomLineItemChargeDetails"] = if (CustomLineItemChargeDetails == null) null else CustomLineItemChargeDetails
         ["BillingGroupArn"] = if (BillingGroupArn == null) null else BillingGroupArn
+        ["AccountId"] = if (AccountId == null) null else AccountId
+        ["BillingPeriodRange"] = if (BillingPeriodRange == null) null else BillingPeriodRange
+        ["Name"] = if (Name == null) null else Name
+        ["CustomLineItemChargeDetails"] = if (CustomLineItemChargeDetails == null) null else CustomLineItemChargeDetails
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

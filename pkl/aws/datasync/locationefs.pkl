@@ -6,13 +6,13 @@ module aws.datasync.locationefs
 import "../../cloudformation.pkl"
 
 /// The subnet and security group that DataSync uses to access target EFS file system.
-open class Ec2Config {
+open class LocationEFSEc2Config {
     SecurityGroupArns: Listing<String|Mapping>
     SubnetArn: String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):ec2:[a-z\-0-9]*:[0-9]{12}:subnet/.*$"#)))|Mapping
 }
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class LocationEFSTag {
     Key: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:/-]+$"#)))|Mapping
     Value: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:@/-]+$"#)))|Mapping
 }
@@ -23,8 +23,11 @@ open class LocationEFS extends cloudformation.Resource {
     Type = "AWS::DataSync::LocationEFS"
 
 
-    /// 
-    hidden Ec2Config: Ec2Config
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<LocationEFSTag>)?
+
+    /// The Amazon Resource Name (ARN) for the Amazon EFS file system.
+    hidden EfsFilesystemArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):elasticfilesystem:[a-z\-0-9]*:[0-9]{12}:file-system/fs-.*$"#)))|Mapping)?
 
     /// The Amazon Resource Name (ARN) for the Amazon EFS Access point that DataSync uses when accessing the EFS file system.
     hidden AccessPointArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):elasticfilesystem:[a-z\-0-9]+:[0-9]{12}:access-point/fsap-[0-9a-f]{8,40}$"#)))|Mapping)?
@@ -35,23 +38,20 @@ open class LocationEFS extends cloudformation.Resource {
     /// Protocol that is used for encrypting the traffic exchanged between the DataSync Agent and the EFS file system.
     hidden InTransitEncryption: (LocationEFSInTransitEncryption|Mapping)?
 
-    /// The Amazon Resource Name (ARN) for the Amazon EFS file system.
-    hidden EfsFilesystemArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):elasticfilesystem:[a-z\-0-9]*:[0-9]{12}:file-system/fs-.*$"#)))|Mapping)?
-
     /// A subdirectory in the location's path. This subdirectory in the EFS file system is used to read data from the EFS source location or write data to the EFS destination.
     hidden Subdirectory: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\$\p{Zs}]+$"#)))|Mapping)?
 
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
+    /// 
+    hidden Ec2Config: LocationEFSEc2Config
 
     Properties {
-        ["Ec2Config"] = if (Ec2Config == null) null else Ec2Config
+        ["Tags"] = if (Tags == null) null else Tags
+        ["EfsFilesystemArn"] = if (EfsFilesystemArn == null) null else EfsFilesystemArn
         ["AccessPointArn"] = if (AccessPointArn == null) null else AccessPointArn
         ["FileSystemAccessRoleArn"] = if (FileSystemAccessRoleArn == null) null else FileSystemAccessRoleArn
         ["InTransitEncryption"] = if (InTransitEncryption == null) null else InTransitEncryption
-        ["EfsFilesystemArn"] = if (EfsFilesystemArn == null) null else EfsFilesystemArn
         ["Subdirectory"] = if (Subdirectory == null) null else Subdirectory
-        ["Tags"] = if (Tags == null) null else Tags
+        ["Ec2Config"] = if (Ec2Config == null) null else Ec2Config
     }
 
 }

@@ -5,17 +5,17 @@ module aws.iot.cacertificate
 
 import "../../cloudformation.pkl"
 
-/// 
-open class RegistrationConfig {
-    TemplateName: (String(matches(Regex(#"^[0-9A-Za-z_-]+$"#)))|Mapping)?
-    TemplateBody: (String(matches(Regex(#"[\s\S]*"#)))|Mapping)?
-    RoleArn: (String(matches(Regex(#"arn:(aws[a-zA-Z-]*)?:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+"#)))|Mapping)?
-}
-
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class CACertificateTag {
     Key: String|Mapping
     Value: String|Mapping
+}
+
+/// 
+open class CACertificateRegistrationConfig {
+    TemplateBody: (String(matches(Regex(#"[\s\S]*"#)))|Mapping)?
+    RoleArn: (String(matches(Regex(#"arn:(aws[a-zA-Z-]*)?:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+"#)))|Mapping)?
+    TemplateName: (String(matches(Regex(#"^[0-9A-Za-z_-]+$"#)))|Mapping)?
 }
 
 /// Registers a CA Certificate in IoT.
@@ -24,46 +24,46 @@ open class CACertificate extends cloudformation.Resource {
     Type = "AWS::IoT::CACertificate"
 
 
+    /// The private key verification certificate.
+    hidden VerificationCertificatePem: (String(matches(Regex(#"[\s\S]*"#)))|Mapping)?
+
+    /// 
+    hidden Status: CACertificateStatus|Mapping
+
     /// 
     hidden CertificateMode: (CACertificateCertificateMode|Mapping)?
 
     /// 
     hidden AutoRegistrationStatus: (CACertificateAutoRegistrationStatus|Mapping)?
 
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden CACertificatePem: String(matches(Regex(#"[\s\S]*"#)))|Mapping
-
-    /// 
-    hidden Status: CACertificateStatus|Mapping
-
     /// 
     hidden RemoveAutoRegistration: (Boolean|Mapping)?
 
     /// 
-    hidden RegistrationConfig: (RegistrationConfig)?
+    hidden RegistrationConfig: (CACertificateRegistrationConfig)?
 
-    /// The private key verification certificate.
-    hidden VerificationCertificatePem: (String(matches(Regex(#"[\s\S]*"#)))|Mapping)?
+    /// 
+    hidden CACertificatePem: String(matches(Regex(#"[\s\S]*"#)))|Mapping
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<CACertificateTag>)?
 
     Properties {
+        ["VerificationCertificatePem"] = if (VerificationCertificatePem == null) null else VerificationCertificatePem
+        ["Status"] = if (Status == null) null else Status
         ["CertificateMode"] = if (CertificateMode == null) null else CertificateMode
         ["AutoRegistrationStatus"] = if (AutoRegistrationStatus == null) null else AutoRegistrationStatus
-        ["Tags"] = if (Tags == null) null else Tags
-        ["CACertificatePem"] = if (CACertificatePem == null) null else CACertificatePem
-        ["Status"] = if (Status == null) null else Status
         ["RemoveAutoRegistration"] = if (RemoveAutoRegistration == null) null else RemoveAutoRegistration
         ["RegistrationConfig"] = if (RegistrationConfig == null) null else RegistrationConfig
-        ["VerificationCertificatePem"] = if (VerificationCertificatePem == null) null else VerificationCertificatePem
+        ["CACertificatePem"] = if (CACertificatePem == null) null else CACertificatePem
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }
 
 
+typealias CACertificateStatus = "ACTIVE"|"INACTIVE"
+
 typealias CACertificateCertificateMode = "DEFAULT"|"SNI_ONLY"
 
 typealias CACertificateAutoRegistrationStatus = "ENABLE"|"DISABLE"
-
-typealias CACertificateStatus = "ACTIVE"|"INACTIVE"

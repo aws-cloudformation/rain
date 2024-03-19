@@ -6,37 +6,37 @@ module aws.iotwireless.taskdefinition
 import "../../cloudformation.pkl"
 
 /// 
-open class LoRaWANGatewayVersion {
-    Model: (String|Mapping)?
-    Station: (String|Mapping)?
-    PackageVersion: (String|Mapping)?
+open class TaskDefinitionLoRaWANUpdateGatewayTaskEntry {
+    CurrentVersion: (TaskDefinitionLoRaWANGatewayVersion)?
+    UpdateVersion: (TaskDefinitionLoRaWANGatewayVersion)?
 }
 
 /// 
-open class LoRaWANUpdateGatewayTaskCreate {
-    UpdateSignature: (String|Mapping)?
-    SigKeyCrc: (Int|Mapping)?
-    CurrentVersion: (LoRaWANGatewayVersion)?
-    UpdateVersion: (LoRaWANGatewayVersion)?
-}
-
-/// 
-open class UpdateWirelessGatewayTaskCreate {
-    UpdateDataSource: (String|Mapping)?
-    UpdateDataRole: (String|Mapping)?
-    LoRaWAN: (LoRaWANUpdateGatewayTaskCreate)?
-}
-
-/// 
-open class LoRaWANUpdateGatewayTaskEntry {
-    CurrentVersion: (LoRaWANGatewayVersion)?
-    UpdateVersion: (LoRaWANGatewayVersion)?
-}
-
-/// 
-open class Tag {
+open class TaskDefinitionTag {
     Key: (String|Mapping)?
     Value: (String|Mapping)?
+}
+
+/// 
+open class TaskDefinitionLoRaWANGatewayVersion {
+    PackageVersion: (String|Mapping)?
+    Model: (String|Mapping)?
+    Station: (String|Mapping)?
+}
+
+/// 
+open class TaskDefinitionLoRaWANUpdateGatewayTaskCreate {
+    UpdateSignature: (String|Mapping)?
+    SigKeyCrc: (Int|Mapping)?
+    CurrentVersion: (TaskDefinitionLoRaWANGatewayVersion)?
+    UpdateVersion: (TaskDefinitionLoRaWANGatewayVersion)?
+}
+
+/// 
+open class TaskDefinitionUpdateWirelessGatewayTaskCreate {
+    UpdateDataRole: (String|Mapping)?
+    LoRaWAN: (TaskDefinitionLoRaWANUpdateGatewayTaskCreate)?
+    UpdateDataSource: (String|Mapping)?
 }
 
 /// Creates a gateway task definition.
@@ -45,14 +45,8 @@ open class TaskDefinition extends cloudformation.Resource {
     Type = "AWS::IoTWireless::TaskDefinition"
 
 
-    /// The list of task definitions.
-    hidden LoRaWANUpdateGatewayTaskEntry: (LoRaWANUpdateGatewayTaskEntry)?
-
-    /// A filter to list only the wireless gateway task definitions that use this task definition type
-    hidden TaskDefinitionType: (TaskDefinitionTaskDefinitionType|Mapping)?
-
     /// A list of key-value pairs that contain metadata for the destination.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<TaskDefinitionTag>)?
 
     /// The name of the new resource.
     hidden Name: (String|Mapping)?
@@ -61,15 +55,21 @@ open class TaskDefinition extends cloudformation.Resource {
     hidden AutoCreateTasks: Boolean|Mapping
 
     /// Information about the gateways to update.
-    hidden Update: (UpdateWirelessGatewayTaskCreate)?
+    hidden Update: (TaskDefinitionUpdateWirelessGatewayTaskCreate)?
+
+    /// The list of task definitions.
+    hidden LoRaWANUpdateGatewayTaskEntry: (TaskDefinitionLoRaWANUpdateGatewayTaskEntry)?
+
+    /// A filter to list only the wireless gateway task definitions that use this task definition type
+    hidden TaskDefinitionType: (TaskDefinitionTaskDefinitionType|Mapping)?
 
     Properties {
-        ["LoRaWANUpdateGatewayTaskEntry"] = if (LoRaWANUpdateGatewayTaskEntry == null) null else LoRaWANUpdateGatewayTaskEntry
-        ["TaskDefinitionType"] = if (TaskDefinitionType == null) null else TaskDefinitionType
         ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
         ["AutoCreateTasks"] = if (AutoCreateTasks == null) null else AutoCreateTasks
         ["Update"] = if (Update == null) null else Update
+        ["LoRaWANUpdateGatewayTaskEntry"] = if (LoRaWANUpdateGatewayTaskEntry == null) null else LoRaWANUpdateGatewayTaskEntry
+        ["TaskDefinitionType"] = if (TaskDefinitionType == null) null else TaskDefinitionType
     }
 
 }

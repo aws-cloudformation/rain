@@ -6,19 +6,19 @@ module aws.groundstation.missionprofile
 import "../../cloudformation.pkl"
 
 /// 
-open class DataflowEdge {
-    Source: (String|Mapping)?
+open class MissionProfileDataflowEdge {
     Destination: (String|Mapping)?
+    Source: (String|Mapping)?
 }
 
 /// 
-open class Tag {
+open class MissionProfileTag {
     Key: String(matches(Regex(#"^[ a-zA-Z0-9\+\-=._:/@]{1,128}$"#)))|Mapping
     Value: String(matches(Regex(#"^[ a-zA-Z0-9\+\-=._:/@]{1,256}$"#)))|Mapping
 }
 
 /// 
-open class StreamsKmsKey {
+open class MissionProfileStreamsKmsKey {
     KmsKeyArn: (String|Mapping)?
     KmsAliasArn: (String|Mapping)?
 }
@@ -29,43 +29,43 @@ open class MissionProfile extends cloudformation.Resource {
     Type = "AWS::GroundStation::MissionProfile"
 
 
-    /// Pre-pass time needed before the contact.
-    hidden ContactPrePassDurationSeconds: (Int|Mapping)?
-
-    /// 
-    hidden DataflowEdges: Listing<DataflowEdge>
-
-    /// 
-    hidden TrackingConfigArn: String|Mapping
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
     /// A name used to identify a mission profile.
     hidden Name: String(matches(Regex(#"^[ a-zA-Z0-9_:-]{1,256}$"#)))|Mapping
 
+    /// Pre-pass time needed before the contact.
+    hidden ContactPrePassDurationSeconds: (Int|Mapping)?
+
     /// Post-pass time needed after the contact.
     hidden ContactPostPassDurationSeconds: (Int|Mapping)?
+
+    /// 
+    hidden DataflowEdges: Listing<MissionProfileDataflowEdge>
+
+    /// 
+    hidden Tags: (Listing<MissionProfileTag>)?
 
     /// Visibilities with shorter duration than the specified minimum viable contact duration will be ignored when searching for available contacts.
     hidden MinimumViableContactDurationSeconds: Int|Mapping
 
     /// The ARN of a KMS Key used for encrypting data during transmission from the source to destination locations.
-    hidden StreamsKmsKey: (StreamsKmsKey)?
+    hidden StreamsKmsKey: (MissionProfileStreamsKmsKey)?
 
     /// The ARN of the KMS Key or Alias Key role used to define permissions on KMS Key usage.
     hidden StreamsKmsRole: (String|Mapping)?
 
+    /// 
+    hidden TrackingConfigArn: String|Mapping
+
     Properties {
-        ["ContactPrePassDurationSeconds"] = if (ContactPrePassDurationSeconds == null) null else ContactPrePassDurationSeconds
-        ["DataflowEdges"] = if (DataflowEdges == null) null else DataflowEdges
-        ["TrackingConfigArn"] = if (TrackingConfigArn == null) null else TrackingConfigArn
-        ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
+        ["ContactPrePassDurationSeconds"] = if (ContactPrePassDurationSeconds == null) null else ContactPrePassDurationSeconds
         ["ContactPostPassDurationSeconds"] = if (ContactPostPassDurationSeconds == null) null else ContactPostPassDurationSeconds
+        ["DataflowEdges"] = if (DataflowEdges == null) null else DataflowEdges
+        ["Tags"] = if (Tags == null) null else Tags
         ["MinimumViableContactDurationSeconds"] = if (MinimumViableContactDurationSeconds == null) null else MinimumViableContactDurationSeconds
         ["StreamsKmsKey"] = if (StreamsKmsKey == null) null else StreamsKmsKey
         ["StreamsKmsRole"] = if (StreamsKmsRole == null) null else StreamsKmsRole
+        ["TrackingConfigArn"] = if (TrackingConfigArn == null) null else TrackingConfigArn
     }
 
 }

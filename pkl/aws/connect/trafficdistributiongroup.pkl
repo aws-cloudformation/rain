@@ -6,7 +6,7 @@ module aws.connect.trafficdistributiongroup
 import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class TrafficDistributionGroupTag {
     Key: String|Mapping
     Value: String|Mapping
 }
@@ -17,9 +17,6 @@ open class TrafficDistributionGroup extends cloudformation.Resource {
     Type = "AWS::Connect::TrafficDistributionGroup"
 
 
-    /// The identifier of the Amazon Connect instance that has been replicated.
-    hidden InstanceArn: String(matches(Regex(#"^arn:(aws|aws-us-gov):connect:[a-z]{2}-[a-z]+-[0-9]{1}:[0-9]{1,20}:instance/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"#)))|Mapping
-
     /// A description for the traffic distribution group.
     hidden Description: (String(matches(Regex(#"(^[\S].*[\S]$)|(^[\S]$)"#)))|Mapping)?
 
@@ -27,13 +24,16 @@ open class TrafficDistributionGroup extends cloudformation.Resource {
     hidden Name: String(matches(Regex(#"(^[\S].*[\S]$)|(^[\S]$)"#)))|Mapping
 
     /// One or more tags.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<TrafficDistributionGroupTag>)?
+
+    /// The identifier of the Amazon Connect instance that has been replicated.
+    hidden InstanceArn: String(matches(Regex(#"^arn:(aws|aws-us-gov):connect:[a-z]{2}-[a-z]+-[0-9]{1}:[0-9]{1,20}:instance/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"#)))|Mapping
 
     Properties {
-        ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
         ["Description"] = if (Description == null) null else Description
         ["Name"] = if (Name == null) null else Name
         ["Tags"] = if (Tags == null) null else Tags
+        ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
     }
 
 }

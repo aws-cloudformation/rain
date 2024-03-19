@@ -5,42 +5,42 @@ module aws.iotsitewise.accesspolicy
 
 import "../../cloudformation.pkl"
 
-/// Contains information for an IAM user identity in an access policy.
-open class IamUser {
-    arn: (String|Mapping)?
-}
-
 /// Contains information for an IAM role identity in an access policy.
-open class IamRole {
+open class AccessPolicyIamRole {
     arn: (String|Mapping)?
 }
 
 /// A portal resource.
-open class Portal {
+open class AccessPolicyPortal {
     id: (String|Mapping)?
 }
 
 /// A project resource.
-open class Project {
+open class AccessPolicyProject {
     id: (String|Mapping)?
 }
 
 /// The identity for this access policy. Choose either an SSO user or group or an IAM user or role.
-open class AccessPolicyIdentity {
-    User: (User)?
-    IamUser: (IamUser)?
-    IamRole: (IamRole)?
+open class AccessPolicyAccessPolicyIdentity {
+    IamUser: (AccessPolicyIamUser)?
+    IamRole: (AccessPolicyIamRole)?
+    User: (AccessPolicyUser)?
 }
 
 /// The AWS IoT SiteWise Monitor resource for this access policy. Choose either portal or project but not both.
-open class AccessPolicyResource {
-    Portal: (Portal)?
-    Project: (Project)?
+open class AccessPolicyAccessPolicyResource {
+    Portal: (AccessPolicyPortal)?
+    Project: (AccessPolicyProject)?
 }
 
 /// Contains information for a user identity in an access policy.
-open class User {
+open class AccessPolicyUser {
     id: (String|Mapping)?
+}
+
+/// Contains information for an IAM user identity in an access policy.
+open class AccessPolicyIamUser {
+    arn: (String|Mapping)?
 }
 
 /// Resource schema for AWS::IoTSiteWise::AccessPolicy
@@ -49,19 +49,19 @@ open class AccessPolicy extends cloudformation.Resource {
     Type = "AWS::IoTSiteWise::AccessPolicy"
 
 
-    /// The AWS IoT SiteWise Monitor resource for this access policy. Choose either portal or project but not both.
-    hidden AccessPolicyResource: AccessPolicyResource
-
     /// The identity for this access policy. Choose either a user or a group but not both.
-    hidden AccessPolicyIdentity: AccessPolicyIdentity
+    hidden AccessPolicyIdentity: AccessPolicyAccessPolicyIdentity
 
     /// The permission level for this access policy. Valid values are ADMINISTRATOR or VIEWER.
     hidden AccessPolicyPermission: String|Mapping
 
+    /// The AWS IoT SiteWise Monitor resource for this access policy. Choose either portal or project but not both.
+    hidden AccessPolicyResource: AccessPolicyAccessPolicyResource
+
     Properties {
-        ["AccessPolicyResource"] = if (AccessPolicyResource == null) null else AccessPolicyResource
         ["AccessPolicyIdentity"] = if (AccessPolicyIdentity == null) null else AccessPolicyIdentity
         ["AccessPolicyPermission"] = if (AccessPolicyPermission == null) null else AccessPolicyPermission
+        ["AccessPolicyResource"] = if (AccessPolicyResource == null) null else AccessPolicyResource
     }
 
 }

@@ -6,11 +6,11 @@ module aws.gamelift.build
 import "../../cloudformation.pkl"
 
 /// 
-open class StorageLocation {
+open class BuildStorageLocation {
+    ObjectVersion: (String|Mapping)?
     RoleArn: String|Mapping
     Bucket: String|Mapping
     Key: String|Mapping
-    ObjectVersion: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::GameLift::Build
@@ -19,9 +19,6 @@ open class Build extends cloudformation.Resource {
     Type = "AWS::GameLift::Build"
 
 
-    /// A server SDK version you used when integrating your game server build with Amazon GameLift. By default Amazon GameLift sets this value to 4.0.2.
-    hidden ServerSdkVersion: (String|Mapping)?
-
     /// A descriptive label that is associated with a build. Build names do not need to be unique.
     hidden Name: (String|Mapping)?
 
@@ -29,17 +26,20 @@ open class Build extends cloudformation.Resource {
     hidden OperatingSystem: (BuildOperatingSystem|Mapping)?
 
     /// Information indicating where your game build files are stored. Use this parameter only when creating a build with files stored in an Amazon S3 bucket that you own. The storage location must specify an Amazon S3 bucket name and key. The location must also specify a role ARN that you set up to allow Amazon GameLift to access your Amazon S3 bucket. The S3 bucket and your new build must be in the same Region.
-    hidden StorageLocation: (StorageLocation)?
+    hidden StorageLocation: (BuildStorageLocation)?
 
     /// Version information that is associated with this build. Version strings do not need to be unique.
     hidden Version: (String|Mapping)?
 
+    /// A server SDK version you used when integrating your game server build with Amazon GameLift. By default Amazon GameLift sets this value to 4.0.2.
+    hidden ServerSdkVersion: (String|Mapping)?
+
     Properties {
-        ["ServerSdkVersion"] = if (ServerSdkVersion == null) null else ServerSdkVersion
         ["Name"] = if (Name == null) null else Name
         ["OperatingSystem"] = if (OperatingSystem == null) null else OperatingSystem
         ["StorageLocation"] = if (StorageLocation == null) null else StorageLocation
         ["Version"] = if (Version == null) null else Version
+        ["ServerSdkVersion"] = if (ServerSdkVersion == null) null else ServerSdkVersion
     }
 
 }

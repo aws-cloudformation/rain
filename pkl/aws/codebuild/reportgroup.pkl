@@ -6,25 +6,25 @@ module aws.codebuild.reportgroup
 import "../../cloudformation.pkl"
 
 /// 
-open class S3ReportExportConfig {
+open class ReportGroupTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class ReportGroupReportExportConfig {
+    S3Destination: (ReportGroupS3ReportExportConfig)?
+    ExportConfigType: String|Mapping
+}
+
+/// 
+open class ReportGroupS3ReportExportConfig {
+    EncryptionDisabled: (Boolean|Mapping)?
     Path: (String|Mapping)?
     Bucket: String|Mapping
     Packaging: (String|Mapping)?
     EncryptionKey: (String|Mapping)?
     BucketOwner: (String|Mapping)?
-    EncryptionDisabled: (Boolean|Mapping)?
-}
-
-/// 
-open class Tag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class ReportExportConfig {
-    S3Destination: (S3ReportExportConfig)?
-    ExportConfigType: String|Mapping
 }
 
 /// Resource Type definition for AWS::CodeBuild::ReportGroup
@@ -34,26 +34,26 @@ open class ReportGroup extends cloudformation.Resource {
 
 
     /// 
+    hidden DeleteReports: (Boolean|Mapping)?
+
+    /// 
+    hidden Tags: (Listing<ReportGroupTag>)?
+
+    /// 
     hidden Name: (String|Mapping)?
 
     /// 
     hidden TypeProperty: String|Mapping
 
     /// 
-    hidden ExportConfig: ReportExportConfig
-
-    /// 
-    hidden DeleteReports: (Boolean|Mapping)?
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
+    hidden ExportConfig: ReportGroupReportExportConfig
 
     Properties {
+        ["DeleteReports"] = if (DeleteReports == null) null else DeleteReports
+        ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
         ["Type"] = if (TypeProperty == null) null else TypeProperty
         ["ExportConfig"] = if (ExportConfig == null) null else ExportConfig
-        ["DeleteReports"] = if (DeleteReports == null) null else DeleteReports
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

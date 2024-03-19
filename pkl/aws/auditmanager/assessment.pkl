@@ -5,131 +5,112 @@ module aws.auditmanager.assessment
 
 import "../../cloudformation.pkl"
 
-/// The destination type, such as Amazon S3.
-open class AssessmentReportDestinationType {
+typealias AssessmentTimestamp = Number|Mapping
+
+
+typealias AssessmentAssessmentName = String|Mapping
+
+
+typealias AssessmentRoleType = String|Mapping
+
+
+typealias AssessmentAWSServiceName = String|Mapping
+
+
+typealias AssessmentFrameworkId = String|Mapping
+
+
+typealias AssessmentEmailAddress = String|Mapping
+
+
+typealias AssessmentCreatedBy = String|Mapping
+
+
+typealias AssessmentAssessmentDescription = String|Mapping
+
+
+/// The assignment of a control set to a delegate for review.
+open class AssessmentDelegation {
+    AssessmentName: (AssessmentAssessmentName)?
+    Comment: (AssessmentDelegationComment)?
+    Status: (AssessmentDelegationStatus)?
+    CreatedBy: (AssessmentCreatedBy)?
+    RoleArn: (AssessmentIamArn)?
+    CreationTime: (AssessmentTimestamp)?
+    Id: (AssessmentUUID)?
+    RoleType: (AssessmentRoleType)?
+    AssessmentId: (AssessmentUUID)?
+    LastUpdated: (AssessmentTimestamp)?
+    ControlSetId: (AssessmentControlSetId)?
 }
 
-/// The comment related to the delegation.
-open class DelegationComment {
-}
-
-/// An AWS service such as Amazon S3, AWS CloudTrail, and so on.
-open class AWSService {
-    ServiceName: (AWSServiceName)?
-}
-
-/// The Amazon Resource Name (ARN) of the IAM user or role.
-open class IamArn {
-}
-
-/// The identifier for the specified AWS account.
-open class AccountId {
-}
-
-/// The sequence of characters that identifies when the event occurred.
-open class Timestamp {
-}
-
-/// The identifier for the specified control set.
-open class ControlSetId {
-}
-
-/// The wrapper that contains AWS Audit Manager role information, such as the role type and IAM ARN.
-open class Role {
-    RoleArn: (IamArn)?
-    RoleType: (RoleType)?
-}
-
-/// The name of the AWS service.
-open class AWSServiceName {
-}
-
-/// The URL of the specified Amazon S3 bucket.
-open class S3Url {
+/// The wrapper that contains the AWS accounts and AWS services in scope for the assessment.
+open class AssessmentScope {
+    AwsAccounts: (Listing<AssessmentAWSAccount>)?
+    AwsServices: (Listing<AssessmentAWSService>)?
 }
 
 /// The destination in which evidence reports are stored for the specified assessment.
-open class AssessmentReportsDestination {
-    Destination: (S3Url)?
-    DestinationType: (AssessmentReportDestinationType)?
+open class AssessmentAssessmentReportsDestination {
+    Destination: (AssessmentS3Url)?
+    DestinationType: (AssessmentAssessmentReportDestinationType)?
 }
 
+typealias AssessmentDelegationStatus = String|Mapping
+
+
+typealias AssessmentIamArn = String|Mapping
+
+
+/// The wrapper that contains AWS Audit Manager role information, such as the role type and IAM ARN.
+open class AssessmentRole {
+    RoleArn: (AssessmentIamArn)?
+    RoleType: (AssessmentRoleType)?
+}
+
+typealias AssessmentS3Url = String|Mapping
+
+
+typealias AssessmentControlSetId = String|Mapping
+
+
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class AssessmentTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
-/// 
-open class UUID {
-}
+typealias AssessmentAccountName = String|Mapping
 
-/// The name of the specified AWS account.
-open class AccountName {
-}
 
 /// The AWS account associated with the assessment.
-open class AWSAccount {
-    EmailAddress: (EmailAddress)?
-    Name: (AccountName)?
-    Id: (AccountId)?
+open class AssessmentAWSAccount {
+    EmailAddress: (AssessmentEmailAddress)?
+    Name: (AssessmentAccountName)?
+    Id: (AssessmentAccountId)?
 }
 
-/// The name of the related assessment.
-open class AssessmentName {
-}
+typealias AssessmentAccountId = String|Mapping
 
-/// The wrapper that contains the AWS accounts and AWS services in scope for the assessment.
-open class Scope {
-    AwsAccounts: (Listing<AWSAccount>)?
-    AwsServices: (Listing<AWSService>)?
-}
 
-/// The status of the specified assessment. 
-open class AssessmentStatus {
-}
+typealias AssessmentAssessmentArn = String|Mapping
 
-/// The unique identifier for the email account.
-open class EmailAddress {
-}
 
-/// The Amazon Resource Name (ARN) of the assessment.
-open class AssessmentArn {
-}
+typealias AssessmentAssessmentReportDestinationType = String|Mapping
 
-///  The IAM role type.
-open class RoleType {
-}
 
-/// The description of the specified assessment.
-open class AssessmentDescription {
-}
+typealias AssessmentAssessmentStatus = String|Mapping
 
-/// The identifier for the specified framework.
-open class FrameworkId {
-}
 
-/// The assignment of a control set to a delegate for review.
-open class Delegation {
-    RoleArn: (IamArn)?
-    AssessmentName: (AssessmentName)?
-    LastUpdated: (Timestamp)?
-    ControlSetId: (ControlSetId)?
-    CreationTime: (Timestamp)?
-    CreatedBy: (CreatedBy)?
-    Comment: (DelegationComment)?
-    Id: (UUID)?
-    RoleType: (RoleType)?
-    AssessmentId: (UUID)?
-    Status: (DelegationStatus)?
-}
+typealias AssessmentDelegationComment = String|Mapping
 
-/// The status of the delegation.
-open class DelegationStatus {
-}
 
-/// The IAM user or role that performed the action.
-open class CreatedBy {
+typealias AssessmentUUID = String|Mapping
+
+
+/// An AWS service such as Amazon S3, AWS CloudTrail, and so on.
+open class AssessmentAWSService {
+    ServiceName: (AssessmentAWSServiceName)?
 }
 
 /// An entity that defines the scope of audit evidence collected by AWS Audit Manager.
@@ -139,46 +120,46 @@ open class Assessment extends cloudformation.Resource {
 
 
     /// 
-    hidden AwsAccount: (AWSAccount)?
-
-    /// The list of delegations.
-    hidden Delegations: (Listing<Delegation>)?
+    hidden AssessmentReportsDestination: (AssessmentAssessmentReportsDestination)?
 
     /// 
-    hidden Status: (AssessmentStatus)?
+    hidden Status: (AssessmentAssessmentStatus)?
 
     /// 
-    hidden Scope: (Scope)?
+    hidden Description: (AssessmentAssessmentDescription)?
 
     /// 
-    hidden AssessmentReportsDestination: (AssessmentReportsDestination)?
-
-    /// 
-    hidden FrameworkId: (FrameworkId)?
-
-    /// The tags associated with the assessment.
-    hidden Tags: (Listing<Tag>)?
+    hidden AwsAccount: (AssessmentAWSAccount)?
 
     /// The list of roles for the specified assessment.
-    hidden Roles: (Listing<Role>)?
+    hidden Roles: (Listing<AssessmentRole>)?
 
     /// 
-    hidden Description: (AssessmentDescription)?
+    hidden Scope: (AssessmentScope)?
 
     /// 
-    hidden Name: (AssessmentName)?
+    hidden Name: (AssessmentAssessmentName)?
+
+    /// 
+    hidden FrameworkId: (AssessmentFrameworkId)?
+
+    /// The tags associated with the assessment.
+    hidden Tags: (Listing<AssessmentTag>)?
+
+    /// The list of delegations.
+    hidden Delegations: (Listing<AssessmentDelegation>)?
 
     Properties {
-        ["AwsAccount"] = if (AwsAccount == null) null else AwsAccount
-        ["Delegations"] = if (Delegations == null) null else Delegations
-        ["Status"] = if (Status == null) null else Status
-        ["Scope"] = if (Scope == null) null else Scope
         ["AssessmentReportsDestination"] = if (AssessmentReportsDestination == null) null else AssessmentReportsDestination
+        ["Status"] = if (Status == null) null else Status
+        ["Description"] = if (Description == null) null else Description
+        ["AwsAccount"] = if (AwsAccount == null) null else AwsAccount
+        ["Roles"] = if (Roles == null) null else Roles
+        ["Scope"] = if (Scope == null) null else Scope
+        ["Name"] = if (Name == null) null else Name
         ["FrameworkId"] = if (FrameworkId == null) null else FrameworkId
         ["Tags"] = if (Tags == null) null else Tags
-        ["Roles"] = if (Roles == null) null else Roles
-        ["Description"] = if (Description == null) null else Description
-        ["Name"] = if (Name == null) null else Name
+        ["Delegations"] = if (Delegations == null) null else Delegations
     }
 
 }

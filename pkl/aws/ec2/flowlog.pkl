@@ -6,7 +6,7 @@ module aws.ec2.flowlog
 import "../../cloudformation.pkl"
 
 /// 
-open class Tag {
+open class FlowLogTag {
     Value: String|Mapping
     Key: String|Mapping
 }
@@ -17,32 +17,32 @@ open class FlowLog extends cloudformation.Resource {
     Type = "AWS::EC2::FlowLog"
 
 
-    /// The tags to apply to the flow logs.
-    hidden Tags: (Listing<Tag>)?
-
-    /// The ARN of the IAM role that allows Amazon EC2 to publish flow logs across accounts.
-    hidden DeliverCrossAccountRole: (String|Mapping)?
-
-    /// The name of a new or existing CloudWatch Logs log group where Amazon EC2 publishes your flow logs. If you specify LogDestinationType as s3 or kinesis-data-firehose, do not specify DeliverLogsPermissionArn or LogGroupName.
-    hidden LogGroupName: (String|Mapping)?
-
-    /// The ID of the subnet, network interface, or VPC for which you want to create a flow log.
-    hidden ResourceId: String|Mapping
+    /// The ARN for the IAM role that permits Amazon EC2 to publish flow logs to a CloudWatch Logs log group in your account. If you specify LogDestinationType as s3 or kinesis-data-firehose, do not specify DeliverLogsPermissionArn or LogGroupName.
+    hidden DeliverLogsPermissionArn: (String|Mapping)?
 
     /// Specifies the type of destination to which the flow log data is to be published. Flow log data can be published to CloudWatch Logs or Amazon S3.
     hidden LogDestinationType: (FlowLogLogDestinationType|Mapping)?
 
+    /// The ID of the subnet, network interface, or VPC for which you want to create a flow log.
+    hidden ResourceId: String|Mapping
+
+    /// The name of a new or existing CloudWatch Logs log group where Amazon EC2 publishes your flow logs. If you specify LogDestinationType as s3 or kinesis-data-firehose, do not specify DeliverLogsPermissionArn or LogGroupName.
+    hidden LogGroupName: (String|Mapping)?
+
+    /// The type of resource for which to create the flow log. For example, if you specified a VPC ID for the ResourceId property, specify VPC for this property.
+    hidden ResourceType: FlowLogResourceType|Mapping
+
     /// The type of traffic to log. You can log traffic that the resource accepts or rejects, or all traffic.
     hidden TrafficType: (FlowLogTrafficType|Mapping)?
 
-    /// The ARN for the IAM role that permits Amazon EC2 to publish flow logs to a CloudWatch Logs log group in your account. If you specify LogDestinationType as s3 or kinesis-data-firehose, do not specify DeliverLogsPermissionArn or LogGroupName.
-    hidden DeliverLogsPermissionArn: (String|Mapping)?
+    /// The ARN of the IAM role that allows Amazon EC2 to publish flow logs across accounts.
+    hidden DeliverCrossAccountRole: (String|Mapping)?
 
     /// Specifies the destination to which the flow log data is to be published. Flow log data can be published to a CloudWatch Logs log group, an Amazon S3 bucket, or a Kinesis Firehose stream. The value specified for this parameter depends on the value specified for LogDestinationType.
     hidden LogDestination: (String|Mapping)?
 
-    /// The type of resource for which to create the flow log. For example, if you specified a VPC ID for the ResourceId property, specify VPC for this property.
-    hidden ResourceType: FlowLogResourceType|Mapping
+    /// The tags to apply to the flow logs.
+    hidden Tags: (Listing<FlowLogTag>)?
 
     /// The fields to include in the flow log record, in the order in which they should appear.
     hidden LogFormat: (String|Mapping)?
@@ -54,15 +54,15 @@ open class FlowLog extends cloudformation.Resource {
     hidden DestinationOptions: (Dynamic)?
 
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["DeliverCrossAccountRole"] = if (DeliverCrossAccountRole == null) null else DeliverCrossAccountRole
-        ["LogGroupName"] = if (LogGroupName == null) null else LogGroupName
-        ["ResourceId"] = if (ResourceId == null) null else ResourceId
-        ["LogDestinationType"] = if (LogDestinationType == null) null else LogDestinationType
-        ["TrafficType"] = if (TrafficType == null) null else TrafficType
         ["DeliverLogsPermissionArn"] = if (DeliverLogsPermissionArn == null) null else DeliverLogsPermissionArn
-        ["LogDestination"] = if (LogDestination == null) null else LogDestination
+        ["LogDestinationType"] = if (LogDestinationType == null) null else LogDestinationType
+        ["ResourceId"] = if (ResourceId == null) null else ResourceId
+        ["LogGroupName"] = if (LogGroupName == null) null else LogGroupName
         ["ResourceType"] = if (ResourceType == null) null else ResourceType
+        ["TrafficType"] = if (TrafficType == null) null else TrafficType
+        ["DeliverCrossAccountRole"] = if (DeliverCrossAccountRole == null) null else DeliverCrossAccountRole
+        ["LogDestination"] = if (LogDestination == null) null else LogDestination
+        ["Tags"] = if (Tags == null) null else Tags
         ["LogFormat"] = if (LogFormat == null) null else LogFormat
         ["MaxAggregationInterval"] = if (MaxAggregationInterval == null) null else MaxAggregationInterval
         ["DestinationOptions"] = if (DestinationOptions == null) null else DestinationOptions
@@ -73,6 +73,6 @@ open class FlowLog extends cloudformation.Resource {
 
 typealias FlowLogLogDestinationType = "cloud-watch-logs"|"s3"|"kinesis-data-firehose"
 
-typealias FlowLogTrafficType = "ACCEPT"|"ALL"|"REJECT"
-
 typealias FlowLogResourceType = "NetworkInterface"|"Subnet"|"VPC"|"TransitGateway"|"TransitGatewayAttachment"
+
+typealias FlowLogTrafficType = "ACCEPT"|"ALL"|"REJECT"

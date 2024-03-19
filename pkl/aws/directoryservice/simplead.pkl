@@ -6,7 +6,7 @@ module aws.directoryservice.simplead
 import "../../cloudformation.pkl"
 
 /// 
-open class VpcSettings {
+open class SimpleADVpcSettings {
     SubnetIds: Listing<String|Mapping>
     VpcId: String|Mapping
 }
@@ -16,6 +16,15 @@ open class SimpleAD extends cloudformation.Resource {
 
     Type = "AWS::DirectoryService::SimpleAD"
 
+
+    /// VPC settings of the Simple AD directory server in AWS.
+    hidden VpcSettings: SimpleADVpcSettings
+
+    /// Whether to enable single sign-on for a Simple Active Directory in AWS.
+    hidden EnableSso: (Boolean|Mapping)?
+
+    /// The NetBIOS name for your domain.
+    hidden ShortName: (String|Mapping)?
 
     /// Description for the directory.
     hidden Description: (String|Mapping)?
@@ -32,24 +41,15 @@ open class SimpleAD extends cloudformation.Resource {
     /// The name of the configuration set.
     hidden CreateAlias: (Boolean|Mapping)?
 
-    /// VPC settings of the Simple AD directory server in AWS.
-    hidden VpcSettings: VpcSettings
-
-    /// Whether to enable single sign-on for a Simple Active Directory in AWS.
-    hidden EnableSso: (Boolean|Mapping)?
-
-    /// The NetBIOS name for your domain.
-    hidden ShortName: (String|Mapping)?
-
     Properties {
+        ["VpcSettings"] = if (VpcSettings == null) null else VpcSettings
+        ["EnableSso"] = if (EnableSso == null) null else EnableSso
+        ["ShortName"] = if (ShortName == null) null else ShortName
         ["Description"] = if (Description == null) null else Description
         ["Name"] = if (Name == null) null else Name
         ["Password"] = if (Password == null) null else Password
         ["Size"] = if (Size == null) null else Size
         ["CreateAlias"] = if (CreateAlias == null) null else CreateAlias
-        ["VpcSettings"] = if (VpcSettings == null) null else VpcSettings
-        ["EnableSso"] = if (EnableSso == null) null else EnableSso
-        ["ShortName"] = if (ShortName == null) null else ShortName
     }
 
 }

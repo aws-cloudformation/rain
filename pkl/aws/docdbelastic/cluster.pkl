@@ -6,9 +6,9 @@ module aws.docdbelastic.cluster
 import "../../cloudformation.pkl"
 
 /// 
-open class Tag {
-    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
+open class ClusterTag {
     Value: String|Mapping
+    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
 }
 
 /// The AWS::DocDBElastic::Cluster Amazon DocumentDB (with MongoDB compatibility) Elastic Scale resource describes a Cluster
@@ -16,6 +16,24 @@ open class Cluster extends cloudformation.Resource {
 
     Type = "AWS::DocDBElastic::Cluster"
 
+
+    /// 
+    hidden AdminUserPassword: (String|Mapping)?
+
+    /// 
+    hidden VpcSecurityGroupIds: (Listing<String|Mapping>)?
+
+    /// 
+    hidden Tags: (Listing<ClusterTag>)?
+
+    /// 
+    hidden ClusterName: String(matches(Regex(#"[a-zA-z][a-zA-Z0-9]*(-[a-zA-Z0-9]+)*"#)))|Mapping
+
+    /// 
+    hidden AdminUserName: String|Mapping
+
+    /// 
+    hidden PreferredMaintenanceWindow: (String|Mapping)?
 
     /// 
     hidden KmsKeyId: (String|Mapping)?
@@ -30,38 +48,20 @@ open class Cluster extends cloudformation.Resource {
     hidden SubnetIds: (Listing<String|Mapping>)?
 
     /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
     hidden AuthType: String|Mapping
 
-    /// 
-    hidden ClusterName: String(matches(Regex(#"[a-zA-z][a-zA-Z0-9]*(-[a-zA-Z0-9]+)*"#)))|Mapping
-
-    /// 
-    hidden AdminUserPassword: (String|Mapping)?
-
-    /// 
-    hidden VpcSecurityGroupIds: (Listing<String|Mapping>)?
-
-    /// 
-    hidden PreferredMaintenanceWindow: (String|Mapping)?
-
-    /// 
-    hidden AdminUserName: String|Mapping
-
     Properties {
+        ["AdminUserPassword"] = if (AdminUserPassword == null) null else AdminUserPassword
+        ["VpcSecurityGroupIds"] = if (VpcSecurityGroupIds == null) null else VpcSecurityGroupIds
+        ["Tags"] = if (Tags == null) null else Tags
+        ["ClusterName"] = if (ClusterName == null) null else ClusterName
+        ["AdminUserName"] = if (AdminUserName == null) null else AdminUserName
+        ["PreferredMaintenanceWindow"] = if (PreferredMaintenanceWindow == null) null else PreferredMaintenanceWindow
         ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
         ["ShardCapacity"] = if (ShardCapacity == null) null else ShardCapacity
         ["ShardCount"] = if (ShardCount == null) null else ShardCount
         ["SubnetIds"] = if (SubnetIds == null) null else SubnetIds
-        ["Tags"] = if (Tags == null) null else Tags
         ["AuthType"] = if (AuthType == null) null else AuthType
-        ["ClusterName"] = if (ClusterName == null) null else ClusterName
-        ["AdminUserPassword"] = if (AdminUserPassword == null) null else AdminUserPassword
-        ["VpcSecurityGroupIds"] = if (VpcSecurityGroupIds == null) null else VpcSecurityGroupIds
-        ["PreferredMaintenanceWindow"] = if (PreferredMaintenanceWindow == null) null else PreferredMaintenanceWindow
-        ["AdminUserName"] = if (AdminUserName == null) null else AdminUserName
     }
 
 }

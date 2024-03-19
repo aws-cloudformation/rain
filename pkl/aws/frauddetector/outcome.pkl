@@ -6,7 +6,7 @@ module aws.frauddetector.outcome
 import "../../cloudformation.pkl"
 
 /// 
-open class Tag {
+open class OutcomeTag {
     Key: String|Mapping
     Value: String|Mapping
 }
@@ -17,19 +17,19 @@ open class Outcome extends cloudformation.Resource {
     Type = "AWS::FraudDetector::Outcome"
 
 
+    /// The outcome description.
+    hidden Description: (String|Mapping)?
+
     /// The name of the outcome.
     hidden Name: String(matches(Regex(#"^[0-9a-z_-]+$"#)))|Mapping
 
     /// Tags associated with this outcome.
-    hidden Tags: (Listing<Tag>)?
-
-    /// The outcome description.
-    hidden Description: (String|Mapping)?
+    hidden Tags: (Listing<OutcomeTag>)?
 
     Properties {
+        ["Description"] = if (Description == null) null else Description
         ["Name"] = if (Name == null) null else Name
         ["Tags"] = if (Tags == null) null else Tags
-        ["Description"] = if (Description == null) null else Description
     }
 
 }

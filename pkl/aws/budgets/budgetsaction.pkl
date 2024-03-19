@@ -6,39 +6,16 @@ module aws.budgets.budgetsaction
 import "../../cloudformation.pkl"
 
 /// 
-open class IamActionDefinition {
-    PolicyArn: String|Mapping
-    Roles: (Listing<String|Mapping>)?
-    Groups: (Listing<String|Mapping>)?
-    Users: (Listing<String|Mapping>)?
-}
-
-/// 
-open class ScpActionDefinition {
-    PolicyId: String|Mapping
-    TargetIds: Listing<String|Mapping>
-}
-
-typealias SsmActionDefinitionSubtype = "STOP_EC2_INSTANCES"|"STOP_RDS_INSTANCES"
-
-/// 
-open class SsmActionDefinition {
-    Subtype: SsmActionDefinitionSubtype|Mapping
-    Region: String|Mapping
-    InstanceIds: Listing<String|Mapping>
-}
-
-/// 
-open class Definition {
-    IamActionDefinition: (IamActionDefinition)?
-    ScpActionDefinition: (ScpActionDefinition)?
-    SsmActionDefinition: (SsmActionDefinition)?
+open class BudgetsActionDefinition {
+    IamActionDefinition: (BudgetsActionIamActionDefinition)?
+    ScpActionDefinition: (BudgetsActionScpActionDefinition)?
+    SsmActionDefinition: (BudgetsActionSsmActionDefinition)?
 }
 
 typealias SubscriberType = "SNS"|"EMAIL"
 
 /// 
-open class Subscriber {
+open class BudgetsActionSubscriber {
     Type: SubscriberType|Mapping
     Address: String|Mapping
 }
@@ -46,9 +23,32 @@ open class Subscriber {
 typealias ActionThresholdType = "PERCENTAGE"|"ABSOLUTE_VALUE"
 
 /// 
-open class ActionThreshold {
+open class BudgetsActionActionThreshold {
     Value: Number|Mapping
     Type: ActionThresholdType|Mapping
+}
+
+/// 
+open class BudgetsActionIamActionDefinition {
+    Groups: (Listing<String|Mapping>)?
+    Users: (Listing<String|Mapping>)?
+    PolicyArn: String|Mapping
+    Roles: (Listing<String|Mapping>)?
+}
+
+/// 
+open class BudgetsActionScpActionDefinition {
+    PolicyId: String|Mapping
+    TargetIds: Listing<String|Mapping>
+}
+
+typealias SsmActionDefinitionSubtype = "STOP_EC2_INSTANCES"|"STOP_RDS_INSTANCES"
+
+/// 
+open class BudgetsActionSsmActionDefinition {
+    Subtype: SsmActionDefinitionSubtype|Mapping
+    Region: String|Mapping
+    InstanceIds: Listing<String|Mapping>
 }
 
 /// An example resource schema demonstrating some basic constructs and validation rules.
@@ -58,13 +58,13 @@ open class BudgetsAction extends cloudformation.Resource {
 
 
     /// 
-    hidden ActionType: BudgetsActionActionType|Mapping
+    hidden ApprovalModel: (BudgetsActionApprovalModel|Mapping)?
 
     /// 
-    hidden ActionThreshold: ActionThreshold
+    hidden Subscribers: Listing<BudgetsActionSubscriber>
 
     /// 
-    hidden ExecutionRoleArn: String|Mapping
+    hidden Definition: BudgetsActionDefinition
 
     /// 
     hidden BudgetName: String|Mapping
@@ -73,30 +73,30 @@ open class BudgetsAction extends cloudformation.Resource {
     hidden NotificationType: BudgetsActionNotificationType|Mapping
 
     /// 
-    hidden ApprovalModel: (BudgetsActionApprovalModel|Mapping)?
+    hidden ActionType: BudgetsActionActionType|Mapping
 
     /// 
-    hidden Subscribers: Listing<Subscriber>
+    hidden ActionThreshold: BudgetsActionActionThreshold
 
     /// 
-    hidden Definition: Definition
+    hidden ExecutionRoleArn: String|Mapping
 
     Properties {
-        ["ActionType"] = if (ActionType == null) null else ActionType
-        ["ActionThreshold"] = if (ActionThreshold == null) null else ActionThreshold
-        ["ExecutionRoleArn"] = if (ExecutionRoleArn == null) null else ExecutionRoleArn
-        ["BudgetName"] = if (BudgetName == null) null else BudgetName
-        ["NotificationType"] = if (NotificationType == null) null else NotificationType
         ["ApprovalModel"] = if (ApprovalModel == null) null else ApprovalModel
         ["Subscribers"] = if (Subscribers == null) null else Subscribers
         ["Definition"] = if (Definition == null) null else Definition
+        ["BudgetName"] = if (BudgetName == null) null else BudgetName
+        ["NotificationType"] = if (NotificationType == null) null else NotificationType
+        ["ActionType"] = if (ActionType == null) null else ActionType
+        ["ActionThreshold"] = if (ActionThreshold == null) null else ActionThreshold
+        ["ExecutionRoleArn"] = if (ExecutionRoleArn == null) null else ExecutionRoleArn
     }
 
 }
 
 
-typealias BudgetsActionActionType = "APPLY_IAM_POLICY"|"APPLY_SCP_POLICY"|"RUN_SSM_DOCUMENTS"
+typealias BudgetsActionApprovalModel = "AUTOMATIC"|"MANUAL"
 
 typealias BudgetsActionNotificationType = "ACTUAL"|"FORECASTED"
 
-typealias BudgetsActionApprovalModel = "AUTOMATIC"|"MANUAL"
+typealias BudgetsActionActionType = "APPLY_IAM_POLICY"|"APPLY_SCP_POLICY"|"RUN_SSM_DOCUMENTS"

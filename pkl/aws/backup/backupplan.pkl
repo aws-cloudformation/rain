@@ -6,40 +6,42 @@ module aws.backup.backupplan
 import "../../cloudformation.pkl"
 
 /// 
-open class BackupPlanResourceType {
+open class BackupPlanBackupPlanResourceType {
+    AdvancedBackupSettings: (Listing<BackupPlanAdvancedBackupSettingResourceType>)?
+    BackupPlanRule: Listing<BackupPlanBackupRuleResourceType>
     BackupPlanName: String|Mapping
-    AdvancedBackupSettings: (Listing<AdvancedBackupSettingResourceType>)?
-    BackupPlanRule: Listing<BackupRuleResourceType>
 }
 
+typealias BackupPlanBackupRuleResourceTypeRecoveryPointTags = Mapping<String, Any>
+
 /// 
-open class BackupRuleResourceType {
+open class BackupPlanBackupRuleResourceType {
     TargetBackupVault: String|Mapping
-    EnableContinuousBackup: (Boolean|Mapping)?
-    RecoveryPointTags: (Dynamic)?
-    CopyActions: (Listing<CopyActionResourceType>)?
-    Lifecycle: (LifecycleResourceType)?
-    RuleName: String|Mapping
     StartWindowMinutes: (Number|Mapping)?
     CompletionWindowMinutes: (Number|Mapping)?
+    RecoveryPointTags: (BackupPlanBackupRuleResourceTypeRecoveryPointTags)?
+    CopyActions: (Listing<BackupPlanCopyActionResourceType>)?
+    RuleName: String|Mapping
     ScheduleExpression: (String|Mapping)?
     ScheduleExpressionTimezone: (String|Mapping)?
+    Lifecycle: (BackupPlanLifecycleResourceType)?
+    EnableContinuousBackup: (Boolean|Mapping)?
 }
 
 /// 
-open class AdvancedBackupSettingResourceType {
+open class BackupPlanAdvancedBackupSettingResourceType {
     BackupOptions: Dynamic
     ResourceType: String|Mapping
 }
 
 /// 
-open class CopyActionResourceType {
+open class BackupPlanCopyActionResourceType {
+    Lifecycle: (BackupPlanLifecycleResourceType)?
     DestinationBackupVaultArn: String|Mapping
-    Lifecycle: (LifecycleResourceType)?
 }
 
 /// 
-open class LifecycleResourceType {
+open class BackupPlanLifecycleResourceType {
     MoveToColdStorageAfterDays: (Number|Mapping)?
     DeleteAfterDays: (Number|Mapping)?
     OptInToArchiveForSupportedResources: (Boolean|Mapping)?
@@ -52,10 +54,10 @@ open class BackupPlan extends cloudformation.Resource {
 
 
     /// 
-    hidden BackupPlan: BackupPlanResourceType
+    hidden BackupPlan: BackupPlanBackupPlanResourceType
 
     /// 
-    hidden BackupPlanTags: (Dynamic)?
+    hidden BackupPlanTags: (BackupPlanBackupPlanBackupPlanTags)?
 
     Properties {
         ["BackupPlan"] = if (BackupPlan == null) null else BackupPlan
@@ -63,3 +65,6 @@ open class BackupPlan extends cloudformation.Resource {
     }
 
 }
+
+
+typealias BackupPlanBackupPlanBackupPlanTags = Mapping<String, Any>

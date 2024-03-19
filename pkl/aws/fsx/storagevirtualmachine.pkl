@@ -6,25 +6,25 @@ module aws.fsx.storagevirtualmachine
 import "../../cloudformation.pkl"
 
 /// 
-open class SelfManagedActiveDirectoryConfiguration {
-    FileSystemAdministratorsGroup: (String|Mapping)?
-    UserName: (String|Mapping)?
-    DomainName: (String|Mapping)?
+open class StorageVirtualMachineActiveDirectoryConfiguration {
+    NetBiosName: (String|Mapping)?
+    SelfManagedActiveDirectoryConfiguration: (StorageVirtualMachineSelfManagedActiveDirectoryConfiguration)?
+}
+
+/// 
+open class StorageVirtualMachineTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// 
+open class StorageVirtualMachineSelfManagedActiveDirectoryConfiguration {
     OrganizationalUnitDistinguishedName: (String|Mapping)?
     DnsIps: (Listing<String|Mapping>)?
     Password: (String|Mapping)?
-}
-
-/// 
-open class ActiveDirectoryConfiguration {
-    SelfManagedActiveDirectoryConfiguration: (SelfManagedActiveDirectoryConfiguration)?
-    NetBiosName: (String|Mapping)?
-}
-
-/// 
-open class Tag {
-    Key: String|Mapping
-    Value: String|Mapping
+    FileSystemAdministratorsGroup: (String|Mapping)?
+    UserName: (String|Mapping)?
+    DomainName: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::FSx::StorageVirtualMachine
@@ -34,30 +34,30 @@ open class StorageVirtualMachine extends cloudformation.Resource {
 
 
     /// 
-    hidden FileSystemId: String|Mapping
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden Name: String|Mapping
+    hidden Tags: (Listing<StorageVirtualMachineTag>)?
 
     /// 
     hidden SvmAdminPassword: (String|Mapping)?
 
     /// 
-    hidden ActiveDirectoryConfiguration: (ActiveDirectoryConfiguration)?
+    hidden ActiveDirectoryConfiguration: (StorageVirtualMachineActiveDirectoryConfiguration)?
 
     /// 
     hidden RootVolumeSecurityStyle: (String|Mapping)?
 
+    /// 
+    hidden FileSystemId: String|Mapping
+
+    /// 
+    hidden Name: String|Mapping
+
     Properties {
-        ["FileSystemId"] = if (FileSystemId == null) null else FileSystemId
         ["Tags"] = if (Tags == null) null else Tags
-        ["Name"] = if (Name == null) null else Name
         ["SvmAdminPassword"] = if (SvmAdminPassword == null) null else SvmAdminPassword
         ["ActiveDirectoryConfiguration"] = if (ActiveDirectoryConfiguration == null) null else ActiveDirectoryConfiguration
         ["RootVolumeSecurityStyle"] = if (RootVolumeSecurityStyle == null) null else RootVolumeSecurityStyle
+        ["FileSystemId"] = if (FileSystemId == null) null else FileSystemId
+        ["Name"] = if (Name == null) null else Name
     }
 
 }

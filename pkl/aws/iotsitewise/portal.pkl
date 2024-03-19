@@ -6,9 +6,9 @@ module aws.iotsitewise.portal
 import "../../cloudformation.pkl"
 
 /// To add or update tag, provide both key and value. To delete tag, provide only tag key to be deleted.
-open class Tag {
-    Key: String|Mapping
+open class PortalTag {
     Value: String|Mapping
+    Key: String|Mapping
 }
 
 /// Resource schema for AWS::IoTSiteWise::Portal
@@ -16,15 +16,6 @@ open class Portal extends cloudformation.Resource {
 
     Type = "AWS::IoTSiteWise::Portal"
 
-
-    /// Contains the configuration information of an alarm created in an AWS IoT SiteWise Monitor portal. You can use the alarm to monitor an asset property and get notified when the asset property value is outside a specified range.
-    hidden Alarms: (Dynamic)?
-
-    /// The AWS administrator's contact email address.
-    hidden PortalContactEmail: String|Mapping
-
-    /// A description for the portal.
-    hidden PortalDescription: (String|Mapping)?
 
     /// A friendly name for the portal.
     hidden PortalName: String|Mapping
@@ -35,19 +26,28 @@ open class Portal extends cloudformation.Resource {
     /// The email address that sends alarm notifications.
     hidden NotificationSenderEmail: (String|Mapping)?
 
+    /// Contains the configuration information of an alarm created in an AWS IoT SiteWise Monitor portal. You can use the alarm to monitor an asset property and get notified when the asset property value is outside a specified range.
+    hidden Alarms: (Dynamic)?
+
+    /// The AWS administrator's contact email address.
+    hidden PortalContactEmail: String|Mapping
+
+    /// A description for the portal.
+    hidden PortalDescription: (String|Mapping)?
+
     /// A list of key-value pairs that contain metadata for the portal.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<PortalTag>)?
 
     /// The service to use to authenticate users to the portal. Choose from SSO or IAM. You can't change this value after you create a portal.
     hidden PortalAuthMode: (String|Mapping)?
 
     Properties {
-        ["Alarms"] = if (Alarms == null) null else Alarms
-        ["PortalContactEmail"] = if (PortalContactEmail == null) null else PortalContactEmail
-        ["PortalDescription"] = if (PortalDescription == null) null else PortalDescription
         ["PortalName"] = if (PortalName == null) null else PortalName
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
         ["NotificationSenderEmail"] = if (NotificationSenderEmail == null) null else NotificationSenderEmail
+        ["Alarms"] = if (Alarms == null) null else Alarms
+        ["PortalContactEmail"] = if (PortalContactEmail == null) null else PortalContactEmail
+        ["PortalDescription"] = if (PortalDescription == null) null else PortalDescription
         ["Tags"] = if (Tags == null) null else Tags
         ["PortalAuthMode"] = if (PortalAuthMode == null) null else PortalAuthMode
     }

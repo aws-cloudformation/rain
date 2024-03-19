@@ -6,49 +6,48 @@ module aws.ec2.networkinsightsaccessscope
 import "../../cloudformation.pkl"
 
 /// 
-open class Protocol {
-}
-
-/// 
-open class ResourceStatementRequest {
+open class NetworkInsightsAccessScopeResourceStatementRequest {
     Resources: (Listing<String|Mapping>)?
     ResourceTypes: (Listing<String|Mapping>)?
 }
 
 /// 
-open class ThroughResourcesStatementRequest {
-    ResourceStatement: (ResourceStatementRequest)?
+open class NetworkInsightsAccessScopeThroughResourcesStatementRequest {
+    ResourceStatement: (NetworkInsightsAccessScopeResourceStatementRequest)?
 }
 
 /// 
-open class Tag {
-    Value: (String|Mapping)?
+open class NetworkInsightsAccessScopeTag {
     Key: String|Mapping
+    Value: (String|Mapping)?
 }
 
 /// 
-open class AccessScopePathRequest {
-    Source: (PathStatementRequest)?
-    Destination: (PathStatementRequest)?
-    ThroughResources: (Listing<ThroughResourcesStatementRequest>)?
+open class NetworkInsightsAccessScopeAccessScopePathRequest {
+    Source: (NetworkInsightsAccessScopePathStatementRequest)?
+    Destination: (NetworkInsightsAccessScopePathStatementRequest)?
+    ThroughResources: (Listing<NetworkInsightsAccessScopeThroughResourcesStatementRequest>)?
 }
 
 /// 
-open class PathStatementRequest {
-    PacketHeaderStatement: (PacketHeaderStatementRequest)?
-    ResourceStatement: (ResourceStatementRequest)?
+open class NetworkInsightsAccessScopePathStatementRequest {
+    PacketHeaderStatement: (NetworkInsightsAccessScopePacketHeaderStatementRequest)?
+    ResourceStatement: (NetworkInsightsAccessScopeResourceStatementRequest)?
 }
 
 /// 
-open class PacketHeaderStatementRequest {
-    SourcePrefixLists: (Listing<String|Mapping>)?
-    DestinationPrefixLists: (Listing<String|Mapping>)?
-    Protocols: (Listing<Protocol>)?
+open class NetworkInsightsAccessScopePacketHeaderStatementRequest {
+    Protocols: (Listing<NetworkInsightsAccessScopeProtocol>)?
     SourceAddresses: (Listing<String|Mapping>)?
     DestinationAddresses: (Listing<String|Mapping>)?
     SourcePorts: (Listing<String|Mapping>)?
     DestinationPorts: (Listing<String|Mapping>)?
+    SourcePrefixLists: (Listing<String|Mapping>)?
+    DestinationPrefixLists: (Listing<String|Mapping>)?
 }
+
+typealias NetworkInsightsAccessScopeProtocol = "tcp"|"udp"
+
 
 /// Resource schema for AWS::EC2::NetworkInsightsAccessScope
 open class NetworkInsightsAccessScope extends cloudformation.Resource {
@@ -57,13 +56,13 @@ open class NetworkInsightsAccessScope extends cloudformation.Resource {
 
 
     /// 
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<NetworkInsightsAccessScopeTag>)?
 
     /// 
-    hidden MatchPaths: (Listing<AccessScopePathRequest>)?
+    hidden MatchPaths: (Listing<NetworkInsightsAccessScopeAccessScopePathRequest>)?
 
     /// 
-    hidden ExcludePaths: (Listing<AccessScopePathRequest>)?
+    hidden ExcludePaths: (Listing<NetworkInsightsAccessScopeAccessScopePathRequest>)?
 
     Properties {
         ["Tags"] = if (Tags == null) null else Tags

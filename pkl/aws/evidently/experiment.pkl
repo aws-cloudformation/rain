@@ -6,49 +6,49 @@ module aws.evidently.experiment
 import "../../cloudformation.pkl"
 
 /// 
-open class TreatmentObject {
-    Feature: String(matches(Regex(#"([-a-zA-Z0-9._]*)|(arn:[^:]*:[^:]*:[^:]*:[^:]*:.*)"#)))|Mapping
-    Variation: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
+open class ExperimentRunningStatusObject {
+    Status: (String|Mapping)?
+    AnalysisCompleteTime: (String|Mapping)?
+    Reason: (String|Mapping)?
+    DesiredState: (String(matches(Regex(#"^(CANCELLED|COMPLETED)"#)))|Mapping)?
+}
+
+/// 
+open class ExperimentTreatmentObject {
     TreatmentName: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
     Description: (String|Mapping)?
+    Feature: String(matches(Regex(#"([-a-zA-Z0-9._]*)|(arn:[^:]*:[^:]*:[^:]*:[^:]*:.*)"#)))|Mapping
+    Variation: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
 }
 
 typealias MetricGoalObjectDesiredChange = "INCREASE"|"DECREASE"
 
 /// 
-open class MetricGoalObject {
-    MetricName: String(matches(Regex(#"^[\S]+$"#)))|Mapping
-    EntityIdKey: String|Mapping
+open class ExperimentMetricGoalObject {
     ValueKey: String|Mapping
     EventPattern: (String|Mapping)?
     UnitLabel: (String(matches(Regex(#".*"#)))|Mapping)?
     DesiredChange: MetricGoalObjectDesiredChange|Mapping
+    MetricName: String(matches(Regex(#"^[\S]+$"#)))|Mapping
+    EntityIdKey: String|Mapping
 }
 
 /// 
-open class OnlineAbConfigObject {
+open class ExperimentOnlineAbConfigObject {
     ControlTreatmentName: (String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping)?
-    TreatmentWeights: (Listing<TreatmentToWeight>)?
+    TreatmentWeights: (Listing<ExperimentTreatmentToWeight>)?
 }
 
 /// 
-open class TreatmentToWeight {
+open class ExperimentTreatmentToWeight {
     Treatment: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
     SplitWeight: Int|Mapping
 }
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class ExperimentTag {
     Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
     Value: String|Mapping
-}
-
-/// 
-open class RunningStatusObject {
-    AnalysisCompleteTime: (String|Mapping)?
-    Reason: (String|Mapping)?
-    DesiredState: (String(matches(Regex(#"^(CANCELLED|COMPLETED)"#)))|Mapping)?
-    Status: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::Evidently::Experiment.
@@ -57,55 +57,55 @@ open class Experiment extends cloudformation.Resource {
     Type = "AWS::Evidently::Experiment"
 
 
-    /// Start Experiment. Default is False
-    hidden RunningStatus: (RunningStatusObject)?
-
-    /// 
-    hidden RandomizationSalt: (String(matches(Regex(#".*"#)))|Mapping)?
-
-    /// 
-    hidden Treatments: Listing<TreatmentObject>
-
-    /// 
-    hidden RemoveSegment: (Boolean|Mapping)?
-
-    /// 
-    hidden Project: String(matches(Regex(#"([-a-zA-Z0-9._]*)|(arn:[^:]*:[^:]*:[^:]*:[^:]*:project/[-a-zA-Z0-9._]*)"#)))|Mapping
-
     /// 
     hidden Description: (String|Mapping)?
 
     /// 
-    hidden MetricGoals: Listing<MetricGoalObject>
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden SamplingRate: (Int|Mapping)?
-
-    /// 
-    hidden OnlineAbConfig: OnlineAbConfigObject
+    hidden MetricGoals: Listing<ExperimentMetricGoalObject>
 
     /// 
     hidden Name: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
 
     /// 
+    hidden Treatments: Listing<ExperimentTreatmentObject>
+
+    /// 
+    hidden RemoveSegment: (Boolean|Mapping)?
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<ExperimentTag>)?
+
+    /// Start Experiment. Default is False
+    hidden RunningStatus: (ExperimentRunningStatusObject)?
+
+    /// 
+    hidden RandomizationSalt: (String(matches(Regex(#".*"#)))|Mapping)?
+
+    /// 
+    hidden SamplingRate: (Int|Mapping)?
+
+    /// 
+    hidden OnlineAbConfig: ExperimentOnlineAbConfigObject
+
+    /// 
     hidden Segment: (String(matches(Regex(#"([-a-zA-Z0-9._]*)|(arn:[^:]*:[^:]*:[^:]*:[^:]*:segment/[-a-zA-Z0-9._]*)"#)))|Mapping)?
 
+    /// 
+    hidden Project: String(matches(Regex(#"([-a-zA-Z0-9._]*)|(arn:[^:]*:[^:]*:[^:]*:[^:]*:project/[-a-zA-Z0-9._]*)"#)))|Mapping
+
     Properties {
-        ["RunningStatus"] = if (RunningStatus == null) null else RunningStatus
-        ["RandomizationSalt"] = if (RandomizationSalt == null) null else RandomizationSalt
-        ["Treatments"] = if (Treatments == null) null else Treatments
-        ["RemoveSegment"] = if (RemoveSegment == null) null else RemoveSegment
-        ["Project"] = if (Project == null) null else Project
         ["Description"] = if (Description == null) null else Description
         ["MetricGoals"] = if (MetricGoals == null) null else MetricGoals
+        ["Name"] = if (Name == null) null else Name
+        ["Treatments"] = if (Treatments == null) null else Treatments
+        ["RemoveSegment"] = if (RemoveSegment == null) null else RemoveSegment
         ["Tags"] = if (Tags == null) null else Tags
+        ["RunningStatus"] = if (RunningStatus == null) null else RunningStatus
+        ["RandomizationSalt"] = if (RandomizationSalt == null) null else RandomizationSalt
         ["SamplingRate"] = if (SamplingRate == null) null else SamplingRate
         ["OnlineAbConfig"] = if (OnlineAbConfig == null) null else OnlineAbConfig
-        ["Name"] = if (Name == null) null else Name
         ["Segment"] = if (Segment == null) null else Segment
+        ["Project"] = if (Project == null) null else Project
     }
 
 }

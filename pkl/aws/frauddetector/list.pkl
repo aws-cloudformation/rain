@@ -5,14 +5,13 @@ module aws.frauddetector.list
 
 import "../../cloudformation.pkl"
 
+typealias ListElement = String
+
+
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class ListTag {
     Key: String|Mapping
     Value: String|Mapping
-}
-
-/// An element in a list.
-open class Element {
 }
 
 /// A resource schema for a List in Amazon Fraud Detector.
@@ -20,12 +19,6 @@ open class List extends cloudformation.Resource {
 
     Type = "AWS::FraudDetector::List"
 
-
-    /// Tags associated with this list.
-    hidden Tags: (Listing<Tag>)?
-
-    /// The elements in this list.
-    hidden Elements: (Listing<Element>)?
 
     /// The name of the list.
     hidden Name: String(matches(Regex(#"^[0-9a-z_]+$"#)))|Mapping
@@ -36,12 +29,18 @@ open class List extends cloudformation.Resource {
     /// The variable type of the list.
     hidden VariableType: (String(matches(Regex(#"^[A-Z_]{1,64}$"#)))|Mapping)?
 
+    /// Tags associated with this list.
+    hidden Tags: (Listing<ListTag>)?
+
+    /// The elements in this list.
+    hidden Elements: (Listing<ListElement>)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Elements"] = if (Elements == null) null else Elements
         ["Name"] = if (Name == null) null else Name
         ["Description"] = if (Description == null) null else Description
         ["VariableType"] = if (VariableType == null) null else VariableType
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Elements"] = if (Elements == null) null else Elements
     }
 
 }

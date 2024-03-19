@@ -5,50 +5,43 @@ module aws.connect.instance
 
 import "../../cloudformation.pkl"
 
-/// Boolean flag which enables CONTACT_LENS on an instance.
-open class ContactLens {
-}
+typealias InstanceContactLens = Boolean|Mapping
 
-/// Boolean flag which enables AUTO_RESOLVE_BEST_VOICES on an instance.
-open class AutoResolveBestVoices {
-}
 
-/// Boolean flag which enables EARLY_MEDIA on an instance.
-open class EarlyMedia {
+typealias InstanceEarlyMedia = Boolean|Mapping
+
+
+/// 
+open class InstanceAttributes {
+    InboundCalls: InstanceInboundCalls
+    OutboundCalls: InstanceOutboundCalls
+    ContactflowLogs: (InstanceContactflowLogs)?
+    ContactLens: (InstanceContactLens)?
+    AutoResolveBestVoices: (InstanceAutoResolveBestVoices)?
+    UseCustomTTSVoices: (InstanceUseCustomTTSVoices)?
+    EarlyMedia: (InstanceEarlyMedia)?
 }
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class InstanceTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
-/// Mandatory element which enables inbound calls on new instance.
-open class InboundCalls {
-}
+typealias InstanceInboundCalls = Boolean|Mapping
 
-/// Boolean flag which enables CONTACTFLOW_LOGS on an instance.
-open class ContactflowLogs {
-}
 
-/// Boolean flag which enables USE_CUSTOM_TTS_VOICES on an instance.
-open class UseCustomTTSVoices {
-}
+typealias InstanceOutboundCalls = Boolean|Mapping
 
-/// 
-open class Attributes {
-    UseCustomTTSVoices: (UseCustomTTSVoices)?
-    EarlyMedia: (EarlyMedia)?
-    InboundCalls: InboundCalls
-    OutboundCalls: OutboundCalls
-    ContactflowLogs: (ContactflowLogs)?
-    ContactLens: (ContactLens)?
-    AutoResolveBestVoices: (AutoResolveBestVoices)?
-}
 
-/// Mandatory element which enables outbound calls on new instance.
-open class OutboundCalls {
-}
+typealias InstanceContactflowLogs = Boolean|Mapping
+
+
+typealias InstanceAutoResolveBestVoices = Boolean|Mapping
+
+
+typealias InstanceUseCustomTTSVoices = Boolean|Mapping
+
 
 /// Resource Type definition for AWS::Connect::Instance
 open class Instance extends cloudformation.Resource {
@@ -56,26 +49,26 @@ open class Instance extends cloudformation.Resource {
     Type = "AWS::Connect::Instance"
 
 
+    /// Specifies the type of directory integration for new instance.
+    hidden IdentityManagementType: InstanceIdentityManagementType|Mapping
+
+    /// The attributes for the instance.
+    hidden Attributes: InstanceAttributes
+
     /// Alias of the new directory created as part of new instance creation.
     hidden InstanceAlias: (String(matches(Regex(#"^(?!d-)([\da-zA-Z]+)([-]*[\da-zA-Z])*$"#)))|Mapping)?
 
     /// Existing directoryId user wants to map to the new Connect instance.
     hidden DirectoryId: (String(matches(Regex(#"^d-[0-9a-f]{10}$"#)))|Mapping)?
 
-    /// The attributes for the instance.
-    hidden Attributes: Attributes
-
-    /// Specifies the type of directory integration for new instance.
-    hidden IdentityManagementType: InstanceIdentityManagementType|Mapping
-
     /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<InstanceTag>)?
 
     Properties {
+        ["IdentityManagementType"] = if (IdentityManagementType == null) null else IdentityManagementType
+        ["Attributes"] = if (Attributes == null) null else Attributes
         ["InstanceAlias"] = if (InstanceAlias == null) null else InstanceAlias
         ["DirectoryId"] = if (DirectoryId == null) null else DirectoryId
-        ["Attributes"] = if (Attributes == null) null else Attributes
-        ["IdentityManagementType"] = if (IdentityManagementType == null) null else IdentityManagementType
         ["Tags"] = if (Tags == null) null else Tags
     }
 

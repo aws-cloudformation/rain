@@ -5,44 +5,43 @@ module aws.gamelift.gamesessionqueue
 
 import "../../cloudformation.pkl"
 
-/// A list of locations to allow game session placement in, in the form of AWS Region codes such as us-west-2.
-open class AllowedLocations {
-}
-
-/// 
-open class FilterConfiguration {
-    AllowedLocations: (AllowedLocations)?
-}
-
-/// The prioritization order to use for fleet locations, when the PriorityOrder property includes LOCATION.
-open class LocationOrder {
-}
-
-/// The recommended sequence to use when prioritizing where to place new game sessions.
-open class PriorityOrder {
-}
-
-/// 
-open class PriorityConfiguration {
-    LocationOrder: (LocationOrder)?
-    PriorityOrder: (PriorityOrder)?
-}
-
-/// A key-value pair to associate with a resource.
-open class Tag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
 /// A fleet or alias designated in a game session queue.
-open class GameSessionQueueDestination {
+open class GameSessionQueueGameSessionQueueDestination {
     DestinationArn: (String(matches(Regex(#"[a-zA-Z0-9:/-]+"#)))|Mapping)?
 }
 
 /// Sets a latency cap for individual players when placing a game session.
-open class PlayerLatencyPolicy {
+open class GameSessionQueuePlayerLatencyPolicy {
     MaximumIndividualPlayerLatencyMilliseconds: (Int|Mapping)?
     PolicyDurationSeconds: (Int|Mapping)?
+}
+
+typealias GameSessionQueueAllowedLocations = Listing<(String(matches(Regex(#"^[a-z]+(-([a-z]+|\d))*"#)))|Mapping)?>
+
+
+/// 
+open class GameSessionQueueFilterConfiguration {
+    AllowedLocations: (GameSessionQueueAllowedLocations)?
+}
+
+typealias GameSessionQueueLocationOrder = Listing<(String(matches(Regex(#"^[A-Za-z0-9\-]+"#)))|Mapping)?>
+
+
+typealias PriorityOrderArray = "LATENCY"|"COST"|"DESTINATION"|"LOCATION"
+
+typealias GameSessionQueuePriorityOrder = Listing<(PriorityOrderArray|Mapping)?>
+
+
+/// 
+open class GameSessionQueuePriorityConfiguration {
+    LocationOrder: (GameSessionQueueLocationOrder)?
+    PriorityOrder: (GameSessionQueuePriorityOrder)?
+}
+
+/// A key-value pair to associate with a resource.
+open class GameSessionQueueTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// The AWS::GameLift::GameSessionQueue resource creates an Amazon GameLift (GameLift) game session queue.
@@ -51,43 +50,43 @@ open class GameSessionQueue extends cloudformation.Resource {
     Type = "AWS::GameLift::GameSessionQueue"
 
 
-    /// An SNS topic ARN that is set up to receive game session placement notifications.
-    hidden NotificationTarget: (String(matches(Regex(#"[a-zA-Z0-9:_-]*(\.fifo)?"#)))|Mapping)?
-
-    /// A list of locations where a queue is allowed to place new game sessions.
-    hidden FilterConfiguration: (Dynamic)?
-
-    /// The maximum time, in seconds, that a new game session placement request remains in the queue.
-    hidden TimeoutInSeconds: (Int|Mapping)?
-
     /// A list of fleets and/or fleet aliases that can be used to fulfill game session placement requests in the queue.
-    hidden Destinations: (Listing<GameSessionQueueDestination>)?
+    hidden Destinations: (Listing<GameSessionQueueGameSessionQueueDestination>)?
 
     /// A set of policies that act as a sliding cap on player latency.
-    hidden PlayerLatencyPolicies: (Listing<PlayerLatencyPolicy>)?
+    hidden PlayerLatencyPolicies: (Listing<GameSessionQueuePlayerLatencyPolicy>)?
 
-    /// Information that is added to all events that are related to this game session queue.
-    hidden CustomEventData: (String(matches(Regex(#"[\s\S]*"#)))|Mapping)?
-
-    /// A descriptive label that is associated with game session queue. Queue names must be unique within each Region.
-    hidden Name: String(matches(Regex(#"[a-zA-Z0-9-]+"#)))|Mapping
+    /// An SNS topic ARN that is set up to receive game session placement notifications.
+    hidden NotificationTarget: (String(matches(Regex(#"[a-zA-Z0-9:_-]*(\.fifo)?"#)))|Mapping)?
 
     /// Custom settings to use when prioritizing destinations and locations for game session placements.
     hidden PriorityConfiguration: (Dynamic)?
 
+    /// The maximum time, in seconds, that a new game session placement request remains in the queue.
+    hidden TimeoutInSeconds: (Int|Mapping)?
+
+    /// Information that is added to all events that are related to this game session queue.
+    hidden CustomEventData: (String(matches(Regex(#"[\s\S]*"#)))|Mapping)?
+
+    /// A list of locations where a queue is allowed to place new game sessions.
+    hidden FilterConfiguration: (Dynamic)?
+
     /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<GameSessionQueueTag>)?
+
+    /// A descriptive label that is associated with game session queue. Queue names must be unique within each Region.
+    hidden Name: String(matches(Regex(#"[a-zA-Z0-9-]+"#)))|Mapping
 
     Properties {
-        ["NotificationTarget"] = if (NotificationTarget == null) null else NotificationTarget
-        ["FilterConfiguration"] = if (FilterConfiguration == null) null else FilterConfiguration
-        ["TimeoutInSeconds"] = if (TimeoutInSeconds == null) null else TimeoutInSeconds
         ["Destinations"] = if (Destinations == null) null else Destinations
         ["PlayerLatencyPolicies"] = if (PlayerLatencyPolicies == null) null else PlayerLatencyPolicies
-        ["CustomEventData"] = if (CustomEventData == null) null else CustomEventData
-        ["Name"] = if (Name == null) null else Name
+        ["NotificationTarget"] = if (NotificationTarget == null) null else NotificationTarget
         ["PriorityConfiguration"] = if (PriorityConfiguration == null) null else PriorityConfiguration
+        ["TimeoutInSeconds"] = if (TimeoutInSeconds == null) null else TimeoutInSeconds
+        ["CustomEventData"] = if (CustomEventData == null) null else CustomEventData
+        ["FilterConfiguration"] = if (FilterConfiguration == null) null else FilterConfiguration
         ["Tags"] = if (Tags == null) null else Tags
+        ["Name"] = if (Name == null) null else Name
     }
 
 }

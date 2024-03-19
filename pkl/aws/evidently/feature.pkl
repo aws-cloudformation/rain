@@ -6,24 +6,24 @@ module aws.evidently.feature
 import "../../cloudformation.pkl"
 
 /// 
-open class VariationObject {
+open class FeatureVariationObject {
+    LongValue: (Number|Mapping)?
+    DoubleValue: (Number|Mapping)?
     VariationName: (String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping)?
     BooleanValue: (Boolean|Mapping)?
     StringValue: (String|Mapping)?
-    LongValue: (Number|Mapping)?
-    DoubleValue: (Number|Mapping)?
 }
 
 /// 
-open class EntityOverride {
+open class FeatureEntityOverride {
     EntityId: (String|Mapping)?
     Variation: (String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping)?
 }
 
 /// A key-value pair to associate with a resource.
-open class Tag {
-    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
+open class FeatureTag {
     Value: String|Mapping
+    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
 }
 
 /// Resource Type definition for AWS::Evidently::Feature.
@@ -32,12 +32,6 @@ open class Feature extends cloudformation.Resource {
     Type = "AWS::Evidently::Feature"
 
 
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden Name: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
-
     /// 
     hidden Description: (String|Mapping)?
 
@@ -45,26 +39,32 @@ open class Feature extends cloudformation.Resource {
     hidden EvaluationStrategy: (FeatureEvaluationStrategy|Mapping)?
 
     /// 
-    hidden EntityOverrides: (Listing<EntityOverride>)?
+    hidden EntityOverrides: (Listing<FeatureEntityOverride>)?
 
     /// 
-    hidden Project: String(matches(Regex(#"([-a-zA-Z0-9._]*)|(arn:[^:]*:[^:]*:[^:]*:[^:]*:project/[-a-zA-Z0-9._]*)"#)))|Mapping
+    hidden Name: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
 
     /// 
-    hidden Variations: Listing<VariationObject>
+    hidden Variations: Listing<FeatureVariationObject>
 
     /// 
     hidden DefaultVariation: (String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping)?
 
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<FeatureTag>)?
+
+    /// 
+    hidden Project: String(matches(Regex(#"([-a-zA-Z0-9._]*)|(arn:[^:]*:[^:]*:[^:]*:[^:]*:project/[-a-zA-Z0-9._]*)"#)))|Mapping
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Name"] = if (Name == null) null else Name
         ["Description"] = if (Description == null) null else Description
         ["EvaluationStrategy"] = if (EvaluationStrategy == null) null else EvaluationStrategy
         ["EntityOverrides"] = if (EntityOverrides == null) null else EntityOverrides
-        ["Project"] = if (Project == null) null else Project
+        ["Name"] = if (Name == null) null else Name
         ["Variations"] = if (Variations == null) null else Variations
         ["DefaultVariation"] = if (DefaultVariation == null) null else DefaultVariation
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Project"] = if (Project == null) null else Project
     }
 
 }

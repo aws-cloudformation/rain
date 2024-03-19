@@ -6,30 +6,30 @@ module aws.cloudfront.originrequestpolicy
 import "../../cloudformation.pkl"
 
 /// 
-open class QueryStringsConfig {
-    QueryStrings: (Listing<String|Mapping>)?
+open class OriginRequestPolicyOriginRequestPolicyConfig {
+    Comment: (String|Mapping)?
+    CookiesConfig: OriginRequestPolicyCookiesConfig
+    HeadersConfig: OriginRequestPolicyHeadersConfig
+    Name: String|Mapping
+    QueryStringsConfig: OriginRequestPolicyQueryStringsConfig
+}
+
+/// 
+open class OriginRequestPolicyQueryStringsConfig {
     QueryStringBehavior: String(matches(Regex(#"^(none|whitelist|all|allExcept)$"#)))|Mapping
+    QueryStrings: (Listing<String|Mapping>)?
 }
 
 /// 
-open class CookiesConfig {
-    Cookies: (Listing<String|Mapping>)?
+open class OriginRequestPolicyCookiesConfig {
     CookieBehavior: String(matches(Regex(#"^(none|whitelist|all|allExcept)$"#)))|Mapping
+    Cookies: (Listing<String|Mapping>)?
 }
 
 /// 
-open class HeadersConfig {
+open class OriginRequestPolicyHeadersConfig {
     HeaderBehavior: String(matches(Regex(#"^(none|whitelist|allViewer|allViewerAndWhitelistCloudFront|allExcept)$"#)))|Mapping
     Headers: (Listing<String|Mapping>)?
-}
-
-/// 
-open class OriginRequestPolicyConfig {
-    CookiesConfig: CookiesConfig
-    HeadersConfig: HeadersConfig
-    Name: String|Mapping
-    QueryStringsConfig: QueryStringsConfig
-    Comment: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::CloudFront::OriginRequestPolicy
@@ -39,7 +39,7 @@ open class OriginRequestPolicy extends cloudformation.Resource {
 
 
     /// 
-    hidden OriginRequestPolicyConfig: OriginRequestPolicyConfig
+    hidden OriginRequestPolicyConfig: OriginRequestPolicyOriginRequestPolicyConfig
 
     Properties {
         ["OriginRequestPolicyConfig"] = if (OriginRequestPolicyConfig == null) null else OriginRequestPolicyConfig

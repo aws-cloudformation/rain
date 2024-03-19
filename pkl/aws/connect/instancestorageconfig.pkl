@@ -5,75 +5,65 @@ module aws.connect.instancestorageconfig
 
 import "../../cloudformation.pkl"
 
-/// An ARN is a unique AWS resource identifier.
-open class KinesisStreamArn {
-}
+typealias InstanceStorageConfigEncryptionType = String|Mapping
 
-/// An associationID is automatically generated when a storage config is associated with an instance
-open class AssociationId {
-}
-
-/// Prefixes are used to infer logical hierarchy
-open class Prefix {
-}
-
-/// Specifies default encryption using AWS KMS-Managed Keys
-open class EncryptionType {
-}
 
 /// 
-open class S3Config {
-    BucketName: BucketName
-    BucketPrefix: Prefix
-    EncryptionConfig: (EncryptionConfig)?
+open class InstanceStorageConfigKinesisFirehoseConfig {
+    FirehoseArn: InstanceStorageConfigFirehoseDeliveryStreamArn
 }
+
+typealias InstanceStorageConfigFirehoseDeliveryStreamArn = String|Mapping
+
 
 /// 
-open class KinesisStreamConfig {
-    StreamArn: KinesisStreamArn
+open class InstanceStorageConfigEncryptionConfig {
+    EncryptionType: InstanceStorageConfigEncryptionType
+    KeyId: InstanceStorageConfigKeyId
 }
 
-/// Specifies the storage type to be associated with the instance
-open class StorageType {
-}
+typealias InstanceStorageConfigAssociationId = String|Mapping
 
-/// A name for the S3 Bucket
-open class BucketName {
-}
-
-/// An ARN is a unique AWS resource identifier.
-open class FirehoseDeliveryStreamArn {
-}
 
 /// 
-open class EncryptionConfig {
-    EncryptionType: EncryptionType
-    KeyId: KeyId
+open class InstanceStorageConfigKinesisVideoStreamConfig {
+    Prefix: InstanceStorageConfigPrefix
+    RetentionPeriodHours: InstanceStorageConfigHours
+    EncryptionConfig: InstanceStorageConfigEncryptionConfig
 }
 
-/// Specifies the type of storage resource available for the instance
-open class InstanceStorageResourceType {
-}
+typealias InstanceStorageConfigHours = Number|Mapping
 
-/// Number of hours
-open class Hours {
-}
 
-/// Specifies the encryption key id
-open class KeyId {
-}
+typealias InstanceStorageConfigKinesisStreamArn = String|Mapping
+
+
+typealias InstanceStorageConfigStorageType = String|Mapping
+
 
 /// 
-open class KinesisVideoStreamConfig {
-    Prefix: Prefix
-    RetentionPeriodHours: Hours
-    EncryptionConfig: EncryptionConfig
+open class InstanceStorageConfigKinesisStreamConfig {
+    StreamArn: InstanceStorageConfigKinesisStreamArn
 }
 
+typealias InstanceStorageConfigKeyId = String|Mapping
+
+
+typealias InstanceStorageConfigBucketName = String|Mapping
+
+
 /// 
-open class KinesisFirehoseConfig {
-    FirehoseArn: FirehoseDeliveryStreamArn
+open class InstanceStorageConfigS3Config {
+    BucketName: InstanceStorageConfigBucketName
+    BucketPrefix: InstanceStorageConfigPrefix
+    EncryptionConfig: (InstanceStorageConfigEncryptionConfig)?
 }
+
+typealias InstanceStorageConfigPrefix = String|Mapping
+
+
+typealias InstanceStorageConfigInstanceStorageResourceType = String|Mapping
+
 
 /// Resource Type definition for AWS::Connect::InstanceStorageConfig
 open class InstanceStorageConfig extends cloudformation.Resource {
@@ -85,22 +75,22 @@ open class InstanceStorageConfig extends cloudformation.Resource {
     hidden InstanceArn: String(matches(Regex(#"^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$"#)))|Mapping
 
     /// 
-    hidden ResourceType: InstanceStorageResourceType
+    hidden ResourceType: InstanceStorageConfigInstanceStorageResourceType
 
     /// 
-    hidden StorageType: StorageType
+    hidden StorageType: InstanceStorageConfigStorageType
 
     /// 
-    hidden S3Config: (S3Config)?
+    hidden S3Config: (InstanceStorageConfigS3Config)?
 
     /// 
-    hidden KinesisVideoStreamConfig: (KinesisVideoStreamConfig)?
+    hidden KinesisVideoStreamConfig: (InstanceStorageConfigKinesisVideoStreamConfig)?
 
     /// 
-    hidden KinesisStreamConfig: (KinesisStreamConfig)?
+    hidden KinesisStreamConfig: (InstanceStorageConfigKinesisStreamConfig)?
 
     /// 
-    hidden KinesisFirehoseConfig: (KinesisFirehoseConfig)?
+    hidden KinesisFirehoseConfig: (InstanceStorageConfigKinesisFirehoseConfig)?
 
     Properties {
         ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn

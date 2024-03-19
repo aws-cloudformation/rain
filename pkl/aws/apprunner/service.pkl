@@ -5,16 +5,74 @@ module aws.apprunner.service
 
 import "../../cloudformation.pkl"
 
-/// Image Configuration
-open class ServiceImageConfiguration {
-    StartCommand: (String|Mapping)?
-    Port: (String|Mapping)?
-    RuntimeEnvironmentVariables: (Listing<ServiceKeyValuePair>)?
-    RuntimeEnvironmentSecrets: (Listing<ServiceKeyValuePair>)?
+/// 
+open class ServiceTag {
+    Value: (String|Mapping)?
+    Key: (String|Mapping)?
+}
+
+typealias SourceCodeVersionType = "BRANCH"
+
+/// Source Code Version
+open class ServiceSourceCodeVersion {
+    Type: SourceCodeVersionType|Mapping
+    Value: String|Mapping
+}
+
+typealias EgressConfigurationEgressType = "DEFAULT"|"VPC"
+
+/// Network egress configuration
+open class ServiceEgressConfiguration {
+    EgressType: EgressConfigurationEgressType|Mapping
+    VpcConnectorArn: (String(matches(Regex(#"arn:aws(-[\w]+)*:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[0-9]{12}:(\w|\/|-){1,1011}"#)))|Mapping)?
+}
+
+/// Source Code configuration
+open class ServiceSourceConfiguration {
+    ImageRepository: (ServiceImageRepository)?
+    AutoDeploymentsEnabled: (Boolean|Mapping)?
+    AuthenticationConfiguration: (ServiceAuthenticationConfiguration)?
+    CodeRepository: (ServiceCodeRepository)?
+}
+
+/// Authentication Configuration
+open class ServiceAuthenticationConfiguration {
+    ConnectionArn: (String(matches(Regex(#"arn:aws(-[\w]+)*:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[0-9]{12}:(\w|\/|-){1,1011}"#)))|Mapping)?
+    AccessRoleArn: (ServiceRoleArn)?
+}
+
+typealias CodeConfigurationConfigurationSource = "REPOSITORY"|"API"
+
+/// Code Configuration
+open class ServiceCodeConfiguration {
+    ConfigurationSource: CodeConfigurationConfigurationSource|Mapping
+    CodeConfigurationValues: (ServiceCodeConfigurationValues)?
+}
+
+typealias HealthCheckConfigurationProtocol = "TCP"|"HTTP"
+
+/// Health check configuration
+open class ServiceHealthCheckConfiguration {
+    Interval: (Int|Mapping)?
+    Timeout: (Int|Mapping)?
+    HealthyThreshold: (Int|Mapping)?
+    UnhealthyThreshold: (Int|Mapping)?
+    Protocol: (HealthCheckConfigurationProtocol|Mapping)?
+    Path: (String|Mapping)?
 }
 
 /// 
-open class ServiceRoleArn {
+open class ServiceKeyValuePair {
+    Name: (String|Mapping)?
+    Value: (String|Mapping)?
+}
+
+/// Source Code Repository
+open class ServiceCodeRepository {
+    RepositoryUrl: String|Mapping
+    SourceCodeVersion: ServiceSourceCodeVersion
+    CodeConfiguration: (ServiceCodeConfiguration)?
+    SourceDirectory: (String(matches(Regex(#"[^\x00]+"#)))|Mapping)?
 }
 
 /// Service observability configuration
@@ -23,12 +81,16 @@ open class ServiceServiceObservabilityConfiguration {
     ObservabilityConfigurationArn: (String(matches(Regex(#"arn:aws(-[\w]+)*:[a-z0-9-\.]{0,63}:[a-z0-9-\.]{0,63}:[0-9]{12}:(\w|/|-){1,1011}"#)))|Mapping)?
 }
 
-typealias CodeConfigurationConfigurationSource = "REPOSITORY"|"API"
+typealias CodeConfigurationValuesRuntime = "PYTHON_3"|"NODEJS_12"|"NODEJS_14"|"CORRETTO_8"|"CORRETTO_11"|"NODEJS_16"|"GO_1"|"DOTNET_6"|"PHP_81"|"RUBY_31"|"PYTHON_311"|"NODEJS_18"
 
-/// Code Configuration
-open class ServiceCodeConfiguration {
-    CodeConfigurationValues: (ServiceCodeConfigurationValues)?
-    ConfigurationSource: CodeConfigurationConfigurationSource|Mapping
+/// Code Configuration Values
+open class ServiceCodeConfigurationValues {
+    StartCommand: (String|Mapping)?
+    Port: (String|Mapping)?
+    RuntimeEnvironmentVariables: (Listing<ServiceKeyValuePair>)?
+    RuntimeEnvironmentSecrets: (Listing<ServiceKeyValuePair>)?
+    Runtime: CodeConfigurationValuesRuntime|Mapping
+    BuildCommand: (String|Mapping)?
 }
 
 /// Instance Configuration
@@ -43,6 +105,14 @@ open class ServiceEncryptionConfiguration {
     KmsKey: String(matches(Regex(#"arn:aws(-[\w]+)*:kms:[a-z\-]+-[0-9]{1}:[0-9]{12}:key\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"#)))|Mapping
 }
 
+typealias ServiceRoleArn = String|Mapping
+
+
+/// Network ingress configuration
+open class ServiceIngressConfiguration {
+    IsPubliclyAccessible: Boolean|Mapping
+}
+
 typealias ImageRepositoryImageRepositoryType = "ECR"|"ECR_PUBLIC"
 
 /// Image Repository
@@ -52,65 +122,12 @@ open class ServiceImageRepository {
     ImageRepositoryType: ImageRepositoryImageRepositoryType|Mapping
 }
 
-/// Source Code Repository
-open class ServiceCodeRepository {
-    RepositoryUrl: String|Mapping
-    SourceCodeVersion: ServiceSourceCodeVersion
-    CodeConfiguration: (ServiceCodeConfiguration)?
-    SourceDirectory: (String(matches(Regex(#"[^\x00]+"#)))|Mapping)?
-}
-
-typealias SourceCodeVersionType = "BRANCH"
-
-/// Source Code Version
-open class ServiceSourceCodeVersion {
-    Type: SourceCodeVersionType|Mapping
-    Value: String|Mapping
-}
-
-/// Authentication Configuration
-open class ServiceAuthenticationConfiguration {
-    ConnectionArn: (String(matches(Regex(#"arn:aws(-[\w]+)*:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[0-9]{12}:(\w|\/|-){1,1011}"#)))|Mapping)?
-    AccessRoleArn: (ServiceRoleArn)?
-}
-
-typealias EgressConfigurationEgressType = "DEFAULT"|"VPC"
-
-/// Network egress configuration
-open class ServiceEgressConfiguration {
-    VpcConnectorArn: (String(matches(Regex(#"arn:aws(-[\w]+)*:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[0-9]{12}:(\w|\/|-){1,1011}"#)))|Mapping)?
-    EgressType: EgressConfigurationEgressType|Mapping
-}
-
-/// 
-open class ServiceKeyValuePair {
-    Name: (String|Mapping)?
-    Value: (String|Mapping)?
-}
-
-/// Source Code configuration
-open class ServiceSourceConfiguration {
-    CodeRepository: (ServiceCodeRepository)?
-    ImageRepository: (ServiceImageRepository)?
-    AutoDeploymentsEnabled: (Boolean|Mapping)?
-    AuthenticationConfiguration: (ServiceAuthenticationConfiguration)?
-}
-
-typealias HealthCheckConfigurationProtocol = "TCP"|"HTTP"
-
-/// Health check configuration
-open class ServiceHealthCheckConfiguration {
-    Path: (String|Mapping)?
-    Interval: (Int|Mapping)?
-    Timeout: (Int|Mapping)?
-    HealthyThreshold: (Int|Mapping)?
-    UnhealthyThreshold: (Int|Mapping)?
-    Protocol: (HealthCheckConfigurationProtocol|Mapping)?
-}
-
-/// Network ingress configuration
-open class ServiceIngressConfiguration {
-    IsPubliclyAccessible: Boolean|Mapping
+/// Image Configuration
+open class ServiceImageConfiguration {
+    StartCommand: (String|Mapping)?
+    Port: (String|Mapping)?
+    RuntimeEnvironmentVariables: (Listing<ServiceKeyValuePair>)?
+    RuntimeEnvironmentSecrets: (Listing<ServiceKeyValuePair>)?
 }
 
 typealias NetworkConfigurationIpAddressType = "IPV4"|"DUAL_STACK"
@@ -122,47 +139,17 @@ open class ServiceNetworkConfiguration {
     IpAddressType: (NetworkConfigurationIpAddressType|Mapping)?
 }
 
-/// 
-open class ServiceTag {
-    Key: (String|Mapping)?
-    Value: (String|Mapping)?
-}
-
-typealias CodeConfigurationValuesRuntime = "PYTHON_3"|"NODEJS_12"|"NODEJS_14"|"CORRETTO_8"|"CORRETTO_11"|"NODEJS_16"|"GO_1"|"DOTNET_6"|"PHP_81"|"RUBY_31"|"PYTHON_311"|"NODEJS_18"
-
-/// Code Configuration Values
-open class ServiceCodeConfigurationValues {
-    Runtime: CodeConfigurationValuesRuntime|Mapping
-    BuildCommand: (String|Mapping)?
-    StartCommand: (String|Mapping)?
-    Port: (String|Mapping)?
-    RuntimeEnvironmentVariables: (Listing<ServiceKeyValuePair>)?
-    RuntimeEnvironmentSecrets: (Listing<ServiceKeyValuePair>)?
-}
-
 /// The AWS::AppRunner::Service resource specifies an AppRunner Service.
 open class Service extends cloudformation.Resource {
 
     Type = "AWS::AppRunner::Service"
 
 
-    /// The AppRunner Service Name.
-    hidden ServiceName: (String(matches(Regex(#"[A-Za-z0-9][A-Za-z0-9-_]{3,39}"#)))|Mapping)?
-
     /// 
-    hidden SourceConfiguration: ServiceSourceConfiguration
-
-    /// Autoscaling configuration ARN
-    hidden AutoScalingConfigurationArn: (String(matches(Regex(#"arn:aws(-[\w]+)*:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[0-9]{12}:(\w|\/|-){1,1011}"#)))|Mapping)?
-
-    /// 
-    hidden Tags: (Listing<ServiceTag>)?
+    hidden InstanceConfiguration: (ServiceInstanceConfiguration)?
 
     /// 
     hidden HealthCheckConfiguration: (ServiceHealthCheckConfiguration)?
-
-    /// 
-    hidden InstanceConfiguration: (ServiceInstanceConfiguration)?
 
     /// 
     hidden ObservabilityConfiguration: (ServiceServiceObservabilityConfiguration)?
@@ -170,19 +157,31 @@ open class Service extends cloudformation.Resource {
     /// 
     hidden NetworkConfiguration: (ServiceNetworkConfiguration)?
 
+    /// The AppRunner Service Name.
+    hidden ServiceName: (String(matches(Regex(#"[A-Za-z0-9][A-Za-z0-9-_]{3,39}"#)))|Mapping)?
+
     /// 
     hidden EncryptionConfiguration: (ServiceEncryptionConfiguration)?
 
+    /// Autoscaling configuration ARN
+    hidden AutoScalingConfigurationArn: (String(matches(Regex(#"arn:aws(-[\w]+)*:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[0-9]{12}:(\w|\/|-){1,1011}"#)))|Mapping)?
+
+    /// 
+    hidden SourceConfiguration: ServiceSourceConfiguration
+
+    /// 
+    hidden Tags: (Listing<ServiceTag>)?
+
     Properties {
-        ["ServiceName"] = if (ServiceName == null) null else ServiceName
-        ["SourceConfiguration"] = if (SourceConfiguration == null) null else SourceConfiguration
-        ["AutoScalingConfigurationArn"] = if (AutoScalingConfigurationArn == null) null else AutoScalingConfigurationArn
-        ["Tags"] = if (Tags == null) null else Tags
-        ["HealthCheckConfiguration"] = if (HealthCheckConfiguration == null) null else HealthCheckConfiguration
         ["InstanceConfiguration"] = if (InstanceConfiguration == null) null else InstanceConfiguration
+        ["HealthCheckConfiguration"] = if (HealthCheckConfiguration == null) null else HealthCheckConfiguration
         ["ObservabilityConfiguration"] = if (ObservabilityConfiguration == null) null else ObservabilityConfiguration
         ["NetworkConfiguration"] = if (NetworkConfiguration == null) null else NetworkConfiguration
+        ["ServiceName"] = if (ServiceName == null) null else ServiceName
         ["EncryptionConfiguration"] = if (EncryptionConfiguration == null) null else EncryptionConfiguration
+        ["AutoScalingConfigurationArn"] = if (AutoScalingConfigurationArn == null) null else AutoScalingConfigurationArn
+        ["SourceConfiguration"] = if (SourceConfiguration == null) null else SourceConfiguration
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

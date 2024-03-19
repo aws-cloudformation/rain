@@ -5,181 +5,162 @@ module aws.emrserverless.application
 
 import "../../cloudformation.pkl"
 
-/// 
-open class Classification {
+typealias ApplicationSecurityGroupId = String
+
+
+/// Configuration for a JobRun.
+open class ApplicationConfigurationObject {
+    Classification: ApplicationClassification
+    Properties: (Dynamic)?
+    Configurations: (Listing<ApplicationConfigurationObject>)?
 }
 
+typealias ApplicationSensitivePropertiesKeyValuePair = String
+
+
 /// 
-open class SensitivePropertiesMap {
+open class ApplicationNetworkConfiguration {
+    SubnetIds: (Listing<ApplicationSubnetId>)?
+    SecurityGroupIds: (Listing<ApplicationSecurityGroupId>)?
 }
 
-/// Per worker CPU resource. vCPU is the only supported unit and specifying vCPU is optional.
-open class CpuSize {
+typealias ApplicationSensitivePropertiesMap = String
+
+
+/// 
+open class ApplicationLogTypeMapKeyValuePair {
+    Value: ApplicationLogTypeList
+    Key: ApplicationWorkerTypeString
 }
 
 /// The image configuration.
-open class ImageConfigurationInput {
+open class ApplicationImageConfigurationInput {
     ImageUri: (String(matches(Regex(#"^([a-z0-9]+[a-z0-9-.]*)\/((?:[a-z0-9]+(?:[._-][a-z0-9]+)*\/)*[a-z0-9]+(?:[._-][a-z0-9]+)*)(?:\:([a-zA-Z0-9_][a-zA-Z0-9-._]{0,299})|@(sha256:[0-9a-f]{64}))$"#)))|Mapping)?
 }
 
-/// 
-open class S3MonitoringConfiguration {
-    LogUri: (UriString)?
-    EncryptionKeyArn: (EncryptionKeyArn)?
-}
-
-/// 
-open class LogTypeMapKeyValuePair {
-    Key: WorkerTypeString
-    Value: LogTypeList
-}
-
 /// The specifications for a worker type.
-open class WorkerTypeSpecificationInput {
-    ImageConfiguration: (ImageConfigurationInput)?
+open class ApplicationWorkerTypeSpecificationInput {
+    ImageConfiguration: (ApplicationImageConfigurationInput)?
 }
 
 /// 
-open class InitialCapacityConfig {
-    WorkerCount: Int|Mapping
-    WorkerConfiguration: WorkerConfiguration
+open class ApplicationWorkerConfiguration {
+    Cpu: ApplicationCpuSize
+    Memory: ApplicationMemorySize
+    Disk: (ApplicationDiskSize)?
 }
 
 /// 
-open class LogTypeString {
+open class ApplicationS3MonitoringConfiguration {
+    LogUri: (ApplicationUriString)?
+    EncryptionKeyArn: (ApplicationEncryptionKeyArn)?
 }
 
-/// Per worker memory resource. GB is the only supported unit and specifying GB is optional.
-open class MemorySize {
+typealias ApplicationConfigurationList = Listing<(ApplicationConfigurationObject)?>
+
+
+/// 
+open class ApplicationManagedPersistenceMonitoringConfiguration {
+    Enabled: (Boolean|Mapping)?
+    EncryptionKeyArn: (ApplicationEncryptionKeyArn)?
 }
+
+typealias ApplicationLogTypeString = String
+
+
+typealias ApplicationArchitecture = "ARM64"|"X86_64"
+
+
+/// Monitoring configuration for batch and interactive JobRun.
+open class ApplicationMonitoringConfiguration {
+    S3MonitoringConfiguration: (ApplicationS3MonitoringConfiguration)?
+    ManagedPersistenceMonitoringConfiguration: (ApplicationManagedPersistenceMonitoringConfiguration)?
+    CloudWatchLoggingConfiguration: (ApplicationCloudWatchLoggingConfiguration)?
+}
+
+typealias ApplicationInitialCapacityConfigMap = Listing<(ApplicationInitialCapacityConfigKeyValuePair)?>
+
+
+/// Configuration for Auto Start of Application
+open class ApplicationAutoStartConfiguration {
+    Enabled: (Boolean|Mapping)?
+}
+
+typealias ApplicationUriString = String
+
+
+typealias ApplicationEncryptionKeyArn = String
+
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class ApplicationTag {
     Key: String(matches(Regex(#"^[A-Za-z0-9 /_.:=+@-]+$"#)))|Mapping
     Value: String(matches(Regex(#"^[A-Za-z0-9 /_.:=+@-]*$"#)))|Mapping
 }
 
-/// Configuration for a JobRun.
-open class ConfigurationObject {
-    Classification: Classification
-    Properties: (Dynamic)?
-    Configurations: (Listing<ConfigurationObject>)?
+typealias ApplicationMemorySize = String
+
+
+typealias ApplicationLogStreamNamePrefix = String
+
+
+typealias ApplicationClassification = String
+
+
+typealias ApplicationCpuSize = String
+
+
+/// 
+open class ApplicationMaximumAllowedResources {
+    Cpu: ApplicationCpuSize
+    Memory: ApplicationMemorySize
+    Disk: (ApplicationDiskSize)?
 }
 
 /// 
-open class SensitivePropertiesKeyValuePair {
+open class ApplicationInitialCapacityConfig {
+    WorkerCount: Int|Mapping
+    WorkerConfiguration: ApplicationWorkerConfiguration
 }
 
-/// Monitoring configuration for batch and interactive JobRun.
-open class MonitoringConfiguration {
-    CloudWatchLoggingConfiguration: (CloudWatchLoggingConfiguration)?
-    S3MonitoringConfiguration: (S3MonitoringConfiguration)?
-    ManagedPersistenceMonitoringConfiguration: (ManagedPersistenceMonitoringConfiguration)?
-}
+typealias ApplicationLogGroupName = String
+
 
 /// 
-open class ManagedPersistenceMonitoringConfiguration {
-    Enabled: (Boolean|Mapping)?
-    EncryptionKeyArn: (EncryptionKeyArn)?
-}
-
-/// 
-open class NetworkConfiguration {
-    SubnetIds: (Listing<SubnetId>)?
-    SecurityGroupIds: (Listing<SecurityGroupId>)?
-}
-
-/// 
-open class WorkerTypeString {
-}
-
-/// 
-open class WorkerTypeSpecificationInputMap {
-}
-
-/// Runtime configuration for batch and interactive JobRun.
-open class ConfigurationList {
-}
-
-/// Identifier of a security group
-open class SecurityGroupId {
-}
-
-/// 
-open class EncryptionKeyArn {
-}
-
-/// 
-open class CloudWatchLoggingConfiguration {
-    LogGroupName: (LogGroupName)?
-    LogStreamNamePrefix: (LogStreamNamePrefix)?
-    EncryptionKeyArn: (EncryptionKeyArn)?
-    LogTypeMap: (Listing<LogTypeMapKeyValuePair>)?
-    Enabled: (Boolean|Mapping)?
-}
-
-/// Configuration for Auto Start of Application
-open class AutoStartConfiguration {
-    Enabled: (Boolean|Mapping)?
+open class ApplicationInitialCapacityConfigKeyValuePair {
+    Key: String(matches(Regex(#"^[a-zA-Z]+[-_]*[a-zA-Z]+$"#)))|Mapping
+    Value: ApplicationInitialCapacityConfig
 }
 
 /// Configuration for Auto Stop of Application
-open class AutoStopConfiguration {
+open class ApplicationAutoStopConfiguration {
     Enabled: (Boolean|Mapping)?
     IdleTimeoutMinutes: (Int|Mapping)?
 }
 
 /// 
-open class LogGroupName {
+open class ApplicationCloudWatchLoggingConfiguration {
+    EncryptionKeyArn: (ApplicationEncryptionKeyArn)?
+    LogTypeMap: (Listing<ApplicationLogTypeMapKeyValuePair>)?
+    Enabled: (Boolean|Mapping)?
+    LogGroupName: (ApplicationLogGroupName)?
+    LogStreamNamePrefix: (ApplicationLogStreamNamePrefix)?
 }
 
-/// 
-open class WorkerConfiguration {
-    Cpu: CpuSize
-    Memory: MemorySize
-    Disk: (DiskSize)?
-}
+typealias ApplicationLogTypeList = Listing<(ApplicationLogTypeString)?>
 
-/// 
-open class MaximumAllowedResources {
-    Cpu: CpuSize
-    Memory: MemorySize
-    Disk: (DiskSize)?
-}
 
-/// Identifier of a subnet
-open class SubnetId {
-}
+typealias ApplicationWorkerTypeSpecificationInputMap = Mapping<String, Any>
 
-/// 
-open class InitialCapacityConfigKeyValuePair {
-    Key: String(matches(Regex(#"^[a-zA-Z]+[-_]*[a-zA-Z]+$"#)))|Mapping
-    Value: InitialCapacityConfig
-}
 
-/// The cpu architecture of an application.
-open class Architecture {
-}
+typealias ApplicationDiskSize = String
 
-/// List of Applicable values: [STDOUT, STDERR, HIVE_LOG, TEZ_AM, SYSTEM_LOGS]
-open class LogTypeList {
-}
 
-/// 
-open class InitialCapacityConfigMap {
-}
+typealias ApplicationSubnetId = String
 
-/// 
-open class UriString {
-}
 
-/// 
-open class LogStreamNamePrefix {
-}
+typealias ApplicationWorkerTypeString = String
 
-/// Per worker Disk resource. GB is the only supported unit and specifying GB is optional
-open class DiskSize {
-}
 
 /// Resource schema for AWS::EMRServerless::Application Type
 open class Application extends cloudformation.Resource {
@@ -187,63 +168,63 @@ open class Application extends cloudformation.Resource {
     Type = "AWS::EMRServerless::Application"
 
 
+    /// User friendly Application name.
+    hidden Name: (String(matches(Regex(#"^[A-Za-z0-9._\/#-]+$"#)))|Mapping)?
+
     /// EMR release label.
     hidden ReleaseLabel: String(matches(Regex(#"^[A-Za-z0-9._/-]+$"#)))|Mapping
 
     /// Tag map with key and value
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<ApplicationTag>)?
+
+    /// Configuration for Auto Start of Application.
+    hidden AutoStartConfiguration: (ApplicationAutoStartConfiguration)?
 
     /// Configuration for Auto Stop of Application.
-    hidden AutoStopConfiguration: (AutoStopConfiguration)?
+    hidden AutoStopConfiguration: (ApplicationAutoStopConfiguration)?
 
     /// 
-    hidden ImageConfiguration: (ImageConfigurationInput)?
+    hidden RuntimeConfiguration: (ApplicationConfigurationList)?
 
-    /// User friendly Application name.
-    hidden Name: (String(matches(Regex(#"^[A-Za-z0-9._\/#-]+$"#)))|Mapping)?
+    /// 
+    hidden Architecture: (ApplicationArchitecture)?
 
     /// The type of the application
     hidden TypeProperty: String|Mapping
 
-    /// Initial capacity initialized when an Application is started.
-    hidden InitialCapacity: (InitialCapacityConfigMap)?
-
     /// 
-    hidden MonitoringConfiguration: (MonitoringConfiguration)?
+    hidden MonitoringConfiguration: (ApplicationMonitoringConfiguration)?
 
     /// The key-value pairs that specify worker type to WorkerTypeSpecificationInput. This parameter must contain all valid worker types for a Spark or Hive application. Valid worker types include Driver and Executor for Spark applications and HiveDriver and TezTask for Hive applications. You can either set image details in this parameter for each worker type, or in imageConfiguration for all worker types.
-    hidden WorkerTypeSpecifications: (WorkerTypeSpecificationInputMap)?
+    hidden WorkerTypeSpecifications: (ApplicationWorkerTypeSpecificationInputMap)?
+
+    /// Initial capacity initialized when an Application is started.
+    hidden InitialCapacity: (ApplicationInitialCapacityConfigMap)?
 
     /// 
-    hidden Architecture: (Architecture)?
-
-    /// Maximum allowed cumulative resources for an Application. No new resources will be created once the limit is hit.
-    hidden MaximumCapacity: (MaximumAllowedResources)?
-
-    /// Configuration for Auto Start of Application.
-    hidden AutoStartConfiguration: (AutoStartConfiguration)?
-
-    /// 
-    hidden RuntimeConfiguration: (ConfigurationList)?
+    hidden ImageConfiguration: (ApplicationImageConfigurationInput)?
 
     /// Network Configuration for customer VPC connectivity.
-    hidden NetworkConfiguration: (NetworkConfiguration)?
+    hidden NetworkConfiguration: (ApplicationNetworkConfiguration)?
+
+    /// Maximum allowed cumulative resources for an Application. No new resources will be created once the limit is hit.
+    hidden MaximumCapacity: (ApplicationMaximumAllowedResources)?
 
     Properties {
+        ["Name"] = if (Name == null) null else Name
         ["ReleaseLabel"] = if (ReleaseLabel == null) null else ReleaseLabel
         ["Tags"] = if (Tags == null) null else Tags
+        ["AutoStartConfiguration"] = if (AutoStartConfiguration == null) null else AutoStartConfiguration
         ["AutoStopConfiguration"] = if (AutoStopConfiguration == null) null else AutoStopConfiguration
-        ["ImageConfiguration"] = if (ImageConfiguration == null) null else ImageConfiguration
-        ["Name"] = if (Name == null) null else Name
+        ["RuntimeConfiguration"] = if (RuntimeConfiguration == null) null else RuntimeConfiguration
+        ["Architecture"] = if (Architecture == null) null else Architecture
         ["Type"] = if (TypeProperty == null) null else TypeProperty
-        ["InitialCapacity"] = if (InitialCapacity == null) null else InitialCapacity
         ["MonitoringConfiguration"] = if (MonitoringConfiguration == null) null else MonitoringConfiguration
         ["WorkerTypeSpecifications"] = if (WorkerTypeSpecifications == null) null else WorkerTypeSpecifications
-        ["Architecture"] = if (Architecture == null) null else Architecture
-        ["MaximumCapacity"] = if (MaximumCapacity == null) null else MaximumCapacity
-        ["AutoStartConfiguration"] = if (AutoStartConfiguration == null) null else AutoStartConfiguration
-        ["RuntimeConfiguration"] = if (RuntimeConfiguration == null) null else RuntimeConfiguration
+        ["InitialCapacity"] = if (InitialCapacity == null) null else InitialCapacity
+        ["ImageConfiguration"] = if (ImageConfiguration == null) null else ImageConfiguration
         ["NetworkConfiguration"] = if (NetworkConfiguration == null) null else NetworkConfiguration
+        ["MaximumCapacity"] = if (MaximumCapacity == null) null else MaximumCapacity
     }
 
 }

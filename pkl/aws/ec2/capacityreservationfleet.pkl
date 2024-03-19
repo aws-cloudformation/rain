@@ -6,26 +6,26 @@ module aws.ec2.capacityreservationfleet
 import "../../cloudformation.pkl"
 
 /// 
-open class TagSpecification {
-    Tags: (Listing<Tag>)?
-    ResourceType: (String|Mapping)?
-}
-
-/// 
-open class InstanceTypeSpecification {
+open class CapacityReservationFleetInstanceTypeSpecification {
+    AvailabilityZoneId: (String|Mapping)?
+    EbsOptimized: (Boolean|Mapping)?
     Priority: (Int|Mapping)?
     InstanceType: (String|Mapping)?
     InstancePlatform: (String|Mapping)?
     Weight: (Number|Mapping)?
     AvailabilityZone: (String|Mapping)?
-    AvailabilityZoneId: (String|Mapping)?
-    EbsOptimized: (Boolean|Mapping)?
 }
 
 /// 
-open class Tag {
-    Key: String|Mapping
+open class CapacityReservationFleetTag {
     Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// 
+open class CapacityReservationFleetTagSpecification {
+    ResourceType: (String|Mapping)?
+    Tags: (Listing<CapacityReservationFleetTag>)?
 }
 
 /// Resource Type definition for AWS::EC2::CapacityReservationFleet
@@ -35,10 +35,10 @@ open class CapacityReservationFleet extends cloudformation.Resource {
 
 
     /// 
-    hidden AllocationStrategy: (String|Mapping)?
+    hidden NoRemoveEndDate: (Boolean|Mapping)?
 
     /// 
-    hidden InstanceTypeSpecifications: (Listing<InstanceTypeSpecification>)?
+    hidden TagSpecifications: (Listing<CapacityReservationFleetTagSpecification>)?
 
     /// 
     hidden TotalTargetCapacity: (Int|Mapping)?
@@ -47,35 +47,35 @@ open class CapacityReservationFleet extends cloudformation.Resource {
     hidden EndDate: (String|Mapping)?
 
     /// 
+    hidden InstanceMatchCriteria: (CapacityReservationFleetInstanceMatchCriteria|Mapping)?
+
+    /// 
     hidden Tenancy: (CapacityReservationFleetTenancy|Mapping)?
+
+    /// 
+    hidden AllocationStrategy: (String|Mapping)?
+
+    /// 
+    hidden InstanceTypeSpecifications: (Listing<CapacityReservationFleetInstanceTypeSpecification>)?
 
     /// 
     hidden RemoveEndDate: (Boolean|Mapping)?
 
-    /// 
-    hidden TagSpecifications: (Listing<TagSpecification>)?
-
-    /// 
-    hidden InstanceMatchCriteria: (CapacityReservationFleetInstanceMatchCriteria|Mapping)?
-
-    /// 
-    hidden NoRemoveEndDate: (Boolean|Mapping)?
-
     Properties {
-        ["AllocationStrategy"] = if (AllocationStrategy == null) null else AllocationStrategy
-        ["InstanceTypeSpecifications"] = if (InstanceTypeSpecifications == null) null else InstanceTypeSpecifications
+        ["NoRemoveEndDate"] = if (NoRemoveEndDate == null) null else NoRemoveEndDate
+        ["TagSpecifications"] = if (TagSpecifications == null) null else TagSpecifications
         ["TotalTargetCapacity"] = if (TotalTargetCapacity == null) null else TotalTargetCapacity
         ["EndDate"] = if (EndDate == null) null else EndDate
-        ["Tenancy"] = if (Tenancy == null) null else Tenancy
-        ["RemoveEndDate"] = if (RemoveEndDate == null) null else RemoveEndDate
-        ["TagSpecifications"] = if (TagSpecifications == null) null else TagSpecifications
         ["InstanceMatchCriteria"] = if (InstanceMatchCriteria == null) null else InstanceMatchCriteria
-        ["NoRemoveEndDate"] = if (NoRemoveEndDate == null) null else NoRemoveEndDate
+        ["Tenancy"] = if (Tenancy == null) null else Tenancy
+        ["AllocationStrategy"] = if (AllocationStrategy == null) null else AllocationStrategy
+        ["InstanceTypeSpecifications"] = if (InstanceTypeSpecifications == null) null else InstanceTypeSpecifications
+        ["RemoveEndDate"] = if (RemoveEndDate == null) null else RemoveEndDate
     }
 
 }
 
 
-typealias CapacityReservationFleetTenancy = "default"
-
 typealias CapacityReservationFleetInstanceMatchCriteria = "open"
+
+typealias CapacityReservationFleetTenancy = "default"

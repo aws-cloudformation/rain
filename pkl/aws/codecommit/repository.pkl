@@ -6,31 +6,31 @@ module aws.codecommit.repository
 import "../../cloudformation.pkl"
 
 /// 
-open class RepositoryTrigger {
-    Name: String|Mapping
-    CustomData: (String|Mapping)?
-    Events: Listing<String|Mapping>
-    Branches: (Listing<String|Mapping>)?
-    DestinationArn: String|Mapping
-}
-
-/// 
-open class Code {
-    BranchName: (String|Mapping)?
-    S3: S3
-}
-
-/// 
-open class S3 {
+open class RepositoryS3 {
     ObjectVersion: (String|Mapping)?
     Bucket: String|Mapping
     Key: String|Mapping
 }
 
 /// 
-open class Tag {
+open class RepositoryTag {
     Key: String|Mapping
     Value: String|Mapping
+}
+
+/// 
+open class RepositoryRepositoryTrigger {
+    CustomData: (String|Mapping)?
+    Events: Listing<String|Mapping>
+    Branches: (Listing<String|Mapping>)?
+    DestinationArn: String|Mapping
+    Name: String|Mapping
+}
+
+/// 
+open class RepositoryCode {
+    S3: RepositoryS3
+    BranchName: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::CodeCommit::Repository
@@ -43,27 +43,27 @@ open class Repository extends cloudformation.Resource {
     hidden RepositoryDescription: (String|Mapping)?
 
     /// 
-    hidden Code: (Code)?
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
     hidden KmsKeyId: (String|Mapping)?
 
     /// 
     hidden RepositoryName: String|Mapping
 
     /// 
-    hidden Triggers: (Listing<RepositoryTrigger>)?
+    hidden Code: (RepositoryCode)?
+
+    /// 
+    hidden Triggers: (Listing<RepositoryRepositoryTrigger>)?
+
+    /// 
+    hidden Tags: (Listing<RepositoryTag>)?
 
     Properties {
         ["RepositoryDescription"] = if (RepositoryDescription == null) null else RepositoryDescription
-        ["Code"] = if (Code == null) null else Code
-        ["Tags"] = if (Tags == null) null else Tags
         ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
         ["RepositoryName"] = if (RepositoryName == null) null else RepositoryName
+        ["Code"] = if (Code == null) null else Code
         ["Triggers"] = if (Triggers == null) null else Triggers
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

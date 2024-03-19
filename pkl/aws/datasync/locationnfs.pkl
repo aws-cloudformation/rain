@@ -5,22 +5,22 @@ module aws.datasync.locationnfs
 
 import "../../cloudformation.pkl"
 
+/// A key-value pair to associate with a resource.
+open class LocationNFSTag {
+    Key: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:/-]+$"#)))|Mapping
+    Value: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:@/-]+$"#)))|Mapping
+}
+
 typealias MountOptionsVersion = "AUTOMATIC"|"NFS3"|"NFS4_0"|"NFS4_1"
 
 /// The NFS mount options that DataSync can use to mount your NFS share.
-open class MountOptions {
+open class LocationNFSMountOptions {
     Version: (MountOptionsVersion|Mapping)?
 }
 
 /// Contains a list of Amazon Resource Names (ARNs) of agents that are used to connect an NFS server.
-open class OnPremConfig {
+open class LocationNFSOnPremConfig {
     AgentArns: Listing<String|Mapping>
-}
-
-/// A key-value pair to associate with a resource.
-open class Tag {
-    Key: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:/-]+$"#)))|Mapping
-    Value: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:@/-]+$"#)))|Mapping
 }
 
 /// Resource schema for AWS::DataSync::LocationNFS
@@ -30,10 +30,10 @@ open class LocationNFS extends cloudformation.Resource {
 
 
     /// 
-    hidden MountOptions: (MountOptions)?
+    hidden MountOptions: (LocationNFSMountOptions)?
 
     /// 
-    hidden OnPremConfig: OnPremConfig
+    hidden OnPremConfig: LocationNFSOnPremConfig
 
     /// The name of the NFS server. This value is the IP address or DNS name of the NFS server.
     hidden ServerHostname: (String(matches(Regex(#"^(([a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9\-]*[A-Za-z0-9])$"#)))|Mapping)?
@@ -42,7 +42,7 @@ open class LocationNFS extends cloudformation.Resource {
     hidden Subdirectory: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\$\p{Zs}]+$"#)))|Mapping)?
 
     /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<LocationNFSTag>)?
 
     Properties {
         ["MountOptions"] = if (MountOptions == null) null else MountOptions

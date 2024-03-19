@@ -5,97 +5,89 @@ module aws.entityresolution.matchingworkflow
 
 import "../../cloudformation.pkl"
 
-/// 
-open class EntityName {
-}
-
-/// 
-open class Description {
-}
-
-/// The default MatchingWorkflow arn
-open class MatchingWorkflowArn {
-}
-
-/// 
-open class OutputSource {
-    OutputS3Path: String(matches(Regex(#"^s3://([^/]+)/?(.*?([^/]+)/?)$"#)))|Mapping
-    Output: Listing<OutputAttribute>
-    KMSArn: (KMSArn)?
-    ApplyNormalization: (Boolean|Mapping)?
-}
-
 typealias RuleBasedPropertiesAttributeMatchingModel = "ONE_TO_ONE"|"MANY_TO_MANY"
 
 /// 
-open class RuleBasedProperties {
-    Rules: Listing<Rule>
+open class MatchingWorkflowRuleBasedProperties {
+    Rules: Listing<MatchingWorkflowRule>
     AttributeMatchingModel: RuleBasedPropertiesAttributeMatchingModel|Mapping
 }
 
-/// The time of this MatchingWorkflow got created
-open class CreatedAt {
-}
+typealias MatchingWorkflowAttributeName = String
+
 
 /// 
-open class InputSource {
-    InputSourceARN: String(matches(Regex(#"arn:(aws|aws-us-gov|aws-cn):.*:.*:[0-9]+:.*$"#)))|Mapping
-    SchemaArn: String|Mapping
+open class MatchingWorkflowProviderProperties {
+    ProviderServiceArn: String|Mapping
+    ProviderConfiguration: (Dynamic)?
+    IntermediateSourceConfiguration: (MatchingWorkflowIntermediateSourceConfiguration)?
+}
+
+typealias MatchingWorkflowDescription = String
+
+
+/// 
+open class MatchingWorkflowOutputSource {
+    OutputS3Path: String(matches(Regex(#"^s3://([^/]+)/?(.*?([^/]+)/?)$"#)))|Mapping
+    Output: Listing<MatchingWorkflowOutputAttribute>
+    KMSArn: (MatchingWorkflowKMSArn)?
     ApplyNormalization: (Boolean|Mapping)?
 }
 
 /// 
-open class KMSArn {
+open class MatchingWorkflowOutputAttribute {
+    Name: MatchingWorkflowAttributeName
+    Hashed: (Boolean|Mapping)?
 }
+
+typealias MatchingWorkflowEntityName = String
+
+
+typealias MatchingWorkflowCreatedAt = String
+
+
+typealias MatchingWorkflowMatchingWorkflowArn = String
+
 
 typealias ResolutionTechniquesResolutionType = "RULE_MATCHING"|"ML_MATCHING"|"PROVIDER"
 
 /// 
-open class ResolutionTechniques {
-    ProviderProperties: (ProviderProperties)?
+open class MatchingWorkflowResolutionTechniques {
     ResolutionType: (ResolutionTechniquesResolutionType|Mapping)?
-    RuleBasedProperties: (RuleBasedProperties)?
+    RuleBasedProperties: (MatchingWorkflowRuleBasedProperties)?
+    ProviderProperties: (MatchingWorkflowProviderProperties)?
 }
 
+typealias MatchingWorkflowUpdatedAt = String
+
+
+typealias MatchingWorkflowKMSArn = String
+
+
+typealias MatchingWorkflowSchemaMappingArn = String
+
+
 /// A key-value pair to associate with a resource
-open class Tag {
+open class MatchingWorkflowTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
 /// 
-open class AttributeName {
-}
-
-/// The SchemaMapping arn associated with the Schema
-open class SchemaMappingArn {
-}
-
-/// The time of this MatchingWorkflow got last updated at
-open class UpdatedAt {
+open class MatchingWorkflowInputSource {
+    SchemaArn: String|Mapping
+    ApplyNormalization: (Boolean|Mapping)?
+    InputSourceARN: String(matches(Regex(#"arn:(aws|aws-us-gov|aws-cn):.*:.*:[0-9]+:.*$"#)))|Mapping
 }
 
 /// 
-open class OutputAttribute {
-    Name: AttributeName
-    Hashed: (Boolean|Mapping)?
-}
-
-/// 
-open class Rule {
+open class MatchingWorkflowRule {
     RuleName: String(matches(Regex(#"^[a-zA-Z_0-9- \t]*$"#)))|Mapping
-    MatchingKeys: Listing<AttributeName>
+    MatchingKeys: Listing<MatchingWorkflowAttributeName>
 }
 
 /// 
-open class ProviderProperties {
-    ProviderServiceArn: String|Mapping
-    ProviderConfiguration: (Dynamic)?
-    IntermediateSourceConfiguration: (IntermediateSourceConfiguration)?
-}
-
-/// 
-open class IntermediateSourceConfiguration {
+open class MatchingWorkflowIntermediateSourceConfiguration {
     IntermediateS3Path: String|Mapping
 }
 
@@ -105,35 +97,35 @@ open class MatchingWorkflow extends cloudformation.Resource {
     Type = "AWS::EntityResolution::MatchingWorkflow"
 
 
-    /// The description of the MatchingWorkflow
-    hidden Description: (Description)?
-
     /// 
-    hidden InputSourceConfig: Listing<InputSource>
-
-    /// 
-    hidden ResolutionTechniques: ResolutionTechniques
-
-    /// The name of the MatchingWorkflow
-    hidden WorkflowName: EntityName
-
-    /// 
-    hidden OutputSourceConfig: Listing<OutputSource>
+    hidden InputSourceConfig: Listing<MatchingWorkflowInputSource>
 
     /// 
     hidden RoleArn: String(matches(Regex(#"^arn:(aws|aws-us-gov|aws-cn):iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping
 
     /// 
-    hidden Tags: (Listing<Tag>)?
+    hidden ResolutionTechniques: MatchingWorkflowResolutionTechniques
+
+    /// 
+    hidden Tags: (Listing<MatchingWorkflowTag>)?
+
+    /// The name of the MatchingWorkflow
+    hidden WorkflowName: MatchingWorkflowEntityName
+
+    /// The description of the MatchingWorkflow
+    hidden Description: (MatchingWorkflowDescription)?
+
+    /// 
+    hidden OutputSourceConfig: Listing<MatchingWorkflowOutputSource>
 
     Properties {
-        ["Description"] = if (Description == null) null else Description
         ["InputSourceConfig"] = if (InputSourceConfig == null) null else InputSourceConfig
-        ["ResolutionTechniques"] = if (ResolutionTechniques == null) null else ResolutionTechniques
-        ["WorkflowName"] = if (WorkflowName == null) null else WorkflowName
-        ["OutputSourceConfig"] = if (OutputSourceConfig == null) null else OutputSourceConfig
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
+        ["ResolutionTechniques"] = if (ResolutionTechniques == null) null else ResolutionTechniques
         ["Tags"] = if (Tags == null) null else Tags
+        ["WorkflowName"] = if (WorkflowName == null) null else WorkflowName
+        ["Description"] = if (Description == null) null else Description
+        ["OutputSourceConfig"] = if (OutputSourceConfig == null) null else OutputSourceConfig
     }
 
 }

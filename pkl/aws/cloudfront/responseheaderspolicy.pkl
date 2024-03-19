@@ -6,61 +6,30 @@ module aws.cloudfront.responseheaderspolicy
 import "../../cloudformation.pkl"
 
 /// 
-open class AccessControlAllowHeaders {
-    Items: Listing<String|Mapping>
-}
-
-/// 
-open class AccessControlAllowOrigins {
-    Items: Listing<String|Mapping>
-}
-
-/// 
-open class CorsConfig {
-    AccessControlAllowMethods: AccessControlAllowMethods
-    AccessControlAllowOrigins: AccessControlAllowOrigins
-    AccessControlExposeHeaders: (AccessControlExposeHeaders)?
-    AccessControlMaxAgeSec: (Int|Mapping)?
-    OriginOverride: Boolean|Mapping
-    AccessControlAllowCredentials: Boolean|Mapping
-    AccessControlAllowHeaders: AccessControlAllowHeaders
-}
-
-/// 
-open class CustomHeadersConfig {
-    Items: Listing<CustomHeader>
-}
-
-/// 
-open class ResponseHeadersPolicyConfig {
-    Name: String|Mapping
-    RemoveHeadersConfig: (RemoveHeadersConfig)?
-    SecurityHeadersConfig: (SecurityHeadersConfig)?
-    ServerTimingHeadersConfig: (ServerTimingHeadersConfig)?
-    Comment: (String|Mapping)?
-    CorsConfig: (CorsConfig)?
-    CustomHeadersConfig: (CustomHeadersConfig)?
-}
-
-/// 
-open class AccessControlExposeHeaders {
-    Items: Listing<String|Mapping>
-}
-
-/// 
-open class FrameOptions {
-    FrameOption: String(matches(Regex(#"^(DENY|SAMEORIGIN)$"#)))|Mapping
+open class ResponseHeadersPolicyContentTypeOptions {
     Override: Boolean|Mapping
 }
 
 /// 
-open class ReferrerPolicy {
-    Override: Boolean|Mapping
-    ReferrerPolicy: String(matches(Regex(#"^(no-referrer|no-referrer-when-downgrade|origin|origin-when-cross-origin|same-origin|strict-origin|strict-origin-when-cross-origin|unsafe-url)$"#)))|Mapping
+open class ResponseHeadersPolicyRemoveHeadersConfig {
+    Items: Listing<ResponseHeadersPolicyRemoveHeader>
 }
 
 /// 
-open class StrictTransportSecurity {
+open class ResponseHeadersPolicyServerTimingHeadersConfig {
+    Enabled: Boolean|Mapping
+    SamplingRate: (Number|Mapping)?
+}
+
+/// 
+open class ResponseHeadersPolicyCustomHeader {
+    Header: String|Mapping
+    Override: Boolean|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class ResponseHeadersPolicyStrictTransportSecurity {
     AccessControlMaxAgeSec: Int|Mapping
     IncludeSubdomains: (Boolean|Mapping)?
     Override: Boolean|Mapping
@@ -68,7 +37,76 @@ open class StrictTransportSecurity {
 }
 
 /// 
-open class XSSProtection {
+open class ResponseHeadersPolicyAccessControlAllowMethods {
+    Items: Listing<String|Mapping>
+}
+
+/// 
+open class ResponseHeadersPolicyAccessControlAllowHeaders {
+    Items: Listing<String|Mapping>
+}
+
+/// 
+open class ResponseHeadersPolicyFrameOptions {
+    FrameOption: String(matches(Regex(#"^(DENY|SAMEORIGIN)$"#)))|Mapping
+    Override: Boolean|Mapping
+}
+
+/// 
+open class ResponseHeadersPolicyAccessControlAllowOrigins {
+    Items: Listing<String|Mapping>
+}
+
+/// 
+open class ResponseHeadersPolicyResponseHeadersPolicyConfig {
+    Name: String|Mapping
+    RemoveHeadersConfig: (ResponseHeadersPolicyRemoveHeadersConfig)?
+    SecurityHeadersConfig: (ResponseHeadersPolicySecurityHeadersConfig)?
+    ServerTimingHeadersConfig: (ResponseHeadersPolicyServerTimingHeadersConfig)?
+    Comment: (String|Mapping)?
+    CorsConfig: (ResponseHeadersPolicyCorsConfig)?
+    CustomHeadersConfig: (ResponseHeadersPolicyCustomHeadersConfig)?
+}
+
+/// 
+open class ResponseHeadersPolicyCorsConfig {
+    AccessControlExposeHeaders: (ResponseHeadersPolicyAccessControlExposeHeaders)?
+    AccessControlMaxAgeSec: (Int|Mapping)?
+    OriginOverride: Boolean|Mapping
+    AccessControlAllowCredentials: Boolean|Mapping
+    AccessControlAllowHeaders: ResponseHeadersPolicyAccessControlAllowHeaders
+    AccessControlAllowMethods: ResponseHeadersPolicyAccessControlAllowMethods
+    AccessControlAllowOrigins: ResponseHeadersPolicyAccessControlAllowOrigins
+}
+
+/// 
+open class ResponseHeadersPolicyCustomHeadersConfig {
+    Items: Listing<ResponseHeadersPolicyCustomHeader>
+}
+
+/// 
+open class ResponseHeadersPolicyReferrerPolicy {
+    Override: Boolean|Mapping
+    ReferrerPolicy: String(matches(Regex(#"^(no-referrer|no-referrer-when-downgrade|origin|origin-when-cross-origin|same-origin|strict-origin|strict-origin-when-cross-origin|unsafe-url)$"#)))|Mapping
+}
+
+/// 
+open class ResponseHeadersPolicyRemoveHeader {
+    Header: String|Mapping
+}
+
+/// 
+open class ResponseHeadersPolicySecurityHeadersConfig {
+    ReferrerPolicy: (ResponseHeadersPolicyReferrerPolicy)?
+    StrictTransportSecurity: (ResponseHeadersPolicyStrictTransportSecurity)?
+    XSSProtection: (ResponseHeadersPolicyXSSProtection)?
+    ContentSecurityPolicy: (ResponseHeadersPolicyContentSecurityPolicy)?
+    ContentTypeOptions: (ResponseHeadersPolicyContentTypeOptions)?
+    FrameOptions: (ResponseHeadersPolicyFrameOptions)?
+}
+
+/// 
+open class ResponseHeadersPolicyXSSProtection {
     ModeBlock: (Boolean|Mapping)?
     Override: Boolean|Mapping
     Protection: Boolean|Mapping
@@ -76,52 +114,14 @@ open class XSSProtection {
 }
 
 /// 
-open class ContentSecurityPolicy {
+open class ResponseHeadersPolicyContentSecurityPolicy {
+    Override: Boolean|Mapping
     ContentSecurityPolicy: String|Mapping
-    Override: Boolean|Mapping
 }
 
 /// 
-open class ContentTypeOptions {
-    Override: Boolean|Mapping
-}
-
-/// 
-open class CustomHeader {
-    Header: String|Mapping
-    Override: Boolean|Mapping
-    Value: String|Mapping
-}
-
-/// 
-open class RemoveHeader {
-    Header: String|Mapping
-}
-
-/// 
-open class RemoveHeadersConfig {
-    Items: Listing<RemoveHeader>
-}
-
-/// 
-open class AccessControlAllowMethods {
+open class ResponseHeadersPolicyAccessControlExposeHeaders {
     Items: Listing<String|Mapping>
-}
-
-/// 
-open class SecurityHeadersConfig {
-    FrameOptions: (FrameOptions)?
-    ReferrerPolicy: (ReferrerPolicy)?
-    StrictTransportSecurity: (StrictTransportSecurity)?
-    XSSProtection: (XSSProtection)?
-    ContentSecurityPolicy: (ContentSecurityPolicy)?
-    ContentTypeOptions: (ContentTypeOptions)?
-}
-
-/// 
-open class ServerTimingHeadersConfig {
-    Enabled: Boolean|Mapping
-    SamplingRate: (Number|Mapping)?
 }
 
 /// Resource Type definition for AWS::CloudFront::ResponseHeadersPolicy
@@ -131,7 +131,7 @@ open class ResponseHeadersPolicy extends cloudformation.Resource {
 
 
     /// 
-    hidden ResponseHeadersPolicyConfig: ResponseHeadersPolicyConfig
+    hidden ResponseHeadersPolicyConfig: ResponseHeadersPolicyResponseHeadersPolicyConfig
 
     Properties {
         ["ResponseHeadersPolicyConfig"] = if (ResponseHeadersPolicyConfig == null) null else ResponseHeadersPolicyConfig

@@ -1,0 +1,117 @@
+{
+  "typeName": "AWS::AppConfig::HostedConfigurationVersion",
+  "description": "Resource Type definition for AWS::AppConfig::HostedConfigurationVersion",
+  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-appconfig.git",
+  "additionalProperties": false,
+  "properties": {
+    "ApplicationId": {
+      "type": "string",
+      "description": "The application ID.",
+      "pattern": "[a-z0-9]{4,7}"
+    },
+    "ConfigurationProfileId": {
+      "type": "string",
+      "description": "The configuration profile ID.",
+      "pattern": "[a-z0-9]{4,7}"
+    },
+    "VersionNumber": {
+      "type": "string",
+      "description": "Current version number of hosted configuration version."
+    },
+    "Description": {
+      "type": "string",
+      "description": "A description of the hosted configuration version.",
+      "minLength": 0,
+      "maxLength": 1024
+    },
+    "Content": {
+      "type": "string",
+      "description": "The content of the configuration or the configuration data."
+    },
+    "ContentType": {
+      "type": "string",
+      "description": "A standard MIME type describing the format of the configuration content.",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "LatestVersionNumber": {
+      "type": "integer",
+      "description": "An optional locking token used to prevent race conditions from overwriting configuration updates when creating a new version. To ensure your data is not overwritten when creating multiple hosted configuration versions in rapid succession, specify the version number of the latest hosted configuration version."
+    },
+    "VersionLabel": {
+      "type": "string",
+      "description": "A user-defined label for an AWS AppConfig hosted configuration version.",
+      "pattern": "^$|.*[^0-9].*",
+      "minLength": 0,
+      "maxLength": 64
+    }
+  },
+  "required": [
+    "ApplicationId",
+    "ConfigurationProfileId",
+    "Content",
+    "ContentType"
+  ],
+  "readOnlyProperties": [
+    "/properties/VersionNumber"
+  ],
+  "writeOnlyProperties": [
+    "/properties/LatestVersionNumber"
+  ],
+  "createOnlyProperties": [
+    "/properties/ApplicationId",
+    "/properties/ConfigurationProfileId",
+    "/properties/Description",
+    "/properties/Content",
+    "/properties/ContentType",
+    "/properties/LatestVersionNumber",
+    "/properties/VersionLabel"
+  ],
+  "primaryIdentifier": [
+    "/properties/ApplicationId",
+    "/properties/ConfigurationProfileId",
+    "/properties/VersionNumber"
+  ],
+  "handlers": {
+    "create": {
+      "permissions": [
+        "appconfig:CreateHostedConfigurationVersion"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "appconfig:GetHostedConfigurationVersion"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "appconfig:DeleteHostedConfigurationVersion"
+      ]
+    },
+    "list": {
+      "handlerSchema": {
+        "properties": {
+          "ApplicationId": {
+            "$ref": "resource-schema.json#/properties/ApplicationId"
+          },
+          "ConfigurationProfileId": {
+            "$ref": "resource-schema.json#/properties/ConfigurationProfileId"
+          }
+        },
+        "required": [
+          "ApplicationId",
+          "ConfigurationProfileId"
+        ]
+      },
+      "permissions": [
+        "appconfig:ListHostedConfigurationVersions"
+      ]
+    }
+  },
+  "tagging": {
+    "taggable": false,
+    "tagOnCreate": false,
+    "tagUpdatable": false,
+    "cloudFormationSystemTags": false
+  }
+}

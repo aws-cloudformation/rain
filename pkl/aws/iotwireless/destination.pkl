@@ -6,7 +6,7 @@ module aws.iotwireless.destination
 import "../../cloudformation.pkl"
 
 /// 
-open class Tag {
+open class DestinationTag {
     Key: (String|Mapping)?
     Value: (String|Mapping)?
 }
@@ -16,6 +16,9 @@ open class Destination extends cloudformation.Resource {
 
     Type = "AWS::IoTWireless::Destination"
 
+
+    /// AWS role ARN that grants access
+    hidden RoleArn: (String|Mapping)?
 
     /// Unique name of destination
     hidden Name: String(matches(Regex(#"[a-zA-Z0-9:_-]+"#)))|Mapping
@@ -30,18 +33,15 @@ open class Destination extends cloudformation.Resource {
     hidden Description: (String|Mapping)?
 
     /// A list of key-value pairs that contain metadata for the destination.
-    hidden Tags: (Listing<Tag>)?
-
-    /// AWS role ARN that grants access
-    hidden RoleArn: (String|Mapping)?
+    hidden Tags: (Listing<DestinationTag>)?
 
     Properties {
+        ["RoleArn"] = if (RoleArn == null) null else RoleArn
         ["Name"] = if (Name == null) null else Name
         ["Expression"] = if (Expression == null) null else Expression
         ["ExpressionType"] = if (ExpressionType == null) null else ExpressionType
         ["Description"] = if (Description == null) null else Description
         ["Tags"] = if (Tags == null) null else Tags
-        ["RoleArn"] = if (RoleArn == null) null else RoleArn
     }
 
 }

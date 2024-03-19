@@ -5,44 +5,44 @@ module aws.ivs.recordingconfiguration
 
 import "../../cloudformation.pkl"
 
-typealias ThumbnailConfigurationResolution = "FULL_HD"|"HD"|"SD"|"LOWEST_RESOLUTION"
-
-typealias ThumbnailConfigurationStorage = "SEQUENTIAL"|"LATEST"
-
-typealias ThumbnailConfigurationRecordingMode = "INTERVAL"|"DISABLED"
-
-/// Recording Thumbnail Configuration.
-open class ThumbnailConfiguration {
-    TargetIntervalSeconds: (Int|Mapping)?
-    Resolution: (ThumbnailConfigurationResolution|Mapping)?
-    Storage: (Listing<ThumbnailConfigurationStorage|Mapping>)?
-    RecordingMode: (ThumbnailConfigurationRecordingMode|Mapping)?
-}
-
 typealias RenditionConfigurationRenditionSelection = "ALL"|"NONE"|"CUSTOM"
 
 typealias RenditionConfigurationRenditions = "FULL_HD"|"HD"|"SD"|"LOWEST_RESOLUTION"
 
 /// Rendition Configuration describes which renditions should be recorded for a stream.
-open class RenditionConfiguration {
+open class RecordingConfigurationRenditionConfiguration {
     RenditionSelection: (RenditionConfigurationRenditionSelection|Mapping)?
     Renditions: (Listing<RenditionConfigurationRenditions|Mapping>)?
 }
 
 /// 
-open class Tag {
+open class RecordingConfigurationTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
 /// Recording Destination Configuration.
-open class DestinationConfiguration {
-    S3: (S3DestinationConfiguration)?
+open class RecordingConfigurationDestinationConfiguration {
+    S3: (RecordingConfigurationS3DestinationConfiguration)?
 }
 
 /// Recording S3 Destination Configuration.
-open class S3DestinationConfiguration {
+open class RecordingConfigurationS3DestinationConfiguration {
     BucketName: String(matches(Regex(#"^[a-z0-9-.]+$"#)))|Mapping
+}
+
+typealias ThumbnailConfigurationStorage = "SEQUENTIAL"|"LATEST"
+
+typealias ThumbnailConfigurationRecordingMode = "INTERVAL"|"DISABLED"
+
+typealias ThumbnailConfigurationResolution = "FULL_HD"|"HD"|"SD"|"LOWEST_RESOLUTION"
+
+/// Recording Thumbnail Configuration.
+open class RecordingConfigurationThumbnailConfiguration {
+    Storage: (Listing<ThumbnailConfigurationStorage|Mapping>)?
+    RecordingMode: (ThumbnailConfigurationRecordingMode|Mapping)?
+    TargetIntervalSeconds: (Int|Mapping)?
+    Resolution: (ThumbnailConfigurationResolution|Mapping)?
 }
 
 /// Resource Type definition for AWS::IVS::RecordingConfiguration
@@ -51,8 +51,14 @@ open class RecordingConfiguration extends cloudformation.Resource {
     Type = "AWS::IVS::RecordingConfiguration"
 
 
+    /// A list of key-value pairs that contain metadata for the asset model.
+    hidden Tags: (Listing<RecordingConfigurationTag>)?
+
     /// 
-    hidden RenditionConfiguration: (RenditionConfiguration)?
+    hidden ThumbnailConfiguration: (RecordingConfigurationThumbnailConfiguration)?
+
+    /// 
+    hidden RenditionConfiguration: (RecordingConfigurationRenditionConfiguration)?
 
     /// Recording Configuration Name.
     hidden Name: (String(matches(Regex(#"^[a-zA-Z0-9-_]*$"#)))|Mapping)?
@@ -61,21 +67,15 @@ open class RecordingConfiguration extends cloudformation.Resource {
     hidden RecordingReconnectWindowSeconds: (Int|Mapping)?
 
     /// 
-    hidden DestinationConfiguration: DestinationConfiguration
-
-    /// A list of key-value pairs that contain metadata for the asset model.
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden ThumbnailConfiguration: (ThumbnailConfiguration)?
+    hidden DestinationConfiguration: RecordingConfigurationDestinationConfiguration
 
     Properties {
+        ["Tags"] = if (Tags == null) null else Tags
+        ["ThumbnailConfiguration"] = if (ThumbnailConfiguration == null) null else ThumbnailConfiguration
         ["RenditionConfiguration"] = if (RenditionConfiguration == null) null else RenditionConfiguration
         ["Name"] = if (Name == null) null else Name
         ["RecordingReconnectWindowSeconds"] = if (RecordingReconnectWindowSeconds == null) null else RecordingReconnectWindowSeconds
         ["DestinationConfiguration"] = if (DestinationConfiguration == null) null else DestinationConfiguration
-        ["Tags"] = if (Tags == null) null else Tags
-        ["ThumbnailConfiguration"] = if (ThumbnailConfiguration == null) null else ThumbnailConfiguration
     }
 
 }

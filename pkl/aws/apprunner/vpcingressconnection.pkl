@@ -5,16 +5,16 @@ module aws.apprunner.vpcingressconnection
 
 import "../../cloudformation.pkl"
 
+/// 
+open class VpcIngressConnectionTag {
+    Key: (String|Mapping)?
+    Value: (String|Mapping)?
+}
+
 /// The configuration of customer?s VPC and related VPC endpoint
 open class VpcIngressConnectionIngressVpcConfiguration {
     VpcId: String|Mapping
     VpcEndpointId: String|Mapping
-}
-
-/// 
-open class VpcIngressConnectionTag {
-    Value: (String|Mapping)?
-    Key: (String|Mapping)?
 }
 
 /// The AWS::AppRunner::VpcIngressConnection resource is an App Runner resource that specifies an App Runner VpcIngressConnection.
@@ -23,23 +23,23 @@ open class VpcIngressConnection extends cloudformation.Resource {
     Type = "AWS::AppRunner::VpcIngressConnection"
 
 
-    /// 
-    hidden IngressVpcConfiguration: VpcIngressConnectionIngressVpcConfiguration
-
-    /// 
-    hidden Tags: (Listing<VpcIngressConnectionTag>)?
-
     /// The customer-provided Vpc Ingress Connection name.
     hidden VpcIngressConnectionName: (String(matches(Regex(#"[A-Za-z0-9][A-Za-z0-9\-_]{3,39}"#)))|Mapping)?
 
     /// The Amazon Resource Name (ARN) of the service.
     hidden ServiceArn: String(matches(Regex(#"arn:aws(-[\w]+)*:[a-z0-9-\.]{0,63}:[a-z0-9-\.]{0,63}:[0-9]{12}:(\w|/|-){1,1011}"#)))|Mapping
 
+    /// 
+    hidden IngressVpcConfiguration: VpcIngressConnectionIngressVpcConfiguration
+
+    /// 
+    hidden Tags: (Listing<VpcIngressConnectionTag>)?
+
     Properties {
-        ["IngressVpcConfiguration"] = if (IngressVpcConfiguration == null) null else IngressVpcConfiguration
-        ["Tags"] = if (Tags == null) null else Tags
         ["VpcIngressConnectionName"] = if (VpcIngressConnectionName == null) null else VpcIngressConnectionName
         ["ServiceArn"] = if (ServiceArn == null) null else ServiceArn
+        ["IngressVpcConfiguration"] = if (IngressVpcConfiguration == null) null else IngressVpcConfiguration
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

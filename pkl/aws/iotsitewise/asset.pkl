@@ -8,17 +8,17 @@ import "../../cloudformation.pkl"
 typealias AssetPropertyNotificationState = "ENABLED"|"DISABLED"
 
 /// The asset property's definition, alias, unit, and notification state.
-open class AssetProperty {
+open class AssetAssetProperty {
+    Unit: (String|Mapping)?
     Id: (String(matches(Regex(#"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"#)))|Mapping)?
     ExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
     LogicalId: (String(matches(Regex(#"[^\u0000-\u001F\u007F]+"#)))|Mapping)?
     Alias: (String|Mapping)?
     NotificationState: (AssetPropertyNotificationState|Mapping)?
-    Unit: (String|Mapping)?
 }
 
 /// A hierarchy specifies allowed parent/child asset relationships.
-open class AssetHierarchy {
+open class AssetAssetHierarchy {
     Id: (String(matches(Regex(#"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"#)))|Mapping)?
     ExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
     LogicalId: (String(matches(Regex(#"[^\u0000-\u001F\u007F]+"#)))|Mapping)?
@@ -26,7 +26,7 @@ open class AssetHierarchy {
 }
 
 /// 
-open class Tag {
+open class AssetTag {
     Key: String|Mapping
     Value: String|Mapping
 }
@@ -37,35 +37,35 @@ open class Asset extends cloudformation.Resource {
     Type = "AWS::IoTSiteWise::Asset"
 
 
-    /// A unique, friendly name for the asset.
-    hidden AssetName: String|Mapping
-
     /// A list of key-value pairs that contain metadata for the asset.
-    hidden Tags: (Listing<Tag>)?
-
-    /// The External ID of the asset
-    hidden AssetExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
+    hidden Tags: (Listing<AssetTag>)?
 
     /// The ID of the asset model from which to create the asset.
     hidden AssetModelId: String|Mapping
 
+    /// A unique, friendly name for the asset.
+    hidden AssetName: String|Mapping
+
+    /// 
+    hidden AssetProperties: (Listing<AssetAssetProperty>)?
+
+    /// 
+    hidden AssetHierarchies: (Listing<AssetAssetHierarchy>)?
+
+    /// The External ID of the asset
+    hidden AssetExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
+
     /// A description for the asset
     hidden AssetDescription: (String|Mapping)?
 
-    /// 
-    hidden AssetProperties: (Listing<AssetProperty>)?
-
-    /// 
-    hidden AssetHierarchies: (Listing<AssetHierarchy>)?
-
     Properties {
-        ["AssetName"] = if (AssetName == null) null else AssetName
         ["Tags"] = if (Tags == null) null else Tags
-        ["AssetExternalId"] = if (AssetExternalId == null) null else AssetExternalId
         ["AssetModelId"] = if (AssetModelId == null) null else AssetModelId
-        ["AssetDescription"] = if (AssetDescription == null) null else AssetDescription
+        ["AssetName"] = if (AssetName == null) null else AssetName
         ["AssetProperties"] = if (AssetProperties == null) null else AssetProperties
         ["AssetHierarchies"] = if (AssetHierarchies == null) null else AssetHierarchies
+        ["AssetExternalId"] = if (AssetExternalId == null) null else AssetExternalId
+        ["AssetDescription"] = if (AssetDescription == null) null else AssetDescription
     }
 
 }

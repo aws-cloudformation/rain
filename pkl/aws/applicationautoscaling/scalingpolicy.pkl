@@ -5,80 +5,80 @@ module aws.applicationautoscaling.scalingpolicy
 
 import "../../cloudformation.pkl"
 
-/// Represents a CloudWatch metric of your choosing for a target tracking scaling policy to use with Application Auto Scaling.
-open class CustomizedMetricSpecification {
-    Dimensions: (Listing<MetricDimension>)?
-    MetricName: (String|Mapping)?
-    Namespace: (String|Mapping)?
-    Statistic: (String|Mapping)?
-    Unit: (String|Mapping)?
-    Metrics: (Listing<TargetTrackingMetricDataQuery>)?
-}
-
-/// The metric data to return. Also defines whether this call is returning data for one metric only, or whether it is performing a math expression on the values of returned metric statistics to create a new time series. A time series is a series of data points, each of which is associated with a timestamp.
-open class TargetTrackingMetricDataQuery {
-    Label: (String|Mapping)?
-    ReturnData: (Boolean|Mapping)?
-    MetricStat: (TargetTrackingMetricStat)?
-    Expression: (String|Mapping)?
-    Id: (String|Mapping)?
-}
-
 /// Represents a specific metric.
-open class TargetTrackingMetric {
-    Dimensions: (Listing<TargetTrackingMetricDimension>)?
+open class ScalingPolicyTargetTrackingMetric {
+    Dimensions: (Listing<ScalingPolicyTargetTrackingMetricDimension>)?
     MetricName: (String|Mapping)?
     Namespace: (String|Mapping)?
 }
 
-/// Describes the dimension of a metric.
-open class TargetTrackingMetricDimension {
-    Name: (String|Mapping)?
-    Value: (String|Mapping)?
-}
-
-/// A step scaling policy.
-open class StepScalingPolicyConfiguration {
-    AdjustmentType: (String|Mapping)?
-    Cooldown: (Int|Mapping)?
-    MetricAggregationType: (String|Mapping)?
-    MinAdjustmentMagnitude: (Int|Mapping)?
-    StepAdjustments: (Listing<StepAdjustment>)?
-}
-
-/// Represents a predefined metric for a target tracking scaling policy to use with Application Auto Scaling.
-open class PredefinedMetricSpecification {
-    PredefinedMetricType: String|Mapping
-    ResourceLabel: (String|Mapping)?
+/// A target tracking scaling policy.
+open class ScalingPolicyTargetTrackingScalingPolicyConfiguration {
+    TargetValue: Number|Mapping
+    CustomizedMetricSpecification: (ScalingPolicyCustomizedMetricSpecification)?
+    DisableScaleIn: (Boolean|Mapping)?
+    PredefinedMetricSpecification: (ScalingPolicyPredefinedMetricSpecification)?
+    ScaleInCooldown: (Int|Mapping)?
+    ScaleOutCooldown: (Int|Mapping)?
 }
 
 /// Represents a step adjustment for a StepScalingPolicyConfiguration. Describes an adjustment based on the difference between the value of the aggregated CloudWatch metric and the breach threshold that you've defined for the alarm.
-open class StepAdjustment {
+open class ScalingPolicyStepAdjustment {
     MetricIntervalLowerBound: (Number|Mapping)?
     MetricIntervalUpperBound: (Number|Mapping)?
     ScalingAdjustment: Int|Mapping
 }
 
+/// A step scaling policy.
+open class ScalingPolicyStepScalingPolicyConfiguration {
+    AdjustmentType: (String|Mapping)?
+    Cooldown: (Int|Mapping)?
+    MetricAggregationType: (String|Mapping)?
+    MinAdjustmentMagnitude: (Int|Mapping)?
+    StepAdjustments: (Listing<ScalingPolicyStepAdjustment>)?
+}
+
+/// Represents a predefined metric for a target tracking scaling policy to use with Application Auto Scaling.
+open class ScalingPolicyPredefinedMetricSpecification {
+    PredefinedMetricType: String|Mapping
+    ResourceLabel: (String|Mapping)?
+}
+
+/// This structure defines the CloudWatch metric to return, along with the statistic, period, and unit.
+open class ScalingPolicyTargetTrackingMetricStat {
+    Metric: (ScalingPolicyTargetTrackingMetric)?
+    Stat: (String|Mapping)?
+    Unit: (String|Mapping)?
+}
+
+/// The metric data to return. Also defines whether this call is returning data for one metric only, or whether it is performing a math expression on the values of returned metric statistics to create a new time series. A time series is a series of data points, each of which is associated with a timestamp.
+open class ScalingPolicyTargetTrackingMetricDataQuery {
+    ReturnData: (Boolean|Mapping)?
+    MetricStat: (ScalingPolicyTargetTrackingMetricStat)?
+    Expression: (String|Mapping)?
+    Id: (String|Mapping)?
+    Label: (String|Mapping)?
+}
+
+/// Describes the dimension of a metric.
+open class ScalingPolicyTargetTrackingMetricDimension {
+    Name: (String|Mapping)?
+    Value: (String|Mapping)?
+}
+
 /// Describes the dimension names and values associated with a metric.
-open class MetricDimension {
+open class ScalingPolicyMetricDimension {
     Name: String|Mapping
     Value: String|Mapping
 }
 
-/// A target tracking scaling policy.
-open class TargetTrackingScalingPolicyConfiguration {
-    CustomizedMetricSpecification: (CustomizedMetricSpecification)?
-    DisableScaleIn: (Boolean|Mapping)?
-    PredefinedMetricSpecification: (PredefinedMetricSpecification)?
-    ScaleInCooldown: (Int|Mapping)?
-    ScaleOutCooldown: (Int|Mapping)?
-    TargetValue: Number|Mapping
-}
-
-/// This structure defines the CloudWatch metric to return, along with the statistic, period, and unit.
-open class TargetTrackingMetricStat {
-    Metric: (TargetTrackingMetric)?
-    Stat: (String|Mapping)?
+/// Represents a CloudWatch metric of your choosing for a target tracking scaling policy to use with Application Auto Scaling.
+open class ScalingPolicyCustomizedMetricSpecification {
+    Metrics: (Listing<ScalingPolicyTargetTrackingMetricDataQuery>)?
+    Dimensions: (Listing<ScalingPolicyMetricDimension>)?
+    MetricName: (String|Mapping)?
+    Namespace: (String|Mapping)?
+    Statistic: (String|Mapping)?
     Unit: (String|Mapping)?
 }
 
@@ -88,19 +88,15 @@ open class ScalingPolicy extends cloudformation.Resource {
     Type = "AWS::ApplicationAutoScaling::ScalingPolicy"
 
 
-    /// The CloudFormation-generated ID of an Application Auto Scaling scalable target. For more information about the ID, see the Return Value section of the AWS::ApplicationAutoScaling::ScalableTarget resource.
-    hidden ScalingTargetId: (String|Mapping)?
-
-    /// The namespace of the AWS service that provides the resource, or a custom-resource.
-    hidden ServiceNamespace: (String|Mapping)?
-
     /// The name of the scaling policy.
-    ///    /// 
+    ///
+    /// 
     /// Updates to the name of a target tracking scaling policy are not supported, unless you also update the metric used for scaling. To change only a target tracking scaling policy's name, first delete the policy by removing the existing AWS::ApplicationAutoScaling::ScalingPolicy resource from the template and updating the stack. Then, recreate the resource with the same settings and a different name.
     hidden PolicyName: String|Mapping
 
     /// The scaling policy type.
-    ///    /// 
+    ///
+    /// 
     /// The following policy types are supported:
     /// 
     /// TargetTrackingScaling Not supported for Amazon EMR
@@ -111,23 +107,29 @@ open class ScalingPolicy extends cloudformation.Resource {
     /// The identifier of the resource associated with the scaling policy. This string consists of the resource type and unique identifier.
     hidden ResourceId: (String|Mapping)?
 
+    /// The namespace of the AWS service that provides the resource, or a custom-resource.
+    hidden ServiceNamespace: (String|Mapping)?
+
+    /// A step scaling policy.
+    hidden StepScalingPolicyConfiguration: (ScalingPolicyStepScalingPolicyConfiguration)?
+
     /// The scalable dimension. This string consists of the service namespace, resource type, and scaling property.
     hidden ScalableDimension: (String|Mapping)?
 
-    /// A step scaling policy.
-    hidden StepScalingPolicyConfiguration: (StepScalingPolicyConfiguration)?
+    /// The CloudFormation-generated ID of an Application Auto Scaling scalable target. For more information about the ID, see the Return Value section of the AWS::ApplicationAutoScaling::ScalableTarget resource.
+    hidden ScalingTargetId: (String|Mapping)?
 
     /// A target tracking scaling policy.
-    hidden TargetTrackingScalingPolicyConfiguration: (TargetTrackingScalingPolicyConfiguration)?
+    hidden TargetTrackingScalingPolicyConfiguration: (ScalingPolicyTargetTrackingScalingPolicyConfiguration)?
 
     Properties {
-        ["ScalingTargetId"] = if (ScalingTargetId == null) null else ScalingTargetId
-        ["ServiceNamespace"] = if (ServiceNamespace == null) null else ServiceNamespace
         ["PolicyName"] = if (PolicyName == null) null else PolicyName
         ["PolicyType"] = if (PolicyType == null) null else PolicyType
         ["ResourceId"] = if (ResourceId == null) null else ResourceId
-        ["ScalableDimension"] = if (ScalableDimension == null) null else ScalableDimension
+        ["ServiceNamespace"] = if (ServiceNamespace == null) null else ServiceNamespace
         ["StepScalingPolicyConfiguration"] = if (StepScalingPolicyConfiguration == null) null else StepScalingPolicyConfiguration
+        ["ScalableDimension"] = if (ScalableDimension == null) null else ScalableDimension
+        ["ScalingTargetId"] = if (ScalingTargetId == null) null else ScalingTargetId
         ["TargetTrackingScalingPolicyConfiguration"] = if (TargetTrackingScalingPolicyConfiguration == null) null else TargetTrackingScalingPolicyConfiguration
     }
 

@@ -6,30 +6,30 @@ module aws.iotwireless.serviceprofile
 import "../../cloudformation.pkl"
 
 /// 
-open class LoRaWANServiceProfile {
-    UlBucketSize: (Int|Mapping)?
-    AddGwMetadata: (Boolean|Mapping)?
-    DevStatusReqFreq: (Int|Mapping)?
-    DrMin: (Int|Mapping)?
-    HrAllowed: (Boolean|Mapping)?
-    TargetPer: (Int|Mapping)?
+open class ServiceProfileLoRaWANServiceProfile {
     UlRate: (Int|Mapping)?
-    DrMax: (Int|Mapping)?
-    ChannelMask: (String|Mapping)?
-    UlRatePolicy: (String|Mapping)?
-    DlRate: (Int|Mapping)?
     DlBucketSize: (Int|Mapping)?
-    DlRatePolicy: (String|Mapping)?
-    ReportDevStatusBattery: (Boolean|Mapping)?
-    ReportDevStatusMargin: (Boolean|Mapping)?
+    ChannelMask: (String|Mapping)?
     PrAllowed: (Boolean|Mapping)?
-    RaAllowed: (Boolean|Mapping)?
     NwkGeoLoc: (Boolean|Mapping)?
     MinGwDiversity: (Int|Mapping)?
+    UlBucketSize: (Int|Mapping)?
+    UlRatePolicy: (String|Mapping)?
+    DlRatePolicy: (String|Mapping)?
+    HrAllowed: (Boolean|Mapping)?
+    RaAllowed: (Boolean|Mapping)?
+    TargetPer: (Int|Mapping)?
+    DlRate: (Int|Mapping)?
+    AddGwMetadata: (Boolean|Mapping)?
+    DevStatusReqFreq: (Int|Mapping)?
+    ReportDevStatusBattery: (Boolean|Mapping)?
+    ReportDevStatusMargin: (Boolean|Mapping)?
+    DrMin: (Int|Mapping)?
+    DrMax: (Int|Mapping)?
 }
 
 /// 
-open class Tag {
+open class ServiceProfileTag {
     Key: (String|Mapping)?
     Value: (String|Mapping)?
 }
@@ -40,19 +40,19 @@ open class ServiceProfile extends cloudformation.Resource {
     Type = "AWS::IoTWireless::ServiceProfile"
 
 
+    /// A list of key-value pairs that contain metadata for the service profile.
+    hidden Tags: (Listing<ServiceProfileTag>)?
+
     /// Name of service profile
     hidden Name: (String|Mapping)?
 
     /// LoRaWAN supports all LoRa specific attributes for service profile for CreateServiceProfile operation
-    hidden LoRaWAN: (LoRaWANServiceProfile)?
-
-    /// A list of key-value pairs that contain metadata for the service profile.
-    hidden Tags: (Listing<Tag>)?
+    hidden LoRaWAN: (ServiceProfileLoRaWANServiceProfile)?
 
     Properties {
+        ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
         ["LoRaWAN"] = if (LoRaWAN == null) null else LoRaWAN
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

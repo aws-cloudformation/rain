@@ -6,86 +6,16 @@ module aws.iot.topicrule
 import "../../cloudformation.pkl"
 
 /// 
-open class HttpActionHeader {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class PutAssetPropertyValueEntry {
+open class TopicRulePutAssetPropertyValueEntry {
+    PropertyAlias: (String|Mapping)?
+    PropertyValues: Listing<TopicRuleAssetPropertyValue>
     AssetId: (String|Mapping)?
     EntryId: (String|Mapping)?
     PropertyId: (String|Mapping)?
-    PropertyAlias: (String|Mapping)?
-    PropertyValues: Listing<AssetPropertyValue>
 }
 
 /// 
-open class SqsAction {
-    RoleArn: String|Mapping
-    UseBase64: (Boolean|Mapping)?
-    QueueUrl: String|Mapping
-}
-
-/// 
-open class DynamoDBv2Action {
-    PutItem: (PutItemInput)?
-    RoleArn: (String|Mapping)?
-}
-
-/// 
-open class SigV4Authorization {
-    ServiceName: String|Mapping
-    SigningRegion: String|Mapping
-    RoleArn: String|Mapping
-}
-
-/// 
-open class RoleArn {
-}
-
-/// 
-open class TopicRulePayload {
-    ErrorAction: (Action)?
-    Description: (String|Mapping)?
-    AwsIotSqlVersion: (String|Mapping)?
-    Actions: Listing<Action>
-    Sql: String|Mapping
-    RuleDisabled: (Boolean|Mapping)?
-}
-
-/// 
-open class KinesisAction {
-    RoleArn: String|Mapping
-    PartitionKey: (String|Mapping)?
-    StreamName: String|Mapping
-}
-
-/// 
-open class LambdaAction {
-    FunctionArn: (String|Mapping)?
-}
-
-/// 
-open class LocationAction {
-    Longitude: String|Mapping
-    Timestamp: (Timestamp)?
-    RoleArn: String|Mapping
-    TrackerName: String|Mapping
-    DeviceId: String|Mapping
-    Latitude: String|Mapping
-}
-
-/// 
-open class S3Action {
-    BucketName: String|Mapping
-    Key: String|Mapping
-    RoleArn: String|Mapping
-    CannedAcl: (CannedAccessControlList)?
-}
-
-/// 
-open class AssetPropertyVariant {
+open class TopicRuleAssetPropertyVariant {
     StringValue: (String|Mapping)?
     DoubleValue: (String|Mapping)?
     BooleanValue: (String|Mapping)?
@@ -93,166 +23,292 @@ open class AssetPropertyVariant {
 }
 
 /// 
-open class IotAnalyticsAction {
-    RoleArn: String|Mapping
-    ChannelName: String|Mapping
-    BatchMode: (Boolean|Mapping)?
-}
-
-/// 
-open class AssetPropertyValue {
-    Value: AssetPropertyVariant
-    Timestamp: AssetPropertyTimestamp
-    Quality: (String|Mapping)?
-}
-
-/// 
-open class OpenSearchAction {
-    Type: String|Mapping
-    Index: String|Mapping
-    Id: String|Mapping
-    Endpoint: String|Mapping
-    RoleArn: String|Mapping
-}
-
-/// 
-open class SnsAction {
-    TargetArn: String|Mapping
-    MessageFormat: (String|Mapping)?
-    RoleArn: String|Mapping
-}
-
-/// 
-open class TimestreamTimestamp {
-    Value: String|Mapping
-    Unit: String|Mapping
-}
-
-/// 
-open class CloudwatchAlarmAction {
-    StateValue: String|Mapping
-    AlarmName: String|Mapping
-    StateReason: String|Mapping
-    RoleArn: String|Mapping
-}
-
-/// 
-open class CloudwatchLogsAction {
-    LogGroupName: String|Mapping
-    RoleArn: String|Mapping
-    BatchMode: (Boolean|Mapping)?
-}
-
-/// 
-open class CloudwatchMetricAction {
-    MetricTimestamp: (String|Mapping)?
+open class TopicRuleCloudwatchMetricAction {
     MetricName: String|Mapping
     MetricValue: String|Mapping
     MetricNamespace: String|Mapping
     MetricUnit: String|Mapping
     RoleArn: String|Mapping
+    MetricTimestamp: (String|Mapping)?
 }
 
 /// 
-open class HttpAuthorization {
-    Sigv4: (SigV4Authorization)?
-}
-
-/// 
-open class IotEventsAction {
-    InputName: String|Mapping
-    RoleArn: String|Mapping
-    MessageId: (String|Mapping)?
-    BatchMode: (Boolean|Mapping)?
-}
-
-/// 
-open class KafkaAction {
-    ClientProperties: Dynamic
-    Headers: (Listing<KafkaActionHeader>)?
-    DestinationArn: String|Mapping
-    Topic: String|Mapping
-    Key: (String|Mapping)?
-    Partition: (String|Mapping)?
-}
-
-/// 
-open class UserProperty {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// 
-open class TimestreamAction {
+open class TopicRulePutItemInput {
     TableName: String|Mapping
-    Dimensions: TimestreamDimensionsList
-    Timestamp: (TimestreamTimestamp)?
+}
+
+/// 
+open class TopicRuleHttpActionHeader {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// 
+open class TopicRuleHttpAuthorization {
+    Sigv4: (TopicRuleSigV4Authorization)?
+}
+
+/// 
+open class TopicRuleDynamoDBAction {
+    TableName: String|Mapping
+    PayloadField: (String|Mapping)?
+    HashKeyField: String|Mapping
+    RangeKeyValue: (String|Mapping)?
+    HashKeyValue: String|Mapping
+    RangeKeyField: (String|Mapping)?
+    RangeKeyType: (String|Mapping)?
+    HashKeyType: (String|Mapping)?
+    RoleArn: String|Mapping
+}
+
+/// 
+open class TopicRuleCloudwatchAlarmAction {
+    RoleArn: String|Mapping
+    StateValue: String|Mapping
+    AlarmName: String|Mapping
+    StateReason: String|Mapping
+}
+
+/// 
+open class TopicRuleTopicRulePayload {
+    ErrorAction: (TopicRuleAction)?
+    Description: (String|Mapping)?
+    AwsIotSqlVersion: (String|Mapping)?
+    Actions: Listing<TopicRuleAction>
+    Sql: String|Mapping
+    RuleDisabled: (Boolean|Mapping)?
+}
+
+/// 
+open class TopicRuleAssetPropertyValue {
+    Value: TopicRuleAssetPropertyVariant
+    Timestamp: TopicRuleAssetPropertyTimestamp
+    Quality: (String|Mapping)?
+}
+
+/// 
+open class TopicRuleOpenSearchAction {
+    Index: String|Mapping
+    Id: String|Mapping
+    Endpoint: String|Mapping
+    RoleArn: String|Mapping
+    Type: String|Mapping
+}
+
+/// 
+open class TopicRuleTimestreamAction {
+    TableName: String|Mapping
+    Dimensions: TopicRuleTimestreamDimensionsList
+    Timestamp: (TopicRuleTimestreamTimestamp)?
     RoleArn: String|Mapping
     DatabaseName: String|Mapping
 }
 
 /// 
-open class Action {
-    IotSiteWise: (IotSiteWiseAction)?
-    Kafka: (KafkaAction)?
-    Lambda: (LambdaAction)?
-    Sqs: (SqsAction)?
-    StepFunctions: (StepFunctionsAction)?
-    CloudwatchLogs: (CloudwatchLogsAction)?
-    IotAnalytics: (IotAnalyticsAction)?
-    Republish: (RepublishAction)?
-    Timestream: (TimestreamAction)?
-    CloudwatchAlarm: (CloudwatchAlarmAction)?
-    IotEvents: (IotEventsAction)?
-    Kinesis: (KinesisAction)?
-    OpenSearch: (OpenSearchAction)?
-    CloudwatchMetric: (CloudwatchMetricAction)?
-    Firehose: (FirehoseAction)?
-    Elasticsearch: (ElasticsearchAction)?
-    Http: (HttpAction)?
-    Location: (LocationAction)?
-    S3: (S3Action)?
-    Sns: (SnsAction)?
-    DynamoDB: (DynamoDBAction)?
-    DynamoDBv2: (DynamoDBv2Action)?
-}
-
-/// 
-open class Tag {
-    Value: String|Mapping
+open class TopicRuleUserProperty {
     Key: String|Mapping
-}
-
-/// 
-open class Timestamp {
     Value: String|Mapping
-    Unit: (String|Mapping)?
 }
 
 /// 
-open class RepublishActionHeaders {
-    UserProperties: (UserProperties)?
-    PayloadFormatIndicator: (String|Mapping)?
+open class TopicRuleKafkaAction {
+    Headers: (Listing<TopicRuleKafkaActionHeader>)?
+    DestinationArn: String|Mapping
+    Topic: String|Mapping
+    Key: (String|Mapping)?
+    Partition: (String|Mapping)?
+    ClientProperties: Dynamic
+}
+
+/// 
+open class TopicRuleDynamoDBv2Action {
+    RoleArn: (String|Mapping)?
+    PutItem: (TopicRulePutItemInput)?
+}
+
+/// 
+open class TopicRuleRepublishActionHeaders {
     ContentType: (String|Mapping)?
     ResponseTopic: (String|Mapping)?
     CorrelationData: (String|Mapping)?
     MessageExpiry: (String|Mapping)?
+    UserProperties: (TopicRuleUserProperties)?
+    PayloadFormatIndicator: (String|Mapping)?
 }
 
 /// 
-open class StepFunctionsAction {
+open class TopicRuleStepFunctionsAction {
     ExecutionNamePrefix: (String|Mapping)?
     StateMachineName: String|Mapping
     RoleArn: String|Mapping
 }
 
 /// 
-open class PutItemInput {
-    TableName: String|Mapping
+open class TopicRuleAction {
+    DynamoDB: (TopicRuleDynamoDBAction)?
+    IotSiteWise: (TopicRuleIotSiteWiseAction)?
+    Location: (TopicRuleLocationAction)?
+    S3: (TopicRuleS3Action)?
+    CloudwatchLogs: (TopicRuleCloudwatchLogsAction)?
+    Kinesis: (TopicRuleKinesisAction)?
+    OpenSearch: (TopicRuleOpenSearchAction)?
+    Sqs: (TopicRuleSqsAction)?
+    StepFunctions: (TopicRuleStepFunctionsAction)?
+    CloudwatchAlarm: (TopicRuleCloudwatchAlarmAction)?
+    CloudwatchMetric: (TopicRuleCloudwatchMetricAction)?
+    DynamoDBv2: (TopicRuleDynamoDBv2Action)?
+    Http: (TopicRuleHttpAction)?
+    IotAnalytics: (TopicRuleIotAnalyticsAction)?
+    IotEvents: (TopicRuleIotEventsAction)?
+    Republish: (TopicRuleRepublishAction)?
+    Timestream: (TopicRuleTimestreamAction)?
+    Elasticsearch: (TopicRuleElasticsearchAction)?
+    Firehose: (TopicRuleFirehoseAction)?
+    Kafka: (TopicRuleKafkaAction)?
+    Lambda: (TopicRuleLambdaAction)?
+    Sns: (TopicRuleSnsAction)?
 }
 
 /// 
-open class ElasticsearchAction {
+open class TopicRuleTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class TopicRuleIotEventsAction {
+    InputName: String|Mapping
+    RoleArn: String|Mapping
+    MessageId: (String|Mapping)?
+    BatchMode: (Boolean|Mapping)?
+}
+
+typealias TopicRuleUserProperties = Listing<(TopicRuleUserProperty)?>
+
+
+/// 
+open class TopicRuleFirehoseAction {
+    DeliveryStreamName: String|Mapping
+    RoleArn: String|Mapping
+    Separator: (String|Mapping)?
+    BatchMode: (Boolean|Mapping)?
+}
+
+/// 
+open class TopicRuleLambdaAction {
+    FunctionArn: (String|Mapping)?
+}
+
+/// 
+open class TopicRuleLocationAction {
+    Latitude: String|Mapping
+    Longitude: String|Mapping
+    Timestamp: (TopicRuleTimestamp)?
+    RoleArn: String|Mapping
+    TrackerName: String|Mapping
+    DeviceId: String|Mapping
+}
+
+/// 
+open class TopicRuleCloudwatchLogsAction {
+    LogGroupName: String|Mapping
+    RoleArn: String|Mapping
+    BatchMode: (Boolean|Mapping)?
+}
+
+/// 
+open class TopicRuleKinesisAction {
+    PartitionKey: (String|Mapping)?
+    StreamName: String|Mapping
+    RoleArn: String|Mapping
+}
+
+typealias TopicRuleRoleArn = String
+
+
+/// 
+open class TopicRuleKafkaActionHeader {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+typealias TopicRuleTimestreamDimensionsList = Listing<(TopicRuleTimestreamDimension)?>
+
+
+/// 
+open class TopicRuleIotSiteWiseAction {
+    RoleArn: String|Mapping
+    PutAssetPropertyValueEntries: Listing<TopicRulePutAssetPropertyValueEntry>
+}
+
+/// 
+open class TopicRuleHttpAction {
+    Headers: (Listing<TopicRuleHttpActionHeader>)?
+    Url: String|Mapping
+    Auth: (TopicRuleHttpAuthorization)?
+    ConfirmationUrl: (String|Mapping)?
+}
+
+/// 
+open class TopicRuleRepublishAction {
+    Qos: (Int|Mapping)?
+    Topic: String|Mapping
+    RoleArn: String|Mapping
+    Headers: (TopicRuleRepublishActionHeaders)?
+}
+
+/// 
+open class TopicRuleTimestreamDimension {
+    Name: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class TopicRuleSnsAction {
+    TargetArn: String|Mapping
+    MessageFormat: (String|Mapping)?
+    RoleArn: String|Mapping
+}
+
+/// 
+open class TopicRuleAssetPropertyTimestamp {
+    TimeInSeconds: String|Mapping
+    OffsetInNanos: (String|Mapping)?
+}
+
+/// 
+open class TopicRuleSigV4Authorization {
+    ServiceName: String|Mapping
+    SigningRegion: String|Mapping
+    RoleArn: String|Mapping
+}
+
+/// 
+open class TopicRuleS3Action {
+    BucketName: String|Mapping
+    Key: String|Mapping
+    RoleArn: String|Mapping
+    CannedAcl: (TopicRuleCannedAccessControlList)?
+}
+
+typealias TopicRuleCannedAccessControlList = "private"|"public-read"|"public-read-write"|"aws-exec-read"|"authenticated-read"|"bucket-owner-read"|"bucket-owner-full-control"|"log-delivery-write"
+
+
+/// 
+open class TopicRuleTimestamp {
+    Value: String|Mapping
+    Unit: (String|Mapping)?
+}
+
+/// 
+open class TopicRuleSqsAction {
+    RoleArn: String|Mapping
+    UseBase64: (Boolean|Mapping)?
+    QueueUrl: String|Mapping
+}
+
+/// 
+open class TopicRuleElasticsearchAction {
     Endpoint: String|Mapping
     RoleArn: String|Mapping
     Type: String|Mapping
@@ -261,76 +317,16 @@ open class ElasticsearchAction {
 }
 
 /// 
-open class FirehoseAction {
+open class TopicRuleTimestreamTimestamp {
+    Value: String|Mapping
+    Unit: String|Mapping
+}
+
+/// 
+open class TopicRuleIotAnalyticsAction {
+    RoleArn: String|Mapping
+    ChannelName: String|Mapping
     BatchMode: (Boolean|Mapping)?
-    DeliveryStreamName: String|Mapping
-    RoleArn: String|Mapping
-    Separator: (String|Mapping)?
-}
-
-/// 
-open class RepublishAction {
-    Headers: (RepublishActionHeaders)?
-    Qos: (Int|Mapping)?
-    Topic: String|Mapping
-    RoleArn: String|Mapping
-}
-
-/// 
-open class UserProperties {
-}
-
-/// 
-open class DynamoDBAction {
-    TableName: String|Mapping
-    PayloadField: (String|Mapping)?
-    RangeKeyValue: (String|Mapping)?
-    RoleArn: String|Mapping
-    RangeKeyField: (String|Mapping)?
-    HashKeyField: String|Mapping
-    RangeKeyType: (String|Mapping)?
-    HashKeyType: (String|Mapping)?
-    HashKeyValue: String|Mapping
-}
-
-/// 
-open class IotSiteWiseAction {
-    RoleArn: String|Mapping
-    PutAssetPropertyValueEntries: Listing<PutAssetPropertyValueEntry>
-}
-
-/// 
-open class AssetPropertyTimestamp {
-    TimeInSeconds: String|Mapping
-    OffsetInNanos: (String|Mapping)?
-}
-
-/// 
-open class KafkaActionHeader {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class CannedAccessControlList {
-}
-
-/// 
-open class TimestreamDimensionsList {
-}
-
-/// 
-open class TimestreamDimension {
-    Name: String|Mapping
-    Value: String|Mapping
-}
-
-/// 
-open class HttpAction {
-    ConfirmationUrl: (String|Mapping)?
-    Headers: (Listing<HttpActionHeader>)?
-    Url: String|Mapping
-    Auth: (HttpAuthorization)?
 }
 
 /// Resource Type definition for AWS::IoT::TopicRule
@@ -340,18 +336,18 @@ open class TopicRule extends cloudformation.Resource {
 
 
     /// 
+    hidden TopicRulePayload: TopicRuleTopicRulePayload
+
+    /// 
+    hidden Tags: (Listing<TopicRuleTag>)?
+
+    /// 
     hidden RuleName: (String|Mapping)?
 
-    /// 
-    hidden TopicRulePayload: TopicRulePayload
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
     Properties {
-        ["RuleName"] = if (RuleName == null) null else RuleName
         ["TopicRulePayload"] = if (TopicRulePayload == null) null else TopicRulePayload
         ["Tags"] = if (Tags == null) null else Tags
+        ["RuleName"] = if (RuleName == null) null else RuleName
     }
 
 }

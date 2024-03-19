@@ -1,0 +1,829 @@
+{
+  "typeName": "AWS::SecurityHub::AutomationRule",
+  "description": "The ``AWS::SecurityHub::AutomationRule`` resource specifies an automation rule based on input parameters. For more information, see [Automation rules](https://docs.aws.amazon.com/securityhub/latest/userguide/automation-rules.html) in the *User Guide*.",
+  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-securityhub",
+  "definitions": {
+    "Tags": {
+      "description": "A key-value pair to associate with a resource.",
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[a-zA-Z0-9]{1,128}$": {
+          "type": "string",
+          "description": "The value for the tag. You can specify a value that is 0 to 256 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.",
+          "minLength": 0,
+          "maxLength": 256
+        }
+      }
+    },
+    "NonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "DateFilter": {
+      "description": "",
+      "properties": {
+        "DateRange": {
+          "$ref": "#/definitions/DateRange",
+          "description": ""
+        },
+        "End": {
+          "$ref": "#/definitions/ISO8601DateString",
+          "description": ""
+        },
+        "Start": {
+          "$ref": "#/definitions/ISO8601DateString",
+          "description": ""
+        }
+      },
+      "type": "object",
+      "oneOf": [
+        {
+          "required": [
+            "DateRange"
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "required": [
+                "Start"
+              ]
+            },
+            {
+              "required": [
+                "End"
+              ]
+            }
+          ]
+        }
+      ],
+      "additionalProperties": false
+    },
+    "DateRange": {
+      "description": "",
+      "properties": {
+        "Unit": {
+          "description": "",
+          "enum": [
+            "DAYS"
+          ],
+          "type": "string"
+        },
+        "Value": {
+          "description": "",
+          "type": "number"
+        }
+      },
+      "required": [
+        "Unit",
+        "Value"
+      ],
+      "type": "object",
+      "additionalProperties": false
+    },
+    "BooleanFilter": {
+      "description": "",
+      "properties": {
+        "Value": {
+          "description": "The value of the boolean.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "Value"
+      ],
+      "type": "object",
+      "additionalProperties": false
+    },
+    "MapFilter": {
+      "description": "",
+      "properties": {
+        "Comparison": {
+          "description": "",
+          "enum": [
+            "EQUALS",
+            "NOT_EQUALS",
+            "CONTAINS",
+            "NOT_CONTAINS"
+          ],
+          "type": "string"
+        },
+        "Key": {
+          "description": "",
+          "type": "string"
+        },
+        "Value": {
+          "description": "",
+          "type": "string"
+        }
+      },
+      "required": [
+        "Comparison",
+        "Key",
+        "Value"
+      ],
+      "type": "object",
+      "additionalProperties": false
+    },
+    "NumberFilter": {
+      "description": "",
+      "properties": {
+        "Eq": {
+          "description": "",
+          "type": "number"
+        },
+        "Gte": {
+          "description": "",
+          "type": "number"
+        },
+        "Lte": {
+          "description": "",
+          "type": "number"
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "Eq"
+          ]
+        },
+        {
+          "anyOf": [
+            {
+              "required": [
+                "Gte"
+              ]
+            },
+            {
+              "required": [
+                "Lte"
+              ]
+            }
+          ]
+        }
+      ],
+      "type": "object",
+      "additionalProperties": false
+    },
+    "StringFilter": {
+      "description": "",
+      "properties": {
+        "Comparison": {
+          "$ref": "#/definitions/StringFilterComparison",
+          "description": ""
+        },
+        "Value": {
+          "description": "",
+          "type": "string"
+        }
+      },
+      "required": [
+        "Comparison",
+        "Value"
+      ],
+      "type": "object",
+      "additionalProperties": false
+    },
+    "StringFilterComparison": {
+      "description": "The condition to apply to a string value when filtering Security Hub findings.",
+      "enum": [
+        "EQUALS",
+        "PREFIX",
+        "NOT_EQUALS",
+        "PREFIX_NOT_EQUALS",
+        "CONTAINS",
+        "NOT_CONTAINS"
+      ],
+      "type": "string"
+    },
+    "ISO8601DateString": {
+      "description": "The date and time, in UTC and ISO 8601 format.",
+      "type": "string",
+      "pattern": "^(\\d\\d\\d\\d)-([0][1-9]|[1][0-2])-([0][1-9]|[1-2](\\d)|[3][0-1])[T](?:([0-1](\\d)|[2][0-3]):[0-5](\\d):[0-5](\\d)|23:59:60)(?:\\.(\\d)+)?([Z]|[+-](\\d\\d)(:?(\\d\\d))?)$"
+    },
+    "arn": {
+      "description": "The Amazon Resource Name (ARN) of the automation rule.",
+      "type": "string",
+      "minLength": 12,
+      "maxLength": 2048,
+      "pattern": "^arn:(aws|aws-cn|aws-us-gov|aws-iso-?[a-z]{0,2}):[A-Za-z0-9]{1,63}:[a-z]+-([a-z]{1,10}-)?[a-z]+-[0-9]+:([0-9]{12})?:.+$"
+    },
+    "arnOrId": {
+      "description": "The Amazon Resource Name (ARN) or Id of the automation rule.",
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        {
+          "$ref": "#/definitions/arn"
+        }
+      ]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "(\\d\\d\\d\\d)-[0-1](\\d)-[0-3](\\d)[Tt](?:[0-2](\\d):[0-5](\\d):[0-5](\\d)|23:59:60)(?:\\.(\\d)+)?(?:[Zz]|[+-](\\d\\d)(?::?(\\d\\d))?)$"
+    },
+    "int100": {
+      "description": "Integer from 0 to 100.",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "map": {
+      "description": "An object of user-defined name and value string pair added to a finding.",
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 50,
+      "patternProperties": {
+        "^[-_+=.:/@\\w\\s]{1,128}$": {
+          "description": "The value for the key in the map",
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 1024
+        }
+      },
+      "additionalProperties": false
+    },
+    "RelatedFinding": {
+      "description": "Provides details about a list of findings that the current finding relates to.",
+      "type": "object",
+      "properties": {
+        "ProductArn": {
+          "$ref": "#/definitions/arn",
+          "description": "The Amazon Resource Name (ARN) for the product that generated a related finding."
+        },
+        "Id": {
+          "$ref": "#/definitions/arnOrId",
+          "description": ""
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "ProductArn",
+        "Id"
+      ]
+    },
+    "NoteUpdate": {
+      "description": "",
+      "type": "object",
+      "properties": {
+        "Text": {
+          "description": "",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "UpdatedBy": {
+          "$ref": "#/definitions/arnOrId",
+          "description": ""
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "Text",
+        "UpdatedBy"
+      ]
+    },
+    "WorkflowUpdate": {
+      "description": "",
+      "type": "object",
+      "properties": {
+        "Status": {
+          "description": "",
+          "type": "string",
+          "enum": [
+            "NEW",
+            "NOTIFIED",
+            "RESOLVED",
+            "SUPPRESSED"
+          ]
+        }
+      },
+      "required": [
+        "Status"
+      ],
+      "additionalProperties": false
+    },
+    "SeverityUpdate": {
+      "description": "",
+      "type": "object",
+      "properties": {
+        "Product": {
+          "description": "",
+          "type": "number"
+        },
+        "Label": {
+          "description": "",
+          "type": "string",
+          "enum": [
+            "INFORMATIONAL",
+            "LOW",
+            "MEDIUM",
+            "HIGH",
+            "CRITICAL"
+          ]
+        },
+        "Normalized": {
+          "$ref": "#/definitions/int100",
+          "description": ""
+        }
+      },
+      "additionalProperties": false
+    },
+    "AutomationRulesFindingFieldsUpdate": {
+      "description": "The rule action will update the ``Note`` field of a finding.",
+      "type": "object",
+      "properties": {
+        "Types": {
+          "description": "",
+          "type": "array",
+          "maxItems": 50,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^([^/]+)(/[^/]+){0,2}$"
+          }
+        },
+        "Severity": {
+          "type": "object",
+          "description": "The rule action will update the ``Severity`` field of a finding.",
+          "$ref": "#/definitions/SeverityUpdate"
+        },
+        "Confidence": {
+          "$ref": "#/definitions/int100",
+          "description": ""
+        },
+        "Criticality": {
+          "$ref": "#/definitions/int100",
+          "description": ""
+        },
+        "UserDefinedFields": {
+          "$ref": "#/definitions/map",
+          "description": ""
+        },
+        "VerificationState": {
+          "description": "",
+          "type": "string",
+          "enum": [
+            "UNKNOWN",
+            "TRUE_POSITIVE",
+            "FALSE_POSITIVE",
+            "BENIGN_POSITIVE"
+          ]
+        },
+        "RelatedFindings": {
+          "description": "The rule action will update the ``RelatedFindings`` field of a finding.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": {
+            "$ref": "#/definitions/RelatedFinding"
+          }
+        },
+        "Note": {
+          "type": "object",
+          "description": "The rule action will update the ``Note`` field of a finding.",
+          "$ref": "#/definitions/NoteUpdate"
+        },
+        "Workflow": {
+          "type": "object",
+          "description": "The rule action will update the ``Workflow`` field of a finding.",
+          "$ref": "#/definitions/WorkflowUpdate"
+        }
+      }
+    },
+    "AutomationRulesAction": {
+      "description": "",
+      "type": "object",
+      "properties": {
+        "Type": {
+          "description": "",
+          "type": "string",
+          "enum": [
+            "FINDING_FIELDS_UPDATE"
+          ]
+        },
+        "FindingFieldsUpdate": {
+          "$ref": "#/definitions/AutomationRulesFindingFieldsUpdate",
+          "description": ""
+        }
+      },
+      "required": [
+        "Type",
+        "FindingFieldsUpdate"
+      ]
+    },
+    "AutomationRulesFindingFilters": {
+      "description": "",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ProductArn": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "AwsAccountId": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 100
+        },
+        "Id": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "GeneratorId": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 100
+        },
+        "Type": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "FirstObservedAt": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/DateFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "LastObservedAt": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/DateFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "CreatedAt": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/DateFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "UpdatedAt": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/DateFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "Confidence": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/NumberFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "Criticality": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/NumberFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "Title": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 100
+        },
+        "Description": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "SourceUrl": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "ProductName": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "CompanyName": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "SeverityLabel": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "ResourceType": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "ResourceId": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 100
+        },
+        "ResourcePartition": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "ResourceRegion": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "ResourceTags": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/MapFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "ResourceDetailsOther": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/MapFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "ComplianceStatus": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "ComplianceSecurityControlId": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "ComplianceAssociatedStandardsId": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "VerificationState": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "WorkflowStatus": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "RecordState": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "RelatedFindingsProductArn": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "RelatedFindingsId": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "NoteText": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "NoteUpdatedAt": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/DateFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "NoteUpdatedBy": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/StringFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        },
+        "UserDefinedFields": {
+          "description": "",
+          "items": {
+            "$ref": "#/definitions/MapFilter"
+          },
+          "type": "array",
+          "maxItems": 20
+        }
+      }
+    }
+  },
+  "properties": {
+    "RuleArn": {
+      "description": "",
+      "type": "string",
+      "pattern": "arn:aws\\S*:securityhub:\\S*"
+    },
+    "RuleStatus": {
+      "description": "Whether the rule is active after it is created. If this parameter is equal to ``ENABLED``, ASH applies the rule to findings and finding updates after the rule is created.",
+      "type": "string",
+      "enum": [
+        "ENABLED",
+        "DISABLED"
+      ]
+    },
+    "RuleOrder": {
+      "description": "",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000
+    },
+    "Description": {
+      "description": "",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "RuleName": {
+      "description": "",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "CreatedAt": {
+      "description": "",
+      "$ref": "#/definitions/ISO8601DateString"
+    },
+    "UpdatedAt": {
+      "description": "",
+      "$ref": "#/definitions/ISO8601DateString"
+    },
+    "CreatedBy": {
+      "description": "",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "IsTerminal": {
+      "description": "",
+      "type": "boolean"
+    },
+    "Actions": {
+      "type": "array",
+      "description": "",
+      "items": {
+        "$ref": "#/definitions/AutomationRulesAction"
+      },
+      "minItems": 1,
+      "maxItems": 1
+    },
+    "Criteria": {
+      "description": "A set of [Security Finding Format (ASFF)](https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-findings-format.html) finding field attributes and corresponding expected values that ASH uses to filter findings. If a rule is enabled and a finding matches the criteria specified in this parameter, ASH applies the rule action to the finding.",
+      "$ref": "#/definitions/AutomationRulesFindingFilters"
+    },
+    "Tags": {
+      "description": "",
+      "$ref": "#/definitions/Tags"
+    }
+  },
+  "additionalProperties": false,
+  "primaryIdentifier": [
+    "/properties/RuleArn"
+  ],
+  "readOnlyProperties": [
+    "/properties/RuleArn",
+    "/properties/CreatedAt",
+    "/properties/UpdatedAt",
+    "/properties/CreatedBy"
+  ],
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags"
+  },
+  "handlers": {
+    "create": {
+      "permissions": [
+        "securityhub:CreateAutomationRule",
+        "securityhub:TagResource",
+        "securityhub:ListTagsForResource"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "securityhub:ListAutomationRules",
+        "securityhub:BatchGetAutomationRules",
+        "securityhub:ListTagsForResource"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "securityhub:BatchUpdateAutomationRules",
+        "securityhub:TagResource",
+        "securityhub:UntagResource",
+        "securityhub:ListTagsForResource"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "securityhub:BatchDeleteAutomationRules",
+        "securityhub:BatchGetAutomationRules"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "securityhub:ListAutomationRules",
+        "securityhub:ListTagsForResource"
+      ]
+    }
+  }
+}

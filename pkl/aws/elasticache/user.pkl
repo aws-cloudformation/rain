@@ -6,7 +6,7 @@ module aws.elasticache.user
 import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class UserTag {
     Value: (String(matches(Regex(#"^[a-zA-Z0-9 _\.\/=+:\-@]*$"#)))|Mapping)?
     Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z0-9 _\.\/=+:\-@]*$"#)))|Mapping
 }
@@ -20,11 +20,14 @@ open class User extends cloudformation.Resource {
     /// The ID of the user.
     hidden UserId: String(matches(Regex(#"[a-z][a-z0-9\\-]*"#)))|Mapping
 
-    /// Passwords used for this user account. You can create up to two passwords for each user.
-    hidden Passwords: (Listing<String|Mapping>)?
+    /// Access permissions string used for this user account.
+    hidden AccessString: (String|Mapping)?
 
     /// 
     hidden AuthenticationMode: (Dynamic)?
+
+    /// An array of key-value pairs to apply to this user.
+    hidden Tags: (Listing<UserTag>)?
 
     /// The username of the user.
     hidden UserName: String|Mapping
@@ -32,24 +35,21 @@ open class User extends cloudformation.Resource {
     /// Must be redis.
     hidden Engine: UserEngine|Mapping
 
-    /// Access permissions string used for this user account.
-    hidden AccessString: (String|Mapping)?
-
     /// Indicates a password is not required for this user account.
     hidden NoPasswordRequired: (Boolean|Mapping)?
 
-    /// An array of key-value pairs to apply to this user.
-    hidden Tags: (Listing<Tag>)?
+    /// Passwords used for this user account. You can create up to two passwords for each user.
+    hidden Passwords: (Listing<String|Mapping>)?
 
     Properties {
         ["UserId"] = if (UserId == null) null else UserId
-        ["Passwords"] = if (Passwords == null) null else Passwords
+        ["AccessString"] = if (AccessString == null) null else AccessString
         ["AuthenticationMode"] = if (AuthenticationMode == null) null else AuthenticationMode
+        ["Tags"] = if (Tags == null) null else Tags
         ["UserName"] = if (UserName == null) null else UserName
         ["Engine"] = if (Engine == null) null else Engine
-        ["AccessString"] = if (AccessString == null) null else AccessString
         ["NoPasswordRequired"] = if (NoPasswordRequired == null) null else NoPasswordRequired
-        ["Tags"] = if (Tags == null) null else Tags
+        ["Passwords"] = if (Passwords == null) null else Passwords
     }
 
 }

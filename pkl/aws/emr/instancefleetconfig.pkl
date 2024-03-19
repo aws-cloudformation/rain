@@ -6,32 +6,43 @@ module aws.emr.instancefleetconfig
 import "../../cloudformation.pkl"
 
 /// 
-open class EbsBlockDeviceConfig {
-    VolumeSpecification: VolumeSpecification
-    VolumesPerInstance: (Int|Mapping)?
+open class InstanceFleetConfigInstanceFleetProvisioningSpecifications {
+    SpotSpecification: (InstanceFleetConfigSpotProvisioningSpecification)?
+    OnDemandSpecification: (InstanceFleetConfigOnDemandProvisioningSpecification)?
 }
 
 /// 
-open class InstanceTypeConfig {
+open class InstanceFleetConfigOnDemandProvisioningSpecification {
+    AllocationStrategy: String|Mapping
+}
+
+/// 
+open class InstanceFleetConfigEbsBlockDeviceConfig {
+    VolumesPerInstance: (Int|Mapping)?
+    VolumeSpecification: InstanceFleetConfigVolumeSpecification
+}
+
+/// 
+open class InstanceFleetConfigInstanceTypeConfig {
     BidPrice: (String|Mapping)?
     WeightedCapacity: (Int|Mapping)?
-    EbsConfiguration: (EbsConfiguration)?
+    EbsConfiguration: (InstanceFleetConfigEbsConfiguration)?
     BidPriceAsPercentageOfOnDemandPrice: (Number|Mapping)?
     CustomAmiId: (String|Mapping)?
-    Configurations: (Listing<Configuration>)?
+    Configurations: (Listing<InstanceFleetConfigConfiguration>)?
     InstanceType: String|Mapping
 }
 
 /// 
-open class SpotProvisioningSpecification {
+open class InstanceFleetConfigSpotProvisioningSpecification {
+    TimeoutDurationMinutes: Int|Mapping
     TimeoutAction: String|Mapping
     BlockDurationMinutes: (Int|Mapping)?
     AllocationStrategy: (String|Mapping)?
-    TimeoutDurationMinutes: Int|Mapping
 }
 
 /// 
-open class VolumeSpecification {
+open class InstanceFleetConfigVolumeSpecification {
     SizeInGB: Int|Mapping
     Throughput: (Int|Mapping)?
     VolumeType: String|Mapping
@@ -39,27 +50,16 @@ open class VolumeSpecification {
 }
 
 /// 
-open class EbsConfiguration {
-    EbsBlockDeviceConfigs: (Listing<EbsBlockDeviceConfig>)?
+open class InstanceFleetConfigEbsConfiguration {
+    EbsBlockDeviceConfigs: (Listing<InstanceFleetConfigEbsBlockDeviceConfig>)?
     EbsOptimized: (Boolean|Mapping)?
 }
 
 /// 
-open class Configuration {
-    Configurations: (Listing<Configuration>)?
-    Classification: (String|Mapping)?
+open class InstanceFleetConfigConfiguration {
     ConfigurationProperties: (Dynamic)?
-}
-
-/// 
-open class InstanceFleetProvisioningSpecifications {
-    SpotSpecification: (SpotProvisioningSpecification)?
-    OnDemandSpecification: (OnDemandProvisioningSpecification)?
-}
-
-/// 
-open class OnDemandProvisioningSpecification {
-    AllocationStrategy: String|Mapping
+    Configurations: (Listing<InstanceFleetConfigConfiguration>)?
+    Classification: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::EMR::InstanceFleetConfig
@@ -67,6 +67,9 @@ open class InstanceFleetConfig extends cloudformation.Resource {
 
     Type = "AWS::EMR::InstanceFleetConfig"
 
+
+    /// 
+    hidden InstanceFleetType: String|Mapping
 
     /// 
     hidden TargetOnDemandCapacity: (Int|Mapping)?
@@ -78,25 +81,22 @@ open class InstanceFleetConfig extends cloudformation.Resource {
     hidden TargetSpotCapacity: (Int|Mapping)?
 
     /// 
-    hidden LaunchSpecifications: (InstanceFleetProvisioningSpecifications)?
+    hidden LaunchSpecifications: (InstanceFleetConfigInstanceFleetProvisioningSpecifications)?
 
     /// 
-    hidden InstanceTypeConfigs: (Listing<InstanceTypeConfig>)?
+    hidden InstanceTypeConfigs: (Listing<InstanceFleetConfigInstanceTypeConfig>)?
 
     /// 
     hidden Name: (String|Mapping)?
 
-    /// 
-    hidden InstanceFleetType: String|Mapping
-
     Properties {
+        ["InstanceFleetType"] = if (InstanceFleetType == null) null else InstanceFleetType
         ["TargetOnDemandCapacity"] = if (TargetOnDemandCapacity == null) null else TargetOnDemandCapacity
         ["ClusterId"] = if (ClusterId == null) null else ClusterId
         ["TargetSpotCapacity"] = if (TargetSpotCapacity == null) null else TargetSpotCapacity
         ["LaunchSpecifications"] = if (LaunchSpecifications == null) null else LaunchSpecifications
         ["InstanceTypeConfigs"] = if (InstanceTypeConfigs == null) null else InstanceTypeConfigs
         ["Name"] = if (Name == null) null else Name
-        ["InstanceFleetType"] = if (InstanceFleetType == null) null else InstanceFleetType
     }
 
 }

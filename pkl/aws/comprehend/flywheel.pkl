@@ -5,36 +5,29 @@ module aws.comprehend.flywheel
 
 import "../../cloudformation.pkl"
 
+typealias FlywheelKmsKeyId = String|Mapping
+
+
 /// 
-open class VpcConfig {
-    SecurityGroupIds: Listing<String|Mapping>
-    Subnets: Listing<String|Mapping>
+open class FlywheelEntityTypesListItem {
+    Type: String(matches(Regex(#"^(?![^\\n\r\t,]*\\\n|\\r|\\t)[^\\n\r\t,]+$"#)))|Mapping
 }
 
 /// 
-open class KmsKeyId {
-}
-
-/// 
-open class EntityTypesListItem {
-    Type: String(matches(Regex(#"^(?![^\n\r\t,]*\\n|\\r|\\t)[^\n\r\t,]+$"#)))|Mapping
-}
-
-/// 
-open class EntityRecognitionConfig {
-    EntityTypes: (Listing<EntityTypesListItem>)?
+open class FlywheelEntityRecognitionConfig {
+    EntityTypes: (Listing<FlywheelEntityTypesListItem>)?
 }
 
 typealias DocumentClassificationConfigMode = "MULTI_CLASS"|"MULTI_LABEL"
 
 /// 
-open class DocumentClassificationConfig {
+open class FlywheelDocumentClassificationConfig {
     Mode: DocumentClassificationConfigMode|Mapping
     Labels: (Listing<String|Mapping>)?
 }
 
 /// 
-open class Tag {
+open class FlywheelTag {
     Key: String|Mapping
     Value: String|Mapping
 }
@@ -42,18 +35,24 @@ open class Tag {
 typealias TaskConfigLanguageCode = "en"|"es"|"fr"|"it"|"de"|"pt"
 
 /// 
-open class TaskConfig {
+open class FlywheelTaskConfig {
     LanguageCode: TaskConfigLanguageCode|Mapping
-    DocumentClassificationConfig: (DocumentClassificationConfig)?
-    EntityRecognitionConfig: (EntityRecognitionConfig)?
+    DocumentClassificationConfig: (FlywheelDocumentClassificationConfig)?
+    EntityRecognitionConfig: (FlywheelEntityRecognitionConfig)?
 }
 
 /// 
-open class DataSecurityConfig {
-    ModelKmsKeyId: (KmsKeyId)?
-    VolumeKmsKeyId: (KmsKeyId)?
-    DataLakeKmsKeyId: (KmsKeyId)?
-    VpcConfig: (VpcConfig)?
+open class FlywheelDataSecurityConfig {
+    ModelKmsKeyId: (FlywheelKmsKeyId)?
+    VolumeKmsKeyId: (FlywheelKmsKeyId)?
+    DataLakeKmsKeyId: (FlywheelKmsKeyId)?
+    VpcConfig: (FlywheelVpcConfig)?
+}
+
+/// 
+open class FlywheelVpcConfig {
+    Subnets: Listing<String|Mapping>
+    SecurityGroupIds: Listing<String|Mapping>
 }
 
 /// The AWS::Comprehend::Flywheel resource creates an Amazon Comprehend Flywheel that enables customer to train their model.
@@ -63,7 +62,7 @@ open class Flywheel extends cloudformation.Resource {
 
 
     /// 
-    hidden ActiveModelArn: (String(matches(Regex(#"arn:aws(-[^:]+)?:comprehend:[a-zA-Z0-9-]*:[0-9]{12}:(document-classifier|entity-recognizer)/[a-zA-Z0-9](-*[a-zA-Z0-9])*(/version/[a-zA-Z0-9](-*[a-zA-Z0-9])*)?"#)))|Mapping)?
+    hidden TaskConfig: (FlywheelTaskConfig)?
 
     /// 
     hidden DataAccessRoleArn: String(matches(Regex(#"arn:aws(-[^:]+)?:iam::[0-9]{12}:role/.+"#)))|Mapping
@@ -72,28 +71,28 @@ open class Flywheel extends cloudformation.Resource {
     hidden DataLakeS3Uri: String(matches(Regex(#"s3://[a-z0-9][\.\-a-z0-9]{1,61}[a-z0-9](/.*)?"#)))|Mapping
 
     /// 
+    hidden DataSecurityConfig: (FlywheelDataSecurityConfig)?
+
+    /// 
+    hidden Tags: (Listing<FlywheelTag>)?
+
+    /// 
+    hidden ActiveModelArn: (String(matches(Regex(#"arn:aws(-[^:]+)?:comprehend:[a-zA-Z0-9-]*:[0-9]{12}:(document-classifier|entity-recognizer)/[a-zA-Z0-9](-*[a-zA-Z0-9])*(/version/[a-zA-Z0-9](-*[a-zA-Z0-9])*)?"#)))|Mapping)?
+
+    /// 
     hidden FlywheelName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9])*$"#)))|Mapping
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden TaskConfig: (TaskConfig)?
-
-    /// 
-    hidden DataSecurityConfig: (DataSecurityConfig)?
 
     /// 
     hidden ModelType: (FlywheelModelType|Mapping)?
 
     Properties {
-        ["ActiveModelArn"] = if (ActiveModelArn == null) null else ActiveModelArn
+        ["TaskConfig"] = if (TaskConfig == null) null else TaskConfig
         ["DataAccessRoleArn"] = if (DataAccessRoleArn == null) null else DataAccessRoleArn
         ["DataLakeS3Uri"] = if (DataLakeS3Uri == null) null else DataLakeS3Uri
-        ["FlywheelName"] = if (FlywheelName == null) null else FlywheelName
-        ["Tags"] = if (Tags == null) null else Tags
-        ["TaskConfig"] = if (TaskConfig == null) null else TaskConfig
         ["DataSecurityConfig"] = if (DataSecurityConfig == null) null else DataSecurityConfig
+        ["Tags"] = if (Tags == null) null else Tags
+        ["ActiveModelArn"] = if (ActiveModelArn == null) null else ActiveModelArn
+        ["FlywheelName"] = if (FlywheelName == null) null else FlywheelName
         ["ModelType"] = if (ModelType == null) null else ModelType
     }
 

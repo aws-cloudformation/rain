@@ -11,6 +11,12 @@ open class PublicTypeVersion extends cloudformation.Resource {
     Type = "AWS::CloudFormation::PublicTypeVersion"
 
 
+    /// The name of the type being registered.
+    ///
+    /// 
+    /// We recommend that type names adhere to the following pattern: company_or_organization::service::type.
+    hidden TypeName: (String(matches(Regex(#"[A-Za-z0-9]{2,64}::[A-Za-z0-9]{2,64}::[A-Za-z0-9]{2,64}(::MODULE){0,1}"#)))|Mapping)?
+
     /// A url to the S3 bucket where logs for the testType run will be available
     hidden LogDeliveryBucket: (String|Mapping)?
 
@@ -23,17 +29,12 @@ open class PublicTypeVersion extends cloudformation.Resource {
     /// The version number of a public third-party extension
     hidden PublicVersionNumber: (String|Mapping)?
 
-    /// The name of the type being registered.
-    ///    /// 
-    /// We recommend that type names adhere to the following pattern: company_or_organization::service::type.
-    hidden TypeName: (String(matches(Regex(#"[A-Za-z0-9]{2,64}::[A-Za-z0-9]{2,64}::[A-Za-z0-9]{2,64}(::MODULE){0,1}"#)))|Mapping)?
-
     Properties {
+        ["TypeName"] = if (TypeName == null) null else TypeName
         ["LogDeliveryBucket"] = if (LogDeliveryBucket == null) null else LogDeliveryBucket
         ["Type"] = if (TypeProperty == null) null else TypeProperty
         ["Arn"] = if (Arn == null) null else Arn
         ["PublicVersionNumber"] = if (PublicVersionNumber == null) null else PublicVersionNumber
-        ["TypeName"] = if (TypeName == null) null else TypeName
     }
 
 }

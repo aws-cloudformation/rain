@@ -6,56 +6,56 @@ module aws.cognito.userpoolriskconfigurationattachment
 import "../../cloudformation.pkl"
 
 /// 
-open class AccountTakeoverActionType {
-    EventAction: String|Mapping
-    Notify: Boolean|Mapping
-}
-
-/// 
-open class AccountTakeoverActionsType {
-    MediumAction: (AccountTakeoverActionType)?
-    HighAction: (AccountTakeoverActionType)?
-    LowAction: (AccountTakeoverActionType)?
-}
-
-/// 
-open class NotifyEmailType {
-    HtmlBody: (String|Mapping)?
+open class UserPoolRiskConfigurationAttachmentNotifyEmailType {
     Subject: String|Mapping
     TextBody: (String|Mapping)?
+    HtmlBody: (String|Mapping)?
 }
 
 /// 
-open class NotifyConfigurationType {
-    BlockEmail: (NotifyEmailType)?
-    MfaEmail: (NotifyEmailType)?
-    NoActionEmail: (NotifyEmailType)?
+open class UserPoolRiskConfigurationAttachmentNotifyConfigurationType {
+    MfaEmail: (UserPoolRiskConfigurationAttachmentNotifyEmailType)?
+    NoActionEmail: (UserPoolRiskConfigurationAttachmentNotifyEmailType)?
     From: (String|Mapping)?
     ReplyTo: (String|Mapping)?
     SourceArn: String|Mapping
+    BlockEmail: (UserPoolRiskConfigurationAttachmentNotifyEmailType)?
 }
 
 /// 
-open class AccountTakeoverRiskConfigurationType {
-    NotifyConfiguration: (NotifyConfigurationType)?
-    Actions: AccountTakeoverActionsType
+open class UserPoolRiskConfigurationAttachmentAccountTakeoverRiskConfigurationType {
+    Actions: UserPoolRiskConfigurationAttachmentAccountTakeoverActionsType
+    NotifyConfiguration: (UserPoolRiskConfigurationAttachmentNotifyConfigurationType)?
 }
 
 /// 
-open class RiskExceptionConfigurationType {
+open class UserPoolRiskConfigurationAttachmentRiskExceptionConfigurationType {
     SkippedIPRangeList: (Listing<String|Mapping>)?
     BlockedIPRangeList: (Listing<String|Mapping>)?
 }
 
 /// 
-open class CompromisedCredentialsActionsType {
+open class UserPoolRiskConfigurationAttachmentCompromisedCredentialsActionsType {
     EventAction: String|Mapping
 }
 
 /// 
-open class CompromisedCredentialsRiskConfigurationType {
-    Actions: CompromisedCredentialsActionsType
+open class UserPoolRiskConfigurationAttachmentCompromisedCredentialsRiskConfigurationType {
+    Actions: UserPoolRiskConfigurationAttachmentCompromisedCredentialsActionsType
     EventFilter: (Listing<String|Mapping>)?
+}
+
+/// 
+open class UserPoolRiskConfigurationAttachmentAccountTakeoverActionType {
+    Notify: Boolean|Mapping
+    EventAction: String|Mapping
+}
+
+/// 
+open class UserPoolRiskConfigurationAttachmentAccountTakeoverActionsType {
+    HighAction: (UserPoolRiskConfigurationAttachmentAccountTakeoverActionType)?
+    LowAction: (UserPoolRiskConfigurationAttachmentAccountTakeoverActionType)?
+    MediumAction: (UserPoolRiskConfigurationAttachmentAccountTakeoverActionType)?
 }
 
 /// Resource Type definition for AWS::Cognito::UserPoolRiskConfigurationAttachment
@@ -71,13 +71,13 @@ open class UserPoolRiskConfigurationAttachment extends cloudformation.Resource {
     hidden ClientId: String|Mapping
 
     /// 
-    hidden RiskExceptionConfiguration: (RiskExceptionConfigurationType)?
+    hidden RiskExceptionConfiguration: (UserPoolRiskConfigurationAttachmentRiskExceptionConfigurationType)?
 
     /// 
-    hidden CompromisedCredentialsRiskConfiguration: (CompromisedCredentialsRiskConfigurationType)?
+    hidden CompromisedCredentialsRiskConfiguration: (UserPoolRiskConfigurationAttachmentCompromisedCredentialsRiskConfigurationType)?
 
     /// 
-    hidden AccountTakeoverRiskConfiguration: (AccountTakeoverRiskConfigurationType)?
+    hidden AccountTakeoverRiskConfiguration: (UserPoolRiskConfigurationAttachmentAccountTakeoverRiskConfigurationType)?
 
     Properties {
         ["UserPoolId"] = if (UserPoolId == null) null else UserPoolId

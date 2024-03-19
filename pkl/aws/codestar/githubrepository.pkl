@@ -6,15 +6,15 @@ module aws.codestar.githubrepository
 import "../../cloudformation.pkl"
 
 /// 
-open class S3 {
-    ObjectVersion: (String|Mapping)?
-    Bucket: String|Mapping
-    Key: String|Mapping
+open class GitHubRepositoryCode {
+    S3: GitHubRepositoryS3
 }
 
 /// 
-open class Code {
-    S3: S3
+open class GitHubRepositoryS3 {
+    ObjectVersion: (String|Mapping)?
+    Bucket: String|Mapping
+    Key: String|Mapping
 }
 
 /// Resource Type definition for AWS::CodeStar::GitHubRepository
@@ -24,22 +24,13 @@ open class GitHubRepository extends cloudformation.Resource {
 
 
     /// 
-    hidden RepositoryName: String|Mapping
-
-    /// 
-    hidden RepositoryOwner: String|Mapping
-
-    /// 
-    hidden Code: (Code)?
-
-    /// 
     hidden ConnectionArn: (String|Mapping)?
 
     /// 
     hidden RepositoryAccessToken: (String|Mapping)?
 
     /// 
-    hidden IsPrivate: (Boolean|Mapping)?
+    hidden RepositoryOwner: String|Mapping
 
     /// 
     hidden RepositoryDescription: (String|Mapping)?
@@ -47,15 +38,24 @@ open class GitHubRepository extends cloudformation.Resource {
     /// 
     hidden EnableIssues: (Boolean|Mapping)?
 
+    /// 
+    hidden RepositoryName: String|Mapping
+
+    /// 
+    hidden IsPrivate: (Boolean|Mapping)?
+
+    /// 
+    hidden Code: (GitHubRepositoryCode)?
+
     Properties {
-        ["RepositoryName"] = if (RepositoryName == null) null else RepositoryName
-        ["RepositoryOwner"] = if (RepositoryOwner == null) null else RepositoryOwner
-        ["Code"] = if (Code == null) null else Code
         ["ConnectionArn"] = if (ConnectionArn == null) null else ConnectionArn
         ["RepositoryAccessToken"] = if (RepositoryAccessToken == null) null else RepositoryAccessToken
-        ["IsPrivate"] = if (IsPrivate == null) null else IsPrivate
+        ["RepositoryOwner"] = if (RepositoryOwner == null) null else RepositoryOwner
         ["RepositoryDescription"] = if (RepositoryDescription == null) null else RepositoryDescription
         ["EnableIssues"] = if (EnableIssues == null) null else EnableIssues
+        ["RepositoryName"] = if (RepositoryName == null) null else RepositoryName
+        ["IsPrivate"] = if (IsPrivate == null) null else IsPrivate
+        ["Code"] = if (Code == null) null else Code
     }
 
 }

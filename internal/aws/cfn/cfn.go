@@ -4,6 +4,7 @@ package cfn
 
 import (
 	"context"
+	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -55,6 +56,9 @@ var liveStatuses = []types.StackStatus{
 const WAIT_PERIOD_IN_SECONDS = 2
 
 var Schemas map[string]string
+
+//go:embed schemas
+var schemaFiles embed.FS
 
 func checkTemplate(template cft.Template) (string, error) {
 	templateBody := format.String(template, format.Options{})
@@ -794,15 +798,31 @@ func GetTypeSchema(name string) (string, error) {
 	if exists {
 		return schema, nil
 	} else {
-		res, err := getClient().DescribeType(context.Background(), &cloudformation.DescribeTypeInput{
-			Type: "RESOURCE", TypeName: &name,
-		})
-		if err != nil {
-			config.Debugf("GetTypeSchema SDK error: %v", err)
-			return "", err
+		// Look in the embedded file system next
+		path := strings.Replace(name, "::", "/", -1)
+		path = strings.ToLower(path)
+		path = "schemas/" + path + ".json"
+		b, err := schemaFiles.ReadFile(path)
+		if err == nil {
+			config.Debugf("read schema from path %s", path)
+			s := string(b)
+			Schemas[name] = s
+			return s, nil
+		} else {
+			config.Debugf("unable to read schema from path %s: %v", path, err)
+
+			// Go ahead and download the schema from the registry
+
+			res, err := getClient().DescribeType(context.Background(), &cloudformation.DescribeTypeInput{
+				Type: "RESOURCE", TypeName: &name,
+			})
+			if err != nil {
+				config.Debugf("GetTypeSchema SDK error: %v", err)
+				return "", err
+			}
+			Schemas[name] = *res.Schema
+			return *res.Schema, nil
 		}
-		Schemas[name] = *res.Schema
-		return *res.Schema, nil
 	}
 }
 

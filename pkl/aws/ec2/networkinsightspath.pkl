@@ -6,84 +6,30 @@ module aws.ec2.networkinsightspath
 import "../../cloudformation.pkl"
 
 /// 
-open class Tag {
-    Key: String|Mapping
-    Value: (String|Mapping)?
-}
-
-/// 
-open class IpAddress {
-}
-
-/// 
-open class Protocol {
-}
-
-/// 
-open class Port {
-}
-
-/// 
-open class FilterPortRange {
+open class NetworkInsightsPathFilterPortRange {
     FromPort: (Int|Mapping)?
     ToPort: (Int|Mapping)?
 }
 
 /// 
-open class PathFilter {
-    SourceAddress: (IpAddress)?
-    SourcePortRange: (FilterPortRange)?
-    DestinationAddress: (IpAddress)?
-    DestinationPortRange: (FilterPortRange)?
+open class NetworkInsightsPathPathFilter {
+    SourcePortRange: (NetworkInsightsPathFilterPortRange)?
+    DestinationAddress: (NetworkInsightsPathIpAddress)?
+    DestinationPortRange: (NetworkInsightsPathFilterPortRange)?
+    SourceAddress: (NetworkInsightsPathIpAddress)?
 }
+
+typealias NetworkInsightsPathTags = Listing<(NetworkInsightsPathTag)?>
+
 
 /// 
-open class Tags {
+open class NetworkInsightsPathTag {
+    Key: String|Mapping
+    Value: (String|Mapping)?
 }
 
-/// Resource schema for AWS::EC2::NetworkInsightsPath
-open class NetworkInsightsPath extends cloudformation.Resource {
-
-    Type = "AWS::EC2::NetworkInsightsPath"
+typealias NetworkInsightsPathIpAddress = String
 
 
-    /// 
-    hidden DestinationIp: (IpAddress)?
+typealias NetworkInsightsPathProtocol = "tcp"|"udp"
 
-    /// 
-    hidden Source: String|Mapping
-
-    /// 
-    hidden FilterAtSource: (PathFilter)?
-
-    /// 
-    hidden Destination: (String|Mapping)?
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden SourceIp: (IpAddress)?
-
-    /// 
-    hidden FilterAtDestination: (PathFilter)?
-
-    /// 
-    hidden DestinationPort: (Port)?
-
-    /// 
-    hidden Protocol: Protocol
-
-    Properties {
-        ["DestinationIp"] = if (DestinationIp == null) null else DestinationIp
-        ["Source"] = if (Source == null) null else Source
-        ["FilterAtSource"] = if (FilterAtSource == null) null else FilterAtSource
-        ["Destination"] = if (Destination == null) null else Destination
-        ["Tags"] = if (Tags == null) null else Tags
-        ["SourceIp"] = if (SourceIp == null) null else SourceIp
-        ["FilterAtDestination"] = if (FilterAtDestination == null) null else FilterAtDestination
-        ["DestinationPort"] = if (DestinationPort == null) null else DestinationPort
-        ["Protocol"] = if (Protocol == null) null else Protocol
-    }
-
-}

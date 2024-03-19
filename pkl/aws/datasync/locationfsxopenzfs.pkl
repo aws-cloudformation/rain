@@ -5,27 +5,27 @@ module aws.datasync.locationfsxopenzfs
 
 import "../../cloudformation.pkl"
 
+typealias MountOptionsVersion = "AUTOMATIC"|"NFS3"|"NFS4_0"|"NFS4_1"
+
+/// The NFS mount options that DataSync can use to mount your NFS share.
+open class LocationFSxOpenZFSMountOptions {
+    Version: (MountOptionsVersion|Mapping)?
+}
+
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class LocationFSxOpenZFSTag {
     Key: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:/-]+$"#)))|Mapping
     Value: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:@/-]+$"#)))|Mapping
 }
 
 /// Configuration settings for an NFS or SMB protocol, currently only support NFS
-open class Protocol {
-    NFS: (NFS)?
+open class LocationFSxOpenZFSProtocol {
+    NFS: (LocationFSxOpenZFSNFS)?
 }
 
 /// FSx OpenZFS file system NFS protocol information
-open class NFS {
-    MountOptions: MountOptions
-}
-
-typealias MountOptionsVersion = "AUTOMATIC"|"NFS3"|"NFS4_0"|"NFS4_1"
-
-/// The NFS mount options that DataSync can use to mount your NFS share.
-open class MountOptions {
-    Version: (MountOptionsVersion|Mapping)?
+open class LocationFSxOpenZFSNFS {
+    MountOptions: LocationFSxOpenZFSMountOptions
 }
 
 /// Resource schema for AWS::DataSync::LocationFSxOpenZFS.
@@ -38,7 +38,7 @@ open class LocationFSxOpenZFS extends cloudformation.Resource {
     hidden Subdirectory: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\$\p{Zs}]+$"#)))|Mapping)?
 
     /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<LocationFSxOpenZFSTag>)?
 
     /// The Amazon Resource Name (ARN) for the FSx OpenZFS file system.
     hidden FsxFilesystemArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):fsx:[a-z\-0-9]+:[0-9]{12}:file-system/fs-[0-9a-f]+$"#)))|Mapping)?
@@ -47,7 +47,7 @@ open class LocationFSxOpenZFS extends cloudformation.Resource {
     hidden SecurityGroupArns: Listing<String|Mapping>
 
     /// 
-    hidden Protocol: Protocol
+    hidden Protocol: LocationFSxOpenZFSProtocol
 
     Properties {
         ["Subdirectory"] = if (Subdirectory == null) null else Subdirectory

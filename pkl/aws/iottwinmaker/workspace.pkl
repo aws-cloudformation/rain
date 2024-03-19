@@ -5,18 +5,14 @@ module aws.iottwinmaker.workspace
 
 import "../../cloudformation.pkl"
 
-/// 
-open class DateTimeFormat {
-}
+typealias WorkspaceDateTimeFormat = String
+
 
 /// Resource schema for AWS::IoTTwinMaker::Workspace
 open class Workspace extends cloudformation.Resource {
 
     Type = "AWS::IoTTwinMaker::Workspace"
 
-
-    /// A map of key-value pairs to associate with a resource.
-    hidden Tags: (Dynamic)?
 
     /// The ID of the workspace.
     hidden WorkspaceId: String(matches(Regex(#"[a-zA-Z_0-9][a-zA-Z_\-0-9]*[a-zA-Z0-9]+"#)))|Mapping
@@ -30,12 +26,15 @@ open class Workspace extends cloudformation.Resource {
     /// The ARN of the S3 bucket where resources associated with the workspace are stored.
     hidden S3Location: String|Mapping
 
+    /// A map of key-value pairs to associate with a resource.
+    hidden Tags: (Dynamic)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
         ["WorkspaceId"] = if (WorkspaceId == null) null else WorkspaceId
         ["Description"] = if (Description == null) null else Description
         ["Role"] = if (Role == null) null else Role
         ["S3Location"] = if (S3Location == null) null else S3Location
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

@@ -6,7 +6,7 @@ module aws.ec2.verifiedaccessinstance
 import "../../cloudformation.pkl"
 
 /// A Verified Access Trust Provider.
-open class VerifiedAccessTrustProvider {
+open class VerifiedAccessInstanceVerifiedAccessTrustProvider {
     VerifiedAccessTrustProviderId: (String|Mapping)?
     Description: (String|Mapping)?
     TrustProviderType: (String|Mapping)?
@@ -14,23 +14,22 @@ open class VerifiedAccessTrustProvider {
     DeviceTrustProviderType: (String|Mapping)?
 }
 
-/// The ID of the AWS Verified Access trust provider.
-open class VerifiedAccessTrustProviderId {
-}
+typealias VerifiedAccessInstanceVerifiedAccessTrustProviderId = String
+
 
 /// The configuration options for AWS Verified Access instances.
-open class VerifiedAccessLogs {
-    LogVersion: (String|Mapping)?
-    IncludeTrustContext: (Boolean|Mapping)?
+open class VerifiedAccessInstanceVerifiedAccessLogs {
     CloudWatchLogs: (Dynamic)?
     KinesisDataFirehose: (Dynamic)?
     S3: (Dynamic)?
+    LogVersion: (String|Mapping)?
+    IncludeTrustContext: (Boolean|Mapping)?
 }
 
 /// A key-value pair to associate with a resource.
-open class Tag {
-    Value: String|Mapping
+open class VerifiedAccessInstanceTag {
     Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// The AWS::EC2::VerifiedAccessInstance resource creates an AWS EC2 Verified Access Instance.
@@ -42,28 +41,28 @@ open class VerifiedAccessInstance extends cloudformation.Resource {
     /// Indicates whether FIPS is enabled
     hidden FipsEnabled: (Boolean|Mapping)?
 
-    /// The IDs of the AWS Verified Access trust providers.
-    hidden VerifiedAccessTrustProviderIds: (Listing<VerifiedAccessTrustProviderId>)?
+    /// The configuration options for AWS Verified Access instances.
+    hidden LoggingConfigurations: (VerifiedAccessInstanceVerifiedAccessLogs)?
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<VerifiedAccessInstanceTag>)?
 
     /// A description for the AWS Verified Access instance.
     hidden Description: (String|Mapping)?
 
-    /// The configuration options for AWS Verified Access instances.
-    hidden LoggingConfigurations: (VerifiedAccessLogs)?
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
-
     /// AWS Verified Access trust providers.
-    hidden VerifiedAccessTrustProviders: (Listing<VerifiedAccessTrustProvider>)?
+    hidden VerifiedAccessTrustProviders: (Listing<VerifiedAccessInstanceVerifiedAccessTrustProvider>)?
+
+    /// The IDs of the AWS Verified Access trust providers.
+    hidden VerifiedAccessTrustProviderIds: (Listing<VerifiedAccessInstanceVerifiedAccessTrustProviderId>)?
 
     Properties {
         ["FipsEnabled"] = if (FipsEnabled == null) null else FipsEnabled
-        ["VerifiedAccessTrustProviderIds"] = if (VerifiedAccessTrustProviderIds == null) null else VerifiedAccessTrustProviderIds
-        ["Description"] = if (Description == null) null else Description
         ["LoggingConfigurations"] = if (LoggingConfigurations == null) null else LoggingConfigurations
         ["Tags"] = if (Tags == null) null else Tags
+        ["Description"] = if (Description == null) null else Description
         ["VerifiedAccessTrustProviders"] = if (VerifiedAccessTrustProviders == null) null else VerifiedAccessTrustProviders
+        ["VerifiedAccessTrustProviderIds"] = if (VerifiedAccessTrustProviderIds == null) null else VerifiedAccessTrustProviderIds
     }
 
 }

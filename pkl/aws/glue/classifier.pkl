@@ -6,37 +6,37 @@ module aws.glue.classifier
 import "../../cloudformation.pkl"
 
 /// 
-open class CsvClassifier {
-    ContainsHeader: (String|Mapping)?
-    Header: (Listing<String|Mapping>)?
-    AllowSingleColumn: (Boolean|Mapping)?
-    Name: (String|Mapping)?
-    ContainsCustomDatatype: (Listing<String|Mapping>)?
-    QuoteSymbol: (String|Mapping)?
-    Delimiter: (String|Mapping)?
-    CustomDatatypeConfigured: (Boolean|Mapping)?
-    DisableValueTrimming: (Boolean|Mapping)?
-}
-
-/// 
-open class GrokClassifier {
-    CustomPatterns: (String|Mapping)?
-    GrokPattern: String|Mapping
-    Classification: String|Mapping
-    Name: (String|Mapping)?
-}
-
-/// 
-open class XMLClassifier {
+open class ClassifierXMLClassifier {
     RowTag: String|Mapping
     Classification: String|Mapping
     Name: (String|Mapping)?
 }
 
 /// 
-open class JsonClassifier {
+open class ClassifierJsonClassifier {
     JsonPath: String|Mapping
     Name: (String|Mapping)?
+}
+
+/// 
+open class ClassifierCsvClassifier {
+    QuoteSymbol: (String|Mapping)?
+    CustomDatatypeConfigured: (Boolean|Mapping)?
+    Name: (String|Mapping)?
+    ContainsCustomDatatype: (Listing<String|Mapping>)?
+    ContainsHeader: (String|Mapping)?
+    Delimiter: (String|Mapping)?
+    Header: (Listing<String|Mapping>)?
+    AllowSingleColumn: (Boolean|Mapping)?
+    DisableValueTrimming: (Boolean|Mapping)?
+}
+
+/// 
+open class ClassifierGrokClassifier {
+    Classification: String|Mapping
+    Name: (String|Mapping)?
+    CustomPatterns: (String|Mapping)?
+    GrokPattern: String|Mapping
 }
 
 /// Resource Type definition for AWS::Glue::Classifier
@@ -46,16 +46,16 @@ open class Classifier extends cloudformation.Resource {
 
 
     /// 
-    hidden CsvClassifier: (CsvClassifier)?
+    hidden CsvClassifier: (ClassifierCsvClassifier)?
 
     /// 
-    hidden GrokClassifier: (GrokClassifier)?
+    hidden GrokClassifier: (ClassifierGrokClassifier)?
 
     /// 
-    hidden JsonClassifier: (JsonClassifier)?
+    hidden JsonClassifier: (ClassifierJsonClassifier)?
 
     /// 
-    hidden XMLClassifier: (XMLClassifier)?
+    hidden XMLClassifier: (ClassifierXMLClassifier)?
 
     Properties {
         ["CsvClassifier"] = if (CsvClassifier == null) null else CsvClassifier

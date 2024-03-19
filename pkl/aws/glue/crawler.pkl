@@ -6,50 +6,15 @@ module aws.glue.crawler
 import "../../cloudformation.pkl"
 
 /// 
-open class SchemaChangePolicy {
-    UpdateBehavior: (String|Mapping)?
-    DeleteBehavior: (String|Mapping)?
-}
-
-/// 
-open class Schedule {
-    ScheduleExpression: (String|Mapping)?
-}
-
-/// 
-open class JdbcTarget {
+open class CrawlerDeltaTarget {
     ConnectionName: (String|Mapping)?
-    Path: (String|Mapping)?
-    Exclusions: (Listing<String|Mapping>)?
+    CreateNativeDeltaTable: (Boolean|Mapping)?
+    WriteManifest: (Boolean|Mapping)?
+    DeltaTables: (Listing<String|Mapping>)?
 }
 
 /// 
-open class DynamoDBTarget {
-    Path: (String|Mapping)?
-}
-
-/// 
-open class Targets {
-    JdbcTargets: (Listing<JdbcTarget>)?
-    DynamoDBTargets: (Listing<DynamoDBTarget>)?
-    IcebergTargets: (Listing<IcebergTarget>)?
-    S3Targets: (Listing<S3Target>)?
-    CatalogTargets: (Listing<CatalogTarget>)?
-    DeltaTargets: (Listing<DeltaTarget>)?
-    MongoDBTargets: (Listing<MongoDBTarget>)?
-}
-
-/// 
-open class CatalogTarget {
-    Tables: (Listing<String|Mapping>)?
-    EventQueueArn: (String|Mapping)?
-    ConnectionName: (String|Mapping)?
-    DatabaseName: (String|Mapping)?
-    DlqEventQueueArn: (String|Mapping)?
-}
-
-/// 
-open class S3Target {
+open class CrawlerS3Target {
     Path: (String|Mapping)?
     SampleSize: (Int|Mapping)?
     Exclusions: (Listing<String|Mapping>)?
@@ -59,30 +24,65 @@ open class S3Target {
 }
 
 /// 
-open class IcebergTarget {
+open class CrawlerSchedule {
+    ScheduleExpression: (String|Mapping)?
+}
+
+/// 
+open class CrawlerJdbcTarget {
     ConnectionName: (String|Mapping)?
-    Paths: (Listing<String|Mapping>)?
+    Path: (String|Mapping)?
     Exclusions: (Listing<String|Mapping>)?
-    MaximumTraversalDepth: (Int|Mapping)?
 }
 
 /// 
-open class RecrawlPolicy {
-    RecrawlBehavior: (String|Mapping)?
+open class CrawlerTargets {
+    S3Targets: (Listing<CrawlerS3Target>)?
+    CatalogTargets: (Listing<CrawlerCatalogTarget>)?
+    DeltaTargets: (Listing<CrawlerDeltaTarget>)?
+    MongoDBTargets: (Listing<CrawlerMongoDBTarget>)?
+    JdbcTargets: (Listing<CrawlerJdbcTarget>)?
+    DynamoDBTargets: (Listing<CrawlerDynamoDBTarget>)?
+    IcebergTargets: (Listing<CrawlerIcebergTarget>)?
 }
 
 /// 
-open class MongoDBTarget {
-    ConnectionName: (String|Mapping)?
+open class CrawlerDynamoDBTarget {
     Path: (String|Mapping)?
 }
 
 /// 
-open class DeltaTarget {
+open class CrawlerSchemaChangePolicy {
+    DeleteBehavior: (String|Mapping)?
+    UpdateBehavior: (String|Mapping)?
+}
+
+/// 
+open class CrawlerIcebergTarget {
+    Exclusions: (Listing<String|Mapping>)?
+    MaximumTraversalDepth: (Int|Mapping)?
     ConnectionName: (String|Mapping)?
-    CreateNativeDeltaTable: (Boolean|Mapping)?
-    WriteManifest: (Boolean|Mapping)?
-    DeltaTables: (Listing<String|Mapping>)?
+    Paths: (Listing<String|Mapping>)?
+}
+
+/// 
+open class CrawlerRecrawlPolicy {
+    RecrawlBehavior: (String|Mapping)?
+}
+
+/// 
+open class CrawlerCatalogTarget {
+    DatabaseName: (String|Mapping)?
+    DlqEventQueueArn: (String|Mapping)?
+    Tables: (Listing<String|Mapping>)?
+    EventQueueArn: (String|Mapping)?
+    ConnectionName: (String|Mapping)?
+}
+
+/// 
+open class CrawlerMongoDBTarget {
+    ConnectionName: (String|Mapping)?
+    Path: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::Glue::Crawler
@@ -92,58 +92,58 @@ open class Crawler extends cloudformation.Resource {
 
 
     /// 
-    hidden SchemaChangePolicy: (SchemaChangePolicy)?
+    hidden Schedule: (CrawlerSchedule)?
 
     /// 
-    hidden Classifiers: (Listing<String|Mapping>)?
-
-    /// 
-    hidden RecrawlPolicy: (RecrawlPolicy)?
+    hidden Tags: (Dynamic)?
 
     /// 
     hidden DatabaseName: (String|Mapping)?
 
     /// 
-    hidden CrawlerSecurityConfiguration: (String|Mapping)?
-
-    /// 
     hidden Name: (String|Mapping)?
-
-    /// 
-    hidden Schedule: (Schedule)?
 
     /// 
     hidden Description: (String|Mapping)?
 
     /// 
+    hidden Role: String|Mapping
+
+    /// 
+    hidden SchemaChangePolicy: (CrawlerSchemaChangePolicy)?
+
+    /// 
     hidden Configuration: (String|Mapping)?
+
+    /// 
+    hidden Targets: CrawlerTargets
+
+    /// 
+    hidden CrawlerSecurityConfiguration: (String|Mapping)?
 
     /// 
     hidden TablePrefix: (String|Mapping)?
 
     /// 
-    hidden Targets: Targets
+    hidden Classifiers: (Listing<String|Mapping>)?
 
     /// 
-    hidden Role: String|Mapping
-
-    /// 
-    hidden Tags: (Dynamic)?
+    hidden RecrawlPolicy: (CrawlerRecrawlPolicy)?
 
     Properties {
+        ["Schedule"] = if (Schedule == null) null else Schedule
+        ["Tags"] = if (Tags == null) null else Tags
+        ["DatabaseName"] = if (DatabaseName == null) null else DatabaseName
+        ["Name"] = if (Name == null) null else Name
+        ["Description"] = if (Description == null) null else Description
+        ["Role"] = if (Role == null) null else Role
         ["SchemaChangePolicy"] = if (SchemaChangePolicy == null) null else SchemaChangePolicy
+        ["Configuration"] = if (Configuration == null) null else Configuration
+        ["Targets"] = if (Targets == null) null else Targets
+        ["CrawlerSecurityConfiguration"] = if (CrawlerSecurityConfiguration == null) null else CrawlerSecurityConfiguration
+        ["TablePrefix"] = if (TablePrefix == null) null else TablePrefix
         ["Classifiers"] = if (Classifiers == null) null else Classifiers
         ["RecrawlPolicy"] = if (RecrawlPolicy == null) null else RecrawlPolicy
-        ["DatabaseName"] = if (DatabaseName == null) null else DatabaseName
-        ["CrawlerSecurityConfiguration"] = if (CrawlerSecurityConfiguration == null) null else CrawlerSecurityConfiguration
-        ["Name"] = if (Name == null) null else Name
-        ["Schedule"] = if (Schedule == null) null else Schedule
-        ["Description"] = if (Description == null) null else Description
-        ["Configuration"] = if (Configuration == null) null else Configuration
-        ["TablePrefix"] = if (TablePrefix == null) null else TablePrefix
-        ["Targets"] = if (Targets == null) null else Targets
-        ["Role"] = if (Role == null) null else Role
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

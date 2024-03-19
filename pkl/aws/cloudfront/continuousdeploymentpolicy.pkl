@@ -5,43 +5,43 @@ module aws.cloudfront.continuousdeploymentpolicy
 
 import "../../cloudformation.pkl"
 
-/// 
-open class SingleHeaderConfig {
-    Header: String|Mapping
-    Value: String|Mapping
-}
-
-/// 
-open class SingleWeightConfig {
-    SessionStickinessConfig: (SessionStickinessConfig)?
-    Weight: Number|Mapping
-}
-
 typealias TrafficConfigType = "SingleWeight"|"SingleHeader"
 
 /// 
-open class TrafficConfig {
-    SingleHeaderConfig: (SingleHeaderConfig)?
-    SingleWeightConfig: (SingleWeightConfig)?
+open class ContinuousDeploymentPolicyTrafficConfig {
+    SingleHeaderConfig: (ContinuousDeploymentPolicySingleHeaderConfig)?
+    SingleWeightConfig: (ContinuousDeploymentPolicySingleWeightConfig)?
     Type: TrafficConfigType|Mapping
 }
 
 typealias ContinuousDeploymentPolicyConfigType = "SingleWeight"|"SingleHeader"
 
 /// 
-open class ContinuousDeploymentPolicyConfig {
+open class ContinuousDeploymentPolicyContinuousDeploymentPolicyConfig {
+    StagingDistributionDnsNames: Listing<String|Mapping>
+    TrafficConfig: (ContinuousDeploymentPolicyTrafficConfig)?
+    Type: (ContinuousDeploymentPolicyConfigType|Mapping)?
     Enabled: Boolean|Mapping
     SingleHeaderPolicyConfig: (Dynamic)?
     SingleWeightPolicyConfig: (Dynamic)?
-    StagingDistributionDnsNames: Listing<String|Mapping>
-    TrafficConfig: (TrafficConfig)?
-    Type: (ContinuousDeploymentPolicyConfigType|Mapping)?
 }
 
 /// 
-open class SessionStickinessConfig {
-    MaximumTTL: Int|Mapping
+open class ContinuousDeploymentPolicySessionStickinessConfig {
     IdleTTL: Int|Mapping
+    MaximumTTL: Int|Mapping
+}
+
+/// 
+open class ContinuousDeploymentPolicySingleHeaderConfig {
+    Header: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class ContinuousDeploymentPolicySingleWeightConfig {
+    SessionStickinessConfig: (ContinuousDeploymentPolicySessionStickinessConfig)?
+    Weight: Number|Mapping
 }
 
 /// Resource Type definition for AWS::CloudFront::ContinuousDeploymentPolicy
@@ -51,7 +51,7 @@ open class ContinuousDeploymentPolicy extends cloudformation.Resource {
 
 
     /// 
-    hidden ContinuousDeploymentPolicyConfig: ContinuousDeploymentPolicyConfig
+    hidden ContinuousDeploymentPolicyConfig: ContinuousDeploymentPolicyContinuousDeploymentPolicyConfig
 
     Properties {
         ["ContinuousDeploymentPolicyConfig"] = if (ContinuousDeploymentPolicyConfig == null) null else ContinuousDeploymentPolicyConfig

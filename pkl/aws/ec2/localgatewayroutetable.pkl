@@ -5,14 +5,13 @@ module aws.ec2.localgatewayroutetable
 
 import "../../cloudformation.pkl"
 
-/// 
-open class Tags {
-}
+typealias LocalGatewayRouteTableTags = Listing<(LocalGatewayRouteTableTag)?>
+
 
 /// 
-open class Tag {
-    Value: (String(matches(Regex(#"^(?!aws:.*)"#)))|Mapping)?
+open class LocalGatewayRouteTableTag {
     Key: (String(matches(Regex(#"^(?!aws:.*)"#)))|Mapping)?
+    Value: (String(matches(Regex(#"^(?!aws:.*)"#)))|Mapping)?
 }
 
 /// Describes a route table for a local gateway.
@@ -21,19 +20,19 @@ open class LocalGatewayRouteTable extends cloudformation.Resource {
     Type = "AWS::EC2::LocalGatewayRouteTable"
 
 
+    /// The ID of the local gateway.
+    hidden LocalGatewayId: String|Mapping
+
     /// The mode of the local gateway route table.
     hidden Mode: (String|Mapping)?
 
     /// The tags for the local gateway route table.
-    hidden Tags: (Tags)?
-
-    /// The ID of the local gateway.
-    hidden LocalGatewayId: String|Mapping
+    hidden Tags: (LocalGatewayRouteTableTags)?
 
     Properties {
+        ["LocalGatewayId"] = if (LocalGatewayId == null) null else LocalGatewayId
         ["Mode"] = if (Mode == null) null else Mode
         ["Tags"] = if (Tags == null) null else Tags
-        ["LocalGatewayId"] = if (LocalGatewayId == null) null else LocalGatewayId
     }
 
 }

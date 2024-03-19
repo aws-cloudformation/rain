@@ -5,96 +5,12 @@ module aws.datasync.task
 
 import "../../cloudformation.pkl"
 
-/// Specifies the Amazon S3 bucket where DataSync uploads your task report.
-open class TaskReportConfigDestinationS3 {
-    Subdirectory: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\p{Zs}]*$"#)))|Mapping)?
-    BucketAccessRoleArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):iam::[0-9]{12}:role/.*$"#)))|Mapping)?
-    S3BucketArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):(s3|s3-outposts):[a-z\-0-9]*:[0-9]*:.*$"#)))|Mapping)?
-}
-
-typealias ManifestConfigAction = "TRANSFER"
-
-typealias ManifestConfigFormat = "CSV"
-
-/// Configures a manifest, which is a list of files or objects that you want DataSync to transfer.
-open class ManifestConfig {
-    Action: (ManifestConfigAction|Mapping)?
-    Format: (ManifestConfigFormat|Mapping)?
-    Source: Dynamic
-}
-
-/// Specifies the S3 bucket where you're hosting the manifest that you want AWS DataSync to use.
-open class ManifestConfigSourceS3 {
-    ManifestObjectPath: (String(matches(Regex(#"^[\p{L}\p{M}\p{Z}\p{S}\p{N}\p{P}\p{C}]*$"#)))|Mapping)?
-    BucketAccessRoleArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):iam::[0-9]{12}:role/.*$"#)))|Mapping)?
-    S3BucketArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):(s3|s3-outposts):[a-z\-0-9]*:[0-9]*:.*$"#)))|Mapping)?
-    ManifestObjectVersionId: (String(matches(Regex(#"^.+$"#)))|Mapping)?
-}
-
-/// Specifies the schedule you want your task to use for repeated executions.
-open class TaskSchedule {
-    ScheduleExpression: String(matches(Regex(#"^[a-zA-Z0-9\ \_\*\?\,\|\^\-\/\#\s\(\)\+]*$"#)))|Mapping
-}
-
-typealias OptionsMtime = "NONE"|"PRESERVE"
-
-typealias OptionsPreserveDeletedFiles = "PRESERVE"|"REMOVE"
-
-typealias OptionsPreserveDevices = "NONE"|"PRESERVE"
-
-typealias OptionsTransferMode = "CHANGED"|"ALL"
-
-typealias OptionsUid = "NONE"|"INT_VALUE"|"NAME"|"BOTH"
-
-typealias OptionsObjectTags = "PRESERVE"|"NONE"
-
-typealias OptionsLogLevel = "OFF"|"BASIC"|"TRANSFER"
-
-typealias OptionsVerifyMode = "POINT_IN_TIME_CONSISTENT"|"ONLY_FILES_TRANSFERRED"|"NONE"
-
-typealias OptionsAtime = "NONE"|"BEST_EFFORT"
-
-typealias OptionsGid = "NONE"|"INT_VALUE"|"NAME"|"BOTH"
-
-typealias OptionsOverwriteMode = "ALWAYS"|"NEVER"
-
-typealias OptionsPosixPermissions = "NONE"|"PRESERVE"
-
-typealias OptionsSecurityDescriptorCopyFlags = "NONE"|"OWNER_DACL"|"OWNER_DACL_SACL"
-
-typealias OptionsTaskQueueing = "ENABLED"|"DISABLED"
-
-/// Represents the options that are available to control the behavior of a StartTaskExecution operation.
-open class Options {
-    Mtime: (OptionsMtime|Mapping)?
-    PreserveDeletedFiles: (OptionsPreserveDeletedFiles|Mapping)?
-    PreserveDevices: (OptionsPreserveDevices|Mapping)?
-    TransferMode: (OptionsTransferMode|Mapping)?
-    Uid: (OptionsUid|Mapping)?
-    ObjectTags: (OptionsObjectTags|Mapping)?
-    BytesPerSecond: (Int|Mapping)?
-    LogLevel: (OptionsLogLevel|Mapping)?
-    VerifyMode: (OptionsVerifyMode|Mapping)?
-    Atime: (OptionsAtime|Mapping)?
-    Gid: (OptionsGid|Mapping)?
-    OverwriteMode: (OptionsOverwriteMode|Mapping)?
-    PosixPermissions: (OptionsPosixPermissions|Mapping)?
-    SecurityDescriptorCopyFlags: (OptionsSecurityDescriptorCopyFlags|Mapping)?
-    TaskQueueing: (OptionsTaskQueueing|Mapping)?
-}
-
 typealias FilterRuleFilterType = "SIMPLE_PATTERN"
 
 /// Specifies which files folders and objects to include or exclude when transferring files from source to destination.
-open class FilterRule {
+open class TaskFilterRule {
     FilterType: (FilterRuleFilterType|Mapping)?
     Value: (String(matches(Regex(#"^[^\x00]+$"#)))|Mapping)?
-}
-
-/// A key-value pair to associate with a resource.
-open class Tag {
-    Key: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:/-]+$"#)))|Mapping
-    Value: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:@/-]+$"#)))|Mapping
 }
 
 typealias TaskReportConfigOutputType = "SUMMARY_ONLY"|"STANDARD"
@@ -104,21 +20,103 @@ typealias TaskReportConfigReportLevel = "ERRORS_ONLY"|"SUCCESSES_AND_ERRORS"
 typealias TaskReportConfigObjectVersionIds = "INCLUDE"|"NONE"
 
 /// Specifies how you want to configure a task report, which provides detailed information about for your Datasync transfer.
-open class TaskReportConfig {
+open class TaskTaskReportConfig {
+    Overrides: (Dynamic)?
     Destination: Dynamic
     OutputType: TaskReportConfigOutputType|Mapping
     ReportLevel: (TaskReportConfigReportLevel|Mapping)?
     ObjectVersionIds: (TaskReportConfigObjectVersionIds|Mapping)?
-    Overrides: (Dynamic)?
 }
 
-/// The Amazon Resource Names (ARNs) of the source ENIs (Elastic Network Interfaces) that were created for your subnet.
-open class SourceNetworkInterfaceArns {
+/// Specifies the Amazon S3 bucket where DataSync uploads your task report.
+open class TaskTaskReportConfigDestinationS3 {
+    Subdirectory: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\p{Zs}]*$"#)))|Mapping)?
+    BucketAccessRoleArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):iam::[0-9]{12}:role/.*$"#)))|Mapping)?
+    S3BucketArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):(s3|s3-outposts):[a-z\-0-9]*:[0-9]*:.*$"#)))|Mapping)?
 }
 
-/// The Amazon Resource Names (ARNs) of the destination ENIs (Elastic Network Interfaces) that were created for your subnet.
-open class DestinationNetworkInterfaceArns {
+/// Specifies the S3 bucket where you're hosting the manifest that you want AWS DataSync to use.
+open class TaskManifestConfigSourceS3 {
+    S3BucketArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):(s3|s3-outposts):[a-z\-0-9]*:[0-9]*:.*$"#)))|Mapping)?
+    ManifestObjectVersionId: (String(matches(Regex(#"^.+$"#)))|Mapping)?
+    ManifestObjectPath: (String(matches(Regex(#"^[\p{L}\p{M}\p{Z}\p{S}\p{N}\p{P}\p{C}]*$"#)))|Mapping)?
+    BucketAccessRoleArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):iam::[0-9]{12}:role/.*$"#)))|Mapping)?
 }
+
+typealias OptionsSecurityDescriptorCopyFlags = "NONE"|"OWNER_DACL"|"OWNER_DACL_SACL"
+
+typealias OptionsObjectTags = "PRESERVE"|"NONE"
+
+typealias OptionsGid = "NONE"|"INT_VALUE"|"NAME"|"BOTH"
+
+typealias OptionsLogLevel = "OFF"|"BASIC"|"TRANSFER"
+
+typealias OptionsPreserveDeletedFiles = "PRESERVE"|"REMOVE"
+
+typealias OptionsPreserveDevices = "NONE"|"PRESERVE"
+
+typealias OptionsUid = "NONE"|"INT_VALUE"|"NAME"|"BOTH"
+
+typealias OptionsPosixPermissions = "NONE"|"PRESERVE"
+
+typealias OptionsTaskQueueing = "ENABLED"|"DISABLED"
+
+typealias OptionsVerifyMode = "POINT_IN_TIME_CONSISTENT"|"ONLY_FILES_TRANSFERRED"|"NONE"
+
+typealias OptionsAtime = "NONE"|"BEST_EFFORT"
+
+typealias OptionsMtime = "NONE"|"PRESERVE"
+
+typealias OptionsOverwriteMode = "ALWAYS"|"NEVER"
+
+typealias OptionsTransferMode = "CHANGED"|"ALL"
+
+/// Represents the options that are available to control the behavior of a StartTaskExecution operation.
+open class TaskOptions {
+    SecurityDescriptorCopyFlags: (OptionsSecurityDescriptorCopyFlags|Mapping)?
+    ObjectTags: (OptionsObjectTags|Mapping)?
+    BytesPerSecond: (Int|Mapping)?
+    Gid: (OptionsGid|Mapping)?
+    LogLevel: (OptionsLogLevel|Mapping)?
+    PreserveDeletedFiles: (OptionsPreserveDeletedFiles|Mapping)?
+    PreserveDevices: (OptionsPreserveDevices|Mapping)?
+    Uid: (OptionsUid|Mapping)?
+    PosixPermissions: (OptionsPosixPermissions|Mapping)?
+    TaskQueueing: (OptionsTaskQueueing|Mapping)?
+    VerifyMode: (OptionsVerifyMode|Mapping)?
+    Atime: (OptionsAtime|Mapping)?
+    Mtime: (OptionsMtime|Mapping)?
+    OverwriteMode: (OptionsOverwriteMode|Mapping)?
+    TransferMode: (OptionsTransferMode|Mapping)?
+}
+
+typealias TaskDestinationNetworkInterfaceArns = Listing<(String(matches(Regex(#"^arn:aws[\-a-z]{0,}:ec2:[a-z\-0-9]*:[0-9]{12}:network-interface/eni-[0-9a-f]+$"#)))|Mapping)?>
+
+
+/// A key-value pair to associate with a resource.
+open class TaskTag {
+    Key: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:/-]+$"#)))|Mapping
+    Value: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:@/-]+$"#)))|Mapping
+}
+
+typealias ManifestConfigAction = "TRANSFER"
+
+typealias ManifestConfigFormat = "CSV"
+
+/// Configures a manifest, which is a list of files or objects that you want DataSync to transfer.
+open class TaskManifestConfig {
+    Action: (ManifestConfigAction|Mapping)?
+    Format: (ManifestConfigFormat|Mapping)?
+    Source: Dynamic
+}
+
+/// Specifies the schedule you want your task to use for repeated executions.
+open class TaskTaskSchedule {
+    ScheduleExpression: String(matches(Regex(#"^[a-zA-Z0-9\ \_\*\?\,\|\^\-\/\#\s\(\)\+]*$"#)))|Mapping
+}
+
+typealias TaskSourceNetworkInterfaceArns = Listing<(String(matches(Regex(#"^arn:aws[\-a-z]{0,}:ec2:[a-z\-0-9]*:[0-9]{12}:network-interface/eni-[0-9a-f]+$"#)))|Mapping)?>
+
 
 /// Resource schema for AWS::DataSync::Task.
 open class Task extends cloudformation.Resource {
@@ -127,50 +125,50 @@ open class Task extends cloudformation.Resource {
 
 
     /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<TaskTag>)?
 
-    /// The ARN of an AWS storage resource's location.
-    hidden DestinationLocationArn: String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):datasync:[a-z\-0-9]+:[0-9]{12}:location/loc-[0-9a-z]{17}$"#)))|Mapping
+    /// The ARN of the Amazon CloudWatch log group that is used to monitor and log events in the task.
+    hidden CloudWatchLogGroupArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):logs:[a-z\-0-9]*:[0-9]{12}:log-group:([^:\*]*)(:\*)?$"#)))|Mapping)?
 
     /// The name of a task. This value is a text reference that is used to identify the task in the console.
     hidden Name: (String(matches(Regex(#"^[a-zA-Z0-9\s+=._:@/-]+$"#)))|Mapping)?
 
     /// 
-    hidden Options: (Options)?
-
-    /// The ARN of the Amazon CloudWatch log group that is used to monitor and log events in the task.
-    hidden CloudWatchLogGroupArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):logs:[a-z\-0-9]*:[0-9]{12}:log-group:([^:\*]*)(:\*)?$"#)))|Mapping)?
+    hidden TaskReportConfig: (TaskTaskReportConfig)?
 
     /// 
-    hidden TaskReportConfig: (TaskReportConfig)?
-
-    /// 
-    hidden Excludes: (Listing<FilterRule>)?
-
-    /// 
-    hidden ManifestConfig: (ManifestConfig)?
-
-    /// 
-    hidden Schedule: (TaskSchedule)?
-
-    /// 
-    hidden Includes: (Listing<FilterRule>)?
+    hidden ManifestConfig: (TaskManifestConfig)?
 
     /// The ARN of the source location for the task.
     hidden SourceLocationArn: String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):datasync:[a-z\-0-9]+:[0-9]{12}:location/loc-[0-9a-z]{17}$"#)))|Mapping
 
+    /// 
+    hidden Excludes: (Listing<TaskFilterRule>)?
+
+    /// 
+    hidden Options: (TaskOptions)?
+
+    /// 
+    hidden Schedule: (TaskTaskSchedule)?
+
+    /// 
+    hidden Includes: (Listing<TaskFilterRule>)?
+
+    /// The ARN of an AWS storage resource's location.
+    hidden DestinationLocationArn: String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):datasync:[a-z\-0-9]+:[0-9]{12}:location/loc-[0-9a-z]{17}$"#)))|Mapping
+
     Properties {
         ["Tags"] = if (Tags == null) null else Tags
-        ["DestinationLocationArn"] = if (DestinationLocationArn == null) null else DestinationLocationArn
-        ["Name"] = if (Name == null) null else Name
-        ["Options"] = if (Options == null) null else Options
         ["CloudWatchLogGroupArn"] = if (CloudWatchLogGroupArn == null) null else CloudWatchLogGroupArn
+        ["Name"] = if (Name == null) null else Name
         ["TaskReportConfig"] = if (TaskReportConfig == null) null else TaskReportConfig
-        ["Excludes"] = if (Excludes == null) null else Excludes
         ["ManifestConfig"] = if (ManifestConfig == null) null else ManifestConfig
+        ["SourceLocationArn"] = if (SourceLocationArn == null) null else SourceLocationArn
+        ["Excludes"] = if (Excludes == null) null else Excludes
+        ["Options"] = if (Options == null) null else Options
         ["Schedule"] = if (Schedule == null) null else Schedule
         ["Includes"] = if (Includes == null) null else Includes
-        ["SourceLocationArn"] = if (SourceLocationArn == null) null else SourceLocationArn
+        ["DestinationLocationArn"] = if (DestinationLocationArn == null) null else DestinationLocationArn
     }
 
 }

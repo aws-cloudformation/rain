@@ -6,17 +6,17 @@ module aws.iotwireless.multicastgroup
 import "../../cloudformation.pkl"
 
 /// 
-open class Tag {
-    Value: (String|Mapping)?
-    Key: (String|Mapping)?
-}
-
-/// 
-open class LoRaWAN {
+open class MulticastGroupLoRaWAN {
+    RfRegion: String|Mapping
     DlClass: String|Mapping
     NumberOfDevicesRequested: (Int|Mapping)?
     NumberOfDevicesInGroup: (Int|Mapping)?
-    RfRegion: String|Mapping
+}
+
+/// 
+open class MulticastGroupTag {
+    Key: (String|Mapping)?
+    Value: (String|Mapping)?
 }
 
 /// Create and manage Multicast groups.
@@ -28,28 +28,28 @@ open class MulticastGroup extends cloudformation.Resource {
     /// Wireless device to associate. Only for update request.
     hidden AssociateWirelessDevice: (String|Mapping)?
 
+    /// Wireless device to disassociate. Only for update request.
+    hidden DisassociateWirelessDevice: (String|Mapping)?
+
     /// Name of Multicast group
     hidden Name: (String|Mapping)?
 
-    /// Multicast group LoRaWAN
-    hidden LoRaWAN: LoRaWAN
+    /// A list of key-value pairs that contain metadata for the Multicast group.
+    hidden Tags: (Listing<MulticastGroupTag>)?
 
     /// Multicast group description
     hidden Description: (String|Mapping)?
 
-    /// A list of key-value pairs that contain metadata for the Multicast group.
-    hidden Tags: (Listing<Tag>)?
-
-    /// Wireless device to disassociate. Only for update request.
-    hidden DisassociateWirelessDevice: (String|Mapping)?
+    /// Multicast group LoRaWAN
+    hidden LoRaWAN: MulticastGroupLoRaWAN
 
     Properties {
         ["AssociateWirelessDevice"] = if (AssociateWirelessDevice == null) null else AssociateWirelessDevice
-        ["Name"] = if (Name == null) null else Name
-        ["LoRaWAN"] = if (LoRaWAN == null) null else LoRaWAN
-        ["Description"] = if (Description == null) null else Description
-        ["Tags"] = if (Tags == null) null else Tags
         ["DisassociateWirelessDevice"] = if (DisassociateWirelessDevice == null) null else DisassociateWirelessDevice
+        ["Name"] = if (Name == null) null else Name
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Description"] = if (Description == null) null else Description
+        ["LoRaWAN"] = if (LoRaWAN == null) null else LoRaWAN
     }
 
 }

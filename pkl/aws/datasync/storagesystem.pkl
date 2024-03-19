@@ -5,22 +5,22 @@ module aws.datasync.storagesystem
 
 import "../../cloudformation.pkl"
 
+/// A key-value pair to associate with a resource.
+open class StorageSystemTag {
+    Key: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:/-]+$"#)))|Mapping
+    Value: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:@/-]+$"#)))|Mapping
+}
+
 /// The server name and network port required to connect with the management interface of the on-premises storage system.
-open class ServerConfiguration {
+open class StorageSystemServerConfiguration {
     ServerHostname: String(matches(Regex(#"^(([a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9\-]*[A-Za-z0-9])$"#)))|Mapping
     ServerPort: (Int|Mapping)?
 }
 
 /// The username and password for accessing your on-premises storage system's management interface.
-open class ServerCredentials {
+open class StorageSystemServerCredentials {
     Username: String|Mapping
     Password: String|Mapping
-}
-
-/// A key-value pair to associate with a resource.
-open class Tag {
-    Key: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:/-]+$"#)))|Mapping
-    Value: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:@/-]+$"#)))|Mapping
 }
 
 /// Resource schema for AWS::DataSync::StorageSystem.
@@ -29,35 +29,35 @@ open class StorageSystem extends cloudformation.Resource {
     Type = "AWS::DataSync::StorageSystem"
 
 
-    /// 
-    hidden ServerConfiguration: ServerConfiguration
-
-    /// A familiar name for the on-premises storage system.
-    hidden Name: (String(matches(Regex(#"^[a-zA-Z0-9\s+=._:@/-]+$"#)))|Mapping)?
-
     /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<StorageSystemTag>)?
 
     /// 
-    hidden ServerCredentials: (ServerCredentials)?
-
-    /// The type of on-premises storage system that DataSync Discovery will analyze.
-    hidden SystemType: StorageSystemSystemType|Mapping
-
-    /// The ARN of the DataSync agent that connects to and reads from the on-premises storage system's management interface.
-    hidden AgentArns: Listing<String|Mapping>
+    hidden ServerCredentials: (StorageSystemServerCredentials)?
 
     /// The ARN of the Amazon CloudWatch log group used to monitor and log discovery job events.
     hidden CloudWatchLogGroupArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):logs:[a-z\-0-9]+:[0-9]{12}:log-group:([^:\*]*)(:\*)?$"#)))|Mapping)?
 
+    /// A familiar name for the on-premises storage system.
+    hidden Name: (String(matches(Regex(#"^[a-zA-Z0-9\s+=._:@/-]+$"#)))|Mapping)?
+
+    /// The ARN of the DataSync agent that connects to and reads from the on-premises storage system's management interface.
+    hidden AgentArns: Listing<String|Mapping>
+
+    /// 
+    hidden ServerConfiguration: StorageSystemServerConfiguration
+
+    /// The type of on-premises storage system that DataSync Discovery will analyze.
+    hidden SystemType: StorageSystemSystemType|Mapping
+
     Properties {
-        ["ServerConfiguration"] = if (ServerConfiguration == null) null else ServerConfiguration
-        ["Name"] = if (Name == null) null else Name
         ["Tags"] = if (Tags == null) null else Tags
         ["ServerCredentials"] = if (ServerCredentials == null) null else ServerCredentials
-        ["SystemType"] = if (SystemType == null) null else SystemType
-        ["AgentArns"] = if (AgentArns == null) null else AgentArns
         ["CloudWatchLogGroupArn"] = if (CloudWatchLogGroupArn == null) null else CloudWatchLogGroupArn
+        ["Name"] = if (Name == null) null else Name
+        ["AgentArns"] = if (AgentArns == null) null else AgentArns
+        ["ServerConfiguration"] = if (ServerConfiguration == null) null else ServerConfiguration
+        ["SystemType"] = if (SystemType == null) null else SystemType
     }
 
 }

@@ -6,40 +6,35 @@ module aws.athena.capacityreservation
 import "../../cloudformation.pkl"
 
 /// 
-open class CapacityAssignment {
-    WorkgroupNames: WorkgroupNames
-}
-
-/// List of capacity assignments
-open class CapacityAssignments {
-}
-
-/// Assignment configuration to assign workgroups to a reservation
-open class CapacityAssignmentConfiguration {
-    CapacityAssignments: CapacityAssignments
-}
-
-/// 
-open class CapacityReservationStatus {
-}
-
-/// The Amazon Resource Name (ARN) of the specified capacity reservation
-open class Arn {
-}
-
-/// 
-open class Tag {
+open class CapacityReservationTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
-/// 
-open class WorkgroupName {
-}
+typealias CapacityReservationWorkgroupName = String|Mapping
+
+
+typealias CapacityReservationWorkgroupNames = Listing<(CapacityReservationWorkgroupName)?>
+
 
 /// 
-open class WorkgroupNames {
+open class CapacityReservationCapacityAssignment {
+    WorkgroupNames: CapacityReservationWorkgroupNames
 }
+
+typealias CapacityReservationCapacityAssignments = Listing<(CapacityReservationCapacityAssignment)?>
+
+
+/// Assignment configuration to assign workgroups to a reservation
+open class CapacityReservationCapacityAssignmentConfiguration {
+    CapacityAssignments: CapacityReservationCapacityAssignments
+}
+
+typealias CapacityReservationCapacityReservationStatus = String|Mapping
+
+
+typealias CapacityReservationArn = String|Mapping
+
 
 /// Resource schema for AWS::Athena::CapacityReservation
 open class CapacityReservation extends cloudformation.Resource {
@@ -54,10 +49,10 @@ open class CapacityReservation extends cloudformation.Resource {
     hidden Name: String(matches(Regex(#"[a-zA-Z0-9._-]{1,128}"#)))|Mapping
 
     /// 
-    hidden CapacityAssignmentConfiguration: (CapacityAssignmentConfiguration)?
+    hidden CapacityAssignmentConfiguration: (CapacityReservationCapacityAssignmentConfiguration)?
 
     /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<CapacityReservationTag>)?
 
     Properties {
         ["TargetDpus"] = if (TargetDpus == null) null else TargetDpus

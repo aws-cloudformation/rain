@@ -1,0 +1,263 @@
+{
+  "typeName": "AWS::ImageBuilder::Image",
+  "description": "Resource schema for AWS::ImageBuilder::Image",
+  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-imagebuilder",
+  "properties": {
+    "Arn": {
+      "description": "The Amazon Resource Name (ARN) of the image.",
+      "type": "string"
+    },
+    "Name": {
+      "description": "The name of the image.",
+      "type": "string"
+    },
+    "ImageTestsConfiguration": {
+      "description": "The image tests configuration used when creating this image.",
+      "$ref": "#/definitions/ImageTestsConfiguration"
+    },
+    "ImageRecipeArn": {
+      "description": "The Amazon Resource Name (ARN) of the image recipe that defines how images are configured, tested, and assessed.",
+      "type": "string"
+    },
+    "ContainerRecipeArn": {
+      "description": "The Amazon Resource Name (ARN) of the container recipe that defines how images are configured and tested.",
+      "type": "string"
+    },
+    "DistributionConfigurationArn": {
+      "description": "The Amazon Resource Name (ARN) of the distribution configuration.",
+      "type": "string"
+    },
+    "InfrastructureConfigurationArn": {
+      "description": "The Amazon Resource Name (ARN) of the infrastructure configuration.",
+      "type": "string"
+    },
+    "Workflows": {
+      "description": "Workflows to define the image build process",
+      "type": "array",
+      "insertionOrder": true,
+      "items": {
+        "$ref": "#/definitions/WorkflowConfiguration"
+      }
+    },
+    "ImageId": {
+      "description": "The AMI ID of the EC2 AMI in current region.",
+      "type": "string"
+    },
+    "ImageUri": {
+      "description": "URI for containers created in current Region with default ECR image tag",
+      "type": "string"
+    },
+    "EnhancedImageMetadataEnabled": {
+      "description": "Collects additional information about the image being created, including the operating system (OS) version and package list.",
+      "type": "boolean"
+    },
+    "ImageScanningConfiguration": {
+      "description": "Contains settings for vulnerability scans.",
+      "$ref": "#/definitions/ImageScanningConfiguration"
+    },
+    "ExecutionRole": {
+      "description": "The execution role name/ARN for the image build, if provided",
+      "type": "string"
+    },
+    "Tags": {
+      "description": "The tags associated with the image.",
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        ".{1,}": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "ImageTestsConfiguration": {
+      "description": "The image tests configuration used when creating this image.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ImageTestsEnabled": {
+          "description": "ImageTestsEnabled",
+          "type": "boolean"
+        },
+        "TimeoutMinutes": {
+          "description": "TimeoutMinutes",
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 1440
+        }
+      }
+    },
+    "ImageScanningConfiguration": {
+      "description": "Contains settings for Image Builder image resource and container image scans.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "EcrConfiguration": {
+          "description": "Contains ECR settings for vulnerability scans.",
+          "$ref": "#/definitions/EcrConfiguration"
+        },
+        "ImageScanningEnabled": {
+          "description": "This sets whether Image Builder keeps a snapshot of the vulnerability scans that Amazon Inspector runs against the build instance when you create a new image.",
+          "type": "boolean"
+        }
+      }
+    },
+    "EcrConfiguration": {
+      "description": "Settings for Image Builder to configure the ECR repository and output container images that are scanned.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ContainerTags": {
+          "description": "Tags for Image Builder to apply the output container image that is scanned. Tags can help you identify and manage your scanned images.",
+          "type": "array",
+          "insertionOrder": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "RepositoryName": {
+          "description": "The name of the container repository that Amazon Inspector scans to identify findings for your container images. The name includes the path for the repository location. If you don?t provide this information, Image Builder creates a repository in your account named image-builder-image-scanning-repository to use for vulnerability scans for your output container images.",
+          "type": "string"
+        }
+      }
+    },
+    "WorkflowConfiguration": {
+      "description": "The workflow configuration of the image",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "WorkflowArn": {
+          "description": "The Amazon Resource Name (ARN) of the workflow",
+          "type": "string"
+        },
+        "Parameters": {
+          "description": "The parameters associated with the workflow",
+          "type": "array",
+          "insertionOrder": false,
+          "items": {
+            "$ref": "#/definitions/WorkflowParameter"
+          }
+        },
+        "ParallelGroup": {
+          "description": "The parallel group name",
+          "type": "string"
+        },
+        "OnFailure": {
+          "description": "Define execution decision in case of workflow failure",
+          "type": "string",
+          "enum": [
+            "CONTINUE",
+            "ABORT"
+          ]
+        }
+      }
+    },
+    "WorkflowParameter": {
+      "description": "A parameter associated with the workflow",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Name": {
+          "type": "string"
+        },
+        "Value": {
+          "type": "array",
+          "insertionOrder": true,
+          "items": {
+            "$ref": "#/definitions/WorkflowParameterValue"
+          }
+        }
+      }
+    },
+    "WorkflowParameterValue": {
+      "description": "The value associated with the workflow parameter",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "oneOf": [
+    {
+      "required": [
+        "ContainerRecipeArn",
+        "InfrastructureConfigurationArn"
+      ]
+    },
+    {
+      "required": [
+        "ImageRecipeArn",
+        "InfrastructureConfigurationArn"
+      ]
+    }
+  ],
+  "primaryIdentifier": [
+    "/properties/Arn"
+  ],
+  "readOnlyProperties": [
+    "/properties/Arn",
+    "/properties/Name",
+    "/properties/ImageId",
+    "/properties/ImageUri"
+  ],
+  "createOnlyProperties": [
+    "/properties/ImageRecipeArn",
+    "/properties/ContainerRecipeArn",
+    "/properties/InfrastructureConfigurationArn",
+    "/properties/Workflows",
+    "/properties/DistributionConfigurationArn",
+    "/properties/ImageTestsConfiguration",
+    "/properties/ImageScanningConfiguration",
+    "/properties/EnhancedImageMetadataEnabled",
+    "/properties/Tags"
+  ],
+  "tagging": {
+    "taggable": false
+  },
+  "handlers": {
+    "create": {
+      "permissions": [
+        "ecr:BatchGetRepositoryScanningConfiguration",
+        "iam:GetRole",
+        "iam:PassRole",
+        "iam:CreateServiceLinkedRole",
+        "imagebuilder:GetImageRecipe",
+        "imagebuilder:GetInfrastructureConfiguration",
+        "imagebuilder:GetDistributionConfiguration",
+        "imagebuilder:GetWorkflow",
+        "imagebuilder:GetImage",
+        "imagebuilder:CreateImage",
+        "imagebuilder:TagResource",
+        "inspector2:BatchGetAccountStatus"
+      ],
+      "timeoutInMinutes": 720
+    },
+    "read": {
+      "permissions": [
+        "imagebuilder:GetImage"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "imagebuilder:GetImage",
+        "imagebuilder:DeleteImage",
+        "imagebuilder:UnTagResource",
+        "imagebuilder:CancelImageCreation"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "imagebuilder:ListImages"
+      ],
+      "handlerSchema": {
+        "properties": {
+          "Arn": {
+            "$ref": "resource-schema.json#/properties/Arn"
+          }
+        },
+        "required": [
+          "Arn"
+        ]
+      }
+    }
+  }
+}

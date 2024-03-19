@@ -6,41 +6,41 @@ module aws.codedeploy.deploymentconfig
 import "../../cloudformation.pkl"
 
 /// 
-open class MinimumHealthyHostsPerZone {
+open class DeploymentConfigTrafficRoutingConfig {
+    Type: String|Mapping
+    TimeBasedLinear: (DeploymentConfigTimeBasedLinear)?
+    TimeBasedCanary: (DeploymentConfigTimeBasedCanary)?
+}
+
+/// 
+open class DeploymentConfigMinimumHealthyHostsPerZone {
     Value: Int|Mapping
     Type: String|Mapping
 }
 
 /// 
-open class ZonalConfig {
+open class DeploymentConfigZonalConfig {
     MonitorDurationInSeconds: (Int|Mapping)?
-    MinimumHealthyHostsPerZone: (MinimumHealthyHostsPerZone)?
+    MinimumHealthyHostsPerZone: (DeploymentConfigMinimumHealthyHostsPerZone)?
     FirstZoneMonitorDurationInSeconds: (Int|Mapping)?
 }
 
 /// 
-open class MinimumHealthyHosts {
+open class DeploymentConfigMinimumHealthyHosts {
     Value: Int|Mapping
     Type: String|Mapping
 }
 
 /// 
-open class TimeBasedLinear {
+open class DeploymentConfigTimeBasedLinear {
     LinearInterval: Int|Mapping
     LinearPercentage: Int|Mapping
 }
 
 /// 
-open class TimeBasedCanary {
+open class DeploymentConfigTimeBasedCanary {
     CanaryPercentage: Int|Mapping
     CanaryInterval: Int|Mapping
-}
-
-/// 
-open class TrafficRoutingConfig {
-    TimeBasedLinear: (TimeBasedLinear)?
-    TimeBasedCanary: (TimeBasedCanary)?
-    Type: String|Mapping
 }
 
 /// Resource Type definition for AWS::CodeDeploy::DeploymentConfig
@@ -56,13 +56,13 @@ open class DeploymentConfig extends cloudformation.Resource {
     hidden DeploymentConfigName: (String|Mapping)?
 
     /// The minimum number of healthy instances that should be available at any time during the deployment. There are two parameters expected in the input: type and value.
-    hidden MinimumHealthyHosts: (MinimumHealthyHosts)?
+    hidden MinimumHealthyHosts: (DeploymentConfigMinimumHealthyHosts)?
 
     /// The zonal deployment config that specifies how the zonal deployment behaves
-    hidden ZonalConfig: (ZonalConfig)?
+    hidden ZonalConfig: (DeploymentConfigZonalConfig)?
 
     /// The configuration that specifies how the deployment traffic is routed.
-    hidden TrafficRoutingConfig: (TrafficRoutingConfig)?
+    hidden TrafficRoutingConfig: (DeploymentConfigTrafficRoutingConfig)?
 
     Properties {
         ["ComputePlatform"] = if (ComputePlatform == null) null else ComputePlatform
