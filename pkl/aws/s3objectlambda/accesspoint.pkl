@@ -6,46 +6,45 @@ module aws.s3objectlambda.accesspoint
 import "../../cloudformation.pkl"
 
 /// Configuration to be applied to this Object lambda Access Point. It specifies Supporting Access Point, Transformation Configurations. Customers can also set if they like to enable Cloudwatch metrics for accesses to this Object lambda Access Point. Default setting for Cloudwatch metrics is disable.
-open class ObjectLambdaConfiguration {
+open class AccessPointObjectLambdaConfiguration {
     SupportingAccessPoint: String|Mapping
     AllowedFeatures: (Listing<String|Mapping>)?
     CloudWatchMetricsEnabled: (Boolean|Mapping)?
-    TransformationConfigurations: Listing<TransformationConfiguration>
+    TransformationConfigurations: Listing<AccessPointTransformationConfiguration>
 }
 
 /// Configuration to define what content transformation will be applied on which S3 Action.
-open class TransformationConfiguration {
+open class AccessPointTransformationConfiguration {
+    Actions: Listing<AccessPointAction>
     ContentTransformation: Dynamic
-    Actions: Listing<Action>
 }
 
 /// 
-open class AwsLambda {
+open class AccessPointAwsLambda {
     FunctionArn: String|Mapping
     FunctionPayload: (String|Mapping)?
 }
 
-/// 
-open class Action {
-}
+typealias AccessPointAction = String|Mapping
+
 
 /// 
-open class Alias {
+open class AccessPointAlias {
     Status: (String(matches(Regex(#"^[A-Z]*$"#)))|Mapping)?
     Value: String(matches(Regex(#"^[a-z0-9\-]*$"#)))|Mapping
 }
 
 /// 
-open class PolicyStatus {
+open class AccessPointPolicyStatus {
     IsPublic: (Boolean|Mapping)?
 }
 
 /// The Public Access Block Configuration is used to block policies that would allow public access to this Object lambda Access Point. All public access to Object lambda Access Points are blocked by default, and any policy that would give public access to them will be also blocked. This behavior cannot be changed for Object lambda Access Points.
-open class PublicAccessBlockConfiguration {
-    RestrictPublicBuckets: (Boolean|Mapping)?
+open class AccessPointPublicAccessBlockConfiguration {
     BlockPublicAcls: (Boolean|Mapping)?
     IgnorePublicAcls: (Boolean|Mapping)?
     BlockPublicPolicy: (Boolean|Mapping)?
+    RestrictPublicBuckets: (Boolean|Mapping)?
 }
 
 /// The AWS::S3ObjectLambda::AccessPoint resource is an Amazon S3ObjectLambda resource type that you can use to add computation to S3 actions
@@ -54,15 +53,15 @@ open class AccessPoint extends cloudformation.Resource {
     Type = "AWS::S3ObjectLambda::AccessPoint"
 
 
+    /// The Object lambda Access Point Configuration that configures transformations to be applied on the objects on specified S3 Actions
+    hidden ObjectLambdaConfiguration: AccessPointObjectLambdaConfiguration
+
     /// The name you want to assign to this Object lambda Access Point.
     hidden Name: (String(matches(Regex(#"^[a-z0-9]([a-z0-9\-]*[a-z0-9])?$"#)))|Mapping)?
 
-    /// The Object lambda Access Point Configuration that configures transformations to be applied on the objects on specified S3 Actions
-    hidden ObjectLambdaConfiguration: ObjectLambdaConfiguration
-
     Properties {
-        ["Name"] = if (Name == null) null else Name
         ["ObjectLambdaConfiguration"] = if (ObjectLambdaConfiguration == null) null else ObjectLambdaConfiguration
+        ["Name"] = if (Name == null) null else Name
     }
 
 }

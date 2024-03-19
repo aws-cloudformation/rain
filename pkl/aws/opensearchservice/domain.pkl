@@ -6,41 +6,144 @@ module aws.opensearchservice.domain
 import "../../cloudformation.pkl"
 
 /// 
-open class VPCOptions {
-    SecurityGroupIds: (Listing<String|Mapping>)?
-    SubnetIds: (Listing<String|Mapping>)?
-}
-
-/// 
-open class MasterUserOptions {
+open class DomainMasterUserOptions {
+    MasterUserPassword: (String|Mapping)?
     MasterUserName: (String|Mapping)?
     MasterUserARN: (String|Mapping)?
-    MasterUserPassword: (String|Mapping)?
 }
 
 /// 
-open class OffPeakWindow {
-    WindowStartTime: (WindowStartTime)?
+open class DomainIdp {
+    MetadataContent: String|Mapping
+    EntityId: String|Mapping
 }
 
 /// 
-open class WindowStartTime {
+open class DomainClusterConfig {
+    MultiAZWithStandbyEnabled: (Boolean|Mapping)?
+    WarmCount: (Int|Mapping)?
+    ZoneAwarenessConfig: (DomainZoneAwarenessConfig)?
+    InstanceType: (String|Mapping)?
+    WarmType: (String|Mapping)?
+    DedicatedMasterType: (String|Mapping)?
+    ColdStorageOptions: (DomainColdStorageOptions)?
+    InstanceCount: (Int|Mapping)?
+    WarmEnabled: (Boolean|Mapping)?
+    DedicatedMasterEnabled: (Boolean|Mapping)?
+    DedicatedMasterCount: (Int|Mapping)?
+    ZoneAwarenessEnabled: (Boolean|Mapping)?
+}
+
+/// 
+open class DomainColdStorageOptions {
+    Enabled: (Boolean|Mapping)?
+}
+
+/// 
+open class DomainEncryptionAtRestOptions {
+    Enabled: (Boolean|Mapping)?
+    KmsKeyId: (String|Mapping)?
+}
+
+/// 
+open class DomainWindowStartTime {
     Hours: Int|Mapping
     Minutes: Int|Mapping
 }
 
 /// 
-open class SoftwareUpdateOptions {
-    AutoSoftwareUpdateEnabled: (Boolean|Mapping)?
-}
-
-/// 
-open class ZoneAwarenessConfig {
+open class DomainZoneAwarenessConfig {
     AvailabilityZoneCount: (Int|Mapping)?
 }
 
 /// 
-open class CognitoOptions {
+open class DomainLogPublishingOption {
+    Enabled: (Boolean|Mapping)?
+    CloudWatchLogsLogGroupArn: (String|Mapping)?
+}
+
+/// 
+open class DomainServiceSoftwareOptions {
+    NewVersion: (String|Mapping)?
+    UpdateAvailable: (Boolean|Mapping)?
+    Cancellable: (Boolean|Mapping)?
+    UpdateStatus: (String|Mapping)?
+    Description: (String|Mapping)?
+    AutomatedUpdateDate: (String|Mapping)?
+    OptionalDeployment: (Boolean|Mapping)?
+    CurrentVersion: (String|Mapping)?
+}
+
+/// 
+open class DomainSAMLOptions {
+    MasterUserName: (String|Mapping)?
+    MasterBackendRole: (String|Mapping)?
+    SubjectKey: (String|Mapping)?
+    RolesKey: (String|Mapping)?
+    SessionTimeoutMinutes: (Int|Mapping)?
+    Enabled: (Boolean|Mapping)?
+    Idp: (DomainIdp)?
+}
+
+/// 
+open class DomainAdvancedSecurityOptionsInput {
+    Enabled: (Boolean|Mapping)?
+    MasterUserOptions: (DomainMasterUserOptions)?
+    InternalUserDatabaseEnabled: (Boolean|Mapping)?
+    AnonymousAuthEnabled: (Boolean|Mapping)?
+    SAMLOptions: (DomainSAMLOptions)?
+    AnonymousAuthDisableDate: (String|Mapping)?
+}
+
+/// 
+open class DomainEBSOptions {
+    EBSEnabled: (Boolean|Mapping)?
+    VolumeType: (String|Mapping)?
+    Iops: (Int|Mapping)?
+    VolumeSize: (Int|Mapping)?
+    Throughput: (Int|Mapping)?
+}
+
+/// 
+open class DomainOffPeakWindow {
+    WindowStartTime: (DomainWindowStartTime)?
+}
+
+/// 
+open class DomainVPCOptions {
+    SecurityGroupIds: (Listing<String|Mapping>)?
+    SubnetIds: (Listing<String|Mapping>)?
+}
+
+/// 
+open class DomainNodeToNodeEncryptionOptions {
+    Enabled: (Boolean|Mapping)?
+}
+
+/// 
+open class DomainOffPeakWindowOptions {
+    Enabled: (Boolean|Mapping)?
+    OffPeakWindow: (DomainOffPeakWindow)?
+}
+
+/// 
+open class DomainSoftwareUpdateOptions {
+    AutoSoftwareUpdateEnabled: (Boolean|Mapping)?
+}
+
+/// 
+open class DomainSnapshotOptions {
+    AutomatedSnapshotStartHour: (Int|Mapping)?
+}
+
+/// 
+open class DomainTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// 
+open class DomainCognitoOptions {
     Enabled: (Boolean|Mapping)?
     IdentityPoolId: (String|Mapping)?
     UserPoolId: (String|Mapping)?
@@ -48,115 +151,12 @@ open class CognitoOptions {
 }
 
 /// 
-open class AdvancedSecurityOptionsInput {
-    AnonymousAuthEnabled: (Boolean|Mapping)?
-    SAMLOptions: (SAMLOptions)?
-    AnonymousAuthDisableDate: (String|Mapping)?
-    Enabled: (Boolean|Mapping)?
-    MasterUserOptions: (MasterUserOptions)?
-    InternalUserDatabaseEnabled: (Boolean|Mapping)?
-}
-
-/// 
-open class EncryptionAtRestOptions {
-    KmsKeyId: (String|Mapping)?
-    Enabled: (Boolean|Mapping)?
-}
-
-/// 
-open class Tag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class ServiceSoftwareOptions {
-    AutomatedUpdateDate: (String|Mapping)?
-    OptionalDeployment: (Boolean|Mapping)?
-    CurrentVersion: (String|Mapping)?
-    NewVersion: (String|Mapping)?
-    UpdateAvailable: (Boolean|Mapping)?
-    Cancellable: (Boolean|Mapping)?
-    UpdateStatus: (String|Mapping)?
-    Description: (String|Mapping)?
-}
-
-/// 
-open class OffPeakWindowOptions {
-    Enabled: (Boolean|Mapping)?
-    OffPeakWindow: (OffPeakWindow)?
-}
-
-/// 
-open class LogPublishingOption {
-    CloudWatchLogsLogGroupArn: (String|Mapping)?
-    Enabled: (Boolean|Mapping)?
-}
-
-/// 
-open class DomainEndpointOptions {
+open class DomainDomainEndpointOptions {
+    CustomEndpointCertificateArn: (String|Mapping)?
+    CustomEndpointEnabled: (Boolean|Mapping)?
     EnforceHTTPS: (Boolean|Mapping)?
     CustomEndpoint: (String|Mapping)?
     TLSSecurityPolicy: (String|Mapping)?
-    CustomEndpointCertificateArn: (String|Mapping)?
-    CustomEndpointEnabled: (Boolean|Mapping)?
-}
-
-/// 
-open class SAMLOptions {
-    MasterUserName: (String|Mapping)?
-    MasterBackendRole: (String|Mapping)?
-    SubjectKey: (String|Mapping)?
-    RolesKey: (String|Mapping)?
-    SessionTimeoutMinutes: (Int|Mapping)?
-    Enabled: (Boolean|Mapping)?
-    Idp: (Idp)?
-}
-
-/// 
-open class EBSOptions {
-    VolumeSize: (Int|Mapping)?
-    Throughput: (Int|Mapping)?
-    EBSEnabled: (Boolean|Mapping)?
-    VolumeType: (String|Mapping)?
-    Iops: (Int|Mapping)?
-}
-
-/// 
-open class ColdStorageOptions {
-    Enabled: (Boolean|Mapping)?
-}
-
-/// 
-open class ClusterConfig {
-    WarmEnabled: (Boolean|Mapping)?
-    WarmCount: (Int|Mapping)?
-    ZoneAwarenessConfig: (ZoneAwarenessConfig)?
-    InstanceType: (String|Mapping)?
-    WarmType: (String|Mapping)?
-    ZoneAwarenessEnabled: (Boolean|Mapping)?
-    MultiAZWithStandbyEnabled: (Boolean|Mapping)?
-    InstanceCount: (Int|Mapping)?
-    DedicatedMasterEnabled: (Boolean|Mapping)?
-    DedicatedMasterCount: (Int|Mapping)?
-    DedicatedMasterType: (String|Mapping)?
-    ColdStorageOptions: (ColdStorageOptions)?
-}
-
-/// 
-open class SnapshotOptions {
-    AutomatedSnapshotStartHour: (Int|Mapping)?
-}
-
-/// 
-open class NodeToNodeEncryptionOptions {
-    Enabled: (Boolean|Mapping)?
-}
-
-/// 
-open class Idp {
-    MetadataContent: String|Mapping
-    EntityId: String|Mapping
 }
 
 /// An example resource schema demonstrating some basic constructs and validation rules.
@@ -166,78 +166,83 @@ open class Domain extends cloudformation.Resource {
 
 
     /// 
-    hidden IPAddressType: (String|Mapping)?
+    hidden VPCOptions: (DomainVPCOptions)?
 
     /// 
-    hidden EncryptionAtRestOptions: (EncryptionAtRestOptions)?
-
-    /// 
-    hidden LogPublishingOptions: (Dynamic)?
-
-    /// 
-    hidden SnapshotOptions: (SnapshotOptions)?
-
-    /// 
-    hidden VPCOptions: (VPCOptions)?
-
-    /// 
-    hidden OffPeakWindowOptions: (OffPeakWindowOptions)?
-
-    /// 
-    hidden DomainEndpointOptions: (DomainEndpointOptions)?
-
-    /// 
-    hidden AdvancedSecurityOptions: (AdvancedSecurityOptionsInput)?
-
-    /// An arbitrary set of tags (key-value pairs) for this Domain.
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden ClusterConfig: (ClusterConfig)?
-
-    /// 
-    hidden AccessPolicies: (Dynamic)?
-
-    /// 
-    hidden SoftwareUpdateOptions: (SoftwareUpdateOptions)?
-
-    /// 
-    hidden EngineVersion: (String|Mapping)?
-
-    /// 
-    hidden AdvancedOptions: (Dynamic)?
-
-    /// 
-    hidden EBSOptions: (EBSOptions)?
+    hidden ClusterConfig: (DomainClusterConfig)?
 
     /// 
     hidden DomainName: (String|Mapping)?
 
     /// 
-    hidden NodeToNodeEncryptionOptions: (NodeToNodeEncryptionOptions)?
+    hidden AdvancedOptions: (DomainDomainAdvancedOptions)?
 
     /// 
-    hidden CognitoOptions: (CognitoOptions)?
+    hidden EncryptionAtRestOptions: (DomainEncryptionAtRestOptions)?
+
+    /// 
+    hidden OffPeakWindowOptions: (DomainOffPeakWindowOptions)?
+
+    /// 
+    hidden LogPublishingOptions: (DomainDomainLogPublishingOptions)?
+
+    /// 
+    hidden SnapshotOptions: (DomainSnapshotOptions)?
+
+    /// 
+    hidden AccessPolicies: (Dynamic)?
+
+    /// 
+    hidden EBSOptions: (DomainEBSOptions)?
+
+    /// An arbitrary set of tags (key-value pairs) for this Domain.
+    hidden Tags: (Listing<DomainTag>)?
+
+    /// 
+    hidden IPAddressType: (String|Mapping)?
+
+    /// 
+    hidden AdvancedSecurityOptions: (DomainAdvancedSecurityOptionsInput)?
+
+    /// 
+    hidden DomainEndpointOptions: (DomainDomainEndpointOptions)?
+
+    /// 
+    hidden CognitoOptions: (DomainCognitoOptions)?
+
+    /// 
+    hidden EngineVersion: (String|Mapping)?
+
+    /// 
+    hidden NodeToNodeEncryptionOptions: (DomainNodeToNodeEncryptionOptions)?
+
+    /// 
+    hidden SoftwareUpdateOptions: (DomainSoftwareUpdateOptions)?
 
     Properties {
-        ["IPAddressType"] = if (IPAddressType == null) null else IPAddressType
+        ["VPCOptions"] = if (VPCOptions == null) null else VPCOptions
+        ["ClusterConfig"] = if (ClusterConfig == null) null else ClusterConfig
+        ["DomainName"] = if (DomainName == null) null else DomainName
+        ["AdvancedOptions"] = if (AdvancedOptions == null) null else AdvancedOptions
         ["EncryptionAtRestOptions"] = if (EncryptionAtRestOptions == null) null else EncryptionAtRestOptions
+        ["OffPeakWindowOptions"] = if (OffPeakWindowOptions == null) null else OffPeakWindowOptions
         ["LogPublishingOptions"] = if (LogPublishingOptions == null) null else LogPublishingOptions
         ["SnapshotOptions"] = if (SnapshotOptions == null) null else SnapshotOptions
-        ["VPCOptions"] = if (VPCOptions == null) null else VPCOptions
-        ["OffPeakWindowOptions"] = if (OffPeakWindowOptions == null) null else OffPeakWindowOptions
-        ["DomainEndpointOptions"] = if (DomainEndpointOptions == null) null else DomainEndpointOptions
-        ["AdvancedSecurityOptions"] = if (AdvancedSecurityOptions == null) null else AdvancedSecurityOptions
-        ["Tags"] = if (Tags == null) null else Tags
-        ["ClusterConfig"] = if (ClusterConfig == null) null else ClusterConfig
         ["AccessPolicies"] = if (AccessPolicies == null) null else AccessPolicies
-        ["SoftwareUpdateOptions"] = if (SoftwareUpdateOptions == null) null else SoftwareUpdateOptions
-        ["EngineVersion"] = if (EngineVersion == null) null else EngineVersion
-        ["AdvancedOptions"] = if (AdvancedOptions == null) null else AdvancedOptions
         ["EBSOptions"] = if (EBSOptions == null) null else EBSOptions
-        ["DomainName"] = if (DomainName == null) null else DomainName
-        ["NodeToNodeEncryptionOptions"] = if (NodeToNodeEncryptionOptions == null) null else NodeToNodeEncryptionOptions
+        ["Tags"] = if (Tags == null) null else Tags
+        ["IPAddressType"] = if (IPAddressType == null) null else IPAddressType
+        ["AdvancedSecurityOptions"] = if (AdvancedSecurityOptions == null) null else AdvancedSecurityOptions
+        ["DomainEndpointOptions"] = if (DomainEndpointOptions == null) null else DomainEndpointOptions
         ["CognitoOptions"] = if (CognitoOptions == null) null else CognitoOptions
+        ["EngineVersion"] = if (EngineVersion == null) null else EngineVersion
+        ["NodeToNodeEncryptionOptions"] = if (NodeToNodeEncryptionOptions == null) null else NodeToNodeEncryptionOptions
+        ["SoftwareUpdateOptions"] = if (SoftwareUpdateOptions == null) null else SoftwareUpdateOptions
     }
 
 }
+
+
+typealias DomainDomainAdvancedOptions = Mapping<String, Any>
+
+typealias DomainDomainLogPublishingOptions = Mapping<String, Any>

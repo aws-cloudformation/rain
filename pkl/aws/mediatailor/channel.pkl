@@ -5,45 +5,25 @@ module aws.mediatailor.channel
 
 import "../../cloudformation.pkl"
 
-/// 
-open class Tier {
-}
-
-/// 
-open class PlaybackMode {
-}
-
-/// <p>The output configuration for this channel.</p>
-open class RequestOutputItem {
-    SourceGroup: String|Mapping
-    DashPlaylistSettings: (DashPlaylistSettings)?
-    HlsPlaylistSettings: (HlsPlaylistSettings)?
-    ManifestName: String|Mapping
-}
-
 /// <p>Slate VOD source configuration.</p>
-open class SlateSource {
-    VodSourceName: (String|Mapping)?
+open class ChannelSlateSource {
     SourceLocationName: (String|Mapping)?
+    VodSourceName: (String|Mapping)?
 }
 
-/// 
-open class Tag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
+typealias ChannelAdMarkupType = String|Mapping
 
-/// 
-open class AdMarkupType {
-}
+
+typealias ChannelTier = String|Mapping
+
 
 /// <p>The configuration for time-shifted viewing.</p>
-open class TimeShiftConfiguration {
+open class ChannelTimeShiftConfiguration {
     MaxTimeDelaySeconds: Number|Mapping
 }
 
 /// <p>Dash manifest configuration parameters.</p>
-open class DashPlaylistSettings {
+open class ChannelDashPlaylistSettings {
     ManifestWindowSeconds: (Number|Mapping)?
     MinBufferTimeSeconds: (Number|Mapping)?
     MinUpdatePeriodSeconds: (Number|Mapping)?
@@ -51,18 +31,34 @@ open class DashPlaylistSettings {
 }
 
 /// <p>HLS playlist configuration parameters.</p>
-open class HlsPlaylistSettings {
+open class ChannelHlsPlaylistSettings {
     ManifestWindowSeconds: (Number|Mapping)?
-    AdMarkupType: (Listing<AdMarkupType>)?
-}
-
-/// <p>The log configuration for the channel.</p>
-open class LogConfigurationForChannel {
-    LogTypes: (Listing<LogType>)?
+    AdMarkupType: (Listing<ChannelAdMarkupType>)?
 }
 
 /// 
-open class LogType {
+open class ChannelTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+typealias ChannelPlaybackMode = String|Mapping
+
+
+typealias ChannelLogType = String|Mapping
+
+
+/// <p>The log configuration for the channel.</p>
+open class ChannelLogConfigurationForChannel {
+    LogTypes: (Listing<ChannelLogType>)?
+}
+
+/// <p>The output configuration for this channel.</p>
+open class ChannelRequestOutputItem {
+    DashPlaylistSettings: (ChannelDashPlaylistSettings)?
+    HlsPlaylistSettings: (ChannelHlsPlaylistSettings)?
+    ManifestName: String|Mapping
+    SourceGroup: String|Mapping
 }
 
 /// Definition of AWS::MediaTailor::Channel Resource Type
@@ -72,38 +68,38 @@ open class Channel extends cloudformation.Resource {
 
 
     /// 
+    hidden PlaybackMode: ChannelPlaybackMode
+
+    /// The tags to assign to the channel.
+    hidden Tags: (Listing<ChannelTag>)?
+
+    /// 
+    hidden Tier: (ChannelTier)?
+
+    /// 
+    hidden TimeShiftConfiguration: (ChannelTimeShiftConfiguration)?
+
+    /// 
     hidden ChannelName: String|Mapping
 
     /// 
-    hidden LogConfiguration: (LogConfigurationForChannel)?
+    hidden FillerSlate: (ChannelSlateSource)?
+
+    /// 
+    hidden LogConfiguration: (ChannelLogConfigurationForChannel)?
 
     /// <p>The channel's output properties.</p>
-    hidden Outputs: Listing<RequestOutputItem>
-
-    /// 
-    hidden PlaybackMode: PlaybackMode
-
-    /// 
-    hidden Tier: (Tier)?
-
-    /// 
-    hidden TimeShiftConfiguration: (TimeShiftConfiguration)?
-
-    /// 
-    hidden FillerSlate: (SlateSource)?
-
-    /// The tags to assign to the channel.
-    hidden Tags: (Listing<Tag>)?
+    hidden Outputs: Listing<ChannelRequestOutputItem>
 
     Properties {
-        ["ChannelName"] = if (ChannelName == null) null else ChannelName
-        ["LogConfiguration"] = if (LogConfiguration == null) null else LogConfiguration
-        ["Outputs"] = if (Outputs == null) null else Outputs
         ["PlaybackMode"] = if (PlaybackMode == null) null else PlaybackMode
+        ["Tags"] = if (Tags == null) null else Tags
         ["Tier"] = if (Tier == null) null else Tier
         ["TimeShiftConfiguration"] = if (TimeShiftConfiguration == null) null else TimeShiftConfiguration
+        ["ChannelName"] = if (ChannelName == null) null else ChannelName
         ["FillerSlate"] = if (FillerSlate == null) null else FillerSlate
-        ["Tags"] = if (Tags == null) null else Tags
+        ["LogConfiguration"] = if (LogConfiguration == null) null else LogConfiguration
+        ["Outputs"] = if (Outputs == null) null else Outputs
     }
 
 }

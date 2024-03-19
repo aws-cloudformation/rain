@@ -7,8 +7,8 @@ import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
 open class VirtualMFADeviceTag {
-    Key: String|Mapping
     Value: String|Mapping
+    Key: String|Mapping
 }
 
 /// Resource Type definition for AWS::IAM::VirtualMFADevice
@@ -16,6 +16,9 @@ open class VirtualMFADevice extends cloudformation.Resource {
 
     Type = "AWS::IAM::VirtualMFADevice"
 
+
+    /// 
+    hidden Tags: (Listing<VirtualMFADeviceTag>)?
 
     /// 
     hidden VirtualMfaDeviceName: (String(matches(Regex(#"[\w+=,.@-]+"#)))|Mapping)?
@@ -26,14 +29,11 @@ open class VirtualMFADevice extends cloudformation.Resource {
     /// 
     hidden Users: Listing<String|Mapping>
 
-    /// 
-    hidden Tags: (Listing<VirtualMFADeviceTag>)?
-
     Properties {
+        ["Tags"] = if (Tags == null) null else Tags
         ["VirtualMfaDeviceName"] = if (VirtualMfaDeviceName == null) null else VirtualMfaDeviceName
         ["Path"] = if (Path == null) null else Path
         ["Users"] = if (Users == null) null else Users
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

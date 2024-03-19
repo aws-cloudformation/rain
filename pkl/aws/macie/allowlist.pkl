@@ -5,29 +5,26 @@ module aws.macie.allowlist
 
 import "../../cloudformation.pkl"
 
-/// 
-open class Regex {
-}
+typealias AllowListStatus = String|Mapping
 
-/// 
-open class S3WordsList {
-    ObjectKey: String|Mapping
-    BucketName: String|Mapping
-}
-
-/// The regex or s3 object to use for the AllowList.
-open class Criteria {
-}
-
-/// The status for the AllowList
-open class Status {
-}
 
 /// A key-value pair to associate with a resource.
-open class Tag {
-    Value: String|Mapping
+open class AllowListTag {
     Key: String|Mapping
+    Value: String|Mapping
 }
+
+typealias AllowListRegex = String|Mapping
+
+
+/// 
+open class AllowListS3WordsList {
+    BucketName: String|Mapping
+    ObjectKey: String|Mapping
+}
+
+typealias AllowListCriteria = Dynamic
+
 
 /// Macie AllowList resource schema
 open class AllowList extends cloudformation.Resource {
@@ -35,23 +32,23 @@ open class AllowList extends cloudformation.Resource {
     Type = "AWS::Macie::AllowList"
 
 
-    /// Name of AllowList.
-    hidden Name: String|Mapping
-
     /// Description of AllowList.
     hidden Description: (String|Mapping)?
 
     /// AllowList criteria.
-    hidden Criteria: Criteria
+    hidden Criteria: AllowListCriteria
 
     /// A collection of tags associated with a resource
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<AllowListTag>)?
+
+    /// Name of AllowList.
+    hidden Name: String|Mapping
 
     Properties {
-        ["Name"] = if (Name == null) null else Name
         ["Description"] = if (Description == null) null else Description
         ["Criteria"] = if (Criteria == null) null else Criteria
         ["Tags"] = if (Tags == null) null else Tags
+        ["Name"] = if (Name == null) null else Name
     }
 
 }

@@ -20,11 +20,6 @@ open class VPC extends cloudformation.Resource {
     Type = "AWS::EC2::VPC"
 
 
-    /// The IPv4 network range for the VPC, in CIDR notation. For example, ``10.0.0.0/16``. We modify the specified CIDR block to its canonical form; for example, if you specify ``100.68.0.18/18``, we modify it to ``100.68.0.0/18``.
-    ///
-    ///  You must specify either``CidrBlock`` or ``Ipv4IpamPoolId``.
-    hidden CidrBlock: (String|Mapping)?
-
     /// Indicates whether the instances launched in the VPC get DNS hostnames. If enabled, instances in the VPC get DNS hostnames; otherwise, they do not. Disabled by default for nondefault VPCs. For more information, see [DNS attributes in your VPC](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-dns.html#vpc-dns-support).
     ///
     ///  You can only enable DNS hostnames if you've enabled DNS support.
@@ -41,6 +36,14 @@ open class VPC extends cloudformation.Resource {
     ///  Updating ``InstanceTenancy`` requires no replacement only if you are updating its value from ``dedicated`` to ``default``. Updating ``InstanceTenancy`` from ``default`` to ``dedicated`` requires replacement.
     hidden InstanceTenancy: (String|Mapping)?
 
+    /// The IPv4 network range for the VPC, in CIDR notation. For example, ``10.0.0.0/16``. We modify the specified CIDR block to its canonical form; for example, if you specify ``100.68.0.18/18``, we modify it to ``100.68.0.0/18``.
+    ///
+    ///  You must specify either``CidrBlock`` or ``Ipv4IpamPoolId``.
+    hidden CidrBlock: (String|Mapping)?
+
+    /// The tags for the VPC.
+    hidden Tags: (Listing<VPCTag>)?
+
     /// The ID of an IPv4 IPAM pool you want to use for allocating this VPC's CIDR. For more information, see [What is IPAM?](https://docs.aws.amazon.com//vpc/latest/ipam/what-is-it-ipam.html) in the *Amazon VPC IPAM User Guide*.
     ///
     ///  You must specify either``CidrBlock`` or ``Ipv4IpamPoolId``.
@@ -49,17 +52,14 @@ open class VPC extends cloudformation.Resource {
     /// The netmask length of the IPv4 CIDR you want to allocate to this VPC from an Amazon VPC IP Address Manager (IPAM) pool. For more information about IPAM, see [What is IPAM?](https://docs.aws.amazon.com//vpc/latest/ipam/what-is-it-ipam.html) in the *Amazon VPC IPAM User Guide*.
     hidden Ipv4NetmaskLength: (Int|Mapping)?
 
-    /// The tags for the VPC.
-    hidden Tags: (Listing<VPCTag>)?
-
     Properties {
-        ["CidrBlock"] = if (CidrBlock == null) null else CidrBlock
         ["EnableDnsHostnames"] = if (EnableDnsHostnames == null) null else EnableDnsHostnames
         ["EnableDnsSupport"] = if (EnableDnsSupport == null) null else EnableDnsSupport
         ["InstanceTenancy"] = if (InstanceTenancy == null) null else InstanceTenancy
+        ["CidrBlock"] = if (CidrBlock == null) null else CidrBlock
+        ["Tags"] = if (Tags == null) null else Tags
         ["Ipv4IpamPoolId"] = if (Ipv4IpamPoolId == null) null else Ipv4IpamPoolId
         ["Ipv4NetmaskLength"] = if (Ipv4NetmaskLength == null) null else Ipv4NetmaskLength
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

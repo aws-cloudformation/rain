@@ -6,49 +6,6 @@ module aws.amazonmq.broker
 import "../../cloudformation.pkl"
 
 /// 
-open class BrokerLdapServerMetadata {
-    UserRoleName: (String|Mapping)?
-    RoleName: (String|Mapping)?
-    UserSearchSubtree: (Boolean|Mapping)?
-    RoleBase: String|Mapping
-    ServiceAccountPassword: String|Mapping
-    RoleSearchSubtree: (Boolean|Mapping)?
-    Hosts: Listing<String|Mapping>
-    UserSearchMatching: String|Mapping
-    UserBase: String|Mapping
-    RoleSearchMatching: String|Mapping
-    ServiceAccountUsername: String|Mapping
-}
-
-/// 
-open class BrokerUser {
-    ReplicationUser: (Boolean|Mapping)?
-    ConsoleAccess: (Boolean|Mapping)?
-    Username: String|Mapping
-    Groups: (Listing<String|Mapping>)?
-    Password: String|Mapping
-}
-
-/// 
-open class BrokerMaintenanceWindow {
-    TimeOfDay: String|Mapping
-    TimeZone: String|Mapping
-    DayOfWeek: String|Mapping
-}
-
-/// 
-open class BrokerTagsEntry {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class BrokerEncryptionOptions {
-    KmsKeyId: (String|Mapping)?
-    UseAwsOwnedKey: Boolean|Mapping
-}
-
-/// 
 open class BrokerConfigurationId {
     Revision: Int|Mapping
     Id: String|Mapping
@@ -60,6 +17,49 @@ open class BrokerLogList {
     General: (Boolean|Mapping)?
 }
 
+/// 
+open class BrokerLdapServerMetadata {
+    RoleSearchSubtree: (Boolean|Mapping)?
+    UserSearchMatching: String|Mapping
+    UserBase: String|Mapping
+    ServiceAccountPassword: String|Mapping
+    UserSearchSubtree: (Boolean|Mapping)?
+    RoleSearchMatching: String|Mapping
+    ServiceAccountUsername: String|Mapping
+    RoleBase: String|Mapping
+    Hosts: Listing<String|Mapping>
+    UserRoleName: (String|Mapping)?
+    RoleName: (String|Mapping)?
+}
+
+/// 
+open class BrokerUser {
+    Groups: (Listing<String|Mapping>)?
+    Password: String|Mapping
+    ReplicationUser: (Boolean|Mapping)?
+    ConsoleAccess: (Boolean|Mapping)?
+    Username: String|Mapping
+}
+
+/// 
+open class BrokerMaintenanceWindow {
+    TimeOfDay: String|Mapping
+    TimeZone: String|Mapping
+    DayOfWeek: String|Mapping
+}
+
+/// 
+open class BrokerTagsEntry {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class BrokerEncryptionOptions {
+    KmsKeyId: (String|Mapping)?
+    UseAwsOwnedKey: Boolean|Mapping
+}
+
 /// Resource Type definition for AWS::AmazonMQ::Broker
 open class Broker extends cloudformation.Resource {
 
@@ -67,25 +67,16 @@ open class Broker extends cloudformation.Resource {
 
 
     /// 
-    hidden LdapServerMetadata: (BrokerLdapServerMetadata)?
-
-    /// 
-    hidden EncryptionOptions: (BrokerEncryptionOptions)?
-
-    /// 
-    hidden MaintenanceWindowStartTime: (BrokerMaintenanceWindow)?
-
-    /// 
-    hidden AutoMinorVersionUpgrade: Boolean|Mapping
-
-    /// 
-    hidden Configuration: (BrokerConfigurationId)?
+    hidden SecurityGroups: (Listing<String|Mapping>)?
 
     /// 
     hidden Users: Listing<BrokerUser>
 
     /// 
-    hidden SubnetIds: (Listing<String|Mapping>)?
+    hidden DeploymentMode: String|Mapping
+
+    /// 
+    hidden Tags: (Listing<BrokerTagsEntry>)?
 
     /// 
     hidden StorageType: (String|Mapping)?
@@ -94,58 +85,67 @@ open class Broker extends cloudformation.Resource {
     hidden HostInstanceType: String|Mapping
 
     /// 
-    hidden DataReplicationPrimaryBrokerArn: (String|Mapping)?
-
-    /// 
-    hidden EngineVersion: String|Mapping
+    hidden SubnetIds: (Listing<String|Mapping>)?
 
     /// 
     hidden Logs: (BrokerLogList)?
 
     /// 
-    hidden BrokerName: String|Mapping
+    hidden EngineType: String|Mapping
 
     /// 
-    hidden SecurityGroups: (Listing<String|Mapping>)?
-
-    /// 
-    hidden AuthenticationStrategy: (String|Mapping)?
+    hidden EngineVersion: String|Mapping
 
     /// 
     hidden PubliclyAccessible: Boolean|Mapping
 
     /// 
-    hidden EngineType: String|Mapping
+    hidden MaintenanceWindowStartTime: (BrokerMaintenanceWindow)?
 
     /// 
-    hidden Tags: (Listing<BrokerTagsEntry>)?
+    hidden AuthenticationStrategy: (String|Mapping)?
 
     /// 
-    hidden DeploymentMode: String|Mapping
+    hidden EncryptionOptions: (BrokerEncryptionOptions)?
+
+    /// 
+    hidden LdapServerMetadata: (BrokerLdapServerMetadata)?
+
+    /// 
+    hidden BrokerName: String|Mapping
+
+    /// 
+    hidden DataReplicationPrimaryBrokerArn: (String|Mapping)?
+
+    /// 
+    hidden Configuration: (BrokerConfigurationId)?
+
+    /// 
+    hidden AutoMinorVersionUpgrade: Boolean|Mapping
 
     /// 
     hidden DataReplicationMode: (String|Mapping)?
 
     Properties {
-        ["LdapServerMetadata"] = if (LdapServerMetadata == null) null else LdapServerMetadata
-        ["EncryptionOptions"] = if (EncryptionOptions == null) null else EncryptionOptions
-        ["MaintenanceWindowStartTime"] = if (MaintenanceWindowStartTime == null) null else MaintenanceWindowStartTime
-        ["AutoMinorVersionUpgrade"] = if (AutoMinorVersionUpgrade == null) null else AutoMinorVersionUpgrade
-        ["Configuration"] = if (Configuration == null) null else Configuration
+        ["SecurityGroups"] = if (SecurityGroups == null) null else SecurityGroups
         ["Users"] = if (Users == null) null else Users
-        ["SubnetIds"] = if (SubnetIds == null) null else SubnetIds
+        ["DeploymentMode"] = if (DeploymentMode == null) null else DeploymentMode
+        ["Tags"] = if (Tags == null) null else Tags
         ["StorageType"] = if (StorageType == null) null else StorageType
         ["HostInstanceType"] = if (HostInstanceType == null) null else HostInstanceType
-        ["DataReplicationPrimaryBrokerArn"] = if (DataReplicationPrimaryBrokerArn == null) null else DataReplicationPrimaryBrokerArn
-        ["EngineVersion"] = if (EngineVersion == null) null else EngineVersion
+        ["SubnetIds"] = if (SubnetIds == null) null else SubnetIds
         ["Logs"] = if (Logs == null) null else Logs
-        ["BrokerName"] = if (BrokerName == null) null else BrokerName
-        ["SecurityGroups"] = if (SecurityGroups == null) null else SecurityGroups
-        ["AuthenticationStrategy"] = if (AuthenticationStrategy == null) null else AuthenticationStrategy
-        ["PubliclyAccessible"] = if (PubliclyAccessible == null) null else PubliclyAccessible
         ["EngineType"] = if (EngineType == null) null else EngineType
-        ["Tags"] = if (Tags == null) null else Tags
-        ["DeploymentMode"] = if (DeploymentMode == null) null else DeploymentMode
+        ["EngineVersion"] = if (EngineVersion == null) null else EngineVersion
+        ["PubliclyAccessible"] = if (PubliclyAccessible == null) null else PubliclyAccessible
+        ["MaintenanceWindowStartTime"] = if (MaintenanceWindowStartTime == null) null else MaintenanceWindowStartTime
+        ["AuthenticationStrategy"] = if (AuthenticationStrategy == null) null else AuthenticationStrategy
+        ["EncryptionOptions"] = if (EncryptionOptions == null) null else EncryptionOptions
+        ["LdapServerMetadata"] = if (LdapServerMetadata == null) null else LdapServerMetadata
+        ["BrokerName"] = if (BrokerName == null) null else BrokerName
+        ["DataReplicationPrimaryBrokerArn"] = if (DataReplicationPrimaryBrokerArn == null) null else DataReplicationPrimaryBrokerArn
+        ["Configuration"] = if (Configuration == null) null else Configuration
+        ["AutoMinorVersionUpgrade"] = if (AutoMinorVersionUpgrade == null) null else AutoMinorVersionUpgrade
         ["DataReplicationMode"] = if (DataReplicationMode == null) null else DataReplicationMode
     }
 

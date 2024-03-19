@@ -5,15 +5,15 @@ module aws.datasync.locations3
 
 import "../../cloudformation.pkl"
 
+/// A key-value pair to associate with a resource.
+open class LocationS3Tag {
+    Value: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:@/-]+$"#)))|Mapping
+    Key: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:/-]+$"#)))|Mapping
+}
+
 /// The Amazon Resource Name (ARN) of the AWS IAM role that is used to access an Amazon S3 bucket.
 open class LocationS3S3Config {
     BucketAccessRoleArn: String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):iam::[0-9]{12}:role/.*$"#)))|Mapping
-}
-
-/// A key-value pair to associate with a resource.
-open class LocationS3Tag {
-    Key: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:/-]+$"#)))|Mapping
-    Value: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:@/-]+$"#)))|Mapping
 }
 
 /// Resource schema for AWS::DataSync::LocationS3
@@ -21,12 +21,6 @@ open class LocationS3 extends cloudformation.Resource {
 
     Type = "AWS::DataSync::LocationS3"
 
-
-    /// The Amazon Resource Name (ARN) of the Amazon S3 bucket.
-    hidden S3BucketArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):s3:[a-z\-0-9]*:[0-9]*:.*$"#)))|Mapping)?
-
-    /// A subdirectory in the Amazon S3 bucket. This subdirectory in Amazon S3 is used to read data from the S3 source location or write data to the S3 destination.
-    hidden Subdirectory: (String(matches(Regex(#"^[\p{L}\p{M}\p{Z}\p{S}\p{N}\p{P}\p{C}]*$"#)))|Mapping)?
 
     /// The Amazon S3 storage class you want to store your files in when this location is used as a task destination.
     hidden S3StorageClass: (LocationS3S3StorageClass|Mapping)?
@@ -37,12 +31,18 @@ open class LocationS3 extends cloudformation.Resource {
     /// 
     hidden S3Config: LocationS3S3Config
 
+    /// The Amazon Resource Name (ARN) of the Amazon S3 bucket.
+    hidden S3BucketArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):s3:[a-z\-0-9]*:[0-9]*:.*$"#)))|Mapping)?
+
+    /// A subdirectory in the Amazon S3 bucket. This subdirectory in Amazon S3 is used to read data from the S3 source location or write data to the S3 destination.
+    hidden Subdirectory: (String(matches(Regex(#"^[\p{L}\p{M}\p{Z}\p{S}\p{N}\p{P}\p{C}]*$"#)))|Mapping)?
+
     Properties {
-        ["S3BucketArn"] = if (S3BucketArn == null) null else S3BucketArn
-        ["Subdirectory"] = if (Subdirectory == null) null else Subdirectory
         ["S3StorageClass"] = if (S3StorageClass == null) null else S3StorageClass
         ["Tags"] = if (Tags == null) null else Tags
         ["S3Config"] = if (S3Config == null) null else S3Config
+        ["S3BucketArn"] = if (S3BucketArn == null) null else S3BucketArn
+        ["Subdirectory"] = if (Subdirectory == null) null else Subdirectory
     }
 
 }

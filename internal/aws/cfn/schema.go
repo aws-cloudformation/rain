@@ -3,8 +3,6 @@ package cfn
 import (
 	"encoding/json"
 	"reflect"
-
-	"github.com/aws-cloudformation/rain/internal/config"
 )
 
 type SchemaLike interface {
@@ -23,7 +21,7 @@ type Prop struct {
 	MaxLength            int              `json:"maxLength"`
 	MinLength            int              `json:"minLength"`
 	Pattern              string           `json:"pattern"`
-	Examples             []string         `json:"examples"`
+	Examples             []any            `json:"examples"`
 	AdditionalProperties bool             `json:"additionalProperties"`
 	Properties           map[string]*Prop `json:"properties"`
 	Enum                 []any            `json:"enum"`
@@ -80,7 +78,6 @@ func ParseSchema(source string) (*Schema, error) {
 
 // Patch applies patches to the schema to add things like undocumented enums
 func (schema *Schema) Patch() error {
-	config.Debugf("Patching %s", schema.TypeName)
 	switch schema.TypeName {
 	case "AWS::Lightsail::Instance":
 		return patchLightsailInstance(schema)
@@ -98,7 +95,10 @@ func (schema *Schema) Patch() error {
 		return patchSESContactList(schema)
 	case "AWS::IAM::Role":
 		return patchIAMRole(schema)
-
+	case "AWS::DynamoDB::Table":
+		return patchDynamoDBTable(schema)
+	case "AWS::EC2::VerifiedAccessTrustProvider":
+		return patchAEC2VerifiedAccessTrustProvider(schema)
 	}
 	return nil
 }

@@ -1,10 +1,7 @@
 package build
 
 import (
-	"encoding/json"
-
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
-	"github.com/aws-cloudformation/rain/internal/config"
 )
 
 func getSchema(typeName string) (*cfn.Schema, error) {
@@ -21,14 +18,10 @@ func getSchema(typeName string) (*cfn.Schema, error) {
 			return nil, err
 		}
 
-		j, _ := json.Marshal(schema)
-		config.Debugf("Converted SAM schema: %s", j)
-
 	} else {
 
 		// Call CCAPI to get the schema for the resource
 		schemaSource, err := cfn.GetTypeSchema(typeName)
-		config.Debugf("schema source: %s", schemaSource)
 		if err != nil {
 			return nil, err
 		}
@@ -46,8 +39,6 @@ func getSchema(typeName string) (*cfn.Schema, error) {
 		if err != nil {
 			return nil, err
 		}
-		j, _ := json.MarshalIndent(schema, "", "    ")
-		config.Debugf("patched schema: %s", j)
 	}
 
 	return schema, nil

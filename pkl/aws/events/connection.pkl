@@ -5,14 +5,28 @@ module aws.events.connection
 
 import "../../cloudformation.pkl"
 
+/// 
+open class ConnectionAuthParameters {
+    ApiKeyAuthParameters: (ConnectionApiKeyAuthParameters)?
+    BasicAuthParameters: (ConnectionBasicAuthParameters)?
+    OAuthParameters: (ConnectionOAuthParameters)?
+    InvocationHttpParameters: (ConnectionConnectionHttpParameters)?
+}
+
+/// 
+open class ConnectionBasicAuthParameters {
+    Password: String|Mapping
+    Username: String|Mapping
+}
+
 typealias OAuthParametersHttpMethod = "GET"|"POST"|"PUT"
 
 /// 
 open class ConnectionOAuthParameters {
-    OAuthHttpParameters: (ConnectionConnectionHttpParameters)?
     ClientParameters: ConnectionClientParameters
     AuthorizationEndpoint: String|Mapping
     HttpMethod: OAuthParametersHttpMethod|Mapping
+    OAuthHttpParameters: (ConnectionConnectionHttpParameters)?
 }
 
 /// 
@@ -23,8 +37,8 @@ open class ConnectionApiKeyAuthParameters {
 
 /// 
 open class ConnectionClientParameters {
-    ClientSecret: String|Mapping
     ClientID: String|Mapping
+    ClientSecret: String|Mapping
 }
 
 /// 
@@ -41,25 +55,14 @@ open class ConnectionParameter {
     IsValueSecret: (Boolean|Mapping)?
 }
 
-/// 
-open class ConnectionAuthParameters {
-    ApiKeyAuthParameters: (ConnectionApiKeyAuthParameters)?
-    BasicAuthParameters: (ConnectionBasicAuthParameters)?
-    OAuthParameters: (ConnectionOAuthParameters)?
-    InvocationHttpParameters: (ConnectionConnectionHttpParameters)?
-}
-
-/// 
-open class ConnectionBasicAuthParameters {
-    Username: String|Mapping
-    Password: String|Mapping
-}
-
 /// Resource Type definition for AWS::Events::Connection.
 open class Connection extends cloudformation.Resource {
 
     Type = "AWS::Events::Connection"
 
+
+    /// Name of the connection.
+    hidden Name: (String|Mapping)?
 
     /// Description of the connection.
     hidden Description: (String|Mapping)?
@@ -70,14 +73,11 @@ open class Connection extends cloudformation.Resource {
     /// 
     hidden AuthParameters: (ConnectionAuthParameters)?
 
-    /// Name of the connection.
-    hidden Name: (String|Mapping)?
-
     Properties {
+        ["Name"] = if (Name == null) null else Name
         ["Description"] = if (Description == null) null else Description
         ["AuthorizationType"] = if (AuthorizationType == null) null else AuthorizationType
         ["AuthParameters"] = if (AuthParameters == null) null else AuthParameters
-        ["Name"] = if (Name == null) null else Name
     }
 
 }

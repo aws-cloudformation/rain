@@ -5,9 +5,8 @@ module aws.licensemanager.grant
 
 import "../../cloudformation.pkl"
 
-/// 
-open class Arn {
-}
+typealias GrantArn = String|Mapping
+
 
 /// An example resource schema demonstrating some basic constructs and validation rules.
 open class Grant extends cloudformation.Resource {
@@ -15,8 +14,11 @@ open class Grant extends cloudformation.Resource {
     Type = "AWS::LicenseManager::Grant"
 
 
+    /// Name for the created Grant.
+    hidden GrantName: (String|Mapping)?
+
     /// License Arn for the grant.
-    hidden LicenseArn: (Arn)?
+    hidden LicenseArn: (GrantArn)?
 
     /// Home region for the created grant.
     hidden HomeRegion: (String|Mapping)?
@@ -25,21 +27,18 @@ open class Grant extends cloudformation.Resource {
     hidden AllowedOperations: (Listing<String|Mapping>)?
 
     /// 
-    hidden Principals: (Listing<Arn>)?
+    hidden Principals: (Listing<GrantArn>)?
 
     /// 
     hidden Status: (String|Mapping)?
 
-    /// Name for the created Grant.
-    hidden GrantName: (String|Mapping)?
-
     Properties {
+        ["GrantName"] = if (GrantName == null) null else GrantName
         ["LicenseArn"] = if (LicenseArn == null) null else LicenseArn
         ["HomeRegion"] = if (HomeRegion == null) null else HomeRegion
         ["AllowedOperations"] = if (AllowedOperations == null) null else AllowedOperations
         ["Principals"] = if (Principals == null) null else Principals
         ["Status"] = if (Status == null) null else Status
-        ["GrantName"] = if (GrantName == null) null else GrantName
     }
 
 }

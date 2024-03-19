@@ -5,23 +5,20 @@ module aws.location.geofencecollection
 
 import "../../cloudformation.pkl"
 
-/// 
-open class PricingPlan {
-}
+typealias GeofenceCollectionTagMap = Mapping<String, Any>
 
-/// 
-open class TagMap {
-}
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class GeofenceCollectionTag {
     Key: String(matches(Regex(#"^[a-zA-Z+-=._:/]+$"#)))|Mapping
     Value: String(matches(Regex(#"^[A-Za-z0-9 _=@:.+-/]*$"#)))|Mapping
 }
 
-/// The datetime value in ISO 8601 format. The timezone is always UTC. (YYYY-MM-DDThh:mm:ss.sssZ)
-open class iso8601UTC {
-}
+typealias GeofenceCollectioniso8601UTC = String|Mapping
+
+
+typealias GeofenceCollectionPricingPlan = String|Mapping
+
 
 /// Definition of AWS::Location::GeofenceCollection Resource Type
 open class GeofenceCollection extends cloudformation.Resource {
@@ -30,30 +27,30 @@ open class GeofenceCollection extends cloudformation.Resource {
 
 
     /// 
+    hidden PricingPlan: (GeofenceCollectionPricingPlan)?
+
+    /// 
     hidden PricingPlanDataSource: (String|Mapping)?
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<GeofenceCollectionTag>)?
 
     /// 
     hidden CollectionName: String(matches(Regex(#"^[-._\w]+$"#)))|Mapping
 
     /// 
-    hidden Description: (String|Mapping)?
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
     hidden KmsKeyId: (String|Mapping)?
 
     /// 
-    hidden PricingPlan: (PricingPlan)?
+    hidden Description: (String|Mapping)?
 
     Properties {
-        ["PricingPlanDataSource"] = if (PricingPlanDataSource == null) null else PricingPlanDataSource
-        ["CollectionName"] = if (CollectionName == null) null else CollectionName
-        ["Description"] = if (Description == null) null else Description
-        ["Tags"] = if (Tags == null) null else Tags
-        ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
         ["PricingPlan"] = if (PricingPlan == null) null else PricingPlan
+        ["PricingPlanDataSource"] = if (PricingPlanDataSource == null) null else PricingPlanDataSource
+        ["Tags"] = if (Tags == null) null else Tags
+        ["CollectionName"] = if (CollectionName == null) null else CollectionName
+        ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
+        ["Description"] = if (Description == null) null else Description
     }
 
 }

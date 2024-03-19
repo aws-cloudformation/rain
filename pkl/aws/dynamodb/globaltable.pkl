@@ -6,23 +6,33 @@ module aws.dynamodb.globaltable
 import "../../cloudformation.pkl"
 
 /// 
-open class GlobalTableSSESpecification {
-    SSEEnabled: Boolean|Mapping
-    SSEType: (String|Mapping)?
+open class GlobalTableReplicaSpecification {
+    SSESpecification: (GlobalTableReplicaSSESpecification)?
+    PointInTimeRecoverySpecification: (GlobalTablePointInTimeRecoverySpecification)?
+    DeletionProtectionEnabled: (Boolean|Mapping)?
+    Region: String|Mapping
+    ReadProvisionedThroughputSettings: (GlobalTableReadProvisionedThroughputSettings)?
+    TableClass: (String|Mapping)?
+    Tags: (Listing<GlobalTableTag>)?
+    KinesisStreamSpecification: (GlobalTableKinesisStreamSpecification)?
+    ContributorInsightsSpecification: (GlobalTableContributorInsightsSpecification)?
+    GlobalSecondaryIndexes: (Listing<GlobalTableReplicaGlobalSecondaryIndexSpecification>)?
 }
 
 /// 
-open class GlobalTableTimeToLiveSpecification {
-    Enabled: Boolean|Mapping
-    AttributeName: (String|Mapping)?
+open class GlobalTableWriteProvisionedThroughputSettings {
+    WriteCapacityAutoScalingSettings: (GlobalTableCapacityAutoScalingSettings)?
 }
 
 /// 
-open class GlobalTableGlobalSecondaryIndex {
-    IndexName: String|Mapping
-    Projection: GlobalTableProjection
-    KeySchema: Listing<GlobalTableKeySchema>
-    WriteProvisionedThroughputSettings: (GlobalTableWriteProvisionedThroughputSettings)?
+open class GlobalTableTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// 
+open class GlobalTableStreamSpecification {
+    StreamViewType: String|Mapping
 }
 
 typealias KinesisStreamSpecificationApproximateCreationDateTimePrecision = "MICROSECOND"|"MILLISECOND"
@@ -34,25 +44,16 @@ open class GlobalTableKinesisStreamSpecification {
 }
 
 /// 
-open class GlobalTableReadProvisionedThroughputSettings {
-    ReadCapacityUnits: (Int|Mapping)?
-    ReadCapacityAutoScalingSettings: (GlobalTableCapacityAutoScalingSettings)?
+open class GlobalTableReplicaGlobalSecondaryIndexSpecification {
+    ContributorInsightsSpecification: (GlobalTableContributorInsightsSpecification)?
+    ReadProvisionedThroughputSettings: (GlobalTableReadProvisionedThroughputSettings)?
+    IndexName: String|Mapping
 }
 
 /// 
-open class GlobalTablePointInTimeRecoverySpecification {
-    PointInTimeRecoveryEnabled: (Boolean|Mapping)?
-}
-
-/// 
-open class GlobalTableProjection {
-    ProjectionType: (String|Mapping)?
-    NonKeyAttributes: (Listing<String|Mapping>)?
-}
-
-/// 
-open class GlobalTableContributorInsightsSpecification {
+open class GlobalTableTimeToLiveSpecification {
     Enabled: Boolean|Mapping
+    AttributeName: (String|Mapping)?
 }
 
 /// 
@@ -64,45 +65,32 @@ open class GlobalTableCapacityAutoScalingSettings {
 }
 
 /// 
-open class GlobalTableReplicaSSESpecification {
-    KMSMasterKeyId: String|Mapping
+open class GlobalTableSSESpecification {
+    SSEEnabled: Boolean|Mapping
+    SSEType: (String|Mapping)?
 }
 
 /// 
-open class GlobalTableReplicaSpecification {
-    KinesisStreamSpecification: (GlobalTableKinesisStreamSpecification)?
-    ContributorInsightsSpecification: (GlobalTableContributorInsightsSpecification)?
-    PointInTimeRecoverySpecification: (GlobalTablePointInTimeRecoverySpecification)?
-    ReadProvisionedThroughputSettings: (GlobalTableReadProvisionedThroughputSettings)?
-    DeletionProtectionEnabled: (Boolean|Mapping)?
-    Tags: (Listing<GlobalTableTag>)?
-    SSESpecification: (GlobalTableReplicaSSESpecification)?
-    GlobalSecondaryIndexes: (Listing<GlobalTableReplicaGlobalSecondaryIndexSpecification>)?
-    Region: String|Mapping
-    TableClass: (String|Mapping)?
+open class GlobalTableContributorInsightsSpecification {
+    Enabled: Boolean|Mapping
 }
 
 /// 
-open class GlobalTableWriteProvisionedThroughputSettings {
-    WriteCapacityAutoScalingSettings: (GlobalTableCapacityAutoScalingSettings)?
-}
-
-/// 
-open class GlobalTableKeySchema {
-    AttributeName: String|Mapping
-    KeyType: String|Mapping
-}
-
-/// 
-open class GlobalTableTag {
-    Value: String|Mapping
-    Key: String|Mapping
+open class GlobalTableProjection {
+    NonKeyAttributes: (Listing<String|Mapping>)?
+    ProjectionType: (String|Mapping)?
 }
 
 /// 
 open class GlobalTableAttributeDefinition {
     AttributeType: String|Mapping
     AttributeName: String|Mapping
+}
+
+/// 
+open class GlobalTableReadProvisionedThroughputSettings {
+    ReadCapacityAutoScalingSettings: (GlobalTableCapacityAutoScalingSettings)?
+    ReadCapacityUnits: (Int|Mapping)?
 }
 
 /// 
@@ -113,23 +101,35 @@ open class GlobalTableLocalSecondaryIndex {
 }
 
 /// 
-open class GlobalTableReplicaGlobalSecondaryIndexSpecification {
-    IndexName: String|Mapping
-    ContributorInsightsSpecification: (GlobalTableContributorInsightsSpecification)?
-    ReadProvisionedThroughputSettings: (GlobalTableReadProvisionedThroughputSettings)?
-}
-
-/// 
 open class GlobalTableTargetTrackingScalingPolicyConfiguration {
-    DisableScaleIn: (Boolean|Mapping)?
-    ScaleInCooldown: (Int|Mapping)?
     ScaleOutCooldown: (Int|Mapping)?
     TargetValue: Number|Mapping
+    DisableScaleIn: (Boolean|Mapping)?
+    ScaleInCooldown: (Int|Mapping)?
 }
 
 /// 
-open class GlobalTableStreamSpecification {
-    StreamViewType: String|Mapping
+open class GlobalTableGlobalSecondaryIndex {
+    Projection: GlobalTableProjection
+    KeySchema: Listing<GlobalTableKeySchema>
+    WriteProvisionedThroughputSettings: (GlobalTableWriteProvisionedThroughputSettings)?
+    IndexName: String|Mapping
+}
+
+/// 
+open class GlobalTableKeySchema {
+    KeyType: String|Mapping
+    AttributeName: String|Mapping
+}
+
+/// 
+open class GlobalTablePointInTimeRecoverySpecification {
+    PointInTimeRecoveryEnabled: (Boolean|Mapping)?
+}
+
+/// 
+open class GlobalTableReplicaSSESpecification {
+    KMSMasterKeyId: String|Mapping
 }
 
 /// Version: None. Resource Type definition for AWS::DynamoDB::GlobalTable
@@ -139,28 +139,19 @@ open class GlobalTable extends cloudformation.Resource {
 
 
     /// 
-    hidden Replicas: Listing<GlobalTableReplicaSpecification>
-
-    /// 
-    hidden AttributeDefinitions: Listing<GlobalTableAttributeDefinition>
-
-    /// 
-    hidden KeySchema: Listing<GlobalTableKeySchema>
-
-    /// 
-    hidden TableName: (String|Mapping)?
+    hidden LocalSecondaryIndexes: (Listing<GlobalTableLocalSecondaryIndex>)?
 
     /// 
     hidden TimeToLiveSpecification: (GlobalTableTimeToLiveSpecification)?
 
     /// 
+    hidden KeySchema: Listing<GlobalTableKeySchema>
+
+    /// 
     hidden SSESpecification: (GlobalTableSSESpecification)?
 
     /// 
-    hidden StreamSpecification: (GlobalTableStreamSpecification)?
-
-    /// 
-    hidden WriteProvisionedThroughputSettings: (GlobalTableWriteProvisionedThroughputSettings)?
+    hidden TableName: (String|Mapping)?
 
     /// 
     hidden BillingMode: (String|Mapping)?
@@ -169,20 +160,29 @@ open class GlobalTable extends cloudformation.Resource {
     hidden GlobalSecondaryIndexes: (Listing<GlobalTableGlobalSecondaryIndex>)?
 
     /// 
-    hidden LocalSecondaryIndexes: (Listing<GlobalTableLocalSecondaryIndex>)?
+    hidden Replicas: Listing<GlobalTableReplicaSpecification>
+
+    /// 
+    hidden WriteProvisionedThroughputSettings: (GlobalTableWriteProvisionedThroughputSettings)?
+
+    /// 
+    hidden AttributeDefinitions: Listing<GlobalTableAttributeDefinition>
+
+    /// 
+    hidden StreamSpecification: (GlobalTableStreamSpecification)?
 
     Properties {
-        ["Replicas"] = if (Replicas == null) null else Replicas
-        ["AttributeDefinitions"] = if (AttributeDefinitions == null) null else AttributeDefinitions
-        ["KeySchema"] = if (KeySchema == null) null else KeySchema
-        ["TableName"] = if (TableName == null) null else TableName
+        ["LocalSecondaryIndexes"] = if (LocalSecondaryIndexes == null) null else LocalSecondaryIndexes
         ["TimeToLiveSpecification"] = if (TimeToLiveSpecification == null) null else TimeToLiveSpecification
+        ["KeySchema"] = if (KeySchema == null) null else KeySchema
         ["SSESpecification"] = if (SSESpecification == null) null else SSESpecification
-        ["StreamSpecification"] = if (StreamSpecification == null) null else StreamSpecification
-        ["WriteProvisionedThroughputSettings"] = if (WriteProvisionedThroughputSettings == null) null else WriteProvisionedThroughputSettings
+        ["TableName"] = if (TableName == null) null else TableName
         ["BillingMode"] = if (BillingMode == null) null else BillingMode
         ["GlobalSecondaryIndexes"] = if (GlobalSecondaryIndexes == null) null else GlobalSecondaryIndexes
-        ["LocalSecondaryIndexes"] = if (LocalSecondaryIndexes == null) null else LocalSecondaryIndexes
+        ["Replicas"] = if (Replicas == null) null else Replicas
+        ["WriteProvisionedThroughputSettings"] = if (WriteProvisionedThroughputSettings == null) null else WriteProvisionedThroughputSettings
+        ["AttributeDefinitions"] = if (AttributeDefinitions == null) null else AttributeDefinitions
+        ["StreamSpecification"] = if (StreamSpecification == null) null else StreamSpecification
     }
 
 }

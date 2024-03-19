@@ -5,34 +5,17 @@ module aws.entityresolution.matchingworkflow
 
 import "../../cloudformation.pkl"
 
-typealias RuleBasedPropertiesAttributeMatchingModel = "ONE_TO_ONE"|"MANY_TO_MANY"
+typealias MatchingWorkflowDescription = String|Mapping
 
-/// 
-open class MatchingWorkflowRuleBasedProperties {
-    Rules: Listing<MatchingWorkflowRule>
-    AttributeMatchingModel: RuleBasedPropertiesAttributeMatchingModel|Mapping
+
+/// A key-value pair to associate with a resource
+open class MatchingWorkflowTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
-typealias MatchingWorkflowAttributeName = String
+typealias MatchingWorkflowAttributeName = String|Mapping
 
-
-/// 
-open class MatchingWorkflowProviderProperties {
-    ProviderServiceArn: String|Mapping
-    ProviderConfiguration: (Dynamic)?
-    IntermediateSourceConfiguration: (MatchingWorkflowIntermediateSourceConfiguration)?
-}
-
-typealias MatchingWorkflowDescription = String
-
-
-/// 
-open class MatchingWorkflowOutputSource {
-    OutputS3Path: String(matches(Regex(#"^s3://([^/]+)/?(.*?([^/]+)/?)$"#)))|Mapping
-    Output: Listing<MatchingWorkflowOutputAttribute>
-    KMSArn: (MatchingWorkflowKMSArn)?
-    ApplyNormalization: (Boolean|Mapping)?
-}
 
 /// 
 open class MatchingWorkflowOutputAttribute {
@@ -40,14 +23,14 @@ open class MatchingWorkflowOutputAttribute {
     Hashed: (Boolean|Mapping)?
 }
 
-typealias MatchingWorkflowEntityName = String
+typealias MatchingWorkflowSchemaMappingArn = String|Mapping
 
 
-typealias MatchingWorkflowCreatedAt = String
-
-
-typealias MatchingWorkflowMatchingWorkflowArn = String
-
+/// 
+open class MatchingWorkflowRule {
+    RuleName: String(matches(Regex(#"^[a-zA-Z_0-9- \t]*$"#)))|Mapping
+    MatchingKeys: Listing<MatchingWorkflowAttributeName>
+}
 
 typealias ResolutionTechniquesResolutionType = "RULE_MATCHING"|"ML_MATCHING"|"PROVIDER"
 
@@ -58,32 +41,12 @@ open class MatchingWorkflowResolutionTechniques {
     ProviderProperties: (MatchingWorkflowProviderProperties)?
 }
 
-typealias MatchingWorkflowUpdatedAt = String
-
-
-typealias MatchingWorkflowKMSArn = String
-
-
-typealias MatchingWorkflowSchemaMappingArn = String
-
-
-/// A key-value pair to associate with a resource
-open class MatchingWorkflowTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
 /// 
-open class MatchingWorkflowInputSource {
-    SchemaArn: String|Mapping
+open class MatchingWorkflowOutputSource {
+    KMSArn: (MatchingWorkflowKMSArn)?
     ApplyNormalization: (Boolean|Mapping)?
-    InputSourceARN: String(matches(Regex(#"arn:(aws|aws-us-gov|aws-cn):.*:.*:[0-9]+:.*$"#)))|Mapping
-}
-
-/// 
-open class MatchingWorkflowRule {
-    RuleName: String(matches(Regex(#"^[a-zA-Z_0-9- \t]*$"#)))|Mapping
-    MatchingKeys: Listing<MatchingWorkflowAttributeName>
+    OutputS3Path: String(matches(Regex(#"^s3://([^/]+)/?(.*?([^/]+)/?)$"#)))|Mapping
+    Output: Listing<MatchingWorkflowOutputAttribute>
 }
 
 /// 
@@ -91,41 +54,80 @@ open class MatchingWorkflowIntermediateSourceConfiguration {
     IntermediateS3Path: String|Mapping
 }
 
+typealias MatchingWorkflowKMSArn = String|Mapping
+
+
+typealias MatchingWorkflowProviderPropertiesProviderConfiguration = Mapping<String, Any>
+
+/// 
+open class MatchingWorkflowProviderProperties {
+    ProviderServiceArn: String|Mapping
+    ProviderConfiguration: (MatchingWorkflowProviderPropertiesProviderConfiguration)?
+    IntermediateSourceConfiguration: (MatchingWorkflowIntermediateSourceConfiguration)?
+}
+
+typealias MatchingWorkflowMatchingWorkflowArn = String|Mapping
+
+
+typealias MatchingWorkflowCreatedAt = String|Mapping
+
+
+typealias RuleBasedPropertiesAttributeMatchingModel = "ONE_TO_ONE"|"MANY_TO_MANY"
+
+/// 
+open class MatchingWorkflowRuleBasedProperties {
+    Rules: Listing<MatchingWorkflowRule>
+    AttributeMatchingModel: RuleBasedPropertiesAttributeMatchingModel|Mapping
+}
+
+typealias MatchingWorkflowUpdatedAt = String|Mapping
+
+
+/// 
+open class MatchingWorkflowInputSource {
+    InputSourceARN: String(matches(Regex(#"arn:(aws|aws-us-gov|aws-cn):.*:.*:[0-9]+:.*$"#)))|Mapping
+    SchemaArn: String|Mapping
+    ApplyNormalization: (Boolean|Mapping)?
+}
+
+typealias MatchingWorkflowEntityName = String|Mapping
+
+
 /// MatchingWorkflow defined in AWS Entity Resolution service
 open class MatchingWorkflow extends cloudformation.Resource {
 
     Type = "AWS::EntityResolution::MatchingWorkflow"
 
 
-    /// 
-    hidden InputSourceConfig: Listing<MatchingWorkflowInputSource>
+    /// The name of the MatchingWorkflow
+    hidden WorkflowName: MatchingWorkflowEntityName
 
     /// 
     hidden RoleArn: String(matches(Regex(#"^arn:(aws|aws-us-gov|aws-cn):iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping
 
     /// 
-    hidden ResolutionTechniques: MatchingWorkflowResolutionTechniques
-
-    /// 
     hidden Tags: (Listing<MatchingWorkflowTag>)?
-
-    /// The name of the MatchingWorkflow
-    hidden WorkflowName: MatchingWorkflowEntityName
 
     /// The description of the MatchingWorkflow
     hidden Description: (MatchingWorkflowDescription)?
 
     /// 
+    hidden InputSourceConfig: Listing<MatchingWorkflowInputSource>
+
+    /// 
     hidden OutputSourceConfig: Listing<MatchingWorkflowOutputSource>
 
+    /// 
+    hidden ResolutionTechniques: MatchingWorkflowResolutionTechniques
+
     Properties {
-        ["InputSourceConfig"] = if (InputSourceConfig == null) null else InputSourceConfig
-        ["RoleArn"] = if (RoleArn == null) null else RoleArn
-        ["ResolutionTechniques"] = if (ResolutionTechniques == null) null else ResolutionTechniques
-        ["Tags"] = if (Tags == null) null else Tags
         ["WorkflowName"] = if (WorkflowName == null) null else WorkflowName
+        ["RoleArn"] = if (RoleArn == null) null else RoleArn
+        ["Tags"] = if (Tags == null) null else Tags
         ["Description"] = if (Description == null) null else Description
+        ["InputSourceConfig"] = if (InputSourceConfig == null) null else InputSourceConfig
         ["OutputSourceConfig"] = if (OutputSourceConfig == null) null else OutputSourceConfig
+        ["ResolutionTechniques"] = if (ResolutionTechniques == null) null else ResolutionTechniques
     }
 
 }

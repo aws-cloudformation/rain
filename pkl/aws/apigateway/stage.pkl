@@ -19,30 +19,30 @@ open class StageCanarySetting {
 ///
 ///   ``AccessLogSetting`` is a property of the [AWS::ApiGateway::Stage](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigateway-stage.html) resource.
 open class StageAccessLogSetting {
-    Format: (String|Mapping)?
     DestinationArn: (String|Mapping)?
+    Format: (String|Mapping)?
 }
 
 /// The ``MethodSetting`` property type configures settings for all methods in a stage.
 ///
 ///  The ``MethodSettings`` property of the ``AWS::ApiGateway::Stage`` resource contains a list of ``MethodSetting`` property types.
 open class StageMethodSetting {
-    CachingEnabled: (Boolean|Mapping)?
-    HttpMethod: (String|Mapping)?
-    ResourcePath: (String|Mapping)?
-    ThrottlingBurstLimit: (Int|Mapping)?
-    ThrottlingRateLimit: (Number|Mapping)?
     CacheDataEncrypted: (Boolean|Mapping)?
-    CacheTtlInSeconds: (Int|Mapping)?
-    DataTraceEnabled: (Boolean|Mapping)?
+    HttpMethod: (String|Mapping)?
     LoggingLevel: (String|Mapping)?
     MetricsEnabled: (Boolean|Mapping)?
+    ResourcePath: (String|Mapping)?
+    CacheTtlInSeconds: (Int|Mapping)?
+    CachingEnabled: (Boolean|Mapping)?
+    DataTraceEnabled: (Boolean|Mapping)?
+    ThrottlingBurstLimit: (Int|Mapping)?
+    ThrottlingRateLimit: (Number|Mapping)?
 }
 
 /// 
 open class StageTag {
-    Value: String|Mapping
     Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// The ``AWS::ApiGateway::Stage`` resource creates a stage for a deployment.
@@ -51,63 +51,63 @@ open class Stage extends cloudformation.Resource {
     Type = "AWS::ApiGateway::Stage"
 
 
-    /// The identifier of a client certificate for an API stage.
-    hidden ClientCertificateId: (String|Mapping)?
+    /// A map that defines the method settings for a Stage resource. Keys (designated as ``/{method_setting_key`` below) are method paths defined as ``{resource_path}/{http_method}`` for an individual method override, or ``/\*/\*`` for overriding all methods in the stage.
+    hidden MethodSettings: (Listing<StageMethodSetting>)?
 
     /// The name of the stage is the first path segment in the Uniform Resource Identifier (URI) of a call to API Gateway. Stage names can only contain alphanumeric characters, hyphens, and underscores. Maximum length is 128 characters.
     hidden StageName: (String|Mapping)?
 
-    /// Access log settings, including the access log format and access log destination ARN.
-    hidden AccessLogSetting: (StageAccessLogSetting)?
+    /// A map (string-to-string map) that defines the stage variables, where the variable name is the key and the variable value is the value. Variable names are limited to alphanumeric characters. Values must match the following regular expression: ``[A-Za-z0-9-._~:/?#&=,]+``.
+    hidden Variables: (StageStageVariables)?
 
     /// Specifies whether a cache cluster is enabled for the stage.
     hidden CacheClusterEnabled: (Boolean|Mapping)?
 
-    /// A map that defines the method settings for a Stage resource. Keys (designated as ``/{method_setting_key`` below) are method paths defined as ``{resource_path}/{http_method}`` for an individual method override, or ``/\*/\*`` for overriding all methods in the stage.
-    hidden MethodSettings: (Listing<StageMethodSetting>)?
-
-    /// Specifies whether active tracing with X-ray is enabled for the Stage.
-    hidden TracingEnabled: (Boolean|Mapping)?
-
-    /// A map (string-to-string map) that defines the stage variables, where the variable name is the key and the variable value is the value. Variable names are limited to alphanumeric characters. Values must match the following regular expression: ``[A-Za-z0-9-._~:/?#&=,]+``.
-    hidden Variables: (StageStageVariables)?
-
-    /// The stage's cache capacity in GB. For more information about choosing a cache size, see [Enabling API caching to enhance responsiveness](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-caching.html).
-    hidden CacheClusterSize: (String|Mapping)?
-
     /// Settings for the canary deployment in this stage.
     hidden CanarySetting: (StageCanarySetting)?
-
-    /// The identifier of the Deployment that the stage points to.
-    hidden DeploymentId: (String|Mapping)?
 
     /// The stage's description.
     hidden Description: (String|Mapping)?
 
-    /// The version of the associated API documentation.
-    hidden DocumentationVersion: (String|Mapping)?
+    /// Specifies whether active tracing with X-ray is enabled for the Stage.
+    hidden TracingEnabled: (Boolean|Mapping)?
 
-    /// The string identifier of the associated RestApi.
-    hidden RestApiId: String|Mapping
+    /// Access log settings, including the access log format and access log destination ARN.
+    hidden AccessLogSetting: (StageAccessLogSetting)?
+
+    /// The identifier of a client certificate for an API stage.
+    hidden ClientCertificateId: (String|Mapping)?
 
     /// The collection of tags. Each tag element is associated with a given resource.
     hidden Tags: (Listing<StageTag>)?
 
+    /// The stage's cache capacity in GB. For more information about choosing a cache size, see [Enabling API caching to enhance responsiveness](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-caching.html).
+    hidden CacheClusterSize: (String|Mapping)?
+
+    /// The string identifier of the associated RestApi.
+    hidden RestApiId: String|Mapping
+
+    /// The identifier of the Deployment that the stage points to.
+    hidden DeploymentId: (String|Mapping)?
+
+    /// The version of the associated API documentation.
+    hidden DocumentationVersion: (String|Mapping)?
+
     Properties {
-        ["ClientCertificateId"] = if (ClientCertificateId == null) null else ClientCertificateId
-        ["StageName"] = if (StageName == null) null else StageName
-        ["AccessLogSetting"] = if (AccessLogSetting == null) null else AccessLogSetting
-        ["CacheClusterEnabled"] = if (CacheClusterEnabled == null) null else CacheClusterEnabled
         ["MethodSettings"] = if (MethodSettings == null) null else MethodSettings
-        ["TracingEnabled"] = if (TracingEnabled == null) null else TracingEnabled
+        ["StageName"] = if (StageName == null) null else StageName
         ["Variables"] = if (Variables == null) null else Variables
-        ["CacheClusterSize"] = if (CacheClusterSize == null) null else CacheClusterSize
+        ["CacheClusterEnabled"] = if (CacheClusterEnabled == null) null else CacheClusterEnabled
         ["CanarySetting"] = if (CanarySetting == null) null else CanarySetting
-        ["DeploymentId"] = if (DeploymentId == null) null else DeploymentId
         ["Description"] = if (Description == null) null else Description
-        ["DocumentationVersion"] = if (DocumentationVersion == null) null else DocumentationVersion
-        ["RestApiId"] = if (RestApiId == null) null else RestApiId
+        ["TracingEnabled"] = if (TracingEnabled == null) null else TracingEnabled
+        ["AccessLogSetting"] = if (AccessLogSetting == null) null else AccessLogSetting
+        ["ClientCertificateId"] = if (ClientCertificateId == null) null else ClientCertificateId
         ["Tags"] = if (Tags == null) null else Tags
+        ["CacheClusterSize"] = if (CacheClusterSize == null) null else CacheClusterSize
+        ["RestApiId"] = if (RestApiId == null) null else RestApiId
+        ["DeploymentId"] = if (DeploymentId == null) null else DeploymentId
+        ["DocumentationVersion"] = if (DocumentationVersion == null) null else DocumentationVersion
     }
 
 }

@@ -6,54 +6,54 @@ module aws.kinesisanalytics.applicationreferencedatasource
 import "../../cloudformation.pkl"
 
 /// 
-open class CSVMappingParameters {
-    RecordColumnDelimiter: String|Mapping
-    RecordRowDelimiter: String|Mapping
-}
-
-/// 
-open class JSONMappingParameters {
-    RecordRowPath: String|Mapping
-}
-
-/// 
-open class ReferenceDataSource {
-    ReferenceSchema: ReferenceSchema
-    TableName: (String|Mapping)?
-    S3ReferenceDataSource: (S3ReferenceDataSource)?
-}
-
-/// 
-open class S3ReferenceDataSource {
+open class ApplicationReferenceDataSourceS3ReferenceDataSource {
     BucketARN: String|Mapping
     FileKey: String|Mapping
     ReferenceRoleARN: String|Mapping
 }
 
 /// 
-open class ReferenceSchema {
-    RecordFormat: RecordFormat
+open class ApplicationReferenceDataSourceReferenceSchema {
+    RecordColumns: Listing<ApplicationReferenceDataSourceRecordColumn>
+    RecordFormat: ApplicationReferenceDataSourceRecordFormat
     RecordEncoding: (String|Mapping)?
-    RecordColumns: Listing<RecordColumn>
 }
 
 /// 
-open class RecordColumn {
-    Mapping: (String|Mapping)?
+open class ApplicationReferenceDataSourceRecordColumn {
     SqlType: String|Mapping
     Name: String|Mapping
+    Mapping: (String|Mapping)?
 }
 
 /// 
-open class RecordFormat {
-    MappingParameters: (MappingParameters)?
+open class ApplicationReferenceDataSourceRecordFormat {
+    MappingParameters: (ApplicationReferenceDataSourceMappingParameters)?
     RecordFormatType: String|Mapping
 }
 
 /// 
-open class MappingParameters {
-    JSONMappingParameters: (JSONMappingParameters)?
-    CSVMappingParameters: (CSVMappingParameters)?
+open class ApplicationReferenceDataSourceMappingParameters {
+    JSONMappingParameters: (ApplicationReferenceDataSourceJSONMappingParameters)?
+    CSVMappingParameters: (ApplicationReferenceDataSourceCSVMappingParameters)?
+}
+
+/// 
+open class ApplicationReferenceDataSourceCSVMappingParameters {
+    RecordRowDelimiter: String|Mapping
+    RecordColumnDelimiter: String|Mapping
+}
+
+/// 
+open class ApplicationReferenceDataSourceJSONMappingParameters {
+    RecordRowPath: String|Mapping
+}
+
+/// 
+open class ApplicationReferenceDataSourceReferenceDataSource {
+    ReferenceSchema: ApplicationReferenceDataSourceReferenceSchema
+    TableName: (String|Mapping)?
+    S3ReferenceDataSource: (ApplicationReferenceDataSourceS3ReferenceDataSource)?
 }
 
 /// Resource Type definition for AWS::KinesisAnalytics::ApplicationReferenceDataSource
@@ -66,7 +66,7 @@ open class ApplicationReferenceDataSource extends cloudformation.Resource {
     hidden ApplicationName: String|Mapping
 
     /// 
-    hidden ReferenceDataSource: ReferenceDataSource
+    hidden ReferenceDataSource: ApplicationReferenceDataSourceReferenceDataSource
 
     Properties {
         ["ApplicationName"] = if (ApplicationName == null) null else ApplicationName

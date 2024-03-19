@@ -6,30 +6,30 @@ module aws.mediastore.container
 import "../../cloudformation.pkl"
 
 /// 
-open class Tag {
+open class ContainerTag {
     Value: String|Mapping
     Key: String|Mapping
 }
 
 /// 
-open class MetricPolicyRule {
-    ObjectGroupName: String|Mapping
+open class ContainerMetricPolicyRule {
     ObjectGroup: String|Mapping
+    ObjectGroupName: String|Mapping
 }
 
 /// 
-open class CorsRule {
+open class ContainerCorsRule {
+    AllowedHeaders: (Listing<String|Mapping>)?
     AllowedMethods: (Listing<String|Mapping>)?
     AllowedOrigins: (Listing<String|Mapping>)?
     ExposeHeaders: (Listing<String|Mapping>)?
     MaxAgeSeconds: (Int|Mapping)?
-    AllowedHeaders: (Listing<String|Mapping>)?
 }
 
 /// 
-open class MetricPolicy {
+open class ContainerMetricPolicy {
     ContainerLevelMetrics: String|Mapping
-    MetricPolicyRules: (Listing<MetricPolicyRule>)?
+    MetricPolicyRules: (Listing<ContainerMetricPolicyRule>)?
 }
 
 /// Resource Type definition for AWS::MediaStore::Container
@@ -39,34 +39,34 @@ open class Container extends cloudformation.Resource {
 
 
     /// 
+    hidden Policy: (String|Mapping)?
+
+    /// 
+    hidden MetricPolicy: (ContainerMetricPolicy)?
+
+    /// 
     hidden ContainerName: String|Mapping
+
+    /// 
+    hidden CorsPolicy: (Listing<ContainerCorsRule>)?
+
+    /// 
+    hidden AccessLoggingEnabled: (Boolean|Mapping)?
 
     /// 
     hidden LifecyclePolicy: (String|Mapping)?
 
     /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden Policy: (String|Mapping)?
-
-    /// 
-    hidden MetricPolicy: (MetricPolicy)?
-
-    /// 
-    hidden CorsPolicy: (Listing<CorsRule>)?
-
-    /// 
-    hidden AccessLoggingEnabled: (Boolean|Mapping)?
+    hidden Tags: (Listing<ContainerTag>)?
 
     Properties {
-        ["ContainerName"] = if (ContainerName == null) null else ContainerName
-        ["LifecyclePolicy"] = if (LifecyclePolicy == null) null else LifecyclePolicy
-        ["Tags"] = if (Tags == null) null else Tags
         ["Policy"] = if (Policy == null) null else Policy
         ["MetricPolicy"] = if (MetricPolicy == null) null else MetricPolicy
+        ["ContainerName"] = if (ContainerName == null) null else ContainerName
         ["CorsPolicy"] = if (CorsPolicy == null) null else CorsPolicy
         ["AccessLoggingEnabled"] = if (AccessLoggingEnabled == null) null else AccessLoggingEnabled
+        ["LifecyclePolicy"] = if (LifecyclePolicy == null) null else LifecyclePolicy
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

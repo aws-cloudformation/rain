@@ -5,39 +5,33 @@ module aws.kendraranking.executionplan
 
 import "../../cloudformation.pkl"
 
-/// List of tags
-open class Tags {
-}
+typealias ExecutionPlanName = String|Mapping
 
-/// 
-open class RescoreCapacityUnits {
-}
 
-/// 
-open class CapacityUnitsConfiguration {
-    RescoreCapacityUnits: RescoreCapacityUnits
-}
+typealias ExecutionPlanId = String|Mapping
 
-/// Name of kendra ranking rescore execution plan
-open class Name {
-}
 
-/// Unique ID of rescore execution plan
-open class Id {
-}
+typealias ExecutionPlanArn = String|Mapping
 
-/// 
-open class Arn {
-}
 
-/// 
-open class Description {
-}
+typealias ExecutionPlanDescription = String|Mapping
+
 
 /// A label for tagging KendraRanking resources
-open class Tag {
+open class ExecutionPlanTag {
     Key: String|Mapping
     Value: String|Mapping
+}
+
+typealias ExecutionPlanTags = Listing<(ExecutionPlanTag)?>
+
+
+typealias ExecutionPlanRescoreCapacityUnits = Int|Mapping
+
+
+/// 
+open class ExecutionPlanCapacityUnitsConfiguration {
+    RescoreCapacityUnits: ExecutionPlanRescoreCapacityUnits
 }
 
 /// A KendraRanking Rescore execution plan
@@ -46,23 +40,23 @@ open class ExecutionPlan extends cloudformation.Resource {
     Type = "AWS::KendraRanking::ExecutionPlan"
 
 
+    /// Tags for labeling the execution plan
+    hidden Tags: (ExecutionPlanTags)?
+
     /// 
-    hidden Name: Name
+    hidden Name: ExecutionPlanName
 
     /// Capacity units
-    hidden CapacityUnits: (CapacityUnitsConfiguration)?
+    hidden CapacityUnits: (ExecutionPlanCapacityUnitsConfiguration)?
 
     /// A description for the execution plan
-    hidden Description: (Description)?
-
-    /// Tags for labeling the execution plan
-    hidden Tags: (Tags)?
+    hidden Description: (ExecutionPlanDescription)?
 
     Properties {
+        ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
         ["CapacityUnits"] = if (CapacityUnits == null) null else CapacityUnits
         ["Description"] = if (Description == null) null else Description
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

@@ -6,13 +6,13 @@ module aws.opsworkscm.server
 import "../../cloudformation.pkl"
 
 /// 
-open class EngineAttribute {
+open class ServerEngineAttribute {
     Value: (String(matches(Regex(#"(?s).*"#)))|Mapping)?
     Name: (String(matches(Regex(#"(?s).*"#)))|Mapping)?
 }
 
 /// 
-open class Tag {
+open class ServerTag {
     Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
     Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
 }
@@ -24,22 +24,43 @@ open class Server extends cloudformation.Resource {
 
 
     /// 
-    hidden Engine: (String|Mapping)?
-
-    /// 
-    hidden DisableAutomatedBackup: (Boolean|Mapping)?
-
-    /// 
-    hidden AssociatePublicIpAddress: (Boolean|Mapping)?
-
-    /// 
-    hidden PreferredBackupWindow: (String(matches(Regex(#"^((Mon|Tue|Wed|Thu|Fri|Sat|Sun):)?([0-1][0-9]|2[0-3]):[0-5][0-9]$"#)))|Mapping)?
+    hidden KeyPair: (String(matches(Regex(#".*"#)))|Mapping)?
 
     /// 
     hidden InstanceType: String|Mapping
 
     /// 
+    hidden Engine: (String|Mapping)?
+
+    /// 
+    hidden InstanceProfileArn: String(matches(Regex(#"arn:aws:iam::[0-9]{12}:instance-profile/.*"#)))|Mapping
+
+    /// 
+    hidden PreferredBackupWindow: (String(matches(Regex(#"^((Mon|Tue|Wed|Thu|Fri|Sat|Sun):)?([0-1][0-9]|2[0-3]):[0-5][0-9]$"#)))|Mapping)?
+
+    /// 
+    hidden SubnetIds: (Listing<String|Mapping>)?
+
+    /// 
+    hidden EngineVersion: (String|Mapping)?
+
+    /// 
     hidden ServiceRoleArn: String(matches(Regex(#"arn:aws:iam::[0-9]{12}:role/.*"#)))|Mapping
+
+    /// 
+    hidden EngineModel: (String|Mapping)?
+
+    /// 
+    hidden AssociatePublicIpAddress: (Boolean|Mapping)?
+
+    /// 
+    hidden Tags: (Listing<ServerTag>)?
+
+    /// 
+    hidden EngineAttributes: (Listing<ServerEngineAttribute>)?
+
+    /// 
+    hidden DisableAutomatedBackup: (Boolean|Mapping)?
 
     /// 
     hidden BackupId: (String(matches(Regex(#"[a-zA-Z][a-zA-Z0-9\-\.\:]*"#)))|Mapping)?
@@ -48,62 +69,41 @@ open class Server extends cloudformation.Resource {
     hidden SecurityGroupIds: (Listing<String|Mapping>)?
 
     /// 
-    hidden CustomPrivateKey: (String(matches(Regex(#"(?ms)\s*^-----BEGIN (?-s:.*)PRIVATE KEY-----$.*?^-----END (?-s:.*)PRIVATE KEY-----$\s*"#)))|Mapping)?
-
-    /// 
-    hidden KeyPair: (String(matches(Regex(#".*"#)))|Mapping)?
-
-    /// 
-    hidden EngineVersion: (String|Mapping)?
-
-    /// 
-    hidden EngineModel: (String|Mapping)?
+    hidden CustomDomain: (String(matches(Regex(#"^(((?!-)[A-Za-z0-9-]{0,62}[A-Za-z0-9])\.)+((?!-)[A-Za-z0-9-]{1,62}[A-Za-z0-9])$"#)))|Mapping)?
 
     /// 
     hidden PreferredMaintenanceWindow: (String(matches(Regex(#"^((Mon|Tue|Wed|Thu|Fri|Sat|Sun):)?([0-1][0-9]|2[0-3]):[0-5][0-9]$"#)))|Mapping)?
 
     /// 
-    hidden InstanceProfileArn: String(matches(Regex(#"arn:aws:iam::[0-9]{12}:instance-profile/.*"#)))|Mapping
-
-    /// 
     hidden CustomCertificate: (String(matches(Regex(#"(?s)\s*-----BEGIN CERTIFICATE-----.+-----END CERTIFICATE-----\s*"#)))|Mapping)?
 
     /// 
-    hidden EngineAttributes: (Listing<EngineAttribute>)?
+    hidden CustomPrivateKey: (String(matches(Regex(#"(?ms)\s*^-----BEGIN (?-s:.*)PRIVATE KEY-----$.*?^-----END (?-s:.*)PRIVATE KEY-----$\s*"#)))|Mapping)?
 
     /// 
     hidden BackupRetentionCount: (Int|Mapping)?
 
-    /// 
-    hidden SubnetIds: (Listing<String|Mapping>)?
-
-    /// 
-    hidden CustomDomain: (String(matches(Regex(#"^(((?!-)[A-Za-z0-9-]{0,62}[A-Za-z0-9])\.)+((?!-)[A-Za-z0-9-]{1,62}[A-Za-z0-9])$"#)))|Mapping)?
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
     Properties {
-        ["Engine"] = if (Engine == null) null else Engine
-        ["DisableAutomatedBackup"] = if (DisableAutomatedBackup == null) null else DisableAutomatedBackup
-        ["AssociatePublicIpAddress"] = if (AssociatePublicIpAddress == null) null else AssociatePublicIpAddress
-        ["PreferredBackupWindow"] = if (PreferredBackupWindow == null) null else PreferredBackupWindow
+        ["KeyPair"] = if (KeyPair == null) null else KeyPair
         ["InstanceType"] = if (InstanceType == null) null else InstanceType
+        ["Engine"] = if (Engine == null) null else Engine
+        ["InstanceProfileArn"] = if (InstanceProfileArn == null) null else InstanceProfileArn
+        ["PreferredBackupWindow"] = if (PreferredBackupWindow == null) null else PreferredBackupWindow
+        ["SubnetIds"] = if (SubnetIds == null) null else SubnetIds
+        ["EngineVersion"] = if (EngineVersion == null) null else EngineVersion
         ["ServiceRoleArn"] = if (ServiceRoleArn == null) null else ServiceRoleArn
+        ["EngineModel"] = if (EngineModel == null) null else EngineModel
+        ["AssociatePublicIpAddress"] = if (AssociatePublicIpAddress == null) null else AssociatePublicIpAddress
+        ["Tags"] = if (Tags == null) null else Tags
+        ["EngineAttributes"] = if (EngineAttributes == null) null else EngineAttributes
+        ["DisableAutomatedBackup"] = if (DisableAutomatedBackup == null) null else DisableAutomatedBackup
         ["BackupId"] = if (BackupId == null) null else BackupId
         ["SecurityGroupIds"] = if (SecurityGroupIds == null) null else SecurityGroupIds
-        ["CustomPrivateKey"] = if (CustomPrivateKey == null) null else CustomPrivateKey
-        ["KeyPair"] = if (KeyPair == null) null else KeyPair
-        ["EngineVersion"] = if (EngineVersion == null) null else EngineVersion
-        ["EngineModel"] = if (EngineModel == null) null else EngineModel
-        ["PreferredMaintenanceWindow"] = if (PreferredMaintenanceWindow == null) null else PreferredMaintenanceWindow
-        ["InstanceProfileArn"] = if (InstanceProfileArn == null) null else InstanceProfileArn
-        ["CustomCertificate"] = if (CustomCertificate == null) null else CustomCertificate
-        ["EngineAttributes"] = if (EngineAttributes == null) null else EngineAttributes
-        ["BackupRetentionCount"] = if (BackupRetentionCount == null) null else BackupRetentionCount
-        ["SubnetIds"] = if (SubnetIds == null) null else SubnetIds
         ["CustomDomain"] = if (CustomDomain == null) null else CustomDomain
-        ["Tags"] = if (Tags == null) null else Tags
+        ["PreferredMaintenanceWindow"] = if (PreferredMaintenanceWindow == null) null else PreferredMaintenanceWindow
+        ["CustomCertificate"] = if (CustomCertificate == null) null else CustomCertificate
+        ["CustomPrivateKey"] = if (CustomPrivateKey == null) null else CustomPrivateKey
+        ["BackupRetentionCount"] = if (BackupRetentionCount == null) null else BackupRetentionCount
     }
 
 }

@@ -7,12 +7,12 @@ import "../../cloudformation.pkl"
 
 /// 
 open class TriggerAction {
+    Arguments: (Dynamic)?
+    SecurityConfiguration: (String|Mapping)?
     NotificationProperty: (TriggerNotificationProperty)?
     CrawlerName: (String|Mapping)?
     Timeout: (Int|Mapping)?
     JobName: (String|Mapping)?
-    Arguments: (Dynamic)?
-    SecurityConfiguration: (String|Mapping)?
 }
 
 /// 
@@ -23,17 +23,17 @@ open class TriggerEventBatchingCondition {
 
 /// 
 open class TriggerPredicate {
-    Logical: (String|Mapping)?
     Conditions: (Listing<TriggerCondition>)?
+    Logical: (String|Mapping)?
 }
 
 /// 
 open class TriggerCondition {
+    JobName: (String|Mapping)?
+    CrawlerName: (String|Mapping)?
     State: (String|Mapping)?
     CrawlState: (String|Mapping)?
     LogicalOperator: (String|Mapping)?
-    JobName: (String|Mapping)?
-    CrawlerName: (String|Mapping)?
 }
 
 /// 
@@ -48,10 +48,25 @@ open class Trigger extends cloudformation.Resource {
 
 
     /// 
+    hidden Actions: Listing<TriggerAction>
+
+    /// 
+    hidden WorkflowName: (String|Mapping)?
+
+    /// 
+    hidden Name: (String|Mapping)?
+
+    /// 
     hidden Predicate: (TriggerPredicate)?
 
     /// 
+    hidden Tags: (Dynamic)?
+
+    /// 
     hidden TypeProperty: String|Mapping
+
+    /// 
+    hidden StartOnCreation: (Boolean|Mapping)?
 
     /// 
     hidden Description: (String|Mapping)?
@@ -60,34 +75,19 @@ open class Trigger extends cloudformation.Resource {
     hidden EventBatchingCondition: (TriggerEventBatchingCondition)?
 
     /// 
-    hidden WorkflowName: (String|Mapping)?
-
-    /// 
-    hidden Tags: (Dynamic)?
-
-    /// 
-    hidden StartOnCreation: (Boolean|Mapping)?
-
-    /// 
-    hidden Actions: Listing<TriggerAction>
-
-    /// 
     hidden Schedule: (String|Mapping)?
 
-    /// 
-    hidden Name: (String|Mapping)?
-
     Properties {
+        ["Actions"] = if (Actions == null) null else Actions
+        ["WorkflowName"] = if (WorkflowName == null) null else WorkflowName
+        ["Name"] = if (Name == null) null else Name
         ["Predicate"] = if (Predicate == null) null else Predicate
+        ["Tags"] = if (Tags == null) null else Tags
         ["Type"] = if (TypeProperty == null) null else TypeProperty
+        ["StartOnCreation"] = if (StartOnCreation == null) null else StartOnCreation
         ["Description"] = if (Description == null) null else Description
         ["EventBatchingCondition"] = if (EventBatchingCondition == null) null else EventBatchingCondition
-        ["WorkflowName"] = if (WorkflowName == null) null else WorkflowName
-        ["Tags"] = if (Tags == null) null else Tags
-        ["StartOnCreation"] = if (StartOnCreation == null) null else StartOnCreation
-        ["Actions"] = if (Actions == null) null else Actions
         ["Schedule"] = if (Schedule == null) null else Schedule
-        ["Name"] = if (Name == null) null else Name
     }
 
 }

@@ -6,23 +6,111 @@ module aws.ec2.ec2fleet
 import "../../cloudformation.pkl"
 
 /// 
+open class EC2FleetMemoryGiBPerVCpuRequest {
+    Min: (Number|Mapping)?
+    Max: (Number|Mapping)?
+}
+
+/// 
+open class EC2FleetTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class EC2FleetNetworkInterfaceCountRequest {
+    Max: (Int|Mapping)?
+    Min: (Int|Mapping)?
+}
+
+/// 
 open class EC2FleetMaintenanceStrategies {
     CapacityRebalance: (EC2FleetCapacityRebalance)?
 }
 
-typealias CapacityRebalanceReplacementStrategy = "launch"|"launch-before-terminate"
-
 /// 
-open class EC2FleetCapacityRebalance {
-    TerminationDelay: (Int|Mapping)?
-    ReplacementStrategy: (CapacityRebalanceReplacementStrategy|Mapping)?
+open class EC2FleetPlacement {
+    HostResourceGroupArn: (String|Mapping)?
+    GroupName: (String|Mapping)?
+    Tenancy: (String|Mapping)?
+    SpreadDomain: (String|Mapping)?
+    PartitionNumber: (Int|Mapping)?
+    AvailabilityZone: (String|Mapping)?
+    Affinity: (String|Mapping)?
+    HostId: (String|Mapping)?
 }
 
 /// 
 open class EC2FleetFleetLaunchTemplateSpecificationRequest {
-    LaunchTemplateName: (String(matches(Regex(#"[a-zA-Z0-9\(\)\.\-/_]+"#)))|Mapping)?
     LaunchTemplateId: (String|Mapping)?
     Version: String|Mapping
+    LaunchTemplateName: (String(matches(Regex(#"[a-zA-Z0-9\(\)\.\-/_]+"#)))|Mapping)?
+}
+
+/// 
+open class EC2FleetMemoryMiBRequest {
+    Min: (Int|Mapping)?
+    Max: (Int|Mapping)?
+}
+
+/// 
+open class EC2FleetVCpuCountRangeRequest {
+    Min: (Int|Mapping)?
+    Max: (Int|Mapping)?
+}
+
+/// 
+open class EC2FleetAcceleratorTotalMemoryMiBRequest {
+    Min: (Int|Mapping)?
+    Max: (Int|Mapping)?
+}
+
+/// 
+open class EC2FleetFleetLaunchTemplateOverridesRequest {
+    MaxPrice: (String|Mapping)?
+    WeightedCapacity: (Number|Mapping)?
+    Placement: (EC2FleetPlacement)?
+    Priority: (Number|Mapping)?
+    AvailabilityZone: (String|Mapping)?
+    SubnetId: (String|Mapping)?
+    InstanceType: (String|Mapping)?
+    InstanceRequirements: (EC2FleetInstanceRequirementsRequest)?
+}
+
+/// 
+open class EC2FleetNetworkBandwidthGbpsRequest {
+    Min: (Number|Mapping)?
+    Max: (Number|Mapping)?
+}
+
+typealias TagSpecificationResourceType = "client-vpn-endpoint"|"customer-gateway"|"dedicated-host"|"dhcp-options"|"egress-only-internet-gateway"|"elastic-gpu"|"elastic-ip"|"export-image-task"|"export-instance-task"|"fleet"|"fpga-image"|"host-reservation"|"image"|"import-image-task"|"import-snapshot-task"|"instance"|"internet-gateway"|"key-pair"|"launch-template"|"local-gateway-route-table-vpc-association"|"natgateway"|"network-acl"|"network-insights-analysis"|"network-insights-path"|"network-interface"|"placement-group"|"reserved-instances"|"route-table"|"security-group"|"snapshot"|"spot-fleet-request"|"spot-instances-request"|"subnet"|"traffic-mirror-filter"|"traffic-mirror-session"|"traffic-mirror-target"|"transit-gateway"|"transit-gateway-attachment"|"transit-gateway-connect-peer"|"transit-gateway-multicast-domain"|"transit-gateway-route-table"|"volume"|"vpc"|"vpc-flow-log"|"vpc-peering-connection"|"vpn-connection"|"vpn-gateway"
+
+/// 
+open class EC2FleetTagSpecification {
+    ResourceType: (TagSpecificationResourceType|Mapping)?
+    Tags: (Listing<EC2FleetTag>)?
+}
+
+/// 
+open class EC2FleetTotalLocalStorageGBRequest {
+    Min: (Number|Mapping)?
+    Max: (Number|Mapping)?
+}
+
+/// 
+open class EC2FleetAcceleratorCountRequest {
+    Min: (Int|Mapping)?
+    Max: (Int|Mapping)?
+}
+
+/// 
+open class EC2FleetOnDemandOptionsRequest {
+    SingleInstanceType: (Boolean|Mapping)?
+    MinTargetCapacity: (Int|Mapping)?
+    MaxTotalPrice: (String|Mapping)?
+    CapacityReservationOptions: (EC2FleetCapacityReservationOptionsRequest)?
+    SingleAvailabilityZone: (Boolean|Mapping)?
+    AllocationStrategy: (String|Mapping)?
 }
 
 typealias SpotOptionsRequestAllocationStrategy = "lowest-price"|"lowestPrice"|"diversified"|"capacityOptimized"|"capacity-optimized"|"capacityOptimizedPrioritized"|"capacity-optimized-prioritized"|"priceCapacityOptimized"|"price-capacity-optimized"
@@ -41,10 +129,12 @@ open class EC2FleetSpotOptionsRequest {
     MaintenanceStrategies: (EC2FleetMaintenanceStrategies)?
 }
 
+typealias CapacityRebalanceReplacementStrategy = "launch"|"launch-before-terminate"
+
 /// 
-open class EC2FleetAcceleratorTotalMemoryMiBRequest {
-    Min: (Int|Mapping)?
-    Max: (Int|Mapping)?
+open class EC2FleetCapacityRebalance {
+    ReplacementStrategy: (CapacityRebalanceReplacementStrategy|Mapping)?
+    TerminationDelay: (Int|Mapping)?
 }
 
 typealias TargetCapacitySpecificationRequestDefaultTargetCapacityType = "on-demand"|"spot"
@@ -61,81 +151,15 @@ open class EC2FleetTargetCapacitySpecificationRequest {
 }
 
 /// 
-open class EC2FleetFleetLaunchTemplateConfigRequest {
-    LaunchTemplateSpecification: (EC2FleetFleetLaunchTemplateSpecificationRequest)?
-    Overrides: (Listing<EC2FleetFleetLaunchTemplateOverridesRequest>)?
-}
-
-/// 
-open class EC2FleetTotalLocalStorageGBRequest {
-    Max: (Number|Mapping)?
-    Min: (Number|Mapping)?
-}
-
-/// 
 open class EC2FleetBaselineEbsBandwidthMbpsRequest {
     Min: (Int|Mapping)?
     Max: (Int|Mapping)?
 }
 
 /// 
-open class EC2FleetTag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class EC2FleetAcceleratorCountRequest {
-    Max: (Int|Mapping)?
-    Min: (Int|Mapping)?
-}
-
-/// 
-open class EC2FleetMemoryGiBPerVCpuRequest {
-    Min: (Number|Mapping)?
-    Max: (Number|Mapping)?
-}
-
-/// 
-open class EC2FleetNetworkInterfaceCountRequest {
-    Min: (Int|Mapping)?
-    Max: (Int|Mapping)?
-}
-
-/// 
-open class EC2FleetOnDemandOptionsRequest {
-    SingleAvailabilityZone: (Boolean|Mapping)?
-    AllocationStrategy: (String|Mapping)?
-    SingleInstanceType: (Boolean|Mapping)?
-    MinTargetCapacity: (Int|Mapping)?
-    MaxTotalPrice: (String|Mapping)?
-    CapacityReservationOptions: (EC2FleetCapacityReservationOptionsRequest)?
-}
-
-typealias TagSpecificationResourceType = "client-vpn-endpoint"|"customer-gateway"|"dedicated-host"|"dhcp-options"|"egress-only-internet-gateway"|"elastic-gpu"|"elastic-ip"|"export-image-task"|"export-instance-task"|"fleet"|"fpga-image"|"host-reservation"|"image"|"import-image-task"|"import-snapshot-task"|"instance"|"internet-gateway"|"key-pair"|"launch-template"|"local-gateway-route-table-vpc-association"|"natgateway"|"network-acl"|"network-insights-analysis"|"network-insights-path"|"network-interface"|"placement-group"|"reserved-instances"|"route-table"|"security-group"|"snapshot"|"spot-fleet-request"|"spot-instances-request"|"subnet"|"traffic-mirror-filter"|"traffic-mirror-session"|"traffic-mirror-target"|"transit-gateway"|"transit-gateway-attachment"|"transit-gateway-connect-peer"|"transit-gateway-multicast-domain"|"transit-gateway-route-table"|"volume"|"vpc"|"vpc-flow-log"|"vpc-peering-connection"|"vpn-connection"|"vpn-gateway"
-
-/// 
-open class EC2FleetTagSpecification {
-    ResourceType: (TagSpecificationResourceType|Mapping)?
-    Tags: (Listing<EC2FleetTag>)?
-}
-
-/// 
-open class EC2FleetMemoryMiBRequest {
-    Min: (Int|Mapping)?
-    Max: (Int|Mapping)?
-}
-
-/// 
-open class EC2FleetFleetLaunchTemplateOverridesRequest {
-    InstanceType: (String|Mapping)?
-    InstanceRequirements: (EC2FleetInstanceRequirementsRequest)?
-    MaxPrice: (String|Mapping)?
-    WeightedCapacity: (Number|Mapping)?
-    Placement: (EC2FleetPlacement)?
-    Priority: (Number|Mapping)?
-    AvailabilityZone: (String|Mapping)?
-    SubnetId: (String|Mapping)?
+open class EC2FleetFleetLaunchTemplateConfigRequest {
+    LaunchTemplateSpecification: (EC2FleetFleetLaunchTemplateSpecificationRequest)?
+    Overrides: (Listing<EC2FleetFleetLaunchTemplateOverridesRequest>)?
 }
 
 typealias CapacityReservationOptionsRequestUsageStrategy = "use-capacity-reservations-first"
@@ -145,74 +169,50 @@ open class EC2FleetCapacityReservationOptionsRequest {
     UsageStrategy: (CapacityReservationOptionsRequestUsageStrategy|Mapping)?
 }
 
-/// 
-open class EC2FleetNetworkBandwidthGbpsRequest {
-    Min: (Number|Mapping)?
-    Max: (Number|Mapping)?
-}
-
-/// 
-open class EC2FleetVCpuCountRangeRequest {
-    Min: (Int|Mapping)?
-    Max: (Int|Mapping)?
-}
-
-/// 
-open class EC2FleetPlacement {
-    Tenancy: (String|Mapping)?
-    SpreadDomain: (String|Mapping)?
-    PartitionNumber: (Int|Mapping)?
-    AvailabilityZone: (String|Mapping)?
-    Affinity: (String|Mapping)?
-    HostId: (String|Mapping)?
-    HostResourceGroupArn: (String|Mapping)?
-    GroupName: (String|Mapping)?
-}
-
-typealias InstanceRequirementsRequestBareMetal = "included"|"required"|"excluded"
-
 typealias InstanceRequirementsRequestBurstablePerformance = "included"|"required"|"excluded"
 
-typealias InstanceRequirementsRequestLocalStorage = "included"|"required"|"excluded"
+typealias InstanceRequirementsRequestCpuManufacturers = "intel"|"amd"|"amazon-web-services"
 
 typealias InstanceRequirementsRequestAcceleratorManufacturers = "amazon-web-services"|"amd"|"habana"|"nvidia"|"xilinx"
 
-typealias InstanceRequirementsRequestAcceleratorNames = "a10g"|"a100"|"h100"|"inferentia"|"k520"|"k80"|"m60"|"radeon-pro-v520"|"t4"|"t4g"|"vu9p"|"v100"
-
-typealias InstanceRequirementsRequestCpuManufacturers = "intel"|"amd"|"amazon-web-services"
+typealias InstanceRequirementsRequestInstanceGenerations = "current"|"previous"
 
 typealias InstanceRequirementsRequestLocalStorageTypes = "hdd"|"ssd"
 
 typealias InstanceRequirementsRequestAcceleratorTypes = "gpu"|"fpga"|"inference"
 
-typealias InstanceRequirementsRequestInstanceGenerations = "current"|"previous"
+typealias InstanceRequirementsRequestAcceleratorNames = "a10g"|"a100"|"h100"|"inferentia"|"k520"|"k80"|"m60"|"radeon-pro-v520"|"t4"|"t4g"|"vu9p"|"v100"
+
+typealias InstanceRequirementsRequestBareMetal = "included"|"required"|"excluded"
+
+typealias InstanceRequirementsRequestLocalStorage = "included"|"required"|"excluded"
 
 /// 
 open class EC2FleetInstanceRequirementsRequest {
-    VCpuCount: (EC2FleetVCpuCountRangeRequest)?
-    AllowedInstanceTypes: (Listing<String|Mapping>)?
     OnDemandMaxPricePercentageOverLowestPrice: (Int|Mapping)?
-    MaxSpotPriceAsPercentageOfOptimalOnDemandPrice: (Int|Mapping)?
-    BareMetal: (InstanceRequirementsRequestBareMetal|Mapping)?
     BurstablePerformance: (InstanceRequirementsRequestBurstablePerformance|Mapping)?
-    TotalLocalStorageGB: (EC2FleetTotalLocalStorageGBRequest)?
-    MemoryMiB: (EC2FleetMemoryMiBRequest)?
-    RequireHibernateSupport: (Boolean|Mapping)?
     NetworkBandwidthGbps: (EC2FleetNetworkBandwidthGbpsRequest)?
-    LocalStorage: (InstanceRequirementsRequestLocalStorage|Mapping)?
-    AcceleratorManufacturers: (Listing<InstanceRequirementsRequestAcceleratorManufacturers|Mapping>)?
-    AcceleratorNames: (Listing<InstanceRequirementsRequestAcceleratorNames|Mapping>)?
-    AcceleratorTotalMemoryMiB: (EC2FleetAcceleratorTotalMemoryMiBRequest)?
+    AcceleratorCount: (EC2FleetAcceleratorCountRequest)?
     CpuManufacturers: (Listing<InstanceRequirementsRequestCpuManufacturers|Mapping>)?
-    MemoryGiBPerVCpu: (EC2FleetMemoryGiBPerVCpuRequest)?
+    ExcludedInstanceTypes: (Listing<String|Mapping>)?
     SpotMaxPricePercentageOverLowestPrice: (Int|Mapping)?
+    TotalLocalStorageGB: (EC2FleetTotalLocalStorageGBRequest)?
+    BaselineEbsBandwidthMbps: (EC2FleetBaselineEbsBandwidthMbpsRequest)?
+    AcceleratorManufacturers: (Listing<InstanceRequirementsRequestAcceleratorManufacturers|Mapping>)?
+    AcceleratorTotalMemoryMiB: (EC2FleetAcceleratorTotalMemoryMiBRequest)?
+    VCpuCount: (EC2FleetVCpuCountRangeRequest)?
+    MemoryMiB: (EC2FleetMemoryMiBRequest)?
+    InstanceGenerations: (Listing<InstanceRequirementsRequestInstanceGenerations|Mapping>)?
     NetworkInterfaceCount: (EC2FleetNetworkInterfaceCountRequest)?
     LocalStorageTypes: (Listing<InstanceRequirementsRequestLocalStorageTypes|Mapping>)?
     AcceleratorTypes: (Listing<InstanceRequirementsRequestAcceleratorTypes|Mapping>)?
-    ExcludedInstanceTypes: (Listing<String|Mapping>)?
-    InstanceGenerations: (Listing<InstanceRequirementsRequestInstanceGenerations|Mapping>)?
-    BaselineEbsBandwidthMbps: (EC2FleetBaselineEbsBandwidthMbpsRequest)?
-    AcceleratorCount: (EC2FleetAcceleratorCountRequest)?
+    AcceleratorNames: (Listing<InstanceRequirementsRequestAcceleratorNames|Mapping>)?
+    MemoryGiBPerVCpu: (EC2FleetMemoryGiBPerVCpuRequest)?
+    AllowedInstanceTypes: (Listing<String|Mapping>)?
+    MaxSpotPriceAsPercentageOfOptimalOnDemandPrice: (Int|Mapping)?
+    BareMetal: (InstanceRequirementsRequestBareMetal|Mapping)?
+    RequireHibernateSupport: (Boolean|Mapping)?
+    LocalStorage: (InstanceRequirementsRequestLocalStorage|Mapping)?
 }
 
 /// Resource Type definition for AWS::EC2::EC2Fleet
@@ -222,10 +222,10 @@ open class EC2Fleet extends cloudformation.Resource {
 
 
     /// 
-    hidden TypeProperty: (EC2FleetType|Mapping)?
+    hidden TagSpecifications: (Listing<EC2FleetTagSpecification>)?
 
     /// 
-    hidden ExcessCapacityTerminationPolicy: (EC2FleetExcessCapacityTerminationPolicy|Mapping)?
+    hidden ValidFrom: (String|Mapping)?
 
     /// 
     hidden LaunchTemplateConfigs: Listing<EC2FleetFleetLaunchTemplateConfigRequest>
@@ -234,47 +234,47 @@ open class EC2Fleet extends cloudformation.Resource {
     hidden ValidUntil: (String|Mapping)?
 
     /// 
-    hidden TargetCapacitySpecification: EC2FleetTargetCapacitySpecificationRequest
-
-    /// 
-    hidden TagSpecifications: (Listing<EC2FleetTagSpecification>)?
-
-    /// 
-    hidden ReplaceUnhealthyInstances: (Boolean|Mapping)?
+    hidden Context: (String|Mapping)?
 
     /// 
     hidden OnDemandOptions: (EC2FleetOnDemandOptionsRequest)?
 
     /// 
-    hidden SpotOptions: (EC2FleetSpotOptionsRequest)?
-
-    /// 
-    hidden ValidFrom: (String|Mapping)?
+    hidden ExcessCapacityTerminationPolicy: (EC2FleetExcessCapacityTerminationPolicy|Mapping)?
 
     /// 
     hidden TerminateInstancesWithExpiration: (Boolean|Mapping)?
 
     /// 
-    hidden Context: (String|Mapping)?
+    hidden TargetCapacitySpecification: EC2FleetTargetCapacitySpecificationRequest
+
+    /// 
+    hidden TypeProperty: (EC2FleetType|Mapping)?
+
+    /// 
+    hidden SpotOptions: (EC2FleetSpotOptionsRequest)?
+
+    /// 
+    hidden ReplaceUnhealthyInstances: (Boolean|Mapping)?
 
     Properties {
-        ["Type"] = if (TypeProperty == null) null else TypeProperty
-        ["ExcessCapacityTerminationPolicy"] = if (ExcessCapacityTerminationPolicy == null) null else ExcessCapacityTerminationPolicy
+        ["TagSpecifications"] = if (TagSpecifications == null) null else TagSpecifications
+        ["ValidFrom"] = if (ValidFrom == null) null else ValidFrom
         ["LaunchTemplateConfigs"] = if (LaunchTemplateConfigs == null) null else LaunchTemplateConfigs
         ["ValidUntil"] = if (ValidUntil == null) null else ValidUntil
-        ["TargetCapacitySpecification"] = if (TargetCapacitySpecification == null) null else TargetCapacitySpecification
-        ["TagSpecifications"] = if (TagSpecifications == null) null else TagSpecifications
-        ["ReplaceUnhealthyInstances"] = if (ReplaceUnhealthyInstances == null) null else ReplaceUnhealthyInstances
-        ["OnDemandOptions"] = if (OnDemandOptions == null) null else OnDemandOptions
-        ["SpotOptions"] = if (SpotOptions == null) null else SpotOptions
-        ["ValidFrom"] = if (ValidFrom == null) null else ValidFrom
-        ["TerminateInstancesWithExpiration"] = if (TerminateInstancesWithExpiration == null) null else TerminateInstancesWithExpiration
         ["Context"] = if (Context == null) null else Context
+        ["OnDemandOptions"] = if (OnDemandOptions == null) null else OnDemandOptions
+        ["ExcessCapacityTerminationPolicy"] = if (ExcessCapacityTerminationPolicy == null) null else ExcessCapacityTerminationPolicy
+        ["TerminateInstancesWithExpiration"] = if (TerminateInstancesWithExpiration == null) null else TerminateInstancesWithExpiration
+        ["TargetCapacitySpecification"] = if (TargetCapacitySpecification == null) null else TargetCapacitySpecification
+        ["Type"] = if (TypeProperty == null) null else TypeProperty
+        ["SpotOptions"] = if (SpotOptions == null) null else SpotOptions
+        ["ReplaceUnhealthyInstances"] = if (ReplaceUnhealthyInstances == null) null else ReplaceUnhealthyInstances
     }
 
 }
 
 
-typealias EC2FleetType = "maintain"|"request"|"instant"
-
 typealias EC2FleetExcessCapacityTerminationPolicy = "termination"|"no-termination"
+
+typealias EC2FleetType = "maintain"|"request"|"instant"

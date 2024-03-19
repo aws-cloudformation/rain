@@ -6,6 +6,24 @@ module aws.datapipeline.pipeline
 import "../../cloudformation.pkl"
 
 /// 
+open class PipelineParameterObject {
+    Attributes: Listing<PipelineParameterAttribute>
+    Id: String|Mapping
+}
+
+/// 
+open class PipelineParameterAttribute {
+    Key: String|Mapping
+    StringValue: String|Mapping
+}
+
+/// 
+open class PipelineParameterValue {
+    StringValue: String|Mapping
+    Id: String|Mapping
+}
+
+/// 
 open class PipelineField {
     Key: String|Mapping
     RefValue: (String|Mapping)?
@@ -25,29 +43,14 @@ open class PipelinePipelineTag {
     Value: String|Mapping
 }
 
-/// 
-open class PipelineParameterObject {
-    Id: String|Mapping
-    Attributes: Listing<PipelineParameterAttribute>
-}
-
-/// 
-open class PipelineParameterAttribute {
-    Key: String|Mapping
-    StringValue: String|Mapping
-}
-
-/// 
-open class PipelineParameterValue {
-    Id: String|Mapping
-    StringValue: String|Mapping
-}
-
 /// An example resource schema demonstrating some basic constructs and validation rules.
 open class Pipeline extends cloudformation.Resource {
 
     Type = "AWS::DataPipeline::Pipeline"
 
+
+    /// Indicates whether to validate and start the pipeline or stop an active pipeline. By default, the value is set to true.
+    hidden Activate: (Boolean|Mapping)?
 
     /// A description of the pipeline.
     hidden Description: (String|Mapping)?
@@ -67,17 +70,14 @@ open class Pipeline extends cloudformation.Resource {
     /// A list of arbitrary tags (key-value pairs) to associate with the pipeline, which you can use to control permissions. For more information, see Controlling Access to Pipelines and Resources in the AWS Data Pipeline Developer Guide.
     hidden PipelineTags: (Listing<PipelinePipelineTag>)?
 
-    /// Indicates whether to validate and start the pipeline or stop an active pipeline. By default, the value is set to true.
-    hidden Activate: (Boolean|Mapping)?
-
     Properties {
+        ["Activate"] = if (Activate == null) null else Activate
         ["Description"] = if (Description == null) null else Description
         ["Name"] = if (Name == null) null else Name
         ["ParameterObjects"] = if (ParameterObjects == null) null else ParameterObjects
         ["ParameterValues"] = if (ParameterValues == null) null else ParameterValues
         ["PipelineObjects"] = if (PipelineObjects == null) null else PipelineObjects
         ["PipelineTags"] = if (PipelineTags == null) null else PipelineTags
-        ["Activate"] = if (Activate == null) null else Activate
     }
 
 }

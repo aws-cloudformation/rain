@@ -5,6 +5,23 @@ module aws.gamelift.gamesessionqueue
 
 import "../../cloudformation.pkl"
 
+typealias PriorityOrderArray = "LATENCY"|"COST"|"DESTINATION"|"LOCATION"
+
+typealias GameSessionQueuePriorityOrder = Listing<(PriorityOrderArray|Mapping)?>
+
+
+/// 
+open class GameSessionQueuePriorityConfiguration {
+    LocationOrder: (GameSessionQueueLocationOrder)?
+    PriorityOrder: (GameSessionQueuePriorityOrder)?
+}
+
+/// A key-value pair to associate with a resource.
+open class GameSessionQueueTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
 /// A fleet or alias designated in a game session queue.
 open class GameSessionQueueGameSessionQueueDestination {
     DestinationArn: (String(matches(Regex(#"[a-zA-Z0-9:/-]+"#)))|Mapping)?
@@ -27,23 +44,6 @@ open class GameSessionQueueFilterConfiguration {
 typealias GameSessionQueueLocationOrder = Listing<(String(matches(Regex(#"^[A-Za-z0-9\-]+"#)))|Mapping)?>
 
 
-typealias PriorityOrderArray = "LATENCY"|"COST"|"DESTINATION"|"LOCATION"
-
-typealias GameSessionQueuePriorityOrder = Listing<(PriorityOrderArray|Mapping)?>
-
-
-/// 
-open class GameSessionQueuePriorityConfiguration {
-    LocationOrder: (GameSessionQueueLocationOrder)?
-    PriorityOrder: (GameSessionQueuePriorityOrder)?
-}
-
-/// A key-value pair to associate with a resource.
-open class GameSessionQueueTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
 /// The AWS::GameLift::GameSessionQueue resource creates an Amazon GameLift (GameLift) game session queue.
 open class GameSessionQueue extends cloudformation.Resource {
 
@@ -53,23 +53,11 @@ open class GameSessionQueue extends cloudformation.Resource {
     /// A list of fleets and/or fleet aliases that can be used to fulfill game session placement requests in the queue.
     hidden Destinations: (Listing<GameSessionQueueGameSessionQueueDestination>)?
 
-    /// A set of policies that act as a sliding cap on player latency.
-    hidden PlayerLatencyPolicies: (Listing<GameSessionQueuePlayerLatencyPolicy>)?
-
     /// An SNS topic ARN that is set up to receive game session placement notifications.
     hidden NotificationTarget: (String(matches(Regex(#"[a-zA-Z0-9:_-]*(\.fifo)?"#)))|Mapping)?
 
     /// Custom settings to use when prioritizing destinations and locations for game session placements.
     hidden PriorityConfiguration: (Dynamic)?
-
-    /// The maximum time, in seconds, that a new game session placement request remains in the queue.
-    hidden TimeoutInSeconds: (Int|Mapping)?
-
-    /// Information that is added to all events that are related to this game session queue.
-    hidden CustomEventData: (String(matches(Regex(#"[\s\S]*"#)))|Mapping)?
-
-    /// A list of locations where a queue is allowed to place new game sessions.
-    hidden FilterConfiguration: (Dynamic)?
 
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<GameSessionQueueTag>)?
@@ -77,16 +65,28 @@ open class GameSessionQueue extends cloudformation.Resource {
     /// A descriptive label that is associated with game session queue. Queue names must be unique within each Region.
     hidden Name: String(matches(Regex(#"[a-zA-Z0-9-]+"#)))|Mapping
 
+    /// The maximum time, in seconds, that a new game session placement request remains in the queue.
+    hidden TimeoutInSeconds: (Int|Mapping)?
+
+    /// A list of locations where a queue is allowed to place new game sessions.
+    hidden FilterConfiguration: (Dynamic)?
+
+    /// A set of policies that act as a sliding cap on player latency.
+    hidden PlayerLatencyPolicies: (Listing<GameSessionQueuePlayerLatencyPolicy>)?
+
+    /// Information that is added to all events that are related to this game session queue.
+    hidden CustomEventData: (String(matches(Regex(#"[\s\S]*"#)))|Mapping)?
+
     Properties {
         ["Destinations"] = if (Destinations == null) null else Destinations
-        ["PlayerLatencyPolicies"] = if (PlayerLatencyPolicies == null) null else PlayerLatencyPolicies
         ["NotificationTarget"] = if (NotificationTarget == null) null else NotificationTarget
         ["PriorityConfiguration"] = if (PriorityConfiguration == null) null else PriorityConfiguration
-        ["TimeoutInSeconds"] = if (TimeoutInSeconds == null) null else TimeoutInSeconds
-        ["CustomEventData"] = if (CustomEventData == null) null else CustomEventData
-        ["FilterConfiguration"] = if (FilterConfiguration == null) null else FilterConfiguration
         ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
+        ["TimeoutInSeconds"] = if (TimeoutInSeconds == null) null else TimeoutInSeconds
+        ["FilterConfiguration"] = if (FilterConfiguration == null) null else FilterConfiguration
+        ["PlayerLatencyPolicies"] = if (PlayerLatencyPolicies == null) null else PlayerLatencyPolicies
+        ["CustomEventData"] = if (CustomEventData == null) null else CustomEventData
     }
 
 }

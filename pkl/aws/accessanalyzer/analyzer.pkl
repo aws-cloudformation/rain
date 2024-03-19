@@ -5,6 +5,21 @@ module aws.accessanalyzer.analyzer
 
 import "../../cloudformation.pkl"
 
+/// An Access Analyzer archive rule. Archive rules automatically archive new findings that meet the criteria you define when you create the rule.
+open class AnalyzerArchiveRule {
+    Filter: Listing<AnalyzerFilter>
+    RuleName: String|Mapping
+}
+
+/// 
+open class AnalyzerFilter {
+    Eq: (Listing<String|Mapping>)?
+    Exists: (Boolean|Mapping)?
+    Property: String|Mapping
+    Neq: (Listing<String|Mapping>)?
+    Contains: (Listing<String|Mapping>)?
+}
+
 /// A key-value pair to associate with a resource.
 open class AnalyzerTag {
     Key: String|Mapping
@@ -16,32 +31,11 @@ open class AnalyzerUnusedAccessConfiguration {
     UnusedAccessAge: (Int|Mapping)?
 }
 
-/// An Access Analyzer archive rule. Archive rules automatically archive new findings that meet the criteria you define when you create the rule.
-open class AnalyzerArchiveRule {
-    Filter: Listing<AnalyzerFilter>
-    RuleName: String|Mapping
-}
-
-/// 
-open class AnalyzerFilter {
-    Contains: (Listing<String|Mapping>)?
-    Eq: (Listing<String|Mapping>)?
-    Exists: (Boolean|Mapping)?
-    Property: String|Mapping
-    Neq: (Listing<String|Mapping>)?
-}
-
 /// The AWS::AccessAnalyzer::Analyzer type specifies an analyzer of the user's account
 open class Analyzer extends cloudformation.Resource {
 
     Type = "AWS::AccessAnalyzer::Analyzer"
 
-
-    /// Analyzer name
-    hidden AnalyzerName: (String|Mapping)?
-
-    /// 
-    hidden ArchiveRules: (Listing<AnalyzerArchiveRule>)?
 
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<AnalyzerTag>)?
@@ -52,12 +46,18 @@ open class Analyzer extends cloudformation.Resource {
     /// The configuration for the analyzer
     hidden AnalyzerConfiguration: (Dynamic)?
 
+    /// Analyzer name
+    hidden AnalyzerName: (String|Mapping)?
+
+    /// 
+    hidden ArchiveRules: (Listing<AnalyzerArchiveRule>)?
+
     Properties {
-        ["AnalyzerName"] = if (AnalyzerName == null) null else AnalyzerName
-        ["ArchiveRules"] = if (ArchiveRules == null) null else ArchiveRules
         ["Tags"] = if (Tags == null) null else Tags
         ["Type"] = if (TypeProperty == null) null else TypeProperty
         ["AnalyzerConfiguration"] = if (AnalyzerConfiguration == null) null else AnalyzerConfiguration
+        ["AnalyzerName"] = if (AnalyzerName == null) null else AnalyzerName
+        ["ArchiveRules"] = if (ArchiveRules == null) null else ArchiveRules
     }
 
 }

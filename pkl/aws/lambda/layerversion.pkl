@@ -6,7 +6,7 @@ module aws.lambda.layerversion
 import "../../cloudformation.pkl"
 
 /// 
-open class Content {
+open class LayerVersionContent {
     S3ObjectVersion: (String|Mapping)?
     S3Bucket: String|Mapping
     S3Key: String|Mapping
@@ -17,9 +17,6 @@ open class LayerVersion extends cloudformation.Resource {
 
     Type = "AWS::Lambda::LayerVersion"
 
-
-    /// The function layer archive.
-    hidden Content: Content
 
     /// A list of compatible instruction set architectures.
     hidden CompatibleArchitectures: (Listing<String|Mapping>)?
@@ -36,13 +33,16 @@ open class LayerVersion extends cloudformation.Resource {
     /// The name or Amazon Resource Name (ARN) of the layer.
     hidden LayerName: (String|Mapping)?
 
+    /// The function layer archive.
+    hidden Content: LayerVersionContent
+
     Properties {
-        ["Content"] = if (Content == null) null else Content
         ["CompatibleArchitectures"] = if (CompatibleArchitectures == null) null else CompatibleArchitectures
         ["CompatibleRuntimes"] = if (CompatibleRuntimes == null) null else CompatibleRuntimes
         ["LicenseInfo"] = if (LicenseInfo == null) null else LicenseInfo
         ["Description"] = if (Description == null) null else Description
         ["LayerName"] = if (LayerName == null) null else LayerName
+        ["Content"] = if (Content == null) null else Content
     }
 
 }

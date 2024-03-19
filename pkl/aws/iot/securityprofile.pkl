@@ -5,41 +5,21 @@ module aws.iot.securityprofile
 
 import "../../cloudformation.pkl"
 
-/// A structure containing the alert target ARN and the role ARN.
-open class SecurityProfileAlertTarget {
-    AlertTargetArn: String|Mapping
-    RoleArn: String|Mapping
-}
-
-typealias BehaviorCriteriaComparisonOperator = "less-than"|"less-than-equals"|"greater-than"|"greater-than-equals"|"in-cidr-set"|"not-in-cidr-set"|"in-port-set"|"not-in-port-set"|"in-set"|"not-in-set"
-
-/// The criteria by which the behavior is determined to be normal.
-open class SecurityProfileBehaviorCriteria {
-    ComparisonOperator: (BehaviorCriteriaComparisonOperator|Mapping)?
-    Value: (SecurityProfileMetricValue)?
-    DurationSeconds: (Int|Mapping)?
-    ConsecutiveDatapointsToAlarm: (Int|Mapping)?
-    ConsecutiveDatapointsToClear: (Int|Mapping)?
-    StatisticalThreshold: (SecurityProfileStatisticalThreshold)?
-    MlDetectionConfig: (SecurityProfileMachineLearningDetectionConfig)?
-}
-
 /// A security profile behavior.
 open class SecurityProfileBehavior {
-    MetricDimension: (SecurityProfileMetricDimension)?
-    Criteria: (SecurityProfileBehaviorCriteria)?
-    SuppressAlerts: (Boolean|Mapping)?
     ExportMetric: (SecurityProfileExportMetric)?
     Name: String(matches(Regex(#"[a-zA-Z0-9:_-]+"#)))|Mapping
     Metric: (String(matches(Regex(#"[a-zA-Z0-9:_-]+"#)))|Mapping)?
+    MetricDimension: (SecurityProfileMetricDimension)?
+    Criteria: (SecurityProfileBehaviorCriteria)?
+    SuppressAlerts: (Boolean|Mapping)?
 }
 
-typealias MetricDimensionOperator = "IN"|"NOT_IN"
+typealias StatisticalThresholdStatistic = "Average"|"p0"|"p0.1"|"p0.01"|"p1"|"p10"|"p50"|"p90"|"p99"|"p99.9"|"p99.99"|"p100"
 
-/// The dimension of a metric.
-open class SecurityProfileMetricDimension {
-    DimensionName: String(matches(Regex(#"[a-zA-Z0-9:_-]+"#)))|Mapping
-    Operator: (MetricDimensionOperator|Mapping)?
+/// A statistical ranking (percentile) which indicates a threshold value by which a behavior is determined to be in compliance or in violation of the behavior.
+open class SecurityProfileStatisticalThreshold {
+    Statistic: (StatisticalThresholdStatistic|Mapping)?
 }
 
 typealias MachineLearningDetectionConfigConfidenceLevel = "LOW"|"MEDIUM"|"HIGH"
@@ -54,3 +34,96 @@ open class SecurityProfileTag {
     Key: String|Mapping
     Value: String|Mapping
 }
+
+/// The metric you want to retain. Dimensions are optional.
+open class SecurityProfileMetricToRetain {
+    Metric: String(matches(Regex(#"[a-zA-Z0-9:_-]+"#)))|Mapping
+    MetricDimension: (SecurityProfileMetricDimension)?
+    ExportMetric: (SecurityProfileExportMetric)?
+}
+
+typealias BehaviorCriteriaComparisonOperator = "less-than"|"less-than-equals"|"greater-than"|"greater-than-equals"|"in-cidr-set"|"not-in-cidr-set"|"in-port-set"|"not-in-port-set"|"in-set"|"not-in-set"
+
+/// The criteria by which the behavior is determined to be normal.
+open class SecurityProfileBehaviorCriteria {
+    ConsecutiveDatapointsToAlarm: (Int|Mapping)?
+    ConsecutiveDatapointsToClear: (Int|Mapping)?
+    StatisticalThreshold: (SecurityProfileStatisticalThreshold)?
+    MlDetectionConfig: (SecurityProfileMachineLearningDetectionConfig)?
+    ComparisonOperator: (BehaviorCriteriaComparisonOperator|Mapping)?
+    Value: (SecurityProfileMetricValue)?
+    DurationSeconds: (Int|Mapping)?
+}
+
+/// A structure containing the alert target ARN and the role ARN.
+open class SecurityProfileAlertTarget {
+    AlertTargetArn: String|Mapping
+    RoleArn: String|Mapping
+}
+
+typealias SecurityProfileExportMetric = Boolean|Mapping
+
+
+typealias MetricDimensionOperator = "IN"|"NOT_IN"
+
+/// The dimension of a metric.
+open class SecurityProfileMetricDimension {
+    DimensionName: String(matches(Regex(#"[a-zA-Z0-9:_-]+"#)))|Mapping
+    Operator: (MetricDimensionOperator|Mapping)?
+}
+
+/// The value to be compared with the metric.
+open class SecurityProfileMetricValue {
+    Count: (String|Mapping)?
+    Cidrs: (Listing<String|Mapping>)?
+    Ports: (Listing<Int|Mapping>)?
+    Number: (Number|Mapping)?
+    Numbers: (Listing<Number|Mapping>)?
+    Strings: (Listing<String|Mapping>)?
+}
+
+/// A security profile defines a set of expected behaviors for devices in your account.
+open class SecurityProfile extends cloudformation.Resource {
+
+    Type = "AWS::IoT::SecurityProfile"
+
+
+    /// Specifies the behaviors that, when violated by a device (thing), cause an alert.
+    hidden Behaviors: (Listing<SecurityProfileBehavior>)?
+
+    /// Specifies the destinations to which alerts are sent.
+    hidden AlertTargets: (SecurityProfileSecurityProfileAlertTargets)?
+
+    /// A structure containing the mqtt topic for metrics export.
+    hidden MetricsExportConfig: (Dynamic)?
+
+    /// A set of target ARNs that the security profile is attached to.
+    hidden TargetArns: (Listing<String|Mapping>)?
+
+    /// A unique identifier for the security profile.
+    hidden SecurityProfileName: (String(matches(Regex(#"[a-zA-Z0-9:_-]+"#)))|Mapping)?
+
+    /// A description of the security profile.
+    hidden SecurityProfileDescription: (String|Mapping)?
+
+    /// A list of metrics whose data is retained (stored). By default, data is retained for any metric used in the profile's behaviors, but it is also retained for any metric specified here.
+    hidden AdditionalMetricsToRetainV2: (Listing<SecurityProfileMetricToRetain>)?
+
+    /// Metadata that can be used to manage the security profile.
+    hidden Tags: (Listing<SecurityProfileTag>)?
+
+    Properties {
+        ["Behaviors"] = if (Behaviors == null) null else Behaviors
+        ["AlertTargets"] = if (AlertTargets == null) null else AlertTargets
+        ["MetricsExportConfig"] = if (MetricsExportConfig == null) null else MetricsExportConfig
+        ["TargetArns"] = if (TargetArns == null) null else TargetArns
+        ["SecurityProfileName"] = if (SecurityProfileName == null) null else SecurityProfileName
+        ["SecurityProfileDescription"] = if (SecurityProfileDescription == null) null else SecurityProfileDescription
+        ["AdditionalMetricsToRetainV2"] = if (AdditionalMetricsToRetainV2 == null) null else AdditionalMetricsToRetainV2
+        ["Tags"] = if (Tags == null) null else Tags
+    }
+
+}
+
+
+typealias SecurityProfileSecurityProfileAlertTargets = Mapping<String, Any>

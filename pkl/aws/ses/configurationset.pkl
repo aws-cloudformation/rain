@@ -5,46 +5,46 @@ module aws.ses.configurationset
 
 import "../../cloudformation.pkl"
 
-/// An object that contains Virtual Deliverability Manager (VDM) settings for this configuration set.
-open class VdmOptions {
-    DashboardOptions: (DashboardOptions)?
-    GuardianOptions: (GuardianOptions)?
-}
-
-/// An object that defines the open and click tracking options for emails that you send using the configuration set.
-open class TrackingOptions {
-    CustomRedirectDomain: (String|Mapping)?
-}
-
 /// An object that defines the dedicated IP pool that is used to send emails that you send using the configuration set.
-open class DeliveryOptions {
+open class ConfigurationSetDeliveryOptions {
     TlsPolicy: (String(matches(Regex(#"REQUIRE|OPTIONAL"#)))|Mapping)?
     SendingPoolName: (String|Mapping)?
 }
 
 /// An object that defines whether or not Amazon SES collects reputation metrics for the emails that you send that use the configuration set.
-open class ReputationOptions {
+open class ConfigurationSetReputationOptions {
     ReputationMetricsEnabled: (Boolean|Mapping)?
 }
 
 /// An object that defines whether or not Amazon SES can send email that you send using the configuration set.
-open class SendingOptions {
+open class ConfigurationSetSendingOptions {
     SendingEnabled: (Boolean|Mapping)?
 }
 
 /// An object that contains information about the suppression list preferences for your account.
-open class SuppressionOptions {
+open class ConfigurationSetSuppressionOptions {
     SuppressedReasons: (Listing<String|Mapping>)?
 }
 
 /// Preferences regarding the Dashboard feature.
-open class DashboardOptions {
+open class ConfigurationSetDashboardOptions {
     EngagementMetrics: String(matches(Regex(#"ENABLED|DISABLED"#)))|Mapping
 }
 
 /// Preferences regarding the Guardian feature.
-open class GuardianOptions {
+open class ConfigurationSetGuardianOptions {
     OptimizedSharedDelivery: String(matches(Regex(#"ENABLED|DISABLED"#)))|Mapping
+}
+
+/// An object that contains Virtual Deliverability Manager (VDM) settings for this configuration set.
+open class ConfigurationSetVdmOptions {
+    DashboardOptions: (ConfigurationSetDashboardOptions)?
+    GuardianOptions: (ConfigurationSetGuardianOptions)?
+}
+
+/// An object that defines the open and click tracking options for emails that you send using the configuration set.
+open class ConfigurationSetTrackingOptions {
+    CustomRedirectDomain: (String|Mapping)?
 }
 
 /// Resource schema for AWS::SES::ConfigurationSet.
@@ -54,34 +54,34 @@ open class ConfigurationSet extends cloudformation.Resource {
 
 
     /// 
-    hidden DeliveryOptions: (DeliveryOptions)?
+    hidden TrackingOptions: (ConfigurationSetTrackingOptions)?
 
     /// 
-    hidden ReputationOptions: (ReputationOptions)?
+    hidden DeliveryOptions: (ConfigurationSetDeliveryOptions)?
 
     /// 
-    hidden SendingOptions: (SendingOptions)?
+    hidden ReputationOptions: (ConfigurationSetReputationOptions)?
 
     /// 
-    hidden SuppressionOptions: (SuppressionOptions)?
+    hidden SendingOptions: (ConfigurationSetSendingOptions)?
 
     /// 
-    hidden VdmOptions: (VdmOptions)?
+    hidden SuppressionOptions: (ConfigurationSetSuppressionOptions)?
+
+    /// 
+    hidden VdmOptions: (ConfigurationSetVdmOptions)?
 
     /// The name of the configuration set.
     hidden Name: (String(matches(Regex(#"^[a-zA-Z0-9_-]{1,64}$"#)))|Mapping)?
 
-    /// 
-    hidden TrackingOptions: (TrackingOptions)?
-
     Properties {
+        ["TrackingOptions"] = if (TrackingOptions == null) null else TrackingOptions
         ["DeliveryOptions"] = if (DeliveryOptions == null) null else DeliveryOptions
         ["ReputationOptions"] = if (ReputationOptions == null) null else ReputationOptions
         ["SendingOptions"] = if (SendingOptions == null) null else SendingOptions
         ["SuppressionOptions"] = if (SuppressionOptions == null) null else SuppressionOptions
         ["VdmOptions"] = if (VdmOptions == null) null else VdmOptions
         ["Name"] = if (Name == null) null else Name
-        ["TrackingOptions"] = if (TrackingOptions == null) null else TrackingOptions
     }
 
 }

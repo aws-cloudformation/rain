@@ -5,6 +5,15 @@ module aws.ecr.pullthroughcacherule
 
 import "../../cloudformation.pkl"
 
+typealias PullThroughCacheRuleUpstreamRegistryUrl = String|Mapping
+
+
+typealias PullThroughCacheRuleCredentialArn = String|Mapping
+
+
+typealias PullThroughCacheRuleUpstreamRegistry = String|Mapping
+
+
 /// 
 open class PullThroughCacheRulePullThroughCacheRule {
     RegistryId: (PullThroughCacheRuleRegistryId)?
@@ -14,19 +23,10 @@ open class PullThroughCacheRulePullThroughCacheRule {
     UpstreamRegistry: (PullThroughCacheRuleUpstreamRegistry)?
 }
 
-typealias PullThroughCacheRuleRegistryId = String
+typealias PullThroughCacheRuleRegistryId = String|Mapping
 
 
-typealias PullThroughCacheRuleEcrRepositoryPrefix = String
-
-
-typealias PullThroughCacheRuleUpstreamRegistryUrl = String
-
-
-typealias PullThroughCacheRuleCredentialArn = String
-
-
-typealias PullThroughCacheRuleUpstreamRegistry = String
+typealias PullThroughCacheRuleEcrRepositoryPrefix = String|Mapping
 
 
 /// The AWS::ECR::PullThroughCacheRule resource configures the upstream registry configuration details for an Amazon Elastic Container Registry (Amazon Private ECR) pull-through cache.
@@ -34,9 +34,6 @@ open class PullThroughCacheRule extends cloudformation.Resource {
 
     Type = "AWS::ECR::PullThroughCacheRule"
 
-
-    /// The ECRRepositoryPrefix is a custom alias for upstream registry url.
-    hidden EcrRepositoryPrefix: (String(matches(Regex(#"(?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)*[a-z0-9]+(?:[._-][a-z0-9]+)*"#)))|Mapping)?
 
     /// The upstreamRegistryUrl is the endpoint of upstream registry url of the public repository to be cached
     hidden UpstreamRegistryUrl: (String|Mapping)?
@@ -47,11 +44,14 @@ open class PullThroughCacheRule extends cloudformation.Resource {
     /// The name of the upstream registry.
     hidden UpstreamRegistry: (String|Mapping)?
 
+    /// The ECRRepositoryPrefix is a custom alias for upstream registry url.
+    hidden EcrRepositoryPrefix: (String(matches(Regex(#"(?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)*[a-z0-9]+(?:[._-][a-z0-9]+)*"#)))|Mapping)?
+
     Properties {
-        ["EcrRepositoryPrefix"] = if (EcrRepositoryPrefix == null) null else EcrRepositoryPrefix
         ["UpstreamRegistryUrl"] = if (UpstreamRegistryUrl == null) null else UpstreamRegistryUrl
         ["CredentialArn"] = if (CredentialArn == null) null else CredentialArn
         ["UpstreamRegistry"] = if (UpstreamRegistry == null) null else UpstreamRegistry
+        ["EcrRepositoryPrefix"] = if (EcrRepositoryPrefix == null) null else EcrRepositoryPrefix
     }
 
 }

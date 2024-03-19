@@ -6,7 +6,7 @@ module aws.memorydb.user
 import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class UserTag {
     Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z0-9 _\.\/=+:\-@]*$"#)))|Mapping
     Value: (String(matches(Regex(#"^[a-zA-Z0-9 _\.\/=+:\-@]*$"#)))|Mapping)?
 }
@@ -17,23 +17,23 @@ open class User extends cloudformation.Resource {
     Type = "AWS::MemoryDB::User"
 
 
-    /// 
-    hidden AuthenticationMode: (Dynamic)?
-
-    /// An array of key-value pairs to apply to this user.
-    hidden Tags: (Listing<Tag>)?
-
     /// The name of the user.
     hidden UserName: String(matches(Regex(#"[a-z][a-z0-9\\-]*"#)))|Mapping
 
     /// Access permissions string used for this user account.
     hidden AccessString: (String|Mapping)?
 
+    /// 
+    hidden AuthenticationMode: (Dynamic)?
+
+    /// An array of key-value pairs to apply to this user.
+    hidden Tags: (Listing<UserTag>)?
+
     Properties {
-        ["AuthenticationMode"] = if (AuthenticationMode == null) null else AuthenticationMode
-        ["Tags"] = if (Tags == null) null else Tags
         ["UserName"] = if (UserName == null) null else UserName
         ["AccessString"] = if (AccessString == null) null else AccessString
+        ["AuthenticationMode"] = if (AuthenticationMode == null) null else AuthenticationMode
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

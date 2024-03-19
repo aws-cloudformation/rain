@@ -6,71 +6,71 @@ module aws.vpclattice.rule
 import "../../cloudformation.pkl"
 
 /// 
-open class HeaderMatch {
-    Match: HeaderMatchType
-    CaseSensitive: (Boolean|Mapping)?
-    Name: String|Mapping
-}
-
-/// 
-open class HeaderMatchType {
-    Contains: (String|Mapping)?
-    Exact: (String|Mapping)?
-    Prefix: (String|Mapping)?
-}
-
-/// 
-open class PathMatchType {
-    Prefix: (String(matches(Regex(#"^\/[a-zA-Z0-9@:%_+.~#?&\/=-]*$"#)))|Mapping)?
-    Exact: (String(matches(Regex(#"^\/[a-zA-Z0-9@:%_+.~#?&\/=-]*$"#)))|Mapping)?
-}
-
-/// 
-open class WeightedTargetGroup {
-    TargetGroupIdentifier: String(matches(Regex(#"^((tg-[0-9a-z]{17})|(arn:[a-z0-9\-]+:vpc-lattice:[a-zA-Z0-9\-]+:\d{12}:targetgroup/tg-[0-9a-z]{17}))$"#)))|Mapping
-    Weight: (Int|Mapping)?
-}
-
-/// 
-open class Match {
-    HttpMatch: HttpMatch
-}
-
-/// 
-open class Tag {
+open class RuleTag {
     Value: String|Mapping
     Key: String|Mapping
 }
 
 /// 
-open class Forward {
-    TargetGroups: Listing<WeightedTargetGroup>
-}
-
-/// 
-open class FixedResponse {
-    StatusCode: Int|Mapping
+open class RuleHeaderMatchType {
+    Prefix: (String|Mapping)?
+    Contains: (String|Mapping)?
+    Exact: (String|Mapping)?
 }
 
 typealias HttpMatchMethod = "CONNECT"|"DELETE"|"GET"|"HEAD"|"OPTIONS"|"POST"|"PUT"|"TRACE"
 
 /// 
-open class HttpMatch {
-    PathMatch: (PathMatch)?
-    HeaderMatches: (Listing<HeaderMatch>)?
+open class RuleHttpMatch {
     Method: (HttpMatchMethod|Mapping)?
+    PathMatch: (RulePathMatch)?
+    HeaderMatches: (Listing<RuleHeaderMatch>)?
 }
 
 /// 
-open class PathMatch {
-    Match: PathMatchType
+open class RuleAction {
+    Forward: (RuleForward)?
+    FixedResponse: (RuleFixedResponse)?
+}
+
+/// 
+open class RuleWeightedTargetGroup {
+    TargetGroupIdentifier: String(matches(Regex(#"^((tg-[0-9a-z]{17})|(arn:[a-z0-9\-]+:vpc-lattice:[a-zA-Z0-9\-]+:\d{12}:targetgroup/tg-[0-9a-z]{17}))$"#)))|Mapping
+    Weight: (Int|Mapping)?
+}
+
+/// 
+open class RuleForward {
+    TargetGroups: Listing<RuleWeightedTargetGroup>
+}
+
+/// 
+open class RuleHeaderMatch {
+    CaseSensitive: (Boolean|Mapping)?
+    Name: String|Mapping
+    Match: RuleHeaderMatchType
+}
+
+/// 
+open class RulePathMatch {
+    Match: RulePathMatchType
     CaseSensitive: (Boolean|Mapping)?
 }
 
 /// 
-open class Action {
-    Forward: (Forward)?
-    FixedResponse: (FixedResponse)?
+open class RuleFixedResponse {
+    StatusCode: Int|Mapping
+}
+
+/// 
+open class RuleMatch {
+    HttpMatch: RuleHttpMatch
+}
+
+/// 
+open class RulePathMatchType {
+    Exact: (String(matches(Regex(#"^\/[a-zA-Z0-9@:%_+.~#?&\/=-]*$"#)))|Mapping)?
+    Prefix: (String(matches(Regex(#"^\/[a-zA-Z0-9@:%_+.~#?&\/=-]*$"#)))|Mapping)?
 }
 
 /// Creates a listener rule. Each listener has a default rule for checking connection requests, but you can define additional rules. Each rule consists of a priority, one or more actions, and one or more conditions.
@@ -80,7 +80,13 @@ open class Rule extends cloudformation.Resource {
 
 
     /// 
-    hidden Match: Match
+    hidden Action: RuleAction
+
+    /// 
+    hidden ListenerIdentifier: (String(matches(Regex(#"^((listener-[0-9a-z]{17})|(arn(:[a-z0-9]+([.-][a-z0-9]+)*){2}(:([a-z0-9]+([.-][a-z0-9]+)*)?){2}:service/svc-[0-9a-z]{17}/listener/listener-[0-9a-z]{17}))$"#)))|Mapping)?
+
+    /// 
+    hidden Match: RuleMatch
 
     /// 
     hidden Name: (String(matches(Regex(#"^(?!rule-)(?![-])(?!.*[-]$)(?!.*[-]{2})[a-z0-9-]+$"#)))|Mapping)?
@@ -89,25 +95,19 @@ open class Rule extends cloudformation.Resource {
     hidden Priority: Int|Mapping
 
     /// 
-    hidden Action: Action
-
-    /// 
-    hidden ListenerIdentifier: (String(matches(Regex(#"^((listener-[0-9a-z]{17})|(arn(:[a-z0-9]+([.-][a-z0-9]+)*){2}(:([a-z0-9]+([.-][a-z0-9]+)*)?){2}:service/svc-[0-9a-z]{17}/listener/listener-[0-9a-z]{17}))$"#)))|Mapping)?
+    hidden Tags: (Listing<RuleTag>)?
 
     /// 
     hidden ServiceIdentifier: (String(matches(Regex(#"^((svc-[0-9a-z]{17})|(arn(:[a-z0-9]+([.-][a-z0-9]+)*){2}(:([a-z0-9]+([.-][a-z0-9]+)*)?){2}:service/svc-[0-9a-z]{17}))$"#)))|Mapping)?
 
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
     Properties {
+        ["Action"] = if (Action == null) null else Action
+        ["ListenerIdentifier"] = if (ListenerIdentifier == null) null else ListenerIdentifier
         ["Match"] = if (Match == null) null else Match
         ["Name"] = if (Name == null) null else Name
         ["Priority"] = if (Priority == null) null else Priority
-        ["Action"] = if (Action == null) null else Action
-        ["ListenerIdentifier"] = if (ListenerIdentifier == null) null else ListenerIdentifier
-        ["ServiceIdentifier"] = if (ServiceIdentifier == null) null else ServiceIdentifier
         ["Tags"] = if (Tags == null) null else Tags
+        ["ServiceIdentifier"] = if (ServiceIdentifier == null) null else ServiceIdentifier
     }
 
 }

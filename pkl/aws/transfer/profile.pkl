@@ -6,14 +6,13 @@ module aws.transfer.profile
 import "../../cloudformation.pkl"
 
 /// Creates a key-value pair for a specific resource.
-open class Tag {
+open class ProfileTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
-/// A unique identifier for the certificate.
-open class CertificateId {
-}
+typealias ProfileCertificateId = String|Mapping
+
 
 /// Resource Type definition for AWS::Transfer::Profile
 open class Profile extends cloudformation.Resource {
@@ -21,23 +20,23 @@ open class Profile extends cloudformation.Resource {
     Type = "AWS::Transfer::Profile"
 
 
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
-
-    /// List of the certificate IDs associated with this profile to be used for encryption and signing of AS2 messages.
-    hidden CertificateIds: (Listing<CertificateId>)?
-
     /// AS2 identifier agreed with a trading partner.
     hidden As2Id: String|Mapping
 
     /// Enum specifying whether the profile is local or associated with a trading partner.
     hidden ProfileType: ProfileProfileType|Mapping
 
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<ProfileTag>)?
+
+    /// List of the certificate IDs associated with this profile to be used for encryption and signing of AS2 messages.
+    hidden CertificateIds: (Listing<ProfileCertificateId>)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["CertificateIds"] = if (CertificateIds == null) null else CertificateIds
         ["As2Id"] = if (As2Id == null) null else As2Id
         ["ProfileType"] = if (ProfileType == null) null else ProfileType
+        ["Tags"] = if (Tags == null) null else Tags
+        ["CertificateIds"] = if (CertificateIds == null) null else CertificateIds
     }
 
 }

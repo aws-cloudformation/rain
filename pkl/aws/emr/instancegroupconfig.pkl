@@ -6,23 +6,51 @@ module aws.emr.instancegroupconfig
 import "../../cloudformation.pkl"
 
 /// 
-open class InstanceGroupConfigCloudWatchAlarmDefinition {
-    Statistic: (String|Mapping)?
-    EvaluationPeriods: (Int|Mapping)?
-    MetricName: String|Mapping
-    ComparisonOperator: String|Mapping
-    Dimensions: (Listing<InstanceGroupConfigMetricDimension>)?
-    Period: Int|Mapping
-    Unit: (String|Mapping)?
-    Namespace: (String|Mapping)?
-    Threshold: Number|Mapping
+open class InstanceGroupConfigScalingAction {
+    Market: (String|Mapping)?
+    SimpleScalingPolicyConfiguration: InstanceGroupConfigSimpleScalingPolicyConfiguration
 }
 
 /// 
+open class InstanceGroupConfigEbsBlockDeviceConfig {
+    VolumeSpecification: InstanceGroupConfigVolumeSpecification
+    VolumesPerInstance: (Int|Mapping)?
+}
+
+typealias InstanceGroupConfigConfigurationConfigurationProperties = Mapping<String, Any>
+
+/// 
 open class InstanceGroupConfigConfiguration {
+    ConfigurationProperties: (InstanceGroupConfigConfigurationConfigurationProperties)?
     Configurations: (Listing<InstanceGroupConfigConfiguration>)?
     Classification: (String|Mapping)?
-    ConfigurationProperties: (Dynamic)?
+}
+
+/// 
+open class InstanceGroupConfigVolumeSpecification {
+    VolumeType: String|Mapping
+    Iops: (Int|Mapping)?
+    SizeInGB: Int|Mapping
+    Throughput: (Int|Mapping)?
+}
+
+/// 
+open class InstanceGroupConfigCloudWatchAlarmDefinition {
+    Period: Int|Mapping
+    Threshold: Number|Mapping
+    MetricName: String|Mapping
+    Dimensions: (Listing<InstanceGroupConfigMetricDimension>)?
+    EvaluationPeriods: (Int|Mapping)?
+    Unit: (String|Mapping)?
+    Namespace: (String|Mapping)?
+    ComparisonOperator: String|Mapping
+    Statistic: (String|Mapping)?
+}
+
+/// 
+open class InstanceGroupConfigEbsConfiguration {
+    EbsBlockDeviceConfigs: (Listing<InstanceGroupConfigEbsBlockDeviceConfig>)?
+    EbsOptimized: (Boolean|Mapping)?
 }
 
 /// 
@@ -33,20 +61,22 @@ open class InstanceGroupConfigSimpleScalingPolicyConfiguration {
 }
 
 /// 
+open class InstanceGroupConfigScalingTrigger {
+    CloudWatchAlarmDefinition: InstanceGroupConfigCloudWatchAlarmDefinition
+}
+
+/// 
+open class InstanceGroupConfigScalingRule {
+    Action: InstanceGroupConfigScalingAction
+    Description: (String|Mapping)?
+    Trigger: InstanceGroupConfigScalingTrigger
+    Name: String|Mapping
+}
+
+/// 
 open class InstanceGroupConfigScalingConstraints {
     MinCapacity: Int|Mapping
     MaxCapacity: Int|Mapping
-}
-
-/// 
-open class InstanceGroupConfigScalingAction {
-    SimpleScalingPolicyConfiguration: InstanceGroupConfigSimpleScalingPolicyConfiguration
-    Market: (String|Mapping)?
-}
-
-/// 
-open class InstanceGroupConfigScalingTrigger {
-    CloudWatchAlarmDefinition: InstanceGroupConfigCloudWatchAlarmDefinition
 }
 
 /// 
@@ -56,37 +86,9 @@ open class InstanceGroupConfigMetricDimension {
 }
 
 /// 
-open class InstanceGroupConfigVolumeSpecification {
-    SizeInGB: Int|Mapping
-    Throughput: (Int|Mapping)?
-    VolumeType: String|Mapping
-    Iops: (Int|Mapping)?
-}
-
-/// 
-open class InstanceGroupConfigEbsConfiguration {
-    EbsBlockDeviceConfigs: (Listing<InstanceGroupConfigEbsBlockDeviceConfig>)?
-    EbsOptimized: (Boolean|Mapping)?
-}
-
-/// 
 open class InstanceGroupConfigAutoScalingPolicy {
     Rules: Listing<InstanceGroupConfigScalingRule>
     Constraints: InstanceGroupConfigScalingConstraints
-}
-
-/// 
-open class InstanceGroupConfigScalingRule {
-    Trigger: InstanceGroupConfigScalingTrigger
-    Name: String|Mapping
-    Action: InstanceGroupConfigScalingAction
-    Description: (String|Mapping)?
-}
-
-/// 
-open class InstanceGroupConfigEbsBlockDeviceConfig {
-    VolumeSpecification: InstanceGroupConfigVolumeSpecification
-    VolumesPerInstance: (Int|Mapping)?
 }
 
 /// Resource Type definition for AWS::EMR::InstanceGroupConfig
@@ -96,50 +98,50 @@ open class InstanceGroupConfig extends cloudformation.Resource {
 
 
     /// 
-    hidden AutoScalingPolicy: (InstanceGroupConfigAutoScalingPolicy)?
-
-    /// 
-    hidden InstanceCount: Int|Mapping
-
-    /// 
-    hidden Configurations: (Listing<InstanceGroupConfigConfiguration>)?
-
-    /// 
-    hidden Market: (String|Mapping)?
-
-    /// 
-    hidden Name: (String|Mapping)?
-
-    /// 
-    hidden JobFlowId: String|Mapping
+    hidden BidPrice: (String|Mapping)?
 
     /// 
     hidden EbsConfiguration: (InstanceGroupConfigEbsConfiguration)?
 
     /// 
+    hidden CustomAmiId: (String|Mapping)?
+
+    /// 
+    hidden Market: (String|Mapping)?
+
+    /// 
+    hidden JobFlowId: String|Mapping
+
+    /// 
+    hidden InstanceCount: Int|Mapping
+
+    /// 
     hidden InstanceRole: String|Mapping
 
     /// 
-    hidden CustomAmiId: (String|Mapping)?
+    hidden Configurations: (Listing<InstanceGroupConfigConfiguration>)?
 
     /// 
     hidden InstanceType: String|Mapping
 
     /// 
-    hidden BidPrice: (String|Mapping)?
+    hidden Name: (String|Mapping)?
+
+    /// 
+    hidden AutoScalingPolicy: (InstanceGroupConfigAutoScalingPolicy)?
 
     Properties {
-        ["AutoScalingPolicy"] = if (AutoScalingPolicy == null) null else AutoScalingPolicy
-        ["InstanceCount"] = if (InstanceCount == null) null else InstanceCount
-        ["Configurations"] = if (Configurations == null) null else Configurations
-        ["Market"] = if (Market == null) null else Market
-        ["Name"] = if (Name == null) null else Name
-        ["JobFlowId"] = if (JobFlowId == null) null else JobFlowId
-        ["EbsConfiguration"] = if (EbsConfiguration == null) null else EbsConfiguration
-        ["InstanceRole"] = if (InstanceRole == null) null else InstanceRole
-        ["CustomAmiId"] = if (CustomAmiId == null) null else CustomAmiId
-        ["InstanceType"] = if (InstanceType == null) null else InstanceType
         ["BidPrice"] = if (BidPrice == null) null else BidPrice
+        ["EbsConfiguration"] = if (EbsConfiguration == null) null else EbsConfiguration
+        ["CustomAmiId"] = if (CustomAmiId == null) null else CustomAmiId
+        ["Market"] = if (Market == null) null else Market
+        ["JobFlowId"] = if (JobFlowId == null) null else JobFlowId
+        ["InstanceCount"] = if (InstanceCount == null) null else InstanceCount
+        ["InstanceRole"] = if (InstanceRole == null) null else InstanceRole
+        ["Configurations"] = if (Configurations == null) null else Configurations
+        ["InstanceType"] = if (InstanceType == null) null else InstanceType
+        ["Name"] = if (Name == null) null else Name
+        ["AutoScalingPolicy"] = if (AutoScalingPolicy == null) null else AutoScalingPolicy
     }
 
 }

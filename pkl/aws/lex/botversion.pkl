@@ -5,36 +5,31 @@ module aws.lex.botversion
 
 import "../../cloudformation.pkl"
 
-/// 
-open class BotVersionLocaleSpecification {
-    LocaleId: LocaleId
-    BotVersionLocaleDetails: BotVersionLocaleDetails
-}
+typealias BotVersionLocaleId = String|Mapping
 
-/// Specifies the locales that Amazon Lex adds to this version. You can choose the Draft version or any other previously published version for each locale.
-open class BotVersionLocaleSpecificationList {
-}
 
-/// Unique ID of resource
-open class Id {
-}
+typealias BotVersionBotVersion = String|Mapping
 
-/// A description of the version. Use the description to help identify the version in lists.
-open class Description {
-}
-
-/// The identifier of the language and locale that the bot will be used in.
-open class LocaleId {
-}
-
-/// The version of a bot.
-open class BotVersion {
-}
 
 /// The version of a bot used for a bot locale.
-open class BotVersionLocaleDetails {
-    SourceBotVersion: BotVersion
+open class BotVersionBotVersionLocaleDetails {
+    SourceBotVersion: BotVersionBotVersion
 }
+
+/// 
+open class BotVersionBotVersionLocaleSpecification {
+    LocaleId: BotVersionLocaleId
+    BotVersionLocaleDetails: BotVersionBotVersionLocaleDetails
+}
+
+typealias BotVersionBotVersionLocaleSpecificationList = Listing<(BotVersionBotVersionLocaleSpecification)?>
+
+
+typealias BotVersionId = String|Mapping
+
+
+typealias BotVersionDescription = String|Mapping
+
 
 /// A version is a numbered snapshot of your work that you can publish for use in different parts of your workflow, such as development, beta deployment, and production.
 open class BotVersion extends cloudformation.Resource {
@@ -43,18 +38,18 @@ open class BotVersion extends cloudformation.Resource {
 
 
     /// 
-    hidden BotId: Id
+    hidden Description: (BotVersionDescription)?
 
     /// 
-    hidden Description: (Description)?
+    hidden BotVersionLocaleSpecification: BotVersionBotVersionLocaleSpecificationList
 
     /// 
-    hidden BotVersionLocaleSpecification: BotVersionLocaleSpecificationList
+    hidden BotId: BotVersionId
 
     Properties {
-        ["BotId"] = if (BotId == null) null else BotId
         ["Description"] = if (Description == null) null else Description
         ["BotVersionLocaleSpecification"] = if (BotVersionLocaleSpecification == null) null else BotVersionLocaleSpecification
+        ["BotId"] = if (BotId == null) null else BotId
     }
 
 }

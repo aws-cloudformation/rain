@@ -6,184 +6,184 @@ module aws.msk.cluster
 import "../../cloudformation.pkl"
 
 /// 
-open class Iam {
-    Enabled: Boolean|Mapping
+open class ClusterNodeExporter {
+    EnabledInBroker: Boolean|Mapping
 }
 
 /// 
-open class VpcConnectivityClientAuthentication {
-    Tls: (VpcConnectivityTls)?
-    Sasl: (VpcConnectivitySasl)?
+open class ClusterBrokerLogs {
+    Firehose: (ClusterFirehose)?
+    S3: (ClusterS3)?
+    CloudWatchLogs: (ClusterCloudWatchLogs)?
 }
 
 /// 
-open class BrokerNodeGroupInfo {
-    InstanceType: String|Mapping
-    StorageInfo: (StorageInfo)?
-    ConnectivityInfo: (ConnectivityInfo)?
-    SecurityGroups: (Listing<String|Mapping>)?
-    BrokerAZDistribution: (String|Mapping)?
-    ClientSubnets: Listing<String|Mapping>
+open class ClusterVpcConnectivityClientAuthentication {
+    Tls: (ClusterVpcConnectivityTls)?
+    Sasl: (ClusterVpcConnectivitySasl)?
 }
 
 /// 
-open class Tls {
+open class ClusterTls {
     CertificateAuthorityArnList: (Listing<String|Mapping>)?
     Enabled: (Boolean|Mapping)?
 }
 
 /// 
-open class EBSStorageInfo {
+open class ClusterVpcConnectivityScram {
+    Enabled: Boolean|Mapping
+}
+
+/// 
+open class ClusterVpcConnectivityIam {
+    Enabled: Boolean|Mapping
+}
+
+/// 
+open class ClusterBrokerNodeGroupInfo {
+    StorageInfo: (ClusterStorageInfo)?
+    ConnectivityInfo: (ClusterConnectivityInfo)?
+    SecurityGroups: (Listing<String|Mapping>)?
+    BrokerAZDistribution: (String|Mapping)?
+    ClientSubnets: Listing<String|Mapping>
+    InstanceType: String|Mapping
+}
+
+/// 
+open class ClusterEBSStorageInfo {
     VolumeSize: (Int|Mapping)?
-    ProvisionedThroughput: (ProvisionedThroughput)?
+    ProvisionedThroughput: (ClusterProvisionedThroughput)?
 }
 
 /// 
-open class VpcConnectivity {
-    ClientAuthentication: (VpcConnectivityClientAuthentication)?
+open class ClusterProvisionedThroughput {
+    Enabled: (Boolean|Mapping)?
+    VolumeThroughput: (Int|Mapping)?
 }
 
 /// 
-open class Scram {
+open class ClusterVpcConnectivitySasl {
+    Scram: (ClusterVpcConnectivityScram)?
+    Iam: (ClusterVpcConnectivityIam)?
+}
+
+/// 
+open class ClusterEncryptionInfo {
+    EncryptionAtRest: (ClusterEncryptionAtRest)?
+    EncryptionInTransit: (ClusterEncryptionInTransit)?
+}
+
+/// 
+open class ClusterConfigurationInfo {
+    Revision: Int|Mapping
+    Arn: String|Mapping
+}
+
+/// 
+open class ClusterLoggingInfo {
+    BrokerLogs: ClusterBrokerLogs
+}
+
+/// 
+open class ClusterUnauthenticated {
     Enabled: Boolean|Mapping
 }
 
 /// 
-open class LoggingInfo {
-    BrokerLogs: BrokerLogs
-}
-
-/// 
-open class Prometheus {
-    JmxExporter: (JmxExporter)?
-    NodeExporter: (NodeExporter)?
-}
-
-/// 
-open class CloudWatchLogs {
-    LogGroup: (String|Mapping)?
-    Enabled: Boolean|Mapping
-}
-
-/// 
-open class StorageInfo {
-    EBSStorageInfo: (EBSStorageInfo)?
-}
-
-/// 
-open class ConnectivityInfo {
-    PublicAccess: (PublicAccess)?
-    VpcConnectivity: (VpcConnectivity)?
-}
-
-/// 
-open class VpcConnectivityScram {
-    Enabled: Boolean|Mapping
-}
-
-/// 
-open class EncryptionInfo {
-    EncryptionAtRest: (EncryptionAtRest)?
-    EncryptionInTransit: (EncryptionInTransit)?
-}
-
-/// 
-open class Firehose {
+open class ClusterFirehose {
     Enabled: Boolean|Mapping
     DeliveryStream: (String|Mapping)?
 }
 
 /// 
-open class VpcConnectivityTls {
+open class ClusterCloudWatchLogs {
+    LogGroup: (String|Mapping)?
     Enabled: Boolean|Mapping
 }
 
 /// 
-open class VpcConnectivityIam {
+open class ClusterPublicAccess {
+    Type: (String|Mapping)?
+}
+
+typealias EncryptionInTransitClientBroker = "TLS"|"TLS_PLAINTEXT"|"PLAINTEXT"
+
+/// 
+open class ClusterEncryptionInTransit {
+    InCluster: (Boolean|Mapping)?
+    ClientBroker: (EncryptionInTransitClientBroker|Mapping)?
+}
+
+/// 
+open class ClusterConnectivityInfo {
+    PublicAccess: (ClusterPublicAccess)?
+    VpcConnectivity: (ClusterVpcConnectivity)?
+}
+
+/// 
+open class ClusterSasl {
+    Scram: (ClusterScram)?
+    Iam: (ClusterIam)?
+}
+
+/// 
+open class ClusterClientAuthentication {
+    Tls: (ClusterTls)?
+    Sasl: (ClusterSasl)?
+    Unauthenticated: (ClusterUnauthenticated)?
+}
+
+/// 
+open class ClusterStorageInfo {
+    EBSStorageInfo: (ClusterEBSStorageInfo)?
+}
+
+/// 
+open class ClusterOpenMonitoring {
+    Prometheus: ClusterPrometheus
+}
+
+/// 
+open class ClusterEncryptionAtRest {
+    DataVolumeKMSKeyId: String|Mapping
+}
+
+/// 
+open class ClusterIam {
     Enabled: Boolean|Mapping
 }
 
 /// 
-open class Unauthenticated {
+open class ClusterVpcConnectivityTls {
     Enabled: Boolean|Mapping
 }
 
 /// 
-open class ClientAuthentication {
-    Tls: (Tls)?
-    Sasl: (Sasl)?
-    Unauthenticated: (Unauthenticated)?
+open class ClusterScram {
+    Enabled: Boolean|Mapping
 }
 
 /// 
-open class S3 {
+open class ClusterVpcConnectivity {
+    ClientAuthentication: (ClusterVpcConnectivityClientAuthentication)?
+}
+
+/// 
+open class ClusterS3 {
     Enabled: Boolean|Mapping
     Prefix: (String|Mapping)?
     Bucket: (String|Mapping)?
 }
 
 /// 
-open class JmxExporter {
+open class ClusterPrometheus {
+    JmxExporter: (ClusterJmxExporter)?
+    NodeExporter: (ClusterNodeExporter)?
+}
+
+/// 
+open class ClusterJmxExporter {
     EnabledInBroker: Boolean|Mapping
-}
-
-/// 
-open class VpcConnectivitySasl {
-    Scram: (VpcConnectivityScram)?
-    Iam: (VpcConnectivityIam)?
-}
-
-/// 
-open class Sasl {
-    Scram: (Scram)?
-    Iam: (Iam)?
-}
-
-/// 
-open class NodeExporter {
-    EnabledInBroker: Boolean|Mapping
-}
-
-/// 
-open class ConfigurationInfo {
-    Revision: Int|Mapping
-    Arn: String|Mapping
-}
-
-/// 
-open class ProvisionedThroughput {
-    VolumeThroughput: (Int|Mapping)?
-    Enabled: (Boolean|Mapping)?
-}
-
-/// 
-open class PublicAccess {
-    Type: (String|Mapping)?
-}
-
-/// 
-open class EncryptionAtRest {
-    DataVolumeKMSKeyId: String|Mapping
-}
-
-typealias EncryptionInTransitClientBroker = "TLS"|"TLS_PLAINTEXT"|"PLAINTEXT"
-
-/// 
-open class EncryptionInTransit {
-    InCluster: (Boolean|Mapping)?
-    ClientBroker: (EncryptionInTransitClientBroker|Mapping)?
-}
-
-/// 
-open class BrokerLogs {
-    S3: (S3)?
-    CloudWatchLogs: (CloudWatchLogs)?
-    Firehose: (Firehose)?
-}
-
-/// 
-open class OpenMonitoring {
-    Prometheus: Prometheus
 }
 
 /// Resource Type definition for AWS::MSK::Cluster
@@ -193,63 +193,65 @@ open class Cluster extends cloudformation.Resource {
 
 
     /// 
+    hidden StorageMode: (ClusterStorageMode|Mapping)?
+
+    /// 
     hidden NumberOfBrokerNodes: Int|Mapping
 
     /// 
-    hidden KafkaVersion: String|Mapping
-
-    /// 
-    hidden EncryptionInfo: (EncryptionInfo)?
-
-    /// 
-    hidden BrokerNodeGroupInfo: BrokerNodeGroupInfo
-
-    /// The current version of the MSK cluster
-    hidden CurrentVersion: (String|Mapping)?
-
-    /// 
-    hidden ClientAuthentication: (ClientAuthentication)?
-
-    /// 
-    hidden LoggingInfo: (LoggingInfo)?
+    hidden ClientAuthentication: (ClusterClientAuthentication)?
 
     /// A key-value pair to associate with a resource.
-    hidden Tags: (Dynamic)?
+    hidden Tags: (ClusterClusterTags)?
+
+    /// 
+    hidden ConfigurationInfo: (ClusterConfigurationInfo)?
+
+    /// 
+    hidden BrokerNodeGroupInfo: ClusterBrokerNodeGroupInfo
 
     /// 
     hidden EnhancedMonitoring: (ClusterEnhancedMonitoring|Mapping)?
 
     /// 
-    hidden OpenMonitoring: (OpenMonitoring)?
+    hidden KafkaVersion: String|Mapping
+
+    /// 
+    hidden EncryptionInfo: (ClusterEncryptionInfo)?
+
+    /// 
+    hidden OpenMonitoring: (ClusterOpenMonitoring)?
+
+    /// 
+    hidden LoggingInfo: (ClusterLoggingInfo)?
 
     /// 
     hidden ClusterName: String|Mapping
 
-    /// 
-    hidden ConfigurationInfo: (ConfigurationInfo)?
-
-    /// 
-    hidden StorageMode: (ClusterStorageMode|Mapping)?
+    /// The current version of the MSK cluster
+    hidden CurrentVersion: (String|Mapping)?
 
     Properties {
+        ["StorageMode"] = if (StorageMode == null) null else StorageMode
         ["NumberOfBrokerNodes"] = if (NumberOfBrokerNodes == null) null else NumberOfBrokerNodes
+        ["ClientAuthentication"] = if (ClientAuthentication == null) null else ClientAuthentication
+        ["Tags"] = if (Tags == null) null else Tags
+        ["ConfigurationInfo"] = if (ConfigurationInfo == null) null else ConfigurationInfo
+        ["BrokerNodeGroupInfo"] = if (BrokerNodeGroupInfo == null) null else BrokerNodeGroupInfo
+        ["EnhancedMonitoring"] = if (EnhancedMonitoring == null) null else EnhancedMonitoring
         ["KafkaVersion"] = if (KafkaVersion == null) null else KafkaVersion
         ["EncryptionInfo"] = if (EncryptionInfo == null) null else EncryptionInfo
-        ["BrokerNodeGroupInfo"] = if (BrokerNodeGroupInfo == null) null else BrokerNodeGroupInfo
-        ["CurrentVersion"] = if (CurrentVersion == null) null else CurrentVersion
-        ["ClientAuthentication"] = if (ClientAuthentication == null) null else ClientAuthentication
-        ["LoggingInfo"] = if (LoggingInfo == null) null else LoggingInfo
-        ["Tags"] = if (Tags == null) null else Tags
-        ["EnhancedMonitoring"] = if (EnhancedMonitoring == null) null else EnhancedMonitoring
         ["OpenMonitoring"] = if (OpenMonitoring == null) null else OpenMonitoring
+        ["LoggingInfo"] = if (LoggingInfo == null) null else LoggingInfo
         ["ClusterName"] = if (ClusterName == null) null else ClusterName
-        ["ConfigurationInfo"] = if (ConfigurationInfo == null) null else ConfigurationInfo
-        ["StorageMode"] = if (StorageMode == null) null else StorageMode
+        ["CurrentVersion"] = if (CurrentVersion == null) null else CurrentVersion
     }
 
 }
 
 
-typealias ClusterEnhancedMonitoring = "DEFAULT"|"PER_BROKER"|"PER_TOPIC_PER_BROKER"|"PER_TOPIC_PER_PARTITION"
-
 typealias ClusterStorageMode = "LOCAL"|"TIERED"
+
+typealias ClusterClusterTags = Mapping<String, Any>
+
+typealias ClusterEnhancedMonitoring = "DEFAULT"|"PER_BROKER"|"PER_TOPIC_PER_BROKER"|"PER_TOPIC_PER_PARTITION"

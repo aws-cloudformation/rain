@@ -5,73 +5,67 @@ module aws.sagemaker.featuregroup
 
 import "../../cloudformation.pkl"
 
-/// Throughput mode configuration of the feature group
-open class ThroughputMode {
+/// 
+open class FeatureGroupOnlineStoreSecurityConfig {
+    KmsKeyId: (FeatureGroupKmsKeyId)?
 }
 
-typealias FeatureDefinitionFeatureType = "Integral"|"Fractional"|"String"
+typealias FeatureGroupStorageType = String|Mapping
+
 
 /// 
-open class FeatureDefinition {
-    FeatureName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,63}"#)))|Mapping
-    FeatureType: FeatureDefinitionFeatureType|Mapping
-}
-
-/// Unit of ttl configuration
-open class Unit {
-}
-
-/// 
-open class DataCatalogConfig {
+open class FeatureGroupDataCatalogConfig {
     TableName: String(matches(Regex(#"[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDC00-\uDBFF\uDFFF	]*"#)))|Mapping
     Catalog: String(matches(Regex(#"[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDC00-\uDBFF\uDFFF	]*"#)))|Mapping
     Database: String(matches(Regex(#"[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDC00-\uDBFF\uDFFF	]*"#)))|Mapping
 }
 
+typealias FeatureGroupUnit = String|Mapping
+
+
+typealias FeatureDefinitionFeatureType = "Integral"|"Fractional"|"String"
+
 /// 
-open class OnlineStoreSecurityConfig {
-    KmsKeyId: (KmsKeyId)?
+open class FeatureGroupFeatureDefinition {
+    FeatureName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,63}"#)))|Mapping
+    FeatureType: FeatureDefinitionFeatureType|Mapping
 }
 
-/// Format for the offline store feature group. Iceberg is the optimal format for feature groups shared between offline and online stores.
-open class TableFormat {
-}
+typealias FeatureGroupTableFormat = String|Mapping
+
+
+typealias FeatureGroupThroughputMode = String|Mapping
+
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class FeatureGroupTag {
     Value: String|Mapping
     Key: String|Mapping
 }
 
-/// 
-open class ThroughputConfig {
-    ProvisionedReadCapacityUnits: (Int|Mapping)?
-    ProvisionedWriteCapacityUnits: (Int|Mapping)?
-    ThroughputMode: ThroughputMode
-}
+typealias FeatureGroupValue = Int|Mapping
+
 
 /// 
-open class KmsKeyId {
-}
-
-/// Value of ttl configuration
-open class Value {
-}
-
-/// 
-open class S3StorageConfig {
+open class FeatureGroupS3StorageConfig {
     S3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
-    KmsKeyId: (KmsKeyId)?
+    KmsKeyId: (FeatureGroupKmsKeyId)?
 }
 
-/// 
-open class StorageType {
-}
+typealias FeatureGroupKmsKeyId = String|Mapping
+
 
 /// TTL configuration of the feature group
-open class TtlDuration {
-    Unit: (Unit)?
-    Value: (Value)?
+open class FeatureGroupTtlDuration {
+    Unit: (FeatureGroupUnit)?
+    Value: (FeatureGroupValue)?
+}
+
+/// 
+open class FeatureGroupThroughputConfig {
+    ProvisionedWriteCapacityUnits: (Int|Mapping)?
+    ThroughputMode: FeatureGroupThroughputMode
+    ProvisionedReadCapacityUnits: (Int|Mapping)?
 }
 
 /// Resource Type definition for AWS::SageMaker::FeatureGroup
@@ -80,47 +74,47 @@ open class FeatureGroup extends cloudformation.Resource {
     Type = "AWS::SageMaker::FeatureGroup"
 
 
-    /// The Record Identifier Feature Name.
-    hidden RecordIdentifierFeatureName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,63}"#)))|Mapping
-
-    /// 
-    hidden OfflineStoreConfig: (Dynamic)?
-
-    /// 
-    hidden ThroughputConfig: (ThroughputConfig)?
-
-    /// An array of key-value pair to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
-
     /// Description about the FeatureGroup.
     hidden Description: (String|Mapping)?
+
+    /// An array of key-value pair to apply to this resource.
+    hidden Tags: (Listing<FeatureGroupTag>)?
 
     /// The Name of the FeatureGroup.
     hidden FeatureGroupName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,63}"#)))|Mapping
 
-    /// The Event Time Feature Name.
-    hidden EventTimeFeatureName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,63}"#)))|Mapping
+    /// The Record Identifier Feature Name.
+    hidden RecordIdentifierFeatureName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,63}"#)))|Mapping
 
     /// An Array of Feature Definition
-    hidden FeatureDefinitions: Listing<FeatureDefinition>
+    hidden FeatureDefinitions: Listing<FeatureGroupFeatureDefinition>
 
     /// 
-    hidden OnlineStoreConfig: (Dynamic)?
+    hidden ThroughputConfig: (FeatureGroupThroughputConfig)?
 
     /// Role Arn
     hidden RoleArn: (String(matches(Regex(#"^arn:aws[a-z\-]*:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping)?
 
+    /// The Event Time Feature Name.
+    hidden EventTimeFeatureName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,63}"#)))|Mapping
+
+    /// 
+    hidden OnlineStoreConfig: (Dynamic)?
+
+    /// 
+    hidden OfflineStoreConfig: (Dynamic)?
+
     Properties {
-        ["RecordIdentifierFeatureName"] = if (RecordIdentifierFeatureName == null) null else RecordIdentifierFeatureName
-        ["OfflineStoreConfig"] = if (OfflineStoreConfig == null) null else OfflineStoreConfig
-        ["ThroughputConfig"] = if (ThroughputConfig == null) null else ThroughputConfig
-        ["Tags"] = if (Tags == null) null else Tags
         ["Description"] = if (Description == null) null else Description
+        ["Tags"] = if (Tags == null) null else Tags
         ["FeatureGroupName"] = if (FeatureGroupName == null) null else FeatureGroupName
-        ["EventTimeFeatureName"] = if (EventTimeFeatureName == null) null else EventTimeFeatureName
+        ["RecordIdentifierFeatureName"] = if (RecordIdentifierFeatureName == null) null else RecordIdentifierFeatureName
         ["FeatureDefinitions"] = if (FeatureDefinitions == null) null else FeatureDefinitions
-        ["OnlineStoreConfig"] = if (OnlineStoreConfig == null) null else OnlineStoreConfig
+        ["ThroughputConfig"] = if (ThroughputConfig == null) null else ThroughputConfig
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
+        ["EventTimeFeatureName"] = if (EventTimeFeatureName == null) null else EventTimeFeatureName
+        ["OnlineStoreConfig"] = if (OnlineStoreConfig == null) null else OnlineStoreConfig
+        ["OfflineStoreConfig"] = if (OfflineStoreConfig == null) null else OfflineStoreConfig
     }
 
 }

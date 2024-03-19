@@ -5,12 +5,11 @@ module aws.refactorspaces.environment
 
 import "../../cloudformation.pkl"
 
-/// 
-open class NetworkFabricType {
-}
+typealias EnvironmentNetworkFabricType = String|Mapping
+
 
 /// A label for tagging Environment resource
-open class Tag {
+open class EnvironmentTag {
     Key: String(matches(Regex(#"^(?!aws:).+"#)))|Mapping
     Value: String|Mapping
 }
@@ -22,22 +21,22 @@ open class Environment extends cloudformation.Resource {
 
 
     /// 
-    hidden NetworkFabricType: NetworkFabricType
-
-    /// Metadata that you can assign to help organize the frameworks that you create. Each tag is a key-value pair.
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
     hidden Description: (String(matches(Regex(#"^[a-zA-Z0-9-_\s\.\!\*\#\@\']+$"#)))|Mapping)?
 
     /// 
     hidden Name: String(matches(Regex(#"^(?!env-)[a-zA-Z0-9]+[a-zA-Z0-9-_ ]+$"#)))|Mapping
 
+    /// 
+    hidden NetworkFabricType: EnvironmentNetworkFabricType
+
+    /// Metadata that you can assign to help organize the frameworks that you create. Each tag is a key-value pair.
+    hidden Tags: (Listing<EnvironmentTag>)?
+
     Properties {
-        ["NetworkFabricType"] = if (NetworkFabricType == null) null else NetworkFabricType
-        ["Tags"] = if (Tags == null) null else Tags
         ["Description"] = if (Description == null) null else Description
         ["Name"] = if (Name == null) null else Name
+        ["NetworkFabricType"] = if (NetworkFabricType == null) null else NetworkFabricType
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

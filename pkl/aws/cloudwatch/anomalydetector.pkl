@@ -6,6 +6,17 @@ module aws.cloudwatch.anomalydetector
 import "../../cloudformation.pkl"
 
 /// 
+open class AnomalyDetectorMetricDataQuery {
+    MetricStat: (AnomalyDetectorMetricStat)?
+    Label: (String|Mapping)?
+    Period: (Int|Mapping)?
+    Id: String|Mapping
+    AccountId: (String|Mapping)?
+    ReturnData: (Boolean|Mapping)?
+    Expression: (String|Mapping)?
+}
+
+/// 
 open class AnomalyDetectorRange {
     EndTime: String|Mapping
     StartTime: String|Mapping
@@ -26,23 +37,23 @@ open class AnomalyDetectorMetricMathAnomalyDetector {
 
 /// 
 open class AnomalyDetectorConfiguration {
-    ExcludedTimeRanges: (Listing<AnomalyDetectorRange>)?
     MetricTimeZone: (String|Mapping)?
+    ExcludedTimeRanges: (Listing<AnomalyDetectorRange>)?
 }
 
 /// 
 open class AnomalyDetectorMetricStat {
-    Period: Int|Mapping
-    Metric: AnomalyDetectorMetric
     Stat: String|Mapping
     Unit: (String|Mapping)?
+    Period: Int|Mapping
+    Metric: AnomalyDetectorMetric
 }
 
 /// 
 open class AnomalyDetectorMetric {
-    Namespace: String|Mapping
     MetricName: String|Mapping
     Dimensions: (Listing<AnomalyDetectorDimension>)?
+    Namespace: String|Mapping
 }
 
 /// 
@@ -51,22 +62,14 @@ open class AnomalyDetectorDimension {
     Name: String|Mapping
 }
 
-/// 
-open class AnomalyDetectorMetricDataQuery {
-    AccountId: (String|Mapping)?
-    ReturnData: (Boolean|Mapping)?
-    Expression: (String|Mapping)?
-    MetricStat: (AnomalyDetectorMetricStat)?
-    Label: (String|Mapping)?
-    Period: (Int|Mapping)?
-    Id: String|Mapping
-}
-
 /// Resource Type definition for AWS::CloudWatch::AnomalyDetector
 open class AnomalyDetector extends cloudformation.Resource {
 
     Type = "AWS::CloudWatch::AnomalyDetector"
 
+
+    /// 
+    hidden Namespace: (String|Mapping)?
 
     /// 
     hidden SingleMetricAnomalyDetector: (AnomalyDetectorSingleMetricAnomalyDetector)?
@@ -86,17 +89,14 @@ open class AnomalyDetector extends cloudformation.Resource {
     /// 
     hidden Dimensions: (Listing<AnomalyDetectorDimension>)?
 
-    /// 
-    hidden Namespace: (String|Mapping)?
-
     Properties {
+        ["Namespace"] = if (Namespace == null) null else Namespace
         ["SingleMetricAnomalyDetector"] = if (SingleMetricAnomalyDetector == null) null else SingleMetricAnomalyDetector
         ["MetricName"] = if (MetricName == null) null else MetricName
         ["Stat"] = if (Stat == null) null else Stat
         ["Configuration"] = if (Configuration == null) null else Configuration
         ["MetricMathAnomalyDetector"] = if (MetricMathAnomalyDetector == null) null else MetricMathAnomalyDetector
         ["Dimensions"] = if (Dimensions == null) null else Dimensions
-        ["Namespace"] = if (Namespace == null) null else Namespace
     }
 
 }

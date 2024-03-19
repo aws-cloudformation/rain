@@ -6,30 +6,28 @@ module aws.workspacesweb.usersettings
 import "../../cloudformation.pkl"
 
 /// 
-open class Tag {
+open class UserSettingsCookieSynchronizationConfiguration {
+    Blocklist: (Listing<UserSettingsCookieSpecification>)?
+    Allowlist: Listing<UserSettingsCookieSpecification>
+}
+
+typealias UserSettingsEnabledType = String|Mapping
+
+
+typealias UserSettingsEncryptionContextMap = Mapping<String, Any>
+
+
+/// 
+open class UserSettingsTag {
     Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
     Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
 }
 
 /// 
-open class CookieSpecification {
-    Domain: String(matches(Regex(#"^(\.?)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$"#)))|Mapping
+open class UserSettingsCookieSpecification {
     Name: (String|Mapping)?
     Path: (String(matches(Regex(#"^/(\S)*$"#)))|Mapping)?
-}
-
-/// 
-open class CookieSynchronizationConfiguration {
-    Allowlist: Listing<CookieSpecification>
-    Blocklist: (Listing<CookieSpecification>)?
-}
-
-/// 
-open class EnabledType {
-}
-
-/// 
-open class EncryptionContextMap {
+    Domain: String(matches(Regex(#"^(\.?)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$"#)))|Mapping
 }
 
 /// Definition of AWS::WorkSpacesWeb::UserSettings Resource Type
@@ -39,50 +37,50 @@ open class UserSettings extends cloudformation.Resource {
 
 
     /// 
-    hidden CookieSynchronizationConfiguration: (CookieSynchronizationConfiguration)?
+    hidden DownloadAllowed: UserSettingsEnabledType
 
     /// 
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<UserSettingsTag>)?
 
     /// 
-    hidden UploadAllowed: EnabledType
+    hidden AdditionalEncryptionContext: (UserSettingsEncryptionContextMap)?
 
     /// 
-    hidden CustomerManagedKey: (String(matches(Regex(#"^arn:[\w+=\/,.@-]+:kms:[a-zA-Z0-9\-]*:[a-zA-Z0-9]{1,12}:key\/[a-zA-Z0-9-]+$"#)))|Mapping)?
+    hidden CookieSynchronizationConfiguration: (UserSettingsCookieSynchronizationConfiguration)?
 
     /// 
-    hidden PasteAllowed: EnabledType
-
-    /// 
-    hidden CopyAllowed: EnabledType
-
-    /// 
-    hidden DownloadAllowed: EnabledType
+    hidden CopyAllowed: UserSettingsEnabledType
 
     /// 
     hidden IdleDisconnectTimeoutInMinutes: (Number|Mapping)?
 
     /// 
-    hidden AdditionalEncryptionContext: (EncryptionContextMap)?
+    hidden PasteAllowed: UserSettingsEnabledType
+
+    /// 
+    hidden PrintAllowed: UserSettingsEnabledType
+
+    /// 
+    hidden CustomerManagedKey: (String(matches(Regex(#"^arn:[\w+=\/,.@-]+:kms:[a-zA-Z0-9\-]*:[a-zA-Z0-9]{1,12}:key\/[a-zA-Z0-9-]+$"#)))|Mapping)?
 
     /// 
     hidden DisconnectTimeoutInMinutes: (Number|Mapping)?
 
     /// 
-    hidden PrintAllowed: EnabledType
+    hidden UploadAllowed: UserSettingsEnabledType
 
     Properties {
-        ["CookieSynchronizationConfiguration"] = if (CookieSynchronizationConfiguration == null) null else CookieSynchronizationConfiguration
-        ["Tags"] = if (Tags == null) null else Tags
-        ["UploadAllowed"] = if (UploadAllowed == null) null else UploadAllowed
-        ["CustomerManagedKey"] = if (CustomerManagedKey == null) null else CustomerManagedKey
-        ["PasteAllowed"] = if (PasteAllowed == null) null else PasteAllowed
-        ["CopyAllowed"] = if (CopyAllowed == null) null else CopyAllowed
         ["DownloadAllowed"] = if (DownloadAllowed == null) null else DownloadAllowed
-        ["IdleDisconnectTimeoutInMinutes"] = if (IdleDisconnectTimeoutInMinutes == null) null else IdleDisconnectTimeoutInMinutes
+        ["Tags"] = if (Tags == null) null else Tags
         ["AdditionalEncryptionContext"] = if (AdditionalEncryptionContext == null) null else AdditionalEncryptionContext
-        ["DisconnectTimeoutInMinutes"] = if (DisconnectTimeoutInMinutes == null) null else DisconnectTimeoutInMinutes
+        ["CookieSynchronizationConfiguration"] = if (CookieSynchronizationConfiguration == null) null else CookieSynchronizationConfiguration
+        ["CopyAllowed"] = if (CopyAllowed == null) null else CopyAllowed
+        ["IdleDisconnectTimeoutInMinutes"] = if (IdleDisconnectTimeoutInMinutes == null) null else IdleDisconnectTimeoutInMinutes
+        ["PasteAllowed"] = if (PasteAllowed == null) null else PasteAllowed
         ["PrintAllowed"] = if (PrintAllowed == null) null else PrintAllowed
+        ["CustomerManagedKey"] = if (CustomerManagedKey == null) null else CustomerManagedKey
+        ["DisconnectTimeoutInMinutes"] = if (DisconnectTimeoutInMinutes == null) null else DisconnectTimeoutInMinutes
+        ["UploadAllowed"] = if (UploadAllowed == null) null else UploadAllowed
     }
 
 }

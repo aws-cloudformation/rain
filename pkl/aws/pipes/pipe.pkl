@@ -6,19 +6,483 @@ module aws.pipes.pipe
 import "../../cloudformation.pkl"
 
 /// 
-open class BatchJobDependency {
-    Type: (BatchJobDependencyType)?
-    JobId: (String|Mapping)?
+open class PipePipeTargetLambdaFunctionParameters {
+    InvocationType: (PipePipeTargetInvocationType)?
 }
 
 /// 
-open class BatchRetryStrategy {
+open class PipeSelfManagedKafkaAccessConfigurationCredentialsBasicAuth {
+    BasicAuth: String(matches(Regex(#"^(^arn:aws([a-z]|\-)*:secretsmanager:([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}):(\d{12}):secret:.+)$"#)))|Mapping
+}
+
+/// 
+open class PipePipeSourceManagedStreamingKafkaParameters {
+    BatchSize: (Int|Mapping)?
+    MaximumBatchingWindowInSeconds: (Int|Mapping)?
+    ConsumerGroupID: (String(matches(Regex(#"^[a-zA-Z0-9-\/*:_+=.@-]*$"#)))|Mapping)?
+    Credentials: (PipeMSKAccessCredentials)?
+    TopicName: String(matches(Regex(#"^[^.]([a-zA-Z0-9\-_.]+)$"#)))|Mapping
+    StartingPosition: (PipeMSKStartPosition)?
+}
+
+typealias PipePipeTargetInvocationType = String|Mapping
+
+
+typealias PipeLogLevel = String|Mapping
+
+
+/// 
+open class PipeEcsEphemeralStorage {
+    SizeInGiB: Int|Mapping
+}
+
+/// 
+open class PipePipeSourceSqsQueueParameters {
+    BatchSize: (Int|Mapping)?
+    MaximumBatchingWindowInSeconds: (Int|Mapping)?
+}
+
+/// 
+open class PipePipeTargetStateMachineParameters {
+    InvocationType: (PipePipeTargetInvocationType)?
+}
+
+/// 
+open class PipePipeTargetRedshiftDataParameters {
+    WithEvent: (Boolean|Mapping)?
+    Sqls: Listing<String|Mapping>
+    SecretManagerArn: (String(matches(Regex(#"^(^arn:aws([a-z]|\-)*:secretsmanager:([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}):(\d{12}):secret:.+)|(\$(\.[\w/_-]+(\[(\d+|\*)\])*)*)$"#)))|Mapping)?
+    Database: String|Mapping
+    DbUser: (String|Mapping)?
+    StatementName: (String|Mapping)?
+}
+
+typealias PipeQueryStringParametersMap = Mapping<String, Any>
+
+
+/// 
+open class PipeMQBrokerAccessCredentialsBasicAuth {
+    BasicAuth: String(matches(Regex(#"^(^arn:aws([a-z]|\-)*:secretsmanager:([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}):(\d{12}):secret:.+)$"#)))|Mapping
+}
+
+/// 
+open class PipeS3LogDestination {
+    Prefix: (String|Mapping)?
+    BucketOwner: (String|Mapping)?
+    OutputFormat: (PipeS3OutputFormat)?
+    BucketName: (String|Mapping)?
+}
+
+/// 
+open class PipeBatchEnvironmentVariable {
+    Name: (String|Mapping)?
+    Value: (String|Mapping)?
+}
+
+typealias PipeBatchResourceRequirementType = String|Mapping
+
+
+/// 
+open class PipeBatchArrayProperties {
+    Size: (Int|Mapping)?
+}
+
+typealias PipeTagMap = Mapping<String, Any>
+
+
+typealias PipeDynamoDBStreamStartPosition = String|Mapping
+
+
+/// 
+open class PipePipeEnrichmentHttpParameters {
+    QueryStringParameters: (PipeQueryStringParametersMap)?
+    PathParameterValues: (Listing<String|Mapping>)?
+    HeaderParameters: (PipeHeaderParametersMap)?
+}
+
+/// 
+open class PipePipeSourceActiveMQBrokerParameters {
+    Credentials: PipeMQBrokerAccessCredentials
+    QueueName: String(matches(Regex(#"^[\s\S]*$"#)))|Mapping
+    BatchSize: (Int|Mapping)?
+    MaximumBatchingWindowInSeconds: (Int|Mapping)?
+}
+
+/// 
+open class PipeFilterCriteria {
+    Filters: (Listing<PipeFilter>)?
+}
+
+/// 
+open class PipePipeSourceSelfManagedKafkaParameters {
+    ConsumerGroupID: (String(matches(Regex(#"^[a-zA-Z0-9-\/*:_+=.@-]*$"#)))|Mapping)?
+    Credentials: (PipeSelfManagedKafkaAccessConfigurationCredentials)?
+    ServerRootCaCertificate: (String(matches(Regex(#"^(^arn:aws([a-z]|\-)*:secretsmanager:([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}):(\d{12}):secret:.+)$"#)))|Mapping)?
+    MaximumBatchingWindowInSeconds: (Int|Mapping)?
+    Vpc: (PipeSelfManagedKafkaAccessConfigurationVpc)?
+    TopicName: String(matches(Regex(#"^[^.]([a-zA-Z0-9\-_.]+)$"#)))|Mapping
+    StartingPosition: (PipeSelfManagedKafkaStartPosition)?
+    AdditionalBootstrapServers: (Listing<String|Mapping>)?
+    BatchSize: (Int|Mapping)?
+}
+
+typealias PipeIncludeExecutionDataOption = String|Mapping
+
+
+/// 
+open class PipeEcsTaskOverride {
+    InferenceAcceleratorOverrides: (Listing<PipeEcsInferenceAcceleratorOverride>)?
+    Memory: (String|Mapping)?
+    TaskRoleArn: (String(matches(Regex(#"^arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\-]+):([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1})?:(\d{12})?:(.+)|(\$(\.[\w/_-]+(\[(\d+|\*)\])*)*)$"#)))|Mapping)?
+    ContainerOverrides: (Listing<PipeEcsContainerOverride>)?
+    Cpu: (String|Mapping)?
+    EphemeralStorage: (PipeEcsEphemeralStorage)?
+    ExecutionRoleArn: (String(matches(Regex(#"^arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\-]+):([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1})?:(\d{12})?:(.+)|(\$(\.[\w/_-]+(\[(\d+|\*)\])*)*)$"#)))|Mapping)?
+}
+
+/// 
+open class PipeFilter {
+    Pattern: (String|Mapping)?
+}
+
+typealias PipeOnPartialBatchItemFailureStreams = String|Mapping
+
+
+/// 
+open class PipeSelfManagedKafkaAccessConfigurationVpc {
+    SecurityGroup: (Listing<String|Mapping>)?
+    Subnets: (Listing<String|Mapping>)?
+}
+
+/// 
+open class PipeEcsResourceRequirement {
+    Type: PipeEcsResourceRequirementType
+    Value: String|Mapping
+}
+
+/// 
+open class PipePlacementStrategy {
+    Type: (PipePlacementStrategyType)?
+    Field: (String|Mapping)?
+}
+
+typealias PipeMSKAccessCredentials = PipeMSKAccessCredentialsSaslScram512Auth|PipeMSKAccessCredentialsClientCertificateTlsAuth
+
+
+typealias PipeKinesisStreamStartPosition = String|Mapping
+
+
+typealias PipeS3OutputFormat = String|Mapping
+
+
+/// 
+open class PipePipeTargetParameters {
+    HttpParameters: (PipePipeTargetHttpParameters)?
+    RedshiftDataParameters: (PipePipeTargetRedshiftDataParameters)?
+    SageMakerPipelineParameters: (PipePipeTargetSageMakerPipelineParameters)?
+    InputTemplate: (String|Mapping)?
+    LambdaFunctionParameters: (PipePipeTargetLambdaFunctionParameters)?
+    KinesisStreamParameters: (PipePipeTargetKinesisStreamParameters)?
+    BatchJobParameters: (PipePipeTargetBatchJobParameters)?
+    SqsQueueParameters: (PipePipeTargetSqsQueueParameters)?
+    EventBridgeEventBusParameters: (PipePipeTargetEventBridgeEventBusParameters)?
+    CloudWatchLogsParameters: (PipePipeTargetCloudWatchLogsParameters)?
+    StepFunctionStateMachineParameters: (PipePipeTargetStateMachineParameters)?
+    EcsTaskParameters: (PipePipeTargetEcsTaskParameters)?
+}
+
+typealias PipeLaunchType = String|Mapping
+
+
+/// 
+open class PipeEcsInferenceAcceleratorOverride {
+    DeviceName: (String|Mapping)?
+    DeviceType: (String|Mapping)?
+}
+
+typealias PipeMSKStartPosition = String|Mapping
+
+
+/// 
+open class PipeDeadLetterConfig {
+    Arn: (String(matches(Regex(#"^arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\-]+):([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1})?:(\d{12})?:(.+)$"#)))|Mapping)?
+}
+
+/// 
+open class PipePipeLogConfiguration {
+    IncludeExecutionData: (Listing<PipeIncludeExecutionDataOption>)?
+    S3LogDestination: (PipeS3LogDestination)?
+    FirehoseLogDestination: (PipeFirehoseLogDestination)?
+    CloudwatchLogsLogDestination: (PipeCloudwatchLogsLogDestination)?
+    Level: (PipeLogLevel)?
+}
+
+typealias PipeSelfManagedKafkaAccessConfigurationCredentials = PipeSelfManagedKafkaAccessConfigurationCredentialsBasicAuth|PipeSelfManagedKafkaAccessConfigurationCredentialsSaslScram512Auth|PipeSelfManagedKafkaAccessConfigurationCredentialsSaslScram256Auth|PipeSelfManagedKafkaAccessConfigurationCredentialsClientCertificateTlsAuth
+
+
+/// 
+open class PipePipeSourceParameters {
+    FilterCriteria: (PipeFilterCriteria)?
+    KinesisStreamParameters: (PipePipeSourceKinesisStreamParameters)?
+    DynamoDBStreamParameters: (PipePipeSourceDynamoDBStreamParameters)?
+    SqsQueueParameters: (PipePipeSourceSqsQueueParameters)?
+    ActiveMQBrokerParameters: (PipePipeSourceActiveMQBrokerParameters)?
+    RabbitMQBrokerParameters: (PipePipeSourceRabbitMQBrokerParameters)?
+    ManagedStreamingKafkaParameters: (PipePipeSourceManagedStreamingKafkaParameters)?
+    SelfManagedKafkaParameters: (PipePipeSourceSelfManagedKafkaParameters)?
+}
+
+/// 
+open class PipeBatchJobDependency {
+    JobId: (String|Mapping)?
+    Type: (PipeBatchJobDependencyType)?
+}
+
+typealias PipeBatchParametersMap = Mapping<String, Any>
+
+
+typealias PipePlacementStrategyType = String|Mapping
+
+
+/// 
+open class PipeSelfManagedKafkaAccessConfigurationCredentialsSaslScram256Auth {
+    SaslScram256Auth: String(matches(Regex(#"^(^arn:aws([a-z]|\-)*:secretsmanager:([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}):(\d{12}):secret:.+)$"#)))|Mapping
+}
+
+/// 
+open class PipeEcsEnvironmentVariable {
+    Name: (String|Mapping)?
+    Value: (String|Mapping)?
+}
+
+/// 
+open class PipePipeEnrichmentParameters {
+    InputTemplate: (String|Mapping)?
+    HttpParameters: (PipePipeEnrichmentHttpParameters)?
+}
+
+/// 
+open class PipeBatchRetryStrategy {
     Attempts: (Int|Mapping)?
 }
 
+typealias PipeRequestedPipeState = String|Mapping
+
+
 /// 
-open class PipeSourceRabbitMQBrokerParameters {
-    Credentials: MQBrokerAccessCredentials
+open class PipePipeTargetEcsTaskParameters {
+    EnableExecuteCommand: (Boolean|Mapping)?
+    PlacementStrategy: (Listing<PipePlacementStrategy>)?
+    Overrides: (PipeEcsTaskOverride)?
+    TaskDefinitionArn: String(matches(Regex(#"^arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\-]+):([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1})?:(\d{12})?:(.+)|(\$(\.[\w/_-]+(\[(\d+|\*)\])*)*)$"#)))|Mapping
+    TaskCount: (Int|Mapping)?
+    PlatformVersion: (String|Mapping)?
+    PlacementConstraints: (Listing<PipePlacementConstraint>)?
+    PropagateTags: (PipePropagateTags)?
+    ReferenceId: (String|Mapping)?
+    CapacityProviderStrategy: (Listing<PipeCapacityProviderStrategyItem>)?
+    EnableECSManagedTags: (Boolean|Mapping)?
+    Tags: (Listing<PipeTag>)?
+    LaunchType: (PipeLaunchType)?
+    NetworkConfiguration: (PipeNetworkConfiguration)?
+    Group: (String|Mapping)?
+}
+
+typealias PipeEcsEnvironmentFileType = String|Mapping
+
+
+typealias PipePlacementConstraintType = String|Mapping
+
+
+/// 
+open class PipeBatchContainerOverrides {
+    Environment: (Listing<PipeBatchEnvironmentVariable>)?
+    InstanceType: (String|Mapping)?
+    ResourceRequirements: (Listing<PipeBatchResourceRequirement>)?
+    Command: (Listing<String|Mapping>)?
+}
+
+/// 
+open class PipePipeSourceKinesisStreamParameters {
+    StartingPositionTimestamp: (String|Mapping)?
+    BatchSize: (Int|Mapping)?
+    MaximumBatchingWindowInSeconds: (Int|Mapping)?
+    MaximumRecordAgeInSeconds: (Int|Mapping)?
+    StartingPosition: PipeKinesisStreamStartPosition
+    DeadLetterConfig: (PipeDeadLetterConfig)?
+    OnPartialBatchItemFailure: (PipeOnPartialBatchItemFailureStreams)?
+    MaximumRetryAttempts: (Int|Mapping)?
+    ParallelizationFactor: (Int|Mapping)?
+}
+
+/// 
+open class PipePipeTargetCloudWatchLogsParameters {
+    Timestamp: (String(matches(Regex(#"^\$(\.[\w_-]+(\[(\d+|\*)\])*)*$"#)))|Mapping)?
+    LogStreamName: (String|Mapping)?
+}
+
+/// 
+open class PipeEcsEnvironmentFile {
+    Type: PipeEcsEnvironmentFileType
+    Value: String|Mapping
+}
+
+/// 
+open class PipePipeTargetKinesisStreamParameters {
+    PartitionKey: String|Mapping
+}
+
+/// 
+open class PipeNetworkConfiguration {
+    AwsvpcConfiguration: (PipeAwsVpcConfiguration)?
+}
+
+/// 
+open class PipeCapacityProviderStrategyItem {
+    CapacityProvider: String|Mapping
+    Weight: (Int|Mapping)?
+    Base: (Int|Mapping)?
+}
+
+typealias PipeMQBrokerAccessCredentials = PipeMQBrokerAccessCredentialsBasicAuth
+
+
+/// 
+open class PipePipeTargetHttpParameters {
+    PathParameterValues: (Listing<String|Mapping>)?
+    HeaderParameters: (PipeHeaderParametersMap)?
+    QueryStringParameters: (PipeQueryStringParametersMap)?
+}
+
+/// 
+open class PipeEcsContainerOverride {
+    Command: (Listing<String|Mapping>)?
+    Cpu: (Int|Mapping)?
+    Environment: (Listing<PipeEcsEnvironmentVariable>)?
+    EnvironmentFiles: (Listing<PipeEcsEnvironmentFile>)?
+    Memory: (Int|Mapping)?
+    MemoryReservation: (Int|Mapping)?
+    Name: (String|Mapping)?
+    ResourceRequirements: (Listing<PipeEcsResourceRequirement>)?
+}
+
+/// 
+open class PipePipeTargetBatchJobParameters {
+    DependsOn: (Listing<PipeBatchJobDependency>)?
+    Parameters: (PipeBatchParametersMap)?
+    JobDefinition: String|Mapping
+    JobName: String|Mapping
+    ArrayProperties: (PipeBatchArrayProperties)?
+    RetryStrategy: (PipeBatchRetryStrategy)?
+    ContainerOverrides: (PipeBatchContainerOverrides)?
+}
+
+/// 
+open class PipeMSKAccessCredentialsClientCertificateTlsAuth {
+    ClientCertificateTlsAuth: String(matches(Regex(#"^(^arn:aws([a-z]|\-)*:secretsmanager:([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}):(\d{12}):secret:.+)$"#)))|Mapping
+}
+
+typealias PipeEcsResourceRequirementType = String|Mapping
+
+
+/// 
+open class PipePlacementConstraint {
+    Type: (PipePlacementConstraintType)?
+    Expression: (String|Mapping)?
+}
+
+/// 
+open class PipeMSKAccessCredentialsSaslScram512Auth {
+    SaslScram512Auth: String(matches(Regex(#"^(^arn:aws([a-z]|\-)*:secretsmanager:([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}):(\d{12}):secret:.+)$"#)))|Mapping
+}
+
+/// 
+open class PipeBatchResourceRequirement {
+    Value: String|Mapping
+    Type: PipeBatchResourceRequirementType
+}
+
+/// 
+open class PipeFirehoseLogDestination {
+    DeliveryStreamArn: (String(matches(Regex(#"^(^arn:aws([a-z]|\-)*:firehose:([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}):(\d{12}):deliverystream/.+)$"#)))|Mapping)?
+}
+
+/// 
+open class PipePipeSourceDynamoDBStreamParameters {
+    ParallelizationFactor: (Int|Mapping)?
+    StartingPosition: PipeDynamoDBStreamStartPosition
+    BatchSize: (Int|Mapping)?
+    DeadLetterConfig: (PipeDeadLetterConfig)?
+    OnPartialBatchItemFailure: (PipeOnPartialBatchItemFailureStreams)?
+    MaximumBatchingWindowInSeconds: (Int|Mapping)?
+    MaximumRecordAgeInSeconds: (Int|Mapping)?
+    MaximumRetryAttempts: (Int|Mapping)?
+}
+
+/// 
+open class PipePipeTargetEventBridgeEventBusParameters {
+    Time: (String(matches(Regex(#"^\$(\.[\w/_-]+(\[(\d+|\*)\])*)*$"#)))|Mapping)?
+    EndpointId: (String(matches(Regex(#"^[A-Za-z0-9\-]+[\.][A-Za-z0-9\-]+$"#)))|Mapping)?
+    DetailType: (String|Mapping)?
+    Source: (String(matches(Regex(#"(?=[/\.\-_A-Za-z0-9]+)((?!aws\.).*)|(\$(\.[\w/_-]+(\[(\d+|\*)\])*)*)"#)))|Mapping)?
+    Resources: (Listing<String|Mapping>)?
+}
+
+/// 
+open class PipeSageMakerPipelineParameter {
+    Name: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9])*|(\$(\.[\w/_-]+(\[(\d+|\*)\])*)*)$"#)))|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class PipeTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+typealias PipePipeState = String|Mapping
+
+
+typealias PipeAssignPublicIp = String|Mapping
+
+
+/// 
+open class PipePipeTargetSageMakerPipelineParameters {
+    PipelineParameterList: (Listing<PipeSageMakerPipelineParameter>)?
+}
+
+typealias PipeSelfManagedKafkaStartPosition = String|Mapping
+
+
+/// 
+open class PipePipeTargetSqsQueueParameters {
+    MessageGroupId: (String|Mapping)?
+    MessageDeduplicationId: (String|Mapping)?
+}
+
+/// 
+open class PipeSelfManagedKafkaAccessConfigurationCredentialsSaslScram512Auth {
+    SaslScram512Auth: String(matches(Regex(#"^(^arn:aws([a-z]|\-)*:secretsmanager:([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}):(\d{12}):secret:.+)$"#)))|Mapping
+}
+
+/// 
+open class PipeAwsVpcConfiguration {
+    Subnets: Listing<String|Mapping>
+    SecurityGroups: (Listing<String|Mapping>)?
+    AssignPublicIp: (PipeAssignPublicIp)?
+}
+
+/// 
+open class PipeCloudwatchLogsLogDestination {
+    LogGroupArn: (String(matches(Regex(#"^(^arn:aws([a-z]|\-)*:logs:([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}):(\d{12}):log-group:.+)$"#)))|Mapping)?
+}
+
+typealias PipePropagateTags = String|Mapping
+
+
+/// 
+open class PipePipeSourceRabbitMQBrokerParameters {
+    Credentials: PipeMQBrokerAccessCredentials
     QueueName: String(matches(Regex(#"^[\s\S]*$"#)))|Mapping
     VirtualHost: (String(matches(Regex(#"^[a-zA-Z0-9-\/*:_+=.@-]*$"#)))|Mapping)?
     BatchSize: (Int|Mapping)?
@@ -26,471 +490,15 @@ open class PipeSourceRabbitMQBrokerParameters {
 }
 
 /// 
-open class PipeSourceSqsQueueParameters {
-    BatchSize: (Int|Mapping)?
-    MaximumBatchingWindowInSeconds: (Int|Mapping)?
+open class PipeSelfManagedKafkaAccessConfigurationCredentialsClientCertificateTlsAuth {
+    ClientCertificateTlsAuth: String(matches(Regex(#"^(^arn:aws([a-z]|\-)*:secretsmanager:([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}):(\d{12}):secret:.+)$"#)))|Mapping
 }
 
-/// 
-open class EcsResourceRequirement {
-    Value: String|Mapping
-    Type: EcsResourceRequirementType
-}
-
-/// 
-open class PipeTargetKinesisStreamParameters {
-    PartitionKey: String|Mapping
-}
-
-/// 
-open class PropagateTags {
-}
-
-/// 
-open class RequestedPipeState {
-}
-
-/// 
-open class EcsResourceRequirementType {
-}
-
-/// 
-open class NetworkConfiguration {
-    AwsvpcConfiguration: (AwsVpcConfiguration)?
-}
-
-/// 
-open class PipeTargetRedshiftDataParameters {
-    SecretManagerArn: (String(matches(Regex(#"^(^arn:aws([a-z]|\-)*:secretsmanager:([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}):(\d{12}):secret:.+)|(\$(\.[\w/_-]+(\[(\d+|\*)\])*)*)$"#)))|Mapping)?
-    Database: String|Mapping
-    DbUser: (String|Mapping)?
-    StatementName: (String|Mapping)?
-    WithEvent: (Boolean|Mapping)?
-    Sqls: Listing<String|Mapping>
-}
-
-/// 
-open class PipeTargetSageMakerPipelineParameters {
-    PipelineParameterList: (Listing<SageMakerPipelineParameter>)?
-}
-
-/// 
-open class PlacementStrategy {
-    Type: (PlacementStrategyType)?
-    Field: (String|Mapping)?
-}
-
-/// 
-open class DeadLetterConfig {
-    Arn: (String(matches(Regex(#"^arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\-]+):([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1})?:(\d{12})?:(.+)$"#)))|Mapping)?
-}
-
-/// 
-open class PipeTargetStateMachineParameters {
-    InvocationType: (PipeTargetInvocationType)?
-}
-
-/// 
-open class S3OutputFormat {
-}
-
-/// 
-open class SelfManagedKafkaStartPosition {
-}
-
-/// 
-open class OnPartialBatchItemFailureStreams {
-}
-
-/// 
-open class PipeEnrichmentParameters {
-    InputTemplate: (String|Mapping)?
-    HttpParameters: (PipeEnrichmentHttpParameters)?
-}
-
-/// 
-open class BatchContainerOverrides {
-    InstanceType: (String|Mapping)?
-    ResourceRequirements: (Listing<BatchResourceRequirement>)?
-    Command: (Listing<String|Mapping>)?
-    Environment: (Listing<BatchEnvironmentVariable>)?
-}
-
-/// 
-open class BatchJobDependencyType {
-}
-
-/// 
-open class KinesisStreamStartPosition {
-}
-
-/// 
-open class LogLevel {
-}
-
-/// 
-open class MSKStartPosition {
-}
-
-/// 
-open class PipeSourceDynamoDBStreamParameters {
-    MaximumRetryAttempts: (Int|Mapping)?
-    ParallelizationFactor: (Int|Mapping)?
-    StartingPosition: DynamoDBStreamStartPosition
-    BatchSize: (Int|Mapping)?
-    DeadLetterConfig: (DeadLetterConfig)?
-    OnPartialBatchItemFailure: (OnPartialBatchItemFailureStreams)?
-    MaximumBatchingWindowInSeconds: (Int|Mapping)?
-    MaximumRecordAgeInSeconds: (Int|Mapping)?
-}
-
-/// 
-open class PipeState {
-}
-
-/// 
-open class QueryStringParametersMap {
-}
-
-/// 
-open class PlacementStrategyType {
-}
-
-/// 
-open class Tag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// 
-open class BatchEnvironmentVariable {
-    Value: (String|Mapping)?
-    Name: (String|Mapping)?
-}
-
-/// 
-open class BatchResourceRequirementType {
-}
-
-/// 
-open class FirehoseLogDestination {
-    DeliveryStreamArn: (String(matches(Regex(#"^(^arn:aws([a-z]|\-)*:firehose:([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}):(\d{12}):deliverystream/.+)$"#)))|Mapping)?
-}
-
-/// 
-open class HeaderParametersMap {
-}
-
-/// 
-open class LaunchType {
-}
-
-/// 
-open class PlacementConstraint {
-    Type: (PlacementConstraintType)?
-    Expression: (String|Mapping)?
-}
-
-/// 
-open class S3LogDestination {
-    Prefix: (String|Mapping)?
-    BucketOwner: (String|Mapping)?
-    OutputFormat: (S3OutputFormat)?
-    BucketName: (String|Mapping)?
-}
-
-/// 
-open class AssignPublicIp {
-}
-
-/// 
-open class BatchParametersMap {
-}
-
-/// 
-open class Filter {
-    Pattern: (String|Mapping)?
-}
-
-/// 
-open class PipeSourceParameters {
-    ManagedStreamingKafkaParameters: (PipeSourceManagedStreamingKafkaParameters)?
-    SelfManagedKafkaParameters: (PipeSourceSelfManagedKafkaParameters)?
-    FilterCriteria: (FilterCriteria)?
-    KinesisStreamParameters: (PipeSourceKinesisStreamParameters)?
-    DynamoDBStreamParameters: (PipeSourceDynamoDBStreamParameters)?
-    SqsQueueParameters: (PipeSourceSqsQueueParameters)?
-    ActiveMQBrokerParameters: (PipeSourceActiveMQBrokerParameters)?
-    RabbitMQBrokerParameters: (PipeSourceRabbitMQBrokerParameters)?
-}
+typealias PipeBatchJobDependencyType = String|Mapping
 
-/// 
-open class PipeTargetInvocationType {
-}
-
-/// 
-open class PipeLogConfiguration {
-    IncludeExecutionData: (Listing<IncludeExecutionDataOption>)?
-    S3LogDestination: (S3LogDestination)?
-    FirehoseLogDestination: (FirehoseLogDestination)?
-    CloudwatchLogsLogDestination: (CloudwatchLogsLogDestination)?
-    Level: (LogLevel)?
-}
-
-/// 
-open class PipeTargetHttpParameters {
-    QueryStringParameters: (QueryStringParametersMap)?
-    PathParameterValues: (Listing<String|Mapping>)?
-    HeaderParameters: (HeaderParametersMap)?
-}
-
-/// 
-open class BatchArrayProperties {
-    Size: (Int|Mapping)?
-}
-
-/// 
-open class EcsEnvironmentFile {
-    Type: EcsEnvironmentFileType
-    Value: String|Mapping
-}
-
-/// 
-open class EcsEnvironmentVariable {
-    Name: (String|Mapping)?
-    Value: (String|Mapping)?
-}
-
-/// 
-open class MQBrokerAccessCredentials {
-}
-
-/// 
-open class MSKAccessCredentials {
-}
-
-/// 
-open class PipeSourceManagedStreamingKafkaParameters {
-    BatchSize: (Int|Mapping)?
-    MaximumBatchingWindowInSeconds: (Int|Mapping)?
-    ConsumerGroupID: (String(matches(Regex(#"^[a-zA-Z0-9-\/*:_+=.@-]*$"#)))|Mapping)?
-    Credentials: (MSKAccessCredentials)?
-    TopicName: String(matches(Regex(#"^[^.]([a-zA-Z0-9\-_.]+)$"#)))|Mapping
-    StartingPosition: (MSKStartPosition)?
-}
-
-/// 
-open class PlacementConstraintType {
-}
-
-/// 
-open class PipeTargetSqsQueueParameters {
-    MessageGroupId: (String|Mapping)?
-    MessageDeduplicationId: (String|Mapping)?
-}
-
-/// 
-open class PipeSourceSelfManagedKafkaParameters {
-    Vpc: (SelfManagedKafkaAccessConfigurationVpc)?
-    TopicName: String(matches(Regex(#"^[^.]([a-zA-Z0-9\-_.]+)$"#)))|Mapping
-    AdditionalBootstrapServers: (Listing<String|Mapping>)?
-    BatchSize: (Int|Mapping)?
-    MaximumBatchingWindowInSeconds: (Int|Mapping)?
-    Credentials: (SelfManagedKafkaAccessConfigurationCredentials)?
-    ServerRootCaCertificate: (String(matches(Regex(#"^(^arn:aws([a-z]|\-)*:secretsmanager:([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}):(\d{12}):secret:.+)$"#)))|Mapping)?
-    StartingPosition: (SelfManagedKafkaStartPosition)?
-    ConsumerGroupID: (String(matches(Regex(#"^[a-zA-Z0-9-\/*:_+=.@-]*$"#)))|Mapping)?
-}
-
-/// 
-open class PipeTargetParameters {
-    CloudWatchLogsParameters: (PipeTargetCloudWatchLogsParameters)?
-    InputTemplate: (String|Mapping)?
-    LambdaFunctionParameters: (PipeTargetLambdaFunctionParameters)?
-    StepFunctionStateMachineParameters: (PipeTargetStateMachineParameters)?
-    HttpParameters: (PipeTargetHttpParameters)?
-    RedshiftDataParameters: (PipeTargetRedshiftDataParameters)?
-    EventBridgeEventBusParameters: (PipeTargetEventBridgeEventBusParameters)?
-    KinesisStreamParameters: (PipeTargetKinesisStreamParameters)?
-    EcsTaskParameters: (PipeTargetEcsTaskParameters)?
-    BatchJobParameters: (PipeTargetBatchJobParameters)?
-    SqsQueueParameters: (PipeTargetSqsQueueParameters)?
-    SageMakerPipelineParameters: (PipeTargetSageMakerPipelineParameters)?
-}
-
-/// 
-open class SelfManagedKafkaAccessConfigurationCredentials {
-}
-
-/// 
-open class CloudwatchLogsLogDestination {
-    LogGroupArn: (String(matches(Regex(#"^(^arn:aws([a-z]|\-)*:logs:([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}):(\d{12}):log-group:.+)$"#)))|Mapping)?
-}
-
-/// 
-open class EcsContainerOverride {
-    ResourceRequirements: (Listing<EcsResourceRequirement>)?
-    Command: (Listing<String|Mapping>)?
-    Cpu: (Int|Mapping)?
-    Environment: (Listing<EcsEnvironmentVariable>)?
-    EnvironmentFiles: (Listing<EcsEnvironmentFile>)?
-    Memory: (Int|Mapping)?
-    MemoryReservation: (Int|Mapping)?
-    Name: (String|Mapping)?
-}
-
-/// 
-open class EcsEnvironmentFileType {
-}
-
-/// 
-open class EcsTaskOverride {
-    ContainerOverrides: (Listing<EcsContainerOverride>)?
-    Cpu: (String|Mapping)?
-    EphemeralStorage: (EcsEphemeralStorage)?
-    ExecutionRoleArn: (String(matches(Regex(#"^arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\-]+):([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1})?:(\d{12})?:(.+)|(\$(\.[\w/_-]+(\[(\d+|\*)\])*)*)$"#)))|Mapping)?
-    InferenceAcceleratorOverrides: (Listing<EcsInferenceAcceleratorOverride>)?
-    Memory: (String|Mapping)?
-    TaskRoleArn: (String(matches(Regex(#"^arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\-]+):([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1})?:(\d{12})?:(.+)|(\$(\.[\w/_-]+(\[(\d+|\*)\])*)*)$"#)))|Mapping)?
-}
 
-/// 
-open class PipeSourceActiveMQBrokerParameters {
-    MaximumBatchingWindowInSeconds: (Int|Mapping)?
-    Credentials: MQBrokerAccessCredentials
-    QueueName: String(matches(Regex(#"^[\s\S]*$"#)))|Mapping
-    BatchSize: (Int|Mapping)?
-}
-
-/// 
-open class BatchResourceRequirement {
-    Type: BatchResourceRequirementType
-    Value: String|Mapping
-}
-
-/// 
-open class PipeTargetEcsTaskParameters {
-    Overrides: (EcsTaskOverride)?
-    PlacementStrategy: (Listing<PlacementStrategy>)?
-    ReferenceId: (String|Mapping)?
-    CapacityProviderStrategy: (Listing<CapacityProviderStrategyItem>)?
-    EnableExecuteCommand: (Boolean|Mapping)?
-    Tags: (Listing<Tag>)?
-    NetworkConfiguration: (NetworkConfiguration)?
-    PlatformVersion: (String|Mapping)?
-    EnableECSManagedTags: (Boolean|Mapping)?
-    PlacementConstraints: (Listing<PlacementConstraint>)?
-    TaskDefinitionArn: String(matches(Regex(#"^arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\-]+):([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1})?:(\d{12})?:(.+)|(\$(\.[\w/_-]+(\[(\d+|\*)\])*)*)$"#)))|Mapping
-    Group: (String|Mapping)?
-    PropagateTags: (PropagateTags)?
-    TaskCount: (Int|Mapping)?
-    LaunchType: (LaunchType)?
-}
-
-/// 
-open class PipeTargetLambdaFunctionParameters {
-    InvocationType: (PipeTargetInvocationType)?
-}
-
-/// 
-open class TagMap {
-}
-
-/// 
-open class AwsVpcConfiguration {
-    Subnets: Listing<String|Mapping>
-    SecurityGroups: (Listing<String|Mapping>)?
-    AssignPublicIp: (AssignPublicIp)?
-}
-
-/// 
-open class DynamoDBStreamStartPosition {
-}
-
-/// 
-open class PipeEnrichmentHttpParameters {
-    PathParameterValues: (Listing<String|Mapping>)?
-    HeaderParameters: (HeaderParametersMap)?
-    QueryStringParameters: (QueryStringParametersMap)?
-}
-
-/// 
-open class PipeTargetBatchJobParameters {
-    JobDefinition: String|Mapping
-    JobName: String|Mapping
-    ArrayProperties: (BatchArrayProperties)?
-    RetryStrategy: (BatchRetryStrategy)?
-    ContainerOverrides: (BatchContainerOverrides)?
-    DependsOn: (Listing<BatchJobDependency>)?
-    Parameters: (BatchParametersMap)?
-}
-
-/// 
-open class PipeSourceKinesisStreamParameters {
-    BatchSize: (Int|Mapping)?
-    MaximumBatchingWindowInSeconds: (Int|Mapping)?
-    StartingPosition: KinesisStreamStartPosition
-    DeadLetterConfig: (DeadLetterConfig)?
-    OnPartialBatchItemFailure: (OnPartialBatchItemFailureStreams)?
-    MaximumRecordAgeInSeconds: (Int|Mapping)?
-    MaximumRetryAttempts: (Int|Mapping)?
-    ParallelizationFactor: (Int|Mapping)?
-    StartingPositionTimestamp: (String|Mapping)?
-}
-
-/// 
-open class PipeTargetCloudWatchLogsParameters {
-    LogStreamName: (String|Mapping)?
-    Timestamp: (String(matches(Regex(#"^\$(\.[\w_-]+(\[(\d+|\*)\])*)*$"#)))|Mapping)?
-}
-
-/// 
-open class PipeTargetEventBridgeEventBusParameters {
-    EndpointId: (String(matches(Regex(#"^[A-Za-z0-9\-]+[\.][A-Za-z0-9\-]+$"#)))|Mapping)?
-    DetailType: (String|Mapping)?
-    Source: (String(matches(Regex(#"(?=[/\.\-_A-Za-z0-9]+)((?!aws\.).*)|(\$(\.[\w/_-]+(\[(\d+|\*)\])*)*)"#)))|Mapping)?
-    Resources: (Listing<String|Mapping>)?
-    Time: (String(matches(Regex(#"^\$(\.[\w/_-]+(\[(\d+|\*)\])*)*$"#)))|Mapping)?
-}
-
-/// 
-open class CapacityProviderStrategyItem {
-    CapacityProvider: String|Mapping
-    Weight: (Int|Mapping)?
-    Base: (Int|Mapping)?
-}
-
-/// 
-open class EcsEphemeralStorage {
-    SizeInGiB: Int|Mapping
-}
+typealias PipeHeaderParametersMap = Mapping<String, Any>
 
-/// 
-open class EcsInferenceAcceleratorOverride {
-    DeviceName: (String|Mapping)?
-    DeviceType: (String|Mapping)?
-}
-
-/// 
-open class FilterCriteria {
-    Filters: (Listing<Filter>)?
-}
-
-/// 
-open class IncludeExecutionDataOption {
-}
-
-/// 
-open class SageMakerPipelineParameter {
-    Name: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9])*|(\$(\.[\w/_-]+(\[(\d+|\*)\])*)*)$"#)))|Mapping
-    Value: String|Mapping
-}
-
-/// 
-open class SelfManagedKafkaAccessConfigurationVpc {
-    Subnets: (Listing<String|Mapping>)?
-    SecurityGroup: (Listing<String|Mapping>)?
-}
 
 /// Definition of AWS::Pipes::Pipe Resource Type
 open class Pipe extends cloudformation.Resource {
@@ -499,54 +507,54 @@ open class Pipe extends cloudformation.Resource {
 
 
     /// 
-    hidden DesiredState: (RequestedPipeState)?
-
-    /// 
-    hidden Description: (String(matches(Regex(#"^.*$"#)))|Mapping)?
-
-    /// 
-    hidden Source: String(matches(Regex(#"^smk://(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9]):[0-9]{1,5}|arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\-]+):([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1})?:(\d{12})?:(.+)$"#)))|Mapping
-
-    /// 
-    hidden SourceParameters: (PipeSourceParameters)?
-
-    /// 
-    hidden Tags: (TagMap)?
+    hidden SourceParameters: (PipePipeSourceParameters)?
 
     /// 
     hidden Target: String(matches(Regex(#"^arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\-]+):([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1})?:(\d{12})?:(.+)$"#)))|Mapping
 
     /// 
-    hidden EnrichmentParameters: (PipeEnrichmentParameters)?
-
-    /// 
-    hidden LogConfiguration: (PipeLogConfiguration)?
+    hidden Description: (String(matches(Regex(#"^.*$"#)))|Mapping)?
 
     /// 
     hidden Name: (String(matches(Regex(#"^[\.\-_A-Za-z0-9]+$"#)))|Mapping)?
 
     /// 
-    hidden RoleArn: String(matches(Regex(#"^arn:(aws[a-zA-Z-]*)?:iam::\d{12}:role/?[a-zA-Z0-9+=,.@\-_/]+$"#)))|Mapping
-
-    /// 
-    hidden TargetParameters: (PipeTargetParameters)?
+    hidden Source: String(matches(Regex(#"^smk://(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9]):[0-9]{1,5}|arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\-]+):([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1})?:(\d{12})?:(.+)$"#)))|Mapping
 
     /// 
     hidden Enrichment: (String(matches(Regex(#"^$|arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\-]+):([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1})?:(\d{12})?:(.+)$"#)))|Mapping)?
 
+    /// 
+    hidden DesiredState: (PipeRequestedPipeState)?
+
+    /// 
+    hidden LogConfiguration: (PipePipeLogConfiguration)?
+
+    /// 
+    hidden RoleArn: String(matches(Regex(#"^arn:(aws[a-zA-Z-]*)?:iam::\d{12}:role/?[a-zA-Z0-9+=,.@\-_/]+$"#)))|Mapping
+
+    /// 
+    hidden Tags: (PipeTagMap)?
+
+    /// 
+    hidden TargetParameters: (PipePipeTargetParameters)?
+
+    /// 
+    hidden EnrichmentParameters: (PipePipeEnrichmentParameters)?
+
     Properties {
-        ["DesiredState"] = if (DesiredState == null) null else DesiredState
-        ["Description"] = if (Description == null) null else Description
-        ["Source"] = if (Source == null) null else Source
         ["SourceParameters"] = if (SourceParameters == null) null else SourceParameters
-        ["Tags"] = if (Tags == null) null else Tags
         ["Target"] = if (Target == null) null else Target
-        ["EnrichmentParameters"] = if (EnrichmentParameters == null) null else EnrichmentParameters
-        ["LogConfiguration"] = if (LogConfiguration == null) null else LogConfiguration
+        ["Description"] = if (Description == null) null else Description
         ["Name"] = if (Name == null) null else Name
-        ["RoleArn"] = if (RoleArn == null) null else RoleArn
-        ["TargetParameters"] = if (TargetParameters == null) null else TargetParameters
+        ["Source"] = if (Source == null) null else Source
         ["Enrichment"] = if (Enrichment == null) null else Enrichment
+        ["DesiredState"] = if (DesiredState == null) null else DesiredState
+        ["LogConfiguration"] = if (LogConfiguration == null) null else LogConfiguration
+        ["RoleArn"] = if (RoleArn == null) null else RoleArn
+        ["Tags"] = if (Tags == null) null else Tags
+        ["TargetParameters"] = if (TargetParameters == null) null else TargetParameters
+        ["EnrichmentParameters"] = if (EnrichmentParameters == null) null else EnrichmentParameters
     }
 
 }

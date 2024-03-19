@@ -5,35 +5,34 @@ module aws.wisdom.knowledgebase
 
 import "../../cloudformation.pkl"
 
-/// 
-open class AppIntegrationsConfiguration {
-    ObjectFields: (Listing<String|Mapping>)?
-    AppIntegrationArn: String(matches(Regex(#"^arn:[a-z-]+?:[a-z-]+?:[a-z0-9-]*?:([0-9]{12})?:[a-zA-Z0-9-:/]+$"#)))|Mapping
-}
+typealias KnowledgeBaseKnowledgeBaseType = String|Mapping
+
 
 /// 
-open class KnowledgeBaseType {
-}
-
-/// 
-open class RenderingConfiguration {
+open class KnowledgeBaseRenderingConfiguration {
     TemplateUri: (String|Mapping)?
 }
 
 /// 
-open class ServerSideEncryptionConfiguration {
+open class KnowledgeBaseServerSideEncryptionConfiguration {
     KmsKeyId: (String|Mapping)?
 }
 
 /// 
-open class SourceConfiguration {
-    AppIntegrations: (AppIntegrationsConfiguration)?
+open class KnowledgeBaseSourceConfiguration {
+    AppIntegrations: (KnowledgeBaseAppIntegrationsConfiguration)?
 }
 
 /// 
-open class Tag {
-    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
+open class KnowledgeBaseTag {
     Value: String|Mapping
+    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
+}
+
+/// 
+open class KnowledgeBaseAppIntegrationsConfiguration {
+    ObjectFields: (Listing<String|Mapping>)?
+    AppIntegrationArn: String(matches(Regex(#"^arn:[a-z-]+?:[a-z-]+?:[a-z0-9-]*?:([0-9]{12})?:[a-zA-Z0-9-:/]+$"#)))|Mapping
 }
 
 /// Definition of AWS::Wisdom::KnowledgeBase Resource Type
@@ -43,34 +42,34 @@ open class KnowledgeBase extends cloudformation.Resource {
 
 
     /// 
+    hidden Description: (String|Mapping)?
+
+    /// 
     hidden Name: String|Mapping
 
     /// 
-    hidden ServerSideEncryptionConfiguration: (ServerSideEncryptionConfiguration)?
+    hidden ServerSideEncryptionConfiguration: (KnowledgeBaseServerSideEncryptionConfiguration)?
 
     /// 
-    hidden SourceConfiguration: (SourceConfiguration)?
+    hidden SourceConfiguration: (KnowledgeBaseSourceConfiguration)?
 
     /// 
-    hidden KnowledgeBaseType: KnowledgeBaseType
+    hidden KnowledgeBaseType: KnowledgeBaseKnowledgeBaseType
 
     /// 
-    hidden RenderingConfiguration: (RenderingConfiguration)?
+    hidden RenderingConfiguration: (KnowledgeBaseRenderingConfiguration)?
 
     /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden Description: (String|Mapping)?
+    hidden Tags: (Listing<KnowledgeBaseTag>)?
 
     Properties {
+        ["Description"] = if (Description == null) null else Description
         ["Name"] = if (Name == null) null else Name
         ["ServerSideEncryptionConfiguration"] = if (ServerSideEncryptionConfiguration == null) null else ServerSideEncryptionConfiguration
         ["SourceConfiguration"] = if (SourceConfiguration == null) null else SourceConfiguration
         ["KnowledgeBaseType"] = if (KnowledgeBaseType == null) null else KnowledgeBaseType
         ["RenderingConfiguration"] = if (RenderingConfiguration == null) null else RenderingConfiguration
         ["Tags"] = if (Tags == null) null else Tags
-        ["Description"] = if (Description == null) null else Description
     }
 
 }

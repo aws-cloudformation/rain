@@ -5,28 +5,28 @@ module aws.mediapackage.channel
 
 import "../../cloudformation.pkl"
 
+/// An endpoint for ingesting source content for a Channel.
+open class ChannelIngestEndpoint {
+    Id: String|Mapping
+    Username: String|Mapping
+    Password: String|Mapping
+    Url: String|Mapping
+}
+
 /// 
-open class LogConfiguration {
+open class ChannelTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class ChannelLogConfiguration {
     LogGroupName: (String(matches(Regex(#"\A^(\/aws\/MediaPackage\/)[a-zA-Z0-9_-]+\Z"#)))|Mapping)?
 }
 
 /// An HTTP Live Streaming (HLS) ingest resource configuration.
-open class HlsIngest {
-    ingestEndpoints: (Listing<IngestEndpoint>)?
-}
-
-/// An endpoint for ingesting source content for a Channel.
-open class IngestEndpoint {
-    Username: String|Mapping
-    Password: String|Mapping
-    Url: String|Mapping
-    Id: String|Mapping
-}
-
-/// 
-open class Tag {
-    Key: String|Mapping
-    Value: String|Mapping
+open class ChannelHlsIngest {
+    ingestEndpoints: (Listing<ChannelIngestEndpoint>)?
 }
 
 /// Resource schema for AWS::MediaPackage::Channel
@@ -35,11 +35,17 @@ open class Channel extends cloudformation.Resource {
     Type = "AWS::MediaPackage::Channel"
 
 
-    /// The configuration parameters for egress access logging.
-    hidden EgressAccessLogs: (LogConfiguration)?
+    /// An HTTP Live Streaming (HLS) ingest resource configuration.
+    hidden HlsIngest: (ChannelHlsIngest)?
+
+    /// A collection of tags associated with a resource
+    hidden Tags: (Listing<ChannelTag>)?
 
     /// The configuration parameters for egress access logging.
-    hidden IngressAccessLogs: (LogConfiguration)?
+    hidden EgressAccessLogs: (ChannelLogConfiguration)?
+
+    /// The configuration parameters for egress access logging.
+    hidden IngressAccessLogs: (ChannelLogConfiguration)?
 
     /// The ID of the Channel.
     hidden Id: String(matches(Regex(#"\A[0-9a-zA-Z-_]+\Z"#)))|Mapping
@@ -47,19 +53,13 @@ open class Channel extends cloudformation.Resource {
     /// A short text description of the Channel.
     hidden Description: (String|Mapping)?
 
-    /// An HTTP Live Streaming (HLS) ingest resource configuration.
-    hidden HlsIngest: (HlsIngest)?
-
-    /// A collection of tags associated with a resource
-    hidden Tags: (Listing<Tag>)?
-
     Properties {
+        ["HlsIngest"] = if (HlsIngest == null) null else HlsIngest
+        ["Tags"] = if (Tags == null) null else Tags
         ["EgressAccessLogs"] = if (EgressAccessLogs == null) null else EgressAccessLogs
         ["IngressAccessLogs"] = if (IngressAccessLogs == null) null else IngressAccessLogs
         ["Id"] = if (Id == null) null else Id
         ["Description"] = if (Description == null) null else Description
-        ["HlsIngest"] = if (HlsIngest == null) null else HlsIngest
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

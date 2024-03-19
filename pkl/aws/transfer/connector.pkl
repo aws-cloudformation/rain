@@ -6,14 +6,13 @@ module aws.transfer.connector
 import "../../cloudformation.pkl"
 
 /// Creates a key-value pair for a specific resource.
-open class Tag {
+open class ConnectorTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
-/// The public host key for the external server to which you are connecting.
-open class SftpConnectorTrustedHostKey {
-}
+typealias ConnectorSftpConnectorTrustedHostKey = String|Mapping
+
 
 /// Resource Type definition for AWS::Transfer::Connector
 open class Connector extends cloudformation.Resource {
@@ -21,11 +20,17 @@ open class Connector extends cloudformation.Resource {
     Type = "AWS::Transfer::Connector"
 
 
+    /// Configuration for an AS2 connector.
+    hidden As2Config: (Dynamic)?
+
+    /// Configuration for an SFTP connector.
+    hidden SftpConfig: (Dynamic)?
+
     /// Specifies the logging role for the connector.
     hidden LoggingRole: (String(matches(Regex(#"arn:.*role/.*"#)))|Mapping)?
 
     /// Key-value pairs that can be used to group and search for connectors. Tags are metadata attached to connectors for any purpose.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<ConnectorTag>)?
 
     /// URL for Connector
     hidden Url: String|Mapping
@@ -33,19 +38,13 @@ open class Connector extends cloudformation.Resource {
     /// Specifies the access role for the connector.
     hidden AccessRole: String(matches(Regex(#"arn:.*role/.*"#)))|Mapping
 
-    /// Configuration for an AS2 connector.
-    hidden As2Config: (Dynamic)?
-
-    /// Configuration for an SFTP connector.
-    hidden SftpConfig: (Dynamic)?
-
     Properties {
+        ["As2Config"] = if (As2Config == null) null else As2Config
+        ["SftpConfig"] = if (SftpConfig == null) null else SftpConfig
         ["LoggingRole"] = if (LoggingRole == null) null else LoggingRole
         ["Tags"] = if (Tags == null) null else Tags
         ["Url"] = if (Url == null) null else Url
         ["AccessRole"] = if (AccessRole == null) null else AccessRole
-        ["As2Config"] = if (As2Config == null) null else As2Config
-        ["SftpConfig"] = if (SftpConfig == null) null else SftpConfig
     }
 
 }

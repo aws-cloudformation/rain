@@ -5,23 +5,17 @@ module aws.omics.sequencestore
 
 import "../../cloudformation.pkl"
 
-/// 
-open class TagMap {
-}
-
-/// 
-open class EncryptionType {
-}
-
 /// Server-side encryption (SSE) settings for a store.
-open class SseConfig {
-    Type: EncryptionType
-    KeyArn: (String(matches(Regex(#"arn:([^:
-]*):([^:
-]*):([^:
-]*):([0-9]{12}):([^:
-]*)"#)))|Mapping)?
+open class SequenceStoreSseConfig {
+    Type: SequenceStoreEncryptionType
+    KeyArn: (String(matches(Regex(#"arn:([^:\n]*):([^:\n]*):([^:\n]*):([0-9]{12}):([^:\n]*)"#)))|Mapping)?
 }
+
+typealias SequenceStoreTagMap = Mapping<String, Any>
+
+
+typealias SequenceStoreEncryptionType = String|Mapping
+
 
 /// Definition of AWS::Omics::SequenceStore Resource Type
 open class SequenceStore extends cloudformation.Resource {
@@ -29,27 +23,27 @@ open class SequenceStore extends cloudformation.Resource {
     Type = "AWS::Omics::SequenceStore"
 
 
+    /// 
+    hidden SseConfig: (SequenceStoreSseConfig)?
+
+    /// 
+    hidden Tags: (SequenceStoreTagMap)?
+
+    /// A description for the store.
+    hidden Description: (String(matches(Regex(#"^[\p{L}||\p{M}||\p{Z}||\p{S}||\p{N}||\p{P}]+$"#)))|Mapping)?
+
     /// A name for the store.
     hidden Name: String(matches(Regex(#"^[\p{L}||\p{M}||\p{Z}||\p{S}||\p{N}||\p{P}]+$"#)))|Mapping
 
     /// An S3 URI representing the bucket and folder to store failed read set uploads.
     hidden FallbackLocation: (String(matches(Regex(#"^s3:\/\/([a-z0-9][a-z0-9-.]{1,61}[a-z0-9])\/?((.{1,1024})\/)?$"#)))|Mapping)?
 
-    /// 
-    hidden SseConfig: (SseConfig)?
-
-    /// 
-    hidden Tags: (TagMap)?
-
-    /// A description for the store.
-    hidden Description: (String(matches(Regex(#"^[\p{L}||\p{M}||\p{Z}||\p{S}||\p{N}||\p{P}]+$"#)))|Mapping)?
-
     Properties {
-        ["Name"] = if (Name == null) null else Name
-        ["FallbackLocation"] = if (FallbackLocation == null) null else FallbackLocation
         ["SseConfig"] = if (SseConfig == null) null else SseConfig
         ["Tags"] = if (Tags == null) null else Tags
         ["Description"] = if (Description == null) null else Description
+        ["Name"] = if (Name == null) null else Name
+        ["FallbackLocation"] = if (FallbackLocation == null) null else FallbackLocation
     }
 
 }

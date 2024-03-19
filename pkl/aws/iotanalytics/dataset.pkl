@@ -6,27 +6,71 @@ module aws.iotanalytics.dataset
 import "../../cloudformation.pkl"
 
 /// 
-open class DatasetLateDataRuleConfiguration {
-    DeltaTimeSessionWindowConfiguration: (DatasetDeltaTimeSessionWindowConfiguration)?
+open class DatasetDatasetContentDeliveryRuleDestination {
+    IotEventsDestinationConfiguration: (DatasetIotEventsDestinationConfiguration)?
+    S3DestinationConfiguration: (DatasetS3DestinationConfiguration)?
 }
 
 /// 
-open class DatasetQueryAction {
-    Filters: (Listing<DatasetFilter>)?
-    SqlQuery: String|Mapping
+open class DatasetLateDataRule {
+    RuleConfiguration: DatasetLateDataRuleConfiguration
+    RuleName: (String(matches(Regex(#"^[a-zA-Z0-9_]+$"#)))|Mapping)?
+}
+
+/// 
+open class DatasetDeltaTime {
+    OffsetSeconds: Int|Mapping
+    TimeExpression: String|Mapping
+}
+
+/// 
+open class DatasetIotEventsDestinationConfiguration {
+    RoleArn: String|Mapping
+    InputName: String(matches(Regex(#"^[a-zA-Z][a-zA-Z0-9_]*$"#)))|Mapping
 }
 
 typealias ResourceConfigurationComputeType = "ACU_1"|"ACU_2"
 
 /// 
 open class DatasetResourceConfiguration {
-    VolumeSizeInGB: Int|Mapping
     ComputeType: ResourceConfigurationComputeType|Mapping
+    VolumeSizeInGB: Int|Mapping
 }
 
 /// 
-open class DatasetDatasetContentVersionValue {
-    DatasetName: String(matches(Regex(#"(^(?!_{2}))(^[a-zA-Z0-9_]+$)"#)))|Mapping
+open class DatasetFilter {
+    DeltaTime: (DatasetDeltaTime)?
+}
+
+/// 
+open class DatasetLateDataRuleConfiguration {
+    DeltaTimeSessionWindowConfiguration: (DatasetDeltaTimeSessionWindowConfiguration)?
+}
+
+/// 
+open class DatasetTrigger {
+    Schedule: (DatasetSchedule)?
+    TriggeringDataset: (DatasetTriggeringDataset)?
+}
+
+/// 
+open class DatasetOutputFileUriValue {
+    FileName: String(matches(Regex(#"^[\w\.-]{1,255}$"#)))|Mapping
+}
+
+/// 
+open class DatasetS3DestinationConfiguration {
+    Key: String(matches(Regex(#"^[a-zA-Z0-9!_.*'()/{}:-]*$"#)))|Mapping
+    RoleArn: String|Mapping
+    GlueConfiguration: (DatasetGlueConfiguration)?
+    Bucket: String(matches(Regex(#"^[a-zA-Z0-9.\-_]*$"#)))|Mapping
+}
+
+/// 
+open class DatasetAction {
+    ActionName: String(matches(Regex(#"^[a-zA-Z0-9_]+$"#)))|Mapping
+    ContainerAction: (DatasetContainerAction)?
+    QueryAction: (DatasetQueryAction)?
 }
 
 /// 
@@ -36,7 +80,33 @@ open class DatasetDatasetContentDeliveryRule {
 }
 
 /// 
+open class DatasetVariable {
+    StringValue: (String|Mapping)?
+    DoubleValue: (Number|Mapping)?
+    OutputFileUriValue: (DatasetOutputFileUriValue)?
+    VariableName: String|Mapping
+    DatasetContentVersionValue: (DatasetDatasetContentVersionValue)?
+}
+
+/// 
+open class DatasetQueryAction {
+    SqlQuery: String|Mapping
+    Filters: (Listing<DatasetFilter>)?
+}
+
+/// 
 open class DatasetTriggeringDataset {
+    DatasetName: String(matches(Regex(#"(^(?!_{2}))(^[a-zA-Z0-9_]+$)"#)))|Mapping
+}
+
+/// 
+open class DatasetRetentionPeriod {
+    Unlimited: (Boolean|Mapping)?
+    NumberOfDays: (Int|Mapping)?
+}
+
+/// 
+open class DatasetDatasetContentVersionValue {
     DatasetName: String(matches(Regex(#"(^(?!_{2}))(^[a-zA-Z0-9_]+$)"#)))|Mapping
 }
 
@@ -47,68 +117,21 @@ open class DatasetTag {
 }
 
 /// 
-open class DatasetS3DestinationConfiguration {
-    RoleArn: String|Mapping
-    GlueConfiguration: (DatasetGlueConfiguration)?
-    Bucket: String(matches(Regex(#"^[a-zA-Z0-9.\-_]*$"#)))|Mapping
-    Key: String(matches(Regex(#"^[a-zA-Z0-9!_.*'()/{}:-]*$"#)))|Mapping
-}
-
-/// 
-open class DatasetDatasetContentDeliveryRuleDestination {
-    S3DestinationConfiguration: (DatasetS3DestinationConfiguration)?
-    IotEventsDestinationConfiguration: (DatasetIotEventsDestinationConfiguration)?
-}
-
-/// 
-open class DatasetContainerAction {
-    ExecutionRoleArn: String|Mapping
-    Image: String|Mapping
-    ResourceConfiguration: DatasetResourceConfiguration
-    Variables: (Listing<DatasetVariable>)?
-}
-
-/// 
-open class DatasetDeltaTime {
-    TimeExpression: String|Mapping
-    OffsetSeconds: Int|Mapping
-}
-
-/// 
-open class DatasetVersioningConfiguration {
-    Unlimited: (Boolean|Mapping)?
-    MaxVersions: (Int|Mapping)?
-}
-
-/// 
-open class DatasetVariable {
-    DoubleValue: (Number|Mapping)?
-    OutputFileUriValue: (DatasetOutputFileUriValue)?
-    VariableName: String|Mapping
-    DatasetContentVersionValue: (DatasetDatasetContentVersionValue)?
-    StringValue: (String|Mapping)?
-}
-
-/// 
-open class DatasetFilter {
-    DeltaTime: (DatasetDeltaTime)?
-}
-
-/// 
 open class DatasetDeltaTimeSessionWindowConfiguration {
     TimeoutInMinutes: Int|Mapping
 }
 
 /// 
-open class DatasetIotEventsDestinationConfiguration {
-    InputName: String(matches(Regex(#"^[a-zA-Z][a-zA-Z0-9_]*$"#)))|Mapping
-    RoleArn: String|Mapping
+open class DatasetContainerAction {
+    Variables: (Listing<DatasetVariable>)?
+    ExecutionRoleArn: String|Mapping
+    Image: String|Mapping
+    ResourceConfiguration: DatasetResourceConfiguration
 }
 
 /// 
-open class DatasetTrigger {
-    TriggeringDataset: (DatasetTriggeringDataset)?
-    Schedule: (DatasetSchedule)?
+open class DatasetSchedule {
+    ScheduleExpression: String|Mapping
 }
 
 /// 
@@ -118,32 +141,9 @@ open class DatasetGlueConfiguration {
 }
 
 /// 
-open class DatasetAction {
-    ContainerAction: (DatasetContainerAction)?
-    QueryAction: (DatasetQueryAction)?
-    ActionName: String(matches(Regex(#"^[a-zA-Z0-9_]+$"#)))|Mapping
-}
-
-/// 
-open class DatasetSchedule {
-    ScheduleExpression: String|Mapping
-}
-
-/// 
-open class DatasetOutputFileUriValue {
-    FileName: String(matches(Regex(#"^[\w\.-]{1,255}$"#)))|Mapping
-}
-
-/// 
-open class DatasetRetentionPeriod {
-    NumberOfDays: (Int|Mapping)?
+open class DatasetVersioningConfiguration {
     Unlimited: (Boolean|Mapping)?
-}
-
-/// 
-open class DatasetLateDataRule {
-    RuleConfiguration: DatasetLateDataRuleConfiguration
-    RuleName: (String(matches(Regex(#"^[a-zA-Z0-9_]+$"#)))|Mapping)?
+    MaxVersions: (Int|Mapping)?
 }
 
 /// Resource Type definition for AWS::IoTAnalytics::Dataset
@@ -156,6 +156,12 @@ open class Dataset extends cloudformation.Resource {
     hidden RetentionPeriod: (DatasetRetentionPeriod)?
 
     /// 
+    hidden Tags: (Listing<DatasetTag>)?
+
+    /// 
+    hidden Actions: Listing<DatasetAction>
+
+    /// 
     hidden LateDataRules: (Listing<DatasetLateDataRule>)?
 
     /// 
@@ -165,12 +171,6 @@ open class Dataset extends cloudformation.Resource {
     hidden VersioningConfiguration: (DatasetVersioningConfiguration)?
 
     /// 
-    hidden Tags: (Listing<DatasetTag>)?
-
-    /// 
-    hidden Actions: Listing<DatasetAction>
-
-    /// 
     hidden DatasetName: (String(matches(Regex(#"(^(?!_{2}))(^[a-zA-Z0-9_]+$)"#)))|Mapping)?
 
     /// 
@@ -178,11 +178,11 @@ open class Dataset extends cloudformation.Resource {
 
     Properties {
         ["RetentionPeriod"] = if (RetentionPeriod == null) null else RetentionPeriod
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Actions"] = if (Actions == null) null else Actions
         ["LateDataRules"] = if (LateDataRules == null) null else LateDataRules
         ["Triggers"] = if (Triggers == null) null else Triggers
         ["VersioningConfiguration"] = if (VersioningConfiguration == null) null else VersioningConfiguration
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Actions"] = if (Actions == null) null else Actions
         ["DatasetName"] = if (DatasetName == null) null else DatasetName
         ["ContentDeliveryRules"] = if (ContentDeliveryRules == null) null else ContentDeliveryRules
     }

@@ -5,77 +5,72 @@ module aws.rum.appmonitor
 
 import "../../cloudformation.pkl"
 
-/// Assigns one or more tags (key-value pairs) to the app monitor. Tags can help you organize and categorize your resources. You can also use them to scope user permissions by granting a user permission to access or change only resources with certain tag values. Tags don't have any semantic meaning to AWS and are interpreted strictly as strings of characters.You can associate as many as 50 tags with an app monitor.
-open class TagDef {
-}
-
-/// List of url pages
-open class Pages {
-}
-
-/// Page Url
-open class Url {
-}
-
-typealias MetricDestinationDestination = "CloudWatch"|"Evidently"
-
-/// An structure which defines the destination and the metrics that you want to send.
-open class MetricDestination {
-    Destination: MetricDestinationDestination|Mapping
-    DestinationArn: (String(matches(Regex(#"arn:[^:]*:[^:]*:[^:]*:[^:]*:.*"#)))|Mapping)?
-    IamRoleArn: (String(matches(Regex(#"arn:[^:]*:[^:]*:[^:]*:[^:]*:.*"#)))|Mapping)?
-    MetricDefinitions: (Listing<MetricDefinition>)?
-}
-
-/// A single metric definition
-open class MetricDefinition {
-    Name: String|Mapping
-    Namespace: (String(matches(Regex(#"[a-zA-Z0-9-._/#:]+$"#)))|Mapping)?
-    ValueKey: (String(matches(Regex(#".*"#)))|Mapping)?
-    UnitLabel: (String|Mapping)?
-    DimensionKeys: (Dynamic)?
-    EventPattern: (String|Mapping)?
-}
-
-/// 
-open class CustomEventsStatus {
-}
-
-/// AppMonitor custom events configuration
-open class CustomEvents {
-    Status: (CustomEventsStatus)?
-}
-
-/// AppMonitor configuration
-open class AppMonitorConfiguration {
-    Telemetries: (Listing<Telemetry>)?
-    FavoritePages: (FavoritePages)?
-    SessionSampleRate: (Number|Mapping)?
-    IncludedPages: (Pages)?
-    GuestRoleArn: (Arn)?
-    AllowCookies: (Boolean|Mapping)?
-    EnableXRay: (Boolean|Mapping)?
-    MetricDestinations: (Listing<MetricDestination>)?
-    IdentityPoolId: (String(matches(Regex(#"[\w-]+:[0-9a-f-]+"#)))|Mapping)?
-    ExcludedPages: (Pages)?
-}
-
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class AppMonitorTag {
     Value: String|Mapping
     Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
 }
 
-/// List of favorite pages
-open class FavoritePages {
+typealias AppMonitorUrl = String|Mapping
+
+
+typealias AppMonitorTelemetry = String|Mapping
+
+
+typealias AppMonitorCustomEventsStatus = String|Mapping
+
+
+typealias AppMonitorMetricDefinitionDimensionKeys = Mapping<String, Any>
+
+/// A single metric definition
+open class AppMonitorMetricDefinition {
+    UnitLabel: (String|Mapping)?
+    DimensionKeys: (AppMonitorMetricDefinitionDimensionKeys)?
+    EventPattern: (String|Mapping)?
+    Name: String|Mapping
+    Namespace: (String(matches(Regex(#"[a-zA-Z0-9-._/#:]+$"#)))|Mapping)?
+    ValueKey: (String(matches(Regex(#".*"#)))|Mapping)?
 }
 
-/// Resource ARN
-open class Arn {
+typealias AppMonitorTagDef = Listing<(AppMonitorTag)?>
+
+
+typealias AppMonitorArn = String|Mapping
+
+
+/// AppMonitor configuration
+open class AppMonitorAppMonitorConfiguration {
+    ExcludedPages: (AppMonitorPages)?
+    IncludedPages: (AppMonitorPages)?
+    FavoritePages: (AppMonitorFavoritePages)?
+    SessionSampleRate: (Number|Mapping)?
+    GuestRoleArn: (AppMonitorArn)?
+    EnableXRay: (Boolean|Mapping)?
+    MetricDestinations: (Listing<AppMonitorMetricDestination>)?
+    IdentityPoolId: (String(matches(Regex(#"[\w-]+:[0-9a-f-]+"#)))|Mapping)?
+    AllowCookies: (Boolean|Mapping)?
+    Telemetries: (Listing<AppMonitorTelemetry>)?
 }
 
-/// 
-open class Telemetry {
+typealias AppMonitorPages = Listing<(AppMonitorUrl)?>
+
+
+typealias AppMonitorFavoritePages = Listing<(String|Mapping)?>
+
+
+typealias MetricDestinationDestination = "CloudWatch"|"Evidently"
+
+/// An structure which defines the destination and the metrics that you want to send.
+open class AppMonitorMetricDestination {
+    Destination: MetricDestinationDestination|Mapping
+    DestinationArn: (String(matches(Regex(#"arn:[^:]*:[^:]*:[^:]*:[^:]*:.*"#)))|Mapping)?
+    IamRoleArn: (String(matches(Regex(#"arn:[^:]*:[^:]*:[^:]*:[^:]*:.*"#)))|Mapping)?
+    MetricDefinitions: (Listing<AppMonitorMetricDefinition>)?
+}
+
+/// AppMonitor custom events configuration
+open class AppMonitorCustomEvents {
+    Status: (AppMonitorCustomEventsStatus)?
 }
 
 /// Resource Type definition for AWS::RUM::AppMonitor
@@ -83,15 +78,6 @@ open class AppMonitor extends cloudformation.Resource {
 
     Type = "AWS::RUM::AppMonitor"
 
-
-    /// 
-    hidden Tags: (TagDef)?
-
-    /// 
-    hidden AppMonitorConfiguration: (AppMonitorConfiguration)?
-
-    /// 
-    hidden CustomEvents: (CustomEvents)?
 
     /// A name for the app monitor
     hidden Name: String(matches(Regex(#"[\.\-_/#A-Za-z0-9]+"#)))|Mapping
@@ -102,13 +88,22 @@ open class AppMonitor extends cloudformation.Resource {
     /// Data collected by RUM is kept by RUM for 30 days and then deleted. This parameter specifies whether RUM sends a copy of this telemetry data to CWLlong in your account. This enables you to keep the telemetry data for more than 30 days, but it does incur CWLlong charges. If you omit this parameter, the default is false
     hidden CwLogEnabled: (Boolean|Mapping)?
 
+    /// 
+    hidden Tags: (AppMonitorTagDef)?
+
+    /// 
+    hidden AppMonitorConfiguration: (AppMonitorAppMonitorConfiguration)?
+
+    /// 
+    hidden CustomEvents: (AppMonitorCustomEvents)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["AppMonitorConfiguration"] = if (AppMonitorConfiguration == null) null else AppMonitorConfiguration
-        ["CustomEvents"] = if (CustomEvents == null) null else CustomEvents
         ["Name"] = if (Name == null) null else Name
         ["Domain"] = if (Domain == null) null else Domain
         ["CwLogEnabled"] = if (CwLogEnabled == null) null else CwLogEnabled
+        ["Tags"] = if (Tags == null) null else Tags
+        ["AppMonitorConfiguration"] = if (AppMonitorConfiguration == null) null else AppMonitorConfiguration
+        ["CustomEvents"] = if (CustomEvents == null) null else CustomEvents
     }
 
 }

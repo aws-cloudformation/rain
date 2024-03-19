@@ -6,13 +6,13 @@ module aws.networkmanager.link
 import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a link resource.
-open class Tag {
-    Value: String|Mapping
+open class LinkTag {
     Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// The bandwidth for the link.
-open class Bandwidth {
+open class LinkBandwidth {
     DownloadSpeed: (Int|Mapping)?
     UploadSpeed: (Int|Mapping)?
 }
@@ -23,11 +23,20 @@ open class Link extends cloudformation.Resource {
     Type = "AWS::NetworkManager::Link"
 
 
+    /// The description of the link.
+    hidden Description: (String|Mapping)?
+
+    /// The tags for the link.
+    hidden Tags: (Listing<LinkTag>)?
+
+    /// The Bandwidth for the link.
+    hidden Bandwidth: LinkBandwidth
+
     /// The provider of the link.
     hidden Provider: (String|Mapping)?
 
-    /// The description of the link.
-    hidden Description: (String|Mapping)?
+    /// The type of the link.
+    hidden TypeProperty: (String|Mapping)?
 
     /// The ID of the global network.
     hidden GlobalNetworkId: String|Mapping
@@ -35,23 +44,14 @@ open class Link extends cloudformation.Resource {
     /// The ID of the site
     hidden SiteId: String|Mapping
 
-    /// The Bandwidth for the link.
-    hidden Bandwidth: Bandwidth
-
-    /// The type of the link.
-    hidden TypeProperty: (String|Mapping)?
-
-    /// The tags for the link.
-    hidden Tags: (Listing<Tag>)?
-
     Properties {
-        ["Provider"] = if (Provider == null) null else Provider
         ["Description"] = if (Description == null) null else Description
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Bandwidth"] = if (Bandwidth == null) null else Bandwidth
+        ["Provider"] = if (Provider == null) null else Provider
+        ["Type"] = if (TypeProperty == null) null else TypeProperty
         ["GlobalNetworkId"] = if (GlobalNetworkId == null) null else GlobalNetworkId
         ["SiteId"] = if (SiteId == null) null else SiteId
-        ["Bandwidth"] = if (Bandwidth == null) null else Bandwidth
-        ["Type"] = if (TypeProperty == null) null else TypeProperty
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

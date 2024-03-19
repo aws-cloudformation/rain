@@ -6,78 +6,78 @@ module aws.pinpoint.segment
 import "../../cloudformation.pkl"
 
 /// 
-open class SegmentDimensions {
-    Behavior: (Behavior)?
-    UserAttributes: (Dynamic)?
-    Location: (Location)?
-    Demographic: (Demographic)?
-    Metrics: (Dynamic)?
-    Attributes: (Dynamic)?
+open class SegmentBehavior {
+    Recency: (SegmentRecency)?
 }
 
 /// 
-open class Demographic {
-    Platform: (SetDimension)?
-    Channel: (SetDimension)?
-    Model: (SetDimension)?
-    Make: (SetDimension)?
-    AppVersion: (SetDimension)?
-    DeviceType: (SetDimension)?
-}
-
-/// 
-open class Behavior {
-    Recency: (Recency)?
-}
-
-/// 
-open class SetDimension {
-    DimensionType: (String|Mapping)?
-    Values: (Listing<String|Mapping>)?
-}
-
-/// 
-open class Recency {
-    Duration: String|Mapping
-    RecencyType: String|Mapping
-}
-
-/// 
-open class SegmentGroups {
-    Groups: (Listing<Groups>)?
-    Include: (String|Mapping)?
-}
-
-/// 
-open class Groups {
-    Type: (String|Mapping)?
-    SourceType: (String|Mapping)?
-    Dimensions: (Listing<SegmentDimensions>)?
-    SourceSegments: (Listing<SourceSegments>)?
-}
-
-/// 
-open class Location {
-    GPSPoint: (GPSPoint)?
-    Country: (SetDimension)?
-}
-
-/// 
-open class SourceSegments {
+open class SegmentSourceSegments {
     Version: (Int|Mapping)?
     Id: String|Mapping
 }
 
 /// 
-open class GPSPoint {
-    RangeInKilometers: Number|Mapping
-    Coordinates: Coordinates
+open class SegmentSegmentDimensions {
+    Behavior: (SegmentBehavior)?
+    UserAttributes: (Dynamic)?
+    Location: (SegmentLocation)?
+    Demographic: (SegmentDemographic)?
+    Metrics: (Dynamic)?
+    Attributes: (Dynamic)?
 }
 
 /// 
-open class Coordinates {
-    Longitude: Number|Mapping
+open class SegmentRecency {
+    RecencyType: String|Mapping
+    Duration: String|Mapping
+}
+
+/// 
+open class SegmentSegmentGroups {
+    Groups: (Listing<SegmentGroups>)?
+    Include: (String|Mapping)?
+}
+
+/// 
+open class SegmentLocation {
+    Country: (SegmentSetDimension)?
+    GPSPoint: (SegmentGPSPoint)?
+}
+
+/// 
+open class SegmentCoordinates {
     Latitude: Number|Mapping
+    Longitude: Number|Mapping
+}
+
+/// 
+open class SegmentGPSPoint {
+    RangeInKilometers: Number|Mapping
+    Coordinates: SegmentCoordinates
+}
+
+/// 
+open class SegmentDemographic {
+    AppVersion: (SegmentSetDimension)?
+    DeviceType: (SegmentSetDimension)?
+    Platform: (SegmentSetDimension)?
+    Channel: (SegmentSetDimension)?
+    Model: (SegmentSetDimension)?
+    Make: (SegmentSetDimension)?
+}
+
+/// 
+open class SegmentGroups {
+    Type: (String|Mapping)?
+    SourceType: (String|Mapping)?
+    Dimensions: (Listing<SegmentSegmentDimensions>)?
+    SourceSegments: (Listing<SegmentSourceSegments>)?
+}
+
+/// 
+open class SegmentSetDimension {
+    DimensionType: (String|Mapping)?
+    Values: (Listing<String|Mapping>)?
 }
 
 /// Resource Type definition for AWS::Pinpoint::Segment
@@ -87,26 +87,26 @@ open class Segment extends cloudformation.Resource {
 
 
     /// 
+    hidden ApplicationId: String|Mapping
+
+    /// 
     hidden Tags: (Dynamic)?
 
     /// 
     hidden Name: String|Mapping
 
     /// 
-    hidden SegmentGroups: (SegmentGroups)?
+    hidden SegmentGroups: (SegmentSegmentGroups)?
 
     /// 
-    hidden Dimensions: (SegmentDimensions)?
-
-    /// 
-    hidden ApplicationId: String|Mapping
+    hidden Dimensions: (SegmentSegmentDimensions)?
 
     Properties {
+        ["ApplicationId"] = if (ApplicationId == null) null else ApplicationId
         ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
         ["SegmentGroups"] = if (SegmentGroups == null) null else SegmentGroups
         ["Dimensions"] = if (Dimensions == null) null else Dimensions
-        ["ApplicationId"] = if (ApplicationId == null) null else ApplicationId
     }
 
 }

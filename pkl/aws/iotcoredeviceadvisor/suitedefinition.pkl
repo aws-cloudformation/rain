@@ -5,20 +5,48 @@ module aws.iotcoredeviceadvisor.suitedefinition
 
 import "../../cloudformation.pkl"
 
-/// 
-open class SuiteDefinitionDeviceUnderTest {
-    ThingArn: (String|Mapping)?
-    CertificateArn: (String|Mapping)?
-}
-
-typealias SuiteDefinitionSuiteDefinitionName = String
-
-
-typealias SuiteDefinitionRootGroup = String
-
-
 typealias SuiteDefinitionDevices = Listing<(SuiteDefinitionDeviceUnderTest)?>
 
 
-typealias SuiteDefinitionDevicePermissionRoleArn = String
+typealias SuiteDefinitionDevicePermissionRoleArn = String|Mapping
 
+
+typealias SuiteDefinitionIntendedForQualification = Boolean|Mapping
+
+
+/// A key-value pair to associate with a resource.
+open class SuiteDefinitionTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class SuiteDefinitionDeviceUnderTest {
+    CertificateArn: (String|Mapping)?
+    ThingArn: (String|Mapping)?
+}
+
+typealias SuiteDefinitionSuiteDefinitionName = String|Mapping
+
+
+typealias SuiteDefinitionRootGroup = String|Mapping
+
+
+/// An example resource schema demonstrating some basic constructs and validation rules.
+open class SuiteDefinition extends cloudformation.Resource {
+
+    Type = "AWS::IoTCoreDeviceAdvisor::SuiteDefinition"
+
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<SuiteDefinitionTag>)?
+
+    /// 
+    hidden SuiteDefinitionConfiguration: Dynamic
+
+    Properties {
+        ["Tags"] = if (Tags == null) null else Tags
+        ["SuiteDefinitionConfiguration"] = if (SuiteDefinitionConfiguration == null) null else SuiteDefinitionConfiguration
+    }
+
+}

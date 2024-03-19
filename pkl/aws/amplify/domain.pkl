@@ -7,8 +7,8 @@ import "../../cloudformation.pkl"
 
 /// 
 open class DomainSubDomainSetting {
-    Prefix: String(matches(Regex(#"(?s).*"#)))|Mapping
     BranchName: String(matches(Regex(#"(?s).+"#)))|Mapping
+    Prefix: String(matches(Regex(#"(?s).*"#)))|Mapping
 }
 
 typealias CertificateSettingsCertificateType = "AMPLIFY_MANAGED"|"CUSTOM"
@@ -23,9 +23,9 @@ typealias CertificateCertificateType = "AMPLIFY_MANAGED"|"CUSTOM"
 
 /// 
 open class DomainCertificate {
+    CertificateType: (CertificateCertificateType|Mapping)?
     CertificateArn: (String(matches(Regex(#""^arn:aws:acm:[a-z0-9-]+:\d{12}:certificate\/.+$""#)))|Mapping)?
     CertificateVerificationDNSRecord: (String|Mapping)?
-    CertificateType: (CertificateCertificateType|Mapping)?
 }
 
 /// The AWS::Amplify::Domain resource allows you to connect a custom domain to your app.
@@ -35,25 +35,13 @@ open class Domain extends cloudformation.Resource {
 
 
     /// 
+    hidden UpdateStatus: (String|Mapping)?
+
+    /// 
     hidden EnableAutoSubDomain: (Boolean|Mapping)?
 
     /// 
     hidden AutoSubDomainCreationPatterns: (Listing<String|Mapping>)?
-
-    /// 
-    hidden UpdateStatus: (String|Mapping)?
-
-    /// 
-    hidden AppId: String(matches(Regex(#"d[a-z0-9]+"#)))|Mapping
-
-    /// 
-    hidden SubDomainSettings: Listing<DomainSubDomainSetting>
-
-    /// 
-    hidden DomainName: String(matches(Regex(#"^(((?!-)[A-Za-z0-9-]{0,62}[A-Za-z0-9])\.)+((?!-)[A-Za-z0-9-]{1,62}[A-Za-z0-9])(\.)?$"#)))|Mapping
-
-    /// 
-    hidden AutoSubDomainIAMRole: (String(matches(Regex(#"^$|^arn:.+:iam::\d{12}:role.+"#)))|Mapping)?
 
     /// 
     hidden Certificate: (DomainCertificate)?
@@ -61,16 +49,28 @@ open class Domain extends cloudformation.Resource {
     /// 
     hidden CertificateSettings: (DomainCertificateSettings)?
 
+    /// 
+    hidden AppId: String(matches(Regex(#"d[a-z0-9]+"#)))|Mapping
+
+    /// 
+    hidden AutoSubDomainIAMRole: (String(matches(Regex(#"^$|^arn:.+:iam::\d{12}:role.+"#)))|Mapping)?
+
+    /// 
+    hidden DomainName: String(matches(Regex(#"^(((?!-)[A-Za-z0-9-]{0,62}[A-Za-z0-9])\.)+((?!-)[A-Za-z0-9-]{1,62}[A-Za-z0-9])(\.)?$"#)))|Mapping
+
+    /// 
+    hidden SubDomainSettings: Listing<DomainSubDomainSetting>
+
     Properties {
+        ["UpdateStatus"] = if (UpdateStatus == null) null else UpdateStatus
         ["EnableAutoSubDomain"] = if (EnableAutoSubDomain == null) null else EnableAutoSubDomain
         ["AutoSubDomainCreationPatterns"] = if (AutoSubDomainCreationPatterns == null) null else AutoSubDomainCreationPatterns
-        ["UpdateStatus"] = if (UpdateStatus == null) null else UpdateStatus
-        ["AppId"] = if (AppId == null) null else AppId
-        ["SubDomainSettings"] = if (SubDomainSettings == null) null else SubDomainSettings
-        ["DomainName"] = if (DomainName == null) null else DomainName
-        ["AutoSubDomainIAMRole"] = if (AutoSubDomainIAMRole == null) null else AutoSubDomainIAMRole
         ["Certificate"] = if (Certificate == null) null else Certificate
         ["CertificateSettings"] = if (CertificateSettings == null) null else CertificateSettings
+        ["AppId"] = if (AppId == null) null else AppId
+        ["AutoSubDomainIAMRole"] = if (AutoSubDomainIAMRole == null) null else AutoSubDomainIAMRole
+        ["DomainName"] = if (DomainName == null) null else DomainName
+        ["SubDomainSettings"] = if (SubDomainSettings == null) null else SubDomainSettings
     }
 
 }

@@ -6,9 +6,9 @@ module aws.vpclattice.servicenetwork
 import "../../cloudformation.pkl"
 
 /// 
-open class Tag {
-    Value: String|Mapping
+open class ServiceNetworkTag {
     Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// A service network is a logical boundary for a collection of services. You can associate services and VPCs with a service network.
@@ -18,18 +18,18 @@ open class ServiceNetwork extends cloudformation.Resource {
 
 
     /// 
-    hidden Name: (String(matches(Regex(#"^(?!servicenetwork-)(?![-])(?!.*[-]$)(?!.*[-]{2})[a-z0-9-]+$"#)))|Mapping)?
-
-    /// 
     hidden AuthType: (ServiceNetworkAuthType|Mapping)?
 
     /// 
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<ServiceNetworkTag>)?
+
+    /// 
+    hidden Name: (String(matches(Regex(#"^(?!servicenetwork-)(?![-])(?!.*[-]$)(?!.*[-]{2})[a-z0-9-]+$"#)))|Mapping)?
 
     Properties {
-        ["Name"] = if (Name == null) null else Name
         ["AuthType"] = if (AuthType == null) null else AuthType
         ["Tags"] = if (Tags == null) null else Tags
+        ["Name"] = if (Name == null) null else Name
     }
 
 }

@@ -5,30 +5,28 @@ module aws.lambda.url
 
 import "../../cloudformation.pkl"
 
-/// 
-open class AllowHeaders {
-}
+typealias UrlAllowHeaders = Listing<(String|Mapping)?>
+
+
+typealias AllowMethodsArray = "GET"|"PUT"|"HEAD"|"POST"|"PATCH"|"DELETE"|"*"
+
+typealias UrlAllowMethods = Listing<(AllowMethodsArray|Mapping)?>
+
+
+typealias UrlAllowOrigins = Listing<(String|Mapping)?>
+
+
+typealias UrlExposeHeaders = Listing<(String|Mapping)?>
+
 
 /// 
-open class AllowMethods {
-}
-
-/// 
-open class AllowOrigins {
-}
-
-/// 
-open class ExposeHeaders {
-}
-
-/// 
-open class Cors {
-    AllowCredentials: (Boolean|Mapping)?
-    AllowHeaders: (AllowHeaders)?
-    AllowMethods: (AllowMethods)?
-    AllowOrigins: (AllowOrigins)?
-    ExposeHeaders: (ExposeHeaders)?
+open class UrlCors {
+    AllowHeaders: (UrlAllowHeaders)?
+    AllowMethods: (UrlAllowMethods)?
+    AllowOrigins: (UrlAllowOrigins)?
+    ExposeHeaders: (UrlExposeHeaders)?
     MaxAge: (Int|Mapping)?
+    AllowCredentials: (Boolean|Mapping)?
 }
 
 /// Resource Type definition for AWS::Lambda::Url
@@ -36,9 +34,6 @@ open class Url extends cloudformation.Resource {
 
     Type = "AWS::Lambda::Url"
 
-
-    /// 
-    hidden Cors: (Cors)?
 
     /// The Amazon Resource Name (ARN) of the function associated with the Function URL.
     hidden TargetFunctionArn: String(matches(Regex(#"^(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}:)?(\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:((?!\d+)[0-9a-zA-Z-_]+))?$"#)))|Mapping
@@ -52,12 +47,15 @@ open class Url extends cloudformation.Resource {
     /// The invocation mode for the function's URL. Set to BUFFERED if you want to buffer responses before returning them to the client. Set to RESPONSE_STREAM if you want to stream responses, allowing faster time to first byte and larger response payload sizes. If not set, defaults to BUFFERED.
     hidden InvokeMode: (UrlInvokeMode|Mapping)?
 
+    /// 
+    hidden Cors: (UrlCors)?
+
     Properties {
-        ["Cors"] = if (Cors == null) null else Cors
         ["TargetFunctionArn"] = if (TargetFunctionArn == null) null else TargetFunctionArn
         ["Qualifier"] = if (Qualifier == null) null else Qualifier
         ["AuthType"] = if (AuthType == null) null else AuthType
         ["InvokeMode"] = if (InvokeMode == null) null else InvokeMode
+        ["Cors"] = if (Cors == null) null else Cors
     }
 
 }

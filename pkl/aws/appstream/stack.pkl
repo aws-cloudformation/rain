@@ -6,19 +6,6 @@ module aws.appstream.stack
 import "../../cloudformation.pkl"
 
 /// 
-open class StackStorageConnector {
-    ConnectorType: String|Mapping
-    Domains: (Listing<String|Mapping>)?
-    ResourceIdentifier: (String|Mapping)?
-}
-
-/// 
-open class StackApplicationSettings {
-    SettingsGroup: (String|Mapping)?
-    Enabled: Boolean|Mapping
-}
-
-/// 
 open class StackStreamingExperienceSettings {
     PreferredProtocol: (String|Mapping)?
 }
@@ -42,6 +29,19 @@ open class StackUserSetting {
     MaximumLength: (Int|Mapping)?
 }
 
+/// 
+open class StackStorageConnector {
+    Domains: (Listing<String|Mapping>)?
+    ResourceIdentifier: (String|Mapping)?
+    ConnectorType: String|Mapping
+}
+
+/// 
+open class StackApplicationSettings {
+    Enabled: Boolean|Mapping
+    SettingsGroup: (String|Mapping)?
+}
+
 /// Resource Type definition for AWS::AppStream::Stack
 open class Stack extends cloudformation.Resource {
 
@@ -49,19 +49,37 @@ open class Stack extends cloudformation.Resource {
 
 
     /// 
-    hidden AccessEndpoints: (Listing<StackAccessEndpoint>)?
-
-    /// 
     hidden StorageConnectors: (Listing<StackStorageConnector>)?
 
     /// 
-    hidden Name: (String|Mapping)?
+    hidden DeleteStorageConnectors: (Boolean|Mapping)?
 
     /// 
     hidden Description: (String|Mapping)?
 
     /// 
+    hidden EmbedHostDomains: (Listing<String|Mapping>)?
+
+    /// 
+    hidden StreamingExperienceSettings: (StackStreamingExperienceSettings)?
+
+    /// 
+    hidden Tags: (Listing<StackTag>)?
+
+    /// 
+    hidden AccessEndpoints: (Listing<StackAccessEndpoint>)?
+
+    /// 
+    hidden UserSettings: (Listing<StackUserSetting>)?
+
+    /// 
     hidden RedirectURL: (String|Mapping)?
+
+    /// 
+    hidden AttributesToDelete: (Listing<String|Mapping>)?
+
+    /// 
+    hidden Name: (String|Mapping)?
 
     /// 
     hidden FeedbackURL: (String|Mapping)?
@@ -72,39 +90,21 @@ open class Stack extends cloudformation.Resource {
     /// 
     hidden DisplayName: (String|Mapping)?
 
-    /// 
-    hidden EmbedHostDomains: (Listing<String|Mapping>)?
-
-    /// 
-    hidden StreamingExperienceSettings: (StackStreamingExperienceSettings)?
-
-    /// 
-    hidden AttributesToDelete: (Listing<String|Mapping>)?
-
-    /// 
-    hidden Tags: (Listing<StackTag>)?
-
-    /// 
-    hidden DeleteStorageConnectors: (Boolean|Mapping)?
-
-    /// 
-    hidden UserSettings: (Listing<StackUserSetting>)?
-
     Properties {
-        ["AccessEndpoints"] = if (AccessEndpoints == null) null else AccessEndpoints
         ["StorageConnectors"] = if (StorageConnectors == null) null else StorageConnectors
-        ["Name"] = if (Name == null) null else Name
+        ["DeleteStorageConnectors"] = if (DeleteStorageConnectors == null) null else DeleteStorageConnectors
         ["Description"] = if (Description == null) null else Description
+        ["EmbedHostDomains"] = if (EmbedHostDomains == null) null else EmbedHostDomains
+        ["StreamingExperienceSettings"] = if (StreamingExperienceSettings == null) null else StreamingExperienceSettings
+        ["Tags"] = if (Tags == null) null else Tags
+        ["AccessEndpoints"] = if (AccessEndpoints == null) null else AccessEndpoints
+        ["UserSettings"] = if (UserSettings == null) null else UserSettings
         ["RedirectURL"] = if (RedirectURL == null) null else RedirectURL
+        ["AttributesToDelete"] = if (AttributesToDelete == null) null else AttributesToDelete
+        ["Name"] = if (Name == null) null else Name
         ["FeedbackURL"] = if (FeedbackURL == null) null else FeedbackURL
         ["ApplicationSettings"] = if (ApplicationSettings == null) null else ApplicationSettings
         ["DisplayName"] = if (DisplayName == null) null else DisplayName
-        ["EmbedHostDomains"] = if (EmbedHostDomains == null) null else EmbedHostDomains
-        ["StreamingExperienceSettings"] = if (StreamingExperienceSettings == null) null else StreamingExperienceSettings
-        ["AttributesToDelete"] = if (AttributesToDelete == null) null else AttributesToDelete
-        ["Tags"] = if (Tags == null) null else Tags
-        ["DeleteStorageConnectors"] = if (DeleteStorageConnectors == null) null else DeleteStorageConnectors
-        ["UserSettings"] = if (UserSettings == null) null else UserSettings
     }
 
 }

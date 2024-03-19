@@ -5,45 +5,21 @@ module aws.connect.evaluationform
 
 import "../../cloudformation.pkl"
 
-typealias EvaluationFormQuestionQuestionType = "NUMERIC"|"SINGLESELECT"|"TEXT"
+typealias NumericQuestionPropertyValueAutomationLabel = "OVERALL_CUSTOMER_SENTIMENT_SCORE"|"OVERALL_AGENT_SENTIMENT_SCORE"|"NON_TALK_TIME"|"NON_TALK_TIME_PERCENTAGE"|"NUMBER_OF_INTERRUPTIONS"|"CONTACT_DURATION"|"AGENT_INTERACTION_DURATION"|"CUSTOMER_HOLD_TIME"
 
-/// The evaluation form question.
-open class EvaluationFormEvaluationFormQuestion {
-    Title: String|Mapping
-    Instructions: (String|Mapping)?
-    RefId: EvaluationFormRefId
-    NotApplicableEnabled: (Boolean|Mapping)?
-    QuestionType: EvaluationFormQuestionQuestionType|Mapping
-    QuestionTypeProperties: (EvaluationFormEvaluationFormQuestionTypeProperties)?
-    Weight: (EvaluationFormWeight)?
+/// The automation property name of the question.
+open class EvaluationFormNumericQuestionPropertyValueAutomation {
+    Label: NumericQuestionPropertyValueAutomationLabel|Mapping
 }
 
-/// The evaluation form item.
-open class EvaluationFormEvaluationFormItem {
-    Question: (EvaluationFormEvaluationFormQuestion)?
-    Section: (EvaluationFormEvaluationFormSection)?
+/// The evaluation form base item.
+open class EvaluationFormEvaluationFormBaseItem {
+    Section: EvaluationFormEvaluationFormSection
 }
 
-typealias EvaluationFormWeight = Number|Mapping
-
-
-/// The automation properties for the numeric question.
-open class EvaluationFormEvaluationFormNumericQuestionAutomation {
-    PropertyValue: EvaluationFormNumericQuestionPropertyValueAutomation
-}
-
-/// The automation properties for the single-select question.
-open class EvaluationFormEvaluationFormSingleSelectQuestionAutomation {
-    Options: Listing<EvaluationFormEvaluationFormSingleSelectQuestionAutomationOption>
-    DefaultOptionRefId: (EvaluationFormRefId)?
-}
-
-/// The option ranges used for scoring in numeric questions.
-open class EvaluationFormEvaluationFormNumericQuestionOption {
-    MinValue: Int|Mapping
-    MaxValue: Int|Mapping
-    Score: (EvaluationFormScore)?
-    AutomaticFail: (Boolean|Mapping)?
+/// The automation option for the single-select question.
+open class EvaluationFormEvaluationFormSingleSelectQuestionAutomationOption {
+    RuleCategory: EvaluationFormSingleSelectQuestionRuleCategoryAutomation
 }
 
 typealias SingleSelectQuestionRuleCategoryAutomationCondition = "PRESENT"|"NOT_PRESENT"
@@ -55,19 +31,10 @@ open class EvaluationFormSingleSelectQuestionRuleCategoryAutomation {
     OptionRefId: EvaluationFormRefId
 }
 
-/// The option for a question.
-open class EvaluationFormEvaluationFormSingleSelectQuestionOption {
-    RefId: EvaluationFormRefId
-    Text: String|Mapping
-    Score: (EvaluationFormScore)?
-    AutomaticFail: (Boolean|Mapping)?
-}
-
-typealias NumericQuestionPropertyValueAutomationLabel = "OVERALL_CUSTOMER_SENTIMENT_SCORE"|"OVERALL_AGENT_SENTIMENT_SCORE"|"NON_TALK_TIME"|"NON_TALK_TIME_PERCENTAGE"|"NUMBER_OF_INTERRUPTIONS"|"CONTACT_DURATION"|"AGENT_INTERACTION_DURATION"|"CUSTOMER_HOLD_TIME"
-
-/// The automation property name of the question.
-open class EvaluationFormNumericQuestionPropertyValueAutomation {
-    Label: NumericQuestionPropertyValueAutomationLabel|Mapping
+/// The automation properties for the single-select question.
+open class EvaluationFormEvaluationFormSingleSelectQuestionAutomation {
+    Options: Listing<EvaluationFormEvaluationFormSingleSelectQuestionAutomationOption>
+    DefaultOptionRefId: (EvaluationFormRefId)?
 }
 
 /// A key-value pair to associate with a resource.
@@ -76,8 +43,13 @@ open class EvaluationFormTag {
     Value: String|Mapping
 }
 
-typealias EvaluationFormScore = Int|Mapping
-
+/// The properties of the numeric question.
+open class EvaluationFormEvaluationFormNumericQuestionProperties {
+    MaxValue: Int|Mapping
+    Options: (Listing<EvaluationFormEvaluationFormNumericQuestionOption>)?
+    Automation: (EvaluationFormEvaluationFormNumericQuestionAutomation)?
+    MinValue: Int|Mapping
+}
 
 /// The evaluation form section.
 open class EvaluationFormEvaluationFormSection {
@@ -88,40 +60,42 @@ open class EvaluationFormEvaluationFormSection {
     Weight: (EvaluationFormWeight)?
 }
 
-/// The automation option for the single-select question.
-open class EvaluationFormEvaluationFormSingleSelectQuestionAutomationOption {
-    RuleCategory: EvaluationFormSingleSelectQuestionRuleCategoryAutomation
-}
-
-/// The evaluation form base item.
-open class EvaluationFormEvaluationFormBaseItem {
-    Section: EvaluationFormEvaluationFormSection
-}
-
-/// The properties of the numeric question.
-open class EvaluationFormEvaluationFormNumericQuestionProperties {
-    MinValue: Int|Mapping
-    MaxValue: Int|Mapping
-    Options: (Listing<EvaluationFormEvaluationFormNumericQuestionOption>)?
-    Automation: (EvaluationFormEvaluationFormNumericQuestionAutomation)?
-}
-
 typealias EvaluationFormRefId = String|Mapping
 
 
-typealias EvaluationFormSingleSelectQuestionPropertiesDisplayAs = "DROPDOWN"|"RADIO"
-
-/// The properties of the single-select question.
-open class EvaluationFormEvaluationFormSingleSelectQuestionProperties {
-    Options: Listing<EvaluationFormEvaluationFormSingleSelectQuestionOption>
-    DisplayAs: (EvaluationFormSingleSelectQuestionPropertiesDisplayAs|Mapping)?
-    Automation: (EvaluationFormEvaluationFormSingleSelectQuestionAutomation)?
+/// The evaluation form item.
+open class EvaluationFormEvaluationFormItem {
+    Section: (EvaluationFormEvaluationFormSection)?
+    Question: (EvaluationFormEvaluationFormQuestion)?
 }
 
-/// The properties of the question.
-open class EvaluationFormEvaluationFormQuestionTypeProperties {
-    Numeric: (EvaluationFormEvaluationFormNumericQuestionProperties)?
-    SingleSelect: (EvaluationFormEvaluationFormSingleSelectQuestionProperties)?
+/// The automation properties for the numeric question.
+open class EvaluationFormEvaluationFormNumericQuestionAutomation {
+    PropertyValue: EvaluationFormNumericQuestionPropertyValueAutomation
+}
+
+typealias EvaluationFormWeight = Number|Mapping
+
+
+/// The option ranges used for scoring in numeric questions.
+open class EvaluationFormEvaluationFormNumericQuestionOption {
+    MinValue: Int|Mapping
+    MaxValue: Int|Mapping
+    Score: (EvaluationFormScore)?
+    AutomaticFail: (Boolean|Mapping)?
+}
+
+typealias EvaluationFormQuestionQuestionType = "NUMERIC"|"SINGLESELECT"|"TEXT"
+
+/// The evaluation form question.
+open class EvaluationFormEvaluationFormQuestion {
+    Weight: (EvaluationFormWeight)?
+    Title: String|Mapping
+    Instructions: (String|Mapping)?
+    RefId: EvaluationFormRefId
+    NotApplicableEnabled: (Boolean|Mapping)?
+    QuestionType: EvaluationFormQuestionQuestionType|Mapping
+    QuestionTypeProperties: (EvaluationFormEvaluationFormQuestionTypeProperties)?
 }
 
 typealias ScoringStrategyMode = "QUESTION_ONLY"|"SECTION_ONLY"
@@ -132,6 +106,32 @@ typealias ScoringStrategyStatus = "ENABLED"|"DISABLED"
 open class EvaluationFormScoringStrategy {
     Mode: ScoringStrategyMode|Mapping
     Status: ScoringStrategyStatus|Mapping
+}
+
+typealias EvaluationFormScore = Int|Mapping
+
+
+/// The option for a question.
+open class EvaluationFormEvaluationFormSingleSelectQuestionOption {
+    RefId: EvaluationFormRefId
+    Text: String|Mapping
+    Score: (EvaluationFormScore)?
+    AutomaticFail: (Boolean|Mapping)?
+}
+
+typealias EvaluationFormSingleSelectQuestionPropertiesDisplayAs = "DROPDOWN"|"RADIO"
+
+/// The properties of the single-select question.
+open class EvaluationFormEvaluationFormSingleSelectQuestionProperties {
+    DisplayAs: (EvaluationFormSingleSelectQuestionPropertiesDisplayAs|Mapping)?
+    Automation: (EvaluationFormEvaluationFormSingleSelectQuestionAutomation)?
+    Options: Listing<EvaluationFormEvaluationFormSingleSelectQuestionOption>
+}
+
+/// The properties of the question.
+open class EvaluationFormEvaluationFormQuestionTypeProperties {
+    Numeric: (EvaluationFormEvaluationFormNumericQuestionProperties)?
+    SingleSelect: (EvaluationFormEvaluationFormSingleSelectQuestionProperties)?
 }
 
 /// Resource Type definition for AWS::Connect::EvaluationForm

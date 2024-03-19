@@ -165,3 +165,24 @@ func patchIAMRole(schema *Schema) error {
 	arpd.Type = "object"
 	return nil
 }
+
+func patchDynamoDBTable(schema *Schema) error {
+	keySchema, found := schema.Properties["KeySchema"]
+	if !found {
+		return errors.New("expected AWS::DynamoDB::Table to have KeySchema")
+	}
+	if len(keySchema.OneOf) != 2 {
+		return errors.New("expected AWS::DynamoDB::Table.KeySchema to be oneOf")
+	}
+	// Replace the property with the correct, documented option, and
+	// get rid of the "object" oneOf option[1]
+	*keySchema = *keySchema.OneOf[0]
+	return nil
+}
+
+func patchAEC2VerifiedAccessTrustProvider(schema *Schema) error {
+	// This one is apparently a placeholder schema
+	// Remove the extraneous def that points to itself
+	delete(schema.Definitions, "SseSpecification")
+	return nil
+}

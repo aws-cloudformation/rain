@@ -5,22 +5,20 @@ module aws.networkfirewall.firewall
 
 import "../../cloudformation.pkl"
 
-/// A resource ARN.
-open class ResourceArn {
-}
+typealias FirewallResourceArn = String|Mapping
 
-/// An endpoint Id.
-open class EndpointId {
-}
+
+typealias FirewallEndpointId = String|Mapping
+
 
 /// 
-open class SubnetMapping {
+open class FirewallSubnetMapping {
     SubnetId: String|Mapping
     IPAddressType: (String|Mapping)?
 }
 
 /// 
-open class Tag {
+open class FirewallTag {
     Key: String|Mapping
     Value: String|Mapping
 }
@@ -32,22 +30,10 @@ open class Firewall extends cloudformation.Resource {
 
 
     /// 
-    hidden FirewallName: String(matches(Regex(#"^[a-zA-Z0-9-]+$"#)))|Mapping
-
-    /// 
-    hidden SubnetMappings: Listing<SubnetMapping>
-
-    /// 
-    hidden FirewallPolicyChangeProtection: (Boolean|Mapping)?
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden FirewallPolicyArn: ResourceArn
-
-    /// 
     hidden VpcId: String(matches(Regex(#"^vpc-[0-9a-f]+$"#)))|Mapping
+
+    /// 
+    hidden SubnetMappings: Listing<FirewallSubnetMapping>
 
     /// 
     hidden DeleteProtection: (Boolean|Mapping)?
@@ -56,18 +42,30 @@ open class Firewall extends cloudformation.Resource {
     hidden SubnetChangeProtection: (Boolean|Mapping)?
 
     /// 
+    hidden FirewallPolicyChangeProtection: (Boolean|Mapping)?
+
+    /// 
     hidden Description: (String(matches(Regex(#"^.*$"#)))|Mapping)?
 
+    /// 
+    hidden Tags: (Listing<FirewallTag>)?
+
+    /// 
+    hidden FirewallName: String(matches(Regex(#"^[a-zA-Z0-9-]+$"#)))|Mapping
+
+    /// 
+    hidden FirewallPolicyArn: FirewallResourceArn
+
     Properties {
-        ["FirewallName"] = if (FirewallName == null) null else FirewallName
-        ["SubnetMappings"] = if (SubnetMappings == null) null else SubnetMappings
-        ["FirewallPolicyChangeProtection"] = if (FirewallPolicyChangeProtection == null) null else FirewallPolicyChangeProtection
-        ["Tags"] = if (Tags == null) null else Tags
-        ["FirewallPolicyArn"] = if (FirewallPolicyArn == null) null else FirewallPolicyArn
         ["VpcId"] = if (VpcId == null) null else VpcId
+        ["SubnetMappings"] = if (SubnetMappings == null) null else SubnetMappings
         ["DeleteProtection"] = if (DeleteProtection == null) null else DeleteProtection
         ["SubnetChangeProtection"] = if (SubnetChangeProtection == null) null else SubnetChangeProtection
+        ["FirewallPolicyChangeProtection"] = if (FirewallPolicyChangeProtection == null) null else FirewallPolicyChangeProtection
         ["Description"] = if (Description == null) null else Description
+        ["Tags"] = if (Tags == null) null else Tags
+        ["FirewallName"] = if (FirewallName == null) null else FirewallName
+        ["FirewallPolicyArn"] = if (FirewallPolicyArn == null) null else FirewallPolicyArn
     }
 
 }

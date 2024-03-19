@@ -5,35 +5,30 @@ module aws.mediaconnect.flow
 
 import "../../cloudformation.pkl"
 
-/// The settings for attaching a VPC interface to an resource.
-open class VpcInterfaceAttachment {
-    VpcInterfaceName: (String|Mapping)?
-}
-
 typealias SourceProtocol = "zixi-push"|"rtp-fec"|"rtp"|"rist"|"fujitsu-qos"|"srt-listener"|"srt-caller"
 
 /// The settings for the source of the flow.
-open class Source {
-    GatewayBridgeSource: (GatewayBridgeSource)?
-    IngestIp: (String|Mapping)?
-    MaxLatency: (Int|Mapping)?
-    SourceListenerPort: (Int|Mapping)?
-    EntitlementArn: (String|Mapping)?
-    IngestPort: (Int|Mapping)?
-    VpcInterfaceName: (String|Mapping)?
-    Protocol: (SourceProtocol|Mapping)?
-    SenderControlPort: (Int|Mapping)?
-    SourceIngestPort: (String|Mapping)?
-    Decryption: (Encryption)?
+open class FlowSource {
     Description: (String|Mapping)?
     MaxBitrate: (Int|Mapping)?
-    MinLatency: (Int|Mapping)?
-    SourceListenerAddress: (String|Mapping)?
-    WhitelistCidr: (String|Mapping)?
-    SourceArn: (String|Mapping)?
     Name: (String|Mapping)?
+    SourceIngestPort: (String|Mapping)?
+    VpcInterfaceName: (String|Mapping)?
+    EntitlementArn: (String|Mapping)?
+    Protocol: (SourceProtocol|Mapping)?
+    SenderControlPort: (Int|Mapping)?
+    SourceArn: (String|Mapping)?
+    GatewayBridgeSource: (FlowGatewayBridgeSource)?
+    IngestIp: (String|Mapping)?
+    MaxLatency: (Int|Mapping)?
     SenderIpAddress: (String|Mapping)?
+    SourceListenerAddress: (String|Mapping)?
+    SourceListenerPort: (Int|Mapping)?
+    Decryption: (FlowEncryption)?
+    IngestPort: (Int|Mapping)?
+    MinLatency: (Int|Mapping)?
     StreamId: (String|Mapping)?
+    WhitelistCidr: (String|Mapping)?
 }
 
 typealias EncryptionAlgorithm = "aes128"|"aes192"|"aes256"
@@ -41,16 +36,16 @@ typealias EncryptionAlgorithm = "aes128"|"aes192"|"aes256"
 typealias EncryptionKeyType = "speke"|"static-key"|"srt-password"
 
 /// Information about the encryption of the flow.
-open class Encryption {
-    Algorithm: (EncryptionAlgorithm|Mapping)?
+open class FlowEncryption {
     ConstantInitializationVector: (String|Mapping)?
-    KeyType: (EncryptionKeyType|Mapping)?
-    Region: (String|Mapping)?
-    SecretArn: (String|Mapping)?
-    Url: (String|Mapping)?
     DeviceId: (String|Mapping)?
+    Region: (String|Mapping)?
     ResourceId: (String|Mapping)?
+    SecretArn: (String|Mapping)?
+    Algorithm: (EncryptionAlgorithm|Mapping)?
     RoleArn: String|Mapping
+    Url: (String|Mapping)?
+    KeyType: (EncryptionKeyType|Mapping)?
 }
 
 typealias FailoverConfigState = "ENABLED"|"DISABLED"
@@ -58,17 +53,22 @@ typealias FailoverConfigState = "ENABLED"|"DISABLED"
 typealias FailoverConfigFailoverMode = "MERGE"|"FAILOVER"
 
 /// The settings for source failover
-open class FailoverConfig {
+open class FlowFailoverConfig {
+    SourcePriority: (Dynamic)?
     State: (FailoverConfigState|Mapping)?
     RecoveryWindow: (Int|Mapping)?
     FailoverMode: (FailoverConfigFailoverMode|Mapping)?
-    SourcePriority: (Dynamic)?
 }
 
 /// The source configuration for cloud flows receiving a stream from a bridge.
-open class GatewayBridgeSource {
+open class FlowGatewayBridgeSource {
     BridgeArn: String|Mapping
-    VpcInterfaceAttachment: (VpcInterfaceAttachment)?
+    VpcInterfaceAttachment: (FlowVpcInterfaceAttachment)?
+}
+
+/// The settings for attaching a VPC interface to an resource.
+open class FlowVpcInterfaceAttachment {
+    VpcInterfaceName: (String|Mapping)?
 }
 
 /// Resource schema for AWS::MediaConnect::Flow
@@ -78,7 +78,7 @@ open class Flow extends cloudformation.Resource {
 
 
     /// The source failover config of the flow.
-    hidden SourceFailoverConfig: (FailoverConfig)?
+    hidden SourceFailoverConfig: (FlowFailoverConfig)?
 
     /// The name of the flow.
     hidden Name: String|Mapping
@@ -87,7 +87,7 @@ open class Flow extends cloudformation.Resource {
     hidden AvailabilityZone: (String|Mapping)?
 
     /// The source of the flow.
-    hidden Source: Source
+    hidden Source: FlowSource
 
     Properties {
         ["SourceFailoverConfig"] = if (SourceFailoverConfig == null) null else SourceFailoverConfig

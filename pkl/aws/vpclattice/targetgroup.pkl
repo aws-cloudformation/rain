@@ -6,7 +6,31 @@ module aws.vpclattice.targetgroup
 import "../../cloudformation.pkl"
 
 /// 
-open class Matcher {
+open class TargetGroupTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+typealias HealthCheckConfigProtocol = "HTTP"|"HTTPS"
+
+typealias HealthCheckConfigProtocolVersion = "HTTP1"|"HTTP2"|"GRPC"
+
+/// 
+open class TargetGroupHealthCheckConfig {
+    HealthCheckIntervalSeconds: (Int|Mapping)?
+    HealthyThresholdCount: (Int|Mapping)?
+    Matcher: (TargetGroupMatcher)?
+    Protocol: (HealthCheckConfigProtocol|Mapping)?
+    ProtocolVersion: (HealthCheckConfigProtocolVersion|Mapping)?
+    Path: (String(matches(Regex(#"(^/[a-zA-Z0-9@:%_+.~#?&/=-]*$|(^$))"#)))|Mapping)?
+    UnhealthyThresholdCount: (Int|Mapping)?
+    Enabled: (Boolean|Mapping)?
+    Port: (Int|Mapping)?
+    HealthCheckTimeoutSeconds: (Int|Mapping)?
+}
+
+/// 
+open class TargetGroupMatcher {
     HttpCode: String(matches(Regex(#"^[0-9-,]+$"#)))|Mapping
 }
 
@@ -19,44 +43,20 @@ typealias TargetGroupConfigIpAddressType = "IPV4"|"IPV6"
 typealias TargetGroupConfigLambdaEventStructureVersion = "V1"|"V2"
 
 /// 
-open class TargetGroupConfig {
-    Port: (Int|Mapping)?
+open class TargetGroupTargetGroupConfig {
     Protocol: (TargetGroupConfigProtocol|Mapping)?
     ProtocolVersion: (TargetGroupConfigProtocolVersion|Mapping)?
     IpAddressType: (TargetGroupConfigIpAddressType|Mapping)?
     LambdaEventStructureVersion: (TargetGroupConfigLambdaEventStructureVersion|Mapping)?
     VpcIdentifier: (String(matches(Regex(#"^vpc-(([0-9a-z]{8})|([0-9a-z]{17}))$"#)))|Mapping)?
-    HealthCheck: (HealthCheckConfig)?
+    HealthCheck: (TargetGroupHealthCheckConfig)?
+    Port: (Int|Mapping)?
 }
 
 /// 
-open class Target {
+open class TargetGroupTarget {
     Id: String|Mapping
     Port: (Int|Mapping)?
-}
-
-/// 
-open class Tag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-typealias HealthCheckConfigProtocol = "HTTP"|"HTTPS"
-
-typealias HealthCheckConfigProtocolVersion = "HTTP1"|"HTTP2"|"GRPC"
-
-/// 
-open class HealthCheckConfig {
-    Path: (String(matches(Regex(#"(^/[a-zA-Z0-9@:%_+.~#?&/=-]*$|(^$))"#)))|Mapping)?
-    HealthCheckIntervalSeconds: (Int|Mapping)?
-    HealthyThresholdCount: (Int|Mapping)?
-    Matcher: (Matcher)?
-    Port: (Int|Mapping)?
-    Protocol: (HealthCheckConfigProtocol|Mapping)?
-    ProtocolVersion: (HealthCheckConfigProtocolVersion|Mapping)?
-    HealthCheckTimeoutSeconds: (Int|Mapping)?
-    UnhealthyThresholdCount: (Int|Mapping)?
-    Enabled: (Boolean|Mapping)?
 }
 
 /// A target group is a collection of targets, or compute resources, that run your application or service. A target group can only be used by a single service.
@@ -66,26 +66,26 @@ open class TargetGroup extends cloudformation.Resource {
 
 
     /// 
-    hidden Config: (TargetGroupConfig)?
+    hidden Name: (String(matches(Regex(#"^(?!tg-)(?![-])(?!.*[-]$)(?!.*[-]{2})[a-z0-9-]+$"#)))|Mapping)?
+
+    /// 
+    hidden Targets: (Listing<TargetGroupTarget>)?
+
+    /// 
+    hidden Tags: (Listing<TargetGroupTag>)?
+
+    /// 
+    hidden Config: (TargetGroupTargetGroupConfig)?
 
     /// 
     hidden TypeProperty: TargetGroupType|Mapping
 
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden Name: (String(matches(Regex(#"^(?!tg-)(?![-])(?!.*[-]$)(?!.*[-]{2})[a-z0-9-]+$"#)))|Mapping)?
-
-    /// 
-    hidden Targets: (Listing<Target>)?
-
     Properties {
-        ["Config"] = if (Config == null) null else Config
-        ["Type"] = if (TypeProperty == null) null else TypeProperty
-        ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
         ["Targets"] = if (Targets == null) null else Targets
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Config"] = if (Config == null) null else Config
+        ["Type"] = if (TypeProperty == null) null else TypeProperty
     }
 
 }

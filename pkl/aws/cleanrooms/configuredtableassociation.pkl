@@ -7,8 +7,8 @@ import "../../cloudformation.pkl"
 
 /// 
 open class ConfiguredTableAssociationTag {
-    Key: String|Mapping
     Value: String|Mapping
+    Key: String|Mapping
 }
 
 /// Represents a table that can be queried within a collaboration
@@ -18,7 +18,10 @@ open class ConfiguredTableAssociation extends cloudformation.Resource {
 
 
     /// 
-    hidden Description: (String(matches(Regex(#"^[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDBFF-\uDC00\uDFFF\t\r\\n]*$"#)))|Mapping)?
+    hidden ConfiguredTableIdentifier: String(matches(Regex(#"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"#)))|Mapping
+
+    /// 
+    hidden Description: (String(matches(Regex(#"^[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDBFF-\uDC00\uDFFF\t\r\n]*$"#)))|Mapping)?
 
     /// 
     hidden MembershipIdentifier: String(matches(Regex(#"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"#)))|Mapping
@@ -32,16 +35,13 @@ open class ConfiguredTableAssociation extends cloudformation.Resource {
     /// An arbitrary set of tags (key-value pairs) for this cleanrooms collaboration.
     hidden Tags: (Listing<ConfiguredTableAssociationTag>)?
 
-    /// 
-    hidden ConfiguredTableIdentifier: String(matches(Regex(#"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"#)))|Mapping
-
     Properties {
+        ["ConfiguredTableIdentifier"] = if (ConfiguredTableIdentifier == null) null else ConfiguredTableIdentifier
         ["Description"] = if (Description == null) null else Description
         ["MembershipIdentifier"] = if (MembershipIdentifier == null) null else MembershipIdentifier
         ["Name"] = if (Name == null) null else Name
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
         ["Tags"] = if (Tags == null) null else Tags
-        ["ConfiguredTableIdentifier"] = if (ConfiguredTableIdentifier == null) null else ConfiguredTableIdentifier
     }
 
 }

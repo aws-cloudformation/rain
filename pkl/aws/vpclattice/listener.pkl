@@ -6,31 +6,31 @@ module aws.vpclattice.listener
 import "../../cloudformation.pkl"
 
 /// 
-open class Forward {
-    TargetGroups: Listing<WeightedTargetGroup>
-}
-
-/// 
-open class FixedResponse {
+open class ListenerFixedResponse {
     StatusCode: Int|Mapping
 }
 
 /// 
-open class DefaultAction {
-    Forward: (Forward)?
-    FixedResponse: (FixedResponse)?
+open class ListenerDefaultAction {
+    Forward: (ListenerForward)?
+    FixedResponse: (ListenerFixedResponse)?
 }
 
 /// 
-open class WeightedTargetGroup {
+open class ListenerWeightedTargetGroup {
     TargetGroupIdentifier: String(matches(Regex(#"^((tg-[0-9a-z]{17})|(arn:[a-z0-9\-]+:vpc-lattice:[a-zA-Z0-9\-]+:\d{12}:targetgroup/tg-[0-9a-z]{17}))$"#)))|Mapping
     Weight: (Int|Mapping)?
 }
 
 /// 
-open class Tag {
+open class ListenerTag {
     Key: String|Mapping
     Value: String|Mapping
+}
+
+/// 
+open class ListenerForward {
+    TargetGroups: Listing<ListenerWeightedTargetGroup>
 }
 
 /// Creates a listener for a service. Before you start using your Amazon VPC Lattice service, you must add one or more listeners. A listener is a process that checks for connection requests to your services.
@@ -40,30 +40,30 @@ open class Listener extends cloudformation.Resource {
 
 
     /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden DefaultAction: DefaultAction
-
-    /// 
     hidden Port: (Int|Mapping)?
 
     /// 
     hidden ServiceIdentifier: (String(matches(Regex(#"^((svc-[0-9a-z]{17})|(arn:[a-z0-9\-]+:vpc-lattice:[a-zA-Z0-9\-]+:\d{12}:service/svc-[0-9a-z]{17}))$"#)))|Mapping)?
 
     /// 
-    hidden Name: (String(matches(Regex(#"^(?!listener-)(?![-])(?!.*[-]$)(?!.*[-]{2})[a-z0-9-]+$"#)))|Mapping)?
+    hidden Tags: (Listing<ListenerTag>)?
 
     /// 
     hidden Protocol: ListenerProtocol|Mapping
 
+    /// 
+    hidden DefaultAction: ListenerDefaultAction
+
+    /// 
+    hidden Name: (String(matches(Regex(#"^(?!listener-)(?![-])(?!.*[-]$)(?!.*[-]{2})[a-z0-9-]+$"#)))|Mapping)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["DefaultAction"] = if (DefaultAction == null) null else DefaultAction
         ["Port"] = if (Port == null) null else Port
         ["ServiceIdentifier"] = if (ServiceIdentifier == null) null else ServiceIdentifier
-        ["Name"] = if (Name == null) null else Name
+        ["Tags"] = if (Tags == null) null else Tags
         ["Protocol"] = if (Protocol == null) null else Protocol
+        ["DefaultAction"] = if (DefaultAction == null) null else DefaultAction
+        ["Name"] = if (Name == null) null else Name
     }
 
 }

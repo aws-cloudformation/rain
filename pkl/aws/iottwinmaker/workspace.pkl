@@ -5,7 +5,7 @@ module aws.iottwinmaker.workspace
 
 import "../../cloudformation.pkl"
 
-typealias WorkspaceDateTimeFormat = String
+typealias WorkspaceDateTimeFormat = String|Mapping
 
 
 /// Resource schema for AWS::IoTTwinMaker::Workspace
@@ -13,6 +13,12 @@ open class Workspace extends cloudformation.Resource {
 
     Type = "AWS::IoTTwinMaker::Workspace"
 
+
+    /// The ARN of the S3 bucket where resources associated with the workspace are stored.
+    hidden S3Location: String|Mapping
+
+    /// A map of key-value pairs to associate with a resource.
+    hidden Tags: (WorkspaceWorkspaceTags)?
 
     /// The ID of the workspace.
     hidden WorkspaceId: String(matches(Regex(#"[a-zA-Z_0-9][a-zA-Z_\-0-9]*[a-zA-Z0-9]+"#)))|Mapping
@@ -23,18 +29,15 @@ open class Workspace extends cloudformation.Resource {
     /// The ARN of the execution role associated with the workspace.
     hidden Role: String(matches(Regex(#"arn:((aws)|(aws-cn)|(aws-us-gov)):iam::[0-9]{12}:role/.*"#)))|Mapping
 
-    /// The ARN of the S3 bucket where resources associated with the workspace are stored.
-    hidden S3Location: String|Mapping
-
-    /// A map of key-value pairs to associate with a resource.
-    hidden Tags: (Dynamic)?
-
     Properties {
+        ["S3Location"] = if (S3Location == null) null else S3Location
+        ["Tags"] = if (Tags == null) null else Tags
         ["WorkspaceId"] = if (WorkspaceId == null) null else WorkspaceId
         ["Description"] = if (Description == null) null else Description
         ["Role"] = if (Role == null) null else Role
-        ["S3Location"] = if (S3Location == null) null else S3Location
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }
+
+
+typealias WorkspaceWorkspaceTags = Mapping<String, Any>

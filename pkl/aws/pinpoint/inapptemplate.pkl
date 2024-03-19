@@ -5,59 +5,57 @@ module aws.pinpoint.inapptemplate
 
 import "../../cloudformation.pkl"
 
-/// 
-open class Alignment {
-}
+typealias InAppTemplateAlignment = String|Mapping
+
 
 /// 
-open class BodyConfig {
-    Alignment: (Alignment)?
+open class InAppTemplateBodyConfig {
+    Alignment: (InAppTemplateAlignment)?
     Body: (String|Mapping)?
     TextColor: (String|Mapping)?
 }
 
+typealias InAppTemplateButtonAction = String|Mapping
+
+
 /// 
-open class ButtonAction {
+open class InAppTemplateButtonConfig {
+    Android: (InAppTemplateOverrideButtonConfiguration)?
+    DefaultConfig: (InAppTemplateDefaultButtonConfiguration)?
+    IOS: (InAppTemplateOverrideButtonConfiguration)?
+    Web: (InAppTemplateOverrideButtonConfiguration)?
 }
 
 /// 
-open class ButtonConfig {
-    DefaultConfig: (DefaultButtonConfiguration)?
-    IOS: (OverrideButtonConfiguration)?
-    Web: (OverrideButtonConfiguration)?
-    Android: (OverrideButtonConfiguration)?
-}
-
-/// 
-open class DefaultButtonConfiguration {
+open class InAppTemplateDefaultButtonConfiguration {
+    TextColor: (String|Mapping)?
     BackgroundColor: (String|Mapping)?
     BorderRadius: (Int|Mapping)?
-    ButtonAction: (ButtonAction)?
+    ButtonAction: (InAppTemplateButtonAction)?
     Link: (String|Mapping)?
     Text: (String|Mapping)?
-    TextColor: (String|Mapping)?
 }
 
 /// 
-open class HeaderConfig {
+open class InAppTemplateHeaderConfig {
+    Alignment: (InAppTemplateAlignment)?
     Header: (String|Mapping)?
     TextColor: (String|Mapping)?
-    Alignment: (Alignment)?
 }
 
 /// 
-open class InAppMessageContent {
-    SecondaryBtn: (ButtonConfig)?
-    BackgroundColor: (String|Mapping)?
-    BodyConfig: (BodyConfig)?
-    HeaderConfig: (HeaderConfig)?
+open class InAppTemplateInAppMessageContent {
     ImageUrl: (String|Mapping)?
-    PrimaryBtn: (ButtonConfig)?
+    PrimaryBtn: (InAppTemplateButtonConfig)?
+    SecondaryBtn: (InAppTemplateButtonConfig)?
+    BackgroundColor: (String|Mapping)?
+    BodyConfig: (InAppTemplateBodyConfig)?
+    HeaderConfig: (InAppTemplateHeaderConfig)?
 }
 
 /// 
-open class OverrideButtonConfiguration {
-    ButtonAction: (ButtonAction)?
+open class InAppTemplateOverrideButtonConfiguration {
+    ButtonAction: (InAppTemplateButtonAction)?
     Link: (String|Mapping)?
 }
 
@@ -66,9 +64,6 @@ open class InAppTemplate extends cloudformation.Resource {
 
     Type = "AWS::Pinpoint::InAppTemplate"
 
-
-    /// 
-    hidden Content: (Listing<InAppMessageContent>)?
 
     /// 
     hidden CustomConfig: (Dynamic)?
@@ -85,13 +80,16 @@ open class InAppTemplate extends cloudformation.Resource {
     /// 
     hidden TemplateName: String|Mapping
 
+    /// 
+    hidden Content: (Listing<InAppTemplateInAppMessageContent>)?
+
     Properties {
-        ["Content"] = if (Content == null) null else Content
         ["CustomConfig"] = if (CustomConfig == null) null else CustomConfig
         ["Layout"] = if (Layout == null) null else Layout
         ["Tags"] = if (Tags == null) null else Tags
         ["TemplateDescription"] = if (TemplateDescription == null) null else TemplateDescription
         ["TemplateName"] = if (TemplateName == null) null else TemplateName
+        ["Content"] = if (Content == null) null else Content
     }
 
 }

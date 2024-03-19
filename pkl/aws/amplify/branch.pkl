@@ -6,19 +6,6 @@ module aws.amplify.branch
 import "../../cloudformation.pkl"
 
 /// 
-open class BranchTag {
-    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
-    Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
-}
-
-/// 
-open class BranchBasicAuthConfig {
-    EnableBasicAuth: (Boolean|Mapping)?
-    Username: String|Mapping
-    Password: String|Mapping
-}
-
-/// 
 open class BranchBackend {
     StackArn: (String|Mapping)?
 }
@@ -29,6 +16,19 @@ open class BranchEnvironmentVariable {
     Value: String(matches(Regex(#"(?s).*"#)))|Mapping
 }
 
+/// 
+open class BranchTag {
+    Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
+    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
+}
+
+/// 
+open class BranchBasicAuthConfig {
+    EnableBasicAuth: (Boolean|Mapping)?
+    Username: String|Mapping
+    Password: String|Mapping
+}
+
 /// The AWS::Amplify::Branch resource creates a new branch within an app.
 open class Branch extends cloudformation.Resource {
 
@@ -36,13 +36,10 @@ open class Branch extends cloudformation.Resource {
 
 
     /// 
-    hidden BuildSpec: (String(matches(Regex(#"(?s).+"#)))|Mapping)?
+    hidden AppId: String(matches(Regex(#"d[a-z0-9]+"#)))|Mapping
 
     /// 
     hidden Description: (String(matches(Regex(#"(?s).*"#)))|Mapping)?
-
-    /// 
-    hidden EnablePerformanceMode: (Boolean|Mapping)?
 
     /// 
     hidden EnvironmentVariables: (Listing<BranchEnvironmentVariable>)?
@@ -51,19 +48,10 @@ open class Branch extends cloudformation.Resource {
     hidden PullRequestEnvironmentName: (String(matches(Regex(#"(?s).*"#)))|Mapping)?
 
     /// 
+    hidden BuildSpec: (String(matches(Regex(#"(?s).+"#)))|Mapping)?
+
+    /// 
     hidden Stage: (BranchStage|Mapping)?
-
-    /// 
-    hidden AppId: String(matches(Regex(#"d[a-z0-9]+"#)))|Mapping
-
-    /// 
-    hidden Backend: (BranchBackend)?
-
-    /// 
-    hidden BranchName: String(matches(Regex(#"(?s).+"#)))|Mapping
-
-    /// 
-    hidden Framework: (String(matches(Regex(#"(?s).*"#)))|Mapping)?
 
     /// 
     hidden EnablePullRequestPreview: (Boolean|Mapping)?
@@ -75,23 +63,35 @@ open class Branch extends cloudformation.Resource {
     hidden BasicAuthConfig: (BranchBasicAuthConfig)?
 
     /// 
+    hidden Backend: (BranchBackend)?
+
+    /// 
+    hidden BranchName: String(matches(Regex(#"(?s).+"#)))|Mapping
+
+    /// 
     hidden EnableAutoBuild: (Boolean|Mapping)?
 
+    /// 
+    hidden EnablePerformanceMode: (Boolean|Mapping)?
+
+    /// 
+    hidden Framework: (String(matches(Regex(#"(?s).*"#)))|Mapping)?
+
     Properties {
-        ["BuildSpec"] = if (BuildSpec == null) null else BuildSpec
+        ["AppId"] = if (AppId == null) null else AppId
         ["Description"] = if (Description == null) null else Description
-        ["EnablePerformanceMode"] = if (EnablePerformanceMode == null) null else EnablePerformanceMode
         ["EnvironmentVariables"] = if (EnvironmentVariables == null) null else EnvironmentVariables
         ["PullRequestEnvironmentName"] = if (PullRequestEnvironmentName == null) null else PullRequestEnvironmentName
+        ["BuildSpec"] = if (BuildSpec == null) null else BuildSpec
         ["Stage"] = if (Stage == null) null else Stage
-        ["AppId"] = if (AppId == null) null else AppId
-        ["Backend"] = if (Backend == null) null else Backend
-        ["BranchName"] = if (BranchName == null) null else BranchName
-        ["Framework"] = if (Framework == null) null else Framework
         ["EnablePullRequestPreview"] = if (EnablePullRequestPreview == null) null else EnablePullRequestPreview
         ["Tags"] = if (Tags == null) null else Tags
         ["BasicAuthConfig"] = if (BasicAuthConfig == null) null else BasicAuthConfig
+        ["Backend"] = if (Backend == null) null else Backend
+        ["BranchName"] = if (BranchName == null) null else BranchName
         ["EnableAutoBuild"] = if (EnableAutoBuild == null) null else EnableAutoBuild
+        ["EnablePerformanceMode"] = if (EnablePerformanceMode == null) null else EnablePerformanceMode
+        ["Framework"] = if (Framework == null) null else Framework
     }
 
 }

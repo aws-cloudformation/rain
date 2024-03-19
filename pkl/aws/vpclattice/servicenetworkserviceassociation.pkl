@@ -6,15 +6,15 @@ module aws.vpclattice.servicenetworkserviceassociation
 import "../../cloudformation.pkl"
 
 /// 
-open class DnsEntry {
+open class ServiceNetworkServiceAssociationDnsEntry {
     DomainName: (String|Mapping)?
     HostedZoneId: (String|Mapping)?
 }
 
 /// 
-open class Tag {
-    Value: String|Mapping
+open class ServiceNetworkServiceAssociationTag {
     Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// Associates a service with a service network.
@@ -24,22 +24,22 @@ open class ServiceNetworkServiceAssociation extends cloudformation.Resource {
 
 
     /// 
-    hidden DnsEntry: (DnsEntry)?
-
-    /// 
     hidden ServiceNetworkIdentifier: (String(matches(Regex(#"^((sn-[0-9a-z]{17})|(arn:[a-z0-9\-]+:vpc-lattice:[a-zA-Z0-9\-]+:\d{12}:servicenetwork/sn-[0-9a-z]{17}))$"#)))|Mapping)?
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
 
     /// 
     hidden ServiceIdentifier: (String(matches(Regex(#"^((svc-[0-9a-z]{17})|(arn:[a-z0-9\-]+:vpc-lattice:[a-zA-Z0-9\-]+:\d{12}:service/svc-[0-9a-z]{17}))$"#)))|Mapping)?
 
+    /// 
+    hidden DnsEntry: (ServiceNetworkServiceAssociationDnsEntry)?
+
+    /// 
+    hidden Tags: (Listing<ServiceNetworkServiceAssociationTag>)?
+
     Properties {
-        ["DnsEntry"] = if (DnsEntry == null) null else DnsEntry
         ["ServiceNetworkIdentifier"] = if (ServiceNetworkIdentifier == null) null else ServiceNetworkIdentifier
-        ["Tags"] = if (Tags == null) null else Tags
         ["ServiceIdentifier"] = if (ServiceIdentifier == null) null else ServiceIdentifier
+        ["DnsEntry"] = if (DnsEntry == null) null else DnsEntry
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

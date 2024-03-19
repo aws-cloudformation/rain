@@ -17,19 +17,19 @@ open class AggregationAuthorization extends cloudformation.Resource {
     Type = "AWS::Config::AggregationAuthorization"
 
 
+    /// The tags for the AggregationAuthorization.
+    hidden Tags: (Listing<AggregationAuthorizationTag>)?
+
     /// The 12-digit account ID of the account authorized to aggregate data.
     hidden AuthorizedAccountId: String(matches(Regex(#"^\d{12}$"#)))|Mapping
 
     /// The region authorized to collect aggregated data.
     hidden AuthorizedAwsRegion: String|Mapping
 
-    /// The tags for the AggregationAuthorization.
-    hidden Tags: (Listing<AggregationAuthorizationTag>)?
-
     Properties {
+        ["Tags"] = if (Tags == null) null else Tags
         ["AuthorizedAccountId"] = if (AuthorizedAccountId == null) null else AuthorizedAccountId
         ["AuthorizedAwsRegion"] = if (AuthorizedAwsRegion == null) null else AuthorizedAwsRegion
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

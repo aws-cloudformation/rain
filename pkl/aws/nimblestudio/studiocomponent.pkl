@@ -5,79 +5,97 @@ module aws.nimblestudio.studiocomponent
 
 import "../../cloudformation.pkl"
 
-/// <p>The configuration for a shared file storage system that is associated with a studio
-//////             resource.</p>
-open class SharedFileSystemConfiguration {
-    FileSystemId: (String|Mapping)?
-    LinuxMountPoint: (String(matches(Regex(#"^(/?|(\$HOME)?(/[^/\n\s\\]+)*)$"#)))|Mapping)?
-    ShareName: (String|Mapping)?
-    WindowsMountDrive: (String(matches(Regex(#"^[A-Z]$"#)))|Mapping)?
-    Endpoint: (String|Mapping)?
-}
-
-/// 
-open class StudioComponentInitializationScriptRunContext {
-}
-
-/// <p>The configuration for a render farm that is associated with a studio resource.</p>
-open class ComputeFarmConfiguration {
-    ActiveDirectoryUser: (String|Mapping)?
-    Endpoint: (String|Mapping)?
-}
-
-/// 
-open class LaunchProfilePlatform {
-}
-
-/// <p>The configuration for a license service that is associated with a studio
-//////             resource.</p>
-open class LicenseServiceConfiguration {
-    Endpoint: (String|Mapping)?
-}
-
 /// <p>A parameter for a studio component script, in the form of a key:value pair.</p>
-open class ScriptParameterKeyValue {
+open class StudioComponentScriptParameterKeyValue {
     Key: (String(matches(Regex(#"^[a-zA-Z_][a-zA-Z0-9_]+$"#)))|Mapping)?
     Value: (String|Mapping)?
 }
 
-/// <p>An LDAP attribute of an Active Directory computer account, in the form of a name:value
-//////             pair.</p>
-open class ActiveDirectoryComputerAttribute {
-    Name: (String|Mapping)?
-    Value: (String|Mapping)?
+/// <p>The configuration for a license service that is associated with a studio
+///
+///             resource.</p>
+open class StudioComponentLicenseServiceConfiguration {
+    Endpoint: (String|Mapping)?
 }
 
-/// <p>The configuration of the studio component, based on component type.</p>
-open class StudioComponentConfiguration {
+/// 
+open class StudioComponentStudioComponentConfigurationActiveDirectoryConfiguration {
+    ActiveDirectoryConfiguration: StudioComponentActiveDirectoryConfiguration
+}
+
+typealias StudioComponentStudioComponentSubtype = String|Mapping
+
+
+/// <p>The configuration for a render farm that is associated with a studio resource.</p>
+open class StudioComponentComputeFarmConfiguration {
+    Endpoint: (String|Mapping)?
+    ActiveDirectoryUser: (String|Mapping)?
+}
+
+typealias StudioComponentTags = Mapping<String, Any>
+
+
+/// <p>The configuration for a Microsoft Active Directory (Microsoft AD) studio
+///
+///             resource.</p>
+open class StudioComponentActiveDirectoryConfiguration {
+    OrganizationalUnitDistinguishedName: (String|Mapping)?
+    ComputerAttributes: (Listing<StudioComponentActiveDirectoryComputerAttribute>)?
+    DirectoryId: (String|Mapping)?
+}
+
+/// <p>The configuration for a shared file storage system that is associated with a studio
+///
+///             resource.</p>
+open class StudioComponentSharedFileSystemConfiguration {
+    Endpoint: (String|Mapping)?
+    FileSystemId: (String|Mapping)?
+    LinuxMountPoint: (String(matches(Regex(#"^(/?|(\$HOME)?(/[^/\n\s\\]+)*)$"#)))|Mapping)?
+    ShareName: (String|Mapping)?
+    WindowsMountDrive: (String(matches(Regex(#"^[A-Z]$"#)))|Mapping)?
 }
 
 /// <p>Initialization scripts for studio components.</p>
-open class StudioComponentInitializationScript {
+open class StudioComponentStudioComponentInitializationScript {
     LaunchProfileProtocolVersion: (String(matches(Regex(#"^2021\-03\-31$"#)))|Mapping)?
-    Platform: (LaunchProfilePlatform)?
-    RunContext: (StudioComponentInitializationScriptRunContext)?
+    Platform: (StudioComponentLaunchProfilePlatform)?
+    RunContext: (StudioComponentStudioComponentInitializationScriptRunContext)?
     Script: (String|Mapping)?
 }
 
 /// 
-open class StudioComponentSubtype {
+open class StudioComponentStudioComponentConfigurationLicenseServiceConfiguration {
+    LicenseServiceConfiguration: StudioComponentLicenseServiceConfiguration
 }
 
 /// 
-open class StudioComponentType {
+open class StudioComponentStudioComponentConfigurationSharedFileSystemConfiguration {
+    SharedFileSystemConfiguration: StudioComponentSharedFileSystemConfiguration
 }
+
+typealias StudioComponentStudioComponentInitializationScriptRunContext = String|Mapping
+
+
+typealias StudioComponentStudioComponentConfiguration = StudioComponentStudioComponentConfigurationActiveDirectoryConfiguration|StudioComponentStudioComponentConfigurationComputeFarmConfiguration|StudioComponentStudioComponentConfigurationLicenseServiceConfiguration|StudioComponentStudioComponentConfigurationSharedFileSystemConfiguration
+
+
+typealias StudioComponentStudioComponentType = String|Mapping
+
+
+/// <p>An LDAP attribute of an Active Directory computer account, in the form of a name:value
+///
+///             pair.</p>
+open class StudioComponentActiveDirectoryComputerAttribute {
+    Name: (String|Mapping)?
+    Value: (String|Mapping)?
+}
+
+typealias StudioComponentLaunchProfilePlatform = String|Mapping
+
 
 /// 
-open class Tags {
-}
-
-/// <p>The configuration for a Microsoft Active Directory (Microsoft AD) studio
-//////             resource.</p>
-open class ActiveDirectoryConfiguration {
-    ComputerAttributes: (Listing<ActiveDirectoryComputerAttribute>)?
-    DirectoryId: (String|Mapping)?
-    OrganizationalUnitDistinguishedName: (String|Mapping)?
+open class StudioComponentStudioComponentConfigurationComputeFarmConfiguration {
+    ComputeFarmConfiguration: StudioComponentComputeFarmConfiguration
 }
 
 /// Represents a studio component that connects a non-Nimble Studio resource in your account to your studio
@@ -89,6 +107,21 @@ open class StudioComponent extends cloudformation.Resource {
     /// <p>The name for the studio component.</p>
     hidden Name: String|Mapping
 
+    /// <p>Parameters for the studio component scripts.</p>
+    hidden ScriptParameters: (Listing<StudioComponentScriptParameterKeyValue>)?
+
+    /// <p>The studio ID. </p>
+    hidden StudioId: String|Mapping
+
+    /// 
+    hidden Tags: (StudioComponentTags)?
+
+    /// 
+    hidden Configuration: (StudioComponentStudioComponentConfiguration)?
+
+    /// 
+    hidden TypeProperty: StudioComponentStudioComponentType
+
     /// 
     hidden SecureInitializationRoleArn: (String|Mapping)?
 
@@ -96,45 +129,30 @@ open class StudioComponent extends cloudformation.Resource {
     hidden Ec2SecurityGroupIds: (Listing<String|Mapping>)?
 
     /// <p>Initialization scripts for studio components.</p>
-    hidden InitializationScripts: (Listing<StudioComponentInitializationScript>)?
-
-    /// <p>Parameters for the studio component scripts.</p>
-    hidden ScriptParameters: (Listing<ScriptParameterKeyValue>)?
-
-    /// 
-    hidden Subtype: (StudioComponentSubtype)?
-
-    /// 
-    hidden Tags: (Tags)?
-
-    /// 
-    hidden Configuration: (StudioComponentConfiguration)?
+    hidden InitializationScripts: (Listing<StudioComponentStudioComponentInitializationScript>)?
 
     /// <p>The description.</p>
     hidden Description: (String|Mapping)?
 
-    /// <p>The studio ID. </p>
-    hidden StudioId: String|Mapping
+    /// 
+    hidden Subtype: (StudioComponentStudioComponentSubtype)?
 
     /// 
     hidden RuntimeRoleArn: (String|Mapping)?
 
-    /// 
-    hidden TypeProperty: StudioComponentType
-
     Properties {
         ["Name"] = if (Name == null) null else Name
+        ["ScriptParameters"] = if (ScriptParameters == null) null else ScriptParameters
+        ["StudioId"] = if (StudioId == null) null else StudioId
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Configuration"] = if (Configuration == null) null else Configuration
+        ["Type"] = if (TypeProperty == null) null else TypeProperty
         ["SecureInitializationRoleArn"] = if (SecureInitializationRoleArn == null) null else SecureInitializationRoleArn
         ["Ec2SecurityGroupIds"] = if (Ec2SecurityGroupIds == null) null else Ec2SecurityGroupIds
         ["InitializationScripts"] = if (InitializationScripts == null) null else InitializationScripts
-        ["ScriptParameters"] = if (ScriptParameters == null) null else ScriptParameters
-        ["Subtype"] = if (Subtype == null) null else Subtype
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Configuration"] = if (Configuration == null) null else Configuration
         ["Description"] = if (Description == null) null else Description
-        ["StudioId"] = if (StudioId == null) null else StudioId
+        ["Subtype"] = if (Subtype == null) null else Subtype
         ["RuntimeRoleArn"] = if (RuntimeRoleArn == null) null else RuntimeRoleArn
-        ["Type"] = if (TypeProperty == null) null else TypeProperty
     }
 
 }

@@ -6,15 +6,29 @@ module aws.greengrass.function_definition
 import "../../cloudformation.pkl"
 
 /// 
+open class FunctionDefinitionRunAs {
+    Uid: (Int|Mapping)?
+    Gid: (Int|Mapping)?
+}
+
+/// 
+open class FunctionDefinitionEnvironment {
+    ResourceAccessPolicies: (Listing<FunctionDefinitionResourceAccessPolicy>)?
+    AccessSysfs: (Boolean|Mapping)?
+    Variables: (Dynamic)?
+    Execution: (FunctionDefinitionExecution)?
+}
+
+/// 
 open class FunctionDefinitionResourceAccessPolicy {
-    ResourceId: String|Mapping
     Permission: (String|Mapping)?
+    ResourceId: String|Mapping
 }
 
 /// 
 open class FunctionDefinitionFunctionDefinitionVersion {
-    DefaultConfig: (FunctionDefinitionDefaultConfig)?
     Functions: Listing<FunctionDefinitionFunction>
+    DefaultConfig: (FunctionDefinitionDefaultConfig)?
 }
 
 /// 
@@ -24,9 +38,9 @@ open class FunctionDefinitionDefaultConfig {
 
 /// 
 open class FunctionDefinitionFunction {
+    FunctionArn: String|Mapping
     FunctionConfiguration: FunctionDefinitionFunctionConfiguration
     Id: String|Mapping
-    FunctionArn: String|Mapping
 }
 
 /// 
@@ -37,27 +51,13 @@ open class FunctionDefinitionExecution {
 
 /// 
 open class FunctionDefinitionFunctionConfiguration {
+    Environment: (FunctionDefinitionEnvironment)?
+    Executable: (String|Mapping)?
     MemorySize: (Int|Mapping)?
     Pinned: (Boolean|Mapping)?
     ExecArgs: (String|Mapping)?
     Timeout: (Int|Mapping)?
     EncodingType: (String|Mapping)?
-    Environment: (FunctionDefinitionEnvironment)?
-    Executable: (String|Mapping)?
-}
-
-/// 
-open class FunctionDefinitionRunAs {
-    Uid: (Int|Mapping)?
-    Gid: (Int|Mapping)?
-}
-
-/// 
-open class FunctionDefinitionEnvironment {
-    Execution: (FunctionDefinitionExecution)?
-    ResourceAccessPolicies: (Listing<FunctionDefinitionResourceAccessPolicy>)?
-    AccessSysfs: (Boolean|Mapping)?
-    Variables: (Dynamic)?
 }
 
 /// Resource Type definition for AWS::Greengrass::FunctionDefinition

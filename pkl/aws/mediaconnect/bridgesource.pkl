@@ -5,28 +5,27 @@ module aws.mediaconnect.bridgesource
 
 import "../../cloudformation.pkl"
 
-/// The source of the bridge. A network source originates at your premises.
-open class BridgeNetworkSource {
-    Protocol: ProtocolEnum
-    MulticastIp: String|Mapping
-    Port: Int|Mapping
-    NetworkName: String|Mapping
-}
-
-/// 
-open class ProtocolEnum {
-}
-
 /// The source of the bridge. A flow source originates in MediaConnect as an existing cloud flow.
-open class BridgeFlowSource {
+open class BridgeSourceBridgeFlowSource {
     FlowArn: String|Mapping
-    FlowVpcInterfaceAttachment: (VpcInterfaceAttachment)?
+    FlowVpcInterfaceAttachment: (BridgeSourceVpcInterfaceAttachment)?
 }
 
 /// The settings for attaching a VPC interface to an resource.
-open class VpcInterfaceAttachment {
+open class BridgeSourceVpcInterfaceAttachment {
     VpcInterfaceName: (String|Mapping)?
 }
+
+/// The source of the bridge. A network source originates at your premises.
+open class BridgeSourceBridgeNetworkSource {
+    Port: Int|Mapping
+    NetworkName: String|Mapping
+    Protocol: BridgeSourceProtocolEnum
+    MulticastIp: String|Mapping
+}
+
+typealias BridgeSourceProtocolEnum = String|Mapping
+
 
 /// Resource schema for AWS::MediaConnect::BridgeSource
 open class BridgeSource extends cloudformation.Resource {
@@ -34,23 +33,23 @@ open class BridgeSource extends cloudformation.Resource {
     Type = "AWS::MediaConnect::BridgeSource"
 
 
+    /// 
+    hidden FlowSource: (BridgeSourceBridgeFlowSource)?
+
+    /// 
+    hidden NetworkSource: (BridgeSourceBridgeNetworkSource)?
+
     /// The name of the source.
     hidden Name: String|Mapping
 
     /// The Amazon Resource Number (ARN) of the bridge.
     hidden BridgeArn: String|Mapping
 
-    /// 
-    hidden FlowSource: (BridgeFlowSource)?
-
-    /// 
-    hidden NetworkSource: (BridgeNetworkSource)?
-
     Properties {
-        ["Name"] = if (Name == null) null else Name
-        ["BridgeArn"] = if (BridgeArn == null) null else BridgeArn
         ["FlowSource"] = if (FlowSource == null) null else FlowSource
         ["NetworkSource"] = if (NetworkSource == null) null else NetworkSource
+        ["Name"] = if (Name == null) null else Name
+        ["BridgeArn"] = if (BridgeArn == null) null else BridgeArn
     }
 
 }

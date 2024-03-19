@@ -5,31 +5,39 @@ module aws.verifiedpermissions.policy
 
 import "../../cloudformation.pkl"
 
+typealias PolicyPolicyDefinition = PolicyPolicyDefinitionStatic|PolicyPolicyDefinitionTemplateLinked
+
+
 /// 
-open class TemplateLinkedPolicyDefinition {
-    PolicyTemplateId: String(matches(Regex(#"^[a-zA-Z0-9-]*$"#)))|Mapping
-    Principal: (EntityIdentifier)?
-    Resource: (EntityIdentifier)?
+open class PolicyPolicyDefinitionStatic {
+    Static: PolicyStaticPolicyDefinition
 }
 
 /// 
-open class EntityIdentifier {
-    EntityType: String(matches(Regex(#"^.*$"#)))|Mapping
-    EntityId: String(matches(Regex(#"^.*$"#)))|Mapping
+open class PolicyPolicyDefinitionTemplateLinked {
+    TemplateLinked: PolicyTemplateLinkedPolicyDefinition
 }
 
-/// 
-open class PolicyDefinition {
-}
+typealias PolicyPolicyType = String|Mapping
+
 
 /// 
-open class PolicyType {
-}
-
-/// 
-open class StaticPolicyDefinition {
+open class PolicyStaticPolicyDefinition {
     Description: (String|Mapping)?
     Statement: String|Mapping
+}
+
+/// 
+open class PolicyTemplateLinkedPolicyDefinition {
+    Resource: (PolicyEntityIdentifier)?
+    PolicyTemplateId: String(matches(Regex(#"^[a-zA-Z0-9-]*$"#)))|Mapping
+    Principal: (PolicyEntityIdentifier)?
+}
+
+/// 
+open class PolicyEntityIdentifier {
+    EntityType: String(matches(Regex(#"^.*$"#)))|Mapping
+    EntityId: String(matches(Regex(#"^.*$"#)))|Mapping
 }
 
 /// Definition of AWS::VerifiedPermissions::Policy Resource Type
@@ -39,7 +47,7 @@ open class Policy extends cloudformation.Resource {
 
 
     /// 
-    hidden Definition: PolicyDefinition
+    hidden Definition: PolicyPolicyDefinition
 
     /// 
     hidden PolicyStoreId: String(matches(Regex(#"^[a-zA-Z0-9-]*$"#)))|Mapping

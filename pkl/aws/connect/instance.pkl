@@ -5,6 +5,12 @@ module aws.connect.instance
 
 import "../../cloudformation.pkl"
 
+typealias InstanceContactflowLogs = Boolean|Mapping
+
+
+typealias InstanceAutoResolveBestVoices = Boolean|Mapping
+
+
 typealias InstanceContactLens = Boolean|Mapping
 
 
@@ -13,19 +19,13 @@ typealias InstanceEarlyMedia = Boolean|Mapping
 
 /// 
 open class InstanceAttributes {
+    UseCustomTTSVoices: (InstanceUseCustomTTSVoices)?
+    EarlyMedia: (InstanceEarlyMedia)?
     InboundCalls: InstanceInboundCalls
     OutboundCalls: InstanceOutboundCalls
     ContactflowLogs: (InstanceContactflowLogs)?
     ContactLens: (InstanceContactLens)?
     AutoResolveBestVoices: (InstanceAutoResolveBestVoices)?
-    UseCustomTTSVoices: (InstanceUseCustomTTSVoices)?
-    EarlyMedia: (InstanceEarlyMedia)?
-}
-
-/// A key-value pair to associate with a resource.
-open class InstanceTag {
-    Key: String|Mapping
-    Value: String|Mapping
 }
 
 typealias InstanceInboundCalls = Boolean|Mapping
@@ -34,14 +34,14 @@ typealias InstanceInboundCalls = Boolean|Mapping
 typealias InstanceOutboundCalls = Boolean|Mapping
 
 
-typealias InstanceContactflowLogs = Boolean|Mapping
-
-
-typealias InstanceAutoResolveBestVoices = Boolean|Mapping
-
-
 typealias InstanceUseCustomTTSVoices = Boolean|Mapping
 
+
+/// A key-value pair to associate with a resource.
+open class InstanceTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
 
 /// Resource Type definition for AWS::Connect::Instance
 open class Instance extends cloudformation.Resource {
@@ -52,23 +52,23 @@ open class Instance extends cloudformation.Resource {
     /// Specifies the type of directory integration for new instance.
     hidden IdentityManagementType: InstanceIdentityManagementType|Mapping
 
-    /// The attributes for the instance.
-    hidden Attributes: InstanceAttributes
-
     /// Alias of the new directory created as part of new instance creation.
     hidden InstanceAlias: (String(matches(Regex(#"^(?!d-)([\da-zA-Z]+)([-]*[\da-zA-Z])*$"#)))|Mapping)?
 
     /// Existing directoryId user wants to map to the new Connect instance.
     hidden DirectoryId: (String(matches(Regex(#"^d-[0-9a-f]{10}$"#)))|Mapping)?
 
+    /// The attributes for the instance.
+    hidden Attributes: InstanceAttributes
+
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<InstanceTag>)?
 
     Properties {
         ["IdentityManagementType"] = if (IdentityManagementType == null) null else IdentityManagementType
-        ["Attributes"] = if (Attributes == null) null else Attributes
         ["InstanceAlias"] = if (InstanceAlias == null) null else InstanceAlias
         ["DirectoryId"] = if (DirectoryId == null) null else DirectoryId
+        ["Attributes"] = if (Attributes == null) null else Attributes
         ["Tags"] = if (Tags == null) null else Tags
     }
 

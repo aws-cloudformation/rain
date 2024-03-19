@@ -6,13 +6,13 @@ module aws.redshift.endpointaccess
 import "../../cloudformation.pkl"
 
 /// Describes the members of a VPC security group.
-open class VpcSecurityGroup {
+open class EndpointAccessVpcSecurityGroup {
     VpcSecurityGroupId: (String|Mapping)?
     Status: (String|Mapping)?
 }
 
 /// Describes a network interface.
-open class NetworkInterface {
+open class EndpointAccessNetworkInterface {
     NetworkInterfaceId: (String|Mapping)?
     SubnetId: (String|Mapping)?
     PrivateIpAddress: (String|Mapping)?
@@ -28,24 +28,24 @@ open class EndpointAccess extends cloudformation.Resource {
     /// A list of vpc security group ids to apply to the created endpoint access.
     hidden VpcSecurityGroupIds: Listing<String|Mapping>
 
-    /// A unique identifier for the cluster. You use this identifier to refer to the cluster for any subsequent cluster operations such as deleting or modifying. All alphabetical characters must be lower case, no hypens at the end, no two consecutive hyphens. Cluster name should be unique for all clusters within an AWS account
-    hidden ClusterIdentifier: String|Mapping
-
-    /// The AWS account ID of the owner of the cluster.
-    hidden ResourceOwner: (String(matches(Regex(#"^\d{12}$"#)))|Mapping)?
-
     /// The name of the endpoint.
     hidden EndpointName: String(matches(Regex(#"^(?=^[a-z][a-z0-9]*(-[a-z0-9]+)*$).{1,30}$"#)))|Mapping
 
     /// The subnet group name where Amazon Redshift chooses to deploy the endpoint.
     hidden SubnetGroupName: String(matches(Regex(#"^(?=^[a-zA-Z0-9-]+$).{1,255}$"#)))|Mapping
 
+    /// A unique identifier for the cluster. You use this identifier to refer to the cluster for any subsequent cluster operations such as deleting or modifying. All alphabetical characters must be lower case, no hypens at the end, no two consecutive hyphens. Cluster name should be unique for all clusters within an AWS account
+    hidden ClusterIdentifier: String|Mapping
+
+    /// The AWS account ID of the owner of the cluster.
+    hidden ResourceOwner: (String(matches(Regex(#"^\d{12}$"#)))|Mapping)?
+
     Properties {
         ["VpcSecurityGroupIds"] = if (VpcSecurityGroupIds == null) null else VpcSecurityGroupIds
-        ["ClusterIdentifier"] = if (ClusterIdentifier == null) null else ClusterIdentifier
-        ["ResourceOwner"] = if (ResourceOwner == null) null else ResourceOwner
         ["EndpointName"] = if (EndpointName == null) null else EndpointName
         ["SubnetGroupName"] = if (SubnetGroupName == null) null else SubnetGroupName
+        ["ClusterIdentifier"] = if (ClusterIdentifier == null) null else ClusterIdentifier
+        ["ResourceOwner"] = if (ResourceOwner == null) null else ResourceOwner
     }
 
 }

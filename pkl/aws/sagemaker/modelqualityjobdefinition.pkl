@@ -5,32 +5,74 @@ module aws.sagemaker.modelqualityjobdefinition
 
 import "../../cloudformation.pkl"
 
-/// Container image configuration object for the monitoring job.
-open class ModelQualityAppSpecification {
-    ImageUri: String(matches(Regex(#".*"#)))|Mapping
-    PostAnalyticsProcessorSourceUri: (S3Uri)?
-    RecordPreprocessorSourceUri: (S3Uri)?
-    Environment: (Dynamic)?
-    ProblemType: ProblemType
-    ContainerArguments: (Listing<String|Mapping>)?
-    ContainerEntrypoint: (Listing<String|Mapping>)?
+/// The inputs for a monitoring job.
+open class ModelQualityJobDefinitionModelQualityJobInput {
+    EndpointInput: (ModelQualityJobDefinitionEndpointInput)?
+    BatchTransformInput: (ModelQualityJobDefinitionBatchTransformInput)?
+    GroundTruthS3Input: ModelQualityJobDefinitionMonitoringGroundTruthS3Input
 }
 
-typealias EndpointInputS3DataDistributionType = "FullyReplicated"|"ShardedByS3Key"
+typealias ModelQualityJobDefinitionProcessingJobName = String|Mapping
 
-typealias EndpointInputS3InputMode = "Pipe"|"File"
 
-/// The endpoint for a monitoring job.
-open class EndpointInput {
-    ProbabilityThresholdAttribute: (Number|Mapping)?
-    LocalPath: String(matches(Regex(#".*"#)))|Mapping
-    S3DataDistributionType: (EndpointInputS3DataDistributionType|Mapping)?
-    S3InputMode: (EndpointInputS3InputMode|Mapping)?
-    ProbabilityAttribute: (String|Mapping)?
-    EndpointName: EndpointName
-    StartTimeOffset: (MonitoringTimeOffsetString)?
-    EndTimeOffset: (MonitoringTimeOffsetString)?
-    InferenceAttribute: (String|Mapping)?
+/// The CSV format
+open class ModelQualityJobDefinitionCsv {
+    Header: (Boolean|Mapping)?
+}
+
+/// The baseline constraints resource for a monitoring job.
+open class ModelQualityJobDefinitionConstraintsResource {
+    S3Uri: (ModelQualityJobDefinitionS3Uri)?
+}
+
+typealias ModelQualityJobDefinitionProblemType = String|Mapping
+
+
+/// Identifies the resources to deploy for a monitoring job.
+open class ModelQualityJobDefinitionMonitoringResources {
+    ClusterConfig: ModelQualityJobDefinitionClusterConfig
+}
+
+typealias ModelQualityJobDefinitionEndpointName = String|Mapping
+
+
+typealias ModelQualityJobDefinitionS3Uri = String|Mapping
+
+
+/// The output configuration for monitoring jobs.
+open class ModelQualityJobDefinitionMonitoringOutputConfig {
+    KmsKeyId: (String(matches(Regex(#".*"#)))|Mapping)?
+    MonitoringOutputs: Listing<ModelQualityJobDefinitionMonitoringOutput>
+}
+
+/// The Json format
+open class ModelQualityJobDefinitionJson {
+    Line: (Boolean|Mapping)?
+}
+
+/// The output object for a monitoring job.
+open class ModelQualityJobDefinitionMonitoringOutput {
+    S3Output: ModelQualityJobDefinitionS3Output
+}
+
+/// Networking options for a job, such as network traffic encryption between containers, whether to allow inbound and outbound network calls to and from containers, and the VPC subnets and security groups to use for VPC-enabled jobs.
+open class ModelQualityJobDefinitionNetworkConfig {
+    EnableNetworkIsolation: (Boolean|Mapping)?
+    VpcConfig: (ModelQualityJobDefinitionVpcConfig)?
+    EnableInterContainerTrafficEncryption: (Boolean|Mapping)?
+}
+
+typealias ModelQualityJobDefinitionModelQualityAppSpecificationEnvironment = Mapping<String, Any>
+
+/// Container image configuration object for the monitoring job.
+open class ModelQualityJobDefinitionModelQualityAppSpecification {
+    RecordPreprocessorSourceUri: (ModelQualityJobDefinitionS3Uri)?
+    Environment: (ModelQualityJobDefinitionModelQualityAppSpecificationEnvironment)?
+    ProblemType: ModelQualityJobDefinitionProblemType
+    ContainerArguments: (Listing<String|Mapping>)?
+    ContainerEntrypoint: (Listing<String|Mapping>)?
+    ImageUri: String(matches(Regex(#".*"#)))|Mapping
+    PostAnalyticsProcessorSourceUri: (ModelQualityJobDefinitionS3Uri)?
 }
 
 typealias BatchTransformInputS3InputMode = "Pipe"|"File"
@@ -38,143 +80,96 @@ typealias BatchTransformInputS3InputMode = "Pipe"|"File"
 typealias BatchTransformInputS3DataDistributionType = "FullyReplicated"|"ShardedByS3Key"
 
 /// The batch transform input for a monitoring job.
-open class BatchTransformInput {
+open class ModelQualityJobDefinitionBatchTransformInput {
     DataCapturedDestinationS3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
-    DatasetFormat: DatasetFormat
-    LocalPath: String(matches(Regex(#".*"#)))|Mapping
+    DatasetFormat: ModelQualityJobDefinitionDatasetFormat
     S3InputMode: (BatchTransformInputS3InputMode|Mapping)?
+    StartTimeOffset: (ModelQualityJobDefinitionMonitoringTimeOffsetString)?
+    InferenceAttribute: (String|Mapping)?
+    LocalPath: String(matches(Regex(#".*"#)))|Mapping
+    S3DataDistributionType: (BatchTransformInputS3DataDistributionType|Mapping)?
+    EndTimeOffset: (ModelQualityJobDefinitionMonitoringTimeOffsetString)?
     ProbabilityAttribute: (String|Mapping)?
     ProbabilityThresholdAttribute: (Number|Mapping)?
-    S3DataDistributionType: (BatchTransformInputS3DataDistributionType|Mapping)?
-    StartTimeOffset: (MonitoringTimeOffsetString)?
-    EndTimeOffset: (MonitoringTimeOffsetString)?
-    InferenceAttribute: (String|Mapping)?
 }
 
-/// Networking options for a job, such as network traffic encryption between containers, whether to allow inbound and outbound network calls to and from containers, and the VPC subnets and security groups to use for VPC-enabled jobs.
-open class NetworkConfig {
-    EnableNetworkIsolation: (Boolean|Mapping)?
-    VpcConfig: (VpcConfig)?
-    EnableInterContainerTrafficEncryption: (Boolean|Mapping)?
+/// Specifies a time limit for how long the monitoring job is allowed to run.
+open class ModelQualityJobDefinitionStoppingCondition {
+    MaxRuntimeInSeconds: Int|Mapping
 }
 
-/// The time offsets in ISO duration format
-open class MonitoringTimeOffsetString {
+typealias ModelQualityJobDefinitionMonitoringTimeOffsetString = String|Mapping
+
+
+/// Ground truth input provided in S3 
+open class ModelQualityJobDefinitionMonitoringGroundTruthS3Input {
+    S3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
 }
 
-/// The Amazon S3 URI.
-open class S3Uri {
-}
+typealias ModelQualityJobDefinitionParquet = Boolean|Mapping
 
-/// The output configuration for monitoring jobs.
-open class MonitoringOutputConfig {
-    KmsKeyId: (String(matches(Regex(#".*"#)))|Mapping)?
-    MonitoringOutputs: Listing<MonitoringOutput>
-}
-
-/// The name of a processing job
-open class ProcessingJobName {
-}
 
 /// The dataset format of the data to monitor
-open class DatasetFormat {
-    Csv: (Csv)?
-    Json: (Json)?
-    Parquet: (Parquet)?
-}
-
-/// The inputs for a monitoring job.
-open class ModelQualityJobInput {
-    EndpointInput: (EndpointInput)?
-    BatchTransformInput: (BatchTransformInput)?
-    GroundTruthS3Input: MonitoringGroundTruthS3Input
+open class ModelQualityJobDefinitionDatasetFormat {
+    Json: (ModelQualityJobDefinitionJson)?
+    Parquet: (ModelQualityJobDefinitionParquet)?
+    Csv: (ModelQualityJobDefinitionCsv)?
 }
 
 /// Specifies a VPC that your training jobs and hosted models have access to. Control access to and from your training and model containers by configuring the VPC.
-open class VpcConfig {
+open class ModelQualityJobDefinitionVpcConfig {
     SecurityGroupIds: Listing<String|Mapping>
     Subnets: Listing<String|Mapping>
 }
 
-/// Ground truth input provided in S3 
-open class MonitoringGroundTruthS3Input {
-    S3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
-}
-
-/// The output object for a monitoring job.
-open class MonitoringOutput {
-    S3Output: S3Output
-}
-
-/// A flag indicating if the dataset format is Parquet
-open class Parquet {
-}
-
-typealias S3OutputS3UploadMode = "Continuous"|"EndOfJob"
-
-/// Information about where and how to store the results of a monitoring job.
-open class S3Output {
-    LocalPath: String(matches(Regex(#".*"#)))|Mapping
-    S3UploadMode: (S3OutputS3UploadMode|Mapping)?
-    S3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
-}
-
-/// Specifies a time limit for how long the monitoring job is allowed to run.
-open class StoppingCondition {
-    MaxRuntimeInSeconds: Int|Mapping
-}
-
-/// A key-value pair to associate with a resource.
-open class Tag {
-    Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
-    Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
-}
-
-/// The name of the endpoint used to run the monitoring job.
-open class EndpointName {
-}
-
-/// The CSV format
-open class Csv {
-    Header: (Boolean|Mapping)?
-}
-
-/// The Json format
-open class Json {
-    Line: (Boolean|Mapping)?
-}
-
-/// Identifies the resources to deploy for a monitoring job.
-open class MonitoringResources {
-    ClusterConfig: ClusterConfig
-}
-
-/// The baseline constraints resource for a monitoring job.
-open class ConstraintsResource {
-    S3Uri: (S3Uri)?
-}
-
-/// The status of the monitoring job.
-open class ProblemType {
-}
-
-/// Baseline configuration used to validate that the data conforms to the specified constraints and statistics.
-open class ModelQualityBaselineConfig {
-    BaseliningJobName: (ProcessingJobName)?
-    ConstraintsResource: (ConstraintsResource)?
-}
-
 /// Configuration for the cluster used to run model monitoring jobs.
-open class ClusterConfig {
+open class ModelQualityJobDefinitionClusterConfig {
     InstanceCount: Int|Mapping
     InstanceType: String|Mapping
     VolumeKmsKeyId: (String|Mapping)?
     VolumeSizeInGB: Int|Mapping
 }
 
-/// The name of the job definition.
-open class JobDefinitionName {
+/// Baseline configuration used to validate that the data conforms to the specified constraints and statistics.
+open class ModelQualityJobDefinitionModelQualityBaselineConfig {
+    BaseliningJobName: (ModelQualityJobDefinitionProcessingJobName)?
+    ConstraintsResource: (ModelQualityJobDefinitionConstraintsResource)?
 }
+
+typealias EndpointInputS3DataDistributionType = "FullyReplicated"|"ShardedByS3Key"
+
+typealias EndpointInputS3InputMode = "Pipe"|"File"
+
+/// The endpoint for a monitoring job.
+open class ModelQualityJobDefinitionEndpointInput {
+    StartTimeOffset: (ModelQualityJobDefinitionMonitoringTimeOffsetString)?
+    EndTimeOffset: (ModelQualityJobDefinitionMonitoringTimeOffsetString)?
+    ProbabilityAttribute: (String|Mapping)?
+    EndpointName: ModelQualityJobDefinitionEndpointName
+    LocalPath: String(matches(Regex(#".*"#)))|Mapping
+    S3DataDistributionType: (EndpointInputS3DataDistributionType|Mapping)?
+    S3InputMode: (EndpointInputS3InputMode|Mapping)?
+    InferenceAttribute: (String|Mapping)?
+    ProbabilityThresholdAttribute: (Number|Mapping)?
+}
+
+/// A key-value pair to associate with a resource.
+open class ModelQualityJobDefinitionTag {
+    Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
+    Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
+}
+
+typealias S3OutputS3UploadMode = "Continuous"|"EndOfJob"
+
+/// Information about where and how to store the results of a monitoring job.
+open class ModelQualityJobDefinitionS3Output {
+    LocalPath: String(matches(Regex(#".*"#)))|Mapping
+    S3UploadMode: (S3OutputS3UploadMode|Mapping)?
+    S3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
+}
+
+typealias ModelQualityJobDefinitionJobDefinitionName = String|Mapping
+
 
 /// Resource Type definition for AWS::SageMaker::ModelQualityJobDefinition
 open class ModelQualityJobDefinition extends cloudformation.Resource {
@@ -183,48 +178,48 @@ open class ModelQualityJobDefinition extends cloudformation.Resource {
 
 
     /// 
-    hidden ModelQualityAppSpecification: ModelQualityAppSpecification
-
-    /// 
-    hidden StoppingCondition: (StoppingCondition)?
-
-    /// 
-    hidden JobDefinitionName: (JobDefinitionName)?
-
-    /// 
-    hidden ModelQualityBaselineConfig: (ModelQualityBaselineConfig)?
-
-    /// 
-    hidden ModelQualityJobInput: ModelQualityJobInput
-
-    /// 
-    hidden NetworkConfig: (NetworkConfig)?
-
-    /// 
-    hidden EndpointName: (EndpointName)?
+    hidden ModelQualityAppSpecification: ModelQualityJobDefinitionModelQualityAppSpecification
 
     /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<ModelQualityJobDefinitionTag>)?
 
     /// 
-    hidden ModelQualityJobOutputConfig: MonitoringOutputConfig
+    hidden JobDefinitionName: (ModelQualityJobDefinitionJobDefinitionName)?
 
     /// 
-    hidden JobResources: MonitoringResources
+    hidden ModelQualityBaselineConfig: (ModelQualityJobDefinitionModelQualityBaselineConfig)?
+
+    /// 
+    hidden ModelQualityJobInput: ModelQualityJobDefinitionModelQualityJobInput
+
+    /// 
+    hidden NetworkConfig: (ModelQualityJobDefinitionNetworkConfig)?
+
+    /// 
+    hidden ModelQualityJobOutputConfig: ModelQualityJobDefinitionMonitoringOutputConfig
+
+    /// 
+    hidden EndpointName: (ModelQualityJobDefinitionEndpointName)?
+
+    /// 
+    hidden StoppingCondition: (ModelQualityJobDefinitionStoppingCondition)?
+
+    /// 
+    hidden JobResources: ModelQualityJobDefinitionMonitoringResources
 
     /// The Amazon Resource Name (ARN) of an IAM role that Amazon SageMaker can assume to perform tasks on your behalf.
     hidden RoleArn: String(matches(Regex(#"^arn:aws[a-z\-]*:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping
 
     Properties {
         ["ModelQualityAppSpecification"] = if (ModelQualityAppSpecification == null) null else ModelQualityAppSpecification
-        ["StoppingCondition"] = if (StoppingCondition == null) null else StoppingCondition
+        ["Tags"] = if (Tags == null) null else Tags
         ["JobDefinitionName"] = if (JobDefinitionName == null) null else JobDefinitionName
         ["ModelQualityBaselineConfig"] = if (ModelQualityBaselineConfig == null) null else ModelQualityBaselineConfig
         ["ModelQualityJobInput"] = if (ModelQualityJobInput == null) null else ModelQualityJobInput
         ["NetworkConfig"] = if (NetworkConfig == null) null else NetworkConfig
-        ["EndpointName"] = if (EndpointName == null) null else EndpointName
-        ["Tags"] = if (Tags == null) null else Tags
         ["ModelQualityJobOutputConfig"] = if (ModelQualityJobOutputConfig == null) null else ModelQualityJobOutputConfig
+        ["EndpointName"] = if (EndpointName == null) null else EndpointName
+        ["StoppingCondition"] = if (StoppingCondition == null) null else StoppingCondition
         ["JobResources"] = if (JobResources == null) null else JobResources
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
     }

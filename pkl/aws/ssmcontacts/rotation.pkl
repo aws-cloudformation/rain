@@ -5,57 +5,55 @@ module aws.ssmcontacts.rotation
 
 import "../../cloudformation.pkl"
 
+typealias RotationHandOffTime = String|Mapping
+
+
+/// Information about the days of the week included in on-call rotation coverage.
+open class RotationShiftCoverage {
+    DayOfWeek: RotationDayOfWeek
+    CoverageTimes: Listing<RotationCoverageTime>
+}
+
+typealias RotationDayOfWeek = String|Mapping
+
+
+/// DayOfWeek for Month and HandOff Time for Monthly Recurring Rotation.
+open class RotationMonthlySetting {
+    DayOfMonth: Int|Mapping
+    HandOffTime: RotationHandOffTime
+}
+
+/// Handoff time for Daily Recurring Rotation.
+open class RotationDailySetting {
+    HandOffTime: RotationHandOffTime
+}
+
+/// StartTime and EndTime for the Shift
+open class RotationCoverageTime {
+    StartTime: RotationHandOffTime
+    EndTime: RotationHandOffTime
+}
+
+/// Information about when an on-call rotation is in effect and how long the rotation period lasts.
+open class RotationRecurrenceSettings {
+    DailySettings: (Listing<RotationHandOffTime>)?
+    NumberOfOnCalls: (Int|Mapping)?
+    RecurrenceMultiplier: (Int|Mapping)?
+    ShiftCoverages: (Listing<RotationShiftCoverage>)?
+    MonthlySettings: (Listing<RotationMonthlySetting>)?
+    WeeklySettings: (Listing<RotationWeeklySetting>)?
+}
+
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class RotationTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
-/// StartTime and EndTime for the Shift
-open class CoverageTime {
-    StartTime: HandOffTime
-    EndTime: HandOffTime
-}
-
-/// Information about the days of the week included in on-call rotation coverage.
-open class ShiftCoverage {
-    DayOfWeek: DayOfWeek
-    CoverageTimes: Listing<CoverageTime>
-}
-
-/// DayOfWeek for Month and HandOff Time for Monthly Recurring Rotation.
-open class MonthlySetting {
-    DayOfMonth: Int|Mapping
-    HandOffTime: HandOffTime
-}
-
 /// DayOfWeek for Rotation and HandOff Time for Weekly Recurring Rotation.
-open class WeeklySetting {
-    DayOfWeek: DayOfWeek
-    HandOffTime: HandOffTime
-}
-
-/// Information about when an on-call rotation is in effect and how long the rotation period lasts.
-open class RecurrenceSettings {
-    DailySettings: (Listing<HandOffTime>)?
-    NumberOfOnCalls: (Int|Mapping)?
-    RecurrenceMultiplier: (Int|Mapping)?
-    ShiftCoverages: (Listing<ShiftCoverage>)?
-    MonthlySettings: (Listing<MonthlySetting>)?
-    WeeklySettings: (Listing<WeeklySetting>)?
-}
-
-/// Details about when an on-call rotation shift begins or ends. Time of the day in format HH:MM
-open class HandOffTime {
-}
-
-/// The day of the week when weekly recurring on-call shift rotations begin. 
-open class DayOfWeek {
-}
-
-/// Handoff time for Daily Recurring Rotation.
-open class DailySetting {
-    HandOffTime: HandOffTime
+open class RotationWeeklySetting {
+    DayOfWeek: RotationDayOfWeek
+    HandOffTime: RotationHandOffTime
 }
 
 /// Resource Type definition for AWS::SSMContacts::Rotation.
@@ -63,9 +61,6 @@ open class Rotation extends cloudformation.Resource {
 
     Type = "AWS::SSMContacts::Rotation"
 
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
 
     /// Name of the Rotation
     hidden Name: String(matches(Regex(#"^[a-zA-Z0-9_]*$"#)))|Mapping
@@ -80,15 +75,18 @@ open class Rotation extends cloudformation.Resource {
     hidden TimeZoneId: String|Mapping
 
     /// 
-    hidden Recurrence: RecurrenceSettings
+    hidden Recurrence: RotationRecurrenceSettings
+
+    /// 
+    hidden Tags: (Listing<RotationTag>)?
 
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
         ["ContactIds"] = if (ContactIds == null) null else ContactIds
         ["StartTime"] = if (StartTime == null) null else StartTime
         ["TimeZoneId"] = if (TimeZoneId == null) null else TimeZoneId
         ["Recurrence"] = if (Recurrence == null) null else Recurrence
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

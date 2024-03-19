@@ -6,8 +6,60 @@ module aws.events.rule
 import "../../cloudformation.pkl"
 
 /// 
+open class RuleTag {
+    Key: (String|Mapping)?
+    Value: (String|Mapping)?
+}
+
+/// 
+open class RuleBatchRetryStrategy {
+    Attempts: (Int|Mapping)?
+}
+
+/// 
+open class RuleBatchParameters {
+    RetryStrategy: (RuleBatchRetryStrategy)?
+    JobDefinition: String|Mapping
+    ArrayProperties: (RuleBatchArrayProperties)?
+    JobName: String|Mapping
+}
+
+/// 
+open class RulePlacementConstraint {
+    Type: (String|Mapping)?
+    Expression: (String|Mapping)?
+}
+
+/// 
+open class RulePlacementStrategy {
+    Field: (String|Mapping)?
+    Type: (String|Mapping)?
+}
+
+/// 
+open class RuleSqsParameters {
+    MessageGroupId: String|Mapping
+}
+
+/// 
 open class RuleDeadLetterConfig {
     Arn: (String|Mapping)?
+}
+
+/// 
+open class RuleAppSyncParameters {
+    GraphQLOperation: String|Mapping
+}
+
+typealias RuleHttpParametersHeaderParameters = Mapping<String, Any>
+
+typealias RuleHttpParametersQueryStringParameters = Mapping<String, Any>
+
+/// 
+open class RuleHttpParameters {
+    PathParameterValues: (Listing<String|Mapping>)?
+    HeaderParameters: (RuleHttpParametersHeaderParameters)?
+    QueryStringParameters: (RuleHttpParametersQueryStringParameters)?
 }
 
 /// 
@@ -18,95 +70,24 @@ open class RuleCapacityProviderStrategyItem {
 }
 
 /// 
-open class RuleBatchRetryStrategy {
-    Attempts: (Int|Mapping)?
-}
-
-/// 
-open class RulePlacementStrategy {
-    Field: (String|Mapping)?
-    Type: (String|Mapping)?
-}
-
-/// 
-open class RuleBatchArrayProperties {
-    Size: (Int|Mapping)?
-}
-
-/// 
 open class RuleNetworkConfiguration {
     AwsVpcConfiguration: (RuleAwsVpcConfiguration)?
 }
 
 /// 
-open class RuleSageMakerPipelineParameter {
-    Value: String|Mapping
-    Name: String|Mapping
+open class RuleSageMakerPipelineParameters {
+    PipelineParameterList: (Listing<RuleSageMakerPipelineParameter>)?
 }
 
 /// 
-open class RuleAppSyncParameters {
-    GraphQLOperation: String|Mapping
-}
-
-/// 
-open class RuleInputTransformer {
-    InputPathsMap: (Dynamic)?
-    InputTemplate: String|Mapping
-}
-
-/// 
-open class RuleTag {
-    Value: (String|Mapping)?
-    Key: (String|Mapping)?
+open class RuleRetryPolicy {
+    MaximumRetryAttempts: (Int|Mapping)?
+    MaximumEventAgeInSeconds: (Int|Mapping)?
 }
 
 /// 
 open class RuleKinesisParameters {
     PartitionKeyPath: String|Mapping
-}
-
-/// 
-open class RuleSqsParameters {
-    MessageGroupId: String|Mapping
-}
-
-/// 
-open class RuleRetryPolicy {
-    MaximumEventAgeInSeconds: (Int|Mapping)?
-    MaximumRetryAttempts: (Int|Mapping)?
-}
-
-/// 
-open class RuleTarget {
-    EcsParameters: (RuleEcsParameters)?
-    SageMakerPipelineParameters: (RuleSageMakerPipelineParameters)?
-    RoleArn: (String|Mapping)?
-    RedshiftDataParameters: (RuleRedshiftDataParameters)?
-    AppSyncParameters: (RuleAppSyncParameters)?
-    Id: String|Mapping
-    RetryPolicy: (RuleRetryPolicy)?
-    InputPath: (String|Mapping)?
-    DeadLetterConfig: (RuleDeadLetterConfig)?
-    Input: (String|Mapping)?
-    SqsParameters: (RuleSqsParameters)?
-    BatchParameters: (RuleBatchParameters)?
-    RunCommandParameters: (RuleRunCommandParameters)?
-    InputTransformer: (RuleInputTransformer)?
-    Arn: String|Mapping
-    HttpParameters: (RuleHttpParameters)?
-    KinesisParameters: (RuleKinesisParameters)?
-}
-
-/// 
-open class RulePlacementConstraint {
-    Type: (String|Mapping)?
-    Expression: (String|Mapping)?
-}
-
-/// 
-open class RuleRunCommandParameters {
-    RunCommandTargets: Listing<RuleRunCommandTarget>
 }
 
 /// 
@@ -116,41 +97,16 @@ open class RuleRunCommandTarget {
 }
 
 /// 
-open class RuleSageMakerPipelineParameters {
-    PipelineParameterList: (Listing<RuleSageMakerPipelineParameter>)?
+open class RuleBatchArrayProperties {
+    Size: (Int|Mapping)?
 }
 
-/// 
-open class RuleBatchParameters {
-    ArrayProperties: (RuleBatchArrayProperties)?
-    JobName: String|Mapping
-    RetryStrategy: (RuleBatchRetryStrategy)?
-    JobDefinition: String|Mapping
-}
+typealias RuleInputTransformerInputPathsMap = Mapping<String, Any>
 
 /// 
-open class RuleEcsParameters {
-    PlacementConstraints: (Listing<RulePlacementConstraint>)?
-    CapacityProviderStrategy: (Listing<RuleCapacityProviderStrategyItem>)?
-    TagList: (Listing<RuleTag>)?
-    PropagateTags: (String|Mapping)?
-    ReferenceId: (String|Mapping)?
-    NetworkConfiguration: (RuleNetworkConfiguration)?
-    TaskDefinitionArn: String|Mapping
-    PlatformVersion: (String|Mapping)?
-    Group: (String|Mapping)?
-    EnableExecuteCommand: (Boolean|Mapping)?
-    TaskCount: (Int|Mapping)?
-    EnableECSManagedTags: (Boolean|Mapping)?
-    PlacementStrategies: (Listing<RulePlacementStrategy>)?
-    LaunchType: (String|Mapping)?
-}
-
-/// 
-open class RuleHttpParameters {
-    PathParameterValues: (Listing<String|Mapping>)?
-    HeaderParameters: (Dynamic)?
-    QueryStringParameters: (Dynamic)?
+open class RuleInputTransformer {
+    InputTemplate: String|Mapping
+    InputPathsMap: (RuleInputTransformerInputPathsMap)?
 }
 
 /// 
@@ -161,14 +117,64 @@ open class RuleAwsVpcConfiguration {
 }
 
 /// 
+open class RuleRunCommandParameters {
+    RunCommandTargets: Listing<RuleRunCommandTarget>
+}
+
+/// 
 open class RuleRedshiftDataParameters {
+    Sql: (String|Mapping)?
+    WithEvent: (Boolean|Mapping)?
     StatementName: (String|Mapping)?
     Sqls: (Listing<String|Mapping>)?
     Database: String|Mapping
     SecretManagerArn: (String|Mapping)?
     DbUser: (String|Mapping)?
-    Sql: (String|Mapping)?
-    WithEvent: (Boolean|Mapping)?
+}
+
+/// 
+open class RuleTarget {
+    HttpParameters: (RuleHttpParameters)?
+    RoleArn: (String|Mapping)?
+    SageMakerPipelineParameters: (RuleSageMakerPipelineParameters)?
+    EcsParameters: (RuleEcsParameters)?
+    Arn: String|Mapping
+    InputPath: (String|Mapping)?
+    DeadLetterConfig: (RuleDeadLetterConfig)?
+    RunCommandParameters: (RuleRunCommandParameters)?
+    KinesisParameters: (RuleKinesisParameters)?
+    Input: (String|Mapping)?
+    Id: String|Mapping
+    InputTransformer: (RuleInputTransformer)?
+    RedshiftDataParameters: (RuleRedshiftDataParameters)?
+    AppSyncParameters: (RuleAppSyncParameters)?
+    SqsParameters: (RuleSqsParameters)?
+    BatchParameters: (RuleBatchParameters)?
+    RetryPolicy: (RuleRetryPolicy)?
+}
+
+/// 
+open class RuleSageMakerPipelineParameter {
+    Value: String|Mapping
+    Name: String|Mapping
+}
+
+/// 
+open class RuleEcsParameters {
+    EnableECSManagedTags: (Boolean|Mapping)?
+    PlacementConstraints: (Listing<RulePlacementConstraint>)?
+    TaskCount: (Int|Mapping)?
+    TaskDefinitionArn: String|Mapping
+    PlacementStrategies: (Listing<RulePlacementStrategy>)?
+    ReferenceId: (String|Mapping)?
+    TagList: (Listing<RuleTag>)?
+    PlatformVersion: (String|Mapping)?
+    Group: (String|Mapping)?
+    EnableExecuteCommand: (Boolean|Mapping)?
+    PropagateTags: (String|Mapping)?
+    NetworkConfiguration: (RuleNetworkConfiguration)?
+    CapacityProviderStrategy: (Listing<RuleCapacityProviderStrategyItem>)?
+    LaunchType: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::Events::Rule
@@ -177,23 +183,11 @@ open class Rule extends cloudformation.Resource {
     Type = "AWS::Events::Rule"
 
 
-    /// The name or ARN of the event bus associated with the rule. If you omit this, the default event bus is used.
-    hidden EventBusName: (String|Mapping)?
-
-    /// The name of the rule.
-    hidden Name: (String|Mapping)?
-
     /// The Amazon Resource Name (ARN) of the role that is used for target invocation.
     hidden RoleArn: (String|Mapping)?
 
-    /// The event pattern of the rule. For more information, see Events and Event Patterns in the Amazon EventBridge User Guide.
-    hidden EventPattern: (Dynamic)?
-
     /// The scheduling expression. For example, "cron(0 20 * * ? *)", "rate(5 minutes)". For more information, see Creating an Amazon EventBridge rule that runs on a schedule.
     hidden ScheduleExpression: (String|Mapping)?
-
-    /// The description of the rule.
-    hidden Description: (String|Mapping)?
 
     /// The state of the rule.
     hidden State: (RuleState|Mapping)?
@@ -203,15 +197,27 @@ open class Rule extends cloudformation.Resource {
     /// Targets are the resources that are invoked when a rule is triggered.
     hidden Targets: (Listing<RuleTarget>)?
 
+    /// The name or ARN of the event bus associated with the rule. If you omit this, the default event bus is used.
+    hidden EventBusName: (String|Mapping)?
+
+    /// The event pattern of the rule. For more information, see Events and Event Patterns in the Amazon EventBridge User Guide.
+    hidden EventPattern: (Dynamic)?
+
+    /// The description of the rule.
+    hidden Description: (String|Mapping)?
+
+    /// The name of the rule.
+    hidden Name: (String|Mapping)?
+
     Properties {
-        ["EventBusName"] = if (EventBusName == null) null else EventBusName
-        ["Name"] = if (Name == null) null else Name
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
-        ["EventPattern"] = if (EventPattern == null) null else EventPattern
         ["ScheduleExpression"] = if (ScheduleExpression == null) null else ScheduleExpression
-        ["Description"] = if (Description == null) null else Description
         ["State"] = if (State == null) null else State
         ["Targets"] = if (Targets == null) null else Targets
+        ["EventBusName"] = if (EventBusName == null) null else EventBusName
+        ["EventPattern"] = if (EventPattern == null) null else EventPattern
+        ["Description"] = if (Description == null) null else Description
+        ["Name"] = if (Name == null) null else Name
     }
 
 }

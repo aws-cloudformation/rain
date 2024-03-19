@@ -5,23 +5,6 @@ module aws.internetmonitor.monitor
 
 import "../../cloudformation.pkl"
 
-typealias S3ConfigLogDeliveryStatus = "ENABLED"|"DISABLED"
-
-/// 
-open class MonitorS3Config {
-    BucketName: (String|Mapping)?
-    BucketPrefix: (String|Mapping)?
-    LogDeliveryStatus: (S3ConfigLogDeliveryStatus|Mapping)?
-}
-
-/// 
-open class MonitorHealthEventsConfig {
-    AvailabilityScoreThreshold: (Number|Mapping)?
-    PerformanceScoreThreshold: (Number|Mapping)?
-    AvailabilityLocalHealthEventsConfig: (MonitorLocalHealthEventsConfig)?
-    PerformanceLocalHealthEventsConfig: (MonitorLocalHealthEventsConfig)?
-}
-
 typealias LocalHealthEventsConfigStatus = "ENABLED"|"DISABLED"
 
 /// 
@@ -31,10 +14,10 @@ open class MonitorLocalHealthEventsConfig {
     MinTrafficImpact: (Number|Mapping)?
 }
 
-typealias MonitorMonitorConfigState = "PENDING"|"ACTIVE"|"INACTIVE"|"ERROR"
+typealias MonitorMonitorConfigState = String|Mapping
 
 
-typealias MonitorMonitorProcessingStatusCode = "OK"|"INACTIVE"|"COLLECTING_DATA"|"INSUFFICIENT_DATA"|"FAULT_SERVICE"|"FAULT_ACCESS_CLOUDWATCH"
+typealias MonitorMonitorProcessingStatusCode = String|Mapping
 
 
 /// The metadata that you apply to the cluster to help you categorize and organize them. Each tag consists of a key and an optional value, both of which you define.
@@ -43,12 +26,29 @@ open class MonitorTag {
     Value: (String|Mapping)?
 }
 
-typealias Monitoriso8601UTC = String
+typealias Monitoriso8601UTC = String|Mapping
 
 
 /// 
 open class MonitorInternetMeasurementsLogDelivery {
     S3Config: (MonitorS3Config)?
+}
+
+typealias S3ConfigLogDeliveryStatus = "ENABLED"|"DISABLED"
+
+/// 
+open class MonitorS3Config {
+    LogDeliveryStatus: (S3ConfigLogDeliveryStatus|Mapping)?
+    BucketName: (String|Mapping)?
+    BucketPrefix: (String|Mapping)?
+}
+
+/// 
+open class MonitorHealthEventsConfig {
+    PerformanceLocalHealthEventsConfig: (MonitorLocalHealthEventsConfig)?
+    AvailabilityScoreThreshold: (Number|Mapping)?
+    PerformanceScoreThreshold: (Number|Mapping)?
+    AvailabilityLocalHealthEventsConfig: (MonitorLocalHealthEventsConfig)?
 }
 
 /// Represents a monitor, which defines the monitoring boundaries for measurements that Internet Monitor publishes information about for an application
@@ -58,22 +58,22 @@ open class Monitor extends cloudformation.Resource {
 
 
     /// 
-    hidden Resources: (Listing<String|Mapping>)?
-
-    /// 
-    hidden HealthEventsConfig: (MonitorHealthEventsConfig)?
+    hidden LinkedAccountId: (String(matches(Regex(#"^(\d{12})$"#)))|Mapping)?
 
     /// 
     hidden IncludeLinkedAccounts: (Boolean|Mapping)?
 
     /// 
-    hidden ResourcesToAdd: (Listing<String|Mapping>)?
-
-    /// 
     hidden ResourcesToRemove: (Listing<String|Mapping>)?
 
     /// 
+    hidden Status: (MonitorMonitorConfigState)?
+
+    /// 
     hidden Tags: (Listing<MonitorTag>)?
+
+    /// 
+    hidden ResourcesToAdd: (Listing<String|Mapping>)?
 
     /// 
     hidden MaxCityNetworksToMonitor: (Int|Mapping)?
@@ -85,27 +85,27 @@ open class Monitor extends cloudformation.Resource {
     hidden InternetMeasurementsLogDelivery: (MonitorInternetMeasurementsLogDelivery)?
 
     /// 
+    hidden HealthEventsConfig: (MonitorHealthEventsConfig)?
+
+    /// 
     hidden MonitorName: String(matches(Regex(#"^[a-zA-Z0-9_.-]+$"#)))|Mapping
 
     /// 
-    hidden LinkedAccountId: (String(matches(Regex(#"^(\d{12})$"#)))|Mapping)?
-
-    /// 
-    hidden Status: (MonitorMonitorConfigState)?
+    hidden Resources: (Listing<String|Mapping>)?
 
     Properties {
-        ["Resources"] = if (Resources == null) null else Resources
-        ["HealthEventsConfig"] = if (HealthEventsConfig == null) null else HealthEventsConfig
+        ["LinkedAccountId"] = if (LinkedAccountId == null) null else LinkedAccountId
         ["IncludeLinkedAccounts"] = if (IncludeLinkedAccounts == null) null else IncludeLinkedAccounts
-        ["ResourcesToAdd"] = if (ResourcesToAdd == null) null else ResourcesToAdd
         ["ResourcesToRemove"] = if (ResourcesToRemove == null) null else ResourcesToRemove
+        ["Status"] = if (Status == null) null else Status
         ["Tags"] = if (Tags == null) null else Tags
+        ["ResourcesToAdd"] = if (ResourcesToAdd == null) null else ResourcesToAdd
         ["MaxCityNetworksToMonitor"] = if (MaxCityNetworksToMonitor == null) null else MaxCityNetworksToMonitor
         ["TrafficPercentageToMonitor"] = if (TrafficPercentageToMonitor == null) null else TrafficPercentageToMonitor
         ["InternetMeasurementsLogDelivery"] = if (InternetMeasurementsLogDelivery == null) null else InternetMeasurementsLogDelivery
+        ["HealthEventsConfig"] = if (HealthEventsConfig == null) null else HealthEventsConfig
         ["MonitorName"] = if (MonitorName == null) null else MonitorName
-        ["LinkedAccountId"] = if (LinkedAccountId == null) null else LinkedAccountId
-        ["Status"] = if (Status == null) null else Status
+        ["Resources"] = if (Resources == null) null else Resources
     }
 
 }

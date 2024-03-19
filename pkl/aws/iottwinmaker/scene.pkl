@@ -5,7 +5,7 @@ module aws.iottwinmaker.scene
 
 import "../../cloudformation.pkl"
 
-typealias SceneDateTimeFormat = String
+typealias SceneDateTimeFormat = String|Mapping
 
 
 /// Resource schema for AWS::IoTTwinMaker::Scene
@@ -14,35 +14,40 @@ open class Scene extends cloudformation.Resource {
     Type = "AWS::IoTTwinMaker::Scene"
 
 
-    /// The ID of the scene.
-    hidden WorkspaceId: String(matches(Regex(#"[a-zA-Z_0-9][a-zA-Z_\-0-9]*[a-zA-Z0-9]+"#)))|Mapping
-
-    /// A key-value pair of scene metadata for the scene.
-    hidden SceneMetadata: (Dynamic)?
-
-    /// The ID of the scene.
-    hidden SceneId: String(matches(Regex(#"[a-zA-Z_0-9][a-zA-Z_\-0-9]*[a-zA-Z0-9]+"#)))|Mapping
-
     /// The description of the scene.
     hidden Description: (String|Mapping)?
 
     /// The relative path that specifies the location of the content definition file.
     hidden ContentLocation: String(matches(Regex(#"[sS]3://[A-Za-z0-9._/-]+"#)))|Mapping
 
+    /// The ID of the scene.
+    hidden SceneId: String(matches(Regex(#"[a-zA-Z_0-9][a-zA-Z_\-0-9]*[a-zA-Z0-9]+"#)))|Mapping
+
     /// A key-value pair to associate with a resource.
-    hidden Tags: (Dynamic)?
+    hidden Tags: (SceneSceneTags)?
+
+    /// The ID of the scene.
+    hidden WorkspaceId: String(matches(Regex(#"[a-zA-Z_0-9][a-zA-Z_\-0-9]*[a-zA-Z0-9]+"#)))|Mapping
 
     /// A list of capabilities that the scene uses to render.
     hidden Capabilities: (Listing<String|Mapping>)?
 
+    /// A key-value pair of scene metadata for the scene.
+    hidden SceneMetadata: (SceneSceneSceneMetadata)?
+
     Properties {
-        ["WorkspaceId"] = if (WorkspaceId == null) null else WorkspaceId
-        ["SceneMetadata"] = if (SceneMetadata == null) null else SceneMetadata
-        ["SceneId"] = if (SceneId == null) null else SceneId
         ["Description"] = if (Description == null) null else Description
         ["ContentLocation"] = if (ContentLocation == null) null else ContentLocation
+        ["SceneId"] = if (SceneId == null) null else SceneId
         ["Tags"] = if (Tags == null) null else Tags
+        ["WorkspaceId"] = if (WorkspaceId == null) null else WorkspaceId
         ["Capabilities"] = if (Capabilities == null) null else Capabilities
+        ["SceneMetadata"] = if (SceneMetadata == null) null else SceneMetadata
     }
 
 }
+
+
+typealias SceneSceneTags = Mapping<String, Any>
+
+typealias SceneSceneSceneMetadata = Mapping<String, Any>

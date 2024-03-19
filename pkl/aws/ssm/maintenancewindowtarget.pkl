@@ -6,7 +6,7 @@ module aws.ssm.maintenancewindowtarget
 import "../../cloudformation.pkl"
 
 /// 
-open class Targets {
+open class MaintenanceWindowTargetTargets {
     Values: Listing<String|Mapping>
     Key: String|Mapping
 }
@@ -16,6 +16,12 @@ open class MaintenanceWindowTarget extends cloudformation.Resource {
 
     Type = "AWS::SSM::MaintenanceWindowTarget"
 
+
+    /// 
+    hidden Targets: Listing<MaintenanceWindowTargetTargets>
+
+    /// 
+    hidden Name: (String|Mapping)?
 
     /// 
     hidden OwnerInformation: (String|Mapping)?
@@ -29,19 +35,13 @@ open class MaintenanceWindowTarget extends cloudformation.Resource {
     /// 
     hidden ResourceType: String|Mapping
 
-    /// 
-    hidden Targets: Listing<Targets>
-
-    /// 
-    hidden Name: (String|Mapping)?
-
     Properties {
+        ["Targets"] = if (Targets == null) null else Targets
+        ["Name"] = if (Name == null) null else Name
         ["OwnerInformation"] = if (OwnerInformation == null) null else OwnerInformation
         ["Description"] = if (Description == null) null else Description
         ["WindowId"] = if (WindowId == null) null else WindowId
         ["ResourceType"] = if (ResourceType == null) null else ResourceType
-        ["Targets"] = if (Targets == null) null else Targets
-        ["Name"] = if (Name == null) null else Name
     }
 
 }

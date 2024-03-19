@@ -5,15 +5,6 @@ module aws.connect.hoursofoperation
 
 import "../../cloudformation.pkl"
 
-typealias HoursOfOperationConfigDay = "SUNDAY"|"MONDAY"|"TUESDAY"|"WEDNESDAY"|"THURSDAY"|"FRIDAY"|"SATURDAY"
-
-/// Contains information about the hours of operation.
-open class HoursOfOperationHoursOfOperationConfig {
-    StartTime: HoursOfOperationHoursOfOperationTimeSlice
-    EndTime: HoursOfOperationHoursOfOperationTimeSlice
-    Day: HoursOfOperationConfigDay|Mapping
-}
-
 /// A key-value pair to associate with a resource.
 open class HoursOfOperationTag {
     Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
@@ -22,8 +13,17 @@ open class HoursOfOperationTag {
 
 /// The start time or end time for an hours of operation.
 open class HoursOfOperationHoursOfOperationTimeSlice {
-    Minutes: Int|Mapping
     Hours: Int|Mapping
+    Minutes: Int|Mapping
+}
+
+typealias HoursOfOperationConfigDay = "SUNDAY"|"MONDAY"|"TUESDAY"|"WEDNESDAY"|"THURSDAY"|"FRIDAY"|"SATURDAY"
+
+/// Contains information about the hours of operation.
+open class HoursOfOperationHoursOfOperationConfig {
+    Day: HoursOfOperationConfigDay|Mapping
+    StartTime: HoursOfOperationHoursOfOperationTimeSlice
+    EndTime: HoursOfOperationHoursOfOperationTimeSlice
 }
 
 /// Resource Type definition for AWS::Connect::HoursOfOperation
@@ -31,6 +31,12 @@ open class HoursOfOperation extends cloudformation.Resource {
 
     Type = "AWS::Connect::HoursOfOperation"
 
+
+    /// The time zone of the hours of operation.
+    hidden TimeZone: String|Mapping
+
+    /// Configuration information for the hours of operation: day, start time, and end time.
+    hidden Config: Listing<HoursOfOperationHoursOfOperationConfig>
 
     /// One or more tags.
     hidden Tags: (Listing<HoursOfOperationTag>)?
@@ -44,19 +50,13 @@ open class HoursOfOperation extends cloudformation.Resource {
     /// The description of the hours of operation.
     hidden Description: (String|Mapping)?
 
-    /// The time zone of the hours of operation.
-    hidden TimeZone: String|Mapping
-
-    /// Configuration information for the hours of operation: day, start time, and end time.
-    hidden Config: Listing<HoursOfOperationHoursOfOperationConfig>
-
     Properties {
+        ["TimeZone"] = if (TimeZone == null) null else TimeZone
+        ["Config"] = if (Config == null) null else Config
         ["Tags"] = if (Tags == null) null else Tags
         ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
         ["Name"] = if (Name == null) null else Name
         ["Description"] = if (Description == null) null else Description
-        ["TimeZone"] = if (TimeZone == null) null else TimeZone
-        ["Config"] = if (Config == null) null else Config
     }
 
 }

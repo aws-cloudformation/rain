@@ -5,13 +5,6 @@ module aws.datasync.locationfsxopenzfs
 
 import "../../cloudformation.pkl"
 
-typealias MountOptionsVersion = "AUTOMATIC"|"NFS3"|"NFS4_0"|"NFS4_1"
-
-/// The NFS mount options that DataSync can use to mount your NFS share.
-open class LocationFSxOpenZFSMountOptions {
-    Version: (MountOptionsVersion|Mapping)?
-}
-
 /// A key-value pair to associate with a resource.
 open class LocationFSxOpenZFSTag {
     Key: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:/-]+$"#)))|Mapping
@@ -28,14 +21,18 @@ open class LocationFSxOpenZFSNFS {
     MountOptions: LocationFSxOpenZFSMountOptions
 }
 
+typealias MountOptionsVersion = "AUTOMATIC"|"NFS3"|"NFS4_0"|"NFS4_1"
+
+/// The NFS mount options that DataSync can use to mount your NFS share.
+open class LocationFSxOpenZFSMountOptions {
+    Version: (MountOptionsVersion|Mapping)?
+}
+
 /// Resource schema for AWS::DataSync::LocationFSxOpenZFS.
 open class LocationFSxOpenZFS extends cloudformation.Resource {
 
     Type = "AWS::DataSync::LocationFSxOpenZFS"
 
-
-    /// A subdirectory in the location's path.
-    hidden Subdirectory: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\$\p{Zs}]+$"#)))|Mapping)?
 
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<LocationFSxOpenZFSTag>)?
@@ -49,12 +46,15 @@ open class LocationFSxOpenZFS extends cloudformation.Resource {
     /// 
     hidden Protocol: LocationFSxOpenZFSProtocol
 
+    /// A subdirectory in the location's path.
+    hidden Subdirectory: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\$\p{Zs}]+$"#)))|Mapping)?
+
     Properties {
-        ["Subdirectory"] = if (Subdirectory == null) null else Subdirectory
         ["Tags"] = if (Tags == null) null else Tags
         ["FsxFilesystemArn"] = if (FsxFilesystemArn == null) null else FsxFilesystemArn
         ["SecurityGroupArns"] = if (SecurityGroupArns == null) null else SecurityGroupArns
         ["Protocol"] = if (Protocol == null) null else Protocol
+        ["Subdirectory"] = if (Subdirectory == null) null else Subdirectory
     }
 
 }

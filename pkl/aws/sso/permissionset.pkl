@@ -5,26 +5,25 @@ module aws.sso.permissionset
 
 import "../../cloudformation.pkl"
 
-/// The metadata that you apply to the permission set to help you categorize and organize them.
-open class Tag {
-    Key: String(matches(Regex(#"[\w+=,.@-]+"#)))|Mapping
-    Value: String(matches(Regex(#"[\w+=,.@-]+"#)))|Mapping
-}
+typealias PermissionSetManagedPolicyArn = String|Mapping
 
-/// The managed policy to attach.
-open class ManagedPolicyArn {
-}
 
 /// 
-open class CustomerManagedPolicyReference {
+open class PermissionSetCustomerManagedPolicyReference {
     Name: String(matches(Regex(#"[\w+=,.@-]+"#)))|Mapping
     Path: (String(matches(Regex(#"((/[A-Za-z0-9\.,\+@=_-]+)*)/"#)))|Mapping)?
 }
 
 /// 
-open class PermissionsBoundary {
-    CustomerManagedPolicyReference: (CustomerManagedPolicyReference)?
-    ManagedPolicyArn: (ManagedPolicyArn)?
+open class PermissionSetPermissionsBoundary {
+    CustomerManagedPolicyReference: (PermissionSetCustomerManagedPolicyReference)?
+    ManagedPolicyArn: (PermissionSetManagedPolicyArn)?
+}
+
+/// The metadata that you apply to the permission set to help you categorize and organize them.
+open class PermissionSetTag {
+    Key: String(matches(Regex(#"[\w+=,.@-]+"#)))|Mapping
+    Value: String(matches(Regex(#"[\w+=,.@-]+"#)))|Mapping
 }
 
 /// Resource Type definition for SSO PermissionSet
@@ -32,6 +31,24 @@ open class PermissionSet extends cloudformation.Resource {
 
     Type = "AWS::SSO::PermissionSet"
 
+
+    /// The length of time that a user can be signed in to an AWS account.
+    hidden SessionDuration: (String(matches(Regex(#"^(-?)P(?=\d|T\d)(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)([DW]))?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?$"#)))|Mapping)?
+
+    /// 
+    hidden ManagedPolicies: (Listing<PermissionSetManagedPolicyArn>)?
+
+    /// The inline policy to put in permission set.
+    hidden InlinePolicy: (Dynamic)?
+
+    /// 
+    hidden Tags: (Listing<PermissionSetTag>)?
+
+    /// 
+    hidden CustomerManagedPolicyReferences: (Listing<PermissionSetCustomerManagedPolicyReference>)?
+
+    /// The name you want to assign to this permission set.
+    hidden Name: String(matches(Regex(#"[\w+=,.@-]+"#)))|Mapping
 
     /// The permission set description.
     hidden Description: (String(matches(Regex(#"[\u0009\u000A\u000D\u0020-\u007E\u00A1-\u00FF]*"#)))|Mapping)?
@@ -43,36 +60,18 @@ open class PermissionSet extends cloudformation.Resource {
     hidden RelayStateType: (String(matches(Regex(#"[a-zA-Z0-9&amp;$@#\/%?=~\-_'&quot;|!:,.;*+\[\]\ \(\)\{\}]+"#)))|Mapping)?
 
     /// 
-    hidden ManagedPolicies: (Listing<ManagedPolicyArn>)?
-
-    /// The inline policy to put in permission set.
-    hidden InlinePolicy: (Dynamic)?
-
-    /// The name you want to assign to this permission set.
-    hidden Name: String(matches(Regex(#"[\w+=,.@-]+"#)))|Mapping
-
-    /// The length of time that a user can be signed in to an AWS account.
-    hidden SessionDuration: (String(matches(Regex(#"^(-?)P(?=\d|T\d)(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)([DW]))?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?$"#)))|Mapping)?
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden CustomerManagedPolicyReferences: (Listing<CustomerManagedPolicyReference>)?
-
-    /// 
-    hidden PermissionsBoundary: (PermissionsBoundary)?
+    hidden PermissionsBoundary: (PermissionSetPermissionsBoundary)?
 
     Properties {
+        ["SessionDuration"] = if (SessionDuration == null) null else SessionDuration
+        ["ManagedPolicies"] = if (ManagedPolicies == null) null else ManagedPolicies
+        ["InlinePolicy"] = if (InlinePolicy == null) null else InlinePolicy
+        ["Tags"] = if (Tags == null) null else Tags
+        ["CustomerManagedPolicyReferences"] = if (CustomerManagedPolicyReferences == null) null else CustomerManagedPolicyReferences
+        ["Name"] = if (Name == null) null else Name
         ["Description"] = if (Description == null) null else Description
         ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
         ["RelayStateType"] = if (RelayStateType == null) null else RelayStateType
-        ["ManagedPolicies"] = if (ManagedPolicies == null) null else ManagedPolicies
-        ["InlinePolicy"] = if (InlinePolicy == null) null else InlinePolicy
-        ["Name"] = if (Name == null) null else Name
-        ["SessionDuration"] = if (SessionDuration == null) null else SessionDuration
-        ["Tags"] = if (Tags == null) null else Tags
-        ["CustomerManagedPolicyReferences"] = if (CustomerManagedPolicyReferences == null) null else CustomerManagedPolicyReferences
         ["PermissionsBoundary"] = if (PermissionsBoundary == null) null else PermissionsBoundary
     }
 

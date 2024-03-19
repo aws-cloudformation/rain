@@ -5,91 +5,80 @@ module aws.lakeformation.tagassociation
 
 import "../../cloudformation.pkl"
 
+typealias TagAssociationCatalogResource = Dynamic
+
+
+typealias TagAssociationLFTagsList = Listing<(TagAssociationLFTagPair)?>
+
+
 /// 
-open class LFTagsList {
+open class TagAssociationDataLakePrincipal {
+    DataLakePrincipalIdentifier: (TagAssociationDataLakePrincipalString)?
+}
+
+typealias TagAssociationTableWildcard = Dynamic
+
+
+/// 
+open class TagAssociationDatabaseResource {
+    CatalogId: TagAssociationCatalogIdString
+    Name: TagAssociationNameString
+}
+
+typealias TagAssociationLFTagKey = String|Mapping
+
+
+typealias TagAssociationNameString = String|Mapping
+
+
+typealias TagAssociationResourceType = String|Mapping
+
+
+typealias TagAssociationCatalogIdString = String|Mapping
+
+
+/// 
+open class TagAssociationTableWithColumnsResource {
+    CatalogId: TagAssociationCatalogIdString
+    DatabaseName: TagAssociationNameString
+    Name: TagAssociationNameString
+    ColumnNames: TagAssociationColumnNames
 }
 
 /// 
-open class DataLakePrincipal {
-    DataLakePrincipalIdentifier: (DataLakePrincipalString)?
+open class TagAssociationLFTagPair {
+    TagKey: TagAssociationLFTagKey
+    TagValues: TagAssociationTagValueList
+    CatalogId: TagAssociationCatalogIdString
 }
 
 /// 
-open class ResourceType {
+open class TagAssociationResource {
+    TableWithColumns: (TagAssociationTableWithColumnsResource)?
+    Catalog: (TagAssociationCatalogResource)?
+    Database: (TagAssociationDatabaseResource)?
+    Table: (TagAssociationTableResource)?
 }
 
-/// 
-open class Resource {
-    Catalog: (CatalogResource)?
-    Database: (DatabaseResource)?
-    Table: (TableResource)?
-    TableWithColumns: (TableWithColumnsResource)?
-}
+typealias TagAssociationLFTagValue = String|Mapping
+
 
 /// 
-open class LFTagKey {
+open class TagAssociationTableResource {
+    CatalogId: TagAssociationCatalogIdString
+    DatabaseName: TagAssociationNameString
+    Name: (TagAssociationNameString)?
+    TableWildcard: (TagAssociationTableWildcard)?
 }
 
-/// 
-open class NameString {
-}
+typealias TagAssociationColumnNames = Listing<(TagAssociationNameString)?>
 
-/// 
-open class TableWithColumnsResource {
-    CatalogId: CatalogIdString
-    DatabaseName: NameString
-    Name: NameString
-    ColumnNames: ColumnNames
-}
 
-/// 
-open class DatabaseResource {
-    CatalogId: CatalogIdString
-    Name: NameString
-}
+typealias TagAssociationTagValueList = Listing<(TagAssociationLFTagValue)?>
 
-/// 
-open class TableWildcard {
-}
 
-/// 
-open class LFTagValue {
-}
+typealias TagAssociationDataLakePrincipalString = String|Mapping
 
-/// 
-open class TagValueList {
-}
-
-/// 
-open class CatalogIdString {
-}
-
-/// 
-open class LFTagPair {
-    TagKey: LFTagKey
-    TagValues: TagValueList
-    CatalogId: CatalogIdString
-}
-
-/// 
-open class DataLakePrincipalString {
-}
-
-/// 
-open class CatalogResource {
-}
-
-/// 
-open class TableResource {
-    CatalogId: CatalogIdString
-    DatabaseName: NameString
-    Name: (NameString)?
-    TableWildcard: (TableWildcard)?
-}
-
-/// 
-open class ColumnNames {
-}
 
 /// A resource schema representing a Lake Formation Tag Association. While tag associations are not explicit Lake Formation resources, this CloudFormation resource can be used to associate tags with Lake Formation entities.
 open class TagAssociation extends cloudformation.Resource {
@@ -98,10 +87,10 @@ open class TagAssociation extends cloudformation.Resource {
 
 
     /// Resource to tag with the Lake Formation Tags
-    hidden Resource: Resource
+    hidden Resource: TagAssociationResource
 
     /// List of Lake Formation Tags to associate with the Lake Formation Resource
-    hidden LFTags: LFTagsList
+    hidden LFTags: TagAssociationLFTagsList
 
     Properties {
         ["Resource"] = if (Resource == null) null else Resource

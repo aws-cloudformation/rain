@@ -6,31 +6,10 @@ module aws.glue.partition
 import "../../cloudformation.pkl"
 
 /// 
-open class PartitionSchemaId {
-    RegistryName: (String|Mapping)?
-    SchemaName: (String|Mapping)?
-    SchemaArn: (String|Mapping)?
-}
-
-/// 
-open class PartitionSerdeInfo {
-    Parameters: (Dynamic)?
-    SerializationLibrary: (String|Mapping)?
-    Name: (String|Mapping)?
-}
-
-/// 
-open class PartitionPartitionInput {
-    StorageDescriptor: (PartitionStorageDescriptor)?
-    Values: Listing<String|Mapping>
-    Parameters: (Dynamic)?
-}
-
-/// 
 open class PartitionSchemaReference {
+    SchemaVersionNumber: (Int|Mapping)?
     SchemaId: (PartitionSchemaId)?
     SchemaVersionId: (String|Mapping)?
-    SchemaVersionNumber: (Int|Mapping)?
 }
 
 /// 
@@ -55,18 +34,39 @@ open class PartitionColumn {
 
 /// 
 open class PartitionStorageDescriptor {
-    SortColumns: (Listing<PartitionOrder>)?
-    Compressed: (Boolean|Mapping)?
-    Location: (String|Mapping)?
+    SkewedInfo: (PartitionSkewedInfo)?
+    InputFormat: (String|Mapping)?
     OutputFormat: (String|Mapping)?
     Columns: (Listing<PartitionColumn>)?
-    SchemaReference: (PartitionSchemaReference)?
-    SkewedInfo: (PartitionSkewedInfo)?
-    NumberOfBuckets: (Int|Mapping)?
-    BucketColumns: (Listing<String|Mapping>)?
     SerdeInfo: (PartitionSerdeInfo)?
-    InputFormat: (String|Mapping)?
+    SortColumns: (Listing<PartitionOrder>)?
+    Compressed: (Boolean|Mapping)?
+    Parameters: (Dynamic)?
+    Location: (String|Mapping)?
     StoredAsSubDirectories: (Boolean|Mapping)?
+    BucketColumns: (Listing<String|Mapping>)?
+    NumberOfBuckets: (Int|Mapping)?
+    SchemaReference: (PartitionSchemaReference)?
+}
+
+/// 
+open class PartitionSchemaId {
+    RegistryName: (String|Mapping)?
+    SchemaName: (String|Mapping)?
+    SchemaArn: (String|Mapping)?
+}
+
+/// 
+open class PartitionSerdeInfo {
+    Parameters: (Dynamic)?
+    SerializationLibrary: (String|Mapping)?
+    Name: (String|Mapping)?
+}
+
+/// 
+open class PartitionPartitionInput {
+    StorageDescriptor: (PartitionStorageDescriptor)?
+    Values: Listing<String|Mapping>
     Parameters: (Dynamic)?
 }
 
@@ -77,22 +77,22 @@ open class Partition extends cloudformation.Resource {
 
 
     /// 
-    hidden CatalogId: String|Mapping
-
-    /// 
-    hidden PartitionInput: PartitionPartitionInput
-
-    /// 
     hidden DatabaseName: String|Mapping
 
     /// 
     hidden TableName: String|Mapping
 
+    /// 
+    hidden CatalogId: String|Mapping
+
+    /// 
+    hidden PartitionInput: PartitionPartitionInput
+
     Properties {
-        ["CatalogId"] = if (CatalogId == null) null else CatalogId
-        ["PartitionInput"] = if (PartitionInput == null) null else PartitionInput
         ["DatabaseName"] = if (DatabaseName == null) null else DatabaseName
         ["TableName"] = if (TableName == null) null else TableName
+        ["CatalogId"] = if (CatalogId == null) null else CatalogId
+        ["PartitionInput"] = if (PartitionInput == null) null else PartitionInput
     }
 
 }

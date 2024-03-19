@@ -6,54 +6,53 @@ module aws.lakeformation.permissions
 import "../../cloudformation.pkl"
 
 /// 
-open class DatabaseResource {
-    CatalogId: (String|Mapping)?
-    Name: (String|Mapping)?
-}
-
-/// 
-open class DataLocationResource {
+open class PermissionsDataLocationResource {
     S3Resource: (String|Mapping)?
     CatalogId: (String|Mapping)?
 }
 
-/// 
-open class TableWildcard {
-}
+typealias PermissionsTableWildcard = Dynamic
+
 
 /// 
-open class TableWithColumnsResource {
-    CatalogId: (String|Mapping)?
-    Name: (String|Mapping)?
-    ColumnWildcard: (ColumnWildcard)?
+open class PermissionsTableWithColumnsResource {
     DatabaseName: (String|Mapping)?
     ColumnNames: (Listing<String|Mapping>)?
+    CatalogId: (String|Mapping)?
+    Name: (String|Mapping)?
+    ColumnWildcard: (PermissionsColumnWildcard)?
 }
 
 /// 
-open class ColumnWildcard {
+open class PermissionsColumnWildcard {
     ExcludedColumnNames: (Listing<String|Mapping>)?
 }
 
 /// 
-open class DataLakePrincipal {
+open class PermissionsDataLakePrincipal {
     DataLakePrincipalIdentifier: (String|Mapping)?
 }
 
 /// 
-open class TableResource {
+open class PermissionsTableResource {
     DatabaseName: (String|Mapping)?
     CatalogId: (String|Mapping)?
-    TableWildcard: (TableWildcard)?
+    TableWildcard: (PermissionsTableWildcard)?
     Name: (String|Mapping)?
 }
 
 /// 
-open class Resource {
-    DatabaseResource: (DatabaseResource)?
-    DataLocationResource: (DataLocationResource)?
-    TableWithColumnsResource: (TableWithColumnsResource)?
-    TableResource: (TableResource)?
+open class PermissionsResource {
+    DatabaseResource: (PermissionsDatabaseResource)?
+    DataLocationResource: (PermissionsDataLocationResource)?
+    TableWithColumnsResource: (PermissionsTableWithColumnsResource)?
+    TableResource: (PermissionsTableResource)?
+}
+
+/// 
+open class PermissionsDatabaseResource {
+    CatalogId: (String|Mapping)?
+    Name: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::LakeFormation::Permissions
@@ -63,22 +62,22 @@ open class Permissions extends cloudformation.Resource {
 
 
     /// 
-    hidden Resource: Resource
-
-    /// 
-    hidden Permissions: (Listing<String|Mapping>)?
-
-    /// 
-    hidden DataLakePrincipal: DataLakePrincipal
+    hidden DataLakePrincipal: PermissionsDataLakePrincipal
 
     /// 
     hidden PermissionsWithGrantOption: (Listing<String|Mapping>)?
 
+    /// 
+    hidden Resource: PermissionsResource
+
+    /// 
+    hidden Permissions: (Listing<String|Mapping>)?
+
     Properties {
-        ["Resource"] = if (Resource == null) null else Resource
-        ["Permissions"] = if (Permissions == null) null else Permissions
         ["DataLakePrincipal"] = if (DataLakePrincipal == null) null else DataLakePrincipal
         ["PermissionsWithGrantOption"] = if (PermissionsWithGrantOption == null) null else PermissionsWithGrantOption
+        ["Resource"] = if (Resource == null) null else Resource
+        ["Permissions"] = if (Permissions == null) null else Permissions
     }
 
 }

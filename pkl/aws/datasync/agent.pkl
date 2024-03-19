@@ -17,6 +17,9 @@ open class Agent extends cloudformation.Resource {
     Type = "AWS::DataSync::Agent"
 
 
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<AgentTag>)?
+
     /// The name configured for the agent. Text reference used to identify the agent in the console.
     hidden AgentName: (String(matches(Regex(#"^[a-zA-Z0-9\s+=._:@/-]+$"#)))|Mapping)?
 
@@ -32,16 +35,13 @@ open class Agent extends cloudformation.Resource {
     /// The ID of the VPC endpoint that the agent has access to.
     hidden VpcEndpointId: (String(matches(Regex(#"^vpce-[0-9a-f]{17}$"#)))|Mapping)?
 
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<AgentTag>)?
-
     Properties {
+        ["Tags"] = if (Tags == null) null else Tags
         ["AgentName"] = if (AgentName == null) null else AgentName
         ["ActivationKey"] = if (ActivationKey == null) null else ActivationKey
         ["SecurityGroupArns"] = if (SecurityGroupArns == null) null else SecurityGroupArns
         ["SubnetArns"] = if (SubnetArns == null) null else SubnetArns
         ["VpcEndpointId"] = if (VpcEndpointId == null) null else VpcEndpointId
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

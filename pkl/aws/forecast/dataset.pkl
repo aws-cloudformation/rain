@@ -5,19 +5,19 @@ module aws.forecast.dataset
 
 import "../../cloudformation.pkl"
 
-typealias DatasetKey = String
-
-
-typealias DatasetValue = String
+typealias DatasetValue = String|Mapping
 
 
 typealias DatasetAttributes = Listing<(Dynamic)?>
 
 
-typealias DatasetKmsKeyArn = String
+typealias DatasetKmsKeyArn = String|Mapping
 
 
-typealias DatasetRoleArn = String
+typealias DatasetRoleArn = String|Mapping
+
+
+typealias DatasetKey = String|Mapping
 
 
 /// Resource Type Definition for AWS::Forecast::Dataset
@@ -27,7 +27,39 @@ open class Dataset extends cloudformation.Resource {
 
 
     /// 
-    hidden EncryptionConfig: (Dynamic)?
+    hidden Schema: Dynamic
 
     /// 
-    hidden Schema: Dynamic
+    hidden Tags: (Listing<Dynamic>)?
+
+    /// A name for the dataset
+    hidden DatasetName: String(matches(Regex(#"^[a-zA-Z][a-zA-Z0-9_]*"#)))|Mapping
+
+    /// The dataset type
+    hidden DatasetType: DatasetDatasetType|Mapping
+
+    /// Frequency of data collection. This parameter is required for RELATED_TIME_SERIES
+    hidden DataFrequency: (String(matches(Regex(#"^Y|M|W|D|H|30min|15min|10min|5min|1min$"#)))|Mapping)?
+
+    /// The domain associated with the dataset
+    hidden Domain: DatasetDomain|Mapping
+
+    /// 
+    hidden EncryptionConfig: (Dynamic)?
+
+    Properties {
+        ["Schema"] = if (Schema == null) null else Schema
+        ["Tags"] = if (Tags == null) null else Tags
+        ["DatasetName"] = if (DatasetName == null) null else DatasetName
+        ["DatasetType"] = if (DatasetType == null) null else DatasetType
+        ["DataFrequency"] = if (DataFrequency == null) null else DataFrequency
+        ["Domain"] = if (Domain == null) null else Domain
+        ["EncryptionConfig"] = if (EncryptionConfig == null) null else EncryptionConfig
+    }
+
+}
+
+
+typealias DatasetDatasetType = "TARGET_TIME_SERIES"|"RELATED_TIME_SERIES"|"ITEM_METADATA"
+
+typealias DatasetDomain = "RETAIL"|"CUSTOM"|"INVENTORY_PLANNING"|"EC2_CAPACITY"|"WORK_FORCE"|"WEB_TRAFFIC"|"METRICS"

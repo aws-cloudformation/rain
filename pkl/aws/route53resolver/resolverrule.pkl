@@ -8,7 +8,7 @@ import "../../cloudformation.pkl"
 typealias TargetAddressProtocol = "Do53"|"DoH"
 
 /// 
-open class TargetAddress {
+open class ResolverRuleTargetAddress {
     Ip: (String|Mapping)?
     Ipv6: (String|Mapping)?
     Port: (String|Mapping)?
@@ -16,7 +16,7 @@ open class TargetAddress {
 }
 
 /// 
-open class Tag {
+open class ResolverRuleTag {
     Key: String|Mapping
     Value: String|Mapping
 }
@@ -27,14 +27,11 @@ open class ResolverRule extends cloudformation.Resource {
     Type = "AWS::Route53Resolver::ResolverRule"
 
 
-    /// When you want to forward DNS queries for specified domain name to resolvers on your network, specify FORWARD. When you have a forwarding rule to forward DNS queries for a domain to your network and you want Resolver to process queries for a subdomain of that domain, specify SYSTEM.
-    hidden RuleType: ResolverRuleRuleType|Mapping
-
     /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<ResolverRuleTag>)?
 
     /// An array that contains the IP addresses and ports that an outbound endpoint forwards DNS queries to. Typically, these are the IP addresses of DNS resolvers on your network. Specify IPv4 addresses. IPv6 is not supported.
-    hidden TargetIps: (Listing<TargetAddress>)?
+    hidden TargetIps: (Listing<ResolverRuleTargetAddress>)?
 
     /// The ID of the endpoint that the rule is associated with.
     hidden ResolverEndpointId: (String|Mapping)?
@@ -45,13 +42,16 @@ open class ResolverRule extends cloudformation.Resource {
     /// The name for the Resolver rule
     hidden Name: (String|Mapping)?
 
+    /// When you want to forward DNS queries for specified domain name to resolvers on your network, specify FORWARD. When you have a forwarding rule to forward DNS queries for a domain to your network and you want Resolver to process queries for a subdomain of that domain, specify SYSTEM.
+    hidden RuleType: ResolverRuleRuleType|Mapping
+
     Properties {
-        ["RuleType"] = if (RuleType == null) null else RuleType
         ["Tags"] = if (Tags == null) null else Tags
         ["TargetIps"] = if (TargetIps == null) null else TargetIps
         ["ResolverEndpointId"] = if (ResolverEndpointId == null) null else ResolverEndpointId
         ["DomainName"] = if (DomainName == null) null else DomainName
         ["Name"] = if (Name == null) null else Name
+        ["RuleType"] = if (RuleType == null) null else RuleType
     }
 
 }

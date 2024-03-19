@@ -5,26 +5,26 @@ module aws.route53resolver.firewallrulegroup
 
 import "../../cloudformation.pkl"
 
+typealias FirewallRuleAction = "ALLOW"|"BLOCK"|"ALERT"
+
 typealias FirewallRuleBlockResponse = "NODATA"|"NXDOMAIN"|"OVERRIDE"
 
 typealias FirewallRuleBlockOverrideDnsType = "CNAME"
 
-typealias FirewallRuleAction = "ALLOW"|"BLOCK"|"ALERT"
-
 /// Firewall Rule associating the Rule Group to a Domain List
-open class FirewallRule {
-    BlockResponse: (FirewallRuleBlockResponse|Mapping)?
-    BlockOverrideDomain: (String|Mapping)?
-    BlockOverrideDnsType: (FirewallRuleBlockOverrideDnsType|Mapping)?
+open class FirewallRuleGroupFirewallRule {
     BlockOverrideTtl: (Int|Mapping)?
     Qtype: (String|Mapping)?
     FirewallDomainListId: String|Mapping
     Priority: Int|Mapping
     Action: FirewallRuleAction|Mapping
+    BlockResponse: (FirewallRuleBlockResponse|Mapping)?
+    BlockOverrideDomain: (String|Mapping)?
+    BlockOverrideDnsType: (FirewallRuleBlockOverrideDnsType|Mapping)?
 }
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class FirewallRuleGroupTag {
     Value: String|Mapping
     Key: String|Mapping
 }
@@ -39,10 +39,10 @@ open class FirewallRuleGroup extends cloudformation.Resource {
     hidden Name: (String(matches(Regex(#"(?!^[0-9]+$)([a-zA-Z0-9\-_' ']+)"#)))|Mapping)?
 
     /// FirewallRules
-    hidden FirewallRules: (Listing<FirewallRule>)?
+    hidden FirewallRules: (Listing<FirewallRuleGroupFirewallRule>)?
 
     /// Tags
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<FirewallRuleGroupTag>)?
 
     Properties {
         ["Name"] = if (Name == null) null else Name

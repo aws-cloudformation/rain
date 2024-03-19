@@ -6,15 +6,15 @@ module aws.vpclattice.service
 import "../../cloudformation.pkl"
 
 /// 
-open class DnsEntry {
-    DomainName: (String|Mapping)?
-    HostedZoneId: (String|Mapping)?
+open class ServiceTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// 
-open class Tag {
-    Key: String|Mapping
-    Value: String|Mapping
+open class ServiceDnsEntry {
+    DomainName: (String|Mapping)?
+    HostedZoneId: (String|Mapping)?
 }
 
 /// A service is any software application that can run on instances containers, or serverless functions within an account or virtual private cloud (VPC).
@@ -24,29 +24,29 @@ open class Service extends cloudformation.Resource {
 
 
     /// 
-    hidden Name: (String(matches(Regex(#"^(?!svc-)(?![-])(?!.*[-]$)(?!.*[-]{2})[a-z0-9-]+$"#)))|Mapping)?
-
-    /// 
-    hidden CertificateArn: (String(matches(Regex(#"^(arn(:[a-z0-9]+([.-][a-z0-9]+)*){2}(:([a-z0-9]+([.-][a-z0-9]+)*)?){2}:certificate/[0-9a-z-]+)?$"#)))|Mapping)?
-
-    /// 
     hidden CustomDomainName: (String|Mapping)?
 
     /// 
     hidden AuthType: (ServiceAuthType|Mapping)?
 
     /// 
-    hidden DnsEntry: (DnsEntry)?
+    hidden DnsEntry: (ServiceDnsEntry)?
 
     /// 
-    hidden Tags: (Listing<Tag>)?
+    hidden Name: (String(matches(Regex(#"^(?!svc-)(?![-])(?!.*[-]$)(?!.*[-]{2})[a-z0-9-]+$"#)))|Mapping)?
+
+    /// 
+    hidden CertificateArn: (String(matches(Regex(#"^(arn(:[a-z0-9]+([.-][a-z0-9]+)*){2}(:([a-z0-9]+([.-][a-z0-9]+)*)?){2}:certificate/[0-9a-z-]+)?$"#)))|Mapping)?
+
+    /// 
+    hidden Tags: (Listing<ServiceTag>)?
 
     Properties {
-        ["Name"] = if (Name == null) null else Name
-        ["CertificateArn"] = if (CertificateArn == null) null else CertificateArn
         ["CustomDomainName"] = if (CustomDomainName == null) null else CustomDomainName
         ["AuthType"] = if (AuthType == null) null else AuthType
         ["DnsEntry"] = if (DnsEntry == null) null else DnsEntry
+        ["Name"] = if (Name == null) null else Name
+        ["CertificateArn"] = if (CertificateArn == null) null else CertificateArn
         ["Tags"] = if (Tags == null) null else Tags
     }
 

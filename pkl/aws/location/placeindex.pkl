@@ -5,32 +5,28 @@ module aws.location.placeindex
 
 import "../../cloudformation.pkl"
 
-/// The datetime value in ISO 8601 format. The timezone is always UTC. (YYYY-MM-DDThh:mm:ss.sssZ)
-open class iso8601UTC {
-}
+typealias PlaceIndexPricingPlan = String|Mapping
 
-/// 
-open class DataSourceConfiguration {
-    IntendedUse: (IntendedUse)?
-}
 
-/// 
-open class IntendedUse {
-}
+typealias PlaceIndexTagMap = Mapping<String, Any>
 
-/// 
-open class PricingPlan {
-}
-
-/// 
-open class TagMap {
-}
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class PlaceIndexTag {
     Key: String(matches(Regex(#"^[a-zA-Z+-=._:/]+$"#)))|Mapping
     Value: String(matches(Regex(#"^[A-Za-z0-9 _=@:.+-/]*$"#)))|Mapping
 }
+
+typealias PlaceIndexiso8601UTC = String|Mapping
+
+
+/// 
+open class PlaceIndexDataSourceConfiguration {
+    IntendedUse: (PlaceIndexIntendedUse)?
+}
+
+typealias PlaceIndexIntendedUse = String|Mapping
+
 
 /// Definition of AWS::Location::PlaceIndex Resource Type
 open class PlaceIndex extends cloudformation.Resource {
@@ -39,30 +35,30 @@ open class PlaceIndex extends cloudformation.Resource {
 
 
     /// 
-    hidden Description: (String|Mapping)?
+    hidden DataSourceConfiguration: (PlaceIndexDataSourceConfiguration)?
 
     /// 
-    hidden PricingPlan: (PricingPlan)?
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden IndexName: String(matches(Regex(#"^[-._\w]+$"#)))|Mapping
+    hidden PricingPlan: (PlaceIndexPricingPlan)?
 
     /// 
     hidden DataSource: String|Mapping
 
     /// 
-    hidden DataSourceConfiguration: (DataSourceConfiguration)?
+    hidden Description: (String|Mapping)?
+
+    /// 
+    hidden IndexName: String(matches(Regex(#"^[-._\w]+$"#)))|Mapping
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<PlaceIndexTag>)?
 
     Properties {
-        ["Description"] = if (Description == null) null else Description
-        ["PricingPlan"] = if (PricingPlan == null) null else PricingPlan
-        ["Tags"] = if (Tags == null) null else Tags
-        ["IndexName"] = if (IndexName == null) null else IndexName
-        ["DataSource"] = if (DataSource == null) null else DataSource
         ["DataSourceConfiguration"] = if (DataSourceConfiguration == null) null else DataSourceConfiguration
+        ["PricingPlan"] = if (PricingPlan == null) null else PricingPlan
+        ["DataSource"] = if (DataSource == null) null else DataSource
+        ["Description"] = if (Description == null) null else Description
+        ["IndexName"] = if (IndexName == null) null else IndexName
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

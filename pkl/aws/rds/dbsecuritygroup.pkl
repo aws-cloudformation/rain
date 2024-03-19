@@ -6,7 +6,7 @@ module aws.rds.dbsecuritygroup
 import "../../cloudformation.pkl"
 
 /// 
-open class Ingress {
+open class DBSecurityGroupIngress {
     CIDRIP: (String|Mapping)?
     EC2SecurityGroupId: (String|Mapping)?
     EC2SecurityGroupName: (String|Mapping)?
@@ -14,7 +14,7 @@ open class Ingress {
 }
 
 /// 
-open class Tag {
+open class DBSecurityGroupTag {
     Key: String|Mapping
     Value: String|Mapping
 }
@@ -26,22 +26,22 @@ open class DBSecurityGroup extends cloudformation.Resource {
 
 
     /// 
-    hidden DBSecurityGroupIngress: Listing<Ingress>
-
-    /// 
     hidden EC2VpcId: (String|Mapping)?
 
     /// 
     hidden GroupDescription: String|Mapping
 
     /// 
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<DBSecurityGroupTag>)?
+
+    /// 
+    hidden DBSecurityGroupIngress: Listing<DBSecurityGroupIngress>
 
     Properties {
-        ["DBSecurityGroupIngress"] = if (DBSecurityGroupIngress == null) null else DBSecurityGroupIngress
         ["EC2VpcId"] = if (EC2VpcId == null) null else EC2VpcId
         ["GroupDescription"] = if (GroupDescription == null) null else GroupDescription
         ["Tags"] = if (Tags == null) null else Tags
+        ["DBSecurityGroupIngress"] = if (DBSecurityGroupIngress == null) null else DBSecurityGroupIngress
     }
 
 }

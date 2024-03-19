@@ -5,47 +5,46 @@ module aws.resourcegroups.group
 
 import "../../cloudformation.pkl"
 
-/// 
-open class ConfigurationParameter {
-    Name: (String|Mapping)?
-    Values: (Listing<String|Mapping>)?
-}
-
 typealias ResourceQueryType = "TAG_FILTERS_1_0"|"CLOUDFORMATION_STACK_1_0"
 
 /// 
-open class ResourceQuery {
+open class GroupResourceQuery {
+    Query: (GroupQuery)?
     Type: (ResourceQueryType|Mapping)?
-    Query: (Query)?
 }
 
 /// 
-open class Query {
+open class GroupQuery {
     ResourceTypeFilters: (Listing<String|Mapping>)?
     StackIdentifier: (String|Mapping)?
-    TagFilters: (Listing<TagFilter>)?
+    TagFilters: (Listing<GroupTagFilter>)?
 }
 
 /// 
-open class TagFilter {
+open class GroupTagFilter {
     Key: (String|Mapping)?
     Values: (Listing<String|Mapping>)?
 }
 
 /// 
-open class Tag {
+open class GroupTag {
     Key: (String(matches(Regex(#"^(?!aws:).+"#)))|Mapping)?
     Value: (String|Mapping)?
 }
 
+typealias GroupConfiguration = Listing<(GroupConfigurationItem)?>
+
+
 /// 
-open class Configuration {
+open class GroupConfigurationItem {
+    Type: (String|Mapping)?
+    Parameters: (Listing<GroupConfigurationParameter>)?
 }
 
 /// 
-open class ConfigurationItem {
-    Type: (String|Mapping)?
-    Parameters: (Listing<ConfigurationParameter>)?
+open class GroupConfigurationParameter {
+    Name: (String|Mapping)?
+    Values: (Listing<String|Mapping>)?
 }
 
 /// Schema for ResourceGroups::Group
@@ -54,15 +53,6 @@ open class Group extends cloudformation.Resource {
     Type = "AWS::ResourceGroups::Group"
 
 
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden Configuration: (Configuration)?
-
-    /// 
-    hidden Resources: (Listing<String|Mapping>)?
-
     /// The name of the resource group
     hidden Name: String|Mapping
 
@@ -70,15 +60,24 @@ open class Group extends cloudformation.Resource {
     hidden Description: (String|Mapping)?
 
     /// 
-    hidden ResourceQuery: (ResourceQuery)?
+    hidden ResourceQuery: (GroupResourceQuery)?
+
+    /// 
+    hidden Tags: (Listing<GroupTag>)?
+
+    /// 
+    hidden Configuration: (GroupConfiguration)?
+
+    /// 
+    hidden Resources: (Listing<String|Mapping>)?
 
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Configuration"] = if (Configuration == null) null else Configuration
-        ["Resources"] = if (Resources == null) null else Resources
         ["Name"] = if (Name == null) null else Name
         ["Description"] = if (Description == null) null else Description
         ["ResourceQuery"] = if (ResourceQuery == null) null else ResourceQuery
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Configuration"] = if (Configuration == null) null else Configuration
+        ["Resources"] = if (Resources == null) null else Resources
     }
 
 }

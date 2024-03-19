@@ -28,10 +28,13 @@ open class CACertificate extends cloudformation.Resource {
     hidden VerificationCertificatePem: (String(matches(Regex(#"[\s\S]*"#)))|Mapping)?
 
     /// 
-    hidden Status: CACertificateStatus|Mapping
+    hidden CertificateMode: (CACertificateCertificateMode|Mapping)?
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<CACertificateTag>)?
 
     /// 
-    hidden CertificateMode: (CACertificateCertificateMode|Mapping)?
+    hidden CACertificatePem: String(matches(Regex(#"[\s\S]*"#)))|Mapping
 
     /// 
     hidden AutoRegistrationStatus: (CACertificateAutoRegistrationStatus|Mapping)?
@@ -43,27 +46,24 @@ open class CACertificate extends cloudformation.Resource {
     hidden RegistrationConfig: (CACertificateRegistrationConfig)?
 
     /// 
-    hidden CACertificatePem: String(matches(Regex(#"[\s\S]*"#)))|Mapping
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<CACertificateTag>)?
+    hidden Status: CACertificateStatus|Mapping
 
     Properties {
         ["VerificationCertificatePem"] = if (VerificationCertificatePem == null) null else VerificationCertificatePem
-        ["Status"] = if (Status == null) null else Status
         ["CertificateMode"] = if (CertificateMode == null) null else CertificateMode
+        ["Tags"] = if (Tags == null) null else Tags
+        ["CACertificatePem"] = if (CACertificatePem == null) null else CACertificatePem
         ["AutoRegistrationStatus"] = if (AutoRegistrationStatus == null) null else AutoRegistrationStatus
         ["RemoveAutoRegistration"] = if (RemoveAutoRegistration == null) null else RemoveAutoRegistration
         ["RegistrationConfig"] = if (RegistrationConfig == null) null else RegistrationConfig
-        ["CACertificatePem"] = if (CACertificatePem == null) null else CACertificatePem
-        ["Tags"] = if (Tags == null) null else Tags
+        ["Status"] = if (Status == null) null else Status
     }
 
 }
 
 
-typealias CACertificateStatus = "ACTIVE"|"INACTIVE"
-
 typealias CACertificateCertificateMode = "DEFAULT"|"SNI_ONLY"
 
 typealias CACertificateAutoRegistrationStatus = "ENABLE"|"DISABLE"
+
+typealias CACertificateStatus = "ACTIVE"|"INACTIVE"

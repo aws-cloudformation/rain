@@ -5,21 +5,19 @@ module aws.robomaker.robotapplication
 
 import "../../cloudformation.pkl"
 
-/// 
-open class Arn {
-}
+typealias RobotApplicationArn = String|Mapping
 
-/// A key-value pair to associate with a resource.
-open class Tags {
-}
+
+typealias RobotApplicationTags = Mapping<String, Any>
+
 
 typealias SourceConfigArchitecture = "X86_64"|"ARM64"|"ARMHF"
 
 /// 
-open class SourceConfig {
-    S3Bucket: String|Mapping
+open class RobotApplicationSourceConfig {
     S3Key: String|Mapping
     Architecture: SourceConfigArchitecture|Mapping
+    S3Bucket: String|Mapping
 }
 
 typealias RobotSoftwareSuiteName = "ROS"|"ROS2"|"General"
@@ -27,7 +25,7 @@ typealias RobotSoftwareSuiteName = "ROS"|"ROS2"|"General"
 typealias RobotSoftwareSuiteVersion = "Kinetic"|"Melodic"|"Dashing"
 
 /// The robot software suite used by the robot application.
-open class RobotSoftwareSuite {
+open class RobotApplicationRobotSoftwareSuite {
     Name: RobotSoftwareSuiteName|Mapping
     Version: (RobotSoftwareSuiteVersion|Mapping)?
 }
@@ -38,31 +36,31 @@ open class RobotApplication extends cloudformation.Resource {
     Type = "AWS::RoboMaker::RobotApplication"
 
 
+    /// The name of the robot application.
+    hidden Name: (String|Mapping)?
+
+    /// The sources of the robot application.
+    hidden Sources: (Listing<RobotApplicationSourceConfig>)?
+
     /// The URI of the Docker image for the robot application.
     hidden Environment: (String|Mapping)?
 
     /// 
-    hidden RobotSoftwareSuite: RobotSoftwareSuite
+    hidden RobotSoftwareSuite: RobotApplicationRobotSoftwareSuite
 
     /// The revision ID of robot application.
     hidden CurrentRevisionId: (String|Mapping)?
 
     /// 
-    hidden Tags: (Tags)?
-
-    /// The name of the robot application.
-    hidden Name: (String|Mapping)?
-
-    /// The sources of the robot application.
-    hidden Sources: (Listing<SourceConfig>)?
+    hidden Tags: (RobotApplicationTags)?
 
     Properties {
+        ["Name"] = if (Name == null) null else Name
+        ["Sources"] = if (Sources == null) null else Sources
         ["Environment"] = if (Environment == null) null else Environment
         ["RobotSoftwareSuite"] = if (RobotSoftwareSuite == null) null else RobotSoftwareSuite
         ["CurrentRevisionId"] = if (CurrentRevisionId == null) null else CurrentRevisionId
         ["Tags"] = if (Tags == null) null else Tags
-        ["Name"] = if (Name == null) null else Name
-        ["Sources"] = if (Sources == null) null else Sources
     }
 
 }

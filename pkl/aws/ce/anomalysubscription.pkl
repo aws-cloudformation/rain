@@ -8,21 +8,21 @@ import "../../cloudformation.pkl"
 typealias AnomalySubscriptionArn = String|Mapping
 
 
-typealias SubscriberStatus = "CONFIRMED"|"DECLINED"
-
 typealias SubscriberType = "EMAIL"|"SNS"
+
+typealias SubscriberStatus = "CONFIRMED"|"DECLINED"
 
 /// 
 open class AnomalySubscriptionSubscriber {
+    Type: SubscriberType|Mapping
     Address: String(matches(Regex(#"(^[a-zA-Z0-9.!#$%&'*+=?^_‘{|}~-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$)|(^arn:(aws[a-zA-Z-]*):sns:[a-zA-Z0-9-]+:[0-9]{12}:[a-zA-Z0-9_-]+(\.fifo)?$)"#)))|Mapping
     Status: (SubscriberStatus|Mapping)?
-    Type: SubscriberType|Mapping
 }
 
 /// A key-value pair to associate with a resource.
 open class AnomalySubscriptionResourceTag {
-    Value: String|Mapping
     Key: String(matches(Regex(#"^(?!aws:).*$"#)))|Mapping
+    Value: String|Mapping
 }
 
 /// AWS Cost Anomaly Detection leverages advanced Machine Learning technologies to identify anomalous spend and root causes, so you can quickly take action. Create subscription to be notified
@@ -31,35 +31,35 @@ open class AnomalySubscription extends cloudformation.Resource {
     Type = "AWS::CE::AnomalySubscription"
 
 
-    /// Tags to assign to subscription.
-    hidden ResourceTags: (Listing<AnomalySubscriptionResourceTag>)?
-
-    /// A list of subscriber
-    hidden Subscribers: Listing<AnomalySubscriptionSubscriber>
-
-    /// An Expression object in JSON String format used to specify the anomalies that you want to generate alerts for.
-    hidden ThresholdExpression: (String|Mapping)?
-
-    /// The frequency at which anomaly reports are sent over email. 
-    hidden Frequency: AnomalySubscriptionFrequency|Mapping
-
     /// The name of the subscription.
     hidden SubscriptionName: String(matches(Regex(#"[\S\s]*"#)))|Mapping
 
     /// A list of cost anomaly monitors.
     hidden MonitorArnList: Listing<AnomalySubscriptionArn>
 
+    /// An Expression object in JSON String format used to specify the anomalies that you want to generate alerts for.
+    hidden ThresholdExpression: (String|Mapping)?
+
+    /// A list of subscriber
+    hidden Subscribers: Listing<AnomalySubscriptionSubscriber>
+
     /// The dollar value that triggers a notification if the threshold is exceeded. 
     hidden Threshold: (Number|Mapping)?
 
+    /// The frequency at which anomaly reports are sent over email. 
+    hidden Frequency: AnomalySubscriptionFrequency|Mapping
+
+    /// Tags to assign to subscription.
+    hidden ResourceTags: (Listing<AnomalySubscriptionResourceTag>)?
+
     Properties {
-        ["ResourceTags"] = if (ResourceTags == null) null else ResourceTags
-        ["Subscribers"] = if (Subscribers == null) null else Subscribers
-        ["ThresholdExpression"] = if (ThresholdExpression == null) null else ThresholdExpression
-        ["Frequency"] = if (Frequency == null) null else Frequency
         ["SubscriptionName"] = if (SubscriptionName == null) null else SubscriptionName
         ["MonitorArnList"] = if (MonitorArnList == null) null else MonitorArnList
+        ["ThresholdExpression"] = if (ThresholdExpression == null) null else ThresholdExpression
+        ["Subscribers"] = if (Subscribers == null) null else Subscribers
         ["Threshold"] = if (Threshold == null) null else Threshold
+        ["Frequency"] = if (Frequency == null) null else Frequency
+        ["ResourceTags"] = if (ResourceTags == null) null else ResourceTags
     }
 
 }

@@ -5,22 +5,6 @@ module aws.iottwinmaker.componenttype
 
 import "../../cloudformation.pkl"
 
-/// An object that sets information about a composite component type.
-open class ComponentTypeCompositeComponentType {
-    ComponentTypeId: (String(matches(Regex(#"[a-zA-Z_\.\-0-9:]+"#)))|Mapping)?
-}
-
-typealias DataTypeType = "RELATIONSHIP"|"STRING"|"LONG"|"BOOLEAN"|"INTEGER"|"DOUBLE"|"LIST"|"MAP"
-
-/// An object that specifies the data type of a property.
-open class ComponentTypeDataType {
-    AllowedValues: (Listing<ComponentTypeDataValue>)?
-    NestedType: (ComponentTypeDataType)?
-    Relationship: (ComponentTypeRelationship)?
-    Type: DataTypeType|Mapping
-    UnitOfMeasure: (String(matches(Regex(#".*"#)))|Mapping)?
-}
-
 typealias PropertyGroupGroupType = "TABULAR"
 
 /// An object that sets information about a property group.
@@ -29,49 +13,43 @@ open class ComponentTypePropertyGroup {
     PropertyNames: (Listing<ComponentTypePropertyName>)?
 }
 
-typealias ComponentTypeParentComponentType = String
-
-
-typealias FunctionScope = "ENTITY"|"WORKSPACE"
-
-/// The function of component type.
-open class ComponentTypeFunction {
-    ImplementedBy: (ComponentTypeDataConnector)?
-    RequiredProperties: (Listing<ComponentTypeRequiredProperty>)?
-    Scope: (FunctionScope|Mapping)?
-}
-
-typealias ComponentTypePropertyName = String
-
-
-/// An object that sets information about a property.
-open class ComponentTypePropertyDefinition {
-    DataType: (ComponentTypeDataType)?
-    DefaultValue: (ComponentTypeDataValue)?
-    IsExternalId: (Boolean|Mapping)?
-    IsRequiredInEntity: (Boolean|Mapping)?
-    IsStoredExternally: (Boolean|Mapping)?
-    IsTimeSeries: (Boolean|Mapping)?
-    Configurations: (Dynamic)?
-}
+typealias ComponentTypeDataValueMapValue = Mapping<String, Any>
 
 /// An object that specifies a value for a property.
 open class ComponentTypeDataValue {
-    IntegerValue: (Int|Mapping)?
+    StringValue: (String(matches(Regex(#".*"#)))|Mapping)?
+    RelationshipValue: (Dynamic)?
+    DoubleValue: (Number|Mapping)?
+    Expression: (String(matches(Regex(#"(^\$\{Parameters\.[a-zA-z]+([a-zA-z_0-9]*)}$)"#)))|Mapping)?
     ListValue: (Listing<ComponentTypeDataValue>)?
     LongValue: (Number|Mapping)?
-    RelationshipValue: (Dynamic)?
+    MapValue: (ComponentTypeDataValueMapValue)?
     BooleanValue: (Boolean|Mapping)?
-    Expression: (String(matches(Regex(#"(^\$\{Parameters\.[a-zA-z]+([a-zA-z_0-9]*)}$)"#)))|Mapping)?
-    StringValue: (String(matches(Regex(#".*"#)))|Mapping)?
-    MapValue: (Dynamic)?
-    DoubleValue: (Number|Mapping)?
+    IntegerValue: (Int|Mapping)?
 }
 
-/// The type of the relationship.
-open class ComponentTypeRelationship {
-    TargetComponentTypeId: (String(matches(Regex(#"[a-zA-Z_\.\-0-9:]+"#)))|Mapping)?
-    RelationshipType: (String(matches(Regex(#".*"#)))|Mapping)?
+typealias DataTypeType = "RELATIONSHIP"|"STRING"|"LONG"|"BOOLEAN"|"INTEGER"|"DOUBLE"|"LIST"|"MAP"
+
+/// An object that specifies the data type of a property.
+open class ComponentTypeDataType {
+    NestedType: (ComponentTypeDataType)?
+    Relationship: (ComponentTypeRelationship)?
+    Type: DataTypeType|Mapping
+    UnitOfMeasure: (String(matches(Regex(#".*"#)))|Mapping)?
+    AllowedValues: (Listing<ComponentTypeDataValue>)?
+}
+
+/// An object that sets information about a composite component type.
+open class ComponentTypeCompositeComponentType {
+    ComponentTypeId: (String(matches(Regex(#"[a-zA-Z_\.\-0-9:]+"#)))|Mapping)?
+}
+
+typealias ComponentTypeDateTimeFormat = String|Mapping
+
+
+/// 
+open class ComponentTypeLambdaFunction {
+    Arn: String(matches(Regex(#"arn:((aws)|(aws-cn)|(aws-us-gov)):lambda:[a-z0-9-]+:[0-9]{12}:function:[\/a-zA-Z0-9_-]+"#)))|Mapping
 }
 
 typealias StatusState = "CREATING"|"UPDATING"|"DELETING"|"ACTIVE"|"ERROR"
@@ -82,16 +60,30 @@ open class ComponentTypeStatus {
     Error: (Dynamic)?
 }
 
-typealias ComponentTypeDateTimeFormat = String
+typealias ComponentTypeParentComponentType = String|Mapping
 
 
-/// 
-open class ComponentTypeLambdaFunction {
-    Arn: String(matches(Regex(#"arn:((aws)|(aws-cn)|(aws-us-gov)):lambda:[a-z0-9-]+:[0-9]{12}:function:[\/a-zA-Z0-9_-]+"#)))|Mapping
+typealias ComponentTypePropertyName = String|Mapping
+
+
+typealias ComponentTypePropertyDefinitionConfigurations = Mapping<String, Any>
+
+/// An object that sets information about a property.
+open class ComponentTypePropertyDefinition {
+    IsRequiredInEntity: (Boolean|Mapping)?
+    IsStoredExternally: (Boolean|Mapping)?
+    IsTimeSeries: (Boolean|Mapping)?
+    Configurations: (ComponentTypePropertyDefinitionConfigurations)?
+    DataType: (ComponentTypeDataType)?
+    DefaultValue: (ComponentTypeDataValue)?
+    IsExternalId: (Boolean|Mapping)?
 }
 
-typealias ComponentTypeRequiredProperty = String
-
+/// The type of the relationship.
+open class ComponentTypeRelationship {
+    RelationshipType: (String(matches(Regex(#".*"#)))|Mapping)?
+    TargetComponentTypeId: (String(matches(Regex(#"[a-zA-Z_\.\-0-9:]+"#)))|Mapping)?
+}
 
 /// The data connector.
 open class ComponentTypeDataConnector {
@@ -99,53 +91,76 @@ open class ComponentTypeDataConnector {
     Lambda: (ComponentTypeLambdaFunction)?
 }
 
+typealias FunctionScope = "ENTITY"|"WORKSPACE"
+
+/// The function of component type.
+open class ComponentTypeFunction {
+    RequiredProperties: (Listing<ComponentTypeRequiredProperty>)?
+    Scope: (FunctionScope|Mapping)?
+    ImplementedBy: (ComponentTypeDataConnector)?
+}
+
+typealias ComponentTypeRequiredProperty = String|Mapping
+
+
 /// Resource schema for AWS::IoTTwinMaker::ComponentType
 open class ComponentType extends cloudformation.Resource {
 
     Type = "AWS::IoTTwinMaker::ComponentType"
 
 
+    /// A map of key-value pairs to associate with a resource.
+    hidden Tags: (ComponentTypeComponentTypeTags)?
+
     /// The ID of the component type.
     hidden ComponentTypeId: String(matches(Regex(#"[a-zA-Z_\.\-0-9:]+"#)))|Mapping
-
-    /// An map of the property groups in the component type. Each property group's key must be unique to this map.
-    hidden PropertyGroups: (Dynamic)?
-
-    /// An map of the composite component types in the component type. Each composite component type's key must be unique to this map.
-    hidden CompositeComponentTypes: (Dynamic)?
-
-    /// a Map of functions in the component type. Each function's key must be unique to this map.
-    hidden Functions: (Dynamic)?
-
-    /// A Boolean value that specifies whether an entity can have more than one component of this type.
-    hidden IsSingleton: (Boolean|Mapping)?
-
-    /// An map of the property definitions in the component type. Each property definition's key must be unique to this map.
-    hidden PropertyDefinitions: (Dynamic)?
-
-    /// A map of key-value pairs to associate with a resource.
-    hidden Tags: (Dynamic)?
-
-    /// The description of the component type.
-    hidden Description: (String|Mapping)?
 
     /// Specifies the parent component type to extend.
     hidden ExtendsFrom: (Listing<ComponentTypeParentComponentType>)?
 
+    /// A Boolean value that specifies whether an entity can have more than one component of this type.
+    hidden IsSingleton: (Boolean|Mapping)?
+
     /// The ID of the workspace that contains the component type.
     hidden WorkspaceId: String(matches(Regex(#"[a-zA-Z_0-9][a-zA-Z_\-0-9]*[a-zA-Z0-9]+"#)))|Mapping
 
+    /// An map of the composite component types in the component type. Each composite component type's key must be unique to this map.
+    hidden CompositeComponentTypes: (ComponentTypeComponentTypeCompositeComponentTypes)?
+
+    /// a Map of functions in the component type. Each function's key must be unique to this map.
+    hidden Functions: (ComponentTypeComponentTypeFunctions)?
+
+    /// An map of the property definitions in the component type. Each property definition's key must be unique to this map.
+    hidden PropertyDefinitions: (ComponentTypeComponentTypePropertyDefinitions)?
+
+    /// The description of the component type.
+    hidden Description: (String|Mapping)?
+
+    /// An map of the property groups in the component type. Each property group's key must be unique to this map.
+    hidden PropertyGroups: (ComponentTypeComponentTypePropertyGroups)?
+
     Properties {
+        ["Tags"] = if (Tags == null) null else Tags
         ["ComponentTypeId"] = if (ComponentTypeId == null) null else ComponentTypeId
-        ["PropertyGroups"] = if (PropertyGroups == null) null else PropertyGroups
+        ["ExtendsFrom"] = if (ExtendsFrom == null) null else ExtendsFrom
+        ["IsSingleton"] = if (IsSingleton == null) null else IsSingleton
+        ["WorkspaceId"] = if (WorkspaceId == null) null else WorkspaceId
         ["CompositeComponentTypes"] = if (CompositeComponentTypes == null) null else CompositeComponentTypes
         ["Functions"] = if (Functions == null) null else Functions
-        ["IsSingleton"] = if (IsSingleton == null) null else IsSingleton
         ["PropertyDefinitions"] = if (PropertyDefinitions == null) null else PropertyDefinitions
-        ["Tags"] = if (Tags == null) null else Tags
         ["Description"] = if (Description == null) null else Description
-        ["ExtendsFrom"] = if (ExtendsFrom == null) null else ExtendsFrom
-        ["WorkspaceId"] = if (WorkspaceId == null) null else WorkspaceId
+        ["PropertyGroups"] = if (PropertyGroups == null) null else PropertyGroups
     }
 
 }
+
+
+typealias ComponentTypeComponentTypeTags = Mapping<String, Any>
+
+typealias ComponentTypeComponentTypeCompositeComponentTypes = Mapping<String, Any>
+
+typealias ComponentTypeComponentTypeFunctions = Mapping<String, Any>
+
+typealias ComponentTypeComponentTypePropertyDefinitions = Mapping<String, Any>
+
+typealias ComponentTypeComponentTypePropertyGroups = Mapping<String, Any>

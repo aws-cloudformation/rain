@@ -6,20 +6,41 @@ module aws.ses.receiptrule
 import "../../cloudformation.pkl"
 
 /// 
-open class AddHeaderAction {
-    HeaderValue: String|Mapping
-    HeaderName: String|Mapping
-}
-
-/// 
-open class LambdaAction {
+open class ReceiptRuleLambdaAction {
+    FunctionArn: String|Mapping
     TopicArn: (String|Mapping)?
     InvocationType: (String|Mapping)?
-    FunctionArn: String|Mapping
 }
 
 /// 
-open class S3Action {
+open class ReceiptRuleRule {
+    Recipients: (Listing<String|Mapping>)?
+    Actions: (Listing<ReceiptRuleAction>)?
+    Enabled: (Boolean|Mapping)?
+    Name: (String|Mapping)?
+    TlsPolicy: (String|Mapping)?
+    ScanEnabled: (Boolean|Mapping)?
+}
+
+/// 
+open class ReceiptRuleAction {
+    BounceAction: (ReceiptRuleBounceAction)?
+    S3Action: (ReceiptRuleS3Action)?
+    StopAction: (ReceiptRuleStopAction)?
+    SNSAction: (ReceiptRuleSNSAction)?
+    WorkmailAction: (ReceiptRuleWorkmailAction)?
+    AddHeaderAction: (ReceiptRuleAddHeaderAction)?
+    LambdaAction: (ReceiptRuleLambdaAction)?
+}
+
+/// 
+open class ReceiptRuleStopAction {
+    Scope: String|Mapping
+    TopicArn: (String|Mapping)?
+}
+
+/// 
+open class ReceiptRuleS3Action {
     KmsKeyArn: (String|Mapping)?
     TopicArn: (String|Mapping)?
     ObjectKeyPrefix: (String|Mapping)?
@@ -27,46 +48,25 @@ open class S3Action {
 }
 
 /// 
-open class SNSAction {
+open class ReceiptRuleSNSAction {
     TopicArn: (String|Mapping)?
     Encoding: (String|Mapping)?
 }
 
 /// 
-open class WorkmailAction {
+open class ReceiptRuleWorkmailAction {
     TopicArn: (String|Mapping)?
     OrganizationArn: String|Mapping
 }
 
 /// 
-open class StopAction {
-    Scope: String|Mapping
-    TopicArn: (String|Mapping)?
+open class ReceiptRuleAddHeaderAction {
+    HeaderValue: String|Mapping
+    HeaderName: String|Mapping
 }
 
 /// 
-open class Rule {
-    ScanEnabled: (Boolean|Mapping)?
-    Recipients: (Listing<String|Mapping>)?
-    Actions: (Listing<Action>)?
-    Enabled: (Boolean|Mapping)?
-    Name: (String|Mapping)?
-    TlsPolicy: (String|Mapping)?
-}
-
-/// 
-open class Action {
-    SNSAction: (SNSAction)?
-    WorkmailAction: (WorkmailAction)?
-    AddHeaderAction: (AddHeaderAction)?
-    LambdaAction: (LambdaAction)?
-    BounceAction: (BounceAction)?
-    S3Action: (S3Action)?
-    StopAction: (StopAction)?
-}
-
-/// 
-open class BounceAction {
+open class ReceiptRuleBounceAction {
     Sender: String|Mapping
     SmtpReplyCode: String|Mapping
     Message: String|Mapping
@@ -81,18 +81,18 @@ open class ReceiptRule extends cloudformation.Resource {
 
 
     /// 
-    hidden Rule: Rule
+    hidden After: (String|Mapping)?
+
+    /// 
+    hidden Rule: ReceiptRuleRule
 
     /// 
     hidden RuleSetName: String|Mapping
 
-    /// 
-    hidden After: (String|Mapping)?
-
     Properties {
+        ["After"] = if (After == null) null else After
         ["Rule"] = if (Rule == null) null else Rule
         ["RuleSetName"] = if (RuleSetName == null) null else RuleSetName
-        ["After"] = if (After == null) null else After
     }
 
 }

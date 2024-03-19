@@ -5,19 +5,6 @@ module aws.connect.queue
 
 import "../../cloudformation.pkl"
 
-/// The outbound caller ID name, number, and outbound whisper flow.
-open class QueueOutboundCallerConfig {
-    OutboundCallerIdName: (QueueOutboundCallerIdName)?
-    OutboundCallerIdNumberArn: (QueueOutboundCallerIdNumberArn)?
-    OutboundFlowArn: (QueueOutboundFlowArn)?
-}
-
-typealias QueueQuickConnectArn = String|Mapping
-
-
-typealias QueueOutboundCallerIdName = String|Mapping
-
-
 typealias QueueOutboundCallerIdNumberArn = String|Mapping
 
 
@@ -36,6 +23,19 @@ typealias QueueKey = String|Mapping
 typealias QueueValue = String|Mapping
 
 
+/// The outbound caller ID name, number, and outbound whisper flow.
+open class QueueOutboundCallerConfig {
+    OutboundCallerIdName: (QueueOutboundCallerIdName)?
+    OutboundCallerIdNumberArn: (QueueOutboundCallerIdNumberArn)?
+    OutboundFlowArn: (QueueOutboundFlowArn)?
+}
+
+typealias QueueQuickConnectArn = String|Mapping
+
+
+typealias QueueOutboundCallerIdName = String|Mapping
+
+
 /// Resource Type definition for AWS::Connect::Queue
 open class Queue extends cloudformation.Resource {
 
@@ -45,8 +45,11 @@ open class Queue extends cloudformation.Resource {
     /// The description of the queue.
     hidden Description: (String|Mapping)?
 
-    /// The status of the queue.
-    hidden Status: (QueueStatus|Mapping)?
+    /// The outbound caller ID name, number, and outbound whisper flow.
+    hidden OutboundCallerConfig: (QueueOutboundCallerConfig)?
+
+    /// The quick connects available to agents who are working the queue.
+    hidden QuickConnectArns: (Listing<QueueQuickConnectArn>)?
 
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<QueueTag>)?
@@ -63,22 +66,19 @@ open class Queue extends cloudformation.Resource {
     /// The name of the queue.
     hidden Name: String|Mapping
 
-    /// The outbound caller ID name, number, and outbound whisper flow.
-    hidden OutboundCallerConfig: (QueueOutboundCallerConfig)?
-
-    /// The quick connects available to agents who are working the queue.
-    hidden QuickConnectArns: (Listing<QueueQuickConnectArn>)?
+    /// The status of the queue.
+    hidden Status: (QueueStatus|Mapping)?
 
     Properties {
         ["Description"] = if (Description == null) null else Description
-        ["Status"] = if (Status == null) null else Status
+        ["OutboundCallerConfig"] = if (OutboundCallerConfig == null) null else OutboundCallerConfig
+        ["QuickConnectArns"] = if (QuickConnectArns == null) null else QuickConnectArns
         ["Tags"] = if (Tags == null) null else Tags
         ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
         ["HoursOfOperationArn"] = if (HoursOfOperationArn == null) null else HoursOfOperationArn
         ["MaxContacts"] = if (MaxContacts == null) null else MaxContacts
         ["Name"] = if (Name == null) null else Name
-        ["OutboundCallerConfig"] = if (OutboundCallerConfig == null) null else OutboundCallerConfig
-        ["QuickConnectArns"] = if (QuickConnectArns == null) null else QuickConnectArns
+        ["Status"] = if (Status == null) null else Status
     }
 
 }

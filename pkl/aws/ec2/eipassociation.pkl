@@ -11,6 +11,12 @@ open class EIPAssociation extends cloudformation.Resource {
     Type = "AWS::EC2::EIPAssociation"
 
 
+    /// The Elastic IP address to associate with the instance.
+    hidden EIP: (String|Mapping)?
+
+    /// The allocation ID. This is required for EC2-VPC.
+    hidden AllocationId: (String|Mapping)?
+
     /// The ID of the network interface.
     hidden NetworkInterfaceId: (String|Mapping)?
 
@@ -20,18 +26,12 @@ open class EIPAssociation extends cloudformation.Resource {
     /// The primary or secondary private IP address to associate with the Elastic IP address.
     hidden PrivateIpAddress: (String|Mapping)?
 
-    /// The Elastic IP address to associate with the instance.
-    hidden EIP: (String|Mapping)?
-
-    /// The allocation ID. This is required for EC2-VPC.
-    hidden AllocationId: (String|Mapping)?
-
     Properties {
+        ["EIP"] = if (EIP == null) null else EIP
+        ["AllocationId"] = if (AllocationId == null) null else AllocationId
         ["NetworkInterfaceId"] = if (NetworkInterfaceId == null) null else NetworkInterfaceId
         ["InstanceId"] = if (InstanceId == null) null else InstanceId
         ["PrivateIpAddress"] = if (PrivateIpAddress == null) null else PrivateIpAddress
-        ["EIP"] = if (EIP == null) null else EIP
-        ["AllocationId"] = if (AllocationId == null) null else AllocationId
     }
 
 }

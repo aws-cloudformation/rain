@@ -5,436 +5,420 @@ module aws.quicksight.dataset
 
 import "../../cloudformation.pkl"
 
-/// 
-open class StringDatasetParameterValueList {
-}
+typealias DataSetDateTimeDatasetParameterValueList = Listing<(String|Mapping)?>
 
-/// 
-open class GeoSpatialCountryCode {
-}
 
-/// <p>Permission for the resource.</p>
-open class RowLevelPermissionTagRule {
-    TagKey: String|Mapping
-    MatchAllValue: (String|Mapping)?
-    TagMultiValueDelimiter: (String|Mapping)?
+/// <p>A transform operation that renames a column.</p>
+open class DataSetRenameColumnOperation {
+    NewColumnName: String|Mapping
     ColumnName: String|Mapping
 }
 
-/// <p>The key or keys of the key-value pairs for the resource tag or tags assigned to the
-//////             resource.</p>
-open class Tag {
-    Key: String|Mapping
-    Value: String|Mapping
+/// <p> Refresh Configuration.</p>
+open class DataSetRefreshConfiguration {
+    IncrementalRefresh: (DataSetIncrementalRefresh)?
 }
 
-/// <p>Metadata that contains a description for a column.</p>
-open class ColumnDescription {
-    Text: (String|Mapping)?
+typealias DataSetRowLevelPermissionTagRuleConfiguration = Listing<(String|Mapping)?>
+
+
+/// <p>A transform operation that overrides the dataset parameter values defined in another dataset.</p>
+open class DataSetOverrideDatasetParameterOperation {
+    ParameterName: DataSetDatasetParameterName
+    NewParameterName: (DataSetDatasetParameterName)?
+    NewDefaultValues: (DataSetNewDefaultValues)?
+}
+
+typealias DataSetGeoSpatialCountryCode = String|Mapping
+
+
+typealias DataSetDatasetParameterValueType = String|Mapping
+
+
+/// <p>A transform operation that filters rows based on a condition.</p>
+open class DataSetFilterOperation {
+    ConditionExpression: String|Mapping
+}
+
+typealias DataSetFieldFolderMap = Mapping<String, Any>
+
+
+typealias DataSetPhysicalTableMap = Mapping<String, Any>
+
+
+/// <p>List of default values defined for a given string date time parameter type. Currently only static values are supported.</p>
+open class DataSetDateTimeDatasetParameterDefaultValues {
+    StaticValues: (DataSetDateTimeDatasetParameterValueList)?
+}
+
+typealias DataSetTextQualifier = String|Mapping
+
+
+/// <p>A physical table type for as S3 data source.</p>
+open class DataSetS3Source {
+    UploadSettings: (DataSetUploadSettings)?
+    DataSourceArn: String|Mapping
+    InputColumns: Listing<DataSetInputColumn>
+}
+
+typealias DataSetInputColumnDataType = String|Mapping
+
+
+/// 
+open class DataSetJoinKeyProperties {
+    UniqueKey: (Boolean|Mapping)?
+}
+
+/// <p>Output column.</p>
+open class DataSetOutputColumn {
+    Type: (DataSetColumnDataType)?
+    SubType: (DataSetColumnSubDataType)?
+    Description: (String|Mapping)?
+    Name: (String|Mapping)?
+}
+
+typealias DataSetRowLevelPermissionPolicy = String|Mapping
+
+
+typealias DataSetRowLevelPermissionFormatVersion = String|Mapping
+
+
+/// <p>Metadata for a column that is used as the input of a transform operation.</p>
+open class DataSetInputColumn {
+    SubType: (DataSetColumnSubDataType)?
+    Name: String|Mapping
+    Type: DataSetInputColumnDataType
 }
 
 /// <p>A physical table type built from the results of the custom SQL query.</p>
-open class CustomSql {
+open class DataSetCustomSql {
     DataSourceArn: String|Mapping
     SqlQuery: String|Mapping
-    Columns: Listing<InputColumn>
+    Columns: Listing<DataSetInputColumn>
     Name: String|Mapping
 }
 
-/// <p>Identifier of the parameter created in the dataset.</p>
-open class DatasetParameterId {
+typealias DataSetLogicalTableMap = Mapping<String, Any>
+
+
+/// <p>A transform operation that projects columns. Operations that come after a projection
+///
+///             can only refer to projected columns.</p>
+open class DataSetProjectOperation {
+    ProjectedColumns: Listing<String|Mapping>
 }
 
-/// <p>List of default values defined for a given string dataset parameter type. Currently only static values are supported.</p>
-open class StringDatasetParameterDefaultValues {
-    StaticValues: (StringDatasetParameterValueList)?
+/// <p>Permission for the resource.</p>
+open class DataSetRowLevelPermissionTagRule {
+    ColumnName: String|Mapping
+    TagKey: String|Mapping
+    MatchAllValue: (String|Mapping)?
+    TagMultiValueDelimiter: (String|Mapping)?
+}
+
+/// <p>Wait policy to use when creating/updating dataset. Default is to wait for SPICE ingestion to finish with timeout of 36 hours.</p>
+open class DataSetIngestionWaitPolicy {
+    WaitForSpiceIngestion: (Boolean|Mapping)?
+    IngestionWaitTimeInHours: (Number|Mapping)?
 }
 
 /// 
-open class FieldFolderMap {
+open class DataSetColumnLevelPermissionRule {
+    ColumnNames: (Listing<String|Mapping>)?
+    Principals: (Listing<String|Mapping>)?
 }
 
+/// <p>A transform operation that creates calculated columns. Columns created in one such
+///
+///             operation form a lexical closure.</p>
+open class DataSetCreateColumnsOperation {
+    Columns: Listing<DataSetCalculatedColumn>
+}
+
+/// <p>List of default values defined for a given string dataset parameter type. Currently only static values are supported.</p>
+open class DataSetStringDatasetParameterDefaultValues {
+    StaticValues: (DataSetStringDatasetParameterValueList)?
+}
+
+/// <p>A tag for a column in a <a>TagColumnOperation</a> structure. This is a
+///
+///             variant type structure. For this structure to be valid, only one of the attributes can
+///             be non-null.</p>
+open class DataSetColumnTag {
+    ColumnGeographicRole: (DataSetGeoSpatialDataRole)?
+    ColumnDescription: (DataSetColumnDescription)?
+}
+
+/// 
+open class DataSetLookbackWindow {
+    Size: (Number|Mapping)?
+    SizeUnit: (DataSetSizeUnit)?
+    ColumnName: (String|Mapping)?
+}
+
+/// <p>List of default values defined for a given decimal dataset parameter type. Currently only static values are supported.</p>
+open class DataSetDecimalDatasetParameterDefaultValues {
+    StaticValues: (DataSetDecimalDatasetParameterValueList)?
+}
+
+typealias DataSetColumnSubDataType = String|Mapping
+
+
+typealias DataSetTimeGranularity = String|Mapping
+
+
+typealias DataSetFileFormat = String|Mapping
+
+
+/// <p>A view of a data source that contains information about the shape of the data in the
+///
+///             underlying source. This is a variant type structure. For this structure to be valid,
+///             only one of the attributes can be non-null.</p>
+open class DataSetPhysicalTable {
+    S3Source: (DataSetS3Source)?
+    RelationalTable: (DataSetRelationalTable)?
+    CustomSql: (DataSetCustomSql)?
+}
+
+typealias DataSetDataSetImportMode = String|Mapping
+
+
+/// <p>List of default values defined for a given integer dataset parameter type. Currently only static values are supported.</p>
+open class DataSetIntegerDatasetParameterDefaultValues {
+    StaticValues: (DataSetIntegerDatasetParameterValueList)?
+}
+
+typealias DataSetDecimalDatasetParameterValueList = Listing<(Number|Mapping)?>
+
+
 /// <p>Information about the source of a logical table. This is a variant type structure. For
-//////             this structure to be valid, only one of the attributes can be non-null.</p>
-open class LogicalTableSource {
+///
+///             this structure to be valid, only one of the attributes can be non-null.</p>
+open class DataSetLogicalTableSource {
     PhysicalTableId: (String(matches(Regex(#"[0-9a-zA-Z-]*"#)))|Mapping)?
-    JoinInstruction: (JoinInstruction)?
+    JoinInstruction: (DataSetJoinInstruction)?
     DataSetArn: (String|Mapping)?
 }
 
-/// <p>Information about the format for a source file or files.</p>
-open class UploadSettings {
-    TextQualifier: (TextQualifier)?
-    Format: (FileFormat)?
-    StartFromRow: (Number|Mapping)?
-    Delimiter: (String|Mapping)?
-    ContainsHeader: (Boolean|Mapping)?
+/// <p>The dataset usage configuration for the dataset.</p>
+open class DataSetDataSetUsageConfiguration {
+    DisableUseAsDirectQuerySource: (Boolean|Mapping)?
+    DisableUseAsImportedSource: (Boolean|Mapping)?
+}
+
+/// <p>A parameter created in the dataset of decimal data type.</p>
+open class DataSetDecimalDatasetParameter {
+    Name: DataSetDatasetParameterName
+    ValueType: DataSetDatasetParameterValueType
+    DefaultValues: (DataSetDecimalDatasetParameterDefaultValues)?
+    Id: DataSetDatasetParameterId
+}
+
+typealias DataSetStatus = String|Mapping
+
+
+/// 
+open class DataSetFieldFolder {
+    Description: (String|Mapping)?
+    Columns: (Listing<String|Mapping>)?
+}
+
+/// 
+open class DataSetNewDefaultValues {
+    StringStaticValues: (DataSetStringDatasetParameterValueList)?
+    DecimalStaticValues: (DataSetDecimalDatasetParameterValueList)?
+    DateTimeStaticValues: (DataSetDateTimeDatasetParameterValueList)?
+    IntegerStaticValues: (DataSetIntegerDatasetParameterValueList)?
+}
+
+typealias DataSetJoinType = String|Mapping
+
+
+/// <p>A parameter created in the dataset of integer data type.</p>
+open class DataSetIntegerDatasetParameter {
+    ValueType: DataSetDatasetParameterValueType
+    DefaultValues: (DataSetIntegerDatasetParameterDefaultValues)?
+    Id: DataSetDatasetParameterId
+    Name: DataSetDatasetParameterName
+}
+
+/// <p>A parameter created in the dataset of date time data type.</p>
+open class DataSetDateTimeDatasetParameter {
+    DefaultValues: (DataSetDateTimeDatasetParameterDefaultValues)?
+    Id: DataSetDatasetParameterId
+    Name: DataSetDatasetParameterName
+    ValueType: DataSetDatasetParameterValueType
+    TimeGranularity: (DataSetTimeGranularity)?
+}
+
+/// <p>A <i>logical table</i> is a unit that joins and that data
+///
+///             transformations operate on. A logical table has a source, which can be either a physical
+///             table or result of a join. When a logical table points to a physical table, the logical
+///             table acts as a mutable copy of that physical table through transform operations.</p>
+open class DataSetLogicalTable {
+    Alias: String|Mapping
+    DataTransforms: (Listing<DataSetTransformOperation>)?
+    Source: DataSetLogicalTableSource
+}
+
+/// <p>The configuration of tags on a dataset to set row-level security.</p>
+open class DataSetRowLevelPermissionTagConfiguration {
+    Status: (DataSetStatus)?
+    TagRules: Listing<DataSetRowLevelPermissionTagRule>
+    TagRuleConfigurations: (Listing<DataSetRowLevelPermissionTagRuleConfiguration>)?
+}
+
+/// <p>Geospatial column group that denotes a hierarchy.</p>
+open class DataSetGeoSpatialColumnGroup {
+    CountryCode: (DataSetGeoSpatialCountryCode)?
+    Name: String|Mapping
+    Columns: Listing<String|Mapping>
+}
+
+typealias DataSetGeoSpatialDataRole = String|Mapping
+
+
+typealias DataSetSizeUnit = String|Mapping
+
+
+typealias DataSetDatasetParameterName = String|Mapping
+
+
+/// <p>Permission for the resource.</p>
+open class DataSetResourcePermission {
+    Actions: Listing<String|Mapping>
+    Principal: String|Mapping
+}
+
+/// <p>The dataset refresh properties for the dataset.</p>
+open class DataSetDataSetRefreshProperties {
+    RefreshConfiguration: (DataSetRefreshConfiguration)?
+}
+
+typealias DataSetIntegerDatasetParameterValueList = Listing<(Number|Mapping)?>
+
+
+/// <p>The key or keys of the key-value pairs for the resource tag or tags assigned to the
+///
+///             resource.</p>
+open class DataSetTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+typealias DataSetStringDatasetParameterValueList = Listing<(String|Mapping)?>
+
+
+/// <p>A parameter created in the dataset that could be of any one data type such as string, integer, decimal or datetime.</p>
+open class DataSetDatasetParameter {
+    StringDatasetParameter: (DataSetStringDatasetParameter)?
+    DecimalDatasetParameter: (DataSetDecimalDatasetParameter)?
+    IntegerDatasetParameter: (DataSetIntegerDatasetParameter)?
+    DateTimeDatasetParameter: (DataSetDateTimeDatasetParameter)?
+}
+
+/// <p>A physical table type for relational data sources.</p>
+open class DataSetRelationalTable {
+    Name: String|Mapping
+    DataSourceArn: String|Mapping
+    InputColumns: Listing<DataSetInputColumn>
+    Schema: (String|Mapping)?
+    Catalog: (String|Mapping)?
 }
 
 /// <p>A calculated column for a dataset.</p>
-open class CalculatedColumn {
+open class DataSetCalculatedColumn {
     ColumnId: String|Mapping
     ColumnName: String|Mapping
     Expression: String|Mapping
 }
 
-/// <p>A tag for a column in a <a>TagColumnOperation</a> structure. This is a
-//////             variant type structure. For this structure to be valid, only one of the attributes can
-///             be non-null.</p>
-open class ColumnTag {
-    ColumnGeographicRole: (GeoSpatialDataRole)?
-    ColumnDescription: (ColumnDescription)?
-}
-
-/// <p>Name of the parameter created in the dataset.</p>
-open class DatasetParameterName {
-}
-
-/// <p>List of default values defined for a given string date time parameter type. Currently only static values are supported.</p>
-open class DateTimeDatasetParameterDefaultValues {
-    StaticValues: (DateTimeDatasetParameterValueList)?
-}
-
-/// 
-open class FileFormat {
-}
-
-/// 
-open class LogicalTableMap {
-}
-
-/// <p>A physical table type for relational data sources.</p>
-open class RelationalTable {
-    DataSourceArn: String|Mapping
-    InputColumns: Listing<InputColumn>
-    Schema: (String|Mapping)?
-    Catalog: (String|Mapping)?
-    Name: String|Mapping
-}
-
-/// <p>The row-level security configuration for the dataset.</p>
-open class RowLevelPermissionDataSet {
-    FormatVersion: (RowLevelPermissionFormatVersion)?
-    Status: (Status)?
-    Arn: String|Mapping
-    Namespace: (String(matches(Regex(#"^[a-zA-Z0-9._-]*$"#)))|Mapping)?
-    PermissionPolicy: RowLevelPermissionPolicy
-}
-
-/// 
-open class DataSetImportMode {
-}
-
-/// <p>A parameter created in the dataset of decimal data type.</p>
-open class DecimalDatasetParameter {
-    Id: DatasetParameterId
-    Name: DatasetParameterName
-    ValueType: DatasetParameterValueType
-    DefaultValues: (DecimalDatasetParameterDefaultValues)?
-}
-
-/// <p>List of default values defined for a given decimal dataset parameter type. Currently only static values are supported.</p>
-open class DecimalDatasetParameterDefaultValues {
-    StaticValues: (DecimalDatasetParameterValueList)?
-}
-
-/// 
-open class FieldFolder {
-    Columns: (Listing<String|Mapping>)?
-    Description: (String|Mapping)?
-}
-
-/// 
-open class NewDefaultValues {
-    StringStaticValues: (StringDatasetParameterValueList)?
-    DecimalStaticValues: (DecimalDatasetParameterValueList)?
-    DateTimeStaticValues: (DateTimeDatasetParameterValueList)?
-    IntegerStaticValues: (IntegerDatasetParameterValueList)?
-}
-
-/// 
-open class ColumnDataType {
-}
-
-/// <p>A transform operation that creates calculated columns. Columns created in one such
-//////             operation form a lexical closure.</p>
-open class CreateColumnsOperation {
-    Columns: Listing<CalculatedColumn>
-}
-
-/// 
-open class DateTimeDatasetParameterValueList {
-}
-
-/// 
-open class DecimalDatasetParameterValueList {
-}
-
-/// <p>A transform operation that renames a column.</p>
-open class RenameColumnOperation {
-    NewColumnName: String|Mapping
-    ColumnName: String|Mapping
-}
-
-/// 
-open class RowLevelPermissionTagRuleConfiguration {
-}
-
-/// <p>A physical table type for as S3 data source.</p>
-open class S3Source {
-    InputColumns: Listing<InputColumn>
-    UploadSettings: (UploadSettings)?
-    DataSourceArn: String|Mapping
-}
-
-/// <p>The dataset usage configuration for the dataset.</p>
-open class DataSetUsageConfiguration {
-    DisableUseAsDirectQuerySource: (Boolean|Mapping)?
-    DisableUseAsImportedSource: (Boolean|Mapping)?
+/// <p>Metadata that contains a description for a column.</p>
+open class DataSetColumnDescription {
+    Text: (String|Mapping)?
 }
 
 /// <p>Groupings of columns that work together in certain Amazon QuickSight features. This is
-//////             a variant type structure. For this structure to be valid, only one of the attributes can
+///
+///             a variant type structure. For this structure to be valid, only one of the attributes can
 ///             be non-null.</p>
-open class ColumnGroup {
-    GeoSpatialColumnGroup: (GeoSpatialColumnGroup)?
-}
-
-/// <p>Join instruction.</p>
-open class JoinInstruction {
-    OnClause: String|Mapping
-    Type: JoinType
-    LeftJoinKeyProperties: (JoinKeyProperties)?
-    LeftOperand: String(matches(Regex(#"[0-9a-zA-Z-]*"#)))|Mapping
-    RightOperand: String(matches(Regex(#"[0-9a-zA-Z-]*"#)))|Mapping
-    RightJoinKeyProperties: (JoinKeyProperties)?
-}
-
-/// <p>Output column.</p>
-open class OutputColumn {
-    Type: (ColumnDataType)?
-    SubType: (ColumnSubDataType)?
-    Description: (String|Mapping)?
-    Name: (String|Mapping)?
-}
-
-/// <p>A transform operation that projects columns. Operations that come after a projection
-//////             can only refer to projected columns.</p>
-open class ProjectOperation {
-    ProjectedColumns: Listing<String|Mapping>
-}
-
-/// <p>Every parameter value could be either a single value or multi value which helps to validate before evaluation.</p>
-open class DatasetParameterValueType {
-}
-
-/// <p>List of default values defined for a given integer dataset parameter type. Currently only static values are supported.</p>
-open class IntegerDatasetParameterDefaultValues {
-    StaticValues: (IntegerDatasetParameterValueList)?
-}
-
-/// <p>A parameter created in the dataset of string data type.</p>
-open class StringDatasetParameter {
-    Id: DatasetParameterId
-    Name: DatasetParameterName
-    ValueType: DatasetParameterValueType
-    DefaultValues: (StringDatasetParameterDefaultValues)?
-}
-
-/// 
-open class JoinKeyProperties {
-    UniqueKey: (Boolean|Mapping)?
-}
-
-/// <p>A parameter created in the dataset of integer data type.</p>
-open class IntegerDatasetParameter {
-    Id: DatasetParameterId
-    Name: DatasetParameterName
-    ValueType: DatasetParameterValueType
-    DefaultValues: (IntegerDatasetParameterDefaultValues)?
-}
-
-/// 
-open class SizeUnit {
-}
-
-/// 
-open class RowLevelPermissionPolicy {
-}
-
-/// 
-open class RowLevelPermissionFormatVersion {
-}
-
-/// <p>The configuration of tags on a dataset to set row-level security.</p>
-open class RowLevelPermissionTagConfiguration {
-    Status: (Status)?
-    TagRules: Listing<RowLevelPermissionTagRule>
-    TagRuleConfigurations: (Listing<RowLevelPermissionTagRuleConfiguration>)?
+open class DataSetColumnGroup {
+    GeoSpatialColumnGroup: (DataSetGeoSpatialColumnGroup)?
 }
 
 /// <p>A transform operation that casts a column to a different type.</p>
-open class CastColumnTypeOperation {
+open class DataSetCastColumnTypeOperation {
     ColumnName: String|Mapping
     Format: (String|Mapping)?
-    NewColumnType: ColumnDataType
-    SubType: (ColumnSubDataType)?
+    NewColumnType: DataSetColumnDataType
+    SubType: (DataSetColumnSubDataType)?
 }
 
-/// 
-open class ColumnLevelPermissionRule {
-    ColumnNames: (Listing<String|Mapping>)?
-    Principals: (Listing<String|Mapping>)?
+/// <p>Join instruction.</p>
+open class DataSetJoinInstruction {
+    RightOperand: String(matches(Regex(#"[0-9a-zA-Z-]*"#)))|Mapping
+    RightJoinKeyProperties: (DataSetJoinKeyProperties)?
+    OnClause: String|Mapping
+    Type: DataSetJoinType
+    LeftJoinKeyProperties: (DataSetJoinKeyProperties)?
+    LeftOperand: String(matches(Regex(#"[0-9a-zA-Z-]*"#)))|Mapping
 }
 
-/// <p>Geospatial column group that denotes a hierarchy.</p>
-open class GeoSpatialColumnGroup {
-    Columns: Listing<String|Mapping>
-    CountryCode: (GeoSpatialCountryCode)?
-    Name: String|Mapping
+/// <p>The row-level security configuration for the dataset.</p>
+open class DataSetRowLevelPermissionDataSet {
+    Arn: String|Mapping
+    Namespace: (String(matches(Regex(#"^[a-zA-Z0-9._-]*$"#)))|Mapping)?
+    PermissionPolicy: DataSetRowLevelPermissionPolicy
+    FormatVersion: (DataSetRowLevelPermissionFormatVersion)?
+    Status: (DataSetStatus)?
 }
 
-/// <p>Permission for the resource.</p>
-open class ResourcePermission {
-    Actions: Listing<String|Mapping>
-    Principal: String|Mapping
+/// <p>Information about the format for a source file or files.</p>
+open class DataSetUploadSettings {
+    ContainsHeader: (Boolean|Mapping)?
+    TextQualifier: (DataSetTextQualifier)?
+    Format: (DataSetFileFormat)?
+    StartFromRow: (Number|Mapping)?
+    Delimiter: (String|Mapping)?
 }
 
-/// <p>A <i>logical table</i> is a unit that joins and that data
-//////             transformations operate on. A logical table has a source, which can be either a physical
-///             table or result of a join. When a logical table points to a physical table, the logical
-///             table acts as a mutable copy of that physical table through transform operations.</p>
-open class LogicalTable {
-    Alias: String|Mapping
-    DataTransforms: (Listing<TransformOperation>)?
-    Source: LogicalTableSource
-}
-
-/// <p>A transform operation that overrides the dataset parameter values defined in another dataset.</p>
-open class OverrideDatasetParameterOperation {
-    ParameterName: DatasetParameterName
-    NewParameterName: (DatasetParameterName)?
-    NewDefaultValues: (NewDefaultValues)?
-}
-
-/// 
-open class PhysicalTableMap {
-}
-
-/// <p>Wait policy to use when creating/updating dataset. Default is to wait for SPICE ingestion to finish with timeout of 36 hours.</p>
-open class IngestionWaitPolicy {
-    WaitForSpiceIngestion: (Boolean|Mapping)?
-    IngestionWaitTimeInHours: (Number|Mapping)?
-}
-
-/// <p> Refresh Configuration.</p>
-open class RefreshConfiguration {
-    IncrementalRefresh: (IncrementalRefresh)?
-}
-
-/// 
-open class JoinType {
-}
-
-/// <p>A transform operation that filters rows based on a condition.</p>
-open class FilterOperation {
-    ConditionExpression: String|Mapping
-}
-
-/// 
-open class LookbackWindow {
-    ColumnName: (String|Mapping)?
-    Size: (Number|Mapping)?
-    SizeUnit: (SizeUnit)?
-}
-
-/// 
-open class TimeGranularity {
-}
-
-/// <p>Metadata for a column that is used as the input of a transform operation.</p>
-open class InputColumn {
-    Type: InputColumnDataType
-    SubType: (ColumnSubDataType)?
-    Name: String|Mapping
-}
-
-/// 
-open class InputColumnDataType {
-}
-
-/// <p>The dataset refresh properties for the dataset.</p>
-open class DataSetRefreshProperties {
-    RefreshConfiguration: (RefreshConfiguration)?
-}
-
-/// 
-open class ColumnSubDataType {
-}
-
-/// 
-open class IntegerDatasetParameterValueList {
-}
-
-/// 
-open class Status {
-}
-
-/// 
-open class TextQualifier {
-}
-
-/// <p>A view of a data source that contains information about the shape of the data in the
-//////             underlying source. This is a variant type structure. For this structure to be valid,
-///             only one of the attributes can be non-null.</p>
-open class PhysicalTable {
-    RelationalTable: (RelationalTable)?
-    CustomSql: (CustomSql)?
-    S3Source: (S3Source)?
-}
-
-/// <p>A transform operation that tags a column with additional information.</p>
-open class TagColumnOperation {
-    ColumnName: String|Mapping
-    Tags: Listing<ColumnTag>
-}
-
-/// <p>A data transformation on a logical table. This is a variant type structure. For this
-//////             structure to be valid, only one of the attributes can be non-null.</p>
-open class TransformOperation {
-    TagColumnOperation: (TagColumnOperation)?
-    FilterOperation: (FilterOperation)?
-    CastColumnTypeOperation: (CastColumnTypeOperation)?
-    CreateColumnsOperation: (CreateColumnsOperation)?
-    RenameColumnOperation: (RenameColumnOperation)?
-    ProjectOperation: (ProjectOperation)?
-    OverrideDatasetParameterOperation: (OverrideDatasetParameterOperation)?
-}
-
-/// <p>A parameter created in the dataset that could be of any one data type such as string, integer, decimal or datetime.</p>
-open class DatasetParameter {
-    DecimalDatasetParameter: (DecimalDatasetParameter)?
-    IntegerDatasetParameter: (IntegerDatasetParameter)?
-    DateTimeDatasetParameter: (DateTimeDatasetParameter)?
-    StringDatasetParameter: (StringDatasetParameter)?
-}
-
-/// <p>A parameter created in the dataset of date time data type.</p>
-open class DateTimeDatasetParameter {
-    Id: DatasetParameterId
-    Name: DatasetParameterName
-    ValueType: DatasetParameterValueType
-    TimeGranularity: (TimeGranularity)?
-    DefaultValues: (DateTimeDatasetParameterDefaultValues)?
-}
-
-/// 
-open class GeoSpatialDataRole {
+/// <p>A parameter created in the dataset of string data type.</p>
+open class DataSetStringDatasetParameter {
+    ValueType: DataSetDatasetParameterValueType
+    DefaultValues: (DataSetStringDatasetParameterDefaultValues)?
+    Id: DataSetDatasetParameterId
+    Name: DataSetDatasetParameterName
 }
 
 /// <p>Incremental Refresh</p>
-open class IncrementalRefresh {
-    LookbackWindow: (LookbackWindow)?
+open class DataSetIncrementalRefresh {
+    LookbackWindow: (DataSetLookbackWindow)?
+}
+
+/// <p>A data transformation on a logical table. This is a variant type structure. For this
+///
+///             structure to be valid, only one of the attributes can be non-null.</p>
+open class DataSetTransformOperation {
+    TagColumnOperation: (DataSetTagColumnOperation)?
+    FilterOperation: (DataSetFilterOperation)?
+    CastColumnTypeOperation: (DataSetCastColumnTypeOperation)?
+    CreateColumnsOperation: (DataSetCreateColumnsOperation)?
+    RenameColumnOperation: (DataSetRenameColumnOperation)?
+    ProjectOperation: (DataSetProjectOperation)?
+    OverrideDatasetParameterOperation: (DataSetOverrideDatasetParameterOperation)?
+}
+
+typealias DataSetColumnDataType = String|Mapping
+
+
+typealias DataSetDatasetParameterId = String|Mapping
+
+
+/// <p>A transform operation that tags a column with additional information.</p>
+open class DataSetTagColumnOperation {
+    ColumnName: String|Mapping
+    Tags: Listing<DataSetColumnTag>
 }
 
 /// Definition of the AWS::QuickSight::DataSet Resource Type.
@@ -444,74 +428,74 @@ open class DataSet extends cloudformation.Resource {
 
 
     /// 
-    hidden ColumnLevelPermissionRules: (Listing<ColumnLevelPermissionRule>)?
-
-    /// 
-    hidden DataSetId: (String|Mapping)?
+    hidden FieldFolders: (DataSetFieldFolderMap)?
 
     /// <p>The display name for the dataset.</p>
     hidden Name: (String|Mapping)?
 
-    /// 
-    hidden PhysicalTableMap: (PhysicalTableMap)?
-
-    /// 
-    hidden RowLevelPermissionDataSet: (RowLevelPermissionDataSet)?
-
-    /// 
-    hidden DataSetUsageConfiguration: (DataSetUsageConfiguration)?
-
-    /// 
-    hidden ImportMode: (DataSetImportMode)?
-
     /// <p>A list of resource permissions on the dataset.</p>
-    hidden Permissions: (Listing<ResourcePermission>)?
+    hidden Permissions: (Listing<DataSetResourcePermission>)?
 
     /// 
-    hidden DataSetRefreshProperties: (DataSetRefreshProperties)?
-
-    /// <p>Groupings of columns that work together in certain QuickSight features. Currently, only geospatial hierarchy is supported.</p>
-    hidden ColumnGroups: (Listing<ColumnGroup>)?
+    hidden RowLevelPermissionDataSet: (DataSetRowLevelPermissionDataSet)?
 
     /// 
-    hidden IngestionWaitPolicy: (IngestionWaitPolicy)?
-
-    /// 
-    hidden RowLevelPermissionTagConfiguration: (RowLevelPermissionTagConfiguration)?
-
-    /// <p>The parameters declared in the dataset.</p>
-    hidden DatasetParameters: (Listing<DatasetParameter>)?
-
-    /// 
-    hidden FieldFolders: (FieldFolderMap)?
-
-    /// 
-    hidden LogicalTableMap: (LogicalTableMap)?
-
-    /// <p>Contains a map of the key-value pairs for the resource tag or tags assigned to the dataset.</p>
-    hidden Tags: (Listing<Tag>)?
+    hidden RowLevelPermissionTagConfiguration: (DataSetRowLevelPermissionTagConfiguration)?
 
     /// 
     hidden AwsAccountId: (String(matches(Regex(#"^[0-9]{12}$"#)))|Mapping)?
 
+    /// 
+    hidden DataSetId: (String|Mapping)?
+
+    /// 
+    hidden ColumnLevelPermissionRules: (Listing<DataSetColumnLevelPermissionRule>)?
+
+    /// 
+    hidden LogicalTableMap: (DataSetLogicalTableMap)?
+
+    /// 
+    hidden PhysicalTableMap: (DataSetPhysicalTableMap)?
+
+    /// <p>Contains a map of the key-value pairs for the resource tag or tags assigned to the dataset.</p>
+    hidden Tags: (Listing<DataSetTag>)?
+
+    /// 
+    hidden IngestionWaitPolicy: (DataSetIngestionWaitPolicy)?
+
+    /// <p>Groupings of columns that work together in certain QuickSight features. Currently, only geospatial hierarchy is supported.</p>
+    hidden ColumnGroups: (Listing<DataSetColumnGroup>)?
+
+    /// <p>The parameters declared in the dataset.</p>
+    hidden DatasetParameters: (Listing<DataSetDatasetParameter>)?
+
+    /// 
+    hidden ImportMode: (DataSetDataSetImportMode)?
+
+    /// 
+    hidden DataSetUsageConfiguration: (DataSetDataSetUsageConfiguration)?
+
+    /// 
+    hidden DataSetRefreshProperties: (DataSetDataSetRefreshProperties)?
+
     Properties {
-        ["ColumnLevelPermissionRules"] = if (ColumnLevelPermissionRules == null) null else ColumnLevelPermissionRules
-        ["DataSetId"] = if (DataSetId == null) null else DataSetId
-        ["Name"] = if (Name == null) null else Name
-        ["PhysicalTableMap"] = if (PhysicalTableMap == null) null else PhysicalTableMap
-        ["RowLevelPermissionDataSet"] = if (RowLevelPermissionDataSet == null) null else RowLevelPermissionDataSet
-        ["DataSetUsageConfiguration"] = if (DataSetUsageConfiguration == null) null else DataSetUsageConfiguration
-        ["ImportMode"] = if (ImportMode == null) null else ImportMode
-        ["Permissions"] = if (Permissions == null) null else Permissions
-        ["DataSetRefreshProperties"] = if (DataSetRefreshProperties == null) null else DataSetRefreshProperties
-        ["ColumnGroups"] = if (ColumnGroups == null) null else ColumnGroups
-        ["IngestionWaitPolicy"] = if (IngestionWaitPolicy == null) null else IngestionWaitPolicy
-        ["RowLevelPermissionTagConfiguration"] = if (RowLevelPermissionTagConfiguration == null) null else RowLevelPermissionTagConfiguration
-        ["DatasetParameters"] = if (DatasetParameters == null) null else DatasetParameters
         ["FieldFolders"] = if (FieldFolders == null) null else FieldFolders
-        ["LogicalTableMap"] = if (LogicalTableMap == null) null else LogicalTableMap
-        ["Tags"] = if (Tags == null) null else Tags
+        ["Name"] = if (Name == null) null else Name
+        ["Permissions"] = if (Permissions == null) null else Permissions
+        ["RowLevelPermissionDataSet"] = if (RowLevelPermissionDataSet == null) null else RowLevelPermissionDataSet
+        ["RowLevelPermissionTagConfiguration"] = if (RowLevelPermissionTagConfiguration == null) null else RowLevelPermissionTagConfiguration
         ["AwsAccountId"] = if (AwsAccountId == null) null else AwsAccountId
+        ["DataSetId"] = if (DataSetId == null) null else DataSetId
+        ["ColumnLevelPermissionRules"] = if (ColumnLevelPermissionRules == null) null else ColumnLevelPermissionRules
+        ["LogicalTableMap"] = if (LogicalTableMap == null) null else LogicalTableMap
+        ["PhysicalTableMap"] = if (PhysicalTableMap == null) null else PhysicalTableMap
+        ["Tags"] = if (Tags == null) null else Tags
+        ["IngestionWaitPolicy"] = if (IngestionWaitPolicy == null) null else IngestionWaitPolicy
+        ["ColumnGroups"] = if (ColumnGroups == null) null else ColumnGroups
+        ["DatasetParameters"] = if (DatasetParameters == null) null else DatasetParameters
+        ["ImportMode"] = if (ImportMode == null) null else ImportMode
+        ["DataSetUsageConfiguration"] = if (DataSetUsageConfiguration == null) null else DataSetUsageConfiguration
+        ["DataSetRefreshProperties"] = if (DataSetRefreshProperties == null) null else DataSetRefreshProperties
     }
 
 }

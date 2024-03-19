@@ -5,51 +5,51 @@ module aws.transfer.workflow
 
 import "../../cloudformation.pkl"
 
-/// Specifies the key-value pair that are assigned to a file during the execution of a Tagging step.
-open class S3Tag {
+typealias WorkflowStepType = "COPY"|"CUSTOM"|"DECRYPT"|"DELETE"|"TAG"
+
+/// The basic building block of a workflow.
+open class WorkflowWorkflowStep {
+    TagStepDetails: (Dynamic)?
+    Type: (WorkflowStepType|Mapping)?
+    CopyStepDetails: (Dynamic)?
+    CustomStepDetails: (Dynamic)?
+    DecryptStepDetails: (Dynamic)?
+    DeleteStepDetails: (Dynamic)?
+}
+
+/// Creates a key-value pair for a specific resource.
+open class WorkflowTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
+/// Specifies the key-value pair that are assigned to a file during the execution of a Tagging step.
+open class WorkflowS3Tag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
 /// Specifies the details for an EFS file.
-open class EfsInputFileLocation {
+open class WorkflowEfsInputFileLocation {
     FileSystemId: (String(matches(Regex(#"^(arn:aws[-a-z]*:elasticfilesystem:[0-9a-z-:]+:(access-point/fsap|file-system/fs)-[0-9a-f]{8,40}|fs(ap)?-[0-9a-f]{8,40})$"#)))|Mapping)?
     Path: (String(matches(Regex(#"^[^\x00]+$"#)))|Mapping)?
 }
 
 /// Specifies the details for a S3 file.
-open class S3InputFileLocation {
-    Key: (String(matches(Regex(#".*"#)))|Mapping)?
+open class WorkflowS3InputFileLocation {
     Bucket: (String(matches(Regex(#"^[a-z0-9][\.\-a-z0-9]{1,61}[a-z0-9]$"#)))|Mapping)?
+    Key: (String(matches(Regex(#".*"#)))|Mapping)?
 }
 
 /// Specifies the location for the file being decrypted. Only applicable for the Decrypt type of workflow steps.
-open class InputFileLocation {
-    S3FileLocation: (S3InputFileLocation)?
-    EfsFileLocation: (EfsInputFileLocation)?
+open class WorkflowInputFileLocation {
+    S3FileLocation: (WorkflowS3InputFileLocation)?
+    EfsFileLocation: (WorkflowEfsInputFileLocation)?
 }
 
 /// Specifies the location for the file being copied. Only applicable for the Copy type of workflow steps.
-open class S3FileLocation {
-    S3FileLocation: (S3InputFileLocation)?
-}
-
-typealias WorkflowStepType = "COPY"|"CUSTOM"|"DECRYPT"|"DELETE"|"TAG"
-
-/// The basic building block of a workflow.
-open class WorkflowStep {
-    CopyStepDetails: (Dynamic)?
-    CustomStepDetails: (Dynamic)?
-    DecryptStepDetails: (Dynamic)?
-    DeleteStepDetails: (Dynamic)?
-    TagStepDetails: (Dynamic)?
-    Type: (WorkflowStepType|Mapping)?
-}
-
-/// Creates a key-value pair for a specific resource.
-open class Tag {
-    Key: String|Mapping
-    Value: String|Mapping
+open class WorkflowS3FileLocation {
+    S3FileLocation: (WorkflowS3InputFileLocation)?
 }
 
 /// Resource Type definition for AWS::Transfer::Workflow
@@ -58,23 +58,23 @@ open class Workflow extends cloudformation.Resource {
     Type = "AWS::Transfer::Workflow"
 
 
-    /// Specifies the steps (actions) to take if any errors are encountered during execution of the workflow.
-    hidden OnExceptionSteps: (Listing<WorkflowStep>)?
-
-    /// Specifies the details for the steps that are in the specified workflow.
-    hidden Steps: Listing<WorkflowStep>
-
-    /// Key-value pairs that can be used to group and search for workflows. Tags are metadata attached to workflows for any purpose.
-    hidden Tags: (Listing<Tag>)?
-
     /// A textual description for the workflow.
     hidden Description: (String(matches(Regex(#"^[\w\- ]*$"#)))|Mapping)?
 
+    /// Specifies the steps (actions) to take if any errors are encountered during execution of the workflow.
+    hidden OnExceptionSteps: (Listing<WorkflowWorkflowStep>)?
+
+    /// Specifies the details for the steps that are in the specified workflow.
+    hidden Steps: Listing<WorkflowWorkflowStep>
+
+    /// Key-value pairs that can be used to group and search for workflows. Tags are metadata attached to workflows for any purpose.
+    hidden Tags: (Listing<WorkflowTag>)?
+
     Properties {
+        ["Description"] = if (Description == null) null else Description
         ["OnExceptionSteps"] = if (OnExceptionSteps == null) null else OnExceptionSteps
         ["Steps"] = if (Steps == null) null else Steps
         ["Tags"] = if (Tags == null) null else Tags
-        ["Description"] = if (Description == null) null else Description
     }
 
 }

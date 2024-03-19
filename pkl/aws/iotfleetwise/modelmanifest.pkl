@@ -11,7 +11,7 @@ open class ModelManifestTag {
     Value: String|Mapping
 }
 
-typealias ModelManifestManifestStatus = "ACTIVE"|"DRAFT"
+typealias ModelManifestManifestStatus = String|Mapping
 
 
 /// Definition of AWS::IoTFleetWise::ModelManifest Resource Type
@@ -21,30 +21,30 @@ open class ModelManifest extends cloudformation.Resource {
 
 
     /// 
-    hidden Nodes: (Listing<String|Mapping>)?
+    hidden Description: (String(matches(Regex(#"^[^\u0000-\u001F\u007F]+$"#)))|Mapping)?
 
     /// 
     hidden SignalCatalogArn: String|Mapping
 
     /// 
-    hidden Tags: (Listing<ModelManifestTag>)?
-
-    /// 
-    hidden Description: (String(matches(Regex(#"^[^\u0000-\u001F\u007F]+$"#)))|Mapping)?
+    hidden Status: (ModelManifestManifestStatus)?
 
     /// 
     hidden Name: String(matches(Regex(#"^[a-zA-Z\d\-_:]+$"#)))|Mapping
 
     /// 
-    hidden Status: (ModelManifestManifestStatus)?
+    hidden Nodes: (Listing<String|Mapping>)?
+
+    /// 
+    hidden Tags: (Listing<ModelManifestTag>)?
 
     Properties {
-        ["Nodes"] = if (Nodes == null) null else Nodes
-        ["SignalCatalogArn"] = if (SignalCatalogArn == null) null else SignalCatalogArn
-        ["Tags"] = if (Tags == null) null else Tags
         ["Description"] = if (Description == null) null else Description
-        ["Name"] = if (Name == null) null else Name
+        ["SignalCatalogArn"] = if (SignalCatalogArn == null) null else SignalCatalogArn
         ["Status"] = if (Status == null) null else Status
+        ["Name"] = if (Name == null) null else Name
+        ["Nodes"] = if (Nodes == null) null else Nodes
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

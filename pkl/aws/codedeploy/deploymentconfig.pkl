@@ -6,23 +6,10 @@ module aws.codedeploy.deploymentconfig
 import "../../cloudformation.pkl"
 
 /// 
-open class DeploymentConfigTrafficRoutingConfig {
-    Type: String|Mapping
-    TimeBasedLinear: (DeploymentConfigTimeBasedLinear)?
-    TimeBasedCanary: (DeploymentConfigTimeBasedCanary)?
-}
-
-/// 
-open class DeploymentConfigMinimumHealthyHostsPerZone {
-    Value: Int|Mapping
-    Type: String|Mapping
-}
-
-/// 
 open class DeploymentConfigZonalConfig {
+    FirstZoneMonitorDurationInSeconds: (Int|Mapping)?
     MonitorDurationInSeconds: (Int|Mapping)?
     MinimumHealthyHostsPerZone: (DeploymentConfigMinimumHealthyHostsPerZone)?
-    FirstZoneMonitorDurationInSeconds: (Int|Mapping)?
 }
 
 /// 
@@ -43,14 +30,24 @@ open class DeploymentConfigTimeBasedCanary {
     CanaryInterval: Int|Mapping
 }
 
+/// 
+open class DeploymentConfigTrafficRoutingConfig {
+    Type: String|Mapping
+    TimeBasedLinear: (DeploymentConfigTimeBasedLinear)?
+    TimeBasedCanary: (DeploymentConfigTimeBasedCanary)?
+}
+
+/// 
+open class DeploymentConfigMinimumHealthyHostsPerZone {
+    Value: Int|Mapping
+    Type: String|Mapping
+}
+
 /// Resource Type definition for AWS::CodeDeploy::DeploymentConfig
 open class DeploymentConfig extends cloudformation.Resource {
 
     Type = "AWS::CodeDeploy::DeploymentConfig"
 
-
-    /// The destination platform type for the deployment (Lambda, Server, or ECS).
-    hidden ComputePlatform: (String|Mapping)?
 
     /// A name for the deployment configuration. If you don't specify a name, AWS CloudFormation generates a unique physical ID and uses that ID for the deployment configuration name. For more information, see Name Type.
     hidden DeploymentConfigName: (String|Mapping)?
@@ -64,12 +61,15 @@ open class DeploymentConfig extends cloudformation.Resource {
     /// The configuration that specifies how the deployment traffic is routed.
     hidden TrafficRoutingConfig: (DeploymentConfigTrafficRoutingConfig)?
 
+    /// The destination platform type for the deployment (Lambda, Server, or ECS).
+    hidden ComputePlatform: (String|Mapping)?
+
     Properties {
-        ["ComputePlatform"] = if (ComputePlatform == null) null else ComputePlatform
         ["DeploymentConfigName"] = if (DeploymentConfigName == null) null else DeploymentConfigName
         ["MinimumHealthyHosts"] = if (MinimumHealthyHosts == null) null else MinimumHealthyHosts
         ["ZonalConfig"] = if (ZonalConfig == null) null else ZonalConfig
         ["TrafficRoutingConfig"] = if (TrafficRoutingConfig == null) null else TrafficRoutingConfig
+        ["ComputePlatform"] = if (ComputePlatform == null) null else ComputePlatform
     }
 
 }

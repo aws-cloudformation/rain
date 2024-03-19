@@ -5,40 +5,35 @@ module aws.panorama.package
 
 import "../../cloudformation.pkl"
 
-/// 
-open class NodePackageArn {
-}
+typealias PackageNodePackageName = String|Mapping
+
+
+typealias PackageNodePackageId = String|Mapping
+
+
+typealias PackageNodePackageArn = String|Mapping
+
+
+typealias PackageTimestamp = Int|Mapping
+
 
 /// 
-open class Timestamp {
-}
-
-/// 
-open class StorageLocation {
+open class PackageStorageLocation {
+    ManifestPrefixLocation: (String|Mapping)?
     Bucket: (String|Mapping)?
     RepoPrefixLocation: (String|Mapping)?
     GeneratedPrefixLocation: (String|Mapping)?
     BinaryPrefixLocation: (String|Mapping)?
-    ManifestPrefixLocation: (String|Mapping)?
 }
 
 /// 
-open class Tag {
+open class PackageTag {
     Key: String(matches(Regex(#"^.+$"#)))|Mapping
     Value: String(matches(Regex(#"^.+$"#)))|Mapping
 }
 
-/// 
-open class TagList {
-}
+typealias PackageTagList = Listing<(PackageTag)?>
 
-/// 
-open class NodePackageName {
-}
-
-/// 
-open class NodePackageId {
-}
 
 /// Schema for Package CloudFormation Resource
 open class Package extends cloudformation.Resource {
@@ -47,18 +42,18 @@ open class Package extends cloudformation.Resource {
 
 
     /// 
-    hidden StorageLocation: (StorageLocation)?
+    hidden Tags: (PackageTagList)?
 
     /// 
-    hidden Tags: (TagList)?
+    hidden PackageName: PackageNodePackageName
 
     /// 
-    hidden PackageName: NodePackageName
+    hidden StorageLocation: (PackageStorageLocation)?
 
     Properties {
-        ["StorageLocation"] = if (StorageLocation == null) null else StorageLocation
         ["Tags"] = if (Tags == null) null else Tags
         ["PackageName"] = if (PackageName == null) null else PackageName
+        ["StorageLocation"] = if (StorageLocation == null) null else StorageLocation
     }
 
 }

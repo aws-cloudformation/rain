@@ -17,6 +17,12 @@ open class NetworkInterfaceAttachment extends cloudformation.Resource {
     Type = "AWS::EC2::NetworkInterfaceAttachment"
 
 
+    /// The ID of the ENI that you want to attach.
+    hidden NetworkInterfaceId: String|Mapping
+
+    /// 
+    hidden EnaSrdSpecification: (NetworkInterfaceAttachmentEnaSrdSpecification)?
+
     /// Whether to delete the network interface when the instance terminates. By default, this value is set to true.
     hidden DeleteOnTermination: (Boolean|Mapping)?
 
@@ -26,18 +32,12 @@ open class NetworkInterfaceAttachment extends cloudformation.Resource {
     /// The ID of the instance to which you will attach the ENI.
     hidden InstanceId: String|Mapping
 
-    /// The ID of the ENI that you want to attach.
-    hidden NetworkInterfaceId: String|Mapping
-
-    /// 
-    hidden EnaSrdSpecification: (NetworkInterfaceAttachmentEnaSrdSpecification)?
-
     Properties {
+        ["NetworkInterfaceId"] = if (NetworkInterfaceId == null) null else NetworkInterfaceId
+        ["EnaSrdSpecification"] = if (EnaSrdSpecification == null) null else EnaSrdSpecification
         ["DeleteOnTermination"] = if (DeleteOnTermination == null) null else DeleteOnTermination
         ["DeviceIndex"] = if (DeviceIndex == null) null else DeviceIndex
         ["InstanceId"] = if (InstanceId == null) null else InstanceId
-        ["NetworkInterfaceId"] = if (NetworkInterfaceId == null) null else NetworkInterfaceId
-        ["EnaSrdSpecification"] = if (EnaSrdSpecification == null) null else EnaSrdSpecification
     }
 
 }

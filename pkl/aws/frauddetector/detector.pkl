@@ -9,42 +9,42 @@ typealias RuleLanguage = "DETECTORPL"
 
 /// 
 open class DetectorRule {
-    Description: (String|Mapping)?
-    Tags: (Listing<DetectorTag>)?
-    DetectorId: (String|Mapping)?
     Expression: (String|Mapping)?
-    Language: (RuleLanguage|Mapping)?
     Outcomes: (Listing<DetectorOutcome>)?
-    Arn: (String|Mapping)?
-    RuleId: (String|Mapping)?
-    RuleVersion: (String|Mapping)?
+    Tags: (Listing<DetectorTag>)?
     CreatedTime: (String|Mapping)?
     LastUpdatedTime: (String|Mapping)?
+    RuleId: (String|Mapping)?
+    RuleVersion: (String|Mapping)?
+    DetectorId: (String|Mapping)?
+    Language: (RuleLanguage|Mapping)?
+    Arn: (String|Mapping)?
+    Description: (String|Mapping)?
 }
 
 /// 
 open class DetectorEntityType {
+    Arn: (String|Mapping)?
     Inline: (Boolean|Mapping)?
     Name: (String|Mapping)?
     Description: (String|Mapping)?
     Tags: (Listing<DetectorTag>)?
     CreatedTime: (String|Mapping)?
     LastUpdatedTime: (String|Mapping)?
-    Arn: (String|Mapping)?
 }
 
 /// 
 open class DetectorEventType {
+    LastUpdatedTime: (String|Mapping)?
+    Inline: (Boolean|Mapping)?
     Labels: (Listing<DetectorLabel>)?
+    Arn: (String|Mapping)?
+    EventVariables: (Listing<DetectorEventVariable>)?
     EntityTypes: (Listing<DetectorEntityType>)?
     CreatedTime: (String|Mapping)?
     Name: (String(matches(Regex(#"^[0-9a-z_-]+$"#)))|Mapping)?
-    Inline: (Boolean|Mapping)?
     Tags: (Listing<DetectorTag>)?
     Description: (String|Mapping)?
-    EventVariables: (Listing<DetectorEventVariable>)?
-    Arn: (String|Mapping)?
-    LastUpdatedTime: (String|Mapping)?
 }
 
 /// A model to associate with a detector.
@@ -58,36 +58,36 @@ open class DetectorTag {
     Value: String|Mapping
 }
 
-typealias EventVariableVariableType = "AUTH_CODE"|"AVS"|"BILLING_ADDRESS_L1"|"BILLING_ADDRESS_L2"|"BILLING_CITY"|"BILLING_COUNTRY"|"BILLING_NAME"|"BILLING_PHONE"|"BILLING_STATE"|"BILLING_ZIP"|"CARD_BIN"|"CATEGORICAL"|"CURRENCY_CODE"|"EMAIL_ADDRESS"|"FINGERPRINT"|"FRAUD_LABEL"|"FREE_FORM_TEXT"|"IP_ADDRESS"|"NUMERIC"|"ORDER_ID"|"PAYMENT_TYPE"|"PHONE_NUMBER"|"PRICE"|"PRODUCT_CATEGORY"|"SHIPPING_ADDRESS_L1"|"SHIPPING_ADDRESS_L2"|"SHIPPING_CITY"|"SHIPPING_COUNTRY"|"SHIPPING_NAME"|"SHIPPING_PHONE"|"SHIPPING_STATE"|"SHIPPING_ZIP"|"USERAGENT"
+typealias EventVariableDataType = "STRING"|"INTEGER"|"FLOAT"|"BOOLEAN"
 
 typealias EventVariableDataSource = "EVENT"
 
-typealias EventVariableDataType = "STRING"|"INTEGER"|"FLOAT"|"BOOLEAN"
+typealias EventVariableVariableType = "AUTH_CODE"|"AVS"|"BILLING_ADDRESS_L1"|"BILLING_ADDRESS_L2"|"BILLING_CITY"|"BILLING_COUNTRY"|"BILLING_NAME"|"BILLING_PHONE"|"BILLING_STATE"|"BILLING_ZIP"|"CARD_BIN"|"CATEGORICAL"|"CURRENCY_CODE"|"EMAIL_ADDRESS"|"FINGERPRINT"|"FRAUD_LABEL"|"FREE_FORM_TEXT"|"IP_ADDRESS"|"NUMERIC"|"ORDER_ID"|"PAYMENT_TYPE"|"PHONE_NUMBER"|"PRICE"|"PRODUCT_CATEGORY"|"SHIPPING_ADDRESS_L1"|"SHIPPING_ADDRESS_L2"|"SHIPPING_CITY"|"SHIPPING_COUNTRY"|"SHIPPING_NAME"|"SHIPPING_PHONE"|"SHIPPING_STATE"|"SHIPPING_ZIP"|"USERAGENT"
 
 /// 
 open class DetectorEventVariable {
-    VariableType: (EventVariableVariableType|Mapping)?
+    DataType: (EventVariableDataType|Mapping)?
+    DefaultValue: (String|Mapping)?
     Description: (String|Mapping)?
     Tags: (Listing<DetectorTag>)?
-    LastUpdatedTime: (String|Mapping)?
+    Arn: (String|Mapping)?
     Inline: (Boolean|Mapping)?
     Name: (String|Mapping)?
+    LastUpdatedTime: (String|Mapping)?
     DataSource: (EventVariableDataSource|Mapping)?
-    DataType: (EventVariableDataType|Mapping)?
-    Arn: (String|Mapping)?
-    DefaultValue: (String|Mapping)?
+    VariableType: (EventVariableVariableType|Mapping)?
     CreatedTime: (String|Mapping)?
 }
 
 /// 
 open class DetectorLabel {
+    LastUpdatedTime: (String|Mapping)?
+    Arn: (String|Mapping)?
+    Inline: (Boolean|Mapping)?
     Name: (String|Mapping)?
     Description: (String|Mapping)?
     Tags: (Listing<DetectorTag>)?
     CreatedTime: (String|Mapping)?
-    LastUpdatedTime: (String|Mapping)?
-    Arn: (String|Mapping)?
-    Inline: (Boolean|Mapping)?
 }
 
 /// 
@@ -107,14 +107,14 @@ open class Detector extends cloudformation.Resource {
     Type = "AWS::FraudDetector::Detector"
 
 
-    /// Tags associated with this detector.
-    hidden Tags: (Listing<DetectorTag>)?
-
-    /// The models to associate with this detector.
-    hidden AssociatedModels: (Listing<DetectorModel>)?
-
     /// The desired detector version status for the detector
     hidden DetectorVersionStatus: (DetectorDetectorVersionStatus|Mapping)?
+
+    /// 
+    hidden RuleExecutionMode: (DetectorRuleExecutionMode|Mapping)?
+
+    /// Tags associated with this detector.
+    hidden Tags: (Listing<DetectorTag>)?
 
     /// The description of the detector.
     hidden Description: (String|Mapping)?
@@ -128,18 +128,18 @@ open class Detector extends cloudformation.Resource {
     /// The ID of the detector
     hidden DetectorId: String(matches(Regex(#"^[0-9a-z_-]+$"#)))|Mapping
 
-    /// 
-    hidden RuleExecutionMode: (DetectorRuleExecutionMode|Mapping)?
+    /// The models to associate with this detector.
+    hidden AssociatedModels: (Listing<DetectorModel>)?
 
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["AssociatedModels"] = if (AssociatedModels == null) null else AssociatedModels
         ["DetectorVersionStatus"] = if (DetectorVersionStatus == null) null else DetectorVersionStatus
+        ["RuleExecutionMode"] = if (RuleExecutionMode == null) null else RuleExecutionMode
+        ["Tags"] = if (Tags == null) null else Tags
         ["Description"] = if (Description == null) null else Description
         ["Rules"] = if (Rules == null) null else Rules
         ["EventType"] = if (EventType == null) null else EventType
         ["DetectorId"] = if (DetectorId == null) null else DetectorId
-        ["RuleExecutionMode"] = if (RuleExecutionMode == null) null else RuleExecutionMode
+        ["AssociatedModels"] = if (AssociatedModels == null) null else AssociatedModels
     }
 
 }

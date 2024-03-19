@@ -5,19 +5,19 @@ module aws.databrew.job
 
 import "../../cloudformation.pkl"
 
-/// Configuration to attach Rulesets to the job
-open class JobValidationConfiguration {
-    RulesetArn: String|Mapping
-    ValidationMode: (JobValidationMode)?
+/// 
+open class JobDataCatalogOutput {
+    CatalogId: (String|Mapping)?
+    DatabaseName: String|Mapping
+    TableName: String|Mapping
+    S3Options: (JobS3TableOutputOptions)?
+    DatabaseOptions: (JobDatabaseTableOutputOptions)?
+    Overwrite: (Boolean|Mapping)?
 }
 
-typealias JobValidationMode = String|Mapping
-
-
-/// Job Sample
-open class JobJobSample {
-    Mode: (JobSampleMode)?
-    Size: (JobJobSize)?
+/// 
+open class JobAllowedStatistics {
+    Statistics: Listing<JobStatistic>
 }
 
 /// Format options for job Output
@@ -26,39 +26,39 @@ open class JobOutputFormatOptions {
 }
 
 /// 
-open class JobDatabaseTableOutputOptions {
-    TempDirectory: (JobS3Location)?
-    TableName: String|Mapping
+open class JobEntityDetectorConfiguration {
+    EntityTypes: Listing<String|Mapping>
+    AllowedStatistics: (JobAllowedStatistics)?
 }
 
-typealias JobStatistic = String|Mapping
-
-
-/// A key-value pair to associate with a resource.
-open class JobTag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class JobAllowedStatistics {
-    Statistics: Listing<JobStatistic>
+/// S3 Output location
+open class JobS3Location {
+    Key: (String|Mapping)?
+    BucketOwner: (String|Mapping)?
+    Bucket: String|Mapping
 }
 
 typealias JobParameterMap = Mapping<String, Any>
 
 
 /// 
-open class JobS3TableOutputOptions {
-    Location: JobS3Location
+open class JobColumnStatisticsConfiguration {
+    Selectors: (Listing<JobColumnSelector>)?
+    Statistics: JobStatisticsConfiguration
 }
 
-/// 
-open class JobProfileConfiguration {
-    DatasetStatisticsConfiguration: (JobStatisticsConfiguration)?
-    ProfileColumns: (Listing<JobColumnSelector>)?
-    ColumnStatisticsConfigurations: (Listing<JobColumnStatisticsConfiguration>)?
-    EntityDetectorConfiguration: (JobEntityDetectorConfiguration)?
+/// Output Csv options
+open class JobCsvOutputOptions {
+    Delimiter: (String|Mapping)?
+}
+
+typealias JobValidationMode = String|Mapping
+
+
+/// Configuration to attach Rulesets to the job
+open class JobValidationConfiguration {
+    RulesetArn: String|Mapping
+    ValidationMode: (JobValidationMode)?
 }
 
 /// 
@@ -67,48 +67,17 @@ open class JobStatisticsConfiguration {
     Overrides: (Listing<JobStatisticOverride>)?
 }
 
-typealias OutputCompressionFormat = "GZIP"|"LZ4"|"SNAPPY"|"BZIP2"|"DEFLATE"|"LZO"|"BROTLI"|"ZSTD"|"ZLIB"
-
-typealias OutputFormat = "CSV"|"JSON"|"PARQUET"|"GLUEPARQUET"|"AVRO"|"ORC"|"XML"|"TABLEAUHYPER"
+/// A key-value pair to associate with a resource.
+open class JobTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
 
 /// 
-open class JobOutput {
-    MaxOutputFiles: (Int|Mapping)?
-    CompressionFormat: (OutputCompressionFormat|Mapping)?
-    Format: (OutputFormat|Mapping)?
-    FormatOptions: (JobOutputFormatOptions)?
-    PartitionColumns: (Listing<String|Mapping>)?
-    Location: JobS3Location
-    Overwrite: (Boolean|Mapping)?
+open class JobStatisticOverride {
+    Statistic: JobStatistic
+    Parameters: JobParameterMap
 }
-
-/// Output Csv options
-open class JobCsvOutputOptions {
-    Delimiter: (String|Mapping)?
-}
-
-/// Output location
-open class JobOutputLocation {
-    Bucket: String|Mapping
-    Key: (String|Mapping)?
-    BucketOwner: (String|Mapping)?
-}
-
-typealias JobSampleMode = String|Mapping
-
-
-/// 
-open class JobDataCatalogOutput {
-    DatabaseOptions: (JobDatabaseTableOutputOptions)?
-    Overwrite: (Boolean|Mapping)?
-    CatalogId: (String|Mapping)?
-    DatabaseName: String|Mapping
-    TableName: String|Mapping
-    S3Options: (JobS3TableOutputOptions)?
-}
-
-typealias JobJobSize = Int|Mapping
-
 
 typealias DatabaseOutputDatabaseOutputMode = "NEW_TABLE"
 
@@ -119,23 +88,45 @@ open class JobDatabaseOutput {
     DatabaseOptions: JobDatabaseTableOutputOptions
 }
 
-/// S3 Output location
-open class JobS3Location {
-    BucketOwner: (String|Mapping)?
-    Bucket: String|Mapping
-    Key: (String|Mapping)?
+/// 
+open class JobProfileConfiguration {
+    DatasetStatisticsConfiguration: (JobStatisticsConfiguration)?
+    ProfileColumns: (Listing<JobColumnSelector>)?
+    ColumnStatisticsConfigurations: (Listing<JobColumnStatisticsConfiguration>)?
+    EntityDetectorConfiguration: (JobEntityDetectorConfiguration)?
 }
 
-/// 
-open class JobColumnStatisticsConfiguration {
-    Statistics: JobStatisticsConfiguration
-    Selectors: (Listing<JobColumnSelector>)?
-}
+typealias JobJobSize = Int|Mapping
+
+
+typealias JobStatistic = String|Mapping
+
 
 /// 
 open class JobColumnSelector {
     Regex: (String|Mapping)?
     Name: (String|Mapping)?
+}
+
+/// Job Sample
+open class JobJobSample {
+    Mode: (JobSampleMode)?
+    Size: (JobJobSize)?
+}
+
+typealias OutputCompressionFormat = "GZIP"|"LZ4"|"SNAPPY"|"BZIP2"|"DEFLATE"|"LZO"|"BROTLI"|"ZSTD"|"ZLIB"
+
+typealias OutputFormat = "CSV"|"JSON"|"PARQUET"|"GLUEPARQUET"|"AVRO"|"ORC"|"XML"|"TABLEAUHYPER"
+
+/// 
+open class JobOutput {
+    Overwrite: (Boolean|Mapping)?
+    MaxOutputFiles: (Int|Mapping)?
+    CompressionFormat: (OutputCompressionFormat|Mapping)?
+    Format: (OutputFormat|Mapping)?
+    FormatOptions: (JobOutputFormatOptions)?
+    PartitionColumns: (Listing<String|Mapping>)?
+    Location: JobS3Location
 }
 
 /// 
@@ -144,17 +135,26 @@ open class JobRecipe {
     Version: (String|Mapping)?
 }
 
-/// 
-open class JobStatisticOverride {
-    Statistic: JobStatistic
-    Parameters: JobParameterMap
+/// Output location
+open class JobOutputLocation {
+    Bucket: String|Mapping
+    Key: (String|Mapping)?
+    BucketOwner: (String|Mapping)?
 }
 
 /// 
-open class JobEntityDetectorConfiguration {
-    AllowedStatistics: (JobAllowedStatistics)?
-    EntityTypes: Listing<String|Mapping>
+open class JobS3TableOutputOptions {
+    Location: JobS3Location
 }
+
+/// 
+open class JobDatabaseTableOutputOptions {
+    TempDirectory: (JobS3Location)?
+    TableName: String|Mapping
+}
+
+typealias JobSampleMode = String|Mapping
+
 
 /// Resource schema for AWS::DataBrew::Job.
 open class Job extends cloudformation.Resource {
@@ -162,50 +162,14 @@ open class Job extends cloudformation.Resource {
     Type = "AWS::DataBrew::Job"
 
 
-    /// Output location
-    hidden OutputLocation: (JobOutputLocation)?
-
-    /// 
-    hidden Tags: (Listing<JobTag>)?
-
-    /// Timeout
-    hidden Timeout: (Int|Mapping)?
-
-    /// 
-    hidden DataCatalogOutputs: (Listing<JobDataCatalogOutput>)?
-
-    /// 
-    hidden DatabaseOutputs: (Listing<JobDatabaseOutput>)?
-
-    /// Max capacity
-    hidden MaxCapacity: (Int|Mapping)?
-
-    /// Role arn
-    hidden RoleArn: String|Mapping
-
-    /// Encryption mode
-    hidden EncryptionMode: (JobEncryptionMode|Mapping)?
-
-    /// Job Sample
-    hidden JobSample: (JobJobSample)?
-
-    /// Profile Job configuration
-    hidden ProfileConfiguration: (JobProfileConfiguration)?
-
-    /// Dataset name
-    hidden DatasetName: (String|Mapping)?
-
     /// Encryption Key Arn
     hidden EncryptionKeyArn: (String|Mapping)?
 
-    /// Log subscription
-    hidden LogSubscription: (JobLogSubscription|Mapping)?
+    /// Job type
+    hidden TypeProperty: JobType|Mapping
 
-    /// Max retries
-    hidden MaxRetries: (Int|Mapping)?
-
-    /// 
-    hidden Outputs: (Listing<JobOutput>)?
+    /// Output location
+    hidden OutputLocation: (JobOutputLocation)?
 
     /// Project name
     hidden ProjectName: (String|Mapping)?
@@ -213,43 +177,79 @@ open class Job extends cloudformation.Resource {
     /// 
     hidden Recipe: (JobRecipe)?
 
-    /// Data quality rules configuration
-    hidden ValidationConfigurations: (Listing<JobValidationConfiguration>)?
+    /// Role arn
+    hidden RoleArn: String|Mapping
 
     /// Job name
     hidden Name: String|Mapping
 
-    /// Job type
-    hidden TypeProperty: JobType|Mapping
+    /// Max capacity
+    hidden MaxCapacity: (Int|Mapping)?
+
+    /// 
+    hidden DatabaseOutputs: (Listing<JobDatabaseOutput>)?
+
+    /// 
+    hidden Tags: (Listing<JobTag>)?
+
+    /// Job Sample
+    hidden JobSample: (JobJobSample)?
+
+    /// Encryption mode
+    hidden EncryptionMode: (JobEncryptionMode|Mapping)?
+
+    /// Log subscription
+    hidden LogSubscription: (JobLogSubscription|Mapping)?
+
+    /// 
+    hidden Outputs: (Listing<JobOutput>)?
+
+    /// Data quality rules configuration
+    hidden ValidationConfigurations: (Listing<JobValidationConfiguration>)?
+
+    /// Dataset name
+    hidden DatasetName: (String|Mapping)?
+
+    /// Max retries
+    hidden MaxRetries: (Int|Mapping)?
+
+    /// 
+    hidden DataCatalogOutputs: (Listing<JobDataCatalogOutput>)?
+
+    /// Timeout
+    hidden Timeout: (Int|Mapping)?
+
+    /// Profile Job configuration
+    hidden ProfileConfiguration: (JobProfileConfiguration)?
 
     Properties {
-        ["OutputLocation"] = if (OutputLocation == null) null else OutputLocation
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Timeout"] = if (Timeout == null) null else Timeout
-        ["DataCatalogOutputs"] = if (DataCatalogOutputs == null) null else DataCatalogOutputs
-        ["DatabaseOutputs"] = if (DatabaseOutputs == null) null else DatabaseOutputs
-        ["MaxCapacity"] = if (MaxCapacity == null) null else MaxCapacity
-        ["RoleArn"] = if (RoleArn == null) null else RoleArn
-        ["EncryptionMode"] = if (EncryptionMode == null) null else EncryptionMode
-        ["JobSample"] = if (JobSample == null) null else JobSample
-        ["ProfileConfiguration"] = if (ProfileConfiguration == null) null else ProfileConfiguration
-        ["DatasetName"] = if (DatasetName == null) null else DatasetName
         ["EncryptionKeyArn"] = if (EncryptionKeyArn == null) null else EncryptionKeyArn
-        ["LogSubscription"] = if (LogSubscription == null) null else LogSubscription
-        ["MaxRetries"] = if (MaxRetries == null) null else MaxRetries
-        ["Outputs"] = if (Outputs == null) null else Outputs
+        ["Type"] = if (TypeProperty == null) null else TypeProperty
+        ["OutputLocation"] = if (OutputLocation == null) null else OutputLocation
         ["ProjectName"] = if (ProjectName == null) null else ProjectName
         ["Recipe"] = if (Recipe == null) null else Recipe
-        ["ValidationConfigurations"] = if (ValidationConfigurations == null) null else ValidationConfigurations
+        ["RoleArn"] = if (RoleArn == null) null else RoleArn
         ["Name"] = if (Name == null) null else Name
-        ["Type"] = if (TypeProperty == null) null else TypeProperty
+        ["MaxCapacity"] = if (MaxCapacity == null) null else MaxCapacity
+        ["DatabaseOutputs"] = if (DatabaseOutputs == null) null else DatabaseOutputs
+        ["Tags"] = if (Tags == null) null else Tags
+        ["JobSample"] = if (JobSample == null) null else JobSample
+        ["EncryptionMode"] = if (EncryptionMode == null) null else EncryptionMode
+        ["LogSubscription"] = if (LogSubscription == null) null else LogSubscription
+        ["Outputs"] = if (Outputs == null) null else Outputs
+        ["ValidationConfigurations"] = if (ValidationConfigurations == null) null else ValidationConfigurations
+        ["DatasetName"] = if (DatasetName == null) null else DatasetName
+        ["MaxRetries"] = if (MaxRetries == null) null else MaxRetries
+        ["DataCatalogOutputs"] = if (DataCatalogOutputs == null) null else DataCatalogOutputs
+        ["Timeout"] = if (Timeout == null) null else Timeout
+        ["ProfileConfiguration"] = if (ProfileConfiguration == null) null else ProfileConfiguration
     }
 
 }
 
 
+typealias JobType = "PROFILE"|"RECIPE"
+
 typealias JobEncryptionMode = "SSE-KMS"|"SSE-S3"
 
 typealias JobLogSubscription = "ENABLE"|"DISABLE"
-
-typealias JobType = "PROFILE"|"RECIPE"

@@ -5,21 +5,6 @@ module aws.entityresolution.schemamapping
 
 import "../../cloudformation.pkl"
 
-typealias SchemaMappingCreatedAt = String
-
-
-typealias SchemaMappingDescription = String
-
-
-typealias SchemaMappingAttributeName = String
-
-
-typealias SchemaMappingSchemaAttributeType = "NAME"|"NAME_FIRST"|"NAME_MIDDLE"|"NAME_LAST"|"ADDRESS"|"ADDRESS_STREET1"|"ADDRESS_STREET2"|"ADDRESS_STREET3"|"ADDRESS_CITY"|"ADDRESS_STATE"|"ADDRESS_COUNTRY"|"ADDRESS_POSTALCODE"|"PHONE"|"PHONE_NUMBER"|"PHONE_COUNTRYCODE"|"EMAIL_ADDRESS"|"UNIQUE_ID"|"DATE"|"STRING"|"PROVIDER_ID"
-
-
-typealias SchemaMappingSchemaMappingArn = String
-
-
 /// 
 open class SchemaMappingSchemaInputAttribute {
     FieldName: SchemaMappingAttributeName
@@ -29,10 +14,7 @@ open class SchemaMappingSchemaInputAttribute {
     MatchKey: (SchemaMappingAttributeName)?
 }
 
-typealias SchemaMappingEntityName = String
-
-
-typealias SchemaMappingMappedInputFields = Listing<(SchemaMappingSchemaInputAttribute)?>
+typealias SchemaMappingSchemaMappingArn = String|Mapping
 
 
 /// A key-value pair to associate with a resource
@@ -41,5 +23,53 @@ open class SchemaMappingTag {
     Value: String|Mapping
 }
 
-typealias SchemaMappingUpdatedAt = String
+typealias SchemaMappingEntityName = String|Mapping
 
+
+typealias SchemaMappingAttributeName = String|Mapping
+
+
+typealias SchemaMappingHasWorkflows = Boolean|Mapping
+
+
+typealias SchemaMappingDescription = String|Mapping
+
+
+typealias SchemaMappingSchemaAttributeType = String|Mapping
+
+
+typealias SchemaMappingCreatedAt = String|Mapping
+
+
+typealias SchemaMappingMappedInputFields = Listing<(SchemaMappingSchemaInputAttribute)?>
+
+
+typealias SchemaMappingUpdatedAt = String|Mapping
+
+
+/// SchemaMapping defined in AWS Entity Resolution service
+open class SchemaMapping extends cloudformation.Resource {
+
+    Type = "AWS::EntityResolution::SchemaMapping"
+
+
+    /// The name of the SchemaMapping
+    hidden SchemaName: SchemaMappingEntityName
+
+    /// The description of the SchemaMapping
+    hidden Description: (SchemaMappingDescription)?
+
+    /// The SchemaMapping attributes input
+    hidden MappedInputFields: SchemaMappingMappedInputFields
+
+    /// 
+    hidden Tags: (Listing<SchemaMappingTag>)?
+
+    Properties {
+        ["SchemaName"] = if (SchemaName == null) null else SchemaName
+        ["Description"] = if (Description == null) null else Description
+        ["MappedInputFields"] = if (MappedInputFields == null) null else MappedInputFields
+        ["Tags"] = if (Tags == null) null else Tags
+    }
+
+}

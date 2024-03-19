@@ -10,15 +10,15 @@ typealias EncryptionAlgorithm = "aes128"|"aes192"|"aes256"
 typealias EncryptionKeyType = "static-key"|"srt-password"
 
 /// Information about the encryption of the flow.
-open class Encryption {
+open class FlowOutputEncryption {
+    SecretArn: String|Mapping
     Algorithm: (EncryptionAlgorithm|Mapping)?
     KeyType: (EncryptionKeyType|Mapping)?
     RoleArn: String|Mapping
-    SecretArn: String|Mapping
 }
 
 /// The settings for attaching a VPC interface to an output.
-open class VpcInterfaceAttachment {
+open class FlowOutputVpcInterfaceAttachment {
     VpcInterfaceName: (String|Mapping)?
 }
 
@@ -28,11 +28,17 @@ open class FlowOutput extends cloudformation.Resource {
     Type = "AWS::MediaConnect::FlowOutput"
 
 
+    /// The type of key used for the encryption. If no keyType is provided, the service will use the default setting (static-key).
+    hidden Encryption: (FlowOutputEncryption)?
+
+    /// The protocol that is used by the source or output.
+    hidden Protocol: FlowOutputProtocol|Mapping
+
+    /// The stream ID that you want to use for this transport. This parameter applies only to Zixi-based streams.
+    hidden StreamId: (String|Mapping)?
+
     /// The range of IP addresses that should be allowed to initiate output requests to this flow. These IP addresses should be in the form of a Classless Inter-Domain Routing (CIDR) block; for example, 10.0.0.0/16.
     hidden CidrAllowList: (Listing<String|Mapping>)?
-
-    /// The address where you want to send the output.
-    hidden Destination: (String|Mapping)?
 
     /// The name of the output. This value must be unique within the current flow.
     hidden Name: (String|Mapping)?
@@ -40,23 +46,20 @@ open class FlowOutput extends cloudformation.Resource {
     /// The remote ID for the Zixi-pull stream.
     hidden RemoteId: (String|Mapping)?
 
-    /// The stream ID that you want to use for this transport. This parameter applies only to Zixi-based streams.
-    hidden StreamId: (String|Mapping)?
+    /// The address where you want to send the output.
+    hidden Destination: (String|Mapping)?
 
-    /// The Amazon Resource Name (ARN), a unique identifier for any AWS resource, of the flow.
-    hidden FlowArn: String|Mapping
+    /// A description of the output.
+    hidden Description: (String|Mapping)?
+
+    /// The port to use when content is distributed to this output.
+    hidden Port: (Int|Mapping)?
 
     /// The smoothing latency in milliseconds for RIST, RTP, and RTP-FEC streams.
     hidden SmoothingLatency: (Int|Mapping)?
 
-    /// The protocol that is used by the source or output.
-    hidden Protocol: FlowOutputProtocol|Mapping
-
-    /// The type of key used for the encryption. If no keyType is provided, the service will use the default setting (static-key).
-    hidden Encryption: (Encryption)?
-
-    /// The name of the VPC interface attachment to use for this output.
-    hidden VpcInterfaceAttachment: (VpcInterfaceAttachment)?
+    /// The Amazon Resource Name (ARN), a unique identifier for any AWS resource, of the flow.
+    hidden FlowArn: String|Mapping
 
     /// The maximum latency in milliseconds. This parameter applies only to RIST-based and Zixi-based streams.
     hidden MaxLatency: (Int|Mapping)?
@@ -64,27 +67,24 @@ open class FlowOutput extends cloudformation.Resource {
     /// The minimum latency in milliseconds.
     hidden MinLatency: (Int|Mapping)?
 
-    /// The port to use when content is distributed to this output.
-    hidden Port: (Int|Mapping)?
-
-    /// A description of the output.
-    hidden Description: (String|Mapping)?
+    /// The name of the VPC interface attachment to use for this output.
+    hidden VpcInterfaceAttachment: (FlowOutputVpcInterfaceAttachment)?
 
     Properties {
+        ["Encryption"] = if (Encryption == null) null else Encryption
+        ["Protocol"] = if (Protocol == null) null else Protocol
+        ["StreamId"] = if (StreamId == null) null else StreamId
         ["CidrAllowList"] = if (CidrAllowList == null) null else CidrAllowList
-        ["Destination"] = if (Destination == null) null else Destination
         ["Name"] = if (Name == null) null else Name
         ["RemoteId"] = if (RemoteId == null) null else RemoteId
-        ["StreamId"] = if (StreamId == null) null else StreamId
-        ["FlowArn"] = if (FlowArn == null) null else FlowArn
+        ["Destination"] = if (Destination == null) null else Destination
+        ["Description"] = if (Description == null) null else Description
+        ["Port"] = if (Port == null) null else Port
         ["SmoothingLatency"] = if (SmoothingLatency == null) null else SmoothingLatency
-        ["Protocol"] = if (Protocol == null) null else Protocol
-        ["Encryption"] = if (Encryption == null) null else Encryption
-        ["VpcInterfaceAttachment"] = if (VpcInterfaceAttachment == null) null else VpcInterfaceAttachment
+        ["FlowArn"] = if (FlowArn == null) null else FlowArn
         ["MaxLatency"] = if (MaxLatency == null) null else MaxLatency
         ["MinLatency"] = if (MinLatency == null) null else MinLatency
-        ["Port"] = if (Port == null) null else Port
-        ["Description"] = if (Description == null) null else Description
+        ["VpcInterfaceAttachment"] = if (VpcInterfaceAttachment == null) null else VpcInterfaceAttachment
     }
 
 }

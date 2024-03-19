@@ -7,15 +7,15 @@ import "../../cloudformation.pkl"
 
 /// Configuration parameters for provisioning a AWS DMS Serverless replication
 open class ReplicationConfigComputeConfig {
-    MaxCapacityUnits: Int|Mapping
-    MultiAZ: (Boolean|Mapping)?
+    PreferredMaintenanceWindow: (String|Mapping)?
     VpcSecurityGroupIds: (Listing<String|Mapping>)?
     AvailabilityZone: (String|Mapping)?
     DnsNameServers: (String|Mapping)?
+    MaxCapacityUnits: Int|Mapping
+    ReplicationSubnetGroupId: (String|Mapping)?
     KmsKeyId: (String|Mapping)?
     MinCapacityUnits: (Int|Mapping)?
-    PreferredMaintenanceWindow: (String|Mapping)?
-    ReplicationSubnetGroupId: (String|Mapping)?
+    MultiAZ: (Boolean|Mapping)?
 }
 
 /// <p>The key or keys of the key-value pairs for the resource tag or tags assigned to the
@@ -38,8 +38,11 @@ open class ReplicationConfig extends cloudformation.Resource {
     /// The Amazon Resource Name (ARN) of the target endpoint for this AWS DMS Serverless replication configuration
     hidden TargetEndpointArn: (String|Mapping)?
 
-    /// The type of AWS DMS Serverless replication to provision using this replication configuration
-    hidden ReplicationType: (ReplicationConfigReplicationType|Mapping)?
+    /// JSON table mappings for AWS DMS Serverless replications that are provisioned using this replication configuration
+    hidden TableMappings: (Dynamic)?
+
+    /// <p>Contains a map of the key-value pairs for the resource tag or tags assigned to the dataset.</p>
+    hidden Tags: (Listing<ReplicationConfigTag>)?
 
     /// JSON settings for Servereless replications that are provisioned using this replication configuration
     hidden ReplicationSettings: (Dynamic)?
@@ -47,8 +50,8 @@ open class ReplicationConfig extends cloudformation.Resource {
     /// JSON settings for specifying supplemental data
     hidden SupplementalSettings: (Dynamic)?
 
-    /// JSON table mappings for AWS DMS Serverless replications that are provisioned using this replication configuration
-    hidden TableMappings: (Dynamic)?
+    /// A unique value or name that you get set for a given resource that can be used to construct an Amazon Resource Name (ARN) for that resource
+    hidden ResourceIdentifier: (String|Mapping)?
 
     /// A unique identifier of replication configuration
     hidden ReplicationConfigIdentifier: (String|Mapping)?
@@ -56,27 +59,24 @@ open class ReplicationConfig extends cloudformation.Resource {
     /// The Amazon Resource Name (ARN) of the Replication Config
     hidden ReplicationConfigArn: (String|Mapping)?
 
-    /// <p>Contains a map of the key-value pairs for the resource tag or tags assigned to the dataset.</p>
-    hidden Tags: (Listing<ReplicationConfigTag>)?
+    /// The type of AWS DMS Serverless replication to provision using this replication configuration
+    hidden ReplicationType: (ReplicationConfigReplicationType|Mapping)?
 
     /// 
     hidden ComputeConfig: (ReplicationConfigComputeConfig)?
 
-    /// A unique value or name that you get set for a given resource that can be used to construct an Amazon Resource Name (ARN) for that resource
-    hidden ResourceIdentifier: (String|Mapping)?
-
     Properties {
         ["SourceEndpointArn"] = if (SourceEndpointArn == null) null else SourceEndpointArn
         ["TargetEndpointArn"] = if (TargetEndpointArn == null) null else TargetEndpointArn
-        ["ReplicationType"] = if (ReplicationType == null) null else ReplicationType
+        ["TableMappings"] = if (TableMappings == null) null else TableMappings
+        ["Tags"] = if (Tags == null) null else Tags
         ["ReplicationSettings"] = if (ReplicationSettings == null) null else ReplicationSettings
         ["SupplementalSettings"] = if (SupplementalSettings == null) null else SupplementalSettings
-        ["TableMappings"] = if (TableMappings == null) null else TableMappings
+        ["ResourceIdentifier"] = if (ResourceIdentifier == null) null else ResourceIdentifier
         ["ReplicationConfigIdentifier"] = if (ReplicationConfigIdentifier == null) null else ReplicationConfigIdentifier
         ["ReplicationConfigArn"] = if (ReplicationConfigArn == null) null else ReplicationConfigArn
-        ["Tags"] = if (Tags == null) null else Tags
+        ["ReplicationType"] = if (ReplicationType == null) null else ReplicationType
         ["ComputeConfig"] = if (ComputeConfig == null) null else ComputeConfig
-        ["ResourceIdentifier"] = if (ResourceIdentifier == null) null else ResourceIdentifier
     }
 
 }

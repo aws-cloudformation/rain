@@ -5,13 +5,6 @@ module aws.budgets.budgetsaction
 
 import "../../cloudformation.pkl"
 
-/// 
-open class BudgetsActionDefinition {
-    IamActionDefinition: (BudgetsActionIamActionDefinition)?
-    ScpActionDefinition: (BudgetsActionScpActionDefinition)?
-    SsmActionDefinition: (BudgetsActionSsmActionDefinition)?
-}
-
 typealias SubscriberType = "SNS"|"EMAIL"
 
 /// 
@@ -30,10 +23,10 @@ open class BudgetsActionActionThreshold {
 
 /// 
 open class BudgetsActionIamActionDefinition {
-    Groups: (Listing<String|Mapping>)?
-    Users: (Listing<String|Mapping>)?
     PolicyArn: String|Mapping
     Roles: (Listing<String|Mapping>)?
+    Groups: (Listing<String|Mapping>)?
+    Users: (Listing<String|Mapping>)?
 }
 
 /// 
@@ -51,11 +44,33 @@ open class BudgetsActionSsmActionDefinition {
     InstanceIds: Listing<String|Mapping>
 }
 
+/// 
+open class BudgetsActionDefinition {
+    IamActionDefinition: (BudgetsActionIamActionDefinition)?
+    ScpActionDefinition: (BudgetsActionScpActionDefinition)?
+    SsmActionDefinition: (BudgetsActionSsmActionDefinition)?
+}
+
 /// An example resource schema demonstrating some basic constructs and validation rules.
 open class BudgetsAction extends cloudformation.Resource {
 
     Type = "AWS::Budgets::BudgetsAction"
 
+
+    /// 
+    hidden NotificationType: BudgetsActionNotificationType|Mapping
+
+    /// 
+    hidden ExecutionRoleArn: String|Mapping
+
+    /// 
+    hidden BudgetName: String|Mapping
+
+    /// 
+    hidden ActionType: BudgetsActionActionType|Mapping
+
+    /// 
+    hidden ActionThreshold: BudgetsActionActionThreshold
 
     /// 
     hidden ApprovalModel: (BudgetsActionApprovalModel|Mapping)?
@@ -66,37 +81,22 @@ open class BudgetsAction extends cloudformation.Resource {
     /// 
     hidden Definition: BudgetsActionDefinition
 
-    /// 
-    hidden BudgetName: String|Mapping
-
-    /// 
-    hidden NotificationType: BudgetsActionNotificationType|Mapping
-
-    /// 
-    hidden ActionType: BudgetsActionActionType|Mapping
-
-    /// 
-    hidden ActionThreshold: BudgetsActionActionThreshold
-
-    /// 
-    hidden ExecutionRoleArn: String|Mapping
-
     Properties {
+        ["NotificationType"] = if (NotificationType == null) null else NotificationType
+        ["ExecutionRoleArn"] = if (ExecutionRoleArn == null) null else ExecutionRoleArn
+        ["BudgetName"] = if (BudgetName == null) null else BudgetName
+        ["ActionType"] = if (ActionType == null) null else ActionType
+        ["ActionThreshold"] = if (ActionThreshold == null) null else ActionThreshold
         ["ApprovalModel"] = if (ApprovalModel == null) null else ApprovalModel
         ["Subscribers"] = if (Subscribers == null) null else Subscribers
         ["Definition"] = if (Definition == null) null else Definition
-        ["BudgetName"] = if (BudgetName == null) null else BudgetName
-        ["NotificationType"] = if (NotificationType == null) null else NotificationType
-        ["ActionType"] = if (ActionType == null) null else ActionType
-        ["ActionThreshold"] = if (ActionThreshold == null) null else ActionThreshold
-        ["ExecutionRoleArn"] = if (ExecutionRoleArn == null) null else ExecutionRoleArn
     }
 
 }
 
 
-typealias BudgetsActionApprovalModel = "AUTOMATIC"|"MANUAL"
-
 typealias BudgetsActionNotificationType = "ACTUAL"|"FORECASTED"
 
 typealias BudgetsActionActionType = "APPLY_IAM_POLICY"|"APPLY_SCP_POLICY"|"RUN_SSM_DOCUMENTS"
+
+typealias BudgetsActionApprovalModel = "AUTOMATIC"|"MANUAL"

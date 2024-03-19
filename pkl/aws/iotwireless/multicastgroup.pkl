@@ -7,16 +7,16 @@ import "../../cloudformation.pkl"
 
 /// 
 open class MulticastGroupLoRaWAN {
+    NumberOfDevicesInGroup: (Int|Mapping)?
     RfRegion: String|Mapping
     DlClass: String|Mapping
     NumberOfDevicesRequested: (Int|Mapping)?
-    NumberOfDevicesInGroup: (Int|Mapping)?
 }
 
 /// 
 open class MulticastGroupTag {
-    Key: (String|Mapping)?
     Value: (String|Mapping)?
+    Key: (String|Mapping)?
 }
 
 /// Create and manage Multicast groups.
@@ -25,17 +25,14 @@ open class MulticastGroup extends cloudformation.Resource {
     Type = "AWS::IoTWireless::MulticastGroup"
 
 
+    /// Name of Multicast group
+    hidden Name: (String|Mapping)?
+
     /// Wireless device to associate. Only for update request.
     hidden AssociateWirelessDevice: (String|Mapping)?
 
     /// Wireless device to disassociate. Only for update request.
     hidden DisassociateWirelessDevice: (String|Mapping)?
-
-    /// Name of Multicast group
-    hidden Name: (String|Mapping)?
-
-    /// A list of key-value pairs that contain metadata for the Multicast group.
-    hidden Tags: (Listing<MulticastGroupTag>)?
 
     /// Multicast group description
     hidden Description: (String|Mapping)?
@@ -43,13 +40,16 @@ open class MulticastGroup extends cloudformation.Resource {
     /// Multicast group LoRaWAN
     hidden LoRaWAN: MulticastGroupLoRaWAN
 
+    /// A list of key-value pairs that contain metadata for the Multicast group.
+    hidden Tags: (Listing<MulticastGroupTag>)?
+
     Properties {
+        ["Name"] = if (Name == null) null else Name
         ["AssociateWirelessDevice"] = if (AssociateWirelessDevice == null) null else AssociateWirelessDevice
         ["DisassociateWirelessDevice"] = if (DisassociateWirelessDevice == null) null else DisassociateWirelessDevice
-        ["Name"] = if (Name == null) null else Name
-        ["Tags"] = if (Tags == null) null else Tags
         ["Description"] = if (Description == null) null else Description
         ["LoRaWAN"] = if (LoRaWAN == null) null else LoRaWAN
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

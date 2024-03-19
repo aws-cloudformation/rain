@@ -5,6 +5,12 @@ module aws.batch.schedulingpolicy
 
 import "../../cloudformation.pkl"
 
+/// 
+open class SchedulingPolicyShareAttributes {
+    ShareIdentifier: (String|Mapping)?
+    WeightFactor: (Number|Mapping)?
+}
+
 typealias SchedulingPolicyResourceArn = String|Mapping
 
 
@@ -15,17 +21,14 @@ open class SchedulingPolicyFairsharePolicy {
     ShareDistribution: (Listing<SchedulingPolicyShareAttributes>)?
 }
 
-/// 
-open class SchedulingPolicyShareAttributes {
-    ShareIdentifier: (String|Mapping)?
-    WeightFactor: (Number|Mapping)?
-}
-
 /// Resource Type schema for AWS::Batch::SchedulingPolicy
 open class SchedulingPolicy extends cloudformation.Resource {
 
     Type = "AWS::Batch::SchedulingPolicy"
 
+
+    /// A key-value pair to associate with a resource.
+    hidden Tags: (SchedulingPolicySchedulingPolicyTags)?
 
     /// Name of Scheduling Policy.
     hidden Name: (String|Mapping)?
@@ -33,13 +36,10 @@ open class SchedulingPolicy extends cloudformation.Resource {
     /// 
     hidden FairsharePolicy: (SchedulingPolicyFairsharePolicy)?
 
-    /// A key-value pair to associate with a resource.
-    hidden Tags: (SchedulingPolicySchedulingPolicyTags)?
-
     Properties {
+        ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
         ["FairsharePolicy"] = if (FairsharePolicy == null) null else FairsharePolicy
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

@@ -5,19 +5,20 @@ module aws.robomaker.robot
 
 import "../../cloudformation.pkl"
 
-/// 
-open class Arn {
-}
+typealias RobotArn = String|Mapping
 
-/// A key-value pair to associate with a resource.
-open class Tags {
-}
+
+typealias RobotTags = Mapping<String, Any>
+
 
 /// AWS::RoboMaker::Robot resource creates an AWS RoboMaker Robot.
 open class Robot extends cloudformation.Resource {
 
     Type = "AWS::RoboMaker::Robot"
 
+
+    /// The Amazon Resource Name (ARN) of the fleet.
+    hidden Fleet: (String|Mapping)?
 
     /// The target architecture of the robot.
     hidden Architecture: RobotArchitecture|Mapping
@@ -26,20 +27,17 @@ open class Robot extends cloudformation.Resource {
     hidden GreengrassGroupId: String|Mapping
 
     /// 
-    hidden Tags: (Tags)?
+    hidden Tags: (RobotTags)?
 
     /// The name for the robot.
     hidden Name: (String|Mapping)?
 
-    /// The Amazon Resource Name (ARN) of the fleet.
-    hidden Fleet: (String|Mapping)?
-
     Properties {
+        ["Fleet"] = if (Fleet == null) null else Fleet
         ["Architecture"] = if (Architecture == null) null else Architecture
         ["GreengrassGroupId"] = if (GreengrassGroupId == null) null else GreengrassGroupId
         ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
-        ["Fleet"] = if (Fleet == null) null else Fleet
     }
 
 }

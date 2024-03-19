@@ -5,32 +5,46 @@ module aws.opsworks.instance
 
 import "../../cloudformation.pkl"
 
+typealias InstanceTimeBasedAutoScalingSunday = Mapping<String, Any>
+
+typealias InstanceTimeBasedAutoScalingThursday = Mapping<String, Any>
+
+typealias InstanceTimeBasedAutoScalingTuesday = Mapping<String, Any>
+
+typealias InstanceTimeBasedAutoScalingWednesday = Mapping<String, Any>
+
+typealias InstanceTimeBasedAutoScalingFriday = Mapping<String, Any>
+
+typealias InstanceTimeBasedAutoScalingMonday = Mapping<String, Any>
+
+typealias InstanceTimeBasedAutoScalingSaturday = Mapping<String, Any>
+
 /// 
-open class BlockDeviceMapping {
-    DeviceName: (String|Mapping)?
-    Ebs: (EbsBlockDevice)?
-    NoDevice: (String|Mapping)?
-    VirtualName: (String|Mapping)?
+open class InstanceTimeBasedAutoScaling {
+    Sunday: (InstanceTimeBasedAutoScalingSunday)?
+    Thursday: (InstanceTimeBasedAutoScalingThursday)?
+    Tuesday: (InstanceTimeBasedAutoScalingTuesday)?
+    Wednesday: (InstanceTimeBasedAutoScalingWednesday)?
+    Friday: (InstanceTimeBasedAutoScalingFriday)?
+    Monday: (InstanceTimeBasedAutoScalingMonday)?
+    Saturday: (InstanceTimeBasedAutoScalingSaturday)?
 }
 
 /// 
-open class TimeBasedAutoScaling {
-    Tuesday: (Dynamic)?
-    Wednesday: (Dynamic)?
-    Friday: (Dynamic)?
-    Monday: (Dynamic)?
-    Saturday: (Dynamic)?
-    Sunday: (Dynamic)?
-    Thursday: (Dynamic)?
-}
-
-/// 
-open class EbsBlockDevice {
-    DeleteOnTermination: (Boolean|Mapping)?
-    Iops: (Int|Mapping)?
+open class InstanceEbsBlockDevice {
     SnapshotId: (String|Mapping)?
     VolumeSize: (Int|Mapping)?
     VolumeType: (String|Mapping)?
+    DeleteOnTermination: (Boolean|Mapping)?
+    Iops: (Int|Mapping)?
+}
+
+/// 
+open class InstanceBlockDeviceMapping {
+    Ebs: (InstanceEbsBlockDevice)?
+    NoDevice: (String|Mapping)?
+    VirtualName: (String|Mapping)?
+    DeviceName: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::OpsWorks::Instance
@@ -40,10 +54,61 @@ open class Instance extends cloudformation.Resource {
 
 
     /// 
+    hidden SshKeyName: (String|Mapping)?
+
+    /// 
+    hidden StackId: String|Mapping
+
+    /// 
+    hidden Volumes: (Listing<String|Mapping>)?
+
+    /// 
+    hidden Os: (String|Mapping)?
+
+    /// 
+    hidden InstallUpdatesOnBoot: (Boolean|Mapping)?
+
+    /// 
+    hidden InstanceType: String|Mapping
+
+    /// 
+    hidden LayerIds: Listing<String|Mapping>
+
+    /// 
     hidden RootDeviceType: (String|Mapping)?
 
     /// 
+    hidden SubnetId: (String|Mapping)?
+
+    /// 
+    hidden Architecture: (String|Mapping)?
+
+    /// 
+    hidden Hostname: (String|Mapping)?
+
+    /// 
+    hidden BlockDeviceMappings: (Listing<InstanceBlockDeviceMapping>)?
+
+    /// 
+    hidden AgentVersion: (String|Mapping)?
+
+    /// 
+    hidden VirtualizationType: (String|Mapping)?
+
+    /// 
+    hidden EbsOptimized: (Boolean|Mapping)?
+
+    /// 
     hidden ElasticIps: (Listing<String|Mapping>)?
+
+    /// 
+    hidden AvailabilityZone: (String|Mapping)?
+
+    /// 
+    hidden AutoScalingType: (String|Mapping)?
+
+    /// 
+    hidden TimeBasedAutoScaling: (InstanceTimeBasedAutoScaling)?
 
     /// 
     hidden AmiId: (String|Mapping)?
@@ -51,79 +116,28 @@ open class Instance extends cloudformation.Resource {
     /// 
     hidden Tenancy: (String|Mapping)?
 
-    /// 
-    hidden Os: (String|Mapping)?
-
-    /// 
-    hidden Architecture: (String|Mapping)?
-
-    /// 
-    hidden InstallUpdatesOnBoot: (Boolean|Mapping)?
-
-    /// 
-    hidden SubnetId: (String|Mapping)?
-
-    /// 
-    hidden AgentVersion: (String|Mapping)?
-
-    /// 
-    hidden InstanceType: String|Mapping
-
-    /// 
-    hidden Volumes: (Listing<String|Mapping>)?
-
-    /// 
-    hidden AutoScalingType: (String|Mapping)?
-
-    /// 
-    hidden EbsOptimized: (Boolean|Mapping)?
-
-    /// 
-    hidden SshKeyName: (String|Mapping)?
-
-    /// 
-    hidden StackId: String|Mapping
-
-    /// 
-    hidden TimeBasedAutoScaling: (TimeBasedAutoScaling)?
-
-    /// 
-    hidden AvailabilityZone: (String|Mapping)?
-
-    /// 
-    hidden BlockDeviceMappings: (Listing<BlockDeviceMapping>)?
-
-    /// 
-    hidden Hostname: (String|Mapping)?
-
-    /// 
-    hidden VirtualizationType: (String|Mapping)?
-
-    /// 
-    hidden LayerIds: Listing<String|Mapping>
-
     Properties {
-        ["RootDeviceType"] = if (RootDeviceType == null) null else RootDeviceType
-        ["ElasticIps"] = if (ElasticIps == null) null else ElasticIps
-        ["AmiId"] = if (AmiId == null) null else AmiId
-        ["Tenancy"] = if (Tenancy == null) null else Tenancy
-        ["Os"] = if (Os == null) null else Os
-        ["Architecture"] = if (Architecture == null) null else Architecture
-        ["InstallUpdatesOnBoot"] = if (InstallUpdatesOnBoot == null) null else InstallUpdatesOnBoot
-        ["SubnetId"] = if (SubnetId == null) null else SubnetId
-        ["AgentVersion"] = if (AgentVersion == null) null else AgentVersion
-        ["InstanceType"] = if (InstanceType == null) null else InstanceType
-        ["Volumes"] = if (Volumes == null) null else Volumes
-        ["AutoScalingType"] = if (AutoScalingType == null) null else AutoScalingType
-        ["EbsOptimized"] = if (EbsOptimized == null) null else EbsOptimized
         ["SshKeyName"] = if (SshKeyName == null) null else SshKeyName
         ["StackId"] = if (StackId == null) null else StackId
-        ["TimeBasedAutoScaling"] = if (TimeBasedAutoScaling == null) null else TimeBasedAutoScaling
-        ["AvailabilityZone"] = if (AvailabilityZone == null) null else AvailabilityZone
-        ["BlockDeviceMappings"] = if (BlockDeviceMappings == null) null else BlockDeviceMappings
-        ["Hostname"] = if (Hostname == null) null else Hostname
-        ["VirtualizationType"] = if (VirtualizationType == null) null else VirtualizationType
+        ["Volumes"] = if (Volumes == null) null else Volumes
+        ["Os"] = if (Os == null) null else Os
+        ["InstallUpdatesOnBoot"] = if (InstallUpdatesOnBoot == null) null else InstallUpdatesOnBoot
+        ["InstanceType"] = if (InstanceType == null) null else InstanceType
         ["LayerIds"] = if (LayerIds == null) null else LayerIds
+        ["RootDeviceType"] = if (RootDeviceType == null) null else RootDeviceType
+        ["SubnetId"] = if (SubnetId == null) null else SubnetId
+        ["Architecture"] = if (Architecture == null) null else Architecture
+        ["Hostname"] = if (Hostname == null) null else Hostname
+        ["BlockDeviceMappings"] = if (BlockDeviceMappings == null) null else BlockDeviceMappings
+        ["AgentVersion"] = if (AgentVersion == null) null else AgentVersion
+        ["VirtualizationType"] = if (VirtualizationType == null) null else VirtualizationType
+        ["EbsOptimized"] = if (EbsOptimized == null) null else EbsOptimized
+        ["ElasticIps"] = if (ElasticIps == null) null else ElasticIps
+        ["AvailabilityZone"] = if (AvailabilityZone == null) null else AvailabilityZone
+        ["AutoScalingType"] = if (AutoScalingType == null) null else AutoScalingType
+        ["TimeBasedAutoScaling"] = if (TimeBasedAutoScaling == null) null else TimeBasedAutoScaling
+        ["AmiId"] = if (AmiId == null) null else AmiId
+        ["Tenancy"] = if (Tenancy == null) null else Tenancy
     }
 
 }

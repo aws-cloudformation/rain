@@ -6,83 +6,20 @@ module aws.pcaconnectorad.template
 import "../../cloudformation.pkl"
 
 /// 
-open class ClientCompatibilityV3 {
+open class TemplateExtensionsV2 {
+    KeyUsage: TemplateKeyUsage
+    ApplicationPolicies: (TemplateApplicationPolicies)?
 }
 
 /// 
-open class KeyUsagePropertyType {
-}
-
-/// 
-open class PrivateKeyAttributesV3 {
-    MinimalKeyLength: Number|Mapping
-    KeySpec: KeySpec
-    CryptoProviders: (Listing<String|Mapping>)?
-    KeyUsageProperty: KeyUsageProperty
-    Algorithm: PrivateKeyAlgorithm
-}
-
-/// 
-open class PrivateKeyAttributesV4 {
-    KeyUsageProperty: (KeyUsageProperty)?
-    Algorithm: (PrivateKeyAlgorithm)?
-    MinimalKeyLength: Number|Mapping
-    KeySpec: KeySpec
-    CryptoProviders: (Listing<String|Mapping>)?
-}
-
-/// 
-open class PrivateKeyFlagsV3 {
-    ClientVersion: ClientCompatibilityV3
+open class TemplatePrivateKeyFlagsV2 {
     ExportableKey: (Boolean|Mapping)?
     StrongKeyProtectionRequired: (Boolean|Mapping)?
-    RequireAlternateSignatureAlgorithm: (Boolean|Mapping)?
+    ClientVersion: TemplateClientCompatibilityV2
 }
 
 /// 
-open class ApplicationPolicies {
-    Critical: (Boolean|Mapping)?
-    Policies: Listing<ApplicationPolicy>
-}
-
-/// 
-open class GeneralFlagsV2 {
-    AutoEnrollment: (Boolean|Mapping)?
-    MachineType: (Boolean|Mapping)?
-}
-
-/// 
-open class GeneralFlagsV3 {
-    AutoEnrollment: (Boolean|Mapping)?
-    MachineType: (Boolean|Mapping)?
-}
-
-/// 
-open class GeneralFlagsV4 {
-    AutoEnrollment: (Boolean|Mapping)?
-    MachineType: (Boolean|Mapping)?
-}
-
-/// 
-open class Tags {
-}
-
-/// 
-open class TemplateDefinition {
-}
-
-/// 
-open class ApplicationPolicy {
-}
-
-/// 
-open class CertificateValidity {
-    ValidityPeriod: ValidityPeriod
-    RenewalPeriod: ValidityPeriod
-}
-
-/// 
-open class KeyUsageFlags {
+open class TemplateKeyUsageFlags {
     DigitalSignature: (Boolean|Mapping)?
     NonRepudiation: (Boolean|Mapping)?
     KeyEncipherment: (Boolean|Mapping)?
@@ -91,203 +28,288 @@ open class KeyUsageFlags {
 }
 
 /// 
-open class SubjectNameFlagsV2 {
-    SanRequireDomainDns: (Boolean|Mapping)?
-    SanRequireDirectoryGuid: (Boolean|Mapping)?
-    SanRequireEmail: (Boolean|Mapping)?
-    RequireDnsAsCn: (Boolean|Mapping)?
-    RequireEmail: (Boolean|Mapping)?
-    RequireDirectoryPath: (Boolean|Mapping)?
-    SanRequireSpn: (Boolean|Mapping)?
-    SanRequireUpn: (Boolean|Mapping)?
-    SanRequireDns: (Boolean|Mapping)?
-    RequireCommonName: (Boolean|Mapping)?
+open class TemplateApplicationPolicyPolicyType {
+    PolicyType: TemplateApplicationPolicyType
+}
+
+typealias TemplateValidityPeriodType = String|Mapping
+
+
+/// 
+open class TemplateValidityPeriod {
+    PeriodType: TemplateValidityPeriodType
+    Period: Number|Mapping
 }
 
 /// 
-open class TemplateV4 {
-    GeneralFlags: GeneralFlagsV4
-    Extensions: ExtensionsV4
-    SupersededTemplates: (Listing<String|Mapping>)?
-    PrivateKeyAttributes: PrivateKeyAttributesV4
-    PrivateKeyFlags: PrivateKeyFlagsV4
-    EnrollmentFlags: EnrollmentFlagsV4
-    CertificateValidity: CertificateValidity
-    SubjectNameFlags: SubjectNameFlagsV4
-    HashAlgorithm: (HashAlgorithm)?
+open class TemplateApplicationPolicies {
+    Critical: (Boolean|Mapping)?
+    Policies: Listing<TemplateApplicationPolicy>
 }
 
 /// 
-open class EnrollmentFlagsV4 {
+open class TemplateEnrollmentFlagsV4 {
+    IncludeSymmetricAlgorithms: (Boolean|Mapping)?
     UserInteractionRequired: (Boolean|Mapping)?
     RemoveInvalidCertificateFromPersonalStore: (Boolean|Mapping)?
     NoSecurityExtension: (Boolean|Mapping)?
     EnableKeyReuseOnNtTokenKeysetStorageFull: (Boolean|Mapping)?
-    IncludeSymmetricAlgorithms: (Boolean|Mapping)?
+}
+
+typealias TemplateApplicationPolicy = TemplateApplicationPolicyPolicyType|TemplateApplicationPolicyPolicyObjectIdentifier
+
+
+/// 
+open class TemplateApplicationPolicyPolicyObjectIdentifier {
+    PolicyObjectIdentifier: String(matches(Regex(#"^([0-2])\.([0-9]|([0-3][0-9]))(\.([0-9]+)){0,126}$"#)))|Mapping
 }
 
 /// 
-open class PrivateKeyAttributesV2 {
-    MinimalKeyLength: Number|Mapping
-    KeySpec: KeySpec
-    CryptoProviders: (Listing<String|Mapping>)?
+open class TemplateKeyUsage {
+    Critical: (Boolean|Mapping)?
+    UsageFlags: TemplateKeyUsageFlags
 }
 
 /// 
-open class PrivateKeyFlagsV2 {
-    ExportableKey: (Boolean|Mapping)?
-    StrongKeyProtectionRequired: (Boolean|Mapping)?
-    ClientVersion: ClientCompatibilityV2
+open class TemplateGeneralFlagsV3 {
+    AutoEnrollment: (Boolean|Mapping)?
+    MachineType: (Boolean|Mapping)?
 }
 
+typealias TemplatePrivateKeyAlgorithm = String|Mapping
+
+
 /// 
-open class PrivateKeyFlagsV4 {
+open class TemplatePrivateKeyFlagsV4 {
     RequireSameKeyRenewal: (Boolean|Mapping)?
     UseLegacyProvider: (Boolean|Mapping)?
-    ClientVersion: ClientCompatibilityV4
+    ClientVersion: TemplateClientCompatibilityV4
     ExportableKey: (Boolean|Mapping)?
     StrongKeyProtectionRequired: (Boolean|Mapping)?
     RequireAlternateSignatureAlgorithm: (Boolean|Mapping)?
 }
 
+typealias TemplateKeySpec = String|Mapping
+
+
 /// 
-open class SubjectNameFlagsV3 {
-    RequireEmail: (Boolean|Mapping)?
-    RequireDirectoryPath: (Boolean|Mapping)?
-    SanRequireDomainDns: (Boolean|Mapping)?
-    SanRequireDirectoryGuid: (Boolean|Mapping)?
+open class TemplatePrivateKeyFlagsV3 {
+    StrongKeyProtectionRequired: (Boolean|Mapping)?
+    RequireAlternateSignatureAlgorithm: (Boolean|Mapping)?
+    ClientVersion: TemplateClientCompatibilityV3
+    ExportableKey: (Boolean|Mapping)?
+}
+
+typealias TemplateKeyUsageProperty = TemplateKeyUsagePropertyPropertyType|TemplateKeyUsagePropertyPropertyFlags
+
+
+/// 
+open class TemplateSubjectNameFlagsV3 {
     RequireDnsAsCn: (Boolean|Mapping)?
-    SanRequireDns: (Boolean|Mapping)?
+    RequireEmail: (Boolean|Mapping)?
     RequireCommonName: (Boolean|Mapping)?
+    RequireDirectoryPath: (Boolean|Mapping)?
+    SanRequireDirectoryGuid: (Boolean|Mapping)?
     SanRequireSpn: (Boolean|Mapping)?
     SanRequireUpn: (Boolean|Mapping)?
     SanRequireEmail: (Boolean|Mapping)?
+    SanRequireDns: (Boolean|Mapping)?
+    SanRequireDomainDns: (Boolean|Mapping)?
+}
+
+typealias TemplateApplicationPolicyType = String|Mapping
+
+
+/// 
+open class TemplateTemplateV2 {
+    PrivateKeyAttributes: TemplatePrivateKeyAttributesV2
+    PrivateKeyFlags: TemplatePrivateKeyFlagsV2
+    EnrollmentFlags: TemplateEnrollmentFlagsV2
+    SubjectNameFlags: TemplateSubjectNameFlagsV2
+    GeneralFlags: TemplateGeneralFlagsV2
+    Extensions: TemplateExtensionsV2
+    CertificateValidity: TemplateCertificateValidity
+    SupersededTemplates: (Listing<String|Mapping>)?
 }
 
 /// 
-open class ValidityPeriodType {
+open class TemplateEnrollmentFlagsV2 {
+    UserInteractionRequired: (Boolean|Mapping)?
+    RemoveInvalidCertificateFromPersonalStore: (Boolean|Mapping)?
+    NoSecurityExtension: (Boolean|Mapping)?
+    EnableKeyReuseOnNtTokenKeysetStorageFull: (Boolean|Mapping)?
+    IncludeSymmetricAlgorithms: (Boolean|Mapping)?
 }
 
 /// 
-open class ApplicationPolicyType {
-}
-
-/// 
-open class ClientCompatibilityV2 {
-}
-
-/// 
-open class KeyUsagePropertyFlags {
+open class TemplateKeyUsagePropertyFlags {
     KeyAgreement: (Boolean|Mapping)?
     Sign: (Boolean|Mapping)?
     Decrypt: (Boolean|Mapping)?
 }
 
+typealias TemplateClientCompatibilityV2 = String|Mapping
+
+
 /// 
-open class PrivateKeyAlgorithm {
+open class TemplateTemplateDefinitionTemplateV4 {
+    TemplateV4: TemplateTemplateV4
 }
 
 /// 
-open class SubjectNameFlagsV4 {
+open class TemplateTemplateV4 {
+    EnrollmentFlags: TemplateEnrollmentFlagsV4
+    Extensions: TemplateExtensionsV4
+    PrivateKeyFlags: TemplatePrivateKeyFlagsV4
+    SupersededTemplates: (Listing<String|Mapping>)?
+    PrivateKeyAttributes: TemplatePrivateKeyAttributesV4
+    SubjectNameFlags: TemplateSubjectNameFlagsV4
+    GeneralFlags: TemplateGeneralFlagsV4
+    HashAlgorithm: (TemplateHashAlgorithm)?
+    CertificateValidity: TemplateCertificateValidity
+}
+
+typealias TemplateKeyUsagePropertyType = String|Mapping
+
+
+/// 
+open class TemplateExtensionsV4 {
+    KeyUsage: TemplateKeyUsage
+    ApplicationPolicies: (TemplateApplicationPolicies)?
+}
+
+/// 
+open class TemplatePrivateKeyAttributesV3 {
+    MinimalKeyLength: Number|Mapping
+    KeySpec: TemplateKeySpec
+    CryptoProviders: (Listing<String|Mapping>)?
+    KeyUsageProperty: TemplateKeyUsageProperty
+    Algorithm: TemplatePrivateKeyAlgorithm
+}
+
+/// 
+open class TemplateGeneralFlagsV2 {
+    AutoEnrollment: (Boolean|Mapping)?
+    MachineType: (Boolean|Mapping)?
+}
+
+/// 
+open class TemplatePrivateKeyAttributesV4 {
+    Algorithm: (TemplatePrivateKeyAlgorithm)?
+    MinimalKeyLength: Number|Mapping
+    KeySpec: TemplateKeySpec
+    CryptoProviders: (Listing<String|Mapping>)?
+    KeyUsageProperty: (TemplateKeyUsageProperty)?
+}
+
+/// 
+open class TemplateSubjectNameFlagsV2 {
+    SanRequireSpn: (Boolean|Mapping)?
+    SanRequireEmail: (Boolean|Mapping)?
+    RequireEmail: (Boolean|Mapping)?
+    RequireCommonName: (Boolean|Mapping)?
+    RequireDirectoryPath: (Boolean|Mapping)?
+    SanRequireDomainDns: (Boolean|Mapping)?
+    SanRequireDirectoryGuid: (Boolean|Mapping)?
     SanRequireUpn: (Boolean|Mapping)?
+    SanRequireDns: (Boolean|Mapping)?
+    RequireDnsAsCn: (Boolean|Mapping)?
+}
+
+typealias TemplateClientCompatibilityV3 = String|Mapping
+
+
+/// 
+open class TemplateExtensionsV3 {
+    KeyUsage: TemplateKeyUsage
+    ApplicationPolicies: (TemplateApplicationPolicies)?
+}
+
+/// 
+open class TemplateGeneralFlagsV4 {
+    AutoEnrollment: (Boolean|Mapping)?
+    MachineType: (Boolean|Mapping)?
+}
+
+typealias TemplateHashAlgorithm = String|Mapping
+
+
+/// 
+open class TemplateTemplateV3 {
+    EnrollmentFlags: TemplateEnrollmentFlagsV3
+    SubjectNameFlags: TemplateSubjectNameFlagsV3
+    GeneralFlags: TemplateGeneralFlagsV3
+    HashAlgorithm: TemplateHashAlgorithm
+    SupersededTemplates: (Listing<String|Mapping>)?
+    PrivateKeyFlags: TemplatePrivateKeyFlagsV3
+    Extensions: TemplateExtensionsV3
+    CertificateValidity: TemplateCertificateValidity
+    PrivateKeyAttributes: TemplatePrivateKeyAttributesV3
+}
+
+typealias TemplateTags = Mapping<String, Any>
+
+
+/// 
+open class TemplateKeyUsagePropertyPropertyType {
+    PropertyType: TemplateKeyUsagePropertyType
+}
+
+/// 
+open class TemplateKeyUsagePropertyPropertyFlags {
+    PropertyFlags: TemplateKeyUsagePropertyFlags
+}
+
+typealias TemplateTemplateDefinition = TemplateTemplateDefinitionTemplateV2|TemplateTemplateDefinitionTemplateV3|TemplateTemplateDefinitionTemplateV4
+
+
+/// 
+open class TemplatePrivateKeyAttributesV2 {
+    MinimalKeyLength: Number|Mapping
+    KeySpec: TemplateKeySpec
+    CryptoProviders: (Listing<String|Mapping>)?
+}
+
+/// 
+open class TemplateTemplateDefinitionTemplateV3 {
+    TemplateV3: TemplateTemplateV3
+}
+
+/// 
+open class TemplateEnrollmentFlagsV3 {
+    EnableKeyReuseOnNtTokenKeysetStorageFull: (Boolean|Mapping)?
+    IncludeSymmetricAlgorithms: (Boolean|Mapping)?
+    UserInteractionRequired: (Boolean|Mapping)?
+    RemoveInvalidCertificateFromPersonalStore: (Boolean|Mapping)?
+    NoSecurityExtension: (Boolean|Mapping)?
+}
+
+/// 
+open class TemplateCertificateValidity {
+    RenewalPeriod: TemplateValidityPeriod
+    ValidityPeriod: TemplateValidityPeriod
+}
+
+/// 
+open class TemplateTemplateDefinitionTemplateV2 {
+    TemplateV2: TemplateTemplateV2
+}
+
+typealias TemplateClientCompatibilityV4 = String|Mapping
+
+
+/// 
+open class TemplateSubjectNameFlagsV4 {
+    RequireDirectoryPath: (Boolean|Mapping)?
+    SanRequireUpn: (Boolean|Mapping)?
+    RequireEmail: (Boolean|Mapping)?
+    SanRequireDirectoryGuid: (Boolean|Mapping)?
     SanRequireEmail: (Boolean|Mapping)?
     SanRequireDns: (Boolean|Mapping)?
     RequireDnsAsCn: (Boolean|Mapping)?
     RequireCommonName: (Boolean|Mapping)?
     SanRequireDomainDns: (Boolean|Mapping)?
     SanRequireSpn: (Boolean|Mapping)?
-    SanRequireDirectoryGuid: (Boolean|Mapping)?
-    RequireDirectoryPath: (Boolean|Mapping)?
-    RequireEmail: (Boolean|Mapping)?
-}
-
-/// 
-open class EnrollmentFlagsV2 {
-    EnableKeyReuseOnNtTokenKeysetStorageFull: (Boolean|Mapping)?
-    IncludeSymmetricAlgorithms: (Boolean|Mapping)?
-    UserInteractionRequired: (Boolean|Mapping)?
-    RemoveInvalidCertificateFromPersonalStore: (Boolean|Mapping)?
-    NoSecurityExtension: (Boolean|Mapping)?
-}
-
-/// 
-open class KeyUsage {
-    Critical: (Boolean|Mapping)?
-    UsageFlags: KeyUsageFlags
-}
-
-/// 
-open class TemplateV3 {
-    SupersededTemplates: (Listing<String|Mapping>)?
-    PrivateKeyFlags: PrivateKeyFlagsV3
-    EnrollmentFlags: EnrollmentFlagsV3
-    SubjectNameFlags: SubjectNameFlagsV3
-    GeneralFlags: GeneralFlagsV3
-    CertificateValidity: CertificateValidity
-    PrivateKeyAttributes: PrivateKeyAttributesV3
-    HashAlgorithm: HashAlgorithm
-    Extensions: ExtensionsV3
-}
-
-/// 
-open class EnrollmentFlagsV3 {
-    IncludeSymmetricAlgorithms: (Boolean|Mapping)?
-    UserInteractionRequired: (Boolean|Mapping)?
-    RemoveInvalidCertificateFromPersonalStore: (Boolean|Mapping)?
-    NoSecurityExtension: (Boolean|Mapping)?
-    EnableKeyReuseOnNtTokenKeysetStorageFull: (Boolean|Mapping)?
-}
-
-/// 
-open class ExtensionsV2 {
-    KeyUsage: KeyUsage
-    ApplicationPolicies: (ApplicationPolicies)?
-}
-
-/// 
-open class ExtensionsV4 {
-    KeyUsage: KeyUsage
-    ApplicationPolicies: (ApplicationPolicies)?
-}
-
-/// 
-open class HashAlgorithm {
-}
-
-/// 
-open class KeyUsageProperty {
-}
-
-/// 
-open class ClientCompatibilityV4 {
-}
-
-/// 
-open class ExtensionsV3 {
-    KeyUsage: KeyUsage
-    ApplicationPolicies: (ApplicationPolicies)?
-}
-
-/// 
-open class KeySpec {
-}
-
-/// 
-open class TemplateV2 {
-    SubjectNameFlags: SubjectNameFlagsV2
-    GeneralFlags: GeneralFlagsV2
-    Extensions: ExtensionsV2
-    CertificateValidity: CertificateValidity
-    SupersededTemplates: (Listing<String|Mapping>)?
-    PrivateKeyAttributes: PrivateKeyAttributesV2
-    PrivateKeyFlags: PrivateKeyFlagsV2
-    EnrollmentFlags: EnrollmentFlagsV2
-}
-
-/// 
-open class ValidityPeriod {
-    PeriodType: ValidityPeriodType
-    Period: Number|Mapping
 }
 
 /// Represents a template that defines certificate configurations, both for issuance and client handling
@@ -297,13 +319,10 @@ open class Template extends cloudformation.Resource {
 
 
     /// 
-    hidden Tags: (Tags)?
-
-    /// 
     hidden ConnectorArn: String(matches(Regex(#"^arn:[\w-]+:pca-connector-ad:[\w-]+:[0-9]+:connector\/[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$"#)))|Mapping
 
     /// 
-    hidden Definition: TemplateDefinition
+    hidden Definition: TemplateTemplateDefinition
 
     /// 
     hidden Name: String(matches(Regex(#"^(?!^\s+$)((?![\x5c'\x2b,;<=>#\x22])([\x20-\x7E]))+$"#)))|Mapping
@@ -311,12 +330,15 @@ open class Template extends cloudformation.Resource {
     /// 
     hidden ReenrollAllCertificateHolders: (Boolean|Mapping)?
 
+    /// 
+    hidden Tags: (TemplateTags)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
         ["ConnectorArn"] = if (ConnectorArn == null) null else ConnectorArn
         ["Definition"] = if (Definition == null) null else Definition
         ["Name"] = if (Name == null) null else Name
         ["ReenrollAllCertificateHolders"] = if (ReenrollAllCertificateHolders == null) null else ReenrollAllCertificateHolders
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

@@ -6,9 +6,8 @@ module aws.guardduty.detector
 import "../../cloudformation.pkl"
 
 /// 
-open class DetectorCFNFeatureAdditionalConfiguration {
-    Name: (String|Mapping)?
-    Status: (String|Mapping)?
+open class DetectorCFNKubernetesConfiguration {
+    AuditLogs: DetectorCFNKubernetesAuditLogsConfiguration
 }
 
 /// 
@@ -24,13 +23,29 @@ open class DetectorCFNDataSourceConfigurations {
 }
 
 /// 
-open class DetectorCFNScanEc2InstanceWithFindingsConfiguration {
-    EbsVolumes: (Boolean|Mapping)?
+open class DetectorCFNMalwareProtectionConfiguration {
+    ScanEc2InstanceWithFindings: (DetectorCFNScanEc2InstanceWithFindingsConfiguration)?
+}
+
+typealias CFNFeatureConfigurationStatus = "ENABLED"|"DISABLED"
+
+/// 
+open class DetectorCFNFeatureConfiguration {
+    Name: String|Mapping
+    Status: CFNFeatureConfigurationStatus|Mapping
+    AdditionalConfiguration: (Listing<DetectorCFNFeatureAdditionalConfiguration>)?
 }
 
 /// 
-open class DetectorCFNMalwareProtectionConfiguration {
-    ScanEc2InstanceWithFindings: (DetectorCFNScanEc2InstanceWithFindingsConfiguration)?
+open class DetectorCFNFeatureAdditionalConfiguration {
+    Name: (String|Mapping)?
+    Status: (String|Mapping)?
+}
+
+/// 
+open class DetectorTagItem {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// 
@@ -39,23 +54,8 @@ open class DetectorCFNS3LogsConfiguration {
 }
 
 /// 
-open class DetectorTagItem {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class DetectorCFNKubernetesConfiguration {
-    AuditLogs: DetectorCFNKubernetesAuditLogsConfiguration
-}
-
-typealias CFNFeatureConfigurationStatus = "ENABLED"|"DISABLED"
-
-/// 
-open class DetectorCFNFeatureConfiguration {
-    AdditionalConfiguration: (Listing<DetectorCFNFeatureAdditionalConfiguration>)?
-    Name: String|Mapping
-    Status: CFNFeatureConfigurationStatus|Mapping
+open class DetectorCFNScanEc2InstanceWithFindingsConfiguration {
+    EbsVolumes: (Boolean|Mapping)?
 }
 
 /// Resource Type definition for AWS::GuardDuty::Detector
@@ -63,6 +63,12 @@ open class Detector extends cloudformation.Resource {
 
     Type = "AWS::GuardDuty::Detector"
 
+
+    /// 
+    hidden Enable: Boolean|Mapping
+
+    /// 
+    hidden DataSources: (DetectorCFNDataSourceConfigurations)?
 
     /// 
     hidden Features: (Listing<DetectorCFNFeatureConfiguration>)?
@@ -73,18 +79,12 @@ open class Detector extends cloudformation.Resource {
     /// 
     hidden FindingPublishingFrequency: (String|Mapping)?
 
-    /// 
-    hidden Enable: Boolean|Mapping
-
-    /// 
-    hidden DataSources: (DetectorCFNDataSourceConfigurations)?
-
     Properties {
+        ["Enable"] = if (Enable == null) null else Enable
+        ["DataSources"] = if (DataSources == null) null else DataSources
         ["Features"] = if (Features == null) null else Features
         ["Tags"] = if (Tags == null) null else Tags
         ["FindingPublishingFrequency"] = if (FindingPublishingFrequency == null) null else FindingPublishingFrequency
-        ["Enable"] = if (Enable == null) null else Enable
-        ["DataSources"] = if (DataSources == null) null else DataSources
     }
 
 }

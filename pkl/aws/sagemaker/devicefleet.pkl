@@ -5,16 +5,16 @@ module aws.sagemaker.devicefleet
 
 import "../../cloudformation.pkl"
 
-/// 
-open class EdgeOutputConfig {
-    KmsKeyId: (String(matches(Regex(#"[a-zA-Z0-9:_-]+"#)))|Mapping)?
-    S3OutputLocation: String(matches(Regex(#"^s3://([^/]+)/?(.*)$"#)))|Mapping
-}
-
 /// Key-value pair to associate as a tag for the resource
-open class Tag {
+open class DeviceFleetTag {
     Key: String(matches(Regex(#"^((?!aws:)[\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
     Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
+}
+
+/// 
+open class DeviceFleetEdgeOutputConfig {
+    S3OutputLocation: String(matches(Regex(#"^s3://([^/]+)/?(.*)$"#)))|Mapping
+    KmsKeyId: (String(matches(Regex(#"[a-zA-Z0-9:_-]+"#)))|Mapping)?
 }
 
 /// Resource schema for AWS::SageMaker::DeviceFleet
@@ -30,13 +30,13 @@ open class DeviceFleet extends cloudformation.Resource {
     hidden DeviceFleetName: String(matches(Regex(#"^[a-zA-Z0-9](-*_*[a-zA-Z0-9])*$"#)))|Mapping
 
     /// S3 bucket and an ecryption key id (if available) to store outputs for the fleet
-    hidden OutputConfig: EdgeOutputConfig
+    hidden OutputConfig: DeviceFleetEdgeOutputConfig
 
     /// Role associated with the device fleet
     hidden RoleArn: String(matches(Regex(#"^arn:aws[a-z\-]*:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping
 
     /// Associate tags with the resource
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<DeviceFleetTag>)?
 
     Properties {
         ["Description"] = if (Description == null) null else Description

@@ -6,9 +6,9 @@ module aws.wafv2.regexpatternset
 import "../../cloudformation.pkl"
 
 /// 
-open class Tag {
-    Value: (String|Mapping)?
+open class RegexPatternSetTag {
     Key: (String|Mapping)?
+    Value: (String|Mapping)?
 }
 
 /// Contains a list of Regular expressions based on the provided inputs. RegexPatternSet can be used with other WAF entities with RegexPatternSetReferenceStatement to perform other actions .
@@ -16,12 +16,6 @@ open class RegexPatternSet extends cloudformation.Resource {
 
     Type = "AWS::WAFv2::RegexPatternSet"
 
-
-    /// Use CLOUDFRONT for CloudFront RegexPatternSet, use REGIONAL for Application Load Balancer and API Gateway.
-    hidden Scope: RegexPatternSetScope|Mapping
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
 
     /// Description of the entity.
     hidden Description: (String(matches(Regex(#"^[a-zA-Z0-9=:#@/\-,.][a-zA-Z0-9+=:#@/\-,.\s]+[a-zA-Z0-9+=:#@/\-,.]{1,256}$"#)))|Mapping)?
@@ -32,12 +26,18 @@ open class RegexPatternSet extends cloudformation.Resource {
     /// 
     hidden RegularExpressionList: Listing<String|Mapping>
 
+    /// Use CLOUDFRONT for CloudFront RegexPatternSet, use REGIONAL for Application Load Balancer and API Gateway.
+    hidden Scope: RegexPatternSetScope|Mapping
+
+    /// 
+    hidden Tags: (Listing<RegexPatternSetTag>)?
+
     Properties {
-        ["Scope"] = if (Scope == null) null else Scope
-        ["Tags"] = if (Tags == null) null else Tags
         ["Description"] = if (Description == null) null else Description
         ["Name"] = if (Name == null) null else Name
         ["RegularExpressionList"] = if (RegularExpressionList == null) null else RegularExpressionList
+        ["Scope"] = if (Scope == null) null else Scope
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

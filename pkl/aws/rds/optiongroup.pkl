@@ -6,23 +6,23 @@ module aws.rds.optiongroup
 import "../../cloudformation.pkl"
 
 /// The OptionConfiguration property type specifies an individual option, and its settings, within an AWS::RDS::OptionGroup resource.
-open class OptionConfiguration {
+open class OptionGroupOptionConfiguration {
+    VpcSecurityGroupMemberships: (Listing<String|Mapping>)?
     DBSecurityGroupMemberships: (Listing<String|Mapping>)?
     OptionName: String|Mapping
-    OptionSettings: (Listing<OptionSetting>)?
+    OptionSettings: (Listing<OptionGroupOptionSetting>)?
     OptionVersion: (String|Mapping)?
     Port: (Int|Mapping)?
-    VpcSecurityGroupMemberships: (Listing<String|Mapping>)?
 }
 
 /// The OptionSetting property type specifies the value for an option within an OptionSetting property.
-open class OptionSetting {
+open class OptionGroupOptionSetting {
     Name: (String|Mapping)?
     Value: (String|Mapping)?
 }
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class OptionGroupTag {
     Key: String|Mapping
     Value: (String|Mapping)?
 }
@@ -32,9 +32,6 @@ open class OptionGroup extends cloudformation.Resource {
 
     Type = "AWS::RDS::OptionGroup"
 
-
-    /// Specifies the name of the option group.
-    hidden OptionGroupName: (String|Mapping)?
 
     /// Provides a description of the option group.
     hidden OptionGroupDescription: String|Mapping
@@ -46,18 +43,21 @@ open class OptionGroup extends cloudformation.Resource {
     hidden MajorEngineVersion: String|Mapping
 
     /// Indicates what options are available in the option group.
-    hidden OptionConfigurations: (Listing<OptionConfiguration>)?
+    hidden OptionConfigurations: (Listing<OptionGroupOptionConfiguration>)?
 
     /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<OptionGroupTag>)?
+
+    /// Specifies the name of the option group.
+    hidden OptionGroupName: (String|Mapping)?
 
     Properties {
-        ["OptionGroupName"] = if (OptionGroupName == null) null else OptionGroupName
         ["OptionGroupDescription"] = if (OptionGroupDescription == null) null else OptionGroupDescription
         ["EngineName"] = if (EngineName == null) null else EngineName
         ["MajorEngineVersion"] = if (MajorEngineVersion == null) null else MajorEngineVersion
         ["OptionConfigurations"] = if (OptionConfigurations == null) null else OptionConfigurations
         ["Tags"] = if (Tags == null) null else Tags
+        ["OptionGroupName"] = if (OptionGroupName == null) null else OptionGroupName
     }
 
 }

@@ -7,23 +7,23 @@ import "../../cloudformation.pkl"
 
 /// An object representing a launch template specification for AWS EKS Nodegroup.
 open class NodegroupLaunchTemplateSpecification {
+    Name: (String|Mapping)?
     Id: (String|Mapping)?
     Version: (String|Mapping)?
-    Name: (String|Mapping)?
 }
 
 /// An object representing a Taint specification for AWS EKS Nodegroup.
 open class NodegroupTaint {
-    Key: (String|Mapping)?
     Value: (String|Mapping)?
     Effect: (String|Mapping)?
+    Key: (String|Mapping)?
 }
 
 /// An object representing a auto scaling group specification for AWS EKS Nodegroup.
 open class NodegroupScalingConfig {
-    MinSize: (Int|Mapping)?
     DesiredSize: (Int|Mapping)?
     MaxSize: (Int|Mapping)?
+    MinSize: (Int|Mapping)?
 }
 
 /// An object representing a remote access configuration specification for AWS EKS Nodegroup.
@@ -44,23 +44,53 @@ open class Nodegroup extends cloudformation.Resource {
     Type = "AWS::EKS::Nodegroup"
 
 
-    /// The metadata, as key-value pairs, to apply to the node group to assist with categorization and organization. Follows same schema as Labels for consistency.
-    hidden Tags: (Dynamic)?
-
-    /// The Kubernetes taints to be applied to the nodes in the node group when they are created.
-    hidden Taints: (Listing<NodegroupTaint>)?
-
-    /// The capacity type of your managed node group.
-    hidden CapacityType: (String|Mapping)?
+    /// Force the update if the existing node group's pods are unable to be drained due to a pod disruption budget issue.
+    hidden ForceUpdateEnabled: (Boolean|Mapping)?
 
     /// Specify the instance types for a node group.
     hidden InstanceTypes: (Listing<String|Mapping>)?
 
-    /// The scaling configuration details for the Auto Scaling group that is created for your node group.
-    hidden ScalingConfig: (NodegroupScalingConfig)?
+    /// An object representing a node group's launch template specification.
+    hidden LaunchTemplate: (NodegroupLaunchTemplateSpecification)?
+
+    /// The metadata, as key-value pairs, to apply to the node group to assist with categorization and organization. Follows same schema as Labels for consistency.
+    hidden Tags: (NodegroupNodegroupTags)?
+
+    /// The AMI type for your node group.
+    hidden AmiType: (String|Mapping)?
 
     /// The unique name to give your node group.
     hidden NodegroupName: (String|Mapping)?
+
+    /// The AMI version of the Amazon EKS-optimized AMI to use with your node group.
+    hidden ReleaseVersion: (String|Mapping)?
+
+    /// The Kubernetes taints to be applied to the nodes in the node group when they are created.
+    hidden Taints: (Listing<NodegroupTaint>)?
+
+    /// The root device disk size (in GiB) for your node group instances.
+    hidden DiskSize: (Int|Mapping)?
+
+    /// The Amazon Resource Name (ARN) of the IAM role to associate with your node group.
+    hidden NodeRole: String|Mapping
+
+    /// The scaling configuration details for the Auto Scaling group that is created for your node group.
+    hidden ScalingConfig: (NodegroupScalingConfig)?
+
+    /// The capacity type of your managed node group.
+    hidden CapacityType: (String|Mapping)?
+
+    /// Name of the cluster to create the node group in.
+    hidden ClusterName: String|Mapping
+
+    /// The Kubernetes labels to be applied to the nodes in the node group when they are created.
+    hidden Labels: (NodegroupNodegroupLabels)?
+
+    /// The remote access (SSH) configuration to use with your node group.
+    hidden RemoteAccess: (NodegroupRemoteAccess)?
+
+    /// The subnets to use for the Auto Scaling group that is created for your node group.
+    hidden Subnets: Listing<String|Mapping>
 
     /// The node group update configuration.
     hidden UpdateConfig: (NodegroupUpdateConfig)?
@@ -68,55 +98,30 @@ open class Nodegroup extends cloudformation.Resource {
     /// The Kubernetes version to use for your managed nodes.
     hidden Version: (String|Mapping)?
 
-    /// The AMI type for your node group.
-    hidden AmiType: (String|Mapping)?
-
-    /// The root device disk size (in GiB) for your node group instances.
-    hidden DiskSize: (Int|Mapping)?
-
-    /// An object representing a node group's launch template specification.
-    hidden LaunchTemplate: (NodegroupLaunchTemplateSpecification)?
-
-    /// Force the update if the existing node group's pods are unable to be drained due to a pod disruption budget issue.
-    hidden ForceUpdateEnabled: (Boolean|Mapping)?
-
-    /// The Kubernetes labels to be applied to the nodes in the node group when they are created.
-    hidden Labels: (Dynamic)?
-
-    /// The subnets to use for the Auto Scaling group that is created for your node group.
-    hidden Subnets: Listing<String|Mapping>
-
-    /// The remote access (SSH) configuration to use with your node group.
-    hidden RemoteAccess: (NodegroupRemoteAccess)?
-
-    /// Name of the cluster to create the node group in.
-    hidden ClusterName: String|Mapping
-
-    /// The Amazon Resource Name (ARN) of the IAM role to associate with your node group.
-    hidden NodeRole: String|Mapping
-
-    /// The AMI version of the Amazon EKS-optimized AMI to use with your node group.
-    hidden ReleaseVersion: (String|Mapping)?
-
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Taints"] = if (Taints == null) null else Taints
-        ["CapacityType"] = if (CapacityType == null) null else CapacityType
+        ["ForceUpdateEnabled"] = if (ForceUpdateEnabled == null) null else ForceUpdateEnabled
         ["InstanceTypes"] = if (InstanceTypes == null) null else InstanceTypes
-        ["ScalingConfig"] = if (ScalingConfig == null) null else ScalingConfig
+        ["LaunchTemplate"] = if (LaunchTemplate == null) null else LaunchTemplate
+        ["Tags"] = if (Tags == null) null else Tags
+        ["AmiType"] = if (AmiType == null) null else AmiType
         ["NodegroupName"] = if (NodegroupName == null) null else NodegroupName
+        ["ReleaseVersion"] = if (ReleaseVersion == null) null else ReleaseVersion
+        ["Taints"] = if (Taints == null) null else Taints
+        ["DiskSize"] = if (DiskSize == null) null else DiskSize
+        ["NodeRole"] = if (NodeRole == null) null else NodeRole
+        ["ScalingConfig"] = if (ScalingConfig == null) null else ScalingConfig
+        ["CapacityType"] = if (CapacityType == null) null else CapacityType
+        ["ClusterName"] = if (ClusterName == null) null else ClusterName
+        ["Labels"] = if (Labels == null) null else Labels
+        ["RemoteAccess"] = if (RemoteAccess == null) null else RemoteAccess
+        ["Subnets"] = if (Subnets == null) null else Subnets
         ["UpdateConfig"] = if (UpdateConfig == null) null else UpdateConfig
         ["Version"] = if (Version == null) null else Version
-        ["AmiType"] = if (AmiType == null) null else AmiType
-        ["DiskSize"] = if (DiskSize == null) null else DiskSize
-        ["LaunchTemplate"] = if (LaunchTemplate == null) null else LaunchTemplate
-        ["ForceUpdateEnabled"] = if (ForceUpdateEnabled == null) null else ForceUpdateEnabled
-        ["Labels"] = if (Labels == null) null else Labels
-        ["Subnets"] = if (Subnets == null) null else Subnets
-        ["RemoteAccess"] = if (RemoteAccess == null) null else RemoteAccess
-        ["ClusterName"] = if (ClusterName == null) null else ClusterName
-        ["NodeRole"] = if (NodeRole == null) null else NodeRole
-        ["ReleaseVersion"] = if (ReleaseVersion == null) null else ReleaseVersion
     }
 
 }
+
+
+typealias NodegroupNodegroupTags = Mapping<String, Any>
+
+typealias NodegroupNodegroupLabels = Mapping<String, Any>

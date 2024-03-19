@@ -6,21 +6,16 @@ module aws.glue.crawler
 import "../../cloudformation.pkl"
 
 /// 
-open class CrawlerDeltaTarget {
+open class CrawlerIcebergTarget {
     ConnectionName: (String|Mapping)?
-    CreateNativeDeltaTable: (Boolean|Mapping)?
-    WriteManifest: (Boolean|Mapping)?
-    DeltaTables: (Listing<String|Mapping>)?
+    Paths: (Listing<String|Mapping>)?
+    Exclusions: (Listing<String|Mapping>)?
+    MaximumTraversalDepth: (Int|Mapping)?
 }
 
 /// 
-open class CrawlerS3Target {
-    Path: (String|Mapping)?
-    SampleSize: (Int|Mapping)?
-    Exclusions: (Listing<String|Mapping>)?
-    DlqEventQueueArn: (String|Mapping)?
-    EventQueueArn: (String|Mapping)?
-    ConnectionName: (String|Mapping)?
+open class CrawlerRecrawlPolicy {
+    RecrawlBehavior: (String|Mapping)?
 }
 
 /// 
@@ -37,13 +32,36 @@ open class CrawlerJdbcTarget {
 
 /// 
 open class CrawlerTargets {
+    JdbcTargets: (Listing<CrawlerJdbcTarget>)?
+    DynamoDBTargets: (Listing<CrawlerDynamoDBTarget>)?
+    IcebergTargets: (Listing<CrawlerIcebergTarget>)?
     S3Targets: (Listing<CrawlerS3Target>)?
     CatalogTargets: (Listing<CrawlerCatalogTarget>)?
     DeltaTargets: (Listing<CrawlerDeltaTarget>)?
     MongoDBTargets: (Listing<CrawlerMongoDBTarget>)?
-    JdbcTargets: (Listing<CrawlerJdbcTarget>)?
-    DynamoDBTargets: (Listing<CrawlerDynamoDBTarget>)?
-    IcebergTargets: (Listing<CrawlerIcebergTarget>)?
+}
+
+/// 
+open class CrawlerCatalogTarget {
+    EventQueueArn: (String|Mapping)?
+    ConnectionName: (String|Mapping)?
+    DatabaseName: (String|Mapping)?
+    DlqEventQueueArn: (String|Mapping)?
+    Tables: (Listing<String|Mapping>)?
+}
+
+/// 
+open class CrawlerSchemaChangePolicy {
+    UpdateBehavior: (String|Mapping)?
+    DeleteBehavior: (String|Mapping)?
+}
+
+/// 
+open class CrawlerDeltaTarget {
+    ConnectionName: (String|Mapping)?
+    CreateNativeDeltaTable: (Boolean|Mapping)?
+    WriteManifest: (Boolean|Mapping)?
+    DeltaTables: (Listing<String|Mapping>)?
 }
 
 /// 
@@ -52,31 +70,13 @@ open class CrawlerDynamoDBTarget {
 }
 
 /// 
-open class CrawlerSchemaChangePolicy {
-    DeleteBehavior: (String|Mapping)?
-    UpdateBehavior: (String|Mapping)?
-}
-
-/// 
-open class CrawlerIcebergTarget {
+open class CrawlerS3Target {
+    ConnectionName: (String|Mapping)?
+    Path: (String|Mapping)?
+    SampleSize: (Int|Mapping)?
     Exclusions: (Listing<String|Mapping>)?
-    MaximumTraversalDepth: (Int|Mapping)?
-    ConnectionName: (String|Mapping)?
-    Paths: (Listing<String|Mapping>)?
-}
-
-/// 
-open class CrawlerRecrawlPolicy {
-    RecrawlBehavior: (String|Mapping)?
-}
-
-/// 
-open class CrawlerCatalogTarget {
-    DatabaseName: (String|Mapping)?
     DlqEventQueueArn: (String|Mapping)?
-    Tables: (Listing<String|Mapping>)?
     EventQueueArn: (String|Mapping)?
-    ConnectionName: (String|Mapping)?
 }
 
 /// 
@@ -92,58 +92,58 @@ open class Crawler extends cloudformation.Resource {
 
 
     /// 
-    hidden Schedule: (CrawlerSchedule)?
-
-    /// 
-    hidden Tags: (Dynamic)?
-
-    /// 
-    hidden DatabaseName: (String|Mapping)?
+    hidden CrawlerSecurityConfiguration: (String|Mapping)?
 
     /// 
     hidden Name: (String|Mapping)?
 
     /// 
-    hidden Description: (String|Mapping)?
-
-    /// 
-    hidden Role: String|Mapping
-
-    /// 
-    hidden SchemaChangePolicy: (CrawlerSchemaChangePolicy)?
-
-    /// 
-    hidden Configuration: (String|Mapping)?
-
-    /// 
-    hidden Targets: CrawlerTargets
-
-    /// 
-    hidden CrawlerSecurityConfiguration: (String|Mapping)?
+    hidden Classifiers: (Listing<String|Mapping>)?
 
     /// 
     hidden TablePrefix: (String|Mapping)?
 
     /// 
-    hidden Classifiers: (Listing<String|Mapping>)?
+    hidden Configuration: (String|Mapping)?
+
+    /// 
+    hidden DatabaseName: (String|Mapping)?
+
+    /// 
+    hidden Role: String|Mapping
+
+    /// 
+    hidden Tags: (Dynamic)?
+
+    /// 
+    hidden Description: (String|Mapping)?
+
+    /// 
+    hidden SchemaChangePolicy: (CrawlerSchemaChangePolicy)?
 
     /// 
     hidden RecrawlPolicy: (CrawlerRecrawlPolicy)?
 
+    /// 
+    hidden Targets: CrawlerTargets
+
+    /// 
+    hidden Schedule: (CrawlerSchedule)?
+
     Properties {
-        ["Schedule"] = if (Schedule == null) null else Schedule
-        ["Tags"] = if (Tags == null) null else Tags
-        ["DatabaseName"] = if (DatabaseName == null) null else DatabaseName
-        ["Name"] = if (Name == null) null else Name
-        ["Description"] = if (Description == null) null else Description
-        ["Role"] = if (Role == null) null else Role
-        ["SchemaChangePolicy"] = if (SchemaChangePolicy == null) null else SchemaChangePolicy
-        ["Configuration"] = if (Configuration == null) null else Configuration
-        ["Targets"] = if (Targets == null) null else Targets
         ["CrawlerSecurityConfiguration"] = if (CrawlerSecurityConfiguration == null) null else CrawlerSecurityConfiguration
-        ["TablePrefix"] = if (TablePrefix == null) null else TablePrefix
+        ["Name"] = if (Name == null) null else Name
         ["Classifiers"] = if (Classifiers == null) null else Classifiers
+        ["TablePrefix"] = if (TablePrefix == null) null else TablePrefix
+        ["Configuration"] = if (Configuration == null) null else Configuration
+        ["DatabaseName"] = if (DatabaseName == null) null else DatabaseName
+        ["Role"] = if (Role == null) null else Role
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Description"] = if (Description == null) null else Description
+        ["SchemaChangePolicy"] = if (SchemaChangePolicy == null) null else SchemaChangePolicy
         ["RecrawlPolicy"] = if (RecrawlPolicy == null) null else RecrawlPolicy
+        ["Targets"] = if (Targets == null) null else Targets
+        ["Schedule"] = if (Schedule == null) null else Schedule
     }
 
 }

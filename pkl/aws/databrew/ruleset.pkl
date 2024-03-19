@@ -7,3 +7,84 @@ import "../../cloudformation.pkl"
 
 typealias RulesetValuesMap = Listing<(RulesetSubstitutionValue)?>
 
+
+typealias RulesetThresholdType = String|Mapping
+
+
+/// Selector of a column from a dataset for profile job configuration. One selector includes either a column name or a regular expression
+open class RulesetColumnSelector {
+    Regex: (String|Mapping)?
+    Name: (String|Mapping)?
+}
+
+/// A key-value pair to associate with a resource
+open class RulesetTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+typealias RulesetExpression = String|Mapping
+
+
+typealias RulesetDisabled = Boolean|Mapping
+
+
+/// Data quality rule for a target resource (dataset)
+open class RulesetRule {
+    Name: String|Mapping
+    Disabled: (RulesetDisabled)?
+    CheckExpression: RulesetExpression
+    SubstitutionMap: (RulesetValuesMap)?
+    Threshold: (RulesetThreshold)?
+    ColumnSelectors: (Listing<RulesetColumnSelector>)?
+}
+
+/// A key-value pair to associate expression's substitution variable names with their values
+open class RulesetSubstitutionValue {
+    ValueReference: String(matches(Regex(#"^:[A-Za-z0-9_]+$"#)))|Mapping
+    Value: String|Mapping
+}
+
+typealias RulesetThresholdValue = Number|Mapping
+
+
+typealias RulesetThresholdUnit = String|Mapping
+
+
+/// 
+open class RulesetThreshold {
+    Type: (RulesetThresholdType)?
+    Unit: (RulesetThresholdUnit)?
+    Value: RulesetThresholdValue
+}
+
+/// Resource schema for AWS::DataBrew::Ruleset.
+open class Ruleset extends cloudformation.Resource {
+
+    Type = "AWS::DataBrew::Ruleset"
+
+
+    /// 
+    hidden Tags: (Listing<RulesetTag>)?
+
+    /// Name of the Ruleset
+    hidden Name: String|Mapping
+
+    /// Description of the Ruleset
+    hidden Description: (String|Mapping)?
+
+    /// Arn of the target resource (dataset) to apply the ruleset to
+    hidden TargetArn: String|Mapping
+
+    /// List of the data quality rules in the ruleset
+    hidden Rules: Listing<RulesetRule>
+
+    Properties {
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Name"] = if (Name == null) null else Name
+        ["Description"] = if (Description == null) null else Description
+        ["TargetArn"] = if (TargetArn == null) null else TargetArn
+        ["Rules"] = if (Rules == null) null else Rules
+    }
+
+}

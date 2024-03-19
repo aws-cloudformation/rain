@@ -5,13 +5,11 @@ module aws.robomaker.fleet
 
 import "../../cloudformation.pkl"
 
-/// 
-open class Arn {
-}
+typealias FleetTags = Mapping<String, Any>
 
-/// A key-value pair to associate with a resource.
-open class Tags {
-}
+
+typealias FleetArn = String|Mapping
+
 
 /// AWS::RoboMaker::Fleet resource creates an AWS RoboMaker fleet. Fleets contain robots and can receive deployments.
 open class Fleet extends cloudformation.Resource {
@@ -19,15 +17,15 @@ open class Fleet extends cloudformation.Resource {
     Type = "AWS::RoboMaker::Fleet"
 
 
+    /// 
+    hidden Tags: (FleetTags)?
+
     /// The name of the fleet.
     hidden Name: (String(matches(Regex(#"[a-zA-Z0-9_\-]{1,255}$"#)))|Mapping)?
 
-    /// 
-    hidden Tags: (Tags)?
-
     Properties {
-        ["Name"] = if (Name == null) null else Name
         ["Tags"] = if (Tags == null) null else Tags
+        ["Name"] = if (Name == null) null else Name
     }
 
 }

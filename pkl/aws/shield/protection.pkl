@@ -6,7 +6,7 @@ module aws.shield.protection
 import "../../cloudformation.pkl"
 
 /// A tag associated with an AWS resource. Tags are key:value pairs that you can use to categorize and manage your resources, for purposes like billing or other management. Typically, the tag key represents a category, such as "environment", and the tag value represents a specific value within that category, such as "test," "development," or "production". Or you might set the tag key to "customer" and the value to the customer name or ID. You can specify one or more tags to add to each AWS resource, up to 50 tags for a resource.
-open class Tag {
+open class ProtectionTag {
     Key: String|Mapping
     Value: String|Mapping
 }
@@ -14,7 +14,7 @@ open class Tag {
 typealias ApplicationLayerAutomaticResponseConfigurationStatus = "ENABLED"|"DISABLED"
 
 /// The automatic application layer DDoS mitigation settings for a Protection. This configuration determines whether Shield Advanced automatically manages rules in the web ACL in order to respond to application layer events that Shield Advanced determines to be DDoS attacks.
-open class ApplicationLayerAutomaticResponseConfiguration {
+open class ProtectionApplicationLayerAutomaticResponseConfiguration {
     Status: ApplicationLayerAutomaticResponseConfigurationStatus|Mapping
     Action: Dynamic
 }
@@ -25,6 +25,9 @@ open class Protection extends cloudformation.Resource {
     Type = "AWS::Shield::Protection"
 
 
+    /// Friendly name for the Protection.
+    hidden Name: String(matches(Regex(#"[ a-zA-Z0-9_\.\-]*"#)))|Mapping
+
     /// The ARN (Amazon Resource Name) of the resource to be protected.
     hidden ResourceArn: String|Mapping
 
@@ -32,20 +35,17 @@ open class Protection extends cloudformation.Resource {
     hidden HealthCheckArns: (Listing<String|Mapping>)?
 
     /// 
-    hidden ApplicationLayerAutomaticResponseConfiguration: (ApplicationLayerAutomaticResponseConfiguration)?
+    hidden ApplicationLayerAutomaticResponseConfiguration: (ProtectionApplicationLayerAutomaticResponseConfiguration)?
 
     /// One or more tag key-value pairs for the Protection object.
-    hidden Tags: (Listing<Tag>)?
-
-    /// Friendly name for the Protection.
-    hidden Name: String(matches(Regex(#"[ a-zA-Z0-9_\.\-]*"#)))|Mapping
+    hidden Tags: (Listing<ProtectionTag>)?
 
     Properties {
+        ["Name"] = if (Name == null) null else Name
         ["ResourceArn"] = if (ResourceArn == null) null else ResourceArn
         ["HealthCheckArns"] = if (HealthCheckArns == null) null else HealthCheckArns
         ["ApplicationLayerAutomaticResponseConfiguration"] = if (ApplicationLayerAutomaticResponseConfiguration == null) null else ApplicationLayerAutomaticResponseConfiguration
         ["Tags"] = if (Tags == null) null else Tags
-        ["Name"] = if (Name == null) null else Name
     }
 
 }

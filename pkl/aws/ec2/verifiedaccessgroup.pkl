@@ -5,16 +5,16 @@ module aws.ec2.verifiedaccessgroup
 
 import "../../cloudformation.pkl"
 
-/// A key-value pair to associate with a resource.
-open class VerifiedAccessGroupTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
 /// The configuration options for customer provided KMS encryption.
 open class VerifiedAccessGroupSseSpecification {
     KmsKeyArn: (String|Mapping)?
     CustomerManagedKeyEnabled: (Boolean|Mapping)?
+}
+
+/// A key-value pair to associate with a resource.
+open class VerifiedAccessGroupTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// The AWS::EC2::VerifiedAccessGroup resource creates an AWS EC2 Verified Access Group.
@@ -23,17 +23,14 @@ open class VerifiedAccessGroup extends cloudformation.Resource {
     Type = "AWS::EC2::VerifiedAccessGroup"
 
 
-    /// A description for the AWS Verified Access group.
-    hidden Description: (String|Mapping)?
-
-    /// The AWS Verified Access policy document.
-    hidden PolicyDocument: (String|Mapping)?
-
     /// The status of the Verified Access policy.
     hidden PolicyEnabled: (Boolean|Mapping)?
 
     /// The ID of the AWS Verified Access instance.
     hidden VerifiedAccessInstanceId: String|Mapping
+
+    /// A description for the AWS Verified Access group.
+    hidden Description: (String|Mapping)?
 
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<VerifiedAccessGroupTag>)?
@@ -41,13 +38,16 @@ open class VerifiedAccessGroup extends cloudformation.Resource {
     /// The configuration options for customer provided KMS encryption.
     hidden SseSpecification: (VerifiedAccessGroupSseSpecification)?
 
+    /// The AWS Verified Access policy document.
+    hidden PolicyDocument: (String|Mapping)?
+
     Properties {
-        ["Description"] = if (Description == null) null else Description
-        ["PolicyDocument"] = if (PolicyDocument == null) null else PolicyDocument
         ["PolicyEnabled"] = if (PolicyEnabled == null) null else PolicyEnabled
         ["VerifiedAccessInstanceId"] = if (VerifiedAccessInstanceId == null) null else VerifiedAccessInstanceId
+        ["Description"] = if (Description == null) null else Description
         ["Tags"] = if (Tags == null) null else Tags
         ["SseSpecification"] = if (SseSpecification == null) null else SseSpecification
+        ["PolicyDocument"] = if (PolicyDocument == null) null else PolicyDocument
     }
 
 }

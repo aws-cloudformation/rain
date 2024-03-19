@@ -5,30 +5,27 @@ module aws.signer.signingprofile
 
 import "../../cloudformation.pkl"
 
+typealias SigningProfilePlatformId = String|Mapping
+
+
+typealias SigningProfileArn = String|Mapping
+
+
+typealias SigningProfileProfileVersion = String|Mapping
+
+
 typealias SignatureValidityPeriodType = "DAYS"|"MONTHS"|"YEARS"
 
 /// 
-open class SignatureValidityPeriod {
+open class SigningProfileSignatureValidityPeriod {
     Value: (Int|Mapping)?
     Type: (SignatureValidityPeriodType|Mapping)?
 }
 
 /// 
-open class Tag {
+open class SigningProfileTag {
     Key: (String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping)?
     Value: (String|Mapping)?
-}
-
-/// 
-open class PlatformId {
-}
-
-/// 
-open class Arn {
-}
-
-/// 
-open class ProfileVersion {
 }
 
 /// A signing profile is a signing template that can be used to carry out a pre-defined signing job.
@@ -38,13 +35,13 @@ open class SigningProfile extends cloudformation.Resource {
 
 
     /// Signature validity period of the profile.
-    hidden SignatureValidityPeriod: (SignatureValidityPeriod)?
+    hidden SignatureValidityPeriod: (SigningProfileSignatureValidityPeriod)?
 
     /// The ID of the target signing platform.
-    hidden PlatformId: PlatformId
+    hidden PlatformId: SigningProfilePlatformId
 
     /// A list of tags associated with the signing profile.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<SigningProfileTag>)?
 
     Properties {
         ["SignatureValidityPeriod"] = if (SignatureValidityPeriod == null) null else SignatureValidityPeriod

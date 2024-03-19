@@ -5,12 +5,6 @@ module aws.datasync.locationsmb
 
 import "../../cloudformation.pkl"
 
-/// A key-value pair to associate with a resource.
-open class LocationSMBTag {
-    Key: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:/-]+$"#)))|Mapping
-    Value: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:@/-]+$"#)))|Mapping
-}
-
 typealias MountOptionsVersion = "AUTOMATIC"|"SMB1"|"SMB2_0"|"SMB2"|"SMB3"
 
 /// The mount options used by DataSync to access the SMB server.
@@ -18,14 +12,17 @@ open class LocationSMBMountOptions {
     Version: (MountOptionsVersion|Mapping)?
 }
 
+/// A key-value pair to associate with a resource.
+open class LocationSMBTag {
+    Key: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:/-]+$"#)))|Mapping
+    Value: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:@/-]+$"#)))|Mapping
+}
+
 /// Resource schema for AWS::DataSync::LocationSMB.
 open class LocationSMB extends cloudformation.Resource {
 
     Type = "AWS::DataSync::LocationSMB"
 
-
-    /// 
-    hidden MountOptions: (LocationSMBMountOptions)?
 
     /// The user who can mount the share, has the permissions to access files and folders in the SMB share.
     hidden User: String(matches(Regex(#"^[^\x5B\x5D\\/:;|=,+*?]{1,104}$"#)))|Mapping
@@ -39,24 +36,27 @@ open class LocationSMB extends cloudformation.Resource {
     /// The name of the Windows domain that the SMB server belongs to.
     hidden Domain: (String(matches(Regex(#"^([A-Za-z0-9]+[A-Za-z0-9-.]*)*[A-Za-z0-9-]*[A-Za-z0-9]$"#)))|Mapping)?
 
+    /// The name of the SMB server. This value is the IP address or Domain Name Service (DNS) name of the SMB server.
+    hidden ServerHostname: (String(matches(Regex(#"^(([a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9\-]*[A-Za-z0-9])$"#)))|Mapping)?
+
     /// The subdirectory in the SMB file system that is used to read data from the SMB source location or write data to the SMB destination
     hidden Subdirectory: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\$\p{Zs}]+$"#)))|Mapping)?
+
+    /// 
+    hidden MountOptions: (LocationSMBMountOptions)?
 
     /// The password of the user who can mount the share and has the permissions to access files and folders in the SMB share.
     hidden Password: (String(matches(Regex(#"^.{0,104}$"#)))|Mapping)?
 
-    /// The name of the SMB server. This value is the IP address or Domain Name Service (DNS) name of the SMB server.
-    hidden ServerHostname: (String(matches(Regex(#"^(([a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9\-]*[A-Za-z0-9])$"#)))|Mapping)?
-
     Properties {
-        ["MountOptions"] = if (MountOptions == null) null else MountOptions
         ["User"] = if (User == null) null else User
         ["Tags"] = if (Tags == null) null else Tags
         ["AgentArns"] = if (AgentArns == null) null else AgentArns
         ["Domain"] = if (Domain == null) null else Domain
-        ["Subdirectory"] = if (Subdirectory == null) null else Subdirectory
-        ["Password"] = if (Password == null) null else Password
         ["ServerHostname"] = if (ServerHostname == null) null else ServerHostname
+        ["Subdirectory"] = if (Subdirectory == null) null else Subdirectory
+        ["MountOptions"] = if (MountOptions == null) null else MountOptions
+        ["Password"] = if (Password == null) null else Password
     }
 
 }

@@ -5,24 +5,25 @@ module aws.networkfirewall.loggingconfiguration
 
 import "../../cloudformation.pkl"
 
-/// A resource ARN.
-open class ResourceArn {
-}
+typealias LoggingConfigurationResourceArn = String|Mapping
+
 
 /// 
-open class LoggingConfiguration {
-    LogDestinationConfigs: Listing<LogDestinationConfig>
+open class LoggingConfigurationLoggingConfiguration {
+    LogDestinationConfigs: Listing<LoggingConfigurationLogDestinationConfig>
 }
-
-typealias LogDestinationConfigLogDestinationType = "S3"|"CloudWatchLogs"|"KinesisDataFirehose"
 
 typealias LogDestinationConfigLogType = "ALERT"|"FLOW"
 
+typealias LogDestinationConfigLogDestinationType = "S3"|"CloudWatchLogs"|"KinesisDataFirehose"
+
+typealias LoggingConfigurationLogDestinationConfigLogDestination = Mapping<String, Any>
+
 /// 
-open class LogDestinationConfig {
-    LogDestinationType: LogDestinationConfigLogDestinationType|Mapping
-    LogDestination: Dynamic
+open class LoggingConfigurationLogDestinationConfig {
     LogType: LogDestinationConfigLogType|Mapping
+    LogDestinationType: LogDestinationConfigLogDestinationType|Mapping
+    LogDestination: LoggingConfigurationLogDestinationConfigLogDestination
 }
 
 /// Resource type definition for AWS::NetworkFirewall::LoggingConfiguration
@@ -35,10 +36,10 @@ open class LoggingConfiguration extends cloudformation.Resource {
     hidden FirewallName: (String(matches(Regex(#"^[a-zA-Z0-9-]+$"#)))|Mapping)?
 
     /// 
-    hidden FirewallArn: ResourceArn
+    hidden FirewallArn: LoggingConfigurationResourceArn
 
     /// 
-    hidden LoggingConfiguration: LoggingConfiguration
+    hidden LoggingConfiguration: LoggingConfigurationLoggingConfiguration
 
     Properties {
         ["FirewallName"] = if (FirewallName == null) null else FirewallName

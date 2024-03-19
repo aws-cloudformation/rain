@@ -5,39 +5,32 @@ module aws.wafv2.ipset
 
 import "../../cloudformation.pkl"
 
-/// Type of addresses in the IPSet, use IPV4 for IPV4 IP addresses, IPV6 for IPV6 address.
-open class IPAddressVersion {
-}
-
-/// IP address
-open class IPAddress {
-}
-
-/// ARN of the WAF entity.
-open class ResourceArn {
-}
-
 /// 
-open class Tag {
+open class IPSetTag {
     Key: (String|Mapping)?
     Value: (String|Mapping)?
 }
 
-/// Name of the IPSet.
-open class EntityName {
-}
+typealias IPSetEntityName = String|Mapping
 
-/// Description of the entity.
-open class EntityDescription {
-}
 
-/// Id of the IPSet
-open class EntityId {
-}
+typealias IPSetEntityDescription = String|Mapping
 
-/// Use CLOUDFRONT for CloudFront IPSet, use REGIONAL for Application Load Balancer and API Gateway.
-open class Scope {
-}
+
+typealias IPSetEntityId = String|Mapping
+
+
+typealias IPSetScope = String|Mapping
+
+
+typealias IPSetIPAddressVersion = String|Mapping
+
+
+typealias IPSetIPAddress = String|Mapping
+
+
+typealias IPSetResourceArn = String|Mapping
+
 
 /// Contains a list of IP addresses. This can be either IPV4 or IPV6. The list will be mutually
 open class IPSet extends cloudformation.Resource {
@@ -46,30 +39,30 @@ open class IPSet extends cloudformation.Resource {
 
 
     /// 
-    hidden Tags: (Listing<Tag>)?
+    hidden Description: (IPSetEntityDescription)?
 
     /// 
-    hidden Description: (EntityDescription)?
+    hidden Name: (IPSetEntityName)?
 
     /// 
-    hidden Name: (EntityName)?
+    hidden Scope: IPSetScope
 
     /// 
-    hidden Scope: Scope
-
-    /// 
-    hidden IPAddressVersion: IPAddressVersion
+    hidden IPAddressVersion: IPSetIPAddressVersion
 
     /// List of IPAddresses.
-    hidden Addresses: Listing<IPAddress>
+    hidden Addresses: Listing<IPSetIPAddress>
+
+    /// 
+    hidden Tags: (Listing<IPSetTag>)?
 
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
         ["Description"] = if (Description == null) null else Description
         ["Name"] = if (Name == null) null else Name
         ["Scope"] = if (Scope == null) null else Scope
         ["IPAddressVersion"] = if (IPAddressVersion == null) null else IPAddressVersion
         ["Addresses"] = if (Addresses == null) null else Addresses
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

@@ -5,12 +5,6 @@ module aws.athena.capacityreservation
 
 import "../../cloudformation.pkl"
 
-/// 
-open class CapacityReservationTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
 typealias CapacityReservationWorkgroupName = String|Mapping
 
 
@@ -36,17 +30,23 @@ typealias CapacityReservationCapacityReservationStatus = String|Mapping
 typealias CapacityReservationArn = String|Mapping
 
 
+/// 
+open class CapacityReservationTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
 /// Resource schema for AWS::Athena::CapacityReservation
 open class CapacityReservation extends cloudformation.Resource {
 
     Type = "AWS::Athena::CapacityReservation"
 
 
-    /// The number of DPUs to request to be allocated to the reservation.
-    hidden TargetDpus: Int|Mapping
-
     /// The reservation name.
     hidden Name: String(matches(Regex(#"[a-zA-Z0-9._-]{1,128}"#)))|Mapping
+
+    /// The number of DPUs to request to be allocated to the reservation.
+    hidden TargetDpus: Int|Mapping
 
     /// 
     hidden CapacityAssignmentConfiguration: (CapacityReservationCapacityAssignmentConfiguration)?
@@ -55,8 +55,8 @@ open class CapacityReservation extends cloudformation.Resource {
     hidden Tags: (Listing<CapacityReservationTag>)?
 
     Properties {
-        ["TargetDpus"] = if (TargetDpus == null) null else TargetDpus
         ["Name"] = if (Name == null) null else Name
+        ["TargetDpus"] = if (TargetDpus == null) null else TargetDpus
         ["CapacityAssignmentConfiguration"] = if (CapacityAssignmentConfiguration == null) null else CapacityAssignmentConfiguration
         ["Tags"] = if (Tags == null) null else Tags
     }

@@ -5,28 +5,28 @@ module aws.ssmcontacts.plan
 
 import "../../cloudformation.pkl"
 
-/// The contacts or contact methods that the escalation plan or engagement plan is engaging.
-open class Targets {
-    ContactTargetInfo: (ContactTargetInfo)?
-    ChannelTargetInfo: (ChannelTargetInfo)?
-}
-
-/// The contact that SSM Incident Manager is engaging during an incident.
-open class ContactTargetInfo {
-    ContactId: String|Mapping
-    IsEssential: Boolean|Mapping
-}
-
 /// Information about the contact channel that SSM Incident Manager uses to engage the contact.
-open class ChannelTargetInfo {
-    RetryIntervalInMinutes: Int|Mapping
+open class PlanChannelTargetInfo {
     ChannelId: String|Mapping
+    RetryIntervalInMinutes: Int|Mapping
 }
 
 /// A set amount of time that an escalation plan or engagement plan engages the specified contacts or contact methods.
-open class Stage {
+open class PlanStage {
     DurationInMinutes: Int|Mapping
-    Targets: (Listing<Targets>)?
+    Targets: (Listing<PlanTargets>)?
+}
+
+/// The contacts or contact methods that the escalation plan or engagement plan is engaging.
+open class PlanTargets {
+    ContactTargetInfo: (PlanContactTargetInfo)?
+    ChannelTargetInfo: (PlanChannelTargetInfo)?
+}
+
+/// The contact that SSM Incident Manager is engaging during an incident.
+open class PlanContactTargetInfo {
+    ContactId: String|Mapping
+    IsEssential: Boolean|Mapping
 }
 
 /// Engagement Plan for a SSM Incident Manager Contact.
@@ -39,7 +39,7 @@ open class Plan extends cloudformation.Resource {
     hidden ContactId: (String(matches(Regex(#"arn:[-\w+=\/,.@]+:[-\w+=\/,.@]+:[-\w+=\/,.@]*:[0-9]+:([\w+=\/,.@:-]+)*"#)))|Mapping)?
 
     /// The stages that an escalation plan or engagement plan engages contacts and contact methods in.
-    hidden Stages: (Listing<Stage>)?
+    hidden Stages: (Listing<PlanStage>)?
 
     /// Rotation Ids to associate with Oncall Contact for engagement.
     hidden RotationIds: (Listing<String|Mapping>)?

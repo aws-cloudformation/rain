@@ -6,7 +6,7 @@ module aws.shield.protectiongroup
 import "../../cloudformation.pkl"
 
 /// A tag associated with an AWS resource. Tags are key:value pairs that you can use to categorize and manage your resources, for purposes like billing or other management. Typically, the tag key represents a category, such as "environment", and the tag value represents a specific value within that category, such as "test," "development," or "production". Or you might set the tag key to "customer" and the value to the customer name or ID. You can specify one or more tags to add to each AWS resource, up to 50 tags for a resource.
-open class Tag {
+open class ProtectionGroupTag {
     Key: String|Mapping
     Value: String|Mapping
 }
@@ -21,7 +21,8 @@ open class ProtectionGroup extends cloudformation.Resource {
     hidden ProtectionGroupId: String(matches(Regex(#"[a-zA-Z0-9\-]*"#)))|Mapping
 
     /// Defines how AWS Shield combines resource data for the group in order to detect, mitigate, and report events.
-    ///    /// * Sum - Use the total traffic across the group. This is a good choice for most cases. Examples include Elastic IP addresses for EC2 instances that scale manually or automatically.
+    ///
+    /// * Sum - Use the total traffic across the group. This is a good choice for most cases. Examples include Elastic IP addresses for EC2 instances that scale manually or automatically.
     /// * Mean - Use the average of the traffic across the group. This is a good choice for resources that share traffic uniformly. Examples include accelerators and load balancers.
     /// * Max - Use the highest traffic from each resource. This is useful for resources that don't share traffic and for resources that share that traffic in a non-uniform way. Examples include Amazon CloudFront and origin resources for CloudFront distributions.
     hidden Aggregation: ProtectionGroupAggregation|Mapping
@@ -36,7 +37,7 @@ open class ProtectionGroup extends cloudformation.Resource {
     hidden ResourceType: (ProtectionGroupResourceType|Mapping)?
 
     /// One or more tag key-value pairs for the Protection object.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<ProtectionGroupTag>)?
 
     Properties {
         ["ProtectionGroupId"] = if (ProtectionGroupId == null) null else ProtectionGroupId

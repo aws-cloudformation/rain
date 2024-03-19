@@ -5,26 +5,18 @@ module aws.config.configrule
 
 import "../../cloudformation.pkl"
 
-/// Defines which resources trigger an evaluation for an CC rule. The scope can include one or more resource types, a combination of a tag key and value, or a combination of one resource type and one resource ID. Specify a scope to constrain which resources trigger an evaluation for a rule. Otherwise, evaluations for the rule are triggered when any resource in your recording group changes in configuration.
-open class ConfigRuleScope {
-    TagKey: (String|Mapping)?
-    ComplianceResourceTypes: (Listing<String|Mapping>)?
-    TagValue: (String|Mapping)?
-    ComplianceResourceId: (String|Mapping)?
-}
-
 /// Provides the CustomPolicyDetails, the rule owner (```` for managed rules, ``CUSTOM_POLICY`` for Custom Policy rules, and ``CUSTOM_LAMBDA`` for Custom Lambda rules), the rule identifier, and the events that cause the evaluation of your AWS resources.
 open class ConfigRuleCustomPolicyDetails {
+    EnableDebugLogDelivery: (Boolean|Mapping)?
     PolicyText: (String|Mapping)?
     PolicyRuntime: (String|Mapping)?
-    EnableDebugLogDelivery: (Boolean|Mapping)?
 }
 
 /// Provides the source and the message types that trigger CC to evaluate your AWS resources against a rule. It also provides the frequency with which you want CC to run evaluations for the rule if the trigger type is periodic. You can specify the parameter values for ``SourceDetail`` only for custom rules.
 open class ConfigRuleSourceDetail {
-    MessageType: String|Mapping
     EventSource: String|Mapping
     MaximumExecutionFrequency: (String|Mapping)?
+    MessageType: String|Mapping
 }
 
 /// Provides the CustomPolicyDetails, the rule owner (```` for managed rules, ``CUSTOM_POLICY`` for Custom Policy rules, and ``CUSTOM_LAMBDA`` for Custom Lambda rules), the rule identifier, and the events that cause the evaluation of your AWS resources.
@@ -38,6 +30,14 @@ open class ConfigRuleSource {
 /// The configuration object for CC rule evaluation mode. The supported valid values are Detective or Proactive.
 open class ConfigRuleEvaluationModeConfiguration {
     Mode: (String|Mapping)?
+}
+
+/// Defines which resources trigger an evaluation for an CC rule. The scope can include one or more resource types, a combination of a tag key and value, or a combination of one resource type and one resource ID. Specify a scope to constrain which resources trigger an evaluation for a rule. Otherwise, evaluations for the rule are triggered when any resource in your recording group changes in configuration.
+open class ConfigRuleScope {
+    TagKey: (String|Mapping)?
+    ComplianceResourceTypes: (Listing<String|Mapping>)?
+    TagValue: (String|Mapping)?
+    ComplianceResourceId: (String|Mapping)?
 }
 
 /// You must first create and start the CC configuration recorder in order to create CC managed rules with CFNlong. For more information, see [Managing the Configuration Recorder](https://docs.aws.amazon.com/config/latest/developerguide/stop-start-recorder.html).
@@ -55,11 +55,16 @@ open class ConfigRule extends cloudformation.Resource {
     Type = "AWS::Config::ConfigRule"
 
 
-    /// A string, in JSON format, that is passed to the CC rule Lambda function.
-    hidden InputParameters: (Dynamic)?
-
     /// A name for the CC rule. If you don't specify a name, CFN generates a unique physical ID and uses that ID for the rule name. For more information, see [Name Type](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-name.html).
     hidden ConfigRuleName: (String|Mapping)?
+
+    /// The maximum frequency with which CC runs evaluations for a rule. You can specify a value for ``MaximumExecutionFrequency`` when:
+    ///
+    ///   +  You are using an AWS managed rule that is triggered at a periodic frequency.
+    ///   +  Your custom rule is triggered when CC delivers the configuration snapshot. For more information, see [ConfigSnapshotDeliveryProperties](https://docs.aws.amazon.com/config/latest/APIReference/API_ConfigSnapshotDeliveryProperties.html).
+    ///   
+    ///   By default, rules with a periodic trigger are evaluated every 24 hours. To change the frequency, specify a valid value for the ``MaximumExecutionFrequency`` parameter.
+    hidden MaximumExecutionFrequency: (String|Mapping)?
 
     /// Provides the rule owner (```` for managed rules, ``CUSTOM_POLICY`` for Custom Policy rules, and ``CUSTOM_LAMBDA`` for Custom Lambda rules), the rule identifier, and the notifications that cause the function to evaluate your AWS resources.
     hidden Source: ConfigRuleSource
@@ -78,23 +83,18 @@ open class ConfigRule extends cloudformation.Resource {
     /// Indicates whether an AWS resource or CC rule is compliant and provides the number of contributors that affect the compliance.
     hidden Compliance: (Dynamic)?
 
-    /// The maximum frequency with which CC runs evaluations for a rule. You can specify a value for ``MaximumExecutionFrequency`` when:
-    ///
-    ///   +  You are using an AWS managed rule that is triggered at a periodic frequency.
-    ///   +  Your custom rule is triggered when CC delivers the configuration snapshot. For more information, see [ConfigSnapshotDeliveryProperties](https://docs.aws.amazon.com/config/latest/APIReference/API_ConfigSnapshotDeliveryProperties.html).
-    ///   
-    ///   By default, rules with a periodic trigger are evaluated every 24 hours. To change the frequency, specify a valid value for the ``MaximumExecutionFrequency`` parameter.
-    hidden MaximumExecutionFrequency: (String|Mapping)?
+    /// A string, in JSON format, that is passed to the CC rule Lambda function.
+    hidden InputParameters: (Dynamic)?
 
     Properties {
-        ["InputParameters"] = if (InputParameters == null) null else InputParameters
         ["ConfigRuleName"] = if (ConfigRuleName == null) null else ConfigRuleName
+        ["MaximumExecutionFrequency"] = if (MaximumExecutionFrequency == null) null else MaximumExecutionFrequency
         ["Source"] = if (Source == null) null else Source
         ["EvaluationModes"] = if (EvaluationModes == null) null else EvaluationModes
         ["Description"] = if (Description == null) null else Description
         ["Scope"] = if (Scope == null) null else Scope
         ["Compliance"] = if (Compliance == null) null else Compliance
-        ["MaximumExecutionFrequency"] = if (MaximumExecutionFrequency == null) null else MaximumExecutionFrequency
+        ["InputParameters"] = if (InputParameters == null) null else InputParameters
     }
 
 }

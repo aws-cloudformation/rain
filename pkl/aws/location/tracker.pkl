@@ -5,27 +5,23 @@ module aws.location.tracker
 
 import "../../cloudformation.pkl"
 
-/// 
-open class PositionFiltering {
-}
+typealias TrackerPositionFiltering = String|Mapping
 
-/// 
-open class PricingPlan {
-}
 
-/// 
-open class TagMap {
-}
+typealias TrackerPricingPlan = String|Mapping
+
+
+typealias TrackerTagMap = Mapping<String, Any>
+
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class TrackerTag {
     Key: String(matches(Regex(#"^[a-zA-Z+-=._:/]+$"#)))|Mapping
     Value: String(matches(Regex(#"^[A-Za-z0-9 _=@:.+-/]*$"#)))|Mapping
 }
 
-/// The datetime value in ISO 8601 format. The timezone is always UTC. (YYYY-MM-DDThh:mm:ss.sssZ)
-open class iso8601UTC {
-}
+typealias Trackeriso8601UTC = String|Mapping
+
 
 /// Definition of AWS::Location::Tracker Resource Type
 open class Tracker extends cloudformation.Resource {
@@ -34,42 +30,42 @@ open class Tracker extends cloudformation.Resource {
 
 
     /// 
-    hidden PricingPlan: (PricingPlan)?
-
-    /// 
     hidden Description: (String|Mapping)?
-
-    /// 
-    hidden EventBridgeEnabled: (Boolean|Mapping)?
-
-    /// 
-    hidden PositionFiltering: (PositionFiltering)?
-
-    /// 
-    hidden KmsKeyId: (String|Mapping)?
 
     /// 
     hidden PricingPlanDataSource: (String|Mapping)?
 
     /// 
-    hidden TrackerName: String(matches(Regex(#"^[-._\w]+$"#)))|Mapping
+    hidden EventBridgeEnabled: (Boolean|Mapping)?
+
+    /// 
+    hidden PricingPlan: (TrackerPricingPlan)?
 
     /// 
     hidden KmsKeyEnableGeospatialQueries: (Boolean|Mapping)?
 
+    /// 
+    hidden KmsKeyId: (String|Mapping)?
+
+    /// 
+    hidden PositionFiltering: (TrackerPositionFiltering)?
+
     /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<TrackerTag>)?
+
+    /// 
+    hidden TrackerName: String(matches(Regex(#"^[-._\w]+$"#)))|Mapping
 
     Properties {
-        ["PricingPlan"] = if (PricingPlan == null) null else PricingPlan
         ["Description"] = if (Description == null) null else Description
-        ["EventBridgeEnabled"] = if (EventBridgeEnabled == null) null else EventBridgeEnabled
-        ["PositionFiltering"] = if (PositionFiltering == null) null else PositionFiltering
-        ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
         ["PricingPlanDataSource"] = if (PricingPlanDataSource == null) null else PricingPlanDataSource
-        ["TrackerName"] = if (TrackerName == null) null else TrackerName
+        ["EventBridgeEnabled"] = if (EventBridgeEnabled == null) null else EventBridgeEnabled
+        ["PricingPlan"] = if (PricingPlan == null) null else PricingPlan
         ["KmsKeyEnableGeospatialQueries"] = if (KmsKeyEnableGeospatialQueries == null) null else KmsKeyEnableGeospatialQueries
+        ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
+        ["PositionFiltering"] = if (PositionFiltering == null) null else PositionFiltering
         ["Tags"] = if (Tags == null) null else Tags
+        ["TrackerName"] = if (TrackerName == null) null else TrackerName
     }
 
 }

@@ -5,34 +5,31 @@ module aws.refactorspaces.route
 
 import "../../cloudformation.pkl"
 
+typealias RouteRouteActivationState = String|Mapping
+
+
+typealias RouteMethod = String|Mapping
+
+
+typealias RouteRouteType = String|Mapping
+
+
 /// 
-open class RouteActivationState {
+open class RouteDefaultRouteInput {
+    ActivationState: RouteRouteActivationState
 }
 
 /// 
-open class Method {
-}
-
-/// 
-open class RouteType {
-}
-
-/// 
-open class DefaultRouteInput {
-    ActivationState: RouteActivationState
-}
-
-/// 
-open class UriPathRouteInput {
-    SourcePath: (String(matches(Regex(#"^(/([a-zA-Z0-9._:-]+|\{[a-zA-Z0-9._:-]+\}))+$"#)))|Mapping)?
-    ActivationState: RouteActivationState
-    Methods: (Listing<Method>)?
+open class RouteUriPathRouteInput {
+    ActivationState: RouteRouteActivationState
+    Methods: (Listing<RouteMethod>)?
     IncludeChildPaths: (Boolean|Mapping)?
     AppendSourcePath: (Boolean|Mapping)?
+    SourcePath: (String(matches(Regex(#"^(/([a-zA-Z0-9._:-]+|\{[a-zA-Z0-9._:-]+\}))+$"#)))|Mapping)?
 }
 
 /// A label for tagging Environment resource
-open class Tag {
+open class RouteTag {
     Key: String(matches(Regex(#"^(?!aws:).+"#)))|Mapping
     Value: String|Mapping
 }
@@ -44,34 +41,34 @@ open class Route extends cloudformation.Resource {
 
 
     /// 
+    hidden UriPathRoute: (RouteUriPathRouteInput)?
+
+    /// 
     hidden ApplicationIdentifier: String(matches(Regex(#"^app-([0-9A-Za-z]{10}$)"#)))|Mapping
-
-    /// 
-    hidden DefaultRoute: (DefaultRouteInput)?
-
-    /// 
-    hidden UriPathRoute: (UriPathRouteInput)?
-
-    /// Metadata that you can assign to help organize the frameworks that you create. Each tag is a key-value pair.
-    hidden Tags: (Listing<Tag>)?
 
     /// 
     hidden EnvironmentIdentifier: String(matches(Regex(#"^env-([0-9A-Za-z]{10}$)"#)))|Mapping
 
     /// 
-    hidden RouteType: RouteType
+    hidden RouteType: RouteRouteType
+
+    /// 
+    hidden DefaultRoute: (RouteDefaultRouteInput)?
 
     /// 
     hidden ServiceIdentifier: String(matches(Regex(#"^svc-([0-9A-Za-z]{10}$)"#)))|Mapping
 
+    /// Metadata that you can assign to help organize the frameworks that you create. Each tag is a key-value pair.
+    hidden Tags: (Listing<RouteTag>)?
+
     Properties {
-        ["ApplicationIdentifier"] = if (ApplicationIdentifier == null) null else ApplicationIdentifier
-        ["DefaultRoute"] = if (DefaultRoute == null) null else DefaultRoute
         ["UriPathRoute"] = if (UriPathRoute == null) null else UriPathRoute
-        ["Tags"] = if (Tags == null) null else Tags
+        ["ApplicationIdentifier"] = if (ApplicationIdentifier == null) null else ApplicationIdentifier
         ["EnvironmentIdentifier"] = if (EnvironmentIdentifier == null) null else EnvironmentIdentifier
         ["RouteType"] = if (RouteType == null) null else RouteType
+        ["DefaultRoute"] = if (DefaultRoute == null) null else DefaultRoute
         ["ServiceIdentifier"] = if (ServiceIdentifier == null) null else ServiceIdentifier
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

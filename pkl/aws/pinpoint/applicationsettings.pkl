@@ -6,24 +6,24 @@ module aws.pinpoint.applicationsettings
 import "../../cloudformation.pkl"
 
 /// 
-open class QuietTime {
+open class ApplicationSettingsCampaignHook {
+    Mode: (String|Mapping)?
+    WebUrl: (String|Mapping)?
+    LambdaFunctionName: (String|Mapping)?
+}
+
+/// 
+open class ApplicationSettingsQuietTime {
     End: String|Mapping
     Start: String|Mapping
 }
 
 /// 
-open class Limits {
+open class ApplicationSettingsLimits {
+    MessagesPerSecond: (Int|Mapping)?
     Daily: (Int|Mapping)?
     MaximumDuration: (Int|Mapping)?
     Total: (Int|Mapping)?
-    MessagesPerSecond: (Int|Mapping)?
-}
-
-/// 
-open class CampaignHook {
-    Mode: (String|Mapping)?
-    WebUrl: (String|Mapping)?
-    LambdaFunctionName: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::Pinpoint::ApplicationSettings
@@ -33,26 +33,26 @@ open class ApplicationSettings extends cloudformation.Resource {
 
 
     /// 
-    hidden Limits: (Limits)?
+    hidden QuietTime: (ApplicationSettingsQuietTime)?
+
+    /// 
+    hidden Limits: (ApplicationSettingsLimits)?
 
     /// 
     hidden ApplicationId: String|Mapping
 
     /// 
-    hidden CampaignHook: (CampaignHook)?
+    hidden CampaignHook: (ApplicationSettingsCampaignHook)?
 
     /// 
     hidden CloudWatchMetricsEnabled: (Boolean|Mapping)?
 
-    /// 
-    hidden QuietTime: (QuietTime)?
-
     Properties {
+        ["QuietTime"] = if (QuietTime == null) null else QuietTime
         ["Limits"] = if (Limits == null) null else Limits
         ["ApplicationId"] = if (ApplicationId == null) null else ApplicationId
         ["CampaignHook"] = if (CampaignHook == null) null else CampaignHook
         ["CloudWatchMetricsEnabled"] = if (CloudWatchMetricsEnabled == null) null else CloudWatchMetricsEnabled
-        ["QuietTime"] = if (QuietTime == null) null else QuietTime
     }
 
 }

@@ -5,44 +5,44 @@ module aws.route53recoveryreadiness.resourceset
 
 import "../../cloudformation.pkl"
 
+/// The Route 53 resource that a DNS target resource record points to.
+open class ResourceSetR53ResourceRecord {
+    DomainName: (String|Mapping)?
+    RecordSetId: (String|Mapping)?
+}
+
 /// The target resource that the Route 53 record points to.
-open class TargetResource {
-    NLBResource: (NLBResource)?
-    R53Resource: (R53ResourceRecord)?
+open class ResourceSetTargetResource {
+    NLBResource: (ResourceSetNLBResource)?
+    R53Resource: (ResourceSetR53ResourceRecord)?
 }
 
 /// A component for DNS/routing control readiness checks.
-open class DNSTargetResource {
+open class ResourceSetDNSTargetResource {
+    RecordType: (String|Mapping)?
+    TargetResource: (ResourceSetTargetResource)?
     DomainName: (String|Mapping)?
     RecordSetId: (String|Mapping)?
     HostedZoneArn: (String|Mapping)?
-    RecordType: (String|Mapping)?
-    TargetResource: (TargetResource)?
 }
 
 /// The resource element of a ResourceSet
-open class Resource {
-    ResourceArn: (String|Mapping)?
+open class ResourceSetResource {
     ComponentId: (String|Mapping)?
-    DnsTargetResource: (DNSTargetResource)?
+    DnsTargetResource: (ResourceSetDNSTargetResource)?
     ReadinessScopes: (Listing<String|Mapping>)?
+    ResourceArn: (String|Mapping)?
 }
 
 /// 
-open class Tag {
-    Value: String|Mapping
+open class ResourceSetTag {
     Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// The Network Load Balancer resource that a DNS target resource points to.
-open class NLBResource {
+open class ResourceSetNLBResource {
     Arn: (String|Mapping)?
-}
-
-/// The Route 53 resource that a DNS target resource record points to.
-open class R53ResourceRecord {
-    RecordSetId: (String|Mapping)?
-    DomainName: (String|Mapping)?
 }
 
 /// Schema for the AWS Route53 Recovery Readiness ResourceSet Resource and API.
@@ -51,25 +51,26 @@ open class ResourceSet extends cloudformation.Resource {
     Type = "AWS::Route53RecoveryReadiness::ResourceSet"
 
 
+    /// A list of resource objects in the resource set.
+    hidden Resources: Listing<ResourceSetResource>
+
     /// The resource type of the resources in the resource set. Enter one of the following values for resource type: 
-    ///    /// 
+    ///
+    /// 
     /// AWS: :AutoScaling: :AutoScalingGroup, AWS: :CloudWatch: :Alarm, AWS: :EC2: :CustomerGateway, AWS: :DynamoDB: :Table, AWS: :EC2: :Volume, AWS: :ElasticLoadBalancing: :LoadBalancer, AWS: :ElasticLoadBalancingV2: :LoadBalancer, AWS: :MSK: :Cluster, AWS: :RDS: :DBCluster, AWS: :Route53: :HealthCheck, AWS: :SQS: :Queue, AWS: :SNS: :Topic, AWS: :SNS: :Subscription, AWS: :EC2: :VPC, AWS: :EC2: :VPNConnection, AWS: :EC2: :VPNGateway, AWS::Route53RecoveryReadiness::DNSTargetResource
     hidden ResourceSetType: String|Mapping
 
     /// A tag to associate with the parameters for a resource set.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<ResourceSetTag>)?
 
     /// The name of the resource set to create.
     hidden ResourceSetName: (String|Mapping)?
 
-    /// A list of resource objects in the resource set.
-    hidden Resources: Listing<Resource>
-
     Properties {
+        ["Resources"] = if (Resources == null) null else Resources
         ["ResourceSetType"] = if (ResourceSetType == null) null else ResourceSetType
         ["Tags"] = if (Tags == null) null else Tags
         ["ResourceSetName"] = if (ResourceSetName == null) null else ResourceSetName
-        ["Resources"] = if (Resources == null) null else Resources
     }
 
 }

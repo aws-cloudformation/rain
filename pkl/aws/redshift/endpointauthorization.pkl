@@ -5,13 +5,11 @@ module aws.redshift.endpointauthorization
 
 import "../../cloudformation.pkl"
 
-/// 
-open class AwsAccount {
-}
+typealias EndpointAuthorizationAwsAccount = String|Mapping
 
-/// 
-open class VpcId {
-}
+
+typealias EndpointAuthorizationVpcId = String|Mapping
+
 
 /// Describes an endpoint authorization for authorizing Redshift-managed VPC endpoint access to a cluster across AWS accounts.
 open class EndpointAuthorization extends cloudformation.Resource {
@@ -19,8 +17,8 @@ open class EndpointAuthorization extends cloudformation.Resource {
     Type = "AWS::Redshift::EndpointAuthorization"
 
 
-    /// The virtual private cloud (VPC) identifiers to grant or revoke access to.
-    hidden VpcIds: (Listing<VpcId>)?
+    /// The target AWS account ID to grant or revoke access for.
+    hidden Account: EndpointAuthorizationAwsAccount
 
     ///  Indicates whether to force the revoke action. If true, the Redshift-managed VPC endpoints associated with the endpoint authorization are also deleted.
     hidden Force: (Boolean|Mapping)?
@@ -28,14 +26,14 @@ open class EndpointAuthorization extends cloudformation.Resource {
     /// The cluster identifier.
     hidden ClusterIdentifier: String(matches(Regex(#"^(?=^[a-z][a-z0-9]*(-[a-z0-9]+)*$).{1,63}$"#)))|Mapping
 
-    /// The target AWS account ID to grant or revoke access for.
-    hidden Account: AwsAccount
+    /// The virtual private cloud (VPC) identifiers to grant or revoke access to.
+    hidden VpcIds: (Listing<EndpointAuthorizationVpcId>)?
 
     Properties {
-        ["VpcIds"] = if (VpcIds == null) null else VpcIds
+        ["Account"] = if (Account == null) null else Account
         ["Force"] = if (Force == null) null else Force
         ["ClusterIdentifier"] = if (ClusterIdentifier == null) null else ClusterIdentifier
-        ["Account"] = if (Account == null) null else Account
+        ["VpcIds"] = if (VpcIds == null) null else VpcIds
     }
 
 }

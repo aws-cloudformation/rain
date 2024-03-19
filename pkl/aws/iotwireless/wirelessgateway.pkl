@@ -7,8 +7,8 @@ import "../../cloudformation.pkl"
 
 /// 
 open class WirelessGatewayLoRaWANGateway {
-    GatewayEui: String(matches(Regex(#"^(([0-9A-Fa-f]{2}-){7}|([0-9A-Fa-f]{2}:){7}|([0-9A-Fa-f]{2}\s){7}|([0-9A-Fa-f]{2}){7})([0-9A-Fa-f]{2})$"#)))|Mapping
     RfRegion: String|Mapping
+    GatewayEui: String(matches(Regex(#"^(([0-9A-Fa-f]{2}-){7}|([0-9A-Fa-f]{2}:){7}|([0-9A-Fa-f]{2}\s){7}|([0-9A-Fa-f]{2}){7})([0-9A-Fa-f]{2})$"#)))|Mapping
 }
 
 /// 
@@ -23,17 +23,14 @@ open class WirelessGateway extends cloudformation.Resource {
     Type = "AWS::IoTWireless::WirelessGateway"
 
 
+    /// Thing Arn. Passed into Update to associate a Thing with the Wireless Gateway.
+    hidden ThingArn: (String|Mapping)?
+
     /// A list of key-value pairs that contain metadata for the gateway.
     hidden Tags: (Listing<WirelessGatewayTag>)?
 
-    /// Name of Wireless Gateway.
-    hidden Name: (String|Mapping)?
-
     /// The combination of Package, Station and Model which represents the version of the LoRaWAN Wireless Gateway.
     hidden LoRaWAN: WirelessGatewayLoRaWANGateway
-
-    /// Thing Arn. Passed into Update to associate a Thing with the Wireless Gateway.
-    hidden ThingArn: (String|Mapping)?
 
     /// Thing Name. If there is a Thing created, this can be returned with a Get call.
     hidden ThingName: (String|Mapping)?
@@ -41,16 +38,19 @@ open class WirelessGateway extends cloudformation.Resource {
     /// The date and time when the most recent uplink was received.
     hidden LastUplinkReceivedAt: (String|Mapping)?
 
+    /// Name of Wireless Gateway.
+    hidden Name: (String|Mapping)?
+
     /// Description of Wireless Gateway.
     hidden Description: (String|Mapping)?
 
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Name"] = if (Name == null) null else Name
-        ["LoRaWAN"] = if (LoRaWAN == null) null else LoRaWAN
         ["ThingArn"] = if (ThingArn == null) null else ThingArn
+        ["Tags"] = if (Tags == null) null else Tags
+        ["LoRaWAN"] = if (LoRaWAN == null) null else LoRaWAN
         ["ThingName"] = if (ThingName == null) null else ThingName
         ["LastUplinkReceivedAt"] = if (LastUplinkReceivedAt == null) null else LastUplinkReceivedAt
+        ["Name"] = if (Name == null) null else Name
         ["Description"] = if (Description == null) null else Description
     }
 

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
+	"github.com/aws-cloudformation/rain/internal/config"
 )
 
 // #definition classes
@@ -61,6 +62,9 @@ type pklDefClass struct {
 	Description string
 	Props       []*pklDefProp
 	Aliases     []*defAlias
+
+	// Extra classes needed by anyOfs that resulted in a new typealias
+	OfClasses []*pklDefClass
 }
 
 // getDefName renames definition class names to avoid
@@ -179,8 +183,9 @@ func getPropType(defName string, propName string,
 			// AWS::Omics::AnnotationStore
 			// \n was getting converted to an actual newline
 			//  "pattern": "^arn:([^:\n]*):([^:\n]*):([^:\n]*):([0-9]{12}):([^:\n]*)$"
-			prop.Pattern = strings.Replace(prop.Pattern, "\\n", "\\\\n", -1)
 			retval = fmt.Sprintf("String(matches(Regex(#\"%s\"#)))|Mapping", prop.Pattern)
+			retval = strings.Replace(retval, "\n", "\\n", -1)
+			retval = strings.Replace(retval, "\r", "", -1)
 		} else {
 			retval = "String|Mapping"
 		}
@@ -202,8 +207,6 @@ func getPropType(defName string, propName string,
 				if prop.Items.Type == nil {
 					prop.Items.Type = ""
 				}
-				// TODO: items that are objects like { oneOf [ ...
-				// AWS::IoTFleetWise::DecoderManifest.SignalDecoders
 				switch prop.Items.Type {
 				case "string":
 					if len(prop.Items.Enum) > 0 {
@@ -218,8 +221,24 @@ func getPropType(defName string, propName string,
 					retval = "Listing<Number|Mapping>"
 				case "integer":
 					retval = "Listing<Int|Mapping>"
+				case "object":
+					retval = "Listing<Dynamic>"
 				default:
-					return "", fmt.Errorf("no item type for %s", propName)
+					if len(prop.Items.OneOf) > 0 {
+						err := handleOfs(defName+propName, prop.Items.OneOf, shortName, cls)
+						if err != nil {
+							return "", err
+						}
+						retval = fmt.Sprintf("Listing<%s>", shortName+defName+propName)
+					} else if len(prop.Items.AnyOf) > 0 {
+						err := handleOfs(defName+propName, prop.Items.AnyOf, shortName, cls)
+						if err != nil {
+							return "", err
+						}
+						retval = fmt.Sprintf("Listing<%s>", shortName+defName+propName)
+					} else {
+						return "", fmt.Errorf("no item type for %s", propName)
+					}
 				}
 			}
 		} else {
@@ -280,6 +299,11 @@ func printDescription(description string, indent string) {
 
 // handleOfs handles anyof, oneOf
 func handleOfs(name string, of []*cfn.Prop, shortName string, defCls *pklDefClass) error {
+
+	if len(of) == 0 {
+		return fmt.Errorf("handleOfs length zero for %s", name)
+	}
+
 	// Make a new type alias for it
 	aliasName := shortName + name
 	alias := &defAlias{Name: aliasName, Values: make([]string, 0), Type: TYPES}
@@ -290,8 +314,21 @@ func handleOfs(name string, of []*cfn.Prop, shortName string, defCls *pklDefClas
 		}
 		xOfCls, err := createDefinitionClass(name+xOf.Title, xOf, shortName)
 		if err != nil {
-			return fmt.Errorf("unable to create def class for xOf %s: %s", name, xOf.Title)
+			return fmt.Errorf("unable to create def class for xOf %s: %s: %v", name, xOf.Title, err)
 		}
+		if xOfCls.Name == "" {
+			return fmt.Errorf("handleOfs empty class name for %s", name)
+		}
+
+		// TODO: What if the class has properties? We're not emitting it
+		// We can't just add to classes, since we may have already printed them all
+		// if we are now processing top level properties
+
+		if defCls.OfClasses == nil {
+			defCls.OfClasses = make([]*pklDefClass, 0)
+		}
+		defCls.OfClasses = append(defCls.OfClasses, xOfCls)
+
 		alias.Values = append(alias.Values, xOfCls.Name)
 	}
 	defCls.Aliases = append(defCls.Aliases, alias)
@@ -319,6 +356,8 @@ func createDefinitionClass(name string, def *cfn.Prop, shortName string) (*pklDe
 		cls.Props = append(cls.Props, &pklDefProp{Name: propName, Type: propType})
 	}
 
+	def.Type = cfn.ConvertPropType(def.Type)
+
 	// patternProperties
 	if def.PatternProperties != nil {
 		// Create a type alias
@@ -332,53 +371,94 @@ func createDefinitionClass(name string, def *cfn.Prop, shortName string) (*pklDe
 		cls.Aliases = append(cls.Aliases, alias)
 	}
 
-	if def.Type != "object" {
+	//if def.Type != "object" && def.Ref == "" && def.Type != nil {
+	if def.Type != "object" && def.Ref == "" {
 		if len(cls.Props) > 0 {
-			return nil, fmt.Errorf("unexpected: defintion %s with type %s has %d props",
+			//return nil, fmt.Errorf("unexpected: definition %s with type %s has %d props",
+			//	name, def.Type, len(cls.Props))
+			config.Debugf("unexpected: definition %s with type %s has %d props",
 				name, def.Type, len(cls.Props))
-		}
+		} else {
 
-		switch def.Type {
-		case "array":
-			aliasName := fmt.Sprintf("%s%s", shortName, name)
-			alias := &defAlias{Name: aliasName, Values: make([]string, 0), Type: LISTING}
-			propType, err := getPropType(name, "Array", def.Items, cls, false, shortName)
-			if err != nil {
-				return nil, fmt.Errorf("unable to create array alias for %s", name)
+			if def.Type == nil {
+				def.Type = ""
 			}
-			alias.Values = append(alias.Values, propType)
-			cls.Aliases = append(cls.Aliases, alias)
-		case "string":
-			// Create a type definition instead
-			createAlias(shortName+name, "", cls, "String|Mapping")
-		case "integer":
-			createAlias(shortName+name, "", cls, "Int|Mapping")
-		case "number":
-			createAlias(shortName+name, "", cls, "Number|Mapping")
-		case "boolean":
-			createAlias(shortName+name, "", cls, "Boolean|Mapping")
-		default:
-			if len(def.OneOf) > 0 {
-				err := handleOfs(name, def.OneOf, shortName, cls)
+
+			switch def.Type {
+			case "array":
+				aliasName := fmt.Sprintf("%s%s", shortName, name)
+				alias := &defAlias{Name: aliasName, Values: make([]string, 0), Type: LISTING}
+				propType, err := getPropType(name, "Array", def.Items, cls, false, shortName)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("unable to create array alias for %s", name)
 				}
-			} else if len(def.AnyOf) > 0 {
-				err := handleOfs(name, def.AnyOf, shortName, cls)
-				if err != nil {
-					return nil, err
+				alias.Values = append(alias.Values, propType)
+				cls.Aliases = append(cls.Aliases, alias)
+			case "string":
+				// Create a type definition instead
+				createAlias(shortName+name, "", cls, "String|Mapping")
+			case "integer":
+				createAlias(shortName+name, "", cls, "Int|Mapping")
+			case "number":
+				createAlias(shortName+name, "", cls, "Number|Mapping")
+			case "boolean":
+				createAlias(shortName+name, "", cls, "Boolean|Mapping")
+			default:
+				if len(def.OneOf) > 0 {
+					err := handleOfs(name, def.OneOf, shortName, cls)
+					if err != nil {
+						return nil, err
+					}
+				} else if len(def.AnyOf) > 0 {
+					err := handleOfs(name, def.AnyOf, shortName, cls)
+					if err != nil {
+						return nil, err
+					}
 				}
-			}
 
-			if len(def.AllOf) > 0 {
-				return nil, fmt.Errorf("allOf unsupported: %s", name)
-			}
+				if len(def.AllOf) > 0 {
+					return nil, fmt.Errorf("allOf unsupported: %s", name)
+				}
 
-			// Something else we missed?
-			return nil, fmt.Errorf("unable to create class for definition %s", name)
+				// Something else we missed?
+				//return nil, fmt.Errorf("unable to create class for definition %s", name)
+			}
 		}
 	}
+
+	if len(cls.Props) == 0 && len(cls.Aliases) == 0 {
+
+		// This might be an anyOf or oneOf that only defines $ref
+		if def.Ref != "" {
+			// Make a type alias
+			defName := getDefName(shortName,
+				strings.Replace(def.Ref, "#/definitions/", "", 1))
+			createAlias(shortName+name, "", cls, defName)
+		} else {
+			return nil, fmt.Errorf("%s has no Props or Aliases: %+v", name, def)
+		}
+
+	}
 	return cls, nil
+}
+
+func printClassOrAlias(name string, cls *pklDefClass) error {
+	if len(cls.Props) > 0 {
+		// This is an object definition
+		printCls(cls)
+	} else {
+		// Print a type alias instead
+		if len(cls.Aliases) == 0 {
+			return fmt.Errorf(
+				"unexpected: definition %s has no Props and no Aliases",
+				name)
+		}
+		for _, alias := range cls.Aliases {
+			printTypeAlias(alias)
+		}
+		fmt.Println()
+	}
+	return nil
 }
 
 func generatePklClass(typeName string) error {
@@ -412,19 +492,8 @@ func generatePklClass(typeName string) error {
 
 	// Print out each of the classes
 	for name, cls := range classes {
-		if len(cls.Props) > 0 {
-			// This is an object definition
-			printCls(cls)
-		} else {
-			// Print a type alias instead
-			if len(cls.Aliases) == 0 {
-				return fmt.Errorf("unexpected: definition %s has no Props and no Aliases",
-					name)
-			}
-			for _, alias := range cls.Aliases {
-				printTypeAlias(alias)
-			}
-			fmt.Println()
+		if err := printClassOrAlias(name, cls); err != nil {
+			return err
 		}
 	}
 
@@ -472,6 +541,17 @@ func generatePklClass(typeName string) error {
 
 	fmt.Println("}")
 
+	// Print out any extra classes we created for anyOf, oneOf
+	if len(cls.OfClasses) > 0 {
+		fmt.Println()
+		for _, ofCls := range cls.OfClasses {
+			if err := printClassOrAlias(ofCls.Name, ofCls); err != nil {
+				return err
+			}
+		}
+	}
+
+	// Print out any type aliases we created for properties
 	if len(cls.Aliases) > 0 {
 		fmt.Println()
 		for _, alias := range cls.Aliases {

@@ -5,22 +5,21 @@ module aws.mediatailor.livesource
 
 import "../../cloudformation.pkl"
 
-/// <p>The HTTP package configuration properties for the requested VOD source.</p>
-open class HttpPackageConfiguration {
-    Path: String|Mapping
-    SourceGroup: String|Mapping
-    Type: Type
-}
-
 /// 
-open class Type {
-}
-
-/// 
-open class Tag {
+open class LiveSourceTag {
     Key: String|Mapping
     Value: String|Mapping
 }
+
+/// <p>The HTTP package configuration properties for the requested VOD source.</p>
+open class LiveSourceHttpPackageConfiguration {
+    Path: String|Mapping
+    SourceGroup: String|Mapping
+    Type: LiveSourceType
+}
+
+typealias LiveSourceType = String|Mapping
+
 
 /// Definition of AWS::MediaTailor::LiveSource Resource Type
 open class LiveSource extends cloudformation.Resource {
@@ -28,23 +27,23 @@ open class LiveSource extends cloudformation.Resource {
     Type = "AWS::MediaTailor::LiveSource"
 
 
-    /// <p>A list of HTTP package configuration parameters for this live source.</p>
-    hidden HttpPackageConfigurations: Listing<HttpPackageConfiguration>
-
-    /// 
-    hidden LiveSourceName: String|Mapping
-
     /// 
     hidden SourceLocationName: String|Mapping
 
     /// The tags to assign to the live source.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<LiveSourceTag>)?
+
+    /// <p>A list of HTTP package configuration parameters for this live source.</p>
+    hidden HttpPackageConfigurations: Listing<LiveSourceHttpPackageConfiguration>
+
+    /// 
+    hidden LiveSourceName: String|Mapping
 
     Properties {
-        ["HttpPackageConfigurations"] = if (HttpPackageConfigurations == null) null else HttpPackageConfigurations
-        ["LiveSourceName"] = if (LiveSourceName == null) null else LiveSourceName
         ["SourceLocationName"] = if (SourceLocationName == null) null else SourceLocationName
         ["Tags"] = if (Tags == null) null else Tags
+        ["HttpPackageConfigurations"] = if (HttpPackageConfigurations == null) null else HttpPackageConfigurations
+        ["LiveSourceName"] = if (LiveSourceName == null) null else LiveSourceName
     }
 
 }

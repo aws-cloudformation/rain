@@ -5,43 +5,42 @@ module aws.mediatailor.sourcelocation
 
 import "../../cloudformation.pkl"
 
-/// <p>Access configuration parameters.</p>
-open class AccessConfiguration {
-    AccessType: (AccessType)?
-    SecretsManagerAccessTokenConfiguration: (SecretsManagerAccessTokenConfiguration)?
-}
-
-/// 
-open class AccessType {
-}
-
-/// <p>The optional configuration for a server that serves segments. Use this if you want the segment delivery server to be different from the source location server. For example, you can configure your source location server to be an origination server, such as MediaPackage, and the segment delivery server to be a content delivery network (CDN), such as CloudFront. If you don't specify a segment delivery server, then the source location server is used.</p>
-open class DefaultSegmentDeliveryConfiguration {
-    BaseUrl: (String|Mapping)?
-}
-
-/// <p>The HTTP configuration for the source location.</p>
-open class HttpConfiguration {
-    BaseUrl: String|Mapping
-}
-
 /// <p>AWS Secrets Manager access token configuration parameters. For information about Secrets Manager access token authentication, see <a href="https://docs.aws.amazon.com/mediatailor/latest/ug/channel-assembly-access-configuration-access-token.html">Working with AWS Secrets Manager access token authentication</a>.</p>
-open class SecretsManagerAccessTokenConfiguration {
+open class SourceLocationSecretsManagerAccessTokenConfiguration {
     HeaderName: (String|Mapping)?
     SecretArn: (String|Mapping)?
     SecretStringKey: (String|Mapping)?
 }
 
 /// <p>The segment delivery configuration settings.</p>
-open class SegmentDeliveryConfiguration {
+open class SourceLocationSegmentDeliveryConfiguration {
     BaseUrl: (String|Mapping)?
     Name: (String|Mapping)?
 }
 
 /// 
-open class Tag {
+open class SourceLocationTag {
     Key: String|Mapping
     Value: String|Mapping
+}
+
+/// <p>Access configuration parameters.</p>
+open class SourceLocationAccessConfiguration {
+    AccessType: (SourceLocationAccessType)?
+    SecretsManagerAccessTokenConfiguration: (SourceLocationSecretsManagerAccessTokenConfiguration)?
+}
+
+typealias SourceLocationAccessType = String|Mapping
+
+
+/// <p>The optional configuration for a server that serves segments. Use this if you want the segment delivery server to be different from the source location server. For example, you can configure your source location server to be an origination server, such as MediaPackage, and the segment delivery server to be a content delivery network (CDN), such as CloudFront. If you don't specify a segment delivery server, then the source location server is used.</p>
+open class SourceLocationDefaultSegmentDeliveryConfiguration {
+    BaseUrl: (String|Mapping)?
+}
+
+/// <p>The HTTP configuration for the source location.</p>
+open class SourceLocationHttpConfiguration {
+    BaseUrl: String|Mapping
 }
 
 /// Definition of AWS::MediaTailor::SourceLocation Resource Type
@@ -51,30 +50,30 @@ open class SourceLocation extends cloudformation.Resource {
 
 
     /// 
-    hidden DefaultSegmentDeliveryConfiguration: (DefaultSegmentDeliveryConfiguration)?
-
-    /// 
-    hidden HttpConfiguration: HttpConfiguration
-
-    /// <p>A list of the segment delivery configurations associated with this resource.</p>
-    hidden SegmentDeliveryConfigurations: (Listing<SegmentDeliveryConfiguration>)?
-
-    /// 
     hidden SourceLocationName: String|Mapping
 
     /// The tags to assign to the source location.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<SourceLocationTag>)?
 
     /// 
-    hidden AccessConfiguration: (AccessConfiguration)?
+    hidden AccessConfiguration: (SourceLocationAccessConfiguration)?
+
+    /// 
+    hidden DefaultSegmentDeliveryConfiguration: (SourceLocationDefaultSegmentDeliveryConfiguration)?
+
+    /// 
+    hidden HttpConfiguration: SourceLocationHttpConfiguration
+
+    /// <p>A list of the segment delivery configurations associated with this resource.</p>
+    hidden SegmentDeliveryConfigurations: (Listing<SourceLocationSegmentDeliveryConfiguration>)?
 
     Properties {
-        ["DefaultSegmentDeliveryConfiguration"] = if (DefaultSegmentDeliveryConfiguration == null) null else DefaultSegmentDeliveryConfiguration
-        ["HttpConfiguration"] = if (HttpConfiguration == null) null else HttpConfiguration
-        ["SegmentDeliveryConfigurations"] = if (SegmentDeliveryConfigurations == null) null else SegmentDeliveryConfigurations
         ["SourceLocationName"] = if (SourceLocationName == null) null else SourceLocationName
         ["Tags"] = if (Tags == null) null else Tags
         ["AccessConfiguration"] = if (AccessConfiguration == null) null else AccessConfiguration
+        ["DefaultSegmentDeliveryConfiguration"] = if (DefaultSegmentDeliveryConfiguration == null) null else DefaultSegmentDeliveryConfiguration
+        ["HttpConfiguration"] = if (HttpConfiguration == null) null else HttpConfiguration
+        ["SegmentDeliveryConfigurations"] = if (SegmentDeliveryConfigurations == null) null else SegmentDeliveryConfigurations
     }
 
 }

@@ -804,7 +804,6 @@ func GetTypeSchema(name string) (string, error) {
 		path = "schemas/" + path + ".json"
 		b, err := schemaFiles.ReadFile(path)
 		if err == nil {
-			config.Debugf("read schema from path %s", path)
 			s := string(b)
 			Schemas[name] = s
 			return s, nil

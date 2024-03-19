@@ -6,64 +6,162 @@ module aws.pinpoint.campaign
 import "../../cloudformation.pkl"
 
 /// 
-open class Message {
-    Url: (String|Mapping)?
-    Action: (String|Mapping)?
-    TimeToLive: (Int|Mapping)?
-    ImageSmallIconUrl: (String|Mapping)?
-    ImageUrl: (String|Mapping)?
-    SilentPush: (Boolean|Mapping)?
-    Body: (String|Mapping)?
-    RawContent: (String|Mapping)?
-    MediaUrl: (String|Mapping)?
-    Title: (String|Mapping)?
-    JsonBody: (String|Mapping)?
-    ImageIconUrl: (String|Mapping)?
+open class CampaignCampaignInAppMessage {
+    Content: (Listing<CampaignInAppMessageContent>)?
+    CustomConfig: (Dynamic)?
+    Layout: (String|Mapping)?
 }
 
 /// 
-open class Limits {
-    Total: (Int|Mapping)?
-    Session: (Int|Mapping)?
+open class CampaignCampaignSmsMessage {
+    TemplateId: (String|Mapping)?
+    EntityId: (String|Mapping)?
+    OriginationNumber: (String|Mapping)?
+    SenderId: (String|Mapping)?
+    Body: (String|Mapping)?
+    MessageType: (String|Mapping)?
+}
+
+/// 
+open class CampaignWriteTreatmentResource {
+    CustomDeliveryConfiguration: (CampaignCustomDeliveryConfiguration)?
+    SizePercent: (Int|Mapping)?
+    TreatmentName: (String|Mapping)?
+    TreatmentDescription: (String|Mapping)?
+    MessageConfiguration: (CampaignMessageConfiguration)?
+    Schedule: (CampaignSchedule)?
+    TemplateConfiguration: (CampaignTemplateConfiguration)?
+}
+
+/// 
+open class CampaignMessageConfiguration {
+    APNSMessage: (CampaignMessage)?
+    BaiduMessage: (CampaignMessage)?
+    SMSMessage: (CampaignCampaignSmsMessage)?
+    CustomMessage: (CampaignCampaignCustomMessage)?
+    ADMMessage: (CampaignMessage)?
+    DefaultMessage: (CampaignMessage)?
+    InAppMessage: (CampaignCampaignInAppMessage)?
+    EmailMessage: (CampaignCampaignEmailMessage)?
+    GCMMessage: (CampaignMessage)?
+}
+
+/// 
+open class CampaignSchedule {
+    Frequency: (String|Mapping)?
+    EventFilter: (CampaignCampaignEventFilter)?
+    IsLocalTime: (Boolean|Mapping)?
+    TimeZone: (String|Mapping)?
+    QuietTime: (CampaignQuietTime)?
+    EndTime: (String|Mapping)?
+    StartTime: (String|Mapping)?
+}
+
+/// 
+open class CampaignCampaignCustomMessage {
+    Data: (String|Mapping)?
+}
+
+/// 
+open class CampaignTemplate {
+    Name: (String|Mapping)?
+    Version: (String|Mapping)?
+}
+
+/// 
+open class CampaignInAppMessageBodyConfig {
+    TextColor: (String|Mapping)?
+    Body: (String|Mapping)?
+    Alignment: (String|Mapping)?
+}
+
+/// 
+open class CampaignInAppMessageHeaderConfig {
+    Alignment: (String|Mapping)?
+    TextColor: (String|Mapping)?
+    Header: (String|Mapping)?
+}
+
+/// 
+open class CampaignLimits {
     MessagesPerSecond: (Int|Mapping)?
     Daily: (Int|Mapping)?
     MaximumDuration: (Int|Mapping)?
+    Total: (Int|Mapping)?
+    Session: (Int|Mapping)?
 }
 
 /// 
-open class CustomDeliveryConfiguration {
-    EndpointTypes: (Listing<String|Mapping>)?
-    DeliveryUri: (String|Mapping)?
-}
-
-/// 
-open class DefaultButtonConfiguration {
-    ButtonAction: (String|Mapping)?
+open class CampaignDefaultButtonConfiguration {
     BorderRadius: (Int|Mapping)?
     Text: (String|Mapping)?
     TextColor: (String|Mapping)?
     Link: (String|Mapping)?
     BackgroundColor: (String|Mapping)?
+    ButtonAction: (String|Mapping)?
 }
 
 /// 
-open class QuietTime {
-    End: String|Mapping
-    Start: String|Mapping
+open class CampaignSetDimension {
+    Values: (Listing<String|Mapping>)?
+    DimensionType: (String|Mapping)?
 }
 
 /// 
-open class InAppMessageContent {
-    BodyConfig: (InAppMessageBodyConfig)?
-    SecondaryBtn: (InAppMessageButton)?
+open class CampaignMessage {
+    TimeToLive: (Int|Mapping)?
+    Url: (String|Mapping)?
+    SilentPush: (Boolean|Mapping)?
+    Body: (String|Mapping)?
+    Action: (String|Mapping)?
+    MediaUrl: (String|Mapping)?
+    Title: (String|Mapping)?
+    JsonBody: (String|Mapping)?
+    ImageIconUrl: (String|Mapping)?
+    RawContent: (String|Mapping)?
+    ImageSmallIconUrl: (String|Mapping)?
     ImageUrl: (String|Mapping)?
-    PrimaryBtn: (InAppMessageButton)?
-    HeaderConfig: (InAppMessageHeaderConfig)?
-    BackgroundColor: (String|Mapping)?
 }
 
 /// 
-open class CampaignEmailMessage {
+open class CampaignOverrideButtonConfiguration {
+    ButtonAction: (String|Mapping)?
+    Link: (String|Mapping)?
+}
+
+/// 
+open class CampaignTemplateConfiguration {
+    SMSTemplate: (CampaignTemplate)?
+    EmailTemplate: (CampaignTemplate)?
+    PushTemplate: (CampaignTemplate)?
+    VoiceTemplate: (CampaignTemplate)?
+}
+
+/// 
+open class CampaignInAppMessageContent {
+    HeaderConfig: (CampaignInAppMessageHeaderConfig)?
+    BackgroundColor: (String|Mapping)?
+    BodyConfig: (CampaignInAppMessageBodyConfig)?
+    SecondaryBtn: (CampaignInAppMessageButton)?
+    ImageUrl: (String|Mapping)?
+    PrimaryBtn: (CampaignInAppMessageButton)?
+}
+
+/// 
+open class CampaignCustomDeliveryConfiguration {
+    EndpointTypes: (Listing<String|Mapping>)?
+    DeliveryUri: (String|Mapping)?
+}
+
+/// 
+open class CampaignEventDimensions {
+    Attributes: (Dynamic)?
+    Metrics: (Dynamic)?
+    EventType: (CampaignSetDimension)?
+}
+
+/// 
+open class CampaignCampaignEmailMessage {
     FromAddress: (String|Mapping)?
     HtmlBody: (String|Mapping)?
     Body: (String|Mapping)?
@@ -71,128 +169,30 @@ open class CampaignEmailMessage {
 }
 
 /// 
-open class Schedule {
-    TimeZone: (String|Mapping)?
-    QuietTime: (QuietTime)?
-    EndTime: (String|Mapping)?
-    StartTime: (String|Mapping)?
-    Frequency: (String|Mapping)?
-    EventFilter: (CampaignEventFilter)?
-    IsLocalTime: (Boolean|Mapping)?
+open class CampaignCampaignEventFilter {
+    Dimensions: (CampaignEventDimensions)?
+    FilterType: (String|Mapping)?
 }
 
 /// 
-open class MessageConfiguration {
-    APNSMessage: (Message)?
-    BaiduMessage: (Message)?
-    DefaultMessage: (Message)?
-    ADMMessage: (Message)?
-    InAppMessage: (CampaignInAppMessage)?
-    EmailMessage: (CampaignEmailMessage)?
-    GCMMessage: (Message)?
-    SMSMessage: (CampaignSmsMessage)?
-    CustomMessage: (CampaignCustomMessage)?
+open class CampaignQuietTime {
+    Start: String|Mapping
+    End: String|Mapping
 }
 
 /// 
-open class CampaignSmsMessage {
-    MessageType: (String|Mapping)?
-    TemplateId: (String|Mapping)?
-    EntityId: (String|Mapping)?
-    OriginationNumber: (String|Mapping)?
-    SenderId: (String|Mapping)?
-    Body: (String|Mapping)?
-}
-
-/// 
-open class OverrideButtonConfiguration {
-    ButtonAction: (String|Mapping)?
-    Link: (String|Mapping)?
-}
-
-/// 
-open class SetDimension {
-    Values: (Listing<String|Mapping>)?
-    DimensionType: (String|Mapping)?
-}
-
-/// 
-open class CampaignCustomMessage {
-    Data: (String|Mapping)?
-}
-
-/// 
-open class EventDimensions {
-    Attributes: (Dynamic)?
-    Metrics: (Dynamic)?
-    EventType: (SetDimension)?
-}
-
-/// 
-open class Template {
-    Version: (String|Mapping)?
-    Name: (String|Mapping)?
-}
-
-/// 
-open class CampaignInAppMessage {
-    CustomConfig: (Dynamic)?
-    Layout: (String|Mapping)?
-    Content: (Listing<InAppMessageContent>)?
-}
-
-/// 
-open class CampaignHook {
+open class CampaignCampaignHook {
     WebUrl: (String|Mapping)?
     LambdaFunctionName: (String|Mapping)?
     Mode: (String|Mapping)?
 }
 
 /// 
-open class InAppMessageButton {
-    IOS: (OverrideButtonConfiguration)?
-    Web: (OverrideButtonConfiguration)?
-    DefaultConfig: (DefaultButtonConfiguration)?
-    Android: (OverrideButtonConfiguration)?
-}
-
-/// 
-open class InAppMessageHeaderConfig {
-    Alignment: (String|Mapping)?
-    TextColor: (String|Mapping)?
-    Header: (String|Mapping)?
-}
-
-/// 
-open class InAppMessageBodyConfig {
-    Alignment: (String|Mapping)?
-    TextColor: (String|Mapping)?
-    Body: (String|Mapping)?
-}
-
-/// 
-open class CampaignEventFilter {
-    Dimensions: (EventDimensions)?
-    FilterType: (String|Mapping)?
-}
-
-/// 
-open class TemplateConfiguration {
-    EmailTemplate: (Template)?
-    PushTemplate: (Template)?
-    VoiceTemplate: (Template)?
-    SMSTemplate: (Template)?
-}
-
-/// 
-open class WriteTreatmentResource {
-    TemplateConfiguration: (TemplateConfiguration)?
-    CustomDeliveryConfiguration: (CustomDeliveryConfiguration)?
-    SizePercent: (Int|Mapping)?
-    TreatmentName: (String|Mapping)?
-    TreatmentDescription: (String|Mapping)?
-    MessageConfiguration: (MessageConfiguration)?
-    Schedule: (Schedule)?
+open class CampaignInAppMessageButton {
+    Android: (CampaignOverrideButtonConfiguration)?
+    IOS: (CampaignOverrideButtonConfiguration)?
+    Web: (CampaignOverrideButtonConfiguration)?
+    DefaultConfig: (CampaignDefaultButtonConfiguration)?
 }
 
 /// Resource Type definition for AWS::Pinpoint::Campaign
@@ -202,78 +202,78 @@ open class Campaign extends cloudformation.Resource {
 
 
     /// 
-    hidden IsPaused: (Boolean|Mapping)?
+    hidden TemplateConfiguration: (CampaignTemplateConfiguration)?
 
     /// 
-    hidden SegmentVersion: (Int|Mapping)?
+    hidden AdditionalTreatments: (Listing<CampaignWriteTreatmentResource>)?
 
     /// 
-    hidden Limits: (Limits)?
+    hidden MessageConfiguration: (CampaignMessageConfiguration)?
 
     /// 
-    hidden HoldoutPercent: (Int|Mapping)?
+    hidden Limits: (CampaignLimits)?
 
     /// 
-    hidden CustomDeliveryConfiguration: (CustomDeliveryConfiguration)?
-
-    /// 
-    hidden ApplicationId: String|Mapping
-
-    /// 
-    hidden Description: (String|Mapping)?
-
-    /// 
-    hidden Priority: (Int|Mapping)?
-
-    /// 
-    hidden AdditionalTreatments: (Listing<WriteTreatmentResource>)?
-
-    /// 
-    hidden MessageConfiguration: (MessageConfiguration)?
-
-    /// 
-    hidden Schedule: Schedule
+    hidden Schedule: CampaignSchedule
 
     /// 
     hidden Tags: (Dynamic)?
 
     /// 
-    hidden SegmentId: String|Mapping
-
-    /// 
-    hidden TreatmentName: (String|Mapping)?
-
-    /// 
-    hidden TemplateConfiguration: (TemplateConfiguration)?
-
-    /// 
-    hidden Name: String|Mapping
+    hidden Description: (String|Mapping)?
 
     /// 
     hidden TreatmentDescription: (String|Mapping)?
 
     /// 
-    hidden CampaignHook: (CampaignHook)?
+    hidden Name: String|Mapping
+
+    /// 
+    hidden SegmentVersion: (Int|Mapping)?
+
+    /// 
+    hidden HoldoutPercent: (Int|Mapping)?
+
+    /// 
+    hidden CustomDeliveryConfiguration: (CampaignCustomDeliveryConfiguration)?
+
+    /// 
+    hidden IsPaused: (Boolean|Mapping)?
+
+    /// 
+    hidden Priority: (Int|Mapping)?
+
+    /// 
+    hidden ApplicationId: String|Mapping
+
+    /// 
+    hidden CampaignHook: (CampaignCampaignHook)?
+
+    /// 
+    hidden TreatmentName: (String|Mapping)?
+
+    /// 
+    hidden SegmentId: String|Mapping
 
     Properties {
-        ["IsPaused"] = if (IsPaused == null) null else IsPaused
-        ["SegmentVersion"] = if (SegmentVersion == null) null else SegmentVersion
-        ["Limits"] = if (Limits == null) null else Limits
-        ["HoldoutPercent"] = if (HoldoutPercent == null) null else HoldoutPercent
-        ["CustomDeliveryConfiguration"] = if (CustomDeliveryConfiguration == null) null else CustomDeliveryConfiguration
-        ["ApplicationId"] = if (ApplicationId == null) null else ApplicationId
-        ["Description"] = if (Description == null) null else Description
-        ["Priority"] = if (Priority == null) null else Priority
+        ["TemplateConfiguration"] = if (TemplateConfiguration == null) null else TemplateConfiguration
         ["AdditionalTreatments"] = if (AdditionalTreatments == null) null else AdditionalTreatments
         ["MessageConfiguration"] = if (MessageConfiguration == null) null else MessageConfiguration
+        ["Limits"] = if (Limits == null) null else Limits
         ["Schedule"] = if (Schedule == null) null else Schedule
         ["Tags"] = if (Tags == null) null else Tags
-        ["SegmentId"] = if (SegmentId == null) null else SegmentId
-        ["TreatmentName"] = if (TreatmentName == null) null else TreatmentName
-        ["TemplateConfiguration"] = if (TemplateConfiguration == null) null else TemplateConfiguration
-        ["Name"] = if (Name == null) null else Name
+        ["Description"] = if (Description == null) null else Description
         ["TreatmentDescription"] = if (TreatmentDescription == null) null else TreatmentDescription
+        ["Name"] = if (Name == null) null else Name
+        ["SegmentVersion"] = if (SegmentVersion == null) null else SegmentVersion
+        ["HoldoutPercent"] = if (HoldoutPercent == null) null else HoldoutPercent
+        ["CustomDeliveryConfiguration"] = if (CustomDeliveryConfiguration == null) null else CustomDeliveryConfiguration
+        ["IsPaused"] = if (IsPaused == null) null else IsPaused
+        ["Priority"] = if (Priority == null) null else Priority
+        ["ApplicationId"] = if (ApplicationId == null) null else ApplicationId
         ["CampaignHook"] = if (CampaignHook == null) null else CampaignHook
+        ["TreatmentName"] = if (TreatmentName == null) null else TreatmentName
+        ["SegmentId"] = if (SegmentId == null) null else SegmentId
     }
 
 }

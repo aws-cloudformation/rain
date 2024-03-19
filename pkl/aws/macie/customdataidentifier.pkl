@@ -6,9 +6,9 @@ module aws.macie.customdataidentifier
 import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
-open class Tag {
-    Key: String|Mapping
+open class CustomDataIdentifierTag {
     Value: String|Mapping
+    Key: String|Mapping
 }
 
 /// Macie CustomDataIdentifier resource schema
@@ -17,35 +17,35 @@ open class CustomDataIdentifier extends cloudformation.Resource {
     Type = "AWS::Macie::CustomDataIdentifier"
 
 
-    /// Maximum match distance.
-    hidden MaximumMatchDistance: (Int|Mapping)?
-
-    /// A collection of tags associated with a resource
-    hidden Tags: (Listing<Tag>)?
-
-    /// Name of custom data identifier.
-    hidden Name: String|Mapping
-
     /// Regular expression for custom data identifier.
     hidden Regex: String|Mapping
+
+    /// Maximum match distance.
+    hidden MaximumMatchDistance: (Int|Mapping)?
 
     /// Keywords to be matched against.
     hidden Keywords: (Listing<String|Mapping>)?
 
-    /// Words to be ignored.
-    hidden IgnoreWords: (Listing<String|Mapping>)?
+    /// A collection of tags associated with a resource
+    hidden Tags: (Listing<CustomDataIdentifierTag>)?
+
+    /// Name of custom data identifier.
+    hidden Name: String|Mapping
 
     /// Description of custom data identifier.
     hidden Description: (String|Mapping)?
 
+    /// Words to be ignored.
+    hidden IgnoreWords: (Listing<String|Mapping>)?
+
     Properties {
+        ["Regex"] = if (Regex == null) null else Regex
         ["MaximumMatchDistance"] = if (MaximumMatchDistance == null) null else MaximumMatchDistance
+        ["Keywords"] = if (Keywords == null) null else Keywords
         ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
-        ["Regex"] = if (Regex == null) null else Regex
-        ["Keywords"] = if (Keywords == null) null else Keywords
-        ["IgnoreWords"] = if (IgnoreWords == null) null else IgnoreWords
         ["Description"] = if (Description == null) null else Description
+        ["IgnoreWords"] = if (IgnoreWords == null) null else IgnoreWords
     }
 
 }

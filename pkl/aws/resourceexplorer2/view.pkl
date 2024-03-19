@@ -6,17 +6,16 @@ module aws.resourceexplorer2.view
 import "../../cloudformation.pkl"
 
 /// 
-open class TagMap {
-}
-
-/// 
-open class IncludedProperty {
-    Name: String|Mapping
-}
-
-/// 
-open class SearchFilter {
+open class ViewSearchFilter {
     FilterString: String|Mapping
+}
+
+typealias ViewTagMap = Mapping<String, Any>
+
+
+/// 
+open class ViewIncludedProperty {
+    Name: String|Mapping
 }
 
 /// Definition of AWS::ResourceExplorer2::View Resource Type
@@ -26,26 +25,26 @@ open class View extends cloudformation.Resource {
 
 
     /// 
-    hidden Filters: (SearchFilter)?
+    hidden ViewName: String(matches(Regex(#"^[a-zA-Z0-9\-]{1,64}$"#)))|Mapping
 
     /// 
-    hidden IncludedProperties: (Listing<IncludedProperty>)?
+    hidden Filters: (ViewSearchFilter)?
+
+    /// 
+    hidden IncludedProperties: (Listing<ViewIncludedProperty>)?
 
     /// 
     hidden Scope: (String|Mapping)?
 
     /// 
-    hidden Tags: (TagMap)?
-
-    /// 
-    hidden ViewName: String(matches(Regex(#"^[a-zA-Z0-9\-]{1,64}$"#)))|Mapping
+    hidden Tags: (ViewTagMap)?
 
     Properties {
+        ["ViewName"] = if (ViewName == null) null else ViewName
         ["Filters"] = if (Filters == null) null else Filters
         ["IncludedProperties"] = if (IncludedProperties == null) null else IncludedProperties
         ["Scope"] = if (Scope == null) null else Scope
         ["Tags"] = if (Tags == null) null else Tags
-        ["ViewName"] = if (ViewName == null) null else ViewName
     }
 
 }

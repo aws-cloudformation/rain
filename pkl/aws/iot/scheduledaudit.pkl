@@ -17,15 +17,6 @@ open class ScheduledAudit extends cloudformation.Resource {
     Type = "AWS::IoT::ScheduledAudit"
 
 
-    /// The day of the week on which the scheduled audit takes place. Can be one of SUN, MON, TUE,WED, THU, FRI, or SAT. This field is required if the frequency parameter is set to WEEKLY or BIWEEKLY.
-    hidden DayOfWeek: (ScheduledAuditDayOfWeek|Mapping)?
-
-    /// Which checks are performed during the scheduled audit. Checks must be enabled for your account.
-    hidden TargetCheckNames: Listing<String|Mapping>
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<ScheduledAuditTag>)?
-
     /// The name you want to give to the scheduled audit.
     hidden ScheduledAuditName: (String(matches(Regex(#"[a-zA-Z0-9:_-]+"#)))|Mapping)?
 
@@ -35,18 +26,27 @@ open class ScheduledAudit extends cloudformation.Resource {
     /// The day of the month on which the scheduled audit takes place. Can be 1 through 31 or LAST. This field is required if the frequency parameter is set to MONTHLY.
     hidden DayOfMonth: (String(matches(Regex(#"^([1-9]|[12][0-9]|3[01])$|^LAST$|^UNSET_VALUE$"#)))|Mapping)?
 
+    /// The day of the week on which the scheduled audit takes place. Can be one of SUN, MON, TUE,WED, THU, FRI, or SAT. This field is required if the frequency parameter is set to WEEKLY or BIWEEKLY.
+    hidden DayOfWeek: (ScheduledAuditDayOfWeek|Mapping)?
+
+    /// Which checks are performed during the scheduled audit. Checks must be enabled for your account.
+    hidden TargetCheckNames: Listing<String|Mapping>
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<ScheduledAuditTag>)?
+
     Properties {
-        ["DayOfWeek"] = if (DayOfWeek == null) null else DayOfWeek
-        ["TargetCheckNames"] = if (TargetCheckNames == null) null else TargetCheckNames
-        ["Tags"] = if (Tags == null) null else Tags
         ["ScheduledAuditName"] = if (ScheduledAuditName == null) null else ScheduledAuditName
         ["Frequency"] = if (Frequency == null) null else Frequency
         ["DayOfMonth"] = if (DayOfMonth == null) null else DayOfMonth
+        ["DayOfWeek"] = if (DayOfWeek == null) null else DayOfWeek
+        ["TargetCheckNames"] = if (TargetCheckNames == null) null else TargetCheckNames
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }
 
 
-typealias ScheduledAuditDayOfWeek = "SUN"|"MON"|"TUE"|"WED"|"THU"|"FRI"|"SAT"|"UNSET_VALUE"
-
 typealias ScheduledAuditFrequency = "DAILY"|"WEEKLY"|"BIWEEKLY"|"MONTHLY"
+
+typealias ScheduledAuditDayOfWeek = "SUN"|"MON"|"TUE"|"WED"|"THU"|"FRI"|"SAT"|"UNSET_VALUE"

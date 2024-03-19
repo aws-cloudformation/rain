@@ -6,15 +6,15 @@ module aws.wafregional.webacl
 import "../../cloudformation.pkl"
 
 /// 
-open class Rule {
-    Action: Action
-    Priority: Int|Mapping
-    RuleId: String|Mapping
+open class WebACLAction {
+    Type: String|Mapping
 }
 
 /// 
-open class Action {
-    Type: String|Mapping
+open class WebACLRule {
+    Action: WebACLAction
+    Priority: Int|Mapping
+    RuleId: String|Mapping
 }
 
 /// Resource Type definition for AWS::WAFRegional::WebACL
@@ -24,22 +24,22 @@ open class WebACL extends cloudformation.Resource {
 
 
     /// 
-    hidden DefaultAction: Action
+    hidden MetricName: String|Mapping
 
     /// 
-    hidden Rules: (Listing<Rule>)?
+    hidden DefaultAction: WebACLAction
+
+    /// 
+    hidden Rules: (Listing<WebACLRule>)?
 
     /// 
     hidden Name: String|Mapping
 
-    /// 
-    hidden MetricName: String|Mapping
-
     Properties {
+        ["MetricName"] = if (MetricName == null) null else MetricName
         ["DefaultAction"] = if (DefaultAction == null) null else DefaultAction
         ["Rules"] = if (Rules == null) null else Rules
         ["Name"] = if (Name == null) null else Name
-        ["MetricName"] = if (MetricName == null) null else MetricName
     }
 
 }

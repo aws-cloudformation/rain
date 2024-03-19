@@ -6,22 +6,19 @@ module aws.sagemaker.modelpackagegroup
 import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class ModelPackageGroupTag {
     Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
     Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
 }
 
-/// The description of the model package group.
-open class ModelPackageGroupDescription {
-}
+typealias ModelPackageGroupModelPackageGroupDescription = String|Mapping
 
-/// The name of the model package group.
-open class ModelPackageGroupName {
-}
 
-/// The Amazon Resource Name (ARN) of the model package group.
-open class ModelPackageGroupArn {
-}
+typealias ModelPackageGroupModelPackageGroupName = String|Mapping
+
+
+typealias ModelPackageGroupModelPackageGroupArn = String|Mapping
+
 
 /// Resource Type definition for AWS::SageMaker::ModelPackageGroup
 open class ModelPackageGroup extends cloudformation.Resource {
@@ -29,23 +26,23 @@ open class ModelPackageGroup extends cloudformation.Resource {
     Type = "AWS::SageMaker::ModelPackageGroup"
 
 
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
+    /// 
+    hidden ModelPackageGroupName: ModelPackageGroupModelPackageGroupName
 
     /// 
-    hidden ModelPackageGroupName: ModelPackageGroupName
-
-    /// 
-    hidden ModelPackageGroupDescription: (ModelPackageGroupDescription)?
+    hidden ModelPackageGroupDescription: (ModelPackageGroupModelPackageGroupDescription)?
 
     /// 
     hidden ModelPackageGroupPolicy: (Dynamic)?
 
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<ModelPackageGroupTag>)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
         ["ModelPackageGroupName"] = if (ModelPackageGroupName == null) null else ModelPackageGroupName
         ["ModelPackageGroupDescription"] = if (ModelPackageGroupDescription == null) null else ModelPackageGroupDescription
         ["ModelPackageGroupPolicy"] = if (ModelPackageGroupPolicy == null) null else ModelPackageGroupPolicy
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

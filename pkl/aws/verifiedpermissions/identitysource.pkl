@@ -6,27 +6,26 @@ module aws.verifiedpermissions.identitysource
 import "../../cloudformation.pkl"
 
 /// 
-open class CognitoUserPoolConfiguration {
+open class IdentitySourceCognitoUserPoolConfiguration {
     UserPoolArn: String(matches(Regex(#"^arn:[a-zA-Z0-9-]+:cognito-idp:(([a-zA-Z0-9-]+:\d{12}:userpool/[\w-]+_[0-9a-zA-Z]+))$"#)))|Mapping
     ClientIds: (Listing<String|Mapping>)?
 }
 
 /// 
-open class IdentitySourceConfiguration {
-    CognitoUserPoolConfiguration: CognitoUserPoolConfiguration
+open class IdentitySourceIdentitySourceConfiguration {
+    CognitoUserPoolConfiguration: IdentitySourceCognitoUserPoolConfiguration
 }
 
 /// 
-open class IdentitySourceDetails {
+open class IdentitySourceIdentitySourceDetails {
     ClientIds: (Listing<String|Mapping>)?
     UserPoolArn: (String(matches(Regex(#"^arn:[a-zA-Z0-9-]+:cognito-idp:(([a-zA-Z0-9-]+:\d{12}:userpool/[\w-]+_[0-9a-zA-Z]+))$"#)))|Mapping)?
     DiscoveryUrl: (String(matches(Regex(#"^https://.*$"#)))|Mapping)?
-    OpenIdIssuer: (OpenIdIssuer)?
+    OpenIdIssuer: (IdentitySourceOpenIdIssuer)?
 }
 
-/// 
-open class OpenIdIssuer {
-}
+typealias IdentitySourceOpenIdIssuer = String|Mapping
+
 
 /// Definition of AWS::VerifiedPermissions::IdentitySource Resource Type
 open class IdentitySource extends cloudformation.Resource {
@@ -35,18 +34,18 @@ open class IdentitySource extends cloudformation.Resource {
 
 
     /// 
-    hidden Configuration: IdentitySourceConfiguration
+    hidden PrincipalEntityType: (String(matches(Regex(#"^.*$"#)))|Mapping)?
+
+    /// 
+    hidden Configuration: IdentitySourceIdentitySourceConfiguration
 
     /// 
     hidden PolicyStoreId: String(matches(Regex(#"^[a-zA-Z0-9-]*$"#)))|Mapping
 
-    /// 
-    hidden PrincipalEntityType: (String(matches(Regex(#"^.*$"#)))|Mapping)?
-
     Properties {
+        ["PrincipalEntityType"] = if (PrincipalEntityType == null) null else PrincipalEntityType
         ["Configuration"] = if (Configuration == null) null else Configuration
         ["PolicyStoreId"] = if (PolicyStoreId == null) null else PolicyStoreId
-        ["PrincipalEntityType"] = if (PrincipalEntityType == null) null else PrincipalEntityType
     }
 
 }

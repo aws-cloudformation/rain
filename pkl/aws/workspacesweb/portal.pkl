@@ -6,30 +6,25 @@ module aws.workspacesweb.portal
 import "../../cloudformation.pkl"
 
 /// 
-open class BrowserType {
-}
-
-/// 
-open class EncryptionContextMap {
-}
-
-/// 
-open class PortalStatus {
-}
-
-/// 
-open class RendererType {
-}
-
-/// 
-open class Tag {
+open class PortalTag {
     Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
     Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
 }
 
-/// 
-open class AuthenticationType {
-}
+typealias PortalAuthenticationType = String|Mapping
+
+
+typealias PortalBrowserType = String|Mapping
+
+
+typealias PortalEncryptionContextMap = Mapping<String, Any>
+
+
+typealias PortalPortalStatus = String|Mapping
+
+
+typealias PortalRendererType = String|Mapping
+
 
 /// Definition of AWS::WorkSpacesWeb::Portal Resource Type
 open class Portal extends cloudformation.Resource {
@@ -38,25 +33,13 @@ open class Portal extends cloudformation.Resource {
 
 
     /// 
-    hidden NetworkSettingsArn: (String(matches(Regex(#"^arn:[\w+=\/,.@-]+:[a-zA-Z0-9\-]+:[a-zA-Z0-9\-]*:[a-zA-Z0-9]{1,12}:[a-zA-Z]+(\/[a-fA-F0-9\-]{36})+$"#)))|Mapping)?
+    hidden UserSettingsArn: (String(matches(Regex(#"^arn:[\w+=\/,.@-]+:[a-zA-Z0-9\-]+:[a-zA-Z0-9\-]*:[a-zA-Z0-9]{1,12}:[a-zA-Z]+(\/[a-fA-F0-9\-]{36})+$"#)))|Mapping)?
 
     /// 
-    hidden AdditionalEncryptionContext: (EncryptionContextMap)?
-
-    /// 
-    hidden CustomerManagedKey: (String(matches(Regex(#"^arn:[\w+=\/,.@-]+:kms:[a-zA-Z0-9\-]*:[a-zA-Z0-9]{1,12}:key\/[a-zA-Z0-9-]+$"#)))|Mapping)?
+    hidden AdditionalEncryptionContext: (PortalEncryptionContextMap)?
 
     /// 
     hidden DisplayName: (String(matches(Regex(#"^.+$"#)))|Mapping)?
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden TrustStoreArn: (String(matches(Regex(#"^arn:[\w+=\/,.@-]+:[a-zA-Z0-9\-]+:[a-zA-Z0-9\-]*:[a-zA-Z0-9]{1,12}:[a-zA-Z]+(\/[a-fA-F0-9\-]{36})+$"#)))|Mapping)?
-
-    /// 
-    hidden UserAccessLoggingSettingsArn: (String(matches(Regex(#"^arn:[\w+=\/,.@-]+:[a-zA-Z0-9\-]+:[a-zA-Z0-9\-]*:[a-zA-Z0-9]{1,12}:[a-zA-Z]+(\/[a-fA-F0-9\-]{36})+$"#)))|Mapping)?
 
     /// 
     hidden IpAccessSettingsArn: (String(matches(Regex(#"^arn:[\w+=\/,.@-]+:[a-zA-Z0-9\-]+:[a-zA-Z0-9\-]*:[a-zA-Z0-9]{1,12}:[a-zA-Z]+(\/[a-fA-F0-9\-]{36})+$"#)))|Mapping)?
@@ -65,23 +48,35 @@ open class Portal extends cloudformation.Resource {
     hidden BrowserSettingsArn: (String(matches(Regex(#"^arn:[\w+=\/,.@-]+:[a-zA-Z0-9\-]+:[a-zA-Z0-9\-]*:[a-zA-Z0-9]{1,12}:[a-zA-Z]+(\/[a-fA-F0-9\-]{36})+$"#)))|Mapping)?
 
     /// 
-    hidden UserSettingsArn: (String(matches(Regex(#"^arn:[\w+=\/,.@-]+:[a-zA-Z0-9\-]+:[a-zA-Z0-9\-]*:[a-zA-Z0-9]{1,12}:[a-zA-Z]+(\/[a-fA-F0-9\-]{36})+$"#)))|Mapping)?
+    hidden TrustStoreArn: (String(matches(Regex(#"^arn:[\w+=\/,.@-]+:[a-zA-Z0-9\-]+:[a-zA-Z0-9\-]*:[a-zA-Z0-9]{1,12}:[a-zA-Z]+(\/[a-fA-F0-9\-]{36})+$"#)))|Mapping)?
 
     /// 
-    hidden AuthenticationType: (AuthenticationType)?
+    hidden AuthenticationType: (PortalAuthenticationType)?
+
+    /// 
+    hidden CustomerManagedKey: (String(matches(Regex(#"^arn:[\w+=\/,.@-]+:kms:[a-zA-Z0-9\-]*:[a-zA-Z0-9]{1,12}:key\/[a-zA-Z0-9-]+$"#)))|Mapping)?
+
+    /// 
+    hidden NetworkSettingsArn: (String(matches(Regex(#"^arn:[\w+=\/,.@-]+:[a-zA-Z0-9\-]+:[a-zA-Z0-9\-]*:[a-zA-Z0-9]{1,12}:[a-zA-Z]+(\/[a-fA-F0-9\-]{36})+$"#)))|Mapping)?
+
+    /// 
+    hidden Tags: (Listing<PortalTag>)?
+
+    /// 
+    hidden UserAccessLoggingSettingsArn: (String(matches(Regex(#"^arn:[\w+=\/,.@-]+:[a-zA-Z0-9\-]+:[a-zA-Z0-9\-]*:[a-zA-Z0-9]{1,12}:[a-zA-Z]+(\/[a-fA-F0-9\-]{36})+$"#)))|Mapping)?
 
     Properties {
-        ["NetworkSettingsArn"] = if (NetworkSettingsArn == null) null else NetworkSettingsArn
+        ["UserSettingsArn"] = if (UserSettingsArn == null) null else UserSettingsArn
         ["AdditionalEncryptionContext"] = if (AdditionalEncryptionContext == null) null else AdditionalEncryptionContext
-        ["CustomerManagedKey"] = if (CustomerManagedKey == null) null else CustomerManagedKey
         ["DisplayName"] = if (DisplayName == null) null else DisplayName
-        ["Tags"] = if (Tags == null) null else Tags
-        ["TrustStoreArn"] = if (TrustStoreArn == null) null else TrustStoreArn
-        ["UserAccessLoggingSettingsArn"] = if (UserAccessLoggingSettingsArn == null) null else UserAccessLoggingSettingsArn
         ["IpAccessSettingsArn"] = if (IpAccessSettingsArn == null) null else IpAccessSettingsArn
         ["BrowserSettingsArn"] = if (BrowserSettingsArn == null) null else BrowserSettingsArn
-        ["UserSettingsArn"] = if (UserSettingsArn == null) null else UserSettingsArn
+        ["TrustStoreArn"] = if (TrustStoreArn == null) null else TrustStoreArn
         ["AuthenticationType"] = if (AuthenticationType == null) null else AuthenticationType
+        ["CustomerManagedKey"] = if (CustomerManagedKey == null) null else CustomerManagedKey
+        ["NetworkSettingsArn"] = if (NetworkSettingsArn == null) null else NetworkSettingsArn
+        ["Tags"] = if (Tags == null) null else Tags
+        ["UserAccessLoggingSettingsArn"] = if (UserAccessLoggingSettingsArn == null) null else UserAccessLoggingSettingsArn
     }
 
 }

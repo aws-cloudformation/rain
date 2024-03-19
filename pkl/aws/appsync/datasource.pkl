@@ -6,31 +6,12 @@ module aws.appsync.datasource
 import "../../cloudformation.pkl"
 
 /// 
-open class DataSourceDeltaSyncConfig {
-    DeltaSyncTableName: String|Mapping
-    BaseTableTTL: String|Mapping
-    DeltaSyncTableTTL: String|Mapping
-}
-
-/// 
-open class DataSourceOpenSearchServiceConfig {
-    AwsRegion: String|Mapping
-    Endpoint: String|Mapping
-}
-
-/// 
-open class DataSourceElasticsearchConfig {
-    AwsRegion: String|Mapping
-    Endpoint: String|Mapping
-}
-
-/// 
 open class DataSourceRdsHttpEndpointConfig {
+    Schema: (String|Mapping)?
     DatabaseName: (String|Mapping)?
     AwsRegion: String|Mapping
     DbClusterIdentifier: String|Mapping
     AwsSecretStoreArn: String|Mapping
-    Schema: (String|Mapping)?
 }
 
 /// 
@@ -40,14 +21,16 @@ open class DataSourceAwsIamConfig {
 }
 
 /// 
-open class DataSourceEventBridgeConfig {
-    EventBusArn: String|Mapping
+open class DataSourceDeltaSyncConfig {
+    BaseTableTTL: String|Mapping
+    DeltaSyncTableTTL: String|Mapping
+    DeltaSyncTableName: String|Mapping
 }
 
 /// 
-open class DataSourceAuthorizationConfig {
-    AuthorizationType: String|Mapping
-    AwsIamConfig: (DataSourceAwsIamConfig)?
+open class DataSourceOpenSearchServiceConfig {
+    AwsRegion: String|Mapping
+    Endpoint: String|Mapping
 }
 
 /// 
@@ -57,12 +40,14 @@ open class DataSourceRelationalDatabaseConfig {
 }
 
 /// 
-open class DataSourceDynamoDBConfig {
-    DeltaSyncConfig: (DataSourceDeltaSyncConfig)?
-    UseCallerCredentials: (Boolean|Mapping)?
-    AwsRegion: String|Mapping
-    Versioned: (Boolean|Mapping)?
-    TableName: String|Mapping
+open class DataSourceHttpConfig {
+    Endpoint: String|Mapping
+    AuthorizationConfig: (DataSourceAuthorizationConfig)?
+}
+
+/// 
+open class DataSourceEventBridgeConfig {
+    EventBusArn: String|Mapping
 }
 
 /// 
@@ -71,9 +56,24 @@ open class DataSourceLambdaConfig {
 }
 
 /// 
-open class DataSourceHttpConfig {
+open class DataSourceDynamoDBConfig {
+    TableName: String|Mapping
+    DeltaSyncConfig: (DataSourceDeltaSyncConfig)?
+    UseCallerCredentials: (Boolean|Mapping)?
+    AwsRegion: String|Mapping
+    Versioned: (Boolean|Mapping)?
+}
+
+/// 
+open class DataSourceAuthorizationConfig {
+    AuthorizationType: String|Mapping
+    AwsIamConfig: (DataSourceAwsIamConfig)?
+}
+
+/// 
+open class DataSourceElasticsearchConfig {
+    AwsRegion: String|Mapping
     Endpoint: String|Mapping
-    AuthorizationConfig: (DataSourceAuthorizationConfig)?
 }
 
 /// Resource Type definition for AWS::AppSync::DataSource
@@ -86,13 +86,10 @@ open class DataSource extends cloudformation.Resource {
     hidden Description: (String|Mapping)?
 
     /// 
-    hidden LambdaConfig: (DataSourceLambdaConfig)?
-
-    /// 
-    hidden ServiceRoleArn: (String|Mapping)?
-
-    /// 
     hidden MetricsConfig: (String|Mapping)?
+
+    /// 
+    hidden HttpConfig: (DataSourceHttpConfig)?
 
     /// 
     hidden RelationalDatabaseConfig: (DataSourceRelationalDatabaseConfig)?
@@ -101,40 +98,43 @@ open class DataSource extends cloudformation.Resource {
     hidden OpenSearchServiceConfig: (DataSourceOpenSearchServiceConfig)?
 
     /// 
-    hidden HttpConfig: (DataSourceHttpConfig)?
-
-    /// 
-    hidden DynamoDBConfig: (DataSourceDynamoDBConfig)?
-
-    /// 
-    hidden ElasticsearchConfig: (DataSourceElasticsearchConfig)?
-
-    /// 
     hidden Name: String|Mapping
 
     /// 
     hidden TypeProperty: String|Mapping
 
     /// 
+    hidden ApiId: String|Mapping
+
+    /// 
+    hidden ElasticsearchConfig: (DataSourceElasticsearchConfig)?
+
+    /// 
+    hidden ServiceRoleArn: (String|Mapping)?
+
+    /// 
     hidden EventBridgeConfig: (DataSourceEventBridgeConfig)?
 
     /// 
-    hidden ApiId: String|Mapping
+    hidden LambdaConfig: (DataSourceLambdaConfig)?
+
+    /// 
+    hidden DynamoDBConfig: (DataSourceDynamoDBConfig)?
 
     Properties {
         ["Description"] = if (Description == null) null else Description
-        ["LambdaConfig"] = if (LambdaConfig == null) null else LambdaConfig
-        ["ServiceRoleArn"] = if (ServiceRoleArn == null) null else ServiceRoleArn
         ["MetricsConfig"] = if (MetricsConfig == null) null else MetricsConfig
+        ["HttpConfig"] = if (HttpConfig == null) null else HttpConfig
         ["RelationalDatabaseConfig"] = if (RelationalDatabaseConfig == null) null else RelationalDatabaseConfig
         ["OpenSearchServiceConfig"] = if (OpenSearchServiceConfig == null) null else OpenSearchServiceConfig
-        ["HttpConfig"] = if (HttpConfig == null) null else HttpConfig
-        ["DynamoDBConfig"] = if (DynamoDBConfig == null) null else DynamoDBConfig
-        ["ElasticsearchConfig"] = if (ElasticsearchConfig == null) null else ElasticsearchConfig
         ["Name"] = if (Name == null) null else Name
         ["Type"] = if (TypeProperty == null) null else TypeProperty
-        ["EventBridgeConfig"] = if (EventBridgeConfig == null) null else EventBridgeConfig
         ["ApiId"] = if (ApiId == null) null else ApiId
+        ["ElasticsearchConfig"] = if (ElasticsearchConfig == null) null else ElasticsearchConfig
+        ["ServiceRoleArn"] = if (ServiceRoleArn == null) null else ServiceRoleArn
+        ["EventBridgeConfig"] = if (EventBridgeConfig == null) null else EventBridgeConfig
+        ["LambdaConfig"] = if (LambdaConfig == null) null else LambdaConfig
+        ["DynamoDBConfig"] = if (DynamoDBConfig == null) null else DynamoDBConfig
     }
 
 }

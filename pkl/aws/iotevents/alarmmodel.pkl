@@ -5,106 +5,15 @@ module aws.iotevents.alarmmodel
 
 import "../../cloudformation.pkl"
 
-/// Specifies the default alarm state. The configuration applies to all alarms that were created based on this alarm model.
-open class AlarmModelInitializationConfiguration {
-    DisabledOnInitialization: Boolean|Mapping
-}
-
-typealias SimpleRuleComparisonOperator = "GREATER"|"GREATER_OR_EQUAL"|"LESS"|"LESS_OR_EQUAL"|"EQUAL"|"NOT_EQUAL"
-
-/// A rule that compares an input property value to a threshold value with a comparison operator.
-open class AlarmModelSimpleRule {
-    InputProperty: String|Mapping
-    ComparisonOperator: SimpleRuleComparisonOperator|Mapping
-    Threshold: String|Mapping
-}
-
-/// 
-open class AlarmModelSqs {
-    Payload: (AlarmModelPayload)?
-    QueueUrl: String|Mapping
-    UseBase64: (Boolean|Mapping)?
-}
-
 /// Information required to publish the MQTT message through the AWS IoT message broker.
 open class AlarmModelIotTopicPublish {
     MqttTopic: String|Mapping
     Payload: (AlarmModelPayload)?
 }
 
-typealias AlarmModelAlarmActions = Listing<(AlarmModelAlarmAction)?>
-
-
-/// Contains the configuration information of alarm state changes
-open class AlarmModelAlarmCapabilities {
-    InitializationConfiguration: (AlarmModelInitializationConfiguration)?
-    AcknowledgeFlow: (AlarmModelAcknowledgeFlow)?
-}
-
-/// 
-open class AlarmModelLambda {
-    FunctionArn: String|Mapping
-    Payload: (AlarmModelPayload)?
-}
-
-/// Sends an AWS IoT Events input, passing in information about the alarm model instance and the event that triggered the action.
-open class AlarmModelIotEvents {
-    InputName: String(matches(Regex(#"^[a-zA-Z][a-zA-Z0-9_]*$"#)))|Mapping
-    Payload: (AlarmModelPayload)?
-}
-
-/// Sends information about the alarm model instance and the event that triggered the action to an Amazon Kinesis Data Firehose delivery stream.
-open class AlarmModelFirehose {
-    DeliveryStreamName: String|Mapping
-    Payload: (AlarmModelPayload)?
-    Separator: (String(matches(Regex(#"([\\n\t])|(\r\\n)|(,)"#)))|Mapping)?
-}
-
-/// Contains information about one or more alarm actions.
-open class AlarmModelAlarmEventActions {
-    AlarmActions: (AlarmModelAlarmActions)?
-}
-
-/// Sends information about the alarm model instance and the event that triggered the action to a specified asset property in AWS IoT SiteWise.
-open class AlarmModelIotSiteWise {
-    EntryId: (String|Mapping)?
-    PropertyAlias: (String|Mapping)?
-    PropertyId: (String|Mapping)?
-    PropertyValue: (AlarmModelAssetPropertyValue)?
-    AssetId: (String|Mapping)?
-}
-
-/// A structure that contains timestamp information. For more information, see [TimeInNanos](https://docs.aws.amazon.com/iot-sitewise/latest/APIReference/API_TimeInNanos.html) in the *AWS IoT SiteWise API Reference*.
-open class AlarmModelAssetPropertyTimestamp {
-    OffsetInNanos: (String|Mapping)?
-    TimeInSeconds: String|Mapping
-}
-
-/// Tags to be applied to Input.
-open class AlarmModelTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// The actions to be performed.
-open class AlarmModelAlarmAction {
-    IotSiteWise: (AlarmModelIotSiteWise)?
-    IotTopicPublish: (AlarmModelIotTopicPublish)?
-    Lambda: (AlarmModelLambda)?
-    Sns: (AlarmModelSns)?
-    DynamoDB: (AlarmModelDynamoDB)?
-    DynamoDBv2: (AlarmModelDynamoDBv2)?
-    IotEvents: (AlarmModelIotEvents)?
-    Firehose: (AlarmModelFirehose)?
-    Sqs: (AlarmModelSqs)?
-}
-
-/// A structure that contains an asset property value. For more information, see [Variant](https://docs.aws.amazon.com/iot-sitewise/latest/APIReference/API_Variant.html) in the *AWS IoT SiteWise API Reference*.
-open class AlarmModelAssetPropertyVariant {
-    IntegerValue: (String|Mapping)?
-    StringValue: (String|Mapping)?
-    BooleanValue: (String|Mapping)?
-    DoubleValue: (String|Mapping)?
+/// Specifies whether to get notified for alarm state changes.
+open class AlarmModelAcknowledgeFlow {
+    Enabled: (Boolean|Mapping)?
 }
 
 /// A structure that contains value information. For more information, see [AssetPropertyValue](https://docs.aws.amazon.com/iot-sitewise/latest/APIReference/API_AssetPropertyValue.html) in the *AWS IoT SiteWise API Reference*.
@@ -114,32 +23,19 @@ open class AlarmModelAssetPropertyValue {
     Value: AlarmModelAssetPropertyVariant
 }
 
-/// Defines when your alarm is invoked.
-open class AlarmModelAlarmRule {
-    SimpleRule: (AlarmModelSimpleRule)?
+/// Sends information about the alarm model instance and the event that triggered the action to a specified asset property in AWS IoT SiteWise.
+open class AlarmModelIotSiteWise {
+    AssetId: (String|Mapping)?
+    EntryId: (String|Mapping)?
+    PropertyAlias: (String|Mapping)?
+    PropertyId: (String|Mapping)?
+    PropertyValue: (AlarmModelAssetPropertyValue)?
 }
 
-/// Writes to the DynamoDB table that you created. The default action payload contains all attribute-value pairs that have the information about the alarm model instance and the event that triggered the action. You can also customize the [payload](https://docs.aws.amazon.com/iotevents/latest/apireference/API_Payload.html). One column of the DynamoDB table receives all attribute-value pairs in the payload that you specify. For more information, see [Actions](https://docs.aws.amazon.com/iotevents/latest/developerguide/iotevents-event-actions.html) in *AWS IoT Events Developer Guide*.
-open class AlarmModelDynamoDB {
-    HashKeyType: (String|Mapping)?
-    HashKeyValue: String|Mapping
-    PayloadField: (String|Mapping)?
-    RangeKeyField: (String|Mapping)?
-    HashKeyField: String|Mapping
-    Payload: (AlarmModelPayload)?
-    RangeKeyType: (String|Mapping)?
-    RangeKeyValue: (String|Mapping)?
-    TableName: String|Mapping
-    Operation: (String|Mapping)?
-}
-
-/// Defines an action to write to the Amazon DynamoDB table that you created. The default action payload contains all attribute-value pairs that have the information about the alarm model instance and the event that triggered the action. You can also customize the [payload](https://docs.aws.amazon.com/iotevents/latest/apireference/API_Payload.html). A separate column of the DynamoDB table receives one attribute-value pair in the payload that you specify.
-///
 /// 
-/// You can use expressions for parameters that are strings. For more information, see [Expressions](https://docs.aws.amazon.com/iotevents/latest/developerguide/iotevents-expressions.html) in the *AWS IoT Events Developer Guide*.
-open class AlarmModelDynamoDBv2 {
+open class AlarmModelLambda {
+    FunctionArn: String|Mapping
     Payload: (AlarmModelPayload)?
-    TableName: String|Mapping
 }
 
 /// Information needed to configure the payload.
@@ -151,15 +47,119 @@ open class AlarmModelPayload {
     Type: String|Mapping
 }
 
-/// Specifies whether to get notified for alarm state changes.
-open class AlarmModelAcknowledgeFlow {
-    Enabled: (Boolean|Mapping)?
+/// Contains information about one or more alarm actions.
+open class AlarmModelAlarmEventActions {
+    AlarmActions: (AlarmModelAlarmActions)?
+}
+
+/// A structure that contains an asset property value. For more information, see [Variant](https://docs.aws.amazon.com/iot-sitewise/latest/APIReference/API_Variant.html) in the *AWS IoT SiteWise API Reference*.
+open class AlarmModelAssetPropertyVariant {
+    BooleanValue: (String|Mapping)?
+    DoubleValue: (String|Mapping)?
+    IntegerValue: (String|Mapping)?
+    StringValue: (String|Mapping)?
+}
+
+/// Defines an action to write to the Amazon DynamoDB table that you created. The default action payload contains all attribute-value pairs that have the information about the alarm model instance and the event that triggered the action. You can also customize the [payload](https://docs.aws.amazon.com/iotevents/latest/apireference/API_Payload.html). A separate column of the DynamoDB table receives one attribute-value pair in the payload that you specify.
+///
+/// 
+/// You can use expressions for parameters that are strings. For more information, see [Expressions](https://docs.aws.amazon.com/iotevents/latest/developerguide/iotevents-expressions.html) in the *AWS IoT Events Developer Guide*.
+open class AlarmModelDynamoDBv2 {
+    TableName: String|Mapping
+    Payload: (AlarmModelPayload)?
+}
+
+/// The actions to be performed.
+open class AlarmModelAlarmAction {
+    IotTopicPublish: (AlarmModelIotTopicPublish)?
+    Sqs: (AlarmModelSqs)?
+    DynamoDB: (AlarmModelDynamoDB)?
+    Firehose: (AlarmModelFirehose)?
+    IotEvents: (AlarmModelIotEvents)?
+    Sns: (AlarmModelSns)?
+    DynamoDBv2: (AlarmModelDynamoDBv2)?
+    IotSiteWise: (AlarmModelIotSiteWise)?
+    Lambda: (AlarmModelLambda)?
+}
+
+/// Specifies the default alarm state. The configuration applies to all alarms that were created based on this alarm model.
+open class AlarmModelInitializationConfiguration {
+    DisabledOnInitialization: Boolean|Mapping
+}
+
+/// Sends information about the alarm model instance and the event that triggered the action to an Amazon Kinesis Data Firehose delivery stream.
+open class AlarmModelFirehose {
+    DeliveryStreamName: String|Mapping
+    Payload: (AlarmModelPayload)?
+    Separator: (String(matches(Regex(#"([\n\t])|(\r\n)|(,)"#)))|Mapping)?
+}
+
+/// A structure that contains timestamp information. For more information, see [TimeInNanos](https://docs.aws.amazon.com/iot-sitewise/latest/APIReference/API_TimeInNanos.html) in the *AWS IoT SiteWise API Reference*.
+open class AlarmModelAssetPropertyTimestamp {
+    OffsetInNanos: (String|Mapping)?
+    TimeInSeconds: String|Mapping
+}
+
+typealias AlarmModelAlarmActions = Listing<(AlarmModelAlarmAction)?>
+
+
+/// Sends an AWS IoT Events input, passing in information about the alarm model instance and the event that triggered the action.
+open class AlarmModelIotEvents {
+    InputName: String(matches(Regex(#"^[a-zA-Z][a-zA-Z0-9_]*$"#)))|Mapping
+    Payload: (AlarmModelPayload)?
+}
+
+/// Contains the configuration information of alarm state changes
+open class AlarmModelAlarmCapabilities {
+    InitializationConfiguration: (AlarmModelInitializationConfiguration)?
+    AcknowledgeFlow: (AlarmModelAcknowledgeFlow)?
+}
+
+/// Writes to the DynamoDB table that you created. The default action payload contains all attribute-value pairs that have the information about the alarm model instance and the event that triggered the action. You can also customize the [payload](https://docs.aws.amazon.com/iotevents/latest/apireference/API_Payload.html). One column of the DynamoDB table receives all attribute-value pairs in the payload that you specify. For more information, see [Actions](https://docs.aws.amazon.com/iotevents/latest/developerguide/iotevents-event-actions.html) in *AWS IoT Events Developer Guide*.
+open class AlarmModelDynamoDB {
+    TableName: String|Mapping
+    HashKeyValue: String|Mapping
+    Operation: (String|Mapping)?
+    Payload: (AlarmModelPayload)?
+    PayloadField: (String|Mapping)?
+    RangeKeyField: (String|Mapping)?
+    RangeKeyValue: (String|Mapping)?
+    HashKeyField: String|Mapping
+    HashKeyType: (String|Mapping)?
+    RangeKeyType: (String|Mapping)?
 }
 
 /// Information required to publish the Amazon SNS message.
 open class AlarmModelSns {
     Payload: (AlarmModelPayload)?
     TargetArn: String|Mapping
+}
+
+/// 
+open class AlarmModelSqs {
+    Payload: (AlarmModelPayload)?
+    QueueUrl: String|Mapping
+    UseBase64: (Boolean|Mapping)?
+}
+
+/// Defines when your alarm is invoked.
+open class AlarmModelAlarmRule {
+    SimpleRule: (AlarmModelSimpleRule)?
+}
+
+typealias SimpleRuleComparisonOperator = "GREATER"|"GREATER_OR_EQUAL"|"LESS"|"LESS_OR_EQUAL"|"EQUAL"|"NOT_EQUAL"
+
+/// A rule that compares an input property value to a threshold value with a comparison operator.
+open class AlarmModelSimpleRule {
+    Threshold: String|Mapping
+    InputProperty: String|Mapping
+    ComparisonOperator: SimpleRuleComparisonOperator|Mapping
+}
+
+/// Tags to be applied to Input.
+open class AlarmModelTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// The AWS::IoTEvents::AlarmModel resource creates a alarm model. AWS IoT Events alarms help you monitor your data for changes. The data can be metrics that you measure for your equipment and processes. You can create alarms that send notifications when a threshold is breached. Alarms help you detect issues, streamline maintenance, and optimize performance of your equipment and processes.
@@ -171,14 +171,20 @@ open class AlarmModel extends cloudformation.Resource {
     Type = "AWS::IoTEvents::AlarmModel"
 
 
+    /// A non-negative integer that reflects the severity level of the alarm.
+    ///
     /// 
-    hidden AlarmRule: AlarmModelAlarmRule
+    /// 
+    hidden Severity: (Int|Mapping)?
 
     /// 
     hidden AlarmEventActions: (AlarmModelAlarmEventActions)?
 
+    /// An array of key-value pairs to apply to this resource.
+    ///
     /// 
-    hidden AlarmCapabilities: (AlarmModelAlarmCapabilities)?
+    /// For more information, see [Tag](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-resource-tags.html).
+    hidden Tags: (Listing<AlarmModelTag>)?
 
     /// The value used to identify a alarm instance. When a device or system sends input, a new alarm instance with a unique key value is created. AWS IoT Events can continue to route input to its corresponding alarm instance based on this identifying information.
     ///
@@ -186,17 +192,11 @@ open class AlarmModel extends cloudformation.Resource {
     /// This parameter uses a JSON-path expression to select the attribute-value pair in the message payload that is used for identification. To route the message to the correct alarm instance, the device must send a message payload that contains the same attribute-value.
     hidden Key: (String(matches(Regex(#"^((`[\w\- ]+`)|([\w\-]+))(\.((`[\w\- ]+`)|([\w\-]+)))*$"#)))|Mapping)?
 
-    /// A non-negative integer that reflects the severity level of the alarm.
-    ///
     /// 
-    /// 
-    hidden Severity: (Int|Mapping)?
+    hidden AlarmRule: AlarmModelAlarmRule
 
-    /// An array of key-value pairs to apply to this resource.
-    ///
     /// 
-    /// For more information, see [Tag](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-resource-tags.html).
-    hidden Tags: (Listing<AlarmModelTag>)?
+    hidden AlarmCapabilities: (AlarmModelAlarmCapabilities)?
 
     /// The name of the alarm model.
     hidden AlarmModelName: (String(matches(Regex(#"^[a-zA-Z0-9_-]+$"#)))|Mapping)?
@@ -208,12 +208,12 @@ open class AlarmModel extends cloudformation.Resource {
     hidden RoleArn: String|Mapping
 
     Properties {
-        ["AlarmRule"] = if (AlarmRule == null) null else AlarmRule
-        ["AlarmEventActions"] = if (AlarmEventActions == null) null else AlarmEventActions
-        ["AlarmCapabilities"] = if (AlarmCapabilities == null) null else AlarmCapabilities
-        ["Key"] = if (Key == null) null else Key
         ["Severity"] = if (Severity == null) null else Severity
+        ["AlarmEventActions"] = if (AlarmEventActions == null) null else AlarmEventActions
         ["Tags"] = if (Tags == null) null else Tags
+        ["Key"] = if (Key == null) null else Key
+        ["AlarmRule"] = if (AlarmRule == null) null else AlarmRule
+        ["AlarmCapabilities"] = if (AlarmCapabilities == null) null else AlarmCapabilities
         ["AlarmModelName"] = if (AlarmModelName == null) null else AlarmModelName
         ["AlarmModelDescription"] = if (AlarmModelDescription == null) null else AlarmModelDescription
         ["RoleArn"] = if (RoleArn == null) null else RoleArn

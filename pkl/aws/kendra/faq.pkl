@@ -5,53 +5,47 @@ module aws.kendra.faq
 
 import "../../cloudformation.pkl"
 
-/// 
-open class S3ObjectKey {
-}
+typealias FaqFaqName = String|Mapping
 
-/// 
-open class RoleArn {
-}
+
+typealias FaqTagList = Listing<(FaqTag)?>
+
+
+typealias FaqFileFormat = String|Mapping
+
+
+typealias FaqS3ObjectKey = String|Mapping
+
+
+typealias FaqId = String|Mapping
+
+
+typealias FaqDescription = String|Mapping
+
 
 /// A label for tagging Kendra resources
-open class Tag {
+open class FaqTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
-/// Unique ID of Index
-open class IndexId {
-}
+typealias FaqIndexId = String|Mapping
 
-/// Description of the FAQ
-open class Description {
-}
+
+typealias FaqLanguageCode = String|Mapping
+
 
 /// 
-open class S3Path {
-    Bucket: S3BucketName
-    Key: S3ObjectKey
+open class FaqS3Path {
+    Key: FaqS3ObjectKey
+    Bucket: FaqS3BucketName
 }
 
-/// Unique ID of the FAQ
-open class Id {
-}
+typealias FaqS3BucketName = String|Mapping
 
-/// List of tags
-open class TagList {
-}
 
-/// Format of the input file
-open class FileFormat {
-}
+typealias FaqRoleArn = String|Mapping
 
-/// 
-open class S3BucketName {
-}
-
-/// 
-open class FaqName {
-}
 
 /// A Kendra FAQ resource
 open class Faq extends cloudformation.Resource {
@@ -59,35 +53,39 @@ open class Faq extends cloudformation.Resource {
     Type = "AWS::Kendra::Faq"
 
 
-    /// FAQ description
-    hidden Description: (Description)?
-
     /// FAQ file format
-    hidden FileFormat: (FileFormat)?
-
-    /// FAQ name
-    hidden Name: FaqName
+    hidden FileFormat: (FaqFileFormat)?
 
     /// FAQ role ARN
-    hidden RoleArn: RoleArn
+    hidden RoleArn: FaqRoleArn
 
-    /// Tags for labeling the FAQ
-    hidden Tags: (TagList)?
+    /// 
+    hidden LanguageCode: (FaqLanguageCode)?
 
     /// Index ID
-    hidden IndexId: IndexId
+    hidden IndexId: FaqIndexId
+
+    /// FAQ name
+    hidden Name: FaqFaqName
+
+    /// FAQ description
+    hidden Description: (FaqDescription)?
 
     /// FAQ S3 path
-    hidden S3Path: S3Path
+    hidden S3Path: FaqS3Path
+
+    /// Tags for labeling the FAQ
+    hidden Tags: (FaqTagList)?
 
     Properties {
-        ["Description"] = if (Description == null) null else Description
         ["FileFormat"] = if (FileFormat == null) null else FileFormat
-        ["Name"] = if (Name == null) null else Name
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
-        ["Tags"] = if (Tags == null) null else Tags
+        ["LanguageCode"] = if (LanguageCode == null) null else LanguageCode
         ["IndexId"] = if (IndexId == null) null else IndexId
+        ["Name"] = if (Name == null) null else Name
+        ["Description"] = if (Description == null) null else Description
         ["S3Path"] = if (S3Path == null) null else S3Path
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

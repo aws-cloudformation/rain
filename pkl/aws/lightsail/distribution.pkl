@@ -5,58 +5,58 @@ module aws.lightsail.distribution
 
 import "../../cloudformation.pkl"
 
-/// Describes the request headers that a Lightsail distribution bases caching on.
-open class HeaderObject {
-    HeadersAllowList: (Listing<String|Mapping>)?
-    Option: (String|Mapping)?
-}
-
 /// Describes the query string parameters that an Amazon Lightsail content delivery network (CDN) distribution to bases caching on.
-open class QueryStringObject {
+open class DistributionQueryStringObject {
     QueryStringsAllowList: (Listing<String|Mapping>)?
     Option: (Boolean|Mapping)?
 }
 
 /// Describes the cache settings of an Amazon Lightsail content delivery network (CDN) distribution.
-open class CacheSettings {
-    ForwardedCookies: (CookieObject)?
-    ForwardedHeaders: (HeaderObject)?
-    ForwardedQueryStrings: (QueryStringObject)?
+open class DistributionCacheSettings {
+    MaximumTTL: (Int|Mapping)?
+    MinimumTTL: (Int|Mapping)?
+    ForwardedCookies: (DistributionCookieObject)?
+    ForwardedHeaders: (DistributionHeaderObject)?
+    ForwardedQueryStrings: (DistributionQueryStringObject)?
     AllowedHTTPMethods: (String|Mapping)?
     CachedHTTPMethods: (String|Mapping)?
     DefaultTTL: (Int|Mapping)?
-    MaximumTTL: (Int|Mapping)?
-    MinimumTTL: (Int|Mapping)?
 }
 
 /// Describes the default cache behavior of an Amazon Lightsail content delivery network (CDN) distribution.
-open class CacheBehavior {
+open class DistributionCacheBehavior {
     Behavior: (String|Mapping)?
 }
 
 /// Describes the origin resource of an Amazon Lightsail content delivery network (CDN) distribution.
-open class InputOrigin {
-    Name: (String|Mapping)?
+open class DistributionInputOrigin {
     ProtocolPolicy: (String|Mapping)?
     RegionName: (String|Mapping)?
+    Name: (String|Mapping)?
 }
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class DistributionTag {
     Key: String|Mapping
     Value: (String|Mapping)?
 }
 
 /// Describes the per-path cache behavior of an Amazon Lightsail content delivery network (CDN) distribution.
-open class CacheBehaviorPerPath {
+open class DistributionCacheBehaviorPerPath {
     Behavior: (String|Mapping)?
     Path: (String|Mapping)?
 }
 
 /// Describes whether an Amazon Lightsail content delivery network (CDN) distribution forwards cookies to the origin and, if so, which ones.
-open class CookieObject {
-    Option: (String|Mapping)?
+open class DistributionCookieObject {
     CookiesAllowList: (Listing<String|Mapping>)?
+    Option: (String|Mapping)?
+}
+
+/// Describes the request headers that a Lightsail distribution bases caching on.
+open class DistributionHeaderObject {
+    HeadersAllowList: (Listing<String|Mapping>)?
+    Option: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::Lightsail::Distribution
@@ -65,46 +65,46 @@ open class Distribution extends cloudformation.Resource {
     Type = "AWS::Lightsail::Distribution"
 
 
-    /// An object that describes the cache behavior settings for the distribution.
-    hidden CacheBehaviorSettings: (CacheSettings)?
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<DistributionTag>)?
 
     /// An object that describes the origin resource for the distribution, such as a Lightsail instance or load balancer.
-    hidden Origin: InputOrigin
+    hidden Origin: DistributionInputOrigin
 
     /// The IP address type for the distribution.
     hidden IpAddressType: (String|Mapping)?
 
-    /// An object that describes the default cache behavior for the distribution.
-    hidden DefaultCacheBehavior: CacheBehavior
+    /// An array of objects that describe the per-path cache behavior for the distribution.
+    hidden CacheBehaviors: (Listing<DistributionCacheBehaviorPerPath>)?
 
-    /// Indicates whether the distribution is enabled.
-    hidden IsEnabled: (Boolean|Mapping)?
+    /// An object that describes the cache behavior settings for the distribution.
+    hidden CacheBehaviorSettings: (DistributionCacheSettings)?
 
     /// The certificate attached to the Distribution.
     hidden CertificateName: (String|Mapping)?
 
-    /// An array of objects that describe the per-path cache behavior for the distribution.
-    hidden CacheBehaviors: (Listing<CacheBehaviorPerPath>)?
+    /// Indicates whether the distribution is enabled.
+    hidden IsEnabled: (Boolean|Mapping)?
 
     /// The bundle ID to use for the distribution.
     hidden BundleId: DistributionBundleId|Mapping
 
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
+    /// An object that describes the default cache behavior for the distribution.
+    hidden DefaultCacheBehavior: DistributionCacheBehavior
 
     /// The name for the distribution.
     hidden DistributionName: String(matches(Regex(#"\w[\w\-]*\w"#)))|Mapping
 
     Properties {
-        ["CacheBehaviorSettings"] = if (CacheBehaviorSettings == null) null else CacheBehaviorSettings
+        ["Tags"] = if (Tags == null) null else Tags
         ["Origin"] = if (Origin == null) null else Origin
         ["IpAddressType"] = if (IpAddressType == null) null else IpAddressType
-        ["DefaultCacheBehavior"] = if (DefaultCacheBehavior == null) null else DefaultCacheBehavior
-        ["IsEnabled"] = if (IsEnabled == null) null else IsEnabled
-        ["CertificateName"] = if (CertificateName == null) null else CertificateName
         ["CacheBehaviors"] = if (CacheBehaviors == null) null else CacheBehaviors
+        ["CacheBehaviorSettings"] = if (CacheBehaviorSettings == null) null else CacheBehaviorSettings
+        ["CertificateName"] = if (CertificateName == null) null else CertificateName
+        ["IsEnabled"] = if (IsEnabled == null) null else IsEnabled
         ["BundleId"] = if (BundleId == null) null else BundleId
-        ["Tags"] = if (Tags == null) null else Tags
+        ["DefaultCacheBehavior"] = if (DefaultCacheBehavior == null) null else DefaultCacheBehavior
         ["DistributionName"] = if (DistributionName == null) null else DistributionName
     }
 

@@ -6,12 +6,6 @@ module aws.backup.backupvault
 import "../../cloudformation.pkl"
 
 /// 
-open class BackupVaultNotificationObjectType {
-    BackupVaultEvents: Listing<String|Mapping>
-    SNSTopicArn: String|Mapping
-}
-
-/// 
 open class BackupVaultLockConfigurationType {
     MinRetentionDays: Int|Mapping
     MaxRetentionDays: (Int|Mapping)?
@@ -21,14 +15,17 @@ open class BackupVaultLockConfigurationType {
 typealias BackupVaultBackupVaultNamePattern = String|Mapping
 
 
+/// 
+open class BackupVaultNotificationObjectType {
+    BackupVaultEvents: Listing<String|Mapping>
+    SNSTopicArn: String|Mapping
+}
+
 /// Resource Type definition for AWS::Backup::BackupVault
 open class BackupVault extends cloudformation.Resource {
 
     Type = "AWS::Backup::BackupVault"
 
-
-    /// 
-    hidden BackupVaultName: BackupVaultBackupVaultNamePattern
 
     /// 
     hidden BackupVaultTags: (BackupVaultBackupVaultBackupVaultTags)?
@@ -45,13 +42,16 @@ open class BackupVault extends cloudformation.Resource {
     /// 
     hidden AccessPolicy: (Dynamic)?
 
+    /// 
+    hidden BackupVaultName: BackupVaultBackupVaultNamePattern
+
     Properties {
-        ["BackupVaultName"] = if (BackupVaultName == null) null else BackupVaultName
         ["BackupVaultTags"] = if (BackupVaultTags == null) null else BackupVaultTags
         ["EncryptionKeyArn"] = if (EncryptionKeyArn == null) null else EncryptionKeyArn
         ["Notifications"] = if (Notifications == null) null else Notifications
         ["LockConfiguration"] = if (LockConfiguration == null) null else LockConfiguration
         ["AccessPolicy"] = if (AccessPolicy == null) null else AccessPolicy
+        ["BackupVaultName"] = if (BackupVaultName == null) null else BackupVaultName
     }
 
 }

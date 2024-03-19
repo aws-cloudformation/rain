@@ -5,6 +5,11 @@ module aws.efs.filesystem
 
 import "../../cloudformation.pkl"
 
+/// The backup policy turns automatic backups for the file system on or off.
+open class FileSystemBackupPolicy {
+    Status: String|Mapping
+}
+
 typealias FileSystemProtectionReplicationOverwriteProtection = "DISABLED"|"ENABLED"
 
 /// Describes the protection on the file system.
@@ -14,10 +19,10 @@ open class FileSystemFileSystemProtection {
 
 /// Describes the destination file system in the replication configuration.
 open class FileSystemReplicationDestination {
-    FileSystemId: (String|Mapping)?
     Region: (String|Mapping)?
     AvailabilityZoneName: (String|Mapping)?
     KmsKeyId: (String|Mapping)?
+    FileSystemId: (String|Mapping)?
 }
 
 /// Describes the replication configuration for a specific file system.
@@ -25,13 +30,13 @@ open class FileSystemReplicationConfiguration {
     Destinations: (Listing<FileSystemReplicationDestination>)?
 }
 
-typealias FileSystemArn = String
+typealias FileSystemArn = String|Mapping
 
 
 /// A tag is a key-value pair attached to a file system. Allowed characters in the ``Key`` and ``Value`` properties are letters, white space, and numbers that can be represented in UTF-8, and the following characters:``+ - = . _ : /``
 open class FileSystemElasticFileSystemTag {
-    Key: String|Mapping
     Value: String|Mapping
+    Key: String|Mapping
 }
 
 /// Describes a policy used by Lifecycle management that specifies when to transition files into and out of the EFS storage classes. For more information, see [Managing file system storage](https://docs.aws.amazon.com/efs/latest/ug/lifecycle-management-efs.html).
@@ -39,14 +44,9 @@ open class FileSystemElasticFileSystemTag {
 ///   + Each ``LifecyclePolicy`` object can have only a single transition. This means that in a request body, ``LifecyclePolicies`` must be structured as an array of ``LifecyclePolicy`` objects, one object for each transition, ``TransitionToIA``, ``TransitionToArchive``, ``TransitionToPrimaryStorageClass``.
 ///  + See the AWS::EFS::FileSystem examples for the correct ``LifecyclePolicy`` structure. Do not use the syntax shown on this page.
 open class FileSystemLifecyclePolicy {
-    TransitionToArchive: (String|Mapping)?
     TransitionToIA: (String|Mapping)?
     TransitionToPrimaryStorageClass: (String|Mapping)?
-}
-
-/// The backup policy turns automatic backups for the file system on or off.
-open class FileSystemBackupPolicy {
-    Status: String|Mapping
+    TransitionToArchive: (String|Mapping)?
 }
 
 /// The ``AWS::EFS::FileSystem`` resource creates a new, empty file system in EFSlong (EFS). You must create a mount target ([AWS::EFS::MountTarget](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-efs-mounttarget.html)) to mount your EFS file system on an EC2 or other AWS cloud compute resource.
@@ -54,40 +54,6 @@ open class FileSystem extends cloudformation.Resource {
 
     Type = "AWS::EFS::FileSystem"
 
-
-    /// A Boolean value that, if true, creates an encrypted file system. When creating an encrypted file system, you have the option of specifying a KmsKeyId for an existing kms-key-long. If you don't specify a kms-key, then the default kms-key for EFS, ``/aws/elasticfilesystem``, is used to protect the encrypted file system.
-    hidden Encrypted: (Boolean|Mapping)?
-
-    /// Describes the protection on the file system.
-    hidden FileSystemProtection: (FileSystemFileSystemProtection)?
-
-    /// Describes the replication configuration for a specific file system.
-    hidden ReplicationConfiguration: (FileSystemReplicationConfiguration)?
-
-    /// An array of ``LifecyclePolicy`` objects that define the file system's ``LifecycleConfiguration`` object. A ``LifecycleConfiguration`` object informs Lifecycle management of the following:
-    ///
-    ///   +  When to move files in the file system from primary storage to IA storage.
-    ///   + When to move files in the file system from primary storage or IA storage to Archive storage.
-    ///  +  When to move files that are in IA or Archive storage to primary storage.
-    ///   
-    ///   EFS requires that each ``LifecyclePolicy`` object have only a single transition. This means that in a request body, ``LifecyclePolicies`` needs to be structured as an array of ``LifecyclePolicy`` objects, one object for each transition, ``TransitionToIA``, ``TransitionToArchive`` ``TransitionToPrimaryStorageClass``. See the example requests in the following section for more information.
-    hidden LifecyclePolicies: (Listing<FileSystemLifecyclePolicy>)?
-
-    /// The throughput, measured in mebibytes per second (MiBps), that you want to provision for a file system that you're creating. Required if ``ThroughputMode`` is set to ``provisioned``. Valid values are 1-3414 MiBps, with the upper limit depending on Region. To increase this limit, contact SUP. For more information, see [Amazon EFS quotas that you can increase](https://docs.aws.amazon.com/efs/latest/ug/limits.html#soft-limits) in the *Amazon EFS User Guide*.
-    hidden ProvisionedThroughputInMibps: (Number|Mapping)?
-
-    /// Specifies the throughput mode for the file system. The mode can be ``bursting``, ``provisioned``, or ``elastic``. If you set ``ThroughputMode`` to ``provisioned``, you must also set a value for ``ProvisionedThroughputInMibps``. After you create the file system, you can decrease your file system's Provisioned throughput or change between the throughput modes, with certain time restrictions. For more information, see [Specifying throughput with provisioned mode](https://docs.aws.amazon.com/efs/latest/ug/performance.html#provisioned-throughput) in the *Amazon EFS User Guide*. 
-    ///
-    ///  Default is ``bursting``.
-    hidden ThroughputMode: (String|Mapping)?
-
-    /// Use the ``BackupPolicy`` to turn automatic backups on or off for the file system.
-    hidden BackupPolicy: (FileSystemBackupPolicy)?
-
-    /// For One Zone file systems, specify the AWS Availability Zone in which to create the file system. Use the format ``us-east-1a`` to specify the Availability Zone. For more information about One Zone file systems, see [EFS file system types](https://docs.aws.amazon.com/efs/latest/ug/availability-durability.html#file-system-type) in the *Amazon EFS User Guide*.
-    ///
-    ///   One Zone file systems are not available in all Availability Zones in AWS-Regions where Amazon EFS is available.
-    hidden AvailabilityZoneName: (String|Mapping)?
 
     /// Use to create one or more tags associated with the file system. Each tag is a user-defined key-value pair. Name your file system on creation by including a ``"Key":"Name","Value":"{value}"`` key-value pair. Each key must be unique. For more information, see [Tagging resources](https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html) in the *General Reference Guide*.
     hidden FileSystemTags: (Listing<FileSystemElasticFileSystemTag>)?
@@ -102,32 +68,66 @@ open class FileSystem extends cloudformation.Resource {
     ///  If ``KmsKeyId`` is specified, the ``Encrypted`` parameter must be set to true.
     hidden KmsKeyId: (String|Mapping)?
 
+    /// The throughput, measured in mebibytes per second (MiBps), that you want to provision for a file system that you're creating. Required if ``ThroughputMode`` is set to ``provisioned``. Valid values are 1-3414 MiBps, with the upper limit depending on Region. To increase this limit, contact SUP. For more information, see [Amazon EFS quotas that you can increase](https://docs.aws.amazon.com/efs/latest/ug/limits.html#soft-limits) in the *Amazon EFS User Guide*.
+    hidden ProvisionedThroughputInMibps: (Number|Mapping)?
+
+    /// (Optional) A boolean that specifies whether or not to bypass the ``FileSystemPolicy`` lockout safety check. The lockout safety check determines whether the policy in the request will lock out, or prevent, the IAM principal that is making the request from making future ``PutFileSystemPolicy`` requests on this file system. Set ``BypassPolicyLockoutSafetyCheck`` to ``True`` only when you intend to prevent the IAM principal that is making the request from making subsequent ``PutFileSystemPolicy`` requests on this file system. The default value is ``False``.
+    hidden BypassPolicyLockoutSafetyCheck: (Boolean|Mapping)?
+
+    /// Describes the replication configuration for a specific file system.
+    hidden ReplicationConfiguration: (FileSystemReplicationConfiguration)?
+
+    /// A Boolean value that, if true, creates an encrypted file system. When creating an encrypted file system, you have the option of specifying a KmsKeyId for an existing kms-key-long. If you don't specify a kms-key, then the default kms-key for EFS, ``/aws/elasticfilesystem``, is used to protect the encrypted file system.
+    hidden Encrypted: (Boolean|Mapping)?
+
+    /// An array of ``LifecyclePolicy`` objects that define the file system's ``LifecycleConfiguration`` object. A ``LifecycleConfiguration`` object informs Lifecycle management of the following:
+    ///
+    ///   +  When to move files in the file system from primary storage to IA storage.
+    ///   + When to move files in the file system from primary storage or IA storage to Archive storage.
+    ///  +  When to move files that are in IA or Archive storage to primary storage.
+    ///   
+    ///   EFS requires that each ``LifecyclePolicy`` object have only a single transition. This means that in a request body, ``LifecyclePolicies`` needs to be structured as an array of ``LifecyclePolicy`` objects, one object for each transition, ``TransitionToIA``, ``TransitionToArchive`` ``TransitionToPrimaryStorageClass``. See the example requests in the following section for more information.
+    hidden LifecyclePolicies: (Listing<FileSystemLifecyclePolicy>)?
+
+    /// The ``FileSystemPolicy`` for the EFS file system. A file system policy is an IAM resource policy used to control NFS access to an EFS file system. For more information, see [Using to control NFS access to Amazon EFS](https://docs.aws.amazon.com/efs/latest/ug/iam-access-control-nfs-efs.html) in the *Amazon EFS User Guide*.
+    hidden FileSystemPolicy: (Dynamic)?
+
+    /// Describes the protection on the file system.
+    hidden FileSystemProtection: (FileSystemFileSystemProtection)?
+
+    /// Specifies the throughput mode for the file system. The mode can be ``bursting``, ``provisioned``, or ``elastic``. If you set ``ThroughputMode`` to ``provisioned``, you must also set a value for ``ProvisionedThroughputInMibps``. After you create the file system, you can decrease your file system's Provisioned throughput or change between the throughput modes, with certain time restrictions. For more information, see [Specifying throughput with provisioned mode](https://docs.aws.amazon.com/efs/latest/ug/performance.html#provisioned-throughput) in the *Amazon EFS User Guide*. 
+    ///
+    ///  Default is ``bursting``.
+    hidden ThroughputMode: (String|Mapping)?
+
+    /// Use the ``BackupPolicy`` to turn automatic backups on or off for the file system.
+    hidden BackupPolicy: (FileSystemBackupPolicy)?
+
+    /// For One Zone file systems, specify the AWS Availability Zone in which to create the file system. Use the format ``us-east-1a`` to specify the Availability Zone. For more information about One Zone file systems, see [EFS file system types](https://docs.aws.amazon.com/efs/latest/ug/availability-durability.html#file-system-type) in the *Amazon EFS User Guide*.
+    ///
+    ///   One Zone file systems are not available in all Availability Zones in AWS-Regions where Amazon EFS is available.
+    hidden AvailabilityZoneName: (String|Mapping)?
+
     /// The Performance mode of the file system. We recommend ``generalPurpose`` performance mode for all file systems. File systems using the ``maxIO`` performance mode can scale to higher levels of aggregate throughput and operations per second with a tradeoff of slightly higher latencies for most file operations. The performance mode can't be changed after the file system has been created. The ``maxIO`` mode is not supported on One Zone file systems.
     ///
     ///   Due to the higher per-operation latencies with Max I/O, we recommend using General Purpose performance mode for all file systems.
     ///   Default is ``generalPurpose``.
     hidden PerformanceMode: (String|Mapping)?
 
-    /// The ``FileSystemPolicy`` for the EFS file system. A file system policy is an IAM resource policy used to control NFS access to an EFS file system. For more information, see [Using to control NFS access to Amazon EFS](https://docs.aws.amazon.com/efs/latest/ug/iam-access-control-nfs-efs.html) in the *Amazon EFS User Guide*.
-    hidden FileSystemPolicy: (Dynamic)?
-
-    /// (Optional) A boolean that specifies whether or not to bypass the ``FileSystemPolicy`` lockout safety check. The lockout safety check determines whether the policy in the request will lock out, or prevent, the IAM principal that is making the request from making future ``PutFileSystemPolicy`` requests on this file system. Set ``BypassPolicyLockoutSafetyCheck`` to ``True`` only when you intend to prevent the IAM principal that is making the request from making subsequent ``PutFileSystemPolicy`` requests on this file system. The default value is ``False``.
-    hidden BypassPolicyLockoutSafetyCheck: (Boolean|Mapping)?
-
     Properties {
-        ["Encrypted"] = if (Encrypted == null) null else Encrypted
-        ["FileSystemProtection"] = if (FileSystemProtection == null) null else FileSystemProtection
-        ["ReplicationConfiguration"] = if (ReplicationConfiguration == null) null else ReplicationConfiguration
-        ["LifecyclePolicies"] = if (LifecyclePolicies == null) null else LifecyclePolicies
+        ["FileSystemTags"] = if (FileSystemTags == null) null else FileSystemTags
+        ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
         ["ProvisionedThroughputInMibps"] = if (ProvisionedThroughputInMibps == null) null else ProvisionedThroughputInMibps
+        ["BypassPolicyLockoutSafetyCheck"] = if (BypassPolicyLockoutSafetyCheck == null) null else BypassPolicyLockoutSafetyCheck
+        ["ReplicationConfiguration"] = if (ReplicationConfiguration == null) null else ReplicationConfiguration
+        ["Encrypted"] = if (Encrypted == null) null else Encrypted
+        ["LifecyclePolicies"] = if (LifecyclePolicies == null) null else LifecyclePolicies
+        ["FileSystemPolicy"] = if (FileSystemPolicy == null) null else FileSystemPolicy
+        ["FileSystemProtection"] = if (FileSystemProtection == null) null else FileSystemProtection
         ["ThroughputMode"] = if (ThroughputMode == null) null else ThroughputMode
         ["BackupPolicy"] = if (BackupPolicy == null) null else BackupPolicy
         ["AvailabilityZoneName"] = if (AvailabilityZoneName == null) null else AvailabilityZoneName
-        ["FileSystemTags"] = if (FileSystemTags == null) null else FileSystemTags
-        ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
         ["PerformanceMode"] = if (PerformanceMode == null) null else PerformanceMode
-        ["FileSystemPolicy"] = if (FileSystemPolicy == null) null else FileSystemPolicy
-        ["BypassPolicyLockoutSafetyCheck"] = if (BypassPolicyLockoutSafetyCheck == null) null else BypassPolicyLockoutSafetyCheck
     }
 
 }

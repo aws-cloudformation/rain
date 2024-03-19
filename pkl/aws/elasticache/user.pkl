@@ -7,8 +7,8 @@ import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
 open class UserTag {
-    Value: (String(matches(Regex(#"^[a-zA-Z0-9 _\.\/=+:\-@]*$"#)))|Mapping)?
     Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z0-9 _\.\/=+:\-@]*$"#)))|Mapping
+    Value: (String(matches(Regex(#"^[a-zA-Z0-9 _\.\/=+:\-@]*$"#)))|Mapping)?
 }
 
 /// Resource Type definition for AWS::ElastiCache::User
@@ -16,15 +16,6 @@ open class User extends cloudformation.Resource {
 
     Type = "AWS::ElastiCache::User"
 
-
-    /// The ID of the user.
-    hidden UserId: String(matches(Regex(#"[a-z][a-z0-9\\-]*"#)))|Mapping
-
-    /// Access permissions string used for this user account.
-    hidden AccessString: (String|Mapping)?
-
-    /// 
-    hidden AuthenticationMode: (Dynamic)?
 
     /// An array of key-value pairs to apply to this user.
     hidden Tags: (Listing<UserTag>)?
@@ -35,6 +26,15 @@ open class User extends cloudformation.Resource {
     /// Must be redis.
     hidden Engine: UserEngine|Mapping
 
+    /// 
+    hidden AuthenticationMode: (Dynamic)?
+
+    /// The ID of the user.
+    hidden UserId: String(matches(Regex(#"[a-z][a-z0-9\\-]*"#)))|Mapping
+
+    /// Access permissions string used for this user account.
+    hidden AccessString: (String|Mapping)?
+
     /// Indicates a password is not required for this user account.
     hidden NoPasswordRequired: (Boolean|Mapping)?
 
@@ -42,12 +42,12 @@ open class User extends cloudformation.Resource {
     hidden Passwords: (Listing<String|Mapping>)?
 
     Properties {
-        ["UserId"] = if (UserId == null) null else UserId
-        ["AccessString"] = if (AccessString == null) null else AccessString
-        ["AuthenticationMode"] = if (AuthenticationMode == null) null else AuthenticationMode
         ["Tags"] = if (Tags == null) null else Tags
         ["UserName"] = if (UserName == null) null else UserName
         ["Engine"] = if (Engine == null) null else Engine
+        ["AuthenticationMode"] = if (AuthenticationMode == null) null else AuthenticationMode
+        ["UserId"] = if (UserId == null) null else UserId
+        ["AccessString"] = if (AccessString == null) null else AccessString
         ["NoPasswordRequired"] = if (NoPasswordRequired == null) null else NoPasswordRequired
         ["Passwords"] = if (Passwords == null) null else Passwords
     }

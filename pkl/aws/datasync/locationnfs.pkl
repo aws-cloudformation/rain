@@ -29,6 +29,12 @@ open class LocationNFS extends cloudformation.Resource {
     Type = "AWS::DataSync::LocationNFS"
 
 
+    /// The subdirectory in the NFS file system that is used to read data from the NFS source location or write data to the NFS destination.
+    hidden Subdirectory: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\$\p{Zs}]+$"#)))|Mapping)?
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<LocationNFSTag>)?
+
     /// 
     hidden MountOptions: (LocationNFSMountOptions)?
 
@@ -38,18 +44,12 @@ open class LocationNFS extends cloudformation.Resource {
     /// The name of the NFS server. This value is the IP address or DNS name of the NFS server.
     hidden ServerHostname: (String(matches(Regex(#"^(([a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9\-]*[A-Za-z0-9])$"#)))|Mapping)?
 
-    /// The subdirectory in the NFS file system that is used to read data from the NFS source location or write data to the NFS destination.
-    hidden Subdirectory: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\$\p{Zs}]+$"#)))|Mapping)?
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<LocationNFSTag>)?
-
     Properties {
+        ["Subdirectory"] = if (Subdirectory == null) null else Subdirectory
+        ["Tags"] = if (Tags == null) null else Tags
         ["MountOptions"] = if (MountOptions == null) null else MountOptions
         ["OnPremConfig"] = if (OnPremConfig == null) null else OnPremConfig
         ["ServerHostname"] = if (ServerHostname == null) null else ServerHostname
-        ["Subdirectory"] = if (Subdirectory == null) null else Subdirectory
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

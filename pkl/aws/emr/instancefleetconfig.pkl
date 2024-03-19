@@ -5,10 +5,19 @@ module aws.emr.instancefleetconfig
 
 import "../../cloudformation.pkl"
 
+typealias InstanceFleetConfigConfigurationConfigurationProperties = Mapping<String, Any>
+
+/// 
+open class InstanceFleetConfigConfiguration {
+    ConfigurationProperties: (InstanceFleetConfigConfigurationConfigurationProperties)?
+    Configurations: (Listing<InstanceFleetConfigConfiguration>)?
+    Classification: (String|Mapping)?
+}
+
 /// 
 open class InstanceFleetConfigInstanceFleetProvisioningSpecifications {
-    SpotSpecification: (InstanceFleetConfigSpotProvisioningSpecification)?
     OnDemandSpecification: (InstanceFleetConfigOnDemandProvisioningSpecification)?
+    SpotSpecification: (InstanceFleetConfigSpotProvisioningSpecification)?
 }
 
 /// 
@@ -18,48 +27,41 @@ open class InstanceFleetConfigOnDemandProvisioningSpecification {
 
 /// 
 open class InstanceFleetConfigEbsBlockDeviceConfig {
-    VolumesPerInstance: (Int|Mapping)?
     VolumeSpecification: InstanceFleetConfigVolumeSpecification
+    VolumesPerInstance: (Int|Mapping)?
 }
 
 /// 
 open class InstanceFleetConfigInstanceTypeConfig {
+    InstanceType: String|Mapping
     BidPrice: (String|Mapping)?
     WeightedCapacity: (Int|Mapping)?
     EbsConfiguration: (InstanceFleetConfigEbsConfiguration)?
     BidPriceAsPercentageOfOnDemandPrice: (Number|Mapping)?
     CustomAmiId: (String|Mapping)?
     Configurations: (Listing<InstanceFleetConfigConfiguration>)?
-    InstanceType: String|Mapping
 }
 
 /// 
 open class InstanceFleetConfigSpotProvisioningSpecification {
-    TimeoutDurationMinutes: Int|Mapping
     TimeoutAction: String|Mapping
     BlockDurationMinutes: (Int|Mapping)?
     AllocationStrategy: (String|Mapping)?
+    TimeoutDurationMinutes: Int|Mapping
 }
 
 /// 
 open class InstanceFleetConfigVolumeSpecification {
-    SizeInGB: Int|Mapping
     Throughput: (Int|Mapping)?
     VolumeType: String|Mapping
     Iops: (Int|Mapping)?
+    SizeInGB: Int|Mapping
 }
 
 /// 
 open class InstanceFleetConfigEbsConfiguration {
-    EbsBlockDeviceConfigs: (Listing<InstanceFleetConfigEbsBlockDeviceConfig>)?
     EbsOptimized: (Boolean|Mapping)?
-}
-
-/// 
-open class InstanceFleetConfigConfiguration {
-    ConfigurationProperties: (Dynamic)?
-    Configurations: (Listing<InstanceFleetConfigConfiguration>)?
-    Classification: (String|Mapping)?
+    EbsBlockDeviceConfigs: (Listing<InstanceFleetConfigEbsBlockDeviceConfig>)?
 }
 
 /// Resource Type definition for AWS::EMR::InstanceFleetConfig
@@ -67,15 +69,6 @@ open class InstanceFleetConfig extends cloudformation.Resource {
 
     Type = "AWS::EMR::InstanceFleetConfig"
 
-
-    /// 
-    hidden InstanceFleetType: String|Mapping
-
-    /// 
-    hidden TargetOnDemandCapacity: (Int|Mapping)?
-
-    /// 
-    hidden ClusterId: String|Mapping
 
     /// 
     hidden TargetSpotCapacity: (Int|Mapping)?
@@ -89,14 +82,23 @@ open class InstanceFleetConfig extends cloudformation.Resource {
     /// 
     hidden Name: (String|Mapping)?
 
+    /// 
+    hidden InstanceFleetType: String|Mapping
+
+    /// 
+    hidden TargetOnDemandCapacity: (Int|Mapping)?
+
+    /// 
+    hidden ClusterId: String|Mapping
+
     Properties {
-        ["InstanceFleetType"] = if (InstanceFleetType == null) null else InstanceFleetType
-        ["TargetOnDemandCapacity"] = if (TargetOnDemandCapacity == null) null else TargetOnDemandCapacity
-        ["ClusterId"] = if (ClusterId == null) null else ClusterId
         ["TargetSpotCapacity"] = if (TargetSpotCapacity == null) null else TargetSpotCapacity
         ["LaunchSpecifications"] = if (LaunchSpecifications == null) null else LaunchSpecifications
         ["InstanceTypeConfigs"] = if (InstanceTypeConfigs == null) null else InstanceTypeConfigs
         ["Name"] = if (Name == null) null else Name
+        ["InstanceFleetType"] = if (InstanceFleetType == null) null else InstanceFleetType
+        ["TargetOnDemandCapacity"] = if (TargetOnDemandCapacity == null) null else TargetOnDemandCapacity
+        ["ClusterId"] = if (ClusterId == null) null else ClusterId
     }
 
 }

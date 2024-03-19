@@ -6,26 +6,33 @@ module aws.backup.backupplan
 import "../../cloudformation.pkl"
 
 /// 
+open class BackupPlanLifecycleResourceType {
+    MoveToColdStorageAfterDays: (Number|Mapping)?
+    DeleteAfterDays: (Number|Mapping)?
+    OptInToArchiveForSupportedResources: (Boolean|Mapping)?
+}
+
+/// 
 open class BackupPlanBackupPlanResourceType {
+    BackupPlanName: String|Mapping
     AdvancedBackupSettings: (Listing<BackupPlanAdvancedBackupSettingResourceType>)?
     BackupPlanRule: Listing<BackupPlanBackupRuleResourceType>
-    BackupPlanName: String|Mapping
 }
 
 typealias BackupPlanBackupRuleResourceTypeRecoveryPointTags = Mapping<String, Any>
 
 /// 
 open class BackupPlanBackupRuleResourceType {
+    ScheduleExpressionTimezone: (String|Mapping)?
+    RecoveryPointTags: (BackupPlanBackupRuleResourceTypeRecoveryPointTags)?
+    EnableContinuousBackup: (Boolean|Mapping)?
+    RuleName: String|Mapping
+    CompletionWindowMinutes: (Number|Mapping)?
+    ScheduleExpression: (String|Mapping)?
+    CopyActions: (Listing<BackupPlanCopyActionResourceType>)?
+    Lifecycle: (BackupPlanLifecycleResourceType)?
     TargetBackupVault: String|Mapping
     StartWindowMinutes: (Number|Mapping)?
-    CompletionWindowMinutes: (Number|Mapping)?
-    RecoveryPointTags: (BackupPlanBackupRuleResourceTypeRecoveryPointTags)?
-    CopyActions: (Listing<BackupPlanCopyActionResourceType>)?
-    RuleName: String|Mapping
-    ScheduleExpression: (String|Mapping)?
-    ScheduleExpressionTimezone: (String|Mapping)?
-    Lifecycle: (BackupPlanLifecycleResourceType)?
-    EnableContinuousBackup: (Boolean|Mapping)?
 }
 
 /// 
@@ -40,13 +47,6 @@ open class BackupPlanCopyActionResourceType {
     DestinationBackupVaultArn: String|Mapping
 }
 
-/// 
-open class BackupPlanLifecycleResourceType {
-    MoveToColdStorageAfterDays: (Number|Mapping)?
-    DeleteAfterDays: (Number|Mapping)?
-    OptInToArchiveForSupportedResources: (Boolean|Mapping)?
-}
-
 /// Resource Type definition for AWS::Backup::BackupPlan
 open class BackupPlan extends cloudformation.Resource {
 
@@ -54,14 +54,14 @@ open class BackupPlan extends cloudformation.Resource {
 
 
     /// 
-    hidden BackupPlan: BackupPlanBackupPlanResourceType
-
-    /// 
     hidden BackupPlanTags: (BackupPlanBackupPlanBackupPlanTags)?
 
+    /// 
+    hidden BackupPlan: BackupPlanBackupPlanResourceType
+
     Properties {
-        ["BackupPlan"] = if (BackupPlan == null) null else BackupPlan
         ["BackupPlanTags"] = if (BackupPlanTags == null) null else BackupPlanTags
+        ["BackupPlan"] = if (BackupPlan == null) null else BackupPlan
     }
 
 }

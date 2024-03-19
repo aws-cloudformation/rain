@@ -6,49 +6,47 @@ module aws.stepfunction_s.statemachine
 import "../../cloudformation.pkl"
 
 /// 
-open class S3Location {
-    Key: String|Mapping
-    Version: (String|Mapping)?
-    Bucket: String|Mapping
-}
-
-/// 
-open class DefinitionSubstitutions {
-}
-
-/// 
-open class Definition {
-}
-
-/// 
-open class TagsEntry {
-    Key: String|Mapping
+open class StateMachineTagsEntry {
     Value: String|Mapping
+    Key: String|Mapping
 }
 
 /// 
-open class CloudWatchLogsLogGroup {
+open class StateMachineCloudWatchLogsLogGroup {
     LogGroupArn: (String|Mapping)?
 }
 
 /// 
-open class LogDestination {
-    CloudWatchLogsLogGroup: (CloudWatchLogsLogGroup)?
+open class StateMachineLogDestination {
+    CloudWatchLogsLogGroup: (StateMachineCloudWatchLogsLogGroup)?
 }
 
 typealias LoggingConfigurationLevel = "ALL"|"ERROR"|"FATAL"|"OFF"
 
 /// 
-open class LoggingConfiguration {
+open class StateMachineLoggingConfiguration {
     Level: (LoggingConfigurationLevel|Mapping)?
     IncludeExecutionData: (Boolean|Mapping)?
-    Destinations: (Listing<LogDestination>)?
+    Destinations: (Listing<StateMachineLogDestination>)?
 }
 
 /// 
-open class TracingConfiguration {
+open class StateMachineTracingConfiguration {
     Enabled: (Boolean|Mapping)?
 }
+
+/// 
+open class StateMachineS3Location {
+    Bucket: String|Mapping
+    Key: String|Mapping
+    Version: (String|Mapping)?
+}
+
+typealias StateMachineDefinitionSubstitutions = Mapping<String, Any>
+
+
+typealias StateMachineDefinition = Dynamic
+
 
 /// Resource schema for StateMachine
 open class StateMachine extends cloudformation.Resource {
@@ -57,46 +55,46 @@ open class StateMachine extends cloudformation.Resource {
 
 
     /// 
+    hidden StateMachineType: (StateMachineStateMachineType|Mapping)?
+
+    /// 
+    hidden DefinitionSubstitutions: (StateMachineDefinitionSubstitutions)?
+
+    /// 
+    hidden Definition: (StateMachineDefinition)?
+
+    /// 
     hidden RoleArn: String|Mapping
 
     /// 
     hidden StateMachineName: (String|Mapping)?
 
     /// 
-    hidden DefinitionS3Location: (S3Location)?
+    hidden TracingConfiguration: (StateMachineTracingConfiguration)?
 
     /// 
-    hidden DefinitionSubstitutions: (DefinitionSubstitutions)?
-
-    /// 
-    hidden Definition: (Definition)?
+    hidden LoggingConfiguration: (StateMachineLoggingConfiguration)?
 
     /// 
     hidden DefinitionString: (String|Mapping)?
 
     /// 
-    hidden StateMachineType: (StateMachineStateMachineType|Mapping)?
+    hidden DefinitionS3Location: (StateMachineS3Location)?
 
     /// 
-    hidden LoggingConfiguration: (LoggingConfiguration)?
-
-    /// 
-    hidden Tags: (Listing<TagsEntry>)?
-
-    /// 
-    hidden TracingConfiguration: (TracingConfiguration)?
+    hidden Tags: (Listing<StateMachineTagsEntry>)?
 
     Properties {
-        ["RoleArn"] = if (RoleArn == null) null else RoleArn
-        ["StateMachineName"] = if (StateMachineName == null) null else StateMachineName
-        ["DefinitionS3Location"] = if (DefinitionS3Location == null) null else DefinitionS3Location
+        ["StateMachineType"] = if (StateMachineType == null) null else StateMachineType
         ["DefinitionSubstitutions"] = if (DefinitionSubstitutions == null) null else DefinitionSubstitutions
         ["Definition"] = if (Definition == null) null else Definition
-        ["DefinitionString"] = if (DefinitionString == null) null else DefinitionString
-        ["StateMachineType"] = if (StateMachineType == null) null else StateMachineType
-        ["LoggingConfiguration"] = if (LoggingConfiguration == null) null else LoggingConfiguration
-        ["Tags"] = if (Tags == null) null else Tags
+        ["RoleArn"] = if (RoleArn == null) null else RoleArn
+        ["StateMachineName"] = if (StateMachineName == null) null else StateMachineName
         ["TracingConfiguration"] = if (TracingConfiguration == null) null else TracingConfiguration
+        ["LoggingConfiguration"] = if (LoggingConfiguration == null) null else LoggingConfiguration
+        ["DefinitionString"] = if (DefinitionString == null) null else DefinitionString
+        ["DefinitionS3Location"] = if (DefinitionS3Location == null) null else DefinitionS3Location
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

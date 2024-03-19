@@ -6,20 +6,20 @@ module aws.mediapackage.packaginggroup
 import "../../cloudformation.pkl"
 
 /// 
-open class Tag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// 
-open class Authorization {
+open class PackagingGroupAuthorization {
     CdnIdentifierSecret: String|Mapping
     SecretsRoleArn: String|Mapping
 }
 
 /// 
-open class LogConfiguration {
+open class PackagingGroupLogConfiguration {
     LogGroupName: (String(matches(Regex(#"\A\/aws\/MediaPackage\/[0-9a-zA-Z-_\/\.#]+\Z"#)))|Mapping)?
+}
+
+/// 
+open class PackagingGroupTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// Resource schema for AWS::MediaPackage::PackagingGroup
@@ -32,13 +32,13 @@ open class PackagingGroup extends cloudformation.Resource {
     hidden Id: String(matches(Regex(#"\A[0-9a-zA-Z-_]+\Z"#)))|Mapping
 
     /// CDN Authorization
-    hidden Authorization: (Authorization)?
+    hidden Authorization: (PackagingGroupAuthorization)?
 
     /// A collection of tags associated with a resource
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<PackagingGroupTag>)?
 
     /// The configuration parameters for egress access logging.
-    hidden EgressAccessLogs: (LogConfiguration)?
+    hidden EgressAccessLogs: (PackagingGroupLogConfiguration)?
 
     Properties {
         ["Id"] = if (Id == null) null else Id

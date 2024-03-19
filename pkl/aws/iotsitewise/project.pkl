@@ -5,7 +5,7 @@ module aws.iotsitewise.project
 
 import "../../cloudformation.pkl"
 
-typealias ProjectAssetId = String
+typealias ProjectAssetId = String|Mapping
 
 
 /// To add or update tag, provide both key and value. To delete tag, provide only tag key to be deleted
@@ -20,9 +20,6 @@ open class Project extends cloudformation.Resource {
     Type = "AWS::IoTSiteWise::Project"
 
 
-    /// The IDs of the assets to be associated to the project.
-    hidden AssetIds: (Listing<ProjectAssetId>)?
-
     /// A list of key-value pairs that contain metadata for the project.
     hidden Tags: (Listing<ProjectTag>)?
 
@@ -35,12 +32,15 @@ open class Project extends cloudformation.Resource {
     /// A description for the project.
     hidden ProjectDescription: (String|Mapping)?
 
+    /// The IDs of the assets to be associated to the project.
+    hidden AssetIds: (Listing<ProjectAssetId>)?
+
     Properties {
-        ["AssetIds"] = if (AssetIds == null) null else AssetIds
         ["Tags"] = if (Tags == null) null else Tags
         ["PortalId"] = if (PortalId == null) null else PortalId
         ["ProjectName"] = if (ProjectName == null) null else ProjectName
         ["ProjectDescription"] = if (ProjectDescription == null) null else ProjectDescription
+        ["AssetIds"] = if (AssetIds == null) null else AssetIds
     }
 
 }

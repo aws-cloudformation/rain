@@ -5,6 +5,12 @@ module aws.iotevents.input
 
 import "../../cloudformation.pkl"
 
+/// Tags to be applied to Input.
+open class InputTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
 /// The definition of the input.
 open class InputInputDefinition {
     Attributes: Listing<InputAttribute>
@@ -15,23 +21,11 @@ open class InputAttribute {
     JsonPath: String(matches(Regex(#"^((`[a-zA-Z0-9_\- ]+`)|([a-zA-Z0-9_\-]+))(\.((`[a-zA-Z0-9_\- ]+`)|([a-zA-Z0-9_\-]+)))*$"#)))|Mapping
 }
 
-/// Tags to be applied to Input.
-open class InputTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
 /// The AWS::IoTEvents::Input resource creates an input. To monitor your devices and processes, they must have a way to get telemetry data into AWS IoT Events. This is done by sending messages as *inputs* to AWS IoT Events. For more information, see [How to Use AWS IoT Events](https://docs.aws.amazon.com/iotevents/latest/developerguide/how-to-use-iotevents.html) in the *AWS IoT Events Developer Guide*.
 open class Input extends cloudformation.Resource {
 
     Type = "AWS::IoTEvents::Input"
 
-
-    /// 
-    hidden InputDefinition: InputInputDefinition
-
-    /// A brief description of the input.
-    hidden InputDescription: (String|Mapping)?
 
     /// The name of the input.
     hidden InputName: (String(matches(Regex(#"^[a-zA-Z][a-zA-Z0-9_]*$"#)))|Mapping)?
@@ -42,11 +36,17 @@ open class Input extends cloudformation.Resource {
     /// For more information, see [Tag](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-resource-tags.html).
     hidden Tags: (Listing<InputTag>)?
 
+    /// 
+    hidden InputDefinition: InputInputDefinition
+
+    /// A brief description of the input.
+    hidden InputDescription: (String|Mapping)?
+
     Properties {
-        ["InputDefinition"] = if (InputDefinition == null) null else InputDefinition
-        ["InputDescription"] = if (InputDescription == null) null else InputDescription
         ["InputName"] = if (InputName == null) null else InputName
         ["Tags"] = if (Tags == null) null else Tags
+        ["InputDefinition"] = if (InputDefinition == null) null else InputDefinition
+        ["InputDescription"] = if (InputDescription == null) null else InputDescription
     }
 
 }

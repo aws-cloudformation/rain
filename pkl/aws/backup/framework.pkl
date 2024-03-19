@@ -7,9 +7,9 @@ import "../../cloudformation.pkl"
 
 /// 
 open class FrameworkFrameworkControl {
+    ControlName: String|Mapping
     ControlInputParameters: (Listing<FrameworkControlInputParameter>)?
     ControlScope: (Dynamic)?
-    ControlName: String|Mapping
 }
 
 /// 
@@ -30,9 +30,6 @@ open class Framework extends cloudformation.Resource {
     Type = "AWS::Backup::Framework"
 
 
-    /// Contains detailed information about all of the controls of a framework. Each framework must contain at least one control.
-    hidden FrameworkControls: Listing<FrameworkFrameworkControl>
-
     /// Metadata that you can assign to help organize the frameworks that you create. Each tag is a key-value pair.
     hidden FrameworkTags: (Listing<FrameworkTag>)?
 
@@ -42,11 +39,14 @@ open class Framework extends cloudformation.Resource {
     /// An optional description of the framework with a maximum 1,024 characters.
     hidden FrameworkDescription: (String|Mapping)?
 
+    /// Contains detailed information about all of the controls of a framework. Each framework must contain at least one control.
+    hidden FrameworkControls: Listing<FrameworkFrameworkControl>
+
     Properties {
-        ["FrameworkControls"] = if (FrameworkControls == null) null else FrameworkControls
         ["FrameworkTags"] = if (FrameworkTags == null) null else FrameworkTags
         ["FrameworkName"] = if (FrameworkName == null) null else FrameworkName
         ["FrameworkDescription"] = if (FrameworkDescription == null) null else FrameworkDescription
+        ["FrameworkControls"] = if (FrameworkControls == null) null else FrameworkControls
     }
 
 }

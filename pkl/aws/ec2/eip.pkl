@@ -20,6 +20,11 @@ open class EIP extends cloudformation.Resource {
     Type = "AWS::EC2::EIP"
 
 
+    /// The network (``vpc``).
+    ///
+    ///  If you define an Elastic IP address and associate it with a VPC that is defined in the same template, you must declare a dependency on the VPC-gateway attachment by using the [DependsOn Attribute](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-dependson.html) on this resource.
+    hidden Domain: (String|Mapping)?
+
     /// A unique set of Availability Zones, Local Zones, or Wavelength Zones from which AWS advertises IP addresses. Use this parameter to limit the IP address to this location. IP addresses cannot move between network border groups.
     ///
     ///  Use [DescribeAvailabilityZones](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeAvailabilityZones.html) to view the network border groups.
@@ -43,18 +48,13 @@ open class EIP extends cloudformation.Resource {
     ///   Updates to the ``Tags`` property may require *some interruptions*. Updates on an EIP reassociates the address on its associated resource.
     hidden Tags: (Listing<EIPTag>)?
 
-    /// The network (``vpc``).
-    ///
-    ///  If you define an Elastic IP address and associate it with a VPC that is defined in the same template, you must declare a dependency on the VPC-gateway attachment by using the [DependsOn Attribute](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-dependson.html) on this resource.
-    hidden Domain: (String|Mapping)?
-
     Properties {
+        ["Domain"] = if (Domain == null) null else Domain
         ["NetworkBorderGroup"] = if (NetworkBorderGroup == null) null else NetworkBorderGroup
         ["TransferAddress"] = if (TransferAddress == null) null else TransferAddress
         ["InstanceId"] = if (InstanceId == null) null else InstanceId
         ["PublicIpv4Pool"] = if (PublicIpv4Pool == null) null else PublicIpv4Pool
         ["Tags"] = if (Tags == null) null else Tags
-        ["Domain"] = if (Domain == null) null else Domain
     }
 
 }

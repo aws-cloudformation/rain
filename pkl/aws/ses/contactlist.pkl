@@ -5,20 +5,20 @@ module aws.ses.contactlist
 
 import "../../cloudformation.pkl"
 
+/// 
+open class ContactListTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
 typealias TopicDefaultSubscriptionStatus = "OPT_IN"|"OPT_OUT"
 
 /// 
-open class Topic {
+open class ContactListTopic {
+    DisplayName: String|Mapping
     Description: (String|Mapping)?
     DefaultSubscriptionStatus: TopicDefaultSubscriptionStatus|Mapping
     TopicName: String(matches(Regex(#"^[a-zA-Z0-9_-]{1,64}$"#)))|Mapping
-    DisplayName: String|Mapping
-}
-
-/// 
-open class Tag {
-    Value: String|Mapping
-    Key: String|Mapping
 }
 
 /// Resource schema for AWS::SES::ContactList.
@@ -34,10 +34,10 @@ open class ContactList extends cloudformation.Resource {
     hidden Description: (String|Mapping)?
 
     /// The topics associated with the contact list.
-    hidden Topics: (Listing<Topic>)?
+    hidden Topics: (Listing<ContactListTopic>)?
 
     /// The tags (keys and values) associated with the contact list.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<ContactListTag>)?
 
     Properties {
         ["ContactListName"] = if (ContactListName == null) null else ContactListName

@@ -5,37 +5,40 @@ module aws.personalize.solution
 
 import "../../cloudformation.pkl"
 
-/// The ARN of the solution
-open class SolutionArn {
-}
+typealias SolutionSolutionArn = String|Mapping
+
 
 /// Provides the name and values of a Categorical hyperparameter.
-open class CategoricalHyperParameterRange {
+open class SolutionCategoricalHyperParameterRange {
     Name: (String|Mapping)?
     Values: (Listing<String|Mapping>)?
 }
 
 /// Provides the name and range of a continuous hyperparameter.
-open class ContinuousHyperParameterRange {
-    MinValue: (Number|Mapping)?
+open class SolutionContinuousHyperParameterRange {
     MaxValue: (Number|Mapping)?
     Name: (String|Mapping)?
+    MinValue: (Number|Mapping)?
 }
 
 /// Provides the name and range of an integer-valued hyperparameter.
-open class IntegerHyperParameterRange {
-    MaxValue: (Int|Mapping)?
+open class SolutionIntegerHyperParameterRange {
     Name: (String|Mapping)?
     MinValue: (Int|Mapping)?
+    MaxValue: (Int|Mapping)?
 }
 
+typealias SolutionSolutionConfigFeatureTransformationParameters = Mapping<String, Any>
+
+typealias SolutionSolutionConfigAlgorithmHyperParameters = Mapping<String, Any>
+
 /// The configuration to use with the solution. When performAutoML is set to true, Amazon Personalize only evaluates the autoMLConfig section of the solution configuration.
-open class SolutionConfig {
+open class SolutionSolutionConfig {
+    FeatureTransformationParameters: (SolutionSolutionConfigFeatureTransformationParameters)?
+    HpoConfig: (Dynamic)?
+    AlgorithmHyperParameters: (SolutionSolutionConfigAlgorithmHyperParameters)?
     AutoMLConfig: (Dynamic)?
     EventValueThreshold: (String|Mapping)?
-    FeatureTransformationParameters: (Dynamic)?
-    HpoConfig: (Dynamic)?
-    AlgorithmHyperParameters: (Dynamic)?
 }
 
 /// Resource schema for AWS::Personalize::Solution.
@@ -43,6 +46,18 @@ open class Solution extends cloudformation.Resource {
 
     Type = "AWS::Personalize::Solution"
 
+
+    /// Whether to perform hyperparameter optimization (HPO) on the specified or selected recipe. The default is false. When performing AutoML, this parameter is always true and you should not set it to false.
+    hidden PerformHPO: (Boolean|Mapping)?
+
+    /// The ARN of the recipe to use for model training. Only specified when performAutoML is false.
+    hidden RecipeArn: (String(matches(Regex(#"arn:([a-z\d-]+):personalize:.*:.*:.+"#)))|Mapping)?
+
+    /// 
+    hidden SolutionConfig: (SolutionSolutionConfig)?
+
+    /// The name for the solution
+    hidden Name: String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9\-_]*"#)))|Mapping
 
     /// When your have multiple event types (using an EVENT_TYPE schema field), this parameter specifies which event type (for example, 'click' or 'like') is used for training the model. If you do not provide an eventType, Amazon Personalize will use all interactions for training with equal weight regardless of type.
     hidden EventType: (String|Mapping)?
@@ -53,26 +68,14 @@ open class Solution extends cloudformation.Resource {
     /// Whether to perform automated machine learning (AutoML). The default is false. For this case, you must specify recipeArn.
     hidden PerformAutoML: (Boolean|Mapping)?
 
-    /// Whether to perform hyperparameter optimization (HPO) on the specified or selected recipe. The default is false. When performing AutoML, this parameter is always true and you should not set it to false.
-    hidden PerformHPO: (Boolean|Mapping)?
-
-    /// The ARN of the recipe to use for model training. Only specified when performAutoML is false.
-    hidden RecipeArn: (String(matches(Regex(#"arn:([a-z\d-]+):personalize:.*:.*:.+"#)))|Mapping)?
-
-    /// 
-    hidden SolutionConfig: (SolutionConfig)?
-
-    /// The name for the solution
-    hidden Name: String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9\-_]*"#)))|Mapping
-
     Properties {
-        ["EventType"] = if (EventType == null) null else EventType
-        ["DatasetGroupArn"] = if (DatasetGroupArn == null) null else DatasetGroupArn
-        ["PerformAutoML"] = if (PerformAutoML == null) null else PerformAutoML
         ["PerformHPO"] = if (PerformHPO == null) null else PerformHPO
         ["RecipeArn"] = if (RecipeArn == null) null else RecipeArn
         ["SolutionConfig"] = if (SolutionConfig == null) null else SolutionConfig
         ["Name"] = if (Name == null) null else Name
+        ["EventType"] = if (EventType == null) null else EventType
+        ["DatasetGroupArn"] = if (DatasetGroupArn == null) null else DatasetGroupArn
+        ["PerformAutoML"] = if (PerformAutoML == null) null else PerformAutoML
     }
 
 }

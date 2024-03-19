@@ -5,12 +5,11 @@ module aws.scheduler.schedulegroup
 
 import "../../cloudformation.pkl"
 
-/// Specifies the state of the schedule group.
-open class ScheduleGroupState {
-}
+typealias ScheduleGroupScheduleGroupState = String|Mapping
+
 
 /// Tag to associate with the resource.
-open class Tag {
+open class ScheduleGroupTag {
     Key: String|Mapping
     Value: String|Mapping
 }
@@ -21,15 +20,15 @@ open class ScheduleGroup extends cloudformation.Resource {
     Type = "AWS::Scheduler::ScheduleGroup"
 
 
+    /// The list of tags to associate with the schedule group.
+    hidden Tags: (Listing<ScheduleGroupTag>)?
+
     /// 
     hidden Name: (String(matches(Regex(#"^[0-9a-zA-Z-_.]+$"#)))|Mapping)?
 
-    /// The list of tags to associate with the schedule group.
-    hidden Tags: (Listing<Tag>)?
-
     Properties {
-        ["Name"] = if (Name == null) null else Name
         ["Tags"] = if (Tags == null) null else Tags
+        ["Name"] = if (Name == null) null else Name
     }
 
 }

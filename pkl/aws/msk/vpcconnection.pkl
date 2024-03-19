@@ -5,25 +5,20 @@ module aws.msk.vpcconnection
 
 import "../../cloudformation.pkl"
 
-/// The type of private link authentication
-open class Authentication {
-}
+typealias VpcConnectionVpcId = String|Mapping
 
-/// 
-open class ClientSubnets {
-}
 
-/// 
-open class SecurityGroups {
-}
+typealias VpcConnectionAuthentication = String|Mapping
 
-/// A key-value pair to associate with a resource.
-open class Tags {
-}
 
-/// 
-open class VpcId {
-}
+typealias VpcConnectionClientSubnets = Listing<(String(matches(Regex(#"^(subnet-)([a-z0-9]+)\Z"#)))|Mapping)?>
+
+
+typealias VpcConnectionSecurityGroups = Listing<(String(matches(Regex(#"^(sg-)([a-z0-9]+)\Z"#)))|Mapping)?>
+
+
+typealias VpcConnectionTags = Mapping<String, Any>
+
 
 /// Resource Type definition for AWS::MSK::VpcConnection
 open class VpcConnection extends cloudformation.Resource {
@@ -32,30 +27,30 @@ open class VpcConnection extends cloudformation.Resource {
 
 
     /// 
-    hidden SecurityGroups: SecurityGroups
+    hidden Authentication: VpcConnectionAuthentication
 
     /// 
-    hidden Tags: (Tags)?
-
-    /// 
-    hidden VpcId: VpcId
-
-    /// 
-    hidden Authentication: Authentication
-
-    /// 
-    hidden ClientSubnets: ClientSubnets
+    hidden ClientSubnets: VpcConnectionClientSubnets
 
     /// The Amazon Resource Name (ARN) of the target cluster
     hidden TargetClusterArn: String(matches(Regex(#"^arn:[\w-]+:kafka:[\w-]+:\d+:cluster.*\Z"#)))|Mapping
 
+    /// 
+    hidden SecurityGroups: VpcConnectionSecurityGroups
+
+    /// 
+    hidden Tags: (VpcConnectionTags)?
+
+    /// 
+    hidden VpcId: VpcConnectionVpcId
+
     Properties {
-        ["SecurityGroups"] = if (SecurityGroups == null) null else SecurityGroups
-        ["Tags"] = if (Tags == null) null else Tags
-        ["VpcId"] = if (VpcId == null) null else VpcId
         ["Authentication"] = if (Authentication == null) null else Authentication
         ["ClientSubnets"] = if (ClientSubnets == null) null else ClientSubnets
         ["TargetClusterArn"] = if (TargetClusterArn == null) null else TargetClusterArn
+        ["SecurityGroups"] = if (SecurityGroups == null) null else SecurityGroups
+        ["Tags"] = if (Tags == null) null else Tags
+        ["VpcId"] = if (VpcId == null) null else VpcId
     }
 
 }

@@ -17,9 +17,6 @@ open class UserGroup extends cloudformation.Resource {
     Type = "AWS::ElastiCache::UserGroup"
 
 
-    /// An array of key-value pairs to apply to this user.
-    hidden Tags: (Listing<UserGroupTag>)?
-
     /// The ID of the user group.
     hidden UserGroupId: String(matches(Regex(#"[a-z][a-z0-9\\-]*"#)))|Mapping
 
@@ -29,11 +26,14 @@ open class UserGroup extends cloudformation.Resource {
     /// List of users associated to this user group.
     hidden UserIds: Listing<String|Mapping>
 
+    /// An array of key-value pairs to apply to this user.
+    hidden Tags: (Listing<UserGroupTag>)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
         ["UserGroupId"] = if (UserGroupId == null) null else UserGroupId
         ["Engine"] = if (Engine == null) null else Engine
         ["UserIds"] = if (UserIds == null) null else UserIds
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

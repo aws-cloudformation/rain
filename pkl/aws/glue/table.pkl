@@ -6,15 +6,35 @@ module aws.glue.table
 import "../../cloudformation.pkl"
 
 /// 
-open class TableIcebergInput {
-    Version: (String|Mapping)?
-    MetadataOperation: (TableMetadataOperation)?
+open class TableTableInput {
+    Retention: (Int|Mapping)?
+    Owner: (String|Mapping)?
+    ViewOriginalText: (String|Mapping)?
+    Parameters: (Dynamic)?
+    StorageDescriptor: (TableStorageDescriptor)?
+    TargetTable: (TableTableIdentifier)?
+    Description: (String|Mapping)?
+    TableType: (String|Mapping)?
+    ViewExpandedText: (String|Mapping)?
+    PartitionKeys: (Listing<TableColumn>)?
+    Name: (String|Mapping)?
 }
 
 /// 
-open class TableOrder {
-    Column: String|Mapping
-    SortOrder: Int|Mapping
+open class TableStorageDescriptor {
+    BucketColumns: (Listing<String|Mapping>)?
+    SerdeInfo: (TableSerdeInfo)?
+    SchemaReference: (TableSchemaReference)?
+    SkewedInfo: (TableSkewedInfo)?
+    Parameters: (Dynamic)?
+    NumberOfBuckets: (Int|Mapping)?
+    OutputFormat: (String|Mapping)?
+    Columns: (Listing<TableColumn>)?
+    StoredAsSubDirectories: (Boolean|Mapping)?
+    SortColumns: (Listing<TableOrder>)?
+    Compressed: (Boolean|Mapping)?
+    InputFormat: (String|Mapping)?
+    Location: (String|Mapping)?
 }
 
 /// 
@@ -26,9 +46,15 @@ open class TableColumn {
 
 /// 
 open class TableSchemaId {
+    SchemaArn: (String|Mapping)?
     RegistryName: (String|Mapping)?
     SchemaName: (String|Mapping)?
-    SchemaArn: (String|Mapping)?
+}
+
+/// 
+open class TableIcebergInput {
+    MetadataOperation: (TableMetadataOperation)?
+    Version: (String|Mapping)?
 }
 
 /// 
@@ -40,16 +66,63 @@ open class TableTableIdentifier {
 }
 
 /// 
-open class TableTableInput {
-    Name: (String|Mapping)?
-    Owner: (String|Mapping)?
-    ViewOriginalText: (String|Mapping)?
-    ViewExpandedText: (String|Mapping)?
-    Retention: (Int|Mapping)?
-    TargetTable: (TableTableIdentifier)?
-    PartitionKeys: (Listing<TableColumn>)?
-    Description: (String|Mapping)?
-    TableType: (String|Mapping)?
+open class TableOpenTableFormatInput {
+    IcebergInput: (TableIcebergInput)?
+}
+
+/// 
+open class TableSkewedInfo {
+    SkewedColumnValueLocationMaps: (Dynamic)?
+    SkewedColumnNames: (Listing<String|Mapping>)?
+    SkewedColumnValues: (Listing<String|Mapping>)?
+}
+
+/// 
+open class TableSchemaReference {
+    SchemaVersionNumber: (Int|Mapping)?
+    SchemaId: (TableSchemaId)?
+    SchemaVersionId: (String|Mapping)?
+}
+
+/// 
+open class TableOrder {
+    Column: String|Mapping
+    SortOrder: Int|Mapping
+}
+
+typealias TableMetadataOperation = Dynamic
+
+
+/// 
+open class TableSerdeInfo {
     Parameters: (Dynamic)?
-    StorageDescriptor: (TableStorageDescriptor)?
+    SerializationLibrary: (String|Mapping)?
+    Name: (String|Mapping)?
+}
+
+/// Resource Type definition for AWS::Glue::Table
+open class Table extends cloudformation.Resource {
+
+    Type = "AWS::Glue::Table"
+
+
+    /// 
+    hidden TableInput: TableTableInput
+
+    /// 
+    hidden OpenTableFormatInput: (TableOpenTableFormatInput)?
+
+    /// 
+    hidden CatalogId: String|Mapping
+
+    /// 
+    hidden DatabaseName: String|Mapping
+
+    Properties {
+        ["TableInput"] = if (TableInput == null) null else TableInput
+        ["OpenTableFormatInput"] = if (OpenTableFormatInput == null) null else OpenTableFormatInput
+        ["CatalogId"] = if (CatalogId == null) null else CatalogId
+        ["DatabaseName"] = if (DatabaseName == null) null else DatabaseName
+    }
+
 }

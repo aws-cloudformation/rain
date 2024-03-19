@@ -6,57 +6,57 @@ module aws.opsworks.layer
 import "../../cloudformation.pkl"
 
 /// 
-open class VolumeConfiguration {
-    Encrypted: (Boolean|Mapping)?
-    Iops: (Int|Mapping)?
-    MountPoint: (String|Mapping)?
-    NumberOfDisks: (Int|Mapping)?
-    RaidLevel: (Int|Mapping)?
-    Size: (Int|Mapping)?
-    VolumeType: (String|Mapping)?
-}
-
-/// 
-open class Tag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// 
-open class ShutdownEventConfiguration {
+open class LayerShutdownEventConfiguration {
     DelayUntilElbConnectionsDrained: (Boolean|Mapping)?
     ExecutionTimeout: (Int|Mapping)?
 }
 
 /// 
-open class AutoScalingThresholds {
-    IgnoreMetricsTime: (Int|Mapping)?
-    InstanceCount: (Int|Mapping)?
+open class LayerAutoScalingThresholds {
     LoadThreshold: (Number|Mapping)?
     MemoryThreshold: (Number|Mapping)?
     ThresholdsWaitTime: (Int|Mapping)?
     CpuThreshold: (Number|Mapping)?
+    IgnoreMetricsTime: (Int|Mapping)?
+    InstanceCount: (Int|Mapping)?
 }
 
 /// 
-open class LifecycleEventConfiguration {
-    ShutdownEventConfiguration: (ShutdownEventConfiguration)?
+open class LayerLifecycleEventConfiguration {
+    ShutdownEventConfiguration: (LayerShutdownEventConfiguration)?
 }
 
 /// 
-open class LoadBasedAutoScaling {
+open class LayerLoadBasedAutoScaling {
+    DownScaling: (LayerAutoScalingThresholds)?
     Enable: (Boolean|Mapping)?
-    UpScaling: (AutoScalingThresholds)?
-    DownScaling: (AutoScalingThresholds)?
+    UpScaling: (LayerAutoScalingThresholds)?
 }
 
 /// 
-open class Recipes {
+open class LayerRecipes {
     Configure: (Listing<String|Mapping>)?
     Deploy: (Listing<String|Mapping>)?
     Setup: (Listing<String|Mapping>)?
     Shutdown: (Listing<String|Mapping>)?
     Undeploy: (Listing<String|Mapping>)?
+}
+
+/// 
+open class LayerVolumeConfiguration {
+    RaidLevel: (Int|Mapping)?
+    Size: (Int|Mapping)?
+    VolumeType: (String|Mapping)?
+    Encrypted: (Boolean|Mapping)?
+    Iops: (Int|Mapping)?
+    MountPoint: (String|Mapping)?
+    NumberOfDisks: (Int|Mapping)?
+}
+
+/// 
+open class LayerTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// Resource Type definition for AWS::OpsWorks::Layer
@@ -66,82 +66,85 @@ open class Layer extends cloudformation.Resource {
 
 
     /// 
-    hidden Attributes: (Dynamic)?
-
-    /// 
-    hidden AutoAssignElasticIps: Boolean|Mapping
-
-    /// 
-    hidden InstallUpdatesOnBoot: (Boolean|Mapping)?
-
-    /// 
-    hidden TypeProperty: String|Mapping
-
-    /// 
-    hidden VolumeConfigurations: (Listing<VolumeConfiguration>)?
-
-    /// 
-    hidden LoadBasedAutoScaling: (LoadBasedAutoScaling)?
-
-    /// 
-    hidden Shortname: String|Mapping
-
-    /// 
-    hidden StackId: String|Mapping
-
-    /// 
-    hidden AutoAssignPublicIps: Boolean|Mapping
-
-    /// 
-    hidden CustomRecipes: (Recipes)?
-
-    /// 
-    hidden EnableAutoHealing: Boolean|Mapping
-
-    /// 
-    hidden LifecycleEventConfiguration: (LifecycleEventConfiguration)?
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden CustomInstanceProfileArn: (String|Mapping)?
-
-    /// 
     hidden CustomJson: (Dynamic)?
+
+    /// 
+    hidden CustomRecipes: (LayerRecipes)?
 
     /// 
     hidden CustomSecurityGroupIds: (Listing<String|Mapping>)?
 
     /// 
-    hidden Name: String|Mapping
+    hidden EnableAutoHealing: Boolean|Mapping
 
     /// 
     hidden Packages: (Listing<String|Mapping>)?
 
     /// 
+    hidden Shortname: String|Mapping
+
+    /// 
+    hidden TypeProperty: String|Mapping
+
+    /// 
+    hidden VolumeConfigurations: (Listing<LayerVolumeConfiguration>)?
+
+    /// 
+    hidden LifecycleEventConfiguration: (LayerLifecycleEventConfiguration)?
+
+    /// 
+    hidden StackId: String|Mapping
+
+    /// 
+    hidden Tags: (Listing<LayerTag>)?
+
+    /// 
+    hidden AutoAssignElasticIps: Boolean|Mapping
+
+    /// 
+    hidden AutoAssignPublicIps: Boolean|Mapping
+
+    /// 
+    hidden CustomInstanceProfileArn: (String|Mapping)?
+
+    /// 
+    hidden InstallUpdatesOnBoot: (Boolean|Mapping)?
+
+    /// 
+    hidden Name: String|Mapping
+
+    /// 
+    hidden Attributes: (LayerLayerAttributes)?
+
+    /// 
     hidden UseEbsOptimizedInstances: (Boolean|Mapping)?
 
+    /// 
+    hidden LoadBasedAutoScaling: (LayerLoadBasedAutoScaling)?
+
     Properties {
-        ["Attributes"] = if (Attributes == null) null else Attributes
-        ["AutoAssignElasticIps"] = if (AutoAssignElasticIps == null) null else AutoAssignElasticIps
-        ["InstallUpdatesOnBoot"] = if (InstallUpdatesOnBoot == null) null else InstallUpdatesOnBoot
+        ["CustomJson"] = if (CustomJson == null) null else CustomJson
+        ["CustomRecipes"] = if (CustomRecipes == null) null else CustomRecipes
+        ["CustomSecurityGroupIds"] = if (CustomSecurityGroupIds == null) null else CustomSecurityGroupIds
+        ["EnableAutoHealing"] = if (EnableAutoHealing == null) null else EnableAutoHealing
+        ["Packages"] = if (Packages == null) null else Packages
+        ["Shortname"] = if (Shortname == null) null else Shortname
         ["Type"] = if (TypeProperty == null) null else TypeProperty
         ["VolumeConfigurations"] = if (VolumeConfigurations == null) null else VolumeConfigurations
-        ["LoadBasedAutoScaling"] = if (LoadBasedAutoScaling == null) null else LoadBasedAutoScaling
-        ["Shortname"] = if (Shortname == null) null else Shortname
-        ["StackId"] = if (StackId == null) null else StackId
-        ["AutoAssignPublicIps"] = if (AutoAssignPublicIps == null) null else AutoAssignPublicIps
-        ["CustomRecipes"] = if (CustomRecipes == null) null else CustomRecipes
-        ["EnableAutoHealing"] = if (EnableAutoHealing == null) null else EnableAutoHealing
         ["LifecycleEventConfiguration"] = if (LifecycleEventConfiguration == null) null else LifecycleEventConfiguration
+        ["StackId"] = if (StackId == null) null else StackId
         ["Tags"] = if (Tags == null) null else Tags
+        ["AutoAssignElasticIps"] = if (AutoAssignElasticIps == null) null else AutoAssignElasticIps
+        ["AutoAssignPublicIps"] = if (AutoAssignPublicIps == null) null else AutoAssignPublicIps
         ["CustomInstanceProfileArn"] = if (CustomInstanceProfileArn == null) null else CustomInstanceProfileArn
-        ["CustomJson"] = if (CustomJson == null) null else CustomJson
-        ["CustomSecurityGroupIds"] = if (CustomSecurityGroupIds == null) null else CustomSecurityGroupIds
+        ["InstallUpdatesOnBoot"] = if (InstallUpdatesOnBoot == null) null else InstallUpdatesOnBoot
         ["Name"] = if (Name == null) null else Name
-        ["Packages"] = if (Packages == null) null else Packages
+        ["Attributes"] = if (Attributes == null) null else Attributes
         ["UseEbsOptimizedInstances"] = if (UseEbsOptimizedInstances == null) null else UseEbsOptimizedInstances
+        ["LoadBasedAutoScaling"] = if (LoadBasedAutoScaling == null) null else LoadBasedAutoScaling
     }
 
 }
+
+
+typealias LayerLayerAttributes = Mapping<String, Any>

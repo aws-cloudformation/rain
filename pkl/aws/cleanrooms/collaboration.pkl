@@ -5,27 +5,15 @@ module aws.cleanrooms.collaboration
 
 import "../../cloudformation.pkl"
 
-/// 
-open class CollaborationTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
 typealias CollaborationName = String|Mapping
 
 
-typealias CollaborationCollaborationQueryLogStatus = String|Mapping
-
-
 /// 
-open class CollaborationMemberSpecification {
-    DisplayName: CollaborationName
-    PaymentConfiguration: (CollaborationPaymentConfiguration)?
-    AccountId: String(matches(Regex(#"^\d+$"#)))|Mapping
-    MemberAbilities: CollaborationMemberAbilities
+open class CollaborationPaymentConfiguration {
+    QueryCompute: CollaborationQueryComputePaymentConfig
 }
 
-typealias CollaborationMemberStatus = String|Mapping
+typealias CollaborationCollaborationQueryLogStatus = String|Mapping
 
 
 /// 
@@ -36,27 +24,45 @@ open class CollaborationDataEncryptionMetadata {
     PreserveNulls: Boolean|Mapping
 }
 
+typealias CollaborationMemberAbilities = Listing<(CollaborationMemberAbility)?>
+
+
 /// 
-open class CollaborationPaymentConfiguration {
-    QueryCompute: CollaborationQueryComputePaymentConfig
+open class CollaborationTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
+
+typealias CollaborationMemberAbility = String|Mapping
+
+
+/// 
+open class CollaborationMemberSpecification {
+    AccountId: String(matches(Regex(#"^\d+$"#)))|Mapping
+    MemberAbilities: CollaborationMemberAbilities
+    DisplayName: CollaborationName
+    PaymentConfiguration: (CollaborationPaymentConfiguration)?
+}
+
+typealias CollaborationMemberStatus = String|Mapping
+
 
 /// 
 open class CollaborationQueryComputePaymentConfig {
     IsResponsible: Boolean|Mapping
 }
 
-typealias CollaborationMemberAbility = String|Mapping
-
-
-typealias CollaborationMemberAbilities = Listing<(CollaborationMemberAbility)?>
-
-
 /// Represents a collaboration between AWS accounts that allows for secure data collaboration
 open class Collaboration extends cloudformation.Resource {
 
     Type = "AWS::CleanRooms::Collaboration"
 
+
+    /// An arbitrary set of tags (key-value pairs) for this cleanrooms collaboration.
+    hidden Tags: (Listing<CollaborationTag>)?
+
+    /// 
+    hidden DataEncryptionMetadata: (CollaborationDataEncryptionMetadata)?
 
     /// 
     hidden Members: Listing<CollaborationMemberSpecification>
@@ -65,36 +71,30 @@ open class Collaboration extends cloudformation.Resource {
     hidden Name: String(matches(Regex(#"^(?!\s*$)[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDBFF-\uDC00\uDFFF\t]*$"#)))|Mapping
 
     /// 
-    hidden CreatorMemberAbilities: CollaborationMemberAbilities
+    hidden QueryLogStatus: CollaborationCollaborationQueryLogStatus
 
     /// 
     hidden CreatorDisplayName: CollaborationName
 
     /// 
-    hidden DataEncryptionMetadata: (CollaborationDataEncryptionMetadata)?
+    hidden CreatorMemberAbilities: CollaborationMemberAbilities
 
     /// 
-    hidden Description: String(matches(Regex(#"^(?!\s*$)[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDBFF-\uDC00\uDFFF\t\r\\n]*$"#)))|Mapping
-
-    /// 
-    hidden QueryLogStatus: CollaborationCollaborationQueryLogStatus
+    hidden Description: String(matches(Regex(#"^(?!\s*$)[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDBFF-\uDC00\uDFFF\t\r\n]*$"#)))|Mapping
 
     /// 
     hidden CreatorPaymentConfiguration: (CollaborationPaymentConfiguration)?
 
-    /// An arbitrary set of tags (key-value pairs) for this cleanrooms collaboration.
-    hidden Tags: (Listing<CollaborationTag>)?
-
     Properties {
+        ["Tags"] = if (Tags == null) null else Tags
+        ["DataEncryptionMetadata"] = if (DataEncryptionMetadata == null) null else DataEncryptionMetadata
         ["Members"] = if (Members == null) null else Members
         ["Name"] = if (Name == null) null else Name
-        ["CreatorMemberAbilities"] = if (CreatorMemberAbilities == null) null else CreatorMemberAbilities
-        ["CreatorDisplayName"] = if (CreatorDisplayName == null) null else CreatorDisplayName
-        ["DataEncryptionMetadata"] = if (DataEncryptionMetadata == null) null else DataEncryptionMetadata
-        ["Description"] = if (Description == null) null else Description
         ["QueryLogStatus"] = if (QueryLogStatus == null) null else QueryLogStatus
+        ["CreatorDisplayName"] = if (CreatorDisplayName == null) null else CreatorDisplayName
+        ["CreatorMemberAbilities"] = if (CreatorMemberAbilities == null) null else CreatorMemberAbilities
+        ["Description"] = if (Description == null) null else Description
         ["CreatorPaymentConfiguration"] = if (CreatorPaymentConfiguration == null) null else CreatorPaymentConfiguration
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

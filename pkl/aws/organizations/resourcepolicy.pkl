@@ -6,7 +6,7 @@ module aws.organizations.resourcepolicy
 import "../../cloudformation.pkl"
 
 /// A custom key-value pair associated with a resource within your organization.
-open class Tag {
+open class ResourcePolicyTag {
     Key: String|Mapping
     Value: String|Mapping
 }
@@ -17,15 +17,15 @@ open class ResourcePolicy extends cloudformation.Resource {
     Type = "AWS::Organizations::ResourcePolicy"
 
 
+    /// A list of tags that you want to attach to the resource policy
+    hidden Tags: (Listing<ResourcePolicyTag>)?
+
     /// The policy document. For AWS CloudFormation templates formatted in YAML, you can provide the policy in JSON or YAML format. AWS CloudFormation always converts a YAML policy to JSON format before submitting it.
     hidden Content: Dynamic
 
-    /// A list of tags that you want to attach to the resource policy
-    hidden Tags: (Listing<Tag>)?
-
     Properties {
-        ["Content"] = if (Content == null) null else Content
         ["Tags"] = if (Tags == null) null else Tags
+        ["Content"] = if (Content == null) null else Content
     }
 
 }

@@ -5,16 +5,16 @@ module aws.mediapackage.asset
 
 import "../../cloudformation.pkl"
 
-/// 
-open class Tag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
 /// The endpoint URL used to access an Asset using one PackagingConfiguration.
-open class EgressEndpoint {
+open class AssetEgressEndpoint {
     PackagingConfigurationId: String|Mapping
     Url: String|Mapping
+}
+
+/// 
+open class AssetTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// Resource schema for AWS::MediaPackage::Asset
@@ -23,34 +23,34 @@ open class Asset extends cloudformation.Resource {
     Type = "AWS::MediaPackage::Asset"
 
 
-    /// The resource ID to include in SPEKE key requests.
-    hidden ResourceId: (String|Mapping)?
-
-    /// ARN of the source object in S3.
-    hidden SourceArn: String|Mapping
-
     /// The list of egress endpoints available for the Asset.
-    hidden EgressEndpoints: (Listing<EgressEndpoint>)?
-
-    /// The unique identifier for the Asset.
-    hidden Id: String|Mapping
+    hidden EgressEndpoints: (Listing<AssetEgressEndpoint>)?
 
     /// The ID of the PackagingGroup for the Asset.
     hidden PackagingGroupId: String|Mapping
 
+    /// The resource ID to include in SPEKE key requests.
+    hidden ResourceId: (String|Mapping)?
+
     /// The IAM role_arn used to access the source S3 bucket.
     hidden SourceRoleArn: String|Mapping
 
+    /// The unique identifier for the Asset.
+    hidden Id: String|Mapping
+
+    /// ARN of the source object in S3.
+    hidden SourceArn: String|Mapping
+
     /// A collection of tags associated with a resource
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<AssetTag>)?
 
     Properties {
-        ["ResourceId"] = if (ResourceId == null) null else ResourceId
-        ["SourceArn"] = if (SourceArn == null) null else SourceArn
         ["EgressEndpoints"] = if (EgressEndpoints == null) null else EgressEndpoints
-        ["Id"] = if (Id == null) null else Id
         ["PackagingGroupId"] = if (PackagingGroupId == null) null else PackagingGroupId
+        ["ResourceId"] = if (ResourceId == null) null else ResourceId
         ["SourceRoleArn"] = if (SourceRoleArn == null) null else SourceRoleArn
+        ["Id"] = if (Id == null) null else Id
+        ["SourceArn"] = if (SourceArn == null) null else SourceArn
         ["Tags"] = if (Tags == null) null else Tags
     }
 

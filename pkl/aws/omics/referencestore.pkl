@@ -5,22 +5,16 @@ module aws.omics.referencestore
 
 import "../../cloudformation.pkl"
 
-/// 
-open class EncryptionType {
-}
+typealias ReferenceStoreTagMap = Mapping<String, Any>
+
+
+typealias ReferenceStoreEncryptionType = String|Mapping
+
 
 /// Server-side encryption (SSE) settings for a store.
-open class SseConfig {
-    Type: EncryptionType
-    KeyArn: (String(matches(Regex(#"arn:([^:
-]*):([^:
-]*):([^:
-]*):([0-9]{12}):([^:
-]*)"#)))|Mapping)?
-}
-
-/// 
-open class TagMap {
+open class ReferenceStoreSseConfig {
+    Type: ReferenceStoreEncryptionType
+    KeyArn: (String(matches(Regex(#"arn:([^:\n]*):([^:\n]*):([^:\n]*):([0-9]{12}):([^:\n]*)"#)))|Mapping)?
 }
 
 /// Definition of AWS::Omics::ReferenceStore Resource Type
@@ -29,23 +23,23 @@ open class ReferenceStore extends cloudformation.Resource {
     Type = "AWS::Omics::ReferenceStore"
 
 
+    /// 
+    hidden SseConfig: (ReferenceStoreSseConfig)?
+
+    /// 
+    hidden Tags: (ReferenceStoreTagMap)?
+
     /// A description for the store.
     hidden Description: (String(matches(Regex(#"^[\p{L}||\p{M}||\p{Z}||\p{S}||\p{N}||\p{P}]+$"#)))|Mapping)?
 
     /// A name for the store.
     hidden Name: String(matches(Regex(#"^[\p{L}||\p{M}||\p{Z}||\p{S}||\p{N}||\p{P}]+$"#)))|Mapping
 
-    /// 
-    hidden SseConfig: (SseConfig)?
-
-    /// 
-    hidden Tags: (TagMap)?
-
     Properties {
-        ["Description"] = if (Description == null) null else Description
-        ["Name"] = if (Name == null) null else Name
         ["SseConfig"] = if (SseConfig == null) null else SseConfig
         ["Tags"] = if (Tags == null) null else Tags
+        ["Description"] = if (Description == null) null else Description
+        ["Name"] = if (Name == null) null else Name
     }
 
 }

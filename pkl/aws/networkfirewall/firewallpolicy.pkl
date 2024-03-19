@@ -6,101 +6,94 @@ module aws.networkfirewall.firewallpolicy
 import "../../cloudformation.pkl"
 
 /// 
-open class RuleVariables {
+open class FirewallPolicyActionDefinition {
+    PublishMetricAction: (FirewallPolicyPublishMetricAction)?
+}
+
+typealias FirewallPolicyRuleVariables = Mapping<String, Any>
+
+
+/// 
+open class FirewallPolicyPublishMetricAction {
+    Dimensions: Listing<FirewallPolicyDimension>
 }
 
 /// 
-open class Dimension {
-    Value: String(matches(Regex(#"^[a-zA-Z0-9-_ ]+$"#)))|Mapping
-}
-
-/// 
-open class Priority {
-}
-
-/// 
-open class CustomAction {
-    ActionDefinition: ActionDefinition
-    ActionName: String(matches(Regex(#"^[a-zA-Z0-9]+$"#)))|Mapping
-}
-
-/// 
-open class StatefulRuleGroupReference {
-    ResourceArn: ResourceArn
-    Priority: (Priority)?
-    Override: (StatefulRuleGroupOverride)?
-}
-
-/// 
-open class StatelessRuleGroupReference {
-    ResourceArn: ResourceArn
-    Priority: Priority
-}
-
-/// 
-open class IPSet {
-    Definition: (Listing<VariableDefinition>)?
-}
-
-/// 
-open class StreamExceptionPolicy {
-}
-
-/// 
-open class FirewallPolicy {
-    StatefulDefaultActions: (Listing<String|Mapping>)?
-    StatefulEngineOptions: (StatefulEngineOptions)?
-    TLSInspectionConfigurationArn: (ResourceArn)?
-    StatelessFragmentDefaultActions: Listing<String|Mapping>
-    StatefulRuleGroupReferences: (Listing<StatefulRuleGroupReference>)?
-    StatelessRuleGroupReferences: (Listing<StatelessRuleGroupReference>)?
-    PolicyVariables: (Dynamic)?
+open class FirewallPolicyFirewallPolicy {
     StatelessDefaultActions: Listing<String|Mapping>
-    StatelessCustomActions: (Listing<CustomAction>)?
+    StatelessFragmentDefaultActions: Listing<String|Mapping>
+    StatefulDefaultActions: (Listing<String|Mapping>)?
+    PolicyVariables: (Dynamic)?
+    StatelessCustomActions: (Listing<FirewallPolicyCustomAction>)?
+    StatelessRuleGroupReferences: (Listing<FirewallPolicyStatelessRuleGroupReference>)?
+    StatefulRuleGroupReferences: (Listing<FirewallPolicyStatefulRuleGroupReference>)?
+    StatefulEngineOptions: (FirewallPolicyStatefulEngineOptions)?
+    TLSInspectionConfigurationArn: (FirewallPolicyResourceArn)?
 }
 
 /// 
-open class StatefulRuleGroupOverride {
-    Action: (OverrideAction)?
+open class FirewallPolicyIPSet {
+    Definition: (Listing<FirewallPolicyVariableDefinition>)?
+}
+
+typealias FirewallPolicyPriority = Int|Mapping
+
+
+typealias FirewallPolicyRuleOrder = String|Mapping
+
+
+typealias FirewallPolicyStreamExceptionPolicy = String|Mapping
+
+
+/// 
+open class FirewallPolicyStatefulRuleGroupReference {
+    ResourceArn: FirewallPolicyResourceArn
+    Priority: (FirewallPolicyPriority)?
+    Override: (FirewallPolicyStatefulRuleGroupOverride)?
 }
 
 /// 
-open class OverrideAction {
+open class FirewallPolicyStatefulRuleGroupOverride {
+    Action: (FirewallPolicyOverrideAction)?
 }
 
 /// 
-open class StatefulEngineOptions {
-    RuleOrder: (RuleOrder)?
-    StreamExceptionPolicy: (StreamExceptionPolicy)?
+open class FirewallPolicyStatefulEngineOptions {
+    RuleOrder: (FirewallPolicyRuleOrder)?
+    StreamExceptionPolicy: (FirewallPolicyStreamExceptionPolicy)?
 }
 
 /// 
-open class RuleOrder {
+open class FirewallPolicyStatelessRuleGroupReference {
+    ResourceArn: FirewallPolicyResourceArn
+    Priority: FirewallPolicyPriority
 }
 
-/// A resource ARN.
-open class ResourceArn {
-}
+typealias FirewallPolicyOverrideAction = String|Mapping
+
 
 /// 
-open class Tag {
+open class FirewallPolicyCustomAction {
+    ActionName: String(matches(Regex(#"^[a-zA-Z0-9]+$"#)))|Mapping
+    ActionDefinition: FirewallPolicyActionDefinition
+}
+
+typealias FirewallPolicyVariableDefinition = String|Mapping
+
+
+/// 
+open class FirewallPolicyTag {
     Key: String(matches(Regex(#"^.*$"#)))|Mapping
     Value: String(matches(Regex(#"^.*$"#)))|Mapping
 }
 
 /// 
-open class ActionDefinition {
-    PublishMetricAction: (PublishMetricAction)?
+open class FirewallPolicyDimension {
+    Value: String(matches(Regex(#"^[a-zA-Z0-9-_ ]+$"#)))|Mapping
 }
 
-/// 
-open class PublishMetricAction {
-    Dimensions: Listing<Dimension>
-}
+typealias FirewallPolicyResourceArn = String|Mapping
 
-/// 
-open class VariableDefinition {
-}
 
 /// Resource type definition for AWS::NetworkFirewall::FirewallPolicy
 open class FirewallPolicy extends cloudformation.Resource {
@@ -109,13 +102,13 @@ open class FirewallPolicy extends cloudformation.Resource {
 
 
     /// 
-    hidden FirewallPolicy: FirewallPolicy
+    hidden FirewallPolicy: FirewallPolicyFirewallPolicy
 
     /// 
     hidden Description: (String(matches(Regex(#"^.*$"#)))|Mapping)?
 
     /// 
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<FirewallPolicyTag>)?
 
     /// 
     hidden FirewallPolicyName: String(matches(Regex(#"^[a-zA-Z0-9-]+$"#)))|Mapping

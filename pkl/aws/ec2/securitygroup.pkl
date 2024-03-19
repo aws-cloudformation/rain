@@ -6,30 +6,16 @@ module aws.ec2.securitygroup
 import "../../cloudformation.pkl"
 
 /// 
-open class SecurityGroupIngress {
-    SourceSecurityGroupOwnerId: (String|Mapping)?
-    IpProtocol: String|Mapping
-    SourcePrefixListId: (String|Mapping)?
-    CidrIp: (String|Mapping)?
-    Description: (String|Mapping)?
-    ToPort: (Int|Mapping)?
-    SourceSecurityGroupId: (String|Mapping)?
-    CidrIpv6: (String|Mapping)?
-    FromPort: (Int|Mapping)?
-    SourceSecurityGroupName: (String|Mapping)?
-}
-
-/// 
 open class SecurityGroupEgress {
-    FromPort: (Int|Mapping)?
-    ToPort: (Int|Mapping)?
+    IpProtocol: String|Mapping
     DestinationSecurityGroupId: (String|Mapping)?
     SourceSecurityGroupId: (String|Mapping)?
-    CidrIp: (String|Mapping)?
     CidrIpv6: (String|Mapping)?
     Description: (String|Mapping)?
-    IpProtocol: String|Mapping
+    FromPort: (Int|Mapping)?
+    ToPort: (Int|Mapping)?
     DestinationPrefixListId: (String|Mapping)?
+    CidrIp: (String|Mapping)?
 }
 
 /// 
@@ -38,14 +24,25 @@ open class SecurityGroupTag {
     Key: String|Mapping
 }
 
+/// 
+open class SecurityGroupIngress {
+    Description: (String|Mapping)?
+    SourceSecurityGroupName: (String|Mapping)?
+    SourceSecurityGroupId: (String|Mapping)?
+    SourcePrefixListId: (String|Mapping)?
+    CidrIp: (String|Mapping)?
+    CidrIpv6: (String|Mapping)?
+    FromPort: (Int|Mapping)?
+    ToPort: (Int|Mapping)?
+    SourceSecurityGroupOwnerId: (String|Mapping)?
+    IpProtocol: String|Mapping
+}
+
 /// Resource Type definition for AWS::EC2::SecurityGroup
 open class SecurityGroup extends cloudformation.Resource {
 
     Type = "AWS::EC2::SecurityGroup"
 
-
-    /// A description for the security group.
-    hidden GroupDescription: String|Mapping
 
     /// The name of the security group.
     hidden GroupName: (String|Mapping)?
@@ -62,13 +59,16 @@ open class SecurityGroup extends cloudformation.Resource {
     /// Any tags assigned to the security group.
     hidden Tags: (Listing<SecurityGroupTag>)?
 
+    /// A description for the security group.
+    hidden GroupDescription: String|Mapping
+
     Properties {
-        ["GroupDescription"] = if (GroupDescription == null) null else GroupDescription
         ["GroupName"] = if (GroupName == null) null else GroupName
         ["VpcId"] = if (VpcId == null) null else VpcId
         ["SecurityGroupIngress"] = if (SecurityGroupIngress == null) null else SecurityGroupIngress
         ["SecurityGroupEgress"] = if (SecurityGroupEgress == null) null else SecurityGroupEgress
         ["Tags"] = if (Tags == null) null else Tags
+        ["GroupDescription"] = if (GroupDescription == null) null else GroupDescription
     }
 
 }

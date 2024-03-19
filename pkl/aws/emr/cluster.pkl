@@ -6,114 +6,6 @@ module aws.emr.cluster
 import "../../cloudformation.pkl"
 
 /// 
-open class ClusterEbsBlockDeviceConfig {
-    VolumeSpecification: ClusterVolumeSpecification
-    VolumesPerInstance: (Int|Mapping)?
-}
-
-/// 
-open class ClusterScalingConstraints {
-    MinCapacity: Int|Mapping
-    MaxCapacity: Int|Mapping
-}
-
-/// 
-open class ClusterKerberosAttributes {
-    KdcAdminPassword: String|Mapping
-    Realm: String|Mapping
-    ADDomainJoinPassword: (String|Mapping)?
-    ADDomainJoinUser: (String|Mapping)?
-    CrossRealmTrustPrincipalPassword: (String|Mapping)?
-}
-
-/// 
-open class ClusterVolumeSpecification {
-    SizeInGB: Int|Mapping
-    Throughput: (Int|Mapping)?
-    VolumeType: String|Mapping
-    Iops: (Int|Mapping)?
-}
-
-/// 
-open class ClusterApplication {
-    Name: (String|Mapping)?
-    AdditionalInfo: (Dynamic)?
-    Args: (Listing<String|Mapping>)?
-    Version: (String|Mapping)?
-}
-
-/// 
-open class ClusterScriptBootstrapActionConfig {
-    Path: String|Mapping
-    Args: (Listing<String|Mapping>)?
-}
-
-/// 
-open class ClusterConfiguration {
-    ConfigurationProperties: (Dynamic)?
-    Configurations: (Listing<ClusterConfiguration>)?
-    Classification: (String|Mapping)?
-}
-
-/// 
-open class ClusterStepConfig {
-    HadoopJarStep: ClusterHadoopJarStepConfig
-    ActionOnFailure: (String|Mapping)?
-    Name: String|Mapping
-}
-
-/// 
-open class ClusterScalingAction {
-    Market: (String|Mapping)?
-    SimpleScalingPolicyConfiguration: ClusterSimpleScalingPolicyConfiguration
-}
-
-/// 
-open class ClusterMetricDimension {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class ClusterPlacementType {
-    AvailabilityZone: String|Mapping
-}
-
-/// 
-open class ClusterSpotProvisioningSpecification {
-    AllocationStrategy: (String|Mapping)?
-    TimeoutDurationMinutes: Int|Mapping
-    TimeoutAction: String|Mapping
-    BlockDurationMinutes: (Int|Mapping)?
-}
-
-/// 
-open class ClusterEbsConfiguration {
-    EbsBlockDeviceConfigs: (Listing<ClusterEbsBlockDeviceConfig>)?
-    EbsOptimized: (Boolean|Mapping)?
-}
-
-/// 
-open class ClusterAutoScalingPolicy {
-    Rules: Listing<ClusterScalingRule>
-    Constraints: ClusterScalingConstraints
-}
-
-/// 
-open class ClusterScalingTrigger {
-    CloudWatchAlarmDefinition: ClusterCloudWatchAlarmDefinition
-}
-
-/// 
-open class ClusterComputeLimits {
-    MaximumOnDemandCapacityUnits: (Int|Mapping)?
-    MaximumCapacityUnits: Int|Mapping
-    MaximumCoreCapacityUnits: (Int|Mapping)?
-    MinimumCapacityUnits: Int|Mapping
-    UnitType: String|Mapping
-}
-
-/// 
 open class ClusterAutoTerminationPolicy {
     IdleTimeout: (Int|Mapping)?
 }
@@ -126,16 +18,18 @@ open class ClusterSimpleScalingPolicyConfiguration {
 }
 
 /// 
-open class ClusterInstanceGroupConfig {
-    Name: (String|Mapping)?
-    BidPrice: (String|Mapping)?
-    InstanceCount: Int|Mapping
-    Market: (String|Mapping)?
-    Configurations: (Listing<ClusterConfiguration>)?
-    InstanceType: String|Mapping
-    AutoScalingPolicy: (ClusterAutoScalingPolicy)?
-    EbsConfiguration: (ClusterEbsConfiguration)?
-    CustomAmiId: (String|Mapping)?
+open class ClusterComputeLimits {
+    MaximumCapacityUnits: Int|Mapping
+    MaximumCoreCapacityUnits: (Int|Mapping)?
+    MinimumCapacityUnits: Int|Mapping
+    UnitType: String|Mapping
+    MaximumOnDemandCapacityUnits: (Int|Mapping)?
+}
+
+/// 
+open class ClusterEbsBlockDeviceConfig {
+    VolumeSpecification: ClusterVolumeSpecification
+    VolumesPerInstance: (Int|Mapping)?
 }
 
 /// 
@@ -145,8 +39,83 @@ open class ClusterBootstrapActionConfig {
 }
 
 /// 
-open class ClusterOnDemandProvisioningSpecification {
-    AllocationStrategy: String|Mapping
+open class ClusterCloudWatchAlarmDefinition {
+    Period: Int|Mapping
+    MetricName: String|Mapping
+    Statistic: (String|Mapping)?
+    Dimensions: (Listing<ClusterMetricDimension>)?
+    Namespace: (String|Mapping)?
+    Threshold: Number|Mapping
+    ComparisonOperator: String|Mapping
+    EvaluationPeriods: (Int|Mapping)?
+    Unit: (String|Mapping)?
+}
+
+/// 
+open class ClusterJobFlowInstancesConfig {
+    AdditionalSlaveSecurityGroups: (Listing<String|Mapping>)?
+    Ec2SubnetId: (String|Mapping)?
+    CoreInstanceFleet: (ClusterInstanceFleetConfig)?
+    Ec2SubnetIds: (Listing<String|Mapping>)?
+    HadoopVersion: (String|Mapping)?
+    TaskInstanceFleets: (Listing<ClusterInstanceFleetConfig>)?
+    EmrManagedMasterSecurityGroup: (String|Mapping)?
+    MasterInstanceFleet: (ClusterInstanceFleetConfig)?
+    CoreInstanceGroup: (ClusterInstanceGroupConfig)?
+    TerminationProtected: (Boolean|Mapping)?
+    UnhealthyNodeReplacement: (Boolean|Mapping)?
+    Ec2KeyName: (String|Mapping)?
+    MasterInstanceGroup: (ClusterInstanceGroupConfig)?
+    ServiceAccessSecurityGroup: (String|Mapping)?
+    AdditionalMasterSecurityGroups: (Listing<String|Mapping>)?
+    KeepJobFlowAliveWhenNoSteps: (Boolean|Mapping)?
+    Placement: (ClusterPlacementType)?
+    TaskInstanceGroups: (Listing<ClusterInstanceGroupConfig>)?
+    EmrManagedSlaveSecurityGroup: (String|Mapping)?
+}
+
+/// 
+open class ClusterScriptBootstrapActionConfig {
+    Path: String|Mapping
+    Args: (Listing<String|Mapping>)?
+}
+
+/// 
+open class ClusterScalingRule {
+    Action: ClusterScalingAction
+    Description: (String|Mapping)?
+    Trigger: ClusterScalingTrigger
+    Name: String|Mapping
+}
+
+/// 
+open class ClusterSpotProvisioningSpecification {
+    BlockDurationMinutes: (Int|Mapping)?
+    AllocationStrategy: (String|Mapping)?
+    TimeoutDurationMinutes: Int|Mapping
+    TimeoutAction: String|Mapping
+}
+
+/// 
+open class ClusterScalingTrigger {
+    CloudWatchAlarmDefinition: ClusterCloudWatchAlarmDefinition
+}
+
+/// 
+open class ClusterAutoScalingPolicy {
+    Constraints: ClusterScalingConstraints
+    Rules: Listing<ClusterScalingRule>
+}
+
+/// 
+open class ClusterScalingAction {
+    Market: (String|Mapping)?
+    SimpleScalingPolicyConfiguration: ClusterSimpleScalingPolicyConfiguration
+}
+
+/// 
+open class ClusterPlacementType {
+    AvailabilityZone: String|Mapping
 }
 
 /// 
@@ -156,66 +125,46 @@ open class ClusterInstanceFleetProvisioningSpecifications {
 }
 
 /// 
-open class ClusterPlacementGroupConfig {
-    InstanceRole: String|Mapping
-    PlacementStrategy: (String|Mapping)?
-}
-
-/// 
-open class ClusterJobFlowInstancesConfig {
-    HadoopVersion: (String|Mapping)?
-    Ec2SubnetId: (String|Mapping)?
-    TaskInstanceGroups: (Listing<ClusterInstanceGroupConfig>)?
-    TerminationProtected: (Boolean|Mapping)?
-    UnhealthyNodeReplacement: (Boolean|Mapping)?
-    KeepJobFlowAliveWhenNoSteps: (Boolean|Mapping)?
-    Ec2KeyName: (String|Mapping)?
-    MasterInstanceFleet: (ClusterInstanceFleetConfig)?
-    CoreInstanceFleet: (ClusterInstanceFleetConfig)?
-    CoreInstanceGroup: (ClusterInstanceGroupConfig)?
-    Ec2SubnetIds: (Listing<String|Mapping>)?
-    EmrManagedMasterSecurityGroup: (String|Mapping)?
-    AdditionalSlaveSecurityGroups: (Listing<String|Mapping>)?
-    MasterInstanceGroup: (ClusterInstanceGroupConfig)?
-    TaskInstanceFleets: (Listing<ClusterInstanceFleetConfig>)?
-    AdditionalMasterSecurityGroups: (Listing<String|Mapping>)?
-    Placement: (ClusterPlacementType)?
-    ServiceAccessSecurityGroup: (String|Mapping)?
-    EmrManagedSlaveSecurityGroup: (String|Mapping)?
+open class ClusterInstanceGroupConfig {
+    BidPrice: (String|Mapping)?
+    InstanceCount: Int|Mapping
+    EbsConfiguration: (ClusterEbsConfiguration)?
+    InstanceType: String|Mapping
+    Market: (String|Mapping)?
+    Name: (String|Mapping)?
+    AutoScalingPolicy: (ClusterAutoScalingPolicy)?
+    CustomAmiId: (String|Mapping)?
+    Configurations: (Listing<ClusterConfiguration>)?
 }
 
 /// 
 open class ClusterInstanceFleetConfig {
-    TargetOnDemandCapacity: (Int|Mapping)?
     TargetSpotCapacity: (Int|Mapping)?
     InstanceTypeConfigs: (Listing<ClusterInstanceTypeConfig>)?
     LaunchSpecifications: (ClusterInstanceFleetProvisioningSpecifications)?
     Name: (String|Mapping)?
+    TargetOnDemandCapacity: (Int|Mapping)?
 }
 
 /// 
-open class ClusterKeyValue {
-    Value: (String|Mapping)?
-    Key: (String|Mapping)?
+open class ClusterMetricDimension {
+    Value: String|Mapping
+    Key: String|Mapping
 }
 
 /// 
-open class ClusterInstanceTypeConfig {
-    CustomAmiId: (String|Mapping)?
+open class ClusterEbsConfiguration {
+    EbsOptimized: (Boolean|Mapping)?
+    EbsBlockDeviceConfigs: (Listing<ClusterEbsBlockDeviceConfig>)?
+}
+
+typealias ClusterConfigurationConfigurationProperties = Mapping<String, Any>
+
+/// 
+open class ClusterConfiguration {
+    ConfigurationProperties: (ClusterConfigurationConfigurationProperties)?
     Configurations: (Listing<ClusterConfiguration>)?
-    InstanceType: String|Mapping
-    BidPrice: (String|Mapping)?
-    WeightedCapacity: (Int|Mapping)?
-    EbsConfiguration: (ClusterEbsConfiguration)?
-    BidPriceAsPercentageOfOnDemandPrice: (Number|Mapping)?
-}
-
-/// 
-open class ClusterScalingRule {
-    Trigger: ClusterScalingTrigger
-    Name: String|Mapping
-    Action: ClusterScalingAction
-    Description: (String|Mapping)?
+    Classification: (String|Mapping)?
 }
 
 /// 
@@ -227,21 +176,76 @@ open class ClusterHadoopJarStepConfig {
 }
 
 /// 
+open class ClusterScalingConstraints {
+    MinCapacity: Int|Mapping
+    MaxCapacity: Int|Mapping
+}
+
+/// 
+open class ClusterPlacementGroupConfig {
+    InstanceRole: String|Mapping
+    PlacementStrategy: (String|Mapping)?
+}
+
+/// 
+open class ClusterStepConfig {
+    HadoopJarStep: ClusterHadoopJarStepConfig
+    ActionOnFailure: (String|Mapping)?
+    Name: String|Mapping
+}
+
+/// 
+open class ClusterOnDemandProvisioningSpecification {
+    AllocationStrategy: String|Mapping
+}
+
+/// 
+open class ClusterInstanceTypeConfig {
+    BidPriceAsPercentageOfOnDemandPrice: (Number|Mapping)?
+    CustomAmiId: (String|Mapping)?
+    Configurations: (Listing<ClusterConfiguration>)?
+    InstanceType: String|Mapping
+    BidPrice: (String|Mapping)?
+    WeightedCapacity: (Int|Mapping)?
+    EbsConfiguration: (ClusterEbsConfiguration)?
+}
+
+/// 
+open class ClusterKeyValue {
+    Value: (String|Mapping)?
+    Key: (String|Mapping)?
+}
+
+typealias ClusterApplicationAdditionalInfo = Mapping<String, Any>
+
+/// 
+open class ClusterApplication {
+    AdditionalInfo: (ClusterApplicationAdditionalInfo)?
+    Args: (Listing<String|Mapping>)?
+    Version: (String|Mapping)?
+    Name: (String|Mapping)?
+}
+
+/// 
+open class ClusterVolumeSpecification {
+    SizeInGB: Int|Mapping
+    Throughput: (Int|Mapping)?
+    VolumeType: String|Mapping
+    Iops: (Int|Mapping)?
+}
+
+/// 
 open class ClusterManagedScalingPolicy {
     ComputeLimits: (ClusterComputeLimits)?
 }
 
 /// 
-open class ClusterCloudWatchAlarmDefinition {
-    MetricName: String|Mapping
-    EvaluationPeriods: (Int|Mapping)?
-    Namespace: (String|Mapping)?
-    Unit: (String|Mapping)?
-    Threshold: Number|Mapping
-    ComparisonOperator: String|Mapping
-    Statistic: (String|Mapping)?
-    Dimensions: (Listing<ClusterMetricDimension>)?
-    Period: Int|Mapping
+open class ClusterKerberosAttributes {
+    CrossRealmTrustPrincipalPassword: (String|Mapping)?
+    KdcAdminPassword: String|Mapping
+    Realm: String|Mapping
+    ADDomainJoinPassword: (String|Mapping)?
+    ADDomainJoinUser: (String|Mapping)?
 }
 
 /// 
@@ -257,10 +261,40 @@ open class Cluster extends cloudformation.Resource {
 
 
     /// 
-    hidden CustomAmiId: (String|Mapping)?
+    hidden ReleaseLabel: (String|Mapping)?
 
     /// 
-    hidden EbsRootVolumeIops: (Int|Mapping)?
+    hidden AutoScalingRole: (String|Mapping)?
+
+    /// 
+    hidden Instances: ClusterJobFlowInstancesConfig
+
+    /// 
+    hidden VisibleToAllUsers: (Boolean|Mapping)?
+
+    /// 
+    hidden OSReleaseLabel: (String|Mapping)?
+
+    /// 
+    hidden ServiceRole: String|Mapping
+
+    /// 
+    hidden AutoTerminationPolicy: (ClusterAutoTerminationPolicy)?
+
+    /// 
+    hidden ScaleDownBehavior: (String|Mapping)?
+
+    /// 
+    hidden EbsRootVolumeThroughput: (Int|Mapping)?
+
+    /// 
+    hidden Applications: (Listing<ClusterApplication>)?
+
+    /// 
+    hidden LogEncryptionKmsKeyId: (String|Mapping)?
+
+    /// 
+    hidden PlacementGroupConfigs: (Listing<ClusterPlacementGroupConfig>)?
 
     /// 
     hidden StepConcurrencyLevel: (Int|Mapping)?
@@ -272,52 +306,7 @@ open class Cluster extends cloudformation.Resource {
     hidden BootstrapActions: (Listing<ClusterBootstrapActionConfig>)?
 
     /// 
-    hidden ReleaseLabel: (String|Mapping)?
-
-    /// 
-    hidden AutoTerminationPolicy: (ClusterAutoTerminationPolicy)?
-
-    /// 
-    hidden Instances: ClusterJobFlowInstancesConfig
-
-    /// 
-    hidden Name: String|Mapping
-
-    /// 
-    hidden AutoScalingRole: (String|Mapping)?
-
-    /// 
-    hidden OSReleaseLabel: (String|Mapping)?
-
-    /// 
-    hidden ServiceRole: String|Mapping
-
-    /// 
-    hidden ManagedScalingPolicy: (ClusterManagedScalingPolicy)?
-
-    /// 
-    hidden AdditionalInfo: (Dynamic)?
-
-    /// 
-    hidden Applications: (Listing<ClusterApplication>)?
-
-    /// 
-    hidden Configurations: (Listing<ClusterConfiguration>)?
-
-    /// 
-    hidden ScaleDownBehavior: (String|Mapping)?
-
-    /// 
-    hidden JobFlowRole: String|Mapping
-
-    /// 
-    hidden VisibleToAllUsers: (Boolean|Mapping)?
-
-    /// 
-    hidden PlacementGroupConfigs: (Listing<ClusterPlacementGroupConfig>)?
-
-    /// 
-    hidden EbsRootVolumeThroughput: (Int|Mapping)?
+    hidden Tags: (Listing<ClusterTag>)?
 
     /// 
     hidden SecurityConfiguration: (String|Mapping)?
@@ -326,45 +315,60 @@ open class Cluster extends cloudformation.Resource {
     hidden Steps: (Listing<ClusterStepConfig>)?
 
     /// 
-    hidden LogEncryptionKmsKeyId: (String|Mapping)?
+    hidden Name: String|Mapping
 
     /// 
-    hidden KerberosAttributes: (ClusterKerberosAttributes)?
+    hidden Configurations: (Listing<ClusterConfiguration>)?
+
+    /// 
+    hidden ManagedScalingPolicy: (ClusterManagedScalingPolicy)?
+
+    /// 
+    hidden AdditionalInfo: (Dynamic)?
 
     /// 
     hidden LogUri: (String|Mapping)?
 
     /// 
-    hidden Tags: (Listing<ClusterTag>)?
+    hidden CustomAmiId: (String|Mapping)?
+
+    /// 
+    hidden EbsRootVolumeIops: (Int|Mapping)?
+
+    /// 
+    hidden KerberosAttributes: (ClusterKerberosAttributes)?
+
+    /// 
+    hidden JobFlowRole: String|Mapping
 
     Properties {
-        ["CustomAmiId"] = if (CustomAmiId == null) null else CustomAmiId
-        ["EbsRootVolumeIops"] = if (EbsRootVolumeIops == null) null else EbsRootVolumeIops
+        ["ReleaseLabel"] = if (ReleaseLabel == null) null else ReleaseLabel
+        ["AutoScalingRole"] = if (AutoScalingRole == null) null else AutoScalingRole
+        ["Instances"] = if (Instances == null) null else Instances
+        ["VisibleToAllUsers"] = if (VisibleToAllUsers == null) null else VisibleToAllUsers
+        ["OSReleaseLabel"] = if (OSReleaseLabel == null) null else OSReleaseLabel
+        ["ServiceRole"] = if (ServiceRole == null) null else ServiceRole
+        ["AutoTerminationPolicy"] = if (AutoTerminationPolicy == null) null else AutoTerminationPolicy
+        ["ScaleDownBehavior"] = if (ScaleDownBehavior == null) null else ScaleDownBehavior
+        ["EbsRootVolumeThroughput"] = if (EbsRootVolumeThroughput == null) null else EbsRootVolumeThroughput
+        ["Applications"] = if (Applications == null) null else Applications
+        ["LogEncryptionKmsKeyId"] = if (LogEncryptionKmsKeyId == null) null else LogEncryptionKmsKeyId
+        ["PlacementGroupConfigs"] = if (PlacementGroupConfigs == null) null else PlacementGroupConfigs
         ["StepConcurrencyLevel"] = if (StepConcurrencyLevel == null) null else StepConcurrencyLevel
         ["EbsRootVolumeSize"] = if (EbsRootVolumeSize == null) null else EbsRootVolumeSize
         ["BootstrapActions"] = if (BootstrapActions == null) null else BootstrapActions
-        ["ReleaseLabel"] = if (ReleaseLabel == null) null else ReleaseLabel
-        ["AutoTerminationPolicy"] = if (AutoTerminationPolicy == null) null else AutoTerminationPolicy
-        ["Instances"] = if (Instances == null) null else Instances
-        ["Name"] = if (Name == null) null else Name
-        ["AutoScalingRole"] = if (AutoScalingRole == null) null else AutoScalingRole
-        ["OSReleaseLabel"] = if (OSReleaseLabel == null) null else OSReleaseLabel
-        ["ServiceRole"] = if (ServiceRole == null) null else ServiceRole
-        ["ManagedScalingPolicy"] = if (ManagedScalingPolicy == null) null else ManagedScalingPolicy
-        ["AdditionalInfo"] = if (AdditionalInfo == null) null else AdditionalInfo
-        ["Applications"] = if (Applications == null) null else Applications
-        ["Configurations"] = if (Configurations == null) null else Configurations
-        ["ScaleDownBehavior"] = if (ScaleDownBehavior == null) null else ScaleDownBehavior
-        ["JobFlowRole"] = if (JobFlowRole == null) null else JobFlowRole
-        ["VisibleToAllUsers"] = if (VisibleToAllUsers == null) null else VisibleToAllUsers
-        ["PlacementGroupConfigs"] = if (PlacementGroupConfigs == null) null else PlacementGroupConfigs
-        ["EbsRootVolumeThroughput"] = if (EbsRootVolumeThroughput == null) null else EbsRootVolumeThroughput
+        ["Tags"] = if (Tags == null) null else Tags
         ["SecurityConfiguration"] = if (SecurityConfiguration == null) null else SecurityConfiguration
         ["Steps"] = if (Steps == null) null else Steps
-        ["LogEncryptionKmsKeyId"] = if (LogEncryptionKmsKeyId == null) null else LogEncryptionKmsKeyId
-        ["KerberosAttributes"] = if (KerberosAttributes == null) null else KerberosAttributes
+        ["Name"] = if (Name == null) null else Name
+        ["Configurations"] = if (Configurations == null) null else Configurations
+        ["ManagedScalingPolicy"] = if (ManagedScalingPolicy == null) null else ManagedScalingPolicy
+        ["AdditionalInfo"] = if (AdditionalInfo == null) null else AdditionalInfo
         ["LogUri"] = if (LogUri == null) null else LogUri
-        ["Tags"] = if (Tags == null) null else Tags
+        ["CustomAmiId"] = if (CustomAmiId == null) null else CustomAmiId
+        ["EbsRootVolumeIops"] = if (EbsRootVolumeIops == null) null else EbsRootVolumeIops
+        ["KerberosAttributes"] = if (KerberosAttributes == null) null else KerberosAttributes
+        ["JobFlowRole"] = if (JobFlowRole == null) null else JobFlowRole
     }
 
 }

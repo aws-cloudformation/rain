@@ -5,756 +5,714 @@ module aws.lex.bot
 
 import "../../cloudformation.pkl"
 
-/// 
-open class BotArn {
+typealias BotSlotShape = String|Mapping
+
+
+/// The prompts that Amazon Lex uses while a bot is waiting for customer input.
+open class BotWaitAndContinueSpecification {
+    ContinueResponse: BotResponseSpecification
+    StillWaitingResponse: (BotStillWaitingResponseSpecification)?
+    IsActive: (Boolean|Mapping)?
+    WaitingResponse: BotResponseSpecification
 }
 
-/// A sample utterance that invokes an intent or respond to a slot elicitation prompt.
-open class SampleUtterance {
-    Utterance: Utterance
-}
+typealias BotS3ObjectKey = String|Mapping
 
-/// Contains conditional branches to fork the conversation flow.
-open class Conditional {
-    IsActive: Boolean|Mapping
-    ConditionalBranches: ConditionalBranches
-}
 
-/// The identifier of the language and locale that the bot will be used in.
-open class LocaleId {
-}
-
-/// The specified confidence threshold for inserting the AMAZON.FallbackIntent and AMAZON.KendraSearchIntent intents.
-open class ConfidenceThreshold {
-}
-
-/// The maximum number of times the bot tries to elicit a response from the user using this prompt.
-open class PromptMaxRetries {
-}
-
-/// Specifies the settings on a prompt attempt.
-open class PromptAttemptSpecification {
-    AllowInterrupt: (Boolean|Mapping)?
-    AudioAndDTMFInputSpecification: (AudioAndDTMFInputSpecification)?
-    TextInputSpecification: (TextInputSpecification)?
-    AllowedInputTypes: AllowedInputTypes
-}
-
-/// A set of actions that Amazon Lex should run if the condition is matched.
-open class ConditionalBranch {
-    Name: Name
-    Condition: Condition
-    NextStep: DialogState
-    Response: (ResponseSpecification)?
-}
-
-/// An array of values that slots should be set to
-open class SlotValues {
-}
-
-/// A list of bot alias locale settings to add to the bot alias.
-open class BotAliasLocaleSettingsList {
-}
-
-/// Unique ID of resource
-open class Id {
-}
-
-/// A description of the resource
-open class Description {
-}
-
-/// The sample utterance that Amazon Lex uses to build its machine-learning model to recognize intents/slots.
-open class Utterance {
-}
-
-/// Additional values related to the slot type entry.
-open class SynonymList {
-}
-
-/// Provides settings that enable advanced recognition settings for slot values.
-open class AdvancedRecognitionSetting {
-    AudioRecognitionStrategy: (AudioRecognitionStrategy)?
-}
-
-/// The default value to use when a user doesn't provide a value for a slot.
-open class SlotDefaultValue {
-    DefaultValue: String|Mapping
-}
-
-/// The Amazon Resource Name (ARN) of an IAM role that has permission to access the bot.
-open class RoleArn {
+/// S3 location of bot definitions zip file, if it's not defined inline in CloudFormation.
+open class BotS3Location {
+    S3Bucket: BotS3BucketName
+    S3ObjectKey: BotS3ObjectKey
+    S3ObjectVersion: (String|Mapping)?
 }
 
 /// A regular expression used to validate the value of a slot.
-open class SlotValueRegexFilter {
+open class BotSlotValueRegexFilter {
     Pattern: String|Mapping
 }
 
-/// Expression that is evaluated to true or false at runtime.
-open class ConditionExpression {
+typealias BotUtterance = String|Mapping
+
+
+/// Provides an expression that evaluates to true or false.
+open class BotCondition {
+    ExpressionString: BotConditionExpression
 }
 
-/// 
-open class AttachmentTitle {
+/// You can use this parameter to specify a specific Lambda function to run different functions in different locales.
+open class BotBotAliasLocaleSettings {
+    Enabled: Boolean|Mapping
+    CodeHookSpecification: (BotCodeHookSpecification)?
 }
 
-/// A list of message groups that Amazon Lex uses to respond the user input.
-open class ResponseSpecification {
-    MessageGroupsList: MessageGroupsList
-    AllowInterrupt: (Boolean|Mapping)?
+typealias BotPromptMaxRetries = Int|Mapping
+
+
+/// Override settings to configure the intent state.
+open class BotIntentOverride {
+    Name: (BotName)?
+    Slots: (Listing<BotSlotValueOverrideMap>)?
 }
 
-/// The slot type name that is used in the slot. Allows for custom and built-in slot type names
-open class SlotTypeName {
-}
+typealias BotAudioRecognitionStrategy = String|Mapping
 
-/// Defines one of the values for a slot type.
-open class SampleValue {
-    Value: String|Mapping
-}
 
-/// 
-open class CustomVocabularyItems {
-}
+typealias BotS3BucketName = String|Mapping
 
-/// A custom vocabulary is a list of specific phrases that you want Amazon Lex V2 to recognize in the audio input.
-open class CustomVocabulary {
-    CustomVocabularyItems: CustomVocabularyItems
-}
-
-/// If Amazon Lex waits longer than this length of time in seconds for a response, it will stop sending messages.
-open class StillWaitingResponseTimeout {
-}
-
-/// A query filter that Amazon Lex sends to Amazon Kendra to filter the response from a query.
-open class QueryFilterString {
-}
-
-/// Settings required for a slot type based on a grammar that you provide.
-open class GrammarSlotTypeSetting {
-    Source: (GrammarSlotTypeSource)?
-}
-
-/// Defines the Amazon CloudWatch Logs destination log group for conversation text logs.
-open class TextLogDestination {
-    CloudWatch: CloudWatchLogGroupLogDestination
-}
-
-/// 
-open class AttachmentUrl {
-}
-
-/// A custom, extended built-in or a grammar slot type.
-open class SlotType {
-    Name: Name
-    Description: (Description)?
-    ParentSlotTypeSignature: (ParentSlotTypeSignature)?
-    SlotTypeValues: (SlotTypeValues)?
-    ValueSelectionSetting: (SlotValueSelectionSetting)?
-    ExternalSourceSetting: (ExternalSourceSetting)?
-}
-
-/// Provides a setting that determines whether the post-fulfillment response is sent to the user.
-open class PostFulfillmentStatusSpecification {
-    SuccessResponse: (ResponseSpecification)?
-    SuccessConditional: (ConditionalSpecification)?
-    FailureConditional: (ConditionalSpecification)?
-    TimeoutNextStep: (DialogState)?
-    TimeoutConditional: (ConditionalSpecification)?
-    SuccessNextStep: (DialogState)?
-    FailureResponse: (ResponseSpecification)?
-    FailureNextStep: (DialogState)?
-    TimeoutResponse: (ResponseSpecification)?
-}
 
 /// The primary message that Amazon Lex should send to the user.
-open class Message {
-    ImageResponseCard: (ImageResponseCard)?
-    PlainTextMessage: (PlainTextMessage)?
-    CustomPayload: (CustomPayload)?
-    SSMLMessage: (SSMLMessage)?
-}
-
-/// Specifies the audio and DTMF input specification.
-open class AudioAndDTMFInputSpecification {
-    StartTimeoutMs: Int|Mapping
-    DTMFSpecification: (DTMFSpecification)?
-    AudioSpecification: (AudioSpecification)?
-}
-
-/// 
-open class SlotConstraint {
-}
-
-/// Settings that specify the dialog code hook that is called by Amazon Lex at a step of the conversation.
-open class DialogCodeHookInvocationSetting {
-    PostCodeHookSpecification: PostDialogCodeHookInvocationSpecification
-    EnableCodeHookInvocation: Boolean|Mapping
-    IsActive: Boolean|Mapping
-    InvocationLabel: (Name)?
+open class BotMessage {
+    SSMLMessage: (BotSSMLMessage)?
+    ImageResponseCard: (BotImageResponseCard)?
+    PlainTextMessage: (BotPlainTextMessage)?
+    CustomPayload: (BotCustomPayload)?
 }
 
 /// Specifies the text input specifications.
-open class TextInputSpecification {
+open class BotTextInputSpecification {
     StartTimeoutMs: Int|Mapping
 }
 
-/// Settings that specify the dialog code hook that is called by Amazon Lex between eliciting slot values.
-open class ElicitationCodeHookInvocationSetting {
-    EnableCodeHookInvocation: Boolean|Mapping
-    InvocationLabel: (Name)?
+/// Contains information about code hooks that Amazon Lex calls during a conversation.
+open class BotCodeHookSpecification {
+    LambdaCodeHook: BotLambdaCodeHook
 }
 
-/// A map of slot names and their overridden values.
-open class SlotValueOverrideMap {
-    SlotName: (Name)?
-    SlotValueOverride: (SlotValueOverride)?
+/// Provides information on additional privacy protections Amazon Lex should use with the bot's data.
+open class BotDataPrivacy {
+    ChildDirected: Boolean|Mapping
 }
 
-/// A button to use on a response card used to gather slot values from a user.
-open class Button {
-    Text: String|Mapping
-    Value: String|Mapping
+/// Settings that determine the Lambda function that Amazon Lex uses for processing user responses.
+open class BotDialogCodeHookSetting {
+    Enabled: Boolean|Mapping
 }
+
+typealias BotAudioLogSettings = Listing<(BotAudioLogSetting)?>
+
+
+typealias BotSlotValueResolutionStrategy = String|Mapping
+
+
+typealias BotSlotValues = Listing<(BotSlotValueOverride)?>
+
+
+typealias BotIdleSessionTTLInSeconds = Int|Mapping
+
+
+typealias BotOutputContextsList = Listing<(BotOutputContext)?>
+
+
+/// The location of audio log files collected when conversation logging is enabled for a bot.
+open class BotAudioLogDestination {
+    S3Bucket: BotS3BucketLogDestination
+}
+
+typealias BotQueryFilterString = String|Mapping
+
 
 /// Specifies the allowed input types.
-open class AllowedInputTypes {
+open class BotAllowedInputTypes {
     AllowAudioInput: Boolean|Mapping
     AllowDTMFInput: Boolean|Mapping
 }
 
-/// Value that the slot type can take.
-open class SlotTypeValue {
-    SampleValue: SampleValue
-    Synonyms: (SynonymList)?
+typealias BotKendraIndexArn = String|Mapping
+
+
+typealias BotContextTimeToLiveInSeconds = Int|Mapping
+
+
+/// Specifies next steps to run after the dialog code hook finishes.
+open class BotPostDialogCodeHookInvocationSpecification {
+    SuccessNextStep: (BotDialogState)?
+    SuccessConditional: (BotConditionalSpecification)?
+    FailureResponse: (BotResponseSpecification)?
+    FailureConditional: (BotConditionalSpecification)?
+    TimeoutResponse: (BotResponseSpecification)?
+    TimeoutNextStep: (BotDialogState)?
+    TimeoutConditional: (BotConditionalSpecification)?
+    SuccessResponse: (BotResponseSpecification)?
+    FailureNextStep: (BotDialogState)?
 }
 
-/// 
-open class SlotValueResolutionStrategy {
-}
+typealias BotInputContextsList = Listing<(BotInputContext)?>
 
-/// A set of actions that Amazon Lex should run if none of the other conditions are met.
-open class DefaultConditionalBranch {
-    NextStep: (DialogState)?
-    Response: (ResponseSpecification)?
-}
 
-/// The current state of the conversation with the user.
-open class DialogState {
-    DialogAction: (DialogAction)?
-    Intent: (IntentOverride)?
-    SessionAttributes: (Listing<SessionAttribute>)?
-}
-
-/// The location of audio log files collected when conversation logging is enabled for a bot.
-open class AudioLogDestination {
-    S3Bucket: S3BucketLogDestination
-}
-
-/// Configuring the test bot alias settings for a given bot
-open class TestBotAliasSettings {
-    BotAliasLocaleSettings: (BotAliasLocaleSettingsList)?
-    ConversationLogSettings: (ConversationLogSettings)?
-    Description: (Description)?
-    SentimentAnalysisSettings: (Dynamic)?
-}
-
-/// A unique identifier for the built-in intent to base this intent on.
-open class ParentIntentSignature {
-}
-
-/// Prompts the user to confirm the intent.
-open class PromptSpecification {
-    MessageGroupsList: MessageGroupsList
-    MaxRetries: PromptMaxRetries
-    AllowInterrupt: (Boolean|Mapping)?
-    MessageSelectionStrategy: (MessageSelectionStrategy)?
-    PromptAttemptsSpecification: (Dynamic)?
-}
-
-/// The priority that a slot should be elicited.
-open class PriorityValue {
-}
-
-/// A slot is a variable needed to fulfill an intent, where an intent can require zero or more slots.
-open class Slot {
-    Name: Name
-    Description: (Description)?
-    SlotTypeName: SlotTypeName
-    ValueElicitationSetting: SlotValueElicitationSetting
-    ObfuscationSetting: (ObfuscationSetting)?
-    MultipleValuesSetting: (MultipleValuesSetting)?
+/// A message in Speech Synthesis Markup Language (SSML).
+open class BotSSMLMessage {
+    Value: String|Mapping
 }
 
 /// One or more messages that Amazon Lex can send to the user.
-open class MessageGroup {
-    Message: Message
-    Variations: (Listing<Message>)?
-}
-
-/// Provides a prompt for making sure that the user is ready for the intent to be fulfilled.
-open class IntentConfirmationSetting {
-    FailureResponse: (ResponseSpecification)?
-    FailureConditional: (ConditionalSpecification)?
-    PromptSpecification: PromptSpecification
-    ConfirmationNextStep: (DialogState)?
-    FailureNextStep: (DialogState)?
-    ElicitationCodeHook: (ElicitationCodeHookInvocationSetting)?
-    ConfirmationConditional: (ConditionalSpecification)?
-    DeclinationConditional: (ConditionalSpecification)?
-    CodeHook: (DialogCodeHookInvocationSetting)?
-    IsActive: (Boolean|Mapping)?
-    ConfirmationResponse: (ResponseSpecification)?
-    DeclinationResponse: (ResponseSpecification)?
-    DeclinationNextStep: (DialogState)?
-}
-
-/// A list of 1 to 4 conditional branches to fork the conversation flow.
-open class ConditionalBranches {
-}
-
-/// InputContext specified for the intent.
-open class InputContext {
-    Name: Name
-}
-
-/// A locale in the bot, which contains the intents and slot types that the bot uses in conversations with users in the specified language and locale.
-open class BotLocale {
-    SlotTypes: (Listing<SlotType>)?
-    CustomVocabulary: (CustomVocabulary)?
-    LocaleId: LocaleId
-    Description: (Description)?
-    VoiceSettings: (VoiceSettings)?
-    NluConfidenceThreshold: ConfidenceThreshold
-    Intents: (Listing<Intent>)?
-}
-
-/// List of text log settings that pertain to the conversation log settings for the bot's TestBotAlias
-open class TextLogSettings {
-}
-
-/// An array of sample utterances
-open class SampleUtterancesList {
-}
-
-/// How often a message should be sent to the user in seconds.
-open class StillWaitingResponseFrequency {
-}
-
-/// StillWaitingResponseSpecification.
-open class StillWaitingResponseSpecification {
-    TimeoutInSeconds: StillWaitingResponseTimeout
-    AllowInterrupt: (Boolean|Mapping)?
-    MessageGroupsList: MessageGroupsList
-    FrequencyInSeconds: StillWaitingResponseFrequency
-}
-
-/// Settings that you can use for eliciting a slot value.
-open class SlotValueElicitationSetting {
-    DefaultValueSpecification: (SlotDefaultValueSpecification)?
-    SlotConstraint: SlotConstraint
-    PromptSpecification: (PromptSpecification)?
-    SampleUtterances: (SampleUtterancesList)?
-    WaitAndContinueSpecification: (WaitAndContinueSpecification)?
-    SlotCaptureSetting: (SlotCaptureSetting)?
-}
-
-/// Provides an expression that evaluates to true or false.
-open class Condition {
-    ExpressionString: ConditionExpression
-}
-
-/// You can use this parameter to specify a specific Lambda function to run different functions in different locales.
-open class BotAliasLocaleSettings {
-    CodeHookSpecification: (CodeHookSpecification)?
-    Enabled: Boolean|Mapping
-}
-
-/// Specifies an Amazon S3 bucket for logging audio conversations
-open class S3BucketLogDestination {
-    S3BucketArn: String(matches(Regex(#"^arn:[\w\-]+:s3:::[a-z0-9][\.\-a-z0-9]{1,61}[a-z0-9]$"#)))|Mapping
-    LogPrefix: String|Mapping
-    KmsKeyArn: (String(matches(Regex(#"^arn:[\w\-]+:kms:[\w\-]+:[\d]{12}:(?:key\/[\w\-]+|alias\/[a-zA-Z0-9:\/_\-]{1,256})$"#)))|Mapping)?
-}
-
-/// The time, in seconds, that Amazon Lex should keep information about a user's conversation with the bot.
-open class IdleSessionTTLInSeconds {
-}
-
-/// A message that defines a response card that the client application can show to the user.
-open class ImageResponseCard {
-    Title: AttachmentTitle
-    Subtitle: (AttachmentTitle)?
-    ImageUrl: (AttachmentUrl)?
-    Buttons: (Listing<Button>)?
-}
-
-/// The prompts that Amazon Lex uses while a bot is waiting for customer input.
-open class WaitAndContinueSpecification {
-    WaitingResponse: ResponseSpecification
-    ContinueResponse: ResponseSpecification
-    StillWaitingResponse: (StillWaitingResponseSpecification)?
-    IsActive: (Boolean|Mapping)?
-}
-
-/// Contains information about code hooks that Amazon Lex calls during a conversation.
-open class CodeHookSpecification {
-    LambdaCodeHook: LambdaCodeHook
-}
-
-/// Provides information for updating the user on the progress of fulfilling an intent.
-open class FulfillmentUpdatesSpecification {
-    UpdateResponse: (FulfillmentUpdateResponseSpecification)?
-    TimeoutInSeconds: (Int|Mapping)?
-    Active: Boolean|Mapping
-    StartResponse: (FulfillmentStartResponseSpecification)?
-}
-
-/// The amount of time, in seconds, that the output context should remain active.
-open class ContextTimeToLiveInSeconds {
-}
-
-/// A List of slot type values
-open class SlotTypeValues {
-}
-
-typealias ObfuscationSettingObfuscationSettingType = "None"|"DefaultObfuscation"
-
-/// Determines whether Amazon Lex obscures slot values in conversation logs.
-open class ObfuscationSetting {
-    ObfuscationSettingType: ObfuscationSettingObfuscationSettingType|Mapping
+open class BotMessageGroup {
+    Message: BotMessage
+    Variations: (Listing<BotMessage>)?
 }
 
 /// Settings for logging audio of conversations between Amazon Lex and a user. You specify whether to log audio and the Amazon S3 bucket where the audio file is stored.
-open class AudioLogSetting {
-    Destination: AudioLogDestination
+open class BotAudioLogSetting {
     Enabled: Boolean|Mapping
+    Destination: BotAudioLogDestination
 }
 
-/// Provides a list of conditional branches. Branches are evaluated in the order that they are entered in the list. The first branch with a condition that evaluates to true is executed. The last branch in the list is the default branch. The default branch should not have any condition expression. The default branch is executed if no other branch has a matching condition.
-open class ConditionalSpecification {
-    IsActive: Boolean|Mapping
-    ConditionalBranches: ConditionalBranches
-    DefaultBranch: DefaultConditionalBranch
-}
+typealias BotRoleArn = String|Mapping
 
-/// Settings that determine if a Lambda function should be invoked to fulfill a specific intent.
-open class FulfillmentCodeHookSetting {
+
+/// Provides a prompt for making sure that the user is ready for the intent to be fulfilled.
+open class BotIntentConfirmationSetting {
+    DeclinationConditional: (BotConditionalSpecification)?
     IsActive: (Boolean|Mapping)?
-    FulfillmentUpdatesSpecification: (FulfillmentUpdatesSpecification)?
-    PostFulfillmentStatusSpecification: (PostFulfillmentStatusSpecification)?
+    ConfirmationConditional: (BotConditionalSpecification)?
+    DeclinationResponse: (BotResponseSpecification)?
+    FailureNextStep: (BotDialogState)?
+    CodeHook: (BotDialogCodeHookInvocationSetting)?
+    FailureResponse: (BotResponseSpecification)?
+    FailureConditional: (BotConditionalSpecification)?
+    PromptSpecification: BotPromptSpecification
+    ConfirmationNextStep: (BotDialogState)?
+    DeclinationNextStep: (BotDialogState)?
+    ConfirmationResponse: (BotResponseSpecification)?
+    ElicitationCodeHook: (BotElicitationCodeHookInvocationSetting)?
+}
+
+/// Settings that specify the dialog code hook that is called by Amazon Lex between eliciting slot values.
+open class BotElicitationCodeHookInvocationSetting {
+    EnableCodeHookInvocation: Boolean|Mapping
+    InvocationLabel: (BotName)?
+}
+
+typealias BotTextLogSettings = Listing<(BotTextLogSetting)?>
+
+
+/// Provides a statement the Amazon Lex conveys to the user when the intent is successfully fulfilled.
+open class BotIntentClosingSetting {
+    Conditional: (BotConditionalSpecification)?
+    NextStep: (BotDialogState)?
+    ClosingResponse: (BotResponseSpecification)?
+    IsActive: (Boolean|Mapping)?
+}
+
+/// Contains information about code hooks that Amazon Lex calls during a conversation.
+open class BotTextLogSetting {
     Enabled: Boolean|Mapping
+    Destination: BotTextLogDestination
 }
 
-/// Indicates how a message is selected from a message group among retries.
-open class MessageSelectionStrategy {
+/// Provides information for updating the user on the progress of fulfilling an intent.
+open class BotFulfillmentUpdatesSpecification {
+    UpdateResponse: (BotFulfillmentUpdateResponseSpecification)?
+    TimeoutInSeconds: (Int|Mapping)?
+    Active: Boolean|Mapping
+    StartResponse: (BotFulfillmentStartResponseSpecification)?
 }
 
-/// Specifies the audio input specifications.
-open class AudioSpecification {
-    EndTimeoutMs: Int|Mapping
-    MaxLengthMs: Int|Mapping
+typealias BotAttachmentUrl = String|Mapping
+
+
+typealias BotStillWaitingResponseTimeout = Int|Mapping
+
+
+/// A button to use on a response card used to gather slot values from a user.
+open class BotButton {
+    Text: String|Mapping
+    Value: String|Mapping
+}
+
+/// A set of actions that Amazon Lex should run if the condition is matched.
+open class BotConditionalBranch {
+    Name: BotName
+    Condition: BotCondition
+    NextStep: BotDialogState
+    Response: (BotResponseSpecification)?
 }
 
 /// Configuration for searching a Amazon Kendra index specified for the intent.
-open class KendraConfiguration {
-    KendraIndex: KendraIndexArn
+open class BotKendraConfiguration {
+    KendraIndex: BotKendraIndexArn
     QueryFilterStringEnabled: (Boolean|Mapping)?
-    QueryFilterString: (QueryFilterString)?
+    QueryFilterString: (BotQueryFilterString)?
 }
 
-/// List for slot priorities
-open class SlotPrioritiesList {
+/// Contains conditional branches to fork the conversation flow.
+open class BotConditional {
+    IsActive: Boolean|Mapping
+    ConditionalBranches: BotConditionalBranches
 }
 
-/// Enables using slot values as a custom vocabulary when recognizing user utterances.
-open class AudioRecognitionStrategy {
-}
+typealias BotSlotPrioritiesList = Listing<(BotSlotPriority)?>
 
-/// Contains information about code hooks that Amazon Lex calls during a conversation.
-open class ConversationLogSettings {
-    AudioLogSettings: (AudioLogSettings)?
-    TextLogSettings: (TextLogSettings)?
-}
 
-/// Specifies the settings on DTMF input.
-open class DTMFSpecification {
-    DeletionCharacter: String(matches(Regex(#"^[A-D0-9#*]{1}$"#)))|Mapping
-    EndCharacter: String(matches(Regex(#"^[A-D0-9#*]{1}$"#)))|Mapping
-    EndTimeoutMs: Int|Mapping
-    MaxLength: Int|Mapping
-}
-
-/// Contains settings used by Amazon Lex to select a slot value.
-open class SlotValueSelectionSetting {
-    ResolutionStrategy: SlotValueResolutionStrategy
-    RegexFilter: (SlotValueRegexFilter)?
-    AdvancedRecognitionSetting: (AdvancedRecognitionSetting)?
-}
-
-/// List of audio log settings that pertain to the conversation log settings for the bot's TestBotAlias.
-open class AudioLogSettings {
-}
-
-/// Settings that determine the Lambda function that Amazon Lex uses for processing user responses.
-open class DialogCodeHookSetting {
-    Enabled: Boolean|Mapping
-}
-
-/// 
-open class S3BucketName {
-}
-
-/// Indicates whether a slot can return multiple values.
-open class MultipleValuesSetting {
-    AllowMultipleValues: (Boolean|Mapping)?
-}
-
-/// Settings used when Amazon Lex successfully captures a slot value from a user.
-open class SlotCaptureSetting {
-    FailureResponse: (ResponseSpecification)?
-    FailureNextStep: (DialogState)?
-    FailureConditional: (ConditionalSpecification)?
-    CodeHook: (DialogCodeHookInvocationSetting)?
-    ElicitationCodeHook: (ElicitationCodeHookInvocationSetting)?
-    CaptureResponse: (ResponseSpecification)?
-    CaptureNextStep: (DialogState)?
-    CaptureConditional: (ConditionalSpecification)?
-}
-
-/// Provides settings for a message that is sent to the user when a fulfillment Lambda function starts running.
-open class FulfillmentStartResponseSpecification {
-    MessageGroups: MessageGroupsList
-    DelayInSeconds: Int|Mapping
+/// A list of message groups that Amazon Lex uses to respond the user input.
+open class BotResponseSpecification {
+    MessageGroupsList: BotMessageGroupsList
     AllowInterrupt: (Boolean|Mapping)?
 }
 
-/// Provides a statement the Amazon Lex conveys to the user when the intent is successfully fulfilled.
-open class IntentClosingSetting {
-    ClosingResponse: (ResponseSpecification)?
+typealias BotBotArn = String|Mapping
+
+
+typealias BotBotAliasLocaleSettingsList = Listing<(BotBotAliasLocaleSettingsItem)?>
+
+
+/// Provides a list of conditional branches. Branches are evaluated in the order that they are entered in the list. The first branch with a condition that evaluates to true is executed. The last branch in the list is the default branch. The default branch should not have any condition expression. The default branch is executed if no other branch has a matching condition.
+open class BotConditionalSpecification {
+    IsActive: Boolean|Mapping
+    ConditionalBranches: BotConditionalBranches
+    DefaultBranch: BotDefaultConditionalBranch
+}
+
+typealias BotMessageGroupsList = Listing<(BotMessageGroup)?>
+
+
+/// A custom, extended built-in or a grammar slot type.
+open class BotSlotType {
+    ValueSelectionSetting: (BotSlotValueSelectionSetting)?
+    ExternalSourceSetting: (BotExternalSourceSetting)?
+    Name: BotName
+    Description: (BotDescription)?
+    ParentSlotTypeSignature: (BotParentSlotTypeSignature)?
+    SlotTypeValues: (BotSlotTypeValues)?
+}
+
+/// Specifies the settings on DTMF input.
+open class BotDTMFSpecification {
+    EndCharacter: String(matches(Regex(#"^[A-D0-9#*]{1}$"#)))|Mapping
+    EndTimeoutMs: Int|Mapping
+    MaxLength: Int|Mapping
+    DeletionCharacter: String(matches(Regex(#"^[A-D0-9#*]{1}$"#)))|Mapping
+}
+
+/// 
+open class BotCloudWatchLogGroupLogDestination {
+    LogPrefix: String|Mapping
+    CloudWatchLogGroupArn: String|Mapping
+}
+
+/// Settings that specify the dialog code hook that is called by Amazon Lex at a step of the conversation.
+open class BotDialogCodeHookInvocationSetting {
+    InvocationLabel: (BotName)?
+    PostCodeHookSpecification: BotPostDialogCodeHookInvocationSpecification
+    EnableCodeHookInvocation: Boolean|Mapping
+    IsActive: Boolean|Mapping
+}
+
+/// Defines the Amazon CloudWatch Logs destination log group for conversation text logs.
+open class BotTextLogDestination {
+    CloudWatch: BotCloudWatchLogGroupLogDestination
+}
+
+typealias BotSlotConstraint = String|Mapping
+
+
+/// Specifies the audio and DTMF input specification.
+open class BotAudioAndDTMFInputSpecification {
+    AudioSpecification: (BotAudioSpecification)?
+    StartTimeoutMs: Int|Mapping
+    DTMFSpecification: (BotDTMFSpecification)?
+}
+
+/// Represents an action that the user wants to perform.
+open class BotIntent {
+    FulfillmentCodeHook: (BotFulfillmentCodeHookSetting)?
+    IntentConfirmationSetting: (BotIntentConfirmationSetting)?
+    KendraConfiguration: (BotKendraConfiguration)?
+    Name: BotName
+    IntentClosingSetting: (BotIntentClosingSetting)?
+    SlotPriorities: (BotSlotPrioritiesList)?
+    ParentIntentSignature: (BotParentIntentSignature)?
+    DialogCodeHook: (BotDialogCodeHookSetting)?
+    InputContexts: (BotInputContextsList)?
+    Slots: (Listing<BotSlot>)?
+    SampleUtterances: (BotSampleUtterancesList)?
+    InitialResponseSetting: (BotInitialResponseSetting)?
+    OutputContexts: (BotOutputContextsList)?
+    Description: (BotDescription)?
+}
+
+typealias BotContextTurnsToLive = Int|Mapping
+
+
+typealias BotId = String|Mapping
+
+
+/// Configuration setting for a response sent to the user before Amazon Lex starts eliciting slots.
+open class BotInitialResponseSetting {
+    CodeHook: (BotDialogCodeHookInvocationSetting)?
+    InitialResponse: (BotResponseSpecification)?
+    NextStep: (BotDialogState)?
+    Conditional: (BotConditionalSpecification)?
+}
+
+typealias BotSynonymList = Listing<(BotSampleValue)?>
+
+
+/// Provides settings for a message that is sent periodically to the user while a fulfillment Lambda function is running.
+open class BotFulfillmentUpdateResponseSpecification {
+    MessageGroups: BotMessageGroupsList
+    FrequencyInSeconds: Int|Mapping
+    AllowInterrupt: (Boolean|Mapping)?
+}
+
+/// StillWaitingResponseSpecification.
+open class BotStillWaitingResponseSpecification {
+    AllowInterrupt: (Boolean|Mapping)?
+    MessageGroupsList: BotMessageGroupsList
+    FrequencyInSeconds: BotStillWaitingResponseFrequency
+    TimeoutInSeconds: BotStillWaitingResponseTimeout
+}
+
+/// A set of actions that Amazon Lex should run if none of the other conditions are met.
+open class BotDefaultConditionalBranch {
+    NextStep: (BotDialogState)?
+    Response: (BotResponseSpecification)?
+}
+
+typealias BotAttachmentTitle = String|Mapping
+
+
+typealias BotConditionalBranches = Listing<(BotConditionalBranch)?>
+
+
+/// Settings that determine if a Lambda function should be invoked to fulfill a specific intent.
+open class BotFulfillmentCodeHookSetting {
+    FulfillmentUpdatesSpecification: (BotFulfillmentUpdatesSpecification)?
+    PostFulfillmentStatusSpecification: (BotPostFulfillmentStatusSpecification)?
+    Enabled: Boolean|Mapping
     IsActive: (Boolean|Mapping)?
-    Conditional: (ConditionalSpecification)?
-    NextStep: (DialogState)?
 }
 
-/// Describes the Amazon S3 bucket name and location for the grammar that is the source for the slot type.
-open class GrammarSlotTypeSource {
-    S3ObjectKey: S3ObjectKey
-    KmsKeyArn: (String(matches(Regex(#"^arn:[\w\-]+:kms:[\w\-]+:[\d]{12}:(?:key\/[\w\-]+|alias\/[a-zA-Z0-9:\/_\-]{1,256})$"#)))|Mapping)?
-    S3BucketName: S3BucketName
+typealias BotParentIntentSignature = String|Mapping
+
+
+/// A message in plain text format.
+open class BotPlainTextMessage {
+    Value: String|Mapping
 }
 
-/// Provides information about the external source of the slot type's definition.
-open class ExternalSourceSetting {
-    GrammarSlotTypeSetting: (GrammarSlotTypeSetting)?
-}
+typealias BotName = String|Mapping
 
-/// Override settings to configure the intent state.
-open class IntentOverride {
-    Name: (Name)?
-    Slots: (Listing<SlotValueOverrideMap>)?
-}
 
-/// A locale setting in alias
-open class BotAliasLocaleSettingsItem {
-    LocaleId: String|Mapping
-    BotAliasLocaleSetting: BotAliasLocaleSettings
-}
-
-/// Key/value pair representing session-specific context information. It contains application information passed between Amazon Lex and a client application.
-open class SessionAttribute {
-    Key: String|Mapping
-    Value: (String|Mapping)?
-}
-
-/// Contains information about code hooks that Amazon Lex calls during a conversation.
-open class LambdaCodeHook {
-    LambdaArn: String|Mapping
-    CodeHookInterfaceVersion: String|Mapping
-}
-
-/// The number of conversation turns that the output context should remain active.
-open class ContextTurnsToLive {
-}
-
-/// The priority that Amazon Lex should use when eliciting slot values from a user.
-open class SlotPriority {
-    Priority: PriorityValue
-    SlotName: Name
-}
-
-/// S3 location of bot definitions zip file, if it's not defined inline in CloudFormation.
-open class S3Location {
-    S3Bucket: S3BucketName
-    S3ObjectKey: S3ObjectKey
-    S3ObjectVersion: (String|Mapping)?
-}
-
-/// The different shapes that a slot can be in during a conversation.
-open class SlotShape {
+/// A slot is a variable needed to fulfill an intent, where an intent can require zero or more slots.
+open class BotSlot {
+    Name: BotName
+    Description: (BotDescription)?
+    SlotTypeName: BotSlotTypeName
+    ValueElicitationSetting: BotSlotValueElicitationSetting
+    ObfuscationSetting: (BotObfuscationSetting)?
+    MultipleValuesSetting: (BotMultipleValuesSetting)?
 }
 
 typealias VoiceSettingsEngine = "standard"|"neural"
 
 /// Settings for using an Amazon Polly voice to communicate with a user.
-open class VoiceSettings {
+open class BotVoiceSettings {
     VoiceId: String|Mapping
     Engine: (VoiceSettingsEngine|Mapping)?
 }
 
-/// Specifies next steps to run after the dialog code hook finishes.
-open class PostDialogCodeHookInvocationSpecification {
-    FailureNextStep: (DialogState)?
-    TimeoutConditional: (ConditionalSpecification)?
-    SuccessResponse: (ResponseSpecification)?
-    FailureResponse: (ResponseSpecification)?
-    FailureConditional: (ConditionalSpecification)?
-    TimeoutResponse: (ResponseSpecification)?
-    TimeoutNextStep: (DialogState)?
-    SuccessNextStep: (DialogState)?
-    SuccessConditional: (ConditionalSpecification)?
-}
-
-/// Defines the action that the bot executes at runtime when the conversation reaches this step.
-open class DialogAction {
-    SlotToElicit: (Name)?
-    SuppressNextMessage: (Boolean|Mapping)?
-    Type: DialogActionType
-}
-
-/// The possible values of actions that the conversation can take.
-open class DialogActionType {
-}
-
-/// The value to set in a slot.
-open class SlotValue {
-    InterpretedValue: (String|Mapping)?
-}
-
-/// 
-open class CloudWatchLogGroupLogDestination {
-    CloudWatchLogGroupArn: String|Mapping
-    LogPrefix: String|Mapping
-}
-
-/// A message in a custom format defined by the client application.
-open class CustomPayload {
-    Value: String|Mapping
-}
-
-/// 
-open class S3ObjectKey {
+/// Provides settings that enable advanced recognition settings for slot values.
+open class BotAdvancedRecognitionSetting {
+    AudioRecognitionStrategy: (BotAudioRecognitionStrategy)?
 }
 
 /// A list of values that Amazon Lex should use as the default value for a slot.
-open class SlotDefaultValueSpecification {
-    DefaultValueList: Listing<SlotDefaultValue>
+open class BotSlotDefaultValueSpecification {
+    DefaultValueList: Listing<BotSlotDefaultValue>
+}
+
+/// A message that defines a response card that the client application can show to the user.
+open class BotImageResponseCard {
+    Title: BotAttachmentTitle
+    Subtitle: (BotAttachmentTitle)?
+    ImageUrl: (BotAttachmentUrl)?
+    Buttons: (Listing<BotButton>)?
+}
+
+/// A message in a custom format defined by the client application.
+open class BotCustomPayload {
+    Value: String|Mapping
+}
+
+/// Settings used when Amazon Lex successfully captures a slot value from a user.
+open class BotSlotCaptureSetting {
+    ElicitationCodeHook: (BotElicitationCodeHookInvocationSetting)?
+    CaptureResponse: (BotResponseSpecification)?
+    CaptureNextStep: (BotDialogState)?
+    CaptureConditional: (BotConditionalSpecification)?
+    FailureResponse: (BotResponseSpecification)?
+    FailureNextStep: (BotDialogState)?
+    FailureConditional: (BotConditionalSpecification)?
+    CodeHook: (BotDialogCodeHookInvocationSetting)?
+}
+
+/// InputContext specified for the intent.
+open class BotInputContext {
+    Name: BotName
 }
 
 /// A key-value pair for tagging Lex resources
-open class Tag {
+open class BotTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
-/// A message in Speech Synthesis Markup Language (SSML).
-open class SSMLMessage {
+/// Provides information about the external source of the slot type's definition.
+open class BotExternalSourceSetting {
+    GrammarSlotTypeSetting: (BotGrammarSlotTypeSetting)?
+}
+
+typealias BotSampleUtterancesList = Listing<(BotSampleUtterance)?>
+
+
+typealias BotStillWaitingResponseFrequency = Int|Mapping
+
+
+/// Settings that you can use for eliciting a slot value.
+open class BotSlotValueElicitationSetting {
+    WaitAndContinueSpecification: (BotWaitAndContinueSpecification)?
+    SlotCaptureSetting: (BotSlotCaptureSetting)?
+    DefaultValueSpecification: (BotSlotDefaultValueSpecification)?
+    SlotConstraint: BotSlotConstraint
+    PromptSpecification: (BotPromptSpecification)?
+    SampleUtterances: (BotSampleUtterancesList)?
+}
+
+/// Indicates whether a slot can return multiple values.
+open class BotMultipleValuesSetting {
+    AllowMultipleValues: (Boolean|Mapping)?
+}
+
+/// A custom vocabulary is a list of specific phrases that you want Amazon Lex V2 to recognize in the audio input.
+open class BotCustomVocabulary {
+    CustomVocabularyItems: BotCustomVocabularyItems
+}
+
+typealias BotMessageSelectionStrategy = String|Mapping
+
+
+/// The default value to use when a user doesn't provide a value for a slot.
+open class BotSlotDefaultValue {
+    DefaultValue: String|Mapping
+}
+
+/// Defines one of the values for a slot type.
+open class BotSampleValue {
     Value: String|Mapping
 }
 
-/// The list of input contexts specified for the intent.
-open class InputContextsList {
+/// Specifies an Amazon S3 bucket for logging audio conversations
+open class BotS3BucketLogDestination {
+    S3BucketArn: String(matches(Regex(#"^arn:[\w\-]+:s3:::[a-z0-9][\.\-a-z0-9]{1,61}[a-z0-9]$"#)))|Mapping
+    LogPrefix: String|Mapping
+    KmsKeyArn: (String(matches(Regex(#"^arn:[\w\-]+:kms:[\w\-]+:[\d]{12}:(?:key\/[\w\-]+|alias\/[a-zA-Z0-9:\/_\-]{1,256})$"#)))|Mapping)?
 }
 
-/// Unique name for a resource.
-open class Name {
+/// Value that the slot type can take.
+open class BotSlotTypeValue {
+    Synonyms: (BotSynonymList)?
+    SampleValue: BotSampleValue
 }
 
-/// Provides settings for a message that is sent periodically to the user while a fulfillment Lambda function is running.
-open class FulfillmentUpdateResponseSpecification {
-    MessageGroups: MessageGroupsList
-    FrequencyInSeconds: Int|Mapping
-    AllowInterrupt: (Boolean|Mapping)?
-}
+typealias BotConditionExpression = String|Mapping
 
-/// One to 5 message groups that contain update messages. Amazon Lex chooses one of the messages to play to the user.
-open class MessageGroupsList {
-}
 
-/// A list of contexts that the intent activates when it is fulfilled.
-open class OutputContextsList {
-}
-
-/// Represents an action that the user wants to perform.
-open class Intent {
-    InputContexts: (InputContextsList)?
-    Name: Name
-    ParentIntentSignature: (ParentIntentSignature)?
-    IntentConfirmationSetting: (IntentConfirmationSetting)?
-    InitialResponseSetting: (InitialResponseSetting)?
-    KendraConfiguration: (KendraConfiguration)?
-    SampleUtterances: (SampleUtterancesList)?
-    DialogCodeHook: (DialogCodeHookSetting)?
-    FulfillmentCodeHook: (FulfillmentCodeHookSetting)?
-    Description: (Description)?
-    IntentClosingSetting: (IntentClosingSetting)?
-    Slots: (Listing<Slot>)?
-    OutputContexts: (OutputContextsList)?
-    SlotPriorities: (SlotPrioritiesList)?
+/// Contains information about code hooks that Amazon Lex calls during a conversation.
+open class BotLambdaCodeHook {
+    CodeHookInterfaceVersion: String|Mapping
+    LambdaArn: String|Mapping
 }
 
 /// The slot values that Amazon Lex uses when it sets slot values in a dialog step.
-open class SlotValueOverride {
-    Shape: (SlotShape)?
-    Value: (SlotValue)?
-    Values: (SlotValues)?
+open class BotSlotValueOverride {
+    Value: (BotSlotValue)?
+    Values: (BotSlotValues)?
+    Shape: (BotSlotShape)?
 }
 
-/// Contains information about code hooks that Amazon Lex calls during a conversation.
-open class TextLogSetting {
-    Destination: TextLogDestination
-    Enabled: Boolean|Mapping
+typealias BotPriorityValue = Int|Mapping
+
+
+typealias BotPromptSpecificationPromptAttemptsSpecification = Mapping<String, Any>
+
+/// Prompts the user to confirm the intent.
+open class BotPromptSpecification {
+    MessageGroupsList: BotMessageGroupsList
+    MaxRetries: BotPromptMaxRetries
+    AllowInterrupt: (Boolean|Mapping)?
+    MessageSelectionStrategy: (BotMessageSelectionStrategy)?
+    PromptAttemptsSpecification: (BotPromptSpecificationPromptAttemptsSpecification)?
+}
+
+/// The current state of the conversation with the user.
+open class BotDialogState {
+    SessionAttributes: (Listing<BotSessionAttribute>)?
+    DialogAction: (BotDialogAction)?
+    Intent: (BotIntentOverride)?
+}
+
+/// Defines the action that the bot executes at runtime when the conversation reaches this step.
+open class BotDialogAction {
+    SlotToElicit: (BotName)?
+    SuppressNextMessage: (Boolean|Mapping)?
+    Type: BotDialogActionType
+}
+
+/// Contains settings used by Amazon Lex to select a slot value.
+open class BotSlotValueSelectionSetting {
+    RegexFilter: (BotSlotValueRegexFilter)?
+    AdvancedRecognitionSetting: (BotAdvancedRecognitionSetting)?
+    ResolutionStrategy: BotSlotValueResolutionStrategy
+}
+
+typealias BotLocaleId = String|Mapping
+
+
+/// A locale setting in alias
+open class BotBotAliasLocaleSettingsItem {
+    LocaleId: String|Mapping
+    BotAliasLocaleSetting: BotBotAliasLocaleSettings
 }
 
 /// A session context that is activated when an intent is fulfilled.
-open class OutputContext {
-    Name: Name
-    TimeToLiveInSeconds: ContextTimeToLiveInSeconds
-    TurnsToLive: ContextTurnsToLive
+open class BotOutputContext {
+    Name: BotName
+    TimeToLiveInSeconds: BotContextTimeToLiveInSeconds
+    TurnsToLive: BotContextTurnsToLive
 }
 
-/// The Amazon Resource Name (ARN) of the Amazon Kendra index that you want the AMAZON.KendraSearchIntent intent to search.
-open class KendraIndexArn {
+/// Provides settings for a message that is sent to the user when a fulfillment Lambda function starts running.
+open class BotFulfillmentStartResponseSpecification {
+    MessageGroups: BotMessageGroupsList
+    DelayInSeconds: Int|Mapping
+    AllowInterrupt: (Boolean|Mapping)?
 }
 
-/// The built-in slot type used as a parent of this slot type.
-open class ParentSlotTypeSignature {
+typealias BotConfidenceThreshold = Number|Mapping
+
+
+typealias BotDialogActionType = String|Mapping
+
+
+/// The priority that Amazon Lex should use when eliciting slot values from a user.
+open class BotSlotPriority {
+    Priority: BotPriorityValue
+    SlotName: BotName
 }
+
+/// A sample utterance that invokes an intent or respond to a slot elicitation prompt.
+open class BotSampleUtterance {
+    Utterance: BotUtterance
+}
+
+/// Configuring the test bot alias settings for a given bot
+open class BotTestBotAliasSettings {
+    Description: (BotDescription)?
+    SentimentAnalysisSettings: (Dynamic)?
+    BotAliasLocaleSettings: (BotBotAliasLocaleSettingsList)?
+    ConversationLogSettings: (BotConversationLogSettings)?
+}
+
+/// Specifies the audio input specifications.
+open class BotAudioSpecification {
+    MaxLengthMs: Int|Mapping
+    EndTimeoutMs: Int|Mapping
+}
+
+/// Key/value pair representing session-specific context information. It contains application information passed between Amazon Lex and a client application.
+open class BotSessionAttribute {
+    Key: String|Mapping
+    Value: (String|Mapping)?
+}
+
+typealias BotSlotTypeName = String|Mapping
+
+
+/// A locale in the bot, which contains the intents and slot types that the bot uses in conversations with users in the specified language and locale.
+open class BotBotLocale {
+    Description: (BotDescription)?
+    VoiceSettings: (BotVoiceSettings)?
+    NluConfidenceThreshold: BotConfidenceThreshold
+    Intents: (Listing<BotIntent>)?
+    SlotTypes: (Listing<BotSlotType>)?
+    CustomVocabulary: (BotCustomVocabulary)?
+    LocaleId: BotLocaleId
+}
+
+/// A map of slot names and their overridden values.
+open class BotSlotValueOverrideMap {
+    SlotName: (BotName)?
+    SlotValueOverride: (BotSlotValueOverride)?
+}
+
+typealias ObfuscationSettingObfuscationSettingType = "None"|"DefaultObfuscation"
+
+/// Determines whether Amazon Lex obscures slot values in conversation logs.
+open class BotObfuscationSetting {
+    ObfuscationSettingType: ObfuscationSettingObfuscationSettingType|Mapping
+}
+
+typealias BotDescription = String|Mapping
+
+
+typealias BotParentSlotTypeSignature = String|Mapping
+
 
 /// A custom vocabulary item that contains the phrase to recognize and a weight to give the boost.
-open class CustomVocabularyItem {
+open class BotCustomVocabularyItem {
     Phrase: String|Mapping
     Weight: (Int|Mapping)?
     DisplayAs: (String|Mapping)?
 }
 
-/// Configuration setting for a response sent to the user before Amazon Lex starts eliciting slots.
-open class InitialResponseSetting {
-    InitialResponse: (ResponseSpecification)?
-    NextStep: (DialogState)?
-    Conditional: (ConditionalSpecification)?
-    CodeHook: (DialogCodeHookInvocationSetting)?
+typealias BotCustomVocabularyItems = Listing<(BotCustomVocabularyItem)?>
+
+
+/// The value to set in a slot.
+open class BotSlotValue {
+    InterpretedValue: (String|Mapping)?
 }
 
-/// Provides information on additional privacy protections Amazon Lex should use with the bot's data.
-open class DataPrivacy {
-    ChildDirected: Boolean|Mapping
+/// Specifies the settings on a prompt attempt.
+open class BotPromptAttemptSpecification {
+    AudioAndDTMFInputSpecification: (BotAudioAndDTMFInputSpecification)?
+    TextInputSpecification: (BotTextInputSpecification)?
+    AllowedInputTypes: BotAllowedInputTypes
+    AllowInterrupt: (Boolean|Mapping)?
 }
 
-/// A message in plain text format.
-open class PlainTextMessage {
-    Value: String|Mapping
+/// Provides a setting that determines whether the post-fulfillment response is sent to the user.
+open class BotPostFulfillmentStatusSpecification {
+    TimeoutResponse: (BotResponseSpecification)?
+    TimeoutConditional: (BotConditionalSpecification)?
+    SuccessNextStep: (BotDialogState)?
+    FailureResponse: (BotResponseSpecification)?
+    FailureNextStep: (BotDialogState)?
+    TimeoutNextStep: (BotDialogState)?
+    SuccessResponse: (BotResponseSpecification)?
+    SuccessConditional: (BotConditionalSpecification)?
+    FailureConditional: (BotConditionalSpecification)?
+}
+
+typealias BotSlotTypeValues = Listing<(BotSlotTypeValue)?>
+
+
+/// Contains information about code hooks that Amazon Lex calls during a conversation.
+open class BotConversationLogSettings {
+    AudioLogSettings: (BotAudioLogSettings)?
+    TextLogSettings: (BotTextLogSettings)?
+}
+
+/// Describes the Amazon S3 bucket name and location for the grammar that is the source for the slot type.
+open class BotGrammarSlotTypeSource {
+    S3BucketName: BotS3BucketName
+    S3ObjectKey: BotS3ObjectKey
+    KmsKeyArn: (String(matches(Regex(#"^arn:[\w\-]+:kms:[\w\-]+:[\d]{12}:(?:key\/[\w\-]+|alias\/[a-zA-Z0-9:\/_\-]{1,256})$"#)))|Mapping)?
+}
+
+/// Settings required for a slot type based on a grammar that you provide.
+open class BotGrammarSlotTypeSetting {
+    Source: (BotGrammarSlotTypeSource)?
 }
 
 /// Amazon Lex conversational bot performing automated tasks such as ordering a pizza, booking a hotel, and so on.
@@ -763,51 +721,51 @@ open class Bot extends cloudformation.Resource {
     Type = "AWS::Lex::Bot"
 
 
-    /// Data privacy setting of the Bot.
-    hidden DataPrivacy: Dynamic
+    /// 
+    hidden Name: BotName
 
     /// 
-    hidden BotFileS3Location: (S3Location)?
+    hidden Description: (BotDescription)?
 
     /// 
-    hidden Name: Name
+    hidden RoleArn: BotRoleArn
 
     /// 
-    hidden Description: (Description)?
+    hidden BotFileS3Location: (BotS3Location)?
+
+    /// A list of tags to add to the bot, which can only be added at bot creation.
+    hidden BotTags: (Listing<BotTag>)?
+
+    /// 
+    hidden TestBotAliasSettings: (BotTestBotAliasSettings)?
 
     /// List of bot locales
-    hidden BotLocales: (Listing<BotLocale>)?
+    hidden BotLocales: (Listing<BotBotLocale>)?
 
-    /// A list of tags to add to the test alias for a bot, , which can only be added at bot/bot alias creation.
-    hidden TestBotAliasTags: (Listing<Tag>)?
-
-    /// 
-    hidden TestBotAliasSettings: (TestBotAliasSettings)?
+    /// Data privacy setting of the Bot.
+    hidden DataPrivacy: Dynamic
 
     /// IdleSessionTTLInSeconds of the resource
     hidden IdleSessionTTLInSeconds: Int|Mapping
 
-    /// A list of tags to add to the bot, which can only be added at bot creation.
-    hidden BotTags: (Listing<Tag>)?
+    /// A list of tags to add to the test alias for a bot, , which can only be added at bot/bot alias creation.
+    hidden TestBotAliasTags: (Listing<BotTag>)?
 
     /// Specifies whether to build the bot locales after bot creation completes.
     hidden AutoBuildBotLocales: (Boolean|Mapping)?
 
-    /// 
-    hidden RoleArn: RoleArn
-
     Properties {
-        ["DataPrivacy"] = if (DataPrivacy == null) null else DataPrivacy
-        ["BotFileS3Location"] = if (BotFileS3Location == null) null else BotFileS3Location
         ["Name"] = if (Name == null) null else Name
         ["Description"] = if (Description == null) null else Description
-        ["BotLocales"] = if (BotLocales == null) null else BotLocales
-        ["TestBotAliasTags"] = if (TestBotAliasTags == null) null else TestBotAliasTags
-        ["TestBotAliasSettings"] = if (TestBotAliasSettings == null) null else TestBotAliasSettings
-        ["IdleSessionTTLInSeconds"] = if (IdleSessionTTLInSeconds == null) null else IdleSessionTTLInSeconds
-        ["BotTags"] = if (BotTags == null) null else BotTags
-        ["AutoBuildBotLocales"] = if (AutoBuildBotLocales == null) null else AutoBuildBotLocales
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
+        ["BotFileS3Location"] = if (BotFileS3Location == null) null else BotFileS3Location
+        ["BotTags"] = if (BotTags == null) null else BotTags
+        ["TestBotAliasSettings"] = if (TestBotAliasSettings == null) null else TestBotAliasSettings
+        ["BotLocales"] = if (BotLocales == null) null else BotLocales
+        ["DataPrivacy"] = if (DataPrivacy == null) null else DataPrivacy
+        ["IdleSessionTTLInSeconds"] = if (IdleSessionTTLInSeconds == null) null else IdleSessionTTLInSeconds
+        ["TestBotAliasTags"] = if (TestBotAliasTags == null) null else TestBotAliasTags
+        ["AutoBuildBotLocales"] = if (AutoBuildBotLocales == null) null else AutoBuildBotLocales
     }
 
 }

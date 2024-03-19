@@ -5,9 +5,6 @@ module aws.connect.routingprofile
 
 import "../../cloudformation.pkl"
 
-typealias RoutingProfilePriority = Int|Mapping
-
-
 typealias RoutingProfileQueueArn = String|Mapping
 
 
@@ -17,9 +14,6 @@ open class RoutingProfileTag {
     Value: String|Mapping
 }
 
-typealias RoutingProfileChannel = String|Mapping
-
-
 /// Defines the cross-channel routing behavior that allows an agent working on a contact in one channel to be offered a contact from a different channel.
 open class RoutingProfileCrossChannelBehavior {
     BehaviorType: RoutingProfileBehaviorType
@@ -27,19 +21,17 @@ open class RoutingProfileCrossChannelBehavior {
 
 /// Contains information about which channels are supported, and how many contacts an agent can have on a channel simultaneously.
 open class RoutingProfileMediaConcurrency {
-    CrossChannelBehavior: (RoutingProfileCrossChannelBehavior)?
     Channel: RoutingProfileChannel
     Concurrency: RoutingProfileConcurrency
+    CrossChannelBehavior: (RoutingProfileCrossChannelBehavior)?
 }
 
-/// Contains the channel and queue identifier for a routing profile.
-open class RoutingProfileRoutingProfileQueueReference {
-    Channel: RoutingProfileChannel
-    QueueArn: RoutingProfileQueueArn
+/// Contains information about the queue and channel for which priority and delay can be set.
+open class RoutingProfileRoutingProfileQueueConfig {
+    QueueReference: RoutingProfileRoutingProfileQueueReference
+    Delay: RoutingProfileDelay
+    Priority: RoutingProfilePriority
 }
-
-typealias RoutingProfileConcurrency = Int|Mapping
-
 
 typealias RoutingProfileBehaviorType = String|Mapping
 
@@ -47,12 +39,20 @@ typealias RoutingProfileBehaviorType = String|Mapping
 typealias RoutingProfileDelay = Int|Mapping
 
 
-/// Contains information about the queue and channel for which priority and delay can be set.
-open class RoutingProfileRoutingProfileQueueConfig {
-    Delay: RoutingProfileDelay
-    Priority: RoutingProfilePriority
-    QueueReference: RoutingProfileRoutingProfileQueueReference
+/// Contains the channel and queue identifier for a routing profile.
+open class RoutingProfileRoutingProfileQueueReference {
+    Channel: RoutingProfileChannel
+    QueueArn: RoutingProfileQueueArn
 }
+
+typealias RoutingProfilePriority = Int|Mapping
+
+
+typealias RoutingProfileChannel = String|Mapping
+
+
+typealias RoutingProfileConcurrency = Int|Mapping
+
 
 /// Resource Type definition for AWS::Connect::RoutingProfile
 open class RoutingProfile extends cloudformation.Resource {
@@ -63,17 +63,17 @@ open class RoutingProfile extends cloudformation.Resource {
     /// The identifier of the Amazon Connect instance.
     hidden InstanceArn: String(matches(Regex(#"^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$"#)))|Mapping
 
-    /// The description of the routing profile.
-    hidden Description: String|Mapping
-
-    /// The identifier of the default outbound queue for this routing profile.
-    hidden DefaultOutboundQueueArn: String(matches(Regex(#"^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/queue/[-a-zA-Z0-9]*$"#)))|Mapping
-
     /// The name of the routing profile.
     hidden Name: String|Mapping
 
     /// The channels agents can handle in the Contact Control Panel (CCP) for this routing profile.
     hidden MediaConcurrencies: Listing<RoutingProfileMediaConcurrency>
+
+    /// The description of the routing profile.
+    hidden Description: String|Mapping
+
+    /// The identifier of the default outbound queue for this routing profile.
+    hidden DefaultOutboundQueueArn: String(matches(Regex(#"^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/queue/[-a-zA-Z0-9]*$"#)))|Mapping
 
     /// The queues to associate with this routing profile.
     hidden QueueConfigs: (Listing<RoutingProfileRoutingProfileQueueConfig>)?
@@ -86,10 +86,10 @@ open class RoutingProfile extends cloudformation.Resource {
 
     Properties {
         ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
-        ["Description"] = if (Description == null) null else Description
-        ["DefaultOutboundQueueArn"] = if (DefaultOutboundQueueArn == null) null else DefaultOutboundQueueArn
         ["Name"] = if (Name == null) null else Name
         ["MediaConcurrencies"] = if (MediaConcurrencies == null) null else MediaConcurrencies
+        ["Description"] = if (Description == null) null else Description
+        ["DefaultOutboundQueueArn"] = if (DefaultOutboundQueueArn == null) null else DefaultOutboundQueueArn
         ["QueueConfigs"] = if (QueueConfigs == null) null else QueueConfigs
         ["Tags"] = if (Tags == null) null else Tags
         ["AgentAvailabilityTimer"] = if (AgentAvailabilityTimer == null) null else AgentAvailabilityTimer

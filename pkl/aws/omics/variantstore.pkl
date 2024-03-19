@@ -5,31 +5,24 @@ module aws.omics.variantstore
 
 import "../../cloudformation.pkl"
 
+typealias VariantStoreStoreStatus = String|Mapping
+
+
+typealias VariantStoreTagMap = Mapping<String, Any>
+
+
+typealias VariantStoreEncryptionType = String|Mapping
+
+
 /// 
-open class ReferenceItem {
+open class VariantStoreReferenceItem {
     ReferenceArn: String(matches(Regex(#"^arn:.+$"#)))|Mapping
 }
 
 /// 
-open class SseConfig {
-    Type: EncryptionType
-    KeyArn: (String(matches(Regex(#"arn:([^:
-]*):([^:
-]*):([^:
-]*):([0-9]{12}):([^:
-]*)"#)))|Mapping)?
-}
-
-/// 
-open class StoreStatus {
-}
-
-/// 
-open class TagMap {
-}
-
-/// 
-open class EncryptionType {
+open class VariantStoreSseConfig {
+    Type: VariantStoreEncryptionType
+    KeyArn: (String(matches(Regex(#"arn:([^:\n]*):([^:\n]*):([^:\n]*):([0-9]{12}):([^:\n]*)"#)))|Mapping)?
 }
 
 /// Definition of AWS::Omics::VariantStore Resource Type
@@ -39,25 +32,25 @@ open class VariantStore extends cloudformation.Resource {
 
 
     /// 
-    hidden Tags: (TagMap)?
+    hidden Name: String(matches(Regex(#"^([a-z]){1}([a-z0-9_]){2,254}"#)))|Mapping
 
     /// 
-    hidden SseConfig: (SseConfig)?
+    hidden SseConfig: (VariantStoreSseConfig)?
+
+    /// 
+    hidden Tags: (VariantStoreTagMap)?
 
     /// 
     hidden Description: (String|Mapping)?
 
     /// 
-    hidden Name: String(matches(Regex(#"^([a-z]){1}([a-z0-9_]){2,254}"#)))|Mapping
-
-    /// 
-    hidden Reference: ReferenceItem
+    hidden Reference: VariantStoreReferenceItem
 
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["SseConfig"] = if (SseConfig == null) null else SseConfig
-        ["Description"] = if (Description == null) null else Description
         ["Name"] = if (Name == null) null else Name
+        ["SseConfig"] = if (SseConfig == null) null else SseConfig
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Description"] = if (Description == null) null else Description
         ["Reference"] = if (Reference == null) null else Reference
     }
 

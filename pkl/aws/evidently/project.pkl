@@ -36,6 +36,12 @@ open class Project extends cloudformation.Resource {
 
 
     /// 
+    hidden Name: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
+
+    /// 
+    hidden Description: (String|Mapping)?
+
+    /// 
     hidden DataDelivery: (ProjectDataDeliveryObject)?
 
     /// 
@@ -44,18 +50,12 @@ open class Project extends cloudformation.Resource {
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<ProjectTag>)?
 
-    /// 
-    hidden Name: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
-
-    /// 
-    hidden Description: (String|Mapping)?
-
     Properties {
+        ["Name"] = if (Name == null) null else Name
+        ["Description"] = if (Description == null) null else Description
         ["DataDelivery"] = if (DataDelivery == null) null else DataDelivery
         ["AppConfigResource"] = if (AppConfigResource == null) null else AppConfigResource
         ["Tags"] = if (Tags == null) null else Tags
-        ["Name"] = if (Name == null) null else Name
-        ["Description"] = if (Description == null) null else Description
     }
 
 }

@@ -5,40 +5,158 @@ module aws.appflow.flow
 
 import "../../cloudformation.pkl"
 
+typealias FlowSAPODataConnectorOperator = String|Mapping
+
+
+typealias FlowObject = String|Mapping
+
+
+typealias FlowSlackConnectorOperator = String|Mapping
+
+
+/// 
+open class FlowSnowflakeDestinationProperties {
+    Object: FlowObject
+    IntermediateBucketName: FlowBucketName
+    BucketPrefix: (FlowBucketPrefix)?
+    ErrorHandlingConfig: (FlowErrorHandlingConfig)?
+}
+
+typealias FlowOperatorPropertiesKeys = String|Mapping
+
+
+typealias FlowSalesforceConnectorOperator = String|Mapping
+
+
+/// Configurations of metadata catalog of the flow.
+open class FlowMetadataCatalogConfig {
+    GlueDataCatalog: (FlowGlueDataCatalog)?
+}
+
+typealias FlowPrefixType = String|Mapping
+
+
+/// 
+open class FlowEventBridgeDestinationProperties {
+    Object: FlowObject
+    ErrorHandlingConfig: (FlowErrorHandlingConfig)?
+}
+
+/// 
+open class FlowSalesforceDestinationProperties {
+    WriteOperationType: (FlowWriteOperationType)?
+    DataTransferApi: (FlowDataTransferApi)?
+    Object: FlowObject
+    ErrorHandlingConfig: (FlowErrorHandlingConfig)?
+    IdFieldNames: (Listing<String|Mapping>)?
+}
+
+/// 
+open class FlowMarketoSourceProperties {
+    Object: FlowObject
+}
+
+/// Configuration for scheduled incremental data pull
+open class FlowIncrementalPullConfig {
+    DatetimeTypeFieldName: (FlowDatetimeTypeFieldName)?
+}
+
 typealias FlowDataTransferApi = String|Mapping
 
 
-typealias FlowName = String|Mapping
+/// 
+open class FlowGoogleAnalyticsSourceProperties {
+    Object: FlowObject
+}
+
+/// Source connector details required to query a connector
+open class FlowSourceConnectorProperties {
+    InforNexus: (FlowInforNexusSourceProperties)?
+    S3: (FlowS3SourceProperties)?
+    ServiceNow: (FlowServiceNowSourceProperties)?
+    Singular: (FlowSingularSourceProperties)?
+    Veeva: (FlowVeevaSourceProperties)?
+    Amplitude: (FlowAmplitudeSourceProperties)?
+    Marketo: (FlowMarketoSourceProperties)?
+    Salesforce: (FlowSalesforceSourceProperties)?
+    Slack: (FlowSlackSourceProperties)?
+    Zendesk: (FlowZendeskSourceProperties)?
+    GoogleAnalytics: (FlowGoogleAnalyticsSourceProperties)?
+    Dynatrace: (FlowDynatraceSourceProperties)?
+    SAPOData: (FlowSAPODataSourceProperties)?
+    Pardot: (FlowPardotSourceProperties)?
+    Trendmicro: (FlowTrendmicroSourceProperties)?
+    CustomConnector: (FlowCustomConnectorSourceProperties)?
+    Datadog: (FlowDatadogSourceProperties)?
+}
+
+typealias FlowServiceNowConnectorOperator = String|Mapping
 
 
-typealias FlowIncludeSourceFiles = Boolean|Mapping
+typealias FlowSAPODataMaxPageSize = Int|Mapping
 
 
-typealias FlowPathPrefixHierarchy = Listing<(FlowPathPrefix)?>
+typealias FlowZendeskConnectorOperator = String|Mapping
 
+
+typealias FlowInforNexusConnectorOperator = String|Mapping
+
+
+/// 
+open class FlowMarketoDestinationProperties {
+    Object: FlowObject
+    ErrorHandlingConfig: (FlowErrorHandlingConfig)?
+}
+
+/// 
+open class FlowCustomConnectorSourceProperties {
+    DataTransferApi: (Dynamic)?
+    EntityName: FlowEntityName
+    CustomProperties: (FlowCustomProperties)?
+}
+
+typealias FlowSingularConnectorOperator = String|Mapping
+
+
+/// 
+open class FlowSlackSourceProperties {
+    Object: FlowObject
+}
+
+typealias S3InputFormatConfigS3InputFileType = "CSV"|"JSON"
+
+/// 
+open class FlowS3InputFormatConfig {
+    S3InputFileType: (S3InputFormatConfigS3InputFileType|Mapping)?
+}
+
+typealias FlowIncludeDeletedRecords = Boolean|Mapping
+
+
+typealias ScheduledTriggerPropertiesDataPullMode = "Incremental"|"Complete"
+
+/// Details required for scheduled trigger type
+open class FlowScheduledTriggerProperties {
+    FlowErrorDeactivationThreshold: (Int|Mapping)?
+    ScheduleExpression: String|Mapping
+    DataPullMode: (ScheduledTriggerPropertiesDataPullMode|Mapping)?
+    ScheduleStartTime: (Number|Mapping)?
+    ScheduleEndTime: (Number|Mapping)?
+    FirstExecutionFrom: (Number|Mapping)?
+    TimeZone: (String|Mapping)?
+    ScheduleOffset: (Number|Mapping)?
+}
 
 typealias FlowTriggerType = String|Mapping
 
 
 /// 
-open class FlowS3OutputFormatConfig {
-    PreserveSourceDataTyping: (FlowPreserveSourceDataTyping)?
-    FileType: (FlowFileType)?
-    PrefixConfig: (FlowPrefixConfig)?
-    AggregationConfig: (FlowAggregationConfig)?
-}
-
-typealias FlowMarketoConnectorOperator = String|Mapping
-
-
-typealias FlowPardotConnectorOperator = String|Mapping
-
-
-/// 
-open class FlowS3SourceProperties {
-    BucketName: FlowBucketName
-    BucketPrefix: FlowBucketPrefix
-    S3InputFormatConfig: (FlowS3InputFormatConfig)?
+open class FlowVeevaSourceProperties {
+    IncludeRenditions: (FlowIncludeRenditions)?
+    IncludeAllVersions: (FlowIncludeAllVersions)?
+    Object: FlowObject
+    DocumentType: (FlowDocumentType)?
+    IncludeSourceFiles: (FlowIncludeSourceFiles)?
 }
 
 /// Trigger settings of the flow.
@@ -48,19 +166,7 @@ open class FlowGlueDataCatalog {
     RoleArn: String(matches(Regex(#"arn:aws:iam:.*:[0-9]+:.*"#)))|Mapping
 }
 
-/// 
-open class FlowEventBridgeDestinationProperties {
-    Object: FlowObject
-    ErrorHandlingConfig: (FlowErrorHandlingConfig)?
-}
-
-typealias FlowTrendmicroConnectorOperator = String|Mapping
-
-
-typealias FlowSingularConnectorOperator = String|Mapping
-
-
-typealias FlowCustomProperties = Mapping<String, Any>
+typealias FlowEnableDynamicFieldUpdate = Boolean|Mapping
 
 
 /// 
@@ -71,93 +177,12 @@ open class FlowSalesforceSourceProperties {
     DataTransferApi: (FlowDataTransferApi)?
 }
 
-typealias FlowAggregationType = String|Mapping
-
-
-typealias FlowFileType = String|Mapping
-
-
 /// 
-open class FlowSAPODataSourceProperties {
-    ObjectPath: FlowObject
-    parallelismConfig: (FlowSAPODataParallelismConfig)?
-    paginationConfig: (FlowSAPODataPaginationConfig)?
-}
-
-typealias FlowPrefixType = String|Mapping
-
-
-typealias FlowOperator = String|Mapping
-
-
-/// 
-open class FlowRedshiftDestinationProperties {
-    Object: FlowObject
-    IntermediateBucketName: FlowBucketName
+open class FlowErrorHandlingConfig {
+    FailOnFirstError: (Boolean|Mapping)?
     BucketPrefix: (FlowBucketPrefix)?
-    ErrorHandlingConfig: (FlowErrorHandlingConfig)?
+    BucketName: (FlowBucketName)?
 }
-
-typealias ScheduledTriggerPropertiesDataPullMode = "Incremental"|"Complete"
-
-/// Details required for scheduled trigger type
-open class FlowScheduledTriggerProperties {
-    DataPullMode: (ScheduledTriggerPropertiesDataPullMode|Mapping)?
-    ScheduleStartTime: (Number|Mapping)?
-    ScheduleEndTime: (Number|Mapping)?
-    FirstExecutionFrom: (Number|Mapping)?
-    TimeZone: (String|Mapping)?
-    ScheduleOffset: (Number|Mapping)?
-    FlowErrorDeactivationThreshold: (Int|Mapping)?
-    ScheduleExpression: String|Mapping
-}
-
-/// 
-open class FlowSalesforceDestinationProperties {
-    IdFieldNames: (Listing<String|Mapping>)?
-    WriteOperationType: (FlowWriteOperationType)?
-    DataTransferApi: (FlowDataTransferApi)?
-    Object: FlowObject
-    ErrorHandlingConfig: (FlowErrorHandlingConfig)?
-}
-
-/// 
-open class FlowS3DestinationProperties {
-    BucketName: FlowBucketName
-    BucketPrefix: (FlowBucketPrefix)?
-    S3OutputFormatConfig: (FlowS3OutputFormatConfig)?
-}
-
-typealias S3InputFormatConfigS3InputFileType = "CSV"|"JSON"
-
-/// 
-open class FlowS3InputFormatConfig {
-    S3InputFileType: (S3InputFormatConfigS3InputFileType|Mapping)?
-}
-
-/// 
-open class FlowTask {
-    ConnectorOperator: (FlowConnectorOperator)?
-    DestinationField: (String|Mapping)?
-    TaskType: FlowTaskType
-    TaskProperties: (Listing<FlowTaskPropertiesObject>)?
-    SourceFields: Listing<String|Mapping>
-}
-
-typealias FlowTargetFileSize = Int|Mapping
-
-
-/// Configurations of Source connector of the flow.
-open class FlowSourceFlowConfig {
-    IncrementalPullConfig: (FlowIncrementalPullConfig)?
-    ConnectorType: FlowConnectorType
-    ApiVersion: (FlowApiVersion)?
-    ConnectorProfileName: (FlowConnectorProfileName)?
-    SourceConnectorProperties: FlowSourceConnectorProperties
-}
-
-typealias FlowDatetimeTypeFieldName = String|Mapping
-
 
 /// 
 open class FlowAmplitudeSourceProperties {
@@ -165,147 +190,28 @@ open class FlowAmplitudeSourceProperties {
 }
 
 /// 
-open class FlowInforNexusSourceProperties {
-    Object: FlowObject
+open class FlowSAPODataDestinationProperties {
+    WriteOperationType: (FlowWriteOperationType)?
+    ObjectPath: FlowObject
+    ErrorHandlingConfig: (FlowErrorHandlingConfig)?
+    SuccessResponseHandlingConfig: (FlowSuccessResponseHandlingConfig)?
+    IdFieldNames: (Listing<String|Mapping>)?
 }
 
-/// Configuration for scheduled incremental data pull
-open class FlowIncrementalPullConfig {
-    DatetimeTypeFieldName: (FlowDatetimeTypeFieldName)?
-}
-
-typealias FlowSlackConnectorOperator = String|Mapping
+typealias FlowCustomProperties = Mapping<String, Any>
 
 
-typealias FlowIncludeDeletedRecords = Boolean|Mapping
-
-
-/// Operation to be performed on provided source fields
-open class FlowConnectorOperator {
-    Zendesk: (FlowZendeskConnectorOperator)?
-    Amplitude: (FlowAmplitudeConnectorOperator)?
-    GoogleAnalytics: (FlowGoogleAnalyticsConnectorOperator)?
-    Pardot: (FlowPardotConnectorOperator)?
-    ServiceNow: (FlowServiceNowConnectorOperator)?
-    Datadog: (FlowDatadogConnectorOperator)?
-    InforNexus: (FlowInforNexusConnectorOperator)?
-    Marketo: (FlowMarketoConnectorOperator)?
-    Slack: (FlowSlackConnectorOperator)?
-    Trendmicro: (FlowTrendmicroConnectorOperator)?
-    CustomConnector: (FlowOperator)?
-    Dynatrace: (FlowDynatraceConnectorOperator)?
-    S3: (FlowS3ConnectorOperator)?
-    Salesforce: (FlowSalesforceConnectorOperator)?
-    Singular: (FlowSingularConnectorOperator)?
-    SAPOData: (FlowSAPODataConnectorOperator)?
-    Veeva: (FlowVeevaConnectorOperator)?
-}
-
-/// A label for tagging AppFlow resources
-open class FlowTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// 
-open class FlowErrorHandlingConfig {
-    BucketPrefix: (FlowBucketPrefix)?
-    BucketName: (FlowBucketName)?
-    FailOnFirstError: (Boolean|Mapping)?
-}
-
-/// 
-open class FlowCustomConnectorSourceProperties {
-    DataTransferApi: (Dynamic)?
-    EntityName: FlowEntityName
-    CustomProperties: (FlowCustomProperties)?
-}
-
-typealias FlowIncludeAllVersions = Boolean|Mapping
+typealias FlowDynatraceConnectorOperator = String|Mapping
 
 
 typealias FlowDatadogConnectorOperator = String|Mapping
 
 
-/// Configurations of metadata catalog of the flow.
-open class FlowMetadataCatalogConfig {
-    GlueDataCatalog: (FlowGlueDataCatalog)?
-}
-
-typealias FlowEnableDynamicFieldUpdate = Boolean|Mapping
-
-
-typealias FlowObject = String|Mapping
-
-
 typealias FlowPrefixFormat = String|Mapping
 
 
-typealias FlowWriteOperationType = String|Mapping
+typealias FlowIncludeSourceFiles = Boolean|Mapping
 
-
-/// 
-open class FlowTrendmicroSourceProperties {
-    Object: FlowObject
-}
-
-typealias FlowAmplitudeConnectorOperator = String|Mapping
-
-
-typealias FlowUpsolverBucketName = String|Mapping
-
-
-typealias FlowSalesforceConnectorOperator = String|Mapping
-
-
-/// 
-open class FlowSnowflakeDestinationProperties {
-    IntermediateBucketName: FlowBucketName
-    BucketPrefix: (FlowBucketPrefix)?
-    ErrorHandlingConfig: (FlowErrorHandlingConfig)?
-    Object: FlowObject
-}
-
-/// 
-open class FlowPrefixConfig {
-    PrefixType: (FlowPrefixType)?
-    PrefixFormat: (FlowPrefixFormat)?
-    PathPrefixHierarchy: (FlowPathPrefixHierarchy)?
-}
-
-/// 
-open class FlowDatadogSourceProperties {
-    Object: FlowObject
-}
-
-/// 
-open class FlowMarketoSourceProperties {
-    Object: FlowObject
-}
-
-/// An object used to store task related info
-open class FlowTaskPropertiesObject {
-    Key: FlowOperatorPropertiesKeys
-    Value: String(matches(Regex(#".+"#)))|Mapping
-}
-
-typealias FlowPathPrefix = String|Mapping
-
-
-typealias FlowStatus = String|Mapping
-
-
-/// 
-open class FlowGoogleAnalyticsSourceProperties {
-    Object: FlowObject
-}
-
-/// 
-open class FlowUpsolverDestinationProperties {
-    BucketName: FlowUpsolverBucketName
-    BucketPrefix: (FlowBucketPrefix)?
-    S3OutputFormatConfig: FlowUpsolverS3OutputFormatConfig
-}
 
 /// 
 open class FlowDynatraceSourceProperties {
@@ -315,38 +221,173 @@ open class FlowDynatraceSourceProperties {
 typealias FlowVeevaConnectorOperator = String|Mapping
 
 
+typealias FlowName = String|Mapping
+
+
+typealias FlowPathPrefixHierarchy = Listing<(FlowPathPrefix)?>
+
+
+/// SAP Source connector page size
+open class FlowSAPODataPaginationConfig {
+    maxPageSize: FlowSAPODataMaxPageSize
+}
+
+/// Destination connector details
+open class FlowDestinationConnectorProperties {
+    S3: (FlowS3DestinationProperties)?
+    Upsolver: (FlowUpsolverDestinationProperties)?
+    LookoutMetrics: (FlowLookoutMetricsDestinationProperties)?
+    CustomConnector: (FlowCustomConnectorDestinationProperties)?
+    SAPOData: (FlowSAPODataDestinationProperties)?
+    Redshift: (FlowRedshiftDestinationProperties)?
+    Salesforce: (FlowSalesforceDestinationProperties)?
+    Snowflake: (FlowSnowflakeDestinationProperties)?
+    EventBridge: (FlowEventBridgeDestinationProperties)?
+    Marketo: (FlowMarketoDestinationProperties)?
+    Zendesk: (FlowZendeskDestinationProperties)?
+}
+
+typealias FlowConnectorType = String|Mapping
+
+
+typealias FlowDatetimeTypeFieldName = String|Mapping
+
+
 /// 
-open class FlowSuccessResponseHandlingConfig {
-    BucketName: (FlowBucketName)?
+open class FlowInforNexusSourceProperties {
+    Object: FlowObject
+}
+
+typealias FlowConnectorProfileName = String|Mapping
+
+
+typealias FlowIncludeRenditions = Boolean|Mapping
+
+
+typealias FlowPardotConnectorOperator = String|Mapping
+
+
+typealias FlowS3ConnectorOperator = String|Mapping
+
+
+/// An object used to store task related info
+open class FlowTaskPropertiesObject {
+    Key: FlowOperatorPropertiesKeys
+    Value: String(matches(Regex(#".+"#)))|Mapping
+}
+
+/// 
+open class FlowS3SourceProperties {
+    BucketName: FlowBucketName
+    BucketPrefix: FlowBucketPrefix
+    S3InputFormatConfig: (FlowS3InputFormatConfig)?
+}
+
+/// 
+open class FlowDatadogSourceProperties {
+    Object: FlowObject
+}
+
+/// Operation to be performed on provided source fields
+open class FlowConnectorOperator {
+    Trendmicro: (FlowTrendmicroConnectorOperator)?
+    Datadog: (FlowDatadogConnectorOperator)?
+    Marketo: (FlowMarketoConnectorOperator)?
+    S3: (FlowS3ConnectorOperator)?
+    Pardot: (FlowPardotConnectorOperator)?
+    CustomConnector: (FlowOperator)?
+    GoogleAnalytics: (FlowGoogleAnalyticsConnectorOperator)?
+    Salesforce: (FlowSalesforceConnectorOperator)?
+    ServiceNow: (FlowServiceNowConnectorOperator)?
+    Veeva: (FlowVeevaConnectorOperator)?
+    SAPOData: (FlowSAPODataConnectorOperator)?
+    Slack: (FlowSlackConnectorOperator)?
+    Zendesk: (FlowZendeskConnectorOperator)?
+    Amplitude: (FlowAmplitudeConnectorOperator)?
+    Dynatrace: (FlowDynatraceConnectorOperator)?
+    InforNexus: (FlowInforNexusConnectorOperator)?
+    Singular: (FlowSingularConnectorOperator)?
+}
+
+/// 
+open class FlowRedshiftDestinationProperties {
+    ErrorHandlingConfig: (FlowErrorHandlingConfig)?
+    Object: FlowObject
+    IntermediateBucketName: FlowBucketName
     BucketPrefix: (FlowBucketPrefix)?
 }
-
-/// 
-open class FlowAggregationConfig {
-    AggregationType: (FlowAggregationType)?
-    TargetFileSize: (FlowTargetFileSize)?
-}
-
-typealias FlowSAPODataMaxPageSize = Int|Mapping
-
-
-typealias FlowGoogleAnalyticsConnectorOperator = String|Mapping
-
 
 /// 
 open class FlowServiceNowSourceProperties {
     Object: FlowObject
 }
 
+typealias FlowAggregationType = String|Mapping
+
+
+typealias FlowBucketPrefix = String|Mapping
+
+
+typealias FlowTrendmicroConnectorOperator = String|Mapping
+
+
+/// Configurations of destination connector.
+open class FlowDestinationFlowConfig {
+    ConnectorProfileName: (FlowConnectorProfileName)?
+    DestinationConnectorProperties: FlowDestinationConnectorProperties
+    ConnectorType: FlowConnectorType
+    ApiVersion: (FlowApiVersion)?
+}
+
+typealias FlowStatus = String|Mapping
+
+
+typealias FlowMarketoConnectorOperator = String|Mapping
+
+
+/// 
+open class FlowTrendmicroSourceProperties {
+    Object: FlowObject
+}
+
+typealias FlowPreserveSourceDataTyping = Boolean|Mapping
+
+
 /// 
 open class FlowZendeskSourceProperties {
     Object: FlowObject
 }
 
-typealias FlowSAPODataConnectorOperator = String|Mapping
+/// 
+open class FlowS3DestinationProperties {
+    BucketName: FlowBucketName
+    BucketPrefix: (FlowBucketPrefix)?
+    S3OutputFormatConfig: (FlowS3OutputFormatConfig)?
+}
+
+/// 
+open class FlowTask {
+    TaskProperties: (Listing<FlowTaskPropertiesObject>)?
+    SourceFields: Listing<String|Mapping>
+    ConnectorOperator: (FlowConnectorOperator)?
+    DestinationField: (String|Mapping)?
+    TaskType: FlowTaskType
+}
+
+typealias FlowFileType = String|Mapping
 
 
-typealias FlowZendeskConnectorOperator = String|Mapping
+typealias FlowGoogleAnalyticsConnectorOperator = String|Mapping
+
+
+/// 
+open class FlowUpsolverS3OutputFormatConfig {
+    FileType: (FlowFileType)?
+    PrefixConfig: FlowPrefixConfig
+    AggregationConfig: (FlowAggregationConfig)?
+}
+
+typealias FlowTaskType = String|Mapping
 
 
 /// 
@@ -357,83 +398,46 @@ open class FlowZendeskDestinationProperties {
     WriteOperationType: (FlowWriteOperationType)?
 }
 
-typealias FlowPreserveSourceDataTyping = Boolean|Mapping
-
-
-/// 
-open class FlowLookoutMetricsDestinationProperties {
-    Object: (FlowObject)?
-}
-
-/// SAP Source connector page size
-open class FlowSAPODataPaginationConfig {
-    maxPageSize: FlowSAPODataMaxPageSize
-}
-
-typealias FlowServiceNowConnectorOperator = String|Mapping
-
-
-typealias FlowBucketPrefix = String|Mapping
-
-
-/// Configurations of destination connector.
-open class FlowDestinationFlowConfig {
+/// Configurations of Source connector of the flow.
+open class FlowSourceFlowConfig {
     ConnectorType: FlowConnectorType
     ApiVersion: (FlowApiVersion)?
     ConnectorProfileName: (FlowConnectorProfileName)?
-    DestinationConnectorProperties: FlowDestinationConnectorProperties
+    SourceConnectorProperties: FlowSourceConnectorProperties
+    IncrementalPullConfig: (FlowIncrementalPullConfig)?
 }
 
-/// 
-open class FlowPardotSourceProperties {
-    Object: FlowObject
-}
-
-typealias FlowEntityName = String|Mapping
+typealias FlowTargetFileSize = Int|Mapping
 
 
-typealias FlowApiVersion = String|Mapping
+typealias FlowWriteOperationType = String|Mapping
 
 
-/// 
-open class FlowSlackSourceProperties {
-    Object: FlowObject
-}
+typealias FlowIncludeAllVersions = Boolean|Mapping
 
-/// 
-open class FlowSAPODataDestinationProperties {
-    ObjectPath: FlowObject
-    ErrorHandlingConfig: (FlowErrorHandlingConfig)?
-    SuccessResponseHandlingConfig: (FlowSuccessResponseHandlingConfig)?
-    IdFieldNames: (Listing<String|Mapping>)?
-    WriteOperationType: (FlowWriteOperationType)?
-}
 
-typealias FlowSAPODataMaxParallelism = Int|Mapping
+typealias FlowAmplitudeConnectorOperator = String|Mapping
+
+
+typealias FlowPathPrefix = String|Mapping
 
 
 /// 
-open class FlowSingularSourceProperties {
-    Object: FlowObject
+open class FlowSuccessResponseHandlingConfig {
+    BucketPrefix: (FlowBucketPrefix)?
+    BucketName: (FlowBucketName)?
 }
 
-typealias FlowInforNexusConnectorOperator = String|Mapping
+typealias FlowOperator = String|Mapping
 
 
-typealias FlowTaskType = String|Mapping
+typealias FlowUpsolverBucketName = String|Mapping
 
 
-typealias FlowDocumentType = String|Mapping
-
-
-/// 
-open class FlowMarketoDestinationProperties {
-    Object: FlowObject
-    ErrorHandlingConfig: (FlowErrorHandlingConfig)?
+/// SAP Source connector parallelism factor
+open class FlowSAPODataParallelismConfig {
+    maxParallelism: FlowSAPODataMaxParallelism
 }
-
-typealias FlowConnectorType = String|Mapping
-
 
 /// Trigger settings of the flow.
 open class FlowTriggerConfig {
@@ -442,88 +446,84 @@ open class FlowTriggerConfig {
 }
 
 /// 
-open class FlowVeevaSourceProperties {
-    DocumentType: (FlowDocumentType)?
-    IncludeSourceFiles: (FlowIncludeSourceFiles)?
-    IncludeRenditions: (FlowIncludeRenditions)?
-    IncludeAllVersions: (FlowIncludeAllVersions)?
+open class FlowAggregationConfig {
+    AggregationType: (FlowAggregationType)?
+    TargetFileSize: (FlowTargetFileSize)?
+}
+
+/// 
+open class FlowS3OutputFormatConfig {
+    FileType: (FlowFileType)?
+    PrefixConfig: (FlowPrefixConfig)?
+    AggregationConfig: (FlowAggregationConfig)?
+    PreserveSourceDataTyping: (FlowPreserveSourceDataTyping)?
+}
+
+typealias FlowEntityName = String|Mapping
+
+
+/// 
+open class FlowPrefixConfig {
+    PrefixType: (FlowPrefixType)?
+    PrefixFormat: (FlowPrefixFormat)?
+    PathPrefixHierarchy: (FlowPathPrefixHierarchy)?
+}
+
+typealias FlowDocumentType = String|Mapping
+
+
+typealias FlowSAPODataMaxParallelism = Int|Mapping
+
+
+/// 
+open class FlowSAPODataSourceProperties {
+    ObjectPath: FlowObject
+    parallelismConfig: (FlowSAPODataParallelismConfig)?
+    paginationConfig: (FlowSAPODataPaginationConfig)?
+}
+
+/// 
+open class FlowUpsolverDestinationProperties {
+    BucketName: FlowUpsolverBucketName
+    BucketPrefix: (FlowBucketPrefix)?
+    S3OutputFormatConfig: FlowUpsolverS3OutputFormatConfig
+}
+
+/// 
+open class FlowCustomConnectorDestinationProperties {
+    EntityName: FlowEntityName
+    ErrorHandlingConfig: (FlowErrorHandlingConfig)?
+    WriteOperationType: (FlowWriteOperationType)?
+    IdFieldNames: (Listing<String|Mapping>)?
+    CustomProperties: (FlowCustomProperties)?
+}
+
+/// 
+open class FlowSingularSourceProperties {
     Object: FlowObject
+}
+
+/// A label for tagging AppFlow resources
+open class FlowTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class FlowLookoutMetricsDestinationProperties {
+    Object: (FlowObject)?
 }
 
 typealias FlowBucketName = String|Mapping
 
 
-typealias FlowOperatorPropertiesKeys = String|Mapping
-
-
-/// Destination connector details
-open class FlowDestinationConnectorProperties {
-    Snowflake: (FlowSnowflakeDestinationProperties)?
-    LookoutMetrics: (FlowLookoutMetricsDestinationProperties)?
-    EventBridge: (FlowEventBridgeDestinationProperties)?
-    Upsolver: (FlowUpsolverDestinationProperties)?
-    Marketo: (FlowMarketoDestinationProperties)?
-    Zendesk: (FlowZendeskDestinationProperties)?
-    CustomConnector: (FlowCustomConnectorDestinationProperties)?
-    Redshift: (FlowRedshiftDestinationProperties)?
-    S3: (FlowS3DestinationProperties)?
-    Salesforce: (FlowSalesforceDestinationProperties)?
-    SAPOData: (FlowSAPODataDestinationProperties)?
-}
-
-typealias FlowDynatraceConnectorOperator = String|Mapping
-
-
 /// 
-open class FlowCustomConnectorDestinationProperties {
-    CustomProperties: (FlowCustomProperties)?
-    EntityName: FlowEntityName
-    ErrorHandlingConfig: (FlowErrorHandlingConfig)?
-    WriteOperationType: (FlowWriteOperationType)?
-    IdFieldNames: (Listing<String|Mapping>)?
+open class FlowPardotSourceProperties {
+    Object: FlowObject
 }
 
-typealias FlowIncludeRenditions = Boolean|Mapping
+typealias FlowApiVersion = String|Mapping
 
-
-typealias FlowConnectorProfileName = String|Mapping
-
-
-/// Source connector details required to query a connector
-open class FlowSourceConnectorProperties {
-    GoogleAnalytics: (FlowGoogleAnalyticsSourceProperties)?
-    Marketo: (FlowMarketoSourceProperties)?
-    ServiceNow: (FlowServiceNowSourceProperties)?
-    Slack: (FlowSlackSourceProperties)?
-    Trendmicro: (FlowTrendmicroSourceProperties)?
-    Amplitude: (FlowAmplitudeSourceProperties)?
-    Dynatrace: (FlowDynatraceSourceProperties)?
-    Singular: (FlowSingularSourceProperties)?
-    Zendesk: (FlowZendeskSourceProperties)?
-    CustomConnector: (FlowCustomConnectorSourceProperties)?
-    Datadog: (FlowDatadogSourceProperties)?
-    InforNexus: (FlowInforNexusSourceProperties)?
-    SAPOData: (FlowSAPODataSourceProperties)?
-    Salesforce: (FlowSalesforceSourceProperties)?
-    Pardot: (FlowPardotSourceProperties)?
-    Veeva: (FlowVeevaSourceProperties)?
-    S3: (FlowS3SourceProperties)?
-}
-
-/// 
-open class FlowUpsolverS3OutputFormatConfig {
-    FileType: (FlowFileType)?
-    PrefixConfig: FlowPrefixConfig
-    AggregationConfig: (FlowAggregationConfig)?
-}
-
-typealias FlowS3ConnectorOperator = String|Mapping
-
-
-/// SAP Source connector parallelism factor
-open class FlowSAPODataParallelismConfig {
-    maxParallelism: FlowSAPODataMaxParallelism
-}
 
 /// Resource schema for AWS::AppFlow::Flow.
 open class Flow extends cloudformation.Resource {
@@ -531,14 +531,8 @@ open class Flow extends cloudformation.Resource {
     Type = "AWS::AppFlow::Flow"
 
 
-    /// Configurations of metadata catalog of the flow.
-    hidden MetadataCatalogConfig: (FlowMetadataCatalogConfig)?
-
-    /// Name of the flow.
-    hidden FlowName: String(matches(Regex(#"[a-zA-Z0-9][\w!@#.-]+"#)))|Mapping
-
-    /// Description of the flow.
-    hidden Description: (String(matches(Regex(#"[\w!@#\-.?,\s]*"#)))|Mapping)?
+    /// Flow activation status for Scheduled- and Event-triggered flows
+    hidden FlowStatus: (FlowFlowStatus|Mapping)?
 
     /// Configurations of Source connector of the flow.
     hidden SourceFlowConfig: FlowSourceFlowConfig
@@ -549,29 +543,35 @@ open class Flow extends cloudformation.Resource {
     /// List of tasks for the flow.
     hidden Tasks: Listing<FlowTask>
 
-    /// List of Tags.
-    hidden Tags: (Listing<FlowTag>)?
+    /// Name of the flow.
+    hidden FlowName: String(matches(Regex(#"[a-zA-Z0-9][\w!@#.-]+"#)))|Mapping
 
-    /// The ARN of the AWS Key Management Service (AWS KMS) key that's used to encrypt your function's environment variables. If it's not provided, AWS Lambda uses a default service key.
-    hidden KMSArn: (String(matches(Regex(#"arn:aws:kms:.*:[0-9]+:.*"#)))|Mapping)?
+    /// Description of the flow.
+    hidden Description: (String(matches(Regex(#"[\w!@#\-.?,\s]*"#)))|Mapping)?
 
     /// Trigger settings of the flow.
     hidden TriggerConfig: FlowTriggerConfig
 
-    /// Flow activation status for Scheduled- and Event-triggered flows
-    hidden FlowStatus: (FlowFlowStatus|Mapping)?
+    /// Configurations of metadata catalog of the flow.
+    hidden MetadataCatalogConfig: (FlowMetadataCatalogConfig)?
+
+    /// The ARN of the AWS Key Management Service (AWS KMS) key that's used to encrypt your function's environment variables. If it's not provided, AWS Lambda uses a default service key.
+    hidden KMSArn: (String(matches(Regex(#"arn:aws:kms:.*:[0-9]+:.*"#)))|Mapping)?
+
+    /// List of Tags.
+    hidden Tags: (Listing<FlowTag>)?
 
     Properties {
-        ["MetadataCatalogConfig"] = if (MetadataCatalogConfig == null) null else MetadataCatalogConfig
-        ["FlowName"] = if (FlowName == null) null else FlowName
-        ["Description"] = if (Description == null) null else Description
+        ["FlowStatus"] = if (FlowStatus == null) null else FlowStatus
         ["SourceFlowConfig"] = if (SourceFlowConfig == null) null else SourceFlowConfig
         ["DestinationFlowConfigList"] = if (DestinationFlowConfigList == null) null else DestinationFlowConfigList
         ["Tasks"] = if (Tasks == null) null else Tasks
-        ["Tags"] = if (Tags == null) null else Tags
-        ["KMSArn"] = if (KMSArn == null) null else KMSArn
+        ["FlowName"] = if (FlowName == null) null else FlowName
+        ["Description"] = if (Description == null) null else Description
         ["TriggerConfig"] = if (TriggerConfig == null) null else TriggerConfig
-        ["FlowStatus"] = if (FlowStatus == null) null else FlowStatus
+        ["MetadataCatalogConfig"] = if (MetadataCatalogConfig == null) null else MetadataCatalogConfig
+        ["KMSArn"] = if (KMSArn == null) null else KMSArn
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

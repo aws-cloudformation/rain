@@ -5,113 +5,16 @@ module aws.customerprofiles.integration
 
 import "../../cloudformation.pkl"
 
-typealias IntegrationZendeskConnectorOperator = String|Mapping
-
-
 /// 
-open class IntegrationSourceConnectorProperties {
-    Marketo: (IntegrationMarketoSourceProperties)?
-    S3: (IntegrationS3SourceProperties)?
-    Salesforce: (IntegrationSalesforceSourceProperties)?
-    ServiceNow: (IntegrationServiceNowSourceProperties)?
-    Zendesk: (IntegrationZendeskSourceProperties)?
-}
-
-typealias IntegrationTriggerType = String|Mapping
-
-
-/// 
-open class IntegrationZendeskSourceProperties {
-    Object: IntegrationObject
-}
-
-/// 
-open class IntegrationServiceNowSourceProperties {
-    Object: IntegrationObject
-}
-
-/// 
-open class IntegrationSalesforceSourceProperties {
-    Object: IntegrationObject
-    EnableDynamicFieldUpdate: (Boolean|Mapping)?
-    IncludeDeletedRecords: (Boolean|Mapping)?
-}
-
-typealias IntegrationSalesforceConnectorOperator = String|Mapping
-
-
-/// 
-open class IntegrationFlowDefinition {
-    KmsArn: String(matches(Regex(#"arn:aws:kms:.*:[0-9]+:.*"#)))|Mapping
-    Tasks: Listing<IntegrationTask>
-    TriggerConfig: IntegrationTriggerConfig
-    SourceFlowConfig: IntegrationSourceFlowConfig
-    FlowName: String(matches(Regex(#"[a-zA-Z0-9][\w!@#.-]+"#)))|Mapping
-    Description: (String(matches(Regex(#"[\w!@#\-.?,\s]*"#)))|Mapping)?
-}
-
-/// 
-open class IntegrationObjectTypeMapping {
-    Key: String|Mapping
-    Value: String(matches(Regex(#"^[a-zA-Z_][a-zA-Z_0-9-]*$"#)))|Mapping
-}
-
-/// 
-open class IntegrationTaskPropertiesMap {
-    OperatorPropertyKey: IntegrationOperatorPropertiesKeys
-    Property: String(matches(Regex(#".+"#)))|Mapping
-}
-
-typealias IntegrationOperatorPropertiesKeys = String|Mapping
-
-
-typealias IntegrationServiceNowConnectorOperator = String|Mapping
-
-
-/// 
-open class IntegrationTag {
-    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
-    Value: String|Mapping
-}
-
-/// 
-open class IntegrationTriggerProperties {
-    Scheduled: (IntegrationScheduledTriggerProperties)?
-}
-
-typealias ScheduledTriggerPropertiesDataPullMode = "Incremental"|"Complete"
-
-/// 
-open class IntegrationScheduledTriggerProperties {
-    ScheduleEndTime: (IntegrationDate)?
-    Timezone: (String(matches(Regex(#".*"#)))|Mapping)?
-    ScheduleOffset: (Int|Mapping)?
-    FirstExecutionFrom: (IntegrationDate)?
-    ScheduleExpression: String(matches(Regex(#".*"#)))|Mapping
-    DataPullMode: (ScheduledTriggerPropertiesDataPullMode|Mapping)?
-    ScheduleStartTime: (IntegrationDate)?
-}
-
-/// 
-open class IntegrationIncrementalPullConfig {
-    DatetimeTypeFieldName: (String|Mapping)?
+open class IntegrationConnectorOperator {
+    Marketo: (IntegrationMarketoConnectorOperator)?
+    S3: (IntegrationS3ConnectorOperator)?
+    Salesforce: (IntegrationSalesforceConnectorOperator)?
+    ServiceNow: (IntegrationServiceNowConnectorOperator)?
+    Zendesk: (IntegrationZendeskConnectorOperator)?
 }
 
 typealias IntegrationOperator = String|Mapping
-
-
-typealias IntegrationDestinationField = String|Mapping
-
-
-/// 
-open class IntegrationMarketoSourceProperties {
-    Object: IntegrationObject
-}
-
-typealias IntegrationConnectorType = String|Mapping
-
-
-typealias IntegrationMarketoConnectorOperator = String|Mapping
 
 
 /// 
@@ -122,11 +25,71 @@ open class IntegrationSourceFlowConfig {
     ConnectorProfileName: (String(matches(Regex(#"[\w/!@#+=.-]+"#)))|Mapping)?
 }
 
+typealias IntegrationS3ConnectorOperator = String|Mapping
+
+
+typealias IntegrationZendeskConnectorOperator = String|Mapping
+
+
+/// 
+open class IntegrationSalesforceSourceProperties {
+    Object: IntegrationObject
+    EnableDynamicFieldUpdate: (Boolean|Mapping)?
+    IncludeDeletedRecords: (Boolean|Mapping)?
+}
+
+/// 
+open class IntegrationTriggerProperties {
+    Scheduled: (IntegrationScheduledTriggerProperties)?
+}
+
+/// 
+open class IntegrationObjectTypeMapping {
+    Key: String|Mapping
+    Value: String(matches(Regex(#"^[a-zA-Z_][a-zA-Z_0-9-]*$"#)))|Mapping
+}
+
+typealias IntegrationSalesforceConnectorOperator = String|Mapping
+
+
+typealias ScheduledTriggerPropertiesDataPullMode = "Incremental"|"Complete"
+
+/// 
+open class IntegrationScheduledTriggerProperties {
+    ScheduleStartTime: (IntegrationDate)?
+    ScheduleEndTime: (IntegrationDate)?
+    Timezone: (String(matches(Regex(#".*"#)))|Mapping)?
+    ScheduleOffset: (Int|Mapping)?
+    FirstExecutionFrom: (IntegrationDate)?
+    ScheduleExpression: String(matches(Regex(#".*"#)))|Mapping
+    DataPullMode: (ScheduledTriggerPropertiesDataPullMode|Mapping)?
+}
+
+/// 
+open class IntegrationMarketoSourceProperties {
+    Object: IntegrationObject
+}
+
+typealias IntegrationConnectorType = String|Mapping
+
+
+typealias IntegrationServiceNowConnectorOperator = String|Mapping
+
+
+typealias IntegrationTriggerType = String|Mapping
+
+
 /// 
 open class IntegrationS3SourceProperties {
-    BucketName: String(matches(Regex(#"\S+"#)))|Mapping
     BucketPrefix: (String(matches(Regex(#".*"#)))|Mapping)?
+    BucketName: String(matches(Regex(#"\S+"#)))|Mapping
 }
+
+typealias IntegrationMarketoConnectorOperator = String|Mapping
+
+
+typealias IntegrationDate = Number|Mapping
+
 
 /// 
 open class IntegrationTask {
@@ -138,19 +101,53 @@ open class IntegrationTask {
 }
 
 /// 
-open class IntegrationConnectorOperator {
-    S3: (IntegrationS3ConnectorOperator)?
-    Salesforce: (IntegrationSalesforceConnectorOperator)?
-    ServiceNow: (IntegrationServiceNowConnectorOperator)?
-    Zendesk: (IntegrationZendeskConnectorOperator)?
-    Marketo: (IntegrationMarketoConnectorOperator)?
+open class IntegrationIncrementalPullConfig {
+    DatetimeTypeFieldName: (String|Mapping)?
+}
+
+typealias IntegrationOperatorPropertiesKeys = String|Mapping
+
+
+/// 
+open class IntegrationTaskPropertiesMap {
+    OperatorPropertyKey: IntegrationOperatorPropertiesKeys
+    Property: String(matches(Regex(#".+"#)))|Mapping
+}
+
+/// 
+open class IntegrationFlowDefinition {
+    Tasks: Listing<IntegrationTask>
+    TriggerConfig: IntegrationTriggerConfig
+    SourceFlowConfig: IntegrationSourceFlowConfig
+    FlowName: String(matches(Regex(#"[a-zA-Z0-9][\w!@#.-]+"#)))|Mapping
+    Description: (String(matches(Regex(#"[\w!@#\-.?,\s]*"#)))|Mapping)?
+    KmsArn: String(matches(Regex(#"arn:aws:kms:.*:[0-9]+:.*"#)))|Mapping
 }
 
 typealias IntegrationObject = String|Mapping
 
 
-typealias IntegrationS3ConnectorOperator = String|Mapping
+typealias IntegrationDestinationField = String|Mapping
 
+
+/// 
+open class IntegrationServiceNowSourceProperties {
+    Object: IntegrationObject
+}
+
+/// 
+open class IntegrationZendeskSourceProperties {
+    Object: IntegrationObject
+}
+
+/// 
+open class IntegrationSourceConnectorProperties {
+    Marketo: (IntegrationMarketoSourceProperties)?
+    S3: (IntegrationS3SourceProperties)?
+    Salesforce: (IntegrationSalesforceSourceProperties)?
+    ServiceNow: (IntegrationServiceNowSourceProperties)?
+    Zendesk: (IntegrationZendeskSourceProperties)?
+}
 
 typealias IntegrationTaskType = String|Mapping
 
@@ -161,23 +158,17 @@ open class IntegrationTriggerConfig {
     TriggerProperties: (IntegrationTriggerProperties)?
 }
 
-typealias IntegrationDate = Number|Mapping
-
+/// 
+open class IntegrationTag {
+    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
+    Value: String|Mapping
+}
 
 /// The resource schema for creating an Amazon Connect Customer Profiles Integration.
 open class Integration extends cloudformation.Resource {
 
     Type = "AWS::CustomerProfiles::Integration"
 
-
-    /// The tags (keys and values) associated with the integration
-    hidden Tags: (Listing<IntegrationTag>)?
-
-    /// The mapping between 3rd party event types and ObjectType names
-    hidden ObjectTypeNames: (Listing<IntegrationObjectTypeMapping>)?
-
-    /// The unique name of the domain.
-    hidden DomainName: String(matches(Regex(#"^[a-zA-Z0-9_-]+$"#)))|Mapping
 
     /// The URI of the S3 bucket or any other type of data source.
     hidden Uri: (String|Mapping)?
@@ -188,13 +179,22 @@ open class Integration extends cloudformation.Resource {
     /// The name of the ObjectType defined for the 3rd party data in Profile Service
     hidden ObjectTypeName: (String(matches(Regex(#"^[a-zA-Z_][a-zA-Z_0-9-]*$"#)))|Mapping)?
 
+    /// The tags (keys and values) associated with the integration
+    hidden Tags: (Listing<IntegrationTag>)?
+
+    /// The mapping between 3rd party event types and ObjectType names
+    hidden ObjectTypeNames: (Listing<IntegrationObjectTypeMapping>)?
+
+    /// The unique name of the domain.
+    hidden DomainName: String(matches(Regex(#"^[a-zA-Z0-9_-]+$"#)))|Mapping
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["ObjectTypeNames"] = if (ObjectTypeNames == null) null else ObjectTypeNames
-        ["DomainName"] = if (DomainName == null) null else DomainName
         ["Uri"] = if (Uri == null) null else Uri
         ["FlowDefinition"] = if (FlowDefinition == null) null else FlowDefinition
         ["ObjectTypeName"] = if (ObjectTypeName == null) null else ObjectTypeName
+        ["Tags"] = if (Tags == null) null else Tags
+        ["ObjectTypeNames"] = if (ObjectTypeNames == null) null else ObjectTypeNames
+        ["DomainName"] = if (DomainName == null) null else DomainName
     }
 
 }

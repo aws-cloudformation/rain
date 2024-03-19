@@ -6,44 +6,44 @@ module aws.opsworks.stack
 import "../../cloudformation.pkl"
 
 /// 
-open class Source {
-    Url: (String|Mapping)?
-    Username: (String|Mapping)?
-    Password: (String|Mapping)?
-    Revision: (String|Mapping)?
-    SshKey: (String|Mapping)?
-    Type: (String|Mapping)?
-}
-
-/// 
-open class StackConfigurationManager {
-    Name: (String|Mapping)?
-    Version: (String|Mapping)?
-}
-
-/// 
-open class RdsDbInstance {
+open class StackRdsDbInstance {
     DbPassword: String|Mapping
     DbUser: String|Mapping
     RdsDbInstanceArn: String|Mapping
 }
 
 /// 
-open class ElasticIp {
+open class StackElasticIp {
     Ip: String|Mapping
     Name: (String|Mapping)?
 }
 
 /// 
-open class ChefConfiguration {
+open class StackChefConfiguration {
     BerkshelfVersion: (String|Mapping)?
     ManageBerkshelf: (Boolean|Mapping)?
 }
 
 /// 
-open class Tag {
+open class StackTag {
     Key: String|Mapping
     Value: String|Mapping
+}
+
+/// 
+open class StackSource {
+    Type: (String|Mapping)?
+    Url: (String|Mapping)?
+    Username: (String|Mapping)?
+    Password: (String|Mapping)?
+    Revision: (String|Mapping)?
+    SshKey: (String|Mapping)?
+}
+
+/// 
+open class StackStackConfigurationManager {
+    Version: (String|Mapping)?
+    Name: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::OpsWorks::Stack
@@ -53,67 +53,40 @@ open class Stack extends cloudformation.Resource {
 
 
     /// 
-    hidden AgentVersion: (String|Mapping)?
+    hidden DefaultAvailabilityZone: (String|Mapping)?
 
     /// 
-    hidden CustomCookbooksSource: (Source)?
-
-    /// 
-    hidden DefaultOs: (String|Mapping)?
-
-    /// 
-    hidden DefaultRootDeviceType: (String|Mapping)?
+    hidden ServiceRoleArn: String|Mapping
 
     /// 
     hidden DefaultSshKeyName: (String|Mapping)?
 
     /// 
-    hidden SourceStackId: (String|Mapping)?
+    hidden VpcId: (String|Mapping)?
 
     /// 
-    hidden ChefConfiguration: (ChefConfiguration)?
+    hidden DefaultOs: (String|Mapping)?
+
+    /// 
+    hidden RdsDbInstances: (Listing<StackRdsDbInstance>)?
 
     /// 
     hidden ClonePermissions: (Boolean|Mapping)?
 
     /// 
-    hidden ConfigurationManager: (StackConfigurationManager)?
+    hidden CustomCookbooksSource: (StackSource)?
 
     /// 
-    hidden Name: String|Mapping
+    hidden DefaultRootDeviceType: (String|Mapping)?
 
     /// 
-    hidden RdsDbInstances: (Listing<RdsDbInstance>)?
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden Attributes: (Dynamic)?
+    hidden ElasticIps: (Listing<StackElasticIp>)?
 
     /// 
     hidden UseCustomCookbooks: (Boolean|Mapping)?
 
     /// 
-    hidden CustomJson: (Dynamic)?
-
-    /// 
-    hidden DefaultSubnetId: (String|Mapping)?
-
-    /// 
-    hidden EcsClusterArn: (String|Mapping)?
-
-    /// 
-    hidden CloneAppIds: (Listing<String|Mapping>)?
-
-    /// 
-    hidden ElasticIps: (Listing<ElasticIp>)?
-
-    /// 
-    hidden VpcId: (String|Mapping)?
-
-    /// 
-    hidden DefaultAvailabilityZone: (String|Mapping)?
+    hidden AgentVersion: (String|Mapping)?
 
     /// 
     hidden DefaultInstanceProfileArn: String|Mapping
@@ -122,37 +95,67 @@ open class Stack extends cloudformation.Resource {
     hidden HostnameTheme: (String|Mapping)?
 
     /// 
-    hidden ServiceRoleArn: String|Mapping
+    hidden CloneAppIds: (Listing<String|Mapping>)?
+
+    /// 
+    hidden DefaultSubnetId: (String|Mapping)?
+
+    /// 
+    hidden EcsClusterArn: (String|Mapping)?
+
+    /// 
+    hidden Name: String|Mapping
+
+    /// 
+    hidden SourceStackId: (String|Mapping)?
 
     /// 
     hidden UseOpsworksSecurityGroups: (Boolean|Mapping)?
 
+    /// 
+    hidden Attributes: (StackStackAttributes)?
+
+    /// 
+    hidden CustomJson: (Dynamic)?
+
+    /// 
+    hidden Tags: (Listing<StackTag>)?
+
+    /// 
+    hidden ChefConfiguration: (StackChefConfiguration)?
+
+    /// 
+    hidden ConfigurationManager: (StackStackConfigurationManager)?
+
     Properties {
-        ["AgentVersion"] = if (AgentVersion == null) null else AgentVersion
-        ["CustomCookbooksSource"] = if (CustomCookbooksSource == null) null else CustomCookbooksSource
-        ["DefaultOs"] = if (DefaultOs == null) null else DefaultOs
-        ["DefaultRootDeviceType"] = if (DefaultRootDeviceType == null) null else DefaultRootDeviceType
-        ["DefaultSshKeyName"] = if (DefaultSshKeyName == null) null else DefaultSshKeyName
-        ["SourceStackId"] = if (SourceStackId == null) null else SourceStackId
-        ["ChefConfiguration"] = if (ChefConfiguration == null) null else ChefConfiguration
-        ["ClonePermissions"] = if (ClonePermissions == null) null else ClonePermissions
-        ["ConfigurationManager"] = if (ConfigurationManager == null) null else ConfigurationManager
-        ["Name"] = if (Name == null) null else Name
-        ["RdsDbInstances"] = if (RdsDbInstances == null) null else RdsDbInstances
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Attributes"] = if (Attributes == null) null else Attributes
-        ["UseCustomCookbooks"] = if (UseCustomCookbooks == null) null else UseCustomCookbooks
-        ["CustomJson"] = if (CustomJson == null) null else CustomJson
-        ["DefaultSubnetId"] = if (DefaultSubnetId == null) null else DefaultSubnetId
-        ["EcsClusterArn"] = if (EcsClusterArn == null) null else EcsClusterArn
-        ["CloneAppIds"] = if (CloneAppIds == null) null else CloneAppIds
-        ["ElasticIps"] = if (ElasticIps == null) null else ElasticIps
-        ["VpcId"] = if (VpcId == null) null else VpcId
         ["DefaultAvailabilityZone"] = if (DefaultAvailabilityZone == null) null else DefaultAvailabilityZone
+        ["ServiceRoleArn"] = if (ServiceRoleArn == null) null else ServiceRoleArn
+        ["DefaultSshKeyName"] = if (DefaultSshKeyName == null) null else DefaultSshKeyName
+        ["VpcId"] = if (VpcId == null) null else VpcId
+        ["DefaultOs"] = if (DefaultOs == null) null else DefaultOs
+        ["RdsDbInstances"] = if (RdsDbInstances == null) null else RdsDbInstances
+        ["ClonePermissions"] = if (ClonePermissions == null) null else ClonePermissions
+        ["CustomCookbooksSource"] = if (CustomCookbooksSource == null) null else CustomCookbooksSource
+        ["DefaultRootDeviceType"] = if (DefaultRootDeviceType == null) null else DefaultRootDeviceType
+        ["ElasticIps"] = if (ElasticIps == null) null else ElasticIps
+        ["UseCustomCookbooks"] = if (UseCustomCookbooks == null) null else UseCustomCookbooks
+        ["AgentVersion"] = if (AgentVersion == null) null else AgentVersion
         ["DefaultInstanceProfileArn"] = if (DefaultInstanceProfileArn == null) null else DefaultInstanceProfileArn
         ["HostnameTheme"] = if (HostnameTheme == null) null else HostnameTheme
-        ["ServiceRoleArn"] = if (ServiceRoleArn == null) null else ServiceRoleArn
+        ["CloneAppIds"] = if (CloneAppIds == null) null else CloneAppIds
+        ["DefaultSubnetId"] = if (DefaultSubnetId == null) null else DefaultSubnetId
+        ["EcsClusterArn"] = if (EcsClusterArn == null) null else EcsClusterArn
+        ["Name"] = if (Name == null) null else Name
+        ["SourceStackId"] = if (SourceStackId == null) null else SourceStackId
         ["UseOpsworksSecurityGroups"] = if (UseOpsworksSecurityGroups == null) null else UseOpsworksSecurityGroups
+        ["Attributes"] = if (Attributes == null) null else Attributes
+        ["CustomJson"] = if (CustomJson == null) null else CustomJson
+        ["Tags"] = if (Tags == null) null else Tags
+        ["ChefConfiguration"] = if (ChefConfiguration == null) null else ChefConfiguration
+        ["ConfigurationManager"] = if (ConfigurationManager == null) null else ConfigurationManager
     }
 
 }
+
+
+typealias StackStackAttributes = Mapping<String, Any>

@@ -6,14 +6,20 @@ module aws.glue.database
 import "../../cloudformation.pkl"
 
 /// 
+open class DatabaseFederatedDatabase {
+    Identifier: (String|Mapping)?
+    ConnectionName: (String|Mapping)?
+}
+
+/// 
 open class DatabaseDatabaseInput {
-    LocationUri: (String|Mapping)?
-    CreateTableDefaultPermissions: (Listing<DatabasePrincipalPrivileges>)?
     Description: (String|Mapping)?
     Parameters: (Dynamic)?
     TargetDatabase: (DatabaseDatabaseIdentifier)?
     FederatedDatabase: (DatabaseFederatedDatabase)?
     Name: (String|Mapping)?
+    LocationUri: (String|Mapping)?
+    CreateTableDefaultPermissions: (Listing<DatabasePrincipalPrivileges>)?
 }
 
 /// 
@@ -34,12 +40,6 @@ open class DatabaseDataLakePrincipal {
     DataLakePrincipalIdentifier: (String|Mapping)?
 }
 
-/// 
-open class DatabaseFederatedDatabase {
-    ConnectionName: (String|Mapping)?
-    Identifier: (String|Mapping)?
-}
-
 /// Resource Type definition for AWS::Glue::Database
 open class Database extends cloudformation.Resource {
 
@@ -47,14 +47,14 @@ open class Database extends cloudformation.Resource {
 
 
     /// 
-    hidden DatabaseInput: DatabaseDatabaseInput
-
-    /// 
     hidden CatalogId: String|Mapping
 
+    /// 
+    hidden DatabaseInput: DatabaseDatabaseInput
+
     Properties {
-        ["DatabaseInput"] = if (DatabaseInput == null) null else DatabaseInput
         ["CatalogId"] = if (CatalogId == null) null else CatalogId
+        ["DatabaseInput"] = if (DatabaseInput == null) null else DatabaseInput
     }
 
 }

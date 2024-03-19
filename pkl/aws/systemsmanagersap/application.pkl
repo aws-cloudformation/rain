@@ -6,7 +6,7 @@ module aws.systemsmanagersap.application
 import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class ApplicationTag {
     Key: String|Mapping
     Value: String|Mapping
 }
@@ -14,15 +14,14 @@ open class Tag {
 typealias CredentialCredentialType = "ADMIN"
 
 /// 
-open class Credential {
+open class ApplicationCredential {
     DatabaseName: (String(matches(Regex(#"^(?=.{1,100}$).*"#)))|Mapping)?
     CredentialType: (CredentialCredentialType|Mapping)?
     SecretId: (String(matches(Regex(#"^(?=.{1,100}$).*"#)))|Mapping)?
 }
 
-/// 
-open class Instance {
-}
+typealias ApplicationInstance = String|Mapping
+
 
 /// Resource schema for AWS::SystemsManagerSAP::Application
 open class Application extends cloudformation.Resource {
@@ -34,10 +33,10 @@ open class Application extends cloudformation.Resource {
     hidden ApplicationType: ApplicationApplicationType|Mapping
 
     /// 
-    hidden Credentials: (Listing<Credential>)?
+    hidden Credentials: (Listing<ApplicationCredential>)?
 
     /// 
-    hidden Instances: (Listing<Instance>)?
+    hidden Instances: (Listing<ApplicationInstance>)?
 
     /// 
     hidden SapInstanceNumber: (String(matches(Regex(#"[0-9]{2}"#)))|Mapping)?
@@ -46,7 +45,7 @@ open class Application extends cloudformation.Resource {
     hidden Sid: (String(matches(Regex(#"[A-Z][A-Z0-9]{2}"#)))|Mapping)?
 
     /// The tags of a SystemsManagerSAP application.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<ApplicationTag>)?
 
     /// 
     hidden ApplicationId: String(matches(Regex(#"[\w\d]{1,50}"#)))|Mapping

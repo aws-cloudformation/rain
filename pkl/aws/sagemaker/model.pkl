@@ -6,68 +6,68 @@ module aws.sagemaker.model
 import "../../cloudformation.pkl"
 
 /// 
-open class RepositoryAuthConfig {
-    RepositoryCredentialsProviderArn: String|Mapping
-}
-
-/// 
-open class InferenceExecutionConfig {
-    Mode: String|Mapping
-}
-
-/// 
-open class ModelDataSource {
-    S3DataSource: S3DataSource
-}
-
-/// 
-open class ImageConfig {
-    RepositoryAuthConfig: (RepositoryAuthConfig)?
+open class ModelImageConfig {
+    RepositoryAuthConfig: (ModelRepositoryAuthConfig)?
     RepositoryAccessMode: String|Mapping
 }
 
 /// 
-open class VpcConfig {
-    SecurityGroupIds: Listing<String|Mapping>
-    Subnets: Listing<String|Mapping>
-}
-
-/// 
-open class ContainerDefinition {
-    ImageConfig: (ImageConfig)?
-    InferenceSpecificationName: (String|Mapping)?
+open class ModelContainerDefinition {
+    ContainerHostname: (String|Mapping)?
     ModelPackageName: (String|Mapping)?
     Mode: (String|Mapping)?
-    Image: (String|Mapping)?
-    ModelDataSource: (ModelDataSource)?
-    MultiModelConfig: (MultiModelConfig)?
-    ContainerHostname: (String|Mapping)?
     Environment: (Dynamic)?
     ModelDataUrl: (String|Mapping)?
+    ModelDataSource: (ModelModelDataSource)?
+    ImageConfig: (ModelImageConfig)?
+    InferenceSpecificationName: (String|Mapping)?
+    Image: (String|Mapping)?
+    MultiModelConfig: (ModelMultiModelConfig)?
 }
 
 /// 
-open class Tag {
+open class ModelRepositoryAuthConfig {
+    RepositoryCredentialsProviderArn: String|Mapping
+}
+
+/// 
+open class ModelS3DataSource {
+    ModelAccessConfig: (ModelModelAccessConfig)?
+    S3DataType: String|Mapping
+    CompressionType: String|Mapping
+    S3Uri: String|Mapping
+}
+
+/// 
+open class ModelModelDataSource {
+    S3DataSource: ModelS3DataSource
+}
+
+/// 
+open class ModelMultiModelConfig {
+    ModelCacheSetting: (String|Mapping)?
+}
+
+/// 
+open class ModelInferenceExecutionConfig {
+    Mode: String|Mapping
+}
+
+/// 
+open class ModelTag {
     Value: String|Mapping
     Key: String|Mapping
 }
 
 /// 
-open class MultiModelConfig {
-    ModelCacheSetting: (String|Mapping)?
-}
-
-/// 
-open class ModelAccessConfig {
+open class ModelModelAccessConfig {
     AcceptEula: Boolean|Mapping
 }
 
 /// 
-open class S3DataSource {
-    CompressionType: String|Mapping
-    S3Uri: String|Mapping
-    ModelAccessConfig: (ModelAccessConfig)?
-    S3DataType: String|Mapping
+open class ModelVpcConfig {
+    Subnets: Listing<String|Mapping>
+    SecurityGroupIds: Listing<String|Mapping>
 }
 
 /// Resource Type definition for AWS::SageMaker::Model
@@ -77,7 +77,10 @@ open class Model extends cloudformation.Resource {
 
 
     /// 
-    hidden Tags: (Listing<Tag>)?
+    hidden PrimaryContainer: (ModelContainerDefinition)?
+
+    /// 
+    hidden VpcConfig: (ModelVpcConfig)?
 
     /// 
     hidden ExecutionRoleArn: (String|Mapping)?
@@ -86,29 +89,26 @@ open class Model extends cloudformation.Resource {
     hidden EnableNetworkIsolation: (Boolean|Mapping)?
 
     /// 
-    hidden VpcConfig: (VpcConfig)?
-
-    /// 
-    hidden InferenceExecutionConfig: (InferenceExecutionConfig)?
-
-    /// 
-    hidden PrimaryContainer: (ContainerDefinition)?
-
-    /// 
     hidden ModelName: (String|Mapping)?
 
     /// 
-    hidden Containers: (Listing<ContainerDefinition>)?
+    hidden Containers: (Listing<ModelContainerDefinition>)?
+
+    /// 
+    hidden InferenceExecutionConfig: (ModelInferenceExecutionConfig)?
+
+    /// 
+    hidden Tags: (Listing<ModelTag>)?
 
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
+        ["PrimaryContainer"] = if (PrimaryContainer == null) null else PrimaryContainer
+        ["VpcConfig"] = if (VpcConfig == null) null else VpcConfig
         ["ExecutionRoleArn"] = if (ExecutionRoleArn == null) null else ExecutionRoleArn
         ["EnableNetworkIsolation"] = if (EnableNetworkIsolation == null) null else EnableNetworkIsolation
-        ["VpcConfig"] = if (VpcConfig == null) null else VpcConfig
-        ["InferenceExecutionConfig"] = if (InferenceExecutionConfig == null) null else InferenceExecutionConfig
-        ["PrimaryContainer"] = if (PrimaryContainer == null) null else PrimaryContainer
         ["ModelName"] = if (ModelName == null) null else ModelName
         ["Containers"] = if (Containers == null) null else Containers
+        ["InferenceExecutionConfig"] = if (InferenceExecutionConfig == null) null else InferenceExecutionConfig
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

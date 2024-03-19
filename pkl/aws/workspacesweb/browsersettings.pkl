@@ -5,12 +5,11 @@ module aws.workspacesweb.browsersettings
 
 import "../../cloudformation.pkl"
 
-/// 
-open class EncryptionContextMap {
-}
+typealias BrowserSettingsEncryptionContextMap = Mapping<String, Any>
+
 
 /// 
-open class Tag {
+open class BrowserSettingsTag {
     Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
     Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
 }
@@ -22,7 +21,7 @@ open class BrowserSettings extends cloudformation.Resource {
 
 
     /// 
-    hidden AdditionalEncryptionContext: (EncryptionContextMap)?
+    hidden AdditionalEncryptionContext: (BrowserSettingsEncryptionContextMap)?
 
     /// 
     hidden BrowserPolicy: (String(matches(Regex(#"\{[\S\s]*\}\s*"#)))|Mapping)?
@@ -31,7 +30,7 @@ open class BrowserSettings extends cloudformation.Resource {
     hidden CustomerManagedKey: (String(matches(Regex(#"^arn:[\w+=\/,.@-]+:kms:[a-zA-Z0-9\-]*:[a-zA-Z0-9]{1,12}:key\/[a-zA-Z0-9-]+$"#)))|Mapping)?
 
     /// 
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<BrowserSettingsTag>)?
 
     Properties {
         ["AdditionalEncryptionContext"] = if (AdditionalEncryptionContext == null) null else AdditionalEncryptionContext

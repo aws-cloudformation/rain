@@ -5,73 +5,39 @@ module aws.mediapackage.packagingconfiguration
 
 import "../../cloudformation.pkl"
 
-/// A CMAF encryption configuration.
-open class MssEncryption {
-    SpekeKeyProvider: SpekeKeyProvider
-}
-
-typealias EncryptionContractConfigurationPresetSpeke20Audio = "PRESET-AUDIO-1"|"PRESET-AUDIO-2"|"PRESET-AUDIO-3"|"SHARED"|"UNENCRYPTED"
-
-typealias EncryptionContractConfigurationPresetSpeke20Video = "PRESET-VIDEO-1"|"PRESET-VIDEO-2"|"PRESET-VIDEO-3"|"PRESET-VIDEO-4"|"PRESET-VIDEO-5"|"PRESET-VIDEO-6"|"PRESET-VIDEO-7"|"PRESET-VIDEO-8"|"SHARED"|"UNENCRYPTED"
-
-/// The configuration to use for encrypting one or more content tracks separately for endpoints that use SPEKE 2.0.
-open class EncryptionContractConfiguration {
-    PresetSpeke20Audio: EncryptionContractConfigurationPresetSpeke20Audio|Mapping
-    PresetSpeke20Video: EncryptionContractConfigurationPresetSpeke20Video|Mapping
-}
+typealias DashManifestProfile = "NONE"|"HBBTV_1_5"
 
 typealias DashManifestScteMarkersSource = "SEGMENTS"|"MANIFEST"
 
 typealias DashManifestManifestLayout = "FULL"|"COMPACT"
 
-typealias DashManifestProfile = "NONE"|"HBBTV_1_5"
-
 /// A DASH manifest configuration.
-open class DashManifest {
-    ScteMarkersSource: (DashManifestScteMarkersSource|Mapping)?
-    StreamSelection: (StreamSelection)?
-    ManifestLayout: (DashManifestManifestLayout|Mapping)?
-    ManifestName: (ManifestName)?
+open class PackagingConfigurationDashManifest {
+    ManifestName: (PackagingConfigurationManifestName)?
     MinBufferTimeSeconds: (Int|Mapping)?
     Profile: (DashManifestProfile|Mapping)?
+    ScteMarkersSource: (DashManifestScteMarkersSource|Mapping)?
+    StreamSelection: (PackagingConfigurationStreamSelection)?
+    ManifestLayout: (DashManifestManifestLayout|Mapping)?
+}
+
+/// An HTTP Live Streaming (HLS) packaging configuration.
+open class PackagingConfigurationHlsPackage {
+    IncludeDvbSubtitles: (Boolean|Mapping)?
+    SegmentDurationSeconds: (PackagingConfigurationSegmentDurationSeconds)?
+    UseAudioRenditionGroup: (Boolean|Mapping)?
+    Encryption: (PackagingConfigurationHlsEncryption)?
+    HlsManifests: Listing<PackagingConfigurationHlsManifest>
 }
 
 /// A CMAF encryption configuration.
-open class CmafEncryption {
-    SpekeKeyProvider: SpekeKeyProvider
+open class PackagingConfigurationMssEncryption {
+    SpekeKeyProvider: PackagingConfigurationSpekeKeyProvider
 }
 
 /// A Dynamic Adaptive Streaming over HTTP (DASH) encryption configuration.
-open class DashEncryption {
-    SpekeKeyProvider: SpekeKeyProvider
-}
-
-/// A configuration for accessing an external Secure Packager and Encoder Key Exchange (SPEKE) service that will provide encryption keys.
-open class SpekeKeyProvider {
-    Url: String|Mapping
-    EncryptionContractConfiguration: (EncryptionContractConfiguration)?
-    RoleArn: RoleArn
-    SystemIds: Listing<String|Mapping>
-}
-
-/// Duration (in seconds) of each fragment. Actual fragments will be rounded to the nearest multiple of the source fragment duration.
-open class SegmentDurationSeconds {
-}
-
-/// An optional string to include in the name of the manifest.
-open class ManifestName {
-}
-
-/// 
-open class Tag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// A Microsoft Smooth Streaming (MSS) manifest configuration.
-open class MssManifest {
-    StreamSelection: (StreamSelection)?
-    ManifestName: (ManifestName)?
+open class PackagingConfigurationDashEncryption {
+    SpekeKeyProvider: PackagingConfigurationSpekeKeyProvider
 }
 
 typealias DashPackagePeriodTriggers = "ADS"
@@ -79,72 +45,103 @@ typealias DashPackagePeriodTriggers = "ADS"
 typealias DashPackageSegmentTemplateFormat = "NUMBER_WITH_TIMELINE"|"TIME_WITH_TIMELINE"|"NUMBER_WITH_DURATION"
 
 /// A Dynamic Adaptive Streaming over HTTP (DASH) packaging configuration.
-open class DashPackage {
-    Encryption: (DashEncryption)?
+open class PackagingConfigurationDashPackage {
+    DashManifests: Listing<PackagingConfigurationDashManifest>
+    Encryption: (PackagingConfigurationDashEncryption)?
     PeriodTriggers: (Listing<DashPackagePeriodTriggers|Mapping>)?
-    SegmentDurationSeconds: (SegmentDurationSeconds)?
+    SegmentDurationSeconds: (PackagingConfigurationSegmentDurationSeconds)?
     SegmentTemplateFormat: (DashPackageSegmentTemplateFormat|Mapping)?
     IncludeEncoderConfigurationInSegments: (Boolean|Mapping)?
     IncludeIframeOnlyStream: (Boolean|Mapping)?
-    DashManifests: Listing<DashManifest>
 }
 
-/// A Microsoft Smooth Streaming (MSS) PackagingConfiguration.
-open class MssPackage {
-    Encryption: (MssEncryption)?
-    MssManifests: Listing<MssManifest>
-    SegmentDurationSeconds: (SegmentDurationSeconds)?
-}
+typealias PackagingConfigurationManifestName = String|Mapping
 
-typealias HlsEncryptionEncryptionMethod = "AES_128"|"SAMPLE_AES"
-
-/// An HTTP Live Streaming (HLS) encryption configuration.
-open class HlsEncryption {
-    ConstantInitializationVector: (String|Mapping)?
-    EncryptionMethod: (HlsEncryptionEncryptionMethod|Mapping)?
-    SpekeKeyProvider: SpekeKeyProvider
-}
-
-/// An HTTP Live Streaming (HLS) packaging configuration.
-open class HlsPackage {
-    Encryption: (HlsEncryption)?
-    HlsManifests: Listing<HlsManifest>
-    IncludeDvbSubtitles: (Boolean|Mapping)?
-    SegmentDurationSeconds: (SegmentDurationSeconds)?
-    UseAudioRenditionGroup: (Boolean|Mapping)?
-}
-
-/// An Amazon Resource Name (ARN) of an IAM role that AWS Elemental MediaPackage will assume when accessing the key provider service.
-open class RoleArn {
-}
 
 typealias StreamSelectionStreamOrder = "ORIGINAL"|"VIDEO_BITRATE_ASCENDING"|"VIDEO_BITRATE_DESCENDING"
 
 /// A StreamSelection configuration.
-open class StreamSelection {
+open class PackagingConfigurationStreamSelection {
+    MaxVideoBitsPerSecond: (Int|Mapping)?
     MinVideoBitsPerSecond: (Int|Mapping)?
     StreamOrder: (StreamSelectionStreamOrder|Mapping)?
-    MaxVideoBitsPerSecond: (Int|Mapping)?
 }
 
 typealias HlsManifestAdMarkers = "NONE"|"SCTE35_ENHANCED"|"PASSTHROUGH"
 
 /// An HTTP Live Streaming (HLS) manifest configuration.
-open class HlsManifest {
+open class PackagingConfigurationHlsManifest {
+    AdMarkers: (HlsManifestAdMarkers|Mapping)?
     IncludeIframeOnlyStream: (Boolean|Mapping)?
-    ManifestName: (ManifestName)?
+    ManifestName: (PackagingConfigurationManifestName)?
     ProgramDateTimeIntervalSeconds: (Int|Mapping)?
     RepeatExtXKey: (Boolean|Mapping)?
-    StreamSelection: (StreamSelection)?
-    AdMarkers: (HlsManifestAdMarkers|Mapping)?
+    StreamSelection: (PackagingConfigurationStreamSelection)?
 }
 
+typealias PackagingConfigurationSegmentDurationSeconds = Int|Mapping
+
+
+/// A CMAF encryption configuration.
+open class PackagingConfigurationCmafEncryption {
+    SpekeKeyProvider: PackagingConfigurationSpekeKeyProvider
+}
+
+typealias HlsEncryptionEncryptionMethod = "AES_128"|"SAMPLE_AES"
+
+/// An HTTP Live Streaming (HLS) encryption configuration.
+open class PackagingConfigurationHlsEncryption {
+    ConstantInitializationVector: (String|Mapping)?
+    EncryptionMethod: (HlsEncryptionEncryptionMethod|Mapping)?
+    SpekeKeyProvider: PackagingConfigurationSpekeKeyProvider
+}
+
+/// A Microsoft Smooth Streaming (MSS) PackagingConfiguration.
+open class PackagingConfigurationMssPackage {
+    Encryption: (PackagingConfigurationMssEncryption)?
+    MssManifests: Listing<PackagingConfigurationMssManifest>
+    SegmentDurationSeconds: (PackagingConfigurationSegmentDurationSeconds)?
+}
+
+typealias PackagingConfigurationRoleArn = String|Mapping
+
+
 /// A CMAF packaging configuration.
-open class CmafPackage {
-    HlsManifests: Listing<HlsManifest>
-    SegmentDurationSeconds: (SegmentDurationSeconds)?
+open class PackagingConfigurationCmafPackage {
     IncludeEncoderConfigurationInSegments: (Boolean|Mapping)?
-    Encryption: (CmafEncryption)?
+    Encryption: (PackagingConfigurationCmafEncryption)?
+    HlsManifests: Listing<PackagingConfigurationHlsManifest>
+    SegmentDurationSeconds: (PackagingConfigurationSegmentDurationSeconds)?
+}
+
+/// 
+open class PackagingConfigurationTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// A configuration for accessing an external Secure Packager and Encoder Key Exchange (SPEKE) service that will provide encryption keys.
+open class PackagingConfigurationSpekeKeyProvider {
+    RoleArn: PackagingConfigurationRoleArn
+    SystemIds: Listing<String|Mapping>
+    Url: String|Mapping
+    EncryptionContractConfiguration: (PackagingConfigurationEncryptionContractConfiguration)?
+}
+
+typealias EncryptionContractConfigurationPresetSpeke20Audio = "PRESET-AUDIO-1"|"PRESET-AUDIO-2"|"PRESET-AUDIO-3"|"SHARED"|"UNENCRYPTED"
+
+typealias EncryptionContractConfigurationPresetSpeke20Video = "PRESET-VIDEO-1"|"PRESET-VIDEO-2"|"PRESET-VIDEO-3"|"PRESET-VIDEO-4"|"PRESET-VIDEO-5"|"PRESET-VIDEO-6"|"PRESET-VIDEO-7"|"PRESET-VIDEO-8"|"SHARED"|"UNENCRYPTED"
+
+/// The configuration to use for encrypting one or more content tracks separately for endpoints that use SPEKE 2.0.
+open class PackagingConfigurationEncryptionContractConfiguration {
+    PresetSpeke20Audio: EncryptionContractConfigurationPresetSpeke20Audio|Mapping
+    PresetSpeke20Video: EncryptionContractConfigurationPresetSpeke20Video|Mapping
+}
+
+/// A Microsoft Smooth Streaming (MSS) manifest configuration.
+open class PackagingConfigurationMssManifest {
+    ManifestName: (PackagingConfigurationManifestName)?
+    StreamSelection: (PackagingConfigurationStreamSelection)?
 }
 
 /// Resource schema for AWS::MediaPackage::PackagingConfiguration
@@ -153,20 +150,17 @@ open class PackagingConfiguration extends cloudformation.Resource {
     Type = "AWS::MediaPackage::PackagingConfiguration"
 
 
-    /// A CMAF packaging configuration.
-    hidden CmafPackage: (CmafPackage)?
-
     /// A Dynamic Adaptive Streaming over HTTP (DASH) packaging configuration.
-    hidden DashPackage: (DashPackage)?
+    hidden DashPackage: (PackagingConfigurationDashPackage)?
 
     /// An HTTP Live Streaming (HLS) packaging configuration.
-    hidden HlsPackage: (HlsPackage)?
+    hidden HlsPackage: (PackagingConfigurationHlsPackage)?
 
     /// A Microsoft Smooth Streaming (MSS) PackagingConfiguration.
-    hidden MssPackage: (MssPackage)?
+    hidden MssPackage: (PackagingConfigurationMssPackage)?
 
     /// A collection of tags associated with a resource
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<PackagingConfigurationTag>)?
 
     /// The ID of the PackagingConfiguration.
     hidden Id: String|Mapping
@@ -174,14 +168,17 @@ open class PackagingConfiguration extends cloudformation.Resource {
     /// The ID of a PackagingGroup.
     hidden PackagingGroupId: String|Mapping
 
+    /// A CMAF packaging configuration.
+    hidden CmafPackage: (PackagingConfigurationCmafPackage)?
+
     Properties {
-        ["CmafPackage"] = if (CmafPackage == null) null else CmafPackage
         ["DashPackage"] = if (DashPackage == null) null else DashPackage
         ["HlsPackage"] = if (HlsPackage == null) null else HlsPackage
         ["MssPackage"] = if (MssPackage == null) null else MssPackage
         ["Tags"] = if (Tags == null) null else Tags
         ["Id"] = if (Id == null) null else Id
         ["PackagingGroupId"] = if (PackagingGroupId == null) null else PackagingGroupId
+        ["CmafPackage"] = if (CmafPackage == null) null else CmafPackage
     }
 
 }

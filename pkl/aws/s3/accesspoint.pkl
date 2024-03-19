@@ -6,21 +6,20 @@ module aws.s3.accesspoint
 import "../../cloudformation.pkl"
 
 /// The Virtual Private Cloud (VPC) configuration for a bucket access point.
-open class VpcConfiguration {
+open class AccessPointVpcConfiguration {
     VpcId: (String|Mapping)?
 }
 
 /// 
-open class PublicAccessBlockConfiguration {
+open class AccessPointPublicAccessBlockConfiguration {
     IgnorePublicAcls: (Boolean|Mapping)?
     BlockPublicPolicy: (Boolean|Mapping)?
     RestrictPublicBuckets: (Boolean|Mapping)?
     BlockPublicAcls: (Boolean|Mapping)?
 }
 
-/// the Amazon Resource Name (ARN) of the specified accesspoint.
-open class Arn {
-}
+typealias AccessPointArn = String|Mapping
+
 
 /// The AWS::S3::AccessPoint resource is an Amazon S3 resource type that you can use to access buckets.
 open class AccessPoint extends cloudformation.Resource {
@@ -28,14 +27,11 @@ open class AccessPoint extends cloudformation.Resource {
     Type = "AWS::S3::AccessPoint"
 
 
-    /// The AWS account ID associated with the S3 bucket associated with this access point.
-    hidden BucketAccountId: (String(matches(Regex(#"^\d{12}$"#)))|Mapping)?
-
-    /// If you include this field, Amazon S3 restricts access to this Access Point to requests from the specified Virtual Private Cloud (VPC).
-    hidden VpcConfiguration: (VpcConfiguration)?
-
     /// The PublicAccessBlock configuration that you want to apply to this Access Point. You can enable the configuration options in any combination. For more information about when Amazon S3 considers a bucket or object public, see https://docs.aws.amazon.com/AmazonS3/latest/dev/access-control-block-public-access.html#access-control-block-public-access-policy-status 'The Meaning of Public' in the Amazon Simple Storage Service Developer Guide.
-    hidden PublicAccessBlockConfiguration: (PublicAccessBlockConfiguration)?
+    hidden PublicAccessBlockConfiguration: (AccessPointPublicAccessBlockConfiguration)?
+
+    /// The Access Point Policy you want to apply to this access point.
+    hidden Policy: (Dynamic)?
 
     /// The name you want to assign to this Access Point. If you don't specify a name, AWS CloudFormation generates a unique ID and uses that ID for the access point name.
     hidden Name: (String(matches(Regex(#"^[a-z0-9]([a-z0-9\-]*[a-z0-9])?$"#)))|Mapping)?
@@ -43,16 +39,19 @@ open class AccessPoint extends cloudformation.Resource {
     /// The name of the bucket that you want to associate this Access Point with.
     hidden Bucket: String|Mapping
 
-    /// The Access Point Policy you want to apply to this access point.
-    hidden Policy: (Dynamic)?
+    /// The AWS account ID associated with the S3 bucket associated with this access point.
+    hidden BucketAccountId: (String(matches(Regex(#"^\d{12}$"#)))|Mapping)?
+
+    /// If you include this field, Amazon S3 restricts access to this Access Point to requests from the specified Virtual Private Cloud (VPC).
+    hidden VpcConfiguration: (AccessPointVpcConfiguration)?
 
     Properties {
-        ["BucketAccountId"] = if (BucketAccountId == null) null else BucketAccountId
-        ["VpcConfiguration"] = if (VpcConfiguration == null) null else VpcConfiguration
         ["PublicAccessBlockConfiguration"] = if (PublicAccessBlockConfiguration == null) null else PublicAccessBlockConfiguration
+        ["Policy"] = if (Policy == null) null else Policy
         ["Name"] = if (Name == null) null else Name
         ["Bucket"] = if (Bucket == null) null else Bucket
-        ["Policy"] = if (Policy == null) null else Policy
+        ["BucketAccountId"] = if (BucketAccountId == null) null else BucketAccountId
+        ["VpcConfiguration"] = if (VpcConfiguration == null) null else VpcConfiguration
     }
 
 }

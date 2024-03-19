@@ -5,27 +5,13 @@ module aws.ecs.cluster
 
 import "../../cloudformation.pkl"
 
-/// The details of the execute command configuration.
-open class ClusterExecuteCommandConfiguration {
-    KmsKeyId: (String|Mapping)?
-    LogConfiguration: (ClusterExecuteCommandLogConfiguration)?
-    Logging: (String|Mapping)?
-}
-
-/// The ``CapacityProviderStrategyItem`` property specifies the details of the default capacity provider strategy for the cluster. When services or tasks are run in the cluster with no launch type or capacity provider strategy specified, the default capacity provider strategy is used.
-open class ClusterCapacityProviderStrategyItem {
-    CapacityProvider: (String|Mapping)?
-    Weight: (Int|Mapping)?
-    Base: (Int|Mapping)?
-}
-
 /// The log configuration for the results of the execute command actions. The logs can be sent to CloudWatch Logs or an Amazon S3 bucket.
 open class ClusterExecuteCommandLogConfiguration {
-    S3EncryptionEnabled: (Boolean|Mapping)?
     CloudWatchEncryptionEnabled: (Boolean|Mapping)?
     CloudWatchLogGroupName: (String|Mapping)?
     S3KeyPrefix: (String|Mapping)?
     S3BucketName: (String|Mapping)?
+    S3EncryptionEnabled: (Boolean|Mapping)?
 }
 
 /// The settings to use when creating a cluster. This parameter is used to turn on CloudWatch Container Insights for a cluster.
@@ -61,22 +47,25 @@ open class ClusterClusterConfiguration {
     ExecuteCommandConfiguration: (ClusterExecuteCommandConfiguration)?
 }
 
+/// The details of the execute command configuration.
+open class ClusterExecuteCommandConfiguration {
+    Logging: (String|Mapping)?
+    KmsKeyId: (String|Mapping)?
+    LogConfiguration: (ClusterExecuteCommandLogConfiguration)?
+}
+
+/// The ``CapacityProviderStrategyItem`` property specifies the details of the default capacity provider strategy for the cluster. When services or tasks are run in the cluster with no launch type or capacity provider strategy specified, the default capacity provider strategy is used.
+open class ClusterCapacityProviderStrategyItem {
+    Weight: (Int|Mapping)?
+    Base: (Int|Mapping)?
+    CapacityProvider: (String|Mapping)?
+}
+
 /// The ``AWS::ECS::Cluster`` resource creates an Amazon Elastic Container Service (Amazon ECS) cluster.
 open class Cluster extends cloudformation.Resource {
 
     Type = "AWS::ECS::Cluster"
 
-
-    /// The default capacity provider strategy for the cluster. When services or tasks are run in the cluster with no launch type or capacity provider strategy specified, the default capacity provider strategy is used.
-    hidden DefaultCapacityProviderStrategy: (Listing<ClusterCapacityProviderStrategyItem>)?
-
-    /// The execute command configuration for the cluster.
-    hidden Configuration: (ClusterClusterConfiguration)?
-
-    /// Use this parameter to set a default Service Connect namespace. After you set a default Service Connect namespace, any new services with Service Connect turned on that are created in the cluster are added as client services in the namespace. This setting only applies to new services that set the ``enabled`` parameter to ``true`` in the ``ServiceConnectConfiguration``. You can set the namespace of each service individually in the ``ServiceConnectConfiguration`` to override this default parameter.
-    ///
-    ///  Tasks that run in a namespace can use short names to connect to services in the namespace. Tasks can connect to services across all of the clusters in the namespace. Tasks connect through a managed proxy container that collects logs and metrics for increased visibility. Only the tasks that Amazon ECS services create are supported with Service Connect. For more information, see [Service Connect](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-connect.html) in the *Amazon Elastic Container Service Developer Guide*.
-    hidden ServiceConnectDefaults: (ClusterServiceConnectDefaults)?
 
     /// The short name of one or more capacity providers to associate with the cluster. A capacity provider must be associated with a cluster before it can be included as part of the default capacity provider strategy of the cluster or used in a capacity provider strategy when calling the [CreateService](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_CreateService.html) or [RunTask](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_RunTask.html) actions.
     ///
@@ -103,14 +92,25 @@ open class Cluster extends cloudformation.Resource {
     /// The settings to use when creating a cluster. This parameter is used to turn on CloudWatch Container Insights for a cluster.
     hidden ClusterSettings: (Listing<ClusterClusterSettings>)?
 
+    /// The default capacity provider strategy for the cluster. When services or tasks are run in the cluster with no launch type or capacity provider strategy specified, the default capacity provider strategy is used.
+    hidden DefaultCapacityProviderStrategy: (Listing<ClusterCapacityProviderStrategyItem>)?
+
+    /// The execute command configuration for the cluster.
+    hidden Configuration: (ClusterClusterConfiguration)?
+
+    /// Use this parameter to set a default Service Connect namespace. After you set a default Service Connect namespace, any new services with Service Connect turned on that are created in the cluster are added as client services in the namespace. This setting only applies to new services that set the ``enabled`` parameter to ``true`` in the ``ServiceConnectConfiguration``. You can set the namespace of each service individually in the ``ServiceConnectConfiguration`` to override this default parameter.
+    ///
+    ///  Tasks that run in a namespace can use short names to connect to services in the namespace. Tasks can connect to services across all of the clusters in the namespace. Tasks connect through a managed proxy container that collects logs and metrics for increased visibility. Only the tasks that Amazon ECS services create are supported with Service Connect. For more information, see [Service Connect](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-connect.html) in the *Amazon Elastic Container Service Developer Guide*.
+    hidden ServiceConnectDefaults: (ClusterServiceConnectDefaults)?
+
     Properties {
-        ["DefaultCapacityProviderStrategy"] = if (DefaultCapacityProviderStrategy == null) null else DefaultCapacityProviderStrategy
-        ["Configuration"] = if (Configuration == null) null else Configuration
-        ["ServiceConnectDefaults"] = if (ServiceConnectDefaults == null) null else ServiceConnectDefaults
         ["CapacityProviders"] = if (CapacityProviders == null) null else CapacityProviders
         ["ClusterName"] = if (ClusterName == null) null else ClusterName
         ["Tags"] = if (Tags == null) null else Tags
         ["ClusterSettings"] = if (ClusterSettings == null) null else ClusterSettings
+        ["DefaultCapacityProviderStrategy"] = if (DefaultCapacityProviderStrategy == null) null else DefaultCapacityProviderStrategy
+        ["Configuration"] = if (Configuration == null) null else Configuration
+        ["ServiceConnectDefaults"] = if (ServiceConnectDefaults == null) null else ServiceConnectDefaults
     }
 
 }

@@ -5,27 +5,26 @@ module aws.lookoutmetrics.alert
 
 import "../../cloudformation.pkl"
 
-/// Configuration options for a Lambda alert action.
-open class LambdaConfiguration {
-    RoleArn: Arn
-    LambdaArn: Arn
-}
-
 /// 
-open class Arn {
-}
-
-/// 
-open class Action {
-    LambdaConfiguration: (LambdaConfiguration)?
-    SNSConfiguration: (SNSConfiguration)?
+open class AlertAction {
+    LambdaConfiguration: (AlertLambdaConfiguration)?
+    SNSConfiguration: (AlertSNSConfiguration)?
 }
 
 /// Configuration options for an SNS alert action.
-open class SNSConfiguration {
-    RoleArn: Arn
-    SnsTopicArn: Arn
+open class AlertSNSConfiguration {
+    RoleArn: AlertArn
+    SnsTopicArn: AlertArn
 }
+
+/// Configuration options for a Lambda alert action.
+open class AlertLambdaConfiguration {
+    RoleArn: AlertArn
+    LambdaArn: AlertArn
+}
+
+typealias AlertArn = String|Mapping
+
 
 /// Resource Type definition for AWS::LookoutMetrics::Alert
 open class Alert extends cloudformation.Resource {
@@ -46,7 +45,7 @@ open class Alert extends cloudformation.Resource {
     hidden AlertSensitivityThreshold: Int|Mapping
 
     /// The action to be taken by the alert when an anomaly is detected.
-    hidden Action: Action
+    hidden Action: AlertAction
 
     Properties {
         ["AlertName"] = if (AlertName == null) null else AlertName

@@ -6,10 +6,63 @@ module aws.cleanrooms.configuredtable
 import "../../cloudformation.pkl"
 
 /// 
-open class ConfiguredTableGlueTableReference {
-    DatabaseName: String(matches(Regex(#"^[a-zA-Z0-9_](([a-zA-Z0-9_ ]+-)*([a-zA-Z0-9_ ]+))?$"#)))|Mapping
-    TableName: String(matches(Regex(#"^[a-zA-Z0-9_](([a-zA-Z0-9_ ]+-)*([a-zA-Z0-9_ ]+))?$"#)))|Mapping
+open class ConfiguredTableAggregateColumn {
+    ColumnNames: Listing<ConfiguredTableAnalysisRuleColumnName>
+    Function: ConfiguredTableAggregateFunctionName
 }
+
+typealias ConfiguredTableAllowedAnalysisProvider = String|Mapping
+
+
+typealias ConfiguredTableScalarFunctions = String|Mapping
+
+
+typealias ConfiguredTableAggregateFunctionName = String|Mapping
+
+
+/// 
+open class ConfiguredTableAnalysisRuleCustom {
+    AllowedAnalyses: ConfiguredTableAllowedAnalyses
+    AllowedAnalysisProviders: (ConfiguredTableAllowedAnalysisProviders)?
+}
+
+/// 
+open class ConfiguredTableConfiguredTableAnalysisRulePolicy {
+    V1: ConfiguredTableConfiguredTableAnalysisRulePolicyV1
+}
+
+/// 
+open class ConfiguredTableGlueTableReference {
+    TableName: String(matches(Regex(#"^[a-zA-Z0-9_](([a-zA-Z0-9_ ]+-)*([a-zA-Z0-9_ ]+))?$"#)))|Mapping
+    DatabaseName: String(matches(Regex(#"^[a-zA-Z0-9_](([a-zA-Z0-9_ ]+-)*([a-zA-Z0-9_ ]+))?$"#)))|Mapping
+}
+
+/// 
+open class ConfiguredTableAnalysisRule {
+    Type: ConfiguredTableConfiguredTableAnalysisRuleType
+    Policy: ConfiguredTableConfiguredTableAnalysisRulePolicy
+}
+
+typealias ConfiguredTableAnalysisRuleColumnName = String|Mapping
+
+
+/// 
+open class ConfiguredTableAnalysisRuleList {
+    JoinColumns: Listing<ConfiguredTableAnalysisRuleColumnName>
+    AllowedJoinOperators: (Listing<ConfiguredTableJoinOperator>)?
+    ListColumns: Listing<ConfiguredTableAnalysisRuleColumnName>
+}
+
+/// 
+open class ConfiguredTableTableReference {
+    Glue: ConfiguredTableGlueTableReference
+}
+
+typealias ConfiguredTableConfiguredTableAnalysisRulePolicyV1 = ConfiguredTableConfiguredTableAnalysisRulePolicyV1List|ConfiguredTableConfiguredTableAnalysisRulePolicyV1Aggregation|ConfiguredTableConfiguredTableAnalysisRulePolicyV1Custom
+
+
+typealias ConfiguredTableAllowedAnalyses = Listing<(ConfiguredTableAllowedAnalysis)?>
+
 
 /// 
 open class ConfiguredTableAggregationConstraint {
@@ -18,11 +71,17 @@ open class ConfiguredTableAggregationConstraint {
     Type: ConfiguredTableAggregationType
 }
 
+typealias ConfiguredTableAllowedAnalysisProviders = Listing<(ConfiguredTableAllowedAnalysisProvider)?>
+
+
 /// 
-open class ConfiguredTableAnalysisRuleList {
-    JoinColumns: Listing<ConfiguredTableAnalysisRuleColumnName>
-    AllowedJoinOperators: (Listing<ConfiguredTableJoinOperator>)?
-    ListColumns: Listing<ConfiguredTableAnalysisRuleColumnName>
+open class ConfiguredTableConfiguredTableAnalysisRulePolicyV1List {
+    List: ConfiguredTableAnalysisRuleList
+}
+
+/// 
+open class ConfiguredTableConfiguredTableAnalysisRulePolicyV1Custom {
+    Custom: ConfiguredTableAnalysisRuleCustom
 }
 
 /// 
@@ -36,47 +95,25 @@ open class ConfiguredTableAnalysisRuleAggregation {
     JoinRequired: (ConfiguredTableJoinRequiredOption)?
 }
 
-/// 
-open class ConfiguredTableAnalysisRule {
-    Type: ConfiguredTableConfiguredTableAnalysisRuleType
-    Policy: ConfiguredTableConfiguredTableAnalysisRulePolicy
-}
+typealias ConfiguredTableConfiguredTableAnalysisRuleType = String|Mapping
 
-typealias ConfiguredTableConfiguredTableAnalysisRulePolicyV1 = ConfiguredTableConfiguredTableAnalysisRulePolicyV1List|ConfiguredTableConfiguredTableAnalysisRulePolicyV1Aggregation|ConfiguredTableConfiguredTableAnalysisRulePolicyV1Custom
-
-
-/// 
-open class ConfiguredTableConfiguredTableAnalysisRulePolicy {
-    V1: ConfiguredTableConfiguredTableAnalysisRulePolicyV1
-}
 
 typealias ConfiguredTableAllowedAnalysis = String|Mapping
 
 
-typealias ConfiguredTableJoinRequiredOption = String|Mapping
+typealias ConfiguredTableAggregationType = String|Mapping
 
 
-typealias ConfiguredTableAllowedAnalysisProviders = Listing<(ConfiguredTableAllowedAnalysisProvider)?>
+typealias ConfiguredTableJoinOperator = String|Mapping
 
 
-typealias ConfiguredTableScalarFunctions = String|Mapping
+typealias ConfiguredTableAnalysisMethod = String|Mapping
 
-
-typealias ConfiguredTableConfiguredTableAnalysisRuleType = String|Mapping
-
-
-/// 
-open class ConfiguredTableTableReference {
-    Glue: ConfiguredTableGlueTableReference
-}
 
 /// 
 open class ConfiguredTableConfiguredTableAnalysisRulePolicyV1Aggregation {
     Aggregation: ConfiguredTableAnalysisRuleAggregation
 }
-
-typealias ConfiguredTableJoinOperator = String|Mapping
-
 
 /// 
 open class ConfiguredTableTag {
@@ -84,44 +121,7 @@ open class ConfiguredTableTag {
     Value: String|Mapping
 }
 
-typealias ConfiguredTableAllowedAnalyses = Listing<(ConfiguredTableAllowedAnalysis)?>
-
-
-typealias ConfiguredTableAggregateFunctionName = String|Mapping
-
-
-/// 
-open class ConfiguredTableAnalysisRuleCustom {
-    AllowedAnalyses: ConfiguredTableAllowedAnalyses
-    AllowedAnalysisProviders: (ConfiguredTableAllowedAnalysisProviders)?
-}
-
-typealias ConfiguredTableAggregationType = String|Mapping
-
-
-/// 
-open class ConfiguredTableConfiguredTableAnalysisRulePolicyV1List {
-    List: ConfiguredTableAnalysisRuleList
-}
-
-/// 
-open class ConfiguredTableConfiguredTableAnalysisRulePolicyV1Custom {
-    Custom: ConfiguredTableAnalysisRuleCustom
-}
-
-typealias ConfiguredTableAllowedAnalysisProvider = String|Mapping
-
-
-/// 
-open class ConfiguredTableAggregateColumn {
-    ColumnNames: Listing<ConfiguredTableAnalysisRuleColumnName>
-    Function: ConfiguredTableAggregateFunctionName
-}
-
-typealias ConfiguredTableAnalysisRuleColumnName = String|Mapping
-
-
-typealias ConfiguredTableAnalysisMethod = String|Mapping
+typealias ConfiguredTableJoinRequiredOption = String|Mapping
 
 
 /// Represents a table that can be associated with collaborations
@@ -131,34 +131,34 @@ open class ConfiguredTable extends cloudformation.Resource {
 
 
     /// 
-    hidden AnalysisMethod: ConfiguredTableAnalysisMethod
-
-    /// 
-    hidden AnalysisRules: (Listing<ConfiguredTableAnalysisRule>)?
+    hidden AllowedColumns: Listing<String|Mapping>
 
     /// 
     hidden TableReference: ConfiguredTableTableReference
 
-    /// An arbitrary set of tags (key-value pairs) for this cleanrooms collaboration.
-    hidden Tags: (Listing<ConfiguredTableTag>)?
+    /// 
+    hidden AnalysisMethod: ConfiguredTableAnalysisMethod
 
     /// 
-    hidden AllowedColumns: Listing<String|Mapping>
-
-    /// 
-    hidden Description: (String(matches(Regex(#"^[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDBFF-\uDC00\uDFFF\t\r\\n]*$"#)))|Mapping)?
+    hidden Description: (String(matches(Regex(#"^[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDBFF-\uDC00\uDFFF\t\r\n]*$"#)))|Mapping)?
 
     /// 
     hidden Name: String(matches(Regex(#"^(?!\s*$)[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDBFF-\uDC00\uDFFF\t]*$"#)))|Mapping
 
+    /// 
+    hidden AnalysisRules: (Listing<ConfiguredTableAnalysisRule>)?
+
+    /// An arbitrary set of tags (key-value pairs) for this cleanrooms collaboration.
+    hidden Tags: (Listing<ConfiguredTableTag>)?
+
     Properties {
-        ["AnalysisMethod"] = if (AnalysisMethod == null) null else AnalysisMethod
-        ["AnalysisRules"] = if (AnalysisRules == null) null else AnalysisRules
-        ["TableReference"] = if (TableReference == null) null else TableReference
-        ["Tags"] = if (Tags == null) null else Tags
         ["AllowedColumns"] = if (AllowedColumns == null) null else AllowedColumns
+        ["TableReference"] = if (TableReference == null) null else TableReference
+        ["AnalysisMethod"] = if (AnalysisMethod == null) null else AnalysisMethod
         ["Description"] = if (Description == null) null else Description
         ["Name"] = if (Name == null) null else Name
+        ["AnalysisRules"] = if (AnalysisRules == null) null else AnalysisRules
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

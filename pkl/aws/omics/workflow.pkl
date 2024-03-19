@@ -5,35 +5,29 @@ module aws.omics.workflow
 
 import "../../cloudformation.pkl"
 
-/// 
-open class WorkflowType {
-}
+typealias WorkflowWorkflowEngine = String|Mapping
 
-/// A map of resource tags
-open class TagMap {
-}
+
+typealias WorkflowAccelerators = String|Mapping
+
 
 /// 
-open class WorkflowEngine {
-}
-
-/// 
-open class Accelerators {
-}
-
-/// 
-open class WorkflowParameter {
+open class WorkflowWorkflowParameter {
     Description: (String(matches(Regex(#"^[\p{L}||\p{M}||\p{Z}||\p{S}||\p{N}||\p{P}]+$"#)))|Mapping)?
     Optional: (Boolean|Mapping)?
 }
 
-/// 
-open class WorkflowParameterTemplate {
-}
+typealias WorkflowWorkflowParameterTemplate = Mapping<String, Any>
 
-/// 
-open class WorkflowStatus {
-}
+
+typealias WorkflowWorkflowStatus = String|Mapping
+
+
+typealias WorkflowWorkflowType = String|Mapping
+
+
+typealias WorkflowTagMap = Mapping<String, Any>
+
 
 /// Definition of AWS::Omics::Workflow Resource Type
 open class Workflow extends cloudformation.Resource {
@@ -45,39 +39,39 @@ open class Workflow extends cloudformation.Resource {
     hidden DefinitionUri: (String(matches(Regex(#"^[\p{L}||\p{M}||\p{Z}||\p{S}||\p{N}||\p{P}]+$"#)))|Mapping)?
 
     /// 
+    hidden Engine: (WorkflowWorkflowEngine)?
+
+    /// 
     hidden Name: (String(matches(Regex(#"^[\p{L}||\p{M}||\p{Z}||\p{S}||\p{N}||\p{P}]+$"#)))|Mapping)?
 
     /// 
-    hidden Tags: (TagMap)?
+    hidden ParameterTemplate: (WorkflowWorkflowParameterTemplate)?
 
     /// 
-    hidden StorageCapacity: (Number|Mapping)?
-
-    /// 
-    hidden ParameterTemplate: (WorkflowParameterTemplate)?
+    hidden Tags: (WorkflowTagMap)?
 
     /// 
     hidden Description: (String(matches(Regex(#"^[\p{L}||\p{M}||\p{Z}||\p{S}||\p{N}||\p{P}]+$"#)))|Mapping)?
 
     /// 
-    hidden Engine: (WorkflowEngine)?
-
-    /// 
     hidden Main: (String(matches(Regex(#"^[\p{L}||\p{M}||\p{Z}||\p{S}||\p{N}||\p{P}]+$"#)))|Mapping)?
 
     /// 
-    hidden Accelerators: (Accelerators)?
+    hidden Accelerators: (WorkflowAccelerators)?
+
+    /// 
+    hidden StorageCapacity: (Number|Mapping)?
 
     Properties {
         ["DefinitionUri"] = if (DefinitionUri == null) null else DefinitionUri
-        ["Name"] = if (Name == null) null else Name
-        ["Tags"] = if (Tags == null) null else Tags
-        ["StorageCapacity"] = if (StorageCapacity == null) null else StorageCapacity
-        ["ParameterTemplate"] = if (ParameterTemplate == null) null else ParameterTemplate
-        ["Description"] = if (Description == null) null else Description
         ["Engine"] = if (Engine == null) null else Engine
+        ["Name"] = if (Name == null) null else Name
+        ["ParameterTemplate"] = if (ParameterTemplate == null) null else ParameterTemplate
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Description"] = if (Description == null) null else Description
         ["Main"] = if (Main == null) null else Main
         ["Accelerators"] = if (Accelerators == null) null else Accelerators
+        ["StorageCapacity"] = if (StorageCapacity == null) null else StorageCapacity
     }
 
 }

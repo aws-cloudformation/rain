@@ -6,15 +6,15 @@ module aws.pinpointemail.identity
 import "../../cloudformation.pkl"
 
 /// 
-open class Tags {
-    Value: (String|Mapping)?
-    Key: (String|Mapping)?
+open class IdentityMailFromAttributes {
+    MailFromDomain: (String|Mapping)?
+    BehaviorOnMxFailure: (String|Mapping)?
 }
 
 /// 
-open class MailFromAttributes {
-    BehaviorOnMxFailure: (String|Mapping)?
-    MailFromDomain: (String|Mapping)?
+open class IdentityTags {
+    Key: (String|Mapping)?
+    Value: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::PinpointEmail::Identity
@@ -24,10 +24,10 @@ open class Identity extends cloudformation.Resource {
 
 
     /// 
-    hidden Tags: (Listing<Tags>)?
+    hidden Tags: (Listing<IdentityTags>)?
 
     /// 
-    hidden MailFromAttributes: (MailFromAttributes)?
+    hidden Name: String|Mapping
 
     /// 
     hidden FeedbackForwardingEnabled: (Boolean|Mapping)?
@@ -36,14 +36,14 @@ open class Identity extends cloudformation.Resource {
     hidden DkimSigningEnabled: (Boolean|Mapping)?
 
     /// 
-    hidden Name: String|Mapping
+    hidden MailFromAttributes: (IdentityMailFromAttributes)?
 
     Properties {
         ["Tags"] = if (Tags == null) null else Tags
-        ["MailFromAttributes"] = if (MailFromAttributes == null) null else MailFromAttributes
+        ["Name"] = if (Name == null) null else Name
         ["FeedbackForwardingEnabled"] = if (FeedbackForwardingEnabled == null) null else FeedbackForwardingEnabled
         ["DkimSigningEnabled"] = if (DkimSigningEnabled == null) null else DkimSigningEnabled
-        ["Name"] = if (Name == null) null else Name
+        ["MailFromAttributes"] = if (MailFromAttributes == null) null else MailFromAttributes
     }
 
 }

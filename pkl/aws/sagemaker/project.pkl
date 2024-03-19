@@ -5,49 +5,41 @@ module aws.sagemaker.project
 
 import "../../cloudformation.pkl"
 
-/// The path identifier of the product.
-open class PathId {
-}
+typealias ProjectProvisionedProductStatusMessage = String|Mapping
 
-/// Project Id.
-open class ProjectId {
-}
 
-/// The Amazon Resource Name (ARN) of the Project.
-open class ProjectArn {
-}
+typealias ProjectProjectId = String|Mapping
 
-/// Provisioned Product Status Message
-open class ProvisionedProductStatusMessage {
-}
 
-/// The name of the project.
-open class ProjectName {
-}
+typealias ProjectProjectName = String|Mapping
 
-/// Service Catalog product identifier.
-open class ProductId {
-}
 
-/// The identifier of the provisioning artifact (also known as a version).
-open class ProvisioningArtifactId {
-}
+typealias ProjectPathId = String|Mapping
+
+
+typealias ProjectProductId = String|Mapping
+
 
 /// Information about a parameter used to provision a product.
-open class ProvisioningParameter {
+open class ProjectProvisioningParameter {
     Key: String(matches(Regex(#".*"#)))|Mapping
     Value: String(matches(Regex(#".*"#)))|Mapping
 }
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class ProjectTag {
     Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
     Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
 }
 
-/// The description of the project.
-open class ProjectDescription {
-}
+typealias ProjectProjectDescription = String|Mapping
+
+
+typealias ProjectProjectArn = String|Mapping
+
+
+typealias ProjectProvisioningArtifactId = String|Mapping
+
 
 /// Resource Type definition for AWS::SageMaker::Project
 open class Project extends cloudformation.Resource {
@@ -55,27 +47,27 @@ open class Project extends cloudformation.Resource {
     Type = "AWS::SageMaker::Project"
 
 
-    /// Input ServiceCatalog Provisioning Details
-    hidden ServiceCatalogProvisioningDetails: Dynamic
+    /// 
+    hidden ProjectName: ProjectProjectName
+
+    /// 
+    hidden ProjectDescription: (ProjectProjectDescription)?
 
     /// Provisioned ServiceCatalog  Details
     hidden ServiceCatalogProvisionedProductDetails: (Dynamic)?
 
+    /// Input ServiceCatalog Provisioning Details
+    hidden ServiceCatalogProvisioningDetails: Dynamic
+
     /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden ProjectName: ProjectName
-
-    /// 
-    hidden ProjectDescription: (ProjectDescription)?
+    hidden Tags: (Listing<ProjectTag>)?
 
     Properties {
-        ["ServiceCatalogProvisioningDetails"] = if (ServiceCatalogProvisioningDetails == null) null else ServiceCatalogProvisioningDetails
-        ["ServiceCatalogProvisionedProductDetails"] = if (ServiceCatalogProvisionedProductDetails == null) null else ServiceCatalogProvisionedProductDetails
-        ["Tags"] = if (Tags == null) null else Tags
         ["ProjectName"] = if (ProjectName == null) null else ProjectName
         ["ProjectDescription"] = if (ProjectDescription == null) null else ProjectDescription
+        ["ServiceCatalogProvisionedProductDetails"] = if (ServiceCatalogProvisionedProductDetails == null) null else ServiceCatalogProvisionedProductDetails
+        ["ServiceCatalogProvisioningDetails"] = if (ServiceCatalogProvisioningDetails == null) null else ServiceCatalogProvisioningDetails
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

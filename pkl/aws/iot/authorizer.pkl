@@ -7,8 +7,8 @@ import "../../cloudformation.pkl"
 
 /// 
 open class AuthorizerTag {
-    Value: String|Mapping
     Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// Creates an authorizer.
@@ -24,13 +24,10 @@ open class Authorizer extends cloudformation.Resource {
     hidden Status: (AuthorizerStatus|Mapping)?
 
     /// 
-    hidden TokenSigningPublicKeys: (Dynamic)?
+    hidden TokenKeyName: (String|Mapping)?
 
     /// 
     hidden EnableCachingForHttp: (Boolean|Mapping)?
-
-    /// 
-    hidden Tags: (Listing<AuthorizerTag>)?
 
     /// 
     hidden AuthorizerFunctionArn: String|Mapping
@@ -39,20 +36,25 @@ open class Authorizer extends cloudformation.Resource {
     hidden AuthorizerName: (String(matches(Regex(#"[\w=,@-]+"#)))|Mapping)?
 
     /// 
-    hidden TokenKeyName: (String|Mapping)?
+    hidden Tags: (Listing<AuthorizerTag>)?
+
+    /// 
+    hidden TokenSigningPublicKeys: (AuthorizerAuthorizerTokenSigningPublicKeys)?
 
     Properties {
         ["SigningDisabled"] = if (SigningDisabled == null) null else SigningDisabled
         ["Status"] = if (Status == null) null else Status
-        ["TokenSigningPublicKeys"] = if (TokenSigningPublicKeys == null) null else TokenSigningPublicKeys
+        ["TokenKeyName"] = if (TokenKeyName == null) null else TokenKeyName
         ["EnableCachingForHttp"] = if (EnableCachingForHttp == null) null else EnableCachingForHttp
-        ["Tags"] = if (Tags == null) null else Tags
         ["AuthorizerFunctionArn"] = if (AuthorizerFunctionArn == null) null else AuthorizerFunctionArn
         ["AuthorizerName"] = if (AuthorizerName == null) null else AuthorizerName
-        ["TokenKeyName"] = if (TokenKeyName == null) null else TokenKeyName
+        ["Tags"] = if (Tags == null) null else Tags
+        ["TokenSigningPublicKeys"] = if (TokenSigningPublicKeys == null) null else TokenSigningPublicKeys
     }
 
 }
 
 
 typealias AuthorizerStatus = "ACTIVE"|"INACTIVE"
+
+typealias AuthorizerAuthorizerTokenSigningPublicKeys = Mapping<String, Any>

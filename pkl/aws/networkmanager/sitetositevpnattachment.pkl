@@ -5,17 +5,17 @@ module aws.networkmanager.sitetositevpnattachment
 
 import "../../cloudformation.pkl"
 
-/// The attachment to move from one segment to another.
-open class ProposedSegmentChange {
-    Tags: (Listing<Tag>)?
-    AttachmentPolicyRuleNumber: (Int|Mapping)?
-    SegmentName: (String|Mapping)?
-}
-
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class SiteToSiteVpnAttachmentTag {
     Key: String|Mapping
     Value: String|Mapping
+}
+
+/// The attachment to move from one segment to another.
+open class SiteToSiteVpnAttachmentProposedSegmentChange {
+    Tags: (Listing<SiteToSiteVpnAttachmentTag>)?
+    AttachmentPolicyRuleNumber: (Int|Mapping)?
+    SegmentName: (String|Mapping)?
 }
 
 /// AWS::NetworkManager::SiteToSiteVpnAttachment Resource Type definition.
@@ -30,17 +30,17 @@ open class SiteToSiteVpnAttachment extends cloudformation.Resource {
     /// The ARN of the site-to-site VPN attachment.
     hidden VpnConnectionArn: String|Mapping
 
-    /// Tags for the attachment.
-    hidden Tags: (Listing<Tag>)?
-
     /// The attachment to move from one segment to another.
-    hidden ProposedSegmentChange: (ProposedSegmentChange)?
+    hidden ProposedSegmentChange: (SiteToSiteVpnAttachmentProposedSegmentChange)?
+
+    /// Tags for the attachment.
+    hidden Tags: (Listing<SiteToSiteVpnAttachmentTag>)?
 
     Properties {
         ["CoreNetworkId"] = if (CoreNetworkId == null) null else CoreNetworkId
         ["VpnConnectionArn"] = if (VpnConnectionArn == null) null else VpnConnectionArn
-        ["Tags"] = if (Tags == null) null else Tags
         ["ProposedSegmentChange"] = if (ProposedSegmentChange == null) null else ProposedSegmentChange
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

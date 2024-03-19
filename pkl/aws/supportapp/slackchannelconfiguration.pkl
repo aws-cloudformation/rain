@@ -11,6 +11,9 @@ open class SlackChannelConfiguration extends cloudformation.Resource {
     Type = "AWS::SupportApp::SlackChannelConfiguration"
 
 
+    /// The team ID in Slack, which uniquely identifies a workspace.
+    hidden TeamId: String(matches(Regex(#"^\S+$"#)))|Mapping
+
     /// The channel ID in Slack, which identifies a channel within a workspace.
     hidden ChannelId: String(matches(Regex(#"^\S+$"#)))|Mapping
 
@@ -32,10 +35,8 @@ open class SlackChannelConfiguration extends cloudformation.Resource {
     /// The Amazon Resource Name (ARN) of an IAM role that grants the AWS Support App access to perform operations for AWS services.
     hidden ChannelRoleArn: String(matches(Regex(#"^arn:aws[-a-z0-9]*:iam::[0-9]{12}:role\/(.+)$"#)))|Mapping
 
-    /// The team ID in Slack, which uniquely identifies a workspace.
-    hidden TeamId: String(matches(Regex(#"^\S+$"#)))|Mapping
-
     Properties {
+        ["TeamId"] = if (TeamId == null) null else TeamId
         ["ChannelId"] = if (ChannelId == null) null else ChannelId
         ["ChannelName"] = if (ChannelName == null) null else ChannelName
         ["NotifyOnCreateOrReopenCase"] = if (NotifyOnCreateOrReopenCase == null) null else NotifyOnCreateOrReopenCase
@@ -43,7 +44,6 @@ open class SlackChannelConfiguration extends cloudformation.Resource {
         ["NotifyOnResolveCase"] = if (NotifyOnResolveCase == null) null else NotifyOnResolveCase
         ["NotifyOnCaseSeverity"] = if (NotifyOnCaseSeverity == null) null else NotifyOnCaseSeverity
         ["ChannelRoleArn"] = if (ChannelRoleArn == null) null else ChannelRoleArn
-        ["TeamId"] = if (TeamId == null) null else TeamId
     }
 
 }

@@ -14,9 +14,9 @@ open class ConfigurationAggregatorAccountAggregationSource {
 
 /// 
 open class ConfigurationAggregatorOrganizationAggregationSource {
-    RoleArn: String|Mapping
     AllAwsRegions: (Boolean|Mapping)?
     AwsRegions: (Listing<String|Mapping>)?
+    RoleArn: String|Mapping
 }
 
 /// A key-value pair to associate with a resource.
@@ -31,6 +31,9 @@ open class ConfigurationAggregator extends cloudformation.Resource {
     Type = "AWS::Config::ConfigurationAggregator"
 
 
+    /// 
+    hidden OrganizationAggregationSource: (ConfigurationAggregatorOrganizationAggregationSource)?
+
     /// The tags for the configuration aggregator.
     hidden Tags: (Listing<ConfigurationAggregatorTag>)?
 
@@ -40,14 +43,11 @@ open class ConfigurationAggregator extends cloudformation.Resource {
     /// The name of the aggregator.
     hidden ConfigurationAggregatorName: (String(matches(Regex(#"[\w\-]+"#)))|Mapping)?
 
-    /// 
-    hidden OrganizationAggregationSource: (ConfigurationAggregatorOrganizationAggregationSource)?
-
     Properties {
+        ["OrganizationAggregationSource"] = if (OrganizationAggregationSource == null) null else OrganizationAggregationSource
         ["Tags"] = if (Tags == null) null else Tags
         ["AccountAggregationSources"] = if (AccountAggregationSources == null) null else AccountAggregationSources
         ["ConfigurationAggregatorName"] = if (ConfigurationAggregatorName == null) null else ConfigurationAggregatorName
-        ["OrganizationAggregationSource"] = if (OrganizationAggregationSource == null) null else OrganizationAggregationSource
     }
 
 }

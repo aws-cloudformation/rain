@@ -5,36 +5,6 @@ module aws.apigateway.method
 
 import "../../cloudformation.pkl"
 
-typealias MethodIntegrationRequestParameters = Mapping<String, Any>
-
-typealias IntegrationContentHandling = "CONVERT_TO_BINARY"|"CONVERT_TO_TEXT"
-
-typealias IntegrationPassthroughBehavior = "WHEN_NO_MATCH"|"WHEN_NO_TEMPLATES"|"NEVER"
-
-typealias IntegrationConnectionType = "INTERNET"|"VPC_LINK"
-
-typealias IntegrationType = "AWS"|"AWS_PROXY"|"HTTP"|"HTTP_PROXY"|"MOCK"
-
-typealias MethodIntegrationRequestTemplates = Mapping<String, Any>
-
-/// ``Integration`` is a property of the [AWS::ApiGateway::Method](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigateway-method.html) resource that specifies information about the target backend that a method calls.
-open class MethodIntegration {
-    Credentials: (String|Mapping)?
-    RequestParameters: (MethodIntegrationRequestParameters)?
-    CacheKeyParameters: (Listing<String|Mapping>)?
-    CacheNamespace: (String|Mapping)?
-    ContentHandling: (IntegrationContentHandling|Mapping)?
-    PassthroughBehavior: (IntegrationPassthroughBehavior|Mapping)?
-    ConnectionType: (IntegrationConnectionType|Mapping)?
-    IntegrationResponses: (Listing<MethodIntegrationResponse>)?
-    Type: IntegrationType|Mapping
-    Uri: (String|Mapping)?
-    ConnectionId: (String|Mapping)?
-    IntegrationHttpMethod: (String|Mapping)?
-    RequestTemplates: (MethodIntegrationRequestTemplates)?
-    TimeoutInMillis: (Int|Mapping)?
-}
-
 typealias MethodMethodResponseResponseModels = Mapping<String, Any>
 
 typealias MethodMethodResponseResponseParameters = Mapping<String, Any>
@@ -54,11 +24,41 @@ typealias MethodIntegrationResponseResponseTemplates = Mapping<String, Any>
 
 /// ``IntegrationResponse`` is a property of the [Amazon API Gateway Method Integration](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-apitgateway-method-integration.html) property type that specifies the response that API Gateway sends after a method's backend finishes processing a request.
 open class MethodIntegrationResponse {
-    StatusCode: String|Mapping
     ContentHandling: (IntegrationResponseContentHandling|Mapping)?
     ResponseParameters: (MethodIntegrationResponseResponseParameters)?
     ResponseTemplates: (MethodIntegrationResponseResponseTemplates)?
     SelectionPattern: (String|Mapping)?
+    StatusCode: String|Mapping
+}
+
+typealias IntegrationPassthroughBehavior = "WHEN_NO_MATCH"|"WHEN_NO_TEMPLATES"|"NEVER"
+
+typealias MethodIntegrationRequestTemplates = Mapping<String, Any>
+
+typealias IntegrationType = "AWS"|"AWS_PROXY"|"HTTP"|"HTTP_PROXY"|"MOCK"
+
+typealias IntegrationConnectionType = "INTERNET"|"VPC_LINK"
+
+typealias IntegrationContentHandling = "CONVERT_TO_BINARY"|"CONVERT_TO_TEXT"
+
+typealias MethodIntegrationRequestParameters = Mapping<String, Any>
+
+/// ``Integration`` is a property of the [AWS::ApiGateway::Method](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigateway-method.html) resource that specifies information about the target backend that a method calls.
+open class MethodIntegration {
+    Credentials: (String|Mapping)?
+    TimeoutInMillis: (Int|Mapping)?
+    Uri: (String|Mapping)?
+    IntegrationHttpMethod: (String|Mapping)?
+    PassthroughBehavior: (IntegrationPassthroughBehavior|Mapping)?
+    RequestTemplates: (MethodIntegrationRequestTemplates)?
+    Type: IntegrationType|Mapping
+    CacheKeyParameters: (Listing<String|Mapping>)?
+    CacheNamespace: (String|Mapping)?
+    ConnectionType: (IntegrationConnectionType|Mapping)?
+    ContentHandling: (IntegrationContentHandling|Mapping)?
+    ConnectionId: (String|Mapping)?
+    IntegrationResponses: (Listing<MethodIntegrationResponse>)?
+    RequestParameters: (MethodIntegrationRequestParameters)?
 }
 
 /// The ``AWS::ApiGateway::Method`` resource creates API Gateway methods that define the parameters and body that clients must send in their requests.
@@ -73,23 +73,17 @@ open class Method extends cloudformation.Resource {
     /// The identifier of an authorizer to use on this method. The method's authorization type must be ``CUSTOM`` or ``COGNITO_USER_POOLS``.
     hidden AuthorizerId: (String|Mapping)?
 
-    /// The identifier of a RequestValidator for request validation.
-    hidden RequestValidatorId: (String|Mapping)?
+    /// Gets a method response associated with a given HTTP status code.
+    hidden MethodResponses: (Listing<MethodMethodResponse>)?
+
+    /// A key-value map defining required or optional method request parameters that can be accepted by API Gateway. A key is a method request parameter name matching the pattern of ``method.request.{location}.{name}``, where ``location`` is ``querystring``, ``path``, or ``header`` and ``name`` is a valid and unique parameter name. The value associated with the key is a Boolean flag indicating whether the parameter is required (``true``) or optional (``false``). The method request parameter names defined here are available in Integration to be mapped to integration request parameters or templates.
+    hidden RequestParameters: (MethodMethodRequestParameters)?
 
     /// The string identifier of the associated RestApi.
     hidden RestApiId: String|Mapping
 
     /// A boolean flag specifying whether a valid ApiKey is required to invoke this method.
     hidden ApiKeyRequired: (Boolean|Mapping)?
-
-    /// A human-friendly operation identifier for the method. For example, you can assign the ``operationName`` of ``ListPets`` for the ``GET /pets`` method in the ``PetStore`` example.
-    hidden OperationName: (String|Mapping)?
-
-    /// A key-value map defining required or optional method request parameters that can be accepted by API Gateway. A key is a method request parameter name matching the pattern of ``method.request.{location}.{name}``, where ``location`` is ``querystring``, ``path``, or ``header`` and ``name`` is a valid and unique parameter name. The value associated with the key is a Boolean flag indicating whether the parameter is required (``true``) or optional (``false``). The method request parameter names defined here are available in Integration to be mapped to integration request parameters or templates.
-    hidden RequestParameters: (MethodMethodRequestParameters)?
-
-    /// The Resource identifier for the MethodResponse resource.
-    hidden ResourceId: String|Mapping
 
     /// The method's HTTP verb.
     hidden HttpMethod: String|Mapping
@@ -102,26 +96,32 @@ open class Method extends cloudformation.Resource {
     ///   If you specify the ``AuthorizerId`` property, specify ``CUSTOM`` or ``COGNITO_USER_POOLS`` for this property.
     hidden AuthorizationType: (MethodAuthorizationType|Mapping)?
 
+    /// A human-friendly operation identifier for the method. For example, you can assign the ``operationName`` of ``ListPets`` for the ``GET /pets`` method in the ``PetStore`` example.
+    hidden OperationName: (String|Mapping)?
+
+    /// The Resource identifier for the MethodResponse resource.
+    hidden ResourceId: String|Mapping
+
     /// Represents an ``HTTP``, ``HTTP_PROXY``, ``AWS``, ``AWS_PROXY``, or Mock integration.
     hidden Integration: (MethodIntegration)?
 
-    /// Gets a method response associated with a given HTTP status code.
-    hidden MethodResponses: (Listing<MethodMethodResponse>)?
+    /// The identifier of a RequestValidator for request validation.
+    hidden RequestValidatorId: (String|Mapping)?
 
     Properties {
         ["AuthorizationScopes"] = if (AuthorizationScopes == null) null else AuthorizationScopes
         ["AuthorizerId"] = if (AuthorizerId == null) null else AuthorizerId
-        ["RequestValidatorId"] = if (RequestValidatorId == null) null else RequestValidatorId
+        ["MethodResponses"] = if (MethodResponses == null) null else MethodResponses
+        ["RequestParameters"] = if (RequestParameters == null) null else RequestParameters
         ["RestApiId"] = if (RestApiId == null) null else RestApiId
         ["ApiKeyRequired"] = if (ApiKeyRequired == null) null else ApiKeyRequired
-        ["OperationName"] = if (OperationName == null) null else OperationName
-        ["RequestParameters"] = if (RequestParameters == null) null else RequestParameters
-        ["ResourceId"] = if (ResourceId == null) null else ResourceId
         ["HttpMethod"] = if (HttpMethod == null) null else HttpMethod
         ["RequestModels"] = if (RequestModels == null) null else RequestModels
         ["AuthorizationType"] = if (AuthorizationType == null) null else AuthorizationType
+        ["OperationName"] = if (OperationName == null) null else OperationName
+        ["ResourceId"] = if (ResourceId == null) null else ResourceId
         ["Integration"] = if (Integration == null) null else Integration
-        ["MethodResponses"] = if (MethodResponses == null) null else MethodResponses
+        ["RequestValidatorId"] = if (RequestValidatorId == null) null else RequestValidatorId
     }
 
 }

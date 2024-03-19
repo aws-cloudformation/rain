@@ -5,26 +5,43 @@ module aws.fms.policy
 
 import "../../cloudformation.pkl"
 
-typealias PolicyOrganizationalUnitId = String
+typealias PolicyResourceArn = String|Mapping
 
 
-typealias PolicyFirewallDeploymentModel = "DISTRIBUTED"|"CENTRALIZED"
+typealias PolicyResourceType = String|Mapping
 
 
-typealias PolicyPolicyType = "WAF"|"WAFV2"|"SHIELD_ADVANCED"|"SECURITY_GROUPS_COMMON"|"SECURITY_GROUPS_CONTENT_AUDIT"|"SECURITY_GROUPS_USAGE_AUDIT"|"NETWORK_FIREWALL"|"THIRD_PARTY_FIREWALL"|"DNS_FIREWALL"|"IMPORT_NETWORK_FIREWALL"
+typealias PolicyFirewallDeploymentModel = String|Mapping
 
-
-typealias PolicyResourceArn = String
-
-
-/// Third party firewall policy.
-open class PolicyThirdPartyFirewallPolicy {
-    FirewallDeploymentModel: PolicyFirewallDeploymentModel
-}
 
 /// Network firewall policy.
 open class PolicyNetworkFirewallPolicy {
     FirewallDeploymentModel: PolicyFirewallDeploymentModel
+}
+
+typealias PolicyAccountId = String|Mapping
+
+
+/// Firewall security service policy data.
+open class PolicySecurityServicePolicyData {
+    ManagedServiceData: (PolicyManagedServiceData)?
+    Type: PolicyPolicyType
+    PolicyOption: (PolicyPolicyOption)?
+}
+
+/// Firewall policy option.
+open class PolicyPolicyOption {
+    ThirdPartyFirewallPolicy: (PolicyThirdPartyFirewallPolicy)?
+    NetworkFirewallPolicy: (PolicyNetworkFirewallPolicy)?
+}
+
+typealias PolicyBase62Id = String|Mapping
+
+
+/// A resource tag.
+open class PolicyResourceTag {
+    Key: String|Mapping
+    Value: (String|Mapping)?
 }
 
 /// An FMS includeMap or excludeMap.
@@ -33,16 +50,9 @@ open class PolicyIEMap {
     ORGUNIT: (Listing<PolicyOrganizationalUnitId>)?
 }
 
-/// A resource tag.
-open class PolicyResourceTag {
-    Key: String|Mapping
-    Value: (String|Mapping)?
-}
-
-/// Firewall policy option.
-open class PolicyPolicyOption {
-    NetworkFirewallPolicy: (PolicyNetworkFirewallPolicy)?
-    ThirdPartyFirewallPolicy: (PolicyThirdPartyFirewallPolicy)?
+/// Third party firewall policy.
+open class PolicyThirdPartyFirewallPolicy {
+    FirewallDeploymentModel: PolicyFirewallDeploymentModel
 }
 
 /// A policy tag.
@@ -51,23 +61,13 @@ open class PolicyPolicyTag {
     Value: String(matches(Regex(#"^([^\s]*)$"#)))|Mapping
 }
 
-/// Firewall security service policy data.
-open class PolicySecurityServicePolicyData {
-    Type: PolicyPolicyType
-    PolicyOption: (PolicyPolicyOption)?
-    ManagedServiceData: (PolicyManagedServiceData)?
-}
-
-typealias PolicyAccountId = String
+typealias PolicyManagedServiceData = String|Mapping
 
 
-typealias PolicyResourceType = String
+typealias PolicyOrganizationalUnitId = String|Mapping
 
 
-typealias PolicyManagedServiceData = String
-
-
-typealias PolicyBase62Id = String
+typealias PolicyPolicyType = String|Mapping
 
 
 /// Creates an AWS Firewall Manager policy.
@@ -77,10 +77,7 @@ open class Policy extends cloudformation.Resource {
 
 
     /// 
-    hidden IncludeMap: (PolicyIEMap)?
-
-    /// 
-    hidden PolicyName: String(matches(Regex(#"^([a-zA-Z0-9_.:/=+\-@\s]+)$"#)))|Mapping
+    hidden RemediationEnabled: Boolean|Mapping
 
     /// 
     hidden ResourcesCleanUp: (Boolean|Mapping)?
@@ -89,50 +86,53 @@ open class Policy extends cloudformation.Resource {
     hidden ExcludeResourceTags: Boolean|Mapping
 
     /// 
-    hidden PolicyDescription: (String(matches(Regex(#"^([a-zA-Z0-9_.:/=+\-@\s]+)$"#)))|Mapping)?
-
-    /// 
-    hidden ResourceTags: (Listing<PolicyResourceTag>)?
-
-    /// 
     hidden ResourceSetIds: (Listing<PolicyBase62Id>)?
-
-    /// 
-    hidden Tags: (Listing<PolicyPolicyTag>)?
-
-    /// 
-    hidden ResourceType: (PolicyResourceType)?
 
     /// 
     hidden ResourceTypeList: (Listing<PolicyResourceType>)?
 
     /// 
-    hidden ExcludeMap: (PolicyIEMap)?
-
-    /// 
-    hidden RemediationEnabled: Boolean|Mapping
-
-    /// 
     hidden SecurityServicePolicyData: PolicySecurityServicePolicyData
+
+    /// 
+    hidden ResourceTags: (Listing<PolicyResourceTag>)?
+
+    /// 
+    hidden ResourceType: (PolicyResourceType)?
+
+    /// 
+    hidden PolicyName: String(matches(Regex(#"^([a-zA-Z0-9_.:/=+\-@\s]+)$"#)))|Mapping
+
+    /// 
+    hidden PolicyDescription: (String(matches(Regex(#"^([a-zA-Z0-9_.:/=+\-@\s]+)$"#)))|Mapping)?
 
     /// 
     hidden DeleteAllPolicyResources: (Boolean|Mapping)?
 
+    /// 
+    hidden Tags: (Listing<PolicyPolicyTag>)?
+
+    /// 
+    hidden ExcludeMap: (PolicyIEMap)?
+
+    /// 
+    hidden IncludeMap: (PolicyIEMap)?
+
     Properties {
-        ["IncludeMap"] = if (IncludeMap == null) null else IncludeMap
-        ["PolicyName"] = if (PolicyName == null) null else PolicyName
+        ["RemediationEnabled"] = if (RemediationEnabled == null) null else RemediationEnabled
         ["ResourcesCleanUp"] = if (ResourcesCleanUp == null) null else ResourcesCleanUp
         ["ExcludeResourceTags"] = if (ExcludeResourceTags == null) null else ExcludeResourceTags
-        ["PolicyDescription"] = if (PolicyDescription == null) null else PolicyDescription
-        ["ResourceTags"] = if (ResourceTags == null) null else ResourceTags
         ["ResourceSetIds"] = if (ResourceSetIds == null) null else ResourceSetIds
-        ["Tags"] = if (Tags == null) null else Tags
-        ["ResourceType"] = if (ResourceType == null) null else ResourceType
         ["ResourceTypeList"] = if (ResourceTypeList == null) null else ResourceTypeList
-        ["ExcludeMap"] = if (ExcludeMap == null) null else ExcludeMap
-        ["RemediationEnabled"] = if (RemediationEnabled == null) null else RemediationEnabled
         ["SecurityServicePolicyData"] = if (SecurityServicePolicyData == null) null else SecurityServicePolicyData
+        ["ResourceTags"] = if (ResourceTags == null) null else ResourceTags
+        ["ResourceType"] = if (ResourceType == null) null else ResourceType
+        ["PolicyName"] = if (PolicyName == null) null else PolicyName
+        ["PolicyDescription"] = if (PolicyDescription == null) null else PolicyDescription
         ["DeleteAllPolicyResources"] = if (DeleteAllPolicyResources == null) null else DeleteAllPolicyResources
+        ["Tags"] = if (Tags == null) null else Tags
+        ["ExcludeMap"] = if (ExcludeMap == null) null else ExcludeMap
+        ["IncludeMap"] = if (IncludeMap == null) null else IncludeMap
     }
 
 }

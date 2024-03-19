@@ -6,37 +6,37 @@ module aws.osis.pipeline
 import "../../cloudformation.pkl"
 
 /// Key-value pairs to configure encryption at rest.
-open class EncryptionAtRestOptions {
+open class PipelineEncryptionAtRestOptions {
     KmsKeyArn: String|Mapping
 }
 
 /// Key-value pairs to configure log publishing.
-open class LogPublishingOptions {
+open class PipelineLogPublishingOptions {
     IsLoggingEnabled: (Boolean|Mapping)?
     CloudWatchLogDestination: (Dynamic)?
 }
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class PipelineTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
 /// Container for the values required to configure VPC access for the pipeline. If you don't specify these values, OpenSearch Ingestion Service creates the pipeline with a public endpoint.
-open class VpcOptions {
+open class PipelineVpcOptions {
     SecurityGroupIds: (Listing<String|Mapping>)?
     SubnetIds: Listing<String|Mapping>
 }
 
 /// An OpenSearch Ingestion Service-managed VPC endpoint that will access one or more pipelines.
-open class VpcEndpoint {
-    VpcOptions: (VpcOptions)?
+open class PipelineVpcEndpoint {
+    VpcOptions: (PipelineVpcOptions)?
     VpcEndpointId: (String|Mapping)?
     VpcId: (String|Mapping)?
 }
 
 /// Key-value pairs to configure buffering.
-open class BufferOptions {
+open class PipelineBufferOptions {
     PersistentBufferEnabled: Boolean|Mapping
 }
 
@@ -49,40 +49,40 @@ open class Pipeline extends cloudformation.Resource {
     /// The maximum pipeline capacity, in Ingestion OpenSearch Compute Units (OCUs).
     hidden MaxUnits: Int|Mapping
 
+    /// The minimum pipeline capacity, in Ingestion OpenSearch Compute Units (OCUs).
+    hidden MinUnits: Int|Mapping
+
     /// The Data Prepper pipeline configuration.
     hidden PipelineConfigurationBody: String|Mapping
 
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<Tag>)?
+    /// 
+    hidden VpcOptions: (PipelineVpcOptions)?
 
     /// 
-    hidden VpcOptions: (VpcOptions)?
+    hidden BufferOptions: (PipelineBufferOptions)?
 
     /// 
-    hidden EncryptionAtRestOptions: (EncryptionAtRestOptions)?
+    hidden EncryptionAtRestOptions: (PipelineEncryptionAtRestOptions)?
 
     /// 
-    hidden LogPublishingOptions: (LogPublishingOptions)?
-
-    /// The minimum pipeline capacity, in Ingestion OpenSearch Compute Units (OCUs).
-    hidden MinUnits: Int|Mapping
+    hidden LogPublishingOptions: (PipelineLogPublishingOptions)?
 
     /// Name of the OpenSearch Ingestion Service pipeline to create. Pipeline names are unique across the pipelines owned by an account within an AWS Region.
     hidden PipelineName: String(matches(Regex(#"[a-z][a-z0-9\-]+"#)))|Mapping
 
-    /// 
-    hidden BufferOptions: (BufferOptions)?
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<PipelineTag>)?
 
     Properties {
         ["MaxUnits"] = if (MaxUnits == null) null else MaxUnits
+        ["MinUnits"] = if (MinUnits == null) null else MinUnits
         ["PipelineConfigurationBody"] = if (PipelineConfigurationBody == null) null else PipelineConfigurationBody
-        ["Tags"] = if (Tags == null) null else Tags
         ["VpcOptions"] = if (VpcOptions == null) null else VpcOptions
+        ["BufferOptions"] = if (BufferOptions == null) null else BufferOptions
         ["EncryptionAtRestOptions"] = if (EncryptionAtRestOptions == null) null else EncryptionAtRestOptions
         ["LogPublishingOptions"] = if (LogPublishingOptions == null) null else LogPublishingOptions
-        ["MinUnits"] = if (MinUnits == null) null else MinUnits
         ["PipelineName"] = if (PipelineName == null) null else PipelineName
-        ["BufferOptions"] = if (BufferOptions == null) null else BufferOptions
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

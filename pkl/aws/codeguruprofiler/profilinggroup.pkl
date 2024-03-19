@@ -5,15 +5,6 @@ module aws.codeguruprofiler.profilinggroup
 
 import "../../cloudformation.pkl"
 
-/// A key-value pair to associate with a resource.
-open class ProfilingGroupTag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-typealias ProfilingGroupChannelId = String|Mapping
-
-
 typealias ProfilingGroupChannelUri = String|Mapping
 
 
@@ -29,11 +20,23 @@ typealias ProfilingGroupProfilingGroupArn = String|Mapping
 typealias ProfilingGroupIamArn = String|Mapping
 
 
+/// A key-value pair to associate with a resource.
+open class ProfilingGroupTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+typealias ProfilingGroupChannelId = String|Mapping
+
+
 /// This resource schema represents the Profiling Group resource in the Amazon CodeGuru Profiler service.
 open class ProfilingGroup extends cloudformation.Resource {
 
     Type = "AWS::CodeGuruProfiler::ProfilingGroup"
 
+
+    /// The tags associated with a profiling group.
+    hidden Tags: (Listing<ProfilingGroupTag>)?
 
     /// The name of the profiling group.
     hidden ProfilingGroupName: String(matches(Regex(#"^[\w-]+$"#)))|Mapping
@@ -47,15 +50,12 @@ open class ProfilingGroup extends cloudformation.Resource {
     /// Configuration for Notification Channels for Anomaly Detection feature in CodeGuru Profiler which enables customers to detect anomalies in the application profile for those methods that represent the highest proportion of CPU time or latency
     hidden AnomalyDetectionNotificationConfiguration: (Listing<ProfilingGroupChannel>)?
 
-    /// The tags associated with a profiling group.
-    hidden Tags: (Listing<ProfilingGroupTag>)?
-
     Properties {
+        ["Tags"] = if (Tags == null) null else Tags
         ["ProfilingGroupName"] = if (ProfilingGroupName == null) null else ProfilingGroupName
         ["ComputePlatform"] = if (ComputePlatform == null) null else ComputePlatform
         ["AgentPermissions"] = if (AgentPermissions == null) null else AgentPermissions
         ["AnomalyDetectionNotificationConfiguration"] = if (AnomalyDetectionNotificationConfiguration == null) null else AnomalyDetectionNotificationConfiguration
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

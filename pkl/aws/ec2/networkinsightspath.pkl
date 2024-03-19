@@ -13,10 +13,10 @@ open class NetworkInsightsPathFilterPortRange {
 
 /// 
 open class NetworkInsightsPathPathFilter {
+    SourceAddress: (NetworkInsightsPathIpAddress)?
     SourcePortRange: (NetworkInsightsPathFilterPortRange)?
     DestinationAddress: (NetworkInsightsPathIpAddress)?
     DestinationPortRange: (NetworkInsightsPathFilterPortRange)?
-    SourceAddress: (NetworkInsightsPathIpAddress)?
 }
 
 typealias NetworkInsightsPathTags = Listing<(NetworkInsightsPathTag)?>
@@ -28,8 +28,58 @@ open class NetworkInsightsPathTag {
     Value: (String|Mapping)?
 }
 
-typealias NetworkInsightsPathIpAddress = String
+typealias NetworkInsightsPathIpAddress = String|Mapping
 
 
-typealias NetworkInsightsPathProtocol = "tcp"|"udp"
+typealias NetworkInsightsPathProtocol = String|Mapping
 
+
+typealias NetworkInsightsPathPort = Int|Mapping
+
+
+/// Resource schema for AWS::EC2::NetworkInsightsPath
+open class NetworkInsightsPath extends cloudformation.Resource {
+
+    Type = "AWS::EC2::NetworkInsightsPath"
+
+
+    /// 
+    hidden SourceIp: (NetworkInsightsPathIpAddress)?
+
+    /// 
+    hidden DestinationIp: (NetworkInsightsPathIpAddress)?
+
+    /// 
+    hidden Source: String|Mapping
+
+    /// 
+    hidden DestinationPort: (NetworkInsightsPathPort)?
+
+    /// 
+    hidden Tags: (Listing<NetworkInsightsPathTag>)?
+
+    /// 
+    hidden FilterAtSource: (NetworkInsightsPathPathFilter)?
+
+    /// 
+    hidden Protocol: NetworkInsightsPathProtocol
+
+    /// 
+    hidden FilterAtDestination: (NetworkInsightsPathPathFilter)?
+
+    /// 
+    hidden Destination: (String|Mapping)?
+
+    Properties {
+        ["SourceIp"] = if (SourceIp == null) null else SourceIp
+        ["DestinationIp"] = if (DestinationIp == null) null else DestinationIp
+        ["Source"] = if (Source == null) null else Source
+        ["DestinationPort"] = if (DestinationPort == null) null else DestinationPort
+        ["Tags"] = if (Tags == null) null else Tags
+        ["FilterAtSource"] = if (FilterAtSource == null) null else FilterAtSource
+        ["Protocol"] = if (Protocol == null) null else Protocol
+        ["FilterAtDestination"] = if (FilterAtDestination == null) null else FilterAtDestination
+        ["Destination"] = if (Destination == null) null else Destination
+    }
+
+}

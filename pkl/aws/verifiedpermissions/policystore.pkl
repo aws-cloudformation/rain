@@ -6,22 +6,20 @@ module aws.verifiedpermissions.policystore
 import "../../cloudformation.pkl"
 
 /// 
-open class ValidationMode {
+open class PolicyStoreSchemaDefinition {
+    CedarJson: (PolicyStoreSchemaJson)?
 }
 
-/// 
-open class ValidationSettings {
-    Mode: ValidationMode
-}
+typealias PolicyStoreValidationMode = String|Mapping
+
 
 /// 
-open class SchemaJson {
+open class PolicyStoreValidationSettings {
+    Mode: PolicyStoreValidationMode
 }
 
-/// 
-open class SchemaDefinition {
-    CedarJson: (SchemaJson)?
-}
+typealias PolicyStoreSchemaJson = String|Mapping
+
 
 /// Definition of AWS::VerifiedPermissions::PolicyStore Resource Type
 open class PolicyStore extends cloudformation.Resource {
@@ -33,10 +31,10 @@ open class PolicyStore extends cloudformation.Resource {
     hidden Description: (String|Mapping)?
 
     /// 
-    hidden ValidationSettings: ValidationSettings
+    hidden ValidationSettings: PolicyStoreValidationSettings
 
     /// 
-    hidden Schema: (SchemaDefinition)?
+    hidden Schema: (PolicyStoreSchemaDefinition)?
 
     Properties {
         ["Description"] = if (Description == null) null else Description

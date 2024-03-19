@@ -11,3 +11,51 @@ open class ChannelCustomerManagedS3 {
     RoleArn: String|Mapping
     KeyPrefix: (String(matches(Regex(#"^[a-zA-Z0-9!_.*'()/{}:-]*/$"#)))|Mapping)?
 }
+
+typealias ChannelServiceManagedS3 = Dynamic
+
+
+/// 
+open class ChannelChannelStorage {
+    ServiceManagedS3: (ChannelServiceManagedS3)?
+    CustomerManagedS3: (ChannelCustomerManagedS3)?
+}
+
+/// 
+open class ChannelTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class ChannelRetentionPeriod {
+    NumberOfDays: (Int|Mapping)?
+    Unlimited: (Boolean|Mapping)?
+}
+
+/// Resource Type definition for AWS::IoTAnalytics::Channel
+open class Channel extends cloudformation.Resource {
+
+    Type = "AWS::IoTAnalytics::Channel"
+
+
+    /// 
+    hidden Tags: (Listing<ChannelTag>)?
+
+    /// 
+    hidden ChannelStorage: (ChannelChannelStorage)?
+
+    /// 
+    hidden ChannelName: (String(matches(Regex(#"(^(?!_{2}))(^[a-zA-Z0-9_]+$)"#)))|Mapping)?
+
+    /// 
+    hidden RetentionPeriod: (ChannelRetentionPeriod)?
+
+    Properties {
+        ["Tags"] = if (Tags == null) null else Tags
+        ["ChannelStorage"] = if (ChannelStorage == null) null else ChannelStorage
+        ["ChannelName"] = if (ChannelName == null) null else ChannelName
+        ["RetentionPeriod"] = if (RetentionPeriod == null) null else RetentionPeriod
+    }
+
+}

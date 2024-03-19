@@ -5,15 +5,6 @@ module aws.eks.cluster
 
 import "../../cloudformation.pkl"
 
-/// An object representing the VPC configuration to use for an Amazon EKS cluster.
-open class ClusterResourcesVpcConfig {
-    EndpointPrivateAccess: (Boolean|Mapping)?
-    EndpointPublicAccess: (Boolean|Mapping)?
-    PublicAccessCidrs: (Listing<String|Mapping>)?
-    SecurityGroupIds: (Listing<String|Mapping>)?
-    SubnetIds: Listing<String|Mapping>
-}
-
 typealias KubernetesNetworkConfigIpFamily = "ipv4"|"ipv6"
 
 /// The Kubernetes network configuration for the cluster.
@@ -23,34 +14,15 @@ open class ClusterKubernetesNetworkConfig {
     IpFamily: (KubernetesNetworkConfigIpFamily|Mapping)?
 }
 
-/// Specify the placement group of the control plane machines for your cluster.
-open class ClusterControlPlanePlacement {
-    GroupName: (String|Mapping)?
-}
-
-/// Enable exporting the Kubernetes control plane logs for your cluster to CloudWatch Logs based on log types. By default, cluster control plane logs aren't exported to CloudWatch Logs.
-open class ClusterLogging {
-    ClusterLogging: (ClusterClusterLogging)?
-}
-
-/// An object representing the Outpost configuration to use for AWS EKS outpost cluster.
-open class ClusterOutpostConfig {
-    ControlPlanePlacement: (ClusterControlPlanePlacement)?
-    OutpostArns: Listing<String|Mapping>
-    ControlPlaneInstanceType: String|Mapping
-}
-
-typealias AccessConfigAuthenticationMode = "CONFIG_MAP"|"API_AND_CONFIG_MAP"|"API"
-
-/// An object representing the Access Config to use for the cluster.
-open class ClusterAccessConfig {
-    BootstrapClusterCreatorAdminPermissions: (Boolean|Mapping)?
-    AuthenticationMode: (AccessConfigAuthenticationMode|Mapping)?
-}
-
 /// 
 open class ClusterProvider {
     KeyArn: (String|Mapping)?
+}
+
+/// The encryption configuration for the cluster
+open class ClusterEncryptionConfig {
+    Provider: (ClusterProvider)?
+    Resources: (Listing<String|Mapping>)?
 }
 
 typealias ClusterEnabledTypes = Listing<(ClusterLoggingTypeConfig)?>
@@ -61,11 +33,31 @@ open class ClusterClusterLogging {
     EnabledTypes: (ClusterEnabledTypes)?
 }
 
-typealias LoggingTypeConfigType = "api"|"audit"|"authenticator"|"controllerManager"|"scheduler"
+typealias AccessConfigAuthenticationMode = "CONFIG_MAP"|"API_AND_CONFIG_MAP"|"API"
 
-/// Enabled Logging Type
-open class ClusterLoggingTypeConfig {
-    Type: (LoggingTypeConfigType|Mapping)?
+/// An object representing the Access Config to use for the cluster.
+open class ClusterAccessConfig {
+    BootstrapClusterCreatorAdminPermissions: (Boolean|Mapping)?
+    AuthenticationMode: (AccessConfigAuthenticationMode|Mapping)?
+}
+
+/// An object representing the VPC configuration to use for an Amazon EKS cluster.
+open class ClusterResourcesVpcConfig {
+    SecurityGroupIds: (Listing<String|Mapping>)?
+    SubnetIds: Listing<String|Mapping>
+    EndpointPrivateAccess: (Boolean|Mapping)?
+    EndpointPublicAccess: (Boolean|Mapping)?
+    PublicAccessCidrs: (Listing<String|Mapping>)?
+}
+
+/// Enable exporting the Kubernetes control plane logs for your cluster to CloudWatch Logs based on log types. By default, cluster control plane logs aren't exported to CloudWatch Logs.
+open class ClusterLogging {
+    ClusterLogging: (ClusterClusterLogging)?
+}
+
+/// Specify the placement group of the control plane machines for your cluster.
+open class ClusterControlPlanePlacement {
+    GroupName: (String|Mapping)?
 }
 
 /// A key-value pair to associate with a resource.
@@ -74,10 +66,18 @@ open class ClusterTag {
     Value: String|Mapping
 }
 
-/// The encryption configuration for the cluster
-open class ClusterEncryptionConfig {
-    Resources: (Listing<String|Mapping>)?
-    Provider: (ClusterProvider)?
+typealias LoggingTypeConfigType = "api"|"audit"|"authenticator"|"controllerManager"|"scheduler"
+
+/// Enabled Logging Type
+open class ClusterLoggingTypeConfig {
+    Type: (LoggingTypeConfigType|Mapping)?
+}
+
+/// An object representing the Outpost configuration to use for AWS EKS outpost cluster.
+open class ClusterOutpostConfig {
+    OutpostArns: Listing<String|Mapping>
+    ControlPlaneInstanceType: String|Mapping
+    ControlPlanePlacement: (ClusterControlPlanePlacement)?
 }
 
 /// An object representing an Amazon EKS cluster.
@@ -87,25 +87,10 @@ open class Cluster extends cloudformation.Resource {
 
 
     /// 
+    hidden Logging: (ClusterLogging)?
+
+    /// 
     hidden ResourcesVpcConfig: ClusterResourcesVpcConfig
-
-    /// 
-    hidden OutpostConfig: (ClusterOutpostConfig)?
-
-    /// The Amazon Resource Name (ARN) of the IAM role that provides permissions for the Kubernetes control plane to make calls to AWS API operations on your behalf.
-    hidden RoleArn: String|Mapping
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<ClusterTag>)?
-
-    /// 
-    hidden KubernetesNetworkConfig: (ClusterKubernetesNetworkConfig)?
-
-    /// 
-    hidden EncryptionConfig: (Listing<ClusterEncryptionConfig>)?
-
-    /// The unique name to give to your cluster.
-    hidden Name: (String(matches(Regex(#"^[0-9A-Za-z][A-Za-z0-9\-_]*"#)))|Mapping)?
 
     /// 
     hidden AccessConfig: (ClusterAccessConfig)?
@@ -114,19 +99,34 @@ open class Cluster extends cloudformation.Resource {
     hidden Version: (String(matches(Regex(#"1\.\d\d"#)))|Mapping)?
 
     /// 
-    hidden Logging: (ClusterLogging)?
+    hidden EncryptionConfig: (Listing<ClusterEncryptionConfig>)?
+
+    /// 
+    hidden OutpostConfig: (ClusterOutpostConfig)?
+
+    /// 
+    hidden KubernetesNetworkConfig: (ClusterKubernetesNetworkConfig)?
+
+    /// The unique name to give to your cluster.
+    hidden Name: (String(matches(Regex(#"^[0-9A-Za-z][A-Za-z0-9\-_]*"#)))|Mapping)?
+
+    /// The Amazon Resource Name (ARN) of the IAM role that provides permissions for the Kubernetes control plane to make calls to AWS API operations on your behalf.
+    hidden RoleArn: String|Mapping
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<ClusterTag>)?
 
     Properties {
+        ["Logging"] = if (Logging == null) null else Logging
         ["ResourcesVpcConfig"] = if (ResourcesVpcConfig == null) null else ResourcesVpcConfig
-        ["OutpostConfig"] = if (OutpostConfig == null) null else OutpostConfig
-        ["RoleArn"] = if (RoleArn == null) null else RoleArn
-        ["Tags"] = if (Tags == null) null else Tags
-        ["KubernetesNetworkConfig"] = if (KubernetesNetworkConfig == null) null else KubernetesNetworkConfig
-        ["EncryptionConfig"] = if (EncryptionConfig == null) null else EncryptionConfig
-        ["Name"] = if (Name == null) null else Name
         ["AccessConfig"] = if (AccessConfig == null) null else AccessConfig
         ["Version"] = if (Version == null) null else Version
-        ["Logging"] = if (Logging == null) null else Logging
+        ["EncryptionConfig"] = if (EncryptionConfig == null) null else EncryptionConfig
+        ["OutpostConfig"] = if (OutpostConfig == null) null else OutpostConfig
+        ["KubernetesNetworkConfig"] = if (KubernetesNetworkConfig == null) null else KubernetesNetworkConfig
+        ["Name"] = if (Name == null) null else Name
+        ["RoleArn"] = if (RoleArn == null) null else RoleArn
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

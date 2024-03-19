@@ -6,24 +6,24 @@ module aws.servicediscovery.privatednsnamespace
 import "../../cloudformation.pkl"
 
 /// 
-open class PrivateDnsPropertiesMutable {
-    SOA: (SOA)?
+open class PrivateDnsNamespacePrivateDnsPropertiesMutable {
+    SOA: (PrivateDnsNamespaceSOA)?
 }
 
 /// 
-open class SOA {
+open class PrivateDnsNamespaceSOA {
     TTL: (Number|Mapping)?
 }
 
 /// 
-open class Tag {
+open class PrivateDnsNamespaceTag {
     Value: String|Mapping
     Key: String|Mapping
 }
 
 /// 
-open class Properties {
-    DnsProperties: (PrivateDnsPropertiesMutable)?
+open class PrivateDnsNamespaceProperties {
+    DnsProperties: (PrivateDnsNamespacePrivateDnsPropertiesMutable)?
 }
 
 /// Resource Type definition for AWS::ServiceDiscovery::PrivateDnsNamespace
@@ -31,6 +31,12 @@ open class PrivateDnsNamespace extends cloudformation.Resource {
 
     Type = "AWS::ServiceDiscovery::PrivateDnsNamespace"
 
+
+    /// 
+    hidden PropertiesProperty: (PrivateDnsNamespaceProperties)?
+
+    /// 
+    hidden Tags: (Listing<PrivateDnsNamespaceTag>)?
 
     /// 
     hidden Name: String|Mapping
@@ -41,18 +47,12 @@ open class PrivateDnsNamespace extends cloudformation.Resource {
     /// 
     hidden Vpc: String|Mapping
 
-    /// 
-    hidden PropertiesProperty: (Properties)?
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
     Properties {
+        ["Properties"] = if (PropertiesProperty == null) null else PropertiesProperty
+        ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
         ["Description"] = if (Description == null) null else Description
         ["Vpc"] = if (Vpc == null) null else Vpc
-        ["Properties"] = if (PropertiesProperty == null) null else PropertiesProperty
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

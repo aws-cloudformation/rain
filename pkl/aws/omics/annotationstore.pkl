@@ -4,3 +4,95 @@
 module aws.omics.annotationstore
 
 import "../../cloudformation.pkl"
+
+typealias AnnotationStoreStoreFormat = String|Mapping
+
+
+typealias AnnotationStoreAnnotationType = String|Mapping
+
+
+/// 
+open class AnnotationStoreReferenceItem {
+    ReferenceArn: String(matches(Regex(#"^arn:.+$"#)))|Mapping
+}
+
+typealias AnnotationStoreSchemaItem = Mapping<String, Any>
+
+
+typealias AnnotationStoreStoreStatus = String|Mapping
+
+
+typealias AnnotationStoreFormatToHeader = Mapping<String, Any>
+
+
+typealias AnnotationStoreStoreOptions = AnnotationStoreStoreOptionsTsvStoreOptions
+
+
+typealias AnnotationStoreTagMap = Mapping<String, Any>
+
+
+/// 
+open class AnnotationStoreSseConfig {
+    KeyArn: (String(matches(Regex(#"arn:([^:\n]*):([^:\n]*):([^:\n]*):([0-9]{12}):([^:\n]*)"#)))|Mapping)?
+    Type: AnnotationStoreEncryptionType
+}
+
+typealias AnnotationStoreEncryptionType = String|Mapping
+
+
+/// 
+open class AnnotationStoreStoreOptionsTsvStoreOptions {
+    TsvStoreOptions: AnnotationStoreTsvStoreOptions
+}
+
+/// 
+open class AnnotationStoreTsvStoreOptions {
+    AnnotationType: (AnnotationStoreAnnotationType)?
+    FormatToHeader: (AnnotationStoreFormatToHeader)?
+    Schema: (Listing<AnnotationStoreSchemaItem>)?
+}
+
+typealias AnnotationStoreFormatToHeaderKey = String|Mapping
+
+
+typealias AnnotationStoreSchemaValueType = String|Mapping
+
+
+/// Definition of AWS::Omics::AnnotationStore Resource Type
+open class AnnotationStore extends cloudformation.Resource {
+
+    Type = "AWS::Omics::AnnotationStore"
+
+
+    /// 
+    hidden StoreFormat: AnnotationStoreStoreFormat
+
+    /// 
+    hidden StoreOptions: (AnnotationStoreStoreOptions)?
+
+    /// 
+    hidden Tags: (AnnotationStoreTagMap)?
+
+    /// 
+    hidden Name: String(matches(Regex(#"^([a-z]){1}([a-z0-9_]){2,254}"#)))|Mapping
+
+    /// 
+    hidden Description: (String|Mapping)?
+
+    /// 
+    hidden Reference: (AnnotationStoreReferenceItem)?
+
+    /// 
+    hidden SseConfig: (AnnotationStoreSseConfig)?
+
+    Properties {
+        ["StoreFormat"] = if (StoreFormat == null) null else StoreFormat
+        ["StoreOptions"] = if (StoreOptions == null) null else StoreOptions
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Name"] = if (Name == null) null else Name
+        ["Description"] = if (Description == null) null else Description
+        ["Reference"] = if (Reference == null) null else Reference
+        ["SseConfig"] = if (SseConfig == null) null else SseConfig
+    }
+
+}

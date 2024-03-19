@@ -5,26 +5,11 @@ module aws.elasticloadbalancingv2.listener
 
 import "../../cloudformation.pkl"
 
-/// Information about the target group stickiness for a rule.
-open class ListenerTargetGroupStickinessConfig {
-    DurationSeconds: (Int|Mapping)?
-    Enabled: (Boolean|Mapping)?
-}
-
-/// Specifies information required using an identity provide (IdP) that is compliant with OpenID Connect (OIDC) to authenticate users.
-open class ListenerAuthenticateOidcConfig {
-    Scope: (String|Mapping)?
-    AuthenticationRequestExtraParams: (Dynamic)?
-    OnUnauthenticatedRequest: (String|Mapping)?
-    SessionTimeout: (String|Mapping)?
-    ClientSecret: (String|Mapping)?
-    UserInfoEndpoint: String|Mapping
-    ClientId: String|Mapping
-    AuthorizationEndpoint: String|Mapping
-    SessionCookieName: (String|Mapping)?
-    UseExistingClientSecret: (Boolean|Mapping)?
-    TokenEndpoint: String|Mapping
-    Issuer: String|Mapping
+/// Specifies information required when returning a custom HTTP response.
+open class ListenerFixedResponseConfig {
+    MessageBody: (String|Mapping)?
+    ContentType: (String|Mapping)?
+    StatusCode: String|Mapping
 }
 
 /// Specifies an action for a listener rule.
@@ -51,17 +36,12 @@ open class ListenerAction {
 ///   
 ///  For example, you can change the path to "/new/#{path}", the hostname to "example.#{host}", or the query to "#{query}&value=xyz".
 open class ListenerRedirectConfig {
-    StatusCode: String|Mapping
     Path: (String|Mapping)?
     Query: (String|Mapping)?
     Port: (String|Mapping)?
     Host: (String|Mapping)?
     Protocol: (String|Mapping)?
-}
-
-/// Specifies an SSL server certificate to use as the default certificate for a secure listener.
-open class ListenerCertificate {
-    CertificateArn: (String|Mapping)?
+    StatusCode: String|Mapping
 }
 
 /// Information about how traffic will be distributed between multiple target groups in a forward rule.
@@ -70,23 +50,18 @@ open class ListenerTargetGroupTuple {
     Weight: (Int|Mapping)?
 }
 
-/// Specifies information required when returning a custom HTTP response.
-open class ListenerFixedResponseConfig {
-    MessageBody: (String|Mapping)?
-    ContentType: (String|Mapping)?
-    StatusCode: String|Mapping
-}
+typealias ListenerAuthenticateCognitoConfigAuthenticationRequestExtraParams = Mapping<String, Any>
 
 /// Specifies information required when integrating with Amazon Cognito to authenticate users.
 open class ListenerAuthenticateCognitoConfig {
-    AuthenticationRequestExtraParams: (Dynamic)?
+    Scope: (String|Mapping)?
+    SessionCookieName: (String|Mapping)?
+    UserPoolArn: String|Mapping
+    AuthenticationRequestExtraParams: (ListenerAuthenticateCognitoConfigAuthenticationRequestExtraParams)?
     OnUnauthenticatedRequest: (String|Mapping)?
     UserPoolClientId: String|Mapping
     UserPoolDomain: String|Mapping
     SessionTimeout: (String|Mapping)?
-    Scope: (String|Mapping)?
-    SessionCookieName: (String|Mapping)?
-    UserPoolArn: String|Mapping
 }
 
 /// Information for creating an action that distributes requests among one or more target groups. For Network Load Balancers, you can specify a single target group. Specify only when ``Type`` is ``forward``. If you specify both ``ForwardConfig`` and ``TargetGroupArn``, you can specify only one target group using ``ForwardConfig`` and it must be the same target group specified in ``TargetGroupArn``.
@@ -95,11 +70,40 @@ open class ListenerForwardConfig {
     TargetGroups: (Listing<ListenerTargetGroupTuple>)?
 }
 
+typealias ListenerAuthenticateOidcConfigAuthenticationRequestExtraParams = Mapping<String, Any>
+
+/// Specifies information required using an identity provide (IdP) that is compliant with OpenID Connect (OIDC) to authenticate users.
+open class ListenerAuthenticateOidcConfig {
+    SessionTimeout: (String|Mapping)?
+    Issuer: String|Mapping
+    ClientSecret: (String|Mapping)?
+    UserInfoEndpoint: String|Mapping
+    UseExistingClientSecret: (Boolean|Mapping)?
+    OnUnauthenticatedRequest: (String|Mapping)?
+    TokenEndpoint: String|Mapping
+    Scope: (String|Mapping)?
+    ClientId: String|Mapping
+    AuthorizationEndpoint: String|Mapping
+    SessionCookieName: (String|Mapping)?
+    AuthenticationRequestExtraParams: (ListenerAuthenticateOidcConfigAuthenticationRequestExtraParams)?
+}
+
+/// Information about the target group stickiness for a rule.
+open class ListenerTargetGroupStickinessConfig {
+    Enabled: (Boolean|Mapping)?
+    DurationSeconds: (Int|Mapping)?
+}
+
+/// Specifies an SSL server certificate to use as the default certificate for a secure listener.
+open class ListenerCertificate {
+    CertificateArn: (String|Mapping)?
+}
+
 /// Specifies the configuration information for mutual authentication.
 open class ListenerMutualAuthentication {
+    Mode: (String|Mapping)?
     TrustStoreArn: (String|Mapping)?
     IgnoreClientCertificateExpiry: (Boolean|Mapping)?
-    Mode: (String|Mapping)?
 }
 
 /// Specifies a listener for an Application Load Balancer, Network Load Balancer, or Gateway Load Balancer.
@@ -107,14 +111,6 @@ open class Listener extends cloudformation.Resource {
 
     Type = "AWS::ElasticLoadBalancingV2::Listener"
 
-
-    /// The Amazon Resource Name (ARN) of the load balancer.
-    hidden LoadBalancerArn: String|Mapping
-
-    /// The actions for the default rule. You cannot define a condition for a default rule.
-    ///
-    ///  To create additional rules for an Application Load Balancer, use [AWS::ElasticLoadBalancingV2::ListenerRule](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-listenerrule.html).
-    hidden DefaultActions: Listing<ListenerAction>
 
     /// The default SSL server certificate for a secure listener. You must provide exactly one certificate if the listener protocol is HTTPS or TLS.
     ///
@@ -129,6 +125,14 @@ open class Listener extends cloudformation.Resource {
     ///  For more information, see [Security policies](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies) in the *Application Load Balancers Guide* and [Security policies](https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html#describe-ssl-policies) in the *Network Load Balancers Guide*.
     hidden SslPolicy: (String|Mapping)?
 
+    /// The Amazon Resource Name (ARN) of the load balancer.
+    hidden LoadBalancerArn: String|Mapping
+
+    /// The actions for the default rule. You cannot define a condition for a default rule.
+    ///
+    ///  To create additional rules for an Application Load Balancer, use [AWS::ElasticLoadBalancingV2::ListenerRule](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-listenerrule.html).
+    hidden DefaultActions: Listing<ListenerAction>
+
     /// The port on which the load balancer is listening. You cannot specify a port for a Gateway Load Balancer.
     hidden Port: (Int|Mapping)?
 
@@ -139,11 +143,11 @@ open class Listener extends cloudformation.Resource {
     hidden MutualAuthentication: (ListenerMutualAuthentication)?
 
     Properties {
-        ["LoadBalancerArn"] = if (LoadBalancerArn == null) null else LoadBalancerArn
-        ["DefaultActions"] = if (DefaultActions == null) null else DefaultActions
         ["Certificates"] = if (Certificates == null) null else Certificates
         ["AlpnPolicy"] = if (AlpnPolicy == null) null else AlpnPolicy
         ["SslPolicy"] = if (SslPolicy == null) null else SslPolicy
+        ["LoadBalancerArn"] = if (LoadBalancerArn == null) null else LoadBalancerArn
+        ["DefaultActions"] = if (DefaultActions == null) null else DefaultActions
         ["Port"] = if (Port == null) null else Port
         ["Protocol"] = if (Protocol == null) null else Protocol
         ["MutualAuthentication"] = if (MutualAuthentication == null) null else MutualAuthentication

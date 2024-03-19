@@ -5,22 +5,22 @@ module aws.networkmanager.connectattachment
 
 import "../../cloudformation.pkl"
 
-/// The attachment to move from one segment to another.
-open class ProposedSegmentChange {
-    AttachmentPolicyRuleNumber: (Int|Mapping)?
-    SegmentName: (String|Mapping)?
-    Tags: (Listing<Tag>)?
-}
-
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class ConnectAttachmentTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
 /// Connect attachment options for protocol
-open class ConnectAttachmentOptions {
+open class ConnectAttachmentConnectAttachmentOptions {
     Protocol: (String|Mapping)?
+}
+
+/// The attachment to move from one segment to another.
+open class ConnectAttachmentProposedSegmentChange {
+    Tags: (Listing<ConnectAttachmentTag>)?
+    AttachmentPolicyRuleNumber: (Int|Mapping)?
+    SegmentName: (String|Mapping)?
 }
 
 /// AWS::NetworkManager::ConnectAttachment Resource Type Definition
@@ -29,31 +29,31 @@ open class ConnectAttachment extends cloudformation.Resource {
     Type = "AWS::NetworkManager::ConnectAttachment"
 
 
-    /// ID of the CoreNetwork that the attachment will be attached to.
-    hidden CoreNetworkId: String|Mapping
+    /// Edge location of the attachment.
+    hidden EdgeLocation: String|Mapping
+
+    /// Tags for the attachment.
+    hidden Tags: (Listing<ConnectAttachmentTag>)?
 
     /// The attachment to move from one segment to another.
-    hidden ProposedSegmentChange: (ProposedSegmentChange)?
+    hidden ProposedSegmentChange: (ConnectAttachmentProposedSegmentChange)?
+
+    /// ID of the CoreNetwork that the attachment will be attached to.
+    hidden CoreNetworkId: String|Mapping
 
     /// Id of transport attachment
     hidden TransportAttachmentId: String|Mapping
 
     /// Protocol options for connect attachment
-    hidden Options: ConnectAttachmentOptions
-
-    /// Edge location of the attachment.
-    hidden EdgeLocation: String|Mapping
-
-    /// Tags for the attachment.
-    hidden Tags: (Listing<Tag>)?
+    hidden Options: ConnectAttachmentConnectAttachmentOptions
 
     Properties {
-        ["CoreNetworkId"] = if (CoreNetworkId == null) null else CoreNetworkId
-        ["ProposedSegmentChange"] = if (ProposedSegmentChange == null) null else ProposedSegmentChange
-        ["TransportAttachmentId"] = if (TransportAttachmentId == null) null else TransportAttachmentId
-        ["Options"] = if (Options == null) null else Options
         ["EdgeLocation"] = if (EdgeLocation == null) null else EdgeLocation
         ["Tags"] = if (Tags == null) null else Tags
+        ["ProposedSegmentChange"] = if (ProposedSegmentChange == null) null else ProposedSegmentChange
+        ["CoreNetworkId"] = if (CoreNetworkId == null) null else CoreNetworkId
+        ["TransportAttachmentId"] = if (TransportAttachmentId == null) null else TransportAttachmentId
+        ["Options"] = if (Options == null) null else Options
     }
 
 }

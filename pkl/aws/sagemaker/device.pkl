@@ -6,16 +6,16 @@ module aws.sagemaker.device
 import "../../cloudformation.pkl"
 
 /// 
-open class Tag {
+open class DeviceTag {
     Key: String(matches(Regex(#"^((?!aws:)[\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
     Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
 }
 
 /// Edge device you want to create
-open class Device {
+open class DeviceDevice {
+    IotThingName: (String(matches(Regex(#"[a-zA-Z0-9:_-]+"#)))|Mapping)?
     Description: (String(matches(Regex(#"[\S\s]+"#)))|Mapping)?
     DeviceName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9])*$"#)))|Mapping
-    IotThingName: (String(matches(Regex(#"[a-zA-Z0-9:_-]+"#)))|Mapping)?
 }
 
 /// Resource schema for AWS::SageMaker::Device
@@ -28,10 +28,10 @@ open class Device extends cloudformation.Resource {
     hidden DeviceFleetName: String(matches(Regex(#"^[a-zA-Z0-9](-*_*[a-zA-Z0-9])*$"#)))|Mapping
 
     /// The Edge Device you want to register against a device fleet
-    hidden Device: (Device)?
+    hidden Device: (DeviceDevice)?
 
     /// Associate tags with the resource
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<DeviceTag>)?
 
     Properties {
         ["DeviceFleetName"] = if (DeviceFleetName == null) null else DeviceFleetName

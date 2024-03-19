@@ -8,31 +8,30 @@ import "../../cloudformation.pkl"
 typealias ProvisioningPreferencesStackSetOperationType = "CREATE"|"UPDATE"|"DELETE"
 
 /// 
-open class ProvisioningPreferences {
+open class CloudFormationProvisionedProductProvisioningPreferences {
+    StackSetFailureTolerancePercentage: (Int|Mapping)?
+    StackSetMaxConcurrencyCount: (Int|Mapping)?
+    StackSetMaxConcurrencyPercentage: (Int|Mapping)?
     StackSetOperationType: (ProvisioningPreferencesStackSetOperationType|Mapping)?
     StackSetRegions: (Listing<String|Mapping>)?
     StackSetAccounts: (Listing<String|Mapping>)?
     StackSetFailureToleranceCount: (Int|Mapping)?
-    StackSetFailureTolerancePercentage: (Int|Mapping)?
-    StackSetMaxConcurrencyCount: (Int|Mapping)?
-    StackSetMaxConcurrencyPercentage: (Int|Mapping)?
 }
 
 /// 
-open class ProvisioningParameter {
+open class CloudFormationProvisionedProductProvisioningParameter {
     Key: String|Mapping
     Value: String|Mapping
 }
 
 /// 
-open class Tag {
+open class CloudFormationProvisionedProductTag {
     Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
     Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
 }
 
-/// 
-open class OutputType {
-}
+typealias CloudFormationProvisionedProductOutputType = String|Mapping
+
 
 /// Resource Schema for AWS::ServiceCatalog::CloudFormationProvisionedProduct
 open class CloudFormationProvisionedProduct extends cloudformation.Resource {
@@ -41,7 +40,10 @@ open class CloudFormationProvisionedProduct extends cloudformation.Resource {
 
 
     /// 
-    hidden PathId: (String|Mapping)?
+    hidden ProductName: (String|Mapping)?
+
+    /// 
+    hidden ProvisioningParameters: (Listing<CloudFormationProvisionedProductProvisioningParameter>)?
 
     /// 
     hidden ProductId: (String|Mapping)?
@@ -50,45 +52,42 @@ open class CloudFormationProvisionedProduct extends cloudformation.Resource {
     hidden ProvisionedProductName: (String|Mapping)?
 
     /// 
-    hidden ProductName: (String|Mapping)?
-
-    /// 
-    hidden ProvisioningArtifactId: (String|Mapping)?
-
-    /// 
-    hidden ProvisioningParameters: (Listing<ProvisioningParameter>)?
-
-    /// 
-    hidden Tags: (Listing<Tag>)?
-
-    /// 
-    hidden NotificationArns: (Listing<String|Mapping>)?
-
-    /// 
-    hidden PathName: (String|Mapping)?
+    hidden ProvisioningPreferences: (CloudFormationProvisionedProductProvisioningPreferences)?
 
     /// 
     hidden AcceptLanguage: (CloudFormationProvisionedProductAcceptLanguage|Mapping)?
 
     /// 
+    hidden ProvisioningArtifactId: (String|Mapping)?
+
+    /// 
+    hidden Tags: (Listing<CloudFormationProvisionedProductTag>)?
+
+    /// 
+    hidden PathName: (String|Mapping)?
+
+    /// 
+    hidden PathId: (String|Mapping)?
+
+    /// 
     hidden ProvisioningArtifactName: (String|Mapping)?
 
     /// 
-    hidden ProvisioningPreferences: (ProvisioningPreferences)?
+    hidden NotificationArns: (Listing<String|Mapping>)?
 
     Properties {
-        ["PathId"] = if (PathId == null) null else PathId
+        ["ProductName"] = if (ProductName == null) null else ProductName
+        ["ProvisioningParameters"] = if (ProvisioningParameters == null) null else ProvisioningParameters
         ["ProductId"] = if (ProductId == null) null else ProductId
         ["ProvisionedProductName"] = if (ProvisionedProductName == null) null else ProvisionedProductName
-        ["ProductName"] = if (ProductName == null) null else ProductName
-        ["ProvisioningArtifactId"] = if (ProvisioningArtifactId == null) null else ProvisioningArtifactId
-        ["ProvisioningParameters"] = if (ProvisioningParameters == null) null else ProvisioningParameters
-        ["Tags"] = if (Tags == null) null else Tags
-        ["NotificationArns"] = if (NotificationArns == null) null else NotificationArns
-        ["PathName"] = if (PathName == null) null else PathName
-        ["AcceptLanguage"] = if (AcceptLanguage == null) null else AcceptLanguage
-        ["ProvisioningArtifactName"] = if (ProvisioningArtifactName == null) null else ProvisioningArtifactName
         ["ProvisioningPreferences"] = if (ProvisioningPreferences == null) null else ProvisioningPreferences
+        ["AcceptLanguage"] = if (AcceptLanguage == null) null else AcceptLanguage
+        ["ProvisioningArtifactId"] = if (ProvisioningArtifactId == null) null else ProvisioningArtifactId
+        ["Tags"] = if (Tags == null) null else Tags
+        ["PathName"] = if (PathName == null) null else PathName
+        ["PathId"] = if (PathId == null) null else PathId
+        ["ProvisioningArtifactName"] = if (ProvisioningArtifactName == null) null else ProvisioningArtifactName
+        ["NotificationArns"] = if (NotificationArns == null) null else NotificationArns
     }
 
 }

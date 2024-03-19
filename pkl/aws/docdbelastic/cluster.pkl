@@ -7,8 +7,8 @@ import "../../cloudformation.pkl"
 
 /// 
 open class ClusterTag {
-    Value: String|Mapping
     Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
+    Value: String|Mapping
 }
 
 /// The AWS::DocDBElastic::Cluster Amazon DocumentDB (with MongoDB compatibility) Elastic Scale resource describes a Cluster
@@ -18,10 +18,25 @@ open class Cluster extends cloudformation.Resource {
 
 
     /// 
+    hidden AdminUserName: String|Mapping
+
+    /// 
+    hidden PreferredMaintenanceWindow: (String|Mapping)?
+
+    /// 
     hidden AdminUserPassword: (String|Mapping)?
 
     /// 
+    hidden ShardCount: Int|Mapping
+
+    /// 
     hidden VpcSecurityGroupIds: (Listing<String|Mapping>)?
+
+    /// 
+    hidden KmsKeyId: (String|Mapping)?
+
+    /// 
+    hidden AuthType: String|Mapping
 
     /// 
     hidden Tags: (Listing<ClusterTag>)?
@@ -30,38 +45,23 @@ open class Cluster extends cloudformation.Resource {
     hidden ClusterName: String(matches(Regex(#"[a-zA-z][a-zA-Z0-9]*(-[a-zA-Z0-9]+)*"#)))|Mapping
 
     /// 
-    hidden AdminUserName: String|Mapping
-
-    /// 
-    hidden PreferredMaintenanceWindow: (String|Mapping)?
-
-    /// 
-    hidden KmsKeyId: (String|Mapping)?
-
-    /// 
     hidden ShardCapacity: Int|Mapping
-
-    /// 
-    hidden ShardCount: Int|Mapping
 
     /// 
     hidden SubnetIds: (Listing<String|Mapping>)?
 
-    /// 
-    hidden AuthType: String|Mapping
-
     Properties {
-        ["AdminUserPassword"] = if (AdminUserPassword == null) null else AdminUserPassword
-        ["VpcSecurityGroupIds"] = if (VpcSecurityGroupIds == null) null else VpcSecurityGroupIds
-        ["Tags"] = if (Tags == null) null else Tags
-        ["ClusterName"] = if (ClusterName == null) null else ClusterName
         ["AdminUserName"] = if (AdminUserName == null) null else AdminUserName
         ["PreferredMaintenanceWindow"] = if (PreferredMaintenanceWindow == null) null else PreferredMaintenanceWindow
-        ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
-        ["ShardCapacity"] = if (ShardCapacity == null) null else ShardCapacity
+        ["AdminUserPassword"] = if (AdminUserPassword == null) null else AdminUserPassword
         ["ShardCount"] = if (ShardCount == null) null else ShardCount
-        ["SubnetIds"] = if (SubnetIds == null) null else SubnetIds
+        ["VpcSecurityGroupIds"] = if (VpcSecurityGroupIds == null) null else VpcSecurityGroupIds
+        ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
         ["AuthType"] = if (AuthType == null) null else AuthType
+        ["Tags"] = if (Tags == null) null else Tags
+        ["ClusterName"] = if (ClusterName == null) null else ClusterName
+        ["ShardCapacity"] = if (ShardCapacity == null) null else ShardCapacity
+        ["SubnetIds"] = if (SubnetIds == null) null else SubnetIds
     }
 
 }

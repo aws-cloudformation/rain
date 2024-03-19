@@ -5,12 +5,6 @@ module aws.evidently.launch
 
 import "../../cloudformation.pkl"
 
-/// A key-value pair to associate with a resource.
-open class LaunchTag {
-    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
-    Value: String|Mapping
-}
-
 /// 
 open class LaunchExecutionStatusObject {
     Status: String|Mapping
@@ -41,18 +35,24 @@ open class LaunchSegmentOverride {
 
 /// 
 open class LaunchStepConfig {
-    StartTime: String|Mapping
     GroupWeights: Listing<LaunchGroupToWeight>
     SegmentOverrides: (Listing<LaunchSegmentOverride>)?
+    StartTime: String|Mapping
 }
 
 /// 
 open class LaunchMetricDefinitionObject {
-    EventPattern: (String|Mapping)?
-    UnitLabel: (String(matches(Regex(#".*"#)))|Mapping)?
     MetricName: String(matches(Regex(#"^[\S]+$"#)))|Mapping
     EntityIdKey: String|Mapping
     ValueKey: String|Mapping
+    EventPattern: (String|Mapping)?
+    UnitLabel: (String(matches(Regex(#".*"#)))|Mapping)?
+}
+
+/// A key-value pair to associate with a resource.
+open class LaunchTag {
+    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
+    Value: String|Mapping
 }
 
 /// Resource Type definition for AWS::Evidently::Launch.
@@ -62,19 +62,16 @@ open class Launch extends cloudformation.Resource {
 
 
     /// 
-    hidden MetricMonitors: (Listing<LaunchMetricDefinitionObject>)?
-
-    /// Start or Stop Launch Launch. Default is not started.
-    hidden ExecutionStatus: (LaunchExecutionStatusObject)?
-
-    /// 
     hidden Project: String(matches(Regex(#"([-a-zA-Z0-9._]*)|(arn:[^:]*:[^:]*:[^:]*:[^:]*:project/[-a-zA-Z0-9._]*)"#)))|Mapping
 
     /// 
-    hidden ScheduledSplitsConfig: Listing<LaunchStepConfig>
+    hidden Description: (String|Mapping)?
 
     /// 
     hidden Groups: Listing<LaunchLaunchGroupObject>
+
+    /// 
+    hidden MetricMonitors: (Listing<LaunchMetricDefinitionObject>)?
 
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<LaunchTag>)?
@@ -83,21 +80,24 @@ open class Launch extends cloudformation.Resource {
     hidden Name: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
 
     /// 
-    hidden Description: (String|Mapping)?
-
-    /// 
     hidden RandomizationSalt: (String(matches(Regex(#".*"#)))|Mapping)?
 
+    /// 
+    hidden ScheduledSplitsConfig: Listing<LaunchStepConfig>
+
+    /// Start or Stop Launch Launch. Default is not started.
+    hidden ExecutionStatus: (LaunchExecutionStatusObject)?
+
     Properties {
-        ["MetricMonitors"] = if (MetricMonitors == null) null else MetricMonitors
-        ["ExecutionStatus"] = if (ExecutionStatus == null) null else ExecutionStatus
         ["Project"] = if (Project == null) null else Project
-        ["ScheduledSplitsConfig"] = if (ScheduledSplitsConfig == null) null else ScheduledSplitsConfig
+        ["Description"] = if (Description == null) null else Description
         ["Groups"] = if (Groups == null) null else Groups
+        ["MetricMonitors"] = if (MetricMonitors == null) null else MetricMonitors
         ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
-        ["Description"] = if (Description == null) null else Description
         ["RandomizationSalt"] = if (RandomizationSalt == null) null else RandomizationSalt
+        ["ScheduledSplitsConfig"] = if (ScheduledSplitsConfig == null) null else ScheduledSplitsConfig
+        ["ExecutionStatus"] = if (ExecutionStatus == null) null else ExecutionStatus
     }
 
 }

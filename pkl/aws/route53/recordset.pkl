@@ -6,37 +6,37 @@ module aws.route53.recordset
 import "../../cloudformation.pkl"
 
 /// 
-open class GeoProximityLocation {
+open class RecordSetAliasTarget {
+    DNSName: String|Mapping
+    HostedZoneId: String|Mapping
+    EvaluateTargetHealth: (Boolean|Mapping)?
+}
+
+/// 
+open class RecordSetCidrRoutingConfig {
+    CollectionId: String|Mapping
+    LocationName: String|Mapping
+}
+
+/// 
+open class RecordSetGeoProximityLocation {
     Bias: (Int|Mapping)?
-    Coordinates: (Coordinates)?
+    Coordinates: (RecordSetCoordinates)?
     AWSRegion: (String|Mapping)?
     LocalZoneGroup: (String|Mapping)?
 }
 
 /// 
-open class Coordinates {
+open class RecordSetCoordinates {
     Longitude: String|Mapping
     Latitude: String|Mapping
 }
 
 /// 
-open class GeoLocation {
+open class RecordSetGeoLocation {
     ContinentCode: (String|Mapping)?
     CountryCode: (String|Mapping)?
     SubdivisionCode: (String|Mapping)?
-}
-
-/// 
-open class AliasTarget {
-    HostedZoneId: String|Mapping
-    EvaluateTargetHealth: (Boolean|Mapping)?
-    DNSName: String|Mapping
-}
-
-/// 
-open class CidrRoutingConfig {
-    CollectionId: String|Mapping
-    LocationName: String|Mapping
 }
 
 /// Resource Type definition for AWS::Route53::RecordSet
@@ -46,13 +46,13 @@ open class RecordSet extends cloudformation.Resource {
 
 
     /// 
-    hidden ResourceRecords: (Listing<String|Mapping>)?
+    hidden AliasTarget: (RecordSetAliasTarget)?
 
     /// 
-    hidden GeoProximityLocation: (GeoProximityLocation)?
+    hidden HostedZoneName: (String|Mapping)?
 
     /// 
-    hidden Region: (String|Mapping)?
+    hidden TTL: (String|Mapping)?
 
     /// 
     hidden Name: String|Mapping
@@ -61,59 +61,59 @@ open class RecordSet extends cloudformation.Resource {
     hidden TypeProperty: String|Mapping
 
     /// 
-    hidden GeoLocation: (GeoLocation)?
+    hidden GeoProximityLocation: (RecordSetGeoProximityLocation)?
 
     /// 
     hidden MultiValueAnswer: (Boolean|Mapping)?
 
     /// 
-    hidden HealthCheckId: (String|Mapping)?
-
-    /// 
-    hidden HostedZoneName: (String|Mapping)?
-
-    /// 
-    hidden HostedZoneId: (String|Mapping)?
-
-    /// 
-    hidden Weight: (Int|Mapping)?
-
-    /// 
     hidden Comment: (String|Mapping)?
+
+    /// 
+    hidden ResourceRecords: (Listing<String|Mapping>)?
 
     /// 
     hidden SetIdentifier: (String|Mapping)?
 
     /// 
-    hidden AliasTarget: (AliasTarget)?
-
-    /// 
-    hidden TTL: (String|Mapping)?
-
-    /// 
-    hidden CidrRoutingConfig: (CidrRoutingConfig)?
+    hidden Weight: (Int|Mapping)?
 
     /// 
     hidden Failover: (String|Mapping)?
 
+    /// 
+    hidden Region: (String|Mapping)?
+
+    /// 
+    hidden GeoLocation: (RecordSetGeoLocation)?
+
+    /// 
+    hidden HealthCheckId: (String|Mapping)?
+
+    /// 
+    hidden CidrRoutingConfig: (RecordSetCidrRoutingConfig)?
+
+    /// 
+    hidden HostedZoneId: (String|Mapping)?
+
     Properties {
-        ["ResourceRecords"] = if (ResourceRecords == null) null else ResourceRecords
-        ["GeoProximityLocation"] = if (GeoProximityLocation == null) null else GeoProximityLocation
-        ["Region"] = if (Region == null) null else Region
+        ["AliasTarget"] = if (AliasTarget == null) null else AliasTarget
+        ["HostedZoneName"] = if (HostedZoneName == null) null else HostedZoneName
+        ["TTL"] = if (TTL == null) null else TTL
         ["Name"] = if (Name == null) null else Name
         ["Type"] = if (TypeProperty == null) null else TypeProperty
-        ["GeoLocation"] = if (GeoLocation == null) null else GeoLocation
+        ["GeoProximityLocation"] = if (GeoProximityLocation == null) null else GeoProximityLocation
         ["MultiValueAnswer"] = if (MultiValueAnswer == null) null else MultiValueAnswer
-        ["HealthCheckId"] = if (HealthCheckId == null) null else HealthCheckId
-        ["HostedZoneName"] = if (HostedZoneName == null) null else HostedZoneName
-        ["HostedZoneId"] = if (HostedZoneId == null) null else HostedZoneId
-        ["Weight"] = if (Weight == null) null else Weight
         ["Comment"] = if (Comment == null) null else Comment
+        ["ResourceRecords"] = if (ResourceRecords == null) null else ResourceRecords
         ["SetIdentifier"] = if (SetIdentifier == null) null else SetIdentifier
-        ["AliasTarget"] = if (AliasTarget == null) null else AliasTarget
-        ["TTL"] = if (TTL == null) null else TTL
-        ["CidrRoutingConfig"] = if (CidrRoutingConfig == null) null else CidrRoutingConfig
+        ["Weight"] = if (Weight == null) null else Weight
         ["Failover"] = if (Failover == null) null else Failover
+        ["Region"] = if (Region == null) null else Region
+        ["GeoLocation"] = if (GeoLocation == null) null else GeoLocation
+        ["HealthCheckId"] = if (HealthCheckId == null) null else HealthCheckId
+        ["CidrRoutingConfig"] = if (CidrRoutingConfig == null) null else CidrRoutingConfig
+        ["HostedZoneId"] = if (HostedZoneId == null) null else HostedZoneId
     }
 
 }

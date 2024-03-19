@@ -6,22 +6,22 @@ module aws.networkmanager.vpcattachment
 import "../../cloudformation.pkl"
 
 /// Vpc options of the attachment.
-open class VpcOptions {
-    Ipv6Support: (Boolean|Mapping)?
+open class VpcAttachmentVpcOptions {
     ApplianceModeSupport: (Boolean|Mapping)?
+    Ipv6Support: (Boolean|Mapping)?
 }
 
 /// A key-value pair to associate with a resource.
-open class Tag {
+open class VpcAttachmentTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
 /// The attachment to move from one segment to another.
-open class ProposedSegmentChange {
+open class VpcAttachmentProposedSegmentChange {
+    Tags: (Listing<VpcAttachmentTag>)?
     AttachmentPolicyRuleNumber: (Int|Mapping)?
     SegmentName: (String|Mapping)?
-    Tags: (Listing<Tag>)?
 }
 
 /// AWS::NetworkManager::VpcAttachment Resoruce Type
@@ -31,29 +31,29 @@ open class VpcAttachment extends cloudformation.Resource {
 
 
     /// Tags for the attachment.
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<VpcAttachmentTag>)?
 
     /// The ID of a core network for the VPC attachment.
     hidden CoreNetworkId: String|Mapping
 
-    /// The ARN of the VPC.
-    hidden VpcArn: String|Mapping
-
     /// Vpc options of the attachment.
-    hidden Options: (VpcOptions)?
+    hidden Options: (VpcAttachmentVpcOptions)?
 
     /// Subnet Arn list
     hidden SubnetArns: Listing<String|Mapping>
 
+    /// The ARN of the VPC.
+    hidden VpcArn: String|Mapping
+
     /// The attachment to move from one segment to another.
-    hidden ProposedSegmentChange: (ProposedSegmentChange)?
+    hidden ProposedSegmentChange: (VpcAttachmentProposedSegmentChange)?
 
     Properties {
         ["Tags"] = if (Tags == null) null else Tags
         ["CoreNetworkId"] = if (CoreNetworkId == null) null else CoreNetworkId
-        ["VpcArn"] = if (VpcArn == null) null else VpcArn
         ["Options"] = if (Options == null) null else Options
         ["SubnetArns"] = if (SubnetArns == null) null else SubnetArns
+        ["VpcArn"] = if (VpcArn == null) null else VpcArn
         ["ProposedSegmentChange"] = if (ProposedSegmentChange == null) null else ProposedSegmentChange
     }
 

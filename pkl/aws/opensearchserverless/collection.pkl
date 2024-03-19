@@ -5,19 +5,17 @@ module aws.opensearchserverless.collection
 
 import "../../cloudformation.pkl"
 
+typealias CollectionStandbyReplicas = String|Mapping
+
+
 /// A key-value pair metadata associated with resource
-open class Tag {
-    Value: String|Mapping
+open class CollectionTag {
     Key: String|Mapping
+    Value: String|Mapping
 }
 
-/// The possible types for the collection
-open class CollectionType {
-}
+typealias CollectionCollectionType = String|Mapping
 
-/// The possible standby replicas for the collection
-open class StandbyReplicas {
-}
 
 /// Amazon OpenSearchServerless collection resource
 open class Collection extends cloudformation.Resource {
@@ -25,8 +23,12 @@ open class Collection extends cloudformation.Resource {
     Type = "AWS::OpenSearchServerless::Collection"
 
 
+    /// The description of the collection
+    hidden Description: (String|Mapping)?
+
     /// The name of the collection.
-    ///    /// 
+    ///
+    /// 
     /// The name must meet the following criteria:
     /// Unique to your account and AWS Region
     /// Starts with a lowercase letter
@@ -35,24 +37,21 @@ open class Collection extends cloudformation.Resource {
     /// 
     hidden Name: String(matches(Regex(#"^[a-z][a-z0-9-]{2,31}$"#)))|Mapping
 
-    /// 
-    hidden TypeProperty: (CollectionType)?
-
-    /// 
-    hidden StandbyReplicas: (StandbyReplicas)?
-
     /// List of tags to be added to the resource
-    hidden Tags: (Listing<Tag>)?
+    hidden Tags: (Listing<CollectionTag>)?
 
-    /// The description of the collection
-    hidden Description: (String|Mapping)?
+    /// 
+    hidden TypeProperty: (CollectionCollectionType)?
+
+    /// 
+    hidden StandbyReplicas: (CollectionStandbyReplicas)?
 
     Properties {
+        ["Description"] = if (Description == null) null else Description
         ["Name"] = if (Name == null) null else Name
+        ["Tags"] = if (Tags == null) null else Tags
         ["Type"] = if (TypeProperty == null) null else TypeProperty
         ["StandbyReplicas"] = if (StandbyReplicas == null) null else StandbyReplicas
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Description"] = if (Description == null) null else Description
     }
 
 }

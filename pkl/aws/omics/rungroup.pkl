@@ -5,9 +5,8 @@ module aws.omics.rungroup
 
 import "../../cloudformation.pkl"
 
-/// A map of resource tags
-open class TagMap {
-}
+typealias RunGroupTagMap = Mapping<String, Any>
+
 
 /// Definition of AWS::Omics::RunGroup Resource Type
 open class RunGroup extends cloudformation.Resource {
@@ -16,30 +15,30 @@ open class RunGroup extends cloudformation.Resource {
 
 
     /// 
-    hidden Tags: (TagMap)?
-
-    /// 
-    hidden MaxCpus: (Number|Mapping)?
-
-    /// 
     hidden MaxDuration: (Number|Mapping)?
+
+    /// 
+    hidden MaxRuns: (Number|Mapping)?
 
     /// 
     hidden Name: (String(matches(Regex(#"^[\p{L}||\p{M}||\p{Z}||\p{S}||\p{N}||\p{P}]+$"#)))|Mapping)?
 
     /// 
-    hidden MaxGpus: (Number|Mapping)?
+    hidden Tags: (RunGroupTagMap)?
 
     /// 
-    hidden MaxRuns: (Number|Mapping)?
+    hidden MaxCpus: (Number|Mapping)?
+
+    /// 
+    hidden MaxGpus: (Number|Mapping)?
 
     Properties {
+        ["MaxDuration"] = if (MaxDuration == null) null else MaxDuration
+        ["MaxRuns"] = if (MaxRuns == null) null else MaxRuns
+        ["Name"] = if (Name == null) null else Name
         ["Tags"] = if (Tags == null) null else Tags
         ["MaxCpus"] = if (MaxCpus == null) null else MaxCpus
-        ["MaxDuration"] = if (MaxDuration == null) null else MaxDuration
-        ["Name"] = if (Name == null) null else Name
         ["MaxGpus"] = if (MaxGpus == null) null else MaxGpus
-        ["MaxRuns"] = if (MaxRuns == null) null else MaxRuns
     }
 
 }

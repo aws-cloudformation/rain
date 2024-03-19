@@ -7,29 +7,55 @@ import "../../cloudformation.pkl"
 
 /// 
 open class DeviceProfileLoRaWANDeviceProfile {
+    RxFreq2: (Int|Mapping)?
+    FactoryPresetFreqsList: (Listing<DeviceProfileFactoryPresetFreq>)?
     PingSlotPeriod: (Int|Mapping)?
     SupportsClassC: (Boolean|Mapping)?
-    MaxEirp: (Int|Mapping)?
-    SupportsJoin: (Boolean|Mapping)?
-    ClassBTimeout: (Int|Mapping)?
-    RegParamsRevision: (String|Mapping)?
-    RxDataRate2: (Int|Mapping)?
     MacVersion: (String|Mapping)?
-    RxDelay1: (Int|Mapping)?
-    FactoryPresetFreqsList: (Listing<DeviceProfileFactoryPresetFreq>)?
+    RegParamsRevision: (String|Mapping)?
+    SupportsJoin: (Boolean|Mapping)?
     RfRegion: (String|Mapping)?
-    RxFreq2: (Int|Mapping)?
-    MaxDutyCycle: (Int|Mapping)?
     Supports32BitFCnt: (Boolean|Mapping)?
-    SupportsClassB: (Boolean|Mapping)?
-    PingSlotDr: (Int|Mapping)?
+    ClassBTimeout: (Int|Mapping)?
     PingSlotFreq: (Int|Mapping)?
     ClassCTimeout: (Int|Mapping)?
+    RxDataRate2: (Int|Mapping)?
+    RxDelay1: (Int|Mapping)?
+    MaxDutyCycle: (Int|Mapping)?
+    SupportsClassB: (Boolean|Mapping)?
+    PingSlotDr: (Int|Mapping)?
     RxDrOffset1: (Int|Mapping)?
+    MaxEirp: (Int|Mapping)?
 }
 
 /// 
 open class DeviceProfileTag {
-    Value: (String|Mapping)?
     Key: (String|Mapping)?
+    Value: (String|Mapping)?
+}
+
+typealias DeviceProfileFactoryPresetFreq = Int|Mapping
+
+
+/// Device Profile's resource schema demonstrating some basic constructs and validation rules.
+open class DeviceProfile extends cloudformation.Resource {
+
+    Type = "AWS::IoTWireless::DeviceProfile"
+
+
+    /// A list of key-value pairs that contain metadata for the device profile.
+    hidden Tags: (Listing<DeviceProfileTag>)?
+
+    /// Name of service profile
+    hidden Name: (String|Mapping)?
+
+    /// LoRaWANDeviceProfile supports all LoRa specific attributes for service profile for CreateDeviceProfile operation
+    hidden LoRaWAN: (DeviceProfileLoRaWANDeviceProfile)?
+
+    Properties {
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Name"] = if (Name == null) null else Name
+        ["LoRaWAN"] = if (LoRaWAN == null) null else LoRaWAN
+    }
+
 }

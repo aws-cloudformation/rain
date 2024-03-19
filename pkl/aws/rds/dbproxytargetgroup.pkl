@@ -6,12 +6,12 @@ module aws.rds.dbproxytargetgroup
 import "../../cloudformation.pkl"
 
 /// 
-open class ConnectionPoolConfigurationInfoFormat {
+open class DBProxyTargetGroupConnectionPoolConfigurationInfoFormat {
+    InitQuery: (String|Mapping)?
     MaxConnectionsPercent: (Int|Mapping)?
     MaxIdleConnectionsPercent: (Int|Mapping)?
     ConnectionBorrowTimeout: (Int|Mapping)?
     SessionPinningFilters: (Listing<String|Mapping>)?
-    InitQuery: (String|Mapping)?
 }
 
 /// Resource schema for AWS::RDS::DBProxyTargetGroup
@@ -20,14 +20,11 @@ open class DBProxyTargetGroup extends cloudformation.Resource {
     Type = "AWS::RDS::DBProxyTargetGroup"
 
 
-    /// The identifier for the proxy.
-    hidden DBProxyName: String(matches(Regex(#"[A-z][0-z]*"#)))|Mapping
-
     /// The identifier for the DBProxyTargetGroup
     hidden TargetGroupName: DBProxyTargetGroupTargetGroupName|Mapping
 
     /// 
-    hidden ConnectionPoolConfigurationInfo: (ConnectionPoolConfigurationInfoFormat)?
+    hidden ConnectionPoolConfigurationInfo: (DBProxyTargetGroupConnectionPoolConfigurationInfoFormat)?
 
     /// 
     hidden DBInstanceIdentifiers: (Listing<String|Mapping>)?
@@ -35,12 +32,15 @@ open class DBProxyTargetGroup extends cloudformation.Resource {
     /// 
     hidden DBClusterIdentifiers: (Listing<String|Mapping>)?
 
+    /// The identifier for the proxy.
+    hidden DBProxyName: String(matches(Regex(#"[A-z][0-z]*"#)))|Mapping
+
     Properties {
-        ["DBProxyName"] = if (DBProxyName == null) null else DBProxyName
         ["TargetGroupName"] = if (TargetGroupName == null) null else TargetGroupName
         ["ConnectionPoolConfigurationInfo"] = if (ConnectionPoolConfigurationInfo == null) null else ConnectionPoolConfigurationInfo
         ["DBInstanceIdentifiers"] = if (DBInstanceIdentifiers == null) null else DBInstanceIdentifiers
         ["DBClusterIdentifiers"] = if (DBClusterIdentifiers == null) null else DBClusterIdentifiers
+        ["DBProxyName"] = if (DBProxyName == null) null else DBProxyName
     }
 
 }
