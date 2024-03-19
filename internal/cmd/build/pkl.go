@@ -404,7 +404,10 @@ func generatePklClass(typeName string) error {
 
 	// Iterate over definitions, creating a class for each one
 	for name, def := range schema.Definitions {
-		createDefinitionClass(name, def, shortName)
+		_, err := createDefinitionClass(name, def, shortName)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Print out each of the classes
