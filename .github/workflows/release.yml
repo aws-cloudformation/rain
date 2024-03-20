@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -53,6 +53,21 @@ jobs:
             assets+=("$zip")
           done
           gh release upload "${GITHUB_REF##*/}" "${assets[@]}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  pkl:
+    name: Pkl
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: ./.github/workflows/pkl.sh 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
