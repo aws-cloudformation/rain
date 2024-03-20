@@ -5,30 +5,19 @@ module aws.iottwinmaker.entity
 
 import "../../cloudformation.pkl"
 
-typealias EntityDateTimeFormat = String|Mapping
-
-
-typealias PropertyGroupGroupType = "TABULAR"
-
-/// An object that specifies information about a property group.
-open class EntityPropertyGroup {
-    GroupType: (PropertyGroupGroupType|Mapping)?
-    PropertyNames: (Listing<EntityPropertyName>)?
-}
-
 typealias EntityComponentProperties = Mapping<String, Any>
 
 typealias EntityComponentPropertyGroups = Mapping<String, Any>
 
 /// 
 open class EntityComponent {
-    Status: (EntityStatus)?
     ComponentName: (String(matches(Regex(#"[a-zA-Z_\-0-9]+"#)))|Mapping)?
     ComponentTypeId: (String(matches(Regex(#"[a-zA-Z_\-0-9]+"#)))|Mapping)?
-    Description: (String|Mapping)?
     DefinedIn: (String|Mapping)?
+    Description: (String|Mapping)?
     Properties: (EntityComponentProperties)?
     PropertyGroups: (EntityComponentPropertyGroups)?
+    Status: (EntityStatus)?
 }
 
 typealias EntityCompositeComponentProperties = Mapping<String, Any>
@@ -50,56 +39,39 @@ typealias DataTypeType = "RELATIONSHIP"|"STRING"|"LONG"|"BOOLEAN"|"INTEGER"|"DOU
 
 /// An object that specifies the data type of a property.
 open class EntityDataType {
+    AllowedValues: (Listing<EntityDataValue>)?
     NestedType: (EntityDataType)?
     Relationship: (EntityRelationship)?
     Type: (DataTypeType|Mapping)?
     UnitOfMeasure: (String(matches(Regex(#".*"#)))|Mapping)?
-    AllowedValues: (Listing<EntityDataValue>)?
-}
-
-typealias EntityPropertyDefinitionConfiguration = Mapping<String, Any>
-
-
-typealias EntityPropertyName = String|Mapping
-
-
-/// The type of the relationship.
-open class EntityRelationship {
-    TargetComponentTypeId: (String(matches(Regex(#"[a-zA-Z_\.\-0-9:]+"#)))|Mapping)?
-    RelationshipType: (String(matches(Regex(#".*"#)))|Mapping)?
-}
-
-typealias StatusState = "CREATING"|"UPDATING"|"DELETING"|"ACTIVE"|"ERROR"
-
-/// 
-open class EntityStatus {
-    State: (StatusState|Mapping)?
-    Error: (Dynamic)?
 }
 
 typealias EntityDataValueMapValue = Mapping<String, Any>
 
 /// An object that specifies a value for a property.
 open class EntityDataValue {
+    BooleanValue: (Boolean|Mapping)?
     DoubleValue: (Number|Mapping)?
+    Expression: (String(matches(Regex(#"(^\$\{Parameters\.[a-zA-z]+([a-zA-z_0-9]*)}$)"#)))|Mapping)?
     IntegerValue: (Int|Mapping)?
     ListValue: (Listing<EntityDataValue>)?
-    MapValue: (EntityDataValueMapValue)?
-    BooleanValue: (Boolean|Mapping)?
-    Expression: (String(matches(Regex(#"(^\$\{Parameters\.[a-zA-z]+([a-zA-z_0-9]*)}$)"#)))|Mapping)?
     LongValue: (Number|Mapping)?
-    StringValue: (String(matches(Regex(#".*"#)))|Mapping)?
+    MapValue: (EntityDataValueMapValue)?
     RelationshipValue: (Dynamic)?
+    StringValue: (String(matches(Regex(#".*"#)))|Mapping)?
 }
+
+typealias EntityDateTimeFormat = String|Mapping
+
 
 /// An object that specifies information about a property definition.
 open class EntityDefinition {
     Configuration: (EntityPropertyDefinitionConfiguration)?
-    DefaultValue: (EntityDataValue)?
-    IsImported: (Boolean|Mapping)?
     DataType: (EntityDataType)?
+    DefaultValue: (EntityDataValue)?
     IsExternalId: (Boolean|Mapping)?
     IsFinal: (Boolean|Mapping)?
+    IsImported: (Boolean|Mapping)?
     IsInherited: (Boolean|Mapping)?
     IsRequiredInEntity: (Boolean|Mapping)?
     IsStoredExternally: (Boolean|Mapping)?
@@ -110,6 +82,34 @@ open class EntityDefinition {
 open class EntityProperty {
     Definition: (EntityDefinition)?
     Value: (EntityDataValue)?
+}
+
+typealias EntityPropertyDefinitionConfiguration = Mapping<String, Any>
+
+
+typealias PropertyGroupGroupType = "TABULAR"
+
+/// An object that specifies information about a property group.
+open class EntityPropertyGroup {
+    GroupType: (PropertyGroupGroupType|Mapping)?
+    PropertyNames: (Listing<EntityPropertyName>)?
+}
+
+typealias EntityPropertyName = String|Mapping
+
+
+/// The type of the relationship.
+open class EntityRelationship {
+    RelationshipType: (String(matches(Regex(#".*"#)))|Mapping)?
+    TargetComponentTypeId: (String(matches(Regex(#"[a-zA-Z_\.\-0-9:]+"#)))|Mapping)?
+}
+
+typealias StatusState = "CREATING"|"UPDATING"|"DELETING"|"ACTIVE"|"ERROR"
+
+/// 
+open class EntityStatus {
+    Error: (Dynamic)?
+    State: (StatusState|Mapping)?
 }
 
 /// Resource schema for AWS::IoTTwinMaker::Entity

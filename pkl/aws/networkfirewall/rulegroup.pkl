@@ -5,18 +5,25 @@ module aws.networkfirewall.rulegroup
 
 import "../../cloudformation.pkl"
 
-typealias RuleGroupPortRangeBound = Int|Mapping
-
-
-typealias RuleGroupProtocolNumber = Int|Mapping
-
-
-typealias RuleGroupResourceArn = String|Mapping
-
+/// 
+open class RuleGroupActionDefinition {
+    PublishMetricAction: (RuleGroupPublishMetricAction)?
+}
 
 /// 
 open class RuleGroupAddress {
     AddressDefinition: String(matches(Regex(#"^([a-fA-F\d:\.]+/\d{1,3})$"#)))|Mapping
+}
+
+/// 
+open class RuleGroupCustomAction {
+    ActionDefinition: RuleGroupActionDefinition
+    ActionName: String(matches(Regex(#"^[a-zA-Z0-9]+$"#)))|Mapping
+}
+
+/// 
+open class RuleGroupDimension {
+    Value: String(matches(Regex(#"^[a-zA-Z0-9-_ ]+$"#)))|Mapping
 }
 
 typealias RuleGroupGeneratedRulesType = String|Mapping
@@ -28,48 +35,12 @@ typealias HeaderProtocol = "IP"|"TCP"|"UDP"|"ICMP"|"HTTP"|"FTP"|"TLS"|"SMB"|"DNS
 
 /// 
 open class RuleGroupHeader {
-    Source: String(matches(Regex(#"^.*$"#)))|Mapping
-    SourcePort: RuleGroupPort
-    Direction: HeaderDirection|Mapping
     Destination: String(matches(Regex(#"^.*$"#)))|Mapping
     DestinationPort: RuleGroupPort
+    Direction: HeaderDirection|Mapping
     Protocol: HeaderProtocol|Mapping
-}
-
-/// 
-open class RuleGroupMatchAttributes {
-    Protocols: (Listing<RuleGroupProtocolNumber>)?
-    TCPFlags: (Listing<RuleGroupTCPFlagField>)?
-    Sources: (Listing<RuleGroupAddress>)?
-    Destinations: (Listing<RuleGroupAddress>)?
-    SourcePorts: (Listing<RuleGroupPortRange>)?
-    DestinationPorts: (Listing<RuleGroupPortRange>)?
-}
-
-/// 
-open class RuleGroupPortRange {
-    FromPort: RuleGroupPortRangeBound
-    ToPort: RuleGroupPortRangeBound
-}
-
-/// 
-open class RuleGroupRuleOption {
-    Keyword: String(matches(Regex(#"^.*$"#)))|Mapping
-    Settings: (Listing<RuleGroupSetting>)?
-}
-
-/// 
-open class RuleGroupCustomAction {
-    ActionName: String(matches(Regex(#"^[a-zA-Z0-9]+$"#)))|Mapping
-    ActionDefinition: RuleGroupActionDefinition
-}
-
-/// 
-open class RuleGroupRuleGroup {
-    RuleVariables: (RuleGroupRuleVariables)?
-    ReferenceSets: (RuleGroupReferenceSets)?
-    RulesSource: RuleGroupRulesSource
-    StatefulRuleOptions: (RuleGroupStatefulRuleOptions)?
+    Source: String(matches(Regex(#"^.*$"#)))|Mapping
+    SourcePort: RuleGroupPort
 }
 
 /// 
@@ -78,25 +49,43 @@ open class RuleGroupIPSet {
 }
 
 /// 
-open class RuleGroupRulesSource {
-    RulesString: (RuleGroupRulesString)?
-    RulesSourceList: (RuleGroupRulesSourceList)?
-    StatefulRules: (Listing<RuleGroupStatefulRule>)?
-    StatelessRulesAndCustomActions: (RuleGroupStatelessRulesAndCustomActions)?
+open class RuleGroupIPSetReference {
+    ReferenceArn: (RuleGroupResourceArn)?
 }
 
 /// 
-open class RuleGroupTag {
-    Key: String(matches(Regex(#"^.*$"#)))|Mapping
-    Value: String(matches(Regex(#"^.*$"#)))|Mapping
+open class RuleGroupMatchAttributes {
+    DestinationPorts: (Listing<RuleGroupPortRange>)?
+    Destinations: (Listing<RuleGroupAddress>)?
+    Protocols: (Listing<RuleGroupProtocolNumber>)?
+    SourcePorts: (Listing<RuleGroupPortRange>)?
+    Sources: (Listing<RuleGroupAddress>)?
+    TCPFlags: (Listing<RuleGroupTCPFlagField>)?
 }
 
-typealias RuleGroupTargetType = String|Mapping
+typealias RuleGroupPort = String|Mapping
 
 
 /// 
-open class RuleGroupActionDefinition {
-    PublishMetricAction: (RuleGroupPublishMetricAction)?
+open class RuleGroupPortRange {
+    FromPort: RuleGroupPortRangeBound
+    ToPort: RuleGroupPortRangeBound
+}
+
+typealias RuleGroupPortRangeBound = Int|Mapping
+
+
+/// 
+open class RuleGroupPortSet {
+    Definition: (Listing<RuleGroupVariableDefinition>)?
+}
+
+typealias RuleGroupProtocolNumber = Int|Mapping
+
+
+/// 
+open class RuleGroupPublishMetricAction {
+    Dimensions: Listing<RuleGroupDimension>
 }
 
 typealias RuleGroupReferenceSetsIPSetReferences = Mapping<String, Any>
@@ -106,44 +95,31 @@ open class RuleGroupReferenceSets {
     IPSetReferences: (RuleGroupReferenceSetsIPSetReferences)?
 }
 
-typealias RuleGroupRulesString = String|Mapping
+typealias RuleGroupResourceArn = String|Mapping
 
 
 /// 
-open class RuleGroupStatelessRule {
-    RuleDefinition: RuleGroupRuleDefinition
-    Priority: Int|Mapping
+open class RuleGroupRuleDefinition {
+    Actions: Listing<String|Mapping>
+    MatchAttributes: RuleGroupMatchAttributes
 }
 
 /// 
-open class RuleGroupTCPFlagField {
-    Flags: Listing<RuleGroupTCPFlag>
-    Masks: (Listing<RuleGroupTCPFlag>)?
+open class RuleGroupRuleGroup {
+    ReferenceSets: (RuleGroupReferenceSets)?
+    RuleVariables: (RuleGroupRuleVariables)?
+    RulesSource: RuleGroupRulesSource
+    StatefulRuleOptions: (RuleGroupStatefulRuleOptions)?
 }
 
 /// 
-open class RuleGroupIPSetReference {
-    ReferenceArn: (RuleGroupResourceArn)?
+open class RuleGroupRuleOption {
+    Keyword: String(matches(Regex(#"^.*$"#)))|Mapping
+    Settings: (Listing<RuleGroupSetting>)?
 }
 
-/// 
-open class RuleGroupPortSet {
-    Definition: (Listing<RuleGroupVariableDefinition>)?
-}
+typealias RuleGroupRuleOrder = String|Mapping
 
-/// 
-open class RuleGroupPublishMetricAction {
-    Dimensions: Listing<RuleGroupDimension>
-}
-
-typealias StatefulRuleAction = "PASS"|"DROP"|"ALERT"|"REJECT"
-
-/// 
-open class RuleGroupStatefulRule {
-    Action: StatefulRuleAction|Mapping
-    Header: RuleGroupHeader
-    RuleOptions: Listing<RuleGroupRuleOption>
-}
 
 typealias RuleGroupRuleVariablesIPSets = Mapping<String, Any>
 
@@ -155,34 +131,34 @@ open class RuleGroupRuleVariables {
     PortSets: (RuleGroupRuleVariablesPortSets)?
 }
 
-typealias RuleGroupSetting = String|Mapping
-
-
 /// 
-open class RuleGroupDimension {
-    Value: String(matches(Regex(#"^[a-zA-Z0-9-_ ]+$"#)))|Mapping
+open class RuleGroupRulesSource {
+    RulesSourceList: (RuleGroupRulesSourceList)?
+    RulesString: (RuleGroupRulesString)?
+    StatefulRules: (Listing<RuleGroupStatefulRule>)?
+    StatelessRulesAndCustomActions: (RuleGroupStatelessRulesAndCustomActions)?
 }
-
-/// 
-open class RuleGroupRuleDefinition {
-    Actions: Listing<String|Mapping>
-    MatchAttributes: RuleGroupMatchAttributes
-}
-
-typealias RuleGroupRuleOrder = String|Mapping
-
-
-typealias RuleGroupVariableDefinition = String|Mapping
-
-
-typealias RuleGroupPort = String|Mapping
-
 
 /// 
 open class RuleGroupRulesSourceList {
-    Targets: Listing<String|Mapping>
-    TargetTypes: Listing<RuleGroupTargetType>
     GeneratedRulesType: RuleGroupGeneratedRulesType
+    TargetTypes: Listing<RuleGroupTargetType>
+    Targets: Listing<String|Mapping>
+}
+
+typealias RuleGroupRulesString = String|Mapping
+
+
+typealias RuleGroupSetting = String|Mapping
+
+
+typealias StatefulRuleAction = "PASS"|"DROP"|"ALERT"|"REJECT"
+
+/// 
+open class RuleGroupStatefulRule {
+    Action: StatefulRuleAction|Mapping
+    Header: RuleGroupHeader
+    RuleOptions: Listing<RuleGroupRuleOption>
 }
 
 /// 
@@ -191,12 +167,36 @@ open class RuleGroupStatefulRuleOptions {
 }
 
 /// 
+open class RuleGroupStatelessRule {
+    Priority: Int|Mapping
+    RuleDefinition: RuleGroupRuleDefinition
+}
+
+/// 
 open class RuleGroupStatelessRulesAndCustomActions {
-    StatelessRules: Listing<RuleGroupStatelessRule>
     CustomActions: (Listing<RuleGroupCustomAction>)?
+    StatelessRules: Listing<RuleGroupStatelessRule>
 }
 
 typealias RuleGroupTCPFlag = String|Mapping
+
+
+/// 
+open class RuleGroupTCPFlagField {
+    Flags: Listing<RuleGroupTCPFlag>
+    Masks: (Listing<RuleGroupTCPFlag>)?
+}
+
+/// 
+open class RuleGroupTag {
+    Key: String(matches(Regex(#"^.*$"#)))|Mapping
+    Value: String(matches(Regex(#"^.*$"#)))|Mapping
+}
+
+typealias RuleGroupTargetType = String|Mapping
+
+
+typealias RuleGroupVariableDefinition = String|Mapping
 
 
 /// Resource type definition for AWS::NetworkFirewall::RuleGroup

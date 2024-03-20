@@ -6,89 +6,34 @@ module aws.autoscaling.scalingpolicy
 import "../../cloudformation.pkl"
 
 /// 
-open class ScalingPolicyPredefinedMetricSpecification {
-    ResourceLabel: (String|Mapping)?
-    PredefinedMetricType: String|Mapping
-}
-
-/// 
-open class ScalingPolicyTargetTrackingConfiguration {
-    CustomizedMetricSpecification: (ScalingPolicyCustomizedMetricSpecification)?
-    TargetValue: Number|Mapping
-    DisableScaleIn: (Boolean|Mapping)?
-    PredefinedMetricSpecification: (ScalingPolicyPredefinedMetricSpecification)?
-}
-
-/// 
-open class ScalingPolicyPredictiveScalingPredefinedMetricPair {
-    ResourceLabel: (String|Mapping)?
-    PredefinedMetricType: String|Mapping
-}
-
-/// 
 open class ScalingPolicyCustomizedMetricSpecification {
-    MetricName: String|Mapping
     Dimensions: (Listing<ScalingPolicyMetricDimension>)?
+    MetricName: String|Mapping
+    Namespace: String|Mapping
     Statistic: String|Mapping
     Unit: (String|Mapping)?
-    Namespace: String|Mapping
 }
 
 /// 
 open class ScalingPolicyMetric {
-    MetricName: String|Mapping
     Dimensions: (Listing<ScalingPolicyMetricDimension>)?
+    MetricName: String|Mapping
     Namespace: String|Mapping
+}
+
+/// 
+open class ScalingPolicyMetricDataQuery {
+    Expression: (String|Mapping)?
+    Id: String|Mapping
+    Label: (String|Mapping)?
+    MetricStat: (ScalingPolicyMetricStat)?
+    ReturnData: (Boolean|Mapping)?
 }
 
 /// 
 open class ScalingPolicyMetricDimension {
     Name: String|Mapping
     Value: String|Mapping
-}
-
-/// 
-open class ScalingPolicyPredictiveScalingMetricSpecification {
-    PredefinedScalingMetricSpecification: (ScalingPolicyPredictiveScalingPredefinedScalingMetric)?
-    PredefinedMetricPairSpecification: (ScalingPolicyPredictiveScalingPredefinedMetricPair)?
-    CustomizedCapacityMetricSpecification: (ScalingPolicyPredictiveScalingCustomizedCapacityMetric)?
-    CustomizedLoadMetricSpecification: (ScalingPolicyPredictiveScalingCustomizedLoadMetric)?
-    CustomizedScalingMetricSpecification: (ScalingPolicyPredictiveScalingCustomizedScalingMetric)?
-    PredefinedLoadMetricSpecification: (ScalingPolicyPredictiveScalingPredefinedLoadMetric)?
-    TargetValue: Number|Mapping
-}
-
-/// 
-open class ScalingPolicyMetricDataQuery {
-    Expression: (String|Mapping)?
-    Label: (String|Mapping)?
-    MetricStat: (ScalingPolicyMetricStat)?
-    Id: String|Mapping
-    ReturnData: (Boolean|Mapping)?
-}
-
-/// 
-open class ScalingPolicyPredictiveScalingPredefinedLoadMetric {
-    ResourceLabel: (String|Mapping)?
-    PredefinedMetricType: String|Mapping
-}
-
-/// 
-open class ScalingPolicyPredictiveScalingPredefinedScalingMetric {
-    ResourceLabel: (String|Mapping)?
-    PredefinedMetricType: String|Mapping
-}
-
-/// 
-open class ScalingPolicyStepAdjustment {
-    MetricIntervalUpperBound: (Number|Mapping)?
-    MetricIntervalLowerBound: (Number|Mapping)?
-    ScalingAdjustment: Int|Mapping
-}
-
-/// 
-open class ScalingPolicyPredictiveScalingCustomizedScalingMetric {
-    MetricDataQueries: Listing<ScalingPolicyMetricDataQuery>
 }
 
 /// 
@@ -99,11 +44,17 @@ open class ScalingPolicyMetricStat {
 }
 
 /// 
+open class ScalingPolicyPredefinedMetricSpecification {
+    PredefinedMetricType: String|Mapping
+    ResourceLabel: (String|Mapping)?
+}
+
+/// 
 open class ScalingPolicyPredictiveScalingConfiguration {
-    Mode: (String|Mapping)?
-    MetricSpecifications: Listing<ScalingPolicyPredictiveScalingMetricSpecification>
     MaxCapacityBreachBehavior: (String|Mapping)?
     MaxCapacityBuffer: (Int|Mapping)?
+    MetricSpecifications: Listing<ScalingPolicyPredictiveScalingMetricSpecification>
+    Mode: (String|Mapping)?
     SchedulingBufferTime: (Int|Mapping)?
 }
 
@@ -115,6 +66,55 @@ open class ScalingPolicyPredictiveScalingCustomizedCapacityMetric {
 /// 
 open class ScalingPolicyPredictiveScalingCustomizedLoadMetric {
     MetricDataQueries: Listing<ScalingPolicyMetricDataQuery>
+}
+
+/// 
+open class ScalingPolicyPredictiveScalingCustomizedScalingMetric {
+    MetricDataQueries: Listing<ScalingPolicyMetricDataQuery>
+}
+
+/// 
+open class ScalingPolicyPredictiveScalingMetricSpecification {
+    CustomizedCapacityMetricSpecification: (ScalingPolicyPredictiveScalingCustomizedCapacityMetric)?
+    CustomizedLoadMetricSpecification: (ScalingPolicyPredictiveScalingCustomizedLoadMetric)?
+    CustomizedScalingMetricSpecification: (ScalingPolicyPredictiveScalingCustomizedScalingMetric)?
+    PredefinedLoadMetricSpecification: (ScalingPolicyPredictiveScalingPredefinedLoadMetric)?
+    PredefinedMetricPairSpecification: (ScalingPolicyPredictiveScalingPredefinedMetricPair)?
+    PredefinedScalingMetricSpecification: (ScalingPolicyPredictiveScalingPredefinedScalingMetric)?
+    TargetValue: Number|Mapping
+}
+
+/// 
+open class ScalingPolicyPredictiveScalingPredefinedLoadMetric {
+    PredefinedMetricType: String|Mapping
+    ResourceLabel: (String|Mapping)?
+}
+
+/// 
+open class ScalingPolicyPredictiveScalingPredefinedMetricPair {
+    PredefinedMetricType: String|Mapping
+    ResourceLabel: (String|Mapping)?
+}
+
+/// 
+open class ScalingPolicyPredictiveScalingPredefinedScalingMetric {
+    PredefinedMetricType: String|Mapping
+    ResourceLabel: (String|Mapping)?
+}
+
+/// 
+open class ScalingPolicyStepAdjustment {
+    MetricIntervalLowerBound: (Number|Mapping)?
+    MetricIntervalUpperBound: (Number|Mapping)?
+    ScalingAdjustment: Int|Mapping
+}
+
+/// 
+open class ScalingPolicyTargetTrackingConfiguration {
+    CustomizedMetricSpecification: (ScalingPolicyCustomizedMetricSpecification)?
+    DisableScaleIn: (Boolean|Mapping)?
+    PredefinedMetricSpecification: (ScalingPolicyPredefinedMetricSpecification)?
+    TargetValue: Number|Mapping
 }
 
 /// The AWS::AutoScaling::ScalingPolicy resource specifies an Amazon EC2 Auto Scaling scaling policy so that the Auto Scaling group can scale the number of instances available for your application.

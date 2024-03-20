@@ -5,47 +5,12 @@ module aws.greengrassv2.componentversion
 
 import "../../cloudformation.pkl"
 
-typealias ComponentVersionFilesystemPath = String|Mapping
-
-
-typealias ComponentVersionLambdaAddGroupOwnerBoolean = Boolean|Mapping
-
-
-/// 
-open class ComponentVersionLambdaDeviceMount {
-    Path: (ComponentVersionFilesystemPath)?
-    Permission: (ComponentVersionLambdaFilesystemPermission)?
-    AddGroupOwner: (ComponentVersionLambdaAddGroupOwnerBoolean)?
-}
-
-typealias LambdaExecutionParametersInputPayloadEncodingType = "json"|"binary"
-
-typealias ComponentVersionLambdaExecutionParametersEnvironmentVariables = Mapping<String, Any>
-
-/// 
-open class ComponentVersionLambdaExecutionParameters {
-    MaxQueueSize: (Int|Mapping)?
-    InputPayloadEncodingType: (LambdaExecutionParametersInputPayloadEncodingType|Mapping)?
-    EnvironmentVariables: (ComponentVersionLambdaExecutionParametersEnvironmentVariables)?
-    StatusTimeoutInSeconds: (Int|Mapping)?
-    Pinned: (Boolean|Mapping)?
-    ExecArgs: (Listing<String|Mapping>)?
-    LinuxProcessParams: (ComponentVersionLambdaLinuxProcessParams)?
-    EventSources: (Listing<ComponentVersionLambdaEventSource>)?
-    MaxInstancesCount: (Int|Mapping)?
-    MaxIdleTimeInSeconds: (Int|Mapping)?
-    TimeoutInSeconds: (Int|Mapping)?
-}
-
-typealias ComponentVersionLambdaFilesystemPermission = String|Mapping
-
-
 typealias ComponentDependencyRequirementDependencyType = "SOFT"|"HARD"
 
 /// 
 open class ComponentVersionComponentDependencyRequirement {
-    VersionRequirement: (String|Mapping)?
     DependencyType: (ComponentDependencyRequirementDependencyType|Mapping)?
+    VersionRequirement: (String|Mapping)?
 }
 
 typealias ComponentVersionComponentPlatformAttributes = Mapping<String, Any>
@@ -56,40 +21,25 @@ open class ComponentVersionComponentPlatform {
     Name: (String|Mapping)?
 }
 
-typealias ComponentVersionLambdaFunctionRecipeSourceComponentDependencies = Mapping<String, Any>
+typealias ComponentVersionFilesystemPath = String|Mapping
 
-/// 
-open class ComponentVersionLambdaFunctionRecipeSource {
-    LambdaArn: (String(matches(Regex(#"^arn:[^:]*:lambda:(([a-z]+-)+[0-9])?:([0-9]{12})?:[^.]+$"#)))|Mapping)?
-    ComponentName: (String|Mapping)?
-    ComponentVersion: (String|Mapping)?
-    ComponentPlatforms: (Listing<ComponentVersionComponentPlatform>)?
-    ComponentDependencies: (ComponentVersionLambdaFunctionRecipeSourceComponentDependencies)?
-    ComponentLambdaParameters: (ComponentVersionLambdaExecutionParameters)?
-}
 
-typealias LambdaLinuxProcessParamsIsolationMode = "GreengrassContainer"|"NoContainer"
+typealias ComponentVersionLambdaAddGroupOwnerBoolean = Boolean|Mapping
 
-/// 
-open class ComponentVersionLambdaLinuxProcessParams {
-    IsolationMode: (LambdaLinuxProcessParamsIsolationMode|Mapping)?
-    ContainerParams: (ComponentVersionLambdaContainerParams)?
-}
-
-/// 
-open class ComponentVersionLambdaVolumeMount {
-    SourcePath: (ComponentVersionFilesystemPath)?
-    DestinationPath: (ComponentVersionFilesystemPath)?
-    Permission: (ComponentVersionLambdaFilesystemPermission)?
-    AddGroupOwner: (ComponentVersionLambdaAddGroupOwnerBoolean)?
-}
 
 /// 
 open class ComponentVersionLambdaContainerParams {
+    Devices: (Listing<ComponentVersionLambdaDeviceMount>)?
     MemorySizeInKB: (Int|Mapping)?
     MountROSysfs: (Boolean|Mapping)?
     Volumes: (Listing<ComponentVersionLambdaVolumeMount>)?
-    Devices: (Listing<ComponentVersionLambdaDeviceMount>)?
+}
+
+/// 
+open class ComponentVersionLambdaDeviceMount {
+    AddGroupOwner: (ComponentVersionLambdaAddGroupOwnerBoolean)?
+    Path: (ComponentVersionFilesystemPath)?
+    Permission: (ComponentVersionLambdaFilesystemPermission)?
 }
 
 typealias LambdaEventSourceType = "PUB_SUB"|"IOT_CORE"
@@ -98,6 +48,56 @@ typealias LambdaEventSourceType = "PUB_SUB"|"IOT_CORE"
 open class ComponentVersionLambdaEventSource {
     Topic: (String|Mapping)?
     Type: (LambdaEventSourceType|Mapping)?
+}
+
+typealias ComponentVersionLambdaExecutionParametersEnvironmentVariables = Mapping<String, Any>
+
+typealias LambdaExecutionParametersInputPayloadEncodingType = "json"|"binary"
+
+/// 
+open class ComponentVersionLambdaExecutionParameters {
+    EnvironmentVariables: (ComponentVersionLambdaExecutionParametersEnvironmentVariables)?
+    EventSources: (Listing<ComponentVersionLambdaEventSource>)?
+    ExecArgs: (Listing<String|Mapping>)?
+    InputPayloadEncodingType: (LambdaExecutionParametersInputPayloadEncodingType|Mapping)?
+    LinuxProcessParams: (ComponentVersionLambdaLinuxProcessParams)?
+    MaxIdleTimeInSeconds: (Int|Mapping)?
+    MaxInstancesCount: (Int|Mapping)?
+    MaxQueueSize: (Int|Mapping)?
+    Pinned: (Boolean|Mapping)?
+    StatusTimeoutInSeconds: (Int|Mapping)?
+    TimeoutInSeconds: (Int|Mapping)?
+}
+
+typealias ComponentVersionLambdaFilesystemPermission = String|Mapping
+
+
+typealias ComponentVersionLambdaFunctionRecipeSourceComponentDependencies = Mapping<String, Any>
+
+/// 
+open class ComponentVersionLambdaFunctionRecipeSource {
+    ComponentDependencies: (ComponentVersionLambdaFunctionRecipeSourceComponentDependencies)?
+    ComponentLambdaParameters: (ComponentVersionLambdaExecutionParameters)?
+    ComponentName: (String|Mapping)?
+    ComponentPlatforms: (Listing<ComponentVersionComponentPlatform>)?
+    ComponentVersion: (String|Mapping)?
+    LambdaArn: (String(matches(Regex(#"^arn:[^:]*:lambda:(([a-z]+-)+[0-9])?:([0-9]{12})?:[^.]+$"#)))|Mapping)?
+}
+
+typealias LambdaLinuxProcessParamsIsolationMode = "GreengrassContainer"|"NoContainer"
+
+/// 
+open class ComponentVersionLambdaLinuxProcessParams {
+    ContainerParams: (ComponentVersionLambdaContainerParams)?
+    IsolationMode: (LambdaLinuxProcessParamsIsolationMode|Mapping)?
+}
+
+/// 
+open class ComponentVersionLambdaVolumeMount {
+    AddGroupOwner: (ComponentVersionLambdaAddGroupOwnerBoolean)?
+    DestinationPath: (ComponentVersionFilesystemPath)?
+    Permission: (ComponentVersionLambdaFilesystemPermission)?
+    SourcePath: (ComponentVersionFilesystemPath)?
 }
 
 /// Resource for Greengrass component version.

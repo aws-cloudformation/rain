@@ -5,23 +5,9 @@ module aws.iottwinmaker.componenttype
 
 import "../../cloudformation.pkl"
 
-typealias DataTypeType = "RELATIONSHIP"|"STRING"|"LONG"|"BOOLEAN"|"INTEGER"|"DOUBLE"|"LIST"|"MAP"
-
-/// An object that specifies the data type of a property.
-open class ComponentTypeDataType {
-    NestedType: (ComponentTypeDataType)?
-    Relationship: (ComponentTypeRelationship)?
-    Type: DataTypeType|Mapping
-    UnitOfMeasure: (String(matches(Regex(#".*"#)))|Mapping)?
-    AllowedValues: (Listing<ComponentTypeDataValue>)?
-}
-
-typealias StatusState = "CREATING"|"UPDATING"|"DELETING"|"ACTIVE"|"ERROR"
-
-/// 
-open class ComponentTypeStatus {
-    Error: (Dynamic)?
-    State: (StatusState|Mapping)?
+/// An object that sets information about a composite component type.
+open class ComponentTypeCompositeComponentType {
+    ComponentTypeId: (String(matches(Regex(#"[a-zA-Z_\.\-0-9:]+"#)))|Mapping)?
 }
 
 /// The data connector.
@@ -30,20 +16,15 @@ open class ComponentTypeDataConnector {
     Lambda: (ComponentTypeLambdaFunction)?
 }
 
-typealias ComponentTypeDateTimeFormat = String|Mapping
+typealias DataTypeType = "RELATIONSHIP"|"STRING"|"LONG"|"BOOLEAN"|"INTEGER"|"DOUBLE"|"LIST"|"MAP"
 
-
-typealias PropertyGroupGroupType = "TABULAR"
-
-/// An object that sets information about a property group.
-open class ComponentTypePropertyGroup {
-    GroupType: (PropertyGroupGroupType|Mapping)?
-    PropertyNames: (Listing<ComponentTypePropertyName>)?
-}
-
-/// An object that sets information about a composite component type.
-open class ComponentTypeCompositeComponentType {
-    ComponentTypeId: (String(matches(Regex(#"[a-zA-Z_\.\-0-9:]+"#)))|Mapping)?
+/// An object that specifies the data type of a property.
+open class ComponentTypeDataType {
+    AllowedValues: (Listing<ComponentTypeDataValue>)?
+    NestedType: (ComponentTypeDataType)?
+    Relationship: (ComponentTypeRelationship)?
+    Type: DataTypeType|Mapping
+    UnitOfMeasure: (String(matches(Regex(#".*"#)))|Mapping)?
 }
 
 typealias ComponentTypeDataValueMapValue = Mapping<String, Any>
@@ -51,15 +32,18 @@ typealias ComponentTypeDataValueMapValue = Mapping<String, Any>
 /// An object that specifies a value for a property.
 open class ComponentTypeDataValue {
     BooleanValue: (Boolean|Mapping)?
-    ListValue: (Listing<ComponentTypeDataValue>)?
-    MapValue: (ComponentTypeDataValueMapValue)?
     DoubleValue: (Number|Mapping)?
     Expression: (String(matches(Regex(#"(^\$\{Parameters\.[a-zA-z]+([a-zA-z_0-9]*)}$)"#)))|Mapping)?
     IntegerValue: (Int|Mapping)?
+    ListValue: (Listing<ComponentTypeDataValue>)?
     LongValue: (Number|Mapping)?
-    StringValue: (String(matches(Regex(#".*"#)))|Mapping)?
+    MapValue: (ComponentTypeDataValueMapValue)?
     RelationshipValue: (Dynamic)?
+    StringValue: (String(matches(Regex(#".*"#)))|Mapping)?
 }
+
+typealias ComponentTypeDateTimeFormat = String|Mapping
+
 
 typealias FunctionScope = "ENTITY"|"WORKSPACE"
 
@@ -82,13 +66,21 @@ typealias ComponentTypePropertyDefinitionConfigurations = Mapping<String, Any>
 
 /// An object that sets information about a property.
 open class ComponentTypePropertyDefinition {
-    IsTimeSeries: (Boolean|Mapping)?
     Configurations: (ComponentTypePropertyDefinitionConfigurations)?
     DataType: (ComponentTypeDataType)?
     DefaultValue: (ComponentTypeDataValue)?
     IsExternalId: (Boolean|Mapping)?
     IsRequiredInEntity: (Boolean|Mapping)?
     IsStoredExternally: (Boolean|Mapping)?
+    IsTimeSeries: (Boolean|Mapping)?
+}
+
+typealias PropertyGroupGroupType = "TABULAR"
+
+/// An object that sets information about a property group.
+open class ComponentTypePropertyGroup {
+    GroupType: (PropertyGroupGroupType|Mapping)?
+    PropertyNames: (Listing<ComponentTypePropertyName>)?
 }
 
 typealias ComponentTypePropertyName = String|Mapping
@@ -102,6 +94,14 @@ open class ComponentTypeRelationship {
 
 typealias ComponentTypeRequiredProperty = String|Mapping
 
+
+typealias StatusState = "CREATING"|"UPDATING"|"DELETING"|"ACTIVE"|"ERROR"
+
+/// 
+open class ComponentTypeStatus {
+    Error: (Dynamic)?
+    State: (StatusState|Mapping)?
+}
 
 /// Resource schema for AWS::IoTTwinMaker::ComponentType
 open class ComponentType extends cloudformation.Resource {

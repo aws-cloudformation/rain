@@ -5,12 +5,20 @@ module aws.comprehend.flywheel
 
 import "../../cloudformation.pkl"
 
+/// 
+open class FlywheelDataSecurityConfig {
+    DataLakeKmsKeyId: (FlywheelKmsKeyId)?
+    ModelKmsKeyId: (FlywheelKmsKeyId)?
+    VolumeKmsKeyId: (FlywheelKmsKeyId)?
+    VpcConfig: (FlywheelVpcConfig)?
+}
+
 typealias DocumentClassificationConfigMode = "MULTI_CLASS"|"MULTI_LABEL"
 
 /// 
 open class FlywheelDocumentClassificationConfig {
-    Mode: DocumentClassificationConfigMode|Mapping
     Labels: (Listing<String|Mapping>)?
+    Mode: DocumentClassificationConfigMode|Mapping
 }
 
 /// 
@@ -28,31 +36,23 @@ typealias FlywheelKmsKeyId = String|Mapping
 
 /// 
 open class FlywheelTag {
-    Value: String|Mapping
     Key: String|Mapping
+    Value: String|Mapping
 }
 
 typealias TaskConfigLanguageCode = "en"|"es"|"fr"|"it"|"de"|"pt"
 
 /// 
 open class FlywheelTaskConfig {
+    DocumentClassificationConfig: (FlywheelDocumentClassificationConfig)?
     EntityRecognitionConfig: (FlywheelEntityRecognitionConfig)?
     LanguageCode: TaskConfigLanguageCode|Mapping
-    DocumentClassificationConfig: (FlywheelDocumentClassificationConfig)?
 }
 
 /// 
 open class FlywheelVpcConfig {
     SecurityGroupIds: Listing<String|Mapping>
     Subnets: Listing<String|Mapping>
-}
-
-/// 
-open class FlywheelDataSecurityConfig {
-    ModelKmsKeyId: (FlywheelKmsKeyId)?
-    VolumeKmsKeyId: (FlywheelKmsKeyId)?
-    DataLakeKmsKeyId: (FlywheelKmsKeyId)?
-    VpcConfig: (FlywheelVpcConfig)?
 }
 
 /// The AWS::Comprehend::Flywheel resource creates an Amazon Comprehend Flywheel that enables customer to train their model.

@@ -12,19 +12,10 @@ import "../../cloudformation.pkl"
 ///  If you don't want to specify any cache behaviors, include only an empty ``CacheBehaviors`` element. Don't include an empty ``CacheBehavior`` element because this is invalid.
 ///  To delete all cache behaviors in an exist
 open class DistributionCacheBehavior {
-    CachedMethods: (Listing<String|Mapping>)?
-    ResponseHeadersPolicyId: (String|Mapping)?
-    TrustedKeyGroups: (Listing<String|Mapping>)?
     AllowedMethods: (Listing<String|Mapping>)?
-    Compress: (Boolean|Mapping)?
-    OriginRequestPolicyId: (String|Mapping)?
-    PathPattern: String|Mapping
-    RealtimeLogConfigArn: (String|Mapping)?
-    SmoothStreaming: (Boolean|Mapping)?
-    TargetOriginId: String|Mapping
-    TrustedSigners: (Listing<String|Mapping>)?
-    ViewerProtocolPolicy: String|Mapping
     CachePolicyId: (String|Mapping)?
+    CachedMethods: (Listing<String|Mapping>)?
+    Compress: (Boolean|Mapping)?
     DefaultTTL: (Number|Mapping)?
     FieldLevelEncryptionId: (String|Mapping)?
     ForwardedValues: (DistributionForwardedValues)?
@@ -32,6 +23,25 @@ open class DistributionCacheBehavior {
     LambdaFunctionAssociations: (Listing<DistributionLambdaFunctionAssociation>)?
     MaxTTL: (Number|Mapping)?
     MinTTL: (Number|Mapping)?
+    OriginRequestPolicyId: (String|Mapping)?
+    PathPattern: String|Mapping
+    RealtimeLogConfigArn: (String|Mapping)?
+    ResponseHeadersPolicyId: (String|Mapping)?
+    SmoothStreaming: (Boolean|Mapping)?
+    TargetOriginId: String|Mapping
+    TrustedKeyGroups: (Listing<String|Mapping>)?
+    TrustedSigners: (Listing<String|Mapping>)?
+    ViewerProtocolPolicy: String|Mapping
+}
+
+/// This field is deprecated. We recommend that you use a cache policy or an origin request policy instead of this field.
+///
+///  If you want to include cookies in the cache key, use a cache policy. For more information, see [Creating cache policies](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html#cache-key-create-cache-policy) in the *Amazon CloudFront Developer Guide*.
+///  If you want to send cookies to the origin but not include them in the cache key, use an origin request policy. For more information, see [Creating origin request policies](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-origin-requests.html#origin-request-create-origin-request-policy) in the *Amazon CloudFront Developer Guide*.
+///  A complex type that specifies whether you want CloudFront to forward cookies to the origin and, if so, which ones. For more information about forwarding cookies to the origin, see [How CloudFront Forwards, Caches, and Logs C
+open class DistributionCookies {
+    Forward: String|Mapping
+    WhitelistedNames: (Listing<String|Mapping>)?
 }
 
 /// A complex type that controls:
@@ -47,35 +57,62 @@ open class DistributionCustomErrorResponse {
     ResponsePagePath: (String|Mapping)?
 }
 
-/// A complex type that contains a Lambda@Edge function association.
-open class DistributionLambdaFunctionAssociation {
-    EventType: (String|Mapping)?
-    IncludeBody: (Boolean|Mapping)?
-    LambdaFunctionARN: (String|Mapping)?
+/// A custom origin. A custom origin is any origin that is *not* an Amazon S3 bucket, with one exception. An Amazon S3 bucket that is [configured with static website hosting](https://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteHosting.html) *is* a custom origin.
+open class DistributionCustomOriginConfig {
+    HTTPPort: (Int|Mapping)?
+    HTTPSPort: (Int|Mapping)?
+    OriginKeepaliveTimeout: (Int|Mapping)?
+    OriginProtocolPolicy: String|Mapping
+    OriginReadTimeout: (Int|Mapping)?
+    OriginSSLProtocols: (Listing<String|Mapping>)?
 }
 
-/// A complex data type that includes information about the failover criteria for an origin group, including the status codes for which CloudFront will failover from the primary origin to the second origin.
-open class DistributionOriginGroupFailoverCriteria {
-    StatusCodes: DistributionStatusCodes
+/// A complex type that describes the default cache behavior if you don't specify a ``CacheBehavior`` element or if request URLs don't match any of the values of ``PathPattern`` in ``CacheBehavior`` elements. You must create exactly one default cache behavior.
+open class DistributionDefaultCacheBehavior {
+    AllowedMethods: (Listing<String|Mapping>)?
+    CachePolicyId: (String|Mapping)?
+    CachedMethods: (Listing<String|Mapping>)?
+    Compress: (Boolean|Mapping)?
+    DefaultTTL: (Number|Mapping)?
+    FieldLevelEncryptionId: (String|Mapping)?
+    ForwardedValues: (DistributionForwardedValues)?
+    FunctionAssociations: (Listing<DistributionFunctionAssociation>)?
+    LambdaFunctionAssociations: (Listing<DistributionLambdaFunctionAssociation>)?
+    MaxTTL: (Number|Mapping)?
+    MinTTL: (Number|Mapping)?
+    OriginRequestPolicyId: (String|Mapping)?
+    RealtimeLogConfigArn: (String|Mapping)?
+    ResponseHeadersPolicyId: (String|Mapping)?
+    SmoothStreaming: (Boolean|Mapping)?
+    TargetOriginId: String|Mapping
+    TrustedKeyGroups: (Listing<String|Mapping>)?
+    TrustedSigners: (Listing<String|Mapping>)?
+    ViewerProtocolPolicy: String|Mapping
 }
 
-/// An origin in an origin group.
-open class DistributionOriginGroupMember {
-    OriginId: String|Mapping
-}
-
-/// CloudFront Origin Shield.
-///
-///  Using Origin Shield can help reduce the load on your origin. For more information, see [Using Origin Shield](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/origin-shield.html) in the *Amazon CloudFront Developer Guide*.
-open class DistributionOriginShield {
-    Enabled: (Boolean|Mapping)?
-    OriginShieldRegion: (String|Mapping)?
-}
-
-/// A complex data type for the status codes that you specify that, when returned by a primary origin, trigger CloudFront to failover to a second origin.
-open class DistributionStatusCodes {
-    Items: Listing<Int|Mapping>
-    Quantity: Int|Mapping
+/// A distribution configuration.
+open class DistributionDistributionConfig {
+    Aliases: (Listing<String|Mapping>)?
+    CNAMEs: (Listing<String|Mapping>)?
+    CacheBehaviors: (Listing<DistributionCacheBehavior>)?
+    Comment: (String|Mapping)?
+    ContinuousDeploymentPolicyId: (String|Mapping)?
+    CustomErrorResponses: (Listing<DistributionCustomErrorResponse>)?
+    CustomOrigin: (DistributionLegacyCustomOrigin)?
+    DefaultCacheBehavior: DistributionDefaultCacheBehavior
+    DefaultRootObject: (String|Mapping)?
+    Enabled: Boolean|Mapping
+    HttpVersion: (String|Mapping)?
+    IPV6Enabled: (Boolean|Mapping)?
+    Logging: (DistributionLogging)?
+    OriginGroups: (DistributionOriginGroups)?
+    Origins: (Listing<DistributionOrigin>)?
+    PriceClass: (String|Mapping)?
+    Restrictions: (DistributionRestrictions)?
+    S3Origin: (DistributionLegacyS3Origin)?
+    Staging: (Boolean|Mapping)?
+    ViewerCertificate: (DistributionViewerCertificate)?
+    WebACLId: (String|Mapping)?
 }
 
 /// This field is deprecated. We recommend that you use a cache policy or an origin request policy instead of this field.
@@ -90,20 +127,32 @@ open class DistributionForwardedValues {
     QueryStringCacheKeys: (Listing<String|Mapping>)?
 }
 
+/// A CloudFront function that is associated with a cache behavior in a CloudFront distribution.
+open class DistributionFunctionAssociation {
+    EventType: (String|Mapping)?
+    FunctionARN: (String|Mapping)?
+}
+
 /// A complex type that controls the countries in which your content is distributed. CF determines the location of your users using ``MaxMind`` GeoIP databases. To disable geo restriction, remove the [Restrictions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-distributionconfig.html#cfn-cloudfront-distribution-distributionconfig-restrictions) property from your stack template.
 open class DistributionGeoRestriction {
     Locations: (Listing<String|Mapping>)?
     RestrictionType: String|Mapping
 }
 
-/// This field is deprecated. We recommend that you use a cache policy or an origin request policy instead of this field.
-///
-///  If you want to include cookies in the cache key, use a cache policy. For more information, see [Creating cache policies](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html#cache-key-create-cache-policy) in the *Amazon CloudFront Developer Guide*.
-///  If you want to send cookies to the origin but not include them in the cache key, use an origin request policy. For more information, see [Creating origin request policies](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-origin-requests.html#origin-request-create-origin-request-policy) in the *Amazon CloudFront Developer Guide*.
-///  A complex type that specifies whether you want CloudFront to forward cookies to the origin and, if so, which ones. For more information about forwarding cookies to the origin, see [How CloudFront Forwards, Caches, and Logs C
-open class DistributionCookies {
-    Forward: String|Mapping
-    WhitelistedNames: (Listing<String|Mapping>)?
+/// A complex type that contains a Lambda@Edge function association.
+open class DistributionLambdaFunctionAssociation {
+    EventType: (String|Mapping)?
+    IncludeBody: (Boolean|Mapping)?
+    LambdaFunctionARN: (String|Mapping)?
+}
+
+/// 
+open class DistributionLegacyCustomOrigin {
+    DNSName: String|Mapping
+    HTTPPort: (Int|Mapping)?
+    HTTPSPort: (Int|Mapping)?
+    OriginProtocolPolicy: String|Mapping
+    OriginSSLProtocols: Listing<String|Mapping>
 }
 
 /// 
@@ -114,55 +163,9 @@ open class DistributionLegacyS3Origin {
 
 /// A complex type that controls whether access logs are written for the distribution.
 open class DistributionLogging {
-    Prefix: (String|Mapping)?
     Bucket: String|Mapping
     IncludeCookies: (Boolean|Mapping)?
-}
-
-/// A complex type that determines the distribution's SSL/TLS configuration for communicating with viewers.
-///
-///  If the distribution doesn't use ``Aliases`` (also known as alternate domain names or CNAMEs)?that is, if the distribution uses the CloudFront domain name such as ``d111111abcdef8.cloudfront.net``?set ``CloudFrontDefaultCertificate`` to ``true`` and leave all other fields empty.
-///  If the distribution uses ``Aliases`` (alternate domain names or CNAMEs), use the fields in this type to specify the following settings:
-///   +  Which viewers the distribution accepts HTTPS connections from: only viewers that support [server name indication (SNI)](https://docs.aws.amazon.com/https://en.wikipedia.org/wiki/Server_Name_Indication) (recommended), or all viewers including those that don't support SNI.
-///   +  To accept HTTPS connections from only viewers that support SNI, set ``SSLSupportMethod`` to ``sni-only``. This is recommended. Most browsers and clients support SNI. (In CloudFormation, the field n
-open class DistributionViewerCertificate {
-    AcmCertificateArn: (String|Mapping)?
-    CloudFrontDefaultCertificate: (Boolean|Mapping)?
-    IamCertificateId: (String|Mapping)?
-    MinimumProtocolVersion: (String|Mapping)?
-    SslSupportMethod: (String|Mapping)?
-}
-
-/// A complex data type for the origins included in an origin group.
-open class DistributionOriginGroupMembers {
-    Quantity: Int|Mapping
-    Items: Listing<DistributionOriginGroupMember>
-}
-
-/// A complex type that identifies ways in which you want to restrict distribution of your content.
-open class DistributionRestrictions {
-    GeoRestriction: DistributionGeoRestriction
-}
-
-/// A complex data type for the origin groups specified for a distribution.
-open class DistributionOriginGroups {
-    Items: (Listing<DistributionOriginGroup>)?
-    Quantity: Int|Mapping
-}
-
-/// A CloudFront function that is associated with a cache behavior in a CloudFront distribution.
-open class DistributionFunctionAssociation {
-    EventType: (String|Mapping)?
-    FunctionARN: (String|Mapping)?
-}
-
-/// 
-open class DistributionLegacyCustomOrigin {
-    DNSName: String|Mapping
-    HTTPPort: (Int|Mapping)?
-    HTTPSPort: (Int|Mapping)?
-    OriginProtocolPolicy: String|Mapping
-    OriginSSLProtocols: Listing<String|Mapping>
+    Prefix: (String|Mapping)?
 }
 
 /// An origin.
@@ -179,80 +182,16 @@ open class DistributionLegacyCustomOrigin {
 ///   
 ///  For the current maximum number of origins that you can specify per distribution, see [General Quotas on Web Distributions](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html#limits-web-distributions) in the *Amazon CloudFront Developer Guide* (quotas were formerly referred to as limits).
 open class DistributionOrigin {
+    ConnectionAttempts: (Int|Mapping)?
+    ConnectionTimeout: (Int|Mapping)?
+    CustomOriginConfig: (DistributionCustomOriginConfig)?
+    DomainName: String|Mapping
     Id: String|Mapping
     OriginAccessControlId: (String|Mapping)?
     OriginCustomHeaders: (Listing<DistributionOriginCustomHeader>)?
+    OriginPath: (String|Mapping)?
     OriginShield: (DistributionOriginShield)?
     S3OriginConfig: (DistributionS3OriginConfig)?
-    ConnectionAttempts: (Int|Mapping)?
-    ConnectionTimeout: (Int|Mapping)?
-    DomainName: String|Mapping
-    CustomOriginConfig: (DistributionCustomOriginConfig)?
-    OriginPath: (String|Mapping)?
-}
-
-/// A complex type that contains ``Tag`` key and ``Tag`` value.
-open class DistributionTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// A custom origin. A custom origin is any origin that is *not* an Amazon S3 bucket, with one exception. An Amazon S3 bucket that is [configured with static website hosting](https://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteHosting.html) *is* a custom origin.
-open class DistributionCustomOriginConfig {
-    HTTPPort: (Int|Mapping)?
-    HTTPSPort: (Int|Mapping)?
-    OriginKeepaliveTimeout: (Int|Mapping)?
-    OriginProtocolPolicy: String|Mapping
-    OriginReadTimeout: (Int|Mapping)?
-    OriginSSLProtocols: (Listing<String|Mapping>)?
-}
-
-/// A complex type that describes the default cache behavior if you don't specify a ``CacheBehavior`` element or if request URLs don't match any of the values of ``PathPattern`` in ``CacheBehavior`` elements. You must create exactly one default cache behavior.
-open class DistributionDefaultCacheBehavior {
-    CachePolicyId: (String|Mapping)?
-    CachedMethods: (Listing<String|Mapping>)?
-    Compress: (Boolean|Mapping)?
-    FunctionAssociations: (Listing<DistributionFunctionAssociation>)?
-    LambdaFunctionAssociations: (Listing<DistributionLambdaFunctionAssociation>)?
-    ViewerProtocolPolicy: String|Mapping
-    AllowedMethods: (Listing<String|Mapping>)?
-    OriginRequestPolicyId: (String|Mapping)?
-    RealtimeLogConfigArn: (String|Mapping)?
-    FieldLevelEncryptionId: (String|Mapping)?
-    ForwardedValues: (DistributionForwardedValues)?
-    MinTTL: (Number|Mapping)?
-    ResponseHeadersPolicyId: (String|Mapping)?
-    SmoothStreaming: (Boolean|Mapping)?
-    DefaultTTL: (Number|Mapping)?
-    MaxTTL: (Number|Mapping)?
-    TargetOriginId: String|Mapping
-    TrustedKeyGroups: (Listing<String|Mapping>)?
-    TrustedSigners: (Listing<String|Mapping>)?
-}
-
-/// A distribution configuration.
-open class DistributionDistributionConfig {
-    Restrictions: (DistributionRestrictions)?
-    ViewerCertificate: (DistributionViewerCertificate)?
-    WebACLId: (String|Mapping)?
-    CustomErrorResponses: (Listing<DistributionCustomErrorResponse>)?
-    DefaultCacheBehavior: DistributionDefaultCacheBehavior
-    Origins: (Listing<DistributionOrigin>)?
-    PriceClass: (String|Mapping)?
-    Aliases: (Listing<String|Mapping>)?
-    HttpVersion: (String|Mapping)?
-    Enabled: Boolean|Mapping
-    IPV6Enabled: (Boolean|Mapping)?
-    OriginGroups: (DistributionOriginGroups)?
-    S3Origin: (DistributionLegacyS3Origin)?
-    Staging: (Boolean|Mapping)?
-    CNAMEs: (Listing<String|Mapping>)?
-    ContinuousDeploymentPolicyId: (String|Mapping)?
-    CustomOrigin: (DistributionLegacyCustomOrigin)?
-    DefaultRootObject: (String|Mapping)?
-    Logging: (DistributionLogging)?
-    CacheBehaviors: (Listing<DistributionCacheBehavior>)?
-    Comment: (String|Mapping)?
 }
 
 /// A complex type that contains ``HeaderName`` and ``HeaderValue`` elements, if any, for this distribution.
@@ -268,9 +207,70 @@ open class DistributionOriginGroup {
     Members: DistributionOriginGroupMembers
 }
 
+/// A complex data type that includes information about the failover criteria for an origin group, including the status codes for which CloudFront will failover from the primary origin to the second origin.
+open class DistributionOriginGroupFailoverCriteria {
+    StatusCodes: DistributionStatusCodes
+}
+
+/// An origin in an origin group.
+open class DistributionOriginGroupMember {
+    OriginId: String|Mapping
+}
+
+/// A complex data type for the origins included in an origin group.
+open class DistributionOriginGroupMembers {
+    Items: Listing<DistributionOriginGroupMember>
+    Quantity: Int|Mapping
+}
+
+/// A complex data type for the origin groups specified for a distribution.
+open class DistributionOriginGroups {
+    Items: (Listing<DistributionOriginGroup>)?
+    Quantity: Int|Mapping
+}
+
+/// CloudFront Origin Shield.
+///
+///  Using Origin Shield can help reduce the load on your origin. For more information, see [Using Origin Shield](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/origin-shield.html) in the *Amazon CloudFront Developer Guide*.
+open class DistributionOriginShield {
+    Enabled: (Boolean|Mapping)?
+    OriginShieldRegion: (String|Mapping)?
+}
+
+/// A complex type that identifies ways in which you want to restrict distribution of your content.
+open class DistributionRestrictions {
+    GeoRestriction: DistributionGeoRestriction
+}
+
 /// A complex type that contains information about the Amazon S3 origin. If the origin is a custom origin or an S3 bucket that is configured as a website endpoint, use the ``CustomOriginConfig`` element instead.
 open class DistributionS3OriginConfig {
     OriginAccessIdentity: (String|Mapping)?
+}
+
+/// A complex data type for the status codes that you specify that, when returned by a primary origin, trigger CloudFront to failover to a second origin.
+open class DistributionStatusCodes {
+    Items: Listing<Int|Mapping>
+    Quantity: Int|Mapping
+}
+
+/// A complex type that contains ``Tag`` key and ``Tag`` value.
+open class DistributionTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// A complex type that determines the distribution's SSL/TLS configuration for communicating with viewers.
+///
+///  If the distribution doesn't use ``Aliases`` (also known as alternate domain names or CNAMEs)?that is, if the distribution uses the CloudFront domain name such as ``d111111abcdef8.cloudfront.net``?set ``CloudFrontDefaultCertificate`` to ``true`` and leave all other fields empty.
+///  If the distribution uses ``Aliases`` (alternate domain names or CNAMEs), use the fields in this type to specify the following settings:
+///   +  Which viewers the distribution accepts HTTPS connections from: only viewers that support [server name indication (SNI)](https://docs.aws.amazon.com/https://en.wikipedia.org/wiki/Server_Name_Indication) (recommended), or all viewers including those that don't support SNI.
+///   +  To accept HTTPS connections from only viewers that support SNI, set ``SSLSupportMethod`` to ``sni-only``. This is recommended. Most browsers and clients support SNI. (In CloudFormation, the field n
+open class DistributionViewerCertificate {
+    AcmCertificateArn: (String|Mapping)?
+    CloudFrontDefaultCertificate: (Boolean|Mapping)?
+    IamCertificateId: (String|Mapping)?
+    MinimumProtocolVersion: (String|Mapping)?
+    SslSupportMethod: (String|Mapping)?
 }
 
 /// A distribution tells CloudFront where you want content to be delivered from, and the details about how to track and manage content delivery.

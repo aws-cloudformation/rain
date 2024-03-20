@@ -5,19 +5,27 @@ module aws.dynamodb.table
 
 import "../../cloudformation.pkl"
 
-/// Describes a tag. A tag is a key-value pair. You can add up to 50 tags to a single DynamoDB table. 
-///
-///   AWS-assigned tag names and values are automatically assigned the ``aws:`` prefix, which the user cannot assign. AWS-assigned tag names do not count towards the tag limit of 50. User-assigned tag names have the prefix ``user:`` in the Cost Allocation Report. You cannot backdate the application of a tag.
-///  For an overview on tagging DynamoDB resources, see [Tagging for DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tagging.html) in the *Amazon DynamoDB Developer Guide*.
-open class TableTag {
-    Value: String|Mapping
-    Key: String|Mapping
+/// Represents an attribute for describing the schema for the table and indexes.
+open class TableAttributeDefinition {
+    AttributeName: String|Mapping
+    AttributeType: String|Mapping
+}
+
+/// The settings used to enable or disable CloudWatch Contributor Insights.
+open class TableContributorInsightsSpecification {
+    Enabled: Boolean|Mapping
+}
+
+/// The options for imported source files in CSV format. The values are Delimiter and HeaderList.
+open class TableCsv {
+    Delimiter: (String|Mapping)?
+    HeaderList: (Listing<String|Mapping>)?
 }
 
 /// 
 open class TableDeprecatedHashKeyElement {
-    AttributeType: String|Mapping
     AttributeName: String|Mapping
+    AttributeType: String|Mapping
 }
 
 /// 
@@ -25,12 +33,35 @@ open class TableDeprecatedKeySchema {
     HashKeyElement: TableDeprecatedHashKeyElement
 }
 
+/// Represents the properties of a global secondary index.
+open class TableGlobalSecondaryIndex {
+    ContributorInsightsSpecification: (TableContributorInsightsSpecification)?
+    IndexName: String|Mapping
+    KeySchema: Listing<TableKeySchema>
+    Projection: TableProjection
+    ProvisionedThroughput: (TableProvisionedThroughput)?
+}
+
 /// Specifies the properties of data being imported from the S3 bucket source to the table.
 open class TableImportSourceSpecification {
     InputCompressionType: (String|Mapping)?
-    S3BucketSource: TableS3BucketSource
     InputFormat: String|Mapping
     InputFormatOptions: (TableInputFormatOptions)?
+    S3BucketSource: TableS3BucketSource
+}
+
+/// The format options for the data that was imported into the target table. There is one value, CsvOption.
+open class TableInputFormatOptions {
+    Csv: (TableCsv)?
+}
+
+/// Represents *a single element* of a key schema. A key schema specifies the attributes that make up the primary key of a table, or the key attributes of an index.
+///
+///  A ``KeySchemaElement`` represents exactly one attribute of the primary key. For example, a simple primary key would be represented by one ``KeySchemaElement`` (for the partition key). A composite primary key would require one ``KeySchemaElement`` for the partition key, and another ``KeySchemaElement`` for the sort key.
+///  A ``KeySchemaElement`` must be a scalar, top-level attribute (not a nested attribute). The data type must be one of String, Number, or Binary. The attribute cannot be nested within a List or a Map.
+open class TableKeySchema {
+    AttributeName: String|Mapping
+    KeyType: String|Mapping
 }
 
 typealias KinesisStreamSpecificationApproximateCreationDateTimePrecision = "MICROSECOND"|"MILLISECOND"
@@ -41,76 +72,11 @@ open class TableKinesisStreamSpecification {
     StreamArn: String|Mapping
 }
 
-/// The S3 bucket that is being imported from.
-open class TableS3BucketSource {
-    S3BucketOwner: (String|Mapping)?
-    S3Bucket: String|Mapping
-    S3KeyPrefix: (String|Mapping)?
-}
-
-/// Represents the settings used to enable or disable Time to Live (TTL) for the specified table.
-open class TableTimeToLiveSpecification {
-    Enabled: Boolean|Mapping
-    AttributeName: (String|Mapping)?
-}
-
-/// The options for imported source files in CSV format. The values are Delimiter and HeaderList.
-open class TableCsv {
-    Delimiter: (String|Mapping)?
-    HeaderList: (Listing<String|Mapping>)?
-}
-
-/// Represents the properties of a global secondary index.
-open class TableGlobalSecondaryIndex {
-    IndexName: String|Mapping
-    ContributorInsightsSpecification: (TableContributorInsightsSpecification)?
-    Projection: TableProjection
-    ProvisionedThroughput: (TableProvisionedThroughput)?
-    KeySchema: Listing<TableKeySchema>
-}
-
-/// The format options for the data that was imported into the target table. There is one value, CsvOption.
-open class TableInputFormatOptions {
-    Csv: (TableCsv)?
-}
-
 /// Represents the properties of a local secondary index. A local secondary index can only be created when its parent table is created.
 open class TableLocalSecondaryIndex {
-    KeySchema: Listing<TableKeySchema>
     IndexName: String|Mapping
+    KeySchema: Listing<TableKeySchema>
     Projection: TableProjection
-}
-
-/// Represents the DynamoDB Streams configuration for a table in DynamoDB.
-open class TableStreamSpecification {
-    StreamViewType: String|Mapping
-}
-
-/// The settings used to enable or disable CloudWatch Contributor Insights.
-open class TableContributorInsightsSpecification {
-    Enabled: Boolean|Mapping
-}
-
-/// Represents the settings used to enable server-side encryption.
-open class TableSSESpecification {
-    SSEType: (String|Mapping)?
-    KMSMasterKeyId: (String|Mapping)?
-    SSEEnabled: Boolean|Mapping
-}
-
-/// Represents an attribute for describing the schema for the table and indexes.
-open class TableAttributeDefinition {
-    AttributeType: String|Mapping
-    AttributeName: String|Mapping
-}
-
-/// Represents *a single element* of a key schema. A key schema specifies the attributes that make up the primary key of a table, or the key attributes of an index.
-///
-///  A ``KeySchemaElement`` represents exactly one attribute of the primary key. For example, a simple primary key would be represented by one ``KeySchemaElement`` (for the partition key). A composite primary key would require one ``KeySchemaElement`` for the partition key, and another ``KeySchemaElement`` for the sort key.
-///  A ``KeySchemaElement`` must be a scalar, top-level attribute (not a nested attribute). The data type must be one of String, Number, or Binary. The attribute cannot be nested within a List or a Map.
-open class TableKeySchema {
-    KeyType: String|Mapping
-    AttributeName: String|Mapping
 }
 
 /// The settings used to enable point in time recovery.
@@ -126,8 +92,42 @@ open class TableProjection {
 
 /// Throughput for the specified table, which consists of values for ``ReadCapacityUnits`` and ``WriteCapacityUnits``. For more information about the contents of a provisioned throughput structure, see [Table ProvisionedThroughput](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_ProvisionedThroughput.html).
 open class TableProvisionedThroughput {
-    WriteCapacityUnits: Int|Mapping
     ReadCapacityUnits: Int|Mapping
+    WriteCapacityUnits: Int|Mapping
+}
+
+/// The S3 bucket that is being imported from.
+open class TableS3BucketSource {
+    S3Bucket: String|Mapping
+    S3BucketOwner: (String|Mapping)?
+    S3KeyPrefix: (String|Mapping)?
+}
+
+/// Represents the settings used to enable server-side encryption.
+open class TableSSESpecification {
+    KMSMasterKeyId: (String|Mapping)?
+    SSEEnabled: Boolean|Mapping
+    SSEType: (String|Mapping)?
+}
+
+/// Represents the DynamoDB Streams configuration for a table in DynamoDB.
+open class TableStreamSpecification {
+    StreamViewType: String|Mapping
+}
+
+/// Describes a tag. A tag is a key-value pair. You can add up to 50 tags to a single DynamoDB table. 
+///
+///   AWS-assigned tag names and values are automatically assigned the ``aws:`` prefix, which the user cannot assign. AWS-assigned tag names do not count towards the tag limit of 50. User-assigned tag names have the prefix ``user:`` in the Cost Allocation Report. You cannot backdate the application of a tag.
+///  For an overview on tagging DynamoDB resources, see [Tagging for DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tagging.html) in the *Amazon DynamoDB Developer Guide*.
+open class TableTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// Represents the settings used to enable or disable Time to Live (TTL) for the specified table.
+open class TableTimeToLiveSpecification {
+    AttributeName: (String|Mapping)?
+    Enabled: Boolean|Mapping
 }
 
 /// The ``AWS::DynamoDB::Table`` resource creates a DDB table. For more information, see [CreateTable](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_CreateTable.html) in the *API Reference*.

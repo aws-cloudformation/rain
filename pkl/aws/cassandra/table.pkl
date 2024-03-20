@@ -5,41 +5,24 @@ module aws.cassandra.table
 
 import "../../cloudformation.pkl"
 
-typealias TableEncryptionType = String|Mapping
-
-
-/// Throughput for the specified table, which consists of values for ReadCapacityUnits and WriteCapacityUnits
-open class TableProvisionedThroughput {
-    ReadCapacityUnits: Int|Mapping
-    WriteCapacityUnits: Int|Mapping
+/// Represents configuration for auto scaling.
+open class TableAutoScalingSetting {
+    AutoScalingDisabled: (Boolean|Mapping)?
+    MaximumUnits: (Int|Mapping)?
+    MinimumUnits: (Int|Mapping)?
+    ScalingPolicy: (TableScalingPolicy)?
 }
 
 /// Represents the read and write settings used for AutoScaling.
 open class TableAutoScalingSpecification {
-    WriteCapacityAutoScaling: (TableAutoScalingSetting)?
     ReadCapacityAutoScaling: (TableAutoScalingSetting)?
+    WriteCapacityAutoScaling: (TableAutoScalingSetting)?
 }
 
 /// 
 open class TableBillingMode {
     Mode: TableMode
     ProvisionedThroughput: (TableProvisionedThroughput)?
-}
-
-typealias TableMode = String|Mapping
-
-
-/// Represents scaling policy.
-open class TableScalingPolicy {
-    TargetTrackingScalingPolicyConfiguration: (TableTargetTrackingScalingPolicyConfiguration)?
-}
-
-/// Represents configuration for target tracking scaling policy.
-open class TableTargetTrackingScalingPolicyConfiguration {
-    DisableScaleIn: (Boolean|Mapping)?
-    ScaleInCooldown: (Int|Mapping)?
-    ScaleOutCooldown: (Int|Mapping)?
-    TargetValue: Int|Mapping
 }
 
 typealias ClusteringKeyColumnOrderBy = "ASC"|"DESC"
@@ -56,14 +39,37 @@ open class TableColumn {
     ColumnType: String|Mapping
 }
 
+/// Represents the settings used to enable server-side encryption
+open class TableEncryptionSpecification {
+    EncryptionType: TableEncryptionType
+    KmsKeyIdentifier: (TableKmsKeyIdentifier)?
+}
+
+typealias TableEncryptionType = String|Mapping
+
+
 typealias TableKmsKeyIdentifier = String|Mapping
 
 
+typealias TableMode = String|Mapping
+
+
+/// Throughput for the specified table, which consists of values for ReadCapacityUnits and WriteCapacityUnits
+open class TableProvisionedThroughput {
+    ReadCapacityUnits: Int|Mapping
+    WriteCapacityUnits: Int|Mapping
+}
+
 /// Represents replica specifications.
 open class TableReplicaSpecification {
-    Region: String|Mapping
-    ReadCapacityUnits: (Int|Mapping)?
     ReadCapacityAutoScaling: (TableAutoScalingSetting)?
+    ReadCapacityUnits: (Int|Mapping)?
+    Region: String|Mapping
+}
+
+/// Represents scaling policy.
+open class TableScalingPolicy {
+    TargetTrackingScalingPolicyConfiguration: (TableTargetTrackingScalingPolicyConfiguration)?
 }
 
 /// A key-value pair to apply to the resource
@@ -72,18 +78,12 @@ open class TableTag {
     Value: String|Mapping
 }
 
-/// Represents configuration for auto scaling.
-open class TableAutoScalingSetting {
-    MaximumUnits: (Int|Mapping)?
-    ScalingPolicy: (TableScalingPolicy)?
-    AutoScalingDisabled: (Boolean|Mapping)?
-    MinimumUnits: (Int|Mapping)?
-}
-
-/// Represents the settings used to enable server-side encryption
-open class TableEncryptionSpecification {
-    EncryptionType: TableEncryptionType
-    KmsKeyIdentifier: (TableKmsKeyIdentifier)?
+/// Represents configuration for target tracking scaling policy.
+open class TableTargetTrackingScalingPolicyConfiguration {
+    DisableScaleIn: (Boolean|Mapping)?
+    ScaleInCooldown: (Int|Mapping)?
+    ScaleOutCooldown: (Int|Mapping)?
+    TargetValue: Int|Mapping
 }
 
 /// Resource schema for AWS::Cassandra::Table

@@ -5,20 +5,30 @@ module aws.grafana.workspace
 
 import "../../cloudformation.pkl"
 
-/// SAML configuration data associated with an AMG workspace.
-open class WorkspaceSamlConfiguration {
-    IdpMetadata: WorkspaceIdpMetadata
-    AssertionAttributes: (WorkspaceAssertionAttributes)?
-    RoleValues: (WorkspaceRoleValues)?
-    AllowedOrganizations: (Listing<String|Mapping>)?
-    LoginValidityDuration: (Number|Mapping)?
+typealias WorkspaceAccountAccessType = String|Mapping
+
+
+/// Maps Grafana friendly names to the IdPs SAML attributes.
+open class WorkspaceAssertionAttributes {
+    Email: (String|Mapping)?
+    Groups: (String|Mapping)?
+    Login: (String|Mapping)?
+    Name: (String|Mapping)?
+    Org: (String|Mapping)?
+    Role: (String|Mapping)?
 }
 
-typealias WorkspaceSamlConfigurationStatus = String|Mapping
+typealias WorkspaceAuthenticationProviderTypes = String|Mapping
 
 
 typealias WorkspaceDataSourceType = String|Mapping
 
+
+/// IdP Metadata used to configure SAML authentication in Grafana.
+open class WorkspaceIdpMetadata {
+    Url: (String|Mapping)?
+    Xml: (String|Mapping)?
+}
 
 /// The configuration settings for Network Access Control.
 open class WorkspaceNetworkAccessControl {
@@ -29,45 +39,35 @@ open class WorkspaceNetworkAccessControl {
 typealias WorkspaceNotificationDestinationType = String|Mapping
 
 
+typealias WorkspacePermissionType = String|Mapping
+
+
+/// Maps SAML roles to the Grafana Editor and Admin roles.
+open class WorkspaceRoleValues {
+    Admin: (Listing<String|Mapping>)?
+    Editor: (Listing<String|Mapping>)?
+}
+
+/// SAML configuration data associated with an AMG workspace.
+open class WorkspaceSamlConfiguration {
+    AllowedOrganizations: (Listing<String|Mapping>)?
+    AssertionAttributes: (WorkspaceAssertionAttributes)?
+    IdpMetadata: WorkspaceIdpMetadata
+    LoginValidityDuration: (Number|Mapping)?
+    RoleValues: (WorkspaceRoleValues)?
+}
+
+typealias WorkspaceSamlConfigurationStatus = String|Mapping
+
+
 /// The configuration settings for an Amazon VPC that contains data sources for your Grafana workspace to connect to.
 open class WorkspaceVpcConfiguration {
     SecurityGroupIds: Listing<String|Mapping>
     SubnetIds: Listing<String|Mapping>
 }
 
-/// Maps Grafana friendly names to the IdPs SAML attributes.
-open class WorkspaceAssertionAttributes {
-    Name: (String|Mapping)?
-    Login: (String|Mapping)?
-    Email: (String|Mapping)?
-    Groups: (String|Mapping)?
-    Role: (String|Mapping)?
-    Org: (String|Mapping)?
-}
-
-typealias WorkspaceAuthenticationProviderTypes = String|Mapping
-
-
-typealias WorkspacePermissionType = String|Mapping
-
-
-/// Maps SAML roles to the Grafana Editor and Admin roles.
-open class WorkspaceRoleValues {
-    Editor: (Listing<String|Mapping>)?
-    Admin: (Listing<String|Mapping>)?
-}
-
 typealias WorkspaceWorkspaceStatus = String|Mapping
 
-
-typealias WorkspaceAccountAccessType = String|Mapping
-
-
-/// IdP Metadata used to configure SAML authentication in Grafana.
-open class WorkspaceIdpMetadata {
-    Url: (String|Mapping)?
-    Xml: (String|Mapping)?
-}
 
 /// Definition of AWS::Grafana::Workspace Resource Type
 open class Workspace extends cloudformation.Resource {

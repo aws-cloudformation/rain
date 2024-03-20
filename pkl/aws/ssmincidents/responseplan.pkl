@@ -5,60 +5,18 @@ module aws.ssmincidents.responseplan
 
 import "../../cloudformation.pkl"
 
+/// The automation configuration to launch.
+open class ResponsePlanAction {
+    SsmAutomation: (ResponsePlanSsmAutomation)?
+}
+
 /// The chat channel configuration.
 open class ResponsePlanChatChannel {
     ChatbotSns: (ResponsePlanChatbotSns)?
 }
 
-/// Value of the dynamic parameter to set when starting the SSM automation document.
-open class ResponsePlanDynamicSsmParameterValue {
-    Variable: (ResponsePlanVariableType)?
-}
-
-typealias ResponsePlanSnsArn = String|Mapping
-
-
-typealias SsmAutomationTargetAccount = "IMPACTED_ACCOUNT"|"RESPONSE_PLAN_OWNER_ACCOUNT"
-
-/// The configuration to use when starting the SSM automation document.
-open class ResponsePlanSsmAutomation {
-    DynamicParameters: (Listing<ResponsePlanDynamicSsmParameter>)?
-    RoleArn: String(matches(Regex(#"^arn:aws(-(cn|us-gov))?:[a-z-]+:(([a-z]+-)+[0-9])?:([0-9]{12})?:[^.]+$"#)))|Mapping
-    DocumentName: String|Mapping
-    DocumentVersion: (String|Mapping)?
-    TargetAccount: (SsmAutomationTargetAccount|Mapping)?
-    Parameters: (Listing<ResponsePlanSsmParameter>)?
-}
-
-/// A parameter to set when starting the SSM automation document.
-open class ResponsePlanSsmParameter {
-    Key: String|Mapping
-    Values: Listing<ResponsePlanSsmParameterValue>
-}
-
-typealias ResponsePlanSsmParameterValue = String|Mapping
-
-
 typealias ResponsePlanChatbotSns = Listing<(ResponsePlanSnsArn)?>
 
-
-/// 
-open class ResponsePlanIntegration {
-    PagerDutyConfiguration: (ResponsePlanPagerDutyConfiguration)?
-}
-
-/// The pagerDuty incident configuration.
-open class ResponsePlanPagerDutyIncidentConfiguration {
-    ServiceId: String|Mapping
-}
-
-typealias ResponsePlanSSMContact = String|Mapping
-
-
-/// The automation configuration to launch.
-open class ResponsePlanAction {
-    SsmAutomation: (ResponsePlanSsmAutomation)?
-}
 
 /// A parameter with a dynamic value to set when starting the SSM automation document.
 open class ResponsePlanDynamicSsmParameter {
@@ -66,14 +24,24 @@ open class ResponsePlanDynamicSsmParameter {
     Value: ResponsePlanDynamicSsmParameterValue
 }
 
+/// Value of the dynamic parameter to set when starting the SSM automation document.
+open class ResponsePlanDynamicSsmParameterValue {
+    Variable: (ResponsePlanVariableType)?
+}
+
 /// The incident template configuration.
 open class ResponsePlanIncidentTemplate {
-    IncidentTags: (Listing<ResponsePlanTag>)?
     DedupeString: (String|Mapping)?
     Impact: Int|Mapping
+    IncidentTags: (Listing<ResponsePlanTag>)?
     NotificationTargets: (Listing<ResponsePlanNotificationTargetItem>)?
     Summary: (String|Mapping)?
     Title: String|Mapping
+}
+
+/// 
+open class ResponsePlanIntegration {
+    PagerDutyConfiguration: (ResponsePlanPagerDutyConfiguration)?
 }
 
 /// A notification target.
@@ -84,9 +52,41 @@ open class ResponsePlanNotificationTargetItem {
 /// The pagerDuty configuration to use when starting the incident.
 open class ResponsePlanPagerDutyConfiguration {
     Name: String|Mapping
-    SecretId: String|Mapping
     PagerDutyIncidentConfiguration: ResponsePlanPagerDutyIncidentConfiguration
+    SecretId: String|Mapping
 }
+
+/// The pagerDuty incident configuration.
+open class ResponsePlanPagerDutyIncidentConfiguration {
+    ServiceId: String|Mapping
+}
+
+typealias ResponsePlanSSMContact = String|Mapping
+
+
+typealias ResponsePlanSnsArn = String|Mapping
+
+
+typealias SsmAutomationTargetAccount = "IMPACTED_ACCOUNT"|"RESPONSE_PLAN_OWNER_ACCOUNT"
+
+/// The configuration to use when starting the SSM automation document.
+open class ResponsePlanSsmAutomation {
+    DocumentName: String|Mapping
+    DocumentVersion: (String|Mapping)?
+    DynamicParameters: (Listing<ResponsePlanDynamicSsmParameter>)?
+    Parameters: (Listing<ResponsePlanSsmParameter>)?
+    RoleArn: String(matches(Regex(#"^arn:aws(-(cn|us-gov))?:[a-z-]+:(([a-z]+-)+[0-9])?:([0-9]{12})?:[^.]+$"#)))|Mapping
+    TargetAccount: (SsmAutomationTargetAccount|Mapping)?
+}
+
+/// A parameter to set when starting the SSM automation document.
+open class ResponsePlanSsmParameter {
+    Key: String|Mapping
+    Values: Listing<ResponsePlanSsmParameterValue>
+}
+
+typealias ResponsePlanSsmParameterValue = String|Mapping
+
 
 /// A key-value pair to tag a resource.
 open class ResponsePlanTag {

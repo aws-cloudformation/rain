@@ -6,15 +6,52 @@ module aws.networkfirewall.firewallpolicy
 import "../../cloudformation.pkl"
 
 /// 
-open class FirewallPolicyTag {
-    Value: String(matches(Regex(#"^.*$"#)))|Mapping
-    Key: String(matches(Regex(#"^.*$"#)))|Mapping
+open class FirewallPolicyActionDefinition {
+    PublishMetricAction: (FirewallPolicyPublishMetricAction)?
+}
+
+/// 
+open class FirewallPolicyCustomAction {
+    ActionDefinition: FirewallPolicyActionDefinition
+    ActionName: String(matches(Regex(#"^[a-zA-Z0-9]+$"#)))|Mapping
 }
 
 /// 
 open class FirewallPolicyDimension {
     Value: String(matches(Regex(#"^[a-zA-Z0-9-_ ]+$"#)))|Mapping
 }
+
+/// 
+open class FirewallPolicyFirewallPolicy {
+    PolicyVariables: (Dynamic)?
+    StatefulDefaultActions: (Listing<String|Mapping>)?
+    StatefulEngineOptions: (FirewallPolicyStatefulEngineOptions)?
+    StatefulRuleGroupReferences: (Listing<FirewallPolicyStatefulRuleGroupReference>)?
+    StatelessCustomActions: (Listing<FirewallPolicyCustomAction>)?
+    StatelessDefaultActions: Listing<String|Mapping>
+    StatelessFragmentDefaultActions: Listing<String|Mapping>
+    StatelessRuleGroupReferences: (Listing<FirewallPolicyStatelessRuleGroupReference>)?
+    TLSInspectionConfigurationArn: (FirewallPolicyResourceArn)?
+}
+
+/// 
+open class FirewallPolicyIPSet {
+    Definition: (Listing<FirewallPolicyVariableDefinition>)?
+}
+
+typealias FirewallPolicyOverrideAction = String|Mapping
+
+
+typealias FirewallPolicyPriority = Int|Mapping
+
+
+/// 
+open class FirewallPolicyPublishMetricAction {
+    Dimensions: Listing<FirewallPolicyDimension>
+}
+
+typealias FirewallPolicyResourceArn = String|Mapping
+
 
 typealias FirewallPolicyRuleOrder = String|Mapping
 
@@ -29,71 +66,34 @@ open class FirewallPolicyStatefulEngineOptions {
 }
 
 /// 
-open class FirewallPolicyCustomAction {
-    ActionName: String(matches(Regex(#"^[a-zA-Z0-9]+$"#)))|Mapping
-    ActionDefinition: FirewallPolicyActionDefinition
+open class FirewallPolicyStatefulRuleGroupOverride {
+    Action: (FirewallPolicyOverrideAction)?
 }
-
-typealias FirewallPolicyResourceArn = String|Mapping
-
-
-typealias FirewallPolicyStreamExceptionPolicy = String|Mapping
-
-
-typealias FirewallPolicyVariableDefinition = String|Mapping
-
-
-/// 
-open class FirewallPolicyFirewallPolicy {
-    StatelessCustomActions: (Listing<FirewallPolicyCustomAction>)?
-    StatefulDefaultActions: (Listing<String|Mapping>)?
-    StatefulEngineOptions: (FirewallPolicyStatefulEngineOptions)?
-    TLSInspectionConfigurationArn: (FirewallPolicyResourceArn)?
-    StatelessDefaultActions: Listing<String|Mapping>
-    StatelessFragmentDefaultActions: Listing<String|Mapping>
-    StatelessRuleGroupReferences: (Listing<FirewallPolicyStatelessRuleGroupReference>)?
-    StatefulRuleGroupReferences: (Listing<FirewallPolicyStatefulRuleGroupReference>)?
-    PolicyVariables: (Dynamic)?
-}
-
-/// 
-open class FirewallPolicyIPSet {
-    Definition: (Listing<FirewallPolicyVariableDefinition>)?
-}
-
-typealias FirewallPolicyPriority = Int|Mapping
-
 
 /// 
 open class FirewallPolicyStatefulRuleGroupReference {
-    ResourceArn: FirewallPolicyResourceArn
-    Priority: (FirewallPolicyPriority)?
     Override: (FirewallPolicyStatefulRuleGroupOverride)?
+    Priority: (FirewallPolicyPriority)?
+    ResourceArn: FirewallPolicyResourceArn
 }
 
 /// 
 open class FirewallPolicyStatelessRuleGroupReference {
-    ResourceArn: FirewallPolicyResourceArn
     Priority: FirewallPolicyPriority
+    ResourceArn: FirewallPolicyResourceArn
 }
 
-/// 
-open class FirewallPolicyActionDefinition {
-    PublishMetricAction: (FirewallPolicyPublishMetricAction)?
-}
-
-typealias FirewallPolicyOverrideAction = String|Mapping
+typealias FirewallPolicyStreamExceptionPolicy = String|Mapping
 
 
 /// 
-open class FirewallPolicyPublishMetricAction {
-    Dimensions: Listing<FirewallPolicyDimension>
+open class FirewallPolicyTag {
+    Key: String(matches(Regex(#"^.*$"#)))|Mapping
+    Value: String(matches(Regex(#"^.*$"#)))|Mapping
 }
 
-/// 
-open class FirewallPolicyStatefulRuleGroupOverride {
-    Action: (FirewallPolicyOverrideAction)?
-}
+typealias FirewallPolicyVariableDefinition = String|Mapping
+
 
 /// Resource type definition for AWS::NetworkFirewall::FirewallPolicy
 open class FirewallPolicy extends cloudformation.Resource {

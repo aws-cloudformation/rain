@@ -5,6 +5,15 @@ module aws.ssm.document
 
 import "../../cloudformation.pkl"
 
+typealias AttachmentsSourceKey = "SourceUrl"|"S3FileUrl"|"AttachmentReference"
+
+/// 
+open class DocumentAttachmentsSource {
+    Key: (AttachmentsSourceKey|Mapping)?
+    Name: (String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping)?
+    Values: (Listing<String|Mapping>)?
+}
+
 /// 
 open class DocumentDocumentRequires {
     Name: (String(matches(Regex(#"^[a-zA-Z0-9_\-.:/]{3,200}$"#)))|Mapping)?
@@ -15,15 +24,6 @@ open class DocumentDocumentRequires {
 open class DocumentTag {
     Key: (String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping)?
     Value: (String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping)?
-}
-
-typealias AttachmentsSourceKey = "SourceUrl"|"S3FileUrl"|"AttachmentReference"
-
-/// 
-open class DocumentAttachmentsSource {
-    Key: (AttachmentsSourceKey|Mapping)?
-    Values: (Listing<String|Mapping>)?
-    Name: (String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping)?
 }
 
 /// The AWS::SSM::Document resource is an SSM document in AWS Systems Manager that defines the actions that Systems Manager performs, which can be used to set up and run commands on your instances.

@@ -5,6 +5,12 @@ module aws.omics.annotationstore
 
 import "../../cloudformation.pkl"
 
+typealias AnnotationStoreAnnotationType = String|Mapping
+
+
+typealias AnnotationStoreEncryptionType = String|Mapping
+
+
 typealias AnnotationStoreFormatToHeader = Mapping<String, Any>
 
 
@@ -12,9 +18,20 @@ typealias AnnotationStoreFormatToHeaderKey = String|Mapping
 
 
 /// 
+open class AnnotationStoreReferenceItem {
+    ReferenceArn: String(matches(Regex(#"^arn:.+$"#)))|Mapping
+}
+
+typealias AnnotationStoreSchemaItem = Mapping<String, Any>
+
+
+typealias AnnotationStoreSchemaValueType = String|Mapping
+
+
+/// 
 open class AnnotationStoreSseConfig {
-    Type: AnnotationStoreEncryptionType
     KeyArn: (String(matches(Regex(#"arn:([^:\n]*):([^:\n]*):([^:\n]*):([0-9]{12}):([^:\n]*)"#)))|Mapping)?
+    Type: AnnotationStoreEncryptionType
 }
 
 typealias AnnotationStoreStoreFormat = String|Mapping
@@ -23,26 +40,15 @@ typealias AnnotationStoreStoreFormat = String|Mapping
 typealias AnnotationStoreStoreOptions = AnnotationStoreStoreOptionsTsvStoreOptions
 
 
-typealias AnnotationStoreAnnotationType = String|Mapping
-
-
 /// 
 open class AnnotationStoreStoreOptionsTsvStoreOptions {
     TsvStoreOptions: AnnotationStoreTsvStoreOptions
 }
 
-typealias AnnotationStoreEncryptionType = String|Mapping
-
-
-/// 
-open class AnnotationStoreReferenceItem {
-    ReferenceArn: String(matches(Regex(#"^arn:.+$"#)))|Mapping
-}
-
-typealias AnnotationStoreSchemaValueType = String|Mapping
-
-
 typealias AnnotationStoreStoreStatus = String|Mapping
+
+
+typealias AnnotationStoreTagMap = Mapping<String, Any>
 
 
 /// 
@@ -51,12 +57,6 @@ open class AnnotationStoreTsvStoreOptions {
     FormatToHeader: (AnnotationStoreFormatToHeader)?
     Schema: (Listing<AnnotationStoreSchemaItem>)?
 }
-
-typealias AnnotationStoreSchemaItem = Mapping<String, Any>
-
-
-typealias AnnotationStoreTagMap = Mapping<String, Any>
-
 
 /// Definition of AWS::Omics::AnnotationStore Resource Type
 open class AnnotationStore extends cloudformation.Resource {

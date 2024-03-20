@@ -5,76 +5,32 @@ module aws.ec2.launchtemplate
 
 import "../../cloudformation.pkl"
 
-/// Specifies an IAM instance profile, which is a container for an IAM role for your instance. You can use an IAM role to distribute your AWS credentials to your instances.
-///
-///  If you are creating the launch template for use with an Amazon EC2 Auto Scaling group, you can specify either the name or the ARN of the instance profile, but not both.
-///   ``IamInstanceProfile`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
-open class LaunchTemplateIamInstanceProfile {
-    Name: (String|Mapping)?
-    Arn: (String|Mapping)?
-}
-
-/// Specifies an IPv4 prefix for a network interface.
-///
-///  ``Ipv4PrefixSpecification`` is a property of [AWS::EC2::LaunchTemplate NetworkInterface](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html).
-open class LaunchTemplateIpv4PrefixSpecification {
-    Ipv4Prefix: (String|Mapping)?
-}
-
-/// Specifies an IPv6 address in an Amazon EC2 launch template.
-///
-///  ``Ipv6Add`` is a property of [AWS::EC2::LaunchTemplate NetworkInterface](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html).
-open class LaunchTemplateIpv6Add {
-    Ipv6Address: (String|Mapping)?
-}
-
-/// The information to include in the launch template.
-///
-///   You must specify at least one parameter for the launch template data.
-open class LaunchTemplateLaunchTemplateData {
-    InstanceInitiatedShutdownBehavior: (String|Mapping)?
-    MaintenanceOptions: (LaunchTemplateMaintenanceOptions)?
-    ElasticInferenceAccelerators: (Listing<LaunchTemplateLaunchTemplateElasticInferenceAccelerator>)?
-    NetworkInterfaces: (Listing<LaunchTemplateNetworkInterface>)?
-    Monitoring: (LaunchTemplateMonitoring)?
-    LicenseSpecifications: (Listing<LaunchTemplateLicenseSpecification>)?
-    SecurityGroups: (Listing<String|Mapping>)?
-    DisableApiStop: (Boolean|Mapping)?
-    CpuOptions: (LaunchTemplateCpuOptions)?
-    DisableApiTermination: (Boolean|Mapping)?
-    BlockDeviceMappings: (Listing<LaunchTemplateBlockDeviceMapping>)?
-    EbsOptimized: (Boolean|Mapping)?
-    ElasticGpuSpecifications: (Listing<LaunchTemplateElasticGpuSpecification>)?
-    TagSpecifications: (Listing<LaunchTemplateTagSpecification>)?
-    IamInstanceProfile: (LaunchTemplateIamInstanceProfile)?
-    EnclaveOptions: (LaunchTemplateEnclaveOptions)?
-    MetadataOptions: (LaunchTemplateMetadataOptions)?
-    UserData: (String|Mapping)?
-    InstanceType: (String|Mapping)?
-    HibernationOptions: (LaunchTemplateHibernationOptions)?
-    PrivateDnsNameOptions: (LaunchTemplatePrivateDnsNameOptions)?
-    SecurityGroupIds: (Listing<String|Mapping>)?
-    InstanceMarketOptions: (LaunchTemplateInstanceMarketOptions)?
-    InstanceRequirements: (LaunchTemplateInstanceRequirements)?
-    RamDiskId: (String|Mapping)?
-    CreditSpecification: (LaunchTemplateCreditSpecification)?
-    KernelId: (String|Mapping)?
-    ImageId: (String|Mapping)?
-    KeyName: (String|Mapping)?
-    CapacityReservationSpecification: (LaunchTemplateCapacityReservationSpecification)?
-    Placement: (LaunchTemplatePlacement)?
-}
-
-/// The minimum and maximum amount of memory per vCPU, in GiB.
-open class LaunchTemplateMemoryGiBPerVCpu {
-    Max: (Number|Mapping)?
-    Min: (Number|Mapping)?
-}
-
-/// The minimum and maximum number of network interfaces.
-open class LaunchTemplateNetworkInterfaceCount {
-    Min: (Int|Mapping)?
+/// The minimum and maximum number of accelerators (GPUs, FPGAs, or AWS Inferentia chips) on an instance.
+open class LaunchTemplateAcceleratorCount {
     Max: (Int|Mapping)?
+    Min: (Int|Mapping)?
+}
+
+/// The minimum and maximum amount of total accelerator memory, in MiB.
+open class LaunchTemplateAcceleratorTotalMemoryMiB {
+    Max: (Int|Mapping)?
+    Min: (Int|Mapping)?
+}
+
+/// The minimum and maximum baseline bandwidth to Amazon EBS, in Mbps. For more information, see [Amazon EBS–optimized instances](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html) in the *Amazon EC2 User Guide*.
+open class LaunchTemplateBaselineEbsBandwidthMbps {
+    Max: (Int|Mapping)?
+    Min: (Int|Mapping)?
+}
+
+/// Specifies a block device mapping for a launch template. You must specify ``DeviceName`` plus exactly one of the following properties: ``Ebs``, ``NoDevice``, or ``VirtualName``.
+///
+///   ``BlockDeviceMapping`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
+open class LaunchTemplateBlockDeviceMapping {
+    DeviceName: (String|Mapping)?
+    Ebs: (LaunchTemplateEbs)?
+    NoDevice: (String|Mapping)?
+    VirtualName: (String|Mapping)?
 }
 
 /// Specifies an instance's Capacity Reservation targeting option. You can specify only one option at a time.
@@ -85,30 +41,66 @@ open class LaunchTemplateCapacityReservationSpecification {
     CapacityReservationTarget: (LaunchTemplateCapacityReservationTarget)?
 }
 
-/// Specifies whether your instance is configured for hibernation. This parameter is valid only if the instance meets the [hibernation prerequisites](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html#hibernating-prerequisites). For more information, see [Hibernate Your Instance](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html) in the *Amazon EC2 User Guide*.
+/// Specifies a target Capacity Reservation.
 ///
-///   ``HibernationOptions`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
-open class LaunchTemplateHibernationOptions {
-    Configured: (Boolean|Mapping)?
+///   ``CapacityReservationTarget`` is a property of the [Amazon EC2 LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html) property type.
+open class LaunchTemplateCapacityReservationTarget {
+    CapacityReservationId: (String|Mapping)?
+    CapacityReservationResourceGroupArn: (String|Mapping)?
 }
 
-/// The metadata options for the instance. For more information, see [Instance metadata and user data](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html) in the *Amazon EC2 User Guide*.
-///
-///  ``MetadataOptions`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
-open class LaunchTemplateMetadataOptions {
-    InstanceMetadataTags: (String|Mapping)?
-    HttpEndpoint: (String|Mapping)?
-    HttpPutResponseHopLimit: (Int|Mapping)?
-    HttpTokens: (String|Mapping)?
-    HttpProtocolIpv6: (String|Mapping)?
+/// A security group connection tracking specification that enables you to set the idle timeout for connection tracking on an Elastic network interface. For more information, see [Connection tracking timeouts](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-connection-tracking.html#connection-tracking-timeouts) in the *Amazon Elastic Compute Cloud User Guide*.
+open class LaunchTemplateConnectionTrackingSpecification {
+    TcpEstablishedTimeout: (Int|Mapping)?
+    UdpStreamTimeout: (Int|Mapping)?
+    UdpTimeout: (Int|Mapping)?
 }
 
-/// Specifies the tags to apply to a resource when the resource is created for the launch template.
+typealias CpuOptionsAmdSevSnp = "enabled"|"disabled"
+
+/// Specifies the CPU options for an instance. For more information, see [Optimize CPU options](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-optimize-cpu.html) in the *User Guide*.
 ///
-///  ``TagSpecification`` is a property type of [TagSpecifications](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html#cfn-ec2-launchtemplate-launchtemplatedata-tagspecifications). [TagSpecifications](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html#cfn-ec2-launchtemplate-launchtemplatedata-tagspecifications) is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
-open class LaunchTemplateTagSpecification {
-    Tags: (Listing<LaunchTemplateTag>)?
-    ResourceType: (String|Mapping)?
+///   ``CpuOptions`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
+open class LaunchTemplateCpuOptions {
+    AmdSevSnp: (CpuOptionsAmdSevSnp|Mapping)?
+    CoreCount: (Int|Mapping)?
+    ThreadsPerCore: (Int|Mapping)?
+}
+
+/// Specifies the credit option for CPU usage of a T2, T3, or T3a instance.
+///
+///   ``CreditSpecification`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
+open class LaunchTemplateCreditSpecification {
+    CpuCredits: (String|Mapping)?
+}
+
+/// Parameters for a block device for an EBS volume in an Amazon EC2 launch template.
+///
+///   ``Ebs`` is a property of [AWS::EC2::LaunchTemplate BlockDeviceMapping](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-blockdevicemapping.html).
+open class LaunchTemplateEbs {
+    DeleteOnTermination: (Boolean|Mapping)?
+    Encrypted: (Boolean|Mapping)?
+    Iops: (Int|Mapping)?
+    KmsKeyId: (String|Mapping)?
+    SnapshotId: (String|Mapping)?
+    Throughput: (Int|Mapping)?
+    VolumeSize: (Int|Mapping)?
+    VolumeType: (String|Mapping)?
+}
+
+/// Specifies a specification for an Elastic GPU for an Amazon EC2 launch template.
+///
+///   ``ElasticGpuSpecification`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
+open class LaunchTemplateElasticGpuSpecification {
+    Type: (String|Mapping)?
+}
+
+/// ENA Express uses AWS Scalable Reliable Datagram (SRD) technology to increase the maximum bandwidth used per stream and minimize tail latency of network traffic between EC2 instances. With ENA Express, you can communicate between two EC2 instances in the same subnet within the same account, or in different accounts. Both sending and receiving instances must have ENA Express enabled.
+///
+///  To improve the reliability of network packet delivery, ENA Express reorders network packets on the receiving end by default. However, some UDP-based applications are designed to handle network packets that are out of order to reduce the overhead for packet delivery at the network layer. When ENA Express is enabled, you can specify whether UDP network traffic uses it.
+open class LaunchTemplateEnaSrdSpecification {
+    EnaSrdEnabled: (Boolean|Mapping)?
+    EnaSrdUdpSpecification: (LaunchTemplateEnaSrdUdpSpecification)?
 }
 
 /// ENA Express is compatible with both TCP and UDP transport protocols. When it's enabled, TCP traffic automatically uses it. However, some UDP-based applications are designed to handle network packets that are out of order, without a need for retransmission, such as live video broadcasting or other near-real-time applications. For UDP traffic, you can specify whether to use ENA Express, based on your application environment needs.
@@ -116,78 +108,25 @@ open class LaunchTemplateEnaSrdUdpSpecification {
     EnaSrdUdpEnabled: (Boolean|Mapping)?
 }
 
-/// The maintenance options of your instance.
-open class LaunchTemplateMaintenanceOptions {
-    AutoRecovery: (String|Mapping)?
-    RebootMigration: (String|Mapping)?
-}
-
-/// Specifies the tags to apply to the launch template during creation.
-///
-///  ``LaunchTemplateTagSpecification`` is a property of [AWS::EC2::LaunchTemplate](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-launchtemplate.html).
-open class LaunchTemplateLaunchTemplateTagSpecification {
-    ResourceType: (String|Mapping)?
-    Tags: (Listing<LaunchTemplateTag>)?
-}
-
-/// Specifies the parameters for a network interface.
-///
-///  ``NetworkInterface`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
-open class LaunchTemplateNetworkInterface {
-    NetworkCardIndex: (Int|Mapping)?
-    EnaSrdSpecification: (LaunchTemplateEnaSrdSpecification)?
-    PrivateIpAddresses: (Listing<LaunchTemplatePrivateIpAdd>)?
-    Ipv6PrefixCount: (Int|Mapping)?
-    Ipv4PrefixCount: (Int|Mapping)?
-    Ipv6Prefixes: (Listing<LaunchTemplateIpv6PrefixSpecification>)?
-    SubnetId: (String|Mapping)?
-    Ipv6Addresses: (Listing<LaunchTemplateIpv6Add>)?
-    ConnectionTrackingSpecification: (LaunchTemplateConnectionTrackingSpecification)?
-    SecondaryPrivateIpAddressCount: (Int|Mapping)?
-    PrivateIpAddress: (String|Mapping)?
-    Ipv4Prefixes: (Listing<LaunchTemplateIpv4PrefixSpecification>)?
-    DeviceIndex: (Int|Mapping)?
-    PrimaryIpv6: (Boolean|Mapping)?
-    NetworkInterfaceId: (String|Mapping)?
-    InterfaceType: (String|Mapping)?
-    AssociateCarrierIpAddress: (Boolean|Mapping)?
-    Description: (String|Mapping)?
-    Groups: (Listing<String|Mapping>)?
-    DeleteOnTermination: (Boolean|Mapping)?
-    Ipv6AddressCount: (Int|Mapping)?
-    AssociatePublicIpAddress: (Boolean|Mapping)?
-}
-
-/// The minimum and maximum amount of total local storage, in GB.
-open class LaunchTemplateTotalLocalStorageGB {
-    Min: (Number|Mapping)?
-    Max: (Number|Mapping)?
-}
-
-/// The minimum and maximum number of accelerators (GPUs, FPGAs, or AWS Inferentia chips) on an instance.
-open class LaunchTemplateAcceleratorCount {
-    Min: (Int|Mapping)?
-    Max: (Int|Mapping)?
-}
-
 /// Indicates whether the instance is enabled for AWS Nitro Enclaves.
 open class LaunchTemplateEnclaveOptions {
     Enabled: (Boolean|Mapping)?
 }
 
-/// Specifies a target Capacity Reservation.
+/// Specifies whether your instance is configured for hibernation. This parameter is valid only if the instance meets the [hibernation prerequisites](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html#hibernating-prerequisites). For more information, see [Hibernate Your Instance](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html) in the *Amazon EC2 User Guide*.
 ///
-///   ``CapacityReservationTarget`` is a property of the [Amazon EC2 LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html) property type.
-open class LaunchTemplateCapacityReservationTarget {
-    CapacityReservationResourceGroupArn: (String|Mapping)?
-    CapacityReservationId: (String|Mapping)?
+///   ``HibernationOptions`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
+open class LaunchTemplateHibernationOptions {
+    Configured: (Boolean|Mapping)?
 }
 
-/// A security group connection tracking specification that enables you to set the idle timeout for connection tracking on an Elastic network interface. For more information, see [Connection tracking timeouts](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-connection-tracking.html#connection-tracking-timeouts) in the *Amazon Elastic Compute Cloud User Guide*.
-open class LaunchTemplateConnectionTrackingSpecification {
-    UdpTimeout: (Int|Mapping)?
-    TcpEstablishedTimeout: (Int|Mapping)?
-    UdpStreamTimeout: (Int|Mapping)?
+/// Specifies an IAM instance profile, which is a container for an IAM role for your instance. You can use an IAM role to distribute your AWS credentials to your instances.
+///
+///  If you are creating the launch template for use with an Amazon EC2 Auto Scaling group, you can specify either the name or the ARN of the instance profile, but not both.
+///   ``IamInstanceProfile`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
+open class LaunchTemplateIamInstanceProfile {
+    Arn: (String|Mapping)?
+    Name: (String|Mapping)?
 }
 
 /// Specifies the market (purchasing) option for an instance.
@@ -208,127 +147,140 @@ open class LaunchTemplateInstanceMarketOptions {
 ///   
 ///   If you specify ``InstanceReq
 open class LaunchTemplateInstanceRequirements {
+    AcceleratorCount: (LaunchTemplateAcceleratorCount)?
+    AcceleratorManufacturers: (Listing<String|Mapping>)?
+    AcceleratorNames: (Listing<String|Mapping>)?
+    AcceleratorTotalMemoryMiB: (LaunchTemplateAcceleratorTotalMemoryMiB)?
     AcceleratorTypes: (Listing<String|Mapping>)?
     AllowedInstanceTypes: (Listing<String|Mapping>)?
-    AcceleratorCount: (LaunchTemplateAcceleratorCount)?
     BareMetal: (String|Mapping)?
-    SpotMaxPricePercentageOverLowestPrice: (Int|Mapping)?
-    AcceleratorTotalMemoryMiB: (LaunchTemplateAcceleratorTotalMemoryMiB)?
-    VCpuCount: (LaunchTemplateVCpuCount)?
-    AcceleratorManufacturers: (Listing<String|Mapping>)?
-    CpuManufacturers: (Listing<String|Mapping>)?
-    MemoryMiB: (LaunchTemplateMemoryMiB)?
-    TotalLocalStorageGB: (LaunchTemplateTotalLocalStorageGB)?
-    NetworkInterfaceCount: (LaunchTemplateNetworkInterfaceCount)?
-    ExcludedInstanceTypes: (Listing<String|Mapping>)?
-    NetworkBandwidthGbps: (LaunchTemplateNetworkBandwidthGbps)?
-    RequireHibernateSupport: (Boolean|Mapping)?
     BaselineEbsBandwidthMbps: (LaunchTemplateBaselineEbsBandwidthMbps)?
-    OnDemandMaxPricePercentageOverLowestPrice: (Int|Mapping)?
     BurstablePerformance: (String|Mapping)?
-    LocalStorageTypes: (Listing<String|Mapping>)?
+    CpuManufacturers: (Listing<String|Mapping>)?
+    ExcludedInstanceTypes: (Listing<String|Mapping>)?
     InstanceGenerations: (Listing<String|Mapping>)?
-    MemoryGiBPerVCpu: (LaunchTemplateMemoryGiBPerVCpu)?
     LocalStorage: (String|Mapping)?
+    LocalStorageTypes: (Listing<String|Mapping>)?
     MaxSpotPriceAsPercentageOfOptimalOnDemandPrice: (Int|Mapping)?
-    AcceleratorNames: (Listing<String|Mapping>)?
+    MemoryGiBPerVCpu: (LaunchTemplateMemoryGiBPerVCpu)?
+    MemoryMiB: (LaunchTemplateMemoryMiB)?
+    NetworkBandwidthGbps: (LaunchTemplateNetworkBandwidthGbps)?
+    NetworkInterfaceCount: (LaunchTemplateNetworkInterfaceCount)?
+    OnDemandMaxPricePercentageOverLowestPrice: (Int|Mapping)?
+    RequireHibernateSupport: (Boolean|Mapping)?
+    SpotMaxPricePercentageOverLowestPrice: (Int|Mapping)?
+    TotalLocalStorageGB: (LaunchTemplateTotalLocalStorageGB)?
+    VCpuCount: (LaunchTemplateVCpuCount)?
 }
 
-/// Specifies the placement of an instance.
+/// Specifies an IPv4 prefix for a network interface.
 ///
-///  ``Placement`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
-open class LaunchTemplatePlacement {
-    AvailabilityZone: (String|Mapping)?
-    HostId: (String|Mapping)?
-    HostResourceGroupArn: (String|Mapping)?
-    GroupId: (String|Mapping)?
-    GroupName: (String|Mapping)?
-    Tenancy: (String|Mapping)?
-    SpreadDomain: (String|Mapping)?
-    PartitionNumber: (Int|Mapping)?
-    Affinity: (String|Mapping)?
+///  ``Ipv4PrefixSpecification`` is a property of [AWS::EC2::LaunchTemplate NetworkInterface](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html).
+open class LaunchTemplateIpv4PrefixSpecification {
+    Ipv4Prefix: (String|Mapping)?
 }
 
-/// Specifies a secondary private IPv4 address for a network interface.
+/// Specifies an IPv6 address in an Amazon EC2 launch template.
 ///
-///  ``PrivateIpAdd`` is a property of [AWS::EC2::LaunchTemplate NetworkInterface](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html).
-open class LaunchTemplatePrivateIpAdd {
-    PrivateIpAddress: (String|Mapping)?
-    Primary: (Boolean|Mapping)?
+///  ``Ipv6Add`` is a property of [AWS::EC2::LaunchTemplate NetworkInterface](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html).
+open class LaunchTemplateIpv6Add {
+    Ipv6Address: (String|Mapping)?
 }
 
-/// The minimum and maximum amount of total accelerator memory, in MiB.
-open class LaunchTemplateAcceleratorTotalMemoryMiB {
-    Min: (Int|Mapping)?
-    Max: (Int|Mapping)?
-}
-
-/// The minimum and maximum baseline bandwidth to Amazon EBS, in Mbps. For more information, see [Amazon EBS–optimized instances](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html) in the *Amazon EC2 User Guide*.
-open class LaunchTemplateBaselineEbsBandwidthMbps {
-    Min: (Int|Mapping)?
-    Max: (Int|Mapping)?
-}
-
-/// Specifies a specification for an Elastic GPU for an Amazon EC2 launch template.
+/// Specifies an IPv6 prefix for a network interface.
 ///
-///   ``ElasticGpuSpecification`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
-open class LaunchTemplateElasticGpuSpecification {
+///  ``Ipv6PrefixSpecification`` is a property of [AWS::EC2::LaunchTemplate NetworkInterface](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html).
+open class LaunchTemplateIpv6PrefixSpecification {
+    Ipv6Prefix: (String|Mapping)?
+}
+
+/// The information to include in the launch template.
+///
+///   You must specify at least one parameter for the launch template data.
+open class LaunchTemplateLaunchTemplateData {
+    BlockDeviceMappings: (Listing<LaunchTemplateBlockDeviceMapping>)?
+    CapacityReservationSpecification: (LaunchTemplateCapacityReservationSpecification)?
+    CpuOptions: (LaunchTemplateCpuOptions)?
+    CreditSpecification: (LaunchTemplateCreditSpecification)?
+    DisableApiStop: (Boolean|Mapping)?
+    DisableApiTermination: (Boolean|Mapping)?
+    EbsOptimized: (Boolean|Mapping)?
+    ElasticGpuSpecifications: (Listing<LaunchTemplateElasticGpuSpecification>)?
+    ElasticInferenceAccelerators: (Listing<LaunchTemplateLaunchTemplateElasticInferenceAccelerator>)?
+    EnclaveOptions: (LaunchTemplateEnclaveOptions)?
+    HibernationOptions: (LaunchTemplateHibernationOptions)?
+    IamInstanceProfile: (LaunchTemplateIamInstanceProfile)?
+    ImageId: (String|Mapping)?
+    InstanceInitiatedShutdownBehavior: (String|Mapping)?
+    InstanceMarketOptions: (LaunchTemplateInstanceMarketOptions)?
+    InstanceRequirements: (LaunchTemplateInstanceRequirements)?
+    InstanceType: (String|Mapping)?
+    KernelId: (String|Mapping)?
+    KeyName: (String|Mapping)?
+    LicenseSpecifications: (Listing<LaunchTemplateLicenseSpecification>)?
+    MaintenanceOptions: (LaunchTemplateMaintenanceOptions)?
+    MetadataOptions: (LaunchTemplateMetadataOptions)?
+    Monitoring: (LaunchTemplateMonitoring)?
+    NetworkInterfaces: (Listing<LaunchTemplateNetworkInterface>)?
+    Placement: (LaunchTemplatePlacement)?
+    PrivateDnsNameOptions: (LaunchTemplatePrivateDnsNameOptions)?
+    RamDiskId: (String|Mapping)?
+    SecurityGroupIds: (Listing<String|Mapping>)?
+    SecurityGroups: (Listing<String|Mapping>)?
+    TagSpecifications: (Listing<LaunchTemplateTagSpecification>)?
+    UserData: (String|Mapping)?
+}
+
+/// Specifies an elastic inference accelerator.
+///
+///  ``LaunchTemplateElasticInferenceAccelerator`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
+open class LaunchTemplateLaunchTemplateElasticInferenceAccelerator {
+    Count: (Int|Mapping)?
     Type: (String|Mapping)?
 }
 
-/// The hostname type for EC2 instances launched into this subnet and how DNS A and AAAA record queries should be handled. For more information, see [Amazon EC2 instance hostname types](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-naming.html) in the *User Guide*.
-open class LaunchTemplatePrivateDnsNameOptions {
-    EnableResourceNameDnsARecord: (Boolean|Mapping)?
-    HostnameType: (String|Mapping)?
-    EnableResourceNameDnsAAAARecord: (Boolean|Mapping)?
-}
-
-/// Specifies a tag. For more information, see [Add tags to a resource](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#cloudformation-add-tag-specifications).
-open class LaunchTemplateTag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// Specifies the credit option for CPU usage of a T2, T3, or T3a instance.
+/// Specifies the tags to apply to the launch template during creation.
 ///
-///   ``CreditSpecification`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
-open class LaunchTemplateCreditSpecification {
-    CpuCredits: (String|Mapping)?
+///  ``LaunchTemplateTagSpecification`` is a property of [AWS::EC2::LaunchTemplate](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-launchtemplate.html).
+open class LaunchTemplateLaunchTemplateTagSpecification {
+    ResourceType: (String|Mapping)?
+    Tags: (Listing<LaunchTemplateTag>)?
 }
 
-/// Parameters for a block device for an EBS volume in an Amazon EC2 launch template.
+/// Specifies a license configuration for an instance.
 ///
-///   ``Ebs`` is a property of [AWS::EC2::LaunchTemplate BlockDeviceMapping](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-blockdevicemapping.html).
-open class LaunchTemplateEbs {
-    DeleteOnTermination: (Boolean|Mapping)?
-    SnapshotId: (String|Mapping)?
-    VolumeType: (String|Mapping)?
-    KmsKeyId: (String|Mapping)?
-    Encrypted: (Boolean|Mapping)?
-    Throughput: (Int|Mapping)?
-    Iops: (Int|Mapping)?
-    VolumeSize: (Int|Mapping)?
+///  ``LicenseSpecification`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
+open class LaunchTemplateLicenseSpecification {
+    LicenseConfigurationArn: (String|Mapping)?
 }
 
-/// Specifies a block device mapping for a launch template. You must specify ``DeviceName`` plus exactly one of the following properties: ``Ebs``, ``NoDevice``, or ``VirtualName``.
-///
-///   ``BlockDeviceMapping`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
-open class LaunchTemplateBlockDeviceMapping {
-    Ebs: (LaunchTemplateEbs)?
-    NoDevice: (String|Mapping)?
-    VirtualName: (String|Mapping)?
-    DeviceName: (String|Mapping)?
+/// The maintenance options of your instance.
+open class LaunchTemplateMaintenanceOptions {
+    AutoRecovery: (String|Mapping)?
+    RebootMigration: (String|Mapping)?
 }
 
-typealias CpuOptionsAmdSevSnp = "enabled"|"disabled"
+/// The minimum and maximum amount of memory per vCPU, in GiB.
+open class LaunchTemplateMemoryGiBPerVCpu {
+    Max: (Number|Mapping)?
+    Min: (Number|Mapping)?
+}
 
-/// Specifies the CPU options for an instance. For more information, see [Optimize CPU options](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-optimize-cpu.html) in the *User Guide*.
+/// The minimum and maximum amount of memory, in MiB.
+open class LaunchTemplateMemoryMiB {
+    Max: (Int|Mapping)?
+    Min: (Int|Mapping)?
+}
+
+/// The metadata options for the instance. For more information, see [Instance metadata and user data](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html) in the *Amazon EC2 User Guide*.
 ///
-///   ``CpuOptions`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
-open class LaunchTemplateCpuOptions {
-    ThreadsPerCore: (Int|Mapping)?
-    AmdSevSnp: (CpuOptionsAmdSevSnp|Mapping)?
-    CoreCount: (Int|Mapping)?
+///  ``MetadataOptions`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
+open class LaunchTemplateMetadataOptions {
+    HttpEndpoint: (String|Mapping)?
+    HttpProtocolIpv6: (String|Mapping)?
+    HttpPutResponseHopLimit: (Int|Mapping)?
+    HttpTokens: (String|Mapping)?
+    InstanceMetadataTags: (String|Mapping)?
 }
 
 /// Specifies whether detailed monitoring is enabled for an instance. For more information about detailed monitoring, see [Enable or turn off detailed monitoring for your instances](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-cloudwatch-new.html) in the *User Guide*.
@@ -342,61 +294,109 @@ open class LaunchTemplateMonitoring {
 ///
 ///   Setting the minimum bandwidth does not guarantee that your instance will achieve the minimum bandwidth. Amazon EC2 will identify instance types that support the specified minimum bandwidth, but the actual bandwidth of your instance might go below the specified minimum at times. For more information, see [Available instance bandwidth](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-network-bandwidth.html#available-instance-bandwidth) in the *Amazon EC2 User Guide*.
 open class LaunchTemplateNetworkBandwidthGbps {
-    Min: (Number|Mapping)?
     Max: (Number|Mapping)?
+    Min: (Number|Mapping)?
+}
+
+/// Specifies the parameters for a network interface.
+///
+///  ``NetworkInterface`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
+open class LaunchTemplateNetworkInterface {
+    AssociateCarrierIpAddress: (Boolean|Mapping)?
+    AssociatePublicIpAddress: (Boolean|Mapping)?
+    ConnectionTrackingSpecification: (LaunchTemplateConnectionTrackingSpecification)?
+    DeleteOnTermination: (Boolean|Mapping)?
+    Description: (String|Mapping)?
+    DeviceIndex: (Int|Mapping)?
+    EnaSrdSpecification: (LaunchTemplateEnaSrdSpecification)?
+    Groups: (Listing<String|Mapping>)?
+    InterfaceType: (String|Mapping)?
+    Ipv4PrefixCount: (Int|Mapping)?
+    Ipv4Prefixes: (Listing<LaunchTemplateIpv4PrefixSpecification>)?
+    Ipv6AddressCount: (Int|Mapping)?
+    Ipv6Addresses: (Listing<LaunchTemplateIpv6Add>)?
+    Ipv6PrefixCount: (Int|Mapping)?
+    Ipv6Prefixes: (Listing<LaunchTemplateIpv6PrefixSpecification>)?
+    NetworkCardIndex: (Int|Mapping)?
+    NetworkInterfaceId: (String|Mapping)?
+    PrimaryIpv6: (Boolean|Mapping)?
+    PrivateIpAddress: (String|Mapping)?
+    PrivateIpAddresses: (Listing<LaunchTemplatePrivateIpAdd>)?
+    SecondaryPrivateIpAddressCount: (Int|Mapping)?
+    SubnetId: (String|Mapping)?
+}
+
+/// The minimum and maximum number of network interfaces.
+open class LaunchTemplateNetworkInterfaceCount {
+    Max: (Int|Mapping)?
+    Min: (Int|Mapping)?
+}
+
+/// Specifies the placement of an instance.
+///
+///  ``Placement`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
+open class LaunchTemplatePlacement {
+    Affinity: (String|Mapping)?
+    AvailabilityZone: (String|Mapping)?
+    GroupId: (String|Mapping)?
+    GroupName: (String|Mapping)?
+    HostId: (String|Mapping)?
+    HostResourceGroupArn: (String|Mapping)?
+    PartitionNumber: (Int|Mapping)?
+    SpreadDomain: (String|Mapping)?
+    Tenancy: (String|Mapping)?
+}
+
+/// The hostname type for EC2 instances launched into this subnet and how DNS A and AAAA record queries should be handled. For more information, see [Amazon EC2 instance hostname types](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-naming.html) in the *User Guide*.
+open class LaunchTemplatePrivateDnsNameOptions {
+    EnableResourceNameDnsAAAARecord: (Boolean|Mapping)?
+    EnableResourceNameDnsARecord: (Boolean|Mapping)?
+    HostnameType: (String|Mapping)?
+}
+
+/// Specifies a secondary private IPv4 address for a network interface.
+///
+///  ``PrivateIpAdd`` is a property of [AWS::EC2::LaunchTemplate NetworkInterface](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html).
+open class LaunchTemplatePrivateIpAdd {
+    Primary: (Boolean|Mapping)?
+    PrivateIpAddress: (String|Mapping)?
 }
 
 /// Specifies options for Spot Instances.
 ///
 ///  ``SpotOptions`` is a property of [AWS::EC2::LaunchTemplate InstanceMarketOptions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata-instancemarketoptions.html).
 open class LaunchTemplateSpotOptions {
-    SpotInstanceType: (String|Mapping)?
+    BlockDurationMinutes: (Int|Mapping)?
     InstanceInterruptionBehavior: (String|Mapping)?
     MaxPrice: (String|Mapping)?
-    BlockDurationMinutes: (Int|Mapping)?
+    SpotInstanceType: (String|Mapping)?
     ValidUntil: (String|Mapping)?
 }
 
-/// ENA Express uses AWS Scalable Reliable Datagram (SRD) technology to increase the maximum bandwidth used per stream and minimize tail latency of network traffic between EC2 instances. With ENA Express, you can communicate between two EC2 instances in the same subnet within the same account, or in different accounts. Both sending and receiving instances must have ENA Express enabled.
-///
-///  To improve the reliability of network packet delivery, ENA Express reorders network packets on the receiving end by default. However, some UDP-based applications are designed to handle network packets that are out of order to reduce the overhead for packet delivery at the network layer. When ENA Express is enabled, you can specify whether UDP network traffic uses it.
-open class LaunchTemplateEnaSrdSpecification {
-    EnaSrdEnabled: (Boolean|Mapping)?
-    EnaSrdUdpSpecification: (LaunchTemplateEnaSrdUdpSpecification)?
+/// Specifies a tag. For more information, see [Add tags to a resource](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#cloudformation-add-tag-specifications).
+open class LaunchTemplateTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
-/// Specifies an elastic inference accelerator.
+/// Specifies the tags to apply to a resource when the resource is created for the launch template.
 ///
-///  ``LaunchTemplateElasticInferenceAccelerator`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
-open class LaunchTemplateLaunchTemplateElasticInferenceAccelerator {
-    Type: (String|Mapping)?
-    Count: (Int|Mapping)?
+///  ``TagSpecification`` is a property type of [TagSpecifications](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html#cfn-ec2-launchtemplate-launchtemplatedata-tagspecifications). [TagSpecifications](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html#cfn-ec2-launchtemplate-launchtemplatedata-tagspecifications) is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
+open class LaunchTemplateTagSpecification {
+    ResourceType: (String|Mapping)?
+    Tags: (Listing<LaunchTemplateTag>)?
 }
 
-/// The minimum and maximum amount of memory, in MiB.
-open class LaunchTemplateMemoryMiB {
-    Max: (Int|Mapping)?
-    Min: (Int|Mapping)?
+/// The minimum and maximum amount of total local storage, in GB.
+open class LaunchTemplateTotalLocalStorageGB {
+    Max: (Number|Mapping)?
+    Min: (Number|Mapping)?
 }
 
 /// The minimum and maximum number of vCPUs.
 open class LaunchTemplateVCpuCount {
-    Min: (Int|Mapping)?
     Max: (Int|Mapping)?
-}
-
-/// Specifies an IPv6 prefix for a network interface.
-///
-///  ``Ipv6PrefixSpecification`` is a property of [AWS::EC2::LaunchTemplate NetworkInterface](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html).
-open class LaunchTemplateIpv6PrefixSpecification {
-    Ipv6Prefix: (String|Mapping)?
-}
-
-/// Specifies a license configuration for an instance.
-///
-///  ``LicenseSpecification`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).
-open class LaunchTemplateLicenseSpecification {
-    LicenseConfigurationArn: (String|Mapping)?
+    Min: (Int|Mapping)?
 }
 
 /// Specifies the properties for creating a launch template.

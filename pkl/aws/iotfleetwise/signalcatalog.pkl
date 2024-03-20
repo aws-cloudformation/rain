@@ -6,15 +6,41 @@ module aws.iotfleetwise.signalcatalog
 import "../../cloudformation.pkl"
 
 /// 
-open class SignalCatalogSensor {
-    FullyQualifiedName: String|Mapping
+open class SignalCatalogActuator {
+    AllowedValues: (SignalCatalogAllowedValues)?
+    AssignedValue: (String|Mapping)?
     DataType: SignalCatalogNodeDataType
     Description: (String(matches(Regex(#"^[^\u0000-\u001F\u007F]+$"#)))|Mapping)?
-    Unit: (String|Mapping)?
-    AllowedValues: (SignalCatalogAllowedValues)?
-    Min: (Number|Mapping)?
+    FullyQualifiedName: String|Mapping
     Max: (Number|Mapping)?
+    Min: (Number|Mapping)?
+    Unit: (String|Mapping)?
 }
+
+typealias SignalCatalogAllowedValues = Listing<(String|Mapping)?>
+
+
+/// 
+open class SignalCatalogAttribute {
+    AllowedValues: (SignalCatalogAllowedValues)?
+    AssignedValue: (String|Mapping)?
+    DataType: SignalCatalogNodeDataType
+    DefaultValue: (String|Mapping)?
+    Description: (String(matches(Regex(#"^[^\u0000-\u001F\u007F]+$"#)))|Mapping)?
+    FullyQualifiedName: String|Mapping
+    Max: (Number|Mapping)?
+    Min: (Number|Mapping)?
+    Unit: (String|Mapping)?
+}
+
+/// 
+open class SignalCatalogBranch {
+    Description: (String(matches(Regex(#"^[^\u0000-\u001F\u007F]+$"#)))|Mapping)?
+    FullyQualifiedName: String|Mapping
+}
+
+typealias SignalCatalogNode = SignalCatalogNodeBranch|SignalCatalogNodeSensor|SignalCatalogNodeActuator|SignalCatalogNodeAttribute
+
 
 /// 
 open class SignalCatalogNodeActuator {
@@ -27,17 +53,21 @@ open class SignalCatalogNodeAttribute {
 }
 
 /// 
-open class SignalCatalogAttribute {
-    Description: (String(matches(Regex(#"^[^\u0000-\u001F\u007F]+$"#)))|Mapping)?
-    Unit: (String|Mapping)?
-    AllowedValues: (SignalCatalogAllowedValues)?
-    Min: (Number|Mapping)?
-    DefaultValue: (String|Mapping)?
-    FullyQualifiedName: String|Mapping
-    DataType: SignalCatalogNodeDataType
-    Max: (Number|Mapping)?
-    AssignedValue: (String|Mapping)?
+open class SignalCatalogNodeBranch {
+    Branch: (SignalCatalogBranch)?
 }
+
+/// 
+open class SignalCatalogNodeCounts {
+    TotalActuators: (Number|Mapping)?
+    TotalAttributes: (Number|Mapping)?
+    TotalBranches: (Number|Mapping)?
+    TotalNodes: (Number|Mapping)?
+    TotalSensors: (Number|Mapping)?
+}
+
+typealias SignalCatalogNodeDataType = String|Mapping
+
 
 /// 
 open class SignalCatalogNodeSensor {
@@ -45,50 +75,20 @@ open class SignalCatalogNodeSensor {
 }
 
 /// 
-open class SignalCatalogBranch {
-    FullyQualifiedName: String|Mapping
+open class SignalCatalogSensor {
+    AllowedValues: (SignalCatalogAllowedValues)?
+    DataType: SignalCatalogNodeDataType
     Description: (String(matches(Regex(#"^[^\u0000-\u001F\u007F]+$"#)))|Mapping)?
+    FullyQualifiedName: String|Mapping
+    Max: (Number|Mapping)?
+    Min: (Number|Mapping)?
+    Unit: (String|Mapping)?
 }
 
 /// 
 open class SignalCatalogTag {
     Key: String|Mapping
     Value: String|Mapping
-}
-
-/// 
-open class SignalCatalogActuator {
-    FullyQualifiedName: String|Mapping
-    DataType: SignalCatalogNodeDataType
-    Description: (String(matches(Regex(#"^[^\u0000-\u001F\u007F]+$"#)))|Mapping)?
-    Unit: (String|Mapping)?
-    AllowedValues: (SignalCatalogAllowedValues)?
-    Min: (Number|Mapping)?
-    Max: (Number|Mapping)?
-    AssignedValue: (String|Mapping)?
-}
-
-typealias SignalCatalogAllowedValues = Listing<(String|Mapping)?>
-
-
-/// 
-open class SignalCatalogNodeCounts {
-    TotalSensors: (Number|Mapping)?
-    TotalAttributes: (Number|Mapping)?
-    TotalActuators: (Number|Mapping)?
-    TotalNodes: (Number|Mapping)?
-    TotalBranches: (Number|Mapping)?
-}
-
-typealias SignalCatalogNodeDataType = String|Mapping
-
-
-typealias SignalCatalogNode = SignalCatalogNodeBranch|SignalCatalogNodeSensor|SignalCatalogNodeActuator|SignalCatalogNodeAttribute
-
-
-/// 
-open class SignalCatalogNodeBranch {
-    Branch: (SignalCatalogBranch)?
 }
 
 /// Definition of AWS::IoTFleetWise::SignalCatalog Resource Type

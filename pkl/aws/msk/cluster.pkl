@@ -6,27 +6,86 @@ module aws.msk.cluster
 import "../../cloudformation.pkl"
 
 /// 
-open class ClusterEBSStorageInfo {
-    VolumeSize: (Int|Mapping)?
-    ProvisionedThroughput: (ClusterProvisionedThroughput)?
+open class ClusterBrokerLogs {
+    CloudWatchLogs: (ClusterCloudWatchLogs)?
+    Firehose: (ClusterFirehose)?
+    S3: (ClusterS3)?
 }
 
 /// 
-open class ClusterS3 {
+open class ClusterBrokerNodeGroupInfo {
+    BrokerAZDistribution: (String|Mapping)?
+    ClientSubnets: Listing<String|Mapping>
+    ConnectivityInfo: (ClusterConnectivityInfo)?
+    InstanceType: String|Mapping
+    SecurityGroups: (Listing<String|Mapping>)?
+    StorageInfo: (ClusterStorageInfo)?
+}
+
+/// 
+open class ClusterClientAuthentication {
+    Sasl: (ClusterSasl)?
+    Tls: (ClusterTls)?
+    Unauthenticated: (ClusterUnauthenticated)?
+}
+
+/// 
+open class ClusterCloudWatchLogs {
     Enabled: Boolean|Mapping
-    Prefix: (String|Mapping)?
-    Bucket: (String|Mapping)?
+    LogGroup: (String|Mapping)?
 }
 
 /// 
-open class ClusterStorageInfo {
-    EBSStorageInfo: (ClusterEBSStorageInfo)?
+open class ClusterConfigurationInfo {
+    Arn: String|Mapping
+    Revision: Int|Mapping
+}
+
+/// 
+open class ClusterConnectivityInfo {
+    PublicAccess: (ClusterPublicAccess)?
+    VpcConnectivity: (ClusterVpcConnectivity)?
+}
+
+/// 
+open class ClusterEBSStorageInfo {
+    ProvisionedThroughput: (ClusterProvisionedThroughput)?
+    VolumeSize: (Int|Mapping)?
+}
+
+/// 
+open class ClusterEncryptionAtRest {
+    DataVolumeKMSKeyId: String|Mapping
+}
+
+typealias EncryptionInTransitClientBroker = "TLS"|"TLS_PLAINTEXT"|"PLAINTEXT"
+
+/// 
+open class ClusterEncryptionInTransit {
+    ClientBroker: (EncryptionInTransitClientBroker|Mapping)?
+    InCluster: (Boolean|Mapping)?
 }
 
 /// 
 open class ClusterEncryptionInfo {
-    EncryptionInTransit: (ClusterEncryptionInTransit)?
     EncryptionAtRest: (ClusterEncryptionAtRest)?
+    EncryptionInTransit: (ClusterEncryptionInTransit)?
+}
+
+/// 
+open class ClusterFirehose {
+    DeliveryStream: (String|Mapping)?
+    Enabled: Boolean|Mapping
+}
+
+/// 
+open class ClusterIam {
+    Enabled: Boolean|Mapping
+}
+
+/// 
+open class ClusterJmxExporter {
+    EnabledInBroker: Boolean|Mapping
 }
 
 /// 
@@ -35,48 +94,8 @@ open class ClusterLoggingInfo {
 }
 
 /// 
-open class ClusterTls {
-    CertificateAuthorityArnList: (Listing<String|Mapping>)?
-    Enabled: (Boolean|Mapping)?
-}
-
-/// 
-open class ClusterVpcConnectivityScram {
-    Enabled: Boolean|Mapping
-}
-
-/// 
-open class ClusterBrokerNodeGroupInfo {
-    SecurityGroups: (Listing<String|Mapping>)?
-    BrokerAZDistribution: (String|Mapping)?
-    ClientSubnets: Listing<String|Mapping>
-    InstanceType: String|Mapping
-    StorageInfo: (ClusterStorageInfo)?
-    ConnectivityInfo: (ClusterConnectivityInfo)?
-}
-
-/// 
-open class ClusterProvisionedThroughput {
-    Enabled: (Boolean|Mapping)?
-    VolumeThroughput: (Int|Mapping)?
-}
-
-/// 
-open class ClusterVpcConnectivitySasl {
-    Scram: (ClusterVpcConnectivityScram)?
-    Iam: (ClusterVpcConnectivityIam)?
-}
-
-/// 
-open class ClusterVpcConnectivityTls {
-    Enabled: Boolean|Mapping
-}
-
-/// 
-open class ClusterClientAuthentication {
-    Tls: (ClusterTls)?
-    Sasl: (ClusterSasl)?
-    Unauthenticated: (ClusterUnauthenticated)?
+open class ClusterNodeExporter {
+    EnabledInBroker: Boolean|Mapping
 }
 
 /// 
@@ -91,48 +110,47 @@ open class ClusterPrometheus {
 }
 
 /// 
-open class ClusterVpcConnectivityClientAuthentication {
-    Tls: (ClusterVpcConnectivityTls)?
-    Sasl: (ClusterVpcConnectivitySasl)?
+open class ClusterProvisionedThroughput {
+    Enabled: (Boolean|Mapping)?
+    VolumeThroughput: (Int|Mapping)?
 }
 
 /// 
-open class ClusterUnauthenticated {
+open class ClusterPublicAccess {
+    Type: (String|Mapping)?
+}
+
+/// 
+open class ClusterS3 {
+    Bucket: (String|Mapping)?
     Enabled: Boolean|Mapping
-}
-
-/// 
-open class ClusterBrokerLogs {
-    S3: (ClusterS3)?
-    CloudWatchLogs: (ClusterCloudWatchLogs)?
-    Firehose: (ClusterFirehose)?
-}
-
-/// 
-open class ClusterConfigurationInfo {
-    Revision: Int|Mapping
-    Arn: String|Mapping
-}
-
-/// 
-open class ClusterFirehose {
-    Enabled: Boolean|Mapping
-    DeliveryStream: (String|Mapping)?
-}
-
-/// 
-open class ClusterIam {
-    Enabled: Boolean|Mapping
+    Prefix: (String|Mapping)?
 }
 
 /// 
 open class ClusterSasl {
-    Scram: (ClusterScram)?
     Iam: (ClusterIam)?
+    Scram: (ClusterScram)?
 }
 
 /// 
 open class ClusterScram {
+    Enabled: Boolean|Mapping
+}
+
+/// 
+open class ClusterStorageInfo {
+    EBSStorageInfo: (ClusterEBSStorageInfo)?
+}
+
+/// 
+open class ClusterTls {
+    CertificateAuthorityArnList: (Listing<String|Mapping>)?
+    Enabled: (Boolean|Mapping)?
+}
+
+/// 
+open class ClusterUnauthenticated {
     Enabled: Boolean|Mapping
 }
 
@@ -142,48 +160,30 @@ open class ClusterVpcConnectivity {
 }
 
 /// 
+open class ClusterVpcConnectivityClientAuthentication {
+    Sasl: (ClusterVpcConnectivitySasl)?
+    Tls: (ClusterVpcConnectivityTls)?
+}
+
+/// 
 open class ClusterVpcConnectivityIam {
     Enabled: Boolean|Mapping
 }
 
 /// 
-open class ClusterConnectivityInfo {
-    VpcConnectivity: (ClusterVpcConnectivity)?
-    PublicAccess: (ClusterPublicAccess)?
+open class ClusterVpcConnectivitySasl {
+    Iam: (ClusterVpcConnectivityIam)?
+    Scram: (ClusterVpcConnectivityScram)?
 }
 
 /// 
-open class ClusterPublicAccess {
-    Type: (String|Mapping)?
-}
-
-/// 
-open class ClusterNodeExporter {
-    EnabledInBroker: Boolean|Mapping
-}
-
-/// 
-open class ClusterCloudWatchLogs {
-    LogGroup: (String|Mapping)?
+open class ClusterVpcConnectivityScram {
     Enabled: Boolean|Mapping
 }
 
 /// 
-open class ClusterEncryptionAtRest {
-    DataVolumeKMSKeyId: String|Mapping
-}
-
-typealias EncryptionInTransitClientBroker = "TLS"|"TLS_PLAINTEXT"|"PLAINTEXT"
-
-/// 
-open class ClusterEncryptionInTransit {
-    InCluster: (Boolean|Mapping)?
-    ClientBroker: (EncryptionInTransitClientBroker|Mapping)?
-}
-
-/// 
-open class ClusterJmxExporter {
-    EnabledInBroker: Boolean|Mapping
+open class ClusterVpcConnectivityTls {
+    Enabled: Boolean|Mapping
 }
 
 /// Resource Type definition for AWS::MSK::Cluster

@@ -5,53 +5,43 @@ module aws.customerprofiles.domain
 
 import "../../cloudformation.pkl"
 
+typealias AttributeTypesSelectorAttributeMatchingModel = "ONE_TO_ONE"|"MANY_TO_MANY"
+
+/// Configures information about the AttributeTypesSelector where the rule-based identity resolution uses to match profiles.
+open class DomainAttributeTypesSelector {
+    Address: (Listing<String|Mapping>)?
+    AttributeMatchingModel: AttributeTypesSelectorAttributeMatchingModel|Mapping
+    EmailAddress: (Listing<String|Mapping>)?
+    PhoneNumber: (Listing<String|Mapping>)?
+}
+
 /// Configuration information about the auto-merging process.
 open class DomainAutoMerging {
-    MinAllowedConfidenceScoreForMerging: (Number|Mapping)?
-    Enabled: Boolean|Mapping
     ConflictResolution: (DomainConflictResolution)?
     Consolidation: (DomainConsolidation)?
-}
-
-typealias DomainMatchingAttributes = Listing<(String|Mapping)?>
-
-
-typealias RuleBasedMatchingStatus = "PENDING"|"IN_PROGRESS"|"ACTIVE"
-
-/// The process of matching duplicate profiles using the Rule-Based matching. If RuleBasedMatching = true, Amazon Connect Customer Profiles will start to match and merge your profiles according to your configuration in the RuleBasedMatchingRequest. You can use the ListRuleBasedMatches and GetSimilarProfiles API to return and review the results. Also, if you have configured ExportingConfig in the RuleBasedMatchingRequest, you can download the results from S3.
-open class DomainRuleBasedMatching {
-    MaxAllowedRuleLevelForMerging: (Int|Mapping)?
-    Status: (RuleBasedMatchingStatus|Mapping)?
     Enabled: Boolean|Mapping
-    AttributeTypesSelector: (DomainAttributeTypesSelector)?
-    ConflictResolution: (DomainConflictResolution)?
-    ExportingConfig: (DomainExportingConfig)?
-    MatchingRules: (Listing<DomainMatchingRule>)?
-    MaxAllowedRuleLevelForMatching: (Int|Mapping)?
+    MinAllowedConfidenceScoreForMerging: (Number|Mapping)?
 }
 
-/// Usage-specific statistics about the domain.
-open class DomainDomainStats {
-    ProfileCount: (Number|Mapping)?
-    TotalSize: (Number|Mapping)?
-    MeteringProfileCount: (Number|Mapping)?
-    ObjectCount: (Number|Mapping)?
-}
+typealias ConflictResolutionConflictResolvingModel = "RECENCY"|"SOURCE"
 
-/// Specifies how does the rule-based matching process should match profiles.
-open class DomainMatchingRule {
-    Rule: DomainMatchingRuleAttributeList
-}
-
-/// 
-open class DomainTag {
-    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
-    Value: String|Mapping
+/// How the auto-merging process should resolve conflicts between different profiles. For example, if Profile A and Profile B have the same FirstName and LastName (and that is the matching criteria), which EmailAddress should be used? 
+open class DomainConflictResolution {
+    ConflictResolvingModel: ConflictResolutionConflictResolvingModel|Mapping
+    SourceName: (String|Mapping)?
 }
 
 /// A list of matching attributes that represent matching criteria. If two profiles meet at least one of the requirements in the matching attributes list, they will be merged.
 open class DomainConsolidation {
     MatchingAttributesList: Listing<DomainMatchingAttributes>
+}
+
+/// Usage-specific statistics about the domain.
+open class DomainDomainStats {
+    MeteringProfileCount: (Number|Mapping)?
+    ObjectCount: (Number|Mapping)?
+    ProfileCount: (Number|Mapping)?
+    TotalSize: (Number|Mapping)?
 }
 
 /// Configuration information for exporting Identity Resolution results, for example, to an S3 bucket.
@@ -69,37 +59,47 @@ open class DomainJobSchedule {
 
 /// The process of matching duplicate profiles. If Matching = true, Amazon Connect Customer Profiles starts a weekly batch process called Identity Resolution Job. If you do not specify a date and time for Identity Resolution Job to run, by default it runs every Saturday at 12AM UTC to detect duplicate profiles in your domains. After the Identity Resolution Job completes, use the GetMatches API to return and review the results. Or, if you have configured ExportingConfig in the MatchingRequest, you can download the results from S3.
 open class DomainMatching {
-    Enabled: Boolean|Mapping
     AutoMerging: (DomainAutoMerging)?
+    Enabled: Boolean|Mapping
     ExportingConfig: (DomainExportingConfig)?
     JobSchedule: (DomainJobSchedule)?
 }
 
-typealias AttributeTypesSelectorAttributeMatchingModel = "ONE_TO_ONE"|"MANY_TO_MANY"
+typealias DomainMatchingAttributes = Listing<(String|Mapping)?>
 
-/// Configures information about the AttributeTypesSelector where the rule-based identity resolution uses to match profiles.
-open class DomainAttributeTypesSelector {
-    AttributeMatchingModel: AttributeTypesSelectorAttributeMatchingModel|Mapping
-    Address: (Listing<String|Mapping>)?
-    EmailAddress: (Listing<String|Mapping>)?
-    PhoneNumber: (Listing<String|Mapping>)?
-}
 
-typealias ConflictResolutionConflictResolvingModel = "RECENCY"|"SOURCE"
-
-/// How the auto-merging process should resolve conflicts between different profiles. For example, if Profile A and Profile B have the same FirstName and LastName (and that is the matching criteria), which EmailAddress should be used? 
-open class DomainConflictResolution {
-    ConflictResolvingModel: ConflictResolutionConflictResolvingModel|Mapping
-    SourceName: (String|Mapping)?
+/// Specifies how does the rule-based matching process should match profiles.
+open class DomainMatchingRule {
+    Rule: DomainMatchingRuleAttributeList
 }
 
 typealias DomainMatchingRuleAttributeList = Listing<(String|Mapping)?>
 
 
+typealias RuleBasedMatchingStatus = "PENDING"|"IN_PROGRESS"|"ACTIVE"
+
+/// The process of matching duplicate profiles using the Rule-Based matching. If RuleBasedMatching = true, Amazon Connect Customer Profiles will start to match and merge your profiles according to your configuration in the RuleBasedMatchingRequest. You can use the ListRuleBasedMatches and GetSimilarProfiles API to return and review the results. Also, if you have configured ExportingConfig in the RuleBasedMatchingRequest, you can download the results from S3.
+open class DomainRuleBasedMatching {
+    AttributeTypesSelector: (DomainAttributeTypesSelector)?
+    ConflictResolution: (DomainConflictResolution)?
+    Enabled: Boolean|Mapping
+    ExportingConfig: (DomainExportingConfig)?
+    MatchingRules: (Listing<DomainMatchingRule>)?
+    MaxAllowedRuleLevelForMatching: (Int|Mapping)?
+    MaxAllowedRuleLevelForMerging: (Int|Mapping)?
+    Status: (RuleBasedMatchingStatus|Mapping)?
+}
+
 /// The S3 location where Identity Resolution Jobs write result files.
 open class DomainS3ExportingConfig {
     S3BucketName: String(matches(Regex(#"^[a-z0-9.-]+$"#)))|Mapping
     S3KeyName: (String(matches(Regex(#".*"#)))|Mapping)?
+}
+
+/// 
+open class DomainTag {
+    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
+    Value: String|Mapping
 }
 
 /// A domain defined for 3rd party data source in Profile Service

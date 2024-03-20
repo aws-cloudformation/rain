@@ -5,6 +5,18 @@ module aws.ivschat.loggingconfiguration
 
 import "../../cloudformation.pkl"
 
+/// CloudWatch destination configuration for IVS Chat logging.
+open class LoggingConfigurationCloudWatchLogsDestinationConfiguration {
+    LogGroupName: String(matches(Regex(#"^[\.\-_/#A-Za-z0-9]+$"#)))|Mapping
+}
+
+/// Destination configuration for IVS Chat logging.
+open class LoggingConfigurationDestinationConfiguration {
+    CloudWatchLogs: (LoggingConfigurationCloudWatchLogsDestinationConfiguration)?
+    Firehose: (LoggingConfigurationFirehoseDestinationConfiguration)?
+    S3: (LoggingConfigurationS3DestinationConfiguration)?
+}
+
 /// Kinesis Firehose destination configuration for IVS Chat logging.
 open class LoggingConfigurationFirehoseDestinationConfiguration {
     DeliveryStreamName: String(matches(Regex(#"^[a-zA-Z0-9_.-]+$"#)))|Mapping
@@ -19,18 +31,6 @@ open class LoggingConfigurationS3DestinationConfiguration {
 open class LoggingConfigurationTag {
     Key: String|Mapping
     Value: String|Mapping
-}
-
-/// CloudWatch destination configuration for IVS Chat logging.
-open class LoggingConfigurationCloudWatchLogsDestinationConfiguration {
-    LogGroupName: String(matches(Regex(#"^[\.\-_/#A-Za-z0-9]+$"#)))|Mapping
-}
-
-/// Destination configuration for IVS Chat logging.
-open class LoggingConfigurationDestinationConfiguration {
-    S3: (LoggingConfigurationS3DestinationConfiguration)?
-    CloudWatchLogs: (LoggingConfigurationCloudWatchLogsDestinationConfiguration)?
-    Firehose: (LoggingConfigurationFirehoseDestinationConfiguration)?
 }
 
 /// Resource type definition for AWS::IVSChat::LoggingConfiguration.

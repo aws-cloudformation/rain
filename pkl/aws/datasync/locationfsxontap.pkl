@@ -5,6 +5,11 @@ module aws.datasync.locationfsxontap
 
 import "../../cloudformation.pkl"
 
+/// NFS protocol configuration for FSx ONTAP file system.
+open class LocationFSxONTAPNFS {
+    MountOptions: LocationFSxONTAPNfsMountOptions
+}
+
 typealias NfsMountOptionsVersion = "AUTOMATIC"|"NFS3"|"NFS4_0"|"NFS4_1"
 
 /// The NFS mount options that DataSync can use to mount your NFS share.
@@ -14,14 +19,14 @@ open class LocationFSxONTAPNfsMountOptions {
 
 /// Configuration settings for NFS or SMB protocol.
 open class LocationFSxONTAPProtocol {
-    SMB: (LocationFSxONTAPSMB)?
     NFS: (LocationFSxONTAPNFS)?
+    SMB: (LocationFSxONTAPSMB)?
 }
 
 /// SMB protocol configuration for FSx ONTAP file system.
 open class LocationFSxONTAPSMB {
-    MountOptions: LocationFSxONTAPSmbMountOptions
     Domain: (String(matches(Regex(#"^([A-Za-z0-9]+[A-Za-z0-9-.]*)*[A-Za-z0-9-]*[A-Za-z0-9]$"#)))|Mapping)?
+    MountOptions: LocationFSxONTAPSmbMountOptions
     Password: String(matches(Regex(#"^.{0,104}$"#)))|Mapping
     User: String(matches(Regex(#"^[^\x5B\x5D\\/:;|=,+*?]{1,104}$"#)))|Mapping
 }
@@ -37,11 +42,6 @@ open class LocationFSxONTAPSmbMountOptions {
 open class LocationFSxONTAPTag {
     Key: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:/-]+$"#)))|Mapping
     Value: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:@/-]+$"#)))|Mapping
-}
-
-/// NFS protocol configuration for FSx ONTAP file system.
-open class LocationFSxONTAPNFS {
-    MountOptions: LocationFSxONTAPNfsMountOptions
 }
 
 /// Resource schema for AWS::DataSync::LocationFSxONTAP.

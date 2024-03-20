@@ -6,107 +6,18 @@ module aws.iotanalytics.dataset
 import "../../cloudformation.pkl"
 
 /// 
-open class DatasetVersioningConfiguration {
-    Unlimited: (Boolean|Mapping)?
-    MaxVersions: (Int|Mapping)?
-}
-
-/// 
-open class DatasetDatasetContentDeliveryRuleDestination {
-    S3DestinationConfiguration: (DatasetS3DestinationConfiguration)?
-    IotEventsDestinationConfiguration: (DatasetIotEventsDestinationConfiguration)?
-}
-
-/// 
-open class DatasetLateDataRule {
-    RuleConfiguration: DatasetLateDataRuleConfiguration
-    RuleName: (String(matches(Regex(#"^[a-zA-Z0-9_]+$"#)))|Mapping)?
-}
-
-/// 
-open class DatasetQueryAction {
-    Filters: (Listing<DatasetFilter>)?
-    SqlQuery: String|Mapping
-}
-
-/// 
-open class DatasetTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// 
-open class DatasetTrigger {
-    TriggeringDataset: (DatasetTriggeringDataset)?
-    Schedule: (DatasetSchedule)?
-}
-
-/// 
-open class DatasetRetentionPeriod {
-    Unlimited: (Boolean|Mapping)?
-    NumberOfDays: (Int|Mapping)?
-}
-
-/// 
-open class DatasetTriggeringDataset {
-    DatasetName: String(matches(Regex(#"(^(?!_{2}))(^[a-zA-Z0-9_]+$)"#)))|Mapping
-}
-
-/// 
-open class DatasetContainerAction {
-    Variables: (Listing<DatasetVariable>)?
-    ExecutionRoleArn: String|Mapping
-    Image: String|Mapping
-    ResourceConfiguration: DatasetResourceConfiguration
-}
-
-/// 
-open class DatasetDatasetContentVersionValue {
-    DatasetName: String(matches(Regex(#"(^(?!_{2}))(^[a-zA-Z0-9_]+$)"#)))|Mapping
-}
-
-/// 
-open class DatasetFilter {
-    DeltaTime: (DatasetDeltaTime)?
-}
-
-/// 
-open class DatasetLateDataRuleConfiguration {
-    DeltaTimeSessionWindowConfiguration: (DatasetDeltaTimeSessionWindowConfiguration)?
-}
-
-/// 
-open class DatasetOutputFileUriValue {
-    FileName: String(matches(Regex(#"^[\w\.-]{1,255}$"#)))|Mapping
-}
-
-/// 
-open class DatasetS3DestinationConfiguration {
-    GlueConfiguration: (DatasetGlueConfiguration)?
-    Bucket: String(matches(Regex(#"^[a-zA-Z0-9.\-_]*$"#)))|Mapping
-    Key: String(matches(Regex(#"^[a-zA-Z0-9!_.*'()/{}:-]*$"#)))|Mapping
-    RoleArn: String|Mapping
-}
-
-/// 
-open class DatasetSchedule {
-    ScheduleExpression: String|Mapping
-}
-
-/// 
-open class DatasetVariable {
-    VariableName: String|Mapping
-    DatasetContentVersionValue: (DatasetDatasetContentVersionValue)?
-    StringValue: (String|Mapping)?
-    DoubleValue: (Number|Mapping)?
-    OutputFileUriValue: (DatasetOutputFileUriValue)?
-}
-
-/// 
 open class DatasetAction {
     ActionName: String(matches(Regex(#"^[a-zA-Z0-9_]+$"#)))|Mapping
     ContainerAction: (DatasetContainerAction)?
     QueryAction: (DatasetQueryAction)?
+}
+
+/// 
+open class DatasetContainerAction {
+    ExecutionRoleArn: String|Mapping
+    Image: String|Mapping
+    ResourceConfiguration: DatasetResourceConfiguration
+    Variables: (Listing<DatasetVariable>)?
 }
 
 /// 
@@ -116,9 +27,30 @@ open class DatasetDatasetContentDeliveryRule {
 }
 
 /// 
+open class DatasetDatasetContentDeliveryRuleDestination {
+    IotEventsDestinationConfiguration: (DatasetIotEventsDestinationConfiguration)?
+    S3DestinationConfiguration: (DatasetS3DestinationConfiguration)?
+}
+
+/// 
+open class DatasetDatasetContentVersionValue {
+    DatasetName: String(matches(Regex(#"(^(?!_{2}))(^[a-zA-Z0-9_]+$)"#)))|Mapping
+}
+
+/// 
 open class DatasetDeltaTime {
-    TimeExpression: String|Mapping
     OffsetSeconds: Int|Mapping
+    TimeExpression: String|Mapping
+}
+
+/// 
+open class DatasetDeltaTimeSessionWindowConfiguration {
+    TimeoutInMinutes: Int|Mapping
+}
+
+/// 
+open class DatasetFilter {
+    DeltaTime: (DatasetDeltaTime)?
 }
 
 /// 
@@ -134,16 +66,84 @@ open class DatasetIotEventsDestinationConfiguration {
 }
 
 /// 
-open class DatasetDeltaTimeSessionWindowConfiguration {
-    TimeoutInMinutes: Int|Mapping
+open class DatasetLateDataRule {
+    RuleConfiguration: DatasetLateDataRuleConfiguration
+    RuleName: (String(matches(Regex(#"^[a-zA-Z0-9_]+$"#)))|Mapping)?
+}
+
+/// 
+open class DatasetLateDataRuleConfiguration {
+    DeltaTimeSessionWindowConfiguration: (DatasetDeltaTimeSessionWindowConfiguration)?
+}
+
+/// 
+open class DatasetOutputFileUriValue {
+    FileName: String(matches(Regex(#"^[\w\.-]{1,255}$"#)))|Mapping
+}
+
+/// 
+open class DatasetQueryAction {
+    Filters: (Listing<DatasetFilter>)?
+    SqlQuery: String|Mapping
 }
 
 typealias ResourceConfigurationComputeType = "ACU_1"|"ACU_2"
 
 /// 
 open class DatasetResourceConfiguration {
-    VolumeSizeInGB: Int|Mapping
     ComputeType: ResourceConfigurationComputeType|Mapping
+    VolumeSizeInGB: Int|Mapping
+}
+
+/// 
+open class DatasetRetentionPeriod {
+    NumberOfDays: (Int|Mapping)?
+    Unlimited: (Boolean|Mapping)?
+}
+
+/// 
+open class DatasetS3DestinationConfiguration {
+    Bucket: String(matches(Regex(#"^[a-zA-Z0-9.\-_]*$"#)))|Mapping
+    GlueConfiguration: (DatasetGlueConfiguration)?
+    Key: String(matches(Regex(#"^[a-zA-Z0-9!_.*'()/{}:-]*$"#)))|Mapping
+    RoleArn: String|Mapping
+}
+
+/// 
+open class DatasetSchedule {
+    ScheduleExpression: String|Mapping
+}
+
+/// 
+open class DatasetTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class DatasetTrigger {
+    Schedule: (DatasetSchedule)?
+    TriggeringDataset: (DatasetTriggeringDataset)?
+}
+
+/// 
+open class DatasetTriggeringDataset {
+    DatasetName: String(matches(Regex(#"(^(?!_{2}))(^[a-zA-Z0-9_]+$)"#)))|Mapping
+}
+
+/// 
+open class DatasetVariable {
+    DatasetContentVersionValue: (DatasetDatasetContentVersionValue)?
+    DoubleValue: (Number|Mapping)?
+    OutputFileUriValue: (DatasetOutputFileUriValue)?
+    StringValue: (String|Mapping)?
+    VariableName: String|Mapping
+}
+
+/// 
+open class DatasetVersioningConfiguration {
+    MaxVersions: (Int|Mapping)?
+    Unlimited: (Boolean|Mapping)?
 }
 
 /// Resource Type definition for AWS::IoTAnalytics::Dataset

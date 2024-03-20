@@ -6,8 +6,75 @@ module aws.greengrassv2.deployment
 import "../../cloudformation.pkl"
 
 /// 
+open class DeploymentComponentConfigurationUpdate {
+    Merge: (String|Mapping)?
+    Reset: (Listing<String|Mapping>)?
+}
+
+/// 
+open class DeploymentComponentDeploymentSpecification {
+    ComponentVersion: (String|Mapping)?
+    ConfigurationUpdate: (DeploymentComponentConfigurationUpdate)?
+    RunWith: (DeploymentComponentRunWith)?
+}
+
+/// 
+open class DeploymentComponentRunWith {
+    PosixUser: (String|Mapping)?
+    SystemResourceLimits: (DeploymentSystemResourceLimits)?
+    WindowsUser: (String|Mapping)?
+}
+
+typealias DeploymentComponentUpdatePolicyAction = "NOTIFY_COMPONENTS"|"SKIP_NOTIFY_COMPONENTS"
+
+/// 
+open class DeploymentDeploymentComponentUpdatePolicy {
+    Action: (DeploymentComponentUpdatePolicyAction|Mapping)?
+    TimeoutInSeconds: (Int|Mapping)?
+}
+
+/// 
+open class DeploymentDeploymentConfigurationValidationPolicy {
+    TimeoutInSeconds: (Int|Mapping)?
+}
+
+/// 
+open class DeploymentDeploymentIoTJobConfiguration {
+    AbortConfig: (DeploymentIoTJobAbortConfig)?
+    JobExecutionsRolloutConfig: (DeploymentIoTJobExecutionsRolloutConfig)?
+    TimeoutConfig: (DeploymentIoTJobTimeoutConfig)?
+}
+
+typealias DeploymentPoliciesFailureHandlingPolicy = "ROLLBACK"|"DO_NOTHING"
+
+/// 
+open class DeploymentDeploymentPolicies {
+    ComponentUpdatePolicy: (DeploymentDeploymentComponentUpdatePolicy)?
+    ConfigurationValidationPolicy: (DeploymentDeploymentConfigurationValidationPolicy)?
+    FailureHandlingPolicy: (DeploymentPoliciesFailureHandlingPolicy|Mapping)?
+}
+
+/// 
 open class DeploymentIoTJobAbortConfig {
     CriteriaList: Listing<DeploymentIoTJobAbortCriteria>
+}
+
+typealias IoTJobAbortCriteriaAction = "CANCEL"
+
+typealias IoTJobAbortCriteriaFailureType = "FAILED"|"REJECTED"|"TIMED_OUT"|"ALL"
+
+/// 
+open class DeploymentIoTJobAbortCriteria {
+    Action: IoTJobAbortCriteriaAction|Mapping
+    FailureType: IoTJobAbortCriteriaFailureType|Mapping
+    MinNumberOfExecutedThings: Int|Mapping
+    ThresholdPercentage: Number|Mapping
+}
+
+/// 
+open class DeploymentIoTJobExecutionsRolloutConfig {
+    ExponentialRate: (DeploymentIoTJobExponentialRolloutRate)?
+    MaximumPerMinute: (Int|Mapping)?
 }
 
 /// 
@@ -21,84 +88,17 @@ typealias DeploymentIoTJobRateIncreaseCriteria = Dynamic
 
 
 /// 
-open class DeploymentDeploymentIoTJobConfiguration {
-    JobExecutionsRolloutConfig: (DeploymentIoTJobExecutionsRolloutConfig)?
-    AbortConfig: (DeploymentIoTJobAbortConfig)?
-    TimeoutConfig: (DeploymentIoTJobTimeoutConfig)?
-}
-
-typealias IoTJobAbortCriteriaFailureType = "FAILED"|"REJECTED"|"TIMED_OUT"|"ALL"
-
-typealias IoTJobAbortCriteriaAction = "CANCEL"
-
-/// 
-open class DeploymentIoTJobAbortCriteria {
-    FailureType: IoTJobAbortCriteriaFailureType|Mapping
-    Action: IoTJobAbortCriteriaAction|Mapping
-    ThresholdPercentage: Number|Mapping
-    MinNumberOfExecutedThings: Int|Mapping
-}
-
-/// 
-open class DeploymentSystemResourceLimits {
-    Memory: (Int|Mapping)?
-    Cpus: (Number|Mapping)?
-}
-
-/// 
-open class DeploymentComponentConfigurationUpdate {
-    Reset: (Listing<String|Mapping>)?
-    Merge: (String|Mapping)?
-}
-
-/// 
-open class DeploymentComponentDeploymentSpecification {
-    ComponentVersion: (String|Mapping)?
-    ConfigurationUpdate: (DeploymentComponentConfigurationUpdate)?
-    RunWith: (DeploymentComponentRunWith)?
-}
-
-typealias DeploymentComponentUpdatePolicyAction = "NOTIFY_COMPONENTS"|"SKIP_NOTIFY_COMPONENTS"
-
-/// 
-open class DeploymentDeploymentComponentUpdatePolicy {
-    TimeoutInSeconds: (Int|Mapping)?
-    Action: (DeploymentComponentUpdatePolicyAction|Mapping)?
-}
-
-/// 
-open class DeploymentDeploymentConfigurationValidationPolicy {
-    TimeoutInSeconds: (Int|Mapping)?
-}
-
-/// 
-open class DeploymentComponentRunWith {
-    SystemResourceLimits: (DeploymentSystemResourceLimits)?
-    WindowsUser: (String|Mapping)?
-    PosixUser: (String|Mapping)?
-}
-
-typealias DeploymentPoliciesFailureHandlingPolicy = "ROLLBACK"|"DO_NOTHING"
-
-/// 
-open class DeploymentDeploymentPolicies {
-    ComponentUpdatePolicy: (DeploymentDeploymentComponentUpdatePolicy)?
-    ConfigurationValidationPolicy: (DeploymentDeploymentConfigurationValidationPolicy)?
-    FailureHandlingPolicy: (DeploymentPoliciesFailureHandlingPolicy|Mapping)?
+open class DeploymentIoTJobTimeoutConfig {
+    InProgressTimeoutInMinutes: (Int|Mapping)?
 }
 
 typealias DeploymentNumberOfThings = Int|Mapping
 
 
 /// 
-open class DeploymentIoTJobExecutionsRolloutConfig {
-    ExponentialRate: (DeploymentIoTJobExponentialRolloutRate)?
-    MaximumPerMinute: (Int|Mapping)?
-}
-
-/// 
-open class DeploymentIoTJobTimeoutConfig {
-    InProgressTimeoutInMinutes: (Int|Mapping)?
+open class DeploymentSystemResourceLimits {
+    Cpus: (Number|Mapping)?
+    Memory: (Int|Mapping)?
 }
 
 /// Resource for Greengrass V2 deployment.

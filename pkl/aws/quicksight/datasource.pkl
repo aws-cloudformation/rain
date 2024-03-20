@@ -5,6 +5,48 @@ module aws.quicksight.datasource
 
 import "../../cloudformation.pkl"
 
+/// <p>Amazon Elasticsearch Service parameters.</p>
+open class DataSourceAmazonElasticsearchParameters {
+    Domain: String|Mapping
+}
+
+/// <p>Amazon OpenSearch Service parameters.</p>
+open class DataSourceAmazonOpenSearchParameters {
+    Domain: String|Mapping
+}
+
+/// <p>Amazon Athena parameters.</p>
+open class DataSourceAthenaParameters {
+    RoleArn: (String|Mapping)?
+    WorkGroup: (String|Mapping)?
+}
+
+/// <p>Amazon Aurora parameters.</p>
+open class DataSourceAuroraParameters {
+    Database: String|Mapping
+    Host: String|Mapping
+    Port: Number|Mapping
+}
+
+/// <p>Amazon Aurora with PostgreSQL compatibility parameters.</p>
+open class DataSourceAuroraPostgreSqlParameters {
+    Database: String|Mapping
+    Host: String|Mapping
+    Port: Number|Mapping
+}
+
+/// <p>AWS IoT Analytics parameters.</p>
+open class DataSourceAwsIotAnalyticsParameters {
+    DataSetName: String|Mapping
+}
+
+/// <p>The combination of user name and password that are used as credentials.</p>
+open class DataSourceCredentialPair {
+    AlternateDataSourceParameters: (Listing<DataSourceDataSourceParameters>)?
+    Password: String|Mapping
+    Username: String|Mapping
+}
+
 /// <p>Data source credentials. This is a variant type structure. For this structure to be
 ///
 ///             valid, only one of the attributes can be non-null.</p>
@@ -14,14 +56,97 @@ open class DataSourceDataSourceCredentials {
     SecretArn: (String(matches(Regex(#"^arn:[-a-z0-9]*:secretsmanager:[-a-z0-9]*:[0-9]{12}:secret:.+"#)))|Mapping)?
 }
 
+/// <p>Error information for the data source creation or update.</p>
+open class DataSourceDataSourceErrorInfo {
+    Message: (String|Mapping)?
+    Type: (DataSourceDataSourceErrorInfoType)?
+}
+
 typealias DataSourceDataSourceErrorInfoType = String|Mapping
 
 
-/// <p>PostgreSQL parameters.</p>
-open class DataSourcePostgreSqlParameters {
+/// <p>The parameters that Amazon QuickSight uses to connect to your underlying data source.
+///
+///             This is a variant type structure. For this structure to be valid, only one of the
+///             attributes can be non-null.</p>
+open class DataSourceDataSourceParameters {
+    AmazonElasticsearchParameters: (DataSourceAmazonElasticsearchParameters)?
+    AmazonOpenSearchParameters: (DataSourceAmazonOpenSearchParameters)?
+    AthenaParameters: (DataSourceAthenaParameters)?
+    AuroraParameters: (DataSourceAuroraParameters)?
+    AuroraPostgreSqlParameters: (DataSourceAuroraPostgreSqlParameters)?
+    DatabricksParameters: (DataSourceDatabricksParameters)?
+    MariaDbParameters: (DataSourceMariaDbParameters)?
+    MySqlParameters: (DataSourceMySqlParameters)?
+    OracleParameters: (DataSourceOracleParameters)?
+    PostgreSqlParameters: (DataSourcePostgreSqlParameters)?
+    PrestoParameters: (DataSourcePrestoParameters)?
+    RdsParameters: (DataSourceRdsParameters)?
+    RedshiftParameters: (DataSourceRedshiftParameters)?
+    S3Parameters: (DataSourceS3Parameters)?
+    SnowflakeParameters: (DataSourceSnowflakeParameters)?
+    SparkParameters: (DataSourceSparkParameters)?
+    SqlServerParameters: (DataSourceSqlServerParameters)?
+    StarburstParameters: (DataSourceStarburstParameters)?
+    TeradataParameters: (DataSourceTeradataParameters)?
+    TrinoParameters: (DataSourceTrinoParameters)?
+}
+
+typealias DataSourceDataSourceType = String|Mapping
+
+
+/// <p>Databricks parameters.</p>
+open class DataSourceDatabricksParameters {
+    Host: String|Mapping
     Port: Number|Mapping
+    SqlEndpointPath: String|Mapping
+}
+
+/// <p>Amazon S3 manifest file location.</p>
+open class DataSourceManifestFileLocation {
+    Bucket: String|Mapping
+    Key: String|Mapping
+}
+
+/// <p>MariaDB parameters.</p>
+open class DataSourceMariaDbParameters {
     Database: String|Mapping
     Host: String|Mapping
+    Port: Number|Mapping
+}
+
+/// <p>MySQL parameters.</p>
+open class DataSourceMySqlParameters {
+    Database: String|Mapping
+    Host: String|Mapping
+    Port: Number|Mapping
+}
+
+/// 
+open class DataSourceOracleParameters {
+    Database: String|Mapping
+    Host: String|Mapping
+    Port: Number|Mapping
+}
+
+/// <p>PostgreSQL parameters.</p>
+open class DataSourcePostgreSqlParameters {
+    Database: String|Mapping
+    Host: String|Mapping
+    Port: Number|Mapping
+}
+
+/// <p>Presto parameters.</p>
+open class DataSourcePrestoParameters {
+    Catalog: String|Mapping
+    Host: String|Mapping
+    Port: Number|Mapping
+}
+
+/// <p>Amazon RDS parameters.</p>
+open class DataSourceRdsParameters {
+    Database: String|Mapping
+    InstanceId: String|Mapping
 }
 
 /// <p>Amazon Redshift parameters. The <code>ClusterId</code> field can be blank if
@@ -30,161 +155,15 @@ open class DataSourcePostgreSqlParameters {
 ///             <code>Port</code> fields can be blank if the <code>ClusterId</code> field is set.</p>
 open class DataSourceRedshiftParameters {
     ClusterId: (String|Mapping)?
-    Port: (Number|Mapping)?
     Database: String|Mapping
     Host: (String|Mapping)?
-}
-
-/// <p>Teradata parameters.</p>
-open class DataSourceTeradataParameters {
-    Host: String|Mapping
-    Port: Number|Mapping
-    Database: String|Mapping
-}
-
-/// <p>Trino parameters.</p>
-open class DataSourceTrinoParameters {
-    Host: String|Mapping
-    Port: Number|Mapping
-    Catalog: String|Mapping
-}
-
-/// <p>Error information for the data source creation or update.</p>
-open class DataSourceDataSourceErrorInfo {
-    Type: (DataSourceDataSourceErrorInfoType)?
-    Message: (String|Mapping)?
-}
-
-/// <p>MariaDB parameters.</p>
-open class DataSourceMariaDbParameters {
-    Host: String|Mapping
-    Port: Number|Mapping
-    Database: String|Mapping
-}
-
-/// <p>Snowflake parameters.</p>
-open class DataSourceSnowflakeParameters {
-    Warehouse: String|Mapping
-    Database: String|Mapping
-    Host: String|Mapping
-}
-
-/// <p>VPC connection properties.</p>
-open class DataSourceVpcConnectionProperties {
-    VpcConnectionArn: String|Mapping
-}
-
-typealias DataSourceDataSourceType = String|Mapping
-
-
-/// <p>MySQL parameters.</p>
-open class DataSourceMySqlParameters {
-    Port: Number|Mapping
-    Database: String|Mapping
-    Host: String|Mapping
-}
-
-/// <p>The key or keys of the key-value pairs for the resource tag or tags assigned to the
-///
-///             resource.</p>
-open class DataSourceTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// <p>Amazon Athena parameters.</p>
-open class DataSourceAthenaParameters {
-    WorkGroup: (String|Mapping)?
-    RoleArn: (String|Mapping)?
-}
-
-/// <p>The parameters that Amazon QuickSight uses to connect to your underlying data source.
-///
-///             This is a variant type structure. For this structure to be valid, only one of the
-///             attributes can be non-null.</p>
-open class DataSourceDataSourceParameters {
-    SparkParameters: (DataSourceSparkParameters)?
-    MariaDbParameters: (DataSourceMariaDbParameters)?
-    OracleParameters: (DataSourceOracleParameters)?
-    PrestoParameters: (DataSourcePrestoParameters)?
-    AmazonElasticsearchParameters: (DataSourceAmazonElasticsearchParameters)?
-    AmazonOpenSearchParameters: (DataSourceAmazonOpenSearchParameters)?
-    AuroraPostgreSqlParameters: (DataSourceAuroraPostgreSqlParameters)?
-    TeradataParameters: (DataSourceTeradataParameters)?
-    AthenaParameters: (DataSourceAthenaParameters)?
-    S3Parameters: (DataSourceS3Parameters)?
-    DatabricksParameters: (DataSourceDatabricksParameters)?
-    TrinoParameters: (DataSourceTrinoParameters)?
-    SqlServerParameters: (DataSourceSqlServerParameters)?
-    SnowflakeParameters: (DataSourceSnowflakeParameters)?
-    AuroraParameters: (DataSourceAuroraParameters)?
-    RdsParameters: (DataSourceRdsParameters)?
-    RedshiftParameters: (DataSourceRedshiftParameters)?
-    MySqlParameters: (DataSourceMySqlParameters)?
-    PostgreSqlParameters: (DataSourcePostgreSqlParameters)?
-    StarburstParameters: (DataSourceStarburstParameters)?
-}
-
-/// <p>Starburst parameters.</p>
-open class DataSourceStarburstParameters {
-    Host: String|Mapping
-    Port: Number|Mapping
-    Catalog: String|Mapping
-    ProductType: (DataSourceStarburstProductType)?
-}
-
-/// <p>Amazon OpenSearch Service parameters.</p>
-open class DataSourceAmazonOpenSearchParameters {
-    Domain: String|Mapping
-}
-
-/// <p>Amazon Aurora parameters.</p>
-open class DataSourceAuroraParameters {
-    Port: Number|Mapping
-    Database: String|Mapping
-    Host: String|Mapping
-}
-
-/// 
-open class DataSourceOracleParameters {
-    Port: Number|Mapping
-    Database: String|Mapping
-    Host: String|Mapping
-}
-
-/// <p>Presto parameters.</p>
-open class DataSourcePrestoParameters {
-    Catalog: String|Mapping
-    Port: Number|Mapping
-    Host: String|Mapping
+    Port: (Number|Mapping)?
 }
 
 /// <p>Permission for the resource.</p>
 open class DataSourceResourcePermission {
     Actions: Listing<String|Mapping>
     Principal: String|Mapping
-}
-
-typealias DataSourceStarburstProductType = String|Mapping
-
-
-/// <p>Amazon Elasticsearch Service parameters.</p>
-open class DataSourceAmazonElasticsearchParameters {
-    Domain: String|Mapping
-}
-
-/// <p>The combination of user name and password that are used as credentials.</p>
-open class DataSourceCredentialPair {
-    Password: String|Mapping
-    AlternateDataSourceParameters: (Listing<DataSourceDataSourceParameters>)?
-    Username: String|Mapping
-}
-
-/// <p>Databricks parameters.</p>
-open class DataSourceDatabricksParameters {
-    Host: String|Mapping
-    Port: Number|Mapping
-    SqlEndpointPath: String|Mapping
 }
 
 typealias DataSourceResourceStatus = String|Mapping
@@ -196,41 +175,24 @@ open class DataSourceS3Parameters {
     RoleArn: (String|Mapping)?
 }
 
-/// <p>SQL Server parameters.</p>
-open class DataSourceSqlServerParameters {
-    Port: Number|Mapping
+/// <p>Snowflake parameters.</p>
+open class DataSourceSnowflakeParameters {
     Database: String|Mapping
     Host: String|Mapping
-}
-
-/// <p>Amazon Aurora with PostgreSQL compatibility parameters.</p>
-open class DataSourceAuroraPostgreSqlParameters {
-    Host: String|Mapping
-    Port: Number|Mapping
-    Database: String|Mapping
-}
-
-/// <p>AWS IoT Analytics parameters.</p>
-open class DataSourceAwsIotAnalyticsParameters {
-    DataSetName: String|Mapping
-}
-
-/// <p>Amazon S3 manifest file location.</p>
-open class DataSourceManifestFileLocation {
-    Key: String|Mapping
-    Bucket: String|Mapping
-}
-
-/// <p>Amazon RDS parameters.</p>
-open class DataSourceRdsParameters {
-    InstanceId: String|Mapping
-    Database: String|Mapping
+    Warehouse: String|Mapping
 }
 
 /// <p>Spark parameters.</p>
 open class DataSourceSparkParameters {
-    Port: Number|Mapping
     Host: String|Mapping
+    Port: Number|Mapping
+}
+
+/// <p>SQL Server parameters.</p>
+open class DataSourceSqlServerParameters {
+    Database: String|Mapping
+    Host: String|Mapping
+    Port: Number|Mapping
 }
 
 /// <p>Secure Socket Layer (SSL) properties that apply when QuickSight connects to your
@@ -238,6 +200,44 @@ open class DataSourceSparkParameters {
 ///             underlying data source.</p>
 open class DataSourceSslProperties {
     DisableSsl: (Boolean|Mapping)?
+}
+
+/// <p>Starburst parameters.</p>
+open class DataSourceStarburstParameters {
+    Catalog: String|Mapping
+    Host: String|Mapping
+    Port: Number|Mapping
+    ProductType: (DataSourceStarburstProductType)?
+}
+
+typealias DataSourceStarburstProductType = String|Mapping
+
+
+/// <p>The key or keys of the key-value pairs for the resource tag or tags assigned to the
+///
+///             resource.</p>
+open class DataSourceTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// <p>Teradata parameters.</p>
+open class DataSourceTeradataParameters {
+    Database: String|Mapping
+    Host: String|Mapping
+    Port: Number|Mapping
+}
+
+/// <p>Trino parameters.</p>
+open class DataSourceTrinoParameters {
+    Catalog: String|Mapping
+    Host: String|Mapping
+    Port: Number|Mapping
+}
+
+/// <p>VPC connection properties.</p>
+open class DataSourceVpcConnectionProperties {
+    VpcConnectionArn: String|Mapping
 }
 
 /// Definition of the AWS::QuickSight::DataSource Resource Type.

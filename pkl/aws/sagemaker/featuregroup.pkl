@@ -5,20 +5,11 @@ module aws.sagemaker.featuregroup
 
 import "../../cloudformation.pkl"
 
-typealias FeatureGroupStorageType = String|Mapping
-
-
-typealias FeatureGroupThroughputMode = String|Mapping
-
-
-typealias FeatureGroupValue = Int|Mapping
-
-
 /// 
 open class FeatureGroupDataCatalogConfig {
+    Catalog: String(matches(Regex(#"[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDC00-\uDBFF\uDFFF	]*"#)))|Mapping
     Database: String(matches(Regex(#"[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDC00-\uDBFF\uDFFF	]*"#)))|Mapping
     TableName: String(matches(Regex(#"[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDC00-\uDBFF\uDFFF	]*"#)))|Mapping
-    Catalog: String(matches(Regex(#"[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDC00-\uDBFF\uDFFF	]*"#)))|Mapping
 }
 
 typealias FeatureDefinitionFeatureType = "Integral"|"Fractional"|"String"
@@ -29,37 +20,6 @@ open class FeatureGroupFeatureDefinition {
     FeatureType: FeatureDefinitionFeatureType|Mapping
 }
 
-/// 
-open class FeatureGroupThroughputConfig {
-    ThroughputMode: FeatureGroupThroughputMode
-    ProvisionedReadCapacityUnits: (Int|Mapping)?
-    ProvisionedWriteCapacityUnits: (Int|Mapping)?
-}
-
-/// TTL configuration of the feature group
-open class FeatureGroupTtlDuration {
-    Unit: (FeatureGroupUnit)?
-    Value: (FeatureGroupValue)?
-}
-
-/// A key-value pair to associate with a resource.
-open class FeatureGroupTag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-typealias FeatureGroupUnit = String|Mapping
-
-
-/// 
-open class FeatureGroupS3StorageConfig {
-    S3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
-    KmsKeyId: (FeatureGroupKmsKeyId)?
-}
-
-typealias FeatureGroupTableFormat = String|Mapping
-
-
 typealias FeatureGroupKmsKeyId = String|Mapping
 
 
@@ -67,6 +27,46 @@ typealias FeatureGroupKmsKeyId = String|Mapping
 open class FeatureGroupOnlineStoreSecurityConfig {
     KmsKeyId: (FeatureGroupKmsKeyId)?
 }
+
+/// 
+open class FeatureGroupS3StorageConfig {
+    KmsKeyId: (FeatureGroupKmsKeyId)?
+    S3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
+}
+
+typealias FeatureGroupStorageType = String|Mapping
+
+
+typealias FeatureGroupTableFormat = String|Mapping
+
+
+/// A key-value pair to associate with a resource.
+open class FeatureGroupTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class FeatureGroupThroughputConfig {
+    ProvisionedReadCapacityUnits: (Int|Mapping)?
+    ProvisionedWriteCapacityUnits: (Int|Mapping)?
+    ThroughputMode: FeatureGroupThroughputMode
+}
+
+typealias FeatureGroupThroughputMode = String|Mapping
+
+
+/// TTL configuration of the feature group
+open class FeatureGroupTtlDuration {
+    Unit: (FeatureGroupUnit)?
+    Value: (FeatureGroupValue)?
+}
+
+typealias FeatureGroupUnit = String|Mapping
+
+
+typealias FeatureGroupValue = Int|Mapping
+
 
 /// Resource Type definition for AWS::SageMaker::FeatureGroup
 open class FeatureGroup extends cloudformation.Resource {

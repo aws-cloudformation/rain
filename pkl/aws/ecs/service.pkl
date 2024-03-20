@@ -5,29 +5,6 @@ module aws.ecs.service
 
 import "../../cloudformation.pkl"
 
-/// The ``ServiceRegistry`` property specifies details of the service registry. For more information, see [Service Discovery](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-discovery.html) in the *Amazon Elastic Container Service Developer Guide*.
-open class ServiceServiceRegistry {
-    ContainerName: (String|Mapping)?
-    ContainerPort: (Int|Mapping)?
-    Port: (Int|Mapping)?
-    RegistryArn: (String|Mapping)?
-}
-
-/// The metadata that you apply to a resource to help you categorize and organize them. Each tag consists of a key and an optional value. You define them.
-///
-///  The following basic restrictions apply to tags:
-///   +  Maximum number of tags per resource - 50
-///   +  For each resource, each tag key must be unique, and each tag key can have only one value.
-///   +  Maximum key length - 128 Unicode characters in UTF-8
-///   +  Maximum value length - 256 Unicode characters in UTF-8
-///   +  If your tagging schema is used across multiple services and resources, remember that other services may have restrictions on allowed characters. Generally allowed characters are: letters, numbers, and spaces representable in UTF-8, and the following characters: + - = . _ : / @.
-///   +  Tag keys and values are case-sensitive.
-///   +  Do not use ``aws:``, ``AWS:``, or any upper or lowercase combination of such as a prefix for either keys or values as it is reserved for AWS use. You cannot edit or delete tag keys or values with this prefix. Tags with this prefix do not count against your tags per resource limit.
-open class ServiceTag {
-    Value: (String|Mapping)?
-    Key: (String|Mapping)?
-}
-
 typealias AwsVpcConfigurationAssignPublicIp = "DISABLED"|"ENABLED"
 
 /// An object representing the networking details for a task or service. For example ``awsvpcConfiguration={subnets=["subnet-12344321"],securityGroups=["sg-12344321"]}``
@@ -37,6 +14,17 @@ open class ServiceAwsVpcConfiguration {
     Subnets: (Listing<String|Mapping>)?
 }
 
+/// The details of a capacity provider strategy. A capacity provider strategy can be set when using the ``RunTask`` or ``CreateService`` APIs or as the default capacity provider strategy for a cluster with the ``CreateCluster`` API.
+///
+///  Only capacity providers that are already associated with a cluster and have an ``ACTIVE`` or ``UPDATING`` status can be used in a capacity provider strategy. The ``PutClusterCapacityProviders`` API is used to associate a capacity provider with a cluster.
+///  If specifying a capacity provider that uses an Auto Scaling group, the capacity provider must already be created. New Auto Scaling group capacity providers can be created with the ``CreateCapacityProvider`` API operation.
+///  To use an FARGATElong capacity provider, specify either the ``FARGATE`` or ``FARGATE_SPOT`` capacity providers. The FARGATElong capacity providers are available to all accounts and only need to be associated with a cluster to be used in a capacity provider strategy.
+open class ServiceCapacityProviderStrategyItem {
+    Base: (Int|Mapping)?
+    CapacityProvider: (String|Mapping)?
+    Weight: (Int|Mapping)?
+}
+
 /// One of the methods which provide a way for you to quickly identify when a deployment has failed, and then to optionally roll back the failure to the last working deployment.
 ///
 ///  When the alarms are generated, Amazon ECS sets the service deployment to failed. Set the rollback parameter to have Amazon ECS to roll back your service to the last completed deployment after a failure.
@@ -44,60 +32,25 @@ open class ServiceAwsVpcConfiguration {
 ///  For more information, see [Rolling update](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-type-ecs.html) in the *Amazon Elastic Container Service Developer Guide*.
 open class ServiceDeploymentAlarms {
     AlarmNames: Listing<String|Mapping>
-    Rollback: Boolean|Mapping
     Enable: Boolean|Mapping
+    Rollback: Boolean|Mapping
 }
 
-typealias EBSTagSpecificationPropagateTags = "SERVICE"|"TASK_DEFINITION"
-
-/// The tag specifications of an Amazon EBS volume.
-open class ServiceEBSTagSpecification {
-    ResourceType: String|Mapping
-    Tags: (Listing<ServiceTag>)?
-    PropagateTags: (EBSTagSpecificationPropagateTags|Mapping)?
-}
-
-/// An object representing the secret to expose to your container. Secrets can be exposed to a container in the following ways:
+/// The deployment circuit breaker can only be used for services using the rolling update (``ECS``) deployment type.
 ///
-///   +  To inject sensitive data into your containers as environment variables, use the ``secrets`` container definition parameter.
-///   +  To reference sensitive information in the log configuration of a container, use the ``secretOptions`` container definition parameter.
-///   
-///  For more information, see [Specifying sensitive data](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/specifying-sensitive-data.html) in the *Amazon Elastic Container Service Developer Guide*.
-open class ServiceSecret {
-    Name: String|Mapping
-    ValueFrom: String|Mapping
-}
-
-/// The configuration for the Amazon EBS volume that Amazon ECS creates and manages on your behalf. These settings are used to create each Amazon EBS volume, with one volume created for each task in the service.
-///
-///  Many of these parameters map 1:1 with the Amazon EBS ``CreateVolume`` API request parameters.
-open class ServiceServiceManagedEBSVolumeConfiguration {
-    FilesystemType: (String|Mapping)?
-    VolumeType: (String|Mapping)?
-    SizeInGiB: (Int|Mapping)?
-    SnapshotId: (String|Mapping)?
-    TagSpecifications: (Listing<ServiceEBSTagSpecification>)?
-    RoleArn: String|Mapping
-    Encrypted: (Boolean|Mapping)?
-    KmsKeyId: (String|Mapping)?
-    Iops: (Int|Mapping)?
-    Throughput: (Int|Mapping)?
-}
-
-/// An object that represents the timeout configurations for Service Connect.
-///
-///   If ``idleTimeout`` is set to a time that is less than ``perRequestTimeout``, the connection will close when the ``idleTimeout`` is reached and not the ``perRequestTimeout``.
-open class ServiceTimeoutConfiguration {
-    IdleTimeoutSeconds: (Int|Mapping)?
-    PerRequestTimeoutSeconds: (Int|Mapping)?
+///   The *deployment circuit breaker* determines whether a service deployment will fail if the service can't reach a steady state. If it is turned on, a service deployment will transition to a failed state and stop launching new tasks. You can also configure Amazon ECS to roll back your service to the last completed deployment after a failure. For more information, see [Rolling update](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-type-ecs.html) in the *Amazon Elastic Container Service Developer Guide*.
+///  For more information about API failure reasons, see [API failure reasons](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/api_failures_messages.html) in the *Amazon Elastic Container Service Developer Guide*.
+open class ServiceDeploymentCircuitBreaker {
+    Enable: Boolean|Mapping
+    Rollback: Boolean|Mapping
 }
 
 /// The ``DeploymentConfiguration`` property specifies optional deployment parameters that control how many tasks run during the deployment and the ordering of stopping and starting tasks.
 open class ServiceDeploymentConfiguration {
+    Alarms: (ServiceDeploymentAlarms)?
     DeploymentCircuitBreaker: (ServiceDeploymentCircuitBreaker)?
     MaximumPercent: (Int|Mapping)?
     MinimumHealthyPercent: (Int|Mapping)?
-    Alarms: (ServiceDeploymentAlarms)?
 }
 
 typealias DeploymentControllerType = "CODE_DEPLOY"|"ECS"|"EXTERNAL"
@@ -107,29 +60,13 @@ open class ServiceDeploymentController {
     Type: (DeploymentControllerType|Mapping)?
 }
 
-typealias PlacementConstraintType = "distinctInstance"|"memberOf"
+typealias EBSTagSpecificationPropagateTags = "SERVICE"|"TASK_DEFINITION"
 
-/// The ``PlacementConstraint`` property specifies an object representing a constraint on task placement in the task definition. For more information, see [Task Placement Constraints](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-placement-constraints.html) in the *Amazon Elastic Container Service Developer Guide*.
-open class ServicePlacementConstraint {
-    Expression: (String|Mapping)?
-    Type: PlacementConstraintType|Mapping
-}
-
-/// The Service Connect configuration of your Amazon ECS service. The configuration for this service to discover and connect to services, and be discovered by, and connected from, other services within a namespace.
-///
-///  Tasks that run in a namespace can use short names to connect to services in the namespace. Tasks can connect to services across all of the clusters in the namespace. Tasks connect through a managed proxy container that collects logs and metrics for increased visibility. Only the tasks that Amazon ECS services create are supported with Service Connect. For more information, see [Service Connect](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-connect.html) in the *Amazon Elastic Container Service Developer Guide*.
-open class ServiceServiceConnectConfiguration {
-    Enabled: Boolean|Mapping
-    Namespace: (String|Mapping)?
-    Services: (Listing<ServiceServiceConnectService>)?
-    LogConfiguration: (ServiceLogConfiguration)?
-}
-
-/// An object that represents the configuration for Service Connect TLS.
-open class ServiceServiceConnectTlsConfiguration {
-    IssuerCertificateAuthority: ServiceServiceConnectTlsCertificateAuthority
-    KmsKey: (String|Mapping)?
-    RoleArn: (String|Mapping)?
+/// The tag specifications of an Amazon EBS volume.
+open class ServiceEBSTagSpecification {
+    PropagateTags: (EBSTagSpecificationPropagateTags|Mapping)?
+    ResourceType: String|Mapping
+    Tags: (Listing<ServiceTag>)?
 }
 
 /// The ``LoadBalancer`` property specifies details on a load balancer that is used with a service.
@@ -166,45 +103,12 @@ open class ServiceNetworkConfiguration {
     AwsvpcConfiguration: (ServiceAwsVpcConfiguration)?
 }
 
-/// The Service Connect service object configuration. For more information, see [Service Connect](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-connect.html) in the *Amazon Elastic Container Service Developer Guide*.
-open class ServiceServiceConnectService {
-    ClientAliases: (Listing<ServiceServiceConnectClientAlias>)?
-    IngressPortOverride: (Int|Mapping)?
-    Tls: (ServiceServiceConnectTlsConfiguration)?
-    Timeout: (ServiceTimeoutConfiguration)?
-    PortName: String|Mapping
-    DiscoveryName: (String|Mapping)?
-}
+typealias PlacementConstraintType = "distinctInstance"|"memberOf"
 
-/// An object that represents the AWS Private Certificate Authority certificate.
-open class ServiceServiceConnectTlsCertificateAuthority {
-    AwsPcaAuthorityArn: (String|Mapping)?
-}
-
-/// The configuration for a volume specified in the task definition as a volume that is configured at launch time. Currently, the only supported volume type is an Amazon EBS volume.
-open class ServiceServiceVolumeConfiguration {
-    ManagedEBSVolume: (ServiceServiceManagedEBSVolumeConfiguration)?
-    Name: String|Mapping
-}
-
-/// The details of a capacity provider strategy. A capacity provider strategy can be set when using the ``RunTask`` or ``CreateService`` APIs or as the default capacity provider strategy for a cluster with the ``CreateCluster`` API.
-///
-///  Only capacity providers that are already associated with a cluster and have an ``ACTIVE`` or ``UPDATING`` status can be used in a capacity provider strategy. The ``PutClusterCapacityProviders`` API is used to associate a capacity provider with a cluster.
-///  If specifying a capacity provider that uses an Auto Scaling group, the capacity provider must already be created. New Auto Scaling group capacity providers can be created with the ``CreateCapacityProvider`` API operation.
-///  To use an FARGATElong capacity provider, specify either the ``FARGATE`` or ``FARGATE_SPOT`` capacity providers. The FARGATElong capacity providers are available to all accounts and only need to be associated with a cluster to be used in a capacity provider strategy.
-open class ServiceCapacityProviderStrategyItem {
-    Base: (Int|Mapping)?
-    CapacityProvider: (String|Mapping)?
-    Weight: (Int|Mapping)?
-}
-
-/// The deployment circuit breaker can only be used for services using the rolling update (``ECS``) deployment type.
-///
-///   The *deployment circuit breaker* determines whether a service deployment will fail if the service can't reach a steady state. If it is turned on, a service deployment will transition to a failed state and stop launching new tasks. You can also configure Amazon ECS to roll back your service to the last completed deployment after a failure. For more information, see [Rolling update](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-type-ecs.html) in the *Amazon Elastic Container Service Developer Guide*.
-///  For more information about API failure reasons, see [API failure reasons](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/api_failures_messages.html) in the *Amazon Elastic Container Service Developer Guide*.
-open class ServiceDeploymentCircuitBreaker {
-    Enable: Boolean|Mapping
-    Rollback: Boolean|Mapping
+/// The ``PlacementConstraint`` property specifies an object representing a constraint on task placement in the task definition. For more information, see [Task Placement Constraints](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-placement-constraints.html) in the *Amazon Elastic Container Service Developer Guide*.
+open class ServicePlacementConstraint {
+    Expression: (String|Mapping)?
+    Type: PlacementConstraintType|Mapping
 }
 
 typealias PlacementStrategyType = "binpack"|"random"|"spread"
@@ -215,6 +119,17 @@ open class ServicePlacementStrategy {
     Type: PlacementStrategyType|Mapping
 }
 
+/// An object representing the secret to expose to your container. Secrets can be exposed to a container in the following ways:
+///
+///   +  To inject sensitive data into your containers as environment variables, use the ``secrets`` container definition parameter.
+///   +  To reference sensitive information in the log configuration of a container, use the ``secretOptions`` container definition parameter.
+///   
+///  For more information, see [Specifying sensitive data](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/specifying-sensitive-data.html) in the *Amazon Elastic Container Service Developer Guide*.
+open class ServiceSecret {
+    Name: String|Mapping
+    ValueFrom: String|Mapping
+}
+
 /// Each alias ("endpoint") is a fully-qualified name and port number that other tasks ("clients") can use to connect to this service.
 ///
 ///  Each name and port mapping must be unique within the namespace.
@@ -222,6 +137,91 @@ open class ServicePlacementStrategy {
 open class ServiceServiceConnectClientAlias {
     DnsName: (String|Mapping)?
     Port: Int|Mapping
+}
+
+/// The Service Connect configuration of your Amazon ECS service. The configuration for this service to discover and connect to services, and be discovered by, and connected from, other services within a namespace.
+///
+///  Tasks that run in a namespace can use short names to connect to services in the namespace. Tasks can connect to services across all of the clusters in the namespace. Tasks connect through a managed proxy container that collects logs and metrics for increased visibility. Only the tasks that Amazon ECS services create are supported with Service Connect. For more information, see [Service Connect](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-connect.html) in the *Amazon Elastic Container Service Developer Guide*.
+open class ServiceServiceConnectConfiguration {
+    Enabled: Boolean|Mapping
+    LogConfiguration: (ServiceLogConfiguration)?
+    Namespace: (String|Mapping)?
+    Services: (Listing<ServiceServiceConnectService>)?
+}
+
+/// The Service Connect service object configuration. For more information, see [Service Connect](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-connect.html) in the *Amazon Elastic Container Service Developer Guide*.
+open class ServiceServiceConnectService {
+    ClientAliases: (Listing<ServiceServiceConnectClientAlias>)?
+    DiscoveryName: (String|Mapping)?
+    IngressPortOverride: (Int|Mapping)?
+    PortName: String|Mapping
+    Timeout: (ServiceTimeoutConfiguration)?
+    Tls: (ServiceServiceConnectTlsConfiguration)?
+}
+
+/// An object that represents the AWS Private Certificate Authority certificate.
+open class ServiceServiceConnectTlsCertificateAuthority {
+    AwsPcaAuthorityArn: (String|Mapping)?
+}
+
+/// An object that represents the configuration for Service Connect TLS.
+open class ServiceServiceConnectTlsConfiguration {
+    IssuerCertificateAuthority: ServiceServiceConnectTlsCertificateAuthority
+    KmsKey: (String|Mapping)?
+    RoleArn: (String|Mapping)?
+}
+
+/// The configuration for the Amazon EBS volume that Amazon ECS creates and manages on your behalf. These settings are used to create each Amazon EBS volume, with one volume created for each task in the service.
+///
+///  Many of these parameters map 1:1 with the Amazon EBS ``CreateVolume`` API request parameters.
+open class ServiceServiceManagedEBSVolumeConfiguration {
+    Encrypted: (Boolean|Mapping)?
+    FilesystemType: (String|Mapping)?
+    Iops: (Int|Mapping)?
+    KmsKeyId: (String|Mapping)?
+    RoleArn: String|Mapping
+    SizeInGiB: (Int|Mapping)?
+    SnapshotId: (String|Mapping)?
+    TagSpecifications: (Listing<ServiceEBSTagSpecification>)?
+    Throughput: (Int|Mapping)?
+    VolumeType: (String|Mapping)?
+}
+
+/// The ``ServiceRegistry`` property specifies details of the service registry. For more information, see [Service Discovery](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-discovery.html) in the *Amazon Elastic Container Service Developer Guide*.
+open class ServiceServiceRegistry {
+    ContainerName: (String|Mapping)?
+    ContainerPort: (Int|Mapping)?
+    Port: (Int|Mapping)?
+    RegistryArn: (String|Mapping)?
+}
+
+/// The configuration for a volume specified in the task definition as a volume that is configured at launch time. Currently, the only supported volume type is an Amazon EBS volume.
+open class ServiceServiceVolumeConfiguration {
+    ManagedEBSVolume: (ServiceServiceManagedEBSVolumeConfiguration)?
+    Name: String|Mapping
+}
+
+/// The metadata that you apply to a resource to help you categorize and organize them. Each tag consists of a key and an optional value. You define them.
+///
+///  The following basic restrictions apply to tags:
+///   +  Maximum number of tags per resource - 50
+///   +  For each resource, each tag key must be unique, and each tag key can have only one value.
+///   +  Maximum key length - 128 Unicode characters in UTF-8
+///   +  Maximum value length - 256 Unicode characters in UTF-8
+///   +  If your tagging schema is used across multiple services and resources, remember that other services may have restrictions on allowed characters. Generally allowed characters are: letters, numbers, and spaces representable in UTF-8, and the following characters: + - = . _ : / @.
+///   +  Tag keys and values are case-sensitive.
+///   +  Do not use ``aws:``, ``AWS:``, or any upper or lowercase combination of such as a prefix for either keys or values as it is reserved for AWS use. You cannot edit or delete tag keys or values with this prefix. Tags with this prefix do not count against your tags per resource limit.
+open class ServiceTag {
+    Key: (String|Mapping)?
+    Value: (String|Mapping)?
+}
+
+/// An object that represents the timeout configurations for Service Connect.
+///
+///   If ``idleTimeout`` is set to a time that is less than ``perRequestTimeout``, the connection will close when the ``idleTimeout`` is reached and not the ``perRequestTimeout``.
+open class ServiceTimeoutConfiguration {
+    IdleTimeoutSeconds: (Int|Mapping)?
+    PerRequestTimeoutSeconds: (Int|Mapping)?
 }
 
 /// The ``AWS::ECS::Service`` resource creates an Amazon Elastic Container Service (Amazon ECS) service that runs and maintains the requested number of tasks and associated load balancers.

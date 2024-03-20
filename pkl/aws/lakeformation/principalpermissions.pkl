@@ -5,61 +5,26 @@ module aws.lakeformation.principalpermissions
 
 import "../../cloudformation.pkl"
 
-typealias PrincipalPermissionsDataLakePrincipalString = String|Mapping
-
-
-typealias PrincipalPermissionsPermissionList = Listing<(PrincipalPermissionsPermission)?>
-
-
-typealias PrincipalPermissionsTableWildcard = Dynamic
-
-
-/// 
-open class PrincipalPermissionsLFTagPair {
-    TagValues: PrincipalPermissionsTagValueList
-    CatalogId: (PrincipalPermissionsCatalogIdString)?
-    TagKey: PrincipalPermissionsLFTagKey
-}
-
 typealias PrincipalPermissionsCatalogIdString = String|Mapping
 
 
-/// A structure for the database object.
-open class PrincipalPermissionsDatabaseResource {
-    CatalogId: PrincipalPermissionsCatalogIdString
-    Name: PrincipalPermissionsNameString
-}
-
-typealias PrincipalPermissionsIAMRoleArn = String|Mapping
-
-
-typealias PrincipalPermissionsExpression = Listing<(PrincipalPermissionsLFTag)?>
-
-
-typealias PrincipalPermissionsNullableBoolean = Dynamic
-
-
-typealias PrincipalPermissionsPermission = String|Mapping
-
-
-/// 
-open class PrincipalPermissionsPrincipalResourcePair {
-    Principal: PrincipalPermissionsDataLakePrincipal
-    Resource: PrincipalPermissionsResource
-}
-
-typealias PrincipalPermissionsResourceArnString = String|Mapping
+typealias PrincipalPermissionsCatalogResource = Dynamic
 
 
 typealias PrincipalPermissionsColumnNames = Listing<(PrincipalPermissionsNameString)?>
 
 
+/// A wildcard object, consisting of an optional list of excluded column names or indexes.
+open class PrincipalPermissionsColumnWildcard {
+    ExcludedColumnNames: (PrincipalPermissionsColumnNames)?
+}
+
 /// A structure that describes certain columns on certain rows.
 open class PrincipalPermissionsDataCellsFilterResource {
-    TableCatalogId: PrincipalPermissionsCatalogIdString
     DatabaseName: PrincipalPermissionsNameString
-    TableName: PrincipalPermissionsNameString
     Name: PrincipalPermissionsNameString
+    TableCatalogId: PrincipalPermissionsCatalogIdString
+    TableName: PrincipalPermissionsNameString
 }
 
 /// The LFlong principal.
@@ -67,18 +32,37 @@ open class PrincipalPermissionsDataLakePrincipal {
     DataLakePrincipalIdentifier: (PrincipalPermissionsDataLakePrincipalString)?
 }
 
-typealias PrincipalPermissionsResourceType = String|Mapping
+typealias PrincipalPermissionsDataLakePrincipalList = Listing<(PrincipalPermissionsDataLakePrincipal)?>
 
 
-/// A structure for the table object. A table is a metadata definition that represents your data. You can Grant and Revoke table privileges to a principal.
-open class PrincipalPermissionsTableResource {
-    DatabaseName: PrincipalPermissionsNameString
-    Name: (PrincipalPermissionsNameString)?
-    TableWildcard: (PrincipalPermissionsTableWildcard)?
+typealias PrincipalPermissionsDataLakePrincipalString = String|Mapping
+
+
+/// A structure for a data location object where permissions are granted or revoked.
+open class PrincipalPermissionsDataLocationResource {
     CatalogId: PrincipalPermissionsCatalogIdString
+    ResourceArn: PrincipalPermissionsResourceArnString
 }
 
-typealias PrincipalPermissionsTagValueList = Listing<(PrincipalPermissionsLFTagValue)?>
+/// A structure for the database object.
+open class PrincipalPermissionsDatabaseResource {
+    CatalogId: PrincipalPermissionsCatalogIdString
+    Name: PrincipalPermissionsNameString
+}
+
+typealias PrincipalPermissionsExpression = Listing<(PrincipalPermissionsLFTag)?>
+
+
+typealias PrincipalPermissionsIAMRoleArn = String|Mapping
+
+
+/// The LF-tag key and values attached to a resource.
+open class PrincipalPermissionsLFTag {
+    TagKey: (PrincipalPermissionsLFTagKey)?
+    TagValues: (PrincipalPermissionsTagValueList)?
+}
+
+typealias PrincipalPermissionsLFTagKey = String|Mapping
 
 
 /// A structure containing an LF-tag key and values for a resource.
@@ -88,19 +72,42 @@ open class PrincipalPermissionsLFTagKeyResource {
     TagValues: PrincipalPermissionsTagValueList
 }
 
-typealias PrincipalPermissionsPrincipalPermissionsList = Listing<(PrincipalPermissionsPrincipalPermissions)?>
-
-
-/// A structure for a table with columns object. This object is only used when granting a SELECT permission.
-///
-///  This object must take a value for at least one of ``ColumnsNames``, ``ColumnsIndexes``, or ``ColumnsWildcard``.
-open class PrincipalPermissionsTableWithColumnsResource {
-    DatabaseName: PrincipalPermissionsNameString
-    Name: PrincipalPermissionsNameString
-    ColumnNames: (PrincipalPermissionsColumnNames)?
-    ColumnWildcard: (PrincipalPermissionsColumnWildcard)?
-    CatalogId: PrincipalPermissionsCatalogIdString
+/// 
+open class PrincipalPermissionsLFTagPair {
+    CatalogId: (PrincipalPermissionsCatalogIdString)?
+    TagKey: PrincipalPermissionsLFTagKey
+    TagValues: PrincipalPermissionsTagValueList
 }
+
+/// A list of LF-tag conditions that define a resource's LF-tag policy.
+///
+///  A structure that allows an admin to grant user permissions on certain conditions. For example, granting a role access to all columns that do not have the LF-tag 'PII' in tables that have the LF-tag 'Prod'.
+open class PrincipalPermissionsLFTagPolicyResource {
+    CatalogId: PrincipalPermissionsCatalogIdString
+    Expression: PrincipalPermissionsExpression
+    ResourceType: PrincipalPermissionsResourceType
+}
+
+typealias PrincipalPermissionsLFTagValue = String|Mapping
+
+
+typealias PrincipalPermissionsLFTagsList = Listing<(PrincipalPermissionsLFTagPair)?>
+
+
+typealias PrincipalPermissionsNameString = String|Mapping
+
+
+typealias PrincipalPermissionsNullableBoolean = Dynamic
+
+
+typealias PrincipalPermissionsPathString = String|Mapping
+
+
+typealias PrincipalPermissionsPermission = String|Mapping
+
+
+typealias PrincipalPermissionsPermissionList = Listing<(PrincipalPermissionsPermission)?>
+
 
 /// 
 open class PrincipalPermissionsPrincipalPermissions {
@@ -108,64 +115,57 @@ open class PrincipalPermissionsPrincipalPermissions {
     PermissionList: (PrincipalPermissionsPermissionList)?
 }
 
+typealias PrincipalPermissionsPrincipalPermissionsList = Listing<(PrincipalPermissionsPrincipalPermissions)?>
+
+
+/// 
+open class PrincipalPermissionsPrincipalResourcePair {
+    Principal: PrincipalPermissionsDataLakePrincipal
+    Resource: PrincipalPermissionsResource
+}
+
 /// A structure for the resource.
 open class PrincipalPermissionsResource {
-    Database: (PrincipalPermissionsDatabaseResource)?
-    Table: (PrincipalPermissionsTableResource)?
-    TableWithColumns: (PrincipalPermissionsTableWithColumnsResource)?
-    DataLocation: (PrincipalPermissionsDataLocationResource)?
+    Catalog: (PrincipalPermissionsCatalogResource)?
     DataCellsFilter: (PrincipalPermissionsDataCellsFilterResource)?
+    DataLocation: (PrincipalPermissionsDataLocationResource)?
+    Database: (PrincipalPermissionsDatabaseResource)?
     LFTag: (PrincipalPermissionsLFTagKeyResource)?
     LFTagPolicy: (PrincipalPermissionsLFTagPolicyResource)?
-    Catalog: (PrincipalPermissionsCatalogResource)?
+    Table: (PrincipalPermissionsTableResource)?
+    TableWithColumns: (PrincipalPermissionsTableWithColumnsResource)?
 }
 
-/// A structure for a data location object where permissions are granted or revoked.
-open class PrincipalPermissionsDataLocationResource {
-    ResourceArn: PrincipalPermissionsResourceArnString
+typealias PrincipalPermissionsResourceArnString = String|Mapping
+
+
+typealias PrincipalPermissionsResourceType = String|Mapping
+
+
+/// A structure for the table object. A table is a metadata definition that represents your data. You can Grant and Revoke table privileges to a principal.
+open class PrincipalPermissionsTableResource {
     CatalogId: PrincipalPermissionsCatalogIdString
+    DatabaseName: PrincipalPermissionsNameString
+    Name: (PrincipalPermissionsNameString)?
+    TableWildcard: (PrincipalPermissionsTableWildcard)?
 }
 
-/// The LF-tag key and values attached to a resource.
-open class PrincipalPermissionsLFTag {
-    TagKey: (PrincipalPermissionsLFTagKey)?
-    TagValues: (PrincipalPermissionsTagValueList)?
-}
-
-typealias PrincipalPermissionsLFTagValue = String|Mapping
+typealias PrincipalPermissionsTableWildcard = Dynamic
 
 
-typealias PrincipalPermissionsPathString = String|Mapping
-
-
-typealias PrincipalPermissionsCatalogResource = Dynamic
-
-
-typealias PrincipalPermissionsLFTagKey = String|Mapping
-
-
-typealias PrincipalPermissionsLFTagsList = Listing<(PrincipalPermissionsLFTagPair)?>
-
-
-typealias PrincipalPermissionsDataLakePrincipalList = Listing<(PrincipalPermissionsDataLakePrincipal)?>
-
-
-/// A list of LF-tag conditions that define a resource's LF-tag policy.
+/// A structure for a table with columns object. This object is only used when granting a SELECT permission.
 ///
-///  A structure that allows an admin to grant user permissions on certain conditions. For example, granting a role access to all columns that do not have the LF-tag 'PII' in tables that have the LF-tag 'Prod'.
-open class PrincipalPermissionsLFTagPolicyResource {
+///  This object must take a value for at least one of ``ColumnsNames``, ``ColumnsIndexes``, or ``ColumnsWildcard``.
+open class PrincipalPermissionsTableWithColumnsResource {
     CatalogId: PrincipalPermissionsCatalogIdString
-    ResourceType: PrincipalPermissionsResourceType
-    Expression: PrincipalPermissionsExpression
+    ColumnNames: (PrincipalPermissionsColumnNames)?
+    ColumnWildcard: (PrincipalPermissionsColumnWildcard)?
+    DatabaseName: PrincipalPermissionsNameString
+    Name: PrincipalPermissionsNameString
 }
 
-typealias PrincipalPermissionsNameString = String|Mapping
+typealias PrincipalPermissionsTagValueList = Listing<(PrincipalPermissionsLFTagValue)?>
 
-
-/// A wildcard object, consisting of an optional list of excluded column names or indexes.
-open class PrincipalPermissionsColumnWildcard {
-    ExcludedColumnNames: (PrincipalPermissionsColumnNames)?
-}
 
 /// The ``AWS::LakeFormation::PrincipalPermissions`` resource represents the permissions that a principal has on a GLUDC resource (such as GLUlong databases or GLUlong tables). When you create a ``PrincipalPermissions`` resource, the permissions are granted via the LFlong ``GrantPermissions`` API operation. When you delete a ``PrincipalPermissions`` resource, the permissions on principal-resource pair are revoked via the LFlong ``RevokePermissions`` API operation.
 open class PrincipalPermissions extends cloudformation.Resource {

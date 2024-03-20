@@ -5,28 +5,40 @@ module aws.licensemanager.license
 
 import "../../cloudformation.pkl"
 
+typealias LicenseArn = String|Mapping
+
+
 /// 
 open class LicenseBorrowConfiguration {
-    MaxTimeToLiveInMinutes: Int|Mapping
     AllowEarlyCheckIn: Boolean|Mapping
+    MaxTimeToLiveInMinutes: Int|Mapping
 }
 
 /// 
 open class LicenseConsumptionConfiguration {
-    RenewType: (String|Mapping)?
-    ProvisionalConfiguration: (LicenseProvisionalConfiguration)?
     BorrowConfiguration: (LicenseBorrowConfiguration)?
+    ProvisionalConfiguration: (LicenseProvisionalConfiguration)?
+    RenewType: (String|Mapping)?
 }
 
 /// 
 open class LicenseEntitlement {
-    Name: String|Mapping
-    Value: (String|Mapping)?
+    AllowCheckIn: (Boolean|Mapping)?
     MaxCount: (Int|Mapping)?
+    Name: String|Mapping
     Overage: (Boolean|Mapping)?
     Unit: String|Mapping
-    AllowCheckIn: (Boolean|Mapping)?
+    Value: (String|Mapping)?
 }
+
+/// 
+open class LicenseIssuerData {
+    Name: String|Mapping
+    SignKey: (String|Mapping)?
+}
+
+typealias LicenseLicenseStatus = String|Mapping
+
 
 /// 
 open class LicenseMetadata {
@@ -44,18 +56,6 @@ open class LicenseValidityDateFormat {
     Begin: String|Mapping
     End: String|Mapping
 }
-
-typealias LicenseArn = String|Mapping
-
-
-/// 
-open class LicenseIssuerData {
-    SignKey: (String|Mapping)?
-    Name: String|Mapping
-}
-
-typealias LicenseLicenseStatus = String|Mapping
-
 
 /// Resource Type definition for AWS::LicenseManager::License
 open class License extends cloudformation.Resource {

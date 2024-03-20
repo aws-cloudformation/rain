@@ -5,82 +5,19 @@ module aws.sagemaker.modelcard
 
 import "../../cloudformation.pkl"
 
-typealias ModelCardAxisNameString = String|Mapping
-
-
-/// 
-open class ModelCardContainer {
-    ModelDataUrl: (String|Mapping)?
-    Image: String|Mapping
-    NearestModelName: (String|Mapping)?
-}
-
-typealias ModelCardMetricGroupMetricData1 = ModelCardLinearGraphMetric
-
-
-typealias ModelCardSimpleMetricValue1 = String|Mapping
-
-
-/// Intended usage of model.
-open class ModelCardIntendedUses {
-    PurposeOfModel: (String|Mapping)?
-    IntendedUses: (String|Mapping)?
-    FactorsAffectingModelEfficiency: (String|Mapping)?
-    RiskRating: (ModelCardRiskRating)?
-    ExplanationsForRiskRating: (String|Mapping)?
-}
-
-typealias ModelCardMetricGroupMetricData2 = ModelCardBarChartMetric
-
-
-typealias ModelCardSimpleMetricValue0 = Number|Mapping
-
+typealias ModelCardAdditionalInformationCustomDetails = Mapping<String, Any>
 
 /// 
-open class ModelCardSourceAlgorithm {
-    AlgorithmName: String|Mapping
-    ModelDataUrl: (String|Mapping)?
-}
-
-/// Overview about the training.
-open class ModelCardTrainingDetails {
-    ObjectiveFunction: (ModelCardObjectiveFunction)?
-    TrainingObservations: (String|Mapping)?
-    TrainingJobDetails: (Dynamic)?
-}
-
-/// The content of the model card.
-open class ModelCardContent {
-    ModelOverview: (ModelCardModelOverview)?
-    ModelPackageDetails: (ModelCardModelPackageDetails)?
-    IntendedUses: (ModelCardIntendedUses)?
-    BusinessDetails: (ModelCardBusinessDetails)?
-    TrainingDetails: (ModelCardTrainingDetails)?
-    EvaluationDetails: (ModelCardEvaluationDetails)?
-    AdditionalInformation: (ModelCardAdditionalInformation)?
-}
-
-typealias LinearGraphMetricType = "linear_graph"
-
-typealias ModelCardLinearGraphMetricValue = ModelCardLinearGraphMetricValue0
-
-/// Linear graph metric.
-open class ModelCardLinearGraphMetric {
-    Name: String(matches(Regex(#".{1,255}"#)))|Mapping
-    Notes: (String|Mapping)?
-    Type: LinearGraphMetricType|Mapping
-    Value: ModelCardLinearGraphMetricValue
-    XAxisName: (ModelCardAxisNameString)?
-    YAxisName: (ModelCardAxisNameString)?
-}
-
-/// the objective function the model will optimize for.
-open class ModelCardObjectiveFunction {
-    Function: (Dynamic)?
-    Notes: (String|Mapping)?
+open class ModelCardAdditionalInformation {
+    CaveatsAndRecommendations: (String|Mapping)?
+    CustomDetails: (ModelCardAdditionalInformationCustomDetails)?
+    EthicalConsiderations: (String|Mapping)?
 }
 
 typealias ModelCardAxisNameArray = Listing<(String|Mapping)?>
+
+
+typealias ModelCardAxisNameString = String|Mapping
 
 
 typealias BarChartMetricType = "bar_chart"
@@ -97,6 +34,80 @@ open class ModelCardBarChartMetric {
     YAxisName: (ModelCardAxisNameString)?
 }
 
+typealias ModelCardBarChartMetricValue0 = Listing<(Number|Mapping)?>
+
+
+/// Business details.
+open class ModelCardBusinessDetails {
+    BusinessProblem: (String|Mapping)?
+    BusinessStakeholders: (String|Mapping)?
+    LineOfBusiness: (String|Mapping)?
+}
+
+/// 
+open class ModelCardContainer {
+    Image: String|Mapping
+    ModelDataUrl: (String|Mapping)?
+    NearestModelName: (String|Mapping)?
+}
+
+/// The content of the model card.
+open class ModelCardContent {
+    AdditionalInformation: (ModelCardAdditionalInformation)?
+    BusinessDetails: (ModelCardBusinessDetails)?
+    EvaluationDetails: (ModelCardEvaluationDetails)?
+    IntendedUses: (ModelCardIntendedUses)?
+    ModelOverview: (ModelCardModelOverview)?
+    ModelPackageDetails: (ModelCardModelPackageDetails)?
+    TrainingDetails: (ModelCardTrainingDetails)?
+}
+
+typealias ModelCardEvaluationDetailMetadata = Mapping<String, Any>
+
+/// item of evaluation details
+open class ModelCardEvaluationDetail {
+    Datasets: (Listing<String|Mapping>)?
+    EvaluationJobArn: (String|Mapping)?
+    EvaluationObservation: (String|Mapping)?
+    Metadata: (ModelCardEvaluationDetailMetadata)?
+    MetricGroups: (Listing<ModelCardMetricGroup>)?
+    Name: String(matches(Regex(#".{1,63}"#)))|Mapping
+}
+
+typealias ModelCardEvaluationDetails = Listing<(ModelCardEvaluationDetail)?>
+
+
+/// 
+open class ModelCardInferenceSpecification {
+    Containers: Listing<ModelCardContainer>
+}
+
+/// Intended usage of model.
+open class ModelCardIntendedUses {
+    ExplanationsForRiskRating: (String|Mapping)?
+    FactorsAffectingModelEfficiency: (String|Mapping)?
+    IntendedUses: (String|Mapping)?
+    PurposeOfModel: (String|Mapping)?
+    RiskRating: (ModelCardRiskRating)?
+}
+
+typealias LinearGraphMetricType = "linear_graph"
+
+typealias ModelCardLinearGraphMetricValue = ModelCardLinearGraphMetricValue0
+
+/// Linear graph metric.
+open class ModelCardLinearGraphMetric {
+    Name: String(matches(Regex(#".{1,255}"#)))|Mapping
+    Notes: (String|Mapping)?
+    Type: LinearGraphMetricType|Mapping
+    Value: ModelCardLinearGraphMetricValue
+    XAxisName: (ModelCardAxisNameString)?
+    YAxisName: (ModelCardAxisNameString)?
+}
+
+typealias ModelCardLinearGraphMetricValue0 = Listing<(Listing<Number|Mapping>)?>
+
+
 typealias MatrixMetricType = "matrix"
 
 typealias ModelCardMatrixMetricValue = ModelCardMatrixMetricValue0
@@ -111,18 +122,46 @@ open class ModelCardMatrixMetric {
     YAxisName: (ModelCardAxisNameArray)?
 }
 
-typealias SimpleMetricType = "number"|"string"|"boolean"
+typealias ModelCardMatrixMetricValue0 = Listing<(Listing<Number|Mapping>)?>
 
-typealias ModelCardSimpleMetricValue = ModelCardSimpleMetricValue0|ModelCardSimpleMetricValue1|ModelCardSimpleMetricValue2
 
-/// metric data
-open class ModelCardSimpleMetric {
-    XAxisName: (ModelCardAxisNameString)?
-    YAxisName: (ModelCardAxisNameString)?
-    Name: String(matches(Regex(#".{1,255}"#)))|Mapping
-    Notes: (String|Mapping)?
-    Type: SimpleMetricType|Mapping
-    Value: ModelCardSimpleMetricValue
+typealias ModelCardMetricGroupMetricData = ModelCardMetricGroupMetricData0|ModelCardMetricGroupMetricData1|ModelCardMetricGroupMetricData2|ModelCardMetricGroupMetricData3
+
+/// item in metric groups
+open class ModelCardMetricGroup {
+    MetricData: Listing<ModelCardMetricGroupMetricData>
+    Name: String(matches(Regex(#".{1,63}"#)))|Mapping
+}
+
+typealias ModelCardMetricGroupMetricData0 = ModelCardSimpleMetric
+
+
+typealias ModelCardMetricGroupMetricData1 = ModelCardLinearGraphMetric
+
+
+typealias ModelCardMetricGroupMetricData2 = ModelCardBarChartMetric
+
+
+typealias ModelCardMetricGroupMetricData3 = ModelCardMatrixMetric
+
+
+/// Overview about the model.
+open class ModelCardModelOverview {
+    AlgorithmType: (String|Mapping)?
+    InferenceEnvironment: (Dynamic)?
+    ModelArtifact: (Listing<String|Mapping>)?
+    ModelCreator: (String|Mapping)?
+    ModelDescription: (String|Mapping)?
+    ModelId: (String|Mapping)?
+    ModelName: (String|Mapping)?
+    ModelOwner: (String|Mapping)?
+    ModelVersion: (Number|Mapping)?
+    ProblemType: (String|Mapping)?
+}
+
+/// 
+open class ModelCardModelPackageCreator {
+    UserProfileName: (String|Mapping)?
 }
 
 typealias ModelPackageDetailsModelApprovalStatus = "Approved"|"Rejected"|"PendingManualApproval"
@@ -131,126 +170,28 @@ typealias ModelPackageDetailsModelPackageStatus = "Pending"|"InProgress"|"Comple
 
 /// Metadata information related to model package version
 open class ModelCardModelPackageDetails {
-    Task: (String|Mapping)?
+    ApprovalDescription: (String|Mapping)?
     CreatedBy: (ModelCardModelPackageCreator)?
-    ModelApprovalStatus: (ModelPackageDetailsModelApprovalStatus|Mapping)?
-    ModelPackageName: (String|Mapping)?
-    ModelPackageDescription: (String|Mapping)?
-    ModelPackageVersion: (Number|Mapping)?
     Domain: (String|Mapping)?
     InferenceSpecification: (ModelCardInferenceSpecification)?
+    ModelApprovalStatus: (ModelPackageDetailsModelApprovalStatus|Mapping)?
     ModelPackageArn: (String|Mapping)?
-    ModelPackageStatus: (ModelPackageDetailsModelPackageStatus|Mapping)?
-    ApprovalDescription: (String|Mapping)?
+    ModelPackageDescription: (String|Mapping)?
     ModelPackageGroupName: (String|Mapping)?
+    ModelPackageName: (String|Mapping)?
+    ModelPackageStatus: (ModelPackageDetailsModelPackageStatus|Mapping)?
+    ModelPackageVersion: (Number|Mapping)?
     SourceAlgorithms: (ModelCardSourceAlgorithms)?
+    Task: (String|Mapping)?
 }
 
-typealias ModelCardSimpleMetricValue2 = Boolean|Mapping
-
-
-typealias ModelCardAdditionalInformationCustomDetails = Mapping<String, Any>
-
-/// 
-open class ModelCardAdditionalInformation {
-    EthicalConsiderations: (String|Mapping)?
-    CaveatsAndRecommendations: (String|Mapping)?
-    CustomDetails: (ModelCardAdditionalInformationCustomDetails)?
-}
-
-/// Business details.
-open class ModelCardBusinessDetails {
-    BusinessProblem: (String|Mapping)?
-    BusinessStakeholders: (String|Mapping)?
-    LineOfBusiness: (String|Mapping)?
-}
-
-typealias ModelCardEvaluationDetailMetadata = Mapping<String, Any>
-
-/// item of evaluation details
-open class ModelCardEvaluationDetail {
-    Name: String(matches(Regex(#".{1,63}"#)))|Mapping
-    EvaluationObservation: (String|Mapping)?
-    EvaluationJobArn: (String|Mapping)?
-    Datasets: (Listing<String|Mapping>)?
-    Metadata: (ModelCardEvaluationDetailMetadata)?
-    MetricGroups: (Listing<ModelCardMetricGroup>)?
-}
-
-typealias ModelCardEvaluationDetails = Listing<(ModelCardEvaluationDetail)?>
-
-
-typealias ModelCardMetricGroupMetricData = ModelCardMetricGroupMetricData0|ModelCardMetricGroupMetricData1|ModelCardMetricGroupMetricData2|ModelCardMetricGroupMetricData3
-
-/// item in metric groups
-open class ModelCardMetricGroup {
-    Name: String(matches(Regex(#".{1,63}"#)))|Mapping
-    MetricData: Listing<ModelCardMetricGroupMetricData>
-}
-
-/// 
-open class ModelCardModelPackageCreator {
-    UserProfileName: (String|Mapping)?
-}
-
-typealias ModelCardSourceAlgorithms = Listing<(ModelCardSourceAlgorithm)?>
-
-
-/// training metric data.
-open class ModelCardTrainingMetric {
-    Name: String(matches(Regex(#".{1,255}"#)))|Mapping
+/// the objective function the model will optimize for.
+open class ModelCardObjectiveFunction {
+    Function: (Dynamic)?
     Notes: (String|Mapping)?
-    Value: Number|Mapping
-}
-
-/// Information about the user who created or modified an experiment, trial, trial component, lineage group, project, or model card.
-open class ModelCardUserContext {
-    UserProfileArn: (String|Mapping)?
-    UserProfileName: (String|Mapping)?
-    DomainId: (String|Mapping)?
-}
-
-typealias ModelCardBarChartMetricValue0 = Listing<(Number|Mapping)?>
-
-
-typealias ModelCardMatrixMetricValue0 = Listing<(Listing<Number|Mapping>)?>
-
-
-typealias ModelCardMetricGroupMetricData0 = ModelCardSimpleMetric
-
-
-/// Overview about the model.
-open class ModelCardModelOverview {
-    ModelOwner: (String|Mapping)?
-    ModelCreator: (String|Mapping)?
-    ProblemType: (String|Mapping)?
-    AlgorithmType: (String|Mapping)?
-    ModelName: (String|Mapping)?
-    ModelDescription: (String|Mapping)?
-    ModelId: (String|Mapping)?
-    ModelArtifact: (Listing<String|Mapping>)?
-    ModelVersion: (Number|Mapping)?
-    InferenceEnvironment: (Dynamic)?
 }
 
 typealias ModelCardRiskRating = String|Mapping
-
-
-/// training hyper parameter
-open class ModelCardTrainingHyperParameter {
-    Name: String(matches(Regex(#".{1,255}"#)))|Mapping
-    Value: String(matches(Regex(#".{1,255}"#)))|Mapping
-}
-
-/// 
-open class ModelCardInferenceSpecification {
-    Containers: Listing<ModelCardContainer>
-}
-
-typealias ModelCardLinearGraphMetricValue0 = Listing<(Listing<Number|Mapping>)?>
-
-
-typealias ModelCardMetricGroupMetricData3 = ModelCardMatrixMetric
 
 
 /// An optional Key Management Service key to encrypt, decrypt, and re-encrypt model card content for regulated workloads with highly sensitive data.
@@ -261,10 +202,69 @@ open class ModelCardSecurityConfig {
     KmsKeyId: (String(matches(Regex(#".*"#)))|Mapping)?
 }
 
+typealias SimpleMetricType = "number"|"string"|"boolean"
+
+typealias ModelCardSimpleMetricValue = ModelCardSimpleMetricValue0|ModelCardSimpleMetricValue1|ModelCardSimpleMetricValue2
+
+/// metric data
+open class ModelCardSimpleMetric {
+    Name: String(matches(Regex(#".{1,255}"#)))|Mapping
+    Notes: (String|Mapping)?
+    Type: SimpleMetricType|Mapping
+    Value: ModelCardSimpleMetricValue
+    XAxisName: (ModelCardAxisNameString)?
+    YAxisName: (ModelCardAxisNameString)?
+}
+
+typealias ModelCardSimpleMetricValue0 = Number|Mapping
+
+
+typealias ModelCardSimpleMetricValue1 = String|Mapping
+
+
+typealias ModelCardSimpleMetricValue2 = Boolean|Mapping
+
+
+/// 
+open class ModelCardSourceAlgorithm {
+    AlgorithmName: String|Mapping
+    ModelDataUrl: (String|Mapping)?
+}
+
+typealias ModelCardSourceAlgorithms = Listing<(ModelCardSourceAlgorithm)?>
+
+
 /// A key-value pair to associate with a resource.
 open class ModelCardTag {
     Key: String|Mapping
     Value: String|Mapping
+}
+
+/// Overview about the training.
+open class ModelCardTrainingDetails {
+    ObjectiveFunction: (ModelCardObjectiveFunction)?
+    TrainingJobDetails: (Dynamic)?
+    TrainingObservations: (String|Mapping)?
+}
+
+/// training hyper parameter
+open class ModelCardTrainingHyperParameter {
+    Name: String(matches(Regex(#".{1,255}"#)))|Mapping
+    Value: String(matches(Regex(#".{1,255}"#)))|Mapping
+}
+
+/// training metric data.
+open class ModelCardTrainingMetric {
+    Name: String(matches(Regex(#".{1,255}"#)))|Mapping
+    Notes: (String|Mapping)?
+    Value: Number|Mapping
+}
+
+/// Information about the user who created or modified an experiment, trial, trial component, lineage group, project, or model card.
+open class ModelCardUserContext {
+    DomainId: (String|Mapping)?
+    UserProfileArn: (String|Mapping)?
+    UserProfileName: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::SageMaker::ModelCard.

@@ -5,23 +5,36 @@ module aws.kinesisanalyticsv2.application
 
 import "../../cloudformation.pkl"
 
-typealias MonitoringConfigurationConfigurationType = "DEFAULT"|"CUSTOM"
+typealias ApplicationCodeConfigurationCodeContentType = "PLAINTEXT"|"ZIPFILE"
 
-typealias MonitoringConfigurationMetricsLevel = "APPLICATION"|"OPERATOR"|"PARALLELISM"|"TASK"
-
-typealias MonitoringConfigurationLogLevel = "DEBUG"|"INFO"|"WARN"|"ERROR"
-
-/// Describes configuration parameters for Amazon CloudWatch logging for a Java-based Kinesis Data Analytics application. For more information about CloudWatch logging, see Monitoring.
-open class ApplicationMonitoringConfiguration {
-    ConfigurationType: MonitoringConfigurationConfigurationType|Mapping
-    MetricsLevel: (MonitoringConfigurationMetricsLevel|Mapping)?
-    LogLevel: (MonitoringConfigurationLogLevel|Mapping)?
+/// Describes code configuration for an application.
+open class ApplicationApplicationCodeConfiguration {
+    CodeContent: ApplicationCodeContent
+    CodeContentType: ApplicationCodeConfigurationCodeContentType|Mapping
 }
 
-/// A key-value pair that identifies an application.
-open class ApplicationTag {
-    Key: String|Mapping
-    Value: String|Mapping
+/// Specifies the creation parameters for a Kinesis Data Analytics application.
+open class ApplicationApplicationConfiguration {
+    ApplicationCodeConfiguration: (ApplicationApplicationCodeConfiguration)?
+    ApplicationSnapshotConfiguration: (ApplicationApplicationSnapshotConfiguration)?
+    EnvironmentProperties: (ApplicationEnvironmentProperties)?
+    FlinkApplicationConfiguration: (ApplicationFlinkApplicationConfiguration)?
+    SqlApplicationConfiguration: (ApplicationSqlApplicationConfiguration)?
+    VpcConfigurations: (ApplicationVpcConfigurations)?
+    ZeppelinApplicationConfiguration: (ApplicationZeppelinApplicationConfiguration)?
+}
+
+/// Describes the maintenance configuration for the application.
+open class ApplicationApplicationMaintenanceConfiguration {
+    ApplicationMaintenanceWindowStartTime: String(matches(Regex(#"^([01][0-9]|2[0-3]):[0-5][0-9]$"#)))|Mapping
+}
+
+typealias ApplicationRestoreConfigurationApplicationRestoreType = "SKIP_RESTORE_FROM_SNAPSHOT"|"RESTORE_FROM_LATEST_SNAPSHOT"|"RESTORE_FROM_CUSTOM_SNAPSHOT"
+
+/// Describes the restore behavior of a restarting application.
+open class ApplicationApplicationRestoreConfiguration {
+    ApplicationRestoreType: ApplicationRestoreConfigurationApplicationRestoreType|Mapping
+    SnapshotName: (String(matches(Regex(#"^[a-zA-Z0-9_.-]+$"#)))|Mapping)?
 }
 
 /// Describes whether snapshots are enabled for a Flink-based Kinesis Data Analytics application.
@@ -41,67 +54,19 @@ open class ApplicationCSVMappingParameters {
     RecordRowDelimiter: String|Mapping
 }
 
-/// Describes execution properties for a Flink-based Kinesis Data Analytics application.
-open class ApplicationEnvironmentProperties {
-    PropertyGroups: (Listing<ApplicationPropertyGroup>)?
+/// The configuration parameters for the default Amazon Glue database. You use this database for SQL queries that you write in a Kinesis Data Analytics Studio notebook.
+open class ApplicationCatalogConfiguration {
+    GlueDataCatalogConfiguration: (ApplicationGlueDataCatalogConfiguration)?
 }
 
-typealias InputSchemaRecordEncoding = "UTF-8"
+typealias CheckpointConfigurationConfigurationType = "DEFAULT"|"CUSTOM"
 
-/// For a SQL-based Kinesis Data Analytics application, describes the format of the data in the streaming source, and how each data element maps to corresponding columns created in the in-application stream.
-open class ApplicationInputSchema {
-    RecordEncoding: (InputSchemaRecordEncoding|Mapping)?
-    RecordColumns: Listing<ApplicationRecordColumn>
-    RecordFormat: ApplicationRecordFormat
-}
-
-/// The information required to specify a Maven reference. You can use Maven references to specify dependency JAR files.
-open class ApplicationMavenReference {
-    Version: String(matches(Regex(#"^[a-zA-Z0-9_.-]+$"#)))|Mapping
-    ArtifactId: String(matches(Regex(#"^[a-zA-Z0-9_.-]+$"#)))|Mapping
-    GroupId: String(matches(Regex(#"^[a-zA-Z0-9_.-]+$"#)))|Mapping
-}
-
-/// Describes the parameters of a VPC used by the application.
-open class ApplicationVpcConfiguration {
-    SecurityGroupIds: Listing<String|Mapping>
-    SubnetIds: Listing<String|Mapping>
-}
-
-typealias CustomArtifactConfigurationArtifactType = "DEPENDENCY_JAR"|"UDF"
-
-/// The configuration of connectors and user-defined functions.
-open class ApplicationCustomArtifactConfiguration {
-    MavenReference: (ApplicationMavenReference)?
-    S3ContentLocation: (ApplicationS3ContentLocation)?
-    ArtifactType: CustomArtifactConfigurationArtifactType|Mapping
-}
-
-typealias ApplicationCustomArtifactsConfiguration = Listing<(ApplicationCustomArtifactConfiguration)?>
-
-
-/// Describes configuration parameters for a Flink-based Kinesis Data Analytics application or a Studio notebook.
-open class ApplicationFlinkApplicationConfiguration {
-    ParallelismConfiguration: (ApplicationParallelismConfiguration)?
-    CheckpointConfiguration: (ApplicationCheckpointConfiguration)?
-    MonitoringConfiguration: (ApplicationMonitoringConfiguration)?
-}
-
-/// An object that contains the Amazon Resource Name (ARN) of the Amazon Lambda function that is used to preprocess records in the stream in a SQL-based Kinesis Data Analytics application.
-open class ApplicationInputLambdaProcessor {
-    ResourceARN: ApplicationArn
-}
-
-/// The location of an application or a custom artifact.
-open class ApplicationS3ContentLocation {
-    BucketARN: ApplicationArn
-    FileKey: String|Mapping
-    ObjectVersion: (String|Mapping)?
-}
-
-/// Describes the inputs, outputs, and reference data sources for a SQL-based Kinesis Data Analytics application.
-open class ApplicationSqlApplicationConfiguration {
-    Inputs: (Listing<ApplicationInput>)?
+/// Describes an application's checkpointing configuration. Checkpointing is the process of persisting application state for fault tolerance. For more information, see Checkpoints for Fault Tolerance in the Apache Flink Documentation.
+open class ApplicationCheckpointConfiguration {
+    CheckpointInterval: (Int|Mapping)?
+    CheckpointingEnabled: (Boolean|Mapping)?
+    ConfigurationType: CheckpointConfigurationConfigurationType|Mapping
+    MinPauseBetweenCheckpoints: (Int|Mapping)?
 }
 
 /// Specifies either the application code, or the location of the application code, for a Flink-based Kinesis Data Analytics application.
@@ -111,9 +76,58 @@ open class ApplicationCodeContent {
     ZipFileContent: (String|Mapping)?
 }
 
+typealias CustomArtifactConfigurationArtifactType = "DEPENDENCY_JAR"|"UDF"
+
+/// The configuration of connectors and user-defined functions.
+open class ApplicationCustomArtifactConfiguration {
+    ArtifactType: CustomArtifactConfigurationArtifactType|Mapping
+    MavenReference: (ApplicationMavenReference)?
+    S3ContentLocation: (ApplicationS3ContentLocation)?
+}
+
+typealias ApplicationCustomArtifactsConfiguration = Listing<(ApplicationCustomArtifactConfiguration)?>
+
+
 /// The information required to deploy a Kinesis Data Analytics Studio notebook as an application with durable state.
 open class ApplicationDeployAsApplicationConfiguration {
     S3ContentLocation: ApplicationS3ContentBaseLocation
+}
+
+/// Describes execution properties for a Flink-based Kinesis Data Analytics application.
+open class ApplicationEnvironmentProperties {
+    PropertyGroups: (Listing<ApplicationPropertyGroup>)?
+}
+
+/// Describes configuration parameters for a Flink-based Kinesis Data Analytics application or a Studio notebook.
+open class ApplicationFlinkApplicationConfiguration {
+    CheckpointConfiguration: (ApplicationCheckpointConfiguration)?
+    MonitoringConfiguration: (ApplicationMonitoringConfiguration)?
+    ParallelismConfiguration: (ApplicationParallelismConfiguration)?
+}
+
+/// Describes the starting parameters for a Flink-based Kinesis Data Analytics application.
+open class ApplicationFlinkRunConfiguration {
+    AllowNonRestoredState: (Boolean|Mapping)?
+}
+
+/// The configuration of the Glue Data Catalog that you use for Apache Flink SQL queries and table API transforms that you write in an application.
+open class ApplicationGlueDataCatalogConfiguration {
+    DatabaseARN: (ApplicationArn)?
+}
+
+/// When you configure the application input for a SQL-based Kinesis Data Analytics application, you specify the streaming source, the in-application stream name that is created, and the mapping between the two.
+open class ApplicationInput {
+    InputParallelism: (ApplicationInputParallelism)?
+    InputProcessingConfiguration: (ApplicationInputProcessingConfiguration)?
+    InputSchema: ApplicationInputSchema
+    KinesisFirehoseInput: (ApplicationKinesisFirehoseInput)?
+    KinesisStreamsInput: (ApplicationKinesisStreamsInput)?
+    NamePrefix: String(matches(Regex(#"^[^-\s<>&]*$"#)))|Mapping
+}
+
+/// An object that contains the Amazon Resource Name (ARN) of the Amazon Lambda function that is used to preprocess records in the stream in a SQL-based Kinesis Data Analytics application.
+open class ApplicationInputLambdaProcessor {
+    ResourceARN: ApplicationArn
 }
 
 /// For a SQL-based Kinesis Data Analytics application, describes the number of in-application streams to create for a given streaming source.
@@ -126,89 +140,18 @@ open class ApplicationInputProcessingConfiguration {
     InputLambdaProcessor: (ApplicationInputLambdaProcessor)?
 }
 
+typealias InputSchemaRecordEncoding = "UTF-8"
+
+/// For a SQL-based Kinesis Data Analytics application, describes the format of the data in the streaming source, and how each data element maps to corresponding columns created in the in-application stream.
+open class ApplicationInputSchema {
+    RecordColumns: Listing<ApplicationRecordColumn>
+    RecordEncoding: (InputSchemaRecordEncoding|Mapping)?
+    RecordFormat: ApplicationRecordFormat
+}
+
 /// For a SQL-based Kinesis Data Analytics application, provides additional mapping information when JSON is the record format on the streaming source.
 open class ApplicationJSONMappingParameters {
     RecordRowPath: String(matches(Regex(#"^(?=^\$)(?=^\S+$).*$"#)))|Mapping
-}
-
-typealias ApplicationRestoreConfigurationApplicationRestoreType = "SKIP_RESTORE_FROM_SNAPSHOT"|"RESTORE_FROM_LATEST_SNAPSHOT"|"RESTORE_FROM_CUSTOM_SNAPSHOT"
-
-/// Describes the restore behavior of a restarting application.
-open class ApplicationApplicationRestoreConfiguration {
-    ApplicationRestoreType: ApplicationRestoreConfigurationApplicationRestoreType|Mapping
-    SnapshotName: (String(matches(Regex(#"^[a-zA-Z0-9_.-]+$"#)))|Mapping)?
-}
-
-/// The configuration parameters for the default Amazon Glue database. You use this database for SQL queries that you write in a Kinesis Data Analytics Studio notebook.
-open class ApplicationCatalogConfiguration {
-    GlueDataCatalogConfiguration: (ApplicationGlueDataCatalogConfiguration)?
-}
-
-/// When you configure the application input for a SQL-based Kinesis Data Analytics application, you specify the streaming source, the in-application stream name that is created, and the mapping between the two.
-open class ApplicationInput {
-    InputParallelism: (ApplicationInputParallelism)?
-    NamePrefix: String(matches(Regex(#"^[^-\s<>&]*$"#)))|Mapping
-    InputSchema: ApplicationInputSchema
-    KinesisStreamsInput: (ApplicationKinesisStreamsInput)?
-    KinesisFirehoseInput: (ApplicationKinesisFirehoseInput)?
-    InputProcessingConfiguration: (ApplicationInputProcessingConfiguration)?
-}
-
-/// Identifies a Kinesis data stream as the streaming source. You provide the stream's Amazon Resource Name (ARN).
-open class ApplicationKinesisStreamsInput {
-    ResourceARN: ApplicationArn
-}
-
-/// Describes the starting parameters for a Flink-based Kinesis Data Analytics application.
-open class ApplicationFlinkRunConfiguration {
-    AllowNonRestoredState: (Boolean|Mapping)?
-}
-
-/// The configuration of a Kinesis Data Analytics Studio notebook.
-open class ApplicationZeppelinApplicationConfiguration {
-    CatalogConfiguration: (ApplicationCatalogConfiguration)?
-    MonitoringConfiguration: (ApplicationZeppelinMonitoringConfiguration)?
-    DeployAsApplicationConfiguration: (ApplicationDeployAsApplicationConfiguration)?
-    CustomArtifactsConfiguration: (ApplicationCustomArtifactsConfiguration)?
-}
-
-typealias ZeppelinMonitoringConfigurationLogLevel = "DEBUG"|"INFO"|"WARN"|"ERROR"
-
-/// Describes configuration parameters for Amazon CloudWatch logging for a Kinesis Data Analytics Studio notebook. For more information about CloudWatch logging, see Monitoring.
-open class ApplicationZeppelinMonitoringConfiguration {
-    LogLevel: (ZeppelinMonitoringConfigurationLogLevel|Mapping)?
-}
-
-/// Describes the maintenance configuration for the application.
-open class ApplicationApplicationMaintenanceConfiguration {
-    ApplicationMaintenanceWindowStartTime: String(matches(Regex(#"^([01][0-9]|2[0-3]):[0-5][0-9]$"#)))|Mapping
-}
-
-typealias ParallelismConfigurationConfigurationType = "CUSTOM"|"DEFAULT"
-
-/// Describes parameters for how a Flink-based Kinesis Data Analytics application executes multiple tasks simultaneously. For more information about parallelism, see Parallel Execution in the Apache Flink Documentation
-open class ApplicationParallelismConfiguration {
-    ConfigurationType: ParallelismConfigurationConfigurationType|Mapping
-    ParallelismPerKPU: (Int|Mapping)?
-    Parallelism: (Int|Mapping)?
-    AutoScalingEnabled: (Boolean|Mapping)?
-}
-
-/// Identifies the run configuration (start parameters) of a Kinesis Data Analytics application. This section is evaluated only on stack updates for applications in running RUNNING state and has no effect during manual application start.
-open class ApplicationRunConfiguration {
-    ApplicationRestoreConfiguration: (ApplicationApplicationRestoreConfiguration)?
-    FlinkRunConfiguration: (ApplicationFlinkRunConfiguration)?
-}
-
-typealias ApplicationVpcConfigurations = Listing<(ApplicationVpcConfiguration)?>
-
-
-typealias ApplicationCodeConfigurationCodeContentType = "PLAINTEXT"|"ZIPFILE"
-
-/// Describes code configuration for an application.
-open class ApplicationApplicationCodeConfiguration {
-    CodeContent: ApplicationCodeContent
-    CodeContentType: ApplicationCodeConfigurationCodeContentType|Mapping
 }
 
 /// For a SQL-based Kinesis Data Analytics application, identifies a Kinesis Data Firehose delivery stream as the streaming source. You provide the delivery stream's Amazon Resource Name (ARN).
@@ -216,50 +159,45 @@ open class ApplicationKinesisFirehoseInput {
     ResourceARN: ApplicationArn
 }
 
-typealias RecordFormatRecordFormatType = "CSV"|"JSON"
-
-/// For a SQL-based Kinesis Data Analytics application, describes the record format and relevant mapping information that should be applied to schematize the records on the stream.
-open class ApplicationRecordFormat {
-    MappingParameters: (ApplicationMappingParameters)?
-    RecordFormatType: RecordFormatRecordFormatType|Mapping
-}
-
-/// The base location of the Amazon Data Analytics application.
-open class ApplicationS3ContentBaseLocation {
-    BucketARN: ApplicationArn
-    BasePath: (String(matches(Regex(#"^[a-zA-Z0-9/!-_.*'()]+$"#)))|Mapping)?
-}
-
-/// Specifies the creation parameters for a Kinesis Data Analytics application.
-open class ApplicationApplicationConfiguration {
-    ApplicationSnapshotConfiguration: (ApplicationApplicationSnapshotConfiguration)?
-    EnvironmentProperties: (ApplicationEnvironmentProperties)?
-    FlinkApplicationConfiguration: (ApplicationFlinkApplicationConfiguration)?
-    SqlApplicationConfiguration: (ApplicationSqlApplicationConfiguration)?
-    ZeppelinApplicationConfiguration: (ApplicationZeppelinApplicationConfiguration)?
-    VpcConfigurations: (ApplicationVpcConfigurations)?
-    ApplicationCodeConfiguration: (ApplicationApplicationCodeConfiguration)?
-}
-
-typealias CheckpointConfigurationConfigurationType = "DEFAULT"|"CUSTOM"
-
-/// Describes an application's checkpointing configuration. Checkpointing is the process of persisting application state for fault tolerance. For more information, see Checkpoints for Fault Tolerance in the Apache Flink Documentation.
-open class ApplicationCheckpointConfiguration {
-    CheckpointingEnabled: (Boolean|Mapping)?
-    CheckpointInterval: (Int|Mapping)?
-    MinPauseBetweenCheckpoints: (Int|Mapping)?
-    ConfigurationType: CheckpointConfigurationConfigurationType|Mapping
-}
-
-/// The configuration of the Glue Data Catalog that you use for Apache Flink SQL queries and table API transforms that you write in an application.
-open class ApplicationGlueDataCatalogConfiguration {
-    DatabaseARN: (ApplicationArn)?
+/// Identifies a Kinesis data stream as the streaming source. You provide the stream's Amazon Resource Name (ARN).
+open class ApplicationKinesisStreamsInput {
+    ResourceARN: ApplicationArn
 }
 
 /// When you configure a SQL-based Kinesis Data Analytics application's input at the time of creating or updating an application, provides additional mapping information specific to the record format (such as JSON, CSV, or record fields delimited by some delimiter) on the streaming source.
 open class ApplicationMappingParameters {
     CSVMappingParameters: (ApplicationCSVMappingParameters)?
     JSONMappingParameters: (ApplicationJSONMappingParameters)?
+}
+
+/// The information required to specify a Maven reference. You can use Maven references to specify dependency JAR files.
+open class ApplicationMavenReference {
+    ArtifactId: String(matches(Regex(#"^[a-zA-Z0-9_.-]+$"#)))|Mapping
+    GroupId: String(matches(Regex(#"^[a-zA-Z0-9_.-]+$"#)))|Mapping
+    Version: String(matches(Regex(#"^[a-zA-Z0-9_.-]+$"#)))|Mapping
+}
+
+typealias MonitoringConfigurationConfigurationType = "DEFAULT"|"CUSTOM"
+
+typealias MonitoringConfigurationLogLevel = "DEBUG"|"INFO"|"WARN"|"ERROR"
+
+typealias MonitoringConfigurationMetricsLevel = "APPLICATION"|"OPERATOR"|"PARALLELISM"|"TASK"
+
+/// Describes configuration parameters for Amazon CloudWatch logging for a Java-based Kinesis Data Analytics application. For more information about CloudWatch logging, see Monitoring.
+open class ApplicationMonitoringConfiguration {
+    ConfigurationType: MonitoringConfigurationConfigurationType|Mapping
+    LogLevel: (MonitoringConfigurationLogLevel|Mapping)?
+    MetricsLevel: (MonitoringConfigurationMetricsLevel|Mapping)?
+}
+
+typealias ParallelismConfigurationConfigurationType = "CUSTOM"|"DEFAULT"
+
+/// Describes parameters for how a Flink-based Kinesis Data Analytics application executes multiple tasks simultaneously. For more information about parallelism, see Parallel Execution in the Apache Flink Documentation
+open class ApplicationParallelismConfiguration {
+    AutoScalingEnabled: (Boolean|Mapping)?
+    ConfigurationType: ParallelismConfigurationConfigurationType|Mapping
+    Parallelism: (Int|Mapping)?
+    ParallelismPerKPU: (Int|Mapping)?
 }
 
 typealias ApplicationPropertyGroupPropertyMap = Mapping<String, Any>
@@ -277,6 +215,68 @@ open class ApplicationRecordColumn {
     Mapping: (String|Mapping)?
     Name: String(matches(Regex(#"^[^-\s<>&]*$"#)))|Mapping
     SqlType: String|Mapping
+}
+
+typealias RecordFormatRecordFormatType = "CSV"|"JSON"
+
+/// For a SQL-based Kinesis Data Analytics application, describes the record format and relevant mapping information that should be applied to schematize the records on the stream.
+open class ApplicationRecordFormat {
+    MappingParameters: (ApplicationMappingParameters)?
+    RecordFormatType: RecordFormatRecordFormatType|Mapping
+}
+
+/// Identifies the run configuration (start parameters) of a Kinesis Data Analytics application. This section is evaluated only on stack updates for applications in running RUNNING state and has no effect during manual application start.
+open class ApplicationRunConfiguration {
+    ApplicationRestoreConfiguration: (ApplicationApplicationRestoreConfiguration)?
+    FlinkRunConfiguration: (ApplicationFlinkRunConfiguration)?
+}
+
+/// The base location of the Amazon Data Analytics application.
+open class ApplicationS3ContentBaseLocation {
+    BasePath: (String(matches(Regex(#"^[a-zA-Z0-9/!-_.*'()]+$"#)))|Mapping)?
+    BucketARN: ApplicationArn
+}
+
+/// The location of an application or a custom artifact.
+open class ApplicationS3ContentLocation {
+    BucketARN: ApplicationArn
+    FileKey: String|Mapping
+    ObjectVersion: (String|Mapping)?
+}
+
+/// Describes the inputs, outputs, and reference data sources for a SQL-based Kinesis Data Analytics application.
+open class ApplicationSqlApplicationConfiguration {
+    Inputs: (Listing<ApplicationInput>)?
+}
+
+/// A key-value pair that identifies an application.
+open class ApplicationTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// Describes the parameters of a VPC used by the application.
+open class ApplicationVpcConfiguration {
+    SecurityGroupIds: Listing<String|Mapping>
+    SubnetIds: Listing<String|Mapping>
+}
+
+typealias ApplicationVpcConfigurations = Listing<(ApplicationVpcConfiguration)?>
+
+
+/// The configuration of a Kinesis Data Analytics Studio notebook.
+open class ApplicationZeppelinApplicationConfiguration {
+    CatalogConfiguration: (ApplicationCatalogConfiguration)?
+    CustomArtifactsConfiguration: (ApplicationCustomArtifactsConfiguration)?
+    DeployAsApplicationConfiguration: (ApplicationDeployAsApplicationConfiguration)?
+    MonitoringConfiguration: (ApplicationZeppelinMonitoringConfiguration)?
+}
+
+typealias ZeppelinMonitoringConfigurationLogLevel = "DEBUG"|"INFO"|"WARN"|"ERROR"
+
+/// Describes configuration parameters for Amazon CloudWatch logging for a Kinesis Data Analytics Studio notebook. For more information about CloudWatch logging, see Monitoring.
+open class ApplicationZeppelinMonitoringConfiguration {
+    LogLevel: (ZeppelinMonitoringConfigurationLogLevel|Mapping)?
 }
 
 /// Creates an Amazon Kinesis Data Analytics application. For information about creating a Kinesis Data Analytics application, see [Creating an Application](https://docs.aws.amazon.com/kinesisanalytics/latest/java/getting-started.html).

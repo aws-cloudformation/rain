@@ -5,6 +5,9 @@ module aws.efs.filesystem
 
 import "../../cloudformation.pkl"
 
+typealias FileSystemArn = String|Mapping
+
+
 /// The backup policy turns automatic backups for the file system on or off.
 open class FileSystemBackupPolicy {
     Status: String|Mapping
@@ -28,9 +31,9 @@ open class FileSystemFileSystemProtection {
 ///   + Each ``LifecyclePolicy`` object can have only a single transition. This means that in a request body, ``LifecyclePolicies`` must be structured as an array of ``LifecyclePolicy`` objects, one object for each transition, ``TransitionToIA``, ``TransitionToArchive``, ``TransitionToPrimaryStorageClass``.
 ///  + See the AWS::EFS::FileSystem examples for the correct ``LifecyclePolicy`` structure. Do not use the syntax shown on this page.
 open class FileSystemLifecyclePolicy {
+    TransitionToArchive: (String|Mapping)?
     TransitionToIA: (String|Mapping)?
     TransitionToPrimaryStorageClass: (String|Mapping)?
-    TransitionToArchive: (String|Mapping)?
 }
 
 /// Describes the replication configuration for a specific file system.
@@ -41,13 +44,10 @@ open class FileSystemReplicationConfiguration {
 /// Describes the destination file system in the replication configuration.
 open class FileSystemReplicationDestination {
     AvailabilityZoneName: (String|Mapping)?
-    KmsKeyId: (String|Mapping)?
     FileSystemId: (String|Mapping)?
+    KmsKeyId: (String|Mapping)?
     Region: (String|Mapping)?
 }
-
-typealias FileSystemArn = String|Mapping
-
 
 /// The ``AWS::EFS::FileSystem`` resource creates a new, empty file system in EFSlong (EFS). You must create a mount target ([AWS::EFS::MountTarget](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-efs-mounttarget.html)) to mount your EFS file system on an EC2 or other AWS cloud compute resource.
 open class FileSystem extends cloudformation.Resource {

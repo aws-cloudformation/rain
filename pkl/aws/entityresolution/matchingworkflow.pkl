@@ -5,6 +5,18 @@ module aws.entityresolution.matchingworkflow
 
 import "../../cloudformation.pkl"
 
+typealias MatchingWorkflowAttributeName = String|Mapping
+
+
+typealias MatchingWorkflowCreatedAt = String|Mapping
+
+
+typealias MatchingWorkflowDescription = String|Mapping
+
+
+typealias MatchingWorkflowEntityName = String|Mapping
+
+
 /// 
 open class MatchingWorkflowInputSource {
     ApplyNormalization: (Boolean|Mapping)?
@@ -12,34 +24,53 @@ open class MatchingWorkflowInputSource {
     SchemaArn: String|Mapping
 }
 
-typealias MatchingWorkflowUpdatedAt = String|Mapping
+/// 
+open class MatchingWorkflowIntermediateSourceConfiguration {
+    IntermediateS3Path: String|Mapping
+}
+
+typealias MatchingWorkflowKMSArn = String|Mapping
 
 
-typealias MatchingWorkflowAttributeName = String|Mapping
+typealias MatchingWorkflowMatchingWorkflowArn = String|Mapping
 
+
+/// 
+open class MatchingWorkflowOutputAttribute {
+    Hashed: (Boolean|Mapping)?
+    Name: MatchingWorkflowAttributeName
+}
+
+/// 
+open class MatchingWorkflowOutputSource {
+    ApplyNormalization: (Boolean|Mapping)?
+    KMSArn: (MatchingWorkflowKMSArn)?
+    Output: Listing<MatchingWorkflowOutputAttribute>
+    OutputS3Path: String(matches(Regex(#"^s3://([^/]+)/?(.*?([^/]+)/?)$"#)))|Mapping
+}
 
 typealias MatchingWorkflowProviderPropertiesProviderConfiguration = Mapping<String, Any>
 
 /// 
 open class MatchingWorkflowProviderProperties {
-    ProviderServiceArn: String|Mapping
-    ProviderConfiguration: (MatchingWorkflowProviderPropertiesProviderConfiguration)?
     IntermediateSourceConfiguration: (MatchingWorkflowIntermediateSourceConfiguration)?
+    ProviderConfiguration: (MatchingWorkflowProviderPropertiesProviderConfiguration)?
+    ProviderServiceArn: String|Mapping
 }
 
 typealias ResolutionTechniquesResolutionType = "RULE_MATCHING"|"ML_MATCHING"|"PROVIDER"
 
 /// 
 open class MatchingWorkflowResolutionTechniques {
+    ProviderProperties: (MatchingWorkflowProviderProperties)?
     ResolutionType: (ResolutionTechniquesResolutionType|Mapping)?
     RuleBasedProperties: (MatchingWorkflowRuleBasedProperties)?
-    ProviderProperties: (MatchingWorkflowProviderProperties)?
 }
 
 /// 
 open class MatchingWorkflowRule {
-    RuleName: String(matches(Regex(#"^[a-zA-Z_0-9- \t]*$"#)))|Mapping
     MatchingKeys: Listing<MatchingWorkflowAttributeName>
+    RuleName: String(matches(Regex(#"^[a-zA-Z_0-9- \t]*$"#)))|Mapping
 }
 
 typealias RuleBasedPropertiesAttributeMatchingModel = "ONE_TO_ONE"|"MANY_TO_MANY"
@@ -50,16 +81,8 @@ open class MatchingWorkflowRuleBasedProperties {
     Rules: Listing<MatchingWorkflowRule>
 }
 
-typealias MatchingWorkflowDescription = String|Mapping
+typealias MatchingWorkflowSchemaMappingArn = String|Mapping
 
-
-typealias MatchingWorkflowEntityName = String|Mapping
-
-
-/// 
-open class MatchingWorkflowIntermediateSourceConfiguration {
-    IntermediateS3Path: String|Mapping
-}
 
 /// A key-value pair to associate with a resource
 open class MatchingWorkflowTag {
@@ -67,31 +90,8 @@ open class MatchingWorkflowTag {
     Value: String|Mapping
 }
 
-typealias MatchingWorkflowSchemaMappingArn = String|Mapping
+typealias MatchingWorkflowUpdatedAt = String|Mapping
 
-
-typealias MatchingWorkflowCreatedAt = String|Mapping
-
-
-typealias MatchingWorkflowKMSArn = String|Mapping
-
-
-typealias MatchingWorkflowMatchingWorkflowArn = String|Mapping
-
-
-/// 
-open class MatchingWorkflowOutputAttribute {
-    Name: MatchingWorkflowAttributeName
-    Hashed: (Boolean|Mapping)?
-}
-
-/// 
-open class MatchingWorkflowOutputSource {
-    OutputS3Path: String(matches(Regex(#"^s3://([^/]+)/?(.*?([^/]+)/?)$"#)))|Mapping
-    Output: Listing<MatchingWorkflowOutputAttribute>
-    KMSArn: (MatchingWorkflowKMSArn)?
-    ApplyNormalization: (Boolean|Mapping)?
-}
 
 /// MatchingWorkflow defined in AWS Entity Resolution service
 open class MatchingWorkflow extends cloudformation.Resource {

@@ -6,16 +6,31 @@ module aws.emr.instancegroupconfig
 import "../../cloudformation.pkl"
 
 /// 
+open class InstanceGroupConfigAutoScalingPolicy {
+    Constraints: InstanceGroupConfigScalingConstraints
+    Rules: Listing<InstanceGroupConfigScalingRule>
+}
+
+/// 
 open class InstanceGroupConfigCloudWatchAlarmDefinition {
-    Period: Int|Mapping
-    EvaluationPeriods: (Int|Mapping)?
-    Unit: (String|Mapping)?
-    Namespace: (String|Mapping)?
-    Threshold: Number|Mapping
-    MetricName: String|Mapping
     ComparisonOperator: String|Mapping
-    Statistic: (String|Mapping)?
     Dimensions: (Listing<InstanceGroupConfigMetricDimension>)?
+    EvaluationPeriods: (Int|Mapping)?
+    MetricName: String|Mapping
+    Namespace: (String|Mapping)?
+    Period: Int|Mapping
+    Statistic: (String|Mapping)?
+    Threshold: Number|Mapping
+    Unit: (String|Mapping)?
+}
+
+typealias InstanceGroupConfigConfigurationConfigurationProperties = Mapping<String, Any>
+
+/// 
+open class InstanceGroupConfigConfiguration {
+    Classification: (String|Mapping)?
+    ConfigurationProperties: (InstanceGroupConfigConfigurationConfigurationProperties)?
+    Configurations: (Listing<InstanceGroupConfigConfiguration>)?
 }
 
 /// 
@@ -26,48 +41,14 @@ open class InstanceGroupConfigEbsBlockDeviceConfig {
 
 /// 
 open class InstanceGroupConfigEbsConfiguration {
-    EbsOptimized: (Boolean|Mapping)?
     EbsBlockDeviceConfigs: (Listing<InstanceGroupConfigEbsBlockDeviceConfig>)?
-}
-
-/// 
-open class InstanceGroupConfigScalingConstraints {
-    MinCapacity: Int|Mapping
-    MaxCapacity: Int|Mapping
-}
-
-/// 
-open class InstanceGroupConfigScalingTrigger {
-    CloudWatchAlarmDefinition: InstanceGroupConfigCloudWatchAlarmDefinition
-}
-
-/// 
-open class InstanceGroupConfigVolumeSpecification {
-    SizeInGB: Int|Mapping
-    Throughput: (Int|Mapping)?
-    VolumeType: String|Mapping
-    Iops: (Int|Mapping)?
-}
-
-/// 
-open class InstanceGroupConfigAutoScalingPolicy {
-    Rules: Listing<InstanceGroupConfigScalingRule>
-    Constraints: InstanceGroupConfigScalingConstraints
-}
-
-typealias InstanceGroupConfigConfigurationConfigurationProperties = Mapping<String, Any>
-
-/// 
-open class InstanceGroupConfigConfiguration {
-    Configurations: (Listing<InstanceGroupConfigConfiguration>)?
-    Classification: (String|Mapping)?
-    ConfigurationProperties: (InstanceGroupConfigConfigurationConfigurationProperties)?
+    EbsOptimized: (Boolean|Mapping)?
 }
 
 /// 
 open class InstanceGroupConfigMetricDimension {
-    Value: String|Mapping
     Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// 
@@ -77,18 +58,37 @@ open class InstanceGroupConfigScalingAction {
 }
 
 /// 
+open class InstanceGroupConfigScalingConstraints {
+    MaxCapacity: Int|Mapping
+    MinCapacity: Int|Mapping
+}
+
+/// 
 open class InstanceGroupConfigScalingRule {
     Action: InstanceGroupConfigScalingAction
     Description: (String|Mapping)?
-    Trigger: InstanceGroupConfigScalingTrigger
     Name: String|Mapping
+    Trigger: InstanceGroupConfigScalingTrigger
+}
+
+/// 
+open class InstanceGroupConfigScalingTrigger {
+    CloudWatchAlarmDefinition: InstanceGroupConfigCloudWatchAlarmDefinition
 }
 
 /// 
 open class InstanceGroupConfigSimpleScalingPolicyConfiguration {
-    ScalingAdjustment: Int|Mapping
-    CoolDown: (Int|Mapping)?
     AdjustmentType: (String|Mapping)?
+    CoolDown: (Int|Mapping)?
+    ScalingAdjustment: Int|Mapping
+}
+
+/// 
+open class InstanceGroupConfigVolumeSpecification {
+    Iops: (Int|Mapping)?
+    SizeInGB: Int|Mapping
+    Throughput: (Int|Mapping)?
+    VolumeType: String|Mapping
 }
 
 /// Resource Type definition for AWS::EMR::InstanceGroupConfig

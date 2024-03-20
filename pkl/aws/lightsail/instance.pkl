@@ -5,26 +5,67 @@ module aws.lightsail.instance
 
 import "../../cloudformation.pkl"
 
+typealias AddOnStatus = "Enabling"|"Disabling"|"Enabled"|"Terminating"|"Terminated"|"Disabled"|"Failed"
+
+/// A addon associate with a resource.
+open class InstanceAddOn {
+    AddOnType: String|Mapping
+    AutoSnapshotAddOnRequest: (InstanceAutoSnapshotAddOn)?
+    Status: (AddOnStatus|Mapping)?
+}
+
+/// An object that represents additional parameters when enabling or modifying the automatic snapshot add-on
+open class InstanceAutoSnapshotAddOn {
+    SnapshotTimeOfDay: (String(matches(Regex(#"^[0-9]{2}:00$"#)))|Mapping)?
+}
+
+/// Disk associated with the Instance.
+open class InstanceDisk {
+    AttachedTo: (String|Mapping)?
+    AttachmentState: (String|Mapping)?
+    DiskName: String(matches(Regex(#"^[a-zA-Z0-9][\w\-.]*[a-zA-Z0-9]$"#)))|Mapping
+    IOPS: (Int|Mapping)?
+    IsSystemDisk: (Boolean|Mapping)?
+    Path: String|Mapping
+    SizeInGb: (String|Mapping)?
+}
+
+/// Hardware of the Instance.
+open class InstanceHardware {
+    CpuCount: (Int|Mapping)?
+    Disks: (Listing<InstanceDisk>)?
+    RamSizeInGb: (Int|Mapping)?
+}
+
 /// Location of a resource.
 open class InstanceLocation {
     AvailabilityZone: (String|Mapping)?
     RegionName: (String|Mapping)?
 }
 
-typealias AddOnStatus = "Enabling"|"Disabling"|"Enabled"|"Terminating"|"Terminated"|"Disabled"|"Failed"
-
-/// A addon associate with a resource.
-open class InstanceAddOn {
-    AddOnType: String|Mapping
-    Status: (AddOnStatus|Mapping)?
-    AutoSnapshotAddOnRequest: (InstanceAutoSnapshotAddOn)?
+/// Monthly Transfer of the Instance.
+open class InstanceMonthlyTransfer {
+    GbPerMonthAllocated: (String|Mapping)?
 }
 
-/// Hardware of the Instance.
-open class InstanceHardware {
-    CpuCount: (Int|Mapping)?
-    RamSizeInGb: (Int|Mapping)?
-    Disks: (Listing<InstanceDisk>)?
+/// Networking of the Instance.
+open class InstanceNetworking {
+    MonthlyTransfer: (InstanceMonthlyTransfer)?
+    Ports: Listing<InstancePort>
+}
+
+/// Port of the Instance.
+open class InstancePort {
+    AccessDirection: (String|Mapping)?
+    AccessFrom: (String|Mapping)?
+    AccessType: (String|Mapping)?
+    CidrListAliases: (InstancecidrListAliases)?
+    Cidrs: (Instancecidrs)?
+    CommonName: (String|Mapping)?
+    FromPort: (Int|Mapping)?
+    Ipv6Cidrs: (Instanceipv6Cidrs)?
+    Protocol: (String|Mapping)?
+    ToPort: (Int|Mapping)?
 }
 
 /// Current State of the Instance.
@@ -33,61 +74,20 @@ open class InstanceState {
     Name: (String|Mapping)?
 }
 
-typealias InstancecidrListAliases = Listing<(String|Mapping)?>
-
-
-/// Disk associated with the Instance.
-open class InstanceDisk {
-    IOPS: (Int|Mapping)?
-    Path: String|Mapping
-    AttachedTo: (String|Mapping)?
-    AttachmentState: (String|Mapping)?
-    DiskName: String(matches(Regex(#"^[a-zA-Z0-9][\w\-.]*[a-zA-Z0-9]$"#)))|Mapping
-    SizeInGb: (String|Mapping)?
-    IsSystemDisk: (Boolean|Mapping)?
-}
-
-/// Port of the Instance.
-open class InstancePort {
-    AccessFrom: (String|Mapping)?
-    CommonName: (String|Mapping)?
-    AccessDirection: (String|Mapping)?
-    Ipv6Cidrs: (Instanceipv6Cidrs)?
-    Cidrs: (Instancecidrs)?
-    ToPort: (Int|Mapping)?
-    Protocol: (String|Mapping)?
-    CidrListAliases: (InstancecidrListAliases)?
-    FromPort: (Int|Mapping)?
-    AccessType: (String|Mapping)?
-}
-
 /// A key-value pair to associate with a resource.
 open class InstanceTag {
     Key: String|Mapping
     Value: (String|Mapping)?
 }
 
-/// Networking of the Instance.
-open class InstanceNetworking {
-    Ports: Listing<InstancePort>
-    MonthlyTransfer: (InstanceMonthlyTransfer)?
-}
+typealias InstancecidrListAliases = Listing<(String|Mapping)?>
 
-/// Monthly Transfer of the Instance.
-open class InstanceMonthlyTransfer {
-    GbPerMonthAllocated: (String|Mapping)?
-}
 
 typealias Instancecidrs = Listing<(String|Mapping)?>
 
 
 typealias Instanceipv6Cidrs = Listing<(String|Mapping)?>
 
-
-/// An object that represents additional parameters when enabling or modifying the automatic snapshot add-on
-open class InstanceAutoSnapshotAddOn {
-    SnapshotTimeOfDay: (String(matches(Regex(#"^[0-9]{2}:00$"#)))|Mapping)?
-}
 
 /// Resource Type definition for AWS::Lightsail::Instance
 open class Instance extends cloudformation.Resource {

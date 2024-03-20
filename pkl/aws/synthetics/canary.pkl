@@ -6,43 +6,46 @@ module aws.synthetics.canary
 import "../../cloudformation.pkl"
 
 /// 
-open class CanaryCode {
-    S3ObjectVersion: (String|Mapping)?
-    Script: (String|Mapping)?
-    Handler: String|Mapping
-    SourceLocationArn: (String|Mapping)?
-    S3Bucket: (String|Mapping)?
-    S3Key: (String|Mapping)?
-}
-
-/// 
-open class CanarySchedule {
-    Expression: String|Mapping
-    DurationInSeconds: (String|Mapping)?
-}
-
-/// 
-open class CanaryVPCConfig {
-    VpcId: (String|Mapping)?
-    SubnetIds: Listing<String|Mapping>
-    SecurityGroupIds: Listing<String|Mapping>
-}
-
-/// 
-open class CanaryVisualReference {
-    BaseCanaryRunId: String|Mapping
-    BaseScreenshots: (Listing<CanaryBaseScreenshot>)?
-}
-
-/// 
 open class CanaryArtifactConfig {
     S3Encryption: (CanaryS3Encryption)?
 }
 
 /// 
 open class CanaryBaseScreenshot {
-    ScreenshotName: String|Mapping
     IgnoreCoordinates: (Listing<String|Mapping>)?
+    ScreenshotName: String|Mapping
+}
+
+/// 
+open class CanaryCode {
+    Handler: String|Mapping
+    S3Bucket: (String|Mapping)?
+    S3Key: (String|Mapping)?
+    S3ObjectVersion: (String|Mapping)?
+    Script: (String|Mapping)?
+    SourceLocationArn: (String|Mapping)?
+}
+
+typealias CanaryRunConfigEnvironmentVariables = Mapping<String, Any>
+
+/// 
+open class CanaryRunConfig {
+    ActiveTracing: (Boolean|Mapping)?
+    EnvironmentVariables: (CanaryRunConfigEnvironmentVariables)?
+    MemoryInMB: (Int|Mapping)?
+    TimeoutInSeconds: (Int|Mapping)?
+}
+
+/// 
+open class CanaryS3Encryption {
+    EncryptionMode: (String|Mapping)?
+    KmsKeyArn: (String|Mapping)?
+}
+
+/// 
+open class CanarySchedule {
+    DurationInSeconds: (String|Mapping)?
+    Expression: String|Mapping
 }
 
 /// A key-value pair to associate with a resource.
@@ -51,20 +54,17 @@ open class CanaryTag {
     Value: String|Mapping
 }
 
-typealias CanaryRunConfigEnvironmentVariables = Mapping<String, Any>
-
 /// 
-open class CanaryRunConfig {
-    TimeoutInSeconds: (Int|Mapping)?
-    MemoryInMB: (Int|Mapping)?
-    ActiveTracing: (Boolean|Mapping)?
-    EnvironmentVariables: (CanaryRunConfigEnvironmentVariables)?
+open class CanaryVPCConfig {
+    SecurityGroupIds: Listing<String|Mapping>
+    SubnetIds: Listing<String|Mapping>
+    VpcId: (String|Mapping)?
 }
 
 /// 
-open class CanaryS3Encryption {
-    EncryptionMode: (String|Mapping)?
-    KmsKeyArn: (String|Mapping)?
+open class CanaryVisualReference {
+    BaseCanaryRunId: String|Mapping
+    BaseScreenshots: (Listing<CanaryBaseScreenshot>)?
 }
 
 /// Resource Type definition for AWS::Synthetics::Canary

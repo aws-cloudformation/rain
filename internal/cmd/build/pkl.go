@@ -348,7 +348,13 @@ func createDefinitionClass(name string, def *cfn.Prop, shortName string) (*pklDe
 
 	r := def.GetRequired()
 
-	for propName, prop := range def.Properties {
+	keys := make([]string, 0)
+	for propName := range def.Properties {
+		keys = append(keys, propName)
+	}
+	sort.Strings(keys)
+	for _, propName := range keys {
+		prop := def.Properties[propName]
 		required := slices.Contains(r, propName)
 		propType, err := getPropType(name, propName, prop, cls, required, shortName)
 		if err != nil {
@@ -499,7 +505,13 @@ func generatePklClass(typeName string) error {
 	}
 
 	// Print out each of the classes
-	for name, cls := range classes {
+	keys = make([]string, 0)
+	for name := range classes {
+		keys = append(keys, name)
+	}
+	sort.Strings(keys)
+	for _, name := range keys {
+		cls := classes[name]
 		if err := printClassOrAlias(name, cls); err != nil {
 			return err
 		}

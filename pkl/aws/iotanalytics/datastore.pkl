@@ -6,18 +6,21 @@ module aws.iotanalytics.datastore
 import "../../cloudformation.pkl"
 
 /// 
-open class DatastoreRetentionPeriod {
-    NumberOfDays: (Int|Mapping)?
-    Unlimited: (Boolean|Mapping)?
+open class DatastoreColumn {
+    Name: String|Mapping
+    Type: String|Mapping
 }
-
-typealias DatastoreJsonConfiguration = Dynamic
-
 
 /// 
 open class DatastoreCustomerManagedS3 {
     Bucket: String(matches(Regex(#"[a-zA-Z0-9.\-_]*"#)))|Mapping
+    KeyPrefix: (String(matches(Regex(#"[a-zA-Z0-9!_.*'()/{}:-]*/"#)))|Mapping)?
     RoleArn: String|Mapping
+}
+
+/// 
+open class DatastoreCustomerManagedS3Storage {
+    Bucket: String(matches(Regex(#"[a-zA-Z0-9.\-_]*"#)))|Mapping
     KeyPrefix: (String(matches(Regex(#"[a-zA-Z0-9!_.*'()/{}:-]*/"#)))|Mapping)?
 }
 
@@ -28,32 +31,15 @@ open class DatastoreDatastorePartition {
 }
 
 /// 
-open class DatastoreDatastoreStorage {
-    ServiceManagedS3: (DatastoreServiceManagedS3)?
-    CustomerManagedS3: (DatastoreCustomerManagedS3)?
-    IotSiteWiseMultiLayerStorage: (DatastoreIotSiteWiseMultiLayerStorage)?
-}
-
-/// 
-open class DatastoreTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// 
-open class DatastoreColumn {
-    Type: String|Mapping
-    Name: String|Mapping
-}
-
-/// 
-open class DatastoreSchemaDefinition {
-    Columns: (Listing<DatastoreColumn>)?
-}
-
-/// 
 open class DatastoreDatastorePartitions {
     Partitions: (Listing<DatastoreDatastorePartition>)?
+}
+
+/// 
+open class DatastoreDatastoreStorage {
+    CustomerManagedS3: (DatastoreCustomerManagedS3)?
+    IotSiteWiseMultiLayerStorage: (DatastoreIotSiteWiseMultiLayerStorage)?
+    ServiceManagedS3: (DatastoreServiceManagedS3)?
 }
 
 /// 
@@ -67,6 +53,9 @@ open class DatastoreIotSiteWiseMultiLayerStorage {
     CustomerManagedS3Storage: (DatastoreCustomerManagedS3Storage)?
 }
 
+typealias DatastoreJsonConfiguration = Dynamic
+
+
 /// 
 open class DatastoreParquetConfiguration {
     SchemaDefinition: (DatastoreSchemaDefinition)?
@@ -77,19 +66,30 @@ open class DatastorePartition {
     AttributeName: String(matches(Regex(#"[a-zA-Z0-9_]+"#)))|Mapping
 }
 
+/// 
+open class DatastoreRetentionPeriod {
+    NumberOfDays: (Int|Mapping)?
+    Unlimited: (Boolean|Mapping)?
+}
+
+/// 
+open class DatastoreSchemaDefinition {
+    Columns: (Listing<DatastoreColumn>)?
+}
+
 typealias DatastoreServiceManagedS3 = Dynamic
 
+
+/// 
+open class DatastoreTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
 
 /// 
 open class DatastoreTimestampPartition {
     AttributeName: String(matches(Regex(#"[a-zA-Z0-9_]+"#)))|Mapping
     TimestampFormat: (String(matches(Regex(#"[a-zA-Z0-9\s\[\]_,.'/:-]*"#)))|Mapping)?
-}
-
-/// 
-open class DatastoreCustomerManagedS3Storage {
-    Bucket: String(matches(Regex(#"[a-zA-Z0-9.\-_]*"#)))|Mapping
-    KeyPrefix: (String(matches(Regex(#"[a-zA-Z0-9!_.*'()/{}:-]*/"#)))|Mapping)?
 }
 
 /// Resource Type definition for AWS::IoTAnalytics::Datastore

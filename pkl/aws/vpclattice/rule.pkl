@@ -6,42 +6,9 @@ module aws.vpclattice.rule
 import "../../cloudformation.pkl"
 
 /// 
-open class RuleHeaderMatch {
-    Name: String|Mapping
-    Match: RuleHeaderMatchType
-    CaseSensitive: (Boolean|Mapping)?
-}
-
-typealias HttpMatchMethod = "CONNECT"|"DELETE"|"GET"|"HEAD"|"OPTIONS"|"POST"|"PUT"|"TRACE"
-
-/// 
-open class RuleHttpMatch {
-    Method: (HttpMatchMethod|Mapping)?
-    PathMatch: (RulePathMatch)?
-    HeaderMatches: (Listing<RuleHeaderMatch>)?
-}
-
-/// 
-open class RuleMatch {
-    HttpMatch: RuleHttpMatch
-}
-
-/// 
-open class RulePathMatch {
-    Match: RulePathMatchType
-    CaseSensitive: (Boolean|Mapping)?
-}
-
-/// 
-open class RuleWeightedTargetGroup {
-    TargetGroupIdentifier: String(matches(Regex(#"^((tg-[0-9a-z]{17})|(arn:[a-z0-9\-]+:vpc-lattice:[a-zA-Z0-9\-]+:\d{12}:targetgroup/tg-[0-9a-z]{17}))$"#)))|Mapping
-    Weight: (Int|Mapping)?
-}
-
-/// 
 open class RuleAction {
-    Forward: (RuleForward)?
     FixedResponse: (RuleFixedResponse)?
+    Forward: (RuleForward)?
 }
 
 /// 
@@ -55,10 +22,37 @@ open class RuleForward {
 }
 
 /// 
+open class RuleHeaderMatch {
+    CaseSensitive: (Boolean|Mapping)?
+    Match: RuleHeaderMatchType
+    Name: String|Mapping
+}
+
+/// 
 open class RuleHeaderMatchType {
+    Contains: (String|Mapping)?
     Exact: (String|Mapping)?
     Prefix: (String|Mapping)?
-    Contains: (String|Mapping)?
+}
+
+typealias HttpMatchMethod = "CONNECT"|"DELETE"|"GET"|"HEAD"|"OPTIONS"|"POST"|"PUT"|"TRACE"
+
+/// 
+open class RuleHttpMatch {
+    HeaderMatches: (Listing<RuleHeaderMatch>)?
+    Method: (HttpMatchMethod|Mapping)?
+    PathMatch: (RulePathMatch)?
+}
+
+/// 
+open class RuleMatch {
+    HttpMatch: RuleHttpMatch
+}
+
+/// 
+open class RulePathMatch {
+    CaseSensitive: (Boolean|Mapping)?
+    Match: RulePathMatchType
 }
 
 /// 
@@ -71,6 +65,12 @@ open class RulePathMatchType {
 open class RuleTag {
     Key: String|Mapping
     Value: String|Mapping
+}
+
+/// 
+open class RuleWeightedTargetGroup {
+    TargetGroupIdentifier: String(matches(Regex(#"^((tg-[0-9a-z]{17})|(arn:[a-z0-9\-]+:vpc-lattice:[a-zA-Z0-9\-]+:\d{12}:targetgroup/tg-[0-9a-z]{17}))$"#)))|Mapping
+    Weight: (Int|Mapping)?
 }
 
 /// Creates a listener rule. Each listener has a default rule for checking connection requests, but you can define additional rules. Each rule consists of a priority, one or more actions, and one or more conditions.

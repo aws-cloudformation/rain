@@ -5,36 +5,36 @@ module aws.sagemaker.inferenceexperiment
 
 import "../../cloudformation.pkl"
 
-/// Contains information about the deployment options of a model.
-open class InferenceExperimentModelVariantConfig {
-    ModelName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9])*"#)))|Mapping
-    VariantName: String(matches(Regex(#"^[a-zA-Z0-9]([\-a-zA-Z0-9]*[a-zA-Z0-9])?"#)))|Mapping
-    InfrastructureConfig: InferenceExperimentModelInfrastructureConfig
+/// Configuration specifying how to treat different headers. If no headers are specified SageMaker will by default base64 encode when capturing the data.
+open class InferenceExperimentCaptureContentTypeHeader {
+    CsvContentTypes: (Listing<String|Mapping>)?
+    JsonContentTypes: (Listing<String|Mapping>)?
 }
 
-/// The configuration of ShadowMode inference experiment type. Use this field to specify a production variant which takes all the inference requests, and a shadow variant to which Amazon SageMaker replicates a percentage of the inference requests. For the shadow variant also specify the percentage of requests that Amazon SageMaker replicates.
-open class InferenceExperimentShadowModeConfig {
-    SourceModelVariantName: String(matches(Regex(#"^[a-zA-Z0-9]([\-a-zA-Z0-9]*[a-zA-Z0-9])?"#)))|Mapping
-    ShadowModelVariants: Listing<InferenceExperimentShadowModelVariantConfig>
+/// The Amazon S3 location and configuration for storing inference request and response data.
+open class InferenceExperimentDataStorageConfig {
+    ContentType: (InferenceExperimentCaptureContentTypeHeader)?
+    Destination: String(matches(Regex(#"^(https|s3)://([^/])/?(.*)$"#)))|Mapping
+    KmsKey: (String(matches(Regex(#".*"#)))|Mapping)?
 }
 
 typealias EndpointMetadataEndpointStatus = "Creating"|"Updating"|"SystemUpdating"|"RollingBack"|"InService"|"OutOfService"|"Deleting"|"Failed"
 
 /// The metadata of the endpoint on which the inference experiment ran.
 open class InferenceExperimentEndpointMetadata {
-    EndpointName: InferenceExperimentEndpointName
     EndpointConfigName: (String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9])*"#)))|Mapping)?
+    EndpointName: InferenceExperimentEndpointName
     EndpointStatus: (EndpointMetadataEndpointStatus|Mapping)?
-}
-
-/// The duration for which you want the inference experiment to run.
-open class InferenceExperimentInferenceExperimentSchedule {
-    StartTime: (String|Mapping)?
-    EndTime: (String|Mapping)?
 }
 
 typealias InferenceExperimentEndpointName = String|Mapping
 
+
+/// The duration for which you want the inference experiment to run.
+open class InferenceExperimentInferenceExperimentSchedule {
+    EndTime: (String|Mapping)?
+    StartTime: (String|Mapping)?
+}
 
 typealias ModelInfrastructureConfigInfrastructureType = "RealTimeInference"
 
@@ -44,35 +44,35 @@ open class InferenceExperimentModelInfrastructureConfig {
     RealTimeInferenceConfig: InferenceExperimentRealTimeInferenceConfig
 }
 
+/// Contains information about the deployment options of a model.
+open class InferenceExperimentModelVariantConfig {
+    InfrastructureConfig: InferenceExperimentModelInfrastructureConfig
+    ModelName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9])*"#)))|Mapping
+    VariantName: String(matches(Regex(#"^[a-zA-Z0-9]([\-a-zA-Z0-9]*[a-zA-Z0-9])?"#)))|Mapping
+}
+
 /// The infrastructure configuration for deploying the model to a real-time inference endpoint.
 open class InferenceExperimentRealTimeInferenceConfig {
-    InstanceType: String|Mapping
     InstanceCount: Int|Mapping
+    InstanceType: String|Mapping
+}
+
+/// The configuration of ShadowMode inference experiment type. Use this field to specify a production variant which takes all the inference requests, and a shadow variant to which Amazon SageMaker replicates a percentage of the inference requests. For the shadow variant also specify the percentage of requests that Amazon SageMaker replicates.
+open class InferenceExperimentShadowModeConfig {
+    ShadowModelVariants: Listing<InferenceExperimentShadowModelVariantConfig>
+    SourceModelVariantName: String(matches(Regex(#"^[a-zA-Z0-9]([\-a-zA-Z0-9]*[a-zA-Z0-9])?"#)))|Mapping
 }
 
 /// The name and sampling percentage of a shadow variant.
 open class InferenceExperimentShadowModelVariantConfig {
-    ShadowModelVariantName: String(matches(Regex(#"^[a-zA-Z0-9]([\-a-zA-Z0-9]*[a-zA-Z0-9])?"#)))|Mapping
     SamplingPercentage: Int|Mapping
+    ShadowModelVariantName: String(matches(Regex(#"^[a-zA-Z0-9]([\-a-zA-Z0-9]*[a-zA-Z0-9])?"#)))|Mapping
 }
 
 /// A key-value pair to associate with a resource.
 open class InferenceExperimentTag {
     Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
     Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
-}
-
-/// Configuration specifying how to treat different headers. If no headers are specified SageMaker will by default base64 encode when capturing the data.
-open class InferenceExperimentCaptureContentTypeHeader {
-    CsvContentTypes: (Listing<String|Mapping>)?
-    JsonContentTypes: (Listing<String|Mapping>)?
-}
-
-/// The Amazon S3 location and configuration for storing inference request and response data.
-open class InferenceExperimentDataStorageConfig {
-    Destination: String(matches(Regex(#"^(https|s3)://([^/])/?(.*)$"#)))|Mapping
-    KmsKey: (String(matches(Regex(#".*"#)))|Mapping)?
-    ContentType: (InferenceExperimentCaptureContentTypeHeader)?
 }
 
 /// Resource Type definition for AWS::SageMaker::InferenceExperiment

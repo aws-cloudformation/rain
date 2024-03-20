@@ -5,39 +5,18 @@ module aws.lookoutmetrics.anomalydetector
 
 import "../../cloudformation.pkl"
 
-typealias AnomalyDetectorColumnName = String|Mapping
-
-
-typealias AnomalyDetectorDatabasePort = Int|Mapping
-
-
-typealias MetricSetMetricSetFrequency = "PT5M"|"PT10M"|"PT1H"|"P1D"
-
-/// 
-open class AnomalyDetectorMetricSet {
-    TimestampColumn: (AnomalyDetectorTimestampColumn)?
-    DimensionList: (Listing<AnomalyDetectorColumnName>)?
-    MetricSetName: String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9\-_]*"#)))|Mapping
-    MetricList: Listing<AnomalyDetectorMetric>
-    Offset: (Int|Mapping)?
-    MetricSetFrequency: (MetricSetMetricSetFrequency|Mapping)?
-    Timezone: (String(matches(Regex(#".*\S.*"#)))|Mapping)?
-    MetricSetDescription: (String(matches(Regex(#".*\S.*"#)))|Mapping)?
-    MetricSource: AnomalyDetectorMetricSource
-}
-
-/// 
-open class AnomalyDetectorMetricSource {
-    RedshiftSourceConfig: (AnomalyDetectorRedshiftSourceConfig)?
-    CloudwatchConfig: (AnomalyDetectorCloudwatchConfig)?
-    AppFlowConfig: (AnomalyDetectorAppFlowConfig)?
-    S3SourceConfig: (AnomalyDetectorS3SourceConfig)?
-    RDSSourceConfig: (AnomalyDetectorRDSSourceConfig)?
-}
-
 /// 
 open class AnomalyDetectorAnomalyDetectorConfig {
     AnomalyDetectorFrequency: AnomalyDetectorAnomalyDetectorFrequency
+}
+
+typealias AnomalyDetectorAnomalyDetectorFrequency = String|Mapping
+
+
+/// 
+open class AnomalyDetectorAppFlowConfig {
+    FlowName: String(matches(Regex(#"[a-zA-Z0-9][\w!@#.-]+"#)))|Mapping
+    RoleArn: AnomalyDetectorArn
 }
 
 typealias AnomalyDetectorArn = String|Mapping
@@ -47,79 +26,30 @@ typealias AnomalyDetectorCharset = String|Mapping
 
 
 /// 
-open class AnomalyDetectorRDSSourceConfig {
-    DatabaseHost: AnomalyDetectorDatabaseHost
-    DatabasePort: AnomalyDetectorDatabasePort
-    SecretManagerArn: AnomalyDetectorSecretManagerArn
-    DatabaseName: String(matches(Regex(#"[a-zA-Z0-9_]+"#)))|Mapping
-    TableName: AnomalyDetectorTableName
+open class AnomalyDetectorCloudwatchConfig {
     RoleArn: AnomalyDetectorArn
-    VpcConfiguration: AnomalyDetectorVpcConfiguration
-    DBInstanceIdentifier: String(matches(Regex(#"^[a-zA-Z](?!.*--)(?!.*-$)[0-9a-zA-Z\-]*$"#)))|Mapping
 }
 
-/// 
-open class AnomalyDetectorTimestampColumn {
-    ColumnName: (AnomalyDetectorColumnName)?
-    ColumnFormat: (String(matches(Regex(#".*\S.*"#)))|Mapping)?
-}
+typealias AnomalyDetectorColumnName = String|Mapping
+
+
+typealias CsvFormatDescriptorFileCompression = "NONE"|"GZIP"
 
 /// 
-open class AnomalyDetectorAppFlowConfig {
-    RoleArn: AnomalyDetectorArn
-    FlowName: String(matches(Regex(#"[a-zA-Z0-9][\w!@#.-]+"#)))|Mapping
+open class AnomalyDetectorCsvFormatDescriptor {
+    Charset: (AnomalyDetectorCharset)?
+    ContainsHeader: (Boolean|Mapping)?
+    Delimiter: (String(matches(Regex(#"[^\r\n]"#)))|Mapping)?
+    FileCompression: (CsvFormatDescriptorFileCompression|Mapping)?
+    HeaderList: (Listing<AnomalyDetectorColumnName>)?
+    QuoteSymbol: (String(matches(Regex(#"[^\r\n]|^$"#)))|Mapping)?
 }
 
 typealias AnomalyDetectorDatabaseHost = String|Mapping
 
 
-typealias MetricAggregationFunction = "AVG"|"SUM"
+typealias AnomalyDetectorDatabasePort = Int|Mapping
 
-/// 
-open class AnomalyDetectorMetric {
-    MetricName: AnomalyDetectorColumnName
-    AggregationFunction: MetricAggregationFunction|Mapping
-    Namespace: (String(matches(Regex(#"[^:].*"#)))|Mapping)?
-}
-
-typealias JsonFormatDescriptorFileCompression = "NONE"|"GZIP"
-
-/// 
-open class AnomalyDetectorJsonFormatDescriptor {
-    FileCompression: (JsonFormatDescriptorFileCompression|Mapping)?
-    Charset: (AnomalyDetectorCharset)?
-}
-
-/// 
-open class AnomalyDetectorRedshiftSourceConfig {
-    VpcConfiguration: AnomalyDetectorVpcConfiguration
-    ClusterIdentifier: String(matches(Regex(#"^[a-z](?!.*--)(?!.*-$)[0-9a-z\-]*$"#)))|Mapping
-    DatabaseHost: AnomalyDetectorDatabaseHost
-    DatabasePort: AnomalyDetectorDatabasePort
-    SecretManagerArn: AnomalyDetectorSecretManagerArn
-    DatabaseName: String(matches(Regex(#"[a-z0-9]+"#)))|Mapping
-    TableName: AnomalyDetectorTableName
-    RoleArn: AnomalyDetectorArn
-}
-
-/// 
-open class AnomalyDetectorS3SourceConfig {
-    RoleArn: AnomalyDetectorArn
-    TemplatedPathList: (Listing<String|Mapping>)?
-    HistoricalDataPathList: (Listing<String|Mapping>)?
-    FileFormatDescriptor: AnomalyDetectorFileFormatDescriptor
-}
-
-typealias AnomalyDetectorTableName = String|Mapping
-
-
-typealias AnomalyDetectorAnomalyDetectorFrequency = String|Mapping
-
-
-/// 
-open class AnomalyDetectorCloudwatchConfig {
-    RoleArn: AnomalyDetectorArn
-}
 
 /// 
 open class AnomalyDetectorFileFormatDescriptor {
@@ -127,25 +57,77 @@ open class AnomalyDetectorFileFormatDescriptor {
     JsonFormatDescriptor: (AnomalyDetectorJsonFormatDescriptor)?
 }
 
-typealias AnomalyDetectorSubnetIdList = Listing<(String(matches(Regex(#"[\-0-9a-zA-Z]+"#)))|Mapping)?>
-
+typealias JsonFormatDescriptorFileCompression = "NONE"|"GZIP"
 
 /// 
-open class AnomalyDetectorVpcConfiguration {
-    SubnetIdList: AnomalyDetectorSubnetIdList
-    SecurityGroupIdList: AnomalyDetectorSecurityGroupIdList
+open class AnomalyDetectorJsonFormatDescriptor {
+    Charset: (AnomalyDetectorCharset)?
+    FileCompression: (JsonFormatDescriptorFileCompression|Mapping)?
 }
 
-typealias CsvFormatDescriptorFileCompression = "NONE"|"GZIP"
+typealias MetricAggregationFunction = "AVG"|"SUM"
 
 /// 
-open class AnomalyDetectorCsvFormatDescriptor {
-    HeaderList: (Listing<AnomalyDetectorColumnName>)?
-    QuoteSymbol: (String(matches(Regex(#"[^\r\n]|^$"#)))|Mapping)?
-    ContainsHeader: (Boolean|Mapping)?
-    FileCompression: (CsvFormatDescriptorFileCompression|Mapping)?
-    Charset: (AnomalyDetectorCharset)?
-    Delimiter: (String(matches(Regex(#"[^\r\n]"#)))|Mapping)?
+open class AnomalyDetectorMetric {
+    AggregationFunction: MetricAggregationFunction|Mapping
+    MetricName: AnomalyDetectorColumnName
+    Namespace: (String(matches(Regex(#"[^:].*"#)))|Mapping)?
+}
+
+typealias MetricSetMetricSetFrequency = "PT5M"|"PT10M"|"PT1H"|"P1D"
+
+/// 
+open class AnomalyDetectorMetricSet {
+    DimensionList: (Listing<AnomalyDetectorColumnName>)?
+    MetricList: Listing<AnomalyDetectorMetric>
+    MetricSetDescription: (String(matches(Regex(#".*\S.*"#)))|Mapping)?
+    MetricSetFrequency: (MetricSetMetricSetFrequency|Mapping)?
+    MetricSetName: String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9\-_]*"#)))|Mapping
+    MetricSource: AnomalyDetectorMetricSource
+    Offset: (Int|Mapping)?
+    TimestampColumn: (AnomalyDetectorTimestampColumn)?
+    Timezone: (String(matches(Regex(#".*\S.*"#)))|Mapping)?
+}
+
+/// 
+open class AnomalyDetectorMetricSource {
+    AppFlowConfig: (AnomalyDetectorAppFlowConfig)?
+    CloudwatchConfig: (AnomalyDetectorCloudwatchConfig)?
+    RDSSourceConfig: (AnomalyDetectorRDSSourceConfig)?
+    RedshiftSourceConfig: (AnomalyDetectorRedshiftSourceConfig)?
+    S3SourceConfig: (AnomalyDetectorS3SourceConfig)?
+}
+
+/// 
+open class AnomalyDetectorRDSSourceConfig {
+    DBInstanceIdentifier: String(matches(Regex(#"^[a-zA-Z](?!.*--)(?!.*-$)[0-9a-zA-Z\-]*$"#)))|Mapping
+    DatabaseHost: AnomalyDetectorDatabaseHost
+    DatabaseName: String(matches(Regex(#"[a-zA-Z0-9_]+"#)))|Mapping
+    DatabasePort: AnomalyDetectorDatabasePort
+    RoleArn: AnomalyDetectorArn
+    SecretManagerArn: AnomalyDetectorSecretManagerArn
+    TableName: AnomalyDetectorTableName
+    VpcConfiguration: AnomalyDetectorVpcConfiguration
+}
+
+/// 
+open class AnomalyDetectorRedshiftSourceConfig {
+    ClusterIdentifier: String(matches(Regex(#"^[a-z](?!.*--)(?!.*-$)[0-9a-z\-]*$"#)))|Mapping
+    DatabaseHost: AnomalyDetectorDatabaseHost
+    DatabaseName: String(matches(Regex(#"[a-z0-9]+"#)))|Mapping
+    DatabasePort: AnomalyDetectorDatabasePort
+    RoleArn: AnomalyDetectorArn
+    SecretManagerArn: AnomalyDetectorSecretManagerArn
+    TableName: AnomalyDetectorTableName
+    VpcConfiguration: AnomalyDetectorVpcConfiguration
+}
+
+/// 
+open class AnomalyDetectorS3SourceConfig {
+    FileFormatDescriptor: AnomalyDetectorFileFormatDescriptor
+    HistoricalDataPathList: (Listing<String|Mapping>)?
+    RoleArn: AnomalyDetectorArn
+    TemplatedPathList: (Listing<String|Mapping>)?
 }
 
 typealias AnomalyDetectorSecretManagerArn = String|Mapping
@@ -153,6 +135,24 @@ typealias AnomalyDetectorSecretManagerArn = String|Mapping
 
 typealias AnomalyDetectorSecurityGroupIdList = Listing<(String(matches(Regex(#"[-0-9a-zA-Z]+"#)))|Mapping)?>
 
+
+typealias AnomalyDetectorSubnetIdList = Listing<(String(matches(Regex(#"[\-0-9a-zA-Z]+"#)))|Mapping)?>
+
+
+typealias AnomalyDetectorTableName = String|Mapping
+
+
+/// 
+open class AnomalyDetectorTimestampColumn {
+    ColumnFormat: (String(matches(Regex(#".*\S.*"#)))|Mapping)?
+    ColumnName: (AnomalyDetectorColumnName)?
+}
+
+/// 
+open class AnomalyDetectorVpcConfiguration {
+    SecurityGroupIdList: AnomalyDetectorSecurityGroupIdList
+    SubnetIdList: AnomalyDetectorSubnetIdList
+}
 
 /// An Amazon Lookout for Metrics Detector
 open class AnomalyDetector extends cloudformation.Resource {

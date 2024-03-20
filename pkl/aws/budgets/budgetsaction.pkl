@@ -5,6 +5,14 @@ module aws.budgets.budgetsaction
 
 import "../../cloudformation.pkl"
 
+typealias ActionThresholdType = "PERCENTAGE"|"ABSOLUTE_VALUE"
+
+/// 
+open class BudgetsActionActionThreshold {
+    Type: ActionThresholdType|Mapping
+    Value: Number|Mapping
+}
+
 /// 
 open class BudgetsActionDefinition {
     IamActionDefinition: (BudgetsActionIamActionDefinition)?
@@ -14,10 +22,10 @@ open class BudgetsActionDefinition {
 
 /// 
 open class BudgetsActionIamActionDefinition {
-    Roles: (Listing<String|Mapping>)?
     Groups: (Listing<String|Mapping>)?
-    Users: (Listing<String|Mapping>)?
     PolicyArn: String|Mapping
+    Roles: (Listing<String|Mapping>)?
+    Users: (Listing<String|Mapping>)?
 }
 
 /// 
@@ -30,25 +38,17 @@ typealias SsmActionDefinitionSubtype = "STOP_EC2_INSTANCES"|"STOP_RDS_INSTANCES"
 
 /// 
 open class BudgetsActionSsmActionDefinition {
-    Subtype: SsmActionDefinitionSubtype|Mapping
-    Region: String|Mapping
     InstanceIds: Listing<String|Mapping>
+    Region: String|Mapping
+    Subtype: SsmActionDefinitionSubtype|Mapping
 }
 
 typealias SubscriberType = "SNS"|"EMAIL"
 
 /// 
 open class BudgetsActionSubscriber {
-    Type: SubscriberType|Mapping
     Address: String|Mapping
-}
-
-typealias ActionThresholdType = "PERCENTAGE"|"ABSOLUTE_VALUE"
-
-/// 
-open class BudgetsActionActionThreshold {
-    Value: Number|Mapping
-    Type: ActionThresholdType|Mapping
+    Type: SubscriberType|Mapping
 }
 
 /// An example resource schema demonstrating some basic constructs and validation rules.

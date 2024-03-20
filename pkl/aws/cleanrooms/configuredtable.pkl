@@ -6,50 +6,58 @@ module aws.cleanrooms.configuredtable
 import "../../cloudformation.pkl"
 
 /// 
-open class ConfiguredTableTableReference {
-    Glue: ConfiguredTableGlueTableReference
+open class ConfiguredTableAggregateColumn {
+    ColumnNames: Listing<ConfiguredTableAnalysisRuleColumnName>
+    Function: ConfiguredTableAggregateFunctionName
 }
 
-/// 
-open class ConfiguredTableAnalysisRuleList {
-    JoinColumns: Listing<ConfiguredTableAnalysisRuleColumnName>
-    AllowedJoinOperators: (Listing<ConfiguredTableJoinOperator>)?
-    ListColumns: Listing<ConfiguredTableAnalysisRuleColumnName>
-}
-
-/// 
-open class ConfiguredTableConfiguredTableAnalysisRulePolicy {
-    V1: ConfiguredTableConfiguredTableAnalysisRulePolicyV1
-}
-
-/// 
-open class ConfiguredTableConfiguredTableAnalysisRulePolicyV1List {
-    List: ConfiguredTableAnalysisRuleList
-}
-
-/// 
-open class ConfiguredTableConfiguredTableAnalysisRulePolicyV1Custom {
-    Custom: ConfiguredTableAnalysisRuleCustom
-}
-
-typealias ConfiguredTableScalarFunctions = String|Mapping
+typealias ConfiguredTableAggregateFunctionName = String|Mapping
 
 
 /// 
 open class ConfiguredTableAggregationConstraint {
+    ColumnName: ConfiguredTableAnalysisRuleColumnName
     Minimum: Number|Mapping
     Type: ConfiguredTableAggregationType
-    ColumnName: ConfiguredTableAnalysisRuleColumnName
 }
+
+typealias ConfiguredTableAggregationType = String|Mapping
+
 
 typealias ConfiguredTableAllowedAnalyses = Listing<(ConfiguredTableAllowedAnalysis)?>
 
 
+typealias ConfiguredTableAllowedAnalysis = String|Mapping
+
+
+typealias ConfiguredTableAllowedAnalysisProvider = String|Mapping
+
+
+typealias ConfiguredTableAllowedAnalysisProviders = Listing<(ConfiguredTableAllowedAnalysisProvider)?>
+
+
+typealias ConfiguredTableAnalysisMethod = String|Mapping
+
+
 /// 
 open class ConfiguredTableAnalysisRule {
-    Type: ConfiguredTableConfiguredTableAnalysisRuleType
     Policy: ConfiguredTableConfiguredTableAnalysisRulePolicy
+    Type: ConfiguredTableConfiguredTableAnalysisRuleType
 }
+
+/// 
+open class ConfiguredTableAnalysisRuleAggregation {
+    AggregateColumns: Listing<ConfiguredTableAggregateColumn>
+    AllowedJoinOperators: (Listing<ConfiguredTableJoinOperator>)?
+    DimensionColumns: Listing<ConfiguredTableAnalysisRuleColumnName>
+    JoinColumns: Listing<ConfiguredTableAnalysisRuleColumnName>
+    JoinRequired: (ConfiguredTableJoinRequiredOption)?
+    OutputConstraints: Listing<ConfiguredTableAggregationConstraint>
+    ScalarFunctions: Listing<ConfiguredTableScalarFunctions>
+}
+
+typealias ConfiguredTableAnalysisRuleColumnName = String|Mapping
+
 
 /// 
 open class ConfiguredTableAnalysisRuleCustom {
@@ -58,41 +66,18 @@ open class ConfiguredTableAnalysisRuleCustom {
 }
 
 /// 
-open class ConfiguredTableGlueTableReference {
-    TableName: String(matches(Regex(#"^[a-zA-Z0-9_](([a-zA-Z0-9_ ]+-)*([a-zA-Z0-9_ ]+))?$"#)))|Mapping
-    DatabaseName: String(matches(Regex(#"^[a-zA-Z0-9_](([a-zA-Z0-9_ ]+-)*([a-zA-Z0-9_ ]+))?$"#)))|Mapping
+open class ConfiguredTableAnalysisRuleList {
+    AllowedJoinOperators: (Listing<ConfiguredTableJoinOperator>)?
+    JoinColumns: Listing<ConfiguredTableAnalysisRuleColumnName>
+    ListColumns: Listing<ConfiguredTableAnalysisRuleColumnName>
 }
 
 /// 
-open class ConfiguredTableAggregateColumn {
-    ColumnNames: Listing<ConfiguredTableAnalysisRuleColumnName>
-    Function: ConfiguredTableAggregateFunctionName
+open class ConfiguredTableConfiguredTableAnalysisRulePolicy {
+    V1: ConfiguredTableConfiguredTableAnalysisRulePolicyV1
 }
-
-typealias ConfiguredTableAllowedAnalysis = String|Mapping
-
-
-typealias ConfiguredTableAllowedAnalysisProvider = String|Mapping
-
 
 typealias ConfiguredTableConfiguredTableAnalysisRulePolicyV1 = ConfiguredTableConfiguredTableAnalysisRulePolicyV1List|ConfiguredTableConfiguredTableAnalysisRulePolicyV1Aggregation|ConfiguredTableConfiguredTableAnalysisRulePolicyV1Custom
-
-
-typealias ConfiguredTableJoinOperator = String|Mapping
-
-
-/// 
-open class ConfiguredTableAnalysisRuleAggregation {
-    DimensionColumns: Listing<ConfiguredTableAnalysisRuleColumnName>
-    ScalarFunctions: Listing<ConfiguredTableScalarFunctions>
-    OutputConstraints: Listing<ConfiguredTableAggregationConstraint>
-    AggregateColumns: Listing<ConfiguredTableAggregateColumn>
-    JoinColumns: Listing<ConfiguredTableAnalysisRuleColumnName>
-    AllowedJoinOperators: (Listing<ConfiguredTableJoinOperator>)?
-    JoinRequired: (ConfiguredTableJoinRequiredOption)?
-}
-
-typealias ConfiguredTableAnalysisRuleColumnName = String|Mapping
 
 
 /// 
@@ -100,29 +85,44 @@ open class ConfiguredTableConfiguredTableAnalysisRulePolicyV1Aggregation {
     Aggregation: ConfiguredTableAnalysisRuleAggregation
 }
 
+/// 
+open class ConfiguredTableConfiguredTableAnalysisRulePolicyV1Custom {
+    Custom: ConfiguredTableAnalysisRuleCustom
+}
+
+/// 
+open class ConfiguredTableConfiguredTableAnalysisRulePolicyV1List {
+    List: ConfiguredTableAnalysisRuleList
+}
+
 typealias ConfiguredTableConfiguredTableAnalysisRuleType = String|Mapping
 
+
+/// 
+open class ConfiguredTableGlueTableReference {
+    DatabaseName: String(matches(Regex(#"^[a-zA-Z0-9_](([a-zA-Z0-9_ ]+-)*([a-zA-Z0-9_ ]+))?$"#)))|Mapping
+    TableName: String(matches(Regex(#"^[a-zA-Z0-9_](([a-zA-Z0-9_ ]+-)*([a-zA-Z0-9_ ]+))?$"#)))|Mapping
+}
+
+typealias ConfiguredTableJoinOperator = String|Mapping
+
+
+typealias ConfiguredTableJoinRequiredOption = String|Mapping
+
+
+typealias ConfiguredTableScalarFunctions = String|Mapping
+
+
+/// 
+open class ConfiguredTableTableReference {
+    Glue: ConfiguredTableGlueTableReference
+}
 
 /// 
 open class ConfiguredTableTag {
     Key: String|Mapping
     Value: String|Mapping
 }
-
-typealias ConfiguredTableAllowedAnalysisProviders = Listing<(ConfiguredTableAllowedAnalysisProvider)?>
-
-
-typealias ConfiguredTableAggregateFunctionName = String|Mapping
-
-
-typealias ConfiguredTableAggregationType = String|Mapping
-
-
-typealias ConfiguredTableAnalysisMethod = String|Mapping
-
-
-typealias ConfiguredTableJoinRequiredOption = String|Mapping
-
 
 /// Represents a table that can be associated with collaborations
 open class ConfiguredTable extends cloudformation.Resource {

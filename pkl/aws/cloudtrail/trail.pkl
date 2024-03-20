@@ -5,6 +5,23 @@ module aws.cloudtrail.trail
 
 import "../../cloudformation.pkl"
 
+/// Advanced event selectors let you create fine-grained selectors for the following AWS CloudTrail event record ?elds. They help you control costs by logging only those events that are important to you.
+open class TrailAdvancedEventSelector {
+    FieldSelectors: Listing<TrailAdvancedFieldSelector>
+    Name: (String|Mapping)?
+}
+
+/// A single selector statement in an advanced event selector.
+open class TrailAdvancedFieldSelector {
+    EndsWith: (Listing<String|Mapping>)?
+    Equals: (Listing<String|Mapping>)?
+    Field: String(matches(Regex(#"([\w|\d|\.|_]+)"#)))|Mapping
+    NotEndsWith: (Listing<String|Mapping>)?
+    NotEquals: (Listing<String|Mapping>)?
+    NotStartsWith: (Listing<String|Mapping>)?
+    StartsWith: (Listing<String|Mapping>)?
+}
+
 /// CloudTrail supports data event logging for Amazon S3 objects and AWS Lambda functions. You can specify up to 250 resources for an individual event selector, but the total number of data resources cannot exceed 250 across all event selectors in a trail. This limit does not apply if you configure resource logging for all data events.
 open class TrailDataResource {
     Type: String|Mapping
@@ -15,8 +32,8 @@ typealias EventSelectorReadWriteType = "All"|"ReadOnly"|"WriteOnly"
 
 /// The type of email sending events to publish to the event destination.
 open class TrailEventSelector {
-    ExcludeManagementEventSources: (Listing<String|Mapping>)?
     DataResources: (Listing<TrailDataResource>)?
+    ExcludeManagementEventSources: (Listing<String|Mapping>)?
     IncludeManagementEvents: (Boolean|Mapping)?
     ReadWriteType: (EventSelectorReadWriteType|Mapping)?
 }
@@ -30,23 +47,6 @@ open class TrailInsightSelector {
 open class TrailTag {
     Key: String|Mapping
     Value: String|Mapping
-}
-
-/// Advanced event selectors let you create fine-grained selectors for the following AWS CloudTrail event record ?elds. They help you control costs by logging only those events that are important to you.
-open class TrailAdvancedEventSelector {
-    Name: (String|Mapping)?
-    FieldSelectors: Listing<TrailAdvancedFieldSelector>
-}
-
-/// A single selector statement in an advanced event selector.
-open class TrailAdvancedFieldSelector {
-    NotEquals: (Listing<String|Mapping>)?
-    NotStartsWith: (Listing<String|Mapping>)?
-    NotEndsWith: (Listing<String|Mapping>)?
-    Field: String(matches(Regex(#"([\w|\d|\.|_]+)"#)))|Mapping
-    Equals: (Listing<String|Mapping>)?
-    StartsWith: (Listing<String|Mapping>)?
-    EndsWith: (Listing<String|Mapping>)?
 }
 
 /// Creates a trail that specifies the settings for delivery of log data to an Amazon S3 bucket. A maximum of five trails can exist in a region, irrespective of the region in which they were created.

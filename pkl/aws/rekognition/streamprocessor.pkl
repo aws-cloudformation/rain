@@ -5,12 +5,15 @@ module aws.rekognition.streamprocessor
 
 import "../../cloudformation.pkl"
 
+typealias StreamProcessorArn = String|Mapping
+
+
 /// A bounding box denoting a region of interest in the frame to be analyzed.
 open class StreamProcessorBoundingBox {
-    Top: Number|Mapping
     Height: Number|Mapping
-    Width: Number|Mapping
     Left: Number|Mapping
+    Top: Number|Mapping
+    Width: Number|Mapping
 }
 
 /// Connected home settings to use on a streaming video. Note that either ConnectedHomeSettings or FaceSearchSettings should be set. Not both
@@ -19,20 +22,20 @@ open class StreamProcessorConnectedHomeSettings {
     MinConfidence: (Number|Mapping)?
 }
 
+/// Indicates whether Rekognition is allowed to store the video stream data for model-training.
+open class StreamProcessorDataSharingPreference {
+    OptIn: Boolean|Mapping
+}
+
 /// Face search settings to use on a streaming video. Note that either FaceSearchSettings or ConnectedHomeSettings should be set. Not both
 open class StreamProcessorFaceSearchSettings {
     CollectionId: String(matches(Regex(#"\A[a-zA-Z0-9_\.\-]+$"#)))|Mapping
     FaceMatchThreshold: (Number|Mapping)?
 }
 
-/// The ARN of the SNS notification channel where events of interests are published, as part of connected home feature.
-open class StreamProcessorNotificationChannel {
-    Arn: String|Mapping
-}
-
-/// Indicates whether Rekognition is allowed to store the video stream data for model-training.
-open class StreamProcessorDataSharingPreference {
-    OptIn: Boolean|Mapping
+/// The Amazon Kinesis Data Stream stream to which the Amazon Rekognition stream processor streams the analysis results, as part of face search feature.
+open class StreamProcessorKinesisDataStream {
+    Arn: String(matches(Regex(#"(^arn:([a-z\d-]+):kinesis:([a-z\d-]+):\d{12}:.+$)"#)))|Mapping
 }
 
 /// The Kinesis Video Stream that streams the source video.
@@ -43,10 +46,15 @@ open class StreamProcessorKinesisVideoStream {
 typealias StreamProcessorLabels = Listing<(String|Mapping)?>
 
 
-/// A key-value pair to associate with a resource.
-open class StreamProcessorTag {
-    Key: String(matches(Regex(#"\A(?!aws:)[a-zA-Z0-9+\-=\._\:\/@]+$"#)))|Mapping
-    Value: String(matches(Regex(#"\A[a-zA-Z0-9+\-=\._\:\/@]+$"#)))|Mapping
+/// The ARN of the SNS notification channel where events of interests are published, as part of connected home feature.
+open class StreamProcessorNotificationChannel {
+    Arn: String|Mapping
+}
+
+/// An (X, Y) cartesian coordinate denoting a point on the frame
+open class StreamProcessorPoint {
+    X: Number|Mapping
+    Y: Number|Mapping
 }
 
 typealias StreamProcessorPolygon = Listing<(StreamProcessorPoint)?>
@@ -58,18 +66,10 @@ open class StreamProcessorS3Destination {
     ObjectKeyPrefix: (String|Mapping)?
 }
 
-typealias StreamProcessorArn = String|Mapping
-
-
-/// The Amazon Kinesis Data Stream stream to which the Amazon Rekognition stream processor streams the analysis results, as part of face search feature.
-open class StreamProcessorKinesisDataStream {
-    Arn: String(matches(Regex(#"(^arn:([a-z\d-]+):kinesis:([a-z\d-]+):\d{12}:.+$)"#)))|Mapping
-}
-
-/// An (X, Y) cartesian coordinate denoting a point on the frame
-open class StreamProcessorPoint {
-    X: Number|Mapping
-    Y: Number|Mapping
+/// A key-value pair to associate with a resource.
+open class StreamProcessorTag {
+    Key: String(matches(Regex(#"\A(?!aws:)[a-zA-Z0-9+\-=\._\:\/@]+$"#)))|Mapping
+    Value: String(matches(Regex(#"\A[a-zA-Z0-9+\-=\._\:\/@]+$"#)))|Mapping
 }
 
 /// The AWS::Rekognition::StreamProcessor type is used to create an Amazon Rekognition StreamProcessor that you can use to analyze streaming videos.

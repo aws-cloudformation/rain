@@ -6,6 +6,15 @@ module aws.wisdom.knowledgebase
 import "../../cloudformation.pkl"
 
 /// 
+open class KnowledgeBaseAppIntegrationsConfiguration {
+    AppIntegrationArn: String(matches(Regex(#"^arn:[a-z-]+?:[a-z-]+?:[a-z0-9-]*?:([0-9]{12})?:[a-zA-Z0-9-:/]+$"#)))|Mapping
+    ObjectFields: (Listing<String|Mapping>)?
+}
+
+typealias KnowledgeBaseKnowledgeBaseType = String|Mapping
+
+
+/// 
 open class KnowledgeBaseRenderingConfiguration {
     TemplateUri: (String|Mapping)?
 }
@@ -25,15 +34,6 @@ open class KnowledgeBaseTag {
     Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
     Value: String|Mapping
 }
-
-/// 
-open class KnowledgeBaseAppIntegrationsConfiguration {
-    ObjectFields: (Listing<String|Mapping>)?
-    AppIntegrationArn: String(matches(Regex(#"^arn:[a-z-]+?:[a-z-]+?:[a-z0-9-]*?:([0-9]{12})?:[a-zA-Z0-9-:/]+$"#)))|Mapping
-}
-
-typealias KnowledgeBaseKnowledgeBaseType = String|Mapping
-
 
 /// Definition of AWS::Wisdom::KnowledgeBase Resource Type
 open class KnowledgeBase extends cloudformation.Resource {

@@ -5,63 +5,10 @@ module aws.databrew.dataset
 
 import "../../cloudformation.pkl"
 
-/// Path options for dataset
-open class DatasetPathOptions {
-    FilesLimit: (DatasetFilesLimit)?
-    LastModifiedDateCondition: (DatasetFilterExpression)?
-    Parameters: (Listing<DatasetPathParameter>)?
-}
-
-typealias DatasetPathParameterName = String|Mapping
-
-
-/// 
-open class DatasetDatetimeOptions {
-    Format: String|Mapping
-    TimezoneOffset: (String(matches(Regex(#"^(Z|[-+](\d|\d{2}|\d{2}:?\d{2}))$"#)))|Mapping)?
-    LocaleCode: (String(matches(Regex(#"^[A-Za-z0-9_\.#@\-]+$"#)))|Mapping)?
-}
-
-/// Input
-open class DatasetInput {
-    Metadata: (DatasetMetadata)?
-    S3InputDefinition: (DatasetS3Location)?
-    DataCatalogInputDefinition: (DatasetDataCatalogInputDefinition)?
-    DatabaseInputDefinition: (DatasetDatabaseInputDefinition)?
-}
-
-/// Json options
-open class DatasetJsonOptions {
-    MultiLine: (Boolean|Mapping)?
-}
-
 /// Csv options
 open class DatasetCsvOptions {
     Delimiter: (String|Mapping)?
     HeaderRow: (Boolean|Mapping)?
-}
-
-typealias DatasetParameterType = "String"|"Number"|"Datetime"
-
-/// 
-open class DatasetDatasetParameter {
-    Filter: (DatasetFilterExpression)?
-    Name: DatasetPathParameterName
-    Type: DatasetParameterType|Mapping
-    DatetimeOptions: (DatasetDatetimeOptions)?
-    CreateColumn: (Boolean|Mapping)?
-}
-
-/// A key-value pair to associate expression variable names with their values
-open class DatasetFilterValue {
-    ValueReference: String(matches(Regex(#"^:[A-Za-z0-9_]+$"#)))|Mapping
-    Value: String|Mapping
-}
-
-/// A key-value pair to associate with a resource.
-open class DatasetTag {
-    Key: String|Mapping
-    Value: String|Mapping
 }
 
 /// 
@@ -73,27 +20,91 @@ open class DatasetDataCatalogInputDefinition {
 }
 
 /// 
+open class DatasetDatabaseInputDefinition {
+    DatabaseTableName: (String|Mapping)?
+    GlueConnectionName: String|Mapping
+    QueryString: (String|Mapping)?
+    TempDirectory: (DatasetS3Location)?
+}
+
+typealias DatasetParameterType = "String"|"Number"|"Datetime"
+
+/// 
+open class DatasetDatasetParameter {
+    CreateColumn: (Boolean|Mapping)?
+    DatetimeOptions: (DatasetDatetimeOptions)?
+    Filter: (DatasetFilterExpression)?
+    Name: DatasetPathParameterName
+    Type: DatasetParameterType|Mapping
+}
+
+/// 
+open class DatasetDatetimeOptions {
+    Format: String|Mapping
+    LocaleCode: (String(matches(Regex(#"^[A-Za-z0-9_\.#@\-]+$"#)))|Mapping)?
+    TimezoneOffset: (String(matches(Regex(#"^(Z|[-+](\d|\d{2}|\d{2}:?\d{2}))$"#)))|Mapping)?
+}
+
+/// 
+open class DatasetExcelOptions {
+    HeaderRow: (Boolean|Mapping)?
+    SheetIndexes: (Listing<Int|Mapping>)?
+    SheetNames: (Listing<String|Mapping>)?
+}
+
+typealias FilesLimitOrder = "ASCENDING"|"DESCENDING"
+
+typealias FilesLimitOrderedBy = "LAST_MODIFIED_DATE"
+
+/// 
+open class DatasetFilesLimit {
+    MaxFiles: Int|Mapping
+    Order: (FilesLimitOrder|Mapping)?
+    OrderedBy: (FilesLimitOrderedBy|Mapping)?
+}
+
+/// 
 open class DatasetFilterExpression {
     Expression: String(matches(Regex(#"^[><0-9A-Za-z_.,:)(!= ]+$"#)))|Mapping
     ValuesMap: Listing<DatasetFilterValue>
 }
 
-/// Input location
-open class DatasetS3Location {
-    Bucket: String|Mapping
-    Key: (String|Mapping)?
+/// A key-value pair to associate expression variable names with their values
+open class DatasetFilterValue {
+    Value: String|Mapping
+    ValueReference: String(matches(Regex(#"^:[A-Za-z0-9_]+$"#)))|Mapping
 }
 
 /// Format options for dataset
 open class DatasetFormatOptions {
-    Json: (DatasetJsonOptions)?
-    Excel: (DatasetExcelOptions)?
     Csv: (DatasetCsvOptions)?
+    Excel: (DatasetExcelOptions)?
+    Json: (DatasetJsonOptions)?
+}
+
+/// Input
+open class DatasetInput {
+    DataCatalogInputDefinition: (DatasetDataCatalogInputDefinition)?
+    DatabaseInputDefinition: (DatasetDatabaseInputDefinition)?
+    Metadata: (DatasetMetadata)?
+    S3InputDefinition: (DatasetS3Location)?
+}
+
+/// Json options
+open class DatasetJsonOptions {
+    MultiLine: (Boolean|Mapping)?
 }
 
 /// 
 open class DatasetMetadata {
     SourceArn: (String|Mapping)?
+}
+
+/// Path options for dataset
+open class DatasetPathOptions {
+    FilesLimit: (DatasetFilesLimit)?
+    LastModifiedDateCondition: (DatasetFilterExpression)?
+    Parameters: (Listing<DatasetPathParameter>)?
 }
 
 /// A key-value pair to associate dataset parameter name with its definition.
@@ -102,30 +113,19 @@ open class DatasetPathParameter {
     PathParameterName: DatasetPathParameterName
 }
 
-/// 
-open class DatasetDatabaseInputDefinition {
-    GlueConnectionName: String|Mapping
-    DatabaseTableName: (String|Mapping)?
-    TempDirectory: (DatasetS3Location)?
-    QueryString: (String|Mapping)?
+typealias DatasetPathParameterName = String|Mapping
+
+
+/// Input location
+open class DatasetS3Location {
+    Bucket: String|Mapping
+    Key: (String|Mapping)?
 }
 
-/// 
-open class DatasetExcelOptions {
-    SheetNames: (Listing<String|Mapping>)?
-    SheetIndexes: (Listing<Int|Mapping>)?
-    HeaderRow: (Boolean|Mapping)?
-}
-
-typealias FilesLimitOrderedBy = "LAST_MODIFIED_DATE"
-
-typealias FilesLimitOrder = "ASCENDING"|"DESCENDING"
-
-/// 
-open class DatasetFilesLimit {
-    MaxFiles: Int|Mapping
-    OrderedBy: (FilesLimitOrderedBy|Mapping)?
-    Order: (FilesLimitOrder|Mapping)?
+/// A key-value pair to associate with a resource.
+open class DatasetTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// Resource schema for AWS::DataBrew::Dataset.

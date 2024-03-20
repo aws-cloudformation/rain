@@ -5,76 +5,73 @@ module aws.ecs.taskdefinition
 
 import "../../cloudformation.pkl"
 
-/// The amount of ephemeral storage to allocate for the task. This parameter is used to expand the total amount of ephemeral storage available, beyond the default amount, for tasks hosted on FARGATElong. For more information, see [Using data volumes in tasks](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_data_volumes.html) in the *Amazon ECS Developer Guide;*.
-///
-///   For tasks using the Fargate launch type, the task requires the following platforms:
-///   +  Linux platform version ``1.4.0`` or later.
-///   +  Windows platform version ``1.0.0`` or later.
-open class TaskDefinitionEphemeralStorage {
-    SizeInGiB: (Int|Mapping)?
-}
-
-/// The configuration details for the App Mesh proxy.
-///
-///  For tasks that use the EC2 launch type, the container instances require at least version 1.26.0 of the container agent and at least version 1.26.0-1 of the ``ecs-init`` package to use a proxy configuration. If your container instances are launched from the Amazon ECS optimized AMI version ``20190301`` or later, then they contain the required versions of the container agent and ``ecs-init``. For more information, see [Amazon ECS-optimized Linux AMI](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html)
-open class TaskDefinitionProxyConfiguration {
-    ContainerName: String|Mapping
-    ProxyConfigurationProperties: (Listing<TaskDefinitionKeyValuePair>)?
-    Type: (String|Mapping)?
-}
-
 typealias AuthorizationConfigIAM = "ENABLED"|"DISABLED"
 
 /// The authorization configuration details for the Amazon EFS file system.
 open class TaskDefinitionAuthorizationConfig {
-    IAM: (AuthorizationConfigIAM|Mapping)?
     AccessPointId: (String|Mapping)?
+    IAM: (AuthorizationConfigIAM|Mapping)?
 }
 
 typealias TaskDefinitionContainerDefinitionDockerLabels = Mapping<String, Any>
 
 /// The ``ContainerDefinition`` property specifies a container definition. Container definitions are used in task definitions to describe the different containers that are launched as part of a task.
 open class TaskDefinitionContainerDefinition {
-    Name: String|Mapping
-    Interactive: (Boolean|Mapping)?
-    SystemControls: (Listing<TaskDefinitionSystemControl>)?
-    DnsSearchDomains: (Listing<String|Mapping>)?
-    LinuxParameters: (TaskDefinitionLinuxParameters)?
-    Environment: (Listing<TaskDefinitionKeyValuePair>)?
-    ExtraHosts: (Listing<TaskDefinitionHostEntry>)?
-    MemoryReservation: (Int|Mapping)?
-    PortMappings: (Listing<TaskDefinitionPortMapping>)?
-    User: (String|Mapping)?
-    Cpu: (Int|Mapping)?
-    DnsServers: (Listing<String|Mapping>)?
-    Hostname: (String|Mapping)?
-    Image: String|Mapping
-    MountPoints: (Listing<TaskDefinitionMountPoint>)?
-    ReadonlyRootFilesystem: (Boolean|Mapping)?
-    Ulimits: (Listing<TaskDefinitionUlimit>)?
-    VolumesFrom: (Listing<TaskDefinitionVolumeFrom>)?
-    DockerLabels: (TaskDefinitionContainerDefinitionDockerLabels)?
-    Essential: (Boolean|Mapping)?
-    EnvironmentFiles: (Listing<TaskDefinitionEnvironmentFile>)?
-    StopTimeout: (Int|Mapping)?
-    PseudoTerminal: (Boolean|Mapping)?
-    EntryPoint: (Listing<String|Mapping>)?
-    LogConfiguration: (TaskDefinitionLogConfiguration)?
-    Secrets: (Listing<TaskDefinitionSecret>)?
-    StartTimeout: (Int|Mapping)?
-    WorkingDirectory: (String|Mapping)?
-    FirelensConfiguration: (TaskDefinitionFirelensConfiguration)?
-    HealthCheck: (TaskDefinitionHealthCheck)?
-    DisableNetworking: (Boolean|Mapping)?
-    DockerSecurityOptions: (Listing<String|Mapping>)?
-    Links: (Listing<String|Mapping>)?
-    Memory: (Int|Mapping)?
-    RepositoryCredentials: (TaskDefinitionRepositoryCredentials)?
-    ResourceRequirements: (Listing<TaskDefinitionResourceRequirement>)?
     Command: (Listing<String|Mapping>)?
+    Cpu: (Int|Mapping)?
     CredentialSpecs: (Listing<String|Mapping>)?
     DependsOn: (Listing<TaskDefinitionContainerDependency>)?
+    DisableNetworking: (Boolean|Mapping)?
+    DnsSearchDomains: (Listing<String|Mapping>)?
+    DnsServers: (Listing<String|Mapping>)?
+    DockerLabels: (TaskDefinitionContainerDefinitionDockerLabels)?
+    DockerSecurityOptions: (Listing<String|Mapping>)?
+    EntryPoint: (Listing<String|Mapping>)?
+    Environment: (Listing<TaskDefinitionKeyValuePair>)?
+    EnvironmentFiles: (Listing<TaskDefinitionEnvironmentFile>)?
+    Essential: (Boolean|Mapping)?
+    ExtraHosts: (Listing<TaskDefinitionHostEntry>)?
+    FirelensConfiguration: (TaskDefinitionFirelensConfiguration)?
+    HealthCheck: (TaskDefinitionHealthCheck)?
+    Hostname: (String|Mapping)?
+    Image: String|Mapping
+    Interactive: (Boolean|Mapping)?
+    Links: (Listing<String|Mapping>)?
+    LinuxParameters: (TaskDefinitionLinuxParameters)?
+    LogConfiguration: (TaskDefinitionLogConfiguration)?
+    Memory: (Int|Mapping)?
+    MemoryReservation: (Int|Mapping)?
+    MountPoints: (Listing<TaskDefinitionMountPoint>)?
+    Name: String|Mapping
+    PortMappings: (Listing<TaskDefinitionPortMapping>)?
     Privileged: (Boolean|Mapping)?
+    PseudoTerminal: (Boolean|Mapping)?
+    ReadonlyRootFilesystem: (Boolean|Mapping)?
+    RepositoryCredentials: (TaskDefinitionRepositoryCredentials)?
+    ResourceRequirements: (Listing<TaskDefinitionResourceRequirement>)?
+    Secrets: (Listing<TaskDefinitionSecret>)?
+    StartTimeout: (Int|Mapping)?
+    StopTimeout: (Int|Mapping)?
+    SystemControls: (Listing<TaskDefinitionSystemControl>)?
+    Ulimits: (Listing<TaskDefinitionUlimit>)?
+    User: (String|Mapping)?
+    VolumesFrom: (Listing<TaskDefinitionVolumeFrom>)?
+    WorkingDirectory: (String|Mapping)?
+}
+
+/// The ``ContainerDependency`` property specifies the dependencies defined for container startup and shutdown. A container can contain multiple dependencies. When a dependency is defined for container startup, for container shutdown it is reversed.
+///
+///  Your Amazon ECS container instances require at least version 1.26.0 of the container agent to enable container dependencies. However, we recommend using the latest container agent version. For information about checking your agent version and updating to the latest version, see [Updating the Amazon ECS Container Agent](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-update.html) in the *Amazon Elastic Container Service Developer Guide*. If you are using an Amazon ECS-optimized Linux AMI, your instance needs at least version 1.26.0-1 of the ``ecs-init`` package. If your container instances are launched from version ``20190301`` or later, then they contain the required versions of the container agent and ``ecs-init``. For m
+open class TaskDefinitionContainerDependency {
+    Condition: (String|Mapping)?
+    ContainerName: (String|Mapping)?
+}
+
+/// The ``Device`` property specifies an object representing a container instance host device.
+open class TaskDefinitionDevice {
+    ContainerPath: (String|Mapping)?
+    HostPath: (String|Mapping)?
+    Permissions: (Listing<String|Mapping>)?
 }
 
 typealias TaskDefinitionDockerVolumeConfigurationDriverOpts = Mapping<String, Any>
@@ -90,13 +87,110 @@ open class TaskDefinitionDockerVolumeConfiguration {
     Scope: (String|Mapping)?
 }
 
+typealias EFSVolumeConfigurationTransitEncryption = "ENABLED"|"DISABLED"
+
+/// This parameter is specified when you're using an Amazon Elastic File System file system for task storage. For more information, see [Amazon EFS volumes](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/efs-volumes.html) in the *Amazon Elastic Container Service Developer Guide*.
+open class TaskDefinitionEFSVolumeConfiguration {
+    AuthorizationConfig: (TaskDefinitionAuthorizationConfig)?
+    FilesystemId: String|Mapping
+    RootDirectory: (String|Mapping)?
+    TransitEncryption: (EFSVolumeConfigurationTransitEncryption|Mapping)?
+    TransitEncryptionPort: (Int|Mapping)?
+}
+
+/// A list of files containing the environment variables to pass to a container. You can specify up to ten environment files. The file must have a ``.env`` file extension. Each line in an environment file should contain an environment variable in ``VARIABLE=VALUE`` format. Lines beginning with ``#`` are treated as comments and are ignored.
+///
+///  If there are environment variables specified using the ``environment`` parameter in a container definition, they take precedence over the variables contained within an environment file. If multiple environment files are specified that contain the same variable, they're processed from the top down. We recommend that you use unique variable names. For more information, see [Specifying environment variables](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/taskdef-envfiles.html) in the *Amazon Elastic Container Service Developer Guide*.
+///  You must use the following platforms for the Fargate launch type:
+///   +  Linux platform version ``1.4.0`` or la
+open class TaskDefinitionEnvironmentFile {
+    Type: (String|Mapping)?
+    Value: (String|Mapping)?
+}
+
+/// The amount of ephemeral storage to allocate for the task. This parameter is used to expand the total amount of ephemeral storage available, beyond the default amount, for tasks hosted on FARGATElong. For more information, see [Using data volumes in tasks](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_data_volumes.html) in the *Amazon ECS Developer Guide;*.
+///
+///   For tasks using the Fargate launch type, the task requires the following platforms:
+///   +  Linux platform version ``1.4.0`` or later.
+///   +  Windows platform version ``1.0.0`` or later.
+open class TaskDefinitionEphemeralStorage {
+    SizeInGiB: (Int|Mapping)?
+}
+
+typealias TaskDefinitionFirelensConfigurationOptions = Mapping<String, Any>
+
+/// The FireLens configuration for the container. This is used to specify and configure a log router for container logs. For more information, see [Custom log routing](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_firelens.html) in the *Amazon Elastic Container Service Developer Guide*.
+open class TaskDefinitionFirelensConfiguration {
+    Options: (TaskDefinitionFirelensConfigurationOptions)?
+    Type: (String|Mapping)?
+}
+
+/// The ``HealthCheck`` property specifies an object representing a container health check. Health check parameters that are specified in a container definition override any Docker health checks that exist in the container image (such as those specified in a parent image or from the image's Dockerfile). This configuration maps to the ``HEALTHCHECK`` parameter of [docker run](https://docs.aws.amazon.com/https://docs.docker.com/engine/reference/run/).
+///
+///   The Amazon ECS container agent only monitors and reports on the health checks specified in the task definition. Amazon ECS does not monitor Docker health checks that are embedded in a container image and not specified in the container definition. Health check parameters that are specified in a container definition override any Docker health checks that exist in the container image.
+///   If a task is run manually, and not as part of a service, the task will continue its lifecycle regardless of its health status. For tasks that are part of a servi
+open class TaskDefinitionHealthCheck {
+    Command: (Listing<String|Mapping>)?
+    Interval: (Int|Mapping)?
+    Retries: (Int|Mapping)?
+    StartPeriod: (Int|Mapping)?
+    Timeout: (Int|Mapping)?
+}
+
+/// The ``HostEntry`` property specifies a hostname and an IP address that are added to the ``/etc/hosts`` file of a container through the ``extraHosts`` parameter of its ``ContainerDefinition`` resource.
+open class TaskDefinitionHostEntry {
+    Hostname: (String|Mapping)?
+    IpAddress: (String|Mapping)?
+}
+
+/// The ``HostVolumeProperties`` property specifies details on a container instance bind mount host volume.
+open class TaskDefinitionHostVolumeProperties {
+    SourcePath: (String|Mapping)?
+}
+
+/// Details on an Elastic Inference accelerator. For more information, see [Working with Amazon Elastic Inference on Amazon ECS](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-inference.html) in the *Amazon Elastic Container Service Developer Guide*.
+open class TaskDefinitionInferenceAccelerator {
+    DeviceName: (String|Mapping)?
+    DeviceType: (String|Mapping)?
+}
+
+/// The ``KernelCapabilities`` property specifies the Linux capabilities for the container that are added to or dropped from the default configuration that is provided by Docker. For more information on the default capabilities and the non-default available capabilities, see [Runtime privilege and Linux capabilities](https://docs.aws.amazon.com/https://docs.docker.com/engine/reference/run/#runtime-privilege-and-linux-capabilities) in the *Docker run reference*. For more detailed information on these Linux capabilities, see the [capabilities(7)](https://docs.aws.amazon.com/http://man7.org/linux/man-pages/man7/capabilities.7.html) Linux manual page.
+open class TaskDefinitionKernelCapabilities {
+    Add: (Listing<String|Mapping>)?
+    Drop: (Listing<String|Mapping>)?
+}
+
+/// A key-value pair object.
+open class TaskDefinitionKeyValuePair {
+    Name: (String|Mapping)?
+    Value: (String|Mapping)?
+}
+
+/// The Linux-specific options that are applied to the container, such as Linux [KernelCapabilities](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_KernelCapabilities.html).
+open class TaskDefinitionLinuxParameters {
+    Capabilities: (TaskDefinitionKernelCapabilities)?
+    Devices: (Listing<TaskDefinitionDevice>)?
+    InitProcessEnabled: (Boolean|Mapping)?
+    MaxSwap: (Int|Mapping)?
+    SharedMemorySize: (Int|Mapping)?
+    Swappiness: (Int|Mapping)?
+    Tmpfs: (Listing<TaskDefinitionTmpfs>)?
+}
+
 typealias TaskDefinitionLogConfigurationOptions = Mapping<String, Any>
 
 /// The ``LogConfiguration`` property specifies log configuration options to send to a custom log driver for the container.
 open class TaskDefinitionLogConfiguration {
+    LogDriver: String|Mapping
     Options: (TaskDefinitionLogConfigurationOptions)?
     SecretOptions: (Listing<TaskDefinitionSecret>)?
-    LogDriver: String|Mapping
+}
+
+/// The details for a volume mount point that's used in a container definition.
+open class TaskDefinitionMountPoint {
+    ContainerPath: (String|Mapping)?
+    ReadOnly: (Boolean|Mapping)?
+    SourceVolume: (String|Mapping)?
 }
 
 typealias PortMappingAppProtocol = "http"|"http2"|"grpc"
@@ -106,48 +200,32 @@ typealias PortMappingAppProtocol = "http"|"http2"|"grpc"
 ///  If you are using containers in a task with the ``awsvpc`` or ``host`` network mode, exposed ports should be specified using ``containerPort``. The ``hostPort`` can be left blank or it must be the same value as the ``containerPort``.
 ///  After a task reaches the ``RUNNING`` status, manual and automatic host and container port assignments are visible in the ``networkBindings`` section of [DescribeTasks](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_DescribeTasks.html) API responses.
 open class TaskDefinitionPortMapping {
-    Name: (String|Mapping)?
+    AppProtocol: (PortMappingAppProtocol|Mapping)?
     ContainerPort: (Int|Mapping)?
     ContainerPortRange: (String|Mapping)?
     HostPort: (Int|Mapping)?
-    Protocol: (String|Mapping)?
-    AppProtocol: (PortMappingAppProtocol|Mapping)?
-}
-
-/// The data volume configuration for tasks launched using this task definition. Specifying a volume configuration in a task definition is optional. The volume configuration may contain multiple volumes but only one volume configured at launch is supported. Each volume defined in the volume configuration may only specify a ``name`` and one of either ``configuredAtLaunch``, ``dockerVolumeConfiguration``, ``efsVolumeConfiguration``, ``fsxWindowsFileServerVolumeConfiguration``, or ``host``. If an empty volume configuration is specified, by default Amazon ECS uses a host volume. For more information, see [Using data volumes in tasks](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_data_volumes.html).
-open class TaskDefinitionVolume {
-    ConfiguredAtLaunch: (Boolean|Mapping)?
-    DockerVolumeConfiguration: (TaskDefinitionDockerVolumeConfiguration)?
-    EFSVolumeConfiguration: (TaskDefinitionEFSVolumeConfiguration)?
-    Host: (TaskDefinitionHostVolumeProperties)?
     Name: (String|Mapping)?
+    Protocol: (String|Mapping)?
 }
 
-typealias EFSVolumeConfigurationTransitEncryption = "ENABLED"|"DISABLED"
-
-/// This parameter is specified when you're using an Amazon Elastic File System file system for task storage. For more information, see [Amazon EFS volumes](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/efs-volumes.html) in the *Amazon Elastic Container Service Developer Guide*.
-open class TaskDefinitionEFSVolumeConfiguration {
-    TransitEncryption: (EFSVolumeConfigurationTransitEncryption|Mapping)?
-    TransitEncryptionPort: (Int|Mapping)?
-    AuthorizationConfig: (TaskDefinitionAuthorizationConfig)?
-    FilesystemId: String|Mapping
-    RootDirectory: (String|Mapping)?
-}
-
-/// A list of files containing the environment variables to pass to a container. You can specify up to ten environment files. The file must have a ``.env`` file extension. Each line in an environment file should contain an environment variable in ``VARIABLE=VALUE`` format. Lines beginning with ``#`` are treated as comments and are ignored.
+/// The configuration details for the App Mesh proxy.
 ///
-///  If there are environment variables specified using the ``environment`` parameter in a container definition, they take precedence over the variables contained within an environment file. If multiple environment files are specified that contain the same variable, they're processed from the top down. We recommend that you use unique variable names. For more information, see [Specifying environment variables](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/taskdef-envfiles.html) in the *Amazon Elastic Container Service Developer Guide*.
-///  You must use the following platforms for the Fargate launch type:
-///   +  Linux platform version ``1.4.0`` or la
-open class TaskDefinitionEnvironmentFile {
-    Value: (String|Mapping)?
+///  For tasks that use the EC2 launch type, the container instances require at least version 1.26.0 of the container agent and at least version 1.26.0-1 of the ``ecs-init`` package to use a proxy configuration. If your container instances are launched from the Amazon ECS optimized AMI version ``20190301`` or later, then they contain the required versions of the container agent and ``ecs-init``. For more information, see [Amazon ECS-optimized Linux AMI](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html)
+open class TaskDefinitionProxyConfiguration {
+    ContainerName: String|Mapping
+    ProxyConfigurationProperties: (Listing<TaskDefinitionKeyValuePair>)?
     Type: (String|Mapping)?
 }
 
-/// The ``HostEntry`` property specifies a hostname and an IP address that are added to the ``/etc/hosts`` file of a container through the ``extraHosts`` parameter of its ``ContainerDefinition`` resource.
-open class TaskDefinitionHostEntry {
-    IpAddress: (String|Mapping)?
-    Hostname: (String|Mapping)?
+/// The repository credentials for private registry authentication.
+open class TaskDefinitionRepositoryCredentials {
+    CredentialsParameter: (String|Mapping)?
+}
+
+/// The type and amount of a resource to assign to a container. The supported resource types are GPUs and Elastic Inference accelerators. For more information, see [Working with GPUs on Amazon ECS](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-gpu.html) or [Working with Amazon Elastic Inference on Amazon ECS](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-inference.html) in the *Amazon Elastic Container Service Developer Guide*
+open class TaskDefinitionResourceRequirement {
+    Type: String|Mapping
+    Value: String|Mapping
 }
 
 /// Information about the platform for the Amazon ECS service or task.
@@ -156,6 +234,26 @@ open class TaskDefinitionHostEntry {
 open class TaskDefinitionRuntimePlatform {
     CpuArchitecture: (String|Mapping)?
     OperatingSystemFamily: (String|Mapping)?
+}
+
+/// An object representing the secret to expose to your container. Secrets can be exposed to a container in the following ways:
+///
+///   +  To inject sensitive data into your containers as environment variables, use the ``secrets`` container definition parameter.
+///   +  To reference sensitive information in the log configuration of a container, use the ``secretOptions`` container definition parameter.
+///   
+///  For more information, see [Specifying sensitive data](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/specifying-sensitive-data.html) in the *Amazon Elastic Container Service Developer Guide*.
+open class TaskDefinitionSecret {
+    Name: String|Mapping
+    ValueFrom: String|Mapping
+}
+
+/// A list of namespaced kernel parameters to set in the container. This parameter maps to ``Sysctls`` in the [Create a container](https://docs.aws.amazon.com/https://docs.docker.com/engine/api/v1.35/#operation/ContainerCreate) section of the [Docker Remote API](https://docs.aws.amazon.com/https://docs.docker.com/engine/api/v1.35/) and the ``--sysctl`` option to [docker run](https://docs.aws.amazon.com/https://docs.docker.com/engine/reference/run/#security-configuration). For example, you can configure ``net.ipv4.tcp_keepalive_time`` setting to maintain longer lived connections.
+///
+///  We don't recommend that you specify network-related ``systemControls`` parameters for multiple containers in a single task that also uses either the ``awsvpc`` or ``host`` network mode. Doing this has the following disadvantages:
+///   +  For tasks that use the ``awsvpc`` network mode including Fargate, if you set ``systemControls`` for any container, it applies to all containers in the task. If you set different ``sy
+open class TaskDefinitionSystemControl {
+    Namespace: (String|Mapping)?
+    Value: (String|Mapping)?
 }
 
 /// The metadata that you apply to a resource to help you categorize and organize them. Each tag consists of a key and an optional value. You define them.
@@ -173,50 +271,12 @@ open class TaskDefinitionTag {
     Value: (String|Mapping)?
 }
 
-/// Details on a data volume from another container in the same task definition.
-open class TaskDefinitionVolumeFrom {
-    ReadOnly: (Boolean|Mapping)?
-    SourceContainer: (String|Mapping)?
-}
-
-/// The ``HealthCheck`` property specifies an object representing a container health check. Health check parameters that are specified in a container definition override any Docker health checks that exist in the container image (such as those specified in a parent image or from the image's Dockerfile). This configuration maps to the ``HEALTHCHECK`` parameter of [docker run](https://docs.aws.amazon.com/https://docs.docker.com/engine/reference/run/).
+/// The constraint on task placement in the task definition. For more information, see [Task placement constraints](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-placement-constraints.html) in the *Amazon Elastic Container Service Developer Guide*.
 ///
-///   The Amazon ECS container agent only monitors and reports on the health checks specified in the task definition. Amazon ECS does not monitor Docker health checks that are embedded in a container image and not specified in the container definition. Health check parameters that are specified in a container definition override any Docker health checks that exist in the container image.
-///   If a task is run manually, and not as part of a service, the task will continue its lifecycle regardless of its health status. For tasks that are part of a servi
-open class TaskDefinitionHealthCheck {
-    StartPeriod: (Int|Mapping)?
-    Command: (Listing<String|Mapping>)?
-    Interval: (Int|Mapping)?
-    Timeout: (Int|Mapping)?
-    Retries: (Int|Mapping)?
-}
-
-/// The ``HostVolumeProperties`` property specifies details on a container instance bind mount host volume.
-open class TaskDefinitionHostVolumeProperties {
-    SourcePath: (String|Mapping)?
-}
-
-/// A key-value pair object.
-open class TaskDefinitionKeyValuePair {
-    Name: (String|Mapping)?
-    Value: (String|Mapping)?
-}
-
-typealias TaskDefinitionFirelensConfigurationOptions = Mapping<String, Any>
-
-/// The FireLens configuration for the container. This is used to specify and configure a log router for container logs. For more information, see [Custom log routing](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_firelens.html) in the *Amazon Elastic Container Service Developer Guide*.
-open class TaskDefinitionFirelensConfiguration {
-    Type: (String|Mapping)?
-    Options: (TaskDefinitionFirelensConfigurationOptions)?
-}
-
-/// A list of namespaced kernel parameters to set in the container. This parameter maps to ``Sysctls`` in the [Create a container](https://docs.aws.amazon.com/https://docs.docker.com/engine/api/v1.35/#operation/ContainerCreate) section of the [Docker Remote API](https://docs.aws.amazon.com/https://docs.docker.com/engine/api/v1.35/) and the ``--sysctl`` option to [docker run](https://docs.aws.amazon.com/https://docs.docker.com/engine/reference/run/#security-configuration). For example, you can configure ``net.ipv4.tcp_keepalive_time`` setting to maintain longer lived connections.
-///
-///  We don't recommend that you specify network-related ``systemControls`` parameters for multiple containers in a single task that also uses either the ``awsvpc`` or ``host`` network mode. Doing this has the following disadvantages:
-///   +  For tasks that use the ``awsvpc`` network mode including Fargate, if you set ``systemControls`` for any container, it applies to all containers in the task. If you set different ``sy
-open class TaskDefinitionSystemControl {
-    Namespace: (String|Mapping)?
-    Value: (String|Mapping)?
+///   Task placement constraints aren't supported for tasks run on FARGATElong.
+open class TaskDefinitionTaskDefinitionPlacementConstraint {
+    Expression: (String|Mapping)?
+    Type: String|Mapping
 }
 
 /// The container path, mount options, and size of the tmpfs mount.
@@ -236,79 +296,19 @@ open class TaskDefinitionUlimit {
     SoftLimit: Int|Mapping
 }
 
-/// The ``Device`` property specifies an object representing a container instance host device.
-open class TaskDefinitionDevice {
-    ContainerPath: (String|Mapping)?
-    HostPath: (String|Mapping)?
-    Permissions: (Listing<String|Mapping>)?
+/// The data volume configuration for tasks launched using this task definition. Specifying a volume configuration in a task definition is optional. The volume configuration may contain multiple volumes but only one volume configured at launch is supported. Each volume defined in the volume configuration may only specify a ``name`` and one of either ``configuredAtLaunch``, ``dockerVolumeConfiguration``, ``efsVolumeConfiguration``, ``fsxWindowsFileServerVolumeConfiguration``, or ``host``. If an empty volume configuration is specified, by default Amazon ECS uses a host volume. For more information, see [Using data volumes in tasks](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_data_volumes.html).
+open class TaskDefinitionVolume {
+    ConfiguredAtLaunch: (Boolean|Mapping)?
+    DockerVolumeConfiguration: (TaskDefinitionDockerVolumeConfiguration)?
+    EFSVolumeConfiguration: (TaskDefinitionEFSVolumeConfiguration)?
+    Host: (TaskDefinitionHostVolumeProperties)?
+    Name: (String|Mapping)?
 }
 
-/// The details for a volume mount point that's used in a container definition.
-open class TaskDefinitionMountPoint {
-    ContainerPath: (String|Mapping)?
+/// Details on a data volume from another container in the same task definition.
+open class TaskDefinitionVolumeFrom {
     ReadOnly: (Boolean|Mapping)?
-    SourceVolume: (String|Mapping)?
-}
-
-/// The repository credentials for private registry authentication.
-open class TaskDefinitionRepositoryCredentials {
-    CredentialsParameter: (String|Mapping)?
-}
-
-/// The Linux-specific options that are applied to the container, such as Linux [KernelCapabilities](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_KernelCapabilities.html).
-open class TaskDefinitionLinuxParameters {
-    Devices: (Listing<TaskDefinitionDevice>)?
-    InitProcessEnabled: (Boolean|Mapping)?
-    MaxSwap: (Int|Mapping)?
-    SharedMemorySize: (Int|Mapping)?
-    Swappiness: (Int|Mapping)?
-    Tmpfs: (Listing<TaskDefinitionTmpfs>)?
-    Capabilities: (TaskDefinitionKernelCapabilities)?
-}
-
-/// An object representing the secret to expose to your container. Secrets can be exposed to a container in the following ways:
-///
-///   +  To inject sensitive data into your containers as environment variables, use the ``secrets`` container definition parameter.
-///   +  To reference sensitive information in the log configuration of a container, use the ``secretOptions`` container definition parameter.
-///   
-///  For more information, see [Specifying sensitive data](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/specifying-sensitive-data.html) in the *Amazon Elastic Container Service Developer Guide*.
-open class TaskDefinitionSecret {
-    Name: String|Mapping
-    ValueFrom: String|Mapping
-}
-
-/// The ``ContainerDependency`` property specifies the dependencies defined for container startup and shutdown. A container can contain multiple dependencies. When a dependency is defined for container startup, for container shutdown it is reversed.
-///
-///  Your Amazon ECS container instances require at least version 1.26.0 of the container agent to enable container dependencies. However, we recommend using the latest container agent version. For information about checking your agent version and updating to the latest version, see [Updating the Amazon ECS Container Agent](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-update.html) in the *Amazon Elastic Container Service Developer Guide*. If you are using an Amazon ECS-optimized Linux AMI, your instance needs at least version 1.26.0-1 of the ``ecs-init`` package. If your container instances are launched from version ``20190301`` or later, then they contain the required versions of the container agent and ``ecs-init``. For m
-open class TaskDefinitionContainerDependency {
-    ContainerName: (String|Mapping)?
-    Condition: (String|Mapping)?
-}
-
-/// The constraint on task placement in the task definition. For more information, see [Task placement constraints](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-placement-constraints.html) in the *Amazon Elastic Container Service Developer Guide*.
-///
-///   Task placement constraints aren't supported for tasks run on FARGATElong.
-open class TaskDefinitionTaskDefinitionPlacementConstraint {
-    Type: String|Mapping
-    Expression: (String|Mapping)?
-}
-
-/// Details on an Elastic Inference accelerator. For more information, see [Working with Amazon Elastic Inference on Amazon ECS](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-inference.html) in the *Amazon Elastic Container Service Developer Guide*.
-open class TaskDefinitionInferenceAccelerator {
-    DeviceName: (String|Mapping)?
-    DeviceType: (String|Mapping)?
-}
-
-/// The ``KernelCapabilities`` property specifies the Linux capabilities for the container that are added to or dropped from the default configuration that is provided by Docker. For more information on the default capabilities and the non-default available capabilities, see [Runtime privilege and Linux capabilities](https://docs.aws.amazon.com/https://docs.docker.com/engine/reference/run/#runtime-privilege-and-linux-capabilities) in the *Docker run reference*. For more detailed information on these Linux capabilities, see the [capabilities(7)](https://docs.aws.amazon.com/http://man7.org/linux/man-pages/man7/capabilities.7.html) Linux manual page.
-open class TaskDefinitionKernelCapabilities {
-    Add: (Listing<String|Mapping>)?
-    Drop: (Listing<String|Mapping>)?
-}
-
-/// The type and amount of a resource to assign to a container. The supported resource types are GPUs and Elastic Inference accelerators. For more information, see [Working with GPUs on Amazon ECS](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-gpu.html) or [Working with Amazon Elastic Inference on Amazon ECS](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-inference.html) in the *Amazon Elastic Container Service Developer Guide*
-open class TaskDefinitionResourceRequirement {
-    Type: String|Mapping
-    Value: String|Mapping
+    SourceContainer: (String|Mapping)?
 }
 
 /// Registers a new task definition from the supplied ``family`` and ``containerDefinitions``. Optionally, you can add data volumes to your containers with the ``volumes`` parameter. For more information about task definition parameters and defaults, see [Amazon ECS Task Definitions](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_defintions.html) in the *Amazon Elastic Container Service Developer Guide*.

@@ -5,20 +5,34 @@ module aws.iotanalytics.pipeline
 
 import "../../cloudformation.pkl"
 
+/// 
+open class PipelineActivity {
+    AddAttributes: (PipelineAddAttributes)?
+    Channel: (PipelineChannel)?
+    Datastore: (PipelineDatastore)?
+    DeviceRegistryEnrich: (PipelineDeviceRegistryEnrich)?
+    DeviceShadowEnrich: (PipelineDeviceShadowEnrich)?
+    Filter: (PipelineFilter)?
+    Lambda: (PipelineLambda)?
+    Math: (PipelineMath)?
+    RemoveAttributes: (PipelineRemoveAttributes)?
+    SelectAttributes: (PipelineSelectAttributes)?
+}
+
 typealias PipelineAddAttributesAttributes = Mapping<String, Any>
 
 /// 
 open class PipelineAddAttributes {
-    Next: (String|Mapping)?
     Attributes: PipelineAddAttributesAttributes
     Name: String|Mapping
+    Next: (String|Mapping)?
 }
 
 /// 
 open class PipelineChannel {
     ChannelName: String(matches(Regex(#"[a-zA-Z0-9_]+"#)))|Mapping
-    Next: (String|Mapping)?
     Name: String|Mapping
+    Next: (String|Mapping)?
 }
 
 /// 
@@ -28,72 +42,58 @@ open class PipelineDatastore {
 }
 
 /// 
-open class PipelineLambda {
-    Name: String|Mapping
-    BatchSize: Int|Mapping
-    Next: (String|Mapping)?
-    LambdaName: String(matches(Regex(#"[a-zA-Z0-9_-]+"#)))|Mapping
-}
-
-/// 
-open class PipelineMath {
-    Attribute: String|Mapping
-    Next: (String|Mapping)?
-    Math: String|Mapping
-    Name: String|Mapping
-}
-
-/// 
-open class PipelineRemoveAttributes {
-    Next: (String|Mapping)?
-    Attributes: Listing<String|Mapping>
-    Name: String|Mapping
-}
-
-/// 
-open class PipelineActivity {
-    Datastore: (PipelineDatastore)?
-    Filter: (PipelineFilter)?
-    AddAttributes: (PipelineAddAttributes)?
-    DeviceShadowEnrich: (PipelineDeviceShadowEnrich)?
-    Math: (PipelineMath)?
-    Lambda: (PipelineLambda)?
-    RemoveAttributes: (PipelineRemoveAttributes)?
-    SelectAttributes: (PipelineSelectAttributes)?
-    Channel: (PipelineChannel)?
-    DeviceRegistryEnrich: (PipelineDeviceRegistryEnrich)?
-}
-
-/// 
 open class PipelineDeviceRegistryEnrich {
-    RoleArn: String|Mapping
-    Name: String|Mapping
     Attribute: String|Mapping
+    Name: String|Mapping
     Next: (String|Mapping)?
+    RoleArn: String|Mapping
     ThingName: String|Mapping
 }
 
 /// 
 open class PipelineDeviceShadowEnrich {
     Attribute: String|Mapping
-    Next: (String|Mapping)?
-    ThingName: String|Mapping
-    RoleArn: String|Mapping
     Name: String|Mapping
+    Next: (String|Mapping)?
+    RoleArn: String|Mapping
+    ThingName: String|Mapping
 }
 
 /// 
 open class PipelineFilter {
     Filter: String|Mapping
-    Next: (String|Mapping)?
     Name: String|Mapping
+    Next: (String|Mapping)?
+}
+
+/// 
+open class PipelineLambda {
+    BatchSize: Int|Mapping
+    LambdaName: String(matches(Regex(#"[a-zA-Z0-9_-]+"#)))|Mapping
+    Name: String|Mapping
+    Next: (String|Mapping)?
+}
+
+/// 
+open class PipelineMath {
+    Attribute: String|Mapping
+    Math: String|Mapping
+    Name: String|Mapping
+    Next: (String|Mapping)?
+}
+
+/// 
+open class PipelineRemoveAttributes {
+    Attributes: Listing<String|Mapping>
+    Name: String|Mapping
+    Next: (String|Mapping)?
 }
 
 /// 
 open class PipelineSelectAttributes {
-    Next: (String|Mapping)?
     Attributes: Listing<String|Mapping>
     Name: String|Mapping
+    Next: (String|Mapping)?
 }
 
 /// 

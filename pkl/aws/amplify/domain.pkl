@@ -5,6 +5,15 @@ module aws.amplify.domain
 
 import "../../cloudformation.pkl"
 
+typealias CertificateCertificateType = "AMPLIFY_MANAGED"|"CUSTOM"
+
+/// 
+open class DomainCertificate {
+    CertificateArn: (String(matches(Regex(#""^arn:aws:acm:[a-z0-9-]+:\d{12}:certificate\/.+$""#)))|Mapping)?
+    CertificateType: (CertificateCertificateType|Mapping)?
+    CertificateVerificationDNSRecord: (String|Mapping)?
+}
+
 typealias CertificateSettingsCertificateType = "AMPLIFY_MANAGED"|"CUSTOM"
 
 /// 
@@ -15,17 +24,8 @@ open class DomainCertificateSettings {
 
 /// 
 open class DomainSubDomainSetting {
-    Prefix: String(matches(Regex(#"(?s).*"#)))|Mapping
     BranchName: String(matches(Regex(#"(?s).+"#)))|Mapping
-}
-
-typealias CertificateCertificateType = "AMPLIFY_MANAGED"|"CUSTOM"
-
-/// 
-open class DomainCertificate {
-    CertificateType: (CertificateCertificateType|Mapping)?
-    CertificateArn: (String(matches(Regex(#""^arn:aws:acm:[a-z0-9-]+:\d{12}:certificate\/.+$""#)))|Mapping)?
-    CertificateVerificationDNSRecord: (String|Mapping)?
+    Prefix: String(matches(Regex(#"(?s).*"#)))|Mapping
 }
 
 /// The AWS::Amplify::Domain resource allows you to connect a custom domain to your app.

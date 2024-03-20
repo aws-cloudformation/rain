@@ -5,21 +5,31 @@ module aws.kafkaconnect.connector
 
 import "../../cloudformation.pkl"
 
-/// Information about the scale out policy of the connector.
-open class ConnectorScaleOutPolicy {
-    CpuUtilizationPercentage: Int|Mapping
+/// Details of how to connect to an Apache Kafka cluster.
+open class ConnectorApacheKafkaCluster {
+    BootstrapServers: String|Mapping
+    Vpc: ConnectorVpc
 }
 
-/// 
-open class ConnectorTag {
-    Key: String|Mapping
-    Value: String|Mapping
+/// Details about auto scaling of a connector.
+open class ConnectorAutoScaling {
+    MaxWorkerCount: Int|Mapping
+    McuCount: Int|Mapping
+    MinWorkerCount: Int|Mapping
+    ScaleInPolicy: ConnectorScaleInPolicy
+    ScaleOutPolicy: ConnectorScaleOutPolicy
 }
 
 /// Information about the capacity allocated to the connector.
 open class ConnectorCapacity {
-    ProvisionedCapacity: (ConnectorProvisionedCapacity)?
     AutoScaling: (ConnectorAutoScaling)?
+    ProvisionedCapacity: (ConnectorProvisionedCapacity)?
+}
+
+/// Details about delivering logs to Amazon CloudWatch Logs.
+open class ConnectorCloudWatchLogsLogDelivery {
+    Enabled: Boolean|Mapping
+    LogGroup: (String|Mapping)?
 }
 
 /// Details about a custom plugin.
@@ -42,45 +52,6 @@ open class ConnectorKafkaCluster {
 /// Details of the client authentication used by the Kafka cluster.
 open class ConnectorKafkaClusterClientAuthentication {
     AuthenticationType: ConnectorKafkaClusterClientAuthenticationType
-}
-
-/// Information about the scale in policy of the connector.
-open class ConnectorScaleInPolicy {
-    CpuUtilizationPercentage: Int|Mapping
-}
-
-/// Details about delivering logs to Amazon CloudWatch Logs.
-open class ConnectorCloudWatchLogsLogDelivery {
-    Enabled: Boolean|Mapping
-    LogGroup: (String|Mapping)?
-}
-
-/// Information about a VPC used with the connector.
-open class ConnectorVpc {
-    SecurityGroups: Listing<String|Mapping>
-    Subnets: Listing<String|Mapping>
-}
-
-/// Details about delivering logs to Amazon S3.
-open class ConnectorS3LogDelivery {
-    Bucket: (String|Mapping)?
-    Enabled: Boolean|Mapping
-    Prefix: (String|Mapping)?
-}
-
-/// Details of how to connect to an Apache Kafka cluster.
-open class ConnectorApacheKafkaCluster {
-    BootstrapServers: String|Mapping
-    Vpc: ConnectorVpc
-}
-
-/// Details about auto scaling of a connector.
-open class ConnectorAutoScaling {
-    McuCount: Int|Mapping
-    MaxWorkerCount: Int|Mapping
-    MinWorkerCount: Int|Mapping
-    ScaleInPolicy: ConnectorScaleInPolicy
-    ScaleOutPolicy: ConnectorScaleOutPolicy
 }
 
 typealias ConnectorKafkaClusterClientAuthenticationType = String|Mapping
@@ -108,6 +79,35 @@ open class ConnectorPlugin {
 open class ConnectorProvisionedCapacity {
     McuCount: (Int|Mapping)?
     WorkerCount: Int|Mapping
+}
+
+/// Details about delivering logs to Amazon S3.
+open class ConnectorS3LogDelivery {
+    Bucket: (String|Mapping)?
+    Enabled: Boolean|Mapping
+    Prefix: (String|Mapping)?
+}
+
+/// Information about the scale in policy of the connector.
+open class ConnectorScaleInPolicy {
+    CpuUtilizationPercentage: Int|Mapping
+}
+
+/// Information about the scale out policy of the connector.
+open class ConnectorScaleOutPolicy {
+    CpuUtilizationPercentage: Int|Mapping
+}
+
+/// 
+open class ConnectorTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// Information about a VPC used with the connector.
+open class ConnectorVpc {
+    SecurityGroups: Listing<String|Mapping>
+    Subnets: Listing<String|Mapping>
 }
 
 /// Specifies the worker configuration to use with the connector.

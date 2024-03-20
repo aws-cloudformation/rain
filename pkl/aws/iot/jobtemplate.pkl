@@ -5,19 +5,24 @@ module aws.iot.jobtemplate
 
 import "../../cloudformation.pkl"
 
+/// The criteria that determine when and how a job abort takes place.
+open class JobTemplateAbortCriteria {
+    Action: JobTemplateAction
+    FailureType: JobTemplateFailureType
+    MinNumberOfExecutedThings: JobTemplateMinNumberOfExecutedThings
+    ThresholdPercentage: JobTemplateThresholdPercentage
+}
+
 typealias JobTemplateAction = String|Mapping
 
 
 typealias JobTemplateBaseRatePerMinute = Int|Mapping
 
 
-typealias JobTemplateFailureType = String|Mapping
+typealias JobTemplateDestinationPackageVersion = String|Mapping
 
 
-typealias JobTemplateInProgressTimeoutInMinutes = Int|Mapping
-
-
-typealias JobTemplateMaximumPerMinute = Int|Mapping
+typealias JobTemplateExpiresInSec = Int|Mapping
 
 
 /// Allows you to create an exponential rate of rollout for a job.
@@ -26,6 +31,33 @@ open class JobTemplateExponentialRolloutRate {
     IncrementFactor: JobTemplateIncrementFactor
     RateIncreaseCriteria: Dynamic
 }
+
+typealias JobTemplateFailureType = String|Mapping
+
+
+typealias JobTemplateInProgressTimeoutInMinutes = Int|Mapping
+
+
+typealias JobTemplateIncrementFactor = Number|Mapping
+
+
+typealias JobTemplateJobRetryFailureType = String|Mapping
+
+
+/// Specifies a start time and duration for a scheduled Job.
+open class JobTemplateMaintenanceWindow {
+    DurationInMinutes: (Int|Mapping)?
+    StartTime: (String|Mapping)?
+}
+
+typealias JobTemplateMaximumPerMinute = Int|Mapping
+
+
+typealias JobTemplateMinNumberOfExecutedThings = Int|Mapping
+
+
+typealias JobTemplateNumberOfNotifiedThings = Int|Mapping
+
 
 typealias JobTemplateNumberOfSucceededThings = Int|Mapping
 
@@ -36,45 +68,10 @@ open class JobTemplateRateIncreaseCriteria {
     NumberOfSucceededThings: (JobTemplateNumberOfSucceededThings)?
 }
 
-typealias JobTemplateThresholdPercentage = Number|Mapping
-
-
-/// The criteria that determine when and how a job abort takes place.
-open class JobTemplateAbortCriteria {
-    Action: JobTemplateAction
-    FailureType: JobTemplateFailureType
-    MinNumberOfExecutedThings: JobTemplateMinNumberOfExecutedThings
-    ThresholdPercentage: JobTemplateThresholdPercentage
-}
-
-typealias JobTemplateDestinationPackageVersion = String|Mapping
-
-
-typealias JobTemplateJobRetryFailureType = String|Mapping
-
-
-/// Specifies a start time and duration for a scheduled Job.
-open class JobTemplateMaintenanceWindow {
-    StartTime: (String|Mapping)?
-    DurationInMinutes: (Int|Mapping)?
-}
-
-typealias JobTemplateMinNumberOfExecutedThings = Int|Mapping
-
-
-typealias JobTemplateExpiresInSec = Int|Mapping
-
-
-typealias JobTemplateIncrementFactor = Number|Mapping
-
-
-typealias JobTemplateNumberOfNotifiedThings = Int|Mapping
-
-
 /// Specifies how many times a failure type should be retried.
 open class JobTemplateRetryCriteria {
-    NumberOfRetries: (Int|Mapping)?
     FailureType: (JobTemplateJobRetryFailureType)?
+    NumberOfRetries: (Int|Mapping)?
 }
 
 typealias JobTemplateRoleArn = String|Mapping
@@ -82,9 +79,12 @@ typealias JobTemplateRoleArn = String|Mapping
 
 /// A key-value pair to associate with a resource.
 open class JobTemplateTag {
-    Value: String|Mapping
     Key: String|Mapping
+    Value: String|Mapping
 }
+
+typealias JobTemplateThresholdPercentage = Number|Mapping
+
 
 /// Job templates enable you to preconfigure jobs so that you can deploy them to multiple sets of target devices.
 open class JobTemplate extends cloudformation.Resource {

@@ -5,6 +5,41 @@ module aws.groundstation.dataflowendpointgroup
 
 import "../../cloudformation.pkl"
 
+typealias DataflowEndpointGroupAgentStatus = String|Mapping
+
+
+typealias DataflowEndpointGroupAuditResults = String|Mapping
+
+
+/// Information about AwsGroundStationAgentEndpoint.
+open class DataflowEndpointGroupAwsGroundStationAgentEndpoint {
+    AgentStatus: (DataflowEndpointGroupAgentStatus)?
+    AuditResults: (DataflowEndpointGroupAuditResults)?
+    EgressAddress: (DataflowEndpointGroupConnectionDetails)?
+    IngressAddress: (DataflowEndpointGroupRangedConnectionDetails)?
+    Name: (String(matches(Regex(#"^[ a-zA-Z0-9_:-]{1,256}$"#)))|Mapping)?
+}
+
+/// Egress address of AgentEndpoint with an optional mtu.
+open class DataflowEndpointGroupConnectionDetails {
+    Mtu: (Int|Mapping)?
+    SocketAddress: (DataflowEndpointGroupSocketAddress)?
+}
+
+/// 
+open class DataflowEndpointGroupDataflowEndpoint {
+    Address: (DataflowEndpointGroupSocketAddress)?
+    Mtu: (Int|Mapping)?
+    Name: (String(matches(Regex(#"^[ a-zA-Z0-9_:-]{1,256}$"#)))|Mapping)?
+}
+
+/// 
+open class DataflowEndpointGroupEndpointDetails {
+    AwsGroundStationAgentEndpoint: (DataflowEndpointGroupAwsGroundStationAgentEndpoint)?
+    Endpoint: (DataflowEndpointGroupDataflowEndpoint)?
+    SecurityDetails: (DataflowEndpointGroupSecurityDetails)?
+}
+
 /// An integer range that has a minimum and maximum value.
 open class DataflowEndpointGroupIntegerRange {
     Maximum: (Int|Mapping)?
@@ -13,15 +48,21 @@ open class DataflowEndpointGroupIntegerRange {
 
 /// Ingress address of AgentEndpoint with a port range and an optional mtu.
 open class DataflowEndpointGroupRangedConnectionDetails {
-    SocketAddress: (DataflowEndpointGroupRangedSocketAddress)?
     Mtu: (Int|Mapping)?
+    SocketAddress: (DataflowEndpointGroupRangedSocketAddress)?
+}
+
+/// A socket address with a port range.
+open class DataflowEndpointGroupRangedSocketAddress {
+    Name: (String|Mapping)?
+    PortRange: (DataflowEndpointGroupIntegerRange)?
 }
 
 /// 
 open class DataflowEndpointGroupSecurityDetails {
-    SubnetIds: (Listing<String|Mapping>)?
-    SecurityGroupIds: (Listing<String|Mapping>)?
     RoleArn: (String|Mapping)?
+    SecurityGroupIds: (Listing<String|Mapping>)?
+    SubnetIds: (Listing<String|Mapping>)?
 }
 
 /// 
@@ -30,51 +71,10 @@ open class DataflowEndpointGroupSocketAddress {
     Port: (Int|Mapping)?
 }
 
-typealias DataflowEndpointGroupAuditResults = String|Mapping
-
-
-/// Information about AwsGroundStationAgentEndpoint.
-open class DataflowEndpointGroupAwsGroundStationAgentEndpoint {
-    Name: (String(matches(Regex(#"^[ a-zA-Z0-9_:-]{1,256}$"#)))|Mapping)?
-    EgressAddress: (DataflowEndpointGroupConnectionDetails)?
-    IngressAddress: (DataflowEndpointGroupRangedConnectionDetails)?
-    AgentStatus: (DataflowEndpointGroupAgentStatus)?
-    AuditResults: (DataflowEndpointGroupAuditResults)?
-}
-
-/// Egress address of AgentEndpoint with an optional mtu.
-open class DataflowEndpointGroupConnectionDetails {
-    SocketAddress: (DataflowEndpointGroupSocketAddress)?
-    Mtu: (Int|Mapping)?
-}
-
-/// 
-open class DataflowEndpointGroupDataflowEndpoint {
-    Name: (String(matches(Regex(#"^[ a-zA-Z0-9_:-]{1,256}$"#)))|Mapping)?
-    Address: (DataflowEndpointGroupSocketAddress)?
-    Mtu: (Int|Mapping)?
-}
-
 /// 
 open class DataflowEndpointGroupTag {
     Key: String(matches(Regex(#"^[ a-zA-Z0-9\+\-=._:/@]{1,128}$"#)))|Mapping
     Value: String(matches(Regex(#"^[ a-zA-Z0-9\+\-=._:/@]{1,256}$"#)))|Mapping
-}
-
-typealias DataflowEndpointGroupAgentStatus = String|Mapping
-
-
-/// 
-open class DataflowEndpointGroupEndpointDetails {
-    SecurityDetails: (DataflowEndpointGroupSecurityDetails)?
-    Endpoint: (DataflowEndpointGroupDataflowEndpoint)?
-    AwsGroundStationAgentEndpoint: (DataflowEndpointGroupAwsGroundStationAgentEndpoint)?
-}
-
-/// A socket address with a port range.
-open class DataflowEndpointGroupRangedSocketAddress {
-    Name: (String|Mapping)?
-    PortRange: (DataflowEndpointGroupIntegerRange)?
 }
 
 /// AWS Ground Station DataflowEndpointGroup schema for CloudFormation

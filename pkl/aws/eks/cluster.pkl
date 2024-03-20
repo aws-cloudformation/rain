@@ -5,6 +5,19 @@ module aws.eks.cluster
 
 import "../../cloudformation.pkl"
 
+typealias AccessConfigAuthenticationMode = "CONFIG_MAP"|"API_AND_CONFIG_MAP"|"API"
+
+/// An object representing the Access Config to use for the cluster.
+open class ClusterAccessConfig {
+    AuthenticationMode: (AccessConfigAuthenticationMode|Mapping)?
+    BootstrapClusterCreatorAdminPermissions: (Boolean|Mapping)?
+}
+
+/// The cluster control plane logging configuration for your cluster. 
+open class ClusterClusterLogging {
+    EnabledTypes: (ClusterEnabledTypes)?
+}
+
 /// Specify the placement group of the control plane machines for your cluster.
 open class ClusterControlPlanePlacement {
     GroupName: (String|Mapping)?
@@ -19,6 +32,20 @@ open class ClusterEncryptionConfig {
     Resources: (Listing<String|Mapping>)?
 }
 
+typealias KubernetesNetworkConfigIpFamily = "ipv4"|"ipv6"
+
+/// The Kubernetes network configuration for the cluster.
+open class ClusterKubernetesNetworkConfig {
+    IpFamily: (KubernetesNetworkConfigIpFamily|Mapping)?
+    ServiceIpv4Cidr: (String|Mapping)?
+    ServiceIpv6Cidr: (String|Mapping)?
+}
+
+/// Enable exporting the Kubernetes control plane logs for your cluster to CloudWatch Logs based on log types. By default, cluster control plane logs aren't exported to CloudWatch Logs.
+open class ClusterLogging {
+    ClusterLogging: (ClusterClusterLogging)?
+}
+
 typealias LoggingTypeConfigType = "api"|"audit"|"authenticator"|"controllerManager"|"scheduler"
 
 /// Enabled Logging Type
@@ -28,9 +55,14 @@ open class ClusterLoggingTypeConfig {
 
 /// An object representing the Outpost configuration to use for AWS EKS outpost cluster.
 open class ClusterOutpostConfig {
-    OutpostArns: Listing<String|Mapping>
     ControlPlaneInstanceType: String|Mapping
     ControlPlanePlacement: (ClusterControlPlanePlacement)?
+    OutpostArns: Listing<String|Mapping>
+}
+
+/// 
+open class ClusterProvider {
+    KeyArn: (String|Mapping)?
 }
 
 /// An object representing the VPC configuration to use for an Amazon EKS cluster.
@@ -42,42 +74,10 @@ open class ClusterResourcesVpcConfig {
     SubnetIds: Listing<String|Mapping>
 }
 
-typealias AccessConfigAuthenticationMode = "CONFIG_MAP"|"API_AND_CONFIG_MAP"|"API"
-
-/// An object representing the Access Config to use for the cluster.
-open class ClusterAccessConfig {
-    BootstrapClusterCreatorAdminPermissions: (Boolean|Mapping)?
-    AuthenticationMode: (AccessConfigAuthenticationMode|Mapping)?
-}
-
-/// The cluster control plane logging configuration for your cluster. 
-open class ClusterClusterLogging {
-    EnabledTypes: (ClusterEnabledTypes)?
-}
-
 /// A key-value pair to associate with a resource.
 open class ClusterTag {
-    Value: String|Mapping
     Key: String|Mapping
-}
-
-/// 
-open class ClusterProvider {
-    KeyArn: (String|Mapping)?
-}
-
-typealias KubernetesNetworkConfigIpFamily = "ipv4"|"ipv6"
-
-/// The Kubernetes network configuration for the cluster.
-open class ClusterKubernetesNetworkConfig {
-    ServiceIpv4Cidr: (String|Mapping)?
-    ServiceIpv6Cidr: (String|Mapping)?
-    IpFamily: (KubernetesNetworkConfigIpFamily|Mapping)?
-}
-
-/// Enable exporting the Kubernetes control plane logs for your cluster to CloudWatch Logs based on log types. By default, cluster control plane logs aren't exported to CloudWatch Logs.
-open class ClusterLogging {
-    ClusterLogging: (ClusterClusterLogging)?
+    Value: String|Mapping
 }
 
 /// An object representing an Amazon EKS cluster.

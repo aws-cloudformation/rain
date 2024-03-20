@@ -5,36 +5,16 @@ module aws.evidently.experiment
 
 import "../../cloudformation.pkl"
 
-/// A key-value pair to associate with a resource.
-open class ExperimentTag {
-    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
-    Value: String|Mapping
-}
-
-/// 
-open class ExperimentTreatmentObject {
-    TreatmentName: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
-    Description: (String|Mapping)?
-    Feature: String(matches(Regex(#"([-a-zA-Z0-9._]*)|(arn:[^:]*:[^:]*:[^:]*:[^:]*:.*)"#)))|Mapping
-    Variation: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
-}
-
-/// 
-open class ExperimentTreatmentToWeight {
-    Treatment: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
-    SplitWeight: Int|Mapping
-}
-
 typealias MetricGoalObjectDesiredChange = "INCREASE"|"DECREASE"
 
 /// 
 open class ExperimentMetricGoalObject {
-    MetricName: String(matches(Regex(#"^[\S]+$"#)))|Mapping
-    EntityIdKey: String|Mapping
-    ValueKey: String|Mapping
-    EventPattern: (String|Mapping)?
-    UnitLabel: (String(matches(Regex(#".*"#)))|Mapping)?
     DesiredChange: MetricGoalObjectDesiredChange|Mapping
+    EntityIdKey: String|Mapping
+    EventPattern: (String|Mapping)?
+    MetricName: String(matches(Regex(#"^[\S]+$"#)))|Mapping
+    UnitLabel: (String(matches(Regex(#".*"#)))|Mapping)?
+    ValueKey: String|Mapping
 }
 
 /// 
@@ -45,10 +25,30 @@ open class ExperimentOnlineAbConfigObject {
 
 /// 
 open class ExperimentRunningStatusObject {
-    Status: (String|Mapping)?
     AnalysisCompleteTime: (String|Mapping)?
-    Reason: (String|Mapping)?
     DesiredState: (String(matches(Regex(#"^(CANCELLED|COMPLETED)"#)))|Mapping)?
+    Reason: (String|Mapping)?
+    Status: (String|Mapping)?
+}
+
+/// A key-value pair to associate with a resource.
+open class ExperimentTag {
+    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class ExperimentTreatmentObject {
+    Description: (String|Mapping)?
+    Feature: String(matches(Regex(#"([-a-zA-Z0-9._]*)|(arn:[^:]*:[^:]*:[^:]*:[^:]*:.*)"#)))|Mapping
+    TreatmentName: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
+    Variation: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
+}
+
+/// 
+open class ExperimentTreatmentToWeight {
+    SplitWeight: Int|Mapping
+    Treatment: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
 }
 
 /// Resource Type definition for AWS::Evidently::Experiment.

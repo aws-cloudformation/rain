@@ -5,103 +5,22 @@ module aws.connect.rule
 
 import "../../cloudformation.pkl"
 
-/// The field of the case.
-open class RuleField {
-    Id: String|Mapping
-    Value: RuleFieldValue
-}
-
-typealias RuleTaskActionReferences = Mapping<String, Any>
-
-/// The definition of task action.
-open class RuleTaskAction {
-    Name: String|Mapping
-    Description: (String|Mapping)?
-    ContactFlowArn: String(matches(Regex(#"^$|arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/contact-flow/[-a-zA-Z0-9]*$"#)))|Mapping
-    References: (RuleTaskActionReferences)?
-}
-
-typealias RuleUpdateCaseActions = Listing<(RuleUpdateCaseAction)?>
-
-
-typealias RuleUserArn = String|Mapping
-
-
-typealias RuleAssignContactCategoryActions = Listing<(RuleAssignContactCategoryAction)?>
-
-
-typealias RuleCreateCaseActions = Listing<(RuleCreateCaseAction)?>
-
-
-typealias RuleNotificationRecipientTypeUserTags = Mapping<String, Any>
-
-/// The type of notification recipient.
-open class RuleNotificationRecipientType {
-    UserTags: (RuleNotificationRecipientTypeUserTags)?
-    UserArns: (Listing<RuleUserArn>)?
-}
-
-typealias ReferenceType = "URL"|"ATTACHMENT"|"NUMBER"|"STRING"|"DATE"|"EMAIL"
-
-/// A contact reference.
-open class RuleReference {
-    Value: String(matches(Regex(#"^(/|https:)"#)))|Mapping
-    Type: ReferenceType|Mapping
-}
-
-typealias SendNotificationActionDeliveryMethod = "EMAIL"
-
-typealias SendNotificationActionContentType = "PLAIN_TEXT"
-
-/// The definition for sending notification action.
-open class RuleSendNotificationAction {
-    DeliveryMethod: SendNotificationActionDeliveryMethod|Mapping
-    Subject: (String|Mapping)?
-    Content: String|Mapping
-    ContentType: SendNotificationActionContentType|Mapping
-    Recipient: RuleNotificationRecipientType
+/// The list of actions that will be executed when a rule is triggered.
+open class RuleActions {
+    AssignContactCategoryActions: (RuleAssignContactCategoryActions)?
+    CreateCaseActions: (RuleCreateCaseActions)?
+    EndAssociatedTasksActions: (RuleEndAssociatedTasksActions)?
+    EventBridgeActions: (RuleEventBridgeActions)?
+    SendNotificationActions: (RuleSendNotificationActions)?
+    TaskActions: (RuleTaskActions)?
+    UpdateCaseActions: (RuleUpdateCaseActions)?
 }
 
 typealias RuleAssignContactCategoryAction = Dynamic
 
 
-/// The definition for event bridge action.
-open class RuleEventBridgeAction {
-    Name: String(matches(Regex(#"^[a-zA-Z0-9._-]{1,100}$"#)))|Mapping
-}
+typealias RuleAssignContactCategoryActions = Listing<(RuleAssignContactCategoryAction)?>
 
-typealias RuleEndAssociatedTasksAction = Dynamic
-
-
-/// The value of the field.
-open class RuleFieldValue {
-    StringValue: (String|Mapping)?
-    BooleanValue: (Boolean|Mapping)?
-    DoubleValue: (Number|Mapping)?
-    EmptyValue: (Dynamic)?
-}
-
-typealias RuleFields = Listing<(RuleField)?>
-
-
-typealias RuleSendNotificationActions = Listing<(RuleSendNotificationAction)?>
-
-
-/// The definition for update case action.
-open class RuleUpdateCaseAction {
-    Fields: RuleFields
-}
-
-/// The list of actions that will be executed when a rule is triggered.
-open class RuleActions {
-    UpdateCaseActions: (RuleUpdateCaseActions)?
-    EndAssociatedTasksActions: (RuleEndAssociatedTasksActions)?
-    AssignContactCategoryActions: (RuleAssignContactCategoryActions)?
-    EventBridgeActions: (RuleEventBridgeActions)?
-    TaskActions: (RuleTaskActions)?
-    SendNotificationActions: (RuleSendNotificationActions)?
-    CreateCaseActions: (RuleCreateCaseActions)?
-}
 
 /// The definition for create case action.
 open class RuleCreateCaseAction {
@@ -109,13 +28,79 @@ open class RuleCreateCaseAction {
     TemplateId: String|Mapping
 }
 
+typealias RuleCreateCaseActions = Listing<(RuleCreateCaseAction)?>
+
+
+typealias RuleEndAssociatedTasksAction = Dynamic
+
+
+typealias RuleEndAssociatedTasksActions = Listing<(RuleEndAssociatedTasksAction)?>
+
+
+/// The definition for event bridge action.
+open class RuleEventBridgeAction {
+    Name: String(matches(Regex(#"^[a-zA-Z0-9._-]{1,100}$"#)))|Mapping
+}
+
+typealias RuleEventBridgeActions = Listing<(RuleEventBridgeAction)?>
+
+
+/// The field of the case.
+open class RuleField {
+    Id: String|Mapping
+    Value: RuleFieldValue
+}
+
+/// The value of the field.
+open class RuleFieldValue {
+    BooleanValue: (Boolean|Mapping)?
+    DoubleValue: (Number|Mapping)?
+    EmptyValue: (Dynamic)?
+    StringValue: (String|Mapping)?
+}
+
+typealias RuleFields = Listing<(RuleField)?>
+
+
+typealias RuleNotificationRecipientTypeUserTags = Mapping<String, Any>
+
+/// The type of notification recipient.
+open class RuleNotificationRecipientType {
+    UserArns: (Listing<RuleUserArn>)?
+    UserTags: (RuleNotificationRecipientTypeUserTags)?
+}
+
+typealias ReferenceType = "URL"|"ATTACHMENT"|"NUMBER"|"STRING"|"DATE"|"EMAIL"
+
+/// A contact reference.
+open class RuleReference {
+    Type: ReferenceType|Mapping
+    Value: String(matches(Regex(#"^(/|https:)"#)))|Mapping
+}
+
 typealias RuleTriggerEventSourceEventSourceName = "OnContactEvaluationSubmit"|"OnPostCallAnalysisAvailable"|"OnRealTimeCallAnalysisAvailable"|"OnRealTimeChatAnalysisAvailable"|"OnPostChatAnalysisAvailable"|"OnZendeskTicketCreate"|"OnZendeskTicketStatusUpdate"|"OnSalesforceCaseCreate"|"OnMetricDataUpdate"|"OnCaseCreate"|"OnCaseUpdate"
 
 /// The event source that will trigger the rule.
 open class RuleRuleTriggerEventSource {
-    IntegrationAssociationArn: (String(matches(Regex(#"^$|arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/integration-association/[-a-zA-Z0-9]*$"#)))|Mapping)?
     EventSourceName: RuleTriggerEventSourceEventSourceName|Mapping
+    IntegrationAssociationArn: (String(matches(Regex(#"^$|arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/integration-association/[-a-zA-Z0-9]*$"#)))|Mapping)?
 }
+
+typealias SendNotificationActionContentType = "PLAIN_TEXT"
+
+typealias SendNotificationActionDeliveryMethod = "EMAIL"
+
+/// The definition for sending notification action.
+open class RuleSendNotificationAction {
+    Content: String|Mapping
+    ContentType: SendNotificationActionContentType|Mapping
+    DeliveryMethod: SendNotificationActionDeliveryMethod|Mapping
+    Recipient: RuleNotificationRecipientType
+    Subject: (String|Mapping)?
+}
+
+typealias RuleSendNotificationActions = Listing<(RuleSendNotificationAction)?>
+
 
 /// A key-value pair to associate with a resource.
 open class RuleTag {
@@ -123,13 +108,28 @@ open class RuleTag {
     Value: String|Mapping
 }
 
+typealias RuleTaskActionReferences = Mapping<String, Any>
+
+/// The definition of task action.
+open class RuleTaskAction {
+    ContactFlowArn: String(matches(Regex(#"^$|arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/contact-flow/[-a-zA-Z0-9]*$"#)))|Mapping
+    Description: (String|Mapping)?
+    Name: String|Mapping
+    References: (RuleTaskActionReferences)?
+}
+
 typealias RuleTaskActions = Listing<(RuleTaskAction)?>
 
 
-typealias RuleEndAssociatedTasksActions = Listing<(RuleEndAssociatedTasksAction)?>
+/// The definition for update case action.
+open class RuleUpdateCaseAction {
+    Fields: RuleFields
+}
+
+typealias RuleUpdateCaseActions = Listing<(RuleUpdateCaseAction)?>
 
 
-typealias RuleEventBridgeActions = Listing<(RuleEventBridgeAction)?>
+typealias RuleUserArn = String|Mapping
 
 
 /// Resource Type definition for AWS:Connect::Rule

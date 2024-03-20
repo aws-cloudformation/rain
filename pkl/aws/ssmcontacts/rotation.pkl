@@ -7,8 +7,8 @@ import "../../cloudformation.pkl"
 
 /// StartTime and EndTime for the Shift
 open class RotationCoverageTime {
-    StartTime: RotationHandOffTime
     EndTime: RotationHandOffTime
+    StartTime: RotationHandOffTime
 }
 
 /// Handoff time for Daily Recurring Rotation.
@@ -16,29 +16,32 @@ open class RotationDailySetting {
     HandOffTime: RotationHandOffTime
 }
 
+typealias RotationDayOfWeek = String|Mapping
+
+
 typealias RotationHandOffTime = String|Mapping
 
 
 /// DayOfWeek for Month and HandOff Time for Monthly Recurring Rotation.
 open class RotationMonthlySetting {
-    HandOffTime: RotationHandOffTime
     DayOfMonth: Int|Mapping
+    HandOffTime: RotationHandOffTime
 }
 
 /// Information about when an on-call rotation is in effect and how long the rotation period lasts.
 open class RotationRecurrenceSettings {
+    DailySettings: (Listing<RotationHandOffTime>)?
+    MonthlySettings: (Listing<RotationMonthlySetting>)?
     NumberOfOnCalls: (Int|Mapping)?
     RecurrenceMultiplier: (Int|Mapping)?
     ShiftCoverages: (Listing<RotationShiftCoverage>)?
-    MonthlySettings: (Listing<RotationMonthlySetting>)?
     WeeklySettings: (Listing<RotationWeeklySetting>)?
-    DailySettings: (Listing<RotationHandOffTime>)?
 }
 
 /// Information about the days of the week included in on-call rotation coverage.
 open class RotationShiftCoverage {
-    DayOfWeek: RotationDayOfWeek
     CoverageTimes: Listing<RotationCoverageTime>
+    DayOfWeek: RotationDayOfWeek
 }
 
 /// A key-value pair to associate with a resource.
@@ -46,9 +49,6 @@ open class RotationTag {
     Key: String|Mapping
     Value: String|Mapping
 }
-
-typealias RotationDayOfWeek = String|Mapping
-
 
 /// DayOfWeek for Rotation and HandOff Time for Weekly Recurring Rotation.
 open class RotationWeeklySetting {

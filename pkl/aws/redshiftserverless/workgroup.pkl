@@ -6,6 +6,12 @@ module aws.redshiftserverless.workgroup
 import "../../cloudformation.pkl"
 
 /// 
+open class WorkgroupConfigParameter {
+    ParameterKey: (String|Mapping)?
+    ParameterValue: (String|Mapping)?
+}
+
+/// 
 open class WorkgroupEndpoint {
     Address: (String|Mapping)?
     Port: (Int|Mapping)?
@@ -14,9 +20,9 @@ open class WorkgroupEndpoint {
 
 /// 
 open class WorkgroupNetworkInterface {
-    PrivateIpAddress: (String|Mapping)?
     AvailabilityZone: (String|Mapping)?
     NetworkInterfaceId: (String|Mapping)?
+    PrivateIpAddress: (String|Mapping)?
     SubnetId: (String|Mapping)?
 }
 
@@ -28,37 +34,31 @@ open class WorkgroupTag {
 
 /// 
 open class WorkgroupVpcEndpoint {
+    NetworkInterfaces: (Listing<WorkgroupNetworkInterface>)?
     VpcEndpointId: (String|Mapping)?
     VpcId: (String|Mapping)?
-    NetworkInterfaces: (Listing<WorkgroupNetworkInterface>)?
 }
 
 /// 
 open class WorkgroupWorkgroup {
-    NamespaceName: (String(matches(Regex(#"^[a-z0-9-]+$"#)))|Mapping)?
-    MaxCapacity: (Int|Mapping)?
-    Status: (WorkgroupWorkgroupStatus)?
     BaseCapacity: (Int|Mapping)?
-    WorkgroupId: (String|Mapping)?
-    WorkgroupArn: (String|Mapping)?
-    WorkgroupName: (String(matches(Regex(#"^[a-z0-9-]*$"#)))|Mapping)?
-    Endpoint: (WorkgroupEndpoint)?
-    CreationDate: (String|Mapping)?
-    EnhancedVpcRouting: (Boolean|Mapping)?
     ConfigParameters: (Listing<WorkgroupConfigParameter>)?
-    SubnetIds: (Listing<String|Mapping>)?
-    SecurityGroupIds: (Listing<String|Mapping>)?
+    CreationDate: (String|Mapping)?
+    Endpoint: (WorkgroupEndpoint)?
+    EnhancedVpcRouting: (Boolean|Mapping)?
+    MaxCapacity: (Int|Mapping)?
+    NamespaceName: (String(matches(Regex(#"^[a-z0-9-]+$"#)))|Mapping)?
     PubliclyAccessible: (Boolean|Mapping)?
+    SecurityGroupIds: (Listing<String|Mapping>)?
+    Status: (WorkgroupWorkgroupStatus)?
+    SubnetIds: (Listing<String|Mapping>)?
+    WorkgroupArn: (String|Mapping)?
+    WorkgroupId: (String|Mapping)?
+    WorkgroupName: (String(matches(Regex(#"^[a-z0-9-]*$"#)))|Mapping)?
 }
 
 typealias WorkgroupWorkgroupStatus = String|Mapping
 
-
-/// 
-open class WorkgroupConfigParameter {
-    ParameterKey: (String|Mapping)?
-    ParameterValue: (String|Mapping)?
-}
 
 /// Definition of AWS::RedshiftServerless::Workgroup Resource Type
 open class Workgroup extends cloudformation.Resource {

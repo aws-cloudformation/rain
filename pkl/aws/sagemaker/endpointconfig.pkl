@@ -5,47 +5,9 @@ module aws.sagemaker.endpointconfig
 
 import "../../cloudformation.pkl"
 
-typealias EndpointConfigClarifyFeatureType = Dynamic
-
-
-typealias EndpointConfigClarifyHeader = Dynamic
-
-
 /// 
-open class EndpointConfigClarifyInferenceConfig {
-    MaxPayloadInMB: (Int|Mapping)?
-    LabelAttribute: (String|Mapping)?
-    FeatureTypes: (Listing<EndpointConfigClarifyFeatureType>)?
-    MaxRecordCount: (Int|Mapping)?
-    LabelHeaders: (Listing<EndpointConfigClarifyHeader>)?
-    ProbabilityIndex: (Int|Mapping)?
-    FeatureHeaders: (Listing<EndpointConfigClarifyHeader>)?
-    LabelIndex: (Int|Mapping)?
-    ProbabilityAttribute: (String|Mapping)?
-    FeaturesAttribute: (String|Mapping)?
-    ContentTemplate: (String|Mapping)?
-}
-
-/// 
-open class EndpointConfigClarifyShapConfig {
-    NumberOfSamples: (Int|Mapping)?
-    TextConfig: (EndpointConfigClarifyTextConfig)?
-    UseLogit: (Boolean|Mapping)?
-    Seed: (Int|Mapping)?
-    ShapBaselineConfig: EndpointConfigClarifyShapBaselineConfig
-}
-
-/// 
-open class EndpointConfigTag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class EndpointConfigManagedInstanceScaling {
-    MaxInstanceCount: (Int|Mapping)?
-    MinInstanceCount: (Int|Mapping)?
-    Status: (String|Mapping)?
+open class EndpointConfigAsyncInferenceClientConfig {
+    MaxConcurrentInvocationsPerInstance: (Int|Mapping)?
 }
 
 /// 
@@ -56,9 +18,23 @@ open class EndpointConfigAsyncInferenceConfig {
 
 /// 
 open class EndpointConfigAsyncInferenceNotificationConfig {
+    ErrorTopic: (String|Mapping)?
     IncludeInferenceResponseIn: (Listing<String|Mapping>)?
     SuccessTopic: (String|Mapping)?
-    ErrorTopic: (String|Mapping)?
+}
+
+/// 
+open class EndpointConfigAsyncInferenceOutputConfig {
+    KmsKeyId: (String|Mapping)?
+    NotificationConfig: (EndpointConfigAsyncInferenceNotificationConfig)?
+    S3FailurePath: (String|Mapping)?
+    S3OutputPath: (String|Mapping)?
+}
+
+/// 
+open class EndpointConfigCaptureContentTypeHeader {
+    CsvContentTypes: (Listing<String|Mapping>)?
+    JsonContentTypes: (Listing<String|Mapping>)?
 }
 
 /// 
@@ -67,70 +43,31 @@ open class EndpointConfigCaptureOption {
 }
 
 /// 
-open class EndpointConfigClarifyTextConfig {
-    Granularity: String|Mapping
-    Language: String|Mapping
-}
-
-/// 
-open class EndpointConfigExplainerConfig {
-    ClarifyExplainerConfig: (EndpointConfigClarifyExplainerConfig)?
-}
-
-/// 
-open class EndpointConfigAsyncInferenceClientConfig {
-    MaxConcurrentInvocationsPerInstance: (Int|Mapping)?
-}
-
-/// 
 open class EndpointConfigClarifyExplainerConfig {
     EnableExplanations: (String|Mapping)?
-    ShapConfig: EndpointConfigClarifyShapConfig
     InferenceConfig: (EndpointConfigClarifyInferenceConfig)?
+    ShapConfig: EndpointConfigClarifyShapConfig
 }
 
-/// 
-open class EndpointConfigProductionVariant {
-    RoutingConfig: (EndpointConfigRoutingConfig)?
-    InitialVariantWeight: (Number|Mapping)?
-    ModelDataDownloadTimeoutInSeconds: (Int|Mapping)?
-    ManagedInstanceScaling: (EndpointConfigManagedInstanceScaling)?
-    EnableSSMAccess: (Boolean|Mapping)?
-    VariantName: String|Mapping
-    InitialInstanceCount: (Int|Mapping)?
-    ServerlessConfig: (EndpointConfigServerlessConfig)?
-    InstanceType: (String|Mapping)?
-    VolumeSizeInGB: (Int|Mapping)?
-    AcceleratorType: (String|Mapping)?
-    ModelName: (String|Mapping)?
-    ContainerStartupHealthCheckTimeoutInSeconds: (Int|Mapping)?
-}
+typealias EndpointConfigClarifyFeatureType = Dynamic
+
+
+typealias EndpointConfigClarifyHeader = Dynamic
+
 
 /// 
-open class EndpointConfigServerlessConfig {
-    MaxConcurrency: Int|Mapping
-    MemorySizeInMB: Int|Mapping
-    ProvisionedConcurrency: (Int|Mapping)?
-}
-
-/// 
-open class EndpointConfigVpcConfig {
-    SecurityGroupIds: Listing<String|Mapping>
-    Subnets: Listing<String|Mapping>
-}
-
-/// 
-open class EndpointConfigAsyncInferenceOutputConfig {
-    KmsKeyId: (String|Mapping)?
-    S3OutputPath: (String|Mapping)?
-    S3FailurePath: (String|Mapping)?
-    NotificationConfig: (EndpointConfigAsyncInferenceNotificationConfig)?
-}
-
-/// 
-open class EndpointConfigCaptureContentTypeHeader {
-    CsvContentTypes: (Listing<String|Mapping>)?
-    JsonContentTypes: (Listing<String|Mapping>)?
+open class EndpointConfigClarifyInferenceConfig {
+    ContentTemplate: (String|Mapping)?
+    FeatureHeaders: (Listing<EndpointConfigClarifyHeader>)?
+    FeatureTypes: (Listing<EndpointConfigClarifyFeatureType>)?
+    FeaturesAttribute: (String|Mapping)?
+    LabelAttribute: (String|Mapping)?
+    LabelHeaders: (Listing<EndpointConfigClarifyHeader>)?
+    LabelIndex: (Int|Mapping)?
+    MaxPayloadInMB: (Int|Mapping)?
+    MaxRecordCount: (Int|Mapping)?
+    ProbabilityAttribute: (String|Mapping)?
+    ProbabilityIndex: (Int|Mapping)?
 }
 
 /// 
@@ -141,18 +78,81 @@ open class EndpointConfigClarifyShapBaselineConfig {
 }
 
 /// 
+open class EndpointConfigClarifyShapConfig {
+    NumberOfSamples: (Int|Mapping)?
+    Seed: (Int|Mapping)?
+    ShapBaselineConfig: EndpointConfigClarifyShapBaselineConfig
+    TextConfig: (EndpointConfigClarifyTextConfig)?
+    UseLogit: (Boolean|Mapping)?
+}
+
+/// 
+open class EndpointConfigClarifyTextConfig {
+    Granularity: String|Mapping
+    Language: String|Mapping
+}
+
+/// 
 open class EndpointConfigDataCaptureConfig {
-    EnableCapture: (Boolean|Mapping)?
-    CaptureOptions: Listing<EndpointConfigCaptureOption>
-    KmsKeyId: (String|Mapping)?
-    DestinationS3Uri: String|Mapping
-    InitialSamplingPercentage: Int|Mapping
     CaptureContentTypeHeader: (EndpointConfigCaptureContentTypeHeader)?
+    CaptureOptions: Listing<EndpointConfigCaptureOption>
+    DestinationS3Uri: String|Mapping
+    EnableCapture: (Boolean|Mapping)?
+    InitialSamplingPercentage: Int|Mapping
+    KmsKeyId: (String|Mapping)?
+}
+
+/// 
+open class EndpointConfigExplainerConfig {
+    ClarifyExplainerConfig: (EndpointConfigClarifyExplainerConfig)?
+}
+
+/// 
+open class EndpointConfigManagedInstanceScaling {
+    MaxInstanceCount: (Int|Mapping)?
+    MinInstanceCount: (Int|Mapping)?
+    Status: (String|Mapping)?
+}
+
+/// 
+open class EndpointConfigProductionVariant {
+    AcceleratorType: (String|Mapping)?
+    ContainerStartupHealthCheckTimeoutInSeconds: (Int|Mapping)?
+    EnableSSMAccess: (Boolean|Mapping)?
+    InitialInstanceCount: (Int|Mapping)?
+    InitialVariantWeight: (Number|Mapping)?
+    InstanceType: (String|Mapping)?
+    ManagedInstanceScaling: (EndpointConfigManagedInstanceScaling)?
+    ModelDataDownloadTimeoutInSeconds: (Int|Mapping)?
+    ModelName: (String|Mapping)?
+    RoutingConfig: (EndpointConfigRoutingConfig)?
+    ServerlessConfig: (EndpointConfigServerlessConfig)?
+    VariantName: String|Mapping
+    VolumeSizeInGB: (Int|Mapping)?
 }
 
 /// 
 open class EndpointConfigRoutingConfig {
     RoutingStrategy: (String|Mapping)?
+}
+
+/// 
+open class EndpointConfigServerlessConfig {
+    MaxConcurrency: Int|Mapping
+    MemorySizeInMB: Int|Mapping
+    ProvisionedConcurrency: (Int|Mapping)?
+}
+
+/// 
+open class EndpointConfigTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class EndpointConfigVpcConfig {
+    SecurityGroupIds: Listing<String|Mapping>
+    Subnets: Listing<String|Mapping>
 }
 
 /// Resource Type definition for AWS::SageMaker::EndpointConfig

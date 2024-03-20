@@ -5,32 +5,17 @@ module aws.lambda.eventsourcemapping
 
 import "../../cloudformation.pkl"
 
+/// Specific configuration settings for an MSK event source.
+open class EventSourceMappingAmazonManagedKafkaEventSourceConfig {
+    ConsumerGroupId: (EventSourceMappingConsumerGroupId)?
+}
+
+typealias EventSourceMappingConsumerGroupId = String|Mapping
+
+
 /// (Streams) An Amazon SQS queue or Amazon SNS topic destination for discarded records.
 open class EventSourceMappingDestinationConfig {
     OnFailure: (EventSourceMappingOnFailure)?
-}
-
-typealias EventSourceMappingMaximumConcurrency = Int|Mapping
-
-
-/// The filter object that defines parameters for ESM filtering.
-open class EventSourceMappingFilter {
-    Pattern: (String(matches(Regex(#".*"#)))|Mapping)?
-}
-
-/// The configuration used by AWS Lambda to access a self-managed event source.
-open class EventSourceMappingSelfManagedEventSource {
-    Endpoints: (EventSourceMappingEndpoints)?
-}
-
-/// A destination for events that failed processing.
-open class EventSourceMappingOnFailure {
-    Destination: (String(matches(Regex(#"arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\-])+:([a-z]{2}(-gov)?-[a-z]+-\d{1})?:(\d{12})?:(.*)"#)))|Mapping)?
-}
-
-/// Specific configuration settings for a Self-Managed Apache Kafka event source.
-open class EventSourceMappingSelfManagedKafkaEventSourceConfig {
-    ConsumerGroupId: (EventSourceMappingConsumerGroupId)?
 }
 
 typealias DocumentDBEventSourceConfigFullDocument = "UpdateLookup"|"Default"
@@ -38,8 +23,8 @@ typealias DocumentDBEventSourceConfigFullDocument = "UpdateLookup"|"Default"
 /// Document db event source config.
 open class EventSourceMappingDocumentDBEventSourceConfig {
     CollectionName: (String|Mapping)?
-    FullDocument: (DocumentDBEventSourceConfigFullDocument|Mapping)?
     DatabaseName: (String|Mapping)?
+    FullDocument: (DocumentDBEventSourceConfigFullDocument|Mapping)?
 }
 
 /// The endpoints used by AWS Lambda to access a self-managed event source.
@@ -47,14 +32,37 @@ open class EventSourceMappingEndpoints {
     KafkaBootstrapServers: (Listing<String|Mapping>)?
 }
 
+/// The filter object that defines parameters for ESM filtering.
+open class EventSourceMappingFilter {
+    Pattern: (String(matches(Regex(#".*"#)))|Mapping)?
+}
+
 /// The filter criteria to control event filtering.
 open class EventSourceMappingFilterCriteria {
     Filters: (Listing<EventSourceMappingFilter>)?
 }
 
+typealias EventSourceMappingMaximumConcurrency = Int|Mapping
+
+
+/// A destination for events that failed processing.
+open class EventSourceMappingOnFailure {
+    Destination: (String(matches(Regex(#"arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\-])+:([a-z]{2}(-gov)?-[a-z]+-\d{1})?:(\d{12})?:(.*)"#)))|Mapping)?
+}
+
 /// The scaling configuration for the event source.
 open class EventSourceMappingScalingConfig {
     MaximumConcurrency: (EventSourceMappingMaximumConcurrency)?
+}
+
+/// The configuration used by AWS Lambda to access a self-managed event source.
+open class EventSourceMappingSelfManagedEventSource {
+    Endpoints: (EventSourceMappingEndpoints)?
+}
+
+/// Specific configuration settings for a Self-Managed Apache Kafka event source.
+open class EventSourceMappingSelfManagedKafkaEventSourceConfig {
+    ConsumerGroupId: (EventSourceMappingConsumerGroupId)?
 }
 
 typealias SourceAccessConfigurationType = "BASIC_AUTH"|"VPC_SUBNET"|"VPC_SECURITY_GROUP"|"SASL_SCRAM_512_AUTH"|"SASL_SCRAM_256_AUTH"|"VIRTUAL_HOST"|"CLIENT_CERTIFICATE_TLS_AUTH"|"SERVER_ROOT_CA_CERTIFICATE"
@@ -64,14 +72,6 @@ open class EventSourceMappingSourceAccessConfiguration {
     Type: (SourceAccessConfigurationType|Mapping)?
     URI: (String(matches(Regex(#"[a-zA-Z0-9-\/*:_+=.@-]*"#)))|Mapping)?
 }
-
-/// Specific configuration settings for an MSK event source.
-open class EventSourceMappingAmazonManagedKafkaEventSourceConfig {
-    ConsumerGroupId: (EventSourceMappingConsumerGroupId)?
-}
-
-typealias EventSourceMappingConsumerGroupId = String|Mapping
-
 
 /// Resource Type definition for AWS::Lambda::EventSourceMapping
 open class EventSourceMapping extends cloudformation.Resource {

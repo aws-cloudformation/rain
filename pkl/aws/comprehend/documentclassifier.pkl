@@ -5,31 +5,41 @@ module aws.comprehend.documentclassifier
 
 import "../../cloudformation.pkl"
 
-typealias DocumentClassifierKmsKeyId = String|Mapping
-
-
-typealias DocumentClassifierS3Uri = String|Mapping
-
-
-/// 
-open class DocumentClassifierVpcConfig {
-    SecurityGroupIds: Listing<String|Mapping>
-    Subnets: Listing<String|Mapping>
-}
-
 typealias AugmentedManifestsListItemSplit = "TRAIN"|"TEST"
 
 /// 
 open class DocumentClassifierAugmentedManifestsListItem {
+    AttributeNames: Listing<String|Mapping>
     S3Uri: DocumentClassifierS3Uri
     Split: (AugmentedManifestsListItemSplit|Mapping)?
-    AttributeNames: Listing<String|Mapping>
 }
 
 /// 
 open class DocumentClassifierDocumentClassifierDocuments {
     S3Uri: DocumentClassifierS3Uri
     TestS3Uri: (DocumentClassifierS3Uri)?
+}
+
+typealias DocumentClassifierInputDataConfigDataFormat = "COMPREHEND_CSV"|"AUGMENTED_MANIFEST"
+
+typealias DocumentClassifierInputDataConfigDocumentType = "PLAIN_TEXT_DOCUMENT"|"SEMI_STRUCTURED_DOCUMENT"
+
+/// 
+open class DocumentClassifierDocumentClassifierInputDataConfig {
+    AugmentedManifests: (Listing<DocumentClassifierAugmentedManifestsListItem>)?
+    DataFormat: (DocumentClassifierInputDataConfigDataFormat|Mapping)?
+    DocumentReaderConfig: (DocumentClassifierDocumentReaderConfig)?
+    DocumentType: (DocumentClassifierInputDataConfigDocumentType|Mapping)?
+    Documents: (DocumentClassifierDocumentClassifierDocuments)?
+    LabelDelimiter: (String(matches(Regex(#"^[ ~!@#$%^*\-_+=|\\:;\t>?/]$"#)))|Mapping)?
+    S3Uri: (DocumentClassifierS3Uri)?
+    TestS3Uri: (DocumentClassifierS3Uri)?
+}
+
+/// 
+open class DocumentClassifierDocumentClassifierOutputDataConfig {
+    KmsKeyId: (DocumentClassifierKmsKeyId)?
+    S3Uri: (DocumentClassifierS3Uri)?
 }
 
 typealias DocumentReaderConfigDocumentReadAction = "TEXTRACT_DETECT_DOCUMENT_TEXT"|"TEXTRACT_ANALYZE_DOCUMENT"
@@ -45,32 +55,22 @@ open class DocumentClassifierDocumentReaderConfig {
     FeatureTypes: (Listing<DocumentReaderConfigFeatureTypes|Mapping>)?
 }
 
+typealias DocumentClassifierKmsKeyId = String|Mapping
+
+
+typealias DocumentClassifierS3Uri = String|Mapping
+
+
 /// 
 open class DocumentClassifierTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
-typealias DocumentClassifierInputDataConfigDataFormat = "COMPREHEND_CSV"|"AUGMENTED_MANIFEST"
-
-typealias DocumentClassifierInputDataConfigDocumentType = "PLAIN_TEXT_DOCUMENT"|"SEMI_STRUCTURED_DOCUMENT"
-
 /// 
-open class DocumentClassifierDocumentClassifierInputDataConfig {
-    DocumentReaderConfig: (DocumentClassifierDocumentReaderConfig)?
-    S3Uri: (DocumentClassifierS3Uri)?
-    TestS3Uri: (DocumentClassifierS3Uri)?
-    AugmentedManifests: (Listing<DocumentClassifierAugmentedManifestsListItem>)?
-    DataFormat: (DocumentClassifierInputDataConfigDataFormat|Mapping)?
-    LabelDelimiter: (String(matches(Regex(#"^[ ~!@#$%^*\-_+=|\\:;\t>?/]$"#)))|Mapping)?
-    DocumentType: (DocumentClassifierInputDataConfigDocumentType|Mapping)?
-    Documents: (DocumentClassifierDocumentClassifierDocuments)?
-}
-
-/// 
-open class DocumentClassifierDocumentClassifierOutputDataConfig {
-    KmsKeyId: (DocumentClassifierKmsKeyId)?
-    S3Uri: (DocumentClassifierS3Uri)?
+open class DocumentClassifierVpcConfig {
+    SecurityGroupIds: Listing<String|Mapping>
+    Subnets: Listing<String|Mapping>
 }
 
 /// Document Classifier enables training document classifier models.

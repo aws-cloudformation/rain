@@ -5,65 +5,32 @@ module aws.mediapackage.originendpoint
 
 import "../../cloudformation.pkl"
 
-typealias HlsPackagePlaylistType = "NONE"|"EVENT"|"VOD"
-
-typealias HlsPackageAdMarkers = "NONE"|"SCTE35_ENHANCED"|"PASSTHROUGH"|"DATERANGE"
-
-typealias HlsPackageAdTriggers = "SPLICE_INSERT"|"BREAK"|"PROVIDER_ADVERTISEMENT"|"DISTRIBUTOR_ADVERTISEMENT"|"PROVIDER_PLACEMENT_OPPORTUNITY"|"DISTRIBUTOR_PLACEMENT_OPPORTUNITY"|"PROVIDER_OVERLAY_PLACEMENT_OPPORTUNITY"|"DISTRIBUTOR_OVERLAY_PLACEMENT_OPPORTUNITY"
-
-/// An HTTP Live Streaming (HLS) packaging configuration.
-open class OriginEndpointHlsPackage {
-    PlaylistType: (HlsPackagePlaylistType|Mapping)?
-    AdsOnDeliveryRestrictions: (OriginEndpointAdsOnDeliveryRestrictions)?
-    IncludeIframeOnlyStream: (Boolean|Mapping)?
-    UseAudioRenditionGroup: (Boolean|Mapping)?
-    IncludeDvbSubtitles: (Boolean|Mapping)?
-    StreamSelection: (OriginEndpointStreamSelection)?
-    SegmentDurationSeconds: (Int|Mapping)?
-    PlaylistWindowSeconds: (Int|Mapping)?
-    AdMarkers: (HlsPackageAdMarkers|Mapping)?
-    AdTriggers: (Listing<HlsPackageAdTriggers|Mapping>)?
-    ProgramDateTimeIntervalSeconds: (Int|Mapping)?
-    Encryption: (OriginEndpointHlsEncryption)?
-}
-
 typealias OriginEndpointAdsOnDeliveryRestrictions = String|Mapping
 
 
 /// CDN Authorization credentials
 open class OriginEndpointAuthorization {
-    SecretsRoleArn: String|Mapping
     CdnIdentifierSecret: String|Mapping
+    SecretsRoleArn: String|Mapping
 }
 
 typealias CmafEncryptionEncryptionMethod = "SAMPLE_AES"|"AES_CTR"
 
 /// A Common Media Application Format (CMAF) encryption configuration.
 open class OriginEndpointCmafEncryption {
-    KeyRotationIntervalSeconds: (Int|Mapping)?
-    SpekeKeyProvider: OriginEndpointSpekeKeyProvider
     ConstantInitializationVector: (String(matches(Regex(#"\A[0-9a-fA-F]+\Z"#)))|Mapping)?
     EncryptionMethod: (CmafEncryptionEncryptionMethod|Mapping)?
+    KeyRotationIntervalSeconds: (Int|Mapping)?
+    SpekeKeyProvider: OriginEndpointSpekeKeyProvider
 }
 
 /// A Common Media Application Format (CMAF) packaging configuration.
 open class OriginEndpointCmafPackage {
-    SegmentPrefix: (String|Mapping)?
     Encryption: (OriginEndpointCmafEncryption)?
-    StreamSelection: (OriginEndpointStreamSelection)?
     HlsManifests: (Listing<OriginEndpointHlsManifest>)?
     SegmentDurationSeconds: (Int|Mapping)?
-}
-
-typealias HlsEncryptionEncryptionMethod = "AES_128"|"SAMPLE_AES"
-
-/// An HTTP Live Streaming (HLS) encryption configuration.
-open class OriginEndpointHlsEncryption {
-    KeyRotationIntervalSeconds: (Int|Mapping)?
-    RepeatExtXKey: (Boolean|Mapping)?
-    SpekeKeyProvider: OriginEndpointSpekeKeyProvider
-    EncryptionMethod: (HlsEncryptionEncryptionMethod|Mapping)?
-    ConstantInitializationVector: (String|Mapping)?
+    SegmentPrefix: (String|Mapping)?
+    StreamSelection: (OriginEndpointStreamSelection)?
 }
 
 /// A Dynamic Adaptive Streaming over HTTP (DASH) encryption configuration.
@@ -72,94 +39,36 @@ open class OriginEndpointDashEncryption {
     SpekeKeyProvider: OriginEndpointSpekeKeyProvider
 }
 
-/// A Microsoft Smooth Streaming (MSS) packaging configuration.
-open class OriginEndpointMssPackage {
-    Encryption: (OriginEndpointMssEncryption)?
-    StreamSelection: (OriginEndpointStreamSelection)?
-    ManifestWindowSeconds: (Int|Mapping)?
-    SegmentDurationSeconds: (Int|Mapping)?
-}
+typealias DashPackageAdTriggers = "SPLICE_INSERT"|"BREAK"|"PROVIDER_ADVERTISEMENT"|"DISTRIBUTOR_ADVERTISEMENT"|"PROVIDER_PLACEMENT_OPPORTUNITY"|"DISTRIBUTOR_PLACEMENT_OPPORTUNITY"|"PROVIDER_OVERLAY_PLACEMENT_OPPORTUNITY"|"DISTRIBUTOR_OVERLAY_PLACEMENT_OPPORTUNITY"
 
-/// A configuration for accessing an external Secure Packager and Encoder Key Exchange (SPEKE) service that will provide encryption keys.
-open class OriginEndpointSpekeKeyProvider {
-    ResourceId: String|Mapping
-    SystemIds: Listing<String|Mapping>
-    Url: String|Mapping
-    RoleArn: String|Mapping
-    CertificateArn: (String|Mapping)?
-    EncryptionContractConfiguration: (OriginEndpointEncryptionContractConfiguration)?
-}
+typealias DashPackageManifestLayout = "FULL"|"COMPACT"|"DRM_TOP_LEVEL_COMPACT"
 
-/// 
-open class OriginEndpointTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
+typealias DashPackagePeriodTriggers = "ADS"
+
+typealias DashPackageProfile = "NONE"|"HBBTV_1_5"|"HYBRIDCAST"|"DVB_DASH_2014"
 
 typealias DashPackageSegmentTemplateFormat = "NUMBER_WITH_TIMELINE"|"TIME_WITH_TIMELINE"|"NUMBER_WITH_DURATION"
 
 typealias DashPackageUtcTiming = "HTTP-XSDATE"|"HTTP-ISO"|"HTTP-HEAD"|"NONE"
 
-typealias DashPackagePeriodTriggers = "ADS"
-
-typealias DashPackageManifestLayout = "FULL"|"COMPACT"|"DRM_TOP_LEVEL_COMPACT"
-
-typealias DashPackageProfile = "NONE"|"HBBTV_1_5"|"HYBRIDCAST"|"DVB_DASH_2014"
-
-typealias DashPackageAdTriggers = "SPLICE_INSERT"|"BREAK"|"PROVIDER_ADVERTISEMENT"|"DISTRIBUTOR_ADVERTISEMENT"|"PROVIDER_PLACEMENT_OPPORTUNITY"|"DISTRIBUTOR_PLACEMENT_OPPORTUNITY"|"PROVIDER_OVERLAY_PLACEMENT_OPPORTUNITY"|"DISTRIBUTOR_OVERLAY_PLACEMENT_OPPORTUNITY"
-
 /// A Dynamic Adaptive Streaming over HTTP (DASH) packaging configuration.
 open class OriginEndpointDashPackage {
-    MinUpdatePeriodSeconds: (Int|Mapping)?
-    SuggestedPresentationDelaySeconds: (Int|Mapping)?
-    SegmentTemplateFormat: (DashPackageSegmentTemplateFormat|Mapping)?
-    Encryption: (OriginEndpointDashEncryption)?
-    ManifestWindowSeconds: (Int|Mapping)?
-    StreamSelection: (OriginEndpointStreamSelection)?
-    UtcTiming: (DashPackageUtcTiming|Mapping)?
-    UtcTimingUri: (String|Mapping)?
-    SegmentDurationSeconds: (Int|Mapping)?
-    MinBufferTimeSeconds: (Int|Mapping)?
-    PeriodTriggers: (Listing<DashPackagePeriodTriggers|Mapping>)?
-    IncludeIframeOnlyStream: (Boolean|Mapping)?
-    ManifestLayout: (DashPackageManifestLayout|Mapping)?
-    Profile: (DashPackageProfile|Mapping)?
     AdTriggers: (Listing<DashPackageAdTriggers|Mapping>)?
     AdsOnDeliveryRestrictions: (OriginEndpointAdsOnDeliveryRestrictions)?
-}
-
-typealias HlsManifestPlaylistType = "NONE"|"EVENT"|"VOD"
-
-typealias HlsManifestAdMarkers = "NONE"|"SCTE35_ENHANCED"|"PASSTHROUGH"|"DATERANGE"
-
-typealias HlsManifestAdTriggers = "SPLICE_INSERT"|"BREAK"|"PROVIDER_ADVERTISEMENT"|"DISTRIBUTOR_ADVERTISEMENT"|"PROVIDER_PLACEMENT_OPPORTUNITY"|"DISTRIBUTOR_PLACEMENT_OPPORTUNITY"|"PROVIDER_OVERLAY_PLACEMENT_OPPORTUNITY"|"DISTRIBUTOR_OVERLAY_PLACEMENT_OPPORTUNITY"
-
-/// A HTTP Live Streaming (HLS) manifest configuration.
-open class OriginEndpointHlsManifest {
-    PlaylistType: (HlsManifestPlaylistType|Mapping)?
-    AdMarkers: (HlsManifestAdMarkers|Mapping)?
-    ProgramDateTimeIntervalSeconds: (Int|Mapping)?
+    Encryption: (OriginEndpointDashEncryption)?
     IncludeIframeOnlyStream: (Boolean|Mapping)?
-    AdTriggers: (Listing<HlsManifestAdTriggers|Mapping>)?
-    PlaylistWindowSeconds: (Int|Mapping)?
-    ManifestName: (String|Mapping)?
-    Url: (String|Mapping)?
-    AdsOnDeliveryRestrictions: (OriginEndpointAdsOnDeliveryRestrictions)?
-    Id: String|Mapping
-}
-
-/// A Microsoft Smooth Streaming (MSS) encryption configuration.
-open class OriginEndpointMssEncryption {
-    SpekeKeyProvider: OriginEndpointSpekeKeyProvider
-}
-
-typealias StreamSelectionStreamOrder = "ORIGINAL"|"VIDEO_BITRATE_ASCENDING"|"VIDEO_BITRATE_DESCENDING"
-
-/// A StreamSelection configuration.
-open class OriginEndpointStreamSelection {
-    MinVideoBitsPerSecond: (Int|Mapping)?
-    MaxVideoBitsPerSecond: (Int|Mapping)?
-    StreamOrder: (StreamSelectionStreamOrder|Mapping)?
+    ManifestLayout: (DashPackageManifestLayout|Mapping)?
+    ManifestWindowSeconds: (Int|Mapping)?
+    MinBufferTimeSeconds: (Int|Mapping)?
+    MinUpdatePeriodSeconds: (Int|Mapping)?
+    PeriodTriggers: (Listing<DashPackagePeriodTriggers|Mapping>)?
+    Profile: (DashPackageProfile|Mapping)?
+    SegmentDurationSeconds: (Int|Mapping)?
+    SegmentTemplateFormat: (DashPackageSegmentTemplateFormat|Mapping)?
+    StreamSelection: (OriginEndpointStreamSelection)?
+    SuggestedPresentationDelaySeconds: (Int|Mapping)?
+    UtcTiming: (DashPackageUtcTiming|Mapping)?
+    UtcTimingUri: (String|Mapping)?
 }
 
 typealias EncryptionContractConfigurationPresetSpeke20Audio = "PRESET-AUDIO-1"|"PRESET-AUDIO-2"|"PRESET-AUDIO-3"|"SHARED"|"UNENCRYPTED"
@@ -170,6 +79,97 @@ typealias EncryptionContractConfigurationPresetSpeke20Video = "PRESET-VIDEO-1"|"
 open class OriginEndpointEncryptionContractConfiguration {
     PresetSpeke20Audio: EncryptionContractConfigurationPresetSpeke20Audio|Mapping
     PresetSpeke20Video: EncryptionContractConfigurationPresetSpeke20Video|Mapping
+}
+
+typealias HlsEncryptionEncryptionMethod = "AES_128"|"SAMPLE_AES"
+
+/// An HTTP Live Streaming (HLS) encryption configuration.
+open class OriginEndpointHlsEncryption {
+    ConstantInitializationVector: (String|Mapping)?
+    EncryptionMethod: (HlsEncryptionEncryptionMethod|Mapping)?
+    KeyRotationIntervalSeconds: (Int|Mapping)?
+    RepeatExtXKey: (Boolean|Mapping)?
+    SpekeKeyProvider: OriginEndpointSpekeKeyProvider
+}
+
+typealias HlsManifestAdMarkers = "NONE"|"SCTE35_ENHANCED"|"PASSTHROUGH"|"DATERANGE"
+
+typealias HlsManifestAdTriggers = "SPLICE_INSERT"|"BREAK"|"PROVIDER_ADVERTISEMENT"|"DISTRIBUTOR_ADVERTISEMENT"|"PROVIDER_PLACEMENT_OPPORTUNITY"|"DISTRIBUTOR_PLACEMENT_OPPORTUNITY"|"PROVIDER_OVERLAY_PLACEMENT_OPPORTUNITY"|"DISTRIBUTOR_OVERLAY_PLACEMENT_OPPORTUNITY"
+
+typealias HlsManifestPlaylistType = "NONE"|"EVENT"|"VOD"
+
+/// A HTTP Live Streaming (HLS) manifest configuration.
+open class OriginEndpointHlsManifest {
+    AdMarkers: (HlsManifestAdMarkers|Mapping)?
+    AdTriggers: (Listing<HlsManifestAdTriggers|Mapping>)?
+    AdsOnDeliveryRestrictions: (OriginEndpointAdsOnDeliveryRestrictions)?
+    Id: String|Mapping
+    IncludeIframeOnlyStream: (Boolean|Mapping)?
+    ManifestName: (String|Mapping)?
+    PlaylistType: (HlsManifestPlaylistType|Mapping)?
+    PlaylistWindowSeconds: (Int|Mapping)?
+    ProgramDateTimeIntervalSeconds: (Int|Mapping)?
+    Url: (String|Mapping)?
+}
+
+typealias HlsPackageAdMarkers = "NONE"|"SCTE35_ENHANCED"|"PASSTHROUGH"|"DATERANGE"
+
+typealias HlsPackageAdTriggers = "SPLICE_INSERT"|"BREAK"|"PROVIDER_ADVERTISEMENT"|"DISTRIBUTOR_ADVERTISEMENT"|"PROVIDER_PLACEMENT_OPPORTUNITY"|"DISTRIBUTOR_PLACEMENT_OPPORTUNITY"|"PROVIDER_OVERLAY_PLACEMENT_OPPORTUNITY"|"DISTRIBUTOR_OVERLAY_PLACEMENT_OPPORTUNITY"
+
+typealias HlsPackagePlaylistType = "NONE"|"EVENT"|"VOD"
+
+/// An HTTP Live Streaming (HLS) packaging configuration.
+open class OriginEndpointHlsPackage {
+    AdMarkers: (HlsPackageAdMarkers|Mapping)?
+    AdTriggers: (Listing<HlsPackageAdTriggers|Mapping>)?
+    AdsOnDeliveryRestrictions: (OriginEndpointAdsOnDeliveryRestrictions)?
+    Encryption: (OriginEndpointHlsEncryption)?
+    IncludeDvbSubtitles: (Boolean|Mapping)?
+    IncludeIframeOnlyStream: (Boolean|Mapping)?
+    PlaylistType: (HlsPackagePlaylistType|Mapping)?
+    PlaylistWindowSeconds: (Int|Mapping)?
+    ProgramDateTimeIntervalSeconds: (Int|Mapping)?
+    SegmentDurationSeconds: (Int|Mapping)?
+    StreamSelection: (OriginEndpointStreamSelection)?
+    UseAudioRenditionGroup: (Boolean|Mapping)?
+}
+
+/// A Microsoft Smooth Streaming (MSS) encryption configuration.
+open class OriginEndpointMssEncryption {
+    SpekeKeyProvider: OriginEndpointSpekeKeyProvider
+}
+
+/// A Microsoft Smooth Streaming (MSS) packaging configuration.
+open class OriginEndpointMssPackage {
+    Encryption: (OriginEndpointMssEncryption)?
+    ManifestWindowSeconds: (Int|Mapping)?
+    SegmentDurationSeconds: (Int|Mapping)?
+    StreamSelection: (OriginEndpointStreamSelection)?
+}
+
+/// A configuration for accessing an external Secure Packager and Encoder Key Exchange (SPEKE) service that will provide encryption keys.
+open class OriginEndpointSpekeKeyProvider {
+    CertificateArn: (String|Mapping)?
+    EncryptionContractConfiguration: (OriginEndpointEncryptionContractConfiguration)?
+    ResourceId: String|Mapping
+    RoleArn: String|Mapping
+    SystemIds: Listing<String|Mapping>
+    Url: String|Mapping
+}
+
+typealias StreamSelectionStreamOrder = "ORIGINAL"|"VIDEO_BITRATE_ASCENDING"|"VIDEO_BITRATE_DESCENDING"
+
+/// A StreamSelection configuration.
+open class OriginEndpointStreamSelection {
+    MaxVideoBitsPerSecond: (Int|Mapping)?
+    MinVideoBitsPerSecond: (Int|Mapping)?
+    StreamOrder: (StreamSelectionStreamOrder|Mapping)?
+}
+
+/// 
+open class OriginEndpointTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// Resource schema for AWS::MediaPackage::OriginEndpoint

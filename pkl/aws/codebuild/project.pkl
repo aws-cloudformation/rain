@@ -6,16 +6,55 @@ module aws.codebuild.project
 import "../../cloudformation.pkl"
 
 /// 
-open class ProjectEnvironment {
-    RegistryCredential: (ProjectRegistryCredential)?
-    Fleet: (ProjectProjectFleet)?
-    EnvironmentVariables: (Listing<ProjectEnvironmentVariable>)?
-    PrivilegedMode: (Boolean|Mapping)?
-    ImagePullCredentialsType: (String|Mapping)?
-    Image: String|Mapping
-    ComputeType: String|Mapping
-    Certificate: (String|Mapping)?
+open class ProjectArtifacts {
+    ArtifactIdentifier: (String|Mapping)?
+    EncryptionDisabled: (Boolean|Mapping)?
+    Location: (String|Mapping)?
+    Name: (String|Mapping)?
+    NamespaceType: (String|Mapping)?
+    OverrideArtifactName: (Boolean|Mapping)?
+    Packaging: (String|Mapping)?
+    Path: (String|Mapping)?
     Type: String|Mapping
+}
+
+/// 
+open class ProjectBatchRestrictions {
+    ComputeTypesAllowed: (Listing<String|Mapping>)?
+    MaximumBuildsAllowed: (Int|Mapping)?
+}
+
+/// 
+open class ProjectBuildStatusConfig {
+    Context: (String|Mapping)?
+    TargetUrl: (String|Mapping)?
+}
+
+/// 
+open class ProjectCloudWatchLogsConfig {
+    GroupName: (String|Mapping)?
+    Status: String|Mapping
+    StreamName: (String|Mapping)?
+}
+
+/// 
+open class ProjectEnvironment {
+    Certificate: (String|Mapping)?
+    ComputeType: String|Mapping
+    EnvironmentVariables: (Listing<ProjectEnvironmentVariable>)?
+    Fleet: (ProjectProjectFleet)?
+    Image: String|Mapping
+    ImagePullCredentialsType: (String|Mapping)?
+    PrivilegedMode: (Boolean|Mapping)?
+    RegistryCredential: (ProjectRegistryCredential)?
+    Type: String|Mapping
+}
+
+/// 
+open class ProjectEnvironmentVariable {
+    Name: String|Mapping
+    Type: (String|Mapping)?
+    Value: String|Mapping
 }
 
 typealias ProjectFilterGroup = Dynamic
@@ -33,106 +72,28 @@ open class ProjectLogsConfig {
 }
 
 /// 
-open class ProjectProjectFileSystemLocation {
-    Location: String|Mapping
-    MountPoint: String|Mapping
-    Type: String|Mapping
-    Identifier: String|Mapping
-    MountOptions: (String|Mapping)?
-}
-
-/// 
-open class ProjectProjectTriggers {
-    BuildType: (String|Mapping)?
-    FilterGroups: (Listing<ProjectFilterGroup>)?
-    Webhook: (Boolean|Mapping)?
-}
-
-/// 
-open class ProjectS3LogsConfig {
-    Status: String|Mapping
-    EncryptionDisabled: (Boolean|Mapping)?
-    Location: (String|Mapping)?
-}
-
-/// 
-open class ProjectCloudWatchLogsConfig {
-    StreamName: (String|Mapping)?
-    Status: String|Mapping
-    GroupName: (String|Mapping)?
+open class ProjectProjectBuildBatchConfig {
+    BatchReportMode: (String|Mapping)?
+    CombineArtifacts: (Boolean|Mapping)?
+    Restrictions: (ProjectBatchRestrictions)?
+    ServiceRole: (String|Mapping)?
+    TimeoutInMins: (Int|Mapping)?
 }
 
 /// 
 open class ProjectProjectCache {
+    Location: (String|Mapping)?
     Modes: (Listing<String|Mapping>)?
     Type: String|Mapping
-    Location: (String|Mapping)?
 }
 
 /// 
-open class ProjectSourceAuth {
-    Resource: (String|Mapping)?
+open class ProjectProjectFileSystemLocation {
+    Identifier: String|Mapping
+    Location: String|Mapping
+    MountOptions: (String|Mapping)?
+    MountPoint: String|Mapping
     Type: String|Mapping
-}
-
-/// 
-open class ProjectArtifacts {
-    Location: (String|Mapping)?
-    NamespaceType: (String|Mapping)?
-    Path: (String|Mapping)?
-    Type: String|Mapping
-    Packaging: (String|Mapping)?
-    Name: (String|Mapping)?
-    ArtifactIdentifier: (String|Mapping)?
-    OverrideArtifactName: (Boolean|Mapping)?
-    EncryptionDisabled: (Boolean|Mapping)?
-}
-
-/// 
-open class ProjectBatchRestrictions {
-    ComputeTypesAllowed: (Listing<String|Mapping>)?
-    MaximumBuildsAllowed: (Int|Mapping)?
-}
-
-/// 
-open class ProjectEnvironmentVariable {
-    Value: String|Mapping
-    Type: (String|Mapping)?
-    Name: String|Mapping
-}
-
-/// 
-open class ProjectProjectBuildBatchConfig {
-    CombineArtifacts: (Boolean|Mapping)?
-    ServiceRole: (String|Mapping)?
-    BatchReportMode: (String|Mapping)?
-    TimeoutInMins: (Int|Mapping)?
-    Restrictions: (ProjectBatchRestrictions)?
-}
-
-/// 
-open class ProjectRegistryCredential {
-    Credential: String|Mapping
-    CredentialProvider: String|Mapping
-}
-
-/// 
-open class ProjectTag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class ProjectVpcConfig {
-    VpcId: (String|Mapping)?
-    SecurityGroupIds: (Listing<String|Mapping>)?
-    Subnets: (Listing<String|Mapping>)?
-}
-
-/// 
-open class ProjectBuildStatusConfig {
-    Context: (String|Mapping)?
-    TargetUrl: (String|Mapping)?
 }
 
 /// 
@@ -147,17 +108,56 @@ open class ProjectProjectSourceVersion {
 }
 
 /// 
+open class ProjectProjectTriggers {
+    BuildType: (String|Mapping)?
+    FilterGroups: (Listing<ProjectFilterGroup>)?
+    Webhook: (Boolean|Mapping)?
+}
+
+/// 
+open class ProjectRegistryCredential {
+    Credential: String|Mapping
+    CredentialProvider: String|Mapping
+}
+
+/// 
+open class ProjectS3LogsConfig {
+    EncryptionDisabled: (Boolean|Mapping)?
+    Location: (String|Mapping)?
+    Status: String|Mapping
+}
+
+/// 
 open class ProjectSource {
-    SourceIdentifier: (String|Mapping)?
+    Auth: (ProjectSourceAuth)?
     BuildSpec: (String|Mapping)?
     BuildStatusConfig: (ProjectBuildStatusConfig)?
+    GitCloneDepth: (Int|Mapping)?
     GitSubmodulesConfig: (ProjectGitSubmodulesConfig)?
     InsecureSsl: (Boolean|Mapping)?
-    Type: String|Mapping
-    ReportBuildStatus: (Boolean|Mapping)?
-    Auth: (ProjectSourceAuth)?
-    GitCloneDepth: (Int|Mapping)?
     Location: (String|Mapping)?
+    ReportBuildStatus: (Boolean|Mapping)?
+    SourceIdentifier: (String|Mapping)?
+    Type: String|Mapping
+}
+
+/// 
+open class ProjectSourceAuth {
+    Resource: (String|Mapping)?
+    Type: String|Mapping
+}
+
+/// 
+open class ProjectTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class ProjectVpcConfig {
+    SecurityGroupIds: (Listing<String|Mapping>)?
+    Subnets: (Listing<String|Mapping>)?
+    VpcId: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::CodeBuild::Project

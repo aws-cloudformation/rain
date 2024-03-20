@@ -5,117 +5,6 @@ module aws.applicationinsights.application
 
 import "../../cloudformation.pkl"
 
-/// The configuration settings of the component.
-open class ApplicationComponentConfiguration {
-    ConfigurationDetails: (ApplicationConfigurationDetails)?
-    SubComponentTypeConfigurations: (Listing<ApplicationSubComponentTypeConfiguration>)?
-}
-
-/// The configuration settings.
-open class ApplicationConfigurationDetails {
-    HANAPrometheusExporter: (ApplicationHANAPrometheusExporter)?
-    SQLServerPrometheusExporter: (ApplicationSQLServerPrometheusExporter)?
-    AlarmMetrics: (Listing<ApplicationAlarmMetric>)?
-    WindowsEvents: (Listing<ApplicationWindowsEvent>)?
-    Processes: (Listing<ApplicationProcess>)?
-    HAClusterPrometheusExporter: (ApplicationHAClusterPrometheusExporter)?
-    NetWeaverPrometheusExporter: (ApplicationNetWeaverPrometheusExporter)?
-    Logs: (Listing<ApplicationLog>)?
-    Alarms: (Listing<ApplicationAlarm>)?
-    JMXPrometheusExporter: (ApplicationJMXPrometheusExporter)?
-}
-
-/// The configuration settings of sub components.
-open class ApplicationSubComponentConfigurationDetails {
-    AlarmMetrics: (Listing<ApplicationAlarmMetric>)?
-    Logs: (Listing<ApplicationLog>)?
-    WindowsEvents: (Listing<ApplicationWindowsEvent>)?
-    Processes: (Listing<ApplicationProcess>)?
-}
-
-typealias ComponentMonitoringSettingComponentConfigurationMode = "DEFAULT"|"DEFAULT_WITH_OVERWRITE"|"CUSTOM"
-
-/// The monitoring setting of the component.
-open class ApplicationComponentMonitoringSetting {
-    ComponentName: (String(matches(Regex(#"^[\d\w\-_.+]*$"#)))|Mapping)?
-    ComponentARN: (String(matches(Regex(#"^arn:aws(-[\w]+)*:[\w\d-]+:([\w\d-]*)?:[\w\d_-]*([:/].+)*$"#)))|Mapping)?
-    Tier: String(matches(Regex(#"^[A-Z][[A-Z]_]*$"#)))|Mapping
-    ComponentConfigurationMode: ComponentMonitoringSettingComponentConfigurationMode|Mapping
-    DefaultOverwriteComponentConfiguration: (ApplicationComponentConfiguration)?
-    CustomComponentConfiguration: (ApplicationComponentConfiguration)?
-}
-
-/// The custom grouped component.
-open class ApplicationCustomComponent {
-    ComponentName: String(matches(Regex(#"^[\d\w\-_.+]*$"#)))|Mapping
-    ResourceList: Listing<String|Mapping>
-}
-
-typealias LogEncoding = "utf-8"|"utf-16"|"ascii"
-
-/// A log to be monitored for the component.
-open class ApplicationLog {
-    LogPath: (String(matches(Regex(#"^([a-zA-Z]:\\[\\\S|*\S]?.*|/[^"']*)$"#)))|Mapping)?
-    LogType: String(matches(Regex(#"^[A-Z][[A-Z]_]*$"#)))|Mapping
-    Encoding: (LogEncoding|Mapping)?
-    PatternSet: (String(matches(Regex(#"[a-zA-Z0-9.-_]*"#)))|Mapping)?
-    LogGroupName: (String(matches(Regex(#"[\.\-_/#A-Za-z0-9]+"#)))|Mapping)?
-}
-
-/// The SQL prometheus exporter settings.
-open class ApplicationSQLServerPrometheusExporter {
-    PrometheusPort: String|Mapping
-    SQLSecretName: String|Mapping
-}
-
-typealias SubComponentTypeConfigurationSubComponentType = "AWS::EC2::Instance"|"AWS::EC2::Volume"
-
-/// One type sub component configurations for the component.
-open class ApplicationSubComponentTypeConfiguration {
-    SubComponentConfigurationDetails: ApplicationSubComponentConfigurationDetails
-    SubComponentType: SubComponentTypeConfigurationSubComponentType|Mapping
-}
-
-/// The JMX Prometheus Exporter settings.
-open class ApplicationJMXPrometheusExporter {
-    JMXURL: (String|Mapping)?
-    HostPort: (String|Mapping)?
-    PrometheusPort: (String|Mapping)?
-}
-
-/// The log pattern set.
-open class ApplicationLogPatternSet {
-    PatternSetName: String(matches(Regex(#"[a-zA-Z0-9.-_]*"#)))|Mapping
-    LogPatterns: Listing<ApplicationLogPattern>
-}
-
-/// A process to be monitored for the component.
-open class ApplicationProcess {
-    ProcessName: String(matches(Regex(#"^[a-zA-Z0-9_,-]+$"#)))|Mapping
-    AlarmMetrics: Listing<ApplicationAlarmMetric>
-}
-
-/// A Windows Event to be monitored for the component.
-open class ApplicationWindowsEvent {
-    LogGroupName: String(matches(Regex(#"[\.\-_/#A-Za-z0-9]+"#)))|Mapping
-    EventName: String(matches(Regex(#"^[a-zA-Z0-9_ \\/-]+$"#)))|Mapping
-    EventLevels: Listing<ApplicationEventLevel>
-    PatternSet: (String(matches(Regex(#"[a-zA-Z0-9.-_]*"#)))|Mapping)?
-}
-
-/// The NetWeaver Prometheus Exporter Settings.
-open class ApplicationNetWeaverPrometheusExporter {
-    SAPSID: String|Mapping
-    InstanceNumbers: Listing<String|Mapping>
-    PrometheusPort: (String|Mapping)?
-}
-
-/// A key-value pair to associate with a resource.
-open class ApplicationTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
 typealias AlarmSeverity = "HIGH"|"MEDIUM"|"LOW"
 
 /// A CloudWatch alarm to be monitored for the component.
@@ -129,6 +18,44 @@ open class ApplicationAlarmMetric {
     AlarmMetricName: String|Mapping
 }
 
+/// The configuration settings of the component.
+open class ApplicationComponentConfiguration {
+    ConfigurationDetails: (ApplicationConfigurationDetails)?
+    SubComponentTypeConfigurations: (Listing<ApplicationSubComponentTypeConfiguration>)?
+}
+
+typealias ComponentMonitoringSettingComponentConfigurationMode = "DEFAULT"|"DEFAULT_WITH_OVERWRITE"|"CUSTOM"
+
+/// The monitoring setting of the component.
+open class ApplicationComponentMonitoringSetting {
+    ComponentARN: (String(matches(Regex(#"^arn:aws(-[\w]+)*:[\w\d-]+:([\w\d-]*)?:[\w\d_-]*([:/].+)*$"#)))|Mapping)?
+    ComponentConfigurationMode: ComponentMonitoringSettingComponentConfigurationMode|Mapping
+    ComponentName: (String(matches(Regex(#"^[\d\w\-_.+]*$"#)))|Mapping)?
+    CustomComponentConfiguration: (ApplicationComponentConfiguration)?
+    DefaultOverwriteComponentConfiguration: (ApplicationComponentConfiguration)?
+    Tier: String(matches(Regex(#"^[A-Z][[A-Z]_]*$"#)))|Mapping
+}
+
+/// The configuration settings.
+open class ApplicationConfigurationDetails {
+    AlarmMetrics: (Listing<ApplicationAlarmMetric>)?
+    Alarms: (Listing<ApplicationAlarm>)?
+    HAClusterPrometheusExporter: (ApplicationHAClusterPrometheusExporter)?
+    HANAPrometheusExporter: (ApplicationHANAPrometheusExporter)?
+    JMXPrometheusExporter: (ApplicationJMXPrometheusExporter)?
+    Logs: (Listing<ApplicationLog>)?
+    NetWeaverPrometheusExporter: (ApplicationNetWeaverPrometheusExporter)?
+    Processes: (Listing<ApplicationProcess>)?
+    SQLServerPrometheusExporter: (ApplicationSQLServerPrometheusExporter)?
+    WindowsEvents: (Listing<ApplicationWindowsEvent>)?
+}
+
+/// The custom grouped component.
+open class ApplicationCustomComponent {
+    ComponentName: String(matches(Regex(#"^[\d\w\-_.+]*$"#)))|Mapping
+    ResourceList: Listing<String|Mapping>
+}
+
 typealias ApplicationEventLevel = String|Mapping
 
 
@@ -139,18 +66,91 @@ open class ApplicationHAClusterPrometheusExporter {
 
 /// The HANA DB Prometheus Exporter settings.
 open class ApplicationHANAPrometheusExporter {
-    HANASecretName: String|Mapping
     AgreeToInstallHANADBClient: Boolean|Mapping
-    PrometheusPort: (String|Mapping)?
-    HANASID: String|Mapping
     HANAPort: String|Mapping
+    HANASID: String|Mapping
+    HANASecretName: String|Mapping
+    PrometheusPort: (String|Mapping)?
+}
+
+/// The JMX Prometheus Exporter settings.
+open class ApplicationJMXPrometheusExporter {
+    HostPort: (String|Mapping)?
+    JMXURL: (String|Mapping)?
+    PrometheusPort: (String|Mapping)?
+}
+
+typealias LogEncoding = "utf-8"|"utf-16"|"ascii"
+
+/// A log to be monitored for the component.
+open class ApplicationLog {
+    Encoding: (LogEncoding|Mapping)?
+    LogGroupName: (String(matches(Regex(#"[\.\-_/#A-Za-z0-9]+"#)))|Mapping)?
+    LogPath: (String(matches(Regex(#"^([a-zA-Z]:\\[\\\S|*\S]?.*|/[^"']*)$"#)))|Mapping)?
+    LogType: String(matches(Regex(#"^[A-Z][[A-Z]_]*$"#)))|Mapping
+    PatternSet: (String(matches(Regex(#"[a-zA-Z0-9.-_]*"#)))|Mapping)?
 }
 
 /// The log pattern.
 open class ApplicationLogPattern {
-    PatternName: String(matches(Regex(#"[a-zA-Z0-9.-_]*"#)))|Mapping
     Pattern: String|Mapping
+    PatternName: String(matches(Regex(#"[a-zA-Z0-9.-_]*"#)))|Mapping
     Rank: Int|Mapping
+}
+
+/// The log pattern set.
+open class ApplicationLogPatternSet {
+    LogPatterns: Listing<ApplicationLogPattern>
+    PatternSetName: String(matches(Regex(#"[a-zA-Z0-9.-_]*"#)))|Mapping
+}
+
+/// The NetWeaver Prometheus Exporter Settings.
+open class ApplicationNetWeaverPrometheusExporter {
+    InstanceNumbers: Listing<String|Mapping>
+    PrometheusPort: (String|Mapping)?
+    SAPSID: String|Mapping
+}
+
+/// A process to be monitored for the component.
+open class ApplicationProcess {
+    AlarmMetrics: Listing<ApplicationAlarmMetric>
+    ProcessName: String(matches(Regex(#"^[a-zA-Z0-9_,-]+$"#)))|Mapping
+}
+
+/// The SQL prometheus exporter settings.
+open class ApplicationSQLServerPrometheusExporter {
+    PrometheusPort: String|Mapping
+    SQLSecretName: String|Mapping
+}
+
+/// The configuration settings of sub components.
+open class ApplicationSubComponentConfigurationDetails {
+    AlarmMetrics: (Listing<ApplicationAlarmMetric>)?
+    Logs: (Listing<ApplicationLog>)?
+    Processes: (Listing<ApplicationProcess>)?
+    WindowsEvents: (Listing<ApplicationWindowsEvent>)?
+}
+
+typealias SubComponentTypeConfigurationSubComponentType = "AWS::EC2::Instance"|"AWS::EC2::Volume"
+
+/// One type sub component configurations for the component.
+open class ApplicationSubComponentTypeConfiguration {
+    SubComponentConfigurationDetails: ApplicationSubComponentConfigurationDetails
+    SubComponentType: SubComponentTypeConfigurationSubComponentType|Mapping
+}
+
+/// A key-value pair to associate with a resource.
+open class ApplicationTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// A Windows Event to be monitored for the component.
+open class ApplicationWindowsEvent {
+    EventLevels: Listing<ApplicationEventLevel>
+    EventName: String(matches(Regex(#"^[a-zA-Z0-9_ \\/-]+$"#)))|Mapping
+    LogGroupName: String(matches(Regex(#"[\.\-_/#A-Za-z0-9]+"#)))|Mapping
+    PatternSet: (String(matches(Regex(#"[a-zA-Z0-9.-_]*"#)))|Mapping)?
 }
 
 /// Resource schema for AWS::ApplicationInsights::Application

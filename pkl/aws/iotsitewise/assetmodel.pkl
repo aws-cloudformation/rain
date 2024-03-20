@@ -5,69 +5,38 @@ module aws.iotsitewise.assetmodel
 
 import "../../cloudformation.pkl"
 
-typealias AssetModelOffset = String|Mapping
-
-
-/// 
-open class AssetModelTransform {
-    Expression: String|Mapping
-    Variables: Listing<AssetModelExpressionVariable>
-}
-
-typealias AssetModelTypeName = String|Mapping
-
-
 /// Contains a composite model definition in an asset model. This composite model definition is applied to all assets created from the asset model.
 open class AssetModelAssetModelCompositeModel {
-    Description: (String|Mapping)?
-    Name: String|Mapping
-    Type: String|Mapping
-    CompositeModelProperties: (Listing<AssetModelAssetModelProperty>)?
     ComposedAssetModelId: (String|Mapping)?
-    Path: (Listing<String|Mapping>)?
+    CompositeModelProperties: (Listing<AssetModelAssetModelProperty>)?
+    Description: (String|Mapping)?
+    ExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
+    Id: (String(matches(Regex(#"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"#)))|Mapping)?
+    Name: String|Mapping
     ParentAssetModelCompositeModelExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
-    Id: (String(matches(Regex(#"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"#)))|Mapping)?
-    ExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
-}
-
-/// Contains information about an asset model property.
-open class AssetModelAssetModelProperty {
-    Unit: (String|Mapping)?
-    Type: AssetModelPropertyType
-    LogicalId: (String(matches(Regex(#"[^\u0000-\u001F\u007F]+"#)))|Mapping)?
-    Id: (String(matches(Regex(#"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"#)))|Mapping)?
-    ExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
-    Name: String|Mapping
-    DataType: AssetModelDataType
-    DataTypeSpec: (AssetModelDataTypeSpec)?
-}
-
-typealias AssetModelDataTypeSpec = String|Mapping
-
-
-/// The definition for property path which is used to reference properties in transforms/metrics
-open class AssetModelPropertyPathDefinition {
-    Name: String|Mapping
-}
-
-/// 
-open class AssetModelVariableValue {
-    PropertyLogicalId: (String(matches(Regex(#"[^\u0000-\u001F\u007F]+"#)))|Mapping)?
-    PropertyId: (String(matches(Regex(#"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"#)))|Mapping)?
-    PropertyExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
-    PropertyPath: (Listing<AssetModelPropertyPathDefinition>)?
-    HierarchyLogicalId: (String(matches(Regex(#"[^\u0000-\u001F\u007F]+"#)))|Mapping)?
-    HierarchyId: (String(matches(Regex(#"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"#)))|Mapping)?
-    HierarchyExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
+    Path: (Listing<String|Mapping>)?
+    Type: String|Mapping
 }
 
 /// Contains information about an asset model hierarchy.
 open class AssetModelAssetModelHierarchy {
     ChildAssetModelId: String|Mapping
-    Id: (String(matches(Regex(#"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"#)))|Mapping)?
     ExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
+    Id: (String(matches(Regex(#"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"#)))|Mapping)?
     LogicalId: (String(matches(Regex(#"[^\u0000-\u001F\u007F]+"#)))|Mapping)?
     Name: String|Mapping
+}
+
+/// Contains information about an asset model property.
+open class AssetModelAssetModelProperty {
+    DataType: AssetModelDataType
+    DataTypeSpec: (AssetModelDataTypeSpec)?
+    ExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
+    Id: (String(matches(Regex(#"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"#)))|Mapping)?
+    LogicalId: (String(matches(Regex(#"[^\u0000-\u001F\u007F]+"#)))|Mapping)?
+    Name: String|Mapping
+    Type: AssetModelPropertyType
+    Unit: (String|Mapping)?
 }
 
 /// 
@@ -78,16 +47,8 @@ open class AssetModelAttribute {
 typealias AssetModelDataType = String|Mapping
 
 
-/// Contains a time interval window used for data aggregate computations (for example, average, sum, count, and so on).
-open class AssetModelMetricWindow {
-    Tumbling: (AssetModelTumblingWindow)?
-}
+typealias AssetModelDataTypeSpec = String|Mapping
 
-/// Contains a tumbling window, which is a repeating fixed-sized, non-overlapping, and contiguous time interval. This window is used in metric and aggregation computations.
-open class AssetModelTumblingWindow {
-    Interval: AssetModelInterval
-    Offset: (AssetModelOffset)?
-}
 
 /// 
 open class AssetModelExpressionVariable {
@@ -100,16 +61,29 @@ typealias AssetModelInterval = String|Mapping
 
 /// 
 open class AssetModelMetric {
-    Window: AssetModelMetricWindow
     Expression: String|Mapping
     Variables: Listing<AssetModelExpressionVariable>
+    Window: AssetModelMetricWindow
+}
+
+/// Contains a time interval window used for data aggregate computations (for example, average, sum, count, and so on).
+open class AssetModelMetricWindow {
+    Tumbling: (AssetModelTumblingWindow)?
+}
+
+typealias AssetModelOffset = String|Mapping
+
+
+/// The definition for property path which is used to reference properties in transforms/metrics
+open class AssetModelPropertyPathDefinition {
+    Name: String|Mapping
 }
 
 /// Contains a property type, which can be one of attribute, measurement, metric, or transform.
 open class AssetModelPropertyType {
     Attribute: (AssetModelAttribute)?
-    Transform: (AssetModelTransform)?
     Metric: (AssetModelMetric)?
+    Transform: (AssetModelTransform)?
     TypeName: AssetModelTypeName
 }
 
@@ -117,6 +91,32 @@ open class AssetModelPropertyType {
 open class AssetModelTag {
     Key: String|Mapping
     Value: String|Mapping
+}
+
+/// 
+open class AssetModelTransform {
+    Expression: String|Mapping
+    Variables: Listing<AssetModelExpressionVariable>
+}
+
+/// Contains a tumbling window, which is a repeating fixed-sized, non-overlapping, and contiguous time interval. This window is used in metric and aggregation computations.
+open class AssetModelTumblingWindow {
+    Interval: AssetModelInterval
+    Offset: (AssetModelOffset)?
+}
+
+typealias AssetModelTypeName = String|Mapping
+
+
+/// 
+open class AssetModelVariableValue {
+    HierarchyExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
+    HierarchyId: (String(matches(Regex(#"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"#)))|Mapping)?
+    HierarchyLogicalId: (String(matches(Regex(#"[^\u0000-\u001F\u007F]+"#)))|Mapping)?
+    PropertyExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
+    PropertyId: (String(matches(Regex(#"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"#)))|Mapping)?
+    PropertyLogicalId: (String(matches(Regex(#"[^\u0000-\u001F\u007F]+"#)))|Mapping)?
+    PropertyPath: (Listing<AssetModelPropertyPathDefinition>)?
 }
 
 /// Resource schema for AWS::IoTSiteWise::AssetModel

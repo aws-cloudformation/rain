@@ -5,14 +5,22 @@ module aws.s3outposts.bucket
 
 import "../../cloudformation.pkl"
 
+/// Specifies the days since the initiation of an incomplete multipart upload that Amazon S3Outposts will wait before permanently removing all parts of the upload.
+open class BucketAbortIncompleteMultipartUpload {
+    DaysAfterInitiation: Int|Mapping
+}
+
 typealias BucketFilterAndOperator = BucketFilterAndOperator0
 
 
 /// 
 open class BucketFilterAndOperator0 {
-    Tags: Listing<BucketFilterTag>
     Prefix: (BucketFilterPrefix)?
+    Tags: Listing<BucketFilterTag>
 }
+
+typealias BucketFilterPrefix = String|Mapping
+
 
 /// Tag used to identify a subset of objects for an Amazon S3Outposts bucket.
 open class BucketFilterTag {
@@ -25,6 +33,18 @@ open class BucketLifecycleConfiguration {
     Rules: Listing<BucketRule>
 }
 
+typealias RuleStatus = "Enabled"|"Disabled"
+
+/// Specifies lifecycle rules for an Amazon S3Outposts bucket. You must specify at least one of the following: AbortIncompleteMultipartUpload, ExpirationDate, ExpirationInDays.
+open class BucketRule {
+    AbortIncompleteMultipartUpload: (BucketAbortIncompleteMultipartUpload)?
+    ExpirationDate: (Bucketiso8601UTC)?
+    ExpirationInDays: (Int|Mapping)?
+    Filter: (Dynamic)?
+    Id: (String|Mapping)?
+    Status: (RuleStatus|Mapping)?
+}
+
 /// 
 open class BucketTag {
     Key: String(matches(Regex(#"^(?!aws:.*)([\p{L}\p{Z}\p{N}_.:=+\/\-@%]*)$"#)))|Mapping
@@ -33,26 +53,6 @@ open class BucketTag {
 
 typealias Bucketiso8601UTC = String|Mapping
 
-
-/// Specifies the days since the initiation of an incomplete multipart upload that Amazon S3Outposts will wait before permanently removing all parts of the upload.
-open class BucketAbortIncompleteMultipartUpload {
-    DaysAfterInitiation: Int|Mapping
-}
-
-typealias BucketFilterPrefix = String|Mapping
-
-
-typealias RuleStatus = "Enabled"|"Disabled"
-
-/// Specifies lifecycle rules for an Amazon S3Outposts bucket. You must specify at least one of the following: AbortIncompleteMultipartUpload, ExpirationDate, ExpirationInDays.
-open class BucketRule {
-    Status: (RuleStatus|Mapping)?
-    Id: (String|Mapping)?
-    AbortIncompleteMultipartUpload: (BucketAbortIncompleteMultipartUpload)?
-    ExpirationDate: (Bucketiso8601UTC)?
-    ExpirationInDays: (Int|Mapping)?
-    Filter: (Dynamic)?
-}
 
 /// Resource Type Definition for AWS::S3Outposts::Bucket
 open class Bucket extends cloudformation.Resource {

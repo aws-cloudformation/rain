@@ -16,75 +16,6 @@ open class TaskFilterRule {
     Value: (String(matches(Regex(#"^[^\x00]+$"#)))|Mapping)?
 }
 
-typealias OptionsTransferMode = "CHANGED"|"ALL"
-
-typealias OptionsAtime = "NONE"|"BEST_EFFORT"
-
-typealias OptionsPreserveDevices = "NONE"|"PRESERVE"
-
-typealias OptionsTaskQueueing = "ENABLED"|"DISABLED"
-
-typealias OptionsGid = "NONE"|"INT_VALUE"|"NAME"|"BOTH"
-
-typealias OptionsMtime = "NONE"|"PRESERVE"
-
-typealias OptionsPreserveDeletedFiles = "PRESERVE"|"REMOVE"
-
-typealias OptionsUid = "NONE"|"INT_VALUE"|"NAME"|"BOTH"
-
-typealias OptionsLogLevel = "OFF"|"BASIC"|"TRANSFER"
-
-typealias OptionsPosixPermissions = "NONE"|"PRESERVE"
-
-typealias OptionsObjectTags = "PRESERVE"|"NONE"
-
-typealias OptionsOverwriteMode = "ALWAYS"|"NEVER"
-
-typealias OptionsSecurityDescriptorCopyFlags = "NONE"|"OWNER_DACL"|"OWNER_DACL_SACL"
-
-typealias OptionsVerifyMode = "POINT_IN_TIME_CONSISTENT"|"ONLY_FILES_TRANSFERRED"|"NONE"
-
-/// Represents the options that are available to control the behavior of a StartTaskExecution operation.
-open class TaskOptions {
-    TransferMode: (OptionsTransferMode|Mapping)?
-    Atime: (OptionsAtime|Mapping)?
-    BytesPerSecond: (Int|Mapping)?
-    PreserveDevices: (OptionsPreserveDevices|Mapping)?
-    TaskQueueing: (OptionsTaskQueueing|Mapping)?
-    Gid: (OptionsGid|Mapping)?
-    Mtime: (OptionsMtime|Mapping)?
-    PreserveDeletedFiles: (OptionsPreserveDeletedFiles|Mapping)?
-    Uid: (OptionsUid|Mapping)?
-    LogLevel: (OptionsLogLevel|Mapping)?
-    PosixPermissions: (OptionsPosixPermissions|Mapping)?
-    ObjectTags: (OptionsObjectTags|Mapping)?
-    OverwriteMode: (OptionsOverwriteMode|Mapping)?
-    SecurityDescriptorCopyFlags: (OptionsSecurityDescriptorCopyFlags|Mapping)?
-    VerifyMode: (OptionsVerifyMode|Mapping)?
-}
-
-typealias TaskReportConfigOutputType = "SUMMARY_ONLY"|"STANDARD"
-
-typealias TaskReportConfigReportLevel = "ERRORS_ONLY"|"SUCCESSES_AND_ERRORS"
-
-typealias TaskReportConfigObjectVersionIds = "INCLUDE"|"NONE"
-
-/// Specifies how you want to configure a task report, which provides detailed information about for your Datasync transfer.
-open class TaskTaskReportConfig {
-    Destination: Dynamic
-    OutputType: TaskReportConfigOutputType|Mapping
-    ReportLevel: (TaskReportConfigReportLevel|Mapping)?
-    ObjectVersionIds: (TaskReportConfigObjectVersionIds|Mapping)?
-    Overrides: (Dynamic)?
-}
-
-/// Specifies the Amazon S3 bucket where DataSync uploads your task report.
-open class TaskTaskReportConfigDestinationS3 {
-    Subdirectory: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\p{Zs}]*$"#)))|Mapping)?
-    BucketAccessRoleArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):iam::[0-9]{12}:role/.*$"#)))|Mapping)?
-    S3BucketArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):(s3|s3-outposts):[a-z\-0-9]*:[0-9]*:.*$"#)))|Mapping)?
-}
-
 typealias ManifestConfigAction = "TRANSFER"
 
 typealias ManifestConfigFormat = "CSV"
@@ -98,10 +29,57 @@ open class TaskManifestConfig {
 
 /// Specifies the S3 bucket where you're hosting the manifest that you want AWS DataSync to use.
 open class TaskManifestConfigSourceS3 {
-    ManifestObjectPath: (String(matches(Regex(#"^[\p{L}\p{M}\p{Z}\p{S}\p{N}\p{P}\p{C}]*$"#)))|Mapping)?
     BucketAccessRoleArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):iam::[0-9]{12}:role/.*$"#)))|Mapping)?
-    S3BucketArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):(s3|s3-outposts):[a-z\-0-9]*:[0-9]*:.*$"#)))|Mapping)?
+    ManifestObjectPath: (String(matches(Regex(#"^[\p{L}\p{M}\p{Z}\p{S}\p{N}\p{P}\p{C}]*$"#)))|Mapping)?
     ManifestObjectVersionId: (String(matches(Regex(#"^.+$"#)))|Mapping)?
+    S3BucketArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):(s3|s3-outposts):[a-z\-0-9]*:[0-9]*:.*$"#)))|Mapping)?
+}
+
+typealias OptionsAtime = "NONE"|"BEST_EFFORT"
+
+typealias OptionsGid = "NONE"|"INT_VALUE"|"NAME"|"BOTH"
+
+typealias OptionsLogLevel = "OFF"|"BASIC"|"TRANSFER"
+
+typealias OptionsMtime = "NONE"|"PRESERVE"
+
+typealias OptionsObjectTags = "PRESERVE"|"NONE"
+
+typealias OptionsOverwriteMode = "ALWAYS"|"NEVER"
+
+typealias OptionsPosixPermissions = "NONE"|"PRESERVE"
+
+typealias OptionsPreserveDeletedFiles = "PRESERVE"|"REMOVE"
+
+typealias OptionsPreserveDevices = "NONE"|"PRESERVE"
+
+typealias OptionsSecurityDescriptorCopyFlags = "NONE"|"OWNER_DACL"|"OWNER_DACL_SACL"
+
+typealias OptionsTaskQueueing = "ENABLED"|"DISABLED"
+
+typealias OptionsTransferMode = "CHANGED"|"ALL"
+
+typealias OptionsUid = "NONE"|"INT_VALUE"|"NAME"|"BOTH"
+
+typealias OptionsVerifyMode = "POINT_IN_TIME_CONSISTENT"|"ONLY_FILES_TRANSFERRED"|"NONE"
+
+/// Represents the options that are available to control the behavior of a StartTaskExecution operation.
+open class TaskOptions {
+    Atime: (OptionsAtime|Mapping)?
+    BytesPerSecond: (Int|Mapping)?
+    Gid: (OptionsGid|Mapping)?
+    LogLevel: (OptionsLogLevel|Mapping)?
+    Mtime: (OptionsMtime|Mapping)?
+    ObjectTags: (OptionsObjectTags|Mapping)?
+    OverwriteMode: (OptionsOverwriteMode|Mapping)?
+    PosixPermissions: (OptionsPosixPermissions|Mapping)?
+    PreserveDeletedFiles: (OptionsPreserveDeletedFiles|Mapping)?
+    PreserveDevices: (OptionsPreserveDevices|Mapping)?
+    SecurityDescriptorCopyFlags: (OptionsSecurityDescriptorCopyFlags|Mapping)?
+    TaskQueueing: (OptionsTaskQueueing|Mapping)?
+    TransferMode: (OptionsTransferMode|Mapping)?
+    Uid: (OptionsUid|Mapping)?
+    VerifyMode: (OptionsVerifyMode|Mapping)?
 }
 
 typealias TaskSourceNetworkInterfaceArns = Listing<(String(matches(Regex(#"^arn:aws[\-a-z]{0,}:ec2:[a-z\-0-9]*:[0-9]{12}:network-interface/eni-[0-9a-f]+$"#)))|Mapping)?>
@@ -111,6 +89,28 @@ typealias TaskSourceNetworkInterfaceArns = Listing<(String(matches(Regex(#"^arn:
 open class TaskTag {
     Key: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:/-]+$"#)))|Mapping
     Value: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:@/-]+$"#)))|Mapping
+}
+
+typealias TaskReportConfigObjectVersionIds = "INCLUDE"|"NONE"
+
+typealias TaskReportConfigOutputType = "SUMMARY_ONLY"|"STANDARD"
+
+typealias TaskReportConfigReportLevel = "ERRORS_ONLY"|"SUCCESSES_AND_ERRORS"
+
+/// Specifies how you want to configure a task report, which provides detailed information about for your Datasync transfer.
+open class TaskTaskReportConfig {
+    Destination: Dynamic
+    ObjectVersionIds: (TaskReportConfigObjectVersionIds|Mapping)?
+    OutputType: TaskReportConfigOutputType|Mapping
+    Overrides: (Dynamic)?
+    ReportLevel: (TaskReportConfigReportLevel|Mapping)?
+}
+
+/// Specifies the Amazon S3 bucket where DataSync uploads your task report.
+open class TaskTaskReportConfigDestinationS3 {
+    BucketAccessRoleArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):iam::[0-9]{12}:role/.*$"#)))|Mapping)?
+    S3BucketArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):(s3|s3-outposts):[a-z\-0-9]*:[0-9]*:.*$"#)))|Mapping)?
+    Subdirectory: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\p{Zs}]*$"#)))|Mapping)?
 }
 
 /// Specifies the schedule you want your task to use for repeated executions.

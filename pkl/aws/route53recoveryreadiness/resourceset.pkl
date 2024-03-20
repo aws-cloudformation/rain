@@ -5,17 +5,11 @@ module aws.route53recoveryreadiness.resourceset
 
 import "../../cloudformation.pkl"
 
-/// The target resource that the Route 53 record points to.
-open class ResourceSetTargetResource {
-    R53Resource: (ResourceSetR53ResourceRecord)?
-    NLBResource: (ResourceSetNLBResource)?
-}
-
 /// A component for DNS/routing control readiness checks.
 open class ResourceSetDNSTargetResource {
     DomainName: (String|Mapping)?
-    RecordSetId: (String|Mapping)?
     HostedZoneArn: (String|Mapping)?
+    RecordSetId: (String|Mapping)?
     RecordType: (String|Mapping)?
     TargetResource: (ResourceSetTargetResource)?
 }
@@ -33,16 +27,22 @@ open class ResourceSetR53ResourceRecord {
 
 /// The resource element of a ResourceSet
 open class ResourceSetResource {
-    ResourceArn: (String|Mapping)?
     ComponentId: (String|Mapping)?
     DnsTargetResource: (ResourceSetDNSTargetResource)?
     ReadinessScopes: (Listing<String|Mapping>)?
+    ResourceArn: (String|Mapping)?
 }
 
 /// 
 open class ResourceSetTag {
-    Value: String|Mapping
     Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// The target resource that the Route 53 record points to.
+open class ResourceSetTargetResource {
+    NLBResource: (ResourceSetNLBResource)?
+    R53Resource: (ResourceSetR53ResourceRecord)?
 }
 
 /// Schema for the AWS Route53 Recovery Readiness ResourceSet Resource and API.

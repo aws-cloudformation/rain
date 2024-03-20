@@ -5,24 +5,6 @@ module aws.transfer.workflow
 
 import "../../cloudformation.pkl"
 
-/// Creates a key-value pair for a specific resource.
-open class WorkflowTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-typealias WorkflowStepType = "COPY"|"CUSTOM"|"DECRYPT"|"DELETE"|"TAG"
-
-/// The basic building block of a workflow.
-open class WorkflowWorkflowStep {
-    CopyStepDetails: (Dynamic)?
-    CustomStepDetails: (Dynamic)?
-    DecryptStepDetails: (Dynamic)?
-    DeleteStepDetails: (Dynamic)?
-    TagStepDetails: (Dynamic)?
-    Type: (WorkflowStepType|Mapping)?
-}
-
 /// Specifies the details for an EFS file.
 open class WorkflowEfsInputFileLocation {
     FileSystemId: (String(matches(Regex(#"^(arn:aws[-a-z]*:elasticfilesystem:[0-9a-z-:]+:(access-point/fsap|file-system/fs)-[0-9a-f]{8,40}|fs(ap)?-[0-9a-f]{8,40})$"#)))|Mapping)?
@@ -31,8 +13,8 @@ open class WorkflowEfsInputFileLocation {
 
 /// Specifies the location for the file being decrypted. Only applicable for the Decrypt type of workflow steps.
 open class WorkflowInputFileLocation {
-    S3FileLocation: (WorkflowS3InputFileLocation)?
     EfsFileLocation: (WorkflowEfsInputFileLocation)?
+    S3FileLocation: (WorkflowS3InputFileLocation)?
 }
 
 /// Specifies the location for the file being copied. Only applicable for the Copy type of workflow steps.
@@ -50,6 +32,24 @@ open class WorkflowS3InputFileLocation {
 open class WorkflowS3Tag {
     Key: String|Mapping
     Value: String|Mapping
+}
+
+/// Creates a key-value pair for a specific resource.
+open class WorkflowTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+typealias WorkflowStepType = "COPY"|"CUSTOM"|"DECRYPT"|"DELETE"|"TAG"
+
+/// The basic building block of a workflow.
+open class WorkflowWorkflowStep {
+    CopyStepDetails: (Dynamic)?
+    CustomStepDetails: (Dynamic)?
+    DecryptStepDetails: (Dynamic)?
+    DeleteStepDetails: (Dynamic)?
+    TagStepDetails: (Dynamic)?
+    Type: (WorkflowStepType|Mapping)?
 }
 
 /// Resource Type definition for AWS::Transfer::Workflow

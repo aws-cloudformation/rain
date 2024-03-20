@@ -5,21 +5,23 @@ module aws.mediatailor.playbackconfiguration
 
 import "../../cloudformation.pkl"
 
-/// The configuration for pre-roll ad insertion.
-open class PlaybackConfigurationLivePreRollConfiguration {
-    AdDecisionServerUrl: (String|Mapping)?
-    MaxDurationSeconds: (Int|Mapping)?
-}
-
 /// For HLS, when set to true, MediaTailor passes through EXT-X-CUE-IN, EXT-X-CUE-OUT, and EXT-X-SPLICEPOINT-SCTE35 ad markers from the origin manifest to the MediaTailor personalized manifest. No logic is applied to these ad markers. For example, if EXT-X-CUE-OUT has a value of 60, but no ads are filled for that ad break, MediaTailor will not set the value to 0.
 open class PlaybackConfigurationAdMarkerPassthrough {
     Enabled: (Boolean|Mapping)?
 }
 
+typealias AvailSuppressionMode = "OFF"|"BEHIND_LIVE_EDGE"
+
+/// The configuration for avail suppression, also known as ad suppression. For more information about ad suppression, see Ad Suppression (https://docs.aws.amazon.com/mediatailor/latest/ug/ad-behavior.html).
+open class PlaybackConfigurationAvailSuppression {
+    Mode: (AvailSuppressionMode|Mapping)?
+    Value: (String|Mapping)?
+}
+
 /// The configuration for bumpers. Bumpers are short audio or video clips that play at the start or before the end of an ad break. To learn more about bumpers, see Bumpers (https://docs.aws.amazon.com/mediatailor/latest/ug/bumpers.html).
 open class PlaybackConfigurationBumper {
-    StartUrl: (String|Mapping)?
     EndUrl: (String|Mapping)?
+    StartUrl: (String|Mapping)?
 }
 
 /// The configuration for using a content delivery network (CDN), like Amazon CloudFront, for content and ad segment management.
@@ -28,9 +30,27 @@ open class PlaybackConfigurationCdnConfiguration {
     ContentSegmentUrlPrefix: (String|Mapping)?
 }
 
+typealias PlaybackConfigurationConfigurationAliases = Mapping<String, Any>
+
+
+typealias DashConfigurationOriginManifestType = "SINGLE_PERIOD"|"MULTI_PERIOD"
+
+/// The configuration for DASH PUT operations.
+open class PlaybackConfigurationDashConfiguration {
+    ManifestEndpointPrefix: (String|Mapping)?
+    MpdLocation: (String|Mapping)?
+    OriginManifestType: (DashConfigurationOriginManifestType|Mapping)?
+}
+
 /// 
 open class PlaybackConfigurationHlsConfiguration {
     ManifestEndpointPrefix: (String|Mapping)?
+}
+
+/// The configuration for pre-roll ad insertion.
+open class PlaybackConfigurationLivePreRollConfiguration {
+    AdDecisionServerUrl: (String|Mapping)?
+    MaxDurationSeconds: (Int|Mapping)?
 }
 
 /// The configuration for manifest processing rules. Manifest processing rules enable customization of the personalized manifests created by MediaTailor.
@@ -42,26 +62,6 @@ open class PlaybackConfigurationManifestProcessingRules {
 open class PlaybackConfigurationTag {
     Key: String|Mapping
     Value: String|Mapping
-}
-
-typealias AvailSuppressionMode = "OFF"|"BEHIND_LIVE_EDGE"
-
-/// The configuration for avail suppression, also known as ad suppression. For more information about ad suppression, see Ad Suppression (https://docs.aws.amazon.com/mediatailor/latest/ug/ad-behavior.html).
-open class PlaybackConfigurationAvailSuppression {
-    Mode: (AvailSuppressionMode|Mapping)?
-    Value: (String|Mapping)?
-}
-
-typealias PlaybackConfigurationConfigurationAliases = Mapping<String, Any>
-
-
-typealias DashConfigurationOriginManifestType = "SINGLE_PERIOD"|"MULTI_PERIOD"
-
-/// The configuration for DASH PUT operations.
-open class PlaybackConfigurationDashConfiguration {
-    MpdLocation: (String|Mapping)?
-    OriginManifestType: (DashConfigurationOriginManifestType|Mapping)?
-    ManifestEndpointPrefix: (String|Mapping)?
 }
 
 /// Resource schema for AWS::MediaTailor::PlaybackConfiguration

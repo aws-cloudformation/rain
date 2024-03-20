@@ -8,6 +8,9 @@ import "../../cloudformation.pkl"
 typealias StackSetAccount = String|Mapping
 
 
+typealias StackSetActive = Boolean|Mapping
+
+
 /// 
 open class StackSetAutoDeployment {
     Enabled: (Boolean|Mapping)?
@@ -21,30 +24,11 @@ typealias DeploymentTargetsAccountFilterType = "NONE"|"UNION"|"INTERSECTION"|"DI
 
 ///  The AWS OrganizationalUnitIds or Accounts for which to create stack instances in the specified Regions.
 open class StackSetDeploymentTargets {
+    AccountFilterType: (DeploymentTargetsAccountFilterType|Mapping)?
     Accounts: (Listing<StackSetAccount>)?
     AccountsUrl: (String(matches(Regex(#"(s3://|http(s?)://).+"#)))|Mapping)?
     OrganizationalUnitIds: (Listing<StackSetOrganizationalUnitId>)?
-    AccountFilterType: (DeploymentTargetsAccountFilterType|Mapping)?
 }
-
-typealias StackSetRegionConcurrencyType = String|Mapping
-
-
-/// Stack instances in some specific accounts and Regions.
-open class StackSetStackInstances {
-    DeploymentTargets: StackSetDeploymentTargets
-    Regions: Listing<StackSetRegion>
-    ParameterOverrides: (Listing<StackSetParameter>)?
-}
-
-/// Tag type enables you to specify a key-value pair that can be used to store information about an AWS CloudFormation StackSet.
-open class StackSetTag {
-    Key: String(matches(Regex(#"^(?!aws:.*)[a-zA-Z0-9\s\:\_\.\/\=\+\-]+$"#)))|Mapping
-    Value: String|Mapping
-}
-
-typealias StackSetActive = Boolean|Mapping
-
 
 /// The user-specified preferences for how AWS CloudFormation performs a stack set operation.
 open class StackSetOperationPreferences {
@@ -52,8 +36,8 @@ open class StackSetOperationPreferences {
     FailureTolerancePercentage: (Int|Mapping)?
     MaxConcurrentCount: (Int|Mapping)?
     MaxConcurrentPercentage: (Int|Mapping)?
-    RegionOrder: (Listing<StackSetRegion>)?
     RegionConcurrencyType: (StackSetRegionConcurrencyType)?
+    RegionOrder: (Listing<StackSetRegion>)?
 }
 
 typealias StackSetOrganizationalUnitId = String|Mapping
@@ -67,6 +51,22 @@ open class StackSetParameter {
 
 typealias StackSetRegion = String|Mapping
 
+
+typealias StackSetRegionConcurrencyType = String|Mapping
+
+
+/// Stack instances in some specific accounts and Regions.
+open class StackSetStackInstances {
+    DeploymentTargets: StackSetDeploymentTargets
+    ParameterOverrides: (Listing<StackSetParameter>)?
+    Regions: Listing<StackSetRegion>
+}
+
+/// Tag type enables you to specify a key-value pair that can be used to store information about an AWS CloudFormation StackSet.
+open class StackSetTag {
+    Key: String(matches(Regex(#"^(?!aws:.*)[a-zA-Z0-9\s\:\_\.\/\=\+\-]+$"#)))|Mapping
+    Value: String|Mapping
+}
 
 /// StackSet as a resource provides one-click experience for provisioning a StackSet and StackInstances
 open class StackSet extends cloudformation.Resource {

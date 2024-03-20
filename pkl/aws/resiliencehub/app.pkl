@@ -5,36 +5,12 @@ module aws.resiliencehub.app
 
 import "../../cloudformation.pkl"
 
-/// 
-open class AppPhysicalResourceId {
-    AwsAccountId: (String(matches(Regex(#"^[0-9]{12}$"#)))|Mapping)?
-    AwsRegion: (String(matches(Regex(#"^[a-z]{2}-((iso[a-z]{0,1}-)|(gov-)){0,1}[a-z]+-[0-9]$"#)))|Mapping)?
-    Identifier: String|Mapping
-    Type: String(matches(Regex(#"Arn|Native"#)))|Mapping
-}
-
-/// Resource mapping is used to map logical resources from template to physical resource
-open class AppResourceMapping {
-    LogicalStackName: (String|Mapping)?
-    MappingType: String(matches(Regex(#"CfnStack|Resource|Terraform|EKS"#)))|Mapping
-    ResourceName: (String(matches(Regex(#"^[A-Za-z0-9][A-Za-z0-9_\-]{1,59}$"#)))|Mapping)?
-    TerraformSourceName: (String|Mapping)?
-    EksSourceName: (String|Mapping)?
-    PhysicalResourceId: AppPhysicalResourceId
-}
-
-typealias AppTagMap = Mapping<String, Any>
-
-
-typealias AppTagValue = String|Mapping
-
-
 typealias EventSubscriptionEventType = "ScheduledAssessmentFailure"|"DriftDetected"
 
 /// Indicates an event you would like to subscribe and get notification for.
 open class AppEventSubscription {
-    Name: String|Mapping
     EventType: EventSubscriptionEventType|Mapping
+    Name: String|Mapping
     SnsTopicArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-iso|aws-iso-[a-z]{1}|aws-us-gov):[A-Za-z0-9][A-Za-z0-9_/.-]{0,62}:([a-z]{2}-((iso[a-z]{0,1}-)|(gov-)){0,1}[a-z]+-[0-9]):[0-9]{12}:[A-Za-z0-9/][A-Za-z0-9:_/+.-]{0,1023}$"#)))|Mapping)?
 }
 
@@ -45,10 +21,34 @@ typealias PermissionModelType = "LegacyIAMUser"|"RoleBased"
 
 /// Defines the roles and credentials that AWS Resilience Hub would use while creating the application, importing its resources, and running an assessment.
 open class AppPermissionModel {
-    Type: PermissionModelType|Mapping
-    InvokerRoleName: (String(matches(Regex(#"((\u002F[\u0021-\u007E]+\u002F){1,511})?[A-Za-z0-9+=,.@_/-]{1,64}"#)))|Mapping)?
     CrossAccountRoleArns: (Listing<AppIamRoleArn>)?
+    InvokerRoleName: (String(matches(Regex(#"((\u002F[\u0021-\u007E]+\u002F){1,511})?[A-Za-z0-9+=,.@_/-]{1,64}"#)))|Mapping)?
+    Type: PermissionModelType|Mapping
 }
+
+/// 
+open class AppPhysicalResourceId {
+    AwsAccountId: (String(matches(Regex(#"^[0-9]{12}$"#)))|Mapping)?
+    AwsRegion: (String(matches(Regex(#"^[a-z]{2}-((iso[a-z]{0,1}-)|(gov-)){0,1}[a-z]+-[0-9]$"#)))|Mapping)?
+    Identifier: String|Mapping
+    Type: String(matches(Regex(#"Arn|Native"#)))|Mapping
+}
+
+/// Resource mapping is used to map logical resources from template to physical resource
+open class AppResourceMapping {
+    EksSourceName: (String|Mapping)?
+    LogicalStackName: (String|Mapping)?
+    MappingType: String(matches(Regex(#"CfnStack|Resource|Terraform|EKS"#)))|Mapping
+    PhysicalResourceId: AppPhysicalResourceId
+    ResourceName: (String(matches(Regex(#"^[A-Za-z0-9][A-Za-z0-9_\-]{1,59}$"#)))|Mapping)?
+    TerraformSourceName: (String|Mapping)?
+}
+
+typealias AppTagMap = Mapping<String, Any>
+
+
+typealias AppTagValue = String|Mapping
+
 
 /// Resource Type Definition for AWS::ResilienceHub::App.
 open class App extends cloudformation.Resource {

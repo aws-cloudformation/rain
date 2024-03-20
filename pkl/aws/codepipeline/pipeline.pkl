@@ -6,32 +6,98 @@ module aws.codepipeline.pipeline
 import "../../cloudformation.pkl"
 
 /// 
-open class PipelineGitPushFilter {
-    Tags: (PipelineGitTagFilterCriteria)?
-    FilePaths: (PipelineGitFilePathFilterCriteria)?
-    Branches: (PipelineGitBranchFilterCriteria)?
+open class PipelineActionDeclaration {
+    ActionTypeId: PipelineActionTypeId
+    Configuration: (Dynamic)?
+    InputArtifacts: (Listing<PipelineInputArtifact>)?
+    Name: String|Mapping
+    Namespace: (String|Mapping)?
+    OutputArtifacts: (Listing<PipelineOutputArtifact>)?
+    Region: (String|Mapping)?
+    RoleArn: (String|Mapping)?
+    RunOrder: (Int|Mapping)?
+    TimeoutInMinutes: (Int|Mapping)?
 }
 
 /// 
-open class PipelineOutputArtifact {
-    Name: String|Mapping
+open class PipelineActionTypeId {
+    Category: String|Mapping
+    Owner: String|Mapping
+    Provider: String|Mapping
+    Version: String|Mapping
 }
 
 /// 
-open class PipelineVariableDeclaration {
-    DefaultValue: (String|Mapping)?
-    Description: (String|Mapping)?
+open class PipelineArtifactStore {
+    EncryptionKey: (PipelineEncryptionKey)?
+    Location: String|Mapping
+    Type: String|Mapping
+}
+
+/// 
+open class PipelineArtifactStoreMap {
+    ArtifactStore: PipelineArtifactStore
+    Region: String|Mapping
+}
+
+/// 
+open class PipelineBlockerDeclaration {
     Name: String|Mapping
+    Type: String|Mapping
+}
+
+/// 
+open class PipelineEncryptionKey {
+    Id: String|Mapping
+    Type: String|Mapping
+}
+
+/// 
+open class PipelineGitBranchFilterCriteria {
+    Excludes: (Listing<String|Mapping>)?
+    Includes: (Listing<String|Mapping>)?
+}
+
+/// 
+open class PipelineGitConfiguration {
+    PullRequest: (Listing<PipelineGitPullRequestFilter>)?
+    Push: (Listing<PipelineGitPushFilter>)?
+    SourceActionName: String|Mapping
 }
 
 /// 
 open class PipelineGitFilePathFilterCriteria {
-    Includes: (Listing<String|Mapping>)?
     Excludes: (Listing<String|Mapping>)?
+    Includes: (Listing<String|Mapping>)?
+}
+
+/// 
+open class PipelineGitPullRequestFilter {
+    Branches: (PipelineGitBranchFilterCriteria)?
+    Events: (Listing<String|Mapping>)?
+    FilePaths: (PipelineGitFilePathFilterCriteria)?
+}
+
+/// 
+open class PipelineGitPushFilter {
+    Branches: (PipelineGitBranchFilterCriteria)?
+    FilePaths: (PipelineGitFilePathFilterCriteria)?
+    Tags: (PipelineGitTagFilterCriteria)?
+}
+
+/// 
+open class PipelineGitTagFilterCriteria {
+    Excludes: (Listing<String|Mapping>)?
+    Includes: (Listing<String|Mapping>)?
 }
 
 /// 
 open class PipelineInputArtifact {
+    Name: String|Mapping
+}
+
+/// 
+open class PipelineOutputArtifact {
     Name: String|Mapping
 }
 
@@ -43,94 +109,28 @@ open class PipelinePipelineTriggerDeclaration {
 
 /// 
 open class PipelineStageDeclaration {
-    Blockers: (Listing<PipelineBlockerDeclaration>)?
     Actions: Listing<PipelineActionDeclaration>
+    Blockers: (Listing<PipelineBlockerDeclaration>)?
     Name: String|Mapping
 }
 
 /// 
 open class PipelineStageTransition {
-    StageName: String|Mapping
     Reason: String|Mapping
-}
-
-/// 
-open class PipelineArtifactStore {
-    Type: String|Mapping
-    EncryptionKey: (PipelineEncryptionKey)?
-    Location: String|Mapping
-}
-
-/// 
-open class PipelineArtifactStoreMap {
-    ArtifactStore: PipelineArtifactStore
-    Region: String|Mapping
-}
-
-/// 
-open class PipelineBlockerDeclaration {
-    Type: String|Mapping
-    Name: String|Mapping
-}
-
-/// 
-open class PipelineGitBranchFilterCriteria {
-    Excludes: (Listing<String|Mapping>)?
-    Includes: (Listing<String|Mapping>)?
-}
-
-/// 
-open class PipelineGitTagFilterCriteria {
-    Includes: (Listing<String|Mapping>)?
-    Excludes: (Listing<String|Mapping>)?
+    StageName: String|Mapping
 }
 
 /// 
 open class PipelineTag {
-    Value: String|Mapping
     Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// 
-open class PipelineActionDeclaration {
-    Region: (String|Mapping)?
-    RunOrder: (Int|Mapping)?
+open class PipelineVariableDeclaration {
+    DefaultValue: (String|Mapping)?
+    Description: (String|Mapping)?
     Name: String|Mapping
-    TimeoutInMinutes: (Int|Mapping)?
-    InputArtifacts: (Listing<PipelineInputArtifact>)?
-    OutputArtifacts: (Listing<PipelineOutputArtifact>)?
-    Namespace: (String|Mapping)?
-    RoleArn: (String|Mapping)?
-    ActionTypeId: PipelineActionTypeId
-    Configuration: (Dynamic)?
-}
-
-/// 
-open class PipelineActionTypeId {
-    Owner: String|Mapping
-    Category: String|Mapping
-    Version: String|Mapping
-    Provider: String|Mapping
-}
-
-/// 
-open class PipelineEncryptionKey {
-    Type: String|Mapping
-    Id: String|Mapping
-}
-
-/// 
-open class PipelineGitConfiguration {
-    Push: (Listing<PipelineGitPushFilter>)?
-    SourceActionName: String|Mapping
-    PullRequest: (Listing<PipelineGitPullRequestFilter>)?
-}
-
-/// 
-open class PipelineGitPullRequestFilter {
-    FilePaths: (PipelineGitFilePathFilterCriteria)?
-    Events: (Listing<String|Mapping>)?
-    Branches: (PipelineGitBranchFilterCriteria)?
 }
 
 /// Resource Type definition for AWS::CodePipeline::Pipeline

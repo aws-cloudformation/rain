@@ -5,48 +5,6 @@ module aws.events.rule
 
 import "../../cloudformation.pkl"
 
-typealias RuleInputTransformerInputPathsMap = Mapping<String, Any>
-
-/// 
-open class RuleInputTransformer {
-    InputPathsMap: (RuleInputTransformerInputPathsMap)?
-    InputTemplate: String|Mapping
-}
-
-/// 
-open class RulePlacementStrategy {
-    Field: (String|Mapping)?
-    Type: (String|Mapping)?
-}
-
-/// 
-open class RuleRedshiftDataParameters {
-    StatementName: (String|Mapping)?
-    Sqls: (Listing<String|Mapping>)?
-    Database: String|Mapping
-    SecretManagerArn: (String|Mapping)?
-    DbUser: (String|Mapping)?
-    Sql: (String|Mapping)?
-    WithEvent: (Boolean|Mapping)?
-}
-
-/// 
-open class RuleRetryPolicy {
-    MaximumRetryAttempts: (Int|Mapping)?
-    MaximumEventAgeInSeconds: (Int|Mapping)?
-}
-
-/// 
-open class RuleSageMakerPipelineParameter {
-    Value: String|Mapping
-    Name: String|Mapping
-}
-
-/// 
-open class RuleSageMakerPipelineParameters {
-    PipelineParameterList: (Listing<RuleSageMakerPipelineParameter>)?
-}
-
 /// 
 open class RuleAppSyncParameters {
     GraphQLOperation: String|Mapping
@@ -60,11 +18,16 @@ open class RuleAwsVpcConfiguration {
 }
 
 /// 
+open class RuleBatchArrayProperties {
+    Size: (Int|Mapping)?
+}
+
+/// 
 open class RuleBatchParameters {
+    ArrayProperties: (RuleBatchArrayProperties)?
+    JobDefinition: String|Mapping
     JobName: String|Mapping
     RetryStrategy: (RuleBatchRetryStrategy)?
-    JobDefinition: String|Mapping
-    ArrayProperties: (RuleBatchArrayProperties)?
 }
 
 /// 
@@ -74,30 +37,56 @@ open class RuleBatchRetryStrategy {
 
 /// 
 open class RuleCapacityProviderStrategyItem {
-    CapacityProvider: String|Mapping
     Base: (Int|Mapping)?
+    CapacityProvider: String|Mapping
     Weight: (Int|Mapping)?
-}
-
-/// 
-open class RuleRunCommandParameters {
-    RunCommandTargets: Listing<RuleRunCommandTarget>
-}
-
-/// 
-open class RuleRunCommandTarget {
-    Values: Listing<String|Mapping>
-    Key: String|Mapping
-}
-
-/// 
-open class RuleSqsParameters {
-    MessageGroupId: String|Mapping
 }
 
 /// 
 open class RuleDeadLetterConfig {
     Arn: (String|Mapping)?
+}
+
+/// 
+open class RuleEcsParameters {
+    CapacityProviderStrategy: (Listing<RuleCapacityProviderStrategyItem>)?
+    EnableECSManagedTags: (Boolean|Mapping)?
+    EnableExecuteCommand: (Boolean|Mapping)?
+    Group: (String|Mapping)?
+    LaunchType: (String|Mapping)?
+    NetworkConfiguration: (RuleNetworkConfiguration)?
+    PlacementConstraints: (Listing<RulePlacementConstraint>)?
+    PlacementStrategies: (Listing<RulePlacementStrategy>)?
+    PlatformVersion: (String|Mapping)?
+    PropagateTags: (String|Mapping)?
+    ReferenceId: (String|Mapping)?
+    TagList: (Listing<RuleTag>)?
+    TaskCount: (Int|Mapping)?
+    TaskDefinitionArn: String|Mapping
+}
+
+typealias RuleHttpParametersHeaderParameters = Mapping<String, Any>
+
+typealias RuleHttpParametersQueryStringParameters = Mapping<String, Any>
+
+/// 
+open class RuleHttpParameters {
+    HeaderParameters: (RuleHttpParametersHeaderParameters)?
+    PathParameterValues: (Listing<String|Mapping>)?
+    QueryStringParameters: (RuleHttpParametersQueryStringParameters)?
+}
+
+typealias RuleInputTransformerInputPathsMap = Mapping<String, Any>
+
+/// 
+open class RuleInputTransformer {
+    InputPathsMap: (RuleInputTransformerInputPathsMap)?
+    InputTemplate: String|Mapping
+}
+
+/// 
+open class RuleKinesisParameters {
+    PartitionKeyPath: String|Mapping
 }
 
 /// 
@@ -107,74 +96,85 @@ open class RuleNetworkConfiguration {
 
 /// 
 open class RulePlacementConstraint {
-    Type: (String|Mapping)?
     Expression: (String|Mapping)?
+    Type: (String|Mapping)?
 }
 
 /// 
-open class RuleTarget {
-    InputPath: (String|Mapping)?
-    InputTransformer: (RuleInputTransformer)?
-    RoleArn: (String|Mapping)?
-    AppSyncParameters: (RuleAppSyncParameters)?
-    EcsParameters: (RuleEcsParameters)?
-    SageMakerPipelineParameters: (RuleSageMakerPipelineParameters)?
-    SqsParameters: (RuleSqsParameters)?
-    BatchParameters: (RuleBatchParameters)?
-    Arn: String|Mapping
-    RetryPolicy: (RuleRetryPolicy)?
-    HttpParameters: (RuleHttpParameters)?
-    DeadLetterConfig: (RuleDeadLetterConfig)?
-    RunCommandParameters: (RuleRunCommandParameters)?
-    KinesisParameters: (RuleKinesisParameters)?
-    RedshiftDataParameters: (RuleRedshiftDataParameters)?
-    Input: (String|Mapping)?
-    Id: String|Mapping
+open class RulePlacementStrategy {
+    Field: (String|Mapping)?
+    Type: (String|Mapping)?
 }
 
 /// 
-open class RuleBatchArrayProperties {
-    Size: (Int|Mapping)?
+open class RuleRedshiftDataParameters {
+    Database: String|Mapping
+    DbUser: (String|Mapping)?
+    SecretManagerArn: (String|Mapping)?
+    Sql: (String|Mapping)?
+    Sqls: (Listing<String|Mapping>)?
+    StatementName: (String|Mapping)?
+    WithEvent: (Boolean|Mapping)?
 }
 
 /// 
-open class RuleEcsParameters {
-    PlacementConstraints: (Listing<RulePlacementConstraint>)?
-    ReferenceId: (String|Mapping)?
-    TagList: (Listing<RuleTag>)?
-    Group: (String|Mapping)?
-    EnableECSManagedTags: (Boolean|Mapping)?
-    EnableExecuteCommand: (Boolean|Mapping)?
-    PropagateTags: (String|Mapping)?
-    NetworkConfiguration: (RuleNetworkConfiguration)?
-    CapacityProviderStrategy: (Listing<RuleCapacityProviderStrategyItem>)?
-    LaunchType: (String|Mapping)?
-    TaskDefinitionArn: String|Mapping
-    PlatformVersion: (String|Mapping)?
-    TaskCount: (Int|Mapping)?
-    PlacementStrategies: (Listing<RulePlacementStrategy>)?
-}
-
-typealias RuleHttpParametersHeaderParameters = Mapping<String, Any>
-
-typealias RuleHttpParametersQueryStringParameters = Mapping<String, Any>
-
-/// 
-open class RuleHttpParameters {
-    PathParameterValues: (Listing<String|Mapping>)?
-    HeaderParameters: (RuleHttpParametersHeaderParameters)?
-    QueryStringParameters: (RuleHttpParametersQueryStringParameters)?
+open class RuleRetryPolicy {
+    MaximumEventAgeInSeconds: (Int|Mapping)?
+    MaximumRetryAttempts: (Int|Mapping)?
 }
 
 /// 
-open class RuleKinesisParameters {
-    PartitionKeyPath: String|Mapping
+open class RuleRunCommandParameters {
+    RunCommandTargets: Listing<RuleRunCommandTarget>
+}
+
+/// 
+open class RuleRunCommandTarget {
+    Key: String|Mapping
+    Values: Listing<String|Mapping>
+}
+
+/// 
+open class RuleSageMakerPipelineParameter {
+    Name: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class RuleSageMakerPipelineParameters {
+    PipelineParameterList: (Listing<RuleSageMakerPipelineParameter>)?
+}
+
+/// 
+open class RuleSqsParameters {
+    MessageGroupId: String|Mapping
 }
 
 /// 
 open class RuleTag {
-    Value: (String|Mapping)?
     Key: (String|Mapping)?
+    Value: (String|Mapping)?
+}
+
+/// 
+open class RuleTarget {
+    AppSyncParameters: (RuleAppSyncParameters)?
+    Arn: String|Mapping
+    BatchParameters: (RuleBatchParameters)?
+    DeadLetterConfig: (RuleDeadLetterConfig)?
+    EcsParameters: (RuleEcsParameters)?
+    HttpParameters: (RuleHttpParameters)?
+    Id: String|Mapping
+    Input: (String|Mapping)?
+    InputPath: (String|Mapping)?
+    InputTransformer: (RuleInputTransformer)?
+    KinesisParameters: (RuleKinesisParameters)?
+    RedshiftDataParameters: (RuleRedshiftDataParameters)?
+    RetryPolicy: (RuleRetryPolicy)?
+    RoleArn: (String|Mapping)?
+    RunCommandParameters: (RuleRunCommandParameters)?
+    SageMakerPipelineParameters: (RuleSageMakerPipelineParameters)?
+    SqsParameters: (RuleSqsParameters)?
 }
 
 /// Resource Type definition for AWS::Events::Rule

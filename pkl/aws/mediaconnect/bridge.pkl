@@ -5,46 +5,6 @@ module aws.mediaconnect.bridge
 
 import "../../cloudformation.pkl"
 
-typealias BridgeFailoverConfigStateEnum = String|Mapping
-
-
-/// The source of the bridge. A network source originates at your premises.
-open class BridgeBridgeNetworkSource {
-    NetworkName: String|Mapping
-    Name: String|Mapping
-    Protocol: BridgeProtocolEnum
-    MulticastIp: String|Mapping
-    Port: Int|Mapping
-}
-
-/// The output of the bridge.
-open class BridgeBridgeOutput {
-    NetworkOutput: (BridgeBridgeNetworkOutput)?
-}
-
-/// 
-open class BridgeEgressGatewayBridge {
-    MaxBitrate: Int|Mapping
-}
-
-/// The bridge's source.
-open class BridgeBridgeSource {
-    FlowSource: (BridgeBridgeFlowSource)?
-    NetworkSource: (BridgeBridgeNetworkSource)?
-}
-
-/// The settings for source failover.
-open class BridgeFailoverConfig {
-    State: (BridgeFailoverConfigStateEnum)?
-    FailoverMode: BridgeFailoverModeEnum
-    SourcePriority: (BridgeSourcePriority)?
-}
-
-/// The settings for attaching a VPC interface to an resource.
-open class BridgeVpcInterfaceAttachment {
-    VpcInterfaceName: (String|Mapping)?
-}
-
 /// The source of the bridge. A flow source originates in MediaConnect as an existing cloud flow.
 open class BridgeBridgeFlowSource {
     FlowArn: String|Mapping
@@ -54,13 +14,54 @@ open class BridgeBridgeFlowSource {
 
 /// The output of the bridge. A network output is delivered to your premises.
 open class BridgeBridgeNetworkOutput {
-    Name: String|Mapping
-    Protocol: BridgeProtocolEnum
     IpAddress: String|Mapping
-    Port: Int|Mapping
+    Name: String|Mapping
     NetworkName: String|Mapping
+    Port: Int|Mapping
+    Protocol: BridgeProtocolEnum
     Ttl: Int|Mapping
 }
+
+/// The source of the bridge. A network source originates at your premises.
+open class BridgeBridgeNetworkSource {
+    MulticastIp: String|Mapping
+    Name: String|Mapping
+    NetworkName: String|Mapping
+    Port: Int|Mapping
+    Protocol: BridgeProtocolEnum
+}
+
+/// The output of the bridge.
+open class BridgeBridgeOutput {
+    NetworkOutput: (BridgeBridgeNetworkOutput)?
+}
+
+/// The bridge's source.
+open class BridgeBridgeSource {
+    FlowSource: (BridgeBridgeFlowSource)?
+    NetworkSource: (BridgeBridgeNetworkSource)?
+}
+
+typealias BridgeBridgeStateEnum = String|Mapping
+
+
+/// 
+open class BridgeEgressGatewayBridge {
+    MaxBitrate: Int|Mapping
+}
+
+/// The settings for source failover.
+open class BridgeFailoverConfig {
+    FailoverMode: BridgeFailoverModeEnum
+    SourcePriority: (BridgeSourcePriority)?
+    State: (BridgeFailoverConfigStateEnum)?
+}
+
+typealias BridgeFailoverConfigStateEnum = String|Mapping
+
+
+typealias BridgeFailoverModeEnum = String|Mapping
+
 
 /// 
 open class BridgeIngressGatewayBridge {
@@ -76,11 +77,10 @@ open class BridgeSourcePriority {
     PrimarySource: (String|Mapping)?
 }
 
-typealias BridgeBridgeStateEnum = String|Mapping
-
-
-typealias BridgeFailoverModeEnum = String|Mapping
-
+/// The settings for attaching a VPC interface to an resource.
+open class BridgeVpcInterfaceAttachment {
+    VpcInterfaceName: (String|Mapping)?
+}
 
 /// Resource schema for AWS::MediaConnect::Bridge
 open class Bridge extends cloudformation.Resource {

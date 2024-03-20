@@ -7,53 +7,58 @@ import "../../cloudformation.pkl"
 
 /// Specifies an action for a listener rule.
 open class ListenerAction {
-    Type: String|Mapping
-    RedirectConfig: (ListenerRedirectConfig)?
-    ForwardConfig: (ListenerForwardConfig)?
-    AuthenticateOidcConfig: (ListenerAuthenticateOidcConfig)?
-    Order: (Int|Mapping)?
-    TargetGroupArn: (String|Mapping)?
-    FixedResponseConfig: (ListenerFixedResponseConfig)?
     AuthenticateCognitoConfig: (ListenerAuthenticateCognitoConfig)?
+    AuthenticateOidcConfig: (ListenerAuthenticateOidcConfig)?
+    FixedResponseConfig: (ListenerFixedResponseConfig)?
+    ForwardConfig: (ListenerForwardConfig)?
+    Order: (Int|Mapping)?
+    RedirectConfig: (ListenerRedirectConfig)?
+    TargetGroupArn: (String|Mapping)?
+    Type: String|Mapping
 }
 
 typealias ListenerAuthenticateCognitoConfigAuthenticationRequestExtraParams = Mapping<String, Any>
 
 /// Specifies information required when integrating with Amazon Cognito to authenticate users.
 open class ListenerAuthenticateCognitoConfig {
-    UserPoolDomain: String|Mapping
-    SessionTimeout: (String|Mapping)?
-    Scope: (String|Mapping)?
-    SessionCookieName: (String|Mapping)?
-    UserPoolArn: String|Mapping
     AuthenticationRequestExtraParams: (ListenerAuthenticateCognitoConfigAuthenticationRequestExtraParams)?
     OnUnauthenticatedRequest: (String|Mapping)?
+    Scope: (String|Mapping)?
+    SessionCookieName: (String|Mapping)?
+    SessionTimeout: (String|Mapping)?
+    UserPoolArn: String|Mapping
     UserPoolClientId: String|Mapping
+    UserPoolDomain: String|Mapping
 }
 
 typealias ListenerAuthenticateOidcConfigAuthenticationRequestExtraParams = Mapping<String, Any>
 
 /// Specifies information required using an identity provide (IdP) that is compliant with OpenID Connect (OIDC) to authenticate users.
 open class ListenerAuthenticateOidcConfig {
-    Scope: (String|Mapping)?
-    Issuer: String|Mapping
-    ClientSecret: (String|Mapping)?
-    AuthorizationEndpoint: String|Mapping
-    SessionCookieName: (String|Mapping)?
-    UseExistingClientSecret: (Boolean|Mapping)?
-    OnUnauthenticatedRequest: (String|Mapping)?
-    TokenEndpoint: String|Mapping
     AuthenticationRequestExtraParams: (ListenerAuthenticateOidcConfigAuthenticationRequestExtraParams)?
+    AuthorizationEndpoint: String|Mapping
     ClientId: String|Mapping
+    ClientSecret: (String|Mapping)?
+    Issuer: String|Mapping
+    OnUnauthenticatedRequest: (String|Mapping)?
+    Scope: (String|Mapping)?
+    SessionCookieName: (String|Mapping)?
     SessionTimeout: (String|Mapping)?
+    TokenEndpoint: String|Mapping
+    UseExistingClientSecret: (Boolean|Mapping)?
     UserInfoEndpoint: String|Mapping
+}
+
+/// Specifies an SSL server certificate to use as the default certificate for a secure listener.
+open class ListenerCertificate {
+    CertificateArn: (String|Mapping)?
 }
 
 /// Specifies information required when returning a custom HTTP response.
 open class ListenerFixedResponseConfig {
     ContentType: (String|Mapping)?
-    StatusCode: String|Mapping
     MessageBody: (String|Mapping)?
+    StatusCode: String|Mapping
 }
 
 /// Information for creating an action that distributes requests among one or more target groups. For Network Load Balancers, you can specify a single target group. Specify only when ``Type`` is ``forward``. If you specify both ``ForwardConfig`` and ``TargetGroupArn``, you can specify only one target group using ``ForwardConfig`` and it must be the same target group specified in ``TargetGroupArn``.
@@ -62,22 +67,11 @@ open class ListenerForwardConfig {
     TargetGroups: (Listing<ListenerTargetGroupTuple>)?
 }
 
-/// Information about the target group stickiness for a rule.
-open class ListenerTargetGroupStickinessConfig {
-    Enabled: (Boolean|Mapping)?
-    DurationSeconds: (Int|Mapping)?
-}
-
-/// Specifies an SSL server certificate to use as the default certificate for a secure listener.
-open class ListenerCertificate {
-    CertificateArn: (String|Mapping)?
-}
-
 /// Specifies the configuration information for mutual authentication.
 open class ListenerMutualAuthentication {
+    IgnoreClientCertificateExpiry: (Boolean|Mapping)?
     Mode: (String|Mapping)?
     TrustStoreArn: (String|Mapping)?
-    IgnoreClientCertificateExpiry: (Boolean|Mapping)?
 }
 
 /// Information about a redirect action.
@@ -92,12 +86,18 @@ open class ListenerMutualAuthentication {
 ///   
 ///  For example, you can change the path to "/new/#{path}", the hostname to "example.#{host}", or the query to "#{query}&value=xyz".
 open class ListenerRedirectConfig {
-    Path: (String|Mapping)?
-    Query: (String|Mapping)?
-    Port: (String|Mapping)?
     Host: (String|Mapping)?
+    Path: (String|Mapping)?
+    Port: (String|Mapping)?
     Protocol: (String|Mapping)?
+    Query: (String|Mapping)?
     StatusCode: String|Mapping
+}
+
+/// Information about the target group stickiness for a rule.
+open class ListenerTargetGroupStickinessConfig {
+    DurationSeconds: (Int|Mapping)?
+    Enabled: (Boolean|Mapping)?
 }
 
 /// Information about how traffic will be distributed between multiple target groups in a forward rule.

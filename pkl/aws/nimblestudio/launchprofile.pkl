@@ -5,49 +5,50 @@ module aws.nimblestudio.launchprofile
 
 import "../../cloudformation.pkl"
 
-typealias LaunchProfileStreamingSessionStorageMode = String|Mapping
-
-
-/// <p>Custom volume configuration for the root volumes that are attached to streaming
-///
-///             sessions.</p>
-///          <p>This parameter is only allowed when <code>sessionPersistenceMode</code> is
-///                 <code>ACTIVATED</code>.</p>
-open class LaunchProfileVolumeConfiguration {
-    Size: (Number|Mapping)?
-    Throughput: (Number|Mapping)?
-    Iops: (Number|Mapping)?
-}
-
 typealias LaunchProfileAutomaticTerminationMode = String|Mapping
+
+
+typealias LaunchProfileSessionBackupMode = String|Mapping
+
+
+typealias LaunchProfileSessionPersistenceMode = String|Mapping
 
 
 /// <p>A configuration for a streaming session.</p>
 open class LaunchProfileStreamConfiguration {
-    SessionStorage: (LaunchProfileStreamConfigurationSessionStorage)?
     AutomaticTerminationMode: (LaunchProfileAutomaticTerminationMode)?
-    StreamingImageIds: Listing<String|Mapping>
-    MaxStoppedSessionLengthInMinutes: (Number|Mapping)?
-    SessionBackup: (LaunchProfileStreamConfigurationSessionBackup)?
-    SessionPersistenceMode: (LaunchProfileSessionPersistenceMode)?
-    VolumeConfiguration: (LaunchProfileVolumeConfiguration)?
     ClipboardMode: LaunchProfileStreamingClipboardMode
     Ec2InstanceTypes: Listing<LaunchProfileStreamingInstanceType>
     MaxSessionLengthInMinutes: (Number|Mapping)?
+    MaxStoppedSessionLengthInMinutes: (Number|Mapping)?
+    SessionBackup: (LaunchProfileStreamConfigurationSessionBackup)?
+    SessionPersistenceMode: (LaunchProfileSessionPersistenceMode)?
+    SessionStorage: (LaunchProfileStreamConfigurationSessionStorage)?
+    StreamingImageIds: Listing<String|Mapping>
+    VolumeConfiguration: (LaunchProfileVolumeConfiguration)?
 }
 
 /// <p>Configures how streaming sessions are backed up when launched from this launch
 ///
 ///             profile.</p>
 open class LaunchProfileStreamConfigurationSessionBackup {
-    Mode: (LaunchProfileSessionBackupMode)?
     MaxBackupsToRetain: (Number|Mapping)?
+    Mode: (LaunchProfileSessionBackupMode)?
+}
+
+/// <p>The configuration for a streaming session?s upload storage.</p>
+open class LaunchProfileStreamConfigurationSessionStorage {
+    Mode: Listing<LaunchProfileStreamingSessionStorageMode>
+    Root: (LaunchProfileStreamingSessionStorageRoot)?
 }
 
 typealias LaunchProfileStreamingClipboardMode = String|Mapping
 
 
 typealias LaunchProfileStreamingInstanceType = String|Mapping
+
+
+typealias LaunchProfileStreamingSessionStorageMode = String|Mapping
 
 
 /// <p>The upload storage root location (folder) on streaming workstations where files are
@@ -61,16 +62,15 @@ open class LaunchProfileStreamingSessionStorageRoot {
 typealias LaunchProfileTags = Mapping<String, Any>
 
 
-typealias LaunchProfileSessionBackupMode = String|Mapping
-
-
-typealias LaunchProfileSessionPersistenceMode = String|Mapping
-
-
-/// <p>The configuration for a streaming session?s upload storage.</p>
-open class LaunchProfileStreamConfigurationSessionStorage {
-    Root: (LaunchProfileStreamingSessionStorageRoot)?
-    Mode: Listing<LaunchProfileStreamingSessionStorageMode>
+/// <p>Custom volume configuration for the root volumes that are attached to streaming
+///
+///             sessions.</p>
+///          <p>This parameter is only allowed when <code>sessionPersistenceMode</code> is
+///                 <code>ACTIVATED</code>.</p>
+open class LaunchProfileVolumeConfiguration {
+    Iops: (Number|Mapping)?
+    Size: (Number|Mapping)?
+    Throughput: (Number|Mapping)?
 }
 
 /// Represents a launch profile which delegates access to a collection of studio components to studio users

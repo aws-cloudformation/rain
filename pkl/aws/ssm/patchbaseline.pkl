@@ -5,23 +5,12 @@ module aws.ssm.patchbaseline
 
 import "../../cloudformation.pkl"
 
-/// A set of rules defining the approval rules for a patch baseline.
-open class PatchBaselineRuleGroup {
-    PatchRules: (Listing<PatchBaselineRule>)?
-}
-
-/// Metadata that you assign to your AWS resources.
-open class PatchBaselineTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
 typealias PatchFilterKey = "ADVISORY_ID"|"ARCH"|"BUGZILLA_ID"|"CLASSIFICATION"|"CVE_ID"|"EPOCH"|"MSRC_SEVERITY"|"NAME"|"PATCH_ID"|"PATCH_SET"|"PRIORITY"|"PRODUCT"|"PRODUCT_FAMILY"|"RELEASE"|"REPOSITORY"|"SECTION"|"SECURITY"|"SEVERITY"|"VERSION"
 
 /// Defines which patches should be included in a patch baseline.
 open class PatchBaselinePatchFilter {
-    Values: (Listing<String|Mapping>)?
     Key: (PatchFilterKey|Mapping)?
+    Values: (Listing<String|Mapping>)?
 }
 
 /// The patch filter group that defines the criteria for the rule.
@@ -31,9 +20,9 @@ open class PatchBaselinePatchFilterGroup {
 
 /// Information about the patches to use to update the instances, including target operating systems and source repository. Applies to Linux instances only.
 open class PatchBaselinePatchSource {
+    Configuration: (String|Mapping)?
     Name: (String(matches(Regex(#"^[a-zA-Z0-9_\-.]{3,50}$"#)))|Mapping)?
     Products: (Listing<String|Mapping>)?
-    Configuration: (String|Mapping)?
 }
 
 typealias RuleComplianceLevel = "CRITICAL"|"HIGH"|"INFORMATIONAL"|"LOW"|"MEDIUM"|"UNSPECIFIED"
@@ -41,10 +30,21 @@ typealias RuleComplianceLevel = "CRITICAL"|"HIGH"|"INFORMATIONAL"|"LOW"|"MEDIUM"
 /// Defines an approval rule for a patch baseline.
 open class PatchBaselineRule {
     ApproveAfterDays: (Int|Mapping)?
-    ComplianceLevel: (RuleComplianceLevel|Mapping)?
     ApproveUntilDate: (String|Mapping)?
+    ComplianceLevel: (RuleComplianceLevel|Mapping)?
     EnableNonSecurity: (Boolean|Mapping)?
     PatchFilterGroup: (PatchBaselinePatchFilterGroup)?
+}
+
+/// A set of rules defining the approval rules for a patch baseline.
+open class PatchBaselineRuleGroup {
+    PatchRules: (Listing<PatchBaselineRule>)?
+}
+
+/// Metadata that you assign to your AWS resources.
+open class PatchBaselineTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// Resource Type definition for AWS::SSM::PatchBaseline

@@ -5,23 +5,20 @@ module aws.cloudtrail.eventdatastore
 
 import "../../cloudformation.pkl"
 
-typealias EventDataStoreTimestamp = String|Mapping
-
-
 /// Advanced event selectors let you create fine-grained selectors for the following AWS CloudTrail event record ?elds. They help you control costs by logging only those events that are important to you.
 open class EventDataStoreAdvancedEventSelector {
-    Name: (String|Mapping)?
     FieldSelectors: Listing<EventDataStoreAdvancedFieldSelector>
+    Name: (String|Mapping)?
 }
 
 /// A single selector statement in an advanced event selector.
 open class EventDataStoreAdvancedFieldSelector {
     EndsWith: (Listing<String|Mapping>)?
+    Equals: (Listing<String|Mapping>)?
+    Field: String(matches(Regex(#"([\w|\d|\.|_]+)"#)))|Mapping
+    NotEndsWith: (Listing<String|Mapping>)?
     NotEquals: (Listing<String|Mapping>)?
     NotStartsWith: (Listing<String|Mapping>)?
-    NotEndsWith: (Listing<String|Mapping>)?
-    Field: String(matches(Regex(#"([\w|\d|\.|_]+)"#)))|Mapping
-    Equals: (Listing<String|Mapping>)?
     StartsWith: (Listing<String|Mapping>)?
 }
 
@@ -35,6 +32,9 @@ open class EventDataStoreTag {
     Key: String|Mapping
     Value: String|Mapping
 }
+
+typealias EventDataStoreTimestamp = String|Mapping
+
 
 /// A storage lake of event data against which you can run complex SQL-based queries. An event data store can include events that you have logged on your account from the last 7 to 2557 or 3653 days (about seven or ten years) depending on the selected BillingMode.
 open class EventDataStore extends cloudformation.Resource {

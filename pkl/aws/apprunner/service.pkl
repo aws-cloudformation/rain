@@ -5,20 +5,116 @@ module aws.apprunner.service
 
 import "../../cloudformation.pkl"
 
+/// Authentication Configuration
+open class ServiceAuthenticationConfiguration {
+    AccessRoleArn: (ServiceRoleArn)?
+    ConnectionArn: (String(matches(Regex(#"arn:aws(-[\w]+)*:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[0-9]{12}:(\w|\/|-){1,1011}"#)))|Mapping)?
+}
+
+typealias CodeConfigurationConfigurationSource = "REPOSITORY"|"API"
+
+/// Code Configuration
+open class ServiceCodeConfiguration {
+    CodeConfigurationValues: (ServiceCodeConfigurationValues)?
+    ConfigurationSource: CodeConfigurationConfigurationSource|Mapping
+}
+
+typealias CodeConfigurationValuesRuntime = "PYTHON_3"|"NODEJS_12"|"NODEJS_14"|"CORRETTO_8"|"CORRETTO_11"|"NODEJS_16"|"GO_1"|"DOTNET_6"|"PHP_81"|"RUBY_31"|"PYTHON_311"|"NODEJS_18"
+
+/// Code Configuration Values
+open class ServiceCodeConfigurationValues {
+    BuildCommand: (String|Mapping)?
+    Port: (String|Mapping)?
+    Runtime: CodeConfigurationValuesRuntime|Mapping
+    RuntimeEnvironmentSecrets: (Listing<ServiceKeyValuePair>)?
+    RuntimeEnvironmentVariables: (Listing<ServiceKeyValuePair>)?
+    StartCommand: (String|Mapping)?
+}
+
+/// Source Code Repository
+open class ServiceCodeRepository {
+    CodeConfiguration: (ServiceCodeConfiguration)?
+    RepositoryUrl: String|Mapping
+    SourceCodeVersion: ServiceSourceCodeVersion
+    SourceDirectory: (String(matches(Regex(#"[^\x00]+"#)))|Mapping)?
+}
+
+typealias EgressConfigurationEgressType = "DEFAULT"|"VPC"
+
+/// Network egress configuration
+open class ServiceEgressConfiguration {
+    EgressType: EgressConfigurationEgressType|Mapping
+    VpcConnectorArn: (String(matches(Regex(#"arn:aws(-[\w]+)*:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[0-9]{12}:(\w|\/|-){1,1011}"#)))|Mapping)?
+}
+
 /// Encryption configuration (KMS key)
 open class ServiceEncryptionConfiguration {
     KmsKey: String(matches(Regex(#"arn:aws(-[\w]+)*:kms:[a-z\-]+-[0-9]{1}:[0-9]{12}:key\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"#)))|Mapping
 }
 
+typealias HealthCheckConfigurationProtocol = "TCP"|"HTTP"
+
+/// Health check configuration
+open class ServiceHealthCheckConfiguration {
+    HealthyThreshold: (Int|Mapping)?
+    Interval: (Int|Mapping)?
+    Path: (String|Mapping)?
+    Protocol: (HealthCheckConfigurationProtocol|Mapping)?
+    Timeout: (Int|Mapping)?
+    UnhealthyThreshold: (Int|Mapping)?
+}
+
+/// Image Configuration
+open class ServiceImageConfiguration {
+    Port: (String|Mapping)?
+    RuntimeEnvironmentSecrets: (Listing<ServiceKeyValuePair>)?
+    RuntimeEnvironmentVariables: (Listing<ServiceKeyValuePair>)?
+    StartCommand: (String|Mapping)?
+}
+
+typealias ImageRepositoryImageRepositoryType = "ECR"|"ECR_PUBLIC"
+
+/// Image Repository
+open class ServiceImageRepository {
+    ImageConfiguration: (ServiceImageConfiguration)?
+    ImageIdentifier: String(matches(Regex(#"([0-9]{12}.dkr.ecr.[a-z\-]+-[0-9]{1}.amazonaws.com\/.*)|(^public\.ecr\.aws\/.+\/.+)"#)))|Mapping
+    ImageRepositoryType: ImageRepositoryImageRepositoryType|Mapping
+}
+
+/// Network ingress configuration
+open class ServiceIngressConfiguration {
+    IsPubliclyAccessible: Boolean|Mapping
+}
+
+/// Instance Configuration
+open class ServiceInstanceConfiguration {
+    Cpu: (String(matches(Regex(#"256|512|1024|2048|4096|(0.25|0.5|1|2|4) vCPU"#)))|Mapping)?
+    InstanceRoleArn: (ServiceRoleArn)?
+    Memory: (String(matches(Regex(#"512|1024|2048|3072|4096|6144|8192|10240|12288|(0.5|1|2|3|4|6|8|10|12) GB"#)))|Mapping)?
+}
+
+/// 
+open class ServiceKeyValuePair {
+    Name: (String|Mapping)?
+    Value: (String|Mapping)?
+}
+
+typealias NetworkConfigurationIpAddressType = "IPV4"|"DUAL_STACK"
+
+/// Network configuration
+open class ServiceNetworkConfiguration {
+    EgressConfiguration: (ServiceEgressConfiguration)?
+    IngressConfiguration: (ServiceIngressConfiguration)?
+    IpAddressType: (NetworkConfigurationIpAddressType|Mapping)?
+}
+
 typealias ServiceRoleArn = String|Mapping
 
 
-/// Source Code configuration
-open class ServiceSourceConfiguration {
-    AutoDeploymentsEnabled: (Boolean|Mapping)?
-    AuthenticationConfiguration: (ServiceAuthenticationConfiguration)?
-    CodeRepository: (ServiceCodeRepository)?
-    ImageRepository: (ServiceImageRepository)?
+/// Service observability configuration
+open class ServiceServiceObservabilityConfiguration {
+    ObservabilityConfigurationArn: (String(matches(Regex(#"arn:aws(-[\w]+)*:[a-z0-9-\.]{0,63}:[a-z0-9-\.]{0,63}:[0-9]{12}:(\w|/|-){1,1011}"#)))|Mapping)?
+    ObservabilityEnabled: Boolean|Mapping
 }
 
 typealias SourceCodeVersionType = "BRANCH"
@@ -29,108 +125,12 @@ open class ServiceSourceCodeVersion {
     Value: String|Mapping
 }
 
-typealias EgressConfigurationEgressType = "DEFAULT"|"VPC"
-
-/// Network egress configuration
-open class ServiceEgressConfiguration {
-    VpcConnectorArn: (String(matches(Regex(#"arn:aws(-[\w]+)*:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[0-9]{12}:(\w|\/|-){1,1011}"#)))|Mapping)?
-    EgressType: EgressConfigurationEgressType|Mapping
-}
-
-typealias HealthCheckConfigurationProtocol = "TCP"|"HTTP"
-
-/// Health check configuration
-open class ServiceHealthCheckConfiguration {
-    UnhealthyThreshold: (Int|Mapping)?
-    Protocol: (HealthCheckConfigurationProtocol|Mapping)?
-    Path: (String|Mapping)?
-    Interval: (Int|Mapping)?
-    Timeout: (Int|Mapping)?
-    HealthyThreshold: (Int|Mapping)?
-}
-
-/// Image Configuration
-open class ServiceImageConfiguration {
-    StartCommand: (String|Mapping)?
-    Port: (String|Mapping)?
-    RuntimeEnvironmentVariables: (Listing<ServiceKeyValuePair>)?
-    RuntimeEnvironmentSecrets: (Listing<ServiceKeyValuePair>)?
-}
-
-typealias ImageRepositoryImageRepositoryType = "ECR"|"ECR_PUBLIC"
-
-/// Image Repository
-open class ServiceImageRepository {
-    ImageIdentifier: String(matches(Regex(#"([0-9]{12}.dkr.ecr.[a-z\-]+-[0-9]{1}.amazonaws.com\/.*)|(^public\.ecr\.aws\/.+\/.+)"#)))|Mapping
-    ImageConfiguration: (ServiceImageConfiguration)?
-    ImageRepositoryType: ImageRepositoryImageRepositoryType|Mapping
-}
-
-/// Instance Configuration
-open class ServiceInstanceConfiguration {
-    InstanceRoleArn: (ServiceRoleArn)?
-    Cpu: (String(matches(Regex(#"256|512|1024|2048|4096|(0.25|0.5|1|2|4) vCPU"#)))|Mapping)?
-    Memory: (String(matches(Regex(#"512|1024|2048|3072|4096|6144|8192|10240|12288|(0.5|1|2|3|4|6|8|10|12) GB"#)))|Mapping)?
-}
-
-/// 
-open class ServiceKeyValuePair {
-    Name: (String|Mapping)?
-    Value: (String|Mapping)?
-}
-
-/// Authentication Configuration
-open class ServiceAuthenticationConfiguration {
-    ConnectionArn: (String(matches(Regex(#"arn:aws(-[\w]+)*:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[0-9]{12}:(\w|\/|-){1,1011}"#)))|Mapping)?
-    AccessRoleArn: (ServiceRoleArn)?
-}
-
-typealias CodeConfigurationConfigurationSource = "REPOSITORY"|"API"
-
-/// Code Configuration
-open class ServiceCodeConfiguration {
-    ConfigurationSource: CodeConfigurationConfigurationSource|Mapping
-    CodeConfigurationValues: (ServiceCodeConfigurationValues)?
-}
-
-/// Source Code Repository
-open class ServiceCodeRepository {
-    CodeConfiguration: (ServiceCodeConfiguration)?
-    SourceDirectory: (String(matches(Regex(#"[^\x00]+"#)))|Mapping)?
-    RepositoryUrl: String|Mapping
-    SourceCodeVersion: ServiceSourceCodeVersion
-}
-
-/// Network ingress configuration
-open class ServiceIngressConfiguration {
-    IsPubliclyAccessible: Boolean|Mapping
-}
-
-typealias NetworkConfigurationIpAddressType = "IPV4"|"DUAL_STACK"
-
-/// Network configuration
-open class ServiceNetworkConfiguration {
-    IpAddressType: (NetworkConfigurationIpAddressType|Mapping)?
-    EgressConfiguration: (ServiceEgressConfiguration)?
-    IngressConfiguration: (ServiceIngressConfiguration)?
-}
-
-/// Service observability configuration
-open class ServiceServiceObservabilityConfiguration {
-    ObservabilityEnabled: Boolean|Mapping
-    ObservabilityConfigurationArn: (String(matches(Regex(#"arn:aws(-[\w]+)*:[a-z0-9-\.]{0,63}:[a-z0-9-\.]{0,63}:[0-9]{12}:(\w|/|-){1,1011}"#)))|Mapping)?
-}
-
-typealias CodeConfigurationValuesRuntime = "PYTHON_3"|"NODEJS_12"|"NODEJS_14"|"CORRETTO_8"|"CORRETTO_11"|"NODEJS_16"|"GO_1"|"DOTNET_6"|"PHP_81"|"RUBY_31"|"PYTHON_311"|"NODEJS_18"
-
-/// Code Configuration Values
-open class ServiceCodeConfigurationValues {
-    BuildCommand: (String|Mapping)?
-    StartCommand: (String|Mapping)?
-    Port: (String|Mapping)?
-    RuntimeEnvironmentVariables: (Listing<ServiceKeyValuePair>)?
-    RuntimeEnvironmentSecrets: (Listing<ServiceKeyValuePair>)?
-    Runtime: CodeConfigurationValuesRuntime|Mapping
+/// Source Code configuration
+open class ServiceSourceConfiguration {
+    AuthenticationConfiguration: (ServiceAuthenticationConfiguration)?
+    AutoDeploymentsEnabled: (Boolean|Mapping)?
+    CodeRepository: (ServiceCodeRepository)?
+    ImageRepository: (ServiceImageRepository)?
 }
 
 /// 

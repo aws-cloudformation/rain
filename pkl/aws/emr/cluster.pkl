@@ -5,24 +5,62 @@ module aws.emr.cluster
 
 import "../../cloudformation.pkl"
 
+typealias ClusterApplicationAdditionalInfo = Mapping<String, Any>
+
+/// 
+open class ClusterApplication {
+    AdditionalInfo: (ClusterApplicationAdditionalInfo)?
+    Args: (Listing<String|Mapping>)?
+    Name: (String|Mapping)?
+    Version: (String|Mapping)?
+}
+
+/// 
+open class ClusterAutoScalingPolicy {
+    Constraints: ClusterScalingConstraints
+    Rules: Listing<ClusterScalingRule>
+}
+
+/// 
+open class ClusterAutoTerminationPolicy {
+    IdleTimeout: (Int|Mapping)?
+}
+
+/// 
+open class ClusterBootstrapActionConfig {
+    Name: String|Mapping
+    ScriptBootstrapAction: ClusterScriptBootstrapActionConfig
+}
+
+/// 
+open class ClusterCloudWatchAlarmDefinition {
+    ComparisonOperator: String|Mapping
+    Dimensions: (Listing<ClusterMetricDimension>)?
+    EvaluationPeriods: (Int|Mapping)?
+    MetricName: String|Mapping
+    Namespace: (String|Mapping)?
+    Period: Int|Mapping
+    Statistic: (String|Mapping)?
+    Threshold: Number|Mapping
+    Unit: (String|Mapping)?
+}
+
+/// 
+open class ClusterComputeLimits {
+    MaximumCapacityUnits: Int|Mapping
+    MaximumCoreCapacityUnits: (Int|Mapping)?
+    MaximumOnDemandCapacityUnits: (Int|Mapping)?
+    MinimumCapacityUnits: Int|Mapping
+    UnitType: String|Mapping
+}
+
 typealias ClusterConfigurationConfigurationProperties = Mapping<String, Any>
 
 /// 
 open class ClusterConfiguration {
+    Classification: (String|Mapping)?
     ConfigurationProperties: (ClusterConfigurationConfigurationProperties)?
     Configurations: (Listing<ClusterConfiguration>)?
-    Classification: (String|Mapping)?
-}
-
-/// 
-open class ClusterScalingTrigger {
-    CloudWatchAlarmDefinition: ClusterCloudWatchAlarmDefinition
-}
-
-/// 
-open class ClusterTag {
-    Value: String|Mapping
-    Key: String|Mapping
 }
 
 /// 
@@ -32,95 +70,94 @@ open class ClusterEbsBlockDeviceConfig {
 }
 
 /// 
-open class ClusterScalingAction {
-    Market: (String|Mapping)?
-    SimpleScalingPolicyConfiguration: ClusterSimpleScalingPolicyConfiguration
-}
-
-/// 
-open class ClusterInstanceTypeConfig {
-    EbsConfiguration: (ClusterEbsConfiguration)?
-    BidPriceAsPercentageOfOnDemandPrice: (Number|Mapping)?
-    CustomAmiId: (String|Mapping)?
-    Configurations: (Listing<ClusterConfiguration>)?
-    InstanceType: String|Mapping
-    BidPrice: (String|Mapping)?
-    WeightedCapacity: (Int|Mapping)?
-}
-
-/// 
-open class ClusterKeyValue {
-    Value: (String|Mapping)?
-    Key: (String|Mapping)?
-}
-
-/// 
-open class ClusterScalingRule {
-    Description: (String|Mapping)?
-    Trigger: ClusterScalingTrigger
-    Name: String|Mapping
-    Action: ClusterScalingAction
-}
-
-/// 
-open class ClusterSpotProvisioningSpecification {
-    AllocationStrategy: (String|Mapping)?
-    TimeoutDurationMinutes: Int|Mapping
-    TimeoutAction: String|Mapping
-    BlockDurationMinutes: (Int|Mapping)?
-}
-
-/// 
-open class ClusterStepConfig {
-    ActionOnFailure: (String|Mapping)?
-    Name: String|Mapping
-    HadoopJarStep: ClusterHadoopJarStepConfig
-}
-
-/// 
 open class ClusterEbsConfiguration {
     EbsBlockDeviceConfigs: (Listing<ClusterEbsBlockDeviceConfig>)?
     EbsOptimized: (Boolean|Mapping)?
 }
 
 /// 
-open class ClusterInstanceFleetProvisioningSpecifications {
-    SpotSpecification: (ClusterSpotProvisioningSpecification)?
-    OnDemandSpecification: (ClusterOnDemandProvisioningSpecification)?
-}
-
-/// 
-open class ClusterAutoTerminationPolicy {
-    IdleTimeout: (Int|Mapping)?
-}
-
-/// 
-open class ClusterCloudWatchAlarmDefinition {
-    EvaluationPeriods: (Int|Mapping)?
-    Namespace: (String|Mapping)?
-    ComparisonOperator: String|Mapping
-    Period: Int|Mapping
-    Dimensions: (Listing<ClusterMetricDimension>)?
-    Unit: (String|Mapping)?
-    Threshold: Number|Mapping
-    MetricName: String|Mapping
-    Statistic: (String|Mapping)?
-}
-
-typealias ClusterApplicationAdditionalInfo = Mapping<String, Any>
-
-/// 
-open class ClusterApplication {
-    AdditionalInfo: (ClusterApplicationAdditionalInfo)?
+open class ClusterHadoopJarStepConfig {
     Args: (Listing<String|Mapping>)?
-    Version: (String|Mapping)?
+    Jar: String|Mapping
+    MainClass: (String|Mapping)?
+    StepProperties: (Listing<ClusterKeyValue>)?
+}
+
+/// 
+open class ClusterInstanceFleetConfig {
+    InstanceTypeConfigs: (Listing<ClusterInstanceTypeConfig>)?
+    LaunchSpecifications: (ClusterInstanceFleetProvisioningSpecifications)?
+    Name: (String|Mapping)?
+    TargetOnDemandCapacity: (Int|Mapping)?
+    TargetSpotCapacity: (Int|Mapping)?
+}
+
+/// 
+open class ClusterInstanceFleetProvisioningSpecifications {
+    OnDemandSpecification: (ClusterOnDemandProvisioningSpecification)?
+    SpotSpecification: (ClusterSpotProvisioningSpecification)?
+}
+
+/// 
+open class ClusterInstanceGroupConfig {
+    AutoScalingPolicy: (ClusterAutoScalingPolicy)?
+    BidPrice: (String|Mapping)?
+    Configurations: (Listing<ClusterConfiguration>)?
+    CustomAmiId: (String|Mapping)?
+    EbsConfiguration: (ClusterEbsConfiguration)?
+    InstanceCount: Int|Mapping
+    InstanceType: String|Mapping
+    Market: (String|Mapping)?
     Name: (String|Mapping)?
 }
 
 /// 
-open class ClusterAutoScalingPolicy {
-    Rules: Listing<ClusterScalingRule>
-    Constraints: ClusterScalingConstraints
+open class ClusterInstanceTypeConfig {
+    BidPrice: (String|Mapping)?
+    BidPriceAsPercentageOfOnDemandPrice: (Number|Mapping)?
+    Configurations: (Listing<ClusterConfiguration>)?
+    CustomAmiId: (String|Mapping)?
+    EbsConfiguration: (ClusterEbsConfiguration)?
+    InstanceType: String|Mapping
+    WeightedCapacity: (Int|Mapping)?
+}
+
+/// 
+open class ClusterJobFlowInstancesConfig {
+    AdditionalMasterSecurityGroups: (Listing<String|Mapping>)?
+    AdditionalSlaveSecurityGroups: (Listing<String|Mapping>)?
+    CoreInstanceFleet: (ClusterInstanceFleetConfig)?
+    CoreInstanceGroup: (ClusterInstanceGroupConfig)?
+    Ec2KeyName: (String|Mapping)?
+    Ec2SubnetId: (String|Mapping)?
+    Ec2SubnetIds: (Listing<String|Mapping>)?
+    EmrManagedMasterSecurityGroup: (String|Mapping)?
+    EmrManagedSlaveSecurityGroup: (String|Mapping)?
+    HadoopVersion: (String|Mapping)?
+    KeepJobFlowAliveWhenNoSteps: (Boolean|Mapping)?
+    MasterInstanceFleet: (ClusterInstanceFleetConfig)?
+    MasterInstanceGroup: (ClusterInstanceGroupConfig)?
+    Placement: (ClusterPlacementType)?
+    ServiceAccessSecurityGroup: (String|Mapping)?
+    TaskInstanceFleets: (Listing<ClusterInstanceFleetConfig>)?
+    TaskInstanceGroups: (Listing<ClusterInstanceGroupConfig>)?
+    TerminationProtected: (Boolean|Mapping)?
+    UnhealthyNodeReplacement: (Boolean|Mapping)?
+}
+
+/// 
+open class ClusterKerberosAttributes {
+    ADDomainJoinPassword: (String|Mapping)?
+    ADDomainJoinUser: (String|Mapping)?
+    CrossRealmTrustPrincipalPassword: (String|Mapping)?
+    KdcAdminPassword: String|Mapping
+    Realm: String|Mapping
+}
+
+/// 
+open class ClusterKeyValue {
+    Key: (String|Mapping)?
+    Value: (String|Mapping)?
 }
 
 /// 
@@ -130,110 +167,19 @@ open class ClusterManagedScalingPolicy {
 
 /// 
 open class ClusterMetricDimension {
-    Value: String|Mapping
     Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// 
-open class ClusterScriptBootstrapActionConfig {
-    Path: String|Mapping
-    Args: (Listing<String|Mapping>)?
-}
-
-/// 
-open class ClusterSimpleScalingPolicyConfiguration {
-    CoolDown: (Int|Mapping)?
-    AdjustmentType: (String|Mapping)?
-    ScalingAdjustment: Int|Mapping
-}
-
-/// 
-open class ClusterBootstrapActionConfig {
-    ScriptBootstrapAction: ClusterScriptBootstrapActionConfig
-    Name: String|Mapping
-}
-
-/// 
-open class ClusterComputeLimits {
-    UnitType: String|Mapping
-    MaximumOnDemandCapacityUnits: (Int|Mapping)?
-    MaximumCapacityUnits: Int|Mapping
-    MaximumCoreCapacityUnits: (Int|Mapping)?
-    MinimumCapacityUnits: Int|Mapping
-}
-
-/// 
-open class ClusterScalingConstraints {
-    MinCapacity: Int|Mapping
-    MaxCapacity: Int|Mapping
-}
-
-/// 
-open class ClusterVolumeSpecification {
-    SizeInGB: Int|Mapping
-    Throughput: (Int|Mapping)?
-    VolumeType: String|Mapping
-    Iops: (Int|Mapping)?
-}
-
-/// 
-open class ClusterInstanceFleetConfig {
-    TargetOnDemandCapacity: (Int|Mapping)?
-    TargetSpotCapacity: (Int|Mapping)?
-    InstanceTypeConfigs: (Listing<ClusterInstanceTypeConfig>)?
-    LaunchSpecifications: (ClusterInstanceFleetProvisioningSpecifications)?
-    Name: (String|Mapping)?
-}
-
-/// 
-open class ClusterJobFlowInstancesConfig {
-    ServiceAccessSecurityGroup: (String|Mapping)?
-    AdditionalSlaveSecurityGroups: (Listing<String|Mapping>)?
-    CoreInstanceGroup: (ClusterInstanceGroupConfig)?
-    HadoopVersion: (String|Mapping)?
-    UnhealthyNodeReplacement: (Boolean|Mapping)?
-    Ec2SubnetId: (String|Mapping)?
-    MasterInstanceGroup: (ClusterInstanceGroupConfig)?
-    EmrManagedSlaveSecurityGroup: (String|Mapping)?
-    CoreInstanceFleet: (ClusterInstanceFleetConfig)?
-    Ec2SubnetIds: (Listing<String|Mapping>)?
-    TerminationProtected: (Boolean|Mapping)?
-    KeepJobFlowAliveWhenNoSteps: (Boolean|Mapping)?
-    Ec2KeyName: (String|Mapping)?
-    Placement: (ClusterPlacementType)?
-    TaskInstanceFleets: (Listing<ClusterInstanceFleetConfig>)?
-    MasterInstanceFleet: (ClusterInstanceFleetConfig)?
-    TaskInstanceGroups: (Listing<ClusterInstanceGroupConfig>)?
-    AdditionalMasterSecurityGroups: (Listing<String|Mapping>)?
-    EmrManagedMasterSecurityGroup: (String|Mapping)?
+open class ClusterOnDemandProvisioningSpecification {
+    AllocationStrategy: String|Mapping
 }
 
 /// 
 open class ClusterPlacementGroupConfig {
-    PlacementStrategy: (String|Mapping)?
     InstanceRole: String|Mapping
-}
-
-/// 
-open class ClusterInstanceGroupConfig {
-    InstanceCount: Int|Mapping
-    CustomAmiId: (String|Mapping)?
-    AutoScalingPolicy: (ClusterAutoScalingPolicy)?
-    BidPrice: (String|Mapping)?
-    InstanceType: String|Mapping
-    Market: (String|Mapping)?
-    Name: (String|Mapping)?
-    EbsConfiguration: (ClusterEbsConfiguration)?
-    Configurations: (Listing<ClusterConfiguration>)?
-}
-
-/// 
-open class ClusterKerberosAttributes {
-    ADDomainJoinUser: (String|Mapping)?
-    CrossRealmTrustPrincipalPassword: (String|Mapping)?
-    KdcAdminPassword: String|Mapping
-    Realm: String|Mapping
-    ADDomainJoinPassword: (String|Mapping)?
+    PlacementStrategy: (String|Mapping)?
 }
 
 /// 
@@ -242,16 +188,70 @@ open class ClusterPlacementType {
 }
 
 /// 
-open class ClusterHadoopJarStepConfig {
-    Args: (Listing<String|Mapping>)?
-    MainClass: (String|Mapping)?
-    Jar: String|Mapping
-    StepProperties: (Listing<ClusterKeyValue>)?
+open class ClusterScalingAction {
+    Market: (String|Mapping)?
+    SimpleScalingPolicyConfiguration: ClusterSimpleScalingPolicyConfiguration
 }
 
 /// 
-open class ClusterOnDemandProvisioningSpecification {
-    AllocationStrategy: String|Mapping
+open class ClusterScalingConstraints {
+    MaxCapacity: Int|Mapping
+    MinCapacity: Int|Mapping
+}
+
+/// 
+open class ClusterScalingRule {
+    Action: ClusterScalingAction
+    Description: (String|Mapping)?
+    Name: String|Mapping
+    Trigger: ClusterScalingTrigger
+}
+
+/// 
+open class ClusterScalingTrigger {
+    CloudWatchAlarmDefinition: ClusterCloudWatchAlarmDefinition
+}
+
+/// 
+open class ClusterScriptBootstrapActionConfig {
+    Args: (Listing<String|Mapping>)?
+    Path: String|Mapping
+}
+
+/// 
+open class ClusterSimpleScalingPolicyConfiguration {
+    AdjustmentType: (String|Mapping)?
+    CoolDown: (Int|Mapping)?
+    ScalingAdjustment: Int|Mapping
+}
+
+/// 
+open class ClusterSpotProvisioningSpecification {
+    AllocationStrategy: (String|Mapping)?
+    BlockDurationMinutes: (Int|Mapping)?
+    TimeoutAction: String|Mapping
+    TimeoutDurationMinutes: Int|Mapping
+}
+
+/// 
+open class ClusterStepConfig {
+    ActionOnFailure: (String|Mapping)?
+    HadoopJarStep: ClusterHadoopJarStepConfig
+    Name: String|Mapping
+}
+
+/// 
+open class ClusterTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class ClusterVolumeSpecification {
+    Iops: (Int|Mapping)?
+    SizeInGB: Int|Mapping
+    Throughput: (Int|Mapping)?
+    VolumeType: String|Mapping
 }
 
 /// Resource Type definition for AWS::EMR::Cluster

@@ -6,28 +6,45 @@ module aws.amplifyuibuilder.form
 import "../../cloudformation.pkl"
 
 /// 
-open class FormFieldValidationConfiguration {
+open class FormFieldConfig {
+    Excluded: (Boolean|Mapping)?
+    InputType: (FormFieldInputConfig)?
+    Label: (String|Mapping)?
+    Position: (FormFieldPosition)?
+    Validations: (Listing<FormFieldValidationConfiguration>)?
+}
+
+/// 
+open class FormFieldInputConfig {
+    DefaultChecked: (Boolean|Mapping)?
+    DefaultCountryCode: (String|Mapping)?
+    DefaultValue: (String|Mapping)?
+    DescriptiveText: (String|Mapping)?
+    FileUploaderConfig: (FormFileUploaderFieldConfig)?
+    IsArray: (Boolean|Mapping)?
+    MaxValue: (Number|Mapping)?
+    MinValue: (Number|Mapping)?
+    Name: (String|Mapping)?
+    Placeholder: (String|Mapping)?
+    ReadOnly: (Boolean|Mapping)?
+    Required: (Boolean|Mapping)?
+    Step: (Number|Mapping)?
     Type: String|Mapping
-    StrValues: (Listing<String|Mapping>)?
-    NumValues: (Listing<Number|Mapping>)?
-    ValidationMessage: (String|Mapping)?
+    Value: (String|Mapping)?
+    ValueMappings: (FormValueMappings)?
+}
+
+typealias FormFieldPosition = FormFieldPositionFixed|FormFieldPositionRightOf|FormFieldPositionBelow
+
+
+/// 
+open class FormFieldPositionBelow {
+    Below: String|Mapping
 }
 
 /// 
-open class FormFileUploaderFieldConfig {
-    ShowThumbnails: (Boolean|Mapping)?
-    IsResumable: (Boolean|Mapping)?
-    MaxFileCount: (Number|Mapping)?
-    MaxSize: (Number|Mapping)?
-    AccessLevel: FormStorageAccessLevel
-    AcceptedFileTypes: Listing<String|Mapping>
-}
-
-/// 
-open class FormFormStyle {
-    HorizontalGap: (FormFormStyleConfig)?
-    VerticalGap: (FormFormStyleConfig)?
-    OuterPadding: (FormFormStyleConfig)?
+open class FormFieldPositionFixed {
+    Fixed: FormFixedPosition
 }
 
 /// 
@@ -35,7 +52,52 @@ open class FormFieldPositionRightOf {
     RightOf: String|Mapping
 }
 
+/// 
+open class FormFieldValidationConfiguration {
+    NumValues: (Listing<Number|Mapping>)?
+    StrValues: (Listing<String|Mapping>)?
+    Type: String|Mapping
+    ValidationMessage: (String|Mapping)?
+}
+
+typealias FormFieldsMap = Mapping<String, Any>
+
+
+/// 
+open class FormFileUploaderFieldConfig {
+    AcceptedFileTypes: Listing<String|Mapping>
+    AccessLevel: FormStorageAccessLevel
+    IsResumable: (Boolean|Mapping)?
+    MaxFileCount: (Number|Mapping)?
+    MaxSize: (Number|Mapping)?
+    ShowThumbnails: (Boolean|Mapping)?
+}
+
+typealias FormFixedPosition = String|Mapping
+
+
+typealias FormFormActionType = String|Mapping
+
+
+/// 
+open class FormFormButton {
+    Children: (String|Mapping)?
+    Excluded: (Boolean|Mapping)?
+    Position: (FormFieldPosition)?
+}
+
 typealias FormFormButtonsPosition = String|Mapping
+
+
+/// 
+open class FormFormCTA {
+    Cancel: (FormFormButton)?
+    Clear: (FormFormButton)?
+    Position: (FormFormButtonsPosition)?
+    Submit: (FormFormButton)?
+}
+
+typealias FormFormDataSourceType = String|Mapping
 
 
 /// 
@@ -44,23 +106,7 @@ open class FormFormDataTypeConfig {
     DataTypeName: String|Mapping
 }
 
-/// 
-open class FormFormInputValueProperty {
-    Value: (String|Mapping)?
-    BindingProperties: (FormFormInputValuePropertyBindingProperties)?
-    Concat: (Listing<FormFormInputValueProperty>)?
-}
-
-typealias FormFixedPosition = String|Mapping
-
-
-typealias FormTags = Mapping<String, Any>
-
-
-typealias FormFieldsMap = Mapping<String, Any>
-
-
-typealias FormFormActionType = String|Mapping
+typealias FormFormInputBindingProperties = Mapping<String, Any>
 
 
 /// 
@@ -75,9 +121,59 @@ open class FormFormInputBindingPropertiesValueProperties {
 }
 
 /// 
+open class FormFormInputValueProperty {
+    BindingProperties: (FormFormInputValuePropertyBindingProperties)?
+    Concat: (Listing<FormFormInputValueProperty>)?
+    Value: (String|Mapping)?
+}
+
+/// 
+open class FormFormInputValuePropertyBindingProperties {
+    Field: (String|Mapping)?
+    Property: String|Mapping
+}
+
+/// 
+open class FormFormStyle {
+    HorizontalGap: (FormFormStyleConfig)?
+    OuterPadding: (FormFormStyleConfig)?
+    VerticalGap: (FormFormStyleConfig)?
+}
+
+typealias FormFormStyleConfig = FormFormStyleConfigTokenReference|FormFormStyleConfigValue
+
+
+/// 
+open class FormFormStyleConfigTokenReference {
+    TokenReference: String|Mapping
+}
+
+/// 
 open class FormFormStyleConfigValue {
     Value: String|Mapping
 }
+
+typealias FormLabelDecorator = String|Mapping
+
+
+/// 
+open class FormSectionalElement {
+    Excluded: (Boolean|Mapping)?
+    Level: (Number|Mapping)?
+    Orientation: (String|Mapping)?
+    Position: (FormFieldPosition)?
+    Text: (String|Mapping)?
+    Type: String|Mapping
+}
+
+typealias FormSectionalElementMap = Mapping<String, Any>
+
+
+typealias FormStorageAccessLevel = String|Mapping
+
+
+typealias FormTags = Mapping<String, Any>
+
 
 /// 
 open class FormValueMapping {
@@ -86,105 +182,9 @@ open class FormValueMapping {
 }
 
 /// 
-open class FormFieldPositionFixed {
-    Fixed: FormFixedPosition
-}
-
-/// 
-open class FormFieldPositionBelow {
-    Below: String|Mapping
-}
-
-typealias FormFormDataSourceType = String|Mapping
-
-
-/// 
-open class FormFormStyleConfigTokenReference {
-    TokenReference: String|Mapping
-}
-
-typealias FormStorageAccessLevel = String|Mapping
-
-
-/// 
-open class FormFieldConfig {
-    Label: (String|Mapping)?
-    Position: (FormFieldPosition)?
-    Excluded: (Boolean|Mapping)?
-    InputType: (FormFieldInputConfig)?
-    Validations: (Listing<FormFieldValidationConfiguration>)?
-}
-
-/// 
-open class FormFieldInputConfig {
-    Type: String|Mapping
-    Required: (Boolean|Mapping)?
-    ValueMappings: (FormValueMappings)?
-    Step: (Number|Mapping)?
-    IsArray: (Boolean|Mapping)?
-    Placeholder: (String|Mapping)?
-    DescriptiveText: (String|Mapping)?
-    DefaultCountryCode: (String|Mapping)?
-    MinValue: (Number|Mapping)?
-    ReadOnly: (Boolean|Mapping)?
-    MaxValue: (Number|Mapping)?
-    Value: (String|Mapping)?
-    DefaultValue: (String|Mapping)?
-    DefaultChecked: (Boolean|Mapping)?
-    Name: (String|Mapping)?
-    FileUploaderConfig: (FormFileUploaderFieldConfig)?
-}
-
-typealias FormFieldPosition = FormFieldPositionFixed|FormFieldPositionRightOf|FormFieldPositionBelow
-
-
-/// 
-open class FormFormCTA {
-    Submit: (FormFormButton)?
-    Position: (FormFormButtonsPosition)?
-    Clear: (FormFormButton)?
-    Cancel: (FormFormButton)?
-}
-
-typealias FormSectionalElementMap = Mapping<String, Any>
-
-
-/// 
-open class FormFormButton {
-    Children: (String|Mapping)?
-    Position: (FormFieldPosition)?
-    Excluded: (Boolean|Mapping)?
-}
-
-/// 
-open class FormFormInputValuePropertyBindingProperties {
-    Property: String|Mapping
-    Field: (String|Mapping)?
-}
-
-typealias FormFormStyleConfig = FormFormStyleConfigTokenReference|FormFormStyleConfigValue
-
-
-typealias FormLabelDecorator = String|Mapping
-
-
-/// 
 open class FormValueMappings {
-    Values: Listing<FormValueMapping>
     BindingProperties: (FormFormInputBindingProperties)?
-}
-
-typealias FormFormInputBindingProperties = Mapping<String, Any>
-
-
-/// 
-open class FormSectionalElement {
-    Excluded: (Boolean|Mapping)?
-    Type: String|Mapping
-    Position: (FormFieldPosition)?
-    Text: (String|Mapping)?
-    Level: (Number|Mapping)?
-    Orientation: (String|Mapping)?
+    Values: Listing<FormValueMapping>
 }
 
 /// Definition of AWS::AmplifyUIBuilder::Form Resource Type

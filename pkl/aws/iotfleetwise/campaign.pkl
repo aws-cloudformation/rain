@@ -5,46 +5,39 @@ module aws.iotfleetwise.campaign
 
 import "../../cloudformation.pkl"
 
-typealias CampaignUpdateCampaignAction = String|Mapping
+typealias CampaignCampaignStatus = String|Mapping
 
 
 typealias CampaignCollectionScheme = CampaignCollectionSchemeTimeBasedCollectionScheme|CampaignCollectionSchemeConditionBasedCollectionScheme
 
 
-typealias CampaignCompression = String|Mapping
-
-
 /// 
-open class CampaignS3Config {
-    DataFormat: (CampaignDataFormat)?
-    StorageCompressionFormat: (CampaignStorageCompressionFormat)?
-    Prefix: (String(matches(Regex(#"^[a-zA-Z0-9-_:./!*'()]+$"#)))|Mapping)?
-    BucketArn: String(matches(Regex(#"^arn:(aws[a-zA-Z0-9-]*):s3:::.+$"#)))|Mapping
+open class CampaignCollectionSchemeConditionBasedCollectionScheme {
+    ConditionBasedCollectionScheme: CampaignConditionBasedCollectionScheme
 }
-
-/// 
-open class CampaignTimestreamConfig {
-    TimestreamTableArn: String(matches(Regex(#"^arn:(aws[a-zA-Z0-9-]*):timestream:[a-zA-Z0-9-]+:[0-9]{12}:database\/[a-zA-Z0-9_.-]+\/table\/[a-zA-Z0-9_.-]+$"#)))|Mapping
-    ExecutionRoleArn: String(matches(Regex(#"^arn:(aws[a-zA-Z0-9-]*):iam::(\d{12})?:(role((\u002F)|(\u002F[\u0021-\u007F]+\u002F))[\w+=,.@-]+)$"#)))|Mapping
-}
-
-typealias CampaignStorageCompressionFormat = String|Mapping
-
-
-typealias CampaignTriggerMode = String|Mapping
-
 
 /// 
 open class CampaignCollectionSchemeTimeBasedCollectionScheme {
     TimeBasedCollectionScheme: CampaignTimeBasedCollectionScheme
 }
 
+typealias CampaignCompression = String|Mapping
+
+
 /// 
 open class CampaignConditionBasedCollectionScheme {
-    MinimumTriggerIntervalMs: (Number|Mapping)?
-    Expression: String|Mapping
-    TriggerMode: (CampaignTriggerMode)?
     ConditionLanguageVersion: (Int|Mapping)?
+    Expression: String|Mapping
+    MinimumTriggerIntervalMs: (Number|Mapping)?
+    TriggerMode: (CampaignTriggerMode)?
+}
+
+typealias CampaignDataDestinationConfig = CampaignDataDestinationConfigS3Config|CampaignDataDestinationConfigTimestreamConfig
+
+
+/// 
+open class CampaignDataDestinationConfigS3Config {
+    S3Config: CampaignS3Config
 }
 
 /// 
@@ -52,15 +45,32 @@ open class CampaignDataDestinationConfigTimestreamConfig {
     TimestreamConfig: CampaignTimestreamConfig
 }
 
-typealias CampaignSpoolingMode = String|Mapping
+typealias CampaignDataFormat = String|Mapping
 
+
+typealias CampaignDiagnosticsMode = String|Mapping
+
+
+/// 
+open class CampaignS3Config {
+    BucketArn: String(matches(Regex(#"^arn:(aws[a-zA-Z0-9-]*):s3:::.+$"#)))|Mapping
+    DataFormat: (CampaignDataFormat)?
+    Prefix: (String(matches(Regex(#"^[a-zA-Z0-9-_:./!*'()]+$"#)))|Mapping)?
+    StorageCompressionFormat: (CampaignStorageCompressionFormat)?
+}
 
 /// 
 open class CampaignSignalInformation {
     MaxSampleCount: (Number|Mapping)?
-    Name: String(matches(Regex(#"^[\w|*|-]+(\.[\w|*|-]+)*$"#)))|Mapping
     MinimumSamplingIntervalMs: (Number|Mapping)?
+    Name: String(matches(Regex(#"^[\w|*|-]+(\.[\w|*|-]+)*$"#)))|Mapping
 }
+
+typealias CampaignSpoolingMode = String|Mapping
+
+
+typealias CampaignStorageCompressionFormat = String|Mapping
+
 
 /// 
 open class CampaignTag {
@@ -73,27 +83,17 @@ open class CampaignTimeBasedCollectionScheme {
     PeriodMs: Number|Mapping
 }
 
-typealias CampaignDataFormat = String|Mapping
-
-
-typealias CampaignDiagnosticsMode = String|Mapping
-
-
-typealias CampaignCampaignStatus = String|Mapping
-
-
 /// 
-open class CampaignCollectionSchemeConditionBasedCollectionScheme {
-    ConditionBasedCollectionScheme: CampaignConditionBasedCollectionScheme
+open class CampaignTimestreamConfig {
+    ExecutionRoleArn: String(matches(Regex(#"^arn:(aws[a-zA-Z0-9-]*):iam::(\d{12})?:(role((\u002F)|(\u002F[\u0021-\u007F]+\u002F))[\w+=,.@-]+)$"#)))|Mapping
+    TimestreamTableArn: String(matches(Regex(#"^arn:(aws[a-zA-Z0-9-]*):timestream:[a-zA-Z0-9-]+:[0-9]{12}:database\/[a-zA-Z0-9_.-]+\/table\/[a-zA-Z0-9_.-]+$"#)))|Mapping
 }
 
-typealias CampaignDataDestinationConfig = CampaignDataDestinationConfigS3Config|CampaignDataDestinationConfigTimestreamConfig
+typealias CampaignTriggerMode = String|Mapping
 
 
-/// 
-open class CampaignDataDestinationConfigS3Config {
-    S3Config: CampaignS3Config
-}
+typealias CampaignUpdateCampaignAction = String|Mapping
+
 
 /// Definition of AWS::IoTFleetWise::Campaign Resource Type
 open class Campaign extends cloudformation.Resource {
