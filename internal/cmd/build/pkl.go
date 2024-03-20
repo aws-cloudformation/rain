@@ -3,6 +3,7 @@ package build
 import (
 	"fmt"
 	"slices"
+	"sort"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
@@ -483,7 +484,14 @@ func generatePklClass(typeName string) error {
 	classes = make(map[string]*pklDefClass, 0)
 
 	// Iterate over definitions, creating a class for each one
-	for name, def := range schema.Definitions {
+	// Sort the keys so we don't get a diff when we regenerate
+	keys := make([]string, 0)
+	for name := range schema.Definitions {
+		keys = append(keys, name)
+	}
+	sort.Strings(keys)
+	for _, name := range keys {
+		def := schema.Definitions[name]
 		_, err := createDefinitionClass(name, def, shortName)
 		if err != nil {
 			return err
@@ -513,7 +521,13 @@ func generatePklClass(typeName string) error {
 		Aliases:     make([]*defAlias, 0),
 	}
 	requiredProps := schema.GetRequired()
-	for propName, prop := range schema.Properties {
+	keys = make([]string, 0)
+	for name := range schema.Properties {
+		keys = append(keys, name)
+	}
+	sort.Strings(keys)
+	for _, propName := range keys {
+		prop := schema.Properties[propName]
 		propPath := "/properties/" + propName
 		// Don't emit read-only properties
 		if slices.Contains(schema.ReadOnlyProperties, propPath) {

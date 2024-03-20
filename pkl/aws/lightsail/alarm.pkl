@@ -11,8 +11,8 @@ open class Alarm extends cloudformation.Resource {
     Type = "AWS::Lightsail::Alarm"
 
 
-    /// The validation status of the SSL/TLS certificate.
-    hidden MonitoredResourceName: String|Mapping
+    /// The name for the alarm. Specify the name of an existing alarm to update, and overwrite the previous configuration of the alarm.
+    hidden AlarmName: String(matches(Regex(#"\w[\w\-]*\w"#)))|Mapping
 
     /// The arithmetic operation to use when comparing the specified statistic to the threshold. The specified statistic value is used as the first operand.
     hidden ComparisonOperator: AlarmComparisonOperator|Mapping
@@ -20,41 +20,41 @@ open class Alarm extends cloudformation.Resource {
     /// The contact protocols to use for the alarm, such as Email, SMS (text messaging), or both.
     hidden ContactProtocols: (Listing<String|Mapping>)?
 
-    /// Indicates whether the alarm is enabled. Notifications are enabled by default if you don't specify this parameter.
-    hidden NotificationEnabled: (Boolean|Mapping)?
-
-    /// The name of the metric to associate with the alarm.
-    hidden MetricName: String|Mapping
+    /// The number of data points that must be not within the specified threshold to trigger the alarm. If you are setting an "M out of N" alarm, this value (datapointsToAlarm) is the M.
+    hidden DatapointsToAlarm: (Int|Mapping)?
 
     /// The number of most recent periods over which data is compared to the specified threshold. If you are setting an "M out of N" alarm, this value (evaluationPeriods) is the N.
     hidden EvaluationPeriods: Int|Mapping
 
-    /// The name for the alarm. Specify the name of an existing alarm to update, and overwrite the previous configuration of the alarm.
-    hidden AlarmName: String(matches(Regex(#"\w[\w\-]*\w"#)))|Mapping
+    /// The name of the metric to associate with the alarm.
+    hidden MetricName: String|Mapping
 
-    /// The number of data points that must be not within the specified threshold to trigger the alarm. If you are setting an "M out of N" alarm, this value (datapointsToAlarm) is the M.
-    hidden DatapointsToAlarm: (Int|Mapping)?
+    /// The validation status of the SSL/TLS certificate.
+    hidden MonitoredResourceName: String|Mapping
 
-    /// The value against which the specified statistic is compared.
-    hidden Threshold: Number|Mapping
+    /// Indicates whether the alarm is enabled. Notifications are enabled by default if you don't specify this parameter.
+    hidden NotificationEnabled: (Boolean|Mapping)?
 
     /// The alarm states that trigger a notification.
     hidden NotificationTriggers: (Listing<String|Mapping>)?
+
+    /// The value against which the specified statistic is compared.
+    hidden Threshold: Number|Mapping
 
     /// Sets how this alarm will handle missing data points.
     hidden TreatMissingData: (String|Mapping)?
 
     Properties {
-        ["MonitoredResourceName"] = if (MonitoredResourceName == null) null else MonitoredResourceName
+        ["AlarmName"] = if (AlarmName == null) null else AlarmName
         ["ComparisonOperator"] = if (ComparisonOperator == null) null else ComparisonOperator
         ["ContactProtocols"] = if (ContactProtocols == null) null else ContactProtocols
-        ["NotificationEnabled"] = if (NotificationEnabled == null) null else NotificationEnabled
-        ["MetricName"] = if (MetricName == null) null else MetricName
-        ["EvaluationPeriods"] = if (EvaluationPeriods == null) null else EvaluationPeriods
-        ["AlarmName"] = if (AlarmName == null) null else AlarmName
         ["DatapointsToAlarm"] = if (DatapointsToAlarm == null) null else DatapointsToAlarm
-        ["Threshold"] = if (Threshold == null) null else Threshold
+        ["EvaluationPeriods"] = if (EvaluationPeriods == null) null else EvaluationPeriods
+        ["MetricName"] = if (MetricName == null) null else MetricName
+        ["MonitoredResourceName"] = if (MonitoredResourceName == null) null else MonitoredResourceName
+        ["NotificationEnabled"] = if (NotificationEnabled == null) null else NotificationEnabled
         ["NotificationTriggers"] = if (NotificationTriggers == null) null else NotificationTriggers
+        ["Threshold"] = if (Threshold == null) null else Threshold
         ["TreatMissingData"] = if (TreatMissingData == null) null else TreatMissingData
     }
 

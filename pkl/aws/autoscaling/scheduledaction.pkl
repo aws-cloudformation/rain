@@ -11,6 +11,12 @@ open class ScheduledAction extends cloudformation.Resource {
     Type = "AWS::AutoScaling::ScheduledAction"
 
 
+    /// The name of the Auto Scaling group.
+    hidden AutoScalingGroupName: String|Mapping
+
+    /// The desired capacity is the initial capacity of the Auto Scaling group after the scheduled action runs and the capacity it attempts to maintain.
+    hidden DesiredCapacity: (Int|Mapping)?
+
     /// The latest scheduled start time to return. If scheduled action names are provided, this parameter is ignored.
     hidden EndTime: (String|Mapping)?
 
@@ -20,29 +26,23 @@ open class ScheduledAction extends cloudformation.Resource {
     /// The minimum size of the Auto Scaling group.
     hidden MinSize: (Int|Mapping)?
 
-    /// The name of the Auto Scaling group.
-    hidden AutoScalingGroupName: String|Mapping
+    /// The recurring schedule for the action, in Unix cron syntax format. When StartTime and EndTime are specified with Recurrence , they form the boundaries of when the recurring action starts and stops.
+    hidden Recurrence: (String|Mapping)?
 
     /// The earliest scheduled start time to return. If scheduled action names are provided, this parameter is ignored.
     hidden StartTime: (String|Mapping)?
-
-    /// The desired capacity is the initial capacity of the Auto Scaling group after the scheduled action runs and the capacity it attempts to maintain.
-    hidden DesiredCapacity: (Int|Mapping)?
-
-    /// The recurring schedule for the action, in Unix cron syntax format. When StartTime and EndTime are specified with Recurrence , they form the boundaries of when the recurring action starts and stops.
-    hidden Recurrence: (String|Mapping)?
 
     /// The time zone for the cron expression.
     hidden TimeZone: (String|Mapping)?
 
     Properties {
+        ["AutoScalingGroupName"] = if (AutoScalingGroupName == null) null else AutoScalingGroupName
+        ["DesiredCapacity"] = if (DesiredCapacity == null) null else DesiredCapacity
         ["EndTime"] = if (EndTime == null) null else EndTime
         ["MaxSize"] = if (MaxSize == null) null else MaxSize
         ["MinSize"] = if (MinSize == null) null else MinSize
-        ["AutoScalingGroupName"] = if (AutoScalingGroupName == null) null else AutoScalingGroupName
-        ["StartTime"] = if (StartTime == null) null else StartTime
-        ["DesiredCapacity"] = if (DesiredCapacity == null) null else DesiredCapacity
         ["Recurrence"] = if (Recurrence == null) null else Recurrence
+        ["StartTime"] = if (StartTime == null) null else StartTime
         ["TimeZone"] = if (TimeZone == null) null else TimeZone
     }
 

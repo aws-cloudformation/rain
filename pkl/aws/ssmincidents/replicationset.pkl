@@ -5,19 +5,7 @@ module aws.ssmincidents.replicationset
 
 import "../../cloudformation.pkl"
 
-typealias ReplicationSetDeletionProtected = Boolean|Mapping
-
-
 typealias ReplicationSetRegionList = Listing<(ReplicationSetReplicationRegion)?>
-
-
-/// A key-value pair to tag a resource.
-open class ReplicationSetTag {
-    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
-    Value: String|Mapping
-}
-
-typealias ReplicationSetArn = String|Mapping
 
 
 typealias ReplicationSetRegionName = String|Mapping
@@ -28,6 +16,18 @@ open class ReplicationSetReplicationRegion {
     RegionName: (ReplicationSetRegionName)?
     RegionConfiguration: (ReplicationSetRegionConfiguration)?
 }
+
+/// A key-value pair to tag a resource.
+open class ReplicationSetTag {
+    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
+    Value: String|Mapping
+}
+
+typealias ReplicationSetArn = String|Mapping
+
+
+typealias ReplicationSetDeletionProtected = Boolean|Mapping
+
 
 /// The ReplicationSet regional configuration.
 open class ReplicationSetRegionConfiguration {
@@ -40,19 +40,19 @@ open class ReplicationSet extends cloudformation.Resource {
     Type = "AWS::SSMIncidents::ReplicationSet"
 
 
-    /// The tags to apply to the replication set.
-    hidden Tags: (Listing<ReplicationSetTag>)?
+    /// 
+    hidden DeletionProtected: (ReplicationSetDeletionProtected)?
 
     /// The ReplicationSet configuration.
     hidden Regions: ReplicationSetRegionList
 
-    /// 
-    hidden DeletionProtected: (ReplicationSetDeletionProtected)?
+    /// The tags to apply to the replication set.
+    hidden Tags: (Listing<ReplicationSetTag>)?
 
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Regions"] = if (Regions == null) null else Regions
         ["DeletionProtected"] = if (DeletionProtected == null) null else DeletionProtected
+        ["Regions"] = if (Regions == null) null else Regions
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

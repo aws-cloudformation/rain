@@ -5,19 +5,25 @@ module aws.kendra.faq
 
 import "../../cloudformation.pkl"
 
-typealias FaqS3ObjectKey = String|Mapping
+typealias FaqLanguageCode = String|Mapping
 
 
 typealias FaqRoleArn = String|Mapping
 
 
-typealias FaqLanguageCode = String|Mapping
+typealias FaqS3BucketName = String|Mapping
 
 
-typealias FaqFileFormat = String|Mapping
+typealias FaqS3ObjectKey = String|Mapping
 
 
-typealias FaqFaqName = String|Mapping
+/// A label for tagging Kendra resources
+open class FaqTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+typealias FaqTagList = Listing<(FaqTag)?>
 
 
 typealias FaqDescription = String|Mapping
@@ -26,13 +32,7 @@ typealias FaqDescription = String|Mapping
 typealias FaqIndexId = String|Mapping
 
 
-typealias FaqS3BucketName = String|Mapping
-
-
 typealias FaqId = String|Mapping
-
-
-typealias FaqTagList = Listing<(FaqTag)?>
 
 
 /// 
@@ -41,11 +41,11 @@ open class FaqS3Path {
     Key: FaqS3ObjectKey
 }
 
-/// A label for tagging Kendra resources
-open class FaqTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
+typealias FaqFaqName = String|Mapping
+
+
+typealias FaqFileFormat = String|Mapping
+
 
 /// A Kendra FAQ resource
 open class Faq extends cloudformation.Resource {
@@ -56,36 +56,36 @@ open class Faq extends cloudformation.Resource {
     /// FAQ description
     hidden Description: (FaqDescription)?
 
+    /// FAQ file format
+    hidden FileFormat: (FaqFileFormat)?
+
+    /// Index ID
+    hidden IndexId: FaqIndexId
+
+    /// 
+    hidden LanguageCode: (FaqLanguageCode)?
+
+    /// FAQ name
+    hidden Name: FaqFaqName
+
+    /// FAQ role ARN
+    hidden RoleArn: FaqRoleArn
+
     /// FAQ S3 path
     hidden S3Path: FaqS3Path
 
     /// Tags for labeling the FAQ
     hidden Tags: (FaqTagList)?
 
-    /// 
-    hidden LanguageCode: (FaqLanguageCode)?
-
-    /// Index ID
-    hidden IndexId: FaqIndexId
-
-    /// FAQ name
-    hidden Name: FaqFaqName
-
-    /// FAQ file format
-    hidden FileFormat: (FaqFileFormat)?
-
-    /// FAQ role ARN
-    hidden RoleArn: FaqRoleArn
-
     Properties {
         ["Description"] = if (Description == null) null else Description
+        ["FileFormat"] = if (FileFormat == null) null else FileFormat
+        ["IndexId"] = if (IndexId == null) null else IndexId
+        ["LanguageCode"] = if (LanguageCode == null) null else LanguageCode
+        ["Name"] = if (Name == null) null else Name
+        ["RoleArn"] = if (RoleArn == null) null else RoleArn
         ["S3Path"] = if (S3Path == null) null else S3Path
         ["Tags"] = if (Tags == null) null else Tags
-        ["LanguageCode"] = if (LanguageCode == null) null else LanguageCode
-        ["IndexId"] = if (IndexId == null) null else IndexId
-        ["Name"] = if (Name == null) null else Name
-        ["FileFormat"] = if (FileFormat == null) null else FileFormat
-        ["RoleArn"] = if (RoleArn == null) null else RoleArn
     }
 
 }

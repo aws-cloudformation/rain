@@ -5,26 +5,32 @@ module aws.imagebuilder.image
 
 import "../../cloudformation.pkl"
 
-/// Contains settings for Image Builder image resource and container image scans.
-open class ImageImageScanningConfiguration {
-    EcrConfiguration: (ImageEcrConfiguration)?
-    ImageScanningEnabled: (Boolean|Mapping)?
-}
-
 /// Settings for Image Builder to configure the ECR repository and output container images that are scanned.
 open class ImageEcrConfiguration {
     ContainerTags: (Listing<String|Mapping>)?
     RepositoryName: (String|Mapping)?
 }
 
+/// Contains settings for Image Builder image resource and container image scans.
+open class ImageImageScanningConfiguration {
+    EcrConfiguration: (ImageEcrConfiguration)?
+    ImageScanningEnabled: (Boolean|Mapping)?
+}
+
+/// The image tests configuration used when creating this image.
+open class ImageImageTestsConfiguration {
+    ImageTestsEnabled: (Boolean|Mapping)?
+    TimeoutMinutes: (Int|Mapping)?
+}
+
 typealias WorkflowConfigurationOnFailure = "CONTINUE"|"ABORT"
 
 /// The workflow configuration of the image
 open class ImageWorkflowConfiguration {
-    ParallelGroup: (String|Mapping)?
-    OnFailure: (WorkflowConfigurationOnFailure|Mapping)?
     WorkflowArn: (String|Mapping)?
     Parameters: (Listing<ImageWorkflowParameter>)?
+    ParallelGroup: (String|Mapping)?
+    OnFailure: (WorkflowConfigurationOnFailure|Mapping)?
 }
 
 /// A parameter associated with the workflow
@@ -36,32 +42,11 @@ open class ImageWorkflowParameter {
 typealias ImageWorkflowParameterValue = String|Mapping
 
 
-/// The image tests configuration used when creating this image.
-open class ImageImageTestsConfiguration {
-    ImageTestsEnabled: (Boolean|Mapping)?
-    TimeoutMinutes: (Int|Mapping)?
-}
-
 /// Resource schema for AWS::ImageBuilder::Image
 open class Image extends cloudformation.Resource {
 
     Type = "AWS::ImageBuilder::Image"
 
-
-    /// Collects additional information about the image being created, including the operating system (OS) version and package list.
-    hidden EnhancedImageMetadataEnabled: (Boolean|Mapping)?
-
-    /// The tags associated with the image.
-    hidden Tags: (ImageImageTags)?
-
-    /// The image tests configuration used when creating this image.
-    hidden ImageTestsConfiguration: (ImageImageTestsConfiguration)?
-
-    /// The Amazon Resource Name (ARN) of the infrastructure configuration.
-    hidden InfrastructureConfigurationArn: (String|Mapping)?
-
-    /// Contains settings for vulnerability scans.
-    hidden ImageScanningConfiguration: (ImageImageScanningConfiguration)?
 
     /// The Amazon Resource Name (ARN) of the container recipe that defines how images are configured and tested.
     hidden ContainerRecipeArn: (String|Mapping)?
@@ -69,25 +54,40 @@ open class Image extends cloudformation.Resource {
     /// The Amazon Resource Name (ARN) of the distribution configuration.
     hidden DistributionConfigurationArn: (String|Mapping)?
 
+    /// Collects additional information about the image being created, including the operating system (OS) version and package list.
+    hidden EnhancedImageMetadataEnabled: (Boolean|Mapping)?
+
     /// The execution role name/ARN for the image build, if provided
     hidden ExecutionRole: (String|Mapping)?
 
     /// The Amazon Resource Name (ARN) of the image recipe that defines how images are configured, tested, and assessed.
     hidden ImageRecipeArn: (String|Mapping)?
 
+    /// Contains settings for vulnerability scans.
+    hidden ImageScanningConfiguration: (ImageImageScanningConfiguration)?
+
+    /// The image tests configuration used when creating this image.
+    hidden ImageTestsConfiguration: (ImageImageTestsConfiguration)?
+
+    /// The Amazon Resource Name (ARN) of the infrastructure configuration.
+    hidden InfrastructureConfigurationArn: (String|Mapping)?
+
+    /// The tags associated with the image.
+    hidden Tags: (ImageImageTags)?
+
     /// Workflows to define the image build process
     hidden Workflows: (Listing<ImageWorkflowConfiguration>)?
 
     Properties {
-        ["EnhancedImageMetadataEnabled"] = if (EnhancedImageMetadataEnabled == null) null else EnhancedImageMetadataEnabled
-        ["Tags"] = if (Tags == null) null else Tags
-        ["ImageTestsConfiguration"] = if (ImageTestsConfiguration == null) null else ImageTestsConfiguration
-        ["InfrastructureConfigurationArn"] = if (InfrastructureConfigurationArn == null) null else InfrastructureConfigurationArn
-        ["ImageScanningConfiguration"] = if (ImageScanningConfiguration == null) null else ImageScanningConfiguration
         ["ContainerRecipeArn"] = if (ContainerRecipeArn == null) null else ContainerRecipeArn
         ["DistributionConfigurationArn"] = if (DistributionConfigurationArn == null) null else DistributionConfigurationArn
+        ["EnhancedImageMetadataEnabled"] = if (EnhancedImageMetadataEnabled == null) null else EnhancedImageMetadataEnabled
         ["ExecutionRole"] = if (ExecutionRole == null) null else ExecutionRole
         ["ImageRecipeArn"] = if (ImageRecipeArn == null) null else ImageRecipeArn
+        ["ImageScanningConfiguration"] = if (ImageScanningConfiguration == null) null else ImageScanningConfiguration
+        ["ImageTestsConfiguration"] = if (ImageTestsConfiguration == null) null else ImageTestsConfiguration
+        ["InfrastructureConfigurationArn"] = if (InfrastructureConfigurationArn == null) null else InfrastructureConfigurationArn
+        ["Tags"] = if (Tags == null) null else Tags
         ["Workflows"] = if (Workflows == null) null else Workflows
     }
 

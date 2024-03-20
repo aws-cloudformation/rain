@@ -17,15 +17,6 @@ open class Channel extends cloudformation.Resource {
     Type = "AWS::IVS::Channel"
 
 
-    /// Recording Configuration ARN. A value other than an empty string indicates that recording is enabled. Default: "" (recording is disabled).
-    hidden RecordingConfigurationArn: (String(matches(Regex(#"^$|arn:aws:ivs:[a-z0-9-]+:[0-9]+:recording-configuration/[a-zA-Z0-9-]+$"#)))|Mapping)?
-
-    /// Channel type, which determines the allowable resolution and bitrate. If you exceed the allowable resolution or bitrate, the stream probably will disconnect immediately.
-    hidden TypeProperty: (ChannelType|Mapping)?
-
-    /// A list of key-value pairs that contain metadata for the asset model.
-    hidden Tags: (Listing<ChannelTag>)?
-
     /// Whether the channel is authorized.
     hidden Authorized: (Boolean|Mapping)?
 
@@ -35,28 +26,37 @@ open class Channel extends cloudformation.Resource {
     /// Channel latency mode.
     hidden LatencyMode: (ChannelLatencyMode|Mapping)?
 
-    /// Optional transcode preset for the channel. This is selectable only for ADVANCED_HD and ADVANCED_SD channel types. For those channel types, the default preset is HIGHER_BANDWIDTH_DELIVERY. For other channel types (BASIC and STANDARD), preset is the empty string ("").
-    hidden Preset: (ChannelPreset|Mapping)?
-
     /// Channel
     hidden Name: (String(matches(Regex(#"^[a-zA-Z0-9-_]*$"#)))|Mapping)?
 
+    /// Optional transcode preset for the channel. This is selectable only for ADVANCED_HD and ADVANCED_SD channel types. For those channel types, the default preset is HIGHER_BANDWIDTH_DELIVERY. For other channel types (BASIC and STANDARD), preset is the empty string ("").
+    hidden Preset: (ChannelPreset|Mapping)?
+
+    /// Recording Configuration ARN. A value other than an empty string indicates that recording is enabled. Default: "" (recording is disabled).
+    hidden RecordingConfigurationArn: (String(matches(Regex(#"^$|arn:aws:ivs:[a-z0-9-]+:[0-9]+:recording-configuration/[a-zA-Z0-9-]+$"#)))|Mapping)?
+
+    /// A list of key-value pairs that contain metadata for the asset model.
+    hidden Tags: (Listing<ChannelTag>)?
+
+    /// Channel type, which determines the allowable resolution and bitrate. If you exceed the allowable resolution or bitrate, the stream probably will disconnect immediately.
+    hidden TypeProperty: (ChannelType|Mapping)?
+
     Properties {
-        ["RecordingConfigurationArn"] = if (RecordingConfigurationArn == null) null else RecordingConfigurationArn
-        ["Type"] = if (TypeProperty == null) null else TypeProperty
-        ["Tags"] = if (Tags == null) null else Tags
         ["Authorized"] = if (Authorized == null) null else Authorized
         ["InsecureIngest"] = if (InsecureIngest == null) null else InsecureIngest
         ["LatencyMode"] = if (LatencyMode == null) null else LatencyMode
-        ["Preset"] = if (Preset == null) null else Preset
         ["Name"] = if (Name == null) null else Name
+        ["Preset"] = if (Preset == null) null else Preset
+        ["RecordingConfigurationArn"] = if (RecordingConfigurationArn == null) null else RecordingConfigurationArn
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Type"] = if (TypeProperty == null) null else TypeProperty
     }
 
 }
 
 
-typealias ChannelType = "STANDARD"|"BASIC"|"ADVANCED_SD"|"ADVANCED_HD"
-
 typealias ChannelLatencyMode = "NORMAL"|"LOW"
 
 typealias ChannelPreset = "HIGHER_BANDWIDTH_DELIVERY"|"CONSTRAINED_BANDWIDTH_DELIVERY"
+
+typealias ChannelType = "STANDARD"|"BASIC"|"ADVANCED_SD"|"ADVANCED_HD"

@@ -6,33 +6,6 @@ module aws.route53.recordsetgroup
 import "../../cloudformation.pkl"
 
 /// 
-open class RecordSetGroupRecordSet {
-    HealthCheckId: (String|Mapping)?
-    ResourceRecords: (Listing<String|Mapping>)?
-    TTL: (String|Mapping)?
-    GeoProximityLocation: (RecordSetGroupGeoProximityLocation)?
-    SetIdentifier: (String|Mapping)?
-    Name: String|Mapping
-    CidrRoutingConfig: (RecordSetGroupCidrRoutingConfig)?
-    MultiValueAnswer: (Boolean|Mapping)?
-    AliasTarget: (RecordSetGroupAliasTarget)?
-    HostedZoneId: (String|Mapping)?
-    Weight: (Int|Mapping)?
-    Type: String|Mapping
-    HostedZoneName: (String|Mapping)?
-    Failover: (String|Mapping)?
-    Region: (String|Mapping)?
-    GeoLocation: (RecordSetGroupGeoLocation)?
-}
-
-/// 
-open class RecordSetGroupGeoLocation {
-    SubdivisionCode: (String|Mapping)?
-    ContinentCode: (String|Mapping)?
-    CountryCode: (String|Mapping)?
-}
-
-/// 
 open class RecordSetGroupAliasTarget {
     DNSName: String|Mapping
     HostedZoneId: String|Mapping
@@ -46,6 +19,19 @@ open class RecordSetGroupCidrRoutingConfig {
 }
 
 /// 
+open class RecordSetGroupCoordinates {
+    Longitude: String|Mapping
+    Latitude: String|Mapping
+}
+
+/// 
+open class RecordSetGroupGeoLocation {
+    ContinentCode: (String|Mapping)?
+    CountryCode: (String|Mapping)?
+    SubdivisionCode: (String|Mapping)?
+}
+
+/// 
 open class RecordSetGroupGeoProximityLocation {
     AWSRegion: (String|Mapping)?
     LocalZoneGroup: (String|Mapping)?
@@ -54,9 +40,23 @@ open class RecordSetGroupGeoProximityLocation {
 }
 
 /// 
-open class RecordSetGroupCoordinates {
-    Longitude: String|Mapping
-    Latitude: String|Mapping
+open class RecordSetGroupRecordSet {
+    Name: String|Mapping
+    GeoLocation: (RecordSetGroupGeoLocation)?
+    HealthCheckId: (String|Mapping)?
+    HostedZoneName: (String|Mapping)?
+    ResourceRecords: (Listing<String|Mapping>)?
+    TTL: (String|Mapping)?
+    Type: String|Mapping
+    Region: (String|Mapping)?
+    AliasTarget: (RecordSetGroupAliasTarget)?
+    SetIdentifier: (String|Mapping)?
+    Weight: (Int|Mapping)?
+    CidrRoutingConfig: (RecordSetGroupCidrRoutingConfig)?
+    Failover: (String|Mapping)?
+    MultiValueAnswer: (Boolean|Mapping)?
+    HostedZoneId: (String|Mapping)?
+    GeoProximityLocation: (RecordSetGroupGeoProximityLocation)?
 }
 
 /// Resource Type definition for AWS::Route53::RecordSetGroup
@@ -69,19 +69,19 @@ open class RecordSetGroup extends cloudformation.Resource {
     hidden Comment: (String|Mapping)?
 
     /// 
+    hidden HostedZoneId: (String|Mapping)?
+
+    /// 
     hidden HostedZoneName: (String|Mapping)?
 
     /// 
     hidden RecordSets: (Listing<RecordSetGroupRecordSet>)?
 
-    /// 
-    hidden HostedZoneId: (String|Mapping)?
-
     Properties {
         ["Comment"] = if (Comment == null) null else Comment
+        ["HostedZoneId"] = if (HostedZoneId == null) null else HostedZoneId
         ["HostedZoneName"] = if (HostedZoneName == null) null else HostedZoneName
         ["RecordSets"] = if (RecordSets == null) null else RecordSets
-        ["HostedZoneId"] = if (HostedZoneId == null) null else HostedZoneId
     }
 
 }

@@ -6,29 +6,17 @@ module aws.config.configurationrecorder
 import "../../cloudformation.pkl"
 
 /// 
-open class ConfigurationRecorderRecordingStrategy {
-    UseOnly: String|Mapping
-}
-
-/// 
 open class ConfigurationRecorderExclusionByResourceTypes {
     ResourceTypes: Listing<String|Mapping>
 }
 
 /// 
-open class ConfigurationRecorderRecordingModeOverride {
-    Description: (String|Mapping)?
-    ResourceTypes: Listing<String|Mapping>
-    RecordingFrequency: String|Mapping
-}
-
-/// 
 open class ConfigurationRecorderRecordingGroup {
-    AllSupported: (Boolean|Mapping)?
-    IncludeGlobalResourceTypes: (Boolean|Mapping)?
     ResourceTypes: (Listing<String|Mapping>)?
     RecordingStrategy: (ConfigurationRecorderRecordingStrategy)?
     ExclusionByResourceTypes: (ConfigurationRecorderExclusionByResourceTypes)?
+    AllSupported: (Boolean|Mapping)?
+    IncludeGlobalResourceTypes: (Boolean|Mapping)?
 }
 
 /// 
@@ -37,11 +25,26 @@ open class ConfigurationRecorderRecordingMode {
     RecordingFrequency: String|Mapping
 }
 
+/// 
+open class ConfigurationRecorderRecordingModeOverride {
+    RecordingFrequency: String|Mapping
+    Description: (String|Mapping)?
+    ResourceTypes: Listing<String|Mapping>
+}
+
+/// 
+open class ConfigurationRecorderRecordingStrategy {
+    UseOnly: String|Mapping
+}
+
 /// Resource Type definition for AWS::Config::ConfigurationRecorder
 open class ConfigurationRecorder extends cloudformation.Resource {
 
     Type = "AWS::Config::ConfigurationRecorder"
 
+
+    /// 
+    hidden Name: (String|Mapping)?
 
     /// 
     hidden RecordingGroup: (ConfigurationRecorderRecordingGroup)?
@@ -52,14 +55,11 @@ open class ConfigurationRecorder extends cloudformation.Resource {
     /// 
     hidden RoleARN: String|Mapping
 
-    /// 
-    hidden Name: (String|Mapping)?
-
     Properties {
+        ["Name"] = if (Name == null) null else Name
         ["RecordingGroup"] = if (RecordingGroup == null) null else RecordingGroup
         ["RecordingMode"] = if (RecordingMode == null) null else RecordingMode
         ["RoleARN"] = if (RoleARN == null) null else RoleARN
-        ["Name"] = if (Name == null) null else Name
     }
 
 }

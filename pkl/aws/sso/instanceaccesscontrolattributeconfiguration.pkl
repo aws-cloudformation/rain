@@ -5,10 +5,13 @@ module aws.sso.instanceaccesscontrolattributeconfiguration
 
 import "../../cloudformation.pkl"
 
-typealias InstanceAccessControlAttributeConfigurationAccessControlAttributeValueSource = String|Mapping
+/// 
+open class InstanceAccessControlAttributeConfigurationAccessControlAttribute {
+    Value: InstanceAccessControlAttributeConfigurationAccessControlAttributeValue
+    Key: String(matches(Regex(#"[\p{L}\p{Z}\p{N}_.:\/=+\-@]+"#)))|Mapping
+}
 
-
-typealias InstanceAccessControlAttributeConfigurationAccessControlAttributeValueSourceList = Listing<(InstanceAccessControlAttributeConfigurationAccessControlAttributeValueSource)?>
+typealias InstanceAccessControlAttributeConfigurationAccessControlAttributeList = Listing<(InstanceAccessControlAttributeConfigurationAccessControlAttribute)?>
 
 
 /// 
@@ -16,13 +19,10 @@ open class InstanceAccessControlAttributeConfigurationAccessControlAttributeValu
     Source: InstanceAccessControlAttributeConfigurationAccessControlAttributeValueSourceList
 }
 
-/// 
-open class InstanceAccessControlAttributeConfigurationAccessControlAttribute {
-    Key: String(matches(Regex(#"[\p{L}\p{Z}\p{N}_.:\/=+\-@]+"#)))|Mapping
-    Value: InstanceAccessControlAttributeConfigurationAccessControlAttributeValue
-}
+typealias InstanceAccessControlAttributeConfigurationAccessControlAttributeValueSource = String|Mapping
 
-typealias InstanceAccessControlAttributeConfigurationAccessControlAttributeList = Listing<(InstanceAccessControlAttributeConfigurationAccessControlAttribute)?>
+
+typealias InstanceAccessControlAttributeConfigurationAccessControlAttributeValueSourceList = Listing<(InstanceAccessControlAttributeConfigurationAccessControlAttributeValueSource)?>
 
 
 /// Resource Type definition for SSO InstanceAccessControlAttributeConfiguration
@@ -31,19 +31,19 @@ open class InstanceAccessControlAttributeConfiguration extends cloudformation.Re
     Type = "AWS::SSO::InstanceAccessControlAttributeConfiguration"
 
 
-    /// The ARN of the AWS SSO instance under which the operation will be executed.
-    hidden InstanceArn: String(matches(Regex(#"arn:(aws|aws-us-gov|aws-cn|aws-iso|aws-iso-b):sso:::instance/(sso)?ins-[a-zA-Z0-9-.]{16}"#)))|Mapping
+    /// 
+    hidden AccessControlAttributes: (InstanceAccessControlAttributeConfigurationAccessControlAttributeList)?
 
     /// The InstanceAccessControlAttributeConfiguration property has been deprecated but is still supported for backwards compatibility purposes. We recomend that you use  AccessControlAttributes property instead.
     hidden InstanceAccessControlAttributeConfiguration: (Dynamic)?
 
-    /// 
-    hidden AccessControlAttributes: (InstanceAccessControlAttributeConfigurationAccessControlAttributeList)?
+    /// The ARN of the AWS SSO instance under which the operation will be executed.
+    hidden InstanceArn: String(matches(Regex(#"arn:(aws|aws-us-gov|aws-cn|aws-iso|aws-iso-b):sso:::instance/(sso)?ins-[a-zA-Z0-9-.]{16}"#)))|Mapping
 
     Properties {
-        ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
-        ["InstanceAccessControlAttributeConfiguration"] = if (InstanceAccessControlAttributeConfiguration == null) null else InstanceAccessControlAttributeConfiguration
         ["AccessControlAttributes"] = if (AccessControlAttributes == null) null else AccessControlAttributes
+        ["InstanceAccessControlAttributeConfiguration"] = if (InstanceAccessControlAttributeConfiguration == null) null else InstanceAccessControlAttributeConfiguration
+        ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
     }
 
 }

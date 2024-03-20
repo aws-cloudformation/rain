@@ -5,20 +5,51 @@ module aws.sagemaker.modelpackage
 
 import "../../cloudformation.pkl"
 
-typealias ModelPackageTask = String|Mapping
+typealias ModelPackageEnvironment = Mapping<String, Any>
 
 
-typealias ModelPackageDomain = String|Mapping
+/// Describes the Docker container for the model package.
+open class ModelPackageModelPackageContainerDefinition {
+    ContainerHostname: (String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"#)))|Mapping)?
+    ModelInput: (Dynamic)?
+    Image: String(matches(Regex(#"[\S]{1,255}"#)))|Mapping
+    ImageDigest: (String(matches(Regex(#"^[Ss][Hh][Aa]256:[0-9a-fA-F]{64}$"#)))|Mapping)?
+    ModelDataUrl: (String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping)?
+    Framework: (String|Mapping)?
+    NearestModelName: (String|Mapping)?
+    Environment: (ModelPackageEnvironment)?
+    FrameworkVersion: (String(matches(Regex(#"[0-9]\.[A-Za-z0-9.]+"#)))|Mapping)?
+}
+
+/// Contains explainability metrics for a model.
+open class ModelPackageExplainability {
+    Report: (ModelPackageMetricsSource)?
+}
+
+typealias ModelPackageModelPackageDescription = String|Mapping
+
+
+typealias ModelPackageModelPackageStatus = String|Mapping
+
+
+typealias ModelPackageModelPackageVersion = Int|Mapping
 
 
 typealias ModelPackageResponseMIMEType = String|Mapping
 
 
-/// Represents the drift check bias baselines that can be used when the model monitor is set using the model package.
-open class ModelPackageDriftCheckBias {
-    PostTrainingConstraints: (ModelPackageMetricsSource)?
-    PreTrainingConstraints: (ModelPackageMetricsSource)?
-    ConfigFile: (ModelPackageFileSource)?
+typealias ModelPackageTask = String|Mapping
+
+
+/// Additional Inference Specification specifies details about inference jobs that can be run with models based on this model package.AdditionalInferenceSpecifications can be added to existing model packages using AdditionalInferenceSpecificationsToAdd.
+open class ModelPackageAdditionalInferenceSpecificationDefinition {
+    Description: (String(matches(Regex(#".*"#)))|Mapping)?
+    Name: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}$"#)))|Mapping
+    SupportedContentTypes: (Listing<ModelPackageContentType>)?
+    SupportedRealtimeInferenceInstanceTypes: (Listing<ModelPackageInferenceInstanceType>)?
+    SupportedResponseMIMETypes: (Listing<ModelPackageResponseMIMEType>)?
+    SupportedTransformInstanceTypes: (Listing<ModelPackageTransformInstanceType>)?
+    Containers: Listing<ModelPackageModelPackageContainerDefinition>
 }
 
 /// Contains bias metrics for a model.
@@ -28,85 +59,39 @@ open class ModelPackageBias {
     PostTrainingReport: (ModelPackageMetricsSource)?
 }
 
-/// Describes the Docker container for the model package.
-open class ModelPackageModelPackageContainerDefinition {
-    ModelInput: (Dynamic)?
-    ImageDigest: (String(matches(Regex(#"^[Ss][Hh][Aa]256:[0-9a-fA-F]{64}$"#)))|Mapping)?
-    ModelDataUrl: (String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping)?
-    Framework: (String|Mapping)?
-    Environment: (ModelPackageEnvironment)?
-    Image: String(matches(Regex(#"[\S]{1,255}"#)))|Mapping
-    FrameworkVersion: (String(matches(Regex(#"[0-9]\.[A-Za-z0-9.]+"#)))|Mapping)?
-    NearestModelName: (String|Mapping)?
-    ContainerHostname: (String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"#)))|Mapping)?
+typealias TransformInputSplitType = "None"|"TFRecord"|"Line"|"RecordIO"
+
+typealias TransformInputCompressionType = "None"|"Gzip"
+
+/// Describes the input source of a transform job and the way the transform job consumes it.
+open class ModelPackageTransformInput {
+    DataSource: ModelPackageDataSource
+    SplitType: (TransformInputSplitType|Mapping)?
+    CompressionType: (TransformInputCompressionType|Mapping)?
+    ContentType: (String(matches(Regex(#".*"#)))|Mapping)?
 }
 
-/// Details about inference jobs that can be run with models based on this model package.
-open class ModelPackageInferenceSpecification {
-    SupportedContentTypes: Listing<ModelPackageContentType>
-    SupportedRealtimeInferenceInstanceTypes: (Listing<ModelPackageInferenceInstanceType>)?
-    SupportedResponseMIMETypes: Listing<ModelPackageResponseMIMEType>
-    SupportedTransformInstanceTypes: (Listing<ModelPackageTransformInstanceType>)?
-    Containers: Listing<ModelPackageModelPackageContainerDefinition>
+typealias ModelPackageApprovalDescription = String|Mapping
+
+
+/// Details about the algorithm that was used to create the model package.
+open class ModelPackageSourceAlgorithmSpecification {
+    SourceAlgorithms: Listing<ModelPackageSourceAlgorithm>
+}
+
+/// Represents a Metric Source Object.
+open class ModelPackageMetricsSource {
+    ContentDigest: (String(matches(Regex(#"^[Ss][Hh][Aa]256:[0-9a-fA-F]{64}$"#)))|Mapping)?
+    ContentType: String(matches(Regex(#".*"#)))|Mapping
+    S3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
 }
 
 /// A structure that contains model metrics reports.
 open class ModelPackageModelMetrics {
-    Bias: (ModelPackageBias)?
-    Explainability: (ModelPackageExplainability)?
     ModelDataQuality: (ModelPackageModelDataQuality)?
     ModelQuality: (ModelPackageModelQuality)?
-}
-
-typealias ModelPackageModelPackageStatus = String|Mapping
-
-
-typealias TransformJobDefinitionBatchStrategy = "MultiRecord"|"SingleRecord"
-
-/// Defines the input needed to run a transform job using the inference specification specified in the algorithm.
-open class ModelPackageTransformJobDefinition {
-    MaxConcurrentTransforms: (Int|Mapping)?
-    MaxPayloadInMB: (Int|Mapping)?
-    TransformInput: ModelPackageTransformInput
-    TransformOutput: ModelPackageTransformOutput
-    TransformResources: ModelPackageTransformResources
-    Environment: (ModelPackageEnvironment)?
-    BatchStrategy: (TransformJobDefinitionBatchStrategy|Mapping)?
-}
-
-/// Specifies an algorithm that was used to create the model package. The algorithm must be either an algorithm resource in your Amazon SageMaker account or an algorithm in AWS Marketplace that you are subscribed to.
-open class ModelPackageSourceAlgorithm {
-    AlgorithmName: String(matches(Regex(#"(arn:aws[a-z\-]*:sagemaker:[a-z0-9\-]*:[0-9]{12}:[a-z\-]*\/)?([a-zA-Z0-9]([a-zA-Z0-9-]){0,62})(?<!-)$"#)))|Mapping
-    ModelDataUrl: (String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping)?
-}
-
-typealias ModelPackageSkipModelValidation = String|Mapping
-
-
-/// Metadata properties of the tracking entity, trial, or trial component.
-open class ModelPackageMetadataProperties {
-    CommitId: (String(matches(Regex(#".*"#)))|Mapping)?
-    GeneratedBy: (String(matches(Regex(#".*"#)))|Mapping)?
-    ProjectId: (String(matches(Regex(#".*"#)))|Mapping)?
-    Repository: (String(matches(Regex(#".*"#)))|Mapping)?
-}
-
-typealias ModelPackageModelPackageArn = String|Mapping
-
-
-typealias ModelPackageModelPackageVersion = Int|Mapping
-
-
-typealias ModelPackageEnvironment = Mapping<String, Any>
-
-
-typealias ModelPackageModelPackageGroupName = String|Mapping
-
-
-/// Specifies configurations for one or more transform jobs that Amazon SageMaker runs to test the model package.
-open class ModelPackageValidationSpecification {
-    ValidationProfiles: Listing<ModelPackageValidationProfile>
-    ValidationRole: String(matches(Regex(#"^arn:aws[a-z\-]*:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping
+    Bias: (ModelPackageBias)?
+    Explainability: (ModelPackageExplainability)?
 }
 
 /// Represents the drift check data quality baselines that can be used when the model monitor is set using the model package.
@@ -115,27 +100,32 @@ open class ModelPackageDriftCheckModelDataQuality {
     Statistics: (ModelPackageMetricsSource)?
 }
 
+typealias ModelPackageLastModifiedTime = String|Mapping
+
+
+typealias ModelPackageCreationTime = String|Mapping
+
+
 /// Contains data, such as the inputs and targeted instance types that are used in the process of validating the model package.
 open class ModelPackageValidationProfile {
     TransformJobDefinition: ModelPackageTransformJobDefinition
     ProfileName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}$"#)))|Mapping
 }
 
-typealias TransformInputCompressionType = "None"|"Gzip"
-
-typealias TransformInputSplitType = "None"|"TFRecord"|"Line"|"RecordIO"
-
-/// Describes the input source of a transform job and the way the transform job consumes it.
-open class ModelPackageTransformInput {
-    CompressionType: (TransformInputCompressionType|Mapping)?
-    ContentType: (String(matches(Regex(#".*"#)))|Mapping)?
-    DataSource: ModelPackageDataSource
-    SplitType: (TransformInputSplitType|Mapping)?
+/// Represents the drift check bias baselines that can be used when the model monitor is set using the model package.
+open class ModelPackageDriftCheckBias {
+    PreTrainingConstraints: (ModelPackageMetricsSource)?
+    ConfigFile: (ModelPackageFileSource)?
+    PostTrainingConstraints: (ModelPackageMetricsSource)?
 }
 
-/// Details about the current status of the model package.
-open class ModelPackageModelPackageStatusDetails {
-    ValidationStatuses: (Listing<ModelPackageModelPackageStatusItem>)?
+typealias ModelPackageModelApprovalStatus = String|Mapping
+
+
+/// Metrics that measure the quality of the input data for a model.
+open class ModelPackageModelDataQuality {
+    Constraints: (ModelPackageMetricsSource)?
+    Statistics: (ModelPackageMetricsSource)?
 }
 
 typealias TransformOutputAssembleWith = "None"|"Line"
@@ -148,27 +138,8 @@ open class ModelPackageTransformOutput {
     AssembleWith: (TransformOutputAssembleWith|Mapping)?
 }
 
-/// Metrics that measure the quality of a model.
-open class ModelPackageModelQuality {
-    Constraints: (ModelPackageMetricsSource)?
-    Statistics: (ModelPackageMetricsSource)?
-}
+typealias ModelPackageDomain = String|Mapping
 
-typealias ModelPackageCreationTime = String|Mapping
-
-
-typealias ModelPackageSamplePayloadUrl = String|Mapping
-
-
-typealias ModelPackageInferenceInstanceType = String|Mapping
-
-
-/// Represents a Metric Source Object.
-open class ModelPackageMetricsSource {
-    ContentDigest: (String(matches(Regex(#"^[Ss][Hh][Aa]256:[0-9a-fA-F]{64}$"#)))|Mapping)?
-    ContentType: String(matches(Regex(#".*"#)))|Mapping
-    S3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
-}
 
 /// Represents the drift check baselines that can be used when the model monitor is set using the model package.
 open class ModelPackageDriftCheckBaselines {
@@ -178,38 +149,12 @@ open class ModelPackageDriftCheckBaselines {
     ModelQuality: (ModelPackageDriftCheckModelQuality)?
 }
 
-/// A key-value pair to associate with a resource.
-open class ModelPackageTag {
-    Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
-    Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
-}
-
-typealias ModelPackageCertifyForMarketplace = Boolean|Mapping
+typealias ModelPackageModelPackageName = String|Mapping
 
 
-/// Represents a File Source Object.
-open class ModelPackageFileSource {
-    S3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
-    ContentDigest: (String(matches(Regex(#"^[Ss][Hh][Aa]256:[0-9a-fA-F]{64}$"#)))|Mapping)?
-    ContentType: (String(matches(Regex(#".*"#)))|Mapping)?
-}
-
-typealias ModelPackageLastModifiedTime = String|Mapping
-
-
-typealias ModelPackageClientToken = String|Mapping
-
-
-/// Describes the resources, including ML instance types and ML instance count, to use for transform job.
-open class ModelPackageTransformResources {
-    VolumeKmsKeyId: (String(matches(Regex(#".*"#)))|Mapping)?
-    InstanceCount: Int|Mapping
-    InstanceType: String|Mapping
-}
-
-/// Describes the input source of a transform job and the way the transform job consumes it.
-open class ModelPackageDataSource {
-    S3DataSource: ModelPackageS3DataSource
+/// Details about the current status of the model package.
+open class ModelPackageModelPackageStatusDetails {
+    ValidationStatuses: (Listing<ModelPackageModelPackageStatusItem>)?
 }
 
 typealias ModelPackageStatusItemStatus = "NotStarted"|"Failed"|"InProgress"|"Completed"
@@ -221,34 +166,45 @@ open class ModelPackageModelPackageStatusItem {
     Status: ModelPackageStatusItemStatus|Mapping
 }
 
-typealias ModelPackageModelPackageName = String|Mapping
+typealias ModelPackageSkipModelValidation = String|Mapping
 
 
-typealias ModelPackageAdditionalInferenceSpecifications = Listing<(ModelPackageAdditionalInferenceSpecificationDefinition)?>
-
-
-typealias ModelPackageModelPackageDescription = String|Mapping
-
-
-typealias ModelPackageTransformInstanceType = String|Mapping
-
-
-typealias ModelPackageContentType = String|Mapping
-
-
-/// Metrics that measure the quality of the input data for a model.
-open class ModelPackageModelDataQuality {
-    Constraints: (ModelPackageMetricsSource)?
-    Statistics: (ModelPackageMetricsSource)?
-}
-
-typealias ModelPackageCustomerMetadataProperties = Mapping<String, Any>
+typealias ModelPackageModelPackageGroupName = String|Mapping
 
 
 /// Contains explainability metrics for a model.
 open class ModelPackageDriftCheckExplainability {
-    ConfigFile: (ModelPackageFileSource)?
     Constraints: (ModelPackageMetricsSource)?
+    ConfigFile: (ModelPackageFileSource)?
+}
+
+/// Represents the drift check model quality baselines that can be used when the model monitor is set using the model package.
+open class ModelPackageDriftCheckModelQuality {
+    Constraints: (ModelPackageMetricsSource)?
+    Statistics: (ModelPackageMetricsSource)?
+}
+
+/// Metadata properties of the tracking entity, trial, or trial component.
+open class ModelPackageMetadataProperties {
+    CommitId: (String(matches(Regex(#".*"#)))|Mapping)?
+    GeneratedBy: (String(matches(Regex(#".*"#)))|Mapping)?
+    ProjectId: (String(matches(Regex(#".*"#)))|Mapping)?
+    Repository: (String(matches(Regex(#".*"#)))|Mapping)?
+}
+
+typealias ModelPackageClientToken = String|Mapping
+
+
+typealias ModelPackageCustomerMetadataProperties = Mapping<String, Any>
+
+
+/// Details about inference jobs that can be run with models based on this model package.
+open class ModelPackageInferenceSpecification {
+    Containers: Listing<ModelPackageModelPackageContainerDefinition>
+    SupportedContentTypes: Listing<ModelPackageContentType>
+    SupportedRealtimeInferenceInstanceTypes: (Listing<ModelPackageInferenceInstanceType>)?
+    SupportedResponseMIMETypes: Listing<ModelPackageResponseMIMEType>
+    SupportedTransformInstanceTypes: (Listing<ModelPackageTransformInstanceType>)?
 }
 
 typealias S3DataSourceS3DataType = "ManifestFile"|"S3Prefix"|"AugmentedManifestFile"
@@ -259,37 +215,81 @@ open class ModelPackageS3DataSource {
     S3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
 }
 
-/// Contains explainability metrics for a model.
-open class ModelPackageExplainability {
-    Report: (ModelPackageMetricsSource)?
+typealias ModelPackageCertifyForMarketplace = Boolean|Mapping
+
+
+typealias ModelPackageInferenceInstanceType = String|Mapping
+
+
+/// Specifies configurations for one or more transform jobs that Amazon SageMaker runs to test the model package.
+open class ModelPackageValidationSpecification {
+    ValidationProfiles: Listing<ModelPackageValidationProfile>
+    ValidationRole: String(matches(Regex(#"^arn:aws[a-z\-]*:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping
 }
 
-/// Represents the drift check model quality baselines that can be used when the model monitor is set using the model package.
-open class ModelPackageDriftCheckModelQuality {
-    Constraints: (ModelPackageMetricsSource)?
+typealias ModelPackageSamplePayloadUrl = String|Mapping
+
+
+typealias TransformJobDefinitionBatchStrategy = "MultiRecord"|"SingleRecord"
+
+/// Defines the input needed to run a transform job using the inference specification specified in the algorithm.
+open class ModelPackageTransformJobDefinition {
+    TransformOutput: ModelPackageTransformOutput
+    TransformResources: ModelPackageTransformResources
+    Environment: (ModelPackageEnvironment)?
+    BatchStrategy: (TransformJobDefinitionBatchStrategy|Mapping)?
+    MaxConcurrentTransforms: (Int|Mapping)?
+    MaxPayloadInMB: (Int|Mapping)?
+    TransformInput: ModelPackageTransformInput
+}
+
+/// Metrics that measure the quality of a model.
+open class ModelPackageModelQuality {
     Statistics: (ModelPackageMetricsSource)?
+    Constraints: (ModelPackageMetricsSource)?
 }
 
-typealias ModelPackageApprovalDescription = String|Mapping
-
-
-/// Details about the algorithm that was used to create the model package.
-open class ModelPackageSourceAlgorithmSpecification {
-    SourceAlgorithms: Listing<ModelPackageSourceAlgorithm>
+/// A key-value pair to associate with a resource.
+open class ModelPackageTag {
+    Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
+    Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
 }
 
-/// Additional Inference Specification specifies details about inference jobs that can be run with models based on this model package.AdditionalInferenceSpecifications can be added to existing model packages using AdditionalInferenceSpecificationsToAdd.
-open class ModelPackageAdditionalInferenceSpecificationDefinition {
-    SupportedResponseMIMETypes: (Listing<ModelPackageResponseMIMEType>)?
-    SupportedTransformInstanceTypes: (Listing<ModelPackageTransformInstanceType>)?
-    Containers: Listing<ModelPackageModelPackageContainerDefinition>
-    Description: (String(matches(Regex(#".*"#)))|Mapping)?
-    Name: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}$"#)))|Mapping
-    SupportedContentTypes: (Listing<ModelPackageContentType>)?
-    SupportedRealtimeInferenceInstanceTypes: (Listing<ModelPackageInferenceInstanceType>)?
+/// Describes the input source of a transform job and the way the transform job consumes it.
+open class ModelPackageDataSource {
+    S3DataSource: ModelPackageS3DataSource
 }
 
-typealias ModelPackageModelApprovalStatus = String|Mapping
+typealias ModelPackageModelPackageArn = String|Mapping
+
+
+/// Describes the resources, including ML instance types and ML instance count, to use for transform job.
+open class ModelPackageTransformResources {
+    InstanceType: String|Mapping
+    VolumeKmsKeyId: (String(matches(Regex(#".*"#)))|Mapping)?
+    InstanceCount: Int|Mapping
+}
+
+/// Represents a File Source Object.
+open class ModelPackageFileSource {
+    ContentDigest: (String(matches(Regex(#"^[Ss][Hh][Aa]256:[0-9a-fA-F]{64}$"#)))|Mapping)?
+    ContentType: (String(matches(Regex(#".*"#)))|Mapping)?
+    S3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
+}
+
+/// Specifies an algorithm that was used to create the model package. The algorithm must be either an algorithm resource in your Amazon SageMaker account or an algorithm in AWS Marketplace that you are subscribed to.
+open class ModelPackageSourceAlgorithm {
+    AlgorithmName: String(matches(Regex(#"(arn:aws[a-z\-]*:sagemaker:[a-z0-9\-]*:[0-9]{12}:[a-z\-]*\/)?([a-zA-Z0-9]([a-zA-Z0-9-]){0,62})(?<!-)$"#)))|Mapping
+    ModelDataUrl: (String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping)?
+}
+
+typealias ModelPackageTransformInstanceType = String|Mapping
+
+
+typealias ModelPackageAdditionalInferenceSpecifications = Listing<(ModelPackageAdditionalInferenceSpecificationDefinition)?>
+
+
+typealias ModelPackageContentType = String|Mapping
 
 
 /// Resource Type definition for AWS::SageMaker::ModelPackage
@@ -299,55 +299,22 @@ open class ModelPackage extends cloudformation.Resource {
 
 
     /// 
-    hidden ModelPackageName: (ModelPackageModelPackageName)?
-
-    /// 
-    hidden SamplePayloadUrl: (ModelPackageSamplePayloadUrl)?
-
-    /// 
-    hidden SkipModelValidation: (ModelPackageSkipModelValidation)?
-
-    /// 
-    hidden ApprovalDescription: (ModelPackageApprovalDescription)?
-
-    /// 
-    hidden CustomerMetadataProperties: (ModelPackageCustomerMetadataProperties)?
-
-    /// 
-    hidden ModelPackageStatusDetails: (ModelPackageModelPackageStatusDetails)?
-
-    /// 
     hidden AdditionalInferenceSpecifications: (ModelPackageAdditionalInferenceSpecifications)?
-
-    /// 
-    hidden CertifyForMarketplace: (ModelPackageCertifyForMarketplace)?
 
     /// 
     hidden AdditionalInferenceSpecificationsToAdd: (ModelPackageAdditionalInferenceSpecifications)?
 
     /// 
-    hidden MetadataProperties: (ModelPackageMetadataProperties)?
+    hidden ApprovalDescription: (ModelPackageApprovalDescription)?
 
     /// 
-    hidden Task: (ModelPackageTask)?
+    hidden CertifyForMarketplace: (ModelPackageCertifyForMarketplace)?
 
     /// 
     hidden ClientToken: (ModelPackageClientToken)?
 
     /// 
-    hidden LastModifiedTime: (ModelPackageLastModifiedTime)?
-
-    /// 
-    hidden ModelPackageDescription: (ModelPackageModelPackageDescription)?
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<ModelPackageTag>)?
-
-    /// 
-    hidden ModelPackageVersion: (ModelPackageModelPackageVersion)?
-
-    /// 
-    hidden ValidationSpecification: (ModelPackageValidationSpecification)?
+    hidden CustomerMetadataProperties: (ModelPackageCustomerMetadataProperties)?
 
     /// 
     hidden Domain: (ModelPackageDomain)?
@@ -359,42 +326,75 @@ open class ModelPackage extends cloudformation.Resource {
     hidden InferenceSpecification: (ModelPackageInferenceSpecification)?
 
     /// 
+    hidden LastModifiedTime: (ModelPackageLastModifiedTime)?
+
+    /// 
+    hidden MetadataProperties: (ModelPackageMetadataProperties)?
+
+    /// 
     hidden ModelApprovalStatus: (ModelPackageModelApprovalStatus)?
 
     /// 
     hidden ModelMetrics: (ModelPackageModelMetrics)?
 
     /// 
+    hidden ModelPackageDescription: (ModelPackageModelPackageDescription)?
+
+    /// 
     hidden ModelPackageGroupName: (ModelPackageModelPackageGroupName)?
+
+    /// 
+    hidden ModelPackageName: (ModelPackageModelPackageName)?
+
+    /// 
+    hidden ModelPackageStatusDetails: (ModelPackageModelPackageStatusDetails)?
+
+    /// 
+    hidden ModelPackageVersion: (ModelPackageModelPackageVersion)?
+
+    /// 
+    hidden SamplePayloadUrl: (ModelPackageSamplePayloadUrl)?
+
+    /// 
+    hidden SkipModelValidation: (ModelPackageSkipModelValidation)?
 
     /// 
     hidden SourceAlgorithmSpecification: (ModelPackageSourceAlgorithmSpecification)?
 
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<ModelPackageTag>)?
+
+    /// 
+    hidden Task: (ModelPackageTask)?
+
+    /// 
+    hidden ValidationSpecification: (ModelPackageValidationSpecification)?
+
     Properties {
-        ["ModelPackageName"] = if (ModelPackageName == null) null else ModelPackageName
-        ["SamplePayloadUrl"] = if (SamplePayloadUrl == null) null else SamplePayloadUrl
-        ["SkipModelValidation"] = if (SkipModelValidation == null) null else SkipModelValidation
-        ["ApprovalDescription"] = if (ApprovalDescription == null) null else ApprovalDescription
-        ["CustomerMetadataProperties"] = if (CustomerMetadataProperties == null) null else CustomerMetadataProperties
-        ["ModelPackageStatusDetails"] = if (ModelPackageStatusDetails == null) null else ModelPackageStatusDetails
         ["AdditionalInferenceSpecifications"] = if (AdditionalInferenceSpecifications == null) null else AdditionalInferenceSpecifications
-        ["CertifyForMarketplace"] = if (CertifyForMarketplace == null) null else CertifyForMarketplace
         ["AdditionalInferenceSpecificationsToAdd"] = if (AdditionalInferenceSpecificationsToAdd == null) null else AdditionalInferenceSpecificationsToAdd
-        ["MetadataProperties"] = if (MetadataProperties == null) null else MetadataProperties
-        ["Task"] = if (Task == null) null else Task
+        ["ApprovalDescription"] = if (ApprovalDescription == null) null else ApprovalDescription
+        ["CertifyForMarketplace"] = if (CertifyForMarketplace == null) null else CertifyForMarketplace
         ["ClientToken"] = if (ClientToken == null) null else ClientToken
-        ["LastModifiedTime"] = if (LastModifiedTime == null) null else LastModifiedTime
-        ["ModelPackageDescription"] = if (ModelPackageDescription == null) null else ModelPackageDescription
-        ["Tags"] = if (Tags == null) null else Tags
-        ["ModelPackageVersion"] = if (ModelPackageVersion == null) null else ModelPackageVersion
-        ["ValidationSpecification"] = if (ValidationSpecification == null) null else ValidationSpecification
+        ["CustomerMetadataProperties"] = if (CustomerMetadataProperties == null) null else CustomerMetadataProperties
         ["Domain"] = if (Domain == null) null else Domain
         ["DriftCheckBaselines"] = if (DriftCheckBaselines == null) null else DriftCheckBaselines
         ["InferenceSpecification"] = if (InferenceSpecification == null) null else InferenceSpecification
+        ["LastModifiedTime"] = if (LastModifiedTime == null) null else LastModifiedTime
+        ["MetadataProperties"] = if (MetadataProperties == null) null else MetadataProperties
         ["ModelApprovalStatus"] = if (ModelApprovalStatus == null) null else ModelApprovalStatus
         ["ModelMetrics"] = if (ModelMetrics == null) null else ModelMetrics
+        ["ModelPackageDescription"] = if (ModelPackageDescription == null) null else ModelPackageDescription
         ["ModelPackageGroupName"] = if (ModelPackageGroupName == null) null else ModelPackageGroupName
+        ["ModelPackageName"] = if (ModelPackageName == null) null else ModelPackageName
+        ["ModelPackageStatusDetails"] = if (ModelPackageStatusDetails == null) null else ModelPackageStatusDetails
+        ["ModelPackageVersion"] = if (ModelPackageVersion == null) null else ModelPackageVersion
+        ["SamplePayloadUrl"] = if (SamplePayloadUrl == null) null else SamplePayloadUrl
+        ["SkipModelValidation"] = if (SkipModelValidation == null) null else SkipModelValidation
         ["SourceAlgorithmSpecification"] = if (SourceAlgorithmSpecification == null) null else SourceAlgorithmSpecification
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Task"] = if (Task == null) null else Task
+        ["ValidationSpecification"] = if (ValidationSpecification == null) null else ValidationSpecification
     }
 
 }

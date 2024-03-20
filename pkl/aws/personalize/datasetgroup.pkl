@@ -11,23 +11,23 @@ open class DatasetGroup extends cloudformation.Resource {
     Type = "AWS::Personalize::DatasetGroup"
 
 
-    /// The name for the new dataset group.
-    hidden Name: String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9\-_]*"#)))|Mapping
+    /// The domain of a Domain dataset group.
+    hidden Domain: (DatasetGroupDomain|Mapping)?
 
     /// The Amazon Resource Name(ARN) of a AWS Key Management Service (KMS) key used to encrypt the datasets.
     hidden KmsKeyArn: (String(matches(Regex(#"arn:aws.*:kms:.*:[0-9]{12}:key/.*"#)))|Mapping)?
 
+    /// The name for the new dataset group.
+    hidden Name: String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9\-_]*"#)))|Mapping
+
     /// The ARN of the AWS Identity and Access Management (IAM) role that has permissions to access the AWS Key Management Service (KMS) key. Supplying an IAM role is only valid when also specifying a KMS key.
     hidden RoleArn: (String(matches(Regex(#"arn:([a-z\d-]+):iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+"#)))|Mapping)?
 
-    /// The domain of a Domain dataset group.
-    hidden Domain: (DatasetGroupDomain|Mapping)?
-
     Properties {
-        ["Name"] = if (Name == null) null else Name
-        ["KmsKeyArn"] = if (KmsKeyArn == null) null else KmsKeyArn
-        ["RoleArn"] = if (RoleArn == null) null else RoleArn
         ["Domain"] = if (Domain == null) null else Domain
+        ["KmsKeyArn"] = if (KmsKeyArn == null) null else KmsKeyArn
+        ["Name"] = if (Name == null) null else Name
+        ["RoleArn"] = if (RoleArn == null) null else RoleArn
     }
 
 }

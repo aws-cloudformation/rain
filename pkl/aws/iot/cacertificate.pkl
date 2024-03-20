@@ -5,17 +5,17 @@ module aws.iot.cacertificate
 
 import "../../cloudformation.pkl"
 
-/// A key-value pair to associate with a resource.
-open class CACertificateTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
 /// 
 open class CACertificateRegistrationConfig {
     TemplateBody: (String(matches(Regex(#"[\s\S]*"#)))|Mapping)?
     RoleArn: (String(matches(Regex(#"arn:(aws[a-zA-Z-]*)?:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+"#)))|Mapping)?
     TemplateName: (String(matches(Regex(#"^[0-9A-Za-z_-]+$"#)))|Mapping)?
+}
+
+/// A key-value pair to associate with a resource.
+open class CACertificateTag {
+    Value: String|Mapping
+    Key: String|Mapping
 }
 
 /// Registers a CA Certificate in IoT.
@@ -24,46 +24,46 @@ open class CACertificate extends cloudformation.Resource {
     Type = "AWS::IoT::CACertificate"
 
 
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<CACertificateTag>)?
+    /// 
+    hidden AutoRegistrationStatus: (CACertificateAutoRegistrationStatus|Mapping)?
 
     /// 
     hidden CACertificatePem: String(matches(Regex(#"[\s\S]*"#)))|Mapping
-
-    /// The private key verification certificate.
-    hidden VerificationCertificatePem: (String(matches(Regex(#"[\s\S]*"#)))|Mapping)?
-
-    /// 
-    hidden Status: CACertificateStatus|Mapping
 
     /// 
     hidden CertificateMode: (CACertificateCertificateMode|Mapping)?
 
     /// 
-    hidden AutoRegistrationStatus: (CACertificateAutoRegistrationStatus|Mapping)?
+    hidden RegistrationConfig: (CACertificateRegistrationConfig)?
 
     /// 
     hidden RemoveAutoRegistration: (Boolean|Mapping)?
 
     /// 
-    hidden RegistrationConfig: (CACertificateRegistrationConfig)?
+    hidden Status: CACertificateStatus|Mapping
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<CACertificateTag>)?
+
+    /// The private key verification certificate.
+    hidden VerificationCertificatePem: (String(matches(Regex(#"[\s\S]*"#)))|Mapping)?
 
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["CACertificatePem"] = if (CACertificatePem == null) null else CACertificatePem
-        ["VerificationCertificatePem"] = if (VerificationCertificatePem == null) null else VerificationCertificatePem
-        ["Status"] = if (Status == null) null else Status
-        ["CertificateMode"] = if (CertificateMode == null) null else CertificateMode
         ["AutoRegistrationStatus"] = if (AutoRegistrationStatus == null) null else AutoRegistrationStatus
-        ["RemoveAutoRegistration"] = if (RemoveAutoRegistration == null) null else RemoveAutoRegistration
+        ["CACertificatePem"] = if (CACertificatePem == null) null else CACertificatePem
+        ["CertificateMode"] = if (CertificateMode == null) null else CertificateMode
         ["RegistrationConfig"] = if (RegistrationConfig == null) null else RegistrationConfig
+        ["RemoveAutoRegistration"] = if (RemoveAutoRegistration == null) null else RemoveAutoRegistration
+        ["Status"] = if (Status == null) null else Status
+        ["Tags"] = if (Tags == null) null else Tags
+        ["VerificationCertificatePem"] = if (VerificationCertificatePem == null) null else VerificationCertificatePem
     }
 
 }
 
 
-typealias CACertificateStatus = "ACTIVE"|"INACTIVE"
+typealias CACertificateAutoRegistrationStatus = "ENABLE"|"DISABLE"
 
 typealias CACertificateCertificateMode = "DEFAULT"|"SNI_ONLY"
 
-typealias CACertificateAutoRegistrationStatus = "ENABLE"|"DISABLE"
+typealias CACertificateStatus = "ACTIVE"|"INACTIVE"

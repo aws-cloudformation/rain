@@ -6,127 +6,35 @@ module aws.appmesh.route
 import "../../cloudformation.pkl"
 
 /// 
-open class RouteRouteSpec {
-    TcpRoute: (RouteTcpRoute)?
-    Priority: (Int|Mapping)?
-    HttpRoute: (RouteHttpRoute)?
-    Http2Route: (RouteHttpRoute)?
-    GrpcRoute: (RouteGrpcRoute)?
-}
-
-/// 
-open class RouteHttpQueryParameterMatch {
-    Exact: (String|Mapping)?
-}
-
-/// 
-open class RouteTcpRoute {
-    Action: RouteTcpRouteAction
-    Timeout: (RouteTcpTimeout)?
-    Match: (RouteTcpRouteMatch)?
-}
-
-/// 
-open class RouteHttpRouteHeader {
-    Name: String|Mapping
-    Match: (RouteHeaderMatchMethod)?
-    Invert: (Boolean|Mapping)?
-}
-
-/// 
-open class RouteTcpTimeout {
-    Idle: (RouteDuration)?
-}
-
-/// 
-open class RouteGrpcRetryPolicy {
-    TcpRetryEvents: (Listing<String|Mapping>)?
-    PerRetryTimeout: RouteDuration
-    GrpcRetryEvents: (Listing<String|Mapping>)?
-    HttpRetryEvents: (Listing<String|Mapping>)?
-    MaxRetries: Int|Mapping
-}
-
-/// 
-open class RouteHttpPathMatch {
-    Regex: (String|Mapping)?
-    Exact: (String|Mapping)?
-}
-
-/// 
-open class RouteGrpcTimeout {
-    PerRequest: (RouteDuration)?
-    Idle: (RouteDuration)?
-}
-
-/// 
-open class RouteGrpcRouteAction {
-    WeightedTargets: Listing<RouteWeightedTarget>
-}
-
-/// 
-open class RouteHttpRouteAction {
-    WeightedTargets: Listing<RouteWeightedTarget>
-}
-
-/// 
-open class RouteHeaderMatchMethod {
-    Suffix: (String|Mapping)?
-    Exact: (String|Mapping)?
+open class RouteHttpRouteMatch {
+    Headers: (Listing<RouteHttpRouteHeader>)?
+    Port: (Int|Mapping)?
     Prefix: (String|Mapping)?
-    Regex: (String|Mapping)?
-    Range: (RouteMatchRange)?
+    Method: (String|Mapping)?
+    QueryParameters: (Listing<RouteQueryParameter>)?
+    Path: (RouteHttpPathMatch)?
+    Scheme: (String|Mapping)?
 }
 
 /// 
-open class RouteWeightedTarget {
-    VirtualNode: String|Mapping
-    Weight: Int|Mapping
-    Port: (Int|Mapping)?
-}
-
-/// 
-open class RouteTcpRouteMatch {
-    Port: (Int|Mapping)?
-}
-
-/// 
-open class RouteDuration {
-    Value: Int|Mapping
-    Unit: String|Mapping
-}
-
-/// 
-open class RouteGrpcRoute {
-    Match: RouteGrpcRouteMatch
-    Action: RouteGrpcRouteAction
-    RetryPolicy: (RouteGrpcRetryPolicy)?
-    Timeout: (RouteGrpcTimeout)?
+open class RouteMatchRange {
+    Start: Int|Mapping
+    End: Int|Mapping
 }
 
 /// 
 open class RouteGrpcRouteMatch {
-    ServiceName: (String|Mapping)?
-    Port: (Int|Mapping)?
     Metadata: (Listing<RouteGrpcRouteMetadata>)?
     MethodName: (String|Mapping)?
+    ServiceName: (String|Mapping)?
+    Port: (Int|Mapping)?
 }
 
 /// 
-open class RouteTag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class RouteHttpTimeout {
-    PerRequest: (RouteDuration)?
-    Idle: (RouteDuration)?
-}
-
-/// 
-open class RouteTcpRouteAction {
-    WeightedTargets: Listing<RouteWeightedTarget>
+open class RouteGrpcRouteMetadata {
+    Invert: (Boolean|Mapping)?
+    Name: String|Mapping
+    Match: (RouteGrpcRouteMetadataMatchMethod)?
 }
 
 /// 
@@ -138,16 +46,61 @@ open class RouteHttpRoute {
 }
 
 /// 
-open class RouteQueryParameter {
-    Name: String|Mapping
-    Match: (RouteHttpQueryParameterMatch)?
+open class RouteHttpRouteAction {
+    WeightedTargets: Listing<RouteWeightedTarget>
 }
 
 /// 
-open class RouteGrpcRouteMetadata {
+open class RouteHttpRouteHeader {
+    Match: (RouteHeaderMatchMethod)?
     Invert: (Boolean|Mapping)?
     Name: String|Mapping
-    Match: (RouteGrpcRouteMetadataMatchMethod)?
+}
+
+/// 
+open class RouteRouteSpec {
+    GrpcRoute: (RouteGrpcRoute)?
+    TcpRoute: (RouteTcpRoute)?
+    Priority: (Int|Mapping)?
+    HttpRoute: (RouteHttpRoute)?
+    Http2Route: (RouteHttpRoute)?
+}
+
+/// 
+open class RouteTcpRoute {
+    Action: RouteTcpRouteAction
+    Timeout: (RouteTcpTimeout)?
+    Match: (RouteTcpRouteMatch)?
+}
+
+/// 
+open class RouteTcpTimeout {
+    Idle: (RouteDuration)?
+}
+
+/// 
+open class RouteGrpcRoute {
+    Action: RouteGrpcRouteAction
+    RetryPolicy: (RouteGrpcRetryPolicy)?
+    Timeout: (RouteGrpcTimeout)?
+    Match: RouteGrpcRouteMatch
+}
+
+/// 
+open class RouteGrpcRouteAction {
+    WeightedTargets: Listing<RouteWeightedTarget>
+}
+
+/// 
+open class RouteQueryParameter {
+    Match: (RouteHttpQueryParameterMatch)?
+    Name: String|Mapping
+}
+
+/// 
+open class RouteDuration {
+    Value: Int|Mapping
+    Unit: String|Mapping
 }
 
 /// 
@@ -160,28 +113,75 @@ open class RouteGrpcRouteMetadataMatchMethod {
 }
 
 /// 
-open class RouteHttpRouteMatch {
-    Path: (RouteHttpPathMatch)?
-    Scheme: (String|Mapping)?
-    Headers: (Listing<RouteHttpRouteHeader>)?
-    Port: (Int|Mapping)?
-    Prefix: (String|Mapping)?
-    Method: (String|Mapping)?
-    QueryParameters: (Listing<RouteQueryParameter>)?
+open class RouteHttpPathMatch {
+    Exact: (String|Mapping)?
+    Regex: (String|Mapping)?
+}
+
+/// 
+open class RouteHttpQueryParameterMatch {
+    Exact: (String|Mapping)?
 }
 
 /// 
 open class RouteHttpRetryPolicy {
+    HttpRetryEvents: (Listing<String|Mapping>)?
     MaxRetries: Int|Mapping
     TcpRetryEvents: (Listing<String|Mapping>)?
     PerRetryTimeout: RouteDuration
-    HttpRetryEvents: (Listing<String|Mapping>)?
 }
 
 /// 
-open class RouteMatchRange {
-    End: Int|Mapping
-    Start: Int|Mapping
+open class RouteTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// 
+open class RouteGrpcRetryPolicy {
+    HttpRetryEvents: (Listing<String|Mapping>)?
+    MaxRetries: Int|Mapping
+    TcpRetryEvents: (Listing<String|Mapping>)?
+    PerRetryTimeout: RouteDuration
+    GrpcRetryEvents: (Listing<String|Mapping>)?
+}
+
+/// 
+open class RouteHeaderMatchMethod {
+    Suffix: (String|Mapping)?
+    Exact: (String|Mapping)?
+    Prefix: (String|Mapping)?
+    Regex: (String|Mapping)?
+    Range: (RouteMatchRange)?
+}
+
+/// 
+open class RouteTcpRouteAction {
+    WeightedTargets: Listing<RouteWeightedTarget>
+}
+
+/// 
+open class RouteTcpRouteMatch {
+    Port: (Int|Mapping)?
+}
+
+/// 
+open class RouteWeightedTarget {
+    VirtualNode: String|Mapping
+    Weight: Int|Mapping
+    Port: (Int|Mapping)?
+}
+
+/// 
+open class RouteGrpcTimeout {
+    PerRequest: (RouteDuration)?
+    Idle: (RouteDuration)?
+}
+
+/// 
+open class RouteHttpTimeout {
+    PerRequest: (RouteDuration)?
+    Idle: (RouteDuration)?
 }
 
 /// Resource Type definition for AWS::AppMesh::Route

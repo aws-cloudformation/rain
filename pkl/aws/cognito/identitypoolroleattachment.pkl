@@ -6,11 +6,8 @@ module aws.cognito.identitypoolroleattachment
 import "../../cloudformation.pkl"
 
 /// 
-open class IdentityPoolRoleAttachmentRoleMapping {
-    IdentityProvider: (String|Mapping)?
-    Type: String|Mapping
-    AmbiguousRoleResolution: (String|Mapping)?
-    RulesConfiguration: (IdentityPoolRoleAttachmentRulesConfigurationType)?
+open class IdentityPoolRoleAttachmentRulesConfigurationType {
+    Rules: Listing<IdentityPoolRoleAttachmentMappingRule>
 }
 
 /// 
@@ -22,8 +19,11 @@ open class IdentityPoolRoleAttachmentMappingRule {
 }
 
 /// 
-open class IdentityPoolRoleAttachmentRulesConfigurationType {
-    Rules: Listing<IdentityPoolRoleAttachmentMappingRule>
+open class IdentityPoolRoleAttachmentRoleMapping {
+    Type: String|Mapping
+    AmbiguousRoleResolution: (String|Mapping)?
+    RulesConfiguration: (IdentityPoolRoleAttachmentRulesConfigurationType)?
+    IdentityProvider: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::Cognito::IdentityPoolRoleAttachment
@@ -36,20 +36,20 @@ open class IdentityPoolRoleAttachment extends cloudformation.Resource {
     hidden IdentityPoolId: String|Mapping
 
     /// 
-    hidden Roles: (IdentityPoolRoleAttachmentIdentityPoolRoleAttachmentRoles)?
+    hidden RoleMappings: (IdentityPoolRoleAttachmentIdentityPoolRoleAttachmentRoleMappings)?
 
     /// 
-    hidden RoleMappings: (IdentityPoolRoleAttachmentIdentityPoolRoleAttachmentRoleMappings)?
+    hidden Roles: (IdentityPoolRoleAttachmentIdentityPoolRoleAttachmentRoles)?
 
     Properties {
         ["IdentityPoolId"] = if (IdentityPoolId == null) null else IdentityPoolId
-        ["Roles"] = if (Roles == null) null else Roles
         ["RoleMappings"] = if (RoleMappings == null) null else RoleMappings
+        ["Roles"] = if (Roles == null) null else Roles
     }
 
 }
 
 
-typealias IdentityPoolRoleAttachmentIdentityPoolRoleAttachmentRoles = Mapping<String, Any>
-
 typealias IdentityPoolRoleAttachmentIdentityPoolRoleAttachmentRoleMappings = Mapping<String, Any>
+
+typealias IdentityPoolRoleAttachmentIdentityPoolRoleAttachmentRoles = Mapping<String, Any>

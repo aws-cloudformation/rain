@@ -13,16 +13,9 @@ open class PipelineField {
 }
 
 /// 
-open class PipelinePipelineObject {
-    Fields: Listing<PipelineField>
-    Id: String|Mapping
-    Name: String|Mapping
-}
-
-/// 
-open class PipelinePipelineTag {
+open class PipelineParameterAttribute {
     Key: String|Mapping
-    Value: String|Mapping
+    StringValue: String|Mapping
 }
 
 /// 
@@ -32,15 +25,22 @@ open class PipelineParameterObject {
 }
 
 /// 
-open class PipelineParameterAttribute {
-    StringValue: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
 open class PipelineParameterValue {
     Id: String|Mapping
     StringValue: String|Mapping
+}
+
+/// 
+open class PipelinePipelineObject {
+    Id: String|Mapping
+    Name: String|Mapping
+    Fields: Listing<PipelineField>
+}
+
+/// 
+open class PipelinePipelineTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// An example resource schema demonstrating some basic constructs and validation rules.
@@ -48,15 +48,6 @@ open class Pipeline extends cloudformation.Resource {
 
     Type = "AWS::DataPipeline::Pipeline"
 
-
-    /// The parameter values used with the pipeline.
-    hidden ParameterValues: (Listing<PipelineParameterValue>)?
-
-    /// The objects that define the pipeline. These objects overwrite the existing pipeline definition. Not all objects, fields, and values can be updated. For information about restrictions, see Editing Your Pipeline in the AWS Data Pipeline Developer Guide.
-    hidden PipelineObjects: (Listing<PipelinePipelineObject>)?
-
-    /// A list of arbitrary tags (key-value pairs) to associate with the pipeline, which you can use to control permissions. For more information, see Controlling Access to Pipelines and Resources in the AWS Data Pipeline Developer Guide.
-    hidden PipelineTags: (Listing<PipelinePipelineTag>)?
 
     /// Indicates whether to validate and start the pipeline or stop an active pipeline. By default, the value is set to true.
     hidden Activate: (Boolean|Mapping)?
@@ -70,14 +61,23 @@ open class Pipeline extends cloudformation.Resource {
     /// The parameter objects used with the pipeline.
     hidden ParameterObjects: (Listing<PipelineParameterObject>)?
 
+    /// The parameter values used with the pipeline.
+    hidden ParameterValues: (Listing<PipelineParameterValue>)?
+
+    /// The objects that define the pipeline. These objects overwrite the existing pipeline definition. Not all objects, fields, and values can be updated. For information about restrictions, see Editing Your Pipeline in the AWS Data Pipeline Developer Guide.
+    hidden PipelineObjects: (Listing<PipelinePipelineObject>)?
+
+    /// A list of arbitrary tags (key-value pairs) to associate with the pipeline, which you can use to control permissions. For more information, see Controlling Access to Pipelines and Resources in the AWS Data Pipeline Developer Guide.
+    hidden PipelineTags: (Listing<PipelinePipelineTag>)?
+
     Properties {
-        ["ParameterValues"] = if (ParameterValues == null) null else ParameterValues
-        ["PipelineObjects"] = if (PipelineObjects == null) null else PipelineObjects
-        ["PipelineTags"] = if (PipelineTags == null) null else PipelineTags
         ["Activate"] = if (Activate == null) null else Activate
         ["Description"] = if (Description == null) null else Description
         ["Name"] = if (Name == null) null else Name
         ["ParameterObjects"] = if (ParameterObjects == null) null else ParameterObjects
+        ["ParameterValues"] = if (ParameterValues == null) null else ParameterValues
+        ["PipelineObjects"] = if (PipelineObjects == null) null else PipelineObjects
+        ["PipelineTags"] = if (PipelineTags == null) null else PipelineTags
     }
 
 }

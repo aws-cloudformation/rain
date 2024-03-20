@@ -17,8 +17,8 @@ open class DBClusterParameterGroup extends cloudformation.Resource {
     Type = "AWS::RDS::DBClusterParameterGroup"
 
 
-    /// The list of tags for the cluster parameter group.
-    hidden Tags: (Listing<DBClusterParameterGroupTag>)?
+    /// 
+    hidden DBClusterParameterGroupName: (String(matches(Regex(#"^[a-zA-Z]{1}(?:-?[a-zA-Z0-9])*$"#)))|Mapping)?
 
     /// A friendly description for this DB cluster parameter group.
     hidden Description: String|Mapping
@@ -29,15 +29,15 @@ open class DBClusterParameterGroup extends cloudformation.Resource {
     /// An array of parameters to be modified. A maximum of 20 parameters can be modified in a single request.
     hidden Parameters: Dynamic
 
-    /// 
-    hidden DBClusterParameterGroupName: (String(matches(Regex(#"^[a-zA-Z]{1}(?:-?[a-zA-Z0-9])*$"#)))|Mapping)?
+    /// The list of tags for the cluster parameter group.
+    hidden Tags: (Listing<DBClusterParameterGroupTag>)?
 
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
+        ["DBClusterParameterGroupName"] = if (DBClusterParameterGroupName == null) null else DBClusterParameterGroupName
         ["Description"] = if (Description == null) null else Description
         ["Family"] = if (Family == null) null else Family
         ["Parameters"] = if (Parameters == null) null else Parameters
-        ["DBClusterParameterGroupName"] = if (DBClusterParameterGroupName == null) null else DBClusterParameterGroupName
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

@@ -5,16 +5,16 @@ module aws.ec2.volumeattachment
 
 import "../../cloudformation.pkl"
 
+typealias VolumeAttachmentId = String|Mapping
+
+
 typealias VolumeAttachmentInstanceId = String|Mapping
-
-
-typealias VolumeAttachmentDevice = String|Mapping
 
 
 typealias VolumeAttachmentVolumeId = String|Mapping
 
 
-typealias VolumeAttachmentId = String|Mapping
+typealias VolumeAttachmentDevice = String|Mapping
 
 
 /// Attaches an Amazon EBS volume to a running instance and exposes it to the instance with the specified device name.
@@ -27,19 +27,19 @@ open class VolumeAttachment extends cloudformation.Resource {
     Type = "AWS::EC2::VolumeAttachment"
 
 
-    /// The ID of the Amazon EBS volume. The volume and instance must be within the same Availability Zone. This value can be a reference to an [AWS::EC2::Volume](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-ebs-volume.html) resource, or it can be the volume ID of an existing Amazon EBS volume.
-    hidden VolumeId: VolumeAttachmentVolumeId
+    /// The device name (for example, ``/dev/sdh`` or ``xvdh``).
+    hidden Device: (VolumeAttachmentDevice)?
 
     /// The ID of the instance to which the volume attaches. This value can be a reference to an [AWS::EC2::Instance](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html) resource, or it can be the physical ID of an existing EC2 instance.
     hidden InstanceId: VolumeAttachmentInstanceId
 
-    /// The device name (for example, ``/dev/sdh`` or ``xvdh``).
-    hidden Device: (VolumeAttachmentDevice)?
+    /// The ID of the Amazon EBS volume. The volume and instance must be within the same Availability Zone. This value can be a reference to an [AWS::EC2::Volume](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-ebs-volume.html) resource, or it can be the volume ID of an existing Amazon EBS volume.
+    hidden VolumeId: VolumeAttachmentVolumeId
 
     Properties {
-        ["VolumeId"] = if (VolumeId == null) null else VolumeId
-        ["InstanceId"] = if (InstanceId == null) null else InstanceId
         ["Device"] = if (Device == null) null else Device
+        ["InstanceId"] = if (InstanceId == null) null else InstanceId
+        ["VolumeId"] = if (VolumeId == null) null else VolumeId
     }
 
 }

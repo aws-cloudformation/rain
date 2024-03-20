@@ -6,14 +6,9 @@ module aws.greengrass.function_definitionversion
 import "../../cloudformation.pkl"
 
 /// 
-open class FunctionDefinitionVersionResourceAccessPolicy {
-    ResourceId: String|Mapping
-    Permission: (String|Mapping)?
-}
-
-/// 
-open class FunctionDefinitionVersionDefaultConfig {
-    Execution: FunctionDefinitionVersionExecution
+open class FunctionDefinitionVersionExecution {
+    IsolationMode: (String|Mapping)?
+    RunAs: (FunctionDefinitionVersionRunAs)?
 }
 
 /// 
@@ -24,26 +19,31 @@ open class FunctionDefinitionVersionFunction {
 }
 
 /// 
-open class FunctionDefinitionVersionExecution {
-    IsolationMode: (String|Mapping)?
-    RunAs: (FunctionDefinitionVersionRunAs)?
-}
-
-/// 
 open class FunctionDefinitionVersionFunctionConfiguration {
+    Pinned: (Boolean|Mapping)?
     ExecArgs: (String|Mapping)?
     Timeout: (Int|Mapping)?
     EncodingType: (String|Mapping)?
     Environment: (FunctionDefinitionVersionEnvironment)?
     Executable: (String|Mapping)?
     MemorySize: (Int|Mapping)?
-    Pinned: (Boolean|Mapping)?
+}
+
+/// 
+open class FunctionDefinitionVersionResourceAccessPolicy {
+    ResourceId: String|Mapping
+    Permission: (String|Mapping)?
 }
 
 /// 
 open class FunctionDefinitionVersionRunAs {
     Uid: (Int|Mapping)?
     Gid: (Int|Mapping)?
+}
+
+/// 
+open class FunctionDefinitionVersionDefaultConfig {
+    Execution: FunctionDefinitionVersionExecution
 }
 
 /// 
@@ -64,15 +64,15 @@ open class FunctionDefinitionVersion extends cloudformation.Resource {
     hidden DefaultConfig: (FunctionDefinitionVersionDefaultConfig)?
 
     /// 
-    hidden Functions: Listing<FunctionDefinitionVersionFunction>
+    hidden FunctionDefinitionId: String|Mapping
 
     /// 
-    hidden FunctionDefinitionId: String|Mapping
+    hidden Functions: Listing<FunctionDefinitionVersionFunction>
 
     Properties {
         ["DefaultConfig"] = if (DefaultConfig == null) null else DefaultConfig
-        ["Functions"] = if (Functions == null) null else Functions
         ["FunctionDefinitionId"] = if (FunctionDefinitionId == null) null else FunctionDefinitionId
+        ["Functions"] = if (Functions == null) null else Functions
     }
 
 }

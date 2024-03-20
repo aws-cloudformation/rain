@@ -12,14 +12,14 @@ open class SchedulingPolicyFairsharePolicy {
     ShareDistribution: (Listing<SchedulingPolicyShareAttributes>)?
 }
 
+typealias SchedulingPolicyResourceArn = String|Mapping
+
+
 /// 
 open class SchedulingPolicyShareAttributes {
     ShareIdentifier: (String|Mapping)?
     WeightFactor: (Number|Mapping)?
 }
-
-typealias SchedulingPolicyResourceArn = String|Mapping
-
 
 /// Resource Type schema for AWS::Batch::SchedulingPolicy
 open class SchedulingPolicy extends cloudformation.Resource {
@@ -27,18 +27,18 @@ open class SchedulingPolicy extends cloudformation.Resource {
     Type = "AWS::Batch::SchedulingPolicy"
 
 
-    /// Name of Scheduling Policy.
-    hidden Name: (String|Mapping)?
-
     /// 
     hidden FairsharePolicy: (SchedulingPolicyFairsharePolicy)?
+
+    /// Name of Scheduling Policy.
+    hidden Name: (String|Mapping)?
 
     /// A key-value pair to associate with a resource.
     hidden Tags: (SchedulingPolicySchedulingPolicyTags)?
 
     Properties {
-        ["Name"] = if (Name == null) null else Name
         ["FairsharePolicy"] = if (FairsharePolicy == null) null else FairsharePolicy
+        ["Name"] = if (Name == null) null else Name
         ["Tags"] = if (Tags == null) null else Tags
     }
 

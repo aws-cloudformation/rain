@@ -5,29 +5,7 @@ module aws.robomaker.simulationapplication
 
 import "../../cloudformation.pkl"
 
-typealias SourceConfigArchitecture = "X86_64"|"ARM64"|"ARMHF"
-
-/// Information about a source configuration.
-open class SimulationApplicationSourceConfig {
-    S3Bucket: String(matches(Regex(#"[a-z0-9][a-z0-9.\-]*[a-z0-9]"#)))|Mapping
-    S3Key: String|Mapping
-    Architecture: SourceConfigArchitecture|Mapping
-}
-
-typealias SimulationSoftwareSuiteName = "Gazebo"|"RosbagPlay"|"SimulationRuntime"
-
-typealias SimulationSoftwareSuiteVersion = "7"|"9"|"11"|"Kinetic"|"Melodic"|"Dashing"|"Foxy"
-
-/// Information about a simulation software suite.
-open class SimulationApplicationSimulationSoftwareSuite {
-    Name: SimulationSoftwareSuiteName|Mapping
-    Version: (SimulationSoftwareSuiteVersion|Mapping)?
-}
-
 typealias SimulationApplicationArn = String|Mapping
-
-
-typealias SimulationApplicationTags = Mapping<String, Any>
 
 
 typealias RenderingEngineName = "OGRE"
@@ -48,6 +26,28 @@ open class SimulationApplicationRobotSoftwareSuite {
     Version: (RobotSoftwareSuiteVersion|Mapping)?
 }
 
+typealias SimulationSoftwareSuiteName = "Gazebo"|"RosbagPlay"|"SimulationRuntime"
+
+typealias SimulationSoftwareSuiteVersion = "7"|"9"|"11"|"Kinetic"|"Melodic"|"Dashing"|"Foxy"
+
+/// Information about a simulation software suite.
+open class SimulationApplicationSimulationSoftwareSuite {
+    Name: SimulationSoftwareSuiteName|Mapping
+    Version: (SimulationSoftwareSuiteVersion|Mapping)?
+}
+
+typealias SourceConfigArchitecture = "X86_64"|"ARM64"|"ARMHF"
+
+/// Information about a source configuration.
+open class SimulationApplicationSourceConfig {
+    Architecture: SourceConfigArchitecture|Mapping
+    S3Bucket: String(matches(Regex(#"[a-z0-9][a-z0-9.\-]*[a-z0-9]"#)))|Mapping
+    S3Key: String|Mapping
+}
+
+typealias SimulationApplicationTags = Mapping<String, Any>
+
+
 /// This schema is for testing purpose only.
 open class SimulationApplication extends cloudformation.Resource {
 
@@ -57,36 +57,36 @@ open class SimulationApplication extends cloudformation.Resource {
     /// The current revision id.
     hidden CurrentRevisionId: (String|Mapping)?
 
-    /// The rendering engine for the simulation application.
-    hidden RenderingEngine: (SimulationApplicationRenderingEngine)?
-
-    /// The sources of the simulation application.
-    hidden Sources: (Listing<SimulationApplicationSourceConfig>)?
-
-    /// The simulation software suite used by the simulation application.
-    hidden SimulationSoftwareSuite: SimulationApplicationSimulationSoftwareSuite
-
     /// The URI of the Docker image for the robot application.
     hidden Environment: (String|Mapping)?
-
-    /// 
-    hidden Tags: (SimulationApplicationTags)?
 
     /// The name of the simulation application.
     hidden Name: (String(matches(Regex(#"[a-zA-Z0-9_\-]*"#)))|Mapping)?
 
+    /// The rendering engine for the simulation application.
+    hidden RenderingEngine: (SimulationApplicationRenderingEngine)?
+
     /// The robot software suite used by the simulation application.
     hidden RobotSoftwareSuite: SimulationApplicationRobotSoftwareSuite
 
+    /// The simulation software suite used by the simulation application.
+    hidden SimulationSoftwareSuite: SimulationApplicationSimulationSoftwareSuite
+
+    /// The sources of the simulation application.
+    hidden Sources: (Listing<SimulationApplicationSourceConfig>)?
+
+    /// 
+    hidden Tags: (SimulationApplicationTags)?
+
     Properties {
         ["CurrentRevisionId"] = if (CurrentRevisionId == null) null else CurrentRevisionId
-        ["RenderingEngine"] = if (RenderingEngine == null) null else RenderingEngine
-        ["Sources"] = if (Sources == null) null else Sources
-        ["SimulationSoftwareSuite"] = if (SimulationSoftwareSuite == null) null else SimulationSoftwareSuite
         ["Environment"] = if (Environment == null) null else Environment
-        ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
+        ["RenderingEngine"] = if (RenderingEngine == null) null else RenderingEngine
         ["RobotSoftwareSuite"] = if (RobotSoftwareSuite == null) null else RobotSoftwareSuite
+        ["SimulationSoftwareSuite"] = if (SimulationSoftwareSuite == null) null else SimulationSoftwareSuite
+        ["Sources"] = if (Sources == null) null else Sources
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

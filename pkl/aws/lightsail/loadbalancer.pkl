@@ -20,6 +20,18 @@ open class LoadBalancer extends cloudformation.Resource {
     /// The names of the instances attached to the load balancer.
     hidden AttachedInstances: (Listing<String|Mapping>)?
 
+    /// The path you provided to perform the load balancer health check. If you didn't specify a health check path, Lightsail uses the root path of your website (e.g., "/").
+    hidden HealthCheckPath: (String|Mapping)?
+
+    /// The instance port where you're creating your load balancer.
+    hidden InstancePort: Int|Mapping
+
+    /// The IP address type for the load balancer. The possible values are ipv4 for IPv4 only, and dualstack for IPv4 and IPv6. The default value is dualstack.
+    hidden IpAddressType: (String|Mapping)?
+
+    /// The name of your load balancer.
+    hidden LoadBalancerName: String(matches(Regex(#"\w[\w\-]*\w"#)))|Mapping
+
     /// Configuration option to enable session stickiness.
     hidden SessionStickinessEnabled: (Boolean|Mapping)?
 
@@ -29,31 +41,19 @@ open class LoadBalancer extends cloudformation.Resource {
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<LoadBalancerTag>)?
 
-    /// The instance port where you're creating your load balancer.
-    hidden InstancePort: Int|Mapping
-
-    /// The IP address type for the load balancer. The possible values are ipv4 for IPv4 only, and dualstack for IPv4 and IPv6. The default value is dualstack.
-    hidden IpAddressType: (String|Mapping)?
-
-    /// The path you provided to perform the load balancer health check. If you didn't specify a health check path, Lightsail uses the root path of your website (e.g., "/").
-    hidden HealthCheckPath: (String|Mapping)?
-
     /// The name of the TLS policy to apply to the load balancer.
     hidden TlsPolicyName: (String|Mapping)?
 
-    /// The name of your load balancer.
-    hidden LoadBalancerName: String(matches(Regex(#"\w[\w\-]*\w"#)))|Mapping
-
     Properties {
         ["AttachedInstances"] = if (AttachedInstances == null) null else AttachedInstances
+        ["HealthCheckPath"] = if (HealthCheckPath == null) null else HealthCheckPath
+        ["InstancePort"] = if (InstancePort == null) null else InstancePort
+        ["IpAddressType"] = if (IpAddressType == null) null else IpAddressType
+        ["LoadBalancerName"] = if (LoadBalancerName == null) null else LoadBalancerName
         ["SessionStickinessEnabled"] = if (SessionStickinessEnabled == null) null else SessionStickinessEnabled
         ["SessionStickinessLBCookieDurationSeconds"] = if (SessionStickinessLBCookieDurationSeconds == null) null else SessionStickinessLBCookieDurationSeconds
         ["Tags"] = if (Tags == null) null else Tags
-        ["InstancePort"] = if (InstancePort == null) null else InstancePort
-        ["IpAddressType"] = if (IpAddressType == null) null else IpAddressType
-        ["HealthCheckPath"] = if (HealthCheckPath == null) null else HealthCheckPath
         ["TlsPolicyName"] = if (TlsPolicyName == null) null else TlsPolicyName
-        ["LoadBalancerName"] = if (LoadBalancerName == null) null else LoadBalancerName
     }
 
 }

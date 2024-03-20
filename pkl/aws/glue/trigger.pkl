@@ -7,12 +7,21 @@ import "../../cloudformation.pkl"
 
 /// 
 open class TriggerAction {
+    NotificationProperty: (TriggerNotificationProperty)?
+    CrawlerName: (String|Mapping)?
     Timeout: (Int|Mapping)?
     JobName: (String|Mapping)?
     Arguments: (Dynamic)?
     SecurityConfiguration: (String|Mapping)?
-    NotificationProperty: (TriggerNotificationProperty)?
+}
+
+/// 
+open class TriggerCondition {
+    CrawlState: (String|Mapping)?
+    LogicalOperator: (String|Mapping)?
+    JobName: (String|Mapping)?
     CrawlerName: (String|Mapping)?
+    State: (String|Mapping)?
 }
 
 /// 
@@ -22,23 +31,14 @@ open class TriggerEventBatchingCondition {
 }
 
 /// 
+open class TriggerNotificationProperty {
+    NotifyDelayAfter: (Int|Mapping)?
+}
+
+/// 
 open class TriggerPredicate {
     Logical: (String|Mapping)?
     Conditions: (Listing<TriggerCondition>)?
-}
-
-/// 
-open class TriggerCondition {
-    JobName: (String|Mapping)?
-    CrawlerName: (String|Mapping)?
-    State: (String|Mapping)?
-    CrawlState: (String|Mapping)?
-    LogicalOperator: (String|Mapping)?
-}
-
-/// 
-open class TriggerNotificationProperty {
-    NotifyDelayAfter: (Int|Mapping)?
 }
 
 /// Resource Type definition for AWS::Glue::Trigger
@@ -48,13 +48,13 @@ open class Trigger extends cloudformation.Resource {
 
 
     /// 
-    hidden StartOnCreation: (Boolean|Mapping)?
+    hidden Actions: Listing<TriggerAction>
 
     /// 
-    hidden Schedule: (String|Mapping)?
+    hidden Description: (String|Mapping)?
 
     /// 
-    hidden Tags: (Dynamic)?
+    hidden EventBatchingCondition: (TriggerEventBatchingCondition)?
 
     /// 
     hidden Name: (String|Mapping)?
@@ -63,30 +63,30 @@ open class Trigger extends cloudformation.Resource {
     hidden Predicate: (TriggerPredicate)?
 
     /// 
+    hidden Schedule: (String|Mapping)?
+
+    /// 
+    hidden StartOnCreation: (Boolean|Mapping)?
+
+    /// 
+    hidden Tags: (Dynamic)?
+
+    /// 
     hidden TypeProperty: String|Mapping
-
-    /// 
-    hidden Description: (String|Mapping)?
-
-    /// 
-    hidden Actions: Listing<TriggerAction>
-
-    /// 
-    hidden EventBatchingCondition: (TriggerEventBatchingCondition)?
 
     /// 
     hidden WorkflowName: (String|Mapping)?
 
     Properties {
-        ["StartOnCreation"] = if (StartOnCreation == null) null else StartOnCreation
-        ["Schedule"] = if (Schedule == null) null else Schedule
-        ["Tags"] = if (Tags == null) null else Tags
+        ["Actions"] = if (Actions == null) null else Actions
+        ["Description"] = if (Description == null) null else Description
+        ["EventBatchingCondition"] = if (EventBatchingCondition == null) null else EventBatchingCondition
         ["Name"] = if (Name == null) null else Name
         ["Predicate"] = if (Predicate == null) null else Predicate
+        ["Schedule"] = if (Schedule == null) null else Schedule
+        ["StartOnCreation"] = if (StartOnCreation == null) null else StartOnCreation
+        ["Tags"] = if (Tags == null) null else Tags
         ["Type"] = if (TypeProperty == null) null else TypeProperty
-        ["Description"] = if (Description == null) null else Description
-        ["Actions"] = if (Actions == null) null else Actions
-        ["EventBatchingCondition"] = if (EventBatchingCondition == null) null else EventBatchingCondition
         ["WorkflowName"] = if (WorkflowName == null) null else WorkflowName
     }
 

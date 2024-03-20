@@ -17,14 +17,14 @@ open class KeyPair extends cloudformation.Resource {
     Type = "AWS::EC2::KeyPair"
 
 
+    /// The format of the private key
+    hidden KeyFormat: (KeyPairKeyFormat|Mapping)?
+
     /// The name of the SSH key pair
     hidden KeyName: String|Mapping
 
     /// The crypto-system used to generate a key pair.
     hidden KeyType: (KeyPairKeyType|Mapping)?
-
-    /// The format of the private key
-    hidden KeyFormat: (KeyPairKeyFormat|Mapping)?
 
     /// Plain text public key to import
     hidden PublicKeyMaterial: (String|Mapping)?
@@ -33,9 +33,9 @@ open class KeyPair extends cloudformation.Resource {
     hidden Tags: (Listing<KeyPairTag>)?
 
     Properties {
+        ["KeyFormat"] = if (KeyFormat == null) null else KeyFormat
         ["KeyName"] = if (KeyName == null) null else KeyName
         ["KeyType"] = if (KeyType == null) null else KeyType
-        ["KeyFormat"] = if (KeyFormat == null) null else KeyFormat
         ["PublicKeyMaterial"] = if (PublicKeyMaterial == null) null else PublicKeyMaterial
         ["Tags"] = if (Tags == null) null else Tags
     }
@@ -43,6 +43,6 @@ open class KeyPair extends cloudformation.Resource {
 }
 
 
-typealias KeyPairKeyType = "rsa"|"ed25519"
-
 typealias KeyPairKeyFormat = "pem"|"ppk"
+
+typealias KeyPairKeyType = "rsa"|"ed25519"

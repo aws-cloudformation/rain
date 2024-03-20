@@ -5,50 +5,12 @@ module aws.sagemaker.monitoringschedule
 
 import "../../cloudformation.pkl"
 
-/// Container image configuration object for the monitoring job.
-open class MonitoringScheduleMonitoringAppSpecification {
-    ContainerArguments: (Listing<MonitoringScheduleContainerArgument>)?
-    ContainerEntrypoint: (Listing<String|Mapping>)?
-    ImageUri: String(matches(Regex(#".*"#)))|Mapping
-    PostAnalyticsProcessorSourceUri: (MonitoringScheduleS3Uri)?
-    RecordPreprocessorSourceUri: (MonitoringScheduleS3Uri)?
-}
-
-typealias EndpointInputS3DataDistributionType = "FullyReplicated"|"ShardedByS3Key"
-
-typealias EndpointInputS3InputMode = "Pipe"|"File"
-
-/// The endpoint for a monitoring job.
-open class MonitoringScheduleEndpointInput {
-    EndpointName: MonitoringScheduleEndpointName
-    LocalPath: String(matches(Regex(#".*"#)))|Mapping
-    S3DataDistributionType: (EndpointInputS3DataDistributionType|Mapping)?
-    S3InputMode: (EndpointInputS3InputMode|Mapping)?
-    ExcludeFeaturesAttribute: (String|Mapping)?
-}
-
 /// Configuration for the cluster used to run model monitoring jobs.
 open class MonitoringScheduleClusterConfig {
+    InstanceCount: Int|Mapping
     InstanceType: String|Mapping
     VolumeKmsKeyId: (String|Mapping)?
     VolumeSizeInGB: Int|Mapping
-    InstanceCount: Int|Mapping
-}
-
-/// The configuration object that specifies the monitoring schedule and defines the monitoring job.
-open class MonitoringScheduleMonitoringScheduleConfig {
-    MonitoringJobDefinition: (MonitoringScheduleMonitoringJobDefinition)?
-    MonitoringJobDefinitionName: (String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9])*$"#)))|Mapping)?
-    MonitoringType: (MonitoringScheduleMonitoringType)?
-    ScheduleConfig: (MonitoringScheduleScheduleConfig)?
-}
-
-typealias MonitoringScheduleMonitoringType = String|Mapping
-
-
-/// The CSV format
-open class MonitoringScheduleCsv {
-    Header: (Boolean|Mapping)?
 }
 
 /// The baseline constraints resource for a monitoring job.
@@ -56,10 +18,12 @@ open class MonitoringScheduleConstraintsResource {
     S3Uri: (MonitoringScheduleS3Uri)?
 }
 
-/// A key-value pair to associate with a resource.
-open class MonitoringScheduleTag {
-    Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
-    Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
+typealias MonitoringScheduleS3Uri = String|Mapping
+
+
+/// Specifies a time limit for how long the monitoring job is allowed to run.
+open class MonitoringScheduleStoppingCondition {
+    MaxRuntimeInSeconds: Int|Mapping
 }
 
 typealias BatchTransformInputS3DataDistributionType = "FullyReplicated"|"ShardedByS3Key"
@@ -76,75 +40,21 @@ open class MonitoringScheduleBatchTransformInput {
     DataCapturedDestinationS3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
 }
 
-/// The dataset format of the data to monitor
-open class MonitoringScheduleDatasetFormat {
-    Csv: (MonitoringScheduleCsv)?
-    Json: (MonitoringScheduleJson)?
-    Parquet: (MonitoringScheduleParquet)?
+/// Identifies the resources to deploy for a monitoring job.
+open class MonitoringScheduleMonitoringResources {
+    ClusterConfig: MonitoringScheduleClusterConfig
 }
 
-typealias MonitoringScheduleS3Uri = String|Mapping
-
-
-/// The inputs for a monitoring job.
-open class MonitoringScheduleMonitoringInput {
-    EndpointInput: (MonitoringScheduleEndpointInput)?
-    BatchTransformInput: (MonitoringScheduleBatchTransformInput)?
+/// The CSV format
+open class MonitoringScheduleCsv {
+    Header: (Boolean|Mapping)?
 }
-
-/// Specifies a VPC that your training jobs and hosted models have access to. Control access to and from your training and model containers by configuring the VPC.
-open class MonitoringScheduleVpcConfig {
-    SecurityGroupIds: Listing<String|Mapping>
-    Subnets: Listing<String|Mapping>
-}
-
-/// The Json format
-open class MonitoringScheduleJson {
-    Line: (Boolean|Mapping)?
-}
-
-typealias MonitoringScheduleMonitoringJobDefinitionEnvironment = Mapping<String, Any>
-
-/// Defines the monitoring job.
-open class MonitoringScheduleMonitoringJobDefinition {
-    BaselineConfig: (MonitoringScheduleBaselineConfig)?
-    NetworkConfig: (MonitoringScheduleNetworkConfig)?
-    RoleArn: String(matches(Regex(#"^arn:aws[a-z\-]*:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping
-    StoppingCondition: (MonitoringScheduleStoppingCondition)?
-    Environment: (MonitoringScheduleMonitoringJobDefinitionEnvironment)?
-    MonitoringAppSpecification: MonitoringScheduleMonitoringAppSpecification
-    MonitoringInputs: MonitoringScheduleMonitoringInputs
-    MonitoringOutputConfig: MonitoringScheduleMonitoringOutputConfig
-    MonitoringResources: MonitoringScheduleMonitoringResources
-}
-
-typealias MonitoringScheduleMonitoringScheduleName = String|Mapping
-
 
 /// Networking options for a job, such as network traffic encryption between containers, whether to allow inbound and outbound network calls to and from containers, and the VPC subnets and security groups to use for VPC-enabled jobs.
 open class MonitoringScheduleNetworkConfig {
     EnableInterContainerTrafficEncryption: (Boolean|Mapping)?
     EnableNetworkIsolation: (Boolean|Mapping)?
     VpcConfig: (MonitoringScheduleVpcConfig)?
-}
-
-typealias MonitoringScheduleEndpointName = String|Mapping
-
-
-typealias MonitoringScheduleContainerArgument = String|Mapping
-
-
-typealias MonitoringScheduleParquet = Boolean|Mapping
-
-
-/// Identifies the resources to deploy for a monitoring job.
-open class MonitoringScheduleMonitoringResources {
-    ClusterConfig: MonitoringScheduleClusterConfig
-}
-
-/// The baseline statistics resource for a monitoring job.
-open class MonitoringScheduleStatisticsResource {
-    S3Uri: (MonitoringScheduleS3Uri)?
 }
 
 /// Configuration details about the monitoring schedule.
@@ -154,22 +64,87 @@ open class MonitoringScheduleScheduleConfig {
     DataAnalysisEndTime: (MonitoringScheduleDataAnalysisTimeString)?
 }
 
-/// Baseline configuration used to validate that the data conforms to the specified constraints and statistics.
-open class MonitoringScheduleBaselineConfig {
-    ConstraintsResource: (MonitoringScheduleConstraintsResource)?
-    StatisticsResource: (MonitoringScheduleStatisticsResource)?
+/// A key-value pair to associate with a resource.
+open class MonitoringScheduleTag {
+    Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
+    Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
+}
+
+/// The dataset format of the data to monitor
+open class MonitoringScheduleDatasetFormat {
+    Csv: (MonitoringScheduleCsv)?
+    Json: (MonitoringScheduleJson)?
+    Parquet: (MonitoringScheduleParquet)?
+}
+
+typealias MonitoringScheduleEndpointName = String|Mapping
+
+
+typealias MonitoringScheduleMonitoringJobDefinitionEnvironment = Mapping<String, Any>
+
+/// Defines the monitoring job.
+open class MonitoringScheduleMonitoringJobDefinition {
+    MonitoringInputs: MonitoringScheduleMonitoringInputs
+    MonitoringOutputConfig: MonitoringScheduleMonitoringOutputConfig
+    StoppingCondition: (MonitoringScheduleStoppingCondition)?
+    BaselineConfig: (MonitoringScheduleBaselineConfig)?
+    Environment: (MonitoringScheduleMonitoringJobDefinitionEnvironment)?
+    MonitoringAppSpecification: MonitoringScheduleMonitoringAppSpecification
+    MonitoringResources: MonitoringScheduleMonitoringResources
+    NetworkConfig: (MonitoringScheduleNetworkConfig)?
+    RoleArn: String(matches(Regex(#"^arn:aws[a-z\-]*:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping
 }
 
 /// The output configuration for monitoring jobs.
 open class MonitoringScheduleMonitoringOutputConfig {
-    KmsKeyId: (String(matches(Regex(#".*"#)))|Mapping)?
     MonitoringOutputs: Listing<MonitoringScheduleMonitoringOutput>
+    KmsKeyId: (String(matches(Regex(#".*"#)))|Mapping)?
 }
 
-/// Specifies a time limit for how long the monitoring job is allowed to run.
-open class MonitoringScheduleStoppingCondition {
-    MaxRuntimeInSeconds: Int|Mapping
+/// The output object for a monitoring job.
+open class MonitoringScheduleMonitoringOutput {
+    S3Output: MonitoringScheduleS3Output
 }
+
+/// The configuration object that specifies the monitoring schedule and defines the monitoring job.
+open class MonitoringScheduleMonitoringScheduleConfig {
+    MonitoringJobDefinitionName: (String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9])*$"#)))|Mapping)?
+    MonitoringType: (MonitoringScheduleMonitoringType)?
+    ScheduleConfig: (MonitoringScheduleScheduleConfig)?
+    MonitoringJobDefinition: (MonitoringScheduleMonitoringJobDefinition)?
+}
+
+/// The baseline statistics resource for a monitoring job.
+open class MonitoringScheduleStatisticsResource {
+    S3Uri: (MonitoringScheduleS3Uri)?
+}
+
+typealias EndpointInputS3DataDistributionType = "FullyReplicated"|"ShardedByS3Key"
+
+typealias EndpointInputS3InputMode = "Pipe"|"File"
+
+/// The endpoint for a monitoring job.
+open class MonitoringScheduleEndpointInput {
+    EndpointName: MonitoringScheduleEndpointName
+    LocalPath: String(matches(Regex(#".*"#)))|Mapping
+    S3DataDistributionType: (EndpointInputS3DataDistributionType|Mapping)?
+    S3InputMode: (EndpointInputS3InputMode|Mapping)?
+    ExcludeFeaturesAttribute: (String|Mapping)?
+}
+
+/// The Json format
+open class MonitoringScheduleJson {
+    Line: (Boolean|Mapping)?
+}
+
+/// The inputs for a monitoring job.
+open class MonitoringScheduleMonitoringInput {
+    EndpointInput: (MonitoringScheduleEndpointInput)?
+    BatchTransformInput: (MonitoringScheduleBatchTransformInput)?
+}
+
+typealias MonitoringScheduleMonitoringScheduleName = String|Mapping
+
 
 typealias S3OutputS3UploadMode = "Continuous"|"EndOfJob"
 
@@ -180,30 +155,55 @@ open class MonitoringScheduleS3Output {
     S3UploadMode: (S3OutputS3UploadMode|Mapping)?
 }
 
-typealias MonitoringExecutionSummaryMonitoringExecutionStatus = "Pending"|"Completed"|"CompletedWithViolations"|"InProgress"|"Failed"|"Stopping"|"Stopped"
-
-/// Summary of information about monitoring job
-open class MonitoringScheduleMonitoringExecutionSummary {
-    FailureReason: (String|Mapping)?
-    LastModifiedTime: String|Mapping
-    MonitoringExecutionStatus: MonitoringExecutionSummaryMonitoringExecutionStatus|Mapping
-    MonitoringScheduleName: MonitoringScheduleMonitoringScheduleName
-    ProcessingJobArn: (String(matches(Regex(#"aws[a-z\-]*:sagemaker:[a-z0-9\-]*:[0-9]{12}:processing-job/.*"#)))|Mapping)?
-    ScheduledTime: String|Mapping
-    CreationTime: String|Mapping
-    EndpointName: (MonitoringScheduleEndpointName)?
+/// Baseline configuration used to validate that the data conforms to the specified constraints and statistics.
+open class MonitoringScheduleBaselineConfig {
+    StatisticsResource: (MonitoringScheduleStatisticsResource)?
+    ConstraintsResource: (MonitoringScheduleConstraintsResource)?
 }
 
 typealias MonitoringScheduleDataAnalysisTimeString = String|Mapping
 
 
+typealias MonitoringExecutionSummaryMonitoringExecutionStatus = "Pending"|"Completed"|"CompletedWithViolations"|"InProgress"|"Failed"|"Stopping"|"Stopped"
+
+/// Summary of information about monitoring job
+open class MonitoringScheduleMonitoringExecutionSummary {
+    ProcessingJobArn: (String(matches(Regex(#"aws[a-z\-]*:sagemaker:[a-z0-9\-]*:[0-9]{12}:processing-job/.*"#)))|Mapping)?
+    ScheduledTime: String|Mapping
+    CreationTime: String|Mapping
+    EndpointName: (MonitoringScheduleEndpointName)?
+    FailureReason: (String|Mapping)?
+    LastModifiedTime: String|Mapping
+    MonitoringExecutionStatus: MonitoringExecutionSummaryMonitoringExecutionStatus|Mapping
+    MonitoringScheduleName: MonitoringScheduleMonitoringScheduleName
+}
+
 typealias MonitoringScheduleMonitoringInputs = Listing<(MonitoringScheduleMonitoringInput)?>
 
 
-/// The output object for a monitoring job.
-open class MonitoringScheduleMonitoringOutput {
-    S3Output: MonitoringScheduleS3Output
+typealias MonitoringScheduleParquet = Boolean|Mapping
+
+
+/// Specifies a VPC that your training jobs and hosted models have access to. Control access to and from your training and model containers by configuring the VPC.
+open class MonitoringScheduleVpcConfig {
+    SecurityGroupIds: Listing<String|Mapping>
+    Subnets: Listing<String|Mapping>
 }
+
+typealias MonitoringScheduleContainerArgument = String|Mapping
+
+
+/// Container image configuration object for the monitoring job.
+open class MonitoringScheduleMonitoringAppSpecification {
+    ContainerEntrypoint: (Listing<String|Mapping>)?
+    ImageUri: String(matches(Regex(#".*"#)))|Mapping
+    PostAnalyticsProcessorSourceUri: (MonitoringScheduleS3Uri)?
+    RecordPreprocessorSourceUri: (MonitoringScheduleS3Uri)?
+    ContainerArguments: (Listing<MonitoringScheduleContainerArgument>)?
+}
+
+typealias MonitoringScheduleMonitoringType = String|Mapping
+
 
 /// Resource Type definition for AWS::SageMaker::MonitoringSchedule
 open class MonitoringSchedule extends cloudformation.Resource {
@@ -217,11 +217,14 @@ open class MonitoringSchedule extends cloudformation.Resource {
     /// Contains the reason a monitoring job failed, if it failed.
     hidden FailureReason: (String|Mapping)?
 
-    /// 
-    hidden MonitoringScheduleName: MonitoringScheduleMonitoringScheduleName
+    /// Describes metadata on the last execution to run, if there was one.
+    hidden LastMonitoringExecutionSummary: (MonitoringScheduleMonitoringExecutionSummary)?
 
     /// 
     hidden MonitoringScheduleConfig: MonitoringScheduleMonitoringScheduleConfig
+
+    /// 
+    hidden MonitoringScheduleName: MonitoringScheduleMonitoringScheduleName
 
     /// The status of a schedule job.
     hidden MonitoringScheduleStatus: (MonitoringScheduleMonitoringScheduleStatus|Mapping)?
@@ -229,17 +232,14 @@ open class MonitoringSchedule extends cloudformation.Resource {
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<MonitoringScheduleTag>)?
 
-    /// Describes metadata on the last execution to run, if there was one.
-    hidden LastMonitoringExecutionSummary: (MonitoringScheduleMonitoringExecutionSummary)?
-
     Properties {
         ["EndpointName"] = if (EndpointName == null) null else EndpointName
         ["FailureReason"] = if (FailureReason == null) null else FailureReason
-        ["MonitoringScheduleName"] = if (MonitoringScheduleName == null) null else MonitoringScheduleName
+        ["LastMonitoringExecutionSummary"] = if (LastMonitoringExecutionSummary == null) null else LastMonitoringExecutionSummary
         ["MonitoringScheduleConfig"] = if (MonitoringScheduleConfig == null) null else MonitoringScheduleConfig
+        ["MonitoringScheduleName"] = if (MonitoringScheduleName == null) null else MonitoringScheduleName
         ["MonitoringScheduleStatus"] = if (MonitoringScheduleStatus == null) null else MonitoringScheduleStatus
         ["Tags"] = if (Tags == null) null else Tags
-        ["LastMonitoringExecutionSummary"] = if (LastMonitoringExecutionSummary == null) null else LastMonitoringExecutionSummary
     }
 
 }

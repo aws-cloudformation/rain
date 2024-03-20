@@ -27,6 +27,12 @@ open class EventInvokeConfig extends cloudformation.Resource {
     Type = "AWS::Lambda::EventInvokeConfig"
 
 
+    /// 
+    hidden DestinationConfig: (EventInvokeConfigDestinationConfig)?
+
+    /// The name of the Lambda function.
+    hidden FunctionName: String(matches(Regex(#"^(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}(-gov)?-[a-z]+-\d{1}:)?(\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\$LATEST|[a-zA-Z0-9-_]+))?$"#)))|Mapping
+
     /// The maximum age of a request that Lambda sends to a function for processing.
     hidden MaximumEventAgeInSeconds: (Int|Mapping)?
 
@@ -36,18 +42,12 @@ open class EventInvokeConfig extends cloudformation.Resource {
     /// The identifier of a version or alias.
     hidden Qualifier: String(matches(Regex(#"^(|[a-zA-Z0-9$_-]{1,129})$"#)))|Mapping
 
-    /// 
-    hidden DestinationConfig: (EventInvokeConfigDestinationConfig)?
-
-    /// The name of the Lambda function.
-    hidden FunctionName: String(matches(Regex(#"^(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}(-gov)?-[a-z]+-\d{1}:)?(\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\$LATEST|[a-zA-Z0-9-_]+))?$"#)))|Mapping
-
     Properties {
+        ["DestinationConfig"] = if (DestinationConfig == null) null else DestinationConfig
+        ["FunctionName"] = if (FunctionName == null) null else FunctionName
         ["MaximumEventAgeInSeconds"] = if (MaximumEventAgeInSeconds == null) null else MaximumEventAgeInSeconds
         ["MaximumRetryAttempts"] = if (MaximumRetryAttempts == null) null else MaximumRetryAttempts
         ["Qualifier"] = if (Qualifier == null) null else Qualifier
-        ["DestinationConfig"] = if (DestinationConfig == null) null else DestinationConfig
-        ["FunctionName"] = if (FunctionName == null) null else FunctionName
     }
 
 }

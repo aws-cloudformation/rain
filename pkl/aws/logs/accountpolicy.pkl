@@ -11,9 +11,6 @@ open class AccountPolicy extends cloudformation.Resource {
     Type = "AWS::Logs::AccountPolicy"
 
 
-    /// The name of the account policy
-    hidden PolicyName: String(matches(Regex(#"^[^:*]{1,256}$"#)))|Mapping
-
     /// The body of the policy document you want to use for this topic.
     ///
     /// 
@@ -23,6 +20,9 @@ open class AccountPolicy extends cloudformation.Resource {
     /// 
     /// Length Constraints: Maximum length of 30720
     hidden PolicyDocument: String|Mapping
+
+    /// The name of the account policy
+    hidden PolicyName: String(matches(Regex(#"^[^:*]{1,256}$"#)))|Mapping
 
     /// Type of the policy.
     hidden PolicyType: AccountPolicyPolicyType|Mapping
@@ -34,8 +34,8 @@ open class AccountPolicy extends cloudformation.Resource {
     hidden SelectionCriteria: (String|Mapping)?
 
     Properties {
-        ["PolicyName"] = if (PolicyName == null) null else PolicyName
         ["PolicyDocument"] = if (PolicyDocument == null) null else PolicyDocument
+        ["PolicyName"] = if (PolicyName == null) null else PolicyName
         ["PolicyType"] = if (PolicyType == null) null else PolicyType
         ["Scope"] = if (Scope == null) null else Scope
         ["SelectionCriteria"] = if (SelectionCriteria == null) null else SelectionCriteria

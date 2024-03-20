@@ -11,26 +11,28 @@ open class RotationCoverageTime {
     EndTime: RotationHandOffTime
 }
 
-/// DayOfWeek for Month and HandOff Time for Monthly Recurring Rotation.
-open class RotationMonthlySetting {
-    DayOfMonth: Int|Mapping
+/// Handoff time for Daily Recurring Rotation.
+open class RotationDailySetting {
     HandOffTime: RotationHandOffTime
 }
 
-/// DayOfWeek for Rotation and HandOff Time for Weekly Recurring Rotation.
-open class RotationWeeklySetting {
-    DayOfWeek: RotationDayOfWeek
+typealias RotationHandOffTime = String|Mapping
+
+
+/// DayOfWeek for Month and HandOff Time for Monthly Recurring Rotation.
+open class RotationMonthlySetting {
     HandOffTime: RotationHandOffTime
+    DayOfMonth: Int|Mapping
 }
 
 /// Information about when an on-call rotation is in effect and how long the rotation period lasts.
 open class RotationRecurrenceSettings {
-    WeeklySettings: (Listing<RotationWeeklySetting>)?
-    DailySettings: (Listing<RotationHandOffTime>)?
     NumberOfOnCalls: (Int|Mapping)?
     RecurrenceMultiplier: (Int|Mapping)?
     ShiftCoverages: (Listing<RotationShiftCoverage>)?
     MonthlySettings: (Listing<RotationMonthlySetting>)?
+    WeeklySettings: (Listing<RotationWeeklySetting>)?
+    DailySettings: (Listing<RotationHandOffTime>)?
 }
 
 /// Information about the days of the week included in on-call rotation coverage.
@@ -39,20 +41,18 @@ open class RotationShiftCoverage {
     CoverageTimes: Listing<RotationCoverageTime>
 }
 
-typealias RotationDayOfWeek = String|Mapping
-
-
 /// A key-value pair to associate with a resource.
 open class RotationTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
-typealias RotationHandOffTime = String|Mapping
+typealias RotationDayOfWeek = String|Mapping
 
 
-/// Handoff time for Daily Recurring Rotation.
-open class RotationDailySetting {
+/// DayOfWeek for Rotation and HandOff Time for Weekly Recurring Rotation.
+open class RotationWeeklySetting {
+    DayOfWeek: RotationDayOfWeek
     HandOffTime: RotationHandOffTime
 }
 
@@ -62,31 +62,31 @@ open class Rotation extends cloudformation.Resource {
     Type = "AWS::SSMContacts::Rotation"
 
 
-    /// Name of the Rotation
-    hidden Name: String(matches(Regex(#"^[a-zA-Z0-9_]*$"#)))|Mapping
-
     /// Members of the rotation
     hidden ContactIds: Listing<String|Mapping>
 
-    /// Start time of the first shift of Oncall Schedule
-    hidden StartTime: String(matches(Regex(#"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})$"#)))|Mapping
-
-    /// TimeZone Identifier for the Oncall Schedule
-    hidden TimeZoneId: String|Mapping
+    /// Name of the Rotation
+    hidden Name: String(matches(Regex(#"^[a-zA-Z0-9_]*$"#)))|Mapping
 
     /// 
     hidden Recurrence: RotationRecurrenceSettings
 
+    /// Start time of the first shift of Oncall Schedule
+    hidden StartTime: String(matches(Regex(#"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})$"#)))|Mapping
+
     /// 
     hidden Tags: (Listing<RotationTag>)?
 
+    /// TimeZone Identifier for the Oncall Schedule
+    hidden TimeZoneId: String|Mapping
+
     Properties {
-        ["Name"] = if (Name == null) null else Name
         ["ContactIds"] = if (ContactIds == null) null else ContactIds
-        ["StartTime"] = if (StartTime == null) null else StartTime
-        ["TimeZoneId"] = if (TimeZoneId == null) null else TimeZoneId
+        ["Name"] = if (Name == null) null else Name
         ["Recurrence"] = if (Recurrence == null) null else Recurrence
+        ["StartTime"] = if (StartTime == null) null else StartTime
         ["Tags"] = if (Tags == null) null else Tags
+        ["TimeZoneId"] = if (TimeZoneId == null) null else TimeZoneId
     }
 
 }

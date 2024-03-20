@@ -5,14 +5,14 @@ module aws.lakeformation.datacellsfilter
 
 import "../../cloudformation.pkl"
 
-typealias DataCellsFilterNameString = String|Mapping
-
-
 /// An object representing the Data Cells Filter's Row Filter. Either a Filter Expression or a Wildcard is required.
 open class DataCellsFilterRowFilter {
-    AllRowsWildcard: (Dynamic)?
     FilterExpression: (String|Mapping)?
+    AllRowsWildcard: (Dynamic)?
 }
+
+typealias DataCellsFilterCatalogIdString = String|Mapping
+
 
 typealias DataCellsFilterColumnNames = Listing<(DataCellsFilterNameString)?>
 
@@ -22,7 +22,7 @@ open class DataCellsFilterColumnWildcard {
     ExcludedColumnNames: (DataCellsFilterColumnNames)?
 }
 
-typealias DataCellsFilterCatalogIdString = String|Mapping
+typealias DataCellsFilterNameString = String|Mapping
 
 
 /// A resource schema representing a Lake Formation Data Cells Filter.
@@ -31,8 +31,14 @@ open class DataCellsFilter extends cloudformation.Resource {
     Type = "AWS::LakeFormation::DataCellsFilter"
 
 
-    /// The name of the Table to create a Data Cells Filter for.
-    hidden TableName: DataCellsFilterNameString
+    /// A list of columns to be included in this Data Cells Filter.
+    hidden ColumnNames: (DataCellsFilterColumnNames)?
+
+    /// An object representing the Data Cells Filter's Columns. Either Column Names or a Wildcard is required
+    hidden ColumnWildcard: (DataCellsFilterColumnWildcard)?
+
+    /// The name of the Database that the Table resides in.
+    hidden DatabaseName: DataCellsFilterNameString
 
     /// The desired name of the Data Cells Filter.
     hidden Name: DataCellsFilterNameString
@@ -40,26 +46,20 @@ open class DataCellsFilter extends cloudformation.Resource {
     /// An object representing the Data Cells Filter's Row Filter. Either a Filter Expression or a Wildcard is required
     hidden RowFilter: (DataCellsFilterRowFilter)?
 
-    /// A list of columns to be included in this Data Cells Filter.
-    hidden ColumnNames: (DataCellsFilterColumnNames)?
-
-    /// An object representing the Data Cells Filter's Columns. Either Column Names or a Wildcard is required
-    hidden ColumnWildcard: (DataCellsFilterColumnWildcard)?
-
     /// The Catalog Id of the Table on which to create a Data Cells Filter.
     hidden TableCatalogId: DataCellsFilterCatalogIdString
 
-    /// The name of the Database that the Table resides in.
-    hidden DatabaseName: DataCellsFilterNameString
+    /// The name of the Table to create a Data Cells Filter for.
+    hidden TableName: DataCellsFilterNameString
 
     Properties {
-        ["TableName"] = if (TableName == null) null else TableName
-        ["Name"] = if (Name == null) null else Name
-        ["RowFilter"] = if (RowFilter == null) null else RowFilter
         ["ColumnNames"] = if (ColumnNames == null) null else ColumnNames
         ["ColumnWildcard"] = if (ColumnWildcard == null) null else ColumnWildcard
-        ["TableCatalogId"] = if (TableCatalogId == null) null else TableCatalogId
         ["DatabaseName"] = if (DatabaseName == null) null else DatabaseName
+        ["Name"] = if (Name == null) null else Name
+        ["RowFilter"] = if (RowFilter == null) null else RowFilter
+        ["TableCatalogId"] = if (TableCatalogId == null) null else TableCatalogId
+        ["TableName"] = if (TableName == null) null else TableName
     }
 
 }

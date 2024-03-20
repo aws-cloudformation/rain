@@ -8,25 +8,25 @@ import "../../cloudformation.pkl"
 typealias InferenceSchedulerBucket = String|Mapping
 
 
+/// Specifies configuration information for the input data for the inference, including timestamp format and delimiter.
+open class InferenceSchedulerInputNameConfiguration {
+    ComponentTimestampDelimiter: (String(matches(Regex(#"^(\-|\_|\s)?$"#)))|Mapping)?
+    TimestampFormat: (String(matches(Regex(#"^EPOCH|yyyy-MM-dd-HH-mm-ss|yyyyMMddHHmmss$"#)))|Mapping)?
+}
+
 typealias InferenceSchedulerPrefix = String|Mapping
 
 
 /// Specifies configuration information for the input data for the inference, including input data S3 location.
 open class InferenceSchedulerS3InputConfiguration {
-    Bucket: InferenceSchedulerBucket
     Prefix: (InferenceSchedulerPrefix)?
+    Bucket: InferenceSchedulerBucket
 }
 
 /// Specifies configuration information for the output results from the inference, including output S3 location.
 open class InferenceSchedulerS3OutputConfiguration {
     Bucket: InferenceSchedulerBucket
     Prefix: (InferenceSchedulerPrefix)?
-}
-
-/// Specifies configuration information for the input data for the inference, including timestamp format and delimiter.
-open class InferenceSchedulerInputNameConfiguration {
-    ComponentTimestampDelimiter: (String(matches(Regex(#"^(\-|\_|\s)?$"#)))|Mapping)?
-    TimestampFormat: (String(matches(Regex(#"^EPOCH|yyyy-MM-dd-HH-mm-ss|yyyyMMddHHmmss$"#)))|Mapping)?
 }
 
 /// A tag is a key-value pair that can be added to a resource as metadata.
@@ -41,8 +41,14 @@ open class InferenceScheduler extends cloudformation.Resource {
     Type = "AWS::LookoutEquipment::InferenceScheduler"
 
 
+    /// A period of time (in minutes) by which inference on the data is delayed after the data starts.
+    hidden DataDelayOffsetInMinutes: (Int|Mapping)?
+
     /// Specifies configuration information for the input data for the inference scheduler, including delimiter, format, and dataset location.
     hidden DataInputConfiguration: Dynamic
+
+    /// Specifies configuration information for the output results for the inference scheduler, including the S3 location for the output.
+    hidden DataOutputConfiguration: Dynamic
 
     /// How often data is uploaded to the source S3 bucket for the input data.
     hidden DataUploadFrequency: InferenceSchedulerDataUploadFrequency|Mapping
@@ -62,22 +68,16 @@ open class InferenceScheduler extends cloudformation.Resource {
     /// Any tags associated with the inference scheduler.
     hidden Tags: (Listing<InferenceSchedulerTag>)?
 
-    /// A period of time (in minutes) by which inference on the data is delayed after the data starts.
-    hidden DataDelayOffsetInMinutes: (Int|Mapping)?
-
-    /// Specifies configuration information for the output results for the inference scheduler, including the S3 location for the output.
-    hidden DataOutputConfiguration: Dynamic
-
     Properties {
+        ["DataDelayOffsetInMinutes"] = if (DataDelayOffsetInMinutes == null) null else DataDelayOffsetInMinutes
         ["DataInputConfiguration"] = if (DataInputConfiguration == null) null else DataInputConfiguration
+        ["DataOutputConfiguration"] = if (DataOutputConfiguration == null) null else DataOutputConfiguration
         ["DataUploadFrequency"] = if (DataUploadFrequency == null) null else DataUploadFrequency
         ["InferenceSchedulerName"] = if (InferenceSchedulerName == null) null else InferenceSchedulerName
         ["ModelName"] = if (ModelName == null) null else ModelName
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
         ["ServerSideKmsKeyId"] = if (ServerSideKmsKeyId == null) null else ServerSideKmsKeyId
         ["Tags"] = if (Tags == null) null else Tags
-        ["DataDelayOffsetInMinutes"] = if (DataDelayOffsetInMinutes == null) null else DataDelayOffsetInMinutes
-        ["DataOutputConfiguration"] = if (DataOutputConfiguration == null) null else DataOutputConfiguration
     }
 
 }

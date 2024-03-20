@@ -5,6 +5,9 @@ module aws.nimblestudio.studio
 
 import "../../cloudformation.pkl"
 
+typealias StudioTags = Mapping<String, Any>
+
+
 /// <p>Configuration of the encryption method that is used for the studio.</p>
 open class StudioStudioEncryptionConfiguration {
     KeyType: StudioStudioEncryptionConfigurationKeyType
@@ -12,9 +15,6 @@ open class StudioStudioEncryptionConfiguration {
 }
 
 typealias StudioStudioEncryptionConfigurationKeyType = String|Mapping
-
-
-typealias StudioTags = Mapping<String, Any>
 
 
 /// Represents a studio that contains other Nimble Studio resources
@@ -26,14 +26,11 @@ open class Studio extends cloudformation.Resource {
     /// <p>The IAM role that Studio Admins will assume when logging in to the Nimble Studio portal.</p>
     hidden AdminRoleArn: String|Mapping
 
-    /// 
-    hidden StudioEncryptionConfiguration: (StudioStudioEncryptionConfiguration)?
-
-    /// <p>The IAM role that Studio Users will assume when logging in to the Nimble Studio portal.</p>
-    hidden UserRoleArn: String|Mapping
-
     /// <p>A friendly name for the studio.</p>
     hidden DisplayName: String|Mapping
+
+    /// 
+    hidden StudioEncryptionConfiguration: (StudioStudioEncryptionConfiguration)?
 
     /// <p>The studio name that is used in the URL of the Nimble Studio portal when accessed by Nimble Studio users.</p>
     hidden StudioName: String(matches(Regex(#"^[a-z0-9]*$"#)))|Mapping
@@ -41,13 +38,16 @@ open class Studio extends cloudformation.Resource {
     /// 
     hidden Tags: (StudioTags)?
 
+    /// <p>The IAM role that Studio Users will assume when logging in to the Nimble Studio portal.</p>
+    hidden UserRoleArn: String|Mapping
+
     Properties {
         ["AdminRoleArn"] = if (AdminRoleArn == null) null else AdminRoleArn
-        ["StudioEncryptionConfiguration"] = if (StudioEncryptionConfiguration == null) null else StudioEncryptionConfiguration
-        ["UserRoleArn"] = if (UserRoleArn == null) null else UserRoleArn
         ["DisplayName"] = if (DisplayName == null) null else DisplayName
+        ["StudioEncryptionConfiguration"] = if (StudioEncryptionConfiguration == null) null else StudioEncryptionConfiguration
         ["StudioName"] = if (StudioName == null) null else StudioName
         ["Tags"] = if (Tags == null) null else Tags
+        ["UserRoleArn"] = if (UserRoleArn == null) null else UserRoleArn
     }
 
 }

@@ -7,8 +7,8 @@ import "../../cloudformation.pkl"
 
 /// 
 open class AutoScalingConfigurationTag {
-    Value: (String|Mapping)?
     Key: (String|Mapping)?
+    Value: (String|Mapping)?
 }
 
 /// Describes an AWS App Runner automatic configuration resource that enables automatic scaling of instances used to process web requests. You can share an auto scaling configuration across multiple services.
@@ -16,9 +16,6 @@ open class AutoScalingConfiguration extends cloudformation.Resource {
 
     Type = "AWS::AppRunner::AutoScalingConfiguration"
 
-
-    /// A list of metadata items that you can associate with your auto scaling configuration resource. A tag is a key-value pair.
-    hidden Tags: (Listing<AutoScalingConfigurationTag>)?
 
     /// The customer-provided auto scaling configuration name.  When you use it for the first time in an AWS Region, App Runner creates revision number 1 of this name. When you use the same name in subsequent calls, App Runner creates incremental revisions of the configuration. The auto scaling configuration name can be used in multiple revisions of a configuration.
     hidden AutoScalingConfigurationName: (String(matches(Regex(#"[A-Za-z0-9][A-Za-z0-9\-_]{3,31}"#)))|Mapping)?
@@ -32,12 +29,15 @@ open class AutoScalingConfiguration extends cloudformation.Resource {
     /// The minimum number of instances that App Runner provisions for a service. The service always has at least MinSize provisioned instances. Some of them actively serve traffic. The rest of them (provisioned and inactive instances) are a cost-effective compute capacity reserve and are ready to be quickly activated. You pay for memory usage of all the provisioned instances. You pay for CPU usage of only the active subset.
     hidden MinSize: (Int|Mapping)?
 
+    /// A list of metadata items that you can associate with your auto scaling configuration resource. A tag is a key-value pair.
+    hidden Tags: (Listing<AutoScalingConfigurationTag>)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
         ["AutoScalingConfigurationName"] = if (AutoScalingConfigurationName == null) null else AutoScalingConfigurationName
         ["MaxConcurrency"] = if (MaxConcurrency == null) null else MaxConcurrency
         ["MaxSize"] = if (MaxSize == null) null else MaxSize
         ["MinSize"] = if (MinSize == null) null else MinSize
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

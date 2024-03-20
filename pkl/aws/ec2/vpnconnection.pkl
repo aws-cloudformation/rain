@@ -6,15 +6,15 @@ module aws.ec2.vpnconnection
 import "../../cloudformation.pkl"
 
 /// 
-open class VPNConnectionVpnTunnelOptionsSpecification {
-    PreSharedKey: (String|Mapping)?
-    TunnelInsideCidr: (String|Mapping)?
-}
-
-/// 
 open class VPNConnectionTag {
     Value: String|Mapping
     Key: String|Mapping
+}
+
+/// 
+open class VPNConnectionVpnTunnelOptionsSpecification {
+    PreSharedKey: (String|Mapping)?
+    TunnelInsideCidr: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::EC2::VPNConnection
@@ -22,9 +22,6 @@ open class VPNConnection extends cloudformation.Resource {
 
     Type = "AWS::EC2::VPNConnection"
 
-
-    /// The tunnel options for the VPN connection.
-    hidden VpnTunnelOptionsSpecifications: (Listing<VPNConnectionVpnTunnelOptionsSpecification>)?
 
     /// The ID of the customer gateway at your end of the VPN connection.
     hidden CustomerGatewayId: String|Mapping
@@ -44,14 +41,17 @@ open class VPNConnection extends cloudformation.Resource {
     /// The ID of the virtual private gateway at the AWS side of the VPN connection.
     hidden VpnGatewayId: (String|Mapping)?
 
+    /// The tunnel options for the VPN connection.
+    hidden VpnTunnelOptionsSpecifications: (Listing<VPNConnectionVpnTunnelOptionsSpecification>)?
+
     Properties {
-        ["VpnTunnelOptionsSpecifications"] = if (VpnTunnelOptionsSpecifications == null) null else VpnTunnelOptionsSpecifications
         ["CustomerGatewayId"] = if (CustomerGatewayId == null) null else CustomerGatewayId
         ["StaticRoutesOnly"] = if (StaticRoutesOnly == null) null else StaticRoutesOnly
         ["Tags"] = if (Tags == null) null else Tags
         ["TransitGatewayId"] = if (TransitGatewayId == null) null else TransitGatewayId
         ["Type"] = if (TypeProperty == null) null else TypeProperty
         ["VpnGatewayId"] = if (VpnGatewayId == null) null else VpnGatewayId
+        ["VpnTunnelOptionsSpecifications"] = if (VpnTunnelOptionsSpecifications == null) null else VpnTunnelOptionsSpecifications
     }
 
 }

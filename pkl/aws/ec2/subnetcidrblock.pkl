@@ -11,6 +11,9 @@ open class SubnetCidrBlock extends cloudformation.Resource {
     Type = "AWS::EC2::SubnetCidrBlock"
 
 
+    /// The IPv6 network range for the subnet, in CIDR notation. The subnet size must use a /64 prefix length
+    hidden Ipv6CidrBlock: (String|Mapping)?
+
     /// The ID of an IPv6 Amazon VPC IP Address Manager (IPAM) pool from which to allocate, to get the subnet's CIDR
     hidden Ipv6IpamPoolId: (String|Mapping)?
 
@@ -20,14 +23,11 @@ open class SubnetCidrBlock extends cloudformation.Resource {
     /// The ID of the subnet
     hidden SubnetId: String|Mapping
 
-    /// The IPv6 network range for the subnet, in CIDR notation. The subnet size must use a /64 prefix length
-    hidden Ipv6CidrBlock: (String|Mapping)?
-
     Properties {
+        ["Ipv6CidrBlock"] = if (Ipv6CidrBlock == null) null else Ipv6CidrBlock
         ["Ipv6IpamPoolId"] = if (Ipv6IpamPoolId == null) null else Ipv6IpamPoolId
         ["Ipv6NetmaskLength"] = if (Ipv6NetmaskLength == null) null else Ipv6NetmaskLength
         ["SubnetId"] = if (SubnetId == null) null else SubnetId
-        ["Ipv6CidrBlock"] = if (Ipv6CidrBlock == null) null else Ipv6CidrBlock
     }
 
 }

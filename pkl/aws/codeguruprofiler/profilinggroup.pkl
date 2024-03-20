@@ -5,8 +5,11 @@ module aws.codeguruprofiler.profilinggroup
 
 import "../../cloudformation.pkl"
 
-typealias ProfilingGroupChannelUri = String|Mapping
-
+/// A key-value pair to associate with a resource.
+open class ProfilingGroupTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
 
 /// Notification medium for users to get alerted for events that occur in application profile. We support SNS topic as a notification channel.
 open class ProfilingGroupChannel {
@@ -14,19 +17,16 @@ open class ProfilingGroupChannel {
     channelUri: ProfilingGroupChannelUri
 }
 
-typealias ProfilingGroupProfilingGroupArn = String|Mapping
+typealias ProfilingGroupChannelId = String|Mapping
+
+
+typealias ProfilingGroupChannelUri = String|Mapping
 
 
 typealias ProfilingGroupIamArn = String|Mapping
 
 
-/// A key-value pair to associate with a resource.
-open class ProfilingGroupTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-typealias ProfilingGroupChannelId = String|Mapping
+typealias ProfilingGroupProfilingGroupArn = String|Mapping
 
 
 /// This resource schema represents the Profiling Group resource in the Amazon CodeGuru Profiler service.
@@ -35,27 +35,27 @@ open class ProfilingGroup extends cloudformation.Resource {
     Type = "AWS::CodeGuruProfiler::ProfilingGroup"
 
 
-    /// The tags associated with a profiling group.
-    hidden Tags: (Listing<ProfilingGroupTag>)?
-
-    /// The name of the profiling group.
-    hidden ProfilingGroupName: String(matches(Regex(#"^[\w-]+$"#)))|Mapping
-
-    /// The compute platform of the profiling group.
-    hidden ComputePlatform: (ProfilingGroupComputePlatform|Mapping)?
-
     /// The agent permissions attached to this profiling group.
     hidden AgentPermissions: (Dynamic)?
 
     /// Configuration for Notification Channels for Anomaly Detection feature in CodeGuru Profiler which enables customers to detect anomalies in the application profile for those methods that represent the highest proportion of CPU time or latency
     hidden AnomalyDetectionNotificationConfiguration: (Listing<ProfilingGroupChannel>)?
 
+    /// The compute platform of the profiling group.
+    hidden ComputePlatform: (ProfilingGroupComputePlatform|Mapping)?
+
+    /// The name of the profiling group.
+    hidden ProfilingGroupName: String(matches(Regex(#"^[\w-]+$"#)))|Mapping
+
+    /// The tags associated with a profiling group.
+    hidden Tags: (Listing<ProfilingGroupTag>)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["ProfilingGroupName"] = if (ProfilingGroupName == null) null else ProfilingGroupName
-        ["ComputePlatform"] = if (ComputePlatform == null) null else ComputePlatform
         ["AgentPermissions"] = if (AgentPermissions == null) null else AgentPermissions
         ["AnomalyDetectionNotificationConfiguration"] = if (AnomalyDetectionNotificationConfiguration == null) null else AnomalyDetectionNotificationConfiguration
+        ["ComputePlatform"] = if (ComputePlatform == null) null else ComputePlatform
+        ["ProfilingGroupName"] = if (ProfilingGroupName == null) null else ProfilingGroupName
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

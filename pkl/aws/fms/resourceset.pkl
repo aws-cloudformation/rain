@@ -5,10 +5,13 @@ module aws.fms.resourceset
 
 import "../../cloudformation.pkl"
 
-typealias ResourceSetResourceType = String|Mapping
-
-
 typealias ResourceSetBase62Id = String|Mapping
+
+
+typealias ResourceSetResource = String|Mapping
+
+
+typealias ResourceSetResourceType = String|Mapping
 
 
 /// A tag.
@@ -17,14 +20,17 @@ open class ResourceSetTag {
     Value: String(matches(Regex(#"^([^\s]*)$"#)))|Mapping
 }
 
-typealias ResourceSetResource = String|Mapping
-
-
 /// Creates an AWS Firewall Manager resource set.
 open class ResourceSet extends cloudformation.Resource {
 
     Type = "AWS::FMS::ResourceSet"
 
+
+    /// 
+    hidden Description: (String(matches(Regex(#"^([a-zA-Z0-9_.:/=+\-@\s]*)$"#)))|Mapping)?
+
+    /// 
+    hidden Name: String(matches(Regex(#"^([a-zA-Z0-9_.:/=+\-@\s]+)$"#)))|Mapping
 
     /// 
     hidden ResourceTypeList: Listing<ResourceSetResourceType>
@@ -35,18 +41,12 @@ open class ResourceSet extends cloudformation.Resource {
     /// 
     hidden Tags: (Listing<ResourceSetTag>)?
 
-    /// 
-    hidden Name: String(matches(Regex(#"^([a-zA-Z0-9_.:/=+\-@\s]+)$"#)))|Mapping
-
-    /// 
-    hidden Description: (String(matches(Regex(#"^([a-zA-Z0-9_.:/=+\-@\s]*)$"#)))|Mapping)?
-
     Properties {
+        ["Description"] = if (Description == null) null else Description
+        ["Name"] = if (Name == null) null else Name
         ["ResourceTypeList"] = if (ResourceTypeList == null) null else ResourceTypeList
         ["Resources"] = if (Resources == null) null else Resources
         ["Tags"] = if (Tags == null) null else Tags
-        ["Name"] = if (Name == null) null else Name
-        ["Description"] = if (Description == null) null else Description
     }
 
 }

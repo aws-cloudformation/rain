@@ -5,6 +5,31 @@ module aws.osis.pipeline
 
 import "../../cloudformation.pkl"
 
+/// Key-value pairs to configure log publishing.
+open class PipelineLogPublishingOptions {
+    IsLoggingEnabled: (Boolean|Mapping)?
+    CloudWatchLogDestination: (Dynamic)?
+}
+
+/// A key-value pair to associate with a resource.
+open class PipelineTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// An OpenSearch Ingestion Service-managed VPC endpoint that will access one or more pipelines.
+open class PipelineVpcEndpoint {
+    VpcEndpointId: (String|Mapping)?
+    VpcId: (String|Mapping)?
+    VpcOptions: (PipelineVpcOptions)?
+}
+
+/// Container for the values required to configure VPC access for the pipeline. If you don't specify these values, OpenSearch Ingestion Service creates the pipeline with a public endpoint.
+open class PipelineVpcOptions {
+    SecurityGroupIds: (Listing<String|Mapping>)?
+    SubnetIds: Listing<String|Mapping>
+}
+
 /// Key-value pairs to configure buffering.
 open class PipelineBufferOptions {
     PersistentBufferEnabled: Boolean|Mapping
@@ -15,42 +40,11 @@ open class PipelineEncryptionAtRestOptions {
     KmsKeyArn: String|Mapping
 }
 
-/// Key-value pairs to configure log publishing.
-open class PipelineLogPublishingOptions {
-    IsLoggingEnabled: (Boolean|Mapping)?
-    CloudWatchLogDestination: (Dynamic)?
-}
-
-/// A key-value pair to associate with a resource.
-open class PipelineTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// Container for the values required to configure VPC access for the pipeline. If you don't specify these values, OpenSearch Ingestion Service creates the pipeline with a public endpoint.
-open class PipelineVpcOptions {
-    SecurityGroupIds: (Listing<String|Mapping>)?
-    SubnetIds: Listing<String|Mapping>
-}
-
-/// An OpenSearch Ingestion Service-managed VPC endpoint that will access one or more pipelines.
-open class PipelineVpcEndpoint {
-    VpcEndpointId: (String|Mapping)?
-    VpcId: (String|Mapping)?
-    VpcOptions: (PipelineVpcOptions)?
-}
-
 /// An OpenSearch Ingestion Service Data Prepper pipeline running Data Prepper.
 open class Pipeline extends cloudformation.Resource {
 
     Type = "AWS::OSIS::Pipeline"
 
-
-    /// The maximum pipeline capacity, in Ingestion OpenSearch Compute Units (OCUs).
-    hidden MaxUnits: Int|Mapping
-
-    /// The Data Prepper pipeline configuration.
-    hidden PipelineConfigurationBody: String|Mapping
 
     /// 
     hidden BufferOptions: (PipelineBufferOptions)?
@@ -61,8 +55,14 @@ open class Pipeline extends cloudformation.Resource {
     /// 
     hidden LogPublishingOptions: (PipelineLogPublishingOptions)?
 
+    /// The maximum pipeline capacity, in Ingestion OpenSearch Compute Units (OCUs).
+    hidden MaxUnits: Int|Mapping
+
     /// The minimum pipeline capacity, in Ingestion OpenSearch Compute Units (OCUs).
     hidden MinUnits: Int|Mapping
+
+    /// The Data Prepper pipeline configuration.
+    hidden PipelineConfigurationBody: String|Mapping
 
     /// Name of the OpenSearch Ingestion Service pipeline to create. Pipeline names are unique across the pipelines owned by an account within an AWS Region.
     hidden PipelineName: String(matches(Regex(#"[a-z][a-z0-9\-]+"#)))|Mapping
@@ -74,12 +74,12 @@ open class Pipeline extends cloudformation.Resource {
     hidden VpcOptions: (PipelineVpcOptions)?
 
     Properties {
-        ["MaxUnits"] = if (MaxUnits == null) null else MaxUnits
-        ["PipelineConfigurationBody"] = if (PipelineConfigurationBody == null) null else PipelineConfigurationBody
         ["BufferOptions"] = if (BufferOptions == null) null else BufferOptions
         ["EncryptionAtRestOptions"] = if (EncryptionAtRestOptions == null) null else EncryptionAtRestOptions
         ["LogPublishingOptions"] = if (LogPublishingOptions == null) null else LogPublishingOptions
+        ["MaxUnits"] = if (MaxUnits == null) null else MaxUnits
         ["MinUnits"] = if (MinUnits == null) null else MinUnits
+        ["PipelineConfigurationBody"] = if (PipelineConfigurationBody == null) null else PipelineConfigurationBody
         ["PipelineName"] = if (PipelineName == null) null else PipelineName
         ["Tags"] = if (Tags == null) null else Tags
         ["VpcOptions"] = if (VpcOptions == null) null else VpcOptions

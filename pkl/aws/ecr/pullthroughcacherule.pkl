@@ -5,22 +5,10 @@ module aws.ecr.pullthroughcacherule
 
 import "../../cloudformation.pkl"
 
-typealias PullThroughCacheRuleUpstreamRegistry = String|Mapping
-
-
-/// 
-open class PullThroughCacheRulePullThroughCacheRule {
-    RegistryId: (PullThroughCacheRuleRegistryId)?
-    EcrRepositoryPrefix: PullThroughCacheRuleEcrRepositoryPrefix
-    UpstreamRegistryUrl: PullThroughCacheRuleUpstreamRegistryUrl
-    CredentialArn: (PullThroughCacheRuleCredentialArn)?
-    UpstreamRegistry: (PullThroughCacheRuleUpstreamRegistry)?
-}
-
 typealias PullThroughCacheRuleRegistryId = String|Mapping
 
 
-typealias PullThroughCacheRuleEcrRepositoryPrefix = String|Mapping
+typealias PullThroughCacheRuleUpstreamRegistry = String|Mapping
 
 
 typealias PullThroughCacheRuleUpstreamRegistryUrl = String|Mapping
@@ -29,29 +17,41 @@ typealias PullThroughCacheRuleUpstreamRegistryUrl = String|Mapping
 typealias PullThroughCacheRuleCredentialArn = String|Mapping
 
 
+typealias PullThroughCacheRuleEcrRepositoryPrefix = String|Mapping
+
+
+/// 
+open class PullThroughCacheRulePullThroughCacheRule {
+    UpstreamRegistry: (PullThroughCacheRuleUpstreamRegistry)?
+    RegistryId: (PullThroughCacheRuleRegistryId)?
+    EcrRepositoryPrefix: PullThroughCacheRuleEcrRepositoryPrefix
+    UpstreamRegistryUrl: PullThroughCacheRuleUpstreamRegistryUrl
+    CredentialArn: (PullThroughCacheRuleCredentialArn)?
+}
+
 /// The AWS::ECR::PullThroughCacheRule resource configures the upstream registry configuration details for an Amazon Elastic Container Registry (Amazon Private ECR) pull-through cache.
 open class PullThroughCacheRule extends cloudformation.Resource {
 
     Type = "AWS::ECR::PullThroughCacheRule"
 
 
-    /// The ECRRepositoryPrefix is a custom alias for upstream registry url.
-    hidden EcrRepositoryPrefix: (String(matches(Regex(#"(?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)*[a-z0-9]+(?:[._-][a-z0-9]+)*"#)))|Mapping)?
-
-    /// The upstreamRegistryUrl is the endpoint of upstream registry url of the public repository to be cached
-    hidden UpstreamRegistryUrl: (String|Mapping)?
-
     /// The Amazon Resource Name (ARN) of the AWS Secrets Manager secret that identifies the credentials to authenticate to the upstream registry.
     hidden CredentialArn: (String(matches(Regex(#"^arn:aws:secretsmanager:[a-zA-Z0-9-:]+:secret:ecr\-pullthroughcache\/[a-zA-Z0-9\/_+=.@-]+$"#)))|Mapping)?
+
+    /// The ECRRepositoryPrefix is a custom alias for upstream registry url.
+    hidden EcrRepositoryPrefix: (String(matches(Regex(#"(?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)*[a-z0-9]+(?:[._-][a-z0-9]+)*"#)))|Mapping)?
 
     /// The name of the upstream registry.
     hidden UpstreamRegistry: (String|Mapping)?
 
+    /// The upstreamRegistryUrl is the endpoint of upstream registry url of the public repository to be cached
+    hidden UpstreamRegistryUrl: (String|Mapping)?
+
     Properties {
-        ["EcrRepositoryPrefix"] = if (EcrRepositoryPrefix == null) null else EcrRepositoryPrefix
-        ["UpstreamRegistryUrl"] = if (UpstreamRegistryUrl == null) null else UpstreamRegistryUrl
         ["CredentialArn"] = if (CredentialArn == null) null else CredentialArn
+        ["EcrRepositoryPrefix"] = if (EcrRepositoryPrefix == null) null else EcrRepositoryPrefix
         ["UpstreamRegistry"] = if (UpstreamRegistry == null) null else UpstreamRegistry
+        ["UpstreamRegistryUrl"] = if (UpstreamRegistryUrl == null) null else UpstreamRegistryUrl
     }
 
 }

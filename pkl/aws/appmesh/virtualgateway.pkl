@@ -6,9 +6,45 @@ module aws.appmesh.virtualgateway
 import "../../cloudformation.pkl"
 
 /// 
-open class VirtualGatewayVirtualGatewayHttpConnectionPool {
-    MaxConnections: Int|Mapping
-    MaxPendingRequests: (Int|Mapping)?
+open class VirtualGatewayVirtualGatewayBackendDefaults {
+    ClientPolicy: (VirtualGatewayVirtualGatewayClientPolicy)?
+}
+
+/// 
+open class VirtualGatewayVirtualGatewayClientPolicy {
+    TLS: (VirtualGatewayVirtualGatewayClientPolicyTls)?
+}
+
+/// 
+open class VirtualGatewayVirtualGatewayClientPolicyTls {
+    Enforce: (Boolean|Mapping)?
+    Certificate: (VirtualGatewayVirtualGatewayClientTlsCertificate)?
+    Validation: VirtualGatewayVirtualGatewayTlsValidationContext
+    Ports: (Listing<Int|Mapping>)?
+}
+
+/// 
+open class VirtualGatewayVirtualGatewayListenerTls {
+    Mode: String|Mapping
+    Certificate: VirtualGatewayVirtualGatewayListenerTlsCertificate
+    Validation: (VirtualGatewayVirtualGatewayListenerTlsValidationContext)?
+}
+
+/// 
+open class VirtualGatewayVirtualGatewayListenerTlsValidationContextTrust {
+    File: (VirtualGatewayVirtualGatewayTlsValidationContextFileTrust)?
+    SDS: (VirtualGatewayVirtualGatewayTlsValidationContextSdsTrust)?
+}
+
+/// 
+open class VirtualGatewayVirtualGatewayTlsValidationContext {
+    SubjectAlternativeNames: (VirtualGatewaySubjectAlternativeNames)?
+    Trust: VirtualGatewayVirtualGatewayTlsValidationContextTrust
+}
+
+/// 
+open class VirtualGatewaySubjectAlternativeNames {
+    Match: VirtualGatewaySubjectAlternativeNameMatchers
 }
 
 /// 
@@ -17,6 +53,63 @@ open class VirtualGatewayVirtualGatewayListener {
     HealthCheck: (VirtualGatewayVirtualGatewayHealthCheckPolicy)?
     TLS: (VirtualGatewayVirtualGatewayListenerTls)?
     PortMapping: VirtualGatewayVirtualGatewayPortMapping
+}
+
+/// 
+open class VirtualGatewayVirtualGatewayHttpConnectionPool {
+    MaxConnections: Int|Mapping
+    MaxPendingRequests: (Int|Mapping)?
+}
+
+/// 
+open class VirtualGatewayVirtualGatewayListenerTlsSdsCertificate {
+    SecretName: String|Mapping
+}
+
+/// 
+open class VirtualGatewayVirtualGatewayListenerTlsValidationContext {
+    SubjectAlternativeNames: (VirtualGatewaySubjectAlternativeNames)?
+    Trust: VirtualGatewayVirtualGatewayListenerTlsValidationContextTrust
+}
+
+/// 
+open class VirtualGatewayVirtualGatewayClientTlsCertificate {
+    File: (VirtualGatewayVirtualGatewayListenerTlsFileCertificate)?
+    SDS: (VirtualGatewayVirtualGatewayListenerTlsSdsCertificate)?
+}
+
+/// 
+open class VirtualGatewayVirtualGatewayListenerTlsFileCertificate {
+    PrivateKey: String|Mapping
+    CertificateChain: String|Mapping
+}
+
+/// 
+open class VirtualGatewayLoggingFormat {
+    Text: (String|Mapping)?
+    Json: (Listing<VirtualGatewayJsonFormatRef>)?
+}
+
+/// 
+open class VirtualGatewayTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// 
+open class VirtualGatewayVirtualGatewayAccessLog {
+    File: (VirtualGatewayVirtualGatewayFileAccessLog)?
+}
+
+/// 
+open class VirtualGatewayVirtualGatewayFileAccessLog {
+    Format: (VirtualGatewayLoggingFormat)?
+    Path: String|Mapping
+}
+
+/// 
+open class VirtualGatewayVirtualGatewayGrpcConnectionPool {
+    MaxRequests: Int|Mapping
 }
 
 /// 
@@ -31,15 +124,10 @@ open class VirtualGatewayVirtualGatewayHealthCheckPolicy {
 }
 
 /// 
-open class VirtualGatewayVirtualGatewayPortMapping {
-    Protocol: String|Mapping
-    Port: Int|Mapping
-}
-
-/// 
-open class VirtualGatewayLoggingFormat {
-    Text: (String|Mapping)?
-    Json: (Listing<VirtualGatewayJsonFormatRef>)?
+open class VirtualGatewayVirtualGatewayListenerTlsCertificate {
+    SDS: (VirtualGatewayVirtualGatewayListenerTlsSdsCertificate)?
+    ACM: (VirtualGatewayVirtualGatewayListenerTlsAcmCertificate)?
+    File: (VirtualGatewayVirtualGatewayListenerTlsFileCertificate)?
 }
 
 /// 
@@ -49,146 +137,15 @@ open class VirtualGatewayJsonFormatRef {
 }
 
 /// 
-open class VirtualGatewayTag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class VirtualGatewayVirtualGatewayListenerTls {
-    Validation: (VirtualGatewayVirtualGatewayListenerTlsValidationContext)?
-    Mode: String|Mapping
-    Certificate: VirtualGatewayVirtualGatewayListenerTlsCertificate
-}
-
-/// 
-open class VirtualGatewayVirtualGatewayListenerTlsValidationContext {
-    SubjectAlternativeNames: (VirtualGatewaySubjectAlternativeNames)?
-    Trust: VirtualGatewayVirtualGatewayListenerTlsValidationContextTrust
-}
-
-/// 
 open class VirtualGatewayVirtualGatewayTlsValidationContextFileTrust {
     CertificateChain: String|Mapping
 }
 
 /// 
-open class VirtualGatewayVirtualGatewayGrpcConnectionPool {
-    MaxRequests: Int|Mapping
-}
-
-/// 
-open class VirtualGatewayVirtualGatewayClientPolicy {
-    TLS: (VirtualGatewayVirtualGatewayClientPolicyTls)?
-}
-
-/// 
 open class VirtualGatewayVirtualGatewaySpec {
-    Listeners: Listing<VirtualGatewayVirtualGatewayListener>
     BackendDefaults: (VirtualGatewayVirtualGatewayBackendDefaults)?
     Logging: (VirtualGatewayVirtualGatewayLogging)?
-}
-
-/// 
-open class VirtualGatewaySubjectAlternativeNames {
-    Match: VirtualGatewaySubjectAlternativeNameMatchers
-}
-
-/// 
-open class VirtualGatewayVirtualGatewayBackendDefaults {
-    ClientPolicy: (VirtualGatewayVirtualGatewayClientPolicy)?
-}
-
-/// 
-open class VirtualGatewayVirtualGatewayTlsValidationContextSdsTrust {
-    SecretName: String|Mapping
-}
-
-/// 
-open class VirtualGatewayVirtualGatewayHttp2ConnectionPool {
-    MaxRequests: Int|Mapping
-}
-
-/// 
-open class VirtualGatewayVirtualGatewayClientTlsCertificate {
-    File: (VirtualGatewayVirtualGatewayListenerTlsFileCertificate)?
-    SDS: (VirtualGatewayVirtualGatewayListenerTlsSdsCertificate)?
-}
-
-/// 
-open class VirtualGatewayVirtualGatewayListenerTlsValidationContextTrust {
-    File: (VirtualGatewayVirtualGatewayTlsValidationContextFileTrust)?
-    SDS: (VirtualGatewayVirtualGatewayTlsValidationContextSdsTrust)?
-}
-
-/// 
-open class VirtualGatewayVirtualGatewayListenerTlsAcmCertificate {
-    CertificateArn: String|Mapping
-}
-
-/// 
-open class VirtualGatewayVirtualGatewayTlsValidationContext {
-    SubjectAlternativeNames: (VirtualGatewaySubjectAlternativeNames)?
-    Trust: VirtualGatewayVirtualGatewayTlsValidationContextTrust
-}
-
-/// 
-open class VirtualGatewayVirtualGatewayClientPolicyTls {
-    Certificate: (VirtualGatewayVirtualGatewayClientTlsCertificate)?
-    Validation: VirtualGatewayVirtualGatewayTlsValidationContext
-    Ports: (Listing<Int|Mapping>)?
-    Enforce: (Boolean|Mapping)?
-}
-
-/// 
-open class VirtualGatewayVirtualGatewayLogging {
-    AccessLog: (VirtualGatewayVirtualGatewayAccessLog)?
-}
-
-/// 
-open class VirtualGatewayVirtualGatewayTlsValidationContextAcmTrust {
-    CertificateAuthorityArns: Listing<String|Mapping>
-}
-
-/// 
-open class VirtualGatewayVirtualGatewayAccessLog {
-    File: (VirtualGatewayVirtualGatewayFileAccessLog)?
-}
-
-/// 
-open class VirtualGatewayVirtualGatewayListenerTlsSdsCertificate {
-    SecretName: String|Mapping
-}
-
-/// 
-open class VirtualGatewayVirtualGatewayListenerTlsFileCertificate {
-    CertificateChain: String|Mapping
-    PrivateKey: String|Mapping
-}
-
-/// 
-open class VirtualGatewaySubjectAlternativeNameMatchers {
-    Exact: (Listing<String|Mapping>)?
-}
-
-/// 
-open class VirtualGatewayVirtualGatewayListenerTlsCertificate {
-    SDS: (VirtualGatewayVirtualGatewayListenerTlsSdsCertificate)?
-    ACM: (VirtualGatewayVirtualGatewayListenerTlsAcmCertificate)?
-    File: (VirtualGatewayVirtualGatewayListenerTlsFileCertificate)?
-}
-
-/// 
-open class VirtualGatewayVirtualGatewayFileAccessLog {
-    Path: String|Mapping
-    Format: (VirtualGatewayLoggingFormat)?
-}
-
-/// 
-open class VirtualGatewayVirtualGatewayTlsValidationContextTrust {
-    SDS: (VirtualGatewayVirtualGatewayTlsValidationContextSdsTrust)?
-    ACM: (VirtualGatewayVirtualGatewayTlsValidationContextAcmTrust)?
-    File: (VirtualGatewayVirtualGatewayTlsValidationContextFileTrust)?
+    Listeners: Listing<VirtualGatewayVirtualGatewayListener>
 }
 
 /// 
@@ -198,11 +155,60 @@ open class VirtualGatewayVirtualGatewayConnectionPool {
     GRPC: (VirtualGatewayVirtualGatewayGrpcConnectionPool)?
 }
 
+/// 
+open class VirtualGatewayVirtualGatewayTlsValidationContextAcmTrust {
+    CertificateAuthorityArns: Listing<String|Mapping>
+}
+
+/// 
+open class VirtualGatewayVirtualGatewayTlsValidationContextSdsTrust {
+    SecretName: String|Mapping
+}
+
+/// 
+open class VirtualGatewayVirtualGatewayListenerTlsAcmCertificate {
+    CertificateArn: String|Mapping
+}
+
+/// 
+open class VirtualGatewayVirtualGatewayHttp2ConnectionPool {
+    MaxRequests: Int|Mapping
+}
+
+/// 
+open class VirtualGatewayVirtualGatewayLogging {
+    AccessLog: (VirtualGatewayVirtualGatewayAccessLog)?
+}
+
+/// 
+open class VirtualGatewayVirtualGatewayPortMapping {
+    Protocol: String|Mapping
+    Port: Int|Mapping
+}
+
+/// 
+open class VirtualGatewayVirtualGatewayTlsValidationContextTrust {
+    File: (VirtualGatewayVirtualGatewayTlsValidationContextFileTrust)?
+    SDS: (VirtualGatewayVirtualGatewayTlsValidationContextSdsTrust)?
+    ACM: (VirtualGatewayVirtualGatewayTlsValidationContextAcmTrust)?
+}
+
+/// 
+open class VirtualGatewaySubjectAlternativeNameMatchers {
+    Exact: (Listing<String|Mapping>)?
+}
+
 /// Resource Type definition for AWS::AppMesh::VirtualGateway
 open class VirtualGateway extends cloudformation.Resource {
 
     Type = "AWS::AppMesh::VirtualGateway"
 
+
+    /// 
+    hidden MeshName: String|Mapping
+
+    /// 
+    hidden MeshOwner: (String|Mapping)?
 
     /// 
     hidden Spec: VirtualGatewayVirtualGatewaySpec
@@ -213,18 +219,12 @@ open class VirtualGateway extends cloudformation.Resource {
     /// 
     hidden VirtualGatewayName: (String|Mapping)?
 
-    /// 
-    hidden MeshName: String|Mapping
-
-    /// 
-    hidden MeshOwner: (String|Mapping)?
-
     Properties {
+        ["MeshName"] = if (MeshName == null) null else MeshName
+        ["MeshOwner"] = if (MeshOwner == null) null else MeshOwner
         ["Spec"] = if (Spec == null) null else Spec
         ["Tags"] = if (Tags == null) null else Tags
         ["VirtualGatewayName"] = if (VirtualGatewayName == null) null else VirtualGatewayName
-        ["MeshName"] = if (MeshName == null) null else MeshName
-        ["MeshOwner"] = if (MeshOwner == null) null else MeshOwner
     }
 
 }

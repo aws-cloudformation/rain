@@ -17,11 +17,8 @@ open class Destination extends cloudformation.Resource {
     Type = "AWS::IoTWireless::Destination"
 
 
-    /// AWS role ARN that grants access
-    hidden RoleArn: (String|Mapping)?
-
-    /// Unique name of destination
-    hidden Name: String(matches(Regex(#"[a-zA-Z0-9:_-]+"#)))|Mapping
+    /// Destination description
+    hidden Description: (String|Mapping)?
 
     /// Destination expression
     hidden Expression: String|Mapping
@@ -29,18 +26,21 @@ open class Destination extends cloudformation.Resource {
     /// Must be RuleName
     hidden ExpressionType: DestinationExpressionType|Mapping
 
-    /// Destination description
-    hidden Description: (String|Mapping)?
+    /// Unique name of destination
+    hidden Name: String(matches(Regex(#"[a-zA-Z0-9:_-]+"#)))|Mapping
+
+    /// AWS role ARN that grants access
+    hidden RoleArn: (String|Mapping)?
 
     /// A list of key-value pairs that contain metadata for the destination.
     hidden Tags: (Listing<DestinationTag>)?
 
     Properties {
-        ["RoleArn"] = if (RoleArn == null) null else RoleArn
-        ["Name"] = if (Name == null) null else Name
+        ["Description"] = if (Description == null) null else Description
         ["Expression"] = if (Expression == null) null else Expression
         ["ExpressionType"] = if (ExpressionType == null) null else ExpressionType
-        ["Description"] = if (Description == null) null else Description
+        ["Name"] = if (Name == null) null else Name
+        ["RoleArn"] = if (RoleArn == null) null else RoleArn
         ["Tags"] = if (Tags == null) null else Tags
     }
 

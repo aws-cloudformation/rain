@@ -5,17 +5,35 @@ module aws.batch.computeenvironment
 
 import "../../cloudformation.pkl"
 
+typealias ComputeEnvironmentComputeResourcesTags = Mapping<String, Any>
+
 /// 
-open class ComputeEnvironmentLaunchTemplateSpecification {
-    LaunchTemplateId: (String|Mapping)?
-    LaunchTemplateName: (String|Mapping)?
-    Version: (String|Mapping)?
+open class ComputeEnvironmentComputeResources {
+    AllocationStrategy: (String|Mapping)?
+    Ec2Configuration: (Listing<ComputeEnvironmentEc2ConfigurationObject>)?
+    InstanceRole: (String|Mapping)?
+    InstanceTypes: (Listing<String|Mapping>)?
+    LaunchTemplate: (ComputeEnvironmentLaunchTemplateSpecification)?
+    PlacementGroup: (String|Mapping)?
+    DesiredvCpus: (Int|Mapping)?
+    MaxvCpus: Int|Mapping
+    Subnets: Listing<String|Mapping>
+    Tags: (ComputeEnvironmentComputeResourcesTags)?
+    ImageId: (String|Mapping)?
+    SecurityGroupIds: (Listing<String|Mapping>)?
+    SpotIamFleetRole: (String|Mapping)?
+    Type: String|Mapping
+    UpdateToLatestImageVersion: (Boolean|Mapping)?
+    BidPercentage: (Int|Mapping)?
+    Ec2KeyPair: (String|Mapping)?
+    MinvCpus: (Int|Mapping)?
 }
 
 /// 
-open class ComputeEnvironmentUpdatePolicy {
-    TerminateJobsOnUpdate: (Boolean|Mapping)?
-    JobExecutionTimeoutMinutes: (Int|Mapping)?
+open class ComputeEnvironmentEc2ConfigurationObject {
+    ImageIdOverride: (String|Mapping)?
+    ImageType: String|Mapping
+    ImageKubernetesVersion: (String|Mapping)?
 }
 
 /// 
@@ -24,35 +42,17 @@ open class ComputeEnvironmentEksConfiguration {
     EksClusterArn: String|Mapping
 }
 
-typealias ComputeEnvironmentComputeResourcesTags = Mapping<String, Any>
-
 /// 
-open class ComputeEnvironmentComputeResources {
-    Ec2KeyPair: (String|Mapping)?
-    LaunchTemplate: (ComputeEnvironmentLaunchTemplateSpecification)?
-    SpotIamFleetRole: (String|Mapping)?
-    InstanceTypes: (Listing<String|Mapping>)?
-    MaxvCpus: Int|Mapping
-    AllocationStrategy: (String|Mapping)?
-    PlacementGroup: (String|Mapping)?
-    SecurityGroupIds: (Listing<String|Mapping>)?
-    Type: String|Mapping
-    UpdateToLatestImageVersion: (Boolean|Mapping)?
-    Tags: (ComputeEnvironmentComputeResourcesTags)?
-    BidPercentage: (Int|Mapping)?
-    DesiredvCpus: (Int|Mapping)?
-    Ec2Configuration: (Listing<ComputeEnvironmentEc2ConfigurationObject>)?
-    ImageId: (String|Mapping)?
-    InstanceRole: (String|Mapping)?
-    MinvCpus: (Int|Mapping)?
-    Subnets: Listing<String|Mapping>
+open class ComputeEnvironmentLaunchTemplateSpecification {
+    LaunchTemplateName: (String|Mapping)?
+    Version: (String|Mapping)?
+    LaunchTemplateId: (String|Mapping)?
 }
 
 /// 
-open class ComputeEnvironmentEc2ConfigurationObject {
-    ImageKubernetesVersion: (String|Mapping)?
-    ImageIdOverride: (String|Mapping)?
-    ImageType: String|Mapping
+open class ComputeEnvironmentUpdatePolicy {
+    TerminateJobsOnUpdate: (Boolean|Mapping)?
+    JobExecutionTimeoutMinutes: (Int|Mapping)?
 }
 
 /// Resource Type definition for AWS::Batch::ComputeEnvironment
@@ -65,10 +65,13 @@ open class ComputeEnvironment extends cloudformation.Resource {
     hidden ComputeEnvironmentName: (String|Mapping)?
 
     /// 
-    hidden TypeProperty: String|Mapping
+    hidden ComputeResources: (ComputeEnvironmentComputeResources)?
 
     /// 
     hidden EksConfiguration: (ComputeEnvironmentEksConfiguration)?
+
+    /// 
+    hidden ReplaceComputeEnvironment: (Boolean|Mapping)?
 
     /// 
     hidden ServiceRole: (String|Mapping)?
@@ -80,28 +83,25 @@ open class ComputeEnvironment extends cloudformation.Resource {
     hidden Tags: (ComputeEnvironmentComputeEnvironmentTags)?
 
     /// 
-    hidden UpdatePolicyProperty: (ComputeEnvironmentUpdatePolicy)?
+    hidden TypeProperty: String|Mapping
 
     /// 
     hidden UnmanagedvCpus: (Int|Mapping)?
 
     /// 
-    hidden ComputeResources: (ComputeEnvironmentComputeResources)?
-
-    /// 
-    hidden ReplaceComputeEnvironment: (Boolean|Mapping)?
+    hidden UpdatePolicyProperty: (ComputeEnvironmentUpdatePolicy)?
 
     Properties {
         ["ComputeEnvironmentName"] = if (ComputeEnvironmentName == null) null else ComputeEnvironmentName
-        ["Type"] = if (TypeProperty == null) null else TypeProperty
+        ["ComputeResources"] = if (ComputeResources == null) null else ComputeResources
         ["EksConfiguration"] = if (EksConfiguration == null) null else EksConfiguration
+        ["ReplaceComputeEnvironment"] = if (ReplaceComputeEnvironment == null) null else ReplaceComputeEnvironment
         ["ServiceRole"] = if (ServiceRole == null) null else ServiceRole
         ["State"] = if (State == null) null else State
         ["Tags"] = if (Tags == null) null else Tags
-        ["UpdatePolicy"] = if (UpdatePolicyProperty == null) null else UpdatePolicyProperty
+        ["Type"] = if (TypeProperty == null) null else TypeProperty
         ["UnmanagedvCpus"] = if (UnmanagedvCpus == null) null else UnmanagedvCpus
-        ["ComputeResources"] = if (ComputeResources == null) null else ComputeResources
-        ["ReplaceComputeEnvironment"] = if (ReplaceComputeEnvironment == null) null else ReplaceComputeEnvironment
+        ["UpdatePolicy"] = if (UpdatePolicyProperty == null) null else UpdatePolicyProperty
     }
 
 }

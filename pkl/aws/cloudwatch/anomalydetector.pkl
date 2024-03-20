@@ -20,22 +20,15 @@ open class AnomalyDetectorSingleMetricAnomalyDetector {
 }
 
 /// 
-open class AnomalyDetectorMetricMathAnomalyDetector {
-    MetricDataQueries: (Listing<AnomalyDetectorMetricDataQuery>)?
-}
-
-/// 
 open class AnomalyDetectorConfiguration {
     MetricTimeZone: (String|Mapping)?
     ExcludedTimeRanges: (Listing<AnomalyDetectorRange>)?
 }
 
 /// 
-open class AnomalyDetectorMetricStat {
-    Metric: AnomalyDetectorMetric
-    Stat: String|Mapping
-    Unit: (String|Mapping)?
-    Period: Int|Mapping
+open class AnomalyDetectorDimension {
+    Value: String|Mapping
+    Name: String|Mapping
 }
 
 /// 
@@ -46,20 +39,27 @@ open class AnomalyDetectorMetric {
 }
 
 /// 
-open class AnomalyDetectorDimension {
-    Value: String|Mapping
-    Name: String|Mapping
-}
-
-/// 
 open class AnomalyDetectorMetricDataQuery {
-    MetricStat: (AnomalyDetectorMetricStat)?
-    Label: (String|Mapping)?
-    Period: (Int|Mapping)?
     Id: String|Mapping
     AccountId: (String|Mapping)?
     ReturnData: (Boolean|Mapping)?
     Expression: (String|Mapping)?
+    MetricStat: (AnomalyDetectorMetricStat)?
+    Label: (String|Mapping)?
+    Period: (Int|Mapping)?
+}
+
+/// 
+open class AnomalyDetectorMetricMathAnomalyDetector {
+    MetricDataQueries: (Listing<AnomalyDetectorMetricDataQuery>)?
+}
+
+/// 
+open class AnomalyDetectorMetricStat {
+    Unit: (String|Mapping)?
+    Period: Int|Mapping
+    Metric: AnomalyDetectorMetric
+    Stat: String|Mapping
 }
 
 /// Resource Type definition for AWS::CloudWatch::AnomalyDetector
@@ -69,10 +69,16 @@ open class AnomalyDetector extends cloudformation.Resource {
 
 
     /// 
-    hidden MetricMathAnomalyDetector: (AnomalyDetectorMetricMathAnomalyDetector)?
+    hidden Configuration: (AnomalyDetectorConfiguration)?
 
     /// 
     hidden Dimensions: (Listing<AnomalyDetectorDimension>)?
+
+    /// 
+    hidden MetricMathAnomalyDetector: (AnomalyDetectorMetricMathAnomalyDetector)?
+
+    /// 
+    hidden MetricName: (String|Mapping)?
 
     /// 
     hidden Namespace: (String|Mapping)?
@@ -81,22 +87,16 @@ open class AnomalyDetector extends cloudformation.Resource {
     hidden SingleMetricAnomalyDetector: (AnomalyDetectorSingleMetricAnomalyDetector)?
 
     /// 
-    hidden MetricName: (String|Mapping)?
-
-    /// 
     hidden Stat: (String|Mapping)?
 
-    /// 
-    hidden Configuration: (AnomalyDetectorConfiguration)?
-
     Properties {
-        ["MetricMathAnomalyDetector"] = if (MetricMathAnomalyDetector == null) null else MetricMathAnomalyDetector
+        ["Configuration"] = if (Configuration == null) null else Configuration
         ["Dimensions"] = if (Dimensions == null) null else Dimensions
+        ["MetricMathAnomalyDetector"] = if (MetricMathAnomalyDetector == null) null else MetricMathAnomalyDetector
+        ["MetricName"] = if (MetricName == null) null else MetricName
         ["Namespace"] = if (Namespace == null) null else Namespace
         ["SingleMetricAnomalyDetector"] = if (SingleMetricAnomalyDetector == null) null else SingleMetricAnomalyDetector
-        ["MetricName"] = if (MetricName == null) null else MetricName
         ["Stat"] = if (Stat == null) null else Stat
-        ["Configuration"] = if (Configuration == null) null else Configuration
     }
 
 }

@@ -5,6 +5,9 @@ module aws.iotwireless.networkanalyzerconfiguration
 
 import "../../cloudformation.pkl"
 
+typealias NetworkAnalyzerConfigurationLogLevel = String|Mapping
+
+
 /// A key-value pair to associate with a resource.
 open class NetworkAnalyzerConfigurationTag {
     Key: String|Mapping
@@ -12,9 +15,6 @@ open class NetworkAnalyzerConfigurationTag {
 }
 
 typealias NetworkAnalyzerConfigurationWirelessDeviceFrameInfo = String|Mapping
-
-
-typealias NetworkAnalyzerConfigurationLogLevel = String|Mapping
 
 
 /// Create and manage NetworkAnalyzerConfiguration resource.
@@ -26,6 +26,12 @@ open class NetworkAnalyzerConfiguration extends cloudformation.Resource {
     /// The description of the new resource
     hidden Description: (String|Mapping)?
 
+    /// Name of the network analyzer configuration
+    hidden Name: String(matches(Regex(#"^[a-zA-Z0-9-_]+$"#)))|Mapping
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<NetworkAnalyzerConfigurationTag>)?
+
     /// Trace content for your wireless gateway and wireless device resources
     hidden TraceContent: (Dynamic)?
 
@@ -35,19 +41,13 @@ open class NetworkAnalyzerConfiguration extends cloudformation.Resource {
     /// List of wireless gateway resources that have been added to the network analyzer configuration
     hidden WirelessGateways: (Listing<String|Mapping>)?
 
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<NetworkAnalyzerConfigurationTag>)?
-
-    /// Name of the network analyzer configuration
-    hidden Name: String(matches(Regex(#"^[a-zA-Z0-9-_]+$"#)))|Mapping
-
     Properties {
         ["Description"] = if (Description == null) null else Description
+        ["Name"] = if (Name == null) null else Name
+        ["Tags"] = if (Tags == null) null else Tags
         ["TraceContent"] = if (TraceContent == null) null else TraceContent
         ["WirelessDevices"] = if (WirelessDevices == null) null else WirelessDevices
         ["WirelessGateways"] = if (WirelessGateways == null) null else WirelessGateways
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Name"] = if (Name == null) null else Name
     }
 
 }

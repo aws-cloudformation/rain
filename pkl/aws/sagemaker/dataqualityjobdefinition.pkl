@@ -5,46 +5,18 @@ module aws.sagemaker.dataqualityjobdefinition
 
 import "../../cloudformation.pkl"
 
-/// Specifies a VPC that your training jobs and hosted models have access to. Control access to and from your training and model containers by configuring the VPC.
-open class DataQualityJobDefinitionVpcConfig {
-    SecurityGroupIds: Listing<String|Mapping>
-    Subnets: Listing<String|Mapping>
+/// Networking options for a job, such as network traffic encryption between containers, whether to allow inbound and outbound network calls to and from containers, and the VPC subnets and security groups to use for VPC-enabled jobs.
+open class DataQualityJobDefinitionNetworkConfig {
+    EnableInterContainerTrafficEncryption: (Boolean|Mapping)?
+    EnableNetworkIsolation: (Boolean|Mapping)?
+    VpcConfig: (DataQualityJobDefinitionVpcConfig)?
 }
 
-/// The dataset format of the data to monitor
-open class DataQualityJobDefinitionDatasetFormat {
-    Csv: (DataQualityJobDefinitionCsv)?
-    Json: (DataQualityJobDefinitionJson)?
-    Parquet: (DataQualityJobDefinitionParquet)?
-}
+typealias DataQualityJobDefinitionParquet = Boolean|Mapping
 
-/// The output configuration for monitoring jobs.
-open class DataQualityJobDefinitionMonitoringOutputConfig {
-    KmsKeyId: (String(matches(Regex(#".*"#)))|Mapping)?
-    MonitoringOutputs: Listing<DataQualityJobDefinitionMonitoringOutput>
-}
 
 typealias DataQualityJobDefinitionProcessingJobName = String|Mapping
 
-
-/// Identifies the resources to deploy for a monitoring job.
-open class DataQualityJobDefinitionMonitoringResources {
-    ClusterConfig: DataQualityJobDefinitionClusterConfig
-}
-
-typealias S3OutputS3UploadMode = "Continuous"|"EndOfJob"
-
-/// Information about where and how to store the results of a monitoring job.
-open class DataQualityJobDefinitionS3Output {
-    S3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
-    LocalPath: String(matches(Regex(#".*"#)))|Mapping
-    S3UploadMode: (S3OutputS3UploadMode|Mapping)?
-}
-
-/// Specifies a time limit for how long the monitoring job is allowed to run.
-open class DataQualityJobDefinitionStoppingCondition {
-    MaxRuntimeInSeconds: Int|Mapping
-}
 
 typealias BatchTransformInputS3DataDistributionType = "FullyReplicated"|"ShardedByS3Key"
 
@@ -52,73 +24,16 @@ typealias BatchTransformInputS3InputMode = "Pipe"|"File"
 
 /// The batch transform input for a monitoring job.
 open class DataQualityJobDefinitionBatchTransformInput {
+    DataCapturedDestinationS3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
+    DatasetFormat: DataQualityJobDefinitionDatasetFormat
     LocalPath: String(matches(Regex(#".*"#)))|Mapping
     S3DataDistributionType: (BatchTransformInputS3DataDistributionType|Mapping)?
     S3InputMode: (BatchTransformInputS3InputMode|Mapping)?
     ExcludeFeaturesAttribute: (String|Mapping)?
-    DataCapturedDestinationS3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
-    DatasetFormat: DataQualityJobDefinitionDatasetFormat
 }
 
-typealias DataQualityJobDefinitionS3Uri = String|Mapping
-
-
-/// Configuration for the cluster used to run model monitoring jobs.
-open class DataQualityJobDefinitionClusterConfig {
-    VolumeKmsKeyId: (String|Mapping)?
-    VolumeSizeInGB: Int|Mapping
-    InstanceCount: Int|Mapping
-    InstanceType: String|Mapping
-}
-
-/// The Json format
-open class DataQualityJobDefinitionJson {
-    Line: (Boolean|Mapping)?
-}
-
-typealias DataQualityJobDefinitionParquet = Boolean|Mapping
-
-
-typealias DataQualityJobDefinitionDataQualityAppSpecificationEnvironment = Mapping<String, Any>
-
-/// Container image configuration object for the monitoring job.
-open class DataQualityJobDefinitionDataQualityAppSpecification {
-    RecordPreprocessorSourceUri: (DataQualityJobDefinitionS3Uri)?
-    Environment: (DataQualityJobDefinitionDataQualityAppSpecificationEnvironment)?
-    ContainerArguments: (Listing<String|Mapping>)?
-    ContainerEntrypoint: (Listing<String|Mapping>)?
-    ImageUri: String(matches(Regex(#".*"#)))|Mapping
-    PostAnalyticsProcessorSourceUri: (DataQualityJobDefinitionS3Uri)?
-}
-
-typealias DataQualityJobDefinitionEndpointName = String|Mapping
-
-
-typealias DataQualityJobDefinitionJobDefinitionName = String|Mapping
-
-
-/// Baseline configuration used to validate that the data conforms to the specified constraints and statistics.
-open class DataQualityJobDefinitionDataQualityBaselineConfig {
-    BaseliningJobName: (DataQualityJobDefinitionProcessingJobName)?
-    ConstraintsResource: (DataQualityJobDefinitionConstraintsResource)?
-    StatisticsResource: (DataQualityJobDefinitionStatisticsResource)?
-}
-
-/// Networking options for a job, such as network traffic encryption between containers, whether to allow inbound and outbound network calls to and from containers, and the VPC subnets and security groups to use for VPC-enabled jobs.
-open class DataQualityJobDefinitionNetworkConfig {
-    EnableNetworkIsolation: (Boolean|Mapping)?
-    VpcConfig: (DataQualityJobDefinitionVpcConfig)?
-    EnableInterContainerTrafficEncryption: (Boolean|Mapping)?
-}
-
-/// A key-value pair to associate with a resource.
-open class DataQualityJobDefinitionTag {
-    Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
-    Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
-}
-
-/// The baseline statistics resource for a monitoring job.
-open class DataQualityJobDefinitionStatisticsResource {
+/// The baseline constraints resource for a monitoring job.
+open class DataQualityJobDefinitionConstraintsResource {
     S3Uri: (DataQualityJobDefinitionS3Uri)?
 }
 
@@ -127,14 +42,70 @@ open class DataQualityJobDefinitionCsv {
     Header: (Boolean|Mapping)?
 }
 
-/// The output object for a monitoring job.
-open class DataQualityJobDefinitionMonitoringOutput {
-    S3Output: DataQualityJobDefinitionS3Output
+/// The output configuration for monitoring jobs.
+open class DataQualityJobDefinitionMonitoringOutputConfig {
+    KmsKeyId: (String(matches(Regex(#".*"#)))|Mapping)?
+    MonitoringOutputs: Listing<DataQualityJobDefinitionMonitoringOutput>
 }
 
-/// The baseline constraints resource for a monitoring job.
-open class DataQualityJobDefinitionConstraintsResource {
-    S3Uri: (DataQualityJobDefinitionS3Uri)?
+/// Identifies the resources to deploy for a monitoring job.
+open class DataQualityJobDefinitionMonitoringResources {
+    ClusterConfig: DataQualityJobDefinitionClusterConfig
+}
+
+/// A key-value pair to associate with a resource.
+open class DataQualityJobDefinitionTag {
+    Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
+    Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
+}
+
+/// Specifies a VPC that your training jobs and hosted models have access to. Control access to and from your training and model containers by configuring the VPC.
+open class DataQualityJobDefinitionVpcConfig {
+    SecurityGroupIds: Listing<String|Mapping>
+    Subnets: Listing<String|Mapping>
+}
+
+/// Configuration for the cluster used to run model monitoring jobs.
+open class DataQualityJobDefinitionClusterConfig {
+    InstanceCount: Int|Mapping
+    InstanceType: String|Mapping
+    VolumeKmsKeyId: (String|Mapping)?
+    VolumeSizeInGB: Int|Mapping
+}
+
+typealias DataQualityJobDefinitionDataQualityAppSpecificationEnvironment = Mapping<String, Any>
+
+/// Container image configuration object for the monitoring job.
+open class DataQualityJobDefinitionDataQualityAppSpecification {
+    ContainerArguments: (Listing<String|Mapping>)?
+    ContainerEntrypoint: (Listing<String|Mapping>)?
+    ImageUri: String(matches(Regex(#".*"#)))|Mapping
+    PostAnalyticsProcessorSourceUri: (DataQualityJobDefinitionS3Uri)?
+    RecordPreprocessorSourceUri: (DataQualityJobDefinitionS3Uri)?
+    Environment: (DataQualityJobDefinitionDataQualityAppSpecificationEnvironment)?
+}
+
+typealias DataQualityJobDefinitionJobDefinitionName = String|Mapping
+
+
+/// The Json format
+open class DataQualityJobDefinitionJson {
+    Line: (Boolean|Mapping)?
+}
+
+typealias DataQualityJobDefinitionS3Uri = String|Mapping
+
+
+/// Specifies a time limit for how long the monitoring job is allowed to run.
+open class DataQualityJobDefinitionStoppingCondition {
+    MaxRuntimeInSeconds: Int|Mapping
+}
+
+/// Baseline configuration used to validate that the data conforms to the specified constraints and statistics.
+open class DataQualityJobDefinitionDataQualityBaselineConfig {
+    BaseliningJobName: (DataQualityJobDefinitionProcessingJobName)?
+    ConstraintsResource: (DataQualityJobDefinitionConstraintsResource)?
+    StatisticsResource: (DataQualityJobDefinitionStatisticsResource)?
 }
 
 /// The inputs for a monitoring job.
@@ -143,17 +114,46 @@ open class DataQualityJobDefinitionDataQualityJobInput {
     BatchTransformInput: (DataQualityJobDefinitionBatchTransformInput)?
 }
 
-typealias EndpointInputS3DataDistributionType = "FullyReplicated"|"ShardedByS3Key"
-
 typealias EndpointInputS3InputMode = "Pipe"|"File"
+
+typealias EndpointInputS3DataDistributionType = "FullyReplicated"|"ShardedByS3Key"
 
 /// The endpoint for a monitoring job.
 open class DataQualityJobDefinitionEndpointInput {
-    S3DataDistributionType: (EndpointInputS3DataDistributionType|Mapping)?
     S3InputMode: (EndpointInputS3InputMode|Mapping)?
     ExcludeFeaturesAttribute: (String|Mapping)?
     EndpointName: DataQualityJobDefinitionEndpointName
     LocalPath: String(matches(Regex(#".*"#)))|Mapping
+    S3DataDistributionType: (EndpointInputS3DataDistributionType|Mapping)?
+}
+
+typealias S3OutputS3UploadMode = "Continuous"|"EndOfJob"
+
+/// Information about where and how to store the results of a monitoring job.
+open class DataQualityJobDefinitionS3Output {
+    S3UploadMode: (S3OutputS3UploadMode|Mapping)?
+    S3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
+    LocalPath: String(matches(Regex(#".*"#)))|Mapping
+}
+
+/// The baseline statistics resource for a monitoring job.
+open class DataQualityJobDefinitionStatisticsResource {
+    S3Uri: (DataQualityJobDefinitionS3Uri)?
+}
+
+/// The dataset format of the data to monitor
+open class DataQualityJobDefinitionDatasetFormat {
+    Parquet: (DataQualityJobDefinitionParquet)?
+    Csv: (DataQualityJobDefinitionCsv)?
+    Json: (DataQualityJobDefinitionJson)?
+}
+
+typealias DataQualityJobDefinitionEndpointName = String|Mapping
+
+
+/// The output object for a monitoring job.
+open class DataQualityJobDefinitionMonitoringOutput {
+    S3Output: DataQualityJobDefinitionS3Output
 }
 
 /// Resource Type definition for AWS::SageMaker::DataQualityJobDefinition
@@ -163,10 +163,7 @@ open class DataQualityJobDefinition extends cloudformation.Resource {
 
 
     /// 
-    hidden NetworkConfig: (DataQualityJobDefinitionNetworkConfig)?
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<DataQualityJobDefinitionTag>)?
+    hidden DataQualityAppSpecification: DataQualityJobDefinitionDataQualityAppSpecification
 
     /// 
     hidden DataQualityBaselineConfig: (DataQualityJobDefinitionDataQualityBaselineConfig)?
@@ -174,39 +171,42 @@ open class DataQualityJobDefinition extends cloudformation.Resource {
     /// 
     hidden DataQualityJobInput: DataQualityJobDefinitionDataQualityJobInput
 
+    /// 
+    hidden DataQualityJobOutputConfig: DataQualityJobDefinitionMonitoringOutputConfig
+
+    /// 
+    hidden EndpointName: (DataQualityJobDefinitionEndpointName)?
+
+    /// 
+    hidden JobDefinitionName: (DataQualityJobDefinitionJobDefinitionName)?
+
+    /// 
+    hidden JobResources: DataQualityJobDefinitionMonitoringResources
+
+    /// 
+    hidden NetworkConfig: (DataQualityJobDefinitionNetworkConfig)?
+
     /// The Amazon Resource Name (ARN) of an IAM role that Amazon SageMaker can assume to perform tasks on your behalf.
     hidden RoleArn: String(matches(Regex(#"^arn:aws[a-z\-]*:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping
 
     /// 
     hidden StoppingCondition: (DataQualityJobDefinitionStoppingCondition)?
 
-    /// 
-    hidden JobDefinitionName: (DataQualityJobDefinitionJobDefinitionName)?
-
-    /// 
-    hidden DataQualityAppSpecification: DataQualityJobDefinitionDataQualityAppSpecification
-
-    /// 
-    hidden DataQualityJobOutputConfig: DataQualityJobDefinitionMonitoringOutputConfig
-
-    /// 
-    hidden JobResources: DataQualityJobDefinitionMonitoringResources
-
-    /// 
-    hidden EndpointName: (DataQualityJobDefinitionEndpointName)?
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<DataQualityJobDefinitionTag>)?
 
     Properties {
-        ["NetworkConfig"] = if (NetworkConfig == null) null else NetworkConfig
-        ["Tags"] = if (Tags == null) null else Tags
+        ["DataQualityAppSpecification"] = if (DataQualityAppSpecification == null) null else DataQualityAppSpecification
         ["DataQualityBaselineConfig"] = if (DataQualityBaselineConfig == null) null else DataQualityBaselineConfig
         ["DataQualityJobInput"] = if (DataQualityJobInput == null) null else DataQualityJobInput
+        ["DataQualityJobOutputConfig"] = if (DataQualityJobOutputConfig == null) null else DataQualityJobOutputConfig
+        ["EndpointName"] = if (EndpointName == null) null else EndpointName
+        ["JobDefinitionName"] = if (JobDefinitionName == null) null else JobDefinitionName
+        ["JobResources"] = if (JobResources == null) null else JobResources
+        ["NetworkConfig"] = if (NetworkConfig == null) null else NetworkConfig
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
         ["StoppingCondition"] = if (StoppingCondition == null) null else StoppingCondition
-        ["JobDefinitionName"] = if (JobDefinitionName == null) null else JobDefinitionName
-        ["DataQualityAppSpecification"] = if (DataQualityAppSpecification == null) null else DataQualityAppSpecification
-        ["DataQualityJobOutputConfig"] = if (DataQualityJobOutputConfig == null) null else DataQualityJobOutputConfig
-        ["JobResources"] = if (JobResources == null) null else JobResources
-        ["EndpointName"] = if (EndpointName == null) null else EndpointName
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

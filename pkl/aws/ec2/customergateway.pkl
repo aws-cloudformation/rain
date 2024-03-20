@@ -17,14 +17,11 @@ open class CustomerGateway extends cloudformation.Resource {
     Type = "AWS::EC2::CustomerGateway"
 
 
-    /// The type of VPN connection that this customer gateway supports.
-    hidden TypeProperty: String|Mapping
+    /// For devices that support BGP, the customer gateway's BGP ASN.
+    hidden BgpAsn: Int|Mapping
 
     /// A name for the customer gateway device.
     hidden DeviceName: (String|Mapping)?
-
-    /// For devices that support BGP, the customer gateway's BGP ASN.
-    hidden BgpAsn: Int|Mapping
 
     /// The internet-routable IP address for the customer gateway's outside interface. The address must be static.
     hidden IpAddress: String|Mapping
@@ -32,12 +29,15 @@ open class CustomerGateway extends cloudformation.Resource {
     /// One or more tags for the customer gateway.
     hidden Tags: (Listing<CustomerGatewayTag>)?
 
+    /// The type of VPN connection that this customer gateway supports.
+    hidden TypeProperty: String|Mapping
+
     Properties {
-        ["Type"] = if (TypeProperty == null) null else TypeProperty
-        ["DeviceName"] = if (DeviceName == null) null else DeviceName
         ["BgpAsn"] = if (BgpAsn == null) null else BgpAsn
+        ["DeviceName"] = if (DeviceName == null) null else DeviceName
         ["IpAddress"] = if (IpAddress == null) null else IpAddress
         ["Tags"] = if (Tags == null) null else Tags
+        ["Type"] = if (TypeProperty == null) null else TypeProperty
     }
 
 }

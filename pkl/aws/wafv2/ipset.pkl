@@ -8,14 +8,14 @@ import "../../cloudformation.pkl"
 typealias IPSetResourceArn = String|Mapping
 
 
+typealias IPSetScope = String|Mapping
+
+
 /// 
 open class IPSetTag {
-    Value: (String|Mapping)?
     Key: (String|Mapping)?
+    Value: (String|Mapping)?
 }
-
-typealias IPSetEntityName = String|Mapping
-
 
 typealias IPSetEntityDescription = String|Mapping
 
@@ -23,13 +23,13 @@ typealias IPSetEntityDescription = String|Mapping
 typealias IPSetEntityId = String|Mapping
 
 
-typealias IPSetScope = String|Mapping
-
-
-typealias IPSetIPAddressVersion = String|Mapping
+typealias IPSetEntityName = String|Mapping
 
 
 typealias IPSetIPAddress = String|Mapping
+
+
+typealias IPSetIPAddressVersion = String|Mapping
 
 
 /// Contains a list of IP addresses. This can be either IPV4 or IPV6. The list will be mutually
@@ -38,17 +38,14 @@ open class IPSet extends cloudformation.Resource {
     Type = "AWS::WAFv2::IPSet"
 
 
-    /// 
-    hidden IPAddressVersion: IPSetIPAddressVersion
-
     /// List of IPAddresses.
     hidden Addresses: Listing<IPSetIPAddress>
 
     /// 
-    hidden Tags: (Listing<IPSetTag>)?
+    hidden Description: (IPSetEntityDescription)?
 
     /// 
-    hidden Description: (IPSetEntityDescription)?
+    hidden IPAddressVersion: IPSetIPAddressVersion
 
     /// 
     hidden Name: (IPSetEntityName)?
@@ -56,13 +53,16 @@ open class IPSet extends cloudformation.Resource {
     /// 
     hidden Scope: IPSetScope
 
+    /// 
+    hidden Tags: (Listing<IPSetTag>)?
+
     Properties {
-        ["IPAddressVersion"] = if (IPAddressVersion == null) null else IPAddressVersion
         ["Addresses"] = if (Addresses == null) null else Addresses
-        ["Tags"] = if (Tags == null) null else Tags
         ["Description"] = if (Description == null) null else Description
+        ["IPAddressVersion"] = if (IPAddressVersion == null) null else IPAddressVersion
         ["Name"] = if (Name == null) null else Name
         ["Scope"] = if (Scope == null) null else Scope
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

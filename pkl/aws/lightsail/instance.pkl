@@ -5,27 +5,11 @@ module aws.lightsail.instance
 
 import "../../cloudformation.pkl"
 
-/// An object that represents additional parameters when enabling or modifying the automatic snapshot add-on
-open class InstanceAutoSnapshotAddOn {
-    SnapshotTimeOfDay: (String(matches(Regex(#"^[0-9]{2}:00$"#)))|Mapping)?
+/// Location of a resource.
+open class InstanceLocation {
+    AvailabilityZone: (String|Mapping)?
+    RegionName: (String|Mapping)?
 }
-
-/// Port of the Instance.
-open class InstancePort {
-    CommonName: (String|Mapping)?
-    AccessDirection: (String|Mapping)?
-    CidrListAliases: (InstancecidrListAliases)?
-    FromPort: (Int|Mapping)?
-    ToPort: (Int|Mapping)?
-    AccessType: (String|Mapping)?
-    Cidrs: (Instancecidrs)?
-    Protocol: (String|Mapping)?
-    AccessFrom: (String|Mapping)?
-    Ipv6Cidrs: (Instanceipv6Cidrs)?
-}
-
-typealias Instancecidrs = Listing<(String|Mapping)?>
-
 
 typealias AddOnStatus = "Enabling"|"Disabling"|"Enabled"|"Terminating"|"Terminated"|"Disabled"|"Failed"
 
@@ -38,15 +22,9 @@ open class InstanceAddOn {
 
 /// Hardware of the Instance.
 open class InstanceHardware {
+    CpuCount: (Int|Mapping)?
     RamSizeInGb: (Int|Mapping)?
     Disks: (Listing<InstanceDisk>)?
-    CpuCount: (Int|Mapping)?
-}
-
-/// A key-value pair to associate with a resource.
-open class InstanceTag {
-    Key: String|Mapping
-    Value: (String|Mapping)?
 }
 
 /// Current State of the Instance.
@@ -55,9 +33,38 @@ open class InstanceState {
     Name: (String|Mapping)?
 }
 
-/// Monthly Transfer of the Instance.
-open class InstanceMonthlyTransfer {
-    GbPerMonthAllocated: (String|Mapping)?
+typealias InstancecidrListAliases = Listing<(String|Mapping)?>
+
+
+/// Disk associated with the Instance.
+open class InstanceDisk {
+    IOPS: (Int|Mapping)?
+    Path: String|Mapping
+    AttachedTo: (String|Mapping)?
+    AttachmentState: (String|Mapping)?
+    DiskName: String(matches(Regex(#"^[a-zA-Z0-9][\w\-.]*[a-zA-Z0-9]$"#)))|Mapping
+    SizeInGb: (String|Mapping)?
+    IsSystemDisk: (Boolean|Mapping)?
+}
+
+/// Port of the Instance.
+open class InstancePort {
+    AccessFrom: (String|Mapping)?
+    CommonName: (String|Mapping)?
+    AccessDirection: (String|Mapping)?
+    Ipv6Cidrs: (Instanceipv6Cidrs)?
+    Cidrs: (Instancecidrs)?
+    ToPort: (Int|Mapping)?
+    Protocol: (String|Mapping)?
+    CidrListAliases: (InstancecidrListAliases)?
+    FromPort: (Int|Mapping)?
+    AccessType: (String|Mapping)?
+}
+
+/// A key-value pair to associate with a resource.
+open class InstanceTag {
+    Key: String|Mapping
+    Value: (String|Mapping)?
 }
 
 /// Networking of the Instance.
@@ -66,28 +73,21 @@ open class InstanceNetworking {
     MonthlyTransfer: (InstanceMonthlyTransfer)?
 }
 
-/// Disk associated with the Instance.
-open class InstanceDisk {
-    AttachmentState: (String|Mapping)?
-    DiskName: String(matches(Regex(#"^[a-zA-Z0-9][\w\-.]*[a-zA-Z0-9]$"#)))|Mapping
-    SizeInGb: (String|Mapping)?
-    IsSystemDisk: (Boolean|Mapping)?
-    IOPS: (Int|Mapping)?
-    Path: String|Mapping
-    AttachedTo: (String|Mapping)?
+/// Monthly Transfer of the Instance.
+open class InstanceMonthlyTransfer {
+    GbPerMonthAllocated: (String|Mapping)?
 }
 
-typealias InstancecidrListAliases = Listing<(String|Mapping)?>
+typealias Instancecidrs = Listing<(String|Mapping)?>
 
-
-/// Location of a resource.
-open class InstanceLocation {
-    AvailabilityZone: (String|Mapping)?
-    RegionName: (String|Mapping)?
-}
 
 typealias Instanceipv6Cidrs = Listing<(String|Mapping)?>
 
+
+/// An object that represents additional parameters when enabling or modifying the automatic snapshot add-on
+open class InstanceAutoSnapshotAddOn {
+    SnapshotTimeOfDay: (String(matches(Regex(#"^[0-9]{2}:00$"#)))|Mapping)?
+}
 
 /// Resource Type definition for AWS::Lightsail::Instance
 open class Instance extends cloudformation.Resource {
@@ -95,20 +95,8 @@ open class Instance extends cloudformation.Resource {
     Type = "AWS::Lightsail::Instance"
 
 
-    /// 
-    hidden Networking: (InstanceNetworking)?
-
-    /// 
-    hidden Hardware: (InstanceHardware)?
-
-    /// The bundle of specification information for your virtual private server (or instance ), including the pricing plan (e.g., micro_1_0 ).
-    hidden BundleId: InstanceBundleId|Mapping
-
-    /// A launch script you can create that configures a server with additional user data. For example, you might want to run apt-get -y update.
-    hidden UserData: (String|Mapping)?
-
-    /// The name of your key pair.
-    hidden KeyPairName: (String|Mapping)?
+    /// An array of objects representing the add-ons to enable for the new instance.
+    hidden AddOns: (Listing<InstanceAddOn>)?
 
     /// The Availability Zone in which to create your instance. Use the following format: us-east-2a (case sensitive). Be sure to add the include Availability Zones parameter to your request.
     hidden AvailabilityZone: (String|Mapping)?
@@ -116,39 +104,51 @@ open class Instance extends cloudformation.Resource {
     /// The ID for a virtual private server image (e.g., app_wordpress_4_4 or app_lamp_7_0 ). Use the get blueprints operation to return a list of available images (or blueprints ).
     hidden BlueprintId: InstanceBlueprintId|Mapping
 
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<InstanceTag>)?
+    /// The bundle of specification information for your virtual private server (or instance ), including the pricing plan (e.g., micro_1_0 ).
+    hidden BundleId: InstanceBundleId|Mapping
+
+    /// 
+    hidden Hardware: (InstanceHardware)?
+
+    /// The names to use for your new Lightsail instance.
+    hidden InstanceName: String(matches(Regex(#"^[a-zA-Z0-9][\w\-.]*[a-zA-Z0-9]$"#)))|Mapping
+
+    /// The name of your key pair.
+    hidden KeyPairName: (String|Mapping)?
 
     /// 
     hidden Location: (InstanceLocation)?
 
     /// 
+    hidden Networking: (InstanceNetworking)?
+
+    /// 
     hidden State: (InstanceState)?
 
-    /// The names to use for your new Lightsail instance.
-    hidden InstanceName: String(matches(Regex(#"^[a-zA-Z0-9][\w\-.]*[a-zA-Z0-9]$"#)))|Mapping
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<InstanceTag>)?
 
-    /// An array of objects representing the add-ons to enable for the new instance.
-    hidden AddOns: (Listing<InstanceAddOn>)?
+    /// A launch script you can create that configures a server with additional user data. For example, you might want to run apt-get -y update.
+    hidden UserData: (String|Mapping)?
 
     Properties {
-        ["Networking"] = if (Networking == null) null else Networking
-        ["Hardware"] = if (Hardware == null) null else Hardware
-        ["BundleId"] = if (BundleId == null) null else BundleId
-        ["UserData"] = if (UserData == null) null else UserData
-        ["KeyPairName"] = if (KeyPairName == null) null else KeyPairName
+        ["AddOns"] = if (AddOns == null) null else AddOns
         ["AvailabilityZone"] = if (AvailabilityZone == null) null else AvailabilityZone
         ["BlueprintId"] = if (BlueprintId == null) null else BlueprintId
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Location"] = if (Location == null) null else Location
-        ["State"] = if (State == null) null else State
+        ["BundleId"] = if (BundleId == null) null else BundleId
+        ["Hardware"] = if (Hardware == null) null else Hardware
         ["InstanceName"] = if (InstanceName == null) null else InstanceName
-        ["AddOns"] = if (AddOns == null) null else AddOns
+        ["KeyPairName"] = if (KeyPairName == null) null else KeyPairName
+        ["Location"] = if (Location == null) null else Location
+        ["Networking"] = if (Networking == null) null else Networking
+        ["State"] = if (State == null) null else State
+        ["Tags"] = if (Tags == null) null else Tags
+        ["UserData"] = if (UserData == null) null else UserData
     }
 
 }
 
 
-typealias InstanceBundleId = "nano_3_0"|"micro_3_0"|"small_3_0"|"medium_3_0"|"large_3_0"|"xlarge_3_0"|"2xlarge_3_0"|"nano_win_3_0"|"micro_win_3_0"|"small_win_3_0"|"medium_win_3_0"|"large_win_3_0"|"xlarge_win_3_0"|"2xlarge_win_3_0"|"nano_ipv6_3_0"|"micro_ipv6_3_0"|"small_ipv6_3_0"|"medium_ipv6_3_0"|"large_ipv6_3_0"|"xlarge_ipv6_3_0"|"2xlarge_ipv6_3_0"|"nano_win_ipv6_3_0"|"micro_win_ipv6_3_0"|"small_win_ipv6_3_0"|"medium_win_ipv6_3_0"|"large_win_ipv6_3_0"|"xlarge_win_ipv6_3_0"|"2xlarge_win_ipv6_3_0"
-
 typealias InstanceBlueprintId = "windows_server_2022"|"windows_server_2019"|"windows_server_2016"|"windows_server_2022_sql_2022_express"|"windows_server_2022_sql_2019_express"|"windows_server_2016_sql_2016_express"|"amazon_linux_2023"|"amazon_linux_2"|"ubuntu_22_04"|"ubuntu_20_04"|"ubuntu_18_04"|"debian_12"|"debian_11"|"debian_10"|"freebsd_13"|"opensuse_15"|"centos_stream_9"|"centos_7_2009_01"|"wordpress"|"wordpress_multisite"|"lamp_8_bitnami"|"nodejs"|"joomla"|"magento"|"mean"|"drupal"|"gitlab"|"redmine"|"nginx"|"ghost_bitnami"|"django_bitnami"|"prestashop_bitnami"|"plesk_ubuntu"|"cpanel_whm_almalinux"
+
+typealias InstanceBundleId = "nano_3_0"|"micro_3_0"|"small_3_0"|"medium_3_0"|"large_3_0"|"xlarge_3_0"|"2xlarge_3_0"|"nano_win_3_0"|"micro_win_3_0"|"small_win_3_0"|"medium_win_3_0"|"large_win_3_0"|"xlarge_win_3_0"|"2xlarge_win_3_0"|"nano_ipv6_3_0"|"micro_ipv6_3_0"|"small_ipv6_3_0"|"medium_ipv6_3_0"|"large_ipv6_3_0"|"xlarge_ipv6_3_0"|"2xlarge_ipv6_3_0"|"nano_win_ipv6_3_0"|"micro_win_ipv6_3_0"|"small_win_ipv6_3_0"|"medium_win_ipv6_3_0"|"large_win_ipv6_3_0"|"xlarge_win_ipv6_3_0"|"2xlarge_win_ipv6_3_0"

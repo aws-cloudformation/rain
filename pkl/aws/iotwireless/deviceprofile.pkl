@@ -5,27 +5,30 @@ module aws.iotwireless.deviceprofile
 
 import "../../cloudformation.pkl"
 
+typealias DeviceProfileFactoryPresetFreq = Int|Mapping
+
+
 /// 
 open class DeviceProfileLoRaWANDeviceProfile {
-    RegParamsRevision: (String|Mapping)?
-    FactoryPresetFreqsList: (Listing<DeviceProfileFactoryPresetFreq>)?
-    MaxEirp: (Int|Mapping)?
     RfRegion: (String|Mapping)?
-    ClassCTimeout: (Int|Mapping)?
-    MacVersion: (String|Mapping)?
-    Supports32BitFCnt: (Boolean|Mapping)?
-    ClassBTimeout: (Int|Mapping)?
+    SupportsClassB: (Boolean|Mapping)?
     PingSlotPeriod: (Int|Mapping)?
     PingSlotFreq: (Int|Mapping)?
+    SupportsClassC: (Boolean|Mapping)?
+    MacVersion: (String|Mapping)?
+    RegParamsRevision: (String|Mapping)?
     RxDelay1: (Int|Mapping)?
+    ClassCTimeout: (Int|Mapping)?
+    Supports32BitFCnt: (Boolean|Mapping)?
+    ClassBTimeout: (Int|Mapping)?
+    PingSlotDr: (Int|Mapping)?
     RxDrOffset1: (Int|Mapping)?
     RxFreq2: (Int|Mapping)?
+    MaxEirp: (Int|Mapping)?
     MaxDutyCycle: (Int|Mapping)?
-    SupportsClassB: (Boolean|Mapping)?
-    PingSlotDr: (Int|Mapping)?
-    SupportsJoin: (Boolean|Mapping)?
-    SupportsClassC: (Boolean|Mapping)?
     RxDataRate2: (Int|Mapping)?
+    FactoryPresetFreqsList: (Listing<DeviceProfileFactoryPresetFreq>)?
+    SupportsJoin: (Boolean|Mapping)?
 }
 
 /// 
@@ -34,27 +37,24 @@ open class DeviceProfileTag {
     Value: (String|Mapping)?
 }
 
-typealias DeviceProfileFactoryPresetFreq = Int|Mapping
-
-
 /// Device Profile's resource schema demonstrating some basic constructs and validation rules.
 open class DeviceProfile extends cloudformation.Resource {
 
     Type = "AWS::IoTWireless::DeviceProfile"
 
 
-    /// Name of service profile
-    hidden Name: (String|Mapping)?
-
     /// LoRaWANDeviceProfile supports all LoRa specific attributes for service profile for CreateDeviceProfile operation
     hidden LoRaWAN: (DeviceProfileLoRaWANDeviceProfile)?
+
+    /// Name of service profile
+    hidden Name: (String|Mapping)?
 
     /// A list of key-value pairs that contain metadata for the device profile.
     hidden Tags: (Listing<DeviceProfileTag>)?
 
     Properties {
-        ["Name"] = if (Name == null) null else Name
         ["LoRaWAN"] = if (LoRaWAN == null) null else LoRaWAN
+        ["Name"] = if (Name == null) null else Name
         ["Tags"] = if (Tags == null) null else Tags
     }
 

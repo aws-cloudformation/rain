@@ -16,14 +16,14 @@ typealias PlaceIndexIntendedUse = String|Mapping
 typealias PlaceIndexPricingPlan = String|Mapping
 
 
-typealias PlaceIndexTagMap = Mapping<String, Any>
-
-
 /// A key-value pair to associate with a resource.
 open class PlaceIndexTag {
     Key: String(matches(Regex(#"^[a-zA-Z+-=._:/]+$"#)))|Mapping
     Value: String(matches(Regex(#"^[A-Za-z0-9 _=@:.+-/]*$"#)))|Mapping
 }
+
+typealias PlaceIndexTagMap = Mapping<String, Any>
+
 
 typealias PlaceIndexiso8601UTC = String|Mapping
 
@@ -41,6 +41,9 @@ open class PlaceIndex extends cloudformation.Resource {
     hidden DataSourceConfiguration: (PlaceIndexDataSourceConfiguration)?
 
     /// 
+    hidden Description: (String|Mapping)?
+
+    /// 
     hidden IndexName: String(matches(Regex(#"^[-._\w]+$"#)))|Mapping
 
     /// 
@@ -49,16 +52,13 @@ open class PlaceIndex extends cloudformation.Resource {
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<PlaceIndexTag>)?
 
-    /// 
-    hidden Description: (String|Mapping)?
-
     Properties {
         ["DataSource"] = if (DataSource == null) null else DataSource
         ["DataSourceConfiguration"] = if (DataSourceConfiguration == null) null else DataSourceConfiguration
+        ["Description"] = if (Description == null) null else Description
         ["IndexName"] = if (IndexName == null) null else IndexName
         ["PricingPlan"] = if (PricingPlan == null) null else PricingPlan
         ["Tags"] = if (Tags == null) null else Tags
-        ["Description"] = if (Description == null) null else Description
     }
 
 }

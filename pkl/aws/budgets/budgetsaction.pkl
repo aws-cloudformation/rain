@@ -12,6 +12,29 @@ open class BudgetsActionDefinition {
     SsmActionDefinition: (BudgetsActionSsmActionDefinition)?
 }
 
+/// 
+open class BudgetsActionIamActionDefinition {
+    Roles: (Listing<String|Mapping>)?
+    Groups: (Listing<String|Mapping>)?
+    Users: (Listing<String|Mapping>)?
+    PolicyArn: String|Mapping
+}
+
+/// 
+open class BudgetsActionScpActionDefinition {
+    PolicyId: String|Mapping
+    TargetIds: Listing<String|Mapping>
+}
+
+typealias SsmActionDefinitionSubtype = "STOP_EC2_INSTANCES"|"STOP_RDS_INSTANCES"
+
+/// 
+open class BudgetsActionSsmActionDefinition {
+    Subtype: SsmActionDefinitionSubtype|Mapping
+    Region: String|Mapping
+    InstanceIds: Listing<String|Mapping>
+}
+
 typealias SubscriberType = "SNS"|"EMAIL"
 
 /// 
@@ -28,29 +51,6 @@ open class BudgetsActionActionThreshold {
     Type: ActionThresholdType|Mapping
 }
 
-/// 
-open class BudgetsActionIamActionDefinition {
-    Groups: (Listing<String|Mapping>)?
-    Users: (Listing<String|Mapping>)?
-    PolicyArn: String|Mapping
-    Roles: (Listing<String|Mapping>)?
-}
-
-/// 
-open class BudgetsActionScpActionDefinition {
-    PolicyId: String|Mapping
-    TargetIds: Listing<String|Mapping>
-}
-
-typealias SsmActionDefinitionSubtype = "STOP_EC2_INSTANCES"|"STOP_RDS_INSTANCES"
-
-/// 
-open class BudgetsActionSsmActionDefinition {
-    Region: String|Mapping
-    InstanceIds: Listing<String|Mapping>
-    Subtype: SsmActionDefinitionSubtype|Mapping
-}
-
 /// An example resource schema demonstrating some basic constructs and validation rules.
 open class BudgetsAction extends cloudformation.Resource {
 
@@ -58,45 +58,45 @@ open class BudgetsAction extends cloudformation.Resource {
 
 
     /// 
-    hidden NotificationType: BudgetsActionNotificationType|Mapping
+    hidden ActionThreshold: BudgetsActionActionThreshold
 
     /// 
     hidden ActionType: BudgetsActionActionType|Mapping
 
     /// 
-    hidden ActionThreshold: BudgetsActionActionThreshold
-
-    /// 
-    hidden ExecutionRoleArn: String|Mapping
-
-    /// 
-    hidden Subscribers: Listing<BudgetsActionSubscriber>
+    hidden ApprovalModel: (BudgetsActionApprovalModel|Mapping)?
 
     /// 
     hidden BudgetName: String|Mapping
 
     /// 
-    hidden ApprovalModel: (BudgetsActionApprovalModel|Mapping)?
-
-    /// 
     hidden Definition: BudgetsActionDefinition
 
+    /// 
+    hidden ExecutionRoleArn: String|Mapping
+
+    /// 
+    hidden NotificationType: BudgetsActionNotificationType|Mapping
+
+    /// 
+    hidden Subscribers: Listing<BudgetsActionSubscriber>
+
     Properties {
-        ["NotificationType"] = if (NotificationType == null) null else NotificationType
-        ["ActionType"] = if (ActionType == null) null else ActionType
         ["ActionThreshold"] = if (ActionThreshold == null) null else ActionThreshold
-        ["ExecutionRoleArn"] = if (ExecutionRoleArn == null) null else ExecutionRoleArn
-        ["Subscribers"] = if (Subscribers == null) null else Subscribers
-        ["BudgetName"] = if (BudgetName == null) null else BudgetName
+        ["ActionType"] = if (ActionType == null) null else ActionType
         ["ApprovalModel"] = if (ApprovalModel == null) null else ApprovalModel
+        ["BudgetName"] = if (BudgetName == null) null else BudgetName
         ["Definition"] = if (Definition == null) null else Definition
+        ["ExecutionRoleArn"] = if (ExecutionRoleArn == null) null else ExecutionRoleArn
+        ["NotificationType"] = if (NotificationType == null) null else NotificationType
+        ["Subscribers"] = if (Subscribers == null) null else Subscribers
     }
 
 }
 
 
-typealias BudgetsActionNotificationType = "ACTUAL"|"FORECASTED"
-
 typealias BudgetsActionActionType = "APPLY_IAM_POLICY"|"APPLY_SCP_POLICY"|"RUN_SSM_DOCUMENTS"
 
 typealias BudgetsActionApprovalModel = "AUTOMATIC"|"MANUAL"
+
+typealias BudgetsActionNotificationType = "ACTUAL"|"FORECASTED"

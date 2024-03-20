@@ -23,11 +23,20 @@ open class Bucket extends cloudformation.Resource {
     Type = "AWS::Lightsail::Bucket"
 
 
+    /// 
+    hidden AccessRules: (BucketAccessRules)?
+
     /// The name for the bucket.
     hidden BucketName: String(matches(Regex(#"^[a-z0-9][a-z0-9-]{1,52}[a-z0-9]$"#)))|Mapping
 
+    /// The ID of the bundle to use for the bucket.
+    hidden BundleId: BucketBundleId|Mapping
+
     /// Specifies whether to enable or disable versioning of objects in the bucket.
     hidden ObjectVersioning: (Boolean|Mapping)?
+
+    /// An array of strings to specify the AWS account IDs that can access the bucket.
+    hidden ReadOnlyAccessAccounts: (Listing<String|Mapping>)?
 
     /// The names of the Lightsail resources for which to set bucket access.
     hidden ResourcesReceivingAccess: (Listing<String|Mapping>)?
@@ -35,23 +44,14 @@ open class Bucket extends cloudformation.Resource {
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<BucketTag>)?
 
-    /// The ID of the bundle to use for the bucket.
-    hidden BundleId: BucketBundleId|Mapping
-
-    /// 
-    hidden AccessRules: (BucketAccessRules)?
-
-    /// An array of strings to specify the AWS account IDs that can access the bucket.
-    hidden ReadOnlyAccessAccounts: (Listing<String|Mapping>)?
-
     Properties {
+        ["AccessRules"] = if (AccessRules == null) null else AccessRules
         ["BucketName"] = if (BucketName == null) null else BucketName
+        ["BundleId"] = if (BundleId == null) null else BundleId
         ["ObjectVersioning"] = if (ObjectVersioning == null) null else ObjectVersioning
+        ["ReadOnlyAccessAccounts"] = if (ReadOnlyAccessAccounts == null) null else ReadOnlyAccessAccounts
         ["ResourcesReceivingAccess"] = if (ResourcesReceivingAccess == null) null else ResourcesReceivingAccess
         ["Tags"] = if (Tags == null) null else Tags
-        ["BundleId"] = if (BundleId == null) null else BundleId
-        ["AccessRules"] = if (AccessRules == null) null else AccessRules
-        ["ReadOnlyAccessAccounts"] = if (ReadOnlyAccessAccounts == null) null else ReadOnlyAccessAccounts
     }
 
 }

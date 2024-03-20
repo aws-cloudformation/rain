@@ -5,50 +5,179 @@ module aws.wafv2.rulegroup
 
 import "../../cloudformation.pkl"
 
-typealias RuleGroupCustomHTTPHeaderValue = String|Mapping
-
-
 /// 
-open class RuleGroupGeoMatchStatement {
-    ForwardedIPConfig: (RuleGroupForwardedIPConfiguration)?
-    CountryCodes: (Listing<String|Mapping>)?
+open class RuleGroupRegexMatchStatement {
+    RegexString: String|Mapping
+    FieldToMatch: RuleGroupFieldToMatch
+    TextTransformations: Listing<RuleGroupTextTransformation>
 }
 
-typealias RuleGroupMapMatchScope = String|Mapping
-
-
-/// Allow traffic towards application.
-open class RuleGroupAllowAction {
+/// Count traffic towards application.
+open class RuleGroupCountAction {
     CustomRequestHandling: (RuleGroupCustomRequestHandling)?
+}
+
+/// Custom response body.
+open class RuleGroupCustomResponseBody {
+    ContentType: RuleGroupResponseContentType
+    Content: RuleGroupResponseContent
+}
+
+typealias RuleGroupLabelMatchKey = String|Mapping
+
+
+typealias RuleGroupLabelMatchScope = String|Mapping
+
+
+typealias RuleGroupLabelName = String|Mapping
+
+
+typealias RateBasedStatementAggregateKeyType = "IP"|"FORWARDED_IP"|"CONSTANT"|"CUSTOM_KEYS"
+
+/// 
+open class RuleGroupRateBasedStatement {
+    Limit: RuleGroupRateLimit
+    EvaluationWindowSec: (RuleGroupEvaluationWindowSec)?
+    AggregateKeyType: RateBasedStatementAggregateKeyType|Mapping
+    CustomKeys: (Listing<RuleGroupRateBasedStatementCustomKey>)?
+    ScopeDownStatement: (RuleGroupStatement)?
+    ForwardedIPConfig: (RuleGroupForwardedIPConfiguration)?
 }
 
 /// Specifies a single custom aggregate key for a rate-base rule.
 open class RuleGroupRateBasedStatementCustomKey {
-    HTTPMethod: (RuleGroupRateLimitHTTPMethod)?
+    Cookie: (RuleGroupRateLimitCookie)?
     IP: (RuleGroupRateLimitIP)?
     QueryArgument: (RuleGroupRateLimitQueryArgument)?
-    QueryString: (RuleGroupRateLimitQueryString)?
-    Cookie: (RuleGroupRateLimitCookie)?
+    UriPath: (RuleGroupRateLimitUriPath)?
     ForwardedIP: (RuleGroupRateLimitForwardedIP)?
     Header: (RuleGroupRateLimitHeader)?
+    HTTPMethod: (RuleGroupRateLimitHTTPMethod)?
     LabelNamespace: (RuleGroupRateLimitLabelNamespace)?
-    UriPath: (RuleGroupRateLimitUriPath)?
+    QueryString: (RuleGroupRateLimitQueryString)?
 }
 
-typealias RuleGroupRateLimitHTTPMethod = Dynamic
+typealias RuleGroupResourceArn = String|Mapping
 
 
-/// Specifies a query argument in the request as an aggregate key for a rate-based rule.
-open class RuleGroupRateLimitQueryArgument {
-    Name: String(matches(Regex(#".*\S.*"#)))|Mapping
-    TextTransformations: Listing<RuleGroupTextTransformation>
+typealias RuleGroupResponseContent = String|Mapping
+
+
+/// Field of the request to match.
+open class RuleGroupFieldToMatch {
+    Headers: (RuleGroupHeaders)?
+    Cookies: (RuleGroupCookies)?
+    SingleQueryArgument: (Dynamic)?
+    AllQueryArguments: (Dynamic)?
+    QueryString: (Dynamic)?
+    Body: (RuleGroupBody)?
+    Method: (Dynamic)?
+    JsonBody: (RuleGroupJsonBody)?
+    JA3Fingerprint: (RuleGroupJA3Fingerprint)?
+    SingleHeader: (Dynamic)?
+    UriPath: (Dynamic)?
 }
 
-typealias RuleGroupResponseContentType = String|Mapping
-
+/// Rule of RuleGroup that contains condition and action.
+open class RuleGroupRule {
+    Statement: RuleGroupStatement
+    Action: (RuleGroupRuleAction)?
+    RuleLabels: (Listing<RuleGroupLabel>)?
+    VisibilityConfig: RuleGroupVisibilityConfig
+    CaptchaConfig: (RuleGroupCaptchaConfig)?
+    ChallengeConfig: (RuleGroupChallengeConfig)?
+    Name: RuleGroupEntityName
+    Priority: RuleGroupRulePriority
+}
 
 typealias RuleGroupSearchString = String|Mapping
 
+
+/// Block traffic towards application.
+open class RuleGroupBlockAction {
+    CustomResponse: (RuleGroupCustomResponse)?
+}
+
+/// 
+open class RuleGroupCaptchaConfig {
+    ImmunityTimeProperty: (RuleGroupImmunityTimeProperty)?
+}
+
+typealias RuleGroupCustomResponseBodies = Mapping<String, Any>
+
+
+typealias RuleGroupEntityName = String|Mapping
+
+
+/// The pattern to look for in the request headers.
+open class RuleGroupHeaderMatchPattern {
+    ExcludedHeaders: (Listing<String|Mapping>)?
+    All: (Dynamic)?
+    IncludedHeaders: (Listing<String|Mapping>)?
+}
+
+/// 
+open class RuleGroupOrStatement {
+    Statements: Listing<RuleGroupStatement>
+}
+
+/// Action taken when Rule matches its condition.
+open class RuleGroupRuleAction {
+    Challenge: (RuleGroupChallengeAction)?
+    Allow: (RuleGroupAllowAction)?
+    Block: (RuleGroupBlockAction)?
+    Count: (RuleGroupCountAction)?
+    Captcha: (RuleGroupCaptchaAction)?
+}
+
+/// The pattern to look for in the request cookies.
+open class RuleGroupCookieMatchPattern {
+    All: (Dynamic)?
+    IncludedCookies: (Listing<String|Mapping>)?
+    ExcludedCookies: (Listing<String|Mapping>)?
+}
+
+/// Custom request handling.
+open class RuleGroupCustomRequestHandling {
+    InsertHeaders: Listing<RuleGroupCustomHTTPHeader>
+}
+
+typealias ForwardedIPConfigurationFallbackBehavior = "MATCH"|"NO_MATCH"
+
+/// 
+open class RuleGroupForwardedIPConfiguration {
+    HeaderName: String(matches(Regex(#"^[a-zA-Z0-9-]+{1,255}$"#)))|Mapping
+    FallbackBehavior: ForwardedIPConfigurationFallbackBehavior|Mapping
+}
+
+/// 
+open class RuleGroupLabelSummary {
+    Name: (RuleGroupLabelName)?
+}
+
+/// 
+open class RuleGroupRegexPatternSetReferenceStatement {
+    TextTransformations: Listing<RuleGroupTextTransformation>
+    Arn: RuleGroupResourceArn
+    FieldToMatch: RuleGroupFieldToMatch
+}
+
+typealias RuleGroupBodyParsingFallbackBehavior = String|Mapping
+
+
+/// Byte Match statement.
+open class RuleGroupByteMatchStatement {
+    FieldToMatch: RuleGroupFieldToMatch
+    TextTransformations: Listing<RuleGroupTextTransformation>
+    PositionalConstraint: RuleGroupPositionalConstraint
+    SearchString: (RuleGroupSearchString)?
+    SearchStringBase64: (RuleGroupSearchStringBase64)?
+}
+
+/// Checks valid token exists with request.
+open class RuleGroupCaptchaAction {
+    CustomRequestHandling: (RuleGroupCustomRequestHandling)?
+}
 
 typealias IPSetForwardedIPConfigurationFallbackBehavior = "MATCH"|"NO_MATCH"
 
@@ -61,43 +190,13 @@ open class RuleGroupIPSetForwardedIPConfiguration {
     Position: IPSetForwardedIPConfigurationPosition|Mapping
 }
 
-typealias RuleGroupPositionalConstraint = String|Mapping
+typealias RuleGroupRateLimitHTTPMethod = Dynamic
 
 
 /// 
-open class RuleGroupChallengeConfig {
-    ImmunityTimeProperty: (RuleGroupImmunityTimeProperty)?
-}
-
-typealias RuleGroupCustomResponseBodies = Mapping<String, Any>
-
-
-typealias ForwardedIPConfigurationFallbackBehavior = "MATCH"|"NO_MATCH"
-
-/// 
-open class RuleGroupForwardedIPConfiguration {
-    HeaderName: String(matches(Regex(#"^[a-zA-Z0-9-]+{1,255}$"#)))|Mapping
-    FallbackBehavior: ForwardedIPConfigurationFallbackBehavior|Mapping
-}
-
-/// Specifies a label namespace to use as an aggregate key for a rate-based rule.
-open class RuleGroupRateLimitLabelNamespace {
-    Namespace: String(matches(Regex(#"^[0-9A-Za-z_:-]{1,1024}$"#)))|Mapping
-}
-
-/// Block traffic towards application.
-open class RuleGroupBlockAction {
-    CustomResponse: (RuleGroupCustomResponse)?
-}
-
-/// 
-open class RuleGroupLabel {
-    Name: RuleGroupLabelName
-}
-
-/// Count traffic towards application.
-open class RuleGroupCountAction {
-    CustomRequestHandling: (RuleGroupCustomRequestHandling)?
+open class RuleGroupTag {
+    Key: (String|Mapping)?
+    Value: (String|Mapping)?
 }
 
 /// Includes cookies of a web request.
@@ -107,172 +206,16 @@ open class RuleGroupCookies {
     OversizeHandling: RuleGroupOversizeHandling
 }
 
-/// Checks valid token exists with request.
-open class RuleGroupCaptchaAction {
-    CustomRequestHandling: (RuleGroupCustomRequestHandling)?
-}
-
-/// 
-open class RuleGroupCaptchaConfig {
-    ImmunityTimeProperty: (RuleGroupImmunityTimeProperty)?
-}
-
-typealias RuleGroupRateLimitForwardedIP = Dynamic
+typealias RuleGroupEvaluationWindowSec = Int|Mapping
 
 
-/// 
-open class RuleGroupRegexMatchStatement {
-    RegexString: String|Mapping
-    FieldToMatch: RuleGroupFieldToMatch
-    TextTransformations: Listing<RuleGroupTextTransformation>
-}
-
-typealias SizeConstraintStatementComparisonOperator = "EQ"|"NE"|"LE"|"LT"|"GE"|"GT"
-
-/// Size Constraint statement.
-open class RuleGroupSizeConstraintStatement {
-    ComparisonOperator: SizeConstraintStatementComparisonOperator|Mapping
-    Size: Number|Mapping
-    TextTransformations: Listing<RuleGroupTextTransformation>
-    FieldToMatch: RuleGroupFieldToMatch
-}
-
-/// First level statement that contains conditions, such as ByteMatch, SizeConstraint, etc
-open class RuleGroupStatement {
-    RateBasedStatement: (RuleGroupRateBasedStatement)?
-    NotStatement: (RuleGroupNotStatement)?
-    SizeConstraintStatement: (RuleGroupSizeConstraintStatement)?
-    IPSetReferenceStatement: (RuleGroupIPSetReferenceStatement)?
-    GeoMatchStatement: (RuleGroupGeoMatchStatement)?
-    RegexPatternSetReferenceStatement: (RuleGroupRegexPatternSetReferenceStatement)?
-    RegexMatchStatement: (RuleGroupRegexMatchStatement)?
-    ByteMatchStatement: (RuleGroupByteMatchStatement)?
-    SqliMatchStatement: (RuleGroupSqliMatchStatement)?
-    XssMatchStatement: (RuleGroupXssMatchStatement)?
-    AndStatement: (RuleGroupAndStatement)?
-    OrStatement: (RuleGroupOrStatement)?
-    LabelMatchStatement: (RuleGroupLabelMatchStatement)?
-}
-
-typealias RuleGroupLabelMatchKey = String|Mapping
+typealias RuleGroupRateLimit = Int|Mapping
 
 
-typealias RuleGroupEntityId = String|Mapping
+typealias RuleGroupResponseStatusCode = Int|Mapping
 
 
-/// Xss Match Statement.
-open class RuleGroupXssMatchStatement {
-    FieldToMatch: RuleGroupFieldToMatch
-    TextTransformations: Listing<RuleGroupTextTransformation>
-}
-
-typealias RuleGroupSensitivityLevel = String|Mapping
-
-
-/// Byte Match statement.
-open class RuleGroupByteMatchStatement {
-    PositionalConstraint: RuleGroupPositionalConstraint
-    SearchString: (RuleGroupSearchString)?
-    SearchStringBase64: (RuleGroupSearchStringBase64)?
-    FieldToMatch: RuleGroupFieldToMatch
-    TextTransformations: Listing<RuleGroupTextTransformation>
-}
-
-typealias RuleGroupResourceArn = String|Mapping
-
-
-typealias RuleGroupCustomHTTPHeaderName = String|Mapping
-
-
-typealias RuleGroupRateLimitIP = Dynamic
-
-
-/// The pattern to look for in the request cookies.
-open class RuleGroupCookieMatchPattern {
-    All: (Dynamic)?
-    IncludedCookies: (Listing<String|Mapping>)?
-    ExcludedCookies: (Listing<String|Mapping>)?
-}
-
-typealias RuleGroupJsonMatchScope = String|Mapping
-
-
-/// 
-open class RuleGroupTag {
-    Key: (String|Mapping)?
-    Value: (String|Mapping)?
-}
-
-typealias RuleGroupBodyParsingFallbackBehavior = String|Mapping
-
-
-/// Specifies a cookie as an aggregate key for a rate-based rule.
-open class RuleGroupRateLimitCookie {
-    Name: String(matches(Regex(#".*\S.*"#)))|Mapping
-    TextTransformations: Listing<RuleGroupTextTransformation>
-}
-
-/// 
-open class RuleGroupRuleGroup {
-    VisibilityConfig: (RuleGroupVisibilityConfig)?
-    Capacity: (Int|Mapping)?
-    Name: (RuleGroupEntityName)?
-    Id: (RuleGroupEntityId)?
-    Arn: (RuleGroupResourceArn)?
-    Description: (RuleGroupEntityDescription)?
-    Rules: (Listing<RuleGroupRule>)?
-}
-
-/// 
-open class RuleGroupIPSetReferenceStatement {
-    Arn: RuleGroupResourceArn
-    IPSetForwardedIPConfig: (RuleGroupIPSetForwardedIPConfiguration)?
-}
-
-/// 
-open class RuleGroupNotStatement {
-    Statement: RuleGroupStatement
-}
-
-/// 
-open class RuleGroupImmunityTimeProperty {
-    ImmunityTime: Int|Mapping
-}
-
-typealias JA3FingerprintFallbackBehavior = "MATCH"|"NO_MATCH"
-
-/// Includes the JA3 fingerprint of a web request.
-open class RuleGroupJA3Fingerprint {
-    FallbackBehavior: JA3FingerprintFallbackBehavior|Mapping
-}
-
-/// Specifies a header as an aggregate key for a rate-based rule.
-open class RuleGroupRateLimitHeader {
-    Name: String(matches(Regex(#".*\S.*"#)))|Mapping
-    TextTransformations: Listing<RuleGroupTextTransformation>
-}
-
-/// Custom request handling.
-open class RuleGroupCustomRequestHandling {
-    InsertHeaders: Listing<RuleGroupCustomHTTPHeader>
-}
-
-typealias RuleGroupLabelMatchScope = String|Mapping
-
-
-typealias RateBasedStatementAggregateKeyType = "IP"|"FORWARDED_IP"|"CONSTANT"|"CUSTOM_KEYS"
-
-/// 
-open class RuleGroupRateBasedStatement {
-    AggregateKeyType: RateBasedStatementAggregateKeyType|Mapping
-    CustomKeys: (Listing<RuleGroupRateBasedStatementCustomKey>)?
-    ScopeDownStatement: (RuleGroupStatement)?
-    ForwardedIPConfig: (RuleGroupForwardedIPConfiguration)?
-    Limit: RuleGroupRateLimit
-    EvaluationWindowSec: (RuleGroupEvaluationWindowSec)?
-}
-
-typealias RuleGroupScope = String|Mapping
+typealias RuleGroupTextTransformationPriority = Int|Mapping
 
 
 /// Visibility Metric of the RuleGroup.
@@ -282,117 +225,11 @@ open class RuleGroupVisibilityConfig {
     MetricName: String|Mapping
 }
 
-/// 
-open class RuleGroupAndStatement {
-    Statements: Listing<RuleGroupStatement>
-}
-
-typealias RuleGroupEntityDescription = String|Mapping
-
-
-typealias RuleGroupRulePriority = Int|Mapping
-
-
-/// Specifies the request's URI Path as an aggregate key for a rate-based rule.
-open class RuleGroupRateLimitUriPath {
-    TextTransformations: Listing<RuleGroupTextTransformation>
-}
-
-typealias RuleGroupTextTransformationType = String|Mapping
-
-
-typealias RuleGroupRateLimit = Int|Mapping
-
-
-/// 
-open class RuleGroupOrStatement {
-    Statements: Listing<RuleGroupStatement>
-}
-
-/// Inspect the request body as JSON. The request body immediately follows the request headers.
-open class RuleGroupJsonBody {
-    MatchScope: RuleGroupJsonMatchScope
-    InvalidFallbackBehavior: (RuleGroupBodyParsingFallbackBehavior)?
-    OversizeHandling: (RuleGroupOversizeHandling)?
-    MatchPattern: RuleGroupJsonMatchPattern
-}
-
-/// 
-open class RuleGroupRegexPatternSetReferenceStatement {
-    Arn: RuleGroupResourceArn
-    FieldToMatch: RuleGroupFieldToMatch
-    TextTransformations: Listing<RuleGroupTextTransformation>
-}
-
-/// Checks that the request has a valid token with an unexpired challenge timestamp and, if not, returns a browser challenge to the client.
-open class RuleGroupChallengeAction {
-    CustomRequestHandling: (RuleGroupCustomRequestHandling)?
-}
-
-typealias RuleGroupSearchStringBase64 = String|Mapping
-
-
-/// Field of the request to match.
-open class RuleGroupFieldToMatch {
-    UriPath: (Dynamic)?
-    QueryString: (Dynamic)?
-    Body: (RuleGroupBody)?
-    JsonBody: (RuleGroupJsonBody)?
-    Headers: (RuleGroupHeaders)?
-    Cookies: (RuleGroupCookies)?
-    SingleQueryArgument: (Dynamic)?
-    AllQueryArguments: (Dynamic)?
-    JA3Fingerprint: (RuleGroupJA3Fingerprint)?
-    SingleHeader: (Dynamic)?
-    Method: (Dynamic)?
-}
-
-/// Rule of RuleGroup that contains condition and action.
-open class RuleGroupRule {
-    CaptchaConfig: (RuleGroupCaptchaConfig)?
-    ChallengeConfig: (RuleGroupChallengeConfig)?
-    Name: RuleGroupEntityName
-    Priority: RuleGroupRulePriority
-    Statement: RuleGroupStatement
-    Action: (RuleGroupRuleAction)?
-    RuleLabels: (Listing<RuleGroupLabel>)?
-    VisibilityConfig: RuleGroupVisibilityConfig
-}
-
-typealias RuleGroupResponseStatusCode = Int|Mapping
-
-
-/// HTTP header.
-open class RuleGroupCustomHTTPHeader {
-    Name: RuleGroupCustomHTTPHeaderName
-    Value: RuleGroupCustomHTTPHeaderValue
-}
-
-/// Includes headers of a web request.
-open class RuleGroupHeaders {
-    MatchScope: RuleGroupMapMatchScope
-    OversizeHandling: RuleGroupOversizeHandling
-    MatchPattern: RuleGroupHeaderMatchPattern
-}
-
-/// Custom response body.
-open class RuleGroupCustomResponseBody {
-    ContentType: RuleGroupResponseContentType
-    Content: RuleGroupResponseContent
-}
-
-/// The pattern to look for in the JSON body.
-open class RuleGroupJsonMatchPattern {
-    All: (Dynamic)?
-    IncludedPaths: (Listing<RuleGroupJsonPointerPath>)?
-}
-
-typealias RuleGroupEvaluationWindowSec = Int|Mapping
-
-
-/// The body of a web request. This immediately follows the request headers.
-open class RuleGroupBody {
-    OversizeHandling: (RuleGroupOversizeHandling)?
+/// Custom response.
+open class RuleGroupCustomResponse {
+    ResponseCode: RuleGroupResponseStatusCode
+    CustomResponseBodyKey: (String(matches(Regex(#"^[\w\-]+$"#)))|Mapping)?
+    ResponseHeaders: (Listing<RuleGroupCustomHTTPHeader>)?
 }
 
 /// 
@@ -401,63 +238,166 @@ open class RuleGroupLabelMatchStatement {
     Scope: RuleGroupLabelMatchScope
 }
 
-typealias RuleGroupTextTransformationPriority = Int|Mapping
-
-
-typealias RuleGroupJsonPointerPath = String|Mapping
-
-
-/// Custom response.
-open class RuleGroupCustomResponse {
-    ResponseHeaders: (Listing<RuleGroupCustomHTTPHeader>)?
-    ResponseCode: RuleGroupResponseStatusCode
-    CustomResponseBodyKey: (String(matches(Regex(#"^[\w\-]+$"#)))|Mapping)?
+/// 
+open class RuleGroupNotStatement {
+    Statement: RuleGroupStatement
 }
 
-/// The pattern to look for in the request headers.
-open class RuleGroupHeaderMatchPattern {
+/// Inspect the request body as JSON. The request body immediately follows the request headers.
+open class RuleGroupJsonBody {
+    MatchPattern: RuleGroupJsonMatchPattern
+    MatchScope: RuleGroupJsonMatchScope
+    InvalidFallbackBehavior: (RuleGroupBodyParsingFallbackBehavior)?
+    OversizeHandling: (RuleGroupOversizeHandling)?
+}
+
+/// Text Transformation on the Search String before match.
+open class RuleGroupTextTransformation {
+    Type: RuleGroupTextTransformationType
+    Priority: RuleGroupTextTransformationPriority
+}
+
+/// 
+open class RuleGroupAndStatement {
+    Statements: Listing<RuleGroupStatement>
+}
+
+typealias JA3FingerprintFallbackBehavior = "MATCH"|"NO_MATCH"
+
+/// Includes the JA3 fingerprint of a web request.
+open class RuleGroupJA3Fingerprint {
+    FallbackBehavior: JA3FingerprintFallbackBehavior|Mapping
+}
+
+typealias RuleGroupResponseContentType = String|Mapping
+
+
+/// 
+open class RuleGroupRuleGroup {
+    Rules: (Listing<RuleGroupRule>)?
+    VisibilityConfig: (RuleGroupVisibilityConfig)?
+    Capacity: (Int|Mapping)?
+    Name: (RuleGroupEntityName)?
+    Id: (RuleGroupEntityId)?
+    Arn: (RuleGroupResourceArn)?
+    Description: (RuleGroupEntityDescription)?
+}
+
+/// First level statement that contains conditions, such as ByteMatch, SizeConstraint, etc
+open class RuleGroupStatement {
+    LabelMatchStatement: (RuleGroupLabelMatchStatement)?
+    RegexMatchStatement: (RuleGroupRegexMatchStatement)?
+    SqliMatchStatement: (RuleGroupSqliMatchStatement)?
+    SizeConstraintStatement: (RuleGroupSizeConstraintStatement)?
+    IPSetReferenceStatement: (RuleGroupIPSetReferenceStatement)?
+    RegexPatternSetReferenceStatement: (RuleGroupRegexPatternSetReferenceStatement)?
+    XssMatchStatement: (RuleGroupXssMatchStatement)?
+    GeoMatchStatement: (RuleGroupGeoMatchStatement)?
+    AndStatement: (RuleGroupAndStatement)?
+    ByteMatchStatement: (RuleGroupByteMatchStatement)?
+    NotStatement: (RuleGroupNotStatement)?
+    RateBasedStatement: (RuleGroupRateBasedStatement)?
+    OrStatement: (RuleGroupOrStatement)?
+}
+
+/// Xss Match Statement.
+open class RuleGroupXssMatchStatement {
+    FieldToMatch: RuleGroupFieldToMatch
+    TextTransformations: Listing<RuleGroupTextTransformation>
+}
+
+/// 
+open class RuleGroupChallengeConfig {
+    ImmunityTimeProperty: (RuleGroupImmunityTimeProperty)?
+}
+
+typealias RuleGroupJsonMatchScope = String|Mapping
+
+
+typealias RuleGroupMapMatchScope = String|Mapping
+
+
+/// Specifies a cookie as an aggregate key for a rate-based rule.
+open class RuleGroupRateLimitCookie {
+    Name: String(matches(Regex(#".*\S.*"#)))|Mapping
+    TextTransformations: Listing<RuleGroupTextTransformation>
+}
+
+/// Sqli Match Statement.
+open class RuleGroupSqliMatchStatement {
+    FieldToMatch: RuleGroupFieldToMatch
+    TextTransformations: Listing<RuleGroupTextTransformation>
+    SensitivityLevel: (RuleGroupSensitivityLevel)?
+}
+
+/// The body of a web request. This immediately follows the request headers.
+open class RuleGroupBody {
+    OversizeHandling: (RuleGroupOversizeHandling)?
+}
+
+/// HTTP header.
+open class RuleGroupCustomHTTPHeader {
+    Name: RuleGroupCustomHTTPHeaderName
+    Value: RuleGroupCustomHTTPHeaderValue
+}
+
+typealias RuleGroupCustomHTTPHeaderValue = String|Mapping
+
+
+/// The pattern to look for in the JSON body.
+open class RuleGroupJsonMatchPattern {
+    IncludedPaths: (Listing<RuleGroupJsonPointerPath>)?
     All: (Dynamic)?
-    IncludedHeaders: (Listing<String|Mapping>)?
-    ExcludedHeaders: (Listing<String|Mapping>)?
+}
+
+/// 
+open class RuleGroupLabel {
+    Name: RuleGroupLabelName
+}
+
+typealias RuleGroupRateLimitForwardedIP = Dynamic
+
+
+typealias RuleGroupTextTransformationType = String|Mapping
+
+
+/// Checks that the request has a valid token with an unexpired challenge timestamp and, if not, returns a browser challenge to the client.
+open class RuleGroupChallengeAction {
+    CustomRequestHandling: (RuleGroupCustomRequestHandling)?
+}
+
+typealias RuleGroupCustomHTTPHeaderName = String|Mapping
+
+
+typealias RuleGroupEntityId = String|Mapping
+
+
+/// Includes headers of a web request.
+open class RuleGroupHeaders {
+    MatchPattern: RuleGroupHeaderMatchPattern
+    MatchScope: RuleGroupMapMatchScope
+    OversizeHandling: RuleGroupOversizeHandling
 }
 
 typealias RuleGroupOversizeHandling = String|Mapping
 
 
-/// 
-open class RuleGroupLabelSummary {
-    Name: (RuleGroupLabelName)?
+/// Specifies a label namespace to use as an aggregate key for a rate-based rule.
+open class RuleGroupRateLimitLabelNamespace {
+    Namespace: String(matches(Regex(#"^[0-9A-Za-z_:-]{1,1024}$"#)))|Mapping
 }
 
-typealias RuleGroupResponseContent = String|Mapping
+typealias RuleGroupScope = String|Mapping
 
 
-/// Sqli Match Statement.
-open class RuleGroupSqliMatchStatement {
-    SensitivityLevel: (RuleGroupSensitivityLevel)?
+typealias SizeConstraintStatementComparisonOperator = "EQ"|"NE"|"LE"|"LT"|"GE"|"GT"
+
+/// Size Constraint statement.
+open class RuleGroupSizeConstraintStatement {
     FieldToMatch: RuleGroupFieldToMatch
+    ComparisonOperator: SizeConstraintStatementComparisonOperator|Mapping
+    Size: Number|Mapping
     TextTransformations: Listing<RuleGroupTextTransformation>
-}
-
-typealias RuleGroupLabelName = String|Mapping
-
-
-typealias RuleGroupEntityName = String|Mapping
-
-
-/// Action taken when Rule matches its condition.
-open class RuleGroupRuleAction {
-    Allow: (RuleGroupAllowAction)?
-    Block: (RuleGroupBlockAction)?
-    Count: (RuleGroupCountAction)?
-    Captcha: (RuleGroupCaptchaAction)?
-    Challenge: (RuleGroupChallengeAction)?
-}
-
-/// Text Transformation on the Search String before match.
-open class RuleGroupTextTransformation {
-    Priority: RuleGroupTextTransformationPriority
-    Type: RuleGroupTextTransformationType
 }
 
 /// Specifies the request's query string as an aggregate key for a rate-based rule.
@@ -465,26 +405,71 @@ open class RuleGroupRateLimitQueryString {
     TextTransformations: Listing<RuleGroupTextTransformation>
 }
 
+/// Allow traffic towards application.
+open class RuleGroupAllowAction {
+    CustomRequestHandling: (RuleGroupCustomRequestHandling)?
+}
+
+typealias RuleGroupEntityDescription = String|Mapping
+
+
+/// 
+open class RuleGroupGeoMatchStatement {
+    CountryCodes: (Listing<String|Mapping>)?
+    ForwardedIPConfig: (RuleGroupForwardedIPConfiguration)?
+}
+
+/// 
+open class RuleGroupImmunityTimeProperty {
+    ImmunityTime: Int|Mapping
+}
+
+/// Specifies a header as an aggregate key for a rate-based rule.
+open class RuleGroupRateLimitHeader {
+    Name: String(matches(Regex(#".*\S.*"#)))|Mapping
+    TextTransformations: Listing<RuleGroupTextTransformation>
+}
+
+typealias RuleGroupRateLimitIP = Dynamic
+
+
+/// Specifies a query argument in the request as an aggregate key for a rate-based rule.
+open class RuleGroupRateLimitQueryArgument {
+    Name: String(matches(Regex(#".*\S.*"#)))|Mapping
+    TextTransformations: Listing<RuleGroupTextTransformation>
+}
+
+/// Specifies the request's URI Path as an aggregate key for a rate-based rule.
+open class RuleGroupRateLimitUriPath {
+    TextTransformations: Listing<RuleGroupTextTransformation>
+}
+
+typealias RuleGroupSearchStringBase64 = String|Mapping
+
+
+typealias RuleGroupSensitivityLevel = String|Mapping
+
+
+typealias RuleGroupJsonPointerPath = String|Mapping
+
+
+/// 
+open class RuleGroupIPSetReferenceStatement {
+    Arn: RuleGroupResourceArn
+    IPSetForwardedIPConfig: (RuleGroupIPSetForwardedIPConfiguration)?
+}
+
+typealias RuleGroupPositionalConstraint = String|Mapping
+
+
+typealias RuleGroupRulePriority = Int|Mapping
+
+
 /// Contains the Rules that identify the requests that you want to allow, block, or count. In a RuleGroup, you also specify a default action (ALLOW or BLOCK), and the action for each Rule that you add to a RuleGroup, for example, block requests from specified IP addresses or block requests from specified referrers. You also associate the RuleGroup with a CloudFront distribution to identify the requests that you want AWS WAF to filter. If you add more than one Rule to a RuleGroup, a request needs to match only one of the specifications to be allowed, blocked, or counted.
 open class RuleGroup extends cloudformation.Resource {
 
     Type = "AWS::WAFv2::RuleGroup"
 
-
-    /// Collection of Rules.
-    hidden Rules: (Listing<RuleGroupRule>)?
-
-    /// 
-    hidden Tags: (Listing<RuleGroupTag>)?
-
-    /// 
-    hidden CustomResponseBodies: (RuleGroupCustomResponseBodies)?
-
-    /// Collection of Consumed Labels.
-    hidden ConsumedLabels: (Listing<RuleGroupLabelSummary>)?
-
-    /// 
-    hidden Scope: RuleGroupScope
 
     /// Collection of Available Labels.
     hidden AvailableLabels: (Listing<RuleGroupLabelSummary>)?
@@ -492,26 +477,41 @@ open class RuleGroup extends cloudformation.Resource {
     /// 
     hidden Capacity: Int|Mapping
 
-    /// 
-    hidden VisibilityConfig: RuleGroupVisibilityConfig
+    /// Collection of Consumed Labels.
+    hidden ConsumedLabels: (Listing<RuleGroupLabelSummary>)?
 
     /// 
-    hidden Name: (RuleGroupEntityName)?
+    hidden CustomResponseBodies: (RuleGroupCustomResponseBodies)?
 
     /// 
     hidden Description: (RuleGroupEntityDescription)?
 
+    /// 
+    hidden Name: (RuleGroupEntityName)?
+
+    /// Collection of Rules.
+    hidden Rules: (Listing<RuleGroupRule>)?
+
+    /// 
+    hidden Scope: RuleGroupScope
+
+    /// 
+    hidden Tags: (Listing<RuleGroupTag>)?
+
+    /// 
+    hidden VisibilityConfig: RuleGroupVisibilityConfig
+
     Properties {
-        ["Rules"] = if (Rules == null) null else Rules
-        ["Tags"] = if (Tags == null) null else Tags
-        ["CustomResponseBodies"] = if (CustomResponseBodies == null) null else CustomResponseBodies
-        ["ConsumedLabels"] = if (ConsumedLabels == null) null else ConsumedLabels
-        ["Scope"] = if (Scope == null) null else Scope
         ["AvailableLabels"] = if (AvailableLabels == null) null else AvailableLabels
         ["Capacity"] = if (Capacity == null) null else Capacity
-        ["VisibilityConfig"] = if (VisibilityConfig == null) null else VisibilityConfig
-        ["Name"] = if (Name == null) null else Name
+        ["ConsumedLabels"] = if (ConsumedLabels == null) null else ConsumedLabels
+        ["CustomResponseBodies"] = if (CustomResponseBodies == null) null else CustomResponseBodies
         ["Description"] = if (Description == null) null else Description
+        ["Name"] = if (Name == null) null else Name
+        ["Rules"] = if (Rules == null) null else Rules
+        ["Scope"] = if (Scope == null) null else Scope
+        ["Tags"] = if (Tags == null) null else Tags
+        ["VisibilityConfig"] = if (VisibilityConfig == null) null else VisibilityConfig
     }
 
 }

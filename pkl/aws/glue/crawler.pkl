@@ -23,10 +23,51 @@ open class CrawlerDeltaTarget {
 }
 
 /// 
+open class CrawlerIcebergTarget {
+    Exclusions: (Listing<String|Mapping>)?
+    MaximumTraversalDepth: (Int|Mapping)?
+    ConnectionName: (String|Mapping)?
+    Paths: (Listing<String|Mapping>)?
+}
+
+/// 
+open class CrawlerRecrawlPolicy {
+    RecrawlBehavior: (String|Mapping)?
+}
+
+/// 
+open class CrawlerSchemaChangePolicy {
+    UpdateBehavior: (String|Mapping)?
+    DeleteBehavior: (String|Mapping)?
+}
+
+/// 
+open class CrawlerTargets {
+    S3Targets: (Listing<CrawlerS3Target>)?
+    CatalogTargets: (Listing<CrawlerCatalogTarget>)?
+    DeltaTargets: (Listing<CrawlerDeltaTarget>)?
+    MongoDBTargets: (Listing<CrawlerMongoDBTarget>)?
+    JdbcTargets: (Listing<CrawlerJdbcTarget>)?
+    DynamoDBTargets: (Listing<CrawlerDynamoDBTarget>)?
+    IcebergTargets: (Listing<CrawlerIcebergTarget>)?
+}
+
+/// 
+open class CrawlerDynamoDBTarget {
+    Path: (String|Mapping)?
+}
+
+/// 
 open class CrawlerJdbcTarget {
+    ConnectionName: (String|Mapping)?
     Path: (String|Mapping)?
     Exclusions: (Listing<String|Mapping>)?
+}
+
+/// 
+open class CrawlerMongoDBTarget {
     ConnectionName: (String|Mapping)?
+    Path: (String|Mapping)?
 }
 
 /// 
@@ -44,47 +85,6 @@ open class CrawlerSchedule {
     ScheduleExpression: (String|Mapping)?
 }
 
-/// 
-open class CrawlerDynamoDBTarget {
-    Path: (String|Mapping)?
-}
-
-/// 
-open class CrawlerSchemaChangePolicy {
-    UpdateBehavior: (String|Mapping)?
-    DeleteBehavior: (String|Mapping)?
-}
-
-/// 
-open class CrawlerIcebergTarget {
-    ConnectionName: (String|Mapping)?
-    Paths: (Listing<String|Mapping>)?
-    Exclusions: (Listing<String|Mapping>)?
-    MaximumTraversalDepth: (Int|Mapping)?
-}
-
-/// 
-open class CrawlerTargets {
-    S3Targets: (Listing<CrawlerS3Target>)?
-    CatalogTargets: (Listing<CrawlerCatalogTarget>)?
-    DeltaTargets: (Listing<CrawlerDeltaTarget>)?
-    MongoDBTargets: (Listing<CrawlerMongoDBTarget>)?
-    JdbcTargets: (Listing<CrawlerJdbcTarget>)?
-    DynamoDBTargets: (Listing<CrawlerDynamoDBTarget>)?
-    IcebergTargets: (Listing<CrawlerIcebergTarget>)?
-}
-
-/// 
-open class CrawlerRecrawlPolicy {
-    RecrawlBehavior: (String|Mapping)?
-}
-
-/// 
-open class CrawlerMongoDBTarget {
-    ConnectionName: (String|Mapping)?
-    Path: (String|Mapping)?
-}
-
 /// Resource Type definition for AWS::Glue::Crawler
 open class Crawler extends cloudformation.Resource {
 
@@ -92,58 +92,58 @@ open class Crawler extends cloudformation.Resource {
 
 
     /// 
-    hidden Targets: CrawlerTargets
-
-    /// 
-    hidden Role: String|Mapping
-
-    /// 
-    hidden Tags: (Dynamic)?
-
-    /// 
     hidden Classifiers: (Listing<String|Mapping>)?
 
     /// 
-    hidden DatabaseName: (String|Mapping)?
+    hidden Configuration: (String|Mapping)?
 
     /// 
     hidden CrawlerSecurityConfiguration: (String|Mapping)?
 
     /// 
-    hidden Name: (String|Mapping)?
-
-    /// 
-    hidden Schedule: (CrawlerSchedule)?
-
-    /// 
-    hidden TablePrefix: (String|Mapping)?
+    hidden DatabaseName: (String|Mapping)?
 
     /// 
     hidden Description: (String|Mapping)?
 
     /// 
-    hidden SchemaChangePolicy: (CrawlerSchemaChangePolicy)?
+    hidden Name: (String|Mapping)?
 
     /// 
     hidden RecrawlPolicy: (CrawlerRecrawlPolicy)?
 
     /// 
-    hidden Configuration: (String|Mapping)?
+    hidden Role: String|Mapping
+
+    /// 
+    hidden Schedule: (CrawlerSchedule)?
+
+    /// 
+    hidden SchemaChangePolicy: (CrawlerSchemaChangePolicy)?
+
+    /// 
+    hidden TablePrefix: (String|Mapping)?
+
+    /// 
+    hidden Tags: (Dynamic)?
+
+    /// 
+    hidden Targets: CrawlerTargets
 
     Properties {
-        ["Targets"] = if (Targets == null) null else Targets
-        ["Role"] = if (Role == null) null else Role
-        ["Tags"] = if (Tags == null) null else Tags
         ["Classifiers"] = if (Classifiers == null) null else Classifiers
-        ["DatabaseName"] = if (DatabaseName == null) null else DatabaseName
-        ["CrawlerSecurityConfiguration"] = if (CrawlerSecurityConfiguration == null) null else CrawlerSecurityConfiguration
-        ["Name"] = if (Name == null) null else Name
-        ["Schedule"] = if (Schedule == null) null else Schedule
-        ["TablePrefix"] = if (TablePrefix == null) null else TablePrefix
-        ["Description"] = if (Description == null) null else Description
-        ["SchemaChangePolicy"] = if (SchemaChangePolicy == null) null else SchemaChangePolicy
-        ["RecrawlPolicy"] = if (RecrawlPolicy == null) null else RecrawlPolicy
         ["Configuration"] = if (Configuration == null) null else Configuration
+        ["CrawlerSecurityConfiguration"] = if (CrawlerSecurityConfiguration == null) null else CrawlerSecurityConfiguration
+        ["DatabaseName"] = if (DatabaseName == null) null else DatabaseName
+        ["Description"] = if (Description == null) null else Description
+        ["Name"] = if (Name == null) null else Name
+        ["RecrawlPolicy"] = if (RecrawlPolicy == null) null else RecrawlPolicy
+        ["Role"] = if (Role == null) null else Role
+        ["Schedule"] = if (Schedule == null) null else Schedule
+        ["SchemaChangePolicy"] = if (SchemaChangePolicy == null) null else SchemaChangePolicy
+        ["TablePrefix"] = if (TablePrefix == null) null else TablePrefix
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Targets"] = if (Targets == null) null else Targets
     }
 
 }

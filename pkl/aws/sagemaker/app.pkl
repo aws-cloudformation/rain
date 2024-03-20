@@ -9,9 +9,9 @@ typealias ResourceSpecInstanceType = "system"|"ml.t3.micro"|"ml.t3.small"|"ml.t3
 
 /// 
 open class AppResourceSpec {
+    SageMakerImageArn: (String(matches(Regex(#"^arn:aws(-[\w]+)*:sagemaker:.+:[0-9]{12}:image/[a-z0-9]([-.]?[a-z0-9])*$"#)))|Mapping)?
     SageMakerImageVersionArn: (String(matches(Regex(#"^arn:aws(-[\w]+)*:sagemaker:.+:[0-9]{12}:image-version/[a-z0-9]([-.]?[a-z0-9])*/[0-9]+$"#)))|Mapping)?
     InstanceType: (ResourceSpecInstanceType|Mapping)?
-    SageMakerImageArn: (String(matches(Regex(#"^arn:aws(-[\w]+)*:sagemaker:.+:[0-9]{12}:image/[a-z0-9]([-.]?[a-z0-9])*$"#)))|Mapping)?
 }
 
 /// 
@@ -25,9 +25,6 @@ open class App extends cloudformation.Resource {
 
     Type = "AWS::SageMaker::App"
 
-
-    /// The user profile name.
-    hidden UserProfileName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"#)))|Mapping
 
     /// The name of the app.
     hidden AppName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"#)))|Mapping
@@ -44,13 +41,16 @@ open class App extends cloudformation.Resource {
     /// A list of tags to apply to the app.
     hidden Tags: (Listing<AppTag>)?
 
+    /// The user profile name.
+    hidden UserProfileName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"#)))|Mapping
+
     Properties {
-        ["UserProfileName"] = if (UserProfileName == null) null else UserProfileName
         ["AppName"] = if (AppName == null) null else AppName
         ["AppType"] = if (AppType == null) null else AppType
         ["DomainId"] = if (DomainId == null) null else DomainId
         ["ResourceSpec"] = if (ResourceSpec == null) null else ResourceSpec
         ["Tags"] = if (Tags == null) null else Tags
+        ["UserProfileName"] = if (UserProfileName == null) null else UserProfileName
     }
 
 }

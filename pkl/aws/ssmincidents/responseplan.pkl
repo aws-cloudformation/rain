@@ -5,20 +5,80 @@ module aws.ssmincidents.responseplan
 
 import "../../cloudformation.pkl"
 
-typealias ResponsePlanSSMContact = String|Mapping
+/// The chat channel configuration.
+open class ResponsePlanChatChannel {
+    ChatbotSns: (ResponsePlanChatbotSns)?
+}
+
+/// Value of the dynamic parameter to set when starting the SSM automation document.
+open class ResponsePlanDynamicSsmParameterValue {
+    Variable: (ResponsePlanVariableType)?
+}
+
+typealias ResponsePlanSnsArn = String|Mapping
 
 
-/// A notification target.
-open class ResponsePlanNotificationTargetItem {
-    SnsTopicArn: (ResponsePlanSnsArn)?
+typealias SsmAutomationTargetAccount = "IMPACTED_ACCOUNT"|"RESPONSE_PLAN_OWNER_ACCOUNT"
+
+/// The configuration to use when starting the SSM automation document.
+open class ResponsePlanSsmAutomation {
+    DynamicParameters: (Listing<ResponsePlanDynamicSsmParameter>)?
+    RoleArn: String(matches(Regex(#"^arn:aws(-(cn|us-gov))?:[a-z-]+:(([a-z]+-)+[0-9])?:([0-9]{12})?:[^.]+$"#)))|Mapping
+    DocumentName: String|Mapping
+    DocumentVersion: (String|Mapping)?
+    TargetAccount: (SsmAutomationTargetAccount|Mapping)?
+    Parameters: (Listing<ResponsePlanSsmParameter>)?
+}
+
+/// A parameter to set when starting the SSM automation document.
+open class ResponsePlanSsmParameter {
+    Key: String|Mapping
+    Values: Listing<ResponsePlanSsmParameterValue>
 }
 
 typealias ResponsePlanSsmParameterValue = String|Mapping
 
 
+typealias ResponsePlanChatbotSns = Listing<(ResponsePlanSnsArn)?>
+
+
+/// 
+open class ResponsePlanIntegration {
+    PagerDutyConfiguration: (ResponsePlanPagerDutyConfiguration)?
+}
+
 /// The pagerDuty incident configuration.
 open class ResponsePlanPagerDutyIncidentConfiguration {
     ServiceId: String|Mapping
+}
+
+typealias ResponsePlanSSMContact = String|Mapping
+
+
+/// The automation configuration to launch.
+open class ResponsePlanAction {
+    SsmAutomation: (ResponsePlanSsmAutomation)?
+}
+
+/// A parameter with a dynamic value to set when starting the SSM automation document.
+open class ResponsePlanDynamicSsmParameter {
+    Key: String|Mapping
+    Value: ResponsePlanDynamicSsmParameterValue
+}
+
+/// The incident template configuration.
+open class ResponsePlanIncidentTemplate {
+    IncidentTags: (Listing<ResponsePlanTag>)?
+    DedupeString: (String|Mapping)?
+    Impact: Int|Mapping
+    NotificationTargets: (Listing<ResponsePlanNotificationTargetItem>)?
+    Summary: (String|Mapping)?
+    Title: String|Mapping
+}
+
+/// A notification target.
+open class ResponsePlanNotificationTargetItem {
+    SnsTopicArn: (ResponsePlanSnsArn)?
 }
 
 /// The pagerDuty configuration to use when starting the incident.
@@ -34,68 +94,8 @@ open class ResponsePlanTag {
     Value: String|Mapping
 }
 
-/// A parameter to set when starting the SSM automation document.
-open class ResponsePlanSsmParameter {
-    Key: String|Mapping
-    Values: Listing<ResponsePlanSsmParameterValue>
-}
-
-typealias ResponsePlanChatbotSns = Listing<(ResponsePlanSnsArn)?>
-
-
-typealias SsmAutomationTargetAccount = "IMPACTED_ACCOUNT"|"RESPONSE_PLAN_OWNER_ACCOUNT"
-
-/// The configuration to use when starting the SSM automation document.
-open class ResponsePlanSsmAutomation {
-    RoleArn: String(matches(Regex(#"^arn:aws(-(cn|us-gov))?:[a-z-]+:(([a-z]+-)+[0-9])?:([0-9]{12})?:[^.]+$"#)))|Mapping
-    DocumentName: String|Mapping
-    DocumentVersion: (String|Mapping)?
-    TargetAccount: (SsmAutomationTargetAccount|Mapping)?
-    Parameters: (Listing<ResponsePlanSsmParameter>)?
-    DynamicParameters: (Listing<ResponsePlanDynamicSsmParameter>)?
-}
-
 typealias ResponsePlanVariableType = String|Mapping
 
-
-/// A parameter with a dynamic value to set when starting the SSM automation document.
-open class ResponsePlanDynamicSsmParameter {
-    Key: String|Mapping
-    Value: ResponsePlanDynamicSsmParameterValue
-}
-
-/// 
-open class ResponsePlanIntegration {
-    PagerDutyConfiguration: (ResponsePlanPagerDutyConfiguration)?
-}
-
-/// The chat channel configuration.
-open class ResponsePlanChatChannel {
-    ChatbotSns: (ResponsePlanChatbotSns)?
-}
-
-/// The automation configuration to launch.
-open class ResponsePlanAction {
-    SsmAutomation: (ResponsePlanSsmAutomation)?
-}
-
-/// The incident template configuration.
-open class ResponsePlanIncidentTemplate {
-    Summary: (String|Mapping)?
-    Title: String|Mapping
-    IncidentTags: (Listing<ResponsePlanTag>)?
-    DedupeString: (String|Mapping)?
-    Impact: Int|Mapping
-    NotificationTargets: (Listing<ResponsePlanNotificationTargetItem>)?
-}
-
-typealias ResponsePlanSnsArn = String|Mapping
-
-
-/// Value of the dynamic parameter to set when starting the SSM automation document.
-open class ResponsePlanDynamicSsmParameterValue {
-    Variable: (ResponsePlanVariableType)?
-}
 
 /// Resource type definition for AWS::SSMIncidents::ResponsePlan
 open class ResponsePlan extends cloudformation.Resource {
@@ -103,39 +103,39 @@ open class ResponsePlan extends cloudformation.Resource {
     Type = "AWS::SSMIncidents::ResponsePlan"
 
 
-    /// 
-    hidden IncidentTemplate: ResponsePlanIncidentTemplate
-
-    /// The name of the response plan.
-    hidden Name: String(matches(Regex(#"^[a-zA-Z0-9_-]*$"#)))|Mapping
-
-    /// The list of engagements to use.
-    hidden Engagements: (Listing<ResponsePlanSSMContact>)?
-
     /// The list of actions.
     hidden Actions: (Listing<ResponsePlanAction>)?
-
-    /// The tags to apply to the response plan.
-    hidden Tags: (Listing<ResponsePlanTag>)?
-
-    /// The display name of the response plan.
-    hidden DisplayName: (String|Mapping)?
 
     /// 
     hidden ChatChannel: (ResponsePlanChatChannel)?
 
+    /// The display name of the response plan.
+    hidden DisplayName: (String|Mapping)?
+
+    /// The list of engagements to use.
+    hidden Engagements: (Listing<ResponsePlanSSMContact>)?
+
+    /// 
+    hidden IncidentTemplate: ResponsePlanIncidentTemplate
+
     /// The list of integrations.
     hidden Integrations: (Listing<ResponsePlanIntegration>)?
 
+    /// The name of the response plan.
+    hidden Name: String(matches(Regex(#"^[a-zA-Z0-9_-]*$"#)))|Mapping
+
+    /// The tags to apply to the response plan.
+    hidden Tags: (Listing<ResponsePlanTag>)?
+
     Properties {
-        ["IncidentTemplate"] = if (IncidentTemplate == null) null else IncidentTemplate
-        ["Name"] = if (Name == null) null else Name
-        ["Engagements"] = if (Engagements == null) null else Engagements
         ["Actions"] = if (Actions == null) null else Actions
-        ["Tags"] = if (Tags == null) null else Tags
-        ["DisplayName"] = if (DisplayName == null) null else DisplayName
         ["ChatChannel"] = if (ChatChannel == null) null else ChatChannel
+        ["DisplayName"] = if (DisplayName == null) null else DisplayName
+        ["Engagements"] = if (Engagements == null) null else Engagements
+        ["IncidentTemplate"] = if (IncidentTemplate == null) null else IncidentTemplate
         ["Integrations"] = if (Integrations == null) null else Integrations
+        ["Name"] = if (Name == null) null else Name
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

@@ -5,14 +5,14 @@ module aws.route53resolver.firewalldomainlist
 
 import "../../cloudformation.pkl"
 
+typealias FirewallDomainListDomains = Listing<(String|Mapping)?>
+
+
 /// A key-value pair to associate with a resource.
 open class FirewallDomainListTag {
     Key: String|Mapping
     Value: String|Mapping
 }
-
-typealias FirewallDomainListDomains = Listing<(String|Mapping)?>
-
 
 /// Resource schema for AWS::Route53Resolver::FirewallDomainList.
 open class FirewallDomainList extends cloudformation.Resource {
@@ -20,23 +20,23 @@ open class FirewallDomainList extends cloudformation.Resource {
     Type = "AWS::Route53Resolver::FirewallDomainList"
 
 
-    /// 
-    hidden Domains: (FirewallDomainListDomains)?
-
     /// S3 URL to import domains from.
     hidden DomainFileUrl: (String|Mapping)?
 
-    /// Tags
-    hidden Tags: (Listing<FirewallDomainListTag>)?
+    /// 
+    hidden Domains: (FirewallDomainListDomains)?
 
     /// FirewallDomainListName
     hidden Name: (String(matches(Regex(#"(?!^[0-9]+$)([a-zA-Z0-9\-_' ']+)"#)))|Mapping)?
 
+    /// Tags
+    hidden Tags: (Listing<FirewallDomainListTag>)?
+
     Properties {
-        ["Domains"] = if (Domains == null) null else Domains
         ["DomainFileUrl"] = if (DomainFileUrl == null) null else DomainFileUrl
-        ["Tags"] = if (Tags == null) null else Tags
+        ["Domains"] = if (Domains == null) null else Domains
         ["Name"] = if (Name == null) null else Name
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

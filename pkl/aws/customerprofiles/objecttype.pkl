@@ -6,15 +6,15 @@ module aws.customerprofiles.objecttype
 import "../../cloudformation.pkl"
 
 /// 
-open class ObjectTypeTag {
-    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
-    Value: String|Mapping
-}
-
-/// 
 open class ObjectTypeFieldMap {
     Name: (String(matches(Regex(#"^[a-zA-Z0-9_-]+$"#)))|Mapping)?
     ObjectTypeField: (ObjectTypeObjectTypeField)?
+}
+
+/// 
+open class ObjectTypeKeyMap {
+    Name: (String(matches(Regex(#"^[a-zA-Z0-9_-]+$"#)))|Mapping)?
+    ObjectTypeKeyList: (Listing<ObjectTypeObjectTypeKey>)?
 }
 
 typealias ObjectTypeFieldContentType = "STRING"|"NUMBER"|"PHONE_NUMBER"|"EMAIL_ADDRESS"|"NAME"
@@ -26,18 +26,18 @@ open class ObjectTypeObjectTypeField {
     ContentType: (ObjectTypeFieldContentType|Mapping)?
 }
 
-/// 
-open class ObjectTypeKeyMap {
-    Name: (String(matches(Regex(#"^[a-zA-Z0-9_-]+$"#)))|Mapping)?
-    ObjectTypeKeyList: (Listing<ObjectTypeObjectTypeKey>)?
-}
-
 typealias ObjectTypeKeyStandardIdentifiers = "PROFILE"|"UNIQUE"|"SECONDARY"|"LOOKUP_ONLY"|"NEW_ONLY"|"ASSET"|"CASE"|"ORDER"
 
 /// An object that defines the Key element of a ProfileObject. A Key is a special element that can be used to search for a customer profile.
 open class ObjectTypeObjectTypeKey {
     FieldNames: (Listing<String|Mapping>)?
     StandardIdentifiers: (Listing<ObjectTypeKeyStandardIdentifiers|Mapping>)?
+}
+
+/// 
+open class ObjectTypeTag {
+    Value: String|Mapping
+    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
 }
 
 /// An ObjectType resource of Amazon Connect Customer Profiles
@@ -49,23 +49,17 @@ open class ObjectType extends cloudformation.Resource {
     /// Indicates whether a profile should be created when data is received.
     hidden AllowProfileCreation: (Boolean|Mapping)?
 
-    /// A unique identifier for the object template.
-    hidden TemplateId: (String(matches(Regex(#"^[a-zA-Z0-9_-]+$"#)))|Mapping)?
-
-    /// The name of the profile object type.
-    hidden ObjectTypeName: String(matches(Regex(#"^[a-zA-Z_][a-zA-Z_0-9-]*$"#)))|Mapping
-
     /// Description of the profile object type.
     hidden Description: String|Mapping
+
+    /// The unique name of the domain.
+    hidden DomainName: String(matches(Regex(#"^[a-zA-Z0-9_-]+$"#)))|Mapping
 
     /// The default encryption key
     hidden EncryptionKey: (String|Mapping)?
 
-    /// The tags (keys and values) associated with the integration.
-    hidden Tags: (Listing<ObjectTypeTag>)?
-
-    /// The unique name of the domain.
-    hidden DomainName: String(matches(Regex(#"^[a-zA-Z0-9_-]+$"#)))|Mapping
+    /// The default number of days until the data within the domain expires.
+    hidden ExpirationDays: (Int|Mapping)?
 
     /// A list of the name and ObjectType field.
     hidden Fields: (Listing<ObjectTypeFieldMap>)?
@@ -73,24 +67,30 @@ open class ObjectType extends cloudformation.Resource {
     /// A list of unique keys that can be used to map data to the profile.
     hidden Keys: (Listing<ObjectTypeKeyMap>)?
 
-    /// The default number of days until the data within the domain expires.
-    hidden ExpirationDays: (Int|Mapping)?
+    /// The name of the profile object type.
+    hidden ObjectTypeName: String(matches(Regex(#"^[a-zA-Z_][a-zA-Z_0-9-]*$"#)))|Mapping
 
     /// The format of your sourceLastUpdatedTimestamp that was previously set up.
     hidden SourceLastUpdatedTimestampFormat: (String|Mapping)?
 
+    /// The tags (keys and values) associated with the integration.
+    hidden Tags: (Listing<ObjectTypeTag>)?
+
+    /// A unique identifier for the object template.
+    hidden TemplateId: (String(matches(Regex(#"^[a-zA-Z0-9_-]+$"#)))|Mapping)?
+
     Properties {
         ["AllowProfileCreation"] = if (AllowProfileCreation == null) null else AllowProfileCreation
-        ["TemplateId"] = if (TemplateId == null) null else TemplateId
-        ["ObjectTypeName"] = if (ObjectTypeName == null) null else ObjectTypeName
         ["Description"] = if (Description == null) null else Description
-        ["EncryptionKey"] = if (EncryptionKey == null) null else EncryptionKey
-        ["Tags"] = if (Tags == null) null else Tags
         ["DomainName"] = if (DomainName == null) null else DomainName
+        ["EncryptionKey"] = if (EncryptionKey == null) null else EncryptionKey
+        ["ExpirationDays"] = if (ExpirationDays == null) null else ExpirationDays
         ["Fields"] = if (Fields == null) null else Fields
         ["Keys"] = if (Keys == null) null else Keys
-        ["ExpirationDays"] = if (ExpirationDays == null) null else ExpirationDays
+        ["ObjectTypeName"] = if (ObjectTypeName == null) null else ObjectTypeName
         ["SourceLastUpdatedTimestampFormat"] = if (SourceLastUpdatedTimestampFormat == null) null else SourceLastUpdatedTimestampFormat
+        ["Tags"] = if (Tags == null) null else Tags
+        ["TemplateId"] = if (TemplateId == null) null else TemplateId
     }
 
 }

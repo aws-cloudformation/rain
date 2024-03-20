@@ -5,8 +5,8 @@ module aws.eks.fargateprofile
 
 import "../../cloudformation.pkl"
 
-/// A key-value pair to associate with a resource.
-open class FargateProfileTag {
+/// A key-value pair to associate with a pod.
+open class FargateProfileLabel {
     Key: String|Mapping
     Value: String|Mapping
 }
@@ -17,8 +17,8 @@ open class FargateProfileSelector {
     Namespace: String|Mapping
 }
 
-/// A key-value pair to associate with a pod.
-open class FargateProfileLabel {
+/// A key-value pair to associate with a resource.
+open class FargateProfileTag {
     Key: String|Mapping
     Value: String|Mapping
 }
@@ -29,15 +29,6 @@ open class FargateProfile extends cloudformation.Resource {
     Type = "AWS::EKS::FargateProfile"
 
 
-    /// 
-    hidden Subnets: (Listing<String|Mapping>)?
-
-    /// 
-    hidden Selectors: Listing<FargateProfileSelector>
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<FargateProfileTag>)?
-
     /// Name of the Cluster
     hidden ClusterName: String|Mapping
 
@@ -47,13 +38,22 @@ open class FargateProfile extends cloudformation.Resource {
     /// The IAM policy arn for pods
     hidden PodExecutionRoleArn: String|Mapping
 
+    /// 
+    hidden Selectors: Listing<FargateProfileSelector>
+
+    /// 
+    hidden Subnets: (Listing<String|Mapping>)?
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<FargateProfileTag>)?
+
     Properties {
-        ["Subnets"] = if (Subnets == null) null else Subnets
-        ["Selectors"] = if (Selectors == null) null else Selectors
-        ["Tags"] = if (Tags == null) null else Tags
         ["ClusterName"] = if (ClusterName == null) null else ClusterName
         ["FargateProfileName"] = if (FargateProfileName == null) null else FargateProfileName
         ["PodExecutionRoleArn"] = if (PodExecutionRoleArn == null) null else PodExecutionRoleArn
+        ["Selectors"] = if (Selectors == null) null else Selectors
+        ["Subnets"] = if (Subnets == null) null else Subnets
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

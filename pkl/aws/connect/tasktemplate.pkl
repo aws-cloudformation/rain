@@ -5,8 +5,32 @@ module aws.connect.tasktemplate
 
 import "../../cloudformation.pkl"
 
+typealias TaskTemplateInvisibleTaskTemplateFields = Listing<(TaskTemplateInvisibleFieldInfo)?>
+
+
+typealias TaskTemplateRequiredTaskTemplateFields = Listing<(TaskTemplateRequiredFieldInfo)?>
+
+
+typealias TaskTemplateClientToken = String|Mapping
+
+
+typealias TaskTemplateFieldOption = String|Mapping
+
+
 typealias TaskTemplateReadOnlyTaskTemplateFields = Listing<(TaskTemplateReadOnlyFieldInfo)?>
 
+
+/// A key-value pair to associate with a resource.
+open class TaskTemplateTag {
+    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
+    Value: String|Mapping
+}
+
+/// the default value for the task template's field
+open class TaskTemplateDefaultFieldValue {
+    Id: TaskTemplateFieldIdentifier
+    DefaultValue: TaskTemplateFieldValue
+}
 
 /// A task template field object.
 open class TaskTemplateField {
@@ -21,39 +45,10 @@ open class TaskTemplateFieldIdentifier {
     Name: String|Mapping
 }
 
-/// the default value for the task template's field
-open class TaskTemplateDefaultFieldValue {
-    Id: TaskTemplateFieldIdentifier
-    DefaultValue: TaskTemplateFieldValue
-}
-
 typealias TaskTemplateFieldValue = String|Mapping
 
 
-/// A key-value pair to associate with a resource.
-open class TaskTemplateTag {
-    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
-    Value: String|Mapping
-}
-
-typealias TaskTemplateInvisibleTaskTemplateFields = Listing<(TaskTemplateInvisibleFieldInfo)?>
-
-
 typealias TaskTemplateStatus = String|Mapping
-
-
-/// ReadOnly field info
-open class TaskTemplateReadOnlyFieldInfo {
-    Id: TaskTemplateFieldIdentifier
-}
-
-typealias TaskTemplateRequiredTaskTemplateFields = Listing<(TaskTemplateRequiredFieldInfo)?>
-
-
-typealias TaskTemplateFieldOption = String|Mapping
-
-
-typealias TaskTemplateClientToken = String|Mapping
 
 
 typealias TaskTemplateFieldType = String|Mapping
@@ -61,6 +56,11 @@ typealias TaskTemplateFieldType = String|Mapping
 
 /// Invisible field info
 open class TaskTemplateInvisibleFieldInfo {
+    Id: TaskTemplateFieldIdentifier
+}
+
+/// ReadOnly field info
+open class TaskTemplateReadOnlyFieldInfo {
     Id: TaskTemplateFieldIdentifier
 }
 
@@ -75,26 +75,29 @@ open class TaskTemplate extends cloudformation.Resource {
     Type = "AWS::Connect::TaskTemplate"
 
 
-    /// The identifier (arn) of the instance.
-    hidden InstanceArn: String(matches(Regex(#"^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$"#)))|Mapping
-
-    /// The description of the task template.
-    hidden Description: (String|Mapping)?
-
-    /// 
-    hidden Defaults: (Listing<TaskTemplateDefaultFieldValue>)?
-
     /// 
     hidden ClientToken: (TaskTemplateClientToken)?
-
-    /// The identifier of the contact flow.
-    hidden ContactFlowArn: (String(matches(Regex(#"^$|arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/contact-flow/[-a-zA-Z0-9]*$"#)))|Mapping)?
 
     /// The constraints for the task template
     hidden Constraints: (Dynamic)?
 
+    /// The identifier of the contact flow.
+    hidden ContactFlowArn: (String(matches(Regex(#"^$|arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/contact-flow/[-a-zA-Z0-9]*$"#)))|Mapping)?
+
+    /// 
+    hidden Defaults: (Listing<TaskTemplateDefaultFieldValue>)?
+
+    /// The description of the task template.
+    hidden Description: (String|Mapping)?
+
     /// The list of task template's fields
     hidden Fields: (Listing<TaskTemplateField>)?
+
+    /// The identifier (arn) of the instance.
+    hidden InstanceArn: String(matches(Regex(#"^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$"#)))|Mapping
+
+    /// The name of the task template.
+    hidden Name: (String|Mapping)?
 
     /// 
     hidden Status: (TaskTemplateStatus)?
@@ -102,20 +105,17 @@ open class TaskTemplate extends cloudformation.Resource {
     /// One or more tags.
     hidden Tags: (Listing<TaskTemplateTag>)?
 
-    /// The name of the task template.
-    hidden Name: (String|Mapping)?
-
     Properties {
-        ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
-        ["Description"] = if (Description == null) null else Description
-        ["Defaults"] = if (Defaults == null) null else Defaults
         ["ClientToken"] = if (ClientToken == null) null else ClientToken
-        ["ContactFlowArn"] = if (ContactFlowArn == null) null else ContactFlowArn
         ["Constraints"] = if (Constraints == null) null else Constraints
+        ["ContactFlowArn"] = if (ContactFlowArn == null) null else ContactFlowArn
+        ["Defaults"] = if (Defaults == null) null else Defaults
+        ["Description"] = if (Description == null) null else Description
         ["Fields"] = if (Fields == null) null else Fields
+        ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
+        ["Name"] = if (Name == null) null else Name
         ["Status"] = if (Status == null) null else Status
         ["Tags"] = if (Tags == null) null else Tags
-        ["Name"] = if (Name == null) null else Name
     }
 
 }

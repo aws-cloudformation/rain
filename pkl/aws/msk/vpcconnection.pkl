@@ -5,9 +5,6 @@ module aws.msk.vpcconnection
 
 import "../../cloudformation.pkl"
 
-typealias VpcConnectionAuthentication = String|Mapping
-
-
 typealias VpcConnectionClientSubnets = Listing<(String(matches(Regex(#"^(subnet-)([a-z0-9]+)\Z"#)))|Mapping)?>
 
 
@@ -20,6 +17,9 @@ typealias VpcConnectionTags = Mapping<String, Any>
 typealias VpcConnectionVpcId = String|Mapping
 
 
+typealias VpcConnectionAuthentication = String|Mapping
+
+
 /// Resource Type definition for AWS::MSK::VpcConnection
 open class VpcConnection extends cloudformation.Resource {
 
@@ -27,10 +27,10 @@ open class VpcConnection extends cloudformation.Resource {
 
 
     /// 
-    hidden ClientSubnets: VpcConnectionClientSubnets
+    hidden Authentication: VpcConnectionAuthentication
 
-    /// The Amazon Resource Name (ARN) of the target cluster
-    hidden TargetClusterArn: String(matches(Regex(#"^arn:[\w-]+:kafka:[\w-]+:\d+:cluster.*\Z"#)))|Mapping
+    /// 
+    hidden ClientSubnets: VpcConnectionClientSubnets
 
     /// 
     hidden SecurityGroups: VpcConnectionSecurityGroups
@@ -38,19 +38,19 @@ open class VpcConnection extends cloudformation.Resource {
     /// 
     hidden Tags: (VpcConnectionTags)?
 
+    /// The Amazon Resource Name (ARN) of the target cluster
+    hidden TargetClusterArn: String(matches(Regex(#"^arn:[\w-]+:kafka:[\w-]+:\d+:cluster.*\Z"#)))|Mapping
+
     /// 
     hidden VpcId: VpcConnectionVpcId
 
-    /// 
-    hidden Authentication: VpcConnectionAuthentication
-
     Properties {
+        ["Authentication"] = if (Authentication == null) null else Authentication
         ["ClientSubnets"] = if (ClientSubnets == null) null else ClientSubnets
-        ["TargetClusterArn"] = if (TargetClusterArn == null) null else TargetClusterArn
         ["SecurityGroups"] = if (SecurityGroups == null) null else SecurityGroups
         ["Tags"] = if (Tags == null) null else Tags
+        ["TargetClusterArn"] = if (TargetClusterArn == null) null else TargetClusterArn
         ["VpcId"] = if (VpcId == null) null else VpcId
-        ["Authentication"] = if (Authentication == null) null else Authentication
     }
 
 }

@@ -5,8 +5,12 @@ module aws.mediatailor.vodsource
 
 import "../../cloudformation.pkl"
 
-typealias VodSourceType = String|Mapping
-
+/// <p>The HTTP package configuration properties for the requested VOD source.</p>
+open class VodSourceHttpPackageConfiguration {
+    SourceGroup: String|Mapping
+    Type: VodSourceType
+    Path: String|Mapping
+}
 
 /// 
 open class VodSourceTag {
@@ -14,21 +18,14 @@ open class VodSourceTag {
     Value: String|Mapping
 }
 
-/// <p>The HTTP package configuration properties for the requested VOD source.</p>
-open class VodSourceHttpPackageConfiguration {
-    Path: String|Mapping
-    SourceGroup: String|Mapping
-    Type: VodSourceType
-}
+typealias VodSourceType = String|Mapping
+
 
 /// Definition of AWS::MediaTailor::VodSource Resource Type
 open class VodSource extends cloudformation.Resource {
 
     Type = "AWS::MediaTailor::VodSource"
 
-
-    /// 
-    hidden VodSourceName: String|Mapping
 
     /// <p>A list of HTTP package configuration parameters for this VOD source.</p>
     hidden HttpPackageConfigurations: Listing<VodSourceHttpPackageConfiguration>
@@ -39,11 +36,14 @@ open class VodSource extends cloudformation.Resource {
     /// The tags to assign to the VOD source.
     hidden Tags: (Listing<VodSourceTag>)?
 
+    /// 
+    hidden VodSourceName: String|Mapping
+
     Properties {
-        ["VodSourceName"] = if (VodSourceName == null) null else VodSourceName
         ["HttpPackageConfigurations"] = if (HttpPackageConfigurations == null) null else HttpPackageConfigurations
         ["SourceLocationName"] = if (SourceLocationName == null) null else SourceLocationName
         ["Tags"] = if (Tags == null) null else Tags
+        ["VodSourceName"] = if (VodSourceName == null) null else VodSourceName
     }
 
 }

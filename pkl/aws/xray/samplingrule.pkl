@@ -5,11 +5,55 @@ module aws.xray.samplingrule
 
 import "../../cloudformation.pkl"
 
+typealias SamplingRuleRuleARN = String|Mapping
+
+
 typealias SamplingRuleRuleName = String|Mapping
 
 
-typealias SamplingRuleRuleARN = String|Mapping
+typealias SamplingRuleSamplingRuleAttributes = Mapping<String, Any>
 
+/// 
+open class SamplingRuleSamplingRule {
+    FixedRate: Number|Mapping
+    Priority: Int|Mapping
+    ResourceARN: String|Mapping
+    RuleName: (SamplingRuleRuleName)?
+    ServiceType: String|Mapping
+    Version: (Int|Mapping)?
+    HTTPMethod: String|Mapping
+    URLPath: String|Mapping
+    Attributes: (SamplingRuleSamplingRuleAttributes)?
+    Host: String|Mapping
+    ReservoirSize: Int|Mapping
+    RuleARN: (SamplingRuleRuleARN)?
+    ServiceName: String|Mapping
+}
+
+/// 
+open class SamplingRuleSamplingRuleRecord {
+    CreatedAt: (String|Mapping)?
+    ModifiedAt: (String|Mapping)?
+    SamplingRule: (SamplingRuleSamplingRule)?
+}
+
+typealias SamplingRuleSamplingRuleUpdateAttributes = Mapping<String, Any>
+
+/// 
+open class SamplingRuleSamplingRuleUpdate {
+    ReservoirSize: (Int|Mapping)?
+    RuleName: (SamplingRuleRuleName)?
+    ServiceType: (String|Mapping)?
+    FixedRate: (Number|Mapping)?
+    Host: (String|Mapping)?
+    HTTPMethod: (String|Mapping)?
+    RuleARN: (SamplingRuleRuleARN)?
+    ServiceName: (String|Mapping)?
+    URLPath: (String|Mapping)?
+    Attributes: (SamplingRuleSamplingRuleUpdateAttributes)?
+    Priority: (Int|Mapping)?
+    ResourceARN: (String|Mapping)?
+}
 
 /// 
 open class SamplingRuleTag {
@@ -20,55 +64,14 @@ open class SamplingRuleTag {
 typealias SamplingRuleTags = Listing<(SamplingRuleTag)?>
 
 
-typealias SamplingRuleSamplingRuleAttributes = Mapping<String, Any>
-
-/// 
-open class SamplingRuleSamplingRule {
-    Attributes: (SamplingRuleSamplingRuleAttributes)?
-    HTTPMethod: String|Mapping
-    ReservoirSize: Int|Mapping
-    ResourceARN: String|Mapping
-    ServiceName: String|Mapping
-    ServiceType: String|Mapping
-    RuleARN: (SamplingRuleRuleARN)?
-    URLPath: String|Mapping
-    Version: (Int|Mapping)?
-    Host: String|Mapping
-    FixedRate: Number|Mapping
-    Priority: Int|Mapping
-    RuleName: (SamplingRuleRuleName)?
-}
-
-/// 
-open class SamplingRuleSamplingRuleRecord {
-    SamplingRule: (SamplingRuleSamplingRule)?
-    CreatedAt: (String|Mapping)?
-    ModifiedAt: (String|Mapping)?
-}
-
-typealias SamplingRuleSamplingRuleUpdateAttributes = Mapping<String, Any>
-
-/// 
-open class SamplingRuleSamplingRuleUpdate {
-    HTTPMethod: (String|Mapping)?
-    ReservoirSize: (Int|Mapping)?
-    RuleARN: (SamplingRuleRuleARN)?
-    RuleName: (SamplingRuleRuleName)?
-    Host: (String|Mapping)?
-    FixedRate: (Number|Mapping)?
-    Priority: (Int|Mapping)?
-    ResourceARN: (String|Mapping)?
-    ServiceName: (String|Mapping)?
-    ServiceType: (String|Mapping)?
-    URLPath: (String|Mapping)?
-    Attributes: (SamplingRuleSamplingRuleUpdateAttributes)?
-}
-
 /// This schema provides construct and validation rules for AWS-XRay SamplingRule resource parameters.
 open class SamplingRule extends cloudformation.Resource {
 
     Type = "AWS::XRay::SamplingRule"
 
+
+    /// 
+    hidden RuleName: (SamplingRuleRuleName)?
 
     /// 
     hidden SamplingRule: (SamplingRuleSamplingRule)?
@@ -80,16 +83,13 @@ open class SamplingRule extends cloudformation.Resource {
     hidden SamplingRuleUpdate: (SamplingRuleSamplingRuleUpdate)?
 
     /// 
-    hidden RuleName: (SamplingRuleRuleName)?
-
-    /// 
     hidden Tags: (SamplingRuleTags)?
 
     Properties {
+        ["RuleName"] = if (RuleName == null) null else RuleName
         ["SamplingRule"] = if (SamplingRule == null) null else SamplingRule
         ["SamplingRuleRecord"] = if (SamplingRuleRecord == null) null else SamplingRuleRecord
         ["SamplingRuleUpdate"] = if (SamplingRuleUpdate == null) null else SamplingRuleUpdate
-        ["RuleName"] = if (RuleName == null) null else RuleName
         ["Tags"] = if (Tags == null) null else Tags
     }
 

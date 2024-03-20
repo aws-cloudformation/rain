@@ -17,11 +17,11 @@ open class ContactFlow extends cloudformation.Resource {
     Type = "AWS::Connect::ContactFlow"
 
 
-    /// The type of the contact flow.
-    hidden TypeProperty: ContactFlowType|Mapping
+    /// The content of the contact flow in JSON format.
+    hidden Content: String|Mapping
 
-    /// One or more tags.
-    hidden Tags: (Listing<ContactFlowTag>)?
+    /// The description of the contact flow.
+    hidden Description: (String|Mapping)?
 
     /// The identifier of the Amazon Connect instance (ARN).
     hidden InstanceArn: String(matches(Regex(#"^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$"#)))|Mapping
@@ -29,28 +29,28 @@ open class ContactFlow extends cloudformation.Resource {
     /// The name of the contact flow.
     hidden Name: String|Mapping
 
-    /// The content of the contact flow in JSON format.
-    hidden Content: String|Mapping
-
-    /// The description of the contact flow.
-    hidden Description: (String|Mapping)?
-
     /// The state of the contact flow.
     hidden State: (ContactFlowState|Mapping)?
 
+    /// One or more tags.
+    hidden Tags: (Listing<ContactFlowTag>)?
+
+    /// The type of the contact flow.
+    hidden TypeProperty: ContactFlowType|Mapping
+
     Properties {
-        ["Type"] = if (TypeProperty == null) null else TypeProperty
-        ["Tags"] = if (Tags == null) null else Tags
-        ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
-        ["Name"] = if (Name == null) null else Name
         ["Content"] = if (Content == null) null else Content
         ["Description"] = if (Description == null) null else Description
+        ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
+        ["Name"] = if (Name == null) null else Name
         ["State"] = if (State == null) null else State
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Type"] = if (TypeProperty == null) null else TypeProperty
     }
 
 }
 
 
-typealias ContactFlowType = "CONTACT_FLOW"|"CUSTOMER_QUEUE"|"CUSTOMER_HOLD"|"CUSTOMER_WHISPER"|"AGENT_HOLD"|"AGENT_WHISPER"|"OUTBOUND_WHISPER"|"AGENT_TRANSFER"|"QUEUE_TRANSFER"
-
 typealias ContactFlowState = "ACTIVE"|"ARCHIVED"
+
+typealias ContactFlowType = "CONTACT_FLOW"|"CUSTOMER_QUEUE"|"CUSTOMER_HOLD"|"CUSTOMER_WHISPER"|"AGENT_HOLD"|"AGENT_WHISPER"|"OUTBOUND_WHISPER"|"AGENT_TRANSFER"|"QUEUE_TRANSFER"

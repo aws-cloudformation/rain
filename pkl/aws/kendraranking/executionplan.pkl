@@ -10,16 +10,16 @@ open class ExecutionPlanCapacityUnitsConfiguration {
     RescoreCapacityUnits: ExecutionPlanRescoreCapacityUnits
 }
 
-typealias ExecutionPlanName = String|Mapping
+typealias ExecutionPlanDescription = String|Mapping
 
 
 typealias ExecutionPlanId = String|Mapping
 
 
-typealias ExecutionPlanArn = String|Mapping
+typealias ExecutionPlanName = String|Mapping
 
 
-typealias ExecutionPlanDescription = String|Mapping
+typealias ExecutionPlanRescoreCapacityUnits = Int|Mapping
 
 
 /// A label for tagging KendraRanking resources
@@ -31,7 +31,7 @@ open class ExecutionPlanTag {
 typealias ExecutionPlanTags = Listing<(ExecutionPlanTag)?>
 
 
-typealias ExecutionPlanRescoreCapacityUnits = Int|Mapping
+typealias ExecutionPlanArn = String|Mapping
 
 
 /// A KendraRanking Rescore execution plan
@@ -40,23 +40,23 @@ open class ExecutionPlan extends cloudformation.Resource {
     Type = "AWS::KendraRanking::ExecutionPlan"
 
 
+    /// Capacity units
+    hidden CapacityUnits: (ExecutionPlanCapacityUnitsConfiguration)?
+
     /// A description for the execution plan
     hidden Description: (ExecutionPlanDescription)?
-
-    /// Tags for labeling the execution plan
-    hidden Tags: (ExecutionPlanTags)?
 
     /// 
     hidden Name: ExecutionPlanName
 
-    /// Capacity units
-    hidden CapacityUnits: (ExecutionPlanCapacityUnitsConfiguration)?
+    /// Tags for labeling the execution plan
+    hidden Tags: (ExecutionPlanTags)?
 
     Properties {
-        ["Description"] = if (Description == null) null else Description
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Name"] = if (Name == null) null else Name
         ["CapacityUnits"] = if (CapacityUnits == null) null else CapacityUnits
+        ["Description"] = if (Description == null) null else Description
+        ["Name"] = if (Name == null) null else Name
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

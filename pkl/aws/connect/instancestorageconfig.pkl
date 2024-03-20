@@ -5,42 +5,7 @@ module aws.connect.instancestorageconfig
 
 import "../../cloudformation.pkl"
 
-typealias InstanceStorageConfigKeyId = String|Mapping
-
-
-/// 
-open class InstanceStorageConfigS3Config {
-    BucketName: InstanceStorageConfigBucketName
-    BucketPrefix: InstanceStorageConfigPrefix
-    EncryptionConfig: (InstanceStorageConfigEncryptionConfig)?
-}
-
-/// 
-open class InstanceStorageConfigKinesisStreamConfig {
-    StreamArn: InstanceStorageConfigKinesisStreamArn
-}
-
-/// 
-open class InstanceStorageConfigKinesisFirehoseConfig {
-    FirehoseArn: InstanceStorageConfigFirehoseDeliveryStreamArn
-}
-
 typealias InstanceStorageConfigInstanceStorageResourceType = String|Mapping
-
-
-typealias InstanceStorageConfigPrefix = String|Mapping
-
-
-typealias InstanceStorageConfigStorageType = String|Mapping
-
-
-typealias InstanceStorageConfigFirehoseDeliveryStreamArn = String|Mapping
-
-
-typealias InstanceStorageConfigKinesisStreamArn = String|Mapping
-
-
-typealias InstanceStorageConfigAssociationId = String|Mapping
 
 
 /// 
@@ -50,7 +15,42 @@ open class InstanceStorageConfigKinesisVideoStreamConfig {
     EncryptionConfig: InstanceStorageConfigEncryptionConfig
 }
 
+typealias InstanceStorageConfigPrefix = String|Mapping
+
+
+typealias InstanceStorageConfigFirehoseDeliveryStreamArn = String|Mapping
+
+
+/// 
+open class InstanceStorageConfigKinesisFirehoseConfig {
+    FirehoseArn: InstanceStorageConfigFirehoseDeliveryStreamArn
+}
+
+/// 
+open class InstanceStorageConfigKinesisStreamConfig {
+    StreamArn: InstanceStorageConfigKinesisStreamArn
+}
+
+/// 
+open class InstanceStorageConfigS3Config {
+    BucketName: InstanceStorageConfigBucketName
+    BucketPrefix: InstanceStorageConfigPrefix
+    EncryptionConfig: (InstanceStorageConfigEncryptionConfig)?
+}
+
+typealias InstanceStorageConfigHours = Number|Mapping
+
+
+typealias InstanceStorageConfigKinesisStreamArn = String|Mapping
+
+
+typealias InstanceStorageConfigStorageType = String|Mapping
+
+
 typealias InstanceStorageConfigEncryptionType = String|Mapping
+
+
+typealias InstanceStorageConfigBucketName = String|Mapping
 
 
 /// 
@@ -59,10 +59,10 @@ open class InstanceStorageConfigEncryptionConfig {
     KeyId: InstanceStorageConfigKeyId
 }
 
-typealias InstanceStorageConfigBucketName = String|Mapping
+typealias InstanceStorageConfigKeyId = String|Mapping
 
 
-typealias InstanceStorageConfigHours = Number|Mapping
+typealias InstanceStorageConfigAssociationId = String|Mapping
 
 
 /// Resource Type definition for AWS::Connect::InstanceStorageConfig
@@ -75,31 +75,31 @@ open class InstanceStorageConfig extends cloudformation.Resource {
     hidden InstanceArn: String(matches(Regex(#"^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$"#)))|Mapping
 
     /// 
-    hidden ResourceType: InstanceStorageConfigInstanceStorageResourceType
-
-    /// 
-    hidden StorageType: InstanceStorageConfigStorageType
-
-    /// 
-    hidden S3Config: (InstanceStorageConfigS3Config)?
-
-    /// 
-    hidden KinesisVideoStreamConfig: (InstanceStorageConfigKinesisVideoStreamConfig)?
+    hidden KinesisFirehoseConfig: (InstanceStorageConfigKinesisFirehoseConfig)?
 
     /// 
     hidden KinesisStreamConfig: (InstanceStorageConfigKinesisStreamConfig)?
 
     /// 
-    hidden KinesisFirehoseConfig: (InstanceStorageConfigKinesisFirehoseConfig)?
+    hidden KinesisVideoStreamConfig: (InstanceStorageConfigKinesisVideoStreamConfig)?
+
+    /// 
+    hidden ResourceType: InstanceStorageConfigInstanceStorageResourceType
+
+    /// 
+    hidden S3Config: (InstanceStorageConfigS3Config)?
+
+    /// 
+    hidden StorageType: InstanceStorageConfigStorageType
 
     Properties {
         ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
-        ["ResourceType"] = if (ResourceType == null) null else ResourceType
-        ["StorageType"] = if (StorageType == null) null else StorageType
-        ["S3Config"] = if (S3Config == null) null else S3Config
-        ["KinesisVideoStreamConfig"] = if (KinesisVideoStreamConfig == null) null else KinesisVideoStreamConfig
-        ["KinesisStreamConfig"] = if (KinesisStreamConfig == null) null else KinesisStreamConfig
         ["KinesisFirehoseConfig"] = if (KinesisFirehoseConfig == null) null else KinesisFirehoseConfig
+        ["KinesisStreamConfig"] = if (KinesisStreamConfig == null) null else KinesisStreamConfig
+        ["KinesisVideoStreamConfig"] = if (KinesisVideoStreamConfig == null) null else KinesisVideoStreamConfig
+        ["ResourceType"] = if (ResourceType == null) null else ResourceType
+        ["S3Config"] = if (S3Config == null) null else S3Config
+        ["StorageType"] = if (StorageType == null) null else StorageType
     }
 
 }

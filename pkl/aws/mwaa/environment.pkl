@@ -5,25 +5,7 @@ module aws.mwaa.environment
 
 import "../../cloudformation.pkl"
 
-typealias EnvironmentExecutionRoleArn = String|Mapping
-
-
-typealias EnvironmentCeleryExecutorQueue = String|Mapping
-
-
-typealias EnvironmentServiceRoleArn = String|Mapping
-
-
-typealias EnvironmentWebserverUrl = String|Mapping
-
-
-typealias EnvironmentMaxWorkers = Int|Mapping
-
-
-typealias EnvironmentUpdateCreatedAt = String|Mapping
-
-
-typealias EnvironmentEnvironmentStatus = String|Mapping
+typealias EnvironmentEnvironmentArn = String|Mapping
 
 
 /// Details about the last update performed on the environment.
@@ -33,28 +15,34 @@ open class EnvironmentLastUpdate {
     Error: (EnvironmentUpdateError)?
 }
 
-/// The error associated with an update request.
-open class EnvironmentUpdateError {
-    ErrorMessage: (EnvironmentErrorMessage)?
-    ErrorCode: (EnvironmentErrorCode)?
+typealias EnvironmentMaxWorkers = Int|Mapping
+
+
+typealias EnvironmentErrorMessage = String|Mapping
+
+
+/// Logging configuration for the environment.
+open class EnvironmentLoggingConfiguration {
+    TaskLogs: (EnvironmentModuleLoggingConfiguration)?
+    DagProcessingLogs: (EnvironmentModuleLoggingConfiguration)?
+    SchedulerLogs: (EnvironmentModuleLoggingConfiguration)?
+    WebserverLogs: (EnvironmentModuleLoggingConfiguration)?
+    WorkerLogs: (EnvironmentModuleLoggingConfiguration)?
 }
 
-typealias EnvironmentSchedulers = Int|Mapping
+typealias EnvironmentLoggingEnabled = Boolean|Mapping
 
 
-typealias EnvironmentDatabaseVpcEndpointService = String|Mapping
+typealias EnvironmentServiceRoleArn = String|Mapping
 
 
-typealias EnvironmentSubnetId = String|Mapping
+typealias EnvironmentWebserverVpcEndpointService = String|Mapping
 
 
-typealias EnvironmentAirflowArn = String|Mapping
+typealias EnvironmentConfigValue = String|Mapping
 
 
-typealias EnvironmentSecurityGroupId = String|Mapping
-
-
-typealias EnvironmentKmsKey = String|Mapping
+typealias EnvironmentEnvironmentStatus = String|Mapping
 
 
 /// Configures airflow component logging for the environment.
@@ -63,6 +51,21 @@ open class EnvironmentModuleLoggingConfigurationInput {
     LogLevel: (EnvironmentLoggingLevel)?
 }
 
+/// Configures the network resources of the environment.
+open class EnvironmentNetworkConfiguration {
+    SubnetIds: (Listing<EnvironmentSubnetId>)?
+    SecurityGroupIds: (Listing<EnvironmentSecurityGroupId>)?
+}
+
+typealias EnvironmentCreatedAt = String|Mapping
+
+
+typealias EnvironmentWebserverAccessMode = String|Mapping
+
+
+typealias EnvironmentKmsKey = String|Mapping
+
+
 /// Logging configuration for a specific airflow component.
 open class EnvironmentModuleLoggingConfiguration {
     Enabled: (EnvironmentLoggingEnabled)?
@@ -70,116 +73,95 @@ open class EnvironmentModuleLoggingConfiguration {
     CloudWatchLogGroupArn: (EnvironmentCloudWatchLogGroupArn)?
 }
 
-/// Logging configuration for the environment.
-open class EnvironmentLoggingConfiguration {
-    DagProcessingLogs: (EnvironmentModuleLoggingConfiguration)?
-    SchedulerLogs: (EnvironmentModuleLoggingConfiguration)?
-    WebserverLogs: (EnvironmentModuleLoggingConfiguration)?
-    WorkerLogs: (EnvironmentModuleLoggingConfiguration)?
-    TaskLogs: (EnvironmentModuleLoggingConfiguration)?
-}
-
-/// Configures logging for the environment.
-open class EnvironmentLoggingConfigurationInput {
-    DagProcessingLogs: (EnvironmentModuleLoggingConfigurationInput)?
-    SchedulerLogs: (EnvironmentModuleLoggingConfigurationInput)?
-    WebserverLogs: (EnvironmentModuleLoggingConfigurationInput)?
-    WorkerLogs: (EnvironmentModuleLoggingConfigurationInput)?
-    TaskLogs: (EnvironmentModuleLoggingConfigurationInput)?
-}
-
-typealias EnvironmentAirflowVersion = String|Mapping
+typealias EnvironmentRelativePath = String|Mapping
 
 
-typealias EnvironmentLoggingEnabled = Boolean|Mapping
-
-
-typealias EnvironmentErrorMessage = String|Mapping
-
-
-typealias EnvironmentWeeklyMaintenanceWindowStart = String|Mapping
+typealias EnvironmentAirflowArn = String|Mapping
 
 
 typealias EnvironmentConfigKey = String|Mapping
 
 
-typealias EnvironmentCloudWatchLogGroupArn = String|Mapping
-
-
-typealias EnvironmentConfigValue = String|Mapping
-
-
-typealias EnvironmentWebserverAccessMode = String|Mapping
-
-
-typealias EnvironmentWebserverVpcEndpointService = String|Mapping
-
-
-typealias EnvironmentRelativePath = String|Mapping
-
-
-typealias EnvironmentErrorCode = String|Mapping
-
-
 typealias EnvironmentEnvironmentClass = String|Mapping
-
-
-typealias EnvironmentEnvironmentArn = String|Mapping
 
 
 typealias EnvironmentEnvironmentName = String|Mapping
 
 
-typealias EnvironmentMinWorkers = Int|Mapping
-
-
-typealias EnvironmentS3BucketArn = String|Mapping
-
-
-/// Configures the network resources of the environment.
-open class EnvironmentNetworkConfiguration {
-    SubnetIds: (Listing<EnvironmentSubnetId>)?
-    SecurityGroupIds: (Listing<EnvironmentSecurityGroupId>)?
-}
-
-typealias EnvironmentUpdateStatus = String|Mapping
+typealias EnvironmentExecutionRoleArn = String|Mapping
 
 
 typealias EnvironmentS3ObjectVersion = String|Mapping
 
 
+typealias EnvironmentSchedulers = Int|Mapping
+
+
+typealias EnvironmentSubnetId = String|Mapping
+
+
+typealias EnvironmentUpdateCreatedAt = String|Mapping
+
+
+typealias EnvironmentWeeklyMaintenanceWindowStart = String|Mapping
+
+
+typealias EnvironmentCeleryExecutorQueue = String|Mapping
+
+
+typealias EnvironmentCloudWatchLogGroupArn = String|Mapping
+
+
+/// Configures logging for the environment.
+open class EnvironmentLoggingConfigurationInput {
+    WebserverLogs: (EnvironmentModuleLoggingConfigurationInput)?
+    WorkerLogs: (EnvironmentModuleLoggingConfigurationInput)?
+    TaskLogs: (EnvironmentModuleLoggingConfigurationInput)?
+    DagProcessingLogs: (EnvironmentModuleLoggingConfigurationInput)?
+    SchedulerLogs: (EnvironmentModuleLoggingConfigurationInput)?
+}
+
+typealias EnvironmentS3BucketArn = String|Mapping
+
+
+typealias EnvironmentWebserverUrl = String|Mapping
+
+
+typealias EnvironmentUpdateStatus = String|Mapping
+
+
+typealias EnvironmentAirflowVersion = String|Mapping
+
+
 typealias EnvironmentEndpointManagement = String|Mapping
 
 
-typealias EnvironmentCreatedAt = String|Mapping
+typealias EnvironmentErrorCode = String|Mapping
 
 
 typealias EnvironmentLoggingLevel = String|Mapping
 
+
+typealias EnvironmentSecurityGroupId = String|Mapping
+
+
+typealias EnvironmentDatabaseVpcEndpointService = String|Mapping
+
+
+typealias EnvironmentMinWorkers = Int|Mapping
+
+
+/// The error associated with an update request.
+open class EnvironmentUpdateError {
+    ErrorCode: (EnvironmentErrorCode)?
+    ErrorMessage: (EnvironmentErrorMessage)?
+}
 
 /// Resource schema for AWS::MWAA::Environment
 open class Environment extends cloudformation.Resource {
 
     Type = "AWS::MWAA::Environment"
 
-
-    /// 
-    hidden DagS3Path: (EnvironmentRelativePath)?
-
-    /// 
-    hidden PluginsS3Path: (EnvironmentRelativePath)?
-
-    /// 
-    hidden RequirementsS3ObjectVersion: (EnvironmentS3ObjectVersion)?
-
-    /// 
-    hidden MinWorkers: (EnvironmentMinWorkers)?
-
-    /// 
-    hidden SourceBucketArn: (EnvironmentS3BucketArn)?
-
-    /// 
-    hidden StartupScriptS3Path: (EnvironmentRelativePath)?
 
     /// Key/value pairs representing Airflow configuration variables.
     ///
@@ -194,77 +176,95 @@ open class Environment extends cloudformation.Resource {
     hidden AirflowConfigurationOptions: (Dynamic)?
 
     /// 
-    hidden MaxWorkers: (EnvironmentMaxWorkers)?
-
-    /// 
-    hidden NetworkConfiguration: (EnvironmentNetworkConfiguration)?
-
-    /// 
     hidden AirflowVersion: (EnvironmentAirflowVersion)?
 
     /// 
-    hidden RequirementsS3Path: (EnvironmentRelativePath)?
-
-    /// 
-    hidden LoggingConfiguration: (EnvironmentLoggingConfiguration)?
-
-    /// 
-    hidden WeeklyMaintenanceWindowStart: (EnvironmentWeeklyMaintenanceWindowStart)?
-
-    /// 
-    hidden Name: EnvironmentEnvironmentName
-
-    /// 
-    hidden ExecutionRoleArn: (EnvironmentExecutionRoleArn)?
-
-    /// 
-    hidden Schedulers: (EnvironmentSchedulers)?
-
-    /// A map of tags for the environment.
-    hidden Tags: (Dynamic)?
-
-    /// 
-    hidden KmsKey: (EnvironmentKmsKey)?
-
-    /// 
-    hidden EnvironmentClass: (EnvironmentEnvironmentClass)?
+    hidden DagS3Path: (EnvironmentRelativePath)?
 
     /// 
     hidden EndpointManagement: (EnvironmentEndpointManagement)?
 
     /// 
+    hidden EnvironmentClass: (EnvironmentEnvironmentClass)?
+
+    /// 
+    hidden ExecutionRoleArn: (EnvironmentExecutionRoleArn)?
+
+    /// 
+    hidden KmsKey: (EnvironmentKmsKey)?
+
+    /// 
+    hidden LoggingConfiguration: (EnvironmentLoggingConfiguration)?
+
+    /// 
+    hidden MaxWorkers: (EnvironmentMaxWorkers)?
+
+    /// 
+    hidden MinWorkers: (EnvironmentMinWorkers)?
+
+    /// 
+    hidden Name: EnvironmentEnvironmentName
+
+    /// 
+    hidden NetworkConfiguration: (EnvironmentNetworkConfiguration)?
+
+    /// 
     hidden PluginsS3ObjectVersion: (EnvironmentS3ObjectVersion)?
+
+    /// 
+    hidden PluginsS3Path: (EnvironmentRelativePath)?
+
+    /// 
+    hidden RequirementsS3ObjectVersion: (EnvironmentS3ObjectVersion)?
+
+    /// 
+    hidden RequirementsS3Path: (EnvironmentRelativePath)?
+
+    /// 
+    hidden Schedulers: (EnvironmentSchedulers)?
+
+    /// 
+    hidden SourceBucketArn: (EnvironmentS3BucketArn)?
 
     /// 
     hidden StartupScriptS3ObjectVersion: (EnvironmentS3ObjectVersion)?
 
     /// 
+    hidden StartupScriptS3Path: (EnvironmentRelativePath)?
+
+    /// A map of tags for the environment.
+    hidden Tags: (Dynamic)?
+
+    /// 
     hidden WebserverAccessMode: (EnvironmentWebserverAccessMode)?
 
+    /// 
+    hidden WeeklyMaintenanceWindowStart: (EnvironmentWeeklyMaintenanceWindowStart)?
+
     Properties {
+        ["AirflowConfigurationOptions"] = if (AirflowConfigurationOptions == null) null else AirflowConfigurationOptions
+        ["AirflowVersion"] = if (AirflowVersion == null) null else AirflowVersion
         ["DagS3Path"] = if (DagS3Path == null) null else DagS3Path
+        ["EndpointManagement"] = if (EndpointManagement == null) null else EndpointManagement
+        ["EnvironmentClass"] = if (EnvironmentClass == null) null else EnvironmentClass
+        ["ExecutionRoleArn"] = if (ExecutionRoleArn == null) null else ExecutionRoleArn
+        ["KmsKey"] = if (KmsKey == null) null else KmsKey
+        ["LoggingConfiguration"] = if (LoggingConfiguration == null) null else LoggingConfiguration
+        ["MaxWorkers"] = if (MaxWorkers == null) null else MaxWorkers
+        ["MinWorkers"] = if (MinWorkers == null) null else MinWorkers
+        ["Name"] = if (Name == null) null else Name
+        ["NetworkConfiguration"] = if (NetworkConfiguration == null) null else NetworkConfiguration
+        ["PluginsS3ObjectVersion"] = if (PluginsS3ObjectVersion == null) null else PluginsS3ObjectVersion
         ["PluginsS3Path"] = if (PluginsS3Path == null) null else PluginsS3Path
         ["RequirementsS3ObjectVersion"] = if (RequirementsS3ObjectVersion == null) null else RequirementsS3ObjectVersion
-        ["MinWorkers"] = if (MinWorkers == null) null else MinWorkers
-        ["SourceBucketArn"] = if (SourceBucketArn == null) null else SourceBucketArn
-        ["StartupScriptS3Path"] = if (StartupScriptS3Path == null) null else StartupScriptS3Path
-        ["AirflowConfigurationOptions"] = if (AirflowConfigurationOptions == null) null else AirflowConfigurationOptions
-        ["MaxWorkers"] = if (MaxWorkers == null) null else MaxWorkers
-        ["NetworkConfiguration"] = if (NetworkConfiguration == null) null else NetworkConfiguration
-        ["AirflowVersion"] = if (AirflowVersion == null) null else AirflowVersion
         ["RequirementsS3Path"] = if (RequirementsS3Path == null) null else RequirementsS3Path
-        ["LoggingConfiguration"] = if (LoggingConfiguration == null) null else LoggingConfiguration
-        ["WeeklyMaintenanceWindowStart"] = if (WeeklyMaintenanceWindowStart == null) null else WeeklyMaintenanceWindowStart
-        ["Name"] = if (Name == null) null else Name
-        ["ExecutionRoleArn"] = if (ExecutionRoleArn == null) null else ExecutionRoleArn
         ["Schedulers"] = if (Schedulers == null) null else Schedulers
-        ["Tags"] = if (Tags == null) null else Tags
-        ["KmsKey"] = if (KmsKey == null) null else KmsKey
-        ["EnvironmentClass"] = if (EnvironmentClass == null) null else EnvironmentClass
-        ["EndpointManagement"] = if (EndpointManagement == null) null else EndpointManagement
-        ["PluginsS3ObjectVersion"] = if (PluginsS3ObjectVersion == null) null else PluginsS3ObjectVersion
+        ["SourceBucketArn"] = if (SourceBucketArn == null) null else SourceBucketArn
         ["StartupScriptS3ObjectVersion"] = if (StartupScriptS3ObjectVersion == null) null else StartupScriptS3ObjectVersion
+        ["StartupScriptS3Path"] = if (StartupScriptS3Path == null) null else StartupScriptS3Path
+        ["Tags"] = if (Tags == null) null else Tags
         ["WebserverAccessMode"] = if (WebserverAccessMode == null) null else WebserverAccessMode
+        ["WeeklyMaintenanceWindowStart"] = if (WeeklyMaintenanceWindowStart == null) null else WeeklyMaintenanceWindowStart
     }
 
 }

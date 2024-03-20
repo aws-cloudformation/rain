@@ -6,33 +6,16 @@ module aws.cleanrooms.configuredtable
 import "../../cloudformation.pkl"
 
 /// 
+open class ConfiguredTableTableReference {
+    Glue: ConfiguredTableGlueTableReference
+}
+
+/// 
 open class ConfiguredTableAnalysisRuleList {
     JoinColumns: Listing<ConfiguredTableAnalysisRuleColumnName>
     AllowedJoinOperators: (Listing<ConfiguredTableJoinOperator>)?
     ListColumns: Listing<ConfiguredTableAnalysisRuleColumnName>
 }
-
-typealias ConfiguredTableJoinRequiredOption = String|Mapping
-
-
-/// 
-open class ConfiguredTableAnalysisRuleCustom {
-    AllowedAnalyses: ConfiguredTableAllowedAnalyses
-    AllowedAnalysisProviders: (ConfiguredTableAllowedAnalysisProviders)?
-}
-
-/// 
-open class ConfiguredTableConfiguredTableAnalysisRulePolicyV1Aggregation {
-    Aggregation: ConfiguredTableAnalysisRuleAggregation
-}
-
-/// 
-open class ConfiguredTableConfiguredTableAnalysisRulePolicyV1Custom {
-    Custom: ConfiguredTableAnalysisRuleCustom
-}
-
-typealias ConfiguredTableAggregateFunctionName = String|Mapping
-
 
 /// 
 open class ConfiguredTableConfiguredTableAnalysisRulePolicy {
@@ -44,34 +27,22 @@ open class ConfiguredTableConfiguredTableAnalysisRulePolicyV1List {
     List: ConfiguredTableAnalysisRuleList
 }
 
-typealias ConfiguredTableAnalysisMethod = String|Mapping
-
-
-typealias ConfiguredTableAllowedAnalysis = String|Mapping
-
-
 /// 
-open class ConfiguredTableAggregateColumn {
-    ColumnNames: Listing<ConfiguredTableAnalysisRuleColumnName>
-    Function: ConfiguredTableAggregateFunctionName
-}
-
-typealias ConfiguredTableAllowedAnalysisProvider = String|Mapping
-
-
-/// 
-open class ConfiguredTableTag {
-    Key: String|Mapping
-    Value: String|Mapping
+open class ConfiguredTableConfiguredTableAnalysisRulePolicyV1Custom {
+    Custom: ConfiguredTableAnalysisRuleCustom
 }
 
 typealias ConfiguredTableScalarFunctions = String|Mapping
 
 
+/// 
+open class ConfiguredTableAggregationConstraint {
+    Minimum: Number|Mapping
+    Type: ConfiguredTableAggregationType
+    ColumnName: ConfiguredTableAnalysisRuleColumnName
+}
+
 typealias ConfiguredTableAllowedAnalyses = Listing<(ConfiguredTableAllowedAnalysis)?>
-
-
-typealias ConfiguredTableAnalysisRuleColumnName = String|Mapping
 
 
 /// 
@@ -80,36 +51,10 @@ open class ConfiguredTableAnalysisRule {
     Policy: ConfiguredTableConfiguredTableAnalysisRulePolicy
 }
 
-typealias ConfiguredTableJoinOperator = String|Mapping
-
-
-typealias ConfiguredTableAllowedAnalysisProviders = Listing<(ConfiguredTableAllowedAnalysisProvider)?>
-
-
 /// 
-open class ConfiguredTableAnalysisRuleAggregation {
-    JoinRequired: (ConfiguredTableJoinRequiredOption)?
-    DimensionColumns: Listing<ConfiguredTableAnalysisRuleColumnName>
-    ScalarFunctions: Listing<ConfiguredTableScalarFunctions>
-    OutputConstraints: Listing<ConfiguredTableAggregationConstraint>
-    AggregateColumns: Listing<ConfiguredTableAggregateColumn>
-    JoinColumns: Listing<ConfiguredTableAnalysisRuleColumnName>
-    AllowedJoinOperators: (Listing<ConfiguredTableJoinOperator>)?
-}
-
-/// 
-open class ConfiguredTableAggregationConstraint {
-    ColumnName: ConfiguredTableAnalysisRuleColumnName
-    Minimum: Number|Mapping
-    Type: ConfiguredTableAggregationType
-}
-
-typealias ConfiguredTableConfiguredTableAnalysisRuleType = String|Mapping
-
-
-/// 
-open class ConfiguredTableTableReference {
-    Glue: ConfiguredTableGlueTableReference
+open class ConfiguredTableAnalysisRuleCustom {
+    AllowedAnalyses: ConfiguredTableAllowedAnalyses
+    AllowedAnalysisProviders: (ConfiguredTableAllowedAnalysisProviders)?
 }
 
 /// 
@@ -118,10 +63,65 @@ open class ConfiguredTableGlueTableReference {
     DatabaseName: String(matches(Regex(#"^[a-zA-Z0-9_](([a-zA-Z0-9_ ]+-)*([a-zA-Z0-9_ ]+))?$"#)))|Mapping
 }
 
-typealias ConfiguredTableAggregationType = String|Mapping
+/// 
+open class ConfiguredTableAggregateColumn {
+    ColumnNames: Listing<ConfiguredTableAnalysisRuleColumnName>
+    Function: ConfiguredTableAggregateFunctionName
+}
+
+typealias ConfiguredTableAllowedAnalysis = String|Mapping
+
+
+typealias ConfiguredTableAllowedAnalysisProvider = String|Mapping
 
 
 typealias ConfiguredTableConfiguredTableAnalysisRulePolicyV1 = ConfiguredTableConfiguredTableAnalysisRulePolicyV1List|ConfiguredTableConfiguredTableAnalysisRulePolicyV1Aggregation|ConfiguredTableConfiguredTableAnalysisRulePolicyV1Custom
+
+
+typealias ConfiguredTableJoinOperator = String|Mapping
+
+
+/// 
+open class ConfiguredTableAnalysisRuleAggregation {
+    DimensionColumns: Listing<ConfiguredTableAnalysisRuleColumnName>
+    ScalarFunctions: Listing<ConfiguredTableScalarFunctions>
+    OutputConstraints: Listing<ConfiguredTableAggregationConstraint>
+    AggregateColumns: Listing<ConfiguredTableAggregateColumn>
+    JoinColumns: Listing<ConfiguredTableAnalysisRuleColumnName>
+    AllowedJoinOperators: (Listing<ConfiguredTableJoinOperator>)?
+    JoinRequired: (ConfiguredTableJoinRequiredOption)?
+}
+
+typealias ConfiguredTableAnalysisRuleColumnName = String|Mapping
+
+
+/// 
+open class ConfiguredTableConfiguredTableAnalysisRulePolicyV1Aggregation {
+    Aggregation: ConfiguredTableAnalysisRuleAggregation
+}
+
+typealias ConfiguredTableConfiguredTableAnalysisRuleType = String|Mapping
+
+
+/// 
+open class ConfiguredTableTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+typealias ConfiguredTableAllowedAnalysisProviders = Listing<(ConfiguredTableAllowedAnalysisProvider)?>
+
+
+typealias ConfiguredTableAggregateFunctionName = String|Mapping
+
+
+typealias ConfiguredTableAggregationType = String|Mapping
+
+
+typealias ConfiguredTableAnalysisMethod = String|Mapping
+
+
+typealias ConfiguredTableJoinRequiredOption = String|Mapping
 
 
 /// Represents a table that can be associated with collaborations
@@ -130,9 +130,6 @@ open class ConfiguredTable extends cloudformation.Resource {
     Type = "AWS::CleanRooms::ConfiguredTable"
 
 
-    /// An arbitrary set of tags (key-value pairs) for this cleanrooms collaboration.
-    hidden Tags: (Listing<ConfiguredTableTag>)?
-
     /// 
     hidden AllowedColumns: Listing<String|Mapping>
 
@@ -140,25 +137,28 @@ open class ConfiguredTable extends cloudformation.Resource {
     hidden AnalysisMethod: ConfiguredTableAnalysisMethod
 
     /// 
-    hidden Description: (String(matches(Regex(#"^[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDBFF-\uDC00\uDFFF\t\r\n]*$"#)))|Mapping)?
-
-    /// 
     hidden AnalysisRules: (Listing<ConfiguredTableAnalysisRule>)?
 
     /// 
-    hidden TableReference: ConfiguredTableTableReference
+    hidden Description: (String(matches(Regex(#"^[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDBFF-\uDC00\uDFFF\t\r\n]*$"#)))|Mapping)?
 
     /// 
     hidden Name: String(matches(Regex(#"^(?!\s*$)[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDBFF-\uDC00\uDFFF\t]*$"#)))|Mapping
 
+    /// 
+    hidden TableReference: ConfiguredTableTableReference
+
+    /// An arbitrary set of tags (key-value pairs) for this cleanrooms collaboration.
+    hidden Tags: (Listing<ConfiguredTableTag>)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
         ["AllowedColumns"] = if (AllowedColumns == null) null else AllowedColumns
         ["AnalysisMethod"] = if (AnalysisMethod == null) null else AnalysisMethod
-        ["Description"] = if (Description == null) null else Description
         ["AnalysisRules"] = if (AnalysisRules == null) null else AnalysisRules
-        ["TableReference"] = if (TableReference == null) null else TableReference
+        ["Description"] = if (Description == null) null else Description
         ["Name"] = if (Name == null) null else Name
+        ["TableReference"] = if (TableReference == null) null else TableReference
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

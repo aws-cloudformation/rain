@@ -6,29 +6,21 @@ module aws.codedeploy.deploymentconfig
 import "../../cloudformation.pkl"
 
 /// 
-open class DeploymentConfigTrafficRoutingConfig {
+open class DeploymentConfigMinimumHealthyHosts {
+    Value: Int|Mapping
     Type: String|Mapping
-    TimeBasedLinear: (DeploymentConfigTimeBasedLinear)?
-    TimeBasedCanary: (DeploymentConfigTimeBasedCanary)?
 }
 
 /// 
 open class DeploymentConfigMinimumHealthyHostsPerZone {
-    Value: Int|Mapping
     Type: String|Mapping
+    Value: Int|Mapping
 }
 
 /// 
-open class DeploymentConfigZonalConfig {
-    FirstZoneMonitorDurationInSeconds: (Int|Mapping)?
-    MonitorDurationInSeconds: (Int|Mapping)?
-    MinimumHealthyHostsPerZone: (DeploymentConfigMinimumHealthyHostsPerZone)?
-}
-
-/// 
-open class DeploymentConfigMinimumHealthyHosts {
-    Value: Int|Mapping
-    Type: String|Mapping
+open class DeploymentConfigTimeBasedCanary {
+    CanaryPercentage: Int|Mapping
+    CanaryInterval: Int|Mapping
 }
 
 /// 
@@ -38,9 +30,17 @@ open class DeploymentConfigTimeBasedLinear {
 }
 
 /// 
-open class DeploymentConfigTimeBasedCanary {
-    CanaryPercentage: Int|Mapping
-    CanaryInterval: Int|Mapping
+open class DeploymentConfigTrafficRoutingConfig {
+    Type: String|Mapping
+    TimeBasedLinear: (DeploymentConfigTimeBasedLinear)?
+    TimeBasedCanary: (DeploymentConfigTimeBasedCanary)?
+}
+
+/// 
+open class DeploymentConfigZonalConfig {
+    MinimumHealthyHostsPerZone: (DeploymentConfigMinimumHealthyHostsPerZone)?
+    FirstZoneMonitorDurationInSeconds: (Int|Mapping)?
+    MonitorDurationInSeconds: (Int|Mapping)?
 }
 
 /// Resource Type definition for AWS::CodeDeploy::DeploymentConfig
@@ -48,12 +48,6 @@ open class DeploymentConfig extends cloudformation.Resource {
 
     Type = "AWS::CodeDeploy::DeploymentConfig"
 
-
-    /// The zonal deployment config that specifies how the zonal deployment behaves
-    hidden ZonalConfig: (DeploymentConfigZonalConfig)?
-
-    /// The configuration that specifies how the deployment traffic is routed.
-    hidden TrafficRoutingConfig: (DeploymentConfigTrafficRoutingConfig)?
 
     /// The destination platform type for the deployment (Lambda, Server, or ECS).
     hidden ComputePlatform: (String|Mapping)?
@@ -64,12 +58,18 @@ open class DeploymentConfig extends cloudformation.Resource {
     /// The minimum number of healthy instances that should be available at any time during the deployment. There are two parameters expected in the input: type and value.
     hidden MinimumHealthyHosts: (DeploymentConfigMinimumHealthyHosts)?
 
+    /// The configuration that specifies how the deployment traffic is routed.
+    hidden TrafficRoutingConfig: (DeploymentConfigTrafficRoutingConfig)?
+
+    /// The zonal deployment config that specifies how the zonal deployment behaves
+    hidden ZonalConfig: (DeploymentConfigZonalConfig)?
+
     Properties {
-        ["ZonalConfig"] = if (ZonalConfig == null) null else ZonalConfig
-        ["TrafficRoutingConfig"] = if (TrafficRoutingConfig == null) null else TrafficRoutingConfig
         ["ComputePlatform"] = if (ComputePlatform == null) null else ComputePlatform
         ["DeploymentConfigName"] = if (DeploymentConfigName == null) null else DeploymentConfigName
         ["MinimumHealthyHosts"] = if (MinimumHealthyHosts == null) null else MinimumHealthyHosts
+        ["TrafficRoutingConfig"] = if (TrafficRoutingConfig == null) null else TrafficRoutingConfig
+        ["ZonalConfig"] = if (ZonalConfig == null) null else ZonalConfig
     }
 
 }

@@ -17,9 +17,6 @@ open class User extends cloudformation.Resource {
     Type = "AWS::MemoryDB::User"
 
 
-    /// The name of the user.
-    hidden UserName: String(matches(Regex(#"[a-z][a-z0-9\\-]*"#)))|Mapping
-
     /// Access permissions string used for this user account.
     hidden AccessString: (String|Mapping)?
 
@@ -29,11 +26,14 @@ open class User extends cloudformation.Resource {
     /// An array of key-value pairs to apply to this user.
     hidden Tags: (Listing<UserTag>)?
 
+    /// The name of the user.
+    hidden UserName: String(matches(Regex(#"[a-z][a-z0-9\\-]*"#)))|Mapping
+
     Properties {
-        ["UserName"] = if (UserName == null) null else UserName
         ["AccessString"] = if (AccessString == null) null else AccessString
         ["AuthenticationMode"] = if (AuthenticationMode == null) null else AuthenticationMode
         ["Tags"] = if (Tags == null) null else Tags
+        ["UserName"] = if (UserName == null) null else UserName
     }
 
 }

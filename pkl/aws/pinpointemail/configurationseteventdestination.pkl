@@ -6,30 +6,9 @@ module aws.pinpointemail.configurationseteventdestination
 import "../../cloudformation.pkl"
 
 /// 
-open class ConfigurationSetEventDestinationCloudWatchDestination {
-    DimensionConfigurations: (Listing<ConfigurationSetEventDestinationDimensionConfiguration>)?
-}
-
-/// 
-open class ConfigurationSetEventDestinationDimensionConfiguration {
-    DimensionValueSource: String|Mapping
-    DefaultDimensionValue: String|Mapping
-    DimensionName: String|Mapping
-}
-
-/// 
-open class ConfigurationSetEventDestinationEventDestination {
-    CloudWatchDestination: (ConfigurationSetEventDestinationCloudWatchDestination)?
-    Enabled: (Boolean|Mapping)?
-    MatchingEventTypes: Listing<String|Mapping>
-    PinpointDestination: (ConfigurationSetEventDestinationPinpointDestination)?
-    KinesisFirehoseDestination: (ConfigurationSetEventDestinationKinesisFirehoseDestination)?
-    SnsDestination: (ConfigurationSetEventDestinationSnsDestination)?
-}
-
-/// 
-open class ConfigurationSetEventDestinationSnsDestination {
-    TopicArn: String|Mapping
+open class ConfigurationSetEventDestinationKinesisFirehoseDestination {
+    DeliveryStreamArn: String|Mapping
+    IamRoleArn: String|Mapping
 }
 
 /// 
@@ -38,9 +17,30 @@ open class ConfigurationSetEventDestinationPinpointDestination {
 }
 
 /// 
-open class ConfigurationSetEventDestinationKinesisFirehoseDestination {
-    DeliveryStreamArn: String|Mapping
-    IamRoleArn: String|Mapping
+open class ConfigurationSetEventDestinationSnsDestination {
+    TopicArn: String|Mapping
+}
+
+/// 
+open class ConfigurationSetEventDestinationCloudWatchDestination {
+    DimensionConfigurations: (Listing<ConfigurationSetEventDestinationDimensionConfiguration>)?
+}
+
+/// 
+open class ConfigurationSetEventDestinationDimensionConfiguration {
+    DimensionName: String|Mapping
+    DimensionValueSource: String|Mapping
+    DefaultDimensionValue: String|Mapping
+}
+
+/// 
+open class ConfigurationSetEventDestinationEventDestination {
+    PinpointDestination: (ConfigurationSetEventDestinationPinpointDestination)?
+    KinesisFirehoseDestination: (ConfigurationSetEventDestinationKinesisFirehoseDestination)?
+    SnsDestination: (ConfigurationSetEventDestinationSnsDestination)?
+    CloudWatchDestination: (ConfigurationSetEventDestinationCloudWatchDestination)?
+    Enabled: (Boolean|Mapping)?
+    MatchingEventTypes: Listing<String|Mapping>
 }
 
 /// Resource Type definition for AWS::PinpointEmail::ConfigurationSetEventDestination
@@ -50,18 +50,18 @@ open class ConfigurationSetEventDestination extends cloudformation.Resource {
 
 
     /// 
-    hidden EventDestinationName: String|Mapping
-
-    /// 
     hidden ConfigurationSetName: String|Mapping
 
     /// 
     hidden EventDestination: (ConfigurationSetEventDestinationEventDestination)?
 
+    /// 
+    hidden EventDestinationName: String|Mapping
+
     Properties {
-        ["EventDestinationName"] = if (EventDestinationName == null) null else EventDestinationName
         ["ConfigurationSetName"] = if (ConfigurationSetName == null) null else ConfigurationSetName
         ["EventDestination"] = if (EventDestination == null) null else EventDestination
+        ["EventDestinationName"] = if (EventDestinationName == null) null else EventDestinationName
     }
 
 }

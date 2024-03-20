@@ -26,9 +26,6 @@ open class EnvironmentAccountConnection extends cloudformation.Resource {
     /// The Amazon Resource Name (ARN) of the IAM service role that AWS Proton uses when provisioning directly defined components in the associated environment account. It determines the scope of infrastructure that a component can provision in the account.
     hidden ComponentRoleArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov):iam::\d{12}:role/([\w+=,.@-]{1,512}[/:])*([\w+=,.@-]{1,64})$"#)))|Mapping)?
 
-    /// The Amazon Resource Name (ARN) of the IAM service role that's created in the environment account. AWS Proton uses this role to provision infrastructure resources in the associated environment account.
-    hidden RoleArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov):iam::\d{12}:role/([\w+=,.@-]{1,512}[/:])*([\w+=,.@-]{1,64})$"#)))|Mapping)?
-
     /// The environment account that's connected to the environment account connection.
     hidden EnvironmentAccountId: (String(matches(Regex(#"^\d{12}$"#)))|Mapping)?
 
@@ -37,6 +34,9 @@ open class EnvironmentAccountConnection extends cloudformation.Resource {
 
     /// The ID of the management account that accepts or rejects the environment account connection. You create an manage the AWS Proton environment in this account. If the management account accepts the environment account connection, AWS Proton can use the associated IAM role to provision environment infrastructure resources in the associated environment account.
     hidden ManagementAccountId: (String(matches(Regex(#"^\d{12}$"#)))|Mapping)?
+
+    /// The Amazon Resource Name (ARN) of the IAM service role that's created in the environment account. AWS Proton uses this role to provision infrastructure resources in the associated environment account.
+    hidden RoleArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov):iam::\d{12}:role/([\w+=,.@-]{1,512}[/:])*([\w+=,.@-]{1,64})$"#)))|Mapping)?
 
     /// <p>An optional list of metadata items that you can associate with the Proton environment account connection. A tag is a key-value pair.</p>
     ///
@@ -47,10 +47,10 @@ open class EnvironmentAccountConnection extends cloudformation.Resource {
     Properties {
         ["CodebuildRoleArn"] = if (CodebuildRoleArn == null) null else CodebuildRoleArn
         ["ComponentRoleArn"] = if (ComponentRoleArn == null) null else ComponentRoleArn
-        ["RoleArn"] = if (RoleArn == null) null else RoleArn
         ["EnvironmentAccountId"] = if (EnvironmentAccountId == null) null else EnvironmentAccountId
         ["EnvironmentName"] = if (EnvironmentName == null) null else EnvironmentName
         ["ManagementAccountId"] = if (ManagementAccountId == null) null else ManagementAccountId
+        ["RoleArn"] = if (RoleArn == null) null else RoleArn
         ["Tags"] = if (Tags == null) null else Tags
     }
 

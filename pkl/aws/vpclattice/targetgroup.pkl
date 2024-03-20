@@ -11,21 +11,33 @@ typealias HealthCheckConfigProtocolVersion = "HTTP1"|"HTTP2"|"GRPC"
 
 /// 
 open class TargetGroupHealthCheckConfig {
-    Protocol: (HealthCheckConfigProtocol|Mapping)?
-    Path: (String(matches(Regex(#"(^/[a-zA-Z0-9@:%_+.~#?&/=-]*$|(^$))"#)))|Mapping)?
-    HealthCheckIntervalSeconds: (Int|Mapping)?
-    UnhealthyThresholdCount: (Int|Mapping)?
-    Matcher: (TargetGroupMatcher)?
     Enabled: (Boolean|Mapping)?
-    ProtocolVersion: (HealthCheckConfigProtocolVersion|Mapping)?
     Port: (Int|Mapping)?
+    Path: (String(matches(Regex(#"(^/[a-zA-Z0-9@:%_+.~#?&/=-]*$|(^$))"#)))|Mapping)?
     HealthCheckTimeoutSeconds: (Int|Mapping)?
+    Matcher: (TargetGroupMatcher)?
+    Protocol: (HealthCheckConfigProtocol|Mapping)?
+    ProtocolVersion: (HealthCheckConfigProtocolVersion|Mapping)?
+    HealthCheckIntervalSeconds: (Int|Mapping)?
     HealthyThresholdCount: (Int|Mapping)?
+    UnhealthyThresholdCount: (Int|Mapping)?
 }
 
 /// 
 open class TargetGroupMatcher {
     HttpCode: String(matches(Regex(#"^[0-9-,]+$"#)))|Mapping
+}
+
+/// 
+open class TargetGroupTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class TargetGroupTarget {
+    Id: String|Mapping
+    Port: (Int|Mapping)?
 }
 
 typealias TargetGroupConfigProtocol = "HTTP"|"HTTPS"
@@ -38,25 +50,13 @@ typealias TargetGroupConfigLambdaEventStructureVersion = "V1"|"V2"
 
 /// 
 open class TargetGroupTargetGroupConfig {
+    HealthCheck: (TargetGroupHealthCheckConfig)?
     Port: (Int|Mapping)?
     Protocol: (TargetGroupConfigProtocol|Mapping)?
     ProtocolVersion: (TargetGroupConfigProtocolVersion|Mapping)?
     IpAddressType: (TargetGroupConfigIpAddressType|Mapping)?
     LambdaEventStructureVersion: (TargetGroupConfigLambdaEventStructureVersion|Mapping)?
     VpcIdentifier: (String(matches(Regex(#"^vpc-(([0-9a-z]{8})|([0-9a-z]{17}))$"#)))|Mapping)?
-    HealthCheck: (TargetGroupHealthCheckConfig)?
-}
-
-/// 
-open class TargetGroupTarget {
-    Id: String|Mapping
-    Port: (Int|Mapping)?
-}
-
-/// 
-open class TargetGroupTag {
-    Value: String|Mapping
-    Key: String|Mapping
 }
 
 /// A target group is a collection of targets, or compute resources, that run your application or service. A target group can only be used by a single service.
@@ -69,22 +69,22 @@ open class TargetGroup extends cloudformation.Resource {
     hidden Config: (TargetGroupTargetGroupConfig)?
 
     /// 
+    hidden Name: (String(matches(Regex(#"^(?!tg-)(?![-])(?!.*[-]$)(?!.*[-]{2})[a-z0-9-]+$"#)))|Mapping)?
+
+    /// 
     hidden Tags: (Listing<TargetGroupTag>)?
 
     /// 
     hidden Targets: (Listing<TargetGroupTarget>)?
 
     /// 
-    hidden Name: (String(matches(Regex(#"^(?!tg-)(?![-])(?!.*[-]$)(?!.*[-]{2})[a-z0-9-]+$"#)))|Mapping)?
-
-    /// 
     hidden TypeProperty: TargetGroupType|Mapping
 
     Properties {
         ["Config"] = if (Config == null) null else Config
+        ["Name"] = if (Name == null) null else Name
         ["Tags"] = if (Tags == null) null else Tags
         ["Targets"] = if (Targets == null) null else Targets
-        ["Name"] = if (Name == null) null else Name
         ["Type"] = if (TypeProperty == null) null else TypeProperty
     }
 

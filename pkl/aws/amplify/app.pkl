@@ -5,27 +5,21 @@ module aws.amplify.app
 
 import "../../cloudformation.pkl"
 
-/// 
-open class AppTag {
-    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
-    Value: String|Mapping
-}
-
 typealias AutoBranchCreationConfigStage = "EXPERIMENTAL"|"BETA"|"PULL_REQUEST"|"PRODUCTION"|"DEVELOPMENT"
 
 /// 
 open class AppAutoBranchCreationConfig {
-    Framework: (String(matches(Regex(#"(?s).*"#)))|Mapping)?
-    PullRequestEnvironmentName: (String(matches(Regex(#"(?s).*"#)))|Mapping)?
-    Stage: (AutoBranchCreationConfigStage|Mapping)?
+    AutoBranchCreationPatterns: (Listing<String|Mapping>)?
     BasicAuthConfig: (AppBasicAuthConfig)?
     EnableAutoBranchCreation: (Boolean|Mapping)?
     EnableAutoBuild: (Boolean|Mapping)?
+    PullRequestEnvironmentName: (String(matches(Regex(#"(?s).*"#)))|Mapping)?
+    Stage: (AutoBranchCreationConfigStage|Mapping)?
+    BuildSpec: (String|Mapping)?
     EnablePerformanceMode: (Boolean|Mapping)?
     EnablePullRequestPreview: (Boolean|Mapping)?
     EnvironmentVariables: (Listing<AppEnvironmentVariable>)?
-    AutoBranchCreationPatterns: (Listing<String|Mapping>)?
-    BuildSpec: (String|Mapping)?
+    Framework: (String(matches(Regex(#"(?s).*"#)))|Mapping)?
 }
 
 /// 
@@ -49,11 +43,29 @@ open class AppEnvironmentVariable {
     Value: String(matches(Regex(#"(?s).*"#)))|Mapping
 }
 
+/// 
+open class AppTag {
+    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
+    Value: String|Mapping
+}
+
 /// The AWS::Amplify::App resource creates Apps in the Amplify Console. An App is a collection of branches.
 open class App extends cloudformation.Resource {
 
     Type = "AWS::Amplify::App"
 
+
+    /// 
+    hidden AccessToken: (String|Mapping)?
+
+    /// 
+    hidden AutoBranchCreationConfig: (AppAutoBranchCreationConfig)?
+
+    /// 
+    hidden BasicAuthConfig: (AppBasicAuthConfig)?
+
+    /// 
+    hidden BuildSpec: (String(matches(Regex(#"(?s).+"#)))|Mapping)?
 
     /// 
     hidden CustomHeaders: (String(matches(Regex(#"(?s).*"#)))|Mapping)?
@@ -65,16 +77,16 @@ open class App extends cloudformation.Resource {
     hidden Description: (String(matches(Regex(#"(?s).*"#)))|Mapping)?
 
     /// 
-    hidden Name: String(matches(Regex(#"(?s).+"#)))|Mapping
-
-    /// 
-    hidden AccessToken: (String|Mapping)?
-
-    /// 
-    hidden AutoBranchCreationConfig: (AppAutoBranchCreationConfig)?
+    hidden EnableBranchAutoDeletion: (Boolean|Mapping)?
 
     /// 
     hidden EnvironmentVariables: (Listing<AppEnvironmentVariable>)?
+
+    /// 
+    hidden IAMServiceRole: (String(matches(Regex(#"(?s).*"#)))|Mapping)?
+
+    /// 
+    hidden Name: String(matches(Regex(#"(?s).+"#)))|Mapping
 
     /// 
     hidden OauthToken: (String(matches(Regex(#"(?s).*"#)))|Mapping)?
@@ -88,34 +100,22 @@ open class App extends cloudformation.Resource {
     /// 
     hidden Tags: (Listing<AppTag>)?
 
-    /// 
-    hidden BasicAuthConfig: (AppBasicAuthConfig)?
-
-    /// 
-    hidden EnableBranchAutoDeletion: (Boolean|Mapping)?
-
-    /// 
-    hidden IAMServiceRole: (String(matches(Regex(#"(?s).*"#)))|Mapping)?
-
-    /// 
-    hidden BuildSpec: (String(matches(Regex(#"(?s).+"#)))|Mapping)?
-
     Properties {
+        ["AccessToken"] = if (AccessToken == null) null else AccessToken
+        ["AutoBranchCreationConfig"] = if (AutoBranchCreationConfig == null) null else AutoBranchCreationConfig
+        ["BasicAuthConfig"] = if (BasicAuthConfig == null) null else BasicAuthConfig
+        ["BuildSpec"] = if (BuildSpec == null) null else BuildSpec
         ["CustomHeaders"] = if (CustomHeaders == null) null else CustomHeaders
         ["CustomRules"] = if (CustomRules == null) null else CustomRules
         ["Description"] = if (Description == null) null else Description
-        ["Name"] = if (Name == null) null else Name
-        ["AccessToken"] = if (AccessToken == null) null else AccessToken
-        ["AutoBranchCreationConfig"] = if (AutoBranchCreationConfig == null) null else AutoBranchCreationConfig
+        ["EnableBranchAutoDeletion"] = if (EnableBranchAutoDeletion == null) null else EnableBranchAutoDeletion
         ["EnvironmentVariables"] = if (EnvironmentVariables == null) null else EnvironmentVariables
+        ["IAMServiceRole"] = if (IAMServiceRole == null) null else IAMServiceRole
+        ["Name"] = if (Name == null) null else Name
         ["OauthToken"] = if (OauthToken == null) null else OauthToken
         ["Platform"] = if (Platform == null) null else Platform
         ["Repository"] = if (Repository == null) null else Repository
         ["Tags"] = if (Tags == null) null else Tags
-        ["BasicAuthConfig"] = if (BasicAuthConfig == null) null else BasicAuthConfig
-        ["EnableBranchAutoDeletion"] = if (EnableBranchAutoDeletion == null) null else EnableBranchAutoDeletion
-        ["IAMServiceRole"] = if (IAMServiceRole == null) null else IAMServiceRole
-        ["BuildSpec"] = if (BuildSpec == null) null else BuildSpec
     }
 
 }

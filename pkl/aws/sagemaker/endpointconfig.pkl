@@ -5,17 +5,118 @@ module aws.sagemaker.endpointconfig
 
 import "../../cloudformation.pkl"
 
+typealias EndpointConfigClarifyFeatureType = Dynamic
+
+
+typealias EndpointConfigClarifyHeader = Dynamic
+
+
+/// 
+open class EndpointConfigClarifyInferenceConfig {
+    MaxPayloadInMB: (Int|Mapping)?
+    LabelAttribute: (String|Mapping)?
+    FeatureTypes: (Listing<EndpointConfigClarifyFeatureType>)?
+    MaxRecordCount: (Int|Mapping)?
+    LabelHeaders: (Listing<EndpointConfigClarifyHeader>)?
+    ProbabilityIndex: (Int|Mapping)?
+    FeatureHeaders: (Listing<EndpointConfigClarifyHeader>)?
+    LabelIndex: (Int|Mapping)?
+    ProbabilityAttribute: (String|Mapping)?
+    FeaturesAttribute: (String|Mapping)?
+    ContentTemplate: (String|Mapping)?
+}
+
+/// 
+open class EndpointConfigClarifyShapConfig {
+    NumberOfSamples: (Int|Mapping)?
+    TextConfig: (EndpointConfigClarifyTextConfig)?
+    UseLogit: (Boolean|Mapping)?
+    Seed: (Int|Mapping)?
+    ShapBaselineConfig: EndpointConfigClarifyShapBaselineConfig
+}
+
+/// 
+open class EndpointConfigTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// 
+open class EndpointConfigManagedInstanceScaling {
+    MaxInstanceCount: (Int|Mapping)?
+    MinInstanceCount: (Int|Mapping)?
+    Status: (String|Mapping)?
+}
+
+/// 
+open class EndpointConfigAsyncInferenceConfig {
+    ClientConfig: (EndpointConfigAsyncInferenceClientConfig)?
+    OutputConfig: EndpointConfigAsyncInferenceOutputConfig
+}
+
+/// 
+open class EndpointConfigAsyncInferenceNotificationConfig {
+    IncludeInferenceResponseIn: (Listing<String|Mapping>)?
+    SuccessTopic: (String|Mapping)?
+    ErrorTopic: (String|Mapping)?
+}
+
+/// 
+open class EndpointConfigCaptureOption {
+    CaptureMode: String|Mapping
+}
+
+/// 
+open class EndpointConfigClarifyTextConfig {
+    Granularity: String|Mapping
+    Language: String|Mapping
+}
+
+/// 
+open class EndpointConfigExplainerConfig {
+    ClarifyExplainerConfig: (EndpointConfigClarifyExplainerConfig)?
+}
+
+/// 
+open class EndpointConfigAsyncInferenceClientConfig {
+    MaxConcurrentInvocationsPerInstance: (Int|Mapping)?
+}
+
+/// 
+open class EndpointConfigClarifyExplainerConfig {
+    EnableExplanations: (String|Mapping)?
+    ShapConfig: EndpointConfigClarifyShapConfig
+    InferenceConfig: (EndpointConfigClarifyInferenceConfig)?
+}
+
+/// 
+open class EndpointConfigProductionVariant {
+    RoutingConfig: (EndpointConfigRoutingConfig)?
+    InitialVariantWeight: (Number|Mapping)?
+    ModelDataDownloadTimeoutInSeconds: (Int|Mapping)?
+    ManagedInstanceScaling: (EndpointConfigManagedInstanceScaling)?
+    EnableSSMAccess: (Boolean|Mapping)?
+    VariantName: String|Mapping
+    InitialInstanceCount: (Int|Mapping)?
+    ServerlessConfig: (EndpointConfigServerlessConfig)?
+    InstanceType: (String|Mapping)?
+    VolumeSizeInGB: (Int|Mapping)?
+    AcceleratorType: (String|Mapping)?
+    ModelName: (String|Mapping)?
+    ContainerStartupHealthCheckTimeoutInSeconds: (Int|Mapping)?
+}
+
+/// 
+open class EndpointConfigServerlessConfig {
+    MaxConcurrency: Int|Mapping
+    MemorySizeInMB: Int|Mapping
+    ProvisionedConcurrency: (Int|Mapping)?
+}
+
 /// 
 open class EndpointConfigVpcConfig {
     SecurityGroupIds: Listing<String|Mapping>
     Subnets: Listing<String|Mapping>
-}
-
-/// 
-open class EndpointConfigClarifyShapBaselineConfig {
-    ShapBaselineUri: (String|Mapping)?
-    MimeType: (String|Mapping)?
-    ShapBaseline: (String|Mapping)?
 }
 
 /// 
@@ -27,127 +128,26 @@ open class EndpointConfigAsyncInferenceOutputConfig {
 }
 
 /// 
-open class EndpointConfigClarifyInferenceConfig {
-    LabelHeaders: (Listing<EndpointConfigClarifyHeader>)?
-    ProbabilityIndex: (Int|Mapping)?
-    LabelAttribute: (String|Mapping)?
-    FeatureHeaders: (Listing<EndpointConfigClarifyHeader>)?
-    ProbabilityAttribute: (String|Mapping)?
-    ContentTemplate: (String|Mapping)?
-    MaxPayloadInMB: (Int|Mapping)?
-    FeatureTypes: (Listing<EndpointConfigClarifyFeatureType>)?
-    LabelIndex: (Int|Mapping)?
-    FeaturesAttribute: (String|Mapping)?
-    MaxRecordCount: (Int|Mapping)?
+open class EndpointConfigCaptureContentTypeHeader {
+    CsvContentTypes: (Listing<String|Mapping>)?
+    JsonContentTypes: (Listing<String|Mapping>)?
 }
 
 /// 
-open class EndpointConfigExplainerConfig {
-    ClarifyExplainerConfig: (EndpointConfigClarifyExplainerConfig)?
-}
-
-/// 
-open class EndpointConfigManagedInstanceScaling {
-    Status: (String|Mapping)?
-    MaxInstanceCount: (Int|Mapping)?
-    MinInstanceCount: (Int|Mapping)?
+open class EndpointConfigClarifyShapBaselineConfig {
+    MimeType: (String|Mapping)?
+    ShapBaseline: (String|Mapping)?
+    ShapBaselineUri: (String|Mapping)?
 }
 
 /// 
 open class EndpointConfigDataCaptureConfig {
+    EnableCapture: (Boolean|Mapping)?
+    CaptureOptions: Listing<EndpointConfigCaptureOption>
     KmsKeyId: (String|Mapping)?
     DestinationS3Uri: String|Mapping
     InitialSamplingPercentage: Int|Mapping
     CaptureContentTypeHeader: (EndpointConfigCaptureContentTypeHeader)?
-    EnableCapture: (Boolean|Mapping)?
-    CaptureOptions: Listing<EndpointConfigCaptureOption>
-}
-
-/// 
-open class EndpointConfigTag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class EndpointConfigAsyncInferenceNotificationConfig {
-    ErrorTopic: (String|Mapping)?
-    IncludeInferenceResponseIn: (Listing<String|Mapping>)?
-    SuccessTopic: (String|Mapping)?
-}
-
-typealias EndpointConfigClarifyFeatureType = Dynamic
-
-
-/// 
-open class EndpointConfigAsyncInferenceConfig {
-    ClientConfig: (EndpointConfigAsyncInferenceClientConfig)?
-    OutputConfig: EndpointConfigAsyncInferenceOutputConfig
-}
-
-typealias EndpointConfigClarifyHeader = Dynamic
-
-
-/// 
-open class EndpointConfigClarifyExplainerConfig {
-    EnableExplanations: (String|Mapping)?
-    ShapConfig: EndpointConfigClarifyShapConfig
-    InferenceConfig: (EndpointConfigClarifyInferenceConfig)?
-}
-
-/// 
-open class EndpointConfigCaptureOption {
-    CaptureMode: String|Mapping
-}
-
-/// 
-open class EndpointConfigProductionVariant {
-    VolumeSizeInGB: (Int|Mapping)?
-    EnableSSMAccess: (Boolean|Mapping)?
-    ManagedInstanceScaling: (EndpointConfigManagedInstanceScaling)?
-    ModelName: (String|Mapping)?
-    VariantName: String|Mapping
-    InitialInstanceCount: (Int|Mapping)?
-    InstanceType: (String|Mapping)?
-    RoutingConfig: (EndpointConfigRoutingConfig)?
-    AcceleratorType: (String|Mapping)?
-    ModelDataDownloadTimeoutInSeconds: (Int|Mapping)?
-    InitialVariantWeight: (Number|Mapping)?
-    ContainerStartupHealthCheckTimeoutInSeconds: (Int|Mapping)?
-    ServerlessConfig: (EndpointConfigServerlessConfig)?
-}
-
-/// 
-open class EndpointConfigServerlessConfig {
-    MaxConcurrency: Int|Mapping
-    MemorySizeInMB: Int|Mapping
-    ProvisionedConcurrency: (Int|Mapping)?
-}
-
-/// 
-open class EndpointConfigAsyncInferenceClientConfig {
-    MaxConcurrentInvocationsPerInstance: (Int|Mapping)?
-}
-
-/// 
-open class EndpointConfigClarifyTextConfig {
-    Language: String|Mapping
-    Granularity: String|Mapping
-}
-
-/// 
-open class EndpointConfigClarifyShapConfig {
-    TextConfig: (EndpointConfigClarifyTextConfig)?
-    UseLogit: (Boolean|Mapping)?
-    Seed: (Int|Mapping)?
-    ShapBaselineConfig: EndpointConfigClarifyShapBaselineConfig
-    NumberOfSamples: (Int|Mapping)?
-}
-
-/// 
-open class EndpointConfigCaptureContentTypeHeader {
-    CsvContentTypes: (Listing<String|Mapping>)?
-    JsonContentTypes: (Listing<String|Mapping>)?
 }
 
 /// 
@@ -162,50 +162,50 @@ open class EndpointConfig extends cloudformation.Resource {
 
 
     /// 
-    hidden ExecutionRoleArn: (String|Mapping)?
+    hidden AsyncInferenceConfig: (EndpointConfigAsyncInferenceConfig)?
+
+    /// 
+    hidden DataCaptureConfig: (EndpointConfigDataCaptureConfig)?
 
     /// 
     hidden EnableNetworkIsolation: (Boolean|Mapping)?
 
     /// 
-    hidden ProductionVariants: Listing<EndpointConfigProductionVariant>
+    hidden EndpointConfigName: (String|Mapping)?
 
     /// 
-    hidden VpcConfig: (EndpointConfigVpcConfig)?
+    hidden ExecutionRoleArn: (String|Mapping)?
 
     /// 
     hidden ExplainerConfig: (EndpointConfigExplainerConfig)?
 
     /// 
-    hidden Tags: (Listing<EndpointConfigTag>)?
+    hidden KmsKeyId: (String|Mapping)?
+
+    /// 
+    hidden ProductionVariants: Listing<EndpointConfigProductionVariant>
 
     /// 
     hidden ShadowProductionVariants: (Listing<EndpointConfigProductionVariant>)?
 
     /// 
-    hidden KmsKeyId: (String|Mapping)?
+    hidden Tags: (Listing<EndpointConfigTag>)?
 
     /// 
-    hidden AsyncInferenceConfig: (EndpointConfigAsyncInferenceConfig)?
-
-    /// 
-    hidden EndpointConfigName: (String|Mapping)?
-
-    /// 
-    hidden DataCaptureConfig: (EndpointConfigDataCaptureConfig)?
+    hidden VpcConfig: (EndpointConfigVpcConfig)?
 
     Properties {
-        ["ExecutionRoleArn"] = if (ExecutionRoleArn == null) null else ExecutionRoleArn
-        ["EnableNetworkIsolation"] = if (EnableNetworkIsolation == null) null else EnableNetworkIsolation
-        ["ProductionVariants"] = if (ProductionVariants == null) null else ProductionVariants
-        ["VpcConfig"] = if (VpcConfig == null) null else VpcConfig
-        ["ExplainerConfig"] = if (ExplainerConfig == null) null else ExplainerConfig
-        ["Tags"] = if (Tags == null) null else Tags
-        ["ShadowProductionVariants"] = if (ShadowProductionVariants == null) null else ShadowProductionVariants
-        ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
         ["AsyncInferenceConfig"] = if (AsyncInferenceConfig == null) null else AsyncInferenceConfig
-        ["EndpointConfigName"] = if (EndpointConfigName == null) null else EndpointConfigName
         ["DataCaptureConfig"] = if (DataCaptureConfig == null) null else DataCaptureConfig
+        ["EnableNetworkIsolation"] = if (EnableNetworkIsolation == null) null else EnableNetworkIsolation
+        ["EndpointConfigName"] = if (EndpointConfigName == null) null else EndpointConfigName
+        ["ExecutionRoleArn"] = if (ExecutionRoleArn == null) null else ExecutionRoleArn
+        ["ExplainerConfig"] = if (ExplainerConfig == null) null else ExplainerConfig
+        ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
+        ["ProductionVariants"] = if (ProductionVariants == null) null else ProductionVariants
+        ["ShadowProductionVariants"] = if (ShadowProductionVariants == null) null else ShadowProductionVariants
+        ["Tags"] = if (Tags == null) null else Tags
+        ["VpcConfig"] = if (VpcConfig == null) null else VpcConfig
     }
 
 }

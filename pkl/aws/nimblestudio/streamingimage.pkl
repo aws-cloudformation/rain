@@ -5,9 +5,6 @@ module aws.nimblestudio.streamingimage
 
 import "../../cloudformation.pkl"
 
-typealias StreamingImageTags = Mapping<String, Any>
-
-
 /// <p>TODO</p>
 open class StreamingImageStreamingImageEncryptionConfiguration {
     KeyType: StreamingImageStreamingImageEncryptionConfigurationKeyType
@@ -15,6 +12,9 @@ open class StreamingImageStreamingImageEncryptionConfiguration {
 }
 
 typealias StreamingImageStreamingImageEncryptionConfigurationKeyType = String|Mapping
+
+
+typealias StreamingImageTags = Mapping<String, Any>
 
 
 /// Represents a streaming session machine image that can be used to launch a streaming session
@@ -26,24 +26,24 @@ open class StreamingImage extends cloudformation.Resource {
     /// <p>A human-readable description of the streaming image.</p>
     hidden Description: (String|Mapping)?
 
-    /// <p>A friendly name for a streaming image resource.</p>
-    hidden Name: String|Mapping
-
-    /// 
-    hidden Tags: (StreamingImageTags)?
-
     /// <p>The ID of an EC2 machine image with which to create this streaming image.</p>
     hidden Ec2ImageId: String(matches(Regex(#"^ami-[0-9A-z]+$"#)))|Mapping
+
+    /// <p>A friendly name for a streaming image resource.</p>
+    hidden Name: String|Mapping
 
     /// <p>The studioId. </p>
     hidden StudioId: String|Mapping
 
+    /// 
+    hidden Tags: (StreamingImageTags)?
+
     Properties {
         ["Description"] = if (Description == null) null else Description
-        ["Name"] = if (Name == null) null else Name
-        ["Tags"] = if (Tags == null) null else Tags
         ["Ec2ImageId"] = if (Ec2ImageId == null) null else Ec2ImageId
+        ["Name"] = if (Name == null) null else Name
         ["StudioId"] = if (StudioId == null) null else StudioId
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

@@ -6,52 +6,124 @@ module aws.appflow.connectorprofile
 import "../../cloudformation.pkl"
 
 /// 
-open class ConnectorProfileSAPODataConnectorProfileProperties {
-    ApplicationHostUrl: (ConnectorProfileApplicationHostUrl)?
-    ApplicationServicePath: (ConnectorProfileApplicationServicePath)?
-    PortNumber: (ConnectorProfilePortNumber)?
-    ClientNumber: (ConnectorProfileClientNumber)?
-    LogonLanguage: (ConnectorProfileLogonLanguage)?
-    PrivateLinkServiceName: (ConnectorProfilePrivateLinkServiceName)?
-    OAuthProperties: (ConnectorProfileOAuthProperties)?
-    DisableSSO: (Boolean|Mapping)?
+open class ConnectorProfileAmplitudeConnectorProfileCredentials {
+    ApiKey: ConnectorProfileApiKey
+    SecretKey: ConnectorProfileSecretKey
 }
 
-typealias ConnectorProfileClientId = String|Mapping
+typealias ConnectorProfileClusterIdentifier = String|Mapping
 
 
 /// 
-open class ConnectorProfileOAuth2Credentials {
-    RefreshToken: (ConnectorProfileRefreshToken)?
-    OAuthRequest: (ConnectorProfileConnectorOAuthRequest)?
-    ClientId: (ConnectorProfileClientId)?
-    ClientSecret: (ConnectorProfileClientSecret)?
-    AccessToken: (ConnectorProfileAccessToken)?
-}
-
-typealias ConnectorProfilePrivateLinkServiceName = String|Mapping
-
-
-typealias ConnectorProfileAccountName = String|Mapping
-
-
-/// 
-open class ConnectorProfileServiceNowConnectorProfileProperties {
-    InstanceUrl: ConnectorProfileInstanceUrl
+open class ConnectorProfileConnectorOAuthRequest {
+    AuthCode: (String|Mapping)?
+    RedirectUri: (String|Mapping)?
 }
 
 typealias ConnectorProfileRoleArn = String|Mapping
 
 
+typealias ConnectorProfileApiKey = String|Mapping
+
+
 /// 
-open class ConnectorProfileInforNexusConnectorProfileProperties {
-    InstanceUrl: ConnectorProfileInstanceUrl
+open class ConnectorProfileApiKeyCredentials {
+    ApiKey: ConnectorProfileApiKey
+    ApiSecretKey: (ConnectorProfileApiSecretKey)?
 }
+
+typealias ConnectorProfileApplicationServicePath = String|Mapping
+
 
 typealias ConnectorProfileSecretKey = String|Mapping
 
 
-typealias ConnectorProfileUsername = String|Mapping
+/// 
+open class ConnectorProfileSnowflakeConnectorProfileCredentials {
+    Password: ConnectorProfilePassword
+    Username: ConnectorProfileUsername
+}
+
+typealias ConnectorProfileStage = String|Mapping
+
+
+/// 
+open class ConnectorProfileVeevaConnectorProfileCredentials {
+    Username: ConnectorProfileUsername
+    Password: ConnectorProfilePassword
+}
+
+/// 
+open class ConnectorProfileVeevaConnectorProfileProperties {
+    InstanceUrl: ConnectorProfileInstanceUrl
+}
+
+typealias ConnectorProfileAccountName = String|Mapping
+
+
+typealias ConnectorProfileBusinessUnitId = String|Mapping
+
+
+/// Connector specific configuration needed to create connector profile based on Authentication mechanism
+open class ConnectorProfileConnectorProfileCredentials {
+    SAPOData: (ConnectorProfileSAPODataConnectorProfileCredentials)?
+    Slack: (ConnectorProfileSlackConnectorProfileCredentials)?
+    CustomConnector: (ConnectorProfileCustomConnectorProfileCredentials)?
+    Dynatrace: (ConnectorProfileDynatraceConnectorProfileCredentials)?
+    Marketo: (ConnectorProfileMarketoConnectorProfileCredentials)?
+    Redshift: (ConnectorProfileRedshiftConnectorProfileCredentials)?
+    Trendmicro: (ConnectorProfileTrendmicroConnectorProfileCredentials)?
+    GoogleAnalytics: (ConnectorProfileGoogleAnalyticsConnectorProfileCredentials)?
+    InforNexus: (ConnectorProfileInforNexusConnectorProfileCredentials)?
+    Pardot: (ConnectorProfilePardotConnectorProfileCredentials)?
+    Singular: (ConnectorProfileSingularConnectorProfileCredentials)?
+    Snowflake: (ConnectorProfileSnowflakeConnectorProfileCredentials)?
+    Zendesk: (ConnectorProfileZendeskConnectorProfileCredentials)?
+    Amplitude: (ConnectorProfileAmplitudeConnectorProfileCredentials)?
+    Datadog: (ConnectorProfileDatadogConnectorProfileCredentials)?
+    ServiceNow: (ConnectorProfileServiceNowConnectorProfileCredentials)?
+    Salesforce: (ConnectorProfileSalesforceConnectorProfileCredentials)?
+    Veeva: (ConnectorProfileVeevaConnectorProfileCredentials)?
+}
+
+/// Connector specific properties needed to create connector profile - currently not needed for Amplitude, Trendmicro, Googleanalytics and Singular
+open class ConnectorProfileConnectorProfileProperties {
+    Datadog: (ConnectorProfileDatadogConnectorProfileProperties)?
+    ServiceNow: (ConnectorProfileServiceNowConnectorProfileProperties)?
+    Veeva: (ConnectorProfileVeevaConnectorProfileProperties)?
+    Zendesk: (ConnectorProfileZendeskConnectorProfileProperties)?
+    Dynatrace: (ConnectorProfileDynatraceConnectorProfileProperties)?
+    Redshift: (ConnectorProfileRedshiftConnectorProfileProperties)?
+    Salesforce: (ConnectorProfileSalesforceConnectorProfileProperties)?
+    Pardot: (ConnectorProfilePardotConnectorProfileProperties)?
+    SAPOData: (ConnectorProfileSAPODataConnectorProfileProperties)?
+    Snowflake: (ConnectorProfileSnowflakeConnectorProfileProperties)?
+    CustomConnector: (ConnectorProfileCustomConnectorProfileProperties)?
+    InforNexus: (ConnectorProfileInforNexusConnectorProfileProperties)?
+    Marketo: (ConnectorProfileMarketoConnectorProfileProperties)?
+    Slack: (ConnectorProfileSlackConnectorProfileProperties)?
+}
+
+typealias ConnectorProfileOAuth2GrantType = String|Mapping
+
+
+/// 
+open class ConnectorProfileServiceNowConnectorProfileCredentials {
+    Username: (ConnectorProfileUsername)?
+    Password: (ConnectorProfilePassword)?
+    OAuth2Credentials: (ConnectorProfileOAuth2Credentials)?
+}
+
+typealias ConnectorProfileDataApiRoleArn = String|Mapping
+
+
+typealias ConnectorProfileInstanceUrl = String|Mapping
+
+
+typealias ConnectorProfileWorkgroupName = String|Mapping
+
+
+typealias ConnectorProfileApplicationHostUrl = String|Mapping
 
 
 /// 
@@ -60,41 +132,109 @@ open class ConnectorProfileBasicAuthCredentials {
     Password: ConnectorProfilePassword
 }
 
+typealias ConnectorProfileBucketPrefix = String|Mapping
+
+
 /// 
-open class ConnectorProfileSnowflakeConnectorProfileCredentials {
-    Password: ConnectorProfilePassword
-    Username: ConnectorProfileUsername
+open class ConnectorProfileCustomConnectorProfileCredentials {
+    AuthenticationType: ConnectorProfileAuthenticationType
+    Basic: (ConnectorProfileBasicAuthCredentials)?
+    Oauth2: (ConnectorProfileOAuth2Credentials)?
+    ApiKey: (ConnectorProfileApiKeyCredentials)?
+    Custom: (ConnectorProfileCustomAuthCredentials)?
+}
+
+typealias ConnectorProfileLogonLanguage = String|Mapping
+
+
+/// 
+open class ConnectorProfileOAuthProperties {
+    AuthCodeUrl: (String(matches(Regex(#"^(https?)://[-a-zA-Z0-9+&amp;@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&amp;@#/%=~_|]"#)))|Mapping)?
+    TokenUrl: (String(matches(Regex(#"^(https?)://[-a-zA-Z0-9+&amp;@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&amp;@#/%=~_|]"#)))|Mapping)?
+    OAuthScopes: (Listing<String|Mapping>)?
+}
+
+/// 
+open class ConnectorProfileSlackConnectorProfileProperties {
+    InstanceUrl: ConnectorProfileInstanceUrl
 }
 
 typealias ConnectorProfileAccessToken = String|Mapping
 
 
-typealias ConnectorProfileAuthenticationType = String|Mapping
+/// Connector specific configurations needed to create connector profile
+open class ConnectorProfileConnectorProfileConfig {
+    ConnectorProfileProperties: (ConnectorProfileConnectorProfileProperties)?
+    ConnectorProfileCredentials: (ConnectorProfileConnectorProfileCredentials)?
+}
 
-
-typealias ConnectorProfileInstanceUrl = String|Mapping
+typealias ConnectorProfileDatabaseUrl = String|Mapping
 
 
 /// 
-open class ConnectorProfileAmplitudeConnectorProfileCredentials {
+open class ConnectorProfileInforNexusConnectorProfileProperties {
+    InstanceUrl: ConnectorProfileInstanceUrl
+}
+
+typealias ConnectorProfilePassword = String|Mapping
+
+
+typealias ConnectorProfileRegion = String|Mapping
+
+
+/// 
+open class ConnectorProfileSingularConnectorProfileCredentials {
     ApiKey: ConnectorProfileApiKey
-    SecretKey: ConnectorProfileSecretKey
 }
 
 /// 
-open class ConnectorProfileSalesforceConnectorProfileCredentials {
+open class ConnectorProfileSlackConnectorProfileCredentials {
+    ClientSecret: ConnectorProfileClientSecret
     AccessToken: (ConnectorProfileAccessToken)?
-    RefreshToken: (ConnectorProfileRefreshToken)?
     ConnectorOAuthRequest: (ConnectorProfileConnectorOAuthRequest)?
-    ClientCredentialsArn: (ConnectorProfileClientCredentialsArn)?
-    OAuth2GrantType: (ConnectorProfileOAuth2GrantType)?
-    JwtToken: (ConnectorProfileJwtToken)?
+    ClientId: ConnectorProfileClientId
+}
+
+/// 
+open class ConnectorProfileZendeskConnectorProfileCredentials {
+    ClientSecret: ConnectorProfileClientSecret
+    AccessToken: (ConnectorProfileAccessToken)?
+    ConnectorOAuthRequest: (ConnectorProfileConnectorOAuthRequest)?
+    ClientId: ConnectorProfileClientId
+}
+
+/// 
+open class ConnectorProfileMarketoConnectorProfileProperties {
+    InstanceUrl: ConnectorProfileInstanceUrl
+}
+
+/// 
+open class ConnectorProfileRedshiftConnectorProfileProperties {
+    RoleArn: ConnectorProfileRoleArn
+    IsRedshiftServerless: (Boolean|Mapping)?
+    WorkgroupName: (ConnectorProfileWorkgroupName)?
+    DatabaseUrl: (ConnectorProfileDatabaseUrl)?
+    BucketName: ConnectorProfileBucketName
+    BucketPrefix: (ConnectorProfileBucketPrefix)?
+    DataApiRoleArn: (ConnectorProfileDataApiRoleArn)?
+    ClusterIdentifier: (ConnectorProfileClusterIdentifier)?
+    DatabaseName: (ConnectorProfileDatabaseName)?
+}
+
+/// 
+open class ConnectorProfileTrendmicroConnectorProfileCredentials {
+    ApiSecretKey: ConnectorProfileApiSecretKey
 }
 
 typealias ConnectorProfileApiSecretKey = String|Mapping
 
 
-typealias ConnectorProfileApplicationServicePath = String|Mapping
+/// 
+open class ConnectorProfileDynatraceConnectorProfileCredentials {
+    ApiToken: ConnectorProfileApiToken
+}
+
+typealias ConnectorProfileCredentialsMap = Mapping<String, Any>
 
 
 /// 
@@ -106,246 +246,27 @@ open class ConnectorProfileInforNexusConnectorProfileCredentials {
 }
 
 /// 
-open class ConnectorProfileVeevaConnectorProfileProperties {
-    InstanceUrl: ConnectorProfileInstanceUrl
-}
-
-typealias ConnectorProfileDatabaseUrl = String|Mapping
-
-
-/// 
-open class ConnectorProfileCustomConnectorProfileProperties {
-    ProfileProperties: (ConnectorProfileProfileProperties)?
-    OAuth2Properties: (ConnectorProfileOAuth2Properties)?
-}
-
-typealias ConnectorProfileDataApiRoleArn = String|Mapping
-
-
-/// 
-open class ConnectorProfileDatadogConnectorProfileProperties {
-    InstanceUrl: ConnectorProfileInstanceUrl
-}
-
-typealias ConnectorProfileRegion = String|Mapping
-
-
-typealias ConnectorProfileCustomAuthenticationType = String|Mapping
-
-
-typealias ConnectorProfileBucketPrefix = String|Mapping
-
-
-typealias ConnectorProfileDatabaseName = String|Mapping
-
-
-typealias ConnectorProfileApiToken = String|Mapping
-
-
-/// Connector specific configuration needed to create connector profile based on Authentication mechanism
-open class ConnectorProfileConnectorProfileCredentials {
-    Marketo: (ConnectorProfileMarketoConnectorProfileCredentials)?
-    SAPOData: (ConnectorProfileSAPODataConnectorProfileCredentials)?
-    Salesforce: (ConnectorProfileSalesforceConnectorProfileCredentials)?
-    ServiceNow: (ConnectorProfileServiceNowConnectorProfileCredentials)?
-    Singular: (ConnectorProfileSingularConnectorProfileCredentials)?
-    GoogleAnalytics: (ConnectorProfileGoogleAnalyticsConnectorProfileCredentials)?
-    InforNexus: (ConnectorProfileInforNexusConnectorProfileCredentials)?
-    CustomConnector: (ConnectorProfileCustomConnectorProfileCredentials)?
-    Slack: (ConnectorProfileSlackConnectorProfileCredentials)?
-    Veeva: (ConnectorProfileVeevaConnectorProfileCredentials)?
-    Pardot: (ConnectorProfilePardotConnectorProfileCredentials)?
-    Zendesk: (ConnectorProfileZendeskConnectorProfileCredentials)?
-    Amplitude: (ConnectorProfileAmplitudeConnectorProfileCredentials)?
-    Dynatrace: (ConnectorProfileDynatraceConnectorProfileCredentials)?
-    Snowflake: (ConnectorProfileSnowflakeConnectorProfileCredentials)?
-    Trendmicro: (ConnectorProfileTrendmicroConnectorProfileCredentials)?
-    Datadog: (ConnectorProfileDatadogConnectorProfileCredentials)?
-    Redshift: (ConnectorProfileRedshiftConnectorProfileCredentials)?
+open class ConnectorProfileMarketoConnectorProfileCredentials {
+    ClientId: ConnectorProfileClientId
+    ClientSecret: ConnectorProfileClientSecret
+    AccessToken: (ConnectorProfileAccessToken)?
+    ConnectorOAuthRequest: (ConnectorProfileConnectorOAuthRequest)?
 }
 
 /// 
-open class ConnectorProfileOAuthProperties {
-    AuthCodeUrl: (String(matches(Regex(#"^(https?)://[-a-zA-Z0-9+&amp;@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&amp;@#/%=~_|]"#)))|Mapping)?
+open class ConnectorProfileOAuth2Properties {
     TokenUrl: (String(matches(Regex(#"^(https?)://[-a-zA-Z0-9+&amp;@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&amp;@#/%=~_|]"#)))|Mapping)?
-    OAuthScopes: (Listing<String|Mapping>)?
+    OAuth2GrantType: (ConnectorProfileOAuth2GrantType)?
+    TokenUrlCustomProperties: (ConnectorProfileTokenUrlCustomProperties)?
 }
+
+typealias ConnectorProfileClientNumber = String|Mapping
+
 
 typealias ConnectorProfileClientSecret = String|Mapping
 
 
-typealias ConnectorProfileClientCredentialsArn = String|Mapping
-
-
-/// 
-open class ConnectorProfileSalesforceConnectorProfileProperties {
-    InstanceUrl: (ConnectorProfileInstanceUrl)?
-    isSandboxEnvironment: (Boolean|Mapping)?
-    usePrivateLinkForMetadataAndAuthorization: (Boolean|Mapping)?
-}
-
-/// 
-open class ConnectorProfileSlackConnectorProfileCredentials {
-    AccessToken: (ConnectorProfileAccessToken)?
-    ConnectorOAuthRequest: (ConnectorProfileConnectorOAuthRequest)?
-    ClientId: ConnectorProfileClientId
-    ClientSecret: ConnectorProfileClientSecret
-}
-
-/// 
-open class ConnectorProfileDynatraceConnectorProfileProperties {
-    InstanceUrl: ConnectorProfileInstanceUrl
-}
-
-/// 
-open class ConnectorProfileRedshiftConnectorProfileProperties {
-    BucketPrefix: (ConnectorProfileBucketPrefix)?
-    IsRedshiftServerless: (Boolean|Mapping)?
-    ClusterIdentifier: (ConnectorProfileClusterIdentifier)?
-    WorkgroupName: (ConnectorProfileWorkgroupName)?
-    DatabaseUrl: (ConnectorProfileDatabaseUrl)?
-    RoleArn: ConnectorProfileRoleArn
-    DataApiRoleArn: (ConnectorProfileDataApiRoleArn)?
-    DatabaseName: (ConnectorProfileDatabaseName)?
-    BucketName: ConnectorProfileBucketName
-}
-
-typealias ConnectorProfileApplicationKey = String|Mapping
-
-
-/// 
-open class ConnectorProfileZendeskConnectorProfileCredentials {
-    ClientId: ConnectorProfileClientId
-    ClientSecret: ConnectorProfileClientSecret
-    AccessToken: (ConnectorProfileAccessToken)?
-    ConnectorOAuthRequest: (ConnectorProfileConnectorOAuthRequest)?
-}
-
-/// 
-open class ConnectorProfileServiceNowConnectorProfileCredentials {
-    Username: (ConnectorProfileUsername)?
-    Password: (ConnectorProfilePassword)?
-    OAuth2Credentials: (ConnectorProfileOAuth2Credentials)?
-}
-
-typealias ConnectorProfileAuthCode = String|Mapping
-
-
-/// Connector specific properties needed to create connector profile - currently not needed for Amplitude, Trendmicro, Googleanalytics and Singular
-open class ConnectorProfileConnectorProfileProperties {
-    Dynatrace: (ConnectorProfileDynatraceConnectorProfileProperties)?
-    SAPOData: (ConnectorProfileSAPODataConnectorProfileProperties)?
-    Salesforce: (ConnectorProfileSalesforceConnectorProfileProperties)?
-    CustomConnector: (ConnectorProfileCustomConnectorProfileProperties)?
-    Zendesk: (ConnectorProfileZendeskConnectorProfileProperties)?
-    Datadog: (ConnectorProfileDatadogConnectorProfileProperties)?
-    Marketo: (ConnectorProfileMarketoConnectorProfileProperties)?
-    Redshift: (ConnectorProfileRedshiftConnectorProfileProperties)?
-    Pardot: (ConnectorProfilePardotConnectorProfileProperties)?
-    Snowflake: (ConnectorProfileSnowflakeConnectorProfileProperties)?
-    Veeva: (ConnectorProfileVeevaConnectorProfileProperties)?
-    InforNexus: (ConnectorProfileInforNexusConnectorProfileProperties)?
-    ServiceNow: (ConnectorProfileServiceNowConnectorProfileProperties)?
-    Slack: (ConnectorProfileSlackConnectorProfileProperties)?
-}
-
-/// 
-open class ConnectorProfileApiKeyCredentials {
-    ApiSecretKey: (ConnectorProfileApiSecretKey)?
-    ApiKey: ConnectorProfileApiKey
-}
-
-typealias ConnectorProfileRefreshToken = String|Mapping
-
-
-/// Connector specific configurations needed to create connector profile
-open class ConnectorProfileConnectorProfileConfig {
-    ConnectorProfileCredentials: (ConnectorProfileConnectorProfileCredentials)?
-    ConnectorProfileProperties: (ConnectorProfileConnectorProfileProperties)?
-}
-
-/// 
-open class ConnectorProfilePardotConnectorProfileCredentials {
-    AccessToken: (ConnectorProfileAccessToken)?
-    RefreshToken: (ConnectorProfileRefreshToken)?
-    ConnectorOAuthRequest: (ConnectorProfileConnectorOAuthRequest)?
-    ClientCredentialsArn: (ConnectorProfileClientCredentialsArn)?
-}
-
-typealias ConnectorProfileOAuth2GrantType = String|Mapping
-
-
-typealias ConnectorProfileJwtToken = String|Mapping
-
-
-typealias ConnectorProfileApplicationHostUrl = String|Mapping
-
-
-typealias ConnectorProfileWarehouse = String|Mapping
-
-
-typealias ConnectorProfilePassword = String|Mapping
-
-
-/// 
-open class ConnectorProfileMarketoConnectorProfileProperties {
-    InstanceUrl: ConnectorProfileInstanceUrl
-}
-
-typealias ConnectorProfileCredentialsMap = Mapping<String, Any>
-
-
-/// 
-open class ConnectorProfileTrendmicroConnectorProfileCredentials {
-    ApiSecretKey: ConnectorProfileApiSecretKey
-}
-
-typealias ConnectorProfileClusterIdentifier = String|Mapping
-
-
-/// 
-open class ConnectorProfileDynatraceConnectorProfileCredentials {
-    ApiToken: ConnectorProfileApiToken
-}
-
-/// 
-open class ConnectorProfileSingularConnectorProfileCredentials {
-    ApiKey: ConnectorProfileApiKey
-}
-
-/// 
-open class ConnectorProfileSnowflakeConnectorProfileProperties {
-    BucketName: ConnectorProfileBucketName
-    BucketPrefix: (ConnectorProfileBucketPrefix)?
-    PrivateLinkServiceName: (ConnectorProfilePrivateLinkServiceName)?
-    AccountName: (ConnectorProfileAccountName)?
-    Region: (ConnectorProfileRegion)?
-    Warehouse: ConnectorProfileWarehouse
-    Stage: ConnectorProfileStage
-}
-
-typealias ConnectorProfileWorkgroupName = String|Mapping
-
-
-typealias ConnectorProfileAccessKeyId = String|Mapping
-
-
-typealias ConnectorProfileTokenUrlCustomProperties = Mapping<String, Any>
-
-
-typealias ConnectorProfileProfileProperties = Mapping<String, Any>
-
-
-typealias ConnectorProfileStage = String|Mapping
-
-
-/// 
-open class ConnectorProfileCustomAuthCredentials {
-    CredentialsMap: (ConnectorProfileCredentialsMap)?
-    CustomAuthenticationType: ConnectorProfileCustomAuthenticationType
-}
-
-typealias ConnectorProfileApiKey = String|Mapping
+typealias ConnectorProfileConnectorType = String|Mapping
 
 
 /// 
@@ -358,78 +279,145 @@ open class ConnectorProfileGoogleAnalyticsConnectorProfileCredentials {
 }
 
 /// 
+open class ConnectorProfilePardotConnectorProfileCredentials {
+    ConnectorOAuthRequest: (ConnectorProfileConnectorOAuthRequest)?
+    ClientCredentialsArn: (ConnectorProfileClientCredentialsArn)?
+    AccessToken: (ConnectorProfileAccessToken)?
+    RefreshToken: (ConnectorProfileRefreshToken)?
+}
+
+typealias ConnectorProfilePrivateLinkServiceName = String|Mapping
+
+
+/// 
+open class ConnectorProfileSalesforceConnectorProfileCredentials {
+    AccessToken: (ConnectorProfileAccessToken)?
+    RefreshToken: (ConnectorProfileRefreshToken)?
+    ConnectorOAuthRequest: (ConnectorProfileConnectorOAuthRequest)?
+    ClientCredentialsArn: (ConnectorProfileClientCredentialsArn)?
+    OAuth2GrantType: (ConnectorProfileOAuth2GrantType)?
+    JwtToken: (ConnectorProfileJwtToken)?
+}
+
+typealias ConnectorProfileAccessKeyId = String|Mapping
+
+
+typealias ConnectorProfileCustomAuthenticationType = String|Mapping
+
+
+typealias ConnectorProfileDatabaseName = String|Mapping
+
+
+/// 
+open class ConnectorProfileSalesforceConnectorProfileProperties {
+    usePrivateLinkForMetadataAndAuthorization: (Boolean|Mapping)?
+    InstanceUrl: (ConnectorProfileInstanceUrl)?
+    isSandboxEnvironment: (Boolean|Mapping)?
+}
+
+/// 
+open class ConnectorProfileSnowflakeConnectorProfileProperties {
+    Warehouse: ConnectorProfileWarehouse
+    Stage: ConnectorProfileStage
+    BucketName: ConnectorProfileBucketName
+    BucketPrefix: (ConnectorProfileBucketPrefix)?
+    PrivateLinkServiceName: (ConnectorProfilePrivateLinkServiceName)?
+    AccountName: (ConnectorProfileAccountName)?
+    Region: (ConnectorProfileRegion)?
+}
+
+/// 
+open class ConnectorProfileCustomAuthCredentials {
+    CustomAuthenticationType: ConnectorProfileCustomAuthenticationType
+    CredentialsMap: (ConnectorProfileCredentialsMap)?
+}
+
+typealias ConnectorProfileRefreshToken = String|Mapping
+
+
+/// 
+open class ConnectorProfileSAPODataConnectorProfileProperties {
+    OAuthProperties: (ConnectorProfileOAuthProperties)?
+    DisableSSO: (Boolean|Mapping)?
+    ApplicationHostUrl: (ConnectorProfileApplicationHostUrl)?
+    ApplicationServicePath: (ConnectorProfileApplicationServicePath)?
+    PortNumber: (ConnectorProfilePortNumber)?
+    ClientNumber: (ConnectorProfileClientNumber)?
+    LogonLanguage: (ConnectorProfileLogonLanguage)?
+    PrivateLinkServiceName: (ConnectorProfilePrivateLinkServiceName)?
+}
+
+/// 
+open class ConnectorProfileServiceNowConnectorProfileProperties {
+    InstanceUrl: ConnectorProfileInstanceUrl
+}
+
+typealias ConnectorProfileTokenUrlCustomProperties = Mapping<String, Any>
+
+
+typealias ConnectorProfileApiToken = String|Mapping
+
+
+typealias ConnectorProfileClientId = String|Mapping
+
+
+/// 
+open class ConnectorProfileDatadogConnectorProfileProperties {
+    InstanceUrl: ConnectorProfileInstanceUrl
+}
+
+/// 
+open class ConnectorProfilePardotConnectorProfileProperties {
+    BusinessUnitId: ConnectorProfileBusinessUnitId
+    InstanceUrl: (ConnectorProfileInstanceUrl)?
+    IsSandboxEnvironment: (Boolean|Mapping)?
+}
+
+typealias ConnectorProfilePortNumber = Int|Mapping
+
+
+typealias ConnectorProfileUsername = String|Mapping
+
+
+/// 
+open class ConnectorProfileDynatraceConnectorProfileProperties {
+    InstanceUrl: ConnectorProfileInstanceUrl
+}
+
+/// 
+open class ConnectorProfileOAuth2Credentials {
+    RefreshToken: (ConnectorProfileRefreshToken)?
+    OAuthRequest: (ConnectorProfileConnectorOAuthRequest)?
+    ClientId: (ConnectorProfileClientId)?
+    ClientSecret: (ConnectorProfileClientSecret)?
+    AccessToken: (ConnectorProfileAccessToken)?
+}
+
+/// 
 open class ConnectorProfileSAPODataConnectorProfileCredentials {
     BasicAuthCredentials: (ConnectorProfileBasicAuthCredentials)?
     OAuthCredentials: (Dynamic)?
 }
 
+typealias ConnectorProfileAuthCode = String|Mapping
+
+
 typealias ConnectorProfileBucketName = String|Mapping
 
 
-/// 
-open class ConnectorProfileSlackConnectorProfileProperties {
-    InstanceUrl: ConnectorProfileInstanceUrl
-}
-
-/// 
-open class ConnectorProfileVeevaConnectorProfileCredentials {
-    Password: ConnectorProfilePassword
-    Username: ConnectorProfileUsername
-}
-
-typealias ConnectorProfileClientNumber = String|Mapping
+typealias ConnectorProfileClientCredentialsArn = String|Mapping
 
 
 /// 
-open class ConnectorProfileCustomConnectorProfileCredentials {
-    Oauth2: (ConnectorProfileOAuth2Credentials)?
-    ApiKey: (ConnectorProfileApiKeyCredentials)?
-    Custom: (ConnectorProfileCustomAuthCredentials)?
-    AuthenticationType: ConnectorProfileAuthenticationType
-    Basic: (ConnectorProfileBasicAuthCredentials)?
+open class ConnectorProfileCustomConnectorProfileProperties {
+    ProfileProperties: (ConnectorProfileProfileProperties)?
+    OAuth2Properties: (ConnectorProfileOAuth2Properties)?
 }
 
-/// 
-open class ConnectorProfileMarketoConnectorProfileCredentials {
-    ClientSecret: ConnectorProfileClientSecret
-    AccessToken: (ConnectorProfileAccessToken)?
-    ConnectorOAuthRequest: (ConnectorProfileConnectorOAuthRequest)?
-    ClientId: ConnectorProfileClientId
-}
-
-/// 
-open class ConnectorProfileDatadogConnectorProfileCredentials {
-    ApplicationKey: ConnectorProfileApplicationKey
-    ApiKey: ConnectorProfileApiKey
-}
-
-/// 
-open class ConnectorProfileOAuth2Properties {
-    OAuth2GrantType: (ConnectorProfileOAuth2GrantType)?
-    TokenUrlCustomProperties: (ConnectorProfileTokenUrlCustomProperties)?
-    TokenUrl: (String(matches(Regex(#"^(https?)://[-a-zA-Z0-9+&amp;@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&amp;@#/%=~_|]"#)))|Mapping)?
-}
-
-/// 
-open class ConnectorProfileConnectorOAuthRequest {
-    AuthCode: (String|Mapping)?
-    RedirectUri: (String|Mapping)?
-}
-
-/// 
-open class ConnectorProfilePardotConnectorProfileProperties {
-    InstanceUrl: (ConnectorProfileInstanceUrl)?
-    IsSandboxEnvironment: (Boolean|Mapping)?
-    BusinessUnitId: ConnectorProfileBusinessUnitId
-}
-
-typealias ConnectorProfileConnectorType = String|Mapping
+typealias ConnectorProfileProfileProperties = Mapping<String, Any>
 
 
-typealias ConnectorProfileBusinessUnitId = String|Mapping
-
-
-typealias ConnectorProfileKey = String|Mapping
+typealias ConnectorProfileWarehouse = String|Mapping
 
 
 /// 
@@ -437,7 +425,22 @@ open class ConnectorProfileZendeskConnectorProfileProperties {
     InstanceUrl: ConnectorProfileInstanceUrl
 }
 
-typealias ConnectorProfileLogonLanguage = String|Mapping
+typealias ConnectorProfileApplicationKey = String|Mapping
+
+
+typealias ConnectorProfileAuthenticationType = String|Mapping
+
+
+/// 
+open class ConnectorProfileDatadogConnectorProfileCredentials {
+    ApiKey: ConnectorProfileApiKey
+    ApplicationKey: ConnectorProfileApplicationKey
+}
+
+typealias ConnectorProfileJwtToken = String|Mapping
+
+
+typealias ConnectorProfileKey = String|Mapping
 
 
 /// 
@@ -445,9 +448,6 @@ open class ConnectorProfileRedshiftConnectorProfileCredentials {
     Username: (ConnectorProfileUsername)?
     Password: (ConnectorProfilePassword)?
 }
-
-typealias ConnectorProfilePortNumber = Int|Mapping
-
 
 /// Resource Type definition for AWS::AppFlow::ConnectorProfile
 open class ConnectorProfile extends cloudformation.Resource {
@@ -458,28 +458,28 @@ open class ConnectorProfile extends cloudformation.Resource {
     /// Mode in which data transfer should be enabled. Private connection mode is currently enabled for Salesforce, Snowflake, Trendmicro and Singular
     hidden ConnectionMode: ConnectorProfileConnectionMode|Mapping
 
-    /// Connector specific configurations needed to create connector profile
-    hidden ConnectorProfileConfig: (ConnectorProfileConnectorProfileConfig)?
-
     /// The label of the connector. The label is unique for each ConnectorRegistration in your AWS account. Only needed if calling for CUSTOMCONNECTOR connector type/.
     hidden ConnectorLabel: (String(matches(Regex(#"[\w!@#.-]+"#)))|Mapping)?
+
+    /// Connector specific configurations needed to create connector profile
+    hidden ConnectorProfileConfig: (ConnectorProfileConnectorProfileConfig)?
 
     /// The maximum number of items to retrieve in a single batch.
     hidden ConnectorProfileName: String(matches(Regex(#"[\w/!@#+=.-]+"#)))|Mapping
 
-    /// The ARN of the AWS Key Management Service (AWS KMS) key that's used to encrypt your function's environment variables. If it's not provided, AWS Lambda uses a default service key.
-    hidden KMSArn: (String(matches(Regex(#"arn:aws:kms:.*:[0-9]+:.*"#)))|Mapping)?
-
     /// List of Saas providers that need connector profile to be created
     hidden ConnectorType: ConnectorProfileConnectorType
 
+    /// The ARN of the AWS Key Management Service (AWS KMS) key that's used to encrypt your function's environment variables. If it's not provided, AWS Lambda uses a default service key.
+    hidden KMSArn: (String(matches(Regex(#"arn:aws:kms:.*:[0-9]+:.*"#)))|Mapping)?
+
     Properties {
         ["ConnectionMode"] = if (ConnectionMode == null) null else ConnectionMode
-        ["ConnectorProfileConfig"] = if (ConnectorProfileConfig == null) null else ConnectorProfileConfig
         ["ConnectorLabel"] = if (ConnectorLabel == null) null else ConnectorLabel
+        ["ConnectorProfileConfig"] = if (ConnectorProfileConfig == null) null else ConnectorProfileConfig
         ["ConnectorProfileName"] = if (ConnectorProfileName == null) null else ConnectorProfileName
-        ["KMSArn"] = if (KMSArn == null) null else KMSArn
         ["ConnectorType"] = if (ConnectorType == null) null else ConnectorType
+        ["KMSArn"] = if (KMSArn == null) null else KMSArn
     }
 
 }

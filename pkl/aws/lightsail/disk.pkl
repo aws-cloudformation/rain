@@ -5,17 +5,6 @@ module aws.lightsail.disk
 
 import "../../cloudformation.pkl"
 
-/// A key-value pair to associate with a resource.
-open class DiskTag {
-    Key: String|Mapping
-    Value: (String|Mapping)?
-}
-
-/// An object that represents additional parameters when enabling or modifying the automatic snapshot add-on
-open class DiskAutoSnapshotAddOn {
-    SnapshotTimeOfDay: (String(matches(Regex(#"^[0-9]{2}:00$"#)))|Mapping)?
-}
-
 typealias AddOnStatus = "Enabling"|"Disabling"|"Enabled"|"Terminating"|"Terminated"|"Disabled"|"Failed"
 
 /// A addon associate with a resource.
@@ -25,10 +14,21 @@ open class DiskAddOn {
     AutoSnapshotAddOnRequest: (DiskAutoSnapshotAddOn)?
 }
 
+/// An object that represents additional parameters when enabling or modifying the automatic snapshot add-on
+open class DiskAutoSnapshotAddOn {
+    SnapshotTimeOfDay: (String(matches(Regex(#"^[0-9]{2}:00$"#)))|Mapping)?
+}
+
 /// Location of a resource.
 open class DiskLocation {
-    RegionName: (String|Mapping)?
     AvailabilityZone: (String|Mapping)?
+    RegionName: (String|Mapping)?
+}
+
+/// A key-value pair to associate with a resource.
+open class DiskTag {
+    Key: String|Mapping
+    Value: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::Lightsail::Disk
@@ -37,31 +37,31 @@ open class Disk extends cloudformation.Resource {
     Type = "AWS::Lightsail::Disk"
 
 
-    /// The names to use for your new Lightsail disk.
-    hidden DiskName: String(matches(Regex(#"^[a-zA-Z0-9][\w\-.]*[a-zA-Z0-9]$"#)))|Mapping
+    /// An array of objects representing the add-ons to enable for the new instance.
+    hidden AddOns: (Listing<DiskAddOn>)?
 
     /// The Availability Zone in which to create your instance. Use the following format: us-east-2a (case sensitive). Be sure to add the include Availability Zones parameter to your request.
     hidden AvailabilityZone: (String|Mapping)?
 
+    /// The names to use for your new Lightsail disk.
+    hidden DiskName: String(matches(Regex(#"^[a-zA-Z0-9][\w\-.]*[a-zA-Z0-9]$"#)))|Mapping
+
     /// 
     hidden Location: (DiskLocation)?
-
-    /// An array of objects representing the add-ons to enable for the new instance.
-    hidden AddOns: (Listing<DiskAddOn>)?
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<DiskTag>)?
 
     /// Size of the Lightsail disk
     hidden SizeInGb: Int|Mapping
 
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<DiskTag>)?
+
     Properties {
-        ["DiskName"] = if (DiskName == null) null else DiskName
-        ["AvailabilityZone"] = if (AvailabilityZone == null) null else AvailabilityZone
-        ["Location"] = if (Location == null) null else Location
         ["AddOns"] = if (AddOns == null) null else AddOns
-        ["Tags"] = if (Tags == null) null else Tags
+        ["AvailabilityZone"] = if (AvailabilityZone == null) null else AvailabilityZone
+        ["DiskName"] = if (DiskName == null) null else DiskName
+        ["Location"] = if (Location == null) null else Location
         ["SizeInGb"] = if (SizeInGb == null) null else SizeInGb
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

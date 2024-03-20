@@ -6,20 +6,13 @@ module aws.synthetics.canary
 import "../../cloudformation.pkl"
 
 /// 
-open class CanaryBaseScreenshot {
-    ScreenshotName: String|Mapping
-    IgnoreCoordinates: (Listing<String|Mapping>)?
-}
-
-/// 
-open class CanaryArtifactConfig {
-    S3Encryption: (CanaryS3Encryption)?
-}
-
-/// 
-open class CanaryS3Encryption {
-    EncryptionMode: (String|Mapping)?
-    KmsKeyArn: (String|Mapping)?
+open class CanaryCode {
+    S3ObjectVersion: (String|Mapping)?
+    Script: (String|Mapping)?
+    Handler: String|Mapping
+    SourceLocationArn: (String|Mapping)?
+    S3Bucket: (String|Mapping)?
+    S3Key: (String|Mapping)?
 }
 
 /// 
@@ -29,13 +22,10 @@ open class CanarySchedule {
 }
 
 /// 
-open class CanaryCode {
-    S3Bucket: (String|Mapping)?
-    S3Key: (String|Mapping)?
-    S3ObjectVersion: (String|Mapping)?
-    Script: (String|Mapping)?
-    Handler: String|Mapping
-    SourceLocationArn: (String|Mapping)?
+open class CanaryVPCConfig {
+    VpcId: (String|Mapping)?
+    SubnetIds: Listing<String|Mapping>
+    SecurityGroupIds: Listing<String|Mapping>
 }
 
 /// 
@@ -44,17 +34,21 @@ open class CanaryVisualReference {
     BaseScreenshots: (Listing<CanaryBaseScreenshot>)?
 }
 
+/// 
+open class CanaryArtifactConfig {
+    S3Encryption: (CanaryS3Encryption)?
+}
+
+/// 
+open class CanaryBaseScreenshot {
+    ScreenshotName: String|Mapping
+    IgnoreCoordinates: (Listing<String|Mapping>)?
+}
+
 /// A key-value pair to associate with a resource.
 open class CanaryTag {
     Key: String|Mapping
     Value: String|Mapping
-}
-
-/// 
-open class CanaryVPCConfig {
-    VpcId: (String|Mapping)?
-    SubnetIds: Listing<String|Mapping>
-    SecurityGroupIds: Listing<String|Mapping>
 }
 
 typealias CanaryRunConfigEnvironmentVariables = Mapping<String, Any>
@@ -67,44 +61,50 @@ open class CanaryRunConfig {
     EnvironmentVariables: (CanaryRunConfigEnvironmentVariables)?
 }
 
+/// 
+open class CanaryS3Encryption {
+    EncryptionMode: (String|Mapping)?
+    KmsKeyArn: (String|Mapping)?
+}
+
 /// Resource Type definition for AWS::Synthetics::Canary
 open class Canary extends cloudformation.Resource {
 
     Type = "AWS::Synthetics::Canary"
 
 
-    /// Provide the canary script source
-    hidden Code: CanaryCode
+    /// Provide artifact configuration
+    hidden ArtifactConfig: (CanaryArtifactConfig)?
 
     /// Provide the s3 bucket output location for test results
     hidden ArtifactS3Location: String(matches(Regex(#"^(s3|S3)://"#)))|Mapping
 
+    /// Provide the canary script source
+    hidden Code: CanaryCode
+
+    /// Deletes associated lambda resources created by Synthetics if set to True. Default is False
+    hidden DeleteLambdaResourcesOnCanaryDeletion: (Boolean|Mapping)?
+
+    /// Lambda Execution role used to run your canaries
+    hidden ExecutionRoleArn: String|Mapping
+
     /// Retention period of failed canary runs represented in number of days
     hidden FailureRetentionPeriod: (Int|Mapping)?
-
-    /// Visual reference configuration for visual testing
-    hidden VisualReference: (CanaryVisualReference)?
-
-    /// Frequency to run your canaries
-    hidden Schedule: CanarySchedule
-
-    /// Runtime version of Synthetics Library
-    hidden RuntimeVersion: String|Mapping
-
-    /// Runs canary if set to True. Default is False
-    hidden StartCanaryAfterCreation: (Boolean|Mapping)?
-
-    /// Provide VPC Configuration if enabled.
-    hidden VPCConfig: (CanaryVPCConfig)?
 
     /// Name of the canary.
     hidden Name: String(matches(Regex(#"^[0-9a-z_\-]{1,21}$"#)))|Mapping
 
-    /// Provide artifact configuration
-    hidden ArtifactConfig: (CanaryArtifactConfig)?
+    /// Provide canary run configuration
+    hidden RunConfig: (CanaryRunConfig)?
 
-    /// Lambda Execution role used to run your canaries
-    hidden ExecutionRoleArn: String|Mapping
+    /// Runtime version of Synthetics Library
+    hidden RuntimeVersion: String|Mapping
+
+    /// Frequency to run your canaries
+    hidden Schedule: CanarySchedule
+
+    /// Runs canary if set to True. Default is False
+    hidden StartCanaryAfterCreation: (Boolean|Mapping)?
 
     /// Retention period of successful canary runs represented in number of days
     hidden SuccessRetentionPeriod: (Int|Mapping)?
@@ -112,28 +112,28 @@ open class Canary extends cloudformation.Resource {
     /// 
     hidden Tags: (Listing<CanaryTag>)?
 
-    /// Provide canary run configuration
-    hidden RunConfig: (CanaryRunConfig)?
+    /// Provide VPC Configuration if enabled.
+    hidden VPCConfig: (CanaryVPCConfig)?
 
-    /// Deletes associated lambda resources created by Synthetics if set to True. Default is False
-    hidden DeleteLambdaResourcesOnCanaryDeletion: (Boolean|Mapping)?
+    /// Visual reference configuration for visual testing
+    hidden VisualReference: (CanaryVisualReference)?
 
     Properties {
-        ["Code"] = if (Code == null) null else Code
-        ["ArtifactS3Location"] = if (ArtifactS3Location == null) null else ArtifactS3Location
-        ["FailureRetentionPeriod"] = if (FailureRetentionPeriod == null) null else FailureRetentionPeriod
-        ["VisualReference"] = if (VisualReference == null) null else VisualReference
-        ["Schedule"] = if (Schedule == null) null else Schedule
-        ["RuntimeVersion"] = if (RuntimeVersion == null) null else RuntimeVersion
-        ["StartCanaryAfterCreation"] = if (StartCanaryAfterCreation == null) null else StartCanaryAfterCreation
-        ["VPCConfig"] = if (VPCConfig == null) null else VPCConfig
-        ["Name"] = if (Name == null) null else Name
         ["ArtifactConfig"] = if (ArtifactConfig == null) null else ArtifactConfig
+        ["ArtifactS3Location"] = if (ArtifactS3Location == null) null else ArtifactS3Location
+        ["Code"] = if (Code == null) null else Code
+        ["DeleteLambdaResourcesOnCanaryDeletion"] = if (DeleteLambdaResourcesOnCanaryDeletion == null) null else DeleteLambdaResourcesOnCanaryDeletion
         ["ExecutionRoleArn"] = if (ExecutionRoleArn == null) null else ExecutionRoleArn
+        ["FailureRetentionPeriod"] = if (FailureRetentionPeriod == null) null else FailureRetentionPeriod
+        ["Name"] = if (Name == null) null else Name
+        ["RunConfig"] = if (RunConfig == null) null else RunConfig
+        ["RuntimeVersion"] = if (RuntimeVersion == null) null else RuntimeVersion
+        ["Schedule"] = if (Schedule == null) null else Schedule
+        ["StartCanaryAfterCreation"] = if (StartCanaryAfterCreation == null) null else StartCanaryAfterCreation
         ["SuccessRetentionPeriod"] = if (SuccessRetentionPeriod == null) null else SuccessRetentionPeriod
         ["Tags"] = if (Tags == null) null else Tags
-        ["RunConfig"] = if (RunConfig == null) null else RunConfig
-        ["DeleteLambdaResourcesOnCanaryDeletion"] = if (DeleteLambdaResourcesOnCanaryDeletion == null) null else DeleteLambdaResourcesOnCanaryDeletion
+        ["VPCConfig"] = if (VPCConfig == null) null else VPCConfig
+        ["VisualReference"] = if (VisualReference == null) null else VisualReference
     }
 
 }

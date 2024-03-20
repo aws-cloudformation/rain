@@ -5,47 +5,40 @@ module aws.groundstation.config
 
 import "../../cloudformation.pkl"
 
-typealias ConfigJsonString = String|Mapping
+/// 
+open class ConfigUplinkEchoConfig {
+    Enabled: (Boolean|Mapping)?
+    AntennaUplinkConfigArn: (String|Mapping)?
+}
 
-
-typealias ConfigEirpUnits = String|Mapping
-
+/// 
+open class ConfigUplinkSpectrumConfig {
+    Polarization: (ConfigPolarization)?
+    CenterFrequency: (ConfigFrequency)?
+}
 
 typealias ConfigBucketArn = String|Mapping
 
 
 /// 
-open class ConfigAntennaDownlinkDemodDecodeConfig {
-    SpectrumConfig: (ConfigSpectrumConfig)?
-    DemodulationConfig: (ConfigDemodulationConfig)?
-    DecodeConfig: (ConfigDecodeConfig)?
+open class ConfigDemodulationConfig {
+    UnvalidatedJSON: (ConfigJsonString)?
 }
 
-/// 
-open class ConfigAntennaUplinkConfig {
-    TransmitDisabled: (Boolean|Mapping)?
-    SpectrumConfig: (ConfigUplinkSpectrumConfig)?
-    TargetEirp: (ConfigEirp)?
-}
+typealias ConfigEirpUnits = String|Mapping
+
 
 /// 
-open class ConfigFrequency {
+open class ConfigFrequencyBandwidth {
     Value: (Number|Mapping)?
-    Units: (ConfigFrequencyUnits)?
-}
-
-/// 
-open class ConfigSpectrumConfig {
-    CenterFrequency: (ConfigFrequency)?
-    Bandwidth: (ConfigFrequencyBandwidth)?
-    Polarization: (ConfigPolarization)?
+    Units: (ConfigBandwidthUnits)?
 }
 
 /// 
 open class ConfigS3RecordingConfig {
-    RoleArn: (ConfigRoleArn)?
     Prefix: (ConfigS3KeyPrefix)?
     BucketArn: (ConfigBucketArn)?
+    RoleArn: (ConfigRoleArn)?
 }
 
 /// 
@@ -55,24 +48,14 @@ open class ConfigTag {
 }
 
 /// 
-open class ConfigEirp {
-    Value: (Number|Mapping)?
-    Units: (ConfigEirpUnits)?
+open class ConfigSpectrumConfig {
+    Bandwidth: (ConfigFrequencyBandwidth)?
+    Polarization: (ConfigPolarization)?
+    CenterFrequency: (ConfigFrequency)?
 }
 
 typealias ConfigBandwidthUnits = String|Mapping
 
-
-typealias ConfigFrequencyUnits = String|Mapping
-
-
-typealias ConfigPolarization = String|Mapping
-
-
-/// 
-open class ConfigDemodulationConfig {
-    UnvalidatedJSON: (ConfigJsonString)?
-}
 
 /// 
 open class ConfigDecodeConfig {
@@ -80,24 +63,19 @@ open class ConfigDecodeConfig {
 }
 
 /// 
-open class ConfigDataflowEndpointConfig {
-    DataflowEndpointName: (String|Mapping)?
-    DataflowEndpointRegion: (String|Mapping)?
+open class ConfigEirp {
+    Value: (Number|Mapping)?
+    Units: (ConfigEirpUnits)?
 }
+
+typealias ConfigJsonString = String|Mapping
+
+
+typealias ConfigPolarization = String|Mapping
+
 
 typealias ConfigRoleArn = String|Mapping
 
-
-/// 
-open class ConfigConfigData {
-    UplinkEchoConfig: (ConfigUplinkEchoConfig)?
-    S3RecordingConfig: (ConfigS3RecordingConfig)?
-    AntennaDownlinkConfig: (ConfigAntennaDownlinkConfig)?
-    TrackingConfig: (ConfigTrackingConfig)?
-    DataflowEndpointConfig: (ConfigDataflowEndpointConfig)?
-    AntennaDownlinkDemodDecodeConfig: (ConfigAntennaDownlinkDemodDecodeConfig)?
-    AntennaUplinkConfig: (ConfigAntennaUplinkConfig)?
-}
 
 /// 
 open class ConfigAntennaDownlinkConfig {
@@ -105,16 +83,21 @@ open class ConfigAntennaDownlinkConfig {
 }
 
 /// 
-open class ConfigUplinkSpectrumConfig {
-    CenterFrequency: (ConfigFrequency)?
-    Polarization: (ConfigPolarization)?
+open class ConfigAntennaDownlinkDemodDecodeConfig {
+    DecodeConfig: (ConfigDecodeConfig)?
+    SpectrumConfig: (ConfigSpectrumConfig)?
+    DemodulationConfig: (ConfigDemodulationConfig)?
 }
 
 /// 
-open class ConfigUplinkEchoConfig {
-    Enabled: (Boolean|Mapping)?
-    AntennaUplinkConfigArn: (String|Mapping)?
+open class ConfigAntennaUplinkConfig {
+    SpectrumConfig: (ConfigUplinkSpectrumConfig)?
+    TargetEirp: (ConfigEirp)?
+    TransmitDisabled: (Boolean|Mapping)?
 }
+
+typealias ConfigFrequencyUnits = String|Mapping
+
 
 typealias TrackingConfigAutotrack = "REQUIRED"|"PREFERRED"|"REMOVED"
 
@@ -124,9 +107,26 @@ open class ConfigTrackingConfig {
 }
 
 /// 
-open class ConfigFrequencyBandwidth {
-    Units: (ConfigBandwidthUnits)?
+open class ConfigConfigData {
+    TrackingConfig: (ConfigTrackingConfig)?
+    DataflowEndpointConfig: (ConfigDataflowEndpointConfig)?
+    AntennaDownlinkDemodDecodeConfig: (ConfigAntennaDownlinkDemodDecodeConfig)?
+    AntennaUplinkConfig: (ConfigAntennaUplinkConfig)?
+    UplinkEchoConfig: (ConfigUplinkEchoConfig)?
+    S3RecordingConfig: (ConfigS3RecordingConfig)?
+    AntennaDownlinkConfig: (ConfigAntennaDownlinkConfig)?
+}
+
+/// 
+open class ConfigDataflowEndpointConfig {
+    DataflowEndpointName: (String|Mapping)?
+    DataflowEndpointRegion: (String|Mapping)?
+}
+
+/// 
+open class ConfigFrequency {
     Value: (Number|Mapping)?
+    Units: (ConfigFrequencyUnits)?
 }
 
 typealias ConfigS3KeyPrefix = String|Mapping
@@ -139,18 +139,18 @@ open class Config extends cloudformation.Resource {
 
 
     /// 
-    hidden Tags: (Listing<ConfigTag>)?
-
-    /// 
     hidden ConfigData: ConfigConfigData
 
     /// 
     hidden Name: String(matches(Regex(#"^[ a-zA-Z0-9_:-]{1,256}$"#)))|Mapping
 
+    /// 
+    hidden Tags: (Listing<ConfigTag>)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
         ["ConfigData"] = if (ConfigData == null) null else ConfigData
         ["Name"] = if (Name == null) null else Name
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

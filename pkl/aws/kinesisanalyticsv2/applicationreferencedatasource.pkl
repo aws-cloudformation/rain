@@ -6,6 +6,12 @@ module aws.kinesisanalyticsv2.applicationreferencedatasource
 import "../../cloudformation.pkl"
 
 /// 
+open class ApplicationReferenceDataSourceMappingParameters {
+    JSONMappingParameters: (ApplicationReferenceDataSourceJSONMappingParameters)?
+    CSVMappingParameters: (ApplicationReferenceDataSourceCSVMappingParameters)?
+}
+
+/// 
 open class ApplicationReferenceDataSourceRecordColumn {
     Mapping: (String|Mapping)?
     SqlType: String|Mapping
@@ -14,19 +20,28 @@ open class ApplicationReferenceDataSourceRecordColumn {
 
 /// 
 open class ApplicationReferenceDataSourceRecordFormat {
-    MappingParameters: (ApplicationReferenceDataSourceMappingParameters)?
     RecordFormatType: String|Mapping
+    MappingParameters: (ApplicationReferenceDataSourceMappingParameters)?
 }
 
 /// 
-open class ApplicationReferenceDataSourceMappingParameters {
-    JSONMappingParameters: (ApplicationReferenceDataSourceJSONMappingParameters)?
-    CSVMappingParameters: (ApplicationReferenceDataSourceCSVMappingParameters)?
+open class ApplicationReferenceDataSourceReferenceDataSource {
+    TableName: (String|Mapping)?
+    S3ReferenceDataSource: (ApplicationReferenceDataSourceS3ReferenceDataSource)?
+    ReferenceSchema: ApplicationReferenceDataSourceReferenceSchema
 }
 
 /// 
-open class ApplicationReferenceDataSourceJSONMappingParameters {
-    RecordRowPath: String|Mapping
+open class ApplicationReferenceDataSourceReferenceSchema {
+    RecordFormat: ApplicationReferenceDataSourceRecordFormat
+    RecordEncoding: (String|Mapping)?
+    RecordColumns: Listing<ApplicationReferenceDataSourceRecordColumn>
+}
+
+/// 
+open class ApplicationReferenceDataSourceS3ReferenceDataSource {
+    FileKey: String|Mapping
+    BucketARN: String|Mapping
 }
 
 /// 
@@ -36,23 +51,8 @@ open class ApplicationReferenceDataSourceCSVMappingParameters {
 }
 
 /// 
-open class ApplicationReferenceDataSourceReferenceDataSource {
-    ReferenceSchema: ApplicationReferenceDataSourceReferenceSchema
-    TableName: (String|Mapping)?
-    S3ReferenceDataSource: (ApplicationReferenceDataSourceS3ReferenceDataSource)?
-}
-
-/// 
-open class ApplicationReferenceDataSourceReferenceSchema {
-    RecordEncoding: (String|Mapping)?
-    RecordColumns: Listing<ApplicationReferenceDataSourceRecordColumn>
-    RecordFormat: ApplicationReferenceDataSourceRecordFormat
-}
-
-/// 
-open class ApplicationReferenceDataSourceS3ReferenceDataSource {
-    BucketARN: String|Mapping
-    FileKey: String|Mapping
+open class ApplicationReferenceDataSourceJSONMappingParameters {
+    RecordRowPath: String|Mapping
 }
 
 /// Resource Type definition for AWS::KinesisAnalyticsV2::ApplicationReferenceDataSource

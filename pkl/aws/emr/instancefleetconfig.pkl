@@ -5,12 +5,6 @@ module aws.emr.instancefleetconfig
 
 import "../../cloudformation.pkl"
 
-/// 
-open class InstanceFleetConfigEbsConfiguration {
-    EbsBlockDeviceConfigs: (Listing<InstanceFleetConfigEbsBlockDeviceConfig>)?
-    EbsOptimized: (Boolean|Mapping)?
-}
-
 typealias InstanceFleetConfigConfigurationConfigurationProperties = Mapping<String, Any>
 
 /// 
@@ -21,31 +15,37 @@ open class InstanceFleetConfigConfiguration {
 }
 
 /// 
-open class InstanceFleetConfigInstanceFleetProvisioningSpecifications {
-    OnDemandSpecification: (InstanceFleetConfigOnDemandProvisioningSpecification)?
-    SpotSpecification: (InstanceFleetConfigSpotProvisioningSpecification)?
-}
-
-/// 
-open class InstanceFleetConfigOnDemandProvisioningSpecification {
-    AllocationStrategy: String|Mapping
-}
-
-/// 
 open class InstanceFleetConfigEbsBlockDeviceConfig {
-    VolumesPerInstance: (Int|Mapping)?
     VolumeSpecification: InstanceFleetConfigVolumeSpecification
+    VolumesPerInstance: (Int|Mapping)?
+}
+
+/// 
+open class InstanceFleetConfigEbsConfiguration {
+    EbsBlockDeviceConfigs: (Listing<InstanceFleetConfigEbsBlockDeviceConfig>)?
+    EbsOptimized: (Boolean|Mapping)?
+}
+
+/// 
+open class InstanceFleetConfigInstanceFleetProvisioningSpecifications {
+    SpotSpecification: (InstanceFleetConfigSpotProvisioningSpecification)?
+    OnDemandSpecification: (InstanceFleetConfigOnDemandProvisioningSpecification)?
 }
 
 /// 
 open class InstanceFleetConfigInstanceTypeConfig {
+    BidPrice: (String|Mapping)?
     WeightedCapacity: (Int|Mapping)?
     EbsConfiguration: (InstanceFleetConfigEbsConfiguration)?
     BidPriceAsPercentageOfOnDemandPrice: (Number|Mapping)?
     CustomAmiId: (String|Mapping)?
     Configurations: (Listing<InstanceFleetConfigConfiguration>)?
     InstanceType: String|Mapping
-    BidPrice: (String|Mapping)?
+}
+
+/// 
+open class InstanceFleetConfigOnDemandProvisioningSpecification {
+    AllocationStrategy: String|Mapping
 }
 
 /// 
@@ -71,34 +71,34 @@ open class InstanceFleetConfig extends cloudformation.Resource {
 
 
     /// 
-    hidden InstanceTypeConfigs: (Listing<InstanceFleetConfigInstanceTypeConfig>)?
-
-    /// 
-    hidden Name: (String|Mapping)?
+    hidden ClusterId: String|Mapping
 
     /// 
     hidden InstanceFleetType: String|Mapping
 
     /// 
-    hidden TargetOnDemandCapacity: (Int|Mapping)?
-
-    /// 
-    hidden ClusterId: String|Mapping
-
-    /// 
-    hidden TargetSpotCapacity: (Int|Mapping)?
+    hidden InstanceTypeConfigs: (Listing<InstanceFleetConfigInstanceTypeConfig>)?
 
     /// 
     hidden LaunchSpecifications: (InstanceFleetConfigInstanceFleetProvisioningSpecifications)?
 
+    /// 
+    hidden Name: (String|Mapping)?
+
+    /// 
+    hidden TargetOnDemandCapacity: (Int|Mapping)?
+
+    /// 
+    hidden TargetSpotCapacity: (Int|Mapping)?
+
     Properties {
-        ["InstanceTypeConfigs"] = if (InstanceTypeConfigs == null) null else InstanceTypeConfigs
-        ["Name"] = if (Name == null) null else Name
-        ["InstanceFleetType"] = if (InstanceFleetType == null) null else InstanceFleetType
-        ["TargetOnDemandCapacity"] = if (TargetOnDemandCapacity == null) null else TargetOnDemandCapacity
         ["ClusterId"] = if (ClusterId == null) null else ClusterId
-        ["TargetSpotCapacity"] = if (TargetSpotCapacity == null) null else TargetSpotCapacity
+        ["InstanceFleetType"] = if (InstanceFleetType == null) null else InstanceFleetType
+        ["InstanceTypeConfigs"] = if (InstanceTypeConfigs == null) null else InstanceTypeConfigs
         ["LaunchSpecifications"] = if (LaunchSpecifications == null) null else LaunchSpecifications
+        ["Name"] = if (Name == null) null else Name
+        ["TargetOnDemandCapacity"] = if (TargetOnDemandCapacity == null) null else TargetOnDemandCapacity
+        ["TargetSpotCapacity"] = if (TargetSpotCapacity == null) null else TargetSpotCapacity
     }
 
 }

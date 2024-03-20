@@ -5,83 +5,50 @@ module aws.iotsitewise.assetmodel
 
 import "../../cloudformation.pkl"
 
+typealias AssetModelOffset = String|Mapping
+
+
 /// 
 open class AssetModelTransform {
     Expression: String|Mapping
     Variables: Listing<AssetModelExpressionVariable>
 }
 
-/// 
-open class AssetModelExpressionVariable {
+typealias AssetModelTypeName = String|Mapping
+
+
+/// Contains a composite model definition in an asset model. This composite model definition is applied to all assets created from the asset model.
+open class AssetModelAssetModelCompositeModel {
+    Description: (String|Mapping)?
     Name: String|Mapping
-    Value: AssetModelVariableValue
-}
-
-/// 
-open class AssetModelAttribute {
-    DefaultValue: (String|Mapping)?
-}
-
-/// 
-open class AssetModelMetric {
-    Window: AssetModelMetricWindow
-    Expression: String|Mapping
-    Variables: Listing<AssetModelExpressionVariable>
+    Type: String|Mapping
+    CompositeModelProperties: (Listing<AssetModelAssetModelProperty>)?
+    ComposedAssetModelId: (String|Mapping)?
+    Path: (Listing<String|Mapping>)?
+    ParentAssetModelCompositeModelExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
+    Id: (String(matches(Regex(#"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"#)))|Mapping)?
+    ExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
 }
 
 /// Contains information about an asset model property.
 open class AssetModelAssetModelProperty {
-    Name: String|Mapping
-    DataType: AssetModelDataType
-    DataTypeSpec: (AssetModelDataTypeSpec)?
     Unit: (String|Mapping)?
     Type: AssetModelPropertyType
     LogicalId: (String(matches(Regex(#"[^\u0000-\u001F\u007F]+"#)))|Mapping)?
     Id: (String(matches(Regex(#"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"#)))|Mapping)?
     ExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
+    Name: String|Mapping
+    DataType: AssetModelDataType
+    DataTypeSpec: (AssetModelDataTypeSpec)?
 }
 
-typealias AssetModelInterval = String|Mapping
+typealias AssetModelDataTypeSpec = String|Mapping
 
-
-/// Contains a time interval window used for data aggregate computations (for example, average, sum, count, and so on).
-open class AssetModelMetricWindow {
-    Tumbling: (AssetModelTumblingWindow)?
-}
 
 /// The definition for property path which is used to reference properties in transforms/metrics
 open class AssetModelPropertyPathDefinition {
     Name: String|Mapping
 }
-
-/// Contains a tumbling window, which is a repeating fixed-sized, non-overlapping, and contiguous time interval. This window is used in metric and aggregation computations.
-open class AssetModelTumblingWindow {
-    Interval: AssetModelInterval
-    Offset: (AssetModelOffset)?
-}
-
-/// Contains information about an asset model hierarchy.
-open class AssetModelAssetModelHierarchy {
-    Id: (String(matches(Regex(#"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"#)))|Mapping)?
-    ExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
-    LogicalId: (String(matches(Regex(#"[^\u0000-\u001F\u007F]+"#)))|Mapping)?
-    Name: String|Mapping
-    ChildAssetModelId: String|Mapping
-}
-
-typealias AssetModelDataType = String|Mapping
-
-
-/// Contains a property type, which can be one of attribute, measurement, metric, or transform.
-open class AssetModelPropertyType {
-    Transform: (AssetModelTransform)?
-    Metric: (AssetModelMetric)?
-    TypeName: AssetModelTypeName
-    Attribute: (AssetModelAttribute)?
-}
-
-typealias AssetModelDataTypeSpec = String|Mapping
-
 
 /// 
 open class AssetModelVariableValue {
@@ -94,30 +61,63 @@ open class AssetModelVariableValue {
     HierarchyExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
 }
 
+/// Contains information about an asset model hierarchy.
+open class AssetModelAssetModelHierarchy {
+    ChildAssetModelId: String|Mapping
+    Id: (String(matches(Regex(#"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"#)))|Mapping)?
+    ExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
+    LogicalId: (String(matches(Regex(#"[^\u0000-\u001F\u007F]+"#)))|Mapping)?
+    Name: String|Mapping
+}
+
+/// 
+open class AssetModelAttribute {
+    DefaultValue: (String|Mapping)?
+}
+
+typealias AssetModelDataType = String|Mapping
+
+
+/// Contains a time interval window used for data aggregate computations (for example, average, sum, count, and so on).
+open class AssetModelMetricWindow {
+    Tumbling: (AssetModelTumblingWindow)?
+}
+
+/// Contains a tumbling window, which is a repeating fixed-sized, non-overlapping, and contiguous time interval. This window is used in metric and aggregation computations.
+open class AssetModelTumblingWindow {
+    Interval: AssetModelInterval
+    Offset: (AssetModelOffset)?
+}
+
+/// 
+open class AssetModelExpressionVariable {
+    Name: String|Mapping
+    Value: AssetModelVariableValue
+}
+
+typealias AssetModelInterval = String|Mapping
+
+
+/// 
+open class AssetModelMetric {
+    Window: AssetModelMetricWindow
+    Expression: String|Mapping
+    Variables: Listing<AssetModelExpressionVariable>
+}
+
+/// Contains a property type, which can be one of attribute, measurement, metric, or transform.
+open class AssetModelPropertyType {
+    Attribute: (AssetModelAttribute)?
+    Transform: (AssetModelTransform)?
+    Metric: (AssetModelMetric)?
+    TypeName: AssetModelTypeName
+}
+
 /// 
 open class AssetModelTag {
     Key: String|Mapping
     Value: String|Mapping
 }
-
-typealias AssetModelTypeName = String|Mapping
-
-
-/// Contains a composite model definition in an asset model. This composite model definition is applied to all assets created from the asset model.
-open class AssetModelAssetModelCompositeModel {
-    ComposedAssetModelId: (String|Mapping)?
-    ParentAssetModelCompositeModelExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
-    Description: (String|Mapping)?
-    Id: (String(matches(Regex(#"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"#)))|Mapping)?
-    Path: (Listing<String|Mapping>)?
-    Name: String|Mapping
-    Type: String|Mapping
-    CompositeModelProperties: (Listing<AssetModelAssetModelProperty>)?
-    ExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
-}
-
-typealias AssetModelOffset = String|Mapping
-
 
 /// Resource schema for AWS::IoTSiteWise::AssetModel
 open class AssetModel extends cloudformation.Resource {
@@ -128,14 +128,17 @@ open class AssetModel extends cloudformation.Resource {
     /// The composite asset models that are part of this asset model. Composite asset models are asset models that contain specific properties.
     hidden AssetModelCompositeModels: (Listing<AssetModelAssetModelCompositeModel>)?
 
+    /// A description for the asset model.
+    hidden AssetModelDescription: (String|Mapping)?
+
     /// The external ID of the asset model.
     hidden AssetModelExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
 
+    /// The hierarchy definitions of the asset model. Each hierarchy specifies an asset model whose assets can be children of any other assets created from this asset model. You can specify up to 10 hierarchies per asset model.
+    hidden AssetModelHierarchies: (Listing<AssetModelAssetModelHierarchy>)?
+
     /// A unique, friendly name for the asset model.
     hidden AssetModelName: String|Mapping
-
-    /// A description for the asset model.
-    hidden AssetModelDescription: (String|Mapping)?
 
     /// The property definitions of the asset model. You can specify up to 200 properties per asset model.
     hidden AssetModelProperties: (Listing<AssetModelAssetModelProperty>)?
@@ -143,20 +146,17 @@ open class AssetModel extends cloudformation.Resource {
     /// The type of the asset model (ASSET_MODEL OR COMPONENT_MODEL)
     hidden AssetModelType: (String|Mapping)?
 
-    /// The hierarchy definitions of the asset model. Each hierarchy specifies an asset model whose assets can be children of any other assets created from this asset model. You can specify up to 10 hierarchies per asset model.
-    hidden AssetModelHierarchies: (Listing<AssetModelAssetModelHierarchy>)?
-
     /// A list of key-value pairs that contain metadata for the asset model.
     hidden Tags: (Listing<AssetModelTag>)?
 
     Properties {
         ["AssetModelCompositeModels"] = if (AssetModelCompositeModels == null) null else AssetModelCompositeModels
-        ["AssetModelExternalId"] = if (AssetModelExternalId == null) null else AssetModelExternalId
-        ["AssetModelName"] = if (AssetModelName == null) null else AssetModelName
         ["AssetModelDescription"] = if (AssetModelDescription == null) null else AssetModelDescription
+        ["AssetModelExternalId"] = if (AssetModelExternalId == null) null else AssetModelExternalId
+        ["AssetModelHierarchies"] = if (AssetModelHierarchies == null) null else AssetModelHierarchies
+        ["AssetModelName"] = if (AssetModelName == null) null else AssetModelName
         ["AssetModelProperties"] = if (AssetModelProperties == null) null else AssetModelProperties
         ["AssetModelType"] = if (AssetModelType == null) null else AssetModelType
-        ["AssetModelHierarchies"] = if (AssetModelHierarchies == null) null else AssetModelHierarchies
         ["Tags"] = if (Tags == null) null else Tags
     }
 

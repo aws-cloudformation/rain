@@ -6,10 +6,14 @@ module aws.lakeformation.permissions
 import "../../cloudformation.pkl"
 
 /// 
-open class PermissionsTableResource {
-    DatabaseName: (String|Mapping)?
+open class PermissionsDataLocationResource {
     CatalogId: (String|Mapping)?
-    TableWildcard: (PermissionsTableWildcard)?
+    S3Resource: (String|Mapping)?
+}
+
+/// 
+open class PermissionsDatabaseResource {
+    CatalogId: (String|Mapping)?
     Name: (String|Mapping)?
 }
 
@@ -22,14 +26,10 @@ open class PermissionsResource {
 }
 
 /// 
-open class PermissionsDatabaseResource {
-    CatalogId: (String|Mapping)?
+open class PermissionsTableResource {
+    TableWildcard: (PermissionsTableWildcard)?
     Name: (String|Mapping)?
-}
-
-/// 
-open class PermissionsDataLocationResource {
-    S3Resource: (String|Mapping)?
+    DatabaseName: (String|Mapping)?
     CatalogId: (String|Mapping)?
 }
 
@@ -38,11 +38,11 @@ typealias PermissionsTableWildcard = Dynamic
 
 /// 
 open class PermissionsTableWithColumnsResource {
+    Name: (String|Mapping)?
+    ColumnWildcard: (PermissionsColumnWildcard)?
     DatabaseName: (String|Mapping)?
     ColumnNames: (Listing<String|Mapping>)?
     CatalogId: (String|Mapping)?
-    Name: (String|Mapping)?
-    ColumnWildcard: (PermissionsColumnWildcard)?
 }
 
 /// 
@@ -62,22 +62,22 @@ open class Permissions extends cloudformation.Resource {
 
 
     /// 
-    hidden Resource: PermissionsResource
+    hidden DataLakePrincipal: PermissionsDataLakePrincipal
 
     /// 
     hidden Permissions: (Listing<String|Mapping>)?
 
     /// 
-    hidden DataLakePrincipal: PermissionsDataLakePrincipal
-
-    /// 
     hidden PermissionsWithGrantOption: (Listing<String|Mapping>)?
 
+    /// 
+    hidden Resource: PermissionsResource
+
     Properties {
-        ["Resource"] = if (Resource == null) null else Resource
-        ["Permissions"] = if (Permissions == null) null else Permissions
         ["DataLakePrincipal"] = if (DataLakePrincipal == null) null else DataLakePrincipal
+        ["Permissions"] = if (Permissions == null) null else Permissions
         ["PermissionsWithGrantOption"] = if (PermissionsWithGrantOption == null) null else PermissionsWithGrantOption
+        ["Resource"] = if (Resource == null) null else Resource
     }
 
 }

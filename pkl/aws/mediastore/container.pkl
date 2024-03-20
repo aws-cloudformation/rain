@@ -7,11 +7,11 @@ import "../../cloudformation.pkl"
 
 /// 
 open class ContainerCorsRule {
+    AllowedOrigins: (Listing<String|Mapping>)?
+    ExposeHeaders: (Listing<String|Mapping>)?
     MaxAgeSeconds: (Int|Mapping)?
     AllowedHeaders: (Listing<String|Mapping>)?
     AllowedMethods: (Listing<String|Mapping>)?
-    AllowedOrigins: (Listing<String|Mapping>)?
-    ExposeHeaders: (Listing<String|Mapping>)?
 }
 
 /// 
@@ -21,15 +21,15 @@ open class ContainerMetricPolicy {
 }
 
 /// 
-open class ContainerTag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
 open class ContainerMetricPolicyRule {
     ObjectGroupName: String|Mapping
     ObjectGroup: String|Mapping
+}
+
+/// 
+open class ContainerTag {
+    Value: String|Mapping
+    Key: String|Mapping
 }
 
 /// Resource Type definition for AWS::MediaStore::Container
@@ -39,13 +39,7 @@ open class Container extends cloudformation.Resource {
 
 
     /// 
-    hidden Policy: (String|Mapping)?
-
-    /// 
-    hidden MetricPolicy: (ContainerMetricPolicy)?
-
-    /// 
-    hidden LifecyclePolicy: (String|Mapping)?
+    hidden AccessLoggingEnabled: (Boolean|Mapping)?
 
     /// 
     hidden ContainerName: String|Mapping
@@ -54,18 +48,24 @@ open class Container extends cloudformation.Resource {
     hidden CorsPolicy: (Listing<ContainerCorsRule>)?
 
     /// 
-    hidden AccessLoggingEnabled: (Boolean|Mapping)?
+    hidden LifecyclePolicy: (String|Mapping)?
+
+    /// 
+    hidden MetricPolicy: (ContainerMetricPolicy)?
+
+    /// 
+    hidden Policy: (String|Mapping)?
 
     /// 
     hidden Tags: (Listing<ContainerTag>)?
 
     Properties {
-        ["Policy"] = if (Policy == null) null else Policy
-        ["MetricPolicy"] = if (MetricPolicy == null) null else MetricPolicy
-        ["LifecyclePolicy"] = if (LifecyclePolicy == null) null else LifecyclePolicy
+        ["AccessLoggingEnabled"] = if (AccessLoggingEnabled == null) null else AccessLoggingEnabled
         ["ContainerName"] = if (ContainerName == null) null else ContainerName
         ["CorsPolicy"] = if (CorsPolicy == null) null else CorsPolicy
-        ["AccessLoggingEnabled"] = if (AccessLoggingEnabled == null) null else AccessLoggingEnabled
+        ["LifecyclePolicy"] = if (LifecyclePolicy == null) null else LifecyclePolicy
+        ["MetricPolicy"] = if (MetricPolicy == null) null else MetricPolicy
+        ["Policy"] = if (Policy == null) null else Policy
         ["Tags"] = if (Tags == null) null else Tags
     }
 

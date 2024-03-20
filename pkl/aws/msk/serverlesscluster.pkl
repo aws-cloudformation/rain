@@ -11,13 +11,13 @@ open class ServerlessClusterClientAuthentication {
 }
 
 /// 
-open class ServerlessClusterSasl {
-    Iam: ServerlessClusterIam
+open class ServerlessClusterIam {
+    Enabled: Boolean|Mapping
 }
 
 /// 
-open class ServerlessClusterIam {
-    Enabled: Boolean|Mapping
+open class ServerlessClusterSasl {
+    Iam: ServerlessClusterIam
 }
 
 /// 
@@ -33,22 +33,22 @@ open class ServerlessCluster extends cloudformation.Resource {
 
 
     /// 
-    hidden VpcConfigs: Listing<ServerlessClusterVpcConfig>
+    hidden ClientAuthentication: ServerlessClusterClientAuthentication
 
     /// 
-    hidden ClientAuthentication: ServerlessClusterClientAuthentication
+    hidden ClusterName: String|Mapping
 
     /// A key-value pair to associate with a resource.
     hidden Tags: (ServerlessClusterServerlessClusterTags)?
 
     /// 
-    hidden ClusterName: String|Mapping
+    hidden VpcConfigs: Listing<ServerlessClusterVpcConfig>
 
     Properties {
-        ["VpcConfigs"] = if (VpcConfigs == null) null else VpcConfigs
         ["ClientAuthentication"] = if (ClientAuthentication == null) null else ClientAuthentication
-        ["Tags"] = if (Tags == null) null else Tags
         ["ClusterName"] = if (ClusterName == null) null else ClusterName
+        ["Tags"] = if (Tags == null) null else Tags
+        ["VpcConfigs"] = if (VpcConfigs == null) null else VpcConfigs
     }
 
 }

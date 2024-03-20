@@ -6,26 +6,26 @@ module aws.ssm.resourcedatasync
 import "../../cloudformation.pkl"
 
 /// 
-open class ResourceDataSyncSyncSource {
-    SourceType: String|Mapping
-    AwsOrganizationsSource: (ResourceDataSyncAwsOrganizationsSource)?
-    IncludeFutureRegions: (Boolean|Mapping)?
-    SourceRegions: Listing<String|Mapping>
-}
-
-/// 
 open class ResourceDataSyncAwsOrganizationsSource {
-    OrganizationSourceType: String|Mapping
     OrganizationalUnits: (Listing<String|Mapping>)?
+    OrganizationSourceType: String|Mapping
 }
 
 /// 
 open class ResourceDataSyncS3Destination {
+    BucketRegion: String|Mapping
+    SyncFormat: String|Mapping
     KMSKeyArn: (String|Mapping)?
     BucketPrefix: (String|Mapping)?
     BucketName: String|Mapping
-    BucketRegion: String|Mapping
-    SyncFormat: String|Mapping
+}
+
+/// 
+open class ResourceDataSyncSyncSource {
+    IncludeFutureRegions: (Boolean|Mapping)?
+    SourceRegions: Listing<String|Mapping>
+    SourceType: String|Mapping
+    AwsOrganizationsSource: (ResourceDataSyncAwsOrganizationsSource)?
 }
 
 /// Resource Type definition for AWS::SSM::ResourceDataSync
@@ -35,38 +35,38 @@ open class ResourceDataSync extends cloudformation.Resource {
 
 
     /// 
-    hidden SyncType: (String|Mapping)?
+    hidden BucketName: (String|Mapping)?
 
     /// 
     hidden BucketPrefix: (String|Mapping)?
 
     /// 
-    hidden SyncSource: (ResourceDataSyncSyncSource)?
-
-    /// 
-    hidden BucketName: (String|Mapping)?
-
-    /// 
     hidden BucketRegion: (String|Mapping)?
 
     /// 
-    hidden SyncFormat: (String|Mapping)?
+    hidden KMSKeyArn: (String|Mapping)?
 
     /// 
     hidden S3Destination: (ResourceDataSyncS3Destination)?
 
     /// 
-    hidden KMSKeyArn: (String|Mapping)?
+    hidden SyncFormat: (String|Mapping)?
+
+    /// 
+    hidden SyncSource: (ResourceDataSyncSyncSource)?
+
+    /// 
+    hidden SyncType: (String|Mapping)?
 
     Properties {
-        ["SyncType"] = if (SyncType == null) null else SyncType
-        ["BucketPrefix"] = if (BucketPrefix == null) null else BucketPrefix
-        ["SyncSource"] = if (SyncSource == null) null else SyncSource
         ["BucketName"] = if (BucketName == null) null else BucketName
+        ["BucketPrefix"] = if (BucketPrefix == null) null else BucketPrefix
         ["BucketRegion"] = if (BucketRegion == null) null else BucketRegion
-        ["SyncFormat"] = if (SyncFormat == null) null else SyncFormat
-        ["S3Destination"] = if (S3Destination == null) null else S3Destination
         ["KMSKeyArn"] = if (KMSKeyArn == null) null else KMSKeyArn
+        ["S3Destination"] = if (S3Destination == null) null else S3Destination
+        ["SyncFormat"] = if (SyncFormat == null) null else SyncFormat
+        ["SyncSource"] = if (SyncSource == null) null else SyncSource
+        ["SyncType"] = if (SyncType == null) null else SyncType
     }
 
 }

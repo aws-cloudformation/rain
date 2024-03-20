@@ -11,12 +11,6 @@ open class MeshEgressFilter {
 }
 
 /// 
-open class MeshTag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
 open class MeshMeshServiceDiscovery {
     IpPreference: (String|Mapping)?
 }
@@ -27,6 +21,12 @@ open class MeshMeshSpec {
     ServiceDiscovery: (MeshMeshServiceDiscovery)?
 }
 
+/// 
+open class MeshTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
 /// Resource Type definition for AWS::AppMesh::Mesh
 open class Mesh extends cloudformation.Resource {
 
@@ -34,18 +34,18 @@ open class Mesh extends cloudformation.Resource {
 
 
     /// 
+    hidden MeshName: (String|Mapping)?
+
+    /// 
     hidden Spec: (MeshMeshSpec)?
 
     /// 
     hidden Tags: (Listing<MeshTag>)?
 
-    /// 
-    hidden MeshName: (String|Mapping)?
-
     Properties {
+        ["MeshName"] = if (MeshName == null) null else MeshName
         ["Spec"] = if (Spec == null) null else Spec
         ["Tags"] = if (Tags == null) null else Tags
-        ["MeshName"] = if (MeshName == null) null else MeshName
     }
 
 }

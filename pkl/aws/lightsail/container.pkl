@@ -6,28 +6,16 @@ module aws.lightsail.container
 import "../../cloudformation.pkl"
 
 /// 
-open class ContainerEnvironmentVariable {
-    Variable: (String|Mapping)?
-    Value: (String|Mapping)?
-}
-
-/// 
 open class ContainerPortInfo {
     Port: (String|Mapping)?
     Protocol: (String|Mapping)?
 }
 
-/// A key-value pair to associate with a resource.
-open class ContainerTag {
-    Key: String|Mapping
-    Value: (String|Mapping)?
-}
-
 /// Describes the settings of a public endpoint for an Amazon Lightsail container service.
 open class ContainerPublicEndpoint {
+    ContainerName: (String|Mapping)?
     ContainerPort: (Int|Mapping)?
     HealthCheckConfig: (ContainerHealthCheckConfig)?
-    ContainerName: (String|Mapping)?
 }
 
 /// The public domain name to use with the container service, such as example.com and www.example.com.
@@ -36,29 +24,41 @@ open class ContainerPublicDomainName {
     DomainNames: (Listing<String|Mapping>)?
 }
 
+/// A key-value pair to associate with a resource.
+open class ContainerTag {
+    Key: String|Mapping
+    Value: (String|Mapping)?
+}
+
+/// Describes the settings of a container that will be launched, or that is launched, to an Amazon Lightsail container service.
+open class ContainerContainer {
+    ContainerName: (String|Mapping)?
+    Command: (Listing<String|Mapping>)?
+    Environment: (Listing<ContainerEnvironmentVariable>)?
+    Image: (String|Mapping)?
+    Ports: (Listing<ContainerPortInfo>)?
+}
+
 /// Describes a container deployment configuration of an Amazon Lightsail container service.
 open class ContainerContainerServiceDeployment {
     Containers: (Listing<ContainerContainer>)?
     PublicEndpoint: (ContainerPublicEndpoint)?
 }
 
+/// 
+open class ContainerEnvironmentVariable {
+    Variable: (String|Mapping)?
+    Value: (String|Mapping)?
+}
+
 /// Describes the health check configuration of an Amazon Lightsail container service.
 open class ContainerHealthCheckConfig {
+    UnhealthyThreshold: (Int|Mapping)?
     HealthyThreshold: (Int|Mapping)?
     IntervalSeconds: (Int|Mapping)?
     Path: (String|Mapping)?
     SuccessCodes: (String|Mapping)?
     TimeoutSeconds: (Int|Mapping)?
-    UnhealthyThreshold: (Int|Mapping)?
-}
-
-/// Describes the settings of a container that will be launched, or that is launched, to an Amazon Lightsail container service.
-open class ContainerContainer {
-    Command: (Listing<String|Mapping>)?
-    Environment: (Listing<ContainerEnvironmentVariable>)?
-    Image: (String|Mapping)?
-    Ports: (Listing<ContainerPortInfo>)?
-    ContainerName: (String|Mapping)?
 }
 
 /// An object to describe the configuration for the container service to access private container image repositories, such as Amazon Elastic Container Registry (Amazon ECR) private repositories.
@@ -75,6 +75,12 @@ open class Container extends cloudformation.Resource {
     /// Describes a container deployment configuration of an Amazon Lightsail container service.
     hidden ContainerServiceDeployment: (ContainerContainerServiceDeployment)?
 
+    /// A Boolean value to indicate whether the container service is disabled.
+    hidden IsDisabled: (Boolean|Mapping)?
+
+    /// The power specification for the container service.
+    hidden Power: String|Mapping
+
     /// A Boolean value to indicate whether the container service has access to private container image repositories, such as Amazon Elastic Container Registry (Amazon ECR) private repositories.
     hidden PrivateRegistryAccess: (ContainerPrivateRegistryAccess)?
 
@@ -84,27 +90,21 @@ open class Container extends cloudformation.Resource {
     /// The scale specification for the container service.
     hidden Scale: Int|Mapping
 
-    /// A Boolean value to indicate whether the container service is disabled.
-    hidden IsDisabled: (Boolean|Mapping)?
+    /// The name for the container service.
+    hidden ServiceName: String(matches(Regex(#"^[a-z0-9]{1,2}|[a-z0-9][a-z0-9-]+[a-z0-9]$"#)))|Mapping
 
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<ContainerTag>)?
 
-    /// The name for the container service.
-    hidden ServiceName: String(matches(Regex(#"^[a-z0-9]{1,2}|[a-z0-9][a-z0-9-]+[a-z0-9]$"#)))|Mapping
-
-    /// The power specification for the container service.
-    hidden Power: String|Mapping
-
     Properties {
         ["ContainerServiceDeployment"] = if (ContainerServiceDeployment == null) null else ContainerServiceDeployment
+        ["IsDisabled"] = if (IsDisabled == null) null else IsDisabled
+        ["Power"] = if (Power == null) null else Power
         ["PrivateRegistryAccess"] = if (PrivateRegistryAccess == null) null else PrivateRegistryAccess
         ["PublicDomainNames"] = if (PublicDomainNames == null) null else PublicDomainNames
         ["Scale"] = if (Scale == null) null else Scale
-        ["IsDisabled"] = if (IsDisabled == null) null else IsDisabled
-        ["Tags"] = if (Tags == null) null else Tags
         ["ServiceName"] = if (ServiceName == null) null else ServiceName
-        ["Power"] = if (Power == null) null else Power
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

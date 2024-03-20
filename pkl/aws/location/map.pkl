@@ -5,6 +5,15 @@ module aws.location.map
 
 import "../../cloudformation.pkl"
 
+/// A key-value pair to associate with a resource.
+open class MapTag {
+    Key: String(matches(Regex(#"^[a-zA-Z+-=._:/]+$"#)))|Mapping
+    Value: String(matches(Regex(#"^[A-Za-z0-9 _=@:.+-/]*$"#)))|Mapping
+}
+
+typealias MapTagMap = Mapping<String, Any>
+
+
 typealias Mapiso8601UTC = String|Mapping
 
 
@@ -18,15 +27,6 @@ open class MapMapConfiguration {
 typealias MapPricingPlan = String|Mapping
 
 
-typealias MapTagMap = Mapping<String, Any>
-
-
-/// A key-value pair to associate with a resource.
-open class MapTag {
-    Key: String(matches(Regex(#"^[a-zA-Z+-=._:/]+$"#)))|Mapping
-    Value: String(matches(Regex(#"^[A-Za-z0-9 _=@:.+-/]*$"#)))|Mapping
-}
-
 /// Definition of AWS::Location::Map Resource Type
 open class Map extends cloudformation.Resource {
 
@@ -37,22 +37,22 @@ open class Map extends cloudformation.Resource {
     hidden Configuration: MapMapConfiguration
 
     /// 
+    hidden Description: (String|Mapping)?
+
+    /// 
     hidden MapName: String(matches(Regex(#"^[-._\w]+$"#)))|Mapping
 
     /// 
     hidden PricingPlan: (MapPricingPlan)?
-
-    /// 
-    hidden Description: (String|Mapping)?
 
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<MapTag>)?
 
     Properties {
         ["Configuration"] = if (Configuration == null) null else Configuration
+        ["Description"] = if (Description == null) null else Description
         ["MapName"] = if (MapName == null) null else MapName
         ["PricingPlan"] = if (PricingPlan == null) null else PricingPlan
-        ["Description"] = if (Description == null) null else Description
         ["Tags"] = if (Tags == null) null else Tags
     }
 

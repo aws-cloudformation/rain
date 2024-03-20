@@ -6,46 +6,46 @@ module aws.cleanrooms.membership
 import "../../cloudformation.pkl"
 
 /// 
+open class MembershipMembershipProtectedQueryOutputConfiguration {
+    S3: MembershipProtectedQueryS3OutputConfiguration
+}
+
+/// 
+open class MembershipMembershipProtectedQueryResultConfiguration {
+    OutputConfiguration: MembershipMembershipProtectedQueryOutputConfiguration
+    RoleArn: (String|Mapping)?
+}
+
+typealias MembershipMembershipQueryLogStatus = String|Mapping
+
+
+typealias MembershipMembershipStatus = String|Mapping
+
+
+/// 
 open class MembershipTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
 /// 
+open class MembershipMembershipPaymentConfiguration {
+    QueryCompute: MembershipMembershipQueryComputePaymentConfig
+}
+
+/// 
 open class MembershipProtectedQueryS3OutputConfiguration {
+    KeyPrefix: (String|Mapping)?
     ResultFormat: MembershipResultFormat
     Bucket: String|Mapping
-    KeyPrefix: (String|Mapping)?
 }
-
-/// 
-open class MembershipMembershipProtectedQueryOutputConfiguration {
-    S3: MembershipProtectedQueryS3OutputConfiguration
-}
-
-/// 
-open class MembershipMembershipQueryComputePaymentConfig {
-    IsResponsible: Boolean|Mapping
-}
-
-typealias MembershipMembershipStatus = String|Mapping
-
 
 typealias MembershipResultFormat = String|Mapping
 
 
 /// 
-open class MembershipMembershipProtectedQueryResultConfiguration {
-    RoleArn: (String|Mapping)?
-    OutputConfiguration: MembershipMembershipProtectedQueryOutputConfiguration
-}
-
-typealias MembershipMembershipQueryLogStatus = String|Mapping
-
-
-/// 
-open class MembershipMembershipPaymentConfiguration {
-    QueryCompute: MembershipMembershipQueryComputePaymentConfig
+open class MembershipMembershipQueryComputePaymentConfig {
+    IsResponsible: Boolean|Mapping
 }
 
 /// Represents an AWS account that is a part of a collaboration
@@ -55,26 +55,26 @@ open class Membership extends cloudformation.Resource {
 
 
     /// 
-    hidden QueryLogStatus: MembershipMembershipQueryLogStatus
-
-    /// 
-    hidden PaymentConfiguration: (MembershipMembershipPaymentConfiguration)?
-
-    /// An arbitrary set of tags (key-value pairs) for this cleanrooms membership.
-    hidden Tags: (Listing<MembershipTag>)?
-
-    /// 
     hidden CollaborationIdentifier: String(matches(Regex(#"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"#)))|Mapping
 
     /// 
     hidden DefaultResultConfiguration: (MembershipMembershipProtectedQueryResultConfiguration)?
 
+    /// 
+    hidden PaymentConfiguration: (MembershipMembershipPaymentConfiguration)?
+
+    /// 
+    hidden QueryLogStatus: MembershipMembershipQueryLogStatus
+
+    /// An arbitrary set of tags (key-value pairs) for this cleanrooms membership.
+    hidden Tags: (Listing<MembershipTag>)?
+
     Properties {
-        ["QueryLogStatus"] = if (QueryLogStatus == null) null else QueryLogStatus
-        ["PaymentConfiguration"] = if (PaymentConfiguration == null) null else PaymentConfiguration
-        ["Tags"] = if (Tags == null) null else Tags
         ["CollaborationIdentifier"] = if (CollaborationIdentifier == null) null else CollaborationIdentifier
         ["DefaultResultConfiguration"] = if (DefaultResultConfiguration == null) null else DefaultResultConfiguration
+        ["PaymentConfiguration"] = if (PaymentConfiguration == null) null else PaymentConfiguration
+        ["QueryLogStatus"] = if (QueryLogStatus == null) null else QueryLogStatus
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

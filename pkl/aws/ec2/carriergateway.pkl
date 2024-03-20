@@ -5,14 +5,14 @@ module aws.ec2.carriergateway
 
 import "../../cloudformation.pkl"
 
-typealias CarrierGatewayTags = Listing<(CarrierGatewayTag)?>
-
-
 /// 
 open class CarrierGatewayTag {
     Key: (String(matches(Regex(#"^(?!aws:.*)"#)))|Mapping)?
     Value: (String(matches(Regex(#"^(?!aws:.*)"#)))|Mapping)?
 }
+
+typealias CarrierGatewayTags = Listing<(CarrierGatewayTag)?>
+
 
 /// An example resource schema demonstrating some basic constructs and validation rules.
 open class CarrierGateway extends cloudformation.Resource {
@@ -20,15 +20,15 @@ open class CarrierGateway extends cloudformation.Resource {
     Type = "AWS::EC2::CarrierGateway"
 
 
-    /// The ID of the VPC.
-    hidden VpcId: String|Mapping
-
     /// The tags for the carrier gateway.
     hidden Tags: (CarrierGatewayTags)?
 
+    /// The ID of the VPC.
+    hidden VpcId: String|Mapping
+
     Properties {
-        ["VpcId"] = if (VpcId == null) null else VpcId
         ["Tags"] = if (Tags == null) null else Tags
+        ["VpcId"] = if (VpcId == null) null else VpcId
     }
 
 }

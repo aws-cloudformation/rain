@@ -6,57 +6,8 @@ module aws.lex.botalias
 import "../../cloudformation.pkl"
 
 /// Contains information about code hooks that Amazon Lex calls during a conversation.
-open class BotAliasTextLogSetting {
-    Enabled: Boolean|Mapping
-    Destination: BotAliasTextLogDestination
-}
-
-/// You can use this parameter to specify a specific Lambda function to run different functions in different locales.
-open class BotAliasBotAliasLocaleSettings {
-    CodeHookSpecification: (BotAliasCodeHookSpecification)?
-    Enabled: Boolean|Mapping
-}
-
-typealias BotAliasName = String|Mapping
-
-
-typealias BotAliasBotVersion = String|Mapping
-
-
-typealias BotAliasDescription = String|Mapping
-
-
-/// A locale setting in alias
-open class BotAliasBotAliasLocaleSettingsItem {
-    LocaleId: String|Mapping
-    BotAliasLocaleSetting: BotAliasBotAliasLocaleSettings
-}
-
-/// Settings for logging audio of conversations between Amazon Lex and a user. You specify whether to log audio and the Amazon S3 bucket where the audio file is stored.
-open class BotAliasAudioLogSetting {
-    Destination: BotAliasAudioLogDestination
-    Enabled: Boolean|Mapping
-}
-
-/// Specifies an Amazon S3 bucket for logging audio conversations
-open class BotAliasS3BucketLogDestination {
-    S3BucketArn: String(matches(Regex(#"^arn:[\w\-]+:s3:::[a-z0-9][\.\-a-z0-9]{1,61}[a-z0-9]$"#)))|Mapping
-    LogPrefix: String|Mapping
-    KmsKeyArn: (String(matches(Regex(#"^arn:[\w\-]+:kms:[\w\-]+:[\d]{12}:(?:key\/[\w\-]+|alias\/[a-zA-Z0-9:\/_\-]{1,256})$"#)))|Mapping)?
-}
-
-/// Defines the Amazon CloudWatch Logs destination log group for conversation text logs.
-open class BotAliasTextLogDestination {
-    CloudWatch: BotAliasCloudWatchLogGroupLogDestination
-}
-
-typealias BotAliasArn = String|Mapping
-
-
-/// Contains information about code hooks that Amazon Lex calls during a conversation.
-open class BotAliasConversationLogSettings {
-    AudioLogSettings: (BotAliasAudioLogSettings)?
-    TextLogSettings: (BotAliasTextLogSettings)?
+open class BotAliasCodeHookSpecification {
+    LambdaCodeHook: BotAliasLambdaCodeHook
 }
 
 /// Contains information about code hooks that Amazon Lex calls during a conversation.
@@ -65,22 +16,19 @@ open class BotAliasLambdaCodeHook {
     LambdaArn: String|Mapping
 }
 
+typealias BotAliasLocaleId = String|Mapping
+
+
 /// The location of audio log files collected when conversation logging is enabled for a bot.
 open class BotAliasAudioLogDestination {
     S3Bucket: BotAliasS3BucketLogDestination
 }
 
-typealias BotAliasLocaleId = String|Mapping
-
-
-typealias BotAliasAudioLogSettings = Listing<(BotAliasAudioLogSetting)?>
-
-
-typealias BotAliasTextLogSettings = Listing<(BotAliasTextLogSetting)?>
-
-
-typealias BotAliasBotAliasStatus = String|Mapping
-
+/// You can use this parameter to specify a specific Lambda function to run different functions in different locales.
+open class BotAliasBotAliasLocaleSettings {
+    CodeHookSpecification: (BotAliasCodeHookSpecification)?
+    Enabled: Boolean|Mapping
+}
 
 /// 
 open class BotAliasCloudWatchLogGroupLogDestination {
@@ -94,13 +42,65 @@ open class BotAliasTag {
     Value: String|Mapping
 }
 
+/// Defines the Amazon CloudWatch Logs destination log group for conversation text logs.
+open class BotAliasTextLogDestination {
+    CloudWatch: BotAliasCloudWatchLogGroupLogDestination
+}
+
+/// Settings for logging audio of conversations between Amazon Lex and a user. You specify whether to log audio and the Amazon S3 bucket where the audio file is stored.
+open class BotAliasAudioLogSetting {
+    Destination: BotAliasAudioLogDestination
+    Enabled: Boolean|Mapping
+}
+
+/// A locale setting in alias
+open class BotAliasBotAliasLocaleSettingsItem {
+    LocaleId: String|Mapping
+    BotAliasLocaleSetting: BotAliasBotAliasLocaleSettings
+}
+
 typealias BotAliasBotAliasLocaleSettingsList = Listing<(BotAliasBotAliasLocaleSettingsItem)?>
 
 
+typealias BotAliasDescription = String|Mapping
+
+
 /// Contains information about code hooks that Amazon Lex calls during a conversation.
-open class BotAliasCodeHookSpecification {
-    LambdaCodeHook: BotAliasLambdaCodeHook
+open class BotAliasTextLogSetting {
+    Destination: BotAliasTextLogDestination
+    Enabled: Boolean|Mapping
 }
+
+typealias BotAliasTextLogSettings = Listing<(BotAliasTextLogSetting)?>
+
+
+typealias BotAliasArn = String|Mapping
+
+
+typealias BotAliasBotAliasStatus = String|Mapping
+
+
+/// Contains information about code hooks that Amazon Lex calls during a conversation.
+open class BotAliasConversationLogSettings {
+    AudioLogSettings: (BotAliasAudioLogSettings)?
+    TextLogSettings: (BotAliasTextLogSettings)?
+}
+
+typealias BotAliasName = String|Mapping
+
+
+/// Specifies an Amazon S3 bucket for logging audio conversations
+open class BotAliasS3BucketLogDestination {
+    S3BucketArn: String(matches(Regex(#"^arn:[\w\-]+:s3:::[a-z0-9][\.\-a-z0-9]{1,61}[a-z0-9]$"#)))|Mapping
+    LogPrefix: String|Mapping
+    KmsKeyArn: (String(matches(Regex(#"^arn:[\w\-]+:kms:[\w\-]+:[\d]{12}:(?:key\/[\w\-]+|alias\/[a-zA-Z0-9:\/_\-]{1,256})$"#)))|Mapping)?
+}
+
+typealias BotAliasAudioLogSettings = Listing<(BotAliasAudioLogSetting)?>
+
+
+typealias BotAliasBotVersion = String|Mapping
+
 
 typealias BotAliasId = String|Mapping
 
@@ -112,7 +112,7 @@ open class BotAlias extends cloudformation.Resource {
 
 
     /// 
-    hidden BotId: BotAliasId
+    hidden BotAliasLocaleSettings: (BotAliasBotAliasLocaleSettingsList)?
 
     /// 
     hidden BotAliasName: BotAliasName
@@ -121,13 +121,7 @@ open class BotAlias extends cloudformation.Resource {
     hidden BotAliasTags: (Listing<BotAliasTag>)?
 
     /// 
-    hidden Description: (BotAliasDescription)?
-
-    /// Determines whether Amazon Lex will use Amazon Comprehend to detect the sentiment of user utterances.
-    hidden SentimentAnalysisSettings: (Dynamic)?
-
-    /// 
-    hidden BotAliasLocaleSettings: (BotAliasBotAliasLocaleSettingsList)?
+    hidden BotId: BotAliasId
 
     /// 
     hidden BotVersion: (BotAliasBotVersion)?
@@ -135,15 +129,21 @@ open class BotAlias extends cloudformation.Resource {
     /// 
     hidden ConversationLogSettings: (BotAliasConversationLogSettings)?
 
+    /// 
+    hidden Description: (BotAliasDescription)?
+
+    /// Determines whether Amazon Lex will use Amazon Comprehend to detect the sentiment of user utterances.
+    hidden SentimentAnalysisSettings: (Dynamic)?
+
     Properties {
-        ["BotId"] = if (BotId == null) null else BotId
+        ["BotAliasLocaleSettings"] = if (BotAliasLocaleSettings == null) null else BotAliasLocaleSettings
         ["BotAliasName"] = if (BotAliasName == null) null else BotAliasName
         ["BotAliasTags"] = if (BotAliasTags == null) null else BotAliasTags
-        ["Description"] = if (Description == null) null else Description
-        ["SentimentAnalysisSettings"] = if (SentimentAnalysisSettings == null) null else SentimentAnalysisSettings
-        ["BotAliasLocaleSettings"] = if (BotAliasLocaleSettings == null) null else BotAliasLocaleSettings
+        ["BotId"] = if (BotId == null) null else BotId
         ["BotVersion"] = if (BotVersion == null) null else BotVersion
         ["ConversationLogSettings"] = if (ConversationLogSettings == null) null else ConversationLogSettings
+        ["Description"] = if (Description == null) null else Description
+        ["SentimentAnalysisSettings"] = if (SentimentAnalysisSettings == null) null else SentimentAnalysisSettings
     }
 
 }

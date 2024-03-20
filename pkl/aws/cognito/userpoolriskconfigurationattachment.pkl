@@ -12,6 +12,29 @@ open class UserPoolRiskConfigurationAttachmentCompromisedCredentialsRiskConfigur
 }
 
 /// 
+open class UserPoolRiskConfigurationAttachmentNotifyConfigurationType {
+    ReplyTo: (String|Mapping)?
+    SourceArn: String|Mapping
+    BlockEmail: (UserPoolRiskConfigurationAttachmentNotifyEmailType)?
+    MfaEmail: (UserPoolRiskConfigurationAttachmentNotifyEmailType)?
+    NoActionEmail: (UserPoolRiskConfigurationAttachmentNotifyEmailType)?
+    From: (String|Mapping)?
+}
+
+/// 
+open class UserPoolRiskConfigurationAttachmentNotifyEmailType {
+    HtmlBody: (String|Mapping)?
+    Subject: String|Mapping
+    TextBody: (String|Mapping)?
+}
+
+/// 
+open class UserPoolRiskConfigurationAttachmentRiskExceptionConfigurationType {
+    SkippedIPRangeList: (Listing<String|Mapping>)?
+    BlockedIPRangeList: (Listing<String|Mapping>)?
+}
+
+/// 
 open class UserPoolRiskConfigurationAttachmentAccountTakeoverActionType {
     EventAction: String|Mapping
     Notify: Boolean|Mapping
@@ -25,32 +48,9 @@ open class UserPoolRiskConfigurationAttachmentAccountTakeoverActionsType {
 }
 
 /// 
-open class UserPoolRiskConfigurationAttachmentNotifyEmailType {
-    Subject: String|Mapping
-    TextBody: (String|Mapping)?
-    HtmlBody: (String|Mapping)?
-}
-
-/// 
-open class UserPoolRiskConfigurationAttachmentNotifyConfigurationType {
-    SourceArn: String|Mapping
-    BlockEmail: (UserPoolRiskConfigurationAttachmentNotifyEmailType)?
-    MfaEmail: (UserPoolRiskConfigurationAttachmentNotifyEmailType)?
-    NoActionEmail: (UserPoolRiskConfigurationAttachmentNotifyEmailType)?
-    From: (String|Mapping)?
-    ReplyTo: (String|Mapping)?
-}
-
-/// 
 open class UserPoolRiskConfigurationAttachmentAccountTakeoverRiskConfigurationType {
     Actions: UserPoolRiskConfigurationAttachmentAccountTakeoverActionsType
     NotifyConfiguration: (UserPoolRiskConfigurationAttachmentNotifyConfigurationType)?
-}
-
-/// 
-open class UserPoolRiskConfigurationAttachmentRiskExceptionConfigurationType {
-    BlockedIPRangeList: (Listing<String|Mapping>)?
-    SkippedIPRangeList: (Listing<String|Mapping>)?
 }
 
 /// 
@@ -65,26 +65,26 @@ open class UserPoolRiskConfigurationAttachment extends cloudformation.Resource {
 
 
     /// 
-    hidden UserPoolId: String|Mapping
+    hidden AccountTakeoverRiskConfiguration: (UserPoolRiskConfigurationAttachmentAccountTakeoverRiskConfigurationType)?
 
     /// 
     hidden ClientId: String|Mapping
 
     /// 
-    hidden RiskExceptionConfiguration: (UserPoolRiskConfigurationAttachmentRiskExceptionConfigurationType)?
-
-    /// 
     hidden CompromisedCredentialsRiskConfiguration: (UserPoolRiskConfigurationAttachmentCompromisedCredentialsRiskConfigurationType)?
 
     /// 
-    hidden AccountTakeoverRiskConfiguration: (UserPoolRiskConfigurationAttachmentAccountTakeoverRiskConfigurationType)?
+    hidden RiskExceptionConfiguration: (UserPoolRiskConfigurationAttachmentRiskExceptionConfigurationType)?
+
+    /// 
+    hidden UserPoolId: String|Mapping
 
     Properties {
-        ["UserPoolId"] = if (UserPoolId == null) null else UserPoolId
-        ["ClientId"] = if (ClientId == null) null else ClientId
-        ["RiskExceptionConfiguration"] = if (RiskExceptionConfiguration == null) null else RiskExceptionConfiguration
-        ["CompromisedCredentialsRiskConfiguration"] = if (CompromisedCredentialsRiskConfiguration == null) null else CompromisedCredentialsRiskConfiguration
         ["AccountTakeoverRiskConfiguration"] = if (AccountTakeoverRiskConfiguration == null) null else AccountTakeoverRiskConfiguration
+        ["ClientId"] = if (ClientId == null) null else ClientId
+        ["CompromisedCredentialsRiskConfiguration"] = if (CompromisedCredentialsRiskConfiguration == null) null else CompromisedCredentialsRiskConfiguration
+        ["RiskExceptionConfiguration"] = if (RiskExceptionConfiguration == null) null else RiskExceptionConfiguration
+        ["UserPoolId"] = if (UserPoolId == null) null else UserPoolId
     }
 
 }

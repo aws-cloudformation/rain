@@ -17,46 +17,46 @@ open class EventSubscription extends cloudformation.Resource {
     Type = "AWS::Redshift::EventSubscription"
 
 
-    /// Specifies the Amazon Redshift event severity to be published by the event notification subscription.
-    hidden Severity: (EventSubscriptionSeverity|Mapping)?
-
-    /// The type of source that will be generating the events.
-    hidden SourceType: (EventSubscriptionSourceType|Mapping)?
-
-    /// A list of one or more identifiers of Amazon Redshift source objects.
-    hidden SourceIds: (Listing<String|Mapping>)?
-
-    /// The name of the Amazon Redshift event notification subscription
-    hidden SubscriptionName: String(matches(Regex(#"^(?=^[a-z][a-z0-9]*(-[a-z0-9]+)*$).{1,255}$"#)))|Mapping
-
-    /// The Amazon Resource Name (ARN) of the Amazon SNS topic used to transmit the event notifications.
-    hidden SnsTopicArn: (String|Mapping)?
-
     /// A boolean value; set to true to activate the subscription, and set to false to create the subscription but not activate it.
     hidden Enabled: (Boolean|Mapping)?
 
     /// Specifies the Amazon Redshift event categories to be published by the event notification subscription.
     hidden EventCategories: (Listing<EventSubscriptionEventCategories|Mapping>)?
 
+    /// Specifies the Amazon Redshift event severity to be published by the event notification subscription.
+    hidden Severity: (EventSubscriptionSeverity|Mapping)?
+
+    /// The Amazon Resource Name (ARN) of the Amazon SNS topic used to transmit the event notifications.
+    hidden SnsTopicArn: (String|Mapping)?
+
+    /// A list of one or more identifiers of Amazon Redshift source objects.
+    hidden SourceIds: (Listing<String|Mapping>)?
+
+    /// The type of source that will be generating the events.
+    hidden SourceType: (EventSubscriptionSourceType|Mapping)?
+
+    /// The name of the Amazon Redshift event notification subscription
+    hidden SubscriptionName: String(matches(Regex(#"^(?=^[a-z][a-z0-9]*(-[a-z0-9]+)*$).{1,255}$"#)))|Mapping
+
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<EventSubscriptionTag>)?
 
     Properties {
-        ["Severity"] = if (Severity == null) null else Severity
-        ["SourceType"] = if (SourceType == null) null else SourceType
-        ["SourceIds"] = if (SourceIds == null) null else SourceIds
-        ["SubscriptionName"] = if (SubscriptionName == null) null else SubscriptionName
-        ["SnsTopicArn"] = if (SnsTopicArn == null) null else SnsTopicArn
         ["Enabled"] = if (Enabled == null) null else Enabled
         ["EventCategories"] = if (EventCategories == null) null else EventCategories
+        ["Severity"] = if (Severity == null) null else Severity
+        ["SnsTopicArn"] = if (SnsTopicArn == null) null else SnsTopicArn
+        ["SourceIds"] = if (SourceIds == null) null else SourceIds
+        ["SourceType"] = if (SourceType == null) null else SourceType
+        ["SubscriptionName"] = if (SubscriptionName == null) null else SubscriptionName
         ["Tags"] = if (Tags == null) null else Tags
     }
 
 }
 
 
+typealias EventSubscriptionEventCategories = "configuration"|"management"|"monitoring"|"security"|"pending"
+
 typealias EventSubscriptionSeverity = "ERROR"|"INFO"
 
 typealias EventSubscriptionSourceType = "cluster"|"cluster-parameter-group"|"cluster-security-group"|"cluster-snapshot"|"scheduled-action"
-
-typealias EventSubscriptionEventCategories = "configuration"|"management"|"monitoring"|"security"|"pending"

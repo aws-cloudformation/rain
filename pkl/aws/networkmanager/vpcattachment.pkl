@@ -5,10 +5,11 @@ module aws.networkmanager.vpcattachment
 
 import "../../cloudformation.pkl"
 
-/// Vpc options of the attachment.
-open class VpcAttachmentVpcOptions {
-    Ipv6Support: (Boolean|Mapping)?
-    ApplianceModeSupport: (Boolean|Mapping)?
+/// The attachment to move from one segment to another.
+open class VpcAttachmentProposedSegmentChange {
+    SegmentName: (String|Mapping)?
+    Tags: (Listing<VpcAttachmentTag>)?
+    AttachmentPolicyRuleNumber: (Int|Mapping)?
 }
 
 /// A key-value pair to associate with a resource.
@@ -17,11 +18,10 @@ open class VpcAttachmentTag {
     Value: String|Mapping
 }
 
-/// The attachment to move from one segment to another.
-open class VpcAttachmentProposedSegmentChange {
-    Tags: (Listing<VpcAttachmentTag>)?
-    AttachmentPolicyRuleNumber: (Int|Mapping)?
-    SegmentName: (String|Mapping)?
+/// Vpc options of the attachment.
+open class VpcAttachmentVpcOptions {
+    Ipv6Support: (Boolean|Mapping)?
+    ApplianceModeSupport: (Boolean|Mapping)?
 }
 
 /// AWS::NetworkManager::VpcAttachment Resoruce Type
@@ -30,31 +30,31 @@ open class VpcAttachment extends cloudformation.Resource {
     Type = "AWS::NetworkManager::VpcAttachment"
 
 
-    /// Tags for the attachment.
-    hidden Tags: (Listing<VpcAttachmentTag>)?
+    /// The ID of a core network for the VPC attachment.
+    hidden CoreNetworkId: String|Mapping
 
     /// Vpc options of the attachment.
     hidden Options: (VpcAttachmentVpcOptions)?
 
-    /// The ARN of the VPC.
-    hidden VpcArn: String|Mapping
-
     /// The attachment to move from one segment to another.
     hidden ProposedSegmentChange: (VpcAttachmentProposedSegmentChange)?
-
-    /// The ID of a core network for the VPC attachment.
-    hidden CoreNetworkId: String|Mapping
 
     /// Subnet Arn list
     hidden SubnetArns: Listing<String|Mapping>
 
+    /// Tags for the attachment.
+    hidden Tags: (Listing<VpcAttachmentTag>)?
+
+    /// The ARN of the VPC.
+    hidden VpcArn: String|Mapping
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Options"] = if (Options == null) null else Options
-        ["VpcArn"] = if (VpcArn == null) null else VpcArn
-        ["ProposedSegmentChange"] = if (ProposedSegmentChange == null) null else ProposedSegmentChange
         ["CoreNetworkId"] = if (CoreNetworkId == null) null else CoreNetworkId
+        ["Options"] = if (Options == null) null else Options
+        ["ProposedSegmentChange"] = if (ProposedSegmentChange == null) null else ProposedSegmentChange
         ["SubnetArns"] = if (SubnetArns == null) null else SubnetArns
+        ["Tags"] = if (Tags == null) null else Tags
+        ["VpcArn"] = if (VpcArn == null) null else VpcArn
     }
 
 }

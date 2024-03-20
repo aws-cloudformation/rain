@@ -5,32 +5,26 @@ module aws.connect.quickconnect
 
 import "../../cloudformation.pkl"
 
-typealias QuickConnectQuickConnectType = String|Mapping
-
-
-/// The queue configuration. This is required only if QuickConnectType is QUEUE.
-open class QuickConnectQueueQuickConnectConfig {
-    ContactFlowArn: QuickConnectContactFlowArn
-    QueueArn: QuickConnectQueueArn
-}
-
-/// A key-value pair to associate with a resource.
-open class QuickConnectTag {
-    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
-    Value: String|Mapping
-}
-
-typealias QuickConnectUserArn = String|Mapping
-
-
 /// The phone configuration. This is required only if QuickConnectType is PHONE_NUMBER.
 open class QuickConnectPhoneNumberQuickConnectConfig {
     PhoneNumber: QuickConnectPhoneNumber
 }
 
-/// The user configuration. This is required only if QuickConnectType is USER.
-open class QuickConnectUserQuickConnectConfig {
-    UserArn: QuickConnectUserArn
+typealias QuickConnectQueueArn = String|Mapping
+
+
+typealias QuickConnectQuickConnectType = String|Mapping
+
+
+typealias QuickConnectContactFlowArn = String|Mapping
+
+
+typealias QuickConnectPhoneNumber = String|Mapping
+
+
+/// The queue configuration. This is required only if QuickConnectType is QUEUE.
+open class QuickConnectQueueQuickConnectConfig {
+    QueueArn: QuickConnectQueueArn
     ContactFlowArn: QuickConnectContactFlowArn
 }
 
@@ -42,14 +36,20 @@ open class QuickConnectQuickConnectConfig {
     UserConfig: (QuickConnectUserQuickConnectConfig)?
 }
 
-typealias QuickConnectPhoneNumber = String|Mapping
+/// A key-value pair to associate with a resource.
+open class QuickConnectTag {
+    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
+    Value: String|Mapping
+}
+
+typealias QuickConnectUserArn = String|Mapping
 
 
-typealias QuickConnectContactFlowArn = String|Mapping
-
-
-typealias QuickConnectQueueArn = String|Mapping
-
+/// The user configuration. This is required only if QuickConnectType is USER.
+open class QuickConnectUserQuickConnectConfig {
+    ContactFlowArn: QuickConnectContactFlowArn
+    UserArn: QuickConnectUserArn
+}
 
 /// Resource Type definition for AWS::Connect::QuickConnect
 open class QuickConnect extends cloudformation.Resource {
@@ -57,8 +57,8 @@ open class QuickConnect extends cloudformation.Resource {
     Type = "AWS::Connect::QuickConnect"
 
 
-    /// One or more tags.
-    hidden Tags: (Listing<QuickConnectTag>)?
+    /// The description of the quick connect.
+    hidden Description: (String|Mapping)?
 
     /// The identifier of the Amazon Connect instance.
     hidden InstanceArn: String(matches(Regex(#"^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$"#)))|Mapping
@@ -66,18 +66,18 @@ open class QuickConnect extends cloudformation.Resource {
     /// The name of the quick connect.
     hidden Name: String|Mapping
 
-    /// The description of the quick connect.
-    hidden Description: (String|Mapping)?
-
     /// Configuration settings for the quick connect.
     hidden QuickConnectConfig: QuickConnectQuickConnectConfig
 
+    /// One or more tags.
+    hidden Tags: (Listing<QuickConnectTag>)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
+        ["Description"] = if (Description == null) null else Description
         ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
         ["Name"] = if (Name == null) null else Name
-        ["Description"] = if (Description == null) null else Description
         ["QuickConnectConfig"] = if (QuickConnectConfig == null) null else QuickConnectConfig
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

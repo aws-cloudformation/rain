@@ -6,6 +6,11 @@ module aws.wisdom.knowledgebase
 import "../../cloudformation.pkl"
 
 /// 
+open class KnowledgeBaseRenderingConfiguration {
+    TemplateUri: (String|Mapping)?
+}
+
+/// 
 open class KnowledgeBaseServerSideEncryptionConfiguration {
     KmsKeyId: (String|Mapping)?
 }
@@ -17,8 +22,8 @@ open class KnowledgeBaseSourceConfiguration {
 
 /// 
 open class KnowledgeBaseTag {
-    Value: String|Mapping
     Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
+    Value: String|Mapping
 }
 
 /// 
@@ -30,11 +35,6 @@ open class KnowledgeBaseAppIntegrationsConfiguration {
 typealias KnowledgeBaseKnowledgeBaseType = String|Mapping
 
 
-/// 
-open class KnowledgeBaseRenderingConfiguration {
-    TemplateUri: (String|Mapping)?
-}
-
 /// Definition of AWS::Wisdom::KnowledgeBase Resource Type
 open class KnowledgeBase extends cloudformation.Resource {
 
@@ -42,10 +42,7 @@ open class KnowledgeBase extends cloudformation.Resource {
 
 
     /// 
-    hidden ServerSideEncryptionConfiguration: (KnowledgeBaseServerSideEncryptionConfiguration)?
-
-    /// 
-    hidden RenderingConfiguration: (KnowledgeBaseRenderingConfiguration)?
+    hidden Description: (String|Mapping)?
 
     /// 
     hidden KnowledgeBaseType: KnowledgeBaseKnowledgeBaseType
@@ -54,22 +51,25 @@ open class KnowledgeBase extends cloudformation.Resource {
     hidden Name: String|Mapping
 
     /// 
+    hidden RenderingConfiguration: (KnowledgeBaseRenderingConfiguration)?
+
+    /// 
+    hidden ServerSideEncryptionConfiguration: (KnowledgeBaseServerSideEncryptionConfiguration)?
+
+    /// 
     hidden SourceConfiguration: (KnowledgeBaseSourceConfiguration)?
 
     /// 
     hidden Tags: (Listing<KnowledgeBaseTag>)?
 
-    /// 
-    hidden Description: (String|Mapping)?
-
     Properties {
-        ["ServerSideEncryptionConfiguration"] = if (ServerSideEncryptionConfiguration == null) null else ServerSideEncryptionConfiguration
-        ["RenderingConfiguration"] = if (RenderingConfiguration == null) null else RenderingConfiguration
+        ["Description"] = if (Description == null) null else Description
         ["KnowledgeBaseType"] = if (KnowledgeBaseType == null) null else KnowledgeBaseType
         ["Name"] = if (Name == null) null else Name
+        ["RenderingConfiguration"] = if (RenderingConfiguration == null) null else RenderingConfiguration
+        ["ServerSideEncryptionConfiguration"] = if (ServerSideEncryptionConfiguration == null) null else ServerSideEncryptionConfiguration
         ["SourceConfiguration"] = if (SourceConfiguration == null) null else SourceConfiguration
         ["Tags"] = if (Tags == null) null else Tags
-        ["Description"] = if (Description == null) null else Description
     }
 
 }

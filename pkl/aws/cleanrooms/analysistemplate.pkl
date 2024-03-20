@@ -5,21 +5,6 @@ module aws.cleanrooms.analysistemplate
 
 import "../../cloudformation.pkl"
 
-typealias AnalysisParameterType = "SMALLINT"|"INTEGER"|"BIGINT"|"DECIMAL"|"REAL"|"DOUBLE_PRECISION"|"BOOLEAN"|"CHAR"|"VARCHAR"|"DATE"|"TIMESTAMP"|"TIMESTAMPTZ"|"TIME"|"TIMETZ"|"VARBYTE"
-
-/// 
-open class AnalysisTemplateAnalysisParameter {
-    DefaultValue: (String|Mapping)?
-    Name: String(matches(Regex(#"[0-9a-zA-Z_]+"#)))|Mapping
-    Type: AnalysisParameterType|Mapping
-}
-
-typealias AnalysisTemplateTableName = String|Mapping
-
-
-typealias AnalysisTemplateReferencedTables = Listing<(AnalysisTemplateTableName)?>
-
-
 /// 
 open class AnalysisTemplateAnalysisSchema {
     ReferencedTables: AnalysisTemplateReferencedTables
@@ -30,10 +15,25 @@ open class AnalysisTemplateAnalysisSource {
     Text: String|Mapping
 }
 
+typealias AnalysisTemplateReferencedTables = Listing<(AnalysisTemplateTableName)?>
+
+
+typealias AnalysisTemplateTableName = String|Mapping
+
+
 /// 
 open class AnalysisTemplateTag {
     Key: String|Mapping
     Value: String|Mapping
+}
+
+typealias AnalysisParameterType = "SMALLINT"|"INTEGER"|"BIGINT"|"DECIMAL"|"REAL"|"DOUBLE_PRECISION"|"BOOLEAN"|"CHAR"|"VARCHAR"|"DATE"|"TIMESTAMP"|"TIMESTAMPTZ"|"TIME"|"TIMETZ"|"VARBYTE"
+
+/// 
+open class AnalysisTemplateAnalysisParameter {
+    DefaultValue: (String|Mapping)?
+    Name: String(matches(Regex(#"[0-9a-zA-Z_]+"#)))|Mapping
+    Type: AnalysisParameterType|Mapping
 }
 
 /// Represents a stored analysis within a collaboration
@@ -41,9 +41,6 @@ open class AnalysisTemplate extends cloudformation.Resource {
 
     Type = "AWS::CleanRooms::AnalysisTemplate"
 
-
-    /// An arbitrary set of tags (key-value pairs) for this cleanrooms analysis template.
-    hidden Tags: (Listing<AnalysisTemplateTag>)?
 
     /// The member who can query can provide this placeholder for a literal data value in an analysis template
     hidden AnalysisParameters: (Listing<AnalysisTemplateAnalysisParameter>)?
@@ -63,14 +60,17 @@ open class AnalysisTemplate extends cloudformation.Resource {
     /// 
     hidden Source: AnalysisTemplateAnalysisSource
 
+    /// An arbitrary set of tags (key-value pairs) for this cleanrooms analysis template.
+    hidden Tags: (Listing<AnalysisTemplateTag>)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
         ["AnalysisParameters"] = if (AnalysisParameters == null) null else AnalysisParameters
         ["Description"] = if (Description == null) null else Description
         ["Format"] = if (Format == null) null else Format
         ["MembershipIdentifier"] = if (MembershipIdentifier == null) null else MembershipIdentifier
         ["Name"] = if (Name == null) null else Name
         ["Source"] = if (Source == null) null else Source
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

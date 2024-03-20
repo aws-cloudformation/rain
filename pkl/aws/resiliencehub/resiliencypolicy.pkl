@@ -5,12 +5,6 @@ module aws.resiliencehub.resiliencypolicy
 
 import "../../cloudformation.pkl"
 
-typealias ResiliencyPolicyTagValue = String|Mapping
-
-
-typealias ResiliencyPolicyTagMap = Mapping<String, Any>
-
-
 /// Failure Policy.
 open class ResiliencyPolicyFailurePolicy {
     RtoInSecs: Int|Mapping
@@ -20,37 +14,43 @@ open class ResiliencyPolicyFailurePolicy {
 typealias ResiliencyPolicyPolicyMap = Mapping<String, Any>
 
 
+typealias ResiliencyPolicyTagMap = Mapping<String, Any>
+
+
+typealias ResiliencyPolicyTagValue = String|Mapping
+
+
 /// Resource Type Definition for Resiliency Policy.
 open class ResiliencyPolicy extends cloudformation.Resource {
 
     Type = "AWS::ResilienceHub::ResiliencyPolicy"
 
 
-    /// 
-    hidden Tags: (ResiliencyPolicyTagMap)?
-
-    /// Name of Resiliency Policy.
-    hidden PolicyName: String(matches(Regex(#"^[A-Za-z0-9][A-Za-z0-9_\-]{1,59}$"#)))|Mapping
-
-    /// Description of Resiliency Policy.
-    hidden PolicyDescription: (String|Mapping)?
-
     /// Data Location Constraint of the Policy.
     hidden DataLocationConstraint: (ResiliencyPolicyDataLocationConstraint|Mapping)?
-
-    /// Resiliency Policy Tier.
-    hidden Tier: ResiliencyPolicyTier|Mapping
 
     /// 
     hidden Policy: ResiliencyPolicyPolicyMap
 
+    /// Description of Resiliency Policy.
+    hidden PolicyDescription: (String|Mapping)?
+
+    /// Name of Resiliency Policy.
+    hidden PolicyName: String(matches(Regex(#"^[A-Za-z0-9][A-Za-z0-9_\-]{1,59}$"#)))|Mapping
+
+    /// 
+    hidden Tags: (ResiliencyPolicyTagMap)?
+
+    /// Resiliency Policy Tier.
+    hidden Tier: ResiliencyPolicyTier|Mapping
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["PolicyName"] = if (PolicyName == null) null else PolicyName
-        ["PolicyDescription"] = if (PolicyDescription == null) null else PolicyDescription
         ["DataLocationConstraint"] = if (DataLocationConstraint == null) null else DataLocationConstraint
-        ["Tier"] = if (Tier == null) null else Tier
         ["Policy"] = if (Policy == null) null else Policy
+        ["PolicyDescription"] = if (PolicyDescription == null) null else PolicyDescription
+        ["PolicyName"] = if (PolicyName == null) null else PolicyName
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Tier"] = if (Tier == null) null else Tier
     }
 
 }

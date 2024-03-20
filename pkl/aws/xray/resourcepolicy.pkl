@@ -11,19 +11,19 @@ open class ResourcePolicy extends cloudformation.Resource {
     Type = "AWS::XRay::ResourcePolicy"
 
 
-    /// The name of the resource policy. Must be unique within a specific AWS account.
-    hidden PolicyName: String(matches(Regex(#"[\w+=,.@-]+"#)))|Mapping
+    /// A flag to indicate whether to bypass the resource policy lockout safety check
+    hidden BypassPolicyLockoutCheck: (Boolean|Mapping)?
 
     /// The resource policy document, which can be up to 5kb in size.
     hidden PolicyDocument: String|Mapping
 
-    /// A flag to indicate whether to bypass the resource policy lockout safety check
-    hidden BypassPolicyLockoutCheck: (Boolean|Mapping)?
+    /// The name of the resource policy. Must be unique within a specific AWS account.
+    hidden PolicyName: String(matches(Regex(#"[\w+=,.@-]+"#)))|Mapping
 
     Properties {
-        ["PolicyName"] = if (PolicyName == null) null else PolicyName
-        ["PolicyDocument"] = if (PolicyDocument == null) null else PolicyDocument
         ["BypassPolicyLockoutCheck"] = if (BypassPolicyLockoutCheck == null) null else BypassPolicyLockoutCheck
+        ["PolicyDocument"] = if (PolicyDocument == null) null else PolicyDocument
+        ["PolicyName"] = if (PolicyName == null) null else PolicyName
     }
 
 }

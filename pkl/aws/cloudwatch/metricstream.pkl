@@ -5,18 +5,6 @@ module aws.cloudwatch.metricstream
 
 import "../../cloudformation.pkl"
 
-/// A structure that specifies the metric name and namespace for one metric that is going to have additional statistics included in the stream.
-open class MetricStreamMetricStreamStatisticsMetric {
-    MetricName: String|Mapping
-    Namespace: String|Mapping
-}
-
-/// Metadata that you can assign to a Metric Stream, consisting of a key-value pair.
-open class MetricStreamTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
 /// This structure defines the metrics that will be streamed.
 open class MetricStreamMetricStreamFilter {
     Namespace: String|Mapping
@@ -29,6 +17,18 @@ open class MetricStreamMetricStreamStatisticsConfiguration {
     IncludeMetrics: Listing<MetricStreamMetricStreamStatisticsMetric>
 }
 
+/// A structure that specifies the metric name and namespace for one metric that is going to have additional statistics included in the stream.
+open class MetricStreamMetricStreamStatisticsMetric {
+    MetricName: String|Mapping
+    Namespace: String|Mapping
+}
+
+/// Metadata that you can assign to a Metric Stream, consisting of a key-value pair.
+open class MetricStreamTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
 /// Resource Type definition for Metric Stream
 open class MetricStream extends cloudformation.Resource {
 
@@ -38,40 +38,40 @@ open class MetricStream extends cloudformation.Resource {
     /// Define which metrics will be not streamed. Metrics matched by multiple instances of MetricStreamFilter are joined with an OR operation by default. If both IncludeFilters and ExcludeFilters are omitted, all metrics in the account will be streamed. IncludeFilters and ExcludeFilters are mutually exclusive. Default to null.
     hidden ExcludeFilters: (Listing<MetricStreamMetricStreamFilter>)?
 
-    /// By default, a metric stream always sends the MAX, MIN, SUM, and SAMPLECOUNT statistics for each metric that is streamed. You can use this parameter to have the metric stream also send additional statistics in the stream. This array can have up to 100 members.
-    hidden StatisticsConfigurations: (Listing<MetricStreamMetricStreamStatisticsConfiguration>)?
-
-    /// The ARN of the role that provides access to the Kinesis Firehose.
-    hidden RoleArn: String|Mapping
-
-    /// The output format of the data streamed to the Kinesis Firehose.
-    hidden OutputFormat: String|Mapping
-
-    /// A set of tags to assign to the delivery stream.
-    hidden Tags: (Listing<MetricStreamTag>)?
-
-    /// If you are creating a metric stream in a monitoring account, specify true to include metrics from source accounts that are linked to this monitoring account, in the metric stream. The default is false.
-    hidden IncludeLinkedAccountsMetrics: (Boolean|Mapping)?
-
     /// The ARN of the Kinesis Firehose where to stream the data.
     hidden FirehoseArn: String|Mapping
 
     /// Define which metrics will be streamed. Metrics matched by multiple instances of MetricStreamFilter are joined with an OR operation by default. If both IncludeFilters and ExcludeFilters are omitted, all metrics in the account will be streamed. IncludeFilters and ExcludeFilters are mutually exclusive. Default to null.
     hidden IncludeFilters: (Listing<MetricStreamMetricStreamFilter>)?
 
+    /// If you are creating a metric stream in a monitoring account, specify true to include metrics from source accounts that are linked to this monitoring account, in the metric stream. The default is false.
+    hidden IncludeLinkedAccountsMetrics: (Boolean|Mapping)?
+
     /// Name of the metric stream.
     hidden Name: (String|Mapping)?
 
+    /// The output format of the data streamed to the Kinesis Firehose.
+    hidden OutputFormat: String|Mapping
+
+    /// The ARN of the role that provides access to the Kinesis Firehose.
+    hidden RoleArn: String|Mapping
+
+    /// By default, a metric stream always sends the MAX, MIN, SUM, and SAMPLECOUNT statistics for each metric that is streamed. You can use this parameter to have the metric stream also send additional statistics in the stream. This array can have up to 100 members.
+    hidden StatisticsConfigurations: (Listing<MetricStreamMetricStreamStatisticsConfiguration>)?
+
+    /// A set of tags to assign to the delivery stream.
+    hidden Tags: (Listing<MetricStreamTag>)?
+
     Properties {
         ["ExcludeFilters"] = if (ExcludeFilters == null) null else ExcludeFilters
-        ["StatisticsConfigurations"] = if (StatisticsConfigurations == null) null else StatisticsConfigurations
-        ["RoleArn"] = if (RoleArn == null) null else RoleArn
-        ["OutputFormat"] = if (OutputFormat == null) null else OutputFormat
-        ["Tags"] = if (Tags == null) null else Tags
-        ["IncludeLinkedAccountsMetrics"] = if (IncludeLinkedAccountsMetrics == null) null else IncludeLinkedAccountsMetrics
         ["FirehoseArn"] = if (FirehoseArn == null) null else FirehoseArn
         ["IncludeFilters"] = if (IncludeFilters == null) null else IncludeFilters
+        ["IncludeLinkedAccountsMetrics"] = if (IncludeLinkedAccountsMetrics == null) null else IncludeLinkedAccountsMetrics
         ["Name"] = if (Name == null) null else Name
+        ["OutputFormat"] = if (OutputFormat == null) null else OutputFormat
+        ["RoleArn"] = if (RoleArn == null) null else RoleArn
+        ["StatisticsConfigurations"] = if (StatisticsConfigurations == null) null else StatisticsConfigurations
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

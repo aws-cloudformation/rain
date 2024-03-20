@@ -5,9 +5,6 @@ module aws.personalize.solution
 
 import "../../cloudformation.pkl"
 
-typealias SolutionSolutionArn = String|Mapping
-
-
 /// Provides the name and values of a Categorical hyperparameter.
 open class SolutionCategoricalHyperParameterRange {
     Name: (String|Mapping)?
@@ -28,6 +25,9 @@ open class SolutionIntegerHyperParameterRange {
     MaxValue: (Int|Mapping)?
 }
 
+typealias SolutionSolutionArn = String|Mapping
+
+
 typealias SolutionSolutionConfigAlgorithmHyperParameters = Mapping<String, Any>
 
 typealias SolutionSolutionConfigFeatureTransformationParameters = Mapping<String, Any>
@@ -47,11 +47,14 @@ open class Solution extends cloudformation.Resource {
     Type = "AWS::Personalize::Solution"
 
 
+    /// The ARN of the dataset group that provides the training data.
+    hidden DatasetGroupArn: String(matches(Regex(#"arn:([a-z\d-]+):personalize:.*:.*:.+"#)))|Mapping
+
     /// When your have multiple event types (using an EVENT_TYPE schema field), this parameter specifies which event type (for example, 'click' or 'like') is used for training the model. If you do not provide an eventType, Amazon Personalize will use all interactions for training with equal weight regardless of type.
     hidden EventType: (String|Mapping)?
 
-    /// The ARN of the dataset group that provides the training data.
-    hidden DatasetGroupArn: String(matches(Regex(#"arn:([a-z\d-]+):personalize:.*:.*:.+"#)))|Mapping
+    /// The name for the solution
+    hidden Name: String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9\-_]*"#)))|Mapping
 
     /// Whether to perform automated machine learning (AutoML). The default is false. For this case, you must specify recipeArn.
     hidden PerformAutoML: (Boolean|Mapping)?
@@ -65,17 +68,14 @@ open class Solution extends cloudformation.Resource {
     /// 
     hidden SolutionConfig: (SolutionSolutionConfig)?
 
-    /// The name for the solution
-    hidden Name: String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9\-_]*"#)))|Mapping
-
     Properties {
-        ["EventType"] = if (EventType == null) null else EventType
         ["DatasetGroupArn"] = if (DatasetGroupArn == null) null else DatasetGroupArn
+        ["EventType"] = if (EventType == null) null else EventType
+        ["Name"] = if (Name == null) null else Name
         ["PerformAutoML"] = if (PerformAutoML == null) null else PerformAutoML
         ["PerformHPO"] = if (PerformHPO == null) null else PerformHPO
         ["RecipeArn"] = if (RecipeArn == null) null else RecipeArn
         ["SolutionConfig"] = if (SolutionConfig == null) null else SolutionConfig
-        ["Name"] = if (Name == null) null else Name
     }
 
 }

@@ -5,30 +5,7 @@ module aws.ec2.networkinsightspath
 
 import "../../cloudformation.pkl"
 
-typealias NetworkInsightsPathIpAddress = String|Mapping
-
-
 typealias NetworkInsightsPathProtocol = String|Mapping
-
-
-typealias NetworkInsightsPathPort = Int|Mapping
-
-
-/// 
-open class NetworkInsightsPathFilterPortRange {
-    FromPort: (Int|Mapping)?
-    ToPort: (Int|Mapping)?
-}
-
-/// 
-open class NetworkInsightsPathPathFilter {
-    DestinationAddress: (NetworkInsightsPathIpAddress)?
-    DestinationPortRange: (NetworkInsightsPathFilterPortRange)?
-    SourceAddress: (NetworkInsightsPathIpAddress)?
-    SourcePortRange: (NetworkInsightsPathFilterPortRange)?
-}
-
-typealias NetworkInsightsPathTags = Listing<(NetworkInsightsPathTag)?>
 
 
 /// 
@@ -37,6 +14,29 @@ open class NetworkInsightsPathTag {
     Value: (String|Mapping)?
 }
 
+typealias NetworkInsightsPathTags = Listing<(NetworkInsightsPathTag)?>
+
+
+/// 
+open class NetworkInsightsPathFilterPortRange {
+    FromPort: (Int|Mapping)?
+    ToPort: (Int|Mapping)?
+}
+
+typealias NetworkInsightsPathIpAddress = String|Mapping
+
+
+/// 
+open class NetworkInsightsPathPathFilter {
+    DestinationPortRange: (NetworkInsightsPathFilterPortRange)?
+    SourceAddress: (NetworkInsightsPathIpAddress)?
+    SourcePortRange: (NetworkInsightsPathFilterPortRange)?
+    DestinationAddress: (NetworkInsightsPathIpAddress)?
+}
+
+typealias NetworkInsightsPathPort = Int|Mapping
+
+
 /// Resource schema for AWS::EC2::NetworkInsightsPath
 open class NetworkInsightsPath extends cloudformation.Resource {
 
@@ -44,22 +44,22 @@ open class NetworkInsightsPath extends cloudformation.Resource {
 
 
     /// 
-    hidden FilterAtSource: (NetworkInsightsPathPathFilter)?
-
-    /// 
-    hidden FilterAtDestination: (NetworkInsightsPathPathFilter)?
+    hidden Destination: (String|Mapping)?
 
     /// 
     hidden DestinationIp: (NetworkInsightsPathIpAddress)?
 
     /// 
-    hidden Protocol: NetworkInsightsPathProtocol
-
-    /// 
     hidden DestinationPort: (NetworkInsightsPathPort)?
 
     /// 
-    hidden Tags: (Listing<NetworkInsightsPathTag>)?
+    hidden FilterAtDestination: (NetworkInsightsPathPathFilter)?
+
+    /// 
+    hidden FilterAtSource: (NetworkInsightsPathPathFilter)?
+
+    /// 
+    hidden Protocol: NetworkInsightsPathProtocol
 
     /// 
     hidden Source: String|Mapping
@@ -68,18 +68,18 @@ open class NetworkInsightsPath extends cloudformation.Resource {
     hidden SourceIp: (NetworkInsightsPathIpAddress)?
 
     /// 
-    hidden Destination: (String|Mapping)?
+    hidden Tags: (Listing<NetworkInsightsPathTag>)?
 
     Properties {
-        ["FilterAtSource"] = if (FilterAtSource == null) null else FilterAtSource
-        ["FilterAtDestination"] = if (FilterAtDestination == null) null else FilterAtDestination
+        ["Destination"] = if (Destination == null) null else Destination
         ["DestinationIp"] = if (DestinationIp == null) null else DestinationIp
-        ["Protocol"] = if (Protocol == null) null else Protocol
         ["DestinationPort"] = if (DestinationPort == null) null else DestinationPort
-        ["Tags"] = if (Tags == null) null else Tags
+        ["FilterAtDestination"] = if (FilterAtDestination == null) null else FilterAtDestination
+        ["FilterAtSource"] = if (FilterAtSource == null) null else FilterAtSource
+        ["Protocol"] = if (Protocol == null) null else Protocol
         ["Source"] = if (Source == null) null else Source
         ["SourceIp"] = if (SourceIp == null) null else SourceIp
-        ["Destination"] = if (Destination == null) null else Destination
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

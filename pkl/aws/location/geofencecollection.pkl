@@ -5,11 +5,8 @@ module aws.location.geofencecollection
 
 import "../../cloudformation.pkl"
 
-/// A key-value pair to associate with a resource.
-open class GeofenceCollectionTag {
-    Key: String(matches(Regex(#"^[a-zA-Z+-=._:/]+$"#)))|Mapping
-    Value: String(matches(Regex(#"^[A-Za-z0-9 _=@:.+-/]*$"#)))|Mapping
-}
+typealias GeofenceCollectionTagMap = Mapping<String, Any>
+
 
 typealias GeofenceCollectioniso8601UTC = String|Mapping
 
@@ -17,8 +14,11 @@ typealias GeofenceCollectioniso8601UTC = String|Mapping
 typealias GeofenceCollectionPricingPlan = String|Mapping
 
 
-typealias GeofenceCollectionTagMap = Mapping<String, Any>
-
+/// A key-value pair to associate with a resource.
+open class GeofenceCollectionTag {
+    Key: String(matches(Regex(#"^[a-zA-Z+-=._:/]+$"#)))|Mapping
+    Value: String(matches(Regex(#"^[A-Za-z0-9 _=@:.+-/]*$"#)))|Mapping
+}
 
 /// Definition of AWS::Location::GeofenceCollection Resource Type
 open class GeofenceCollection extends cloudformation.Resource {
@@ -27,7 +27,16 @@ open class GeofenceCollection extends cloudformation.Resource {
 
 
     /// 
+    hidden CollectionName: String(matches(Regex(#"^[-._\w]+$"#)))|Mapping
+
+    /// 
+    hidden Description: (String|Mapping)?
+
+    /// 
     hidden KmsKeyId: (String|Mapping)?
+
+    /// 
+    hidden PricingPlan: (GeofenceCollectionPricingPlan)?
 
     /// 
     hidden PricingPlanDataSource: (String|Mapping)?
@@ -35,22 +44,13 @@ open class GeofenceCollection extends cloudformation.Resource {
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<GeofenceCollectionTag>)?
 
-    /// 
-    hidden CollectionName: String(matches(Regex(#"^[-._\w]+$"#)))|Mapping
-
-    /// 
-    hidden Description: (String|Mapping)?
-
-    /// 
-    hidden PricingPlan: (GeofenceCollectionPricingPlan)?
-
     Properties {
-        ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
-        ["PricingPlanDataSource"] = if (PricingPlanDataSource == null) null else PricingPlanDataSource
-        ["Tags"] = if (Tags == null) null else Tags
         ["CollectionName"] = if (CollectionName == null) null else CollectionName
         ["Description"] = if (Description == null) null else Description
+        ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
         ["PricingPlan"] = if (PricingPlan == null) null else PricingPlan
+        ["PricingPlanDataSource"] = if (PricingPlanDataSource == null) null else PricingPlanDataSource
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

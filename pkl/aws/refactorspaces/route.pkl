@@ -5,34 +5,34 @@ module aws.refactorspaces.route
 
 import "../../cloudformation.pkl"
 
-/// 
-open class RouteUriPathRouteInput {
-    SourcePath: (String(matches(Regex(#"^(/([a-zA-Z0-9._:-]+|\{[a-zA-Z0-9._:-]+\}))+$"#)))|Mapping)?
-    ActivationState: RouteRouteActivationState
-    Methods: (Listing<RouteMethod>)?
-    IncludeChildPaths: (Boolean|Mapping)?
-    AppendSourcePath: (Boolean|Mapping)?
-}
+typealias RouteRouteType = String|Mapping
+
 
 /// A label for tagging Environment resource
 open class RouteTag {
-    Key: String(matches(Regex(#"^(?!aws:).+"#)))|Mapping
     Value: String|Mapping
+    Key: String(matches(Regex(#"^(?!aws:).+"#)))|Mapping
 }
 
-typealias RouteRouteActivationState = String|Mapping
-
-
-typealias RouteMethod = String|Mapping
-
-
-typealias RouteRouteType = String|Mapping
-
+/// 
+open class RouteUriPathRouteInput {
+    IncludeChildPaths: (Boolean|Mapping)?
+    AppendSourcePath: (Boolean|Mapping)?
+    SourcePath: (String(matches(Regex(#"^(/([a-zA-Z0-9._:-]+|\{[a-zA-Z0-9._:-]+\}))+$"#)))|Mapping)?
+    ActivationState: RouteRouteActivationState
+    Methods: (Listing<RouteMethod>)?
+}
 
 /// 
 open class RouteDefaultRouteInput {
     ActivationState: RouteRouteActivationState
 }
+
+typealias RouteMethod = String|Mapping
+
+
+typealias RouteRouteActivationState = String|Mapping
+
 
 /// Definition of AWS::RefactorSpaces::Route Resource Type
 open class Route extends cloudformation.Resource {
@@ -41,19 +41,16 @@ open class Route extends cloudformation.Resource {
 
 
     /// 
-    hidden EnvironmentIdentifier: String(matches(Regex(#"^env-([0-9A-Za-z]{10}$)"#)))|Mapping
-
-    /// 
-    hidden RouteType: RouteRouteType
+    hidden ApplicationIdentifier: String(matches(Regex(#"^app-([0-9A-Za-z]{10}$)"#)))|Mapping
 
     /// 
     hidden DefaultRoute: (RouteDefaultRouteInput)?
 
     /// 
-    hidden UriPathRoute: (RouteUriPathRouteInput)?
+    hidden EnvironmentIdentifier: String(matches(Regex(#"^env-([0-9A-Za-z]{10}$)"#)))|Mapping
 
     /// 
-    hidden ApplicationIdentifier: String(matches(Regex(#"^app-([0-9A-Za-z]{10}$)"#)))|Mapping
+    hidden RouteType: RouteRouteType
 
     /// 
     hidden ServiceIdentifier: String(matches(Regex(#"^svc-([0-9A-Za-z]{10}$)"#)))|Mapping
@@ -61,14 +58,17 @@ open class Route extends cloudformation.Resource {
     /// Metadata that you can assign to help organize the frameworks that you create. Each tag is a key-value pair.
     hidden Tags: (Listing<RouteTag>)?
 
+    /// 
+    hidden UriPathRoute: (RouteUriPathRouteInput)?
+
     Properties {
+        ["ApplicationIdentifier"] = if (ApplicationIdentifier == null) null else ApplicationIdentifier
+        ["DefaultRoute"] = if (DefaultRoute == null) null else DefaultRoute
         ["EnvironmentIdentifier"] = if (EnvironmentIdentifier == null) null else EnvironmentIdentifier
         ["RouteType"] = if (RouteType == null) null else RouteType
-        ["DefaultRoute"] = if (DefaultRoute == null) null else DefaultRoute
-        ["UriPathRoute"] = if (UriPathRoute == null) null else UriPathRoute
-        ["ApplicationIdentifier"] = if (ApplicationIdentifier == null) null else ApplicationIdentifier
         ["ServiceIdentifier"] = if (ServiceIdentifier == null) null else ServiceIdentifier
         ["Tags"] = if (Tags == null) null else Tags
+        ["UriPathRoute"] = if (UriPathRoute == null) null else UriPathRoute
     }
 
 }

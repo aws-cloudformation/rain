@@ -5,17 +5,17 @@ module aws.networkmanager.site
 
 import "../../cloudformation.pkl"
 
-/// A key-value pair to associate with a site resource.
-open class SiteTag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
 /// The location of the site
 open class SiteLocation {
     Address: (String|Mapping)?
     Latitude: (String|Mapping)?
     Longitude: (String|Mapping)?
+}
+
+/// A key-value pair to associate with a site resource.
+open class SiteTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// The AWS::NetworkManager::Site type describes a site.
@@ -27,20 +27,20 @@ open class Site extends cloudformation.Resource {
     /// The description of the site.
     hidden Description: (String|Mapping)?
 
-    /// The tags for the site.
-    hidden Tags: (Listing<SiteTag>)?
-
     /// The ID of the global network.
     hidden GlobalNetworkId: String|Mapping
 
     /// The location of the site.
     hidden Location: (SiteLocation)?
 
+    /// The tags for the site.
+    hidden Tags: (Listing<SiteTag>)?
+
     Properties {
         ["Description"] = if (Description == null) null else Description
-        ["Tags"] = if (Tags == null) null else Tags
         ["GlobalNetworkId"] = if (GlobalNetworkId == null) null else GlobalNetworkId
         ["Location"] = if (Location == null) null else Location
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

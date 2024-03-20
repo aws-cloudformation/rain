@@ -5,11 +5,19 @@ module aws.route53recoverycontrol.safetyrule
 
 import "../../cloudformation.pkl"
 
-/// The rule configuration for an assertion rule or gating rule. This is the criteria that you set for specific assertion controls (routing controls) or gating controls. This configuration specifies how many controls must be enabled after a transaction completes.
-open class SafetyRuleRuleConfig {
-    Type: SafetyRuleRuleType
-    Threshold: Int|Mapping
-    Inverted: Boolean|Mapping
+typealias SafetyRuleSafetyRuleName = String|Mapping
+
+
+/// 
+open class SafetyRuleTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// An assertion rule enforces that, when a routing control state is changed, that the criteria set by the rule configuration is met. Otherwise, the change to the routing control is not accepted.
+open class SafetyRuleAssertionRule {
+    WaitPeriodMs: Int|Mapping
+    AssertedControls: Listing<String|Mapping>
 }
 
 /// A gating rule verifies that a set of gating controls evaluates as true, based on a rule configuration that you specify. If the gating rule evaluates to true, Amazon Route 53 Application Recovery Controller allows a set of routing control state changes to run and complete against the set of target controls.
@@ -19,20 +27,12 @@ open class SafetyRuleGatingRule {
     WaitPeriodMs: Int|Mapping
 }
 
-/// An assertion rule enforces that, when a routing control state is changed, that the criteria set by the rule configuration is met. Otherwise, the change to the routing control is not accepted.
-open class SafetyRuleAssertionRule {
-    AssertedControls: Listing<String|Mapping>
-    WaitPeriodMs: Int|Mapping
+/// The rule configuration for an assertion rule or gating rule. This is the criteria that you set for specific assertion controls (routing controls) or gating controls. This configuration specifies how many controls must be enabled after a transaction completes.
+open class SafetyRuleRuleConfig {
+    Threshold: Int|Mapping
+    Inverted: Boolean|Mapping
+    Type: SafetyRuleRuleType
 }
-
-/// 
-open class SafetyRuleTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-typealias SafetyRuleSafetyRuleName = String|Mapping
-
 
 typealias SafetyRuleRuleType = String|Mapping
 
@@ -44,13 +44,10 @@ open class SafetyRule extends cloudformation.Resource {
 
 
     /// 
-    hidden RuleConfig: (SafetyRuleRuleConfig)?
-
-    /// A collection of tags associated with a resource
-    hidden Tags: (Listing<SafetyRuleTag>)?
-
-    /// 
     hidden AssertionRule: (SafetyRuleAssertionRule)?
+
+    /// The Amazon Resource Name (ARN) of the control panel.
+    hidden ControlPanelArn: (String|Mapping)?
 
     /// 
     hidden GatingRule: (SafetyRuleGatingRule)?
@@ -58,16 +55,19 @@ open class SafetyRule extends cloudformation.Resource {
     /// 
     hidden Name: (SafetyRuleSafetyRuleName)?
 
-    /// The Amazon Resource Name (ARN) of the control panel.
-    hidden ControlPanelArn: (String|Mapping)?
+    /// 
+    hidden RuleConfig: (SafetyRuleRuleConfig)?
+
+    /// A collection of tags associated with a resource
+    hidden Tags: (Listing<SafetyRuleTag>)?
 
     Properties {
-        ["RuleConfig"] = if (RuleConfig == null) null else RuleConfig
-        ["Tags"] = if (Tags == null) null else Tags
         ["AssertionRule"] = if (AssertionRule == null) null else AssertionRule
+        ["ControlPanelArn"] = if (ControlPanelArn == null) null else ControlPanelArn
         ["GatingRule"] = if (GatingRule == null) null else GatingRule
         ["Name"] = if (Name == null) null else Name
-        ["ControlPanelArn"] = if (ControlPanelArn == null) null else ControlPanelArn
+        ["RuleConfig"] = if (RuleConfig == null) null else RuleConfig
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

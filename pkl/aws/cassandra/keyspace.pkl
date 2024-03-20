@@ -10,18 +10,18 @@ typealias RegionListArray = "ap-northeast-1"|"ap-northeast-2"|"ap-south-1"|"ap-s
 typealias KeyspaceRegionList = Listing<(RegionListArray|Mapping)?>
 
 
-/// 
-open class KeyspaceTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
 typealias ReplicationSpecificationReplicationStrategy = "SINGLE_REGION"|"MULTI_REGION"
 
 /// 
 open class KeyspaceReplicationSpecification {
-    RegionList: (KeyspaceRegionList)?
     ReplicationStrategy: (ReplicationSpecificationReplicationStrategy|Mapping)?
+    RegionList: (KeyspaceRegionList)?
+}
+
+/// 
+open class KeyspaceTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// Resource schema for AWS::Cassandra::Keyspace
@@ -34,15 +34,15 @@ open class Keyspace extends cloudformation.Resource {
     hidden KeyspaceName: (String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9_]{1,47}$"#)))|Mapping)?
 
     /// 
-    hidden Tags: (Listing<KeyspaceTag>)?
+    hidden ReplicationSpecification: (KeyspaceReplicationSpecification)?
 
     /// 
-    hidden ReplicationSpecification: (KeyspaceReplicationSpecification)?
+    hidden Tags: (Listing<KeyspaceTag>)?
 
     Properties {
         ["KeyspaceName"] = if (KeyspaceName == null) null else KeyspaceName
-        ["Tags"] = if (Tags == null) null else Tags
         ["ReplicationSpecification"] = if (ReplicationSpecification == null) null else ReplicationSpecification
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

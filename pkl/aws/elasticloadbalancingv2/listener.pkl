@@ -5,29 +5,48 @@ module aws.elasticloadbalancingv2.listener
 
 import "../../cloudformation.pkl"
 
-/// Specifies the configuration information for mutual authentication.
-open class ListenerMutualAuthentication {
-    TrustStoreArn: (String|Mapping)?
-    IgnoreClientCertificateExpiry: (Boolean|Mapping)?
-    Mode: (String|Mapping)?
-}
-
 /// Specifies an action for a listener rule.
 open class ListenerAction {
+    Type: String|Mapping
+    RedirectConfig: (ListenerRedirectConfig)?
+    ForwardConfig: (ListenerForwardConfig)?
     AuthenticateOidcConfig: (ListenerAuthenticateOidcConfig)?
     Order: (Int|Mapping)?
     TargetGroupArn: (String|Mapping)?
     FixedResponseConfig: (ListenerFixedResponseConfig)?
     AuthenticateCognitoConfig: (ListenerAuthenticateCognitoConfig)?
-    Type: String|Mapping
-    RedirectConfig: (ListenerRedirectConfig)?
-    ForwardConfig: (ListenerForwardConfig)?
 }
 
-/// Information for creating an action that distributes requests among one or more target groups. For Network Load Balancers, you can specify a single target group. Specify only when ``Type`` is ``forward``. If you specify both ``ForwardConfig`` and ``TargetGroupArn``, you can specify only one target group using ``ForwardConfig`` and it must be the same target group specified in ``TargetGroupArn``.
-open class ListenerForwardConfig {
-    TargetGroupStickinessConfig: (ListenerTargetGroupStickinessConfig)?
-    TargetGroups: (Listing<ListenerTargetGroupTuple>)?
+typealias ListenerAuthenticateCognitoConfigAuthenticationRequestExtraParams = Mapping<String, Any>
+
+/// Specifies information required when integrating with Amazon Cognito to authenticate users.
+open class ListenerAuthenticateCognitoConfig {
+    UserPoolDomain: String|Mapping
+    SessionTimeout: (String|Mapping)?
+    Scope: (String|Mapping)?
+    SessionCookieName: (String|Mapping)?
+    UserPoolArn: String|Mapping
+    AuthenticationRequestExtraParams: (ListenerAuthenticateCognitoConfigAuthenticationRequestExtraParams)?
+    OnUnauthenticatedRequest: (String|Mapping)?
+    UserPoolClientId: String|Mapping
+}
+
+typealias ListenerAuthenticateOidcConfigAuthenticationRequestExtraParams = Mapping<String, Any>
+
+/// Specifies information required using an identity provide (IdP) that is compliant with OpenID Connect (OIDC) to authenticate users.
+open class ListenerAuthenticateOidcConfig {
+    Scope: (String|Mapping)?
+    Issuer: String|Mapping
+    ClientSecret: (String|Mapping)?
+    AuthorizationEndpoint: String|Mapping
+    SessionCookieName: (String|Mapping)?
+    UseExistingClientSecret: (Boolean|Mapping)?
+    OnUnauthenticatedRequest: (String|Mapping)?
+    TokenEndpoint: String|Mapping
+    AuthenticationRequestExtraParams: (ListenerAuthenticateOidcConfigAuthenticationRequestExtraParams)?
+    ClientId: String|Mapping
+    SessionTimeout: (String|Mapping)?
+    UserInfoEndpoint: String|Mapping
 }
 
 /// Specifies information required when returning a custom HTTP response.
@@ -37,24 +56,28 @@ open class ListenerFixedResponseConfig {
     MessageBody: (String|Mapping)?
 }
 
-/// Information about how traffic will be distributed between multiple target groups in a forward rule.
-open class ListenerTargetGroupTuple {
-    TargetGroupArn: (String|Mapping)?
-    Weight: (Int|Mapping)?
+/// Information for creating an action that distributes requests among one or more target groups. For Network Load Balancers, you can specify a single target group. Specify only when ``Type`` is ``forward``. If you specify both ``ForwardConfig`` and ``TargetGroupArn``, you can specify only one target group using ``ForwardConfig`` and it must be the same target group specified in ``TargetGroupArn``.
+open class ListenerForwardConfig {
+    TargetGroupStickinessConfig: (ListenerTargetGroupStickinessConfig)?
+    TargetGroups: (Listing<ListenerTargetGroupTuple>)?
 }
 
-typealias ListenerAuthenticateCognitoConfigAuthenticationRequestExtraParams = Mapping<String, Any>
+/// Information about the target group stickiness for a rule.
+open class ListenerTargetGroupStickinessConfig {
+    Enabled: (Boolean|Mapping)?
+    DurationSeconds: (Int|Mapping)?
+}
 
-/// Specifies information required when integrating with Amazon Cognito to authenticate users.
-open class ListenerAuthenticateCognitoConfig {
-    Scope: (String|Mapping)?
-    SessionCookieName: (String|Mapping)?
-    UserPoolArn: String|Mapping
-    AuthenticationRequestExtraParams: (ListenerAuthenticateCognitoConfigAuthenticationRequestExtraParams)?
-    OnUnauthenticatedRequest: (String|Mapping)?
-    UserPoolClientId: String|Mapping
-    UserPoolDomain: String|Mapping
-    SessionTimeout: (String|Mapping)?
+/// Specifies an SSL server certificate to use as the default certificate for a secure listener.
+open class ListenerCertificate {
+    CertificateArn: (String|Mapping)?
+}
+
+/// Specifies the configuration information for mutual authentication.
+open class ListenerMutualAuthentication {
+    Mode: (String|Mapping)?
+    TrustStoreArn: (String|Mapping)?
+    IgnoreClientCertificateExpiry: (Boolean|Mapping)?
 }
 
 /// Information about a redirect action.
@@ -77,33 +100,10 @@ open class ListenerRedirectConfig {
     StatusCode: String|Mapping
 }
 
-typealias ListenerAuthenticateOidcConfigAuthenticationRequestExtraParams = Mapping<String, Any>
-
-/// Specifies information required using an identity provide (IdP) that is compliant with OpenID Connect (OIDC) to authenticate users.
-open class ListenerAuthenticateOidcConfig {
-    ClientSecret: (String|Mapping)?
-    UserInfoEndpoint: String|Mapping
-    SessionCookieName: (String|Mapping)?
-    AuthenticationRequestExtraParams: (ListenerAuthenticateOidcConfigAuthenticationRequestExtraParams)?
-    OnUnauthenticatedRequest: (String|Mapping)?
-    TokenEndpoint: String|Mapping
-    Issuer: String|Mapping
-    AuthorizationEndpoint: String|Mapping
-    UseExistingClientSecret: (Boolean|Mapping)?
-    SessionTimeout: (String|Mapping)?
-    Scope: (String|Mapping)?
-    ClientId: String|Mapping
-}
-
-/// Information about the target group stickiness for a rule.
-open class ListenerTargetGroupStickinessConfig {
-    Enabled: (Boolean|Mapping)?
-    DurationSeconds: (Int|Mapping)?
-}
-
-/// Specifies an SSL server certificate to use as the default certificate for a secure listener.
-open class ListenerCertificate {
-    CertificateArn: (String|Mapping)?
+/// Information about how traffic will be distributed between multiple target groups in a forward rule.
+open class ListenerTargetGroupTuple {
+    TargetGroupArn: (String|Mapping)?
+    Weight: (Int|Mapping)?
 }
 
 /// Specifies a listener for an Application Load Balancer, Network Load Balancer, or Gateway Load Balancer.
@@ -112,29 +112,24 @@ open class Listener extends cloudformation.Resource {
     Type = "AWS::ElasticLoadBalancingV2::Listener"
 
 
-    /// [HTTPS and TLS listeners] The security policy that defines which protocols and ciphers are supported.
-    ///
-    ///  For more information, see [Security policies](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies) in the *Application Load Balancers Guide* and [Security policies](https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html#describe-ssl-policies) in the *Network Load Balancers Guide*.
-    hidden SslPolicy: (String|Mapping)?
+    /// [TLS listener] The name of the Application-Layer Protocol Negotiation (ALPN) policy.
+    hidden AlpnPolicy: (Listing<String|Mapping>)?
 
     /// The default SSL server certificate for a secure listener. You must provide exactly one certificate if the listener protocol is HTTPS or TLS.
     ///
     ///  To create a certificate list for a secure listener, use [AWS::ElasticLoadBalancingV2::ListenerCertificate](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-listenercertificate.html).
     hidden Certificates: (Listing<ListenerCertificate>)?
 
-    /// [TLS listener] The name of the Application-Layer Protocol Negotiation (ALPN) policy.
-    hidden AlpnPolicy: (Listing<String|Mapping>)?
-
-    /// The mutual authentication configuration information.
-    hidden MutualAuthentication: (ListenerMutualAuthentication)?
-
-    /// The Amazon Resource Name (ARN) of the load balancer.
-    hidden LoadBalancerArn: String|Mapping
-
     /// The actions for the default rule. You cannot define a condition for a default rule.
     ///
     ///  To create additional rules for an Application Load Balancer, use [AWS::ElasticLoadBalancingV2::ListenerRule](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-listenerrule.html).
     hidden DefaultActions: Listing<ListenerAction>
+
+    /// The Amazon Resource Name (ARN) of the load balancer.
+    hidden LoadBalancerArn: String|Mapping
+
+    /// The mutual authentication configuration information.
+    hidden MutualAuthentication: (ListenerMutualAuthentication)?
 
     /// The port on which the load balancer is listening. You cannot specify a port for a Gateway Load Balancer.
     hidden Port: (Int|Mapping)?
@@ -142,15 +137,20 @@ open class Listener extends cloudformation.Resource {
     /// The protocol for connections from clients to the load balancer. For Application Load Balancers, the supported protocols are HTTP and HTTPS. For Network Load Balancers, the supported protocols are TCP, TLS, UDP, and TCP_UDP. You can?t specify the UDP or TCP_UDP protocol if dual-stack mode is enabled. You cannot specify a protocol for a Gateway Load Balancer.
     hidden Protocol: (String|Mapping)?
 
+    /// [HTTPS and TLS listeners] The security policy that defines which protocols and ciphers are supported.
+    ///
+    ///  For more information, see [Security policies](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies) in the *Application Load Balancers Guide* and [Security policies](https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html#describe-ssl-policies) in the *Network Load Balancers Guide*.
+    hidden SslPolicy: (String|Mapping)?
+
     Properties {
-        ["SslPolicy"] = if (SslPolicy == null) null else SslPolicy
-        ["Certificates"] = if (Certificates == null) null else Certificates
         ["AlpnPolicy"] = if (AlpnPolicy == null) null else AlpnPolicy
-        ["MutualAuthentication"] = if (MutualAuthentication == null) null else MutualAuthentication
-        ["LoadBalancerArn"] = if (LoadBalancerArn == null) null else LoadBalancerArn
+        ["Certificates"] = if (Certificates == null) null else Certificates
         ["DefaultActions"] = if (DefaultActions == null) null else DefaultActions
+        ["LoadBalancerArn"] = if (LoadBalancerArn == null) null else LoadBalancerArn
+        ["MutualAuthentication"] = if (MutualAuthentication == null) null else MutualAuthentication
         ["Port"] = if (Port == null) null else Port
         ["Protocol"] = if (Protocol == null) null else Protocol
+        ["SslPolicy"] = if (SslPolicy == null) null else SslPolicy
     }
 
 }

@@ -5,13 +5,7 @@ module aws.customerprofiles.calculatedattributedefinition
 
 import "../../cloudformation.pkl"
 
-typealias CalculatedAttributeDefinitionThresholdValue = String|Mapping
-
-
-typealias CalculatedAttributeDefinitionAttributeName = String|Mapping
-
-
-typealias CalculatedAttributeDefinitionExpression = String|Mapping
+typealias CalculatedAttributeDefinitionRangeUnit = String|Mapping
 
 
 /// The threshold for the calculated attribute.
@@ -20,10 +14,38 @@ open class CalculatedAttributeDefinitionThreshold {
     Operator: CalculatedAttributeDefinitionThresholdOperator
 }
 
-typealias CalculatedAttributeDefinitionObjectCount = Int|Mapping
-
-
 typealias CalculatedAttributeDefinitionThresholdOperator = String|Mapping
+
+
+typealias CalculatedAttributeDefinitionThresholdValue = String|Mapping
+
+
+/// The conditions including range, object count, and threshold for the calculated attribute.
+open class CalculatedAttributeDefinitionConditions {
+    ObjectCount: (CalculatedAttributeDefinitionObjectCount)?
+    Threshold: (CalculatedAttributeDefinitionThreshold)?
+    Range: (CalculatedAttributeDefinitionRange)?
+}
+
+typealias CalculatedAttributeDefinitionDisplayName = String|Mapping
+
+
+typealias CalculatedAttributeDefinitionDomainName = String|Mapping
+
+
+typealias CalculatedAttributeDefinitionExpression = String|Mapping
+
+
+typealias CalculatedAttributeDefinitionAttributeList = Listing<(CalculatedAttributeDefinitionAttributeItem)?>
+
+
+typealias CalculatedAttributeDefinitionCalculatedAttributeName = String|Mapping
+
+
+typealias CalculatedAttributeDefinitionDescription = String|Mapping
+
+
+typealias CalculatedAttributeDefinitionObjectCount = Int|Mapping
 
 
 /// The relative time period over which data is included in the aggregation.
@@ -32,7 +54,7 @@ open class CalculatedAttributeDefinitionRange {
     Unit: CalculatedAttributeDefinitionRangeUnit
 }
 
-typealias CalculatedAttributeDefinitionRangeUnit = String|Mapping
+typealias CalculatedAttributeDefinitionRangeValue = Int|Mapping
 
 
 /// Mathematical expression and a list of attribute items specified in that expression.
@@ -41,46 +63,24 @@ open class CalculatedAttributeDefinitionAttributeDetails {
     Expression: CalculatedAttributeDefinitionExpression
 }
 
-typealias CalculatedAttributeDefinitionStatistic = String|Mapping
-
-
-typealias CalculatedAttributeDefinitionDescription = String|Mapping
-
-
-typealias CalculatedAttributeDefinitionTags = Listing<(CalculatedAttributeDefinitionTag)?>
-
-
-typealias CalculatedAttributeDefinitionAttributeList = Listing<(CalculatedAttributeDefinitionAttributeItem)?>
-
-
-/// A key-value pair to associate with a resource.
-open class CalculatedAttributeDefinitionTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-typealias CalculatedAttributeDefinitionCalculatedAttributeName = String|Mapping
-
-
-typealias CalculatedAttributeDefinitionRangeValue = Int|Mapping
-
-
-typealias CalculatedAttributeDefinitionDisplayName = String|Mapping
-
-
 /// The details of a single attribute item specified in the mathematical expression.
 open class CalculatedAttributeDefinitionAttributeItem {
     Name: CalculatedAttributeDefinitionAttributeName
 }
 
-/// The conditions including range, object count, and threshold for the calculated attribute.
-open class CalculatedAttributeDefinitionConditions {
-    Range: (CalculatedAttributeDefinitionRange)?
-    ObjectCount: (CalculatedAttributeDefinitionObjectCount)?
-    Threshold: (CalculatedAttributeDefinitionThreshold)?
+typealias CalculatedAttributeDefinitionAttributeName = String|Mapping
+
+
+typealias CalculatedAttributeDefinitionStatistic = String|Mapping
+
+
+/// A key-value pair to associate with a resource.
+open class CalculatedAttributeDefinitionTag {
+    Value: String|Mapping
+    Key: String|Mapping
 }
 
-typealias CalculatedAttributeDefinitionDomainName = String|Mapping
+typealias CalculatedAttributeDefinitionTags = Listing<(CalculatedAttributeDefinitionTag)?>
 
 
 /// A calculated attribute definition for Customer Profiles
@@ -90,38 +90,38 @@ open class CalculatedAttributeDefinition extends cloudformation.Resource {
 
 
     /// 
-    hidden Tags: (CalculatedAttributeDefinitionTags)?
-
-    /// 
-    hidden DisplayName: (CalculatedAttributeDefinitionDisplayName)?
-
-    /// 
-    hidden Statistic: CalculatedAttributeDefinitionStatistic
-
-    /// 
-    hidden Conditions: (CalculatedAttributeDefinitionConditions)?
-
-    /// 
-    hidden DomainName: CalculatedAttributeDefinitionDomainName
+    hidden AttributeDetails: CalculatedAttributeDefinitionAttributeDetails
 
     /// 
     hidden CalculatedAttributeName: CalculatedAttributeDefinitionCalculatedAttributeName
 
     /// 
+    hidden Conditions: (CalculatedAttributeDefinitionConditions)?
+
+    /// 
     hidden Description: (CalculatedAttributeDefinitionDescription)?
 
     /// 
-    hidden AttributeDetails: CalculatedAttributeDefinitionAttributeDetails
+    hidden DisplayName: (CalculatedAttributeDefinitionDisplayName)?
+
+    /// 
+    hidden DomainName: CalculatedAttributeDefinitionDomainName
+
+    /// 
+    hidden Statistic: CalculatedAttributeDefinitionStatistic
+
+    /// 
+    hidden Tags: (CalculatedAttributeDefinitionTags)?
 
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["DisplayName"] = if (DisplayName == null) null else DisplayName
-        ["Statistic"] = if (Statistic == null) null else Statistic
-        ["Conditions"] = if (Conditions == null) null else Conditions
-        ["DomainName"] = if (DomainName == null) null else DomainName
-        ["CalculatedAttributeName"] = if (CalculatedAttributeName == null) null else CalculatedAttributeName
-        ["Description"] = if (Description == null) null else Description
         ["AttributeDetails"] = if (AttributeDetails == null) null else AttributeDetails
+        ["CalculatedAttributeName"] = if (CalculatedAttributeName == null) null else CalculatedAttributeName
+        ["Conditions"] = if (Conditions == null) null else Conditions
+        ["Description"] = if (Description == null) null else Description
+        ["DisplayName"] = if (DisplayName == null) null else DisplayName
+        ["DomainName"] = if (DomainName == null) null else DomainName
+        ["Statistic"] = if (Statistic == null) null else Statistic
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

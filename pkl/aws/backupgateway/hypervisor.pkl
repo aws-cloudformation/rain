@@ -5,23 +5,32 @@ module aws.backupgateway.hypervisor
 
 import "../../cloudformation.pkl"
 
+/// 
+open class HypervisorTag {
+    Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
+    Value: String(matches(Regex(#"^[^\x00]*$"#)))|Mapping
+}
+
 typealias HypervisorHypervisorState = String|Mapping
 
 
 typealias HypervisorSyncMetadataStatus = String|Mapping
 
 
-/// 
-open class HypervisorTag {
-    Value: String(matches(Regex(#"^[^\x00]*$"#)))|Mapping
-    Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
-}
-
 /// Definition of AWS::BackupGateway::Hypervisor Resource Type
 open class Hypervisor extends cloudformation.Resource {
 
     Type = "AWS::BackupGateway::Hypervisor"
 
+
+    /// 
+    hidden Host: (String(matches(Regex(#"^.+$"#)))|Mapping)?
+
+    /// 
+    hidden KmsKeyArn: (String(matches(Regex(#"^(^arn:(aws|aws-cn|aws-us-gov):kms:([a-zA-Z0-9-]+):([0-9]+):(key|alias)/(\S+)$)|(^alias/(\S+)$)$"#)))|Mapping)?
+
+    /// 
+    hidden LogGroupArn: (String(matches(Regex(#"^$|^arn:(aws|aws-cn|aws-us-gov):logs:([a-zA-Z0-9-]+):([0-9]+):log-group:[a-zA-Z0-9_\-\/\.]+:\*$"#)))|Mapping)?
 
     /// 
     hidden Name: (String(matches(Regex(#"^[a-zA-Z0-9-]*$"#)))|Mapping)?
@@ -35,23 +44,14 @@ open class Hypervisor extends cloudformation.Resource {
     /// 
     hidden Username: (String(matches(Regex(#"^[ -\.0-\[\]-~]*[!-\.0-\[\]-~][ -\.0-\[\]-~]*$"#)))|Mapping)?
 
-    /// 
-    hidden Host: (String(matches(Regex(#"^.+$"#)))|Mapping)?
-
-    /// 
-    hidden KmsKeyArn: (String(matches(Regex(#"^(^arn:(aws|aws-cn|aws-us-gov):kms:([a-zA-Z0-9-]+):([0-9]+):(key|alias)/(\S+)$)|(^alias/(\S+)$)$"#)))|Mapping)?
-
-    /// 
-    hidden LogGroupArn: (String(matches(Regex(#"^$|^arn:(aws|aws-cn|aws-us-gov):logs:([a-zA-Z0-9-]+):([0-9]+):log-group:[a-zA-Z0-9_\-\/\.]+:\*$"#)))|Mapping)?
-
     Properties {
+        ["Host"] = if (Host == null) null else Host
+        ["KmsKeyArn"] = if (KmsKeyArn == null) null else KmsKeyArn
+        ["LogGroupArn"] = if (LogGroupArn == null) null else LogGroupArn
         ["Name"] = if (Name == null) null else Name
         ["Password"] = if (Password == null) null else Password
         ["Tags"] = if (Tags == null) null else Tags
         ["Username"] = if (Username == null) null else Username
-        ["Host"] = if (Host == null) null else Host
-        ["KmsKeyArn"] = if (KmsKeyArn == null) null else KmsKeyArn
-        ["LogGroupArn"] = if (LogGroupArn == null) null else LogGroupArn
     }
 
 }

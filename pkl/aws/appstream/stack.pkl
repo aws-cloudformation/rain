@@ -12,6 +12,13 @@ open class StackApplicationSettings {
 }
 
 /// 
+open class StackStorageConnector {
+    Domains: (Listing<String|Mapping>)?
+    ResourceIdentifier: (String|Mapping)?
+    ConnectorType: String|Mapping
+}
+
+/// 
 open class StackStreamingExperienceSettings {
     PreferredProtocol: (String|Mapping)?
 }
@@ -23,12 +30,6 @@ open class StackTag {
 }
 
 /// 
-open class StackAccessEndpoint {
-    EndpointType: String|Mapping
-    VpceId: String|Mapping
-}
-
-/// 
 open class StackUserSetting {
     Permission: String|Mapping
     Action: String|Mapping
@@ -36,10 +37,9 @@ open class StackUserSetting {
 }
 
 /// 
-open class StackStorageConnector {
-    Domains: (Listing<String|Mapping>)?
-    ResourceIdentifier: (String|Mapping)?
-    ConnectorType: String|Mapping
+open class StackAccessEndpoint {
+    EndpointType: String|Mapping
+    VpceId: String|Mapping
 }
 
 /// Resource Type definition for AWS::AppStream::Stack
@@ -49,13 +49,31 @@ open class Stack extends cloudformation.Resource {
 
 
     /// 
-    hidden Name: (String|Mapping)?
+    hidden AccessEndpoints: (Listing<StackAccessEndpoint>)?
+
+    /// 
+    hidden ApplicationSettings: (StackApplicationSettings)?
+
+    /// 
+    hidden AttributesToDelete: (Listing<String|Mapping>)?
+
+    /// 
+    hidden DeleteStorageConnectors: (Boolean|Mapping)?
 
     /// 
     hidden Description: (String|Mapping)?
 
     /// 
-    hidden AttributesToDelete: (Listing<String|Mapping>)?
+    hidden DisplayName: (String|Mapping)?
+
+    /// 
+    hidden EmbedHostDomains: (Listing<String|Mapping>)?
+
+    /// 
+    hidden FeedbackURL: (String|Mapping)?
+
+    /// 
+    hidden Name: (String|Mapping)?
 
     /// 
     hidden RedirectURL: (String|Mapping)?
@@ -64,47 +82,29 @@ open class Stack extends cloudformation.Resource {
     hidden StorageConnectors: (Listing<StackStorageConnector>)?
 
     /// 
-    hidden FeedbackURL: (String|Mapping)?
-
-    /// 
-    hidden DisplayName: (String|Mapping)?
+    hidden StreamingExperienceSettings: (StackStreamingExperienceSettings)?
 
     /// 
     hidden Tags: (Listing<StackTag>)?
 
     /// 
-    hidden AccessEndpoints: (Listing<StackAccessEndpoint>)?
-
-    /// 
-    hidden DeleteStorageConnectors: (Boolean|Mapping)?
-
-    /// 
-    hidden ApplicationSettings: (StackApplicationSettings)?
-
-    /// 
-    hidden EmbedHostDomains: (Listing<String|Mapping>)?
-
-    /// 
     hidden UserSettings: (Listing<StackUserSetting>)?
 
-    /// 
-    hidden StreamingExperienceSettings: (StackStreamingExperienceSettings)?
-
     Properties {
-        ["Name"] = if (Name == null) null else Name
-        ["Description"] = if (Description == null) null else Description
+        ["AccessEndpoints"] = if (AccessEndpoints == null) null else AccessEndpoints
+        ["ApplicationSettings"] = if (ApplicationSettings == null) null else ApplicationSettings
         ["AttributesToDelete"] = if (AttributesToDelete == null) null else AttributesToDelete
+        ["DeleteStorageConnectors"] = if (DeleteStorageConnectors == null) null else DeleteStorageConnectors
+        ["Description"] = if (Description == null) null else Description
+        ["DisplayName"] = if (DisplayName == null) null else DisplayName
+        ["EmbedHostDomains"] = if (EmbedHostDomains == null) null else EmbedHostDomains
+        ["FeedbackURL"] = if (FeedbackURL == null) null else FeedbackURL
+        ["Name"] = if (Name == null) null else Name
         ["RedirectURL"] = if (RedirectURL == null) null else RedirectURL
         ["StorageConnectors"] = if (StorageConnectors == null) null else StorageConnectors
-        ["FeedbackURL"] = if (FeedbackURL == null) null else FeedbackURL
-        ["DisplayName"] = if (DisplayName == null) null else DisplayName
-        ["Tags"] = if (Tags == null) null else Tags
-        ["AccessEndpoints"] = if (AccessEndpoints == null) null else AccessEndpoints
-        ["DeleteStorageConnectors"] = if (DeleteStorageConnectors == null) null else DeleteStorageConnectors
-        ["ApplicationSettings"] = if (ApplicationSettings == null) null else ApplicationSettings
-        ["EmbedHostDomains"] = if (EmbedHostDomains == null) null else EmbedHostDomains
-        ["UserSettings"] = if (UserSettings == null) null else UserSettings
         ["StreamingExperienceSettings"] = if (StreamingExperienceSettings == null) null else StreamingExperienceSettings
+        ["Tags"] = if (Tags == null) null else Tags
+        ["UserSettings"] = if (UserSettings == null) null else UserSettings
     }
 
 }

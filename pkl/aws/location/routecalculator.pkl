@@ -5,13 +5,7 @@ module aws.location.routecalculator
 
 import "../../cloudformation.pkl"
 
-typealias RouteCalculatoriso8601UTC = String|Mapping
-
-
 typealias RouteCalculatorPricingPlan = String|Mapping
-
-
-typealias RouteCalculatorTagMap = Mapping<String, Any>
 
 
 /// A key-value pair to associate with a resource.
@@ -20,11 +14,20 @@ open class RouteCalculatorTag {
     Value: String(matches(Regex(#"^[A-Za-z0-9 _=@:.+-/]*$"#)))|Mapping
 }
 
+typealias RouteCalculatorTagMap = Mapping<String, Any>
+
+
+typealias RouteCalculatoriso8601UTC = String|Mapping
+
+
 /// Definition of AWS::Location::RouteCalculator Resource Type
 open class RouteCalculator extends cloudformation.Resource {
 
     Type = "AWS::Location::RouteCalculator"
 
+
+    /// 
+    hidden CalculatorName: String(matches(Regex(#"^[-._\w]+$"#)))|Mapping
 
     /// 
     hidden DataSource: String|Mapping
@@ -38,15 +41,12 @@ open class RouteCalculator extends cloudformation.Resource {
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<RouteCalculatorTag>)?
 
-    /// 
-    hidden CalculatorName: String(matches(Regex(#"^[-._\w]+$"#)))|Mapping
-
     Properties {
+        ["CalculatorName"] = if (CalculatorName == null) null else CalculatorName
         ["DataSource"] = if (DataSource == null) null else DataSource
         ["Description"] = if (Description == null) null else Description
         ["PricingPlan"] = if (PricingPlan == null) null else PricingPlan
         ["Tags"] = if (Tags == null) null else Tags
-        ["CalculatorName"] = if (CalculatorName == null) null else CalculatorName
     }
 
 }

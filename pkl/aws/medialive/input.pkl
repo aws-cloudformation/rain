@@ -6,8 +6,15 @@ module aws.medialive.input
 import "../../cloudformation.pkl"
 
 /// 
-open class InputInputDestinationRequest {
-    StreamName: (String|Mapping)?
+open class InputInputDeviceSettings {
+    Id: (String|Mapping)?
+}
+
+/// 
+open class InputInputSourceRequest {
+    Url: (String|Mapping)?
+    PasswordParam: (String|Mapping)?
+    Username: (String|Mapping)?
 }
 
 /// 
@@ -22,15 +29,8 @@ open class InputMediaConnectFlowRequest {
 }
 
 /// 
-open class InputInputSourceRequest {
-    PasswordParam: (String|Mapping)?
-    Username: (String|Mapping)?
-    Url: (String|Mapping)?
-}
-
-/// 
-open class InputInputDeviceSettings {
-    Id: (String|Mapping)?
+open class InputInputDestinationRequest {
+    StreamName: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::MediaLive::Input
@@ -40,19 +40,22 @@ open class Input extends cloudformation.Resource {
 
 
     /// 
-    hidden Vpc: (InputInputVpcRequest)?
-
-    /// 
-    hidden MediaConnectFlows: (Listing<InputMediaConnectFlowRequest>)?
+    hidden Destinations: (Listing<InputInputDestinationRequest>)?
 
     /// 
     hidden InputDevices: (Listing<InputInputDeviceSettings>)?
 
     /// 
-    hidden RoleArn: (String|Mapping)?
+    hidden InputSecurityGroups: (Listing<String|Mapping>)?
+
+    /// 
+    hidden MediaConnectFlows: (Listing<InputMediaConnectFlowRequest>)?
 
     /// 
     hidden Name: (String|Mapping)?
+
+    /// 
+    hidden RoleArn: (String|Mapping)?
 
     /// 
     hidden Sources: (Listing<InputInputSourceRequest>)?
@@ -64,22 +67,19 @@ open class Input extends cloudformation.Resource {
     hidden TypeProperty: (String|Mapping)?
 
     /// 
-    hidden Destinations: (Listing<InputInputDestinationRequest>)?
-
-    /// 
-    hidden InputSecurityGroups: (Listing<String|Mapping>)?
+    hidden Vpc: (InputInputVpcRequest)?
 
     Properties {
-        ["Vpc"] = if (Vpc == null) null else Vpc
-        ["MediaConnectFlows"] = if (MediaConnectFlows == null) null else MediaConnectFlows
+        ["Destinations"] = if (Destinations == null) null else Destinations
         ["InputDevices"] = if (InputDevices == null) null else InputDevices
-        ["RoleArn"] = if (RoleArn == null) null else RoleArn
+        ["InputSecurityGroups"] = if (InputSecurityGroups == null) null else InputSecurityGroups
+        ["MediaConnectFlows"] = if (MediaConnectFlows == null) null else MediaConnectFlows
         ["Name"] = if (Name == null) null else Name
+        ["RoleArn"] = if (RoleArn == null) null else RoleArn
         ["Sources"] = if (Sources == null) null else Sources
         ["Tags"] = if (Tags == null) null else Tags
         ["Type"] = if (TypeProperty == null) null else TypeProperty
-        ["Destinations"] = if (Destinations == null) null else Destinations
-        ["InputSecurityGroups"] = if (InputSecurityGroups == null) null else InputSecurityGroups
+        ["Vpc"] = if (Vpc == null) null else Vpc
     }
 
 }

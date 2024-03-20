@@ -5,23 +5,26 @@ module aws.opensearchserverless.collection
 
 import "../../cloudformation.pkl"
 
-/// A key-value pair metadata associated with resource
-open class CollectionTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
 typealias CollectionCollectionType = String|Mapping
 
 
 typealias CollectionStandbyReplicas = String|Mapping
 
 
+/// A key-value pair metadata associated with resource
+open class CollectionTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
 /// Amazon OpenSearchServerless collection resource
 open class Collection extends cloudformation.Resource {
 
     Type = "AWS::OpenSearchServerless::Collection"
 
+
+    /// The description of the collection
+    hidden Description: (String|Mapping)?
 
     /// The name of the collection.
     ///
@@ -35,23 +38,20 @@ open class Collection extends cloudformation.Resource {
     hidden Name: String(matches(Regex(#"^[a-z][a-z0-9-]{2,31}$"#)))|Mapping
 
     /// 
-    hidden TypeProperty: (CollectionCollectionType)?
+    hidden StandbyReplicas: (CollectionStandbyReplicas)?
 
     /// List of tags to be added to the resource
     hidden Tags: (Listing<CollectionTag>)?
 
     /// 
-    hidden StandbyReplicas: (CollectionStandbyReplicas)?
-
-    /// The description of the collection
-    hidden Description: (String|Mapping)?
+    hidden TypeProperty: (CollectionCollectionType)?
 
     Properties {
-        ["Name"] = if (Name == null) null else Name
-        ["Type"] = if (TypeProperty == null) null else TypeProperty
-        ["Tags"] = if (Tags == null) null else Tags
-        ["StandbyReplicas"] = if (StandbyReplicas == null) null else StandbyReplicas
         ["Description"] = if (Description == null) null else Description
+        ["Name"] = if (Name == null) null else Name
+        ["StandbyReplicas"] = if (StandbyReplicas == null) null else StandbyReplicas
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Type"] = if (TypeProperty == null) null else TypeProperty
     }
 
 }

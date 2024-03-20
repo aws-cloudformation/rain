@@ -5,9 +5,30 @@ module aws.ivs.recordingconfiguration
 
 import "../../cloudformation.pkl"
 
+/// Recording Destination Configuration.
+open class RecordingConfigurationDestinationConfiguration {
+    S3: (RecordingConfigurationS3DestinationConfiguration)?
+}
+
+typealias RenditionConfigurationRenditionSelection = "ALL"|"NONE"|"CUSTOM"
+
+typealias RenditionConfigurationRenditions = "FULL_HD"|"HD"|"SD"|"LOWEST_RESOLUTION"
+
+/// Rendition Configuration describes which renditions should be recorded for a stream.
+open class RecordingConfigurationRenditionConfiguration {
+    RenditionSelection: (RenditionConfigurationRenditionSelection|Mapping)?
+    Renditions: (Listing<RenditionConfigurationRenditions|Mapping>)?
+}
+
 /// Recording S3 Destination Configuration.
 open class RecordingConfigurationS3DestinationConfiguration {
     BucketName: String(matches(Regex(#"^[a-z0-9-.]+$"#)))|Mapping
+}
+
+/// 
+open class RecordingConfigurationTag {
+    Value: String|Mapping
+    Key: String|Mapping
 }
 
 typealias ThumbnailConfigurationRecordingMode = "INTERVAL"|"DISABLED"
@@ -24,32 +45,14 @@ open class RecordingConfigurationThumbnailConfiguration {
     Storage: (Listing<ThumbnailConfigurationStorage|Mapping>)?
 }
 
-typealias RenditionConfigurationRenditionSelection = "ALL"|"NONE"|"CUSTOM"
-
-typealias RenditionConfigurationRenditions = "FULL_HD"|"HD"|"SD"|"LOWEST_RESOLUTION"
-
-/// Rendition Configuration describes which renditions should be recorded for a stream.
-open class RecordingConfigurationRenditionConfiguration {
-    RenditionSelection: (RenditionConfigurationRenditionSelection|Mapping)?
-    Renditions: (Listing<RenditionConfigurationRenditions|Mapping>)?
-}
-
-/// 
-open class RecordingConfigurationTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// Recording Destination Configuration.
-open class RecordingConfigurationDestinationConfiguration {
-    S3: (RecordingConfigurationS3DestinationConfiguration)?
-}
-
 /// Resource Type definition for AWS::IVS::RecordingConfiguration
 open class RecordingConfiguration extends cloudformation.Resource {
 
     Type = "AWS::IVS::RecordingConfiguration"
 
+
+    /// 
+    hidden DestinationConfiguration: RecordingConfigurationDestinationConfiguration
 
     /// Recording Configuration Name.
     hidden Name: (String(matches(Regex(#"^[a-zA-Z0-9-_]*$"#)))|Mapping)?
@@ -58,7 +61,7 @@ open class RecordingConfiguration extends cloudformation.Resource {
     hidden RecordingReconnectWindowSeconds: (Int|Mapping)?
 
     /// 
-    hidden DestinationConfiguration: RecordingConfigurationDestinationConfiguration
+    hidden RenditionConfiguration: (RecordingConfigurationRenditionConfiguration)?
 
     /// A list of key-value pairs that contain metadata for the asset model.
     hidden Tags: (Listing<RecordingConfigurationTag>)?
@@ -66,16 +69,13 @@ open class RecordingConfiguration extends cloudformation.Resource {
     /// 
     hidden ThumbnailConfiguration: (RecordingConfigurationThumbnailConfiguration)?
 
-    /// 
-    hidden RenditionConfiguration: (RecordingConfigurationRenditionConfiguration)?
-
     Properties {
+        ["DestinationConfiguration"] = if (DestinationConfiguration == null) null else DestinationConfiguration
         ["Name"] = if (Name == null) null else Name
         ["RecordingReconnectWindowSeconds"] = if (RecordingReconnectWindowSeconds == null) null else RecordingReconnectWindowSeconds
-        ["DestinationConfiguration"] = if (DestinationConfiguration == null) null else DestinationConfiguration
+        ["RenditionConfiguration"] = if (RenditionConfiguration == null) null else RenditionConfiguration
         ["Tags"] = if (Tags == null) null else Tags
         ["ThumbnailConfiguration"] = if (ThumbnailConfiguration == null) null else ThumbnailConfiguration
-        ["RenditionConfiguration"] = if (RenditionConfiguration == null) null else RenditionConfiguration
     }
 
 }

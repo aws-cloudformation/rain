@@ -5,13 +5,10 @@ module aws.batch.jobqueue
 
 import "../../cloudformation.pkl"
 
-typealias JobQueueResourceArn = String|Mapping
-
-
 /// 
 open class JobQueueComputeEnvironmentOrder {
-    ComputeEnvironment: String|Mapping
     Order: Int|Mapping
+    ComputeEnvironment: String|Mapping
 }
 
 typealias JobStateTimeLimitActionState = "RUNNABLE"
@@ -20,11 +17,14 @@ typealias JobStateTimeLimitActionAction = "CANCEL"
 
 /// 
 open class JobQueueJobStateTimeLimitAction {
+    Reason: String|Mapping
     State: JobStateTimeLimitActionState|Mapping
     Action: JobStateTimeLimitActionAction|Mapping
     MaxTimeSeconds: Int|Mapping
-    Reason: String|Mapping
 }
+
+typealias JobQueueResourceArn = String|Mapping
+
 
 /// Resource Type definition for AWS::Batch::JobQueue
 open class JobQueue extends cloudformation.Resource {
@@ -33,16 +33,10 @@ open class JobQueue extends cloudformation.Resource {
 
 
     /// 
-    hidden SchedulingPolicyArn: (JobQueueResourceArn)?
-
-    /// A key-value pair to associate with a resource.
-    hidden Tags: (JobQueueJobQueueTags)?
+    hidden ComputeEnvironmentOrder: Listing<JobQueueComputeEnvironmentOrder>
 
     /// 
     hidden JobQueueName: (String|Mapping)?
-
-    /// 
-    hidden ComputeEnvironmentOrder: Listing<JobQueueComputeEnvironmentOrder>
 
     /// 
     hidden JobStateTimeLimitActions: (Listing<JobQueueJobStateTimeLimitAction>)?
@@ -51,21 +45,27 @@ open class JobQueue extends cloudformation.Resource {
     hidden Priority: Int|Mapping
 
     /// 
+    hidden SchedulingPolicyArn: (JobQueueResourceArn)?
+
+    /// 
     hidden State: (JobQueueState|Mapping)?
 
+    /// A key-value pair to associate with a resource.
+    hidden Tags: (JobQueueJobQueueTags)?
+
     Properties {
-        ["SchedulingPolicyArn"] = if (SchedulingPolicyArn == null) null else SchedulingPolicyArn
-        ["Tags"] = if (Tags == null) null else Tags
-        ["JobQueueName"] = if (JobQueueName == null) null else JobQueueName
         ["ComputeEnvironmentOrder"] = if (ComputeEnvironmentOrder == null) null else ComputeEnvironmentOrder
+        ["JobQueueName"] = if (JobQueueName == null) null else JobQueueName
         ["JobStateTimeLimitActions"] = if (JobStateTimeLimitActions == null) null else JobStateTimeLimitActions
         ["Priority"] = if (Priority == null) null else Priority
+        ["SchedulingPolicyArn"] = if (SchedulingPolicyArn == null) null else SchedulingPolicyArn
         ["State"] = if (State == null) null else State
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }
 
 
-typealias JobQueueJobQueueTags = Mapping<String, Any>
-
 typealias JobQueueState = "DISABLED"|"ENABLED"
+
+typealias JobQueueJobQueueTags = Mapping<String, Any>

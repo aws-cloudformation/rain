@@ -17,27 +17,27 @@ open class Simulation extends cloudformation.Resource {
     Type = "AWS::SimSpaceWeaver::Simulation"
 
 
+    /// The maximum running time of the simulation.
+    hidden MaximumDuration: (String|Mapping)?
+
+    /// The name of the simulation.
+    hidden Name: String(matches(Regex(#"[a-zA-Z0-9_\-]{1,2048}$"#)))|Mapping
+
     /// Role ARN.
     hidden RoleArn: String|Mapping
 
     /// 
     hidden SchemaS3Location: (SimulationS3Location)?
 
-    /// The maximum running time of the simulation.
-    hidden MaximumDuration: (String|Mapping)?
-
     /// 
     hidden SnapshotS3Location: (SimulationS3Location)?
 
-    /// The name of the simulation.
-    hidden Name: String(matches(Regex(#"[a-zA-Z0-9_\-]{1,2048}$"#)))|Mapping
-
     Properties {
+        ["MaximumDuration"] = if (MaximumDuration == null) null else MaximumDuration
+        ["Name"] = if (Name == null) null else Name
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
         ["SchemaS3Location"] = if (SchemaS3Location == null) null else SchemaS3Location
-        ["MaximumDuration"] = if (MaximumDuration == null) null else MaximumDuration
         ["SnapshotS3Location"] = if (SnapshotS3Location == null) null else SnapshotS3Location
-        ["Name"] = if (Name == null) null else Name
     }
 
 }

@@ -5,15 +5,15 @@ module aws.billingconductor.pricingrule
 
 import "../../cloudformation.pkl"
 
+/// The possible customizable free tier configurations.
+open class PricingRuleFreeTier {
+    Activated: Boolean|Mapping
+}
+
 /// 
 open class PricingRuleTag {
     Key: String|Mapping
     Value: String|Mapping
-}
-
-/// The possible customizable free tier configurations.
-open class PricingRuleFreeTier {
-    Activated: Boolean|Mapping
 }
 
 /// A markup/discount that is defined for a specific set of services that can later be associated with a pricing plan.
@@ -22,58 +22,58 @@ open class PricingRule extends cloudformation.Resource {
     Type = "AWS::BillingConductor::PricingRule"
 
 
-    /// Pricing rule name
-    hidden Name: String(matches(Regex(#"[a-zA-Z0-9_\+=\.\-@]+"#)))|Mapping
+    /// The seller of services provided by AWS, their affiliates, or third-party providers selling services via AWS Marketplaces. Supported billing entities are AWS, AWS Marketplace, and AISPL.
+    hidden BillingEntity: (PricingRuleBillingEntity|Mapping)?
 
     /// Pricing rule description
     hidden Description: (String|Mapping)?
 
-    /// The set of tiering configurations for the pricing rule.
-    hidden Tiering: (Dynamic)?
+    /// Pricing rule modifier percentage
+    hidden ModifierPercentage: (Number|Mapping)?
 
-    /// The UsageType which a SKU pricing rule is modifying
-    hidden UsageType: (String(matches(Regex(#"^\S+$"#)))|Mapping)?
+    /// Pricing rule name
+    hidden Name: String(matches(Regex(#"[a-zA-Z0-9_\+=\.\-@]+"#)))|Mapping
 
     /// The Operation which a SKU pricing rule is modifying
     hidden Operation: (String(matches(Regex(#"^\S+$"#)))|Mapping)?
 
-    /// 
-    hidden Tags: (Listing<PricingRuleTag>)?
-
     /// A term used to categorize the granularity of a Pricing Rule.
     hidden Scope: PricingRuleScope|Mapping
-
-    /// Pricing rule modifier percentage
-    hidden ModifierPercentage: (Number|Mapping)?
-
-    /// One of MARKUP, DISCOUNT or TIERING that describes the behaviour of the pricing rule.
-    hidden TypeProperty: PricingRuleType|Mapping
 
     /// The service which a pricing rule is applied on
     hidden Service: (String(matches(Regex(#"[a-zA-Z0-9\.\-]+"#)))|Mapping)?
 
-    /// The seller of services provided by AWS, their affiliates, or third-party providers selling services via AWS Marketplaces. Supported billing entities are AWS, AWS Marketplace, and AISPL.
-    hidden BillingEntity: (PricingRuleBillingEntity|Mapping)?
+    /// 
+    hidden Tags: (Listing<PricingRuleTag>)?
+
+    /// The set of tiering configurations for the pricing rule.
+    hidden Tiering: (Dynamic)?
+
+    /// One of MARKUP, DISCOUNT or TIERING that describes the behaviour of the pricing rule.
+    hidden TypeProperty: PricingRuleType|Mapping
+
+    /// The UsageType which a SKU pricing rule is modifying
+    hidden UsageType: (String(matches(Regex(#"^\S+$"#)))|Mapping)?
 
     Properties {
-        ["Name"] = if (Name == null) null else Name
-        ["Description"] = if (Description == null) null else Description
-        ["Tiering"] = if (Tiering == null) null else Tiering
-        ["UsageType"] = if (UsageType == null) null else UsageType
-        ["Operation"] = if (Operation == null) null else Operation
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Scope"] = if (Scope == null) null else Scope
-        ["ModifierPercentage"] = if (ModifierPercentage == null) null else ModifierPercentage
-        ["Type"] = if (TypeProperty == null) null else TypeProperty
-        ["Service"] = if (Service == null) null else Service
         ["BillingEntity"] = if (BillingEntity == null) null else BillingEntity
+        ["Description"] = if (Description == null) null else Description
+        ["ModifierPercentage"] = if (ModifierPercentage == null) null else ModifierPercentage
+        ["Name"] = if (Name == null) null else Name
+        ["Operation"] = if (Operation == null) null else Operation
+        ["Scope"] = if (Scope == null) null else Scope
+        ["Service"] = if (Service == null) null else Service
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Tiering"] = if (Tiering == null) null else Tiering
+        ["Type"] = if (TypeProperty == null) null else TypeProperty
+        ["UsageType"] = if (UsageType == null) null else UsageType
     }
 
 }
 
 
+typealias PricingRuleBillingEntity = "AWS"|"AWS Marketplace"|"AISPL"
+
 typealias PricingRuleScope = "GLOBAL"|"SERVICE"|"BILLING_ENTITY"|"SKU"
 
 typealias PricingRuleType = "MARKUP"|"DISCOUNT"|"TIERING"
-
-typealias PricingRuleBillingEntity = "AWS"|"AWS Marketplace"|"AISPL"

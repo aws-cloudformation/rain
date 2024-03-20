@@ -6,25 +6,17 @@ module aws.events.connection
 import "../../cloudformation.pkl"
 
 /// 
+open class ConnectionAuthParameters {
+    BasicAuthParameters: (ConnectionBasicAuthParameters)?
+    OAuthParameters: (ConnectionOAuthParameters)?
+    InvocationHttpParameters: (ConnectionConnectionHttpParameters)?
+    ApiKeyAuthParameters: (ConnectionApiKeyAuthParameters)?
+}
+
+/// 
 open class ConnectionBasicAuthParameters {
-    Username: String|Mapping
     Password: String|Mapping
-}
-
-typealias OAuthParametersHttpMethod = "GET"|"POST"|"PUT"
-
-/// 
-open class ConnectionOAuthParameters {
-    ClientParameters: ConnectionClientParameters
-    AuthorizationEndpoint: String|Mapping
-    HttpMethod: OAuthParametersHttpMethod|Mapping
-    OAuthHttpParameters: (ConnectionConnectionHttpParameters)?
-}
-
-/// 
-open class ConnectionApiKeyAuthParameters {
-    ApiKeyName: String|Mapping
-    ApiKeyValue: String|Mapping
+    Username: String|Mapping
 }
 
 /// 
@@ -40,6 +32,16 @@ open class ConnectionConnectionHttpParameters {
     BodyParameters: (Listing<ConnectionParameter>)?
 }
 
+typealias OAuthParametersHttpMethod = "GET"|"POST"|"PUT"
+
+/// 
+open class ConnectionOAuthParameters {
+    ClientParameters: ConnectionClientParameters
+    AuthorizationEndpoint: String|Mapping
+    HttpMethod: OAuthParametersHttpMethod|Mapping
+    OAuthHttpParameters: (ConnectionConnectionHttpParameters)?
+}
+
 /// 
 open class ConnectionParameter {
     IsValueSecret: (Boolean|Mapping)?
@@ -48,11 +50,9 @@ open class ConnectionParameter {
 }
 
 /// 
-open class ConnectionAuthParameters {
-    OAuthParameters: (ConnectionOAuthParameters)?
-    InvocationHttpParameters: (ConnectionConnectionHttpParameters)?
-    ApiKeyAuthParameters: (ConnectionApiKeyAuthParameters)?
-    BasicAuthParameters: (ConnectionBasicAuthParameters)?
+open class ConnectionApiKeyAuthParameters {
+    ApiKeyName: String|Mapping
+    ApiKeyValue: String|Mapping
 }
 
 /// Resource Type definition for AWS::Events::Connection.
@@ -61,23 +61,23 @@ open class Connection extends cloudformation.Resource {
     Type = "AWS::Events::Connection"
 
 
-    /// Name of the connection.
-    hidden Name: (String|Mapping)?
-
-    /// Description of the connection.
-    hidden Description: (String|Mapping)?
+    /// 
+    hidden AuthParameters: (ConnectionAuthParameters)?
 
     /// 
     hidden AuthorizationType: (ConnectionAuthorizationType|Mapping)?
 
-    /// 
-    hidden AuthParameters: (ConnectionAuthParameters)?
+    /// Description of the connection.
+    hidden Description: (String|Mapping)?
+
+    /// Name of the connection.
+    hidden Name: (String|Mapping)?
 
     Properties {
-        ["Name"] = if (Name == null) null else Name
-        ["Description"] = if (Description == null) null else Description
-        ["AuthorizationType"] = if (AuthorizationType == null) null else AuthorizationType
         ["AuthParameters"] = if (AuthParameters == null) null else AuthParameters
+        ["AuthorizationType"] = if (AuthorizationType == null) null else AuthorizationType
+        ["Description"] = if (Description == null) null else Description
+        ["Name"] = if (Name == null) null else Name
     }
 
 }

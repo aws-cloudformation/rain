@@ -5,30 +5,13 @@ module aws.imagebuilder.distributionconfiguration
 
 import "../../cloudformation.pkl"
 
-/// Launch permissions can be used to configure which AWS accounts can use the AMI to launch instances.
-open class DistributionConfigurationLaunchPermissionConfiguration {
-    OrganizationArns: (Listing<String|Mapping>)?
-    OrganizationalUnitArns: (Listing<String|Mapping>)?
-    UserIds: (Listing<String|Mapping>)?
-    UserGroups: (Listing<String|Mapping>)?
-}
-
-typealias TargetContainerRepositoryService = "ECR"
-
-/// The destination repository for the container image.
-open class DistributionConfigurationTargetContainerRepository {
-    Service: (TargetContainerRepositoryService|Mapping)?
-    RepositoryName: (String|Mapping)?
-}
-
-/// The distributions of the distribution configuration.
-open class DistributionConfigurationDistribution {
-    Region: String|Mapping
-    AmiDistributionConfiguration: (DistributionConfigurationAmiDistributionConfiguration)?
-    ContainerDistributionConfiguration: (DistributionConfigurationContainerDistributionConfiguration)?
-    LicenseConfigurationArns: (Listing<DistributionConfigurationLicenseConfigurationArn>)?
-    LaunchTemplateConfigurations: (Listing<DistributionConfigurationLaunchTemplateConfiguration>)?
-    FastLaunchConfigurations: (Listing<DistributionConfigurationFastLaunchConfiguration>)?
+/// The Windows faster-launching configuration to use for AMI distribution.
+open class DistributionConfigurationFastLaunchConfiguration {
+    AccountId: (String|Mapping)?
+    Enabled: (Boolean|Mapping)?
+    LaunchTemplate: (DistributionConfigurationFastLaunchLaunchTemplateSpecification)?
+    MaxParallelLaunches: (Int|Mapping)?
+    SnapshotConfiguration: (DistributionConfigurationFastLaunchSnapshotConfiguration)?
 }
 
 /// launchTemplateConfiguration settings that apply to image distribution.
@@ -38,27 +21,8 @@ open class DistributionConfigurationLaunchTemplateConfiguration {
     SetDefaultVersion: (Boolean|Mapping)?
 }
 
-/// The launch template that the fast-launch enabled Windows AMI uses when it launches Windows instances to create pre-provisioned snapshots.
-open class DistributionConfigurationFastLaunchLaunchTemplateSpecification {
-    LaunchTemplateId: (String|Mapping)?
-    LaunchTemplateName: (String|Mapping)?
-    LaunchTemplateVersion: (String|Mapping)?
-}
-
-/// Container distribution settings for encryption, licensing, and sharing in a specific Region.
-open class DistributionConfigurationContainerDistributionConfiguration {
-    ContainerTags: (Listing<String|Mapping>)?
-    TargetRepository: (DistributionConfigurationTargetContainerRepository)?
-    Description: (String|Mapping)?
-}
-
 typealias DistributionConfigurationLicenseConfigurationArn = String|Mapping
 
-
-/// Configuration settings for managing the number of snapshots that are created from pre-provisioned instances for the Windows AMI when faster launching is enabled.
-open class DistributionConfigurationFastLaunchSnapshotConfiguration {
-    TargetResourceCount: (Int|Mapping)?
-}
 
 typealias DistributionConfigurationAmiDistributionConfigurationAmiTags = Mapping<String, Any>
 
@@ -72,13 +36,49 @@ open class DistributionConfigurationAmiDistributionConfiguration {
     AmiTags: (DistributionConfigurationAmiDistributionConfigurationAmiTags)?
 }
 
-/// The Windows faster-launching configuration to use for AMI distribution.
-open class DistributionConfigurationFastLaunchConfiguration {
-    AccountId: (String|Mapping)?
-    Enabled: (Boolean|Mapping)?
-    LaunchTemplate: (DistributionConfigurationFastLaunchLaunchTemplateSpecification)?
-    MaxParallelLaunches: (Int|Mapping)?
-    SnapshotConfiguration: (DistributionConfigurationFastLaunchSnapshotConfiguration)?
+/// Container distribution settings for encryption, licensing, and sharing in a specific Region.
+open class DistributionConfigurationContainerDistributionConfiguration {
+    Description: (String|Mapping)?
+    ContainerTags: (Listing<String|Mapping>)?
+    TargetRepository: (DistributionConfigurationTargetContainerRepository)?
+}
+
+/// Configuration settings for managing the number of snapshots that are created from pre-provisioned instances for the Windows AMI when faster launching is enabled.
+open class DistributionConfigurationFastLaunchSnapshotConfiguration {
+    TargetResourceCount: (Int|Mapping)?
+}
+
+/// Launch permissions can be used to configure which AWS accounts can use the AMI to launch instances.
+open class DistributionConfigurationLaunchPermissionConfiguration {
+    UserGroups: (Listing<String|Mapping>)?
+    OrganizationArns: (Listing<String|Mapping>)?
+    OrganizationalUnitArns: (Listing<String|Mapping>)?
+    UserIds: (Listing<String|Mapping>)?
+}
+
+typealias TargetContainerRepositoryService = "ECR"
+
+/// The destination repository for the container image.
+open class DistributionConfigurationTargetContainerRepository {
+    Service: (TargetContainerRepositoryService|Mapping)?
+    RepositoryName: (String|Mapping)?
+}
+
+/// The distributions of the distribution configuration.
+open class DistributionConfigurationDistribution {
+    ContainerDistributionConfiguration: (DistributionConfigurationContainerDistributionConfiguration)?
+    LicenseConfigurationArns: (Listing<DistributionConfigurationLicenseConfigurationArn>)?
+    LaunchTemplateConfigurations: (Listing<DistributionConfigurationLaunchTemplateConfiguration>)?
+    FastLaunchConfigurations: (Listing<DistributionConfigurationFastLaunchConfiguration>)?
+    Region: String|Mapping
+    AmiDistributionConfiguration: (DistributionConfigurationAmiDistributionConfiguration)?
+}
+
+/// The launch template that the fast-launch enabled Windows AMI uses when it launches Windows instances to create pre-provisioned snapshots.
+open class DistributionConfigurationFastLaunchLaunchTemplateSpecification {
+    LaunchTemplateId: (String|Mapping)?
+    LaunchTemplateName: (String|Mapping)?
+    LaunchTemplateVersion: (String|Mapping)?
 }
 
 /// Resource schema for AWS::ImageBuilder::DistributionConfiguration
@@ -87,22 +87,22 @@ open class DistributionConfiguration extends cloudformation.Resource {
     Type = "AWS::ImageBuilder::DistributionConfiguration"
 
 
-    /// The name of the distribution configuration.
-    hidden Name: String|Mapping
-
     /// The description of the distribution configuration.
     hidden Description: (String|Mapping)?
 
     /// The distributions of the distribution configuration.
     hidden Distributions: Listing<DistributionConfigurationDistribution>
 
+    /// The name of the distribution configuration.
+    hidden Name: String|Mapping
+
     /// The tags associated with the component.
     hidden Tags: (DistributionConfigurationDistributionConfigurationTags)?
 
     Properties {
-        ["Name"] = if (Name == null) null else Name
         ["Description"] = if (Description == null) null else Description
         ["Distributions"] = if (Distributions == null) null else Distributions
+        ["Name"] = if (Name == null) null else Name
         ["Tags"] = if (Tags == null) null else Tags
     }
 

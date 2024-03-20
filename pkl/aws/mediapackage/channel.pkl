@@ -12,10 +12,15 @@ open class ChannelHlsIngest {
 
 /// An endpoint for ingesting source content for a Channel.
 open class ChannelIngestEndpoint {
-    Password: String|Mapping
-    Url: String|Mapping
     Id: String|Mapping
     Username: String|Mapping
+    Password: String|Mapping
+    Url: String|Mapping
+}
+
+/// 
+open class ChannelLogConfiguration {
+    LogGroupName: (String(matches(Regex(#"\A^(\/aws\/MediaPackage\/)[a-zA-Z0-9_-]+\Z"#)))|Mapping)?
 }
 
 /// 
@@ -24,42 +29,37 @@ open class ChannelTag {
     Value: String|Mapping
 }
 
-/// 
-open class ChannelLogConfiguration {
-    LogGroupName: (String(matches(Regex(#"\A^(\/aws\/MediaPackage\/)[a-zA-Z0-9_-]+\Z"#)))|Mapping)?
-}
-
 /// Resource schema for AWS::MediaPackage::Channel
 open class Channel extends cloudformation.Resource {
 
     Type = "AWS::MediaPackage::Channel"
 
 
-    /// An HTTP Live Streaming (HLS) ingest resource configuration.
-    hidden HlsIngest: (ChannelHlsIngest)?
-
-    /// A collection of tags associated with a resource
-    hidden Tags: (Listing<ChannelTag>)?
+    /// A short text description of the Channel.
+    hidden Description: (String|Mapping)?
 
     /// The configuration parameters for egress access logging.
     hidden EgressAccessLogs: (ChannelLogConfiguration)?
 
-    /// The configuration parameters for egress access logging.
-    hidden IngressAccessLogs: (ChannelLogConfiguration)?
+    /// An HTTP Live Streaming (HLS) ingest resource configuration.
+    hidden HlsIngest: (ChannelHlsIngest)?
 
     /// The ID of the Channel.
     hidden Id: String(matches(Regex(#"\A[0-9a-zA-Z-_]+\Z"#)))|Mapping
 
-    /// A short text description of the Channel.
-    hidden Description: (String|Mapping)?
+    /// The configuration parameters for egress access logging.
+    hidden IngressAccessLogs: (ChannelLogConfiguration)?
+
+    /// A collection of tags associated with a resource
+    hidden Tags: (Listing<ChannelTag>)?
 
     Properties {
-        ["HlsIngest"] = if (HlsIngest == null) null else HlsIngest
-        ["Tags"] = if (Tags == null) null else Tags
-        ["EgressAccessLogs"] = if (EgressAccessLogs == null) null else EgressAccessLogs
-        ["IngressAccessLogs"] = if (IngressAccessLogs == null) null else IngressAccessLogs
-        ["Id"] = if (Id == null) null else Id
         ["Description"] = if (Description == null) null else Description
+        ["EgressAccessLogs"] = if (EgressAccessLogs == null) null else EgressAccessLogs
+        ["HlsIngest"] = if (HlsIngest == null) null else HlsIngest
+        ["Id"] = if (Id == null) null else Id
+        ["IngressAccessLogs"] = if (IngressAccessLogs == null) null else IngressAccessLogs
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

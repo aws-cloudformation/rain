@@ -11,6 +11,11 @@ open class PrivateDnsNamespacePrivateDnsPropertiesMutable {
 }
 
 /// 
+open class PrivateDnsNamespaceProperties {
+    DnsProperties: (PrivateDnsNamespacePrivateDnsPropertiesMutable)?
+}
+
+/// 
 open class PrivateDnsNamespaceSOA {
     TTL: (Number|Mapping)?
 }
@@ -21,16 +26,17 @@ open class PrivateDnsNamespaceTag {
     Value: String|Mapping
 }
 
-/// 
-open class PrivateDnsNamespaceProperties {
-    DnsProperties: (PrivateDnsNamespacePrivateDnsPropertiesMutable)?
-}
-
 /// Resource Type definition for AWS::ServiceDiscovery::PrivateDnsNamespace
 open class PrivateDnsNamespace extends cloudformation.Resource {
 
     Type = "AWS::ServiceDiscovery::PrivateDnsNamespace"
 
+
+    /// 
+    hidden Description: (String|Mapping)?
+
+    /// 
+    hidden Name: String|Mapping
 
     /// 
     hidden PropertiesProperty: (PrivateDnsNamespaceProperties)?
@@ -39,19 +45,13 @@ open class PrivateDnsNamespace extends cloudformation.Resource {
     hidden Tags: (Listing<PrivateDnsNamespaceTag>)?
 
     /// 
-    hidden Name: String|Mapping
-
-    /// 
-    hidden Description: (String|Mapping)?
-
-    /// 
     hidden Vpc: String|Mapping
 
     Properties {
+        ["Description"] = if (Description == null) null else Description
+        ["Name"] = if (Name == null) null else Name
         ["Properties"] = if (PropertiesProperty == null) null else PropertiesProperty
         ["Tags"] = if (Tags == null) null else Tags
-        ["Name"] = if (Name == null) null else Name
-        ["Description"] = if (Description == null) null else Description
         ["Vpc"] = if (Vpc == null) null else Vpc
     }
 

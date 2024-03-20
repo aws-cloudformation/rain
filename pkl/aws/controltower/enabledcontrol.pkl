@@ -5,13 +5,38 @@ module aws.controltower.enabledcontrol
 
 import "../../cloudformation.pkl"
 
-typealias EnabledControlEnabledControlParameterValue0Array3 = Boolean|Mapping
+typealias EnabledControlEnabledControlParameterValue = EnabledControlEnabledControlParameterValue0|EnabledControlEnabledControlParameterValue1|EnabledControlEnabledControlParameterValue2|EnabledControlEnabledControlParameterValue3|EnabledControlEnabledControlParameterValue4
+
+/// 
+open class EnabledControlEnabledControlParameter {
+    Key: String|Mapping
+    Value: EnabledControlEnabledControlParameterValue
+}
+
+typealias EnabledControlEnabledControlParameterValue0Array = EnabledControlEnabledControlParameterValue0Array0|EnabledControlEnabledControlParameterValue0Array1|EnabledControlEnabledControlParameterValue0Array2|EnabledControlEnabledControlParameterValue0Array3
+
+typealias EnabledControlEnabledControlParameterValue0 = Listing<(EnabledControlEnabledControlParameterValue0Array)?>
+
+
+typealias EnabledControlEnabledControlParameterValue0Array0 = String|Mapping
 
 
 typealias EnabledControlEnabledControlParameterValue1 = String|Mapping
 
 
+typealias EnabledControlEnabledControlParameterValue0Array1 = Number|Mapping
+
+
+typealias EnabledControlEnabledControlParameterValue0Array2 = Dynamic
+
+
+typealias EnabledControlEnabledControlParameterValue0Array3 = Boolean|Mapping
+
+
 typealias EnabledControlEnabledControlParameterValue2 = Number|Mapping
+
+
+typealias EnabledControlEnabledControlParameterValue3 = Dynamic
 
 
 typealias EnabledControlEnabledControlParameterValue4 = Boolean|Mapping
@@ -19,34 +44,9 @@ typealias EnabledControlEnabledControlParameterValue4 = Boolean|Mapping
 
 /// A key-value pair to associate with a resource.
 open class EnabledControlTag {
+    Key: String|Mapping
     Value: String|Mapping
-    Key: String|Mapping
 }
-
-typealias EnabledControlEnabledControlParameterValue = EnabledControlEnabledControlParameterValue0|EnabledControlEnabledControlParameterValue1|EnabledControlEnabledControlParameterValue2|EnabledControlEnabledControlParameterValue3|EnabledControlEnabledControlParameterValue4
-
-/// 
-open class EnabledControlEnabledControlParameter {
-    Value: EnabledControlEnabledControlParameterValue
-    Key: String|Mapping
-}
-
-typealias EnabledControlEnabledControlParameterValue0Array0 = String|Mapping
-
-
-typealias EnabledControlEnabledControlParameterValue0Array2 = Dynamic
-
-
-typealias EnabledControlEnabledControlParameterValue0Array = EnabledControlEnabledControlParameterValue0Array0|EnabledControlEnabledControlParameterValue0Array1|EnabledControlEnabledControlParameterValue0Array2|EnabledControlEnabledControlParameterValue0Array3
-
-typealias EnabledControlEnabledControlParameterValue0 = Listing<(EnabledControlEnabledControlParameterValue0Array)?>
-
-
-typealias EnabledControlEnabledControlParameterValue0Array1 = Number|Mapping
-
-
-typealias EnabledControlEnabledControlParameterValue3 = Dynamic
-
 
 /// Enables a control on a specified target.
 open class EnabledControl extends cloudformation.Resource {
@@ -54,22 +54,22 @@ open class EnabledControl extends cloudformation.Resource {
     Type = "AWS::ControlTower::EnabledControl"
 
 
+    /// Arn of the control.
+    hidden ControlIdentifier: String(matches(Regex(#"^arn:aws[0-9a-zA-Z_\-:\/]+$"#)))|Mapping
+
     /// Parameters to configure the enabled control behavior.
     hidden Parameters: (Listing<EnabledControlEnabledControlParameter>)?
 
     /// A set of tags to assign to the enabled control.
     hidden Tags: (Listing<EnabledControlTag>)?
 
-    /// Arn of the control.
-    hidden ControlIdentifier: String(matches(Regex(#"^arn:aws[0-9a-zA-Z_\-:\/]+$"#)))|Mapping
-
     /// Arn for Organizational unit to which the control needs to be applied
     hidden TargetIdentifier: String(matches(Regex(#"^arn:aws[0-9a-zA-Z_\-:\/]+$"#)))|Mapping
 
     Properties {
+        ["ControlIdentifier"] = if (ControlIdentifier == null) null else ControlIdentifier
         ["Parameters"] = if (Parameters == null) null else Parameters
         ["Tags"] = if (Tags == null) null else Tags
-        ["ControlIdentifier"] = if (ControlIdentifier == null) null else ControlIdentifier
         ["TargetIdentifier"] = if (TargetIdentifier == null) null else TargetIdentifier
     }
 

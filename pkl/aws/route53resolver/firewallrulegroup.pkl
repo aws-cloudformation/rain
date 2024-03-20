@@ -13,7 +13,6 @@ typealias FirewallRuleBlockResponse = "NODATA"|"NXDOMAIN"|"OVERRIDE"
 
 /// Firewall Rule associating the Rule Group to a Domain List
 open class FirewallRuleGroupFirewallRule {
-    BlockOverrideDomain: (String|Mapping)?
     BlockOverrideDnsType: (FirewallRuleBlockOverrideDnsType|Mapping)?
     BlockOverrideTtl: (Int|Mapping)?
     Qtype: (String|Mapping)?
@@ -21,6 +20,7 @@ open class FirewallRuleGroupFirewallRule {
     Priority: Int|Mapping
     Action: FirewallRuleAction|Mapping
     BlockResponse: (FirewallRuleBlockResponse|Mapping)?
+    BlockOverrideDomain: (String|Mapping)?
 }
 
 /// A key-value pair to associate with a resource.
@@ -38,16 +38,16 @@ open class FirewallRuleGroup extends cloudformation.Resource {
     /// FirewallRules
     hidden FirewallRules: (Listing<FirewallRuleGroupFirewallRule>)?
 
-    /// Tags
-    hidden Tags: (Listing<FirewallRuleGroupTag>)?
-
     /// FirewallRuleGroupName
     hidden Name: (String(matches(Regex(#"(?!^[0-9]+$)([a-zA-Z0-9\-_' ']+)"#)))|Mapping)?
 
+    /// Tags
+    hidden Tags: (Listing<FirewallRuleGroupTag>)?
+
     Properties {
         ["FirewallRules"] = if (FirewallRules == null) null else FirewallRules
-        ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

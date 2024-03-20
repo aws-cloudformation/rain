@@ -6,15 +6,15 @@ module aws.ec2.transitgatewaypeeringattachment
 import "../../cloudformation.pkl"
 
 /// 
-open class TransitGatewayPeeringAttachmentTag {
-    Key: (String|Mapping)?
-    Value: (String|Mapping)?
-}
-
-/// 
 open class TransitGatewayPeeringAttachmentPeeringAttachmentStatus {
     Message: (String|Mapping)?
     Code: (String|Mapping)?
+}
+
+/// 
+open class TransitGatewayPeeringAttachmentTag {
+    Value: (String|Mapping)?
+    Key: (String|Mapping)?
 }
 
 /// The AWS::EC2::TransitGatewayPeeringAttachment type
@@ -22,6 +22,12 @@ open class TransitGatewayPeeringAttachment extends cloudformation.Resource {
 
     Type = "AWS::EC2::TransitGatewayPeeringAttachment"
 
+
+    /// The ID of the peer account
+    hidden PeerAccountId: String|Mapping
+
+    /// Peer Region
+    hidden PeerRegion: String|Mapping
 
     /// The ID of the peer transit gateway.
     hidden PeerTransitGatewayId: String|Mapping
@@ -32,18 +38,12 @@ open class TransitGatewayPeeringAttachment extends cloudformation.Resource {
     /// The ID of the transit gateway.
     hidden TransitGatewayId: String|Mapping
 
-    /// The ID of the peer account
-    hidden PeerAccountId: String|Mapping
-
-    /// Peer Region
-    hidden PeerRegion: String|Mapping
-
     Properties {
+        ["PeerAccountId"] = if (PeerAccountId == null) null else PeerAccountId
+        ["PeerRegion"] = if (PeerRegion == null) null else PeerRegion
         ["PeerTransitGatewayId"] = if (PeerTransitGatewayId == null) null else PeerTransitGatewayId
         ["Tags"] = if (Tags == null) null else Tags
         ["TransitGatewayId"] = if (TransitGatewayId == null) null else TransitGatewayId
-        ["PeerAccountId"] = if (PeerAccountId == null) null else PeerAccountId
-        ["PeerRegion"] = if (PeerRegion == null) null else PeerRegion
     }
 
 }

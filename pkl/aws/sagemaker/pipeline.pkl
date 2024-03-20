@@ -6,17 +6,17 @@ module aws.sagemaker.pipeline
 import "../../cloudformation.pkl"
 
 /// 
-open class PipelineS3Location {
-    Bucket: String|Mapping
+open class PipelineTag {
+    Value: String|Mapping
     Key: String|Mapping
-    Version: (String|Mapping)?
-    ETag: (String|Mapping)?
 }
 
 /// 
-open class PipelineTag {
+open class PipelineS3Location {
+    ETag: (String|Mapping)?
+    Bucket: String|Mapping
     Key: String|Mapping
-    Value: String|Mapping
+    Version: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::SageMaker::Pipeline
@@ -26,34 +26,34 @@ open class Pipeline extends cloudformation.Resource {
 
 
     /// 
-    hidden Tags: (Listing<PipelineTag>)?
-
-    /// 
     hidden ParallelismConfiguration: (Dynamic)?
-
-    /// The name of the Pipeline.
-    hidden PipelineName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9])*"#)))|Mapping
-
-    /// The display name of the Pipeline.
-    hidden PipelineDisplayName: (String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9])*"#)))|Mapping)?
-
-    /// The description of the Pipeline.
-    hidden PipelineDescription: (String|Mapping)?
 
     /// 
     hidden PipelineDefinition: Dynamic
 
+    /// The description of the Pipeline.
+    hidden PipelineDescription: (String|Mapping)?
+
+    /// The display name of the Pipeline.
+    hidden PipelineDisplayName: (String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9])*"#)))|Mapping)?
+
+    /// The name of the Pipeline.
+    hidden PipelineName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9])*"#)))|Mapping
+
     /// Role Arn
     hidden RoleArn: String(matches(Regex(#"^arn:aws[a-z\-]*:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping
 
+    /// 
+    hidden Tags: (Listing<PipelineTag>)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
         ["ParallelismConfiguration"] = if (ParallelismConfiguration == null) null else ParallelismConfiguration
-        ["PipelineName"] = if (PipelineName == null) null else PipelineName
-        ["PipelineDisplayName"] = if (PipelineDisplayName == null) null else PipelineDisplayName
-        ["PipelineDescription"] = if (PipelineDescription == null) null else PipelineDescription
         ["PipelineDefinition"] = if (PipelineDefinition == null) null else PipelineDefinition
+        ["PipelineDescription"] = if (PipelineDescription == null) null else PipelineDescription
+        ["PipelineDisplayName"] = if (PipelineDisplayName == null) null else PipelineDisplayName
+        ["PipelineName"] = if (PipelineName == null) null else PipelineName
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

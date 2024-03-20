@@ -13,6 +13,17 @@ open class InstanceBlockDeviceMapping {
     VirtualName: (String|Mapping)?
 }
 
+/// 
+open class InstanceEbsBlockDevice {
+    SnapshotId: (String|Mapping)?
+    VolumeSize: (Int|Mapping)?
+    VolumeType: (String|Mapping)?
+    DeleteOnTermination: (Boolean|Mapping)?
+    Iops: (Int|Mapping)?
+}
+
+typealias InstanceTimeBasedAutoScalingTuesday = Mapping<String, Any>
+
 typealias InstanceTimeBasedAutoScalingWednesday = Mapping<String, Any>
 
 typealias InstanceTimeBasedAutoScalingFriday = Mapping<String, Any>
@@ -25,26 +36,15 @@ typealias InstanceTimeBasedAutoScalingSunday = Mapping<String, Any>
 
 typealias InstanceTimeBasedAutoScalingThursday = Mapping<String, Any>
 
-typealias InstanceTimeBasedAutoScalingTuesday = Mapping<String, Any>
-
 /// 
 open class InstanceTimeBasedAutoScaling {
+    Tuesday: (InstanceTimeBasedAutoScalingTuesday)?
     Wednesday: (InstanceTimeBasedAutoScalingWednesday)?
     Friday: (InstanceTimeBasedAutoScalingFriday)?
     Monday: (InstanceTimeBasedAutoScalingMonday)?
     Saturday: (InstanceTimeBasedAutoScalingSaturday)?
     Sunday: (InstanceTimeBasedAutoScalingSunday)?
     Thursday: (InstanceTimeBasedAutoScalingThursday)?
-    Tuesday: (InstanceTimeBasedAutoScalingTuesday)?
-}
-
-/// 
-open class InstanceEbsBlockDevice {
-    VolumeType: (String|Mapping)?
-    DeleteOnTermination: (Boolean|Mapping)?
-    Iops: (Int|Mapping)?
-    SnapshotId: (String|Mapping)?
-    VolumeSize: (Int|Mapping)?
 }
 
 /// Resource Type definition for AWS::OpsWorks::Instance
@@ -54,40 +54,46 @@ open class Instance extends cloudformation.Resource {
 
 
     /// 
-    hidden AmiId: (String|Mapping)?
-
-    /// 
-    hidden InstallUpdatesOnBoot: (Boolean|Mapping)?
-
-    /// 
     hidden AgentVersion: (String|Mapping)?
+
+    /// 
+    hidden AmiId: (String|Mapping)?
 
     /// 
     hidden Architecture: (String|Mapping)?
 
     /// 
-    hidden RootDeviceType: (String|Mapping)?
-
-    /// 
-    hidden TimeBasedAutoScaling: (InstanceTimeBasedAutoScaling)?
-
-    /// 
     hidden AutoScalingType: (String|Mapping)?
+
+    /// 
+    hidden AvailabilityZone: (String|Mapping)?
+
+    /// 
+    hidden BlockDeviceMappings: (Listing<InstanceBlockDeviceMapping>)?
+
+    /// 
+    hidden EbsOptimized: (Boolean|Mapping)?
 
     /// 
     hidden ElasticIps: (Listing<String|Mapping>)?
 
     /// 
+    hidden Hostname: (String|Mapping)?
+
+    /// 
+    hidden InstallUpdatesOnBoot: (Boolean|Mapping)?
+
+    /// 
+    hidden InstanceType: String|Mapping
+
+    /// 
+    hidden LayerIds: Listing<String|Mapping>
+
+    /// 
     hidden Os: (String|Mapping)?
 
     /// 
-    hidden Tenancy: (String|Mapping)?
-
-    /// 
-    hidden VirtualizationType: (String|Mapping)?
-
-    /// 
-    hidden Volumes: (Listing<String|Mapping>)?
+    hidden RootDeviceType: (String|Mapping)?
 
     /// 
     hidden SshKeyName: (String|Mapping)?
@@ -99,45 +105,39 @@ open class Instance extends cloudformation.Resource {
     hidden SubnetId: (String|Mapping)?
 
     /// 
-    hidden LayerIds: Listing<String|Mapping>
+    hidden Tenancy: (String|Mapping)?
 
     /// 
-    hidden Hostname: (String|Mapping)?
+    hidden TimeBasedAutoScaling: (InstanceTimeBasedAutoScaling)?
 
     /// 
-    hidden InstanceType: String|Mapping
+    hidden VirtualizationType: (String|Mapping)?
 
     /// 
-    hidden BlockDeviceMappings: (Listing<InstanceBlockDeviceMapping>)?
-
-    /// 
-    hidden EbsOptimized: (Boolean|Mapping)?
-
-    /// 
-    hidden AvailabilityZone: (String|Mapping)?
+    hidden Volumes: (Listing<String|Mapping>)?
 
     Properties {
-        ["AmiId"] = if (AmiId == null) null else AmiId
-        ["InstallUpdatesOnBoot"] = if (InstallUpdatesOnBoot == null) null else InstallUpdatesOnBoot
         ["AgentVersion"] = if (AgentVersion == null) null else AgentVersion
+        ["AmiId"] = if (AmiId == null) null else AmiId
         ["Architecture"] = if (Architecture == null) null else Architecture
-        ["RootDeviceType"] = if (RootDeviceType == null) null else RootDeviceType
-        ["TimeBasedAutoScaling"] = if (TimeBasedAutoScaling == null) null else TimeBasedAutoScaling
         ["AutoScalingType"] = if (AutoScalingType == null) null else AutoScalingType
+        ["AvailabilityZone"] = if (AvailabilityZone == null) null else AvailabilityZone
+        ["BlockDeviceMappings"] = if (BlockDeviceMappings == null) null else BlockDeviceMappings
+        ["EbsOptimized"] = if (EbsOptimized == null) null else EbsOptimized
         ["ElasticIps"] = if (ElasticIps == null) null else ElasticIps
+        ["Hostname"] = if (Hostname == null) null else Hostname
+        ["InstallUpdatesOnBoot"] = if (InstallUpdatesOnBoot == null) null else InstallUpdatesOnBoot
+        ["InstanceType"] = if (InstanceType == null) null else InstanceType
+        ["LayerIds"] = if (LayerIds == null) null else LayerIds
         ["Os"] = if (Os == null) null else Os
-        ["Tenancy"] = if (Tenancy == null) null else Tenancy
-        ["VirtualizationType"] = if (VirtualizationType == null) null else VirtualizationType
-        ["Volumes"] = if (Volumes == null) null else Volumes
+        ["RootDeviceType"] = if (RootDeviceType == null) null else RootDeviceType
         ["SshKeyName"] = if (SshKeyName == null) null else SshKeyName
         ["StackId"] = if (StackId == null) null else StackId
         ["SubnetId"] = if (SubnetId == null) null else SubnetId
-        ["LayerIds"] = if (LayerIds == null) null else LayerIds
-        ["Hostname"] = if (Hostname == null) null else Hostname
-        ["InstanceType"] = if (InstanceType == null) null else InstanceType
-        ["BlockDeviceMappings"] = if (BlockDeviceMappings == null) null else BlockDeviceMappings
-        ["EbsOptimized"] = if (EbsOptimized == null) null else EbsOptimized
-        ["AvailabilityZone"] = if (AvailabilityZone == null) null else AvailabilityZone
+        ["Tenancy"] = if (Tenancy == null) null else Tenancy
+        ["TimeBasedAutoScaling"] = if (TimeBasedAutoScaling == null) null else TimeBasedAutoScaling
+        ["VirtualizationType"] = if (VirtualizationType == null) null else VirtualizationType
+        ["Volumes"] = if (Volumes == null) null else Volumes
     }
 
 }

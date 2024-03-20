@@ -5,16 +5,56 @@ module aws.greengrassv2.componentversion
 
 import "../../cloudformation.pkl"
 
-/// 
-open class ComponentVersionLambdaContainerParams {
-    MemorySizeInKB: (Int|Mapping)?
-    MountROSysfs: (Boolean|Mapping)?
-    Volumes: (Listing<ComponentVersionLambdaVolumeMount>)?
-    Devices: (Listing<ComponentVersionLambdaDeviceMount>)?
-}
+typealias ComponentVersionFilesystemPath = String|Mapping
+
 
 typealias ComponentVersionLambdaAddGroupOwnerBoolean = Boolean|Mapping
 
+
+/// 
+open class ComponentVersionLambdaDeviceMount {
+    Path: (ComponentVersionFilesystemPath)?
+    Permission: (ComponentVersionLambdaFilesystemPermission)?
+    AddGroupOwner: (ComponentVersionLambdaAddGroupOwnerBoolean)?
+}
+
+typealias LambdaExecutionParametersInputPayloadEncodingType = "json"|"binary"
+
+typealias ComponentVersionLambdaExecutionParametersEnvironmentVariables = Mapping<String, Any>
+
+/// 
+open class ComponentVersionLambdaExecutionParameters {
+    MaxQueueSize: (Int|Mapping)?
+    InputPayloadEncodingType: (LambdaExecutionParametersInputPayloadEncodingType|Mapping)?
+    EnvironmentVariables: (ComponentVersionLambdaExecutionParametersEnvironmentVariables)?
+    StatusTimeoutInSeconds: (Int|Mapping)?
+    Pinned: (Boolean|Mapping)?
+    ExecArgs: (Listing<String|Mapping>)?
+    LinuxProcessParams: (ComponentVersionLambdaLinuxProcessParams)?
+    EventSources: (Listing<ComponentVersionLambdaEventSource>)?
+    MaxInstancesCount: (Int|Mapping)?
+    MaxIdleTimeInSeconds: (Int|Mapping)?
+    TimeoutInSeconds: (Int|Mapping)?
+}
+
+typealias ComponentVersionLambdaFilesystemPermission = String|Mapping
+
+
+typealias ComponentDependencyRequirementDependencyType = "SOFT"|"HARD"
+
+/// 
+open class ComponentVersionComponentDependencyRequirement {
+    VersionRequirement: (String|Mapping)?
+    DependencyType: (ComponentDependencyRequirementDependencyType|Mapping)?
+}
+
+typealias ComponentVersionComponentPlatformAttributes = Mapping<String, Any>
+
+/// 
+open class ComponentVersionComponentPlatform {
+    Attributes: (ComponentVersionComponentPlatformAttributes)?
+    Name: (String|Mapping)?
+}
 
 typealias ComponentVersionLambdaFunctionRecipeSourceComponentDependencies = Mapping<String, Any>
 
@@ -28,62 +68,12 @@ open class ComponentVersionLambdaFunctionRecipeSource {
     ComponentLambdaParameters: (ComponentVersionLambdaExecutionParameters)?
 }
 
-typealias ComponentVersionComponentPlatformAttributes = Mapping<String, Any>
-
-/// 
-open class ComponentVersionComponentPlatform {
-    Name: (String|Mapping)?
-    Attributes: (ComponentVersionComponentPlatformAttributes)?
-}
-
-typealias ComponentDependencyRequirementDependencyType = "SOFT"|"HARD"
-
-/// 
-open class ComponentVersionComponentDependencyRequirement {
-    VersionRequirement: (String|Mapping)?
-    DependencyType: (ComponentDependencyRequirementDependencyType|Mapping)?
-}
-
-typealias LambdaEventSourceType = "PUB_SUB"|"IOT_CORE"
-
-/// 
-open class ComponentVersionLambdaEventSource {
-    Topic: (String|Mapping)?
-    Type: (LambdaEventSourceType|Mapping)?
-}
-
 typealias LambdaLinuxProcessParamsIsolationMode = "GreengrassContainer"|"NoContainer"
 
 /// 
 open class ComponentVersionLambdaLinuxProcessParams {
     IsolationMode: (LambdaLinuxProcessParamsIsolationMode|Mapping)?
     ContainerParams: (ComponentVersionLambdaContainerParams)?
-}
-
-/// 
-open class ComponentVersionLambdaDeviceMount {
-    AddGroupOwner: (ComponentVersionLambdaAddGroupOwnerBoolean)?
-    Path: (ComponentVersionFilesystemPath)?
-    Permission: (ComponentVersionLambdaFilesystemPermission)?
-}
-
-typealias LambdaExecutionParametersInputPayloadEncodingType = "json"|"binary"
-
-typealias ComponentVersionLambdaExecutionParametersEnvironmentVariables = Mapping<String, Any>
-
-/// 
-open class ComponentVersionLambdaExecutionParameters {
-    EventSources: (Listing<ComponentVersionLambdaEventSource>)?
-    MaxInstancesCount: (Int|Mapping)?
-    TimeoutInSeconds: (Int|Mapping)?
-    StatusTimeoutInSeconds: (Int|Mapping)?
-    Pinned: (Boolean|Mapping)?
-    InputPayloadEncodingType: (LambdaExecutionParametersInputPayloadEncodingType|Mapping)?
-    MaxQueueSize: (Int|Mapping)?
-    MaxIdleTimeInSeconds: (Int|Mapping)?
-    ExecArgs: (Listing<String|Mapping>)?
-    EnvironmentVariables: (ComponentVersionLambdaExecutionParametersEnvironmentVariables)?
-    LinuxProcessParams: (ComponentVersionLambdaLinuxProcessParams)?
 }
 
 /// 
@@ -94,11 +84,21 @@ open class ComponentVersionLambdaVolumeMount {
     AddGroupOwner: (ComponentVersionLambdaAddGroupOwnerBoolean)?
 }
 
-typealias ComponentVersionFilesystemPath = String|Mapping
+/// 
+open class ComponentVersionLambdaContainerParams {
+    MemorySizeInKB: (Int|Mapping)?
+    MountROSysfs: (Boolean|Mapping)?
+    Volumes: (Listing<ComponentVersionLambdaVolumeMount>)?
+    Devices: (Listing<ComponentVersionLambdaDeviceMount>)?
+}
 
+typealias LambdaEventSourceType = "PUB_SUB"|"IOT_CORE"
 
-typealias ComponentVersionLambdaFilesystemPermission = String|Mapping
-
+/// 
+open class ComponentVersionLambdaEventSource {
+    Topic: (String|Mapping)?
+    Type: (LambdaEventSourceType|Mapping)?
+}
 
 /// Resource for Greengrass component version.
 open class ComponentVersion extends cloudformation.Resource {

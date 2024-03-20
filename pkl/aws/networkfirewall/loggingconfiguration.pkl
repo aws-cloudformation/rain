@@ -8,22 +8,22 @@ import "../../cloudformation.pkl"
 typealias LoggingConfigurationResourceArn = String|Mapping
 
 
-/// 
-open class LoggingConfigurationLoggingConfiguration {
-    LogDestinationConfigs: Listing<LoggingConfigurationLogDestinationConfig>
-}
-
-typealias LogDestinationConfigLogType = "ALERT"|"FLOW"
-
 typealias LogDestinationConfigLogDestinationType = "S3"|"CloudWatchLogs"|"KinesisDataFirehose"
 
 typealias LoggingConfigurationLogDestinationConfigLogDestination = Mapping<String, Any>
 
+typealias LogDestinationConfigLogType = "ALERT"|"FLOW"
+
 /// 
 open class LoggingConfigurationLogDestinationConfig {
-    LogType: LogDestinationConfigLogType|Mapping
     LogDestinationType: LogDestinationConfigLogDestinationType|Mapping
     LogDestination: LoggingConfigurationLogDestinationConfigLogDestination
+    LogType: LogDestinationConfigLogType|Mapping
+}
+
+/// 
+open class LoggingConfigurationLoggingConfiguration {
+    LogDestinationConfigs: Listing<LoggingConfigurationLogDestinationConfig>
 }
 
 /// Resource type definition for AWS::NetworkFirewall::LoggingConfiguration
@@ -33,17 +33,17 @@ open class LoggingConfiguration extends cloudformation.Resource {
 
 
     /// 
-    hidden FirewallName: (String(matches(Regex(#"^[a-zA-Z0-9-]+$"#)))|Mapping)?
+    hidden FirewallArn: LoggingConfigurationResourceArn
 
     /// 
-    hidden FirewallArn: LoggingConfigurationResourceArn
+    hidden FirewallName: (String(matches(Regex(#"^[a-zA-Z0-9-]+$"#)))|Mapping)?
 
     /// 
     hidden LoggingConfiguration: LoggingConfigurationLoggingConfiguration
 
     Properties {
-        ["FirewallName"] = if (FirewallName == null) null else FirewallName
         ["FirewallArn"] = if (FirewallArn == null) null else FirewallArn
+        ["FirewallName"] = if (FirewallName == null) null else FirewallName
         ["LoggingConfiguration"] = if (LoggingConfiguration == null) null else LoggingConfiguration
     }
 

@@ -6,28 +6,8 @@ module aws.sagemaker.model
 import "../../cloudformation.pkl"
 
 /// 
-open class ModelContainerDefinition {
-    MultiModelConfig: (ModelMultiModelConfig)?
-    ImageConfig: (ModelImageConfig)?
-    InferenceSpecificationName: (String|Mapping)?
-    ContainerHostname: (String|Mapping)?
-    Environment: (Dynamic)?
-    ModelDataUrl: (String|Mapping)?
-    Image: (String|Mapping)?
-    ModelPackageName: (String|Mapping)?
-    Mode: (String|Mapping)?
-    ModelDataSource: (ModelModelDataSource)?
-}
-
-/// 
-open class ModelVpcConfig {
-    SecurityGroupIds: Listing<String|Mapping>
-    Subnets: Listing<String|Mapping>
-}
-
-/// 
-open class ModelInferenceExecutionConfig {
-    Mode: String|Mapping
+open class ModelModelAccessConfig {
+    AcceptEula: Boolean|Mapping
 }
 
 /// 
@@ -41,16 +21,37 @@ open class ModelRepositoryAuthConfig {
 }
 
 /// 
-open class ModelMultiModelConfig {
-    ModelCacheSetting: (String|Mapping)?
-}
-
-/// 
 open class ModelS3DataSource {
     ModelAccessConfig: (ModelModelAccessConfig)?
     S3DataType: String|Mapping
     CompressionType: String|Mapping
     S3Uri: String|Mapping
+}
+
+/// 
+open class ModelTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// 
+open class ModelVpcConfig {
+    SecurityGroupIds: Listing<String|Mapping>
+    Subnets: Listing<String|Mapping>
+}
+
+/// 
+open class ModelContainerDefinition {
+    ContainerHostname: (String|Mapping)?
+    ModelPackageName: (String|Mapping)?
+    Mode: (String|Mapping)?
+    Environment: (Dynamic)?
+    Image: (String|Mapping)?
+    ModelDataSource: (ModelModelDataSource)?
+    ImageConfig: (ModelImageConfig)?
+    ModelDataUrl: (String|Mapping)?
+    MultiModelConfig: (ModelMultiModelConfig)?
+    InferenceSpecificationName: (String|Mapping)?
 }
 
 /// 
@@ -60,14 +61,13 @@ open class ModelImageConfig {
 }
 
 /// 
-open class ModelModelAccessConfig {
-    AcceptEula: Boolean|Mapping
+open class ModelInferenceExecutionConfig {
+    Mode: String|Mapping
 }
 
 /// 
-open class ModelTag {
-    Key: String|Mapping
-    Value: String|Mapping
+open class ModelMultiModelConfig {
+    ModelCacheSetting: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::SageMaker::Model
@@ -77,38 +77,38 @@ open class Model extends cloudformation.Resource {
 
 
     /// 
-    hidden Tags: (Listing<ModelTag>)?
-
-    /// 
-    hidden ExecutionRoleArn: (String|Mapping)?
-
-    /// 
     hidden Containers: (Listing<ModelContainerDefinition>)?
-
-    /// 
-    hidden VpcConfig: (ModelVpcConfig)?
-
-    /// 
-    hidden InferenceExecutionConfig: (ModelInferenceExecutionConfig)?
 
     /// 
     hidden EnableNetworkIsolation: (Boolean|Mapping)?
 
     /// 
-    hidden PrimaryContainer: (ModelContainerDefinition)?
+    hidden ExecutionRoleArn: (String|Mapping)?
+
+    /// 
+    hidden InferenceExecutionConfig: (ModelInferenceExecutionConfig)?
 
     /// 
     hidden ModelName: (String|Mapping)?
 
+    /// 
+    hidden PrimaryContainer: (ModelContainerDefinition)?
+
+    /// 
+    hidden Tags: (Listing<ModelTag>)?
+
+    /// 
+    hidden VpcConfig: (ModelVpcConfig)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["ExecutionRoleArn"] = if (ExecutionRoleArn == null) null else ExecutionRoleArn
         ["Containers"] = if (Containers == null) null else Containers
-        ["VpcConfig"] = if (VpcConfig == null) null else VpcConfig
-        ["InferenceExecutionConfig"] = if (InferenceExecutionConfig == null) null else InferenceExecutionConfig
         ["EnableNetworkIsolation"] = if (EnableNetworkIsolation == null) null else EnableNetworkIsolation
-        ["PrimaryContainer"] = if (PrimaryContainer == null) null else PrimaryContainer
+        ["ExecutionRoleArn"] = if (ExecutionRoleArn == null) null else ExecutionRoleArn
+        ["InferenceExecutionConfig"] = if (InferenceExecutionConfig == null) null else InferenceExecutionConfig
         ["ModelName"] = if (ModelName == null) null else ModelName
+        ["PrimaryContainer"] = if (PrimaryContainer == null) null else PrimaryContainer
+        ["Tags"] = if (Tags == null) null else Tags
+        ["VpcConfig"] = if (VpcConfig == null) null else VpcConfig
     }
 
 }

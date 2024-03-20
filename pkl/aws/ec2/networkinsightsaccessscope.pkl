@@ -11,17 +11,6 @@ open class NetworkInsightsAccessScopePathStatementRequest {
     ResourceStatement: (NetworkInsightsAccessScopeResourceStatementRequest)?
 }
 
-/// 
-open class NetworkInsightsAccessScopePacketHeaderStatementRequest {
-    DestinationAddresses: (Listing<String|Mapping>)?
-    SourcePorts: (Listing<String|Mapping>)?
-    DestinationPorts: (Listing<String|Mapping>)?
-    SourcePrefixLists: (Listing<String|Mapping>)?
-    DestinationPrefixLists: (Listing<String|Mapping>)?
-    Protocols: (Listing<NetworkInsightsAccessScopeProtocol>)?
-    SourceAddresses: (Listing<String|Mapping>)?
-}
-
 typealias NetworkInsightsAccessScopeProtocol = String|Mapping
 
 
@@ -32,14 +21,14 @@ open class NetworkInsightsAccessScopeResourceStatementRequest {
 }
 
 /// 
-open class NetworkInsightsAccessScopeThroughResourcesStatementRequest {
-    ResourceStatement: (NetworkInsightsAccessScopeResourceStatementRequest)?
-}
-
-/// 
 open class NetworkInsightsAccessScopeTag {
     Key: String|Mapping
     Value: (String|Mapping)?
+}
+
+/// 
+open class NetworkInsightsAccessScopeThroughResourcesStatementRequest {
+    ResourceStatement: (NetworkInsightsAccessScopeResourceStatementRequest)?
 }
 
 /// 
@@ -47,6 +36,17 @@ open class NetworkInsightsAccessScopeAccessScopePathRequest {
     Source: (NetworkInsightsAccessScopePathStatementRequest)?
     Destination: (NetworkInsightsAccessScopePathStatementRequest)?
     ThroughResources: (Listing<NetworkInsightsAccessScopeThroughResourcesStatementRequest>)?
+}
+
+/// 
+open class NetworkInsightsAccessScopePacketHeaderStatementRequest {
+    SourcePrefixLists: (Listing<String|Mapping>)?
+    DestinationPrefixLists: (Listing<String|Mapping>)?
+    Protocols: (Listing<NetworkInsightsAccessScopeProtocol>)?
+    SourceAddresses: (Listing<String|Mapping>)?
+    DestinationAddresses: (Listing<String|Mapping>)?
+    SourcePorts: (Listing<String|Mapping>)?
+    DestinationPorts: (Listing<String|Mapping>)?
 }
 
 /// Resource schema for AWS::EC2::NetworkInsightsAccessScope
@@ -59,15 +59,15 @@ open class NetworkInsightsAccessScope extends cloudformation.Resource {
     hidden ExcludePaths: (Listing<NetworkInsightsAccessScopeAccessScopePathRequest>)?
 
     /// 
-    hidden Tags: (Listing<NetworkInsightsAccessScopeTag>)?
+    hidden MatchPaths: (Listing<NetworkInsightsAccessScopeAccessScopePathRequest>)?
 
     /// 
-    hidden MatchPaths: (Listing<NetworkInsightsAccessScopeAccessScopePathRequest>)?
+    hidden Tags: (Listing<NetworkInsightsAccessScopeTag>)?
 
     Properties {
         ["ExcludePaths"] = if (ExcludePaths == null) null else ExcludePaths
-        ["Tags"] = if (Tags == null) null else Tags
         ["MatchPaths"] = if (MatchPaths == null) null else MatchPaths
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

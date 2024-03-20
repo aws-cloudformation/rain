@@ -5,12 +5,6 @@ module aws.qldb.stream
 
 import "../../cloudformation.pkl"
 
-/// A key-value pair to associate with a resource.
-open class StreamTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
 typealias StreamArn = String|Mapping
 
 
@@ -18,6 +12,12 @@ typealias StreamArn = String|Mapping
 open class StreamKinesisConfiguration {
     AggregationEnabled: (Boolean|Mapping)?
     StreamArn: (Dynamic)?
+}
+
+/// A key-value pair to associate with a resource.
+open class StreamTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// Resource schema for AWS::QLDB::Stream.
@@ -30,31 +30,31 @@ open class Stream extends cloudformation.Resource {
     hidden ExclusiveEndTime: (String|Mapping)?
 
     /// 
-    hidden KinesisConfiguration: StreamKinesisConfiguration
+    hidden InclusiveStartTime: String|Mapping
 
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<StreamTag>)?
+    /// 
+    hidden KinesisConfiguration: StreamKinesisConfiguration
 
     /// 
     hidden LedgerName: String|Mapping
 
     /// 
-    hidden StreamName: String|Mapping
-
-    /// 
     hidden RoleArn: StreamArn
 
     /// 
-    hidden InclusiveStartTime: String|Mapping
+    hidden StreamName: String|Mapping
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<StreamTag>)?
 
     Properties {
         ["ExclusiveEndTime"] = if (ExclusiveEndTime == null) null else ExclusiveEndTime
-        ["KinesisConfiguration"] = if (KinesisConfiguration == null) null else KinesisConfiguration
-        ["Tags"] = if (Tags == null) null else Tags
-        ["LedgerName"] = if (LedgerName == null) null else LedgerName
-        ["StreamName"] = if (StreamName == null) null else StreamName
-        ["RoleArn"] = if (RoleArn == null) null else RoleArn
         ["InclusiveStartTime"] = if (InclusiveStartTime == null) null else InclusiveStartTime
+        ["KinesisConfiguration"] = if (KinesisConfiguration == null) null else KinesisConfiguration
+        ["LedgerName"] = if (LedgerName == null) null else LedgerName
+        ["RoleArn"] = if (RoleArn == null) null else RoleArn
+        ["StreamName"] = if (StreamName == null) null else StreamName
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

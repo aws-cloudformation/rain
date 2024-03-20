@@ -5,40 +5,22 @@ module aws.lightsail.distribution
 
 import "../../cloudformation.pkl"
 
+/// Describes the per-path cache behavior of an Amazon Lightsail content delivery network (CDN) distribution.
+open class DistributionCacheBehaviorPerPath {
+    Behavior: (String|Mapping)?
+    Path: (String|Mapping)?
+}
+
 /// Describes the cache settings of an Amazon Lightsail content delivery network (CDN) distribution.
 open class DistributionCacheSettings {
+    MinimumTTL: (Int|Mapping)?
+    ForwardedCookies: (DistributionCookieObject)?
     ForwardedHeaders: (DistributionHeaderObject)?
     ForwardedQueryStrings: (DistributionQueryStringObject)?
     AllowedHTTPMethods: (String|Mapping)?
     CachedHTTPMethods: (String|Mapping)?
     DefaultTTL: (Int|Mapping)?
     MaximumTTL: (Int|Mapping)?
-    MinimumTTL: (Int|Mapping)?
-    ForwardedCookies: (DistributionCookieObject)?
-}
-
-/// Describes the default cache behavior of an Amazon Lightsail content delivery network (CDN) distribution.
-open class DistributionCacheBehavior {
-    Behavior: (String|Mapping)?
-}
-
-/// Describes the origin resource of an Amazon Lightsail content delivery network (CDN) distribution.
-open class DistributionInputOrigin {
-    Name: (String|Mapping)?
-    ProtocolPolicy: (String|Mapping)?
-    RegionName: (String|Mapping)?
-}
-
-/// A key-value pair to associate with a resource.
-open class DistributionTag {
-    Key: String|Mapping
-    Value: (String|Mapping)?
-}
-
-/// Describes the per-path cache behavior of an Amazon Lightsail content delivery network (CDN) distribution.
-open class DistributionCacheBehaviorPerPath {
-    Behavior: (String|Mapping)?
-    Path: (String|Mapping)?
 }
 
 /// Describes whether an Amazon Lightsail content delivery network (CDN) distribution forwards cookies to the origin and, if so, which ones.
@@ -53,10 +35,28 @@ open class DistributionHeaderObject {
     Option: (String|Mapping)?
 }
 
+/// Describes the origin resource of an Amazon Lightsail content delivery network (CDN) distribution.
+open class DistributionInputOrigin {
+    Name: (String|Mapping)?
+    ProtocolPolicy: (String|Mapping)?
+    RegionName: (String|Mapping)?
+}
+
 /// Describes the query string parameters that an Amazon Lightsail content delivery network (CDN) distribution to bases caching on.
 open class DistributionQueryStringObject {
     QueryStringsAllowList: (Listing<String|Mapping>)?
     Option: (Boolean|Mapping)?
+}
+
+/// A key-value pair to associate with a resource.
+open class DistributionTag {
+    Key: String|Mapping
+    Value: (String|Mapping)?
+}
+
+/// Describes the default cache behavior of an Amazon Lightsail content delivery network (CDN) distribution.
+open class DistributionCacheBehavior {
+    Behavior: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::Lightsail::Distribution
@@ -65,46 +65,46 @@ open class Distribution extends cloudformation.Resource {
     Type = "AWS::Lightsail::Distribution"
 
 
-    /// The name for the distribution.
-    hidden DistributionName: String(matches(Regex(#"\w[\w\-]*\w"#)))|Mapping
-
     /// The bundle ID to use for the distribution.
     hidden BundleId: DistributionBundleId|Mapping
-
-    /// An array of objects that describe the per-path cache behavior for the distribution.
-    hidden CacheBehaviors: (Listing<DistributionCacheBehaviorPerPath>)?
-
-    /// An object that describes the origin resource for the distribution, such as a Lightsail instance or load balancer.
-    hidden Origin: DistributionInputOrigin
-
-    /// The IP address type for the distribution.
-    hidden IpAddressType: (String|Mapping)?
 
     /// An object that describes the cache behavior settings for the distribution.
     hidden CacheBehaviorSettings: (DistributionCacheSettings)?
 
+    /// An array of objects that describe the per-path cache behavior for the distribution.
+    hidden CacheBehaviors: (Listing<DistributionCacheBehaviorPerPath>)?
+
+    /// The certificate attached to the Distribution.
+    hidden CertificateName: (String|Mapping)?
+
     /// An object that describes the default cache behavior for the distribution.
     hidden DefaultCacheBehavior: DistributionCacheBehavior
+
+    /// The name for the distribution.
+    hidden DistributionName: String(matches(Regex(#"\w[\w\-]*\w"#)))|Mapping
+
+    /// The IP address type for the distribution.
+    hidden IpAddressType: (String|Mapping)?
 
     /// Indicates whether the distribution is enabled.
     hidden IsEnabled: (Boolean|Mapping)?
 
-    /// The certificate attached to the Distribution.
-    hidden CertificateName: (String|Mapping)?
+    /// An object that describes the origin resource for the distribution, such as a Lightsail instance or load balancer.
+    hidden Origin: DistributionInputOrigin
 
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<DistributionTag>)?
 
     Properties {
-        ["DistributionName"] = if (DistributionName == null) null else DistributionName
         ["BundleId"] = if (BundleId == null) null else BundleId
-        ["CacheBehaviors"] = if (CacheBehaviors == null) null else CacheBehaviors
-        ["Origin"] = if (Origin == null) null else Origin
-        ["IpAddressType"] = if (IpAddressType == null) null else IpAddressType
         ["CacheBehaviorSettings"] = if (CacheBehaviorSettings == null) null else CacheBehaviorSettings
-        ["DefaultCacheBehavior"] = if (DefaultCacheBehavior == null) null else DefaultCacheBehavior
-        ["IsEnabled"] = if (IsEnabled == null) null else IsEnabled
+        ["CacheBehaviors"] = if (CacheBehaviors == null) null else CacheBehaviors
         ["CertificateName"] = if (CertificateName == null) null else CertificateName
+        ["DefaultCacheBehavior"] = if (DefaultCacheBehavior == null) null else DefaultCacheBehavior
+        ["DistributionName"] = if (DistributionName == null) null else DistributionName
+        ["IpAddressType"] = if (IpAddressType == null) null else IpAddressType
+        ["IsEnabled"] = if (IsEnabled == null) null else IsEnabled
+        ["Origin"] = if (Origin == null) null else Origin
         ["Tags"] = if (Tags == null) null else Tags
     }
 

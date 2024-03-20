@@ -5,9 +5,17 @@ module aws.datasync.locationfsxontap
 
 import "../../cloudformation.pkl"
 
-/// NFS protocol configuration for FSx ONTAP file system.
-open class LocationFSxONTAPNFS {
-    MountOptions: LocationFSxONTAPNfsMountOptions
+typealias NfsMountOptionsVersion = "AUTOMATIC"|"NFS3"|"NFS4_0"|"NFS4_1"
+
+/// The NFS mount options that DataSync can use to mount your NFS share.
+open class LocationFSxONTAPNfsMountOptions {
+    Version: (NfsMountOptionsVersion|Mapping)?
+}
+
+/// Configuration settings for NFS or SMB protocol.
+open class LocationFSxONTAPProtocol {
+    SMB: (LocationFSxONTAPSMB)?
+    NFS: (LocationFSxONTAPNFS)?
 }
 
 /// SMB protocol configuration for FSx ONTAP file system.
@@ -16,13 +24,6 @@ open class LocationFSxONTAPSMB {
     Domain: (String(matches(Regex(#"^([A-Za-z0-9]+[A-Za-z0-9-.]*)*[A-Za-z0-9-]*[A-Za-z0-9]$"#)))|Mapping)?
     Password: String(matches(Regex(#"^.{0,104}$"#)))|Mapping
     User: String(matches(Regex(#"^[^\x5B\x5D\\/:;|=,+*?]{1,104}$"#)))|Mapping
-}
-
-typealias NfsMountOptionsVersion = "AUTOMATIC"|"NFS3"|"NFS4_0"|"NFS4_1"
-
-/// The NFS mount options that DataSync can use to mount your NFS share.
-open class LocationFSxONTAPNfsMountOptions {
-    Version: (NfsMountOptionsVersion|Mapping)?
 }
 
 typealias SmbMountOptionsVersion = "AUTOMATIC"|"SMB2"|"SMB3"
@@ -38,10 +39,9 @@ open class LocationFSxONTAPTag {
     Value: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:@/-]+$"#)))|Mapping
 }
 
-/// Configuration settings for NFS or SMB protocol.
-open class LocationFSxONTAPProtocol {
-    NFS: (LocationFSxONTAPNFS)?
-    SMB: (LocationFSxONTAPSMB)?
+/// NFS protocol configuration for FSx ONTAP file system.
+open class LocationFSxONTAPNFS {
+    MountOptions: LocationFSxONTAPNfsMountOptions
 }
 
 /// Resource schema for AWS::DataSync::LocationFSxONTAP.
@@ -50,11 +50,14 @@ open class LocationFSxONTAP extends cloudformation.Resource {
     Type = "AWS::DataSync::LocationFSxONTAP"
 
 
+    /// 
+    hidden Protocol: (LocationFSxONTAPProtocol)?
+
     /// The ARNs of the security groups that are to use to configure the FSx ONTAP file system.
     hidden SecurityGroupArns: Listing<String|Mapping>
 
-    /// 
-    hidden Protocol: (LocationFSxONTAPProtocol)?
+    /// The Amazon Resource Name (ARN) for the FSx ONTAP SVM.
+    hidden StorageVirtualMachineArn: String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):fsx:[a-z\-0-9]+:[0-9]{12}:storage-virtual-machine/fs-[0-9a-f]+/svm-[0-9a-f]{17,}$"#)))|Mapping
 
     /// A subdirectory in the location's path.
     hidden Subdirectory: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\$\p{Zs}]+$"#)))|Mapping)?
@@ -62,15 +65,12 @@ open class LocationFSxONTAP extends cloudformation.Resource {
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<LocationFSxONTAPTag>)?
 
-    /// The Amazon Resource Name (ARN) for the FSx ONTAP SVM.
-    hidden StorageVirtualMachineArn: String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):fsx:[a-z\-0-9]+:[0-9]{12}:storage-virtual-machine/fs-[0-9a-f]+/svm-[0-9a-f]{17,}$"#)))|Mapping
-
     Properties {
-        ["SecurityGroupArns"] = if (SecurityGroupArns == null) null else SecurityGroupArns
         ["Protocol"] = if (Protocol == null) null else Protocol
+        ["SecurityGroupArns"] = if (SecurityGroupArns == null) null else SecurityGroupArns
+        ["StorageVirtualMachineArn"] = if (StorageVirtualMachineArn == null) null else StorageVirtualMachineArn
         ["Subdirectory"] = if (Subdirectory == null) null else Subdirectory
         ["Tags"] = if (Tags == null) null else Tags
-        ["StorageVirtualMachineArn"] = if (StorageVirtualMachineArn == null) null else StorageVirtualMachineArn
     }
 
 }

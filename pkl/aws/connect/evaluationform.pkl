@@ -5,59 +5,6 @@ module aws.connect.evaluationform
 
 import "../../cloudformation.pkl"
 
-/// The evaluation form section.
-open class EvaluationFormEvaluationFormSection {
-    Title: String|Mapping
-    Instructions: (String|Mapping)?
-    RefId: EvaluationFormRefId
-    Items: (Listing<EvaluationFormEvaluationFormItem>)?
-    Weight: (EvaluationFormWeight)?
-}
-
-/// The option ranges used for scoring in numeric questions.
-open class EvaluationFormEvaluationFormNumericQuestionOption {
-    MinValue: Int|Mapping
-    MaxValue: Int|Mapping
-    Score: (EvaluationFormScore)?
-    AutomaticFail: (Boolean|Mapping)?
-}
-
-/// The automation properties for the single-select question.
-open class EvaluationFormEvaluationFormSingleSelectQuestionAutomation {
-    Options: Listing<EvaluationFormEvaluationFormSingleSelectQuestionAutomationOption>
-    DefaultOptionRefId: (EvaluationFormRefId)?
-}
-
-typealias ScoringStrategyMode = "QUESTION_ONLY"|"SECTION_ONLY"
-
-typealias ScoringStrategyStatus = "ENABLED"|"DISABLED"
-
-/// The scoring strategy.
-open class EvaluationFormScoringStrategy {
-    Mode: ScoringStrategyMode|Mapping
-    Status: ScoringStrategyStatus|Mapping
-}
-
-typealias EvaluationFormRefId = String|Mapping
-
-
-/// The properties of the question.
-open class EvaluationFormEvaluationFormQuestionTypeProperties {
-    Numeric: (EvaluationFormEvaluationFormNumericQuestionProperties)?
-    SingleSelect: (EvaluationFormEvaluationFormSingleSelectQuestionProperties)?
-}
-
-/// A key-value pair to associate with a resource.
-open class EvaluationFormTag {
-    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
-    Value: String|Mapping
-}
-
-/// The automation properties for the numeric question.
-open class EvaluationFormEvaluationFormNumericQuestionAutomation {
-    PropertyValue: EvaluationFormNumericQuestionPropertyValueAutomation
-}
-
 typealias EvaluationFormQuestionQuestionType = "NUMERIC"|"SINGLESELECT"|"TEXT"
 
 /// The evaluation form question.
@@ -79,18 +26,62 @@ open class EvaluationFormEvaluationFormSingleSelectQuestionOption {
     RefId: EvaluationFormRefId
 }
 
-typealias EvaluationFormSingleSelectQuestionPropertiesDisplayAs = "DROPDOWN"|"RADIO"
+typealias NumericQuestionPropertyValueAutomationLabel = "OVERALL_CUSTOMER_SENTIMENT_SCORE"|"OVERALL_AGENT_SENTIMENT_SCORE"|"NON_TALK_TIME"|"NON_TALK_TIME_PERCENTAGE"|"NUMBER_OF_INTERRUPTIONS"|"CONTACT_DURATION"|"AGENT_INTERACTION_DURATION"|"CUSTOMER_HOLD_TIME"
 
-/// The properties of the single-select question.
-open class EvaluationFormEvaluationFormSingleSelectQuestionProperties {
-    Options: Listing<EvaluationFormEvaluationFormSingleSelectQuestionOption>
-    DisplayAs: (EvaluationFormSingleSelectQuestionPropertiesDisplayAs|Mapping)?
-    Automation: (EvaluationFormEvaluationFormSingleSelectQuestionAutomation)?
+/// The automation property name of the question.
+open class EvaluationFormNumericQuestionPropertyValueAutomation {
+    Label: NumericQuestionPropertyValueAutomationLabel|Mapping
+}
+
+typealias EvaluationFormRefId = String|Mapping
+
+
+typealias ScoringStrategyMode = "QUESTION_ONLY"|"SECTION_ONLY"
+
+typealias ScoringStrategyStatus = "ENABLED"|"DISABLED"
+
+/// The scoring strategy.
+open class EvaluationFormScoringStrategy {
+    Mode: ScoringStrategyMode|Mapping
+    Status: ScoringStrategyStatus|Mapping
+}
+
+/// The automation properties for the numeric question.
+open class EvaluationFormEvaluationFormNumericQuestionAutomation {
+    PropertyValue: EvaluationFormNumericQuestionPropertyValueAutomation
+}
+
+/// The option ranges used for scoring in numeric questions.
+open class EvaluationFormEvaluationFormNumericQuestionOption {
+    MinValue: Int|Mapping
+    MaxValue: Int|Mapping
+    Score: (EvaluationFormScore)?
+    AutomaticFail: (Boolean|Mapping)?
+}
+
+/// The properties of the numeric question.
+open class EvaluationFormEvaluationFormNumericQuestionProperties {
+    MinValue: Int|Mapping
+    MaxValue: Int|Mapping
+    Options: (Listing<EvaluationFormEvaluationFormNumericQuestionOption>)?
+    Automation: (EvaluationFormEvaluationFormNumericQuestionAutomation)?
+}
+
+/// The automation properties for the single-select question.
+open class EvaluationFormEvaluationFormSingleSelectQuestionAutomation {
+    Options: Listing<EvaluationFormEvaluationFormSingleSelectQuestionAutomationOption>
+    DefaultOptionRefId: (EvaluationFormRefId)?
 }
 
 /// The evaluation form base item.
 open class EvaluationFormEvaluationFormBaseItem {
     Section: EvaluationFormEvaluationFormSection
+}
+
+/// The evaluation form item.
+open class EvaluationFormEvaluationFormItem {
+    Section: (EvaluationFormEvaluationFormSection)?
+    Question: (EvaluationFormEvaluationFormQuestion)?
 }
 
 /// The automation option for the single-select question.
@@ -110,41 +101,44 @@ open class EvaluationFormSingleSelectQuestionRuleCategoryAutomation {
     OptionRefId: EvaluationFormRefId
 }
 
-typealias NumericQuestionPropertyValueAutomationLabel = "OVERALL_CUSTOMER_SENTIMENT_SCORE"|"OVERALL_AGENT_SENTIMENT_SCORE"|"NON_TALK_TIME"|"NON_TALK_TIME_PERCENTAGE"|"NUMBER_OF_INTERRUPTIONS"|"CONTACT_DURATION"|"AGENT_INTERACTION_DURATION"|"CUSTOMER_HOLD_TIME"
-
-/// The automation property name of the question.
-open class EvaluationFormNumericQuestionPropertyValueAutomation {
-    Label: NumericQuestionPropertyValueAutomationLabel|Mapping
+/// A key-value pair to associate with a resource.
+open class EvaluationFormTag {
+    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
+    Value: String|Mapping
 }
 
-/// The evaluation form item.
-open class EvaluationFormEvaluationFormItem {
-    Section: (EvaluationFormEvaluationFormSection)?
-    Question: (EvaluationFormEvaluationFormQuestion)?
+/// The properties of the question.
+open class EvaluationFormEvaluationFormQuestionTypeProperties {
+    Numeric: (EvaluationFormEvaluationFormNumericQuestionProperties)?
+    SingleSelect: (EvaluationFormEvaluationFormSingleSelectQuestionProperties)?
+}
+
+/// The evaluation form section.
+open class EvaluationFormEvaluationFormSection {
+    Instructions: (String|Mapping)?
+    RefId: EvaluationFormRefId
+    Items: (Listing<EvaluationFormEvaluationFormItem>)?
+    Weight: (EvaluationFormWeight)?
+    Title: String|Mapping
+}
+
+typealias EvaluationFormSingleSelectQuestionPropertiesDisplayAs = "DROPDOWN"|"RADIO"
+
+/// The properties of the single-select question.
+open class EvaluationFormEvaluationFormSingleSelectQuestionProperties {
+    Options: Listing<EvaluationFormEvaluationFormSingleSelectQuestionOption>
+    DisplayAs: (EvaluationFormSingleSelectQuestionPropertiesDisplayAs|Mapping)?
+    Automation: (EvaluationFormEvaluationFormSingleSelectQuestionAutomation)?
 }
 
 typealias EvaluationFormScore = Int|Mapping
 
-
-/// The properties of the numeric question.
-open class EvaluationFormEvaluationFormNumericQuestionProperties {
-    MinValue: Int|Mapping
-    MaxValue: Int|Mapping
-    Options: (Listing<EvaluationFormEvaluationFormNumericQuestionOption>)?
-    Automation: (EvaluationFormEvaluationFormNumericQuestionAutomation)?
-}
 
 /// Resource Type definition for AWS::Connect::EvaluationForm
 open class EvaluationForm extends cloudformation.Resource {
 
     Type = "AWS::Connect::EvaluationForm"
 
-
-    /// One or more tags.
-    hidden Tags: (Listing<EvaluationFormTag>)?
-
-    /// The title of the evaluation form.
-    hidden Title: String|Mapping
 
     /// The description of the evaluation form.
     hidden Description: (String|Mapping)?
@@ -161,14 +155,20 @@ open class EvaluationForm extends cloudformation.Resource {
     /// The status of the evaluation form.
     hidden Status: EvaluationFormStatus|Mapping
 
+    /// One or more tags.
+    hidden Tags: (Listing<EvaluationFormTag>)?
+
+    /// The title of the evaluation form.
+    hidden Title: String|Mapping
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Title"] = if (Title == null) null else Title
         ["Description"] = if (Description == null) null else Description
         ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
         ["Items"] = if (Items == null) null else Items
         ["ScoringStrategy"] = if (ScoringStrategy == null) null else ScoringStrategy
         ["Status"] = if (Status == null) null else Status
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Title"] = if (Title == null) null else Title
     }
 
 }

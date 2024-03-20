@@ -13,6 +13,11 @@ open class InstanceProfile extends cloudformation.Resource {
     Type = "AWS::IAM::InstanceProfile"
 
 
+    /// The name of the instance profile to create.
+    ///
+    ///  This parameter allows (through its [regex pattern](https://docs.aws.amazon.com/http://wikipedia.org/wiki/regex)) a string of characters consisting of upper and lowercase alphanumeric characters with no spaces. You can also include any of the following characters: _+=,.@-
+    hidden InstanceProfileName: (String|Mapping)?
+
     /// The path to the instance profile. For more information about paths, see [IAM Identifiers](https://docs.aws.amazon.com/IAM/latest/UserGuide/Using_Identifiers.html) in the *IAM User Guide*.
     ///
     ///  This parameter is optional. If it is not included, it defaults to a slash (/).
@@ -22,15 +27,10 @@ open class InstanceProfile extends cloudformation.Resource {
     /// The name of the role to associate with the instance profile. Only one role can be assigned to an EC2 instance at a time, and all applications on the instance share the same role and permissions.
     hidden Roles: Listing<String|Mapping>
 
-    /// The name of the instance profile to create.
-    ///
-    ///  This parameter allows (through its [regex pattern](https://docs.aws.amazon.com/http://wikipedia.org/wiki/regex)) a string of characters consisting of upper and lowercase alphanumeric characters with no spaces. You can also include any of the following characters: _+=,.@-
-    hidden InstanceProfileName: (String|Mapping)?
-
     Properties {
+        ["InstanceProfileName"] = if (InstanceProfileName == null) null else InstanceProfileName
         ["Path"] = if (Path == null) null else Path
         ["Roles"] = if (Roles == null) null else Roles
-        ["InstanceProfileName"] = if (InstanceProfileName == null) null else InstanceProfileName
     }
 
 }

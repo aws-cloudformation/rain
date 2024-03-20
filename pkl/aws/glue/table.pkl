@@ -13,25 +13,44 @@ open class TableSchemaId {
 }
 
 /// 
+open class TableSerdeInfo {
+    Parameters: (Dynamic)?
+    SerializationLibrary: (String|Mapping)?
+    Name: (String|Mapping)?
+}
+
+/// 
+open class TableStorageDescriptor {
+    StoredAsSubDirectories: (Boolean|Mapping)?
+    Columns: (Listing<TableColumn>)?
+    SchemaReference: (TableSchemaReference)?
+    Location: (String|Mapping)?
+    OutputFormat: (String|Mapping)?
+    SortColumns: (Listing<TableOrder>)?
+    BucketColumns: (Listing<String|Mapping>)?
+    NumberOfBuckets: (Int|Mapping)?
+    SerdeInfo: (TableSerdeInfo)?
+    Compressed: (Boolean|Mapping)?
+    InputFormat: (String|Mapping)?
+    Parameters: (Dynamic)?
+    SkewedInfo: (TableSkewedInfo)?
+}
+
+/// 
+open class TableColumn {
+    Comment: (String|Mapping)?
+    Type: (String|Mapping)?
+    Name: String|Mapping
+}
+
+/// 
 open class TableIcebergInput {
     MetadataOperation: (TableMetadataOperation)?
     Version: (String|Mapping)?
 }
 
-/// 
-open class TableTableIdentifier {
-    DatabaseName: (String|Mapping)?
-    Region: (String|Mapping)?
-    CatalogId: (String|Mapping)?
-    Name: (String|Mapping)?
-}
+typealias TableMetadataOperation = Dynamic
 
-/// 
-open class TableSkewedInfo {
-    SkewedColumnValues: (Listing<String|Mapping>)?
-    SkewedColumnValueLocationMaps: (Dynamic)?
-    SkewedColumnNames: (Listing<String|Mapping>)?
-}
 
 /// 
 open class TableOpenTableFormatInput {
@@ -45,6 +64,21 @@ open class TableOrder {
 }
 
 /// 
+open class TableTableInput {
+    ViewOriginalText: (String|Mapping)?
+    Description: (String|Mapping)?
+    Parameters: (Dynamic)?
+    TargetTable: (TableTableIdentifier)?
+    PartitionKeys: (Listing<TableColumn>)?
+    Retention: (Int|Mapping)?
+    Owner: (String|Mapping)?
+    TableType: (String|Mapping)?
+    ViewExpandedText: (String|Mapping)?
+    StorageDescriptor: (TableStorageDescriptor)?
+    Name: (String|Mapping)?
+}
+
+/// 
 open class TableSchemaReference {
     SchemaId: (TableSchemaId)?
     SchemaVersionId: (String|Mapping)?
@@ -52,52 +86,18 @@ open class TableSchemaReference {
 }
 
 /// 
-open class TableTableInput {
-    Owner: (String|Mapping)?
-    ViewOriginalText: (String|Mapping)?
-    StorageDescriptor: (TableStorageDescriptor)?
+open class TableSkewedInfo {
+    SkewedColumnValueLocationMaps: (Dynamic)?
+    SkewedColumnNames: (Listing<String|Mapping>)?
+    SkewedColumnValues: (Listing<String|Mapping>)?
+}
+
+/// 
+open class TableTableIdentifier {
+    CatalogId: (String|Mapping)?
     Name: (String|Mapping)?
-    Description: (String|Mapping)?
-    TableType: (String|Mapping)?
-    Parameters: (Dynamic)?
-    ViewExpandedText: (String|Mapping)?
-    TargetTable: (TableTableIdentifier)?
-    PartitionKeys: (Listing<TableColumn>)?
-    Retention: (Int|Mapping)?
-}
-
-typealias TableMetadataOperation = Dynamic
-
-
-/// 
-open class TableSerdeInfo {
-    Name: (String|Mapping)?
-    Parameters: (Dynamic)?
-    SerializationLibrary: (String|Mapping)?
-}
-
-/// 
-open class TableColumn {
-    Comment: (String|Mapping)?
-    Type: (String|Mapping)?
-    Name: String|Mapping
-}
-
-/// 
-open class TableStorageDescriptor {
-    Parameters: (Dynamic)?
-    Columns: (Listing<TableColumn>)?
-    SortColumns: (Listing<TableOrder>)?
-    Compressed: (Boolean|Mapping)?
-    Location: (String|Mapping)?
-    StoredAsSubDirectories: (Boolean|Mapping)?
-    NumberOfBuckets: (Int|Mapping)?
-    OutputFormat: (String|Mapping)?
-    InputFormat: (String|Mapping)?
-    BucketColumns: (Listing<String|Mapping>)?
-    SchemaReference: (TableSchemaReference)?
-    SkewedInfo: (TableSkewedInfo)?
-    SerdeInfo: (TableSerdeInfo)?
+    DatabaseName: (String|Mapping)?
+    Region: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::Glue::Table
@@ -107,22 +107,22 @@ open class Table extends cloudformation.Resource {
 
 
     /// 
-    hidden DatabaseName: String|Mapping
+    hidden CatalogId: String|Mapping
 
     /// 
-    hidden TableInput: TableTableInput
+    hidden DatabaseName: String|Mapping
 
     /// 
     hidden OpenTableFormatInput: (TableOpenTableFormatInput)?
 
     /// 
-    hidden CatalogId: String|Mapping
+    hidden TableInput: TableTableInput
 
     Properties {
-        ["DatabaseName"] = if (DatabaseName == null) null else DatabaseName
-        ["TableInput"] = if (TableInput == null) null else TableInput
-        ["OpenTableFormatInput"] = if (OpenTableFormatInput == null) null else OpenTableFormatInput
         ["CatalogId"] = if (CatalogId == null) null else CatalogId
+        ["DatabaseName"] = if (DatabaseName == null) null else DatabaseName
+        ["OpenTableFormatInput"] = if (OpenTableFormatInput == null) null else OpenTableFormatInput
+        ["TableInput"] = if (TableInput == null) null else TableInput
     }
 
 }

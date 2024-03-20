@@ -6,42 +6,9 @@ module aws.licensemanager.license
 import "../../cloudformation.pkl"
 
 /// 
-open class LicenseValidityDateFormat {
-    Begin: String|Mapping
-    End: String|Mapping
-}
-
-/// 
-open class LicenseMetadata {
-    Name: String|Mapping
-    Value: String|Mapping
-}
-
-/// 
-open class LicenseEntitlement {
-    MaxCount: (Int|Mapping)?
-    Overage: (Boolean|Mapping)?
-    Unit: String|Mapping
-    AllowCheckIn: (Boolean|Mapping)?
-    Name: String|Mapping
-    Value: (String|Mapping)?
-}
-
-/// 
-open class LicenseProvisionalConfiguration {
-    MaxTimeToLiveInMinutes: Int|Mapping
-}
-
-/// 
 open class LicenseBorrowConfiguration {
     MaxTimeToLiveInMinutes: Int|Mapping
     AllowEarlyCheckIn: Boolean|Mapping
-}
-
-/// 
-open class LicenseIssuerData {
-    Name: String|Mapping
-    SignKey: (String|Mapping)?
 }
 
 /// 
@@ -51,10 +18,43 @@ open class LicenseConsumptionConfiguration {
     BorrowConfiguration: (LicenseBorrowConfiguration)?
 }
 
-typealias LicenseLicenseStatus = String|Mapping
+/// 
+open class LicenseEntitlement {
+    Name: String|Mapping
+    Value: (String|Mapping)?
+    MaxCount: (Int|Mapping)?
+    Overage: (Boolean|Mapping)?
+    Unit: String|Mapping
+    AllowCheckIn: (Boolean|Mapping)?
+}
 
+/// 
+open class LicenseMetadata {
+    Name: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class LicenseProvisionalConfiguration {
+    MaxTimeToLiveInMinutes: Int|Mapping
+}
+
+/// 
+open class LicenseValidityDateFormat {
+    Begin: String|Mapping
+    End: String|Mapping
+}
 
 typealias LicenseArn = String|Mapping
+
+
+/// 
+open class LicenseIssuerData {
+    SignKey: (String|Mapping)?
+    Name: String|Mapping
+}
+
+typealias LicenseLicenseStatus = String|Mapping
 
 
 /// Resource Type definition for AWS::LicenseManager::License
@@ -62,6 +62,21 @@ open class License extends cloudformation.Resource {
 
     Type = "AWS::LicenseManager::License"
 
+
+    /// Beneficiary of the license.
+    hidden Beneficiary: (String|Mapping)?
+
+    /// 
+    hidden ConsumptionConfiguration: LicenseConsumptionConfiguration
+
+    /// 
+    hidden Entitlements: Listing<LicenseEntitlement>
+
+    /// Home region for the created license.
+    hidden HomeRegion: String|Mapping
+
+    /// 
+    hidden Issuer: LicenseIssuerData
 
     /// 
     hidden LicenseMetadata: (Listing<LicenseMetadata>)?
@@ -72,42 +87,27 @@ open class License extends cloudformation.Resource {
     /// Product name for the created license.
     hidden ProductName: String|Mapping
 
-    /// Home region for the created license.
-    hidden HomeRegion: String|Mapping
-
-    /// Beneficiary of the license.
-    hidden Beneficiary: (String|Mapping)?
-
-    /// 
-    hidden Validity: LicenseValidityDateFormat
-
-    /// 
-    hidden ConsumptionConfiguration: LicenseConsumptionConfiguration
-
-    /// 
-    hidden Entitlements: Listing<LicenseEntitlement>
-
-    /// 
-    hidden Status: (LicenseLicenseStatus)?
-
     /// ProductSKU of the license.
     hidden ProductSKU: (String|Mapping)?
 
     /// 
-    hidden Issuer: LicenseIssuerData
+    hidden Status: (LicenseLicenseStatus)?
+
+    /// 
+    hidden Validity: LicenseValidityDateFormat
 
     Properties {
+        ["Beneficiary"] = if (Beneficiary == null) null else Beneficiary
+        ["ConsumptionConfiguration"] = if (ConsumptionConfiguration == null) null else ConsumptionConfiguration
+        ["Entitlements"] = if (Entitlements == null) null else Entitlements
+        ["HomeRegion"] = if (HomeRegion == null) null else HomeRegion
+        ["Issuer"] = if (Issuer == null) null else Issuer
         ["LicenseMetadata"] = if (LicenseMetadata == null) null else LicenseMetadata
         ["LicenseName"] = if (LicenseName == null) null else LicenseName
         ["ProductName"] = if (ProductName == null) null else ProductName
-        ["HomeRegion"] = if (HomeRegion == null) null else HomeRegion
-        ["Beneficiary"] = if (Beneficiary == null) null else Beneficiary
-        ["Validity"] = if (Validity == null) null else Validity
-        ["ConsumptionConfiguration"] = if (ConsumptionConfiguration == null) null else ConsumptionConfiguration
-        ["Entitlements"] = if (Entitlements == null) null else Entitlements
-        ["Status"] = if (Status == null) null else Status
         ["ProductSKU"] = if (ProductSKU == null) null else ProductSKU
-        ["Issuer"] = if (Issuer == null) null else Issuer
+        ["Status"] = if (Status == null) null else Status
+        ["Validity"] = if (Validity == null) null else Validity
     }
 
 }

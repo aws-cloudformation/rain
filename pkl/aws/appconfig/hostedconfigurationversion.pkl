@@ -11,8 +11,20 @@ open class HostedConfigurationVersion extends cloudformation.Resource {
     Type = "AWS::AppConfig::HostedConfigurationVersion"
 
 
+    /// The application ID.
+    hidden ApplicationId: String(matches(Regex(#"[a-z0-9]{4,7}"#)))|Mapping
+
+    /// The configuration profile ID.
+    hidden ConfigurationProfileId: String(matches(Regex(#"[a-z0-9]{4,7}"#)))|Mapping
+
+    /// The content of the configuration or the configuration data.
+    hidden Content: String|Mapping
+
     /// A standard MIME type describing the format of the configuration content.
     hidden ContentType: String|Mapping
+
+    /// A description of the hosted configuration version.
+    hidden Description: (String|Mapping)?
 
     /// An optional locking token used to prevent race conditions from overwriting configuration updates when creating a new version. To ensure your data is not overwritten when creating multiple hosted configuration versions in rapid succession, specify the version number of the latest hosted configuration version.
     hidden LatestVersionNumber: (Int|Mapping)?
@@ -20,26 +32,14 @@ open class HostedConfigurationVersion extends cloudformation.Resource {
     /// A user-defined label for an AWS AppConfig hosted configuration version.
     hidden VersionLabel: (String(matches(Regex(#"^$|.*[^0-9].*"#)))|Mapping)?
 
-    /// The application ID.
-    hidden ApplicationId: String(matches(Regex(#"[a-z0-9]{4,7}"#)))|Mapping
-
-    /// The configuration profile ID.
-    hidden ConfigurationProfileId: String(matches(Regex(#"[a-z0-9]{4,7}"#)))|Mapping
-
-    /// A description of the hosted configuration version.
-    hidden Description: (String|Mapping)?
-
-    /// The content of the configuration or the configuration data.
-    hidden Content: String|Mapping
-
     Properties {
-        ["ContentType"] = if (ContentType == null) null else ContentType
-        ["LatestVersionNumber"] = if (LatestVersionNumber == null) null else LatestVersionNumber
-        ["VersionLabel"] = if (VersionLabel == null) null else VersionLabel
         ["ApplicationId"] = if (ApplicationId == null) null else ApplicationId
         ["ConfigurationProfileId"] = if (ConfigurationProfileId == null) null else ConfigurationProfileId
-        ["Description"] = if (Description == null) null else Description
         ["Content"] = if (Content == null) null else Content
+        ["ContentType"] = if (ContentType == null) null else ContentType
+        ["Description"] = if (Description == null) null else Description
+        ["LatestVersionNumber"] = if (LatestVersionNumber == null) null else LatestVersionNumber
+        ["VersionLabel"] = if (VersionLabel == null) null else VersionLabel
     }
 
 }

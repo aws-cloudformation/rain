@@ -5,11 +5,8 @@ module aws.backup.backupvault
 
 import "../../cloudformation.pkl"
 
-/// 
-open class BackupVaultNotificationObjectType {
-    BackupVaultEvents: Listing<String|Mapping>
-    SNSTopicArn: String|Mapping
-}
+typealias BackupVaultBackupVaultNamePattern = String|Mapping
+
 
 /// 
 open class BackupVaultLockConfigurationType {
@@ -18,8 +15,11 @@ open class BackupVaultLockConfigurationType {
     ChangeableForDays: (Int|Mapping)?
 }
 
-typealias BackupVaultBackupVaultNamePattern = String|Mapping
-
+/// 
+open class BackupVaultNotificationObjectType {
+    BackupVaultEvents: Listing<String|Mapping>
+    SNSTopicArn: String|Mapping
+}
 
 /// Resource Type definition for AWS::Backup::BackupVault
 open class BackupVault extends cloudformation.Resource {
@@ -40,18 +40,18 @@ open class BackupVault extends cloudformation.Resource {
     hidden EncryptionKeyArn: (String|Mapping)?
 
     /// 
-    hidden Notifications: (BackupVaultNotificationObjectType)?
+    hidden LockConfiguration: (BackupVaultLockConfigurationType)?
 
     /// 
-    hidden LockConfiguration: (BackupVaultLockConfigurationType)?
+    hidden Notifications: (BackupVaultNotificationObjectType)?
 
     Properties {
         ["AccessPolicy"] = if (AccessPolicy == null) null else AccessPolicy
         ["BackupVaultName"] = if (BackupVaultName == null) null else BackupVaultName
         ["BackupVaultTags"] = if (BackupVaultTags == null) null else BackupVaultTags
         ["EncryptionKeyArn"] = if (EncryptionKeyArn == null) null else EncryptionKeyArn
-        ["Notifications"] = if (Notifications == null) null else Notifications
         ["LockConfiguration"] = if (LockConfiguration == null) null else LockConfiguration
+        ["Notifications"] = if (Notifications == null) null else Notifications
     }
 
 }

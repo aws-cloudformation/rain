@@ -6,10 +6,37 @@ module aws.glue.partition
 import "../../cloudformation.pkl"
 
 /// 
+open class PartitionColumn {
+    Comment: (String|Mapping)?
+    Type: (String|Mapping)?
+    Name: String|Mapping
+}
+
+/// 
+open class PartitionOrder {
+    Column: String|Mapping
+    SortOrder: (Int|Mapping)?
+}
+
+/// 
+open class PartitionPartitionInput {
+    StorageDescriptor: (PartitionStorageDescriptor)?
+    Values: Listing<String|Mapping>
+    Parameters: (Dynamic)?
+}
+
+/// 
 open class PartitionSchemaId {
     SchemaName: (String|Mapping)?
     SchemaArn: (String|Mapping)?
     RegistryName: (String|Mapping)?
+}
+
+/// 
+open class PartitionSchemaReference {
+    SchemaVersionNumber: (Int|Mapping)?
+    SchemaId: (PartitionSchemaId)?
+    SchemaVersionId: (String|Mapping)?
 }
 
 /// 
@@ -20,53 +47,26 @@ open class PartitionSerdeInfo {
 }
 
 /// 
-open class PartitionPartitionInput {
-    Parameters: (Dynamic)?
-    StorageDescriptor: (PartitionStorageDescriptor)?
-    Values: Listing<String|Mapping>
-}
-
-/// 
-open class PartitionSchemaReference {
-    SchemaVersionId: (String|Mapping)?
-    SchemaVersionNumber: (Int|Mapping)?
-    SchemaId: (PartitionSchemaId)?
-}
-
-/// 
-open class PartitionOrder {
-    Column: String|Mapping
-    SortOrder: (Int|Mapping)?
-}
-
-/// 
 open class PartitionSkewedInfo {
-    SkewedColumnValues: (Listing<String|Mapping>)?
     SkewedColumnValueLocationMaps: (Dynamic)?
     SkewedColumnNames: (Listing<String|Mapping>)?
-}
-
-/// 
-open class PartitionColumn {
-    Comment: (String|Mapping)?
-    Type: (String|Mapping)?
-    Name: String|Mapping
+    SkewedColumnValues: (Listing<String|Mapping>)?
 }
 
 /// 
 open class PartitionStorageDescriptor {
-    InputFormat: (String|Mapping)?
     Columns: (Listing<PartitionColumn>)?
+    SerdeInfo: (PartitionSerdeInfo)?
     Compressed: (Boolean|Mapping)?
-    SchemaReference: (PartitionSchemaReference)?
     SkewedInfo: (PartitionSkewedInfo)?
     StoredAsSubDirectories: (Boolean|Mapping)?
-    BucketColumns: (Listing<String|Mapping>)?
-    OutputFormat: (String|Mapping)?
-    SortColumns: (Listing<PartitionOrder>)?
     Parameters: (Dynamic)?
+    BucketColumns: (Listing<String|Mapping>)?
     NumberOfBuckets: (Int|Mapping)?
-    SerdeInfo: (PartitionSerdeInfo)?
+    SortColumns: (Listing<PartitionOrder>)?
+    OutputFormat: (String|Mapping)?
+    SchemaReference: (PartitionSchemaReference)?
+    InputFormat: (String|Mapping)?
     Location: (String|Mapping)?
 }
 
@@ -77,22 +77,22 @@ open class Partition extends cloudformation.Resource {
 
 
     /// 
-    hidden DatabaseName: String|Mapping
-
-    /// 
-    hidden TableName: String|Mapping
-
-    /// 
     hidden CatalogId: String|Mapping
+
+    /// 
+    hidden DatabaseName: String|Mapping
 
     /// 
     hidden PartitionInput: PartitionPartitionInput
 
+    /// 
+    hidden TableName: String|Mapping
+
     Properties {
-        ["DatabaseName"] = if (DatabaseName == null) null else DatabaseName
-        ["TableName"] = if (TableName == null) null else TableName
         ["CatalogId"] = if (CatalogId == null) null else CatalogId
+        ["DatabaseName"] = if (DatabaseName == null) null else DatabaseName
         ["PartitionInput"] = if (PartitionInput == null) null else PartitionInput
+        ["TableName"] = if (TableName == null) null else TableName
     }
 
 }

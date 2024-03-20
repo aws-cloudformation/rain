@@ -10,20 +10,20 @@ typealias InAppTemplateButtonAction = String|Mapping
 
 /// 
 open class InAppTemplateButtonConfig {
+    Android: (InAppTemplateOverrideButtonConfiguration)?
     DefaultConfig: (InAppTemplateDefaultButtonConfiguration)?
     IOS: (InAppTemplateOverrideButtonConfiguration)?
     Web: (InAppTemplateOverrideButtonConfiguration)?
-    Android: (InAppTemplateOverrideButtonConfiguration)?
 }
 
 /// 
 open class InAppTemplateDefaultButtonConfiguration {
-    Text: (String|Mapping)?
-    TextColor: (String|Mapping)?
     BackgroundColor: (String|Mapping)?
     BorderRadius: (Int|Mapping)?
     ButtonAction: (InAppTemplateButtonAction)?
     Link: (String|Mapping)?
+    Text: (String|Mapping)?
+    TextColor: (String|Mapping)?
 }
 
 /// 
@@ -35,12 +35,12 @@ open class InAppTemplateHeaderConfig {
 
 /// 
 open class InAppTemplateInAppMessageContent {
-    SecondaryBtn: (InAppTemplateButtonConfig)?
-    BackgroundColor: (String|Mapping)?
     BodyConfig: (InAppTemplateBodyConfig)?
     HeaderConfig: (InAppTemplateHeaderConfig)?
     ImageUrl: (String|Mapping)?
     PrimaryBtn: (InAppTemplateButtonConfig)?
+    SecondaryBtn: (InAppTemplateButtonConfig)?
+    BackgroundColor: (String|Mapping)?
 }
 
 /// 
@@ -66,6 +66,9 @@ open class InAppTemplate extends cloudformation.Resource {
 
 
     /// 
+    hidden Content: (Listing<InAppTemplateInAppMessageContent>)?
+
+    /// 
     hidden CustomConfig: (Dynamic)?
 
     /// 
@@ -80,16 +83,13 @@ open class InAppTemplate extends cloudformation.Resource {
     /// 
     hidden TemplateName: String|Mapping
 
-    /// 
-    hidden Content: (Listing<InAppTemplateInAppMessageContent>)?
-
     Properties {
+        ["Content"] = if (Content == null) null else Content
         ["CustomConfig"] = if (CustomConfig == null) null else CustomConfig
         ["Layout"] = if (Layout == null) null else Layout
         ["Tags"] = if (Tags == null) null else Tags
         ["TemplateDescription"] = if (TemplateDescription == null) null else TemplateDescription
         ["TemplateName"] = if (TemplateName == null) null else TemplateName
-        ["Content"] = if (Content == null) null else Content
     }
 
 }

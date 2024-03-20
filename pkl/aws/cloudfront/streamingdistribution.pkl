@@ -6,16 +6,10 @@ module aws.cloudfront.streamingdistribution
 import "../../cloudformation.pkl"
 
 /// 
-open class StreamingDistributionTrustedSigners {
-    Enabled: Boolean|Mapping
-    AwsAccountNumbers: (Listing<String|Mapping>)?
-}
-
-/// 
 open class StreamingDistributionLogging {
+    Prefix: String|Mapping
     Bucket: String|Mapping
     Enabled: Boolean|Mapping
-    Prefix: String|Mapping
 }
 
 /// 
@@ -26,19 +20,25 @@ open class StreamingDistributionS3Origin {
 
 /// 
 open class StreamingDistributionStreamingDistributionConfig {
+    Enabled: Boolean|Mapping
+    Aliases: (Listing<String|Mapping>)?
+    TrustedSigners: StreamingDistributionTrustedSigners
     Logging: (StreamingDistributionLogging)?
     Comment: String|Mapping
     PriceClass: (String|Mapping)?
     S3Origin: StreamingDistributionS3Origin
-    Enabled: Boolean|Mapping
-    Aliases: (Listing<String|Mapping>)?
-    TrustedSigners: StreamingDistributionTrustedSigners
 }
 
 /// 
 open class StreamingDistributionTag {
     Key: String|Mapping
     Value: String|Mapping
+}
+
+/// 
+open class StreamingDistributionTrustedSigners {
+    Enabled: Boolean|Mapping
+    AwsAccountNumbers: (Listing<String|Mapping>)?
 }
 
 /// Resource Type definition for AWS::CloudFront::StreamingDistribution
@@ -48,14 +48,14 @@ open class StreamingDistribution extends cloudformation.Resource {
 
 
     /// 
-    hidden Tags: Listing<StreamingDistributionTag>
-
-    /// 
     hidden StreamingDistributionConfig: StreamingDistributionStreamingDistributionConfig
 
+    /// 
+    hidden Tags: Listing<StreamingDistributionTag>
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
         ["StreamingDistributionConfig"] = if (StreamingDistributionConfig == null) null else StreamingDistributionConfig
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

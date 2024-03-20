@@ -11,32 +11,38 @@ open class ContainerRecipeComponentConfiguration {
     Parameters: (Listing<ContainerRecipeComponentParameter>)?
 }
 
-/// A group of options that can be used to configure an instance for building and testing container images.
-open class ContainerRecipeInstanceConfiguration {
-    BlockDeviceMappings: (Listing<ContainerRecipeInstanceBlockDeviceMapping>)?
-    Image: (String|Mapping)?
-}
-
-/// Defines block device mappings for the instance used to configure your image. 
-open class ContainerRecipeInstanceBlockDeviceMapping {
-    DeviceName: (String|Mapping)?
-    VirtualName: (String|Mapping)?
-    NoDevice: (String|Mapping)?
-    Ebs: (ContainerRecipeEbsInstanceBlockDeviceSpecification)?
+/// Contains a key/value pair that sets the named component parameter.
+open class ContainerRecipeComponentParameter {
+    Name: String|Mapping
+    Value: Listing<String|Mapping>
 }
 
 typealias EbsInstanceBlockDeviceSpecificationVolumeType = "standard"|"io1"|"io2"|"gp2"|"gp3"|"sc1"|"st1"
 
 /// Amazon EBS-specific block device mapping specifications. 
 open class ContainerRecipeEbsInstanceBlockDeviceSpecification {
-    Throughput: (Int|Mapping)?
-    VolumeSize: (Int|Mapping)?
-    VolumeType: (EbsInstanceBlockDeviceSpecificationVolumeType|Mapping)?
-    Encrypted: (Boolean|Mapping)?
     DeleteOnTermination: (Boolean|Mapping)?
     Iops: (Int|Mapping)?
     KmsKeyId: (String|Mapping)?
     SnapshotId: (String|Mapping)?
+    Throughput: (Int|Mapping)?
+    VolumeSize: (Int|Mapping)?
+    VolumeType: (EbsInstanceBlockDeviceSpecificationVolumeType|Mapping)?
+    Encrypted: (Boolean|Mapping)?
+}
+
+/// Defines block device mappings for the instance used to configure your image. 
+open class ContainerRecipeInstanceBlockDeviceMapping {
+    VirtualName: (String|Mapping)?
+    NoDevice: (String|Mapping)?
+    Ebs: (ContainerRecipeEbsInstanceBlockDeviceSpecification)?
+    DeviceName: (String|Mapping)?
+}
+
+/// A group of options that can be used to configure an instance for building and testing container images.
+open class ContainerRecipeInstanceConfiguration {
+    BlockDeviceMappings: (Listing<ContainerRecipeInstanceBlockDeviceMapping>)?
+    Image: (String|Mapping)?
 }
 
 typealias TargetContainerRepositoryService = "ECR"
@@ -47,32 +53,23 @@ open class ContainerRecipeTargetContainerRepository {
     RepositoryName: (String|Mapping)?
 }
 
-/// Contains a key/value pair that sets the named component parameter.
-open class ContainerRecipeComponentParameter {
-    Name: String|Mapping
-    Value: Listing<String|Mapping>
-}
-
 /// Resource schema for AWS::ImageBuilder::ContainerRecipe
 open class ContainerRecipe extends cloudformation.Resource {
 
     Type = "AWS::ImageBuilder::ContainerRecipe"
 
 
-    /// The name of the container recipe.
-    hidden Name: (String|Mapping)?
-
-    /// The destination repository for the container image.
-    hidden TargetRepository: (ContainerRecipeTargetContainerRepository)?
-
-    /// Identifies which KMS key is used to encrypt the container image.
-    hidden KmsKeyId: (String|Mapping)?
-
-    /// Tags that are attached to the container recipe.
-    hidden Tags: (ContainerRecipeContainerRecipeTags)?
-
     /// Components for build and test that are included in the container recipe.
     hidden Components: (Listing<ContainerRecipeComponentConfiguration>)?
+
+    /// Specifies the type of container, such as Docker.
+    hidden ContainerType: (ContainerRecipeContainerType|Mapping)?
+
+    /// The description of the container recipe.
+    hidden Description: (String|Mapping)?
+
+    /// Dockerfiles are text documents that are used to build Docker containers, and ensure that they contain all of the elements required by the application running inside. The template data consists of contextual variables where Image Builder places build information or scripts, based on your container image recipe.
+    hidden DockerfileTemplateData: (String|Mapping)?
 
     /// The S3 URI for the Dockerfile that will be used to build your container image.
     hidden DockerfileTemplateUri: (String|Mapping)?
@@ -80,53 +77,56 @@ open class ContainerRecipe extends cloudformation.Resource {
     /// Specifies the operating system version for the source image.
     hidden ImageOsVersionOverride: (String|Mapping)?
 
-    /// The working directory to be used during build and test workflows.
-    hidden WorkingDirectory: (String|Mapping)?
+    /// A group of options that can be used to configure an instance for building and testing container images.
+    hidden InstanceConfiguration: (ContainerRecipeInstanceConfiguration)?
 
-    /// The description of the container recipe.
-    hidden Description: (String|Mapping)?
+    /// Identifies which KMS key is used to encrypt the container image.
+    hidden KmsKeyId: (String|Mapping)?
 
-    /// The semantic version of the container recipe (<major>.<minor>.<patch>).
-    hidden Version: (String|Mapping)?
-
-    /// Dockerfiles are text documents that are used to build Docker containers, and ensure that they contain all of the elements required by the application running inside. The template data consists of contextual variables where Image Builder places build information or scripts, based on your container image recipe.
-    hidden DockerfileTemplateData: (String|Mapping)?
+    /// The name of the container recipe.
+    hidden Name: (String|Mapping)?
 
     /// The source image for the container recipe.
     hidden ParentImage: (String|Mapping)?
 
-    /// A group of options that can be used to configure an instance for building and testing container images.
-    hidden InstanceConfiguration: (ContainerRecipeInstanceConfiguration)?
-
     /// Specifies the operating system platform when you use a custom source image.
     hidden PlatformOverride: (ContainerRecipePlatformOverride|Mapping)?
 
-    /// Specifies the type of container, such as Docker.
-    hidden ContainerType: (ContainerRecipeContainerType|Mapping)?
+    /// Tags that are attached to the container recipe.
+    hidden Tags: (ContainerRecipeContainerRecipeTags)?
+
+    /// The destination repository for the container image.
+    hidden TargetRepository: (ContainerRecipeTargetContainerRepository)?
+
+    /// The semantic version of the container recipe (<major>.<minor>.<patch>).
+    hidden Version: (String|Mapping)?
+
+    /// The working directory to be used during build and test workflows.
+    hidden WorkingDirectory: (String|Mapping)?
 
     Properties {
-        ["Name"] = if (Name == null) null else Name
-        ["TargetRepository"] = if (TargetRepository == null) null else TargetRepository
-        ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
-        ["Tags"] = if (Tags == null) null else Tags
         ["Components"] = if (Components == null) null else Components
+        ["ContainerType"] = if (ContainerType == null) null else ContainerType
+        ["Description"] = if (Description == null) null else Description
+        ["DockerfileTemplateData"] = if (DockerfileTemplateData == null) null else DockerfileTemplateData
         ["DockerfileTemplateUri"] = if (DockerfileTemplateUri == null) null else DockerfileTemplateUri
         ["ImageOsVersionOverride"] = if (ImageOsVersionOverride == null) null else ImageOsVersionOverride
-        ["WorkingDirectory"] = if (WorkingDirectory == null) null else WorkingDirectory
-        ["Description"] = if (Description == null) null else Description
-        ["Version"] = if (Version == null) null else Version
-        ["DockerfileTemplateData"] = if (DockerfileTemplateData == null) null else DockerfileTemplateData
-        ["ParentImage"] = if (ParentImage == null) null else ParentImage
         ["InstanceConfiguration"] = if (InstanceConfiguration == null) null else InstanceConfiguration
+        ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
+        ["Name"] = if (Name == null) null else Name
+        ["ParentImage"] = if (ParentImage == null) null else ParentImage
         ["PlatformOverride"] = if (PlatformOverride == null) null else PlatformOverride
-        ["ContainerType"] = if (ContainerType == null) null else ContainerType
+        ["Tags"] = if (Tags == null) null else Tags
+        ["TargetRepository"] = if (TargetRepository == null) null else TargetRepository
+        ["Version"] = if (Version == null) null else Version
+        ["WorkingDirectory"] = if (WorkingDirectory == null) null else WorkingDirectory
     }
 
 }
 
 
-typealias ContainerRecipeContainerRecipeTags = Mapping<String, Any>
+typealias ContainerRecipeContainerType = "DOCKER"
 
 typealias ContainerRecipePlatformOverride = "Windows"|"Linux"
 
-typealias ContainerRecipeContainerType = "DOCKER"
+typealias ContainerRecipeContainerRecipeTags = Mapping<String, Any>

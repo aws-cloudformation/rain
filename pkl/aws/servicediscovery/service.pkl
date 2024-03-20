@@ -6,14 +6,21 @@ module aws.servicediscovery.service
 import "../../cloudformation.pkl"
 
 /// 
-open class ServiceDnsRecord {
+open class ServiceHealthCheckConfig {
+    FailureThreshold: (Number|Mapping)?
     Type: String|Mapping
-    TTL: Number|Mapping
+    ResourcePath: (String|Mapping)?
 }
 
 /// 
 open class ServiceHealthCheckCustomConfig {
     FailureThreshold: (Number|Mapping)?
+}
+
+/// 
+open class ServiceTag {
+    Value: String|Mapping
+    Key: String|Mapping
 }
 
 /// 
@@ -24,16 +31,9 @@ open class ServiceDnsConfig {
 }
 
 /// 
-open class ServiceHealthCheckConfig {
+open class ServiceDnsRecord {
+    TTL: Number|Mapping
     Type: String|Mapping
-    ResourcePath: (String|Mapping)?
-    FailureThreshold: (Number|Mapping)?
-}
-
-/// 
-open class ServiceTag {
-    Value: String|Mapping
-    Key: String|Mapping
 }
 
 /// Resource Type definition for AWS::ServiceDiscovery::Service
@@ -43,38 +43,38 @@ open class Service extends cloudformation.Resource {
 
 
     /// 
-    hidden TypeProperty: (String|Mapping)?
+    hidden Description: (String|Mapping)?
 
     /// 
     hidden DnsConfig: (ServiceDnsConfig)?
 
     /// 
-    hidden NamespaceId: (String|Mapping)?
-
-    /// 
-    hidden Name: (String|Mapping)?
-
-    /// 
-    hidden Description: (String|Mapping)?
+    hidden HealthCheckConfig: (ServiceHealthCheckConfig)?
 
     /// 
     hidden HealthCheckCustomConfig: (ServiceHealthCheckCustomConfig)?
 
     /// 
-    hidden HealthCheckConfig: (ServiceHealthCheckConfig)?
+    hidden Name: (String|Mapping)?
+
+    /// 
+    hidden NamespaceId: (String|Mapping)?
 
     /// 
     hidden Tags: (Listing<ServiceTag>)?
 
+    /// 
+    hidden TypeProperty: (String|Mapping)?
+
     Properties {
-        ["Type"] = if (TypeProperty == null) null else TypeProperty
-        ["DnsConfig"] = if (DnsConfig == null) null else DnsConfig
-        ["NamespaceId"] = if (NamespaceId == null) null else NamespaceId
-        ["Name"] = if (Name == null) null else Name
         ["Description"] = if (Description == null) null else Description
-        ["HealthCheckCustomConfig"] = if (HealthCheckCustomConfig == null) null else HealthCheckCustomConfig
+        ["DnsConfig"] = if (DnsConfig == null) null else DnsConfig
         ["HealthCheckConfig"] = if (HealthCheckConfig == null) null else HealthCheckConfig
+        ["HealthCheckCustomConfig"] = if (HealthCheckCustomConfig == null) null else HealthCheckCustomConfig
+        ["Name"] = if (Name == null) null else Name
+        ["NamespaceId"] = if (NamespaceId == null) null else NamespaceId
         ["Tags"] = if (Tags == null) null else Tags
+        ["Type"] = if (TypeProperty == null) null else TypeProperty
     }
 
 }

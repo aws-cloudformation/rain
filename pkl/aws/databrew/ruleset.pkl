@@ -5,13 +5,29 @@ module aws.databrew.ruleset
 
 import "../../cloudformation.pkl"
 
-/// A key-value pair to associate expression's substitution variable names with their values
-open class RulesetSubstitutionValue {
-    ValueReference: String(matches(Regex(#"^:[A-Za-z0-9_]+$"#)))|Mapping
+/// A key-value pair to associate with a resource
+open class RulesetTag {
+    Key: String|Mapping
     Value: String|Mapping
 }
 
+typealias RulesetThresholdUnit = String|Mapping
+
+
 typealias RulesetThresholdValue = Number|Mapping
+
+
+typealias RulesetValuesMap = Listing<(RulesetSubstitutionValue)?>
+
+
+/// 
+open class RulesetThreshold {
+    Value: RulesetThresholdValue
+    Type: (RulesetThresholdType)?
+    Unit: (RulesetThresholdUnit)?
+}
+
+typealias RulesetThresholdType = String|Mapping
 
 
 /// Selector of a column from a dataset for profile job configuration. One selector includes either a column name or a regular expression
@@ -19,6 +35,12 @@ open class RulesetColumnSelector {
     Regex: (String|Mapping)?
     Name: (String|Mapping)?
 }
+
+typealias RulesetDisabled = Boolean|Mapping
+
+
+typealias RulesetExpression = String|Mapping
+
 
 /// Data quality rule for a target resource (dataset)
 open class RulesetRule {
@@ -30,32 +52,10 @@ open class RulesetRule {
     CheckExpression: RulesetExpression
 }
 
-typealias RulesetExpression = String|Mapping
-
-
-typealias RulesetThresholdType = String|Mapping
-
-
-typealias RulesetDisabled = Boolean|Mapping
-
-
-/// A key-value pair to associate with a resource
-open class RulesetTag {
-    Key: String|Mapping
+/// A key-value pair to associate expression's substitution variable names with their values
+open class RulesetSubstitutionValue {
+    ValueReference: String(matches(Regex(#"^:[A-Za-z0-9_]+$"#)))|Mapping
     Value: String|Mapping
-}
-
-typealias RulesetValuesMap = Listing<(RulesetSubstitutionValue)?>
-
-
-typealias RulesetThresholdUnit = String|Mapping
-
-
-/// 
-open class RulesetThreshold {
-    Unit: (RulesetThresholdUnit)?
-    Value: RulesetThresholdValue
-    Type: (RulesetThresholdType)?
 }
 
 /// Resource schema for AWS::DataBrew::Ruleset.
@@ -64,14 +64,11 @@ open class Ruleset extends cloudformation.Resource {
     Type = "AWS::DataBrew::Ruleset"
 
 
-    /// Name of the Ruleset
-    hidden Name: String|Mapping
-
     /// Description of the Ruleset
     hidden Description: (String|Mapping)?
 
-    /// Arn of the target resource (dataset) to apply the ruleset to
-    hidden TargetArn: String|Mapping
+    /// Name of the Ruleset
+    hidden Name: String|Mapping
 
     /// List of the data quality rules in the ruleset
     hidden Rules: Listing<RulesetRule>
@@ -79,12 +76,15 @@ open class Ruleset extends cloudformation.Resource {
     /// 
     hidden Tags: (Listing<RulesetTag>)?
 
+    /// Arn of the target resource (dataset) to apply the ruleset to
+    hidden TargetArn: String|Mapping
+
     Properties {
-        ["Name"] = if (Name == null) null else Name
         ["Description"] = if (Description == null) null else Description
-        ["TargetArn"] = if (TargetArn == null) null else TargetArn
+        ["Name"] = if (Name == null) null else Name
         ["Rules"] = if (Rules == null) null else Rules
         ["Tags"] = if (Tags == null) null else Tags
+        ["TargetArn"] = if (TargetArn == null) null else TargetArn
     }
 
 }

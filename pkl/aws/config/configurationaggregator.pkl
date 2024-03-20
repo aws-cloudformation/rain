@@ -5,12 +5,6 @@ module aws.config.configurationaggregator
 
 import "../../cloudformation.pkl"
 
-/// A key-value pair to associate with a resource.
-open class ConfigurationAggregatorTag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
 /// 
 open class ConfigurationAggregatorAccountAggregationSource {
     AllAwsRegions: (Boolean|Mapping)?
@@ -20,9 +14,15 @@ open class ConfigurationAggregatorAccountAggregationSource {
 
 /// 
 open class ConfigurationAggregatorOrganizationAggregationSource {
+    AllAwsRegions: (Boolean|Mapping)?
     AwsRegions: (Listing<String|Mapping>)?
     RoleArn: String|Mapping
-    AllAwsRegions: (Boolean|Mapping)?
+}
+
+/// A key-value pair to associate with a resource.
+open class ConfigurationAggregatorTag {
+    Value: String|Mapping
+    Key: String|Mapping
 }
 
 /// Resource Type definition for AWS::Config::ConfigurationAggregator
@@ -32,22 +32,22 @@ open class ConfigurationAggregator extends cloudformation.Resource {
 
 
     /// 
-    hidden OrganizationAggregationSource: (ConfigurationAggregatorOrganizationAggregationSource)?
-
-    /// The tags for the configuration aggregator.
-    hidden Tags: (Listing<ConfigurationAggregatorTag>)?
-
-    /// 
     hidden AccountAggregationSources: (Listing<ConfigurationAggregatorAccountAggregationSource>)?
 
     /// The name of the aggregator.
     hidden ConfigurationAggregatorName: (String(matches(Regex(#"[\w\-]+"#)))|Mapping)?
 
+    /// 
+    hidden OrganizationAggregationSource: (ConfigurationAggregatorOrganizationAggregationSource)?
+
+    /// The tags for the configuration aggregator.
+    hidden Tags: (Listing<ConfigurationAggregatorTag>)?
+
     Properties {
-        ["OrganizationAggregationSource"] = if (OrganizationAggregationSource == null) null else OrganizationAggregationSource
-        ["Tags"] = if (Tags == null) null else Tags
         ["AccountAggregationSources"] = if (AccountAggregationSources == null) null else AccountAggregationSources
         ["ConfigurationAggregatorName"] = if (ConfigurationAggregatorName == null) null else ConfigurationAggregatorName
+        ["OrganizationAggregationSource"] = if (OrganizationAggregationSource == null) null else OrganizationAggregationSource
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

@@ -6,41 +6,10 @@ module aws.ec2.instance
 import "../../cloudformation.pkl"
 
 /// 
-open class InstanceHibernationOptions {
-    Configured: (Boolean|Mapping)?
-}
-
-/// 
-open class InstanceElasticGpuSpecification {
-    Type: String|Mapping
-}
-
-/// 
-open class InstanceLicenseSpecification {
-    LicenseConfigurationArn: String|Mapping
-}
-
-/// 
-open class InstanceElasticInferenceAccelerator {
-    Type: String|Mapping
-    Count: (Int|Mapping)?
-}
-
-/// 
-open class InstanceAssociationParameter {
-    Value: Listing<String|Mapping>
-    Key: String|Mapping
-}
-
-/// 
-open class InstanceTag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class InstanceInstanceIpv6Address {
-    Ipv6Address: String|Mapping
+open class InstancePrivateDnsNameOptions {
+    HostnameType: (String|Mapping)?
+    EnableResourceNameDnsAAAARecord: (Boolean|Mapping)?
+    EnableResourceNameDnsARecord: (Boolean|Mapping)?
 }
 
 /// 
@@ -56,6 +25,79 @@ open class InstanceVolume {
 }
 
 /// 
+open class InstanceLicenseSpecification {
+    LicenseConfigurationArn: String|Mapping
+}
+
+/// 
+open class InstanceEbs {
+    Encrypted: (Boolean|Mapping)?
+    Iops: (Int|Mapping)?
+    VolumeSize: (Int|Mapping)?
+    DeleteOnTermination: (Boolean|Mapping)?
+    SnapshotId: (String|Mapping)?
+    VolumeType: (String|Mapping)?
+    KmsKeyId: (String|Mapping)?
+}
+
+/// 
+open class InstanceElasticInferenceAccelerator {
+    Type: String|Mapping
+    Count: (Int|Mapping)?
+}
+
+/// 
+open class InstanceEnclaveOptions {
+    Enabled: (Boolean|Mapping)?
+}
+
+/// 
+open class InstanceInstanceIpv6Address {
+    Ipv6Address: String|Mapping
+}
+
+/// 
+open class InstanceNetworkInterface {
+    PrivateIpAddresses: (Listing<InstancePrivateIpAddressSpecification>)?
+    SecondaryPrivateIpAddressCount: (Int|Mapping)?
+    Ipv6Addresses: (Listing<InstanceInstanceIpv6Address>)?
+    Description: (String|Mapping)?
+    SubnetId: (String|Mapping)?
+    AssociatePublicIpAddress: (Boolean|Mapping)?
+    NetworkInterfaceId: (String|Mapping)?
+    DeleteOnTermination: (Boolean|Mapping)?
+    DeviceIndex: String|Mapping
+    GroupSet: (Listing<String|Mapping>)?
+    AssociateCarrierIpAddress: (Boolean|Mapping)?
+    Ipv6AddressCount: (Int|Mapping)?
+    PrivateIpAddress: (String|Mapping)?
+}
+
+/// 
+open class InstanceTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// 
+open class InstanceBlockDeviceMapping {
+    DeviceName: String|Mapping
+    NoDevice: (InstanceNoDevice)?
+    VirtualName: (String|Mapping)?
+    Ebs: (InstanceEbs)?
+}
+
+/// 
+open class InstanceElasticGpuSpecification {
+    Type: String|Mapping
+}
+
+/// 
+open class InstanceHibernationOptions {
+    Configured: (Boolean|Mapping)?
+}
+
+/// 
 open class InstanceLaunchTemplateSpecification {
     LaunchTemplateName: (String|Mapping)?
     LaunchTemplateId: (String|Mapping)?
@@ -63,19 +105,9 @@ open class InstanceLaunchTemplateSpecification {
 }
 
 /// 
-open class InstanceEbs {
-    SnapshotId: (String|Mapping)?
-    VolumeType: (String|Mapping)?
-    KmsKeyId: (String|Mapping)?
-    Encrypted: (Boolean|Mapping)?
-    Iops: (Int|Mapping)?
-    VolumeSize: (Int|Mapping)?
-    DeleteOnTermination: (Boolean|Mapping)?
-}
-
-/// 
-open class InstanceCreditSpecification {
-    CPUCredits: (String|Mapping)?
+open class InstanceSsmAssociation {
+    AssociationParameters: (Listing<InstanceAssociationParameter>)?
+    DocumentName: String|Mapping
 }
 
 /// 
@@ -85,50 +117,18 @@ open class InstanceCpuOptions {
 }
 
 /// 
-open class InstanceEnclaveOptions {
-    Enabled: (Boolean|Mapping)?
-}
-
-/// 
-open class InstanceBlockDeviceMapping {
-    Ebs: (InstanceEbs)?
-    DeviceName: String|Mapping
-    NoDevice: (InstanceNoDevice)?
-    VirtualName: (String|Mapping)?
-}
-
-/// 
-open class InstanceNetworkInterface {
-    Description: (String|Mapping)?
-    DeviceIndex: String|Mapping
-    GroupSet: (Listing<String|Mapping>)?
-    SubnetId: (String|Mapping)?
-    PrivateIpAddresses: (Listing<InstancePrivateIpAddressSpecification>)?
-    Ipv6Addresses: (Listing<InstanceInstanceIpv6Address>)?
-    AssociatePublicIpAddress: (Boolean|Mapping)?
-    AssociateCarrierIpAddress: (Boolean|Mapping)?
-    PrivateIpAddress: (String|Mapping)?
-    SecondaryPrivateIpAddressCount: (Int|Mapping)?
-    DeleteOnTermination: (Boolean|Mapping)?
-    NetworkInterfaceId: (String|Mapping)?
-    Ipv6AddressCount: (Int|Mapping)?
-}
-
-/// 
-open class InstancePrivateDnsNameOptions {
-    HostnameType: (String|Mapping)?
-    EnableResourceNameDnsAAAARecord: (Boolean|Mapping)?
-    EnableResourceNameDnsARecord: (Boolean|Mapping)?
-}
-
-/// 
-open class InstanceSsmAssociation {
-    AssociationParameters: (Listing<InstanceAssociationParameter>)?
-    DocumentName: String|Mapping
+open class InstanceCreditSpecification {
+    CPUCredits: (String|Mapping)?
 }
 
 typealias InstanceNoDevice = Dynamic
 
+
+/// 
+open class InstanceAssociationParameter {
+    Value: Listing<String|Mapping>
+    Key: String|Mapping
+}
 
 /// Resource Type definition for AWS::EC2::Instance
 open class Instance extends cloudformation.Resource {
@@ -137,79 +137,82 @@ open class Instance extends cloudformation.Resource {
 
 
     /// 
-    hidden PrivateIpAddress: (String|Mapping)?
+    hidden AdditionalInfo: (String|Mapping)?
 
     /// 
-    hidden HostId: (String|Mapping)?
+    hidden Affinity: (String|Mapping)?
 
     /// 
-    hidden CreditSpecification: (InstanceCreditSpecification)?
-
-    /// 
-    hidden UserData: (String|Mapping)?
-
-    /// 
-    hidden KernelId: (String|Mapping)?
-
-    /// 
-    hidden EbsOptimized: (Boolean|Mapping)?
-
-    /// 
-    hidden Volumes: (Listing<InstanceVolume>)?
-
-    /// 
-    hidden SecurityGroupIds: (Listing<String|Mapping>)?
-
-    /// 
-    hidden RamdiskId: (String|Mapping)?
-
-    /// 
-    hidden Ipv6Addresses: (Listing<InstanceInstanceIpv6Address>)?
-
-    /// 
-    hidden ElasticGpuSpecifications: (Listing<InstanceElasticGpuSpecification>)?
-
-    /// 
-    hidden EnclaveOptions: (InstanceEnclaveOptions)?
-
-    /// 
-    hidden KeyName: (String|Mapping)?
-
-    /// 
-    hidden SecurityGroups: (Listing<String|Mapping>)?
-
-    /// 
-    hidden IamInstanceProfile: (String|Mapping)?
-
-    /// 
-    hidden Tags: (Listing<InstanceTag>)?
-
-    /// 
-    hidden SourceDestCheck: (Boolean|Mapping)?
+    hidden AvailabilityZone: (String|Mapping)?
 
     /// 
     hidden BlockDeviceMappings: (Listing<InstanceBlockDeviceMapping>)?
 
     /// 
-    hidden PropagateTagsToVolumeOnCreation: (Boolean|Mapping)?
+    hidden CpuOptions: (InstanceCpuOptions)?
 
     /// 
-    hidden Ipv6AddressCount: (Int|Mapping)?
+    hidden CreditSpecification: (InstanceCreditSpecification)?
 
     /// 
-    hidden AdditionalInfo: (String|Mapping)?
+    hidden DisableApiTermination: (Boolean|Mapping)?
 
     /// 
-    hidden NetworkInterfaces: (Listing<InstanceNetworkInterface>)?
+    hidden EbsOptimized: (Boolean|Mapping)?
+
+    /// 
+    hidden ElasticGpuSpecifications: (Listing<InstanceElasticGpuSpecification>)?
+
+    /// 
+    hidden ElasticInferenceAccelerators: (Listing<InstanceElasticInferenceAccelerator>)?
+
+    /// 
+    hidden EnclaveOptions: (InstanceEnclaveOptions)?
+
+    /// 
+    hidden HibernationOptions: (InstanceHibernationOptions)?
+
+    /// 
+    hidden HostId: (String|Mapping)?
+
+    /// 
+    hidden HostResourceGroupArn: (String|Mapping)?
+
+    /// 
+    hidden IamInstanceProfile: (String|Mapping)?
 
     /// 
     hidden ImageId: (String|Mapping)?
 
     /// 
-    hidden CpuOptions: (InstanceCpuOptions)?
+    hidden InstanceInitiatedShutdownBehavior: (String|Mapping)?
 
     /// 
-    hidden DisableApiTermination: (Boolean|Mapping)?
+    hidden InstanceType: (String|Mapping)?
+
+    /// 
+    hidden Ipv6AddressCount: (Int|Mapping)?
+
+    /// 
+    hidden Ipv6Addresses: (Listing<InstanceInstanceIpv6Address>)?
+
+    /// 
+    hidden KernelId: (String|Mapping)?
+
+    /// 
+    hidden KeyName: (String|Mapping)?
+
+    /// 
+    hidden LaunchTemplate: (InstanceLaunchTemplateSpecification)?
+
+    /// 
+    hidden LicenseSpecifications: (Listing<InstanceLicenseSpecification>)?
+
+    /// 
+    hidden Monitoring: (Boolean|Mapping)?
+
+    /// 
+    hidden NetworkInterfaces: (Listing<InstanceNetworkInterface>)?
 
     /// 
     hidden PlacementGroupName: (String|Mapping)?
@@ -218,85 +221,82 @@ open class Instance extends cloudformation.Resource {
     hidden PrivateDnsNameOptions: (InstancePrivateDnsNameOptions)?
 
     /// 
-    hidden HostResourceGroupArn: (String|Mapping)?
+    hidden PrivateIpAddress: (String|Mapping)?
 
     /// 
-    hidden Tenancy: (String|Mapping)?
+    hidden PropagateTagsToVolumeOnCreation: (Boolean|Mapping)?
 
     /// 
-    hidden LaunchTemplate: (InstanceLaunchTemplateSpecification)?
+    hidden RamdiskId: (String|Mapping)?
 
     /// 
-    hidden InstanceType: (String|Mapping)?
+    hidden SecurityGroupIds: (Listing<String|Mapping>)?
 
     /// 
-    hidden InstanceInitiatedShutdownBehavior: (String|Mapping)?
+    hidden SecurityGroups: (Listing<String|Mapping>)?
 
     /// 
-    hidden AvailabilityZone: (String|Mapping)?
+    hidden SourceDestCheck: (Boolean|Mapping)?
 
     /// 
     hidden SsmAssociations: (Listing<InstanceSsmAssociation>)?
 
     /// 
-    hidden Affinity: (String|Mapping)?
-
-    /// 
     hidden SubnetId: (String|Mapping)?
 
     /// 
-    hidden ElasticInferenceAccelerators: (Listing<InstanceElasticInferenceAccelerator>)?
+    hidden Tags: (Listing<InstanceTag>)?
 
     /// 
-    hidden Monitoring: (Boolean|Mapping)?
+    hidden Tenancy: (String|Mapping)?
 
     /// 
-    hidden HibernationOptions: (InstanceHibernationOptions)?
+    hidden UserData: (String|Mapping)?
 
     /// 
-    hidden LicenseSpecifications: (Listing<InstanceLicenseSpecification>)?
+    hidden Volumes: (Listing<InstanceVolume>)?
 
     Properties {
-        ["PrivateIpAddress"] = if (PrivateIpAddress == null) null else PrivateIpAddress
-        ["HostId"] = if (HostId == null) null else HostId
-        ["CreditSpecification"] = if (CreditSpecification == null) null else CreditSpecification
-        ["UserData"] = if (UserData == null) null else UserData
-        ["KernelId"] = if (KernelId == null) null else KernelId
-        ["EbsOptimized"] = if (EbsOptimized == null) null else EbsOptimized
-        ["Volumes"] = if (Volumes == null) null else Volumes
-        ["SecurityGroupIds"] = if (SecurityGroupIds == null) null else SecurityGroupIds
-        ["RamdiskId"] = if (RamdiskId == null) null else RamdiskId
-        ["Ipv6Addresses"] = if (Ipv6Addresses == null) null else Ipv6Addresses
-        ["ElasticGpuSpecifications"] = if (ElasticGpuSpecifications == null) null else ElasticGpuSpecifications
-        ["EnclaveOptions"] = if (EnclaveOptions == null) null else EnclaveOptions
-        ["KeyName"] = if (KeyName == null) null else KeyName
-        ["SecurityGroups"] = if (SecurityGroups == null) null else SecurityGroups
-        ["IamInstanceProfile"] = if (IamInstanceProfile == null) null else IamInstanceProfile
-        ["Tags"] = if (Tags == null) null else Tags
-        ["SourceDestCheck"] = if (SourceDestCheck == null) null else SourceDestCheck
-        ["BlockDeviceMappings"] = if (BlockDeviceMappings == null) null else BlockDeviceMappings
-        ["PropagateTagsToVolumeOnCreation"] = if (PropagateTagsToVolumeOnCreation == null) null else PropagateTagsToVolumeOnCreation
-        ["Ipv6AddressCount"] = if (Ipv6AddressCount == null) null else Ipv6AddressCount
         ["AdditionalInfo"] = if (AdditionalInfo == null) null else AdditionalInfo
-        ["NetworkInterfaces"] = if (NetworkInterfaces == null) null else NetworkInterfaces
-        ["ImageId"] = if (ImageId == null) null else ImageId
+        ["Affinity"] = if (Affinity == null) null else Affinity
+        ["AvailabilityZone"] = if (AvailabilityZone == null) null else AvailabilityZone
+        ["BlockDeviceMappings"] = if (BlockDeviceMappings == null) null else BlockDeviceMappings
         ["CpuOptions"] = if (CpuOptions == null) null else CpuOptions
+        ["CreditSpecification"] = if (CreditSpecification == null) null else CreditSpecification
         ["DisableApiTermination"] = if (DisableApiTermination == null) null else DisableApiTermination
+        ["EbsOptimized"] = if (EbsOptimized == null) null else EbsOptimized
+        ["ElasticGpuSpecifications"] = if (ElasticGpuSpecifications == null) null else ElasticGpuSpecifications
+        ["ElasticInferenceAccelerators"] = if (ElasticInferenceAccelerators == null) null else ElasticInferenceAccelerators
+        ["EnclaveOptions"] = if (EnclaveOptions == null) null else EnclaveOptions
+        ["HibernationOptions"] = if (HibernationOptions == null) null else HibernationOptions
+        ["HostId"] = if (HostId == null) null else HostId
+        ["HostResourceGroupArn"] = if (HostResourceGroupArn == null) null else HostResourceGroupArn
+        ["IamInstanceProfile"] = if (IamInstanceProfile == null) null else IamInstanceProfile
+        ["ImageId"] = if (ImageId == null) null else ImageId
+        ["InstanceInitiatedShutdownBehavior"] = if (InstanceInitiatedShutdownBehavior == null) null else InstanceInitiatedShutdownBehavior
+        ["InstanceType"] = if (InstanceType == null) null else InstanceType
+        ["Ipv6AddressCount"] = if (Ipv6AddressCount == null) null else Ipv6AddressCount
+        ["Ipv6Addresses"] = if (Ipv6Addresses == null) null else Ipv6Addresses
+        ["KernelId"] = if (KernelId == null) null else KernelId
+        ["KeyName"] = if (KeyName == null) null else KeyName
+        ["LaunchTemplate"] = if (LaunchTemplate == null) null else LaunchTemplate
+        ["LicenseSpecifications"] = if (LicenseSpecifications == null) null else LicenseSpecifications
+        ["Monitoring"] = if (Monitoring == null) null else Monitoring
+        ["NetworkInterfaces"] = if (NetworkInterfaces == null) null else NetworkInterfaces
         ["PlacementGroupName"] = if (PlacementGroupName == null) null else PlacementGroupName
         ["PrivateDnsNameOptions"] = if (PrivateDnsNameOptions == null) null else PrivateDnsNameOptions
-        ["HostResourceGroupArn"] = if (HostResourceGroupArn == null) null else HostResourceGroupArn
-        ["Tenancy"] = if (Tenancy == null) null else Tenancy
-        ["LaunchTemplate"] = if (LaunchTemplate == null) null else LaunchTemplate
-        ["InstanceType"] = if (InstanceType == null) null else InstanceType
-        ["InstanceInitiatedShutdownBehavior"] = if (InstanceInitiatedShutdownBehavior == null) null else InstanceInitiatedShutdownBehavior
-        ["AvailabilityZone"] = if (AvailabilityZone == null) null else AvailabilityZone
+        ["PrivateIpAddress"] = if (PrivateIpAddress == null) null else PrivateIpAddress
+        ["PropagateTagsToVolumeOnCreation"] = if (PropagateTagsToVolumeOnCreation == null) null else PropagateTagsToVolumeOnCreation
+        ["RamdiskId"] = if (RamdiskId == null) null else RamdiskId
+        ["SecurityGroupIds"] = if (SecurityGroupIds == null) null else SecurityGroupIds
+        ["SecurityGroups"] = if (SecurityGroups == null) null else SecurityGroups
+        ["SourceDestCheck"] = if (SourceDestCheck == null) null else SourceDestCheck
         ["SsmAssociations"] = if (SsmAssociations == null) null else SsmAssociations
-        ["Affinity"] = if (Affinity == null) null else Affinity
         ["SubnetId"] = if (SubnetId == null) null else SubnetId
-        ["ElasticInferenceAccelerators"] = if (ElasticInferenceAccelerators == null) null else ElasticInferenceAccelerators
-        ["Monitoring"] = if (Monitoring == null) null else Monitoring
-        ["HibernationOptions"] = if (HibernationOptions == null) null else HibernationOptions
-        ["LicenseSpecifications"] = if (LicenseSpecifications == null) null else LicenseSpecifications
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Tenancy"] = if (Tenancy == null) null else Tenancy
+        ["UserData"] = if (UserData == null) null else UserData
+        ["Volumes"] = if (Volumes == null) null else Volumes
     }
 
 }

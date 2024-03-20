@@ -5,28 +5,28 @@ module aws.ecr.publicrepository
 
 import "../../cloudformation.pkl"
 
-typealias PublicRepositoryRegistryId = String|Mapping
-
-
-typealias PublicRepositoryUsageText = String|Mapping
-
-
 typealias PublicRepositoryArchitecture = String|Mapping
 
 
-typealias PublicRepositoryAboutText = String|Mapping
-
-
-typealias PublicRepositoryRepositoryDescription = String|Mapping
-
-
-typealias PublicRepositoryOperatingSystemList = Listing<(PublicRepositoryOperatingSystem)?>
+typealias PublicRepositoryArchitectureList = Listing<(PublicRepositoryArchitecture)?>
 
 
 typealias PublicRepositoryOperatingSystem = String|Mapping
 
 
-typealias PublicRepositoryArchitectureList = Listing<(PublicRepositoryArchitecture)?>
+typealias PublicRepositoryOperatingSystemList = Listing<(PublicRepositoryOperatingSystem)?>
+
+
+typealias PublicRepositoryRepositoryDescription = String|Mapping
+
+
+typealias PublicRepositoryUsageText = String|Mapping
+
+
+typealias PublicRepositoryAboutText = String|Mapping
+
+
+typealias PublicRepositoryRegistryId = String|Mapping
 
 
 /// A key-value pair to associate with a resource.
@@ -41,22 +41,22 @@ open class PublicRepository extends cloudformation.Resource {
     Type = "AWS::ECR::PublicRepository"
 
 
+    /// The CatalogData property type specifies Catalog data for ECR Public Repository. For information about Catalog Data, see <link>
+    hidden RepositoryCatalogData: (Dynamic)?
+
     /// The name to use for the repository. The repository name may be specified on its own (such as nginx-web-app) or it can be prepended with a namespace to group the repository into a category (such as project-a/nginx-web-app). If you don't specify a name, AWS CloudFormation generates a unique physical ID and uses that ID for the repository name. For more information, see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-name.html.
     hidden RepositoryName: (String(matches(Regex(#"^(?=.{2,256}$)((?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)*[a-z0-9]+(?:[._-][a-z0-9]+)*)$"#)))|Mapping)?
 
     /// The JSON repository policy text to apply to the repository. For more information, see https://docs.aws.amazon.com/AmazonECR/latest/userguide/RepositoryPolicyExamples.html in the Amazon Elastic Container Registry User Guide. 
     hidden RepositoryPolicyText: (Dynamic)?
 
-    /// The CatalogData property type specifies Catalog data for ECR Public Repository. For information about Catalog Data, see <link>
-    hidden RepositoryCatalogData: (Dynamic)?
-
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<PublicRepositoryTag>)?
 
     Properties {
+        ["RepositoryCatalogData"] = if (RepositoryCatalogData == null) null else RepositoryCatalogData
         ["RepositoryName"] = if (RepositoryName == null) null else RepositoryName
         ["RepositoryPolicyText"] = if (RepositoryPolicyText == null) null else RepositoryPolicyText
-        ["RepositoryCatalogData"] = if (RepositoryCatalogData == null) null else RepositoryCatalogData
         ["Tags"] = if (Tags == null) null else Tags
     }
 

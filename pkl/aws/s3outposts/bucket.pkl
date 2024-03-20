@@ -5,35 +5,18 @@ module aws.s3outposts.bucket
 
 import "../../cloudformation.pkl"
 
-typealias RuleStatus = "Enabled"|"Disabled"
-
-/// Specifies lifecycle rules for an Amazon S3Outposts bucket. You must specify at least one of the following: AbortIncompleteMultipartUpload, ExpirationDate, ExpirationInDays.
-open class BucketRule {
-    ExpirationDate: (Bucketiso8601UTC)?
-    ExpirationInDays: (Int|Mapping)?
-    Filter: (Dynamic)?
-    Status: (RuleStatus|Mapping)?
-    Id: (String|Mapping)?
-    AbortIncompleteMultipartUpload: (BucketAbortIncompleteMultipartUpload)?
-}
-
-/// Specifies the days since the initiation of an incomplete multipart upload that Amazon S3Outposts will wait before permanently removing all parts of the upload.
-open class BucketAbortIncompleteMultipartUpload {
-    DaysAfterInitiation: Int|Mapping
-}
-
 typealias BucketFilterAndOperator = BucketFilterAndOperator0
 
 
 /// 
 open class BucketFilterAndOperator0 {
-    Prefix: (BucketFilterPrefix)?
     Tags: Listing<BucketFilterTag>
+    Prefix: (BucketFilterPrefix)?
 }
 
-/// 
-open class BucketTag {
-    Key: String(matches(Regex(#"^(?!aws:.*)([\p{L}\p{Z}\p{N}_.:=+\/\-@%]*)$"#)))|Mapping
+/// Tag used to identify a subset of objects for an Amazon S3Outposts bucket.
+open class BucketFilterTag {
+    Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:=+\/\-@%]*)$"#)))|Mapping
     Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:=+\/\-@%]*)$"#)))|Mapping
 }
 
@@ -42,16 +25,33 @@ open class BucketLifecycleConfiguration {
     Rules: Listing<BucketRule>
 }
 
+/// 
+open class BucketTag {
+    Key: String(matches(Regex(#"^(?!aws:.*)([\p{L}\p{Z}\p{N}_.:=+\/\-@%]*)$"#)))|Mapping
+    Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:=+\/\-@%]*)$"#)))|Mapping
+}
+
 typealias Bucketiso8601UTC = String|Mapping
 
+
+/// Specifies the days since the initiation of an incomplete multipart upload that Amazon S3Outposts will wait before permanently removing all parts of the upload.
+open class BucketAbortIncompleteMultipartUpload {
+    DaysAfterInitiation: Int|Mapping
+}
 
 typealias BucketFilterPrefix = String|Mapping
 
 
-/// Tag used to identify a subset of objects for an Amazon S3Outposts bucket.
-open class BucketFilterTag {
-    Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:=+\/\-@%]*)$"#)))|Mapping
-    Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:=+\/\-@%]*)$"#)))|Mapping
+typealias RuleStatus = "Enabled"|"Disabled"
+
+/// Specifies lifecycle rules for an Amazon S3Outposts bucket. You must specify at least one of the following: AbortIncompleteMultipartUpload, ExpirationDate, ExpirationInDays.
+open class BucketRule {
+    Status: (RuleStatus|Mapping)?
+    Id: (String|Mapping)?
+    AbortIncompleteMultipartUpload: (BucketAbortIncompleteMultipartUpload)?
+    ExpirationDate: (Bucketiso8601UTC)?
+    ExpirationInDays: (Int|Mapping)?
+    Filter: (Dynamic)?
 }
 
 /// Resource Type Definition for AWS::S3Outposts::Bucket
@@ -60,11 +60,11 @@ open class Bucket extends cloudformation.Resource {
     Type = "AWS::S3Outposts::Bucket"
 
 
-    /// Rules that define how Amazon S3Outposts manages objects during their lifetime.
-    hidden LifecycleConfiguration: (BucketLifecycleConfiguration)?
-
     /// A name for the bucket.
     hidden BucketName: String(matches(Regex(#"(?=^.{3,63}$)(?!^(\d+\.)+\d+$)(^(([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])$)"#)))|Mapping
+
+    /// Rules that define how Amazon S3Outposts manages objects during their lifetime.
+    hidden LifecycleConfiguration: (BucketLifecycleConfiguration)?
 
     /// The id of the customer outpost on which the bucket resides.
     hidden OutpostId: String(matches(Regex(#"^(op-[a-f0-9]{17}|\d{12}|ec2)$"#)))|Mapping
@@ -73,8 +73,8 @@ open class Bucket extends cloudformation.Resource {
     hidden Tags: (Listing<BucketTag>)?
 
     Properties {
-        ["LifecycleConfiguration"] = if (LifecycleConfiguration == null) null else LifecycleConfiguration
         ["BucketName"] = if (BucketName == null) null else BucketName
+        ["LifecycleConfiguration"] = if (LifecycleConfiguration == null) null else LifecycleConfiguration
         ["OutpostId"] = if (OutpostId == null) null else OutpostId
         ["Tags"] = if (Tags == null) null else Tags
     }

@@ -6,8 +6,9 @@ module aws.appmesh.virtualrouter
 import "../../cloudformation.pkl"
 
 /// 
-open class VirtualRouterVirtualRouterSpec {
-    Listeners: Listing<VirtualRouterVirtualRouterListener>
+open class VirtualRouterTag {
+    Value: String|Mapping
+    Key: String|Mapping
 }
 
 /// 
@@ -16,15 +17,14 @@ open class VirtualRouterVirtualRouterListener {
 }
 
 /// 
-open class VirtualRouterTag {
-    Value: String|Mapping
-    Key: String|Mapping
+open class VirtualRouterVirtualRouterSpec {
+    Listeners: Listing<VirtualRouterVirtualRouterListener>
 }
 
 /// 
 open class VirtualRouterPortMapping {
-    Protocol: String|Mapping
     Port: Int|Mapping
+    Protocol: String|Mapping
 }
 
 /// Resource Type definition for AWS::AppMesh::VirtualRouter
@@ -34,26 +34,26 @@ open class VirtualRouter extends cloudformation.Resource {
 
 
     /// 
+    hidden MeshName: String|Mapping
+
+    /// 
+    hidden MeshOwner: (String|Mapping)?
+
+    /// 
     hidden Spec: VirtualRouterVirtualRouterSpec
 
     /// 
     hidden Tags: (Listing<VirtualRouterTag>)?
 
     /// 
-    hidden MeshName: String|Mapping
-
-    /// 
     hidden VirtualRouterName: (String|Mapping)?
 
-    /// 
-    hidden MeshOwner: (String|Mapping)?
-
     Properties {
+        ["MeshName"] = if (MeshName == null) null else MeshName
+        ["MeshOwner"] = if (MeshOwner == null) null else MeshOwner
         ["Spec"] = if (Spec == null) null else Spec
         ["Tags"] = if (Tags == null) null else Tags
-        ["MeshName"] = if (MeshName == null) null else MeshName
         ["VirtualRouterName"] = if (VirtualRouterName == null) null else VirtualRouterName
-        ["MeshOwner"] = if (MeshOwner == null) null else MeshOwner
     }
 
 }

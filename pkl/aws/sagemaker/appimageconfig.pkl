@@ -5,30 +5,26 @@ module aws.sagemaker.appimageconfig
 
 import "../../cloudformation.pkl"
 
-/// 
-open class AppImageConfigTag {
-    Value: String|Mapping
-    Key: String|Mapping
+/// The configuration for the file system and kernels in a SageMaker image running as a KernelGateway app.
+open class AppImageConfigKernelGatewayImageConfig {
+    FileSystemConfig: (AppImageConfigFileSystemConfig)?
+    KernelSpecs: Listing<AppImageConfigKernelSpec>
 }
 
-/// 
-open class AppImageConfigKernelSpec {
-    DisplayName: (String|Mapping)?
-    Name: String|Mapping
-}
+typealias AppImageConfigCustomImageContainerEntrypoint = String|Mapping
 
-/// The container configuration for a SageMaker image.
-open class AppImageConfigContainerConfig {
-    ContainerEntrypoint: (Listing<AppImageConfigCustomImageContainerEntrypoint>)?
-    ContainerEnvironmentVariables: (Listing<AppImageConfigCustomImageContainerEnvironmentVariable>)?
-    ContainerArguments: (Listing<AppImageConfigCustomImageContainerArguments>)?
+
+/// 
+open class AppImageConfigCustomImageContainerEnvironmentVariable {
+    Value: String(matches(Regex(#"^(?!\s*$).+"#)))|Mapping
+    Key: String(matches(Regex(#"^(?!\s*$).+"#)))|Mapping
 }
 
 /// The Amazon Elastic File System (EFS) storage configuration for a SageMaker image.
 open class AppImageConfigFileSystemConfig {
-    DefaultGid: (Int|Mapping)?
     DefaultUid: (Int|Mapping)?
     MountPath: (String(matches(Regex(#"^/.*"#)))|Mapping)?
+    DefaultGid: (Int|Mapping)?
 }
 
 /// The configuration for the kernels in a SageMaker image running as a JupyterLab app.
@@ -37,21 +33,25 @@ open class AppImageConfigJupyterLabAppImageConfig {
 }
 
 /// 
-open class AppImageConfigCustomImageContainerEnvironmentVariable {
-    Value: String(matches(Regex(#"^(?!\s*$).+"#)))|Mapping
-    Key: String(matches(Regex(#"^(?!\s*$).+"#)))|Mapping
+open class AppImageConfigKernelSpec {
+    DisplayName: (String|Mapping)?
+    Name: String|Mapping
 }
 
-/// The configuration for the file system and kernels in a SageMaker image running as a KernelGateway app.
-open class AppImageConfigKernelGatewayImageConfig {
-    FileSystemConfig: (AppImageConfigFileSystemConfig)?
-    KernelSpecs: Listing<AppImageConfigKernelSpec>
+/// 
+open class AppImageConfigTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// The container configuration for a SageMaker image.
+open class AppImageConfigContainerConfig {
+    ContainerArguments: (Listing<AppImageConfigCustomImageContainerArguments>)?
+    ContainerEntrypoint: (Listing<AppImageConfigCustomImageContainerEntrypoint>)?
+    ContainerEnvironmentVariables: (Listing<AppImageConfigCustomImageContainerEnvironmentVariable>)?
 }
 
 typealias AppImageConfigCustomImageContainerArguments = String|Mapping
-
-
-typealias AppImageConfigCustomImageContainerEntrypoint = String|Mapping
 
 
 /// Resource Type definition for AWS::SageMaker::AppImageConfig
@@ -60,23 +60,23 @@ open class AppImageConfig extends cloudformation.Resource {
     Type = "AWS::SageMaker::AppImageConfig"
 
 
-    /// The KernelGatewayImageConfig.
-    hidden KernelGatewayImageConfig: (AppImageConfigKernelGatewayImageConfig)?
+    /// The Name of the AppImageConfig.
+    hidden AppImageConfigName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"#)))|Mapping
 
     /// The JupyterLabAppImageConfig.
     hidden JupyterLabAppImageConfig: (AppImageConfigJupyterLabAppImageConfig)?
 
+    /// The KernelGatewayImageConfig.
+    hidden KernelGatewayImageConfig: (AppImageConfigKernelGatewayImageConfig)?
+
     /// A list of tags to apply to the AppImageConfig.
     hidden Tags: (Listing<AppImageConfigTag>)?
 
-    /// The Name of the AppImageConfig.
-    hidden AppImageConfigName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"#)))|Mapping
-
     Properties {
-        ["KernelGatewayImageConfig"] = if (KernelGatewayImageConfig == null) null else KernelGatewayImageConfig
-        ["JupyterLabAppImageConfig"] = if (JupyterLabAppImageConfig == null) null else JupyterLabAppImageConfig
-        ["Tags"] = if (Tags == null) null else Tags
         ["AppImageConfigName"] = if (AppImageConfigName == null) null else AppImageConfigName
+        ["JupyterLabAppImageConfig"] = if (JupyterLabAppImageConfig == null) null else JupyterLabAppImageConfig
+        ["KernelGatewayImageConfig"] = if (KernelGatewayImageConfig == null) null else KernelGatewayImageConfig
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

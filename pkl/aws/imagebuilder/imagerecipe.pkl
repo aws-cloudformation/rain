@@ -5,29 +5,16 @@ module aws.imagebuilder.imagerecipe
 
 import "../../cloudformation.pkl"
 
-typealias EbsInstanceBlockDeviceSpecificationVolumeType = "standard"|"io1"|"io2"|"gp2"|"gp3"|"sc1"|"st1"
-
-/// Amazon EBS-specific block device mapping specifications. 
-open class ImageRecipeEbsInstanceBlockDeviceSpecification {
-    SnapshotId: (String|Mapping)?
-    Throughput: (Int|Mapping)?
-    VolumeSize: (Int|Mapping)?
-    VolumeType: (EbsInstanceBlockDeviceSpecificationVolumeType|Mapping)?
-    Encrypted: (Boolean|Mapping)?
-    DeleteOnTermination: (Boolean|Mapping)?
-    Iops: (Int|Mapping)?
-    KmsKeyId: (String|Mapping)?
-}
-
 /// Specify additional settings and launch scripts for your build instances.
 open class ImageRecipeAdditionalInstanceConfiguration {
     SystemsManagerAgent: (ImageRecipeSystemsManagerAgent)?
     UserDataOverride: (String|Mapping)?
 }
 
-/// Contains settings for the SSM agent on your build instance.
-open class ImageRecipeSystemsManagerAgent {
-    UninstallAfterBuild: (Boolean|Mapping)?
+/// Configuration details of the component.
+open class ImageRecipeComponentConfiguration {
+    ComponentArn: (String|Mapping)?
+    Parameters: (Listing<ImageRecipeComponentParameter>)?
 }
 
 /// Contains a key/value pair that sets the named component parameter.
@@ -36,10 +23,18 @@ open class ImageRecipeComponentParameter {
     Value: Listing<String|Mapping>
 }
 
-/// Configuration details of the component.
-open class ImageRecipeComponentConfiguration {
-    ComponentArn: (String|Mapping)?
-    Parameters: (Listing<ImageRecipeComponentParameter>)?
+typealias EbsInstanceBlockDeviceSpecificationVolumeType = "standard"|"io1"|"io2"|"gp2"|"gp3"|"sc1"|"st1"
+
+/// Amazon EBS-specific block device mapping specifications. 
+open class ImageRecipeEbsInstanceBlockDeviceSpecification {
+    Iops: (Int|Mapping)?
+    KmsKeyId: (String|Mapping)?
+    SnapshotId: (String|Mapping)?
+    Throughput: (Int|Mapping)?
+    VolumeSize: (Int|Mapping)?
+    VolumeType: (EbsInstanceBlockDeviceSpecificationVolumeType|Mapping)?
+    Encrypted: (Boolean|Mapping)?
+    DeleteOnTermination: (Boolean|Mapping)?
 }
 
 /// Defines block device mappings for the instance used to configure your image. 
@@ -50,49 +45,54 @@ open class ImageRecipeInstanceBlockDeviceMapping {
     Ebs: (ImageRecipeEbsInstanceBlockDeviceSpecification)?
 }
 
+/// Contains settings for the SSM agent on your build instance.
+open class ImageRecipeSystemsManagerAgent {
+    UninstallAfterBuild: (Boolean|Mapping)?
+}
+
 /// Resource schema for AWS::ImageBuilder::ImageRecipe
 open class ImageRecipe extends cloudformation.Resource {
 
     Type = "AWS::ImageBuilder::ImageRecipe"
 
 
-    /// The description of the image recipe.
-    hidden Description: (String|Mapping)?
-
-    /// The version of the image recipe.
-    hidden Version: String|Mapping
-
-    /// The components of the image recipe.
-    hidden Components: Listing<ImageRecipeComponentConfiguration>
+    /// Specify additional settings and launch scripts for your build instances.
+    hidden AdditionalInstanceConfiguration: (ImageRecipeAdditionalInstanceConfiguration)?
 
     /// The block device mappings to apply when creating images from this recipe.
     hidden BlockDeviceMappings: (Listing<ImageRecipeInstanceBlockDeviceMapping>)?
 
-    /// The parent image of the image recipe.
-    hidden ParentImage: String|Mapping
+    /// The components of the image recipe.
+    hidden Components: Listing<ImageRecipeComponentConfiguration>
 
-    /// The working directory to be used during build and test workflows.
-    hidden WorkingDirectory: (String|Mapping)?
-
-    /// Specify additional settings and launch scripts for your build instances.
-    hidden AdditionalInstanceConfiguration: (ImageRecipeAdditionalInstanceConfiguration)?
-
-    /// The tags of the image recipe.
-    hidden Tags: (ImageRecipeImageRecipeTags)?
+    /// The description of the image recipe.
+    hidden Description: (String|Mapping)?
 
     /// The name of the image recipe.
     hidden Name: String|Mapping
 
+    /// The parent image of the image recipe.
+    hidden ParentImage: String|Mapping
+
+    /// The tags of the image recipe.
+    hidden Tags: (ImageRecipeImageRecipeTags)?
+
+    /// The version of the image recipe.
+    hidden Version: String|Mapping
+
+    /// The working directory to be used during build and test workflows.
+    hidden WorkingDirectory: (String|Mapping)?
+
     Properties {
-        ["Description"] = if (Description == null) null else Description
-        ["Version"] = if (Version == null) null else Version
-        ["Components"] = if (Components == null) null else Components
-        ["BlockDeviceMappings"] = if (BlockDeviceMappings == null) null else BlockDeviceMappings
-        ["ParentImage"] = if (ParentImage == null) null else ParentImage
-        ["WorkingDirectory"] = if (WorkingDirectory == null) null else WorkingDirectory
         ["AdditionalInstanceConfiguration"] = if (AdditionalInstanceConfiguration == null) null else AdditionalInstanceConfiguration
-        ["Tags"] = if (Tags == null) null else Tags
+        ["BlockDeviceMappings"] = if (BlockDeviceMappings == null) null else BlockDeviceMappings
+        ["Components"] = if (Components == null) null else Components
+        ["Description"] = if (Description == null) null else Description
         ["Name"] = if (Name == null) null else Name
+        ["ParentImage"] = if (ParentImage == null) null else ParentImage
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Version"] = if (Version == null) null else Version
+        ["WorkingDirectory"] = if (WorkingDirectory == null) null else WorkingDirectory
     }
 
 }

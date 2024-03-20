@@ -5,15 +5,15 @@ module aws.aps.workspace
 
 import "../../cloudformation.pkl"
 
+/// Logging configuration
+open class WorkspaceLoggingConfiguration {
+    LogGroupArn: (String|Mapping)?
+}
+
 /// A key-value pair to associate with a resource.
 open class WorkspaceTag {
     Key: String|Mapping
     Value: String|Mapping
-}
-
-/// Logging configuration
-open class WorkspaceLoggingConfiguration {
-    LogGroupArn: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::APS::Workspace
@@ -22,26 +22,26 @@ open class Workspace extends cloudformation.Resource {
     Type = "AWS::APS::Workspace"
 
 
-    /// AMP Workspace alias.
-    hidden Alias: (String|Mapping)?
-
     /// The AMP Workspace alert manager definition data
     hidden AlertManagerDefinition: (String|Mapping)?
 
-    /// 
-    hidden LoggingConfiguration: (WorkspaceLoggingConfiguration)?
+    /// AMP Workspace alias.
+    hidden Alias: (String|Mapping)?
 
     /// KMS Key ARN used to encrypt and decrypt AMP workspace data.
     hidden KmsKeyArn: (String(matches(Regex(#"^arn:aws[-a-z]*:kms:[-a-z0-9]+:[0-9]{12}:key/.+$"#)))|Mapping)?
+
+    /// 
+    hidden LoggingConfiguration: (WorkspaceLoggingConfiguration)?
 
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<WorkspaceTag>)?
 
     Properties {
-        ["Alias"] = if (Alias == null) null else Alias
         ["AlertManagerDefinition"] = if (AlertManagerDefinition == null) null else AlertManagerDefinition
-        ["LoggingConfiguration"] = if (LoggingConfiguration == null) null else LoggingConfiguration
+        ["Alias"] = if (Alias == null) null else Alias
         ["KmsKeyArn"] = if (KmsKeyArn == null) null else KmsKeyArn
+        ["LoggingConfiguration"] = if (LoggingConfiguration == null) null else LoggingConfiguration
         ["Tags"] = if (Tags == null) null else Tags
     }
 

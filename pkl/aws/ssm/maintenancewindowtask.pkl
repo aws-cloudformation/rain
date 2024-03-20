@@ -6,10 +6,25 @@ module aws.ssm.maintenancewindowtask
 import "../../cloudformation.pkl"
 
 /// 
-open class MaintenanceWindowTaskLoggingInfo {
-    Region: String|Mapping
-    S3Prefix: (String|Mapping)?
-    S3Bucket: String|Mapping
+open class MaintenanceWindowTaskMaintenanceWindowLambdaParameters {
+    Qualifier: (String|Mapping)?
+    Payload: (String|Mapping)?
+    ClientContext: (String|Mapping)?
+}
+
+/// 
+open class MaintenanceWindowTaskMaintenanceWindowRunCommandParameters {
+    Comment: (String|Mapping)?
+    ServiceRoleArn: (String|Mapping)?
+    NotificationConfig: (MaintenanceWindowTaskNotificationConfig)?
+    CloudWatchOutputConfig: (MaintenanceWindowTaskCloudWatchOutputConfig)?
+    DocumentHashType: (String|Mapping)?
+    DocumentVersion: (String|Mapping)?
+    OutputS3BucketName: (String|Mapping)?
+    DocumentHash: (String|Mapping)?
+    TimeoutSeconds: (Int|Mapping)?
+    OutputS3KeyPrefix: (String|Mapping)?
+    Parameters: (Dynamic)?
 }
 
 /// 
@@ -19,18 +34,28 @@ open class MaintenanceWindowTaskTarget {
 }
 
 /// 
-open class MaintenanceWindowTaskMaintenanceWindowRunCommandParameters {
+open class MaintenanceWindowTaskCloudWatchOutputConfig {
+    CloudWatchOutputEnabled: (Boolean|Mapping)?
+    CloudWatchLogGroupName: (String|Mapping)?
+}
+
+/// 
+open class MaintenanceWindowTaskLoggingInfo {
+    Region: String|Mapping
+    S3Prefix: (String|Mapping)?
+    S3Bucket: String|Mapping
+}
+
+/// 
+open class MaintenanceWindowTaskMaintenanceWindowAutomationParameters {
     Parameters: (Dynamic)?
-    DocumentHashType: (String|Mapping)?
-    ServiceRoleArn: (String|Mapping)?
-    NotificationConfig: (MaintenanceWindowTaskNotificationConfig)?
-    TimeoutSeconds: (Int|Mapping)?
-    Comment: (String|Mapping)?
-    OutputS3KeyPrefix: (String|Mapping)?
-    CloudWatchOutputConfig: (MaintenanceWindowTaskCloudWatchOutputConfig)?
     DocumentVersion: (String|Mapping)?
-    OutputS3BucketName: (String|Mapping)?
-    DocumentHash: (String|Mapping)?
+}
+
+/// 
+open class MaintenanceWindowTaskMaintenanceWindowStepFunctionsParameters {
+    Input: (String|Mapping)?
+    Name: (String|Mapping)?
 }
 
 /// 
@@ -48,31 +73,6 @@ open class MaintenanceWindowTaskTaskInvocationParameters {
     MaintenanceWindowAutomationParameters: (MaintenanceWindowTaskMaintenanceWindowAutomationParameters)?
 }
 
-/// 
-open class MaintenanceWindowTaskMaintenanceWindowAutomationParameters {
-    Parameters: (Dynamic)?
-    DocumentVersion: (String|Mapping)?
-}
-
-/// 
-open class MaintenanceWindowTaskCloudWatchOutputConfig {
-    CloudWatchOutputEnabled: (Boolean|Mapping)?
-    CloudWatchLogGroupName: (String|Mapping)?
-}
-
-/// 
-open class MaintenanceWindowTaskMaintenanceWindowStepFunctionsParameters {
-    Input: (String|Mapping)?
-    Name: (String|Mapping)?
-}
-
-/// 
-open class MaintenanceWindowTaskMaintenanceWindowLambdaParameters {
-    Qualifier: (String|Mapping)?
-    Payload: (String|Mapping)?
-    ClientContext: (String|Mapping)?
-}
-
 /// Resource Type definition for AWS::SSM::MaintenanceWindowTask
 open class MaintenanceWindowTask extends cloudformation.Resource {
 
@@ -80,62 +80,62 @@ open class MaintenanceWindowTask extends cloudformation.Resource {
 
 
     /// 
-    hidden LoggingInfo: (MaintenanceWindowTaskLoggingInfo)?
-
-    /// 
-    hidden MaxErrors: (String|Mapping)?
-
-    /// 
-    hidden TaskArn: String|Mapping
-
-    /// 
-    hidden TaskType: String|Mapping
+    hidden CutoffBehavior: (String|Mapping)?
 
     /// 
     hidden Description: (String|Mapping)?
 
     /// 
-    hidden Targets: (Listing<MaintenanceWindowTaskTarget>)?
-
-    /// 
-    hidden TaskInvocationParameters: (MaintenanceWindowTaskTaskInvocationParameters)?
-
-    /// 
-    hidden WindowId: String|Mapping
-
-    /// 
-    hidden CutoffBehavior: (String|Mapping)?
-
-    /// 
-    hidden ServiceRoleArn: (String|Mapping)?
-
-    /// 
-    hidden Priority: Int|Mapping
-
-    /// 
-    hidden Name: (String|Mapping)?
+    hidden LoggingInfo: (MaintenanceWindowTaskLoggingInfo)?
 
     /// 
     hidden MaxConcurrency: (String|Mapping)?
 
     /// 
+    hidden MaxErrors: (String|Mapping)?
+
+    /// 
+    hidden Name: (String|Mapping)?
+
+    /// 
+    hidden Priority: Int|Mapping
+
+    /// 
+    hidden ServiceRoleArn: (String|Mapping)?
+
+    /// 
+    hidden Targets: (Listing<MaintenanceWindowTaskTarget>)?
+
+    /// 
+    hidden TaskArn: String|Mapping
+
+    /// 
+    hidden TaskInvocationParameters: (MaintenanceWindowTaskTaskInvocationParameters)?
+
+    /// 
     hidden TaskParameters: (Dynamic)?
 
+    /// 
+    hidden TaskType: String|Mapping
+
+    /// 
+    hidden WindowId: String|Mapping
+
     Properties {
-        ["LoggingInfo"] = if (LoggingInfo == null) null else LoggingInfo
-        ["MaxErrors"] = if (MaxErrors == null) null else MaxErrors
-        ["TaskArn"] = if (TaskArn == null) null else TaskArn
-        ["TaskType"] = if (TaskType == null) null else TaskType
-        ["Description"] = if (Description == null) null else Description
-        ["Targets"] = if (Targets == null) null else Targets
-        ["TaskInvocationParameters"] = if (TaskInvocationParameters == null) null else TaskInvocationParameters
-        ["WindowId"] = if (WindowId == null) null else WindowId
         ["CutoffBehavior"] = if (CutoffBehavior == null) null else CutoffBehavior
-        ["ServiceRoleArn"] = if (ServiceRoleArn == null) null else ServiceRoleArn
-        ["Priority"] = if (Priority == null) null else Priority
-        ["Name"] = if (Name == null) null else Name
+        ["Description"] = if (Description == null) null else Description
+        ["LoggingInfo"] = if (LoggingInfo == null) null else LoggingInfo
         ["MaxConcurrency"] = if (MaxConcurrency == null) null else MaxConcurrency
+        ["MaxErrors"] = if (MaxErrors == null) null else MaxErrors
+        ["Name"] = if (Name == null) null else Name
+        ["Priority"] = if (Priority == null) null else Priority
+        ["ServiceRoleArn"] = if (ServiceRoleArn == null) null else ServiceRoleArn
+        ["Targets"] = if (Targets == null) null else Targets
+        ["TaskArn"] = if (TaskArn == null) null else TaskArn
+        ["TaskInvocationParameters"] = if (TaskInvocationParameters == null) null else TaskInvocationParameters
         ["TaskParameters"] = if (TaskParameters == null) null else TaskParameters
+        ["TaskType"] = if (TaskType == null) null else TaskType
+        ["WindowId"] = if (WindowId == null) null else WindowId
     }
 
 }

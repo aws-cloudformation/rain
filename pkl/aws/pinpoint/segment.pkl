@@ -6,20 +6,29 @@ module aws.pinpoint.segment
 import "../../cloudformation.pkl"
 
 /// 
-open class SegmentCoordinates {
-    Latitude: Number|Mapping
-    Longitude: Number|Mapping
+open class SegmentGPSPoint {
+    RangeInKilometers: Number|Mapping
+    Coordinates: SegmentCoordinates
+}
+
+/// 
+open class SegmentGroups {
+    Dimensions: (Listing<SegmentSegmentDimensions>)?
+    SourceSegments: (Listing<SegmentSourceSegments>)?
+    Type: (String|Mapping)?
+    SourceType: (String|Mapping)?
 }
 
 /// 
 open class SegmentLocation {
-    Country: (SegmentSetDimension)?
     GPSPoint: (SegmentGPSPoint)?
+    Country: (SegmentSetDimension)?
 }
 
 /// 
-open class SegmentBehavior {
-    Recency: (SegmentRecency)?
+open class SegmentRecency {
+    Duration: String|Mapping
+    RecencyType: String|Mapping
 }
 
 /// 
@@ -29,39 +38,19 @@ open class SegmentSetDimension {
 }
 
 /// 
-open class SegmentGroups {
-    Type: (String|Mapping)?
-    SourceType: (String|Mapping)?
-    Dimensions: (Listing<SegmentSegmentDimensions>)?
-    SourceSegments: (Listing<SegmentSourceSegments>)?
-}
-
-/// 
-open class SegmentGPSPoint {
-    RangeInKilometers: Number|Mapping
-    Coordinates: SegmentCoordinates
-}
-
-/// 
-open class SegmentSourceSegments {
-    Version: (Int|Mapping)?
-    Id: String|Mapping
-}
-
-/// 
 open class SegmentDemographic {
-    Channel: (SegmentSetDimension)?
     Model: (SegmentSetDimension)?
     Make: (SegmentSetDimension)?
     AppVersion: (SegmentSetDimension)?
     DeviceType: (SegmentSetDimension)?
     Platform: (SegmentSetDimension)?
+    Channel: (SegmentSetDimension)?
 }
 
 /// 
-open class SegmentRecency {
-    Duration: String|Mapping
-    RecencyType: String|Mapping
+open class SegmentCoordinates {
+    Latitude: Number|Mapping
+    Longitude: Number|Mapping
 }
 
 /// 
@@ -80,6 +69,17 @@ open class SegmentSegmentGroups {
     Include: (String|Mapping)?
 }
 
+/// 
+open class SegmentSourceSegments {
+    Version: (Int|Mapping)?
+    Id: String|Mapping
+}
+
+/// 
+open class SegmentBehavior {
+    Recency: (SegmentRecency)?
+}
+
 /// Resource Type definition for AWS::Pinpoint::Segment
 open class Segment extends cloudformation.Resource {
 
@@ -90,7 +90,7 @@ open class Segment extends cloudformation.Resource {
     hidden ApplicationId: String|Mapping
 
     /// 
-    hidden Tags: (Dynamic)?
+    hidden Dimensions: (SegmentSegmentDimensions)?
 
     /// 
     hidden Name: String|Mapping
@@ -99,14 +99,14 @@ open class Segment extends cloudformation.Resource {
     hidden SegmentGroups: (SegmentSegmentGroups)?
 
     /// 
-    hidden Dimensions: (SegmentSegmentDimensions)?
+    hidden Tags: (Dynamic)?
 
     Properties {
         ["ApplicationId"] = if (ApplicationId == null) null else ApplicationId
-        ["Tags"] = if (Tags == null) null else Tags
+        ["Dimensions"] = if (Dimensions == null) null else Dimensions
         ["Name"] = if (Name == null) null else Name
         ["SegmentGroups"] = if (SegmentGroups == null) null else SegmentGroups
-        ["Dimensions"] = if (Dimensions == null) null else Dimensions
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

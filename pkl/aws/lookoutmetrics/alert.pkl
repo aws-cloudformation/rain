@@ -5,13 +5,19 @@ module aws.lookoutmetrics.alert
 
 import "../../cloudformation.pkl"
 
-typealias AlertArn = String|Mapping
-
-
 /// 
 open class AlertAction {
     SNSConfiguration: (AlertSNSConfiguration)?
     LambdaConfiguration: (AlertLambdaConfiguration)?
+}
+
+typealias AlertArn = String|Mapping
+
+
+/// Configuration options for a Lambda alert action.
+open class AlertLambdaConfiguration {
+    RoleArn: AlertArn
+    LambdaArn: AlertArn
 }
 
 /// Configuration options for an SNS alert action.
@@ -20,39 +26,33 @@ open class AlertSNSConfiguration {
     SnsTopicArn: AlertArn
 }
 
-/// Configuration options for a Lambda alert action.
-open class AlertLambdaConfiguration {
-    LambdaArn: AlertArn
-    RoleArn: AlertArn
-}
-
 /// Resource Type definition for AWS::LookoutMetrics::Alert
 open class Alert extends cloudformation.Resource {
 
     Type = "AWS::LookoutMetrics::Alert"
 
 
-    /// The name of the alert. If not provided, a name is generated automatically.
-    hidden AlertName: (String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9\-_]*"#)))|Mapping)?
+    /// The action to be taken by the alert when an anomaly is detected.
+    hidden Action: AlertAction
 
     /// A description for the alert.
     hidden AlertDescription: (String(matches(Regex(#".*\S.*"#)))|Mapping)?
 
-    /// The Amazon resource name (ARN) of the Anomaly Detector to alert.
-    hidden AnomalyDetectorArn: String(matches(Regex(#"arn:([a-z\d-]+):.*:.*:.*:.+"#)))|Mapping
+    /// The name of the alert. If not provided, a name is generated automatically.
+    hidden AlertName: (String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9\-_]*"#)))|Mapping)?
 
     /// A number between 0 and 100 (inclusive) that tunes the sensitivity of the alert.
     hidden AlertSensitivityThreshold: Int|Mapping
 
-    /// The action to be taken by the alert when an anomaly is detected.
-    hidden Action: AlertAction
+    /// The Amazon resource name (ARN) of the Anomaly Detector to alert.
+    hidden AnomalyDetectorArn: String(matches(Regex(#"arn:([a-z\d-]+):.*:.*:.*:.+"#)))|Mapping
 
     Properties {
-        ["AlertName"] = if (AlertName == null) null else AlertName
-        ["AlertDescription"] = if (AlertDescription == null) null else AlertDescription
-        ["AnomalyDetectorArn"] = if (AnomalyDetectorArn == null) null else AnomalyDetectorArn
-        ["AlertSensitivityThreshold"] = if (AlertSensitivityThreshold == null) null else AlertSensitivityThreshold
         ["Action"] = if (Action == null) null else Action
+        ["AlertDescription"] = if (AlertDescription == null) null else AlertDescription
+        ["AlertName"] = if (AlertName == null) null else AlertName
+        ["AlertSensitivityThreshold"] = if (AlertSensitivityThreshold == null) null else AlertSensitivityThreshold
+        ["AnomalyDetectorArn"] = if (AnomalyDetectorArn == null) null else AnomalyDetectorArn
     }
 
 }

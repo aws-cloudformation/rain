@@ -6,30 +6,30 @@ module aws.codecommit.repository
 import "../../cloudformation.pkl"
 
 /// 
-open class RepositoryTag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class RepositoryRepositoryTrigger {
-    CustomData: (String|Mapping)?
-    Events: Listing<String|Mapping>
-    Branches: (Listing<String|Mapping>)?
-    DestinationArn: String|Mapping
-    Name: String|Mapping
-}
-
-/// 
 open class RepositoryCode {
     S3: RepositoryS3
     BranchName: (String|Mapping)?
 }
 
 /// 
+open class RepositoryRepositoryTrigger {
+    Name: String|Mapping
+    CustomData: (String|Mapping)?
+    Events: Listing<String|Mapping>
+    Branches: (Listing<String|Mapping>)?
+    DestinationArn: String|Mapping
+}
+
+/// 
 open class RepositoryS3 {
     ObjectVersion: (String|Mapping)?
     Bucket: String|Mapping
+    Key: String|Mapping
+}
+
+/// 
+open class RepositoryTag {
+    Value: String|Mapping
     Key: String|Mapping
 }
 
@@ -40,30 +40,30 @@ open class Repository extends cloudformation.Resource {
 
 
     /// 
-    hidden RepositoryName: String|Mapping
-
-    /// 
-    hidden Triggers: (Listing<RepositoryRepositoryTrigger>)?
-
-    /// 
     hidden Code: (RepositoryCode)?
-
-    /// 
-    hidden RepositoryDescription: (String|Mapping)?
 
     /// 
     hidden KmsKeyId: (String|Mapping)?
 
     /// 
+    hidden RepositoryDescription: (String|Mapping)?
+
+    /// 
+    hidden RepositoryName: String|Mapping
+
+    /// 
     hidden Tags: (Listing<RepositoryTag>)?
 
+    /// 
+    hidden Triggers: (Listing<RepositoryRepositoryTrigger>)?
+
     Properties {
-        ["RepositoryName"] = if (RepositoryName == null) null else RepositoryName
-        ["Triggers"] = if (Triggers == null) null else Triggers
         ["Code"] = if (Code == null) null else Code
-        ["RepositoryDescription"] = if (RepositoryDescription == null) null else RepositoryDescription
         ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
+        ["RepositoryDescription"] = if (RepositoryDescription == null) null else RepositoryDescription
+        ["RepositoryName"] = if (RepositoryName == null) null else RepositoryName
         ["Tags"] = if (Tags == null) null else Tags
+        ["Triggers"] = if (Triggers == null) null else Triggers
     }
 
 }

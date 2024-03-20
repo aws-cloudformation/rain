@@ -7,24 +7,24 @@ import "../../cloudformation.pkl"
 
 /// 
 open class RotationScheduleHostedRotationLambda {
-    SuperuserSecretKmsKeyArn: (String|Mapping)?
-    RotationLambdaName: (String|Mapping)?
-    KmsKeyArn: (String|Mapping)?
-    VpcSecurityGroupIds: (String|Mapping)?
-    ExcludeCharacters: (String|Mapping)?
-    MasterSecretKmsKeyArn: (String|Mapping)?
-    SuperuserSecretArn: (String|Mapping)?
-    VpcSubnetIds: (String|Mapping)?
     Runtime: (String|Mapping)?
     RotationType: String|Mapping
+    RotationLambdaName: (String|Mapping)?
+    VpcSecurityGroupIds: (String|Mapping)?
+    MasterSecretKmsKeyArn: (String|Mapping)?
+    SuperuserSecretKmsKeyArn: (String|Mapping)?
+    VpcSubnetIds: (String|Mapping)?
+    KmsKeyArn: (String|Mapping)?
     MasterSecretArn: (String|Mapping)?
+    ExcludeCharacters: (String|Mapping)?
+    SuperuserSecretArn: (String|Mapping)?
 }
 
 /// 
 open class RotationScheduleRotationRules {
+    ScheduleExpression: (String|Mapping)?
     Duration: (String|Mapping)?
     AutomaticallyAfterDays: (Int|Mapping)?
-    ScheduleExpression: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::SecretsManager::RotationSchedule
@@ -34,26 +34,26 @@ open class RotationSchedule extends cloudformation.Resource {
 
 
     /// 
+    hidden HostedRotationLambda: (RotationScheduleHostedRotationLambda)?
+
+    /// 
+    hidden RotateImmediatelyOnUpdate: (Boolean|Mapping)?
+
+    /// 
     hidden RotationLambdaARN: (String|Mapping)?
 
     /// 
     hidden RotationRules: (RotationScheduleRotationRules)?
 
     /// 
-    hidden RotateImmediatelyOnUpdate: (Boolean|Mapping)?
-
-    /// 
     hidden SecretId: String|Mapping
 
-    /// 
-    hidden HostedRotationLambda: (RotationScheduleHostedRotationLambda)?
-
     Properties {
+        ["HostedRotationLambda"] = if (HostedRotationLambda == null) null else HostedRotationLambda
+        ["RotateImmediatelyOnUpdate"] = if (RotateImmediatelyOnUpdate == null) null else RotateImmediatelyOnUpdate
         ["RotationLambdaARN"] = if (RotationLambdaARN == null) null else RotationLambdaARN
         ["RotationRules"] = if (RotationRules == null) null else RotationRules
-        ["RotateImmediatelyOnUpdate"] = if (RotateImmediatelyOnUpdate == null) null else RotateImmediatelyOnUpdate
         ["SecretId"] = if (SecretId == null) null else SecretId
-        ["HostedRotationLambda"] = if (HostedRotationLambda == null) null else HostedRotationLambda
     }
 
 }

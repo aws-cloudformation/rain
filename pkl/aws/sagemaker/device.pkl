@@ -14,8 +14,8 @@ open class DeviceDevice {
 
 /// 
 open class DeviceTag {
-    Key: String(matches(Regex(#"^((?!aws:)[\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
     Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
+    Key: String(matches(Regex(#"^((?!aws:)[\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
 }
 
 /// Resource schema for AWS::SageMaker::Device
@@ -24,18 +24,18 @@ open class Device extends cloudformation.Resource {
     Type = "AWS::SageMaker::Device"
 
 
-    /// The name of the edge device fleet
-    hidden DeviceFleetName: String(matches(Regex(#"^[a-zA-Z0-9](-*_*[a-zA-Z0-9])*$"#)))|Mapping
-
     /// The Edge Device you want to register against a device fleet
     hidden Device: (DeviceDevice)?
+
+    /// The name of the edge device fleet
+    hidden DeviceFleetName: String(matches(Regex(#"^[a-zA-Z0-9](-*_*[a-zA-Z0-9])*$"#)))|Mapping
 
     /// Associate tags with the resource
     hidden Tags: (Listing<DeviceTag>)?
 
     Properties {
-        ["DeviceFleetName"] = if (DeviceFleetName == null) null else DeviceFleetName
         ["Device"] = if (Device == null) null else Device
+        ["DeviceFleetName"] = if (DeviceFleetName == null) null else DeviceFleetName
         ["Tags"] = if (Tags == null) null else Tags
     }
 

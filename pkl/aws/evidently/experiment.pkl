@@ -5,12 +5,24 @@ module aws.evidently.experiment
 
 import "../../cloudformation.pkl"
 
+/// A key-value pair to associate with a resource.
+open class ExperimentTag {
+    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
+    Value: String|Mapping
+}
+
 /// 
 open class ExperimentTreatmentObject {
+    TreatmentName: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
     Description: (String|Mapping)?
     Feature: String(matches(Regex(#"([-a-zA-Z0-9._]*)|(arn:[^:]*:[^:]*:[^:]*:[^:]*:.*)"#)))|Mapping
     Variation: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
-    TreatmentName: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
+}
+
+/// 
+open class ExperimentTreatmentToWeight {
+    Treatment: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
+    SplitWeight: Int|Mapping
 }
 
 typealias MetricGoalObjectDesiredChange = "INCREASE"|"DECREASE"
@@ -32,18 +44,6 @@ open class ExperimentOnlineAbConfigObject {
 }
 
 /// 
-open class ExperimentTreatmentToWeight {
-    Treatment: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
-    SplitWeight: Int|Mapping
-}
-
-/// A key-value pair to associate with a resource.
-open class ExperimentTag {
-    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
-    Value: String|Mapping
-}
-
-/// 
 open class ExperimentRunningStatusObject {
     Status: (String|Mapping)?
     AnalysisCompleteTime: (String|Mapping)?
@@ -60,52 +60,52 @@ open class Experiment extends cloudformation.Resource {
     /// 
     hidden Description: (String|Mapping)?
 
-    /// Start Experiment. Default is False
-    hidden RunningStatus: (ExperimentRunningStatusObject)?
-
     /// 
-    hidden RandomizationSalt: (String(matches(Regex(#".*"#)))|Mapping)?
-
-    /// 
-    hidden Treatments: Listing<ExperimentTreatmentObject>
-
-    /// 
-    hidden SamplingRate: (Int|Mapping)?
-
-    /// 
-    hidden OnlineAbConfig: ExperimentOnlineAbConfigObject
-
-    /// 
-    hidden Segment: (String(matches(Regex(#"([-a-zA-Z0-9._]*)|(arn:[^:]*:[^:]*:[^:]*:[^:]*:segment/[-a-zA-Z0-9._]*)"#)))|Mapping)?
-
-    /// 
-    hidden RemoveSegment: (Boolean|Mapping)?
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<ExperimentTag>)?
+    hidden MetricGoals: Listing<ExperimentMetricGoalObject>
 
     /// 
     hidden Name: String(matches(Regex(#"[-a-zA-Z0-9._]*"#)))|Mapping
 
     /// 
-    hidden MetricGoals: Listing<ExperimentMetricGoalObject>
+    hidden OnlineAbConfig: ExperimentOnlineAbConfigObject
 
     /// 
     hidden Project: String(matches(Regex(#"([-a-zA-Z0-9._]*)|(arn:[^:]*:[^:]*:[^:]*:[^:]*:project/[-a-zA-Z0-9._]*)"#)))|Mapping
 
+    /// 
+    hidden RandomizationSalt: (String(matches(Regex(#".*"#)))|Mapping)?
+
+    /// 
+    hidden RemoveSegment: (Boolean|Mapping)?
+
+    /// Start Experiment. Default is False
+    hidden RunningStatus: (ExperimentRunningStatusObject)?
+
+    /// 
+    hidden SamplingRate: (Int|Mapping)?
+
+    /// 
+    hidden Segment: (String(matches(Regex(#"([-a-zA-Z0-9._]*)|(arn:[^:]*:[^:]*:[^:]*:[^:]*:segment/[-a-zA-Z0-9._]*)"#)))|Mapping)?
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<ExperimentTag>)?
+
+    /// 
+    hidden Treatments: Listing<ExperimentTreatmentObject>
+
     Properties {
         ["Description"] = if (Description == null) null else Description
-        ["RunningStatus"] = if (RunningStatus == null) null else RunningStatus
-        ["RandomizationSalt"] = if (RandomizationSalt == null) null else RandomizationSalt
-        ["Treatments"] = if (Treatments == null) null else Treatments
-        ["SamplingRate"] = if (SamplingRate == null) null else SamplingRate
-        ["OnlineAbConfig"] = if (OnlineAbConfig == null) null else OnlineAbConfig
-        ["Segment"] = if (Segment == null) null else Segment
-        ["RemoveSegment"] = if (RemoveSegment == null) null else RemoveSegment
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Name"] = if (Name == null) null else Name
         ["MetricGoals"] = if (MetricGoals == null) null else MetricGoals
+        ["Name"] = if (Name == null) null else Name
+        ["OnlineAbConfig"] = if (OnlineAbConfig == null) null else OnlineAbConfig
         ["Project"] = if (Project == null) null else Project
+        ["RandomizationSalt"] = if (RandomizationSalt == null) null else RandomizationSalt
+        ["RemoveSegment"] = if (RemoveSegment == null) null else RemoveSegment
+        ["RunningStatus"] = if (RunningStatus == null) null else RunningStatus
+        ["SamplingRate"] = if (SamplingRate == null) null else SamplingRate
+        ["Segment"] = if (Segment == null) null else Segment
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Treatments"] = if (Treatments == null) null else Treatments
     }
 
 }

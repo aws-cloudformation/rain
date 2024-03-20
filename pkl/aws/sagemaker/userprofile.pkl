@@ -5,26 +5,6 @@ module aws.sagemaker.userprofile
 
 import "../../cloudformation.pkl"
 
-/// 
-open class UserProfileCustomFileSystemConfig {
-    EFSFileSystemConfig: (UserProfileEFSFileSystemConfig)?
-}
-
-typealias UserProfileSpaceEbsVolumeSizeInGb = Int|Mapping
-
-
-/// Properties related to the Amazon Elastic Block Store volume.
-open class UserProfileDefaultEbsStorageSettings {
-    DefaultEbsVolumeSizeInGb: UserProfileSpaceEbsVolumeSizeInGb
-    MaximumEbsVolumeSizeInGb: UserProfileSpaceEbsVolumeSizeInGb
-}
-
-/// The kernel gateway app settings.
-open class UserProfileKernelGatewayAppSettings {
-    CustomImages: (Listing<UserProfileCustomImage>)?
-    DefaultResourceSpec: (UserProfileResourceSpec)?
-}
-
 typealias ResourceSpecInstanceType = "system"|"ml.t3.micro"|"ml.t3.small"|"ml.t3.medium"|"ml.t3.large"|"ml.t3.xlarge"|"ml.t3.2xlarge"|"ml.m5.large"|"ml.m5.xlarge"|"ml.m5.2xlarge"|"ml.m5.4xlarge"|"ml.m5.8xlarge"|"ml.m5.12xlarge"|"ml.m5.16xlarge"|"ml.m5.24xlarge"|"ml.c5.large"|"ml.c5.xlarge"|"ml.c5.2xlarge"|"ml.c5.4xlarge"|"ml.c5.9xlarge"|"ml.c5.12xlarge"|"ml.c5.18xlarge"|"ml.c5.24xlarge"|"ml.p3.2xlarge"|"ml.p3.8xlarge"|"ml.p3.16xlarge"|"ml.g4dn.xlarge"|"ml.g4dn.2xlarge"|"ml.g4dn.4xlarge"|"ml.g4dn.8xlarge"|"ml.g4dn.12xlarge"|"ml.g4dn.16xlarge"|"ml.r5.large"|"ml.r5.xlarge"|"ml.r5.2xlarge"|"ml.r5.4xlarge"|"ml.r5.8xlarge"|"ml.r5.12xlarge"|"ml.r5.16xlarge"|"ml.r5.24xlarge"|"ml.p3dn.24xlarge"|"ml.m5d.large"|"ml.m5d.xlarge"|"ml.m5d.2xlarge"|"ml.m5d.4xlarge"|"ml.m5d.8xlarge"|"ml.m5d.12xlarge"|"ml.m5d.16xlarge"|"ml.m5d.24xlarge"|"ml.g5.xlarge"|"ml.g5.2xlarge"|"ml.g5.4xlarge"|"ml.g5.8xlarge"|"ml.g5.12xlarge"|"ml.g5.16xlarge"|"ml.g5.24xlarge"|"ml.g5.48xlarge"|"ml.p4d.24xlarge"|"ml.p4de.24xlarge"|"ml.geospatial.interactive"|"ml.trn1.2xlarge"|"ml.trn1.32xlarge"|"ml.trn1n.32xlarge"
 
 /// 
@@ -34,32 +14,14 @@ open class UserProfileResourceSpec {
     SageMakerImageVersionArn: (String(matches(Regex(#"^arn:aws(-[\w]+)*:sagemaker:.+:[0-9]{12}:image-version/[a-z0-9]([-.]?[a-z0-9])*/[0-9]+$"#)))|Mapping)?
 }
 
-/// The CodeEditor app settings.
-open class UserProfileCodeEditorAppSettings {
-    DefaultResourceSpec: (UserProfileResourceSpec)?
-    LifecycleConfigArns: (Listing<UserProfileStudioLifecycleConfigArn>)?
-}
-
 typealias UserProfileStudioLifecycleConfigArn = String|Mapping
 
 
-/// 
-open class UserProfileTag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// Default storage settings for a space.
-open class UserProfileDefaultSpaceStorageSettings {
-    DefaultEbsStorageSettings: (UserProfileDefaultEbsStorageSettings)?
-}
-
-/// The JupyterLab app settings.
-open class UserProfileJupyterLabAppSettings {
-    DefaultResourceSpec: (UserProfileResourceSpec)?
-    LifecycleConfigArns: (Listing<UserProfileStudioLifecycleConfigArn>)?
-    CodeRepositories: (Listing<UserProfileCodeRepository>)?
-    CustomImages: (Listing<UserProfileCustomImage>)?
+/// A custom SageMaker image.
+open class UserProfileCustomImage {
+    AppImageConfigName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"#)))|Mapping
+    ImageName: String(matches(Regex(#"^[a-zA-Z0-9]([-.]?[a-zA-Z0-9]){0,62}$"#)))|Mapping
+    ImageVersionNumber: (Int|Mapping)?
 }
 
 /// 
@@ -68,11 +30,21 @@ open class UserProfileCustomPosixUserConfig {
     Gid: Int|Mapping
 }
 
-/// A custom SageMaker image.
-open class UserProfileCustomImage {
-    ImageName: String(matches(Regex(#"^[a-zA-Z0-9]([-.]?[a-zA-Z0-9]){0,62}$"#)))|Mapping
-    ImageVersionNumber: (Int|Mapping)?
-    AppImageConfigName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"#)))|Mapping
+/// Default storage settings for a space.
+open class UserProfileDefaultSpaceStorageSettings {
+    DefaultEbsStorageSettings: (UserProfileDefaultEbsStorageSettings)?
+}
+
+/// 
+open class UserProfileEFSFileSystemConfig {
+    FileSystemPath: (String(matches(Regex(#"^\/\S*$"#)))|Mapping)?
+    FileSystemId: String(matches(Regex(#"^(fs-[0-9a-f]{8,})$"#)))|Mapping
+}
+
+/// The kernel gateway app settings.
+open class UserProfileKernelGatewayAppSettings {
+    CustomImages: (Listing<UserProfileCustomImage>)?
+    DefaultResourceSpec: (UserProfileResourceSpec)?
 }
 
 typealias RStudioServerProAppSettingsAccessStatus = "ENABLED"|"DISABLED"
@@ -85,27 +57,42 @@ open class UserProfileRStudioServerProAppSettings {
     UserGroup: (RStudioServerProAppSettingsUserGroup|Mapping)?
 }
 
+/// The CodeEditor app settings.
+open class UserProfileCodeEditorAppSettings {
+    DefaultResourceSpec: (UserProfileResourceSpec)?
+    LifecycleConfigArns: (Listing<UserProfileStudioLifecycleConfigArn>)?
+}
+
 /// The JupyterServer app settings.
 open class UserProfileJupyterServerAppSettings {
     DefaultResourceSpec: (UserProfileResourceSpec)?
 }
+
+/// 
+open class UserProfileTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+typealias UserProfileSpaceEbsVolumeSizeInGb = Int|Mapping
+
 
 typealias UserSettingsStudioWebPortal = "ENABLED"|"DISABLED"
 
 /// A collection of settings that apply to users of Amazon SageMaker Studio. These settings are specified when the CreateUserProfile API is called, and as DefaultUserSettings when the CreateDomain API is called.
 open class UserProfileUserSettings {
     RStudioServerProAppSettings: (UserProfileRStudioServerProAppSettings)?
-    SpaceStorageSettings: (UserProfileDefaultSpaceStorageSettings)?
-    CodeEditorAppSettings: (UserProfileCodeEditorAppSettings)?
+    DefaultLandingUri: (String|Mapping)?
     SecurityGroups: (Listing<String|Mapping>)?
     SharingSettings: (UserProfileSharingSettings)?
-    KernelGatewayAppSettings: (UserProfileKernelGatewayAppSettings)?
-    DefaultLandingUri: (String|Mapping)?
+    SpaceStorageSettings: (UserProfileDefaultSpaceStorageSettings)?
     StudioWebPortal: (UserSettingsStudioWebPortal|Mapping)?
     CustomPosixUserConfig: (UserProfileCustomPosixUserConfig)?
     CustomFileSystemConfigs: (Listing<UserProfileCustomFileSystemConfig>)?
-    ExecutionRole: (String(matches(Regex(#"^arn:aws[a-z\-]*:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping)?
     JupyterServerAppSettings: (UserProfileJupyterServerAppSettings)?
+    KernelGatewayAppSettings: (UserProfileKernelGatewayAppSettings)?
+    CodeEditorAppSettings: (UserProfileCodeEditorAppSettings)?
+    ExecutionRole: (String(matches(Regex(#"^arn:aws[a-z\-]*:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping)?
     JupyterLabAppSettings: (UserProfileJupyterLabAppSettings)?
 }
 
@@ -115,18 +102,31 @@ open class UserProfileCodeRepository {
 }
 
 /// 
-open class UserProfileEFSFileSystemConfig {
-    FileSystemId: String(matches(Regex(#"^(fs-[0-9a-f]{8,})$"#)))|Mapping
-    FileSystemPath: (String(matches(Regex(#"^\/\S*$"#)))|Mapping)?
+open class UserProfileCustomFileSystemConfig {
+    EFSFileSystemConfig: (UserProfileEFSFileSystemConfig)?
+}
+
+/// Properties related to the Amazon Elastic Block Store volume.
+open class UserProfileDefaultEbsStorageSettings {
+    DefaultEbsVolumeSizeInGb: UserProfileSpaceEbsVolumeSizeInGb
+    MaximumEbsVolumeSizeInGb: UserProfileSpaceEbsVolumeSizeInGb
+}
+
+/// The JupyterLab app settings.
+open class UserProfileJupyterLabAppSettings {
+    LifecycleConfigArns: (Listing<UserProfileStudioLifecycleConfigArn>)?
+    CodeRepositories: (Listing<UserProfileCodeRepository>)?
+    CustomImages: (Listing<UserProfileCustomImage>)?
+    DefaultResourceSpec: (UserProfileResourceSpec)?
 }
 
 typealias SharingSettingsNotebookOutputOption = "Allowed"|"Disabled"
 
 /// Specifies options when sharing an Amazon SageMaker Studio notebook. These settings are specified as part of DefaultUserSettings when the CreateDomain API is called, and as part of UserSettings when the CreateUserProfile API is called.
 open class UserProfileSharingSettings {
+    S3OutputPath: (String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping)?
     NotebookOutputOption: (SharingSettingsNotebookOutputOption|Mapping)?
     S3KmsKeyId: (String(matches(Regex(#".*"#)))|Mapping)?
-    S3OutputPath: (String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping)?
 }
 
 /// Resource Type definition for AWS::SageMaker::UserProfile
@@ -135,8 +135,17 @@ open class UserProfile extends cloudformation.Resource {
     Type = "AWS::SageMaker::UserProfile"
 
 
+    /// The ID of the associated Domain.
+    hidden DomainId: String|Mapping
+
+    /// A specifier for the type of value specified in SingleSignOnUserValue. Currently, the only supported value is "UserName". If the Domain's AuthMode is SSO, this field is required. If the Domain's AuthMode is not SSO, this field cannot be specified.
+    hidden SingleSignOnUserIdentifier: (String(matches(Regex(#"UserName"#)))|Mapping)?
+
     /// The username of the associated AWS Single Sign-On User for this UserProfile. If the Domain's AuthMode is SSO, this field is required, and must match a valid username of a user in your directory. If the Domain's AuthMode is not SSO, this field cannot be specified.
     hidden SingleSignOnUserValue: (String|Mapping)?
+
+    /// A list of tags to apply to the user profile.
+    hidden Tags: (Listing<UserProfileTag>)?
 
     /// A name for the UserProfile.
     hidden UserProfileName: String|Mapping
@@ -144,22 +153,13 @@ open class UserProfile extends cloudformation.Resource {
     /// A collection of settings.
     hidden UserSettings: (UserProfileUserSettings)?
 
-    /// A list of tags to apply to the user profile.
-    hidden Tags: (Listing<UserProfileTag>)?
-
-    /// The ID of the associated Domain.
-    hidden DomainId: String|Mapping
-
-    /// A specifier for the type of value specified in SingleSignOnUserValue. Currently, the only supported value is "UserName". If the Domain's AuthMode is SSO, this field is required. If the Domain's AuthMode is not SSO, this field cannot be specified.
-    hidden SingleSignOnUserIdentifier: (String(matches(Regex(#"UserName"#)))|Mapping)?
-
     Properties {
-        ["SingleSignOnUserValue"] = if (SingleSignOnUserValue == null) null else SingleSignOnUserValue
-        ["UserProfileName"] = if (UserProfileName == null) null else UserProfileName
-        ["UserSettings"] = if (UserSettings == null) null else UserSettings
-        ["Tags"] = if (Tags == null) null else Tags
         ["DomainId"] = if (DomainId == null) null else DomainId
         ["SingleSignOnUserIdentifier"] = if (SingleSignOnUserIdentifier == null) null else SingleSignOnUserIdentifier
+        ["SingleSignOnUserValue"] = if (SingleSignOnUserValue == null) null else SingleSignOnUserValue
+        ["Tags"] = if (Tags == null) null else Tags
+        ["UserProfileName"] = if (UserProfileName == null) null else UserProfileName
+        ["UserSettings"] = if (UserSettings == null) null else UserSettings
     }
 
 }
