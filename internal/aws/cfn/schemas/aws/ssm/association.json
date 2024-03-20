@@ -13,7 +13,15 @@
         "Values": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "anyOf": [
+              {
+                "relationshipRef": {
+                  "typeName": "AWS::EC2::Instance",
+                  "propertyPath": "/properties/Id"
+                }
+              }
+            ]
           },
           "minItems": 0,
           "maxItems": 50
@@ -39,7 +47,11 @@
     "S3BucketName": {
       "type": "string",
       "minLength": 3,
-      "maxLength": 63
+      "maxLength": 63,
+      "relationshipRef": {
+        "typeName": "AWS::S3::Bucket",
+        "propertyPath": "/properties/BucketName"
+      }
     },
     "S3KeyPrefix": {
       "type": "string",
@@ -106,7 +118,11 @@
       "examples": [
         "AWS-GatherSoftwareInventory",
         "MyCustomSSMDocument"
-      ]
+      ],
+      "relationshipRef": {
+        "typeName": "AWS::SSM::Document",
+        "propertyPath": "/properties/Name"
+      }
     },
     "Parameters": {
       "description": "Parameter values that the SSM document uses at runtime.",

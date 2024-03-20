@@ -26,6 +26,7 @@ var omitPatches = false
 var recommendFlag = false
 var outFn = ""
 var pklClass = false
+var noCache = false
 
 // Borrowing a simplified SAM spec file from goformation
 // Ideally we would autogenerate from the full SAM spec but that thing is huge
@@ -350,7 +351,7 @@ var Cmd = &cobra.Command{
 				j, _ := json.MarshalIndent(schema, "", "    ")
 				output(string(j))
 			} else {
-				schema, err := cfn.GetTypeSchema(typeName)
+				schema, err := cfn.GetTypeSchema(typeName, noCache)
 				if err != nil {
 					panic(err)
 				}
@@ -398,4 +399,5 @@ func init() {
 	Cmd.Flags().BoolVarP(&recommendFlag, "recommend", "r", false, "Output a recommended architecture for the chosen use case")
 	Cmd.Flags().StringVarP(&outFn, "output", "o", "", "Output to a file")
 	Cmd.Flags().BoolVar(&pklClass, "pkl-class", false, "Output a pkl class based on a resource type schema")
+	Cmd.Flags().BoolVar(&noCache, "no-cache", false, "Do not used cached schema files")
 }

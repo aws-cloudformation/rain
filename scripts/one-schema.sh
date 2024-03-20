@@ -21,5 +21,5 @@ ffn="$RAIN_CACHE_DIR/${fn}"
 
 echo Caching "${1}" to "${ffn}"
 
-./rain build -s "$1" | jq > "${ffn}"
+./rain build -s --no-cache "$1" | jq > "${ffn}"
 

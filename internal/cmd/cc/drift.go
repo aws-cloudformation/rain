@@ -162,7 +162,7 @@ func runDriftOnState(name string, template cft.Template, bucketName string, key 
 			spinner.Push(fmt.Sprintf("   ⚡ Changing Live State for %s", selection.ResourceName))
 
 			// Download the schema
-			schema, err := cfn.GetTypeSchema(selection.ResourceType)
+			schema, err := cfn.GetTypeSchema(selection.ResourceType, false)
 			if err != nil {
 				console.Errorf("unable to load schema for %s: %v", selection.ResourceName, err)
 				break
