@@ -96,6 +96,11 @@ open class TableProvisionedThroughput {
     WriteCapacityUnits: Int|Mapping
 }
 
+/// 
+open class TableResourcePolicy {
+    PolicyDocument: Dynamic
+}
+
 /// The S3 bucket that is being imported from.
 open class TableS3BucketSource {
     S3Bucket: String|Mapping
@@ -112,6 +117,7 @@ open class TableSSESpecification {
 
 /// Represents the DynamoDB Streams configuration for a table in DynamoDB.
 open class TableStreamSpecification {
+    ResourcePolicy: (TableResourcePolicy)?
     StreamViewType: String|Mapping
 }
 
@@ -193,6 +199,9 @@ open class Table extends cloudformation.Resource {
     ///  If you set ``BillingMode`` as ``PROVISIONED``, you must specify this property. If you set ``BillingMode`` as ``PAY_PER_REQUEST``, you cannot specify this property.
     hidden ProvisionedThroughput: (TableProvisionedThroughput)?
 
+    /// 
+    hidden ResourcePolicy: (TableResourcePolicy)?
+
     /// Specifies the settings to enable server-side encryption.
     hidden SSESpecification: (TableSSESpecification)?
 
@@ -229,6 +238,7 @@ open class Table extends cloudformation.Resource {
         ["LocalSecondaryIndexes"] = if (LocalSecondaryIndexes == null) null else LocalSecondaryIndexes
         ["PointInTimeRecoverySpecification"] = if (PointInTimeRecoverySpecification == null) null else PointInTimeRecoverySpecification
         ["ProvisionedThroughput"] = if (ProvisionedThroughput == null) null else ProvisionedThroughput
+        ["ResourcePolicy"] = if (ResourcePolicy == null) null else ResourcePolicy
         ["SSESpecification"] = if (SSESpecification == null) null else SSESpecification
         ["StreamSpecification"] = if (StreamSpecification == null) null else StreamSpecification
         ["TableClass"] = if (TableClass == null) null else TableClass
