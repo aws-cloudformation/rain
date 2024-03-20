@@ -29,6 +29,9 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"strings"
+
+	rainpkl "github.com/aws-cloudformation/rain/pkl"
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
@@ -160,27 +163,21 @@ func File(path string) (cft.Template, error) {
 	//
 	// Pkl doesn't support all of the platforms rain does.
 	// We would need to shell out to pkl instead of compiling in the binary.
-	//if strings.HasSuffix(path, ".pkl") {
-	//	yaml, err := rainpkl.Yaml(path)
-	//	if err != nil {
-	//		return t, err
-	//	}
-	//	t, err = parse.String(yaml)
-	//	if err != nil {
-	//		return t, err
-	//	}
-	//} else {
-	//	t, err = parse.File(path)
-	//	if err != nil {
-	//		config.Debugf("pkg.File unable to parse %v", path)
-	//		return t, err
-	//	}
-	//}
-
-	t, err = parse.File(path)
-	if err != nil {
-		config.Debugf("pkg.File unable to parse %v", path)
-		return t, err
+	if strings.HasSuffix(path, ".pkl") {
+		yaml, err := rainpkl.Yaml(path)
+		if err != nil {
+			return t, err
+		}
+		t, err = parse.String(yaml)
+		if err != nil {
+			return t, err
+		}
+	} else {
+		t, err = parse.File(path)
+		if err != nil {
+			config.Debugf("pkg.File unable to parse %v", path)
+			return t, err
+		}
 	}
 
 	return Template(t, filepath.Dir(path), nil)

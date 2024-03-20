@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 
+	rainpkl "github.com/aws-cloudformation/rain/pkl"
+
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
@@ -83,23 +85,23 @@ func formatFile(filename string) result {
 	//
 	// Fixed? https://github.com/apple/pkl-go/pull/32
 	//
-	//if strings.HasSuffix(filename, ".pkl") {
-	//	// Don't need this?
-	//	//cfg, err := template.LoadFromPath(context.Background(), filename)
+	if strings.HasSuffix(filename, ".pkl") {
+		// Don't need this?
+		//cfg, err := template.LoadFromPath(context.Background(), filename)
 
-	//	res := result{
-	//		name: filename,
-	//	}
+		res := result{
+			name: filename,
+		}
 
-	//	yaml, err := rainpkl.Yaml(filename)
-	//	if err != nil {
-	//		panic(err)
-	//	}
+		yaml, err := rainpkl.Yaml(filename)
+		if err != nil {
+			panic(err)
+		}
 
-	//	formatString(yaml, &res)
+		formatString(yaml, &res)
 
-	//	return res
-	//}
+		return res
+	}
 
 	r, err := os.Open(filename)
 	if err != nil {
