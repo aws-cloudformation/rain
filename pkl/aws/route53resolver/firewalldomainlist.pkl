@@ -20,6 +20,9 @@ open class FirewallDomainList extends cloudformation.Resource {
     Type = "AWS::Route53Resolver::FirewallDomainList"
 
 
+    /// 
+    hidden Domains: (FirewallDomainListDomains)?
+
     /// S3 URL to import domains from.
     hidden DomainFileUrl: (String|Mapping)?
 
@@ -29,14 +32,11 @@ open class FirewallDomainList extends cloudformation.Resource {
     /// FirewallDomainListName
     hidden Name: (String(matches(Regex(#"(?!^[0-9]+$)([a-zA-Z0-9\-_' ']+)"#)))|Mapping)?
 
-    /// 
-    hidden Domains: (FirewallDomainListDomains)?
-
     Properties {
+        ["Domains"] = if (Domains == null) null else Domains
         ["DomainFileUrl"] = if (DomainFileUrl == null) null else DomainFileUrl
         ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
-        ["Domains"] = if (Domains == null) null else Domains
     }
 
 }

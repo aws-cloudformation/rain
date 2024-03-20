@@ -5,27 +5,11 @@ module aws.mediaconnect.bridge
 
 import "../../cloudformation.pkl"
 
-/// The priority you want to assign to a source. You can have a primary stream and a backup stream or two equally prioritized streams.
-open class BridgeSourcePriority {
-    PrimarySource: (String|Mapping)?
-}
-
-typealias BridgeFailoverModeEnum = String|Mapping
-
-
-/// The output of the bridge.
-open class BridgeBridgeOutput {
-    NetworkOutput: (BridgeBridgeNetworkOutput)?
-}
-
-/// The output of the bridge. A network output is delivered to your premises.
-open class BridgeBridgeNetworkOutput {
-    Ttl: Int|Mapping
-    Name: String|Mapping
-    Protocol: BridgeProtocolEnum
-    IpAddress: String|Mapping
-    Port: Int|Mapping
-    NetworkName: String|Mapping
+/// The settings for source failover.
+open class BridgeFailoverConfig {
+    FailoverMode: BridgeFailoverModeEnum
+    SourcePriority: (BridgeSourcePriority)?
+    State: (BridgeFailoverConfigStateEnum)?
 }
 
 typealias BridgeBridgeStateEnum = String|Mapping
@@ -38,6 +22,56 @@ open class BridgeBridgeFlowSource {
     FlowVpcInterfaceAttachment: (BridgeVpcInterfaceAttachment)?
 }
 
+typealias BridgeFailoverModeEnum = String|Mapping
+
+
+/// The bridge's source.
+open class BridgeBridgeSource {
+    FlowSource: (BridgeBridgeFlowSource)?
+    NetworkSource: (BridgeBridgeNetworkSource)?
+}
+
+/// 
+open class BridgeIngressGatewayBridge {
+    MaxBitrate: Int|Mapping
+    MaxOutputs: Int|Mapping
+}
+
+typealias BridgeFailoverConfigStateEnum = String|Mapping
+
+
+typealias BridgeProtocolEnum = String|Mapping
+
+
+/// The output of the bridge.
+open class BridgeBridgeOutput {
+    NetworkOutput: (BridgeBridgeNetworkOutput)?
+}
+
+/// The source of the bridge. A network source originates at your premises.
+open class BridgeBridgeNetworkSource {
+    Name: String|Mapping
+    Protocol: BridgeProtocolEnum
+    MulticastIp: String|Mapping
+    Port: Int|Mapping
+    NetworkName: String|Mapping
+}
+
+/// The priority you want to assign to a source. You can have a primary stream and a backup stream or two equally prioritized streams.
+open class BridgeSourcePriority {
+    PrimarySource: (String|Mapping)?
+}
+
+/// The output of the bridge. A network output is delivered to your premises.
+open class BridgeBridgeNetworkOutput {
+    NetworkName: String|Mapping
+    Ttl: Int|Mapping
+    Name: String|Mapping
+    Protocol: BridgeProtocolEnum
+    IpAddress: String|Mapping
+    Port: Int|Mapping
+}
+
 /// The settings for attaching a VPC interface to an resource.
 open class BridgeVpcInterfaceAttachment {
     VpcInterfaceName: (String|Mapping)?
@@ -48,74 +82,40 @@ open class BridgeEgressGatewayBridge {
     MaxBitrate: Int|Mapping
 }
 
-/// The settings for source failover.
-open class BridgeFailoverConfig {
-    State: (BridgeFailoverConfigStateEnum)?
-    FailoverMode: BridgeFailoverModeEnum
-    SourcePriority: (BridgeSourcePriority)?
-}
-
-/// 
-open class BridgeIngressGatewayBridge {
-    MaxBitrate: Int|Mapping
-    MaxOutputs: Int|Mapping
-}
-
-/// The source of the bridge. A network source originates at your premises.
-open class BridgeBridgeNetworkSource {
-    Port: Int|Mapping
-    NetworkName: String|Mapping
-    Name: String|Mapping
-    Protocol: BridgeProtocolEnum
-    MulticastIp: String|Mapping
-}
-
-typealias BridgeProtocolEnum = String|Mapping
-
-
-/// The bridge's source.
-open class BridgeBridgeSource {
-    FlowSource: (BridgeBridgeFlowSource)?
-    NetworkSource: (BridgeBridgeNetworkSource)?
-}
-
-typealias BridgeFailoverConfigStateEnum = String|Mapping
-
-
 /// Resource schema for AWS::MediaConnect::Bridge
 open class Bridge extends cloudformation.Resource {
 
     Type = "AWS::MediaConnect::Bridge"
 
 
-    /// The placement Amazon Resource Number (ARN) of the bridge.
-    hidden PlacementArn: String|Mapping
-
-    /// The sources on this bridge.
-    hidden Sources: Listing<BridgeBridgeSource>
-
-    /// 
-    hidden IngressGatewayBridge: (Dynamic)?
-
     /// The name of the bridge.
     hidden Name: String|Mapping
-
-    /// 
-    hidden SourceFailoverConfig: (BridgeFailoverConfig)?
 
     /// The outputs on this bridge.
     hidden Outputs: (Listing<BridgeBridgeOutput>)?
 
     /// 
+    hidden IngressGatewayBridge: (Dynamic)?
+
+    /// The placement Amazon Resource Number (ARN) of the bridge.
+    hidden PlacementArn: String|Mapping
+
+    /// 
+    hidden SourceFailoverConfig: (BridgeFailoverConfig)?
+
+    /// The sources on this bridge.
+    hidden Sources: Listing<BridgeBridgeSource>
+
+    /// 
     hidden EgressGatewayBridge: (Dynamic)?
 
     Properties {
-        ["PlacementArn"] = if (PlacementArn == null) null else PlacementArn
-        ["Sources"] = if (Sources == null) null else Sources
-        ["IngressGatewayBridge"] = if (IngressGatewayBridge == null) null else IngressGatewayBridge
         ["Name"] = if (Name == null) null else Name
-        ["SourceFailoverConfig"] = if (SourceFailoverConfig == null) null else SourceFailoverConfig
         ["Outputs"] = if (Outputs == null) null else Outputs
+        ["IngressGatewayBridge"] = if (IngressGatewayBridge == null) null else IngressGatewayBridge
+        ["PlacementArn"] = if (PlacementArn == null) null else PlacementArn
+        ["SourceFailoverConfig"] = if (SourceFailoverConfig == null) null else SourceFailoverConfig
+        ["Sources"] = if (Sources == null) null else Sources
         ["EgressGatewayBridge"] = if (EgressGatewayBridge == null) null else EgressGatewayBridge
     }
 

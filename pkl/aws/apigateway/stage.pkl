@@ -27,16 +27,16 @@ open class StageAccessLogSetting {
 ///
 ///  The ``MethodSettings`` property of the ``AWS::ApiGateway::Stage`` resource contains a list of ``MethodSetting`` property types.
 open class StageMethodSetting {
-    CacheDataEncrypted: (Boolean|Mapping)?
     HttpMethod: (String|Mapping)?
-    LoggingLevel: (String|Mapping)?
     MetricsEnabled: (Boolean|Mapping)?
-    ResourcePath: (String|Mapping)?
+    ThrottlingBurstLimit: (Int|Mapping)?
+    ThrottlingRateLimit: (Number|Mapping)?
+    CacheDataEncrypted: (Boolean|Mapping)?
     CacheTtlInSeconds: (Int|Mapping)?
     CachingEnabled: (Boolean|Mapping)?
     DataTraceEnabled: (Boolean|Mapping)?
-    ThrottlingBurstLimit: (Int|Mapping)?
-    ThrottlingRateLimit: (Number|Mapping)?
+    LoggingLevel: (String|Mapping)?
+    ResourcePath: (String|Mapping)?
 }
 
 /// 
@@ -54,6 +54,18 @@ open class Stage extends cloudformation.Resource {
     /// A map that defines the method settings for a Stage resource. Keys (designated as ``/{method_setting_key`` below) are method paths defined as ``{resource_path}/{http_method}`` for an individual method override, or ``/\*/\*`` for overriding all methods in the stage.
     hidden MethodSettings: (Listing<StageMethodSetting>)?
 
+    /// Access log settings, including the access log format and access log destination ARN.
+    hidden AccessLogSetting: (StageAccessLogSetting)?
+
+    /// Settings for the canary deployment in this stage.
+    hidden CanarySetting: (StageCanarySetting)?
+
+    /// The identifier of the Deployment that the stage points to.
+    hidden DeploymentId: (String|Mapping)?
+
+    /// The string identifier of the associated RestApi.
+    hidden RestApiId: String|Mapping
+
     /// The name of the stage is the first path segment in the Uniform Resource Identifier (URI) of a call to API Gateway. Stage names can only contain alphanumeric characters, hyphens, and underscores. Maximum length is 128 characters.
     hidden StageName: (String|Mapping)?
 
@@ -63,8 +75,8 @@ open class Stage extends cloudformation.Resource {
     /// Specifies whether a cache cluster is enabled for the stage.
     hidden CacheClusterEnabled: (Boolean|Mapping)?
 
-    /// Settings for the canary deployment in this stage.
-    hidden CanarySetting: (StageCanarySetting)?
+    /// The identifier of a client certificate for an API stage.
+    hidden ClientCertificateId: (String|Mapping)?
 
     /// The stage's description.
     hidden Description: (String|Mapping)?
@@ -72,41 +84,29 @@ open class Stage extends cloudformation.Resource {
     /// Specifies whether active tracing with X-ray is enabled for the Stage.
     hidden TracingEnabled: (Boolean|Mapping)?
 
-    /// Access log settings, including the access log format and access log destination ARN.
-    hidden AccessLogSetting: (StageAccessLogSetting)?
-
-    /// The identifier of a client certificate for an API stage.
-    hidden ClientCertificateId: (String|Mapping)?
-
-    /// The collection of tags. Each tag element is associated with a given resource.
-    hidden Tags: (Listing<StageTag>)?
-
     /// The stage's cache capacity in GB. For more information about choosing a cache size, see [Enabling API caching to enhance responsiveness](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-caching.html).
     hidden CacheClusterSize: (String|Mapping)?
 
-    /// The string identifier of the associated RestApi.
-    hidden RestApiId: String|Mapping
-
-    /// The identifier of the Deployment that the stage points to.
-    hidden DeploymentId: (String|Mapping)?
+    /// The collection of tags. Each tag element is associated with a given resource.
+    hidden Tags: (Listing<StageTag>)?
 
     /// The version of the associated API documentation.
     hidden DocumentationVersion: (String|Mapping)?
 
     Properties {
         ["MethodSettings"] = if (MethodSettings == null) null else MethodSettings
+        ["AccessLogSetting"] = if (AccessLogSetting == null) null else AccessLogSetting
+        ["CanarySetting"] = if (CanarySetting == null) null else CanarySetting
+        ["DeploymentId"] = if (DeploymentId == null) null else DeploymentId
+        ["RestApiId"] = if (RestApiId == null) null else RestApiId
         ["StageName"] = if (StageName == null) null else StageName
         ["Variables"] = if (Variables == null) null else Variables
         ["CacheClusterEnabled"] = if (CacheClusterEnabled == null) null else CacheClusterEnabled
-        ["CanarySetting"] = if (CanarySetting == null) null else CanarySetting
+        ["ClientCertificateId"] = if (ClientCertificateId == null) null else ClientCertificateId
         ["Description"] = if (Description == null) null else Description
         ["TracingEnabled"] = if (TracingEnabled == null) null else TracingEnabled
-        ["AccessLogSetting"] = if (AccessLogSetting == null) null else AccessLogSetting
-        ["ClientCertificateId"] = if (ClientCertificateId == null) null else ClientCertificateId
-        ["Tags"] = if (Tags == null) null else Tags
         ["CacheClusterSize"] = if (CacheClusterSize == null) null else CacheClusterSize
-        ["RestApiId"] = if (RestApiId == null) null else RestApiId
-        ["DeploymentId"] = if (DeploymentId == null) null else DeploymentId
+        ["Tags"] = if (Tags == null) null else Tags
         ["DocumentationVersion"] = if (DocumentationVersion == null) null else DocumentationVersion
     }
 

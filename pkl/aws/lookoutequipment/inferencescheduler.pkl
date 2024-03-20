@@ -5,6 +5,9 @@ module aws.lookoutequipment.inferencescheduler
 
 import "../../cloudformation.pkl"
 
+typealias InferenceSchedulerBucket = String|Mapping
+
+
 typealias InferenceSchedulerPrefix = String|Mapping
 
 
@@ -32,26 +35,20 @@ open class InferenceSchedulerTag {
     Value: String(matches(Regex(#"[\s\w+-=\.:/@]*"#)))|Mapping
 }
 
-typealias InferenceSchedulerBucket = String|Mapping
-
-
 /// Resource schema for LookoutEquipment InferenceScheduler.
 open class InferenceScheduler extends cloudformation.Resource {
 
     Type = "AWS::LookoutEquipment::InferenceScheduler"
 
 
-    /// The name of the inference scheduler being created.
-    hidden InferenceSchedulerName: (String(matches(Regex(#"^[0-9a-zA-Z_-]{1,200}$"#)))|Mapping)?
-
-    /// Any tags associated with the inference scheduler.
-    hidden Tags: (Listing<InferenceSchedulerTag>)?
-
     /// Specifies configuration information for the input data for the inference scheduler, including delimiter, format, and dataset location.
     hidden DataInputConfiguration: Dynamic
 
-    /// Specifies configuration information for the output results for the inference scheduler, including the S3 location for the output.
-    hidden DataOutputConfiguration: Dynamic
+    /// How often data is uploaded to the source S3 bucket for the input data.
+    hidden DataUploadFrequency: InferenceSchedulerDataUploadFrequency|Mapping
+
+    /// The name of the inference scheduler being created.
+    hidden InferenceSchedulerName: (String(matches(Regex(#"^[0-9a-zA-Z_-]{1,200}$"#)))|Mapping)?
 
     /// The name of the previously trained ML model being used to create the inference scheduler.
     hidden ModelName: String(matches(Regex(#"^[0-9a-zA-Z_-]{1,200}$"#)))|Mapping
@@ -62,22 +59,25 @@ open class InferenceScheduler extends cloudformation.Resource {
     /// Provides the identifier of the AWS KMS customer master key (CMK) used to encrypt inference scheduler data by Amazon Lookout for Equipment.
     hidden ServerSideKmsKeyId: (String(matches(Regex(#"^[A-Za-z0-9][A-Za-z0-9:_/+=,@.-]{0,2048}$"#)))|Mapping)?
 
+    /// Any tags associated with the inference scheduler.
+    hidden Tags: (Listing<InferenceSchedulerTag>)?
+
     /// A period of time (in minutes) by which inference on the data is delayed after the data starts.
     hidden DataDelayOffsetInMinutes: (Int|Mapping)?
 
-    /// How often data is uploaded to the source S3 bucket for the input data.
-    hidden DataUploadFrequency: InferenceSchedulerDataUploadFrequency|Mapping
+    /// Specifies configuration information for the output results for the inference scheduler, including the S3 location for the output.
+    hidden DataOutputConfiguration: Dynamic
 
     Properties {
-        ["InferenceSchedulerName"] = if (InferenceSchedulerName == null) null else InferenceSchedulerName
-        ["Tags"] = if (Tags == null) null else Tags
         ["DataInputConfiguration"] = if (DataInputConfiguration == null) null else DataInputConfiguration
-        ["DataOutputConfiguration"] = if (DataOutputConfiguration == null) null else DataOutputConfiguration
+        ["DataUploadFrequency"] = if (DataUploadFrequency == null) null else DataUploadFrequency
+        ["InferenceSchedulerName"] = if (InferenceSchedulerName == null) null else InferenceSchedulerName
         ["ModelName"] = if (ModelName == null) null else ModelName
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
         ["ServerSideKmsKeyId"] = if (ServerSideKmsKeyId == null) null else ServerSideKmsKeyId
+        ["Tags"] = if (Tags == null) null else Tags
         ["DataDelayOffsetInMinutes"] = if (DataDelayOffsetInMinutes == null) null else DataDelayOffsetInMinutes
-        ["DataUploadFrequency"] = if (DataUploadFrequency == null) null else DataUploadFrequency
+        ["DataOutputConfiguration"] = if (DataOutputConfiguration == null) null else DataOutputConfiguration
     }
 
 }

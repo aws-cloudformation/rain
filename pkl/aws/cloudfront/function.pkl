@@ -6,10 +6,15 @@ module aws.cloudfront.function_
 import "../../cloudformation.pkl"
 
 /// 
+open class FunctionKeyValueStoreAssociation {
+    KeyValueStoreARN: String|Mapping
+}
+
+/// 
 open class FunctionFunctionConfig {
-    Comment: String|Mapping
     Runtime: String|Mapping
     KeyValueStoreAssociations: (Listing<FunctionKeyValueStoreAssociation>)?
+    Comment: String|Mapping
 }
 
 /// 
@@ -17,16 +22,14 @@ open class FunctionFunctionMetadata {
     FunctionARN: (String|Mapping)?
 }
 
-/// 
-open class FunctionKeyValueStoreAssociation {
-    KeyValueStoreARN: String|Mapping
-}
-
 /// Resource Type definition for AWS::CloudFront::Function
 open class Function extends cloudformation.Resource {
 
     Type = "AWS::CloudFront::Function"
 
+
+    /// 
+    hidden FunctionCode: String|Mapping
 
     /// 
     hidden FunctionConfig: FunctionFunctionConfig
@@ -40,15 +43,12 @@ open class Function extends cloudformation.Resource {
     /// 
     hidden AutoPublish: (Boolean|Mapping)?
 
-    /// 
-    hidden FunctionCode: String|Mapping
-
     Properties {
+        ["FunctionCode"] = if (FunctionCode == null) null else FunctionCode
         ["FunctionConfig"] = if (FunctionConfig == null) null else FunctionConfig
         ["FunctionMetadata"] = if (FunctionMetadata == null) null else FunctionMetadata
         ["Name"] = if (Name == null) null else Name
         ["AutoPublish"] = if (AutoPublish == null) null else AutoPublish
-        ["FunctionCode"] = if (FunctionCode == null) null else FunctionCode
     }
 
 }

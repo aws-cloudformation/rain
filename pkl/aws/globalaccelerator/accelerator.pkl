@@ -5,14 +5,14 @@ module aws.globalaccelerator.accelerator
 
 import "../../cloudformation.pkl"
 
+typealias AcceleratorIpAddress = String|Mapping
+
+
 /// Tag is a key-value pair associated with accelerator.
 open class AcceleratorTag {
     Key: String|Mapping
     Value: String|Mapping
 }
-
-typealias AcceleratorIpAddress = String|Mapping
-
 
 /// Resource Type definition for AWS::GlobalAccelerator::Accelerator
 open class Accelerator extends cloudformation.Resource {
@@ -20,27 +20,27 @@ open class Accelerator extends cloudformation.Resource {
     Type = "AWS::GlobalAccelerator::Accelerator"
 
 
-    /// The IP addresses from BYOIP Prefix pool.
-    hidden IpAddresses: (Listing<AcceleratorIpAddress>)?
-
-    /// Name of accelerator.
-    hidden Name: String(matches(Regex(#"^[a-zA-Z0-9_-]{0,64}$"#)))|Mapping
-
     /// Indicates whether an accelerator is enabled. The value is true or false.
     hidden Enabled: (Boolean|Mapping)?
 
-    /// 
-    hidden Tags: (Listing<AcceleratorTag>)?
+    /// The IP addresses from BYOIP Prefix pool.
+    hidden IpAddresses: (Listing<AcceleratorIpAddress>)?
 
     /// IP Address type.
     hidden IpAddressType: (AcceleratorIpAddressType|Mapping)?
 
+    /// 
+    hidden Tags: (Listing<AcceleratorTag>)?
+
+    /// Name of accelerator.
+    hidden Name: String(matches(Regex(#"^[a-zA-Z0-9_-]{0,64}$"#)))|Mapping
+
     Properties {
-        ["IpAddresses"] = if (IpAddresses == null) null else IpAddresses
-        ["Name"] = if (Name == null) null else Name
         ["Enabled"] = if (Enabled == null) null else Enabled
-        ["Tags"] = if (Tags == null) null else Tags
+        ["IpAddresses"] = if (IpAddresses == null) null else IpAddresses
         ["IpAddressType"] = if (IpAddressType == null) null else IpAddressType
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Name"] = if (Name == null) null else Name
     }
 
 }

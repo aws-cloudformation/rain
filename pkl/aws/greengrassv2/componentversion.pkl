@@ -5,6 +5,14 @@ module aws.greengrassv2.componentversion
 
 import "../../cloudformation.pkl"
 
+/// 
+open class ComponentVersionLambdaContainerParams {
+    MemorySizeInKB: (Int|Mapping)?
+    MountROSysfs: (Boolean|Mapping)?
+    Volumes: (Listing<ComponentVersionLambdaVolumeMount>)?
+    Devices: (Listing<ComponentVersionLambdaDeviceMount>)?
+}
+
 typealias ComponentVersionLambdaAddGroupOwnerBoolean = Boolean|Mapping
 
 
@@ -20,46 +28,12 @@ open class ComponentVersionLambdaFunctionRecipeSource {
     ComponentLambdaParameters: (ComponentVersionLambdaExecutionParameters)?
 }
 
-typealias LambdaEventSourceType = "PUB_SUB"|"IOT_CORE"
-
-/// 
-open class ComponentVersionLambdaEventSource {
-    Topic: (String|Mapping)?
-    Type: (LambdaEventSourceType|Mapping)?
-}
-
-/// 
-open class ComponentVersionLambdaVolumeMount {
-    SourcePath: (ComponentVersionFilesystemPath)?
-    DestinationPath: (ComponentVersionFilesystemPath)?
-    Permission: (ComponentVersionLambdaFilesystemPermission)?
-    AddGroupOwner: (ComponentVersionLambdaAddGroupOwnerBoolean)?
-}
-
-/// 
-open class ComponentVersionLambdaDeviceMount {
-    Path: (ComponentVersionFilesystemPath)?
-    Permission: (ComponentVersionLambdaFilesystemPermission)?
-    AddGroupOwner: (ComponentVersionLambdaAddGroupOwnerBoolean)?
-}
-
-typealias ComponentVersionFilesystemPath = String|Mapping
-
-
 typealias ComponentVersionComponentPlatformAttributes = Mapping<String, Any>
 
 /// 
 open class ComponentVersionComponentPlatform {
     Name: (String|Mapping)?
     Attributes: (ComponentVersionComponentPlatformAttributes)?
-}
-
-typealias LambdaLinuxProcessParamsIsolationMode = "GreengrassContainer"|"NoContainer"
-
-/// 
-open class ComponentVersionLambdaLinuxProcessParams {
-    IsolationMode: (LambdaLinuxProcessParamsIsolationMode|Mapping)?
-    ContainerParams: (ComponentVersionLambdaContainerParams)?
 }
 
 typealias ComponentDependencyRequirementDependencyType = "SOFT"|"HARD"
@@ -70,32 +44,58 @@ open class ComponentVersionComponentDependencyRequirement {
     DependencyType: (ComponentDependencyRequirementDependencyType|Mapping)?
 }
 
+typealias LambdaEventSourceType = "PUB_SUB"|"IOT_CORE"
+
+/// 
+open class ComponentVersionLambdaEventSource {
+    Topic: (String|Mapping)?
+    Type: (LambdaEventSourceType|Mapping)?
+}
+
+typealias LambdaLinuxProcessParamsIsolationMode = "GreengrassContainer"|"NoContainer"
+
+/// 
+open class ComponentVersionLambdaLinuxProcessParams {
+    IsolationMode: (LambdaLinuxProcessParamsIsolationMode|Mapping)?
+    ContainerParams: (ComponentVersionLambdaContainerParams)?
+}
+
+/// 
+open class ComponentVersionLambdaDeviceMount {
+    AddGroupOwner: (ComponentVersionLambdaAddGroupOwnerBoolean)?
+    Path: (ComponentVersionFilesystemPath)?
+    Permission: (ComponentVersionLambdaFilesystemPermission)?
+}
+
 typealias LambdaExecutionParametersInputPayloadEncodingType = "json"|"binary"
 
 typealias ComponentVersionLambdaExecutionParametersEnvironmentVariables = Mapping<String, Any>
 
 /// 
 open class ComponentVersionLambdaExecutionParameters {
+    EventSources: (Listing<ComponentVersionLambdaEventSource>)?
+    MaxInstancesCount: (Int|Mapping)?
+    TimeoutInSeconds: (Int|Mapping)?
+    StatusTimeoutInSeconds: (Int|Mapping)?
     Pinned: (Boolean|Mapping)?
     InputPayloadEncodingType: (LambdaExecutionParametersInputPayloadEncodingType|Mapping)?
-    LinuxProcessParams: (ComponentVersionLambdaLinuxProcessParams)?
+    MaxQueueSize: (Int|Mapping)?
     MaxIdleTimeInSeconds: (Int|Mapping)?
-    TimeoutInSeconds: (Int|Mapping)?
-    MaxInstancesCount: (Int|Mapping)?
-    StatusTimeoutInSeconds: (Int|Mapping)?
     ExecArgs: (Listing<String|Mapping>)?
     EnvironmentVariables: (ComponentVersionLambdaExecutionParametersEnvironmentVariables)?
-    EventSources: (Listing<ComponentVersionLambdaEventSource>)?
-    MaxQueueSize: (Int|Mapping)?
+    LinuxProcessParams: (ComponentVersionLambdaLinuxProcessParams)?
 }
 
 /// 
-open class ComponentVersionLambdaContainerParams {
-    Devices: (Listing<ComponentVersionLambdaDeviceMount>)?
-    MemorySizeInKB: (Int|Mapping)?
-    MountROSysfs: (Boolean|Mapping)?
-    Volumes: (Listing<ComponentVersionLambdaVolumeMount>)?
+open class ComponentVersionLambdaVolumeMount {
+    SourcePath: (ComponentVersionFilesystemPath)?
+    DestinationPath: (ComponentVersionFilesystemPath)?
+    Permission: (ComponentVersionLambdaFilesystemPermission)?
+    AddGroupOwner: (ComponentVersionLambdaAddGroupOwnerBoolean)?
 }
+
+typealias ComponentVersionFilesystemPath = String|Mapping
+
 
 typealias ComponentVersionLambdaFilesystemPermission = String|Mapping
 

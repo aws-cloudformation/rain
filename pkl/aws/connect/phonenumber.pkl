@@ -7,8 +7,8 @@ import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
 open class PhoneNumberTag {
-    Value: String|Mapping
     Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
+    Value: String|Mapping
 }
 
 /// Resource Type definition for AWS::Connect::PhoneNumber
@@ -17,8 +17,11 @@ open class PhoneNumber extends cloudformation.Resource {
     Type = "AWS::Connect::PhoneNumber"
 
 
-    /// The description of the phone number.
-    hidden Description: (String|Mapping)?
+    /// The phone number prefix.
+    hidden Prefix: (String(matches(Regex(#"^\+[0-9]{1,15}"#)))|Mapping)?
+
+    /// The source phone number arn.
+    hidden SourcePhoneNumberArn: (String|Mapping)?
 
     /// The phone number type
     hidden TypeProperty: (String(matches(Regex(#"TOLL_FREE|DID|UIFN|SHARED|THIRD_PARTY_DID|THIRD_PARTY_TF|SHORT_CODE"#)))|Mapping)?
@@ -26,26 +29,23 @@ open class PhoneNumber extends cloudformation.Resource {
     /// The phone number country code.
     hidden CountryCode: (String(matches(Regex(#"^[A-Z]{2}"#)))|Mapping)?
 
+    /// The description of the phone number.
+    hidden Description: (String|Mapping)?
+
     /// One or more tags.
     hidden Tags: (Listing<PhoneNumberTag>)?
 
     /// The ARN of the target the phone number is claimed to.
     hidden TargetArn: String(matches(Regex(#"^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:(instance|traffic-distribution-group)/[-a-zA-Z0-9]*$"#)))|Mapping
 
-    /// The phone number prefix.
-    hidden Prefix: (String(matches(Regex(#"^\+[0-9]{1,15}"#)))|Mapping)?
-
-    /// The source phone number arn.
-    hidden SourcePhoneNumberArn: (String|Mapping)?
-
     Properties {
-        ["Description"] = if (Description == null) null else Description
-        ["Type"] = if (TypeProperty == null) null else TypeProperty
-        ["CountryCode"] = if (CountryCode == null) null else CountryCode
-        ["Tags"] = if (Tags == null) null else Tags
-        ["TargetArn"] = if (TargetArn == null) null else TargetArn
         ["Prefix"] = if (Prefix == null) null else Prefix
         ["SourcePhoneNumberArn"] = if (SourcePhoneNumberArn == null) null else SourcePhoneNumberArn
+        ["Type"] = if (TypeProperty == null) null else TypeProperty
+        ["CountryCode"] = if (CountryCode == null) null else CountryCode
+        ["Description"] = if (Description == null) null else Description
+        ["Tags"] = if (Tags == null) null else Tags
+        ["TargetArn"] = if (TargetArn == null) null else TargetArn
     }
 
 }

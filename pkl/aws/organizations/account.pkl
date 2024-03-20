@@ -17,11 +17,11 @@ open class Account extends cloudformation.Resource {
     Type = "AWS::Organizations::Account"
 
 
-    /// List of parent nodes for the member account. Currently only one parent at a time is supported. Default is root.
-    hidden ParentIds: (Listing<String|Mapping>)?
-
     /// A list of tags that you want to attach to the newly created account. For each tag in the list, you must specify both a tag key and a value.
     hidden Tags: (Listing<AccountTag>)?
+
+    /// The friendly name of the member account.
+    hidden AccountName: String(matches(Regex(#"[\u0020-\u007E]+"#)))|Mapping
 
     /// The email address of the owner to assign to the new member account.
     hidden Email: String(matches(Regex(#"[^\s@]+@[^\s@]+\.[^\s@]+"#)))|Mapping
@@ -29,15 +29,15 @@ open class Account extends cloudformation.Resource {
     /// The name of an IAM role that AWS Organizations automatically preconfigures in the new member account. Default name is OrganizationAccountAccessRole if not specified.
     hidden RoleName: (String(matches(Regex(#"[\w+=,.@-]{1,64}"#)))|Mapping)?
 
-    /// The friendly name of the member account.
-    hidden AccountName: String(matches(Regex(#"[\u0020-\u007E]+"#)))|Mapping
+    /// List of parent nodes for the member account. Currently only one parent at a time is supported. Default is root.
+    hidden ParentIds: (Listing<String|Mapping>)?
 
     Properties {
-        ["ParentIds"] = if (ParentIds == null) null else ParentIds
         ["Tags"] = if (Tags == null) null else Tags
+        ["AccountName"] = if (AccountName == null) null else AccountName
         ["Email"] = if (Email == null) null else Email
         ["RoleName"] = if (RoleName == null) null else RoleName
-        ["AccountName"] = if (AccountName == null) null else AccountName
+        ["ParentIds"] = if (ParentIds == null) null else ParentIds
     }
 
 }

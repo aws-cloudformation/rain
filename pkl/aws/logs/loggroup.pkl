@@ -7,8 +7,8 @@ import "../../cloudformation.pkl"
 
 /// 
 open class LogGroupTag {
-    Key: String|Mapping
     Value: String|Mapping
+    Key: String|Mapping
 }
 
 /// The ``AWS::Logs::LogGroup`` resource specifies a log group. A log group defines common properties for log streams, such as their retention and access control rules. Each log stream must belong to one log group.
@@ -21,6 +21,9 @@ open class LogGroup extends cloudformation.Resource {
 
     Type = "AWS::Logs::LogGroup"
 
+
+    /// The name of the log group. If you don't specify a name, CFNlong generates a unique ID for the log group.
+    hidden LogGroupName: (String(matches(Regex(#"^[.\-_/#A-Za-z0-9]{1,512}\Z"#)))|Mapping)?
 
     /// The Amazon Resource Name (ARN) of the KMS key to use when encrypting log data.
     ///
@@ -52,16 +55,13 @@ open class LogGroup extends cloudformation.Resource {
     ///  For more information, see [Tag](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-resource-tags.html).
     hidden Tags: (Listing<LogGroupTag>)?
 
-    /// The name of the log group. If you don't specify a name, CFNlong generates a unique ID for the log group.
-    hidden LogGroupName: (String(matches(Regex(#"^[.\-_/#A-Za-z0-9]{1,512}\Z"#)))|Mapping)?
-
     Properties {
+        ["LogGroupName"] = if (LogGroupName == null) null else LogGroupName
         ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
         ["DataProtectionPolicy"] = if (DataProtectionPolicy == null) null else DataProtectionPolicy
         ["LogGroupClass"] = if (LogGroupClass == null) null else LogGroupClass
         ["RetentionInDays"] = if (RetentionInDays == null) null else RetentionInDays
         ["Tags"] = if (Tags == null) null else Tags
-        ["LogGroupName"] = if (LogGroupName == null) null else LogGroupName
     }
 
 }

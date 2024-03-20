@@ -5,69 +5,49 @@ module aws.iotfleetwise.decodermanifest
 
 import "../../cloudformation.pkl"
 
-typealias ObdNetworkInterfaceType = "OBD_INTERFACE"
-
 /// 
-open class DecoderManifestObdNetworkInterface {
-    Type: ObdNetworkInterfaceType|Mapping
-    ObdInterface: DecoderManifestObdInterface
-    InterfaceId: String|Mapping
-}
-
-/// 
-open class DecoderManifestObdSignal {
-    ServiceMode: Dynamic
-    Pid: Dynamic
+open class DecoderManifestCanSignal {
+    Length: Dynamic
+    Name: (String|Mapping)?
+    MessageId: Dynamic
+    IsBigEndian: Dynamic
+    IsSigned: Dynamic
+    StartBit: Dynamic
     Offset: Dynamic
-    StartByte: Dynamic
-    ByteLength: Dynamic
-    BitRightShift: (Dynamic)?
-    BitMaskLength: (Dynamic)?
-    PidResponseLength: Dynamic
-    Scaling: Dynamic
+    Factor: Dynamic
 }
 
 typealias CanNetworkInterfaceType = "CAN_INTERFACE"
 
 /// 
 open class DecoderManifestCanNetworkInterface {
+    CanInterface: DecoderManifestCanInterface
     InterfaceId: String|Mapping
     Type: CanNetworkInterfaceType|Mapping
-    CanInterface: DecoderManifestCanInterface
-}
-
-typealias ObdSignalDecoderType = "OBD_SIGNAL"
-
-/// 
-open class DecoderManifestObdSignalDecoder {
-    InterfaceId: String|Mapping
-    ObdSignal: DecoderManifestObdSignal
-    FullyQualifiedName: String|Mapping
-    Type: ObdSignalDecoderType|Mapping
-}
-
-/// 
-open class DecoderManifestTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// 
-open class DecoderManifestCanInterface {
-    Name: String|Mapping
-    ProtocolName: (String|Mapping)?
-    ProtocolVersion: (String|Mapping)?
 }
 
 /// 
 open class DecoderManifestObdInterface {
+    Name: String|Mapping
+    RequestMessageId: Dynamic
     ObdStandard: (String|Mapping)?
     PidRequestIntervalSeconds: (Dynamic)?
     DtcRequestIntervalSeconds: (Dynamic)?
     UseExtendedIds: (Dynamic)?
     HasTransmissionEcu: (Dynamic)?
-    Name: String|Mapping
-    RequestMessageId: Dynamic
+}
+
+/// 
+open class DecoderManifestObdSignal {
+    BitRightShift: (Dynamic)?
+    PidResponseLength: Dynamic
+    ByteLength: Dynamic
+    Scaling: Dynamic
+    Offset: Dynamic
+    StartByte: Dynamic
+    BitMaskLength: (Dynamic)?
+    ServiceMode: Dynamic
+    Pid: Dynamic
 }
 
 typealias CanSignalDecoderType = "CAN_SIGNAL"
@@ -80,19 +60,39 @@ open class DecoderManifestCanSignalDecoder {
     CanSignal: DecoderManifestCanSignal
 }
 
+/// 
+open class DecoderManifestTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
 typealias DecoderManifestManifestStatus = String|Mapping
 
 
+typealias ObdNetworkInterfaceType = "OBD_INTERFACE"
+
 /// 
-open class DecoderManifestCanSignal {
-    StartBit: Dynamic
-    Offset: Dynamic
-    Factor: Dynamic
-    Length: Dynamic
-    Name: (String|Mapping)?
-    MessageId: Dynamic
-    IsBigEndian: Dynamic
-    IsSigned: Dynamic
+open class DecoderManifestObdNetworkInterface {
+    InterfaceId: String|Mapping
+    Type: ObdNetworkInterfaceType|Mapping
+    ObdInterface: DecoderManifestObdInterface
+}
+
+typealias ObdSignalDecoderType = "OBD_SIGNAL"
+
+/// 
+open class DecoderManifestObdSignalDecoder {
+    FullyQualifiedName: String|Mapping
+    Type: ObdSignalDecoderType|Mapping
+    InterfaceId: String|Mapping
+    ObdSignal: DecoderManifestObdSignal
+}
+
+/// 
+open class DecoderManifestCanInterface {
+    ProtocolName: (String|Mapping)?
+    ProtocolVersion: (String|Mapping)?
+    Name: String|Mapping
 }
 
 /// Definition of AWS::IoTFleetWise::DecoderManifest Resource Type
@@ -102,34 +102,34 @@ open class DecoderManifest extends cloudformation.Resource {
 
 
     /// 
+    hidden Status: (DecoderManifestManifestStatus)?
+
+    /// 
+    hidden Tags: (Listing<DecoderManifestTag>)?
+
+    /// 
+    hidden Description: (String(matches(Regex(#"^[^\u0000-\u001F\u007F]+$"#)))|Mapping)?
+
+    /// 
+    hidden ModelManifestArn: String|Mapping
+
+    /// 
     hidden Name: String(matches(Regex(#"^[a-zA-Z\d\-_:]+$"#)))|Mapping
 
     /// 
     hidden NetworkInterfaces: (Listing<DecoderManifestDecoderManifestNetworkInterfaces>)?
 
     /// 
-    hidden Status: (DecoderManifestManifestStatus)?
-
-    /// 
-    hidden Description: (String(matches(Regex(#"^[^\u0000-\u001F\u007F]+$"#)))|Mapping)?
-
-    /// 
     hidden SignalDecoders: (Listing<DecoderManifestDecoderManifestSignalDecoders>)?
 
-    /// 
-    hidden Tags: (Listing<DecoderManifestTag>)?
-
-    /// 
-    hidden ModelManifestArn: String|Mapping
-
     Properties {
+        ["Status"] = if (Status == null) null else Status
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Description"] = if (Description == null) null else Description
+        ["ModelManifestArn"] = if (ModelManifestArn == null) null else ModelManifestArn
         ["Name"] = if (Name == null) null else Name
         ["NetworkInterfaces"] = if (NetworkInterfaces == null) null else NetworkInterfaces
-        ["Status"] = if (Status == null) null else Status
-        ["Description"] = if (Description == null) null else Description
         ["SignalDecoders"] = if (SignalDecoders == null) null else SignalDecoders
-        ["Tags"] = if (Tags == null) null else Tags
-        ["ModelManifestArn"] = if (ModelManifestArn == null) null else ModelManifestArn
     }
 
 }

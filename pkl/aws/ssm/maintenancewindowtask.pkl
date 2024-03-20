@@ -6,61 +6,6 @@ module aws.ssm.maintenancewindowtask
 import "../../cloudformation.pkl"
 
 /// 
-open class MaintenanceWindowTaskNotificationConfig {
-    NotificationEvents: (Listing<String|Mapping>)?
-    NotificationArn: String|Mapping
-    NotificationType: (String|Mapping)?
-}
-
-/// 
-open class MaintenanceWindowTaskMaintenanceWindowStepFunctionsParameters {
-    Input: (String|Mapping)?
-    Name: (String|Mapping)?
-}
-
-/// 
-open class MaintenanceWindowTaskMaintenanceWindowAutomationParameters {
-    Parameters: (Dynamic)?
-    DocumentVersion: (String|Mapping)?
-}
-
-/// 
-open class MaintenanceWindowTaskMaintenanceWindowLambdaParameters {
-    Qualifier: (String|Mapping)?
-    Payload: (String|Mapping)?
-    ClientContext: (String|Mapping)?
-}
-
-/// 
-open class MaintenanceWindowTaskTaskInvocationParameters {
-    MaintenanceWindowStepFunctionsParameters: (MaintenanceWindowTaskMaintenanceWindowStepFunctionsParameters)?
-    MaintenanceWindowRunCommandParameters: (MaintenanceWindowTaskMaintenanceWindowRunCommandParameters)?
-    MaintenanceWindowLambdaParameters: (MaintenanceWindowTaskMaintenanceWindowLambdaParameters)?
-    MaintenanceWindowAutomationParameters: (MaintenanceWindowTaskMaintenanceWindowAutomationParameters)?
-}
-
-/// 
-open class MaintenanceWindowTaskCloudWatchOutputConfig {
-    CloudWatchLogGroupName: (String|Mapping)?
-    CloudWatchOutputEnabled: (Boolean|Mapping)?
-}
-
-/// 
-open class MaintenanceWindowTaskMaintenanceWindowRunCommandParameters {
-    Parameters: (Dynamic)?
-    ServiceRoleArn: (String|Mapping)?
-    DocumentVersion: (String|Mapping)?
-    OutputS3BucketName: (String|Mapping)?
-    DocumentHash: (String|Mapping)?
-    TimeoutSeconds: (Int|Mapping)?
-    OutputS3KeyPrefix: (String|Mapping)?
-    DocumentHashType: (String|Mapping)?
-    NotificationConfig: (MaintenanceWindowTaskNotificationConfig)?
-    Comment: (String|Mapping)?
-    CloudWatchOutputConfig: (MaintenanceWindowTaskCloudWatchOutputConfig)?
-}
-
-/// 
 open class MaintenanceWindowTaskLoggingInfo {
     Region: String|Mapping
     S3Prefix: (String|Mapping)?
@@ -73,11 +18,87 @@ open class MaintenanceWindowTaskTarget {
     Key: String|Mapping
 }
 
+/// 
+open class MaintenanceWindowTaskMaintenanceWindowRunCommandParameters {
+    Parameters: (Dynamic)?
+    DocumentHashType: (String|Mapping)?
+    ServiceRoleArn: (String|Mapping)?
+    NotificationConfig: (MaintenanceWindowTaskNotificationConfig)?
+    TimeoutSeconds: (Int|Mapping)?
+    Comment: (String|Mapping)?
+    OutputS3KeyPrefix: (String|Mapping)?
+    CloudWatchOutputConfig: (MaintenanceWindowTaskCloudWatchOutputConfig)?
+    DocumentVersion: (String|Mapping)?
+    OutputS3BucketName: (String|Mapping)?
+    DocumentHash: (String|Mapping)?
+}
+
+/// 
+open class MaintenanceWindowTaskNotificationConfig {
+    NotificationEvents: (Listing<String|Mapping>)?
+    NotificationArn: String|Mapping
+    NotificationType: (String|Mapping)?
+}
+
+/// 
+open class MaintenanceWindowTaskTaskInvocationParameters {
+    MaintenanceWindowStepFunctionsParameters: (MaintenanceWindowTaskMaintenanceWindowStepFunctionsParameters)?
+    MaintenanceWindowRunCommandParameters: (MaintenanceWindowTaskMaintenanceWindowRunCommandParameters)?
+    MaintenanceWindowLambdaParameters: (MaintenanceWindowTaskMaintenanceWindowLambdaParameters)?
+    MaintenanceWindowAutomationParameters: (MaintenanceWindowTaskMaintenanceWindowAutomationParameters)?
+}
+
+/// 
+open class MaintenanceWindowTaskMaintenanceWindowAutomationParameters {
+    Parameters: (Dynamic)?
+    DocumentVersion: (String|Mapping)?
+}
+
+/// 
+open class MaintenanceWindowTaskCloudWatchOutputConfig {
+    CloudWatchOutputEnabled: (Boolean|Mapping)?
+    CloudWatchLogGroupName: (String|Mapping)?
+}
+
+/// 
+open class MaintenanceWindowTaskMaintenanceWindowStepFunctionsParameters {
+    Input: (String|Mapping)?
+    Name: (String|Mapping)?
+}
+
+/// 
+open class MaintenanceWindowTaskMaintenanceWindowLambdaParameters {
+    Qualifier: (String|Mapping)?
+    Payload: (String|Mapping)?
+    ClientContext: (String|Mapping)?
+}
+
 /// Resource Type definition for AWS::SSM::MaintenanceWindowTask
 open class MaintenanceWindowTask extends cloudformation.Resource {
 
     Type = "AWS::SSM::MaintenanceWindowTask"
 
+
+    /// 
+    hidden LoggingInfo: (MaintenanceWindowTaskLoggingInfo)?
+
+    /// 
+    hidden MaxErrors: (String|Mapping)?
+
+    /// 
+    hidden TaskArn: String|Mapping
+
+    /// 
+    hidden TaskType: String|Mapping
+
+    /// 
+    hidden Description: (String|Mapping)?
+
+    /// 
+    hidden Targets: (Listing<MaintenanceWindowTaskTarget>)?
+
+    /// 
+    hidden TaskInvocationParameters: (MaintenanceWindowTaskTaskInvocationParameters)?
 
     /// 
     hidden WindowId: String|Mapping
@@ -86,56 +107,35 @@ open class MaintenanceWindowTask extends cloudformation.Resource {
     hidden CutoffBehavior: (String|Mapping)?
 
     /// 
-    hidden Priority: Int|Mapping
+    hidden ServiceRoleArn: (String|Mapping)?
 
     /// 
-    hidden Targets: (Listing<MaintenanceWindowTaskTarget>)?
+    hidden Priority: Int|Mapping
 
     /// 
     hidden Name: (String|Mapping)?
 
     /// 
-    hidden TaskParameters: (Dynamic)?
-
-    /// 
-    hidden MaxErrors: (String|Mapping)?
-
-    /// 
-    hidden TaskInvocationParameters: (MaintenanceWindowTaskTaskInvocationParameters)?
-
-    /// 
-    hidden TaskType: String|Mapping
-
-    /// 
-    hidden LoggingInfo: (MaintenanceWindowTaskLoggingInfo)?
-
-    /// 
-    hidden Description: (String|Mapping)?
-
-    /// 
-    hidden ServiceRoleArn: (String|Mapping)?
-
-    /// 
     hidden MaxConcurrency: (String|Mapping)?
 
     /// 
-    hidden TaskArn: String|Mapping
+    hidden TaskParameters: (Dynamic)?
 
     Properties {
+        ["LoggingInfo"] = if (LoggingInfo == null) null else LoggingInfo
+        ["MaxErrors"] = if (MaxErrors == null) null else MaxErrors
+        ["TaskArn"] = if (TaskArn == null) null else TaskArn
+        ["TaskType"] = if (TaskType == null) null else TaskType
+        ["Description"] = if (Description == null) null else Description
+        ["Targets"] = if (Targets == null) null else Targets
+        ["TaskInvocationParameters"] = if (TaskInvocationParameters == null) null else TaskInvocationParameters
         ["WindowId"] = if (WindowId == null) null else WindowId
         ["CutoffBehavior"] = if (CutoffBehavior == null) null else CutoffBehavior
-        ["Priority"] = if (Priority == null) null else Priority
-        ["Targets"] = if (Targets == null) null else Targets
-        ["Name"] = if (Name == null) null else Name
-        ["TaskParameters"] = if (TaskParameters == null) null else TaskParameters
-        ["MaxErrors"] = if (MaxErrors == null) null else MaxErrors
-        ["TaskInvocationParameters"] = if (TaskInvocationParameters == null) null else TaskInvocationParameters
-        ["TaskType"] = if (TaskType == null) null else TaskType
-        ["LoggingInfo"] = if (LoggingInfo == null) null else LoggingInfo
-        ["Description"] = if (Description == null) null else Description
         ["ServiceRoleArn"] = if (ServiceRoleArn == null) null else ServiceRoleArn
+        ["Priority"] = if (Priority == null) null else Priority
+        ["Name"] = if (Name == null) null else Name
         ["MaxConcurrency"] = if (MaxConcurrency == null) null else MaxConcurrency
-        ["TaskArn"] = if (TaskArn == null) null else TaskArn
+        ["TaskParameters"] = if (TaskParameters == null) null else TaskParameters
     }
 
 }

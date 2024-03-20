@@ -6,17 +6,6 @@ module aws.cloudwatch.anomalydetector
 import "../../cloudformation.pkl"
 
 /// 
-open class AnomalyDetectorMetricDataQuery {
-    MetricStat: (AnomalyDetectorMetricStat)?
-    Label: (String|Mapping)?
-    Period: (Int|Mapping)?
-    Id: String|Mapping
-    AccountId: (String|Mapping)?
-    ReturnData: (Boolean|Mapping)?
-    Expression: (String|Mapping)?
-}
-
-/// 
 open class AnomalyDetectorRange {
     EndTime: String|Mapping
     StartTime: String|Mapping
@@ -24,10 +13,10 @@ open class AnomalyDetectorRange {
 
 /// 
 open class AnomalyDetectorSingleMetricAnomalyDetector {
+    Namespace: (String|Mapping)?
     MetricName: (String|Mapping)?
     Dimensions: (Listing<AnomalyDetectorDimension>)?
     Stat: (String|Mapping)?
-    Namespace: (String|Mapping)?
 }
 
 /// 
@@ -43,10 +32,10 @@ open class AnomalyDetectorConfiguration {
 
 /// 
 open class AnomalyDetectorMetricStat {
+    Metric: AnomalyDetectorMetric
     Stat: String|Mapping
     Unit: (String|Mapping)?
     Period: Int|Mapping
-    Metric: AnomalyDetectorMetric
 }
 
 /// 
@@ -62,11 +51,28 @@ open class AnomalyDetectorDimension {
     Name: String|Mapping
 }
 
+/// 
+open class AnomalyDetectorMetricDataQuery {
+    MetricStat: (AnomalyDetectorMetricStat)?
+    Label: (String|Mapping)?
+    Period: (Int|Mapping)?
+    Id: String|Mapping
+    AccountId: (String|Mapping)?
+    ReturnData: (Boolean|Mapping)?
+    Expression: (String|Mapping)?
+}
+
 /// Resource Type definition for AWS::CloudWatch::AnomalyDetector
 open class AnomalyDetector extends cloudformation.Resource {
 
     Type = "AWS::CloudWatch::AnomalyDetector"
 
+
+    /// 
+    hidden MetricMathAnomalyDetector: (AnomalyDetectorMetricMathAnomalyDetector)?
+
+    /// 
+    hidden Dimensions: (Listing<AnomalyDetectorDimension>)?
 
     /// 
     hidden Namespace: (String|Mapping)?
@@ -83,20 +89,14 @@ open class AnomalyDetector extends cloudformation.Resource {
     /// 
     hidden Configuration: (AnomalyDetectorConfiguration)?
 
-    /// 
-    hidden MetricMathAnomalyDetector: (AnomalyDetectorMetricMathAnomalyDetector)?
-
-    /// 
-    hidden Dimensions: (Listing<AnomalyDetectorDimension>)?
-
     Properties {
+        ["MetricMathAnomalyDetector"] = if (MetricMathAnomalyDetector == null) null else MetricMathAnomalyDetector
+        ["Dimensions"] = if (Dimensions == null) null else Dimensions
         ["Namespace"] = if (Namespace == null) null else Namespace
         ["SingleMetricAnomalyDetector"] = if (SingleMetricAnomalyDetector == null) null else SingleMetricAnomalyDetector
         ["MetricName"] = if (MetricName == null) null else MetricName
         ["Stat"] = if (Stat == null) null else Stat
         ["Configuration"] = if (Configuration == null) null else Configuration
-        ["MetricMathAnomalyDetector"] = if (MetricMathAnomalyDetector == null) null else MetricMathAnomalyDetector
-        ["Dimensions"] = if (Dimensions == null) null else Dimensions
     }
 
 }

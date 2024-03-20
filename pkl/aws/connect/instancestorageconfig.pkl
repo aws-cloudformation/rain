@@ -5,6 +5,38 @@ module aws.connect.instancestorageconfig
 
 import "../../cloudformation.pkl"
 
+typealias InstanceStorageConfigKeyId = String|Mapping
+
+
+/// 
+open class InstanceStorageConfigS3Config {
+    BucketName: InstanceStorageConfigBucketName
+    BucketPrefix: InstanceStorageConfigPrefix
+    EncryptionConfig: (InstanceStorageConfigEncryptionConfig)?
+}
+
+/// 
+open class InstanceStorageConfigKinesisStreamConfig {
+    StreamArn: InstanceStorageConfigKinesisStreamArn
+}
+
+/// 
+open class InstanceStorageConfigKinesisFirehoseConfig {
+    FirehoseArn: InstanceStorageConfigFirehoseDeliveryStreamArn
+}
+
+typealias InstanceStorageConfigInstanceStorageResourceType = String|Mapping
+
+
+typealias InstanceStorageConfigPrefix = String|Mapping
+
+
+typealias InstanceStorageConfigStorageType = String|Mapping
+
+
+typealias InstanceStorageConfigFirehoseDeliveryStreamArn = String|Mapping
+
+
 typealias InstanceStorageConfigKinesisStreamArn = String|Mapping
 
 
@@ -13,29 +45,12 @@ typealias InstanceStorageConfigAssociationId = String|Mapping
 
 /// 
 open class InstanceStorageConfigKinesisVideoStreamConfig {
-    EncryptionConfig: InstanceStorageConfigEncryptionConfig
     Prefix: InstanceStorageConfigPrefix
     RetentionPeriodHours: InstanceStorageConfigHours
+    EncryptionConfig: InstanceStorageConfigEncryptionConfig
 }
 
-/// 
-open class InstanceStorageConfigKinesisFirehoseConfig {
-    FirehoseArn: InstanceStorageConfigFirehoseDeliveryStreamArn
-}
-
-typealias InstanceStorageConfigBucketName = String|Mapping
-
-
-typealias InstanceStorageConfigFirehoseDeliveryStreamArn = String|Mapping
-
-
-typealias InstanceStorageConfigInstanceStorageResourceType = String|Mapping
-
-
-typealias InstanceStorageConfigKeyId = String|Mapping
-
-
-typealias InstanceStorageConfigPrefix = String|Mapping
+typealias InstanceStorageConfigEncryptionType = String|Mapping
 
 
 /// 
@@ -44,25 +59,10 @@ open class InstanceStorageConfigEncryptionConfig {
     KeyId: InstanceStorageConfigKeyId
 }
 
-/// 
-open class InstanceStorageConfigS3Config {
-    EncryptionConfig: (InstanceStorageConfigEncryptionConfig)?
-    BucketName: InstanceStorageConfigBucketName
-    BucketPrefix: InstanceStorageConfigPrefix
-}
-
-typealias InstanceStorageConfigStorageType = String|Mapping
+typealias InstanceStorageConfigBucketName = String|Mapping
 
 
 typealias InstanceStorageConfigHours = Number|Mapping
-
-
-/// 
-open class InstanceStorageConfigKinesisStreamConfig {
-    StreamArn: InstanceStorageConfigKinesisStreamArn
-}
-
-typealias InstanceStorageConfigEncryptionType = String|Mapping
 
 
 /// Resource Type definition for AWS::Connect::InstanceStorageConfig
@@ -70,6 +70,9 @@ open class InstanceStorageConfig extends cloudformation.Resource {
 
     Type = "AWS::Connect::InstanceStorageConfig"
 
+
+    /// Connect Instance ID with which the storage config will be associated
+    hidden InstanceArn: String(matches(Regex(#"^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$"#)))|Mapping
 
     /// 
     hidden ResourceType: InstanceStorageConfigInstanceStorageResourceType
@@ -89,17 +92,14 @@ open class InstanceStorageConfig extends cloudformation.Resource {
     /// 
     hidden KinesisFirehoseConfig: (InstanceStorageConfigKinesisFirehoseConfig)?
 
-    /// Connect Instance ID with which the storage config will be associated
-    hidden InstanceArn: String(matches(Regex(#"^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$"#)))|Mapping
-
     Properties {
+        ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
         ["ResourceType"] = if (ResourceType == null) null else ResourceType
         ["StorageType"] = if (StorageType == null) null else StorageType
         ["S3Config"] = if (S3Config == null) null else S3Config
         ["KinesisVideoStreamConfig"] = if (KinesisVideoStreamConfig == null) null else KinesisVideoStreamConfig
         ["KinesisStreamConfig"] = if (KinesisStreamConfig == null) null else KinesisStreamConfig
         ["KinesisFirehoseConfig"] = if (KinesisFirehoseConfig == null) null else KinesisFirehoseConfig
-        ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
     }
 
 }

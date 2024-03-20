@@ -6,9 +6,14 @@ module aws.lambda.alias
 import "../../cloudformation.pkl"
 
 /// 
+open class AliasProvisionedConcurrencyConfiguration {
+    ProvisionedConcurrentExecutions: Int|Mapping
+}
+
+/// 
 open class AliasVersionWeight {
-    FunctionVersion: String|Mapping
     FunctionWeight: Number|Mapping
+    FunctionVersion: String|Mapping
 }
 
 /// 
@@ -16,19 +21,11 @@ open class AliasAliasRoutingConfiguration {
     AdditionalVersionWeights: Listing<AliasVersionWeight>
 }
 
-/// 
-open class AliasProvisionedConcurrencyConfiguration {
-    ProvisionedConcurrentExecutions: Int|Mapping
-}
-
 /// Resource Type definition for AWS::Lambda::Alias
 open class Alias extends cloudformation.Resource {
 
     Type = "AWS::Lambda::Alias"
 
-
-    /// 
-    hidden Name: String|Mapping
 
     /// 
     hidden FunctionName: String|Mapping
@@ -45,13 +42,16 @@ open class Alias extends cloudformation.Resource {
     /// 
     hidden RoutingConfig: (AliasAliasRoutingConfiguration)?
 
+    /// 
+    hidden Name: String|Mapping
+
     Properties {
-        ["Name"] = if (Name == null) null else Name
         ["FunctionName"] = if (FunctionName == null) null else FunctionName
         ["ProvisionedConcurrencyConfig"] = if (ProvisionedConcurrencyConfig == null) null else ProvisionedConcurrencyConfig
         ["Description"] = if (Description == null) null else Description
         ["FunctionVersion"] = if (FunctionVersion == null) null else FunctionVersion
         ["RoutingConfig"] = if (RoutingConfig == null) null else RoutingConfig
+        ["Name"] = if (Name == null) null else Name
     }
 
 }

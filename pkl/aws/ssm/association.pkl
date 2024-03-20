@@ -5,17 +5,6 @@ module aws.ssm.association
 
 import "../../cloudformation.pkl"
 
-/// 
-open class AssociationInstanceAssociationOutputLocation {
-    S3Location: (AssociationS3OutputLocation)?
-}
-
-/// 
-open class AssociationTarget {
-    Values: Listing<String|Mapping>
-    Key: String(matches(Regex(#"^[\p{L}\p{Z}\p{N}_.:/=+\-@]{1,128}$|resource-groups:Name"#)))|Mapping
-}
-
 typealias AssociationParameterValues = Listing<(String|Mapping)?>
 
 
@@ -35,35 +24,37 @@ open class AssociationS3OutputLocation {
     OutputS3KeyPrefix: (AssociationS3KeyPrefix)?
 }
 
+/// 
+open class AssociationInstanceAssociationOutputLocation {
+    S3Location: (AssociationS3OutputLocation)?
+}
+
+/// 
+open class AssociationTarget {
+    Key: String(matches(Regex(#"^[\p{L}\p{Z}\p{N}_.:/=+\-@]{1,128}$|resource-groups:Name"#)))|Mapping
+    Values: Listing<String|Mapping>
+}
+
 /// The AWS::SSM::Association resource associates an SSM document in AWS Systems Manager with EC2 instances that contain a configuration agent to process the document.
 open class Association extends cloudformation.Resource {
 
     Type = "AWS::SSM::Association"
 
 
+    /// 
+    hidden WaitForSuccessTimeoutSeconds: (Int|Mapping)?
+
+    /// The ID of the instance that the SSM document is associated with.
+    hidden InstanceId: (String(matches(Regex(#"(^i-(\w{8}|\w{17})$)|(^mi-\w{17}$)"#)))|Mapping)?
+
     /// The name of the SSM document.
     hidden Name: String(matches(Regex(#"^[a-zA-Z0-9_\-.:/]{3,200}$"#)))|Mapping
-
-    /// 
-    hidden CalendarNames: (Listing<String|Mapping>)?
-
-    /// Parameter values that the SSM document uses at runtime.
-    hidden Parameters: (AssociationAssociationParameters)?
 
     /// A Cron or Rate expression that specifies when the association is applied to the target.
     hidden ScheduleExpression: (String|Mapping)?
 
     /// 
-    hidden MaxErrors: (String(matches(Regex(#"^([1-9][0-9]{0,6}|[0]|[1-9][0-9]%|[0-9]%|100%)$"#)))|Mapping)?
-
-    /// 
-    hidden WaitForSuccessTimeoutSeconds: (Int|Mapping)?
-
-    /// 
-    hidden ApplyOnlyAtCronInterval: (Boolean|Mapping)?
-
-    /// 
-    hidden ScheduleOffset: (Int|Mapping)?
+    hidden SyncCompliance: (AssociationSyncCompliance|Mapping)?
 
     /// The name of the association.
     hidden AssociationName: (String(matches(Regex(#"^[a-zA-Z0-9_\-.]{3,128}$"#)))|Mapping)?
@@ -71,11 +62,17 @@ open class Association extends cloudformation.Resource {
     /// The version of the SSM document to associate with the target.
     hidden DocumentVersion: (String(matches(Regex(#"([$]LATEST|[$]DEFAULT|^[1-9][0-9]*$)"#)))|Mapping)?
 
-    /// The targets that the SSM document sends commands to.
-    hidden Targets: (Listing<AssociationTarget>)?
+    /// 
+    hidden ComplianceSeverity: (AssociationComplianceSeverity|Mapping)?
 
     /// 
-    hidden OutputLocation: (AssociationInstanceAssociationOutputLocation)?
+    hidden ApplyOnlyAtCronInterval: (Boolean|Mapping)?
+
+    /// 
+    hidden ScheduleOffset: (Int|Mapping)?
+
+    /// The targets that the SSM document sends commands to.
+    hidden Targets: (Listing<AssociationTarget>)?
 
     /// 
     hidden AutomationTargetParameterName: (String|Mapping)?
@@ -84,39 +81,42 @@ open class Association extends cloudformation.Resource {
     hidden MaxConcurrency: (String(matches(Regex(#"^([1-9][0-9]{0,6}|[1-9][0-9]%|[1-9]%|100%)$"#)))|Mapping)?
 
     /// 
-    hidden ComplianceSeverity: (AssociationComplianceSeverity|Mapping)?
+    hidden CalendarNames: (Listing<String|Mapping>)?
 
-    /// The ID of the instance that the SSM document is associated with.
-    hidden InstanceId: (String(matches(Regex(#"(^i-(\w{8}|\w{17})$)|(^mi-\w{17}$)"#)))|Mapping)?
+    /// Parameter values that the SSM document uses at runtime.
+    hidden Parameters: (AssociationAssociationParameters)?
 
     /// 
-    hidden SyncCompliance: (AssociationSyncCompliance|Mapping)?
+    hidden OutputLocation: (AssociationInstanceAssociationOutputLocation)?
+
+    /// 
+    hidden MaxErrors: (String(matches(Regex(#"^([1-9][0-9]{0,6}|[0]|[1-9][0-9]%|[0-9]%|100%)$"#)))|Mapping)?
 
     Properties {
-        ["Name"] = if (Name == null) null else Name
-        ["CalendarNames"] = if (CalendarNames == null) null else CalendarNames
-        ["Parameters"] = if (Parameters == null) null else Parameters
-        ["ScheduleExpression"] = if (ScheduleExpression == null) null else ScheduleExpression
-        ["MaxErrors"] = if (MaxErrors == null) null else MaxErrors
         ["WaitForSuccessTimeoutSeconds"] = if (WaitForSuccessTimeoutSeconds == null) null else WaitForSuccessTimeoutSeconds
-        ["ApplyOnlyAtCronInterval"] = if (ApplyOnlyAtCronInterval == null) null else ApplyOnlyAtCronInterval
-        ["ScheduleOffset"] = if (ScheduleOffset == null) null else ScheduleOffset
+        ["InstanceId"] = if (InstanceId == null) null else InstanceId
+        ["Name"] = if (Name == null) null else Name
+        ["ScheduleExpression"] = if (ScheduleExpression == null) null else ScheduleExpression
+        ["SyncCompliance"] = if (SyncCompliance == null) null else SyncCompliance
         ["AssociationName"] = if (AssociationName == null) null else AssociationName
         ["DocumentVersion"] = if (DocumentVersion == null) null else DocumentVersion
+        ["ComplianceSeverity"] = if (ComplianceSeverity == null) null else ComplianceSeverity
+        ["ApplyOnlyAtCronInterval"] = if (ApplyOnlyAtCronInterval == null) null else ApplyOnlyAtCronInterval
+        ["ScheduleOffset"] = if (ScheduleOffset == null) null else ScheduleOffset
         ["Targets"] = if (Targets == null) null else Targets
-        ["OutputLocation"] = if (OutputLocation == null) null else OutputLocation
         ["AutomationTargetParameterName"] = if (AutomationTargetParameterName == null) null else AutomationTargetParameterName
         ["MaxConcurrency"] = if (MaxConcurrency == null) null else MaxConcurrency
-        ["ComplianceSeverity"] = if (ComplianceSeverity == null) null else ComplianceSeverity
-        ["InstanceId"] = if (InstanceId == null) null else InstanceId
-        ["SyncCompliance"] = if (SyncCompliance == null) null else SyncCompliance
+        ["CalendarNames"] = if (CalendarNames == null) null else CalendarNames
+        ["Parameters"] = if (Parameters == null) null else Parameters
+        ["OutputLocation"] = if (OutputLocation == null) null else OutputLocation
+        ["MaxErrors"] = if (MaxErrors == null) null else MaxErrors
     }
 
 }
 
 
-typealias AssociationAssociationParameters = Mapping<String, Any>
+typealias AssociationSyncCompliance = "AUTO"|"MANUAL"
 
 typealias AssociationComplianceSeverity = "CRITICAL"|"HIGH"|"MEDIUM"|"LOW"|"UNSPECIFIED"
 
-typealias AssociationSyncCompliance = "AUTO"|"MANUAL"
+typealias AssociationAssociationParameters = Mapping<String, Any>

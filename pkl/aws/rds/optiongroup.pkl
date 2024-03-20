@@ -7,12 +7,12 @@ import "../../cloudformation.pkl"
 
 /// The OptionConfiguration property type specifies an individual option, and its settings, within an AWS::RDS::OptionGroup resource.
 open class OptionGroupOptionConfiguration {
-    VpcSecurityGroupMemberships: (Listing<String|Mapping>)?
-    DBSecurityGroupMemberships: (Listing<String|Mapping>)?
-    OptionName: String|Mapping
     OptionSettings: (Listing<OptionGroupOptionSetting>)?
     OptionVersion: (String|Mapping)?
     Port: (Int|Mapping)?
+    VpcSecurityGroupMemberships: (Listing<String|Mapping>)?
+    DBSecurityGroupMemberships: (Listing<String|Mapping>)?
+    OptionName: String|Mapping
 }
 
 /// The OptionSetting property type specifies the value for an option within an OptionSetting property.
@@ -33,6 +33,9 @@ open class OptionGroup extends cloudformation.Resource {
     Type = "AWS::RDS::OptionGroup"
 
 
+    /// Specifies the name of the option group.
+    hidden OptionGroupName: (String|Mapping)?
+
     /// Provides a description of the option group.
     hidden OptionGroupDescription: String|Mapping
 
@@ -48,16 +51,13 @@ open class OptionGroup extends cloudformation.Resource {
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<OptionGroupTag>)?
 
-    /// Specifies the name of the option group.
-    hidden OptionGroupName: (String|Mapping)?
-
     Properties {
+        ["OptionGroupName"] = if (OptionGroupName == null) null else OptionGroupName
         ["OptionGroupDescription"] = if (OptionGroupDescription == null) null else OptionGroupDescription
         ["EngineName"] = if (EngineName == null) null else EngineName
         ["MajorEngineVersion"] = if (MajorEngineVersion == null) null else MajorEngineVersion
         ["OptionConfigurations"] = if (OptionConfigurations == null) null else OptionConfigurations
         ["Tags"] = if (Tags == null) null else Tags
-        ["OptionGroupName"] = if (OptionGroupName == null) null else OptionGroupName
     }
 
 }

@@ -7,8 +7,11 @@ echo "Building rain..."
 
 echo "Generating go pkl modules..."
 # We don't actually need these for anything yet...
-pkl-gen-go pkl/cloudformation.pkl --base-path github.com/aws-cloudformation/rain
-pkl-gen-go pkl/template.pkl --base-path github.com/aws-cloudformation/rain
+
+# Can't do this... pkl doesn't support all of our platforms
+
+#pkl-gen-go pkl/cloudformation.pkl --base-path github.com/aws-cloudformation/rain
+#pkl-gen-go pkl/template.pkl --base-path github.com/aws-cloudformation/rain
 
 echo "Building pkl classes..."
 

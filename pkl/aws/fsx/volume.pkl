@@ -6,24 +6,8 @@ module aws.fsx.volume
 import "../../cloudformation.pkl"
 
 /// 
-open class VolumeSnaplockConfiguration {
-    VolumeAppendModeEnabled: (String|Mapping)?
-    AutocommitPeriod: (VolumeAutocommitPeriod)?
-    RetentionPeriod: (VolumeSnaplockRetentionPeriod)?
-    PrivilegedDelete: (String|Mapping)?
-    SnaplockType: String|Mapping
-    AuditLogVolume: (String|Mapping)?
-}
-
-/// 
 open class VolumeNfsExports {
     ClientConfigurations: Listing<VolumeClientConfigurations>
-}
-
-/// 
-open class VolumeOriginSnapshot {
-    SnapshotARN: String|Mapping
-    CopyStrategy: String|Mapping
 }
 
 /// 
@@ -34,60 +18,10 @@ open class VolumeSnaplockRetentionPeriod {
 }
 
 /// 
-open class VolumeClientConfigurations {
-    Clients: String|Mapping
-    Options: Listing<String|Mapping>
-}
-
-/// 
-open class VolumeOntapConfiguration {
-    StorageEfficiencyEnabled: (String|Mapping)?
-    StorageVirtualMachineId: String|Mapping
-    SizeInBytes: (String|Mapping)?
-    SnaplockConfiguration: (VolumeSnaplockConfiguration)?
-    SnapshotPolicy: (String|Mapping)?
-    JunctionPath: (String|Mapping)?
-    TieringPolicy: (VolumeTieringPolicy)?
-    VolumeStyle: (String|Mapping)?
-    CopyTagsToBackups: (String|Mapping)?
-    OntapVolumeType: (String|Mapping)?
-    SizeInMegabytes: (String|Mapping)?
-    SecurityStyle: (String|Mapping)?
-    AggregateConfiguration: (VolumeAggregateConfiguration)?
-}
-
-/// 
-open class VolumeRetentionPeriod {
-    Value: (Int|Mapping)?
-    Type: String|Mapping
-}
-
-/// 
-open class VolumeAutocommitPeriod {
-    Value: (Int|Mapping)?
-    Type: String|Mapping
-}
-
-/// 
-open class VolumeOpenZFSConfiguration {
-    UserAndGroupQuotas: (Listing<VolumeUserAndGroupQuotas>)?
-    ReadOnly: (Boolean|Mapping)?
-    Options: (Listing<String|Mapping>)?
-    NfsExports: (Listing<VolumeNfsExports>)?
-    StorageCapacityQuotaGiB: (Int|Mapping)?
-    CopyTagsToSnapshots: (Boolean|Mapping)?
-    DataCompressionType: (String|Mapping)?
-    ParentVolumeId: String|Mapping
-    StorageCapacityReservationGiB: (Int|Mapping)?
-    RecordSizeKiB: (Int|Mapping)?
-    OriginSnapshot: (VolumeOriginSnapshot)?
-}
-
-/// 
 open class VolumeUserAndGroupQuotas {
+    Type: String|Mapping
     Id: Int|Mapping
     StorageCapacityQuotaGiB: Int|Mapping
-    Type: String|Mapping
 }
 
 /// 
@@ -97,15 +31,81 @@ open class VolumeTag {
 }
 
 /// 
-open class VolumeAggregateConfiguration {
-    Aggregates: (Listing<String|Mapping>)?
-    ConstituentsPerAggregate: (Int|Mapping)?
+open class VolumeClientConfigurations {
+    Clients: String|Mapping
+    Options: Listing<String|Mapping>
+}
+
+/// 
+open class VolumeRetentionPeriod {
+    Type: String|Mapping
+    Value: (Int|Mapping)?
+}
+
+/// 
+open class VolumeOpenZFSConfiguration {
+    ParentVolumeId: String|Mapping
+    StorageCapacityReservationGiB: (Int|Mapping)?
+    RecordSizeKiB: (Int|Mapping)?
+    OriginSnapshot: (VolumeOriginSnapshot)?
+    UserAndGroupQuotas: (Listing<VolumeUserAndGroupQuotas>)?
+    Options: (Listing<String|Mapping>)?
+    DataCompressionType: (String|Mapping)?
+    NfsExports: (Listing<VolumeNfsExports>)?
+    StorageCapacityQuotaGiB: (Int|Mapping)?
+    CopyTagsToSnapshots: (Boolean|Mapping)?
+    ReadOnly: (Boolean|Mapping)?
+}
+
+/// 
+open class VolumeSnaplockConfiguration {
+    SnaplockType: String|Mapping
+    AuditLogVolume: (String|Mapping)?
+    VolumeAppendModeEnabled: (String|Mapping)?
+    AutocommitPeriod: (VolumeAutocommitPeriod)?
+    RetentionPeriod: (VolumeSnaplockRetentionPeriod)?
+    PrivilegedDelete: (String|Mapping)?
 }
 
 /// 
 open class VolumeTieringPolicy {
     CoolingPeriod: (Int|Mapping)?
     Name: (String|Mapping)?
+}
+
+/// 
+open class VolumeOntapConfiguration {
+    JunctionPath: (String|Mapping)?
+    TieringPolicy: (VolumeTieringPolicy)?
+    VolumeStyle: (String|Mapping)?
+    SnaplockConfiguration: (VolumeSnaplockConfiguration)?
+    SnapshotPolicy: (String|Mapping)?
+    SecurityStyle: (String|Mapping)?
+    StorageEfficiencyEnabled: (String|Mapping)?
+    SizeInMegabytes: (String|Mapping)?
+    AggregateConfiguration: (VolumeAggregateConfiguration)?
+    StorageVirtualMachineId: String|Mapping
+    SizeInBytes: (String|Mapping)?
+    CopyTagsToBackups: (String|Mapping)?
+    OntapVolumeType: (String|Mapping)?
+}
+
+/// 
+open class VolumeOriginSnapshot {
+    SnapshotARN: String|Mapping
+    CopyStrategy: String|Mapping
+}
+
+/// 
+open class VolumeAutocommitPeriod {
+    Value: (Int|Mapping)?
+    Type: String|Mapping
+}
+
+/// 
+open class VolumeAggregateConfiguration {
+    Aggregates: (Listing<String|Mapping>)?
+    ConstituentsPerAggregate: (Int|Mapping)?
 }
 
 /// Resource Type definition for AWS::FSx::Volume
@@ -115,29 +115,29 @@ open class Volume extends cloudformation.Resource {
 
 
     /// 
+    hidden Tags: (Listing<VolumeTag>)?
+
+    /// 
+    hidden Name: String|Mapping
+
+    /// 
+    hidden OpenZFSConfiguration: (VolumeOpenZFSConfiguration)?
+
+    /// 
     hidden VolumeType: (String|Mapping)?
 
     /// 
     hidden BackupId: (String|Mapping)?
 
     /// 
-    hidden Tags: (Listing<VolumeTag>)?
-
-    /// 
-    hidden OpenZFSConfiguration: (VolumeOpenZFSConfiguration)?
-
-    /// 
-    hidden Name: String|Mapping
-
-    /// 
     hidden OntapConfiguration: (VolumeOntapConfiguration)?
 
     Properties {
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Name"] = if (Name == null) null else Name
+        ["OpenZFSConfiguration"] = if (OpenZFSConfiguration == null) null else OpenZFSConfiguration
         ["VolumeType"] = if (VolumeType == null) null else VolumeType
         ["BackupId"] = if (BackupId == null) null else BackupId
-        ["Tags"] = if (Tags == null) null else Tags
-        ["OpenZFSConfiguration"] = if (OpenZFSConfiguration == null) null else OpenZFSConfiguration
-        ["Name"] = if (Name == null) null else Name
         ["OntapConfiguration"] = if (OntapConfiguration == null) null else OntapConfiguration
     }
 

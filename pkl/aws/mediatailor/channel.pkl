@@ -5,10 +5,16 @@ module aws.mediatailor.channel
 
 import "../../cloudformation.pkl"
 
-/// <p>Slate VOD source configuration.</p>
-open class ChannelSlateSource {
-    SourceLocationName: (String|Mapping)?
-    VodSourceName: (String|Mapping)?
+/// 
+open class ChannelTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// <p>HLS playlist configuration parameters.</p>
+open class ChannelHlsPlaylistSettings {
+    ManifestWindowSeconds: (Number|Mapping)?
+    AdMarkupType: (Listing<ChannelAdMarkupType>)?
 }
 
 typealias ChannelAdMarkupType = String|Mapping
@@ -22,6 +28,26 @@ open class ChannelTimeShiftConfiguration {
     MaxTimeDelaySeconds: Number|Mapping
 }
 
+typealias ChannelLogType = String|Mapping
+
+
+typealias ChannelPlaybackMode = String|Mapping
+
+
+/// <p>The output configuration for this channel.</p>
+open class ChannelRequestOutputItem {
+    HlsPlaylistSettings: (ChannelHlsPlaylistSettings)?
+    ManifestName: String|Mapping
+    SourceGroup: String|Mapping
+    DashPlaylistSettings: (ChannelDashPlaylistSettings)?
+}
+
+/// <p>Slate VOD source configuration.</p>
+open class ChannelSlateSource {
+    SourceLocationName: (String|Mapping)?
+    VodSourceName: (String|Mapping)?
+}
+
 /// <p>Dash manifest configuration parameters.</p>
 open class ChannelDashPlaylistSettings {
     ManifestWindowSeconds: (Number|Mapping)?
@@ -30,35 +56,9 @@ open class ChannelDashPlaylistSettings {
     SuggestedPresentationDelaySeconds: (Number|Mapping)?
 }
 
-/// <p>HLS playlist configuration parameters.</p>
-open class ChannelHlsPlaylistSettings {
-    ManifestWindowSeconds: (Number|Mapping)?
-    AdMarkupType: (Listing<ChannelAdMarkupType>)?
-}
-
-/// 
-open class ChannelTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-typealias ChannelPlaybackMode = String|Mapping
-
-
-typealias ChannelLogType = String|Mapping
-
-
 /// <p>The log configuration for the channel.</p>
 open class ChannelLogConfigurationForChannel {
     LogTypes: (Listing<ChannelLogType>)?
-}
-
-/// <p>The output configuration for this channel.</p>
-open class ChannelRequestOutputItem {
-    DashPlaylistSettings: (ChannelDashPlaylistSettings)?
-    HlsPlaylistSettings: (ChannelHlsPlaylistSettings)?
-    ManifestName: String|Mapping
-    SourceGroup: String|Mapping
 }
 
 /// Definition of AWS::MediaTailor::Channel Resource Type
@@ -67,17 +67,14 @@ open class Channel extends cloudformation.Resource {
     Type = "AWS::MediaTailor::Channel"
 
 
+    /// <p>The channel's output properties.</p>
+    hidden Outputs: Listing<ChannelRequestOutputItem>
+
     /// 
     hidden PlaybackMode: ChannelPlaybackMode
 
-    /// The tags to assign to the channel.
-    hidden Tags: (Listing<ChannelTag>)?
-
     /// 
     hidden Tier: (ChannelTier)?
-
-    /// 
-    hidden TimeShiftConfiguration: (ChannelTimeShiftConfiguration)?
 
     /// 
     hidden ChannelName: String|Mapping
@@ -88,18 +85,21 @@ open class Channel extends cloudformation.Resource {
     /// 
     hidden LogConfiguration: (ChannelLogConfigurationForChannel)?
 
-    /// <p>The channel's output properties.</p>
-    hidden Outputs: Listing<ChannelRequestOutputItem>
+    /// The tags to assign to the channel.
+    hidden Tags: (Listing<ChannelTag>)?
+
+    /// 
+    hidden TimeShiftConfiguration: (ChannelTimeShiftConfiguration)?
 
     Properties {
+        ["Outputs"] = if (Outputs == null) null else Outputs
         ["PlaybackMode"] = if (PlaybackMode == null) null else PlaybackMode
-        ["Tags"] = if (Tags == null) null else Tags
         ["Tier"] = if (Tier == null) null else Tier
-        ["TimeShiftConfiguration"] = if (TimeShiftConfiguration == null) null else TimeShiftConfiguration
         ["ChannelName"] = if (ChannelName == null) null else ChannelName
         ["FillerSlate"] = if (FillerSlate == null) null else FillerSlate
         ["LogConfiguration"] = if (LogConfiguration == null) null else LogConfiguration
-        ["Outputs"] = if (Outputs == null) null else Outputs
+        ["Tags"] = if (Tags == null) null else Tags
+        ["TimeShiftConfiguration"] = if (TimeShiftConfiguration == null) null else TimeShiftConfiguration
     }
 
 }

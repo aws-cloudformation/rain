@@ -6,12 +6,11 @@ module aws.sagemaker.featuregroup
 import "../../cloudformation.pkl"
 
 /// 
-open class FeatureGroupOnlineStoreSecurityConfig {
-    KmsKeyId: (FeatureGroupKmsKeyId)?
+open class FeatureGroupThroughputConfig {
+    ThroughputMode: FeatureGroupThroughputMode
+    ProvisionedReadCapacityUnits: (Int|Mapping)?
+    ProvisionedWriteCapacityUnits: (Int|Mapping)?
 }
-
-typealias FeatureGroupStorageType = String|Mapping
-
 
 /// 
 open class FeatureGroupDataCatalogConfig {
@@ -20,7 +19,7 @@ open class FeatureGroupDataCatalogConfig {
     Database: String(matches(Regex(#"[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDC00-\uDBFF\uDFFF	]*"#)))|Mapping
 }
 
-typealias FeatureGroupUnit = String|Mapping
+typealias FeatureGroupStorageType = String|Mapping
 
 
 typealias FeatureDefinitionFeatureType = "Integral"|"Fractional"|"String"
@@ -31,10 +30,7 @@ open class FeatureGroupFeatureDefinition {
     FeatureType: FeatureDefinitionFeatureType|Mapping
 }
 
-typealias FeatureGroupTableFormat = String|Mapping
-
-
-typealias FeatureGroupThroughputMode = String|Mapping
+typealias FeatureGroupUnit = String|Mapping
 
 
 /// A key-value pair to associate with a resource.
@@ -43,7 +39,7 @@ open class FeatureGroupTag {
     Key: String|Mapping
 }
 
-typealias FeatureGroupValue = Int|Mapping
+typealias FeatureGroupThroughputMode = String|Mapping
 
 
 /// 
@@ -52,20 +48,24 @@ open class FeatureGroupS3StorageConfig {
     KmsKeyId: (FeatureGroupKmsKeyId)?
 }
 
+typealias FeatureGroupTableFormat = String|Mapping
+
+
 typealias FeatureGroupKmsKeyId = String|Mapping
 
 
-/// TTL configuration of the feature group
-open class FeatureGroupTtlDuration {
-    Unit: (FeatureGroupUnit)?
-    Value: (FeatureGroupValue)?
-}
+typealias FeatureGroupValue = Int|Mapping
+
 
 /// 
-open class FeatureGroupThroughputConfig {
-    ProvisionedWriteCapacityUnits: (Int|Mapping)?
-    ThroughputMode: FeatureGroupThroughputMode
-    ProvisionedReadCapacityUnits: (Int|Mapping)?
+open class FeatureGroupOnlineStoreSecurityConfig {
+    KmsKeyId: (FeatureGroupKmsKeyId)?
+}
+
+/// TTL configuration of the feature group
+open class FeatureGroupTtlDuration {
+    Value: (FeatureGroupValue)?
+    Unit: (FeatureGroupUnit)?
 }
 
 /// Resource Type definition for AWS::SageMaker::FeatureGroup
@@ -74,8 +74,8 @@ open class FeatureGroup extends cloudformation.Resource {
     Type = "AWS::SageMaker::FeatureGroup"
 
 
-    /// Description about the FeatureGroup.
-    hidden Description: (String|Mapping)?
+    /// 
+    hidden ThroughputConfig: (FeatureGroupThroughputConfig)?
 
     /// An array of key-value pair to apply to this resource.
     hidden Tags: (Listing<FeatureGroupTag>)?
@@ -86,17 +86,11 @@ open class FeatureGroup extends cloudformation.Resource {
     /// The Record Identifier Feature Name.
     hidden RecordIdentifierFeatureName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,63}"#)))|Mapping
 
-    /// An Array of Feature Definition
-    hidden FeatureDefinitions: Listing<FeatureGroupFeatureDefinition>
-
-    /// 
-    hidden ThroughputConfig: (FeatureGroupThroughputConfig)?
-
-    /// Role Arn
-    hidden RoleArn: (String(matches(Regex(#"^arn:aws[a-z\-]*:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping)?
-
     /// The Event Time Feature Name.
     hidden EventTimeFeatureName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,63}"#)))|Mapping
+
+    /// An Array of Feature Definition
+    hidden FeatureDefinitions: Listing<FeatureGroupFeatureDefinition>
 
     /// 
     hidden OnlineStoreConfig: (Dynamic)?
@@ -104,17 +98,23 @@ open class FeatureGroup extends cloudformation.Resource {
     /// 
     hidden OfflineStoreConfig: (Dynamic)?
 
+    /// Role Arn
+    hidden RoleArn: (String(matches(Regex(#"^arn:aws[a-z\-]*:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping)?
+
+    /// Description about the FeatureGroup.
+    hidden Description: (String|Mapping)?
+
     Properties {
-        ["Description"] = if (Description == null) null else Description
+        ["ThroughputConfig"] = if (ThroughputConfig == null) null else ThroughputConfig
         ["Tags"] = if (Tags == null) null else Tags
         ["FeatureGroupName"] = if (FeatureGroupName == null) null else FeatureGroupName
         ["RecordIdentifierFeatureName"] = if (RecordIdentifierFeatureName == null) null else RecordIdentifierFeatureName
-        ["FeatureDefinitions"] = if (FeatureDefinitions == null) null else FeatureDefinitions
-        ["ThroughputConfig"] = if (ThroughputConfig == null) null else ThroughputConfig
-        ["RoleArn"] = if (RoleArn == null) null else RoleArn
         ["EventTimeFeatureName"] = if (EventTimeFeatureName == null) null else EventTimeFeatureName
+        ["FeatureDefinitions"] = if (FeatureDefinitions == null) null else FeatureDefinitions
         ["OnlineStoreConfig"] = if (OnlineStoreConfig == null) null else OnlineStoreConfig
         ["OfflineStoreConfig"] = if (OfflineStoreConfig == null) null else OfflineStoreConfig
+        ["RoleArn"] = if (RoleArn == null) null else RoleArn
+        ["Description"] = if (Description == null) null else Description
     }
 
 }

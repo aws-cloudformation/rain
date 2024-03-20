@@ -5,12 +5,6 @@ module aws.qldb.stream
 
 import "../../cloudformation.pkl"
 
-/// 
-open class StreamKinesisConfiguration {
-    StreamArn: (Dynamic)?
-    AggregationEnabled: (Boolean|Mapping)?
-}
-
 /// A key-value pair to associate with a resource.
 open class StreamTag {
     Key: String|Mapping
@@ -20,11 +14,20 @@ open class StreamTag {
 typealias StreamArn = String|Mapping
 
 
+/// 
+open class StreamKinesisConfiguration {
+    AggregationEnabled: (Boolean|Mapping)?
+    StreamArn: (Dynamic)?
+}
+
 /// Resource schema for AWS::QLDB::Stream.
 open class Stream extends cloudformation.Resource {
 
     Type = "AWS::QLDB::Stream"
 
+
+    /// 
+    hidden ExclusiveEndTime: (String|Mapping)?
 
     /// 
     hidden KinesisConfiguration: StreamKinesisConfiguration
@@ -33,28 +36,25 @@ open class Stream extends cloudformation.Resource {
     hidden Tags: (Listing<StreamTag>)?
 
     /// 
-    hidden RoleArn: StreamArn
-
-    /// 
-    hidden InclusiveStartTime: String|Mapping
-
-    /// 
-    hidden ExclusiveEndTime: (String|Mapping)?
-
-    /// 
     hidden LedgerName: String|Mapping
 
     /// 
     hidden StreamName: String|Mapping
 
+    /// 
+    hidden RoleArn: StreamArn
+
+    /// 
+    hidden InclusiveStartTime: String|Mapping
+
     Properties {
+        ["ExclusiveEndTime"] = if (ExclusiveEndTime == null) null else ExclusiveEndTime
         ["KinesisConfiguration"] = if (KinesisConfiguration == null) null else KinesisConfiguration
         ["Tags"] = if (Tags == null) null else Tags
-        ["RoleArn"] = if (RoleArn == null) null else RoleArn
-        ["InclusiveStartTime"] = if (InclusiveStartTime == null) null else InclusiveStartTime
-        ["ExclusiveEndTime"] = if (ExclusiveEndTime == null) null else ExclusiveEndTime
         ["LedgerName"] = if (LedgerName == null) null else LedgerName
         ["StreamName"] = if (StreamName == null) null else StreamName
+        ["RoleArn"] = if (RoleArn == null) null else RoleArn
+        ["InclusiveStartTime"] = if (InclusiveStartTime == null) null else InclusiveStartTime
     }
 
 }

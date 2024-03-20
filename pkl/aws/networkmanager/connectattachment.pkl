@@ -5,6 +5,13 @@ module aws.networkmanager.connectattachment
 
 import "../../cloudformation.pkl"
 
+/// The attachment to move from one segment to another.
+open class ConnectAttachmentProposedSegmentChange {
+    Tags: (Listing<ConnectAttachmentTag>)?
+    AttachmentPolicyRuleNumber: (Int|Mapping)?
+    SegmentName: (String|Mapping)?
+}
+
 /// A key-value pair to associate with a resource.
 open class ConnectAttachmentTag {
     Key: String|Mapping
@@ -16,30 +23,20 @@ open class ConnectAttachmentConnectAttachmentOptions {
     Protocol: (String|Mapping)?
 }
 
-/// The attachment to move from one segment to another.
-open class ConnectAttachmentProposedSegmentChange {
-    Tags: (Listing<ConnectAttachmentTag>)?
-    AttachmentPolicyRuleNumber: (Int|Mapping)?
-    SegmentName: (String|Mapping)?
-}
-
 /// AWS::NetworkManager::ConnectAttachment Resource Type Definition
 open class ConnectAttachment extends cloudformation.Resource {
 
     Type = "AWS::NetworkManager::ConnectAttachment"
 
 
-    /// Edge location of the attachment.
-    hidden EdgeLocation: String|Mapping
-
     /// Tags for the attachment.
     hidden Tags: (Listing<ConnectAttachmentTag>)?
 
+    /// Edge location of the attachment.
+    hidden EdgeLocation: String|Mapping
+
     /// The attachment to move from one segment to another.
     hidden ProposedSegmentChange: (ConnectAttachmentProposedSegmentChange)?
-
-    /// ID of the CoreNetwork that the attachment will be attached to.
-    hidden CoreNetworkId: String|Mapping
 
     /// Id of transport attachment
     hidden TransportAttachmentId: String|Mapping
@@ -47,13 +44,16 @@ open class ConnectAttachment extends cloudformation.Resource {
     /// Protocol options for connect attachment
     hidden Options: ConnectAttachmentConnectAttachmentOptions
 
+    /// ID of the CoreNetwork that the attachment will be attached to.
+    hidden CoreNetworkId: String|Mapping
+
     Properties {
-        ["EdgeLocation"] = if (EdgeLocation == null) null else EdgeLocation
         ["Tags"] = if (Tags == null) null else Tags
+        ["EdgeLocation"] = if (EdgeLocation == null) null else EdgeLocation
         ["ProposedSegmentChange"] = if (ProposedSegmentChange == null) null else ProposedSegmentChange
-        ["CoreNetworkId"] = if (CoreNetworkId == null) null else CoreNetworkId
         ["TransportAttachmentId"] = if (TransportAttachmentId == null) null else TransportAttachmentId
         ["Options"] = if (Options == null) null else Options
+        ["CoreNetworkId"] = if (CoreNetworkId == null) null else CoreNetworkId
     }
 
 }

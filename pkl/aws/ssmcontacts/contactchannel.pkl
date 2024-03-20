@@ -11,6 +11,9 @@ open class ContactChannel extends cloudformation.Resource {
     Type = "AWS::SSMContacts::ContactChannel"
 
 
+    /// The details that SSM Incident Manager uses when trying to engage the contact channel.
+    hidden ChannelAddress: (String|Mapping)?
+
     /// ARN of the contact resource
     hidden ContactId: (String(matches(Regex(#"arn:[-\w+=\/,.@]+:[-\w+=\/,.@]+:[-\w+=\/,.@]*:[0-9]+:([\w+=\/,.@:-]+)*"#)))|Mapping)?
 
@@ -23,15 +26,12 @@ open class ContactChannel extends cloudformation.Resource {
     /// If you want to activate the channel at a later time, you can choose to defer activation. SSM Incident Manager can't engage your contact channel until it has been activated.
     hidden DeferActivation: (Boolean|Mapping)?
 
-    /// The details that SSM Incident Manager uses when trying to engage the contact channel.
-    hidden ChannelAddress: (String|Mapping)?
-
     Properties {
+        ["ChannelAddress"] = if (ChannelAddress == null) null else ChannelAddress
         ["ContactId"] = if (ContactId == null) null else ContactId
         ["ChannelName"] = if (ChannelName == null) null else ChannelName
         ["ChannelType"] = if (ChannelType == null) null else ChannelType
         ["DeferActivation"] = if (DeferActivation == null) null else DeferActivation
-        ["ChannelAddress"] = if (ChannelAddress == null) null else ChannelAddress
     }
 
 }

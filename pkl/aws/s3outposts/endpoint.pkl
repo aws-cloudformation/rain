@@ -25,8 +25,8 @@ open class Endpoint extends cloudformation.Resource {
     Type = "AWS::S3Outposts::Endpoint"
 
 
-    /// The ID of the security group to use with the endpoint.
-    hidden SecurityGroupId: String(matches(Regex(#"^sg-([0-9a-f]{8}|[0-9a-f]{17})$"#)))|Mapping
+    /// The ID of the subnet in the selected VPC. The subnet must belong to the Outpost.
+    hidden SubnetId: String(matches(Regex(#"^subnet-([0-9a-f]{8}|[0-9a-f]{17})$"#)))|Mapping
 
     /// The ID of the customer-owned IPv4 pool for the Endpoint. IP addresses will be allocated from this pool for the endpoint.
     hidden CustomerOwnedIpv4Pool: (String(matches(Regex(#"^ipv4pool-coip-([0-9a-f]{17})$"#)))|Mapping)?
@@ -34,8 +34,8 @@ open class Endpoint extends cloudformation.Resource {
     /// The id of the customer outpost on which the bucket resides.
     hidden OutpostId: String(matches(Regex(#"^(op-[a-f0-9]{17}|\d{12}|ec2)$"#)))|Mapping
 
-    /// The ID of the subnet in the selected VPC. The subnet must belong to the Outpost.
-    hidden SubnetId: String(matches(Regex(#"^subnet-([0-9a-f]{8}|[0-9a-f]{17})$"#)))|Mapping
+    /// The ID of the security group to use with the endpoint.
+    hidden SecurityGroupId: String(matches(Regex(#"^sg-([0-9a-f]{8}|[0-9a-f]{17})$"#)))|Mapping
 
     /// The type of access for the on-premise network connectivity for the Outpost endpoint. To access endpoint from an on-premises network, you must specify the access type and provide the customer owned Ipv4 pool.
     hidden AccessType: (EndpointAccessType|Mapping)?
@@ -44,10 +44,10 @@ open class Endpoint extends cloudformation.Resource {
     hidden FailedReason: (EndpointFailedReason)?
 
     Properties {
-        ["SecurityGroupId"] = if (SecurityGroupId == null) null else SecurityGroupId
+        ["SubnetId"] = if (SubnetId == null) null else SubnetId
         ["CustomerOwnedIpv4Pool"] = if (CustomerOwnedIpv4Pool == null) null else CustomerOwnedIpv4Pool
         ["OutpostId"] = if (OutpostId == null) null else OutpostId
-        ["SubnetId"] = if (SubnetId == null) null else SubnetId
+        ["SecurityGroupId"] = if (SecurityGroupId == null) null else SecurityGroupId
         ["AccessType"] = if (AccessType == null) null else AccessType
         ["FailedReason"] = if (FailedReason == null) null else FailedReason
     }

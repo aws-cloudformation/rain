@@ -6,49 +6,9 @@ module aws.budgets.budget
 import "../../cloudformation.pkl"
 
 /// 
-open class BudgetTimePeriod {
-    Start: (String|Mapping)?
-    End: (String|Mapping)?
-}
-
-/// 
 open class BudgetSpend {
-    Unit: String|Mapping
     Amount: Number|Mapping
-}
-
-/// 
-open class BudgetNotificationWithSubscribers {
-    Subscribers: Listing<BudgetSubscriber>
-    Notification: BudgetNotification
-}
-
-/// 
-open class BudgetNotification {
-    ComparisonOperator: String|Mapping
-    NotificationType: String|Mapping
-    Threshold: Number|Mapping
-    ThresholdType: (String|Mapping)?
-}
-
-/// 
-open class BudgetCostTypes {
-    IncludeTax: (Boolean|Mapping)?
-    IncludeSubscription: (Boolean|Mapping)?
-    IncludeUpfront: (Boolean|Mapping)?
-    IncludeDiscount: (Boolean|Mapping)?
-    IncludeCredit: (Boolean|Mapping)?
-    IncludeRecurring: (Boolean|Mapping)?
-    IncludeSupport: (Boolean|Mapping)?
-    IncludeOtherSubscription: (Boolean|Mapping)?
-    UseBlended: (Boolean|Mapping)?
-    UseAmortized: (Boolean|Mapping)?
-    IncludeRefund: (Boolean|Mapping)?
-}
-
-/// 
-open class BudgetHistoricalOptions {
-    BudgetAdjustmentPeriod: Int|Mapping
+    Unit: String|Mapping
 }
 
 /// 
@@ -58,22 +18,62 @@ open class BudgetAutoAdjustData {
 }
 
 /// 
+open class BudgetHistoricalOptions {
+    BudgetAdjustmentPeriod: Int|Mapping
+}
+
+/// 
+open class BudgetTimePeriod {
+    Start: (String|Mapping)?
+    End: (String|Mapping)?
+}
+
+/// 
+open class BudgetNotification {
+    ThresholdType: (String|Mapping)?
+    ComparisonOperator: String|Mapping
+    NotificationType: String|Mapping
+    Threshold: Number|Mapping
+}
+
+/// 
+open class BudgetCostTypes {
+    IncludeSupport: (Boolean|Mapping)?
+    IncludeOtherSubscription: (Boolean|Mapping)?
+    UseBlended: (Boolean|Mapping)?
+    IncludeUpfront: (Boolean|Mapping)?
+    IncludeCredit: (Boolean|Mapping)?
+    IncludeRecurring: (Boolean|Mapping)?
+    UseAmortized: (Boolean|Mapping)?
+    IncludeRefund: (Boolean|Mapping)?
+    IncludeTax: (Boolean|Mapping)?
+    IncludeSubscription: (Boolean|Mapping)?
+    IncludeDiscount: (Boolean|Mapping)?
+}
+
+/// 
+open class BudgetBudgetData {
+    TimePeriod: (BudgetTimePeriod)?
+    PlannedBudgetLimits: (Dynamic)?
+    CostTypes: (BudgetCostTypes)?
+    BudgetLimit: (BudgetSpend)?
+    TimeUnit: String|Mapping
+    CostFilters: (Dynamic)?
+    BudgetName: (String|Mapping)?
+    BudgetType: String|Mapping
+    AutoAdjustData: (BudgetAutoAdjustData)?
+}
+
+/// 
 open class BudgetSubscriber {
     Address: String|Mapping
     SubscriptionType: String|Mapping
 }
 
 /// 
-open class BudgetBudgetData {
-    AutoAdjustData: (BudgetAutoAdjustData)?
-    PlannedBudgetLimits: (Dynamic)?
-    CostFilters: (Dynamic)?
-    BudgetName: (String|Mapping)?
-    CostTypes: (BudgetCostTypes)?
-    BudgetLimit: (BudgetSpend)?
-    TimePeriod: (BudgetTimePeriod)?
-    TimeUnit: String|Mapping
-    BudgetType: String|Mapping
+open class BudgetNotificationWithSubscribers {
+    Subscribers: Listing<BudgetSubscriber>
+    Notification: BudgetNotification
 }
 
 /// Resource Type definition for AWS::Budgets::Budget
@@ -83,14 +83,14 @@ open class Budget extends cloudformation.Resource {
 
 
     /// 
-    hidden NotificationsWithSubscribers: (Listing<BudgetNotificationWithSubscribers>)?
-
-    /// 
     hidden Budget: BudgetBudgetData
 
+    /// 
+    hidden NotificationsWithSubscribers: (Listing<BudgetNotificationWithSubscribers>)?
+
     Properties {
-        ["NotificationsWithSubscribers"] = if (NotificationsWithSubscribers == null) null else NotificationsWithSubscribers
         ["Budget"] = if (Budget == null) null else Budget
+        ["NotificationsWithSubscribers"] = if (NotificationsWithSubscribers == null) null else NotificationsWithSubscribers
     }
 
 }

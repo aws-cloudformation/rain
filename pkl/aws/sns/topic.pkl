@@ -7,8 +7,8 @@ import "../../cloudformation.pkl"
 
 /// The list of tags to be added to the specified topic.
 open class TopicTag {
-    Key: String|Mapping
     Value: String|Mapping
+    Key: String|Mapping
 }
 
 /// ``Subscription`` is an embedded property that describes the subscription endpoints of an SNS topic.
@@ -23,10 +23,10 @@ typealias LoggingConfigProtocol = "http/s"|"sqs"|"lambda"|"firehose"|"applicatio
 
 /// 
 open class TopicLoggingConfig {
-    SuccessFeedbackSampleRate: (String|Mapping)?
-    FailureFeedbackRoleArn: (String|Mapping)?
     Protocol: LoggingConfigProtocol|Mapping
     SuccessFeedbackRoleArn: (String|Mapping)?
+    SuccessFeedbackSampleRate: (String|Mapping)?
+    FailureFeedbackRoleArn: (String|Mapping)?
 }
 
 /// The ``AWS::SNS::Topic`` resource creates a topic to which notifications can be published.
@@ -38,16 +38,22 @@ open class Topic extends cloudformation.Resource {
     Type = "AWS::SNS::Topic"
 
 
-    /// The list of tags to add to a new topic.
+    /// The ID of an AWS managed customer master key (CMK) for SNS or a custom CMK. For more information, see [Key terms](https://docs.aws.amazon.com/sns/latest/dg/sns-server-side-encryption.html#sse-key-terms). For more examples, see ``KeyId`` in the *API Reference*.
     ///
-    ///   To be able to tag a topic on creation, you must have the ``sns:CreateTopic`` and ``sns:TagResource`` permissions.
-    hidden Tags: (Listing<TopicTag>)?
+    ///  This property applies only to [server-side-encryption](https://docs.aws.amazon.com/sns/latest/dg/sns-server-side-encryption.html).
+    hidden KmsMasterKeyId: (String|Mapping)?
+
+    /// Set to true to create a FIFO topic.
+    hidden FifoTopic: (Boolean|Mapping)?
+
+    /// The signature version corresponds to the hashing algorithm used while creating the signature of the notifications, subscription confirmations, or unsubscribe confirmation messages sent by Amazon SNS. By default, ``SignatureVersion`` is set to ``1``.
+    hidden SignatureVersion: (String|Mapping)?
 
     /// Tracing mode of an SNS topic. By default ``TracingConfig`` is set to ``PassThrough``, and the topic passes through the tracing header it receives from an SNS publisher to its subscriptions. If set to ``Active``, SNS will vend X-Ray segment data to topic owner account if the sampled flag in the tracing header is true.
     hidden TracingConfig: (String|Mapping)?
 
-    /// The display name to use for an SNS topic with SMS subscriptions. The display name must be maximum 100 characters long, including hyphens (-), underscores (_), spaces, and tabs.
-    hidden DisplayName: (String|Mapping)?
+    /// 
+    hidden DeliveryStatusLogging: (Listing<TopicLoggingConfig>)?
 
     /// Enables content-based deduplication for FIFO topics.
     ///
@@ -62,11 +68,21 @@ open class Topic extends cloudformation.Resource {
     ///   If you specify a name, you can't perform updates that require replacement of this resource. You can perform updates that require no or some interruption. If you must replace the resource, specify a new name.
     hidden TopicName: (String|Mapping)?
 
-    /// The signature version corresponds to the hashing algorithm used while creating the signature of the notifications, subscription confirmations, or unsubscribe confirmation messages sent by Amazon SNS. By default, ``SignatureVersion`` is set to ``1``.
-    hidden SignatureVersion: (String|Mapping)?
+    /// The list of tags to add to a new topic.
+    ///
+    ///   To be able to tag a topic on creation, you must have the ``sns:CreateTopic`` and ``sns:TagResource`` permissions.
+    hidden Tags: (Listing<TopicTag>)?
 
-    /// 
-    hidden DeliveryStatusLogging: (Listing<TopicLoggingConfig>)?
+    /// The SNS subscriptions (endpoints) for this topic.
+    ///
+    ///   If you specify the ``Subscription`` property in the ``AWS::SNS::Topic`` resource and it creates an associated subscription resource, the associated subscription is not deleted when the ``AWS::SNS::Topic`` resource is deleted.
+    hidden Subscription: (Listing<TopicSubscription>)?
+
+    /// The archive policy determines the number of days SNS retains messages. You can set a retention period from 1 to 365 days.
+    hidden ArchivePolicy: (Dynamic)?
+
+    /// The display name to use for an SNS topic with SMS subscriptions. The display name must be maximum 100 characters long, including hyphens (-), underscores (_), spaces, and tabs.
+    hidden DisplayName: (String|Mapping)?
 
     /// The body of the policy document you want to use for this topic.
     ///
@@ -75,35 +91,19 @@ open class Topic extends cloudformation.Resource {
     ///  Length Constraints: Maximum length of 30,720.
     hidden DataProtectionPolicy: (Dynamic)?
 
-    /// Set to true to create a FIFO topic.
-    hidden FifoTopic: (Boolean|Mapping)?
-
-    /// The archive policy determines the number of days SNS retains messages. You can set a retention period from 1 to 365 days.
-    hidden ArchivePolicy: (Dynamic)?
-
-    /// The ID of an AWS managed customer master key (CMK) for SNS or a custom CMK. For more information, see [Key terms](https://docs.aws.amazon.com/sns/latest/dg/sns-server-side-encryption.html#sse-key-terms). For more examples, see ``KeyId`` in the *API Reference*.
-    ///
-    ///  This property applies only to [server-side-encryption](https://docs.aws.amazon.com/sns/latest/dg/sns-server-side-encryption.html).
-    hidden KmsMasterKeyId: (String|Mapping)?
-
-    /// The SNS subscriptions (endpoints) for this topic.
-    ///
-    ///   If you specify the ``Subscription`` property in the ``AWS::SNS::Topic`` resource and it creates an associated subscription resource, the associated subscription is not deleted when the ``AWS::SNS::Topic`` resource is deleted.
-    hidden Subscription: (Listing<TopicSubscription>)?
-
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
+        ["KmsMasterKeyId"] = if (KmsMasterKeyId == null) null else KmsMasterKeyId
+        ["FifoTopic"] = if (FifoTopic == null) null else FifoTopic
+        ["SignatureVersion"] = if (SignatureVersion == null) null else SignatureVersion
         ["TracingConfig"] = if (TracingConfig == null) null else TracingConfig
-        ["DisplayName"] = if (DisplayName == null) null else DisplayName
+        ["DeliveryStatusLogging"] = if (DeliveryStatusLogging == null) null else DeliveryStatusLogging
         ["ContentBasedDeduplication"] = if (ContentBasedDeduplication == null) null else ContentBasedDeduplication
         ["TopicName"] = if (TopicName == null) null else TopicName
-        ["SignatureVersion"] = if (SignatureVersion == null) null else SignatureVersion
-        ["DeliveryStatusLogging"] = if (DeliveryStatusLogging == null) null else DeliveryStatusLogging
-        ["DataProtectionPolicy"] = if (DataProtectionPolicy == null) null else DataProtectionPolicy
-        ["FifoTopic"] = if (FifoTopic == null) null else FifoTopic
-        ["ArchivePolicy"] = if (ArchivePolicy == null) null else ArchivePolicy
-        ["KmsMasterKeyId"] = if (KmsMasterKeyId == null) null else KmsMasterKeyId
+        ["Tags"] = if (Tags == null) null else Tags
         ["Subscription"] = if (Subscription == null) null else Subscription
+        ["ArchivePolicy"] = if (ArchivePolicy == null) null else ArchivePolicy
+        ["DisplayName"] = if (DisplayName == null) null else DisplayName
+        ["DataProtectionPolicy"] = if (DataProtectionPolicy == null) null else DataProtectionPolicy
     }
 
 }

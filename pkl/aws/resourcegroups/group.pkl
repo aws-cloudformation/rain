@@ -5,12 +5,18 @@ module aws.resourcegroups.group
 
 import "../../cloudformation.pkl"
 
+/// 
+open class GroupConfigurationParameter {
+    Name: (String|Mapping)?
+    Values: (Listing<String|Mapping>)?
+}
+
 typealias ResourceQueryType = "TAG_FILTERS_1_0"|"CLOUDFORMATION_STACK_1_0"
 
 /// 
 open class GroupResourceQuery {
-    Query: (GroupQuery)?
     Type: (ResourceQueryType|Mapping)?
+    Query: (GroupQuery)?
 }
 
 /// 
@@ -28,8 +34,8 @@ open class GroupTagFilter {
 
 /// 
 open class GroupTag {
-    Key: (String(matches(Regex(#"^(?!aws:).+"#)))|Mapping)?
     Value: (String|Mapping)?
+    Key: (String(matches(Regex(#"^(?!aws:).+"#)))|Mapping)?
 }
 
 typealias GroupConfiguration = Listing<(GroupConfigurationItem)?>
@@ -41,20 +47,11 @@ open class GroupConfigurationItem {
     Parameters: (Listing<GroupConfigurationParameter>)?
 }
 
-/// 
-open class GroupConfigurationParameter {
-    Name: (String|Mapping)?
-    Values: (Listing<String|Mapping>)?
-}
-
 /// Schema for ResourceGroups::Group
 open class Group extends cloudformation.Resource {
 
     Type = "AWS::ResourceGroups::Group"
 
-
-    /// The name of the resource group
-    hidden Name: String|Mapping
 
     /// The description of the resource group
     hidden Description: (String|Mapping)?
@@ -71,13 +68,16 @@ open class Group extends cloudformation.Resource {
     /// 
     hidden Resources: (Listing<String|Mapping>)?
 
+    /// The name of the resource group
+    hidden Name: String|Mapping
+
     Properties {
-        ["Name"] = if (Name == null) null else Name
         ["Description"] = if (Description == null) null else Description
         ["ResourceQuery"] = if (ResourceQuery == null) null else ResourceQuery
         ["Tags"] = if (Tags == null) null else Tags
         ["Configuration"] = if (Configuration == null) null else Configuration
         ["Resources"] = if (Resources == null) null else Resources
+        ["Name"] = if (Name == null) null else Name
     }
 
 }

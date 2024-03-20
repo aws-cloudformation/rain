@@ -5,6 +5,19 @@ module aws.ssm.patchbaseline
 
 import "../../cloudformation.pkl"
 
+typealias PatchFilterKey = "ADVISORY_ID"|"ARCH"|"BUGZILLA_ID"|"CLASSIFICATION"|"CVE_ID"|"EPOCH"|"MSRC_SEVERITY"|"NAME"|"PATCH_ID"|"PATCH_SET"|"PRIORITY"|"PRODUCT"|"PRODUCT_FAMILY"|"RELEASE"|"REPOSITORY"|"SECTION"|"SECURITY"|"SEVERITY"|"VERSION"
+
+/// Defines which patches should be included in a patch baseline.
+open class PatchBaselinePatchFilter {
+    Values: (Listing<String|Mapping>)?
+    Key: (PatchFilterKey|Mapping)?
+}
+
+/// The patch filter group that defines the criteria for the rule.
+open class PatchBaselinePatchFilterGroup {
+    PatchFilters: (Listing<PatchBaselinePatchFilter>)?
+}
+
 /// Information about the patches to use to update the instances, including target operating systems and source repository. Applies to Linux instances only.
 open class PatchBaselinePatchSource {
     Products: (Listing<String|Mapping>)?
@@ -34,82 +47,69 @@ open class PatchBaselineRule {
     ApproveAfterDays: (Int|Mapping)?
 }
 
-typealias PatchFilterKey = "ADVISORY_ID"|"ARCH"|"BUGZILLA_ID"|"CLASSIFICATION"|"CVE_ID"|"EPOCH"|"MSRC_SEVERITY"|"NAME"|"PATCH_ID"|"PATCH_SET"|"PRIORITY"|"PRODUCT"|"PRODUCT_FAMILY"|"RELEASE"|"REPOSITORY"|"SECTION"|"SECURITY"|"SEVERITY"|"VERSION"
-
-/// Defines which patches should be included in a patch baseline.
-open class PatchBaselinePatchFilter {
-    Values: (Listing<String|Mapping>)?
-    Key: (PatchFilterKey|Mapping)?
-}
-
-/// The patch filter group that defines the criteria for the rule.
-open class PatchBaselinePatchFilterGroup {
-    PatchFilters: (Listing<PatchBaselinePatchFilter>)?
-}
-
 /// Resource Type definition for AWS::SSM::PatchBaseline
 open class PatchBaseline extends cloudformation.Resource {
 
     Type = "AWS::SSM::PatchBaseline"
 
 
-    /// Defines the operating system the patch baseline applies to. The Default value is WINDOWS.
-    hidden OperatingSystem: (PatchBaselineOperatingSystem|Mapping)?
+    /// The description of the patch baseline.
+    hidden Description: (String|Mapping)?
 
     /// 
     hidden ApprovalRules: (PatchBaselineRuleGroup)?
 
-    /// Information about the patches to use to update the instances, including target operating systems and source repository. Applies to Linux instances only.
-    hidden Sources: (Listing<PatchBaselinePatchSource>)?
+    /// Optional metadata that you assign to a resource. Tags enable you to categorize a resource in different ways.
+    hidden Tags: (Listing<PatchBaselineTag>)?
+
+    /// Defines the operating system the patch baseline applies to. The Default value is WINDOWS.
+    hidden OperatingSystem: (PatchBaselineOperatingSystem|Mapping)?
 
     /// The name of the patch baseline.
     hidden Name: String(matches(Regex(#"^[a-zA-Z0-9_\-.]{3,128}$"#)))|Mapping
 
-    /// Optional metadata that you assign to a resource. Tags enable you to categorize a resource in different ways.
-    hidden Tags: (Listing<PatchBaselineTag>)?
-
-    /// Set the baseline as default baseline. Only registering to default patch baseline is allowed.
-    hidden DefaultBaseline: (Boolean|Mapping)?
-
-    /// A list of explicitly rejected patches for the baseline.
-    hidden RejectedPatches: (Listing<String|Mapping>)?
-
-    /// Defines the compliance level for approved patches. This means that if an approved patch is reported as missing, this is the severity of the compliance violation. The default value is UNSPECIFIED.
-    hidden ApprovedPatchesComplianceLevel: (PatchBaselineApprovedPatchesComplianceLevel|Mapping)?
-
-    /// The action for Patch Manager to take on patches included in the RejectedPackages list.
-    hidden RejectedPatchesAction: (PatchBaselineRejectedPatchesAction|Mapping)?
+    /// A list of explicitly approved patches for the baseline.
+    hidden ApprovedPatches: (Listing<String|Mapping>)?
 
     /// PatchGroups is used to associate instances with a specific patch baseline
     hidden PatchGroups: (Listing<String|Mapping>)?
 
-    /// A set of global filters used to include patches in the baseline.
-    hidden GlobalFilters: (PatchBaselinePatchFilterGroup)?
-
-    /// The description of the patch baseline.
-    hidden Description: (String|Mapping)?
-
-    /// A list of explicitly approved patches for the baseline.
-    hidden ApprovedPatches: (Listing<String|Mapping>)?
-
     /// Indicates whether the list of approved patches includes non-security updates that should be applied to the instances. The default value is 'false'. Applies to Linux instances only.
     hidden ApprovedPatchesEnableNonSecurity: (Boolean|Mapping)?
 
+    /// A set of global filters used to include patches in the baseline.
+    hidden GlobalFilters: (PatchBaselinePatchFilterGroup)?
+
+    /// Set the baseline as default baseline. Only registering to default patch baseline is allowed.
+    hidden DefaultBaseline: (Boolean|Mapping)?
+
+    /// Information about the patches to use to update the instances, including target operating systems and source repository. Applies to Linux instances only.
+    hidden Sources: (Listing<PatchBaselinePatchSource>)?
+
+    /// A list of explicitly rejected patches for the baseline.
+    hidden RejectedPatches: (Listing<String|Mapping>)?
+
+    /// The action for Patch Manager to take on patches included in the RejectedPackages list.
+    hidden RejectedPatchesAction: (PatchBaselineRejectedPatchesAction|Mapping)?
+
+    /// Defines the compliance level for approved patches. This means that if an approved patch is reported as missing, this is the severity of the compliance violation. The default value is UNSPECIFIED.
+    hidden ApprovedPatchesComplianceLevel: (PatchBaselineApprovedPatchesComplianceLevel|Mapping)?
+
     Properties {
-        ["OperatingSystem"] = if (OperatingSystem == null) null else OperatingSystem
-        ["ApprovalRules"] = if (ApprovalRules == null) null else ApprovalRules
-        ["Sources"] = if (Sources == null) null else Sources
-        ["Name"] = if (Name == null) null else Name
-        ["Tags"] = if (Tags == null) null else Tags
-        ["DefaultBaseline"] = if (DefaultBaseline == null) null else DefaultBaseline
-        ["RejectedPatches"] = if (RejectedPatches == null) null else RejectedPatches
-        ["ApprovedPatchesComplianceLevel"] = if (ApprovedPatchesComplianceLevel == null) null else ApprovedPatchesComplianceLevel
-        ["RejectedPatchesAction"] = if (RejectedPatchesAction == null) null else RejectedPatchesAction
-        ["PatchGroups"] = if (PatchGroups == null) null else PatchGroups
-        ["GlobalFilters"] = if (GlobalFilters == null) null else GlobalFilters
         ["Description"] = if (Description == null) null else Description
+        ["ApprovalRules"] = if (ApprovalRules == null) null else ApprovalRules
+        ["Tags"] = if (Tags == null) null else Tags
+        ["OperatingSystem"] = if (OperatingSystem == null) null else OperatingSystem
+        ["Name"] = if (Name == null) null else Name
         ["ApprovedPatches"] = if (ApprovedPatches == null) null else ApprovedPatches
+        ["PatchGroups"] = if (PatchGroups == null) null else PatchGroups
         ["ApprovedPatchesEnableNonSecurity"] = if (ApprovedPatchesEnableNonSecurity == null) null else ApprovedPatchesEnableNonSecurity
+        ["GlobalFilters"] = if (GlobalFilters == null) null else GlobalFilters
+        ["DefaultBaseline"] = if (DefaultBaseline == null) null else DefaultBaseline
+        ["Sources"] = if (Sources == null) null else Sources
+        ["RejectedPatches"] = if (RejectedPatches == null) null else RejectedPatches
+        ["RejectedPatchesAction"] = if (RejectedPatchesAction == null) null else RejectedPatchesAction
+        ["ApprovedPatchesComplianceLevel"] = if (ApprovedPatchesComplianceLevel == null) null else ApprovedPatchesComplianceLevel
     }
 
 }
@@ -117,6 +117,6 @@ open class PatchBaseline extends cloudformation.Resource {
 
 typealias PatchBaselineOperatingSystem = "WINDOWS"|"AMAZON_LINUX"|"AMAZON_LINUX_2"|"AMAZON_LINUX_2022"|"AMAZON_LINUX_2023"|"UBUNTU"|"REDHAT_ENTERPRISE_LINUX"|"SUSE"|"CENTOS"|"ORACLE_LINUX"|"DEBIAN"|"MACOS"|"RASPBIAN"|"ROCKY_LINUX"|"ALMA_LINUX"
 
-typealias PatchBaselineApprovedPatchesComplianceLevel = "CRITICAL"|"HIGH"|"MEDIUM"|"LOW"|"INFORMATIONAL"|"UNSPECIFIED"
-
 typealias PatchBaselineRejectedPatchesAction = "ALLOW_AS_DEPENDENCY"|"BLOCK"
+
+typealias PatchBaselineApprovedPatchesComplianceLevel = "CRITICAL"|"HIGH"|"MEDIUM"|"LOW"|"INFORMATIONAL"|"UNSPECIFIED"

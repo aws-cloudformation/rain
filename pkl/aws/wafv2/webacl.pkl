@@ -5,44 +5,50 @@ module aws.wafv2.webacl
 
 import "../../cloudformation.pkl"
 
+/// Specifies the request's URI Path as an aggregate key for a rate-based rule.
+open class WebACLRateLimitUriPath {
+    TextTransformations: Listing<WebACLTextTransformation>
+}
+
+/// Allow traffic towards application.
+open class WebACLAllowAction {
+    CustomRequestHandling: (WebACLCustomRequestHandling)?
+}
+
+/// Inspect the request body as JSON. The request body immediately follows the request headers.
+open class WebACLJsonBody {
+    MatchPattern: WebACLJsonMatchPattern
+    MatchScope: WebACLJsonMatchScope
+    InvalidFallbackBehavior: (WebACLBodyParsingFallbackBehavior)?
+    OversizeHandling: (WebACLOversizeHandling)?
+}
+
+typealias WebACLResponseContent = String|Mapping
+
+
+/// Specifies a label namespace to use as an aggregate key for a rate-based rule.
+open class WebACLRateLimitLabelNamespace {
+    Namespace: String(matches(Regex(#"^[0-9A-Za-z_:-]{1,1024}$"#)))|Mapping
+}
+
+/// 
+open class WebACLRegexMatchStatement {
+    RegexString: String|Mapping
+    FieldToMatch: WebACLFieldToMatch
+    TextTransformations: Listing<WebACLTextTransformation>
+}
+
 typealias ManagedRuleGroupConfigPayloadType = "JSON"|"FORM_ENCODED"
 
 /// ManagedRuleGroupConfig.
 open class WebACLManagedRuleGroupConfig {
-    PayloadType: (ManagedRuleGroupConfigPayloadType|Mapping)?
-    UsernameField: (WebACLFieldIdentifier)?
-    PasswordField: (WebACLFieldIdentifier)?
     AWSManagedRulesBotControlRuleSet: (WebACLAWSManagedRulesBotControlRuleSet)?
     AWSManagedRulesATPRuleSet: (WebACLAWSManagedRulesATPRuleSet)?
     AWSManagedRulesACFPRuleSet: (WebACLAWSManagedRulesACFPRuleSet)?
     LoginPath: (String(matches(Regex(#".*\S.*"#)))|Mapping)?
-}
-
-/// Checks valid token exists with request.
-open class WebACLCaptchaAction {
-    CustomRequestHandling: (WebACLCustomRequestHandling)?
-}
-
-/// Default Action WebACL will take against ingress traffic when there is no matching Rule.
-open class WebACLDefaultAction {
-    Allow: (WebACLAllowAction)?
-    Block: (WebACLBlockAction)?
-}
-
-/// Custom request handling.
-open class WebACLCustomRequestHandling {
-    InsertHeaders: Listing<WebACLCustomHTTPHeader>
-}
-
-/// 
-open class WebACLTag {
-    Key: (String|Mapping)?
-    Value: (String|Mapping)?
-}
-
-/// 
-open class WebACLImmunityTimeProperty {
-    ImmunityTime: Int|Mapping
+    PayloadType: (ManagedRuleGroupConfigPayloadType|Mapping)?
+    UsernameField: (WebACLFieldIdentifier)?
+    PasswordField: (WebACLFieldIdentifier)?
 }
 
 /// Override a RuleGroup or ManagedRuleGroup behavior. This can only be applied to Rule that has RuleGroupReferenceStatement or ManagedRuleGroupReferenceStatement.
@@ -51,50 +57,11 @@ open class WebACLOverrideAction {
     None: (Dynamic)?
 }
 
-/// The body of a web request. This immediately follows the request headers.
-open class WebACLBody {
-    OversizeHandling: (WebACLOversizeHandling)?
-}
-
-typealias WebACLPositionalConstraint = String|Mapping
-
-
-/// Includes headers of a web request.
-open class WebACLHeaders {
-    MatchPattern: WebACLHeaderMatchPattern
-    MatchScope: WebACLMapMatchScope
-    OversizeHandling: WebACLOversizeHandling
-}
-
-typealias WebACLSearchStringBase64 = String|Mapping
-
-
-/// The pattern to look for in the request cookies.
-open class WebACLCookieMatchPattern {
-    All: (Dynamic)?
-    IncludedCookies: (Listing<String|Mapping>)?
-    ExcludedCookies: (Listing<String|Mapping>)?
-}
-
-/// Action override for rules in the rule group.
-open class WebACLRuleActionOverride {
-    Name: WebACLEntityName
-    ActionToUse: WebACLRuleAction
-}
-
-typealias WebACLResponseContent = String|Mapping
-
-
-typealias WebACLTextTransformationType = String|Mapping
-
-
-typealias WebACLPhoneNumberField = WebACLFieldIdentifier
-
-
 /// 
-open class WebACLLabelMatchStatement {
-    Scope: WebACLLabelMatchScope
-    Key: WebACLLabelMatchKey
+open class WebACLRuleGroupReferenceStatement {
+    Arn: WebACLResourceArn
+    ExcludedRules: (Listing<WebACLExcludedRule>)?
+    RuleActionOverrides: (Listing<WebACLRuleActionOverride>)?
 }
 
 /// Byte Match statement.
@@ -106,193 +73,106 @@ open class WebACLByteMatchStatement {
     PositionalConstraint: WebACLPositionalConstraint
 }
 
-typealias WebACLResponseContentType = String|Mapping
-
-
-/// Specifies a header as an aggregate key for a rate-based rule.
-open class WebACLRateLimitHeader {
-    Name: String(matches(Regex(#".*\S.*"#)))|Mapping
-    TextTransformations: Listing<WebACLTextTransformation>
+/// Response body contents that indicate success or failure of a login request
+open class WebACLResponseInspectionBodyContains {
+    FailureStrings: Listing<String|Mapping>
+    SuccessStrings: Listing<String|Mapping>
 }
 
-/// 
-open class WebACLNotStatement {
-    Statement: WebACLStatement
-}
-
-/// 
-open class WebACLSingleHeader {
-    Name: (String|Mapping)?
-}
-
-/// 
-open class WebACLGeoMatchStatement {
-    CountryCodes: (Listing<String|Mapping>)?
-    ForwardedIPConfig: (WebACLForwardedIPConfiguration)?
-}
-
-typealias AWSManagedRulesBotControlRuleSetInspectionLevel = "COMMON"|"TARGETED"
-
-/// Configures how to use the Bot Control managed rule group in the web ACL
-open class WebACLAWSManagedRulesBotControlRuleSet {
-    EnableMachineLearning: (Boolean|Mapping)?
-    InspectionLevel: AWSManagedRulesBotControlRuleSetInspectionLevel|Mapping
-}
-
-/// Specifies the request's query string as an aggregate key for a rate-based rule.
-open class WebACLRateLimitQueryString {
-    TextTransformations: Listing<WebACLTextTransformation>
-}
-
-/// 
-open class WebACLSingleQueryArgument {
-    Name: (String|Mapping)?
-}
-
-/// Includes cookies of a web request.
-open class WebACLCookies {
-    MatchPattern: WebACLCookieMatchPattern
-    MatchScope: WebACLMapMatchScope
-    OversizeHandling: WebACLOversizeHandling
-}
-
-/// Checks that the request has a valid token with an unexpired challenge timestamp and, if not, returns a browser challenge to the client.
-open class WebACLChallengeAction {
-    CustomRequestHandling: (WebACLCustomRequestHandling)?
-}
-
-/// Allow traffic towards application.
-open class WebACLCountAction {
-    CustomRequestHandling: (WebACLCustomRequestHandling)?
-}
-
-/// HTTP header.
-open class WebACLCustomHTTPHeader {
-    Name: WebACLCustomHTTPHeaderName
-    Value: WebACLCustomHTTPHeaderValue
-}
-
-/// Action taken when Rule matches its condition.
-open class WebACLRuleAction {
-    Allow: (WebACLAllowAction)?
-    Block: (WebACLBlockAction)?
-    Count: (WebACLCountAction)?
-    Captcha: (WebACLCaptchaAction)?
-    Challenge: (WebACLChallengeAction)?
-}
-
-typealias JA3FingerprintFallbackBehavior = "MATCH"|"NO_MATCH"
-
-/// Includes the JA3 fingerprint of a web request.
-open class WebACLJA3Fingerprint {
-    FallbackBehavior: JA3FingerprintFallbackBehavior|Mapping
-}
-
-/// Custom response.
-open class WebACLCustomResponse {
-    ResponseCode: WebACLResponseStatusCode
-    CustomResponseBodyKey: (String(matches(Regex(#"^[\w\-]+$"#)))|Mapping)?
-    ResponseHeaders: (Listing<WebACLCustomHTTPHeader>)?
-}
-
-/// Specifies a query argument in the request as an aggregate key for a rate-based rule.
-open class WebACLRateLimitQueryArgument {
-    Name: String(matches(Regex(#".*\S.*"#)))|Mapping
-    TextTransformations: Listing<WebACLTextTransformation>
-}
-
-/// Response headers that indicate success or failure of a login request
-open class WebACLResponseInspectionHeader {
-    FailureValues: Listing<String|Mapping>
-    Name: String(matches(Regex(#".*\S.*"#)))|Mapping
-    SuccessValues: Listing<String|Mapping>
-}
-
-typealias WebACLQueryString = Dynamic
-
-
-typealias WebACLAddressField = WebACLFieldIdentifier
-
-
-/// 
-open class WebACLIPSetReferenceStatement {
-    Arn: WebACLResourceArn
-    IPSetForwardedIPConfig: (WebACLIPSetForwardedIPConfiguration)?
-}
-
-/// 
-open class WebACLCaptchaConfig {
-    ImmunityTimeProperty: (WebACLImmunityTimeProperty)?
-}
-
-typealias WebACLSensitivityLevel = String|Mapping
-
-
-/// Xss Match Statement.
-open class WebACLXssMatchStatement {
-    FieldToMatch: WebACLFieldToMatch
-    TextTransformations: Listing<WebACLTextTransformation>
-}
-
-/// Field of the request to match.
-open class WebACLFieldToMatch {
-    JsonBody: (WebACLJsonBody)?
-    JA3Fingerprint: (WebACLJA3Fingerprint)?
-    UriPath: (Dynamic)?
-    QueryString: (Dynamic)?
-    Body: (WebACLBody)?
-    Method: (Dynamic)?
-    Cookies: (WebACLCookies)?
-    SingleHeader: (Dynamic)?
-    SingleQueryArgument: (Dynamic)?
-    AllQueryArguments: (Dynamic)?
-    Headers: (WebACLHeaders)?
-}
-
-typealias WebACLEntityDescription = String|Mapping
-
-
-typealias WebACLEvaluationWindowSec = Int|Mapping
-
-
-typealias WebACLEntityId = String|Mapping
-
-
-typealias WebACLMapMatchScope = String|Mapping
-
-
-typealias WebACLSizeInspectionLimit = String|Mapping
+typealias WebACLLabelMatchScope = String|Mapping
 
 
 /// Sqli Match Statement.
 open class WebACLSqliMatchStatement {
-    FieldToMatch: WebACLFieldToMatch
     TextTransformations: Listing<WebACLTextTransformation>
     SensitivityLevel: (WebACLSensitivityLevel)?
+    FieldToMatch: WebACLFieldToMatch
 }
 
-/// Text Transformation on the Search String before match.
-open class WebACLTextTransformation {
-    Priority: WebACLTextTransformationPriority
-    Type: WebACLTextTransformationType
+/// First level statement that contains conditions, such as ByteMatch, SizeConstraint, etc
+open class WebACLStatement {
+    RegexPatternSetReferenceStatement: (WebACLRegexPatternSetReferenceStatement)?
+    OrStatement: (WebACLOrStatement)?
+    NotStatement: (WebACLNotStatement)?
+    LabelMatchStatement: (WebACLLabelMatchStatement)?
+    ByteMatchStatement: (WebACLByteMatchStatement)?
+    RuleGroupReferenceStatement: (WebACLRuleGroupReferenceStatement)?
+    IPSetReferenceStatement: (WebACLIPSetReferenceStatement)?
+    RegexMatchStatement: (WebACLRegexMatchStatement)?
+    GeoMatchStatement: (WebACLGeoMatchStatement)?
+    ManagedRuleGroupStatement: (WebACLManagedRuleGroupStatement)?
+    AndStatement: (WebACLAndStatement)?
+    RateBasedStatement: (WebACLRateBasedStatement)?
+    SqliMatchStatement: (WebACLSqliMatchStatement)?
+    XssMatchStatement: (WebACLXssMatchStatement)?
+    SizeConstraintStatement: (WebACLSizeConstraintStatement)?
 }
 
-typealias ForwardedIPConfigurationFallbackBehavior = "MATCH"|"NO_MATCH"
-
-/// 
-open class WebACLForwardedIPConfiguration {
-    HeaderName: String(matches(Regex(#"^[a-zA-Z0-9-]+{1,255}$"#)))|Mapping
-    FallbackBehavior: ForwardedIPConfigurationFallbackBehavior|Mapping
+/// Custom response body.
+open class WebACLCustomResponseBody {
+    ContentType: WebACLResponseContentType
+    Content: WebACLResponseContent
 }
 
-typealias WebACLCustomResponseBodies = Mapping<String, Any>
+/// Configures the inspection of login responses
+open class WebACLResponseInspection {
+    BodyContains: (WebACLResponseInspectionBodyContains)?
+    Json: (WebACLResponseInspectionJson)?
+    StatusCode: (WebACLResponseInspectionStatusCode)?
+    Header: (WebACLResponseInspectionHeader)?
+}
+
+typealias WebACLJsonPointerPath = String|Mapping
 
 
-typealias WebACLLabelMatchKey = String|Mapping
+typealias WebACLTextTransformationPriority = Int|Mapping
 
 
-typealias WebACLLabelMatchScope = String|Mapping
+typealias WebACLResponseStatusCode = Int|Mapping
 
+
+/// Action override for rules in the rule group.
+open class WebACLRuleActionOverride {
+    ActionToUse: WebACLRuleAction
+    Name: WebACLEntityName
+}
+
+/// The body of a web request. This immediately follows the request headers.
+open class WebACLBody {
+    OversizeHandling: (WebACLOversizeHandling)?
+}
+
+typealias WebACLCustomHTTPHeaderName = String|Mapping
+
+
+/// Configures the inspection size in the request body.
+open class WebACLRequestBodyAssociatedResourceTypeConfig {
+    DefaultSizeInspectionLimit: WebACLSizeInspectionLimit
+}
+
+typealias WebACLAddressField = WebACLFieldIdentifier
+
+
+/// Rule of WebACL that contains condition and action.
+open class WebACLRule {
+    OverrideAction: (WebACLOverrideAction)?
+    CaptchaConfig: (WebACLCaptchaConfig)?
+    ChallengeConfig: (WebACLChallengeConfig)?
+    Name: WebACLEntityName
+    Priority: WebACLRulePriority
+    Statement: WebACLStatement
+    Action: (WebACLRuleAction)?
+    RuleLabels: (Listing<WebACLLabel>)?
+    VisibilityConfig: WebACLVisibilityConfig
+}
+
+/// Configures how to use the Account Takeover Prevention managed rule group in the web ACL
+open class WebACLAWSManagedRulesATPRuleSet {
+    LoginPath: String|Mapping
+    EnableRegexInPath: (Boolean|Mapping)?
+    RequestInspection: (WebACLRequestInspection)?
+    ResponseInspection: (WebACLResponseInspection)?
+}
 
 typealias RequestInspectionACFPPayloadType = "JSON"|"FORM_ENCODED"
 
@@ -306,102 +186,43 @@ open class WebACLRequestInspectionACFP {
     PasswordField: (WebACLFieldIdentifier)?
 }
 
-typealias WebACLEntityName = String|Mapping
+typealias WebACLCustomResponseBodies = Mapping<String, Any>
 
-
-/// Configures how to use the Account creation fraud prevention managed rule group in the web ACL
-open class WebACLAWSManagedRulesACFPRuleSet {
-    ResponseInspection: (WebACLResponseInspection)?
-    EnableRegexInPath: (Boolean|Mapping)?
-    CreationPath: String|Mapping
-    RegistrationPagePath: String|Mapping
-    RequestInspection: WebACLRequestInspectionACFP
-}
-
-/// Visibility Metric of the WebACL.
-open class WebACLVisibilityConfig {
-    SampledRequestsEnabled: Boolean|Mapping
-    CloudWatchMetricsEnabled: Boolean|Mapping
-    MetricName: String|Mapping
-}
-
-typealias WebACLJsonPointerPath = String|Mapping
-
-
-/// Rule of WebACL that contains condition and action.
-open class WebACLRule {
-    CaptchaConfig: (WebACLCaptchaConfig)?
-    Priority: WebACLRulePriority
-    Action: (WebACLRuleAction)?
-    OverrideAction: (WebACLOverrideAction)?
-    RuleLabels: (Listing<WebACLLabel>)?
-    VisibilityConfig: WebACLVisibilityConfig
-    ChallengeConfig: (WebACLChallengeConfig)?
-    Name: WebACLEntityName
-    Statement: WebACLStatement
-}
-
-/// 
-open class WebACLRegexMatchStatement {
-    FieldToMatch: WebACLFieldToMatch
-    TextTransformations: Listing<WebACLTextTransformation>
-    RegexString: String|Mapping
-}
 
 typealias WebACLRequestBody = Mapping<String, Any>
 
 
-typealias WebACLRulePriority = Int|Mapping
+/// 
+open class WebACLSingleHeader {
+    Name: (String|Mapping)?
+}
+
+typealias WebACLScope = String|Mapping
+
+
+typealias WebACLJsonMatchScope = String|Mapping
 
 
 typealias WebACLBodyParsingFallbackBehavior = String|Mapping
 
 
-typealias IPSetForwardedIPConfigurationFallbackBehavior = "MATCH"|"NO_MATCH"
-
-typealias IPSetForwardedIPConfigurationPosition = "FIRST"|"LAST"|"ANY"
-
-/// 
-open class WebACLIPSetForwardedIPConfiguration {
-    HeaderName: String(matches(Regex(#"^[a-zA-Z0-9-]+{1,255}$"#)))|Mapping
-    FallbackBehavior: IPSetForwardedIPConfigurationFallbackBehavior|Mapping
-    Position: IPSetForwardedIPConfigurationPosition|Mapping
-}
-
-/// Custom response body.
-open class WebACLCustomResponseBody {
-    ContentType: WebACLResponseContentType
-    Content: WebACLResponseContent
-}
-
-/// 
-open class WebACLLabel {
-    Name: WebACLLabelName
-}
-
-typealias WebACLRateLimit = Int|Mapping
-
-
-typealias WebACLRateLimitHTTPMethod = Dynamic
-
-
-/// The pattern to look for in the JSON body.
-open class WebACLJsonMatchPattern {
-    All: (Dynamic)?
-    IncludedPaths: (Listing<WebACLJsonPointerPath>)?
+/// Specifies a query argument in the request as an aggregate key for a rate-based rule.
+open class WebACLRateLimitQueryArgument {
+    Name: String(matches(Regex(#".*\S.*"#)))|Mapping
+    TextTransformations: Listing<WebACLTextTransformation>
 }
 
 typealias SizeConstraintStatementComparisonOperator = "EQ"|"NE"|"LE"|"LT"|"GE"|"GT"
 
 /// Size Constraint statement.
 open class WebACLSizeConstraintStatement {
-    Size: Number|Mapping
-    TextTransformations: Listing<WebACLTextTransformation>
     FieldToMatch: WebACLFieldToMatch
     ComparisonOperator: SizeConstraintStatementComparisonOperator|Mapping
+    Size: Number|Mapping
+    TextTransformations: Listing<WebACLTextTransformation>
 }
 
-typealias WebACLRules = Listing<(WebACLRule)?>
+typealias WebACLSearchStringBase64 = String|Mapping
 
 
 typealias RateBasedStatementAggregateKeyType = "CONSTANT"|"IP"|"FORWARDED_IP"|"CUSTOM_KEYS"
@@ -416,20 +237,83 @@ open class WebACLRateBasedStatement {
     Limit: WebACLRateLimit
 }
 
-/// Specifies the request's URI Path as an aggregate key for a rate-based rule.
-open class WebACLRateLimitUriPath {
+typealias WebACLPhoneNumberField = WebACLFieldIdentifier
+
+
+/// Allow traffic towards application.
+open class WebACLCountAction {
+    CustomRequestHandling: (WebACLCustomRequestHandling)?
+}
+
+typealias WebACLLabelName = String|Mapping
+
+
+/// Text Transformation on the Search String before match.
+open class WebACLTextTransformation {
+    Priority: WebACLTextTransformationPriority
+    Type: WebACLTextTransformationType
+}
+
+/// 
+open class WebACLNotStatement {
+    Statement: WebACLStatement
+}
+
+/// Checks valid token exists with request.
+open class WebACLCaptchaAction {
+    CustomRequestHandling: (WebACLCustomRequestHandling)?
+}
+
+typealias JA3FingerprintFallbackBehavior = "MATCH"|"NO_MATCH"
+
+/// Includes the JA3 fingerprint of a web request.
+open class WebACLJA3Fingerprint {
+    FallbackBehavior: JA3FingerprintFallbackBehavior|Mapping
+}
+
+/// 
+open class WebACLLabel {
+    Name: WebACLLabelName
+}
+
+typealias WebACLRulePriority = Int|Mapping
+
+
+/// Configures how to use the Account creation fraud prevention managed rule group in the web ACL
+open class WebACLAWSManagedRulesACFPRuleSet {
+    RequestInspection: WebACLRequestInspectionACFP
+    ResponseInspection: (WebACLResponseInspection)?
+    EnableRegexInPath: (Boolean|Mapping)?
+    CreationPath: String|Mapping
+    RegistrationPagePath: String|Mapping
+}
+
+/// Specifies the request's query string as an aggregate key for a rate-based rule.
+open class WebACLRateLimitQueryString {
     TextTransformations: Listing<WebACLTextTransformation>
 }
 
-/// Configures the inspection of login responses
-open class WebACLResponseInspection {
-    Json: (WebACLResponseInspectionJson)?
-    StatusCode: (WebACLResponseInspectionStatusCode)?
-    Header: (WebACLResponseInspectionHeader)?
-    BodyContains: (WebACLResponseInspectionBodyContains)?
+/// Specifies a header as an aggregate key for a rate-based rule.
+open class WebACLRateLimitHeader {
+    Name: String(matches(Regex(#".*\S.*"#)))|Mapping
+    TextTransformations: Listing<WebACLTextTransformation>
 }
 
-typealias WebACLUriPath = Dynamic
+typealias WebACLTextTransformationType = String|Mapping
+
+
+/// 
+open class WebACLOrStatement {
+    Statements: Listing<WebACLStatement>
+}
+
+typealias WebACLPositionalConstraint = String|Mapping
+
+
+typealias WebACLEvaluationWindowSec = Int|Mapping
+
+
+typealias WebACLRules = Listing<(WebACLRule)?>
 
 
 /// The pattern to look for in the request headers.
@@ -439,23 +323,73 @@ open class WebACLHeaderMatchPattern {
     ExcludedHeaders: (Listing<String|Mapping>)?
 }
 
-typealias WebACLLabelName = String|Mapping
+typealias WebACLRateLimitForwardedIP = Dynamic
 
 
-typealias WebACLScope = String|Mapping
-
-
-/// Configures how to use the Account Takeover Prevention managed rule group in the web ACL
-open class WebACLAWSManagedRulesATPRuleSet {
-    RequestInspection: (WebACLRequestInspection)?
-    ResponseInspection: (WebACLResponseInspection)?
-    LoginPath: String|Mapping
-    EnableRegexInPath: (Boolean|Mapping)?
+/// Field of the request to match.
+open class WebACLFieldToMatch {
+    JA3Fingerprint: (WebACLJA3Fingerprint)?
+    AllQueryArguments: (Dynamic)?
+    QueryString: (Dynamic)?
+    Body: (WebACLBody)?
+    Method: (Dynamic)?
+    Headers: (WebACLHeaders)?
+    SingleHeader: (Dynamic)?
+    SingleQueryArgument: (Dynamic)?
+    UriPath: (Dynamic)?
+    JsonBody: (WebACLJsonBody)?
+    Cookies: (WebACLCookies)?
 }
 
-/// Allow traffic towards application.
-open class WebACLAllowAction {
-    CustomRequestHandling: (WebACLCustomRequestHandling)?
+/// 
+open class WebACLChallengeConfig {
+    ImmunityTimeProperty: (WebACLImmunityTimeProperty)?
+}
+
+/// Excluded Rule in the RuleGroup or ManagedRuleGroup will not be evaluated.
+open class WebACLExcludedRule {
+    Name: WebACLEntityName
+}
+
+/// Default Action WebACL will take against ingress traffic when there is no matching Rule.
+open class WebACLDefaultAction {
+    Allow: (WebACLAllowAction)?
+    Block: (WebACLBlockAction)?
+}
+
+typealias WebACLSensitivityLevel = String|Mapping
+
+
+typealias WebACLEntityDescription = String|Mapping
+
+
+typealias WebACLTokenDomains = Listing<(String(matches(Regex(#"^[\w\.\-/]+$"#)))|Mapping)?>
+
+
+/// 
+open class WebACLLabelMatchStatement {
+    Scope: WebACLLabelMatchScope
+    Key: WebACLLabelMatchKey
+}
+
+typealias WebACLOversizeHandling = String|Mapping
+
+
+typealias WebACLCustomHTTPHeaderValue = String|Mapping
+
+
+/// Includes cookies of a web request.
+open class WebACLCookies {
+    MatchPattern: WebACLCookieMatchPattern
+    MatchScope: WebACLMapMatchScope
+    OversizeHandling: WebACLOversizeHandling
+}
+
+/// 
+open class WebACLRegexPatternSetReferenceStatement {
+    Arn: WebACLResourceArn
+    FieldToMatch: WebACLFieldToMatch
+    TextTransformations: Listing<WebACLTextTransformation>
 }
 
 typealias RequestInspectionPayloadType = "JSON"|"FORM_ENCODED"
@@ -467,147 +401,11 @@ open class WebACLRequestInspection {
     PasswordField: WebACLFieldIdentifier
 }
 
-/// Excluded Rule in the RuleGroup or ManagedRuleGroup will not be evaluated.
-open class WebACLExcludedRule {
-    Name: WebACLEntityName
-}
-
-/// 
-open class WebACLRegexPatternSetReferenceStatement {
-    Arn: WebACLResourceArn
-    FieldToMatch: WebACLFieldToMatch
-    TextTransformations: Listing<WebACLTextTransformation>
-}
-
-typealias WebACLSearchString = String|Mapping
-
-
-/// 
-open class WebACLFieldIdentifier {
-    Identifier: String(matches(Regex(#".*\S.*"#)))|Mapping
-}
-
-/// Response JSON that indicate success or failure of a login request
-open class WebACLResponseInspectionJson {
-    SuccessValues: Listing<String|Mapping>
-    FailureValues: Listing<String|Mapping>
-    Identifier: String(matches(Regex(#".*\S.*"#)))|Mapping
-}
-
-/// 
-open class WebACLManagedRuleGroupStatement {
-    Version: (String(matches(Regex(#"^[\w#:\.\-/]+$"#)))|Mapping)?
-    ExcludedRules: (Listing<WebACLExcludedRule>)?
-    ScopeDownStatement: (WebACLStatement)?
-    ManagedRuleGroupConfigs: (Listing<WebACLManagedRuleGroupConfig>)?
-    RuleActionOverrides: (Listing<WebACLRuleActionOverride>)?
-    Name: WebACLEntityName
-    VendorName: String|Mapping
-}
-
-typealias WebACLResourceArn = String|Mapping
-
-
-typealias WebACLTokenDomains = Listing<(String(matches(Regex(#"^[\w\.\-/]+$"#)))|Mapping)?>
-
-
-/// 
-open class WebACLOrStatement {
-    Statements: Listing<WebACLStatement>
-}
-
-typealias WebACLRateLimitForwardedIP = Dynamic
-
-
-/// Block traffic towards application.
-open class WebACLBlockAction {
-    CustomResponse: (WebACLCustomResponse)?
-}
-
-typealias WebACLOversizeHandling = String|Mapping
-
-
-typealias WebACLJsonMatchScope = String|Mapping
-
-
-typealias WebACLTextTransformationPriority = Int|Mapping
-
-
-/// Specifies a label namespace to use as an aggregate key for a rate-based rule.
-open class WebACLRateLimitLabelNamespace {
-    Namespace: String(matches(Regex(#"^[0-9A-Za-z_:-]{1,1024}$"#)))|Mapping
-}
-
-/// First level statement that contains conditions, such as ByteMatch, SizeConstraint, etc
-open class WebACLStatement {
-    RegexPatternSetReferenceStatement: (WebACLRegexPatternSetReferenceStatement)?
-    RateBasedStatement: (WebACLRateBasedStatement)?
-    NotStatement: (WebACLNotStatement)?
-    XssMatchStatement: (WebACLXssMatchStatement)?
-    SizeConstraintStatement: (WebACLSizeConstraintStatement)?
-    IPSetReferenceStatement: (WebACLIPSetReferenceStatement)?
-    SqliMatchStatement: (WebACLSqliMatchStatement)?
-    RuleGroupReferenceStatement: (WebACLRuleGroupReferenceStatement)?
-    AndStatement: (WebACLAndStatement)?
-    ManagedRuleGroupStatement: (WebACLManagedRuleGroupStatement)?
-    OrStatement: (WebACLOrStatement)?
-    LabelMatchStatement: (WebACLLabelMatchStatement)?
-    RegexMatchStatement: (WebACLRegexMatchStatement)?
-    ByteMatchStatement: (WebACLByteMatchStatement)?
-    GeoMatchStatement: (WebACLGeoMatchStatement)?
-}
-
-/// 
-open class WebACLRuleGroupReferenceStatement {
-    Arn: WebACLResourceArn
-    ExcludedRules: (Listing<WebACLExcludedRule>)?
-    RuleActionOverrides: (Listing<WebACLRuleActionOverride>)?
-}
-
-/// Response status codes that indicate success or failure of a login request
-open class WebACLResponseInspectionStatusCode {
-    SuccessCodes: Listing<Int|Mapping>
-    FailureCodes: Listing<Int|Mapping>
-}
-
-typealias WebACLRateLimitIP = Dynamic
-
-
-/// AssociationConfig for body inspection
-open class WebACLAssociationConfig {
-    RequestBody: (WebACLRequestBody)?
-}
-
-typealias WebACLExcludedRules = Listing<(WebACLExcludedRule)?>
-
-
-/// Specifies a single custom aggregate key for a rate-base rule.
-open class WebACLRateBasedStatementCustomKey {
-    Cookie: (WebACLRateLimitCookie)?
-    Header: (WebACLRateLimitHeader)?
-    LabelNamespace: (WebACLRateLimitLabelNamespace)?
-    QueryArgument: (WebACLRateLimitQueryArgument)?
-    QueryString: (WebACLRateLimitQueryString)?
-    ForwardedIP: (WebACLRateLimitForwardedIP)?
-    HTTPMethod: (WebACLRateLimitHTTPMethod)?
-    IP: (WebACLRateLimitIP)?
-    UriPath: (WebACLRateLimitUriPath)?
-}
-
-typealias WebACLCustomHTTPHeaderValue = String|Mapping
-
-
-typealias WebACLResponseStatusCode = Int|Mapping
-
-
-/// Configures the inspection size in the request body.
-open class WebACLRequestBodyAssociatedResourceTypeConfig {
-    DefaultSizeInspectionLimit: WebACLSizeInspectionLimit
-}
-
-/// 
-open class WebACLChallengeConfig {
-    ImmunityTimeProperty: (WebACLImmunityTimeProperty)?
+/// Visibility Metric of the WebACL.
+open class WebACLVisibilityConfig {
+    SampledRequestsEnabled: Boolean|Mapping
+    CloudWatchMetricsEnabled: Boolean|Mapping
+    MetricName: String|Mapping
 }
 
 /// Specifies a cookie as an aggregate key for a rate-based rule.
@@ -616,27 +414,229 @@ open class WebACLRateLimitCookie {
     TextTransformations: Listing<WebACLTextTransformation>
 }
 
-/// Response body contents that indicate success or failure of a login request
-open class WebACLResponseInspectionBodyContains {
-    SuccessStrings: Listing<String|Mapping>
-    FailureStrings: Listing<String|Mapping>
+typealias WebACLRateLimitIP = Dynamic
+
+
+typealias AWSManagedRulesBotControlRuleSetInspectionLevel = "COMMON"|"TARGETED"
+
+/// Configures how to use the Bot Control managed rule group in the web ACL
+open class WebACLAWSManagedRulesBotControlRuleSet {
+    EnableMachineLearning: (Boolean|Mapping)?
+    InspectionLevel: AWSManagedRulesBotControlRuleSetInspectionLevel|Mapping
 }
 
-/// Inspect the request body as JSON. The request body immediately follows the request headers.
-open class WebACLJsonBody {
-    MatchPattern: WebACLJsonMatchPattern
-    MatchScope: WebACLJsonMatchScope
-    InvalidFallbackBehavior: (WebACLBodyParsingFallbackBehavior)?
-    OversizeHandling: (WebACLOversizeHandling)?
+typealias IPSetForwardedIPConfigurationFallbackBehavior = "MATCH"|"NO_MATCH"
+
+typealias IPSetForwardedIPConfigurationPosition = "FIRST"|"LAST"|"ANY"
+
+/// 
+open class WebACLIPSetForwardedIPConfiguration {
+    HeaderName: String(matches(Regex(#"^[a-zA-Z0-9-]+{1,255}$"#)))|Mapping
+    FallbackBehavior: IPSetForwardedIPConfigurationFallbackBehavior|Mapping
+    Position: IPSetForwardedIPConfigurationPosition|Mapping
 }
+
+typealias WebACLLabelMatchKey = String|Mapping
+
+
+/// Custom request handling.
+open class WebACLCustomRequestHandling {
+    InsertHeaders: Listing<WebACLCustomHTTPHeader>
+}
+
+/// 
+open class WebACLCaptchaConfig {
+    ImmunityTimeProperty: (WebACLImmunityTimeProperty)?
+}
+
+/// 
+open class WebACLManagedRuleGroupStatement {
+    Name: WebACLEntityName
+    VendorName: String|Mapping
+    Version: (String(matches(Regex(#"^[\w#:\.\-/]+$"#)))|Mapping)?
+    ExcludedRules: (Listing<WebACLExcludedRule>)?
+    ScopeDownStatement: (WebACLStatement)?
+    ManagedRuleGroupConfigs: (Listing<WebACLManagedRuleGroupConfig>)?
+    RuleActionOverrides: (Listing<WebACLRuleActionOverride>)?
+}
+
+typealias WebACLResponseContentType = String|Mapping
+
+
+/// Response JSON that indicate success or failure of a login request
+open class WebACLResponseInspectionJson {
+    Identifier: String(matches(Regex(#".*\S.*"#)))|Mapping
+    SuccessValues: Listing<String|Mapping>
+    FailureValues: Listing<String|Mapping>
+}
+
+/// Xss Match Statement.
+open class WebACLXssMatchStatement {
+    FieldToMatch: WebACLFieldToMatch
+    TextTransformations: Listing<WebACLTextTransformation>
+}
+
+/// 
+open class WebACLImmunityTimeProperty {
+    ImmunityTime: Int|Mapping
+}
+
+typealias WebACLSizeInspectionLimit = String|Mapping
+
+
+typealias WebACLRateLimit = Int|Mapping
+
+
+typealias WebACLUriPath = Dynamic
+
+
+/// 
+open class WebACLTag {
+    Key: (String|Mapping)?
+    Value: (String|Mapping)?
+}
+
+/// The pattern to look for in the JSON body.
+open class WebACLJsonMatchPattern {
+    All: (Dynamic)?
+    IncludedPaths: (Listing<WebACLJsonPointerPath>)?
+}
+
+/// 
+open class WebACLSingleQueryArgument {
+    Name: (String|Mapping)?
+}
+
+/// 
+open class WebACLFieldIdentifier {
+    Identifier: String(matches(Regex(#".*\S.*"#)))|Mapping
+}
+
+/// Checks that the request has a valid token with an unexpired challenge timestamp and, if not, returns a browser challenge to the client.
+open class WebACLChallengeAction {
+    CustomRequestHandling: (WebACLCustomRequestHandling)?
+}
+
+/// AssociationConfig for body inspection
+open class WebACLAssociationConfig {
+    RequestBody: (WebACLRequestBody)?
+}
+
+/// Includes headers of a web request.
+open class WebACLHeaders {
+    MatchPattern: WebACLHeaderMatchPattern
+    MatchScope: WebACLMapMatchScope
+    OversizeHandling: WebACLOversizeHandling
+}
+
+typealias WebACLMapMatchScope = String|Mapping
+
+
+/// The pattern to look for in the request cookies.
+open class WebACLCookieMatchPattern {
+    IncludedCookies: (Listing<String|Mapping>)?
+    ExcludedCookies: (Listing<String|Mapping>)?
+    All: (Dynamic)?
+}
+
+/// Block traffic towards application.
+open class WebACLBlockAction {
+    CustomResponse: (WebACLCustomResponse)?
+}
+
+typealias WebACLEntityName = String|Mapping
+
+
+typealias WebACLRateLimitHTTPMethod = Dynamic
+
 
 /// 
 open class WebACLAndStatement {
     Statements: Listing<WebACLStatement>
 }
 
-typealias WebACLCustomHTTPHeaderName = String|Mapping
+/// HTTP header.
+open class WebACLCustomHTTPHeader {
+    Name: WebACLCustomHTTPHeaderName
+    Value: WebACLCustomHTTPHeaderValue
+}
 
+/// Response status codes that indicate success or failure of a login request
+open class WebACLResponseInspectionStatusCode {
+    FailureCodes: Listing<Int|Mapping>
+    SuccessCodes: Listing<Int|Mapping>
+}
+
+typealias ForwardedIPConfigurationFallbackBehavior = "MATCH"|"NO_MATCH"
+
+/// 
+open class WebACLForwardedIPConfiguration {
+    HeaderName: String(matches(Regex(#"^[a-zA-Z0-9-]+{1,255}$"#)))|Mapping
+    FallbackBehavior: ForwardedIPConfigurationFallbackBehavior|Mapping
+}
+
+/// Specifies a single custom aggregate key for a rate-base rule.
+open class WebACLRateBasedStatementCustomKey {
+    Cookie: (WebACLRateLimitCookie)?
+    ForwardedIP: (WebACLRateLimitForwardedIP)?
+    QueryString: (WebACLRateLimitQueryString)?
+    Header: (WebACLRateLimitHeader)?
+    HTTPMethod: (WebACLRateLimitHTTPMethod)?
+    IP: (WebACLRateLimitIP)?
+    LabelNamespace: (WebACLRateLimitLabelNamespace)?
+    QueryArgument: (WebACLRateLimitQueryArgument)?
+    UriPath: (WebACLRateLimitUriPath)?
+}
+
+typealias WebACLEntityId = String|Mapping
+
+
+typealias WebACLResourceArn = String|Mapping
+
+
+typealias WebACLSearchString = String|Mapping
+
+
+typealias WebACLExcludedRules = Listing<(WebACLExcludedRule)?>
+
+
+typealias WebACLQueryString = Dynamic
+
+
+/// Action taken when Rule matches its condition.
+open class WebACLRuleAction {
+    Allow: (WebACLAllowAction)?
+    Block: (WebACLBlockAction)?
+    Count: (WebACLCountAction)?
+    Captcha: (WebACLCaptchaAction)?
+    Challenge: (WebACLChallengeAction)?
+}
+
+/// 
+open class WebACLIPSetReferenceStatement {
+    Arn: WebACLResourceArn
+    IPSetForwardedIPConfig: (WebACLIPSetForwardedIPConfiguration)?
+}
+
+/// Custom response.
+open class WebACLCustomResponse {
+    ResponseCode: WebACLResponseStatusCode
+    CustomResponseBodyKey: (String(matches(Regex(#"^[\w\-]+$"#)))|Mapping)?
+    ResponseHeaders: (Listing<WebACLCustomHTTPHeader>)?
+}
+
+/// Response headers that indicate success or failure of a login request
+open class WebACLResponseInspectionHeader {
+    Name: String(matches(Regex(#".*\S.*"#)))|Mapping
+    SuccessValues: Listing<String|Mapping>
+    FailureValues: Listing<String|Mapping>
+}
+
+/// 
+open class WebACLGeoMatchStatement {
+    CountryCodes: (Listing<String|Mapping>)?
+    ForwardedIPConfig: (WebACLForwardedIPConfiguration)?
+}
 
 /// Contains the Rules that identify the requests that you want to allow, block, or count. In a WebACL, you also specify a default action (ALLOW or BLOCK), and the action for each Rule that you add to a WebACL, for example, block requests from specified IP addresses or block requests from specified referrers. You also associate the WebACL with a CloudFront distribution to identify the requests that you want AWS WAF to filter. If you add more than one Rule to a WebACL, a request needs to match only one of the specifications to be allowed, blocked, or counted.
 open class WebACL extends cloudformation.Resource {
@@ -644,23 +644,26 @@ open class WebACL extends cloudformation.Resource {
     Type = "AWS::WAFv2::WebACL"
 
 
+    /// 
+    hidden CaptchaConfig: (WebACLCaptchaConfig)?
+
+    /// 
+    hidden AssociationConfig: (WebACLAssociationConfig)?
+
+    /// 
+    hidden Description: (WebACLEntityDescription)?
+
     /// Collection of Rules.
     hidden Rules: (Listing<WebACLRule>)?
+
+    /// 
+    hidden Name: (WebACLEntityName)?
 
     /// 
     hidden VisibilityConfig: WebACLVisibilityConfig
 
     /// 
     hidden CustomResponseBodies: (WebACLCustomResponseBodies)?
-
-    /// 
-    hidden CaptchaConfig: (WebACLCaptchaConfig)?
-
-    /// 
-    hidden ChallengeConfig: (WebACLChallengeConfig)?
-
-    /// 
-    hidden TokenDomains: (WebACLTokenDomains)?
 
     /// 
     hidden DefaultAction: WebACLDefaultAction
@@ -672,27 +675,24 @@ open class WebACL extends cloudformation.Resource {
     hidden Tags: (Listing<WebACLTag>)?
 
     /// 
-    hidden Description: (WebACLEntityDescription)?
+    hidden ChallengeConfig: (WebACLChallengeConfig)?
 
     /// 
-    hidden AssociationConfig: (WebACLAssociationConfig)?
-
-    /// 
-    hidden Name: (WebACLEntityName)?
+    hidden TokenDomains: (WebACLTokenDomains)?
 
     Properties {
+        ["CaptchaConfig"] = if (CaptchaConfig == null) null else CaptchaConfig
+        ["AssociationConfig"] = if (AssociationConfig == null) null else AssociationConfig
+        ["Description"] = if (Description == null) null else Description
         ["Rules"] = if (Rules == null) null else Rules
+        ["Name"] = if (Name == null) null else Name
         ["VisibilityConfig"] = if (VisibilityConfig == null) null else VisibilityConfig
         ["CustomResponseBodies"] = if (CustomResponseBodies == null) null else CustomResponseBodies
-        ["CaptchaConfig"] = if (CaptchaConfig == null) null else CaptchaConfig
-        ["ChallengeConfig"] = if (ChallengeConfig == null) null else ChallengeConfig
-        ["TokenDomains"] = if (TokenDomains == null) null else TokenDomains
         ["DefaultAction"] = if (DefaultAction == null) null else DefaultAction
         ["Scope"] = if (Scope == null) null else Scope
         ["Tags"] = if (Tags == null) null else Tags
-        ["Description"] = if (Description == null) null else Description
-        ["AssociationConfig"] = if (AssociationConfig == null) null else AssociationConfig
-        ["Name"] = if (Name == null) null else Name
+        ["ChallengeConfig"] = if (ChallengeConfig == null) null else ChallengeConfig
+        ["TokenDomains"] = if (TokenDomains == null) null else TokenDomains
     }
 
 }

@@ -5,21 +5,6 @@ module aws.ecs.cluster
 
 import "../../cloudformation.pkl"
 
-/// The log configuration for the results of the execute command actions. The logs can be sent to CloudWatch Logs or an Amazon S3 bucket.
-open class ClusterExecuteCommandLogConfiguration {
-    CloudWatchEncryptionEnabled: (Boolean|Mapping)?
-    CloudWatchLogGroupName: (String|Mapping)?
-    S3KeyPrefix: (String|Mapping)?
-    S3BucketName: (String|Mapping)?
-    S3EncryptionEnabled: (Boolean|Mapping)?
-}
-
-/// The settings to use when creating a cluster. This parameter is used to turn on CloudWatch Container Insights for a cluster.
-open class ClusterClusterSettings {
-    Value: (String|Mapping)?
-    Name: (String|Mapping)?
-}
-
 /// Use this parameter to set a default Service Connect namespace. After you set a default Service Connect namespace, any new services with Service Connect turned on that are created in the cluster are added as client services in the namespace. This setting only applies to new services that set the ``enabled`` parameter to ``true`` in the ``ServiceConnectConfiguration``. You can set the namespace of each service individually in the ``ServiceConnectConfiguration`` to override this default parameter.
 ///
 ///  Tasks that run in a namespace can use short names to connect to services in the namespace. Tasks can connect to services across all of the clusters in the namespace. Tasks connect through a managed proxy container that collects logs and metrics for increased visibility. Only the tasks that Amazon ECS services create are supported with Service Connect. For more information, see [Service Connect](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-connect.html) in the *Amazon Elastic Container Service Developer Guide*.
@@ -38,8 +23,8 @@ open class ClusterServiceConnectDefaults {
 ///   +  Tag keys and values are case-sensitive.
 ///   +  Do not use ``aws:``, ``AWS:``, or any upper or lowercase combination of such as a prefix for either keys or values as it is reserved for AWS use. You cannot edit or delete tag keys or values with this prefix. Tags with this prefix do not count against your tags per resource limit.
 open class ClusterTag {
-    Key: (String|Mapping)?
     Value: (String|Mapping)?
+    Key: (String|Mapping)?
 }
 
 /// The execute command configuration for the cluster.
@@ -49,9 +34,9 @@ open class ClusterClusterConfiguration {
 
 /// The details of the execute command configuration.
 open class ClusterExecuteCommandConfiguration {
+    LogConfiguration: (ClusterExecuteCommandLogConfiguration)?
     Logging: (String|Mapping)?
     KmsKeyId: (String|Mapping)?
-    LogConfiguration: (ClusterExecuteCommandLogConfiguration)?
 }
 
 /// The ``CapacityProviderStrategyItem`` property specifies the details of the default capacity provider strategy for the cluster. When services or tasks are run in the cluster with no launch type or capacity provider strategy specified, the default capacity provider strategy is used.
@@ -61,18 +46,26 @@ open class ClusterCapacityProviderStrategyItem {
     CapacityProvider: (String|Mapping)?
 }
 
+/// The log configuration for the results of the execute command actions. The logs can be sent to CloudWatch Logs or an Amazon S3 bucket.
+open class ClusterExecuteCommandLogConfiguration {
+    S3KeyPrefix: (String|Mapping)?
+    S3BucketName: (String|Mapping)?
+    S3EncryptionEnabled: (Boolean|Mapping)?
+    CloudWatchEncryptionEnabled: (Boolean|Mapping)?
+    CloudWatchLogGroupName: (String|Mapping)?
+}
+
+/// The settings to use when creating a cluster. This parameter is used to turn on CloudWatch Container Insights for a cluster.
+open class ClusterClusterSettings {
+    Value: (String|Mapping)?
+    Name: (String|Mapping)?
+}
+
 /// The ``AWS::ECS::Cluster`` resource creates an Amazon Elastic Container Service (Amazon ECS) cluster.
 open class Cluster extends cloudformation.Resource {
 
     Type = "AWS::ECS::Cluster"
 
-
-    /// The short name of one or more capacity providers to associate with the cluster. A capacity provider must be associated with a cluster before it can be included as part of the default capacity provider strategy of the cluster or used in a capacity provider strategy when calling the [CreateService](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_CreateService.html) or [RunTask](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_RunTask.html) actions.
-    ///
-    ///  If specifying a capacity provider that uses an Auto Scaling group, the capacity provider must be created but not associated with another cluster. New Auto Scaling group capacity providers can be created with the [CreateCapacityProvider](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_CreateCapacityProvider.html) API operation.
-    ///  To use a FARGATElong capacity provider, specify either the ``FARGATE`` or ``FARGATE_SPOT`` capacity providers. The FARGATElong capacity providers are available to all accounts and only need to be associated with a cluster to be used.
-    ///  The [PutCapacityProvider](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_PutCapacityProvider.html) API operation is used to update the list of available capacity providers for a cluster after the cluster is created.
-    hidden CapacityProviders: (Listing<String|Mapping>)?
 
     /// A user-generated string that you use to identify your cluster. If you don't specify a name, CFNlong generates a unique physical ID for the name.
     hidden ClusterName: (String|Mapping)?
@@ -103,14 +96,21 @@ open class Cluster extends cloudformation.Resource {
     ///  Tasks that run in a namespace can use short names to connect to services in the namespace. Tasks can connect to services across all of the clusters in the namespace. Tasks connect through a managed proxy container that collects logs and metrics for increased visibility. Only the tasks that Amazon ECS services create are supported with Service Connect. For more information, see [Service Connect](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-connect.html) in the *Amazon Elastic Container Service Developer Guide*.
     hidden ServiceConnectDefaults: (ClusterServiceConnectDefaults)?
 
+    /// The short name of one or more capacity providers to associate with the cluster. A capacity provider must be associated with a cluster before it can be included as part of the default capacity provider strategy of the cluster or used in a capacity provider strategy when calling the [CreateService](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_CreateService.html) or [RunTask](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_RunTask.html) actions.
+    ///
+    ///  If specifying a capacity provider that uses an Auto Scaling group, the capacity provider must be created but not associated with another cluster. New Auto Scaling group capacity providers can be created with the [CreateCapacityProvider](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_CreateCapacityProvider.html) API operation.
+    ///  To use a FARGATElong capacity provider, specify either the ``FARGATE`` or ``FARGATE_SPOT`` capacity providers. The FARGATElong capacity providers are available to all accounts and only need to be associated with a cluster to be used.
+    ///  The [PutCapacityProvider](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_PutCapacityProvider.html) API operation is used to update the list of available capacity providers for a cluster after the cluster is created.
+    hidden CapacityProviders: (Listing<String|Mapping>)?
+
     Properties {
-        ["CapacityProviders"] = if (CapacityProviders == null) null else CapacityProviders
         ["ClusterName"] = if (ClusterName == null) null else ClusterName
         ["Tags"] = if (Tags == null) null else Tags
         ["ClusterSettings"] = if (ClusterSettings == null) null else ClusterSettings
         ["DefaultCapacityProviderStrategy"] = if (DefaultCapacityProviderStrategy == null) null else DefaultCapacityProviderStrategy
         ["Configuration"] = if (Configuration == null) null else Configuration
         ["ServiceConnectDefaults"] = if (ServiceConnectDefaults == null) null else ServiceConnectDefaults
+        ["CapacityProviders"] = if (CapacityProviders == null) null else CapacityProviders
     }
 
 }

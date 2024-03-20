@@ -5,6 +5,40 @@ module aws.apigateway.deployment
 
 import "../../cloudformation.pkl"
 
+typealias DeploymentStageDescriptionVariables = Mapping<String, Any>
+
+/// ``StageDescription`` is a property of the [AWS::ApiGateway::Deployment](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigateway-deployment.html) resource that configures a deployment stage.
+open class DeploymentStageDescription {
+    ThrottlingBurstLimit: (Int|Mapping)?
+    Variables: (DeploymentStageDescriptionVariables)?
+    CacheClusterEnabled: (Boolean|Mapping)?
+    CanarySetting: (DeploymentCanarySetting)?
+    LoggingLevel: (String|Mapping)?
+    Tags: (Listing<DeploymentTag>)?
+    DocumentationVersion: (String|Mapping)?
+    MethodSettings: (Listing<DeploymentMethodSetting>)?
+    MetricsEnabled: (Boolean|Mapping)?
+    ThrottlingRateLimit: (Number|Mapping)?
+    CacheClusterSize: (String|Mapping)?
+    CacheDataEncrypted: (Boolean|Mapping)?
+    CacheTtlInSeconds: (Int|Mapping)?
+    ClientCertificateId: (String|Mapping)?
+    AccessLogSetting: (DeploymentAccessLogSetting)?
+    CachingEnabled: (Boolean|Mapping)?
+    DataTraceEnabled: (Boolean|Mapping)?
+    Description: (String|Mapping)?
+    TracingEnabled: (Boolean|Mapping)?
+}
+
+typealias DeploymentDeploymentCanarySettingsStageVariableOverrides = Mapping<String, Any>
+
+/// The ``DeploymentCanarySettings`` property type specifies settings for the canary deployment.
+open class DeploymentDeploymentCanarySettings {
+    PercentTraffic: (Number|Mapping)?
+    StageVariableOverrides: (DeploymentDeploymentCanarySettingsStageVariableOverrides)?
+    UseStageCache: (Boolean|Mapping)?
+}
+
 /// The ``AccessLogSetting`` property type specifies settings for logging access in this stage.
 ///
 ///   ``AccessLogSetting`` is a property of the [StageDescription](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-apigateway-deployment-stagedescription.html) property type.
@@ -34,50 +68,16 @@ open class DeploymentTag {
 ///
 ///  The ``MethodSettings`` property of the [Amazon API Gateway Deployment StageDescription](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-apigateway-deployment-stagedescription.html) property type contains a list of ``MethodSetting`` property types.
 open class DeploymentMethodSetting {
-    CacheTtlInSeconds: (Int|Mapping)?
-    ResourcePath: (String|Mapping)?
-    ThrottlingBurstLimit: (Int|Mapping)?
-    ThrottlingRateLimit: (Number|Mapping)?
     LoggingLevel: (String|Mapping)?
     MetricsEnabled: (Boolean|Mapping)?
+    ResourcePath: (String|Mapping)?
     CacheDataEncrypted: (Boolean|Mapping)?
+    CacheTtlInSeconds: (Int|Mapping)?
     CachingEnabled: (Boolean|Mapping)?
     DataTraceEnabled: (Boolean|Mapping)?
     HttpMethod: (String|Mapping)?
-}
-
-typealias DeploymentStageDescriptionVariables = Mapping<String, Any>
-
-/// ``StageDescription`` is a property of the [AWS::ApiGateway::Deployment](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigateway-deployment.html) resource that configures a deployment stage.
-open class DeploymentStageDescription {
-    CachingEnabled: (Boolean|Mapping)?
-    MethodSettings: (Listing<DeploymentMethodSetting>)?
-    CacheTtlInSeconds: (Int|Mapping)?
-    DataTraceEnabled: (Boolean|Mapping)?
-    Description: (String|Mapping)?
-    LoggingLevel: (String|Mapping)?
-    Tags: (Listing<DeploymentTag>)?
-    Variables: (DeploymentStageDescriptionVariables)?
-    CacheDataEncrypted: (Boolean|Mapping)?
-    MetricsEnabled: (Boolean|Mapping)?
-    CacheClusterSize: (String|Mapping)?
-    CacheClusterEnabled: (Boolean|Mapping)?
-    CanarySetting: (DeploymentCanarySetting)?
-    ClientCertificateId: (String|Mapping)?
-    DocumentationVersion: (String|Mapping)?
     ThrottlingBurstLimit: (Int|Mapping)?
     ThrottlingRateLimit: (Number|Mapping)?
-    TracingEnabled: (Boolean|Mapping)?
-    AccessLogSetting: (DeploymentAccessLogSetting)?
-}
-
-typealias DeploymentDeploymentCanarySettingsStageVariableOverrides = Mapping<String, Any>
-
-/// The ``DeploymentCanarySettings`` property type specifies settings for the canary deployment.
-open class DeploymentDeploymentCanarySettings {
-    UseStageCache: (Boolean|Mapping)?
-    PercentTraffic: (Number|Mapping)?
-    StageVariableOverrides: (DeploymentDeploymentCanarySettingsStageVariableOverrides)?
 }
 
 /// The ``AWS::ApiGateway::Deployment`` resource deploys an API Gateway ``RestApi`` resource to a stage so that clients can call the API over the internet. The stage acts as an environment.
@@ -85,6 +85,12 @@ open class Deployment extends cloudformation.Resource {
 
     Type = "AWS::ApiGateway::Deployment"
 
+
+    /// The description of the Stage resource for the Deployment resource to create. To specify a stage description, you must also provide a stage name.
+    hidden StageDescription: (DeploymentStageDescription)?
+
+    /// The name of the Stage resource for the Deployment resource to create.
+    hidden StageName: (String|Mapping)?
 
     /// The input configuration for a canary deployment.
     hidden DeploymentCanarySettings: (DeploymentDeploymentCanarySettings)?
@@ -95,18 +101,12 @@ open class Deployment extends cloudformation.Resource {
     /// The string identifier of the associated RestApi.
     hidden RestApiId: String|Mapping
 
-    /// The description of the Stage resource for the Deployment resource to create. To specify a stage description, you must also provide a stage name.
-    hidden StageDescription: (DeploymentStageDescription)?
-
-    /// The name of the Stage resource for the Deployment resource to create.
-    hidden StageName: (String|Mapping)?
-
     Properties {
+        ["StageDescription"] = if (StageDescription == null) null else StageDescription
+        ["StageName"] = if (StageName == null) null else StageName
         ["DeploymentCanarySettings"] = if (DeploymentCanarySettings == null) null else DeploymentCanarySettings
         ["Description"] = if (Description == null) null else Description
         ["RestApiId"] = if (RestApiId == null) null else RestApiId
-        ["StageDescription"] = if (StageDescription == null) null else StageDescription
-        ["StageName"] = if (StageName == null) null else StageName
     }
 
 }

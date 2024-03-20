@@ -15,6 +15,22 @@ open class Parameter extends cloudformation.Resource {
     Type = "AWS::SSM::Parameter"
 
 
+    /// Information about the parameter.
+    hidden Description: (String|Mapping)?
+
+    /// Information about the policies assigned to a parameter.
+    ///
+    ///   [Assigning parameter policies](https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-policies.html) in the *User Guide*.
+    hidden Policies: (String|Mapping)?
+
+    /// The parameter tier.
+    hidden Tier: (ParameterTier|Mapping)?
+
+    /// The name of the parameter.
+    ///
+    ///  The maximum length constraint listed below includes capacity for additional system attributes that aren't part of the name. The maximum length for a parameter name, including the full length of the parameter Amazon Resource Name (ARN), is 1011 characters. For example, the length of the following parameter name is 65 characters, not 20 characters: ``arn:aws:ssm:us-east-2:111222333444:parameter/ExampleParameterName``
+    hidden Name: (String|Mapping)?
+
     /// The data type of the parameter, such as ``text`` or ``aws:ec2:image``. The default is ``text``.
     hidden DataType: (ParameterDataType|Mapping)?
 
@@ -26,47 +42,31 @@ open class Parameter extends cloudformation.Resource {
     ///   If type is ``StringList``, the system returns a comma-separated string with no spaces between commas in the ``Value`` field.
     hidden Value: String|Mapping
 
-    /// The parameter tier.
-    hidden Tier: (ParameterTier|Mapping)?
+    /// A regular expression used to validate the parameter value. For example, for ``String`` types with values restricted to numbers, you can specify the following: ``AllowedPattern=^\d+$``
+    hidden AllowedPattern: (String|Mapping)?
 
     /// Optional metadata that you assign to a resource in the form of an arbitrary set of tags (key-value pairs). Tags enable you to categorize a resource in different ways, such as by purpose, owner, or environment. For example, you might want to tag a SYS parameter to identify the type of resource to which it applies, the environment, or the type of configuration data referenced by the parameter.
     hidden Tags: (ParameterParameterTags)?
 
-    /// Information about the parameter.
-    hidden Description: (String|Mapping)?
-
-    /// Information about the policies assigned to a parameter.
-    ///
-    ///   [Assigning parameter policies](https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-policies.html) in the *User Guide*.
-    hidden Policies: (String|Mapping)?
-
-    /// A regular expression used to validate the parameter value. For example, for ``String`` types with values restricted to numbers, you can specify the following: ``AllowedPattern=^\d+$``
-    hidden AllowedPattern: (String|Mapping)?
-
-    /// The name of the parameter.
-    ///
-    ///  The maximum length constraint listed below includes capacity for additional system attributes that aren't part of the name. The maximum length for a parameter name, including the full length of the parameter Amazon Resource Name (ARN), is 1011 characters. For example, the length of the following parameter name is 65 characters, not 20 characters: ``arn:aws:ssm:us-east-2:111222333444:parameter/ExampleParameterName``
-    hidden Name: (String|Mapping)?
-
     Properties {
+        ["Description"] = if (Description == null) null else Description
+        ["Policies"] = if (Policies == null) null else Policies
+        ["Tier"] = if (Tier == null) null else Tier
+        ["Name"] = if (Name == null) null else Name
         ["DataType"] = if (DataType == null) null else DataType
         ["Type"] = if (TypeProperty == null) null else TypeProperty
         ["Value"] = if (Value == null) null else Value
-        ["Tier"] = if (Tier == null) null else Tier
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Description"] = if (Description == null) null else Description
-        ["Policies"] = if (Policies == null) null else Policies
         ["AllowedPattern"] = if (AllowedPattern == null) null else AllowedPattern
-        ["Name"] = if (Name == null) null else Name
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }
 
 
+typealias ParameterTier = "Standard"|"Advanced"|"Intelligent-Tiering"
+
 typealias ParameterDataType = "text"|"aws:ec2:image"
 
 typealias ParameterType = "String"|"StringList"
-
-typealias ParameterTier = "Standard"|"Advanced"|"Intelligent-Tiering"
 
 typealias ParameterParameterTags = Mapping<String, Any>

@@ -6,6 +6,14 @@ module aws.refactorspaces.service
 import "../../cloudformation.pkl"
 
 /// 
+open class ServiceLambdaEndpointInput {
+    Arn: String(matches(Regex(#"^arn:(aws[a-zA-Z-]*)?:lambda:[a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}:\d{12}:function:[a-zA-Z0-9-_]+(:(\$LATEST|[a-zA-Z0-9-_]+))?$"#)))|Mapping
+}
+
+typealias ServiceServiceEndpointType = String|Mapping
+
+
+/// 
 open class ServiceUrlEndpointInput {
     HealthUrl: (String(matches(Regex(#"^https?://[-a-zA-Z0-9+\x38@#/%?=~_|!:,.;]*[-a-zA-Z0-9+\x38@#/%=~_|]$"#)))|Mapping)?
     Url: String(matches(Regex(#"^https?://[-a-zA-Z0-9+\x38@#/%?=~_|!:,.;]*[-a-zA-Z0-9+\x38@#/%=~_|]$"#)))|Mapping
@@ -17,14 +25,6 @@ open class ServiceTag {
     Value: String|Mapping
 }
 
-/// 
-open class ServiceLambdaEndpointInput {
-    Arn: String(matches(Regex(#"^arn:(aws[a-zA-Z-]*)?:lambda:[a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}:\d{12}:function:[a-zA-Z0-9-_]+(:(\$LATEST|[a-zA-Z0-9-_]+))?$"#)))|Mapping
-}
-
-typealias ServiceServiceEndpointType = String|Mapping
-
-
 /// Definition of AWS::RefactorSpaces::Service Resource Type
 open class Service extends cloudformation.Resource {
 
@@ -32,10 +32,25 @@ open class Service extends cloudformation.Resource {
 
 
     /// 
-    hidden EndpointType: ServiceServiceEndpointType
+    hidden EnvironmentIdentifier: String(matches(Regex(#"^env-([0-9A-Za-z]{10}$)"#)))|Mapping
+
+    /// 
+    hidden LambdaEndpoint: (ServiceLambdaEndpointInput)?
 
     /// 
     hidden VpcId: (String(matches(Regex(#"^vpc-[-a-f0-9]{8}([-a-f0-9]{9})?$"#)))|Mapping)?
+
+    /// Metadata that you can assign to help organize the frameworks that you create. Each tag is a key-value pair.
+    hidden Tags: (Listing<ServiceTag>)?
+
+    /// 
+    hidden Description: (String(matches(Regex(#"^[a-zA-Z0-9-_\s\.\!\*\#\@\']+$"#)))|Mapping)?
+
+    /// 
+    hidden ApplicationIdentifier: String(matches(Regex(#"^app-([0-9A-Za-z]{10}$)"#)))|Mapping
+
+    /// 
+    hidden EndpointType: ServiceServiceEndpointType
 
     /// 
     hidden Name: String(matches(Regex(#"^(?!svc-)[a-zA-Z0-9]+[a-zA-Z0-9-_ ]+$"#)))|Mapping
@@ -43,31 +58,16 @@ open class Service extends cloudformation.Resource {
     /// 
     hidden UrlEndpoint: (ServiceUrlEndpointInput)?
 
-    /// Metadata that you can assign to help organize the frameworks that you create. Each tag is a key-value pair.
-    hidden Tags: (Listing<ServiceTag>)?
-
-    /// 
-    hidden ApplicationIdentifier: String(matches(Regex(#"^app-([0-9A-Za-z]{10}$)"#)))|Mapping
-
-    /// 
-    hidden Description: (String(matches(Regex(#"^[a-zA-Z0-9-_\s\.\!\*\#\@\']+$"#)))|Mapping)?
-
-    /// 
-    hidden EnvironmentIdentifier: String(matches(Regex(#"^env-([0-9A-Za-z]{10}$)"#)))|Mapping
-
-    /// 
-    hidden LambdaEndpoint: (ServiceLambdaEndpointInput)?
-
     Properties {
-        ["EndpointType"] = if (EndpointType == null) null else EndpointType
-        ["VpcId"] = if (VpcId == null) null else VpcId
-        ["Name"] = if (Name == null) null else Name
-        ["UrlEndpoint"] = if (UrlEndpoint == null) null else UrlEndpoint
-        ["Tags"] = if (Tags == null) null else Tags
-        ["ApplicationIdentifier"] = if (ApplicationIdentifier == null) null else ApplicationIdentifier
-        ["Description"] = if (Description == null) null else Description
         ["EnvironmentIdentifier"] = if (EnvironmentIdentifier == null) null else EnvironmentIdentifier
         ["LambdaEndpoint"] = if (LambdaEndpoint == null) null else LambdaEndpoint
+        ["VpcId"] = if (VpcId == null) null else VpcId
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Description"] = if (Description == null) null else Description
+        ["ApplicationIdentifier"] = if (ApplicationIdentifier == null) null else ApplicationIdentifier
+        ["EndpointType"] = if (EndpointType == null) null else EndpointType
+        ["Name"] = if (Name == null) null else Name
+        ["UrlEndpoint"] = if (UrlEndpoint == null) null else UrlEndpoint
     }
 
 }

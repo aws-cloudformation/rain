@@ -6,87 +6,33 @@ module aws.kinesisfirehose.deliverystream
 import "../../cloudformation.pkl"
 
 /// 
-open class DeliveryStreamDeserializer {
-    HiveJsonSerDe: (DeliveryStreamHiveJsonSerDe)?
-    OpenXJsonSerDe: (DeliveryStreamOpenXJsonSerDe)?
+open class DeliveryStreamDataFormatConversionConfiguration {
+    InputFormatConfiguration: (DeliveryStreamInputFormatConfiguration)?
+    OutputFormatConfiguration: (DeliveryStreamOutputFormatConfiguration)?
+    SchemaConfiguration: (DeliveryStreamSchemaConfiguration)?
+    Enabled: (Boolean|Mapping)?
 }
 
-/// 
-open class DeliveryStreamSplunkBufferingHints {
-    SizeInMBs: (Int|Mapping)?
-    IntervalInSeconds: (Int|Mapping)?
-}
+typealias AmazonopensearchserviceDestinationConfigurationIndexRotationPeriod = "NoRotation"|"OneHour"|"OneDay"|"OneWeek"|"OneMonth"
 
-typealias ExtendedS3DestinationConfigurationCompressionFormat = "UNCOMPRESSED"|"GZIP"|"ZIP"|"Snappy"|"HADOOP_SNAPPY"
-
-typealias ExtendedS3DestinationConfigurationS3BackupMode = "Disabled"|"Enabled"
+typealias AmazonopensearchserviceDestinationConfigurationS3BackupMode = "FailedDocumentsOnly"|"AllDocuments"
 
 /// 
-open class DeliveryStreamExtendedS3DestinationConfiguration {
-    CompressionFormat: (ExtendedS3DestinationConfigurationCompressionFormat|Mapping)?
-    CustomTimeZone: (String|Mapping)?
-    ErrorOutputPrefix: (String|Mapping)?
-    BucketARN: String(matches(Regex(#"arn:.*"#)))|Mapping
-    DataFormatConversionConfiguration: (DeliveryStreamDataFormatConversionConfiguration)?
-    DynamicPartitioningConfiguration: (DeliveryStreamDynamicPartitioningConfiguration)?
-    ProcessingConfiguration: (DeliveryStreamProcessingConfiguration)?
-    EncryptionConfiguration: (DeliveryStreamEncryptionConfiguration)?
-    Prefix: (String|Mapping)?
-    S3BackupConfiguration: (DeliveryStreamS3DestinationConfiguration)?
-    BufferingHints: (DeliveryStreamBufferingHints)?
+open class DeliveryStreamAmazonopensearchserviceDestinationConfiguration {
     CloudWatchLoggingOptions: (DeliveryStreamCloudWatchLoggingOptions)?
-    FileExtension: (String(matches(Regex(#"^$|\.[0-9a-z!\-_.*'()]+"#)))|Mapping)?
-    RoleARN: String(matches(Regex(#"arn:.*"#)))|Mapping
-    S3BackupMode: (ExtendedS3DestinationConfigurationS3BackupMode|Mapping)?
-}
-
-typealias AmazonOpenSearchServerlessDestinationConfigurationS3BackupMode = "FailedDocumentsOnly"|"AllDocuments"
-
-/// 
-open class DeliveryStreamAmazonOpenSearchServerlessDestinationConfiguration {
-    RetryOptions: (DeliveryStreamAmazonOpenSearchServerlessRetryOptions)?
-    S3BackupMode: (AmazonOpenSearchServerlessDestinationConfigurationS3BackupMode|Mapping)?
-    VpcConfiguration: (DeliveryStreamVpcConfiguration)?
-    CloudWatchLoggingOptions: (DeliveryStreamCloudWatchLoggingOptions)?
-    IndexName: String|Mapping
-    RoleARN: String(matches(Regex(#"arn:.*"#)))|Mapping
     S3Configuration: DeliveryStreamS3DestinationConfiguration
-    CollectionEndpoint: (String(matches(Regex(#"https:.*"#)))|Mapping)?
-    BufferingHints: (DeliveryStreamAmazonOpenSearchServerlessBufferingHints)?
+    DocumentIdOptions: (DeliveryStreamDocumentIdOptions)?
+    IndexRotationPeriod: (AmazonopensearchserviceDestinationConfigurationIndexRotationPeriod|Mapping)?
+    RoleARN: String(matches(Regex(#"arn:.*"#)))|Mapping
+    ClusterEndpoint: (String(matches(Regex(#"https:.*"#)))|Mapping)?
+    VpcConfiguration: (DeliveryStreamVpcConfiguration)?
+    BufferingHints: (DeliveryStreamAmazonopensearchserviceBufferingHints)?
+    IndexName: String|Mapping
     ProcessingConfiguration: (DeliveryStreamProcessingConfiguration)?
-}
-
-/// 
-open class DeliveryStreamElasticsearchBufferingHints {
-    IntervalInSeconds: (Int|Mapping)?
-    SizeInMBs: (Int|Mapping)?
-}
-
-/// 
-open class DeliveryStreamKMSEncryptionConfig {
-    AWSKMSKeyARN: String|Mapping
-}
-
-/// 
-open class DeliveryStreamMSKSourceConfiguration {
-    MSKClusterARN: String(matches(Regex(#"arn:.*"#)))|Mapping
-    TopicName: String(matches(Regex(#"[a-zA-Z0-9\._\-]+"#)))|Mapping
-    AuthenticationConfiguration: DeliveryStreamAuthenticationConfiguration
-}
-
-/// 
-open class DeliveryStreamSchemaConfiguration {
-    CatalogId: (String|Mapping)?
-    DatabaseName: (String|Mapping)?
-    Region: (String|Mapping)?
-    RoleARN: (String(matches(Regex(#"arn:.*"#)))|Mapping)?
-    TableName: (String|Mapping)?
-    VersionId: (String|Mapping)?
-}
-
-/// 
-open class DeliveryStreamSnowflakeRetryOptions {
-    DurationInSeconds: (Int|Mapping)?
+    S3BackupMode: (AmazonopensearchserviceDestinationConfigurationS3BackupMode|Mapping)?
+    DomainARN: (String(matches(Regex(#"arn:.*"#)))|Mapping)?
+    RetryOptions: (DeliveryStreamAmazonopensearchserviceRetryOptions)?
+    TypeName: (String|Mapping)?
 }
 
 /// 
@@ -97,166 +43,9 @@ open class DeliveryStreamCopyCommand {
 }
 
 /// 
-open class DeliveryStreamSnowflakeRoleConfiguration {
-    Enabled: (Boolean|Mapping)?
-    SnowflakeRole: (String|Mapping)?
-}
-
-/// 
-open class DeliveryStreamDataFormatConversionConfiguration {
-    Enabled: (Boolean|Mapping)?
-    InputFormatConfiguration: (DeliveryStreamInputFormatConfiguration)?
-    OutputFormatConfiguration: (DeliveryStreamOutputFormatConfiguration)?
-    SchemaConfiguration: (DeliveryStreamSchemaConfiguration)?
-}
-
-/// 
-open class DeliveryStreamHttpEndpointConfiguration {
-    Url: String|Mapping
-    AccessKey: (String|Mapping)?
-    Name: (String|Mapping)?
-}
-
-/// 
-open class DeliveryStreamRetryOptions {
-    DurationInSeconds: (Int|Mapping)?
-}
-
-/// 
-open class DeliveryStreamAmazonopensearchserviceBufferingHints {
+open class DeliveryStreamSplunkBufferingHints {
     IntervalInSeconds: (Int|Mapping)?
     SizeInMBs: (Int|Mapping)?
-}
-
-typealias SnowflakeDestinationConfigurationDataLoadingOption = "JSON_MAPPING"|"VARIANT_CONTENT_MAPPING"|"VARIANT_CONTENT_AND_METADATA_MAPPING"
-
-typealias SnowflakeDestinationConfigurationS3BackupMode = "FailedDataOnly"|"AllData"
-
-/// 
-open class DeliveryStreamSnowflakeDestinationConfiguration {
-    Table: String|Mapping
-    ContentColumnName: (String|Mapping)?
-    ProcessingConfiguration: (DeliveryStreamProcessingConfiguration)?
-    RoleARN: String(matches(Regex(#"arn:.*"#)))|Mapping
-    KeyPassphrase: (String|Mapping)?
-    Database: String|Mapping
-    User: String|Mapping
-    DataLoadingOption: (SnowflakeDestinationConfigurationDataLoadingOption|Mapping)?
-    MetaDataColumnName: (String|Mapping)?
-    SnowflakeVpcConfiguration: (DeliveryStreamSnowflakeVpcConfiguration)?
-    S3Configuration: DeliveryStreamS3DestinationConfiguration
-    AccountUrl: String(matches(Regex(#".+?\.snowflakecomputing\.com"#)))|Mapping
-    PrivateKey: String(matches(Regex(#"^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$"#)))|Mapping
-    S3BackupMode: (SnowflakeDestinationConfigurationS3BackupMode|Mapping)?
-    CloudWatchLoggingOptions: (DeliveryStreamCloudWatchLoggingOptions)?
-    RetryOptions: (DeliveryStreamSnowflakeRetryOptions)?
-    Schema: String|Mapping
-    SnowflakeRoleConfiguration: (DeliveryStreamSnowflakeRoleConfiguration)?
-}
-
-/// 
-open class DeliveryStreamAmazonOpenSearchServerlessRetryOptions {
-    DurationInSeconds: (Int|Mapping)?
-}
-
-typealias DeliveryStreamEncryptionConfigurationInputKeyType = "AWS_OWNED_CMK"|"CUSTOMER_MANAGED_CMK"
-
-/// 
-open class DeliveryStreamDeliveryStreamEncryptionConfigurationInput {
-    KeyARN: (String(matches(Regex(#"arn:.*"#)))|Mapping)?
-    KeyType: DeliveryStreamEncryptionConfigurationInputKeyType|Mapping
-}
-
-/// 
-open class DeliveryStreamBufferingHints {
-    IntervalInSeconds: (Int|Mapping)?
-    SizeInMBs: (Int|Mapping)?
-}
-
-/// 
-open class DeliveryStreamCloudWatchLoggingOptions {
-    Enabled: (Boolean|Mapping)?
-    LogGroupName: (String|Mapping)?
-    LogStreamName: (String|Mapping)?
-}
-
-typealias DeliveryStreamOpenXJsonSerDeColumnToJsonKeyMappings = Mapping<String, Any>
-
-/// 
-open class DeliveryStreamOpenXJsonSerDe {
-    ColumnToJsonKeyMappings: (DeliveryStreamOpenXJsonSerDeColumnToJsonKeyMappings)?
-    ConvertDotsInJsonKeysToUnderscores: (Boolean|Mapping)?
-    CaseInsensitive: (Boolean|Mapping)?
-}
-
-typealias S3DestinationConfigurationCompressionFormat = "UNCOMPRESSED"|"GZIP"|"ZIP"|"Snappy"|"HADOOP_SNAPPY"
-
-/// 
-open class DeliveryStreamS3DestinationConfiguration {
-    CloudWatchLoggingOptions: (DeliveryStreamCloudWatchLoggingOptions)?
-    CompressionFormat: (S3DestinationConfigurationCompressionFormat|Mapping)?
-    EncryptionConfiguration: (DeliveryStreamEncryptionConfiguration)?
-    ErrorOutputPrefix: (String|Mapping)?
-    Prefix: (String|Mapping)?
-    RoleARN: String(matches(Regex(#"arn:.*"#)))|Mapping
-    BucketARN: String(matches(Regex(#"arn:.*"#)))|Mapping
-    BufferingHints: (DeliveryStreamBufferingHints)?
-}
-
-/// 
-open class DeliveryStreamHiveJsonSerDe {
-    TimestampFormats: (Listing<String|Mapping>)?
-}
-
-typealias RedshiftDestinationConfigurationS3BackupMode = "Disabled"|"Enabled"
-
-/// 
-open class DeliveryStreamRedshiftDestinationConfiguration {
-    RoleARN: String(matches(Regex(#"arn:.*"#)))|Mapping
-    S3BackupMode: (RedshiftDestinationConfigurationS3BackupMode|Mapping)?
-    Username: String|Mapping
-    ClusterJDBCURL: String|Mapping
-    CopyCommand: DeliveryStreamCopyCommand
-    ProcessingConfiguration: (DeliveryStreamProcessingConfiguration)?
-    RetryOptions: (DeliveryStreamRedshiftRetryOptions)?
-    S3BackupConfiguration: (DeliveryStreamS3DestinationConfiguration)?
-    S3Configuration: DeliveryStreamS3DestinationConfiguration
-    CloudWatchLoggingOptions: (DeliveryStreamCloudWatchLoggingOptions)?
-    Password: String|Mapping
-}
-
-/// 
-open class DeliveryStreamAmazonOpenSearchServerlessBufferingHints {
-    IntervalInSeconds: (Int|Mapping)?
-    SizeInMBs: (Int|Mapping)?
-}
-
-/// 
-open class DeliveryStreamHttpEndpointCommonAttribute {
-    AttributeName: String|Mapping
-    AttributeValue: String|Mapping
-}
-
-/// 
-open class DeliveryStreamDynamicPartitioningConfiguration {
-    Enabled: (Boolean|Mapping)?
-    RetryOptions: (DeliveryStreamRetryOptions)?
-}
-
-/// 
-open class DeliveryStreamInputFormatConfiguration {
-    Deserializer: (DeliveryStreamDeserializer)?
-}
-
-/// 
-open class DeliveryStreamRedshiftRetryOptions {
-    DurationInSeconds: (Int|Mapping)?
-}
-
-/// 
-open class DeliveryStreamSerializer {
-    OrcSerDe: (DeliveryStreamOrcSerDe)?
-    ParquetSerDe: (DeliveryStreamParquetSerDe)?
 }
 
 /// 
@@ -266,73 +55,10 @@ open class DeliveryStreamVpcConfiguration {
     SecurityGroupIds: Listing<String|Mapping>
 }
 
-typealias AmazonopensearchserviceDestinationConfigurationIndexRotationPeriod = "NoRotation"|"OneHour"|"OneDay"|"OneWeek"|"OneMonth"
-
-typealias AmazonopensearchserviceDestinationConfigurationS3BackupMode = "FailedDocumentsOnly"|"AllDocuments"
-
 /// 
-open class DeliveryStreamAmazonopensearchserviceDestinationConfiguration {
-    DocumentIdOptions: (DeliveryStreamDocumentIdOptions)?
-    IndexName: String|Mapping
-    ClusterEndpoint: (String(matches(Regex(#"https:.*"#)))|Mapping)?
-    IndexRotationPeriod: (AmazonopensearchserviceDestinationConfigurationIndexRotationPeriod|Mapping)?
-    RetryOptions: (DeliveryStreamAmazonopensearchserviceRetryOptions)?
-    RoleARN: String(matches(Regex(#"arn:.*"#)))|Mapping
-    S3BackupMode: (AmazonopensearchserviceDestinationConfigurationS3BackupMode|Mapping)?
-    BufferingHints: (DeliveryStreamAmazonopensearchserviceBufferingHints)?
-    CloudWatchLoggingOptions: (DeliveryStreamCloudWatchLoggingOptions)?
-    ProcessingConfiguration: (DeliveryStreamProcessingConfiguration)?
-    TypeName: (String|Mapping)?
-    VpcConfiguration: (DeliveryStreamVpcConfiguration)?
-    DomainARN: (String(matches(Regex(#"arn:.*"#)))|Mapping)?
-    S3Configuration: DeliveryStreamS3DestinationConfiguration
-}
-
-typealias AuthenticationConfigurationConnectivity = "PUBLIC"|"PRIVATE"
-
-/// 
-open class DeliveryStreamAuthenticationConfiguration {
-    RoleARN: String(matches(Regex(#"arn:.*"#)))|Mapping
-    Connectivity: AuthenticationConfigurationConnectivity|Mapping
-}
-
-/// 
-open class DeliveryStreamElasticsearchRetryOptions {
-    DurationInSeconds: (Int|Mapping)?
-}
-
-/// 
-open class DeliveryStreamAmazonopensearchserviceRetryOptions {
-    DurationInSeconds: (Int|Mapping)?
-}
-
-/// 
-open class DeliveryStreamSplunkRetryOptions {
-    DurationInSeconds: (Int|Mapping)?
-}
-
-/// 
-open class DeliveryStreamKinesisStreamSourceConfiguration {
-    KinesisStreamARN: String(matches(Regex(#"arn:.*"#)))|Mapping
-    RoleARN: String(matches(Regex(#"arn:.*"#)))|Mapping
-}
-
-/// 
-open class DeliveryStreamSnowflakeVpcConfiguration {
-    PrivateLinkVpceId: String(matches(Regex(#"([a-zA-Z0-9\-\_]+\.){2,3}vpce\.[a-zA-Z0-9\-]*\.vpce-svc\-[a-zA-Z0-9\-]{17}$"#)))|Mapping
-}
-
-/// 
-open class DeliveryStreamProcessorParameter {
-    ParameterName: String|Mapping
-    ParameterValue: String|Mapping
-}
-
-typealias DocumentIdOptionsDefaultDocumentIdFormat = "FIREHOSE_DEFAULT"|"NO_DOCUMENT_ID"
-
-/// 
-open class DeliveryStreamDocumentIdOptions {
-    DefaultDocumentIdFormat: DocumentIdOptionsDefaultDocumentIdFormat|Mapping
+open class DeliveryStreamSerializer {
+    OrcSerDe: (DeliveryStreamOrcSerDe)?
+    ParquetSerDe: (DeliveryStreamParquetSerDe)?
 }
 
 typealias ProcessorType = "RecordDeAggregation"|"Decompression"|"CloudWatchLogProcessing"|"Lambda"|"MetadataExtraction"|"AppendDelimiterToRecord"
@@ -344,89 +70,13 @@ open class DeliveryStreamProcessor {
 }
 
 /// 
-open class DeliveryStreamTag {
-    Key: String(matches(Regex(#"^(?!aws:)[\p{L}\p{Z}\p{N}_.:\/=+\-@%]*$"#)))|Mapping
-    Value: (String(matches(Regex(#"^[\p{L}\p{Z}\p{N}_.:\/=+\-@%]*$"#)))|Mapping)?
+open class DeliveryStreamInputFormatConfiguration {
+    Deserializer: (DeliveryStreamDeserializer)?
 }
 
 /// 
-open class DeliveryStreamHttpEndpointDestinationConfiguration {
-    EndpointConfiguration: DeliveryStreamHttpEndpointConfiguration
-    BufferingHints: (DeliveryStreamBufferingHints)?
-    S3Configuration: DeliveryStreamS3DestinationConfiguration
-    RoleARN: (String(matches(Regex(#"arn:.*"#)))|Mapping)?
-    CloudWatchLoggingOptions: (DeliveryStreamCloudWatchLoggingOptions)?
-    ProcessingConfiguration: (DeliveryStreamProcessingConfiguration)?
-    RetryOptions: (DeliveryStreamRetryOptions)?
-    S3BackupMode: (String|Mapping)?
-    RequestConfiguration: (DeliveryStreamHttpEndpointRequestConfiguration)?
-}
-
-typealias ElasticsearchDestinationConfigurationS3BackupMode = "FailedDocumentsOnly"|"AllDocuments"
-
-typealias ElasticsearchDestinationConfigurationIndexRotationPeriod = "NoRotation"|"OneHour"|"OneDay"|"OneWeek"|"OneMonth"
-
-/// 
-open class DeliveryStreamElasticsearchDestinationConfiguration {
-    DomainARN: (String(matches(Regex(#"arn:.*"#)))|Mapping)?
-    IndexName: String|Mapping
-    RetryOptions: (DeliveryStreamElasticsearchRetryOptions)?
-    BufferingHints: (DeliveryStreamElasticsearchBufferingHints)?
-    CloudWatchLoggingOptions: (DeliveryStreamCloudWatchLoggingOptions)?
-    S3BackupMode: (ElasticsearchDestinationConfigurationS3BackupMode|Mapping)?
-    VpcConfiguration: (DeliveryStreamVpcConfiguration)?
-    RoleARN: String(matches(Regex(#"arn:.*"#)))|Mapping
-    ClusterEndpoint: (String(matches(Regex(#"https:.*"#)))|Mapping)?
-    TypeName: (String|Mapping)?
-    DocumentIdOptions: (DeliveryStreamDocumentIdOptions)?
-    IndexRotationPeriod: (ElasticsearchDestinationConfigurationIndexRotationPeriod|Mapping)?
-    ProcessingConfiguration: (DeliveryStreamProcessingConfiguration)?
-    S3Configuration: DeliveryStreamS3DestinationConfiguration
-}
-
-typealias HttpEndpointRequestConfigurationContentEncoding = "NONE"|"GZIP"
-
-/// 
-open class DeliveryStreamHttpEndpointRequestConfiguration {
-    ContentEncoding: (HttpEndpointRequestConfigurationContentEncoding|Mapping)?
-    CommonAttributes: (Listing<DeliveryStreamHttpEndpointCommonAttribute>)?
-}
-
-typealias SplunkDestinationConfigurationHECEndpointType = "Raw"|"Event"
-
-/// 
-open class DeliveryStreamSplunkDestinationConfiguration {
-    HECEndpoint: String|Mapping
-    BufferingHints: (DeliveryStreamSplunkBufferingHints)?
-    ProcessingConfiguration: (DeliveryStreamProcessingConfiguration)?
-    RetryOptions: (DeliveryStreamSplunkRetryOptions)?
-    S3BackupMode: (String|Mapping)?
-    S3Configuration: DeliveryStreamS3DestinationConfiguration
-    CloudWatchLoggingOptions: (DeliveryStreamCloudWatchLoggingOptions)?
-    HECAcknowledgmentTimeoutInSeconds: (Int|Mapping)?
-    HECEndpointType: SplunkDestinationConfigurationHECEndpointType|Mapping
-    HECToken: String|Mapping
-}
-
-/// 
-open class DeliveryStreamProcessingConfiguration {
-    Enabled: (Boolean|Mapping)?
-    Processors: (Listing<DeliveryStreamProcessor>)?
-}
-
-/// 
-open class DeliveryStreamOutputFormatConfiguration {
-    Serializer: (DeliveryStreamSerializer)?
-}
-
-/// 
-open class DeliveryStreamParquetSerDe {
-    BlockSizeBytes: (Int|Mapping)?
-    Compression: (String|Mapping)?
-    EnableDictionaryCompression: (Boolean|Mapping)?
-    MaxPaddingBytes: (Int|Mapping)?
-    PageSizeBytes: (Int|Mapping)?
-    WriterVersion: (String|Mapping)?
+open class DeliveryStreamKMSEncryptionConfig {
+    AWSKMSKeyARN: String|Mapping
 }
 
 typealias EncryptionConfigurationNoEncryptionConfig = "NoEncryption"
@@ -438,17 +88,367 @@ open class DeliveryStreamEncryptionConfiguration {
 }
 
 /// 
+open class DeliveryStreamElasticsearchBufferingHints {
+    IntervalInSeconds: (Int|Mapping)?
+    SizeInMBs: (Int|Mapping)?
+}
+
+/// 
+open class DeliveryStreamRetryOptions {
+    DurationInSeconds: (Int|Mapping)?
+}
+
+/// 
+open class DeliveryStreamProcessorParameter {
+    ParameterName: String|Mapping
+    ParameterValue: String|Mapping
+}
+
+/// 
+open class DeliveryStreamAmazonOpenSearchServerlessRetryOptions {
+    DurationInSeconds: (Int|Mapping)?
+}
+
+typealias S3DestinationConfigurationCompressionFormat = "UNCOMPRESSED"|"GZIP"|"ZIP"|"Snappy"|"HADOOP_SNAPPY"
+
+/// 
+open class DeliveryStreamS3DestinationConfiguration {
+    BucketARN: String(matches(Regex(#"arn:.*"#)))|Mapping
+    BufferingHints: (DeliveryStreamBufferingHints)?
+    CloudWatchLoggingOptions: (DeliveryStreamCloudWatchLoggingOptions)?
+    CompressionFormat: (S3DestinationConfigurationCompressionFormat|Mapping)?
+    EncryptionConfiguration: (DeliveryStreamEncryptionConfiguration)?
+    ErrorOutputPrefix: (String|Mapping)?
+    Prefix: (String|Mapping)?
+    RoleARN: String(matches(Regex(#"arn:.*"#)))|Mapping
+}
+
+/// 
+open class DeliveryStreamHttpEndpointConfiguration {
+    AccessKey: (String|Mapping)?
+    Name: (String|Mapping)?
+    Url: String|Mapping
+}
+
+/// 
+open class DeliveryStreamHiveJsonSerDe {
+    TimestampFormats: (Listing<String|Mapping>)?
+}
+
+/// 
+open class DeliveryStreamHttpEndpointDestinationConfiguration {
+    RoleARN: (String(matches(Regex(#"arn:.*"#)))|Mapping)?
+    EndpointConfiguration: DeliveryStreamHttpEndpointConfiguration
+    RetryOptions: (DeliveryStreamRetryOptions)?
+    S3Configuration: DeliveryStreamS3DestinationConfiguration
+    RequestConfiguration: (DeliveryStreamHttpEndpointRequestConfiguration)?
+    BufferingHints: (DeliveryStreamBufferingHints)?
+    CloudWatchLoggingOptions: (DeliveryStreamCloudWatchLoggingOptions)?
+    ProcessingConfiguration: (DeliveryStreamProcessingConfiguration)?
+    S3BackupMode: (String|Mapping)?
+}
+
+/// 
+open class DeliveryStreamMSKSourceConfiguration {
+    MSKClusterARN: String(matches(Regex(#"arn:.*"#)))|Mapping
+    TopicName: String(matches(Regex(#"[a-zA-Z0-9\._\-]+"#)))|Mapping
+    AuthenticationConfiguration: DeliveryStreamAuthenticationConfiguration
+}
+
+/// 
 open class DeliveryStreamOrcSerDe {
-    FormatVersion: (String|Mapping)?
-    RowIndexStride: (Int|Mapping)?
-    StripeSizeBytes: (Int|Mapping)?
     BlockSizeBytes: (Int|Mapping)?
     BloomFilterColumns: (Listing<String|Mapping>)?
-    DictionaryKeyThreshold: (Number|Mapping)?
-    EnablePadding: (Boolean|Mapping)?
-    PaddingTolerance: (Number|Mapping)?
     BloomFilterFalsePositiveProbability: (Number|Mapping)?
     Compression: (String|Mapping)?
+    DictionaryKeyThreshold: (Number|Mapping)?
+    RowIndexStride: (Int|Mapping)?
+    EnablePadding: (Boolean|Mapping)?
+    FormatVersion: (String|Mapping)?
+    PaddingTolerance: (Number|Mapping)?
+    StripeSizeBytes: (Int|Mapping)?
+}
+
+typealias HttpEndpointRequestConfigurationContentEncoding = "NONE"|"GZIP"
+
+/// 
+open class DeliveryStreamHttpEndpointRequestConfiguration {
+    CommonAttributes: (Listing<DeliveryStreamHttpEndpointCommonAttribute>)?
+    ContentEncoding: (HttpEndpointRequestConfigurationContentEncoding|Mapping)?
+}
+
+/// 
+open class DeliveryStreamParquetSerDe {
+    Compression: (String|Mapping)?
+    EnableDictionaryCompression: (Boolean|Mapping)?
+    MaxPaddingBytes: (Int|Mapping)?
+    PageSizeBytes: (Int|Mapping)?
+    WriterVersion: (String|Mapping)?
+    BlockSizeBytes: (Int|Mapping)?
+}
+
+/// 
+open class DeliveryStreamSchemaConfiguration {
+    Region: (String|Mapping)?
+    RoleARN: (String(matches(Regex(#"arn:.*"#)))|Mapping)?
+    TableName: (String|Mapping)?
+    VersionId: (String|Mapping)?
+    CatalogId: (String|Mapping)?
+    DatabaseName: (String|Mapping)?
+}
+
+typealias SplunkDestinationConfigurationHECEndpointType = "Raw"|"Event"
+
+/// 
+open class DeliveryStreamSplunkDestinationConfiguration {
+    HECEndpoint: String|Mapping
+    ProcessingConfiguration: (DeliveryStreamProcessingConfiguration)?
+    S3Configuration: DeliveryStreamS3DestinationConfiguration
+    BufferingHints: (DeliveryStreamSplunkBufferingHints)?
+    CloudWatchLoggingOptions: (DeliveryStreamCloudWatchLoggingOptions)?
+    HECAcknowledgmentTimeoutInSeconds: (Int|Mapping)?
+    HECEndpointType: SplunkDestinationConfigurationHECEndpointType|Mapping
+    HECToken: String|Mapping
+    RetryOptions: (DeliveryStreamSplunkRetryOptions)?
+    S3BackupMode: (String|Mapping)?
+}
+
+/// 
+open class DeliveryStreamTag {
+    Key: String(matches(Regex(#"^(?!aws:)[\p{L}\p{Z}\p{N}_.:\/=+\-@%]*$"#)))|Mapping
+    Value: (String(matches(Regex(#"^[\p{L}\p{Z}\p{N}_.:\/=+\-@%]*$"#)))|Mapping)?
+}
+
+/// 
+open class DeliveryStreamElasticsearchRetryOptions {
+    DurationInSeconds: (Int|Mapping)?
+}
+
+/// 
+open class DeliveryStreamHttpEndpointCommonAttribute {
+    AttributeName: String|Mapping
+    AttributeValue: String|Mapping
+}
+
+/// 
+open class DeliveryStreamProcessingConfiguration {
+    Enabled: (Boolean|Mapping)?
+    Processors: (Listing<DeliveryStreamProcessor>)?
+}
+
+typealias DocumentIdOptionsDefaultDocumentIdFormat = "FIREHOSE_DEFAULT"|"NO_DOCUMENT_ID"
+
+/// 
+open class DeliveryStreamDocumentIdOptions {
+    DefaultDocumentIdFormat: DocumentIdOptionsDefaultDocumentIdFormat|Mapping
+}
+
+/// 
+open class DeliveryStreamSnowflakeRetryOptions {
+    DurationInSeconds: (Int|Mapping)?
+}
+
+typealias DeliveryStreamOpenXJsonSerDeColumnToJsonKeyMappings = Mapping<String, Any>
+
+/// 
+open class DeliveryStreamOpenXJsonSerDe {
+    CaseInsensitive: (Boolean|Mapping)?
+    ColumnToJsonKeyMappings: (DeliveryStreamOpenXJsonSerDeColumnToJsonKeyMappings)?
+    ConvertDotsInJsonKeysToUnderscores: (Boolean|Mapping)?
+}
+
+/// 
+open class DeliveryStreamSplunkRetryOptions {
+    DurationInSeconds: (Int|Mapping)?
+}
+
+/// 
+open class DeliveryStreamAmazonOpenSearchServerlessBufferingHints {
+    IntervalInSeconds: (Int|Mapping)?
+    SizeInMBs: (Int|Mapping)?
+}
+
+typealias ElasticsearchDestinationConfigurationIndexRotationPeriod = "NoRotation"|"OneHour"|"OneDay"|"OneWeek"|"OneMonth"
+
+typealias ElasticsearchDestinationConfigurationS3BackupMode = "FailedDocumentsOnly"|"AllDocuments"
+
+/// 
+open class DeliveryStreamElasticsearchDestinationConfiguration {
+    CloudWatchLoggingOptions: (DeliveryStreamCloudWatchLoggingOptions)?
+    VpcConfiguration: (DeliveryStreamVpcConfiguration)?
+    TypeName: (String|Mapping)?
+    IndexRotationPeriod: (ElasticsearchDestinationConfigurationIndexRotationPeriod|Mapping)?
+    RetryOptions: (DeliveryStreamElasticsearchRetryOptions)?
+    S3BackupMode: (ElasticsearchDestinationConfigurationS3BackupMode|Mapping)?
+    DocumentIdOptions: (DeliveryStreamDocumentIdOptions)?
+    DomainARN: (String(matches(Regex(#"arn:.*"#)))|Mapping)?
+    ProcessingConfiguration: (DeliveryStreamProcessingConfiguration)?
+    ClusterEndpoint: (String(matches(Regex(#"https:.*"#)))|Mapping)?
+    S3Configuration: DeliveryStreamS3DestinationConfiguration
+    BufferingHints: (DeliveryStreamElasticsearchBufferingHints)?
+    IndexName: String|Mapping
+    RoleARN: String(matches(Regex(#"arn:.*"#)))|Mapping
+}
+
+/// 
+open class DeliveryStreamSnowflakeRoleConfiguration {
+    Enabled: (Boolean|Mapping)?
+    SnowflakeRole: (String|Mapping)?
+}
+
+/// 
+open class DeliveryStreamCloudWatchLoggingOptions {
+    Enabled: (Boolean|Mapping)?
+    LogGroupName: (String|Mapping)?
+    LogStreamName: (String|Mapping)?
+}
+
+/// 
+open class DeliveryStreamBufferingHints {
+    IntervalInSeconds: (Int|Mapping)?
+    SizeInMBs: (Int|Mapping)?
+}
+
+/// 
+open class DeliveryStreamDynamicPartitioningConfiguration {
+    RetryOptions: (DeliveryStreamRetryOptions)?
+    Enabled: (Boolean|Mapping)?
+}
+
+/// 
+open class DeliveryStreamDeserializer {
+    OpenXJsonSerDe: (DeliveryStreamOpenXJsonSerDe)?
+    HiveJsonSerDe: (DeliveryStreamHiveJsonSerDe)?
+}
+
+/// 
+open class DeliveryStreamSnowflakeVpcConfiguration {
+    PrivateLinkVpceId: String(matches(Regex(#"([a-zA-Z0-9\-\_]+\.){2,3}vpce\.[a-zA-Z0-9\-]*\.vpce-svc\-[a-zA-Z0-9\-]{17}$"#)))|Mapping
+}
+
+typealias SnowflakeDestinationConfigurationDataLoadingOption = "JSON_MAPPING"|"VARIANT_CONTENT_MAPPING"|"VARIANT_CONTENT_AND_METADATA_MAPPING"
+
+typealias SnowflakeDestinationConfigurationS3BackupMode = "FailedDataOnly"|"AllData"
+
+/// 
+open class DeliveryStreamSnowflakeDestinationConfiguration {
+    ContentColumnName: (String|Mapping)?
+    SnowflakeVpcConfiguration: (DeliveryStreamSnowflakeVpcConfiguration)?
+    ProcessingConfiguration: (DeliveryStreamProcessingConfiguration)?
+    RetryOptions: (DeliveryStreamSnowflakeRetryOptions)?
+    S3Configuration: DeliveryStreamS3DestinationConfiguration
+    KeyPassphrase: (String|Mapping)?
+    Schema: String|Mapping
+    Table: String|Mapping
+    DataLoadingOption: (SnowflakeDestinationConfigurationDataLoadingOption|Mapping)?
+    CloudWatchLoggingOptions: (DeliveryStreamCloudWatchLoggingOptions)?
+    AccountUrl: String(matches(Regex(#".+?\.snowflakecomputing\.com"#)))|Mapping
+    PrivateKey: String(matches(Regex(#"^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$"#)))|Mapping
+    User: String|Mapping
+    Database: String|Mapping
+    SnowflakeRoleConfiguration: (DeliveryStreamSnowflakeRoleConfiguration)?
+    MetaDataColumnName: (String|Mapping)?
+    RoleARN: String(matches(Regex(#"arn:.*"#)))|Mapping
+    S3BackupMode: (SnowflakeDestinationConfigurationS3BackupMode|Mapping)?
+}
+
+/// 
+open class DeliveryStreamRedshiftRetryOptions {
+    DurationInSeconds: (Int|Mapping)?
+}
+
+typealias RedshiftDestinationConfigurationS3BackupMode = "Disabled"|"Enabled"
+
+/// 
+open class DeliveryStreamRedshiftDestinationConfiguration {
+    Username: String|Mapping
+    Password: String|Mapping
+    ProcessingConfiguration: (DeliveryStreamProcessingConfiguration)?
+    RetryOptions: (DeliveryStreamRedshiftRetryOptions)?
+    S3BackupConfiguration: (DeliveryStreamS3DestinationConfiguration)?
+    S3BackupMode: (RedshiftDestinationConfigurationS3BackupMode|Mapping)?
+    CloudWatchLoggingOptions: (DeliveryStreamCloudWatchLoggingOptions)?
+    ClusterJDBCURL: String|Mapping
+    CopyCommand: DeliveryStreamCopyCommand
+    RoleARN: String(matches(Regex(#"arn:.*"#)))|Mapping
+    S3Configuration: DeliveryStreamS3DestinationConfiguration
+}
+
+/// 
+open class DeliveryStreamAmazonopensearchserviceBufferingHints {
+    IntervalInSeconds: (Int|Mapping)?
+    SizeInMBs: (Int|Mapping)?
+}
+
+/// 
+open class DeliveryStreamAmazonopensearchserviceRetryOptions {
+    DurationInSeconds: (Int|Mapping)?
+}
+
+typealias AmazonOpenSearchServerlessDestinationConfigurationS3BackupMode = "FailedDocumentsOnly"|"AllDocuments"
+
+/// 
+open class DeliveryStreamAmazonOpenSearchServerlessDestinationConfiguration {
+    CloudWatchLoggingOptions: (DeliveryStreamCloudWatchLoggingOptions)?
+    RetryOptions: (DeliveryStreamAmazonOpenSearchServerlessRetryOptions)?
+    S3BackupMode: (AmazonOpenSearchServerlessDestinationConfigurationS3BackupMode|Mapping)?
+    VpcConfiguration: (DeliveryStreamVpcConfiguration)?
+    BufferingHints: (DeliveryStreamAmazonOpenSearchServerlessBufferingHints)?
+    IndexName: String|Mapping
+    ProcessingConfiguration: (DeliveryStreamProcessingConfiguration)?
+    RoleARN: String(matches(Regex(#"arn:.*"#)))|Mapping
+    S3Configuration: DeliveryStreamS3DestinationConfiguration
+    CollectionEndpoint: (String(matches(Regex(#"https:.*"#)))|Mapping)?
+}
+
+typealias AuthenticationConfigurationConnectivity = "PUBLIC"|"PRIVATE"
+
+/// 
+open class DeliveryStreamAuthenticationConfiguration {
+    RoleARN: String(matches(Regex(#"arn:.*"#)))|Mapping
+    Connectivity: AuthenticationConfigurationConnectivity|Mapping
+}
+
+/// 
+open class DeliveryStreamOutputFormatConfiguration {
+    Serializer: (DeliveryStreamSerializer)?
+}
+
+typealias DeliveryStreamEncryptionConfigurationInputKeyType = "AWS_OWNED_CMK"|"CUSTOMER_MANAGED_CMK"
+
+/// 
+open class DeliveryStreamDeliveryStreamEncryptionConfigurationInput {
+    KeyARN: (String(matches(Regex(#"arn:.*"#)))|Mapping)?
+    KeyType: DeliveryStreamEncryptionConfigurationInputKeyType|Mapping
+}
+
+/// 
+open class DeliveryStreamKinesisStreamSourceConfiguration {
+    KinesisStreamARN: String(matches(Regex(#"arn:.*"#)))|Mapping
+    RoleARN: String(matches(Regex(#"arn:.*"#)))|Mapping
+}
+
+typealias ExtendedS3DestinationConfigurationCompressionFormat = "UNCOMPRESSED"|"GZIP"|"ZIP"|"Snappy"|"HADOOP_SNAPPY"
+
+typealias ExtendedS3DestinationConfigurationS3BackupMode = "Disabled"|"Enabled"
+
+/// 
+open class DeliveryStreamExtendedS3DestinationConfiguration {
+    DynamicPartitioningConfiguration: (DeliveryStreamDynamicPartitioningConfiguration)?
+    ErrorOutputPrefix: (String|Mapping)?
+    FileExtension: (String(matches(Regex(#"^$|\.[0-9a-z!\-_.*'()]+"#)))|Mapping)?
+    ProcessingConfiguration: (DeliveryStreamProcessingConfiguration)?
+    BufferingHints: (DeliveryStreamBufferingHints)?
+    CustomTimeZone: (String|Mapping)?
+    DataFormatConversionConfiguration: (DeliveryStreamDataFormatConversionConfiguration)?
+    BucketARN: String(matches(Regex(#"arn:.*"#)))|Mapping
+    CloudWatchLoggingOptions: (DeliveryStreamCloudWatchLoggingOptions)?
+    S3BackupConfiguration: (DeliveryStreamS3DestinationConfiguration)?
+    EncryptionConfiguration: (DeliveryStreamEncryptionConfiguration)?
+    RoleARN: String(matches(Regex(#"arn:.*"#)))|Mapping
+    CompressionFormat: (ExtendedS3DestinationConfigurationCompressionFormat|Mapping)?
+    Prefix: (String|Mapping)?
+    S3BackupMode: (ExtendedS3DestinationConfigurationS3BackupMode|Mapping)?
 }
 
 /// Resource Type definition for AWS::KinesisFirehose::DeliveryStream
@@ -458,40 +458,10 @@ open class DeliveryStream extends cloudformation.Resource {
 
 
     /// 
-    hidden AmazonOpenSearchServerlessDestinationConfiguration: (DeliveryStreamAmazonOpenSearchServerlessDestinationConfiguration)?
-
-    /// 
-    hidden MSKSourceConfiguration: (DeliveryStreamMSKSourceConfiguration)?
-
-    /// 
-    hidden S3DestinationConfiguration: (DeliveryStreamS3DestinationConfiguration)?
-
-    /// 
-    hidden SplunkDestinationConfiguration: (DeliveryStreamSplunkDestinationConfiguration)?
-
-    /// 
-    hidden Tags: (Listing<DeliveryStreamTag>)?
-
-    /// 
-    hidden DeliveryStreamName: (String(matches(Regex(#"[a-zA-Z0-9._-]+"#)))|Mapping)?
-
-    /// 
-    hidden ElasticsearchDestinationConfiguration: (DeliveryStreamElasticsearchDestinationConfiguration)?
-
-    /// 
-    hidden AmazonopensearchserviceDestinationConfiguration: (DeliveryStreamAmazonopensearchserviceDestinationConfiguration)?
-
-    /// 
     hidden DeliveryStreamType: (DeliveryStreamDeliveryStreamType|Mapping)?
 
     /// 
-    hidden KinesisStreamSourceConfiguration: (DeliveryStreamKinesisStreamSourceConfiguration)?
-
-    /// 
-    hidden SnowflakeDestinationConfiguration: (DeliveryStreamSnowflakeDestinationConfiguration)?
-
-    /// 
-    hidden DeliveryStreamEncryptionConfigurationInput: (DeliveryStreamDeliveryStreamEncryptionConfigurationInput)?
+    hidden AmazonopensearchserviceDestinationConfiguration: (DeliveryStreamAmazonopensearchserviceDestinationConfiguration)?
 
     /// 
     hidden ExtendedS3DestinationConfiguration: (DeliveryStreamExtendedS3DestinationConfiguration)?
@@ -502,22 +472,52 @@ open class DeliveryStream extends cloudformation.Resource {
     /// 
     hidden HttpEndpointDestinationConfiguration: (DeliveryStreamHttpEndpointDestinationConfiguration)?
 
+    /// 
+    hidden AmazonOpenSearchServerlessDestinationConfiguration: (DeliveryStreamAmazonOpenSearchServerlessDestinationConfiguration)?
+
+    /// 
+    hidden SnowflakeDestinationConfiguration: (DeliveryStreamSnowflakeDestinationConfiguration)?
+
+    /// 
+    hidden DeliveryStreamName: (String(matches(Regex(#"[a-zA-Z0-9._-]+"#)))|Mapping)?
+
+    /// 
+    hidden ElasticsearchDestinationConfiguration: (DeliveryStreamElasticsearchDestinationConfiguration)?
+
+    /// 
+    hidden KinesisStreamSourceConfiguration: (DeliveryStreamKinesisStreamSourceConfiguration)?
+
+    /// 
+    hidden SplunkDestinationConfiguration: (DeliveryStreamSplunkDestinationConfiguration)?
+
+    /// 
+    hidden DeliveryStreamEncryptionConfigurationInput: (DeliveryStreamDeliveryStreamEncryptionConfigurationInput)?
+
+    /// 
+    hidden MSKSourceConfiguration: (DeliveryStreamMSKSourceConfiguration)?
+
+    /// 
+    hidden S3DestinationConfiguration: (DeliveryStreamS3DestinationConfiguration)?
+
+    /// 
+    hidden Tags: (Listing<DeliveryStreamTag>)?
+
     Properties {
-        ["AmazonOpenSearchServerlessDestinationConfiguration"] = if (AmazonOpenSearchServerlessDestinationConfiguration == null) null else AmazonOpenSearchServerlessDestinationConfiguration
-        ["MSKSourceConfiguration"] = if (MSKSourceConfiguration == null) null else MSKSourceConfiguration
-        ["S3DestinationConfiguration"] = if (S3DestinationConfiguration == null) null else S3DestinationConfiguration
-        ["SplunkDestinationConfiguration"] = if (SplunkDestinationConfiguration == null) null else SplunkDestinationConfiguration
-        ["Tags"] = if (Tags == null) null else Tags
-        ["DeliveryStreamName"] = if (DeliveryStreamName == null) null else DeliveryStreamName
-        ["ElasticsearchDestinationConfiguration"] = if (ElasticsearchDestinationConfiguration == null) null else ElasticsearchDestinationConfiguration
-        ["AmazonopensearchserviceDestinationConfiguration"] = if (AmazonopensearchserviceDestinationConfiguration == null) null else AmazonopensearchserviceDestinationConfiguration
         ["DeliveryStreamType"] = if (DeliveryStreamType == null) null else DeliveryStreamType
-        ["KinesisStreamSourceConfiguration"] = if (KinesisStreamSourceConfiguration == null) null else KinesisStreamSourceConfiguration
-        ["SnowflakeDestinationConfiguration"] = if (SnowflakeDestinationConfiguration == null) null else SnowflakeDestinationConfiguration
-        ["DeliveryStreamEncryptionConfigurationInput"] = if (DeliveryStreamEncryptionConfigurationInput == null) null else DeliveryStreamEncryptionConfigurationInput
+        ["AmazonopensearchserviceDestinationConfiguration"] = if (AmazonopensearchserviceDestinationConfiguration == null) null else AmazonopensearchserviceDestinationConfiguration
         ["ExtendedS3DestinationConfiguration"] = if (ExtendedS3DestinationConfiguration == null) null else ExtendedS3DestinationConfiguration
         ["RedshiftDestinationConfiguration"] = if (RedshiftDestinationConfiguration == null) null else RedshiftDestinationConfiguration
         ["HttpEndpointDestinationConfiguration"] = if (HttpEndpointDestinationConfiguration == null) null else HttpEndpointDestinationConfiguration
+        ["AmazonOpenSearchServerlessDestinationConfiguration"] = if (AmazonOpenSearchServerlessDestinationConfiguration == null) null else AmazonOpenSearchServerlessDestinationConfiguration
+        ["SnowflakeDestinationConfiguration"] = if (SnowflakeDestinationConfiguration == null) null else SnowflakeDestinationConfiguration
+        ["DeliveryStreamName"] = if (DeliveryStreamName == null) null else DeliveryStreamName
+        ["ElasticsearchDestinationConfiguration"] = if (ElasticsearchDestinationConfiguration == null) null else ElasticsearchDestinationConfiguration
+        ["KinesisStreamSourceConfiguration"] = if (KinesisStreamSourceConfiguration == null) null else KinesisStreamSourceConfiguration
+        ["SplunkDestinationConfiguration"] = if (SplunkDestinationConfiguration == null) null else SplunkDestinationConfiguration
+        ["DeliveryStreamEncryptionConfigurationInput"] = if (DeliveryStreamEncryptionConfigurationInput == null) null else DeliveryStreamEncryptionConfigurationInput
+        ["MSKSourceConfiguration"] = if (MSKSourceConfiguration == null) null else MSKSourceConfiguration
+        ["S3DestinationConfiguration"] = if (S3DestinationConfiguration == null) null else S3DestinationConfiguration
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

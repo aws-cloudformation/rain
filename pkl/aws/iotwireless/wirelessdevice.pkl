@@ -6,11 +6,21 @@ module aws.iotwireless.wirelessdevice
 import "../../cloudformation.pkl"
 
 /// 
-open class WirelessDeviceSessionKeysAbpV11 {
-    FNwkSIntKey: String(matches(Regex(#"[a-fA-F0-9]{32}"#)))|Mapping
-    SNwkSIntKey: String(matches(Regex(#"[a-fA-F0-9]{32}"#)))|Mapping
-    NwkSEncKey: String(matches(Regex(#"[a-fA-F0-9]{32}"#)))|Mapping
+open class WirelessDeviceTag {
+    Key: (String|Mapping)?
+    Value: (String|Mapping)?
+}
+
+/// 
+open class WirelessDeviceSessionKeysAbpV10x {
+    NwkSKey: String(matches(Regex(#"[a-fA-F0-9]{32}"#)))|Mapping
     AppSKey: String(matches(Regex(#"[a-fA-F0-9]{32}"#)))|Mapping
+}
+
+/// 
+open class WirelessDeviceAbpV10x {
+    DevAddr: String(matches(Regex(#"[a-fA-F0-9]{8}"#)))|Mapping
+    SessionKeys: WirelessDeviceSessionKeysAbpV10x
 }
 
 typealias ApplicationType = "SemtechGeolocation"
@@ -23,9 +33,8 @@ open class WirelessDeviceApplication {
 }
 
 /// 
-open class WirelessDeviceAbpV10x {
-    DevAddr: String(matches(Regex(#"[a-fA-F0-9]{8}"#)))|Mapping
-    SessionKeys: WirelessDeviceSessionKeysAbpV10x
+open class WirelessDeviceFPorts {
+    Applications: (Listing<WirelessDeviceApplication>)?
 }
 
 /// 
@@ -41,26 +50,23 @@ open class WirelessDeviceLoRaWANDevice {
 }
 
 /// 
-open class WirelessDeviceTag {
-    Key: (String|Mapping)?
-    Value: (String|Mapping)?
-}
-
-/// 
-open class WirelessDeviceSessionKeysAbpV10x {
-    NwkSKey: String(matches(Regex(#"[a-fA-F0-9]{32}"#)))|Mapping
-    AppSKey: String(matches(Regex(#"[a-fA-F0-9]{32}"#)))|Mapping
-}
-
-/// 
-open class WirelessDeviceFPorts {
-    Applications: (Listing<WirelessDeviceApplication>)?
-}
-
-/// 
 open class WirelessDeviceOtaaV10x {
     AppKey: String(matches(Regex(#"[a-fA-F0-9]{32}"#)))|Mapping
     AppEui: String(matches(Regex(#"[a-fA-F0-9]{16}"#)))|Mapping
+}
+
+/// 
+open class WirelessDeviceSessionKeysAbpV11 {
+    SNwkSIntKey: String(matches(Regex(#"[a-fA-F0-9]{32}"#)))|Mapping
+    NwkSEncKey: String(matches(Regex(#"[a-fA-F0-9]{32}"#)))|Mapping
+    AppSKey: String(matches(Regex(#"[a-fA-F0-9]{32}"#)))|Mapping
+    FNwkSIntKey: String(matches(Regex(#"[a-fA-F0-9]{32}"#)))|Mapping
+}
+
+/// 
+open class WirelessDeviceAbpV11 {
+    DevAddr: String(matches(Regex(#"[a-fA-F0-9]{8}"#)))|Mapping
+    SessionKeys: WirelessDeviceSessionKeysAbpV11
 }
 
 /// 
@@ -70,29 +76,17 @@ open class WirelessDeviceOtaaV11 {
     JoinEui: String(matches(Regex(#"[a-fA-F0-9]{16}"#)))|Mapping
 }
 
-/// 
-open class WirelessDeviceAbpV11 {
-    DevAddr: String(matches(Regex(#"[a-fA-F0-9]{8}"#)))|Mapping
-    SessionKeys: WirelessDeviceSessionKeysAbpV11
-}
-
 /// Create and manage wireless gateways, including LoRa gateways.
 open class WirelessDevice extends cloudformation.Resource {
 
     Type = "AWS::IoTWireless::WirelessDevice"
 
 
-    /// Thing arn. Passed into update to associate Thing with Wireless device.
-    hidden ThingArn: (String|Mapping)?
-
     /// The date and time when the most recent uplink was received.
     hidden LastUplinkReceivedAt: (String|Mapping)?
 
-    /// FPort values for the GNSS, stream, and ClockSync functions of the positioning information.
-    hidden Positioning: (WirelessDevicePositioning|Mapping)?
-
-    /// Wireless device description
-    hidden Description: (String|Mapping)?
+    /// Wireless device name
+    hidden Name: (String|Mapping)?
 
     /// Wireless device destination name
     hidden DestinationName: String|Mapping
@@ -100,25 +94,31 @@ open class WirelessDevice extends cloudformation.Resource {
     /// The combination of Package, Station and Model which represents the version of the LoRaWAN Wireless Device.
     hidden LoRaWAN: (WirelessDeviceLoRaWANDevice)?
 
-    /// A list of key-value pairs that contain metadata for the device. Currently not supported, will not create if tags are passed.
-    hidden Tags: (Listing<WirelessDeviceTag>)?
+    /// Thing arn. Passed into update to associate Thing with Wireless device.
+    hidden ThingArn: (String|Mapping)?
+
+    /// FPort values for the GNSS, stream, and ClockSync functions of the positioning information.
+    hidden Positioning: (WirelessDevicePositioning|Mapping)?
 
     /// Wireless device type, currently only Sidewalk and LoRa
     hidden TypeProperty: WirelessDeviceType|Mapping
 
-    /// Wireless device name
-    hidden Name: (String|Mapping)?
+    /// Wireless device description
+    hidden Description: (String|Mapping)?
+
+    /// A list of key-value pairs that contain metadata for the device. Currently not supported, will not create if tags are passed.
+    hidden Tags: (Listing<WirelessDeviceTag>)?
 
     Properties {
-        ["ThingArn"] = if (ThingArn == null) null else ThingArn
         ["LastUplinkReceivedAt"] = if (LastUplinkReceivedAt == null) null else LastUplinkReceivedAt
-        ["Positioning"] = if (Positioning == null) null else Positioning
-        ["Description"] = if (Description == null) null else Description
+        ["Name"] = if (Name == null) null else Name
         ["DestinationName"] = if (DestinationName == null) null else DestinationName
         ["LoRaWAN"] = if (LoRaWAN == null) null else LoRaWAN
-        ["Tags"] = if (Tags == null) null else Tags
+        ["ThingArn"] = if (ThingArn == null) null else ThingArn
+        ["Positioning"] = if (Positioning == null) null else Positioning
         ["Type"] = if (TypeProperty == null) null else TypeProperty
-        ["Name"] = if (Name == null) null else Name
+        ["Description"] = if (Description == null) null else Description
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

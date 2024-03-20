@@ -34,6 +34,9 @@ open class LocationFSxOpenZFS extends cloudformation.Resource {
     Type = "AWS::DataSync::LocationFSxOpenZFS"
 
 
+    /// A subdirectory in the location's path.
+    hidden Subdirectory: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\$\p{Zs}]+$"#)))|Mapping)?
+
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<LocationFSxOpenZFSTag>)?
 
@@ -46,15 +49,12 @@ open class LocationFSxOpenZFS extends cloudformation.Resource {
     /// 
     hidden Protocol: LocationFSxOpenZFSProtocol
 
-    /// A subdirectory in the location's path.
-    hidden Subdirectory: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\$\p{Zs}]+$"#)))|Mapping)?
-
     Properties {
+        ["Subdirectory"] = if (Subdirectory == null) null else Subdirectory
         ["Tags"] = if (Tags == null) null else Tags
         ["FsxFilesystemArn"] = if (FsxFilesystemArn == null) null else FsxFilesystemArn
         ["SecurityGroupArns"] = if (SecurityGroupArns == null) null else SecurityGroupArns
         ["Protocol"] = if (Protocol == null) null else Protocol
-        ["Subdirectory"] = if (Subdirectory == null) null else Subdirectory
     }
 
 }

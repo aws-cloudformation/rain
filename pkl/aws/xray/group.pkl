@@ -6,6 +6,12 @@ module aws.xray.group
 import "../../cloudformation.pkl"
 
 /// 
+open class GroupInsightsConfiguration {
+    InsightsEnabled: (Boolean|Mapping)?
+    NotificationsEnabled: (Boolean|Mapping)?
+}
+
+/// 
 open class GroupTag {
     Key: String|Mapping
     Value: String|Mapping
@@ -14,17 +20,14 @@ open class GroupTag {
 typealias GroupTags = Listing<(GroupTag)?>
 
 
-/// 
-open class GroupInsightsConfiguration {
-    InsightsEnabled: (Boolean|Mapping)?
-    NotificationsEnabled: (Boolean|Mapping)?
-}
-
 /// This schema provides construct and validation rules for AWS-XRay Group resource parameters.
 open class Group extends cloudformation.Resource {
 
     Type = "AWS::XRay::Group"
 
+
+    /// 
+    hidden Tags: (GroupTags)?
 
     /// The filter expression defining criteria by which to group traces.
     hidden FilterExpression: (String|Mapping)?
@@ -35,14 +38,11 @@ open class Group extends cloudformation.Resource {
     /// 
     hidden InsightsConfiguration: (GroupInsightsConfiguration)?
 
-    /// 
-    hidden Tags: (GroupTags)?
-
     Properties {
+        ["Tags"] = if (Tags == null) null else Tags
         ["FilterExpression"] = if (FilterExpression == null) null else FilterExpression
         ["GroupName"] = if (GroupName == null) null else GroupName
         ["InsightsConfiguration"] = if (InsightsConfiguration == null) null else InsightsConfiguration
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

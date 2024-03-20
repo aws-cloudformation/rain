@@ -5,20 +5,23 @@ module aws.pcaconnectorad.templategroupaccesscontrolentry
 
 import "../../cloudformation.pkl"
 
-typealias TemplateGroupAccessControlEntryAccessRight = String|Mapping
-
-
 /// 
 open class TemplateGroupAccessControlEntryAccessRights {
-    Enroll: (TemplateGroupAccessControlEntryAccessRight)?
     AutoEnroll: (TemplateGroupAccessControlEntryAccessRight)?
+    Enroll: (TemplateGroupAccessControlEntryAccessRight)?
 }
+
+typealias TemplateGroupAccessControlEntryAccessRight = String|Mapping
+
 
 /// Definition of AWS::PCAConnectorAD::TemplateGroupAccessControlEntry Resource Type
 open class TemplateGroupAccessControlEntry extends cloudformation.Resource {
 
     Type = "AWS::PCAConnectorAD::TemplateGroupAccessControlEntry"
 
+
+    /// 
+    hidden AccessRights: TemplateGroupAccessControlEntryAccessRights
 
     /// 
     hidden GroupDisplayName: String(matches(Regex(#"^[\x20-\x7E]+$"#)))|Mapping
@@ -29,14 +32,11 @@ open class TemplateGroupAccessControlEntry extends cloudformation.Resource {
     /// 
     hidden TemplateArn: (String(matches(Regex(#"^arn:[\w-]+:pca-connector-ad:[\w-]+:[0-9]+:connector(\/[\w-]+)\/template(\/[\w-]+)$"#)))|Mapping)?
 
-    /// 
-    hidden AccessRights: TemplateGroupAccessControlEntryAccessRights
-
     Properties {
+        ["AccessRights"] = if (AccessRights == null) null else AccessRights
         ["GroupDisplayName"] = if (GroupDisplayName == null) null else GroupDisplayName
         ["GroupSecurityIdentifier"] = if (GroupSecurityIdentifier == null) null else GroupSecurityIdentifier
         ["TemplateArn"] = if (TemplateArn == null) null else TemplateArn
-        ["AccessRights"] = if (AccessRights == null) null else AccessRights
     }
 
 }

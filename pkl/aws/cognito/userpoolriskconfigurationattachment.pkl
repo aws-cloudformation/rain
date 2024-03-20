@@ -6,33 +6,6 @@ module aws.cognito.userpoolriskconfigurationattachment
 import "../../cloudformation.pkl"
 
 /// 
-open class UserPoolRiskConfigurationAttachmentNotifyConfigurationType {
-    ReplyTo: (String|Mapping)?
-    SourceArn: String|Mapping
-    BlockEmail: (UserPoolRiskConfigurationAttachmentNotifyEmailType)?
-    MfaEmail: (UserPoolRiskConfigurationAttachmentNotifyEmailType)?
-    NoActionEmail: (UserPoolRiskConfigurationAttachmentNotifyEmailType)?
-    From: (String|Mapping)?
-}
-
-/// 
-open class UserPoolRiskConfigurationAttachmentAccountTakeoverRiskConfigurationType {
-    NotifyConfiguration: (UserPoolRiskConfigurationAttachmentNotifyConfigurationType)?
-    Actions: UserPoolRiskConfigurationAttachmentAccountTakeoverActionsType
-}
-
-/// 
-open class UserPoolRiskConfigurationAttachmentRiskExceptionConfigurationType {
-    BlockedIPRangeList: (Listing<String|Mapping>)?
-    SkippedIPRangeList: (Listing<String|Mapping>)?
-}
-
-/// 
-open class UserPoolRiskConfigurationAttachmentCompromisedCredentialsActionsType {
-    EventAction: String|Mapping
-}
-
-/// 
 open class UserPoolRiskConfigurationAttachmentCompromisedCredentialsRiskConfigurationType {
     Actions: UserPoolRiskConfigurationAttachmentCompromisedCredentialsActionsType
     EventFilter: (Listing<String|Mapping>)?
@@ -46,16 +19,43 @@ open class UserPoolRiskConfigurationAttachmentAccountTakeoverActionType {
 
 /// 
 open class UserPoolRiskConfigurationAttachmentAccountTakeoverActionsType {
+    HighAction: (UserPoolRiskConfigurationAttachmentAccountTakeoverActionType)?
     LowAction: (UserPoolRiskConfigurationAttachmentAccountTakeoverActionType)?
     MediumAction: (UserPoolRiskConfigurationAttachmentAccountTakeoverActionType)?
-    HighAction: (UserPoolRiskConfigurationAttachmentAccountTakeoverActionType)?
 }
 
 /// 
 open class UserPoolRiskConfigurationAttachmentNotifyEmailType {
-    HtmlBody: (String|Mapping)?
     Subject: String|Mapping
     TextBody: (String|Mapping)?
+    HtmlBody: (String|Mapping)?
+}
+
+/// 
+open class UserPoolRiskConfigurationAttachmentNotifyConfigurationType {
+    SourceArn: String|Mapping
+    BlockEmail: (UserPoolRiskConfigurationAttachmentNotifyEmailType)?
+    MfaEmail: (UserPoolRiskConfigurationAttachmentNotifyEmailType)?
+    NoActionEmail: (UserPoolRiskConfigurationAttachmentNotifyEmailType)?
+    From: (String|Mapping)?
+    ReplyTo: (String|Mapping)?
+}
+
+/// 
+open class UserPoolRiskConfigurationAttachmentAccountTakeoverRiskConfigurationType {
+    Actions: UserPoolRiskConfigurationAttachmentAccountTakeoverActionsType
+    NotifyConfiguration: (UserPoolRiskConfigurationAttachmentNotifyConfigurationType)?
+}
+
+/// 
+open class UserPoolRiskConfigurationAttachmentRiskExceptionConfigurationType {
+    BlockedIPRangeList: (Listing<String|Mapping>)?
+    SkippedIPRangeList: (Listing<String|Mapping>)?
+}
+
+/// 
+open class UserPoolRiskConfigurationAttachmentCompromisedCredentialsActionsType {
+    EventAction: String|Mapping
 }
 
 /// Resource Type definition for AWS::Cognito::UserPoolRiskConfigurationAttachment
@@ -63,9 +63,6 @@ open class UserPoolRiskConfigurationAttachment extends cloudformation.Resource {
 
     Type = "AWS::Cognito::UserPoolRiskConfigurationAttachment"
 
-
-    /// 
-    hidden AccountTakeoverRiskConfiguration: (UserPoolRiskConfigurationAttachmentAccountTakeoverRiskConfigurationType)?
 
     /// 
     hidden UserPoolId: String|Mapping
@@ -79,12 +76,15 @@ open class UserPoolRiskConfigurationAttachment extends cloudformation.Resource {
     /// 
     hidden CompromisedCredentialsRiskConfiguration: (UserPoolRiskConfigurationAttachmentCompromisedCredentialsRiskConfigurationType)?
 
+    /// 
+    hidden AccountTakeoverRiskConfiguration: (UserPoolRiskConfigurationAttachmentAccountTakeoverRiskConfigurationType)?
+
     Properties {
-        ["AccountTakeoverRiskConfiguration"] = if (AccountTakeoverRiskConfiguration == null) null else AccountTakeoverRiskConfiguration
         ["UserPoolId"] = if (UserPoolId == null) null else UserPoolId
         ["ClientId"] = if (ClientId == null) null else ClientId
         ["RiskExceptionConfiguration"] = if (RiskExceptionConfiguration == null) null else RiskExceptionConfiguration
         ["CompromisedCredentialsRiskConfiguration"] = if (CompromisedCredentialsRiskConfiguration == null) null else CompromisedCredentialsRiskConfiguration
+        ["AccountTakeoverRiskConfiguration"] = if (AccountTakeoverRiskConfiguration == null) null else AccountTakeoverRiskConfiguration
     }
 
 }

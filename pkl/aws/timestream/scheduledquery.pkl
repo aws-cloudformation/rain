@@ -5,25 +5,73 @@ module aws.timestream.scheduledquery
 
 import "../../cloudformation.pkl"
 
-typealias ScheduledQueryTargetMultiMeasureAttributeName = String|Mapping
+/// MixedMeasureMappings are mappings that can be used to ingest data into a mixture of narrow and multi measures in the derived table.
+open class ScheduledQueryMixedMeasureMapping {
+    MeasureName: (ScheduledQueryMixedMeasureMappingMeasureName)?
+    SourceColumn: (ScheduledQueryMixedMeasureMappingSourceColumn)?
+    TargetMeasureName: (ScheduledQueryMixedMeasureMappingTargetMeasureName)?
+    MeasureValueType: ScheduledQueryMixedMeasureMappingMeasureValueType
+    MultiMeasureAttributeMappings: (ScheduledQueryMultiMeasureAttributeMappingList)?
+}
 
-
-typealias ScheduledQueryTimeColumn = String|Mapping
-
-
-typealias ScheduledQueryQueryString = String|Mapping
+typealias ScheduledQueryMixedMeasureMappingSourceColumn = String|Mapping
 
 
 typealias ScheduledQueryClientToken = String|Mapping
 
 
+typealias ScheduledQueryMixedMeasureMappingMeasureValueType = String|Mapping
+
+
+/// A key-value pair to label the scheduled query.
+open class ScheduledQueryTag {
+    Key: ScheduledQueryKey
+    Value: ScheduledQueryValue
+}
+
+typealias ScheduledQueryMultiMeasureAttributeMappingList = Listing<(ScheduledQueryMultiMeasureAttributeMapping)?>
+
+
+typealias ScheduledQueryTableName = String|Mapping
+
+
+typealias ScheduledQueryQueryString = String|Mapping
+
+
+typealias ScheduledQueryBucketName = String|Mapping
+
+
+typealias ScheduledQueryMixedMeasureMappings = Listing<(ScheduledQueryMixedMeasureMapping)?>
+
+
+typealias ScheduledQueryMultiMeasureAttributeMappingSourceColumn = String|Mapping
+
+
+typealias ScheduledQueryObjectKeyPrefix = String|Mapping
+
+
+typealias ScheduledQueryDimensionValueType = String|Mapping
+
+
+typealias ScheduledQueryTopicArn = String|Mapping
+
+
+typealias ScheduledQueryMixedMeasureMappingMeasureName = String|Mapping
+
+
+typealias ScheduledQueryTargetMultiMeasureAttributeName = String|Mapping
+
+
 typealias ScheduledQueryValue = String|Mapping
 
 
-typealias ScheduledQueryKey = String|Mapping
+typealias ScheduledQueryScheduleExpression = String|Mapping
 
 
-typealias ScheduledQueryMixedMeasureMappingTargetMeasureName = String|Mapping
+typealias ScheduledQueryTags = Listing<(ScheduledQueryTag)?>
+
+
+typealias ScheduledQueryMultiMeasureAttributeMappingMeasureValueType = String|Mapping
 
 
 /// Notification configuration for the scheduled query. A notification is sent by Timestream when a query run finishes, when the state is updated or when you delete it.
@@ -31,76 +79,34 @@ open class ScheduledQueryNotificationConfiguration {
     SnsConfiguration: ScheduledQuerySnsConfiguration
 }
 
-typealias ScheduledQueryObjectKeyPrefix = String|Mapping
-
-
-typealias ScheduledQueryTableName = String|Mapping
-
-
-typealias ScheduledQueryMixedMeasureMappings = Listing<(ScheduledQueryMixedMeasureMapping)?>
-
-
-typealias ScheduledQueryMixedMeasureMappingMeasureValueType = String|Mapping
-
-
-/// Configuration of target store where scheduled query results are written to.
-open class ScheduledQueryTargetConfiguration {
-    TimestreamConfiguration: ScheduledQueryTimestreamConfiguration
+/// Configuration for when the scheduled query is executed.
+open class ScheduledQueryScheduleConfiguration {
+    ScheduleExpression: ScheduledQueryScheduleExpression
 }
 
-typealias ScheduledQueryMultiMeasureAttributeMappingSourceColumn = String|Mapping
+typealias ScheduledQueryDimensionMappings = Listing<(ScheduledQueryDimensionMapping)?>
+
+
+typealias ScheduledQueryMixedMeasureMappingTargetMeasureName = String|Mapping
 
 
 /// Details on S3 location for error reports that result from running a query.
 open class ScheduledQueryS3Configuration {
-    BucketName: ScheduledQueryBucketName
     ObjectKeyPrefix: (ScheduledQueryObjectKeyPrefix)?
     EncryptionOption: (ScheduledQueryEncryptionOption)?
+    BucketName: ScheduledQueryBucketName
 }
 
-typealias ScheduledQueryMultiMeasureAttributeMappingList = Listing<(ScheduledQueryMultiMeasureAttributeMapping)?>
+typealias ScheduledQueryScheduledQueryExecutionRoleArn = String|Mapping
 
 
 typealias ScheduledQueryDimensionMappingName = String|Mapping
 
 
-/// Configuration for error reporting. Error reports will be generated when a problem is encountered when writing the query results.
-open class ScheduledQueryErrorReportConfiguration {
-    S3Configuration: ScheduledQueryS3Configuration
-}
-
-typealias ScheduledQueryMixedMeasureMappingSourceColumn = String|Mapping
-
-
-typealias ScheduledQueryDimensionMappings = Listing<(ScheduledQueryDimensionMapping)?>
-
-
-typealias ScheduledQueryTopicArn = String|Mapping
-
-
-typealias ScheduledQueryDatabaseName = String|Mapping
-
-
-typealias ScheduledQueryTargetMultiMeasureName = String|Mapping
-
-
-/// Configuration needed to write data into the Timestream database and table.
-open class ScheduledQueryTimestreamConfiguration {
-    MeasureNameColumn: (ScheduledQueryMeasureNameColumn)?
-    DatabaseName: ScheduledQueryDatabaseName
-    TableName: ScheduledQueryTableName
-    TimeColumn: ScheduledQueryTimeColumn
-    DimensionMappings: ScheduledQueryDimensionMappings
-    MultiMeasureMappings: (ScheduledQueryMultiMeasureMappings)?
-    MixedMeasureMappings: (ScheduledQueryMixedMeasureMappings)?
-}
-
-typealias ScheduledQueryBucketName = String|Mapping
-
-
-/// SNS configuration for notification upon scheduled query execution.
-open class ScheduledQuerySnsConfiguration {
-    TopicArn: ScheduledQueryTopicArn
+/// Only one of MixedMeasureMappings or MultiMeasureMappings is to be provided. MultiMeasureMappings can be used to ingest data as multi measures in the derived table.
+open class ScheduledQueryMultiMeasureMappings {
+    MultiMeasureAttributeMappings: ScheduledQueryMultiMeasureAttributeMappingList
+    TargetMultiMeasureName: (ScheduledQueryTargetMultiMeasureName)?
 }
 
 /// An attribute mapping to be used for mapping query results to ingest data for multi-measure attributes.
@@ -110,76 +116,91 @@ open class ScheduledQueryMultiMeasureAttributeMapping {
     TargetMultiMeasureAttributeName: (ScheduledQueryTargetMultiMeasureAttributeName)?
 }
 
-typealias ScheduledQueryMultiMeasureAttributeMappingMeasureValueType = String|Mapping
-
-
-typealias ScheduledQueryScheduledQueryExecutionRoleArn = String|Mapping
-
-
-typealias ScheduledQueryKmsKeyId = String|Mapping
-
-
-/// A key-value pair to label the scheduled query.
-open class ScheduledQueryTag {
-    Value: ScheduledQueryValue
-    Key: ScheduledQueryKey
-}
-
-typealias ScheduledQueryTags = Listing<(ScheduledQueryTag)?>
-
-
-typealias ScheduledQueryMixedMeasureMappingMeasureName = String|Mapping
-
-
-typealias ScheduledQueryMeasureNameColumn = String|Mapping
-
-
-typealias ScheduledQueryArn = String|Mapping
-
-
-typealias ScheduledQueryScheduleExpression = String|Mapping
-
-
-/// This type is used to map column(s) from the query result to a dimension in the destination table.
-open class ScheduledQueryDimensionMapping {
-    Name: ScheduledQueryDimensionMappingName
-    DimensionValueType: ScheduledQueryDimensionValueType
-}
-
-typealias ScheduledQueryDimensionValueType = String|Mapping
+typealias ScheduledQueryTimeColumn = String|Mapping
 
 
 typealias ScheduledQueryScheduledQueryName = String|Mapping
 
 
-/// MixedMeasureMappings are mappings that can be used to ingest data into a mixture of narrow and multi measures in the derived table.
-open class ScheduledQueryMixedMeasureMapping {
-    TargetMeasureName: (ScheduledQueryMixedMeasureMappingTargetMeasureName)?
-    MeasureValueType: ScheduledQueryMixedMeasureMappingMeasureValueType
-    MultiMeasureAttributeMappings: (ScheduledQueryMultiMeasureAttributeMappingList)?
-    MeasureName: (ScheduledQueryMixedMeasureMappingMeasureName)?
-    SourceColumn: (ScheduledQueryMixedMeasureMappingSourceColumn)?
+typealias ScheduledQueryArn = String|Mapping
+
+
+/// Configuration needed to write data into the Timestream database and table.
+open class ScheduledQueryTimestreamConfiguration {
+    MixedMeasureMappings: (ScheduledQueryMixedMeasureMappings)?
+    MeasureNameColumn: (ScheduledQueryMeasureNameColumn)?
+    DatabaseName: ScheduledQueryDatabaseName
+    TableName: ScheduledQueryTableName
+    TimeColumn: ScheduledQueryTimeColumn
+    DimensionMappings: ScheduledQueryDimensionMappings
+    MultiMeasureMappings: (ScheduledQueryMultiMeasureMappings)?
 }
+
+typealias ScheduledQueryKmsKeyId = String|Mapping
+
 
 typealias ScheduledQueryEncryptionOption = String|Mapping
 
 
-/// Only one of MixedMeasureMappings or MultiMeasureMappings is to be provided. MultiMeasureMappings can be used to ingest data as multi measures in the derived table.
-open class ScheduledQueryMultiMeasureMappings {
-    TargetMultiMeasureName: (ScheduledQueryTargetMultiMeasureName)?
-    MultiMeasureAttributeMappings: ScheduledQueryMultiMeasureAttributeMappingList
+/// This type is used to map column(s) from the query result to a dimension in the destination table.
+open class ScheduledQueryDimensionMapping {
+    DimensionValueType: ScheduledQueryDimensionValueType
+    Name: ScheduledQueryDimensionMappingName
 }
 
-/// Configuration for when the scheduled query is executed.
-open class ScheduledQueryScheduleConfiguration {
-    ScheduleExpression: ScheduledQueryScheduleExpression
+typealias ScheduledQueryKey = String|Mapping
+
+
+/// Configuration of target store where scheduled query results are written to.
+open class ScheduledQueryTargetConfiguration {
+    TimestreamConfiguration: ScheduledQueryTimestreamConfiguration
 }
+
+typealias ScheduledQueryTargetMultiMeasureName = String|Mapping
+
+
+typealias ScheduledQueryMeasureNameColumn = String|Mapping
+
+
+/// Configuration for error reporting. Error reports will be generated when a problem is encountered when writing the query results.
+open class ScheduledQueryErrorReportConfiguration {
+    S3Configuration: ScheduledQueryS3Configuration
+}
+
+/// SNS configuration for notification upon scheduled query execution.
+open class ScheduledQuerySnsConfiguration {
+    TopicArn: ScheduledQueryTopicArn
+}
+
+typealias ScheduledQueryDatabaseName = String|Mapping
+
 
 /// The AWS::Timestream::ScheduledQuery resource creates a Timestream Scheduled Query.
 open class ScheduledQuery extends cloudformation.Resource {
 
     Type = "AWS::Timestream::ScheduledQuery"
 
+
+    /// 
+    hidden QueryString: ScheduledQueryQueryString
+
+    /// 
+    hidden NotificationConfiguration: ScheduledQueryNotificationConfiguration
+
+    /// 
+    hidden ScheduledQueryName: (ScheduledQueryScheduledQueryName)?
+
+    /// 
+    hidden ScheduleConfiguration: ScheduledQueryScheduleConfiguration
+
+    /// 
+    hidden KmsKeyId: (ScheduledQueryKmsKeyId)?
+
+    /// 
+    hidden Tags: (ScheduledQueryTags)?
+
+    /// 
+    hidden ClientToken: (ScheduledQueryClientToken)?
 
     /// 
     hidden ScheduledQueryExecutionRoleArn: ScheduledQueryScheduledQueryExecutionRoleArn
@@ -190,38 +211,17 @@ open class ScheduledQuery extends cloudformation.Resource {
     /// 
     hidden ErrorReportConfiguration: ScheduledQueryErrorReportConfiguration
 
-    /// 
-    hidden ClientToken: (ScheduledQueryClientToken)?
-
-    /// 
-    hidden Tags: (ScheduledQueryTags)?
-
-    /// 
-    hidden KmsKeyId: (ScheduledQueryKmsKeyId)?
-
-    /// 
-    hidden NotificationConfiguration: ScheduledQueryNotificationConfiguration
-
-    /// 
-    hidden ScheduleConfiguration: ScheduledQueryScheduleConfiguration
-
-    /// 
-    hidden ScheduledQueryName: (ScheduledQueryScheduledQueryName)?
-
-    /// 
-    hidden QueryString: ScheduledQueryQueryString
-
     Properties {
+        ["QueryString"] = if (QueryString == null) null else QueryString
+        ["NotificationConfiguration"] = if (NotificationConfiguration == null) null else NotificationConfiguration
+        ["ScheduledQueryName"] = if (ScheduledQueryName == null) null else ScheduledQueryName
+        ["ScheduleConfiguration"] = if (ScheduleConfiguration == null) null else ScheduleConfiguration
+        ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
+        ["Tags"] = if (Tags == null) null else Tags
+        ["ClientToken"] = if (ClientToken == null) null else ClientToken
         ["ScheduledQueryExecutionRoleArn"] = if (ScheduledQueryExecutionRoleArn == null) null else ScheduledQueryExecutionRoleArn
         ["TargetConfiguration"] = if (TargetConfiguration == null) null else TargetConfiguration
         ["ErrorReportConfiguration"] = if (ErrorReportConfiguration == null) null else ErrorReportConfiguration
-        ["ClientToken"] = if (ClientToken == null) null else ClientToken
-        ["Tags"] = if (Tags == null) null else Tags
-        ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
-        ["NotificationConfiguration"] = if (NotificationConfiguration == null) null else NotificationConfiguration
-        ["ScheduleConfiguration"] = if (ScheduleConfiguration == null) null else ScheduleConfiguration
-        ["ScheduledQueryName"] = if (ScheduledQueryName == null) null else ScheduledQueryName
-        ["QueryString"] = if (QueryString == null) null else QueryString
     }
 
 }

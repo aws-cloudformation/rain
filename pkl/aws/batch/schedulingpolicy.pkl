@@ -5,6 +5,13 @@ module aws.batch.schedulingpolicy
 
 import "../../cloudformation.pkl"
 
+/// Fair Share Policy for the Job Queue.
+open class SchedulingPolicyFairsharePolicy {
+    ShareDecaySeconds: (Number|Mapping)?
+    ComputeReservation: (Number|Mapping)?
+    ShareDistribution: (Listing<SchedulingPolicyShareAttributes>)?
+}
+
 /// 
 open class SchedulingPolicyShareAttributes {
     ShareIdentifier: (String|Mapping)?
@@ -14,21 +21,11 @@ open class SchedulingPolicyShareAttributes {
 typealias SchedulingPolicyResourceArn = String|Mapping
 
 
-/// Fair Share Policy for the Job Queue.
-open class SchedulingPolicyFairsharePolicy {
-    ShareDecaySeconds: (Number|Mapping)?
-    ComputeReservation: (Number|Mapping)?
-    ShareDistribution: (Listing<SchedulingPolicyShareAttributes>)?
-}
-
 /// Resource Type schema for AWS::Batch::SchedulingPolicy
 open class SchedulingPolicy extends cloudformation.Resource {
 
     Type = "AWS::Batch::SchedulingPolicy"
 
-
-    /// A key-value pair to associate with a resource.
-    hidden Tags: (SchedulingPolicySchedulingPolicyTags)?
 
     /// Name of Scheduling Policy.
     hidden Name: (String|Mapping)?
@@ -36,10 +33,13 @@ open class SchedulingPolicy extends cloudformation.Resource {
     /// 
     hidden FairsharePolicy: (SchedulingPolicyFairsharePolicy)?
 
+    /// A key-value pair to associate with a resource.
+    hidden Tags: (SchedulingPolicySchedulingPolicyTags)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
         ["FairsharePolicy"] = if (FairsharePolicy == null) null else FairsharePolicy
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

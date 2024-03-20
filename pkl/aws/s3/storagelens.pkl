@@ -5,50 +5,27 @@ module aws.s3.storagelens
 
 import "../../cloudformation.pkl"
 
-/// Bucket-level metrics configurations.
-open class StorageLensBucketLevel {
-    AdvancedDataProtectionMetrics: (StorageLensAdvancedDataProtectionMetrics)?
-    DetailedStatusCodesMetrics: (StorageLensDetailedStatusCodesMetrics)?
-    PrefixLevel: (StorageLensPrefixLevel)?
-    ActivityMetrics: (StorageLensActivityMetrics)?
-    AdvancedCostOptimizationMetrics: (StorageLensAdvancedCostOptimizationMetrics)?
+/// CloudWatch metrics settings for the Amazon S3 Storage Lens metrics export.
+open class StorageLensCloudWatchMetrics {
+    IsEnabled: Boolean|Mapping
 }
 
-/// Specifies the details of Amazon S3 Storage Lens Group configuration.
-open class StorageLensStorageLensGroupLevel {
-    StorageLensGroupSelectionCriteria: (StorageLensStorageLensGroupSelectionCriteria)?
+/// Specifies the details of Amazon S3 Storage Lens configuration.
+open class StorageLensStorageLensConfiguration {
+    Include: (StorageLensBucketsAndRegions)?
+    Exclude: (StorageLensBucketsAndRegions)?
+    AwsOrg: (StorageLensAwsOrg)?
+    AccountLevel: StorageLensAccountLevel
+    DataExport: (StorageLensDataExport)?
+    IsEnabled: Boolean|Mapping
+    StorageLensArn: (String|Mapping)?
+    Id: StorageLensId
 }
 
-/// The AWS Organizations ARN to use in the Amazon S3 Storage Lens configuration.
-open class StorageLensAwsOrg {
-    Arn: StorageLensArn
-}
-
-/// Enables advanced data protection metrics.
-open class StorageLensAdvancedDataProtectionMetrics {
+/// Enables detailed status codes metrics.
+open class StorageLensDetailedStatusCodesMetrics {
     IsEnabled: (Boolean|Mapping)?
 }
-
-/// Prefix-level metrics configurations.
-open class StorageLensPrefixLevel {
-    StorageMetrics: StorageLensPrefixLevelStorageMetrics
-}
-
-/// Account-level metrics configurations.
-open class StorageLensAccountLevel {
-    ActivityMetrics: (StorageLensActivityMetrics)?
-    AdvancedCostOptimizationMetrics: (StorageLensAdvancedCostOptimizationMetrics)?
-    AdvancedDataProtectionMetrics: (StorageLensAdvancedDataProtectionMetrics)?
-    DetailedStatusCodesMetrics: (StorageLensDetailedStatusCodesMetrics)?
-    BucketLevel: StorageLensBucketLevel
-    StorageLensGroupLevel: (StorageLensStorageLensGroupLevel)?
-}
-
-typealias StorageLensArn = String|Mapping
-
-
-typealias StorageLensEncryption = Dynamic
-
 
 /// Selection criteria for prefix-level metrics.
 open class StorageLensSelectionCriteria {
@@ -57,10 +34,34 @@ open class StorageLensSelectionCriteria {
     MinStorageBytesPercentage: (Number|Mapping)?
 }
 
-/// Selection criteria for Storage Lens Group level metrics
-open class StorageLensStorageLensGroupSelectionCriteria {
-    Include: (Listing<StorageLensStorageLensGroupArn>)?
-    Exclude: (Listing<StorageLensStorageLensGroupArn>)?
+/// Enables activity metrics.
+open class StorageLensActivityMetrics {
+    IsEnabled: (Boolean|Mapping)?
+}
+
+/// Bucket-level metrics configurations.
+open class StorageLensBucketLevel {
+    DetailedStatusCodesMetrics: (StorageLensDetailedStatusCodesMetrics)?
+    PrefixLevel: (StorageLensPrefixLevel)?
+    ActivityMetrics: (StorageLensActivityMetrics)?
+    AdvancedCostOptimizationMetrics: (StorageLensAdvancedCostOptimizationMetrics)?
+    AdvancedDataProtectionMetrics: (StorageLensAdvancedDataProtectionMetrics)?
+}
+
+/// Specifies the details of Amazon S3 Storage Lens Group configuration.
+open class StorageLensStorageLensGroupLevel {
+    StorageLensGroupSelectionCriteria: (StorageLensStorageLensGroupSelectionCriteria)?
+}
+
+/// 
+open class StorageLensTag {
+    Key: String(matches(Regex(#"^(?!aws:.*)[a-zA-Z0-9\s\_\.\/\=\+\-\@\:]+$"#)))|Mapping
+    Value: String(matches(Regex(#"^(?!aws:.*)[a-zA-Z0-9\s\_\.\/\=\+\-\@\:]+$"#)))|Mapping
+}
+
+/// The AWS Organizations ARN to use in the Amazon S3 Storage Lens configuration.
+open class StorageLensAwsOrg {
+    Arn: StorageLensArn
 }
 
 /// AWS KMS server-side encryption.
@@ -68,8 +69,28 @@ open class StorageLensSSEKMS {
     KeyId: String|Mapping
 }
 
-/// Enables activity metrics.
-open class StorageLensActivityMetrics {
+/// Specifies how Amazon S3 Storage Lens metrics should be exported.
+open class StorageLensDataExport {
+    S3BucketDestination: (StorageLensS3BucketDestination)?
+    CloudWatchMetrics: (StorageLensCloudWatchMetrics)?
+}
+
+typealias StorageLensEncryption = Dynamic
+
+
+/// S3 buckets and Regions to include/exclude in the Amazon S3 Storage Lens configuration.
+open class StorageLensBucketsAndRegions {
+    Regions: (Listing<String|Mapping>)?
+    Buckets: (Listing<StorageLensArn>)?
+}
+
+/// Prefix-level metrics configurations.
+open class StorageLensPrefixLevel {
+    StorageMetrics: StorageLensPrefixLevelStorageMetrics
+}
+
+/// Enables advanced data protection metrics.
+open class StorageLensAdvancedDataProtectionMetrics {
     IsEnabled: (Boolean|Mapping)?
 }
 
@@ -78,58 +99,14 @@ open class StorageLensAdvancedCostOptimizationMetrics {
     IsEnabled: (Boolean|Mapping)?
 }
 
-typealias S3BucketDestinationOutputSchemaVersion = "V_1"
-
-typealias S3BucketDestinationFormat = "CSV"|"Parquet"
-
-/// S3 bucket destination settings for the Amazon S3 Storage Lens metrics export.
-open class StorageLensS3BucketDestination {
-    OutputSchemaVersion: S3BucketDestinationOutputSchemaVersion|Mapping
-    Format: S3BucketDestinationFormat|Mapping
-    AccountId: String|Mapping
-    Arn: String|Mapping
-    Prefix: (String|Mapping)?
-    Encryption: (StorageLensEncryption)?
-}
-
-typealias StorageLensStorageLensGroupArn = String|Mapping
-
-
-/// Specifies how Amazon S3 Storage Lens metrics should be exported.
-open class StorageLensDataExport {
-    S3BucketDestination: (StorageLensS3BucketDestination)?
-    CloudWatchMetrics: (StorageLensCloudWatchMetrics)?
-}
-
-typealias StorageLensId = String|Mapping
-
-
-/// S3 buckets and Regions to include/exclude in the Amazon S3 Storage Lens configuration.
-open class StorageLensBucketsAndRegions {
-    Buckets: (Listing<StorageLensArn>)?
-    Regions: (Listing<String|Mapping>)?
-}
-
-/// Enables detailed status codes metrics.
-open class StorageLensDetailedStatusCodesMetrics {
-    IsEnabled: (Boolean|Mapping)?
-}
-
-/// CloudWatch metrics settings for the Amazon S3 Storage Lens metrics export.
-open class StorageLensCloudWatchMetrics {
-    IsEnabled: Boolean|Mapping
-}
-
-/// Specifies the details of Amazon S3 Storage Lens configuration.
-open class StorageLensStorageLensConfiguration {
-    Id: StorageLensId
-    Include: (StorageLensBucketsAndRegions)?
-    Exclude: (StorageLensBucketsAndRegions)?
-    AwsOrg: (StorageLensAwsOrg)?
-    AccountLevel: StorageLensAccountLevel
-    DataExport: (StorageLensDataExport)?
-    IsEnabled: Boolean|Mapping
-    StorageLensArn: (String|Mapping)?
+/// Account-level metrics configurations.
+open class StorageLensAccountLevel {
+    AdvancedDataProtectionMetrics: (StorageLensAdvancedDataProtectionMetrics)?
+    DetailedStatusCodesMetrics: (StorageLensDetailedStatusCodesMetrics)?
+    BucketLevel: StorageLensBucketLevel
+    StorageLensGroupLevel: (StorageLensStorageLensGroupLevel)?
+    ActivityMetrics: (StorageLensActivityMetrics)?
+    AdvancedCostOptimizationMetrics: (StorageLensAdvancedCostOptimizationMetrics)?
 }
 
 /// 
@@ -138,11 +115,34 @@ open class StorageLensPrefixLevelStorageMetrics {
     SelectionCriteria: (StorageLensSelectionCriteria)?
 }
 
-/// 
-open class StorageLensTag {
-    Key: String(matches(Regex(#"^(?!aws:.*)[a-zA-Z0-9\s\_\.\/\=\+\-\@\:]+$"#)))|Mapping
-    Value: String(matches(Regex(#"^(?!aws:.*)[a-zA-Z0-9\s\_\.\/\=\+\-\@\:]+$"#)))|Mapping
+typealias StorageLensStorageLensGroupArn = String|Mapping
+
+
+/// Selection criteria for Storage Lens Group level metrics
+open class StorageLensStorageLensGroupSelectionCriteria {
+    Include: (Listing<StorageLensStorageLensGroupArn>)?
+    Exclude: (Listing<StorageLensStorageLensGroupArn>)?
 }
+
+typealias S3BucketDestinationOutputSchemaVersion = "V_1"
+
+typealias S3BucketDestinationFormat = "CSV"|"Parquet"
+
+/// S3 bucket destination settings for the Amazon S3 Storage Lens metrics export.
+open class StorageLensS3BucketDestination {
+    AccountId: String|Mapping
+    Arn: String|Mapping
+    Prefix: (String|Mapping)?
+    Encryption: (StorageLensEncryption)?
+    OutputSchemaVersion: S3BucketDestinationOutputSchemaVersion|Mapping
+    Format: S3BucketDestinationFormat|Mapping
+}
+
+typealias StorageLensId = String|Mapping
+
+
+typealias StorageLensArn = String|Mapping
+
 
 /// The AWS::S3::StorageLens resource is an Amazon S3 resource type that you can use to create Storage Lens configurations.
 open class StorageLens extends cloudformation.Resource {

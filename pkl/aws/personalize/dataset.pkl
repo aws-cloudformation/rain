@@ -20,12 +20,6 @@ open class Dataset extends cloudformation.Resource {
     Type = "AWS::Personalize::Dataset"
 
 
-    /// The ARN of the schema to associate with the dataset. The schema defines the dataset fields.
-    hidden SchemaArn: String(matches(Regex(#"arn:([a-z\d-]+):personalize:.*:.*:.+"#)))|Mapping
-
-    /// 
-    hidden DatasetImportJob: (DatasetDatasetImportJob)?
-
     /// The name for the dataset
     hidden Name: String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9\-_]*"#)))|Mapping
 
@@ -35,12 +29,18 @@ open class Dataset extends cloudformation.Resource {
     /// The Amazon Resource Name (ARN) of the dataset group to add the dataset to
     hidden DatasetGroupArn: String(matches(Regex(#"arn:([a-z\d-]+):personalize:.*:.*:.+"#)))|Mapping
 
+    /// The ARN of the schema to associate with the dataset. The schema defines the dataset fields.
+    hidden SchemaArn: String(matches(Regex(#"arn:([a-z\d-]+):personalize:.*:.*:.+"#)))|Mapping
+
+    /// 
+    hidden DatasetImportJob: (DatasetDatasetImportJob)?
+
     Properties {
-        ["SchemaArn"] = if (SchemaArn == null) null else SchemaArn
-        ["DatasetImportJob"] = if (DatasetImportJob == null) null else DatasetImportJob
         ["Name"] = if (Name == null) null else Name
         ["DatasetType"] = if (DatasetType == null) null else DatasetType
         ["DatasetGroupArn"] = if (DatasetGroupArn == null) null else DatasetGroupArn
+        ["SchemaArn"] = if (SchemaArn == null) null else SchemaArn
+        ["DatasetImportJob"] = if (DatasetImportJob == null) null else DatasetImportJob
     }
 
 }

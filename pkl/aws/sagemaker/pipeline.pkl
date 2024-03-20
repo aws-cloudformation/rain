@@ -7,10 +7,10 @@ import "../../cloudformation.pkl"
 
 /// 
 open class PipelineS3Location {
-    ETag: (String|Mapping)?
     Bucket: String|Mapping
     Key: String|Mapping
     Version: (String|Mapping)?
+    ETag: (String|Mapping)?
 }
 
 /// 
@@ -24,9 +24,6 @@ open class Pipeline extends cloudformation.Resource {
 
     Type = "AWS::SageMaker::Pipeline"
 
-
-    /// Role Arn
-    hidden RoleArn: String(matches(Regex(#"^arn:aws[a-z\-]*:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping
 
     /// 
     hidden Tags: (Listing<PipelineTag>)?
@@ -46,14 +43,17 @@ open class Pipeline extends cloudformation.Resource {
     /// 
     hidden PipelineDefinition: Dynamic
 
+    /// Role Arn
+    hidden RoleArn: String(matches(Regex(#"^arn:aws[a-z\-]*:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping
+
     Properties {
-        ["RoleArn"] = if (RoleArn == null) null else RoleArn
         ["Tags"] = if (Tags == null) null else Tags
         ["ParallelismConfiguration"] = if (ParallelismConfiguration == null) null else ParallelismConfiguration
         ["PipelineName"] = if (PipelineName == null) null else PipelineName
         ["PipelineDisplayName"] = if (PipelineDisplayName == null) null else PipelineDisplayName
         ["PipelineDescription"] = if (PipelineDescription == null) null else PipelineDescription
         ["PipelineDefinition"] = if (PipelineDefinition == null) null else PipelineDefinition
+        ["RoleArn"] = if (RoleArn == null) null else RoleArn
     }
 
 }

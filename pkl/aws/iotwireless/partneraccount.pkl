@@ -6,18 +6,6 @@ module aws.iotwireless.partneraccount
 import "../../cloudformation.pkl"
 
 /// 
-open class PartnerAccountSidewalkAccountInfoWithFingerprint {
-    AmazonId: (String|Mapping)?
-    Fingerprint: (String(matches(Regex(#"[a-fA-F0-9]{64}"#)))|Mapping)?
-    Arn: (String|Mapping)?
-}
-
-/// 
-open class PartnerAccountSidewalkUpdateAccount {
-    AppServerPrivateKey: (String(matches(Regex(#"[a-fA-F0-9]{64}"#)))|Mapping)?
-}
-
-/// 
 open class PartnerAccountTag {
     Value: (String|Mapping)?
     Key: (String|Mapping)?
@@ -28,17 +16,23 @@ open class PartnerAccountSidewalkAccountInfo {
     AppServerPrivateKey: String(matches(Regex(#"[a-fA-F0-9]{64}"#)))|Mapping
 }
 
+/// 
+open class PartnerAccountSidewalkAccountInfoWithFingerprint {
+    Arn: (String|Mapping)?
+    AmazonId: (String|Mapping)?
+    Fingerprint: (String(matches(Regex(#"[a-fA-F0-9]{64}"#)))|Mapping)?
+}
+
+/// 
+open class PartnerAccountSidewalkUpdateAccount {
+    AppServerPrivateKey: (String(matches(Regex(#"[a-fA-F0-9]{64}"#)))|Mapping)?
+}
+
 /// Create and manage partner account
 open class PartnerAccount extends cloudformation.Resource {
 
     Type = "AWS::IoTWireless::PartnerAccount"
 
-
-    /// The partner account ID to disassociate from the AWS account
-    hidden PartnerAccountId: (String|Mapping)?
-
-    /// The partner type
-    hidden PartnerType: (PartnerAccountPartnerType|Mapping)?
 
     /// The Sidewalk account credentials.
     hidden SidewalkResponse: (PartnerAccountSidewalkAccountInfoWithFingerprint)?
@@ -46,8 +40,11 @@ open class PartnerAccount extends cloudformation.Resource {
     /// The Sidewalk account credentials.
     hidden SidewalkUpdate: (PartnerAccountSidewalkUpdateAccount)?
 
-    /// The Sidewalk account credentials.
-    hidden Sidewalk: (PartnerAccountSidewalkAccountInfo)?
+    /// The partner type
+    hidden PartnerType: (PartnerAccountPartnerType|Mapping)?
+
+    /// The partner account ID to disassociate from the AWS account
+    hidden PartnerAccountId: (String|Mapping)?
 
     /// Whether the partner account is linked to the AWS account.
     hidden AccountLinked: (Boolean|Mapping)?
@@ -55,14 +52,17 @@ open class PartnerAccount extends cloudformation.Resource {
     /// A list of key-value pairs that contain metadata for the destination.
     hidden Tags: (Listing<PartnerAccountTag>)?
 
+    /// The Sidewalk account credentials.
+    hidden Sidewalk: (PartnerAccountSidewalkAccountInfo)?
+
     Properties {
-        ["PartnerAccountId"] = if (PartnerAccountId == null) null else PartnerAccountId
-        ["PartnerType"] = if (PartnerType == null) null else PartnerType
         ["SidewalkResponse"] = if (SidewalkResponse == null) null else SidewalkResponse
         ["SidewalkUpdate"] = if (SidewalkUpdate == null) null else SidewalkUpdate
-        ["Sidewalk"] = if (Sidewalk == null) null else Sidewalk
+        ["PartnerType"] = if (PartnerType == null) null else PartnerType
+        ["PartnerAccountId"] = if (PartnerAccountId == null) null else PartnerAccountId
         ["AccountLinked"] = if (AccountLinked == null) null else AccountLinked
         ["Tags"] = if (Tags == null) null else Tags
+        ["Sidewalk"] = if (Sidewalk == null) null else Sidewalk
     }
 
 }

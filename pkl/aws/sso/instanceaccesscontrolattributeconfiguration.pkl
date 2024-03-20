@@ -5,6 +5,12 @@ module aws.sso.instanceaccesscontrolattributeconfiguration
 
 import "../../cloudformation.pkl"
 
+typealias InstanceAccessControlAttributeConfigurationAccessControlAttributeValueSource = String|Mapping
+
+
+typealias InstanceAccessControlAttributeConfigurationAccessControlAttributeValueSourceList = Listing<(InstanceAccessControlAttributeConfigurationAccessControlAttributeValueSource)?>
+
+
 /// 
 open class InstanceAccessControlAttributeConfigurationAccessControlAttributeValue {
     Source: InstanceAccessControlAttributeConfigurationAccessControlAttributeValueSourceList
@@ -19,20 +25,11 @@ open class InstanceAccessControlAttributeConfigurationAccessControlAttribute {
 typealias InstanceAccessControlAttributeConfigurationAccessControlAttributeList = Listing<(InstanceAccessControlAttributeConfigurationAccessControlAttribute)?>
 
 
-typealias InstanceAccessControlAttributeConfigurationAccessControlAttributeValueSource = String|Mapping
-
-
-typealias InstanceAccessControlAttributeConfigurationAccessControlAttributeValueSourceList = Listing<(InstanceAccessControlAttributeConfigurationAccessControlAttributeValueSource)?>
-
-
 /// Resource Type definition for SSO InstanceAccessControlAttributeConfiguration
 open class InstanceAccessControlAttributeConfiguration extends cloudformation.Resource {
 
     Type = "AWS::SSO::InstanceAccessControlAttributeConfiguration"
 
-
-    /// 
-    hidden AccessControlAttributes: (InstanceAccessControlAttributeConfigurationAccessControlAttributeList)?
 
     /// The ARN of the AWS SSO instance under which the operation will be executed.
     hidden InstanceArn: String(matches(Regex(#"arn:(aws|aws-us-gov|aws-cn|aws-iso|aws-iso-b):sso:::instance/(sso)?ins-[a-zA-Z0-9-.]{16}"#)))|Mapping
@@ -40,10 +37,13 @@ open class InstanceAccessControlAttributeConfiguration extends cloudformation.Re
     /// The InstanceAccessControlAttributeConfiguration property has been deprecated but is still supported for backwards compatibility purposes. We recomend that you use  AccessControlAttributes property instead.
     hidden InstanceAccessControlAttributeConfiguration: (Dynamic)?
 
+    /// 
+    hidden AccessControlAttributes: (InstanceAccessControlAttributeConfigurationAccessControlAttributeList)?
+
     Properties {
-        ["AccessControlAttributes"] = if (AccessControlAttributes == null) null else AccessControlAttributes
         ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
         ["InstanceAccessControlAttributeConfiguration"] = if (InstanceAccessControlAttributeConfiguration == null) null else InstanceAccessControlAttributeConfiguration
+        ["AccessControlAttributes"] = if (AccessControlAttributes == null) null else AccessControlAttributes
     }
 
 }

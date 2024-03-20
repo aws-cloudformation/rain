@@ -5,10 +5,24 @@ module aws.imagebuilder.imagerecipe
 
 import "../../cloudformation.pkl"
 
+typealias EbsInstanceBlockDeviceSpecificationVolumeType = "standard"|"io1"|"io2"|"gp2"|"gp3"|"sc1"|"st1"
+
+/// Amazon EBS-specific block device mapping specifications. 
+open class ImageRecipeEbsInstanceBlockDeviceSpecification {
+    SnapshotId: (String|Mapping)?
+    Throughput: (Int|Mapping)?
+    VolumeSize: (Int|Mapping)?
+    VolumeType: (EbsInstanceBlockDeviceSpecificationVolumeType|Mapping)?
+    Encrypted: (Boolean|Mapping)?
+    DeleteOnTermination: (Boolean|Mapping)?
+    Iops: (Int|Mapping)?
+    KmsKeyId: (String|Mapping)?
+}
+
 /// Specify additional settings and launch scripts for your build instances.
 open class ImageRecipeAdditionalInstanceConfiguration {
-    UserDataOverride: (String|Mapping)?
     SystemsManagerAgent: (ImageRecipeSystemsManagerAgent)?
+    UserDataOverride: (String|Mapping)?
 }
 
 /// Contains settings for the SSM agent on your build instance.
@@ -30,24 +44,10 @@ open class ImageRecipeComponentConfiguration {
 
 /// Defines block device mappings for the instance used to configure your image. 
 open class ImageRecipeInstanceBlockDeviceMapping {
-    NoDevice: (String|Mapping)?
-    Ebs: (ImageRecipeEbsInstanceBlockDeviceSpecification)?
     DeviceName: (String|Mapping)?
     VirtualName: (String|Mapping)?
-}
-
-typealias EbsInstanceBlockDeviceSpecificationVolumeType = "standard"|"io1"|"io2"|"gp2"|"gp3"|"sc1"|"st1"
-
-/// Amazon EBS-specific block device mapping specifications. 
-open class ImageRecipeEbsInstanceBlockDeviceSpecification {
-    VolumeSize: (Int|Mapping)?
-    VolumeType: (EbsInstanceBlockDeviceSpecificationVolumeType|Mapping)?
-    Encrypted: (Boolean|Mapping)?
-    DeleteOnTermination: (Boolean|Mapping)?
-    Iops: (Int|Mapping)?
-    KmsKeyId: (String|Mapping)?
-    SnapshotId: (String|Mapping)?
-    Throughput: (Int|Mapping)?
+    NoDevice: (String|Mapping)?
+    Ebs: (ImageRecipeEbsInstanceBlockDeviceSpecification)?
 }
 
 /// Resource schema for AWS::ImageBuilder::ImageRecipe
@@ -56,43 +56,43 @@ open class ImageRecipe extends cloudformation.Resource {
     Type = "AWS::ImageBuilder::ImageRecipe"
 
 
+    /// The description of the image recipe.
+    hidden Description: (String|Mapping)?
+
+    /// The version of the image recipe.
+    hidden Version: String|Mapping
+
+    /// The components of the image recipe.
+    hidden Components: Listing<ImageRecipeComponentConfiguration>
+
+    /// The block device mappings to apply when creating images from this recipe.
+    hidden BlockDeviceMappings: (Listing<ImageRecipeInstanceBlockDeviceMapping>)?
+
     /// The parent image of the image recipe.
     hidden ParentImage: String|Mapping
 
     /// The working directory to be used during build and test workflows.
     hidden WorkingDirectory: (String|Mapping)?
 
-    /// The tags of the image recipe.
-    hidden Tags: (ImageRecipeImageRecipeTags)?
-
-    /// The components of the image recipe.
-    hidden Components: Listing<ImageRecipeComponentConfiguration>
-
-    /// The version of the image recipe.
-    hidden Version: String|Mapping
-
-    /// The block device mappings to apply when creating images from this recipe.
-    hidden BlockDeviceMappings: (Listing<ImageRecipeInstanceBlockDeviceMapping>)?
-
     /// Specify additional settings and launch scripts for your build instances.
     hidden AdditionalInstanceConfiguration: (ImageRecipeAdditionalInstanceConfiguration)?
+
+    /// The tags of the image recipe.
+    hidden Tags: (ImageRecipeImageRecipeTags)?
 
     /// The name of the image recipe.
     hidden Name: String|Mapping
 
-    /// The description of the image recipe.
-    hidden Description: (String|Mapping)?
-
     Properties {
+        ["Description"] = if (Description == null) null else Description
+        ["Version"] = if (Version == null) null else Version
+        ["Components"] = if (Components == null) null else Components
+        ["BlockDeviceMappings"] = if (BlockDeviceMappings == null) null else BlockDeviceMappings
         ["ParentImage"] = if (ParentImage == null) null else ParentImage
         ["WorkingDirectory"] = if (WorkingDirectory == null) null else WorkingDirectory
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Components"] = if (Components == null) null else Components
-        ["Version"] = if (Version == null) null else Version
-        ["BlockDeviceMappings"] = if (BlockDeviceMappings == null) null else BlockDeviceMappings
         ["AdditionalInstanceConfiguration"] = if (AdditionalInstanceConfiguration == null) null else AdditionalInstanceConfiguration
+        ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
-        ["Description"] = if (Description == null) null else Description
     }
 
 }

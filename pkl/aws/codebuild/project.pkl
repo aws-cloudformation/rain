@@ -6,25 +6,8 @@ module aws.codebuild.project
 import "../../cloudformation.pkl"
 
 /// 
-open class ProjectArtifacts {
-    Path: (String|Mapping)?
-    Type: String|Mapping
-    ArtifactIdentifier: (String|Mapping)?
-    OverrideArtifactName: (Boolean|Mapping)?
-    NamespaceType: (String|Mapping)?
-    Packaging: (String|Mapping)?
-    EncryptionDisabled: (Boolean|Mapping)?
-    Location: (String|Mapping)?
-    Name: (String|Mapping)?
-}
-
-/// 
-open class ProjectProjectBuildBatchConfig {
-    ServiceRole: (String|Mapping)?
-    BatchReportMode: (String|Mapping)?
-    TimeoutInMins: (Int|Mapping)?
-    Restrictions: (ProjectBatchRestrictions)?
-    CombineArtifacts: (Boolean|Mapping)?
+open class ProjectProjectFleet {
+    FleetArn: (String|Mapping)?
 }
 
 /// 
@@ -37,52 +20,41 @@ typealias ProjectFilterGroup = Dynamic
 
 
 /// 
-open class ProjectCloudWatchLogsConfig {
-    Status: String|Mapping
-    GroupName: (String|Mapping)?
-    StreamName: (String|Mapping)?
-}
-
-/// 
-open class ProjectProjectSourceVersion {
-    SourceIdentifier: String|Mapping
-    SourceVersion: (String|Mapping)?
-}
-
-/// 
-open class ProjectVpcConfig {
-    VpcId: (String|Mapping)?
-    SecurityGroupIds: (Listing<String|Mapping>)?
-    Subnets: (Listing<String|Mapping>)?
-}
-
-/// 
-open class ProjectLogsConfig {
-    CloudWatchLogs: (ProjectCloudWatchLogsConfig)?
-    S3Logs: (ProjectS3LogsConfig)?
-}
-
-/// 
-open class ProjectGitSubmodulesConfig {
-    FetchSubmodules: Boolean|Mapping
-}
-
-/// 
 open class ProjectProjectTriggers {
-    Webhook: (Boolean|Mapping)?
     BuildType: (String|Mapping)?
     FilterGroups: (Listing<ProjectFilterGroup>)?
+    Webhook: (Boolean|Mapping)?
 }
 
 /// 
-open class ProjectProjectFleet {
-    FleetArn: (String|Mapping)?
+open class ProjectTag {
+    Value: String|Mapping
+    Key: String|Mapping
 }
 
 /// 
-open class ProjectProjectCache {
-    Modes: (Listing<String|Mapping>)?
+open class ProjectBatchRestrictions {
+    ComputeTypesAllowed: (Listing<String|Mapping>)?
+    MaximumBuildsAllowed: (Int|Mapping)?
+}
+
+/// 
+open class ProjectEnvironment {
+    Certificate: (String|Mapping)?
     Type: String|Mapping
+    Fleet: (ProjectProjectFleet)?
+    ImagePullCredentialsType: (String|Mapping)?
+    Image: String|Mapping
+    RegistryCredential: (ProjectRegistryCredential)?
+    ComputeType: String|Mapping
+    EnvironmentVariables: (Listing<ProjectEnvironmentVariable>)?
+    PrivilegedMode: (Boolean|Mapping)?
+}
+
+/// 
+open class ProjectS3LogsConfig {
+    Status: String|Mapping
+    EncryptionDisabled: (Boolean|Mapping)?
     Location: (String|Mapping)?
 }
 
@@ -96,17 +68,15 @@ open class ProjectProjectFileSystemLocation {
 }
 
 /// 
-open class ProjectSource {
-    GitSubmodulesConfig: (ProjectGitSubmodulesConfig)?
-    InsecureSsl: (Boolean|Mapping)?
+open class ProjectSourceAuth {
     Type: String|Mapping
-    ReportBuildStatus: (Boolean|Mapping)?
-    Auth: (ProjectSourceAuth)?
-    BuildStatusConfig: (ProjectBuildStatusConfig)?
-    SourceIdentifier: (String|Mapping)?
-    BuildSpec: (String|Mapping)?
-    GitCloneDepth: (Int|Mapping)?
-    Location: (String|Mapping)?
+    Resource: (String|Mapping)?
+}
+
+/// 
+open class ProjectLogsConfig {
+    CloudWatchLogs: (ProjectCloudWatchLogsConfig)?
+    S3Logs: (ProjectS3LogsConfig)?
 }
 
 /// 
@@ -116,34 +86,16 @@ open class ProjectRegistryCredential {
 }
 
 /// 
-open class ProjectBatchRestrictions {
-    ComputeTypesAllowed: (Listing<String|Mapping>)?
-    MaximumBuildsAllowed: (Int|Mapping)?
+open class ProjectProjectSourceVersion {
+    SourceIdentifier: String|Mapping
+    SourceVersion: (String|Mapping)?
 }
 
 /// 
-open class ProjectEnvironment {
-    Fleet: (ProjectProjectFleet)?
-    ImagePullCredentialsType: (String|Mapping)?
-    RegistryCredential: (ProjectRegistryCredential)?
-    Certificate: (String|Mapping)?
-    EnvironmentVariables: (Listing<ProjectEnvironmentVariable>)?
-    PrivilegedMode: (Boolean|Mapping)?
-    Image: String|Mapping
-    ComputeType: String|Mapping
+open class ProjectProjectCache {
+    Modes: (Listing<String|Mapping>)?
     Type: String|Mapping
-}
-
-/// 
-open class ProjectSourceAuth {
-    Type: String|Mapping
-    Resource: (String|Mapping)?
-}
-
-/// 
-open class ProjectTag {
-    Value: String|Mapping
-    Key: String|Mapping
+    Location: (String|Mapping)?
 }
 
 /// 
@@ -154,10 +106,58 @@ open class ProjectEnvironmentVariable {
 }
 
 /// 
-open class ProjectS3LogsConfig {
+open class ProjectVpcConfig {
+    VpcId: (String|Mapping)?
+    SecurityGroupIds: (Listing<String|Mapping>)?
+    Subnets: (Listing<String|Mapping>)?
+}
+
+/// 
+open class ProjectProjectBuildBatchConfig {
+    CombineArtifacts: (Boolean|Mapping)?
+    ServiceRole: (String|Mapping)?
+    BatchReportMode: (String|Mapping)?
+    TimeoutInMins: (Int|Mapping)?
+    Restrictions: (ProjectBatchRestrictions)?
+}
+
+/// 
+open class ProjectSource {
+    BuildStatusConfig: (ProjectBuildStatusConfig)?
+    InsecureSsl: (Boolean|Mapping)?
+    Location: (String|Mapping)?
+    ReportBuildStatus: (Boolean|Mapping)?
+    GitCloneDepth: (Int|Mapping)?
+    SourceIdentifier: (String|Mapping)?
+    BuildSpec: (String|Mapping)?
+    GitSubmodulesConfig: (ProjectGitSubmodulesConfig)?
+    Type: String|Mapping
+    Auth: (ProjectSourceAuth)?
+}
+
+/// 
+open class ProjectCloudWatchLogsConfig {
     Status: String|Mapping
+    GroupName: (String|Mapping)?
+    StreamName: (String|Mapping)?
+}
+
+/// 
+open class ProjectArtifacts {
+    Path: (String|Mapping)?
+    Type: String|Mapping
+    ArtifactIdentifier: (String|Mapping)?
+    OverrideArtifactName: (Boolean|Mapping)?
     EncryptionDisabled: (Boolean|Mapping)?
     Location: (String|Mapping)?
+    Packaging: (String|Mapping)?
+    Name: (String|Mapping)?
+    NamespaceType: (String|Mapping)?
+}
+
+/// 
+open class ProjectGitSubmodulesConfig {
+    FetchSubmodules: Boolean|Mapping
 }
 
 /// Resource Type definition for AWS::CodeBuild::Project
@@ -167,46 +167,16 @@ open class Project extends cloudformation.Resource {
 
 
     /// 
-    hidden Environment: ProjectEnvironment
+    hidden Description: (String|Mapping)?
 
     /// 
     hidden ResourceAccessRole: (String|Mapping)?
 
     /// 
-    hidden SecondaryArtifacts: (Listing<ProjectArtifacts>)?
-
-    /// 
-    hidden VpcConfig: (ProjectVpcConfig)?
-
-    /// 
-    hidden Source: ProjectSource
+    hidden Environment: ProjectEnvironment
 
     /// 
     hidden Name: (String|Mapping)?
-
-    /// 
-    hidden ServiceRole: String|Mapping
-
-    /// 
-    hidden Triggers: (ProjectProjectTriggers)?
-
-    /// 
-    hidden Artifacts: ProjectArtifacts
-
-    /// 
-    hidden Description: (String|Mapping)?
-
-    /// 
-    hidden SecondarySources: (Listing<ProjectSource>)?
-
-    /// 
-    hidden LogsConfig: (ProjectLogsConfig)?
-
-    /// 
-    hidden QueuedTimeoutInMinutes: (Int|Mapping)?
-
-    /// 
-    hidden SourceVersion: (String|Mapping)?
 
     /// 
     hidden BadgeEnabled: (Boolean|Mapping)?
@@ -215,54 +185,84 @@ open class Project extends cloudformation.Resource {
     hidden ConcurrentBuildLimit: (Int|Mapping)?
 
     /// 
-    hidden BuildBatchConfig: (ProjectProjectBuildBatchConfig)?
+    hidden Cache: (ProjectProjectCache)?
+
+    /// 
+    hidden SecondaryArtifacts: (Listing<ProjectArtifacts>)?
+
+    /// 
+    hidden Source: ProjectSource
+
+    /// 
+    hidden ServiceRole: String|Mapping
 
     /// 
     hidden Tags: (Listing<ProjectTag>)?
 
     /// 
-    hidden Visibility: (String|Mapping)?
+    hidden BuildBatchConfig: (ProjectProjectBuildBatchConfig)?
 
     /// 
-    hidden TimeoutInMinutes: (Int|Mapping)?
+    hidden VpcConfig: (ProjectVpcConfig)?
 
     /// 
-    hidden EncryptionKey: (String|Mapping)?
+    hidden SecondarySources: (Listing<ProjectSource>)?
 
     /// 
     hidden FileSystemLocations: (Listing<ProjectProjectFileSystemLocation>)?
 
     /// 
-    hidden Cache: (ProjectProjectCache)?
+    hidden SourceVersion: (String|Mapping)?
+
+    /// 
+    hidden Triggers: (ProjectProjectTriggers)?
+
+    /// 
+    hidden EncryptionKey: (String|Mapping)?
+
+    /// 
+    hidden QueuedTimeoutInMinutes: (Int|Mapping)?
 
     /// 
     hidden SecondarySourceVersions: (Listing<ProjectProjectSourceVersion>)?
 
+    /// 
+    hidden Visibility: (String|Mapping)?
+
+    /// 
+    hidden LogsConfig: (ProjectLogsConfig)?
+
+    /// 
+    hidden Artifacts: ProjectArtifacts
+
+    /// 
+    hidden TimeoutInMinutes: (Int|Mapping)?
+
     Properties {
-        ["Environment"] = if (Environment == null) null else Environment
-        ["ResourceAccessRole"] = if (ResourceAccessRole == null) null else ResourceAccessRole
-        ["SecondaryArtifacts"] = if (SecondaryArtifacts == null) null else SecondaryArtifacts
-        ["VpcConfig"] = if (VpcConfig == null) null else VpcConfig
-        ["Source"] = if (Source == null) null else Source
-        ["Name"] = if (Name == null) null else Name
-        ["ServiceRole"] = if (ServiceRole == null) null else ServiceRole
-        ["Triggers"] = if (Triggers == null) null else Triggers
-        ["Artifacts"] = if (Artifacts == null) null else Artifacts
         ["Description"] = if (Description == null) null else Description
-        ["SecondarySources"] = if (SecondarySources == null) null else SecondarySources
-        ["LogsConfig"] = if (LogsConfig == null) null else LogsConfig
-        ["QueuedTimeoutInMinutes"] = if (QueuedTimeoutInMinutes == null) null else QueuedTimeoutInMinutes
-        ["SourceVersion"] = if (SourceVersion == null) null else SourceVersion
+        ["ResourceAccessRole"] = if (ResourceAccessRole == null) null else ResourceAccessRole
+        ["Environment"] = if (Environment == null) null else Environment
+        ["Name"] = if (Name == null) null else Name
         ["BadgeEnabled"] = if (BadgeEnabled == null) null else BadgeEnabled
         ["ConcurrentBuildLimit"] = if (ConcurrentBuildLimit == null) null else ConcurrentBuildLimit
-        ["BuildBatchConfig"] = if (BuildBatchConfig == null) null else BuildBatchConfig
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Visibility"] = if (Visibility == null) null else Visibility
-        ["TimeoutInMinutes"] = if (TimeoutInMinutes == null) null else TimeoutInMinutes
-        ["EncryptionKey"] = if (EncryptionKey == null) null else EncryptionKey
-        ["FileSystemLocations"] = if (FileSystemLocations == null) null else FileSystemLocations
         ["Cache"] = if (Cache == null) null else Cache
+        ["SecondaryArtifacts"] = if (SecondaryArtifacts == null) null else SecondaryArtifacts
+        ["Source"] = if (Source == null) null else Source
+        ["ServiceRole"] = if (ServiceRole == null) null else ServiceRole
+        ["Tags"] = if (Tags == null) null else Tags
+        ["BuildBatchConfig"] = if (BuildBatchConfig == null) null else BuildBatchConfig
+        ["VpcConfig"] = if (VpcConfig == null) null else VpcConfig
+        ["SecondarySources"] = if (SecondarySources == null) null else SecondarySources
+        ["FileSystemLocations"] = if (FileSystemLocations == null) null else FileSystemLocations
+        ["SourceVersion"] = if (SourceVersion == null) null else SourceVersion
+        ["Triggers"] = if (Triggers == null) null else Triggers
+        ["EncryptionKey"] = if (EncryptionKey == null) null else EncryptionKey
+        ["QueuedTimeoutInMinutes"] = if (QueuedTimeoutInMinutes == null) null else QueuedTimeoutInMinutes
         ["SecondarySourceVersions"] = if (SecondarySourceVersions == null) null else SecondarySourceVersions
+        ["Visibility"] = if (Visibility == null) null else Visibility
+        ["LogsConfig"] = if (LogsConfig == null) null else LogsConfig
+        ["Artifacts"] = if (Artifacts == null) null else Artifacts
+        ["TimeoutInMinutes"] = if (TimeoutInMinutes == null) null else TimeoutInMinutes
     }
 
 }

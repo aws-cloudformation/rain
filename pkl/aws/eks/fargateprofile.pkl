@@ -13,8 +13,8 @@ open class FargateProfileTag {
 
 /// 
 open class FargateProfileSelector {
-    Namespace: String|Mapping
     Labels: (Listing<FargateProfileLabel>)?
+    Namespace: String|Mapping
 }
 
 /// A key-value pair to associate with a pod.
@@ -28,9 +28,6 @@ open class FargateProfile extends cloudformation.Resource {
 
     Type = "AWS::EKS::FargateProfile"
 
-
-    /// The IAM policy arn for pods
-    hidden PodExecutionRoleArn: String|Mapping
 
     /// 
     hidden Subnets: (Listing<String|Mapping>)?
@@ -47,13 +44,16 @@ open class FargateProfile extends cloudformation.Resource {
     /// Name of FargateProfile
     hidden FargateProfileName: (String|Mapping)?
 
+    /// The IAM policy arn for pods
+    hidden PodExecutionRoleArn: String|Mapping
+
     Properties {
-        ["PodExecutionRoleArn"] = if (PodExecutionRoleArn == null) null else PodExecutionRoleArn
         ["Subnets"] = if (Subnets == null) null else Subnets
         ["Selectors"] = if (Selectors == null) null else Selectors
         ["Tags"] = if (Tags == null) null else Tags
         ["ClusterName"] = if (ClusterName == null) null else ClusterName
         ["FargateProfileName"] = if (FargateProfileName == null) null else FargateProfileName
+        ["PodExecutionRoleArn"] = if (PodExecutionRoleArn == null) null else PodExecutionRoleArn
     }
 
 }

@@ -5,27 +5,6 @@ module aws.route53recoveryreadiness.resourceset
 
 import "../../cloudformation.pkl"
 
-/// The Route 53 resource that a DNS target resource record points to.
-open class ResourceSetR53ResourceRecord {
-    DomainName: (String|Mapping)?
-    RecordSetId: (String|Mapping)?
-}
-
-/// The target resource that the Route 53 record points to.
-open class ResourceSetTargetResource {
-    NLBResource: (ResourceSetNLBResource)?
-    R53Resource: (ResourceSetR53ResourceRecord)?
-}
-
-/// A component for DNS/routing control readiness checks.
-open class ResourceSetDNSTargetResource {
-    RecordType: (String|Mapping)?
-    TargetResource: (ResourceSetTargetResource)?
-    DomainName: (String|Mapping)?
-    RecordSetId: (String|Mapping)?
-    HostedZoneArn: (String|Mapping)?
-}
-
 /// The resource element of a ResourceSet
 open class ResourceSetResource {
     ComponentId: (String|Mapping)?
@@ -45,11 +24,35 @@ open class ResourceSetNLBResource {
     Arn: (String|Mapping)?
 }
 
+/// The Route 53 resource that a DNS target resource record points to.
+open class ResourceSetR53ResourceRecord {
+    RecordSetId: (String|Mapping)?
+    DomainName: (String|Mapping)?
+}
+
+/// The target resource that the Route 53 record points to.
+open class ResourceSetTargetResource {
+    NLBResource: (ResourceSetNLBResource)?
+    R53Resource: (ResourceSetR53ResourceRecord)?
+}
+
+/// A component for DNS/routing control readiness checks.
+open class ResourceSetDNSTargetResource {
+    DomainName: (String|Mapping)?
+    RecordSetId: (String|Mapping)?
+    HostedZoneArn: (String|Mapping)?
+    RecordType: (String|Mapping)?
+    TargetResource: (ResourceSetTargetResource)?
+}
+
 /// Schema for the AWS Route53 Recovery Readiness ResourceSet Resource and API.
 open class ResourceSet extends cloudformation.Resource {
 
     Type = "AWS::Route53RecoveryReadiness::ResourceSet"
 
+
+    /// The name of the resource set to create.
+    hidden ResourceSetName: (String|Mapping)?
 
     /// A list of resource objects in the resource set.
     hidden Resources: Listing<ResourceSetResource>
@@ -63,14 +66,11 @@ open class ResourceSet extends cloudformation.Resource {
     /// A tag to associate with the parameters for a resource set.
     hidden Tags: (Listing<ResourceSetTag>)?
 
-    /// The name of the resource set to create.
-    hidden ResourceSetName: (String|Mapping)?
-
     Properties {
+        ["ResourceSetName"] = if (ResourceSetName == null) null else ResourceSetName
         ["Resources"] = if (Resources == null) null else Resources
         ["ResourceSetType"] = if (ResourceSetType == null) null else ResourceSetType
         ["Tags"] = if (Tags == null) null else Tags
-        ["ResourceSetName"] = if (ResourceSetName == null) null else ResourceSetName
     }
 
 }

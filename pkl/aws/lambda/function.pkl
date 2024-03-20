@@ -5,20 +5,22 @@ module aws.lambda.function_
 
 import "../../cloudformation.pkl"
 
-/// The [dead-letter queue](https://docs.aws.amazon.com/lambda/latest/dg/invocation-async.html#dlq) for failed asynchronous invocations.
-open class FunctionDeadLetterConfig {
-    TargetArn: (String(matches(Regex(#"^(arn:(aws[a-zA-Z-]*)?:[a-z0-9-.]+:.*)|()$"#)))|Mapping)?
+/// Details about the connection between a Lambda function and an [Amazon EFS file system](https://docs.aws.amazon.com/lambda/latest/dg/configuration-filesystem.html).
+open class FunctionFileSystemConfig {
+    Arn: String(matches(Regex(#"^arn:aws[a-zA-Z-]*:elasticfilesystem:[a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}:\d{12}:access-point/fsap-[a-f0-9]{17}$"#)))|Mapping
+    LocalMountPath: String(matches(Regex(#"^/mnt/[a-zA-Z0-9-_.]+$"#)))|Mapping
 }
 
-/// The [deployment package](https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-package.html) for a Lambda function. To deploy a function defined as a container image, you specify the location of a container image in the Amazon ECR registry. For a .zip file deployment package, you can specify the location of an object in Amazon S3. For Node.js and Python functions, you can specify the function code inline in the template.
-///
-///  Changes to a deployment package in Amazon S3 or a container image in ECR are not detected automatically during stack updates. To update the function code, change the object key or version in the template.
-open class FunctionCode {
-    S3ObjectVersion: (String|Mapping)?
-    S3Bucket: (String(matches(Regex(#"^[0-9A-Za-z\.\-_]*(?<!\.)$"#)))|Mapping)?
-    ZipFile: (String|Mapping)?
-    S3Key: (String|Mapping)?
-    ImageUri: (String|Mapping)?
+/// The size of the function's ``/tmp`` directory in MB. The default value is 512, but it can be any whole number between 512 and 10,240 MB.
+open class FunctionEphemeralStorage {
+    Size: Int|Mapping
+}
+
+/// Configuration values that override the container image Dockerfile settings. For more information, see [Container image settings](https://docs.aws.amazon.com/lambda/latest/dg/images-create.html#images-parms).
+open class FunctionImageConfig {
+    EntryPoint: (Listing<String|Mapping>)?
+    WorkingDirectory: (String|Mapping)?
+    Command: (Listing<String|Mapping>)?
 }
 
 typealias SnapStartApplyOn = "PublishedVersions"|"None"
@@ -26,23 +28,6 @@ typealias SnapStartApplyOn = "PublishedVersions"|"None"
 /// The function's [SnapStart](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html) setting.
 open class FunctionSnapStart {
     ApplyOn: SnapStartApplyOn|Mapping
-}
-
-typealias SnapStartResponseOptimizationStatus = "On"|"Off"
-
-typealias SnapStartResponseApplyOn = "PublishedVersions"|"None"
-
-/// The function's [SnapStart](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html) setting.
-open class FunctionSnapStartResponse {
-    OptimizationStatus: (SnapStartResponseOptimizationStatus|Mapping)?
-    ApplyOn: (SnapStartResponseApplyOn|Mapping)?
-}
-
-typealias FunctionEnvironmentVariables = Mapping<String, Any>
-
-/// A function's environment variable settings. You can use environment variables to adjust your function's behavior without updating code. An environment variable is a pair of strings that are stored in a function's version-specific configuration.
-open class FunctionEnvironment {
-    Variables: (FunctionEnvironmentVariables)?
 }
 
 typealias RuntimeManagementConfigUpdateRuntimeOn = "Auto"|"FunctionUpdate"|"Manual"
@@ -53,43 +38,29 @@ open class FunctionRuntimeManagementConfig {
     RuntimeVersionArn: (String|Mapping)?
 }
 
-typealias TracingConfigMode = "Active"|"PassThrough"
-
-/// The function's [](https://docs.aws.amazon.com/lambda/latest/dg/services-xray.html) tracing configuration. To sample and record incoming requests, set ``Mode`` to ``Active``.
-open class FunctionTracingConfig {
-    Mode: (TracingConfigMode|Mapping)?
-}
-
-/// The size of the function's ``/tmp`` directory in MB. The default value is 512, but it can be any whole number between 512 and 10,240 MB.
-open class FunctionEphemeralStorage {
-    Size: Int|Mapping
-}
-
-/// Configuration values that override the container image Dockerfile settings. For more information, see [Container image settings](https://docs.aws.amazon.com/lambda/latest/dg/images-create.html#images-parms).
-open class FunctionImageConfig {
-    Command: (Listing<String|Mapping>)?
-    EntryPoint: (Listing<String|Mapping>)?
-    WorkingDirectory: (String|Mapping)?
-}
+typealias LoggingConfigSystemLogLevel = "DEBUG"|"INFO"|"WARN"
 
 typealias LoggingConfigLogFormat = "Text"|"JSON"
 
 typealias LoggingConfigApplicationLogLevel = "TRACE"|"DEBUG"|"INFO"|"WARN"|"ERROR"|"FATAL"
 
-typealias LoggingConfigSystemLogLevel = "DEBUG"|"INFO"|"WARN"
-
 /// The function's Amazon CloudWatch Logs configuration settings.
 open class FunctionLoggingConfig {
+    SystemLogLevel: (LoggingConfigSystemLogLevel|Mapping)?
     LogFormat: (LoggingConfigLogFormat|Mapping)?
     ApplicationLogLevel: (LoggingConfigApplicationLogLevel|Mapping)?
     LogGroup: (String(matches(Regex(#"[\.\-_/#A-Za-z0-9]+"#)))|Mapping)?
-    SystemLogLevel: (LoggingConfigSystemLogLevel|Mapping)?
 }
 
-/// Details about the connection between a Lambda function and an [Amazon EFS file system](https://docs.aws.amazon.com/lambda/latest/dg/configuration-filesystem.html).
-open class FunctionFileSystemConfig {
-    Arn: String(matches(Regex(#"^arn:aws[a-zA-Z-]*:elasticfilesystem:[a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}:\d{12}:access-point/fsap-[a-f0-9]{17}$"#)))|Mapping
-    LocalMountPath: String(matches(Regex(#"^/mnt/[a-zA-Z0-9-_.]+$"#)))|Mapping
+/// The [deployment package](https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-package.html) for a Lambda function. To deploy a function defined as a container image, you specify the location of a container image in the Amazon ECR registry. For a .zip file deployment package, you can specify the location of an object in Amazon S3. For Node.js and Python functions, you can specify the function code inline in the template.
+///
+///  Changes to a deployment package in Amazon S3 or a container image in ECR are not detected automatically during stack updates. To update the function code, change the object key or version in the template.
+open class FunctionCode {
+    ImageUri: (String|Mapping)?
+    S3ObjectVersion: (String|Mapping)?
+    S3Bucket: (String(matches(Regex(#"^[0-9A-Za-z\.\-_]*(?<!\.)$"#)))|Mapping)?
+    ZipFile: (String|Mapping)?
+    S3Key: (String|Mapping)?
 }
 
 /// 
@@ -108,6 +79,35 @@ open class FunctionVpcConfig {
     SubnetIds: (Listing<String|Mapping>)?
 }
 
+/// The [dead-letter queue](https://docs.aws.amazon.com/lambda/latest/dg/invocation-async.html#dlq) for failed asynchronous invocations.
+open class FunctionDeadLetterConfig {
+    TargetArn: (String(matches(Regex(#"^(arn:(aws[a-zA-Z-]*)?:[a-z0-9-.]+:.*)|()$"#)))|Mapping)?
+}
+
+typealias FunctionEnvironmentVariables = Mapping<String, Any>
+
+/// A function's environment variable settings. You can use environment variables to adjust your function's behavior without updating code. An environment variable is a pair of strings that are stored in a function's version-specific configuration.
+open class FunctionEnvironment {
+    Variables: (FunctionEnvironmentVariables)?
+}
+
+typealias SnapStartResponseOptimizationStatus = "On"|"Off"
+
+typealias SnapStartResponseApplyOn = "PublishedVersions"|"None"
+
+/// The function's [SnapStart](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html) setting.
+open class FunctionSnapStartResponse {
+    OptimizationStatus: (SnapStartResponseOptimizationStatus|Mapping)?
+    ApplyOn: (SnapStartResponseApplyOn|Mapping)?
+}
+
+typealias TracingConfigMode = "Active"|"PassThrough"
+
+/// The function's [](https://docs.aws.amazon.com/lambda/latest/dg/services-xray.html) tracing configuration. To sample and record incoming requests, set ``Mode`` to ``Active``.
+open class FunctionTracingConfig {
+    Mode: (TracingConfigMode|Mapping)?
+}
+
 /// The ``AWS::Lambda::Function`` resource creates a Lambda function. To create a function, you need a [deployment package](https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-package.html) and an [execution role](https://docs.aws.amazon.com/lambda/latest/dg/lambda-intro-execution-role.html). The deployment package is a .zip file archive or container image that contains your function code. The execution role grants the function permission to use AWS services, such as Amazon CloudWatch Logs for log streaming and AWS X-Ray for request tracing.
 ///
 ///  You set the package type to ``Image`` if the deployment package is a [container image](https://docs.aws.amazon.com/lambda/latest/dg/lambda-images.html). For a container image, the code property must include the URI of a container image in the Amazon ECR registry. You do not need to specify the handler and runtime properties. 
@@ -120,14 +120,77 @@ open class Function extends cloudformation.Resource {
     Type = "AWS::Lambda::Function"
 
 
-    /// The amount of time (in seconds) that Lambda allows a function to run before stopping it. The default is 3 seconds. The maximum allowed value is 900 seconds. For more information, see [Lambda execution environment](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-context.html).
-    hidden Timeout: (Int|Mapping)?
+    /// The Amazon Resource Name (ARN) of the function's execution role.
+    hidden Role: String(matches(Regex(#"^arn:(aws[a-zA-Z-]*)?:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping
 
-    /// Configuration values that override the container image Dockerfile settings. For more information, see [Container image settings](https://docs.aws.amazon.com/lambda/latest/dg/images-create.html#images-parms).
-    hidden ImageConfig: (FunctionImageConfig)?
+    /// The function's [SnapStart](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html) setting.
+    hidden SnapStart: (FunctionSnapStart)?
+
+    /// To enable code signing for this function, specify the ARN of a code-signing configuration. A code-signing configuration includes a set of signing profiles, which define the trusted publishers for this function.
+    hidden CodeSigningConfigArn: (String(matches(Regex(#"arn:(aws[a-zA-Z-]*)?:lambda:[a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}:\d{12}:code-signing-config:csc-[a-z0-9]{17}"#)))|Mapping)?
+
+    /// The name of the method within your code that Lambda calls to run your function. Handler is required if the deployment package is a .zip file archive. The format includes the file name. It can also include namespaces and other qualifiers, depending on the runtime. For more information, see [Lambda programming model](https://docs.aws.amazon.com/lambda/latest/dg/foundation-progmodel.html).
+    hidden Handler: (String(matches(Regex(#"^[^\s]+$"#)))|Mapping)?
+
+    /// The function's Amazon CloudWatch Logs configuration settings.
+    hidden LoggingConfig: (FunctionLoggingConfig)?
+
+    /// The size of the function's ``/tmp`` directory in MB. The default value is 512, but it can be any whole number between 512 and 10,240 MB.
+    hidden EphemeralStorage: (FunctionEphemeralStorage)?
 
     /// A dead-letter queue configuration that specifies the queue or topic where Lambda sends asynchronous events when they fail processing. For more information, see [Dead-letter queues](https://docs.aws.amazon.com/lambda/latest/dg/invocation-async.html#invocation-dlq).
     hidden DeadLetterConfig: (FunctionDeadLetterConfig)?
+
+    /// Set ``Mode`` to ``Active`` to sample and trace a subset of incoming requests with [X-Ray](https://docs.aws.amazon.com/lambda/latest/dg/services-xray.html).
+    hidden TracingConfig: (FunctionTracingConfig)?
+
+    /// The identifier of the function's [runtime](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html). Runtime is required if the deployment package is a .zip file archive.
+    ///
+    ///  The following list includes deprecated runtimes. For more information, see [Runtime deprecation policy](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html#runtime-support-policy).
+    hidden Runtime: (String|Mapping)?
+
+    /// The ARN of the KMSlong (KMS) customer managed key that's used to encrypt your function's [environment variables](https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html#configuration-envvars-encryption). When [Lambda SnapStart](https://docs.aws.amazon.com/lambda/latest/dg/snapstart-security.html) is activated, Lambda also uses this key is to encrypt your function's snapshot. If you deploy your function using a container image, Lambda also uses this key to encrypt your function when it's deployed. Note that this is not the same key that's used to protect your container image in the Amazon Elastic Container Registry (Amazon ECR). If you don't provide a customer managed key, Lambda uses a default service key.
+    hidden KmsKeyArn: (String(matches(Regex(#"^(arn:(aws[a-zA-Z-]*)?:[a-z0-9-.]+:.*)|()$"#)))|Mapping)?
+
+    /// A list of [function layers](https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html) to add to the function's execution environment. Specify each layer by its ARN, including the version.
+    hidden Layers: (Listing<String|Mapping>)?
+
+    /// A list of [tags](https://docs.aws.amazon.com/lambda/latest/dg/tagging.html) to apply to the function.
+    hidden Tags: (Listing<FunctionTag>)?
+
+    /// The amount of [memory available to the function](https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-common.html#configuration-memory-console) at runtime. Increasing the function memory also increases its CPU allocation. The default value is 128 MB. The value can be any multiple of 1 MB. Note that new AWS accounts have reduced concurrency and memory quotas. AWS raises these quotas automatically based on your usage. You can also request a quota increase.
+    hidden MemorySize: (Int|Mapping)?
+
+    /// The number of simultaneous executions to reserve for the function.
+    hidden ReservedConcurrentExecutions: (Int|Mapping)?
+
+    /// The name of the Lambda function, up to 64 characters in length. If you don't specify a name, CFN generates one.
+    ///
+    ///  If you specify a name, you cannot perform updates that require replacement of this resource. You can perform updates that require no or some interruption. If you must replace the resource, specify a new name.
+    hidden FunctionName: (String|Mapping)?
+
+    /// A description of the function.
+    hidden Description: (String|Mapping)?
+
+    /// Connection settings for an Amazon EFS file system. To connect a function to a file system, a mount target must be available in every Availability Zone that your function connects to. If your template contains an [AWS::EFS::MountTarget](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-efs-mounttarget.html) resource, you must also specify a ``DependsOn`` attribute to ensure that the mount target is created or updated before the function.
+    ///
+    ///  For more information about using the ``DependsOn`` attribute, see [DependsOn Attribute](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-dependson.html).
+    hidden FileSystemConfigs: (Listing<FunctionFileSystemConfig>)?
+
+    /// The code for the function.
+    hidden Code: FunctionCode
+
+    /// The amount of time (in seconds) that Lambda allows a function to run before stopping it. The default is 3 seconds. The maximum allowed value is 900 seconds. For more information, see [Lambda execution environment](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-context.html).
+    hidden Timeout: (Int|Mapping)?
+
+    /// Environment variables that are accessible from function code during execution.
+    hidden Environment: (FunctionEnvironment)?
+
+    /// The instruction set architecture that the function supports. Enter a string array with one of the valid values (arm64 or x86_64). The default value is ``x86_64``.
+    hidden Architectures: (Listing<FunctionArchitectures|Mapping>)?
+
+    /// For network connectivity to AWS resources in a VPC, specify a list of security groups and subnets in the VPC. When you connect a function to a VPC, it can access resources and the internet only through that VPC. For more information, see [Configuring a Lambda function to access resources in a VPC](https://docs.aws.amazon.com/lambda/latest/dg/configuration-vpc.html).
+    hidden VpcConfig: (FunctionVpcConfig)?
 
     /// Sets the runtime management configuration for a function's version. For more information, see [Runtime updates](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html).
     hidden RuntimeManagementConfig: (FunctionRuntimeManagementConfig)?
@@ -135,103 +198,40 @@ open class Function extends cloudformation.Resource {
     /// The type of deployment package. Set to ``Image`` for container image and set ``Zip`` for .zip file archive.
     hidden PackageType: (FunctionPackageType|Mapping)?
 
-    /// A list of [function layers](https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html) to add to the function's execution environment. Specify each layer by its ARN, including the version.
-    hidden Layers: (Listing<String|Mapping>)?
-
-    /// The amount of [memory available to the function](https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-common.html#configuration-memory-console) at runtime. Increasing the function memory also increases its CPU allocation. The default value is 128 MB. The value can be any multiple of 1 MB. Note that new AWS accounts have reduced concurrency and memory quotas. AWS raises these quotas automatically based on your usage. You can also request a quota increase.
-    hidden MemorySize: (Int|Mapping)?
-
-    /// The function's Amazon CloudWatch Logs configuration settings.
-    hidden LoggingConfig: (FunctionLoggingConfig)?
-
-    /// The number of simultaneous executions to reserve for the function.
-    hidden ReservedConcurrentExecutions: (Int|Mapping)?
-
-    /// The function's [SnapStart](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html) setting.
-    hidden SnapStart: (FunctionSnapStart)?
-
-    /// Connection settings for an Amazon EFS file system. To connect a function to a file system, a mount target must be available in every Availability Zone that your function connects to. If your template contains an [AWS::EFS::MountTarget](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-efs-mounttarget.html) resource, you must also specify a ``DependsOn`` attribute to ensure that the mount target is created or updated before the function.
-    ///
-    ///  For more information about using the ``DependsOn`` attribute, see [DependsOn Attribute](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-dependson.html).
-    hidden FileSystemConfigs: (Listing<FunctionFileSystemConfig>)?
-
-    /// The name of the Lambda function, up to 64 characters in length. If you don't specify a name, CFN generates one.
-    ///
-    ///  If you specify a name, you cannot perform updates that require replacement of this resource. You can perform updates that require no or some interruption. If you must replace the resource, specify a new name.
-    hidden FunctionName: (String|Mapping)?
-
-    /// The identifier of the function's [runtime](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html). Runtime is required if the deployment package is a .zip file archive.
-    ///
-    ///  The following list includes deprecated runtimes. For more information, see [Runtime deprecation policy](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html#runtime-support-policy).
-    hidden Runtime: (String|Mapping)?
-
-    /// The code for the function.
-    hidden Code: FunctionCode
-
-    /// Environment variables that are accessible from function code during execution.
-    hidden Environment: (FunctionEnvironment)?
-
-    /// The size of the function's ``/tmp`` directory in MB. The default value is 512, but it can be any whole number between 512 and 10,240 MB.
-    hidden EphemeralStorage: (FunctionEphemeralStorage)?
-
-    /// For network connectivity to AWS resources in a VPC, specify a list of security groups and subnets in the VPC. When you connect a function to a VPC, it can access resources and the internet only through that VPC. For more information, see [Configuring a Lambda function to access resources in a VPC](https://docs.aws.amazon.com/lambda/latest/dg/configuration-vpc.html).
-    hidden VpcConfig: (FunctionVpcConfig)?
-
-    /// The instruction set architecture that the function supports. Enter a string array with one of the valid values (arm64 or x86_64). The default value is ``x86_64``.
-    hidden Architectures: (Listing<FunctionArchitectures|Mapping>)?
-
-    /// A description of the function.
-    hidden Description: (String|Mapping)?
-
-    /// The Amazon Resource Name (ARN) of the function's execution role.
-    hidden Role: String(matches(Regex(#"^arn:(aws[a-zA-Z-]*)?:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping
-
-    /// To enable code signing for this function, specify the ARN of a code-signing configuration. A code-signing configuration includes a set of signing profiles, which define the trusted publishers for this function.
-    hidden CodeSigningConfigArn: (String(matches(Regex(#"arn:(aws[a-zA-Z-]*)?:lambda:[a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}:\d{12}:code-signing-config:csc-[a-z0-9]{17}"#)))|Mapping)?
-
-    /// The ARN of the KMSlong (KMS) customer managed key that's used to encrypt your function's [environment variables](https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html#configuration-envvars-encryption). When [Lambda SnapStart](https://docs.aws.amazon.com/lambda/latest/dg/snapstart-security.html) is activated, Lambda also uses this key is to encrypt your function's snapshot. If you deploy your function using a container image, Lambda also uses this key to encrypt your function when it's deployed. Note that this is not the same key that's used to protect your container image in the Amazon Elastic Container Registry (Amazon ECR). If you don't provide a customer managed key, Lambda uses a default service key.
-    hidden KmsKeyArn: (String(matches(Regex(#"^(arn:(aws[a-zA-Z-]*)?:[a-z0-9-.]+:.*)|()$"#)))|Mapping)?
-
-    /// A list of [tags](https://docs.aws.amazon.com/lambda/latest/dg/tagging.html) to apply to the function.
-    hidden Tags: (Listing<FunctionTag>)?
-
-    /// The name of the method within your code that Lambda calls to run your function. Handler is required if the deployment package is a .zip file archive. The format includes the file name. It can also include namespaces and other qualifiers, depending on the runtime. For more information, see [Lambda programming model](https://docs.aws.amazon.com/lambda/latest/dg/foundation-progmodel.html).
-    hidden Handler: (String(matches(Regex(#"^[^\s]+$"#)))|Mapping)?
-
-    /// Set ``Mode`` to ``Active`` to sample and trace a subset of incoming requests with [X-Ray](https://docs.aws.amazon.com/lambda/latest/dg/services-xray.html).
-    hidden TracingConfig: (FunctionTracingConfig)?
+    /// Configuration values that override the container image Dockerfile settings. For more information, see [Container image settings](https://docs.aws.amazon.com/lambda/latest/dg/images-create.html#images-parms).
+    hidden ImageConfig: (FunctionImageConfig)?
 
     Properties {
-        ["Timeout"] = if (Timeout == null) null else Timeout
-        ["ImageConfig"] = if (ImageConfig == null) null else ImageConfig
+        ["Role"] = if (Role == null) null else Role
+        ["SnapStart"] = if (SnapStart == null) null else SnapStart
+        ["CodeSigningConfigArn"] = if (CodeSigningConfigArn == null) null else CodeSigningConfigArn
+        ["Handler"] = if (Handler == null) null else Handler
+        ["LoggingConfig"] = if (LoggingConfig == null) null else LoggingConfig
+        ["EphemeralStorage"] = if (EphemeralStorage == null) null else EphemeralStorage
         ["DeadLetterConfig"] = if (DeadLetterConfig == null) null else DeadLetterConfig
+        ["TracingConfig"] = if (TracingConfig == null) null else TracingConfig
+        ["Runtime"] = if (Runtime == null) null else Runtime
+        ["KmsKeyArn"] = if (KmsKeyArn == null) null else KmsKeyArn
+        ["Layers"] = if (Layers == null) null else Layers
+        ["Tags"] = if (Tags == null) null else Tags
+        ["MemorySize"] = if (MemorySize == null) null else MemorySize
+        ["ReservedConcurrentExecutions"] = if (ReservedConcurrentExecutions == null) null else ReservedConcurrentExecutions
+        ["FunctionName"] = if (FunctionName == null) null else FunctionName
+        ["Description"] = if (Description == null) null else Description
+        ["FileSystemConfigs"] = if (FileSystemConfigs == null) null else FileSystemConfigs
+        ["Code"] = if (Code == null) null else Code
+        ["Timeout"] = if (Timeout == null) null else Timeout
+        ["Environment"] = if (Environment == null) null else Environment
+        ["Architectures"] = if (Architectures == null) null else Architectures
+        ["VpcConfig"] = if (VpcConfig == null) null else VpcConfig
         ["RuntimeManagementConfig"] = if (RuntimeManagementConfig == null) null else RuntimeManagementConfig
         ["PackageType"] = if (PackageType == null) null else PackageType
-        ["Layers"] = if (Layers == null) null else Layers
-        ["MemorySize"] = if (MemorySize == null) null else MemorySize
-        ["LoggingConfig"] = if (LoggingConfig == null) null else LoggingConfig
-        ["ReservedConcurrentExecutions"] = if (ReservedConcurrentExecutions == null) null else ReservedConcurrentExecutions
-        ["SnapStart"] = if (SnapStart == null) null else SnapStart
-        ["FileSystemConfigs"] = if (FileSystemConfigs == null) null else FileSystemConfigs
-        ["FunctionName"] = if (FunctionName == null) null else FunctionName
-        ["Runtime"] = if (Runtime == null) null else Runtime
-        ["Code"] = if (Code == null) null else Code
-        ["Environment"] = if (Environment == null) null else Environment
-        ["EphemeralStorage"] = if (EphemeralStorage == null) null else EphemeralStorage
-        ["VpcConfig"] = if (VpcConfig == null) null else VpcConfig
-        ["Architectures"] = if (Architectures == null) null else Architectures
-        ["Description"] = if (Description == null) null else Description
-        ["Role"] = if (Role == null) null else Role
-        ["CodeSigningConfigArn"] = if (CodeSigningConfigArn == null) null else CodeSigningConfigArn
-        ["KmsKeyArn"] = if (KmsKeyArn == null) null else KmsKeyArn
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Handler"] = if (Handler == null) null else Handler
-        ["TracingConfig"] = if (TracingConfig == null) null else TracingConfig
+        ["ImageConfig"] = if (ImageConfig == null) null else ImageConfig
     }
 
 }
 
 
-typealias FunctionPackageType = "Image"|"Zip"
-
 typealias FunctionArchitectures = "x86_64"|"arm64"
+
+typealias FunctionPackageType = "Image"|"Zip"

@@ -5,12 +5,6 @@ module aws.omics.variantstore
 
 import "../../cloudformation.pkl"
 
-typealias VariantStoreStoreStatus = String|Mapping
-
-
-typealias VariantStoreTagMap = Mapping<String, Any>
-
-
 typealias VariantStoreEncryptionType = String|Mapping
 
 
@@ -25,6 +19,12 @@ open class VariantStoreSseConfig {
     KeyArn: (String(matches(Regex(#"arn:([^:\n]*):([^:\n]*):([^:\n]*):([0-9]{12}):([^:\n]*)"#)))|Mapping)?
 }
 
+typealias VariantStoreStoreStatus = String|Mapping
+
+
+typealias VariantStoreTagMap = Mapping<String, Any>
+
+
 /// Definition of AWS::Omics::VariantStore Resource Type
 open class VariantStore extends cloudformation.Resource {
 
@@ -32,26 +32,26 @@ open class VariantStore extends cloudformation.Resource {
 
 
     /// 
-    hidden Name: String(matches(Regex(#"^([a-z]){1}([a-z0-9_]){2,254}"#)))|Mapping
+    hidden Description: (String|Mapping)?
 
     /// 
-    hidden SseConfig: (VariantStoreSseConfig)?
+    hidden Name: String(matches(Regex(#"^([a-z]){1}([a-z0-9_]){2,254}"#)))|Mapping
 
     /// 
     hidden Tags: (VariantStoreTagMap)?
 
     /// 
-    hidden Description: (String|Mapping)?
-
-    /// 
     hidden Reference: VariantStoreReferenceItem
 
+    /// 
+    hidden SseConfig: (VariantStoreSseConfig)?
+
     Properties {
-        ["Name"] = if (Name == null) null else Name
-        ["SseConfig"] = if (SseConfig == null) null else SseConfig
-        ["Tags"] = if (Tags == null) null else Tags
         ["Description"] = if (Description == null) null else Description
+        ["Name"] = if (Name == null) null else Name
+        ["Tags"] = if (Tags == null) null else Tags
         ["Reference"] = if (Reference == null) null else Reference
+        ["SseConfig"] = if (SseConfig == null) null else SseConfig
     }
 
 }

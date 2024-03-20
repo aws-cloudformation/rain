@@ -5,66 +5,45 @@ module aws.scheduler.schedule
 
 import "../../cloudformation.pkl"
 
-/// This structure specifies the VPC subnets and security groups for the task, and whether a public IP address is to be used. This structure is relevant only for ECS tasks that use the awsvpc network mode.
-open class ScheduleAwsVpcConfiguration {
-    Subnets: Listing<String|Mapping>
-    SecurityGroups: (Listing<String|Mapping>)?
-    AssignPublicIp: (ScheduleAssignPublicIp)?
-}
-
 /// The custom parameters to be used when the target is an Amazon ECS task.
 open class ScheduleEcsParameters {
+    ReferenceId: (String|Mapping)?
+    NetworkConfiguration: (ScheduleNetworkConfiguration)?
     EnableExecuteCommand: (Boolean|Mapping)?
-    TaskCount: (Number|Mapping)?
-    PlatformVersion: (String|Mapping)?
+    PlacementConstraints: (Listing<SchedulePlacementConstraint>)?
     CapacityProviderStrategy: (Listing<ScheduleCapacityProviderStrategyItem>)?
     PropagateTags: (SchedulePropagateTags)?
     TaskDefinitionArn: String|Mapping
-    NetworkConfiguration: (ScheduleNetworkConfiguration)?
-    Group: (String|Mapping)?
-    PlacementStrategy: (Listing<SchedulePlacementStrategy>)?
-    ReferenceId: (String|Mapping)?
+    TaskCount: (Number|Mapping)?
+    PlatformVersion: (String|Mapping)?
     LaunchType: (ScheduleLaunchType)?
-    PlacementConstraints: (Listing<SchedulePlacementConstraint>)?
+    Group: (String|Mapping)?
     Tags: (Listing<ScheduleTagMap>)?
     EnableECSManagedTags: (Boolean|Mapping)?
-}
-
-/// Name/Value pair of a parameter to start execution of a SageMaker Model Building Pipeline.
-open class ScheduleSageMakerPipelineParameter {
-    Name: String(matches(Regex(#"^[A-Za-z0-9\-_]*$"#)))|Mapping
-    Value: String|Mapping
-}
-
-/// Contains the message group ID to use when the target is a FIFO queue. If you specify an SQS FIFO queue as a target, the queue must have content-based deduplication enabled.
-open class ScheduleSqsParameters {
-    MessageGroupId: (String|Mapping)?
-}
-
-typealias ScheduleTagMap = Mapping<String, Any>
-
-
-typealias SchedulePlacementConstraintType = String|Mapping
-
-
-/// A RetryPolicy object that includes information about the retry policy settings.
-open class ScheduleRetryPolicy {
-    MaximumEventAgeInSeconds: (Number|Mapping)?
-    MaximumRetryAttempts: (Number|Mapping)?
+    PlacementStrategy: (Listing<SchedulePlacementStrategy>)?
 }
 
 /// The schedule target.
 open class ScheduleTarget {
-    EventBridgeParameters: (ScheduleEventBridgeParameters)?
     KinesisParameters: (ScheduleKinesisParameters)?
     SageMakerPipelineParameters: (ScheduleSageMakerPipelineParameters)?
-    RetryPolicy: (ScheduleRetryPolicy)?
-    Input: (String|Mapping)?
-    EcsParameters: (ScheduleEcsParameters)?
     SqsParameters: (ScheduleSqsParameters)?
-    Arn: String|Mapping
     RoleArn: String(matches(Regex(#"^arn:aws(-[a-z]+)?:iam::\d{12}:role\/[\w+=,.@\/-]+$"#)))|Mapping
+    RetryPolicy: (ScheduleRetryPolicy)?
+    EcsParameters: (ScheduleEcsParameters)?
+    EventBridgeParameters: (ScheduleEventBridgeParameters)?
+    Arn: String|Mapping
     DeadLetterConfig: (ScheduleDeadLetterConfig)?
+    Input: (String|Mapping)?
+}
+
+typealias SchedulePlacementConstraintType = String|Mapping
+
+
+/// The task placement strategy for a task or service.
+open class SchedulePlacementStrategy {
+    Type: (SchedulePlacementStrategyType)?
+    Field: (String|Mapping)?
 }
 
 typealias ScheduleFlexibleTimeWindowMode = String|Mapping
@@ -73,9 +52,45 @@ typealias ScheduleFlexibleTimeWindowMode = String|Mapping
 typealias SchedulePlacementStrategyType = String|Mapping
 
 
+/// This structure specifies the network configuration for an ECS task.
+open class ScheduleNetworkConfiguration {
+    AwsvpcConfiguration: (ScheduleAwsVpcConfiguration)?
+}
+
+/// Contains the message group ID to use when the target is a FIFO queue. If you specify an SQS FIFO queue as a target, the queue must have content-based deduplication enabled.
+open class ScheduleSqsParameters {
+    MessageGroupId: (String|Mapping)?
+}
+
+/// The details of a capacity provider strategy.
+open class ScheduleCapacityProviderStrategyItem {
+    Weight: (Number|Mapping)?
+    Base: (Number|Mapping)?
+    CapacityProvider: String|Mapping
+}
+
 /// These are custom parameters to use when the target is a SageMaker Model Building Pipeline that starts based on AWS EventBridge Scheduler schedules.
 open class ScheduleSageMakerPipelineParameters {
     PipelineParameterList: (Listing<ScheduleSageMakerPipelineParameter>)?
+}
+
+/// This structure specifies the VPC subnets and security groups for the task, and whether a public IP address is to be used. This structure is relevant only for ECS tasks that use the awsvpc network mode.
+open class ScheduleAwsVpcConfiguration {
+    AssignPublicIp: (ScheduleAssignPublicIp)?
+    Subnets: Listing<String|Mapping>
+    SecurityGroups: (Listing<String|Mapping>)?
+}
+
+/// Name/Value pair of a parameter to start execution of a SageMaker Model Building Pipeline.
+open class ScheduleSageMakerPipelineParameter {
+    Name: String(matches(Regex(#"^[A-Za-z0-9\-_]*$"#)))|Mapping
+    Value: String|Mapping
+}
+
+/// EventBridge PutEvent predefined target type.
+open class ScheduleEventBridgeParameters {
+    DetailType: String|Mapping
+    Source: String(matches(Regex(#"^(?=[/\.\-_A-Za-z0-9]+)((?!aws\.).*)|(\$(\.[\w_-]+(\[(\d+|\*)\])*)*)$"#)))|Mapping
 }
 
 typealias SchedulePropagateTags = String|Mapping
@@ -84,44 +99,10 @@ typealias SchedulePropagateTags = String|Mapping
 typealias ScheduleLaunchType = String|Mapping
 
 
-typealias ScheduleAssignPublicIp = String|Mapping
-
-
-/// A DeadLetterConfig object that contains information about a dead-letter queue configuration.
-open class ScheduleDeadLetterConfig {
-    Arn: (String(matches(Regex(#"^arn:aws(-[a-z]+)?:sqs:[a-z0-9\-]+:\d{12}:[a-zA-Z0-9\-_]+$"#)))|Mapping)?
-}
-
-typealias ScheduleScheduleState = String|Mapping
-
-
-/// EventBridge PutEvent predefined target type.
-open class ScheduleEventBridgeParameters {
-    DetailType: String|Mapping
-    Source: String(matches(Regex(#"^(?=[/\.\-_A-Za-z0-9]+)((?!aws\.).*)|(\$(\.[\w_-]+(\[(\d+|\*)\])*)*)$"#)))|Mapping
-}
-
-/// The task placement strategy for a task or service.
-open class SchedulePlacementStrategy {
-    Type: (SchedulePlacementStrategyType)?
-    Field: (String|Mapping)?
-}
-
-/// This structure specifies the network configuration for an ECS task.
-open class ScheduleNetworkConfiguration {
-    AwsvpcConfiguration: (ScheduleAwsVpcConfiguration)?
-}
-
-/// The custom parameter you can use to control the shard to which EventBridge Scheduler sends the event.
-open class ScheduleKinesisParameters {
-    PartitionKey: String|Mapping
-}
-
-/// The details of a capacity provider strategy.
-open class ScheduleCapacityProviderStrategyItem {
-    CapacityProvider: String|Mapping
-    Weight: (Number|Mapping)?
-    Base: (Number|Mapping)?
+/// A RetryPolicy object that includes information about the retry policy settings.
+open class ScheduleRetryPolicy {
+    MaximumEventAgeInSeconds: (Number|Mapping)?
+    MaximumRetryAttempts: (Number|Mapping)?
 }
 
 /// Flexible time window allows configuration of a window within which a schedule can be invoked
@@ -130,11 +111,30 @@ open class ScheduleFlexibleTimeWindow {
     MaximumWindowInMinutes: (Number|Mapping)?
 }
 
+typealias ScheduleTagMap = Mapping<String, Any>
+
+
+/// A DeadLetterConfig object that contains information about a dead-letter queue configuration.
+open class ScheduleDeadLetterConfig {
+    Arn: (String(matches(Regex(#"^arn:aws(-[a-z]+)?:sqs:[a-z0-9\-]+:\d{12}:[a-zA-Z0-9\-_]+$"#)))|Mapping)?
+}
+
 /// An object representing a constraint on task placement.
 open class SchedulePlacementConstraint {
     Type: (SchedulePlacementConstraintType)?
     Expression: (String|Mapping)?
 }
+
+typealias ScheduleScheduleState = String|Mapping
+
+
+/// The custom parameter you can use to control the shard to which EventBridge Scheduler sends the event.
+open class ScheduleKinesisParameters {
+    PartitionKey: String|Mapping
+}
+
+typealias ScheduleAssignPublicIp = String|Mapping
+
 
 /// Definition of AWS::Scheduler::Schedule Resource Type
 open class Schedule extends cloudformation.Resource {
@@ -142,26 +142,14 @@ open class Schedule extends cloudformation.Resource {
     Type = "AWS::Scheduler::Schedule"
 
 
-    /// 
-    hidden Target: ScheduleTarget
-
-    /// 
-    hidden FlexibleTimeWindow: ScheduleFlexibleTimeWindow
-
-    /// 
-    hidden Name: (String(matches(Regex(#"^[0-9a-zA-Z-_.]+$"#)))|Mapping)?
-
-    /// The scheduling expression.
-    hidden ScheduleExpression: String|Mapping
+    /// The date, in UTC, before which the schedule can invoke its target. Depending on the schedule's recurrence expression, invocations might stop on, or before, the EndDate you specify.
+    hidden EndDate: (String|Mapping)?
 
     /// The name of the schedule group to associate with this schedule. If you omit this, the default schedule group is used.
     hidden GroupName: (String(matches(Regex(#"^[0-9a-zA-Z-_.]+$"#)))|Mapping)?
 
-    /// The ARN for a KMS Key that will be used to encrypt customer data.
-    hidden KmsKeyArn: (String(matches(Regex(#"^arn:aws(-[a-z]+)?:kms:[a-z0-9\-]+:\d{12}:(key|alias)\/[0-9a-zA-Z-_]*$"#)))|Mapping)?
-
-    /// The timezone in which the scheduling expression is evaluated.
-    hidden ScheduleExpressionTimezone: (String|Mapping)?
+    /// The scheduling expression.
+    hidden ScheduleExpression: String|Mapping
 
     /// The date, in UTC, after which the schedule can begin invoking its target. Depending on the schedule's recurrence expression, invocations might occur on, or after, the StartDate you specify.
     hidden StartDate: (String|Mapping)?
@@ -169,24 +157,36 @@ open class Schedule extends cloudformation.Resource {
     /// 
     hidden State: (ScheduleScheduleState)?
 
+    /// 
+    hidden Target: ScheduleTarget
+
     /// The description of the schedule.
     hidden Description: (String|Mapping)?
 
-    /// The date, in UTC, before which the schedule can invoke its target. Depending on the schedule's recurrence expression, invocations might stop on, or before, the EndDate you specify.
-    hidden EndDate: (String|Mapping)?
+    /// 
+    hidden FlexibleTimeWindow: ScheduleFlexibleTimeWindow
+
+    /// The ARN for a KMS Key that will be used to encrypt customer data.
+    hidden KmsKeyArn: (String(matches(Regex(#"^arn:aws(-[a-z]+)?:kms:[a-z0-9\-]+:\d{12}:(key|alias)\/[0-9a-zA-Z-_]*$"#)))|Mapping)?
+
+    /// 
+    hidden Name: (String(matches(Regex(#"^[0-9a-zA-Z-_.]+$"#)))|Mapping)?
+
+    /// The timezone in which the scheduling expression is evaluated.
+    hidden ScheduleExpressionTimezone: (String|Mapping)?
 
     Properties {
-        ["Target"] = if (Target == null) null else Target
-        ["FlexibleTimeWindow"] = if (FlexibleTimeWindow == null) null else FlexibleTimeWindow
-        ["Name"] = if (Name == null) null else Name
-        ["ScheduleExpression"] = if (ScheduleExpression == null) null else ScheduleExpression
+        ["EndDate"] = if (EndDate == null) null else EndDate
         ["GroupName"] = if (GroupName == null) null else GroupName
-        ["KmsKeyArn"] = if (KmsKeyArn == null) null else KmsKeyArn
-        ["ScheduleExpressionTimezone"] = if (ScheduleExpressionTimezone == null) null else ScheduleExpressionTimezone
+        ["ScheduleExpression"] = if (ScheduleExpression == null) null else ScheduleExpression
         ["StartDate"] = if (StartDate == null) null else StartDate
         ["State"] = if (State == null) null else State
+        ["Target"] = if (Target == null) null else Target
         ["Description"] = if (Description == null) null else Description
-        ["EndDate"] = if (EndDate == null) null else EndDate
+        ["FlexibleTimeWindow"] = if (FlexibleTimeWindow == null) null else FlexibleTimeWindow
+        ["KmsKeyArn"] = if (KmsKeyArn == null) null else KmsKeyArn
+        ["Name"] = if (Name == null) null else Name
+        ["ScheduleExpressionTimezone"] = if (ScheduleExpressionTimezone == null) null else ScheduleExpressionTimezone
     }
 
 }

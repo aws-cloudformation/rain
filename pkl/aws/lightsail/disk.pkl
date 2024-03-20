@@ -7,8 +7,8 @@ import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
 open class DiskTag {
-    Value: (String|Mapping)?
     Key: String|Mapping
+    Value: (String|Mapping)?
 }
 
 /// An object that represents additional parameters when enabling or modifying the automatic snapshot add-on
@@ -27,8 +27,8 @@ open class DiskAddOn {
 
 /// Location of a resource.
 open class DiskLocation {
-    AvailabilityZone: (String|Mapping)?
     RegionName: (String|Mapping)?
+    AvailabilityZone: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::Lightsail::Disk
@@ -37,14 +37,8 @@ open class Disk extends cloudformation.Resource {
     Type = "AWS::Lightsail::Disk"
 
 
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<DiskTag>)?
-
     /// The names to use for your new Lightsail disk.
     hidden DiskName: String(matches(Regex(#"^[a-zA-Z0-9][\w\-.]*[a-zA-Z0-9]$"#)))|Mapping
-
-    /// Size of the Lightsail disk
-    hidden SizeInGb: Int|Mapping
 
     /// The Availability Zone in which to create your instance. Use the following format: us-east-2a (case sensitive). Be sure to add the include Availability Zones parameter to your request.
     hidden AvailabilityZone: (String|Mapping)?
@@ -55,13 +49,19 @@ open class Disk extends cloudformation.Resource {
     /// An array of objects representing the add-ons to enable for the new instance.
     hidden AddOns: (Listing<DiskAddOn>)?
 
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<DiskTag>)?
+
+    /// Size of the Lightsail disk
+    hidden SizeInGb: Int|Mapping
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
         ["DiskName"] = if (DiskName == null) null else DiskName
-        ["SizeInGb"] = if (SizeInGb == null) null else SizeInGb
         ["AvailabilityZone"] = if (AvailabilityZone == null) null else AvailabilityZone
         ["Location"] = if (Location == null) null else Location
         ["AddOns"] = if (AddOns == null) null else AddOns
+        ["Tags"] = if (Tags == null) null else Tags
+        ["SizeInGb"] = if (SizeInGb == null) null else SizeInGb
     }
 
 }

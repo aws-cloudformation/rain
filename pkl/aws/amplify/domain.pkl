@@ -5,6 +5,15 @@ module aws.amplify.domain
 
 import "../../cloudformation.pkl"
 
+typealias CertificateCertificateType = "AMPLIFY_MANAGED"|"CUSTOM"
+
+/// 
+open class DomainCertificate {
+    CertificateType: (CertificateCertificateType|Mapping)?
+    CertificateArn: (String(matches(Regex(#""^arn:aws:acm:[a-z0-9-]+:\d{12}:certificate\/.+$""#)))|Mapping)?
+    CertificateVerificationDNSRecord: (String|Mapping)?
+}
+
 /// 
 open class DomainSubDomainSetting {
     BranchName: String(matches(Regex(#"(?s).+"#)))|Mapping
@@ -19,15 +28,6 @@ open class DomainCertificateSettings {
     CustomCertificateArn: (String(matches(Regex(#"^arn:aws:acm:[a-z0-9-]+:\d{12}:certificate\/.+$"#)))|Mapping)?
 }
 
-typealias CertificateCertificateType = "AMPLIFY_MANAGED"|"CUSTOM"
-
-/// 
-open class DomainCertificate {
-    CertificateType: (CertificateCertificateType|Mapping)?
-    CertificateArn: (String(matches(Regex(#""^arn:aws:acm:[a-z0-9-]+:\d{12}:certificate\/.+$""#)))|Mapping)?
-    CertificateVerificationDNSRecord: (String|Mapping)?
-}
-
 /// The AWS::Amplify::Domain resource allows you to connect a custom domain to your app.
 open class Domain extends cloudformation.Resource {
 
@@ -35,10 +35,19 @@ open class Domain extends cloudformation.Resource {
 
 
     /// 
-    hidden UpdateStatus: (String|Mapping)?
+    hidden DomainName: String(matches(Regex(#"^(((?!-)[A-Za-z0-9-]{0,62}[A-Za-z0-9])\.)+((?!-)[A-Za-z0-9-]{1,62}[A-Za-z0-9])(\.)?$"#)))|Mapping
 
     /// 
     hidden EnableAutoSubDomain: (Boolean|Mapping)?
+
+    /// 
+    hidden SubDomainSettings: Listing<DomainSubDomainSetting>
+
+    /// 
+    hidden AppId: String(matches(Regex(#"d[a-z0-9]+"#)))|Mapping
+
+    /// 
+    hidden AutoSubDomainIAMRole: (String(matches(Regex(#"^$|^arn:.+:iam::\d{12}:role.+"#)))|Mapping)?
 
     /// 
     hidden AutoSubDomainCreationPatterns: (Listing<String|Mapping>)?
@@ -50,27 +59,18 @@ open class Domain extends cloudformation.Resource {
     hidden CertificateSettings: (DomainCertificateSettings)?
 
     /// 
-    hidden AppId: String(matches(Regex(#"d[a-z0-9]+"#)))|Mapping
-
-    /// 
-    hidden AutoSubDomainIAMRole: (String(matches(Regex(#"^$|^arn:.+:iam::\d{12}:role.+"#)))|Mapping)?
-
-    /// 
-    hidden DomainName: String(matches(Regex(#"^(((?!-)[A-Za-z0-9-]{0,62}[A-Za-z0-9])\.)+((?!-)[A-Za-z0-9-]{1,62}[A-Za-z0-9])(\.)?$"#)))|Mapping
-
-    /// 
-    hidden SubDomainSettings: Listing<DomainSubDomainSetting>
+    hidden UpdateStatus: (String|Mapping)?
 
     Properties {
-        ["UpdateStatus"] = if (UpdateStatus == null) null else UpdateStatus
+        ["DomainName"] = if (DomainName == null) null else DomainName
         ["EnableAutoSubDomain"] = if (EnableAutoSubDomain == null) null else EnableAutoSubDomain
+        ["SubDomainSettings"] = if (SubDomainSettings == null) null else SubDomainSettings
+        ["AppId"] = if (AppId == null) null else AppId
+        ["AutoSubDomainIAMRole"] = if (AutoSubDomainIAMRole == null) null else AutoSubDomainIAMRole
         ["AutoSubDomainCreationPatterns"] = if (AutoSubDomainCreationPatterns == null) null else AutoSubDomainCreationPatterns
         ["Certificate"] = if (Certificate == null) null else Certificate
         ["CertificateSettings"] = if (CertificateSettings == null) null else CertificateSettings
-        ["AppId"] = if (AppId == null) null else AppId
-        ["AutoSubDomainIAMRole"] = if (AutoSubDomainIAMRole == null) null else AutoSubDomainIAMRole
-        ["DomainName"] = if (DomainName == null) null else DomainName
-        ["SubDomainSettings"] = if (SubDomainSettings == null) null else SubDomainSettings
+        ["UpdateStatus"] = if (UpdateStatus == null) null else UpdateStatus
     }
 
 }

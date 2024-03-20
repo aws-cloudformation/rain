@@ -5,10 +5,76 @@ module aws.sagemaker.modelexplainabilityjobdefinition
 
 import "../../cloudformation.pkl"
 
+/// The dataset format of the data to monitor
+open class ModelExplainabilityJobDefinitionDatasetFormat {
+    Json: (ModelExplainabilityJobDefinitionJson)?
+    Parquet: (ModelExplainabilityJobDefinitionParquet)?
+    Csv: (ModelExplainabilityJobDefinitionCsv)?
+}
+
+/// The CSV format
+open class ModelExplainabilityJobDefinitionCsv {
+    Header: (Boolean|Mapping)?
+}
+
+typealias ModelExplainabilityJobDefinitionParquet = Boolean|Mapping
+
+
+typealias BatchTransformInputS3DataDistributionType = "FullyReplicated"|"ShardedByS3Key"
+
+typealias BatchTransformInputS3InputMode = "Pipe"|"File"
+
+/// The batch transform input for a monitoring job.
+open class ModelExplainabilityJobDefinitionBatchTransformInput {
+    S3DataDistributionType: (BatchTransformInputS3DataDistributionType|Mapping)?
+    S3InputMode: (BatchTransformInputS3InputMode|Mapping)?
+    FeaturesAttribute: (String|Mapping)?
+    InferenceAttribute: (String|Mapping)?
+    ProbabilityAttribute: (String|Mapping)?
+    DataCapturedDestinationS3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
+    DatasetFormat: ModelExplainabilityJobDefinitionDatasetFormat
+    LocalPath: String(matches(Regex(#".*"#)))|Mapping
+}
+
+typealias ModelExplainabilityJobDefinitionJobDefinitionName = String|Mapping
+
+
+typealias ModelExplainabilityJobDefinitionS3Uri = String|Mapping
+
+
+typealias S3OutputS3UploadMode = "Continuous"|"EndOfJob"
+
+/// Information about where and how to store the results of a monitoring job.
+open class ModelExplainabilityJobDefinitionS3Output {
+    LocalPath: String(matches(Regex(#".*"#)))|Mapping
+    S3UploadMode: (S3OutputS3UploadMode|Mapping)?
+    S3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
+}
+
+/// Specifies a VPC that your training jobs and hosted models have access to. Control access to and from your training and model containers by configuring the VPC.
+open class ModelExplainabilityJobDefinitionVpcConfig {
+    SecurityGroupIds: Listing<String|Mapping>
+    Subnets: Listing<String|Mapping>
+}
+
+/// The baseline constraints resource for a monitoring job.
+open class ModelExplainabilityJobDefinitionConstraintsResource {
+    S3Uri: (ModelExplainabilityJobDefinitionS3Uri)?
+}
+
 /// The output configuration for monitoring jobs.
 open class ModelExplainabilityJobDefinitionMonitoringOutputConfig {
-    KmsKeyId: (String(matches(Regex(#".*"#)))|Mapping)?
     MonitoringOutputs: Listing<ModelExplainabilityJobDefinitionMonitoringOutput>
+    KmsKeyId: (String(matches(Regex(#".*"#)))|Mapping)?
+}
+
+typealias ModelExplainabilityJobDefinitionModelExplainabilityAppSpecificationEnvironment = Mapping<String, Any>
+
+/// Container image configuration object for the monitoring job.
+open class ModelExplainabilityJobDefinitionModelExplainabilityAppSpecification {
+    ImageUri: String(matches(Regex(#".*"#)))|Mapping
+    ConfigUri: ModelExplainabilityJobDefinitionS3Uri
+    Environment: (ModelExplainabilityJobDefinitionModelExplainabilityAppSpecificationEnvironment)?
 }
 
 /// Networking options for a job, such as network traffic encryption between containers, whether to allow inbound and outbound network calls to and from containers, and the VPC subnets and security groups to use for VPC-enabled jobs.
@@ -18,22 +84,20 @@ open class ModelExplainabilityJobDefinitionNetworkConfig {
     VpcConfig: (ModelExplainabilityJobDefinitionVpcConfig)?
 }
 
-/// Baseline configuration used to validate that the data conforms to the specified constraints and statistics.
-open class ModelExplainabilityJobDefinitionModelExplainabilityBaselineConfig {
-    BaseliningJobName: (ModelExplainabilityJobDefinitionProcessingJobName)?
-    ConstraintsResource: (ModelExplainabilityJobDefinitionConstraintsResource)?
+/// The output object for a monitoring job.
+open class ModelExplainabilityJobDefinitionMonitoringOutput {
+    S3Output: ModelExplainabilityJobDefinitionS3Output
 }
 
-/// A key-value pair to associate with a resource.
-open class ModelExplainabilityJobDefinitionTag {
-    Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
-    Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
+/// Configuration for the cluster used to run model monitoring jobs.
+open class ModelExplainabilityJobDefinitionClusterConfig {
+    VolumeSizeInGB: Int|Mapping
+    InstanceCount: Int|Mapping
+    InstanceType: String|Mapping
+    VolumeKmsKeyId: (String|Mapping)?
 }
 
-typealias ModelExplainabilityJobDefinitionS3Uri = String|Mapping
-
-
-typealias ModelExplainabilityJobDefinitionParquet = Boolean|Mapping
+typealias ModelExplainabilityJobDefinitionEndpointName = String|Mapping
 
 
 /// The Json format
@@ -41,40 +105,16 @@ open class ModelExplainabilityJobDefinitionJson {
     Line: (Boolean|Mapping)?
 }
 
+/// Baseline configuration used to validate that the data conforms to the specified constraints and statistics.
+open class ModelExplainabilityJobDefinitionModelExplainabilityBaselineConfig {
+    ConstraintsResource: (ModelExplainabilityJobDefinitionConstraintsResource)?
+    BaseliningJobName: (ModelExplainabilityJobDefinitionProcessingJobName)?
+}
+
 /// The inputs for a monitoring job.
 open class ModelExplainabilityJobDefinitionModelExplainabilityJobInput {
     EndpointInput: (ModelExplainabilityJobDefinitionEndpointInput)?
     BatchTransformInput: (ModelExplainabilityJobDefinitionBatchTransformInput)?
-}
-
-typealias BatchTransformInputS3DataDistributionType = "FullyReplicated"|"ShardedByS3Key"
-
-typealias BatchTransformInputS3InputMode = "Pipe"|"File"
-
-/// The batch transform input for a monitoring job.
-open class ModelExplainabilityJobDefinitionBatchTransformInput {
-    DataCapturedDestinationS3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
-    DatasetFormat: ModelExplainabilityJobDefinitionDatasetFormat
-    LocalPath: String(matches(Regex(#".*"#)))|Mapping
-    S3DataDistributionType: (BatchTransformInputS3DataDistributionType|Mapping)?
-    S3InputMode: (BatchTransformInputS3InputMode|Mapping)?
-    FeaturesAttribute: (String|Mapping)?
-    InferenceAttribute: (String|Mapping)?
-    ProbabilityAttribute: (String|Mapping)?
-}
-
-typealias ModelExplainabilityJobDefinitionJobDefinitionName = String|Mapping
-
-
-/// The CSV format
-open class ModelExplainabilityJobDefinitionCsv {
-    Header: (Boolean|Mapping)?
-}
-
-/// Specifies a VPC that your training jobs and hosted models have access to. Control access to and from your training and model containers by configuring the VPC.
-open class ModelExplainabilityJobDefinitionVpcConfig {
-    Subnets: Listing<String|Mapping>
-    SecurityGroupIds: Listing<String|Mapping>
 }
 
 typealias EndpointInputS3DataDistributionType = "FullyReplicated"|"ShardedByS3Key"
@@ -92,73 +132,57 @@ open class ModelExplainabilityJobDefinitionEndpointInput {
     ProbabilityAttribute: (String|Mapping)?
 }
 
-typealias ModelExplainabilityJobDefinitionEndpointName = String|Mapping
-
-
-/// The dataset format of the data to monitor
-open class ModelExplainabilityJobDefinitionDatasetFormat {
-    Csv: (ModelExplainabilityJobDefinitionCsv)?
-    Json: (ModelExplainabilityJobDefinitionJson)?
-    Parquet: (ModelExplainabilityJobDefinitionParquet)?
+/// A key-value pair to associate with a resource.
+open class ModelExplainabilityJobDefinitionTag {
+    Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
+    Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
 }
 
-/// The output object for a monitoring job.
-open class ModelExplainabilityJobDefinitionMonitoringOutput {
-    S3Output: ModelExplainabilityJobDefinitionS3Output
-}
+typealias ModelExplainabilityJobDefinitionProcessingJobName = String|Mapping
 
-typealias S3OutputS3UploadMode = "Continuous"|"EndOfJob"
-
-/// Information about where and how to store the results of a monitoring job.
-open class ModelExplainabilityJobDefinitionS3Output {
-    S3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
-    LocalPath: String(matches(Regex(#".*"#)))|Mapping
-    S3UploadMode: (S3OutputS3UploadMode|Mapping)?
-}
-
-/// Specifies a time limit for how long the monitoring job is allowed to run.
-open class ModelExplainabilityJobDefinitionStoppingCondition {
-    MaxRuntimeInSeconds: Int|Mapping
-}
-
-typealias ModelExplainabilityJobDefinitionMonitoringTimeOffsetString = String|Mapping
-
-
-typealias ModelExplainabilityJobDefinitionModelExplainabilityAppSpecificationEnvironment = Mapping<String, Any>
-
-/// Container image configuration object for the monitoring job.
-open class ModelExplainabilityJobDefinitionModelExplainabilityAppSpecification {
-    ImageUri: String(matches(Regex(#".*"#)))|Mapping
-    ConfigUri: ModelExplainabilityJobDefinitionS3Uri
-    Environment: (ModelExplainabilityJobDefinitionModelExplainabilityAppSpecificationEnvironment)?
-}
 
 /// Identifies the resources to deploy for a monitoring job.
 open class ModelExplainabilityJobDefinitionMonitoringResources {
     ClusterConfig: ModelExplainabilityJobDefinitionClusterConfig
 }
 
-/// Configuration for the cluster used to run model monitoring jobs.
-open class ModelExplainabilityJobDefinitionClusterConfig {
-    InstanceCount: Int|Mapping
-    InstanceType: String|Mapping
-    VolumeKmsKeyId: (String|Mapping)?
-    VolumeSizeInGB: Int|Mapping
+typealias ModelExplainabilityJobDefinitionMonitoringTimeOffsetString = String|Mapping
+
+
+/// Specifies a time limit for how long the monitoring job is allowed to run.
+open class ModelExplainabilityJobDefinitionStoppingCondition {
+    MaxRuntimeInSeconds: Int|Mapping
 }
-
-/// The baseline constraints resource for a monitoring job.
-open class ModelExplainabilityJobDefinitionConstraintsResource {
-    S3Uri: (ModelExplainabilityJobDefinitionS3Uri)?
-}
-
-typealias ModelExplainabilityJobDefinitionProcessingJobName = String|Mapping
-
 
 /// Resource Type definition for AWS::SageMaker::ModelExplainabilityJobDefinition
 open class ModelExplainabilityJobDefinition extends cloudformation.Resource {
 
     Type = "AWS::SageMaker::ModelExplainabilityJobDefinition"
 
+
+    /// 
+    hidden ModelExplainabilityBaselineConfig: (ModelExplainabilityJobDefinitionModelExplainabilityBaselineConfig)?
+
+    /// 
+    hidden EndpointName: (ModelExplainabilityJobDefinitionEndpointName)?
+
+    /// 
+    hidden ModelExplainabilityAppSpecification: ModelExplainabilityJobDefinitionModelExplainabilityAppSpecification
+
+    /// 
+    hidden ModelExplainabilityJobInput: ModelExplainabilityJobDefinitionModelExplainabilityJobInput
+
+    /// 
+    hidden StoppingCondition: (ModelExplainabilityJobDefinitionStoppingCondition)?
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<ModelExplainabilityJobDefinitionTag>)?
+
+    /// 
+    hidden ModelExplainabilityJobOutputConfig: ModelExplainabilityJobDefinitionMonitoringOutputConfig
+
+    /// 
+    hidden JobDefinitionName: (ModelExplainabilityJobDefinitionJobDefinitionName)?
 
     /// 
     hidden JobResources: ModelExplainabilityJobDefinitionMonitoringResources
@@ -169,42 +193,18 @@ open class ModelExplainabilityJobDefinition extends cloudformation.Resource {
     /// The Amazon Resource Name (ARN) of an IAM role that Amazon SageMaker can assume to perform tasks on your behalf.
     hidden RoleArn: String(matches(Regex(#"^arn:aws[a-z\-]*:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping
 
-    /// 
-    hidden EndpointName: (ModelExplainabilityJobDefinitionEndpointName)?
-
-    /// 
-    hidden ModelExplainabilityJobOutputConfig: ModelExplainabilityJobDefinitionMonitoringOutputConfig
-
-    /// 
-    hidden StoppingCondition: (ModelExplainabilityJobDefinitionStoppingCondition)?
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<ModelExplainabilityJobDefinitionTag>)?
-
-    /// 
-    hidden JobDefinitionName: (ModelExplainabilityJobDefinitionJobDefinitionName)?
-
-    /// 
-    hidden ModelExplainabilityBaselineConfig: (ModelExplainabilityJobDefinitionModelExplainabilityBaselineConfig)?
-
-    /// 
-    hidden ModelExplainabilityAppSpecification: ModelExplainabilityJobDefinitionModelExplainabilityAppSpecification
-
-    /// 
-    hidden ModelExplainabilityJobInput: ModelExplainabilityJobDefinitionModelExplainabilityJobInput
-
     Properties {
+        ["ModelExplainabilityBaselineConfig"] = if (ModelExplainabilityBaselineConfig == null) null else ModelExplainabilityBaselineConfig
+        ["EndpointName"] = if (EndpointName == null) null else EndpointName
+        ["ModelExplainabilityAppSpecification"] = if (ModelExplainabilityAppSpecification == null) null else ModelExplainabilityAppSpecification
+        ["ModelExplainabilityJobInput"] = if (ModelExplainabilityJobInput == null) null else ModelExplainabilityJobInput
+        ["StoppingCondition"] = if (StoppingCondition == null) null else StoppingCondition
+        ["Tags"] = if (Tags == null) null else Tags
+        ["ModelExplainabilityJobOutputConfig"] = if (ModelExplainabilityJobOutputConfig == null) null else ModelExplainabilityJobOutputConfig
+        ["JobDefinitionName"] = if (JobDefinitionName == null) null else JobDefinitionName
         ["JobResources"] = if (JobResources == null) null else JobResources
         ["NetworkConfig"] = if (NetworkConfig == null) null else NetworkConfig
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
-        ["EndpointName"] = if (EndpointName == null) null else EndpointName
-        ["ModelExplainabilityJobOutputConfig"] = if (ModelExplainabilityJobOutputConfig == null) null else ModelExplainabilityJobOutputConfig
-        ["StoppingCondition"] = if (StoppingCondition == null) null else StoppingCondition
-        ["Tags"] = if (Tags == null) null else Tags
-        ["JobDefinitionName"] = if (JobDefinitionName == null) null else JobDefinitionName
-        ["ModelExplainabilityBaselineConfig"] = if (ModelExplainabilityBaselineConfig == null) null else ModelExplainabilityBaselineConfig
-        ["ModelExplainabilityAppSpecification"] = if (ModelExplainabilityAppSpecification == null) null else ModelExplainabilityAppSpecification
-        ["ModelExplainabilityJobInput"] = if (ModelExplainabilityJobInput == null) null else ModelExplainabilityJobInput
     }
 
 }

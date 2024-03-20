@@ -5,13 +5,6 @@ module aws.lightsail.container
 
 import "../../cloudformation.pkl"
 
-/// Describes the settings of a public endpoint for an Amazon Lightsail container service.
-open class ContainerPublicEndpoint {
-    ContainerName: (String|Mapping)?
-    ContainerPort: (Int|Mapping)?
-    HealthCheckConfig: (ContainerHealthCheckConfig)?
-}
-
 /// 
 open class ContainerEnvironmentVariable {
     Variable: (String|Mapping)?
@@ -24,15 +17,23 @@ open class ContainerPortInfo {
     Protocol: (String|Mapping)?
 }
 
-/// An object to describe the configuration for the container service to access private container image repositories, such as Amazon Elastic Container Registry (Amazon ECR) private repositories.
-open class ContainerPrivateRegistryAccess {
-    EcrImagePullerRole: (Dynamic)?
-}
-
 /// A key-value pair to associate with a resource.
 open class ContainerTag {
     Key: String|Mapping
     Value: (String|Mapping)?
+}
+
+/// Describes the settings of a public endpoint for an Amazon Lightsail container service.
+open class ContainerPublicEndpoint {
+    ContainerPort: (Int|Mapping)?
+    HealthCheckConfig: (ContainerHealthCheckConfig)?
+    ContainerName: (String|Mapping)?
+}
+
+/// The public domain name to use with the container service, such as example.com and www.example.com.
+open class ContainerPublicDomainName {
+    CertificateName: (String|Mapping)?
+    DomainNames: (Listing<String|Mapping>)?
 }
 
 /// Describes a container deployment configuration of an Amazon Lightsail container service.
@@ -53,17 +54,16 @@ open class ContainerHealthCheckConfig {
 
 /// Describes the settings of a container that will be launched, or that is launched, to an Amazon Lightsail container service.
 open class ContainerContainer {
+    Command: (Listing<String|Mapping>)?
+    Environment: (Listing<ContainerEnvironmentVariable>)?
     Image: (String|Mapping)?
     Ports: (Listing<ContainerPortInfo>)?
     ContainerName: (String|Mapping)?
-    Command: (Listing<String|Mapping>)?
-    Environment: (Listing<ContainerEnvironmentVariable>)?
 }
 
-/// The public domain name to use with the container service, such as example.com and www.example.com.
-open class ContainerPublicDomainName {
-    CertificateName: (String|Mapping)?
-    DomainNames: (Listing<String|Mapping>)?
+/// An object to describe the configuration for the container service to access private container image repositories, such as Amazon Elastic Container Registry (Amazon ECR) private repositories.
+open class ContainerPrivateRegistryAccess {
+    EcrImagePullerRole: (Dynamic)?
 }
 
 /// Resource Type definition for AWS::Lightsail::Container
@@ -72,17 +72,14 @@ open class Container extends cloudformation.Resource {
     Type = "AWS::Lightsail::Container"
 
 
-    /// The public domain names to use with the container service, such as example.com and www.example.com.
-    hidden PublicDomainNames: (Listing<ContainerPublicDomainName>)?
-
     /// Describes a container deployment configuration of an Amazon Lightsail container service.
     hidden ContainerServiceDeployment: (ContainerContainerServiceDeployment)?
 
-    /// The name for the container service.
-    hidden ServiceName: String(matches(Regex(#"^[a-z0-9]{1,2}|[a-z0-9][a-z0-9-]+[a-z0-9]$"#)))|Mapping
+    /// A Boolean value to indicate whether the container service has access to private container image repositories, such as Amazon Elastic Container Registry (Amazon ECR) private repositories.
+    hidden PrivateRegistryAccess: (ContainerPrivateRegistryAccess)?
 
-    /// The power specification for the container service.
-    hidden Power: String|Mapping
+    /// The public domain names to use with the container service, such as example.com and www.example.com.
+    hidden PublicDomainNames: (Listing<ContainerPublicDomainName>)?
 
     /// The scale specification for the container service.
     hidden Scale: Int|Mapping
@@ -90,21 +87,24 @@ open class Container extends cloudformation.Resource {
     /// A Boolean value to indicate whether the container service is disabled.
     hidden IsDisabled: (Boolean|Mapping)?
 
-    /// A Boolean value to indicate whether the container service has access to private container image repositories, such as Amazon Elastic Container Registry (Amazon ECR) private repositories.
-    hidden PrivateRegistryAccess: (ContainerPrivateRegistryAccess)?
-
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<ContainerTag>)?
 
+    /// The name for the container service.
+    hidden ServiceName: String(matches(Regex(#"^[a-z0-9]{1,2}|[a-z0-9][a-z0-9-]+[a-z0-9]$"#)))|Mapping
+
+    /// The power specification for the container service.
+    hidden Power: String|Mapping
+
     Properties {
-        ["PublicDomainNames"] = if (PublicDomainNames == null) null else PublicDomainNames
         ["ContainerServiceDeployment"] = if (ContainerServiceDeployment == null) null else ContainerServiceDeployment
-        ["ServiceName"] = if (ServiceName == null) null else ServiceName
-        ["Power"] = if (Power == null) null else Power
+        ["PrivateRegistryAccess"] = if (PrivateRegistryAccess == null) null else PrivateRegistryAccess
+        ["PublicDomainNames"] = if (PublicDomainNames == null) null else PublicDomainNames
         ["Scale"] = if (Scale == null) null else Scale
         ["IsDisabled"] = if (IsDisabled == null) null else IsDisabled
-        ["PrivateRegistryAccess"] = if (PrivateRegistryAccess == null) null else PrivateRegistryAccess
         ["Tags"] = if (Tags == null) null else Tags
+        ["ServiceName"] = if (ServiceName == null) null else ServiceName
+        ["Power"] = if (Power == null) null else Power
     }
 
 }

@@ -5,21 +5,6 @@ module aws.networkmanager.connectpeer
 
 import "../../cloudformation.pkl"
 
-/// A key-value pair to associate with a resource.
-open class ConnectPeerTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// 
-open class ConnectPeerConnectPeerConfiguration {
-    CoreNetworkAddress: (String|Mapping)?
-    PeerAddress: (String|Mapping)?
-    InsideCidrBlocks: (Listing<String|Mapping>)?
-    Protocol: (ConnectPeerTunnelProtocol)?
-    BgpConfigurations: (Listing<ConnectPeerConnectPeerBgpConfiguration>)?
-}
-
 typealias ConnectPeerTunnelProtocol = String|Mapping
 
 
@@ -30,10 +15,25 @@ open class ConnectPeerBgpOptions {
 
 /// Bgp configuration for connect peer
 open class ConnectPeerConnectPeerBgpConfiguration {
+    PeerAddress: (String|Mapping)?
     CoreNetworkAsn: (Number|Mapping)?
     PeerAsn: (Number|Mapping)?
     CoreNetworkAddress: (String|Mapping)?
+}
+
+/// A key-value pair to associate with a resource.
+open class ConnectPeerTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class ConnectPeerConnectPeerConfiguration {
+    Protocol: (ConnectPeerTunnelProtocol)?
+    BgpConfigurations: (Listing<ConnectPeerConnectPeerBgpConfiguration>)?
+    CoreNetworkAddress: (String|Mapping)?
     PeerAddress: (String|Mapping)?
+    InsideCidrBlocks: (Listing<String|Mapping>)?
 }
 
 /// AWS::NetworkManager::ConnectPeer Resource Type Definition.
@@ -45,32 +45,32 @@ open class ConnectPeer extends cloudformation.Resource {
     /// The inside IP addresses used for a Connect peer configuration.
     hidden InsideCidrBlocks: (Listing<String|Mapping>)?
 
-    /// Bgp options for connect peer.
-    hidden BgpOptions: (ConnectPeerBgpOptions)?
-
-    /// The IP address of a core network.
-    hidden CoreNetworkAddress: (String|Mapping)?
-
     /// The ID of the attachment to connect.
     hidden ConnectAttachmentId: String|Mapping
 
     /// The subnet ARN for the connect peer.
     hidden SubnetArn: (String|Mapping)?
 
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<ConnectPeerTag>)?
+    /// The IP address of a core network.
+    hidden CoreNetworkAddress: (String|Mapping)?
+
+    /// Bgp options for connect peer.
+    hidden BgpOptions: (ConnectPeerBgpOptions)?
 
     /// The IP address of the Connect peer.
     hidden PeerAddress: String|Mapping
 
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<ConnectPeerTag>)?
+
     Properties {
         ["InsideCidrBlocks"] = if (InsideCidrBlocks == null) null else InsideCidrBlocks
-        ["BgpOptions"] = if (BgpOptions == null) null else BgpOptions
-        ["CoreNetworkAddress"] = if (CoreNetworkAddress == null) null else CoreNetworkAddress
         ["ConnectAttachmentId"] = if (ConnectAttachmentId == null) null else ConnectAttachmentId
         ["SubnetArn"] = if (SubnetArn == null) null else SubnetArn
-        ["Tags"] = if (Tags == null) null else Tags
+        ["CoreNetworkAddress"] = if (CoreNetworkAddress == null) null else CoreNetworkAddress
+        ["BgpOptions"] = if (BgpOptions == null) null else BgpOptions
         ["PeerAddress"] = if (PeerAddress == null) null else PeerAddress
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

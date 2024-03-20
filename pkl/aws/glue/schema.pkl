@@ -5,12 +5,6 @@ module aws.glue.schema
 
 import "../../cloudformation.pkl"
 
-/// Identifier for the registry which the schema is part of.
-open class SchemaRegistry {
-    Name: (String|Mapping)?
-    Arn: (String(matches(Regex(#"arn:aws(-(cn|us-gov|iso(-[bef])?))?:glue:.*"#)))|Mapping)?
-}
-
 /// Specify checkpoint version for update. This is only required to update the Compatibility.
 open class SchemaSchemaVersion {
     IsLatest: (Boolean|Mapping)?
@@ -19,8 +13,14 @@ open class SchemaSchemaVersion {
 
 /// 
 open class SchemaTag {
-    Key: String|Mapping
     Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// Identifier for the registry which the schema is part of.
+open class SchemaRegistry {
+    Name: (String|Mapping)?
+    Arn: (String(matches(Regex(#"arn:aws(-(cn|us-gov|iso(-[bef])?))?:glue:.*"#)))|Mapping)?
 }
 
 /// This resource represents a schema of Glue Schema Registry.
@@ -29,20 +29,17 @@ open class Schema extends cloudformation.Resource {
     Type = "AWS::Glue::Schema"
 
 
-    /// Data format name to use for the schema. Accepted values: 'AVRO', 'JSON', 'PROTOBUF'
-    hidden DataFormat: SchemaDataFormat|Mapping
-
-    /// Compatibility setting for the schema.
-    hidden Compatibility: SchemaCompatibility|Mapping
-
-    /// Definition for the initial schema version in plain-text.
-    hidden SchemaDefinition: String|Mapping
-
     /// List of tags to tag the schema
     hidden Tags: (Listing<SchemaTag>)?
 
     /// 
     hidden Registry: (SchemaRegistry)?
+
+    /// A description of the schema. If description is not provided, there will not be any default value for this.
+    hidden Description: (String|Mapping)?
+
+    /// Compatibility setting for the schema.
+    hidden Compatibility: SchemaCompatibility|Mapping
 
     /// 
     hidden CheckpointVersion: (SchemaSchemaVersion)?
@@ -50,23 +47,26 @@ open class Schema extends cloudformation.Resource {
     /// Name of the schema.
     hidden Name: String|Mapping
 
-    /// A description of the schema. If description is not provided, there will not be any default value for this.
-    hidden Description: (String|Mapping)?
+    /// Data format name to use for the schema. Accepted values: 'AVRO', 'JSON', 'PROTOBUF'
+    hidden DataFormat: SchemaDataFormat|Mapping
+
+    /// Definition for the initial schema version in plain-text.
+    hidden SchemaDefinition: String|Mapping
 
     Properties {
-        ["DataFormat"] = if (DataFormat == null) null else DataFormat
-        ["Compatibility"] = if (Compatibility == null) null else Compatibility
-        ["SchemaDefinition"] = if (SchemaDefinition == null) null else SchemaDefinition
         ["Tags"] = if (Tags == null) null else Tags
         ["Registry"] = if (Registry == null) null else Registry
+        ["Description"] = if (Description == null) null else Description
+        ["Compatibility"] = if (Compatibility == null) null else Compatibility
         ["CheckpointVersion"] = if (CheckpointVersion == null) null else CheckpointVersion
         ["Name"] = if (Name == null) null else Name
-        ["Description"] = if (Description == null) null else Description
+        ["DataFormat"] = if (DataFormat == null) null else DataFormat
+        ["SchemaDefinition"] = if (SchemaDefinition == null) null else SchemaDefinition
     }
 
 }
 
 
-typealias SchemaDataFormat = "AVRO"|"JSON"|"PROTOBUF"
-
 typealias SchemaCompatibility = "NONE"|"DISABLED"|"BACKWARD"|"BACKWARD_ALL"|"FORWARD"|"FORWARD_ALL"|"FULL"|"FULL_ALL"
+
+typealias SchemaDataFormat = "AVRO"|"JSON"|"PROTOBUF"

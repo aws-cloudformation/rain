@@ -9,10 +9,10 @@ typealias TargetAddressProtocol = "Do53"|"DoH"
 
 /// 
 open class ResolverRuleTargetAddress {
-    Ip: (String|Mapping)?
     Ipv6: (String|Mapping)?
     Port: (String|Mapping)?
     Protocol: (TargetAddressProtocol|Mapping)?
+    Ip: (String|Mapping)?
 }
 
 /// 
@@ -26,9 +26,6 @@ open class ResolverRule extends cloudformation.Resource {
 
     Type = "AWS::Route53Resolver::ResolverRule"
 
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<ResolverRuleTag>)?
 
     /// An array that contains the IP addresses and ports that an outbound endpoint forwards DNS queries to. Typically, these are the IP addresses of DNS resolvers on your network. Specify IPv4 addresses. IPv6 is not supported.
     hidden TargetIps: (Listing<ResolverRuleTargetAddress>)?
@@ -45,13 +42,16 @@ open class ResolverRule extends cloudformation.Resource {
     /// When you want to forward DNS queries for specified domain name to resolvers on your network, specify FORWARD. When you have a forwarding rule to forward DNS queries for a domain to your network and you want Resolver to process queries for a subdomain of that domain, specify SYSTEM.
     hidden RuleType: ResolverRuleRuleType|Mapping
 
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<ResolverRuleTag>)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
         ["TargetIps"] = if (TargetIps == null) null else TargetIps
         ["ResolverEndpointId"] = if (ResolverEndpointId == null) null else ResolverEndpointId
         ["DomainName"] = if (DomainName == null) null else DomainName
         ["Name"] = if (Name == null) null else Name
         ["RuleType"] = if (RuleType == null) null else RuleType
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

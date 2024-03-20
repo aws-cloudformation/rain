@@ -5,6 +5,11 @@ module aws.osis.pipeline
 
 import "../../cloudformation.pkl"
 
+/// Key-value pairs to configure buffering.
+open class PipelineBufferOptions {
+    PersistentBufferEnabled: Boolean|Mapping
+}
+
 /// Key-value pairs to configure encryption at rest.
 open class PipelineEncryptionAtRestOptions {
     KmsKeyArn: String|Mapping
@@ -30,14 +35,9 @@ open class PipelineVpcOptions {
 
 /// An OpenSearch Ingestion Service-managed VPC endpoint that will access one or more pipelines.
 open class PipelineVpcEndpoint {
-    VpcOptions: (PipelineVpcOptions)?
     VpcEndpointId: (String|Mapping)?
     VpcId: (String|Mapping)?
-}
-
-/// Key-value pairs to configure buffering.
-open class PipelineBufferOptions {
-    PersistentBufferEnabled: Boolean|Mapping
+    VpcOptions: (PipelineVpcOptions)?
 }
 
 /// An OpenSearch Ingestion Service Data Prepper pipeline running Data Prepper.
@@ -49,14 +49,8 @@ open class Pipeline extends cloudformation.Resource {
     /// The maximum pipeline capacity, in Ingestion OpenSearch Compute Units (OCUs).
     hidden MaxUnits: Int|Mapping
 
-    /// The minimum pipeline capacity, in Ingestion OpenSearch Compute Units (OCUs).
-    hidden MinUnits: Int|Mapping
-
     /// The Data Prepper pipeline configuration.
     hidden PipelineConfigurationBody: String|Mapping
-
-    /// 
-    hidden VpcOptions: (PipelineVpcOptions)?
 
     /// 
     hidden BufferOptions: (PipelineBufferOptions)?
@@ -67,22 +61,28 @@ open class Pipeline extends cloudformation.Resource {
     /// 
     hidden LogPublishingOptions: (PipelineLogPublishingOptions)?
 
+    /// The minimum pipeline capacity, in Ingestion OpenSearch Compute Units (OCUs).
+    hidden MinUnits: Int|Mapping
+
     /// Name of the OpenSearch Ingestion Service pipeline to create. Pipeline names are unique across the pipelines owned by an account within an AWS Region.
     hidden PipelineName: String(matches(Regex(#"[a-z][a-z0-9\-]+"#)))|Mapping
 
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<PipelineTag>)?
 
+    /// 
+    hidden VpcOptions: (PipelineVpcOptions)?
+
     Properties {
         ["MaxUnits"] = if (MaxUnits == null) null else MaxUnits
-        ["MinUnits"] = if (MinUnits == null) null else MinUnits
         ["PipelineConfigurationBody"] = if (PipelineConfigurationBody == null) null else PipelineConfigurationBody
-        ["VpcOptions"] = if (VpcOptions == null) null else VpcOptions
         ["BufferOptions"] = if (BufferOptions == null) null else BufferOptions
         ["EncryptionAtRestOptions"] = if (EncryptionAtRestOptions == null) null else EncryptionAtRestOptions
         ["LogPublishingOptions"] = if (LogPublishingOptions == null) null else LogPublishingOptions
+        ["MinUnits"] = if (MinUnits == null) null else MinUnits
         ["PipelineName"] = if (PipelineName == null) null else PipelineName
         ["Tags"] = if (Tags == null) null else Tags
+        ["VpcOptions"] = if (VpcOptions == null) null else VpcOptions
     }
 
 }

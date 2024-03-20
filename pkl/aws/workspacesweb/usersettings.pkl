@@ -5,12 +5,6 @@ module aws.workspacesweb.usersettings
 
 import "../../cloudformation.pkl"
 
-/// 
-open class UserSettingsCookieSynchronizationConfiguration {
-    Blocklist: (Listing<UserSettingsCookieSpecification>)?
-    Allowlist: Listing<UserSettingsCookieSpecification>
-}
-
 typealias UserSettingsEnabledType = String|Mapping
 
 
@@ -19,15 +13,21 @@ typealias UserSettingsEncryptionContextMap = Mapping<String, Any>
 
 /// 
 open class UserSettingsTag {
-    Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
     Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
+    Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
 }
 
 /// 
 open class UserSettingsCookieSpecification {
-    Name: (String|Mapping)?
     Path: (String(matches(Regex(#"^/(\S)*$"#)))|Mapping)?
     Domain: String(matches(Regex(#"^(\.?)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$"#)))|Mapping
+    Name: (String|Mapping)?
+}
+
+/// 
+open class UserSettingsCookieSynchronizationConfiguration {
+    Allowlist: Listing<UserSettingsCookieSpecification>
+    Blocklist: (Listing<UserSettingsCookieSpecification>)?
 }
 
 /// Definition of AWS::WorkSpacesWeb::UserSettings Resource Type
@@ -37,28 +37,19 @@ open class UserSettings extends cloudformation.Resource {
 
 
     /// 
-    hidden DownloadAllowed: UserSettingsEnabledType
-
-    /// 
-    hidden Tags: (Listing<UserSettingsTag>)?
-
-    /// 
-    hidden AdditionalEncryptionContext: (UserSettingsEncryptionContextMap)?
-
-    /// 
     hidden CookieSynchronizationConfiguration: (UserSettingsCookieSynchronizationConfiguration)?
 
     /// 
     hidden CopyAllowed: UserSettingsEnabledType
 
     /// 
-    hidden IdleDisconnectTimeoutInMinutes: (Number|Mapping)?
-
-    /// 
-    hidden PasteAllowed: UserSettingsEnabledType
+    hidden DownloadAllowed: UserSettingsEnabledType
 
     /// 
     hidden PrintAllowed: UserSettingsEnabledType
+
+    /// 
+    hidden AdditionalEncryptionContext: (UserSettingsEncryptionContextMap)?
 
     /// 
     hidden CustomerManagedKey: (String(matches(Regex(#"^arn:[\w+=\/,.@-]+:kms:[a-zA-Z0-9\-]*:[a-zA-Z0-9]{1,12}:key\/[a-zA-Z0-9-]+$"#)))|Mapping)?
@@ -67,20 +58,29 @@ open class UserSettings extends cloudformation.Resource {
     hidden DisconnectTimeoutInMinutes: (Number|Mapping)?
 
     /// 
+    hidden Tags: (Listing<UserSettingsTag>)?
+
+    /// 
     hidden UploadAllowed: UserSettingsEnabledType
 
+    /// 
+    hidden PasteAllowed: UserSettingsEnabledType
+
+    /// 
+    hidden IdleDisconnectTimeoutInMinutes: (Number|Mapping)?
+
     Properties {
-        ["DownloadAllowed"] = if (DownloadAllowed == null) null else DownloadAllowed
-        ["Tags"] = if (Tags == null) null else Tags
-        ["AdditionalEncryptionContext"] = if (AdditionalEncryptionContext == null) null else AdditionalEncryptionContext
         ["CookieSynchronizationConfiguration"] = if (CookieSynchronizationConfiguration == null) null else CookieSynchronizationConfiguration
         ["CopyAllowed"] = if (CopyAllowed == null) null else CopyAllowed
-        ["IdleDisconnectTimeoutInMinutes"] = if (IdleDisconnectTimeoutInMinutes == null) null else IdleDisconnectTimeoutInMinutes
-        ["PasteAllowed"] = if (PasteAllowed == null) null else PasteAllowed
+        ["DownloadAllowed"] = if (DownloadAllowed == null) null else DownloadAllowed
         ["PrintAllowed"] = if (PrintAllowed == null) null else PrintAllowed
+        ["AdditionalEncryptionContext"] = if (AdditionalEncryptionContext == null) null else AdditionalEncryptionContext
         ["CustomerManagedKey"] = if (CustomerManagedKey == null) null else CustomerManagedKey
         ["DisconnectTimeoutInMinutes"] = if (DisconnectTimeoutInMinutes == null) null else DisconnectTimeoutInMinutes
+        ["Tags"] = if (Tags == null) null else Tags
         ["UploadAllowed"] = if (UploadAllowed == null) null else UploadAllowed
+        ["PasteAllowed"] = if (PasteAllowed == null) null else PasteAllowed
+        ["IdleDisconnectTimeoutInMinutes"] = if (IdleDisconnectTimeoutInMinutes == null) null else IdleDisconnectTimeoutInMinutes
     }
 
 }

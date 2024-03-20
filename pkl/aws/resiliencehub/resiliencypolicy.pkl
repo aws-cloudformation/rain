@@ -5,6 +5,9 @@ module aws.resiliencehub.resiliencypolicy
 
 import "../../cloudformation.pkl"
 
+typealias ResiliencyPolicyTagValue = String|Mapping
+
+
 typealias ResiliencyPolicyTagMap = Mapping<String, Any>
 
 
@@ -17,14 +20,14 @@ open class ResiliencyPolicyFailurePolicy {
 typealias ResiliencyPolicyPolicyMap = Mapping<String, Any>
 
 
-typealias ResiliencyPolicyTagValue = String|Mapping
-
-
 /// Resource Type Definition for Resiliency Policy.
 open class ResiliencyPolicy extends cloudformation.Resource {
 
     Type = "AWS::ResilienceHub::ResiliencyPolicy"
 
+
+    /// 
+    hidden Tags: (ResiliencyPolicyTagMap)?
 
     /// Name of Resiliency Policy.
     hidden PolicyName: String(matches(Regex(#"^[A-Za-z0-9][A-Za-z0-9_\-]{1,59}$"#)))|Mapping
@@ -41,16 +44,13 @@ open class ResiliencyPolicy extends cloudformation.Resource {
     /// 
     hidden Policy: ResiliencyPolicyPolicyMap
 
-    /// 
-    hidden Tags: (ResiliencyPolicyTagMap)?
-
     Properties {
+        ["Tags"] = if (Tags == null) null else Tags
         ["PolicyName"] = if (PolicyName == null) null else PolicyName
         ["PolicyDescription"] = if (PolicyDescription == null) null else PolicyDescription
         ["DataLocationConstraint"] = if (DataLocationConstraint == null) null else DataLocationConstraint
         ["Tier"] = if (Tier == null) null else Tier
         ["Policy"] = if (Policy == null) null else Policy
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

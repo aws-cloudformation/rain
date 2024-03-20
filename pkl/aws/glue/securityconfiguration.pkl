@@ -5,14 +5,11 @@ module aws.glue.securityconfiguration
 
 import "../../cloudformation.pkl"
 
-typealias SecurityConfigurationS3Encryptions = Dynamic
-
-
 /// 
 open class SecurityConfigurationEncryptionConfiguration {
+    S3Encryptions: (SecurityConfigurationS3Encryptions)?
     JobBookmarksEncryption: (SecurityConfigurationJobBookmarksEncryption)?
     CloudWatchEncryption: (SecurityConfigurationCloudWatchEncryption)?
-    S3Encryptions: (SecurityConfigurationS3Encryptions)?
 }
 
 /// 
@@ -27,6 +24,9 @@ open class SecurityConfigurationJobBookmarksEncryption {
     JobBookmarksEncryptionMode: (String|Mapping)?
 }
 
+typealias SecurityConfigurationS3Encryptions = Dynamic
+
+
 /// Resource Type definition for AWS::Glue::SecurityConfiguration
 open class SecurityConfiguration extends cloudformation.Resource {
 
@@ -34,14 +34,14 @@ open class SecurityConfiguration extends cloudformation.Resource {
 
 
     /// 
-    hidden Name: String|Mapping
-
-    /// 
     hidden EncryptionConfiguration: SecurityConfigurationEncryptionConfiguration
 
+    /// 
+    hidden Name: String|Mapping
+
     Properties {
-        ["Name"] = if (Name == null) null else Name
         ["EncryptionConfiguration"] = if (EncryptionConfiguration == null) null else EncryptionConfiguration
+        ["Name"] = if (Name == null) null else Name
     }
 
 }

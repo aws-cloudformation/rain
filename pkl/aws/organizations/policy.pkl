@@ -17,12 +17,6 @@ open class Policy extends cloudformation.Resource {
     Type = "AWS::Organizations::Policy"
 
 
-    /// A list of tags that you want to attach to the newly created policy. For each tag in the list, you must specify both a tag key and a value. You can set the value to an empty string, but you can't set it to null.
-    hidden Tags: (Listing<PolicyTag>)?
-
-    /// Name of the Policy
-    hidden Name: String(matches(Regex(#"[\s\S]*"#)))|Mapping
-
     /// The type of policy to create. You can specify one of the following values: AISERVICES_OPT_OUT_POLICY, BACKUP_POLICY, SERVICE_CONTROL_POLICY, TAG_POLICY
     hidden TypeProperty: PolicyType|Mapping
 
@@ -35,13 +29,19 @@ open class Policy extends cloudformation.Resource {
     /// List of unique identifiers (IDs) of the root, OU, or account that you want to attach the policy to
     hidden TargetIds: (Listing<String|Mapping>)?
 
+    /// Name of the Policy
+    hidden Name: String(matches(Regex(#"[\s\S]*"#)))|Mapping
+
+    /// A list of tags that you want to attach to the newly created policy. For each tag in the list, you must specify both a tag key and a value. You can set the value to an empty string, but you can't set it to null.
+    hidden Tags: (Listing<PolicyTag>)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Name"] = if (Name == null) null else Name
         ["Type"] = if (TypeProperty == null) null else TypeProperty
         ["Content"] = if (Content == null) null else Content
         ["Description"] = if (Description == null) null else Description
         ["TargetIds"] = if (TargetIds == null) null else TargetIds
+        ["Name"] = if (Name == null) null else Name
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

@@ -5,30 +5,45 @@ module aws.gamelift.fleet
 
 import "../../cloudformation.pkl"
 
+typealias ScalingPolicyScalingAdjustmentType = "ChangeInCapacity"|"ExactCapacity"|"PercentChangeInCapacity"
+
+typealias ScalingPolicyStatus = "ACTIVE"|"UPDATE_REQUESTED"|"UPDATING"|"DELETE_REQUESTED"|"DELETING"|"DELETED"|"ERROR"
+
+typealias ScalingPolicyPolicyType = "RuleBased"|"TargetBased"
+
+typealias ScalingPolicyComparisonOperator = "GreaterThanOrEqualToThreshold"|"GreaterThanThreshold"|"LessThanThreshold"|"LessThanOrEqualToThreshold"
+
+typealias ScalingPolicyUpdateStatus = "PENDING_UPDATE"
+
+typealias ScalingPolicyMetricName = "ActivatingGameSessions"|"ActiveGameSessions"|"ActiveInstances"|"AvailableGameSessions"|"AvailablePlayerSessions"|"CurrentPlayerSessions"|"IdleInstances"|"PercentAvailableGameSessions"|"PercentIdleInstances"|"QueueDepth"|"WaitTime"|"ConcurrentActivatableGameSessions"
+
+/// Rule that controls how a fleet is scaled. Scaling policies are uniquely identified by the combination of name and fleet ID.
+open class FleetScalingPolicy {
+    ScalingAdjustment: (Int|Mapping)?
+    Location: (FleetLocation)?
+    ScalingAdjustmentType: (ScalingPolicyScalingAdjustmentType|Mapping)?
+    Threshold: (Number|Mapping)?
+    Status: (ScalingPolicyStatus|Mapping)?
+    PolicyType: (ScalingPolicyPolicyType|Mapping)?
+    ComparisonOperator: (ScalingPolicyComparisonOperator|Mapping)?
+    TargetConfiguration: (FleetTargetConfiguration)?
+    UpdateStatus: (ScalingPolicyUpdateStatus|Mapping)?
+    EvaluationPeriods: (Int|Mapping)?
+    Name: String|Mapping
+    MetricName: ScalingPolicyMetricName|Mapping
+}
+
 /// Current resource capacity settings in a specified fleet or location. The location value might refer to a fleet's remote location or its home Region.
 open class FleetLocationCapacity {
-    MinSize: Int|Mapping
     DesiredEC2Instances: Int|Mapping
     MaxSize: Int|Mapping
+    MinSize: Int|Mapping
 }
 
-/// A set of instructions for launching server processes on each instance in a fleet. Each instruction set identifies the location of the server executable, optional launch parameters, and the number of server processes with this configuration to maintain concurrently on the instance. Server process configurations make up a fleet's RuntimeConfiguration.
-open class FleetServerProcess {
-    ConcurrentExecutions: Int|Mapping
-    Parameters: (String|Mapping)?
-    LaunchPath: String(matches(Regex(#"^([Cc]:\\game\S+|/local/game/\S+)"#)))|Mapping
-}
-
-/// A collection of server process configurations that describe the processes to run on each instance in a fleet. All fleets must have a runtime configuration. Each instance in the fleet maintains server processes as specified in the runtime configuration, launching new ones as existing processes end. Each instance regularly checks for an updated runtime configuration makes adjustments as called for.
-///
-/// 
-/// The runtime configuration enables the instances in a fleet to run multiple processes simultaneously. Potential scenarios are as follows: (1) Run multiple processes of a single game server executable to maximize usage of your hosting resources. (2) Run one or more processes of different executables, such as your game server and a metrics tracking program. (3) Run multiple processes of a single game server but with different launch parameters, for example to run one process on each instance in debug mode.
-/// 
-/// An Amazon GameLift instance is limited to 50 processes running simultaneously. A runtime configuration must specify fewer than this limit. To calculate the total number of processes specified in a runtime configuration, add the values of the ConcurrentExecutions parameter for each ServerProcess object in the runtime configuration.
-open class FleetRuntimeConfiguration {
-    GameSessionActivationTimeoutSeconds: (Int|Mapping)?
-    ServerProcesses: (Listing<FleetServerProcess>)?
-    MaxConcurrentGameSessionActivations: (Int|Mapping)?
+/// A remote location where a multi-location fleet can deploy EC2 instances for game hosting.
+open class FleetLocationConfiguration {
+    LocationCapacity: (FleetLocationCapacity)?
+    Location: FleetLocation
 }
 
 typealias CertificateConfigurationCertificateType = "DISABLED"|"GENERATED"
@@ -38,43 +53,16 @@ open class FleetCertificateConfiguration {
     CertificateType: CertificateConfigurationCertificateType|Mapping
 }
 
-typealias ScalingPolicyPolicyType = "RuleBased"|"TargetBased"
-
-typealias ScalingPolicyUpdateStatus = "PENDING_UPDATE"
-
-typealias ScalingPolicyScalingAdjustmentType = "ChangeInCapacity"|"ExactCapacity"|"PercentChangeInCapacity"
-
-typealias ScalingPolicyStatus = "ACTIVE"|"UPDATE_REQUESTED"|"UPDATING"|"DELETE_REQUESTED"|"DELETING"|"DELETED"|"ERROR"
-
-typealias ScalingPolicyMetricName = "ActivatingGameSessions"|"ActiveGameSessions"|"ActiveInstances"|"AvailableGameSessions"|"AvailablePlayerSessions"|"CurrentPlayerSessions"|"IdleInstances"|"PercentAvailableGameSessions"|"PercentIdleInstances"|"QueueDepth"|"WaitTime"|"ConcurrentActivatableGameSessions"
-
-typealias ScalingPolicyComparisonOperator = "GreaterThanOrEqualToThreshold"|"GreaterThanThreshold"|"LessThanThreshold"|"LessThanOrEqualToThreshold"
-
-/// Rule that controls how a fleet is scaled. Scaling policies are uniquely identified by the combination of name and fleet ID.
-open class FleetScalingPolicy {
-    Threshold: (Number|Mapping)?
-    PolicyType: (ScalingPolicyPolicyType|Mapping)?
-    UpdateStatus: (ScalingPolicyUpdateStatus|Mapping)?
-    Name: String|Mapping
-    ScalingAdjustmentType: (ScalingPolicyScalingAdjustmentType|Mapping)?
-    ScalingAdjustment: (Int|Mapping)?
-    EvaluationPeriods: (Int|Mapping)?
-    Location: (FleetLocation)?
-    Status: (ScalingPolicyStatus|Mapping)?
-    MetricName: ScalingPolicyMetricName|Mapping
-    ComparisonOperator: (ScalingPolicyComparisonOperator|Mapping)?
-    TargetConfiguration: (FleetTargetConfiguration)?
+/// A set of instructions for launching server processes on each instance in a fleet. Each instruction set identifies the location of the server executable, optional launch parameters, and the number of server processes with this configuration to maintain concurrently on the instance. Server process configurations make up a fleet's RuntimeConfiguration.
+open class FleetServerProcess {
+    ConcurrentExecutions: Int|Mapping
+    Parameters: (String|Mapping)?
+    LaunchPath: String(matches(Regex(#"^([Cc]:\\game\S+|/local/game/\S+)"#)))|Mapping
 }
 
-/// A remote location where a multi-location fleet can deploy EC2 instances for game hosting.
-open class FleetLocationConfiguration {
-    LocationCapacity: (FleetLocationCapacity)?
-    Location: FleetLocation
-}
-
-/// Configuration for Anywhere fleet.
-open class FleetAnywhereConfiguration {
-    Cost: String(matches(Regex(#"^\d{1,5}(?:\.\d{1,5})?$"#)))|Mapping
+/// Settings for a target-based scaling policy. A target-based policy tracks a particular fleet metric specifies a target value for the metric. As player usage changes, the policy triggers Amazon GameLift to adjust capacity so that the metric returns to the target value. The target configuration specifies settings as needed for the target based policy, including the target value.
+open class FleetTargetConfiguration {
+    TargetValue: Number|Mapping
 }
 
 /// A policy that limits the number of game sessions a player can create on the same fleet. This optional policy gives game owners control over how players can consume available game server resources. A resource creation policy makes the following statement: "An individual player can create a maximum number of new game sessions within a specified time period".
@@ -86,23 +74,35 @@ open class FleetResourceCreationLimitPolicy {
     NewGameSessionsPerCreator: (Int|Mapping)?
 }
 
-/// Settings for a target-based scaling policy. A target-based policy tracks a particular fleet metric specifies a target value for the metric. As player usage changes, the policy triggers Amazon GameLift to adjust capacity so that the metric returns to the target value. The target configuration specifies settings as needed for the target based policy, including the target value.
-open class FleetTargetConfiguration {
-    TargetValue: Number|Mapping
+typealias FleetLocation = String|Mapping
+
+
+/// A collection of server process configurations that describe the processes to run on each instance in a fleet. All fleets must have a runtime configuration. Each instance in the fleet maintains server processes as specified in the runtime configuration, launching new ones as existing processes end. Each instance regularly checks for an updated runtime configuration makes adjustments as called for.
+///
+/// 
+/// The runtime configuration enables the instances in a fleet to run multiple processes simultaneously. Potential scenarios are as follows: (1) Run multiple processes of a single game server executable to maximize usage of your hosting resources. (2) Run one or more processes of different executables, such as your game server and a metrics tracking program. (3) Run multiple processes of a single game server but with different launch parameters, for example to run one process on each instance in debug mode.
+/// 
+/// An Amazon GameLift instance is limited to 50 processes running simultaneously. A runtime configuration must specify fewer than this limit. To calculate the total number of processes specified in a runtime configuration, add the values of the ConcurrentExecutions parameter for each ServerProcess object in the runtime configuration.
+open class FleetRuntimeConfiguration {
+    MaxConcurrentGameSessionActivations: (Int|Mapping)?
+    GameSessionActivationTimeoutSeconds: (Int|Mapping)?
+    ServerProcesses: (Listing<FleetServerProcess>)?
+}
+
+/// Configuration for Anywhere fleet.
+open class FleetAnywhereConfiguration {
+    Cost: String(matches(Regex(#"^\d{1,5}(?:\.\d{1,5})?$"#)))|Mapping
 }
 
 typealias IpPermissionProtocol = "TCP"|"UDP"
 
 /// A range of IP addresses and port settings that allow inbound traffic to connect to server processes on an Amazon GameLift hosting resource. New game sessions that are started on the fleet are assigned an IP address/port number combination, which must fall into the fleet's allowed ranges. For fleets created with a custom game server, the ranges reflect the server's game session assignments. For Realtime Servers fleets, Amazon GameLift automatically opens two port ranges, one for TCP messaging and one for UDP, for use by the Realtime servers.
 open class FleetIpPermission {
+    IpRange: String(matches(Regex(#"(^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(/([0-9]|[1-2][0-9]|3[0-2]))$)"#)))|Mapping
     FromPort: Int|Mapping
     ToPort: Int|Mapping
     Protocol: IpPermissionProtocol|Mapping
-    IpRange: String(matches(Regex(#"(^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(/([0-9]|[1-2][0-9]|3[0-2]))$)"#)))|Mapping
 }
-
-typealias FleetLocation = String|Mapping
-
 
 /// The AWS::GameLift::Fleet resource creates an Amazon GameLift (GameLift) fleet to host game servers. A fleet is a set of EC2 or Anywhere instances, each of which can host multiple game sessions.
 open class Fleet extends cloudformation.Resource {
@@ -110,50 +110,8 @@ open class Fleet extends cloudformation.Resource {
     Type = "AWS::GameLift::Fleet"
 
 
-    /// Instructions for launching server processes on each instance in the fleet. Server processes run either a custom game build executable or a Realtime script. The runtime configuration defines the server executables or launch script file, launch parameters, and the number of processes to run concurrently on each instance. When creating a fleet, the runtime configuration must have at least one server process configuration; otherwise the request fails with an invalid request exception.
-    ///
-    /// 
-    /// This parameter is required unless the parameters ServerLaunchPath and ServerLaunchParameters are defined. Runtime configuration has replaced these parameters, but fleets that use them will continue to work.
-    hidden RuntimeConfiguration: (FleetRuntimeConfiguration)?
-
-    /// This parameter is no longer used. Instead, specify a server launch path using the RuntimeConfiguration parameter. Requests that specify a server launch path and launch parameters instead of a runtime configuration will continue to work.
-    hidden ServerLaunchPath: (String|Mapping)?
-
-    /// A list of rules that control how a fleet is scaled.
-    hidden ScalingPolicies: (Listing<FleetScalingPolicy>)?
-
-    /// Determines whether to apply fleet or location capacities on fleet creation.
-    hidden ApplyCapacity: (FleetApplyCapacity|Mapping)?
-
-    /// [DEPRECATED] The number of EC2 instances that you want this fleet to host. When creating a new fleet, GameLift automatically sets this value to "1" and initiates a single instance. Once the fleet is active, update this value to trigger GameLift to add or remove instances from the fleet.
-    hidden DesiredEC2Instances: (Int|Mapping)?
-
-    /// Indicates whether to use On-Demand instances or Spot instances for this fleet. If empty, the default is ON_DEMAND. Both categories of instances use identical hardware and configurations based on the instance type selected for this fleet.
-    hidden FleetType: (FleetFleetType|Mapping)?
-
-    /// 
-    hidden Locations: (Listing<FleetLocationConfiguration>)?
-
-    /// [DEPRECATED] The maximum value that is allowed for the fleet's instance count. When creating a new fleet, GameLift automatically sets this value to "1". Once the fleet is active, you can change this value.
-    hidden MaxSize: (Int|Mapping)?
-
-    /// A unique identifier for a build to be deployed on the new fleet. If you are deploying the fleet with a custom game build, you must specify this property. The build must have been successfully uploaded to Amazon GameLift and be in a READY status. This fleet setting cannot be changed once the fleet is created.
-    hidden BuildId: (String(matches(Regex(#"^build-\S+|^arn:.*:build/build-\S+"#)))|Mapping)?
-
     /// ComputeType to differentiate EC2 hardware managed by GameLift and Anywhere hardware managed by the customer.
     hidden ComputeType: (FleetComputeType|Mapping)?
-
-    /// Indicates whether to generate a TLS/SSL certificate for the new fleet. TLS certificates are used for encrypting traffic between game clients and game servers running on GameLift. If this parameter is not set, certificate generation is disabled. This fleet setting cannot be changed once the fleet is created.
-    hidden CertificateConfiguration: (FleetCertificateConfiguration)?
-
-    /// This parameter is no longer used. When hosting a custom game build, specify where Amazon GameLift should store log files using the Amazon GameLift server API call ProcessReady()
-    hidden LogPaths: (Listing<String|Mapping>)?
-
-    /// The name of an EC2 instance type that is supported in Amazon GameLift. A fleet instance type determines the computing resources of each instance in the fleet, including CPU, memory, storage, and networking capacity. Amazon GameLift supports the following EC2 instance types. See Amazon EC2 Instance Types for detailed descriptions.
-    hidden EC2InstanceType: (String(matches(Regex(#"^.*..*$"#)))|Mapping)?
-
-    /// A game session protection policy to apply to all game sessions hosted on instances in this fleet. When protected, active game sessions cannot be terminated during a scale-down event. If this parameter is not set, instances in this fleet default to no protection. You can change a fleet's protection policy to affect future game sessions on the fleet. You can also set protection for individual game sessions.
-    hidden NewGameSessionProtectionPolicy: (FleetNewGameSessionProtectionPolicy|Mapping)?
 
     /// A descriptive label that is associated with a fleet. Fleet names do not need to be unique.
     hidden Name: String|Mapping
@@ -161,29 +119,11 @@ open class Fleet extends cloudformation.Resource {
     /// Credentials provider implementation that loads credentials from the Amazon EC2 Instance Metadata Service.
     hidden InstanceRoleCredentialsProvider: (FleetInstanceRoleCredentialsProvider|Mapping)?
 
-    /// A unique identifier for a VPC with resources to be accessed by your Amazon GameLift fleet. The VPC must be in the same Region as your fleet. To look up a VPC ID, use the VPC Dashboard in the AWS Management Console.
-    hidden PeerVpcId: (String(matches(Regex(#"^vpc-\S+"#)))|Mapping)?
+    /// The name of an Amazon CloudWatch metric group. A metric group aggregates the metrics for all fleets in the group. Specify a string containing the metric group name. You can use an existing name or use a new name to create a new metric group. Currently, this parameter can have only one string.
+    hidden MetricGroups: (Listing<String|Mapping>)?
 
-    /// [DEPRECATED] The minimum value allowed for the fleet's instance count. When creating a new fleet, GameLift automatically sets this value to "0". After the fleet is active, you can change this value.
-    hidden MinSize: (Int|Mapping)?
-
-    /// A policy that limits the number of game sessions an individual player can create over a span of time for this fleet.
-    hidden ResourceCreationLimitPolicy: (FleetResourceCreationLimitPolicy)?
-
-    /// Configuration for Anywhere fleet.
-    hidden AnywhereConfiguration: (FleetAnywhereConfiguration)?
-
-    /// A unique identifier for an AWS IAM role that manages access to your AWS services. With an instance role ARN set, any application that runs on an instance in this fleet can assume the role, including install scripts, server processes, and daemons (background processes). Create a role or look up a role's ARN from the IAM dashboard in the AWS Management Console.
-    hidden InstanceRoleARN: (String(matches(Regex(#"^arn:aws(-.*)?:[a-z-]+:(([a-z]+-)+[0-9])?:([0-9]{12})?:[^.]+$"#)))|Mapping)?
-
-    /// A human-readable description of a fleet.
-    hidden Description: (String|Mapping)?
-
-    /// A range of IP addresses and port settings that allow inbound traffic to connect to server processes on an Amazon GameLift server.
-    hidden EC2InboundPermissions: (Listing<FleetIpPermission>)?
-
-    /// This parameter is no longer used but is retained for backward compatibility. Instead, specify server launch parameters in the RuntimeConfiguration parameter. A request must specify either a runtime configuration or values for both ServerLaunchParameters and ServerLaunchPath.
-    hidden ServerLaunchParameters: (String|Mapping)?
+    /// A unique identifier for a build to be deployed on the new fleet. If you are deploying the fleet with a custom game build, you must specify this property. The build must have been successfully uploaded to Amazon GameLift and be in a READY status. This fleet setting cannot be changed once the fleet is created.
+    hidden BuildId: (String(matches(Regex(#"^build-\S+|^arn:.*:build/build-\S+"#)))|Mapping)?
 
     /// A unique identifier for a Realtime script to be deployed on a new Realtime Servers fleet. The script must have been successfully uploaded to Amazon GameLift. This fleet setting cannot be changed once the fleet is created.
     ///
@@ -191,51 +131,111 @@ open class Fleet extends cloudformation.Resource {
     /// Note: It is not currently possible to use the !Ref command to reference a script created with a CloudFormation template for the fleet property ScriptId. Instead, use Fn::GetAtt Script.Arn or Fn::GetAtt Script.Id to retrieve either of these properties as input for ScriptId. Alternatively, enter a ScriptId string manually.
     hidden ScriptId: (String(matches(Regex(#"^script-\S+|^arn:.*:script/script-\S+"#)))|Mapping)?
 
+    /// Instructions for launching server processes on each instance in the fleet. Server processes run either a custom game build executable or a Realtime script. The runtime configuration defines the server executables or launch script file, launch parameters, and the number of processes to run concurrently on each instance. When creating a fleet, the runtime configuration must have at least one server process configuration; otherwise the request fails with an invalid request exception.
+    ///
+    /// 
+    /// This parameter is required unless the parameters ServerLaunchPath and ServerLaunchParameters are defined. Runtime configuration has replaced these parameters, but fleets that use them will continue to work.
+    hidden RuntimeConfiguration: (FleetRuntimeConfiguration)?
+
+    /// This parameter is no longer used. When hosting a custom game build, specify where Amazon GameLift should store log files using the Amazon GameLift server API call ProcessReady()
+    hidden LogPaths: (Listing<String|Mapping>)?
+
+    /// A game session protection policy to apply to all game sessions hosted on instances in this fleet. When protected, active game sessions cannot be terminated during a scale-down event. If this parameter is not set, instances in this fleet default to no protection. You can change a fleet's protection policy to affect future game sessions on the fleet. You can also set protection for individual game sessions.
+    hidden NewGameSessionProtectionPolicy: (FleetNewGameSessionProtectionPolicy|Mapping)?
+
+    /// A list of rules that control how a fleet is scaled.
+    hidden ScalingPolicies: (Listing<FleetScalingPolicy>)?
+
+    /// A human-readable description of a fleet.
+    hidden Description: (String|Mapping)?
+
+    /// Determines whether to apply fleet or location capacities on fleet creation.
+    hidden ApplyCapacity: (FleetApplyCapacity|Mapping)?
+
+    /// A range of IP addresses and port settings that allow inbound traffic to connect to server processes on an Amazon GameLift server.
+    hidden EC2InboundPermissions: (Listing<FleetIpPermission>)?
+
+    /// [DEPRECATED] The number of EC2 instances that you want this fleet to host. When creating a new fleet, GameLift automatically sets this value to "1" and initiates a single instance. Once the fleet is active, update this value to trigger GameLift to add or remove instances from the fleet.
+    hidden DesiredEC2Instances: (Int|Mapping)?
+
+    /// This parameter is no longer used but is retained for backward compatibility. Instead, specify server launch parameters in the RuntimeConfiguration parameter. A request must specify either a runtime configuration or values for both ServerLaunchParameters and ServerLaunchPath.
+    hidden ServerLaunchParameters: (String|Mapping)?
+
+    /// This parameter is no longer used. Instead, specify a server launch path using the RuntimeConfiguration parameter. Requests that specify a server launch path and launch parameters instead of a runtime configuration will continue to work.
+    hidden ServerLaunchPath: (String|Mapping)?
+
+    /// Configuration for Anywhere fleet.
+    hidden AnywhereConfiguration: (FleetAnywhereConfiguration)?
+
+    /// Indicates whether to generate a TLS/SSL certificate for the new fleet. TLS certificates are used for encrypting traffic between game clients and game servers running on GameLift. If this parameter is not set, certificate generation is disabled. This fleet setting cannot be changed once the fleet is created.
+    hidden CertificateConfiguration: (FleetCertificateConfiguration)?
+
+    /// Indicates whether to use On-Demand instances or Spot instances for this fleet. If empty, the default is ON_DEMAND. Both categories of instances use identical hardware and configurations based on the instance type selected for this fleet.
+    hidden FleetType: (FleetFleetType|Mapping)?
+
+    /// [DEPRECATED] The minimum value allowed for the fleet's instance count. When creating a new fleet, GameLift automatically sets this value to "0". After the fleet is active, you can change this value.
+    hidden MinSize: (Int|Mapping)?
+
+    /// A unique identifier for a VPC with resources to be accessed by your Amazon GameLift fleet. The VPC must be in the same Region as your fleet. To look up a VPC ID, use the VPC Dashboard in the AWS Management Console.
+    hidden PeerVpcId: (String(matches(Regex(#"^vpc-\S+"#)))|Mapping)?
+
+    /// A unique identifier for an AWS IAM role that manages access to your AWS services. With an instance role ARN set, any application that runs on an instance in this fleet can assume the role, including install scripts, server processes, and daemons (background processes). Create a role or look up a role's ARN from the IAM dashboard in the AWS Management Console.
+    hidden InstanceRoleARN: (String(matches(Regex(#"^arn:aws(-.*)?:[a-z-]+:(([a-z]+-)+[0-9])?:([0-9]{12})?:[^.]+$"#)))|Mapping)?
+
+    /// 
+    hidden Locations: (Listing<FleetLocationConfiguration>)?
+
+    /// [DEPRECATED] The maximum value that is allowed for the fleet's instance count. When creating a new fleet, GameLift automatically sets this value to "1". Once the fleet is active, you can change this value.
+    hidden MaxSize: (Int|Mapping)?
+
     /// A unique identifier for the AWS account with the VPC that you want to peer your Amazon GameLift fleet with. You can find your account ID in the AWS Management Console under account settings.
     hidden PeerVpcAwsAccountId: (String(matches(Regex(#"^[0-9]{12}$"#)))|Mapping)?
 
-    /// The name of an Amazon CloudWatch metric group. A metric group aggregates the metrics for all fleets in the group. Specify a string containing the metric group name. You can use an existing name or use a new name to create a new metric group. Currently, this parameter can have only one string.
-    hidden MetricGroups: (Listing<String|Mapping>)?
+    /// A policy that limits the number of game sessions an individual player can create over a span of time for this fleet.
+    hidden ResourceCreationLimitPolicy: (FleetResourceCreationLimitPolicy)?
+
+    /// The name of an EC2 instance type that is supported in Amazon GameLift. A fleet instance type determines the computing resources of each instance in the fleet, including CPU, memory, storage, and networking capacity. Amazon GameLift supports the following EC2 instance types. See Amazon EC2 Instance Types for detailed descriptions.
+    hidden EC2InstanceType: (String(matches(Regex(#"^.*..*$"#)))|Mapping)?
 
     Properties {
-        ["RuntimeConfiguration"] = if (RuntimeConfiguration == null) null else RuntimeConfiguration
-        ["ServerLaunchPath"] = if (ServerLaunchPath == null) null else ServerLaunchPath
-        ["ScalingPolicies"] = if (ScalingPolicies == null) null else ScalingPolicies
-        ["ApplyCapacity"] = if (ApplyCapacity == null) null else ApplyCapacity
-        ["DesiredEC2Instances"] = if (DesiredEC2Instances == null) null else DesiredEC2Instances
-        ["FleetType"] = if (FleetType == null) null else FleetType
-        ["Locations"] = if (Locations == null) null else Locations
-        ["MaxSize"] = if (MaxSize == null) null else MaxSize
-        ["BuildId"] = if (BuildId == null) null else BuildId
         ["ComputeType"] = if (ComputeType == null) null else ComputeType
-        ["CertificateConfiguration"] = if (CertificateConfiguration == null) null else CertificateConfiguration
-        ["LogPaths"] = if (LogPaths == null) null else LogPaths
-        ["EC2InstanceType"] = if (EC2InstanceType == null) null else EC2InstanceType
-        ["NewGameSessionProtectionPolicy"] = if (NewGameSessionProtectionPolicy == null) null else NewGameSessionProtectionPolicy
         ["Name"] = if (Name == null) null else Name
         ["InstanceRoleCredentialsProvider"] = if (InstanceRoleCredentialsProvider == null) null else InstanceRoleCredentialsProvider
-        ["PeerVpcId"] = if (PeerVpcId == null) null else PeerVpcId
-        ["MinSize"] = if (MinSize == null) null else MinSize
-        ["ResourceCreationLimitPolicy"] = if (ResourceCreationLimitPolicy == null) null else ResourceCreationLimitPolicy
-        ["AnywhereConfiguration"] = if (AnywhereConfiguration == null) null else AnywhereConfiguration
-        ["InstanceRoleARN"] = if (InstanceRoleARN == null) null else InstanceRoleARN
-        ["Description"] = if (Description == null) null else Description
-        ["EC2InboundPermissions"] = if (EC2InboundPermissions == null) null else EC2InboundPermissions
-        ["ServerLaunchParameters"] = if (ServerLaunchParameters == null) null else ServerLaunchParameters
-        ["ScriptId"] = if (ScriptId == null) null else ScriptId
-        ["PeerVpcAwsAccountId"] = if (PeerVpcAwsAccountId == null) null else PeerVpcAwsAccountId
         ["MetricGroups"] = if (MetricGroups == null) null else MetricGroups
+        ["BuildId"] = if (BuildId == null) null else BuildId
+        ["ScriptId"] = if (ScriptId == null) null else ScriptId
+        ["RuntimeConfiguration"] = if (RuntimeConfiguration == null) null else RuntimeConfiguration
+        ["LogPaths"] = if (LogPaths == null) null else LogPaths
+        ["NewGameSessionProtectionPolicy"] = if (NewGameSessionProtectionPolicy == null) null else NewGameSessionProtectionPolicy
+        ["ScalingPolicies"] = if (ScalingPolicies == null) null else ScalingPolicies
+        ["Description"] = if (Description == null) null else Description
+        ["ApplyCapacity"] = if (ApplyCapacity == null) null else ApplyCapacity
+        ["EC2InboundPermissions"] = if (EC2InboundPermissions == null) null else EC2InboundPermissions
+        ["DesiredEC2Instances"] = if (DesiredEC2Instances == null) null else DesiredEC2Instances
+        ["ServerLaunchParameters"] = if (ServerLaunchParameters == null) null else ServerLaunchParameters
+        ["ServerLaunchPath"] = if (ServerLaunchPath == null) null else ServerLaunchPath
+        ["AnywhereConfiguration"] = if (AnywhereConfiguration == null) null else AnywhereConfiguration
+        ["CertificateConfiguration"] = if (CertificateConfiguration == null) null else CertificateConfiguration
+        ["FleetType"] = if (FleetType == null) null else FleetType
+        ["MinSize"] = if (MinSize == null) null else MinSize
+        ["PeerVpcId"] = if (PeerVpcId == null) null else PeerVpcId
+        ["InstanceRoleARN"] = if (InstanceRoleARN == null) null else InstanceRoleARN
+        ["Locations"] = if (Locations == null) null else Locations
+        ["MaxSize"] = if (MaxSize == null) null else MaxSize
+        ["PeerVpcAwsAccountId"] = if (PeerVpcAwsAccountId == null) null else PeerVpcAwsAccountId
+        ["ResourceCreationLimitPolicy"] = if (ResourceCreationLimitPolicy == null) null else ResourceCreationLimitPolicy
+        ["EC2InstanceType"] = if (EC2InstanceType == null) null else EC2InstanceType
     }
 
 }
 
 
-typealias FleetApplyCapacity = "ON_UPDATE"|"ON_CREATE_AND_UPDATE"
-
-typealias FleetFleetType = "ON_DEMAND"|"SPOT"
-
 typealias FleetComputeType = "EC2"|"ANYWHERE"
+
+typealias FleetInstanceRoleCredentialsProvider = "SHARED_CREDENTIAL_FILE"
 
 typealias FleetNewGameSessionProtectionPolicy = "FullProtection"|"NoProtection"
 
-typealias FleetInstanceRoleCredentialsProvider = "SHARED_CREDENTIAL_FILE"
+typealias FleetApplyCapacity = "ON_UPDATE"|"ON_CREATE_AND_UPDATE"
+
+typealias FleetFleetType = "ON_DEMAND"|"SPOT"

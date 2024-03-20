@@ -5,11 +5,16 @@ module aws.ses.emailidentity
 
 import "../../cloudformation.pkl"
 
+/// Used to enable or disable feedback forwarding for an identity.
+open class EmailIdentityFeedbackAttributes {
+    EmailForwardingEnabled: (Boolean|Mapping)?
+}
+
 /// If your request includes this object, Amazon SES configures the identity to use Bring Your Own DKIM (BYODKIM) for DKIM authentication purposes, or, configures the key length to be used for Easy DKIM.
 open class EmailIdentityDkimSigningAttributes {
-    NextSigningKeyLength: (String(matches(Regex(#"RSA_1024_BIT|RSA_2048_BIT"#)))|Mapping)?
     DomainSigningSelector: (String|Mapping)?
     DomainSigningPrivateKey: (String|Mapping)?
+    NextSigningKeyLength: (String(matches(Regex(#"RSA_1024_BIT|RSA_2048_BIT"#)))|Mapping)?
 }
 
 /// Used to associate a configuration set with an email identity.
@@ -28,11 +33,6 @@ open class EmailIdentityMailFromAttributes {
     BehaviorOnMxFailure: (String(matches(Regex(#"USE_DEFAULT_VALUE|REJECT_MESSAGE"#)))|Mapping)?
 }
 
-/// Used to enable or disable feedback forwarding for an identity.
-open class EmailIdentityFeedbackAttributes {
-    EmailForwardingEnabled: (Boolean|Mapping)?
-}
-
 /// Resource Type definition for AWS::SES::EmailIdentity
 open class EmailIdentity extends cloudformation.Resource {
 
@@ -46,24 +46,24 @@ open class EmailIdentity extends cloudformation.Resource {
     hidden ConfigurationSetAttributes: (EmailIdentityConfigurationSetAttributes)?
 
     /// 
-    hidden DkimSigningAttributes: (EmailIdentityDkimSigningAttributes)?
+    hidden MailFromAttributes: (EmailIdentityMailFromAttributes)?
 
     /// 
-    hidden FeedbackAttributes: (EmailIdentityFeedbackAttributes)?
+    hidden DkimSigningAttributes: (EmailIdentityDkimSigningAttributes)?
 
     /// 
     hidden DkimAttributes: (EmailIdentityDkimAttributes)?
 
     /// 
-    hidden MailFromAttributes: (EmailIdentityMailFromAttributes)?
+    hidden FeedbackAttributes: (EmailIdentityFeedbackAttributes)?
 
     Properties {
         ["EmailIdentity"] = if (EmailIdentity == null) null else EmailIdentity
         ["ConfigurationSetAttributes"] = if (ConfigurationSetAttributes == null) null else ConfigurationSetAttributes
-        ["DkimSigningAttributes"] = if (DkimSigningAttributes == null) null else DkimSigningAttributes
-        ["FeedbackAttributes"] = if (FeedbackAttributes == null) null else FeedbackAttributes
-        ["DkimAttributes"] = if (DkimAttributes == null) null else DkimAttributes
         ["MailFromAttributes"] = if (MailFromAttributes == null) null else MailFromAttributes
+        ["DkimSigningAttributes"] = if (DkimSigningAttributes == null) null else DkimSigningAttributes
+        ["DkimAttributes"] = if (DkimAttributes == null) null else DkimAttributes
+        ["FeedbackAttributes"] = if (FeedbackAttributes == null) null else FeedbackAttributes
     }
 
 }

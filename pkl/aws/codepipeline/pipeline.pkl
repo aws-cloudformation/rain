@@ -6,25 +6,7 @@ module aws.codepipeline.pipeline
 import "../../cloudformation.pkl"
 
 /// 
-open class PipelinePipelineTriggerDeclaration {
-    GitConfiguration: (PipelineGitConfiguration)?
-    ProviderType: String|Mapping
-}
-
-/// 
-open class PipelineArtifactStoreMap {
-    ArtifactStore: PipelineArtifactStore
-    Region: String|Mapping
-}
-
-/// 
-open class PipelineGitBranchFilterCriteria {
-    Includes: (Listing<String|Mapping>)?
-    Excludes: (Listing<String|Mapping>)?
-}
-
-/// 
-open class PipelineOutputArtifact {
+open class PipelineInputArtifact {
     Name: String|Mapping
 }
 
@@ -33,77 +15,6 @@ open class PipelineVariableDeclaration {
     DefaultValue: (String|Mapping)?
     Description: (String|Mapping)?
     Name: String|Mapping
-}
-
-/// 
-open class PipelineTag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class PipelineActionDeclaration {
-    ActionTypeId: PipelineActionTypeId
-    RoleArn: (String|Mapping)?
-    RunOrder: (Int|Mapping)?
-    TimeoutInMinutes: (Int|Mapping)?
-    Configuration: (Dynamic)?
-    InputArtifacts: (Listing<PipelineInputArtifact>)?
-    OutputArtifacts: (Listing<PipelineOutputArtifact>)?
-    Region: (String|Mapping)?
-    Namespace: (String|Mapping)?
-    Name: String|Mapping
-}
-
-/// 
-open class PipelineGitFilePathFilterCriteria {
-    Includes: (Listing<String|Mapping>)?
-    Excludes: (Listing<String|Mapping>)?
-}
-
-/// 
-open class PipelineStageDeclaration {
-    Blockers: (Listing<PipelineBlockerDeclaration>)?
-    Actions: Listing<PipelineActionDeclaration>
-    Name: String|Mapping
-}
-
-/// 
-open class PipelineGitTagFilterCriteria {
-    Includes: (Listing<String|Mapping>)?
-    Excludes: (Listing<String|Mapping>)?
-}
-
-/// 
-open class PipelineBlockerDeclaration {
-    Type: String|Mapping
-    Name: String|Mapping
-}
-
-/// 
-open class PipelineEncryptionKey {
-    Type: String|Mapping
-    Id: String|Mapping
-}
-
-/// 
-open class PipelineGitPushFilter {
-    FilePaths: (PipelineGitFilePathFilterCriteria)?
-    Branches: (PipelineGitBranchFilterCriteria)?
-    Tags: (PipelineGitTagFilterCriteria)?
-}
-
-/// 
-open class PipelineInputArtifact {
-    Name: String|Mapping
-}
-
-/// 
-open class PipelineActionTypeId {
-    Owner: String|Mapping
-    Category: String|Mapping
-    Version: String|Mapping
-    Provider: String|Mapping
 }
 
 /// 
@@ -120,6 +31,78 @@ open class PipelineGitConfiguration {
 }
 
 /// 
+open class PipelineArtifactStore {
+    Type: String|Mapping
+    EncryptionKey: (PipelineEncryptionKey)?
+    Location: String|Mapping
+}
+
+/// 
+open class PipelineActionDeclaration {
+    Region: (String|Mapping)?
+    RoleArn: (String|Mapping)?
+    RunOrder: (Int|Mapping)?
+    Name: String|Mapping
+    TimeoutInMinutes: (Int|Mapping)?
+    ActionTypeId: PipelineActionTypeId
+    Configuration: (Dynamic)?
+    InputArtifacts: (Listing<PipelineInputArtifact>)?
+    OutputArtifacts: (Listing<PipelineOutputArtifact>)?
+    Namespace: (String|Mapping)?
+}
+
+/// 
+open class PipelineOutputArtifact {
+    Name: String|Mapping
+}
+
+/// 
+open class PipelineActionTypeId {
+    Owner: String|Mapping
+    Category: String|Mapping
+    Version: String|Mapping
+    Provider: String|Mapping
+}
+
+/// 
+open class PipelineGitBranchFilterCriteria {
+    Includes: (Listing<String|Mapping>)?
+    Excludes: (Listing<String|Mapping>)?
+}
+
+/// 
+open class PipelineGitTagFilterCriteria {
+    Includes: (Listing<String|Mapping>)?
+    Excludes: (Listing<String|Mapping>)?
+}
+
+/// 
+open class PipelineBlockerDeclaration {
+    Type: String|Mapping
+    Name: String|Mapping
+}
+
+/// 
+open class PipelineGitPushFilter {
+    FilePaths: (PipelineGitFilePathFilterCriteria)?
+    Branches: (PipelineGitBranchFilterCriteria)?
+    Tags: (PipelineGitTagFilterCriteria)?
+}
+
+/// 
+open class PipelineStageDeclaration {
+    Blockers: (Listing<PipelineBlockerDeclaration>)?
+    Actions: Listing<PipelineActionDeclaration>
+    Name: String|Mapping
+}
+
+/// 
+open class PipelineGitFilePathFilterCriteria {
+    Includes: (Listing<String|Mapping>)?
+    Excludes: (Listing<String|Mapping>)?
+}
+
+/// 
 open class PipelineGitPullRequestFilter {
     FilePaths: (PipelineGitFilePathFilterCriteria)?
     Events: (Listing<String|Mapping>)?
@@ -127,10 +110,27 @@ open class PipelineGitPullRequestFilter {
 }
 
 /// 
-open class PipelineArtifactStore {
+open class PipelineEncryptionKey {
     Type: String|Mapping
-    EncryptionKey: (PipelineEncryptionKey)?
-    Location: String|Mapping
+    Id: String|Mapping
+}
+
+/// 
+open class PipelineArtifactStoreMap {
+    ArtifactStore: PipelineArtifactStore
+    Region: String|Mapping
+}
+
+/// 
+open class PipelineTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// 
+open class PipelinePipelineTriggerDeclaration {
+    GitConfiguration: (PipelineGitConfiguration)?
+    ProviderType: String|Mapping
 }
 
 /// Resource Type definition for AWS::CodePipeline::Pipeline
@@ -140,19 +140,10 @@ open class Pipeline extends cloudformation.Resource {
 
 
     /// 
-    hidden DisableInboundStageTransitions: (Listing<PipelineStageTransition>)?
-
-    /// 
-    hidden RoleArn: String|Mapping
-
-    /// 
-    hidden ArtifactStore: (PipelineArtifactStore)?
+    hidden Stages: Listing<PipelineStageDeclaration>
 
     /// 
     hidden ExecutionMode: (String|Mapping)?
-
-    /// 
-    hidden Name: (String|Mapping)?
 
     /// 
     hidden PipelineType: (String|Mapping)?
@@ -164,30 +155,39 @@ open class Pipeline extends cloudformation.Resource {
     hidden ArtifactStores: (Listing<PipelineArtifactStoreMap>)?
 
     /// 
-    hidden Stages: Listing<PipelineStageDeclaration>
+    hidden Variables: (Listing<PipelineVariableDeclaration>)?
 
     /// 
-    hidden RestartExecutionOnUpdate: (Boolean|Mapping)?
+    hidden ArtifactStore: (PipelineArtifactStore)?
+
+    /// 
+    hidden RoleArn: String|Mapping
+
+    /// 
+    hidden DisableInboundStageTransitions: (Listing<PipelineStageTransition>)?
 
     /// 
     hidden Triggers: (Listing<PipelinePipelineTriggerDeclaration>)?
 
     /// 
-    hidden Variables: (Listing<PipelineVariableDeclaration>)?
+    hidden Name: (String|Mapping)?
+
+    /// 
+    hidden RestartExecutionOnUpdate: (Boolean|Mapping)?
 
     Properties {
-        ["DisableInboundStageTransitions"] = if (DisableInboundStageTransitions == null) null else DisableInboundStageTransitions
-        ["RoleArn"] = if (RoleArn == null) null else RoleArn
-        ["ArtifactStore"] = if (ArtifactStore == null) null else ArtifactStore
+        ["Stages"] = if (Stages == null) null else Stages
         ["ExecutionMode"] = if (ExecutionMode == null) null else ExecutionMode
-        ["Name"] = if (Name == null) null else Name
         ["PipelineType"] = if (PipelineType == null) null else PipelineType
         ["Tags"] = if (Tags == null) null else Tags
         ["ArtifactStores"] = if (ArtifactStores == null) null else ArtifactStores
-        ["Stages"] = if (Stages == null) null else Stages
-        ["RestartExecutionOnUpdate"] = if (RestartExecutionOnUpdate == null) null else RestartExecutionOnUpdate
-        ["Triggers"] = if (Triggers == null) null else Triggers
         ["Variables"] = if (Variables == null) null else Variables
+        ["ArtifactStore"] = if (ArtifactStore == null) null else ArtifactStore
+        ["RoleArn"] = if (RoleArn == null) null else RoleArn
+        ["DisableInboundStageTransitions"] = if (DisableInboundStageTransitions == null) null else DisableInboundStageTransitions
+        ["Triggers"] = if (Triggers == null) null else Triggers
+        ["Name"] = if (Name == null) null else Name
+        ["RestartExecutionOnUpdate"] = if (RestartExecutionOnUpdate == null) null else RestartExecutionOnUpdate
     }
 
 }

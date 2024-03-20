@@ -5,63 +5,22 @@ module aws.cassandra.table
 
 import "../../cloudformation.pkl"
 
-/// 
-open class TableColumn {
-    ColumnName: String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9_]{1,47}$"#)))|Mapping
-    ColumnType: String|Mapping
+typealias TableKmsKeyIdentifier = String|Mapping
+
+
+/// Throughput for the specified table, which consists of values for ReadCapacityUnits and WriteCapacityUnits
+open class TableProvisionedThroughput {
+    ReadCapacityUnits: Int|Mapping
+    WriteCapacityUnits: Int|Mapping
 }
 
-/// A key-value pair to apply to the resource
-open class TableTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-typealias TableEncryptionType = String|Mapping
+typealias TableMode = String|Mapping
 
 
 /// Represents the settings used to enable server-side encryption
 open class TableEncryptionSpecification {
     EncryptionType: TableEncryptionType
     KmsKeyIdentifier: (TableKmsKeyIdentifier)?
-}
-
-typealias TableMode = String|Mapping
-
-
-/// 
-open class TableBillingMode {
-    Mode: TableMode
-    ProvisionedThroughput: (TableProvisionedThroughput)?
-}
-
-/// Represents replica specifications.
-open class TableReplicaSpecification {
-    Region: String|Mapping
-    ReadCapacityUnits: (Int|Mapping)?
-    ReadCapacityAutoScaling: (TableAutoScalingSetting)?
-}
-
-typealias ClusteringKeyColumnOrderBy = "ASC"|"DESC"
-
-/// 
-open class TableClusteringKeyColumn {
-    OrderBy: (ClusteringKeyColumnOrderBy|Mapping)?
-    Column: TableColumn
-}
-
-/// Represents configuration for auto scaling.
-open class TableAutoScalingSetting {
-    MinimumUnits: (Int|Mapping)?
-    MaximumUnits: (Int|Mapping)?
-    ScalingPolicy: (TableScalingPolicy)?
-    AutoScalingDisabled: (Boolean|Mapping)?
-}
-
-/// Throughput for the specified table, which consists of values for ReadCapacityUnits and WriteCapacityUnits
-open class TableProvisionedThroughput {
-    ReadCapacityUnits: Int|Mapping
-    WriteCapacityUnits: Int|Mapping
 }
 
 /// Represents configuration for target tracking scaling policy.
@@ -72,18 +31,59 @@ open class TableTargetTrackingScalingPolicyConfiguration {
     TargetValue: Int|Mapping
 }
 
+/// A key-value pair to apply to the resource
+open class TableTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// Represents configuration for auto scaling.
+open class TableAutoScalingSetting {
+    MaximumUnits: (Int|Mapping)?
+    ScalingPolicy: (TableScalingPolicy)?
+    AutoScalingDisabled: (Boolean|Mapping)?
+    MinimumUnits: (Int|Mapping)?
+}
+
 /// Represents scaling policy.
 open class TableScalingPolicy {
     TargetTrackingScalingPolicyConfiguration: (TableTargetTrackingScalingPolicyConfiguration)?
 }
 
-typealias TableKmsKeyIdentifier = String|Mapping
-
+/// 
+open class TableColumn {
+    ColumnType: String|Mapping
+    ColumnName: String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9_]{1,47}$"#)))|Mapping
+}
 
 /// Represents the read and write settings used for AutoScaling.
 open class TableAutoScalingSpecification {
     WriteCapacityAutoScaling: (TableAutoScalingSetting)?
     ReadCapacityAutoScaling: (TableAutoScalingSetting)?
+}
+
+typealias TableEncryptionType = String|Mapping
+
+
+/// Represents replica specifications.
+open class TableReplicaSpecification {
+    Region: String|Mapping
+    ReadCapacityUnits: (Int|Mapping)?
+    ReadCapacityAutoScaling: (TableAutoScalingSetting)?
+}
+
+/// 
+open class TableBillingMode {
+    Mode: TableMode
+    ProvisionedThroughput: (TableProvisionedThroughput)?
+}
+
+typealias ClusteringKeyColumnOrderBy = "ASC"|"DESC"
+
+/// 
+open class TableClusteringKeyColumn {
+    Column: TableColumn
+    OrderBy: (ClusteringKeyColumnOrderBy|Mapping)?
 }
 
 /// Resource schema for AWS::Cassandra::Table
@@ -92,59 +92,59 @@ open class Table extends cloudformation.Resource {
     Type = "AWS::Cassandra::Table"
 
 
-    /// Non-key columns of the table
-    hidden RegularColumns: (Listing<TableColumn>)?
-
-    /// 
-    hidden BillingMode: (TableBillingMode)?
-
-    /// An array of key-value pairs to apply to this resource
-    hidden Tags: (Listing<TableTag>)?
-
-    /// Clustering key columns of the table
-    hidden ClusteringKeyColumns: (Listing<TableClusteringKeyColumn>)?
-
-    /// Default TTL (Time To Live) in seconds, where zero is disabled. If the value is greater than zero, TTL is enabled for the entire table and an expiration timestamp is added to each column.
-    hidden DefaultTimeToLive: (Int|Mapping)?
-
-    /// 
-    hidden ReplicaSpecifications: (Listing<TableReplicaSpecification>)?
-
     /// Indicates whether point in time recovery is enabled (true) or disabled (false) on the table
     hidden PointInTimeRecoveryEnabled: (Boolean|Mapping)?
-
-    /// 
-    hidden EncryptionSpecification: (TableEncryptionSpecification)?
-
-    /// Name for Cassandra keyspace
-    hidden KeyspaceName: String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9_]{1,47}$"#)))|Mapping
-
-    /// Name for Cassandra table
-    hidden TableName: (String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9_]{1,47}$"#)))|Mapping)?
-
-    /// Partition key columns of the table
-    hidden PartitionKeyColumns: Listing<TableColumn>
 
     /// Indicates whether client side timestamps are enabled (true) or disabled (false) on the table. False by default, once it is enabled it cannot be disabled again.
     hidden ClientSideTimestampsEnabled: (Boolean|Mapping)?
 
+    /// Default TTL (Time To Live) in seconds, where zero is disabled. If the value is greater than zero, TTL is enabled for the entire table and an expiration timestamp is added to each column.
+    hidden DefaultTimeToLive: (Int|Mapping)?
+
+    /// Name for Cassandra keyspace
+    hidden KeyspaceName: String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9_]{1,47}$"#)))|Mapping
+
+    /// Clustering key columns of the table
+    hidden ClusteringKeyColumns: (Listing<TableClusteringKeyColumn>)?
+
+    /// 
+    hidden ReplicaSpecifications: (Listing<TableReplicaSpecification>)?
+
+    /// Non-key columns of the table
+    hidden RegularColumns: (Listing<TableColumn>)?
+
+    /// 
+    hidden EncryptionSpecification: (TableEncryptionSpecification)?
+
+    /// An array of key-value pairs to apply to this resource
+    hidden Tags: (Listing<TableTag>)?
+
     /// 
     hidden AutoScalingSpecifications: (TableAutoScalingSpecification)?
 
+    /// Partition key columns of the table
+    hidden PartitionKeyColumns: Listing<TableColumn>
+
+    /// 
+    hidden BillingMode: (TableBillingMode)?
+
+    /// Name for Cassandra table
+    hidden TableName: (String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9_]{1,47}$"#)))|Mapping)?
+
     Properties {
-        ["RegularColumns"] = if (RegularColumns == null) null else RegularColumns
-        ["BillingMode"] = if (BillingMode == null) null else BillingMode
-        ["Tags"] = if (Tags == null) null else Tags
-        ["ClusteringKeyColumns"] = if (ClusteringKeyColumns == null) null else ClusteringKeyColumns
-        ["DefaultTimeToLive"] = if (DefaultTimeToLive == null) null else DefaultTimeToLive
-        ["ReplicaSpecifications"] = if (ReplicaSpecifications == null) null else ReplicaSpecifications
         ["PointInTimeRecoveryEnabled"] = if (PointInTimeRecoveryEnabled == null) null else PointInTimeRecoveryEnabled
-        ["EncryptionSpecification"] = if (EncryptionSpecification == null) null else EncryptionSpecification
-        ["KeyspaceName"] = if (KeyspaceName == null) null else KeyspaceName
-        ["TableName"] = if (TableName == null) null else TableName
-        ["PartitionKeyColumns"] = if (PartitionKeyColumns == null) null else PartitionKeyColumns
         ["ClientSideTimestampsEnabled"] = if (ClientSideTimestampsEnabled == null) null else ClientSideTimestampsEnabled
+        ["DefaultTimeToLive"] = if (DefaultTimeToLive == null) null else DefaultTimeToLive
+        ["KeyspaceName"] = if (KeyspaceName == null) null else KeyspaceName
+        ["ClusteringKeyColumns"] = if (ClusteringKeyColumns == null) null else ClusteringKeyColumns
+        ["ReplicaSpecifications"] = if (ReplicaSpecifications == null) null else ReplicaSpecifications
+        ["RegularColumns"] = if (RegularColumns == null) null else RegularColumns
+        ["EncryptionSpecification"] = if (EncryptionSpecification == null) null else EncryptionSpecification
+        ["Tags"] = if (Tags == null) null else Tags
         ["AutoScalingSpecifications"] = if (AutoScalingSpecifications == null) null else AutoScalingSpecifications
+        ["PartitionKeyColumns"] = if (PartitionKeyColumns == null) null else PartitionKeyColumns
+        ["BillingMode"] = if (BillingMode == null) null else BillingMode
+        ["TableName"] = if (TableName == null) null else TableName
     }
 
 }

@@ -5,34 +5,9 @@ module aws.rekognition.streamprocessor
 
 import "../../cloudformation.pkl"
 
-/// Face search settings to use on a streaming video. Note that either FaceSearchSettings or ConnectedHomeSettings should be set. Not both
-open class StreamProcessorFaceSearchSettings {
-    CollectionId: String(matches(Regex(#"\A[a-zA-Z0-9_\.\-]+$"#)))|Mapping
-    FaceMatchThreshold: (Number|Mapping)?
-}
-
-/// Connected home settings to use on a streaming video. Note that either ConnectedHomeSettings or FaceSearchSettings should be set. Not both
-open class StreamProcessorConnectedHomeSettings {
-    MinConfidence: (Number|Mapping)?
-    Labels: StreamProcessorLabels
-}
-
 /// The Kinesis Video Stream that streams the source video.
 open class StreamProcessorKinesisVideoStream {
     Arn: String(matches(Regex(#"(^arn:([a-z\d-]+):kinesisvideo:([a-z\d-]+):\d{12}:.+$)"#)))|Mapping
-}
-
-/// A bounding box denoting a region of interest in the frame to be analyzed.
-open class StreamProcessorBoundingBox {
-    Top: Number|Mapping
-    Height: Number|Mapping
-    Width: Number|Mapping
-    Left: Number|Mapping
-}
-
-/// Indicates whether Rekognition is allowed to store the video stream data for model-training.
-open class StreamProcessorDataSharingPreference {
-    OptIn: Boolean|Mapping
 }
 
 /// The ARN of the SNS notification channel where events of interests are published, as part of connected home feature.
@@ -40,28 +15,16 @@ open class StreamProcessorNotificationChannel {
     Arn: String|Mapping
 }
 
-typealias StreamProcessorArn = String|Mapping
-
-
-/// A key-value pair to associate with a resource.
-open class StreamProcessorTag {
-    Key: String(matches(Regex(#"\A(?!aws:)[a-zA-Z0-9+\-=\._\:\/@]+$"#)))|Mapping
-    Value: String(matches(Regex(#"\A[a-zA-Z0-9+\-=\._\:\/@]+$"#)))|Mapping
-}
-
-/// The Amazon Kinesis Data Stream stream to which the Amazon Rekognition stream processor streams the analysis results, as part of face search feature.
-open class StreamProcessorKinesisDataStream {
-    Arn: String(matches(Regex(#"(^arn:([a-z\d-]+):kinesis:([a-z\d-]+):\d{12}:.+$)"#)))|Mapping
-}
-
-/// The S3 location in customer's account where inference output & artifacts are stored, as part of connected home feature.
-open class StreamProcessorS3Destination {
-    ObjectKeyPrefix: (String|Mapping)?
-    BucketName: String|Mapping
-}
-
 typealias StreamProcessorLabels = Listing<(String|Mapping)?>
 
+
+/// A bounding box denoting a region of interest in the frame to be analyzed.
+open class StreamProcessorBoundingBox {
+    Height: Number|Mapping
+    Width: Number|Mapping
+    Left: Number|Mapping
+    Top: Number|Mapping
+}
 
 /// An (X, Y) cartesian coordinate denoting a point on the frame
 open class StreamProcessorPoint {
@@ -69,8 +32,45 @@ open class StreamProcessorPoint {
     Y: Number|Mapping
 }
 
+/// The S3 location in customer's account where inference output & artifacts are stored, as part of connected home feature.
+open class StreamProcessorS3Destination {
+    BucketName: String|Mapping
+    ObjectKeyPrefix: (String|Mapping)?
+}
+
+/// The Amazon Kinesis Data Stream stream to which the Amazon Rekognition stream processor streams the analysis results, as part of face search feature.
+open class StreamProcessorKinesisDataStream {
+    Arn: String(matches(Regex(#"(^arn:([a-z\d-]+):kinesis:([a-z\d-]+):\d{12}:.+$)"#)))|Mapping
+}
+
+/// Face search settings to use on a streaming video. Note that either FaceSearchSettings or ConnectedHomeSettings should be set. Not both
+open class StreamProcessorFaceSearchSettings {
+    CollectionId: String(matches(Regex(#"\A[a-zA-Z0-9_\.\-]+$"#)))|Mapping
+    FaceMatchThreshold: (Number|Mapping)?
+}
+
+/// A key-value pair to associate with a resource.
+open class StreamProcessorTag {
+    Key: String(matches(Regex(#"\A(?!aws:)[a-zA-Z0-9+\-=\._\:\/@]+$"#)))|Mapping
+    Value: String(matches(Regex(#"\A[a-zA-Z0-9+\-=\._\:\/@]+$"#)))|Mapping
+}
+
 typealias StreamProcessorPolygon = Listing<(StreamProcessorPoint)?>
 
+
+typealias StreamProcessorArn = String|Mapping
+
+
+/// Connected home settings to use on a streaming video. Note that either ConnectedHomeSettings or FaceSearchSettings should be set. Not both
+open class StreamProcessorConnectedHomeSettings {
+    Labels: StreamProcessorLabels
+    MinConfidence: (Number|Mapping)?
+}
+
+/// Indicates whether Rekognition is allowed to store the video stream data for model-training.
+open class StreamProcessorDataSharingPreference {
+    OptIn: Boolean|Mapping
+}
 
 /// The AWS::Rekognition::StreamProcessor type is used to create an Amazon Rekognition StreamProcessor that you can use to analyze streaming videos.
 ///
@@ -81,29 +81,23 @@ open class StreamProcessor extends cloudformation.Resource {
     Type = "AWS::Rekognition::StreamProcessor"
 
 
-    /// Name of the stream processor. It's an identifier you assign to the stream processor. You can use it to manage the stream processor.
-    hidden Name: (String(matches(Regex(#"[a-zA-Z0-9_.\-]+"#)))|Mapping)?
-
     /// 
-    hidden NotificationChannel: (StreamProcessorNotificationChannel)?
+    hidden FaceSearchSettings: (StreamProcessorFaceSearchSettings)?
 
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<StreamProcessorTag>)?
 
-    /// 
-    hidden S3Destination: (StreamProcessorS3Destination)?
-
-    /// The BoundingBoxRegionsOfInterest specifies an array of bounding boxes of interest in the video frames to analyze, as part of connected home feature. If an object is partially in a region of interest, Rekognition will tag it as detected if the overlap of the object with the region-of-interest is greater than 20%.
-    hidden BoundingBoxRegionsOfInterest: (Listing<StreamProcessorBoundingBox>)?
+    /// Name of the stream processor. It's an identifier you assign to the stream processor. You can use it to manage the stream processor.
+    hidden Name: (String(matches(Regex(#"[a-zA-Z0-9_.\-]+"#)))|Mapping)?
 
     /// 
-    hidden FaceSearchSettings: (StreamProcessorFaceSearchSettings)?
+    hidden ConnectedHomeSettings: (StreamProcessorConnectedHomeSettings)?
 
     /// 
-    hidden KinesisDataStream: (StreamProcessorKinesisDataStream)?
+    hidden NotificationChannel: (StreamProcessorNotificationChannel)?
 
-    /// The PolygonRegionsOfInterest specifies a set of polygon areas of interest in the video frames to analyze, as part of connected home feature. Each polygon is in turn, an ordered list of Point
-    hidden PolygonRegionsOfInterest: (Listing<StreamProcessorPolygon>)?
+    /// 
+    hidden DataSharingPreference: (StreamProcessorDataSharingPreference)?
 
     /// The KMS key that is used by Rekognition to encrypt any intermediate customer metadata and store in the customer's S3 bucket.
     hidden KmsKeyId: (String|Mapping)?
@@ -112,28 +106,34 @@ open class StreamProcessor extends cloudformation.Resource {
     hidden RoleArn: String(matches(Regex(#"arn:aws(-[\w]+)*:iam::[0-9]{12}:role/.*"#)))|Mapping
 
     /// 
+    hidden S3Destination: (StreamProcessorS3Destination)?
+
+    /// 
     hidden KinesisVideoStream: StreamProcessorKinesisVideoStream
 
     /// 
-    hidden ConnectedHomeSettings: (StreamProcessorConnectedHomeSettings)?
+    hidden KinesisDataStream: (StreamProcessorKinesisDataStream)?
 
-    /// 
-    hidden DataSharingPreference: (StreamProcessorDataSharingPreference)?
+    /// The PolygonRegionsOfInterest specifies a set of polygon areas of interest in the video frames to analyze, as part of connected home feature. Each polygon is in turn, an ordered list of Point
+    hidden PolygonRegionsOfInterest: (Listing<StreamProcessorPolygon>)?
+
+    /// The BoundingBoxRegionsOfInterest specifies an array of bounding boxes of interest in the video frames to analyze, as part of connected home feature. If an object is partially in a region of interest, Rekognition will tag it as detected if the overlap of the object with the region-of-interest is greater than 20%.
+    hidden BoundingBoxRegionsOfInterest: (Listing<StreamProcessorBoundingBox>)?
 
     Properties {
-        ["Name"] = if (Name == null) null else Name
-        ["NotificationChannel"] = if (NotificationChannel == null) null else NotificationChannel
-        ["Tags"] = if (Tags == null) null else Tags
-        ["S3Destination"] = if (S3Destination == null) null else S3Destination
-        ["BoundingBoxRegionsOfInterest"] = if (BoundingBoxRegionsOfInterest == null) null else BoundingBoxRegionsOfInterest
         ["FaceSearchSettings"] = if (FaceSearchSettings == null) null else FaceSearchSettings
-        ["KinesisDataStream"] = if (KinesisDataStream == null) null else KinesisDataStream
-        ["PolygonRegionsOfInterest"] = if (PolygonRegionsOfInterest == null) null else PolygonRegionsOfInterest
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Name"] = if (Name == null) null else Name
+        ["ConnectedHomeSettings"] = if (ConnectedHomeSettings == null) null else ConnectedHomeSettings
+        ["NotificationChannel"] = if (NotificationChannel == null) null else NotificationChannel
+        ["DataSharingPreference"] = if (DataSharingPreference == null) null else DataSharingPreference
         ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
+        ["S3Destination"] = if (S3Destination == null) null else S3Destination
         ["KinesisVideoStream"] = if (KinesisVideoStream == null) null else KinesisVideoStream
-        ["ConnectedHomeSettings"] = if (ConnectedHomeSettings == null) null else ConnectedHomeSettings
-        ["DataSharingPreference"] = if (DataSharingPreference == null) null else DataSharingPreference
+        ["KinesisDataStream"] = if (KinesisDataStream == null) null else KinesisDataStream
+        ["PolygonRegionsOfInterest"] = if (PolygonRegionsOfInterest == null) null else PolygonRegionsOfInterest
+        ["BoundingBoxRegionsOfInterest"] = if (BoundingBoxRegionsOfInterest == null) null else BoundingBoxRegionsOfInterest
     }
 
 }

@@ -5,6 +5,9 @@ module aws.location.map
 
 import "../../cloudformation.pkl"
 
+typealias Mapiso8601UTC = String|Mapping
+
+
 /// 
 open class MapMapConfiguration {
     Style: String(matches(Regex(#"^[-._\w]+$"#)))|Mapping
@@ -24,14 +27,14 @@ open class MapTag {
     Value: String(matches(Regex(#"^[A-Za-z0-9 _=@:.+-/]*$"#)))|Mapping
 }
 
-typealias Mapiso8601UTC = String|Mapping
-
-
 /// Definition of AWS::Location::Map Resource Type
 open class Map extends cloudformation.Resource {
 
     Type = "AWS::Location::Map"
 
+
+    /// 
+    hidden Configuration: MapMapConfiguration
 
     /// 
     hidden MapName: String(matches(Regex(#"^[-._\w]+$"#)))|Mapping
@@ -45,15 +48,12 @@ open class Map extends cloudformation.Resource {
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<MapTag>)?
 
-    /// 
-    hidden Configuration: MapMapConfiguration
-
     Properties {
+        ["Configuration"] = if (Configuration == null) null else Configuration
         ["MapName"] = if (MapName == null) null else MapName
         ["PricingPlan"] = if (PricingPlan == null) null else PricingPlan
         ["Description"] = if (Description == null) null else Description
         ["Tags"] = if (Tags == null) null else Tags
-        ["Configuration"] = if (Configuration == null) null else Configuration
     }
 
 }

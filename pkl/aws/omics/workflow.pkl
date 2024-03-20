@@ -5,6 +5,9 @@ module aws.omics.workflow
 
 import "../../cloudformation.pkl"
 
+typealias WorkflowTagMap = Mapping<String, Any>
+
+
 typealias WorkflowWorkflowEngine = String|Mapping
 
 
@@ -26,9 +29,6 @@ typealias WorkflowWorkflowStatus = String|Mapping
 typealias WorkflowWorkflowType = String|Mapping
 
 
-typealias WorkflowTagMap = Mapping<String, Any>
-
-
 /// Definition of AWS::Omics::Workflow Resource Type
 open class Workflow extends cloudformation.Resource {
 
@@ -39,10 +39,19 @@ open class Workflow extends cloudformation.Resource {
     hidden DefinitionUri: (String(matches(Regex(#"^[\p{L}||\p{M}||\p{Z}||\p{S}||\p{N}||\p{P}]+$"#)))|Mapping)?
 
     /// 
+    hidden Description: (String(matches(Regex(#"^[\p{L}||\p{M}||\p{Z}||\p{S}||\p{N}||\p{P}]+$"#)))|Mapping)?
+
+    /// 
+    hidden Main: (String(matches(Regex(#"^[\p{L}||\p{M}||\p{Z}||\p{S}||\p{N}||\p{P}]+$"#)))|Mapping)?
+
+    /// 
     hidden Engine: (WorkflowWorkflowEngine)?
 
     /// 
     hidden Name: (String(matches(Regex(#"^[\p{L}||\p{M}||\p{Z}||\p{S}||\p{N}||\p{P}]+$"#)))|Mapping)?
+
+    /// 
+    hidden StorageCapacity: (Number|Mapping)?
 
     /// 
     hidden ParameterTemplate: (WorkflowWorkflowParameterTemplate)?
@@ -51,27 +60,18 @@ open class Workflow extends cloudformation.Resource {
     hidden Tags: (WorkflowTagMap)?
 
     /// 
-    hidden Description: (String(matches(Regex(#"^[\p{L}||\p{M}||\p{Z}||\p{S}||\p{N}||\p{P}]+$"#)))|Mapping)?
-
-    /// 
-    hidden Main: (String(matches(Regex(#"^[\p{L}||\p{M}||\p{Z}||\p{S}||\p{N}||\p{P}]+$"#)))|Mapping)?
-
-    /// 
     hidden Accelerators: (WorkflowAccelerators)?
-
-    /// 
-    hidden StorageCapacity: (Number|Mapping)?
 
     Properties {
         ["DefinitionUri"] = if (DefinitionUri == null) null else DefinitionUri
-        ["Engine"] = if (Engine == null) null else Engine
-        ["Name"] = if (Name == null) null else Name
-        ["ParameterTemplate"] = if (ParameterTemplate == null) null else ParameterTemplate
-        ["Tags"] = if (Tags == null) null else Tags
         ["Description"] = if (Description == null) null else Description
         ["Main"] = if (Main == null) null else Main
-        ["Accelerators"] = if (Accelerators == null) null else Accelerators
+        ["Engine"] = if (Engine == null) null else Engine
+        ["Name"] = if (Name == null) null else Name
         ["StorageCapacity"] = if (StorageCapacity == null) null else StorageCapacity
+        ["ParameterTemplate"] = if (ParameterTemplate == null) null else ParameterTemplate
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Accelerators"] = if (Accelerators == null) null else Accelerators
     }
 
 }

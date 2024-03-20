@@ -5,6 +5,11 @@ module aws.kendraranking.executionplan
 
 import "../../cloudformation.pkl"
 
+/// 
+open class ExecutionPlanCapacityUnitsConfiguration {
+    RescoreCapacityUnits: ExecutionPlanRescoreCapacityUnits
+}
+
 typealias ExecutionPlanName = String|Mapping
 
 
@@ -29,16 +34,14 @@ typealias ExecutionPlanTags = Listing<(ExecutionPlanTag)?>
 typealias ExecutionPlanRescoreCapacityUnits = Int|Mapping
 
 
-/// 
-open class ExecutionPlanCapacityUnitsConfiguration {
-    RescoreCapacityUnits: ExecutionPlanRescoreCapacityUnits
-}
-
 /// A KendraRanking Rescore execution plan
 open class ExecutionPlan extends cloudformation.Resource {
 
     Type = "AWS::KendraRanking::ExecutionPlan"
 
+
+    /// A description for the execution plan
+    hidden Description: (ExecutionPlanDescription)?
 
     /// Tags for labeling the execution plan
     hidden Tags: (ExecutionPlanTags)?
@@ -49,14 +52,11 @@ open class ExecutionPlan extends cloudformation.Resource {
     /// Capacity units
     hidden CapacityUnits: (ExecutionPlanCapacityUnitsConfiguration)?
 
-    /// A description for the execution plan
-    hidden Description: (ExecutionPlanDescription)?
-
     Properties {
+        ["Description"] = if (Description == null) null else Description
         ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
         ["CapacityUnits"] = if (CapacityUnits == null) null else CapacityUnits
-        ["Description"] = if (Description == null) null else Description
     }
 
 }

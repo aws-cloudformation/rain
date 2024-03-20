@@ -5,12 +5,6 @@ module aws.comprehend.flywheel
 
 import "../../cloudformation.pkl"
 
-/// 
-open class FlywheelTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
 typealias TaskConfigLanguageCode = "en"|"es"|"fr"|"it"|"de"|"pt"
 
 /// 
@@ -30,8 +24,8 @@ open class FlywheelDataSecurityConfig {
 
 /// 
 open class FlywheelVpcConfig {
-    Subnets: Listing<String|Mapping>
     SecurityGroupIds: Listing<String|Mapping>
+    Subnets: Listing<String|Mapping>
 }
 
 typealias FlywheelKmsKeyId = String|Mapping
@@ -55,6 +49,12 @@ open class FlywheelDocumentClassificationConfig {
     Labels: (Listing<String|Mapping>)?
 }
 
+/// 
+open class FlywheelTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
 /// The AWS::Comprehend::Flywheel resource creates an Amazon Comprehend Flywheel that enables customer to train their model.
 open class Flywheel extends cloudformation.Resource {
 
@@ -62,38 +62,38 @@ open class Flywheel extends cloudformation.Resource {
 
 
     /// 
-    hidden DataAccessRoleArn: String(matches(Regex(#"arn:aws(-[^:]+)?:iam::[0-9]{12}:role/.+"#)))|Mapping
-
-    /// 
-    hidden DataLakeS3Uri: String(matches(Regex(#"s3://[a-z0-9][\.\-a-z0-9]{1,61}[a-z0-9](/.*)?"#)))|Mapping
-
-    /// 
     hidden DataSecurityConfig: (FlywheelDataSecurityConfig)?
-
-    /// 
-    hidden ModelType: (FlywheelModelType|Mapping)?
-
-    /// 
-    hidden ActiveModelArn: (String(matches(Regex(#"arn:aws(-[^:]+)?:comprehend:[a-zA-Z0-9-]*:[0-9]{12}:(document-classifier|entity-recognizer)/[a-zA-Z0-9](-*[a-zA-Z0-9])*(/version/[a-zA-Z0-9](-*[a-zA-Z0-9])*)?"#)))|Mapping)?
 
     /// 
     hidden FlywheelName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9])*$"#)))|Mapping
 
     /// 
-    hidden Tags: (Listing<FlywheelTag>)?
+    hidden ModelType: (FlywheelModelType|Mapping)?
 
     /// 
     hidden TaskConfig: (FlywheelTaskConfig)?
 
+    /// 
+    hidden ActiveModelArn: (String(matches(Regex(#"arn:aws(-[^:]+)?:comprehend:[a-zA-Z0-9-]*:[0-9]{12}:(document-classifier|entity-recognizer)/[a-zA-Z0-9](-*[a-zA-Z0-9])*(/version/[a-zA-Z0-9](-*[a-zA-Z0-9])*)?"#)))|Mapping)?
+
+    /// 
+    hidden DataLakeS3Uri: String(matches(Regex(#"s3://[a-z0-9][\.\-a-z0-9]{1,61}[a-z0-9](/.*)?"#)))|Mapping
+
+    /// 
+    hidden Tags: (Listing<FlywheelTag>)?
+
+    /// 
+    hidden DataAccessRoleArn: String(matches(Regex(#"arn:aws(-[^:]+)?:iam::[0-9]{12}:role/.+"#)))|Mapping
+
     Properties {
-        ["DataAccessRoleArn"] = if (DataAccessRoleArn == null) null else DataAccessRoleArn
-        ["DataLakeS3Uri"] = if (DataLakeS3Uri == null) null else DataLakeS3Uri
         ["DataSecurityConfig"] = if (DataSecurityConfig == null) null else DataSecurityConfig
-        ["ModelType"] = if (ModelType == null) null else ModelType
-        ["ActiveModelArn"] = if (ActiveModelArn == null) null else ActiveModelArn
         ["FlywheelName"] = if (FlywheelName == null) null else FlywheelName
-        ["Tags"] = if (Tags == null) null else Tags
+        ["ModelType"] = if (ModelType == null) null else ModelType
         ["TaskConfig"] = if (TaskConfig == null) null else TaskConfig
+        ["ActiveModelArn"] = if (ActiveModelArn == null) null else ActiveModelArn
+        ["DataLakeS3Uri"] = if (DataLakeS3Uri == null) null else DataLakeS3Uri
+        ["Tags"] = if (Tags == null) null else Tags
+        ["DataAccessRoleArn"] = if (DataAccessRoleArn == null) null else DataAccessRoleArn
     }
 
 }

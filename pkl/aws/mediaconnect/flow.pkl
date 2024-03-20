@@ -5,47 +5,52 @@ module aws.mediaconnect.flow
 
 import "../../cloudformation.pkl"
 
+/// The settings for attaching a VPC interface to an resource.
+open class FlowVpcInterfaceAttachment {
+    VpcInterfaceName: (String|Mapping)?
+}
+
 typealias SourceProtocol = "zixi-push"|"rtp-fec"|"rtp"|"rist"|"fujitsu-qos"|"srt-listener"|"srt-caller"
 
 /// The settings for the source of the flow.
 open class FlowSource {
-    Description: (String|Mapping)?
-    MaxBitrate: (Int|Mapping)?
-    Name: (String|Mapping)?
-    SourceIngestPort: (String|Mapping)?
-    VpcInterfaceName: (String|Mapping)?
+    Decryption: (FlowEncryption)?
     EntitlementArn: (String|Mapping)?
+    MaxBitrate: (Int|Mapping)?
+    VpcInterfaceName: (String|Mapping)?
+    SourceArn: (String|Mapping)?
+    Description: (String|Mapping)?
+    GatewayBridgeSource: (FlowGatewayBridgeSource)?
     Protocol: (SourceProtocol|Mapping)?
     SenderControlPort: (Int|Mapping)?
-    SourceArn: (String|Mapping)?
-    GatewayBridgeSource: (FlowGatewayBridgeSource)?
-    IngestIp: (String|Mapping)?
-    MaxLatency: (Int|Mapping)?
-    SenderIpAddress: (String|Mapping)?
-    SourceListenerAddress: (String|Mapping)?
-    SourceListenerPort: (Int|Mapping)?
-    Decryption: (FlowEncryption)?
-    IngestPort: (Int|Mapping)?
-    MinLatency: (Int|Mapping)?
     StreamId: (String|Mapping)?
+    IngestPort: (Int|Mapping)?
+    MaxLatency: (Int|Mapping)?
+    MinLatency: (Int|Mapping)?
+    Name: (String|Mapping)?
+    SenderIpAddress: (String|Mapping)?
+    SourceListenerPort: (Int|Mapping)?
     WhitelistCidr: (String|Mapping)?
+    IngestIp: (String|Mapping)?
+    SourceIngestPort: (String|Mapping)?
+    SourceListenerAddress: (String|Mapping)?
 }
-
-typealias EncryptionAlgorithm = "aes128"|"aes192"|"aes256"
 
 typealias EncryptionKeyType = "speke"|"static-key"|"srt-password"
 
+typealias EncryptionAlgorithm = "aes128"|"aes192"|"aes256"
+
 /// Information about the encryption of the flow.
 open class FlowEncryption {
-    ConstantInitializationVector: (String|Mapping)?
+    RoleArn: String|Mapping
     DeviceId: (String|Mapping)?
-    Region: (String|Mapping)?
+    KeyType: (EncryptionKeyType|Mapping)?
     ResourceId: (String|Mapping)?
     SecretArn: (String|Mapping)?
-    Algorithm: (EncryptionAlgorithm|Mapping)?
-    RoleArn: String|Mapping
     Url: (String|Mapping)?
-    KeyType: (EncryptionKeyType|Mapping)?
+    Algorithm: (EncryptionAlgorithm|Mapping)?
+    ConstantInitializationVector: (String|Mapping)?
+    Region: (String|Mapping)?
 }
 
 typealias FailoverConfigState = "ENABLED"|"DISABLED"
@@ -54,10 +59,10 @@ typealias FailoverConfigFailoverMode = "MERGE"|"FAILOVER"
 
 /// The settings for source failover
 open class FlowFailoverConfig {
-    SourcePriority: (Dynamic)?
     State: (FailoverConfigState|Mapping)?
     RecoveryWindow: (Int|Mapping)?
     FailoverMode: (FailoverConfigFailoverMode|Mapping)?
+    SourcePriority: (Dynamic)?
 }
 
 /// The source configuration for cloud flows receiving a stream from a bridge.
@@ -66,19 +71,11 @@ open class FlowGatewayBridgeSource {
     VpcInterfaceAttachment: (FlowVpcInterfaceAttachment)?
 }
 
-/// The settings for attaching a VPC interface to an resource.
-open class FlowVpcInterfaceAttachment {
-    VpcInterfaceName: (String|Mapping)?
-}
-
 /// Resource schema for AWS::MediaConnect::Flow
 open class Flow extends cloudformation.Resource {
 
     Type = "AWS::MediaConnect::Flow"
 
-
-    /// The source failover config of the flow.
-    hidden SourceFailoverConfig: (FlowFailoverConfig)?
 
     /// The name of the flow.
     hidden Name: String|Mapping
@@ -89,11 +86,14 @@ open class Flow extends cloudformation.Resource {
     /// The source of the flow.
     hidden Source: FlowSource
 
+    /// The source failover config of the flow.
+    hidden SourceFailoverConfig: (FlowFailoverConfig)?
+
     Properties {
-        ["SourceFailoverConfig"] = if (SourceFailoverConfig == null) null else SourceFailoverConfig
         ["Name"] = if (Name == null) null else Name
         ["AvailabilityZone"] = if (AvailabilityZone == null) null else AvailabilityZone
         ["Source"] = if (Source == null) null else Source
+        ["SourceFailoverConfig"] = if (SourceFailoverConfig == null) null else SourceFailoverConfig
     }
 
 }

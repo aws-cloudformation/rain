@@ -6,6 +6,11 @@ module aws.vpclattice.listener
 import "../../cloudformation.pkl"
 
 /// 
+open class ListenerForward {
+    TargetGroups: Listing<ListenerWeightedTargetGroup>
+}
+
+/// 
 open class ListenerFixedResponse {
     StatusCode: Int|Mapping
 }
@@ -28,11 +33,6 @@ open class ListenerTag {
     Value: String|Mapping
 }
 
-/// 
-open class ListenerForward {
-    TargetGroups: Listing<ListenerWeightedTargetGroup>
-}
-
 /// Creates a listener for a service. Before you start using your Amazon VPC Lattice service, you must add one or more listeners. A listener is a process that checks for connection requests to your services.
 open class Listener extends cloudformation.Resource {
 
@@ -40,7 +40,10 @@ open class Listener extends cloudformation.Resource {
 
 
     /// 
-    hidden Port: (Int|Mapping)?
+    hidden Name: (String(matches(Regex(#"^(?!listener-)(?![-])(?!.*[-]$)(?!.*[-]{2})[a-z0-9-]+$"#)))|Mapping)?
+
+    /// 
+    hidden Protocol: ListenerProtocol|Mapping
 
     /// 
     hidden ServiceIdentifier: (String(matches(Regex(#"^((svc-[0-9a-z]{17})|(arn:[a-z0-9\-]+:vpc-lattice:[a-zA-Z0-9\-]+:\d{12}:service/svc-[0-9a-z]{17}))$"#)))|Mapping)?
@@ -49,21 +52,18 @@ open class Listener extends cloudformation.Resource {
     hidden Tags: (Listing<ListenerTag>)?
 
     /// 
-    hidden Protocol: ListenerProtocol|Mapping
-
-    /// 
     hidden DefaultAction: ListenerDefaultAction
 
     /// 
-    hidden Name: (String(matches(Regex(#"^(?!listener-)(?![-])(?!.*[-]$)(?!.*[-]{2})[a-z0-9-]+$"#)))|Mapping)?
+    hidden Port: (Int|Mapping)?
 
     Properties {
-        ["Port"] = if (Port == null) null else Port
+        ["Name"] = if (Name == null) null else Name
+        ["Protocol"] = if (Protocol == null) null else Protocol
         ["ServiceIdentifier"] = if (ServiceIdentifier == null) null else ServiceIdentifier
         ["Tags"] = if (Tags == null) null else Tags
-        ["Protocol"] = if (Protocol == null) null else Protocol
         ["DefaultAction"] = if (DefaultAction == null) null else DefaultAction
-        ["Name"] = if (Name == null) null else Name
+        ["Port"] = if (Port == null) null else Port
     }
 
 }

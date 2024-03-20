@@ -5,85 +5,14 @@ module aws.groundstation.config
 
 import "../../cloudformation.pkl"
 
-typealias ConfigFrequencyUnits = String|Mapping
+typealias ConfigJsonString = String|Mapping
 
-
-typealias TrackingConfigAutotrack = "REQUIRED"|"PREFERRED"|"REMOVED"
-
-/// 
-open class ConfigTrackingConfig {
-    Autotrack: (TrackingConfigAutotrack|Mapping)?
-}
-
-typealias ConfigBucketArn = String|Mapping
-
-
-/// 
-open class ConfigDemodulationConfig {
-    UnvalidatedJSON: (ConfigJsonString)?
-}
-
-/// 
-open class ConfigConfigData {
-    TrackingConfig: (ConfigTrackingConfig)?
-    DataflowEndpointConfig: (ConfigDataflowEndpointConfig)?
-    AntennaDownlinkDemodDecodeConfig: (ConfigAntennaDownlinkDemodDecodeConfig)?
-    AntennaUplinkConfig: (ConfigAntennaUplinkConfig)?
-    UplinkEchoConfig: (ConfigUplinkEchoConfig)?
-    S3RecordingConfig: (ConfigS3RecordingConfig)?
-    AntennaDownlinkConfig: (ConfigAntennaDownlinkConfig)?
-}
 
 typealias ConfigEirpUnits = String|Mapping
 
 
-typealias ConfigPolarization = String|Mapping
+typealias ConfigBucketArn = String|Mapping
 
-
-/// 
-open class ConfigSpectrumConfig {
-    CenterFrequency: (ConfigFrequency)?
-    Bandwidth: (ConfigFrequencyBandwidth)?
-    Polarization: (ConfigPolarization)?
-}
-
-/// 
-open class ConfigDecodeConfig {
-    UnvalidatedJSON: (ConfigJsonString)?
-}
-
-typealias ConfigRoleArn = String|Mapping
-
-
-/// 
-open class ConfigUplinkSpectrumConfig {
-    CenterFrequency: (ConfigFrequency)?
-    Polarization: (ConfigPolarization)?
-}
-
-/// 
-open class ConfigFrequencyBandwidth {
-    Value: (Number|Mapping)?
-    Units: (ConfigBandwidthUnits)?
-}
-
-/// 
-open class ConfigDataflowEndpointConfig {
-    DataflowEndpointRegion: (String|Mapping)?
-    DataflowEndpointName: (String|Mapping)?
-}
-
-/// 
-open class ConfigEirp {
-    Value: (Number|Mapping)?
-    Units: (ConfigEirpUnits)?
-}
-
-/// 
-open class ConfigUplinkEchoConfig {
-    Enabled: (Boolean|Mapping)?
-    AntennaUplinkConfigArn: (String|Mapping)?
-}
 
 /// 
 open class ConfigAntennaDownlinkDemodDecodeConfig {
@@ -92,31 +21,11 @@ open class ConfigAntennaDownlinkDemodDecodeConfig {
     DecodeConfig: (ConfigDecodeConfig)?
 }
 
-typealias ConfigJsonString = String|Mapping
-
-
 /// 
-open class ConfigS3RecordingConfig {
-    BucketArn: (ConfigBucketArn)?
-    RoleArn: (ConfigRoleArn)?
-    Prefix: (ConfigS3KeyPrefix)?
-}
-
-typealias ConfigS3KeyPrefix = String|Mapping
-
-
-/// 
-open class ConfigAntennaDownlinkConfig {
-    SpectrumConfig: (ConfigSpectrumConfig)?
-}
-
-typealias ConfigBandwidthUnits = String|Mapping
-
-
-/// 
-open class ConfigTag {
-    Key: (String(matches(Regex(#"^[ a-zA-Z0-9\+\-=._:/@]{1,128}$"#)))|Mapping)?
-    Value: (String(matches(Regex(#"^[ a-zA-Z0-9\+\-=._:/@]{1,256}$"#)))|Mapping)?
+open class ConfigAntennaUplinkConfig {
+    TransmitDisabled: (Boolean|Mapping)?
+    SpectrumConfig: (ConfigUplinkSpectrumConfig)?
+    TargetEirp: (ConfigEirp)?
 }
 
 /// 
@@ -126,11 +35,102 @@ open class ConfigFrequency {
 }
 
 /// 
-open class ConfigAntennaUplinkConfig {
-    SpectrumConfig: (ConfigUplinkSpectrumConfig)?
-    TargetEirp: (ConfigEirp)?
-    TransmitDisabled: (Boolean|Mapping)?
+open class ConfigSpectrumConfig {
+    CenterFrequency: (ConfigFrequency)?
+    Bandwidth: (ConfigFrequencyBandwidth)?
+    Polarization: (ConfigPolarization)?
 }
+
+/// 
+open class ConfigS3RecordingConfig {
+    RoleArn: (ConfigRoleArn)?
+    Prefix: (ConfigS3KeyPrefix)?
+    BucketArn: (ConfigBucketArn)?
+}
+
+/// 
+open class ConfigTag {
+    Key: (String(matches(Regex(#"^[ a-zA-Z0-9\+\-=._:/@]{1,128}$"#)))|Mapping)?
+    Value: (String(matches(Regex(#"^[ a-zA-Z0-9\+\-=._:/@]{1,256}$"#)))|Mapping)?
+}
+
+/// 
+open class ConfigEirp {
+    Value: (Number|Mapping)?
+    Units: (ConfigEirpUnits)?
+}
+
+typealias ConfigBandwidthUnits = String|Mapping
+
+
+typealias ConfigFrequencyUnits = String|Mapping
+
+
+typealias ConfigPolarization = String|Mapping
+
+
+/// 
+open class ConfigDemodulationConfig {
+    UnvalidatedJSON: (ConfigJsonString)?
+}
+
+/// 
+open class ConfigDecodeConfig {
+    UnvalidatedJSON: (ConfigJsonString)?
+}
+
+/// 
+open class ConfigDataflowEndpointConfig {
+    DataflowEndpointName: (String|Mapping)?
+    DataflowEndpointRegion: (String|Mapping)?
+}
+
+typealias ConfigRoleArn = String|Mapping
+
+
+/// 
+open class ConfigConfigData {
+    UplinkEchoConfig: (ConfigUplinkEchoConfig)?
+    S3RecordingConfig: (ConfigS3RecordingConfig)?
+    AntennaDownlinkConfig: (ConfigAntennaDownlinkConfig)?
+    TrackingConfig: (ConfigTrackingConfig)?
+    DataflowEndpointConfig: (ConfigDataflowEndpointConfig)?
+    AntennaDownlinkDemodDecodeConfig: (ConfigAntennaDownlinkDemodDecodeConfig)?
+    AntennaUplinkConfig: (ConfigAntennaUplinkConfig)?
+}
+
+/// 
+open class ConfigAntennaDownlinkConfig {
+    SpectrumConfig: (ConfigSpectrumConfig)?
+}
+
+/// 
+open class ConfigUplinkSpectrumConfig {
+    CenterFrequency: (ConfigFrequency)?
+    Polarization: (ConfigPolarization)?
+}
+
+/// 
+open class ConfigUplinkEchoConfig {
+    Enabled: (Boolean|Mapping)?
+    AntennaUplinkConfigArn: (String|Mapping)?
+}
+
+typealias TrackingConfigAutotrack = "REQUIRED"|"PREFERRED"|"REMOVED"
+
+/// 
+open class ConfigTrackingConfig {
+    Autotrack: (TrackingConfigAutotrack|Mapping)?
+}
+
+/// 
+open class ConfigFrequencyBandwidth {
+    Units: (ConfigBandwidthUnits)?
+    Value: (Number|Mapping)?
+}
+
+typealias ConfigS3KeyPrefix = String|Mapping
+
 
 /// AWS Ground Station config resource type for CloudFormation.
 open class Config extends cloudformation.Resource {
@@ -139,18 +139,18 @@ open class Config extends cloudformation.Resource {
 
 
     /// 
-    hidden Name: String(matches(Regex(#"^[ a-zA-Z0-9_:-]{1,256}$"#)))|Mapping
-
-    /// 
     hidden Tags: (Listing<ConfigTag>)?
 
     /// 
     hidden ConfigData: ConfigConfigData
 
+    /// 
+    hidden Name: String(matches(Regex(#"^[ a-zA-Z0-9_:-]{1,256}$"#)))|Mapping
+
     Properties {
-        ["Name"] = if (Name == null) null else Name
         ["Tags"] = if (Tags == null) null else Tags
         ["ConfigData"] = if (ConfigData == null) null else ConfigData
+        ["Name"] = if (Name == null) null else Name
     }
 
 }

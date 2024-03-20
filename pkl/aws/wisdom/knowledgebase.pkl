@@ -5,14 +5,6 @@ module aws.wisdom.knowledgebase
 
 import "../../cloudformation.pkl"
 
-typealias KnowledgeBaseKnowledgeBaseType = String|Mapping
-
-
-/// 
-open class KnowledgeBaseRenderingConfiguration {
-    TemplateUri: (String|Mapping)?
-}
-
 /// 
 open class KnowledgeBaseServerSideEncryptionConfiguration {
     KmsKeyId: (String|Mapping)?
@@ -35,6 +27,14 @@ open class KnowledgeBaseAppIntegrationsConfiguration {
     AppIntegrationArn: String(matches(Regex(#"^arn:[a-z-]+?:[a-z-]+?:[a-z0-9-]*?:([0-9]{12})?:[a-zA-Z0-9-:/]+$"#)))|Mapping
 }
 
+typealias KnowledgeBaseKnowledgeBaseType = String|Mapping
+
+
+/// 
+open class KnowledgeBaseRenderingConfiguration {
+    TemplateUri: (String|Mapping)?
+}
+
 /// Definition of AWS::Wisdom::KnowledgeBase Resource Type
 open class KnowledgeBase extends cloudformation.Resource {
 
@@ -42,34 +42,34 @@ open class KnowledgeBase extends cloudformation.Resource {
 
 
     /// 
-    hidden Description: (String|Mapping)?
-
-    /// 
-    hidden Name: String|Mapping
-
-    /// 
     hidden ServerSideEncryptionConfiguration: (KnowledgeBaseServerSideEncryptionConfiguration)?
-
-    /// 
-    hidden SourceConfiguration: (KnowledgeBaseSourceConfiguration)?
-
-    /// 
-    hidden KnowledgeBaseType: KnowledgeBaseKnowledgeBaseType
 
     /// 
     hidden RenderingConfiguration: (KnowledgeBaseRenderingConfiguration)?
 
     /// 
+    hidden KnowledgeBaseType: KnowledgeBaseKnowledgeBaseType
+
+    /// 
+    hidden Name: String|Mapping
+
+    /// 
+    hidden SourceConfiguration: (KnowledgeBaseSourceConfiguration)?
+
+    /// 
     hidden Tags: (Listing<KnowledgeBaseTag>)?
 
+    /// 
+    hidden Description: (String|Mapping)?
+
     Properties {
-        ["Description"] = if (Description == null) null else Description
-        ["Name"] = if (Name == null) null else Name
         ["ServerSideEncryptionConfiguration"] = if (ServerSideEncryptionConfiguration == null) null else ServerSideEncryptionConfiguration
-        ["SourceConfiguration"] = if (SourceConfiguration == null) null else SourceConfiguration
-        ["KnowledgeBaseType"] = if (KnowledgeBaseType == null) null else KnowledgeBaseType
         ["RenderingConfiguration"] = if (RenderingConfiguration == null) null else RenderingConfiguration
+        ["KnowledgeBaseType"] = if (KnowledgeBaseType == null) null else KnowledgeBaseType
+        ["Name"] = if (Name == null) null else Name
+        ["SourceConfiguration"] = if (SourceConfiguration == null) null else SourceConfiguration
         ["Tags"] = if (Tags == null) null else Tags
+        ["Description"] = if (Description == null) null else Description
     }
 
 }

@@ -18,6 +18,12 @@ open class SubscriptionFilter extends cloudformation.Resource {
     Type = "AWS::Logs::SubscriptionFilter"
 
 
+    /// The Amazon Resource Name (ARN) of the destination.
+    hidden DestinationArn: String|Mapping
+
+    /// The filtering expressions that restrict what gets delivered to the destination AWS resource. For more information about the filter pattern syntax, see [Filter and Pattern Syntax](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html).
+    hidden FilterPattern: String|Mapping
+
     /// The log group to associate with the subscription filter. All log events that are uploaded to this log group are filtered and delivered to the specified AWS resource if the filter pattern matches the log events.
     hidden LogGroupName: String|Mapping
 
@@ -30,19 +36,13 @@ open class SubscriptionFilter extends cloudformation.Resource {
     /// The name of the subscription filter.
     hidden FilterName: (String|Mapping)?
 
-    /// The Amazon Resource Name (ARN) of the destination.
-    hidden DestinationArn: String|Mapping
-
-    /// The filtering expressions that restrict what gets delivered to the destination AWS resource. For more information about the filter pattern syntax, see [Filter and Pattern Syntax](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html).
-    hidden FilterPattern: String|Mapping
-
     Properties {
+        ["DestinationArn"] = if (DestinationArn == null) null else DestinationArn
+        ["FilterPattern"] = if (FilterPattern == null) null else FilterPattern
         ["LogGroupName"] = if (LogGroupName == null) null else LogGroupName
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
         ["Distribution"] = if (Distribution == null) null else Distribution
         ["FilterName"] = if (FilterName == null) null else FilterName
-        ["DestinationArn"] = if (DestinationArn == null) null else DestinationArn
-        ["FilterPattern"] = if (FilterPattern == null) null else FilterPattern
     }
 
 }

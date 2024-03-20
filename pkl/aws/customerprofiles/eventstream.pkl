@@ -5,17 +5,17 @@ module aws.customerprofiles.eventstream
 
 import "../../cloudformation.pkl"
 
-/// A key-value pair to associate with a resource.
-open class EventStreamTag {
-    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
-    Value: String|Mapping
-}
-
 typealias EventStreamUri = String|Mapping
 
 
 typealias EventStreamStatus = String|Mapping
 
+
+/// A key-value pair to associate with a resource.
+open class EventStreamTag {
+    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
+    Value: String|Mapping
+}
 
 /// An Event Stream resource of Amazon Connect Customer Profiles
 open class EventStream extends cloudformation.Resource {
@@ -23,23 +23,23 @@ open class EventStream extends cloudformation.Resource {
     Type = "AWS::CustomerProfiles::EventStream"
 
 
-    /// 
-    hidden Uri: EventStreamUri
-
-    /// The tags used to organize, track, or control access for this resource.
-    hidden Tags: (Listing<EventStreamTag>)?
-
     /// The unique name of the domain.
     hidden DomainName: String(matches(Regex(#"^[a-zA-Z0-9_-]+$"#)))|Mapping
 
     /// The name of the event stream.
     hidden EventStreamName: String(matches(Regex(#"^[a-zA-Z0-9_-]+$"#)))|Mapping
 
+    /// 
+    hidden Uri: EventStreamUri
+
+    /// The tags used to organize, track, or control access for this resource.
+    hidden Tags: (Listing<EventStreamTag>)?
+
     Properties {
-        ["Uri"] = if (Uri == null) null else Uri
-        ["Tags"] = if (Tags == null) null else Tags
         ["DomainName"] = if (DomainName == null) null else DomainName
         ["EventStreamName"] = if (EventStreamName == null) null else EventStreamName
+        ["Uri"] = if (Uri == null) null else Uri
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

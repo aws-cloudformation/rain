@@ -5,6 +5,15 @@ module aws.ec2.networkinsightspath
 
 import "../../cloudformation.pkl"
 
+typealias NetworkInsightsPathIpAddress = String|Mapping
+
+
+typealias NetworkInsightsPathProtocol = String|Mapping
+
+
+typealias NetworkInsightsPathPort = Int|Mapping
+
+
 /// 
 open class NetworkInsightsPathFilterPortRange {
     FromPort: (Int|Mapping)?
@@ -13,10 +22,10 @@ open class NetworkInsightsPathFilterPortRange {
 
 /// 
 open class NetworkInsightsPathPathFilter {
-    SourceAddress: (NetworkInsightsPathIpAddress)?
-    SourcePortRange: (NetworkInsightsPathFilterPortRange)?
     DestinationAddress: (NetworkInsightsPathIpAddress)?
     DestinationPortRange: (NetworkInsightsPathFilterPortRange)?
+    SourceAddress: (NetworkInsightsPathIpAddress)?
+    SourcePortRange: (NetworkInsightsPathFilterPortRange)?
 }
 
 typealias NetworkInsightsPathTags = Listing<(NetworkInsightsPathTag)?>
@@ -28,15 +37,6 @@ open class NetworkInsightsPathTag {
     Value: (String|Mapping)?
 }
 
-typealias NetworkInsightsPathIpAddress = String|Mapping
-
-
-typealias NetworkInsightsPathProtocol = String|Mapping
-
-
-typealias NetworkInsightsPathPort = Int|Mapping
-
-
 /// Resource schema for AWS::EC2::NetworkInsightsPath
 open class NetworkInsightsPath extends cloudformation.Resource {
 
@@ -44,13 +44,16 @@ open class NetworkInsightsPath extends cloudformation.Resource {
 
 
     /// 
-    hidden SourceIp: (NetworkInsightsPathIpAddress)?
+    hidden FilterAtSource: (NetworkInsightsPathPathFilter)?
+
+    /// 
+    hidden FilterAtDestination: (NetworkInsightsPathPathFilter)?
 
     /// 
     hidden DestinationIp: (NetworkInsightsPathIpAddress)?
 
     /// 
-    hidden Source: String|Mapping
+    hidden Protocol: NetworkInsightsPathProtocol
 
     /// 
     hidden DestinationPort: (NetworkInsightsPathPort)?
@@ -59,26 +62,23 @@ open class NetworkInsightsPath extends cloudformation.Resource {
     hidden Tags: (Listing<NetworkInsightsPathTag>)?
 
     /// 
-    hidden FilterAtSource: (NetworkInsightsPathPathFilter)?
+    hidden Source: String|Mapping
 
     /// 
-    hidden Protocol: NetworkInsightsPathProtocol
-
-    /// 
-    hidden FilterAtDestination: (NetworkInsightsPathPathFilter)?
+    hidden SourceIp: (NetworkInsightsPathIpAddress)?
 
     /// 
     hidden Destination: (String|Mapping)?
 
     Properties {
-        ["SourceIp"] = if (SourceIp == null) null else SourceIp
+        ["FilterAtSource"] = if (FilterAtSource == null) null else FilterAtSource
+        ["FilterAtDestination"] = if (FilterAtDestination == null) null else FilterAtDestination
         ["DestinationIp"] = if (DestinationIp == null) null else DestinationIp
-        ["Source"] = if (Source == null) null else Source
+        ["Protocol"] = if (Protocol == null) null else Protocol
         ["DestinationPort"] = if (DestinationPort == null) null else DestinationPort
         ["Tags"] = if (Tags == null) null else Tags
-        ["FilterAtSource"] = if (FilterAtSource == null) null else FilterAtSource
-        ["Protocol"] = if (Protocol == null) null else Protocol
-        ["FilterAtDestination"] = if (FilterAtDestination == null) null else FilterAtDestination
+        ["Source"] = if (Source == null) null else Source
+        ["SourceIp"] = if (SourceIp == null) null else SourceIp
         ["Destination"] = if (Destination == null) null else Destination
     }
 

@@ -5,9 +5,6 @@ module aws.msk.vpcconnection
 
 import "../../cloudformation.pkl"
 
-typealias VpcConnectionVpcId = String|Mapping
-
-
 typealias VpcConnectionAuthentication = String|Mapping
 
 
@@ -20,14 +17,14 @@ typealias VpcConnectionSecurityGroups = Listing<(String(matches(Regex(#"^(sg-)([
 typealias VpcConnectionTags = Mapping<String, Any>
 
 
+typealias VpcConnectionVpcId = String|Mapping
+
+
 /// Resource Type definition for AWS::MSK::VpcConnection
 open class VpcConnection extends cloudformation.Resource {
 
     Type = "AWS::MSK::VpcConnection"
 
-
-    /// 
-    hidden Authentication: VpcConnectionAuthentication
 
     /// 
     hidden ClientSubnets: VpcConnectionClientSubnets
@@ -44,13 +41,16 @@ open class VpcConnection extends cloudformation.Resource {
     /// 
     hidden VpcId: VpcConnectionVpcId
 
+    /// 
+    hidden Authentication: VpcConnectionAuthentication
+
     Properties {
-        ["Authentication"] = if (Authentication == null) null else Authentication
         ["ClientSubnets"] = if (ClientSubnets == null) null else ClientSubnets
         ["TargetClusterArn"] = if (TargetClusterArn == null) null else TargetClusterArn
         ["SecurityGroups"] = if (SecurityGroups == null) null else SecurityGroups
         ["Tags"] = if (Tags == null) null else Tags
         ["VpcId"] = if (VpcId == null) null else VpcId
+        ["Authentication"] = if (Authentication == null) null else Authentication
     }
 
 }

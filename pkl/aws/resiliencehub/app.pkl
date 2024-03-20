@@ -5,33 +5,6 @@ module aws.resiliencehub.app
 
 import "../../cloudformation.pkl"
 
-typealias AppIamRoleArn = String|Mapping
-
-
-typealias PermissionModelType = "LegacyIAMUser"|"RoleBased"
-
-/// Defines the roles and credentials that AWS Resilience Hub would use while creating the application, importing its resources, and running an assessment.
-open class AppPermissionModel {
-    Type: PermissionModelType|Mapping
-    InvokerRoleName: (String(matches(Regex(#"((\u002F[\u0021-\u007E]+\u002F){1,511})?[A-Za-z0-9+=,.@_/-]{1,64}"#)))|Mapping)?
-    CrossAccountRoleArns: (Listing<AppIamRoleArn>)?
-}
-
-typealias EventSubscriptionEventType = "ScheduledAssessmentFailure"|"DriftDetected"
-
-/// Indicates an event you would like to subscribe and get notification for.
-open class AppEventSubscription {
-    EventType: EventSubscriptionEventType|Mapping
-    SnsTopicArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-iso|aws-iso-[a-z]{1}|aws-us-gov):[A-Za-z0-9][A-Za-z0-9_/.-]{0,62}:([a-z]{2}-((iso[a-z]{0,1}-)|(gov-)){0,1}[a-z]+-[0-9]):[0-9]{12}:[A-Za-z0-9/][A-Za-z0-9:_/+.-]{0,1023}$"#)))|Mapping)?
-    Name: String|Mapping
-}
-
-typealias AppTagValue = String|Mapping
-
-
-typealias AppTagMap = Mapping<String, Any>
-
-
 /// 
 open class AppPhysicalResourceId {
     AwsAccountId: (String(matches(Regex(#"^[0-9]{12}$"#)))|Mapping)?
@@ -42,13 +15,40 @@ open class AppPhysicalResourceId {
 
 /// Resource mapping is used to map logical resources from template to physical resource
 open class AppResourceMapping {
-    ResourceName: (String(matches(Regex(#"^[A-Za-z0-9][A-Za-z0-9_\-]{1,59}$"#)))|Mapping)?
-    TerraformSourceName: (String|Mapping)?
     EksSourceName: (String|Mapping)?
     PhysicalResourceId: AppPhysicalResourceId
     LogicalStackName: (String|Mapping)?
     MappingType: String(matches(Regex(#"CfnStack|Resource|Terraform|EKS"#)))|Mapping
+    ResourceName: (String(matches(Regex(#"^[A-Za-z0-9][A-Za-z0-9_\-]{1,59}$"#)))|Mapping)?
+    TerraformSourceName: (String|Mapping)?
 }
+
+typealias AppIamRoleArn = String|Mapping
+
+
+typealias PermissionModelType = "LegacyIAMUser"|"RoleBased"
+
+/// Defines the roles and credentials that AWS Resilience Hub would use while creating the application, importing its resources, and running an assessment.
+open class AppPermissionModel {
+    InvokerRoleName: (String(matches(Regex(#"((\u002F[\u0021-\u007E]+\u002F){1,511})?[A-Za-z0-9+=,.@_/-]{1,64}"#)))|Mapping)?
+    CrossAccountRoleArns: (Listing<AppIamRoleArn>)?
+    Type: PermissionModelType|Mapping
+}
+
+typealias EventSubscriptionEventType = "ScheduledAssessmentFailure"|"DriftDetected"
+
+/// Indicates an event you would like to subscribe and get notification for.
+open class AppEventSubscription {
+    SnsTopicArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-iso|aws-iso-[a-z]{1}|aws-us-gov):[A-Za-z0-9][A-Za-z0-9_/.-]{0,62}:([a-z]{2}-((iso[a-z]{0,1}-)|(gov-)){0,1}[a-z]+-[0-9]):[0-9]{12}:[A-Za-z0-9/][A-Za-z0-9:_/+.-]{0,1023}$"#)))|Mapping)?
+    Name: String|Mapping
+    EventType: EventSubscriptionEventType|Mapping
+}
+
+typealias AppTagValue = String|Mapping
+
+
+typealias AppTagMap = Mapping<String, Any>
+
 
 /// Resource Type Definition for AWS::ResilienceHub::App.
 open class App extends cloudformation.Resource {
@@ -56,8 +56,8 @@ open class App extends cloudformation.Resource {
     Type = "AWS::ResilienceHub::App"
 
 
-    /// Name of the app.
-    hidden Name: String(matches(Regex(#"^[A-Za-z0-9][A-Za-z0-9_\-]{1,59}$"#)))|Mapping
+    /// 
+    hidden PermissionModel: (AppPermissionModel)?
 
     /// A string containing full ResilienceHub app template body.
     hidden AppTemplateBody: String(matches(Regex(#"^[\w\s:,-\.'\/{}\[\]:"]+$"#)))|Mapping
@@ -65,11 +65,17 @@ open class App extends cloudformation.Resource {
     /// Assessment execution schedule.
     hidden AppAssessmentSchedule: (AppAppAssessmentSchedule|Mapping)?
 
+    /// 
+    hidden Tags: (AppTagMap)?
+
+    /// An array of ResourceMapping objects.
+    hidden ResourceMappings: Listing<AppResourceMapping>
+
     /// The list of events you would like to subscribe and get notification for.
     hidden EventSubscriptions: (Listing<AppEventSubscription>)?
 
-    /// 
-    hidden PermissionModel: (AppPermissionModel)?
+    /// Name of the app.
+    hidden Name: String(matches(Regex(#"^[A-Za-z0-9][A-Za-z0-9_\-]{1,59}$"#)))|Mapping
 
     /// App description.
     hidden Description: (String|Mapping)?
@@ -77,22 +83,16 @@ open class App extends cloudformation.Resource {
     /// Amazon Resource Name (ARN) of the Resiliency Policy.
     hidden ResiliencyPolicyArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-iso|aws-iso-[a-z]{1}|aws-us-gov):[A-Za-z0-9][A-Za-z0-9_/.-]{0,62}:([a-z]{2}-((iso[a-z]{0,1}-)|(gov-)){0,1}[a-z]+-[0-9]):[0-9]{12}:[A-Za-z0-9][A-Za-z0-9:_/+=,@.-]{0,1023}$"#)))|Mapping)?
 
-    /// 
-    hidden Tags: (AppTagMap)?
-
-    /// An array of ResourceMapping objects.
-    hidden ResourceMappings: Listing<AppResourceMapping>
-
     Properties {
-        ["Name"] = if (Name == null) null else Name
+        ["PermissionModel"] = if (PermissionModel == null) null else PermissionModel
         ["AppTemplateBody"] = if (AppTemplateBody == null) null else AppTemplateBody
         ["AppAssessmentSchedule"] = if (AppAssessmentSchedule == null) null else AppAssessmentSchedule
-        ["EventSubscriptions"] = if (EventSubscriptions == null) null else EventSubscriptions
-        ["PermissionModel"] = if (PermissionModel == null) null else PermissionModel
-        ["Description"] = if (Description == null) null else Description
-        ["ResiliencyPolicyArn"] = if (ResiliencyPolicyArn == null) null else ResiliencyPolicyArn
         ["Tags"] = if (Tags == null) null else Tags
         ["ResourceMappings"] = if (ResourceMappings == null) null else ResourceMappings
+        ["EventSubscriptions"] = if (EventSubscriptions == null) null else EventSubscriptions
+        ["Name"] = if (Name == null) null else Name
+        ["Description"] = if (Description == null) null else Description
+        ["ResiliencyPolicyArn"] = if (ResiliencyPolicyArn == null) null else ResiliencyPolicyArn
     }
 
 }

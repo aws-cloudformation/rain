@@ -6,8 +6,6 @@ import (
 	"os"
 	"strings"
 
-	rainpkl "github.com/aws-cloudformation/rain/pkl"
-
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
@@ -78,24 +76,30 @@ func formatReader(name string, r io.Reader) result {
 
 func formatFile(filename string) result {
 
-	// Read pkl files
-	if strings.HasSuffix(filename, ".pkl") {
-		// Don't need this?
-		//cfg, err := template.LoadFromPath(context.Background(), filename)
+	// TODO: Read pkl files
+	//
+	// Had to remove this since pkl doesn' support all of rain's platforms
+	// We would need to shell out to pkl instead (which is what pkl-go does)
+	//
+	// Fixed? https://github.com/apple/pkl-go/pull/32
+	//
+	//if strings.HasSuffix(filename, ".pkl") {
+	//	// Don't need this?
+	//	//cfg, err := template.LoadFromPath(context.Background(), filename)
 
-		res := result{
-			name: filename,
-		}
+	//	res := result{
+	//		name: filename,
+	//	}
 
-		yaml, err := rainpkl.Yaml(filename)
-		if err != nil {
-			panic(err)
-		}
+	//	yaml, err := rainpkl.Yaml(filename)
+	//	if err != nil {
+	//		panic(err)
+	//	}
 
-		formatString(yaml, &res)
+	//	formatString(yaml, &res)
 
-		return res
-	}
+	//	return res
+	//}
 
 	r, err := os.Open(filename)
 	if err != nil {

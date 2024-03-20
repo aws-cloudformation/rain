@@ -5,23 +5,41 @@ module aws.kendra.faq
 
 import "../../cloudformation.pkl"
 
-typealias FaqFaqName = String|Mapping
+typealias FaqS3ObjectKey = String|Mapping
 
 
-typealias FaqTagList = Listing<(FaqTag)?>
+typealias FaqRoleArn = String|Mapping
+
+
+typealias FaqLanguageCode = String|Mapping
 
 
 typealias FaqFileFormat = String|Mapping
 
 
-typealias FaqS3ObjectKey = String|Mapping
+typealias FaqFaqName = String|Mapping
+
+
+typealias FaqDescription = String|Mapping
+
+
+typealias FaqIndexId = String|Mapping
+
+
+typealias FaqS3BucketName = String|Mapping
 
 
 typealias FaqId = String|Mapping
 
 
-typealias FaqDescription = String|Mapping
+typealias FaqTagList = Listing<(FaqTag)?>
 
+
+/// 
+open class FaqS3Path {
+    Bucket: FaqS3BucketName
+    Key: FaqS3ObjectKey
+}
 
 /// A label for tagging Kendra resources
 open class FaqTag {
@@ -29,44 +47,11 @@ open class FaqTag {
     Value: String|Mapping
 }
 
-typealias FaqIndexId = String|Mapping
-
-
-typealias FaqLanguageCode = String|Mapping
-
-
-/// 
-open class FaqS3Path {
-    Key: FaqS3ObjectKey
-    Bucket: FaqS3BucketName
-}
-
-typealias FaqS3BucketName = String|Mapping
-
-
-typealias FaqRoleArn = String|Mapping
-
-
 /// A Kendra FAQ resource
 open class Faq extends cloudformation.Resource {
 
     Type = "AWS::Kendra::Faq"
 
-
-    /// FAQ file format
-    hidden FileFormat: (FaqFileFormat)?
-
-    /// FAQ role ARN
-    hidden RoleArn: FaqRoleArn
-
-    /// 
-    hidden LanguageCode: (FaqLanguageCode)?
-
-    /// Index ID
-    hidden IndexId: FaqIndexId
-
-    /// FAQ name
-    hidden Name: FaqFaqName
 
     /// FAQ description
     hidden Description: (FaqDescription)?
@@ -77,15 +62,30 @@ open class Faq extends cloudformation.Resource {
     /// Tags for labeling the FAQ
     hidden Tags: (FaqTagList)?
 
+    /// 
+    hidden LanguageCode: (FaqLanguageCode)?
+
+    /// Index ID
+    hidden IndexId: FaqIndexId
+
+    /// FAQ name
+    hidden Name: FaqFaqName
+
+    /// FAQ file format
+    hidden FileFormat: (FaqFileFormat)?
+
+    /// FAQ role ARN
+    hidden RoleArn: FaqRoleArn
+
     Properties {
-        ["FileFormat"] = if (FileFormat == null) null else FileFormat
-        ["RoleArn"] = if (RoleArn == null) null else RoleArn
-        ["LanguageCode"] = if (LanguageCode == null) null else LanguageCode
-        ["IndexId"] = if (IndexId == null) null else IndexId
-        ["Name"] = if (Name == null) null else Name
         ["Description"] = if (Description == null) null else Description
         ["S3Path"] = if (S3Path == null) null else S3Path
         ["Tags"] = if (Tags == null) null else Tags
+        ["LanguageCode"] = if (LanguageCode == null) null else LanguageCode
+        ["IndexId"] = if (IndexId == null) null else IndexId
+        ["Name"] = if (Name == null) null else Name
+        ["FileFormat"] = if (FileFormat == null) null else FileFormat
+        ["RoleArn"] = if (RoleArn == null) null else RoleArn
     }
 
 }

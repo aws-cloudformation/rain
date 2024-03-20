@@ -5,8 +5,27 @@ module aws.nimblestudio.launchprofile
 
 import "../../cloudformation.pkl"
 
-typealias LaunchProfileSessionBackupMode = String|Mapping
+/// <p>A configuration for a streaming session.</p>
+open class LaunchProfileStreamConfiguration {
+    ClipboardMode: LaunchProfileStreamingClipboardMode
+    Ec2InstanceTypes: Listing<LaunchProfileStreamingInstanceType>
+    MaxStoppedSessionLengthInMinutes: (Number|Mapping)?
+    VolumeConfiguration: (LaunchProfileVolumeConfiguration)?
+    MaxSessionLengthInMinutes: (Number|Mapping)?
+    StreamingImageIds: Listing<String|Mapping>
+    SessionStorage: (LaunchProfileStreamConfigurationSessionStorage)?
+    SessionBackup: (LaunchProfileStreamConfigurationSessionBackup)?
+    SessionPersistenceMode: (LaunchProfileSessionPersistenceMode)?
+    AutomaticTerminationMode: (LaunchProfileAutomaticTerminationMode)?
+}
 
+/// <p>Configures how streaming sessions are backed up when launched from this launch
+///
+///             profile.</p>
+open class LaunchProfileStreamConfigurationSessionBackup {
+    Mode: (LaunchProfileSessionBackupMode)?
+    MaxBackupsToRetain: (Number|Mapping)?
+}
 
 typealias LaunchProfileStreamingSessionStorageMode = String|Mapping
 
@@ -19,48 +38,8 @@ open class LaunchProfileStreamingSessionStorageRoot {
     Windows: (String(matches(Regex(#"^((\%HOMEPATH\%)|[a-zA-Z]:)[\\/](?:[a-zA-Z0-9_-]+[\\/])*[a-zA-Z0-9_-]+$"#)))|Mapping)?
 }
 
-typealias LaunchProfileStreamingInstanceType = String|Mapping
-
-
-typealias LaunchProfileTags = Mapping<String, Any>
-
-
-typealias LaunchProfileAutomaticTerminationMode = String|Mapping
-
-
 typealias LaunchProfileStreamingClipboardMode = String|Mapping
 
-
-typealias LaunchProfileSessionPersistenceMode = String|Mapping
-
-
-/// <p>A configuration for a streaming session.</p>
-open class LaunchProfileStreamConfiguration {
-    MaxSessionLengthInMinutes: (Number|Mapping)?
-    SessionStorage: (LaunchProfileStreamConfigurationSessionStorage)?
-    SessionBackup: (LaunchProfileStreamConfigurationSessionBackup)?
-    VolumeConfiguration: (LaunchProfileVolumeConfiguration)?
-    AutomaticTerminationMode: (LaunchProfileAutomaticTerminationMode)?
-    ClipboardMode: LaunchProfileStreamingClipboardMode
-    Ec2InstanceTypes: Listing<LaunchProfileStreamingInstanceType>
-    StreamingImageIds: Listing<String|Mapping>
-    MaxStoppedSessionLengthInMinutes: (Number|Mapping)?
-    SessionPersistenceMode: (LaunchProfileSessionPersistenceMode)?
-}
-
-/// <p>Configures how streaming sessions are backed up when launched from this launch
-///
-///             profile.</p>
-open class LaunchProfileStreamConfigurationSessionBackup {
-    Mode: (LaunchProfileSessionBackupMode)?
-    MaxBackupsToRetain: (Number|Mapping)?
-}
-
-/// <p>The configuration for a streaming session?s upload storage.</p>
-open class LaunchProfileStreamConfigurationSessionStorage {
-    Root: (LaunchProfileStreamingSessionStorageRoot)?
-    Mode: Listing<LaunchProfileStreamingSessionStorageMode>
-}
 
 /// <p>Custom volume configuration for the root volumes that are attached to streaming
 ///
@@ -73,11 +52,51 @@ open class LaunchProfileVolumeConfiguration {
     Iops: (Number|Mapping)?
 }
 
+typealias LaunchProfileTags = Mapping<String, Any>
+
+
+typealias LaunchProfileSessionBackupMode = String|Mapping
+
+
+typealias LaunchProfileSessionPersistenceMode = String|Mapping
+
+
+typealias LaunchProfileStreamingInstanceType = String|Mapping
+
+
+typealias LaunchProfileAutomaticTerminationMode = String|Mapping
+
+
+/// <p>The configuration for a streaming session?s upload storage.</p>
+open class LaunchProfileStreamConfigurationSessionStorage {
+    Root: (LaunchProfileStreamingSessionStorageRoot)?
+    Mode: Listing<LaunchProfileStreamingSessionStorageMode>
+}
+
 /// Represents a launch profile which delegates access to a collection of studio components to studio users
 open class LaunchProfile extends cloudformation.Resource {
 
     Type = "AWS::NimbleStudio::LaunchProfile"
 
+
+    /// <p>The studio ID. </p>
+    hidden StudioId: String|Mapping
+
+    /// <p>The description.</p>
+    hidden Description: (String|Mapping)?
+
+    /// <p>Specifies the IDs of the EC2 subnets where streaming sessions will be accessible from.
+    ///
+    ///             These subnets must support the specified instance types. </p>
+    hidden Ec2SubnetIds: Listing<String|Mapping>
+
+    /// <p>Unique identifiers for a collection of studio components that can be used with this
+    ///
+    ///             launch profile.</p>
+    hidden StudioComponentIds: Listing<String|Mapping>
+
+    /// 
+    hidden Tags: (LaunchProfileTags)?
 
     /// <p>The version number of the protocol that is used by the launch profile. The only valid
     ///
@@ -88,36 +107,17 @@ open class LaunchProfile extends cloudformation.Resource {
     hidden Name: String|Mapping
 
     /// 
-    hidden Tags: (LaunchProfileTags)?
-
-    /// <p>Specifies the IDs of the EC2 subnets where streaming sessions will be accessible from.
-    ///
-    ///             These subnets must support the specified instance types. </p>
-    hidden Ec2SubnetIds: Listing<String|Mapping>
-
-    /// 
     hidden StreamConfiguration: LaunchProfileStreamConfiguration
 
-    /// <p>Unique identifiers for a collection of studio components that can be used with this
-    ///
-    ///             launch profile.</p>
-    hidden StudioComponentIds: Listing<String|Mapping>
-
-    /// <p>The studio ID. </p>
-    hidden StudioId: String|Mapping
-
-    /// <p>The description.</p>
-    hidden Description: (String|Mapping)?
-
     Properties {
-        ["LaunchProfileProtocolVersions"] = if (LaunchProfileProtocolVersions == null) null else LaunchProfileProtocolVersions
-        ["Name"] = if (Name == null) null else Name
-        ["Tags"] = if (Tags == null) null else Tags
-        ["Ec2SubnetIds"] = if (Ec2SubnetIds == null) null else Ec2SubnetIds
-        ["StreamConfiguration"] = if (StreamConfiguration == null) null else StreamConfiguration
-        ["StudioComponentIds"] = if (StudioComponentIds == null) null else StudioComponentIds
         ["StudioId"] = if (StudioId == null) null else StudioId
         ["Description"] = if (Description == null) null else Description
+        ["Ec2SubnetIds"] = if (Ec2SubnetIds == null) null else Ec2SubnetIds
+        ["StudioComponentIds"] = if (StudioComponentIds == null) null else StudioComponentIds
+        ["Tags"] = if (Tags == null) null else Tags
+        ["LaunchProfileProtocolVersions"] = if (LaunchProfileProtocolVersions == null) null else LaunchProfileProtocolVersions
+        ["Name"] = if (Name == null) null else Name
+        ["StreamConfiguration"] = if (StreamConfiguration == null) null else StreamConfiguration
     }
 
 }

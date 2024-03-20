@@ -55,8 +55,16 @@ open class ConfigRule extends cloudformation.Resource {
     Type = "AWS::Config::ConfigRule"
 
 
-    /// A name for the CC rule. If you don't specify a name, CFN generates a unique physical ID and uses that ID for the rule name. For more information, see [Name Type](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-name.html).
-    hidden ConfigRuleName: (String|Mapping)?
+    /// The description that you provide for the CC rule.
+    hidden Description: (String|Mapping)?
+
+    /// Defines which resources can trigger an evaluation for the rule. The scope can include one or more resource types, a combination of one resource type and one resource ID, or a combination of a tag key and value. Specify a scope to constrain the resources that can trigger an evaluation for the rule. If you do not specify a scope, evaluations are triggered when any resource in the recording group changes.
+    ///
+    ///   The scope can be empty.
+    hidden Scope: (ConfigRuleScope)?
+
+    /// Indicates whether an AWS resource or CC rule is compliant and provides the number of contributors that affect the compliance.
+    hidden Compliance: (Dynamic)?
 
     /// The maximum frequency with which CC runs evaluations for a rule. You can specify a value for ``MaximumExecutionFrequency`` when:
     ///
@@ -69,32 +77,24 @@ open class ConfigRule extends cloudformation.Resource {
     /// Provides the rule owner (```` for managed rules, ``CUSTOM_POLICY`` for Custom Policy rules, and ``CUSTOM_LAMBDA`` for Custom Lambda rules), the rule identifier, and the notifications that cause the function to evaluate your AWS resources.
     hidden Source: ConfigRuleSource
 
-    /// The modes the CC rule can be evaluated in. The valid values are distinct objects. By default, the value is Detective evaluation mode only.
-    hidden EvaluationModes: (Listing<ConfigRuleEvaluationModeConfiguration>)?
-
-    /// The description that you provide for the CC rule.
-    hidden Description: (String|Mapping)?
-
-    /// Defines which resources can trigger an evaluation for the rule. The scope can include one or more resource types, a combination of one resource type and one resource ID, or a combination of a tag key and value. Specify a scope to constrain the resources that can trigger an evaluation for the rule. If you do not specify a scope, evaluations are triggered when any resource in the recording group changes.
-    ///
-    ///   The scope can be empty.
-    hidden Scope: (ConfigRuleScope)?
-
-    /// Indicates whether an AWS resource or CC rule is compliant and provides the number of contributors that affect the compliance.
-    hidden Compliance: (Dynamic)?
-
     /// A string, in JSON format, that is passed to the CC rule Lambda function.
     hidden InputParameters: (Dynamic)?
 
+    /// A name for the CC rule. If you don't specify a name, CFN generates a unique physical ID and uses that ID for the rule name. For more information, see [Name Type](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-name.html).
+    hidden ConfigRuleName: (String|Mapping)?
+
+    /// The modes the CC rule can be evaluated in. The valid values are distinct objects. By default, the value is Detective evaluation mode only.
+    hidden EvaluationModes: (Listing<ConfigRuleEvaluationModeConfiguration>)?
+
     Properties {
-        ["ConfigRuleName"] = if (ConfigRuleName == null) null else ConfigRuleName
-        ["MaximumExecutionFrequency"] = if (MaximumExecutionFrequency == null) null else MaximumExecutionFrequency
-        ["Source"] = if (Source == null) null else Source
-        ["EvaluationModes"] = if (EvaluationModes == null) null else EvaluationModes
         ["Description"] = if (Description == null) null else Description
         ["Scope"] = if (Scope == null) null else Scope
         ["Compliance"] = if (Compliance == null) null else Compliance
+        ["MaximumExecutionFrequency"] = if (MaximumExecutionFrequency == null) null else MaximumExecutionFrequency
+        ["Source"] = if (Source == null) null else Source
         ["InputParameters"] = if (InputParameters == null) null else InputParameters
+        ["ConfigRuleName"] = if (ConfigRuleName == null) null else ConfigRuleName
+        ["EvaluationModes"] = if (EvaluationModes == null) null else EvaluationModes
     }
 
 }

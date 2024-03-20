@@ -7,8 +7,8 @@ import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
 open class LocationObjectStorageTag {
-    Key: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:/-]+$"#)))|Mapping
     Value: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:@/-]+$"#)))|Mapping
+    Key: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:/-]+$"#)))|Mapping
 }
 
 /// Resource schema for AWS::DataSync::LocationObjectStorage.
@@ -17,8 +17,8 @@ open class LocationObjectStorage extends cloudformation.Resource {
     Type = "AWS::DataSync::LocationObjectStorage"
 
 
-    /// The name of the bucket on the self-managed object storage server.
-    hidden BucketName: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\$\p{Zs}]+$"#)))|Mapping)?
+    /// Optional. The secret key is used if credentials are required to access the self-managed object storage server.
+    hidden SecretKey: (String(matches(Regex(#"^.+$"#)))|Mapping)?
 
     /// X.509 PEM content containing a certificate authority or chain to trust.
     hidden ServerCertificate: (String|Mapping)?
@@ -29,6 +29,9 @@ open class LocationObjectStorage extends cloudformation.Resource {
     /// The subdirectory in the self-managed object storage server that is used to read data from.
     hidden Subdirectory: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\p{Zs}]*$"#)))|Mapping)?
 
+    /// The protocol that the object storage server uses to communicate.
+    hidden ServerProtocol: (LocationObjectStorageServerProtocol|Mapping)?
+
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<LocationObjectStorageTag>)?
 
@@ -38,26 +41,23 @@ open class LocationObjectStorage extends cloudformation.Resource {
     /// The Amazon Resource Name (ARN) of the agents associated with the self-managed object storage server location.
     hidden AgentArns: Listing<String|Mapping>
 
-    /// Optional. The secret key is used if credentials are required to access the self-managed object storage server.
-    hidden SecretKey: (String(matches(Regex(#"^.+$"#)))|Mapping)?
+    /// The name of the bucket on the self-managed object storage server.
+    hidden BucketName: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\$\p{Zs}]+$"#)))|Mapping)?
 
     /// The name of the self-managed object storage server. This value is the IP address or Domain Name Service (DNS) name of the object storage server.
     hidden ServerHostname: (String(matches(Regex(#"^(([a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9\-]*[A-Za-z0-9])$"#)))|Mapping)?
 
-    /// The protocol that the object storage server uses to communicate.
-    hidden ServerProtocol: (LocationObjectStorageServerProtocol|Mapping)?
-
     Properties {
-        ["BucketName"] = if (BucketName == null) null else BucketName
+        ["SecretKey"] = if (SecretKey == null) null else SecretKey
         ["ServerCertificate"] = if (ServerCertificate == null) null else ServerCertificate
         ["ServerPort"] = if (ServerPort == null) null else ServerPort
         ["Subdirectory"] = if (Subdirectory == null) null else Subdirectory
+        ["ServerProtocol"] = if (ServerProtocol == null) null else ServerProtocol
         ["Tags"] = if (Tags == null) null else Tags
         ["AccessKey"] = if (AccessKey == null) null else AccessKey
         ["AgentArns"] = if (AgentArns == null) null else AgentArns
-        ["SecretKey"] = if (SecretKey == null) null else SecretKey
+        ["BucketName"] = if (BucketName == null) null else BucketName
         ["ServerHostname"] = if (ServerHostname == null) null else ServerHostname
-        ["ServerProtocol"] = if (ServerProtocol == null) null else ServerProtocol
     }
 
 }

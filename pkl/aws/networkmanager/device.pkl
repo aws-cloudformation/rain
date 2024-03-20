@@ -5,12 +5,6 @@ module aws.networkmanager.device
 
 import "../../cloudformation.pkl"
 
-/// The Amazon Web Services location of the device, if applicable.
-open class DeviceAWSLocation {
-    Zone: (String|Mapping)?
-    SubnetArn: (String|Mapping)?
-}
-
 /// A key-value pair to associate with a device resource.
 open class DeviceTag {
     Key: String|Mapping
@@ -19,9 +13,15 @@ open class DeviceTag {
 
 /// The site location.
 open class DeviceLocation {
+    Longitude: (String|Mapping)?
     Address: (String|Mapping)?
     Latitude: (String|Mapping)?
-    Longitude: (String|Mapping)?
+}
+
+/// The Amazon Web Services location of the device, if applicable.
+open class DeviceAWSLocation {
+    Zone: (String|Mapping)?
+    SubnetArn: (String|Mapping)?
 }
 
 /// The AWS::NetworkManager::Device type describes a device.
@@ -30,47 +30,47 @@ open class Device extends cloudformation.Resource {
     Type = "AWS::NetworkManager::Device"
 
 
-    /// The device serial number.
-    hidden SerialNumber: (String|Mapping)?
+    /// The description of the device.
+    hidden Description: (String|Mapping)?
 
     /// The site ID.
     hidden SiteId: (String|Mapping)?
 
-    /// The device vendor.
-    hidden Vendor: (String|Mapping)?
-
-    /// The description of the device.
-    hidden Description: (String|Mapping)?
-
-    /// The device model
-    hidden Model: (String|Mapping)?
-
-    /// The Amazon Web Services location of the device, if applicable.
-    hidden AWSLocation: (DeviceAWSLocation)?
+    /// The device type.
+    hidden TypeProperty: (String|Mapping)?
 
     /// The tags for the device.
     hidden Tags: (Listing<DeviceTag>)?
 
-    /// The ID of the global network.
-    hidden GlobalNetworkId: String|Mapping
-
     /// The site location.
     hidden Location: (DeviceLocation)?
 
-    /// The device type.
-    hidden TypeProperty: (String|Mapping)?
+    /// The device model
+    hidden Model: (String|Mapping)?
+
+    /// The device serial number.
+    hidden SerialNumber: (String|Mapping)?
+
+    /// The device vendor.
+    hidden Vendor: (String|Mapping)?
+
+    /// The ID of the global network.
+    hidden GlobalNetworkId: String|Mapping
+
+    /// The Amazon Web Services location of the device, if applicable.
+    hidden AWSLocation: (DeviceAWSLocation)?
 
     Properties {
-        ["SerialNumber"] = if (SerialNumber == null) null else SerialNumber
-        ["SiteId"] = if (SiteId == null) null else SiteId
-        ["Vendor"] = if (Vendor == null) null else Vendor
         ["Description"] = if (Description == null) null else Description
-        ["Model"] = if (Model == null) null else Model
-        ["AWSLocation"] = if (AWSLocation == null) null else AWSLocation
-        ["Tags"] = if (Tags == null) null else Tags
-        ["GlobalNetworkId"] = if (GlobalNetworkId == null) null else GlobalNetworkId
-        ["Location"] = if (Location == null) null else Location
+        ["SiteId"] = if (SiteId == null) null else SiteId
         ["Type"] = if (TypeProperty == null) null else TypeProperty
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Location"] = if (Location == null) null else Location
+        ["Model"] = if (Model == null) null else Model
+        ["SerialNumber"] = if (SerialNumber == null) null else SerialNumber
+        ["Vendor"] = if (Vendor == null) null else Vendor
+        ["GlobalNetworkId"] = if (GlobalNetworkId == null) null else GlobalNetworkId
+        ["AWSLocation"] = if (AWSLocation == null) null else AWSLocation
     }
 
 }

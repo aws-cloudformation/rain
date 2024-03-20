@@ -5,30 +5,24 @@ module aws.sagemaker.userprofile
 
 import "../../cloudformation.pkl"
 
+/// 
+open class UserProfileCustomFileSystemConfig {
+    EFSFileSystemConfig: (UserProfileEFSFileSystemConfig)?
+}
+
+typealias UserProfileSpaceEbsVolumeSizeInGb = Int|Mapping
+
+
 /// Properties related to the Amazon Elastic Block Store volume.
 open class UserProfileDefaultEbsStorageSettings {
     DefaultEbsVolumeSizeInGb: UserProfileSpaceEbsVolumeSizeInGb
     MaximumEbsVolumeSizeInGb: UserProfileSpaceEbsVolumeSizeInGb
 }
 
-/// 
-open class UserProfileCustomFileSystemConfig {
-    EFSFileSystemConfig: (UserProfileEFSFileSystemConfig)?
-}
-
-typealias SharingSettingsNotebookOutputOption = "Allowed"|"Disabled"
-
-/// Specifies options when sharing an Amazon SageMaker Studio notebook. These settings are specified as part of DefaultUserSettings when the CreateDomain API is called, and as part of UserSettings when the CreateUserProfile API is called.
-open class UserProfileSharingSettings {
-    NotebookOutputOption: (SharingSettingsNotebookOutputOption|Mapping)?
-    S3KmsKeyId: (String(matches(Regex(#".*"#)))|Mapping)?
-    S3OutputPath: (String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping)?
-}
-
-/// 
-open class UserProfileTag {
-    Value: String|Mapping
-    Key: String|Mapping
+/// The kernel gateway app settings.
+open class UserProfileKernelGatewayAppSettings {
+    CustomImages: (Listing<UserProfileCustomImage>)?
+    DefaultResourceSpec: (UserProfileResourceSpec)?
 }
 
 typealias ResourceSpecInstanceType = "system"|"ml.t3.micro"|"ml.t3.small"|"ml.t3.medium"|"ml.t3.large"|"ml.t3.xlarge"|"ml.t3.2xlarge"|"ml.m5.large"|"ml.m5.xlarge"|"ml.m5.2xlarge"|"ml.m5.4xlarge"|"ml.m5.8xlarge"|"ml.m5.12xlarge"|"ml.m5.16xlarge"|"ml.m5.24xlarge"|"ml.c5.large"|"ml.c5.xlarge"|"ml.c5.2xlarge"|"ml.c5.4xlarge"|"ml.c5.9xlarge"|"ml.c5.12xlarge"|"ml.c5.18xlarge"|"ml.c5.24xlarge"|"ml.p3.2xlarge"|"ml.p3.8xlarge"|"ml.p3.16xlarge"|"ml.g4dn.xlarge"|"ml.g4dn.2xlarge"|"ml.g4dn.4xlarge"|"ml.g4dn.8xlarge"|"ml.g4dn.12xlarge"|"ml.g4dn.16xlarge"|"ml.r5.large"|"ml.r5.xlarge"|"ml.r5.2xlarge"|"ml.r5.4xlarge"|"ml.r5.8xlarge"|"ml.r5.12xlarge"|"ml.r5.16xlarge"|"ml.r5.24xlarge"|"ml.p3dn.24xlarge"|"ml.m5d.large"|"ml.m5d.xlarge"|"ml.m5d.2xlarge"|"ml.m5d.4xlarge"|"ml.m5d.8xlarge"|"ml.m5d.12xlarge"|"ml.m5d.16xlarge"|"ml.m5d.24xlarge"|"ml.g5.xlarge"|"ml.g5.2xlarge"|"ml.g5.4xlarge"|"ml.g5.8xlarge"|"ml.g5.12xlarge"|"ml.g5.16xlarge"|"ml.g5.24xlarge"|"ml.g5.48xlarge"|"ml.p4d.24xlarge"|"ml.p4de.24xlarge"|"ml.geospatial.interactive"|"ml.trn1.2xlarge"|"ml.trn1.32xlarge"|"ml.trn1n.32xlarge"
@@ -40,10 +34,45 @@ open class UserProfileResourceSpec {
     SageMakerImageVersionArn: (String(matches(Regex(#"^arn:aws(-[\w]+)*:sagemaker:.+:[0-9]{12}:image-version/[a-z0-9]([-.]?[a-z0-9])*/[0-9]+$"#)))|Mapping)?
 }
 
+/// The CodeEditor app settings.
+open class UserProfileCodeEditorAppSettings {
+    DefaultResourceSpec: (UserProfileResourceSpec)?
+    LifecycleConfigArns: (Listing<UserProfileStudioLifecycleConfigArn>)?
+}
+
+typealias UserProfileStudioLifecycleConfigArn = String|Mapping
+
+
 /// 
-open class UserProfileEFSFileSystemConfig {
-    FileSystemPath: (String(matches(Regex(#"^\/\S*$"#)))|Mapping)?
-    FileSystemId: String(matches(Regex(#"^(fs-[0-9a-f]{8,})$"#)))|Mapping
+open class UserProfileTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// Default storage settings for a space.
+open class UserProfileDefaultSpaceStorageSettings {
+    DefaultEbsStorageSettings: (UserProfileDefaultEbsStorageSettings)?
+}
+
+/// The JupyterLab app settings.
+open class UserProfileJupyterLabAppSettings {
+    DefaultResourceSpec: (UserProfileResourceSpec)?
+    LifecycleConfigArns: (Listing<UserProfileStudioLifecycleConfigArn>)?
+    CodeRepositories: (Listing<UserProfileCodeRepository>)?
+    CustomImages: (Listing<UserProfileCustomImage>)?
+}
+
+/// 
+open class UserProfileCustomPosixUserConfig {
+    Uid: Int|Mapping
+    Gid: Int|Mapping
+}
+
+/// A custom SageMaker image.
+open class UserProfileCustomImage {
+    ImageName: String(matches(Regex(#"^[a-zA-Z0-9]([-.]?[a-zA-Z0-9]){0,62}$"#)))|Mapping
+    ImageVersionNumber: (Int|Mapping)?
+    AppImageConfigName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"#)))|Mapping
 }
 
 typealias RStudioServerProAppSettingsAccessStatus = "ENABLED"|"DISABLED"
@@ -56,28 +85,28 @@ open class UserProfileRStudioServerProAppSettings {
     UserGroup: (RStudioServerProAppSettingsUserGroup|Mapping)?
 }
 
+/// The JupyterServer app settings.
+open class UserProfileJupyterServerAppSettings {
+    DefaultResourceSpec: (UserProfileResourceSpec)?
+}
+
 typealias UserSettingsStudioWebPortal = "ENABLED"|"DISABLED"
 
 /// A collection of settings that apply to users of Amazon SageMaker Studio. These settings are specified when the CreateUserProfile API is called, and as DefaultUserSettings when the CreateDomain API is called.
 open class UserProfileUserSettings {
-    StudioWebPortal: (UserSettingsStudioWebPortal|Mapping)?
-    ExecutionRole: (String(matches(Regex(#"^arn:aws[a-z\-]*:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping)?
-    KernelGatewayAppSettings: (UserProfileKernelGatewayAppSettings)?
     RStudioServerProAppSettings: (UserProfileRStudioServerProAppSettings)?
-    CodeEditorAppSettings: (UserProfileCodeEditorAppSettings)?
-    DefaultLandingUri: (String|Mapping)?
-    JupyterServerAppSettings: (UserProfileJupyterServerAppSettings)?
-    JupyterLabAppSettings: (UserProfileJupyterLabAppSettings)?
     SpaceStorageSettings: (UserProfileDefaultSpaceStorageSettings)?
-    CustomPosixUserConfig: (UserProfileCustomPosixUserConfig)?
-    CustomFileSystemConfigs: (Listing<UserProfileCustomFileSystemConfig>)?
+    CodeEditorAppSettings: (UserProfileCodeEditorAppSettings)?
     SecurityGroups: (Listing<String|Mapping>)?
     SharingSettings: (UserProfileSharingSettings)?
-}
-
-/// The JupyterServer app settings.
-open class UserProfileJupyterServerAppSettings {
-    DefaultResourceSpec: (UserProfileResourceSpec)?
+    KernelGatewayAppSettings: (UserProfileKernelGatewayAppSettings)?
+    DefaultLandingUri: (String|Mapping)?
+    StudioWebPortal: (UserSettingsStudioWebPortal|Mapping)?
+    CustomPosixUserConfig: (UserProfileCustomPosixUserConfig)?
+    CustomFileSystemConfigs: (Listing<UserProfileCustomFileSystemConfig>)?
+    ExecutionRole: (String(matches(Regex(#"^arn:aws[a-z\-]*:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping)?
+    JupyterServerAppSettings: (UserProfileJupyterServerAppSettings)?
+    JupyterLabAppSettings: (UserProfileJupyterLabAppSettings)?
 }
 
 /// 
@@ -85,48 +114,19 @@ open class UserProfileCodeRepository {
     RepositoryUrl: String(matches(Regex(#"^https://([.\-_a-zA-Z0-9]+/?){3,1016}$"#)))|Mapping
 }
 
-/// A custom SageMaker image.
-open class UserProfileCustomImage {
-    AppImageConfigName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"#)))|Mapping
-    ImageName: String(matches(Regex(#"^[a-zA-Z0-9]([-.]?[a-zA-Z0-9]){0,62}$"#)))|Mapping
-    ImageVersionNumber: (Int|Mapping)?
-}
-
-/// Default storage settings for a space.
-open class UserProfileDefaultSpaceStorageSettings {
-    DefaultEbsStorageSettings: (UserProfileDefaultEbsStorageSettings)?
-}
-
-typealias UserProfileStudioLifecycleConfigArn = String|Mapping
-
-
-/// The CodeEditor app settings.
-open class UserProfileCodeEditorAppSettings {
-    LifecycleConfigArns: (Listing<UserProfileStudioLifecycleConfigArn>)?
-    DefaultResourceSpec: (UserProfileResourceSpec)?
-}
-
-/// The JupyterLab app settings.
-open class UserProfileJupyterLabAppSettings {
-    CustomImages: (Listing<UserProfileCustomImage>)?
-    DefaultResourceSpec: (UserProfileResourceSpec)?
-    LifecycleConfigArns: (Listing<UserProfileStudioLifecycleConfigArn>)?
-    CodeRepositories: (Listing<UserProfileCodeRepository>)?
-}
-
-typealias UserProfileSpaceEbsVolumeSizeInGb = Int|Mapping
-
-
 /// 
-open class UserProfileCustomPosixUserConfig {
-    Uid: Int|Mapping
-    Gid: Int|Mapping
+open class UserProfileEFSFileSystemConfig {
+    FileSystemId: String(matches(Regex(#"^(fs-[0-9a-f]{8,})$"#)))|Mapping
+    FileSystemPath: (String(matches(Regex(#"^\/\S*$"#)))|Mapping)?
 }
 
-/// The kernel gateway app settings.
-open class UserProfileKernelGatewayAppSettings {
-    CustomImages: (Listing<UserProfileCustomImage>)?
-    DefaultResourceSpec: (UserProfileResourceSpec)?
+typealias SharingSettingsNotebookOutputOption = "Allowed"|"Disabled"
+
+/// Specifies options when sharing an Amazon SageMaker Studio notebook. These settings are specified as part of DefaultUserSettings when the CreateDomain API is called, and as part of UserSettings when the CreateUserProfile API is called.
+open class UserProfileSharingSettings {
+    NotebookOutputOption: (SharingSettingsNotebookOutputOption|Mapping)?
+    S3KmsKeyId: (String(matches(Regex(#".*"#)))|Mapping)?
+    S3OutputPath: (String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping)?
 }
 
 /// Resource Type definition for AWS::SageMaker::UserProfile

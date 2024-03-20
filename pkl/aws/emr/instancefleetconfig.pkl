@@ -5,6 +5,12 @@ module aws.emr.instancefleetconfig
 
 import "../../cloudformation.pkl"
 
+/// 
+open class InstanceFleetConfigEbsConfiguration {
+    EbsBlockDeviceConfigs: (Listing<InstanceFleetConfigEbsBlockDeviceConfig>)?
+    EbsOptimized: (Boolean|Mapping)?
+}
+
 typealias InstanceFleetConfigConfigurationConfigurationProperties = Mapping<String, Any>
 
 /// 
@@ -27,41 +33,35 @@ open class InstanceFleetConfigOnDemandProvisioningSpecification {
 
 /// 
 open class InstanceFleetConfigEbsBlockDeviceConfig {
-    VolumeSpecification: InstanceFleetConfigVolumeSpecification
     VolumesPerInstance: (Int|Mapping)?
+    VolumeSpecification: InstanceFleetConfigVolumeSpecification
 }
 
 /// 
 open class InstanceFleetConfigInstanceTypeConfig {
-    InstanceType: String|Mapping
-    BidPrice: (String|Mapping)?
     WeightedCapacity: (Int|Mapping)?
     EbsConfiguration: (InstanceFleetConfigEbsConfiguration)?
     BidPriceAsPercentageOfOnDemandPrice: (Number|Mapping)?
     CustomAmiId: (String|Mapping)?
     Configurations: (Listing<InstanceFleetConfigConfiguration>)?
+    InstanceType: String|Mapping
+    BidPrice: (String|Mapping)?
 }
 
 /// 
 open class InstanceFleetConfigSpotProvisioningSpecification {
-    TimeoutAction: String|Mapping
-    BlockDurationMinutes: (Int|Mapping)?
     AllocationStrategy: (String|Mapping)?
     TimeoutDurationMinutes: Int|Mapping
+    TimeoutAction: String|Mapping
+    BlockDurationMinutes: (Int|Mapping)?
 }
 
 /// 
 open class InstanceFleetConfigVolumeSpecification {
+    SizeInGB: Int|Mapping
     Throughput: (Int|Mapping)?
     VolumeType: String|Mapping
     Iops: (Int|Mapping)?
-    SizeInGB: Int|Mapping
-}
-
-/// 
-open class InstanceFleetConfigEbsConfiguration {
-    EbsOptimized: (Boolean|Mapping)?
-    EbsBlockDeviceConfigs: (Listing<InstanceFleetConfigEbsBlockDeviceConfig>)?
 }
 
 /// Resource Type definition for AWS::EMR::InstanceFleetConfig
@@ -69,12 +69,6 @@ open class InstanceFleetConfig extends cloudformation.Resource {
 
     Type = "AWS::EMR::InstanceFleetConfig"
 
-
-    /// 
-    hidden TargetSpotCapacity: (Int|Mapping)?
-
-    /// 
-    hidden LaunchSpecifications: (InstanceFleetConfigInstanceFleetProvisioningSpecifications)?
 
     /// 
     hidden InstanceTypeConfigs: (Listing<InstanceFleetConfigInstanceTypeConfig>)?
@@ -91,14 +85,20 @@ open class InstanceFleetConfig extends cloudformation.Resource {
     /// 
     hidden ClusterId: String|Mapping
 
+    /// 
+    hidden TargetSpotCapacity: (Int|Mapping)?
+
+    /// 
+    hidden LaunchSpecifications: (InstanceFleetConfigInstanceFleetProvisioningSpecifications)?
+
     Properties {
-        ["TargetSpotCapacity"] = if (TargetSpotCapacity == null) null else TargetSpotCapacity
-        ["LaunchSpecifications"] = if (LaunchSpecifications == null) null else LaunchSpecifications
         ["InstanceTypeConfigs"] = if (InstanceTypeConfigs == null) null else InstanceTypeConfigs
         ["Name"] = if (Name == null) null else Name
         ["InstanceFleetType"] = if (InstanceFleetType == null) null else InstanceFleetType
         ["TargetOnDemandCapacity"] = if (TargetOnDemandCapacity == null) null else TargetOnDemandCapacity
         ["ClusterId"] = if (ClusterId == null) null else ClusterId
+        ["TargetSpotCapacity"] = if (TargetSpotCapacity == null) null else TargetSpotCapacity
+        ["LaunchSpecifications"] = if (LaunchSpecifications == null) null else LaunchSpecifications
     }
 
 }

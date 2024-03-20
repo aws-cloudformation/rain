@@ -6,21 +6,21 @@ module aws.groundstation.missionprofile
 import "../../cloudformation.pkl"
 
 /// 
-open class MissionProfileDataflowEdge {
-    Destination: (String|Mapping)?
-    Source: (String|Mapping)?
-}
-
-/// 
 open class MissionProfileTag {
-    Key: String(matches(Regex(#"^[ a-zA-Z0-9\+\-=._:/@]{1,128}$"#)))|Mapping
     Value: String(matches(Regex(#"^[ a-zA-Z0-9\+\-=._:/@]{1,256}$"#)))|Mapping
+    Key: String(matches(Regex(#"^[ a-zA-Z0-9\+\-=._:/@]{1,128}$"#)))|Mapping
 }
 
 /// 
 open class MissionProfileStreamsKmsKey {
     KmsKeyArn: (String|Mapping)?
     KmsAliasArn: (String|Mapping)?
+}
+
+/// 
+open class MissionProfileDataflowEdge {
+    Source: (String|Mapping)?
+    Destination: (String|Mapping)?
 }
 
 /// AWS Ground Station Mission Profile resource type for CloudFormation.
@@ -32,20 +32,20 @@ open class MissionProfile extends cloudformation.Resource {
     /// Post-pass time needed after the contact.
     hidden ContactPostPassDurationSeconds: (Int|Mapping)?
 
+    /// The ARN of the KMS Key or Alias Key role used to define permissions on KMS Key usage.
+    hidden StreamsKmsRole: (String|Mapping)?
+
+    /// 
+    hidden Tags: (Listing<MissionProfileTag>)?
+
+    /// Pre-pass time needed before the contact.
+    hidden ContactPrePassDurationSeconds: (Int|Mapping)?
+
     /// Visibilities with shorter duration than the specified minimum viable contact duration will be ignored when searching for available contacts.
     hidden MinimumViableContactDurationSeconds: Int|Mapping
 
     /// The ARN of a KMS Key used for encrypting data during transmission from the source to destination locations.
     hidden StreamsKmsKey: (MissionProfileStreamsKmsKey)?
-
-    /// A name used to identify a mission profile.
-    hidden Name: String(matches(Regex(#"^[ a-zA-Z0-9_:-]{1,256}$"#)))|Mapping
-
-    /// Pre-pass time needed before the contact.
-    hidden ContactPrePassDurationSeconds: (Int|Mapping)?
-
-    /// The ARN of the KMS Key or Alias Key role used to define permissions on KMS Key usage.
-    hidden StreamsKmsRole: (String|Mapping)?
 
     /// 
     hidden DataflowEdges: Listing<MissionProfileDataflowEdge>
@@ -53,19 +53,19 @@ open class MissionProfile extends cloudformation.Resource {
     /// 
     hidden TrackingConfigArn: String|Mapping
 
-    /// 
-    hidden Tags: (Listing<MissionProfileTag>)?
+    /// A name used to identify a mission profile.
+    hidden Name: String(matches(Regex(#"^[ a-zA-Z0-9_:-]{1,256}$"#)))|Mapping
 
     Properties {
         ["ContactPostPassDurationSeconds"] = if (ContactPostPassDurationSeconds == null) null else ContactPostPassDurationSeconds
+        ["StreamsKmsRole"] = if (StreamsKmsRole == null) null else StreamsKmsRole
+        ["Tags"] = if (Tags == null) null else Tags
+        ["ContactPrePassDurationSeconds"] = if (ContactPrePassDurationSeconds == null) null else ContactPrePassDurationSeconds
         ["MinimumViableContactDurationSeconds"] = if (MinimumViableContactDurationSeconds == null) null else MinimumViableContactDurationSeconds
         ["StreamsKmsKey"] = if (StreamsKmsKey == null) null else StreamsKmsKey
-        ["Name"] = if (Name == null) null else Name
-        ["ContactPrePassDurationSeconds"] = if (ContactPrePassDurationSeconds == null) null else ContactPrePassDurationSeconds
-        ["StreamsKmsRole"] = if (StreamsKmsRole == null) null else StreamsKmsRole
         ["DataflowEdges"] = if (DataflowEdges == null) null else DataflowEdges
         ["TrackingConfigArn"] = if (TrackingConfigArn == null) null else TrackingConfigArn
-        ["Tags"] = if (Tags == null) null else Tags
+        ["Name"] = if (Name == null) null else Name
     }
 
 }

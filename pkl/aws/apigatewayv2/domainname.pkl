@@ -5,6 +5,12 @@ module aws.apigatewayv2.domainname
 
 import "../../cloudformation.pkl"
 
+/// If specified, API Gateway performs two-way authentication between the client and the server. Clients must present a trusted certificate to access your API.
+open class DomainNameMutualTlsAuthentication {
+    TruststoreUri: (String|Mapping)?
+    TruststoreVersion: (String|Mapping)?
+}
+
 /// The ``DomainNameConfiguration`` property type specifies the configuration for an API's domain name.
 ///
 ///  ``DomainNameConfiguration`` is a property of the [AWS::ApiGatewayV2::DomainName](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigatewayv2-domainname.html) resource.
@@ -16,12 +22,6 @@ open class DomainNameDomainNameConfiguration {
     CertificateArn: (String|Mapping)?
 }
 
-/// If specified, API Gateway performs two-way authentication between the client and the server. Clients must present a trusted certificate to access your API.
-open class DomainNameMutualTlsAuthentication {
-    TruststoreVersion: (String|Mapping)?
-    TruststoreUri: (String|Mapping)?
-}
-
 /// The ``AWS::ApiGatewayV2::DomainName`` resource specifies a custom domain name for your API in Amazon API Gateway (API Gateway). 
 ///
 ///  You can use a custom domain name to provide a URL that's more intuitive and easier to recall. For more information about using custom domain names, see [Set up Custom Domain Name for an API in API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-custom-domains.html) in the *API Gateway Developer Guide*.
@@ -29,9 +29,6 @@ open class DomainName extends cloudformation.Resource {
 
     Type = "AWS::ApiGatewayV2::DomainName"
 
-
-    /// The mutual TLS authentication configuration for a custom domain name.
-    hidden MutualTlsAuthentication: (DomainNameMutualTlsAuthentication)?
 
     /// The custom domain name for your API in Amazon API Gateway. Uppercase letters are not supported.
     hidden DomainName: String|Mapping
@@ -42,11 +39,14 @@ open class DomainName extends cloudformation.Resource {
     /// The collection of tags associated with a domain name.
     hidden Tags: (DomainNameDomainNameTags)?
 
+    /// The mutual TLS authentication configuration for a custom domain name.
+    hidden MutualTlsAuthentication: (DomainNameMutualTlsAuthentication)?
+
     Properties {
-        ["MutualTlsAuthentication"] = if (MutualTlsAuthentication == null) null else MutualTlsAuthentication
         ["DomainName"] = if (DomainName == null) null else DomainName
         ["DomainNameConfigurations"] = if (DomainNameConfigurations == null) null else DomainNameConfigurations
         ["Tags"] = if (Tags == null) null else Tags
+        ["MutualTlsAuthentication"] = if (MutualTlsAuthentication == null) null else MutualTlsAuthentication
     }
 
 }

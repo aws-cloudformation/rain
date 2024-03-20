@@ -5,9 +5,6 @@ module aws.omics.referencestore
 
 import "../../cloudformation.pkl"
 
-typealias ReferenceStoreTagMap = Mapping<String, Any>
-
-
 typealias ReferenceStoreEncryptionType = String|Mapping
 
 
@@ -17,17 +14,14 @@ open class ReferenceStoreSseConfig {
     KeyArn: (String(matches(Regex(#"arn:([^:\n]*):([^:\n]*):([^:\n]*):([0-9]{12}):([^:\n]*)"#)))|Mapping)?
 }
 
+typealias ReferenceStoreTagMap = Mapping<String, Any>
+
+
 /// Definition of AWS::Omics::ReferenceStore Resource Type
 open class ReferenceStore extends cloudformation.Resource {
 
     Type = "AWS::Omics::ReferenceStore"
 
-
-    /// 
-    hidden SseConfig: (ReferenceStoreSseConfig)?
-
-    /// 
-    hidden Tags: (ReferenceStoreTagMap)?
 
     /// A description for the store.
     hidden Description: (String(matches(Regex(#"^[\p{L}||\p{M}||\p{Z}||\p{S}||\p{N}||\p{P}]+$"#)))|Mapping)?
@@ -35,11 +29,17 @@ open class ReferenceStore extends cloudformation.Resource {
     /// A name for the store.
     hidden Name: String(matches(Regex(#"^[\p{L}||\p{M}||\p{Z}||\p{S}||\p{N}||\p{P}]+$"#)))|Mapping
 
+    /// 
+    hidden SseConfig: (ReferenceStoreSseConfig)?
+
+    /// 
+    hidden Tags: (ReferenceStoreTagMap)?
+
     Properties {
-        ["SseConfig"] = if (SseConfig == null) null else SseConfig
-        ["Tags"] = if (Tags == null) null else Tags
         ["Description"] = if (Description == null) null else Description
         ["Name"] = if (Name == null) null else Name
+        ["SseConfig"] = if (SseConfig == null) null else SseConfig
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

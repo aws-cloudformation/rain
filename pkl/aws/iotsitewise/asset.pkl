@@ -7,10 +7,10 @@ import "../../cloudformation.pkl"
 
 /// A hierarchy specifies allowed parent/child asset relationships.
 open class AssetAssetHierarchy {
-    LogicalId: (String(matches(Regex(#"[^\u0000-\u001F\u007F]+"#)))|Mapping)?
-    ChildAssetId: String|Mapping
     Id: (String(matches(Regex(#"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"#)))|Mapping)?
     ExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
+    LogicalId: (String(matches(Regex(#"[^\u0000-\u001F\u007F]+"#)))|Mapping)?
+    ChildAssetId: String|Mapping
 }
 
 /// 
@@ -23,12 +23,12 @@ typealias AssetPropertyNotificationState = "ENABLED"|"DISABLED"
 
 /// The asset property's definition, alias, unit, and notification state.
 open class AssetAssetProperty {
-    LogicalId: (String(matches(Regex(#"[^\u0000-\u001F\u007F]+"#)))|Mapping)?
     Alias: (String|Mapping)?
     NotificationState: (AssetPropertyNotificationState|Mapping)?
     Unit: (String|Mapping)?
     Id: (String(matches(Regex(#"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"#)))|Mapping)?
     ExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
+    LogicalId: (String(matches(Regex(#"[^\u0000-\u001F\u007F]+"#)))|Mapping)?
 }
 
 /// Resource schema for AWS::IoTSiteWise::Asset
@@ -37,11 +37,20 @@ open class Asset extends cloudformation.Resource {
     Type = "AWS::IoTSiteWise::Asset"
 
 
+    /// The ID of the asset model from which to create the asset.
+    hidden AssetModelId: String|Mapping
+
+    /// A description for the asset
+    hidden AssetDescription: (String|Mapping)?
+
+    /// A list of key-value pairs that contain metadata for the asset.
+    hidden Tags: (Listing<AssetTag>)?
+
     /// The External ID of the asset
     hidden AssetExternalId: (String(matches(Regex(#"[a-zA-Z0-9_][a-zA-Z_\-0-9.:]*[a-zA-Z0-9_]+"#)))|Mapping)?
 
-    /// The ID of the asset model from which to create the asset.
-    hidden AssetModelId: String|Mapping
+    /// A unique, friendly name for the asset.
+    hidden AssetName: String|Mapping
 
     /// 
     hidden AssetProperties: (Listing<AssetAssetProperty>)?
@@ -49,23 +58,14 @@ open class Asset extends cloudformation.Resource {
     /// 
     hidden AssetHierarchies: (Listing<AssetAssetHierarchy>)?
 
-    /// A list of key-value pairs that contain metadata for the asset.
-    hidden Tags: (Listing<AssetTag>)?
-
-    /// A unique, friendly name for the asset.
-    hidden AssetName: String|Mapping
-
-    /// A description for the asset
-    hidden AssetDescription: (String|Mapping)?
-
     Properties {
-        ["AssetExternalId"] = if (AssetExternalId == null) null else AssetExternalId
         ["AssetModelId"] = if (AssetModelId == null) null else AssetModelId
+        ["AssetDescription"] = if (AssetDescription == null) null else AssetDescription
+        ["Tags"] = if (Tags == null) null else Tags
+        ["AssetExternalId"] = if (AssetExternalId == null) null else AssetExternalId
+        ["AssetName"] = if (AssetName == null) null else AssetName
         ["AssetProperties"] = if (AssetProperties == null) null else AssetProperties
         ["AssetHierarchies"] = if (AssetHierarchies == null) null else AssetHierarchies
-        ["Tags"] = if (Tags == null) null else Tags
-        ["AssetName"] = if (AssetName == null) null else AssetName
-        ["AssetDescription"] = if (AssetDescription == null) null else AssetDescription
     }
 
 }

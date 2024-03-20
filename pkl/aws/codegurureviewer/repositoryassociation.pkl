@@ -7,8 +7,8 @@ import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
 open class RepositoryAssociationTag {
-    Value: String|Mapping
     Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// This resource schema represents the RepositoryAssociation resource in the Amazon CodeGuru Reviewer service.
@@ -16,9 +16,6 @@ open class RepositoryAssociation extends cloudformation.Resource {
 
     Type = "AWS::CodeGuruReviewer::RepositoryAssociation"
 
-
-    /// Name of the repository to be associated.
-    hidden Name: String(matches(Regex(#"^\S[\w.-]*$"#)))|Mapping
 
     /// The type of repository to be associated.
     hidden TypeProperty: RepositoryAssociationType|Mapping
@@ -35,13 +32,16 @@ open class RepositoryAssociation extends cloudformation.Resource {
     /// The tags associated with a repository association.
     hidden Tags: (Listing<RepositoryAssociationTag>)?
 
+    /// Name of the repository to be associated.
+    hidden Name: String(matches(Regex(#"^\S[\w.-]*$"#)))|Mapping
+
     Properties {
-        ["Name"] = if (Name == null) null else Name
         ["Type"] = if (TypeProperty == null) null else TypeProperty
         ["Owner"] = if (Owner == null) null else Owner
         ["BucketName"] = if (BucketName == null) null else BucketName
         ["ConnectionArn"] = if (ConnectionArn == null) null else ConnectionArn
         ["Tags"] = if (Tags == null) null else Tags
+        ["Name"] = if (Name == null) null else Name
     }
 
 }

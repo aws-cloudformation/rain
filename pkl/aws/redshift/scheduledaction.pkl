@@ -5,20 +5,6 @@ module aws.redshift.scheduledaction
 
 import "../../cloudformation.pkl"
 
-/// Describes a resize cluster operation. For example, a scheduled action to run the `ResizeCluster` API operation.
-open class ScheduledActionResizeClusterMessage {
-    NumberOfNodes: (Int|Mapping)?
-    Classic: (Boolean|Mapping)?
-    ClusterIdentifier: String|Mapping
-    ClusterType: (String|Mapping)?
-    NodeType: (String|Mapping)?
-}
-
-/// Describes a pause cluster operation. For example, a scheduled action to run the `PauseCluster` API operation.
-open class ScheduledActionPauseClusterMessage {
-    ClusterIdentifier: String|Mapping
-}
-
 /// Describes a resume cluster operation. For example, a scheduled action to run the `ResumeCluster` API operation.
 open class ScheduledActionResumeClusterMessage {
     ClusterIdentifier: String|Mapping
@@ -30,11 +16,34 @@ typealias ScheduledActionScheduledActionType = Dynamic
 typealias ScheduledActiontimestamp = String|Mapping
 
 
+/// Describes a resize cluster operation. For example, a scheduled action to run the `ResizeCluster` API operation.
+open class ScheduledActionResizeClusterMessage {
+    ClusterIdentifier: String|Mapping
+    ClusterType: (String|Mapping)?
+    NodeType: (String|Mapping)?
+    NumberOfNodes: (Int|Mapping)?
+    Classic: (Boolean|Mapping)?
+}
+
+/// Describes a pause cluster operation. For example, a scheduled action to run the `PauseCluster` API operation.
+open class ScheduledActionPauseClusterMessage {
+    ClusterIdentifier: String|Mapping
+}
+
 /// The `AWS::Redshift::ScheduledAction` resource creates an Amazon Redshift Scheduled Action.
 open class ScheduledAction extends cloudformation.Resource {
 
     Type = "AWS::Redshift::ScheduledAction"
 
+
+    /// The schedule in `at( )` or `cron( )` format.
+    hidden Schedule: (String|Mapping)?
+
+    /// The IAM role to assume to run the target action.
+    hidden IamRole: (String|Mapping)?
+
+    /// The start time in UTC of the scheduled action. Before this time, the scheduled action does not trigger.
+    hidden StartTime: (ScheduledActiontimestamp)?
 
     /// The name of the scheduled action. The name must be unique within an account.
     hidden ScheduledActionName: String(matches(Regex(#"^(?=^[a-z][a-z0-9]*(-[a-z0-9]+)*$).{1,60}$"#)))|Mapping
@@ -42,33 +51,24 @@ open class ScheduledAction extends cloudformation.Resource {
     /// A JSON format string of the Amazon Redshift API operation with input parameters.
     hidden TargetAction: (ScheduledActionScheduledActionType)?
 
-    /// The IAM role to assume to run the target action.
-    hidden IamRole: (String|Mapping)?
-
     /// The description of the scheduled action.
     hidden ScheduledActionDescription: (String(matches(Regex(#"^(?=^[\x09\x0a\x0d\x20-\xff]*$).{1,255}$"#)))|Mapping)?
-
-    /// The start time in UTC of the scheduled action. Before this time, the scheduled action does not trigger.
-    hidden StartTime: (ScheduledActiontimestamp)?
-
-    /// If true, the schedule is enabled. If false, the scheduled action does not trigger.
-    hidden Enable: (Boolean|Mapping)?
-
-    /// The schedule in `at( )` or `cron( )` format.
-    hidden Schedule: (String|Mapping)?
 
     /// The end time in UTC of the scheduled action. After this time, the scheduled action does not trigger.
     hidden EndTime: (ScheduledActiontimestamp)?
 
+    /// If true, the schedule is enabled. If false, the scheduled action does not trigger.
+    hidden Enable: (Boolean|Mapping)?
+
     Properties {
+        ["Schedule"] = if (Schedule == null) null else Schedule
+        ["IamRole"] = if (IamRole == null) null else IamRole
+        ["StartTime"] = if (StartTime == null) null else StartTime
         ["ScheduledActionName"] = if (ScheduledActionName == null) null else ScheduledActionName
         ["TargetAction"] = if (TargetAction == null) null else TargetAction
-        ["IamRole"] = if (IamRole == null) null else IamRole
         ["ScheduledActionDescription"] = if (ScheduledActionDescription == null) null else ScheduledActionDescription
-        ["StartTime"] = if (StartTime == null) null else StartTime
-        ["Enable"] = if (Enable == null) null else Enable
-        ["Schedule"] = if (Schedule == null) null else Schedule
         ["EndTime"] = if (EndTime == null) null else EndTime
+        ["Enable"] = if (Enable == null) null else Enable
     }
 
 }

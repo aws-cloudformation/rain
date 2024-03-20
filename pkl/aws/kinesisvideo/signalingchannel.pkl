@@ -7,8 +7,8 @@ import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
 open class SignalingChannelTag {
-    Value: String|Mapping
     Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// Resource Type Definition for AWS::KinesisVideo::SignalingChannel
@@ -17,23 +17,23 @@ open class SignalingChannel extends cloudformation.Resource {
     Type = "AWS::KinesisVideo::SignalingChannel"
 
 
-    /// The name of the Kinesis Video Signaling Channel.
-    hidden Name: (String(matches(Regex(#"[a-zA-Z0-9_.-]+"#)))|Mapping)?
-
-    /// The type of the Kinesis Video Signaling Channel to create. Currently, SINGLE_MASTER is the only supported channel type.
-    hidden TypeProperty: (SignalingChannelType|Mapping)?
-
     /// The period of time a signaling channel retains undelivered messages before they are discarded.
     hidden MessageTtlSeconds: (Int|Mapping)?
 
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<SignalingChannelTag>)?
 
+    /// The name of the Kinesis Video Signaling Channel.
+    hidden Name: (String(matches(Regex(#"[a-zA-Z0-9_.-]+"#)))|Mapping)?
+
+    /// The type of the Kinesis Video Signaling Channel to create. Currently, SINGLE_MASTER is the only supported channel type.
+    hidden TypeProperty: (SignalingChannelType|Mapping)?
+
     Properties {
-        ["Name"] = if (Name == null) null else Name
-        ["Type"] = if (TypeProperty == null) null else TypeProperty
         ["MessageTtlSeconds"] = if (MessageTtlSeconds == null) null else MessageTtlSeconds
         ["Tags"] = if (Tags == null) null else Tags
+        ["Name"] = if (Name == null) null else Name
+        ["Type"] = if (TypeProperty == null) null else TypeProperty
     }
 
 }

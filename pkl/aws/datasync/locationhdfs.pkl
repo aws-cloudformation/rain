@@ -5,16 +5,6 @@ module aws.datasync.locationhdfs
 
 import "../../cloudformation.pkl"
 
-typealias QopConfigurationDataTransferProtection = "AUTHENTICATION"|"INTEGRITY"|"PRIVACY"|"DISABLED"
-
-typealias QopConfigurationRpcProtection = "AUTHENTICATION"|"INTEGRITY"|"PRIVACY"|"DISABLED"
-
-/// Configuration information for RPC Protection and Data Transfer Protection. These parameters can be set to AUTHENTICATION, INTEGRITY, or PRIVACY. The default value is PRIVACY.
-open class LocationHDFSQopConfiguration {
-    DataTransferProtection: (QopConfigurationDataTransferProtection|Mapping)?
-    RpcProtection: (QopConfigurationRpcProtection|Mapping)?
-}
-
 /// HDFS Name Node IP and port information.
 open class LocationHDFSNameNode {
     Hostname: String(matches(Regex(#"^(([a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9\-]*[A-Za-z0-9])$"#)))|Mapping
@@ -27,11 +17,48 @@ open class LocationHDFSTag {
     Value: String|Mapping
 }
 
+typealias QopConfigurationRpcProtection = "AUTHENTICATION"|"INTEGRITY"|"PRIVACY"|"DISABLED"
+
+typealias QopConfigurationDataTransferProtection = "AUTHENTICATION"|"INTEGRITY"|"PRIVACY"|"DISABLED"
+
+/// Configuration information for RPC Protection and Data Transfer Protection. These parameters can be set to AUTHENTICATION, INTEGRITY, or PRIVACY. The default value is PRIVACY.
+open class LocationHDFSQopConfiguration {
+    RpcProtection: (QopConfigurationRpcProtection|Mapping)?
+    DataTransferProtection: (QopConfigurationDataTransferProtection|Mapping)?
+}
+
 /// Resource schema for AWS::DataSync::LocationHDFS.
 open class LocationHDFS extends cloudformation.Resource {
 
     Type = "AWS::DataSync::LocationHDFS"
 
+
+    /// The authentication mode used to determine identity of user.
+    hidden AuthenticationType: LocationHDFSAuthenticationType|Mapping
+
+    /// The user name that has read and write permissions on the specified HDFS cluster.
+    hidden SimpleUser: (String(matches(Regex(#"^[_.A-Za-z0-9][-_.A-Za-z0-9]*$"#)))|Mapping)?
+
+    /// The string representation of the Krb5Conf file, or the presigned URL to access the Krb5.conf file within an S3 bucket.
+    hidden KerberosKrb5Conf: (String|Mapping)?
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<LocationHDFSTag>)?
+
+    /// The identifier for the Key Management Server where the encryption keys that encrypt data inside HDFS clusters are stored.
+    hidden KmsKeyProviderUri: (String(matches(Regex(#"^kms:\/\/http[s]?@(([a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9\-]*[A-Za-z0-9])(;(([a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9\-]*[A-Za-z0-9]))*:[0-9]{1,5}\/kms$"#)))|Mapping)?
+
+    /// The unique identity, or principal, to which Kerberos can assign tickets.
+    hidden KerberosPrincipal: (String(matches(Regex(#"^.+$"#)))|Mapping)?
+
+    /// The subdirectory in HDFS that is used to read data from the HDFS source location or write data to the HDFS destination.
+    hidden Subdirectory: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\$\p{Zs}]+$"#)))|Mapping)?
+
+    /// Size of chunks (blocks) in bytes that the data is divided into when stored in the HDFS cluster.
+    hidden BlockSize: (Int|Mapping)?
+
+    /// ARN(s) of the agent(s) to use for an HDFS location.
+    hidden AgentArns: Listing<String|Mapping>
 
     /// Number of copies of each block that exists inside the HDFS cluster.
     hidden ReplicationFactor: (Int|Mapping)?
@@ -39,53 +66,26 @@ open class LocationHDFS extends cloudformation.Resource {
     /// 
     hidden QopConfiguration: (LocationHDFSQopConfiguration)?
 
-    /// The user name that has read and write permissions on the specified HDFS cluster.
-    hidden SimpleUser: (String(matches(Regex(#"^[_.A-Za-z0-9][-_.A-Za-z0-9]*$"#)))|Mapping)?
-
-    /// The unique identity, or principal, to which Kerberos can assign tickets.
-    hidden KerberosPrincipal: (String(matches(Regex(#"^.+$"#)))|Mapping)?
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<LocationHDFSTag>)?
-
-    /// The string representation of the Krb5Conf file, or the presigned URL to access the Krb5.conf file within an S3 bucket.
-    hidden KerberosKrb5Conf: (String|Mapping)?
+    /// The Base64 string representation of the Keytab file.
+    hidden KerberosKeytab: (String|Mapping)?
 
     /// An array of Name Node(s) of the HDFS location.
     hidden NameNodes: Listing<LocationHDFSNameNode>
 
-    /// Size of chunks (blocks) in bytes that the data is divided into when stored in the HDFS cluster.
-    hidden BlockSize: (Int|Mapping)?
-
-    /// The identifier for the Key Management Server where the encryption keys that encrypt data inside HDFS clusters are stored.
-    hidden KmsKeyProviderUri: (String(matches(Regex(#"^kms:\/\/http[s]?@(([a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9\-]*[A-Za-z0-9])(;(([a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9\-]*[A-Za-z0-9]))*:[0-9]{1,5}\/kms$"#)))|Mapping)?
-
-    /// The authentication mode used to determine identity of user.
-    hidden AuthenticationType: LocationHDFSAuthenticationType|Mapping
-
-    /// The Base64 string representation of the Keytab file.
-    hidden KerberosKeytab: (String|Mapping)?
-
-    /// ARN(s) of the agent(s) to use for an HDFS location.
-    hidden AgentArns: Listing<String|Mapping>
-
-    /// The subdirectory in HDFS that is used to read data from the HDFS source location or write data to the HDFS destination.
-    hidden Subdirectory: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\$\p{Zs}]+$"#)))|Mapping)?
-
     Properties {
+        ["AuthenticationType"] = if (AuthenticationType == null) null else AuthenticationType
+        ["SimpleUser"] = if (SimpleUser == null) null else SimpleUser
+        ["KerberosKrb5Conf"] = if (KerberosKrb5Conf == null) null else KerberosKrb5Conf
+        ["Tags"] = if (Tags == null) null else Tags
+        ["KmsKeyProviderUri"] = if (KmsKeyProviderUri == null) null else KmsKeyProviderUri
+        ["KerberosPrincipal"] = if (KerberosPrincipal == null) null else KerberosPrincipal
+        ["Subdirectory"] = if (Subdirectory == null) null else Subdirectory
+        ["BlockSize"] = if (BlockSize == null) null else BlockSize
+        ["AgentArns"] = if (AgentArns == null) null else AgentArns
         ["ReplicationFactor"] = if (ReplicationFactor == null) null else ReplicationFactor
         ["QopConfiguration"] = if (QopConfiguration == null) null else QopConfiguration
-        ["SimpleUser"] = if (SimpleUser == null) null else SimpleUser
-        ["KerberosPrincipal"] = if (KerberosPrincipal == null) null else KerberosPrincipal
-        ["Tags"] = if (Tags == null) null else Tags
-        ["KerberosKrb5Conf"] = if (KerberosKrb5Conf == null) null else KerberosKrb5Conf
-        ["NameNodes"] = if (NameNodes == null) null else NameNodes
-        ["BlockSize"] = if (BlockSize == null) null else BlockSize
-        ["KmsKeyProviderUri"] = if (KmsKeyProviderUri == null) null else KmsKeyProviderUri
-        ["AuthenticationType"] = if (AuthenticationType == null) null else AuthenticationType
         ["KerberosKeytab"] = if (KerberosKeytab == null) null else KerberosKeytab
-        ["AgentArns"] = if (AgentArns == null) null else AgentArns
-        ["Subdirectory"] = if (Subdirectory == null) null else Subdirectory
+        ["NameNodes"] = if (NameNodes == null) null else NameNodes
     }
 
 }

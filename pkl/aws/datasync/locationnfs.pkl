@@ -5,6 +5,11 @@ module aws.datasync.locationnfs
 
 import "../../cloudformation.pkl"
 
+/// Contains a list of Amazon Resource Names (ARNs) of agents that are used to connect an NFS server.
+open class LocationNFSOnPremConfig {
+    AgentArns: Listing<String|Mapping>
+}
+
 /// A key-value pair to associate with a resource.
 open class LocationNFSTag {
     Key: String(matches(Regex(#"^[a-zA-Z0-9\s+=._:/-]+$"#)))|Mapping
@@ -18,22 +23,11 @@ open class LocationNFSMountOptions {
     Version: (MountOptionsVersion|Mapping)?
 }
 
-/// Contains a list of Amazon Resource Names (ARNs) of agents that are used to connect an NFS server.
-open class LocationNFSOnPremConfig {
-    AgentArns: Listing<String|Mapping>
-}
-
 /// Resource schema for AWS::DataSync::LocationNFS
 open class LocationNFS extends cloudformation.Resource {
 
     Type = "AWS::DataSync::LocationNFS"
 
-
-    /// The subdirectory in the NFS file system that is used to read data from the NFS source location or write data to the NFS destination.
-    hidden Subdirectory: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\$\p{Zs}]+$"#)))|Mapping)?
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<LocationNFSTag>)?
 
     /// 
     hidden MountOptions: (LocationNFSMountOptions)?
@@ -44,12 +38,18 @@ open class LocationNFS extends cloudformation.Resource {
     /// The name of the NFS server. This value is the IP address or DNS name of the NFS server.
     hidden ServerHostname: (String(matches(Regex(#"^(([a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9\-]*[A-Za-z0-9])$"#)))|Mapping)?
 
+    /// The subdirectory in the NFS file system that is used to read data from the NFS source location or write data to the NFS destination.
+    hidden Subdirectory: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\$\p{Zs}]+$"#)))|Mapping)?
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<LocationNFSTag>)?
+
     Properties {
-        ["Subdirectory"] = if (Subdirectory == null) null else Subdirectory
-        ["Tags"] = if (Tags == null) null else Tags
         ["MountOptions"] = if (MountOptions == null) null else MountOptions
         ["OnPremConfig"] = if (OnPremConfig == null) null else OnPremConfig
         ["ServerHostname"] = if (ServerHostname == null) null else ServerHostname
+        ["Subdirectory"] = if (Subdirectory == null) null else Subdirectory
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

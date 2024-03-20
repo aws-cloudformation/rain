@@ -5,30 +5,37 @@ module aws.quicksight.vpcconnection
 
 import "../../cloudformation.pkl"
 
-typealias VPCConnectionSubnetIds = Listing<(VPCConnectionSubnetId)?>
+typealias VPCConnectionNetworkInterfaceId = String|Mapping
 
 
-typealias VPCConnectionVPCConnectionResourceStatus = String|Mapping
+typealias VPCConnectionSecurityGroupId = String|Mapping
 
 
 typealias VPCConnectionArn = String|Mapping
 
 
-typealias NetworkInterfaceStatus = "CREATING"|"AVAILABLE"|"CREATION_FAILED"|"UPDATING"|"UPDATE_FAILED"|"DELETING"|"DELETED"|"DELETION_FAILED"|"DELETION_SCHEDULED"|"ATTACHMENT_FAILED_ROLLBACK_FAILED"
+typealias VPCConnectionDnsResolvers = Listing<(String|Mapping)?>
 
-/// 
-open class VPCConnectionNetworkInterface {
-    Status: (NetworkInterfaceStatus|Mapping)?
-    NetworkInterfaceId: (VPCConnectionNetworkInterfaceId)?
-    SubnetId: (VPCConnectionSubnetId)?
-    AvailabilityZone: (String|Mapping)?
-    ErrorMessage: (String|Mapping)?
-}
+
+typealias VPCConnectionVPCId = String|Mapping
+
+
+typealias VPCConnectionVPCConnectionId = String|Mapping
+
+
+typealias VPCConnectionVPCConnectionResourceStatus = String|Mapping
+
+
+typealias VPCConnectionVPCConnectionAvailabilityStatus = String|Mapping
+
+
+typealias VPCConnectionNetworkInterfaces = Listing<(VPCConnectionNetworkInterface)?>
+
+
+typealias VPCConnectionSubnetIds = Listing<(VPCConnectionSubnetId)?>
+
 
 typealias VPCConnectionRoleArn = String|Mapping
-
-
-typealias VPCConnectionDnsResolvers = Listing<(String|Mapping)?>
 
 
 /// 
@@ -37,11 +44,16 @@ open class VPCConnectionTag {
     Value: String|Mapping
 }
 
-typealias VPCConnectionSecurityGroupIds = Listing<(VPCConnectionSecurityGroupId)?>
+typealias NetworkInterfaceStatus = "CREATING"|"AVAILABLE"|"CREATION_FAILED"|"UPDATING"|"UPDATE_FAILED"|"DELETING"|"DELETED"|"DELETION_FAILED"|"DELETION_SCHEDULED"|"ATTACHMENT_FAILED_ROLLBACK_FAILED"
 
-
-typealias VPCConnectionSecurityGroupId = String|Mapping
-
+/// 
+open class VPCConnectionNetworkInterface {
+    SubnetId: (VPCConnectionSubnetId)?
+    AvailabilityZone: (String|Mapping)?
+    ErrorMessage: (String|Mapping)?
+    Status: (NetworkInterfaceStatus|Mapping)?
+    NetworkInterfaceId: (VPCConnectionNetworkInterfaceId)?
+}
 
 typealias VPCConnectionSubnetId = String|Mapping
 
@@ -49,19 +61,7 @@ typealias VPCConnectionSubnetId = String|Mapping
 typealias VPCConnectionTags = Listing<(VPCConnectionTag)?>
 
 
-typealias VPCConnectionVPCId = String|Mapping
-
-
-typealias VPCConnectionVPCConnectionAvailabilityStatus = String|Mapping
-
-
-typealias VPCConnectionVPCConnectionId = String|Mapping
-
-
-typealias VPCConnectionNetworkInterfaces = Listing<(VPCConnectionNetworkInterface)?>
-
-
-typealias VPCConnectionNetworkInterfaceId = String|Mapping
+typealias VPCConnectionSecurityGroupIds = Listing<(VPCConnectionSecurityGroupId)?>
 
 
 /// Definition of the AWS::QuickSight::VPCConnection Resource Type.
@@ -71,42 +71,42 @@ open class VPCConnection extends cloudformation.Resource {
 
 
     /// 
-    hidden AwsAccountId: (String(matches(Regex(#"^[0-9]{12}$"#)))|Mapping)?
-
-    /// 
     hidden SecurityGroupIds: (VPCConnectionSecurityGroupIds)?
-
-    /// 
-    hidden SubnetIds: (VPCConnectionSubnetIds)?
-
-    /// 
-    hidden VPCConnectionId: (VPCConnectionVPCConnectionId)?
 
     /// 
     hidden DnsResolvers: (VPCConnectionDnsResolvers)?
 
     /// 
-    hidden AvailabilityStatus: (VPCConnectionVPCConnectionAvailabilityStatus)?
+    hidden Tags: (VPCConnectionTags)?
 
     /// 
     hidden Name: (String|Mapping)?
 
     /// 
+    hidden AwsAccountId: (String(matches(Regex(#"^[0-9]{12}$"#)))|Mapping)?
+
+    /// 
+    hidden AvailabilityStatus: (VPCConnectionVPCConnectionAvailabilityStatus)?
+
+    /// 
     hidden RoleArn: (VPCConnectionRoleArn)?
 
     /// 
-    hidden Tags: (VPCConnectionTags)?
+    hidden VPCConnectionId: (VPCConnectionVPCConnectionId)?
+
+    /// 
+    hidden SubnetIds: (VPCConnectionSubnetIds)?
 
     Properties {
-        ["AwsAccountId"] = if (AwsAccountId == null) null else AwsAccountId
         ["SecurityGroupIds"] = if (SecurityGroupIds == null) null else SecurityGroupIds
-        ["SubnetIds"] = if (SubnetIds == null) null else SubnetIds
-        ["VPCConnectionId"] = if (VPCConnectionId == null) null else VPCConnectionId
         ["DnsResolvers"] = if (DnsResolvers == null) null else DnsResolvers
-        ["AvailabilityStatus"] = if (AvailabilityStatus == null) null else AvailabilityStatus
-        ["Name"] = if (Name == null) null else Name
-        ["RoleArn"] = if (RoleArn == null) null else RoleArn
         ["Tags"] = if (Tags == null) null else Tags
+        ["Name"] = if (Name == null) null else Name
+        ["AwsAccountId"] = if (AwsAccountId == null) null else AwsAccountId
+        ["AvailabilityStatus"] = if (AvailabilityStatus == null) null else AvailabilityStatus
+        ["RoleArn"] = if (RoleArn == null) null else RoleArn
+        ["VPCConnectionId"] = if (VPCConnectionId == null) null else VPCConnectionId
+        ["SubnetIds"] = if (SubnetIds == null) null else SubnetIds
     }
 
 }

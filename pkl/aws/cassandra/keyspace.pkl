@@ -5,6 +5,11 @@ module aws.cassandra.keyspace
 
 import "../../cloudformation.pkl"
 
+typealias RegionListArray = "ap-northeast-1"|"ap-northeast-2"|"ap-south-1"|"ap-southeast-1"|"ap-southeast-2"|"ca-central-1"|"eu-central-1"|"eu-north-1"|"eu-west-1"|"eu-west-2"|"eu-west-3"|"sa-east-1"|"us-east-1"|"us-east-2"|"us-west-1"|"us-west-2"
+
+typealias KeyspaceRegionList = Listing<(RegionListArray|Mapping)?>
+
+
 /// 
 open class KeyspaceTag {
     Key: String|Mapping
@@ -15,14 +20,9 @@ typealias ReplicationSpecificationReplicationStrategy = "SINGLE_REGION"|"MULTI_R
 
 /// 
 open class KeyspaceReplicationSpecification {
-    ReplicationStrategy: (ReplicationSpecificationReplicationStrategy|Mapping)?
     RegionList: (KeyspaceRegionList)?
+    ReplicationStrategy: (ReplicationSpecificationReplicationStrategy|Mapping)?
 }
-
-typealias RegionListArray = "ap-northeast-1"|"ap-northeast-2"|"ap-south-1"|"ap-southeast-1"|"ap-southeast-2"|"ca-central-1"|"eu-central-1"|"eu-north-1"|"eu-west-1"|"eu-west-2"|"eu-west-3"|"sa-east-1"|"us-east-1"|"us-east-2"|"us-west-1"|"us-west-2"
-
-typealias KeyspaceRegionList = Listing<(RegionListArray|Mapping)?>
-
 
 /// Resource schema for AWS::Cassandra::Keyspace
 open class Keyspace extends cloudformation.Resource {
@@ -30,19 +30,19 @@ open class Keyspace extends cloudformation.Resource {
     Type = "AWS::Cassandra::Keyspace"
 
 
+    /// Name for Cassandra keyspace
+    hidden KeyspaceName: (String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9_]{1,47}$"#)))|Mapping)?
+
     /// 
     hidden Tags: (Listing<KeyspaceTag>)?
 
     /// 
     hidden ReplicationSpecification: (KeyspaceReplicationSpecification)?
 
-    /// Name for Cassandra keyspace
-    hidden KeyspaceName: (String(matches(Regex(#"^[a-zA-Z0-9][a-zA-Z0-9_]{1,47}$"#)))|Mapping)?
-
     Properties {
+        ["KeyspaceName"] = if (KeyspaceName == null) null else KeyspaceName
         ["Tags"] = if (Tags == null) null else Tags
         ["ReplicationSpecification"] = if (ReplicationSpecification == null) null else ReplicationSpecification
-        ["KeyspaceName"] = if (KeyspaceName == null) null else KeyspaceName
     }
 
 }

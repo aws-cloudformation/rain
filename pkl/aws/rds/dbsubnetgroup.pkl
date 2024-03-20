@@ -21,6 +21,12 @@ open class DBSubnetGroup extends cloudformation.Resource {
     Type = "AWS::RDS::DBSubnetGroup"
 
 
+    /// The EC2 Subnet IDs for the DB subnet group.
+    hidden SubnetIds: Listing<String|Mapping>
+
+    /// An optional array of key-value pairs to apply to this DB subnet group.
+    hidden Tags: (Listing<DBSubnetGroupTag>)?
+
     /// The description for the DB subnet group.
     hidden DBSubnetGroupDescription: String|Mapping
 
@@ -30,17 +36,11 @@ open class DBSubnetGroup extends cloudformation.Resource {
     ///  Example: ``mysubnetgroup``
     hidden DBSubnetGroupName: (String(matches(Regex(#"^(?!default$)[a-zA-Z]{1}[a-zA-Z0-9-_\.\s]{0,254}$"#)))|Mapping)?
 
-    /// The EC2 Subnet IDs for the DB subnet group.
-    hidden SubnetIds: Listing<String|Mapping>
-
-    /// An optional array of key-value pairs to apply to this DB subnet group.
-    hidden Tags: (Listing<DBSubnetGroupTag>)?
-
     Properties {
-        ["DBSubnetGroupDescription"] = if (DBSubnetGroupDescription == null) null else DBSubnetGroupDescription
-        ["DBSubnetGroupName"] = if (DBSubnetGroupName == null) null else DBSubnetGroupName
         ["SubnetIds"] = if (SubnetIds == null) null else SubnetIds
         ["Tags"] = if (Tags == null) null else Tags
+        ["DBSubnetGroupDescription"] = if (DBSubnetGroupDescription == null) null else DBSubnetGroupDescription
+        ["DBSubnetGroupName"] = if (DBSubnetGroupName == null) null else DBSubnetGroupName
     }
 
 }

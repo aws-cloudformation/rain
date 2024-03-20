@@ -5,6 +5,16 @@ module aws.imagebuilder.imagepipeline
 
 import "../../cloudformation.pkl"
 
+typealias WorkflowConfigurationOnFailure = "CONTINUE"|"ABORT"
+
+/// The workflow configuration of the image
+open class ImagePipelineWorkflowConfiguration {
+    OnFailure: (WorkflowConfigurationOnFailure|Mapping)?
+    WorkflowArn: (String|Mapping)?
+    Parameters: (Listing<ImagePipelineWorkflowParameter>)?
+    ParallelGroup: (String|Mapping)?
+}
+
 /// A parameter associated with the workflow
 open class ImagePipelineWorkflowParameter {
     Name: (String|Mapping)?
@@ -22,8 +32,8 @@ open class ImagePipelineImageTestsConfiguration {
 
 /// Determines if tests should run after building the image. Image Builder defaults to enable tests to run following the image build, before image distribution.
 open class ImagePipelineImageScanningConfiguration {
-    ImageScanningEnabled: (Boolean|Mapping)?
     EcrConfiguration: (ImagePipelineEcrConfiguration)?
+    ImageScanningEnabled: (Boolean|Mapping)?
 }
 
 /// Settings for Image Builder to configure the ECR repository and output container images that are scanned.
@@ -36,18 +46,8 @@ typealias SchedulePipelineExecutionStartCondition = "EXPRESSION_MATCH_ONLY"|"EXP
 
 /// The schedule of the image pipeline.
 open class ImagePipelineSchedule {
-    ScheduleExpression: (String|Mapping)?
     PipelineExecutionStartCondition: (SchedulePipelineExecutionStartCondition|Mapping)?
-}
-
-typealias WorkflowConfigurationOnFailure = "CONTINUE"|"ABORT"
-
-/// The workflow configuration of the image
-open class ImagePipelineWorkflowConfiguration {
-    ParallelGroup: (String|Mapping)?
-    OnFailure: (WorkflowConfigurationOnFailure|Mapping)?
-    WorkflowArn: (String|Mapping)?
-    Parameters: (Listing<ImagePipelineWorkflowParameter>)?
+    ScheduleExpression: (String|Mapping)?
 }
 
 /// Resource schema for AWS::ImageBuilder::ImagePipeline
@@ -56,29 +56,38 @@ open class ImagePipeline extends cloudformation.Resource {
     Type = "AWS::ImageBuilder::ImagePipeline"
 
 
-    /// The name of the image pipeline.
-    hidden Name: (String|Mapping)?
+    /// The Amazon Resource Name (ARN) of the infrastructure configuration associated with this image pipeline.
+    hidden InfrastructureConfigurationArn: (String|Mapping)?
 
-    /// The Amazon Resource Name (ARN) of the image recipe that defines how images are configured, tested, and assessed.
-    hidden ImageRecipeArn: (String|Mapping)?
-
-    /// The execution role name/ARN for the image build, if provided
-    hidden ExecutionRole: (String|Mapping)?
-
-    /// The description of the image pipeline.
-    hidden Description: (String|Mapping)?
-
-    /// The status of the image pipeline.
-    hidden Status: (ImagePipelineStatus|Mapping)?
+    /// Contains settings for vulnerability scans.
+    hidden ImageScanningConfiguration: (ImagePipelineImageScanningConfiguration)?
 
     /// The schedule of the image pipeline.
     hidden Schedule: (ImagePipelineSchedule)?
 
+    /// The Amazon Resource Name (ARN) of the image recipe that defines how images are configured, tested, and assessed.
+    hidden ImageRecipeArn: (String|Mapping)?
+
+    /// The status of the image pipeline.
+    hidden Status: (ImagePipelineStatus|Mapping)?
+
+    /// The Amazon Resource Name (ARN) of the container recipe that defines how images are configured and tested.
+    hidden ContainerRecipeArn: (String|Mapping)?
+
     /// Workflows to define the image build process
     hidden Workflows: (Listing<ImagePipelineWorkflowConfiguration>)?
 
-    /// Contains settings for vulnerability scans.
-    hidden ImageScanningConfiguration: (ImagePipelineImageScanningConfiguration)?
+    /// Collects additional information about the image being created, including the operating system (OS) version and package list.
+    hidden EnhancedImageMetadataEnabled: (Boolean|Mapping)?
+
+    /// The name of the image pipeline.
+    hidden Name: (String|Mapping)?
+
+    /// The description of the image pipeline.
+    hidden Description: (String|Mapping)?
+
+    /// The execution role name/ARN for the image build, if provided
+    hidden ExecutionRole: (String|Mapping)?
 
     /// The tags of this image pipeline.
     hidden Tags: (ImagePipelineImagePipelineTags)?
@@ -86,33 +95,24 @@ open class ImagePipeline extends cloudformation.Resource {
     /// The image tests configuration of the image pipeline.
     hidden ImageTestsConfiguration: (ImagePipelineImageTestsConfiguration)?
 
-    /// The Amazon Resource Name (ARN) of the container recipe that defines how images are configured and tested.
-    hidden ContainerRecipeArn: (String|Mapping)?
-
     /// The Amazon Resource Name (ARN) of the distribution configuration associated with this image pipeline.
     hidden DistributionConfigurationArn: (String|Mapping)?
 
-    /// The Amazon Resource Name (ARN) of the infrastructure configuration associated with this image pipeline.
-    hidden InfrastructureConfigurationArn: (String|Mapping)?
-
-    /// Collects additional information about the image being created, including the operating system (OS) version and package list.
-    hidden EnhancedImageMetadataEnabled: (Boolean|Mapping)?
-
     Properties {
-        ["Name"] = if (Name == null) null else Name
-        ["ImageRecipeArn"] = if (ImageRecipeArn == null) null else ImageRecipeArn
-        ["ExecutionRole"] = if (ExecutionRole == null) null else ExecutionRole
-        ["Description"] = if (Description == null) null else Description
-        ["Status"] = if (Status == null) null else Status
-        ["Schedule"] = if (Schedule == null) null else Schedule
-        ["Workflows"] = if (Workflows == null) null else Workflows
+        ["InfrastructureConfigurationArn"] = if (InfrastructureConfigurationArn == null) null else InfrastructureConfigurationArn
         ["ImageScanningConfiguration"] = if (ImageScanningConfiguration == null) null else ImageScanningConfiguration
+        ["Schedule"] = if (Schedule == null) null else Schedule
+        ["ImageRecipeArn"] = if (ImageRecipeArn == null) null else ImageRecipeArn
+        ["Status"] = if (Status == null) null else Status
+        ["ContainerRecipeArn"] = if (ContainerRecipeArn == null) null else ContainerRecipeArn
+        ["Workflows"] = if (Workflows == null) null else Workflows
+        ["EnhancedImageMetadataEnabled"] = if (EnhancedImageMetadataEnabled == null) null else EnhancedImageMetadataEnabled
+        ["Name"] = if (Name == null) null else Name
+        ["Description"] = if (Description == null) null else Description
+        ["ExecutionRole"] = if (ExecutionRole == null) null else ExecutionRole
         ["Tags"] = if (Tags == null) null else Tags
         ["ImageTestsConfiguration"] = if (ImageTestsConfiguration == null) null else ImageTestsConfiguration
-        ["ContainerRecipeArn"] = if (ContainerRecipeArn == null) null else ContainerRecipeArn
         ["DistributionConfigurationArn"] = if (DistributionConfigurationArn == null) null else DistributionConfigurationArn
-        ["InfrastructureConfigurationArn"] = if (InfrastructureConfigurationArn == null) null else InfrastructureConfigurationArn
-        ["EnhancedImageMetadataEnabled"] = if (EnhancedImageMetadataEnabled == null) null else EnhancedImageMetadataEnabled
     }
 
 }

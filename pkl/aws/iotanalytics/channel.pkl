@@ -6,6 +6,12 @@ module aws.iotanalytics.channel
 import "../../cloudformation.pkl"
 
 /// 
+open class ChannelRetentionPeriod {
+    NumberOfDays: (Int|Mapping)?
+    Unlimited: (Boolean|Mapping)?
+}
+
+/// 
 open class ChannelCustomerManagedS3 {
     Bucket: String(matches(Regex(#"^[a-zA-Z0-9.\-_]*$"#)))|Mapping
     RoleArn: String|Mapping
@@ -27,17 +33,14 @@ open class ChannelTag {
     Value: String|Mapping
 }
 
-/// 
-open class ChannelRetentionPeriod {
-    NumberOfDays: (Int|Mapping)?
-    Unlimited: (Boolean|Mapping)?
-}
-
 /// Resource Type definition for AWS::IoTAnalytics::Channel
 open class Channel extends cloudformation.Resource {
 
     Type = "AWS::IoTAnalytics::Channel"
 
+
+    /// 
+    hidden RetentionPeriod: (ChannelRetentionPeriod)?
 
     /// 
     hidden Tags: (Listing<ChannelTag>)?
@@ -48,14 +51,11 @@ open class Channel extends cloudformation.Resource {
     /// 
     hidden ChannelName: (String(matches(Regex(#"(^(?!_{2}))(^[a-zA-Z0-9_]+$)"#)))|Mapping)?
 
-    /// 
-    hidden RetentionPeriod: (ChannelRetentionPeriod)?
-
     Properties {
+        ["RetentionPeriod"] = if (RetentionPeriod == null) null else RetentionPeriod
         ["Tags"] = if (Tags == null) null else Tags
         ["ChannelStorage"] = if (ChannelStorage == null) null else ChannelStorage
         ["ChannelName"] = if (ChannelName == null) null else ChannelName
-        ["RetentionPeriod"] = if (RetentionPeriod == null) null else RetentionPeriod
     }
 
 }

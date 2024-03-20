@@ -5,21 +5,89 @@ module aws.databrew.dataset
 
 import "../../cloudformation.pkl"
 
+/// Input
+open class DatasetInput {
+    S3InputDefinition: (DatasetS3Location)?
+    DataCatalogInputDefinition: (DatasetDataCatalogInputDefinition)?
+    DatabaseInputDefinition: (DatasetDatabaseInputDefinition)?
+    Metadata: (DatasetMetadata)?
+}
+
+/// 
+open class DatasetDatabaseInputDefinition {
+    GlueConnectionName: String|Mapping
+    DatabaseTableName: (String|Mapping)?
+    TempDirectory: (DatasetS3Location)?
+    QueryString: (String|Mapping)?
+}
+
 /// A key-value pair to associate dataset parameter name with its definition.
 open class DatasetPathParameter {
     PathParameterName: DatasetPathParameterName
     DatasetParameter: DatasetDatasetParameter
 }
 
-/// Input location
-open class DatasetS3Location {
-    Bucket: String|Mapping
-    Key: (String|Mapping)?
+/// 
+open class DatasetFilterExpression {
+    Expression: String(matches(Regex(#"^[><0-9A-Za-z_.,:)(!= ]+$"#)))|Mapping
+    ValuesMap: Listing<DatasetFilterValue>
+}
+
+/// Csv options
+open class DatasetCsvOptions {
+    Delimiter: (String|Mapping)?
+    HeaderRow: (Boolean|Mapping)?
+}
+
+/// 
+open class DatasetDataCatalogInputDefinition {
+    CatalogId: (String|Mapping)?
+    DatabaseName: (String|Mapping)?
+    TableName: (String|Mapping)?
+    TempDirectory: (DatasetS3Location)?
+}
+
+/// A key-value pair to associate with a resource.
+open class DatasetTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+typealias DatasetPathParameterName = String|Mapping
+
+
+/// Json options
+open class DatasetJsonOptions {
+    MultiLine: (Boolean|Mapping)?
+}
+
+/// Path options for dataset
+open class DatasetPathOptions {
+    LastModifiedDateCondition: (DatasetFilterExpression)?
+    Parameters: (Listing<DatasetPathParameter>)?
+    FilesLimit: (DatasetFilesLimit)?
 }
 
 /// 
 open class DatasetMetadata {
     SourceArn: (String|Mapping)?
+}
+
+typealias FilesLimitOrderedBy = "LAST_MODIFIED_DATE"
+
+typealias FilesLimitOrder = "ASCENDING"|"DESCENDING"
+
+/// 
+open class DatasetFilesLimit {
+    OrderedBy: (FilesLimitOrderedBy|Mapping)?
+    Order: (FilesLimitOrder|Mapping)?
+    MaxFiles: Int|Mapping
+}
+
+/// Input location
+open class DatasetS3Location {
+    Bucket: String|Mapping
+    Key: (String|Mapping)?
 }
 
 typealias DatasetParameterType = "String"|"Number"|"Datetime"
@@ -33,29 +101,6 @@ open class DatasetDatasetParameter {
     Filter: (DatasetFilterExpression)?
 }
 
-/// A key-value pair to associate with a resource.
-open class DatasetTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// 
-open class DatasetFilterExpression {
-    Expression: String(matches(Regex(#"^[><0-9A-Za-z_.,:)(!= ]+$"#)))|Mapping
-    ValuesMap: Listing<DatasetFilterValue>
-}
-
-/// Input
-open class DatasetInput {
-    S3InputDefinition: (DatasetS3Location)?
-    DataCatalogInputDefinition: (DatasetDataCatalogInputDefinition)?
-    DatabaseInputDefinition: (DatasetDatabaseInputDefinition)?
-    Metadata: (DatasetMetadata)?
-}
-
-typealias DatasetPathParameterName = String|Mapping
-
-
 /// A key-value pair to associate expression variable names with their values
 open class DatasetFilterValue {
     ValueReference: String(matches(Regex(#"^:[A-Za-z0-9_]+$"#)))|Mapping
@@ -63,69 +108,24 @@ open class DatasetFilterValue {
 }
 
 /// 
-open class DatasetDatabaseInputDefinition {
-    GlueConnectionName: String|Mapping
-    DatabaseTableName: (String|Mapping)?
-    TempDirectory: (DatasetS3Location)?
-    QueryString: (String|Mapping)?
-}
-
-typealias FilesLimitOrderedBy = "LAST_MODIFIED_DATE"
-
-typealias FilesLimitOrder = "ASCENDING"|"DESCENDING"
-
-/// 
-open class DatasetFilesLimit {
-    MaxFiles: Int|Mapping
-    OrderedBy: (FilesLimitOrderedBy|Mapping)?
-    Order: (FilesLimitOrder|Mapping)?
-}
-
-/// 
 open class DatasetExcelOptions {
+    SheetNames: (Listing<String|Mapping>)?
     SheetIndexes: (Listing<Int|Mapping>)?
     HeaderRow: (Boolean|Mapping)?
-    SheetNames: (Listing<String|Mapping>)?
-}
-
-/// Format options for dataset
-open class DatasetFormatOptions {
-    Json: (DatasetJsonOptions)?
-    Excel: (DatasetExcelOptions)?
-    Csv: (DatasetCsvOptions)?
-}
-
-/// 
-open class DatasetDataCatalogInputDefinition {
-    CatalogId: (String|Mapping)?
-    DatabaseName: (String|Mapping)?
-    TableName: (String|Mapping)?
-    TempDirectory: (DatasetS3Location)?
 }
 
 /// 
 open class DatasetDatetimeOptions {
-    LocaleCode: (String(matches(Regex(#"^[A-Za-z0-9_\.#@\-]+$"#)))|Mapping)?
     Format: String|Mapping
     TimezoneOffset: (String(matches(Regex(#"^(Z|[-+](\d|\d{2}|\d{2}:?\d{2}))$"#)))|Mapping)?
+    LocaleCode: (String(matches(Regex(#"^[A-Za-z0-9_\.#@\-]+$"#)))|Mapping)?
 }
 
-/// Path options for dataset
-open class DatasetPathOptions {
-    FilesLimit: (DatasetFilesLimit)?
-    LastModifiedDateCondition: (DatasetFilterExpression)?
-    Parameters: (Listing<DatasetPathParameter>)?
-}
-
-/// Csv options
-open class DatasetCsvOptions {
-    Delimiter: (String|Mapping)?
-    HeaderRow: (Boolean|Mapping)?
-}
-
-/// Json options
-open class DatasetJsonOptions {
-    MultiLine: (Boolean|Mapping)?
+/// Format options for dataset
+open class DatasetFormatOptions {
+    Excel: (DatasetExcelOptions)?
+    Csv: (DatasetCsvOptions)?
+    Json: (DatasetJsonOptions)?
 }
 
 /// Resource schema for AWS::DataBrew::Dataset.
@@ -133,9 +133,6 @@ open class Dataset extends cloudformation.Resource {
 
     Type = "AWS::DataBrew::Dataset"
 
-
-    /// Dataset name
-    hidden Name: String|Mapping
 
     /// Dataset format
     hidden Format: (DatasetFormat|Mapping)?
@@ -152,13 +149,16 @@ open class Dataset extends cloudformation.Resource {
     /// 
     hidden Tags: (Listing<DatasetTag>)?
 
+    /// Dataset name
+    hidden Name: String|Mapping
+
     Properties {
-        ["Name"] = if (Name == null) null else Name
         ["Format"] = if (Format == null) null else Format
         ["FormatOptions"] = if (FormatOptions == null) null else FormatOptions
         ["Input"] = if (Input == null) null else Input
         ["PathOptions"] = if (PathOptions == null) null else PathOptions
         ["Tags"] = if (Tags == null) null else Tags
+        ["Name"] = if (Name == null) null else Name
     }
 
 }

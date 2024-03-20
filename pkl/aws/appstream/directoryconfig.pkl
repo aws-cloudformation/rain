@@ -7,14 +7,14 @@ import "../../cloudformation.pkl"
 
 /// 
 open class DirectoryConfigServiceAccountCredentials {
-    AccountName: String|Mapping
     AccountPassword: String|Mapping
+    AccountName: String|Mapping
 }
 
 /// 
 open class DirectoryConfigCertificateBasedAuthProperties {
-    CertificateAuthorityArn: (String|Mapping)?
     Status: (String|Mapping)?
+    CertificateAuthorityArn: (String|Mapping)?
 }
 
 /// Resource Type definition for AWS::AppStream::DirectoryConfig
@@ -22,6 +22,9 @@ open class DirectoryConfig extends cloudformation.Resource {
 
     Type = "AWS::AppStream::DirectoryConfig"
 
+
+    /// 
+    hidden OrganizationalUnitDistinguishedNames: Listing<String|Mapping>
 
     /// 
     hidden ServiceAccountCredentials: DirectoryConfigServiceAccountCredentials
@@ -32,14 +35,11 @@ open class DirectoryConfig extends cloudformation.Resource {
     /// 
     hidden CertificateBasedAuthProperties: (DirectoryConfigCertificateBasedAuthProperties)?
 
-    /// 
-    hidden OrganizationalUnitDistinguishedNames: Listing<String|Mapping>
-
     Properties {
+        ["OrganizationalUnitDistinguishedNames"] = if (OrganizationalUnitDistinguishedNames == null) null else OrganizationalUnitDistinguishedNames
         ["ServiceAccountCredentials"] = if (ServiceAccountCredentials == null) null else ServiceAccountCredentials
         ["DirectoryName"] = if (DirectoryName == null) null else DirectoryName
         ["CertificateBasedAuthProperties"] = if (CertificateBasedAuthProperties == null) null else CertificateBasedAuthProperties
-        ["OrganizationalUnitDistinguishedNames"] = if (OrganizationalUnitDistinguishedNames == null) null else OrganizationalUnitDistinguishedNames
     }
 
 }

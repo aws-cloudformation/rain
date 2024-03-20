@@ -17,6 +17,9 @@ open class Dimension extends cloudformation.Resource {
     Type = "AWS::IoT::Dimension"
 
 
+    /// Metadata that can be used to manage the dimension.
+    hidden Tags: (Listing<DimensionTag>)?
+
     /// A unique identifier for the dimension.
     hidden Name: (String(matches(Regex(#"[a-zA-Z0-9:_-]+"#)))|Mapping)?
 
@@ -26,14 +29,11 @@ open class Dimension extends cloudformation.Resource {
     /// Specifies the value or list of values for the dimension.
     hidden StringValues: Listing<String|Mapping>
 
-    /// Metadata that can be used to manage the dimension.
-    hidden Tags: (Listing<DimensionTag>)?
-
     Properties {
+        ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
         ["Type"] = if (TypeProperty == null) null else TypeProperty
         ["StringValues"] = if (StringValues == null) null else StringValues
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

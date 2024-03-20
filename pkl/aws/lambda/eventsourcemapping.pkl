@@ -5,14 +5,9 @@ module aws.lambda.eventsourcemapping
 
 import "../../cloudformation.pkl"
 
-/// The filter criteria to control event filtering.
-open class EventSourceMappingFilterCriteria {
-    Filters: (Listing<EventSourceMappingFilter>)?
-}
-
-/// Specific configuration settings for an MSK event source.
-open class EventSourceMappingAmazonManagedKafkaEventSourceConfig {
-    ConsumerGroupId: (EventSourceMappingConsumerGroupId)?
+/// The endpoints used by AWS Lambda to access a self-managed event source.
+open class EventSourceMappingEndpoints {
+    KafkaBootstrapServers: (Listing<String|Mapping>)?
 }
 
 /// (Streams) An Amazon SQS queue or Amazon SNS topic destination for discarded records.
@@ -20,17 +15,12 @@ open class EventSourceMappingDestinationConfig {
     OnFailure: (EventSourceMappingOnFailure)?
 }
 
-/// A destination for events that failed processing.
-open class EventSourceMappingOnFailure {
-    Destination: (String(matches(Regex(#"arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\-])+:([a-z]{2}(-gov)?-[a-z]+-\d{1})?:(\d{12})?:(.*)"#)))|Mapping)?
-}
-
-typealias EventSourceMappingMaximumConcurrency = Int|Mapping
+typealias EventSourceMappingConsumerGroupId = String|Mapping
 
 
-/// The endpoints used by AWS Lambda to access a self-managed event source.
-open class EventSourceMappingEndpoints {
-    KafkaBootstrapServers: (Listing<String|Mapping>)?
+/// Specific configuration settings for an MSK event source.
+open class EventSourceMappingAmazonManagedKafkaEventSourceConfig {
+    ConsumerGroupId: (EventSourceMappingConsumerGroupId)?
 }
 
 typealias DocumentDBEventSourceConfigFullDocument = "UpdateLookup"|"Default"
@@ -47,6 +37,16 @@ open class EventSourceMappingSelfManagedEventSource {
     Endpoints: (EventSourceMappingEndpoints)?
 }
 
+/// The filter criteria to control event filtering.
+open class EventSourceMappingFilterCriteria {
+    Filters: (Listing<EventSourceMappingFilter>)?
+}
+
+/// A destination for events that failed processing.
+open class EventSourceMappingOnFailure {
+    Destination: (String(matches(Regex(#"arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\-])+:([a-z]{2}(-gov)?-[a-z]+-\d{1})?:(\d{12})?:(.*)"#)))|Mapping)?
+}
+
 /// Specific configuration settings for a Self-Managed Apache Kafka event source.
 open class EventSourceMappingSelfManagedKafkaEventSourceConfig {
     ConsumerGroupId: (EventSourceMappingConsumerGroupId)?
@@ -60,13 +60,13 @@ open class EventSourceMappingSourceAccessConfiguration {
     URI: (String(matches(Regex(#"[a-zA-Z0-9-\/*:_+=.@-]*"#)))|Mapping)?
 }
 
+typealias EventSourceMappingMaximumConcurrency = Int|Mapping
+
+
 /// The scaling configuration for the event source.
 open class EventSourceMappingScalingConfig {
     MaximumConcurrency: (EventSourceMappingMaximumConcurrency)?
 }
-
-typealias EventSourceMappingConsumerGroupId = String|Mapping
-
 
 /// The filter object that defines parameters for ESM filtering.
 open class EventSourceMappingFilter {
@@ -82,96 +82,96 @@ open class EventSourceMapping extends cloudformation.Resource {
     /// The maximum number of items to retrieve in a single batch.
     hidden BatchSize: (Int|Mapping)?
 
-    /// (Streams) An Amazon SQS queue or Amazon SNS topic destination for discarded records.
-    hidden DestinationConfig: (EventSourceMappingDestinationConfig)?
-
-    /// With StartingPosition set to AT_TIMESTAMP, the time from which to start reading, in Unix time seconds.
-    hidden StartingPositionTimestamp: (Number|Mapping)?
-
-    /// (Streams) Tumbling window (non-overlapping time window) duration to perform aggregations.
-    hidden TumblingWindowInSeconds: (Int|Mapping)?
-
-    /// Document db event source config.
-    hidden DocumentDBEventSourceConfig: (EventSourceMappingDocumentDBEventSourceConfig)?
-
     /// The filter criteria to control event filtering.
     hidden FilterCriteria: (EventSourceMappingFilterCriteria)?
-
-    /// (ActiveMQ) A list of ActiveMQ queues.
-    hidden Queues: (Listing<String|Mapping>)?
-
-    /// A list of SourceAccessConfiguration.
-    hidden SourceAccessConfigurations: (Listing<EventSourceMappingSourceAccessConfiguration>)?
-
-    /// The position in a stream from which to start reading. Required for Amazon Kinesis and Amazon DynamoDB Streams sources.
-    hidden StartingPosition: (String(matches(Regex(#"(LATEST|TRIM_HORIZON|AT_TIMESTAMP)+"#)))|Mapping)?
-
-    /// (Kafka) A list of Kafka topics.
-    hidden Topics: (Listing<String|Mapping>)?
-
-    /// (Streams) A list of response types supported by the function.
-    hidden FunctionResponseTypes: (Listing<EventSourceMappingFunctionResponseTypes|Mapping>)?
 
     /// Self-managed event source endpoints.
     hidden SelfManagedEventSource: (EventSourceMappingSelfManagedEventSource)?
 
-    /// Specific configuration settings for a Self-Managed Apache Kafka event source.
-    hidden SelfManagedKafkaEventSourceConfig: (EventSourceMappingSelfManagedKafkaEventSourceConfig)?
-
-    /// (Streams) If the function returns an error, split the batch in two and retry.
-    hidden BisectBatchOnFunctionError: (Boolean|Mapping)?
-
-    /// The name of the Lambda function.
-    hidden FunctionName: String(matches(Regex(#"(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}(-gov)?-[a-z]+-\d{1}:)?(\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\$LATEST|[a-zA-Z0-9-_]+))?"#)))|Mapping
-
-    /// (Streams) The maximum age of a record that Lambda sends to a function for processing.
-    hidden MaximumRecordAgeInSeconds: (Int|Mapping)?
-
-    /// The scaling configuration for the event source.
-    hidden ScalingConfig: (EventSourceMappingScalingConfig)?
-
-    /// (Streams) The maximum amount of time to gather records before invoking the function, in seconds.
-    hidden MaximumBatchingWindowInSeconds: (Int|Mapping)?
-
-    /// (Streams) The maximum number of times to retry when the function returns an error.
-    hidden MaximumRetryAttempts: (Int|Mapping)?
-
-    /// (Streams) The number of batches to process from each shard concurrently.
-    hidden ParallelizationFactor: (Int|Mapping)?
-
     /// Specific configuration settings for an MSK event source.
     hidden AmazonManagedKafkaEventSourceConfig: (EventSourceMappingAmazonManagedKafkaEventSourceConfig)?
-
-    /// Disables the event source mapping to pause polling and invocation.
-    hidden Enabled: (Boolean|Mapping)?
 
     /// The Amazon Resource Name (ARN) of the event source.
     hidden EventSourceArn: (String(matches(Regex(#"arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\-])+:([a-z]{2}(-gov)?-[a-z]+-\d{1})?:(\d{12})?:(.*)"#)))|Mapping)?
 
+    /// (Streams) The number of batches to process from each shard concurrently.
+    hidden ParallelizationFactor: (Int|Mapping)?
+
+    /// (ActiveMQ) A list of ActiveMQ queues.
+    hidden Queues: (Listing<String|Mapping>)?
+
+    /// Specific configuration settings for a Self-Managed Apache Kafka event source.
+    hidden SelfManagedKafkaEventSourceConfig: (EventSourceMappingSelfManagedKafkaEventSourceConfig)?
+
+    /// The name of the Lambda function.
+    hidden FunctionName: String(matches(Regex(#"(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}(-gov)?-[a-z]+-\d{1}:)?(\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\$LATEST|[a-zA-Z0-9-_]+))?"#)))|Mapping
+
+    /// With StartingPosition set to AT_TIMESTAMP, the time from which to start reading, in Unix time seconds.
+    hidden StartingPositionTimestamp: (Number|Mapping)?
+
+    /// (Kafka) A list of Kafka topics.
+    hidden Topics: (Listing<String|Mapping>)?
+
+    /// A list of SourceAccessConfiguration.
+    hidden SourceAccessConfigurations: (Listing<EventSourceMappingSourceAccessConfiguration>)?
+
+    /// (Streams) A list of response types supported by the function.
+    hidden FunctionResponseTypes: (Listing<EventSourceMappingFunctionResponseTypes|Mapping>)?
+
+    /// The scaling configuration for the event source.
+    hidden ScalingConfig: (EventSourceMappingScalingConfig)?
+
+    /// Document db event source config.
+    hidden DocumentDBEventSourceConfig: (EventSourceMappingDocumentDBEventSourceConfig)?
+
+    /// (Streams) Tumbling window (non-overlapping time window) duration to perform aggregations.
+    hidden TumblingWindowInSeconds: (Int|Mapping)?
+
+    /// (Streams) If the function returns an error, split the batch in two and retry.
+    hidden BisectBatchOnFunctionError: (Boolean|Mapping)?
+
+    /// (Streams) An Amazon SQS queue or Amazon SNS topic destination for discarded records.
+    hidden DestinationConfig: (EventSourceMappingDestinationConfig)?
+
+    /// Disables the event source mapping to pause polling and invocation.
+    hidden Enabled: (Boolean|Mapping)?
+
+    /// (Streams) The maximum amount of time to gather records before invoking the function, in seconds.
+    hidden MaximumBatchingWindowInSeconds: (Int|Mapping)?
+
+    /// (Streams) The maximum age of a record that Lambda sends to a function for processing.
+    hidden MaximumRecordAgeInSeconds: (Int|Mapping)?
+
+    /// (Streams) The maximum number of times to retry when the function returns an error.
+    hidden MaximumRetryAttempts: (Int|Mapping)?
+
+    /// The position in a stream from which to start reading. Required for Amazon Kinesis and Amazon DynamoDB Streams sources.
+    hidden StartingPosition: (String(matches(Regex(#"(LATEST|TRIM_HORIZON|AT_TIMESTAMP)+"#)))|Mapping)?
+
     Properties {
         ["BatchSize"] = if (BatchSize == null) null else BatchSize
-        ["DestinationConfig"] = if (DestinationConfig == null) null else DestinationConfig
-        ["StartingPositionTimestamp"] = if (StartingPositionTimestamp == null) null else StartingPositionTimestamp
-        ["TumblingWindowInSeconds"] = if (TumblingWindowInSeconds == null) null else TumblingWindowInSeconds
-        ["DocumentDBEventSourceConfig"] = if (DocumentDBEventSourceConfig == null) null else DocumentDBEventSourceConfig
         ["FilterCriteria"] = if (FilterCriteria == null) null else FilterCriteria
-        ["Queues"] = if (Queues == null) null else Queues
-        ["SourceAccessConfigurations"] = if (SourceAccessConfigurations == null) null else SourceAccessConfigurations
-        ["StartingPosition"] = if (StartingPosition == null) null else StartingPosition
-        ["Topics"] = if (Topics == null) null else Topics
-        ["FunctionResponseTypes"] = if (FunctionResponseTypes == null) null else FunctionResponseTypes
         ["SelfManagedEventSource"] = if (SelfManagedEventSource == null) null else SelfManagedEventSource
-        ["SelfManagedKafkaEventSourceConfig"] = if (SelfManagedKafkaEventSourceConfig == null) null else SelfManagedKafkaEventSourceConfig
-        ["BisectBatchOnFunctionError"] = if (BisectBatchOnFunctionError == null) null else BisectBatchOnFunctionError
-        ["FunctionName"] = if (FunctionName == null) null else FunctionName
-        ["MaximumRecordAgeInSeconds"] = if (MaximumRecordAgeInSeconds == null) null else MaximumRecordAgeInSeconds
-        ["ScalingConfig"] = if (ScalingConfig == null) null else ScalingConfig
-        ["MaximumBatchingWindowInSeconds"] = if (MaximumBatchingWindowInSeconds == null) null else MaximumBatchingWindowInSeconds
-        ["MaximumRetryAttempts"] = if (MaximumRetryAttempts == null) null else MaximumRetryAttempts
-        ["ParallelizationFactor"] = if (ParallelizationFactor == null) null else ParallelizationFactor
         ["AmazonManagedKafkaEventSourceConfig"] = if (AmazonManagedKafkaEventSourceConfig == null) null else AmazonManagedKafkaEventSourceConfig
-        ["Enabled"] = if (Enabled == null) null else Enabled
         ["EventSourceArn"] = if (EventSourceArn == null) null else EventSourceArn
+        ["ParallelizationFactor"] = if (ParallelizationFactor == null) null else ParallelizationFactor
+        ["Queues"] = if (Queues == null) null else Queues
+        ["SelfManagedKafkaEventSourceConfig"] = if (SelfManagedKafkaEventSourceConfig == null) null else SelfManagedKafkaEventSourceConfig
+        ["FunctionName"] = if (FunctionName == null) null else FunctionName
+        ["StartingPositionTimestamp"] = if (StartingPositionTimestamp == null) null else StartingPositionTimestamp
+        ["Topics"] = if (Topics == null) null else Topics
+        ["SourceAccessConfigurations"] = if (SourceAccessConfigurations == null) null else SourceAccessConfigurations
+        ["FunctionResponseTypes"] = if (FunctionResponseTypes == null) null else FunctionResponseTypes
+        ["ScalingConfig"] = if (ScalingConfig == null) null else ScalingConfig
+        ["DocumentDBEventSourceConfig"] = if (DocumentDBEventSourceConfig == null) null else DocumentDBEventSourceConfig
+        ["TumblingWindowInSeconds"] = if (TumblingWindowInSeconds == null) null else TumblingWindowInSeconds
+        ["BisectBatchOnFunctionError"] = if (BisectBatchOnFunctionError == null) null else BisectBatchOnFunctionError
+        ["DestinationConfig"] = if (DestinationConfig == null) null else DestinationConfig
+        ["Enabled"] = if (Enabled == null) null else Enabled
+        ["MaximumBatchingWindowInSeconds"] = if (MaximumBatchingWindowInSeconds == null) null else MaximumBatchingWindowInSeconds
+        ["MaximumRecordAgeInSeconds"] = if (MaximumRecordAgeInSeconds == null) null else MaximumRecordAgeInSeconds
+        ["MaximumRetryAttempts"] = if (MaximumRetryAttempts == null) null else MaximumRetryAttempts
+        ["StartingPosition"] = if (StartingPosition == null) null else StartingPosition
     }
 
 }

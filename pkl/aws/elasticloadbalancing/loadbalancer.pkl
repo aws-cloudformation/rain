@@ -6,9 +6,11 @@ module aws.elasticloadbalancing.loadbalancer
 import "../../cloudformation.pkl"
 
 /// 
-open class LoadBalancerLBCookieStickinessPolicy {
-    PolicyName: (String|Mapping)?
-    CookieExpirationPeriod: (String|Mapping)?
+open class LoadBalancerAccessLoggingPolicy {
+    S3BucketPrefix: (String|Mapping)?
+    Enabled: Boolean|Mapping
+    S3BucketName: String|Mapping
+    EmitInterval: (Int|Mapping)?
 }
 
 /// 
@@ -18,30 +20,35 @@ open class LoadBalancerTag {
 }
 
 /// 
+open class LoadBalancerConnectionSettings {
+    IdleTimeout: Int|Mapping
+}
+
+/// 
+open class LoadBalancerAppCookieStickinessPolicy {
+    CookieName: String|Mapping
+    PolicyName: String|Mapping
+}
+
+/// 
+open class LoadBalancerLBCookieStickinessPolicy {
+    CookieExpirationPeriod: (String|Mapping)?
+    PolicyName: (String|Mapping)?
+}
+
+/// 
 open class LoadBalancerConnectionDrainingPolicy {
     Enabled: Boolean|Mapping
     Timeout: (Int|Mapping)?
 }
 
 /// 
-open class LoadBalancerAppCookieStickinessPolicy {
+open class LoadBalancerPolicies {
+    LoadBalancerPorts: (Listing<String|Mapping>)?
     PolicyName: String|Mapping
-    CookieName: String|Mapping
-}
-
-/// 
-open class LoadBalancerConnectionSettings {
-    IdleTimeout: Int|Mapping
-}
-
-/// 
-open class LoadBalancerListeners {
-    PolicyNames: (Listing<String|Mapping>)?
-    InstancePort: String|Mapping
-    LoadBalancerPort: String|Mapping
-    Protocol: String|Mapping
-    SSLCertificateId: (String|Mapping)?
-    InstanceProtocol: (String|Mapping)?
+    InstancePorts: (Listing<String|Mapping>)?
+    Attributes: Listing<Dynamic>
+    PolicyType: String|Mapping
 }
 
 /// 
@@ -54,20 +61,13 @@ open class LoadBalancerHealthCheck {
 }
 
 /// 
-open class LoadBalancerAccessLoggingPolicy {
-    S3BucketPrefix: (String|Mapping)?
-    Enabled: Boolean|Mapping
-    S3BucketName: String|Mapping
-    EmitInterval: (Int|Mapping)?
-}
-
-/// 
-open class LoadBalancerPolicies {
-    Attributes: Listing<Dynamic>
-    PolicyType: String|Mapping
-    LoadBalancerPorts: (Listing<String|Mapping>)?
-    PolicyName: String|Mapping
-    InstancePorts: (Listing<String|Mapping>)?
+open class LoadBalancerListeners {
+    Protocol: String|Mapping
+    SSLCertificateId: (String|Mapping)?
+    InstanceProtocol: (String|Mapping)?
+    PolicyNames: (Listing<String|Mapping>)?
+    InstancePort: String|Mapping
+    LoadBalancerPort: String|Mapping
 }
 
 /// Resource Type definition for AWS::ElasticLoadBalancing::LoadBalancer
@@ -77,40 +77,46 @@ open class LoadBalancer extends cloudformation.Resource {
 
 
     /// 
-    hidden SecurityGroups: (Listing<String|Mapping>)?
-
-    /// 
-    hidden AccessLoggingPolicy: (LoadBalancerAccessLoggingPolicy)?
-
-    /// 
-    hidden Instances: (Listing<String|Mapping>)?
-
-    /// 
-    hidden Listeners: Listing<LoadBalancerListeners>
-
-    /// 
-    hidden Subnets: (Listing<String|Mapping>)?
-
-    /// 
-    hidden CrossZone: (Boolean|Mapping)?
-
-    /// 
-    hidden AppCookieStickinessPolicy: (Listing<LoadBalancerAppCookieStickinessPolicy>)?
+    hidden HealthCheck: (LoadBalancerHealthCheck)?
 
     /// 
     hidden LBCookieStickinessPolicy: (Listing<LoadBalancerLBCookieStickinessPolicy>)?
 
     /// 
-    hidden Scheme: (String|Mapping)?
+    hidden SecurityGroups: (Listing<String|Mapping>)?
 
     /// 
     hidden SourceSecurityGroupOwnerAlias: (String|Mapping)?
 
     /// 
+    hidden AppCookieStickinessPolicy: (Listing<LoadBalancerAppCookieStickinessPolicy>)?
+
+    /// 
+    hidden Instances: (Listing<String|Mapping>)?
+
+    /// 
+    hidden LoadBalancerName: (String|Mapping)?
+
+    /// 
+    hidden Subnets: (Listing<String|Mapping>)?
+
+    /// 
     hidden SourceSecurityGroupGroupName: (String|Mapping)?
 
     /// 
+    hidden Scheme: (String|Mapping)?
+
+    /// 
+    hidden AvailabilityZones: (Listing<String|Mapping>)?
+
+    /// 
+    hidden AccessLoggingPolicy: (LoadBalancerAccessLoggingPolicy)?
+
+    /// 
     hidden ConnectionSettings: (LoadBalancerConnectionSettings)?
+
+    /// 
+    hidden Tags: (Listing<LoadBalancerTag>)?
 
     /// 
     hidden ConnectionDrainingPolicy: (LoadBalancerConnectionDrainingPolicy)?
@@ -119,36 +125,30 @@ open class LoadBalancer extends cloudformation.Resource {
     hidden Policies: (Listing<LoadBalancerPolicies>)?
 
     /// 
-    hidden AvailabilityZones: (Listing<String|Mapping>)?
+    hidden Listeners: Listing<LoadBalancerListeners>
 
     /// 
-    hidden HealthCheck: (LoadBalancerHealthCheck)?
-
-    /// 
-    hidden LoadBalancerName: (String|Mapping)?
-
-    /// 
-    hidden Tags: (Listing<LoadBalancerTag>)?
+    hidden CrossZone: (Boolean|Mapping)?
 
     Properties {
-        ["SecurityGroups"] = if (SecurityGroups == null) null else SecurityGroups
-        ["AccessLoggingPolicy"] = if (AccessLoggingPolicy == null) null else AccessLoggingPolicy
-        ["Instances"] = if (Instances == null) null else Instances
-        ["Listeners"] = if (Listeners == null) null else Listeners
-        ["Subnets"] = if (Subnets == null) null else Subnets
-        ["CrossZone"] = if (CrossZone == null) null else CrossZone
-        ["AppCookieStickinessPolicy"] = if (AppCookieStickinessPolicy == null) null else AppCookieStickinessPolicy
+        ["HealthCheck"] = if (HealthCheck == null) null else HealthCheck
         ["LBCookieStickinessPolicy"] = if (LBCookieStickinessPolicy == null) null else LBCookieStickinessPolicy
-        ["Scheme"] = if (Scheme == null) null else Scheme
+        ["SecurityGroups"] = if (SecurityGroups == null) null else SecurityGroups
         ["SourceSecurityGroupOwnerAlias"] = if (SourceSecurityGroupOwnerAlias == null) null else SourceSecurityGroupOwnerAlias
+        ["AppCookieStickinessPolicy"] = if (AppCookieStickinessPolicy == null) null else AppCookieStickinessPolicy
+        ["Instances"] = if (Instances == null) null else Instances
+        ["LoadBalancerName"] = if (LoadBalancerName == null) null else LoadBalancerName
+        ["Subnets"] = if (Subnets == null) null else Subnets
         ["SourceSecurityGroupGroupName"] = if (SourceSecurityGroupGroupName == null) null else SourceSecurityGroupGroupName
+        ["Scheme"] = if (Scheme == null) null else Scheme
+        ["AvailabilityZones"] = if (AvailabilityZones == null) null else AvailabilityZones
+        ["AccessLoggingPolicy"] = if (AccessLoggingPolicy == null) null else AccessLoggingPolicy
         ["ConnectionSettings"] = if (ConnectionSettings == null) null else ConnectionSettings
+        ["Tags"] = if (Tags == null) null else Tags
         ["ConnectionDrainingPolicy"] = if (ConnectionDrainingPolicy == null) null else ConnectionDrainingPolicy
         ["Policies"] = if (Policies == null) null else Policies
-        ["AvailabilityZones"] = if (AvailabilityZones == null) null else AvailabilityZones
-        ["HealthCheck"] = if (HealthCheck == null) null else HealthCheck
-        ["LoadBalancerName"] = if (LoadBalancerName == null) null else LoadBalancerName
-        ["Tags"] = if (Tags == null) null else Tags
+        ["Listeners"] = if (Listeners == null) null else Listeners
+        ["CrossZone"] = if (CrossZone == null) null else CrossZone
     }
 
 }

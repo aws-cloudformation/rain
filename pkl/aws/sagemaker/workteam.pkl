@@ -6,13 +6,6 @@ module aws.sagemaker.workteam
 import "../../cloudformation.pkl"
 
 /// 
-open class WorkteamCognitoMemberDefinition {
-    CognitoUserGroup: String|Mapping
-    CognitoUserPool: String|Mapping
-    CognitoClientId: String|Mapping
-}
-
-/// 
 open class WorkteamOidcMemberDefinition {
     OidcGroups: Listing<String|Mapping>
 }
@@ -34,11 +27,21 @@ open class WorkteamMemberDefinition {
     OidcMemberDefinition: (WorkteamOidcMemberDefinition)?
 }
 
+/// 
+open class WorkteamCognitoMemberDefinition {
+    CognitoUserPool: String|Mapping
+    CognitoClientId: String|Mapping
+    CognitoUserGroup: String|Mapping
+}
+
 /// Resource Type definition for AWS::SageMaker::Workteam
 open class Workteam extends cloudformation.Resource {
 
     Type = "AWS::SageMaker::Workteam"
 
+
+    /// 
+    hidden NotificationConfiguration: (WorkteamNotificationConfiguration)?
 
     /// 
     hidden WorkteamName: (String|Mapping)?
@@ -55,16 +58,13 @@ open class Workteam extends cloudformation.Resource {
     /// 
     hidden Description: (String|Mapping)?
 
-    /// 
-    hidden NotificationConfiguration: (WorkteamNotificationConfiguration)?
-
     Properties {
+        ["NotificationConfiguration"] = if (NotificationConfiguration == null) null else NotificationConfiguration
         ["WorkteamName"] = if (WorkteamName == null) null else WorkteamName
         ["MemberDefinitions"] = if (MemberDefinitions == null) null else MemberDefinitions
         ["WorkforceName"] = if (WorkforceName == null) null else WorkforceName
         ["Tags"] = if (Tags == null) null else Tags
         ["Description"] = if (Description == null) null else Description
-        ["NotificationConfiguration"] = if (NotificationConfiguration == null) null else NotificationConfiguration
     }
 
 }

@@ -7,10 +7,10 @@ import "../../cloudformation.pkl"
 
 /// This structure defines the metric to be returned, along with the statistics, period, and units.
 open class AlarmMetricStat {
-    Stat: String|Mapping
-    Unit: (String|Mapping)?
     Period: Int|Mapping
     Metric: AlarmMetric
+    Stat: String|Mapping
+    Unit: (String|Mapping)?
 }
 
 /// The Metric property type represents a specific metric.
@@ -22,19 +22,19 @@ open class AlarmMetric {
 
 /// Dimensions are arbitrary name/value pairs that can be associated with a CloudWatch metric.
 open class AlarmDimension {
-    Name: String|Mapping
     Value: String|Mapping
+    Name: String|Mapping
 }
 
 /// This property type specifies the metric data to return, and whether this call is just retrieving a batch set of data for one metric, or is performing a math expression on metric data.
 open class AlarmMetricDataQuery {
+    Label: (String|Mapping)?
+    MetricStat: (AlarmMetricStat)?
+    Id: String|Mapping
     ReturnData: (Boolean|Mapping)?
     Expression: (String|Mapping)?
     Period: (Int|Mapping)?
     AccountId: (String|Mapping)?
-    Label: (String|Mapping)?
-    MetricStat: (AlarmMetricStat)?
-    Id: String|Mapping
 }
 
 /// Resource Type definition for AWS::CloudWatch::Alarm
@@ -43,53 +43,11 @@ open class Alarm extends cloudformation.Resource {
     Type = "AWS::CloudWatch::Alarm"
 
 
-    /// The period in seconds, over which the statistic is applied.
-    hidden Period: (Int|Mapping)?
-
-    /// The namespace of the metric associated with the alarm.
-    hidden Namespace: (String|Mapping)?
-
-    /// The description of the alarm.
-    hidden AlarmDescription: (String|Mapping)?
-
-    /// The statistic for the metric associated with the alarm, other than percentile.
-    hidden Statistic: (String|Mapping)?
-
-    /// The actions to execute when this alarm transitions to the INSUFFICIENT_DATA state from any other state.
-    hidden InsufficientDataActions: (Listing<String|Mapping>)?
-
-    /// The number of datapoints that must be breaching to trigger the alarm.
-    hidden DatapointsToAlarm: (Int|Mapping)?
-
-    /// The dimensions for the metric associated with the alarm. For an alarm based on a math expression, you can't specify Dimensions. Instead, you use Metrics.
-    hidden Dimensions: (Listing<AlarmDimension>)?
+    /// Used only for alarms based on percentiles.
+    hidden EvaluateLowSampleCountPercentile: (String|Mapping)?
 
     /// The arithmetic operation to use when comparing the specified statistic and threshold.
     hidden ComparisonOperator: String|Mapping
-
-    /// The list of actions to execute when this alarm transitions into an ALARM state from any other state.
-    hidden AlarmActions: (Listing<String|Mapping>)?
-
-    /// The name of the metric associated with the alarm.
-    hidden MetricName: (String|Mapping)?
-
-    /// Indicates whether actions should be executed during any changes to the alarm state. The default is TRUE.
-    hidden ActionsEnabled: (Boolean|Mapping)?
-
-    /// The name of the alarm.
-    hidden AlarmName: (String|Mapping)?
-
-    /// In an alarm based on an anomaly detection model, this is the ID of the ANOMALY_DETECTION_BAND function used as the threshold for the alarm.
-    hidden ThresholdMetricId: (String|Mapping)?
-
-    /// An array that enables you to create an alarm based on the result of a metric math expression.
-    hidden Metrics: (Listing<AlarmMetricDataQuery>)?
-
-    /// The percentile statistic for the metric associated with the alarm. Specify a value between p0.0 and p100.
-    hidden ExtendedStatistic: (String|Mapping)?
-
-    /// Sets how this alarm is to handle missing data points. Valid values are breaching, notBreaching, ignore, and missing.
-    hidden TreatMissingData: (String|Mapping)?
 
     /// The number of periods over which data is compared to the specified threshold.
     hidden EvaluationPeriods: Int|Mapping
@@ -97,37 +55,79 @@ open class Alarm extends cloudformation.Resource {
     /// The unit of the metric associated with the alarm.
     hidden Unit: (String|Mapping)?
 
-    /// The actions to execute when this alarm transitions to the OK state from any other state.
-    hidden OKActions: (Listing<String|Mapping>)?
+    /// The name of the metric associated with the alarm.
+    hidden MetricName: (String|Mapping)?
+
+    /// An array that enables you to create an alarm based on the result of a metric math expression.
+    hidden Metrics: (Listing<AlarmMetricDataQuery>)?
+
+    /// The number of datapoints that must be breaching to trigger the alarm.
+    hidden DatapointsToAlarm: (Int|Mapping)?
+
+    /// In an alarm based on an anomaly detection model, this is the ID of the ANOMALY_DETECTION_BAND function used as the threshold for the alarm.
+    hidden ThresholdMetricId: (String|Mapping)?
+
+    /// The period in seconds, over which the statistic is applied.
+    hidden Period: (Int|Mapping)?
+
+    /// The actions to execute when this alarm transitions to the INSUFFICIENT_DATA state from any other state.
+    hidden InsufficientDataActions: (Listing<String|Mapping>)?
 
     /// In an alarm based on an anomaly detection model, this is the ID of the ANOMALY_DETECTION_BAND function used as the threshold for the alarm.
     hidden Threshold: (Number|Mapping)?
 
-    /// Used only for alarms based on percentiles.
-    hidden EvaluateLowSampleCountPercentile: (String|Mapping)?
+    /// Sets how this alarm is to handle missing data points. Valid values are breaching, notBreaching, ignore, and missing.
+    hidden TreatMissingData: (String|Mapping)?
+
+    /// The dimensions for the metric associated with the alarm. For an alarm based on a math expression, you can't specify Dimensions. Instead, you use Metrics.
+    hidden Dimensions: (Listing<AlarmDimension>)?
+
+    /// The actions to execute when this alarm transitions to the OK state from any other state.
+    hidden OKActions: (Listing<String|Mapping>)?
+
+    /// The list of actions to execute when this alarm transitions into an ALARM state from any other state.
+    hidden AlarmActions: (Listing<String|Mapping>)?
+
+    /// The description of the alarm.
+    hidden AlarmDescription: (String|Mapping)?
+
+    /// The name of the alarm.
+    hidden AlarmName: (String|Mapping)?
+
+    /// The percentile statistic for the metric associated with the alarm. Specify a value between p0.0 and p100.
+    hidden ExtendedStatistic: (String|Mapping)?
+
+    /// The namespace of the metric associated with the alarm.
+    hidden Namespace: (String|Mapping)?
+
+    /// Indicates whether actions should be executed during any changes to the alarm state. The default is TRUE.
+    hidden ActionsEnabled: (Boolean|Mapping)?
+
+    /// The statistic for the metric associated with the alarm, other than percentile.
+    hidden Statistic: (String|Mapping)?
 
     Properties {
-        ["Period"] = if (Period == null) null else Period
-        ["Namespace"] = if (Namespace == null) null else Namespace
-        ["AlarmDescription"] = if (AlarmDescription == null) null else AlarmDescription
-        ["Statistic"] = if (Statistic == null) null else Statistic
-        ["InsufficientDataActions"] = if (InsufficientDataActions == null) null else InsufficientDataActions
-        ["DatapointsToAlarm"] = if (DatapointsToAlarm == null) null else DatapointsToAlarm
-        ["Dimensions"] = if (Dimensions == null) null else Dimensions
+        ["EvaluateLowSampleCountPercentile"] = if (EvaluateLowSampleCountPercentile == null) null else EvaluateLowSampleCountPercentile
         ["ComparisonOperator"] = if (ComparisonOperator == null) null else ComparisonOperator
-        ["AlarmActions"] = if (AlarmActions == null) null else AlarmActions
-        ["MetricName"] = if (MetricName == null) null else MetricName
-        ["ActionsEnabled"] = if (ActionsEnabled == null) null else ActionsEnabled
-        ["AlarmName"] = if (AlarmName == null) null else AlarmName
-        ["ThresholdMetricId"] = if (ThresholdMetricId == null) null else ThresholdMetricId
-        ["Metrics"] = if (Metrics == null) null else Metrics
-        ["ExtendedStatistic"] = if (ExtendedStatistic == null) null else ExtendedStatistic
-        ["TreatMissingData"] = if (TreatMissingData == null) null else TreatMissingData
         ["EvaluationPeriods"] = if (EvaluationPeriods == null) null else EvaluationPeriods
         ["Unit"] = if (Unit == null) null else Unit
-        ["OKActions"] = if (OKActions == null) null else OKActions
+        ["MetricName"] = if (MetricName == null) null else MetricName
+        ["Metrics"] = if (Metrics == null) null else Metrics
+        ["DatapointsToAlarm"] = if (DatapointsToAlarm == null) null else DatapointsToAlarm
+        ["ThresholdMetricId"] = if (ThresholdMetricId == null) null else ThresholdMetricId
+        ["Period"] = if (Period == null) null else Period
+        ["InsufficientDataActions"] = if (InsufficientDataActions == null) null else InsufficientDataActions
         ["Threshold"] = if (Threshold == null) null else Threshold
-        ["EvaluateLowSampleCountPercentile"] = if (EvaluateLowSampleCountPercentile == null) null else EvaluateLowSampleCountPercentile
+        ["TreatMissingData"] = if (TreatMissingData == null) null else TreatMissingData
+        ["Dimensions"] = if (Dimensions == null) null else Dimensions
+        ["OKActions"] = if (OKActions == null) null else OKActions
+        ["AlarmActions"] = if (AlarmActions == null) null else AlarmActions
+        ["AlarmDescription"] = if (AlarmDescription == null) null else AlarmDescription
+        ["AlarmName"] = if (AlarmName == null) null else AlarmName
+        ["ExtendedStatistic"] = if (ExtendedStatistic == null) null else ExtendedStatistic
+        ["Namespace"] = if (Namespace == null) null else Namespace
+        ["ActionsEnabled"] = if (ActionsEnabled == null) null else ActionsEnabled
+        ["Statistic"] = if (Statistic == null) null else Statistic
     }
 
 }

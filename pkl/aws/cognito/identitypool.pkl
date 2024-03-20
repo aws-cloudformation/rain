@@ -6,22 +6,22 @@ module aws.cognito.identitypool
 import "../../cloudformation.pkl"
 
 /// 
-open class IdentityPoolPushSync {
-    ApplicationArns: (Listing<String|Mapping>)?
-    RoleArn: (String|Mapping)?
-}
-
-/// 
 open class IdentityPoolCognitoIdentityProvider {
+    ServerSideTokenCheck: (Boolean|Mapping)?
     ProviderName: String|Mapping
     ClientId: String|Mapping
-    ServerSideTokenCheck: (Boolean|Mapping)?
 }
 
 /// 
 open class IdentityPoolCognitoStreams {
     StreamingStatus: (String|Mapping)?
     StreamName: (String|Mapping)?
+    RoleArn: (String|Mapping)?
+}
+
+/// 
+open class IdentityPoolPushSync {
+    ApplicationArns: (Listing<String|Mapping>)?
     RoleArn: (String|Mapping)?
 }
 
@@ -32,25 +32,22 @@ open class IdentityPool extends cloudformation.Resource {
 
 
     /// 
-    hidden AllowClassicFlow: (Boolean|Mapping)?
+    hidden CognitoIdentityProviders: (Listing<IdentityPoolCognitoIdentityProvider>)?
 
     /// 
-    hidden PushSync: (IdentityPoolPushSync)?
-
-    /// 
-    hidden DeveloperProviderName: (String|Mapping)?
-
-    /// 
-    hidden CognitoStreams: (IdentityPoolCognitoStreams)?
+    hidden SupportedLoginProviders: (Dynamic)?
 
     /// 
     hidden IdentityPoolName: (String|Mapping)?
 
     /// 
-    hidden CognitoIdentityProviders: (Listing<IdentityPoolCognitoIdentityProvider>)?
+    hidden CognitoStreams: (IdentityPoolCognitoStreams)?
 
     /// 
-    hidden SupportedLoginProviders: (Dynamic)?
+    hidden CognitoEvents: (Dynamic)?
+
+    /// 
+    hidden AllowUnauthenticatedIdentities: Boolean|Mapping
 
     /// 
     hidden SamlProviderARNs: (Listing<String|Mapping>)?
@@ -59,23 +56,26 @@ open class IdentityPool extends cloudformation.Resource {
     hidden OpenIdConnectProviderARNs: (Listing<String|Mapping>)?
 
     /// 
-    hidden CognitoEvents: (Dynamic)?
+    hidden AllowClassicFlow: (Boolean|Mapping)?
 
     /// 
-    hidden AllowUnauthenticatedIdentities: Boolean|Mapping
+    hidden PushSync: (IdentityPoolPushSync)?
+
+    /// 
+    hidden DeveloperProviderName: (String|Mapping)?
 
     Properties {
+        ["CognitoIdentityProviders"] = if (CognitoIdentityProviders == null) null else CognitoIdentityProviders
+        ["SupportedLoginProviders"] = if (SupportedLoginProviders == null) null else SupportedLoginProviders
+        ["IdentityPoolName"] = if (IdentityPoolName == null) null else IdentityPoolName
+        ["CognitoStreams"] = if (CognitoStreams == null) null else CognitoStreams
+        ["CognitoEvents"] = if (CognitoEvents == null) null else CognitoEvents
+        ["AllowUnauthenticatedIdentities"] = if (AllowUnauthenticatedIdentities == null) null else AllowUnauthenticatedIdentities
+        ["SamlProviderARNs"] = if (SamlProviderARNs == null) null else SamlProviderARNs
+        ["OpenIdConnectProviderARNs"] = if (OpenIdConnectProviderARNs == null) null else OpenIdConnectProviderARNs
         ["AllowClassicFlow"] = if (AllowClassicFlow == null) null else AllowClassicFlow
         ["PushSync"] = if (PushSync == null) null else PushSync
         ["DeveloperProviderName"] = if (DeveloperProviderName == null) null else DeveloperProviderName
-        ["CognitoStreams"] = if (CognitoStreams == null) null else CognitoStreams
-        ["IdentityPoolName"] = if (IdentityPoolName == null) null else IdentityPoolName
-        ["CognitoIdentityProviders"] = if (CognitoIdentityProviders == null) null else CognitoIdentityProviders
-        ["SupportedLoginProviders"] = if (SupportedLoginProviders == null) null else SupportedLoginProviders
-        ["SamlProviderARNs"] = if (SamlProviderARNs == null) null else SamlProviderARNs
-        ["OpenIdConnectProviderARNs"] = if (OpenIdConnectProviderARNs == null) null else OpenIdConnectProviderARNs
-        ["CognitoEvents"] = if (CognitoEvents == null) null else CognitoEvents
-        ["AllowUnauthenticatedIdentities"] = if (AllowUnauthenticatedIdentities == null) null else AllowUnauthenticatedIdentities
     }
 
 }

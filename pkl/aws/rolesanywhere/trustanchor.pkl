@@ -6,19 +6,22 @@ module aws.rolesanywhere.trustanchor
 import "../../cloudformation.pkl"
 
 /// 
-open class TrustAnchorSourceDataAcmPcaArn {
-    AcmPcaArn: String|Mapping
+open class TrustAnchorSourceDataX509CertificateData {
+    X509CertificateData: String|Mapping
 }
 
-typealias TrustAnchorNotificationEvent = String|Mapping
-
+/// 
+open class TrustAnchorTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
 
 /// 
 open class TrustAnchorNotificationSetting {
-    Channel: (TrustAnchorNotificationChannel)?
-    Enabled: Boolean|Mapping
     Event: TrustAnchorNotificationEvent
     Threshold: (Number|Mapping)?
+    Channel: (TrustAnchorNotificationChannel)?
+    Enabled: Boolean|Mapping
 }
 
 /// 
@@ -27,24 +30,21 @@ open class TrustAnchorSource {
     SourceData: (TrustAnchorSourceData)?
 }
 
-/// 
-open class TrustAnchorSourceDataX509CertificateData {
-    X509CertificateData: String|Mapping
-}
-
-typealias TrustAnchorNotificationChannel = String|Mapping
-
-
 typealias TrustAnchorSourceData = TrustAnchorSourceDataX509CertificateData|TrustAnchorSourceDataAcmPcaArn
 
 
 /// 
-open class TrustAnchorTag {
-    Key: String|Mapping
-    Value: String|Mapping
+open class TrustAnchorSourceDataAcmPcaArn {
+    AcmPcaArn: String|Mapping
 }
 
 typealias TrustAnchorTrustAnchorType = String|Mapping
+
+
+typealias TrustAnchorNotificationChannel = String|Mapping
+
+
+typealias TrustAnchorNotificationEvent = String|Mapping
 
 
 /// Definition of AWS::RolesAnywhere::TrustAnchor Resource Type.
@@ -52,6 +52,9 @@ open class TrustAnchor extends cloudformation.Resource {
 
     Type = "AWS::RolesAnywhere::TrustAnchor"
 
+
+    /// 
+    hidden Enabled: (Boolean|Mapping)?
 
     /// 
     hidden Name: String|Mapping
@@ -65,15 +68,12 @@ open class TrustAnchor extends cloudformation.Resource {
     /// 
     hidden Tags: (Listing<TrustAnchorTag>)?
 
-    /// 
-    hidden Enabled: (Boolean|Mapping)?
-
     Properties {
+        ["Enabled"] = if (Enabled == null) null else Enabled
         ["Name"] = if (Name == null) null else Name
         ["NotificationSettings"] = if (NotificationSettings == null) null else NotificationSettings
         ["Source"] = if (Source == null) null else Source
         ["Tags"] = if (Tags == null) null else Tags
-        ["Enabled"] = if (Enabled == null) null else Enabled
     }
 
 }

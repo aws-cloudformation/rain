@@ -14,19 +14,13 @@ open class RepositoryEncryptionConfiguration {
     KmsKey: (RepositoryKmsKey)?
 }
 
-typealias RepositoryLifecyclePolicyText = String|Mapping
-
-
-typealias RepositoryScanOnPush = Boolean|Mapping
-
-
-typealias RepositoryEmptyOnDelete = Boolean|Mapping
-
+/// The ``LifecyclePolicy`` property type specifies a lifecycle policy. For information about lifecycle policy syntax, see [Lifecycle policy template](https://docs.aws.amazon.com/AmazonECR/latest/userguide/LifecyclePolicies.html) in the *Amazon ECR User Guide*.
+open class RepositoryLifecyclePolicy {
+    LifecyclePolicyText: (RepositoryLifecyclePolicyText)?
+    RegistryId: (RepositoryRegistryId)?
+}
 
 typealias RepositoryRegistryId = String|Mapping
-
-
-typealias RepositoryKmsKey = String|Mapping
 
 
 /// The metadata to apply to a resource to help you categorize and organize them. Each tag consists of a key and a value, both of which you define. Tag keys can have a maximum character length of 128 characters, and tag values can have a maximum length of 256 characters.
@@ -35,19 +29,25 @@ open class RepositoryTag {
     Value: String|Mapping
 }
 
+typealias RepositoryEmptyOnDelete = Boolean|Mapping
+
+
+typealias RepositoryLifecyclePolicyText = String|Mapping
+
+
 /// The image scanning configuration for a repository.
 open class RepositoryImageScanningConfiguration {
     ScanOnPush: (RepositoryScanOnPush)?
 }
 
+typealias RepositoryScanOnPush = Boolean|Mapping
+
+
 typealias RepositoryEncryptionType = String|Mapping
 
 
-/// The ``LifecyclePolicy`` property type specifies a lifecycle policy. For information about lifecycle policy syntax, see [Lifecycle policy template](https://docs.aws.amazon.com/AmazonECR/latest/userguide/LifecyclePolicies.html) in the *Amazon ECR User Guide*.
-open class RepositoryLifecyclePolicy {
-    LifecyclePolicyText: (RepositoryLifecyclePolicyText)?
-    RegistryId: (RepositoryRegistryId)?
-}
+typealias RepositoryKmsKey = String|Mapping
+
 
 /// The ``AWS::ECR::Repository`` resource specifies an Amazon Elastic Container Registry (Amazon ECR) repository, where users can push and pull Docker images, Open Container Initiative (OCI) images, and OCI compatible artifacts. For more information, see [Amazon ECR private repositories](https://docs.aws.amazon.com/AmazonECR/latest/userguide/Repositories.html) in the *Amazon ECR User Guide*.
 open class Repository extends cloudformation.Resource {
@@ -55,26 +55,14 @@ open class Repository extends cloudformation.Resource {
     Type = "AWS::ECR::Repository"
 
 
+    /// Creates or updates a lifecycle policy. For information about lifecycle policy syntax, see [Lifecycle policy template](https://docs.aws.amazon.com/AmazonECR/latest/userguide/LifecyclePolicies.html).
+    hidden LifecyclePolicy: (RepositoryLifecyclePolicy)?
+
     /// The name to use for the repository. The repository name may be specified on its own (such as ``nginx-web-app``) or it can be prepended with a namespace to group the repository into a category (such as ``project-a/nginx-web-app``). If you don't specify a name, CFNlong generates a unique physical ID and uses that ID for the repository name. For more information, see [Name type](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-name.html).
     ///
     ///  The repository name must start with a letter and can only contain lowercase letters, numbers, hyphens, underscores, and forward slashes.
     ///   If you specify a name, you cannot perform updates that require replacement of this resource. You can perform updates that require no or some interruption. If you must replace the resource, specify a new name.
     hidden RepositoryName: (String(matches(Regex(#"^(?=.{2,256}$)((?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)*[a-z0-9]+(?:[._-][a-z0-9]+)*)$"#)))|Mapping)?
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<RepositoryTag>)?
-
-    /// The image scanning configuration for the repository. This determines whether images are scanned for known vulnerabilities after being pushed to the repository.
-    hidden ImageScanningConfiguration: (RepositoryImageScanningConfiguration)?
-
-    /// If true, deleting the repository force deletes the contents of the repository. If false, the repository must be empty before attempting to delete it.
-    hidden EmptyOnDelete: (RepositoryEmptyOnDelete)?
-
-    /// Creates or updates a lifecycle policy. For information about lifecycle policy syntax, see [Lifecycle policy template](https://docs.aws.amazon.com/AmazonECR/latest/userguide/LifecyclePolicies.html).
-    hidden LifecyclePolicy: (RepositoryLifecyclePolicy)?
-
-    /// The encryption configuration for the repository. This determines how the contents of your repository are encrypted at rest.
-    hidden EncryptionConfiguration: (RepositoryEncryptionConfiguration)?
 
     /// The JSON repository policy text to apply to the repository. For more information, see [Amazon ECR repository policies](https://docs.aws.amazon.com/AmazonECR/latest/userguide/repository-policy-examples.html) in the *Amazon Elastic Container Registry User Guide*.
     hidden RepositoryPolicyText: (Dynamic)?
@@ -82,15 +70,27 @@ open class Repository extends cloudformation.Resource {
     /// The tag mutability setting for the repository. If this parameter is omitted, the default setting of ``MUTABLE`` will be used which will allow image tags to be overwritten. If ``IMMUTABLE`` is specified, all image tags within the repository will be immutable which will prevent them from being overwritten.
     hidden ImageTagMutability: (RepositoryImageTagMutability|Mapping)?
 
+    /// The image scanning configuration for the repository. This determines whether images are scanned for known vulnerabilities after being pushed to the repository.
+    hidden ImageScanningConfiguration: (RepositoryImageScanningConfiguration)?
+
+    /// If true, deleting the repository force deletes the contents of the repository. If false, the repository must be empty before attempting to delete it.
+    hidden EmptyOnDelete: (RepositoryEmptyOnDelete)?
+
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<RepositoryTag>)?
+
+    /// The encryption configuration for the repository. This determines how the contents of your repository are encrypted at rest.
+    hidden EncryptionConfiguration: (RepositoryEncryptionConfiguration)?
+
     Properties {
-        ["RepositoryName"] = if (RepositoryName == null) null else RepositoryName
-        ["Tags"] = if (Tags == null) null else Tags
-        ["ImageScanningConfiguration"] = if (ImageScanningConfiguration == null) null else ImageScanningConfiguration
-        ["EmptyOnDelete"] = if (EmptyOnDelete == null) null else EmptyOnDelete
         ["LifecyclePolicy"] = if (LifecyclePolicy == null) null else LifecyclePolicy
-        ["EncryptionConfiguration"] = if (EncryptionConfiguration == null) null else EncryptionConfiguration
+        ["RepositoryName"] = if (RepositoryName == null) null else RepositoryName
         ["RepositoryPolicyText"] = if (RepositoryPolicyText == null) null else RepositoryPolicyText
         ["ImageTagMutability"] = if (ImageTagMutability == null) null else ImageTagMutability
+        ["ImageScanningConfiguration"] = if (ImageScanningConfiguration == null) null else ImageScanningConfiguration
+        ["EmptyOnDelete"] = if (EmptyOnDelete == null) null else EmptyOnDelete
+        ["Tags"] = if (Tags == null) null else Tags
+        ["EncryptionConfiguration"] = if (EncryptionConfiguration == null) null else EncryptionConfiguration
     }
 
 }

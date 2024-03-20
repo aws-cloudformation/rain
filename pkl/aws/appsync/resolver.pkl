@@ -5,6 +5,20 @@ module aws.appsync.resolver
 
 import "../../cloudformation.pkl"
 
+/// Describes a Sync configuration for a resolver.
+///
+///  Specifies which Conflict Detection strategy and Resolution strategy to use when the resolver is invoked.
+open class ResolverSyncConfig {
+    ConflictHandler: (String|Mapping)?
+    ConflictDetection: String|Mapping
+    LambdaConflictHandlerConfig: (ResolverLambdaConflictHandlerConfig)?
+}
+
+/// The ``LambdaConflictHandlerConfig`` when configuring LAMBDA as the Conflict Handler.
+open class ResolverLambdaConflictHandlerConfig {
+    LambdaConflictHandlerArn: (String|Mapping)?
+}
+
 /// Describes a runtime used by an APSYlong resolver or APSYlong function. Specifies the name and version of the runtime to use. Note that if a runtime is specified, code must also be specified.
 open class ResolverAppSyncRuntime {
     RuntimeVersion: String|Mapping
@@ -24,20 +38,6 @@ open class ResolverCachingConfig {
     Ttl: Number|Mapping
 }
 
-/// Describes a Sync configuration for a resolver.
-///
-///  Specifies which Conflict Detection strategy and Resolution strategy to use when the resolver is invoked.
-open class ResolverSyncConfig {
-    ConflictHandler: (String|Mapping)?
-    ConflictDetection: String|Mapping
-    LambdaConflictHandlerConfig: (ResolverLambdaConflictHandlerConfig)?
-}
-
-/// The ``LambdaConflictHandlerConfig`` when configuring LAMBDA as the Conflict Handler.
-open class ResolverLambdaConflictHandlerConfig {
-    LambdaConflictHandlerArn: (String|Mapping)?
-}
-
 /// The ``AWS::AppSync::Resolver`` resource defines the logical GraphQL resolver that you attach to fields in a schema. Request and response templates for resolvers are written in Apache Velocity Template Language (VTL) format. For more information about resolvers, see [Resolver Mapping Template Reference](https://docs.aws.amazon.com/appsync/latest/devguide/resolver-mapping-template-reference.html).
 ///
 ///   When you submit an update, CFNLong updates resources based on differences between what you submit and the stack's current template. To cause this resource to be updated you must change a property value for this resource in the CFNshort template. Changing the S3 file content without changing a property value will not result in an update operation.
@@ -47,32 +47,8 @@ open class Resolver extends cloudformation.Resource {
     Type = "AWS::AppSync::Resolver"
 
 
-    /// The resolver data source name.
-    hidden DataSourceName: (String|Mapping)?
-
-    /// The location of a request mapping template in an S3 bucket. Use this if you want to provision with a template file in S3 rather than embedding it in your CFNshort template.
-    hidden RequestMappingTemplateS3Location: (String|Mapping)?
-
-    /// The ``SyncConfig`` for a resolver attached to a versioned data source.
-    hidden SyncConfig: (ResolverSyncConfig)?
-
-    /// The APSYlong GraphQL API to which you want to attach this resolver.
-    hidden ApiId: String|Mapping
-
-    /// The ``resolver`` code that contains the request and response functions. When code is used, the ``runtime`` is required. The runtime value must be ``APPSYNC_JS``.
-    hidden Code: (String|Mapping)?
-
-    /// Functions linked with the pipeline resolver.
-    hidden PipelineConfig: (ResolverPipelineConfig)?
-
-    /// The location of a response mapping template in an S3 bucket. Use this if you want to provision with a template file in S3 rather than embedding it in your CFNshort template.
-    hidden ResponseMappingTemplateS3Location: (String|Mapping)?
-
-    /// The GraphQL type that invokes this resolver.
-    hidden TypeName: String|Mapping
-
-    /// The Amazon S3 endpoint.
-    hidden CodeS3Location: (String|Mapping)?
+    /// The GraphQL field on a type that invokes the resolver.
+    hidden FieldName: String|Mapping
 
     /// The resolver type.
     ///
@@ -83,14 +59,19 @@ open class Resolver extends cloudformation.Resource {
     /// The response mapping template.
     hidden ResponseMappingTemplate: (String|Mapping)?
 
-    /// Describes a runtime used by an APSYlong resolver or APSYlong function. Specifies the name and version of the runtime to use. Note that if a runtime is specified, code must also be specified.
-    hidden Runtime: (ResolverAppSyncRuntime)?
+    /// The ``SyncConfig`` for a resolver attached to a versioned data source.
+    hidden SyncConfig: (ResolverSyncConfig)?
 
-    /// The GraphQL field on a type that invokes the resolver.
-    hidden FieldName: String|Mapping
+    /// The GraphQL type that invokes this resolver.
+    hidden TypeName: String|Mapping
 
-    /// The maximum number of resolver request inputs that will be sent to a single LAMlong function in a ``BatchInvoke`` operation.
-    hidden MaxBatchSize: (Int|Mapping)?
+    /// The request mapping template.
+    ///
+    ///  Request mapping templates are optional when using a Lambda data source. For all other data sources, a request mapping template is required.
+    hidden RequestMappingTemplate: (String|Mapping)?
+
+    /// The location of a request mapping template in an S3 bucket. Use this if you want to provision with a template file in S3 rather than embedding it in your CFNshort template.
+    hidden RequestMappingTemplateS3Location: (String|Mapping)?
 
     /// 
     hidden MetricsConfig: (ResolverMetricsConfig|Mapping)?
@@ -98,29 +79,48 @@ open class Resolver extends cloudformation.Resource {
     /// The caching configuration for the resolver.
     hidden CachingConfig: (ResolverCachingConfig)?
 
-    /// The request mapping template.
-    ///
-    ///  Request mapping templates are optional when using a Lambda data source. For all other data sources, a request mapping template is required.
-    hidden RequestMappingTemplate: (String|Mapping)?
+    /// The ``resolver`` code that contains the request and response functions. When code is used, the ``runtime`` is required. The runtime value must be ``APPSYNC_JS``.
+    hidden Code: (String|Mapping)?
+
+    /// The Amazon S3 endpoint.
+    hidden CodeS3Location: (String|Mapping)?
+
+    /// The resolver data source name.
+    hidden DataSourceName: (String|Mapping)?
+
+    /// The maximum number of resolver request inputs that will be sent to a single LAMlong function in a ``BatchInvoke`` operation.
+    hidden MaxBatchSize: (Int|Mapping)?
+
+    /// Functions linked with the pipeline resolver.
+    hidden PipelineConfig: (ResolverPipelineConfig)?
+
+    /// The location of a response mapping template in an S3 bucket. Use this if you want to provision with a template file in S3 rather than embedding it in your CFNshort template.
+    hidden ResponseMappingTemplateS3Location: (String|Mapping)?
+
+    /// The APSYlong GraphQL API to which you want to attach this resolver.
+    hidden ApiId: String|Mapping
+
+    /// Describes a runtime used by an APSYlong resolver or APSYlong function. Specifies the name and version of the runtime to use. Note that if a runtime is specified, code must also be specified.
+    hidden Runtime: (ResolverAppSyncRuntime)?
 
     Properties {
-        ["DataSourceName"] = if (DataSourceName == null) null else DataSourceName
-        ["RequestMappingTemplateS3Location"] = if (RequestMappingTemplateS3Location == null) null else RequestMappingTemplateS3Location
-        ["SyncConfig"] = if (SyncConfig == null) null else SyncConfig
-        ["ApiId"] = if (ApiId == null) null else ApiId
-        ["Code"] = if (Code == null) null else Code
-        ["PipelineConfig"] = if (PipelineConfig == null) null else PipelineConfig
-        ["ResponseMappingTemplateS3Location"] = if (ResponseMappingTemplateS3Location == null) null else ResponseMappingTemplateS3Location
-        ["TypeName"] = if (TypeName == null) null else TypeName
-        ["CodeS3Location"] = if (CodeS3Location == null) null else CodeS3Location
+        ["FieldName"] = if (FieldName == null) null else FieldName
         ["Kind"] = if (Kind == null) null else Kind
         ["ResponseMappingTemplate"] = if (ResponseMappingTemplate == null) null else ResponseMappingTemplate
-        ["Runtime"] = if (Runtime == null) null else Runtime
-        ["FieldName"] = if (FieldName == null) null else FieldName
-        ["MaxBatchSize"] = if (MaxBatchSize == null) null else MaxBatchSize
+        ["SyncConfig"] = if (SyncConfig == null) null else SyncConfig
+        ["TypeName"] = if (TypeName == null) null else TypeName
+        ["RequestMappingTemplate"] = if (RequestMappingTemplate == null) null else RequestMappingTemplate
+        ["RequestMappingTemplateS3Location"] = if (RequestMappingTemplateS3Location == null) null else RequestMappingTemplateS3Location
         ["MetricsConfig"] = if (MetricsConfig == null) null else MetricsConfig
         ["CachingConfig"] = if (CachingConfig == null) null else CachingConfig
-        ["RequestMappingTemplate"] = if (RequestMappingTemplate == null) null else RequestMappingTemplate
+        ["Code"] = if (Code == null) null else Code
+        ["CodeS3Location"] = if (CodeS3Location == null) null else CodeS3Location
+        ["DataSourceName"] = if (DataSourceName == null) null else DataSourceName
+        ["MaxBatchSize"] = if (MaxBatchSize == null) null else MaxBatchSize
+        ["PipelineConfig"] = if (PipelineConfig == null) null else PipelineConfig
+        ["ResponseMappingTemplateS3Location"] = if (ResponseMappingTemplateS3Location == null) null else ResponseMappingTemplateS3Location
+        ["ApiId"] = if (ApiId == null) null else ApiId
+        ["Runtime"] = if (Runtime == null) null else Runtime
     }
 
 }

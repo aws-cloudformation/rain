@@ -5,22 +5,40 @@ module aws.sagemaker.space
 
 import "../../cloudformation.pkl"
 
+typealias ResourceSpecInstanceType = "system"|"ml.t3.micro"|"ml.t3.small"|"ml.t3.medium"|"ml.t3.large"|"ml.t3.xlarge"|"ml.t3.2xlarge"|"ml.m5.large"|"ml.m5.xlarge"|"ml.m5.2xlarge"|"ml.m5.4xlarge"|"ml.m5.8xlarge"|"ml.m5.12xlarge"|"ml.m5.16xlarge"|"ml.m5.24xlarge"|"ml.c5.large"|"ml.c5.xlarge"|"ml.c5.2xlarge"|"ml.c5.4xlarge"|"ml.c5.9xlarge"|"ml.c5.12xlarge"|"ml.c5.18xlarge"|"ml.c5.24xlarge"|"ml.p3.2xlarge"|"ml.p3.8xlarge"|"ml.p3.16xlarge"|"ml.g4dn.xlarge"|"ml.g4dn.2xlarge"|"ml.g4dn.4xlarge"|"ml.g4dn.8xlarge"|"ml.g4dn.12xlarge"|"ml.g4dn.16xlarge"|"ml.r5.large"|"ml.r5.xlarge"|"ml.r5.2xlarge"|"ml.r5.4xlarge"|"ml.r5.8xlarge"|"ml.r5.12xlarge"|"ml.r5.16xlarge"|"ml.r5.24xlarge"|"ml.p3dn.24xlarge"|"ml.m5d.large"|"ml.m5d.xlarge"|"ml.m5d.2xlarge"|"ml.m5d.4xlarge"|"ml.m5d.8xlarge"|"ml.m5d.12xlarge"|"ml.m5d.16xlarge"|"ml.m5d.24xlarge"|"ml.g5.xlarge"|"ml.g5.2xlarge"|"ml.g5.4xlarge"|"ml.g5.8xlarge"|"ml.g5.12xlarge"|"ml.g5.16xlarge"|"ml.g5.24xlarge"|"ml.g5.48xlarge"|"ml.p4d.24xlarge"|"ml.p4de.24xlarge"|"ml.geospatial.interactive"|"ml.trn1.2xlarge"|"ml.trn1.32xlarge"|"ml.trn1n.32xlarge"
+
+/// 
+open class SpaceResourceSpec {
+    InstanceType: (ResourceSpecInstanceType|Mapping)?
+    SageMakerImageArn: (String(matches(Regex(#"^arn:aws(-[\w]+)*:sagemaker:.+:[0-9]{12}:image/[a-z0-9]([-.]?[a-z0-9])*$"#)))|Mapping)?
+    SageMakerImageVersionArn: (String(matches(Regex(#"^arn:aws(-[\w]+)*:sagemaker:.+:[0-9]{12}:image-version/[a-z0-9]([-.]?[a-z0-9])*/[0-9]+$"#)))|Mapping)?
+}
+
 /// 
 open class SpaceTag {
     Value: String|Mapping
     Key: String|Mapping
 }
 
-typealias SpaceSpaceEbsVolumeSizeInGb = Int|Mapping
+/// 
+open class SpaceSpaceStorageSettings {
+    EbsStorageSettings: (SpaceEbsStorageSettings)?
+}
 
+/// 
+open class SpaceEFSFileSystem {
+    FileSystemId: String(matches(Regex(#"^(fs-[0-9a-f]{8,})$"#)))|Mapping
+}
 
 /// The CodeEditor app settings.
 open class SpaceSpaceCodeEditorAppSettings {
     DefaultResourceSpec: (SpaceResourceSpec)?
 }
 
-typealias SpaceAppType = String|Mapping
-
+/// The JupyterServer app settings.
+open class SpaceJupyterServerAppSettings {
+    DefaultResourceSpec: (SpaceResourceSpec)?
+}
 
 /// 
 open class SpaceCustomFileSystem {
@@ -32,36 +50,17 @@ open class SpaceCodeRepository {
     RepositoryUrl: String(matches(Regex(#"^https://([.\-_a-zA-Z0-9]+/?){3,1016}$"#)))|Mapping
 }
 
-typealias SpaceCustomFileSystems = Listing<(SpaceCustomFileSystem)?>
-
+typealias SpaceSharingSettingsSharingType = "Private"|"Shared"
 
 /// 
-open class SpaceEFSFileSystem {
-    FileSystemId: String(matches(Regex(#"^(fs-[0-9a-f]{8,})$"#)))|Mapping
+open class SpaceSpaceSharingSettings {
+    SharingType: SpaceSharingSettingsSharingType|Mapping
 }
 
 /// The JupyterServer app settings.
 open class SpaceSpaceJupyterLabAppSettings {
+    DefaultResourceSpec: (SpaceResourceSpec)?
     CodeRepositories: (Listing<SpaceCodeRepository>)?
-    DefaultResourceSpec: (SpaceResourceSpec)?
-}
-
-/// A custom SageMaker image.
-open class SpaceCustomImage {
-    ImageVersionNumber: (Int|Mapping)?
-    AppImageConfigName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"#)))|Mapping
-    ImageName: String(matches(Regex(#"^[a-zA-Z0-9]([-.]?[a-zA-Z0-9]){0,62}$"#)))|Mapping
-}
-
-/// 
-open class SpaceOwnershipSettings {
-    OwnerUserProfileName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"#)))|Mapping
-}
-
-/// The kernel gateway app settings.
-open class SpaceKernelGatewayAppSettings {
-    CustomImages: (Listing<SpaceCustomImage>)?
-    DefaultResourceSpec: (SpaceResourceSpec)?
 }
 
 /// Properties related to the space's Amazon Elastic Block Store volume.
@@ -69,20 +68,28 @@ open class SpaceEbsStorageSettings {
     EbsVolumeSizeInGb: SpaceSpaceEbsVolumeSizeInGb
 }
 
-typealias ResourceSpecInstanceType = "system"|"ml.t3.micro"|"ml.t3.small"|"ml.t3.medium"|"ml.t3.large"|"ml.t3.xlarge"|"ml.t3.2xlarge"|"ml.m5.large"|"ml.m5.xlarge"|"ml.m5.2xlarge"|"ml.m5.4xlarge"|"ml.m5.8xlarge"|"ml.m5.12xlarge"|"ml.m5.16xlarge"|"ml.m5.24xlarge"|"ml.c5.large"|"ml.c5.xlarge"|"ml.c5.2xlarge"|"ml.c5.4xlarge"|"ml.c5.9xlarge"|"ml.c5.12xlarge"|"ml.c5.18xlarge"|"ml.c5.24xlarge"|"ml.p3.2xlarge"|"ml.p3.8xlarge"|"ml.p3.16xlarge"|"ml.g4dn.xlarge"|"ml.g4dn.2xlarge"|"ml.g4dn.4xlarge"|"ml.g4dn.8xlarge"|"ml.g4dn.12xlarge"|"ml.g4dn.16xlarge"|"ml.r5.large"|"ml.r5.xlarge"|"ml.r5.2xlarge"|"ml.r5.4xlarge"|"ml.r5.8xlarge"|"ml.r5.12xlarge"|"ml.r5.16xlarge"|"ml.r5.24xlarge"|"ml.p3dn.24xlarge"|"ml.m5d.large"|"ml.m5d.xlarge"|"ml.m5d.2xlarge"|"ml.m5d.4xlarge"|"ml.m5d.8xlarge"|"ml.m5d.12xlarge"|"ml.m5d.16xlarge"|"ml.m5d.24xlarge"|"ml.g5.xlarge"|"ml.g5.2xlarge"|"ml.g5.4xlarge"|"ml.g5.8xlarge"|"ml.g5.12xlarge"|"ml.g5.16xlarge"|"ml.g5.24xlarge"|"ml.g5.48xlarge"|"ml.p4d.24xlarge"|"ml.p4de.24xlarge"|"ml.geospatial.interactive"|"ml.trn1.2xlarge"|"ml.trn1.32xlarge"|"ml.trn1n.32xlarge"
-
-/// 
-open class SpaceResourceSpec {
-    InstanceType: (ResourceSpecInstanceType|Mapping)?
-    SageMakerImageArn: (String(matches(Regex(#"^arn:aws(-[\w]+)*:sagemaker:.+:[0-9]{12}:image/[a-z0-9]([-.]?[a-z0-9])*$"#)))|Mapping)?
-    SageMakerImageVersionArn: (String(matches(Regex(#"^arn:aws(-[\w]+)*:sagemaker:.+:[0-9]{12}:image-version/[a-z0-9]([-.]?[a-z0-9])*/[0-9]+$"#)))|Mapping)?
+/// A custom SageMaker image.
+open class SpaceCustomImage {
+    AppImageConfigName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"#)))|Mapping
+    ImageName: String(matches(Regex(#"^[a-zA-Z0-9]([-.]?[a-zA-Z0-9]){0,62}$"#)))|Mapping
+    ImageVersionNumber: (Int|Mapping)?
 }
 
-typealias SpaceSharingSettingsSharingType = "Private"|"Shared"
+typealias SpaceSpaceEbsVolumeSizeInGb = Int|Mapping
+
+
+typealias SpaceAppType = String|Mapping
+
+
+/// The kernel gateway app settings.
+open class SpaceKernelGatewayAppSettings {
+    CustomImages: (Listing<SpaceCustomImage>)?
+    DefaultResourceSpec: (SpaceResourceSpec)?
+}
 
 /// 
-open class SpaceSpaceSharingSettings {
-    SharingType: SpaceSharingSettingsSharingType|Mapping
+open class SpaceOwnershipSettings {
+    OwnerUserProfileName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"#)))|Mapping
 }
 
 /// A collection of settings that apply to spaces of Amazon SageMaker Studio. These settings are specified when the CreateSpace API is called.
@@ -96,33 +103,14 @@ open class SpaceSpaceSettings {
     CustomFileSystems: (SpaceCustomFileSystems)?
 }
 
-/// The JupyterServer app settings.
-open class SpaceJupyterServerAppSettings {
-    DefaultResourceSpec: (SpaceResourceSpec)?
-}
+typealias SpaceCustomFileSystems = Listing<(SpaceCustomFileSystem)?>
 
-/// 
-open class SpaceSpaceStorageSettings {
-    EbsStorageSettings: (SpaceEbsStorageSettings)?
-}
 
 /// Resource Type definition for AWS::SageMaker::Space
 open class Space extends cloudformation.Resource {
 
     Type = "AWS::SageMaker::Space"
 
-
-    /// The ID of the associated Domain.
-    hidden DomainId: String|Mapping
-
-    /// 
-    hidden SpaceSharingSettings: (SpaceSpaceSharingSettings)?
-
-    /// 
-    hidden SpaceDisplayName: (String(matches(Regex(#"^(?!\s*$).+"#)))|Mapping)?
-
-    /// A name for the Space.
-    hidden SpaceName: String|Mapping
 
     /// A collection of settings.
     hidden SpaceSettings: (SpaceSpaceSettings)?
@@ -133,14 +121,26 @@ open class Space extends cloudformation.Resource {
     /// 
     hidden OwnershipSettings: (SpaceOwnershipSettings)?
 
+    /// 
+    hidden SpaceSharingSettings: (SpaceSpaceSharingSettings)?
+
+    /// The ID of the associated Domain.
+    hidden DomainId: String|Mapping
+
+    /// A name for the Space.
+    hidden SpaceName: String|Mapping
+
+    /// 
+    hidden SpaceDisplayName: (String(matches(Regex(#"^(?!\s*$).+"#)))|Mapping)?
+
     Properties {
-        ["DomainId"] = if (DomainId == null) null else DomainId
-        ["SpaceSharingSettings"] = if (SpaceSharingSettings == null) null else SpaceSharingSettings
-        ["SpaceDisplayName"] = if (SpaceDisplayName == null) null else SpaceDisplayName
-        ["SpaceName"] = if (SpaceName == null) null else SpaceName
         ["SpaceSettings"] = if (SpaceSettings == null) null else SpaceSettings
         ["Tags"] = if (Tags == null) null else Tags
         ["OwnershipSettings"] = if (OwnershipSettings == null) null else OwnershipSettings
+        ["SpaceSharingSettings"] = if (SpaceSharingSettings == null) null else SpaceSharingSettings
+        ["DomainId"] = if (DomainId == null) null else DomainId
+        ["SpaceName"] = if (SpaceName == null) null else SpaceName
+        ["SpaceDisplayName"] = if (SpaceDisplayName == null) null else SpaceDisplayName
     }
 
 }

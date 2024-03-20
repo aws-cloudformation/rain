@@ -5,9 +5,6 @@ module aws.location.geofencecollection
 
 import "../../cloudformation.pkl"
 
-typealias GeofenceCollectionTagMap = Mapping<String, Any>
-
-
 /// A key-value pair to associate with a resource.
 open class GeofenceCollectionTag {
     Key: String(matches(Regex(#"^[a-zA-Z+-=._:/]+$"#)))|Mapping
@@ -20,6 +17,9 @@ typealias GeofenceCollectioniso8601UTC = String|Mapping
 typealias GeofenceCollectionPricingPlan = String|Mapping
 
 
+typealias GeofenceCollectionTagMap = Mapping<String, Any>
+
+
 /// Definition of AWS::Location::GeofenceCollection Resource Type
 open class GeofenceCollection extends cloudformation.Resource {
 
@@ -27,7 +27,7 @@ open class GeofenceCollection extends cloudformation.Resource {
 
 
     /// 
-    hidden PricingPlan: (GeofenceCollectionPricingPlan)?
+    hidden KmsKeyId: (String|Mapping)?
 
     /// 
     hidden PricingPlanDataSource: (String|Mapping)?
@@ -39,18 +39,18 @@ open class GeofenceCollection extends cloudformation.Resource {
     hidden CollectionName: String(matches(Regex(#"^[-._\w]+$"#)))|Mapping
 
     /// 
-    hidden KmsKeyId: (String|Mapping)?
-
-    /// 
     hidden Description: (String|Mapping)?
 
+    /// 
+    hidden PricingPlan: (GeofenceCollectionPricingPlan)?
+
     Properties {
-        ["PricingPlan"] = if (PricingPlan == null) null else PricingPlan
+        ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
         ["PricingPlanDataSource"] = if (PricingPlanDataSource == null) null else PricingPlanDataSource
         ["Tags"] = if (Tags == null) null else Tags
         ["CollectionName"] = if (CollectionName == null) null else CollectionName
-        ["KmsKeyId"] = if (KmsKeyId == null) null else KmsKeyId
         ["Description"] = if (Description == null) null else Description
+        ["PricingPlan"] = if (PricingPlan == null) null else PricingPlan
     }
 
 }

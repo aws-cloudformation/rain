@@ -7,8 +7,8 @@ import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
 open class CustomDataIdentifierTag {
-    Value: String|Mapping
     Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// Macie CustomDataIdentifier resource schema
@@ -17,11 +17,17 @@ open class CustomDataIdentifier extends cloudformation.Resource {
     Type = "AWS::Macie::CustomDataIdentifier"
 
 
-    /// Regular expression for custom data identifier.
-    hidden Regex: String|Mapping
+    /// Description of custom data identifier.
+    hidden Description: (String|Mapping)?
 
     /// Maximum match distance.
     hidden MaximumMatchDistance: (Int|Mapping)?
+
+    /// Words to be ignored.
+    hidden IgnoreWords: (Listing<String|Mapping>)?
+
+    /// Name of custom data identifier.
+    hidden Name: String|Mapping
 
     /// Keywords to be matched against.
     hidden Keywords: (Listing<String|Mapping>)?
@@ -29,23 +35,17 @@ open class CustomDataIdentifier extends cloudformation.Resource {
     /// A collection of tags associated with a resource
     hidden Tags: (Listing<CustomDataIdentifierTag>)?
 
-    /// Name of custom data identifier.
-    hidden Name: String|Mapping
-
-    /// Description of custom data identifier.
-    hidden Description: (String|Mapping)?
-
-    /// Words to be ignored.
-    hidden IgnoreWords: (Listing<String|Mapping>)?
+    /// Regular expression for custom data identifier.
+    hidden Regex: String|Mapping
 
     Properties {
-        ["Regex"] = if (Regex == null) null else Regex
+        ["Description"] = if (Description == null) null else Description
         ["MaximumMatchDistance"] = if (MaximumMatchDistance == null) null else MaximumMatchDistance
+        ["IgnoreWords"] = if (IgnoreWords == null) null else IgnoreWords
+        ["Name"] = if (Name == null) null else Name
         ["Keywords"] = if (Keywords == null) null else Keywords
         ["Tags"] = if (Tags == null) null else Tags
-        ["Name"] = if (Name == null) null else Name
-        ["Description"] = if (Description == null) null else Description
-        ["IgnoreWords"] = if (IgnoreWords == null) null else IgnoreWords
+        ["Regex"] = if (Regex == null) null else Regex
     }
 
 }

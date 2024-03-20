@@ -5,41 +5,26 @@ module aws.healthlake.fhirdatastore
 
 import "../../cloudformation.pkl"
 
-typealias FHIRDatastoreDatastoreName = String|Mapping
+typealias FHIRDatastoreDatastoreTypeVersion = String|Mapping
+
+
+typealias FHIRDatastoreDatastoreStatus = String|Mapping
 
 
 typealias IdentityProviderConfigurationAuthorizationStrategy = "SMART_ON_FHIR_V1"|"AWS_AUTH"
 
 /// The identity provider configuration for the datastore
 open class FHIRDatastoreIdentityProviderConfiguration {
-    Metadata: (String|Mapping)?
-    IdpLambdaArn: (String(matches(Regex(#"arn:aws[-a-z]*:lambda:[a-z]{2}-[a-z]+-\d{1}:\d{12}:function:[a-zA-Z0-9\-_\.]+(:(\$LATEST|[a-zA-Z0-9\-_]+))?"#)))|Mapping)?
     AuthorizationStrategy: IdentityProviderConfigurationAuthorizationStrategy|Mapping
     FineGrainedAuthorizationEnabled: (Boolean|Mapping)?
-}
-
-typealias FHIRDatastoreDatastoreArn = String|Mapping
-
-
-/// A key-value pair. A tag consists of a tag key and a tag value. Tag keys and tag values are both required, but tag values can be empty (null) strings.
-open class FHIRDatastoreTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// The time that a Data Store was created.
-open class FHIRDatastoreCreatedAt {
-    Seconds: String|Mapping
-    Nanos: Int|Mapping
+    Metadata: (String|Mapping)?
+    IdpLambdaArn: (String(matches(Regex(#"arn:aws[-a-z]*:lambda:[a-z]{2}-[a-z]+-\d{1}:\d{12}:function:[a-zA-Z0-9\-_\.]+(:(\$LATEST|[a-zA-Z0-9\-_]+))?"#)))|Mapping)?
 }
 
 typealias FHIRDatastoreDatastoreEndpoint = String|Mapping
 
 
-typealias FHIRDatastoreDatastoreId = String|Mapping
-
-
-typealias FHIRDatastoreDatastoreStatus = String|Mapping
+typealias FHIRDatastoreDatastoreName = String|Mapping
 
 
 typealias PreloadDataConfigPreloadDataType = "SYNTHEA"
@@ -49,14 +34,6 @@ open class FHIRDatastorePreloadDataConfig {
     PreloadDataType: PreloadDataConfigPreloadDataType|Mapping
 }
 
-/// The server-side encryption key configuration for a customer provided encryption key.
-open class FHIRDatastoreSseConfiguration {
-    KmsEncryptionConfig: FHIRDatastoreKmsEncryptionConfig
-}
-
-typealias FHIRDatastoreDatastoreTypeVersion = String|Mapping
-
-
 typealias KmsEncryptionConfigCmkType = "CUSTOMER_MANAGED_KMS_KEY"|"AWS_OWNED_KMS_KEY"
 
 /// The customer-managed-key (CMK) used when creating a Data Store. If a customer owned key is not specified, an AWS owned key will be used for encryption.
@@ -65,6 +42,29 @@ open class FHIRDatastoreKmsEncryptionConfig {
     KmsKeyId: (String(matches(Regex(#"(arn:aws((-us-gov)|(-iso)|(-iso-b)|(-cn))?:kms:)?([a-z]{2}-[a-z]+(-[a-z]+)?-\d:)?(\d{12}:)?(((key/)?[a-zA-Z0-9-_]+)|(alias/[a-zA-Z0-9:/_-]+))"#)))|Mapping)?
 }
 
+/// The time that a Data Store was created.
+open class FHIRDatastoreCreatedAt {
+    Seconds: String|Mapping
+    Nanos: Int|Mapping
+}
+
+typealias FHIRDatastoreDatastoreArn = String|Mapping
+
+
+/// The server-side encryption key configuration for a customer provided encryption key.
+open class FHIRDatastoreSseConfiguration {
+    KmsEncryptionConfig: FHIRDatastoreKmsEncryptionConfig
+}
+
+/// A key-value pair. A tag consists of a tag key and a tag value. Tag keys and tag values are both required, but tag values can be empty (null) strings.
+open class FHIRDatastoreTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+typealias FHIRDatastoreDatastoreId = String|Mapping
+
+
 /// HealthLake FHIR Datastore
 open class FHIRDatastore extends cloudformation.Resource {
 
@@ -72,16 +72,7 @@ open class FHIRDatastore extends cloudformation.Resource {
 
 
     /// 
-    hidden Tags: (Listing<FHIRDatastoreTag>)?
-
-    /// 
-    hidden DatastoreName: (FHIRDatastoreDatastoreName)?
-
-    /// 
     hidden DatastoreTypeVersion: FHIRDatastoreDatastoreTypeVersion
-
-    /// 
-    hidden IdentityProviderConfiguration: (FHIRDatastoreIdentityProviderConfiguration)?
 
     /// 
     hidden PreloadDataConfig: (FHIRDatastorePreloadDataConfig)?
@@ -89,13 +80,22 @@ open class FHIRDatastore extends cloudformation.Resource {
     /// 
     hidden SseConfiguration: (FHIRDatastoreSseConfiguration)?
 
+    /// 
+    hidden IdentityProviderConfiguration: (FHIRDatastoreIdentityProviderConfiguration)?
+
+    /// 
+    hidden Tags: (Listing<FHIRDatastoreTag>)?
+
+    /// 
+    hidden DatastoreName: (FHIRDatastoreDatastoreName)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["DatastoreName"] = if (DatastoreName == null) null else DatastoreName
         ["DatastoreTypeVersion"] = if (DatastoreTypeVersion == null) null else DatastoreTypeVersion
-        ["IdentityProviderConfiguration"] = if (IdentityProviderConfiguration == null) null else IdentityProviderConfiguration
         ["PreloadDataConfig"] = if (PreloadDataConfig == null) null else PreloadDataConfig
         ["SseConfiguration"] = if (SseConfiguration == null) null else SseConfiguration
+        ["IdentityProviderConfiguration"] = if (IdentityProviderConfiguration == null) null else IdentityProviderConfiguration
+        ["Tags"] = if (Tags == null) null else Tags
+        ["DatastoreName"] = if (DatastoreName == null) null else DatastoreName
     }
 
 }

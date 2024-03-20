@@ -17,15 +17,6 @@ open class LocationFSxWindows extends cloudformation.Resource {
     Type = "AWS::DataSync::LocationFSxWindows"
 
 
-    /// A subdirectory in the location's path.
-    hidden Subdirectory: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\$\p{Zs}]+$"#)))|Mapping)?
-
-    /// The user who has the permissions to access files and folders in the FSx for Windows file system.
-    hidden User: String(matches(Regex(#"^[^\x5B\x5D\\/:;|=,+*?]{1,104}$"#)))|Mapping
-
-    /// The name of the Windows domain that the FSx for Windows server belongs to.
-    hidden Domain: (String(matches(Regex(#"^([A-Za-z0-9]+[A-Za-z0-9-.]*)*[A-Za-z0-9-]*[A-Za-z0-9]$"#)))|Mapping)?
-
     /// The Amazon Resource Name (ARN) for the FSx for Windows file system.
     hidden FsxFilesystemArn: (String(matches(Regex(#"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):fsx:[a-z\-0-9]*:[0-9]{12}:file-system/fs-.*$"#)))|Mapping)?
 
@@ -38,14 +29,23 @@ open class LocationFSxWindows extends cloudformation.Resource {
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<LocationFSxWindowsTag>)?
 
+    /// The name of the Windows domain that the FSx for Windows server belongs to.
+    hidden Domain: (String(matches(Regex(#"^([A-Za-z0-9]+[A-Za-z0-9-.]*)*[A-Za-z0-9-]*[A-Za-z0-9]$"#)))|Mapping)?
+
+    /// A subdirectory in the location's path.
+    hidden Subdirectory: (String(matches(Regex(#"^[a-zA-Z0-9_\-\+\./\(\)\$\p{Zs}]+$"#)))|Mapping)?
+
+    /// The user who has the permissions to access files and folders in the FSx for Windows file system.
+    hidden User: String(matches(Regex(#"^[^\x5B\x5D\\/:;|=,+*?]{1,104}$"#)))|Mapping
+
     Properties {
-        ["Subdirectory"] = if (Subdirectory == null) null else Subdirectory
-        ["User"] = if (User == null) null else User
-        ["Domain"] = if (Domain == null) null else Domain
         ["FsxFilesystemArn"] = if (FsxFilesystemArn == null) null else FsxFilesystemArn
         ["Password"] = if (Password == null) null else Password
         ["SecurityGroupArns"] = if (SecurityGroupArns == null) null else SecurityGroupArns
         ["Tags"] = if (Tags == null) null else Tags
+        ["Domain"] = if (Domain == null) null else Domain
+        ["Subdirectory"] = if (Subdirectory == null) null else Subdirectory
+        ["User"] = if (User == null) null else User
     }
 
 }

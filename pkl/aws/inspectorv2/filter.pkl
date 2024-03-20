@@ -5,61 +5,64 @@ module aws.inspectorv2.filter
 
 import "../../cloudformation.pkl"
 
-typealias FilterStringInput = String|Mapping
+typealias FilterMapComparison = String|Mapping
 
-
-typealias FilterPort = Int|Mapping
-
-
-/// 
-open class FilterMapFilter {
-    Comparison: FilterMapComparison
-    Key: (FilterMapKey)?
-    Value: (FilterMapValue)?
-}
 
 /// 
 open class FilterFilterCriteria {
-    PortRange: (FilterPortRangeFilterList)?
-    Severity: (FilterStringFilterList)?
-    VendorSeverity: (FilterStringFilterList)?
-    ComponentType: (FilterStringFilterList)?
-    Ec2InstanceVpcId: (FilterStringFilterList)?
-    AwsAccountId: (FilterStringFilterList)?
-    ComponentId: (FilterStringFilterList)?
-    EcrImageRepositoryName: (FilterStringFilterList)?
-    NetworkProtocol: (FilterStringFilterList)?
-    VulnerabilitySource: (FilterStringFilterList)?
-    ResourceTags: (FilterMapFilterList)?
-    Title: (FilterStringFilterList)?
-    VulnerabilityId: (FilterStringFilterList)?
-    EcrImageTags: (FilterStringFilterList)?
-    EcrImagePushedAt: (FilterDateFilterList)?
-    FindingArn: (FilterStringFilterList)?
-    FindingType: (FilterStringFilterList)?
-    InspectorScore: (FilterNumberFilterList)?
-    EcrImageArchitecture: (FilterStringFilterList)?
-    FirstObservedAt: (FilterDateFilterList)?
-    Ec2InstanceImageId: (FilterStringFilterList)?
     EcrImageRegistry: (FilterStringFilterList)?
+    FirstObservedAt: (FilterDateFilterList)?
+    LastObservedAt: (FilterDateFilterList)?
+    ResourceId: (FilterStringFilterList)?
     ResourceType: (FilterStringFilterList)?
     UpdatedAt: (FilterDateFilterList)?
-    Ec2InstanceSubnetId: (FilterStringFilterList)?
-    EcrImageHash: (FilterStringFilterList)?
+    VulnerabilitySource: (FilterStringFilterList)?
+    EcrImageTags: (FilterStringFilterList)?
+    Ec2InstanceImageId: (FilterStringFilterList)?
+    EcrImagePushedAt: (FilterDateFilterList)?
+    Severity: (FilterStringFilterList)?
+    AwsAccountId: (FilterStringFilterList)?
+    ComponentId: (FilterStringFilterList)?
+    ComponentType: (FilterStringFilterList)?
     FindingStatus: (FilterStringFilterList)?
-    LastObservedAt: (FilterDateFilterList)?
-    RelatedVulnerabilities: (FilterStringFilterList)?
-    ResourceId: (FilterStringFilterList)?
+    InspectorScore: (FilterNumberFilterList)?
+    NetworkProtocol: (FilterStringFilterList)?
+    Title: (FilterStringFilterList)?
+    Ec2InstanceVpcId: (FilterStringFilterList)?
+    EcrImageHash: (FilterStringFilterList)?
+    EcrImageRepositoryName: (FilterStringFilterList)?
+    VulnerabilityId: (FilterStringFilterList)?
+    FindingType: (FilterStringFilterList)?
+    ResourceTags: (FilterMapFilterList)?
     VulnerablePackages: (FilterPackageFilterList)?
+    Ec2InstanceSubnetId: (FilterStringFilterList)?
+    EcrImageArchitecture: (FilterStringFilterList)?
+    VendorSeverity: (FilterStringFilterList)?
+    FindingArn: (FilterStringFilterList)?
+    PortRange: (FilterPortRangeFilterList)?
+    RelatedVulnerabilities: (FilterStringFilterList)?
 }
 
-typealias FilterMapValue = String|Mapping
-
+/// 
+open class FilterPackageFilter {
+    Architecture: (FilterStringFilter)?
+    Epoch: (FilterNumberFilter)?
+    Name: (FilterStringFilter)?
+    Release: (FilterStringFilter)?
+    SourceLayerHash: (FilterStringFilter)?
+    Version: (FilterStringFilter)?
+}
 
 typealias FilterPackageFilterList = Listing<(FilterPackageFilter)?>
 
 
-typealias FilterMapKey = String|Mapping
+typealias FilterMapValue = String|Mapping
+
+
+typealias FilterStringInput = String|Mapping
+
+
+typealias FilterPort = Int|Mapping
 
 
 /// 
@@ -69,31 +72,17 @@ open class FilterNumberFilter {
 }
 
 /// 
-open class FilterStringFilter {
-    Comparison: FilterStringComparison
-    Value: FilterStringInput
+open class FilterMapFilter {
+    Value: (FilterMapValue)?
+    Comparison: FilterMapComparison
+    Key: (FilterMapKey)?
 }
 
 typealias FilterDateFilterList = Listing<(FilterDateFilter)?>
 
 
-typealias FilterFilterAction = String|Mapping
+typealias FilterMapKey = String|Mapping
 
-
-/// 
-open class FilterDateFilter {
-    StartInclusive: (FilterTimestamp)?
-    EndInclusive: (FilterTimestamp)?
-}
-
-typealias FilterMapFilterList = Listing<(FilterMapFilter)?>
-
-
-/// 
-open class FilterPortRangeFilter {
-    EndInclusive: (FilterPort)?
-    BeginInclusive: (FilterPort)?
-}
 
 typealias FilterTimestamp = Int|Mapping
 
@@ -101,26 +90,37 @@ typealias FilterTimestamp = Int|Mapping
 typealias FilterStringComparison = String|Mapping
 
 
-typealias FilterNumberFilterList = Listing<(FilterNumberFilter)?>
+typealias FilterStringFilterList = Listing<(FilterStringFilter)?>
+
+
+/// 
+open class FilterPortRangeFilter {
+    BeginInclusive: (FilterPort)?
+    EndInclusive: (FilterPort)?
+}
+
+typealias FilterMapFilterList = Listing<(FilterMapFilter)?>
 
 
 typealias FilterPortRangeFilterList = Listing<(FilterPortRangeFilter)?>
 
 
-typealias FilterMapComparison = String|Mapping
+/// 
+open class FilterStringFilter {
+    Comparison: FilterStringComparison
+    Value: FilterStringInput
+}
+
+typealias FilterFilterAction = String|Mapping
 
 
-typealias FilterStringFilterList = Listing<(FilterStringFilter)?>
+typealias FilterNumberFilterList = Listing<(FilterNumberFilter)?>
 
 
 /// 
-open class FilterPackageFilter {
-    Version: (FilterStringFilter)?
-    Architecture: (FilterStringFilter)?
-    Epoch: (FilterNumberFilter)?
-    Name: (FilterStringFilter)?
-    Release: (FilterStringFilter)?
-    SourceLayerHash: (FilterStringFilter)?
+open class FilterDateFilter {
+    EndInclusive: (FilterTimestamp)?
+    StartInclusive: (FilterTimestamp)?
 }
 
 /// Inspector Filter resource schema
@@ -128,9 +128,6 @@ open class Filter extends cloudformation.Resource {
 
     Type = "AWS::InspectorV2::Filter"
 
-
-    /// Findings filter action.
-    hidden FilterAction: FilterFilterAction
 
     /// Findings filter name.
     hidden Name: String|Mapping
@@ -141,11 +138,14 @@ open class Filter extends cloudformation.Resource {
     /// Findings filter criteria.
     hidden FilterCriteria: FilterFilterCriteria
 
+    /// Findings filter action.
+    hidden FilterAction: FilterFilterAction
+
     Properties {
-        ["FilterAction"] = if (FilterAction == null) null else FilterAction
         ["Name"] = if (Name == null) null else Name
         ["Description"] = if (Description == null) null else Description
         ["FilterCriteria"] = if (FilterCriteria == null) null else FilterCriteria
+        ["FilterAction"] = if (FilterAction == null) null else FilterAction
     }
 
 }

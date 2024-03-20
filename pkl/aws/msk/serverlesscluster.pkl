@@ -6,6 +6,16 @@ module aws.msk.serverlesscluster
 import "../../cloudformation.pkl"
 
 /// 
+open class ServerlessClusterClientAuthentication {
+    Sasl: ServerlessClusterSasl
+}
+
+/// 
+open class ServerlessClusterSasl {
+    Iam: ServerlessClusterIam
+}
+
+/// 
 open class ServerlessClusterIam {
     Enabled: Boolean|Mapping
 }
@@ -16,24 +26,11 @@ open class ServerlessClusterVpcConfig {
     SubnetIds: Listing<String|Mapping>
 }
 
-/// 
-open class ServerlessClusterClientAuthentication {
-    Sasl: ServerlessClusterSasl
-}
-
-/// 
-open class ServerlessClusterSasl {
-    Iam: ServerlessClusterIam
-}
-
 /// Resource Type definition for AWS::MSK::ServerlessCluster
 open class ServerlessCluster extends cloudformation.Resource {
 
     Type = "AWS::MSK::ServerlessCluster"
 
-
-    /// 
-    hidden ClusterName: String|Mapping
 
     /// 
     hidden VpcConfigs: Listing<ServerlessClusterVpcConfig>
@@ -44,11 +41,14 @@ open class ServerlessCluster extends cloudformation.Resource {
     /// A key-value pair to associate with a resource.
     hidden Tags: (ServerlessClusterServerlessClusterTags)?
 
+    /// 
+    hidden ClusterName: String|Mapping
+
     Properties {
-        ["ClusterName"] = if (ClusterName == null) null else ClusterName
         ["VpcConfigs"] = if (VpcConfigs == null) null else VpcConfigs
         ["ClientAuthentication"] = if (ClientAuthentication == null) null else ClientAuthentication
         ["Tags"] = if (Tags == null) null else Tags
+        ["ClusterName"] = if (ClusterName == null) null else ClusterName
     }
 
 }

@@ -17,37 +17,15 @@ open class EndpointVariantProperty {
 
 /// 
 open class EndpointCapacitySize {
-    Type: String|Mapping
     Value: Int|Mapping
-}
-
-/// 
-open class EndpointTrafficRoutingConfig {
-    LinearStepSize: (EndpointCapacitySize)?
-    CanarySize: (EndpointCapacitySize)?
-    WaitIntervalInSeconds: (Int|Mapping)?
     Type: String|Mapping
 }
 
 /// 
 open class EndpointBlueGreenUpdatePolicy {
+    TrafficRoutingConfiguration: EndpointTrafficRoutingConfig
     MaximumExecutionTimeoutInSeconds: (Int|Mapping)?
     TerminationWaitInSeconds: (Int|Mapping)?
-    TrafficRoutingConfiguration: EndpointTrafficRoutingConfig
-}
-
-/// 
-open class EndpointRollingUpdatePolicy {
-    MaximumBatchSize: EndpointCapacitySize
-    WaitIntervalInSeconds: Int|Mapping
-    RollbackMaximumBatchSize: (EndpointCapacitySize)?
-    MaximumExecutionTimeoutInSeconds: (Int|Mapping)?
-}
-
-/// 
-open class EndpointTag {
-    Value: String|Mapping
-    Key: String|Mapping
 }
 
 /// 
@@ -57,9 +35,31 @@ open class EndpointAutoRollbackConfig {
 
 /// 
 open class EndpointDeploymentConfig {
-    AutoRollbackConfiguration: (EndpointAutoRollbackConfig)?
     RollingUpdatePolicy: (EndpointRollingUpdatePolicy)?
     BlueGreenUpdatePolicy: (EndpointBlueGreenUpdatePolicy)?
+    AutoRollbackConfiguration: (EndpointAutoRollbackConfig)?
+}
+
+/// 
+open class EndpointTrafficRoutingConfig {
+    Type: String|Mapping
+    LinearStepSize: (EndpointCapacitySize)?
+    CanarySize: (EndpointCapacitySize)?
+    WaitIntervalInSeconds: (Int|Mapping)?
+}
+
+/// 
+open class EndpointRollingUpdatePolicy {
+    MaximumExecutionTimeoutInSeconds: (Int|Mapping)?
+    MaximumBatchSize: EndpointCapacitySize
+    WaitIntervalInSeconds: Int|Mapping
+    RollbackMaximumBatchSize: (EndpointCapacitySize)?
+}
+
+/// 
+open class EndpointTag {
+    Value: String|Mapping
+    Key: String|Mapping
 }
 
 /// Resource Type definition for AWS::SageMaker::Endpoint
@@ -67,12 +67,6 @@ open class Endpoint extends cloudformation.Resource {
 
     Type = "AWS::SageMaker::Endpoint"
 
-
-    /// 
-    hidden Tags: (Listing<EndpointTag>)?
-
-    /// 
-    hidden RetainAllVariantProperties: (Boolean|Mapping)?
 
     /// 
     hidden EndpointName: (String|Mapping)?
@@ -89,14 +83,20 @@ open class Endpoint extends cloudformation.Resource {
     /// 
     hidden RetainDeploymentConfig: (Boolean|Mapping)?
 
+    /// 
+    hidden Tags: (Listing<EndpointTag>)?
+
+    /// 
+    hidden RetainAllVariantProperties: (Boolean|Mapping)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["RetainAllVariantProperties"] = if (RetainAllVariantProperties == null) null else RetainAllVariantProperties
         ["EndpointName"] = if (EndpointName == null) null else EndpointName
         ["ExcludeRetainedVariantProperties"] = if (ExcludeRetainedVariantProperties == null) null else ExcludeRetainedVariantProperties
         ["EndpointConfigName"] = if (EndpointConfigName == null) null else EndpointConfigName
         ["DeploymentConfig"] = if (DeploymentConfig == null) null else DeploymentConfig
         ["RetainDeploymentConfig"] = if (RetainDeploymentConfig == null) null else RetainDeploymentConfig
+        ["Tags"] = if (Tags == null) null else Tags
+        ["RetainAllVariantProperties"] = if (RetainAllVariantProperties == null) null else RetainAllVariantProperties
     }
 
 }

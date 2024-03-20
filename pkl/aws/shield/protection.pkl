@@ -15,8 +15,8 @@ typealias ApplicationLayerAutomaticResponseConfigurationStatus = "ENABLED"|"DISA
 
 /// The automatic application layer DDoS mitigation settings for a Protection. This configuration determines whether Shield Advanced automatically manages rules in the web ACL in order to respond to application layer events that Shield Advanced determines to be DDoS attacks.
 open class ProtectionApplicationLayerAutomaticResponseConfiguration {
-    Status: ApplicationLayerAutomaticResponseConfigurationStatus|Mapping
     Action: Dynamic
+    Status: ApplicationLayerAutomaticResponseConfigurationStatus|Mapping
 }
 
 /// Enables AWS Shield Advanced for a specific AWS resource. The resource can be an Amazon CloudFront distribution, Amazon Route 53 hosted zone, AWS Global Accelerator standard accelerator, Elastic IP Address, Application Load Balancer, or a Classic Load Balancer. You can protect Amazon EC2 instances and Network Load Balancers by association with protected Amazon EC2 Elastic IP addresses.
@@ -24,6 +24,12 @@ open class Protection extends cloudformation.Resource {
 
     Type = "AWS::Shield::Protection"
 
+
+    /// 
+    hidden ApplicationLayerAutomaticResponseConfiguration: (ProtectionApplicationLayerAutomaticResponseConfiguration)?
+
+    /// One or more tag key-value pairs for the Protection object.
+    hidden Tags: (Listing<ProtectionTag>)?
 
     /// Friendly name for the Protection.
     hidden Name: String(matches(Regex(#"[ a-zA-Z0-9_\.\-]*"#)))|Mapping
@@ -34,18 +40,12 @@ open class Protection extends cloudformation.Resource {
     /// The Amazon Resource Names (ARNs) of the health check to associate with the protection.
     hidden HealthCheckArns: (Listing<String|Mapping>)?
 
-    /// 
-    hidden ApplicationLayerAutomaticResponseConfiguration: (ProtectionApplicationLayerAutomaticResponseConfiguration)?
-
-    /// One or more tag key-value pairs for the Protection object.
-    hidden Tags: (Listing<ProtectionTag>)?
-
     Properties {
+        ["ApplicationLayerAutomaticResponseConfiguration"] = if (ApplicationLayerAutomaticResponseConfiguration == null) null else ApplicationLayerAutomaticResponseConfiguration
+        ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
         ["ResourceArn"] = if (ResourceArn == null) null else ResourceArn
         ["HealthCheckArns"] = if (HealthCheckArns == null) null else HealthCheckArns
-        ["ApplicationLayerAutomaticResponseConfiguration"] = if (ApplicationLayerAutomaticResponseConfiguration == null) null else ApplicationLayerAutomaticResponseConfiguration
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

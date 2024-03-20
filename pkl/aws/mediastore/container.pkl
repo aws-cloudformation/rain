@@ -6,6 +6,21 @@ module aws.mediastore.container
 import "../../cloudformation.pkl"
 
 /// 
+open class ContainerCorsRule {
+    MaxAgeSeconds: (Int|Mapping)?
+    AllowedHeaders: (Listing<String|Mapping>)?
+    AllowedMethods: (Listing<String|Mapping>)?
+    AllowedOrigins: (Listing<String|Mapping>)?
+    ExposeHeaders: (Listing<String|Mapping>)?
+}
+
+/// 
+open class ContainerMetricPolicy {
+    ContainerLevelMetrics: String|Mapping
+    MetricPolicyRules: (Listing<ContainerMetricPolicyRule>)?
+}
+
+/// 
 open class ContainerTag {
     Value: String|Mapping
     Key: String|Mapping
@@ -13,23 +28,8 @@ open class ContainerTag {
 
 /// 
 open class ContainerMetricPolicyRule {
-    ObjectGroup: String|Mapping
     ObjectGroupName: String|Mapping
-}
-
-/// 
-open class ContainerCorsRule {
-    AllowedHeaders: (Listing<String|Mapping>)?
-    AllowedMethods: (Listing<String|Mapping>)?
-    AllowedOrigins: (Listing<String|Mapping>)?
-    ExposeHeaders: (Listing<String|Mapping>)?
-    MaxAgeSeconds: (Int|Mapping)?
-}
-
-/// 
-open class ContainerMetricPolicy {
-    ContainerLevelMetrics: String|Mapping
-    MetricPolicyRules: (Listing<ContainerMetricPolicyRule>)?
+    ObjectGroup: String|Mapping
 }
 
 /// Resource Type definition for AWS::MediaStore::Container
@@ -45,6 +45,9 @@ open class Container extends cloudformation.Resource {
     hidden MetricPolicy: (ContainerMetricPolicy)?
 
     /// 
+    hidden LifecyclePolicy: (String|Mapping)?
+
+    /// 
     hidden ContainerName: String|Mapping
 
     /// 
@@ -54,18 +57,15 @@ open class Container extends cloudformation.Resource {
     hidden AccessLoggingEnabled: (Boolean|Mapping)?
 
     /// 
-    hidden LifecyclePolicy: (String|Mapping)?
-
-    /// 
     hidden Tags: (Listing<ContainerTag>)?
 
     Properties {
         ["Policy"] = if (Policy == null) null else Policy
         ["MetricPolicy"] = if (MetricPolicy == null) null else MetricPolicy
+        ["LifecyclePolicy"] = if (LifecyclePolicy == null) null else LifecyclePolicy
         ["ContainerName"] = if (ContainerName == null) null else ContainerName
         ["CorsPolicy"] = if (CorsPolicy == null) null else CorsPolicy
         ["AccessLoggingEnabled"] = if (AccessLoggingEnabled == null) null else AccessLoggingEnabled
-        ["LifecyclePolicy"] = if (LifecyclePolicy == null) null else LifecyclePolicy
         ["Tags"] = if (Tags == null) null else Tags
     }
 

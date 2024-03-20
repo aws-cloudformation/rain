@@ -5,13 +5,38 @@ module aws.iotfleetwise.campaign
 
 import "../../cloudformation.pkl"
 
-typealias CampaignCollectionScheme = CampaignCollectionSchemeTimeBasedCollectionScheme|CampaignCollectionSchemeConditionBasedCollectionScheme
+/// 
+open class CampaignDataDestinationConfigS3Config {
+    S3Config: CampaignS3Config
+}
+
+typealias CampaignUpdateCampaignAction = String|Mapping
+
+
+typealias CampaignTriggerMode = String|Mapping
+
+
+/// 
+open class CampaignTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class CampaignCollectionSchemeTimeBasedCollectionScheme {
+    TimeBasedCollectionScheme: CampaignTimeBasedCollectionScheme
+}
+
+typealias CampaignDataDestinationConfig = CampaignDataDestinationConfigS3Config|CampaignDataDestinationConfigTimestreamConfig
+
+
+typealias CampaignCampaignStatus = String|Mapping
+
+
+typealias CampaignDiagnosticsMode = String|Mapping
 
 
 typealias CampaignDataFormat = String|Mapping
-
-
-typealias CampaignSpoolingMode = String|Mapping
 
 
 typealias CampaignStorageCompressionFormat = String|Mapping
@@ -25,18 +50,21 @@ open class CampaignS3Config {
     Prefix: (String(matches(Regex(#"^[a-zA-Z0-9-_:./!*'()]+$"#)))|Mapping)?
 }
 
-typealias CampaignDiagnosticsMode = String|Mapping
-
-
 /// 
-open class CampaignConditionBasedCollectionScheme {
-    TriggerMode: (CampaignTriggerMode)?
-    ConditionLanguageVersion: (Int|Mapping)?
-    MinimumTriggerIntervalMs: (Number|Mapping)?
-    Expression: String|Mapping
+open class CampaignTimestreamConfig {
+    TimestreamTableArn: String(matches(Regex(#"^arn:(aws[a-zA-Z0-9-]*):timestream:[a-zA-Z0-9-]+:[0-9]{12}:database\/[a-zA-Z0-9_.-]+\/table\/[a-zA-Z0-9_.-]+$"#)))|Mapping
+    ExecutionRoleArn: String(matches(Regex(#"^arn:(aws[a-zA-Z0-9-]*):iam::(\d{12})?:(role((\u002F)|(\u002F[\u0021-\u007F]+\u002F))[\w+=,.@-]+)$"#)))|Mapping
 }
 
-typealias CampaignCampaignStatus = String|Mapping
+/// 
+open class CampaignCollectionSchemeConditionBasedCollectionScheme {
+    ConditionBasedCollectionScheme: CampaignConditionBasedCollectionScheme
+}
+
+typealias CampaignCompression = String|Mapping
+
+
+typealias CampaignSpoolingMode = String|Mapping
 
 
 /// 
@@ -51,26 +79,12 @@ open class CampaignSignalInformation {
     MinimumSamplingIntervalMs: (Number|Mapping)?
 }
 
-typealias CampaignTriggerMode = String|Mapping
-
-
 /// 
-open class CampaignTimestreamConfig {
-    TimestreamTableArn: String(matches(Regex(#"^arn:(aws[a-zA-Z0-9-]*):timestream:[a-zA-Z0-9-]+:[0-9]{12}:database\/[a-zA-Z0-9_.-]+\/table\/[a-zA-Z0-9_.-]+$"#)))|Mapping
-    ExecutionRoleArn: String(matches(Regex(#"^arn:(aws[a-zA-Z0-9-]*):iam::(\d{12})?:(role((\u002F)|(\u002F[\u0021-\u007F]+\u002F))[\w+=,.@-]+)$"#)))|Mapping
-}
-
-/// 
-open class CampaignCollectionSchemeTimeBasedCollectionScheme {
-    TimeBasedCollectionScheme: CampaignTimeBasedCollectionScheme
-}
-
-typealias CampaignDataDestinationConfig = CampaignDataDestinationConfigS3Config|CampaignDataDestinationConfigTimestreamConfig
-
-
-/// 
-open class CampaignDataDestinationConfigS3Config {
-    S3Config: CampaignS3Config
+open class CampaignConditionBasedCollectionScheme {
+    MinimumTriggerIntervalMs: (Number|Mapping)?
+    Expression: String|Mapping
+    TriggerMode: (CampaignTriggerMode)?
+    ConditionLanguageVersion: (Int|Mapping)?
 }
 
 /// 
@@ -78,22 +92,8 @@ open class CampaignTimeBasedCollectionScheme {
     PeriodMs: Number|Mapping
 }
 
-typealias CampaignUpdateCampaignAction = String|Mapping
+typealias CampaignCollectionScheme = CampaignCollectionSchemeTimeBasedCollectionScheme|CampaignCollectionSchemeConditionBasedCollectionScheme
 
-
-/// 
-open class CampaignTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-typealias CampaignCompression = String|Mapping
-
-
-/// 
-open class CampaignCollectionSchemeConditionBasedCollectionScheme {
-    ConditionBasedCollectionScheme: CampaignConditionBasedCollectionScheme
-}
 
 /// Definition of AWS::IoTFleetWise::Campaign Resource Type
 open class Campaign extends cloudformation.Resource {
@@ -105,37 +105,10 @@ open class Campaign extends cloudformation.Resource {
     hidden SignalCatalogArn: String|Mapping
 
     /// 
-    hidden TargetArn: String|Mapping
-
-    /// 
-    hidden SignalsToCollect: (Listing<CampaignSignalInformation>)?
-
-    /// 
-    hidden ExpiryTime: (String|Mapping)?
-
-    /// 
-    hidden SpoolingMode: (CampaignSpoolingMode)?
-
-    /// 
-    hidden DataDestinationConfigs: (Listing<CampaignDataDestinationConfig>)?
-
-    /// 
-    hidden Priority: (Int|Mapping)?
-
-    /// 
-    hidden Name: String(matches(Regex(#"^[a-zA-Z\d\-_:]+$"#)))|Mapping
-
-    /// 
-    hidden PostTriggerCollectionDuration: (Number|Mapping)?
-
-    /// 
-    hidden DiagnosticsMode: (CampaignDiagnosticsMode)?
+    hidden Tags: (Listing<CampaignTag>)?
 
     /// 
     hidden Compression: (CampaignCompression)?
-
-    /// 
-    hidden Description: (String(matches(Regex(#"^[^\u0000-\u001F\u007F]+$"#)))|Mapping)?
 
     /// 
     hidden StartTime: (String|Mapping)?
@@ -144,32 +117,59 @@ open class Campaign extends cloudformation.Resource {
     hidden DataExtraDimensions: (Listing<String|Mapping>)?
 
     /// 
+    hidden Description: (String(matches(Regex(#"^[^\u0000-\u001F\u007F]+$"#)))|Mapping)?
+
+    /// 
+    hidden Priority: (Int|Mapping)?
+
+    /// 
+    hidden PostTriggerCollectionDuration: (Number|Mapping)?
+
+    /// 
+    hidden DataDestinationConfigs: (Listing<CampaignDataDestinationConfig>)?
+
+    /// 
+    hidden Name: String(matches(Regex(#"^[a-zA-Z\d\-_:]+$"#)))|Mapping
+
+    /// 
+    hidden ExpiryTime: (String|Mapping)?
+
+    /// 
+    hidden DiagnosticsMode: (CampaignDiagnosticsMode)?
+
+    /// 
     hidden CollectionScheme: CampaignCollectionScheme
 
     /// 
     hidden Action: CampaignUpdateCampaignAction
 
     /// 
-    hidden Tags: (Listing<CampaignTag>)?
+    hidden SignalsToCollect: (Listing<CampaignSignalInformation>)?
+
+    /// 
+    hidden SpoolingMode: (CampaignSpoolingMode)?
+
+    /// 
+    hidden TargetArn: String|Mapping
 
     Properties {
         ["SignalCatalogArn"] = if (SignalCatalogArn == null) null else SignalCatalogArn
-        ["TargetArn"] = if (TargetArn == null) null else TargetArn
-        ["SignalsToCollect"] = if (SignalsToCollect == null) null else SignalsToCollect
-        ["ExpiryTime"] = if (ExpiryTime == null) null else ExpiryTime
-        ["SpoolingMode"] = if (SpoolingMode == null) null else SpoolingMode
-        ["DataDestinationConfigs"] = if (DataDestinationConfigs == null) null else DataDestinationConfigs
-        ["Priority"] = if (Priority == null) null else Priority
-        ["Name"] = if (Name == null) null else Name
-        ["PostTriggerCollectionDuration"] = if (PostTriggerCollectionDuration == null) null else PostTriggerCollectionDuration
-        ["DiagnosticsMode"] = if (DiagnosticsMode == null) null else DiagnosticsMode
+        ["Tags"] = if (Tags == null) null else Tags
         ["Compression"] = if (Compression == null) null else Compression
-        ["Description"] = if (Description == null) null else Description
         ["StartTime"] = if (StartTime == null) null else StartTime
         ["DataExtraDimensions"] = if (DataExtraDimensions == null) null else DataExtraDimensions
+        ["Description"] = if (Description == null) null else Description
+        ["Priority"] = if (Priority == null) null else Priority
+        ["PostTriggerCollectionDuration"] = if (PostTriggerCollectionDuration == null) null else PostTriggerCollectionDuration
+        ["DataDestinationConfigs"] = if (DataDestinationConfigs == null) null else DataDestinationConfigs
+        ["Name"] = if (Name == null) null else Name
+        ["ExpiryTime"] = if (ExpiryTime == null) null else ExpiryTime
+        ["DiagnosticsMode"] = if (DiagnosticsMode == null) null else DiagnosticsMode
         ["CollectionScheme"] = if (CollectionScheme == null) null else CollectionScheme
         ["Action"] = if (Action == null) null else Action
-        ["Tags"] = if (Tags == null) null else Tags
+        ["SignalsToCollect"] = if (SignalsToCollect == null) null else SignalsToCollect
+        ["SpoolingMode"] = if (SpoolingMode == null) null else SpoolingMode
+        ["TargetArn"] = if (TargetArn == null) null else TargetArn
     }
 
 }

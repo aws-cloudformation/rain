@@ -5,6 +5,14 @@ module aws.location.placeindex
 
 import "../../cloudformation.pkl"
 
+/// 
+open class PlaceIndexDataSourceConfiguration {
+    IntendedUse: (PlaceIndexIntendedUse)?
+}
+
+typealias PlaceIndexIntendedUse = String|Mapping
+
+
 typealias PlaceIndexPricingPlan = String|Mapping
 
 
@@ -20,14 +28,6 @@ open class PlaceIndexTag {
 typealias PlaceIndexiso8601UTC = String|Mapping
 
 
-/// 
-open class PlaceIndexDataSourceConfiguration {
-    IntendedUse: (PlaceIndexIntendedUse)?
-}
-
-typealias PlaceIndexIntendedUse = String|Mapping
-
-
 /// Definition of AWS::Location::PlaceIndex Resource Type
 open class PlaceIndex extends cloudformation.Resource {
 
@@ -35,30 +35,30 @@ open class PlaceIndex extends cloudformation.Resource {
 
 
     /// 
-    hidden DataSourceConfiguration: (PlaceIndexDataSourceConfiguration)?
-
-    /// 
-    hidden PricingPlan: (PlaceIndexPricingPlan)?
-
-    /// 
     hidden DataSource: String|Mapping
 
     /// 
-    hidden Description: (String|Mapping)?
+    hidden DataSourceConfiguration: (PlaceIndexDataSourceConfiguration)?
 
     /// 
     hidden IndexName: String(matches(Regex(#"^[-._\w]+$"#)))|Mapping
 
+    /// 
+    hidden PricingPlan: (PlaceIndexPricingPlan)?
+
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<PlaceIndexTag>)?
 
+    /// 
+    hidden Description: (String|Mapping)?
+
     Properties {
-        ["DataSourceConfiguration"] = if (DataSourceConfiguration == null) null else DataSourceConfiguration
-        ["PricingPlan"] = if (PricingPlan == null) null else PricingPlan
         ["DataSource"] = if (DataSource == null) null else DataSource
-        ["Description"] = if (Description == null) null else Description
+        ["DataSourceConfiguration"] = if (DataSourceConfiguration == null) null else DataSourceConfiguration
         ["IndexName"] = if (IndexName == null) null else IndexName
+        ["PricingPlan"] = if (PricingPlan == null) null else PricingPlan
         ["Tags"] = if (Tags == null) null else Tags
+        ["Description"] = if (Description == null) null else Description
     }
 
 }

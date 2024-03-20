@@ -5,28 +5,22 @@ module aws.vpclattice.targetgroup
 
 import "../../cloudformation.pkl"
 
-/// 
-open class TargetGroupTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
 typealias HealthCheckConfigProtocol = "HTTP"|"HTTPS"
 
 typealias HealthCheckConfigProtocolVersion = "HTTP1"|"HTTP2"|"GRPC"
 
 /// 
 open class TargetGroupHealthCheckConfig {
-    HealthCheckIntervalSeconds: (Int|Mapping)?
-    HealthyThresholdCount: (Int|Mapping)?
-    Matcher: (TargetGroupMatcher)?
     Protocol: (HealthCheckConfigProtocol|Mapping)?
-    ProtocolVersion: (HealthCheckConfigProtocolVersion|Mapping)?
     Path: (String(matches(Regex(#"(^/[a-zA-Z0-9@:%_+.~#?&/=-]*$|(^$))"#)))|Mapping)?
+    HealthCheckIntervalSeconds: (Int|Mapping)?
     UnhealthyThresholdCount: (Int|Mapping)?
+    Matcher: (TargetGroupMatcher)?
     Enabled: (Boolean|Mapping)?
+    ProtocolVersion: (HealthCheckConfigProtocolVersion|Mapping)?
     Port: (Int|Mapping)?
     HealthCheckTimeoutSeconds: (Int|Mapping)?
+    HealthyThresholdCount: (Int|Mapping)?
 }
 
 /// 
@@ -44,19 +38,25 @@ typealias TargetGroupConfigLambdaEventStructureVersion = "V1"|"V2"
 
 /// 
 open class TargetGroupTargetGroupConfig {
+    Port: (Int|Mapping)?
     Protocol: (TargetGroupConfigProtocol|Mapping)?
     ProtocolVersion: (TargetGroupConfigProtocolVersion|Mapping)?
     IpAddressType: (TargetGroupConfigIpAddressType|Mapping)?
     LambdaEventStructureVersion: (TargetGroupConfigLambdaEventStructureVersion|Mapping)?
     VpcIdentifier: (String(matches(Regex(#"^vpc-(([0-9a-z]{8})|([0-9a-z]{17}))$"#)))|Mapping)?
     HealthCheck: (TargetGroupHealthCheckConfig)?
-    Port: (Int|Mapping)?
 }
 
 /// 
 open class TargetGroupTarget {
     Id: String|Mapping
     Port: (Int|Mapping)?
+}
+
+/// 
+open class TargetGroupTag {
+    Value: String|Mapping
+    Key: String|Mapping
 }
 
 /// A target group is a collection of targets, or compute resources, that run your application or service. A target group can only be used by a single service.
@@ -66,25 +66,25 @@ open class TargetGroup extends cloudformation.Resource {
 
 
     /// 
-    hidden Name: (String(matches(Regex(#"^(?!tg-)(?![-])(?!.*[-]$)(?!.*[-]{2})[a-z0-9-]+$"#)))|Mapping)?
-
-    /// 
-    hidden Targets: (Listing<TargetGroupTarget>)?
+    hidden Config: (TargetGroupTargetGroupConfig)?
 
     /// 
     hidden Tags: (Listing<TargetGroupTag>)?
 
     /// 
-    hidden Config: (TargetGroupTargetGroupConfig)?
+    hidden Targets: (Listing<TargetGroupTarget>)?
+
+    /// 
+    hidden Name: (String(matches(Regex(#"^(?!tg-)(?![-])(?!.*[-]$)(?!.*[-]{2})[a-z0-9-]+$"#)))|Mapping)?
 
     /// 
     hidden TypeProperty: TargetGroupType|Mapping
 
     Properties {
-        ["Name"] = if (Name == null) null else Name
-        ["Targets"] = if (Targets == null) null else Targets
-        ["Tags"] = if (Tags == null) null else Tags
         ["Config"] = if (Config == null) null else Config
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Targets"] = if (Targets == null) null else Targets
+        ["Name"] = if (Name == null) null else Name
         ["Type"] = if (TypeProperty == null) null else TypeProperty
     }
 

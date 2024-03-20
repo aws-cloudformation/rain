@@ -17,6 +17,9 @@ open class ContactFlow extends cloudformation.Resource {
     Type = "AWS::Connect::ContactFlow"
 
 
+    /// The type of the contact flow.
+    hidden TypeProperty: ContactFlowType|Mapping
+
     /// One or more tags.
     hidden Tags: (Listing<ContactFlowTag>)?
 
@@ -35,22 +38,19 @@ open class ContactFlow extends cloudformation.Resource {
     /// The state of the contact flow.
     hidden State: (ContactFlowState|Mapping)?
 
-    /// The type of the contact flow.
-    hidden TypeProperty: ContactFlowType|Mapping
-
     Properties {
+        ["Type"] = if (TypeProperty == null) null else TypeProperty
         ["Tags"] = if (Tags == null) null else Tags
         ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
         ["Name"] = if (Name == null) null else Name
         ["Content"] = if (Content == null) null else Content
         ["Description"] = if (Description == null) null else Description
         ["State"] = if (State == null) null else State
-        ["Type"] = if (TypeProperty == null) null else TypeProperty
     }
 
 }
 
 
-typealias ContactFlowState = "ACTIVE"|"ARCHIVED"
-
 typealias ContactFlowType = "CONTACT_FLOW"|"CUSTOMER_QUEUE"|"CUSTOMER_HOLD"|"CUSTOMER_WHISPER"|"AGENT_HOLD"|"AGENT_WHISPER"|"OUTBOUND_WHISPER"|"AGENT_TRANSFER"|"QUEUE_TRANSFER"
+
+typealias ContactFlowState = "ACTIVE"|"ARCHIVED"

@@ -17,6 +17,9 @@ open class Agent extends cloudformation.Resource {
     Type = "AWS::DataSync::Agent"
 
 
+    /// The ID of the VPC endpoint that the agent has access to.
+    hidden VpcEndpointId: (String(matches(Regex(#"^vpce-[0-9a-f]{17}$"#)))|Mapping)?
+
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<AgentTag>)?
 
@@ -32,16 +35,13 @@ open class Agent extends cloudformation.Resource {
     /// The ARNs of the subnets in which DataSync will create elastic network interfaces for each data transfer task.
     hidden SubnetArns: (Listing<String|Mapping>)?
 
-    /// The ID of the VPC endpoint that the agent has access to.
-    hidden VpcEndpointId: (String(matches(Regex(#"^vpce-[0-9a-f]{17}$"#)))|Mapping)?
-
     Properties {
+        ["VpcEndpointId"] = if (VpcEndpointId == null) null else VpcEndpointId
         ["Tags"] = if (Tags == null) null else Tags
         ["AgentName"] = if (AgentName == null) null else AgentName
         ["ActivationKey"] = if (ActivationKey == null) null else ActivationKey
         ["SecurityGroupArns"] = if (SecurityGroupArns == null) null else SecurityGroupArns
         ["SubnetArns"] = if (SubnetArns == null) null else SubnetArns
-        ["VpcEndpointId"] = if (VpcEndpointId == null) null else VpcEndpointId
     }
 
 }

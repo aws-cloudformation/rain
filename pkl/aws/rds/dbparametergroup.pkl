@@ -24,6 +24,17 @@ open class DBParameterGroup extends cloudformation.Resource {
     Type = "AWS::RDS::DBParameterGroup"
 
 
+    /// The name of the DB parameter group.
+    ///
+    ///  Constraints:
+    ///   +  Must be 1 to 255 letters, numbers, or hyphens.
+    ///   +  First character must be a letter
+    ///   +  Can't end with a hyphen or contain two consecutive hyphens
+    ///   
+    ///  If you don't specify a value for ``DBParameterGroupName`` property, a name is automatically created for the DB parameter group.
+    ///   This value is stored as a lowercase string.
+    hidden DBParameterGroupName: (String(matches(Regex(#"^[a-zA-Z]{1}(?:-?[a-zA-Z0-9])*$"#)))|Mapping)?
+
     /// Provides the customer-specified description for this DB parameter group.
     hidden Description: String|Mapping
 
@@ -49,23 +60,12 @@ open class DBParameterGroup extends cloudformation.Resource {
     ///   Currently, this is the only property that supports drift detection.
     hidden Tags: (Listing<DBParameterGroupTag>)?
 
-    /// The name of the DB parameter group.
-    ///
-    ///  Constraints:
-    ///   +  Must be 1 to 255 letters, numbers, or hyphens.
-    ///   +  First character must be a letter
-    ///   +  Can't end with a hyphen or contain two consecutive hyphens
-    ///   
-    ///  If you don't specify a value for ``DBParameterGroupName`` property, a name is automatically created for the DB parameter group.
-    ///   This value is stored as a lowercase string.
-    hidden DBParameterGroupName: (String(matches(Regex(#"^[a-zA-Z]{1}(?:-?[a-zA-Z0-9])*$"#)))|Mapping)?
-
     Properties {
+        ["DBParameterGroupName"] = if (DBParameterGroupName == null) null else DBParameterGroupName
         ["Description"] = if (Description == null) null else Description
         ["Family"] = if (Family == null) null else Family
         ["Parameters"] = if (Parameters == null) null else Parameters
         ["Tags"] = if (Tags == null) null else Tags
-        ["DBParameterGroupName"] = if (DBParameterGroupName == null) null else DBParameterGroupName
     }
 
 }

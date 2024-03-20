@@ -11,24 +11,24 @@ open class EventTypeTag {
     Value: String|Mapping
 }
 
-typealias EventVariableDataSource = "EVENT"
-
 typealias EventVariableVariableType = "AUTH_CODE"|"AVS"|"BILLING_ADDRESS_L1"|"BILLING_ADDRESS_L2"|"BILLING_CITY"|"BILLING_COUNTRY"|"BILLING_NAME"|"BILLING_PHONE"|"BILLING_STATE"|"BILLING_ZIP"|"CARD_BIN"|"CATEGORICAL"|"CURRENCY_CODE"|"EMAIL_ADDRESS"|"FINGERPRINT"|"FRAUD_LABEL"|"FREE_FORM_TEXT"|"IP_ADDRESS"|"NUMERIC"|"ORDER_ID"|"PAYMENT_TYPE"|"PHONE_NUMBER"|"PRICE"|"PRODUCT_CATEGORY"|"SHIPPING_ADDRESS_L1"|"SHIPPING_ADDRESS_L2"|"SHIPPING_CITY"|"SHIPPING_COUNTRY"|"SHIPPING_NAME"|"SHIPPING_PHONE"|"SHIPPING_STATE"|"SHIPPING_ZIP"|"USERAGENT"
+
+typealias EventVariableDataSource = "EVENT"
 
 typealias EventVariableDataType = "STRING"|"INTEGER"|"FLOAT"|"BOOLEAN"
 
 /// 
 open class EventTypeEventVariable {
-    Arn: (String|Mapping)?
-    Name: (String|Mapping)?
-    DataSource: (EventVariableDataSource|Mapping)?
     DefaultValue: (String|Mapping)?
     VariableType: (EventVariableVariableType|Mapping)?
+    Tags: (Listing<EventTypeTag>)?
     CreatedTime: (String|Mapping)?
+    Arn: (String|Mapping)?
     Inline: (Boolean|Mapping)?
+    Name: (String|Mapping)?
+    DataSource: (EventVariableDataSource|Mapping)?
     DataType: (EventVariableDataType|Mapping)?
     Description: (String|Mapping)?
-    Tags: (Listing<EventTypeTag>)?
     LastUpdatedTime: (String|Mapping)?
 }
 
@@ -45,13 +45,13 @@ open class EventTypeLabel {
 
 /// 
 open class EventTypeEntityType {
+    CreatedTime: (String|Mapping)?
+    LastUpdatedTime: (String|Mapping)?
+    Arn: (String|Mapping)?
     Inline: (Boolean|Mapping)?
     Name: (String|Mapping)?
     Description: (String|Mapping)?
     Tags: (Listing<EventTypeTag>)?
-    CreatedTime: (String|Mapping)?
-    LastUpdatedTime: (String|Mapping)?
-    Arn: (String|Mapping)?
 }
 
 /// A resource schema for an EventType in Amazon Fraud Detector.
@@ -59,12 +59,6 @@ open class EventType extends cloudformation.Resource {
 
     Type = "AWS::FraudDetector::EventType"
 
-
-    /// The description of the event type.
-    hidden Description: (String|Mapping)?
-
-    /// 
-    hidden Labels: Listing<EventTypeLabel>
 
     /// The name for the event type
     hidden Name: String(matches(Regex(#"^[0-9a-z_-]+$"#)))|Mapping
@@ -76,14 +70,20 @@ open class EventType extends cloudformation.Resource {
     hidden EventVariables: Listing<EventTypeEventVariable>
 
     /// 
+    hidden Labels: Listing<EventTypeLabel>
+
+    /// The description of the event type.
+    hidden Description: (String|Mapping)?
+
+    /// 
     hidden EntityTypes: Listing<EventTypeEntityType>
 
     Properties {
-        ["Description"] = if (Description == null) null else Description
-        ["Labels"] = if (Labels == null) null else Labels
         ["Name"] = if (Name == null) null else Name
         ["Tags"] = if (Tags == null) null else Tags
         ["EventVariables"] = if (EventVariables == null) null else EventVariables
+        ["Labels"] = if (Labels == null) null else Labels
+        ["Description"] = if (Description == null) null else Description
         ["EntityTypes"] = if (EntityTypes == null) null else EntityTypes
     }
 

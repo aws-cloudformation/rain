@@ -5,28 +5,10 @@ module aws.transfer.workflow
 
 import "../../cloudformation.pkl"
 
-typealias WorkflowStepType = "COPY"|"CUSTOM"|"DECRYPT"|"DELETE"|"TAG"
-
-/// The basic building block of a workflow.
-open class WorkflowWorkflowStep {
-    TagStepDetails: (Dynamic)?
-    Type: (WorkflowStepType|Mapping)?
-    CopyStepDetails: (Dynamic)?
-    CustomStepDetails: (Dynamic)?
-    DecryptStepDetails: (Dynamic)?
-    DeleteStepDetails: (Dynamic)?
-}
-
-/// Creates a key-value pair for a specific resource.
-open class WorkflowTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
 /// Specifies the key-value pair that are assigned to a file during the execution of a Tagging step.
 open class WorkflowS3Tag {
-    Value: String|Mapping
     Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// Specifies the details for an EFS file.
@@ -52,14 +34,29 @@ open class WorkflowS3FileLocation {
     S3FileLocation: (WorkflowS3InputFileLocation)?
 }
 
+typealias WorkflowStepType = "COPY"|"CUSTOM"|"DECRYPT"|"DELETE"|"TAG"
+
+/// The basic building block of a workflow.
+open class WorkflowWorkflowStep {
+    DecryptStepDetails: (Dynamic)?
+    DeleteStepDetails: (Dynamic)?
+    TagStepDetails: (Dynamic)?
+    Type: (WorkflowStepType|Mapping)?
+    CopyStepDetails: (Dynamic)?
+    CustomStepDetails: (Dynamic)?
+}
+
+/// Creates a key-value pair for a specific resource.
+open class WorkflowTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
 /// Resource Type definition for AWS::Transfer::Workflow
 open class Workflow extends cloudformation.Resource {
 
     Type = "AWS::Transfer::Workflow"
 
-
-    /// A textual description for the workflow.
-    hidden Description: (String(matches(Regex(#"^[\w\- ]*$"#)))|Mapping)?
 
     /// Specifies the steps (actions) to take if any errors are encountered during execution of the workflow.
     hidden OnExceptionSteps: (Listing<WorkflowWorkflowStep>)?
@@ -70,11 +67,14 @@ open class Workflow extends cloudformation.Resource {
     /// Key-value pairs that can be used to group and search for workflows. Tags are metadata attached to workflows for any purpose.
     hidden Tags: (Listing<WorkflowTag>)?
 
+    /// A textual description for the workflow.
+    hidden Description: (String(matches(Regex(#"^[\w\- ]*$"#)))|Mapping)?
+
     Properties {
-        ["Description"] = if (Description == null) null else Description
         ["OnExceptionSteps"] = if (OnExceptionSteps == null) null else OnExceptionSteps
         ["Steps"] = if (Steps == null) null else Steps
         ["Tags"] = if (Tags == null) null else Tags
+        ["Description"] = if (Description == null) null else Description
     }
 
 }

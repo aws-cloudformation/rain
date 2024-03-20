@@ -6,10 +6,16 @@ module aws.transfer.user
 import "../../cloudformation.pkl"
 
 /// 
+open class UserTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
 open class UserHomeDirectoryMapEntry {
+    Entry: String|Mapping
     Target: String|Mapping
     Type: (String|Mapping)?
-    Entry: String|Mapping
 }
 
 typealias UserSshPublicKey = Dynamic
@@ -22,12 +28,6 @@ open class UserPosixProfile {
     Gid: Number|Mapping
 }
 
-/// 
-open class UserTag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
 /// Resource Type definition for AWS::Transfer::User
 open class User extends cloudformation.Resource {
 
@@ -35,7 +35,7 @@ open class User extends cloudformation.Resource {
 
 
     /// 
-    hidden HomeDirectoryType: (String|Mapping)?
+    hidden HomeDirectory: (String|Mapping)?
 
     /// 
     hidden ServerId: String|Mapping
@@ -44,37 +44,37 @@ open class User extends cloudformation.Resource {
     hidden UserName: String|Mapping
 
     /// 
-    hidden Policy: (String|Mapping)?
-
-    /// 
-    hidden HomeDirectory: (String|Mapping)?
-
-    /// 
-    hidden PosixProfile: (UserPosixProfile)?
-
-    /// 
     hidden SshPublicKeys: (Listing<UserSshPublicKey>)?
 
     /// 
     hidden Tags: (Listing<UserTag>)?
 
     /// 
+    hidden Policy: (String|Mapping)?
+
+    /// 
     hidden Role: String|Mapping
+
+    /// 
+    hidden HomeDirectoryType: (String|Mapping)?
 
     /// 
     hidden HomeDirectoryMappings: (Listing<UserHomeDirectoryMapEntry>)?
 
+    /// 
+    hidden PosixProfile: (UserPosixProfile)?
+
     Properties {
-        ["HomeDirectoryType"] = if (HomeDirectoryType == null) null else HomeDirectoryType
+        ["HomeDirectory"] = if (HomeDirectory == null) null else HomeDirectory
         ["ServerId"] = if (ServerId == null) null else ServerId
         ["UserName"] = if (UserName == null) null else UserName
-        ["Policy"] = if (Policy == null) null else Policy
-        ["HomeDirectory"] = if (HomeDirectory == null) null else HomeDirectory
-        ["PosixProfile"] = if (PosixProfile == null) null else PosixProfile
         ["SshPublicKeys"] = if (SshPublicKeys == null) null else SshPublicKeys
         ["Tags"] = if (Tags == null) null else Tags
+        ["Policy"] = if (Policy == null) null else Policy
         ["Role"] = if (Role == null) null else Role
+        ["HomeDirectoryType"] = if (HomeDirectoryType == null) null else HomeDirectoryType
         ["HomeDirectoryMappings"] = if (HomeDirectoryMappings == null) null else HomeDirectoryMappings
+        ["PosixProfile"] = if (PosixProfile == null) null else PosixProfile
     }
 
 }

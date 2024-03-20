@@ -6,19 +6,28 @@ module aws.elasticsearch.domain
 import "../../cloudformation.pkl"
 
 /// 
-open class DomainZoneAwarenessConfig {
-    AvailabilityZoneCount: (Int|Mapping)?
+open class DomainAdvancedSecurityOptionsInput {
+    AnonymousAuthEnabled: (Boolean|Mapping)?
+    InternalUserDatabaseEnabled: (Boolean|Mapping)?
+    Enabled: (Boolean|Mapping)?
+    MasterUserOptions: (DomainMasterUserOptions)?
 }
 
 /// 
-open class DomainNodeToNodeEncryptionOptions {
+open class DomainCognitoOptions {
+    RoleArn: (String|Mapping)?
     Enabled: (Boolean|Mapping)?
+    IdentityPoolId: (String|Mapping)?
+    UserPoolId: (String|Mapping)?
 }
 
 /// 
-open class DomainEncryptionAtRestOptions {
-    Enabled: (Boolean|Mapping)?
-    KmsKeyId: (String|Mapping)?
+open class DomainDomainEndpointOptions {
+    CustomEndpointCertificateArn: (String|Mapping)?
+    CustomEndpointEnabled: (Boolean|Mapping)?
+    EnforceHTTPS: (Boolean|Mapping)?
+    CustomEndpoint: (String|Mapping)?
+    TLSSecurityPolicy: (String|Mapping)?
 }
 
 /// 
@@ -29,28 +38,20 @@ open class DomainMasterUserOptions {
 }
 
 /// 
-open class DomainAdvancedSecurityOptionsInput {
+open class DomainTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+/// 
+open class DomainVPCOptions {
+    SecurityGroupIds: (Listing<String|Mapping>)?
+    SubnetIds: (Listing<String|Mapping>)?
+}
+
+/// 
+open class DomainNodeToNodeEncryptionOptions {
     Enabled: (Boolean|Mapping)?
-    MasterUserOptions: (DomainMasterUserOptions)?
-    AnonymousAuthEnabled: (Boolean|Mapping)?
-    InternalUserDatabaseEnabled: (Boolean|Mapping)?
-}
-
-/// 
-open class DomainEBSOptions {
-    EBSEnabled: (Boolean|Mapping)?
-    VolumeType: (String|Mapping)?
-    Iops: (Int|Mapping)?
-    VolumeSize: (Int|Mapping)?
-}
-
-/// 
-open class DomainDomainEndpointOptions {
-    TLSSecurityPolicy: (String|Mapping)?
-    CustomEndpointCertificateArn: (String|Mapping)?
-    CustomEndpointEnabled: (Boolean|Mapping)?
-    EnforceHTTPS: (Boolean|Mapping)?
-    CustomEndpoint: (String|Mapping)?
 }
 
 /// 
@@ -59,32 +60,23 @@ open class DomainColdStorageOptions {
 }
 
 /// 
+open class DomainZoneAwarenessConfig {
+    AvailabilityZoneCount: (Int|Mapping)?
+}
+
+/// 
 open class DomainElasticsearchClusterConfig {
-    WarmCount: (Int|Mapping)?
-    DedicatedMasterEnabled: (Boolean|Mapping)?
-    ZoneAwarenessConfig: (DomainZoneAwarenessConfig)?
-    ColdStorageOptions: (DomainColdStorageOptions)?
-    WarmType: (String|Mapping)?
     ZoneAwarenessEnabled: (Boolean|Mapping)?
-    WarmEnabled: (Boolean|Mapping)?
-    DedicatedMasterCount: (Int|Mapping)?
-    InstanceType: (String|Mapping)?
     DedicatedMasterType: (String|Mapping)?
     InstanceCount: (Int|Mapping)?
-}
-
-/// 
-open class DomainCognitoOptions {
-    IdentityPoolId: (String|Mapping)?
-    UserPoolId: (String|Mapping)?
-    RoleArn: (String|Mapping)?
-    Enabled: (Boolean|Mapping)?
-}
-
-/// 
-open class DomainTag {
-    Value: String|Mapping
-    Key: String|Mapping
+    WarmCount: (Int|Mapping)?
+    DedicatedMasterEnabled: (Boolean|Mapping)?
+    DedicatedMasterCount: (Int|Mapping)?
+    InstanceType: (String|Mapping)?
+    WarmType: (String|Mapping)?
+    WarmEnabled: (Boolean|Mapping)?
+    ZoneAwarenessConfig: (DomainZoneAwarenessConfig)?
+    ColdStorageOptions: (DomainColdStorageOptions)?
 }
 
 /// 
@@ -94,9 +86,17 @@ open class DomainLogPublishingOption {
 }
 
 /// 
-open class DomainVPCOptions {
-    SecurityGroupIds: (Listing<String|Mapping>)?
-    SubnetIds: (Listing<String|Mapping>)?
+open class DomainEBSOptions {
+    VolumeSize: (Int|Mapping)?
+    EBSEnabled: (Boolean|Mapping)?
+    VolumeType: (String|Mapping)?
+    Iops: (Int|Mapping)?
+}
+
+/// 
+open class DomainEncryptionAtRestOptions {
+    KmsKeyId: (String|Mapping)?
+    Enabled: (Boolean|Mapping)?
 }
 
 /// 
@@ -111,34 +111,22 @@ open class Domain extends cloudformation.Resource {
 
 
     /// 
-    hidden LogPublishingOptions: (DomainDomainLogPublishingOptions)?
+    hidden EBSOptions: (DomainEBSOptions)?
 
     /// 
     hidden AccessPolicies: (Dynamic)?
 
     /// 
-    hidden CognitoOptions: (DomainCognitoOptions)?
-
-    /// 
-    hidden ElasticsearchClusterConfig: (DomainElasticsearchClusterConfig)?
-
-    /// 
     hidden SnapshotOptions: (DomainSnapshotOptions)?
 
     /// 
-    hidden VPCOptions: (DomainVPCOptions)?
-
-    /// 
-    hidden DomainName: (String|Mapping)?
+    hidden NodeToNodeEncryptionOptions: (DomainNodeToNodeEncryptionOptions)?
 
     /// 
     hidden DomainEndpointOptions: (DomainDomainEndpointOptions)?
 
     /// 
-    hidden AdvancedOptions: (DomainDomainAdvancedOptions)?
-
-    /// 
-    hidden AdvancedSecurityOptions: (DomainAdvancedSecurityOptionsInput)?
+    hidden CognitoOptions: (DomainCognitoOptions)?
 
     /// 
     hidden EncryptionAtRestOptions: (DomainEncryptionAtRestOptions)?
@@ -147,35 +135,47 @@ open class Domain extends cloudformation.Resource {
     hidden Tags: (Listing<DomainTag>)?
 
     /// 
+    hidden DomainName: (String|Mapping)?
+
+    /// 
+    hidden VPCOptions: (DomainVPCOptions)?
+
+    /// 
+    hidden AdvancedOptions: (DomainDomainAdvancedOptions)?
+
+    /// 
+    hidden AdvancedSecurityOptions: (DomainAdvancedSecurityOptionsInput)?
+
+    /// 
+    hidden LogPublishingOptions: (DomainDomainLogPublishingOptions)?
+
+    /// 
     hidden ElasticsearchVersion: (String|Mapping)?
 
     /// 
-    hidden NodeToNodeEncryptionOptions: (DomainNodeToNodeEncryptionOptions)?
-
-    /// 
-    hidden EBSOptions: (DomainEBSOptions)?
+    hidden ElasticsearchClusterConfig: (DomainElasticsearchClusterConfig)?
 
     Properties {
-        ["LogPublishingOptions"] = if (LogPublishingOptions == null) null else LogPublishingOptions
+        ["EBSOptions"] = if (EBSOptions == null) null else EBSOptions
         ["AccessPolicies"] = if (AccessPolicies == null) null else AccessPolicies
-        ["CognitoOptions"] = if (CognitoOptions == null) null else CognitoOptions
-        ["ElasticsearchClusterConfig"] = if (ElasticsearchClusterConfig == null) null else ElasticsearchClusterConfig
         ["SnapshotOptions"] = if (SnapshotOptions == null) null else SnapshotOptions
-        ["VPCOptions"] = if (VPCOptions == null) null else VPCOptions
-        ["DomainName"] = if (DomainName == null) null else DomainName
+        ["NodeToNodeEncryptionOptions"] = if (NodeToNodeEncryptionOptions == null) null else NodeToNodeEncryptionOptions
         ["DomainEndpointOptions"] = if (DomainEndpointOptions == null) null else DomainEndpointOptions
-        ["AdvancedOptions"] = if (AdvancedOptions == null) null else AdvancedOptions
-        ["AdvancedSecurityOptions"] = if (AdvancedSecurityOptions == null) null else AdvancedSecurityOptions
+        ["CognitoOptions"] = if (CognitoOptions == null) null else CognitoOptions
         ["EncryptionAtRestOptions"] = if (EncryptionAtRestOptions == null) null else EncryptionAtRestOptions
         ["Tags"] = if (Tags == null) null else Tags
+        ["DomainName"] = if (DomainName == null) null else DomainName
+        ["VPCOptions"] = if (VPCOptions == null) null else VPCOptions
+        ["AdvancedOptions"] = if (AdvancedOptions == null) null else AdvancedOptions
+        ["AdvancedSecurityOptions"] = if (AdvancedSecurityOptions == null) null else AdvancedSecurityOptions
+        ["LogPublishingOptions"] = if (LogPublishingOptions == null) null else LogPublishingOptions
         ["ElasticsearchVersion"] = if (ElasticsearchVersion == null) null else ElasticsearchVersion
-        ["NodeToNodeEncryptionOptions"] = if (NodeToNodeEncryptionOptions == null) null else NodeToNodeEncryptionOptions
-        ["EBSOptions"] = if (EBSOptions == null) null else EBSOptions
+        ["ElasticsearchClusterConfig"] = if (ElasticsearchClusterConfig == null) null else ElasticsearchClusterConfig
     }
 
 }
 
 
-typealias DomainDomainLogPublishingOptions = Mapping<String, Any>
-
 typealias DomainDomainAdvancedOptions = Mapping<String, Any>
+
+typealias DomainDomainLogPublishingOptions = Mapping<String, Any>

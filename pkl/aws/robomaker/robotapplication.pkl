@@ -5,9 +5,6 @@ module aws.robomaker.robotapplication
 
 import "../../cloudformation.pkl"
 
-typealias RobotApplicationArn = String|Mapping
-
-
 typealias RobotApplicationTags = Mapping<String, Any>
 
 
@@ -15,9 +12,9 @@ typealias SourceConfigArchitecture = "X86_64"|"ARM64"|"ARMHF"
 
 /// 
 open class RobotApplicationSourceConfig {
+    S3Bucket: String|Mapping
     S3Key: String|Mapping
     Architecture: SourceConfigArchitecture|Mapping
-    S3Bucket: String|Mapping
 }
 
 typealias RobotSoftwareSuiteName = "ROS"|"ROS2"|"General"
@@ -30,20 +27,14 @@ open class RobotApplicationRobotSoftwareSuite {
     Version: (RobotSoftwareSuiteVersion|Mapping)?
 }
 
+typealias RobotApplicationArn = String|Mapping
+
+
 /// This schema is for testing purpose only.
 open class RobotApplication extends cloudformation.Resource {
 
     Type = "AWS::RoboMaker::RobotApplication"
 
-
-    /// The name of the robot application.
-    hidden Name: (String|Mapping)?
-
-    /// The sources of the robot application.
-    hidden Sources: (Listing<RobotApplicationSourceConfig>)?
-
-    /// The URI of the Docker image for the robot application.
-    hidden Environment: (String|Mapping)?
 
     /// 
     hidden RobotSoftwareSuite: RobotApplicationRobotSoftwareSuite
@@ -54,13 +45,22 @@ open class RobotApplication extends cloudformation.Resource {
     /// 
     hidden Tags: (RobotApplicationTags)?
 
+    /// The name of the robot application.
+    hidden Name: (String|Mapping)?
+
+    /// The sources of the robot application.
+    hidden Sources: (Listing<RobotApplicationSourceConfig>)?
+
+    /// The URI of the Docker image for the robot application.
+    hidden Environment: (String|Mapping)?
+
     Properties {
-        ["Name"] = if (Name == null) null else Name
-        ["Sources"] = if (Sources == null) null else Sources
-        ["Environment"] = if (Environment == null) null else Environment
         ["RobotSoftwareSuite"] = if (RobotSoftwareSuite == null) null else RobotSoftwareSuite
         ["CurrentRevisionId"] = if (CurrentRevisionId == null) null else CurrentRevisionId
         ["Tags"] = if (Tags == null) null else Tags
+        ["Name"] = if (Name == null) null else Name
+        ["Sources"] = if (Sources == null) null else Sources
+        ["Environment"] = if (Environment == null) null else Environment
     }
 
 }

@@ -5,8 +5,33 @@ module aws.ssmcontacts.rotation
 
 import "../../cloudformation.pkl"
 
-typealias RotationHandOffTime = String|Mapping
+/// StartTime and EndTime for the Shift
+open class RotationCoverageTime {
+    StartTime: RotationHandOffTime
+    EndTime: RotationHandOffTime
+}
 
+/// DayOfWeek for Month and HandOff Time for Monthly Recurring Rotation.
+open class RotationMonthlySetting {
+    DayOfMonth: Int|Mapping
+    HandOffTime: RotationHandOffTime
+}
+
+/// DayOfWeek for Rotation and HandOff Time for Weekly Recurring Rotation.
+open class RotationWeeklySetting {
+    DayOfWeek: RotationDayOfWeek
+    HandOffTime: RotationHandOffTime
+}
+
+/// Information about when an on-call rotation is in effect and how long the rotation period lasts.
+open class RotationRecurrenceSettings {
+    WeeklySettings: (Listing<RotationWeeklySetting>)?
+    DailySettings: (Listing<RotationHandOffTime>)?
+    NumberOfOnCalls: (Int|Mapping)?
+    RecurrenceMultiplier: (Int|Mapping)?
+    ShiftCoverages: (Listing<RotationShiftCoverage>)?
+    MonthlySettings: (Listing<RotationMonthlySetting>)?
+}
 
 /// Information about the days of the week included in on-call rotation coverage.
 open class RotationShiftCoverage {
@@ -17,42 +42,17 @@ open class RotationShiftCoverage {
 typealias RotationDayOfWeek = String|Mapping
 
 
-/// DayOfWeek for Month and HandOff Time for Monthly Recurring Rotation.
-open class RotationMonthlySetting {
-    DayOfMonth: Int|Mapping
-    HandOffTime: RotationHandOffTime
-}
-
-/// Handoff time for Daily Recurring Rotation.
-open class RotationDailySetting {
-    HandOffTime: RotationHandOffTime
-}
-
-/// StartTime and EndTime for the Shift
-open class RotationCoverageTime {
-    StartTime: RotationHandOffTime
-    EndTime: RotationHandOffTime
-}
-
-/// Information about when an on-call rotation is in effect and how long the rotation period lasts.
-open class RotationRecurrenceSettings {
-    DailySettings: (Listing<RotationHandOffTime>)?
-    NumberOfOnCalls: (Int|Mapping)?
-    RecurrenceMultiplier: (Int|Mapping)?
-    ShiftCoverages: (Listing<RotationShiftCoverage>)?
-    MonthlySettings: (Listing<RotationMonthlySetting>)?
-    WeeklySettings: (Listing<RotationWeeklySetting>)?
-}
-
 /// A key-value pair to associate with a resource.
 open class RotationTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
-/// DayOfWeek for Rotation and HandOff Time for Weekly Recurring Rotation.
-open class RotationWeeklySetting {
-    DayOfWeek: RotationDayOfWeek
+typealias RotationHandOffTime = String|Mapping
+
+
+/// Handoff time for Daily Recurring Rotation.
+open class RotationDailySetting {
     HandOffTime: RotationHandOffTime
 }
 

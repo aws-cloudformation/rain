@@ -6,27 +6,6 @@ module aws.transfer.server
 import "../../cloudformation.pkl"
 
 /// 
-open class ServerTag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class ServerEndpointDetails {
-    SubnetIds: (Listing<String|Mapping>)?
-    AddressAllocationIds: (Listing<String|Mapping>)?
-    VpcId: (String|Mapping)?
-    VpcEndpointId: (String|Mapping)?
-    SecurityGroupIds: (Listing<String|Mapping>)?
-}
-
-typealias ServerAs2Transport = Dynamic
-
-
-typealias ServerStructuredLogDestination = Dynamic
-
-
-/// 
 open class ServerProtocolDetails {
     As2Transports: (Listing<ServerAs2Transport>)?
     PassiveIp: (String|Mapping)?
@@ -34,18 +13,36 @@ open class ServerProtocolDetails {
     TlsSessionResumptionMode: (String|Mapping)?
 }
 
+typealias ServerProtocol = Dynamic
+
+
 /// 
 open class ServerIdentityProviderDetails {
+    Url: (String|Mapping)?
+    InvocationRole: (String|Mapping)?
     SftpAuthenticationMethods: (String|Mapping)?
     Function: (String|Mapping)?
     DirectoryId: (String|Mapping)?
-    Url: (String|Mapping)?
-    InvocationRole: (String|Mapping)?
 }
+
+typealias ServerStructuredLogDestination = Dynamic
+
 
 /// 
 open class ServerS3StorageOptions {
     DirectoryListingOptimization: (String|Mapping)?
+}
+
+/// 
+open class ServerWorkflowDetail {
+    WorkflowId: String|Mapping
+    ExecutionRole: String|Mapping
+}
+
+/// 
+open class ServerTag {
+    Value: String|Mapping
+    Key: String|Mapping
 }
 
 /// 
@@ -55,12 +52,15 @@ open class ServerWorkflowDetails {
 }
 
 /// 
-open class ServerWorkflowDetail {
-    WorkflowId: String|Mapping
-    ExecutionRole: String|Mapping
+open class ServerEndpointDetails {
+    VpcId: (String|Mapping)?
+    VpcEndpointId: (String|Mapping)?
+    SecurityGroupIds: (Listing<String|Mapping>)?
+    SubnetIds: (Listing<String|Mapping>)?
+    AddressAllocationIds: (Listing<String|Mapping>)?
 }
 
-typealias ServerProtocol = Dynamic
+typealias ServerAs2Transport = Dynamic
 
 
 /// Resource Type definition for AWS::Transfer::Server
@@ -70,70 +70,70 @@ open class Server extends cloudformation.Resource {
 
 
     /// 
-    hidden SecurityPolicyName: (String|Mapping)?
+    hidden EndpointDetails: (ServerEndpointDetails)?
 
     /// 
     hidden Certificate: (String|Mapping)?
 
     /// 
-    hidden EndpointDetails: (ServerEndpointDetails)?
-
-    /// 
-    hidden WorkflowDetails: (ServerWorkflowDetails)?
-
-    /// 
-    hidden PreAuthenticationLoginBanner: (String|Mapping)?
-
-    /// 
-    hidden EndpointType: (String|Mapping)?
-
-    /// 
-    hidden ProtocolDetails: (ServerProtocolDetails)?
-
-    /// 
-    hidden Domain: (String|Mapping)?
-
-    /// 
-    hidden LoggingRole: (String|Mapping)?
-
-    /// 
-    hidden IdentityProviderDetails: (ServerIdentityProviderDetails)?
+    hidden Protocols: (Listing<ServerProtocol>)?
 
     /// 
     hidden StructuredLogDestinations: (Listing<ServerStructuredLogDestination>)?
 
     /// 
+    hidden Domain: (String|Mapping)?
+
+    /// 
     hidden Tags: (Listing<ServerTag>)?
+
+    /// 
+    hidden LoggingRole: (String|Mapping)?
+
+    /// 
+    hidden PreAuthenticationLoginBanner: (String|Mapping)?
+
+    /// 
+    hidden SecurityPolicyName: (String|Mapping)?
+
+    /// 
+    hidden ProtocolDetails: (ServerProtocolDetails)?
+
+    /// 
+    hidden S3StorageOptions: (ServerS3StorageOptions)?
+
+    /// 
+    hidden WorkflowDetails: (ServerWorkflowDetails)?
 
     /// 
     hidden IdentityProviderType: (String|Mapping)?
 
     /// 
-    hidden Protocols: (Listing<ServerProtocol>)?
+    hidden IdentityProviderDetails: (ServerIdentityProviderDetails)?
 
     /// 
     hidden PostAuthenticationLoginBanner: (String|Mapping)?
 
     /// 
-    hidden S3StorageOptions: (ServerS3StorageOptions)?
+    hidden EndpointType: (String|Mapping)?
 
     Properties {
-        ["SecurityPolicyName"] = if (SecurityPolicyName == null) null else SecurityPolicyName
-        ["Certificate"] = if (Certificate == null) null else Certificate
         ["EndpointDetails"] = if (EndpointDetails == null) null else EndpointDetails
-        ["WorkflowDetails"] = if (WorkflowDetails == null) null else WorkflowDetails
-        ["PreAuthenticationLoginBanner"] = if (PreAuthenticationLoginBanner == null) null else PreAuthenticationLoginBanner
-        ["EndpointType"] = if (EndpointType == null) null else EndpointType
-        ["ProtocolDetails"] = if (ProtocolDetails == null) null else ProtocolDetails
-        ["Domain"] = if (Domain == null) null else Domain
-        ["LoggingRole"] = if (LoggingRole == null) null else LoggingRole
-        ["IdentityProviderDetails"] = if (IdentityProviderDetails == null) null else IdentityProviderDetails
-        ["StructuredLogDestinations"] = if (StructuredLogDestinations == null) null else StructuredLogDestinations
-        ["Tags"] = if (Tags == null) null else Tags
-        ["IdentityProviderType"] = if (IdentityProviderType == null) null else IdentityProviderType
+        ["Certificate"] = if (Certificate == null) null else Certificate
         ["Protocols"] = if (Protocols == null) null else Protocols
-        ["PostAuthenticationLoginBanner"] = if (PostAuthenticationLoginBanner == null) null else PostAuthenticationLoginBanner
+        ["StructuredLogDestinations"] = if (StructuredLogDestinations == null) null else StructuredLogDestinations
+        ["Domain"] = if (Domain == null) null else Domain
+        ["Tags"] = if (Tags == null) null else Tags
+        ["LoggingRole"] = if (LoggingRole == null) null else LoggingRole
+        ["PreAuthenticationLoginBanner"] = if (PreAuthenticationLoginBanner == null) null else PreAuthenticationLoginBanner
+        ["SecurityPolicyName"] = if (SecurityPolicyName == null) null else SecurityPolicyName
+        ["ProtocolDetails"] = if (ProtocolDetails == null) null else ProtocolDetails
         ["S3StorageOptions"] = if (S3StorageOptions == null) null else S3StorageOptions
+        ["WorkflowDetails"] = if (WorkflowDetails == null) null else WorkflowDetails
+        ["IdentityProviderType"] = if (IdentityProviderType == null) null else IdentityProviderType
+        ["IdentityProviderDetails"] = if (IdentityProviderDetails == null) null else IdentityProviderDetails
+        ["PostAuthenticationLoginBanner"] = if (PostAuthenticationLoginBanner == null) null else PostAuthenticationLoginBanner
+        ["EndpointType"] = if (EndpointType == null) null else EndpointType
     }
 
 }

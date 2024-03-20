@@ -5,80 +5,24 @@ module aws.athena.workgroup
 
 import "../../cloudformation.pkl"
 
-typealias WorkGroupKmsKey = String|Mapping
-
-
-typealias WorkGroupSelectedEngineVersion = String|Mapping
-
-
-typealias WorkGroupEnforceWorkGroupConfiguration = Boolean|Mapping
-
-
-typealias WorkGroupExpectedBucketOwner = String|Mapping
-
-
-typealias WorkGroupAdditionalConfiguration = String|Mapping
-
-
-typealias WorkGroupRemoveCustomerContentEncryptionConfiguration = Boolean|Mapping
-
-
-typealias WorkGroupOutputLocation = String|Mapping
-
-
-/// Indicates that an Amazon S3 canned ACL should be set to control ownership of stored query results
-open class WorkGroupAclConfiguration {
-    S3AclOption: WorkGroupS3AclOption
-}
-
-typealias WorkGroupRemoveExpectedBucketOwner = Boolean|Mapping
-
-
-typealias WorkGroupEffectiveEngineVersion = String|Mapping
-
-
-/// The location in Amazon S3 where query results are stored and the encryption option, if any, used for query results. These are known as "client-side settings". If workgroup settings override client-side settings, then the query uses the workgroup settings.
-///
-/// 
-open class WorkGroupResultConfiguration {
-    AclConfiguration: (WorkGroupAclConfiguration)?
-    EncryptionConfiguration: (WorkGroupEncryptionConfiguration)?
-    OutputLocation: (WorkGroupOutputLocation)?
-    ExpectedBucketOwner: (WorkGroupExpectedBucketOwner)?
-}
-
-/// The result configuration information about the queries in this workgroup that will be updated. Includes the updated results location and an updated option for encrypting query results. 
-open class WorkGroupResultConfigurationUpdates {
-    RemoveOutputLocation: (WorkGroupRemoveOutputLocation)?
-    RemoveExpectedBucketOwner: (WorkGroupRemoveExpectedBucketOwner)?
-    RemoveAclConfiguration: (WorkGroupRemoveAclConfiguration)?
-    EncryptionConfiguration: (WorkGroupEncryptionConfiguration)?
-    OutputLocation: (WorkGroupOutputLocation)?
-    ExpectedBucketOwner: (WorkGroupExpectedBucketOwner)?
-    AclConfiguration: (WorkGroupAclConfiguration)?
-    RemoveEncryptionConfiguration: (WorkGroupRemoveEncryptionConfiguration)?
+/// If query results are encrypted in Amazon S3, indicates the encryption option used (for example, SSE-KMS or CSE-KMS) and key information.
+open class WorkGroupEncryptionConfiguration {
+    EncryptionOption: WorkGroupEncryptionOption
+    KmsKey: (WorkGroupKmsKey)?
 }
 
 typealias WorkGroupRemoveOutputLocation = Boolean|Mapping
 
 
-/// 
-open class WorkGroupWorkGroupConfiguration {
-    AdditionalConfiguration: (WorkGroupAdditionalConfiguration)?
-    BytesScannedCutoffPerQuery: (WorkGroupBytesScannedCutoffPerQuery)?
-    PublishCloudWatchMetricsEnabled: (WorkGroupPublishCloudWatchMetricsEnabled)?
-    RequesterPaysEnabled: (WorkGroupRequesterPaysEnabled)?
-    ResultConfiguration: (WorkGroupResultConfiguration)?
-    EngineVersion: (WorkGroupEngineVersion)?
-    EnforceWorkGroupConfiguration: (WorkGroupEnforceWorkGroupConfiguration)?
-    ExecutionRole: (WorkGroupExecutionRole)?
-    CustomerContentEncryptionConfiguration: (WorkGroupCustomerContentEncryptionConfiguration)?
-}
+typealias WorkGroupRemoveAclConfiguration = Boolean|Mapping
 
-/// If query results are encrypted in Amazon S3, indicates the encryption option used (for example, SSE-KMS or CSE-KMS) and key information.
-open class WorkGroupEncryptionConfiguration {
-    EncryptionOption: WorkGroupEncryptionOption
-    KmsKey: (WorkGroupKmsKey)?
+
+typealias WorkGroupSelectedEngineVersion = String|Mapping
+
+
+/// Indicates the KMS key for encrypting notebook content.
+open class WorkGroupCustomerContentEncryptionConfiguration {
+    KmsKey: WorkGroupKmsKey
 }
 
 typealias WorkGroupPublishCloudWatchMetricsEnabled = Boolean|Mapping
@@ -87,19 +31,92 @@ typealias WorkGroupPublishCloudWatchMetricsEnabled = Boolean|Mapping
 typealias WorkGroupRemoveBytesScannedCutoffPerQuery = Boolean|Mapping
 
 
-typealias WorkGroupRemoveEncryptionConfiguration = Boolean|Mapping
-
-
 typealias WorkGroupTags = Listing<(WorkGroupTag)?>
+
+
+/// 
+open class WorkGroupWorkGroupConfiguration {
+    EnforceWorkGroupConfiguration: (WorkGroupEnforceWorkGroupConfiguration)?
+    RequesterPaysEnabled: (WorkGroupRequesterPaysEnabled)?
+    EngineVersion: (WorkGroupEngineVersion)?
+    CustomerContentEncryptionConfiguration: (WorkGroupCustomerContentEncryptionConfiguration)?
+    BytesScannedCutoffPerQuery: (WorkGroupBytesScannedCutoffPerQuery)?
+    ResultConfiguration: (WorkGroupResultConfiguration)?
+    AdditionalConfiguration: (WorkGroupAdditionalConfiguration)?
+    ExecutionRole: (WorkGroupExecutionRole)?
+    PublishCloudWatchMetricsEnabled: (WorkGroupPublishCloudWatchMetricsEnabled)?
+}
+
+typealias WorkGroupAdditionalConfiguration = String|Mapping
+
+
+typealias WorkGroupEnforceWorkGroupConfiguration = Boolean|Mapping
+
+
+typealias WorkGroupOutputLocation = String|Mapping
+
+
+/// The configuration information that will be updated for this workgroup, which includes the location in Amazon S3 where query results are stored, the encryption option, if any, used for query results, whether the Amazon CloudWatch Metrics are enabled for the workgroup, whether the workgroup settings override the client-side settings, and the data usage limit for the amount of bytes scanned per query, if it is specified. 
+open class WorkGroupWorkGroupConfigurationUpdates {
+    BytesScannedCutoffPerQuery: (WorkGroupBytesScannedCutoffPerQuery)?
+    RequesterPaysEnabled: (WorkGroupRequesterPaysEnabled)?
+    RemoveBytesScannedCutoffPerQuery: (WorkGroupRemoveBytesScannedCutoffPerQuery)?
+    EngineVersion: (WorkGroupEngineVersion)?
+    ExecutionRole: (WorkGroupExecutionRole)?
+    EnforceWorkGroupConfiguration: (WorkGroupEnforceWorkGroupConfiguration)?
+    PublishCloudWatchMetricsEnabled: (WorkGroupPublishCloudWatchMetricsEnabled)?
+    ResultConfigurationUpdates: (WorkGroupResultConfigurationUpdates)?
+    AdditionalConfiguration: (WorkGroupAdditionalConfiguration)?
+    CustomerContentEncryptionConfiguration: (WorkGroupCustomerContentEncryptionConfiguration)?
+    RemoveCustomerContentEncryptionConfiguration: (WorkGroupRemoveCustomerContentEncryptionConfiguration)?
+}
+
+typealias WorkGroupRemoveExpectedBucketOwner = Boolean|Mapping
+
+
+typealias WorkGroupExpectedBucketOwner = String|Mapping
 
 
 typealias WorkGroupBytesScannedCutoffPerQuery = Int|Mapping
 
 
-typealias WorkGroupRemoveAclConfiguration = Boolean|Mapping
+/// The Athena engine version for running queries.
+open class WorkGroupEngineVersion {
+    SelectedEngineVersion: (WorkGroupSelectedEngineVersion)?
+    EffectiveEngineVersion: (WorkGroupEffectiveEngineVersion)?
+}
+
+/// The result configuration information about the queries in this workgroup that will be updated. Includes the updated results location and an updated option for encrypting query results. 
+open class WorkGroupResultConfigurationUpdates {
+    AclConfiguration: (WorkGroupAclConfiguration)?
+    RemoveEncryptionConfiguration: (WorkGroupRemoveEncryptionConfiguration)?
+    RemoveOutputLocation: (WorkGroupRemoveOutputLocation)?
+    RemoveExpectedBucketOwner: (WorkGroupRemoveExpectedBucketOwner)?
+    RemoveAclConfiguration: (WorkGroupRemoveAclConfiguration)?
+    EncryptionConfiguration: (WorkGroupEncryptionConfiguration)?
+    OutputLocation: (WorkGroupOutputLocation)?
+    ExpectedBucketOwner: (WorkGroupExpectedBucketOwner)?
+}
+
+/// The location in Amazon S3 where query results are stored and the encryption option, if any, used for query results. These are known as "client-side settings". If workgroup settings override client-side settings, then the query uses the workgroup settings.
+///
+/// 
+open class WorkGroupResultConfiguration {
+    EncryptionConfiguration: (WorkGroupEncryptionConfiguration)?
+    OutputLocation: (WorkGroupOutputLocation)?
+    ExpectedBucketOwner: (WorkGroupExpectedBucketOwner)?
+    AclConfiguration: (WorkGroupAclConfiguration)?
+}
+
+typealias WorkGroupExecutionRole = String|Mapping
 
 
-typealias WorkGroupRequesterPaysEnabled = Boolean|Mapping
+/// Indicates that an Amazon S3 canned ACL should be set to control ownership of stored query results
+open class WorkGroupAclConfiguration {
+    S3AclOption: WorkGroupS3AclOption
+}
+
+typealias WorkGroupRemoveCustomerContentEncryptionConfiguration = Boolean|Mapping
 
 
 /// 
@@ -108,40 +125,23 @@ open class WorkGroupTag {
     Value: String|Mapping
 }
 
-/// The Athena engine version for running queries.
-open class WorkGroupEngineVersion {
-    SelectedEngineVersion: (WorkGroupSelectedEngineVersion)?
-    EffectiveEngineVersion: (WorkGroupEffectiveEngineVersion)?
-}
+typealias WorkGroupKmsKey = String|Mapping
+
+
+typealias WorkGroupEffectiveEngineVersion = String|Mapping
+
+
+typealias WorkGroupRequesterPaysEnabled = Boolean|Mapping
+
 
 typealias WorkGroupEncryptionOption = String|Mapping
 
 
+typealias WorkGroupRemoveEncryptionConfiguration = Boolean|Mapping
+
+
 typealias WorkGroupS3AclOption = String|Mapping
 
-
-/// Indicates the KMS key for encrypting notebook content.
-open class WorkGroupCustomerContentEncryptionConfiguration {
-    KmsKey: WorkGroupKmsKey
-}
-
-typealias WorkGroupExecutionRole = String|Mapping
-
-
-/// The configuration information that will be updated for this workgroup, which includes the location in Amazon S3 where query results are stored, the encryption option, if any, used for query results, whether the Amazon CloudWatch Metrics are enabled for the workgroup, whether the workgroup settings override the client-side settings, and the data usage limit for the amount of bytes scanned per query, if it is specified. 
-open class WorkGroupWorkGroupConfigurationUpdates {
-    RemoveCustomerContentEncryptionConfiguration: (WorkGroupRemoveCustomerContentEncryptionConfiguration)?
-    BytesScannedCutoffPerQuery: (WorkGroupBytesScannedCutoffPerQuery)?
-    RequesterPaysEnabled: (WorkGroupRequesterPaysEnabled)?
-    ResultConfigurationUpdates: (WorkGroupResultConfigurationUpdates)?
-    EngineVersion: (WorkGroupEngineVersion)?
-    ExecutionRole: (WorkGroupExecutionRole)?
-    CustomerContentEncryptionConfiguration: (WorkGroupCustomerContentEncryptionConfiguration)?
-    EnforceWorkGroupConfiguration: (WorkGroupEnforceWorkGroupConfiguration)?
-    PublishCloudWatchMetricsEnabled: (WorkGroupPublishCloudWatchMetricsEnabled)?
-    RemoveBytesScannedCutoffPerQuery: (WorkGroupRemoveBytesScannedCutoffPerQuery)?
-    AdditionalConfiguration: (WorkGroupAdditionalConfiguration)?
-}
 
 /// Resource schema for AWS::Athena::WorkGroup
 open class WorkGroup extends cloudformation.Resource {

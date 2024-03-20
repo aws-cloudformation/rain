@@ -5,16 +5,10 @@ module aws.entityresolution.schemamapping
 
 import "../../cloudformation.pkl"
 
-/// 
-open class SchemaMappingSchemaInputAttribute {
-    FieldName: SchemaMappingAttributeName
-    Type: SchemaMappingSchemaAttributeType
-    SubType: (String|Mapping)?
-    GroupName: (SchemaMappingAttributeName)?
-    MatchKey: (SchemaMappingAttributeName)?
-}
+typealias SchemaMappingSchemaAttributeType = String|Mapping
 
-typealias SchemaMappingSchemaMappingArn = String|Mapping
+
+typealias SchemaMappingMappedInputFields = Listing<(SchemaMappingSchemaInputAttribute)?>
 
 
 /// A key-value pair to associate with a resource
@@ -23,28 +17,34 @@ open class SchemaMappingTag {
     Value: String|Mapping
 }
 
-typealias SchemaMappingEntityName = String|Mapping
-
-
-typealias SchemaMappingAttributeName = String|Mapping
+typealias SchemaMappingUpdatedAt = String|Mapping
 
 
 typealias SchemaMappingHasWorkflows = Boolean|Mapping
 
 
+typealias SchemaMappingAttributeName = String|Mapping
+
+
+/// 
+open class SchemaMappingSchemaInputAttribute {
+    Type: SchemaMappingSchemaAttributeType
+    SubType: (String|Mapping)?
+    GroupName: (SchemaMappingAttributeName)?
+    MatchKey: (SchemaMappingAttributeName)?
+    FieldName: SchemaMappingAttributeName
+}
+
+typealias SchemaMappingEntityName = String|Mapping
+
+
 typealias SchemaMappingDescription = String|Mapping
 
 
-typealias SchemaMappingSchemaAttributeType = String|Mapping
+typealias SchemaMappingSchemaMappingArn = String|Mapping
 
 
 typealias SchemaMappingCreatedAt = String|Mapping
-
-
-typealias SchemaMappingMappedInputFields = Listing<(SchemaMappingSchemaInputAttribute)?>
-
-
-typealias SchemaMappingUpdatedAt = String|Mapping
 
 
 /// SchemaMapping defined in AWS Entity Resolution service
@@ -52,6 +52,9 @@ open class SchemaMapping extends cloudformation.Resource {
 
     Type = "AWS::EntityResolution::SchemaMapping"
 
+
+    /// 
+    hidden Tags: (Listing<SchemaMappingTag>)?
 
     /// The name of the SchemaMapping
     hidden SchemaName: SchemaMappingEntityName
@@ -62,14 +65,11 @@ open class SchemaMapping extends cloudformation.Resource {
     /// The SchemaMapping attributes input
     hidden MappedInputFields: SchemaMappingMappedInputFields
 
-    /// 
-    hidden Tags: (Listing<SchemaMappingTag>)?
-
     Properties {
+        ["Tags"] = if (Tags == null) null else Tags
         ["SchemaName"] = if (SchemaName == null) null else SchemaName
         ["Description"] = if (Description == null) null else Description
         ["MappedInputFields"] = if (MappedInputFields == null) null else MappedInputFields
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

@@ -11,11 +11,8 @@ open class MicrosoftTeamsChannelConfiguration extends cloudformation.Resource {
     Type = "AWS::Chatbot::MicrosoftTeamsChannelConfiguration"
 
 
-    /// ARNs of SNS topics which delivers notifications to AWS Chatbot, for example CloudWatch alarm notifications.
-    hidden SnsTopicArns: (Listing<String|Mapping>)?
-
-    /// Specifies the logging level for this configuration:ERROR,INFO or NONE. This property affects the log entries pushed to Amazon CloudWatch logs
-    hidden LoggingLevel: (String(matches(Regex(#"^(ERROR|INFO|NONE)$"#)))|Mapping)?
+    /// The id of the Microsoft Teams team
+    hidden TeamId: String(matches(Regex(#"^[0-9A-Fa-f]{8}(?:-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}$"#)))|Mapping
 
     /// The id of the Microsoft Teams channel
     hidden TeamsChannelId: String(matches(Regex(#"^([a-zA-Z0-9-_=+/.,])*%3[aA]([a-zA-Z0-9-_=+/.,])*%40([a-zA-Z0-9-_=+/.,])*$"#)))|Mapping
@@ -29,8 +26,11 @@ open class MicrosoftTeamsChannelConfiguration extends cloudformation.Resource {
     /// The ARN of the IAM role that defines the permissions for AWS Chatbot
     hidden IamRoleArn: String(matches(Regex(#"^arn:(aws[a-zA-Z-]*)?:[A-Za-z0-9][A-Za-z0-9_/.-]{0,62}:[A-Za-z0-9_/.-]{0,63}:[A-Za-z0-9_/.-]{0,63}:[A-Za-z0-9][A-Za-z0-9:_/+=,@.-]{0,1023}$"#)))|Mapping
 
-    /// The id of the Microsoft Teams team
-    hidden TeamId: String(matches(Regex(#"^[0-9A-Fa-f]{8}(?:-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}$"#)))|Mapping
+    /// ARNs of SNS topics which delivers notifications to AWS Chatbot, for example CloudWatch alarm notifications.
+    hidden SnsTopicArns: (Listing<String|Mapping>)?
+
+    /// Specifies the logging level for this configuration:ERROR,INFO or NONE. This property affects the log entries pushed to Amazon CloudWatch logs
+    hidden LoggingLevel: (String(matches(Regex(#"^(ERROR|INFO|NONE)$"#)))|Mapping)?
 
     /// The list of IAM policy ARNs that are applied as channel guardrails. The AWS managed 'AdministratorAccess' policy is applied as a default if this is not set.
     hidden GuardrailPolicies: (Listing<String|Mapping>)?
@@ -39,13 +39,13 @@ open class MicrosoftTeamsChannelConfiguration extends cloudformation.Resource {
     hidden UserRoleRequired: (Boolean|Mapping)?
 
     Properties {
-        ["SnsTopicArns"] = if (SnsTopicArns == null) null else SnsTopicArns
-        ["LoggingLevel"] = if (LoggingLevel == null) null else LoggingLevel
+        ["TeamId"] = if (TeamId == null) null else TeamId
         ["TeamsChannelId"] = if (TeamsChannelId == null) null else TeamsChannelId
         ["TeamsTenantId"] = if (TeamsTenantId == null) null else TeamsTenantId
         ["ConfigurationName"] = if (ConfigurationName == null) null else ConfigurationName
         ["IamRoleArn"] = if (IamRoleArn == null) null else IamRoleArn
-        ["TeamId"] = if (TeamId == null) null else TeamId
+        ["SnsTopicArns"] = if (SnsTopicArns == null) null else SnsTopicArns
+        ["LoggingLevel"] = if (LoggingLevel == null) null else LoggingLevel
         ["GuardrailPolicies"] = if (GuardrailPolicies == null) null else GuardrailPolicies
         ["UserRoleRequired"] = if (UserRoleRequired == null) null else UserRoleRequired
     }

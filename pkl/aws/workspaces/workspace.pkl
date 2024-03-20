@@ -6,18 +6,18 @@ module aws.workspaces.workspace
 import "../../cloudformation.pkl"
 
 /// 
-open class WorkspaceTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-/// 
 open class WorkspaceWorkspaceProperties {
     ComputeTypeName: (String|Mapping)?
     RootVolumeSizeGib: (Int|Mapping)?
     RunningMode: (String|Mapping)?
     RunningModeAutoStopTimeoutInMinutes: (Int|Mapping)?
     UserVolumeSizeGib: (Int|Mapping)?
+}
+
+/// 
+open class WorkspaceTag {
+    Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// Resource Type definition for AWS::WorkSpaces::Workspace
@@ -27,13 +27,10 @@ open class Workspace extends cloudformation.Resource {
 
 
     /// 
-    hidden DirectoryId: String|Mapping
+    hidden RootVolumeEncryptionEnabled: (Boolean|Mapping)?
 
     /// 
-    hidden Tags: (Listing<WorkspaceTag>)?
-
-    /// 
-    hidden UserVolumeEncryptionEnabled: (Boolean|Mapping)?
+    hidden VolumeEncryptionKey: (String|Mapping)?
 
     /// 
     hidden WorkspaceProperties: (WorkspaceWorkspaceProperties)?
@@ -42,23 +39,26 @@ open class Workspace extends cloudformation.Resource {
     hidden BundleId: String|Mapping
 
     /// 
-    hidden VolumeEncryptionKey: (String|Mapping)?
+    hidden DirectoryId: String|Mapping
 
     /// 
-    hidden RootVolumeEncryptionEnabled: (Boolean|Mapping)?
+    hidden Tags: (Listing<WorkspaceTag>)?
 
     /// 
     hidden UserName: String|Mapping
 
+    /// 
+    hidden UserVolumeEncryptionEnabled: (Boolean|Mapping)?
+
     Properties {
-        ["DirectoryId"] = if (DirectoryId == null) null else DirectoryId
-        ["Tags"] = if (Tags == null) null else Tags
-        ["UserVolumeEncryptionEnabled"] = if (UserVolumeEncryptionEnabled == null) null else UserVolumeEncryptionEnabled
+        ["RootVolumeEncryptionEnabled"] = if (RootVolumeEncryptionEnabled == null) null else RootVolumeEncryptionEnabled
+        ["VolumeEncryptionKey"] = if (VolumeEncryptionKey == null) null else VolumeEncryptionKey
         ["WorkspaceProperties"] = if (WorkspaceProperties == null) null else WorkspaceProperties
         ["BundleId"] = if (BundleId == null) null else BundleId
-        ["VolumeEncryptionKey"] = if (VolumeEncryptionKey == null) null else VolumeEncryptionKey
-        ["RootVolumeEncryptionEnabled"] = if (RootVolumeEncryptionEnabled == null) null else RootVolumeEncryptionEnabled
+        ["DirectoryId"] = if (DirectoryId == null) null else DirectoryId
+        ["Tags"] = if (Tags == null) null else Tags
         ["UserName"] = if (UserName == null) null else UserName
+        ["UserVolumeEncryptionEnabled"] = if (UserVolumeEncryptionEnabled == null) null else UserVolumeEncryptionEnabled
     }
 
 }

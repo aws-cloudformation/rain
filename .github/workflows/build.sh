@@ -29,7 +29,7 @@ for platform in "${platforms[@]}"; do
 
       mkdir -p "dist/${name}"
 
-      # We eval for CGO_ENABLED, which we don't wan't explicitly set if it's 1, which means we want the default behavior
+      # We eval for CGO_ENABLED, which we don't want explicitly set if it's 1, which means we want the default behavior
       eval GOOS="$os" GOARCH="$arch" "$cgo_env" go build -buildvcs=false -ldflags=-w -o "dist/${name}/" ./cmd/rain
 
       cp LICENSE "dist/${name}/"

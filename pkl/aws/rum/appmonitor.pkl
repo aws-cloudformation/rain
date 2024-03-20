@@ -5,19 +5,52 @@ module aws.rum.appmonitor
 
 import "../../cloudformation.pkl"
 
-/// A key-value pair to associate with a resource.
-open class AppMonitorTag {
-    Value: String|Mapping
-    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
-}
+typealias AppMonitorPages = Listing<(AppMonitorUrl)?>
+
 
 typealias AppMonitorUrl = String|Mapping
+
+
+typealias AppMonitorArn = String|Mapping
 
 
 typealias AppMonitorTelemetry = String|Mapping
 
 
+/// A key-value pair to associate with a resource.
+open class AppMonitorTag {
+    Key: String(matches(Regex(#"^(?!aws:)[a-zA-Z+-=._:/]+$"#)))|Mapping
+    Value: String|Mapping
+}
+
+typealias MetricDestinationDestination = "CloudWatch"|"Evidently"
+
+/// An structure which defines the destination and the metrics that you want to send.
+open class AppMonitorMetricDestination {
+    Destination: MetricDestinationDestination|Mapping
+    DestinationArn: (String(matches(Regex(#"arn:[^:]*:[^:]*:[^:]*:[^:]*:.*"#)))|Mapping)?
+    IamRoleArn: (String(matches(Regex(#"arn:[^:]*:[^:]*:[^:]*:[^:]*:.*"#)))|Mapping)?
+    MetricDefinitions: (Listing<AppMonitorMetricDefinition>)?
+}
+
 typealias AppMonitorCustomEventsStatus = String|Mapping
+
+
+/// AppMonitor configuration
+open class AppMonitorAppMonitorConfiguration {
+    IdentityPoolId: (String(matches(Regex(#"[\w-]+:[0-9a-f-]+"#)))|Mapping)?
+    IncludedPages: (AppMonitorPages)?
+    Telemetries: (Listing<AppMonitorTelemetry>)?
+    EnableXRay: (Boolean|Mapping)?
+    ExcludedPages: (AppMonitorPages)?
+    FavoritePages: (AppMonitorFavoritePages)?
+    SessionSampleRate: (Number|Mapping)?
+    GuestRoleArn: (AppMonitorArn)?
+    AllowCookies: (Boolean|Mapping)?
+    MetricDestinations: (Listing<AppMonitorMetricDestination>)?
+}
+
+typealias AppMonitorFavoritePages = Listing<(String|Mapping)?>
 
 
 typealias AppMonitorMetricDefinitionDimensionKeys = Mapping<String, Any>
@@ -32,46 +65,13 @@ open class AppMonitorMetricDefinition {
     ValueKey: (String(matches(Regex(#".*"#)))|Mapping)?
 }
 
-typealias AppMonitorTagDef = Listing<(AppMonitorTag)?>
-
-
-typealias AppMonitorArn = String|Mapping
-
-
-/// AppMonitor configuration
-open class AppMonitorAppMonitorConfiguration {
-    ExcludedPages: (AppMonitorPages)?
-    IncludedPages: (AppMonitorPages)?
-    FavoritePages: (AppMonitorFavoritePages)?
-    SessionSampleRate: (Number|Mapping)?
-    GuestRoleArn: (AppMonitorArn)?
-    EnableXRay: (Boolean|Mapping)?
-    MetricDestinations: (Listing<AppMonitorMetricDestination>)?
-    IdentityPoolId: (String(matches(Regex(#"[\w-]+:[0-9a-f-]+"#)))|Mapping)?
-    AllowCookies: (Boolean|Mapping)?
-    Telemetries: (Listing<AppMonitorTelemetry>)?
-}
-
-typealias AppMonitorPages = Listing<(AppMonitorUrl)?>
-
-
-typealias AppMonitorFavoritePages = Listing<(String|Mapping)?>
-
-
-typealias MetricDestinationDestination = "CloudWatch"|"Evidently"
-
-/// An structure which defines the destination and the metrics that you want to send.
-open class AppMonitorMetricDestination {
-    Destination: MetricDestinationDestination|Mapping
-    DestinationArn: (String(matches(Regex(#"arn:[^:]*:[^:]*:[^:]*:[^:]*:.*"#)))|Mapping)?
-    IamRoleArn: (String(matches(Regex(#"arn:[^:]*:[^:]*:[^:]*:[^:]*:.*"#)))|Mapping)?
-    MetricDefinitions: (Listing<AppMonitorMetricDefinition>)?
-}
-
 /// AppMonitor custom events configuration
 open class AppMonitorCustomEvents {
     Status: (AppMonitorCustomEventsStatus)?
 }
+
+typealias AppMonitorTagDef = Listing<(AppMonitorTag)?>
+
 
 /// Resource Type definition for AWS::RUM::AppMonitor
 open class AppMonitor extends cloudformation.Resource {

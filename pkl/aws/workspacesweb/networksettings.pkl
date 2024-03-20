@@ -7,8 +7,8 @@ import "../../cloudformation.pkl"
 
 /// 
 open class NetworkSettingsTag {
-    Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
     Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
+    Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
 }
 
 /// Definition of AWS::WorkSpacesWeb::NetworkSettings Resource Type
@@ -18,22 +18,22 @@ open class NetworkSettings extends cloudformation.Resource {
 
 
     /// 
-    hidden Tags: (Listing<NetworkSettingsTag>)?
-
-    /// 
-    hidden VpcId: String(matches(Regex(#"^vpc-[0-9a-z]*$"#)))|Mapping
-
-    /// 
     hidden SecurityGroupIds: Listing<String|Mapping>
 
     /// 
     hidden SubnetIds: Listing<String|Mapping>
 
+    /// 
+    hidden Tags: (Listing<NetworkSettingsTag>)?
+
+    /// 
+    hidden VpcId: String(matches(Regex(#"^vpc-[0-9a-z]*$"#)))|Mapping
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
-        ["VpcId"] = if (VpcId == null) null else VpcId
         ["SecurityGroupIds"] = if (SecurityGroupIds == null) null else SecurityGroupIds
         ["SubnetIds"] = if (SubnetIds == null) null else SubnetIds
+        ["Tags"] = if (Tags == null) null else Tags
+        ["VpcId"] = if (VpcId == null) null else VpcId
     }
 
 }

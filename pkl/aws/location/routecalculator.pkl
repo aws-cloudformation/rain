@@ -5,12 +5,6 @@ module aws.location.routecalculator
 
 import "../../cloudformation.pkl"
 
-/// A key-value pair to associate with a resource.
-open class RouteCalculatorTag {
-    Key: String(matches(Regex(#"^[a-zA-Z+-=._:/]+$"#)))|Mapping
-    Value: String(matches(Regex(#"^[A-Za-z0-9 _=@:.+-/]*$"#)))|Mapping
-}
-
 typealias RouteCalculatoriso8601UTC = String|Mapping
 
 
@@ -20,6 +14,12 @@ typealias RouteCalculatorPricingPlan = String|Mapping
 typealias RouteCalculatorTagMap = Mapping<String, Any>
 
 
+/// A key-value pair to associate with a resource.
+open class RouteCalculatorTag {
+    Key: String(matches(Regex(#"^[a-zA-Z+-=._:/]+$"#)))|Mapping
+    Value: String(matches(Regex(#"^[A-Za-z0-9 _=@:.+-/]*$"#)))|Mapping
+}
+
 /// Definition of AWS::Location::RouteCalculator Resource Type
 open class RouteCalculator extends cloudformation.Resource {
 
@@ -27,26 +27,26 @@ open class RouteCalculator extends cloudformation.Resource {
 
 
     /// 
-    hidden CalculatorName: String(matches(Regex(#"^[-._\w]+$"#)))|Mapping
+    hidden DataSource: String|Mapping
 
     /// 
     hidden Description: (String|Mapping)?
+
+    /// 
+    hidden PricingPlan: (RouteCalculatorPricingPlan)?
 
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<RouteCalculatorTag>)?
 
     /// 
-    hidden DataSource: String|Mapping
-
-    /// 
-    hidden PricingPlan: (RouteCalculatorPricingPlan)?
+    hidden CalculatorName: String(matches(Regex(#"^[-._\w]+$"#)))|Mapping
 
     Properties {
-        ["CalculatorName"] = if (CalculatorName == null) null else CalculatorName
-        ["Description"] = if (Description == null) null else Description
-        ["Tags"] = if (Tags == null) null else Tags
         ["DataSource"] = if (DataSource == null) null else DataSource
+        ["Description"] = if (Description == null) null else Description
         ["PricingPlan"] = if (PricingPlan == null) null else PricingPlan
+        ["Tags"] = if (Tags == null) null else Tags
+        ["CalculatorName"] = if (CalculatorName == null) null else CalculatorName
     }
 
 }

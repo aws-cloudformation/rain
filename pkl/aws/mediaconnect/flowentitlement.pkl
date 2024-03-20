@@ -5,21 +5,21 @@ module aws.mediaconnect.flowentitlement
 
 import "../../cloudformation.pkl"
 
-typealias EncryptionAlgorithm = "aes128"|"aes192"|"aes256"
-
 typealias EncryptionKeyType = "speke"|"static-key"
+
+typealias EncryptionAlgorithm = "aes128"|"aes192"|"aes256"
 
 /// Information about the encryption of the flow.
 open class FlowEntitlementEncryption {
     DeviceId: (String|Mapping)?
-    Region: (String|Mapping)?
+    KeyType: (EncryptionKeyType|Mapping)?
     ResourceId: (String|Mapping)?
+    RoleArn: String|Mapping
+    ConstantInitializationVector: (String|Mapping)?
+    Region: (String|Mapping)?
+    SecretArn: (String|Mapping)?
     Url: (String|Mapping)?
     Algorithm: EncryptionAlgorithm|Mapping
-    ConstantInitializationVector: (String|Mapping)?
-    KeyType: (EncryptionKeyType|Mapping)?
-    RoleArn: String|Mapping
-    SecretArn: (String|Mapping)?
 }
 
 /// Resource schema for AWS::MediaConnect::FlowEntitlement
@@ -27,15 +27,6 @@ open class FlowEntitlement extends cloudformation.Resource {
 
     Type = "AWS::MediaConnect::FlowEntitlement"
 
-
-    /// The type of encryption that will be used on the output that is associated with this entitlement.
-    hidden Encryption: (FlowEntitlementEncryption)?
-
-    ///  An indication of whether the entitlement is enabled.
-    hidden EntitlementStatus: (FlowEntitlementEntitlementStatus|Mapping)?
-
-    /// The name of the entitlement.
-    hidden Name: String|Mapping
 
     /// The AWS account IDs that you want to share your content with. The receiving accounts (subscribers) will be allowed to create their own flow using your content as the source.
     hidden Subscribers: Listing<String|Mapping>
@@ -49,14 +40,23 @@ open class FlowEntitlement extends cloudformation.Resource {
     /// A description of the entitlement.
     hidden Description: String|Mapping
 
+    /// The type of encryption that will be used on the output that is associated with this entitlement.
+    hidden Encryption: (FlowEntitlementEncryption)?
+
+    ///  An indication of whether the entitlement is enabled.
+    hidden EntitlementStatus: (FlowEntitlementEntitlementStatus|Mapping)?
+
+    /// The name of the entitlement.
+    hidden Name: String|Mapping
+
     Properties {
-        ["Encryption"] = if (Encryption == null) null else Encryption
-        ["EntitlementStatus"] = if (EntitlementStatus == null) null else EntitlementStatus
-        ["Name"] = if (Name == null) null else Name
         ["Subscribers"] = if (Subscribers == null) null else Subscribers
         ["FlowArn"] = if (FlowArn == null) null else FlowArn
         ["DataTransferSubscriberFeePercent"] = if (DataTransferSubscriberFeePercent == null) null else DataTransferSubscriberFeePercent
         ["Description"] = if (Description == null) null else Description
+        ["Encryption"] = if (Encryption == null) null else Encryption
+        ["EntitlementStatus"] = if (EntitlementStatus == null) null else EntitlementStatus
+        ["Name"] = if (Name == null) null else Name
     }
 
 }

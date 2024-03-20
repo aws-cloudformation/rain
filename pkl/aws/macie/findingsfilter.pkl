@@ -5,26 +5,14 @@ module aws.macie.findingsfilter
 
 import "../../cloudformation.pkl"
 
-/// Returned by ListHandler representing filter name and ID.
-open class FindingsFilterFindingsFilterListItem {
-    Id: (String|Mapping)?
-    Name: (String|Mapping)?
-}
-
-/// A key-value pair to associate with a resource.
-open class FindingsFilterTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
 /// 
 open class FindingsFilterCriterionAdditionalProperties {
-    lte: (Int|Mapping)?
-    eq: (Listing<String|Mapping>)?
-    neq: (Listing<String|Mapping>)?
     gt: (Int|Mapping)?
     gte: (Int|Mapping)?
     lt: (Int|Mapping)?
+    lte: (Int|Mapping)?
+    eq: (Listing<String|Mapping>)?
+    neq: (Listing<String|Mapping>)?
 }
 
 typealias FindingsFilterCriterion = Mapping<String, Any>
@@ -38,20 +26,23 @@ open class FindingsFilterFindingCriteria {
 typealias FindingsFilterFindingFilterAction = String|Mapping
 
 
+/// Returned by ListHandler representing filter name and ID.
+open class FindingsFilterFindingsFilterListItem {
+    Id: (String|Mapping)?
+    Name: (String|Mapping)?
+}
+
+/// A key-value pair to associate with a resource.
+open class FindingsFilterTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
 /// Macie FindingsFilter resource schema.
 open class FindingsFilter extends cloudformation.Resource {
 
     Type = "AWS::Macie::FindingsFilter"
 
-
-    /// Findings filter criteria.
-    hidden FindingCriteria: FindingsFilterFindingCriteria
-
-    /// Findings filter action.
-    hidden Action: (FindingsFilterFindingFilterAction)?
-
-    /// Findings filter position.
-    hidden Position: (Int|Mapping)?
 
     /// A collection of tags associated with a resource
     hidden Tags: (Listing<FindingsFilterTag>)?
@@ -62,13 +53,22 @@ open class FindingsFilter extends cloudformation.Resource {
     /// Findings filter description
     hidden Description: (String|Mapping)?
 
+    /// Findings filter criteria.
+    hidden FindingCriteria: FindingsFilterFindingCriteria
+
+    /// Findings filter action.
+    hidden Action: (FindingsFilterFindingFilterAction)?
+
+    /// Findings filter position.
+    hidden Position: (Int|Mapping)?
+
     Properties {
-        ["FindingCriteria"] = if (FindingCriteria == null) null else FindingCriteria
-        ["Action"] = if (Action == null) null else Action
-        ["Position"] = if (Position == null) null else Position
         ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
         ["Description"] = if (Description == null) null else Description
+        ["FindingCriteria"] = if (FindingCriteria == null) null else FindingCriteria
+        ["Action"] = if (Action == null) null else Action
+        ["Position"] = if (Position == null) null else Position
     }
 
 }

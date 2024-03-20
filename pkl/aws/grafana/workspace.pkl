@@ -5,47 +5,40 @@ module aws.grafana.workspace
 
 import "../../cloudformation.pkl"
 
-typealias WorkspaceNotificationDestinationType = String|Mapping
-
+/// The configuration settings for Network Access Control.
+open class WorkspaceNetworkAccessControl {
+    PrefixListIds: (Listing<String|Mapping>)?
+    VpceIds: (Listing<String|Mapping>)?
+}
 
 typealias WorkspaceWorkspaceStatus = String|Mapping
 
 
-/// Maps Grafana friendly names to the IdPs SAML attributes.
-open class WorkspaceAssertionAttributes {
-    Login: (String|Mapping)?
-    Email: (String|Mapping)?
-    Groups: (String|Mapping)?
-    Role: (String|Mapping)?
-    Org: (String|Mapping)?
-    Name: (String|Mapping)?
+typealias WorkspaceNotificationDestinationType = String|Mapping
+
+
+typealias WorkspacePermissionType = String|Mapping
+
+
+/// IdP Metadata used to configure SAML authentication in Grafana.
+open class WorkspaceIdpMetadata {
+    Url: (String|Mapping)?
+    Xml: (String|Mapping)?
 }
-
-typealias WorkspaceSamlConfigurationStatus = String|Mapping
-
 
 /// SAML configuration data associated with an AMG workspace.
 open class WorkspaceSamlConfiguration {
-    IdpMetadata: WorkspaceIdpMetadata
     AssertionAttributes: (WorkspaceAssertionAttributes)?
     RoleValues: (WorkspaceRoleValues)?
     AllowedOrganizations: (Listing<String|Mapping>)?
     LoginValidityDuration: (Number|Mapping)?
+    IdpMetadata: WorkspaceIdpMetadata
 }
 
-/// Maps SAML roles to the Grafana Editor and Admin roles.
-open class WorkspaceRoleValues {
-    Admin: (Listing<String|Mapping>)?
-    Editor: (Listing<String|Mapping>)?
-}
+typealias WorkspaceAccountAccessType = String|Mapping
+
 
 typealias WorkspaceAuthenticationProviderTypes = String|Mapping
-
-
-typealias WorkspaceDataSourceType = String|Mapping
-
-
-typealias WorkspacePermissionType = String|Mapping
 
 
 /// The configuration settings for an Amazon VPC that contains data sources for your Grafana workspace to connect to.
@@ -54,20 +47,27 @@ open class WorkspaceVpcConfiguration {
     SubnetIds: Listing<String|Mapping>
 }
 
-/// IdP Metadata used to configure SAML authentication in Grafana.
-open class WorkspaceIdpMetadata {
-    Url: (String|Mapping)?
-    Xml: (String|Mapping)?
+typealias WorkspaceDataSourceType = String|Mapping
+
+
+typealias WorkspaceSamlConfigurationStatus = String|Mapping
+
+
+/// Maps SAML roles to the Grafana Editor and Admin roles.
+open class WorkspaceRoleValues {
+    Editor: (Listing<String|Mapping>)?
+    Admin: (Listing<String|Mapping>)?
 }
 
-/// The configuration settings for Network Access Control.
-open class WorkspaceNetworkAccessControl {
-    VpceIds: (Listing<String|Mapping>)?
-    PrefixListIds: (Listing<String|Mapping>)?
+/// Maps Grafana friendly names to the IdPs SAML attributes.
+open class WorkspaceAssertionAttributes {
+    Name: (String|Mapping)?
+    Login: (String|Mapping)?
+    Email: (String|Mapping)?
+    Groups: (String|Mapping)?
+    Role: (String|Mapping)?
+    Org: (String|Mapping)?
 }
-
-typealias WorkspaceAccountAccessType = String|Mapping
-
 
 /// Definition of AWS::Grafana::Workspace Resource Type
 open class Workspace extends cloudformation.Resource {
@@ -78,20 +78,8 @@ open class Workspace extends cloudformation.Resource {
     /// 
     hidden NetworkAccessControl: (WorkspaceNetworkAccessControl)?
 
-    /// The version of Grafana to support in your workspace.
-    hidden GrafanaVersion: (String|Mapping)?
-
-    /// The name of the AWS CloudFormation stack set to use to generate IAM roles to be used for this workspace.
-    hidden StackSetName: (String|Mapping)?
-
-    /// Description of a workspace.
-    hidden Description: (String|Mapping)?
-
-    /// Allow workspace admins to install plugins
-    hidden PluginAdminEnabled: (Boolean|Mapping)?
-
     /// 
-    hidden SamlConfiguration: (WorkspaceSamlConfiguration)?
+    hidden VpcConfiguration: (WorkspaceVpcConfiguration)?
 
     /// A unique, case-sensitive, user-provided identifier to ensure the idempotency of the request.
     hidden ClientToken: (String(matches(Regex(#"^[!-~]{1,64}$"#)))|Mapping)?
@@ -99,8 +87,14 @@ open class Workspace extends cloudformation.Resource {
     /// 
     hidden AccountAccessType: WorkspaceAccountAccessType
 
-    /// 
-    hidden PermissionType: WorkspacePermissionType
+    /// The name of an IAM role that already exists to use with AWS Organizations to access AWS data sources and notification channels in other accounts in an organization.
+    hidden OrganizationRoleName: (String|Mapping)?
+
+    /// List of data sources on the service managed IAM role.
+    hidden DataSources: (Listing<WorkspaceDataSourceType>)?
+
+    /// List of Organizational Units containing AWS accounts the Grafana workspace can pull data from.
+    hidden OrganizationalUnits: (Listing<String|Mapping>)?
 
     /// IAM Role that will be used to grant the Grafana workspace access to a customers AWS resources.
     hidden RoleArn: (String|Mapping)?
@@ -108,42 +102,48 @@ open class Workspace extends cloudformation.Resource {
     /// List of authentication providers to enable.
     hidden AuthenticationProviders: Listing<WorkspaceAuthenticationProviderTypes>
 
-    /// The name of an IAM role that already exists to use with AWS Organizations to access AWS data sources and notification channels in other accounts in an organization.
-    hidden OrganizationRoleName: (String|Mapping)?
-
-    /// List of Organizational Units containing AWS accounts the Grafana workspace can pull data from.
-    hidden OrganizationalUnits: (Listing<String|Mapping>)?
+    /// Description of a workspace.
+    hidden Description: (String|Mapping)?
 
     /// 
-    hidden VpcConfiguration: (WorkspaceVpcConfiguration)?
+    hidden SamlConfiguration: (WorkspaceSamlConfiguration)?
 
-    /// List of data sources on the service managed IAM role.
-    hidden DataSources: (Listing<WorkspaceDataSourceType>)?
+    /// 
+    hidden PermissionType: WorkspacePermissionType
 
-    /// The user friendly name of a workspace.
-    hidden Name: (String(matches(Regex(#"^[a-zA-Z0-9-._~]{1,255}$"#)))|Mapping)?
+    /// The name of the AWS CloudFormation stack set to use to generate IAM roles to be used for this workspace.
+    hidden StackSetName: (String|Mapping)?
 
     /// List of notification destinations on the customers service managed IAM role that the Grafana workspace can query.
     hidden NotificationDestinations: (Listing<WorkspaceNotificationDestinationType>)?
 
+    /// The version of Grafana to support in your workspace.
+    hidden GrafanaVersion: (String|Mapping)?
+
+    /// The user friendly name of a workspace.
+    hidden Name: (String(matches(Regex(#"^[a-zA-Z0-9-._~]{1,255}$"#)))|Mapping)?
+
+    /// Allow workspace admins to install plugins
+    hidden PluginAdminEnabled: (Boolean|Mapping)?
+
     Properties {
         ["NetworkAccessControl"] = if (NetworkAccessControl == null) null else NetworkAccessControl
-        ["GrafanaVersion"] = if (GrafanaVersion == null) null else GrafanaVersion
-        ["StackSetName"] = if (StackSetName == null) null else StackSetName
-        ["Description"] = if (Description == null) null else Description
-        ["PluginAdminEnabled"] = if (PluginAdminEnabled == null) null else PluginAdminEnabled
-        ["SamlConfiguration"] = if (SamlConfiguration == null) null else SamlConfiguration
+        ["VpcConfiguration"] = if (VpcConfiguration == null) null else VpcConfiguration
         ["ClientToken"] = if (ClientToken == null) null else ClientToken
         ["AccountAccessType"] = if (AccountAccessType == null) null else AccountAccessType
-        ["PermissionType"] = if (PermissionType == null) null else PermissionType
+        ["OrganizationRoleName"] = if (OrganizationRoleName == null) null else OrganizationRoleName
+        ["DataSources"] = if (DataSources == null) null else DataSources
+        ["OrganizationalUnits"] = if (OrganizationalUnits == null) null else OrganizationalUnits
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
         ["AuthenticationProviders"] = if (AuthenticationProviders == null) null else AuthenticationProviders
-        ["OrganizationRoleName"] = if (OrganizationRoleName == null) null else OrganizationRoleName
-        ["OrganizationalUnits"] = if (OrganizationalUnits == null) null else OrganizationalUnits
-        ["VpcConfiguration"] = if (VpcConfiguration == null) null else VpcConfiguration
-        ["DataSources"] = if (DataSources == null) null else DataSources
-        ["Name"] = if (Name == null) null else Name
+        ["Description"] = if (Description == null) null else Description
+        ["SamlConfiguration"] = if (SamlConfiguration == null) null else SamlConfiguration
+        ["PermissionType"] = if (PermissionType == null) null else PermissionType
+        ["StackSetName"] = if (StackSetName == null) null else StackSetName
         ["NotificationDestinations"] = if (NotificationDestinations == null) null else NotificationDestinations
+        ["GrafanaVersion"] = if (GrafanaVersion == null) null else GrafanaVersion
+        ["Name"] = if (Name == null) null else Name
+        ["PluginAdminEnabled"] = if (PluginAdminEnabled == null) null else PluginAdminEnabled
     }
 
 }

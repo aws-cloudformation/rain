@@ -5,9 +5,6 @@ module aws.billingconductor.billinggroup
 
 import "../../cloudformation.pkl"
 
-typealias BillingGroupBillingGroupStatus = String|Mapping
-
-
 /// 
 open class BillingGroupComputationPreference {
     PricingPlanArn: String(matches(Regex(#"arn:aws(-cn)?:billingconductor::[0-9]{12}:pricingplan/[a-zA-Z0-9]{10}"#)))|Mapping
@@ -15,8 +12,8 @@ open class BillingGroupComputationPreference {
 
 /// 
 open class BillingGroupAccountGrouping {
-    AutoAssociate: (Boolean|Mapping)?
     LinkedAccountIds: Listing<String|Mapping>
+    AutoAssociate: (Boolean|Mapping)?
 }
 
 /// 
@@ -24,6 +21,9 @@ open class BillingGroupTag {
     Key: String|Mapping
     Value: String|Mapping
 }
+
+typealias BillingGroupBillingGroupStatus = String|Mapping
+
 
 /// A billing group is a set of linked account which belong to the same end customer. It can be seen as a virtual consolidated billing family.
 open class BillingGroup extends cloudformation.Resource {
@@ -34,28 +34,28 @@ open class BillingGroup extends cloudformation.Resource {
     /// 
     hidden Name: String(matches(Regex(#"[a-zA-Z0-9_\+=\.\-@]+"#)))|Mapping
 
-    /// This account will act as a virtual payer account of the billing group
-    hidden PrimaryAccountId: String(matches(Regex(#"[0-9]{12}"#)))|Mapping
-
-    /// 
-    hidden AccountGrouping: BillingGroupAccountGrouping
-
-    /// 
-    hidden Tags: (Listing<BillingGroupTag>)?
-
     /// 
     hidden Description: (String|Mapping)?
 
     /// 
+    hidden Tags: (Listing<BillingGroupTag>)?
+
+    /// This account will act as a virtual payer account of the billing group
+    hidden PrimaryAccountId: String(matches(Regex(#"[0-9]{12}"#)))|Mapping
+
+    /// 
     hidden ComputationPreference: BillingGroupComputationPreference
+
+    /// 
+    hidden AccountGrouping: BillingGroupAccountGrouping
 
     Properties {
         ["Name"] = if (Name == null) null else Name
-        ["PrimaryAccountId"] = if (PrimaryAccountId == null) null else PrimaryAccountId
-        ["AccountGrouping"] = if (AccountGrouping == null) null else AccountGrouping
-        ["Tags"] = if (Tags == null) null else Tags
         ["Description"] = if (Description == null) null else Description
+        ["Tags"] = if (Tags == null) null else Tags
+        ["PrimaryAccountId"] = if (PrimaryAccountId == null) null else PrimaryAccountId
         ["ComputationPreference"] = if (ComputationPreference == null) null else ComputationPreference
+        ["AccountGrouping"] = if (AccountGrouping == null) null else AccountGrouping
     }
 
 }

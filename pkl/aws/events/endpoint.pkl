@@ -5,34 +5,6 @@ module aws.events.endpoint
 
 import "../../cloudformation.pkl"
 
-typealias EndpointRoute = String|Mapping
-
-
-/// 
-open class EndpointFailoverConfig {
-    Primary: EndpointPrimary
-    Secondary: EndpointSecondary
-}
-
-typealias EndpointEventBuses = Listing<(EndpointEndpointEventBus)?>
-
-
-typealias EndpointReplicationState = String|Mapping
-
-
-/// 
-open class EndpointRoutingConfig {
-    FailoverConfig: EndpointFailoverConfig
-}
-
-/// 
-open class EndpointReplicationConfig {
-    State: EndpointReplicationState
-}
-
-typealias EndpointHealthCheck = String|Mapping
-
-
 /// 
 open class EndpointPrimary {
     HealthCheck: EndpointHealthCheck
@@ -51,11 +23,42 @@ open class EndpointEndpointEventBus {
     EventBusArn: EndpointEventBusArn
 }
 
+typealias EndpointHealthCheck = String|Mapping
+
+
+/// 
+open class EndpointFailoverConfig {
+    Primary: EndpointPrimary
+    Secondary: EndpointSecondary
+}
+
+/// 
+open class EndpointReplicationConfig {
+    State: EndpointReplicationState
+}
+
+/// 
+open class EndpointRoutingConfig {
+    FailoverConfig: EndpointFailoverConfig
+}
+
+typealias EndpointEventBuses = Listing<(EndpointEndpointEventBus)?>
+
+
+typealias EndpointReplicationState = String|Mapping
+
+
+typealias EndpointRoute = String|Mapping
+
+
 /// Resource Type definition for AWS::Events::Endpoint.
 open class Endpoint extends cloudformation.Resource {
 
     Type = "AWS::Events::Endpoint"
 
+
+    /// 
+    hidden RoutingConfig: EndpointRoutingConfig
 
     /// 
     hidden Name: (String(matches(Regex(#"^[\.\-_A-Za-z0-9]+$"#)))|Mapping)?
@@ -67,19 +70,16 @@ open class Endpoint extends cloudformation.Resource {
     hidden Description: (String(matches(Regex(#".*"#)))|Mapping)?
 
     /// 
-    hidden RoutingConfig: EndpointRoutingConfig
-
-    /// 
     hidden ReplicationConfig: (EndpointReplicationConfig)?
 
     /// 
     hidden EventBuses: EndpointEventBuses
 
     Properties {
+        ["RoutingConfig"] = if (RoutingConfig == null) null else RoutingConfig
         ["Name"] = if (Name == null) null else Name
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
         ["Description"] = if (Description == null) null else Description
-        ["RoutingConfig"] = if (RoutingConfig == null) null else RoutingConfig
         ["ReplicationConfig"] = if (ReplicationConfig == null) null else ReplicationConfig
         ["EventBuses"] = if (EventBuses == null) null else EventBuses
     }

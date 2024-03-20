@@ -5,39 +5,16 @@ module aws.sagemaker.modelbiasjobdefinition
 
 import "../../cloudformation.pkl"
 
-typealias ModelBiasJobDefinitionParquet = Boolean|Mapping
-
-
-typealias EndpointInputS3DataDistributionType = "FullyReplicated"|"ShardedByS3Key"
-
-typealias EndpointInputS3InputMode = "Pipe"|"File"
-
-/// The endpoint for a monitoring job.
-open class ModelBiasJobDefinitionEndpointInput {
-    ProbabilityAttribute: (String|Mapping)?
-    ProbabilityThresholdAttribute: (Number|Mapping)?
-    S3DataDistributionType: (EndpointInputS3DataDistributionType|Mapping)?
-    FeaturesAttribute: (String|Mapping)?
-    InferenceAttribute: (String|Mapping)?
-    StartTimeOffset: (ModelBiasJobDefinitionMonitoringTimeOffsetString)?
-    EndTimeOffset: (ModelBiasJobDefinitionMonitoringTimeOffsetString)?
-    EndpointName: ModelBiasJobDefinitionEndpointName
-    LocalPath: String(matches(Regex(#".*"#)))|Mapping
-    S3InputMode: (EndpointInputS3InputMode|Mapping)?
+/// The dataset format of the data to monitor
+open class ModelBiasJobDefinitionDatasetFormat {
+    Csv: (ModelBiasJobDefinitionCsv)?
+    Json: (ModelBiasJobDefinitionJson)?
+    Parquet: (ModelBiasJobDefinitionParquet)?
 }
 
-typealias ModelBiasJobDefinitionModelBiasAppSpecificationEnvironment = Mapping<String, Any>
-
-/// Container image configuration object for the monitoring job.
-open class ModelBiasJobDefinitionModelBiasAppSpecification {
-    ConfigUri: ModelBiasJobDefinitionS3Uri
-    Environment: (ModelBiasJobDefinitionModelBiasAppSpecificationEnvironment)?
-    ImageUri: String(matches(Regex(#".*"#)))|Mapping
-}
-
-/// Ground truth input provided in S3 
-open class ModelBiasJobDefinitionMonitoringGroundTruthS3Input {
-    S3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
+/// The Json format
+open class ModelBiasJobDefinitionJson {
+    Line: (Boolean|Mapping)?
 }
 
 /// The inputs for a monitoring job.
@@ -47,18 +24,92 @@ open class ModelBiasJobDefinitionModelBiasJobInput {
     GroundTruthS3Input: ModelBiasJobDefinitionMonitoringGroundTruthS3Input
 }
 
+typealias ModelBiasJobDefinitionJobDefinitionName = String|Mapping
+
+
+typealias ModelBiasJobDefinitionProcessingJobName = String|Mapping
+
+
+typealias ModelBiasJobDefinitionEndpointName = String|Mapping
+
+
+typealias EndpointInputS3DataDistributionType = "FullyReplicated"|"ShardedByS3Key"
+
+typealias EndpointInputS3InputMode = "Pipe"|"File"
+
+/// The endpoint for a monitoring job.
+open class ModelBiasJobDefinitionEndpointInput {
+    LocalPath: String(matches(Regex(#".*"#)))|Mapping
+    S3DataDistributionType: (EndpointInputS3DataDistributionType|Mapping)?
+    S3InputMode: (EndpointInputS3InputMode|Mapping)?
+    ProbabilityAttribute: (String|Mapping)?
+    EndpointName: ModelBiasJobDefinitionEndpointName
+    StartTimeOffset: (ModelBiasJobDefinitionMonitoringTimeOffsetString)?
+    EndTimeOffset: (ModelBiasJobDefinitionMonitoringTimeOffsetString)?
+    FeaturesAttribute: (String|Mapping)?
+    InferenceAttribute: (String|Mapping)?
+    ProbabilityThresholdAttribute: (Number|Mapping)?
+}
+
+typealias ModelBiasJobDefinitionS3Uri = String|Mapping
+
+
+/// A key-value pair to associate with a resource.
+open class ModelBiasJobDefinitionTag {
+    Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
+    Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
+}
+
+typealias BatchTransformInputS3InputMode = "Pipe"|"File"
+
+typealias BatchTransformInputS3DataDistributionType = "FullyReplicated"|"ShardedByS3Key"
+
+/// The batch transform input for a monitoring job.
+open class ModelBiasJobDefinitionBatchTransformInput {
+    DataCapturedDestinationS3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
+    DatasetFormat: ModelBiasJobDefinitionDatasetFormat
+    LocalPath: String(matches(Regex(#".*"#)))|Mapping
+    S3InputMode: (BatchTransformInputS3InputMode|Mapping)?
+    EndTimeOffset: (ModelBiasJobDefinitionMonitoringTimeOffsetString)?
+    FeaturesAttribute: (String|Mapping)?
+    S3DataDistributionType: (BatchTransformInputS3DataDistributionType|Mapping)?
+    StartTimeOffset: (ModelBiasJobDefinitionMonitoringTimeOffsetString)?
+    InferenceAttribute: (String|Mapping)?
+    ProbabilityAttribute: (String|Mapping)?
+    ProbabilityThresholdAttribute: (Number|Mapping)?
+}
+
+/// The output configuration for monitoring jobs.
+open class ModelBiasJobDefinitionMonitoringOutputConfig {
+    KmsKeyId: (String(matches(Regex(#".*"#)))|Mapping)?
+    MonitoringOutputs: Listing<ModelBiasJobDefinitionMonitoringOutput>
+}
+
+/// The output object for a monitoring job.
+open class ModelBiasJobDefinitionMonitoringOutput {
+    S3Output: ModelBiasJobDefinitionS3Output
+}
+
 typealias S3OutputS3UploadMode = "Continuous"|"EndOfJob"
 
 /// Information about where and how to store the results of a monitoring job.
 open class ModelBiasJobDefinitionS3Output {
-    LocalPath: String(matches(Regex(#".*"#)))|Mapping
     S3UploadMode: (S3OutputS3UploadMode|Mapping)?
     S3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
+    LocalPath: String(matches(Regex(#".*"#)))|Mapping
 }
 
-/// The CSV format
-open class ModelBiasJobDefinitionCsv {
-    Header: (Boolean|Mapping)?
+/// Configuration for the cluster used to run model monitoring jobs.
+open class ModelBiasJobDefinitionClusterConfig {
+    InstanceType: String|Mapping
+    VolumeKmsKeyId: (String|Mapping)?
+    VolumeSizeInGB: Int|Mapping
+    InstanceCount: Int|Mapping
+}
+
+/// The baseline constraints resource for a monitoring job.
+open class ModelBiasJobDefinitionConstraintsResource {
+    S3Uri: (ModelBiasJobDefinitionS3Uri)?
 }
 
 /// Specifies a VPC that your training jobs and hosted models have access to. Control access to and from your training and model containers by configuring the VPC.
@@ -67,18 +118,18 @@ open class ModelBiasJobDefinitionVpcConfig {
     Subnets: Listing<String|Mapping>
 }
 
-/// A key-value pair to associate with a resource.
-open class ModelBiasJobDefinitionTag {
-    Key: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
-    Value: String(matches(Regex(#"^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$"#)))|Mapping
+/// Ground truth input provided in S3 
+open class ModelBiasJobDefinitionMonitoringGroundTruthS3Input {
+    S3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
 }
 
-typealias ModelBiasJobDefinitionJobDefinitionName = String|Mapping
+typealias ModelBiasJobDefinitionModelBiasAppSpecificationEnvironment = Mapping<String, Any>
 
-
-/// The Json format
-open class ModelBiasJobDefinitionJson {
-    Line: (Boolean|Mapping)?
+/// Container image configuration object for the monitoring job.
+open class ModelBiasJobDefinitionModelBiasAppSpecification {
+    ImageUri: String(matches(Regex(#".*"#)))|Mapping
+    ConfigUri: ModelBiasJobDefinitionS3Uri
+    Environment: (ModelBiasJobDefinitionModelBiasAppSpecificationEnvironment)?
 }
 
 /// Networking options for a job, such as network traffic encryption between containers, whether to allow inbound and outbound network calls to and from containers, and the VPC subnets and security groups to use for VPC-enabled jobs.
@@ -88,74 +139,23 @@ open class ModelBiasJobDefinitionNetworkConfig {
     VpcConfig: (ModelBiasJobDefinitionVpcConfig)?
 }
 
-typealias ModelBiasJobDefinitionEndpointName = String|Mapping
-
-
-/// The dataset format of the data to monitor
-open class ModelBiasJobDefinitionDatasetFormat {
-    Csv: (ModelBiasJobDefinitionCsv)?
-    Json: (ModelBiasJobDefinitionJson)?
-    Parquet: (ModelBiasJobDefinitionParquet)?
-}
-
-/// The output configuration for monitoring jobs.
-open class ModelBiasJobDefinitionMonitoringOutputConfig {
-    KmsKeyId: (String(matches(Regex(#".*"#)))|Mapping)?
-    MonitoringOutputs: Listing<ModelBiasJobDefinitionMonitoringOutput>
-}
-
-typealias BatchTransformInputS3DataDistributionType = "FullyReplicated"|"ShardedByS3Key"
-
-typealias BatchTransformInputS3InputMode = "Pipe"|"File"
-
-/// The batch transform input for a monitoring job.
-open class ModelBiasJobDefinitionBatchTransformInput {
-    DatasetFormat: ModelBiasJobDefinitionDatasetFormat
-    S3DataDistributionType: (BatchTransformInputS3DataDistributionType|Mapping)?
-    S3InputMode: (BatchTransformInputS3InputMode|Mapping)?
-    StartTimeOffset: (ModelBiasJobDefinitionMonitoringTimeOffsetString)?
-    EndTimeOffset: (ModelBiasJobDefinitionMonitoringTimeOffsetString)?
-    ProbabilityAttribute: (String|Mapping)?
-    ProbabilityThresholdAttribute: (Number|Mapping)?
-    DataCapturedDestinationS3Uri: String(matches(Regex(#"^(https|s3)://([^/]+)/?(.*)$"#)))|Mapping
-    LocalPath: String(matches(Regex(#".*"#)))|Mapping
-    FeaturesAttribute: (String|Mapping)?
-    InferenceAttribute: (String|Mapping)?
-}
-
-typealias ModelBiasJobDefinitionMonitoringTimeOffsetString = String|Mapping
-
-
 /// Baseline configuration used to validate that the data conforms to the specified constraints and statistics.
 open class ModelBiasJobDefinitionModelBiasBaselineConfig {
     BaseliningJobName: (ModelBiasJobDefinitionProcessingJobName)?
     ConstraintsResource: (ModelBiasJobDefinitionConstraintsResource)?
 }
 
-typealias ModelBiasJobDefinitionS3Uri = String|Mapping
+typealias ModelBiasJobDefinitionParquet = Boolean|Mapping
 
-
-/// The baseline constraints resource for a monitoring job.
-open class ModelBiasJobDefinitionConstraintsResource {
-    S3Uri: (ModelBiasJobDefinitionS3Uri)?
-}
 
 /// Specifies a time limit for how long the monitoring job is allowed to run.
 open class ModelBiasJobDefinitionStoppingCondition {
     MaxRuntimeInSeconds: Int|Mapping
 }
 
-/// Configuration for the cluster used to run model monitoring jobs.
-open class ModelBiasJobDefinitionClusterConfig {
-    InstanceCount: Int|Mapping
-    InstanceType: String|Mapping
-    VolumeKmsKeyId: (String|Mapping)?
-    VolumeSizeInGB: Int|Mapping
-}
-
-/// The output object for a monitoring job.
-open class ModelBiasJobDefinitionMonitoringOutput {
-    S3Output: ModelBiasJobDefinitionS3Output
+/// The CSV format
+open class ModelBiasJobDefinitionCsv {
+    Header: (Boolean|Mapping)?
 }
 
 /// Identifies the resources to deploy for a monitoring job.
@@ -163,7 +163,7 @@ open class ModelBiasJobDefinitionMonitoringResources {
     ClusterConfig: ModelBiasJobDefinitionClusterConfig
 }
 
-typealias ModelBiasJobDefinitionProcessingJobName = String|Mapping
+typealias ModelBiasJobDefinitionMonitoringTimeOffsetString = String|Mapping
 
 
 /// Resource Type definition for AWS::SageMaker::ModelBiasJobDefinition
@@ -172,8 +172,32 @@ open class ModelBiasJobDefinition extends cloudformation.Resource {
     Type = "AWS::SageMaker::ModelBiasJobDefinition"
 
 
+    /// An array of key-value pairs to apply to this resource.
+    hidden Tags: (Listing<ModelBiasJobDefinitionTag>)?
+
+    /// 
+    hidden ModelBiasBaselineConfig: (ModelBiasJobDefinitionModelBiasBaselineConfig)?
+
+    /// 
+    hidden ModelBiasJobInput: ModelBiasJobDefinitionModelBiasJobInput
+
+    /// 
+    hidden EndpointName: (ModelBiasJobDefinitionEndpointName)?
+
+    /// The Amazon Resource Name (ARN) of an IAM role that Amazon SageMaker can assume to perform tasks on your behalf.
+    hidden RoleArn: String(matches(Regex(#"^arn:aws[a-z\-]*:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping
+
+    /// 
+    hidden NetworkConfig: (ModelBiasJobDefinitionNetworkConfig)?
+
+    /// 
+    hidden StoppingCondition: (ModelBiasJobDefinitionStoppingCondition)?
+
     /// 
     hidden ModelBiasJobOutputConfig: ModelBiasJobDefinitionMonitoringOutputConfig
+
+    /// 
+    hidden JobResources: ModelBiasJobDefinitionMonitoringResources
 
     /// 
     hidden JobDefinitionName: (ModelBiasJobDefinitionJobDefinitionName)?
@@ -181,42 +205,18 @@ open class ModelBiasJobDefinition extends cloudformation.Resource {
     /// 
     hidden ModelBiasAppSpecification: ModelBiasJobDefinitionModelBiasAppSpecification
 
-    /// 
-    hidden NetworkConfig: (ModelBiasJobDefinitionNetworkConfig)?
-
-    /// The Amazon Resource Name (ARN) of an IAM role that Amazon SageMaker can assume to perform tasks on your behalf.
-    hidden RoleArn: String(matches(Regex(#"^arn:aws[a-z\-]*:iam::\d{12}:role/?[a-zA-Z_0-9+=,.@\-_/]+$"#)))|Mapping
-
-    /// 
-    hidden EndpointName: (ModelBiasJobDefinitionEndpointName)?
-
-    /// 
-    hidden StoppingCondition: (ModelBiasJobDefinitionStoppingCondition)?
-
-    /// An array of key-value pairs to apply to this resource.
-    hidden Tags: (Listing<ModelBiasJobDefinitionTag>)?
-
-    /// 
-    hidden JobResources: ModelBiasJobDefinitionMonitoringResources
-
-    /// 
-    hidden ModelBiasJobInput: ModelBiasJobDefinitionModelBiasJobInput
-
-    /// 
-    hidden ModelBiasBaselineConfig: (ModelBiasJobDefinitionModelBiasBaselineConfig)?
-
     Properties {
+        ["Tags"] = if (Tags == null) null else Tags
+        ["ModelBiasBaselineConfig"] = if (ModelBiasBaselineConfig == null) null else ModelBiasBaselineConfig
+        ["ModelBiasJobInput"] = if (ModelBiasJobInput == null) null else ModelBiasJobInput
+        ["EndpointName"] = if (EndpointName == null) null else EndpointName
+        ["RoleArn"] = if (RoleArn == null) null else RoleArn
+        ["NetworkConfig"] = if (NetworkConfig == null) null else NetworkConfig
+        ["StoppingCondition"] = if (StoppingCondition == null) null else StoppingCondition
         ["ModelBiasJobOutputConfig"] = if (ModelBiasJobOutputConfig == null) null else ModelBiasJobOutputConfig
+        ["JobResources"] = if (JobResources == null) null else JobResources
         ["JobDefinitionName"] = if (JobDefinitionName == null) null else JobDefinitionName
         ["ModelBiasAppSpecification"] = if (ModelBiasAppSpecification == null) null else ModelBiasAppSpecification
-        ["NetworkConfig"] = if (NetworkConfig == null) null else NetworkConfig
-        ["RoleArn"] = if (RoleArn == null) null else RoleArn
-        ["EndpointName"] = if (EndpointName == null) null else EndpointName
-        ["StoppingCondition"] = if (StoppingCondition == null) null else StoppingCondition
-        ["Tags"] = if (Tags == null) null else Tags
-        ["JobResources"] = if (JobResources == null) null else JobResources
-        ["ModelBiasJobInput"] = if (ModelBiasJobInput == null) null else ModelBiasJobInput
-        ["ModelBiasBaselineConfig"] = if (ModelBiasBaselineConfig == null) null else ModelBiasBaselineConfig
     }
 
 }

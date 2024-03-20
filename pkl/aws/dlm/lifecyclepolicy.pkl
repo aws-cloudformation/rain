@@ -6,6 +6,49 @@ module aws.dlm.lifecyclepolicy
 import "../../cloudformation.pkl"
 
 /// 
+open class LifecyclePolicyFastRestoreRule {
+    IntervalUnit: (String|Mapping)?
+    Count: (Int|Mapping)?
+    AvailabilityZones: (Listing<String|Mapping>)?
+    Interval: (Int|Mapping)?
+}
+
+/// 
+open class LifecyclePolicyCrossRegionCopyAction {
+    EncryptionConfiguration: LifecyclePolicyEncryptionConfiguration
+    RetainRule: (LifecyclePolicyCrossRegionCopyRetainRule)?
+    Target: String|Mapping
+}
+
+/// 
+open class LifecyclePolicyTag {
+    Value: String|Mapping
+    Key: String|Mapping
+}
+
+/// 
+open class LifecyclePolicyCrossRegionCopyDeprecateRule {
+    IntervalUnit: String|Mapping
+    Interval: Int|Mapping
+}
+
+/// 
+open class LifecyclePolicyCrossRegionCopyRule {
+    Encrypted: Boolean|Mapping
+    CmkArn: (String|Mapping)?
+    RetainRule: (LifecyclePolicyCrossRegionCopyRetainRule)?
+    CopyTags: (Boolean|Mapping)?
+    TargetRegion: (String|Mapping)?
+    Target: (String|Mapping)?
+    DeprecateRule: (LifecyclePolicyCrossRegionCopyDeprecateRule)?
+}
+
+/// 
+open class LifecyclePolicyArchiveRetainRule {
+    RetentionArchiveTier: LifecyclePolicyRetentionArchiveTier
+}
+
+/// 
 open class LifecyclePolicyParameters {
     ExcludeBootVolume: (Boolean|Mapping)?
     NoReboot: (Boolean|Mapping)?
@@ -13,14 +56,73 @@ open class LifecyclePolicyParameters {
 }
 
 /// 
-open class LifecyclePolicyDeprecateRule {
-    Count: (Int|Mapping)?
-    Interval: (Int|Mapping)?
-    IntervalUnit: (String|Mapping)?
+open class LifecyclePolicyEventParameters {
+    DescriptionRegex: (String|Mapping)?
+    EventType: String|Mapping
+    SnapshotOwner: Listing<String|Mapping>
+}
+
+/// 
+open class LifecyclePolicyScript {
+    ExecuteOperationOnScriptFailure: (Boolean|Mapping)?
+    ExecutionHandlerService: (String|Mapping)?
+    ExecutionTimeout: (Int|Mapping)?
+    Stages: (Listing<String|Mapping>)?
+    ExecutionHandler: (String|Mapping)?
+    MaximumRetryCount: (Int|Mapping)?
+}
+
+typealias LifecyclePolicyCrossRegionCopyTargets = Dynamic
+
+
+/// 
+open class LifecyclePolicyEncryptionConfiguration {
+    Encrypted: Boolean|Mapping
+    CmkArn: (String|Mapping)?
 }
 
 /// 
 open class LifecyclePolicyRetainRule {
+    IntervalUnit: (String|Mapping)?
+    Count: (Int|Mapping)?
+    Interval: (Int|Mapping)?
+}
+
+/// 
+open class LifecyclePolicyEventSource {
+    Type: String|Mapping
+    Parameters: (LifecyclePolicyEventParameters)?
+}
+
+/// 
+open class LifecyclePolicySchedule {
+    DeprecateRule: (LifecyclePolicyDeprecateRule)?
+    TagsToAdd: (Listing<LifecyclePolicyTag>)?
+    ArchiveRule: (LifecyclePolicyArchiveRule)?
+    RetainRule: (LifecyclePolicyRetainRule)?
+    Name: (String|Mapping)?
+    CopyTags: (Boolean|Mapping)?
+    ShareRules: (Listing<LifecyclePolicyShareRule>)?
+    CreateRule: (LifecyclePolicyCreateRule)?
+    VariableTags: (Listing<LifecyclePolicyTag>)?
+    FastRestoreRule: (LifecyclePolicyFastRestoreRule)?
+    CrossRegionCopyRules: (Listing<LifecyclePolicyCrossRegionCopyRule>)?
+}
+
+/// 
+open class LifecyclePolicyAction {
+    CrossRegionCopy: Listing<LifecyclePolicyCrossRegionCopyAction>
+    Name: String|Mapping
+}
+
+/// 
+open class LifecyclePolicyCrossRegionCopyRetainRule {
+    IntervalUnit: String|Mapping
+    Interval: Int|Mapping
+}
+
+/// 
+open class LifecyclePolicyRetentionArchiveTier {
     IntervalUnit: (String|Mapping)?
     Count: (Int|Mapping)?
     Interval: (Int|Mapping)?
@@ -34,86 +136,33 @@ open class LifecyclePolicyShareRule {
 }
 
 /// 
-open class LifecyclePolicyCrossRegionCopyRetainRule {
-    Interval: Int|Mapping
-    IntervalUnit: String|Mapping
-}
-
-/// 
-open class LifecyclePolicyScript {
-    ExecutionTimeout: (Int|Mapping)?
-    Stages: (Listing<String|Mapping>)?
-    ExecutionHandler: (String|Mapping)?
-    MaximumRetryCount: (Int|Mapping)?
-    ExecuteOperationOnScriptFailure: (Boolean|Mapping)?
-    ExecutionHandlerService: (String|Mapping)?
+open class LifecyclePolicyExclusions {
+    ExcludeTags: (LifecyclePolicyExcludeTags)?
+    ExcludeVolumeTypes: (LifecyclePolicyExcludeVolumeTypesList)?
+    ExcludeBootVolumes: (Boolean|Mapping)?
 }
 
 typealias LifecyclePolicyExcludeTags = Dynamic
 
 
-typealias LifecyclePolicyCrossRegionCopyTargets = Dynamic
-
-
 /// 
-open class LifecyclePolicyRetentionArchiveTier {
-    IntervalUnit: (String|Mapping)?
-    Count: (Int|Mapping)?
-    Interval: (Int|Mapping)?
-}
-
-/// 
-open class LifecyclePolicyFastRestoreRule {
-    Count: (Int|Mapping)?
-    AvailabilityZones: (Listing<String|Mapping>)?
-    Interval: (Int|Mapping)?
-    IntervalUnit: (String|Mapping)?
-}
-
-/// 
-open class LifecyclePolicySchedule {
-    VariableTags: (Listing<LifecyclePolicyTag>)?
-    ArchiveRule: (LifecyclePolicyArchiveRule)?
-    RetainRule: (LifecyclePolicyRetainRule)?
-    CrossRegionCopyRules: (Listing<LifecyclePolicyCrossRegionCopyRule>)?
-    ShareRules: (Listing<LifecyclePolicyShareRule>)?
-    DeprecateRule: (LifecyclePolicyDeprecateRule)?
-    TagsToAdd: (Listing<LifecyclePolicyTag>)?
-    CreateRule: (LifecyclePolicyCreateRule)?
-    Name: (String|Mapping)?
+open class LifecyclePolicyPolicyDetails {
+    PolicyType: (String|Mapping)?
+    PolicyLanguage: (String|Mapping)?
+    CreateInterval: (Int|Mapping)?
+    Exclusions: (LifecyclePolicyExclusions)?
+    ResourceType: (String|Mapping)?
+    ResourceTypes: (Listing<String|Mapping>)?
+    Schedules: (Listing<LifecyclePolicySchedule>)?
+    Parameters: (LifecyclePolicyParameters)?
+    EventSource: (LifecyclePolicyEventSource)?
+    ExtendDeletion: (Boolean|Mapping)?
+    Actions: (Listing<LifecyclePolicyAction>)?
+    RetainInterval: (Int|Mapping)?
+    CrossRegionCopyTargets: (LifecyclePolicyCrossRegionCopyTargets)?
+    TargetTags: (Listing<LifecyclePolicyTag>)?
+    ResourceLocations: (Listing<String|Mapping>)?
     CopyTags: (Boolean|Mapping)?
-    FastRestoreRule: (LifecyclePolicyFastRestoreRule)?
-}
-
-/// 
-open class LifecyclePolicyAction {
-    CrossRegionCopy: Listing<LifecyclePolicyCrossRegionCopyAction>
-    Name: String|Mapping
-}
-
-/// 
-open class LifecyclePolicyEventParameters {
-    DescriptionRegex: (String|Mapping)?
-    EventType: String|Mapping
-    SnapshotOwner: Listing<String|Mapping>
-}
-
-/// 
-open class LifecyclePolicyArchiveRetainRule {
-    RetentionArchiveTier: LifecyclePolicyRetentionArchiveTier
-}
-
-/// 
-open class LifecyclePolicyTag {
-    Value: String|Mapping
-    Key: String|Mapping
-}
-
-/// 
-open class LifecyclePolicyCrossRegionCopyAction {
-    Target: String|Mapping
-    EncryptionConfiguration: LifecyclePolicyEncryptionConfiguration
-    RetainRule: (LifecyclePolicyCrossRegionCopyRetainRule)?
 }
 
 /// 
@@ -121,21 +170,14 @@ open class LifecyclePolicyArchiveRule {
     RetainRule: LifecyclePolicyArchiveRetainRule
 }
 
-/// 
-open class LifecyclePolicyCrossRegionCopyRule {
-    DeprecateRule: (LifecyclePolicyCrossRegionCopyDeprecateRule)?
-    Encrypted: Boolean|Mapping
-    CmkArn: (String|Mapping)?
-    RetainRule: (LifecyclePolicyCrossRegionCopyRetainRule)?
-    CopyTags: (Boolean|Mapping)?
-    TargetRegion: (String|Mapping)?
-    Target: (String|Mapping)?
-}
+typealias LifecyclePolicyExcludeVolumeTypesList = Dynamic
+
 
 /// 
-open class LifecyclePolicyEventSource {
-    Type: String|Mapping
-    Parameters: (LifecyclePolicyEventParameters)?
+open class LifecyclePolicyDeprecateRule {
+    IntervalUnit: (String|Mapping)?
+    Count: (Int|Mapping)?
+    Interval: (Int|Mapping)?
 }
 
 /// 
@@ -148,53 +190,20 @@ open class LifecyclePolicyCreateRule {
     Location: (String|Mapping)?
 }
 
-/// 
-open class LifecyclePolicyPolicyDetails {
-    Exclusions: (LifecyclePolicyExclusions)?
-    Actions: (Listing<LifecyclePolicyAction>)?
-    EventSource: (LifecyclePolicyEventSource)?
-    ResourceTypes: (Listing<String|Mapping>)?
-    PolicyType: (String|Mapping)?
-    CreateInterval: (Int|Mapping)?
-    ExtendDeletion: (Boolean|Mapping)?
-    ResourceType: (String|Mapping)?
-    RetainInterval: (Int|Mapping)?
-    TargetTags: (Listing<LifecyclePolicyTag>)?
-    PolicyLanguage: (String|Mapping)?
-    Schedules: (Listing<LifecyclePolicySchedule>)?
-    ResourceLocations: (Listing<String|Mapping>)?
-    CopyTags: (Boolean|Mapping)?
-    Parameters: (LifecyclePolicyParameters)?
-    CrossRegionCopyTargets: (LifecyclePolicyCrossRegionCopyTargets)?
-}
-
-/// 
-open class LifecyclePolicyExclusions {
-    ExcludeTags: (LifecyclePolicyExcludeTags)?
-    ExcludeVolumeTypes: (LifecyclePolicyExcludeVolumeTypesList)?
-    ExcludeBootVolumes: (Boolean|Mapping)?
-}
-
-/// 
-open class LifecyclePolicyCrossRegionCopyDeprecateRule {
-    IntervalUnit: String|Mapping
-    Interval: Int|Mapping
-}
-
-typealias LifecyclePolicyExcludeVolumeTypesList = Dynamic
-
-
-/// 
-open class LifecyclePolicyEncryptionConfiguration {
-    Encrypted: Boolean|Mapping
-    CmkArn: (String|Mapping)?
-}
-
 /// Resource Type definition for AWS::DLM::LifecyclePolicy
 open class LifecyclePolicy extends cloudformation.Resource {
 
     Type = "AWS::DLM::LifecyclePolicy"
 
+
+    /// 
+    hidden ExecutionRoleArn: (String|Mapping)?
+
+    /// 
+    hidden PolicyDetails: (LifecyclePolicyPolicyDetails)?
+
+    /// 
+    hidden Description: (String|Mapping)?
 
     /// 
     hidden Exclusions: (LifecyclePolicyExclusions)?
@@ -203,48 +212,39 @@ open class LifecyclePolicy extends cloudformation.Resource {
     hidden RetainInterval: (Int|Mapping)?
 
     /// 
+    hidden DefaultPolicy: (String|Mapping)?
+
+    /// 
+    hidden CrossRegionCopyTargets: (LifecyclePolicyCrossRegionCopyTargets)?
+
+    /// 
+    hidden Tags: (Listing<LifecyclePolicyTag>)?
+
+    /// 
     hidden CreateInterval: (Int|Mapping)?
 
     /// 
     hidden ExtendDeletion: (Boolean|Mapping)?
 
     /// 
-    hidden CrossRegionCopyTargets: (LifecyclePolicyCrossRegionCopyTargets)?
-
-    /// 
     hidden CopyTags: (Boolean|Mapping)?
-
-    /// 
-    hidden Description: (String|Mapping)?
-
-    /// 
-    hidden ExecutionRoleArn: (String|Mapping)?
 
     /// 
     hidden State: (String|Mapping)?
 
-    /// 
-    hidden PolicyDetails: (LifecyclePolicyPolicyDetails)?
-
-    /// 
-    hidden DefaultPolicy: (String|Mapping)?
-
-    /// 
-    hidden Tags: (Listing<LifecyclePolicyTag>)?
-
     Properties {
+        ["ExecutionRoleArn"] = if (ExecutionRoleArn == null) null else ExecutionRoleArn
+        ["PolicyDetails"] = if (PolicyDetails == null) null else PolicyDetails
+        ["Description"] = if (Description == null) null else Description
         ["Exclusions"] = if (Exclusions == null) null else Exclusions
         ["RetainInterval"] = if (RetainInterval == null) null else RetainInterval
+        ["DefaultPolicy"] = if (DefaultPolicy == null) null else DefaultPolicy
+        ["CrossRegionCopyTargets"] = if (CrossRegionCopyTargets == null) null else CrossRegionCopyTargets
+        ["Tags"] = if (Tags == null) null else Tags
         ["CreateInterval"] = if (CreateInterval == null) null else CreateInterval
         ["ExtendDeletion"] = if (ExtendDeletion == null) null else ExtendDeletion
-        ["CrossRegionCopyTargets"] = if (CrossRegionCopyTargets == null) null else CrossRegionCopyTargets
         ["CopyTags"] = if (CopyTags == null) null else CopyTags
-        ["Description"] = if (Description == null) null else Description
-        ["ExecutionRoleArn"] = if (ExecutionRoleArn == null) null else ExecutionRoleArn
         ["State"] = if (State == null) null else State
-        ["PolicyDetails"] = if (PolicyDetails == null) null else PolicyDetails
-        ["DefaultPolicy"] = if (DefaultPolicy == null) null else DefaultPolicy
-        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

@@ -7,8 +7,8 @@ import "../../cloudformation.pkl"
 
 /// A key-value pair to associate with a resource.
 open class EventSubscriptionTag {
-    Value: String|Mapping
     Key: String|Mapping
+    Value: String|Mapping
 }
 
 /// The `AWS::Redshift::EventSubscription` resource creates an Amazon Redshift Event Subscription.
@@ -17,20 +17,20 @@ open class EventSubscription extends cloudformation.Resource {
     Type = "AWS::Redshift::EventSubscription"
 
 
-    /// The name of the Amazon Redshift event notification subscription
-    hidden SubscriptionName: String(matches(Regex(#"^(?=^[a-z][a-z0-9]*(-[a-z0-9]+)*$).{1,255}$"#)))|Mapping
-
     /// Specifies the Amazon Redshift event severity to be published by the event notification subscription.
     hidden Severity: (EventSubscriptionSeverity|Mapping)?
+
+    /// The type of source that will be generating the events.
+    hidden SourceType: (EventSubscriptionSourceType|Mapping)?
 
     /// A list of one or more identifiers of Amazon Redshift source objects.
     hidden SourceIds: (Listing<String|Mapping>)?
 
+    /// The name of the Amazon Redshift event notification subscription
+    hidden SubscriptionName: String(matches(Regex(#"^(?=^[a-z][a-z0-9]*(-[a-z0-9]+)*$).{1,255}$"#)))|Mapping
+
     /// The Amazon Resource Name (ARN) of the Amazon SNS topic used to transmit the event notifications.
     hidden SnsTopicArn: (String|Mapping)?
-
-    /// The type of source that will be generating the events.
-    hidden SourceType: (EventSubscriptionSourceType|Mapping)?
 
     /// A boolean value; set to true to activate the subscription, and set to false to create the subscription but not activate it.
     hidden Enabled: (Boolean|Mapping)?
@@ -42,11 +42,11 @@ open class EventSubscription extends cloudformation.Resource {
     hidden Tags: (Listing<EventSubscriptionTag>)?
 
     Properties {
-        ["SubscriptionName"] = if (SubscriptionName == null) null else SubscriptionName
         ["Severity"] = if (Severity == null) null else Severity
-        ["SourceIds"] = if (SourceIds == null) null else SourceIds
-        ["SnsTopicArn"] = if (SnsTopicArn == null) null else SnsTopicArn
         ["SourceType"] = if (SourceType == null) null else SourceType
+        ["SourceIds"] = if (SourceIds == null) null else SourceIds
+        ["SubscriptionName"] = if (SubscriptionName == null) null else SubscriptionName
+        ["SnsTopicArn"] = if (SnsTopicArn == null) null else SnsTopicArn
         ["Enabled"] = if (Enabled == null) null else Enabled
         ["EventCategories"] = if (EventCategories == null) null else EventCategories
         ["Tags"] = if (Tags == null) null else Tags

@@ -6,24 +6,65 @@ module aws.kinesisanalytics.application
 import "../../cloudformation.pkl"
 
 /// 
+open class ApplicationJSONMappingParameters {
+    RecordRowPath: String|Mapping
+}
+
+/// 
+open class ApplicationCSVMappingParameters {
+    RecordRowDelimiter: String|Mapping
+    RecordColumnDelimiter: String|Mapping
+}
+
+/// 
+open class ApplicationKinesisFirehoseInput {
+    ResourceARN: String|Mapping
+    RoleARN: String|Mapping
+}
+
+/// 
+open class ApplicationInputParallelism {
+    Count: (Int|Mapping)?
+}
+
+/// 
+open class ApplicationInput {
+    NamePrefix: String|Mapping
+    InputSchema: ApplicationInputSchema
+    KinesisStreamsInput: (ApplicationKinesisStreamsInput)?
+    KinesisFirehoseInput: (ApplicationKinesisFirehoseInput)?
+    InputProcessingConfiguration: (ApplicationInputProcessingConfiguration)?
+    InputParallelism: (ApplicationInputParallelism)?
+}
+
+/// 
+open class ApplicationKinesisStreamsInput {
+    ResourceARN: String|Mapping
+    RoleARN: String|Mapping
+}
+
+/// 
 open class ApplicationInputLambdaProcessor {
     ResourceARN: String|Mapping
     RoleARN: String|Mapping
 }
 
 /// 
-open class ApplicationJSONMappingParameters {
-    RecordRowPath: String|Mapping
+open class ApplicationMappingParameters {
+    JSONMappingParameters: (ApplicationJSONMappingParameters)?
+    CSVMappingParameters: (ApplicationCSVMappingParameters)?
 }
 
 /// 
-open class ApplicationInput {
-    InputSchema: ApplicationInputSchema
-    KinesisStreamsInput: (ApplicationKinesisStreamsInput)?
-    KinesisFirehoseInput: (ApplicationKinesisFirehoseInput)?
-    InputProcessingConfiguration: (ApplicationInputProcessingConfiguration)?
-    InputParallelism: (ApplicationInputParallelism)?
-    NamePrefix: String|Mapping
+open class ApplicationInputProcessingConfiguration {
+    InputLambdaProcessor: (ApplicationInputLambdaProcessor)?
+}
+
+/// 
+open class ApplicationInputSchema {
+    RecordFormat: ApplicationRecordFormat
+    RecordEncoding: (String|Mapping)?
+    RecordColumns: Listing<ApplicationRecordColumn>
 }
 
 /// 
@@ -34,50 +75,9 @@ open class ApplicationRecordColumn {
 }
 
 /// 
-open class ApplicationKinesisFirehoseInput {
-    ResourceARN: String|Mapping
-    RoleARN: String|Mapping
-}
-
-/// 
-open class ApplicationInputSchema {
-    RecordEncoding: (String|Mapping)?
-    RecordColumns: Listing<ApplicationRecordColumn>
-    RecordFormat: ApplicationRecordFormat
-}
-
-/// 
-open class ApplicationMappingParameters {
-    JSONMappingParameters: (ApplicationJSONMappingParameters)?
-    CSVMappingParameters: (ApplicationCSVMappingParameters)?
-}
-
-/// 
-open class ApplicationCSVMappingParameters {
-    RecordRowDelimiter: String|Mapping
-    RecordColumnDelimiter: String|Mapping
-}
-
-/// 
-open class ApplicationKinesisStreamsInput {
-    ResourceARN: String|Mapping
-    RoleARN: String|Mapping
-}
-
-/// 
 open class ApplicationRecordFormat {
     MappingParameters: (ApplicationMappingParameters)?
     RecordFormatType: String|Mapping
-}
-
-/// 
-open class ApplicationInputParallelism {
-    Count: (Int|Mapping)?
-}
-
-/// 
-open class ApplicationInputProcessingConfiguration {
-    InputLambdaProcessor: (ApplicationInputLambdaProcessor)?
 }
 
 /// Resource Type definition for AWS::KinesisAnalytics::Application

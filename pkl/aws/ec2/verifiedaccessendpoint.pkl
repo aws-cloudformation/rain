@@ -5,17 +5,6 @@ module aws.ec2.verifiedaccessendpoint
 
 import "../../cloudformation.pkl"
 
-/// The load balancer details if creating the AWS Verified Access endpoint as load-balancertype.
-open class VerifiedAccessEndpointLoadBalancerOptions {
-    SubnetIds: (Listing<VerifiedAccessEndpointSubnetId>)?
-    LoadBalancerArn: (String|Mapping)?
-    Port: (Int|Mapping)?
-    Protocol: (String|Mapping)?
-}
-
-typealias VerifiedAccessEndpointSubnetId = String|Mapping
-
-
 /// A key-value pair to associate with a resource.
 open class VerifiedAccessEndpointTag {
     Key: String|Mapping
@@ -38,47 +27,40 @@ open class VerifiedAccessEndpointNetworkInterfaceOptions {
     Protocol: (String|Mapping)?
 }
 
+/// The load balancer details if creating the AWS Verified Access endpoint as load-balancertype.
+open class VerifiedAccessEndpointLoadBalancerOptions {
+    SubnetIds: (Listing<VerifiedAccessEndpointSubnetId>)?
+    LoadBalancerArn: (String|Mapping)?
+    Port: (Int|Mapping)?
+    Protocol: (String|Mapping)?
+}
+
+typealias VerifiedAccessEndpointSubnetId = String|Mapping
+
+
 /// The AWS::EC2::VerifiedAccessEndpoint resource creates an AWS EC2 Verified Access Endpoint.
 open class VerifiedAccessEndpoint extends cloudformation.Resource {
 
     Type = "AWS::EC2::VerifiedAccessEndpoint"
 
 
-    /// The load balancer details if creating the AWS Verified Access endpoint as load-balancer type.
-    hidden LoadBalancerOptions: (VerifiedAccessEndpointLoadBalancerOptions)?
-
-    /// The ID of the AWS Verified Access group.
-    hidden VerifiedAccessGroupId: String|Mapping
-
     /// The IDs of the security groups for the endpoint.
     hidden SecurityGroupIds: (Listing<VerifiedAccessEndpointSecurityGroupId>)?
-
-    /// The ARN of a public TLS/SSL certificate imported into or created with ACM.
-    hidden DomainCertificateArn: String|Mapping
-
-    /// The configuration options for customer provided KMS encryption.
-    hidden SseSpecification: (VerifiedAccessEndpointSseSpecification)?
 
     /// The options for network-interface type endpoint.
     hidden NetworkInterfaceOptions: (VerifiedAccessEndpointNetworkInterfaceOptions)?
 
-    /// The DNS name for users to reach your application.
-    hidden ApplicationDomain: String|Mapping
+    /// The load balancer details if creating the AWS Verified Access endpoint as load-balancer type.
+    hidden LoadBalancerOptions: (VerifiedAccessEndpointLoadBalancerOptions)?
 
-    /// A description for the AWS Verified Access endpoint.
-    hidden Description: (String|Mapping)?
-
-    /// The type of AWS Verified Access endpoint. Incoming application requests will be sent to an IP address, load balancer or a network interface depending on the endpoint type specified.The type of AWS Verified Access endpoint. Incoming application requests will be sent to an IP address, load balancer or a network interface depending on the endpoint type specified.
-    hidden EndpointType: String|Mapping
-
-    /// A custom identifier that gets prepended to a DNS name that is generated for the endpoint.
-    hidden EndpointDomainPrefix: String|Mapping
+    /// The configuration options for customer provided KMS encryption.
+    hidden SseSpecification: (VerifiedAccessEndpointSseSpecification)?
 
     /// The type of attachment used to provide connectivity between the AWS Verified Access endpoint and the application.
     hidden AttachmentType: String|Mapping
 
-    /// The AWS Verified Access policy document.
-    hidden PolicyDocument: (String|Mapping)?
+    /// The DNS name for users to reach your application.
+    hidden ApplicationDomain: String|Mapping
 
     /// The status of the Verified Access policy.
     hidden PolicyEnabled: (Boolean|Mapping)?
@@ -86,21 +68,39 @@ open class VerifiedAccessEndpoint extends cloudformation.Resource {
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<VerifiedAccessEndpointTag>)?
 
+    /// The AWS Verified Access policy document.
+    hidden PolicyDocument: (String|Mapping)?
+
+    /// The ID of the AWS Verified Access group.
+    hidden VerifiedAccessGroupId: String|Mapping
+
+    /// A custom identifier that gets prepended to a DNS name that is generated for the endpoint.
+    hidden EndpointDomainPrefix: String|Mapping
+
+    /// The type of AWS Verified Access endpoint. Incoming application requests will be sent to an IP address, load balancer or a network interface depending on the endpoint type specified.The type of AWS Verified Access endpoint. Incoming application requests will be sent to an IP address, load balancer or a network interface depending on the endpoint type specified.
+    hidden EndpointType: String|Mapping
+
+    /// The ARN of a public TLS/SSL certificate imported into or created with ACM.
+    hidden DomainCertificateArn: String|Mapping
+
+    /// A description for the AWS Verified Access endpoint.
+    hidden Description: (String|Mapping)?
+
     Properties {
-        ["LoadBalancerOptions"] = if (LoadBalancerOptions == null) null else LoadBalancerOptions
-        ["VerifiedAccessGroupId"] = if (VerifiedAccessGroupId == null) null else VerifiedAccessGroupId
         ["SecurityGroupIds"] = if (SecurityGroupIds == null) null else SecurityGroupIds
-        ["DomainCertificateArn"] = if (DomainCertificateArn == null) null else DomainCertificateArn
-        ["SseSpecification"] = if (SseSpecification == null) null else SseSpecification
         ["NetworkInterfaceOptions"] = if (NetworkInterfaceOptions == null) null else NetworkInterfaceOptions
-        ["ApplicationDomain"] = if (ApplicationDomain == null) null else ApplicationDomain
-        ["Description"] = if (Description == null) null else Description
-        ["EndpointType"] = if (EndpointType == null) null else EndpointType
-        ["EndpointDomainPrefix"] = if (EndpointDomainPrefix == null) null else EndpointDomainPrefix
+        ["LoadBalancerOptions"] = if (LoadBalancerOptions == null) null else LoadBalancerOptions
+        ["SseSpecification"] = if (SseSpecification == null) null else SseSpecification
         ["AttachmentType"] = if (AttachmentType == null) null else AttachmentType
-        ["PolicyDocument"] = if (PolicyDocument == null) null else PolicyDocument
+        ["ApplicationDomain"] = if (ApplicationDomain == null) null else ApplicationDomain
         ["PolicyEnabled"] = if (PolicyEnabled == null) null else PolicyEnabled
         ["Tags"] = if (Tags == null) null else Tags
+        ["PolicyDocument"] = if (PolicyDocument == null) null else PolicyDocument
+        ["VerifiedAccessGroupId"] = if (VerifiedAccessGroupId == null) null else VerifiedAccessGroupId
+        ["EndpointDomainPrefix"] = if (EndpointDomainPrefix == null) null else EndpointDomainPrefix
+        ["EndpointType"] = if (EndpointType == null) null else EndpointType
+        ["DomainCertificateArn"] = if (DomainCertificateArn == null) null else DomainCertificateArn
+        ["Description"] = if (Description == null) null else Description
     }
 
 }

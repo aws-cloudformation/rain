@@ -5,40 +5,6 @@ module aws.databrew.ruleset
 
 import "../../cloudformation.pkl"
 
-typealias RulesetValuesMap = Listing<(RulesetSubstitutionValue)?>
-
-
-typealias RulesetThresholdType = String|Mapping
-
-
-/// Selector of a column from a dataset for profile job configuration. One selector includes either a column name or a regular expression
-open class RulesetColumnSelector {
-    Regex: (String|Mapping)?
-    Name: (String|Mapping)?
-}
-
-/// A key-value pair to associate with a resource
-open class RulesetTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-typealias RulesetExpression = String|Mapping
-
-
-typealias RulesetDisabled = Boolean|Mapping
-
-
-/// Data quality rule for a target resource (dataset)
-open class RulesetRule {
-    Name: String|Mapping
-    Disabled: (RulesetDisabled)?
-    CheckExpression: RulesetExpression
-    SubstitutionMap: (RulesetValuesMap)?
-    Threshold: (RulesetThreshold)?
-    ColumnSelectors: (Listing<RulesetColumnSelector>)?
-}
-
 /// A key-value pair to associate expression's substitution variable names with their values
 open class RulesetSubstitutionValue {
     ValueReference: String(matches(Regex(#"^:[A-Za-z0-9_]+$"#)))|Mapping
@@ -48,14 +14,48 @@ open class RulesetSubstitutionValue {
 typealias RulesetThresholdValue = Number|Mapping
 
 
+/// Selector of a column from a dataset for profile job configuration. One selector includes either a column name or a regular expression
+open class RulesetColumnSelector {
+    Regex: (String|Mapping)?
+    Name: (String|Mapping)?
+}
+
+/// Data quality rule for a target resource (dataset)
+open class RulesetRule {
+    SubstitutionMap: (RulesetValuesMap)?
+    Threshold: (RulesetThreshold)?
+    ColumnSelectors: (Listing<RulesetColumnSelector>)?
+    Name: String|Mapping
+    Disabled: (RulesetDisabled)?
+    CheckExpression: RulesetExpression
+}
+
+typealias RulesetExpression = String|Mapping
+
+
+typealias RulesetThresholdType = String|Mapping
+
+
+typealias RulesetDisabled = Boolean|Mapping
+
+
+/// A key-value pair to associate with a resource
+open class RulesetTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
+typealias RulesetValuesMap = Listing<(RulesetSubstitutionValue)?>
+
+
 typealias RulesetThresholdUnit = String|Mapping
 
 
 /// 
 open class RulesetThreshold {
-    Type: (RulesetThresholdType)?
     Unit: (RulesetThresholdUnit)?
     Value: RulesetThresholdValue
+    Type: (RulesetThresholdType)?
 }
 
 /// Resource schema for AWS::DataBrew::Ruleset.
@@ -63,9 +63,6 @@ open class Ruleset extends cloudformation.Resource {
 
     Type = "AWS::DataBrew::Ruleset"
 
-
-    /// 
-    hidden Tags: (Listing<RulesetTag>)?
 
     /// Name of the Ruleset
     hidden Name: String|Mapping
@@ -79,12 +76,15 @@ open class Ruleset extends cloudformation.Resource {
     /// List of the data quality rules in the ruleset
     hidden Rules: Listing<RulesetRule>
 
+    /// 
+    hidden Tags: (Listing<RulesetTag>)?
+
     Properties {
-        ["Tags"] = if (Tags == null) null else Tags
         ["Name"] = if (Name == null) null else Name
         ["Description"] = if (Description == null) null else Description
         ["TargetArn"] = if (TargetArn == null) null else TargetArn
         ["Rules"] = if (Rules == null) null else Rules
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

@@ -9,9 +9,9 @@ typealias ResourceSpecInstanceType = "system"|"ml.t3.micro"|"ml.t3.small"|"ml.t3
 
 /// 
 open class AppResourceSpec {
+    SageMakerImageVersionArn: (String(matches(Regex(#"^arn:aws(-[\w]+)*:sagemaker:.+:[0-9]{12}:image-version/[a-z0-9]([-.]?[a-z0-9])*/[0-9]+$"#)))|Mapping)?
     InstanceType: (ResourceSpecInstanceType|Mapping)?
     SageMakerImageArn: (String(matches(Regex(#"^arn:aws(-[\w]+)*:sagemaker:.+:[0-9]{12}:image/[a-z0-9]([-.]?[a-z0-9])*$"#)))|Mapping)?
-    SageMakerImageVersionArn: (String(matches(Regex(#"^arn:aws(-[\w]+)*:sagemaker:.+:[0-9]{12}:image-version/[a-z0-9]([-.]?[a-z0-9])*/[0-9]+$"#)))|Mapping)?
 }
 
 /// 
@@ -26,15 +26,6 @@ open class App extends cloudformation.Resource {
     Type = "AWS::SageMaker::App"
 
 
-    /// The domain ID.
-    hidden DomainId: String|Mapping
-
-    /// The instance type and the Amazon Resource Name (ARN) of the SageMaker image created on the instance.
-    hidden ResourceSpec: (AppResourceSpec)?
-
-    /// A list of tags to apply to the app.
-    hidden Tags: (Listing<AppTag>)?
-
     /// The user profile name.
     hidden UserProfileName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"#)))|Mapping
 
@@ -44,13 +35,22 @@ open class App extends cloudformation.Resource {
     /// The type of app.
     hidden AppType: AppAppType|Mapping
 
+    /// The domain ID.
+    hidden DomainId: String|Mapping
+
+    /// The instance type and the Amazon Resource Name (ARN) of the SageMaker image created on the instance.
+    hidden ResourceSpec: (AppResourceSpec)?
+
+    /// A list of tags to apply to the app.
+    hidden Tags: (Listing<AppTag>)?
+
     Properties {
-        ["DomainId"] = if (DomainId == null) null else DomainId
-        ["ResourceSpec"] = if (ResourceSpec == null) null else ResourceSpec
-        ["Tags"] = if (Tags == null) null else Tags
         ["UserProfileName"] = if (UserProfileName == null) null else UserProfileName
         ["AppName"] = if (AppName == null) null else AppName
         ["AppType"] = if (AppType == null) null else AppType
+        ["DomainId"] = if (DomainId == null) null else DomainId
+        ["ResourceSpec"] = if (ResourceSpec == null) null else ResourceSpec
+        ["Tags"] = if (Tags == null) null else Tags
     }
 
 }

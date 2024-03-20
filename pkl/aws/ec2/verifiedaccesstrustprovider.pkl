@@ -5,12 +5,6 @@ module aws.ec2.verifiedaccesstrustprovider
 
 import "../../cloudformation.pkl"
 
-/// The options for device identity based trust providers.
-open class VerifiedAccessTrustProviderDeviceOptions {
-    TenantId: (String|Mapping)?
-    PublicSigningKeyUrl: (String|Mapping)?
-}
-
 /// A key-value pair to associate with a resource.
 open class VerifiedAccessTrustProviderTag {
     Key: String|Mapping
@@ -19,13 +13,19 @@ open class VerifiedAccessTrustProviderTag {
 
 /// The OpenID Connect details for an oidc -type, user-identity based trust provider.
 open class VerifiedAccessTrustProviderOidcOptions {
+    AuthorizationEndpoint: (String|Mapping)?
+    TokenEndpoint: (String|Mapping)?
     UserInfoEndpoint: (String|Mapping)?
     ClientId: (String|Mapping)?
     ClientSecret: (String|Mapping)?
     Scope: (String|Mapping)?
     Issuer: (String|Mapping)?
-    AuthorizationEndpoint: (String|Mapping)?
-    TokenEndpoint: (String|Mapping)?
+}
+
+/// The options for device identity based trust providers.
+open class VerifiedAccessTrustProviderDeviceOptions {
+    TenantId: (String|Mapping)?
+    PublicSigningKeyUrl: (String|Mapping)?
 }
 
 /// The AWS::EC2::VerifiedAccessTrustProvider type describes a verified access trust provider
@@ -34,26 +34,23 @@ open class VerifiedAccessTrustProvider extends cloudformation.Resource {
     Type = "AWS::EC2::VerifiedAccessTrustProvider"
 
 
-    /// Type of trust provider. Possible values: user|device
-    hidden TrustProviderType: String|Mapping
+    /// 
+    hidden DeviceOptions: (VerifiedAccessTrustProviderDeviceOptions)?
 
-    /// The type of device-based trust provider. Possible values: oidc|iam-identity-center
-    hidden UserTrustProviderType: (String|Mapping)?
+    /// The identifier to be used when working with policy rules.
+    hidden PolicyReferenceName: String|Mapping
 
     /// 
     hidden OidcOptions: (VerifiedAccessTrustProviderOidcOptions)?
 
-    /// 
-    hidden DeviceOptions: (VerifiedAccessTrustProviderDeviceOptions)?
-
-    /// A description for the Amazon Web Services Verified Access trust provider.
-    hidden Description: (String|Mapping)?
-
     /// The type of device-based trust provider. Possible values: jamf|crowdstrike
     hidden DeviceTrustProviderType: (String|Mapping)?
 
-    /// The identifier to be used when working with policy rules.
-    hidden PolicyReferenceName: String|Mapping
+    /// The type of device-based trust provider. Possible values: oidc|iam-identity-center
+    hidden UserTrustProviderType: (String|Mapping)?
+
+    /// A description for the Amazon Web Services Verified Access trust provider.
+    hidden Description: (String|Mapping)?
 
     /// An array of key-value pairs to apply to this resource.
     hidden Tags: (Listing<VerifiedAccessTrustProviderTag>)?
@@ -61,16 +58,19 @@ open class VerifiedAccessTrustProvider extends cloudformation.Resource {
     /// The configuration options for customer provided KMS encryption.
     hidden SseSpecification: (Dynamic)?
 
+    /// Type of trust provider. Possible values: user|device
+    hidden TrustProviderType: String|Mapping
+
     Properties {
-        ["TrustProviderType"] = if (TrustProviderType == null) null else TrustProviderType
-        ["UserTrustProviderType"] = if (UserTrustProviderType == null) null else UserTrustProviderType
-        ["OidcOptions"] = if (OidcOptions == null) null else OidcOptions
         ["DeviceOptions"] = if (DeviceOptions == null) null else DeviceOptions
-        ["Description"] = if (Description == null) null else Description
-        ["DeviceTrustProviderType"] = if (DeviceTrustProviderType == null) null else DeviceTrustProviderType
         ["PolicyReferenceName"] = if (PolicyReferenceName == null) null else PolicyReferenceName
+        ["OidcOptions"] = if (OidcOptions == null) null else OidcOptions
+        ["DeviceTrustProviderType"] = if (DeviceTrustProviderType == null) null else DeviceTrustProviderType
+        ["UserTrustProviderType"] = if (UserTrustProviderType == null) null else UserTrustProviderType
+        ["Description"] = if (Description == null) null else Description
         ["Tags"] = if (Tags == null) null else Tags
         ["SseSpecification"] = if (SseSpecification == null) null else SseSpecification
+        ["TrustProviderType"] = if (TrustProviderType == null) null else TrustProviderType
     }
 
 }

@@ -5,154 +5,134 @@ module aws.kendra.datasource
 
 import "../../cloudformation.pkl"
 
-typealias DataSourceDocumentAttributeKey = String|Mapping
-
-
-/// 
-open class DataSourceWorkDocsConfiguration {
-    OrganizationId: String(matches(Regex(#"d-[0-9a-fA-F]{10}"#)))|Mapping
-    CrawlComments: (Boolean|Mapping)?
-    UseChangeLog: (Boolean|Mapping)?
-    InclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
-    ExclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
-    FieldMappings: (DataSourceDataSourceToIndexFieldMappingList)?
-}
-
-typealias DataSourceSharedDriveId = String|Mapping
-
-
-typealias DataSourceDatabasePort = Int|Mapping
-
-
-typealias DataSourceUserAccount = String|Mapping
-
-
-typealias DataSourceExcludeUserAccountsList = Listing<(DataSourceUserAccount)?>
-
-
-/// 
-open class DataSourceDocumentAttributeValue {
-    LongValue: (DataSourceLong)?
-    DateValue: (DataSourceTimestamp)?
-    StringValue: (String|Mapping)?
-    StringListValue: (Listing<String|Mapping>)?
-}
-
-typealias DataSourceQueryIdentifiersEnclosingOption = String|Mapping
-
-
-/// 
-open class DataSourceDocumentAttributeTarget {
-    TargetDocumentAttributeValue: (DataSourceDocumentAttributeValue)?
-    TargetDocumentAttributeKey: DataSourceDocumentAttributeKey
-    TargetDocumentAttributeValueDeletion: (Boolean|Mapping)?
-}
-
-/// A label for tagging Kendra resources
-open class DataSourceTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
-typealias DataSourceOneDriveUserList = Listing<(DataSourceOneDriveUser)?>
-
-
-/// 
-open class DataSourceHookConfiguration {
-    S3Bucket: DataSourceS3BucketName
-    InvocationCondition: (DataSourceDocumentAttributeCondition)?
-    LambdaArn: DataSourceLambdaArn
-}
-
-typealias DataSourceSalesforceChatterFeedIncludeFilterType = String|Mapping
-
-
-typealias DataSourceWebCrawlerSiteMap = String|Mapping
-
-
-/// 
-open class DataSourceAccessControlListConfiguration {
-    KeyPath: (DataSourceS3ObjectKey)?
-}
-
-typealias DataSourceDataSourceFieldName = String|Mapping
-
-
-typealias DataSourceColumnName = String|Mapping
-
-
-typealias DataSourceLambdaArn = String|Mapping
+typealias DataSourceConfluenceBlogFieldName = String|Mapping
 
 
 typealias DataSourceSecretArn = String|Mapping
 
 
-typealias DataSourceTableName = String|Mapping
+typealias DataSourceDataSourceToIndexFieldMappingList = Listing<(DataSourceDataSourceToIndexFieldMapping)?>
 
 
-typealias DataSourceSalesforceChatterFeedIncludeFilterTypes = Listing<(DataSourceSalesforceChatterFeedIncludeFilterType)?>
+typealias DataSourceArn = String|Mapping
 
 
 /// 
-open class DataSourceWebCrawlerAuthenticationConfiguration {
-    BasicAuthentication: (DataSourceWebCrawlerBasicAuthenticationList)?
-}
-
-/// 
-open class DataSourceDataSourceToIndexFieldMapping {
+open class DataSourceConfluencePageToIndexFieldMapping {
+    DataSourceFieldName: DataSourceConfluencePageFieldName
     DateFieldFormat: (DataSourceDateFieldFormat)?
     IndexFieldName: DataSourceIndexFieldName
-    DataSourceFieldName: DataSourceDataSourceFieldName
 }
 
-/// 
-open class DataSourceAclConfiguration {
-    AllowedGroupsColumnName: DataSourceColumnName
-}
-
-typealias DataSourceUrl = String|Mapping
+typealias DataSourceExcludeUserAccountsList = Listing<(DataSourceUserAccount)?>
 
 
-typealias DataSourceServiceNowHostUrl = String|Mapping
+typealias DataSourceLambdaArn = String|Mapping
+
+
+typealias DataSourceType = String|Mapping
 
 
 /// 
-open class DataSourceSalesforceConfiguration {
+open class DataSourceOneDriveConfiguration {
     SecretArn: DataSourceSecretArn
-    IncludeAttachmentFilePatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
-    ExcludeAttachmentFilePatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
-    ChatterFeedConfiguration: (DataSourceSalesforceChatterFeedConfiguration)?
+    OneDriveUsers: DataSourceOneDriveUsers
+    InclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
+    ExclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
+    FieldMappings: (DataSourceDataSourceToIndexFieldMappingList)?
+    DisableLocalGroups: (DataSourceDisableLocalGroups)?
+    TenantDomain: DataSourceTenantDomain
+}
+
+typealias DataSourceConfluenceSpaceIdentifier = String|Mapping
+
+
+/// 
+open class DataSourceConfluencePageConfiguration {
+    PageFieldMappings: (DataSourceConfluencePageFieldMappingsList)?
+}
+
+typealias SharePointConfigurationSharePointVersion = "SHAREPOINT_ONLINE"|"SHAREPOINT_2013"|"SHAREPOINT_2016"
+
+/// SharePoint configuration
+open class DataSourceSharePointConfiguration {
+    InclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
+    DocumentTitleFieldName: (DataSourceDataSourceFieldName)?
+    SecretArn: DataSourceSecretArn
     CrawlAttachments: (Boolean|Mapping)?
-    StandardObjectAttachmentConfiguration: (DataSourceSalesforceStandardObjectAttachmentConfiguration)?
-    ServerUrl: DataSourceUrl
-    StandardObjectConfigurations: (DataSourceSalesforceStandardObjectConfigurationList)?
-    KnowledgeArticleConfiguration: (DataSourceSalesforceKnowledgeArticleConfiguration)?
+    UseChangeLog: (Boolean|Mapping)?
+    VpcConfiguration: (DataSourceDataSourceVpcConfiguration)?
+    FieldMappings: (DataSourceDataSourceToIndexFieldMappingList)?
+    DisableLocalGroups: (DataSourceDisableLocalGroups)?
+    SslCertificateS3Path: (DataSourceS3Path)?
+    SharePointVersion: SharePointConfigurationSharePointVersion|Mapping
+    Urls: Listing<DataSourceUrl>
+    ExclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
 }
 
-/// 
-open class DataSourceCustomDocumentEnrichmentConfiguration {
-    RoleArn: (DataSourceRoleArn)?
-    InlineConfigurations: (DataSourceInlineConfigurations)?
-    PreExtractionHookConfiguration: (DataSourceHookConfiguration)?
-    PostExtractionHookConfiguration: (DataSourceHookConfiguration)?
+/// S3 data source configuration
+open class DataSourceS3DataSourceConfiguration {
+    DocumentsMetadataConfiguration: (DataSourceDocumentsMetadataConfiguration)?
+    AccessControlListConfiguration: (DataSourceAccessControlListConfiguration)?
+    BucketName: DataSourceS3BucketName
+    InclusionPrefixes: (DataSourceDataSourceInclusionsExclusionsStrings)?
+    InclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
+    ExclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
 }
 
-typealias DataSourceSalesforceStandardObjectName = String|Mapping
+typealias DataSourceExcludeSharedDrivesList = Listing<(DataSourceSharedDriveId)?>
 
-
-/// 
-open class DataSourceConfluenceSpaceConfiguration {
-    SpaceFieldMappings: (DataSourceConfluenceSpaceFieldMappingsList)?
-    CrawlPersonalSpaces: (Boolean|Mapping)?
-    CrawlArchivedSpaces: (Boolean|Mapping)?
-    IncludeSpaces: (DataSourceConfluenceSpaceList)?
-    ExcludeSpaces: (DataSourceConfluenceSpaceList)?
-}
 
 typealias DataSourceSalesforceStandardObjectConfigurationList = Listing<(DataSourceSalesforceStandardObjectConfiguration)?>
 
 
-typealias DataSourceConditionOperator = String|Mapping
+typealias DataSourceChangeDetectingColumns = Listing<(DataSourceColumnName)?>
+
+
+typealias DataSourceQueryIdentifiersEnclosingOption = String|Mapping
+
+
+typealias DataSourceSchedule = String|Mapping
+
+
+/// 
+open class DataSourceHookConfiguration {
+    InvocationCondition: (DataSourceDocumentAttributeCondition)?
+    LambdaArn: DataSourceLambdaArn
+    S3Bucket: DataSourceS3BucketName
+}
+
+typealias DataSourceOneDriveUserList = Listing<(DataSourceOneDriveUser)?>
+
+
+typealias DataSourceConfluenceSpaceFieldName = String|Mapping
+
+
+/// 
+open class DataSourceConfluenceBlogToIndexFieldMapping {
+    DataSourceFieldName: DataSourceConfluenceBlogFieldName
+    DateFieldFormat: (DataSourceDateFieldFormat)?
+    IndexFieldName: DataSourceIndexFieldName
+}
+
+/// 
+open class DataSourceSalesforceStandardKnowledgeArticleTypeConfiguration {
+    DocumentDataFieldName: DataSourceDataSourceFieldName
+    DocumentTitleFieldName: (DataSourceDataSourceFieldName)?
+    FieldMappings: (DataSourceDataSourceToIndexFieldMappingList)?
+}
+
+/// 
+open class DataSourceWorkDocsConfiguration {
+    ExclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
+    FieldMappings: (DataSourceDataSourceToIndexFieldMappingList)?
+    OrganizationId: String(matches(Regex(#"d-[0-9a-fA-F]{10}"#)))|Mapping
+    CrawlComments: (Boolean|Mapping)?
+    UseChangeLog: (Boolean|Mapping)?
+    InclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
+}
+
+typealias DataSourceSharedDriveId = String|Mapping
 
 
 /// 
@@ -161,15 +141,152 @@ open class DataSourceWebCrawlerUrls {
     SeedUrlConfiguration: (DataSourceWebCrawlerSeedUrlConfiguration)?
 }
 
-/// 
-open class DataSourceConfluenceBlogConfiguration {
-    BlogFieldMappings: (DataSourceConfluenceBlogFieldMappingsList)?
-}
-
 typealias DataSourceId = String|Mapping
 
 
-typealias DataSourceSalesforceKnowledgeArticleStateList = Listing<(DataSourceSalesforceKnowledgeArticleState)?>
+typealias DataSourceSalesforceCustomKnowledgeArticleTypeName = String|Mapping
+
+
+typealias DataSourceColumnName = String|Mapping
+
+
+/// 
+open class DataSourceSalesforceKnowledgeArticleConfiguration {
+    IncludedStates: DataSourceSalesforceKnowledgeArticleStateList
+    StandardKnowledgeArticleTypeConfiguration: (DataSourceSalesforceStandardKnowledgeArticleTypeConfiguration)?
+    CustomKnowledgeArticleTypeConfigurations: (DataSourceSalesforceCustomKnowledgeArticleTypeConfigurationList)?
+}
+
+/// 
+open class DataSourceDataSourceConfiguration {
+    ServiceNowConfiguration: (DataSourceServiceNowConfiguration)?
+    DatabaseConfiguration: (DataSourceDatabaseConfiguration)?
+    ConfluenceConfiguration: (DataSourceConfluenceConfiguration)?
+    GoogleDriveConfiguration: (DataSourceGoogleDriveConfiguration)?
+    WebCrawlerConfiguration: (DataSourceWebCrawlerConfiguration)?
+    S3Configuration: (DataSourceS3DataSourceConfiguration)?
+    SharePointConfiguration: (DataSourceSharePointConfiguration)?
+    SalesforceConfiguration: (DataSourceSalesforceConfiguration)?
+    OneDriveConfiguration: (DataSourceOneDriveConfiguration)?
+    WorkDocsConfiguration: (DataSourceWorkDocsConfiguration)?
+}
+
+/// 
+open class DataSourceDocumentAttributeCondition {
+    Operator: DataSourceConditionOperator
+    ConditionOnValue: (DataSourceDocumentAttributeValue)?
+    ConditionDocumentAttributeKey: DataSourceDocumentAttributeKey
+}
+
+typealias DataSourceUrl = String|Mapping
+
+
+typealias DataSourceRoleArn = String|Mapping
+
+
+/// 
+open class DataSourceWebCrawlerBasicAuthentication {
+    Port: Int|Mapping
+    Credentials: DataSourceSecretArn
+    Host: String(matches(Regex(#"([^\s]*)"#)))|Mapping
+}
+
+/// 
+open class DataSourceSqlConfiguration {
+    QueryIdentifiersEnclosingOption: (DataSourceQueryIdentifiersEnclosingOption)?
+}
+
+/// 
+open class DataSourceDocumentAttributeValue {
+    StringValue: (String|Mapping)?
+    StringListValue: (Listing<String|Mapping>)?
+    LongValue: (DataSourceLong)?
+    DateValue: (DataSourceTimestamp)?
+}
+
+typealias DataSourceTimestamp = String|Mapping
+
+
+typealias DataSourceConfluenceSpaceFieldMappingsList = Listing<(DataSourceConfluenceSpaceToIndexFieldMapping)?>
+
+
+/// 
+open class DataSourceInlineCustomDocumentEnrichmentConfiguration {
+    Condition: (DataSourceDocumentAttributeCondition)?
+    Target: (DataSourceDocumentAttributeTarget)?
+    DocumentContentDeletion: (Boolean|Mapping)?
+}
+
+/// 
+open class DataSourceGoogleDriveConfiguration {
+    InclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
+    ExclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
+    FieldMappings: (DataSourceDataSourceToIndexFieldMappingList)?
+    ExcludeMimeTypes: (DataSourceExcludeMimeTypesList)?
+    ExcludeUserAccounts: (DataSourceExcludeUserAccountsList)?
+    ExcludeSharedDrives: (DataSourceExcludeSharedDrivesList)?
+    SecretArn: DataSourceSecretArn
+}
+
+typealias DataSourceConfluenceVersion = String|Mapping
+
+
+typealias DataSourceDataSourceInclusionsExclusionsStrings = Listing<(String|Mapping)?>
+
+
+/// 
+open class DataSourceWebCrawlerConfiguration {
+    AuthenticationConfiguration: (DataSourceWebCrawlerAuthenticationConfiguration)?
+    UrlInclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
+    UrlExclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
+    ProxyConfiguration: (DataSourceProxyConfiguration)?
+    MaxContentSizePerPageInMegaBytes: (Number|Mapping)?
+    MaxUrlsPerMinuteCrawlRate: (Int|Mapping)?
+    Urls: DataSourceWebCrawlerUrls
+    CrawlDepth: (Int|Mapping)?
+    MaxLinksPerPage: (Int|Mapping)?
+}
+
+/// 
+open class DataSourceWebCrawlerSiteMapsConfiguration {
+    SiteMaps: DataSourceWebCrawlerSiteMaps
+}
+
+typealias DataSourceTenantDomain = String|Mapping
+
+
+typealias DataSourceS3BucketName = String|Mapping
+
+
+typealias DataSourceDatabaseHost = String|Mapping
+
+
+/// 
+open class DataSourceCustomDocumentEnrichmentConfiguration {
+    InlineConfigurations: (DataSourceInlineConfigurations)?
+    PreExtractionHookConfiguration: (DataSourceHookConfiguration)?
+    PostExtractionHookConfiguration: (DataSourceHookConfiguration)?
+    RoleArn: (DataSourceRoleArn)?
+}
+
+/// 
+open class DataSourceOneDriveUsers {
+    OneDriveUserList: (DataSourceOneDriveUserList)?
+    OneDriveUserS3Path: (DataSourceS3Path)?
+}
+
+typealias DataSourceIndexId = String|Mapping
+
+
+/// 
+open class DataSourceAclConfiguration {
+    AllowedGroupsColumnName: DataSourceColumnName
+}
+
+typealias DataSourceLong = Int|Mapping
+
+
+typealias DataSourceMimeType = String|Mapping
 
 
 /// 
@@ -178,11 +295,21 @@ open class DataSourceConfluenceAttachmentConfiguration {
     AttachmentFieldMappings: (DataSourceConfluenceAttachmentFieldMappingsList)?
 }
 
-typealias DataSourceWebCrawlerSeedUrlList = Listing<(DataSourceWebCrawlerSeedUrl)?>
+typealias DataSourceDataSourceFieldName = String|Mapping
 
 
-typealias DataSourceExcludeSharedDrivesList = Listing<(DataSourceSharedDriveId)?>
+typealias DataSourceDateFieldFormat = String|Mapping
 
+
+/// 
+open class DataSourceServiceNowConfiguration {
+    SecretArn: DataSourceSecretArn
+    ServiceNowBuildVersion: DataSourceServiceNowBuildVersionType
+    AuthenticationType: (DataSourceServiceNowAuthenticationType)?
+    KnowledgeArticleConfiguration: (DataSourceServiceNowKnowledgeArticleConfiguration)?
+    ServiceCatalogConfiguration: (DataSourceServiceNowServiceCatalogConfiguration)?
+    HostUrl: DataSourceServiceNowHostUrl
+}
 
 /// 
 open class DataSourceConnectionConfiguration {
@@ -193,63 +320,33 @@ open class DataSourceConnectionConfiguration {
     SecretArn: DataSourceSecretArn
 }
 
+typealias DataSourceInlineConfigurations = Listing<(DataSourceInlineCustomDocumentEnrichmentConfiguration)?>
+
+
+typealias DataSourceConfluenceSpaceList = Listing<(DataSourceConfluenceSpaceIdentifier)?>
+
+
 /// 
-open class DataSourceDatabaseConfiguration {
-    ColumnConfiguration: DataSourceColumnConfiguration
-    AclConfiguration: (DataSourceAclConfiguration)?
-    SqlConfiguration: (DataSourceSqlConfiguration)?
-    DatabaseEngineType: DataSourceDatabaseEngineType
-    ConnectionConfiguration: DataSourceConnectionConfiguration
-    VpcConfiguration: (DataSourceDataSourceVpcConfiguration)?
+open class DataSourceWebCrawlerAuthenticationConfiguration {
+    BasicAuthentication: (DataSourceWebCrawlerBasicAuthenticationList)?
 }
 
-typealias DataSourceExcludeMimeTypesList = Listing<(DataSourceMimeType)?>
+/// 
+open class DataSourceDocumentAttributeTarget {
+    TargetDocumentAttributeKey: DataSourceDocumentAttributeKey
+    TargetDocumentAttributeValueDeletion: (Boolean|Mapping)?
+    TargetDocumentAttributeValue: (DataSourceDocumentAttributeValue)?
+}
 
-
-typealias DataSourceSalesforceCustomKnowledgeArticleTypeConfigurationList = Listing<(DataSourceSalesforceCustomKnowledgeArticleTypeConfiguration)?>
+typealias DataSourceSalesforceKnowledgeArticleState = String|Mapping
 
 
 /// 
-open class DataSourceSalesforceStandardObjectAttachmentConfiguration {
-    FieldMappings: (DataSourceDataSourceToIndexFieldMappingList)?
+open class DataSourceSalesforceCustomKnowledgeArticleTypeConfiguration {
+    Name: DataSourceSalesforceCustomKnowledgeArticleTypeName
+    DocumentDataFieldName: DataSourceDataSourceFieldName
     DocumentTitleFieldName: (DataSourceDataSourceFieldName)?
-}
-
-/// 
-open class DataSourceWebCrawlerConfiguration {
-    UrlExclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
-    Urls: DataSourceWebCrawlerUrls
-    CrawlDepth: (Int|Mapping)?
-    MaxLinksPerPage: (Int|Mapping)?
-    MaxUrlsPerMinuteCrawlRate: (Int|Mapping)?
-    UrlInclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
-    MaxContentSizePerPageInMegaBytes: (Number|Mapping)?
-    ProxyConfiguration: (DataSourceProxyConfiguration)?
-    AuthenticationConfiguration: (DataSourceWebCrawlerAuthenticationConfiguration)?
-}
-
-typealias DataSourceIndexFieldName = String|Mapping
-
-
-typealias DataSourceChangeDetectingColumns = Listing<(DataSourceColumnName)?>
-
-
-/// 
-open class DataSourceConfluenceAttachmentToIndexFieldMapping {
-    DataSourceFieldName: DataSourceConfluenceAttachmentFieldName
-    DateFieldFormat: (DataSourceDateFieldFormat)?
-    IndexFieldName: DataSourceIndexFieldName
-}
-
-typealias DataSourceConfluencePageFieldName = String|Mapping
-
-
-typealias DataSourceTimestamp = String|Mapping
-
-
-/// 
-open class DataSourceSqlConfiguration {
-    QueryIdentifiersEnclosingOption: (DataSourceQueryIdentifiersEnclosingOption)?
+    FieldMappings: (DataSourceDataSourceToIndexFieldMappingList)?
 }
 
 /// 
@@ -258,281 +355,76 @@ open class DataSourceS3Path {
     Key: DataSourceS3ObjectKey
 }
 
-typealias DataSourceWebCrawlerSeedUrl = String|Mapping
+typealias DataSourceServiceNowHostUrl = String|Mapping
 
 
-typealias DataSourceDataSourceInclusionsExclusionsStrings = Listing<(String|Mapping)?>
-
-
-typealias DataSourceS3BucketName = String|Mapping
-
+/// A label for tagging Kendra resources
+open class DataSourceTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
 
 /// 
-open class DataSourceConfluenceBlogToIndexFieldMapping {
-    DataSourceFieldName: DataSourceConfluenceBlogFieldName
+open class DataSourceDataSourceToIndexFieldMapping {
     DateFieldFormat: (DataSourceDateFieldFormat)?
     IndexFieldName: DataSourceIndexFieldName
+    DataSourceFieldName: DataSourceDataSourceFieldName
 }
-
-typealias DataSourceConfluenceBlogFieldName = String|Mapping
-
-
-typealias SharePointConfigurationSharePointVersion = "SHAREPOINT_ONLINE"|"SHAREPOINT_2013"|"SHAREPOINT_2016"
-
-/// SharePoint configuration
-open class DataSourceSharePointConfiguration {
-    SharePointVersion: SharePointConfigurationSharePointVersion|Mapping
-    VpcConfiguration: (DataSourceDataSourceVpcConfiguration)?
-    FieldMappings: (DataSourceDataSourceToIndexFieldMappingList)?
-    DocumentTitleFieldName: (DataSourceDataSourceFieldName)?
-    SslCertificateS3Path: (DataSourceS3Path)?
-    DisableLocalGroups: (DataSourceDisableLocalGroups)?
-    Urls: Listing<DataSourceUrl>
-    SecretArn: DataSourceSecretArn
-    CrawlAttachments: (Boolean|Mapping)?
-    UseChangeLog: (Boolean|Mapping)?
-    InclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
-    ExclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
-}
-
-typealias DataSourceLanguageCode = String|Mapping
-
-
-/// 
-open class DataSourceConfluenceConfiguration {
-    ExclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
-    Version: DataSourceConfluenceVersion
-    PageConfiguration: (DataSourceConfluencePageConfiguration)?
-    BlogConfiguration: (DataSourceConfluenceBlogConfiguration)?
-    VpcConfiguration: (DataSourceDataSourceVpcConfiguration)?
-    InclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
-    ServerUrl: DataSourceUrl
-    SecretArn: DataSourceSecretArn
-    SpaceConfiguration: (DataSourceConfluenceSpaceConfiguration)?
-    AttachmentConfiguration: (DataSourceConfluenceAttachmentConfiguration)?
-}
-
-/// 
-open class DataSourceGoogleDriveConfiguration {
-    FieldMappings: (DataSourceDataSourceToIndexFieldMappingList)?
-    ExcludeMimeTypes: (DataSourceExcludeMimeTypesList)?
-    ExcludeUserAccounts: (DataSourceExcludeUserAccountsList)?
-    ExcludeSharedDrives: (DataSourceExcludeSharedDrivesList)?
-    SecretArn: DataSourceSecretArn
-    InclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
-    ExclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
-}
-
-typealias DataSourceName = String|Mapping
-
-
-/// 
-open class DataSourceOneDriveUsers {
-    OneDriveUserList: (DataSourceOneDriveUserList)?
-    OneDriveUserS3Path: (DataSourceS3Path)?
-}
-
-typealias DataSourceConfluenceSpaceFieldMappingsList = Listing<(DataSourceConfluenceSpaceToIndexFieldMapping)?>
-
-
-typealias DataSourceConfluencePageFieldMappingsList = Listing<(DataSourceConfluencePageToIndexFieldMapping)?>
-
-
-typealias DataSourceRoleArn = String|Mapping
-
-
-/// 
-open class DataSourceOneDriveConfiguration {
-    TenantDomain: DataSourceTenantDomain
-    SecretArn: DataSourceSecretArn
-    OneDriveUsers: DataSourceOneDriveUsers
-    InclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
-    ExclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
-    FieldMappings: (DataSourceDataSourceToIndexFieldMappingList)?
-    DisableLocalGroups: (DataSourceDisableLocalGroups)?
-}
-
-/// 
-open class DataSourceDocumentsMetadataConfiguration {
-    S3Prefix: (DataSourceS3ObjectKey)?
-}
-
-typealias DataSourceTenantDomain = String|Mapping
-
-
-typealias DataSourceConfluenceAttachmentFieldName = String|Mapping
-
-
-typealias DataSourceDatabaseHost = String|Mapping
-
-
-/// 
-open class DataSourceSalesforceCustomKnowledgeArticleTypeConfiguration {
-    FieldMappings: (DataSourceDataSourceToIndexFieldMappingList)?
-    Name: DataSourceSalesforceCustomKnowledgeArticleTypeName
-    DocumentDataFieldName: DataSourceDataSourceFieldName
-    DocumentTitleFieldName: (DataSourceDataSourceFieldName)?
-}
-
-/// 
-open class DataSourceDataSourceConfiguration {
-    ConfluenceConfiguration: (DataSourceConfluenceConfiguration)?
-    GoogleDriveConfiguration: (DataSourceGoogleDriveConfiguration)?
-    SalesforceConfiguration: (DataSourceSalesforceConfiguration)?
-    SharePointConfiguration: (DataSourceSharePointConfiguration)?
-    OneDriveConfiguration: (DataSourceOneDriveConfiguration)?
-    ServiceNowConfiguration: (DataSourceServiceNowConfiguration)?
-    DatabaseConfiguration: (DataSourceDatabaseConfiguration)?
-    WebCrawlerConfiguration: (DataSourceWebCrawlerConfiguration)?
-    WorkDocsConfiguration: (DataSourceWorkDocsConfiguration)?
-    S3Configuration: (DataSourceS3DataSourceConfiguration)?
-}
-
-typealias DataSourceDatabaseName = String|Mapping
-
-
-typealias DataSourceDateFieldFormat = String|Mapping
-
 
 typealias WebCrawlerSeedUrlConfigurationWebCrawlerMode = "HOST_ONLY"|"SUBDOMAINS"|"EVERYTHING"
 
 /// 
 open class DataSourceWebCrawlerSeedUrlConfiguration {
-    WebCrawlerMode: (WebCrawlerSeedUrlConfigurationWebCrawlerMode|Mapping)?
     SeedUrls: DataSourceWebCrawlerSeedUrlList
+    WebCrawlerMode: (WebCrawlerSeedUrlConfigurationWebCrawlerMode|Mapping)?
 }
 
 /// 
-open class DataSourceServiceNowKnowledgeArticleConfiguration {
-    IncludeAttachmentFilePatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
-    ExcludeAttachmentFilePatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
-    DocumentDataFieldName: DataSourceDataSourceFieldName
-    DocumentTitleFieldName: (DataSourceDataSourceFieldName)?
-    FieldMappings: (DataSourceDataSourceToIndexFieldMappingList)?
-    FilterQuery: (DataSourceServiceNowKnowledgeArticleFilterQuery)?
-    CrawlAttachments: (Boolean|Mapping)?
+open class DataSourceDatabaseConfiguration {
+    AclConfiguration: (DataSourceAclConfiguration)?
+    SqlConfiguration: (DataSourceSqlConfiguration)?
+    DatabaseEngineType: DataSourceDatabaseEngineType
+    ConnectionConfiguration: DataSourceConnectionConfiguration
+    VpcConfiguration: (DataSourceDataSourceVpcConfiguration)?
+    ColumnConfiguration: DataSourceColumnConfiguration
 }
 
-typealias DataSourceMimeType = String|Mapping
+typealias DataSourceDescription = String|Mapping
+
+
+typealias DataSourceSalesforceStandardObjectName = String|Mapping
+
+
+/// 
+open class DataSourceConfluenceSpaceConfiguration {
+    CrawlPersonalSpaces: (Boolean|Mapping)?
+    CrawlArchivedSpaces: (Boolean|Mapping)?
+    IncludeSpaces: (DataSourceConfluenceSpaceList)?
+    ExcludeSpaces: (DataSourceConfluenceSpaceList)?
+    SpaceFieldMappings: (DataSourceConfluenceSpaceFieldMappingsList)?
+}
+
+typealias DataSourceSalesforceChatterFeedIncludeFilterType = String|Mapping
+
+
+typealias DataSourceDatabasePort = Int|Mapping
+
+
+/// 
+open class DataSourceConfluenceBlogConfiguration {
+    BlogFieldMappings: (DataSourceConfluenceBlogFieldMappingsList)?
+}
+
+typealias DataSourceConfluenceAttachmentFieldName = String|Mapping
+
+
+typealias DataSourceName = String|Mapping
 
 
 typealias DataSourceTagList = Listing<(DataSourceTag)?>
 
 
-typealias DataSourceDataSourceToIndexFieldMappingList = Listing<(DataSourceDataSourceToIndexFieldMapping)?>
-
-
-typealias DataSourceConfluenceVersion = String|Mapping
-
-
-typealias DataSourceS3ObjectKey = String|Mapping
-
-
-typealias DataSourceServiceNowBuildVersionType = String|Mapping
-
-
-/// 
-open class DataSourceSalesforceKnowledgeArticleConfiguration {
-    IncludedStates: DataSourceSalesforceKnowledgeArticleStateList
-    StandardKnowledgeArticleTypeConfiguration: (DataSourceSalesforceStandardKnowledgeArticleTypeConfiguration)?
-    CustomKnowledgeArticleTypeConfigurations: (DataSourceSalesforceCustomKnowledgeArticleTypeConfigurationList)?
-}
-
-typealias DataSourceSchedule = String|Mapping
-
-
-/// 
-open class DataSourceServiceNowConfiguration {
-    ServiceCatalogConfiguration: (DataSourceServiceNowServiceCatalogConfiguration)?
-    HostUrl: DataSourceServiceNowHostUrl
-    SecretArn: DataSourceSecretArn
-    ServiceNowBuildVersion: DataSourceServiceNowBuildVersionType
-    AuthenticationType: (DataSourceServiceNowAuthenticationType)?
-    KnowledgeArticleConfiguration: (DataSourceServiceNowKnowledgeArticleConfiguration)?
-}
-
-/// 
-open class DataSourceConfluenceSpaceToIndexFieldMapping {
-    DataSourceFieldName: DataSourceConfluenceSpaceFieldName
-    DateFieldFormat: (DataSourceDateFieldFormat)?
-    IndexFieldName: DataSourceIndexFieldName
-}
-
-typealias DataSourceDisableLocalGroups = Boolean|Mapping
-
-
-typealias DataSourceInlineConfigurations = Listing<(DataSourceInlineCustomDocumentEnrichmentConfiguration)?>
-
-
-typealias DataSourceServiceNowKnowledgeArticleFilterQuery = String|Mapping
-
-
-typealias DataSourceArn = String|Mapping
-
-
 typealias DataSourceServiceNowAuthenticationType = String|Mapping
-
-
-typealias DataSourceWebCrawlerBasicAuthenticationList = Listing<(DataSourceWebCrawlerBasicAuthentication)?>
-
-
-typealias DataSourceDescription = String|Mapping
-
-
-/// 
-open class DataSourceSalesforceChatterFeedConfiguration {
-    DocumentTitleFieldName: (DataSourceDataSourceFieldName)?
-    FieldMappings: (DataSourceDataSourceToIndexFieldMappingList)?
-    IncludeFilterTypes: (DataSourceSalesforceChatterFeedIncludeFilterTypes)?
-    DocumentDataFieldName: DataSourceDataSourceFieldName
-}
-
-typealias DataSourceDatabaseEngineType = String|Mapping
-
-
-/// S3 data source configuration
-open class DataSourceS3DataSourceConfiguration {
-    BucketName: DataSourceS3BucketName
-    InclusionPrefixes: (DataSourceDataSourceInclusionsExclusionsStrings)?
-    InclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
-    ExclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
-    DocumentsMetadataConfiguration: (DataSourceDocumentsMetadataConfiguration)?
-    AccessControlListConfiguration: (DataSourceAccessControlListConfiguration)?
-}
-
-/// 
-open class DataSourceWebCrawlerSiteMapsConfiguration {
-    SiteMaps: DataSourceWebCrawlerSiteMaps
-}
-
-typealias DataSourceSalesforceKnowledgeArticleState = String|Mapping
-
-
-typealias DataSourceConfluenceSpaceFieldName = String|Mapping
-
-
-typealias DataSourceSalesforceCustomKnowledgeArticleTypeName = String|Mapping
-
-
-/// 
-open class DataSourceWebCrawlerBasicAuthentication {
-    Credentials: DataSourceSecretArn
-    Host: String(matches(Regex(#"([^\s]*)"#)))|Mapping
-    Port: Int|Mapping
-}
-
-/// 
-open class DataSourceConfluencePageConfiguration {
-    PageFieldMappings: (DataSourceConfluencePageFieldMappingsList)?
-}
-
-typealias DataSourceLong = Int|Mapping
-
-
-typealias DataSourceType = String|Mapping
-
-
-typealias DataSourceConfluenceAttachmentFieldMappingsList = Listing<(DataSourceConfluenceAttachmentToIndexFieldMapping)?>
 
 
 /// 
@@ -543,31 +435,160 @@ open class DataSourceProxyConfiguration {
 }
 
 /// 
-open class DataSourceSalesforceStandardObjectConfiguration {
+open class DataSourceConfluenceAttachmentToIndexFieldMapping {
+    DataSourceFieldName: DataSourceConfluenceAttachmentFieldName
+    DateFieldFormat: (DataSourceDateFieldFormat)?
+    IndexFieldName: DataSourceIndexFieldName
+}
+
+typealias DataSourceWebCrawlerSeedUrl = String|Mapping
+
+
+typealias DataSourceSalesforceCustomKnowledgeArticleTypeConfigurationList = Listing<(DataSourceSalesforceCustomKnowledgeArticleTypeConfiguration)?>
+
+
+/// 
+open class DataSourceServiceNowServiceCatalogConfiguration {
     FieldMappings: (DataSourceDataSourceToIndexFieldMappingList)?
-    Name: DataSourceSalesforceStandardObjectName
+    CrawlAttachments: (Boolean|Mapping)?
+    IncludeAttachmentFilePatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
+    ExcludeAttachmentFilePatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
     DocumentDataFieldName: DataSourceDataSourceFieldName
     DocumentTitleFieldName: (DataSourceDataSourceFieldName)?
 }
 
-typealias DataSourceConfluenceSpaceIdentifier = String|Mapping
+/// 
+open class DataSourceConfluenceSpaceToIndexFieldMapping {
+    IndexFieldName: DataSourceIndexFieldName
+    DataSourceFieldName: DataSourceConfluenceSpaceFieldName
+    DateFieldFormat: (DataSourceDateFieldFormat)?
+}
+
+typealias DataSourceOneDriveUser = String|Mapping
+
+
+typealias DataSourceDocumentAttributeKey = String|Mapping
 
 
 /// 
-open class DataSourceDocumentAttributeCondition {
-    ConditionDocumentAttributeKey: DataSourceDocumentAttributeKey
-    Operator: DataSourceConditionOperator
-    ConditionOnValue: (DataSourceDocumentAttributeValue)?
+open class DataSourceSalesforceChatterFeedConfiguration {
+    IncludeFilterTypes: (DataSourceSalesforceChatterFeedIncludeFilterTypes)?
+    DocumentDataFieldName: DataSourceDataSourceFieldName
+    DocumentTitleFieldName: (DataSourceDataSourceFieldName)?
+    FieldMappings: (DataSourceDataSourceToIndexFieldMappingList)?
+}
+
+typealias DataSourceS3ObjectKey = String|Mapping
+
+
+typealias DataSourceDatabaseEngineType = String|Mapping
+
+
+/// 
+open class DataSourceDocumentsMetadataConfiguration {
+    S3Prefix: (DataSourceS3ObjectKey)?
+}
+
+typealias DataSourceDisableLocalGroups = Boolean|Mapping
+
+
+typealias DataSourceWebCrawlerSiteMaps = Listing<(DataSourceWebCrawlerSiteMap)?>
+
+
+typealias DataSourceTableName = String|Mapping
+
+
+typealias DataSourceConfluenceBlogFieldMappingsList = Listing<(DataSourceConfluenceBlogToIndexFieldMapping)?>
+
+
+/// 
+open class DataSourceSalesforceStandardObjectConfiguration {
+    DocumentDataFieldName: DataSourceDataSourceFieldName
+    DocumentTitleFieldName: (DataSourceDataSourceFieldName)?
+    FieldMappings: (DataSourceDataSourceToIndexFieldMappingList)?
+    Name: DataSourceSalesforceStandardObjectName
+}
+
+typealias DataSourceIndexFieldName = String|Mapping
+
+
+typealias DataSourceServiceNowKnowledgeArticleFilterQuery = String|Mapping
+
+
+/// 
+open class DataSourceSalesforceConfiguration {
+    ExcludeAttachmentFilePatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
+    StandardObjectConfigurations: (DataSourceSalesforceStandardObjectConfigurationList)?
+    StandardObjectAttachmentConfiguration: (DataSourceSalesforceStandardObjectAttachmentConfiguration)?
+    KnowledgeArticleConfiguration: (DataSourceSalesforceKnowledgeArticleConfiguration)?
+    ChatterFeedConfiguration: (DataSourceSalesforceChatterFeedConfiguration)?
+    CrawlAttachments: (Boolean|Mapping)?
+    IncludeAttachmentFilePatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
+    ServerUrl: DataSourceUrl
+    SecretArn: DataSourceSecretArn
 }
 
 /// 
-open class DataSourceInlineCustomDocumentEnrichmentConfiguration {
-    Condition: (DataSourceDocumentAttributeCondition)?
-    Target: (DataSourceDocumentAttributeTarget)?
-    DocumentContentDeletion: (Boolean|Mapping)?
+open class DataSourceServiceNowKnowledgeArticleConfiguration {
+    FieldMappings: (DataSourceDataSourceToIndexFieldMappingList)?
+    FilterQuery: (DataSourceServiceNowKnowledgeArticleFilterQuery)?
+    CrawlAttachments: (Boolean|Mapping)?
+    IncludeAttachmentFilePatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
+    ExcludeAttachmentFilePatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
+    DocumentDataFieldName: DataSourceDataSourceFieldName
+    DocumentTitleFieldName: (DataSourceDataSourceFieldName)?
 }
 
-typealias DataSourceIndexId = String|Mapping
+/// 
+open class DataSourceAccessControlListConfiguration {
+    KeyPath: (DataSourceS3ObjectKey)?
+}
+
+/// 
+open class DataSourceConfluenceConfiguration {
+    ServerUrl: DataSourceUrl
+    Version: DataSourceConfluenceVersion
+    PageConfiguration: (DataSourceConfluencePageConfiguration)?
+    InclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
+    SecretArn: DataSourceSecretArn
+    SpaceConfiguration: (DataSourceConfluenceSpaceConfiguration)?
+    BlogConfiguration: (DataSourceConfluenceBlogConfiguration)?
+    AttachmentConfiguration: (DataSourceConfluenceAttachmentConfiguration)?
+    VpcConfiguration: (DataSourceDataSourceVpcConfiguration)?
+    ExclusionPatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
+}
+
+typealias DataSourceConfluenceAttachmentFieldMappingsList = Listing<(DataSourceConfluenceAttachmentToIndexFieldMapping)?>
+
+
+typealias DataSourceWebCrawlerBasicAuthenticationList = Listing<(DataSourceWebCrawlerBasicAuthentication)?>
+
+
+typealias DataSourceConditionOperator = String|Mapping
+
+
+typealias DataSourceLanguageCode = String|Mapping
+
+
+typealias DataSourceUserAccount = String|Mapping
+
+
+typealias DataSourceDatabaseName = String|Mapping
+
+
+/// 
+open class DataSourceDataSourceVpcConfiguration {
+    SubnetIds: Listing<String|Mapping>
+    SecurityGroupIds: Listing<String|Mapping>
+}
+
+/// 
+open class DataSourceSalesforceStandardObjectAttachmentConfiguration {
+    DocumentTitleFieldName: (DataSourceDataSourceFieldName)?
+    FieldMappings: (DataSourceDataSourceToIndexFieldMappingList)?
+}
+
+typealias DataSourceSalesforceKnowledgeArticleStateList = Listing<(DataSourceSalesforceKnowledgeArticleState)?>
 
 
 /// 
@@ -579,46 +600,25 @@ open class DataSourceColumnConfiguration {
     DocumentDataColumnName: DataSourceColumnName
 }
 
-typealias DataSourceConfluenceBlogFieldMappingsList = Listing<(DataSourceConfluenceBlogToIndexFieldMapping)?>
+typealias DataSourceConfluencePageFieldMappingsList = Listing<(DataSourceConfluencePageToIndexFieldMapping)?>
 
 
-/// 
-open class DataSourceConfluencePageToIndexFieldMapping {
-    DataSourceFieldName: DataSourceConfluencePageFieldName
-    DateFieldFormat: (DataSourceDateFieldFormat)?
-    IndexFieldName: DataSourceIndexFieldName
-}
-
-typealias DataSourceConfluenceSpaceList = Listing<(DataSourceConfluenceSpaceIdentifier)?>
+typealias DataSourceWebCrawlerSeedUrlList = Listing<(DataSourceWebCrawlerSeedUrl)?>
 
 
-typealias DataSourceOneDriveUser = String|Mapping
+typealias DataSourceExcludeMimeTypesList = Listing<(DataSourceMimeType)?>
 
 
-/// 
-open class DataSourceDataSourceVpcConfiguration {
-    SubnetIds: Listing<String|Mapping>
-    SecurityGroupIds: Listing<String|Mapping>
-}
+typealias DataSourceServiceNowBuildVersionType = String|Mapping
 
-/// 
-open class DataSourceServiceNowServiceCatalogConfiguration {
-    DocumentDataFieldName: DataSourceDataSourceFieldName
-    DocumentTitleFieldName: (DataSourceDataSourceFieldName)?
-    FieldMappings: (DataSourceDataSourceToIndexFieldMappingList)?
-    CrawlAttachments: (Boolean|Mapping)?
-    IncludeAttachmentFilePatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
-    ExcludeAttachmentFilePatterns: (DataSourceDataSourceInclusionsExclusionsStrings)?
-}
 
-/// 
-open class DataSourceSalesforceStandardKnowledgeArticleTypeConfiguration {
-    DocumentDataFieldName: DataSourceDataSourceFieldName
-    DocumentTitleFieldName: (DataSourceDataSourceFieldName)?
-    FieldMappings: (DataSourceDataSourceToIndexFieldMappingList)?
-}
+typealias DataSourceConfluencePageFieldName = String|Mapping
 
-typealias DataSourceWebCrawlerSiteMaps = Listing<(DataSourceWebCrawlerSiteMap)?>
+
+typealias DataSourceWebCrawlerSiteMap = String|Mapping
+
+
+typealias DataSourceSalesforceChatterFeedIncludeFilterTypes = Listing<(DataSourceSalesforceChatterFeedIncludeFilterType)?>
 
 
 /// Kendra DataSource
@@ -628,22 +628,10 @@ open class DataSource extends cloudformation.Resource {
 
 
     /// 
-    hidden Name: DataSourceName
-
-    /// 
-    hidden IndexId: DataSourceIndexId
-
-    /// 
-    hidden DataSourceConfiguration: (DataSourceDataSourceConfiguration)?
-
-    /// Tags for labeling the data source
-    hidden Tags: (DataSourceTagList)?
+    hidden CustomDocumentEnrichmentConfiguration: (DataSourceCustomDocumentEnrichmentConfiguration)?
 
     /// 
     hidden LanguageCode: (DataSourceLanguageCode)?
-
-    /// 
-    hidden TypeProperty: DataSourceType
 
     /// 
     hidden Description: (DataSourceDescription)?
@@ -655,19 +643,31 @@ open class DataSource extends cloudformation.Resource {
     hidden RoleArn: (DataSourceRoleArn)?
 
     /// 
-    hidden CustomDocumentEnrichmentConfiguration: (DataSourceCustomDocumentEnrichmentConfiguration)?
+    hidden IndexId: DataSourceIndexId
+
+    /// 
+    hidden TypeProperty: DataSourceType
+
+    /// 
+    hidden DataSourceConfiguration: (DataSourceDataSourceConfiguration)?
+
+    /// Tags for labeling the data source
+    hidden Tags: (DataSourceTagList)?
+
+    /// 
+    hidden Name: DataSourceName
 
     Properties {
-        ["Name"] = if (Name == null) null else Name
-        ["IndexId"] = if (IndexId == null) null else IndexId
-        ["DataSourceConfiguration"] = if (DataSourceConfiguration == null) null else DataSourceConfiguration
-        ["Tags"] = if (Tags == null) null else Tags
+        ["CustomDocumentEnrichmentConfiguration"] = if (CustomDocumentEnrichmentConfiguration == null) null else CustomDocumentEnrichmentConfiguration
         ["LanguageCode"] = if (LanguageCode == null) null else LanguageCode
-        ["Type"] = if (TypeProperty == null) null else TypeProperty
         ["Description"] = if (Description == null) null else Description
         ["Schedule"] = if (Schedule == null) null else Schedule
         ["RoleArn"] = if (RoleArn == null) null else RoleArn
-        ["CustomDocumentEnrichmentConfiguration"] = if (CustomDocumentEnrichmentConfiguration == null) null else CustomDocumentEnrichmentConfiguration
+        ["IndexId"] = if (IndexId == null) null else IndexId
+        ["Type"] = if (TypeProperty == null) null else TypeProperty
+        ["DataSourceConfiguration"] = if (DataSourceConfiguration == null) null else DataSourceConfiguration
+        ["Tags"] = if (Tags == null) null else Tags
+        ["Name"] = if (Name == null) null else Name
     }
 
 }

@@ -5,6 +5,19 @@ module aws.lambda.url
 
 import "../../cloudformation.pkl"
 
+typealias UrlExposeHeaders = Listing<(String|Mapping)?>
+
+
+/// 
+open class UrlCors {
+    ExposeHeaders: (UrlExposeHeaders)?
+    MaxAge: (Int|Mapping)?
+    AllowCredentials: (Boolean|Mapping)?
+    AllowHeaders: (UrlAllowHeaders)?
+    AllowMethods: (UrlAllowMethods)?
+    AllowOrigins: (UrlAllowOrigins)?
+}
+
 typealias UrlAllowHeaders = Listing<(String|Mapping)?>
 
 
@@ -16,24 +29,17 @@ typealias UrlAllowMethods = Listing<(AllowMethodsArray|Mapping)?>
 typealias UrlAllowOrigins = Listing<(String|Mapping)?>
 
 
-typealias UrlExposeHeaders = Listing<(String|Mapping)?>
-
-
-/// 
-open class UrlCors {
-    AllowHeaders: (UrlAllowHeaders)?
-    AllowMethods: (UrlAllowMethods)?
-    AllowOrigins: (UrlAllowOrigins)?
-    ExposeHeaders: (UrlExposeHeaders)?
-    MaxAge: (Int|Mapping)?
-    AllowCredentials: (Boolean|Mapping)?
-}
-
 /// Resource Type definition for AWS::Lambda::Url
 open class Url extends cloudformation.Resource {
 
     Type = "AWS::Lambda::Url"
 
+
+    /// The invocation mode for the function's URL. Set to BUFFERED if you want to buffer responses before returning them to the client. Set to RESPONSE_STREAM if you want to stream responses, allowing faster time to first byte and larger response payload sizes. If not set, defaults to BUFFERED.
+    hidden InvokeMode: (UrlInvokeMode|Mapping)?
+
+    /// 
+    hidden Cors: (UrlCors)?
 
     /// The Amazon Resource Name (ARN) of the function associated with the Function URL.
     hidden TargetFunctionArn: String(matches(Regex(#"^(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}:)?(\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:((?!\d+)[0-9a-zA-Z-_]+))?$"#)))|Mapping
@@ -44,23 +50,17 @@ open class Url extends cloudformation.Resource {
     /// Can be either AWS_IAM if the requests are authorized via IAM, or NONE if no authorization is configured on the Function URL.
     hidden AuthType: UrlAuthType|Mapping
 
-    /// The invocation mode for the function's URL. Set to BUFFERED if you want to buffer responses before returning them to the client. Set to RESPONSE_STREAM if you want to stream responses, allowing faster time to first byte and larger response payload sizes. If not set, defaults to BUFFERED.
-    hidden InvokeMode: (UrlInvokeMode|Mapping)?
-
-    /// 
-    hidden Cors: (UrlCors)?
-
     Properties {
+        ["InvokeMode"] = if (InvokeMode == null) null else InvokeMode
+        ["Cors"] = if (Cors == null) null else Cors
         ["TargetFunctionArn"] = if (TargetFunctionArn == null) null else TargetFunctionArn
         ["Qualifier"] = if (Qualifier == null) null else Qualifier
         ["AuthType"] = if (AuthType == null) null else AuthType
-        ["InvokeMode"] = if (InvokeMode == null) null else InvokeMode
-        ["Cors"] = if (Cors == null) null else Cors
     }
 
 }
 
 
-typealias UrlAuthType = "AWS_IAM"|"NONE"
-
 typealias UrlInvokeMode = "BUFFERED"|"RESPONSE_STREAM"
+
+typealias UrlAuthType = "AWS_IAM"|"NONE"

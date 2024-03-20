@@ -6,6 +6,28 @@ module aws.lakeformation.permissions
 import "../../cloudformation.pkl"
 
 /// 
+open class PermissionsTableResource {
+    DatabaseName: (String|Mapping)?
+    CatalogId: (String|Mapping)?
+    TableWildcard: (PermissionsTableWildcard)?
+    Name: (String|Mapping)?
+}
+
+/// 
+open class PermissionsResource {
+    DatabaseResource: (PermissionsDatabaseResource)?
+    DataLocationResource: (PermissionsDataLocationResource)?
+    TableWithColumnsResource: (PermissionsTableWithColumnsResource)?
+    TableResource: (PermissionsTableResource)?
+}
+
+/// 
+open class PermissionsDatabaseResource {
+    CatalogId: (String|Mapping)?
+    Name: (String|Mapping)?
+}
+
+/// 
 open class PermissionsDataLocationResource {
     S3Resource: (String|Mapping)?
     CatalogId: (String|Mapping)?
@@ -33,28 +55,6 @@ open class PermissionsDataLakePrincipal {
     DataLakePrincipalIdentifier: (String|Mapping)?
 }
 
-/// 
-open class PermissionsTableResource {
-    DatabaseName: (String|Mapping)?
-    CatalogId: (String|Mapping)?
-    TableWildcard: (PermissionsTableWildcard)?
-    Name: (String|Mapping)?
-}
-
-/// 
-open class PermissionsResource {
-    DatabaseResource: (PermissionsDatabaseResource)?
-    DataLocationResource: (PermissionsDataLocationResource)?
-    TableWithColumnsResource: (PermissionsTableWithColumnsResource)?
-    TableResource: (PermissionsTableResource)?
-}
-
-/// 
-open class PermissionsDatabaseResource {
-    CatalogId: (String|Mapping)?
-    Name: (String|Mapping)?
-}
-
 /// Resource Type definition for AWS::LakeFormation::Permissions
 open class Permissions extends cloudformation.Resource {
 
@@ -62,22 +62,22 @@ open class Permissions extends cloudformation.Resource {
 
 
     /// 
-    hidden DataLakePrincipal: PermissionsDataLakePrincipal
-
-    /// 
-    hidden PermissionsWithGrantOption: (Listing<String|Mapping>)?
-
-    /// 
     hidden Resource: PermissionsResource
 
     /// 
     hidden Permissions: (Listing<String|Mapping>)?
 
+    /// 
+    hidden DataLakePrincipal: PermissionsDataLakePrincipal
+
+    /// 
+    hidden PermissionsWithGrantOption: (Listing<String|Mapping>)?
+
     Properties {
-        ["DataLakePrincipal"] = if (DataLakePrincipal == null) null else DataLakePrincipal
-        ["PermissionsWithGrantOption"] = if (PermissionsWithGrantOption == null) null else PermissionsWithGrantOption
         ["Resource"] = if (Resource == null) null else Resource
         ["Permissions"] = if (Permissions == null) null else Permissions
+        ["DataLakePrincipal"] = if (DataLakePrincipal == null) null else DataLakePrincipal
+        ["PermissionsWithGrantOption"] = if (PermissionsWithGrantOption == null) null else PermissionsWithGrantOption
     }
 
 }

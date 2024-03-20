@@ -11,13 +11,16 @@ open class DocumentClassifierVpcConfig {
     Subnets: Listing<String|Mapping>
 }
 
-typealias AugmentedManifestsListItemSplit = "TRAIN"|"TEST"
+typealias DocumentClassifierS3Uri = String|Mapping
+
+
+typealias DocumentClassifierKmsKeyId = String|Mapping
+
 
 /// 
-open class DocumentClassifierAugmentedManifestsListItem {
-    S3Uri: DocumentClassifierS3Uri
-    Split: (AugmentedManifestsListItemSplit|Mapping)?
-    AttributeNames: Listing<String|Mapping>
+open class DocumentClassifierTag {
+    Value: String|Mapping
+    Key: String|Mapping
 }
 
 typealias DocumentReaderConfigDocumentReadAction = "TEXTRACT_DETECT_DOCUMENT_TEXT"|"TEXTRACT_ANALYZE_DOCUMENT"
@@ -39,29 +42,29 @@ open class DocumentClassifierDocumentClassifierOutputDataConfig {
     S3Uri: (DocumentClassifierS3Uri)?
 }
 
-typealias DocumentClassifierInputDataConfigDataFormat = "COMPREHEND_CSV"|"AUGMENTED_MANIFEST"
-
 typealias DocumentClassifierInputDataConfigDocumentType = "PLAIN_TEXT_DOCUMENT"|"SEMI_STRUCTURED_DOCUMENT"
+
+typealias DocumentClassifierInputDataConfigDataFormat = "COMPREHEND_CSV"|"AUGMENTED_MANIFEST"
 
 /// 
 open class DocumentClassifierDocumentClassifierInputDataConfig {
-    AugmentedManifests: (Listing<DocumentClassifierAugmentedManifestsListItem>)?
-    DataFormat: (DocumentClassifierInputDataConfigDataFormat|Mapping)?
     LabelDelimiter: (String(matches(Regex(#"^[ ~!@#$%^*\-_+=|\\:;\t>?/]$"#)))|Mapping)?
     DocumentType: (DocumentClassifierInputDataConfigDocumentType|Mapping)?
     Documents: (DocumentClassifierDocumentClassifierDocuments)?
     DocumentReaderConfig: (DocumentClassifierDocumentReaderConfig)?
     S3Uri: (DocumentClassifierS3Uri)?
     TestS3Uri: (DocumentClassifierS3Uri)?
+    AugmentedManifests: (Listing<DocumentClassifierAugmentedManifestsListItem>)?
+    DataFormat: (DocumentClassifierInputDataConfigDataFormat|Mapping)?
 }
 
-typealias DocumentClassifierS3Uri = String|Mapping
-
+typealias AugmentedManifestsListItemSplit = "TRAIN"|"TEST"
 
 /// 
-open class DocumentClassifierTag {
-    Key: String|Mapping
-    Value: String|Mapping
+open class DocumentClassifierAugmentedManifestsListItem {
+    AttributeNames: Listing<String|Mapping>
+    S3Uri: DocumentClassifierS3Uri
+    Split: (AugmentedManifestsListItemSplit|Mapping)?
 }
 
 /// 
@@ -70,9 +73,6 @@ open class DocumentClassifierDocumentClassifierDocuments {
     TestS3Uri: (DocumentClassifierS3Uri)?
 }
 
-typealias DocumentClassifierKmsKeyId = String|Mapping
-
-
 /// Document Classifier enables training document classifier models.
 open class DocumentClassifier extends cloudformation.Resource {
 
@@ -80,7 +80,16 @@ open class DocumentClassifier extends cloudformation.Resource {
 
 
     /// 
-    hidden DataAccessRoleArn: String(matches(Regex(#"arn:aws(-[^:]+)?:iam::[0-9]{12}:role/.+"#)))|Mapping
+    hidden VpcConfig: (DocumentClassifierVpcConfig)?
+
+    /// 
+    hidden ModelPolicy: (String(matches(Regex(#"[\u0009\u000A\u000D\u0020-\u00FF]+"#)))|Mapping)?
+
+    /// 
+    hidden DocumentClassifierName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9])*$"#)))|Mapping
+
+    /// 
+    hidden VolumeKmsKeyId: (DocumentClassifierKmsKeyId)?
 
     /// 
     hidden InputDataConfig: DocumentClassifierDocumentClassifierInputDataConfig
@@ -92,42 +101,33 @@ open class DocumentClassifier extends cloudformation.Resource {
     hidden LanguageCode: DocumentClassifierLanguageCode|Mapping
 
     /// 
-    hidden VolumeKmsKeyId: (DocumentClassifierKmsKeyId)?
-
-    /// 
-    hidden ModelPolicy: (String(matches(Regex(#"[\u0009\u000A\u000D\u0020-\u00FF]+"#)))|Mapping)?
-
-    /// 
-    hidden DocumentClassifierName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9])*$"#)))|Mapping
-
-    /// 
     hidden Mode: (DocumentClassifierMode|Mapping)?
-
-    /// 
-    hidden VersionName: (String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9])*$"#)))|Mapping)?
-
-    /// 
-    hidden OutputDataConfig: (DocumentClassifierDocumentClassifierOutputDataConfig)?
 
     /// 
     hidden Tags: (Listing<DocumentClassifierTag>)?
 
     /// 
-    hidden VpcConfig: (DocumentClassifierVpcConfig)?
+    hidden VersionName: (String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9])*$"#)))|Mapping)?
+
+    /// 
+    hidden DataAccessRoleArn: String(matches(Regex(#"arn:aws(-[^:]+)?:iam::[0-9]{12}:role/.+"#)))|Mapping
+
+    /// 
+    hidden OutputDataConfig: (DocumentClassifierDocumentClassifierOutputDataConfig)?
 
     Properties {
-        ["DataAccessRoleArn"] = if (DataAccessRoleArn == null) null else DataAccessRoleArn
+        ["VpcConfig"] = if (VpcConfig == null) null else VpcConfig
+        ["ModelPolicy"] = if (ModelPolicy == null) null else ModelPolicy
+        ["DocumentClassifierName"] = if (DocumentClassifierName == null) null else DocumentClassifierName
+        ["VolumeKmsKeyId"] = if (VolumeKmsKeyId == null) null else VolumeKmsKeyId
         ["InputDataConfig"] = if (InputDataConfig == null) null else InputDataConfig
         ["ModelKmsKeyId"] = if (ModelKmsKeyId == null) null else ModelKmsKeyId
         ["LanguageCode"] = if (LanguageCode == null) null else LanguageCode
-        ["VolumeKmsKeyId"] = if (VolumeKmsKeyId == null) null else VolumeKmsKeyId
-        ["ModelPolicy"] = if (ModelPolicy == null) null else ModelPolicy
-        ["DocumentClassifierName"] = if (DocumentClassifierName == null) null else DocumentClassifierName
         ["Mode"] = if (Mode == null) null else Mode
-        ["VersionName"] = if (VersionName == null) null else VersionName
-        ["OutputDataConfig"] = if (OutputDataConfig == null) null else OutputDataConfig
         ["Tags"] = if (Tags == null) null else Tags
-        ["VpcConfig"] = if (VpcConfig == null) null else VpcConfig
+        ["VersionName"] = if (VersionName == null) null else VersionName
+        ["DataAccessRoleArn"] = if (DataAccessRoleArn == null) null else DataAccessRoleArn
+        ["OutputDataConfig"] = if (OutputDataConfig == null) null else OutputDataConfig
     }
 
 }

@@ -17,6 +17,9 @@ open class TrafficDistributionGroup extends cloudformation.Resource {
     Type = "AWS::Connect::TrafficDistributionGroup"
 
 
+    /// The name for the traffic distribution group.
+    hidden Name: String(matches(Regex(#"(^[\S].*[\S]$)|(^[\S]$)"#)))|Mapping
+
     /// One or more tags.
     hidden Tags: (Listing<TrafficDistributionGroupTag>)?
 
@@ -26,14 +29,11 @@ open class TrafficDistributionGroup extends cloudformation.Resource {
     /// A description for the traffic distribution group.
     hidden Description: (String(matches(Regex(#"(^[\S].*[\S]$)|(^[\S]$)"#)))|Mapping)?
 
-    /// The name for the traffic distribution group.
-    hidden Name: String(matches(Regex(#"(^[\S].*[\S]$)|(^[\S]$)"#)))|Mapping
-
     Properties {
+        ["Name"] = if (Name == null) null else Name
         ["Tags"] = if (Tags == null) null else Tags
         ["InstanceArn"] = if (InstanceArn == null) null else InstanceArn
         ["Description"] = if (Description == null) null else Description
-        ["Name"] = if (Name == null) null else Name
     }
 
 }

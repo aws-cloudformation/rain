@@ -11,6 +11,9 @@ open class KeySigningKey extends cloudformation.Resource {
     Type = "AWS::Route53::KeySigningKey"
 
 
+    /// The unique string (ID) used to identify a hosted zone.
+    hidden HostedZoneId: String(matches(Regex(#"^[A-Z0-9]{1,32}$"#)))|Mapping
+
     /// A string specifying the initial status of the key signing key (KSK). You can set the value to ACTIVE or INACTIVE.
     hidden Status: KeySigningKeyStatus|Mapping
 
@@ -20,14 +23,11 @@ open class KeySigningKey extends cloudformation.Resource {
     /// The Amazon resource name (ARN) for a customer managed key (CMK) in AWS Key Management Service (KMS). The KeyManagementServiceArn must be unique for each key signing key (KSK) in a single hosted zone.
     hidden KeyManagementServiceArn: String|Mapping
 
-    /// The unique string (ID) used to identify a hosted zone.
-    hidden HostedZoneId: String(matches(Regex(#"^[A-Z0-9]{1,32}$"#)))|Mapping
-
     Properties {
+        ["HostedZoneId"] = if (HostedZoneId == null) null else HostedZoneId
         ["Status"] = if (Status == null) null else Status
         ["Name"] = if (Name == null) null else Name
         ["KeyManagementServiceArn"] = if (KeyManagementServiceArn == null) null else KeyManagementServiceArn
-        ["HostedZoneId"] = if (HostedZoneId == null) null else HostedZoneId
     }
 
 }

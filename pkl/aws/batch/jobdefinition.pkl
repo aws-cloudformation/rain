@@ -6,67 +6,61 @@ module aws.batch.jobdefinition
 import "../../cloudformation.pkl"
 
 /// 
-open class JobDefinitionDevice {
-    Permissions: (Listing<String|Mapping>)?
-    HostPath: (String|Mapping)?
-    ContainerPath: (String|Mapping)?
+open class JobDefinitionFargatePlatformConfiguration {
+    PlatformVersion: (String|Mapping)?
 }
 
 /// 
-open class JobDefinitionMetadata {
-    Labels: (Dynamic)?
-}
-
-/// 
-open class JobDefinitionEphemeralStorage {
-    SizeInGiB: Int|Mapping
-}
-
-/// 
-open class JobDefinitionRetryStrategy {
-    EvaluateOnExit: (Listing<JobDefinitionEvaluateOnExit>)?
-    Attempts: (Int|Mapping)?
-}
-
-/// 
-open class JobDefinitionEcsProperties {
-    TaskProperties: Listing<JobDefinitionEcsTaskProperties>
-}
-
-/// 
-open class JobDefinitionEksContainer {
-    Command: (Listing<String|Mapping>)?
-    SecurityContext: (JobDefinitionEksContainerSecurityContext)?
-    Resources: (JobDefinitionEksContainerResourceRequirements)?
-    Env: (Listing<JobDefinitionEksContainerEnvironmentVariable>)?
-    VolumeMounts: (Listing<JobDefinitionEksContainerVolumeMount>)?
-    ImagePullPolicy: (String|Mapping)?
-    Name: (String|Mapping)?
-    Args: (Listing<String|Mapping>)?
-    Image: String|Mapping
-}
-
-/// 
-open class JobDefinitionLogConfiguration {
-    SecretOptions: (Listing<JobDefinitionSecret>)?
-    Options: (Dynamic)?
-    LogDriver: String|Mapping
-}
-
-/// 
-open class JobDefinitionAuthorizationConfig {
-    Iam: (String|Mapping)?
-    AccessPointId: (String|Mapping)?
-}
-
-/// 
-open class JobDefinitionVolumesHost {
-    SourcePath: (String|Mapping)?
+open class JobDefinitionEcsTaskProperties {
+    Volumes: (Listing<JobDefinitionVolumes>)?
+    Containers: (Listing<JobDefinitionTaskContainerProperties>)?
+    EphemeralStorage: (JobDefinitionEphemeralStorage)?
+    ExecutionRoleArn: (String|Mapping)?
+    RuntimePlatform: (JobDefinitionRuntimePlatform)?
+    IpcMode: (String|Mapping)?
+    PidMode: (String|Mapping)?
+    PlatformVersion: (String|Mapping)?
+    TaskRoleArn: (String|Mapping)?
+    NetworkConfiguration: (JobDefinitionNetworkConfiguration)?
 }
 
 /// 
 open class JobDefinitionTimeout {
     AttemptDurationSeconds: (Int|Mapping)?
+}
+
+/// 
+open class JobDefinitionNodeProperties {
+    MainNode: Int|Mapping
+    NodeRangeProperties: Listing<JobDefinitionNodeRangeProperty>
+    NumNodes: Int|Mapping
+}
+
+/// 
+open class JobDefinitionLinuxParameters {
+    Tmpfs: (Listing<JobDefinitionTmpfs>)?
+    SharedMemorySize: (Int|Mapping)?
+    Devices: (Listing<JobDefinitionDevice>)?
+    InitProcessEnabled: (Boolean|Mapping)?
+    MaxSwap: (Int|Mapping)?
+    Swappiness: (Int|Mapping)?
+}
+
+/// 
+open class JobDefinitionPodProperties {
+    HostNetwork: (Boolean|Mapping)?
+    ShareProcessNamespace: (Boolean|Mapping)?
+    InitContainers: (Listing<JobDefinitionEksContainer>)?
+    Volumes: (Listing<JobDefinitionEksVolume>)?
+    DnsPolicy: (String|Mapping)?
+    Containers: (Listing<JobDefinitionEksContainer>)?
+    Metadata: (JobDefinitionMetadata)?
+    ServiceAccountName: (String|Mapping)?
+}
+
+/// 
+open class JobDefinitionEksProperties {
+    PodProperties: (JobDefinitionPodProperties)?
 }
 
 /// 
@@ -76,56 +70,47 @@ open class JobDefinitionEnvironment {
 }
 
 /// 
-open class JobDefinitionEksVolume {
-    HostPath: (JobDefinitionEksHostPath)?
-    Name: String|Mapping
-    Secret: (JobDefinitionEksSecret)?
-    EmptyDir: (JobDefinitionEksEmptyDir)?
+open class JobDefinitionDevice {
+    Permissions: (Listing<String|Mapping>)?
+    HostPath: (String|Mapping)?
+    ContainerPath: (String|Mapping)?
 }
 
 /// 
-open class JobDefinitionTaskContainerDependency {
-    Condition: String|Mapping
-    ContainerName: String|Mapping
+open class JobDefinitionRuntimePlatform {
+    OperatingSystemFamily: (String|Mapping)?
+    CpuArchitecture: (String|Mapping)?
 }
 
 /// 
-open class JobDefinitionTmpfs {
-    Size: Int|Mapping
-    ContainerPath: String|Mapping
-    MountOptions: (Listing<String|Mapping>)?
+open class JobDefinitionTaskContainerProperties {
+    ResourceRequirements: (Listing<JobDefinitionResourceRequirement>)?
+    Ulimits: (Listing<JobDefinitionUlimit>)?
+    RepositoryCredentials: (JobDefinitionRepositoryCredentials)?
+    User: (String|Mapping)?
+    Secrets: (Listing<JobDefinitionSecret>)?
+    LinuxParameters: (JobDefinitionLinuxParameters)?
+    ReadonlyRootFilesystem: (Boolean|Mapping)?
+    Image: String|Mapping
+    LogConfiguration: (JobDefinitionLogConfiguration)?
+    Privileged: (Boolean|Mapping)?
+    DependsOn: (Listing<JobDefinitionTaskContainerDependency>)?
+    Essential: (Boolean|Mapping)?
+    Name: (String|Mapping)?
+    MountPoints: (Listing<JobDefinitionMountPoints>)?
+    Command: (Listing<String|Mapping>)?
+    Environment: (Listing<JobDefinitionEnvironment>)?
 }
 
 /// 
-open class JobDefinitionResourceRequirement {
-    Value: (String|Mapping)?
-    Type: (String|Mapping)?
+open class JobDefinitionEksContainerResourceRequirements {
+    Requests: (Dynamic)?
+    Limits: (Dynamic)?
 }
 
 /// 
-open class JobDefinitionEksEmptyDir {
-    Medium: (String|Mapping)?
-    SizeLimit: (String|Mapping)?
-}
-
-/// 
-open class JobDefinitionEfsVolumeConfiguration {
-    TransitEncryptionPort: (Int|Mapping)?
-    AuthorizationConfig: (JobDefinitionAuthorizationConfig)?
-    FileSystemId: String|Mapping
-    TransitEncryption: (String|Mapping)?
-    RootDirectory: (String|Mapping)?
-}
-
-/// 
-open class JobDefinitionEksHostPath {
-    Path: (String|Mapping)?
-}
-
-/// 
-open class JobDefinitionEksSecret {
-    SecretName: String|Mapping
-    Optional: (Boolean|Mapping)?
+open class JobDefinitionVolumesHost {
+    SourcePath: (String|Mapping)?
 }
 
 /// 
@@ -136,159 +121,14 @@ open class JobDefinitionEksContainerVolumeMount {
 }
 
 /// 
-open class JobDefinitionTaskContainerProperties {
-    Privileged: (Boolean|Mapping)?
-    Name: (String|Mapping)?
-    Command: (Listing<String|Mapping>)?
-    DependsOn: (Listing<JobDefinitionTaskContainerDependency>)?
-    Environment: (Listing<JobDefinitionEnvironment>)?
-    User: (String|Mapping)?
-    ReadonlyRootFilesystem: (Boolean|Mapping)?
-    ResourceRequirements: (Listing<JobDefinitionResourceRequirement>)?
-    MountPoints: (Listing<JobDefinitionMountPoints>)?
-    Ulimits: (Listing<JobDefinitionUlimit>)?
-    RepositoryCredentials: (JobDefinitionRepositoryCredentials)?
-    LinuxParameters: (JobDefinitionLinuxParameters)?
-    Essential: (Boolean|Mapping)?
-    Secrets: (Listing<JobDefinitionSecret>)?
-    Image: String|Mapping
-    LogConfiguration: (JobDefinitionLogConfiguration)?
+open class JobDefinitionEcsProperties {
+    TaskProperties: Listing<JobDefinitionEcsTaskProperties>
 }
 
 /// 
-open class JobDefinitionNetworkConfiguration {
-    AssignPublicIp: (String|Mapping)?
-}
-
-/// 
-open class JobDefinitionEksProperties {
-    PodProperties: (JobDefinitionPodProperties)?
-}
-
-/// 
-open class JobDefinitionUlimit {
-    SoftLimit: Int|Mapping
-    HardLimit: Int|Mapping
-    Name: String|Mapping
-}
-
-/// 
-open class JobDefinitionRepositoryCredentials {
-    CredentialsParameter: String|Mapping
-}
-
-/// 
-open class JobDefinitionLinuxParameters {
-    InitProcessEnabled: (Boolean|Mapping)?
-    MaxSwap: (Int|Mapping)?
-    Swappiness: (Int|Mapping)?
-    Tmpfs: (Listing<JobDefinitionTmpfs>)?
-    SharedMemorySize: (Int|Mapping)?
-    Devices: (Listing<JobDefinitionDevice>)?
-}
-
-/// 
-open class JobDefinitionMountPoints {
-    ReadOnly: (Boolean|Mapping)?
-    SourceVolume: (String|Mapping)?
-    ContainerPath: (String|Mapping)?
-}
-
-/// 
-open class JobDefinitionEksContainerResourceRequirements {
-    Requests: (Dynamic)?
-    Limits: (Dynamic)?
-}
-
-/// 
-open class JobDefinitionSecret {
-    Name: String|Mapping
-    ValueFrom: String|Mapping
-}
-
-/// 
-open class JobDefinitionEvaluateOnExit {
-    Action: String|Mapping
-    OnStatusReason: (String|Mapping)?
-    OnExitCode: (String|Mapping)?
-    OnReason: (String|Mapping)?
-}
-
-/// 
-open class JobDefinitionEksContainerEnvironmentVariable {
-    Value: (String|Mapping)?
-    Name: String|Mapping
-}
-
-/// 
-open class JobDefinitionEcsTaskProperties {
-    PlatformVersion: (String|Mapping)?
-    IpcMode: (String|Mapping)?
-    Volumes: (Listing<JobDefinitionVolumes>)?
-    NetworkConfiguration: (JobDefinitionNetworkConfiguration)?
-    PidMode: (String|Mapping)?
-    ExecutionRoleArn: (String|Mapping)?
-    RuntimePlatform: (JobDefinitionRuntimePlatform)?
-    TaskRoleArn: (String|Mapping)?
-    Containers: (Listing<JobDefinitionTaskContainerProperties>)?
-    EphemeralStorage: (JobDefinitionEphemeralStorage)?
-}
-
-/// 
-open class JobDefinitionPodProperties {
-    Containers: (Listing<JobDefinitionEksContainer>)?
-    Metadata: (JobDefinitionMetadata)?
-    ServiceAccountName: (String|Mapping)?
-    HostNetwork: (Boolean|Mapping)?
-    ShareProcessNamespace: (Boolean|Mapping)?
-    InitContainers: (Listing<JobDefinitionEksContainer>)?
-    Volumes: (Listing<JobDefinitionEksVolume>)?
-    DnsPolicy: (String|Mapping)?
-}
-
-/// 
-open class JobDefinitionContainerProperties {
-    Memory: (Int|Mapping)?
-    Privileged: (Boolean|Mapping)?
-    LogConfiguration: (JobDefinitionLogConfiguration)?
-    Ulimits: (Listing<JobDefinitionUlimit>)?
-    RuntimePlatform: (JobDefinitionRuntimePlatform)?
-    RepositoryCredentials: (JobDefinitionRepositoryCredentials)?
-    Secrets: (Listing<JobDefinitionSecret>)?
-    FargatePlatformConfiguration: (JobDefinitionFargatePlatformConfiguration)?
-    Vcpus: (Int|Mapping)?
-    Image: String|Mapping
-    ResourceRequirements: (Listing<JobDefinitionResourceRequirement>)?
-    Command: (Listing<String|Mapping>)?
-    InstanceType: (String|Mapping)?
-    User: (String|Mapping)?
-    LinuxParameters: (JobDefinitionLinuxParameters)?
-    JobRoleArn: (String|Mapping)?
-    ReadonlyRootFilesystem: (Boolean|Mapping)?
-    NetworkConfiguration: (JobDefinitionNetworkConfiguration)?
-    EphemeralStorage: (JobDefinitionEphemeralStorage)?
-    MountPoints: (Listing<JobDefinitionMountPoints>)?
-    ExecutionRoleArn: (String|Mapping)?
-    Volumes: (Listing<JobDefinitionVolumes>)?
-    Environment: (Listing<JobDefinitionEnvironment>)?
-}
-
-/// 
-open class JobDefinitionRuntimePlatform {
-    OperatingSystemFamily: (String|Mapping)?
-    CpuArchitecture: (String|Mapping)?
-}
-
-/// 
-open class JobDefinitionNodeProperties {
-    NodeRangeProperties: Listing<JobDefinitionNodeRangeProperty>
-    NumNodes: Int|Mapping
-    MainNode: Int|Mapping
-}
-
-/// 
-open class JobDefinitionFargatePlatformConfiguration {
-    PlatformVersion: (String|Mapping)?
+open class JobDefinitionEksSecret {
+    SecretName: String|Mapping
+    Optional: (Boolean|Mapping)?
 }
 
 /// 
@@ -301,10 +141,161 @@ open class JobDefinitionEksContainerSecurityContext {
 }
 
 /// 
+open class JobDefinitionContainerProperties {
+    MountPoints: (Listing<JobDefinitionMountPoints>)?
+    ExecutionRoleArn: (String|Mapping)?
+    RuntimePlatform: (JobDefinitionRuntimePlatform)?
+    Secrets: (Listing<JobDefinitionSecret>)?
+    Privileged: (Boolean|Mapping)?
+    JobRoleArn: (String|Mapping)?
+    ResourceRequirements: (Listing<JobDefinitionResourceRequirement>)?
+    LogConfiguration: (JobDefinitionLogConfiguration)?
+    Command: (Listing<String|Mapping>)?
+    User: (String|Mapping)?
+    Vcpus: (Int|Mapping)?
+    Image: String|Mapping
+    Ulimits: (Listing<JobDefinitionUlimit>)?
+    RepositoryCredentials: (JobDefinitionRepositoryCredentials)?
+    ReadonlyRootFilesystem: (Boolean|Mapping)?
+    Volumes: (Listing<JobDefinitionVolumes>)?
+    InstanceType: (String|Mapping)?
+    EphemeralStorage: (JobDefinitionEphemeralStorage)?
+    Memory: (Int|Mapping)?
+    LinuxParameters: (JobDefinitionLinuxParameters)?
+    FargatePlatformConfiguration: (JobDefinitionFargatePlatformConfiguration)?
+    Environment: (Listing<JobDefinitionEnvironment>)?
+    NetworkConfiguration: (JobDefinitionNetworkConfiguration)?
+}
+
+/// 
+open class JobDefinitionRepositoryCredentials {
+    CredentialsParameter: String|Mapping
+}
+
+/// 
+open class JobDefinitionLogConfiguration {
+    SecretOptions: (Listing<JobDefinitionSecret>)?
+    Options: (Dynamic)?
+    LogDriver: String|Mapping
+}
+
+/// 
+open class JobDefinitionNetworkConfiguration {
+    AssignPublicIp: (String|Mapping)?
+}
+
+/// 
+open class JobDefinitionEksVolume {
+    Secret: (JobDefinitionEksSecret)?
+    EmptyDir: (JobDefinitionEksEmptyDir)?
+    HostPath: (JobDefinitionEksHostPath)?
+    Name: String|Mapping
+}
+
+/// 
+open class JobDefinitionSecret {
+    ValueFrom: String|Mapping
+    Name: String|Mapping
+}
+
+/// 
+open class JobDefinitionTmpfs {
+    ContainerPath: String|Mapping
+    MountOptions: (Listing<String|Mapping>)?
+    Size: Int|Mapping
+}
+
+/// 
+open class JobDefinitionUlimit {
+    SoftLimit: Int|Mapping
+    HardLimit: Int|Mapping
+    Name: String|Mapping
+}
+
+/// 
+open class JobDefinitionRetryStrategy {
+    EvaluateOnExit: (Listing<JobDefinitionEvaluateOnExit>)?
+    Attempts: (Int|Mapping)?
+}
+
+/// 
+open class JobDefinitionEksContainerEnvironmentVariable {
+    Value: (String|Mapping)?
+    Name: String|Mapping
+}
+
+/// 
+open class JobDefinitionMetadata {
+    Labels: (Dynamic)?
+}
+
+/// 
+open class JobDefinitionAuthorizationConfig {
+    Iam: (String|Mapping)?
+    AccessPointId: (String|Mapping)?
+}
+
+/// 
+open class JobDefinitionEvaluateOnExit {
+    Action: String|Mapping
+    OnStatusReason: (String|Mapping)?
+    OnExitCode: (String|Mapping)?
+    OnReason: (String|Mapping)?
+}
+
+/// 
+open class JobDefinitionMountPoints {
+    ReadOnly: (Boolean|Mapping)?
+    SourceVolume: (String|Mapping)?
+    ContainerPath: (String|Mapping)?
+}
+
+/// 
+open class JobDefinitionResourceRequirement {
+    Value: (String|Mapping)?
+    Type: (String|Mapping)?
+}
+
+/// 
+open class JobDefinitionEksContainer {
+    VolumeMounts: (Listing<JobDefinitionEksContainerVolumeMount>)?
+    SecurityContext: (JobDefinitionEksContainerSecurityContext)?
+    Resources: (JobDefinitionEksContainerResourceRequirements)?
+    Image: String|Mapping
+    Env: (Listing<JobDefinitionEksContainerEnvironmentVariable>)?
+    Args: (Listing<String|Mapping>)?
+    ImagePullPolicy: (String|Mapping)?
+    Command: (Listing<String|Mapping>)?
+    Name: (String|Mapping)?
+}
+
+/// 
+open class JobDefinitionEksEmptyDir {
+    Medium: (String|Mapping)?
+    SizeLimit: (String|Mapping)?
+}
+
+/// 
 open class JobDefinitionVolumes {
     Host: (JobDefinitionVolumesHost)?
     EfsVolumeConfiguration: (JobDefinitionEfsVolumeConfiguration)?
     Name: (String|Mapping)?
+}
+
+/// 
+open class JobDefinitionTaskContainerDependency {
+    Condition: String|Mapping
+    ContainerName: String|Mapping
+}
+
+/// 
+open class JobDefinitionEphemeralStorage {
+    SizeInGiB: Int|Mapping
+}
+
+/// 
+open class JobDefinitionEksHostPath {
+    Path: (String|Mapping)?
 }
 
 /// 
@@ -315,6 +306,15 @@ open class JobDefinitionNodeRangeProperty {
     EcsProperties: (JobDefinitionEcsProperties)?
 }
 
+/// 
+open class JobDefinitionEfsVolumeConfiguration {
+    FileSystemId: String|Mapping
+    TransitEncryption: (String|Mapping)?
+    RootDirectory: (String|Mapping)?
+    TransitEncryptionPort: (Int|Mapping)?
+    AuthorizationConfig: (JobDefinitionAuthorizationConfig)?
+}
+
 /// Resource Type definition for AWS::Batch::JobDefinition
 open class JobDefinition extends cloudformation.Resource {
 
@@ -322,7 +322,10 @@ open class JobDefinition extends cloudformation.Resource {
 
 
     /// 
-    hidden PropagateTags: (Boolean|Mapping)?
+    hidden SchedulingPriority: (Int|Mapping)?
+
+    /// 
+    hidden Tags: (Dynamic)?
 
     /// 
     hidden EksProperties: (JobDefinitionEksProperties)?
@@ -331,10 +334,25 @@ open class JobDefinition extends cloudformation.Resource {
     hidden TypeProperty: String|Mapping
 
     /// 
+    hidden EcsProperties: (JobDefinitionEcsProperties)?
+
+    /// 
+    hidden PropagateTags: (Boolean|Mapping)?
+
+    /// 
+    hidden JobDefinitionName: (String|Mapping)?
+
+    /// 
+    hidden Timeout: (JobDefinitionTimeout)?
+
+    /// 
+    hidden PlatformCapabilities: (Listing<String|Mapping>)?
+
+    /// 
     hidden NodeProperties: (JobDefinitionNodeProperties)?
 
     /// 
-    hidden SchedulingPriority: (Int|Mapping)?
+    hidden ContainerProperties: (JobDefinitionContainerProperties)?
 
     /// 
     hidden RetryStrategy: (JobDefinitionRetryStrategy)?
@@ -342,38 +360,20 @@ open class JobDefinition extends cloudformation.Resource {
     /// 
     hidden Parameters: (Dynamic)?
 
-    /// 
-    hidden Timeout: (JobDefinitionTimeout)?
-
-    /// 
-    hidden ContainerProperties: (JobDefinitionContainerProperties)?
-
-    /// 
-    hidden PlatformCapabilities: (Listing<String|Mapping>)?
-
-    /// 
-    hidden Tags: (Dynamic)?
-
-    /// 
-    hidden JobDefinitionName: (String|Mapping)?
-
-    /// 
-    hidden EcsProperties: (JobDefinitionEcsProperties)?
-
     Properties {
-        ["PropagateTags"] = if (PropagateTags == null) null else PropagateTags
+        ["SchedulingPriority"] = if (SchedulingPriority == null) null else SchedulingPriority
+        ["Tags"] = if (Tags == null) null else Tags
         ["EksProperties"] = if (EksProperties == null) null else EksProperties
         ["Type"] = if (TypeProperty == null) null else TypeProperty
+        ["EcsProperties"] = if (EcsProperties == null) null else EcsProperties
+        ["PropagateTags"] = if (PropagateTags == null) null else PropagateTags
+        ["JobDefinitionName"] = if (JobDefinitionName == null) null else JobDefinitionName
+        ["Timeout"] = if (Timeout == null) null else Timeout
+        ["PlatformCapabilities"] = if (PlatformCapabilities == null) null else PlatformCapabilities
         ["NodeProperties"] = if (NodeProperties == null) null else NodeProperties
-        ["SchedulingPriority"] = if (SchedulingPriority == null) null else SchedulingPriority
+        ["ContainerProperties"] = if (ContainerProperties == null) null else ContainerProperties
         ["RetryStrategy"] = if (RetryStrategy == null) null else RetryStrategy
         ["Parameters"] = if (Parameters == null) null else Parameters
-        ["Timeout"] = if (Timeout == null) null else Timeout
-        ["ContainerProperties"] = if (ContainerProperties == null) null else ContainerProperties
-        ["PlatformCapabilities"] = if (PlatformCapabilities == null) null else PlatformCapabilities
-        ["Tags"] = if (Tags == null) null else Tags
-        ["JobDefinitionName"] = if (JobDefinitionName == null) null else JobDefinitionName
-        ["EcsProperties"] = if (EcsProperties == null) null else EcsProperties
     }
 
 }

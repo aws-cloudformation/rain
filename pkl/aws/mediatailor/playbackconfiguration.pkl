@@ -5,12 +5,32 @@ module aws.mediatailor.playbackconfiguration
 
 import "../../cloudformation.pkl"
 
+/// The configuration for pre-roll ad insertion.
+open class PlaybackConfigurationLivePreRollConfiguration {
+    AdDecisionServerUrl: (String|Mapping)?
+    MaxDurationSeconds: (Int|Mapping)?
+}
+
+/// 
+open class PlaybackConfigurationTag {
+    Key: String|Mapping
+    Value: String|Mapping
+}
+
 typealias PlaybackConfigurationConfigurationAliases = Mapping<String, Any>
 
 
-/// 
-open class PlaybackConfigurationHlsConfiguration {
-    ManifestEndpointPrefix: (String|Mapping)?
+typealias AvailSuppressionMode = "OFF"|"BEHIND_LIVE_EDGE"
+
+/// The configuration for avail suppression, also known as ad suppression. For more information about ad suppression, see Ad Suppression (https://docs.aws.amazon.com/mediatailor/latest/ug/ad-behavior.html).
+open class PlaybackConfigurationAvailSuppression {
+    Mode: (AvailSuppressionMode|Mapping)?
+    Value: (String|Mapping)?
+}
+
+/// The configuration for manifest processing rules. Manifest processing rules enable customization of the personalized manifests created by MediaTailor.
+open class PlaybackConfigurationManifestProcessingRules {
+    AdMarkerPassthrough: (PlaybackConfigurationAdMarkerPassthrough)?
 }
 
 /// The configuration for bumpers. Bumpers are short audio or video clips that play at the start or before the end of an ad break. To learn more about bumpers, see Bumpers (https://docs.aws.amazon.com/mediatailor/latest/ug/bumpers.html).
@@ -25,6 +45,16 @@ open class PlaybackConfigurationCdnConfiguration {
     ContentSegmentUrlPrefix: (String|Mapping)?
 }
 
+/// For HLS, when set to true, MediaTailor passes through EXT-X-CUE-IN, EXT-X-CUE-OUT, and EXT-X-SPLICEPOINT-SCTE35 ad markers from the origin manifest to the MediaTailor personalized manifest. No logic is applied to these ad markers. For example, if EXT-X-CUE-OUT has a value of 60, but no ads are filled for that ad break, MediaTailor will not set the value to 0.
+open class PlaybackConfigurationAdMarkerPassthrough {
+    Enabled: (Boolean|Mapping)?
+}
+
+/// 
+open class PlaybackConfigurationHlsConfiguration {
+    ManifestEndpointPrefix: (String|Mapping)?
+}
+
 typealias DashConfigurationOriginManifestType = "SINGLE_PERIOD"|"MULTI_PERIOD"
 
 /// The configuration for DASH PUT operations.
@@ -34,50 +64,29 @@ open class PlaybackConfigurationDashConfiguration {
     ManifestEndpointPrefix: (String|Mapping)?
 }
 
-typealias AvailSuppressionMode = "OFF"|"BEHIND_LIVE_EDGE"
-
-/// The configuration for avail suppression, also known as ad suppression. For more information about ad suppression, see Ad Suppression (https://docs.aws.amazon.com/mediatailor/latest/ug/ad-behavior.html).
-open class PlaybackConfigurationAvailSuppression {
-    Mode: (AvailSuppressionMode|Mapping)?
-    Value: (String|Mapping)?
-}
-
-/// For HLS, when set to true, MediaTailor passes through EXT-X-CUE-IN, EXT-X-CUE-OUT, and EXT-X-SPLICEPOINT-SCTE35 ad markers from the origin manifest to the MediaTailor personalized manifest. No logic is applied to these ad markers. For example, if EXT-X-CUE-OUT has a value of 60, but no ads are filled for that ad break, MediaTailor will not set the value to 0.
-open class PlaybackConfigurationAdMarkerPassthrough {
-    Enabled: (Boolean|Mapping)?
-}
-
-/// The configuration for pre-roll ad insertion.
-open class PlaybackConfigurationLivePreRollConfiguration {
-    MaxDurationSeconds: (Int|Mapping)?
-    AdDecisionServerUrl: (String|Mapping)?
-}
-
-/// The configuration for manifest processing rules. Manifest processing rules enable customization of the personalized manifests created by MediaTailor.
-open class PlaybackConfigurationManifestProcessingRules {
-    AdMarkerPassthrough: (PlaybackConfigurationAdMarkerPassthrough)?
-}
-
-/// 
-open class PlaybackConfigurationTag {
-    Key: String|Mapping
-    Value: String|Mapping
-}
-
 /// Resource schema for AWS::MediaTailor::PlaybackConfiguration
 open class PlaybackConfiguration extends cloudformation.Resource {
 
     Type = "AWS::MediaTailor::PlaybackConfiguration"
 
 
-    /// The configuration for pre-roll ad insertion.
-    hidden LivePreRollConfiguration: (PlaybackConfigurationLivePreRollConfiguration)?
-
-    /// The configuration for manifest processing rules. Manifest processing rules enable customization of the personalized manifests created by MediaTailor.
-    hidden ManifestProcessingRules: (PlaybackConfigurationManifestProcessingRules)?
-
     /// The configuration for avail suppression, also known as ad suppression. For more information about ad suppression, see Ad Suppression (https://docs.aws.amazon.com/mediatailor/latest/ug/ad-behavior.html).
     hidden AvailSuppression: (PlaybackConfigurationAvailSuppression)?
+
+    /// The configuration for bumpers. Bumpers are short audio or video clips that play at the start or before the end of an ad break. To learn more about bumpers, see Bumpers (https://docs.aws.amazon.com/mediatailor/latest/ug/bumpers.html).
+    hidden Bumper: (PlaybackConfigurationBumper)?
+
+    /// The identifier for the playback configuration.
+    hidden Name: String(matches(Regex(#"^[a-zA-Z0-9_-]+$"#)))|Mapping
+
+    /// The URL for the ad decision server (ADS). This includes the specification of static parameters and placeholders for dynamic parameters. AWS Elemental MediaTailor substitutes player-specific and session-specific parameters as needed when calling the ADS. Alternately, for testing you can provide a static VAST URL. The maximum length is 25,000 characters.
+    hidden AdDecisionServerUrl: String|Mapping
+
+    /// The configuration for HLS content.
+    hidden HlsConfiguration: (PlaybackConfigurationHlsConfiguration)?
+
+    /// The URL for a high-quality video asset to transcode and use to fill in time that's not used by ads. AWS Elemental MediaTailor shows the slate to fill in gaps in media content. Configuring the slate is optional for non-VPAID configurations. For VPAID, the slate is required because MediaTailor provides it in the slots that are designated for dynamic ad content. The slate must be a high-quality asset that contains both audio and video.
+    hidden SlateAdUrl: (String|Mapping)?
 
     /// The configuration for using a content delivery network (CDN), like Amazon CloudFront, for content and ad segment management.
     hidden CdnConfiguration: (PlaybackConfigurationCdnConfiguration)?
@@ -85,26 +94,11 @@ open class PlaybackConfiguration extends cloudformation.Resource {
     /// The configuration for DASH content.
     hidden DashConfiguration: (PlaybackConfigurationDashConfiguration)?
 
-    /// The configuration for HLS content.
-    hidden HlsConfiguration: (PlaybackConfigurationHlsConfiguration)?
-
-    /// The tags to assign to the playback configuration.
-    hidden Tags: (Listing<PlaybackConfigurationTag>)?
-
-    /// The player parameters and aliases used as dynamic variables during session initialization. For more information, see Domain Variables. 
-    hidden ConfigurationAliases: (PlaybackConfigurationConfigurationAliases)?
-
-    /// The identifier for the playback configuration.
-    hidden Name: String(matches(Regex(#"^[a-zA-Z0-9_-]+$"#)))|Mapping
+    /// The configuration for pre-roll ad insertion.
+    hidden LivePreRollConfiguration: (PlaybackConfigurationLivePreRollConfiguration)?
 
     /// Defines the maximum duration of underfilled ad time (in seconds) allowed in an ad break. If the duration of underfilled ad time exceeds the personalization threshold, then the personalization of the ad break is abandoned and the underlying content is shown. This feature applies to ad replacement in live and VOD streams, rather than ad insertion, because it relies on an underlying content stream. For more information about ad break behavior, including ad replacement and insertion, see Ad Behavior in AWS Elemental MediaTailor (https://docs.aws.amazon.com/mediatailor/latest/ug/ad-behavior.html).
     hidden PersonalizationThresholdSeconds: (Int|Mapping)?
-
-    /// The URL for the ad decision server (ADS). This includes the specification of static parameters and placeholders for dynamic parameters. AWS Elemental MediaTailor substitutes player-specific and session-specific parameters as needed when calling the ADS. Alternately, for testing you can provide a static VAST URL. The maximum length is 25,000 characters.
-    hidden AdDecisionServerUrl: String|Mapping
-
-    /// The URL for a high-quality video asset to transcode and use to fill in time that's not used by ads. AWS Elemental MediaTailor shows the slate to fill in gaps in media content. Configuring the slate is optional for non-VPAID configurations. For VPAID, the slate is required because MediaTailor provides it in the slots that are designated for dynamic ad content. The slate must be a high-quality asset that contains both audio and video.
-    hidden SlateAdUrl: (String|Mapping)?
 
     /// The name that is used to associate this playback configuration with a custom transcode profile. This overrides the dynamic transcoding defaults of MediaTailor. Use this only if you have already set up custom profiles with the help of AWS Support.
     hidden TranscodeProfileName: (String|Mapping)?
@@ -112,25 +106,31 @@ open class PlaybackConfiguration extends cloudformation.Resource {
     /// The URL prefix for the parent manifest for the stream, minus the asset ID. The maximum length is 512 characters.
     hidden VideoContentSourceUrl: String|Mapping
 
-    /// The configuration for bumpers. Bumpers are short audio or video clips that play at the start or before the end of an ad break. To learn more about bumpers, see Bumpers (https://docs.aws.amazon.com/mediatailor/latest/ug/bumpers.html).
-    hidden Bumper: (PlaybackConfigurationBumper)?
+    /// The player parameters and aliases used as dynamic variables during session initialization. For more information, see Domain Variables. 
+    hidden ConfigurationAliases: (PlaybackConfigurationConfigurationAliases)?
+
+    /// The tags to assign to the playback configuration.
+    hidden Tags: (Listing<PlaybackConfigurationTag>)?
+
+    /// The configuration for manifest processing rules. Manifest processing rules enable customization of the personalized manifests created by MediaTailor.
+    hidden ManifestProcessingRules: (PlaybackConfigurationManifestProcessingRules)?
 
     Properties {
-        ["LivePreRollConfiguration"] = if (LivePreRollConfiguration == null) null else LivePreRollConfiguration
-        ["ManifestProcessingRules"] = if (ManifestProcessingRules == null) null else ManifestProcessingRules
         ["AvailSuppression"] = if (AvailSuppression == null) null else AvailSuppression
+        ["Bumper"] = if (Bumper == null) null else Bumper
+        ["Name"] = if (Name == null) null else Name
+        ["AdDecisionServerUrl"] = if (AdDecisionServerUrl == null) null else AdDecisionServerUrl
+        ["HlsConfiguration"] = if (HlsConfiguration == null) null else HlsConfiguration
+        ["SlateAdUrl"] = if (SlateAdUrl == null) null else SlateAdUrl
         ["CdnConfiguration"] = if (CdnConfiguration == null) null else CdnConfiguration
         ["DashConfiguration"] = if (DashConfiguration == null) null else DashConfiguration
-        ["HlsConfiguration"] = if (HlsConfiguration == null) null else HlsConfiguration
-        ["Tags"] = if (Tags == null) null else Tags
-        ["ConfigurationAliases"] = if (ConfigurationAliases == null) null else ConfigurationAliases
-        ["Name"] = if (Name == null) null else Name
+        ["LivePreRollConfiguration"] = if (LivePreRollConfiguration == null) null else LivePreRollConfiguration
         ["PersonalizationThresholdSeconds"] = if (PersonalizationThresholdSeconds == null) null else PersonalizationThresholdSeconds
-        ["AdDecisionServerUrl"] = if (AdDecisionServerUrl == null) null else AdDecisionServerUrl
-        ["SlateAdUrl"] = if (SlateAdUrl == null) null else SlateAdUrl
         ["TranscodeProfileName"] = if (TranscodeProfileName == null) null else TranscodeProfileName
         ["VideoContentSourceUrl"] = if (VideoContentSourceUrl == null) null else VideoContentSourceUrl
-        ["Bumper"] = if (Bumper == null) null else Bumper
+        ["ConfigurationAliases"] = if (ConfigurationAliases == null) null else ConfigurationAliases
+        ["Tags"] = if (Tags == null) null else Tags
+        ["ManifestProcessingRules"] = if (ManifestProcessingRules == null) null else ManifestProcessingRules
     }
 
 }

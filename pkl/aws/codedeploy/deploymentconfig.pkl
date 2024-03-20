@@ -6,6 +6,19 @@ module aws.codedeploy.deploymentconfig
 import "../../cloudformation.pkl"
 
 /// 
+open class DeploymentConfigTrafficRoutingConfig {
+    Type: String|Mapping
+    TimeBasedLinear: (DeploymentConfigTimeBasedLinear)?
+    TimeBasedCanary: (DeploymentConfigTimeBasedCanary)?
+}
+
+/// 
+open class DeploymentConfigMinimumHealthyHostsPerZone {
+    Value: Int|Mapping
+    Type: String|Mapping
+}
+
+/// 
 open class DeploymentConfigZonalConfig {
     FirstZoneMonitorDurationInSeconds: (Int|Mapping)?
     MonitorDurationInSeconds: (Int|Mapping)?
@@ -30,30 +43,11 @@ open class DeploymentConfigTimeBasedCanary {
     CanaryInterval: Int|Mapping
 }
 
-/// 
-open class DeploymentConfigTrafficRoutingConfig {
-    Type: String|Mapping
-    TimeBasedLinear: (DeploymentConfigTimeBasedLinear)?
-    TimeBasedCanary: (DeploymentConfigTimeBasedCanary)?
-}
-
-/// 
-open class DeploymentConfigMinimumHealthyHostsPerZone {
-    Value: Int|Mapping
-    Type: String|Mapping
-}
-
 /// Resource Type definition for AWS::CodeDeploy::DeploymentConfig
 open class DeploymentConfig extends cloudformation.Resource {
 
     Type = "AWS::CodeDeploy::DeploymentConfig"
 
-
-    /// A name for the deployment configuration. If you don't specify a name, AWS CloudFormation generates a unique physical ID and uses that ID for the deployment configuration name. For more information, see Name Type.
-    hidden DeploymentConfigName: (String|Mapping)?
-
-    /// The minimum number of healthy instances that should be available at any time during the deployment. There are two parameters expected in the input: type and value.
-    hidden MinimumHealthyHosts: (DeploymentConfigMinimumHealthyHosts)?
 
     /// The zonal deployment config that specifies how the zonal deployment behaves
     hidden ZonalConfig: (DeploymentConfigZonalConfig)?
@@ -64,12 +58,18 @@ open class DeploymentConfig extends cloudformation.Resource {
     /// The destination platform type for the deployment (Lambda, Server, or ECS).
     hidden ComputePlatform: (String|Mapping)?
 
+    /// A name for the deployment configuration. If you don't specify a name, AWS CloudFormation generates a unique physical ID and uses that ID for the deployment configuration name. For more information, see Name Type.
+    hidden DeploymentConfigName: (String|Mapping)?
+
+    /// The minimum number of healthy instances that should be available at any time during the deployment. There are two parameters expected in the input: type and value.
+    hidden MinimumHealthyHosts: (DeploymentConfigMinimumHealthyHosts)?
+
     Properties {
-        ["DeploymentConfigName"] = if (DeploymentConfigName == null) null else DeploymentConfigName
-        ["MinimumHealthyHosts"] = if (MinimumHealthyHosts == null) null else MinimumHealthyHosts
         ["ZonalConfig"] = if (ZonalConfig == null) null else ZonalConfig
         ["TrafficRoutingConfig"] = if (TrafficRoutingConfig == null) null else TrafficRoutingConfig
         ["ComputePlatform"] = if (ComputePlatform == null) null else ComputePlatform
+        ["DeploymentConfigName"] = if (DeploymentConfigName == null) null else DeploymentConfigName
+        ["MinimumHealthyHosts"] = if (MinimumHealthyHosts == null) null else MinimumHealthyHosts
     }
 
 }

@@ -5,10 +5,10 @@ module aws.workspacesweb.identityprovider
 
 import "../../cloudformation.pkl"
 
-typealias IdentityProviderIdentityProviderType = String|Mapping
-
-
 typealias IdentityProviderIdentityProviderDetails = Mapping<String, Any>
+
+
+typealias IdentityProviderIdentityProviderType = String|Mapping
 
 
 /// Definition of AWS::WorkSpacesWeb::IdentityProvider Resource Type
@@ -16,6 +16,9 @@ open class IdentityProvider extends cloudformation.Resource {
 
     Type = "AWS::WorkSpacesWeb::IdentityProvider"
 
+
+    /// 
+    hidden IdentityProviderName: String(matches(Regex(#"^[^_][\p{L}\p{M}\p{S}\p{N}\p{P}][^_]+$"#)))|Mapping
 
     /// 
     hidden IdentityProviderType: IdentityProviderIdentityProviderType
@@ -26,14 +29,11 @@ open class IdentityProvider extends cloudformation.Resource {
     /// 
     hidden IdentityProviderDetails: IdentityProviderIdentityProviderDetails
 
-    /// 
-    hidden IdentityProviderName: String(matches(Regex(#"^[^_][\p{L}\p{M}\p{S}\p{N}\p{P}][^_]+$"#)))|Mapping
-
     Properties {
+        ["IdentityProviderName"] = if (IdentityProviderName == null) null else IdentityProviderName
         ["IdentityProviderType"] = if (IdentityProviderType == null) null else IdentityProviderType
         ["PortalArn"] = if (PortalArn == null) null else PortalArn
         ["IdentityProviderDetails"] = if (IdentityProviderDetails == null) null else IdentityProviderDetails
-        ["IdentityProviderName"] = if (IdentityProviderName == null) null else IdentityProviderName
     }
 
 }

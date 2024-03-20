@@ -5,43 +5,36 @@ module aws.elasticloadbalancingv2.listener
 
 import "../../cloudformation.pkl"
 
-/// Specifies information required when returning a custom HTTP response.
-open class ListenerFixedResponseConfig {
-    MessageBody: (String|Mapping)?
-    ContentType: (String|Mapping)?
-    StatusCode: String|Mapping
+/// Specifies the configuration information for mutual authentication.
+open class ListenerMutualAuthentication {
+    TrustStoreArn: (String|Mapping)?
+    IgnoreClientCertificateExpiry: (Boolean|Mapping)?
+    Mode: (String|Mapping)?
 }
 
 /// Specifies an action for a listener rule.
 open class ListenerAction {
+    AuthenticateOidcConfig: (ListenerAuthenticateOidcConfig)?
+    Order: (Int|Mapping)?
     TargetGroupArn: (String|Mapping)?
     FixedResponseConfig: (ListenerFixedResponseConfig)?
     AuthenticateCognitoConfig: (ListenerAuthenticateCognitoConfig)?
     Type: String|Mapping
     RedirectConfig: (ListenerRedirectConfig)?
     ForwardConfig: (ListenerForwardConfig)?
-    AuthenticateOidcConfig: (ListenerAuthenticateOidcConfig)?
-    Order: (Int|Mapping)?
 }
 
-/// Information about a redirect action.
-///
-///  A URI consists of the following components: protocol://hostname:port/path?query. You must modify at least one of the following components to avoid a redirect loop: protocol, hostname, port, or path. Any components that you do not modify retain their original values.
-///  You can reuse URI components using the following reserved keywords:
-///   +  #{protocol}
-///   +  #{host}
-///   +  #{port}
-///   +  #{path} (the leading "/" is removed)
-///   +  #{query}
-///   
-///  For example, you can change the path to "/new/#{path}", the hostname to "example.#{host}", or the query to "#{query}&value=xyz".
-open class ListenerRedirectConfig {
-    Path: (String|Mapping)?
-    Query: (String|Mapping)?
-    Port: (String|Mapping)?
-    Host: (String|Mapping)?
-    Protocol: (String|Mapping)?
+/// Information for creating an action that distributes requests among one or more target groups. For Network Load Balancers, you can specify a single target group. Specify only when ``Type`` is ``forward``. If you specify both ``ForwardConfig`` and ``TargetGroupArn``, you can specify only one target group using ``ForwardConfig`` and it must be the same target group specified in ``TargetGroupArn``.
+open class ListenerForwardConfig {
+    TargetGroupStickinessConfig: (ListenerTargetGroupStickinessConfig)?
+    TargetGroups: (Listing<ListenerTargetGroupTuple>)?
+}
+
+/// Specifies information required when returning a custom HTTP response.
+open class ListenerFixedResponseConfig {
+    ContentType: (String|Mapping)?
     StatusCode: String|Mapping
+    MessageBody: (String|Mapping)?
 }
 
 /// Information about how traffic will be distributed between multiple target groups in a forward rule.
@@ -64,28 +57,42 @@ open class ListenerAuthenticateCognitoConfig {
     SessionTimeout: (String|Mapping)?
 }
 
-/// Information for creating an action that distributes requests among one or more target groups. For Network Load Balancers, you can specify a single target group. Specify only when ``Type`` is ``forward``. If you specify both ``ForwardConfig`` and ``TargetGroupArn``, you can specify only one target group using ``ForwardConfig`` and it must be the same target group specified in ``TargetGroupArn``.
-open class ListenerForwardConfig {
-    TargetGroupStickinessConfig: (ListenerTargetGroupStickinessConfig)?
-    TargetGroups: (Listing<ListenerTargetGroupTuple>)?
+/// Information about a redirect action.
+///
+///  A URI consists of the following components: protocol://hostname:port/path?query. You must modify at least one of the following components to avoid a redirect loop: protocol, hostname, port, or path. Any components that you do not modify retain their original values.
+///  You can reuse URI components using the following reserved keywords:
+///   +  #{protocol}
+///   +  #{host}
+///   +  #{port}
+///   +  #{path} (the leading "/" is removed)
+///   +  #{query}
+///   
+///  For example, you can change the path to "/new/#{path}", the hostname to "example.#{host}", or the query to "#{query}&value=xyz".
+open class ListenerRedirectConfig {
+    Path: (String|Mapping)?
+    Query: (String|Mapping)?
+    Port: (String|Mapping)?
+    Host: (String|Mapping)?
+    Protocol: (String|Mapping)?
+    StatusCode: String|Mapping
 }
 
 typealias ListenerAuthenticateOidcConfigAuthenticationRequestExtraParams = Mapping<String, Any>
 
 /// Specifies information required using an identity provide (IdP) that is compliant with OpenID Connect (OIDC) to authenticate users.
 open class ListenerAuthenticateOidcConfig {
-    SessionTimeout: (String|Mapping)?
-    Issuer: String|Mapping
     ClientSecret: (String|Mapping)?
     UserInfoEndpoint: String|Mapping
-    UseExistingClientSecret: (Boolean|Mapping)?
-    OnUnauthenticatedRequest: (String|Mapping)?
-    TokenEndpoint: String|Mapping
-    Scope: (String|Mapping)?
-    ClientId: String|Mapping
-    AuthorizationEndpoint: String|Mapping
     SessionCookieName: (String|Mapping)?
     AuthenticationRequestExtraParams: (ListenerAuthenticateOidcConfigAuthenticationRequestExtraParams)?
+    OnUnauthenticatedRequest: (String|Mapping)?
+    TokenEndpoint: String|Mapping
+    Issuer: String|Mapping
+    AuthorizationEndpoint: String|Mapping
+    UseExistingClientSecret: (Boolean|Mapping)?
+    SessionTimeout: (String|Mapping)?
+    Scope: (String|Mapping)?
+    ClientId: String|Mapping
 }
 
 /// Information about the target group stickiness for a rule.
@@ -99,18 +106,16 @@ open class ListenerCertificate {
     CertificateArn: (String|Mapping)?
 }
 
-/// Specifies the configuration information for mutual authentication.
-open class ListenerMutualAuthentication {
-    Mode: (String|Mapping)?
-    TrustStoreArn: (String|Mapping)?
-    IgnoreClientCertificateExpiry: (Boolean|Mapping)?
-}
-
 /// Specifies a listener for an Application Load Balancer, Network Load Balancer, or Gateway Load Balancer.
 open class Listener extends cloudformation.Resource {
 
     Type = "AWS::ElasticLoadBalancingV2::Listener"
 
+
+    /// [HTTPS and TLS listeners] The security policy that defines which protocols and ciphers are supported.
+    ///
+    ///  For more information, see [Security policies](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies) in the *Application Load Balancers Guide* and [Security policies](https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html#describe-ssl-policies) in the *Network Load Balancers Guide*.
+    hidden SslPolicy: (String|Mapping)?
 
     /// The default SSL server certificate for a secure listener. You must provide exactly one certificate if the listener protocol is HTTPS or TLS.
     ///
@@ -120,10 +125,8 @@ open class Listener extends cloudformation.Resource {
     /// [TLS listener] The name of the Application-Layer Protocol Negotiation (ALPN) policy.
     hidden AlpnPolicy: (Listing<String|Mapping>)?
 
-    /// [HTTPS and TLS listeners] The security policy that defines which protocols and ciphers are supported.
-    ///
-    ///  For more information, see [Security policies](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies) in the *Application Load Balancers Guide* and [Security policies](https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html#describe-ssl-policies) in the *Network Load Balancers Guide*.
-    hidden SslPolicy: (String|Mapping)?
+    /// The mutual authentication configuration information.
+    hidden MutualAuthentication: (ListenerMutualAuthentication)?
 
     /// The Amazon Resource Name (ARN) of the load balancer.
     hidden LoadBalancerArn: String|Mapping
@@ -139,18 +142,15 @@ open class Listener extends cloudformation.Resource {
     /// The protocol for connections from clients to the load balancer. For Application Load Balancers, the supported protocols are HTTP and HTTPS. For Network Load Balancers, the supported protocols are TCP, TLS, UDP, and TCP_UDP. You can?t specify the UDP or TCP_UDP protocol if dual-stack mode is enabled. You cannot specify a protocol for a Gateway Load Balancer.
     hidden Protocol: (String|Mapping)?
 
-    /// The mutual authentication configuration information.
-    hidden MutualAuthentication: (ListenerMutualAuthentication)?
-
     Properties {
+        ["SslPolicy"] = if (SslPolicy == null) null else SslPolicy
         ["Certificates"] = if (Certificates == null) null else Certificates
         ["AlpnPolicy"] = if (AlpnPolicy == null) null else AlpnPolicy
-        ["SslPolicy"] = if (SslPolicy == null) null else SslPolicy
+        ["MutualAuthentication"] = if (MutualAuthentication == null) null else MutualAuthentication
         ["LoadBalancerArn"] = if (LoadBalancerArn == null) null else LoadBalancerArn
         ["DefaultActions"] = if (DefaultActions == null) null else DefaultActions
         ["Port"] = if (Port == null) null else Port
         ["Protocol"] = if (Protocol == null) null else Protocol
-        ["MutualAuthentication"] = if (MutualAuthentication == null) null else MutualAuthentication
     }
 
 }

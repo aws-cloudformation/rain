@@ -6,20 +6,9 @@ module aws.appmesh.virtualservice
 import "../../cloudformation.pkl"
 
 /// 
-open class VirtualServiceVirtualNodeServiceProvider {
-    VirtualNodeName: String|Mapping
-}
-
-/// 
-open class VirtualServiceVirtualServiceProvider {
-    VirtualNode: (VirtualServiceVirtualNodeServiceProvider)?
-    VirtualRouter: (VirtualServiceVirtualRouterServiceProvider)?
-}
-
-/// 
 open class VirtualServiceTag {
-    Key: String|Mapping
     Value: String|Mapping
+    Key: String|Mapping
 }
 
 /// 
@@ -32,11 +21,25 @@ open class VirtualServiceVirtualRouterServiceProvider {
     VirtualRouterName: String|Mapping
 }
 
+/// 
+open class VirtualServiceVirtualNodeServiceProvider {
+    VirtualNodeName: String|Mapping
+}
+
+/// 
+open class VirtualServiceVirtualServiceProvider {
+    VirtualNode: (VirtualServiceVirtualNodeServiceProvider)?
+    VirtualRouter: (VirtualServiceVirtualRouterServiceProvider)?
+}
+
 /// Resource Type definition for AWS::AppMesh::VirtualService
 open class VirtualService extends cloudformation.Resource {
 
     Type = "AWS::AppMesh::VirtualService"
 
+
+    /// 
+    hidden Spec: VirtualServiceVirtualServiceSpec
 
     /// 
     hidden MeshName: String|Mapping
@@ -48,16 +51,13 @@ open class VirtualService extends cloudformation.Resource {
     hidden VirtualServiceName: String|Mapping
 
     /// 
-    hidden Spec: VirtualServiceVirtualServiceSpec
-
-    /// 
     hidden Tags: (Listing<VirtualServiceTag>)?
 
     Properties {
+        ["Spec"] = if (Spec == null) null else Spec
         ["MeshName"] = if (MeshName == null) null else MeshName
         ["MeshOwner"] = if (MeshOwner == null) null else MeshOwner
         ["VirtualServiceName"] = if (VirtualServiceName == null) null else VirtualServiceName
-        ["Spec"] = if (Spec == null) null else Spec
         ["Tags"] = if (Tags == null) null else Tags
     }
 
