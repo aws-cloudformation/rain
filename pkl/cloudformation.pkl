@@ -22,11 +22,24 @@ open class Resource {
 
 }
 
+/// A CloudFormation Parameter
 open class Parameter {
     Type: String
     Default: String?
     AllowedValues: Listing<String>?
     Description: String?
+}
+
+///  A Rule assertion, which is an element of a Rule
+open class RuleAssertion {
+    Assert: Mapping
+    AssertDescription: String|Mapping?
+}
+
+/// A Rule, which is a set of assertions that can be made on Parameters
+open class Rule {
+    RuleCondition: Mapping?
+    Assertions: Listing<RuleAssertion>
 }
 
 function Ref(to: String): Mapping = new Mapping {
@@ -40,5 +53,22 @@ function Sub(sub: String): Mapping = new Mapping {
 function GetAtt(att: String): Mapping = new Mapping {
     ["Fn::GetAtt"] = att
 }
+
+function Equals(a: Any, b: Any): Mapping = new Mapping {
+    ["Fn::Equals"] = new Listing {
+        a
+        b
+    }
+}
+
+function Contains(list: Listing, val: String|Mapping): Mapping = new Mapping {
+    ["Fn::Contains"] = new Listing {
+        list
+        val
+    }
+}
+
+
+
 
 
