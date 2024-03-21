@@ -1,0 +1,68 @@
+{
+  "typeName": "AWS::EC2::SubnetRouteTableAssociation",
+  "description": "Associates a subnet with a route table. The subnet and route table must be in the same VPC. This association causes traffic originating from the subnet to be routed according to the routes in the route table. A route table can be associated with multiple subnets. To create a route table, see [AWS::EC2::RouteTable](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-routetable.html).",
+  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-ec2.git",
+  "additionalProperties": false,
+  "properties": {
+    "Id": {
+      "type": "string",
+      "description": ""
+    },
+    "RouteTableId": {
+      "type": "string",
+      "description": "The ID of the route table.\n The physical ID changes when the route table ID is changed."
+    },
+    "SubnetId": {
+      "type": "string",
+      "description": "The ID of the subnet."
+    }
+  },
+  "tagging": {
+    "taggable": false,
+    "tagOnCreate": false,
+    "tagUpdatable": false,
+    "cloudFormationSystemTags": false
+  },
+  "required": [
+    "RouteTableId",
+    "SubnetId"
+  ],
+  "replacementStrategy": "delete_then_create",
+  "createOnlyProperties": [
+    "/properties/SubnetId",
+    "/properties/RouteTableId"
+  ],
+  "readOnlyProperties": [
+    "/properties/Id"
+  ],
+  "primaryIdentifier": [
+    "/properties/Id"
+  ],
+  "handlers": {
+    "create": {
+      "permissions": [
+        "ec2:AssociateRouteTable",
+        "ec2:ReplaceRouteTableAssociation",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeRouteTables"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "ec2:DescribeRouteTables"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "ec2:DisassociateRouteTable",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeRouteTables"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "ec2:DescribeRouteTables"
+      ]
+    }
+  }
+}

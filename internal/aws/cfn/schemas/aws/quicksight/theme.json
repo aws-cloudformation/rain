@@ -1,0 +1,477 @@
+{
+  "typeName": "AWS::QuickSight::Theme",
+  "description": "Definition of the AWS::QuickSight::Theme Resource Type.",
+  "definitions": {
+    "BorderStyle": {
+      "type": "object",
+      "properties": {
+        "Show": {
+          "type": "boolean",
+          "default": null
+        }
+      },
+      "additionalProperties": false
+    },
+    "DataColorPalette": {
+      "type": "object",
+      "properties": {
+        "Colors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^#[A-F0-9]{6}$"
+          },
+          "maxItems": 100,
+          "minItems": 0
+        },
+        "MinMaxGradient": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^#[A-F0-9]{6}$"
+          },
+          "maxItems": 100,
+          "minItems": 0
+        },
+        "EmptyFillColor": {
+          "type": "string",
+          "pattern": "^#[A-F0-9]{6}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Font": {
+      "type": "object",
+      "properties": {
+        "FontFamily": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "GutterStyle": {
+      "type": "object",
+      "properties": {
+        "Show": {
+          "type": "boolean",
+          "default": null
+        }
+      },
+      "additionalProperties": false
+    },
+    "MarginStyle": {
+      "type": "object",
+      "properties": {
+        "Show": {
+          "type": "boolean",
+          "default": null
+        }
+      },
+      "additionalProperties": false
+    },
+    "ResourcePermission": {
+      "type": "object",
+      "properties": {
+        "Principal": {
+          "type": "string",
+          "maxLength": 256,
+          "minLength": 1
+        },
+        "Actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 20,
+          "minItems": 1
+        }
+      },
+      "required": [
+        "Actions",
+        "Principal"
+      ],
+      "additionalProperties": false
+    },
+    "ResourceStatus": {
+      "type": "string",
+      "enum": [
+        "CREATION_IN_PROGRESS",
+        "CREATION_SUCCESSFUL",
+        "CREATION_FAILED",
+        "UPDATE_IN_PROGRESS",
+        "UPDATE_SUCCESSFUL",
+        "UPDATE_FAILED",
+        "DELETED"
+      ]
+    },
+    "SheetStyle": {
+      "type": "object",
+      "properties": {
+        "Tile": {
+          "$ref": "#/definitions/TileStyle"
+        },
+        "TileLayout": {
+          "$ref": "#/definitions/TileLayoutStyle"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Tag": {
+      "type": "object",
+      "properties": {
+        "Key": {
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1
+        },
+        "Value": {
+          "type": "string",
+          "maxLength": 256,
+          "minLength": 1
+        }
+      },
+      "required": [
+        "Key",
+        "Value"
+      ],
+      "additionalProperties": false
+    },
+    "ThemeConfiguration": {
+      "type": "object",
+      "properties": {
+        "DataColorPalette": {
+          "$ref": "#/definitions/DataColorPalette"
+        },
+        "UIColorPalette": {
+          "$ref": "#/definitions/UIColorPalette"
+        },
+        "Sheet": {
+          "$ref": "#/definitions/SheetStyle"
+        },
+        "Typography": {
+          "$ref": "#/definitions/Typography"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ThemeError": {
+      "type": "object",
+      "properties": {
+        "Type": {
+          "$ref": "#/definitions/ThemeErrorType"
+        },
+        "Message": {
+          "type": "string",
+          "pattern": ".*\\S.*"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ThemeErrorType": {
+      "type": "string",
+      "enum": [
+        "INTERNAL_FAILURE"
+      ]
+    },
+    "ThemeType": {
+      "type": "string",
+      "enum": [
+        "QUICKSIGHT",
+        "CUSTOM",
+        "ALL"
+      ]
+    },
+    "ThemeVersion": {
+      "type": "object",
+      "properties": {
+        "VersionNumber": {
+          "type": "number",
+          "minimum": 1
+        },
+        "Arn": {
+          "type": "string"
+        },
+        "Description": {
+          "type": "string",
+          "maxLength": 512,
+          "minLength": 1
+        },
+        "BaseThemeId": {
+          "type": "string",
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "[\\w\\-]+"
+        },
+        "CreatedTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "Configuration": {
+          "$ref": "#/definitions/ThemeConfiguration"
+        },
+        "Errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ThemeError"
+          },
+          "minItems": 1
+        },
+        "Status": {
+          "$ref": "#/definitions/ResourceStatus"
+        }
+      },
+      "additionalProperties": false
+    },
+    "TileLayoutStyle": {
+      "type": "object",
+      "properties": {
+        "Gutter": {
+          "$ref": "#/definitions/GutterStyle"
+        },
+        "Margin": {
+          "$ref": "#/definitions/MarginStyle"
+        }
+      },
+      "additionalProperties": false
+    },
+    "TileStyle": {
+      "type": "object",
+      "properties": {
+        "Border": {
+          "$ref": "#/definitions/BorderStyle"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Typography": {
+      "type": "object",
+      "properties": {
+        "FontFamilies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Font"
+          },
+          "maxItems": 5,
+          "minItems": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "UIColorPalette": {
+      "type": "object",
+      "properties": {
+        "PrimaryForeground": {
+          "type": "string",
+          "pattern": "^#[A-F0-9]{6}$"
+        },
+        "PrimaryBackground": {
+          "type": "string",
+          "pattern": "^#[A-F0-9]{6}$"
+        },
+        "SecondaryForeground": {
+          "type": "string",
+          "pattern": "^#[A-F0-9]{6}$"
+        },
+        "SecondaryBackground": {
+          "type": "string",
+          "pattern": "^#[A-F0-9]{6}$"
+        },
+        "Accent": {
+          "type": "string",
+          "pattern": "^#[A-F0-9]{6}$"
+        },
+        "AccentForeground": {
+          "type": "string",
+          "pattern": "^#[A-F0-9]{6}$"
+        },
+        "Danger": {
+          "type": "string",
+          "pattern": "^#[A-F0-9]{6}$"
+        },
+        "DangerForeground": {
+          "type": "string",
+          "pattern": "^#[A-F0-9]{6}$"
+        },
+        "Warning": {
+          "type": "string",
+          "pattern": "^#[A-F0-9]{6}$"
+        },
+        "WarningForeground": {
+          "type": "string",
+          "pattern": "^#[A-F0-9]{6}$"
+        },
+        "Success": {
+          "type": "string",
+          "pattern": "^#[A-F0-9]{6}$"
+        },
+        "SuccessForeground": {
+          "type": "string",
+          "pattern": "^#[A-F0-9]{6}$"
+        },
+        "Dimension": {
+          "type": "string",
+          "pattern": "^#[A-F0-9]{6}$"
+        },
+        "DimensionForeground": {
+          "type": "string",
+          "pattern": "^#[A-F0-9]{6}$"
+        },
+        "Measure": {
+          "type": "string",
+          "pattern": "^#[A-F0-9]{6}$"
+        },
+        "MeasureForeground": {
+          "type": "string",
+          "pattern": "^#[A-F0-9]{6}$"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "Arn": {
+      "type": "string"
+    },
+    "AwsAccountId": {
+      "type": "string",
+      "maxLength": 12,
+      "minLength": 12,
+      "pattern": "^[0-9]{12}$"
+    },
+    "BaseThemeId": {
+      "type": "string",
+      "maxLength": 512,
+      "minLength": 1,
+      "pattern": "[\\w\\-]+"
+    },
+    "Configuration": {
+      "$ref": "#/definitions/ThemeConfiguration"
+    },
+    "CreatedTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "LastUpdatedTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "Name": {
+      "type": "string",
+      "maxLength": 2048,
+      "minLength": 1
+    },
+    "Permissions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ResourcePermission"
+      },
+      "maxItems": 64,
+      "minItems": 1
+    },
+    "Tags": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Tag"
+      },
+      "maxItems": 200,
+      "minItems": 1
+    },
+    "ThemeId": {
+      "type": "string",
+      "maxLength": 512,
+      "minLength": 1,
+      "pattern": "[\\w\\-]+"
+    },
+    "Type": {
+      "$ref": "#/definitions/ThemeType"
+    },
+    "Version": {
+      "$ref": "#/definitions/ThemeVersion"
+    },
+    "VersionDescription": {
+      "type": "string",
+      "maxLength": 512,
+      "minLength": 1
+    }
+  },
+  "required": [
+    "AwsAccountId",
+    "ThemeId",
+    "BaseThemeId",
+    "Configuration",
+    "Name"
+  ],
+  "readOnlyProperties": [
+    "/properties/CreatedTime",
+    "/properties/Version",
+    "/properties/LastUpdatedTime",
+    "/properties/Arn",
+    "/properties/Type"
+  ],
+  "writeOnlyProperties": [
+    "/properties/BaseThemeId",
+    "/properties/Configuration",
+    "/properties/VersionDescription"
+  ],
+  "createOnlyProperties": [
+    "/properties/AwsAccountId",
+    "/properties/ThemeId"
+  ],
+  "primaryIdentifier": [
+    "/properties/ThemeId",
+    "/properties/AwsAccountId"
+  ],
+  "handlers": {
+    "read": {
+      "permissions": [
+        "quicksight:DescribeTheme",
+        "quicksight:DescribeThemePermissions",
+        "quicksight:ListTagsForResource"
+      ]
+    },
+    "create": {
+      "permissions": [
+        "quicksight:DescribeTheme",
+        "quicksight:DescribeThemePermissions",
+        "quicksight:CreateTheme",
+        "quicksight:TagResource",
+        "quicksight:UntagResource",
+        "quicksight:ListTagsForResource"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "quicksight:ListThemes"
+      ],
+      "handlerSchema": {
+        "properties": {
+          "AwsAccountId": {
+            "$ref": "resource-schema.json#/properties/AwsAccountId"
+          }
+        },
+        "required": [
+          "AwsAccountId"
+        ]
+      }
+    },
+    "update": {
+      "permissions": [
+        "quicksight:DescribeTheme",
+        "quicksight:DescribeThemePermissions",
+        "quicksight:UpdateTheme",
+        "quicksight:UpdateThemePermissions",
+        "quicksight:TagResource",
+        "quicksight:UntagResource",
+        "quicksight:ListTagsForResource"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "quicksight:DescribeTheme",
+        "quicksight:DeleteTheme"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-quicksight"
+}

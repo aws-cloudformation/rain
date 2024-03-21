@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eou pipefail
+set -eoux pipefail
 
 declare -a platforms=(linux/amd64 linux/386 linux/arm darwin/amd64 darwin/arm64 windows/amd64 windows/386)
 declare -A mapping=([darwin]=darwin [linux]=linux [windows]=windows [amd64]=amd64 [386]=i386 [arm]=arm [arm64]=arm64)
@@ -29,7 +29,7 @@ for platform in "${platforms[@]}"; do
 
       mkdir -p "dist/${name}"
 
-      # We eval for CGO_ENABLED, which we don't wan't explicitly set if it's 1, which means we want the default behavior
+      # We eval for CGO_ENABLED, which we don't want explicitly set if it's 1, which means we want the default behavior
       eval GOOS="$os" GOARCH="$arch" "$cgo_env" go build -buildvcs=false -ldflags=-w -o "dist/${name}/" ./cmd/rain
 
       cp LICENSE "dist/${name}/"

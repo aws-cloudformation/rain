@@ -1,0 +1,60 @@
+amends "package://github.com/ericzbeard/rain/releases/download/v1.8.2-test2/cloudformation@1.8.2-test2#/template.pkl"
+import "package://github.com/ericzbeard/rain/releases/download/v1.8.2-test2/cloudformation@1.8.2-test2#/cloudformation.pkl" as cfn
+import "package://github.com/ericzbeard/rain/releases/download/v1.8.2-test2/cloudformation@1.8.2-test2#/aws/s3/bucket.pkl" as bucket
+import "package://github.com/ericzbeard/rain/releases/download/v1.8.2-test2/cloudformation@1.8.2-test2#/patterns/bucket.pkl" as pattern
+
+Description = "Create a bucket"
+
+Metadata { 
+    ["Foo"] = "bar"
+}
+
+Parameters {
+    ["Name"] {
+        Type = "String"
+        Default = "baz"
+    }
+}
+
+Resources {
+    ["UntypedBucket"] {
+        Type = "AWS::S3::Bucket"
+        Properties {
+           ["BucketName"] {
+                ["Ref"] = "Name"
+           }
+        }
+    }
+
+    ["TypedBucket1"] = new bucket.Bucket {
+        BucketName = "foo"
+    }
+
+    ["TypedBucket2"] = new bucket.Bucket {
+        BucketName = cfn.Ref("Name")
+    }
+
+    for (name in List("bucketx", "buckety", "bucketz")) {
+        [name] = new bucket.Bucket {
+            BucketName = name
+        }
+    }
+
+    // Import multiple resources from a pattern module 
+    for (logicalId, resource in pattern.resources("my-app", "SecureBucket")) {
+        [logicalId] = (resource) {
+            // This adds a Metadata key to each Resource in the pattern
+            // It leaves existing keys alone
+            Metadata {
+                ["TestAmendingObjects..."] = "Test"
+            }
+        }
+    }
+
+}
+
+output {
+    renderer = new YamlRenderer {}
+}
+
+

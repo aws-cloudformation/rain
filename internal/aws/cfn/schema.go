@@ -2,8 +2,7 @@ package cfn
 
 import (
 	"encoding/json"
-
-	"github.com/aws-cloudformation/rain/internal/config"
+	"reflect"
 )
 
 type SchemaLike interface {
@@ -15,20 +14,23 @@ type SchemaLike interface {
 type Prop struct {
 	Description          string           `json:"description"`
 	Items                *Prop            `json:"items"`
-	Type                 string           `json:"type"`
+	Type                 any              `json:"type"`
 	UniqueItems          bool             `json:"uniqueItems"`
 	InsertionOrder       bool             `json:"insertionOrder"`
 	Ref                  string           `json:"$ref"`
 	MaxLength            int              `json:"maxLength"`
 	MinLength            int              `json:"minLength"`
 	Pattern              string           `json:"pattern"`
-	Examples             []string         `json:"examples"`
+	Examples             []any            `json:"examples"`
 	AdditionalProperties bool             `json:"additionalProperties"`
 	Properties           map[string]*Prop `json:"properties"`
 	Enum                 []any            `json:"enum"`
 	Required             []string         `json:"required"`
 	OneOf                []*Prop          `json:"oneOf"`
 	AnyOf                []*Prop          `json:"anyOf"`
+	AllOf                []*Prop          `json:"allOf"`
+	PatternProperties    any              `json:"patternProperties"`
+	Title                string           `json:"title"`
 }
 
 func (p *Prop) GetProperties() map[string]*Prop {
@@ -76,7 +78,6 @@ func ParseSchema(source string) (*Schema, error) {
 
 // Patch applies patches to the schema to add things like undocumented enums
 func (schema *Schema) Patch() error {
-	config.Debugf("Patching %s", schema.TypeName)
 	switch schema.TypeName {
 	case "AWS::Lightsail::Instance":
 		return patchLightsailInstance(schema)
@@ -92,7 +93,27 @@ func (schema *Schema) Patch() error {
 		return patchSESConfigurationSetEventDestination(schema)
 	case "AWS::SES::ContactList":
 		return patchSESContactList(schema)
-
+	case "AWS::IAM::Role":
+		return patchIAMRole(schema)
+	case "AWS::DynamoDB::Table":
+		return patchDynamoDBTable(schema)
+	case "AWS::EC2::VerifiedAccessTrustProvider":
+		return patchAEC2VerifiedAccessTrustProvider(schema)
 	}
 	return nil
+}
+
+func ConvertPropType(t any) any {
+	if t == nil {
+		return ""
+	}
+	rt := reflect.TypeOf(t)
+	switch rt.Kind() {
+	case reflect.Slice:
+		fallthrough
+	case reflect.Array:
+		// Things like PolicyDocument are [string, object]
+		return "object"
+	}
+	return t
 }

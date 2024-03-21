@@ -3,7 +3,7 @@ package table
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"strings"
 	"testing"
@@ -126,7 +126,7 @@ func TestTable_WithWriter(t *testing.T) {
 	assert.NotEmpty(t, buf.String())
 
 	stdout := os.Stdout
-	temp, _ := ioutil.TempFile("", "")
+	temp, _ := os.CreateTemp("", "")
 	os.Stdout = temp
 	defer func() {
 		os.Stdout = stdout
@@ -136,7 +136,7 @@ func TestTable_WithWriter(t *testing.T) {
 	New("foo", "bar").WithWriter(nil).Print()
 	temp.Seek(0, 0)
 
-	out, _ := ioutil.ReadAll(temp)
+	out, _ := io.ReadAll(temp)
 	assert.NotEmpty(t, out)
 }
 

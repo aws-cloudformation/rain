@@ -25,6 +25,8 @@ var showSchema = false
 var omitPatches = false
 var recommendFlag = false
 var outFn = ""
+var pklClass = false
+var noCache = false
 
 // Borrowing a simplified SAM spec file from goformation
 // Ideally we would autogenerate from the full SAM spec but that thing is huge
@@ -52,6 +54,8 @@ func fixRef(ref string) string {
 func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema, ancestorTypes []string, bare bool) error {
 
 	isCircular := false
+
+	prop.Type = cfn.ConvertPropType(prop.Type)
 
 	switch prop.Type {
 	case "string":
@@ -252,45 +256,14 @@ func build(typeNames []string) (cft.Template, error) {
 
 	for _, typeName := range typeNames {
 
-		var schema *cfn.Schema
-
-		// Check to see if it's a SAM resource
 		if isSAM(typeName) {
 			t.AddScalarSection(cft.Transform, "AWS::Serverless-2016-10-31")
-
-			// Convert the spec to a cfn.Schema and skip downloading from the registry
-			schema, err = convertSAMSpec(samSpecSource, typeName)
-			if err != nil {
-				return t, err
-			}
-
-			j, _ := json.Marshal(schema)
-			config.Debugf("Converted SAM schema: %s", j)
-
-		} else {
-
-			// Call CCAPI to get the schema for the resource
-			schemaSource, err := cfn.GetTypeSchema(typeName)
-			config.Debugf("schema source: %s", schemaSource)
-			if err != nil {
-				return t, err
-			}
-
-			// Parse the schema JSON string
-			schema, err = cfn.ParseSchema(schemaSource)
-			if err != nil {
-				return t, err
-			}
 		}
 
-		// Apply patches to the schema
-		if !omitPatches {
-			err := schema.Patch()
-			if err != nil {
-				return t, err
-			}
-			j, _ := json.MarshalIndent(schema, "", "    ")
-			config.Debugf("patched schema: %s", j)
+		var schema *cfn.Schema
+		schema, err := getSchema(typeName)
+		if err != nil {
+			return t, err
 		}
 
 		// Add a node for the resource
@@ -326,6 +299,9 @@ var Cmd = &cobra.Command{
 	Long:                  "The build command interacts with the CloudFormation registry to list types, output schema files, and build starter CloudFormation templates containing the named resource types.",
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
+
+		// --list -l
+		// List resource types
 		if buildListFlag {
 			types, err := cfn.ListResourceTypes()
 			if err != nil {
@@ -348,6 +324,7 @@ var Cmd = &cobra.Command{
 			return
 		}
 
+		// --recommend -r
 		// Output a recommended architecture
 		if recommendFlag {
 			recommend(args)
@@ -374,7 +351,7 @@ var Cmd = &cobra.Command{
 				j, _ := json.MarshalIndent(schema, "", "    ")
 				output(string(j))
 			} else {
-				schema, err := cfn.GetTypeSchema(typeName)
+				schema, err := cfn.GetTypeSchema(typeName, noCache)
 				if err != nil {
 					panic(err)
 				}
@@ -387,6 +364,16 @@ var Cmd = &cobra.Command{
 		// Invoke Bedrock with Claude 2 to generate the template
 		if promptFlag {
 			prompt(strings.Join(args, " "))
+			return
+		}
+
+		// --pkl-class
+		// Generate a pkl class based on the schema
+		if pklClass {
+			typeName := args[0]
+			if err := generatePklClass(typeName); err != nil {
+				panic(err)
+			}
 			return
 		}
 
@@ -411,4 +398,6 @@ func init() {
 	Cmd.Flags().BoolVar(&omitPatches, "omit-patches", false, "Omit patches and use the raw schema")
 	Cmd.Flags().BoolVarP(&recommendFlag, "recommend", "r", false, "Output a recommended architecture for the chosen use case")
 	Cmd.Flags().StringVarP(&outFn, "output", "o", "", "Output to a file")
+	Cmd.Flags().BoolVar(&pklClass, "pkl-class", false, "Output a pkl class based on a resource type schema")
+	Cmd.Flags().BoolVar(&noCache, "no-cache", false, "Do not used cached schema files")
 }

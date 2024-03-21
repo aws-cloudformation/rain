@@ -4,6 +4,7 @@ package cfn
 
 import (
 	"context"
+	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -55,6 +56,9 @@ var liveStatuses = []types.StackStatus{
 const WAIT_PERIOD_IN_SECONDS = 2
 
 var Schemas map[string]string
+
+//go:embed schemas
+var schemaFiles embed.FS
 
 func checkTemplate(template cft.Template) (string, error) {
 	templateBody := format.String(template, format.Options{})
@@ -789,21 +793,39 @@ func WaitUntilStackCreateComplete(stackName string) error {
 }
 
 // Get the schema for a CloudFormation resource type
-func GetTypeSchema(name string) (string, error) {
+func GetTypeSchema(name string, noCache bool) (string, error) {
+
+	// Check for a schema in memory
 	schema, exists := Schemas[name]
-	if exists {
+	if exists && !noCache {
 		return schema, nil
-	} else {
-		res, err := getClient().DescribeType(context.Background(), &cloudformation.DescribeTypeInput{
-			Type: "RESOURCE", TypeName: &name,
-		})
-		if err != nil {
-			config.Debugf("GetTypeSchema SDK error: %v", err)
-			return "", err
-		}
-		Schemas[name] = *res.Schema
-		return *res.Schema, nil
 	}
+
+	// Look in the embedded file system next
+	if !noCache {
+		path := strings.Replace(name, "::", "/", -1)
+		path = strings.ToLower(path)
+		path = "schemas/" + path + ".json"
+		b, err := schemaFiles.ReadFile(path)
+		if err == nil {
+			s := string(b)
+			Schemas[name] = s
+			return s, nil
+		} else {
+			config.Debugf("unable to read schema from path %s: %v", path, err)
+		}
+	}
+
+	// Go ahead and download the schema from the registry
+	res, err := getClient().DescribeType(context.Background(), &cloudformation.DescribeTypeInput{
+		Type: "RESOURCE", TypeName: &name,
+	})
+	if err != nil {
+		config.Debugf("GetTypeSchema SDK error: %v", err)
+		return "", err
+	}
+	Schemas[name] = *res.Schema
+	return *res.Schema, nil
 }
 
 // IsCCAPI returns true if the type is fully supported by CCAPI
@@ -832,7 +854,7 @@ func IsCCAPI(name string) (bool, error) {
 func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
 
 	// Get the schema, checking to see if we cached it
-	schema, err := GetTypeSchema(name)
+	schema, err := GetTypeSchema(name, false)
 	if err != nil {
 		return nil, err
 	}
@@ -1010,7 +1032,7 @@ func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
 
 // Get the primaryIdentifier of a resource type from the schema
 func GetTypeIdentifier(name string) ([]string, error) {
-	schema, err := GetTypeSchema(name)
+	schema, err := GetTypeSchema(name, false)
 	if err != nil {
 		return nil, err
 	}

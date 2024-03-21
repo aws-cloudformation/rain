@@ -379,7 +379,7 @@ func ResourceAlreadyExists(
 	return true
 }
 
-func GetTypeSchema(name string) (string, error) {
+func GetTypeSchema(name string, noCache bool) (string, error) {
 	return "", nil
 }
 

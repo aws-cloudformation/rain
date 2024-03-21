@@ -1,0 +1,44 @@
+@go.Package { name = "github.com/aws-cloudformation/rain/pkl/cloudformation" }
+module cloudformation
+
+import "package://pkg.pkl-lang.org/pkl-go/pkl.golang@0.6.0#/go.pkl"
+
+/// A CloudFormation resource.
+///
+/// Note that in subclasses of Resource, properties are elevated 
+/// to the top level, so we have to rename any properties that 
+/// conflict with resource attribute names such as `Type` and `DependsOn`.
+/// 
+/// Any property that conflicts will be suffixed with `Property`.
+open class Resource {
+    Type: String(matches(Regex(#"^.*::.*::.*$"#)))
+    Properties: Any?
+    CreationPolicy: Mapping? 
+    DeletionPolicy: String?
+    DependsOn: Listing<String>?
+    Metadata: Mapping?
+    UpdatePolicy: Mapping?
+    UpdateReplacePolicy: String?
+
+}
+
+open class Parameter {
+    Type: String
+    Default: String?
+    AllowedValues: Listing<String>?
+    Description: String?
+}
+
+function Ref(to: String): Mapping = new Mapping {
+    ["Ref"] = to
+}
+
+function Sub(sub: String): Mapping = new Mapping {
+    ["Fn::Sub"] = sub
+}
+
+function GetAtt(att: String): Mapping = new Mapping {
+    ["Fn::GetAtt"] = att
+}
+
+

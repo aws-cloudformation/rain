@@ -1,0 +1,216 @@
+{
+  "typeName": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+  "description": "Specifies an Application Load Balancer, a Network Load Balancer, or a Gateway Load Balancer.",
+  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-elasticloadbalancingv2",
+  "documentationUrl": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-loadbalancer.html",
+  "additionalProperties": false,
+  "properties": {
+    "IpAddressType": {
+      "type": "string",
+      "description": "The IP address type. The possible values are ``ipv4`` (for IPv4 addresses) and ``dualstack`` (for IPv4 and IPv6 addresses). You can?t specify ``dualstack`` for a load balancer with a UDP or TCP_UDP listener."
+    },
+    "SecurityGroups": {
+      "type": "array",
+      "description": "[Application Load Balancers and Network Load Balancers] The IDs of the security groups for the load balancer.",
+      "uniqueItems": true,
+      "insertionOrder": false,
+      "items": {
+        "type": "string"
+      }
+    },
+    "LoadBalancerAttributes": {
+      "type": "array",
+      "description": "The load balancer attributes.",
+      "uniqueItems": true,
+      "insertionOrder": false,
+      "arrayType": "AttributeList",
+      "items": {
+        "$ref": "#/definitions/LoadBalancerAttribute"
+      }
+    },
+    "Scheme": {
+      "type": "string",
+      "description": "The nodes of an Internet-facing load balancer have public IP addresses. The DNS name of an Internet-facing load balancer is publicly resolvable to the public IP addresses of the nodes. Therefore, Internet-facing load balancers can route requests from clients over the internet.\n The nodes of an internal load balancer have only private IP addresses. The DNS name of an internal load balancer is publicly resolvable to the private IP addresses of the nodes. Therefore, internal load balancers can route requests only from clients with access to the VPC for the load balancer.\n The default is an Internet-facing load balancer.\n You cannot specify a scheme for a Gateway Load Balancer."
+    },
+    "DNSName": {
+      "type": "string",
+      "description": ""
+    },
+    "Name": {
+      "type": "string",
+      "description": "The name of the load balancer. This name must be unique per region per account, can have a maximum of 32 characters, must contain only alphanumeric characters or hyphens, must not begin or end with a hyphen, and must not begin with \"internal-\".\n If you don't specify a name, AWS CloudFormation generates a unique physical ID for the load balancer. If you specify a name, you cannot perform updates that require replacement of this resource, but you can perform other updates. To replace the resource, specify a new name."
+    },
+    "LoadBalancerName": {
+      "type": "string",
+      "description": ""
+    },
+    "LoadBalancerFullName": {
+      "type": "string",
+      "description": ""
+    },
+    "Subnets": {
+      "type": "array",
+      "description": "The IDs of the public subnets. You can specify only one subnet per Availability Zone. You must specify either subnets or subnet mappings, but not both. To specify an Elastic IP address, specify subnet mappings instead of subnets.\n [Application Load Balancers] You must specify subnets from at least two Availability Zones.\n [Application Load Balancers on Outposts] You must specify one Outpost subnet.\n [Application Load Balancers on Local Zones] You can specify subnets from one or more Local Zones.\n [Network Load Balancers] You can specify subnets from one or more Availability Zones.\n [Gateway Load Balancers] You can specify subnets from one or more Availability Zones.",
+      "uniqueItems": true,
+      "insertionOrder": false,
+      "items": {
+        "type": "string"
+      }
+    },
+    "Type": {
+      "type": "string",
+      "description": "The type of load balancer. The default is ``application``."
+    },
+    "CanonicalHostedZoneID": {
+      "type": "string",
+      "description": ""
+    },
+    "Tags": {
+      "type": "array",
+      "description": "The tags to assign to the load balancer.",
+      "uniqueItems": false,
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
+    },
+    "LoadBalancerArn": {
+      "type": "string",
+      "description": ""
+    },
+    "SubnetMappings": {
+      "type": "array",
+      "description": "The IDs of the public subnets. You can specify only one subnet per Availability Zone. You must specify either subnets or subnet mappings, but not both.\n [Application Load Balancers] You must specify subnets from at least two Availability Zones. You cannot specify Elastic IP addresses for your subnets.\n [Application Load Balancers on Outposts] You must specify one Outpost subnet.\n [Application Load Balancers on Local Zones] You can specify subnets from one or more Local Zones.\n [Network Load Balancers] You can specify subnets from one or more Availability Zones. You can specify one Elastic IP address per subnet if you need static IP addresses for your internet-facing load balancer. For internal load balancers, you can specify one private IP address per subnet from the IPv4 range of the subnet. For internet-facing load balancer, you can specify one IPv6 address per subnet.\n [Gateway Load Balancers] You can specify subnets from one or more Availability Zones. You cannot specify Elastic IP",
+      "uniqueItems": true,
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/SubnetMapping"
+      }
+    },
+    "EnforceSecurityGroupInboundRulesOnPrivateLinkTraffic": {
+      "type": "string",
+      "description": "Indicates whether to evaluate inbound security group rules for traffic sent to a Network Load Balancer through privatelink."
+    }
+  },
+  "definitions": {
+    "SubnetMapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "SubnetId": {
+          "type": "string",
+          "description": "The ID of the subnet."
+        },
+        "AllocationId": {
+          "type": "string",
+          "description": "[Network Load Balancers] The allocation ID of the Elastic IP address for an internet-facing load balancer."
+        },
+        "PrivateIPv4Address": {
+          "type": "string",
+          "description": "[Network Load Balancers] The private IPv4 address for an internal load balancer."
+        },
+        "IPv6Address": {
+          "type": "string",
+          "description": "[Network Load Balancers] The IPv6 address."
+        }
+      },
+      "required": [
+        "SubnetId"
+      ],
+      "description": "Specifies a subnet for a load balancer."
+    },
+    "LoadBalancerAttribute": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Value": {
+          "type": "string",
+          "description": "The value of the attribute."
+        },
+        "Key": {
+          "type": "string",
+          "description": "The name of the attribute.\n The following attributes are supported by all load balancers:\n  +   ``deletion_protection.enabled`` - Indicates whether deletion protection is enabled. The value is ``true`` or ``false``. The default is ``false``.\n  +   ``load_balancing.cross_zone.enabled`` - Indicates whether cross-zone load balancing is enabled. The possible values are ``true`` and ``false``. The default for Network Load Balancers and Gateway Load Balancers is ``false``. The default for Application Load Balancers is ``true``, and cannot be changed.\n  \n The following attributes are supported by both Application Load Balancers and Network Load Balancers:\n  +   ``access_logs.s3.enabled`` - Indicates whether access logs are enabled. The value is ``true`` or ``false``. The default is ``false``.\n  +   ``access_logs.s3.bucket`` - The name of the S3 bucket for the access logs. This attribute is required if access logs are enabled. The bucket must exist in the same region as the load balancer and h"
+        }
+      },
+      "description": "Specifies an attribute for an Application Load Balancer, a Network Load Balancer, or a Gateway Load Balancer."
+    },
+    "Tag": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Value": {
+          "type": "string",
+          "description": "The value of the tag."
+        },
+        "Key": {
+          "type": "string",
+          "description": "The key of the tag."
+        }
+      },
+      "required": [
+        "Key"
+      ],
+      "description": "Information about a tag."
+    }
+  },
+  "createOnlyProperties": [
+    "/properties/Name",
+    "/properties/Type",
+    "/properties/Scheme"
+  ],
+  "primaryIdentifier": [
+    "/properties/LoadBalancerArn"
+  ],
+  "readOnlyProperties": [
+    "/properties/LoadBalancerName",
+    "/properties/LoadBalancerFullName",
+    "/properties/CanonicalHostedZoneID",
+    "/properties/LoadBalancerArn",
+    "/properties/DNSName"
+  ],
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": false,
+    "tagProperty": "/properties/Tags"
+  },
+  "handlers": {
+    "create": {
+      "permissions": [
+        "elasticloadbalancing:CreateLoadBalancer",
+        "elasticloadbalancing:DescribeLoadBalancers",
+        "elasticloadbalancing:ModifyLoadBalancerAttributes",
+        "elasticloadbalancing:AddTags"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "elasticloadbalancing:DescribeLoadBalancers",
+        "elasticloadbalancing:DeleteLoadBalancer"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "elasticloadbalancing:DescribeLoadBalancers"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "elasticloadbalancing:DescribeLoadBalancers",
+        "elasticloadbalancing:DescribeLoadBalancerAttributes",
+        "elasticloadbalancing:DescribeTags"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "elasticloadbalancing:ModifyLoadBalancerAttributes",
+        "elasticloadbalancing:SetSubnets",
+        "elasticloadbalancing:SetIpAddressType",
+        "elasticloadbalancing:SetSecurityGroups",
+        "elasticloadbalancing:AddTags",
+        "elasticloadbalancing:RemoveTags"
+      ]
+    }
+  }
+}
