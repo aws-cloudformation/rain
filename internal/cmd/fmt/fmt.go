@@ -19,6 +19,7 @@ import (
 )
 
 var jsonFlag bool
+var pklFlag bool
 var verifyFlag bool
 var writeFlag bool
 var unsortedFlag bool
@@ -42,6 +43,12 @@ func formatString(input string, res *result) {
 
 	if dataModel {
 		res.output = node.ToJson(source.Node)
+	} else if pklFlag {
+		res.output, err = format.CftToPkl(source)
+		if err != nil {
+			res.err = err
+			return
+		}
 	} else {
 		// Format the output
 		res.output = format.String(source, format.Options{
@@ -187,6 +194,7 @@ var Cmd = &cobra.Command{
 
 func init() {
 	Cmd.Flags().BoolVarP(&jsonFlag, "json", "j", false, "Output the template as JSON (default format: YAML).")
+	Cmd.Flags().BoolVarP(&pklFlag, "pkl", "p", false, "Output the template as Pkl (default format: YAML).")
 	Cmd.Flags().BoolVarP(&verifyFlag, "verify", "v", false, "Check if the input is already correctly formatted and exit.\nThe exit status will be 0 if so and 1 if not.")
 	Cmd.Flags().BoolVarP(&writeFlag, "write", "w", false, "Write the output back to the file rather than to stdout.")
 	Cmd.Flags().BoolVarP(&unsortedFlag, "unsorted", "u", false, "Do not sort the template's properties.")

@@ -3,6 +3,8 @@ module cloudformation
 
 import "package://pkg.pkl-lang.org/pkl-go/pkl.golang@0.6.0#/go.pkl"
 
+typealias RefString = String|Mapping
+
 /// A CloudFormation resource.
 ///
 /// Note that in subclasses of Resource, properties are elevated 
@@ -28,12 +30,19 @@ open class Parameter {
     Default: String?
     AllowedValues: Listing<String>?
     Description: String?
+    AllowedPattern: String?
+    ConstraintDescription: String?
+    MaxLength: Int?
+    MaxValue: Number?
+    MinLength: Int?
+    MinValue: Number?
+    NoEcho: Boolean?
 }
 
 ///  A Rule assertion, which is an element of a Rule
 open class RuleAssertion {
     Assert: Mapping
-    AssertDescription: String|Mapping?
+    AssertDescription: RefString?
 }
 
 /// A Rule, which is a set of assertions that can be made on Parameters
@@ -61,13 +70,20 @@ function Equals(a: Any, b: Any): Mapping = new Mapping {
     }
 }
 
-function Contains(list: Listing, val: String|Mapping): Mapping = new Mapping {
+function Contains(list: Listing, val: RefString): Mapping = new Mapping {
     ["Fn::Contains"] = new Listing {
         list
         val
     }
 }
 
+function FindInMap(mapName: String, topLevelKey: RefString, secondLevelKey: RefString): Mapping = new Mapping {
+    ["Fn::FindInMap"] = new Listing {
+        mapName
+        topLevelKey
+        secondLevelKey
+    }
+}
 
 
 
