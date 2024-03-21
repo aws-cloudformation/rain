@@ -11,6 +11,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+var PklPackageAlias string = "@cfn"
+
 func writeParameter(sb *strings.Builder, name string, param *yaml.Node) error {
 	w(sb, "    [\"%s\"] {\n", name)
 	for j := 0; j < len(param.Content); j += 2 {
@@ -148,7 +150,7 @@ func CftToPkl(t cft.Template) (string, error) {
 		return "", errors.New("expected even number of map elements")
 	}
 	var sb strings.Builder
-	sb.WriteString("amends \"@cfn/template.pkl\"\n")
+	w(&sb, "amends \"%s/template.pkl\"\n", PklPackageAlias)
 
 	for i := 0; i < len(m.Content); i += 2 {
 		section := m.Content[i].Value
