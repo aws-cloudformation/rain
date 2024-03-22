@@ -201,4 +201,5 @@ func init() {
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
 	Cmd.Flags().BoolVar(&dataModel, "datamodel", false, "Output the go yaml data model")
 	Cmd.Flags().StringVar(&format.PklPackageAlias, "pkl-package", "@cfn", "An alias or full package URI for the Pkl package for generated Pkl files")
+	Cmd.Flags().StringVar(&format.NodeStyle, "node-style", "", format.NodeStyleDocs)
 }
