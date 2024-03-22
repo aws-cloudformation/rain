@@ -17,11 +17,23 @@ func writeResource(sb *strings.Builder, name string, resource *yaml.Node) error 
 	indent := "    "
 	w(sb, "%s[\"%s\"] {\n", indent, name)
 	for i := 0; i < len(resource.Content); i += 2 {
-		w(sb, "%sTODO: %s\n", indent, resource.Content[i].Value)
-		// TODO
+		attrName := resource.Content[i].Value
+		attr := resource.Content[i+1]
+		w(sb, "    %s%s", indent, attrName)
+		switch attr.Kind {
+		case yaml.ScalarNode:
+			sb.WriteString(" = ")
+			writeNode(sb, attr, "")
+		case yaml.SequenceNode:
+			fallthrough
+		case yaml.MappingNode:
+			sb.WriteString(" {\n")
+			writeNode(sb, attr, indent+"        ")
+			sb.WriteString(indent + "    }\n")
+		}
 	}
 
-	sb.WriteString("    }\n")
+	sb.WriteString(indent + "}\n\n")
 	return nil
 }
 
@@ -73,11 +85,18 @@ func w(sb *strings.Builder, f string, args ...any) {
 
 // writeSequence writes a generic sequence
 func writeSequence(sb *strings.Builder, n *yaml.Node, indent string) error {
-	sb.WriteString("{\n")
-	for j := 0; j < len(n.Content); j++ {
-		writeNode(sb, n.Content[j], indent+"    ")
+	for i := 0; i < len(n.Content); i++ {
+		switch n.Content[i].Kind {
+		case yaml.ScalarNode:
+			writeNode(sb, n.Content[i], indent)
+		case yaml.MappingNode:
+			sb.WriteString(indent + " new {\n")
+			writeNode(sb, n.Content[i], indent+"    ")
+			sb.WriteString(indent + "}\n")
+		case yaml.SequenceNode:
+			writeNode(sb, n.Content[i], indent)
+		}
 	}
-	w(sb, "%s}\n", indent)
 	return nil
 }
 
@@ -94,12 +113,14 @@ func writeMap(sb *strings.Builder, n *yaml.Node, indent string) error {
 		val := n.Content[i+1]
 		w(sb, "%s[\"%s\"]", indent, name)
 		if val.Kind == yaml.ScalarNode {
-			sb.WriteString(" = ")
+			sb.WriteString(" =")
 		} else {
 			sb.WriteString(" {\n")
 		}
-		writeNode(sb, val, indent+"    ")
-		if val.Kind != yaml.ScalarNode {
+		if val.Kind == yaml.ScalarNode {
+			writeNode(sb, val, "")
+		} else {
+			writeNode(sb, val, indent+"    ")
 			w(sb, "%s}\n", indent)
 		}
 	}
@@ -109,7 +130,7 @@ func writeMap(sb *strings.Builder, n *yaml.Node, indent string) error {
 func writeNode(sb *strings.Builder, n *yaml.Node, indent string) error {
 	switch n.Kind {
 	case yaml.ScalarNode:
-		w(sb, " \"%s\"\n", n.Value)
+		w(sb, "%s\"%s\"\n", indent, n.Value)
 	case yaml.SequenceNode:
 		return writeSequence(sb, n, indent)
 	case yaml.MappingNode:
@@ -152,6 +173,11 @@ func addSection(section cft.Section, n *yaml.Node, sb *strings.Builder) error {
 		sb.WriteString("}\n")
 	case cft.Rules:
 	case cft.Conditions:
+		w(sb, "%s {\n", section)
+		if err := writeMap(sb, n, "    "); err != nil {
+			return fmt.Errorf("unable to write %s section: %v", section, err)
+		}
+		sb.WriteString("}\n")
 	case cft.Transform:
 	case cft.Outputs:
 	}
