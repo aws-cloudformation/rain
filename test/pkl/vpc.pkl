@@ -1,0 +1,129 @@
+amends "modules/template.pkl"
+import "modules/cloudformation.pkl" as cfn
+import "modules/aws/ec2/vpc.pkl"
+import "modules/aws/ec2/subnet.pkl"
+import "modules/aws/ec2/routetable.pkl"
+import "modules/aws/ec2/route.pkl"
+import "modules/aws/ec2/eip.pkl"
+import "modules/aws/ec2/natgateway.pkl"
+import "modules/aws/ec2/internetgateway.pkl"
+import "modules/aws/ec2/subnetroutetableassociation.pkl"
+
+// These classes would go into a pattern module
+local class Subnet {
+    LogicalId: String
+    IsPublic: Boolean
+    RouteTable: routetable.RouteTable = new routetable.RouteTable {}
+    DefaultRoute: route.Route = new route.Route {}
+    Az: cfn.RefString
+    Cidr: String
+    PublicNATGateway: cfn.RefString?
+
+    function getPrivateResources(vpcId: cfn.RefString, gwId: cfn.RefString): Mapping = new Mapping {
+        [LogicalId] = new subnet.Subnet {
+            CidrBlock = Cidr
+            AvailabilityZone = Az
+            MapPublicIpOnLaunch = IsPublic
+            VpcId = vpcId
+        }
+
+        [LogicalId + "RouteTable"] = new routetable.RouteTable {
+            VpcId = vpcId
+        }
+
+        [LogicalId + "RouteTableAssociation"] = new subnetroutetableassociation.SubnetRouteTableAssociation {
+            RouteTableId = cfn.Ref(LogicalId + "RouteTable")
+            SubnetId = cfn.Ref(LogicalId)
+        }
+
+        [LogicalId + "DefaultRoute"] = new route.Route {
+            DestinationCidrBlock = "0.0.0.0/0"
+            NatGatewayId = if (IsPublic) null else PublicNATGateway
+            GatewayId = if (IsPublic) gwId else null
+            RouteTableId = cfn.Ref(LogicalId + "RouteTable")
+        }
+    }
+
+    function getResources(vpcId: cfn.RefString, gwId: cfn.RefString): Mapping = if (IsPublic) (getPrivateResources(vpcId, gwId)) {
+        [LogicalId + "NATGateway"] = new natgateway.NatGateway {
+            AllocationId = cfn.GetAtt(LogicalId + "EIP", "AllocationId")
+            SubnetId = cfn.Ref(LogicalId)
+        } 
+
+        [LogicalId + "EIP"] = new eip.EIP {
+            Domain = vpcId
+        }
+    } else getPrivateResources(vpcId, gwId)
+
+    function getNATGateway(): cfn.RefString? = if (IsPublic) cfn.Ref(LogicalId + "NATGateway") else null
+}
+
+local class VPC {
+    hidden Subnets: Listing<Subnet>
+
+    function getResources(logicalId: String): Mapping = new Mapping {
+
+        [logicalId] = new vpc.VPC {
+            CidrBlock = "10.0.0.0/16"
+            EnableDnsHostnames = true
+            EnableDnsSupport = true
+            InstanceTenancy = "default"
+        } 
+
+        [logicalId + "Gateway"] = new internetgateway.InternetGateway {}
+
+        for (subnet in Subnets) {
+            for (subresourceid, subresource in subnet.getResources(cfn.Ref(logicalId), cfn.Ref(logicalId + "Gateway"))) {
+                [subresourceid] = subresource
+            }
+        }
+    }
+}
+
+// Below here is what a consumer would write to use the classes above
+
+local pub1 = new Subnet {
+    LogicalId = "Pub1"
+    IsPublic = true
+    Az = cfn.Select(0, cfn.GetAZs("us-east-1")) 
+    Cidr = "10.0.0.0/18"
+}
+
+local pub2 = new Subnet {
+    LogicalId = "Pub2"
+    IsPublic = true
+    Az = cfn.Select(1, cfn.GetAZs("us-east-1")) 
+    Cidr = "10.0.64.0/18"
+}
+
+local priv1 = new Subnet {
+    LogicalId = "Priv1"
+    IsPublic = false
+    Az = cfn.Select(0, cfn.GetAZs("us-east-1")) 
+    Cidr = "10.0.128.0/18"
+    PublicNATGateway = pub1.getNATGateway()
+}
+
+local priv2 = new Subnet {
+    LogicalId = "Priv2"
+    IsPublic = false
+    Az = cfn.Select(1, cfn.GetAZs("us-east-1")) 
+    Cidr = "10.0.192.0/18"
+    PublicNATGateway = pub2.getNATGateway()
+}
+
+local myvpc = new VPC {
+    Subnets {
+        pub1
+        priv1
+    }
+}
+
+Resources {
+    // Create the VPC
+    for (logicalId, resource in myvpc.getResources("MyVPC")) {
+        [logicalId] = resource
+    }
+
+    // Create other resources inside the VPC...
+}
