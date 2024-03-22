@@ -124,6 +124,8 @@ func formatNode(n *yaml.Node) *yaml.Node {
 	case "":
 		// Default style for consistent formatting
 		n.Style = 0
+	default:
+		panic("invalid --node-style: " + NodeStyle)
 	}
 
 	return n
