@@ -13,6 +13,18 @@ import (
 
 var PklPackageAlias string = "@cfn"
 
+func writeResource(sb *strings.Builder, name string, resource *yaml.Node) error {
+	indent := "    "
+	w(sb, "%s[\"%s\"] {\n", indent, name)
+	for i := 0; i < len(resource.Content); i += 2 {
+		w(sb, "%sTODO: %s\n", indent, resource.Content[i].Value)
+		// TODO
+	}
+
+	sb.WriteString("    }\n")
+	return nil
+}
+
 func writeParameter(sb *strings.Builder, name string, param *yaml.Node) error {
 	w(sb, "    [\"%s\"] {\n", name)
 	for j := 0; j < len(param.Content); j += 2 {
@@ -122,6 +134,14 @@ func addSection(section cft.Section, n *yaml.Node, sb *strings.Builder) error {
 		}
 		sb.WriteString("}\n")
 	case cft.Resources:
+		if n.Kind != yaml.MappingNode {
+			return errors.New("expected Resources to be a MappingNode")
+		}
+		w(sb, "%s {\n", section)
+		for i := 0; i < len(n.Content); i += 2 {
+			writeResource(sb, n.Content[i].Value, n.Content[i+1])
+		}
+		sb.WriteString("}\n")
 	case cft.Mappings:
 		fallthrough
 	case cft.Metadata:

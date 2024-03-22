@@ -1,13 +1,17 @@
-amends "@cfn/template.pkl"
-import "@cfn/aws/s3/bucket.pkl"
+amends "../modules/template.pkl"
 
-Description = "testing imports"
-Resources {
-    ["Foo"] = new {
-        Type = "AWS::S3::Bucket"
+import "../modules/cloudformation.pkl" as cfn
+import "../modules/aws/s3/bucket.pkl"
+
+Parameters {
+    ["Name"] {
+        Type = "String"
     }
-    ["Bar"] = new bucket.Bucket {
-        BucketName = "my-bucket-name"
+}
+
+Resources {
+    ["b"] = new bucket.Bucket {
+        BucketName = cfn.Ref("Name")
     }
 }
 
