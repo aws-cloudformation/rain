@@ -1,4 +1,9 @@
 amends "../modules/template.pkl"
+import "../modules/cloudformation.pkl" as cfn
+import "../modules/aws/ec2/instance.pkl"
+import "../modules/aws/ec2/volumeattachment.pkl"
+import "../modules/aws/ec2/volume.pkl"
+import "../modules/aws/s3/bucket.pkl"
 AWSTemplateFormatVersion = "2010-09-09"
 Parameters {
     ["EnvType"] {
@@ -15,7 +20,7 @@ Conditions {
     ["CreateProdResources"] {
         ["Fn::Equals"] {
              new {
-                ["Ref"] ="EnvType"
+                ["Ref"] = "EnvType"
             }
             "prod"
         }
@@ -24,79 +29,69 @@ Conditions {
 Mappings {
     ["Map1"] {
         ["Key1"] {
-            ["Name"] ="Val1.1"
+            ["Name"] = "Val1.1"
         }
         ["Key2"] {
-            ["Name"] ="Val1.2"
+            ["Name"] = "Val1.2"
         }
     }
     ["Map2"] {
         ["Key1"] {
-            ["Name"] ="Val2.1"
+            ["Name"] = "Val2.1"
         }
         ["Key2"] {
-            ["Name"] ="Val2.2"
+            ["Name"] = "Val2.2"
         }
     }
 }
 Resources {
-    ["EC2Instance"] {
+    ["EC2Instance"] = new instance.Instance {
         Type = "AWS::EC2::Instance"
-        Properties {
-            ["ImageId"] ="ami-0ff8a91507f77f867"
-        }
+        ImageId = "ami-0ff8a91507f77f867"
     }
 
-    ["MountPoint"] {
+    ["MountPoint"] = new volumeattachment.VolumeAttachment {
         Type = "AWS::EC2::VolumeAttachment"
         Condition = "CreateProdResources"
-        Properties {
-            ["InstanceId"] {
-                ["Ref"] ="EC2Instance"
-            }
-            ["VolumeId"] {
-                ["Ref"] ="NewVolume"
-            }
-            ["Device"] ="/dev/sdh"
+        InstanceId = new Mapping {
+            ["Ref"] = "EC2Instance"
         }
+        VolumeId = new Mapping {
+            ["Ref"] = "NewVolume"
+        }
+        Device = "/dev/sdh"
     }
 
-    ["NewVolume"] {
+    ["NewVolume"] = new volume.Volume {
         Type = "AWS::EC2::Volume"
         Condition = "CreateProdResources"
-        Properties {
-            ["Size"] ="100"
-            ["AvailabilityZone"] {
-                ["Fn::GetAtt"] {
-                    "EC2Instance"
-                    "AvailabilityZone"
-                }
+        Size = "100"
+        AvailabilityZone = new Mapping {
+            ["Fn::GetAtt"] {
+                "EC2Instance"
+                "AvailabilityZone"
             }
         }
     }
 
-    ["Bucket1"] {
+    ["Bucket1"] = new bucket.Bucket {
         Type = "AWS::S3::Bucket"
-        Properties {
-            ["BucketName"] {
-                ["Fn::FindInMap"] {
-                    "Map1"
-                    "Key1"
-                    "Name"
-                }
+        BucketName = new Mapping {
+            ["Fn::FindInMap"] {
+                "Map1"
+                "Key1"
+                "Name"
             }
         }
     }
 
-    ["Bucket2"] {
+    ["Bucket2"] = new bucket.Bucket {
         Type = "AWS::S3::Bucket"
-        Properties {
-            ["BucketName"] {
-                ["Fn::FindInMap"] {
-                    "Map2"
-                    "Key1"
-                    "Name"
-                }
+        BucketName = new Mapping {
+            ["Fn::FindInMap"] {
+                "Map2"
+                "Key1"
+                "Name"
             }
         }
     }

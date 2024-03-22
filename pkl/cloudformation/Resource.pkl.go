@@ -17,6 +17,8 @@ type Resource interface {
 	GetUpdatePolicy() *map[any]any
 
 	GetUpdateReplacePolicy() *string
+
+	GetCondition() *string
 }
 
 var _ Resource = (*ResourceImpl)(nil)
@@ -44,6 +46,8 @@ type ResourceImpl struct {
 	UpdatePolicy *map[any]any `pkl:"UpdatePolicy"`
 
 	UpdateReplacePolicy *string `pkl:"UpdateReplacePolicy"`
+
+	Condition *string `pkl:"Condition"`
 }
 
 func (rcv *ResourceImpl) GetType() string {
@@ -76,4 +80,8 @@ func (rcv *ResourceImpl) GetUpdatePolicy() *map[any]any {
 
 func (rcv *ResourceImpl) GetUpdateReplacePolicy() *string {
 	return rcv.UpdateReplacePolicy
+}
+
+func (rcv *ResourceImpl) GetCondition() *string {
+	return rcv.Condition
 }

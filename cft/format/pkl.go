@@ -3,6 +3,7 @@ package format
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
@@ -13,23 +14,111 @@ import (
 
 var PklPackageAlias string = "@cfn"
 
-func writeResource(sb *strings.Builder, name string, resource *yaml.Node) error {
-	indent := "    "
-	w(sb, "%s[\"%s\"] {\n", indent, name)
+func getClassName(resource *yaml.Node) string {
+	typeName := getTypeName(resource)
+	tokens := strings.Split(typeName, "::")
+	if len(tokens) != 3 {
+		return ""
+	}
+	return tokens[2]
+}
+
+func getTypeName(resource *yaml.Node) string {
+	var typeName string
 	for i := 0; i < len(resource.Content); i += 2 {
 		attrName := resource.Content[i].Value
 		attr := resource.Content[i+1]
-		w(sb, "    %s%s", indent, attrName)
-		switch attr.Kind {
-		case yaml.ScalarNode:
-			sb.WriteString(" = ")
-			writeNode(sb, attr, "")
-		case yaml.SequenceNode:
-			fallthrough
-		case yaml.MappingNode:
-			sb.WriteString(" {\n")
-			writeNode(sb, attr, indent+"        ")
-			sb.WriteString(indent + "    }\n")
+
+		if attrName == "Type" {
+			typeName = attr.Value
+			break
+		}
+	}
+	return typeName
+}
+
+// getModulePath gets the module name from the resource type.
+// Returns "" if we don't have a class for that resource
+func getModulePath(resource *yaml.Node) string {
+
+	typeName := getTypeName(resource)
+
+	if !strings.HasPrefix(typeName, "AWS") {
+		return ""
+	}
+
+	typeName = strings.ToLower(typeName)
+
+	// AWS::S3::Bucket = aws/s3/bucket.pkl
+	return strings.Replace(typeName, "::", "/", -1) + ".pkl"
+}
+
+// getModuleNameFromPath gets the short module name
+// aws/s3/bucket.pkl -> bucket
+func getModuleNameFromPath(path string) string {
+	path = strings.Replace(path, ".pkl", "", 1)
+	tokens := strings.Split(path, "/")
+	if len(tokens) != 3 {
+		return ""
+	}
+	return tokens[2]
+}
+
+func writeResource(sb *strings.Builder, name string, resource *yaml.Node) error {
+	indent := "    "
+	modulePath := getModulePath(resource)
+	moduleName := getModuleNameFromPath(modulePath)
+	className := getClassName(resource)
+
+	// If modulePath and moduleName are blank, we need to print out
+	// the resource in the verbose way, without using classes.
+	// This is likely a 3p resource that does not appear in the registry
+
+	// TODO: Make "raw" an arg so we can output CloudFormation YAML with no imports
+
+	if moduleName == "" {
+		w(sb, "%s[\"%s\"] {\n", indent, name)
+	} else {
+		w(sb, "%s[\"%s\"] = new %s.%s {\n", indent, name, moduleName, className)
+	}
+	for i := 0; i < len(resource.Content); i += 2 {
+		attrName := resource.Content[i].Value
+		attr := resource.Content[i+1]
+		if attrName == "Properties" && moduleName != "" {
+			// In our generated classes we push all properties up to the top level
+			// for convenience and type safety. (There are a few clashes we have to handle)
+			for j := 0; j < len(attr.Content); j += 2 {
+				propName := attr.Content[j].Value
+				prop := attr.Content[j+1]
+				w(sb, "%s%s", indent+"    ", propName)
+				switch prop.Kind {
+				case yaml.ScalarNode:
+					sb.WriteString(" = ")
+					writeNode(sb, prop, "")
+				case yaml.SequenceNode:
+					fallthrough
+				case yaml.MappingNode:
+					// TODO: Need to modify the writes so we use classes instead of maps
+					// Are going to need reflection for this? Or can we predict class names?
+					sb.WriteString(" = new Mapping {\n")
+					writeNode(sb, prop, indent+"        ")
+					sb.WriteString(indent + "    }\n")
+				}
+			}
+
+		} else {
+			w(sb, "    %s%s", indent, attrName)
+			switch attr.Kind {
+			case yaml.ScalarNode:
+				sb.WriteString(" = ")
+				writeNode(sb, attr, "")
+			case yaml.SequenceNode:
+				fallthrough
+			case yaml.MappingNode:
+				sb.WriteString(" {\n")
+				writeNode(sb, attr, indent+"        ")
+				sb.WriteString(indent + "    }\n")
+			}
 		}
 	}
 
@@ -113,7 +202,7 @@ func writeMap(sb *strings.Builder, n *yaml.Node, indent string) error {
 		val := n.Content[i+1]
 		w(sb, "%s[\"%s\"]", indent, name)
 		if val.Kind == yaml.ScalarNode {
-			sb.WriteString(" =")
+			sb.WriteString(" = ")
 		} else {
 			sb.WriteString(" {\n")
 		}
@@ -124,6 +213,7 @@ func writeMap(sb *strings.Builder, n *yaml.Node, indent string) error {
 			w(sb, "%s}\n", indent)
 		}
 	}
+	// TODO: Rewrite intrinsic functions to use cfn. helpers
 	return nil
 }
 
@@ -197,7 +287,26 @@ func CftToPkl(t cft.Template) (string, error) {
 	}
 	var sb strings.Builder
 	w(&sb, "amends \"%s/template.pkl\"\n", PklPackageAlias)
+	w(&sb, "import \"%s/cloudformation.pkl\" as cfn\n", PklPackageAlias)
 
+	// Peek at all resources and import their types
+	resources, err := t.GetSection(cft.Resources)
+	if err != nil {
+		return "", err
+	}
+	imports := make([]string, 0)
+	for i := 0; i < len(resources.Content); i += 2 {
+		resource := resources.Content[i+1]
+		modulePath := getModulePath(resource)
+		if modulePath != "" {
+			if !slices.Contains(imports, modulePath) {
+				imports = append(imports, modulePath)
+				w(&sb, "import \"%s/%s\"\n", PklPackageAlias, modulePath)
+			}
+		}
+	}
+
+	// Write each section
 	for i := 0; i < len(m.Content); i += 2 {
 		section := m.Content[i].Value
 		val := m.Content[i+1]
