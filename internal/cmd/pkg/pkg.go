@@ -92,4 +92,5 @@ func init() {
 	Cmd.Flags().BoolVarP(&Experimental, "experimental", "x", false, "Enable experimental features")
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
 	Cmd.Flags().BoolVar(&dataModel, "datamodel", false, "Output the go yaml data model")
+	Cmd.Flags().StringVar(&format.NodeStyle, "node-style", "", format.NodeStyleDocs)
 }

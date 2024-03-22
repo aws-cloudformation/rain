@@ -159,10 +159,6 @@ func File(path string) (cft.Template, error) {
 	var t cft.Template
 	var err error
 
-	// TODO: Bug was fixed: https://github.com/apple/pkl-go/pull/32
-	//
-	// Pkl doesn't support all of the platforms rain does.
-	// We would need to shell out to pkl instead of compiling in the binary.
 	if strings.HasSuffix(path, ".pkl") {
 		yaml, err := rainpkl.Yaml(path)
 		if err != nil {

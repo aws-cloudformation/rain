@@ -8,6 +8,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Global, set by command arg --node-style
+var NodeStyle string
+
+var NodeStyleDocs = "Set the node output style to tagged, doublequoted, singlequoted, literal, folded, quotescalars, original, or flow"
+
 func mergeComments(comments []string) string {
 	out := strings.Builder{}
 	for _, c := range comments {
@@ -28,6 +33,12 @@ func formatNode(n *yaml.Node) *yaml.Node {
 	if n.Kind == yaml.MappingNode {
 		// Does it have just one key/value pair?
 		if len(n.Content) == 2 {
+
+			if n.Content[1].Kind == yaml.ScalarNode {
+				if NodeStyle == "quotescalars" {
+					n.Content[1].Style = yaml.DoubleQuotedStyle
+				}
+			}
 
 			// Is the key relevant?
 			for tag, funcName := range cft.Tags {
@@ -94,8 +105,28 @@ func formatNode(n *yaml.Node) *yaml.Node {
 		n.Content[i] = formatNode(child)
 	}
 
-	// Always set Style to 0 for consistent formatting
-	n.Style = 0
+	// Allow global user overrides
+	switch NodeStyle {
+	case "tagged":
+		n.Style = yaml.TaggedStyle
+	case "doublequoted":
+		n.Style = yaml.DoubleQuotedStyle
+	case "singlequoted":
+		n.Style = yaml.SingleQuotedStyle
+	case "literal":
+		n.Style = yaml.LiteralStyle
+	case "folded":
+		n.Style = yaml.FoldedStyle
+	case "flow":
+		n.Style = yaml.FlowStyle
+	case "original":
+		// Do nothing, leave it alone
+	case "":
+		// Default style for consistent formatting
+		n.Style = 0
+	default:
+		panic("invalid --node-style: " + NodeStyle)
+	}
 
 	return n
 }
