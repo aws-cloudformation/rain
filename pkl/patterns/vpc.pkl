@@ -11,8 +11,6 @@ import "../aws/ec2/subnetroutetableassociation.pkl"
 open class Subnet {
     LogicalId: String
     IsPublic: Boolean
-    RouteTable: routetable.RouteTable = new routetable.RouteTable {}
-    DefaultRoute: route.Route = new route.Route {}
     Az: cfn.RefString
     Cidr: String
     PublicNATGateway: cfn.RefString?
@@ -41,6 +39,9 @@ open class Subnet {
             RouteTableId = cfn.Ref(LogicalId + "RouteTable")
         }
     }
+
+    // TODO: Could this be a when generator?
+    // https://pkl-lang.org/main/current/language-reference/index.html#when-generators
 
     function getResources(vpcId: cfn.RefString, gwId: cfn.RefString): Mapping = if (IsPublic) (getPrivateResources(vpcId, gwId)) {
         [LogicalId + "NATGateway"] = new natgateway.NatGateway {
