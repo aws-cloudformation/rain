@@ -1,0 +1,38 @@
+amends "modules/template.pkl"
+import "modules/cloudformation.pkl" as cfn
+
+Parameters {
+    ["Environment"] {
+        Type = "String"
+    }
+    ["InstanceType"] {
+        Type = "String"
+    }
+}
+
+Rules {
+    ["testInstanceType"] {
+        RuleCondition = cfn.Equals(cfn.Ref("Environment"), "test")
+        Assertions {
+            new {
+                Assert = cfn.Contains(new Listing {
+                    "a1.medium"
+                }, cfn.Ref("InstanceType"))
+                AssertDescription = "For a test environment, the instance type must be a1.medium"
+            }
+        }
+    }
+
+    ["prodInstanceType"] {
+        RuleCondition = cfn.Equals(cfn.Ref("Environment"), "prod")
+        Assertions {
+            new {
+                Assert = cfn.Contains(new Listing {
+                    "a1.large"
+                }, cfn.Ref("InstanceType"))
+                AssertDescription = "For a production environment, the instance type must be a1.large"
+            }
+        }
+    }
+}
+

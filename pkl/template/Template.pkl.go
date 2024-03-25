@@ -9,15 +9,25 @@ import (
 )
 
 type Template struct {
-	Description string `pkl:"Description"`
+	Description *string `pkl:"Description"`
 
 	AWSTemplateFormatVersion string `pkl:"AWSTemplateFormatVersion"`
 
-	Metadata map[any]any `pkl:"Metadata"`
+	Metadata *map[any]any `pkl:"Metadata"`
 
-	Parameters map[string]cloudformation.Parameter `pkl:"Parameters"`
+	Parameters *map[string]cloudformation.Parameter `pkl:"Parameters"`
 
 	Resources map[string]cloudformation.Resource `pkl:"Resources"`
+
+	Rules *map[string]cloudformation.Rule `pkl:"Rules"`
+
+	Mappings *map[any]any `pkl:"Mappings"`
+
+	Conditions *map[string]map[any]any `pkl:"Conditions"`
+
+	Outputs *map[string]cloudformation.Output `pkl:"Outputs"`
+
+	Transform *any `pkl:"Transform"`
 }
 
 // LoadFromPath loads the pkl module at the given path and evaluates it into a Template

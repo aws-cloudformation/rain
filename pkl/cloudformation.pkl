@@ -3,6 +3,8 @@ module cloudformation
 
 import "package://pkg.pkl-lang.org/pkl-go/pkl.golang@0.6.0#/go.pkl"
 
+typealias RefString = String|Mapping
+
 /// A CloudFormation resource.
 ///
 /// Note that in subclasses of Resource, properties are elevated 
@@ -19,14 +21,46 @@ open class Resource {
     Metadata: Mapping?
     UpdatePolicy: Mapping?
     UpdateReplacePolicy: String?
-
+    Condition: String?
 }
 
+/// A CloudFormation Parameter
 open class Parameter {
     Type: String
     Default: String?
     AllowedValues: Listing<String>?
     Description: String?
+    AllowedPattern: String?
+    ConstraintDescription: String?
+    MaxLength: Int?
+    MaxValue: Number?
+    MinLength: Int?
+    MinValue: Number?
+    NoEcho: Boolean?
+}
+
+///  A Rule assertion, which is an element of a Rule
+open class RuleAssertion {
+    Assert: Mapping
+    AssertDescription: RefString?
+}
+
+/// A Rule, which is a set of assertions that can be made on Parameters
+open class Rule {
+    RuleCondition: Mapping?
+    Assertions: Listing<RuleAssertion>
+}
+
+/// A stack Output exported value
+open class Export {
+    Name: RefString
+}
+
+/// A stack output value
+open class Output {
+    Description: RefString?
+    Value: RefString
+    Export: Export?
 }
 
 function Ref(to: String): Mapping = new Mapping {
@@ -37,8 +71,44 @@ function Sub(sub: String): Mapping = new Mapping {
     ["Fn::Sub"] = sub
 }
 
-function GetAtt(att: String): Mapping = new Mapping {
-    ["Fn::GetAtt"] = att
+function GetAtt(name: String, att: String): Mapping = new Mapping {
+    ["Fn::GetAtt"] = new Listing {
+        name
+        att
+    }
+}
+
+function Equals(a: Any, b: Any): Mapping = new Mapping {
+    ["Fn::Equals"] = new Listing {
+        a
+        b
+    }
+}
+
+function Contains(list: Listing, val: RefString): Mapping = new Mapping {
+    ["Fn::Contains"] = new Listing {
+        list
+        val
+    }
+}
+
+function FindInMap(mapName: String, topLevelKey: RefString, secondLevelKey: RefString): Mapping = new Mapping {
+    ["Fn::FindInMap"] = new Listing {
+        mapName
+        topLevelKey
+        secondLevelKey
+    }
+}
+
+function GetAZs(region: String): Mapping = new Mapping {
+    ["Fn::GetAZs"] = region
+}
+
+function Select(index: Int, list: Mapping): Mapping = new Mapping {
+    ["Fn::Select"] = new Listing {
+        index
+        list
+    }
 }
 
 

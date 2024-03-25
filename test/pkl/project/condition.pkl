@@ -1,0 +1,99 @@
+amends "../modules/template.pkl"
+import "../modules/cloudformation.pkl" as cfn
+import "../modules/aws/ec2/instance.pkl"
+import "../modules/aws/ec2/volumeattachment.pkl"
+import "../modules/aws/ec2/volume.pkl"
+import "../modules/aws/s3/bucket.pkl"
+AWSTemplateFormatVersion = "2010-09-09"
+Parameters {
+    ["EnvType"] {
+        Description = "Environment type."
+        Default = "test"
+        Type = "String"
+        AllowedValues {
+            "prod"
+            "test"
+        }
+    }
+}
+Conditions {
+    ["CreateProdResources"] {
+        ["Fn::Equals"] {
+             new {
+                ["Ref"] = "EnvType"
+            }
+            "prod"
+        }
+    }
+}
+Mappings {
+    ["Map1"] {
+        ["Key1"] {
+            ["Name"] = "Val1.1"
+        }
+        ["Key2"] {
+            ["Name"] = "Val1.2"
+        }
+    }
+    ["Map2"] {
+        ["Key1"] {
+            ["Name"] = "Val2.1"
+        }
+        ["Key2"] {
+            ["Name"] = "Val2.2"
+        }
+    }
+}
+Resources {
+    ["EC2Instance"] = new instance.Instance {
+        Type = "AWS::EC2::Instance"
+        ImageId = "ami-0ff8a91507f77f867"
+    }
+
+    ["MountPoint"] = new volumeattachment.VolumeAttachment {
+        Type = "AWS::EC2::VolumeAttachment"
+        Condition = "CreateProdResources"
+        InstanceId = new Mapping {
+            ["Ref"] = "EC2Instance"
+        }
+        VolumeId = new Mapping {
+            ["Ref"] = "NewVolume"
+        }
+        Device = "/dev/sdh"
+    }
+
+    ["NewVolume"] = new volume.Volume {
+        Type = "AWS::EC2::Volume"
+        Condition = "CreateProdResources"
+        Size = "100"
+        AvailabilityZone = new Mapping {
+            ["Fn::GetAtt"] {
+                "EC2Instance"
+                "AvailabilityZone"
+            }
+        }
+    }
+
+    ["Bucket1"] = new bucket.Bucket {
+        Type = "AWS::S3::Bucket"
+        BucketName = new Mapping {
+            ["Fn::FindInMap"] {
+                "Map1"
+                "Key1"
+                "Name"
+            }
+        }
+    }
+
+    ["Bucket2"] = new bucket.Bucket {
+        Type = "AWS::S3::Bucket"
+        BucketName = new Mapping {
+            ["Fn::FindInMap"] {
+                "Map2"
+                "Key1"
+                "Name"
+            }
+        }
+    }
+
+}
