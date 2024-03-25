@@ -29,17 +29,17 @@ require (
 )
 
 require (
+	github.com/apple/pkl-go v0.6.1-0.20240320183646-5827572b8112
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.36.1
 	github.com/aws/aws-sdk-go-v2/service/rds v1.76.0
 	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.21.2
 	github.com/fatih/color v1.16.0
 	github.com/manifoldco/promptui v0.9.0
 	github.com/mattn/go-runewidth v0.0.15
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 )
 
 require (
-	github.com/apple/pkl-go v0.6.1-0.20240320183646-5827572b8112 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.23.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
