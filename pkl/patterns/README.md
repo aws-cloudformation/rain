@@ -1,6 +1,29 @@
-amends "modules/template.pkl"
-import "modules/cloudformation.pkl" as cfn
-import "modules/patterns/vpc.pkl"
+# Pkl Patterns
+
+**NOTE** These high level patterns are experimental, and may change in minor version releases of the package.
+
+In the examples below, modules are prefixed by `@cfn`. To enable this, put your
+template into a Pkl project folder, with a file called `PklProject`. A sample
+of that file is below (you may need to adjust the version number in the URI.
+
+```pkl
+amends "pkl:Project"
+
+dependencies {
+    ["cfn"] {
+        uri = "package://github.com/aws-cloudformation/rain/releases/download/v1.8.3/cloudformation@1.8.3"
+    }
+}
+```
+
+# bucket.pkl
+
+# vpc.pkl
+
+```pkl
+amends "@cfn/template.pkl"
+import "@cfn/cloudformation.pkl" as cfn
+import "@cfn/patterns/vpc.pkl"
 
 local pub1 = new vpc.Subnet {
     LogicalId = "Pub1"
@@ -52,4 +75,6 @@ Resources {
 Outputs {
     ...myvpc.outputs
 }
+```
+
 

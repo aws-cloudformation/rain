@@ -8,14 +8,49 @@ import "../aws/ec2/natgateway.pkl"
 import "../aws/ec2/internetgateway.pkl"
 import "../aws/ec2/subnetroutetableassociation.pkl"
 
-open class Subnet {
+
+/// The logical name of the VPC
+LogicalId: String
+
+/// The subnets within this VPC
+Subnets: Listing<Subnet>
+
+/// The CloudFormation resources representing this VPC.
+fixed resources: Mapping<String, cfn.Resource> = new {
+    [LogicalId] = new vpc.VPC {
+        CidrBlock = "10.0.0.0/16"
+        EnableDnsHostnames = true
+        EnableDnsSupport = true
+        InstanceTenancy = "default"
+    }
+    ["\(LogicalId)Gateway"] = new internetgateway.InternetGateway {}
+    for (subnet in Subnets) {
+        ...(subnet) { VpcId = LogicalId }.resources
+    }
+}
+
+fixed outputs: Mapping<String, cfn.Output> = new {
+    ["\(LogicalId)Id"] = new cfn.Output {
+        Description = "A reference to the VPC"
+        Value = cfn.Ref(LogicalId)
+    }
+}
+
+class Subnet {
+    VpcId: String
     LogicalId: String
     IsPublic: Boolean
+    RouteTable: routetable.RouteTable
+    DefaultRoute: route.Route
     Az: cfn.RefString
     Cidr: String
     PublicNATGateway: cfn.RefString?
 
-    function getPrivateResources(vpcId: cfn.RefString, gwId: cfn.RefString): Mapping = new Mapping {
+    local vpcId = cfn.Ref(VpcId)
+
+    local gwId = cfn.Ref("\(VpcId)Gateway")
+
+    local privateResources: Mapping<String, cfn.Resource> = new {
         [LogicalId] = new subnet.Subnet {
             CidrBlock = Cidr
             AvailabilityZone = Az
@@ -40,42 +75,23 @@ open class Subnet {
         }
     }
 
-    // TODO: Could this be a when generator?
-    // https://pkl-lang.org/main/current/language-reference/index.html#when-generators
+    fixed resources: Mapping<String, cfn.Resource> = (privateResources) {
+        when (IsPublic) {
+            [LogicalId + "NATGateway"] = new natgateway.NatGateway {
+                AllocationId = cfn.GetAtt(LogicalId + "EIP", "AllocationId")
+                SubnetId = cfn.Ref(LogicalId)
+            }
 
-    function getResources(vpcId: cfn.RefString, gwId: cfn.RefString): Mapping = if (IsPublic) (getPrivateResources(vpcId, gwId)) {
-        [LogicalId + "NATGateway"] = new natgateway.NatGateway {
-            AllocationId = cfn.GetAtt(LogicalId + "EIP", "AllocationId")
-            SubnetId = cfn.Ref(LogicalId)
-        } 
-
-        [LogicalId + "EIP"] = new eip.EIP {
-            Domain = vpcId
-        }
-    } else getPrivateResources(vpcId, gwId)
-
-    function getNATGateway(): cfn.RefString? = if (IsPublic) cfn.Ref(LogicalId + "NATGateway") else null
-}
-
-open class VPC {
-    hidden Subnets: Listing<Subnet>
-
-    function getResources(logicalId: String): Mapping = new Mapping {
-
-        [logicalId] = new vpc.VPC {
-            CidrBlock = "10.0.0.0/16"
-            EnableDnsHostnames = true
-            EnableDnsSupport = true
-            InstanceTenancy = "default"
-        } 
-
-        [logicalId + "Gateway"] = new internetgateway.InternetGateway {}
-
-        for (subnet in Subnets) {
-            for (subresourceid, subresource in subnet.getResources(cfn.Ref(logicalId), cfn.Ref(logicalId + "Gateway"))) {
-                [subresourceid] = subresource
+            [LogicalId + "EIP"] = new eip.EIP {
+                Domain = vpcId
             }
         }
     }
+
+    fixed natGateway: cfn.RefString? = if (IsPublic) cfn.Ref(LogicalId + "NATGateway") else null
+}
+
+output {
+    value = resources
 }
 
