@@ -4,6 +4,10 @@ Pkl is a new configuration language created by Apple. It is capable of serializi
 
 https://pkl-lang.org/index.html
 
+**NOTE** Pkl support in Rain is experimental! Breaking changes are possible in
+minor version upgrades as we gather feedback and improve the design of the
+generated package.
+
 The following is a basic example of a pkl CloudFormation template.
 
 ```pkl
@@ -81,7 +85,7 @@ amends "pkl:Project"
 
 dependencies {
     ["cfn"] {
-        uri = "package://github.com/aws-cloudformation/rain/releases/download/v1.8.2/cloudformation@1.8.2"
+        uri = "package://github.com/aws-cloudformation/rain/releases/download/v1.8.3/cloudformation@1.8.3"
     }
 }
 ```
@@ -112,7 +116,7 @@ local priv1 = new vpc.Subnet {
     IsPublic = false
     Az = cfn.Select(0, cfn.GetAZs("us-east-1")) 
     Cidr = "10.0.128.0/18"
-    PublicNATGateway = pub1.getNATGateway()
+    PublicNATGateway = pub1.natGateway
 }
 
 local priv2 = new vpc.Subnet {
@@ -120,23 +124,28 @@ local priv2 = new vpc.Subnet {
     IsPublic = false
     Az = cfn.Select(1, cfn.GetAZs("us-east-1")) 
     Cidr = "10.0.192.0/18"
-    PublicNATGateway = pub2.getNATGateway()
+    PublicNATGateway = pub2.natGateway
 }
 
-local myvpc = new vpc.VPC {
+local myvpc = new vpc {
+    LogicalId = "MyVPC"
     Subnets {
         pub1
         priv1
+        pub2
+        priv2
     }
 }
 
 Resources {
     // Create the VPC
-    for (logicalId, resource in myvpc.getResources("MyVPC")) {
-        [logicalId] = resource
-    }
+    ...myvpc.resources
 
     // Create other resources inside the VPC...
+}
+
+Outputs {
+    ...myvpc.outputs
 }
 
 ```

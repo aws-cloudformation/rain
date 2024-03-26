@@ -273,7 +273,9 @@ func getPropType(defName string, propName string,
 			}
 			retval = shortName + defName + propName
 		} else {
-			return "", fmt.Errorf("expected blank type to have $ref, patternProperties, anyOf, or oneOf: %s", propName)
+			// Should not happen unless it's an incomplete schema
+			config.Debugf("expected blank type to have $ref, patternProperties, anyOf, or oneOf: %s", propName)
+			retval = "Dynamic|Mapping"
 		}
 	}
 

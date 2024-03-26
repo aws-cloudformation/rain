@@ -1,0 +1,24 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: A simple demo to reproduce the rain CLI tool issue with string parameters using WaitConditionHandle.
+
+Parameters:
+  CreateThing:
+    Description: Should this Thing be created?
+    Type: String
+    # ❌ - Broken Allowed Values
+    AllowedValues:
+      - Yes
+      - No
+    Default: No
+
+Conditions:
+  ShouldCreateThing: !Equals
+    - !Ref CreateThing
+    - Yes
+
+Resources:
+  Thing:
+    Type: AWS::CloudFormation::WaitConditionHandle
+    Condition: ShouldCreateThing
+

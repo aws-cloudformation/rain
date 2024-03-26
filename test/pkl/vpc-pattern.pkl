@@ -21,7 +21,7 @@ local priv1 = new vpc.Subnet {
     IsPublic = false
     Az = cfn.Select(0, cfn.GetAZs("us-east-1")) 
     Cidr = "10.0.128.0/18"
-    PublicNATGateway = pub1.getNATGateway()
+    PublicNATGateway = pub1.natGateway
 }
 
 local priv2 = new vpc.Subnet {
@@ -29,10 +29,11 @@ local priv2 = new vpc.Subnet {
     IsPublic = false
     Az = cfn.Select(1, cfn.GetAZs("us-east-1")) 
     Cidr = "10.0.192.0/18"
-    PublicNATGateway = pub2.getNATGateway()
+    PublicNATGateway = pub2.natGateway
 }
 
-local myvpc = new vpc.VPC {
+local myvpc = new vpc {
+    LogicalId = "MyVPC"
     Subnets {
         pub1
         priv1
@@ -43,10 +44,12 @@ local myvpc = new vpc.VPC {
 
 Resources {
     // Create the VPC
-    for (logicalId, resource in myvpc.getResources("MyVPC")) {
-        [logicalId] = resource
-    }
+    ...myvpc.resources
 
     // Create other resources inside the VPC...
+}
+
+Outputs {
+    ...myvpc.outputs
 }
 

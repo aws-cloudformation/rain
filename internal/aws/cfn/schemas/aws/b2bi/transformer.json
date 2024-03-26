@@ -1,0 +1,227 @@
+{
+  "typeName": "AWS::B2BI::Transformer",
+  "description": "Definition of AWS::B2BI::Transformer Resource Type",
+  "definitions": {
+    "EdiType": {
+      "oneOf": [
+        {
+          "type": "object",
+          "title": "X12Details",
+          "properties": {
+            "X12Details": {
+              "$ref": "#/definitions/X12Details"
+            }
+          },
+          "required": [
+            "X12Details"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "FileFormat": {
+      "type": "string",
+      "enum": [
+        "XML",
+        "JSON"
+      ]
+    },
+    "Tag": {
+      "type": "object",
+      "properties": {
+        "Key": {
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1
+        },
+        "Value": {
+          "type": "string",
+          "maxLength": 256,
+          "minLength": 0
+        }
+      },
+      "required": [
+        "Key",
+        "Value"
+      ],
+      "additionalProperties": false
+    },
+    "TransformerStatus": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ]
+    },
+    "X12Details": {
+      "type": "object",
+      "properties": {
+        "TransactionSet": {
+          "$ref": "#/definitions/X12TransactionSet"
+        },
+        "Version": {
+          "$ref": "#/definitions/X12Version"
+        }
+      },
+      "additionalProperties": false
+    },
+    "X12TransactionSet": {
+      "type": "string",
+      "enum": [
+        "X12_110",
+        "X12_180",
+        "X12_204",
+        "X12_210",
+        "X12_214",
+        "X12_215",
+        "X12_310",
+        "X12_315",
+        "X12_322",
+        "X12_404",
+        "X12_410",
+        "X12_820",
+        "X12_824",
+        "X12_830",
+        "X12_846",
+        "X12_850",
+        "X12_852",
+        "X12_855",
+        "X12_856",
+        "X12_860",
+        "X12_861",
+        "X12_864",
+        "X12_940",
+        "X12_990",
+        "X12_997"
+      ]
+    },
+    "X12Version": {
+      "type": "string",
+      "enum": [
+        "VERSION_4010",
+        "VERSION_4030",
+        "VERSION_5010"
+      ]
+    }
+  },
+  "properties": {
+    "CreatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "EdiType": {
+      "$ref": "#/definitions/EdiType"
+    },
+    "FileFormat": {
+      "$ref": "#/definitions/FileFormat"
+    },
+    "MappingTemplate": {
+      "type": "string",
+      "maxLength": 350000,
+      "minLength": 0
+    },
+    "ModifiedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "Name": {
+      "type": "string",
+      "maxLength": 254,
+      "minLength": 1
+    },
+    "SampleDocument": {
+      "type": "string",
+      "maxLength": 1024,
+      "minLength": 0
+    },
+    "Status": {
+      "$ref": "#/definitions/TransformerStatus"
+    },
+    "Tags": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Tag"
+      },
+      "maxItems": 200,
+      "minItems": 0
+    },
+    "TransformerArn": {
+      "type": "string",
+      "maxLength": 255,
+      "minLength": 1
+    },
+    "TransformerId": {
+      "type": "string",
+      "maxLength": 64,
+      "minLength": 1,
+      "pattern": "^[a-zA-Z0-9_-]+$"
+    }
+  },
+  "required": [
+    "EdiType",
+    "FileFormat",
+    "MappingTemplate",
+    "Name",
+    "Status"
+  ],
+  "readOnlyProperties": [
+    "/properties/CreatedAt",
+    "/properties/ModifiedAt",
+    "/properties/TransformerArn",
+    "/properties/TransformerId"
+  ],
+  "primaryIdentifier": [
+    "/properties/TransformerId"
+  ],
+  "handlers": {
+    "create": {
+      "permissions": [
+        "b2bi:CreateTransformer",
+        "b2bi:TagResource",
+        "b2bi:UpdateTransformer",
+        "logs:CreateLogDelivery",
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:DescribeLogGroups",
+        "logs:DescribeLogStreams",
+        "logs:DescribeResourcePolicies",
+        "logs:ListLogDeliveries",
+        "logs:PutLogEvents",
+        "logs:PutResourcePolicy"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "b2bi:GetTransformer",
+        "b2bi:ListTagsForResource"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "b2bi:TagResource",
+        "b2bi:UntagResource",
+        "b2bi:UpdateTransformer"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "b2bi:DeleteTransformer",
+        "logs:DeleteLogDelivery",
+        "logs:ListLogDeliveries"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "b2bi:ListTransformers"
+      ]
+    }
+  },
+  "tagging": {
+    "cloudFormationSystemTags": true,
+    "tagOnCreate": true,
+    "tagProperty": "/properties/Tags",
+    "tagUpdatable": true,
+    "taggable": true
+  },
+  "additionalProperties": false
+}

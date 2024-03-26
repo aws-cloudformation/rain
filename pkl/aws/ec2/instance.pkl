@@ -15,19 +15,8 @@ open class InstanceAssociationParameter {
 open class InstanceBlockDeviceMapping {
     DeviceName: String|Mapping
     Ebs: (InstanceEbs)?
-    NoDevice: (InstanceNoDevice)?
+    NoDevice: (Dynamic)?
     VirtualName: (String|Mapping)?
-}
-
-/// 
-open class InstanceCpuOptions {
-    CoreCount: (Int|Mapping)?
-    ThreadsPerCore: (Int|Mapping)?
-}
-
-/// 
-open class InstanceCreditSpecification {
-    CPUCredits: (String|Mapping)?
 }
 
 /// 
@@ -53,16 +42,6 @@ open class InstanceElasticInferenceAccelerator {
 }
 
 /// 
-open class InstanceEnclaveOptions {
-    Enabled: (Boolean|Mapping)?
-}
-
-/// 
-open class InstanceHibernationOptions {
-    Configured: (Boolean|Mapping)?
-}
-
-/// 
 open class InstanceInstanceIpv6Address {
     Ipv6Address: String|Mapping
 }
@@ -71,7 +50,7 @@ open class InstanceInstanceIpv6Address {
 open class InstanceLaunchTemplateSpecification {
     LaunchTemplateId: (String|Mapping)?
     LaunchTemplateName: (String|Mapping)?
-    Version: String|Mapping
+    Version: (String|Mapping)?
 }
 
 /// 
@@ -96,14 +75,13 @@ open class InstanceNetworkInterface {
     SubnetId: (String|Mapping)?
 }
 
-typealias InstanceNoDevice = Dynamic
-
+typealias PrivateDnsNameOptionsHostnameType = "ip-name"|"resource-name"
 
 /// 
 open class InstancePrivateDnsNameOptions {
     EnableResourceNameDnsAAAARecord: (Boolean|Mapping)?
     EnableResourceNameDnsARecord: (Boolean|Mapping)?
-    HostnameType: (String|Mapping)?
+    HostnameType: (PrivateDnsNameOptionsHostnameType|Mapping)?
 }
 
 /// 
@@ -136,124 +114,127 @@ open class Instance extends cloudformation.Resource {
     Type = "AWS::EC2::Instance"
 
 
-    /// 
+    /// This property is reserved for internal use. If you use it, the stack fails with this error: Bad property set: [Testing this property] (Service: AmazonEC2; Status Code: 400; Error Code: InvalidParameterCombination; Request ID: 0XXXXXX-49c7-4b40-8bcc-76885dcXXXXX).
     hidden AdditionalInfo: (String|Mapping)?
 
-    /// 
-    hidden Affinity: (String|Mapping)?
+    /// Indicates whether the instance is associated with a dedicated host. If you want the instance to always restart on the same host on which it was launched, specify host. If you want the instance to restart on any available host, but try to launch onto the last host it ran on (on a best-effort basis), specify default.
+    hidden Affinity: (InstanceAffinity|Mapping)?
 
-    /// 
+    /// The Availability Zone of the instance.
     hidden AvailabilityZone: (String|Mapping)?
 
-    /// 
+    /// The block device mapping entries that defines the block devices to attach to the instance at launch.
     hidden BlockDeviceMappings: (Listing<InstanceBlockDeviceMapping>)?
 
-    /// 
-    hidden CpuOptions: (InstanceCpuOptions)?
+    /// The CPU options for the instance.
+    hidden CpuOptions: (Dynamic)?
 
-    /// 
-    hidden CreditSpecification: (InstanceCreditSpecification)?
+    /// The credit option for CPU usage of the burstable performance instance. Valid values are standard and unlimited.
+    hidden CreditSpecification: (Dynamic)?
 
-    /// 
+    /// If you set this parameter to true, you can't terminate the instance using the Amazon EC2 console, CLI, or API; otherwise, you can.
     hidden DisableApiTermination: (Boolean|Mapping)?
 
-    /// 
+    /// Indicates whether the instance is optimized for Amazon EBS I/O.
     hidden EbsOptimized: (Boolean|Mapping)?
 
-    /// 
+    /// An elastic GPU to associate with the instance.
     hidden ElasticGpuSpecifications: (Listing<InstanceElasticGpuSpecification>)?
 
-    /// 
+    /// An elastic inference accelerator to associate with the instance.
     hidden ElasticInferenceAccelerators: (Listing<InstanceElasticInferenceAccelerator>)?
 
-    /// 
-    hidden EnclaveOptions: (InstanceEnclaveOptions)?
+    /// Indicates whether the instance is enabled for AWS Nitro Enclaves.
+    hidden EnclaveOptions: (Dynamic)?
 
-    /// 
-    hidden HibernationOptions: (InstanceHibernationOptions)?
+    /// Indicates whether an instance is enabled for hibernation.
+    hidden HibernationOptions: (Dynamic)?
 
-    /// 
+    /// If you specify host for the Affinity property, the ID of a dedicated host that the instance is associated with. If you don't specify an ID, Amazon EC2 launches the instance onto any available, compatible dedicated host in your account.
     hidden HostId: (String|Mapping)?
 
-    /// 
+    /// The ARN of the host resource group in which to launch the instances. If you specify a host resource group ARN, omit the Tenancy parameter or set it to host.
     hidden HostResourceGroupArn: (String|Mapping)?
 
-    /// 
+    /// The IAM instance profile.
     hidden IamInstanceProfile: (String|Mapping)?
 
-    /// 
+    /// The ID of the AMI. An AMI ID is required to launch an instance and must be specified here or in a launch template.
     hidden ImageId: (String|Mapping)?
 
-    /// 
+    /// Indicates whether an instance stops or terminates when you initiate shutdown from the instance (using the operating system command for system shutdown).
     hidden InstanceInitiatedShutdownBehavior: (String|Mapping)?
 
-    /// 
+    /// The instance type.
     hidden InstanceType: (String|Mapping)?
 
-    /// 
+    /// [EC2-VPC] The number of IPv6 addresses to associate with the primary network interface. Amazon EC2 chooses the IPv6 addresses from the range of your subnet.
     hidden Ipv6AddressCount: (Int|Mapping)?
 
-    /// 
+    /// [EC2-VPC] The IPv6 addresses from the range of the subnet to associate with the primary network interface.
     hidden Ipv6Addresses: (Listing<InstanceInstanceIpv6Address>)?
 
-    /// 
+    /// The ID of the kernel.
     hidden KernelId: (String|Mapping)?
 
-    /// 
+    /// The name of the key pair.
     hidden KeyName: (String|Mapping)?
 
-    /// 
-    hidden LaunchTemplate: (InstanceLaunchTemplateSpecification)?
+    /// The launch template to use to launch the instances.
+    hidden LaunchTemplate: (Dynamic)?
 
-    /// 
+    /// The license configurations.
     hidden LicenseSpecifications: (Listing<InstanceLicenseSpecification>)?
 
-    /// 
+    /// Specifies whether detailed monitoring is enabled for the instance.
     hidden Monitoring: (Boolean|Mapping)?
 
-    /// 
+    /// The network interfaces to associate with the instance.
     hidden NetworkInterfaces: (Listing<InstanceNetworkInterface>)?
 
-    /// 
+    /// The name of an existing placement group that you want to launch the instance into (cluster | partition | spread).
     hidden PlacementGroupName: (String|Mapping)?
 
-    /// 
-    hidden PrivateDnsNameOptions: (InstancePrivateDnsNameOptions)?
+    /// The options for the instance hostname.
+    hidden PrivateDnsNameOptions: (Dynamic)?
 
-    /// 
+    /// [EC2-VPC] The primary IPv4 address. You must specify a value from the IPv4 address range of the subnet.
     hidden PrivateIpAddress: (String|Mapping)?
 
-    /// 
+    /// Indicates whether to assign the tags from the instance to all of the volumes attached to the instance at launch. If you specify true and you assign tags to the instance, those tags are automatically assigned to all of the volumes that you attach to the instance at launch. If you specify false, those tags are not assigned to the attached volumes.
     hidden PropagateTagsToVolumeOnCreation: (Boolean|Mapping)?
 
-    /// 
+    /// The ID of the RAM disk to select.
     hidden RamdiskId: (String|Mapping)?
 
-    /// 
+    /// The IDs of the security groups.
     hidden SecurityGroupIds: (Listing<String|Mapping>)?
 
-    /// 
+    /// the names of the security groups. For a nondefault VPC, you must use security group IDs instead.
     hidden SecurityGroups: (Listing<String|Mapping>)?
 
-    /// 
+    /// Specifies whether to enable an instance launched in a VPC to perform NAT.
     hidden SourceDestCheck: (Boolean|Mapping)?
 
-    /// 
+    /// The SSM document and parameter values in AWS Systems Manager to associate with this instance.
     hidden SsmAssociations: (Listing<InstanceSsmAssociation>)?
 
+    /// [EC2-VPC] The ID of the subnet to launch the instance into.
+    ///
+    /// 
     /// 
     hidden SubnetId: (String|Mapping)?
 
-    /// 
+    /// The tags to add to the instance.
     hidden Tags: (Listing<InstanceTag>)?
 
-    /// 
+    /// The tenancy of the instance (if the instance is running in a VPC). An instance with a tenancy of dedicated runs on single-tenant hardware.
     hidden Tenancy: (String|Mapping)?
 
-    /// 
+    /// The user data to make available to the instance.
     hidden UserData: (String|Mapping)?
 
-    /// 
+    /// The volumes to attach to the instance.
     hidden Volumes: (Listing<InstanceVolume>)?
 
     Properties {
@@ -300,3 +281,6 @@ open class Instance extends cloudformation.Resource {
     }
 
 }
+
+
+typealias InstanceAffinity = "default"|"host"

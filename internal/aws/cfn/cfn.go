@@ -466,6 +466,11 @@ func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[s
 		input.TemplateURL = ptr.String(templateBody)
 	} else {
 		input.TemplateBody = ptr.String(templateBody)
+		config.Debugf("About to create changeset with body:\n%s", templateBody)
+		for _, param := range params {
+			config.Debugf("Parameter Key: %s, Value: %s",
+				*param.ParameterKey, *param.ParameterValue)
+		}
 	}
 
 	_, err = getClient().CreateChangeSet(context.Background(), input)
