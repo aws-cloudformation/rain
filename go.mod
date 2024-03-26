@@ -29,6 +29,7 @@ require (
 )
 
 require (
+	github.com/apple/pkl-go v0.6.1-0.20240320183646-5827572b8112
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.36.1
 	github.com/aws/aws-sdk-go-v2/service/rds v1.76.0
 	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.21.2
@@ -39,7 +40,6 @@ require (
 )
 
 require (
-	github.com/apple/pkl-go v0.6.1-0.20240320183646-5827572b8112 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.23.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -57,7 +57,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.4 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.4 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.0 // indirect
-	github.com/aws/aws-sdk-go-v2/service/cloudcontrol v1.18.2
+	github.com/aws/aws-sdk-go-v2/service/cloudcontrol v1.18.3
 	github.com/aws/aws-sdk-go-v2/service/iam v1.31.2
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.6 // indirect
