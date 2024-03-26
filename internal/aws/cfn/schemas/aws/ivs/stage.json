@@ -1,0 +1,111 @@
+{
+  "typeName": "AWS::IVS::Stage",
+  "description": "Resource Definition for type AWS::IVS::Stage.",
+  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+  "definitions": {
+    "Tag": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "Value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "Value",
+        "Key"
+      ]
+    }
+  },
+  "properties": {
+    "Arn": {
+      "description": "Stage ARN is automatically generated on creation and assigned as the unique identifier.",
+      "type": "string",
+      "pattern": "^arn:aws[-a-z]*:ivs:[a-z0-9-]+:[0-9]+:stage/[a-zA-Z0-9-]+$",
+      "minLength": 0,
+      "maxLength": 128
+    },
+    "Name": {
+      "description": "Stage name",
+      "type": "string",
+      "minLength": 0,
+      "maxLength": 128,
+      "pattern": "^[a-zA-Z0-9-_]*$"
+    },
+    "Tags": {
+      "description": "An array of key-value pairs to apply to this resource.",
+      "type": "array",
+      "uniqueItems": true,
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
+    },
+    "ActiveSessionId": {
+      "description": "ID of the active session within the stage.",
+      "type": "string",
+      "default": "",
+      "minLength": 0,
+      "maxLength": 128
+    }
+  },
+  "additionalProperties": false,
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": false,
+    "tagProperty": "/properties/Tags"
+  },
+  "readOnlyProperties": [
+    "/properties/Arn",
+    "/properties/ActiveSessionId"
+  ],
+  "primaryIdentifier": [
+    "/properties/Arn"
+  ],
+  "handlers": {
+    "create": {
+      "permissions": [
+        "ivs:CreateStage",
+        "ivs:GetStage",
+        "ivs:TagResource",
+        "ivs:ListTagsForResource"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "ivs:GetStage",
+        "ivs:ListTagsForResource"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "ivs:GetStage",
+        "ivs:UpdateStage",
+        "ivs:TagResource",
+        "ivs:UnTagResource",
+        "ivs:ListTagsForResource"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "ivs:DeleteStage",
+        "ivs:UnTagResource"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "ivs:ListStages",
+        "ivs:ListTagsForResource"
+      ]
+    }
+  }
+}

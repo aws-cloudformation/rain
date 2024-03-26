@@ -1,0 +1,153 @@
+{
+  "typeName": "AWS::B2BI::Partnership",
+  "description": "Definition of AWS::B2BI::Partnership Resource Type",
+  "definitions": {
+    "Tag": {
+      "type": "object",
+      "properties": {
+        "Key": {
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1
+        },
+        "Value": {
+          "type": "string",
+          "maxLength": 256,
+          "minLength": 0
+        }
+      },
+      "required": [
+        "Key",
+        "Value"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "Capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 64,
+        "minLength": 1,
+        "pattern": "^[a-zA-Z0-9_-]+$"
+      }
+    },
+    "CreatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "Email": {
+      "type": "string",
+      "maxLength": 254,
+      "minLength": 5,
+      "pattern": "^[\\w\\.\\-]+@[\\w\\.\\-]+$"
+    },
+    "ModifiedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "Name": {
+      "type": "string",
+      "maxLength": 254,
+      "minLength": 1
+    },
+    "PartnershipArn": {
+      "type": "string",
+      "maxLength": 255,
+      "minLength": 1
+    },
+    "PartnershipId": {
+      "type": "string",
+      "maxLength": 64,
+      "minLength": 1,
+      "pattern": "^[a-zA-Z0-9_-]+$"
+    },
+    "Phone": {
+      "type": "string",
+      "maxLength": 22,
+      "minLength": 7,
+      "pattern": "^\\+?([0-9 \\t\\-()\\/]{7,})(?:\\s*(?:#|x\\.?|ext\\.?|extension) \\t*(\\d+))?$"
+    },
+    "ProfileId": {
+      "type": "string",
+      "maxLength": 64,
+      "minLength": 1,
+      "pattern": "^[a-zA-Z0-9_-]+$"
+    },
+    "Tags": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Tag"
+      },
+      "maxItems": 200,
+      "minItems": 0
+    },
+    "TradingPartnerId": {
+      "type": "string",
+      "maxLength": 64,
+      "minLength": 1,
+      "pattern": "^[a-zA-Z0-9_-]+$"
+    }
+  },
+  "required": [
+    "Email",
+    "Name",
+    "ProfileId"
+  ],
+  "readOnlyProperties": [
+    "/properties/CreatedAt",
+    "/properties/ModifiedAt",
+    "/properties/PartnershipArn",
+    "/properties/PartnershipId",
+    "/properties/TradingPartnerId"
+  ],
+  "createOnlyProperties": [
+    "/properties/Email",
+    "/properties/Phone",
+    "/properties/ProfileId"
+  ],
+  "primaryIdentifier": [
+    "/properties/PartnershipId"
+  ],
+  "handlers": {
+    "create": {
+      "permissions": [
+        "b2bi:CreatePartnership",
+        "b2bi:TagResource",
+        "s3:PutObject"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "b2bi:GetPartnership",
+        "b2bi:ListTagsForResource"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "b2bi:TagResource",
+        "b2bi:UntagResource",
+        "b2bi:UpdatePartnership"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "b2bi:DeletePartnership"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "b2bi:ListPartnerships"
+      ]
+    }
+  },
+  "tagging": {
+    "cloudFormationSystemTags": true,
+    "tagOnCreate": true,
+    "tagProperty": "/properties/Tags",
+    "tagUpdatable": true,
+    "taggable": true
+  },
+  "additionalProperties": false
+}

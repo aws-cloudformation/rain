@@ -6,7 +6,6 @@ set -eou pipefail
 
 export RAIN_CACHE_DIR=$1
 
-# TODO: Make an API call to the all AWS type names
-cat internal/cmd/forecast/all-types.txt | xargs -n1 scripts/one-schema.sh
+rain build -l | grep "^AWS::" | xargs -n1 scripts/one-schema.sh
 
 

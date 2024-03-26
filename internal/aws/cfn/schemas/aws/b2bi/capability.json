@@ -1,0 +1,277 @@
+{
+  "typeName": "AWS::B2BI::Capability",
+  "description": "Definition of AWS::B2BI::Capability Resource Type",
+  "definitions": {
+    "CapabilityConfiguration": {
+      "oneOf": [
+        {
+          "type": "object",
+          "title": "Edi",
+          "properties": {
+            "Edi": {
+              "$ref": "#/definitions/EdiConfiguration"
+            }
+          },
+          "required": [
+            "Edi"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "CapabilityType": {
+      "type": "string",
+      "enum": [
+        "edi"
+      ]
+    },
+    "EdiConfiguration": {
+      "type": "object",
+      "properties": {
+        "Type": {
+          "$ref": "#/definitions/EdiType"
+        },
+        "InputLocation": {
+          "$ref": "#/definitions/S3Location"
+        },
+        "OutputLocation": {
+          "$ref": "#/definitions/S3Location"
+        },
+        "TransformerId": {
+          "type": "string",
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9_-]+$"
+        }
+      },
+      "required": [
+        "InputLocation",
+        "OutputLocation",
+        "TransformerId",
+        "Type"
+      ],
+      "additionalProperties": false
+    },
+    "EdiType": {
+      "oneOf": [
+        {
+          "type": "object",
+          "title": "X12Details",
+          "properties": {
+            "X12Details": {
+              "$ref": "#/definitions/X12Details"
+            }
+          },
+          "required": [
+            "X12Details"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "S3Location": {
+      "type": "object",
+      "properties": {
+        "BucketName": {
+          "type": "string",
+          "maxLength": 63,
+          "minLength": 3
+        },
+        "Key": {
+          "type": "string",
+          "maxLength": 1024,
+          "minLength": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "Tag": {
+      "type": "object",
+      "properties": {
+        "Key": {
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1
+        },
+        "Value": {
+          "type": "string",
+          "maxLength": 256,
+          "minLength": 0
+        }
+      },
+      "required": [
+        "Key",
+        "Value"
+      ],
+      "additionalProperties": false
+    },
+    "X12Details": {
+      "type": "object",
+      "properties": {
+        "TransactionSet": {
+          "$ref": "#/definitions/X12TransactionSet"
+        },
+        "Version": {
+          "$ref": "#/definitions/X12Version"
+        }
+      },
+      "additionalProperties": false
+    },
+    "X12TransactionSet": {
+      "type": "string",
+      "enum": [
+        "X12_110",
+        "X12_180",
+        "X12_204",
+        "X12_210",
+        "X12_214",
+        "X12_215",
+        "X12_310",
+        "X12_315",
+        "X12_322",
+        "X12_404",
+        "X12_410",
+        "X12_820",
+        "X12_824",
+        "X12_830",
+        "X12_846",
+        "X12_850",
+        "X12_852",
+        "X12_855",
+        "X12_856",
+        "X12_860",
+        "X12_861",
+        "X12_864",
+        "X12_940",
+        "X12_990",
+        "X12_997"
+      ]
+    },
+    "X12Version": {
+      "type": "string",
+      "enum": [
+        "VERSION_4010",
+        "VERSION_4030",
+        "VERSION_5010"
+      ]
+    }
+  },
+  "properties": {
+    "CapabilityArn": {
+      "type": "string",
+      "maxLength": 255,
+      "minLength": 1
+    },
+    "CapabilityId": {
+      "type": "string",
+      "maxLength": 64,
+      "minLength": 1,
+      "pattern": "^[a-zA-Z0-9_-]+$"
+    },
+    "Configuration": {
+      "$ref": "#/definitions/CapabilityConfiguration"
+    },
+    "CreatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "InstructionsDocuments": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/S3Location"
+      },
+      "maxItems": 5,
+      "minItems": 0
+    },
+    "ModifiedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "Name": {
+      "type": "string",
+      "maxLength": 254,
+      "minLength": 1
+    },
+    "Tags": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Tag"
+      },
+      "maxItems": 200,
+      "minItems": 0
+    },
+    "Type": {
+      "$ref": "#/definitions/CapabilityType"
+    }
+  },
+  "required": [
+    "Configuration",
+    "Name",
+    "Type"
+  ],
+  "readOnlyProperties": [
+    "/properties/CapabilityArn",
+    "/properties/CapabilityId",
+    "/properties/CreatedAt",
+    "/properties/ModifiedAt"
+  ],
+  "createOnlyProperties": [
+    "/properties/Type"
+  ],
+  "primaryIdentifier": [
+    "/properties/CapabilityId"
+  ],
+  "handlers": {
+    "create": {
+      "permissions": [
+        "b2bi:CreateCapability",
+        "b2bi:TagResource",
+        "events:ListRules",
+        "events:PutRule",
+        "events:PutTargets",
+        "logs:CreateLogDelivery",
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:DescribeLogGroups",
+        "logs:DescribeLogStreams",
+        "logs:DescribeResourcePolicies",
+        "logs:ListLogDeliveries",
+        "logs:PutLogEvents",
+        "logs:PutResourcePolicy",
+        "s3:GetObject",
+        "s3:ListBucket"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "b2bi:GetCapability",
+        "b2bi:ListTagsForResource"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "b2bi:TagResource",
+        "b2bi:UntagResource",
+        "b2bi:UpdateCapability"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "b2bi:DeleteCapability"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "b2bi:ListCapabilities"
+      ]
+    }
+  },
+  "tagging": {
+    "cloudFormationSystemTags": true,
+    "tagOnCreate": true,
+    "tagProperty": "/properties/Tags",
+    "tagUpdatable": true,
+    "taggable": true
+  },
+  "additionalProperties": false
+}

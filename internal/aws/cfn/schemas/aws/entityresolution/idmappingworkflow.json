@@ -1,0 +1,287 @@
+{
+  "typeName": "AWS::EntityResolution::IdMappingWorkflow",
+  "description": "IdMappingWorkflow defined in AWS Entity Resolution service",
+  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-entity-resolution.git",
+  "definitions": {
+    "EntityName": {
+      "type": "string",
+      "pattern": "^[a-zA-Z_0-9-]*$",
+      "minLength": 0,
+      "maxLength": 255
+    },
+    "Description": {
+      "type": "string",
+      "minLength": 0,
+      "maxLength": 255
+    },
+    "AttributeName": {
+      "type": "string",
+      "pattern": "^[a-zA-Z_0-9- \\t]*$",
+      "minLength": 0,
+      "maxLength": 255
+    },
+    "SchemaMappingArn": {
+      "description": "The SchemaMapping arn associated with the Schema",
+      "type": "string",
+      "pattern": "^arn:(aws|aws-us-gov|aws-cn):entityresolution:.*:[0-9]+:(schemamapping/.*)$"
+    },
+    "KMSArn": {
+      "type": "string",
+      "pattern": "^arn:(aws|aws-us-gov|aws-cn):kms:.*:[0-9]+:.*$"
+    },
+    "IdMappingWorkflowArn": {
+      "description": "The default IdMappingWorkflow arn",
+      "type": "string",
+      "pattern": "^arn:(aws|aws-us-gov|aws-cn):entityresolution:.*:[0-9]+:(idmappingworkflow/.*)$"
+    },
+    "CreatedAt": {
+      "description": "The time of this IdMappingWorkflow got created",
+      "type": "string"
+    },
+    "UpdatedAt": {
+      "description": "The time of this IdMappingWorkflow got last updated at",
+      "type": "string"
+    },
+    "IdMappingWorkflowInputSource": {
+      "type": "object",
+      "properties": {
+        "InputSourceARN": {
+          "description": "An Glue table ARN for the input source table or IdNamespace ARN",
+          "type": "string",
+          "pattern": "arn:(aws|aws-us-gov|aws-cn):.*:.*:[0-9]+:.*$"
+        },
+        "SchemaArn": {
+          "type": "string",
+          "$ref": "#/definitions/SchemaMappingArn"
+        },
+        "Type": {
+          "type": "string",
+          "enum": [
+            "SOURCE",
+            "TARGET"
+          ]
+        }
+      },
+      "required": [
+        "InputSourceARN"
+      ],
+      "additionalProperties": false
+    },
+    "IdMappingWorkflowOutputSource": {
+      "type": "object",
+      "properties": {
+        "OutputS3Path": {
+          "description": "The S3 path to which Entity Resolution will write the output table",
+          "type": "string",
+          "pattern": "^s3://([^/]+)/?(.*?([^/]+)/?)$"
+        },
+        "KMSArn": {
+          "$ref": "#/definitions/KMSArn"
+        }
+      },
+      "required": [
+        "OutputS3Path"
+      ],
+      "additionalProperties": false
+    },
+    "IdMappingTechniques": {
+      "type": "object",
+      "properties": {
+        "IdMappingType": {
+          "type": "string",
+          "enum": [
+            "PROVIDER"
+          ]
+        },
+        "ProviderProperties": {
+          "$ref": "#/definitions/ProviderProperties"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProviderProperties": {
+      "type": "object",
+      "properties": {
+        "ProviderServiceArn": {
+          "type": "string",
+          "description": "Arn of the Provider Service being used.",
+          "pattern": "^arn:(aws|aws-us-gov|aws-cn):entityresolution:([A-Za-z0-9]+(-[A-Za-z0-9]+)+)::providerservice/[A-Za-z0-9]+/[A-Za-z0-9]+$"
+        },
+        "ProviderConfiguration": {
+          "type": "object",
+          "additionalProperties": false,
+          "patternProperties": {
+            "^.+$": {
+              "type": "string"
+            }
+          },
+          "description": "Additional Provider configuration that would be required for the provider service. The Configuration must be in JSON string format"
+        },
+        "IntermediateSourceConfiguration": {
+          "$ref": "#/definitions/IntermediateSourceConfiguration"
+        }
+      },
+      "required": [
+        "ProviderServiceArn"
+      ],
+      "additionalProperties": false
+    },
+    "IntermediateSourceConfiguration": {
+      "type": "object",
+      "properties": {
+        "IntermediateS3Path": {
+          "type": "string",
+          "description": "The s3 path that would be used to stage the intermediate data being generated during workflow execution."
+        }
+      },
+      "required": [
+        "IntermediateS3Path"
+      ],
+      "additionalProperties": false
+    },
+    "Tag": {
+      "description": "A key-value pair to associate with a resource",
+      "type": "object",
+      "properties": {
+        "Key": {
+          "type": "string",
+          "description": "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "Value": {
+          "type": "string",
+          "description": "The value for the tag. You can specify a value that is 0 to 256 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.",
+          "minLength": 0,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "Key",
+        "Value"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "WorkflowName": {
+      "description": "The name of the IdMappingWorkflow",
+      "$ref": "#/definitions/EntityName"
+    },
+    "Description": {
+      "description": "The description of the IdMappingWorkflow",
+      "$ref": "#/definitions/Description"
+    },
+    "InputSourceConfig": {
+      "type": "array",
+      "insertionOrder": false,
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "$ref": "#/definitions/IdMappingWorkflowInputSource"
+      }
+    },
+    "OutputSourceConfig": {
+      "type": "array",
+      "insertionOrder": false,
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "$ref": "#/definitions/IdMappingWorkflowOutputSource"
+      }
+    },
+    "IdMappingTechniques": {
+      "$ref": "#/definitions/IdMappingTechniques"
+    },
+    "RoleArn": {
+      "type": "string",
+      "pattern": "^arn:(aws|aws-us-gov|aws-cn):iam::\\d{12}:role/?[a-zA-Z_0-9+=,.@\\-_/]+$"
+    },
+    "Tags": {
+      "type": "array",
+      "uniqueItems": true,
+      "insertionOrder": false,
+      "minItems": 0,
+      "maxItems": 200,
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
+    },
+    "WorkflowArn": {
+      "$ref": "#/definitions/IdMappingWorkflowArn"
+    },
+    "CreatedAt": {
+      "$ref": "#/definitions/CreatedAt"
+    },
+    "UpdatedAt": {
+      "$ref": "#/definitions/UpdatedAt"
+    }
+  },
+  "createOnlyProperties": [
+    "/properties/WorkflowName"
+  ],
+  "readOnlyProperties": [
+    "/properties/WorkflowArn",
+    "/properties/UpdatedAt",
+    "/properties/CreatedAt"
+  ],
+  "primaryIdentifier": [
+    "/properties/WorkflowName"
+  ],
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags"
+  },
+  "handlers": {
+    "create": {
+      "permissions": [
+        "entityresolution:CreateIdMappingWorkflow",
+        "entityresolution:GetIdMappingWorkflow",
+        "entityresolution:TagResource",
+        "kms:CreateGrant",
+        "kms:DescribeKey",
+        "iam:PassRole"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "entityresolution:GetIdMappingWorkflow",
+        "entityresolution:UpdateIdMappingWorkflow",
+        "entityresolution:ListTagsForResource",
+        "entityresolution:TagResource",
+        "entityresolution:UntagResource",
+        "iam:PassRole",
+        "kms:CreateGrant",
+        "kms:DescribeKey"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "entityresolution:GetIdMappingWorkflow",
+        "entityresolution:ListTagsForResource"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "entityresolution:DeleteIdMappingWorkflow",
+        "entityresolution:GetIdMappingWorkflow",
+        "entityresolution:UntagResource"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "entityresolution:ListIdMappingWorkflows"
+      ]
+    }
+  },
+  "required": [
+    "WorkflowName",
+    "InputSourceConfig",
+    "IdMappingTechniques",
+    "RoleArn"
+  ],
+  "additionalProperties": false
+}
