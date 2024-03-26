@@ -30,5 +30,6 @@ cat internal/cmd/forecast/all-types.txt | xargs -n1 scripts/gen-one-pkl.sh
 
 echo "Testing patterns..."
 pkl eval test/pkl/bucket.pkl | ./rain fmt | cfn-lint
+pkl eval test/pkl/vpc-pattern.pkl | ./rain fmt | cfn-lint
 
 echo "Success!"

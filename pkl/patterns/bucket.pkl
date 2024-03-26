@@ -1,9 +1,9 @@
-/// An experimental pattern to create an S3 bucket that passes typical compliance checks.
-
 import "../cloudformation.pkl" as cfn
 import "../aws/s3/bucket.pkl" as bucket
 import "../aws/iam/rolepolicy.pkl" as rolepolicy
 import "../aws/iam/role.pkl" as role
+
+// An experimental pattern to create an S3 bucket that passes typical compliance checks.
 
 open class SecureBucket extends bucket.Bucket {
     Metadata = new Mapping {
@@ -69,11 +69,11 @@ function resources(appName: String, logicalId: String): Mapping<String, cfn.Reso
             DestinationBucketName = cfn.Ref("Log\(logicalId)")
         }
         ReplicationConfiguration {
-            Role = cfn.GetAtt(logicalId + "ReplicationRole.Arn")
+            Role = cfn.GetAtt(logicalId + "ReplicationRole", "Arn")
             Rules {
                 new {
                     Destination {
-                        Bucket = cfn.GetAtt("Replica\(logicalId).Arn")
+                        Bucket = cfn.GetAtt("Replica\(logicalId)", "Arn")
                     }
                     Status = "Enabled"
                 }
