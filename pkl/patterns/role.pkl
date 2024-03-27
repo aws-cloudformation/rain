@@ -1,0 +1,66 @@
+/// Extends the Role class to make policies type safe
+module patterns.role
+
+import "../cloudformation.pkl" as cfn
+import "../aws/iam/role.pkl"
+import "../aws/iam/policy.pkl"
+
+open class PolicyDocument {
+    Version: String? = "2012-10-17"
+    Id: String?
+    Statement: (Statement|Listing<Statement>)?
+}
+
+open class Principal {
+    AWS: String?
+    CanonicalUser: String?
+    Federated: String?
+    Service: (String|Listing<String>)?
+}
+
+open class Statement {
+    Path: String? = "/"
+    Sid: String?
+    Effect: String? = "ALLOW"
+    Principal: Principal?
+    NotPrincipal: Principal?
+    Action: (String|Listing<String>)?
+    NotAction: (String|Listing<String>)?
+    Resource: (String|Listing<String>)?
+    NotResource: (String|Listing<String>)?
+    Condition: Dynamic?
+}
+
+open class RolePolicy {
+    PolicyDocument: PolicyDocument
+    PolicyName: String|Mapping
+}
+
+AssumeService: String
+LogicalId: String
+
+open class IamRole extends role.Role {
+    AssumeRolePolicyDocument: PolicyDocument?
+}
+
+fixed resources: Mapping<String, cfn.Resource> = new Mapping {
+    [LogicalId] = new IamRole {
+        when (AssumeService != null) {
+            AssumeRolePolicyDocument = new PolicyDocument {
+                Statement = new Statement {
+                    Action = "sts.AssumeRole"
+                    Principal {
+                        Service = AssumeService
+                    }
+                    Path = null
+                }
+            }
+        }
+    }
+}
+
+output {
+    value = resources
+}    
+
+
