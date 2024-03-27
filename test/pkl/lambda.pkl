@@ -1,46 +1,15 @@
 amends "modules/template.pkl"
 import "modules/cloudformation.pkl" as cfn
-import "modules/aws/lambda/function.pkl" as func
 import "modules/aws/dynamodb/table.pkl"
-import "modules/aws/iam/role.pkl"
-import "modules/aws/iam/policy.pkl"
+import "modules/patterns/function.pkl" as func
+import "modules/patterns/role.pkl"
 
-
-
-local funcRole = new role.Role {
-    AssumeRolePolicyDocument {
-        Statement = new Statement {
-            Action {
-                "sts:AssumeRole"
-            }
-            Principal {
-                Service = new Listing {
-                    "lambda.amazonaws.com"
-                }
-            }
-        }
-        Version = "2012-10-17"
+local myLambda = new func {
+    LogicalId = "MyLambda"
+    AllowAccess = new role.Statement {
+        Action = func.getDDBTableActions()
+        Resource = cfn.GetAtt("MyTable", "Arn")
     }
-    Policies = {
-        PolicyDocument {
-            Statement = new Statement {
-                Action {
-                    "logs:CreateLogGroup"
-                    "logs:CreateLogStream"
-                    "logs:PutLogEvents"
-                }
-                Resource {
-                    arn("logs", "log-group:/aws/lambda/*")
-                }
-            }
-            PolicyName = "LambdaFunctionServiceRolePolicy"
-        }
-    }
-    Path = "/"
-}
-
-local myLambda = new func.Function {
-
 }
 
 local myTable = new table.Table {
@@ -49,7 +18,7 @@ local myTable = new table.Table {
 
 Resources {
 
-    ["MyLambda"] = myLambda
+    ...myLambda.resources
 
     ["MyTable"] = myTable
 

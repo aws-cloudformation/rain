@@ -1,0 +1,57 @@
+import "../cloudformation.pkl" as cfn
+import "../aws/lambda/function.pkl" as func
+import "../patterns/role.pkl"
+
+LogicalId: String
+AllowAccess: (role.Statement|Listing<role.Statement>)?
+
+local funcRole = new role {
+    LogicalId = "\(outer.LogicalId)Role"
+    AssumeService = "lambda.amazonaws.com"
+    Permits = new Listing<role.Statement> {
+        new role.Statement {
+            Action = new Listing<String> {
+                "logs:CreateLogGroup"
+                "logs:CreateLogStream"
+                "logs:PutLogEvents"
+            }
+            Resource = cfn.Arn("logs", ":log-group:/aws/lambda/*")
+        }
+        new role.Statement {
+            Action = new Listing {
+                "xray:PutTelemetryRecords"
+                "xray:PutTraceSegments"
+            }
+            Resource = "*"
+        }
+        when (AllowAccess is role.Statement) {
+            AllowAccess 
+        }
+        when (AllowAccess is Listing<role.Statement>) {
+            ...AllowAccess
+        }
+    }
+}
+
+fixed resources: Mapping<String, cfn.Resource> = new Mapping {
+    [LogicalId] = new func.Function {
+        Role = cfn.Ref(funcRole.LogicalId)
+    }
+    ...funcRole.resources
+}
+
+// Actions needed for a lambda function to access a Dynamo Table
+function getDDBTableActions(): Listing<String> = new Listing {
+    "dynamodb:BatchGetItem"
+    "dynamodb:BatchWriteItem"
+    "dynamodb:ConditionCheckItem"
+    "dynamodb:DeleteItem"
+    "dynamodb:DescribeTable"
+    "dynamodb:GetItem"
+    "dynamodb:GetRecords"
+    "dynamodb:GetShardIterator"
+    "dynamodb:PutItem"
+    "dynamodb:Query"
+    "dynamodb:Scan"
+    "dynamodb:UpdateItem"
+}
