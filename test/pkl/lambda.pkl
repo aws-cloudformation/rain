@@ -6,19 +6,30 @@ import "modules/patterns/role.pkl"
 
 local myLambda = new func {
     LogicalId = "MyLambda"
-    AllowAccess = new role.Statement {
-        Action = func.getDDBTableActions()
+    Permissions = new role.Statement {
+        Action = func.GetDDBTableActions()
         Resource = cfn.GetAtt("MyTable", "Arn")
     }
 }
 
 local myTable = new table.Table {
-
+    AttributeDefinitions {
+        new {
+            AttributeName = "PK"
+            AttributeType = "S"
+        }
+    }
+    KeySchema {
+        new {
+            AttributeName = "PK"
+            KeyType = "HASH"
+        }
+    }
 }
 
 Resources {
 
-    ...myLambda.resources
+    ...myLambda.Resources
 
     ["MyTable"] = myTable
 

@@ -24,7 +24,7 @@ open class Principal {
 
 /// An IAM policy statement
 open class Statement {
-    Path: String? = "/"
+    Path: String?
     Sid: RefString?
     Effect: String? = "ALLOW"
     Principal: Principal?
@@ -50,20 +50,18 @@ open class IamRolePolicy extends rolepolicy.RolePolicy {
     PolicyDocument: PolicyDocument
 }
 
-// These are the properties that will be set by a consumer
-
 /// Which service to assume, for example, lambda.amazonaws.com
 AssumeService: String
 
-// The logical id for the role in the resulting template
+/// The logical id for the role in the resulting template
 LogicalId: String
 
-Permits: (Statement|Listing<Statement>)?
-Denies: (Statement|Listing<Statement>)?
+/// Statements to add to the policy
+Statements: (Statement|Listing<Statement>)?
 
-local permitPolicyName = "\(LogicalId)PermitPolicy"
+local policyName = "\(LogicalId)Policy"
 
-fixed resources: Mapping<String, cfn.Resource> = new Mapping {
+fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
     [LogicalId] = new IamRole {
         when (AssumeService != null) {
             AssumeRolePolicyDocument = new PolicyDocument {
@@ -77,15 +75,14 @@ fixed resources: Mapping<String, cfn.Resource> = new Mapping {
             }
         }
     }
-    when (Permits != null) {
-        [permitPolicyName] = new IamRolePolicy {
+    when (Statements != null) {
+        [policyName] = new IamRolePolicy {
             PolicyDocument {
-                Statement = Permits
+                Statement = Statements
             }
             RoleName = LogicalId
-            PolicyName = permitPolicyName
+            PolicyName = policyName
         }
     }
 }
-
 

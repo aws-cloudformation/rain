@@ -1,14 +1,20 @@
+/// Simplifies creation of lambda functions
+module patterns.func
+
 import "../cloudformation.pkl" as cfn
 import "../aws/lambda/function.pkl" as func
 import "../patterns/role.pkl"
 
+/// The logical id for the function in the template
 LogicalId: String
-AllowAccess: (role.Statement|Listing<role.Statement>)?
+
+/// IAM policy statements to allow the function to access resources
+Permissions: (role.Statement|Listing<role.Statement>)?
 
 local funcRole = new role {
     LogicalId = "\(outer.LogicalId)Role"
     AssumeService = "lambda.amazonaws.com"
-    Permits = new Listing<role.Statement> {
+    Statements = new Listing<role.Statement> {
         new role.Statement {
             Action = new Listing<String> {
                 "logs:CreateLogGroup"
@@ -24,24 +30,25 @@ local funcRole = new role {
             }
             Resource = "*"
         }
-        when (AllowAccess is role.Statement) {
-            AllowAccess 
+        when (Permissions is role.Statement) {
+            Permissions 
         }
-        when (AllowAccess is Listing<role.Statement>) {
-            ...AllowAccess
+        when (Permissions is Listing<role.Statement>) {
+            ...Permissions
         }
     }
 }
 
-fixed resources: Mapping<String, cfn.Resource> = new Mapping {
+/// Template Resources
+fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
     [LogicalId] = new func.Function {
         Role = cfn.Ref(funcRole.LogicalId)
     }
-    ...funcRole.resources
+    ...funcRole.Resources
 }
 
 // Actions needed for a lambda function to access a Dynamo Table
-function getDDBTableActions(): Listing<String> = new Listing {
+function GetDDBTableActions(): Listing<String> = new Listing {
     "dynamodb:BatchGetItem"
     "dynamodb:BatchWriteItem"
     "dynamodb:ConditionCheckItem"
