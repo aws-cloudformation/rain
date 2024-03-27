@@ -1,4 +1,5 @@
 // Represents a CloudFormation template that creates buckets
+// in several different ways, with and without the use of modules
 
 amends "modules/template.pkl"
 import "modules/cloudformation.pkl" as cfn
@@ -16,6 +17,11 @@ Parameters {
         Type = "String"
         Default = "baz"
     }
+}
+
+local compliantBucket = new pattern {
+    LogicalId = "CompliantBucket"
+    AppName = "my-app"
 }
 
 Resources {
@@ -43,7 +49,7 @@ Resources {
     }
 
     // Import multiple resources from a pattern module 
-    for (logicalId, resource in pattern.resources("my-app", "SecureBucket")) {
+    for (logicalId, resource in compliantBucket.Resources) {
         [logicalId] = (resource) {
             // This adds a Metadata key to each Resource in the pattern
             // It leaves existing keys alone

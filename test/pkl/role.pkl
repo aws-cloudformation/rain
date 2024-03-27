@@ -1,21 +1,20 @@
-import "../../pkl/aws/iam/role.pkl"
+import "modules/patterns/role.pkl"
+import "modules/cloudformation.pkl" as cfn
 
-a = new role.Role {
-    AssumeRolePolicyDocument {
-        Statement = new Listing {
-            new {
-                Action = new Listing {
-                    "sts:AssumeRole"
-                }
-                Effect = Allow
-                Principal {
-                    Service = new Listing {
-                        "s3.amazonaws.com"
-                    }
-                }
-            }
+local myRole = new role {
+    LogicalId = "MyRole"
+    AssumeService = "lambda.amazonaws.com"
+    Permits = new role.Statement {
+        Action = new Listing<String> {
+            "logs:CreateLogGroup"
+            "logs:CreateLogStream"
+            "logs:PutLogEvents"
         }
-        Version = "2012-10-17"
-      }
-      Path = "/"
+        Resource = cfn.Arn("logs", ":log-group:/aws/lambda/*")
+    }
 }
+
+Resources {
+    ...myRole.resources
+}
+

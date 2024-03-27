@@ -1,0 +1,88 @@
+/// Extends the Role class to make policies type safe
+module patterns.role
+
+import "../cloudformation.pkl" as cfn
+import "../aws/iam/role.pkl"
+import "../aws/iam/rolepolicy.pkl"
+
+typealias RefString = cfn.RefString
+
+/// An IAM policy document
+open class PolicyDocument {
+    Version: String? = "2012-10-17"
+    Id: RefString?
+    Statement: (Statement|Listing<Statement>)?
+}
+
+/// A Principal, such as an AWS account or service
+open class Principal {
+    AWS: RefString?
+    CanonicalUser: RefString?
+    Federated: RefString?
+    Service: (RefString|Listing<RefString>)?
+}
+
+/// An IAM policy statement
+open class Statement {
+    Path: String?
+    Sid: RefString?
+    Effect: String? = "ALLOW"
+    Principal: Principal?
+    NotPrincipal: Principal?
+    Action: (RefString|Listing<RefString>)?
+    NotAction: (RefString|Listing<RefString>)?
+    Resource: (RefString|Listing<RefString>)?
+    NotResource: (RefString|Listing<RefString>)?
+    Condition: Dynamic?
+}
+
+open class Policy {
+    PolicyDocument: PolicyDocument
+    PolicyName: (RefString|Mapping)
+}
+
+open class IamRole extends role.Role {
+    AssumeRolePolicyDocument: PolicyDocument?
+    Policies: Listing<Policy>?
+}
+
+open class IamRolePolicy extends rolepolicy.RolePolicy {
+    PolicyDocument: PolicyDocument
+}
+
+/// Which service to assume, for example, lambda.amazonaws.com
+AssumeService: String
+
+/// The logical id for the role in the resulting template
+LogicalId: String
+
+/// Statements to add to the policy
+Statements: (Statement|Listing<Statement>)?
+
+local policyName = "\(LogicalId)Policy"
+
+fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
+    [LogicalId] = new IamRole {
+        when (AssumeService != null) {
+            AssumeRolePolicyDocument = new PolicyDocument {
+                Statement = new Statement {
+                    Action = "sts.AssumeRole"
+                    Principal {
+                        Service = AssumeService
+                    }
+                    Path = null
+                }
+            }
+        }
+    }
+    when (Statements != null) {
+        [policyName] = new IamRolePolicy {
+            PolicyDocument {
+                Statement = Statements
+            }
+            RoleName = LogicalId
+            PolicyName = policyName
+        }
+    }
+}
+

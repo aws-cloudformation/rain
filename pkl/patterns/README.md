@@ -1,6 +1,7 @@
 # Pkl Patterns
 
-**NOTE** These high level patterns are experimental, and may change in minor version releases of the package.
+**NOTE** These high level sample patterns are experimental, and may change in
+minor version releases of the package.
 
 In the examples below, modules are prefixed by `@cfn`. To enable this, put your
 template into a Pkl project folder, with a file called `PklProject`. A sample

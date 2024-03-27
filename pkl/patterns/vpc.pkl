@@ -1,3 +1,6 @@
+/// An experimental pattern to create a basic VPC
+module pattern.vpc
+
 import "../cloudformation.pkl" as cfn
 import "../aws/ec2/vpc.pkl"
 import "../aws/ec2/subnet.pkl"
@@ -8,7 +11,6 @@ import "../aws/ec2/natgateway.pkl"
 import "../aws/ec2/internetgateway.pkl"
 import "../aws/ec2/subnetroutetableassociation.pkl"
 
-// An experimental pattern to create a basic VPC
 
 /// The logical name of the VPC
 LogicalId: String
@@ -17,7 +19,7 @@ LogicalId: String
 Subnets: Listing<Subnet>
 
 /// The CloudFormation resources representing this VPC.
-fixed resources: Mapping<String, cfn.Resource> = new {
+fixed Resources: Mapping<String, cfn.Resource> = new {
     [LogicalId] = new vpc.VPC {
         CidrBlock = "10.0.0.0/16"
         EnableDnsHostnames = true
@@ -26,18 +28,18 @@ fixed resources: Mapping<String, cfn.Resource> = new {
     }
     ["\(LogicalId)Gateway"] = new internetgateway.InternetGateway {}
     for (subnet in Subnets) {
-        ...(subnet) { VpcId = LogicalId }.resources
+        ...(subnet) { VpcId = LogicalId }.Resources
     }
 }
 
-fixed outputs: Mapping<String, cfn.Output> = new {
+fixed Outputs: Mapping<String, cfn.Output> = new {
     ["\(LogicalId)Id"] = new cfn.Output {
         Description = "A reference to the VPC"
         Value = cfn.Ref(LogicalId)
     }
 }
 
-class Subnet {
+open class Subnet {
     VpcId: String
     LogicalId: String
     IsPublic: Boolean
@@ -76,7 +78,7 @@ class Subnet {
         }
     }
 
-    fixed resources: Mapping<String, cfn.Resource> = (privateResources) {
+    fixed Resources: Mapping<String, cfn.Resource> = (privateResources) {
         when (IsPublic) {
             [LogicalId + "NATGateway"] = new natgateway.NatGateway {
                 AllocationId = cfn.GetAtt(LogicalId + "EIP", "AllocationId")
@@ -89,10 +91,6 @@ class Subnet {
         }
     }
 
-    fixed natGateway: cfn.RefString? = if (IsPublic) cfn.Ref(LogicalId + "NATGateway") else null
-}
-
-output {
-    value = resources
+    fixed NatGateway: cfn.RefString? = if (IsPublic) cfn.Ref(LogicalId + "NATGateway") else null
 }
 

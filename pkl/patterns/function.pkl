@@ -1,0 +1,64 @@
+/// Simplifies creation of lambda functions
+module patterns.func
+
+import "../cloudformation.pkl" as cfn
+import "../aws/lambda/function.pkl" as func
+import "../patterns/role.pkl"
+
+/// The logical id for the function in the template
+LogicalId: String
+
+/// IAM policy statements to allow the function to access resources
+Permissions: (role.Statement|Listing<role.Statement>)?
+
+local funcRole = new role {
+    LogicalId = "\(outer.LogicalId)Role"
+    AssumeService = "lambda.amazonaws.com"
+    Statements = new Listing<role.Statement> {
+        new role.Statement {
+            Action = new Listing<String> {
+                "logs:CreateLogGroup"
+                "logs:CreateLogStream"
+                "logs:PutLogEvents"
+            }
+            Resource = cfn.Arn("logs", ":log-group:/aws/lambda/*")
+        }
+        new role.Statement {
+            Action = new Listing {
+                "xray:PutTelemetryRecords"
+                "xray:PutTraceSegments"
+            }
+            Resource = "*"
+        }
+        when (Permissions is role.Statement) {
+            Permissions 
+        }
+        when (Permissions is Listing<role.Statement>) {
+            ...Permissions
+        }
+    }
+}
+
+/// Template Resources
+fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
+    [LogicalId] = new func.Function {
+        Role = cfn.Ref(funcRole.LogicalId)
+    }
+    ...funcRole.Resources
+}
+
+// Actions needed for a lambda function to access a Dynamo Table
+function GetDDBTableActions(): Listing<String> = new Listing {
+    "dynamodb:BatchGetItem"
+    "dynamodb:BatchWriteItem"
+    "dynamodb:ConditionCheckItem"
+    "dynamodb:DeleteItem"
+    "dynamodb:DescribeTable"
+    "dynamodb:GetItem"
+    "dynamodb:GetRecords"
+    "dynamodb:GetShardIterator"
+    "dynamodb:PutItem"
+    "dynamodb:Query"
+    "dynamodb:Scan"
+    "dynamodb:UpdateItem"
+}

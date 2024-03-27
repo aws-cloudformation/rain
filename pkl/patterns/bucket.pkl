@@ -1,9 +1,10 @@
+/// An experimental pattern to create an S3 bucket that passes typical compliance checks.
+module patterns.bucket
+
 import "../cloudformation.pkl" as cfn
 import "../aws/s3/bucket.pkl" as bucket
 import "../aws/iam/rolepolicy.pkl" as rolepolicy
 import "../aws/iam/role.pkl" as role
-
-// An experimental pattern to create an S3 bucket that passes typical compliance checks.
 
 open class SecureBucket extends bucket.Bucket {
     Metadata = new Mapping {
@@ -58,22 +59,24 @@ open class SecureBucket extends bucket.Bucket {
     }
 }
 
-// This is the only way I could think of to emit more than one resource
-function resources(appName: String, logicalId: String): Mapping<String, cfn.Resource> = new Mapping {
+AppName: String
+LogicalId: String
 
-    [logicalId] = new SecureBucket {
-        BucketName = cfn.Sub("\(appName)-${AWS::Region}-${AWS::AccountId}")
+fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
+
+    [LogicalId] = new SecureBucket {
+        BucketName = cfn.Sub("\(AppName)-${AWS::Region}-${AWS::AccountId}")
         ObjectLockEnabled = false
         ObjectLockConfiguration = null
         LoggingConfiguration {
-            DestinationBucketName = cfn.Ref("Log\(logicalId)")
+            DestinationBucketName = cfn.Ref("Log\(LogicalId)")
         }
         ReplicationConfiguration {
-            Role = cfn.GetAtt(logicalId + "ReplicationRole", "Arn")
+            Role = cfn.GetAtt(LogicalId + "ReplicationRole", "Arn")
             Rules {
                 new {
                     Destination {
-                        Bucket = cfn.GetAtt("Replica\(logicalId)", "Arn")
+                        Bucket = cfn.GetAtt("Replica\(LogicalId)", "Arn")
                     }
                     Status = "Enabled"
                 }
@@ -84,18 +87,18 @@ function resources(appName: String, logicalId: String): Mapping<String, cfn.Reso
         }
     }
 
-    ["Log" + logicalId] = new SecureBucket {
-        BucketName = cfn.Sub("\(appName)-logs-${AWS::Region}-${AWS::AccountId}")
+    ["Log" + LogicalId] = new SecureBucket {
+        BucketName = cfn.Sub("\(AppName)-logs-${AWS::Region}-${AWS::AccountId}")
 
     }
 
-    ["Replica" + logicalId] = new SecureBucket {
-        BucketName = cfn.Sub("\(appName)-replicas-${AWS::Region}-${AWS::AccountId}")
+    ["Replica" + LogicalId] = new SecureBucket {
+        BucketName = cfn.Sub("\(AppName)-replicas-${AWS::Region}-${AWS::AccountId}")
         ObjectLockEnabled = false
         ObjectLockConfiguration = null
     }
 
-    [logicalId + "ReplicationPolicy"] = new rolepolicy.RolePolicy {
+    [LogicalId + "ReplicationPolicy"] = new rolepolicy.RolePolicy {
         PolicyDocument {
             Statement = new Listing {
                 new {
@@ -104,7 +107,7 @@ function resources(appName: String, logicalId: String): Mapping<String, cfn.Reso
                         "s3:ListBucket"
                     }
                     Effect = "Allow"
-                    Resource = cfn.Sub("arn:aws:s3:::\(appName)-${AWS::Region}-${AWS::AccountId}")
+                    Resource = cfn.Sub("arn:aws:s3:::\(AppName)-${AWS::Region}-${AWS::AccountId}")
                 }
                 new {
                     Action {
@@ -113,7 +116,7 @@ function resources(appName: String, logicalId: String): Mapping<String, cfn.Reso
                         "s3:GetObjectVersionTagging"
                     }
                     Effect = "Allow"
-                    Resource = cfn.Sub("arn:aws:s3:::\(appName)-${AWS::Region}-${AWS::AccountId}/*")
+                    Resource = cfn.Sub("arn:aws:s3:::\(AppName)-${AWS::Region}-${AWS::AccountId}/*")
                 }
                 new {
                     Action {
@@ -122,16 +125,16 @@ function resources(appName: String, logicalId: String): Mapping<String, cfn.Reso
                         "s3:ReplicationTags"
                     }
                     Effect = "Allow"
-                    Resource = cfn.Sub("arn:aws:s3:::\(appName)-replicas-${AWS::Region}-${AWS::AccountId}/*")
+                    Resource = cfn.Sub("arn:aws:s3:::\(AppName)-replicas-${AWS::Region}-${AWS::AccountId}/*")
                 }
             }
             Version = "2012-10-17"
         }
         PolicyName = "bucket-replication-policy"
-        RoleName = cfn.Ref(logicalId + "ReplicationRole")
+        RoleName = cfn.Ref(LogicalId + "ReplicationRole")
     }
 
-    [logicalId + "ReplicationRole"] = new role.Role {
+    [LogicalId + "ReplicationRole"] = new role.Role {
         AssumeRolePolicyDocument {
             Statement = new Listing {
                 new {

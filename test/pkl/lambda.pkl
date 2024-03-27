@@ -1,0 +1,38 @@
+amends "modules/template.pkl"
+import "modules/cloudformation.pkl" as cfn
+import "modules/aws/dynamodb/table.pkl"
+import "modules/patterns/function.pkl" as func
+import "modules/patterns/role.pkl"
+
+local myLambda = new func {
+    LogicalId = "MyLambda"
+    Permissions = new role.Statement {
+        Action = func.GetDDBTableActions()
+        Resource = cfn.GetAtt("MyTable", "Arn")
+    }
+}
+
+local myTable = new table.Table {
+    AttributeDefinitions {
+        new {
+            AttributeName = "PK"
+            AttributeType = "S"
+        }
+    }
+    KeySchema {
+        new {
+            AttributeName = "PK"
+            KeyType = "HASH"
+        }
+    }
+}
+
+Resources {
+
+    ...myLambda.Resources
+
+    ["MyTable"] = myTable
+
+}
+
+
