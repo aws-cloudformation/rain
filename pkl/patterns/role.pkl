@@ -3,45 +3,65 @@ module patterns.role
 
 import "../cloudformation.pkl" as cfn
 import "../aws/iam/role.pkl"
-import "../aws/iam/policy.pkl"
+import "../aws/iam/rolepolicy.pkl"
 
+typealias RefString = cfn.RefString
+
+/// An IAM policy document
 open class PolicyDocument {
     Version: String? = "2012-10-17"
-    Id: String?
+    Id: RefString?
     Statement: (Statement|Listing<Statement>)?
 }
 
+/// A Principal, such as an AWS account or service
 open class Principal {
-    AWS: String?
-    CanonicalUser: String?
-    Federated: String?
-    Service: (String|Listing<String>)?
+    AWS: RefString?
+    CanonicalUser: RefString?
+    Federated: RefString?
+    Service: (RefString|Listing<RefString>)?
 }
 
+/// An IAM policy statement
 open class Statement {
     Path: String? = "/"
-    Sid: String?
+    Sid: RefString?
     Effect: String? = "ALLOW"
     Principal: Principal?
     NotPrincipal: Principal?
-    Action: (String|Listing<String>)?
-    NotAction: (String|Listing<String>)?
-    Resource: (String|Listing<String>)?
-    NotResource: (String|Listing<String>)?
+    Action: (RefString|Listing<RefString>)?
+    NotAction: (RefString|Listing<RefString>)?
+    Resource: (RefString|Listing<RefString>)?
+    NotResource: (RefString|Listing<RefString>)?
     Condition: Dynamic?
 }
 
-open class RolePolicy {
+open class Policy {
     PolicyDocument: PolicyDocument
-    PolicyName: String|Mapping
+    PolicyName: (RefString|Mapping)
 }
-
-AssumeService: String
-LogicalId: String
 
 open class IamRole extends role.Role {
     AssumeRolePolicyDocument: PolicyDocument?
+    Policies: Listing<Policy>?
 }
+
+open class IamRolePolicy extends rolepolicy.RolePolicy {
+    PolicyDocument: PolicyDocument
+}
+
+// These are the properties that will be set by a consumer
+
+/// Which service to assume, for example, lambda.amazonaws.com
+AssumeService: String
+
+// The logical id for the role in the resulting template
+LogicalId: String
+
+Permits: (Statement|Listing<Statement>)?
+Denies: (Statement|Listing<Statement>)?
+
+local permitPolicyName = "\(LogicalId)PermitPolicy"
 
 fixed resources: Mapping<String, cfn.Resource> = new Mapping {
     [LogicalId] = new IamRole {
@@ -57,10 +77,15 @@ fixed resources: Mapping<String, cfn.Resource> = new Mapping {
             }
         }
     }
+    when (Permits != null) {
+        [permitPolicyName] = new IamRolePolicy {
+            PolicyDocument {
+                Statement = Permits
+            }
+            RoleName = LogicalId
+            PolicyName = permitPolicyName
+        }
+    }
 }
-
-output {
-    value = resources
-}    
 
 
