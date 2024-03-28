@@ -12,7 +12,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// PklPackageAlias is the package name to use in module imports
 var PklPackageAlias string = "@cfn"
+
+// PklBasic is set by the --pkl-basic CLI arg to emit Pkl without any imports
 var PklBasic bool = false
 
 func getClassName(resource *yaml.Node) string {
@@ -101,15 +104,19 @@ func writeResource(sb *strings.Builder, name string, resource *yaml.Node) error 
 				switch prop.Kind {
 				case yaml.ScalarNode:
 					sb.WriteString(" = ")
-					writeNode(sb, prop, "")
+					writeNode(sb, prop, "", basic)
 				case yaml.SequenceNode:
-					fallthrough
+					writeNode(sb, prop, indent+"        ", basic)
 				case yaml.MappingNode:
-					// TODO: Need to modify the writes so we use classes instead of maps
-					// Are going to need reflection for this? Or can we predict class names?
-					sb.WriteString(" = new Mapping {\n")
-					writeNode(sb, prop, indent+"        ")
-					sb.WriteString(indent + "    }\n")
+					if isIntrinsic(prop.Content[0].Value) {
+						w(sb, " = ")
+						writeNode(sb, prop, indent+"        ", basic)
+						w(sb, "\n")
+					} else {
+						w(sb, " {\n")
+						writeNode(sb, prop, indent+"        ", basic)
+						sb.WriteString(indent + "    }\n")
+					}
 				}
 			}
 
@@ -119,12 +126,12 @@ func writeResource(sb *strings.Builder, name string, resource *yaml.Node) error 
 			switch attr.Kind {
 			case yaml.ScalarNode:
 				sb.WriteString(" = ")
-				writeNode(sb, attr, "")
+				writeNode(sb, attr, "", basic)
 			case yaml.SequenceNode:
 				fallthrough
 			case yaml.MappingNode:
 				sb.WriteString(" {\n")
-				writeNode(sb, attr, indent+"        ")
+				writeNode(sb, attr, indent+"        ", basic)
 				sb.WriteString(indent + "    }\n")
 			}
 		}
@@ -181,24 +188,49 @@ func w(sb *strings.Builder, f string, args ...any) {
 }
 
 // writeSequence writes a generic sequence
-func writeSequence(sb *strings.Builder, n *yaml.Node, indent string) error {
+func writeSequence(sb *strings.Builder, n *yaml.Node, indent string, basic bool) error {
 	for i := 0; i < len(n.Content); i++ {
 		switch n.Content[i].Kind {
 		case yaml.ScalarNode:
-			writeNode(sb, n.Content[i], indent)
+			writeNode(sb, n.Content[i], indent, basic)
 		case yaml.MappingNode:
 			sb.WriteString(indent + " new {\n")
-			writeNode(sb, n.Content[i], indent+"    ")
+			writeNode(sb, n.Content[i], indent+"    ", basic)
 			sb.WriteString(indent + "}\n")
 		case yaml.SequenceNode:
-			writeNode(sb, n.Content[i], indent)
+			writeNode(sb, n.Content[i], indent, basic)
 		}
 	}
 	return nil
 }
 
+const (
+	SUB       = "Fn::Sub"
+	REF       = "Ref"
+	GETATT    = "Fn::GetAtt"
+	EQUALS    = "Fn::Equals"
+	CONTAINS  = "Fn::Contains"
+	FINDINMAP = "Fn::FindInMap"
+	GETAZS    = "Fn::GetAZs"
+	SELECT    = "Fn::Select"
+)
+
+func isIntrinsic(name string) bool {
+	intrinsics := []string{
+		SUB,
+		REF,
+		GETATT,
+		EQUALS,
+		CONTAINS,
+		FINDINMAP,
+		GETAZS,
+		SELECT,
+	}
+	return slices.Contains(intrinsics, name)
+}
+
 // writeMap writes out a generic Mapping
-func writeMap(sb *strings.Builder, n *yaml.Node, indent string) error {
+func writeMap(sb *strings.Builder, n *yaml.Node, indent string, basic bool) error {
 	if n.Kind != yaml.MappingNode {
 		return errors.New("expected Mappings to be a MappingNode")
 	}
@@ -208,31 +240,63 @@ func writeMap(sb *strings.Builder, n *yaml.Node, indent string) error {
 	for i := 0; i < len(n.Content); i += 2 {
 		name := n.Content[i].Value
 		val := n.Content[i+1]
-		w(sb, "%s[\"%s\"]", indent, name)
-		if val.Kind == yaml.ScalarNode {
-			sb.WriteString(" = ")
+		if basic {
+			w(sb, "%s[\"%s\"]", indent, name)
+			if val.Kind == yaml.ScalarNode {
+				sb.WriteString(" = ")
+				writeNode(sb, val, "", basic)
+			} else {
+				sb.WriteString(" {\n")
+				writeNode(sb, val, indent+"    ", basic)
+				w(sb, "%s}\n", indent)
+			}
 		} else {
-			sb.WriteString(" {\n")
-		}
-		if val.Kind == yaml.ScalarNode {
-			writeNode(sb, val, "")
-		} else {
-			writeNode(sb, val, indent+"    ")
-			w(sb, "%s}\n", indent)
+			switch name {
+			case SUB:
+				w(sb, "cfn.Sub(\"%s\")\n", val.Value)
+			case REF:
+				w(sb, "cfn.Ref(\"%s\")\n", val.Value)
+			case GETATT:
+				w(sb, "cfn.GetAtt(\"%s\", \"%s\")\n",
+					val.Content[0].Value, val.Content[1].Value)
+			case EQUALS:
+				w(sb, "cfn.Equals(\"%s\", \"%s\")\n",
+					val.Content[0].Value, val.Content[1].Value)
+			case CONTAINS:
+				w(sb, "cfn.Contains(\"%s\", \"%s\")\n",
+					val.Content[0].Value, val.Content[1].Value)
+			case FINDINMAP:
+				w(sb, "cfn.FindInMap(\"%s\", \"%s\", \"%s\")\n",
+					val.Content[0].Value, val.Content[1].Value, val.Content[2].Value)
+			case GETAZS:
+				w(sb, "cfn.GetAZs(\"%s\")\n", val.Value)
+			case SELECT:
+				w(sb, "cfn.Select(\"%s\", \"%s\")\n",
+					val.Content[0].Value, val.Content[1].Value)
+			default:
+				w(sb, "%s%s", indent, name)
+				if val.Kind == yaml.ScalarNode {
+					sb.WriteString(" = ")
+					writeNode(sb, val, "", basic)
+				} else {
+					sb.WriteString(" {\n")
+					writeNode(sb, val, indent+"    ", basic)
+					w(sb, "%s}\n", indent)
+				}
+			}
 		}
 	}
-	// TODO: Rewrite intrinsic functions to use cfn. helpers
 	return nil
 }
 
-func writeNode(sb *strings.Builder, n *yaml.Node, indent string) error {
+func writeNode(sb *strings.Builder, n *yaml.Node, indent string, basic bool) error {
 	switch n.Kind {
 	case yaml.ScalarNode:
 		w(sb, "%s\"%s\"\n", indent, n.Value)
 	case yaml.SequenceNode:
-		return writeSequence(sb, n, indent)
+		return writeSequence(sb, n, indent, basic)
 	case yaml.MappingNode:
-		return writeMap(sb, n, indent)
+		return writeMap(sb, n, indent, basic)
 	}
 	return nil
 }
@@ -265,14 +329,14 @@ func addSection(section cft.Section, n *yaml.Node, sb *strings.Builder) error {
 		fallthrough
 	case cft.Metadata:
 		w(sb, "%s {\n", section)
-		if err := writeMap(sb, n, "    "); err != nil {
+		if err := writeMap(sb, n, "    ", PklBasic); err != nil {
 			return fmt.Errorf("unable to write %s section: %v", section, err)
 		}
 		sb.WriteString("}\n")
 	case cft.Rules:
 	case cft.Conditions:
 		w(sb, "%s {\n", section)
-		if err := writeMap(sb, n, "    "); err != nil {
+		if err := writeMap(sb, n, "    ", PklBasic); err != nil {
 			return fmt.Errorf("unable to write %s section: %v", section, err)
 		}
 		sb.WriteString("}\n")
