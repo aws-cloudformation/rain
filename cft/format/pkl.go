@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
@@ -106,7 +107,7 @@ func writeResource(sb *strings.Builder, name string, resource *yaml.Node) error 
 					sb.WriteString(" = ")
 					writeNode(sb, prop, "", basic)
 				case yaml.SequenceNode:
-					writeNode(sb, prop, indent+"        ", basic)
+					fallthrough
 				case yaml.MappingNode:
 					if isIntrinsic(prop.Content[0].Value) {
 						w(sb, " = ")
@@ -194,9 +195,14 @@ func writeSequence(sb *strings.Builder, n *yaml.Node, indent string, basic bool)
 		case yaml.ScalarNode:
 			writeNode(sb, n.Content[i], indent, basic)
 		case yaml.MappingNode:
-			sb.WriteString(indent + " new {\n")
-			writeNode(sb, n.Content[i], indent+"    ", basic)
-			sb.WriteString(indent + "}\n")
+			if !basic && isIntrinsic(n.Content[i].Content[0].Value) {
+				w(sb, indent)
+				writeNode(sb, n.Content[i], indent+"        ", basic)
+			} else {
+				sb.WriteString(indent + " new {\n")
+				writeNode(sb, n.Content[i], indent+"    ", basic)
+				sb.WriteString(indent + "}\n")
+			}
 		case yaml.SequenceNode:
 			writeNode(sb, n.Content[i], indent, basic)
 		}
@@ -279,9 +285,14 @@ func writeMap(sb *strings.Builder, n *yaml.Node, indent string, basic bool) erro
 					sb.WriteString(" = ")
 					writeNode(sb, val, "", basic)
 				} else {
-					sb.WriteString(" {\n")
-					writeNode(sb, val, indent+"    ", basic)
-					w(sb, "%s}\n", indent)
+					if isIntrinsic(val.Content[0].Value) {
+						w(sb, " = ")
+						writeNode(sb, val, indent+"        ", basic)
+					} else {
+						w(sb, " {\n")
+						writeNode(sb, val, indent+"        ", basic)
+						sb.WriteString(indent + "    }\n")
+					}
 				}
 			}
 		}
@@ -289,10 +300,36 @@ func writeMap(sb *strings.Builder, n *yaml.Node, indent string, basic bool) erro
 	return nil
 }
 
+func isNum(s string) bool {
+	_, err := strconv.ParseFloat(s, 64)
+	return err == nil
+}
+
+func fixScalar(s string) string {
+	// This is hard to do correctly without inspecting the schema.
+	// Sometimes booleans and numbers are strings and YAML doesn't care
+	// Also booleans are extra complicated
+
+	boolStrings := []string{
+		"true",
+		"false",
+	}
+
+	if slices.Contains(boolStrings, s) {
+		return s
+	}
+
+	if isNum(s) {
+		return s
+	}
+
+	return fmt.Sprintf("\"%s\"", strings.Replace(s, "\n", "\\n", -1))
+}
+
 func writeNode(sb *strings.Builder, n *yaml.Node, indent string, basic bool) error {
 	switch n.Kind {
 	case yaml.ScalarNode:
-		w(sb, "%s\"%s\"\n", indent, n.Value)
+		w(sb, "%s%s\n", indent, fixScalar(n.Value))
 	case yaml.SequenceNode:
 		return writeSequence(sb, n, indent, basic)
 	case yaml.MappingNode:
@@ -306,7 +343,7 @@ func addSection(section cft.Section, n *yaml.Node, sb *strings.Builder) error {
 	case cft.AWSTemplateFormatVersion:
 		fallthrough
 	case cft.Description:
-		w(sb, "%s = \"%s\"\n", section, n.Value)
+		w(sb, "%s = %s\n", section, fixScalar(n.Value))
 	case cft.Parameters:
 		if n.Kind != yaml.MappingNode {
 			return errors.New("expected Parameters to be a MappingNode")
