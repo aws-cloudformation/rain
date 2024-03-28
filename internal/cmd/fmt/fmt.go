@@ -195,6 +195,7 @@ var Cmd = &cobra.Command{
 func init() {
 	Cmd.Flags().BoolVarP(&jsonFlag, "json", "j", false, "Output the template as JSON (default format: YAML).")
 	Cmd.Flags().BoolVarP(&pklFlag, "pkl", "p", false, "Output the template as Pkl (default format: YAML).")
+	Cmd.Flags().BoolVar(&format.PklBasic, "pkl-basic", false, "Don't use Pkl modules for output")
 	Cmd.Flags().BoolVarP(&verifyFlag, "verify", "v", false, "Check if the input is already correctly formatted and exit.\nThe exit status will be 0 if so and 1 if not.")
 	Cmd.Flags().BoolVarP(&writeFlag, "write", "w", false, "Write the output back to the file rather than to stdout.")
 	Cmd.Flags().BoolVarP(&unsortedFlag, "unsorted", "u", false, "Do not sort the template's properties.")

@@ -13,6 +13,7 @@ import (
 )
 
 var PklPackageAlias string = "@cfn"
+var PklBasic bool = false
 
 func getClassName(resource *yaml.Node) string {
 	typeName := getTypeName(resource)
@@ -74,17 +75,23 @@ func writeResource(sb *strings.Builder, name string, resource *yaml.Node) error 
 	// the resource in the verbose way, without using classes.
 	// This is likely a 3p resource that does not appear in the registry
 
-	// TODO: Make "raw" an arg so we can output CloudFormation YAML with no imports
+	basic := PklBasic
 
 	if moduleName == "" {
+		basic = true
+	}
+
+	// ["LogicalId"] =
+	if basic {
 		w(sb, "%s[\"%s\"] {\n", indent, name)
 	} else {
 		w(sb, "%s[\"%s\"] = new %s.%s {\n", indent, name, moduleName, className)
 	}
+
 	for i := 0; i < len(resource.Content); i += 2 {
 		attrName := resource.Content[i].Value
 		attr := resource.Content[i+1]
-		if attrName == "Properties" && moduleName != "" {
+		if attrName == "Properties" && !basic {
 			// In our generated classes we push all properties up to the top level
 			// for convenience and type safety. (There are a few clashes we have to handle)
 			for j := 0; j < len(attr.Content); j += 2 {
@@ -107,6 +114,7 @@ func writeResource(sb *strings.Builder, name string, resource *yaml.Node) error 
 			}
 
 		} else {
+			// Basic rendering, without using module classes
 			w(sb, "    %s%s", indent, attrName)
 			switch attr.Kind {
 			case yaml.ScalarNode:
@@ -286,28 +294,32 @@ func CftToPkl(t cft.Template) (string, error) {
 		return "", errors.New("expected even number of map elements")
 	}
 	var sb strings.Builder
-	w(&sb, "amends \"%s/template.pkl\"\n", PklPackageAlias)
-	w(&sb, "import \"%s/cloudformation.pkl\" as cfn\n", PklPackageAlias)
 
-	// Peek at all resources and import their types
-	resources, err := t.GetSection(cft.Resources)
-	if err != nil {
-		return "", err
-	}
-	imports := make([]string, 0)
-	for i := 0; i < len(resources.Content); i += 2 {
-		resource := resources.Content[i+1]
-		modulePath := getModulePath(resource)
-		if modulePath != "" {
-			if !slices.Contains(imports, modulePath) {
-				imports = append(imports, modulePath)
-				w(&sb, "import \"%s/%s\"\n", PklPackageAlias, modulePath)
+	if !PklBasic {
+		w(&sb, "amends \"%s/template.pkl\"\n", PklPackageAlias)
+		w(&sb, "import \"%s/cloudformation.pkl\" as cfn\n", PklPackageAlias)
+
+		// Peek at all resources and import their types
+		resources, err := t.GetSection(cft.Resources)
+		if err != nil {
+			return "", err
+		}
+		imports := make([]string, 0)
+		for i := 0; i < len(resources.Content); i += 2 {
+			resource := resources.Content[i+1]
+			modulePath := getModulePath(resource)
+			if modulePath != "" {
+				if !slices.Contains(imports, modulePath) {
+					imports = append(imports, modulePath)
+					w(&sb, "import \"%s/%s\"\n", PklPackageAlias, modulePath)
+				}
 			}
 		}
 	}
 
 	// Write each section
 	for i := 0; i < len(m.Content); i += 2 {
+		sb.WriteString("\n")
 		section := m.Content[i].Value
 		val := m.Content[i+1]
 		if err := addSection(cft.Section(section), val, &sb); err != nil {
