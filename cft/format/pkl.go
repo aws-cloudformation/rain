@@ -13,12 +13,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// PklPackageAlias is the package name to use in module imports
-var PklPackageAlias string = "@cfn"
-
-// PklBasic is set by the --pkl-basic CLI arg to emit Pkl without any imports
-var PklBasic bool = false
-
 func getClassName(resource *yaml.Node) string {
 	typeName := getTypeName(resource)
 	tokens := strings.Split(typeName, "::")
@@ -69,7 +63,7 @@ func getModuleNameFromPath(path string) string {
 	return tokens[2]
 }
 
-func writeResource(sb *strings.Builder, name string, resource *yaml.Node) error {
+func writeResource(sb *strings.Builder, name string, resource *yaml.Node, basic bool) error {
 	indent := "    "
 	modulePath := getModulePath(resource)
 	moduleName := getModuleNameFromPath(modulePath)
@@ -78,8 +72,6 @@ func writeResource(sb *strings.Builder, name string, resource *yaml.Node) error 
 	// If modulePath and moduleName are blank, we need to print out
 	// the resource in the verbose way, without using classes.
 	// This is likely a 3p resource that does not appear in the registry
-
-	basic := PklBasic
 
 	if moduleName == "" {
 		basic = true
@@ -338,7 +330,7 @@ func writeNode(sb *strings.Builder, n *yaml.Node, indent string, basic bool) err
 	return nil
 }
 
-func addSection(section cft.Section, n *yaml.Node, sb *strings.Builder) error {
+func addSection(section cft.Section, n *yaml.Node, sb *strings.Builder, basic bool) error {
 	switch section {
 	case cft.AWSTemplateFormatVersion:
 		fallthrough
@@ -359,21 +351,21 @@ func addSection(section cft.Section, n *yaml.Node, sb *strings.Builder) error {
 		}
 		w(sb, "%s {\n", section)
 		for i := 0; i < len(n.Content); i += 2 {
-			writeResource(sb, n.Content[i].Value, n.Content[i+1])
+			writeResource(sb, n.Content[i].Value, n.Content[i+1], basic)
 		}
 		sb.WriteString("}\n")
 	case cft.Mappings:
 		fallthrough
 	case cft.Metadata:
 		w(sb, "%s {\n", section)
-		if err := writeMap(sb, n, "    ", PklBasic); err != nil {
+		if err := writeMap(sb, n, "    ", basic); err != nil {
 			return fmt.Errorf("unable to write %s section: %v", section, err)
 		}
 		sb.WriteString("}\n")
 	case cft.Rules:
 	case cft.Conditions:
 		w(sb, "%s {\n", section)
-		if err := writeMap(sb, n, "    ", PklBasic); err != nil {
+		if err := writeMap(sb, n, "    ", basic); err != nil {
 			return fmt.Errorf("unable to write %s section: %v", section, err)
 		}
 		sb.WriteString("}\n")
@@ -386,7 +378,7 @@ func addSection(section cft.Section, n *yaml.Node, sb *strings.Builder) error {
 
 // CftToPkl serializes the template as pkl.
 // It assumes that the user is import the cloudformation package
-func CftToPkl(t cft.Template) (string, error) {
+func CftToPkl(t cft.Template, basic bool, pklPackageAlias string) (string, error) {
 	if t.Node == nil || len(t.Node.Content) != 1 {
 		return "", errors.New("expected t.Node.Content[0]")
 	}
@@ -396,9 +388,9 @@ func CftToPkl(t cft.Template) (string, error) {
 	}
 	var sb strings.Builder
 
-	if !PklBasic {
-		w(&sb, "amends \"%s/template.pkl\"\n", PklPackageAlias)
-		w(&sb, "import \"%s/cloudformation.pkl\" as cfn\n", PklPackageAlias)
+	if !basic {
+		w(&sb, "amends \"%s/template.pkl\"\n", pklPackageAlias)
+		w(&sb, "import \"%s/cloudformation.pkl\" as cfn\n", pklPackageAlias)
 
 		// Peek at all resources and import their types
 		resources, err := t.GetSection(cft.Resources)
@@ -412,7 +404,7 @@ func CftToPkl(t cft.Template) (string, error) {
 			if modulePath != "" {
 				if !slices.Contains(imports, modulePath) {
 					imports = append(imports, modulePath)
-					w(&sb, "import \"%s/%s\"\n", PklPackageAlias, modulePath)
+					w(&sb, "import \"%s/%s\"\n", pklPackageAlias, modulePath)
 				}
 			}
 		}
@@ -423,7 +415,7 @@ func CftToPkl(t cft.Template) (string, error) {
 		sb.WriteString("\n")
 		section := m.Content[i].Value
 		val := m.Content[i+1]
-		if err := addSection(cft.Section(section), val, &sb); err != nil {
+		if err := addSection(cft.Section(section), val, &sb, basic); err != nil {
 			return "", fmt.Errorf("failed to add %s: %v", section, err)
 		}
 	}
