@@ -101,7 +101,3 @@ Resources {
 		t.Errorf(d)
 	}
 }
-
-func TestPklRoundTrip(t *testing.T) {
-	// TODO: Advanced test using patterns
-}
