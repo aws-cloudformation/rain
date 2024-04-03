@@ -1,0 +1,108 @@
+
+AWSTemplateFormatVersion = "2010-09-09"
+
+Parameters {
+    ["EnvType"] {
+        Description = "Environment type."
+        Default = "test"
+        Type = "String"
+        AllowedValues {
+            "prod"
+            "test"
+        }
+    }
+}
+
+Conditions {
+    ["CreateProdResources"] {
+        ["Fn::Equals"] {
+             new {
+                ["Ref"] = "EnvType"
+            }
+            "prod"
+        }
+    }
+}
+
+Mappings {
+    ["Map1"] {
+        ["Key1"] {
+            ["Name"] = "Val1.1"
+        }
+        ["Key2"] {
+            ["Name"] = "Val1.2"
+        }
+    }
+    ["Map2"] {
+        ["Key1"] {
+            ["Name"] = "Val2.1"
+        }
+        ["Key2"] {
+            ["Name"] = "Val2.2"
+        }
+    }
+}
+
+Resources {
+    ["EC2Instance"] {
+        Type = "AWS::EC2::Instance"
+        Properties {
+            ["ImageId"] = "ami-0ff8a91507f77f867"
+        }
+    }
+
+    ["MountPoint"] {
+        Type = "AWS::EC2::VolumeAttachment"
+        Condition = "CreateProdResources"
+        Properties {
+            ["InstanceId"] {
+                ["Ref"] = "EC2Instance"
+            }
+            ["VolumeId"] {
+                ["Ref"] = "NewVolume"
+            }
+            ["Device"] = "/dev/sdh"
+        }
+    }
+
+    ["NewVolume"] {
+        Type = "AWS::EC2::Volume"
+        Condition = "CreateProdResources"
+        Properties {
+            ["Size"] = "100"
+            ["AvailabilityZone"] {
+                ["Fn::GetAtt"] {
+                    "EC2Instance"
+                    "AvailabilityZone"
+                }
+            }
+        }
+    }
+
+    ["Bucket1"] {
+        Type = "AWS::S3::Bucket"
+        Properties {
+            ["BucketName"] {
+                ["Fn::FindInMap"] {
+                    "Map1"
+                    "Key1"
+                    "Name"
+                }
+            }
+        }
+    }
+
+    ["Bucket2"] {
+        Type = "AWS::S3::Bucket"
+        Properties {
+            ["BucketName"] {
+                ["Fn::FindInMap"] {
+                    "Map2"
+                    "Key1"
+                    "Name"
+                }
+            }
+        }
+    }
+
+}

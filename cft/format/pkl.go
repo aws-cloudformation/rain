@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
@@ -11,8 +12,6 @@ import (
 	"github.com/aws-cloudformation/rain/internal/node"
 	"gopkg.in/yaml.v3"
 )
-
-var PklPackageAlias string = "@cfn"
 
 func getClassName(resource *yaml.Node) string {
 	typeName := getTypeName(resource)
@@ -64,7 +63,7 @@ func getModuleNameFromPath(path string) string {
 	return tokens[2]
 }
 
-func writeResource(sb *strings.Builder, name string, resource *yaml.Node) error {
+func writeResource(sb *strings.Builder, name string, resource *yaml.Node, basic bool) error {
 	indent := "    "
 	modulePath := getModulePath(resource)
 	moduleName := getModuleNameFromPath(modulePath)
@@ -74,17 +73,21 @@ func writeResource(sb *strings.Builder, name string, resource *yaml.Node) error 
 	// the resource in the verbose way, without using classes.
 	// This is likely a 3p resource that does not appear in the registry
 
-	// TODO: Make "raw" an arg so we can output CloudFormation YAML with no imports
-
 	if moduleName == "" {
+		basic = true
+	}
+
+	// ["LogicalId"] =
+	if basic {
 		w(sb, "%s[\"%s\"] {\n", indent, name)
 	} else {
 		w(sb, "%s[\"%s\"] = new %s.%s {\n", indent, name, moduleName, className)
 	}
+
 	for i := 0; i < len(resource.Content); i += 2 {
 		attrName := resource.Content[i].Value
 		attr := resource.Content[i+1]
-		if attrName == "Properties" && moduleName != "" {
+		if attrName == "Properties" && !basic {
 			// In our generated classes we push all properties up to the top level
 			// for convenience and type safety. (There are a few clashes we have to handle)
 			for j := 0; j < len(attr.Content); j += 2 {
@@ -94,29 +97,34 @@ func writeResource(sb *strings.Builder, name string, resource *yaml.Node) error 
 				switch prop.Kind {
 				case yaml.ScalarNode:
 					sb.WriteString(" = ")
-					writeNode(sb, prop, "")
+					writeNode(sb, prop, "", basic)
 				case yaml.SequenceNode:
 					fallthrough
 				case yaml.MappingNode:
-					// TODO: Need to modify the writes so we use classes instead of maps
-					// Are going to need reflection for this? Or can we predict class names?
-					sb.WriteString(" = new Mapping {\n")
-					writeNode(sb, prop, indent+"        ")
-					sb.WriteString(indent + "    }\n")
+					if isIntrinsic(prop.Content[0].Value) {
+						w(sb, " = ")
+						writeNode(sb, prop, indent+"        ", basic)
+						w(sb, "\n")
+					} else {
+						w(sb, " {\n")
+						writeNode(sb, prop, indent+"        ", basic)
+						sb.WriteString(indent + "    }\n")
+					}
 				}
 			}
 
 		} else {
+			// Basic rendering, without using module classes
 			w(sb, "    %s%s", indent, attrName)
 			switch attr.Kind {
 			case yaml.ScalarNode:
 				sb.WriteString(" = ")
-				writeNode(sb, attr, "")
+				writeNode(sb, attr, "", basic)
 			case yaml.SequenceNode:
 				fallthrough
 			case yaml.MappingNode:
 				sb.WriteString(" {\n")
-				writeNode(sb, attr, indent+"        ")
+				writeNode(sb, attr, indent+"        ", basic)
 				sb.WriteString(indent + "    }\n")
 			}
 		}
@@ -173,24 +181,54 @@ func w(sb *strings.Builder, f string, args ...any) {
 }
 
 // writeSequence writes a generic sequence
-func writeSequence(sb *strings.Builder, n *yaml.Node, indent string) error {
+func writeSequence(sb *strings.Builder, n *yaml.Node, indent string, basic bool) error {
 	for i := 0; i < len(n.Content); i++ {
 		switch n.Content[i].Kind {
 		case yaml.ScalarNode:
-			writeNode(sb, n.Content[i], indent)
+			writeNode(sb, n.Content[i], indent, basic)
 		case yaml.MappingNode:
-			sb.WriteString(indent + " new {\n")
-			writeNode(sb, n.Content[i], indent+"    ")
-			sb.WriteString(indent + "}\n")
+			if !basic && isIntrinsic(n.Content[i].Content[0].Value) {
+				w(sb, indent)
+				writeNode(sb, n.Content[i], indent+"        ", basic)
+			} else {
+				sb.WriteString(indent + " new {\n")
+				writeNode(sb, n.Content[i], indent+"    ", basic)
+				sb.WriteString(indent + "}\n")
+			}
 		case yaml.SequenceNode:
-			writeNode(sb, n.Content[i], indent)
+			writeNode(sb, n.Content[i], indent, basic)
 		}
 	}
 	return nil
 }
 
+const (
+	SUB       = "Fn::Sub"
+	REF       = "Ref"
+	GETATT    = "Fn::GetAtt"
+	EQUALS    = "Fn::Equals"
+	CONTAINS  = "Fn::Contains"
+	FINDINMAP = "Fn::FindInMap"
+	GETAZS    = "Fn::GetAZs"
+	SELECT    = "Fn::Select"
+)
+
+func isIntrinsic(name string) bool {
+	intrinsics := []string{
+		SUB,
+		REF,
+		GETATT,
+		EQUALS,
+		CONTAINS,
+		FINDINMAP,
+		GETAZS,
+		SELECT,
+	}
+	return slices.Contains(intrinsics, name)
+}
+
 // writeMap writes out a generic Mapping
-func writeMap(sb *strings.Builder, n *yaml.Node, indent string) error {
+func writeMap(sb *strings.Builder, n *yaml.Node, indent string, basic bool) error {
 	if n.Kind != yaml.MappingNode {
 		return errors.New("expected Mappings to be a MappingNode")
 	}
@@ -200,41 +238,104 @@ func writeMap(sb *strings.Builder, n *yaml.Node, indent string) error {
 	for i := 0; i < len(n.Content); i += 2 {
 		name := n.Content[i].Value
 		val := n.Content[i+1]
-		w(sb, "%s[\"%s\"]", indent, name)
-		if val.Kind == yaml.ScalarNode {
-			sb.WriteString(" = ")
+		if basic {
+			w(sb, "%s[\"%s\"]", indent, name)
+			if val.Kind == yaml.ScalarNode {
+				sb.WriteString(" = ")
+				writeNode(sb, val, "", basic)
+			} else {
+				sb.WriteString(" {\n")
+				writeNode(sb, val, indent+"    ", basic)
+				w(sb, "%s}\n", indent)
+			}
 		} else {
-			sb.WriteString(" {\n")
-		}
-		if val.Kind == yaml.ScalarNode {
-			writeNode(sb, val, "")
-		} else {
-			writeNode(sb, val, indent+"    ")
-			w(sb, "%s}\n", indent)
+			switch name {
+			case SUB:
+				w(sb, "cfn.Sub(\"%s\")\n", val.Value)
+			case REF:
+				w(sb, "cfn.Ref(\"%s\")\n", val.Value)
+			case GETATT:
+				w(sb, "cfn.GetAtt(\"%s\", \"%s\")\n",
+					val.Content[0].Value, val.Content[1].Value)
+			case EQUALS:
+				w(sb, "cfn.Equals(\"%s\", \"%s\")\n",
+					val.Content[0].Value, val.Content[1].Value)
+			case CONTAINS:
+				w(sb, "cfn.Contains(\"%s\", \"%s\")\n",
+					val.Content[0].Value, val.Content[1].Value)
+			case FINDINMAP:
+				w(sb, "cfn.FindInMap(\"%s\", \"%s\", \"%s\")\n",
+					val.Content[0].Value, val.Content[1].Value, val.Content[2].Value)
+			case GETAZS:
+				w(sb, "cfn.GetAZs(\"%s\")\n", val.Value)
+			case SELECT:
+				w(sb, "cfn.Select(\"%s\", \"%s\")\n",
+					val.Content[0].Value, val.Content[1].Value)
+			default:
+				w(sb, "%s%s", indent, name)
+				if val.Kind == yaml.ScalarNode {
+					sb.WriteString(" = ")
+					writeNode(sb, val, "", basic)
+				} else {
+					if isIntrinsic(val.Content[0].Value) {
+						w(sb, " = ")
+						writeNode(sb, val, indent+"        ", basic)
+					} else {
+						w(sb, " {\n")
+						writeNode(sb, val, indent+"        ", basic)
+						sb.WriteString(indent + "    }\n")
+					}
+				}
+			}
 		}
 	}
-	// TODO: Rewrite intrinsic functions to use cfn. helpers
 	return nil
 }
 
-func writeNode(sb *strings.Builder, n *yaml.Node, indent string) error {
+func isNum(s string) bool {
+	_, err := strconv.ParseFloat(s, 64)
+	return err == nil
+}
+
+func fixScalar(s string) string {
+	// This is hard to do correctly without inspecting the schema.
+	// Sometimes booleans and numbers are strings and YAML doesn't care
+	// Also booleans are extra complicated
+
+	boolStrings := []string{
+		"true",
+		"false",
+	}
+
+	if slices.Contains(boolStrings, s) {
+		return s
+	}
+
+	if isNum(s) {
+		return s
+	}
+
+	return fmt.Sprintf("\"%s\"", strings.Replace(s, "\n", "\\n", -1))
+}
+
+func writeNode(sb *strings.Builder, n *yaml.Node, indent string, basic bool) error {
 	switch n.Kind {
 	case yaml.ScalarNode:
-		w(sb, "%s\"%s\"\n", indent, n.Value)
+		w(sb, "%s%s\n", indent, fixScalar(n.Value))
 	case yaml.SequenceNode:
-		return writeSequence(sb, n, indent)
+		return writeSequence(sb, n, indent, basic)
 	case yaml.MappingNode:
-		return writeMap(sb, n, indent)
+		return writeMap(sb, n, indent, basic)
 	}
 	return nil
 }
 
-func addSection(section cft.Section, n *yaml.Node, sb *strings.Builder) error {
+func addSection(section cft.Section, n *yaml.Node, sb *strings.Builder, basic bool) error {
 	switch section {
 	case cft.AWSTemplateFormatVersion:
 		fallthrough
 	case cft.Description:
-		w(sb, "%s = \"%s\"\n", section, n.Value)
+		w(sb, "%s = %s\n", section, fixScalar(n.Value))
 	case cft.Parameters:
 		if n.Kind != yaml.MappingNode {
 			return errors.New("expected Parameters to be a MappingNode")
@@ -250,21 +351,21 @@ func addSection(section cft.Section, n *yaml.Node, sb *strings.Builder) error {
 		}
 		w(sb, "%s {\n", section)
 		for i := 0; i < len(n.Content); i += 2 {
-			writeResource(sb, n.Content[i].Value, n.Content[i+1])
+			writeResource(sb, n.Content[i].Value, n.Content[i+1], basic)
 		}
 		sb.WriteString("}\n")
 	case cft.Mappings:
 		fallthrough
 	case cft.Metadata:
 		w(sb, "%s {\n", section)
-		if err := writeMap(sb, n, "    "); err != nil {
+		if err := writeMap(sb, n, "    ", basic); err != nil {
 			return fmt.Errorf("unable to write %s section: %v", section, err)
 		}
 		sb.WriteString("}\n")
 	case cft.Rules:
 	case cft.Conditions:
 		w(sb, "%s {\n", section)
-		if err := writeMap(sb, n, "    "); err != nil {
+		if err := writeMap(sb, n, "    ", basic); err != nil {
 			return fmt.Errorf("unable to write %s section: %v", section, err)
 		}
 		sb.WriteString("}\n")
@@ -277,7 +378,7 @@ func addSection(section cft.Section, n *yaml.Node, sb *strings.Builder) error {
 
 // CftToPkl serializes the template as pkl.
 // It assumes that the user is import the cloudformation package
-func CftToPkl(t cft.Template) (string, error) {
+func CftToPkl(t cft.Template, basic bool, pklPackageAlias string) (string, error) {
 	if t.Node == nil || len(t.Node.Content) != 1 {
 		return "", errors.New("expected t.Node.Content[0]")
 	}
@@ -286,31 +387,35 @@ func CftToPkl(t cft.Template) (string, error) {
 		return "", errors.New("expected even number of map elements")
 	}
 	var sb strings.Builder
-	w(&sb, "amends \"%s/template.pkl\"\n", PklPackageAlias)
-	w(&sb, "import \"%s/cloudformation.pkl\" as cfn\n", PklPackageAlias)
 
-	// Peek at all resources and import their types
-	resources, err := t.GetSection(cft.Resources)
-	if err != nil {
-		return "", err
-	}
-	imports := make([]string, 0)
-	for i := 0; i < len(resources.Content); i += 2 {
-		resource := resources.Content[i+1]
-		modulePath := getModulePath(resource)
-		if modulePath != "" {
-			if !slices.Contains(imports, modulePath) {
-				imports = append(imports, modulePath)
-				w(&sb, "import \"%s/%s\"\n", PklPackageAlias, modulePath)
+	if !basic {
+		w(&sb, "amends \"%s/template.pkl\"\n", pklPackageAlias)
+		w(&sb, "import \"%s/cloudformation.pkl\" as cfn\n", pklPackageAlias)
+
+		// Peek at all resources and import their types
+		resources, err := t.GetSection(cft.Resources)
+		if err != nil {
+			return "", err
+		}
+		imports := make([]string, 0)
+		for i := 0; i < len(resources.Content); i += 2 {
+			resource := resources.Content[i+1]
+			modulePath := getModulePath(resource)
+			if modulePath != "" {
+				if !slices.Contains(imports, modulePath) {
+					imports = append(imports, modulePath)
+					w(&sb, "import \"%s/%s\"\n", pklPackageAlias, modulePath)
+				}
 			}
 		}
 	}
 
 	// Write each section
 	for i := 0; i < len(m.Content); i += 2 {
+		sb.WriteString("\n")
 		section := m.Content[i].Value
 		val := m.Content[i+1]
-		if err := addSection(cft.Section(section), val, &sb); err != nil {
+		if err := addSection(cft.Section(section), val, &sb, basic); err != nil {
 			return "", fmt.Errorf("failed to add %s: %v", section, err)
 		}
 	}

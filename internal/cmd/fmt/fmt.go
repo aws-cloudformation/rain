@@ -25,6 +25,12 @@ var writeFlag bool
 var unsortedFlag bool
 var dataModel bool
 
+// pklPackageAlias is the package name to use in module imports
+var pklPackageAlias string = "@cfn"
+
+// pklBasic is set by the --pkl-basic CLI arg to emit Pkl without any imports
+var pklBasic bool = false
+
 type result struct {
 	name   string
 	output string
@@ -44,7 +50,7 @@ func formatString(input string, res *result) {
 	if dataModel {
 		res.output = node.ToJson(source.Node)
 	} else if pklFlag {
-		res.output, err = format.CftToPkl(source)
+		res.output, err = format.CftToPkl(source, pklBasic, pklPackageAlias)
 		if err != nil {
 			res.err = err
 			return
@@ -195,11 +201,12 @@ var Cmd = &cobra.Command{
 func init() {
 	Cmd.Flags().BoolVarP(&jsonFlag, "json", "j", false, "Output the template as JSON (default format: YAML).")
 	Cmd.Flags().BoolVarP(&pklFlag, "pkl", "p", false, "Output the template as Pkl (default format: YAML).")
+	Cmd.Flags().BoolVar(&pklBasic, "pkl-basic", false, "Don't use Pkl modules for output")
 	Cmd.Flags().BoolVarP(&verifyFlag, "verify", "v", false, "Check if the input is already correctly formatted and exit.\nThe exit status will be 0 if so and 1 if not.")
 	Cmd.Flags().BoolVarP(&writeFlag, "write", "w", false, "Write the output back to the file rather than to stdout.")
 	Cmd.Flags().BoolVarP(&unsortedFlag, "unsorted", "u", false, "Do not sort the template's properties.")
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
 	Cmd.Flags().BoolVar(&dataModel, "datamodel", false, "Output the go yaml data model")
-	Cmd.Flags().StringVar(&format.PklPackageAlias, "pkl-package", "@cfn", "An alias or full package URI for the Pkl package for generated Pkl files")
+	Cmd.Flags().StringVar(&pklPackageAlias, "pkl-package", "@cfn", "An alias or full package URI for the Pkl package for generated Pkl files")
 	Cmd.Flags().StringVar(&format.NodeStyle, "node-style", "", format.NodeStyleDocs)
 }
