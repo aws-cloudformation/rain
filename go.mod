@@ -31,7 +31,7 @@ require (
 require (
 	github.com/apple/pkl-go v0.6.1-0.20240320183646-5827572b8112
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.37.0
-	github.com/aws/aws-sdk-go-v2/service/rds v1.76.0
+	github.com/aws/aws-sdk-go-v2/service/rds v1.76.1
 	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.21.4
 	github.com/fatih/color v1.16.0
 	github.com/manifoldco/promptui v0.9.0
@@ -59,9 +59,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/cloudcontrol v1.18.3
 	github.com/aws/aws-sdk-go-v2/service/iam v1.31.4
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.6 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.6 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.20.3 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect
