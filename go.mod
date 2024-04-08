@@ -14,7 +14,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.47.2
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.153.0
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.53.0
-	github.com/aws/aws-sdk-go-v2/service/sts v1.28.5
+	github.com/aws/aws-sdk-go-v2/service/sts v1.28.6
 	github.com/aws/smithy-go v1.20.2
 	github.com/chzyer/readline v1.5.1
 	github.com/google/go-cmp v0.6.0
@@ -59,9 +59,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/cloudcontrol v1.18.3
 	github.com/aws/aws-sdk-go-v2/service/iam v1.31.4
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.6 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.6 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.20.3 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect
