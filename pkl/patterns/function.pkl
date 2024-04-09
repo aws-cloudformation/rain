@@ -2,6 +2,7 @@
 module patterns.func
 
 import "../cloudformation.pkl" as cfn
+import "../rain.pkl"
 import "../aws/lambda/function.pkl" as func
 import "../patterns/role.pkl"
 
@@ -10,6 +11,8 @@ LogicalId: String
 
 /// IAM policy statements to allow the function to access resources
 Permissions: (role.Statement|Listing<role.Statement>)?
+
+CodeDirectory: String?
 
 local funcRole = new role {
     LogicalId = "\(outer.LogicalId)Role"
@@ -39,10 +42,23 @@ local funcRole = new role {
     }
 }
 
+local f = new func.Function {
+    Role = cfn.Ref(funcRole.LogicalId)
+}
+
 /// Template Resources
 fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
-    [LogicalId] = new func.Function {
-        Role = cfn.Ref(funcRole.LogicalId)
+    [LogicalId] = (f) {
+        when (CodeDirectory != null) {
+            Properties {
+                ["Code"] = new rain.S3 { 
+                    Path = CodeDirectory 
+                    Zip = true
+                    BucketProperty = "S3Bucket"
+                    KeyProperty = "S3Key"
+                }
+            }
+        }
     }
     ...funcRole.Resources
 }

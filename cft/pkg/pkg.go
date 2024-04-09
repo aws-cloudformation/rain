@@ -60,9 +60,6 @@ func transform(ctx *transformContext) (bool, error) {
 		for found := range s11n.MatchAll(ctx.nodeToTransform, path) {
 			nodeParent := node.GetParent(found, ctx.nodeToTransform, nil)
 			nodeParent.Parent = ctx.parent
-			if path == "**/*|Rain::Module" {
-				config.Debugf("found a Module at line %v", nodeParent.Value.Line)
-			}
 			c, err := fn(&directiveContext{found, ctx.rootDir, ctx.t, nodeParent, ctx.fs})
 			if err != nil {
 				config.Debugf("Error packaging template: %s\n", err)
@@ -82,8 +79,8 @@ func transform(ctx *transformContext) (bool, error) {
 func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error) {
 	templateNode := t.Node
 
-	// j, _ := json.MarshalIndent(t.Node, "", "  ")
-	// config.Debugf("Original template: %v", string(j))
+	//config.Debugf("Original template short: %v", node.ToSJson(t.Node))
+	//config.Debugf("Original template long: %v", node.ToJson(t.Node))
 
 	ctx := &transformContext{
 		nodeToTransform: templateNode,
