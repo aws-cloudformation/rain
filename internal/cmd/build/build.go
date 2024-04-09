@@ -27,6 +27,10 @@ var recommendFlag = false
 var outFn = ""
 var pklClass = false
 var noCache = false
+var guard = false
+var rego = false
+var model string
+var models map[string]string
 
 // Borrowing a simplified SAM spec file from goformation
 // Ideally we would autogenerate from the full SAM spec but that thing is huge
@@ -300,6 +304,8 @@ var Cmd = &cobra.Command{
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 
+		// TODO: If there are no args, default to fully interactive mode
+
 		// --list -l
 		// List resource types
 		if buildListFlag {
@@ -363,7 +369,10 @@ var Cmd = &cobra.Command{
 		// --prompt -p
 		// Invoke Bedrock with Claude 2 to generate the template
 		if promptFlag {
-			prompt(strings.Join(args, " "))
+			if guard && rego {
+				panic("only one of --guard and --rego can be requested")
+			}
+			runPrompt(strings.Join(args, " "))
 			return
 		}
 
@@ -389,6 +398,11 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
+	models = make(map[string]string)
+	models["claude2"] = "anthropic.claude-v2:1"
+	models["claude3sonnet"] = "anthropic.claude-3-sonnet-20240229-v1:0"
+	models["claude3haiku"] = "anthropic.claude-3-haiku-20240307-v1:0"
+
 	Cmd.Flags().BoolVarP(&buildListFlag, "list", "l", false, "List all CloudFormation resource types with an optional name prefix")
 	Cmd.Flags().BoolVarP(&promptFlag, "prompt", "p", false, "Generate a template using Bedrock and a prompt")
 	Cmd.Flags().BoolVarP(&bareTemplate, "bare", "b", false, "Produce a minimal template, omitting all optional resource properties")
@@ -400,4 +414,7 @@ func init() {
 	Cmd.Flags().StringVarP(&outFn, "output", "o", "", "Output to a file")
 	Cmd.Flags().BoolVar(&pklClass, "pkl-class", false, "Output a pkl class based on a resource type schema")
 	Cmd.Flags().BoolVar(&noCache, "no-cache", false, "Do not used cached schema files")
+	Cmd.Flags().BoolVar(&guard, "guard", false, "When using --prompt, output a CloudFormation Guard policy file")
+	Cmd.Flags().BoolVar(&rego, "rego", false, "When using --prompt, output an OPA Rego policy file")
+	Cmd.Flags().StringVar(&model, "model", "claude2", "The ID of the Bedrock model to use for --prompt. Shorthand: claude2, claude3haiku, claude3sonnet")
 }
