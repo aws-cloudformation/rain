@@ -70,7 +70,6 @@ rule S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED when %s3_buckets_server_side_encry
 		// Clean up the output
 		r = strings.ReplaceAll(r, "<guard>\n", "")
 		r = strings.ReplaceAll(r, "</guard>", "")
-		r = strings.ReplaceAll(r, " AWSTemplateFormatVersion", "AWSTemplateFormatVersion")
 
 		fmt.Println(r)
 
@@ -78,7 +77,57 @@ rule S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED when %s3_buckets_server_side_encry
 }
 
 func promptRego(p string, mid string) {
-	fmt.Println("Rego...")
+	if isClaude2() {
+		prompt := fmt.Sprintf("Write an Open Policy Agent (OPA) Rego (.rego) policy file that does the following:\n\n%s\n\nDo not include any explanation.\n\nWrite only the content of the rego file.\n\nOutput a valid OPA rule within <rego></rego> tags.", p)
+		config.Debugf("About to invoke bedrock Claude2 %s with prompt: %s", mid, prompt)
+		r, err := bedrock.Invoke(prompt)
+		if err != nil {
+			panic(err)
+		}
+
+		// Clean up the output
+		r = strings.ReplaceAll(r, "<rego>\n", "")
+		r = strings.ReplaceAll(r, "</rego>", "")
+
+		fmt.Println(r)
+	} else {
+
+		sample := `
+import input 
+
+# deny if it creates more than 10 EC2 instances
+deny_too_many_ec2[deny] {                             
+    instances := [res | res:=input.Resources[_]; res.Type == "AWS::EC2::Instance"]   
+    count(instances) > 10  
+    deny := true
+}
+
+# deny if ssh is enabled
+deny_ssh_enabled[deny] {                             
+    input.Resources[_].Properties.SecurityGroupIngress[_].ToPort == 22
+    deny := true
+}
+
+# deny if it creates IAM role
+deny_role_created[deny] {                             
+    input.Resources[_].Type == "AWS::IAM::Role"
+    deny := true
+}
+`
+		system := fmt.Sprintf("Open Policy Agent (OPA) policy files are written in Rego and have a .rego file type.\n\n Write an Open Policy Agent Rego policy file that implements the user's request:\n\nDo not include any explanation.\n\nWrite only the content of the rego file.\n\nOutput a valid rego policy within <rego></rego> tags. The following is an example of a rego policy:\n\n%s", sample)
+		config.Debugf("About to invoke bedrock %s with system: %s, prompt: %s", mid, system, p)
+		r, err := bedrock.InvokeClaude3(p, mid, system)
+		if err != nil {
+			panic(err)
+		}
+
+		// Clean up the output
+		r = strings.ReplaceAll(r, "<rego>\n", "")
+		r = strings.ReplaceAll(r, "</rego>", "")
+
+		fmt.Println(r)
+
+	}
 }
 
 func isClaude2() bool {
