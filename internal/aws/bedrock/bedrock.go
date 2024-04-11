@@ -111,7 +111,7 @@ func Invoke(p string) (string, error) {
 	return resp.Completion, nil
 }
 
-// Invoke invokes the Claude V2 model with the provided prompt.
+// InvokeClaude3 invokes the Claude V3 model with the provided prompt.
 func InvokeClaude3(p string, model string, system string) (string, error) {
 
 	maxTokens := 2048
