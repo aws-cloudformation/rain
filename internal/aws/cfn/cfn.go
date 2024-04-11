@@ -57,6 +57,9 @@ const WAIT_PERIOD_IN_SECONDS = 2
 
 var Schemas map[string]string
 
+//go:embed all-types.txt
+var AllTypes string
+
 //go:embed schemas
 var schemaFiles embed.FS
 
@@ -1190,7 +1193,12 @@ func ResourceAlreadyExists(
 }
 
 // ListResourceTypes lists all live registry resource types
-func ListResourceTypes() ([]string, error) {
+func ListResourceTypes(noCache bool) ([]string, error) {
+
+	if !noCache {
+		return strings.Split(AllTypes, "\n"), nil
+	}
+
 	input := &cloudformation.ListTypesInput{
 		DeprecatedStatus: types.DeprecatedStatusLive,
 		Type:             types.RegistryTypeResource,
