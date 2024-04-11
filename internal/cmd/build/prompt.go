@@ -11,11 +11,12 @@ import (
 // prompt invokes bedrock to produce a template based on the prompt
 func runPrompt(p string) {
 	mid := modelId(model)
-	if guard {
+	switch promptLanguage {
+	case LANG_GUARD:
 		promptGuard(p, mid)
-	} else if rego {
+	case LANG_REGO:
 		promptRego(p, mid)
-	} else {
+	default:
 		promptCfn(p, mid)
 	}
 }

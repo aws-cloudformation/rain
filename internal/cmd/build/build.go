@@ -28,8 +28,7 @@ var recommendFlag = false
 var outFn = ""
 var pklClass = false
 var noCache = false
-var guard = false
-var rego = false
+var promptLanguage = "cfn"
 var model string
 var models map[string]string
 var activeFormat string
@@ -391,8 +390,9 @@ var Cmd = &cobra.Command{
 		// --prompt -p
 		// Invoke Bedrock with Claude 2 to generate the template
 		if promptFlag {
-			if guard && rego {
-				panic("only one of --guard and --rego can be requested")
+			validLangs := []string{LANG_CFN, LANG_GUARD, LANG_REGO}
+			if !slices.Contains(validLangs, promptLanguage) {
+				panic(fmt.Sprintf("provide a valid --prompt-lang: %v", validLangs))
 			}
 			if len(args) == 0 {
 				panic("provide a prompt")
@@ -424,6 +424,12 @@ var Cmd = &cobra.Command{
 	},
 }
 
+const (
+	LANG_CFN   = "cfn"
+	LANG_GUARD = "guard"
+	LANG_REGO  = "rego"
+)
+
 func init() {
 	models = make(map[string]string)
 	models["claude2"] = "anthropic.claude-v2:1"
@@ -449,7 +455,6 @@ func init() {
 	Cmd.Flags().StringVarP(&outFn, "output", "o", "", "Output to a file")
 	Cmd.Flags().BoolVar(&pklClass, "pkl-class", false, "Output a pkl class based on a resource type schema")
 	Cmd.Flags().BoolVar(&noCache, "no-cache", false, "Do not used cached schema files")
-	Cmd.Flags().BoolVar(&guard, "guard", false, "When using --prompt, output a CloudFormation Guard policy file")
-	Cmd.Flags().BoolVar(&rego, "rego", false, "When using --prompt, output an OPA Rego policy file")
+	Cmd.Flags().StringVar(&promptLanguage, "prompt-lang", "cfn", "The language to target for --prompt, CloudFormation YAML (cfn), CloudFormation Guard (guard), Open Policy Agent Rego (rego)")
 	Cmd.Flags().StringVar(&model, "model", "claude2", "The ID of the Bedrock model to use for --prompt. Shorthand: claude2, claude3haiku, claude3sonnet")
 }
