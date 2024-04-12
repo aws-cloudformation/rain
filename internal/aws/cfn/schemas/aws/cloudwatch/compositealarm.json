@@ -2,6 +2,13 @@
   "typeName": "AWS::CloudWatch::CompositeAlarm",
   "description": "The AWS::CloudWatch::CompositeAlarm type specifies an alarm which aggregates the states of other Alarms (Metric or Composite Alarms) as defined by the AlarmRule expression",
   "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-cloudwatch.git",
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags"
+  },
   "properties": {
     "Arn": {
       "type": "string",
@@ -79,6 +86,46 @@
       "description": "Actions will be suppressed if WaitPeriod is active. The length of time that actions are suppressed is in seconds.",
       "type": "integer",
       "minimum": 0
+    },
+    "Tags": {
+      "description": "A list of key-value pairs to associate with the composite alarm. You can associate as many as 50 tags with an alarm.",
+      "type": "array",
+      "maxItems": 50,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
+    }
+  },
+  "definitions": {
+    "AlarmActionARN": {
+      "type": "string",
+      "description": "Amazon Resource Name (ARN) of the action",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "Tag": {
+      "description": "Metadata that you can assign to a composite alarm, Tags can help you organize and categorize your resources.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Key": {
+          "description": "A unique identifier for the tag. The combination of tag keys and values can help you organize and categorize your resources.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "Value": {
+          "description": "The value for the specified tag key.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "Key",
+        "Value"
+      ]
     }
   },
   "required": [
@@ -98,18 +145,22 @@
     "create": {
       "permissions": [
         "cloudwatch:DescribeAlarms",
-        "cloudwatch:PutCompositeAlarm"
+        "cloudwatch:PutCompositeAlarm",
+        "cloudwatch:TagResource"
       ]
     },
     "read": {
       "permissions": [
-        "cloudwatch:DescribeAlarms"
+        "cloudwatch:DescribeAlarms",
+        "cloudwatch:ListTagsForResource"
       ]
     },
     "update": {
       "permissions": [
         "cloudwatch:DescribeAlarms",
-        "cloudwatch:PutCompositeAlarm"
+        "cloudwatch:PutCompositeAlarm",
+        "cloudwatch:TagResource",
+        "cloudwatch:UntagResource"
       ]
     },
     "delete": {
@@ -123,8 +174,5 @@
         "cloudwatch:DescribeAlarms"
       ]
     }
-  },
-  "tagging": {
-    "taggable": false
   }
 }

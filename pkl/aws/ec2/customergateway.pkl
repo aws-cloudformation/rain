@@ -5,35 +5,41 @@ module aws.ec2.customergateway
 
 import "../../cloudformation.pkl"
 
-/// 
+/// Specifies a tag. For more information, see [Add tags to a resource](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#cloudformation-add-tag-specifications).
 open class CustomerGatewayTag {
     Key: String|Mapping
     Value: String|Mapping
 }
 
-/// Resource Type definition for AWS::EC2::CustomerGateway
+/// Specifies a customer gateway.
 open class CustomerGateway extends cloudformation.Resource {
 
     Type = "AWS::EC2::CustomerGateway"
 
 
     /// For devices that support BGP, the customer gateway's BGP ASN.
+    ///
+    ///  Default: 65000
     hidden BgpAsn: Int|Mapping
 
-    /// A name for the customer gateway device.
+    /// 
+    hidden CertificateArn: (String(matches(Regex(#"^arn:(aws[a-zA-Z-]*)?:acm:[a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}:\d{12}:certificate\/[a-zA-Z0-9-_]+$"#)))|Mapping)?
+
+    /// The name of customer gateway device.
     hidden DeviceName: (String|Mapping)?
 
-    /// The internet-routable IP address for the customer gateway's outside interface. The address must be static.
+    /// IPv4 address for the customer gateway device's outside interface. The address must be static.
     hidden IpAddress: String|Mapping
 
     /// One or more tags for the customer gateway.
     hidden Tags: (Listing<CustomerGatewayTag>)?
 
-    /// The type of VPN connection that this customer gateway supports.
+    /// The type of VPN connection that this customer gateway supports (``ipsec.1``).
     hidden TypeProperty: String|Mapping
 
     Properties {
         ["BgpAsn"] = if (BgpAsn == null) null else BgpAsn
+        ["CertificateArn"] = if (CertificateArn == null) null else CertificateArn
         ["DeviceName"] = if (DeviceName == null) null else DeviceName
         ["IpAddress"] = if (IpAddress == null) null else IpAddress
         ["Tags"] = if (Tags == null) null else Tags

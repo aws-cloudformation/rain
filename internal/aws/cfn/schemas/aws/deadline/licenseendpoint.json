@@ -1,0 +1,115 @@
+{
+  "typeName": "AWS::Deadline::LicenseEndpoint",
+  "description": "Definition of AWS::Deadline::LicenseEndpoint Resource Type",
+  "definitions": {
+    "LicenseEndpointStatus": {
+      "type": "string",
+      "enum": [
+        "CREATE_IN_PROGRESS",
+        "DELETE_IN_PROGRESS",
+        "READY",
+        "NOT_READY"
+      ]
+    }
+  },
+  "properties": {
+    "DnsName": {
+      "type": "string"
+    },
+    "LicenseEndpointId": {
+      "type": "string",
+      "pattern": "^le-[0-9a-f]{32}$"
+    },
+    "SecurityGroupIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 10,
+      "minItems": 1
+    },
+    "Status": {
+      "$ref": "#/definitions/LicenseEndpointStatus"
+    },
+    "StatusMessage": {
+      "type": "string",
+      "maxLength": 1024,
+      "minLength": 0
+    },
+    "SubnetIds": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 32,
+        "minLength": 1
+      },
+      "maxItems": 10,
+      "minItems": 1
+    },
+    "VpcId": {
+      "type": "string",
+      "maxLength": 32,
+      "minLength": 1
+    },
+    "Arn": {
+      "type": "string",
+      "pattern": "^arn:(aws[a-zA-Z-]*):deadline:[a-z0-9-]+:[0-9]{12}:license-endpoint/le-[0-9a-z]{32}"
+    }
+  },
+  "required": [
+    "SecurityGroupIds",
+    "SubnetIds",
+    "VpcId"
+  ],
+  "readOnlyProperties": [
+    "/properties/DnsName",
+    "/properties/LicenseEndpointId",
+    "/properties/Status",
+    "/properties/StatusMessage",
+    "/properties/Arn"
+  ],
+  "createOnlyProperties": [
+    "/properties/SecurityGroupIds",
+    "/properties/SubnetIds",
+    "/properties/VpcId"
+  ],
+  "primaryIdentifier": [
+    "/properties/Arn"
+  ],
+  "tagging": {
+    "taggable": false,
+    "tagOnCreate": false,
+    "tagUpdatable": false,
+    "cloudFormationSystemTags": false
+  },
+  "handlers": {
+    "create": {
+      "permissions": [
+        "deadline:CreateLicenseEndpoint",
+        "deadline:GetLicenseEndpoint",
+        "ec2:CreateTags",
+        "ec2:CreateVpcEndpoint",
+        "ec2:DescribeVpcEndpoints"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "deadline:GetLicenseEndpoint"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "deadline:GetLicenseEndpoint",
+        "deadline:DeleteLicenseEndpoint",
+        "ec2:DeleteVpcEndpoints",
+        "ec2:DescribeVpcEndpoints"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "deadline:ListLicenseEndpoints"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

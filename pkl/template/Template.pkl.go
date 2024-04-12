@@ -13,7 +13,7 @@ type Template struct {
 
 	AWSTemplateFormatVersion string `pkl:"AWSTemplateFormatVersion"`
 
-	Metadata *map[any]any `pkl:"Metadata"`
+	Metadata *pkl.Object `pkl:"Metadata"`
 
 	Parameters *map[string]cloudformation.Parameter `pkl:"Parameters"`
 

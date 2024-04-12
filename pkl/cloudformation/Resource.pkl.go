@@ -1,6 +1,8 @@
 // Code generated from Pkl module `cloudformation`. DO NOT EDIT.
 package cloudformation
 
+import "github.com/apple/pkl-go/pkl"
+
 type Resource interface {
 	GetType() string
 
@@ -12,7 +14,7 @@ type Resource interface {
 
 	GetDependsOn() *[]string
 
-	GetMetadata() *map[any]any
+	GetMetadata() *pkl.Object
 
 	GetUpdatePolicy() *map[any]any
 
@@ -41,7 +43,7 @@ type ResourceImpl struct {
 
 	DependsOn *[]string `pkl:"DependsOn"`
 
-	Metadata *map[any]any `pkl:"Metadata"`
+	Metadata *pkl.Object `pkl:"Metadata"`
 
 	UpdatePolicy *map[any]any `pkl:"UpdatePolicy"`
 
@@ -70,7 +72,7 @@ func (rcv *ResourceImpl) GetDependsOn() *[]string {
 	return rcv.DependsOn
 }
 
-func (rcv *ResourceImpl) GetMetadata() *map[any]any {
+func (rcv *ResourceImpl) GetMetadata() *pkl.Object {
 	return rcv.Metadata
 }
 
