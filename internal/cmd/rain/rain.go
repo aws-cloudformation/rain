@@ -93,7 +93,7 @@ func init() {
 
 	// Template commands
 	addCommand(templateGroup, true, false, bootstrap.Cmd)
-	addCommand(templateGroup, false, false, build.Cmd)
+	addCommand(templateGroup, true, false, build.Cmd)
 	addCommand(templateGroup, false, false, diff.Cmd)
 	addCommand(templateGroup, false, false, rainfmt.Cmd)
 	addCommand(templateGroup, false, false, merge.Cmd)

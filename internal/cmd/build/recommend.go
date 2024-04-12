@@ -18,8 +18,6 @@ type reco struct {
 	Sub  []reco
 }
 
-var checkIcon = "✅"
-
 // We are embedding the entire tmpl directory into the binary as a file system
 
 //go:embed tmpl
@@ -50,17 +48,10 @@ func writeFile(args []string) {
 
 func showPrompt(selections []reco, path string) {
 
-	activeFormat := " {{ .Name | magenta }}: {{ .Text | magenta }}"
-	selectedFormat := " {{ .Name | magenta }}: {{ .Text | blue }}"
-
-	if console.NoColour {
-		activeFormat = " {{ .Name }}: {{ .Text }}"
-		selectedFormat = " {{ .Name }}: {{ .Text }}"
-	}
-
 	p := promptui.Select{
-		Label: "Select a pattern",
-		Items: selections,
+		Label:  "Select a pattern",
+		Items:  selections,
+		Stdout: NoBellStdout,
 		Templates: &promptui.SelectTemplates{
 			Label:    "{{ . }}",
 			Active:   checkIcon + activeFormat,

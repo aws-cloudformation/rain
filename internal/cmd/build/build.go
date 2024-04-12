@@ -12,6 +12,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -27,6 +28,12 @@ var recommendFlag = false
 var outFn = ""
 var pklClass = false
 var noCache = false
+var promptLanguage = "cfn"
+var model string
+var models map[string]string
+var activeFormat string
+var selectedFormat string
+var checkIcon = "✅"
 
 // Borrowing a simplified SAM spec file from goformation
 // Ideally we would autogenerate from the full SAM spec but that thing is huge
@@ -292,6 +299,58 @@ func output(out string) {
 	}
 }
 
+func list(prefix string) {
+	types, err := cfn.ListResourceTypes(noCache)
+	if err != nil {
+		panic(err)
+	}
+	for _, t := range types {
+		show := false
+		if prefix != "" {
+			// Filter by a prefix
+			if strings.HasPrefix(t, prefix) {
+				show = true
+			}
+		} else {
+			show = true
+		}
+		if show {
+			output(t)
+		}
+	}
+}
+
+func schema(typeName string) {
+	// Use the local converted SAM schemas for serverless resources
+	if isSAM(typeName) {
+		// Convert the spec to a cfn.Schema and skip downloading from the registry
+		schema, err := convertSAMSpec(samSpecSource, typeName)
+		if err != nil {
+			panic(err)
+		}
+
+		j, _ := json.MarshalIndent(schema, "", "    ")
+		output(string(j))
+	} else {
+		schema, err := cfn.GetTypeSchema(typeName, noCache)
+		if err != nil {
+			panic(err)
+		}
+		output(schema)
+	}
+}
+
+func basicBuild(args []string) {
+	t, err := build(args)
+	if err != nil {
+		panic(err)
+	}
+	out := format.String(t, format.Options{
+		JSON: buildJSON,
+	})
+	output(out)
+}
+
 // Cmd is the build command's entrypoint
 var Cmd = &cobra.Command{
 	Use:                   "build [<resource type>] or <prompt>",
@@ -303,24 +362,11 @@ var Cmd = &cobra.Command{
 		// --list -l
 		// List resource types
 		if buildListFlag {
-			types, err := cfn.ListResourceTypes()
-			if err != nil {
-				panic(err)
+			prefix := ""
+			if len(args) > 0 {
+				prefix = args[0]
 			}
-			for _, t := range types {
-				show := false
-				if len(args) == 1 {
-					// Filter by a prefix
-					if strings.HasPrefix(t, args[0]) {
-						show = true
-					}
-				} else {
-					show = true
-				}
-				if show {
-					output(t)
-				}
-			}
+			list(prefix)
 			return
 		}
 
@@ -331,45 +377,36 @@ var Cmd = &cobra.Command{
 			return
 		}
 
-		if len(args) == 0 {
-			cmd.Help()
-			return
-		}
-
 		// --schema -s
 		// Download and print out the registry schema
 		if showSchema {
-			typeName := args[0]
-			// Use the local converted SAM schemas for serverless resources
-			if isSAM(typeName) {
-				// Convert the spec to a cfn.Schema and skip downloading from the registry
-				schema, err := convertSAMSpec(samSpecSource, typeName)
-				if err != nil {
-					panic(err)
-				}
-
-				j, _ := json.MarshalIndent(schema, "", "    ")
-				output(string(j))
-			} else {
-				schema, err := cfn.GetTypeSchema(typeName, noCache)
-				if err != nil {
-					panic(err)
-				}
-				output(schema)
+			if len(args) == 0 {
+				panic("provide a resource type name")
 			}
+			schema(args[0])
 			return
 		}
 
 		// --prompt -p
 		// Invoke Bedrock with Claude 2 to generate the template
 		if promptFlag {
-			prompt(strings.Join(args, " "))
+			validLangs := []string{LANG_CFN, LANG_GUARD, LANG_REGO}
+			if !slices.Contains(validLangs, promptLanguage) {
+				panic(fmt.Sprintf("provide a valid --prompt-lang: %v", validLangs))
+			}
+			if len(args) == 0 {
+				panic("provide a prompt")
+			}
+			runPrompt(strings.Join(args, " "))
 			return
 		}
 
 		// --pkl-class
 		// Generate a pkl class based on the schema
 		if pklClass {
+			if len(args) == 0 {
+				panic("provide a type name")
+			}
 			typeName := args[0]
 			if err := generatePklClass(typeName); err != nil {
 				panic(err)
@@ -377,27 +414,47 @@ var Cmd = &cobra.Command{
 			return
 		}
 
-		t, err := build(args)
-		if err != nil {
-			panic(err)
+		if len(args) == 0 {
+			// Enter interactive mode if we got this far with no args
+			interactive()
+		} else {
+			// Basic build functionality
+			basicBuild(args)
 		}
-		out := format.String(t, format.Options{
-			JSON: buildJSON,
-		})
-		output(out)
 	},
 }
 
+const (
+	LANG_CFN   = "cfn"
+	LANG_GUARD = "guard"
+	LANG_REGO  = "rego"
+)
+
 func init() {
+	models = make(map[string]string)
+	models["claude2"] = "anthropic.claude-v2:1"
+	models["claude3sonnet"] = "anthropic.claude-3-sonnet-20240229-v1:0"
+	models["claude3haiku"] = "anthropic.claude-3-haiku-20240307-v1:0"
+
+	activeFormat = " {{ .Name | magenta }}: {{ .Text | magenta }}"
+	selectedFormat = " {{ .Name | magenta }}: {{ .Text | blue }}"
+
+	if console.NoColour {
+		activeFormat = " {{ .Name }}: {{ .Text }}"
+		selectedFormat = " {{ .Name }}: {{ .Text }}"
+	}
+
 	Cmd.Flags().BoolVarP(&buildListFlag, "list", "l", false, "List all CloudFormation resource types with an optional name prefix")
-	Cmd.Flags().BoolVarP(&promptFlag, "prompt", "p", false, "Generate a template using Bedrock and a prompt")
+	Cmd.Flags().BoolVar(&promptFlag, "prompt", false, "Generate a template using Bedrock and a prompt")
 	Cmd.Flags().BoolVarP(&bareTemplate, "bare", "b", false, "Produce a minimal template, omitting all optional resource properties")
 	Cmd.Flags().BoolVarP(&buildJSON, "json", "j", false, "Output the template as JSON (default format: YAML)")
 	Cmd.Flags().BoolVarP(&showSchema, "schema", "s", false, "Output the raw un-patched registry schema for a resource type")
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
 	Cmd.Flags().BoolVar(&omitPatches, "omit-patches", false, "Omit patches and use the raw schema")
-	Cmd.Flags().BoolVarP(&recommendFlag, "recommend", "r", false, "Output a recommended architecture for the chosen use case")
+	Cmd.Flags().BoolVar(&recommendFlag, "recommend", false, "Output a recommended architecture for the chosen use case")
 	Cmd.Flags().StringVarP(&outFn, "output", "o", "", "Output to a file")
 	Cmd.Flags().BoolVar(&pklClass, "pkl-class", false, "Output a pkl class based on a resource type schema")
 	Cmd.Flags().BoolVar(&noCache, "no-cache", false, "Do not used cached schema files")
+	Cmd.Flags().StringVar(&promptLanguage, "prompt-lang", "cfn", "The language to target for --prompt, CloudFormation YAML (cfn), CloudFormation Guard (guard), Open Policy Agent Rego (rego)")
+	Cmd.Flags().StringVar(&model, "model", "claude2", "The ID of the Bedrock model to use for --prompt. Shorthand: claude2, claude3haiku, claude3sonnet")
 }

@@ -446,7 +446,9 @@ func DeleteStackSetInstances(stackSetName string, accounts []string, regions []s
 	return nil
 }
 
-func ListResourceTypes() ([]string, error) {
+var AllTypes string
+
+func ListResourceTypes(noCache bool) ([]string, error) {
 	return []string{"AWS::S3::Bucket", "AWS::Lambda::Function"}, nil
 }
 
