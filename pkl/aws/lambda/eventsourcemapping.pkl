@@ -5,7 +5,7 @@ module aws.lambda.eventsourcemapping
 
 import "../../cloudformation.pkl"
 
-/// Specific configuration settings for an MSK event source.
+/// Specific configuration settings for an Amazon Managed Streaming for Apache Kafka (Amazon MSK) event source.
 open class EventSourceMappingAmazonManagedKafkaEventSourceConfig {
     ConsumerGroupId: (EventSourceMappingConsumerGroupId)?
 }
@@ -13,31 +13,31 @@ open class EventSourceMappingAmazonManagedKafkaEventSourceConfig {
 typealias EventSourceMappingConsumerGroupId = String|Mapping
 
 
-/// (Streams) An Amazon SQS queue or Amazon SNS topic destination for discarded records.
+/// A configuration object that specifies the destination of an event after Lambda processes it.
 open class EventSourceMappingDestinationConfig {
     OnFailure: (EventSourceMappingOnFailure)?
 }
 
 typealias DocumentDBEventSourceConfigFullDocument = "UpdateLookup"|"Default"
 
-/// Document db event source config.
+/// Specific configuration settings for a DocumentDB event source.
 open class EventSourceMappingDocumentDBEventSourceConfig {
     CollectionName: (String|Mapping)?
     DatabaseName: (String|Mapping)?
     FullDocument: (DocumentDBEventSourceConfigFullDocument|Mapping)?
 }
 
-/// The endpoints used by AWS Lambda to access a self-managed event source.
+/// The list of bootstrap servers for your Kafka brokers in the following format: ``"KafkaBootstrapServers": ["abc.xyz.com:xxxx","abc2.xyz.com:xxxx"]``.
 open class EventSourceMappingEndpoints {
     KafkaBootstrapServers: (Listing<String|Mapping>)?
 }
 
-/// The filter object that defines parameters for ESM filtering.
+/// A structure within a ``FilterCriteria`` object that defines an event filtering pattern.
 open class EventSourceMappingFilter {
     Pattern: (String(matches(Regex(#".*"#)))|Mapping)?
 }
 
-/// The filter criteria to control event filtering.
+/// An object that contains the filters for an event source.
 open class EventSourceMappingFilterCriteria {
     Filters: (Listing<EventSourceMappingFilter>)?
 }
@@ -47,105 +47,151 @@ typealias EventSourceMappingMaximumConcurrency = Int|Mapping
 
 /// A destination for events that failed processing.
 open class EventSourceMappingOnFailure {
-    Destination: (String(matches(Regex(#"arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\-])+:([a-z]{2}(-gov)?-[a-z]+-\d{1})?:(\d{12})?:(.*)"#)))|Mapping)?
+    Destination: (String(matches(Regex(#"arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\-])+:([a-z]{2}(-gov)?(-iso)?(-isob)?-[a-z]+-\d{1})?:(\d{12})?:(.*)"#)))|Mapping)?
 }
 
-/// The scaling configuration for the event source.
+/// (Amazon SQS only) The scaling configuration for the event source. To remove the configuration, pass an empty value.
 open class EventSourceMappingScalingConfig {
     MaximumConcurrency: (EventSourceMappingMaximumConcurrency)?
 }
 
-/// The configuration used by AWS Lambda to access a self-managed event source.
+/// The self-managed Apache Kafka cluster for your event source.
 open class EventSourceMappingSelfManagedEventSource {
     Endpoints: (EventSourceMappingEndpoints)?
 }
 
-/// Specific configuration settings for a Self-Managed Apache Kafka event source.
+/// Specific configuration settings for a self-managed Apache Kafka event source.
 open class EventSourceMappingSelfManagedKafkaEventSourceConfig {
     ConsumerGroupId: (EventSourceMappingConsumerGroupId)?
 }
 
 typealias SourceAccessConfigurationType = "BASIC_AUTH"|"VPC_SUBNET"|"VPC_SECURITY_GROUP"|"SASL_SCRAM_512_AUTH"|"SASL_SCRAM_256_AUTH"|"VIRTUAL_HOST"|"CLIENT_CERTIFICATE_TLS_AUTH"|"SERVER_ROOT_CA_CERTIFICATE"
 
-/// The configuration used by AWS Lambda to access event source
+/// An array of the authentication protocol, VPC components, or virtual host to secure and define your event source.
 open class EventSourceMappingSourceAccessConfiguration {
     Type: (SourceAccessConfigurationType|Mapping)?
     URI: (String(matches(Regex(#"[a-zA-Z0-9-\/*:_+=.@-]*"#)))|Mapping)?
 }
 
-/// Resource Type definition for AWS::Lambda::EventSourceMapping
+/// The ``AWS::Lambda::EventSourceMapping`` resource creates a mapping between an event source and an LAMlong function. LAM reads items from the event source and triggers the function.
+///
+///  For details about each event source type, see the following topics. In particular, each of the topics describes the required and optional parameters for the specific event source. 
+///   +  [Configuring a Dynamo DB stream as an event source](https://docs.aws.amazon.com/lambda/latest/dg/with-ddb.html#services-dynamodb-eventsourcemapping)
+///   +  [Configuring a Kinesis stream as an event source](https://docs.aws.amazon.com/lambda/latest/dg/with-kinesis.html#services-kinesis-eventsourcemapping)
+///   +  [Configuring an SQS queue as an event source](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html#events-sqs-eventsource)
+///   +  [Configuring an MQ broker as an event source](https://docs.aws.amazon.com/lambda/latest/dg/with-mq.html#services-mq-eventsourcemapping)
+///   +  [Configuring MSK as an event source](https://docs.aws.amazon.com/lambda/latest/dg/with-msk.html)
+///   +  [Configuring Self-Managed Apache Kafka as an event source](https://docs.aws.amazon.com/lambda/latest/dg/kafka-smaa.html)
+///   +  [Configuring Amazon DocumentDB as an event source](https://docs.aws.amazon.com/lambda/latest/dg/with-documentdb.html)
 open class EventSourceMapping extends cloudformation.Resource {
 
     Type = "AWS::Lambda::EventSourceMapping"
 
 
-    /// Specific configuration settings for an MSK event source.
+    /// Specific configuration settings for an Amazon Managed Streaming for Apache Kafka (Amazon MSK) event source.
     hidden AmazonManagedKafkaEventSourceConfig: (EventSourceMappingAmazonManagedKafkaEventSourceConfig)?
 
-    /// The maximum number of items to retrieve in a single batch.
+    /// The maximum number of records in each batch that Lambda pulls from your stream or queue and sends to your function. Lambda passes all of the records in the batch to the function in a single call, up to the payload limit for synchronous invocation (6 MB).
+    ///
+    ///   +   *Amazon Kinesis* ? Default 100. Max 10,000.
+    ///   +   *Amazon DynamoDB Streams* ? Default 100. Max 10,000.
+    ///   +   *Amazon Simple Queue Service* ? Default 10. For standard queues the max is 10,000. For FIFO queues the max is 10.
+    ///   +   *Amazon Managed Streaming for Apache Kafka* ? Default 100. Max 10,000.
+    ///   +   *Self-managed Apache Kafka* ? Default 100. Max 10,000.
+    ///   +   *Amazon MQ (ActiveMQ and RabbitMQ)* ? Default 100. Max 10,000.
+    ///   +   *DocumentDB* ? Default 100. Max 10,000.
     hidden BatchSize: (Int|Mapping)?
 
-    /// (Streams) If the function returns an error, split the batch in two and retry.
+    /// (Kinesis and DynamoDB Streams only) If the function returns an error, split the batch in two and retry. The default value is false.
     hidden BisectBatchOnFunctionError: (Boolean|Mapping)?
 
-    /// (Streams) An Amazon SQS queue or Amazon SNS topic destination for discarded records.
+    /// (Kinesis, DynamoDB Streams, Amazon MSK, and self-managed Apache Kafka event sources only) A configuration object that specifies the destination of an event after Lambda processes it.
     hidden DestinationConfig: (EventSourceMappingDestinationConfig)?
 
-    /// Document db event source config.
+    /// Specific configuration settings for a DocumentDB event source.
     hidden DocumentDBEventSourceConfig: (EventSourceMappingDocumentDBEventSourceConfig)?
 
-    /// Disables the event source mapping to pause polling and invocation.
+    /// When true, the event source mapping is active. When false, Lambda pauses polling and invocation.
+    ///
+    ///  Default: True
     hidden Enabled: (Boolean|Mapping)?
 
     /// The Amazon Resource Name (ARN) of the event source.
-    hidden EventSourceArn: (String(matches(Regex(#"arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\-])+:([a-z]{2}(-gov)?-[a-z]+-\d{1})?:(\d{12})?:(.*)"#)))|Mapping)?
+    ///
+    ///   +   *Amazon Kinesis* ? The ARN of the data stream or a stream consumer.
+    ///   +   *Amazon DynamoDB Streams* ? The ARN of the stream.
+    ///   +   *Amazon Simple Queue Service* ? The ARN of the queue.
+    ///   +   *Amazon Managed Streaming for Apache Kafka* ? The ARN of the cluster or the ARN of the VPC connection (for [cross-account event source mappings](https://docs.aws.amazon.com/lambda/latest/dg/with-msk.html#msk-multi-vpc)).
+    ///   +   *Amazon MQ* ? The ARN of the broker.
+    ///   +   *Amazon DocumentDB* ? The ARN of the DocumentDB change stream.
+    hidden EventSourceArn: (String(matches(Regex(#"arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\-])+:([a-z]{2}(-gov)?(-iso)?(-isob)?-[a-z]+-\d{1})?:(\d{12})?:(.*)"#)))|Mapping)?
 
-    /// The filter criteria to control event filtering.
+    /// An object that defines the filter criteria that determine whether Lambda should process an event. For more information, see [Lambda event filtering](https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventfiltering.html).
     hidden FilterCriteria: (EventSourceMappingFilterCriteria)?
 
-    /// The name of the Lambda function.
-    hidden FunctionName: String(matches(Regex(#"(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}(-gov)?-[a-z]+-\d{1}:)?(\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\$LATEST|[a-zA-Z0-9-_]+))?"#)))|Mapping
+    /// The name or ARN of the Lambda function.
+    ///
+    ///   **Name formats**
+    ///  +   *Function name* ? ``MyFunction``.
+    ///   +   *Function ARN* ? ``arn:aws:lambda:us-west-2:123456789012:function:MyFunction``.
+    ///   +   *Version or Alias ARN* ? ``arn:aws:lambda:us-west-2:123456789012:function:MyFunction:PROD``.
+    ///   +   *Partial ARN* ? ``123456789012:function:MyFunction``.
+    ///   
+    ///  The length constraint applies only to the full ARN. If you specify only the function name, it's limited to 64 characters in length.
+    hidden FunctionName: String(matches(Regex(#"(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}(-gov)?(-iso)?(-isob)?-[a-z]+-\d{1}:)?(\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\$LATEST|[a-zA-Z0-9-_]+))?"#)))|Mapping
 
-    /// (Streams) A list of response types supported by the function.
+    /// (Streams and SQS) A list of current response type enums applied to the event source mapping.
+    ///
+    ///  Valid Values: ``ReportBatchItemFailures``
     hidden FunctionResponseTypes: (Listing<EventSourceMappingFunctionResponseTypes|Mapping>)?
 
-    /// (Streams) The maximum amount of time to gather records before invoking the function, in seconds.
+    /// The maximum amount of time, in seconds, that Lambda spends gathering records before invoking the function.
+    ///
+    ///  *Default (, , event sources)*: 0
+    ///  *Default (, Kafka, , event sources)*: 500 ms
+    ///  *Related setting:* For SQS event sources, when you set ``BatchSize`` to a value greater than 10, you must set ``MaximumBatchingWindowInSeconds`` to at least 1.
     hidden MaximumBatchingWindowInSeconds: (Int|Mapping)?
 
-    /// (Streams) The maximum age of a record that Lambda sends to a function for processing.
+    /// (Kinesis and DynamoDB Streams only) Discard records older than the specified age. The default value is -1, which sets the maximum age to infinite. When the value is set to infinite, Lambda never discards old records.
+    ///
+    ///   The minimum valid value for maximum record age is 60s. Although values less than 60 and greater than -1 fall within the parameter's absolute range, they are not allowed
     hidden MaximumRecordAgeInSeconds: (Int|Mapping)?
 
-    /// (Streams) The maximum number of times to retry when the function returns an error.
+    /// (Kinesis and DynamoDB Streams only) Discard records after the specified number of retries. The default value is -1, which sets the maximum number of retries to infinite. When MaximumRetryAttempts is infinite, Lambda retries failed records until the record expires in the event source.
     hidden MaximumRetryAttempts: (Int|Mapping)?
 
-    /// (Streams) The number of batches to process from each shard concurrently.
+    /// (Kinesis and DynamoDB Streams only) The number of batches to process concurrently from each shard. The default value is 1.
     hidden ParallelizationFactor: (Int|Mapping)?
 
-    /// (ActiveMQ) A list of ActiveMQ queues.
+    /// (Amazon MQ) The name of the Amazon MQ broker destination queue to consume.
     hidden Queues: (Listing<String|Mapping>)?
 
-    /// The scaling configuration for the event source.
+    /// (Amazon SQS only) The scaling configuration for the event source. For more information, see [Configuring maximum concurrency for Amazon SQS event sources](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html#events-sqs-max-concurrency).
     hidden ScalingConfig: (EventSourceMappingScalingConfig)?
 
-    /// Self-managed event source endpoints.
+    /// The self-managed Apache Kafka cluster for your event source.
     hidden SelfManagedEventSource: (EventSourceMappingSelfManagedEventSource)?
 
-    /// Specific configuration settings for a Self-Managed Apache Kafka event source.
+    /// Specific configuration settings for a self-managed Apache Kafka event source.
     hidden SelfManagedKafkaEventSourceConfig: (EventSourceMappingSelfManagedKafkaEventSourceConfig)?
 
-    /// A list of SourceAccessConfiguration.
+    /// An array of the authentication protocol, VPC components, or virtual host to secure and define your event source.
     hidden SourceAccessConfigurations: (Listing<EventSourceMappingSourceAccessConfiguration>)?
 
-    /// The position in a stream from which to start reading. Required for Amazon Kinesis and Amazon DynamoDB Streams sources.
+    /// The position in a stream from which to start reading. Required for Amazon Kinesis and Amazon DynamoDB.
+    ///
+    ///   +  *LATEST* - Read only new records.
+    ///   +  *TRIM_HORIZON* - Process all available records.
+    ///   +  *AT_TIMESTAMP* - Specify a time from which to start reading records.
     hidden StartingPosition: (String(matches(Regex(#"(LATEST|TRIM_HORIZON|AT_TIMESTAMP)+"#)))|Mapping)?
 
-    /// With StartingPosition set to AT_TIMESTAMP, the time from which to start reading, in Unix time seconds.
+    /// With ``StartingPosition`` set to ``AT_TIMESTAMP``, the time from which to start reading, in Unix time seconds. ``StartingPositionTimestamp`` cannot be in the future.
     hidden StartingPositionTimestamp: (Number|Mapping)?
 
-    /// (Kafka) A list of Kafka topics.
+    /// The name of the Kafka topic.
     hidden Topics: (Listing<String|Mapping>)?
 
-    /// (Streams) Tumbling window (non-overlapping time window) duration to perform aggregations.
+    /// (Kinesis and DynamoDB Streams only) The duration in seconds of a processing window for DynamoDB and Kinesis Streams event sources. A value of 0 seconds indicates no tumbling window.
     hidden TumblingWindowInSeconds: (Int|Mapping)?
 
     Properties {

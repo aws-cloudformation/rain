@@ -5,6 +5,11 @@ module aws.sagemaker.appimageconfig
 
 import "../../cloudformation.pkl"
 
+/// The configuration for the kernels in a SageMaker image running as a CodeEditor app.
+open class AppImageConfigCodeEditorAppImageConfig {
+    ContainerConfig: (AppImageConfigContainerConfig)?
+}
+
 /// The container configuration for a SageMaker image.
 open class AppImageConfigContainerConfig {
     ContainerArguments: (Listing<AppImageConfigCustomImageContainerArguments>)?
@@ -63,6 +68,9 @@ open class AppImageConfig extends cloudformation.Resource {
     /// The Name of the AppImageConfig.
     hidden AppImageConfigName: String(matches(Regex(#"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"#)))|Mapping
 
+    /// The CodeEditorAppImageConfig.
+    hidden CodeEditorAppImageConfig: (AppImageConfigCodeEditorAppImageConfig)?
+
     /// The JupyterLabAppImageConfig.
     hidden JupyterLabAppImageConfig: (AppImageConfigJupyterLabAppImageConfig)?
 
@@ -74,6 +82,7 @@ open class AppImageConfig extends cloudformation.Resource {
 
     Properties {
         ["AppImageConfigName"] = if (AppImageConfigName == null) null else AppImageConfigName
+        ["CodeEditorAppImageConfig"] = if (CodeEditorAppImageConfig == null) null else CodeEditorAppImageConfig
         ["JupyterLabAppImageConfig"] = if (JupyterLabAppImageConfig == null) null else JupyterLabAppImageConfig
         ["KernelGatewayImageConfig"] = if (KernelGatewayImageConfig == null) null else KernelGatewayImageConfig
         ["Tags"] = if (Tags == null) null else Tags
