@@ -49,8 +49,9 @@ func writeFile(args []string) {
 func showPrompt(selections []reco, path string) {
 
 	p := promptui.Select{
-		Label: "Select a pattern",
-		Items: selections,
+		Label:  "Select a pattern",
+		Items:  selections,
+		Stdout: NoBellStdout,
 		Templates: &promptui.SelectTemplates{
 			Label:    "{{ . }}",
 			Active:   checkIcon + activeFormat,

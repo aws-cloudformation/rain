@@ -28,8 +28,9 @@ func promptTypeName() string {
 
 	// Prompt with a search function so the user can hit / and filter the list
 	p := promptui.Select{
-		Label: label,
-		Items: selections,
+		Label:  label,
+		Stdout: NoBellStdout,
+		Items:  selections,
 		Templates: &promptui.SelectTemplates{
 			Label:    "{{ . }}",
 			Active:   checkIcon + active,
@@ -149,8 +150,9 @@ func policy() {
 func openPrompt(label string, selections []buildSelection) string {
 
 	p := promptui.Select{
-		Label: label,
-		Items: selections,
+		Label:  label,
+		Stdout: NoBellStdout,
+		Items:  selections,
 		Templates: &promptui.SelectTemplates{
 			Label:    "{{ . }}",
 			Active:   checkIcon + activeFormat,
