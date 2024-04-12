@@ -12,17 +12,17 @@ RULES="${SOURCE}/scripts/rules.guard"
 
 echo "Building templates..."
 echo "Building bucket..."
-./rain build -r bucket bucket -o ${OUT}/bucket/bucket.yaml
+./rain build --recommend bucket bucket -o ${OUT}/bucket/bucket.yaml
 echo "Building website..."
-./rain build -r bucket website -o ${OUT}/bucket/website.yaml
+./rain build --recommend bucket website -o ${OUT}/bucket/website.yaml
 echo "Building codecommit pipeline..."
-./rain build -r pipeline codecommit -o ${OUT}/pipeline/codecommit.yaml
+./rain build --recommend pipeline codecommit -o ${OUT}/pipeline/codecommit.yaml
 echo "Building s3 pipeline..."
-./rain build -r pipeline s3 -o ${OUT}/pipeline/s3.yaml
+./rain build --recommend pipeline s3 -o ${OUT}/pipeline/s3.yaml
 echo "Building ecs cluster..."
-./rain build -r ecs cluster -o ${OUT}/ecs/cluster.yaml
+./rain build --recommend ecs cluster -o ${OUT}/ecs/cluster.yaml
 echo "Building VPC..."
-./rain build -r vpc vpc -o ${OUT}/vpc/vpc.yaml
+./rain build --recommend vpc vpc -o ${OUT}/vpc/vpc.yaml
 
 echo "Linting..."
 cfn-lint ${FILES}
