@@ -445,13 +445,13 @@ func init() {
 	}
 
 	Cmd.Flags().BoolVarP(&buildListFlag, "list", "l", false, "List all CloudFormation resource types with an optional name prefix")
-	Cmd.Flags().BoolVarP(&promptFlag, "prompt", "p", false, "Generate a template using Bedrock and a prompt")
+	Cmd.Flags().BoolVar(&promptFlag, "prompt", false, "Generate a template using Bedrock and a prompt")
 	Cmd.Flags().BoolVarP(&bareTemplate, "bare", "b", false, "Produce a minimal template, omitting all optional resource properties")
 	Cmd.Flags().BoolVarP(&buildJSON, "json", "j", false, "Output the template as JSON (default format: YAML)")
 	Cmd.Flags().BoolVarP(&showSchema, "schema", "s", false, "Output the raw un-patched registry schema for a resource type")
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
 	Cmd.Flags().BoolVar(&omitPatches, "omit-patches", false, "Omit patches and use the raw schema")
-	Cmd.Flags().BoolVarP(&recommendFlag, "recommend", "r", false, "Output a recommended architecture for the chosen use case")
+	Cmd.Flags().BoolVar(&recommendFlag, "recommend", false, "Output a recommended architecture for the chosen use case")
 	Cmd.Flags().StringVarP(&outFn, "output", "o", "", "Output to a file")
 	Cmd.Flags().BoolVar(&pklClass, "pkl-class", false, "Output a pkl class based on a resource type schema")
 	Cmd.Flags().BoolVar(&noCache, "no-cache", false, "Do not used cached schema files")
