@@ -31,7 +31,7 @@ require (
 require (
 	github.com/apple/pkl-go v0.6.1-0.20240320183646-5827572b8112
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.37.0
-	github.com/aws/aws-sdk-go-v2/service/rds v1.76.1
+	github.com/aws/aws-sdk-go-v2/service/rds v1.77.1
 	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.21.4
 	github.com/fatih/color v1.16.0
 	github.com/manifoldco/promptui v0.9.0
