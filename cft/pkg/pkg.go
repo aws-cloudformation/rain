@@ -123,7 +123,7 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 	}
 
 	// Encode and Decode to resolve anchors
-	var decoded interface{}
+	var decoded yaml.Node
 
 	err = templateNode.Decode(&decoded)
 	if err != nil {
