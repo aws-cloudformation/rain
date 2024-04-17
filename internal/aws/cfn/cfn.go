@@ -516,7 +516,8 @@ func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[s
 // GetChangeSet returns the named changeset
 func GetChangeSet(stackName, changeSetName string) (*cloudformation.DescribeChangeSetOutput, error) {
 	input := &cloudformation.DescribeChangeSetInput{
-		ChangeSetName: ptr.String(changeSetName),
+		ChangeSetName:         ptr.String(changeSetName),
+		IncludePropertyValues: ptr.Bool(true),
 	}
 
 	// Stack name is optional

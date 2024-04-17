@@ -63,100 +63,27 @@ var Cmd = &cobra.Command{
 
 				stackName := args[0]
 				changeSetName := args[1]
-				spinner.Push("Fetching changeset details")
-				cs, err := cfn.GetChangeSet(stackName, changeSetName)
-				if err != nil {
-					panic(ui.Errorf(err, "failed to get changeset '%s'", changeSetName))
-				}
-				out := ""
-				out += fmt.Sprintf("Arn: %v\n", *cs.ChangeSetId)
-				out += fmt.Sprintf("Created: %v\n", cs.CreationTime)
-				descr := ""
-				if cs.Description != nil {
-					descr = *cs.Description
-				}
-				out += fmt.Sprintf("Description: %v\n", descr)
-				reason := ""
-				if cs.StatusReason != nil {
-					reason = "(" + *cs.StatusReason + ")"
-				}
-				out += fmt.Sprintf("Status: %v/%v %v\n",
-					ui.ColouriseStatus(string(cs.ExecutionStatus)),
-					ui.ColouriseStatus(string(cs.Status)),
-					reason)
-				out += "Parameters: "
-				if len(cs.Parameters) == 0 {
-					out += "(None)\n"
-				} else {
-					out += "\n"
-				}
-				for _, p := range cs.Parameters {
-					k, v := "", ""
-					if p.ParameterKey != nil {
-						k = *p.ParameterKey
-					}
-					if p.ParameterValue != nil {
-						v = *p.ParameterValue
-					}
-					out += fmt.Sprintf("  %s: %s\n", k, v)
-				}
-				// TODO: Convert changes to table
-				out += "Changes: \n"
-				for _, csch := range cs.Changes {
-					if csch.ResourceChange == nil {
-						continue
-					}
-					change := csch.ResourceChange
-					rid := ""
-					if change.LogicalResourceId != nil {
-						rid = *change.LogicalResourceId
-					}
-					rt := ""
-					if change.ResourceType != nil {
-						rt = *change.ResourceType
-					}
-					pid := ""
-					if change.PhysicalResourceId != nil {
-						pid = *change.PhysicalResourceId
-					}
-					replace := ""
-					switch string(change.Replacement) {
-					case "True":
-						replace = " [Replace]"
-					case "Conditional":
-						replace = " [Might replace]"
-					}
-					out += fmt.Sprintf("  %s%s: %s (%s) %s\n",
-						string(change.Action),
-						replace,
-						rid,
-						rt,
-						pid)
+				showChangeset(stackName, changeSetName)
 
-				}
+				return
+			}
 
-				spinner.Pop()
+			// Get the status for a single stack
+			stackName := args[0]
+			spinner.Push("Fetching stack status")
+			stack, err := cfn.GetStack(stackName)
+			if err != nil {
+				panic(ui.Errorf(err, "failed to list stack '%s'", stackName))
+			}
 
-				fmt.Println(out)
+			output := cfn.GetStackSummary(stack, all)
+			spinner.Pop()
 
-			} else {
-				// Get the status for a single stack
-				stackName := args[0]
-				spinner.Push("Fetching stack status")
-				stack, err := cfn.GetStack(stackName)
-				if err != nil {
-					panic(ui.Errorf(err, "failed to list stack '%s'", stackName))
-				}
-
-				output := cfn.GetStackSummary(stack, all)
-				spinner.Pop()
-
-				fmt.Println(output)
-				fmt.Println(console.Yellow("  ChangeSets:"))
-				err = ShowChangeSetsForStack(*stack.StackName)
-				if err != nil {
-					panic(err)
-				}
+			fmt.Println(output)
+			fmt.Println(console.Yellow("  ChangeSets:"))
+			err = ShowChangeSetsForStack(*stack.StackName)
+			if err != nil {
+				panic(err)
 			}
 		} else {
 			// List all stacks or changesets

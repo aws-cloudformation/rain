@@ -1,0 +1,24 @@
+Parameters:
+  LogName: 
+    Type: String
+Resources:
+  Log:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Ref LogName
+  Query1:
+    Type: AWS::Logs::QueryDefinition
+    Properties:
+      Name: Query1
+      QueryString: "fields @timestamp, @message | sort @timestamp desc | limit 20"
+      LogGroupNames:
+      - !Ref LogName 
+  Query2:
+    Type: AWS::Logs::QueryDefinition
+    Properties:
+      Name: Query2
+      QueryString: "fields @timestamp"
+      LogGroupNames:
+      - !Ref LogName 
+
+
