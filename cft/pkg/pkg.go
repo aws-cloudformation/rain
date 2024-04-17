@@ -35,6 +35,7 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
+	"github.com/aws-cloudformation/rain/cft/visitor"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
@@ -122,21 +123,45 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 		}
 	}
 
-	// Encode and Decode to resolve anchors
-	var decoded interface{}
+	// Collect Anchors & Replace Alias Nodes
+	//
+	// 1. find alias nodes and save them in map with anchor name as key
+	// 2. replace alias nodes with the actual node
+	// 3. Marshal and Unmarshal to resolve new line/column numbers
 
-	err = templateNode.Decode(&decoded)
-	if err != nil {
-		config.Debugf("templateNode: %v", node.ToSJson(templateNode))
-		return t, fmt.Errorf("failed to decode template: %v", err)
+	v := visitor.NewVisitor(templateNode)
+	anchors := make(map[string]*yaml.Node)
+
+	collectAnchors := func(node *visitor.Visitor) {
+		yamlNode := node.GetYamlNode()
+		if yamlNode.Anchor != "" {
+			anchors[yamlNode.Anchor] = yamlNode
+			yamlNode.Anchor = ""
+		}
 	}
 
-	// We just lost line numbers, so if we need them, we have to
-	// convert the template to a string and parse it again.
+	replaceAnchors := func(node *visitor.Visitor) {
+		yamlNode := node.GetYamlNode()
+		if yamlNode.Kind == yaml.AliasNode {
+			if anchor, ok := anchors[yamlNode.Value]; ok {
+				*yamlNode = *anchor
+			}
+		}
+	}
 
-	err = templateNode.Encode(&decoded)
+	v.Visit(collectAnchors)
+	v.Visit(replaceAnchors)
+
+	// Marshal and Unmarshal to resolve new line/column numbers
+
+	serialized, err := yaml.Marshal(templateNode)
 	if err != nil {
-		return t, fmt.Errorf("failed to encode template: %v", err)
+		return t, fmt.Errorf("failed to marshal template: %v", err)
+	}
+
+	err = yaml.Unmarshal(serialized, templateNode)
+	if err != nil {
+		return t, fmt.Errorf("failed to unmarshal template: %v", err)
 	}
 
 	// We lose the Document node here
