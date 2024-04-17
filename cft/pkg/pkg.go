@@ -27,6 +27,7 @@ package pkg
 import (
 	"embed"
 	"errors"
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -155,12 +156,12 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 
 	serialized, err := yaml.Marshal(templateNode)
 	if err != nil {
-		return t, err
+		return t, fmt.Errorf("failed to marshal template: %v", err)
 	}
 
 	err = yaml.Unmarshal(serialized, templateNode)
 	if err != nil {
-		return t, err
+		return t, fmt.Errorf("failed to unmarshal template: %v", err)
 	}
 
 	// We lose the Document node here
