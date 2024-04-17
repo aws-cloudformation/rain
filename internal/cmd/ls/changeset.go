@@ -153,8 +153,9 @@ func showChangeset(stackName, changeSetName string) {
 						config.Debugf("%v", err)
 					} else {
 						for _, op := range ops {
-							out += console.Blue(fmt.Sprintf("    %s %s\n", op.Operation,
-								strings.Replace(op.Path, "/", ".", -1)))
+							path := strings.Replace(op.Path, "/", ".", -1)
+							path = strings.Replace(path, ".", "", 1) // 1st instance of .
+							out += console.Blue(fmt.Sprintf("    %s\n", path))
 							was := valueForPath(op.Path, beforeJson)
 							out += console.Blue(fmt.Sprintf("      before: %s\n", was))
 							out += console.Blue(fmt.Sprintf("      after:  %s\n", op.Value))
