@@ -18,7 +18,7 @@ rain build [<resource type>] or <prompt>
   -h, --help                 help for build
   -j, --json                 Output the template as JSON (default format: YAML)
   -l, --list                 List all CloudFormation resource types with an optional name prefix
-      --model string         The ID of the Bedrock model to use for --prompt. Shorthand: claude2, claude3haiku, claude3sonnet (default "claude2")
+      --model string         The ID of the Bedrock model to use for --prompt. Shorthand: claude2, claude3haiku, claude3sonnet, claude3opus (default "claude2")
       --no-cache             Do not used cached schema files
       --omit-patches         Omit patches and use the raw schema
   -o, --output string        Output to a file

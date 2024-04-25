@@ -103,6 +103,7 @@ func template() {
 			{Name: CLAUDE2, Text: "Claude 2"},
 			{Name: HAIKU, Text: "Claude 3 Haiku"},
 			{Name: SONNET, Text: "Claude 3 Sonnet"},
+			{Name: OPUS, Text: "Claude 3 Opus"},
 		}
 		selected = openPrompt("Select a model", selections)
 		prompt := promptui.Prompt{
