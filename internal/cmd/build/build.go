@@ -433,6 +433,7 @@ const (
 func init() {
 	models = make(map[string]string)
 	models["claude2"] = "anthropic.claude-v2:1"
+	models["claude3opus"] = "anthropic.claude-3-opus-20240229-v1:0"
 	models["claude3sonnet"] = "anthropic.claude-3-sonnet-20240229-v1:0"
 	models["claude3haiku"] = "anthropic.claude-3-haiku-20240307-v1:0"
 
@@ -456,5 +457,5 @@ func init() {
 	Cmd.Flags().BoolVar(&pklClass, "pkl-class", false, "Output a pkl class based on a resource type schema")
 	Cmd.Flags().BoolVar(&noCache, "no-cache", false, "Do not used cached schema files")
 	Cmd.Flags().StringVar(&promptLanguage, "prompt-lang", "cfn", "The language to target for --prompt, CloudFormation YAML (cfn), CloudFormation Guard (guard), Open Policy Agent Rego (rego)")
-	Cmd.Flags().StringVar(&model, "model", "claude2", "The ID of the Bedrock model to use for --prompt. Shorthand: claude2, claude3haiku, claude3sonnet")
+	Cmd.Flags().StringVar(&model, "model", "claude2", "The ID of the Bedrock model to use for --prompt. Shorthand: claude2, claude3haiku, claude3sonnet, claude3opus")
 }
