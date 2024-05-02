@@ -103,6 +103,7 @@ func template() {
 			{Name: CLAUDE2, Text: "Claude 2"},
 			{Name: HAIKU, Text: "Claude 3 Haiku"},
 			{Name: SONNET, Text: "Claude 3 Sonnet"},
+			{Name: OPUS, Text: "Claude 3 Opus"},
 		}
 		selected = openPrompt("Select a model", selections)
 		prompt := promptui.Prompt{
@@ -129,6 +130,7 @@ func policy() {
 	selections = []buildSelection{
 		{Name: HAIKU, Text: "Claude 3 Haiku"},
 		{Name: SONNET, Text: "Claude 3 Sonnet"},
+		{Name: OPUS, Text: "Claude 3 Opus"},
 	}
 	model = openPrompt("Choose a model", selections)
 	prompt := promptui.Prompt{
@@ -185,11 +187,12 @@ func interactive() {
 				i. Claude 2
 				ii. Claude 3 Haiku
 				iii. Claude 3 Sonnet
+				iv. Claude 3 Opus
 			d. Output a vetted recommended template for a use case
 		3. Create a policy validation file
 		    a. Guard
 			b. OPA
-				i. (Sonnet or Haiku, not Claude2)
+				i. (Sonnet or Haiku or Opus, not Claude2)
 
 	*/
 
@@ -235,6 +238,7 @@ const (
 	RECOMMEND = "recommend"
 	PROMPT    = "prompt"
 	CLAUDE2   = "claude2"
+	OPUS      = "claude3opus"
 	SONNET    = "claude3sonnet"
 	HAIKU     = "claude3haiku"
 	GUARD     = "guard"
