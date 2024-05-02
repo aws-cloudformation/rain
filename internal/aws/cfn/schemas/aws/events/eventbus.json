@@ -1,60 +1,33 @@
 {
-  "typeName": "AWS::Events::EventBus",
-  "description": "Resource type definition for AWS::Events::EventBus",
-  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-events",
-  "properties": {
-    "EventSourceName": {
-      "description": "If you are creating a partner event bus, this specifies the partner event source that the new event bus will be matched with.",
-      "type": "string"
-    },
-    "Name": {
-      "description": "The name of the event bus.",
-      "type": "string"
-    },
-    "Tags": {
-      "description": "Any tags assigned to the event bus.",
-      "type": "array",
-      "uniqueItems": false,
-      "items": {
-        "$ref": "#/definitions/Tag"
-      }
-    },
-    "Policy": {
-      "description": "A JSON string that describes the permission policy statement for the event bus.",
-      "type": [
-        "object",
-        "string"
-      ]
-    },
-    "Arn": {
-      "description": "The Amazon Resource Name (ARN) for the event bus.",
-      "type": "string"
-    }
-  },
   "tagging": {
     "taggable": true,
     "tagOnCreate": true,
     "tagUpdatable": true,
-    "cloudFormationSystemTags": true,
-    "tagProperty": "/properties/Tags"
+    "tagProperty": "/properties/Tags",
+    "cloudFormationSystemTags": true
   },
-  "additionalProperties": false,
-  "required": [
-    "Name"
-  ],
-  "createOnlyProperties": [
-    "/properties/Name"
-  ],
-  "writeOnlyProperties": [
-    "/properties/EventSourceName"
-  ],
+  "typeName": "AWS::Events::EventBus",
   "readOnlyProperties": [
     "/properties/Arn"
+  ],
+  "description": "Resource type definition for AWS::Events::EventBus",
+  "createOnlyProperties": [
+    "/properties/Name"
   ],
   "primaryIdentifier": [
     "/properties/Name"
   ],
+  "required": [
+    "Name"
+  ],
+  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-events",
   "handlers": {
+    "read": {
+      "permissions": [
+        "events:DescribeEventBus",
+        "events:ListTagsForResource"
+      ]
+    },
     "create": {
       "permissions": [
         "events:CreateEventBus",
@@ -62,12 +35,6 @@
         "events:PutPermission",
         "events:ListTagsForResource",
         "events:TagResource"
-      ]
-    },
-    "read": {
-      "permissions": [
-        "events:DescribeEventBus",
-        "events:ListTagsForResource"
       ]
     },
     "update": {
@@ -78,28 +45,32 @@
         "events:DescribeEventBus"
       ]
     },
-    "delete": {
-      "permissions": [
-        "events:DescribeEventBus",
-        "events:DeleteEventBus"
-      ]
-    },
     "list": {
       "permissions": [
         "events:ListEventBuses",
         "events:ListTagsForResource"
       ]
+    },
+    "delete": {
+      "permissions": [
+        "events:DescribeEventBus",
+        "events:DeleteEventBus"
+      ]
     }
   },
+  "writeOnlyProperties": [
+    "/properties/EventSourceName"
+  ],
+  "additionalProperties": false,
   "definitions": {
     "Tag": {
-      "type": "object",
       "additionalProperties": false,
+      "type": "object",
       "properties": {
-        "Key": {
+        "Value": {
           "type": "string"
         },
-        "Value": {
+        "Key": {
           "type": "string"
         }
       },
@@ -107,6 +78,35 @@
         "Value",
         "Key"
       ]
+    }
+  },
+  "properties": {
+    "Policy": {
+      "description": "A JSON string that describes the permission policy statement for the event bus.",
+      "type": [
+        "object",
+        "string"
+      ]
+    },
+    "EventSourceName": {
+      "description": "If you are creating a partner event bus, this specifies the partner event source that the new event bus will be matched with.",
+      "type": "string"
+    },
+    "Arn": {
+      "description": "The Amazon Resource Name (ARN) for the event bus.",
+      "type": "string"
+    },
+    "Tags": {
+      "uniqueItems": false,
+      "description": "Any tags assigned to the event bus.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
+    },
+    "Name": {
+      "description": "The name of the event bus.",
+      "type": "string"
     }
   }
 }

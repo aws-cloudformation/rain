@@ -36,9 +36,6 @@
     },
     "BucketName": {
       "description": "A name for the bucket. If you don't specify a name, AWS CloudFormation generates a unique ID and uses that ID for the bucket name. The bucket name must contain only lowercase letters, numbers, periods (.), and dashes (-) and must follow [Amazon S3 bucket restrictions and limitations](https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html). For more information, see [Rules for naming Amazon S3 buckets](https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html#bucketnamingrules) in the *Amazon S3 User Guide*. \n  If you specify a name, you can't perform updates that require replacement of this resource. You can perform updates that require no or some interruption. If you need to replace the resource, specify a new name.",
-      "maxLength": 63,
-      "minLength": 3,
-      "pattern": "^[a-z0-9][a-z0-9//.//-]*[a-z0-9]$",
       "type": "string"
     },
     "CorsConfiguration": {
@@ -122,34 +119,34 @@
     },
     "Arn": {
       "$ref": "#/definitions/Arn",
-      "description": "The Amazon Resource Name (ARN) of the specified bucket.",
+      "description": "",
       "examples": [
         "arn:aws:s3:::mybucket"
       ]
     },
     "DomainName": {
-      "description": "The IPv4 DNS name of the specified bucket.",
+      "description": "",
       "examples": [
         "mystack-mybucket-kdwwxmddtr2g.s3.amazonaws.com"
       ],
       "type": "string"
     },
     "DualStackDomainName": {
-      "description": "The IPv6 DNS name of the specified bucket. For more information about dual-stack endpoints, see [Using Amazon S3 Dual-Stack Endpoints](https://docs.aws.amazon.com/AmazonS3/latest/dev/dual-stack-endpoints.html).",
+      "description": "",
       "examples": [
         "mystack-mybucket-kdwwxmddtr2g.s3.dualstack.us-east-2.amazonaws.com"
       ],
       "type": "string"
     },
     "RegionalDomainName": {
-      "description": "Returns the regional domain name of the specified bucket.",
+      "description": "",
       "examples": [
         "mystack-mybucket-kdwwxmddtr2g.s3.us-east-2.amazonaws.com"
       ],
       "type": "string"
     },
     "WebsiteURL": {
-      "description": "The Amazon S3 website endpoint for the specified bucket.",
+      "description": "",
       "examples": [
         "Example (IPv4): http://mystack-mybucket-kdwwxmddtr2g.s3-website-us-east-2.amazonaws.com/",
         "Example (IPv6): http://mystack-mybucket-kdwwxmddtr2g.s3.dualstack.us-east-2.amazonaws.com/"
@@ -192,7 +189,7 @@
           "type": "string"
         },
         "Format": {
-          "description": "Specifies the file format used when exporting data to Amazon S3.\n *Allowed values*: ``CSV`` | ``ORC`` | ``Parquet``",
+          "description": "Specifies the file format used when exporting data to Amazon S3.\n  *Allowed values*: ``CSV`` | ``ORC`` | ``Parquet``",
           "type": "string",
           "enum": [
             "CSV",
@@ -331,7 +328,27 @@
       "properties": {
         "KMSMasterKeyID": {
           "description": "AWS Key Management Service (KMS) customer AWS KMS key ID to use for the default encryption. This parameter is allowed if and only if ``SSEAlgorithm`` is set to ``aws:kms`` or ``aws:kms:dsse``.\n You can specify the key ID, key alias, or the Amazon Resource Name (ARN) of the KMS key.\n  +  Key ID: ``1234abcd-12ab-34cd-56ef-1234567890ab`` \n  +  Key ARN: ``arn:aws:kms:us-east-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab`` \n  +  Key Alias: ``alias/alias-name`` \n  \n If you use a key ID, you can run into a LogDestination undeliverable error when creating a VPC flow log. \n If you are using encryption with cross-account or AWS service operations you must use a fully qualified KMS key ARN. For more information, see [Using encryption for cross-account operations](https://docs.aws.amazon.com/AmazonS3/latest/dev/bucket-encryption.html#bucket-encryption-update-bucket-policy).\n  Amazon S3 only supports symmetric encryption KMS keys. For more information, see [Asymmetric keys in KMS](https://docs.aws.amazon.com//kms/latest/developerguide/symmetric-asymmetric.html) in the *Key Management Service Developer Guide*.",
-          "type": "string"
+          "type": "string",
+          "anyOf": [
+            {
+              "relationshipRef": {
+                "typeName": "AWS::KMS::Key",
+                "propertyPath": "/properties/KeyId"
+              }
+            },
+            {
+              "relationshipRef": {
+                "typeName": "AWS::KMS::Key",
+                "propertyPath": "/properties/Arn"
+              }
+            },
+            {
+              "relationshipRef": {
+                "typeName": "AWS::KMS::Alias",
+                "propertyPath": "/properties/AliasName"
+              }
+            }
+          ]
         },
         "SSEAlgorithm": {
           "type": "string",
@@ -383,7 +400,7 @@
           }
         },
         "AllowedMethods": {
-          "description": "An HTTP method that you allow the origin to run.\n *Allowed values*: ``GET`` | ``PUT`` | ``HEAD`` | ``POST`` | ``DELETE``",
+          "description": "An HTTP method that you allow the origin to run.\n  *Allowed values*: ``GET`` | ``PUT`` | ``HEAD`` | ``POST`` | ``DELETE``",
           "type": "array",
           "uniqueItems": true,
           "insertionOrder": true,
@@ -1030,7 +1047,7 @@
         "Rules": {
           "type": "array",
           "uniqueItems": true,
-          "insertionOrder": true,
+          "insertionOrder": false,
           "items": {
             "$ref": "#/definitions/FilterRule"
           },
@@ -1454,7 +1471,7 @@
       "additionalProperties": false,
       "properties": {
         "Status": {
-          "description": "Specifies whether Amazon S3 replicates modifications on replicas.\n *Allowed values*: ``Enabled`` | ``Disabled``",
+          "description": "Specifies whether Amazon S3 replicates modifications on replicas.\n  *Allowed values*: ``Enabled`` | ``Disabled``",
           "type": "string",
           "enum": [
             "Enabled",
@@ -1652,8 +1669,7 @@
     "tagProperty": "/properties/Tags"
   },
   "createOnlyProperties": [
-    "/properties/BucketName",
-    "/properties/ObjectLockEnabled"
+    "/properties/BucketName"
   ],
   "primaryIdentifier": [
     "/properties/BucketName"
@@ -1673,6 +1689,11 @@
     "/properties/ReplicationConfiguration/Rules/*/Prefix",
     "/properties/LifecycleConfiguration/Rules/*/ExpiredObjectDeleteMarker"
   ],
+  "propertyTransform": {
+    "/properties/NotificationConfiguration/QueueConfigurations/*/Filter/S3Key/Rules/*/Name": "$replace(Name, \"prefix\", \"Prefix\") $OR $replace(Name, \"suffix\", \"Suffix\")",
+    "/properties/NotificationConfiguration/LambdaConfigurations/*/Filter/S3Key/Rules/*/Name": "$replace(Name, \"prefix\", \"Prefix\") $OR $replace(Name, \"suffix\", \"Suffix\")",
+    "/properties/NotificationConfiguration/TopicConfigurations/*/Filter/S3Key/Rules/*/Name": "$replace(Name, \"prefix\", \"Prefix\") $OR $replace(Name, \"suffix\", \"Suffix\")"
+  },
   "handlers": {
     "create": {
       "permissions": [

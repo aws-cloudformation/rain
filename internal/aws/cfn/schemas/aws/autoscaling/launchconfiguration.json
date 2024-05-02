@@ -116,7 +116,11 @@
     },
     "IamInstanceProfile": {
       "description": "Provides the name or the Amazon Resource Name (ARN) of the instance profile associated with the IAM role for the instance. The instance profile contains the IAM role.",
-      "type": "string"
+      "type": "string",
+      "relationshipRef": {
+        "typeName": "AWS::IAM::InstanceProfile",
+        "propertyPath": "/properties/InstanceProfileName"
+      }
     },
     "ImageId": {
       "description": "Provides the unique ID of the Amazon Machine Image (AMI) that was assigned during registration.",
@@ -124,7 +128,11 @@
     },
     "InstanceId": {
       "description": "The ID of the Amazon EC2 instance you want to use to create the launch configuration.",
-      "type": "string"
+      "type": "string",
+      "relationshipRef": {
+        "typeName": "AWS::EC2::Instance",
+        "propertyPath": "/properties/InstanceId"
+      }
     },
     "InstanceMonitoring": {
       "description": "Controls whether instances in this group are launched with detailed (true) or basic (false) monitoring.",
@@ -165,7 +173,21 @@
       "type": "array",
       "insertionOrder": false,
       "items": {
-        "type": "string"
+        "type": "string",
+        "anyOf": [
+          {
+            "relationshipRef": {
+              "typeName": "AWS::EC2::SecurityGroup",
+              "propertyPath": "/properties/GroupId"
+            }
+          },
+          {
+            "relationshipRef": {
+              "typeName": "AWS::EC2::SecurityGroup",
+              "propertyPath": "/properties/Id"
+            }
+          }
+        ]
       }
     },
     "SpotPrice": {

@@ -90,11 +90,19 @@
     "DBClusterParameterGroupName": {
       "description": "The name of the DB cluster parameter group to associate with this DB cluster.",
       "type": "string",
-      "default": "default.aurora5.6"
+      "default": "default.aurora5.6",
+      "relationshipRef": {
+        "typeName": "AWS::RDS::DBClusterParameterGroup",
+        "propertyPath": "/properties/DBClusterParameterGroupName"
+      }
     },
     "DBSubnetGroupName": {
       "description": "A DB subnet group that you want to associate with this DB cluster.",
-      "type": "string"
+      "type": "string",
+      "relationshipRef": {
+        "typeName": "AWS::RDS::DBSubnetGroup",
+        "propertyPath": "/properties/DBSubnetGroupName"
+      }
     },
     "DeletionProtection": {
       "description": "A value that indicates whether the DB cluster has deletion protection enabled. The database can't be deleted when deletion protection is enabled. By default, deletion protection is disabled.",
@@ -150,7 +158,21 @@
     },
     "KmsKeyId": {
       "description": "The Amazon Resource Name (ARN) of the AWS Key Management Service master key that is used to encrypt the database instances in the DB cluster, such as arn:aws:kms:us-east-1:012345678910:key/abcd1234-a123-456a-a12b-a123b4cd56ef. If you enable the StorageEncrypted property but don't specify this property, the default master key is used. If you specify this property, you must set the StorageEncrypted property to true.",
-      "type": "string"
+      "type": "string",
+      "anyOf": [
+        {
+          "relationshipRef": {
+            "typeName": "AWS::KMS::Key",
+            "propertyPath": "/properties/Arn"
+          }
+        },
+        {
+          "relationshipRef": {
+            "typeName": "AWS::KMS::Key",
+            "propertyPath": "/properties/KeyId"
+          }
+        }
+      ]
     },
     "MasterUsername": {
       "description": "The name of the master user for the DB cluster. You must specify MasterUsername, unless you specify SnapshotIdentifier. In that case, don't specify MasterUsername.",
@@ -270,7 +292,21 @@
       "description": "A list of EC2 VPC security groups to associate with this DB cluster.",
       "uniqueItems": true,
       "items": {
-        "type": "string"
+        "type": "string",
+        "anyOf": [
+          {
+            "relationshipRef": {
+              "typeName": "AWS::EC2::SecurityGroup",
+              "propertyPath": "/properties/GroupId"
+            }
+          },
+          {
+            "relationshipRef": {
+              "typeName": "AWS::EC2::SecurityGroup",
+              "propertyPath": "/properties/Id"
+            }
+          }
+        ]
       },
       "type": "array"
     }
@@ -311,7 +347,11 @@
         },
         "RoleArn": {
           "description": "The Amazon Resource Name (ARN) of the IAM role that is associated with the DB cluster.",
-          "type": "string"
+          "type": "string",
+          "relationshipRef": {
+            "typeName": "AWS::IAM::Role",
+            "propertyPath": "/properties/Arn"
+          }
         }
       },
       "required": [
@@ -396,7 +436,21 @@
         },
         "KmsKeyId": {
           "type": "string",
-          "description": "The AWS KMS key identifier that is used to encrypt the secret."
+          "description": "The AWS KMS key identifier that is used to encrypt the secret.",
+          "anyOf": [
+            {
+              "relationshipRef": {
+                "typeName": "AWS::KMS::Key",
+                "propertyPath": "/properties/KeyId"
+              }
+            },
+            {
+              "relationshipRef": {
+                "typeName": "AWS::KMS::Key",
+                "propertyPath": "/properties/Arn"
+              }
+            }
+          ]
         }
       }
     }

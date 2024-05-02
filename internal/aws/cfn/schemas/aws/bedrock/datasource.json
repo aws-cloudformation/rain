@@ -49,7 +49,8 @@
       "description": "The status of a data source.",
       "enum": [
         "AVAILABLE",
-        "DELETING"
+        "DELETING",
+        "DELETE_UNSUCCESSFUL"
       ]
     },
     "DataSourceType": {
@@ -57,6 +58,14 @@
       "description": "The type of the data source location.",
       "enum": [
         "S3"
+      ]
+    },
+    "DataDeletionPolicy": {
+      "type": "string",
+      "description": "The deletion policy for the data source.",
+      "enum": [
+        "RETAIN",
+        "DELETE"
       ]
     },
     "FixedSizeChunkingConfiguration": {
@@ -104,6 +113,13 @@
           "minItems": 1,
           "description": "A list of S3 prefixes that define the object containing the data sources.",
           "insertionOrder": false
+        },
+        "BucketOwnerAccountId": {
+          "type": "string",
+          "maxLength": 12,
+          "minLength": 12,
+          "pattern": "^[0-9]{12}$",
+          "description": "The account ID for the owner of the S3 bucket."
         }
       },
       "required": [
@@ -170,6 +186,9 @@
     "VectorIngestionConfiguration": {
       "$ref": "#/definitions/VectorIngestionConfiguration"
     },
+    "DataDeletionPolicy": {
+      "$ref": "#/definitions/DataDeletionPolicy"
+    },
     "CreatedAt": {
       "type": "string",
       "description": "The time at which the data source was created."
@@ -177,6 +196,17 @@
     "UpdatedAt": {
       "type": "string",
       "description": "The time at which the knowledge base was last updated."
+    },
+    "FailureReasons": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 2048,
+        "description": "Failure Reason for Error."
+      },
+      "maxItems": 2048,
+      "description": "The details of the failure reasons related to the data source.",
+      "insertionOrder": false
     }
   },
   "required": [
@@ -188,7 +218,8 @@
     "/properties/DataSourceId",
     "/properties/DataSourceStatus",
     "/properties/CreatedAt",
-    "/properties/UpdatedAt"
+    "/properties/UpdatedAt",
+    "/properties/FailureReasons"
   ],
   "createOnlyProperties": [
     "/properties/KnowledgeBaseId",

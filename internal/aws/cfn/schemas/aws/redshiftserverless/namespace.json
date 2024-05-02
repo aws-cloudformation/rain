@@ -99,6 +99,24 @@
         "Value"
       ],
       "additionalProperties": false
+    },
+    "SnapshotCopyConfiguration": {
+      "type": "object",
+      "properties": {
+        "DestinationRegion": {
+          "type": "string"
+        },
+        "DestinationKmsKeyId": {
+          "type": "string"
+        },
+        "SnapshotRetentionPeriod": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "DestinationRegion"
+      ],
+      "additionalProperties": false
     }
   },
   "properties": {
@@ -194,6 +212,16 @@
     "RedshiftIdcApplicationArn": {
       "description": "The ARN for the Redshift application that integrates with IAM Identity Center.",
       "type": "string"
+    },
+    "SnapshotCopyConfigurations": {
+      "description": "The snapshot copy configurations for the namespace.",
+      "type": "array",
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/SnapshotCopyConfiguration"
+      },
+      "maxItems": 1,
+      "minItems": 0
     }
   },
   "tagging": {
@@ -252,6 +280,8 @@
         "kms:RetireGrant",
         "redshift-serverless:CreateNamespace",
         "redshift-serverless:GetNamespace",
+        "redshift-serverless:ListSnapshotCopyConfigurations",
+        "redshift-serverless:CreateSnapshotCopyConfiguration",
         "redshift:GetResourcePolicy",
         "redshift:PutResourcePolicy",
         "secretsmanager:CreateSecret",
@@ -264,7 +294,8 @@
       "permissions": [
         "iam:PassRole",
         "redshift-serverless:GetNamespace",
-        "redshift:GetResourcePolicy"
+        "redshift:GetResourcePolicy",
+        "redshift-serverless:ListSnapshotCopyConfigurations"
       ]
     },
     "update": {
@@ -285,6 +316,10 @@
         "kms:GenerateDataKey",
         "redshift-serverless:UpdateNamespace",
         "redshift-serverless:GetNamespace",
+        "redshift-serverless:ListSnapshotCopyConfigurations",
+        "redshift-serverless:CreateSnapshotCopyConfiguration",
+        "redshift-serverless:UpdateSnapshotCopyConfiguration",
+        "redshift-serverless:DeleteSnapshotCopyConfiguration",
         "redshift:GetResourcePolicy",
         "redshift:PutResourcePolicy",
         "redshift:DeleteResourcePolicy",

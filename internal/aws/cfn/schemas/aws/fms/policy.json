@@ -127,6 +127,134 @@
         "CENTRALIZED"
       ]
     },
+    "NetworkAclEntry": {
+      "description": "Network ACL entry.",
+      "type": "object",
+      "properties": {
+        "CidrBlock": {
+          "description": "CIDR block.",
+          "type": "string",
+          "pattern": "^(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\\/([0-9]|[1-2][0-9]|3[0-2]))$"
+        },
+        "Egress": {
+          "description": "Whether the entry is an egress entry.",
+          "type": "boolean"
+        },
+        "IcmpTypeCode": {
+          "description": "ICMP type and code.",
+          "type": "object",
+          "properties": {
+            "Code": {
+              "description": "Code.",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 255
+            },
+            "Type": {
+              "description": "Type.",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 255
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "Code",
+            "Type"
+          ]
+        },
+        "Ipv6CidrBlock": {
+          "type": "string",
+          "description": "IPv6 CIDR block.",
+          "pattern": "^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))(/(1[0-2]|[0-9]))?$"
+        },
+        "PortRange": {
+          "type": "object",
+          "description": "Port range.",
+          "properties": {
+            "From": {
+              "description": "From Port.",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 65535
+            },
+            "To": {
+              "description": "To Port.",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 65535
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "From",
+            "To"
+          ]
+        },
+        "Protocol": {
+          "description": "Protocol.",
+          "type": "string",
+          "pattern": "^(tcp|udp|icmp|([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]))$"
+        },
+        "RuleAction": {
+          "description": "Rule Action.",
+          "type": "string",
+          "enum": [
+            "allow",
+            "deny"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "Egress",
+        "Protocol",
+        "RuleAction"
+      ]
+    },
+    "NetworkAclEntryList": {
+      "description": "NetworkAcl entry list.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/NetworkAclEntry"
+      },
+      "insertionOrder": true
+    },
+    "NetworkAclEntrySet": {
+      "description": "Network ACL entry set.",
+      "type": "object",
+      "properties": {
+        "FirstEntries": {
+          "$ref": "#/definitions/NetworkAclEntryList"
+        },
+        "ForceRemediateForFirstEntries": {
+          "type": "boolean"
+        },
+        "LastEntries": {
+          "$ref": "#/definitions/NetworkAclEntryList"
+        },
+        "ForceRemediateForLastEntries": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "ForceRemediateForFirstEntries",
+        "ForceRemediateForLastEntries"
+      ],
+      "anyOf": [
+        {
+          "required": [
+            "FirstEntries"
+          ]
+        },
+        {
+          "required": [
+            "LastEntries"
+          ]
+        }
+      ]
+    },
     "ManagedServiceData": {
       "description": "Firewall managed service data.",
       "type": "string",
@@ -146,7 +274,8 @@
         "NETWORK_FIREWALL",
         "THIRD_PARTY_FIREWALL",
         "DNS_FIREWALL",
-        "IMPORT_NETWORK_FIREWALL"
+        "IMPORT_NETWORK_FIREWALL",
+        "NETWORK_ACL_COMMON"
       ]
     },
     "NetworkFirewallPolicy": {
@@ -175,6 +304,19 @@
         "FirewallDeploymentModel"
       ]
     },
+    "NetworkAclCommonPolicy": {
+      "description": "Network ACL common policy.",
+      "type": "object",
+      "properties": {
+        "NetworkAclEntrySet": {
+          "$ref": "#/definitions/NetworkAclEntrySet"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "NetworkAclEntrySet"
+      ]
+    },
     "PolicyOption": {
       "description": "Firewall policy option.",
       "type": "object",
@@ -184,6 +326,9 @@
         },
         "ThirdPartyFirewallPolicy": {
           "$ref": "#/definitions/ThirdPartyFirewallPolicy"
+        },
+        "NetworkAclCommonPolicy": {
+          "$ref": "#/definitions/NetworkAclCommonPolicy"
         }
       },
       "additionalProperties": false,
@@ -196,6 +341,11 @@
         {
           "required": [
             "ThirdPartyFirewallPolicy"
+          ]
+        },
+        {
+          "required": [
+            "NetworkAclCommonPolicy"
           ]
         }
       ]

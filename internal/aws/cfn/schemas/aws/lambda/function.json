@@ -64,14 +64,22 @@
     "KmsKeyArn": {
       "description": "The ARN of the KMSlong (KMS) customer managed key that's used to encrypt your function's [environment variables](https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html#configuration-envvars-encryption). When [Lambda SnapStart](https://docs.aws.amazon.com/lambda/latest/dg/snapstart-security.html) is activated, Lambda also uses this key is to encrypt your function's snapshot. If you deploy your function using a container image, Lambda also uses this key to encrypt your function when it's deployed. Note that this is not the same key that's used to protect your container image in the Amazon Elastic Container Registry (Amazon ECR). If you don't provide a customer managed key, Lambda uses a default service key.",
       "type": "string",
-      "pattern": "^(arn:(aws[a-zA-Z-]*)?:[a-z0-9-.]+:.*)|()$"
+      "pattern": "^(arn:(aws[a-zA-Z-]*)?:[a-z0-9-.]+:.*)|()$",
+      "relationshipRef": {
+        "typeName": "AWS::KMS::Key",
+        "propertyPath": "/properties/Arn"
+      }
     },
     "Layers": {
       "description": "A list of [function layers](https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html) to add to the function's execution environment. Specify each layer by its ARN, including the version.",
       "type": "array",
       "uniqueItems": false,
       "items": {
-        "type": "string"
+        "type": "string",
+        "relationshipRef": {
+          "typeName": "AWS::Lambda::LayerVersion",
+          "propertyPath": "/properties/LayerVersionArn"
+        }
       }
     },
     "MemorySize": {
@@ -86,7 +94,11 @@
     "Role": {
       "description": "The Amazon Resource Name (ARN) of the function's execution role.",
       "type": "string",
-      "pattern": "^arn:(aws[a-zA-Z-]*)?:iam::\\d{12}:role/?[a-zA-Z_0-9+=,.@\\-_/]+$"
+      "pattern": "^arn:(aws[a-zA-Z-]*)?:iam::\\d{12}:role/?[a-zA-Z_0-9+=,.@\\-_/]+$",
+      "relationshipRef": {
+        "typeName": "AWS::IAM::Role",
+        "propertyPath": "/properties/Arn"
+      }
     },
     "Runtime": {
       "description": "The identifier of the function's [runtime](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html). Runtime is required if the deployment package is a .zip file archive.\n The following list includes deprecated runtimes. For more information, see [Runtime deprecation policy](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html#runtime-support-policy).",
@@ -158,7 +170,11 @@
           "description": "An Amazon S3 bucket in the same AWS-Region as your function. The bucket can be in a different AWS-account.",
           "minLength": 3,
           "maxLength": 63,
-          "pattern": "^[0-9A-Za-z\\.\\-_]*(?<!\\.)$"
+          "pattern": "^[0-9A-Za-z\\.\\-_]*(?<!\\.)$",
+          "relationshipRef": {
+            "typeName": "AWS::S3::Bucket",
+            "propertyPath": "/properties/BucketName"
+          }
         },
         "S3Key": {
           "type": "string",
@@ -191,7 +207,21 @@
         "TargetArn": {
           "type": "string",
           "description": "The Amazon Resource Name (ARN) of an Amazon SQS queue or Amazon SNS topic.",
-          "pattern": "^(arn:(aws[a-zA-Z-]*)?:[a-z0-9-.]+:.*)|()$"
+          "pattern": "^(arn:(aws[a-zA-Z-]*)?:[a-z0-9-.]+:.*)|()$",
+          "anyOf": [
+            {
+              "relationshipRef": {
+                "typeName": "AWS::SQS::Queue",
+                "propertyPath": "/properties/Arn"
+              }
+            },
+            {
+              "relationshipRef": {
+                "typeName": "AWS::SNS::Topic",
+                "propertyPath": "/properties/TopicArn"
+              }
+            }
+          ]
         }
       }
     },
@@ -277,7 +307,27 @@
           "uniqueItems": false,
           "maxItems": 5,
           "items": {
-            "type": "string"
+            "type": "string",
+            "anyOf": [
+              {
+                "relationshipRef": {
+                  "typeName": "AWS::EC2::SecurityGroup",
+                  "propertyPath": "/properties/GroupId"
+                }
+              },
+              {
+                "relationshipRef": {
+                  "typeName": "AWS::EC2::SecurityGroup",
+                  "propertyPath": "/properties/Id"
+                }
+              },
+              {
+                "relationshipRef": {
+                  "typeName": "AWS::EC2::VPC",
+                  "propertyPath": "/properties/DefaultSecurityGroup"
+                }
+              }
+            ]
           }
         },
         "SubnetIds": {
@@ -286,7 +336,11 @@
           "uniqueItems": false,
           "maxItems": 16,
           "items": {
-            "type": "string"
+            "type": "string",
+            "relationshipRef": {
+              "typeName": "AWS::EC2::Subnet",
+              "propertyPath": "/properties/SubnetId"
+            }
           }
         },
         "Ipv6AllowedForDualStack": {

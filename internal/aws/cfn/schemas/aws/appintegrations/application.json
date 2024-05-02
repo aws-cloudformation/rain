@@ -31,8 +31,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "AccessUrl",
-        "ApprovedOrigins"
+        "AccessUrl"
       ],
       "properties": {
         "AccessUrl": {
@@ -57,13 +56,19 @@
       "pattern": "^\\w+\\:\\/\\/.*$",
       "minLength": 1,
       "maxLength": 1000
+    },
+    "Permissions": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9\\/\\._\\-\\*]+$",
+      "minLength": 1,
+      "maxLength": 255
     }
   },
   "properties": {
     "Name": {
       "description": "The name of the application.",
       "type": "string",
-      "pattern": "^[a-zA-Z0-9/\\._\\-]+$",
+      "pattern": "^[a-zA-Z0-9\\/\\._ \\-]+$",
       "minLength": 1,
       "maxLength": 255
     },
@@ -89,6 +94,7 @@
     },
     "ApplicationArn": {
       "description": "The Amazon Resource Name (ARN) of the application.",
+      "pattern": "^arn:aws[-a-z0-9]*:app-integrations:[-a-z0-9]*:[0-9]{12}:application/[-a-zA-Z0-9]*",
       "type": "string",
       "minLength": 1,
       "maxLength": 2048
@@ -105,6 +111,16 @@
       "required": [
         "ExternalUrlConfig"
       ]
+    },
+    "Permissions": {
+      "description": "The configuration of events or requests that the application has access to.",
+      "type": "array",
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/Permissions"
+      },
+      "minItems": 0,
+      "maxItems": 150
     },
     "Tags": {
       "description": "The tags (keys and values) associated with the application.",
