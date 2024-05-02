@@ -7,13 +7,13 @@ Description: |
   charges.
 
 Parameters:
-  AppName:
-    Description: This will be used for resource names
-    Type: String
-
   ArtifactBucket:
-    Description: The name of the bucket to use for storing pipeline artifacts
     Type: String
+    Description: The name of the bucket to use for storing pipeline artifacts
+
+  AppName:
+    Type: String
+    Description: This will be used for resource names
 
   Branch:
     Description: The name of the source branch in CodeCommit
@@ -21,36 +21,47 @@ Parameters:
     Default: main
 
 Resources:
+  Repo:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryName: !Ref AppName
+      RepositoryDescription: Sample source code repository
+
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
-      ArtifactStore:
-        Location: !Ref ArtifactBucket
-        Type: S3
       Name: !Ref AppName
       RoleArn: !GetAtt PipelineRole.Arn
+      ArtifactStore:
+        Type: S3
+        Location: !Ref ArtifactBucket
       Stages:
-        - Actions:
-            - ActionTypeId:
+        - Name: Source
+          Actions:
+            - Name: CodeCommitSource
+              ActionTypeId:
                 Category: Source
                 Owner: AWS
                 Provider: CodeCommit
                 Version: 1
               Configuration:
+                RepositoryName: !GetAtt Repo.Name
                 BranchName: !Ref Branch
                 PollForSourceChanges: false
-                RepositoryName: !GetAtt Repo.Name
-              Name: CodeCommitSource
               OutputArtifacts:
                 - Name: source
-          Name: Source
-        - Actions:
-            - ActionTypeId:
+        - Name: Build
+          Actions:
+            - Name: Rain
+              InputArtifacts:
+                - Name: source
+              ActionTypeId:
                 Category: Build
                 Owner: AWS
                 Provider: CodeBuild
                 Version: 1
               Configuration:
+                ProjectName: !Ref Project
                 EnvironmentVariables: |-
                   [
                     {
@@ -59,16 +70,25 @@ Resources:
                       "value": "abc"
                     }
                   ]
-                ProjectName: !Ref Project
-              InputArtifacts:
-                - Name: source
-              Name: Rain
               RunOrder: 1
-          Name: Build
+
+  PipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codepipeline.amazonaws.com
+        Version: "2012-10-17"
 
   PipelinePolicy:
     Type: AWS::IAM::Policy
     Properties:
+      PolicyName: !Sub ${AppName}-pipeline-policy
+      Roles:
+        - !Ref PipelineRole
       PolicyDocument:
         Statement:
           - Action:
@@ -80,8 +100,8 @@ Resources:
               - s3:Abort*
             Effect: Allow
             Resource:
-              - !Sub arn:aws:s3:::${ArtifactBucket}
-              - !Sub arn:aws:s3:::${ArtifactBucket}/*
+              - !Sub arn:${AWS::Partition}:s3:::${ArtifactBucket}
+              - !Sub arn:${AWS::Partition}:s3:::${ArtifactBucket}/*
           - Action:
               - codebuild:StartBuild
               - codebuild:BatchGetBuilds
@@ -101,45 +121,101 @@ Resources:
               - codecommit:CancelUploadArchive
             Effect: Allow
             Resource:
+              - !Sub arn:${AWS::Partition}:codecommit:${AWS::Region}:${AWS::AccountId}:${AppName}
+
+  SourceChangeEventRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - events.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+
+  SourceChangeEventPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub ${AppName}-source-change-policy
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action: codepipeline:StartPipelineExecution
+            Resource:
               - !Join
                 - ""
-                - - 'arn:aws:codecommit:'
+                - - 'arn:'
+                  - !Ref AWS::Partition
+                  - ':codepipeline:'
                   - !Ref AWS::Region
                   - ':'
                   - !Ref AWS::AccountId
                   - ':'
-                  - !GetAtt Repo.Name
-      PolicyName: !Sub ${AppName}-pipeline-policy
+                  - !Ref Pipeline
       Roles:
-        - !Ref PipelineRole
+        - !Ref SourceChangeEventRole
 
-  PipelineRole:
-    Type: AWS::IAM::Role
+  SourceChangeEventRule:
+    Type: AWS::Events::Rule
     Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service: codepipeline.amazonaws.com
-        Version: "2012-10-17"
+      EventPattern:
+        source:
+          - aws.codecommit
+        detail-type:
+          - CodeCommit Repository State Change
+        resources:
+          - !Join
+            - ""
+            - - 'arn:'
+              - !Ref AWS::Partition
+              - ':codecommit:'
+              - !Ref AWS::Region
+              - ':'
+              - !Ref AWS::AccountId
+              - ':'
+              - !GetAtt Repo.Name
+        detail:
+          event:
+            - referenceCreated
+            - referenceUpdated
+          referenceType:
+            - branch
+          referenceName:
+            - main
+      Targets:
+        - Arn: !Join
+            - ""
+            - - 'arn:'
+              - !Ref AWS::Partition
+              - ':codepipeline:'
+              - !Ref AWS::Region
+              - ':'
+              - !Ref AWS::AccountId
+              - ':'
+              - !Ref Pipeline
+          RoleArn: !GetAtt SourceChangeEventRole.Arn
+          Id: !Sub ${AppName}-pipeline-target
 
   Project:
     Type: AWS::CodeBuild::Project
     Properties:
+      Name: !Sub ${AppName}-build
       Artifacts:
         Type: CODEPIPELINE
       Environment:
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:5.0
         ComputeType: BUILD_GENERAL1_LARGE
+        Type: LINUX_CONTAINER
         EnvironmentVariables:
           - Name: MY_VAR
             Type: PLAINTEXT
             Value: xyz
-        Image: aws/codebuild/amazonlinux2-x86_64-standard:5.0
-        Type: LINUX_CONTAINER
-      Name: !Sub ${AppName}-build
       ServiceRole: !GetAtt ProjectRole.Arn
       Source:
+        Type: CODEPIPELINE
         BuildSpec: |
           version: 0.2
           phases:
@@ -148,8 +224,18 @@ Resources:
                 - pwd
                 - ls
                 - # TODO: Add your build commands here
-        Type: CODEPIPELINE
       TimeoutInMinutes: 480
+
+  ProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: "2012-10-17"
 
   ProjectPolicy:
     Type: AWS::IAM::Policy
@@ -162,7 +248,9 @@ Resources:
             Resource:
               - !Join
                 - ""
-                - - 'arn:aws:logs:'
+                - - 'arn:'
+                  - !Ref AWS::Partition
+                  - ':logs:'
                   - !Ref AWS::Region
                   - ':'
                   - !Ref AWS::AccountId
@@ -185,96 +273,9 @@ Resources:
               - s3:List*
             Effect: Allow
             Resource:
-              - !Sub arn:aws:s3:::${ArtifactBucket}
-              - !Sub arn:aws:s3:::${ArtifactBucket}/*
+              - !Sub arn:${AWS::Partition}:s3:::${ArtifactBucket}
+              - !Sub arn:${AWS::Partition}:s3:::${ArtifactBucket}/*
         Version: "2012-10-17"
       PolicyName: !Sub ${AppName}-build-project-policy
       Roles:
         - !Ref ProjectRole
-
-  ProjectRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service: codebuild.amazonaws.com
-        Version: "2012-10-17"
-
-  Repo:
-    Type: AWS::CodeCommit::Repository
-    Properties:
-      RepositoryDescription: Sample source code repository
-      RepositoryName: !Ref AppName
-
-  SourceChangeEventPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyDocument:
-        Statement:
-          - Action: codepipeline:StartPipelineExecution
-            Effect: Allow
-            Resource:
-              - !Join
-                - ""
-                - - 'arn:aws:codepipeline:'
-                  - !Ref AWS::Region
-                  - ':'
-                  - !Ref AWS::AccountId
-                  - ':'
-                  - !Ref Pipeline
-      PolicyName: !Sub ${AppName}-source-change-policy
-      Roles:
-        - !Ref SourceChangeEventRole
-
-  SourceChangeEventRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service:
-                - events.amazonaws.com
-        Version: "2012-10-17"
-      Path: /
-
-  SourceChangeEventRule:
-    Type: AWS::Events::Rule
-    Properties:
-      EventPattern:
-        detail:
-          event:
-            - referenceCreated
-            - referenceUpdated
-          referenceName:
-            - main
-          referenceType:
-            - branch
-        detail-type:
-          - CodeCommit Repository State Change
-        resources:
-          - !Join
-            - ""
-            - - 'arn:aws:codecommit:'
-              - !Ref AWS::Region
-              - ':'
-              - !Ref AWS::AccountId
-              - ':'
-              - !GetAtt Repo.Name
-        source:
-          - aws.codecommit
-      Targets:
-        - Arn: !Join
-            - ""
-            - - 'arn:aws:codepipeline:'
-              - !Ref AWS::Region
-              - ':'
-              - !Ref AWS::AccountId
-              - ':'
-              - !Ref Pipeline
-          Id: !Sub ${AppName}-pipeline-target
-          RoleArn: !GetAtt SourceChangeEventRole.Arn

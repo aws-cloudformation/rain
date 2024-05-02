@@ -2,6 +2,28 @@
   "typeName": "AWS::CUR::ReportDefinition",
   "description": "The AWS::CUR::ReportDefinition resource creates a Cost & Usage Report with user-defined settings. You can use this resource to define settings like time granularity (hourly, daily, monthly), file format (Parquet, CSV), and S3 bucket for delivery of these reports.",
   "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-cur.git",
+  "definitions": {
+    "Tag": {
+      "type": "object",
+      "properties": {
+        "Key": {
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1
+        },
+        "Value": {
+          "type": "string",
+          "maxLength": 256,
+          "minLength": 0
+        }
+      },
+      "required": [
+        "Key",
+        "Value"
+      ],
+      "additionalProperties": false
+    }
+  },
   "properties": {
     "ReportName": {
       "description": "The name of the report that you want to create. The name must be unique, is case sensitive, and can't include spaces.",
@@ -44,7 +66,9 @@
         "description": "Whether or not AWS includes resource IDs in the report.",
         "type": "string",
         "enum": [
-          "RESOURCES"
+          "RESOURCES",
+          "SPLIT_COST_ALLOCATION_DATA",
+          "MANUAL_DISCOUNT_COMPATIBILITY"
         ]
       }
     },
@@ -126,7 +150,8 @@
   "handlers": {
     "create": {
       "permissions": [
-        "cur:PutReportDefinition"
+        "cur:PutReportDefinition",
+        "cur:DescribeReportDefinitions"
       ]
     },
     "read": {
@@ -142,7 +167,6 @@
     },
     "delete": {
       "permissions": [
-        "cur:DescribeReportDefinitions",
         "cur:DeleteReportDefinition"
       ]
     },
@@ -151,5 +175,8 @@
         "cur:DescribeReportDefinitions"
       ]
     }
+  },
+  "tagging": {
+    "taggable": false
   }
 }

@@ -123,14 +123,7 @@ Resources:
               - codecommit:CancelUploadArchive
             Effect: Allow
             Resource:
-              - !Join
-                - ""
-                - - "arn:${AWS::Partition}:codecommit:"
-                  - !Ref AWS::Region
-                  - ":"
-                  - !Ref AWS::AccountId
-                  - ":"
-                  - !GetAtt Repo.Name
+              - !Sub "arn:${AWS::Partition}:codecommit:${AWS::Region}:${AWS::AccountId}:${AppName}"
 
 
   SourceChangeEventRole:
@@ -157,7 +150,9 @@ Resources:
             Resource: 
               - !Join
                 - ""
-                - - "arn:${AWS::Partition}:codepipeline:"
+                - - "arn:"
+                  - !Ref AWS::Partition
+                  - ":codepipeline:"
                   - !Ref AWS::Region
                   - ":"
                   - !Ref AWS::AccountId
@@ -177,7 +172,9 @@ Resources:
         resources: 
           - !Join
             - ""
-            - - "arn:${AWS::Partition}:codecommit:"
+            - - "arn:"
+              - !Ref AWS::Partition
+              - ":codecommit:"
               - !Ref AWS::Region
               - ":"
               - !Ref AWS::AccountId
@@ -194,7 +191,9 @@ Resources:
       Targets:
         - Arn: !Join
             - ""
-            - - "arn:${AWS::Partition}:codepipeline:"
+            - - "arn:"
+              - !Ref AWS::Partition
+              - ":codepipeline:"
               - !Ref AWS::Region
               - ":"
               - !Ref AWS::AccountId
@@ -252,7 +251,9 @@ Resources:
             Resource:
               - !Join
                 - ""
-                - - "arn:${AWS::Partition}:logs:"
+                - - "arn:"
+                  - !Ref AWS::Partition
+                  - ":logs:"
                   - !Ref AWS::Region
                   - ":"
                   - !Ref AWS::AccountId
