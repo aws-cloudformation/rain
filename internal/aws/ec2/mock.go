@@ -10,3 +10,7 @@ func GetRegions() ([]string, error) {
 		"mock-region-3",
 	}, nil
 }
+
+func CheckKeyPairExists(name string) (bool, error) {
+	return true, nil
+}
