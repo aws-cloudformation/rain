@@ -30,3 +30,15 @@ func GetRegions() ([]string, error) {
 
 	return regions, nil
 }
+
+// CheckKeyPairExists checks to see if a key pair exists by name
+func CheckKeyPairExists(name string) (bool, error) {
+	res, err := getClient().DescribeKeyPairs(context.Background(), &ec2.DescribeKeyPairsInput{
+		KeyNames: []string{name},
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return len(res.KeyPairs) > 0, nil
+}

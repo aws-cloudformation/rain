@@ -1,4 +1,4 @@
-// Forecast looks at your account and tries to predict things that will
+// Package forecast looks at your account and tries to predict things that will
 // go wrong when you attempt to CREATE, UPDATE, or DELETE a stack
 package forecast
 
@@ -27,16 +27,16 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 )
 
-// The role name to use for the IAM policy simulator (optional --role)
+// RoleArn is the role name to use for the IAM policy simulator (optional --role)
 var RoleArn string
 
-// This is an experimental feature that might break between minor releases
+// Experimental indicates that this is an experimental feature that might break between minor releases
 var Experimental bool
 
-// The resource type to check (optional --type to limit checks to one type)
+// ResourceType is the resource type to check (optional --type to limit checks to one type)
 var ResourceType string
 
-// If true, don't perform permissions checks to save time
+// SkipIAM indicates if we should perform permissions checks or not, to save time
 var SkipIAM bool
 
 // The optional parameters to use to create a change set for update predictions (--params)
@@ -57,7 +57,7 @@ type Env struct {
 	account   string
 }
 
-// Input to forecast prediction functions
+// PredictionInput is the input to forecast prediction functions
 type PredictionInput struct {
 	source      cft.Template
 	stackName   string
@@ -71,7 +71,7 @@ type PredictionInput struct {
 	roleArn     string
 }
 
-// The current line number in the template
+// LineNumber is the current line number in the template
 var LineNumber int
 
 // Forecast represents predictions for a single resource in the template
@@ -211,7 +211,11 @@ func forecastForType(input PredictionInput) Forecast {
 
 	// Check permissions
 	if !SkipIAM {
-		checkPermissions(input, &forecast)
+		err := checkPermissions(input, &forecast)
+		if err != nil {
+			config.Debugf("Unable to check permissions: %v", err)
+			return Forecast{}
+		}
 	}
 
 	// Check service quotas
@@ -229,6 +233,7 @@ func forecastForType(input PredictionInput) Forecast {
 
 	if found {
 		// Call the prediction function and append the results
+		config.Debugf("Running forecaster for %v", input.typeName)
 		forecast.Append(fn(input))
 	}
 
@@ -318,7 +323,7 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 
 	spinner.Stop()
 
-	// Figure out how long we thing the stack will take to execute
+	// Figure out how long we think the stack will take to execute
 	totalSeconds := PredictTotalEstimate(source, stackExists)
 	config.Debugf("totalSeconds: %d", totalSeconds)
 
@@ -478,6 +483,7 @@ func init() {
 	forecasters["AWS::EC2::Instance"] = checkEC2Instance
 	forecasters["AWS::EC2::SecurityGroup"] = checkEC2SecurityGroup
 	forecasters["AWS::RDS::DBCluster"] = checkRDSDBCluster
+	forecasters["AWS::AutoScaling::LaunchConfiguration"] = checkAutoScalingLaunchConfiguration
 
 	// Initialize estimates map
 	InitEstimates()
