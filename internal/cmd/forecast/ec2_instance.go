@@ -1,11 +1,15 @@
 package forecast
 
 import (
+	"fmt"
 	"github.com/aws-cloudformation/rain/internal/aws/ec2"
+	"github.com/aws-cloudformation/rain/internal/aws/ssm"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
+	"slices"
+	"strings"
 )
 
 func checkKeyName(input *PredictionInput, forecast *Forecast) {
@@ -51,14 +55,128 @@ func checkKeyName(input *PredictionInput, forecast *Forecast) {
 	}
 }
 
-func checkEC2Instance(input PredictionInput) Forecast {
+func resolveImageId(imageId string) string {
+	// Strings in CloudFormation can look like this:
+	// {{resolve:ssm:name}}
+	// Make an API call to systems manager parameter store to get the value
 
-	// TODO - Is this instance type available in this AZ?
+	// TODO: This should probably move to where we resolve Refs
+
+	// Check to see if the image id starts with {{resolve:ssm:
+	if strings.HasPrefix(imageId, "{{resolve:ssm:") {
+		// The image id is a parameter name
+		imageId = strings.TrimPrefix(imageId, "{{resolve:ssm:")
+		imageId = strings.TrimSuffix(imageId, "}}")
+
+		config.Debugf("resolving %s", imageId)
+
+		resolved, err := ssm.GetParameter(imageId)
+		if err != nil {
+			config.Debugf("failed to resolve %s: %v", imageId, err)
+			return ""
+		}
+		config.Debugf("resolved %s to %s", imageId, resolved)
+		return resolved
+	}
+
+	// TODO: Secrets manager
+
+	return imageId
+}
+
+// checkInstanceType checks to see if the AMI and the instance type are compatible
+func checkInstanceType(input *PredictionInput, forecast *Forecast) {
+
+	/*
+		Resource handler returned message:
+		"The t2.micro instance type does not support an AMI with a boot mode of UEFI.
+		Only instance types built on the Nitro System support UEFI.
+		Specify an instance type that supports UEFI, and try again.
+
+		Resource handler returned message:
+		"The architecture 'x86_64' of the specified instance type does not match
+		the architecture 'arm64' of the specified AMI.
+		Specify an instance type and an AMI that have matching architectures,
+		and try again. You can use 'describe-instance-types' or
+		'describe-images' to discover the architecture of the instance type or AMI.
+	*/
+
+	var instanceType string
+
+	// Check to see if the resource has the InstanceType property set
+	_, props, _ := s11n.GetMapValue(input.resource, "Properties")
+	if props == nil {
+		config.Debugf("expected %s to have Properties", input.logicalId)
+		return
+	}
+
+	_, instanceTypeProp, _ := s11n.GetMapValue(props, "InstanceType")
+	if instanceTypeProp == nil {
+		config.Debugf("%s does not have InstanceType", input.logicalId)
+		return
+	}
+
+	// If the name is a Ref, resolve it
+	if instanceTypeProp.Kind == yaml.ScalarNode {
+		// The name is hard coded
+		instanceType = instanceTypeProp.Value
+	} else {
+		// We resolved Refs earlier so it should be a string
+		config.Debugf("%s.InstanceType is not a string", input.logicalId)
+		return
+	}
+
+	// Call the DescribeInstanceTypes API to get the instance type info
+	spin(input.typeName, input.logicalId, "EC2 instance type exists?")
+	instanceTypeInfo, err := ec2.GetInstanceType(instanceType)
+	if err != nil {
+		forecast.Add(false, err.Error())
+	} else {
+		forecast.Add(true, "Instance type exists")
+	}
+	spinner.Pop()
+
+	// Make sure the instance type and AMI agree
+
+	_, imageIdNode, _ := s11n.GetMapValue(props, "ImageId")
+	if imageIdNode == nil {
+		config.Debugf("%s does not have ImageId", input.logicalId)
+		return
+	}
+
+	imageId := resolveImageId(imageIdNode.Value)
+
+	spin(input.typeName, input.logicalId, "EC2 instance type matches AMI?")
+	image, err := ec2.GetImage(imageId)
+	if err != nil {
+		forecast.Add(false, fmt.Sprintf("Image not found: %s", imageId))
+		spinner.Pop()
+		return
+	}
+
+	instanceTypesForArch, err := ec2.GetInstanceTypesForArchitecture(string(image.Architecture))
+	if err != nil {
+		forecast.Add(false, err.Error())
+		spinner.Pop()
+		return
+	}
+	if !slices.Contains(instanceTypesForArch, string(instanceTypeInfo.InstanceType)) {
+		forecast.Add(false, fmt.Sprintf("Instance type %s does not support AMI %s", instanceType, imageId))
+	} else {
+		forecast.Add(true, "Instance type matches AMI")
+	}
+	spinner.Pop()
+}
+
+func checkEC2Instance(input PredictionInput) Forecast {
 
 	forecast := makeForecast(input.typeName, input.logicalId)
 
 	// Check to see if the key name exists
 	checkKeyName(&input, &forecast)
+
+	// Make sure the AMI and the instance type are compatible
+	checkInstanceType(&input, &forecast)
 
 	return forecast
 

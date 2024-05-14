@@ -14,3 +14,15 @@ func GetRegions() ([]string, error) {
 func CheckKeyPairExists(name string) (bool, error) {
 	return true, nil
 }
+
+func GetImage(imageID string) (*types.Image, error) {
+	return nil, nil
+}
+
+func GetInstanceType(instanceType string) (*types.InstanceTypeInfo, error) {
+	return nil, nil
+}
+
+func GetInstanceTypesForArchitecture(architecture string) ([]string, error) {
+	return nil, nil
+}

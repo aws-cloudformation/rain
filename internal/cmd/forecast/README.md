@@ -35,6 +35,10 @@ resources:
 - For a delete operation, the S3 bucket is not empty
 - An S3 bucket policy has an invalid principal
 - Make sure RDS cluster configuration makes sense for the chosen engine 
+- Check EC2 instances and launch configurations:
+  - KeyName exists
+  - Instance type exists
+  - Instance type and AMI match
 
 ## Estimates
 

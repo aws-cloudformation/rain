@@ -36,8 +36,8 @@ var Experimental bool
 // ResourceType is the resource type to check (optional --type to limit checks to one type)
 var ResourceType string
 
-// SkipIAM indicates if we should perform permissions checks or not, to save time
-var SkipIAM bool
+// IncludeIAM indicates if we should perform permissions checks or not, to save time
+var IncludeIAM bool
 
 // The optional parameters to use to create a change set for update predictions (--params)
 var params []string
@@ -210,7 +210,7 @@ func forecastForType(input PredictionInput) Forecast {
 	spinner.Pop()
 
 	// Check permissions
-	if !SkipIAM {
+	if IncludeIAM {
 		err := checkPermissions(input, &forecast)
 		if err != nil {
 			config.Debugf("Unable to check permissions: %v", err)
@@ -252,8 +252,6 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 
 	// Visit each resource in the template and see if it matches
 	// one of our predictions
-
-	// TODO: Create a changeset to evaluate updates
 
 	forecast := makeForecast("", "")
 
@@ -463,7 +461,7 @@ Resource-specific checks:
 
 func init() {
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
-	Cmd.Flags().BoolVar(&SkipIAM, "skip-iam", false, "Skip permissions checks, which can take a long time")
+	Cmd.Flags().BoolVar(&IncludeIAM, "include-iam", false, "Include permissions checks, which can take a long time")
 	Cmd.Flags().BoolVarP(&all, "all", "a", false, "Show all checks, not just failed ones")
 	Cmd.Flags().BoolVarP(&Experimental, "experimental", "x", false, "Acknowledge that this is an experimental feature")
 	Cmd.Flags().StringVar(&RoleArn, "role-arn", "", "An optional execution role arn to use for predicting IAM failures")
