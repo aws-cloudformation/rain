@@ -41,6 +41,7 @@ require (
 
 require (
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.5 // indirect
+	github.com/aws/aws-sdk-go-v2/service/acm v1.25.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.50.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.23.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

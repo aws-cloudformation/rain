@@ -28,6 +28,8 @@ func checkEC2SecurityGroup(input PredictionInput) Forecast {
 		SourceSecurityGroupId property and specify the security group ID.
 	*/
 
+	// TODO: Security group is invalid without either a VpcId or a default VPC
+
 	forecast := makeForecast(input.typeName, input.logicalId)
 
 	return forecast

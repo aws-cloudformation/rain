@@ -505,6 +505,7 @@ func init() {
 	forecasters["AWS::RDS::DBCluster"] = checkRDSDBCluster
 	forecasters["AWS::AutoScaling::LaunchConfiguration"] = checkAutoScalingLaunchConfiguration
 	forecasters["AWS::EC2::LaunchTemplate"] = checkEC2LaunchTemplate
+	forecasters["AWS::ElasticLoadBalancingV2::Listener"] = checkELBListener
 
 	// Initialize estimates map
 	InitEstimates()
