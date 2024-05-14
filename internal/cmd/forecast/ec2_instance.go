@@ -16,10 +16,8 @@ func checkKeyName(input *PredictionInput, forecast *Forecast) {
 
 	var keyName string
 
-	// Check to see if the resource has the KeyName property set
-	_, props, _ := s11n.GetMapValue(input.resource, "Properties")
+	props := getPropNode(input)
 	if props == nil {
-		config.Debugf("expected %s to have Properties", input.logicalId)
 		return
 	}
 
@@ -103,10 +101,8 @@ func checkInstanceType(input *PredictionInput, forecast *Forecast) {
 
 	var instanceType string
 
-	// Check to see if the resource has the InstanceType property set
-	_, props, _ := s11n.GetMapValue(input.resource, "Properties")
+	props := getPropNode(input)
 	if props == nil {
-		config.Debugf("expected %s to have Properties", input.logicalId)
 		return
 	}
 
@@ -166,6 +162,25 @@ func checkInstanceType(input *PredictionInput, forecast *Forecast) {
 		forecast.Add(true, "Instance type matches AMI")
 	}
 	spinner.Pop()
+}
+
+func getPropNode(input *PredictionInput) *yaml.Node {
+	// Check to see if the resource has the InstanceType property set
+	_, props, _ := s11n.GetMapValue(input.resource, "Properties")
+	if props == nil {
+		config.Debugf("expected %s to have Properties", input.logicalId)
+		return nil
+	}
+
+	// If the input resource is an AWS::EC2::LaunchTemplate, props is LaunchTemplateData
+	if input.typeName == "AWS::EC2::LaunchTemplate" {
+		_, props, _ = s11n.GetMapValue(props, "LaunchTemplateData")
+		if props == nil {
+			config.Debugf("expected %s to have LaunchTemplateData", input.logicalId)
+			return nil
+		}
+	}
+	return props
 }
 
 func checkEC2Instance(input PredictionInput) Forecast {

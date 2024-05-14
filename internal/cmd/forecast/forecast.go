@@ -4,6 +4,7 @@ package forecast
 
 import (
 	"fmt"
+	"github.com/aws-cloudformation/rain/internal/aws/ssm"
 	"os"
 	"path/filepath"
 	"strings"
@@ -134,8 +135,29 @@ func resolveParamRefs(name string, prop *yaml.Node, dc *dc.DeployConfig, parent 
 		for _, param := range dc.Params {
 			if *param.ParameterKey == prop.Value {
 				if parent.Kind == yaml.MappingNode {
+
+					var val string
+
+					// Resolve SSM types like AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+					if param.ResolvedValue != nil {
+						// Will this ever not be nil? Maybe for updates?
+						val = *param.ResolvedValue
+					} else {
+						val = *param.ParameterValue
+						// We don't have the param type here...
+						if strings.HasPrefix(val, "/aws/service/") {
+							// Assume this is an SSM parameter
+							resolved, err := ssm.GetParameter(val)
+							if err != nil {
+								config.Debugf("could not get SSM parameter: %v", err)
+							} else {
+								val = resolved
+							}
+						}
+					}
+
 					// Replace the parent Mapping node
-					*parent = yaml.Node{Kind: yaml.ScalarNode, Value: *param.ParameterValue}
+					*parent = yaml.Node{Kind: yaml.ScalarNode, Value: val}
 				}
 				// would it be any other Kind?
 			}
@@ -482,6 +504,7 @@ func init() {
 	forecasters["AWS::EC2::SecurityGroup"] = checkEC2SecurityGroup
 	forecasters["AWS::RDS::DBCluster"] = checkRDSDBCluster
 	forecasters["AWS::AutoScaling::LaunchConfiguration"] = checkAutoScalingLaunchConfiguration
+	forecasters["AWS::EC2::LaunchTemplate"] = checkEC2LaunchTemplate
 
 	// Initialize estimates map
 	InitEstimates()
