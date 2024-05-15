@@ -1,6 +1,8 @@
 package build
 
 import (
+	"fmt"
+	"os"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
@@ -148,6 +150,56 @@ func policy() {
 	}
 }
 
+func generic() {
+	// Choose the model
+	selections := []buildSelection{
+		{Name: HAIKU, Text: "Claude 3 Haiku"},
+		{Name: SONNET, Text: "Claude 3 Sonnet"},
+		{Name: OPUS, Text: "Claude 3 Opus"},
+	}
+	model = openPrompt("Choose a model", selections)
+
+	// Ask if the user wants to include a file
+	selections = []buildSelection{
+		{Name: YES, Text: "Yes"},
+		{Name: NO, Text: "No"},
+	}
+	yesno := openPrompt("Do you want to include the contents of a file with your question?", selections)
+
+	// Get the file content
+	var content string
+	if yesno == YES {
+		prompt := promptui.Prompt{
+			Label: "Enter the file path: ",
+		}
+		path, err := prompt.Run()
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("Including contents of file:", path)
+		contentBytes, err := os.ReadFile(path)
+		if err != nil {
+			panic(err)
+		}
+		content = string(contentBytes)
+	}
+
+	// Get the prompt
+	prompt := promptui.Prompt{
+		Label: "Prompt: ",
+	}
+	p, err := prompt.Run()
+	if err != nil {
+		panic(err)
+	}
+
+	if content != "" {
+		p += "\n\nReference the file contents below this line.\n\n" + content
+	}
+
+	promptGeneric(p, modelId(model))
+}
+
 // openPrompt uses promptui to show selections and returns what was selected
 func openPrompt(label string, selections []buildSelection) string {
 
@@ -201,6 +253,7 @@ func interactive() {
 		{Name: SCHEMA, Text: "Output the schema for a resource type"},
 		{Name: TEMPLATE, Text: "Create a CloudFormation template"},
 		{Name: POLICY, Text: "Create a policy validation file"},
+		{Name: GENERIC, Text: "Ask a bedrock model a generic question"},
 	}
 
 	label := "Entering build interactive mode... what would you like to do?"
@@ -218,6 +271,9 @@ func interactive() {
 		return
 	case POLICY:
 		policy()
+		return
+	case GENERIC:
+		generic()
 		return
 	}
 
@@ -243,4 +299,7 @@ const (
 	HAIKU     = "claude3haiku"
 	GUARD     = "guard"
 	OPA       = "opa"
+	GENERIC   = "generic"
+	YES       = "yes"
+	NO        = "no"
 )
