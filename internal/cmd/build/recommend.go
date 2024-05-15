@@ -115,6 +115,11 @@ func recommend(args []string) {
 				{Name: "vpc", Text: "A VPC with 2 private and 2 public subnets"},
 			},
 		},
+		{Name: "ec2", Text: "EC2 Instances",
+			Sub: []reco{
+				{Name: "autoscaling", Text: "A VPC, AutoScaling Group, EC2 Launch Template, and ALB for a website"},
+			},
+		},
 	}
 
 	showPrompt(selections, "")
