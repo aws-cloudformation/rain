@@ -5,10 +5,11 @@ package ec2
 import (
 	"context"
 	"fmt"
+	"sort"
+
 	rainaws "github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"sort"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 )
@@ -100,4 +101,24 @@ func GetInstanceTypesForArchitecture(architecture string) ([]string, error) {
 		retval[i] = string(instanceType.InstanceType)
 	}
 	return retval, nil
+}
+
+// GetDefaultVPCId returns the default VPC Id, or a blank string
+func GetDefaultVPCId() (string, error) {
+
+	output, err := getClient().DescribeVpcs(context.Background(), &ec2.DescribeVpcsInput{})
+	if err != nil {
+		return "", err
+	}
+
+	// Find the default VPC
+	var defaultVpcID string
+	for _, vpc := range output.Vpcs {
+		if *vpc.IsDefault {
+			defaultVpcID = *vpc.VpcId
+			break
+		}
+	}
+
+	return defaultVpcID, nil
 }
