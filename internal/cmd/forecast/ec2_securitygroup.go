@@ -7,7 +7,6 @@ import (
 	"github.com/aws-cloudformation/rain/internal/aws/ec2"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
-	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
 )
@@ -16,17 +15,6 @@ func checkEC2SecurityGroup(input PredictionInput) Forecast {
 
 	// TODO - Cannot delete a security group that still has instances
 	// (See if there are instances not in this stack)
-	/* CLI commands
-
-	aws ec2 describe-network-interfaces --filters Name=group-id,Values=<group-id> --region <region> --output json
-
-	*/
-
-	//	filters := []types.Filter{}
-
-	//	input := *ec2.DescribeNetworkInterfacesInput{
-	//		Filters:
-	//	}
 
 	// TODO - Make sure security group exists in VPC
 	/*
@@ -40,11 +28,6 @@ func checkEC2SecurityGroup(input PredictionInput) Forecast {
 		SourceSecurityGroupId property and specify the security group ID.
 	*/
 
-	// TODO: Security group is invalid without either a VpcId or a default VPC
-
-	// TODO: Make sure security groups in a template are all in the same network
-	// Accidentally leaving off the VpcId property means default, but others might be set
-
 	forecast := makeForecast(input.typeName, input.logicalId)
 
 	spin(input.typeName, input.logicalId, "Checking if all security groups are in the same VPC")
@@ -55,13 +38,39 @@ func checkEC2SecurityGroup(input PredictionInput) Forecast {
 
 }
 
+// Not sure if we can accurately check if the security group is in use,
+// since the instances may come from this template and will be deleted first.
+// We could cross-check the physical IDs if it's actually an instance,
+// but more likely will be instances from an ASG and how do we correlate
+// them with the security group? Likely to have false positives.
+
+//// checkSecurityGroupIsInUse checks on deletes if a security group cannot be deleted
+//func checkSecurityGroupIsInUse(input *PredictionInput, forecast *Forecast) {
+//	if input.stackExists && action == DELETE {
+//		// Check if the security group is in use
+//		sgInUse, err := ec2.IsSecurityGroupInUse(input.stackName)
+//		if err != nil {
+//			forecast.Add(false, fmt.Sprintf("%v", err))
+//			return
+//		}
+//		if sgInUse {
+//			msg := fmt.Sprintf("Security group is in use by other resources")
+//			forecast.Add(false, msg)
+//			return
+//		}
+//		forecast.Add(true, "Security group is not in use by other resources")
+//	}
+//}
+
 func checkSecurityGroupsInSameVPC(input *PredictionInput, forecast *Forecast) {
+
+	code := F0010
 
 	// Get the default VPC
 	defaultVPCId, err := ec2.GetDefaultVPCId()
 	if err != nil {
 		msg := fmt.Sprintf("Unable to get default VPC Id: %v", err)
-		forecast.Add(false, msg)
+		forecast.Add(code, false, msg)
 		return
 	}
 
@@ -69,7 +78,7 @@ func checkSecurityGroupsInSameVPC(input *PredictionInput, forecast *Forecast) {
 
 	resources, err := input.source.GetSection(cft.Resources)
 	if err != nil {
-		forecast.Add(false, fmt.Sprintf("%v", err))
+		config.Debugf("Unable to get Resources: %v", err)
 		return
 	}
 
@@ -77,6 +86,8 @@ func checkSecurityGroupsInSameVPC(input *PredictionInput, forecast *Forecast) {
 
 	// Iterate through resources to find all security groups
 	for i := 0; i < len(resources.Content); i += 2 {
+
+		thisLogicalId := resources.Content[i].Value
 
 		_, typ, _ := s11n.GetMapValue(resources.Content[i+1], "Type")
 		if typ == nil {
@@ -95,34 +106,37 @@ func checkSecurityGroupsInSameVPC(input *PredictionInput, forecast *Forecast) {
 		// See if VpcId is set. If not, assume it's the default.
 		// If it is hard coded or set in a param, make sure they are all the same
 		_, v, _ := s11n.GetMapValue(props, "VpcId")
-		var rvpcid string
+		var resourceVpcId string
 		if v != nil {
-			config.Debugf("v: %s", node.ToSJson(v))
 			if v.Kind == yaml.ScalarNode {
-				rvpcid = v.Value
+				resourceVpcId = v.Value
 			} else if v.Kind == yaml.MappingNode {
 				// Likely a Ref to the VPC created in this template
 				if v.Content[0].Value == "Ref" {
-					rvpcid = v.Content[1].Value
+					resourceVpcId = v.Content[1].Value
 				}
 			}
-			if rvpcid == "" {
+			if resourceVpcId == "" {
 				// Not sure what this is
 				config.Debugf("Unable to determine VpcId for %s", input.logicalId)
 				return
 			}
 		} else {
-			rvpcid = defaultVPCId
+			resourceVpcId = defaultVPCId
+			if defaultVPCId == "" {
+				msg := fmt.Sprintf("There is no default VPC and VpcId is not set on %s", thisLogicalId)
+				forecast.Add(F0011, false, msg)
+			}
 		}
 
 		if vpcId == "" {
-			vpcId = rvpcid
-		} else if rvpcid != vpcId {
-			msg := fmt.Sprintf("VPC ID for this security group (%s) does not match %s", rvpcid, vpcId)
-			forecast.Add(false, msg)
+			vpcId = resourceVpcId
+		} else if resourceVpcId != vpcId {
+			msg := fmt.Sprintf("VPC ID for this security group (%s) does not match %s", resourceVpcId, vpcId)
+			forecast.Add(code, false, msg)
 			return
 		}
 
 	}
-	forecast.Add(true, "All VPC Ids on security groups are the same")
+	forecast.Add(code, true, "All VPC Ids on security groups are the same")
 }

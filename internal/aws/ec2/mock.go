@@ -2,6 +2,8 @@
 
 package ec2
 
+import "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
 // GetRegions returns all region names as strings
 func GetRegions() ([]string, error) {
 	return []string{
@@ -25,4 +27,8 @@ func GetInstanceType(instanceType string) (*types.InstanceTypeInfo, error) {
 
 func GetInstanceTypesForArchitecture(architecture string) ([]string, error) {
 	return nil, nil
+}
+
+func GetDefaultVPCId() (string, error) {
+	return "", nil
 }

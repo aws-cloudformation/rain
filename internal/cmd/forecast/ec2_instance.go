@@ -40,10 +40,11 @@ func checkKeyName(input *PredictionInput, forecast *Forecast) {
 			spin(input.typeName, input.logicalId, "EC2 instance key exists?")
 
 			exists, _ := ec2.CheckKeyPairExists(keyName)
+			code := F0007
 			if exists {
-				forecast.Add(true, "Key exists")
+				forecast.Add(code, true, "Key exists")
 			} else {
-				forecast.Add(false, "Key does not exist")
+				forecast.Add(code, false, "Key does not exist")
 			}
 
 			spinner.Pop()
@@ -85,21 +86,8 @@ func resolveImageId(imageId string) string {
 // checkInstanceType checks to see if the AMI and the instance type are compatible
 func checkInstanceType(input *PredictionInput, forecast *Forecast) {
 
-	/*
-		Resource handler returned message:
-		"The t2.micro instance type does not support an AMI with a boot mode of UEFI.
-		Only instance types built on the Nitro System support UEFI.
-		Specify an instance type that supports UEFI, and try again.
-
-		Resource handler returned message:
-		"The architecture 'x86_64' of the specified instance type does not match
-		the architecture 'arm64' of the specified AMI.
-		Specify an instance type and an AMI that have matching architectures,
-		and try again. You can use 'describe-instance-types' or
-		'describe-images' to discover the architecture of the instance type or AMI.
-	*/
-
 	var instanceType string
+	code := F0008
 
 	props := getPropNode(input)
 	if props == nil {
@@ -126,9 +114,9 @@ func checkInstanceType(input *PredictionInput, forecast *Forecast) {
 	spin(input.typeName, input.logicalId, "EC2 instance type exists?")
 	instanceTypeInfo, err := ec2.GetInstanceType(instanceType)
 	if err != nil {
-		forecast.Add(false, err.Error())
+		forecast.Add(code, false, err.Error())
 	} else {
-		forecast.Add(true, "Instance type exists")
+		forecast.Add(code, true, "Instance type exists")
 	}
 	spinner.Pop()
 
@@ -145,21 +133,22 @@ func checkInstanceType(input *PredictionInput, forecast *Forecast) {
 	spin(input.typeName, input.logicalId, "EC2 instance type matches AMI?")
 	image, err := ec2.GetImage(imageId)
 	if err != nil {
-		forecast.Add(false, fmt.Sprintf("Image not found: %s", imageId))
+		forecast.Add(F0009, false, fmt.Sprintf("Image not found: %s", imageId))
 		spinner.Pop()
 		return
 	}
 
 	instanceTypesForArch, err := ec2.GetInstanceTypesForArchitecture(string(image.Architecture))
 	if err != nil {
-		forecast.Add(false, err.Error())
+		config.Debugf("failed to get instance types for architecture %s: %v", image.Architecture, err)
 		spinner.Pop()
 		return
 	}
+	code = F0009
 	if !slices.Contains(instanceTypesForArch, string(instanceTypeInfo.InstanceType)) {
-		forecast.Add(false, fmt.Sprintf("Instance type %s does not support AMI %s", instanceType, imageId))
+		forecast.Add(code, false, fmt.Sprintf("Instance type %s does not support AMI %s", instanceType, imageId))
 	} else {
-		forecast.Add(true, "Instance type matches AMI")
+		forecast.Add(code, true, "Instance type matches AMI")
 	}
 	spinner.Pop()
 }

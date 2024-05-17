@@ -22,23 +22,30 @@ different role for the checks you make against the template.
 This command currently makes a few generic checks for a wide range of
 resources:
 
-- The resource already exists (for stack creation with hard coded resource
+- FG001: The resource already exists (for stack creation with hard coded resource
   names)
-- IAM permissions to interact with the resource. Keep in mind that this is a
-  slow operation and can be suppressed with the `--skip-iam` argument. It is
+- FG002: IAM permissions to interact with the resource. Keep in mind that this is a
+  slow operation and is disabled by default. You can enable it with the `--include-iam` argument. It is
   also not guaranteed to be 100% accurate, due to the difficulty with
   predicting the exact ARNs for all possible resources that are involved with
   the resource provider.
 
 ## Specific checks
 
-- For a delete operation, the S3 bucket is not empty
-- An S3 bucket policy has an invalid principal
-- Make sure RDS cluster configuration makes sense for the chosen engine 
-- Check EC2 instances and launch configurations:
-  - KeyName exists
-  - Instance type exists
-  - Instance type and AMI match
+| Code  | Description                                                                    |                                      
+|-------|--------------------------------------------------------------------------------|
+| F0001 | For a delete operation, the S3 bucket is not empty                             |
+| F0002 | S3 bucket policy has an invalid principal                                      |
+| F0003 | RDS cluster configuration is correct for the chosen engine                     |
+| F0004 | RDS monitoring role arn is correct                                             |
+| F0005 | RDS cluster quota is not at limit                                              |
+| F0006 | RDS instance configuration is correct for the chosen engine                    |
+| F0007 | EC2 instance and launch template KeyName exists                                |
+| F0008 | EC2 instance and launch template InstanceType exists                           |
+| F0009 | EC2 instance and launch template instance type and AMI match                   |
+| F0010 | Within the same template, are all security groups pointing to the same network |
+| F0011 | If there is no default VPC, does each security group have a vpc configured?    |
+| F0012 | Certificate not found for elastic load balancer                                |
 
 ## Estimates
 

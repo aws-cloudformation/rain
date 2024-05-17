@@ -38,15 +38,17 @@ func checkS3BucketPolicy(input PredictionInput) Forecast {
 		if policyDocument != nil {
 			res, err := iam.CheckPolicyDocument(policyDocument)
 
+			code := F0002
+
 			if err != nil {
-				forecast.Add(false, fmt.Sprintf("Unable to check policy document: %v", err))
+				forecast.Add(code, false, fmt.Sprintf("Unable to check policy document: %v", err))
 			}
 
 			if !res {
 				LineNumber = policyDocument.Line
-				forecast.Add(false, "Invalid principal in policy document")
+				forecast.Add(code, false, "Invalid principal in policy document")
 			} else {
-				forecast.Add(true, "Principal is valid")
+				forecast.Add(code, true, "Principal is valid")
 			}
 		}
 	}

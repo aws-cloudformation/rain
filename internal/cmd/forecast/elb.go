@@ -50,10 +50,11 @@ func checkELBListener(input PredictionInput) Forecast {
 			spinner.Pop()
 			return forecast
 		}
+		code := F0012
 		if !ok {
-			forecast.Add(false, "Certificate not found or expired")
+			forecast.Add(code, false, "Certificate not found or expired")
 		} else {
-			forecast.Add(true, "Certificate found")
+			forecast.Add(code, true, "Certificate found")
 		}
 	}
 

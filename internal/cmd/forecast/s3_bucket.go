@@ -71,10 +71,11 @@ func checkS3Bucket(input PredictionInput) Forecast {
 			config.Debugf("Physical bucket name is: %v", bucketName)
 
 			empty, reason := checkBucketNotEmpty(input, res)
+			code := F0001
 			if !empty {
-				forecast.Add(false, reason)
+				forecast.Add(code, false, reason)
 			} else {
-				forecast.Add(true, "Bucket is empty")
+				forecast.Add(code, true, "Bucket is empty")
 			}
 		}
 	} else {

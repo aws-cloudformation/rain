@@ -90,31 +90,33 @@ func checkPermissions(input PredictionInput, forecast *Forecast) error {
 		return nil
 	}
 
+	code := FG002
+
 	var ok bool
 	var reason []string
 	if input.stackExists {
 		ok, reason = checkTypePermissions(input, resourceArn, "update")
 		if !ok {
-			forecast.Add(false,
+			forecast.Add(code, false,
 				fmt.Sprintf("Insufficient permissions to update %v\n\t%v", resourceArn, strings.Join(reason, "\n\t")))
 		} else {
-			forecast.Add(true, "Role has update permissions")
+			forecast.Add(code, true, "Role has update permissions")
 		}
 
 		ok, reason = checkTypePermissions(input, resourceArn, "delete")
 		if !ok {
-			forecast.Add(false,
+			forecast.Add(code, false,
 				fmt.Sprintf("Insufficient permissions to delete %v\n\t%v", resourceArn, strings.Join(reason, "\n\t")))
 		} else {
-			forecast.Add(true, "Role has delete permissions")
+			forecast.Add(code, true, "Role has delete permissions")
 		}
 	} else {
 		ok, reason = checkTypePermissions(input, resourceArn, "create")
 		if !ok {
-			forecast.Add(false,
+			forecast.Add(code, false,
 				fmt.Sprintf("Insufficient permissions to create %v\n\t%v", resourceArn, strings.Join(reason, "\n\t")))
 		} else {
-			forecast.Add(true, "Role has create permissions")
+			forecast.Add(code, true, "Role has create permissions")
 		}
 	}
 	return nil
