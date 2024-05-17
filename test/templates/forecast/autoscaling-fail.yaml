@@ -36,6 +36,8 @@ Parameters:
 Resources:
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
+    Metadata:
+      Comment: Without VpcId this defaults to the default VPC which is not NetworkVPC
     Properties:
       GroupDescription: Enable HTTP from the load balancer only
       SecurityGroupIngress:
@@ -43,19 +45,17 @@ Resources:
           FromPort: 80
           ToPort: 80
           SourceSecurityGroupId: !Ref ALBLoadBalancerSecurityGroup
-      #VpcId: !Ref NetworkVPC
-      # TODO:Without this it fails...
-      # The rollback takes forever
 
   NotificationTopic:
     Type: AWS::SNS::Topic
+    Metadata:
+      Comment: If the key arn is not valid the ASG will fail to create
     Properties:
       DisplayName: !Sub ${AWS::StackName}-NotificationTopic
       Subscription:
         - Endpoint: !Ref OperatorEMail
           Protocol: email
       KmsMasterKeyId: !Ref KmsKeyArn
-      # TODO: fail: if the key arn is not valid the ASG will fail to create
 
   LaunchTemplate:
     Type: AWS::EC2::LaunchTemplate

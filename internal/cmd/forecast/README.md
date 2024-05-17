@@ -32,6 +32,8 @@ resources:
 
 ## Specific checks
 
+These can be ignored with the `--ignore` argument.
+
 | Code  | Description                                                                    |                                      
 |-------|--------------------------------------------------------------------------------|
 | F0001 | For a delete operation, the S3 bucket is not empty                             |
@@ -46,6 +48,8 @@ resources:
 | F0010 | Within the same template, are all security groups pointing to the same network |
 | F0011 | If there is no default VPC, does each security group have a vpc configured?    |
 | F0012 | Certificate not found for elastic load balancer                                |
+| F0013 | SNS Topic Key is valid                                                         |
+
 
 ## Estimates
 
@@ -60,9 +64,6 @@ You can view the issues list for the forecast command
 Please feel free to create an issue here whenever you get a stack failure that
 you think could have been prevented by one of these checks.
 
-In the near term, we're going to add the ability to suppress specific checks by
-giving each of them a code.
-
 Checks we plan to implement:
 
 - DynamoDB global table replica region requirements
@@ -74,8 +75,6 @@ Checks we plan to implement:
 - Function version does not exist
 - Warn on resource replacements for active traffic
 - API gateway account trust permission
-- Security group exists
-- Is an EC2 instance type available in the AZ
 
 
 

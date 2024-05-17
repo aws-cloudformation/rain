@@ -85,6 +85,16 @@ type PredictionInput struct {
 	roleArn     string
 }
 
+// GetPropertyNode returns the node for the given property name
+func (input *PredictionInput) GetPropertyNode(name string) *yaml.Node {
+	_, props, _ := s11n.GetMapValue(input.resource, "Properties")
+	if props != nil {
+		_, n, _ := s11n.GetMapValue(props, name)
+		return n
+	}
+	return nil
+}
+
 // LineNumber is the current line number in the template
 var LineNumber int
 
@@ -139,6 +149,16 @@ func (f *Forecast) Add(code string, passed bool, message string) {
 	} else {
 		f.Failed = append(f.Failed, check)
 	}
+}
+
+func (c *Check) String() string {
+	var passFail string
+	if c.Pass {
+		passFail = "PASS"
+	} else {
+		passFail = "FAIL"
+	}
+	return fmt.Sprintf("%s %s on line %s", c.Code, passFail, c.Message)
 }
 
 func makeForecast(typeName string, logicalId string) Forecast {
@@ -232,6 +252,7 @@ func forecastForType(input PredictionInput) Forecast {
 	if found {
 		// Call the prediction function and append the results
 		config.Debugf("Running forecaster for %v", input.typeName)
+		LineNumber = input.resource.Line
 		forecast.Append(fn(input))
 	}
 
@@ -331,7 +352,7 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 			forecast.GetNumFailed(),
 			forecast.GetNumChecked())))
 		for _, reason := range forecast.Failed {
-			fmt.Println(console.Red(reason))
+			fmt.Println(console.Red(reason.String()))
 		}
 		if all {
 			fmt.Println()
@@ -340,7 +361,7 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 				forecast.GetNumPassed(),
 				forecast.GetNumChecked())))
 			for _, reason := range forecast.Passed {
-				fmt.Println(console.Green(reason))
+				fmt.Println(console.Green(reason.String()))
 			}
 		}
 
@@ -353,7 +374,7 @@ func predict(source cft.Template, stackName string, stack types.Stack, stackExis
 		if all {
 			fmt.Println()
 			for _, reason := range forecast.Passed {
-				fmt.Println(console.Green(reason))
+				fmt.Println(console.Green(reason.String()))
 			}
 		}
 		return true
@@ -491,6 +512,7 @@ func init() {
 	forecasters["AWS::AutoScaling::LaunchConfiguration"] = checkAutoScalingLaunchConfiguration
 	forecasters["AWS::EC2::LaunchTemplate"] = checkEC2LaunchTemplate
 	forecasters["AWS::ElasticLoadBalancingV2::Listener"] = checkELBListener
+	forecasters["AWS::SNS::Topic"] = checkSNSTopic
 
 	// Initialize estimates map
 	InitEstimates()
