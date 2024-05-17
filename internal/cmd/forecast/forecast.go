@@ -513,6 +513,7 @@ func init() {
 	forecasters["AWS::EC2::LaunchTemplate"] = checkEC2LaunchTemplate
 	forecasters["AWS::ElasticLoadBalancingV2::Listener"] = checkELBListener
 	forecasters["AWS::SNS::Topic"] = checkSNSTopic
+	forecasters["AWS::ElasticLoadBalancingV2::TargetGroup"] = checkELBTargetGroup
 
 	// Initialize estimates map
 	InitEstimates()

@@ -105,7 +105,6 @@ Resources:
         InstanceType: !Ref InstanceType
         SecurityGroupIds:
           - !Ref InstanceSecurityGroup
-            #- !Ref ALBLoadBalancerSecurityGroup # fail?
         BlockDeviceMappings:
           - DeviceName: /dev/sda1
             Ebs:
@@ -471,7 +470,12 @@ Resources:
 
   ALBTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
-    Properties: # TODO: fail - If port is 443 and Protocoll is HTTPS (or they don't match)
+    Metadata:
+      Comment: | 
+        The Port and Protocol should match, 
+        and the target type should be instance if this group
+        is being used with a launch template
+    Properties:
       Port: 80
       Protocol: HTTP
       TargetGroupAttributes:
@@ -479,8 +483,7 @@ Resources:
           Value: "10"
         - Key: stickiness.enabled
           Value: "false"
-      #TargetType: ip # TODO: fail
-      TargetType: instance
+      TargetType: ip
       VpcId: !Ref NetworkVPC
 
 Outputs:

@@ -49,7 +49,8 @@ These can be ignored with the `--ignore` argument.
 | F0011 | If there is no default VPC, does each security group have a vpc configured?    |
 | F0012 | Certificate not found for elastic load balancer                                |
 | F0013 | SNS Topic Key is valid                                                         |
-
+| F0014 | ELB target group Port and Protocol match                                       |
+| F0015 | ELB target groups must be of type instance if they are used by an ASG          |
 
 ## Estimates
 
