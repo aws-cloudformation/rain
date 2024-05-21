@@ -403,17 +403,8 @@ This command is not a linter! Use cfn-lint for that. The forecast command
 is concerned with things that could go wrong during deployment, after the 
 template has been checked to make sure it has a valid syntax.
 
-This command checks for some common issues across all resources:
-
-- The resource already exists
-- You do not have permissions to create/update/delete the resource
-- (More to come.. service quotas, drift issues)
-
-Resource-specific checks:
-
-- S3 bucket is not empty
-- S3 bucket policy has an invalid principal
-- (Many more to come...)
+This command checks for some common issues across all resources, and 
+resource-specific checks. See the README for more details.
 `,
 	Args:                  cobra.RangeArgs(1, 2),
 	DisableFlagsInUseLine: true,

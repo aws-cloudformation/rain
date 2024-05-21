@@ -18,6 +18,10 @@ func checkBucketNotEmpty(input PredictionInput, bucket *types.StackResourceDetai
 		return true, "Stack does not exist"
 	}
 
+	if bucket == nil {
+		return false, "bucket is nil"
+	}
+
 	spin(input.typeName, input.logicalId, "bucket not empty?")
 
 	config.Debugf("Checking if the bucket %v is not empty", *bucket.PhysicalResourceId)
