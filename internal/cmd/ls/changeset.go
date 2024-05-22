@@ -43,6 +43,9 @@ func showChangeset(stackName, changeSetName string) {
 		panic(ui.Errorf(err, "failed to get changeset '%s'", changeSetName))
 	}
 	config.Debugf("ChangeSet response: %+v", cs)
+	if cs == nil {
+		return
+	}
 	out := ""
 	out += fmt.Sprintf("Arn: %v\n", *cs.ChangeSetId)
 	out += fmt.Sprintf("Created: %v\n", cs.CreationTime)

@@ -22,6 +22,10 @@ func GetValidEngineVersions(engine string) ([]string, error) {
 	}
 
 	for _, v := range res.DBEngineVersions {
+		if v.EngineVersion == nil {
+			// This should never happen
+			continue
+		}
 		retval = append(retval, *v.EngineVersion)
 	}
 
