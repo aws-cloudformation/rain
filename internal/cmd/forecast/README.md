@@ -51,7 +51,8 @@ These can be ignored with the `--ignore` argument.
 | F0013 | SNS Topic Key is valid                                                         |
 | F0014 | ELB target group Port and Protocol match                                       |
 | F0015 | ELB target groups must be of type instance if they are used by an ASG          |
-
+| F0016 | Lambda function role exists                                                    |
+| F0017 | Lambda function role can be assumed                                            |
 ## Estimates
 
 The forecast command also tries to estimate how long it thinks your stack will

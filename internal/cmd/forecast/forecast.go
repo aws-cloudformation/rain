@@ -505,6 +505,7 @@ func init() {
 	forecasters["AWS::ElasticLoadBalancingV2::Listener"] = checkELBListener
 	forecasters["AWS::SNS::Topic"] = checkSNSTopic
 	forecasters["AWS::ElasticLoadBalancingV2::TargetGroup"] = checkELBTargetGroup
+	forecasters["AWS::Lambda::Function"] = checkLambdaFunction
 
 	// Initialize estimates map
 	InitEstimates()

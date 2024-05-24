@@ -2,11 +2,13 @@ package iam
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/url"
 	"regexp"
 	"strings"
 
-	aws "github.com/aws-cloudformation/rain/internal/aws"
+	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/s11n"
@@ -21,7 +23,7 @@ func getClient() *iam.Client {
 	return iam.NewFromConfig(aws.Config())
 }
 
-// Get the role arn of the caller based on the aws config
+// GetCallerArn gets the role arn of the caller based on the aws config
 func GetCallerArn(config awsgo.Config) (string, error) {
 	stsClient := sts.NewFromConfig(config)
 	stsRes, stsErr := stsClient.GetCallerIdentity(context.Background(),
@@ -48,8 +50,8 @@ func TransformCallerArn(stsResArn string) string {
 // Will this work consistently for other SSO providers?
 // Is there a programmatic way to retrieve the actual role?
 func convertAssumeRoleToRole(stsResArn string) string {
-	sts := strings.Split(stsResArn, "sts::")[1]
-	accountId := strings.Split(sts, ":")[0]
+	stsStr := strings.Split(stsResArn, "sts::")[1]
+	accountId := strings.Split(stsStr, ":")[0]
 	assumedRole := strings.Split(stsResArn, "assumed-role/")[1]
 	actualRoleName := strings.Split(assumedRole, "/")[0]
 	return fmt.Sprintf("arn:aws:iam::%v:role/%v", accountId, actualRoleName)
@@ -129,13 +131,23 @@ func Simulate(
 	return allowed, messages
 }
 
-// Check to see if a role exists in the account
-func RoleExists(roleArn string) bool {
+func GetRoleNameFromArn(roleArn string) (string, error) {
 	tokens := strings.Split(roleArn, ":role/")
-	lastToken := tokens[len(tokens)-1]
-	config.Debugf("RoleExists %v %v", roleArn, lastToken)
+	if len(tokens) != 2 {
+		return "", fmt.Errorf("invalid role arn: %v", roleArn)
+	}
+	return tokens[1], nil
+}
+
+// RoleExists checks to see if a role exists in the account
+func RoleExists(roleArn string) bool {
+	roleName, err := GetRoleNameFromArn(roleArn)
+	if err != nil {
+		config.Debugf("RoleExists GetRoleNameFromArn Error for %v: %v", roleArn, err)
+		return false
+	}
 	res, err := getClient().GetRole(context.Background(), &iam.GetRoleInput{
-		RoleName: &lastToken,
+		RoleName: &roleName,
 	})
 	if err != nil {
 		config.Debugf("RoleExists GetRole Error for %v: %v", roleArn, err)
@@ -145,7 +157,7 @@ func RoleExists(roleArn string) bool {
 	return true
 }
 
-// Check to see if the principal exists in the account
+// PrincipalExists checks to see if the principal exists in the account
 func PrincipalExists(principal string) (bool, error) {
 
 	config.Debugf("PrincipalExists %v", principal)
@@ -189,7 +201,7 @@ func PrincipalExists(principal string) (bool, error) {
 	return false, nil
 }
 
-// Check a PolicyDocument to make sure it will not result in failures
+// CheckPolicyDocument checks a PolicyDocument to make sure it will not result in failures
 func CheckPolicyDocument(doc *yaml.Node) (bool, error) {
 
 	policyOk := true
@@ -205,9 +217,7 @@ func CheckPolicyDocument(doc *yaml.Node) (bool, error) {
 							config.Debugf("About to check if principal exists: %v", p)
 							if p.Kind == yaml.MappingNode {
 								config.Debugf("principal is a map")
-
-								// This is.. hard. We need to resolve !Sub, !Ref, etc
-								// TODO
+								// TODO - resolve intrinsics if we can
 							} else {
 								exists, err := PrincipalExists(p.Value)
 								if err != nil || !exists {
@@ -223,4 +233,52 @@ func CheckPolicyDocument(doc *yaml.Node) (bool, error) {
 	}
 
 	return policyOk, nil
+}
+
+// CanAssumeRole checks if a service can assume a role
+func CanAssumeRole(roleArn string, serviceName string) (bool, error) {
+	roleName, err := GetRoleNameFromArn(roleArn)
+	if err != nil {
+		config.Debugf("CanAssumeRole GetRoleNameFromArn Error for %v: %v", roleArn, err)
+		return false, err
+	}
+
+	config.Debugf("CanAssumeRole checking role %v for service %v", roleName, serviceName)
+
+	// Get the role details
+	roleOutput, err := getClient().GetRole(context.Background(),
+		&iam.GetRoleInput{
+			RoleName: awsgo.String(roleName),
+		})
+
+	if err != nil {
+		config.Debugf("CanAssumeRole Error: %v", err)
+		return false, err
+	}
+
+	// Parse the AssumeRolePolicyDocument
+	policyDoc := roleOutput.Role.AssumeRolePolicyDocument
+	// Decode the policy document
+	decodedDocument, _ := url.PathUnescape(*policyDoc)
+	config.Debugf("CanAssumeRole policyDoc: %v", decodedDocument)
+	var policy struct {
+		Statement []struct {
+			Principal struct {
+				Service string `json:"Service"`
+			} `json:"Principal"`
+		} `json:"Statement"`
+	}
+	if err := json.Unmarshal([]byte(decodedDocument), &policy); err != nil {
+		config.Debugf("Unable to parse policy: %v", err)
+		return false, err
+	}
+
+	// Check if the service is allowed to assume the role
+	for _, stmt := range policy.Statement {
+		if stmt.Principal.Service == serviceName {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
