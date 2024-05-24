@@ -10,3 +10,14 @@ func TestTransformCallerArn2(t *testing.T) {
 		t.Errorf("Failed to transform IAM user type arn")
 	}
 }
+
+func TestGetRoleNameFromArn(t *testing.T) {
+	roleArn := "arn:aws:iam::755952356119:role/my-role"
+	roleName, err := GetRoleNameFromArn(roleArn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if roleName != "my-role" {
+		t.Errorf("Failed to get role name from arn: %s", roleArn)
+	}
+}

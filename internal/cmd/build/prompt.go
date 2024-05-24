@@ -169,3 +169,26 @@ func promptCfn(p string, mid string) {
 
 	}
 }
+
+func promptGeneric(p string, mid string) {
+
+	if isClaude2() {
+		config.Debugf("About to invoke bedrock %s with prompt: %s", mid, p)
+		r, err := bedrock.Invoke(p)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Println(r)
+	} else {
+		system := "The conversation is likely to be about Amazon Web Services and Infrastructure as Code, but may be on any subject."
+		config.Debugf("About to invoke bedrock %s with system: %s, prompt: %s", mid, system, p)
+		r, err := bedrock.InvokeClaude3(p, mid, system)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Println(r)
+
+	}
+}

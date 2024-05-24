@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/aws-cloudformation/rain/cft/format"
+	cftpkg "github.com/aws-cloudformation/rain/cft/pkg"
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
 	"github.com/aws-cloudformation/rain/internal/console"
@@ -28,6 +29,7 @@ var roleArn string
 var ignoreUnknownParams bool
 var noexec bool
 var changeset bool
+var experimental bool
 
 // Cmd is the deploy command's entrypoint
 var Cmd = &cobra.Command{
@@ -106,6 +108,9 @@ To list and delete changesets, use the ls and rm commands.
 			}
 
 			// Package template
+			if experimental {
+				cftpkg.Experimental = true
+			}
 			spinner.Push(fmt.Sprintf("Preparing template '%s'", base))
 			template := PackageTemplate(fn, yes)
 			spinner.Pop()
@@ -253,4 +258,5 @@ func init() {
 	Cmd.Flags().BoolVarP(&noexec, "no-exec", "x", false, "do not execute the changeset")
 	Cmd.Flags().BoolVar(&changeset, "changeset", false, "execute the changeset, rain deploy --changeset <stackName> <changeSetName>")
 	Cmd.Flags().StringVar(&format.NodeStyle, "node-style", "", format.NodeStyleDocs)
+	Cmd.Flags().BoolVar(&experimental, "experimental", false, "Acknowledge that you want to deploy with an experimental feature")
 }

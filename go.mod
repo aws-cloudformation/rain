@@ -10,7 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.27.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.11
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.15
-	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.8.0
+	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.8.3
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.50.1
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.161.3
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.54.2
@@ -30,9 +30,12 @@ require (
 
 require (
 	github.com/apple/pkl-go v0.6.1-0.20240320183646-5827572b8112
+	github.com/aws/aws-sdk-go-v2/service/acm v1.25.5
+	github.com/aws/aws-sdk-go-v2/service/kms v1.31.3
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.37.3
 	github.com/aws/aws-sdk-go-v2/service/rds v1.78.1
 	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.21.4
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.50.1
 	github.com/fatih/color v1.16.0
 	github.com/manifoldco/promptui v0.9.0
 	github.com/mattn/go-runewidth v0.0.15

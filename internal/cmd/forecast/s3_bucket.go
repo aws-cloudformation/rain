@@ -18,6 +18,10 @@ func checkBucketNotEmpty(input PredictionInput, bucket *types.StackResourceDetai
 		return true, "Stack does not exist"
 	}
 
+	if bucket == nil {
+		return false, "bucket is nil"
+	}
+
 	spin(input.typeName, input.logicalId, "bucket not empty?")
 
 	config.Debugf("Checking if the bucket %v is not empty", *bucket.PhysicalResourceId)
@@ -71,10 +75,11 @@ func checkS3Bucket(input PredictionInput) Forecast {
 			config.Debugf("Physical bucket name is: %v", bucketName)
 
 			empty, reason := checkBucketNotEmpty(input, res)
+			code := F0001
 			if !empty {
-				forecast.Add(false, reason)
+				forecast.Add(code, false, reason)
 			} else {
-				forecast.Add(true, "Bucket is empty")
+				forecast.Add(code, true, "Bucket is empty")
 			}
 		}
 	} else {

@@ -1,4 +1,4 @@
-// The dc package contains types and functions to facilitate parsing
+// Package dc contains types and functions to facilitate parsing
 // user-supplied configuration like tags and parameters, which
 // are used for the deploy and forecast commands
 package dc

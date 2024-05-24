@@ -32,6 +32,8 @@ func checkRDSDBCluster(input PredictionInput) Forecast {
 
 	var clusterEngineVersion string
 
+	code := F0003
+
 	_, engine, _ := s11n.GetMapValue(props, "Engine")
 	_, engineVersion, _ := s11n.GetMapValue(props, "EngineVersion")
 	if engineVersion != nil {
@@ -58,18 +60,20 @@ func checkRDSDBCluster(input PredictionInput) Forecast {
 			if unexpected {
 				LineNumber = input.resource.Line
 				config.Debugf("db cluster resource: %s", node.ToJson(input.resource))
-				forecast.Add(false, fmt.Sprintf("unexpected EngineVersion: %s", engineVersion.Value))
+				forecast.Add(code, false, fmt.Sprintf("unexpected EngineVersion: %s", engineVersion.Value))
 			} else {
-				forecast.Add(true, "EngineVersion ok")
+				forecast.Add(code, true, "EngineVersion ok")
 			}
 		default:
 			config.Debugf("unexpected Engine value for %s: %s",
 				input.logicalId, engine.Value)
-			forecast.Add(false, "unexpected Engine value")
+			forecast.Add(code, false, "unexpected Engine value")
 		}
 	}
 
 	spinner.Pop()
+
+	code = F0004
 
 	spin(input.typeName, input.logicalId, "db cluster has MonitoringRoleARN?")
 
@@ -78,23 +82,25 @@ func checkRDSDBCluster(input PredictionInput) Forecast {
 	_, monitoringInterval, _ := s11n.GetMapValue(props, "MonitoringInterval")
 	if monitoringInterval != nil && monitoringInterval.Value != "0" {
 		if monitoringRoleARN == nil {
-			forecast.Add(false, "a MonitoringRoleARN value is required if you specify a MonitoringInterval value other than 0.")
+			forecast.Add(code, false, "a MonitoringRoleARN value is required if you specify a MonitoringInterval value other than 0.")
 		} else {
 			// Make sure the role actually exists
 			if monitoringRoleARN.Kind == yaml.ScalarNode &&
 				!iam.RoleExists(monitoringRoleARN.Value) {
-				forecast.Add(false,
+				forecast.Add(code, false,
 					fmt.Sprintf("MonitoringRoleARN not found: %s",
 						monitoringRoleARN.Value))
 			} else {
-				forecast.Add(true, "MonitoringRoleARN set")
+				forecast.Add(code, true, "MonitoringRoleARN set")
 			}
 		}
 	} else {
-		forecast.Add(true, "MonitoringInterval not set to something other than 0")
+		forecast.Add(code, true, "MonitoringInterval not set to something other than 0")
 	}
 
 	spinner.Pop()
+
+	code = F0005
 
 	spin(input.typeName, input.logicalId, "db clusters not at quota")
 
@@ -102,17 +108,17 @@ func checkRDSDBCluster(input PredictionInput) Forecast {
 	if !input.stackExists {
 		quota, err := servicequotas.GetQuota("rds", "L-952B80B8")
 		if err != nil {
-			forecast.Add(false, fmt.Sprintf("failed: %v", err))
+			forecast.Add(code, false, fmt.Sprintf("failed: %v", err))
 		} else {
 			// Get the number of clusters
 			numClusters, err := rds.GetNumClusters()
 			if err != nil {
-				forecast.Add(false, fmt.Sprintf("failed: %v", err))
+				forecast.Add(code, false, fmt.Sprintf("failed: %v", err))
 			} else {
 				if numClusters >= int(math.Round(quota)) {
-					forecast.Add(false, "already at quota for number of clusters")
+					forecast.Add(code, false, "already at quota for number of clusters")
 				} else {
-					forecast.Add(true,
+					forecast.Add(code, true,
 						fmt.Sprintf("quota for clusters ok: %v/%v",
 							numClusters, quota))
 				}
@@ -121,6 +127,8 @@ func checkRDSDBCluster(input PredictionInput) Forecast {
 	}
 
 	spinner.Pop()
+
+	code = F0006
 
 	// The engine version that you requested for your DB instance (a.b) does not match the engine version of your DB cluster (c.d)
 	// This kind of thing might be better in cfn-lint
@@ -153,11 +161,11 @@ func checkRDSDBCluster(input PredictionInput) Forecast {
 
 							instanceVersion := evNode.Value
 							if evNode.Kind == yaml.ScalarNode && instanceVersion != clusterEngineVersion {
-								forecast.Add(false, fmt.Sprintf(
+								forecast.Add(code, false, fmt.Sprintf(
 									"engine mismatch with %s: %s != %s",
 									logicalId, instanceVersion, clusterEngineVersion))
 							} else {
-								forecast.Add(true, "instance engine version matches")
+								forecast.Add(code, true, "instance engine version matches")
 							}
 						}
 					}

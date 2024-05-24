@@ -1,0 +1,246 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: |
+  Create a multi-az, load balanced and Auto Scaled sample web site running on
+  an Apache Web Server. The application is configured to span all
+  Availability Zones in the region and is Auto-Scaled based on the CPU
+  utilization of the web servers. Notifications will be sent to the operator
+  email address on scaling events. The instances are load balanced with a
+  simple health check against the default web page. **WARNING** This template
+  creates one or more Amazon EC2 instances and an Elastic Load Balancer. You
+  will be billed for the AWS resources used if you create a stack from this
+  template.
+
+Parameters:
+  InstanceType:
+    Description: WebServer EC2 instance type
+    Type: String
+    Default: t4g.micro
+
+  OperatorEMail:
+    Description: Email address to notify if there are any scaling operations
+    Type: String
+
+  LatestAmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-arm64
+
+  KmsKeyArn:
+    Description: KMS Key ARN to encrypt data
+    Type: String
+
+  CertificateArn:
+    Description: Certificate ARN for HTTPS
+    Type: String
+
+Resources:
+
+  Network:
+    Type: !Rain::Module ../modules/vpc.yaml
+    Overrides:
+      VPC:
+        Properties:
+          Tags:
+            - Key: Name
+              Value: rain-build-autoscaling
+
+  ALB:
+    Type: !Rain::Module ../modules/load-balancer.yaml
+    Properties:
+      VPCId: !Ref NetworkVPC
+      PublicSubnet1: !Ref NetworkPublicSubnet1
+      PublicSubnet2: !Ref NetworkPublicSubnet2
+      DestinationSecurityGroupId: !GetAtt InstanceSecurityGroup.GroupId
+      CertificateArn: !Ref CertificateArn
+    Overrides:
+      LoadBalancer:
+        DependsOn:
+          - NetworkPublicSubnet1DefaultRoute
+          - NetworkPublicSubnet1RouteTableAssociation
+          - NetworkPublicSubnet2DefaultRoute
+          - NetworkPublicSubnet2RouteTableAssociation
+      TargetGroup:
+        Properties:
+          TargetType: instance
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTP from the load balancer only
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref ALBLoadBalancerSecurityGroup
+      VpcId: !Ref NetworkVPC
+
+  NotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: !Sub ${AWS::StackName}-NotificationTopic
+      Subscription:
+        - Endpoint: !Ref OperatorEMail
+          Protocol: email
+      KmsMasterKeyId: !Ref KmsKeyArn
+
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Metadata:
+      AWS::CloudFormation::Init:
+        config:
+          packages:
+            yum:
+              httpd: []
+          files:
+            /var/www/html/index.html:
+              content: |
+                  <html><body><h1>Congratulations, you have successfully launched the AWS CloudFormation sample.</h1></body></html>
+              mode: "000644"
+              owner: root
+              group: root
+            /etc/cfn/cfn-hup.conf:
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+              mode: "000400"
+              owner: root
+              group: root
+            /etc/cfn/hooks.d/cfn-auto-reloader.conf:
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.LaunchTemplate.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource LaunchTemplate --region ${AWS::Region}
+                runas=root
+          services:
+            sysvinit:
+              httpd:
+                enabled: true
+                ensureRunning: true
+              cfn-hup:
+                enabled: true
+                ensureRunning: true
+                files:
+                  - /etc/cfn/cfn-hup.conf
+                  - /etc/cfn/hooks.d/cfn-auto-reloader.conf
+    Properties:
+      LaunchTemplateName: !Sub ${AWS::StackName}-LaunchTemplate
+      LaunchTemplateData:
+        ImageId: !Ref LatestAmiId
+        InstanceType: !Ref InstanceType
+        SecurityGroupIds: 
+          - !Ref InstanceSecurityGroup
+        BlockDeviceMappings:
+          - DeviceName: /dev/sda1
+            Ebs:
+              VolumeSize: 32
+        UserData: !Base64
+          Fn::Sub: |
+            #!/bin/bash
+            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource LaunchTemplate --region ${AWS::Region}
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WebServerGroup --region ${AWS::Region}
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: !Sub ${AWS::StackName}-Instance
+
+  WebServerGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT5M
+        Count: 1
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MinInstancesInService: 1
+        MaxBatchSize: 1
+        PauseTime: PT5M
+        WaitOnResourceSignals: true
+    DependsOn: NetworkVPCGW
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - E3014
+    Properties:
+      AvailabilityZones: 
+        - !Select [0, Fn::GetAZs: !Ref "AWS::Region"]
+        - !Select [1, Fn::GetAZs: !Ref "AWS::Region"]
+      LaunchTemplate:
+        LaunchTemplateId: !Ref LaunchTemplate
+        Version: !GetAtt LaunchTemplate.LatestVersionNumber
+      MinSize: "1"
+      MaxSize: "3"
+      TargetGroupARNs:
+        - !Ref ALBTargetGroup
+      NotificationConfigurations:
+        - TopicARN: !Ref NotificationTopic
+          NotificationTypes:
+            - autoscaling:EC2_INSTANCE_LAUNCH
+            - autoscaling:EC2_INSTANCE_LAUNCH_ERROR
+            - autoscaling:EC2_INSTANCE_TERMINATE
+            - autoscaling:EC2_INSTANCE_TERMINATE_ERROR
+      HealthCheckType: ELB
+      VPCZoneIdentifier: 
+        - !Ref NetworkPublicSubnet1
+        - !Ref NetworkPublicSubnet2
+
+  WebServerScaleUpPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref WebServerGroup
+      Cooldown: "60"
+      ScalingAdjustment: 1
+
+  WebServerScaleDownPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref WebServerGroup
+      Cooldown: "60"
+      ScalingAdjustment: -1
+
+  CPUAlarmHigh:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Scale-up if CPU > 90% for 10 minutes
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 90
+      AlarmActions:
+        - !Ref WebServerScaleUpPolicy
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value: !Ref WebServerGroup
+      ComparisonOperator: GreaterThanThreshold
+
+  CPUAlarmLow:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Scale-down if CPU < 70% for 10 minutes
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 70
+      AlarmActions:
+        - !Ref WebServerScaleDownPolicy
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value: !Ref WebServerGroup
+      ComparisonOperator: LessThanThreshold
+
+Outputs:
+  URL:
+    Description: The URL of the website
+    Value: !Join
+      - ""
+      - - https://
+        - !GetAtt ALBLoadBalancer.DNSName

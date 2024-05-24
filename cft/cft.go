@@ -147,3 +147,22 @@ func (t Template) GetTypes() ([]string, error) {
 
 	return retval, nil
 }
+
+func (t Template) GetResourcesOfType(typeName string) []*yaml.Node {
+	resources, err := t.GetSection(Resources)
+	if err != nil {
+		return nil
+	}
+	retval := make([]*yaml.Node, 0)
+	for i := 0; i < len(resources.Content); i += 2 {
+		resource := resources.Content[i+1]
+		_, typ, _ := s11n.GetMapValue(resource, "Type")
+		if typ == nil {
+			continue
+		}
+		if typ.Value == typeName {
+			retval = append(retval, resource)
+		}
+	}
+	return retval
+}
