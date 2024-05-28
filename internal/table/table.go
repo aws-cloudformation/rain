@@ -6,7 +6,7 @@
 // I liked this package but needed to make some breaking changes
 // ==============================================================
 //
-// Columns are left-aligned and padded to accomodate the largest cell in that
+// Columns are left-aligned and padded to accommodate the largest cell in that
 // column.
 //
 // Source: https://github.com/rodaine/table
@@ -75,7 +75,7 @@ type Formatter func(string, ...interface{}) string
 // A WidthFunc calculates the width of a string. By default, the number of runes
 // is used but this may not be appropriate for certain character sets. The
 // package runewidth (https://github.com/mattn/go-runewidth) could be used to
-// accomodate multi-cell characters (such as emoji or CJK characters).
+// accommodate multi-cell characters (such as emoji or CJK characters).
 type WidthFunc func(string) int
 
 type row struct {
@@ -313,12 +313,12 @@ func (t *table) lenOffset(s string, w int) string {
 	return strings.Repeat(" ", l)
 }
 
-func max(i1, i2 int) int {
-	if i1 > i2 {
-		return i1
-	}
-	return i2
-}
+//func max(i1, i2 int) int {
+//	if i1 > i2 {
+//		return i1
+//	}
+//	return i2
+//}
 
 func safeOffset(sarr []string, idx int) string {
 	if idx >= len(sarr) {
