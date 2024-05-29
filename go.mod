@@ -8,7 +8,7 @@ require (
 	//github.com/ake-persson/mapslice-json v0.0.0-20210720081907-22c8edf57807
 	github.com/appscode/jsonpatch v1.0.1
 	github.com/aws/aws-sdk-go-v2 v1.27.0
-	github.com/aws/aws-sdk-go-v2/config v1.27.11
+	github.com/aws/aws-sdk-go-v2/config v1.27.16
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.16
 	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.8.3
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.50.1
