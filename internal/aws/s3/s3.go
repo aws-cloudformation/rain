@@ -32,7 +32,7 @@ func getClient() *s3.Client {
 	return s3.NewFromConfig(aws.Config())
 }
 
-// Returns true if the bucket is not empty
+// BucketHasContents returns true if the bucket is not empty
 func BucketHasContents(bucketName string) (bool, error) {
 
 	res, err := getClient().ListObjectVersions(context.Background(),
@@ -68,7 +68,6 @@ func BucketExists(bucketName string) (bool, error) {
 func CreateBucket(bucketName string) error {
 	input := &s3.CreateBucketInput{
 		Bucket: ptr.String(bucketName),
-		ACL:    types.BucketCannedACLPrivate,
 	}
 
 	// We need a location constraint everywhere except us-east-1
@@ -142,7 +141,7 @@ func CreateBucket(bucketName string) error {
 	return err
 }
 
-// Upload an artefact to the bucket with a unique name
+// Upload uploads an artifact to the bucket with a unique name
 func Upload(bucketName string, content []byte) (string, error) {
 	isBucketExists, errBucketExists := BucketExists(bucketName)
 
@@ -159,7 +158,6 @@ func Upload(bucketName string, content []byte) (string, error) {
 	_, err := getClient().PutObject(context.Background(), &s3.PutObjectInput{
 		Bucket: ptr.String(bucketName),
 		Key:    ptr.String(key),
-		ACL:    types.ObjectCannedACLPrivate,
 		Body:   bytes.NewReader(content),
 	})
 
