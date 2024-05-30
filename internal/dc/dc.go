@@ -21,8 +21,10 @@ import (
 )
 
 type configFileFormat struct {
-	Parameters map[string]string `yaml:"Parameters"`
-	Tags       map[string]string `yaml:"Tags"`
+	Parameters      map[string]string `yaml:"Parameters"`
+	Tags            map[string]string `yaml:"Tags"`
+	LowerParameters map[string]string `yaml:"parameters,omitempty"`
+	LowerTags       map[string]string `yaml:"tags,omitempty"`
 }
 
 // DeployConfig represents the user-supplied configuration for a deployment
@@ -249,8 +251,16 @@ func GetDeployConfig(
 			panic(ui.Errorf(err, "unable to parse yaml in '%s'", configFilePath))
 		}
 
+		config.Debugf("Parsed config file struct: %+v", configFile)
+
 		combinedTags = configFile.Tags
+		if len(combinedTags) == 0 && len(configFile.LowerTags) > 0 {
+			combinedTags = configFile.LowerTags
+		}
 		combinedParameters = configFile.Parameters
+		if len(combinedParameters) == 0 && len(configFile.LowerParameters) > 0 {
+			combinedParameters = configFile.LowerParameters
+		}
 
 		for k, v := range parsedTagFlag {
 			if _, ok := combinedTags[k]; ok {
