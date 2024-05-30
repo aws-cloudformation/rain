@@ -1,5 +1,6 @@
-// This file contains implementations for `!Rain::` directives
 package pkg
+
+// This file contains implementations for `!Rain::` directives
 
 import (
 	"embed"
@@ -39,6 +40,9 @@ type directiveContext struct {
 	t       cft.Template
 	parent  node.NodePair
 	fs      *embed.FS
+
+	// baseUri is the base path for downloading submodules
+	baseUri string
 }
 
 // A !Rain directive implementation
@@ -62,7 +66,10 @@ func includeString(ctx *directiveContext) (bool, error) {
 		return false, err
 	}
 
-	ctx.n.Encode(strings.TrimSpace(string(content)))
+	err = ctx.n.Encode(strings.TrimSpace(string(content)))
+	if err != nil {
+		return false, err
+	}
 
 	return true, nil
 }
@@ -80,7 +87,11 @@ func includeLiteral(ctx *directiveContext) (bool, error) {
 	}
 
 	// Transform
-	parse.NormalizeNode(&contentNode)
+	err = parse.NormalizeNode(&contentNode)
+	if err != nil {
+		return false, err
+	}
+
 	_, err = transform(&transformContext{
 		nodeToTransform: &contentNode,
 		rootDir:         filepath.Dir(path),
@@ -108,7 +119,10 @@ func includeEnv(ctx *directiveContext) (bool, error) {
 		return false, fmt.Errorf("missing environmental variable %q", name)
 	}
 	var newNode yaml.Node
-	newNode.Encode(val)
+	err = newNode.Encode(val)
+	if err != nil {
+		return false, err
+	}
 	if err != nil {
 		return false, err
 	}
@@ -143,11 +157,20 @@ func handleS3(root string, options s3Options) (*yaml.Node, error) {
 			options.KeyProperty:    s.key,
 		}
 
-		n.Encode(out)
+		err := n.Encode(out)
+		if err != nil {
+			return nil, err
+		}
 	case s3URI:
-		n.Encode(s.URI())
+		err := n.Encode(s.URI())
+		if err != nil {
+			return nil, err
+		}
 	case s3Http:
-		n.Encode(s.HTTP())
+		err := n.Encode(s.HTTP())
+		if err != nil {
+			return nil, err
+		}
 	default:
 		return nil, fmt.Errorf("unexpected S3 output format: %s", options.Format)
 	}
@@ -254,9 +277,9 @@ func includeS3(ctx *directiveContext) (bool, error) {
 	}
 
 	if n.Content[1].Kind == yaml.ScalarNode {
-		return includeS3URI(&directiveContext{n, root, t, parent, nil})
+		return includeS3URI(&directiveContext{n, root, t, parent, nil, ""})
 	} else if n.Content[1].Kind == yaml.MappingNode {
-		return includeS3Object(&directiveContext{n, root, t, parent, nil})
+		return includeS3Object(&directiveContext{n, root, t, parent, nil, ""})
 	}
 
 	return true, nil

@@ -2,7 +2,7 @@
 // but has greater flexibility, allowing content to be included anywhere in a template
 //
 // To include content into your templates, use any of the following either as YAML tags
-// or as one-property objects, much as AWS instrinsic functions are used, e.g. "Fn::Join"
+// or as one-property objects, much as AWS intrinsic functions are used, e.g. "Fn::Join"
 //
 // `Rain::Include`: insert the content of the file into the template directly. The file must be in YAML or JSON format.
 // `Rain::Env`: inserts environmental variable value into the template as a string. Variable must be set.
@@ -42,7 +42,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Must be set to true to enable !Rain::Module
+// Experimental must be set to true to enable !Rain::Module
 var Experimental bool
 
 type transformContext struct {
@@ -50,7 +50,10 @@ type transformContext struct {
 	rootDir         string // Using normal files
 	t               cft.Template
 	parent          *node.NodePair
-	fs              *embed.FS // Used by build with embedded filesytem
+	fs              *embed.FS // Used by build with embedded filesystem
+
+	// baseUri is the base path for downloading submodules
+	baseUri string
 }
 
 func transform(ctx *transformContext) (bool, error) {
@@ -61,7 +64,7 @@ func transform(ctx *transformContext) (bool, error) {
 		for found := range s11n.MatchAll(ctx.nodeToTransform, path) {
 			nodeParent := node.GetParent(found, ctx.nodeToTransform, nil)
 			nodeParent.Parent = ctx.parent
-			c, err := fn(&directiveContext{found, ctx.rootDir, ctx.t, nodeParent, ctx.fs})
+			c, err := fn(&directiveContext{found, ctx.rootDir, ctx.t, nodeParent, ctx.fs, ctx.baseUri})
 			if err != nil {
 				config.Debugf("Error packaging template: %s\n", err)
 				return false, err
@@ -90,14 +93,14 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 		parent:          &node.NodePair{Key: t.Node, Value: t.Node},
 		fs:              fs,
 	}
-	var changed bool = false
+	var changed = false
 	passes := 0
 	maxPasses := 100
 	for {
 		passes += 1
 		// Modules can add new nodes to the template, which
 		// breaks s11n.MatchAll, since it expects the length to stay the same.
-		// Just start over a transform the whole template again.
+		// Just start over and transform the whole template again.
 		changedThisPass, err := transform(ctx)
 		if err != nil {
 			return t, err
@@ -182,11 +185,11 @@ func File(path string) (cft.Template, error) {
 	var err error
 
 	if strings.HasSuffix(path, ".pkl") {
-		yaml, err := rainpkl.Yaml(path)
+		y, err := rainpkl.Yaml(path)
 		if err != nil {
 			return t, err
 		}
-		t, err = parse.String(yaml)
+		t, err = parse.String(y)
 		if err != nil {
 			return t, err
 		}

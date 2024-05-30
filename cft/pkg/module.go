@@ -554,7 +554,7 @@ func processModule(
 				continue
 			}
 			if plProps != nil {
-				// Get rid of what we cloned so we can replace it entirely
+				// Get rid of what we cloned, so we can replace it entirely
 				node.RemoveFromMap(clonedResource, pl)
 			}
 			clonedResource.Content = append(clonedResource.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: pl})
@@ -577,7 +577,7 @@ func processModule(
 			clonedResource.Content = append(clonedResource.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: "DependsOn"})
 			dependsOnValue := &yaml.Node{Kind: yaml.SequenceNode, Content: make([]*yaml.Node, 0)}
 			if moduleDependsOn != nil {
-				// Remove the original DependsOn so we don't end up with two
+				// Remove the original DependsOn, so we don't end up with two
 				node.RemoveFromMap(clonedResource, "DependsOn")
 
 				// Change the names to the modified resource name for the template
@@ -709,8 +709,32 @@ func processModule(
 	return true, nil
 }
 
+// downloadModule downloads the file from the given URI and returns its content as a byte slice.
+func downloadModule(uri string) ([]byte, error) {
+	config.Debugf("Downloading %s", uri)
+	resp, err := http.Get(uri)
+	if err != nil {
+		return nil, err
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			config.Debugf("Error closing body: %v", err)
+		}
+	}(resp.Body)
+
+	content, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return content, nil
+}
+
 // Type: !Rain::Module
 func module(ctx *directiveContext) (bool, error) {
+
+	config.Debugf("module directiveContext: %+v", ctx)
 
 	n := ctx.n
 	root := ctx.rootDir
@@ -732,21 +756,32 @@ func module(ctx *directiveContext) (bool, error) {
 	var path string
 	var newRootDir string
 
+	baseUri := ctx.baseUri
+
 	// Is this a local file or a URL?
 	if strings.HasPrefix(uri, "https://") {
-		// Download the file and then parse it
-		resp, err := http.Get(uri)
+
+		content, err = downloadModule(uri)
 		if err != nil {
 			return false, err
 		}
-		defer resp.Body.Close()
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return false, err
-		}
-		content = []byte(body)
+
+		// Once we see a URL instead of a relative local path,
+		// we need to remember the base URL so that we can
+		// fix relative paths in any referenced modules.
+
+		// Strip the file name from the uri
+		urlParts := strings.Split(uri, "/")
+		baseUri = strings.Join(urlParts[:len(urlParts)-1], "/")
 	} else {
-		if templateFiles != nil {
+		if baseUri != "" {
+			// If we have a base URL, prepend it to the relative path
+			uri = baseUri + "/" + uri
+			content, err = downloadModule(uri)
+			if err != nil {
+				return false, err
+			}
+		} else if templateFiles != nil {
 			// Read from the embedded file system (for the build -r command)
 			path, err = expectString(n)
 			if err != nil {
@@ -778,8 +813,11 @@ func module(ctx *directiveContext) (bool, error) {
 		return false, err
 	}
 
-	// Recurse on directives in the module itself
-	parse.NormalizeNode(&moduleNode)
+	err = parse.NormalizeNode(&moduleNode)
+	if err != nil {
+		return false, err
+	}
+
 	var newParent node.NodePair
 	if parent.Parent != nil && parent.Parent.Value != nil {
 		newParent = node.GetParent(n, parent.Parent.Value, nil)
@@ -792,6 +830,7 @@ func module(ctx *directiveContext) (bool, error) {
 		t:               cft.Template{Node: &moduleNode},
 		parent:          &newParent,
 		fs:              ctx.fs,
+		baseUri:         baseUri,
 	})
 	if err != nil {
 		return false, err
