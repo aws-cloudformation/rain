@@ -2,16 +2,42 @@ package graph
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
+	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/config"
 )
 
-var subRe = regexp.MustCompile(`\$\{([^!].+?)\}`)
-
 func getRefs(t map[string]interface{}) []string {
 	return findRefs(t)
+}
+
+func parseSubString(refs []string, substr string) []string {
+	words, err := parse.ParseSub(substr)
+	if err != nil {
+		config.Debugf("Unable to parse Sub %s: %v", substr, err)
+		return refs
+	}
+
+	for _, word := range words {
+		switch word.T {
+		case parse.AWS:
+			refs = append(refs, fmt.Sprintf("AWS::%s", word.W))
+		case parse.REF:
+			refs = append(refs, word.W)
+		case parse.GETATT:
+			left, _, found := strings.Cut(word.W, ".")
+			if !found {
+				config.Debugf("unexpected GetAtt %s", word.W)
+			} else {
+				refs = append(refs, left)
+			}
+		}
+	}
+
+	config.Debugf("After parsing Sub, refs is now: %v", refs)
+
+	return refs
 }
 
 func findRefs(t map[string]interface{}) []string {
@@ -47,9 +73,7 @@ func findRefs(t map[string]interface{}) []string {
 		case "Fn::Sub":
 			switch v := value.(type) {
 			case string:
-				for _, groups := range subRe.FindAllStringSubmatch(v, 1) {
-					refs = append(refs, groups[1])
-				}
+				refs = parseSubString(refs, v)
 			case []interface{}:
 				switch {
 				case len(v) != 2:

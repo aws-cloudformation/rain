@@ -1,0 +1,18 @@
+Parameters:
+  BackupPlanId:
+    Type: String
+
+Resources:
+  BackupSelection:
+    Type: AWS::Backup::BackupSelection
+    Properties:
+      BackupPlanId: !Ref BackupPlanId
+      BackupSelection:
+        IamRoleArn: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/service-role/AWSBackupDefaultServiceRole
+        Resources:
+          - !Sub arn:${AWS::Partition}:elasticfilesystem:${AWS::Region}:${AWS::AccountId}:file-system/${EfsFileSystem}
+        SelectionName: !Sub ${AWS::StackName}
+
+  EfsFileSystem:
+    Type: AWS::EFS::FileSystem
+

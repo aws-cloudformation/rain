@@ -23,3 +23,27 @@ func Example_tree() {
 	//       Parameters:
 	//         - BucketName
 }
+
+func Example_sub() {
+
+	os.Args = []string{
+		os.Args[0],
+		"../../../test/templates/fix-320.yaml",
+	}
+
+	console.NoColour = true
+
+	tree.Cmd.Execute()
+	// Output:
+	// Resources:
+	//   BackupSelection:
+	//     DependsOn:
+	//       Parameters:
+	//         - AWS::AccountId
+	//         - AWS::Partition
+	//         - AWS::Region
+	//         - AWS::StackName
+	//         - BackupPlanId
+	//       Resources:
+	//         - EfsFileSystem
+}
