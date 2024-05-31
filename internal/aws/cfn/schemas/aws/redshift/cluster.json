@@ -31,7 +31,11 @@
       "additionalProperties": false,
       "properties": {
         "BucketName": {
-          "type": "string"
+          "type": "string",
+          "relationshipRef": {
+            "typeName": "AWS::S3::Bucket",
+            "propertyPath": "/properties/BucketName"
+          }
         },
         "S3KeyPrefix": {
           "type": "string"
@@ -90,7 +94,11 @@
     "ClusterParameterGroupName": {
       "description": "The name of the parameter group to be associated with this cluster.",
       "type": "string",
-      "maxLength": 255
+      "maxLength": 255,
+      "relationshipRef": {
+        "typeName": "AWS::Redshift::ClusterParameterGroup",
+        "propertyPath": "/properties/ParameterGroupName"
+      }
     },
     "ClusterType": {
       "description": "The type of the cluster. When cluster type is specified as single-node, the NumberOfNodes parameter is not required and if multi-node, the NumberOfNodes parameter is required",
@@ -102,7 +110,11 @@
     },
     "ClusterSubnetGroupName": {
       "description": "The name of a cluster subnet group to be associated with this cluster.",
-      "type": "string"
+      "type": "string",
+      "relationshipRef": {
+        "typeName": "AWS::Redshift::ClusterSubnetGroup",
+        "propertyPath": "/properties/ClusterSubnetGroupName"
+      }
     },
     "DBName": {
       "description": "The name of the first database to be created when the cluster is created. To create additional databases after the cluster is created, connect to the cluster with a SQL client and use SQL commands to create a database.",
@@ -110,7 +122,11 @@
     },
     "ElasticIp": {
       "description": "The Elastic IP (EIP) address for the cluster.",
-      "type": "string"
+      "type": "string",
+      "relationshipRef": {
+        "typeName": "AWS::EC2::EIP",
+        "propertyPath": "/properties/PublicIp"
+      }
     },
     "Encrypted": {
       "description": "If true, the data in the cluster is encrypted at rest.",
@@ -126,7 +142,21 @@
     },
     "KmsKeyId": {
       "description": "The AWS Key Management Service (KMS) key ID of the encryption key that you want to use to encrypt data in the cluster.",
-      "type": "string"
+      "type": "string",
+      "anyOf": [
+        {
+          "relationshipRef": {
+            "typeName": "AWS::KMS::Key",
+            "propertyPath": "/properties/Arn"
+          }
+        },
+        {
+          "relationshipRef": {
+            "typeName": "AWS::KMS::Key",
+            "propertyPath": "/properties/KeyId"
+          }
+        }
+      ]
     },
     "NumberOfNodes": {
       "description": "The number of compute nodes in the cluster. This parameter is required when the ClusterType parameter is specified as multi-node.",
@@ -150,7 +180,21 @@
       "insertionOrder": false,
       "uniqueItems": false,
       "items": {
-        "type": "string"
+        "type": "string",
+        "anyOf": [
+          {
+            "relationshipRef": {
+              "typeName": "AWS::EC2::SecurityGroup",
+              "propertyPath": "/properties/Id"
+            }
+          },
+          {
+            "relationshipRef": {
+              "typeName": "AWS::Redshift::ClusterSecurityGroup",
+              "propertyPath": "/properties/Id"
+            }
+          }
+        ]
       }
     },
     "IamRoles": {
@@ -159,7 +203,11 @@
       "insertionOrder": false,
       "maxItems": 50,
       "items": {
-        "type": "string"
+        "type": "string",
+        "relationshipRef": {
+          "typeName": "AWS::IAM::Role",
+          "propertyPath": "/properties/Arn"
+        }
       }
     },
     "Tags": {
@@ -178,7 +226,11 @@
       "insertionOrder": false,
       "uniqueItems": false,
       "items": {
-        "type": "string"
+        "type": "string",
+        "relationshipRef": {
+          "typeName": "AWS::EC2::VPC",
+          "propertyPath": "/properties/VpcId"
+        }
       }
     },
     "SnapshotClusterIdentifier": {
@@ -288,7 +340,21 @@
     },
     "MasterPasswordSecretKmsKeyId": {
       "description": "The ID of the Key Management Service (KMS) key used to encrypt and store the cluster's admin user credentials secret.",
-      "type": "string"
+      "type": "string",
+      "anyOf": [
+        {
+          "relationshipRef": {
+            "typeName": "AWS::KMS::Key",
+            "propertyPath": "/properties/Arn"
+          }
+        },
+        {
+          "relationshipRef": {
+            "typeName": "AWS::KMS::Key",
+            "propertyPath": "/properties/KeyId"
+          }
+        }
+      ]
     },
     "MasterPasswordSecretArn": {
       "description": "The Amazon Resource Name (ARN) for the cluster's admin user credentials secret.",

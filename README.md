@@ -420,35 +420,12 @@ Output a chart to an HTML file that you can view with a browser to look at how l
 
 You can now write CloudFormation templates in Apple's new configuration
 language, pkl. Rain commands that accept input as JSON or YAML now also accept
-files with the `.pkl` extension. As a part of each rain release, a Pkl package
-called `cloudformation` is created. This package has classes that can be
-imported for each registry resource type, in addition to higher level patterns.
-This allows you to write a type-safe template and create your own client-side
-modules, in a way that is similar to CDK, but with declarative code.
-
-Example Pkl template:
-
-```pkl
-amends "package://github.com/aws-cloudformation/cloudformation-pkl/releases/download/cloudformation@0.1.1/cloudformation@0.1.1#/template.pkl"
-import "package://github.com/aws-cloudformation/cloudformation-pkl/releases/download/cloudformation@0.1.1/cloudformation@0.1.1#/cloudformation.pkl" as cfn
-import "package://github.com/aws-cloudformation/cloudformation-pkl/releases/download/cloudformation@0.1.1/cloudformation@0.1.1#/aws/s3/bucket.pkl" as bucket
-
-Description = "Create a bucket"
-
-Parameters {
-    ["Name"] {
-        Type = "String"
-        Default = "baz"
-    }
-}
-
-Resources {
-    ["MyBucket"] = new bucket.Bucket {
-        BucketName = cfn.Ref("Name")
-    }
-}
-
-```
+files with the `.pkl` extension. We host a Pkl package called `cloudformation`
+is created at https://github.com/aws-cloudformation/cloudformation-pkl. This
+package has classes that can be imported for each registry resource type, in
+addition to higher level patterns. This allows you to write a type-safe
+template and create your own client-side modules, in a way that is similar to
+CDK, but with declarative code.
 
 ## Other CloudFormation tools
 

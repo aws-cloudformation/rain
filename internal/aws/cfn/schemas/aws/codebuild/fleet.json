@@ -31,6 +31,20 @@
         "BUILD_GENERAL1_2XLARGE"
       ]
     },
+    "OverflowBehavior": {
+      "type": "string",
+      "enum": [
+        "QUEUE",
+        "ON_DEMAND"
+      ]
+    },
+    "FleetServiceRole": {
+      "type": "string",
+      "pattern": "^(?:arn:)[a-zA-Z+-=,._:/@]+$"
+    },
+    "FleetVpcConfig": {
+      "$ref": "#/definitions/VpcConfig"
+    },
     "Tags": {
       "type": "array",
       "insertionOrder": false,
@@ -67,6 +81,29 @@
         "Value",
         "Key"
       ]
+    },
+    "VpcConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "VpcId": {
+          "type": "string"
+        },
+        "Subnets": {
+          "type": "array",
+          "insertionOrder": false,
+          "items": {
+            "type": "string"
+          }
+        },
+        "SecurityGroupIds": {
+          "type": "array",
+          "insertionOrder": false,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     }
   },
   "primaryIdentifier": [
@@ -86,7 +123,8 @@
     "create": {
       "permissions": [
         "codebuild:BatchGetFleets",
-        "codebuild:CreateFleet"
+        "codebuild:CreateFleet",
+        "iam:PassRole"
       ]
     },
     "delete": {
@@ -108,7 +146,8 @@
     "update": {
       "permissions": [
         "codebuild:BatchGetFleets",
-        "codebuild:UpdateFleet"
+        "codebuild:UpdateFleet",
+        "iam:PassRole"
       ]
     }
   }

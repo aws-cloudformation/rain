@@ -1,79 +1,23 @@
 {
-  "typeName": "AWS::StepFunctions::Activity",
-  "description": "Resource schema for Activity",
   "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-stepfunctions.git",
-  "definitions": {
-    "TagsEntry": {
-      "type": "object",
-      "properties": {
-        "Key": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 128
-        },
-        "Value": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 256
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "Key",
-        "Value"
-      ]
-    }
-  },
-  "properties": {
-    "Arn": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 2048
-    },
-    "Name": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 80
-    },
-    "Tags": {
-      "type": "array",
-      "uniqueItems": false,
-      "insertionOrder": false,
-      "items": {
-        "$ref": "#/definitions/TagsEntry"
-      }
-    }
-  },
-  "additionalProperties": false,
   "tagging": {
     "taggable": true,
     "tagOnCreate": true,
     "tagUpdatable": true,
-    "cloudFormationSystemTags": true,
-    "tagProperty": "/properties/Tags"
+    "tagProperty": "/properties/Tags",
+    "cloudFormationSystemTags": true
   },
-  "required": [
-    "Name"
-  ],
-  "primaryIdentifier": [
-    "/properties/Arn"
-  ],
-  "readOnlyProperties": [
-    "/properties/Arn"
-  ],
-  "createOnlyProperties": [
-    "/properties/Name"
-  ],
   "handlers": {
-    "create": {
-      "permissions": [
-        "states:CreateActivity"
-      ]
-    },
     "read": {
       "permissions": [
         "states:DescribeActivity",
         "states:ListTagsForResource"
+      ]
+    },
+    "create": {
+      "permissions": [
+        "states:CreateActivity",
+        "states:TagResource"
       ]
     },
     "update": {
@@ -83,10 +27,73 @@
         "states:UntagResource"
       ]
     },
+    "list": {
+      "permissions": [
+        "states:ListActivities"
+      ]
+    },
     "delete": {
       "permissions": [
+        "states:DescribeActivity",
         "states:DeleteActivity"
       ]
+    }
+  },
+  "typeName": "AWS::StepFunctions::Activity",
+  "readOnlyProperties": [
+    "/properties/Arn"
+  ],
+  "description": "Resource schema for Activity",
+  "createOnlyProperties": [
+    "/properties/Name"
+  ],
+  "additionalProperties": false,
+  "primaryIdentifier": [
+    "/properties/Arn"
+  ],
+  "definitions": {
+    "TagsEntry": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "Value": {
+          "minLength": 1,
+          "type": "string",
+          "maxLength": 256
+        },
+        "Key": {
+          "minLength": 1,
+          "type": "string",
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "Key",
+        "Value"
+      ]
+    }
+  },
+  "required": [
+    "Name"
+  ],
+  "properties": {
+    "Arn": {
+      "minLength": 1,
+      "type": "string",
+      "maxLength": 2048
+    },
+    "Tags": {
+      "uniqueItems": false,
+      "insertionOrder": false,
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/TagsEntry"
+      }
+    },
+    "Name": {
+      "minLength": 1,
+      "type": "string",
+      "maxLength": 80
     }
   }
 }

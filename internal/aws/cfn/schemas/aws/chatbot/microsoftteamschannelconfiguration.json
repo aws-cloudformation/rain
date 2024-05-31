@@ -2,6 +2,24 @@
   "typeName": "AWS::Chatbot::MicrosoftTeamsChannelConfiguration",
   "description": "Resource schema for AWS::Chatbot::MicrosoftTeamsChannelConfiguration.",
   "sourceUrl": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-chatbot-microsoftteamschannelconfiguration.html",
+  "definitions": {
+    "Tag": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Value": {
+          "type": "string"
+        },
+        "Key": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "Value",
+        "Key"
+      ]
+    }
+  },
   "properties": {
     "TeamId": {
       "description": "The id of the Microsoft Teams team",
@@ -69,6 +87,15 @@
       "description": "Enables use of a user role requirement in your chat configuration",
       "type": "boolean",
       "default": false
+    },
+    "Tags": {
+      "description": "The tags to add to the configuration",
+      "type": "array",
+      "uniqueItems": false,
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
     }
   },
   "required": [
@@ -94,6 +121,7 @@
     "create": {
       "permissions": [
         "chatbot:CreateMicrosoftTeamsChannelConfiguration",
+        "chatbot:TagResource",
         "iam:PassRole",
         "iam:CreateServiceLinkedRole"
       ]
@@ -106,6 +134,9 @@
     "update": {
       "permissions": [
         "chatbot:UpdateMicrosoftTeamsChannelConfiguration",
+        "chatbot:TagResource",
+        "chatbot:UntagResource",
+        "chatbot:ListTagsForResource",
         "iam:PassRole"
       ]
     },
@@ -122,6 +153,10 @@
     }
   },
   "tagging": {
-    "taggable": false
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags"
   }
 }
