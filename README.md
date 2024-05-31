@@ -429,9 +429,9 @@ modules, in a way that is similar to CDK, but with declarative code.
 Example Pkl template:
 
 ```pkl
-amends "package://github.com/ericzbeard/rain/releases/download/v1.8.2/cloudformation@1.8.2/template.pkl"
-import "package://github.com/ericzbeard/rain/releases/download/v1.8.2/cloudformation@1.8.2/cloudformation.pkl" as cfn
-import "package://github.com/ericzbeard/rain/releases/download/v1.8.2/cloudformation@1.8.2/aws/s3/bucket.pkl" as bucket
+amends "package://github.com/aws-cloudformation/cloudformation-pkl/releases/download/cloudformation@0.1.1/cloudformation@0.1.1#/template.pkl"
+import "package://github.com/aws-cloudformation/cloudformation-pkl/releases/download/cloudformation@0.1.1/cloudformation@0.1.1#/cloudformation.pkl" as cfn
+import "package://github.com/aws-cloudformation/cloudformation-pkl/releases/download/cloudformation@0.1.1/cloudformation@0.1.1#/aws/s3/bucket.pkl" as bucket
 
 Description = "Create a bucket"
 
