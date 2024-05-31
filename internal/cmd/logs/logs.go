@@ -13,6 +13,7 @@ var allLogs = false
 var chart = false
 var logsLength uint
 var logsDays uint
+var sinceUserInitiated = false
 
 // Cmd is the logs command's entrypoint
 var Cmd = &cobra.Command{
@@ -63,4 +64,5 @@ func init() {
 	Cmd.Flags().BoolVar(&config.Debug, "debug", false, "Output debugging information")
 	Cmd.Flags().UintVarP(&logsLength, "length", "l", 0, "Number of logs to display")
 	Cmd.Flags().UintVarP(&logsDays, "days", "d", 0, "Age of the logs to display in days")
+	Cmd.Flags().BoolVarP(&sinceUserInitiated, "since-user-initiated", "s", false, "Only show logs since the last 'User Initiated' event")
 }

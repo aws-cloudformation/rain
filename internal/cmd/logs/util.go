@@ -150,6 +150,19 @@ func getLogs(stackName, resourceName string) (events, error) {
 		logs[i], logs[j] = logs[j], logs[i]
 	}
 
+	// Filter out logs since last user initiated event
+	if sinceUserInitiated {
+		newLogs = make([]types.StackEvent, 0)
+		for _, log := range logs {
+			isLatestUserInitiated := log.ResourceStatusReason != nil && *log.ResourceStatusReason == "User Initiated"
+			newLogs = append(newLogs, log)
+			if isLatestUserInitiated {
+				break
+			}
+		}
+		logs = newLogs
+	}
+
 	spinner.Pop()
 
 	return logs, nil
