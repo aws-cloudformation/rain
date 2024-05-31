@@ -51,9 +51,9 @@ var StackSetCmd = &cobra.Command{
 }
 
 func init() {
-	addCommand(true, StackSetLsCmd)
-	addCommand(true, StackSetDeployCmd)
-	addCommand(true, StackSetRmCmd)
+	addCommand(true, LsCmd)
+	addCommand(true, DeployCmd)
+	addCommand(true, RmCmd)
 
 	oldUsageFunc := StackSetCmd.UsageFunc()
 	StackSetCmd.SetUsageFunc(func(c *cobra.Command) error {
