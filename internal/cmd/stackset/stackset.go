@@ -30,11 +30,16 @@ Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
 Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
 `
 
+var delegatedAdmin bool
+
+// addCommand adds a command to the root command.
 func addCommand(profileOptions bool, c *cobra.Command) {
 	if profileOptions {
 		c.Flags().StringVarP(&config.Profile, "profile", "p", "", "AWS profile name; read from the AWS CLI configuration file")
 		c.Flags().StringVarP(&config.Region, "region", "r", "", "AWS region to use")
 	}
+
+	c.Flags().BoolVar(&delegatedAdmin, "admin", false, "Use delegated admin permissions")
 
 	StackSetCmd.AddCommand(c)
 }

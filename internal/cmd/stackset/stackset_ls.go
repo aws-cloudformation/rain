@@ -47,7 +47,7 @@ var StackSetLsCmd = &cobra.Command{
 			for _, region := range regions {
 				spinner.Push(fmt.Sprintf("Fetching stack sets in %s", region))
 				aws.SetRegion(region)
-				stackSets, err := cfn.ListStackSets()
+				stackSets, err := cfn.ListStackSets(delegatedAdmin)
 				if err != nil {
 					panic(ui.Errorf(err, "failed to list stack sets"))
 				}
@@ -95,7 +95,7 @@ func getStackSetInstances(stackSetName string) string {
 	out := strings.Builder{}
 	out.WriteString(console.Yellow("Instances (StackID/Account/Region/Status/Reason):\n"))
 	spinner.Push(fmt.Sprintf("Fetching stack set instances for '%s'", stackSetName))
-	instances, err := cfn.ListStackSetInstances(stackSetName)
+	instances, err := cfn.ListStackSetInstances(stackSetName, delegatedAdmin)
 	if err != nil {
 		panic(ui.Errorf(err, "failed to list stack set instancess"))
 	}

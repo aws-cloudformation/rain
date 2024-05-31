@@ -49,7 +49,7 @@ var StackSetRmCmd = &cobra.Command{
 
 				spinner.Push("Deleting stack set instances...")
 				if deleteAll {
-					err = cfn.DeleteAllStackSetInstances(stackSetName, !detach, false)
+					err = cfn.DeleteAllStackSetInstances(stackSetName, !detach, false, delegatedAdmin)
 				} else {
 					err = cfn.DeleteStackSetInstances(stackSetName, accounts, regions, !detach, false)
 				}
@@ -88,7 +88,7 @@ func getStackInstances(stackSetName string) (string, []types.StackInstanceSummar
 	out := strings.Builder{}
 	out.WriteString(console.Yellow("Instances (StackID/Account/Region/Status/Reason):\n"))
 	spinner.Push(fmt.Sprintf("Fetching stack set instances for '%s'", stackSetName))
-	instances, err := cfn.ListStackSetInstances(stackSetName)
+	instances, err := cfn.ListStackSetInstances(stackSetName, delegatedAdmin)
 	if err != nil {
 		panic(ui.Errorf(err, "failed to list stack set instancess"))
 	}

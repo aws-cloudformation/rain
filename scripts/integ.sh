@@ -26,6 +26,10 @@ set -eoux pipefail
 ./rain fmt test/templates/fmtziplinesok.yaml
 
 ./rain pkg cft/pkg/tmpl/s3-props-template.yaml
+./rain pkg cft/pkg/tmpl/embed-template.yaml
+./rain pkg cft/pkg/tmpl/include-template.yaml
+./rain pkg cft/pkg/tmpl/s3-template.yaml
+./rain pkg cft/pkg/tmpl/s3http-template.yaml
 
 # Make sure build recommendations work
 ./internal/cmd/build/tmpl/scripts/validate.sh

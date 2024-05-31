@@ -1,5 +1,3 @@
-//go:build !func_test
-
 package s3
 
 import (

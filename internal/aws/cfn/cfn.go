@@ -1,5 +1,3 @@
-//go:build !func_test
-
 package cfn
 
 import (
@@ -11,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	smithy "github.com/aws/smithy-go"
+	"github.com/aws/smithy-go"
 	"gopkg.in/yaml.v3"
 
 	"github.com/aws-cloudformation/rain/cft"
@@ -53,7 +51,7 @@ var liveStatuses = []types.StackStatus{
 	"IMPORT_ROLLBACK_COMPLETE",
 }
 
-const WAIT_PERIOD_IN_SECONDS = 2
+const WaitPeriodInSeconds = 2
 
 var Schemas map[string]string
 
@@ -80,7 +78,7 @@ func checkTemplate(template cft.Template) (string, error) {
 		if strings.HasPrefix(region, "cn-") {
 			return fmt.Sprintf("https://%s.s3.%s.amazonaws.com.cn/%s", bucket, region, key), err
 		} else {
-			return fmt.Sprintf("http://%s.s3.amazonaws.com/%s", bucket, key), err
+			return fmt.Sprintf("https://%s.s3.amazonaws.com/%s", bucket, key), err
 		}
 	}
 
@@ -125,7 +123,7 @@ func StackExists(stackName string) (bool, error) {
 	return false, nil
 }
 
-// List the active change sets associated with a stack
+// ListChangeSets lists the active change sets associated with a stack
 func ListChangeSets(stackName string) ([]types.ChangeSetSummary, error) {
 	var token *string
 	retval := make([]types.ChangeSetSummary, 0)
@@ -181,14 +179,20 @@ func ListStacks() ([]types.StackSummary, error) {
 }
 
 // ListStackSets returns a list of all existing stack sets
-func ListStackSets() ([]types.StackSetSummary, error) {
+func ListStackSets(delegateAdmin bool) ([]types.StackSetSummary, error) {
 	stackSets := make([]types.StackSetSummary, 0)
 
 	var token *string
 
+	callas := types.CallAsSelf
+	if delegateAdmin {
+		callas = types.CallAsDelegatedAdmin
+	}
+
 	for {
 		res, err := getClient().ListStackSets(context.Background(), &cloudformation.ListStackSetsInput{
 			NextToken: token,
+			CallAs:    callas,
 		})
 
 		if err != nil {
@@ -208,14 +212,20 @@ func ListStackSets() ([]types.StackSetSummary, error) {
 }
 
 // ListStackSetInstances returns a list of all stack set instances for a given stack set
-func ListStackSetInstances(stackSetName string) ([]types.StackInstanceSummary, error) {
+func ListStackSetInstances(stackSetName string, delegatedAdmin bool) ([]types.StackInstanceSummary, error) {
 	instances := make([]types.StackInstanceSummary, 0)
 	var token *string
+
+	callas := types.CallAsSelf
+	if delegatedAdmin {
+		callas = types.CallAsDelegatedAdmin
+	}
 
 	for {
 		res, err := getClient().ListStackInstances(context.Background(), &cloudformation.ListStackInstancesInput{
 			NextToken:    token,
 			StackSetName: &stackSetName,
+			CallAs:       callas,
 		})
 
 		if err != nil {
@@ -291,14 +301,14 @@ func DeleteStackSet(stackSetName string) error {
 }
 
 // DeleteAllStackSetInstances deletes all instances for a given stack set
-func DeleteAllStackSetInstances(stackSetName string, wait bool, retainStacks bool) error {
-	instances, err := ListStackSetInstances(stackSetName)
+func DeleteAllStackSetInstances(stackSetName string, wait bool, retainStacks bool, delegatedAdmin bool) error {
+	instances, err := ListStackSetInstances(stackSetName, delegatedAdmin)
 	if err != nil {
 		fmt.Printf("Could not fetch instances for stack set '%s'", stackSetName)
 		return err
 	}
-	accounts := []string{}
-	regions := []string{}
+	accounts := make([]string, 0)
+	regions := make([]string, 0)
 	for _, i := range instances {
 		if i.StackInstanceStatus.DetailedStatus != types.StackInstanceDetailedStatusRunning { //TODO: do we need to skipp RUNNING only?
 			accounts = append(accounts, *i.Account)
@@ -332,7 +342,10 @@ func DeleteStackSetInstances(stackSetName string, accounts []string, regions []s
 	fmt.Printf("Submitted DELETE instances operation with ID: %s\n", *res.OperationId)
 	spinner.Resume()
 	if wait {
-		WaitUntilStackSetOperationCompleted(*res.OperationId, stackSetName)
+		err := WaitUntilStackSetOperationCompleted(*res.OperationId, stackSetName)
+		if err != nil {
+			return err
+		}
 	}
 	return err
 }
@@ -361,7 +374,7 @@ func GetStack(stackName string) (types.Stack, error) {
 	return res.Stacks[0], nil
 }
 
-// Get a single deployed stack resource
+// GetStackResource gets a single deployed stack resource
 func GetStackResource(stackName string, logicalId string) (*types.StackResourceDetail, error) {
 	res, err := getClient().DescribeStackResource(context.Background(),
 		&cloudformation.DescribeStackResourceInput{
@@ -507,7 +520,7 @@ func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[s
 			break
 		}
 
-		time.Sleep(time.Second * WAIT_PERIOD_IN_SECONDS)
+		time.Sleep(time.Second * WaitPeriodInSeconds)
 	}
 
 	return changeSetName, nil
@@ -555,7 +568,7 @@ func CreateStackSet(conf StackSetConfig) (*string, error) {
 		PermissionModel:       conf.PermissionModel,
 	}
 
-	if strings.HasPrefix(templateBody, "http://") {
+	if strings.HasPrefix(templateBody, "https://") {
 		input.TemplateURL = ptr.String(templateBody)
 	} else {
 		input.TemplateBody = ptr.String(templateBody)
@@ -705,7 +718,10 @@ func CreateStackSetInstances(conf StackSetInstancesConfig, wait bool) error {
 	spinner.Resume()
 
 	if wait {
-		WaitUntilStackSetOperationCompleted(*res.OperationId, conf.StackSetName)
+		err := WaitUntilStackSetOperationCompleted(*res.OperationId, conf.StackSetName)
+		if err != nil {
+			return err
+		}
 	}
 
 	return err
@@ -748,7 +764,7 @@ func WaitUntilStackExists(stackName string) error {
 			return err
 		}
 
-		time.Sleep(time.Second * WAIT_PERIOD_IN_SECONDS)
+		time.Sleep(time.Second * WaitPeriodInSeconds)
 	}
 
 	return nil
@@ -769,7 +785,7 @@ func WaitUntilStackSetOperationCompleted(operationId string, stacksetName string
 			break
 		}
 
-		time.Sleep(time.Second * WAIT_PERIOD_IN_SECONDS)
+		time.Sleep(time.Second * WaitPeriodInSeconds)
 	}
 	if err == nil && operation != nil {
 		spinner.Pause()
@@ -801,13 +817,13 @@ func WaitUntilStackCreateComplete(stackName string) error {
 			break
 		}
 
-		time.Sleep(time.Second * WAIT_PERIOD_IN_SECONDS)
+		time.Sleep(time.Second * WaitPeriodInSeconds)
 	}
 
 	return nil
 }
 
-// Get the schema for a CloudFormation resource type
+// GetTypeSchema gets the schema for a CloudFormation resource type
 func GetTypeSchema(name string, noCache bool) (string, error) {
 
 	// Check for a schema in memory
@@ -865,7 +881,7 @@ func IsCCAPI(name string) (bool, error) {
 	return true, nil
 }
 
-// Get the list of actions required to invoke a CloudFormation handler
+// GetTypePermissions gets the list of actions required to invoke a CloudFormation handler
 func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
 
 	// Get the schema, checking to see if we cached it
@@ -876,7 +892,10 @@ func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
 
 	// Parse the schema and return the array of actions
 	var result map[string]any
-	json.Unmarshal([]byte(schema), &result)
+	err = json.Unmarshal([]byte(schema), &result)
+	if err != nil {
+		return nil, err
+	}
 	/* "handlers": {
 	   "create": {
 	       "permissions": [
@@ -1045,7 +1064,7 @@ func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
 	return retval, nil
 }
 
-// Get the primaryIdentifier of a resource type from the schema
+// GetTypeIdentifier gets the primaryIdentifier of a resource type from the schema
 func GetTypeIdentifier(name string) ([]string, error) {
 	schema, err := GetTypeSchema(name, false)
 	if err != nil {
@@ -1056,7 +1075,10 @@ func GetTypeIdentifier(name string) ([]string, error) {
 	}
 
 	var result map[string]any
-	json.Unmarshal([]byte(schema), &result)
+	err = json.Unmarshal([]byte(schema), &result)
+	if err != nil {
+		return nil, err
+	}
 
 	piNode, exists := result["primaryIdentifier"]
 	if !exists {
@@ -1073,7 +1095,7 @@ func GetTypeIdentifier(name string) ([]string, error) {
 	}
 }
 
-// Get the values specified for primary identifiers in the template.
+// GetPrimaryIdentifierValues gets the values specified for primary identifiers in the template.
 // The return value will only have values if they are set.
 // TODO: Use ccapi to look at the deployed resource model for updates
 func GetPrimaryIdentifierValues(

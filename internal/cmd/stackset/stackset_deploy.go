@@ -231,7 +231,7 @@ func isInstanceConfigDataValid(c *cfn.StackSetInstancesConfig) bool {
 	if c != nil &&
 		c.Regions != nil && len(c.Regions) > 0 &&
 		((c.Accounts != nil && len(c.Accounts) > 0) ||
-		(c.DeploymentTargets != nil && c.DeploymentTargets.OrganizationalUnitIds != nil && len(c.DeploymentTargets.OrganizationalUnitIds) > 0)) {
+			(c.DeploymentTargets != nil && c.DeploymentTargets.OrganizationalUnitIds != nil && len(c.DeploymentTargets.OrganizationalUnitIds) > 0)) {
 		config.Debugf("ConfigData is valid\n")
 		return true
 	} else {
@@ -240,10 +240,10 @@ func isInstanceConfigDataValid(c *cfn.StackSetInstancesConfig) bool {
 	}
 }
 
-// removes non existing instances from the StackSetInstancesConfig.
+// removes non-existing instances from the StackSetInstancesConfig.
 func removeNonExistingInstances(c *cfn.StackSetInstancesConfig) {
 	// Get current stack set instances
-	instances, err := cfn.ListStackSetInstances(c.StackSetName)
+	instances, err := cfn.ListStackSetInstances(c.StackSetName, delegatedAdmin)
 	if err != nil {
 		panic(ui.Errorf(err, "unable to fetch instances for stack set - '%s'", c.StackSetName))
 	}
@@ -265,7 +265,7 @@ func removeNonExistingInstances(c *cfn.StackSetInstancesConfig) {
 // accounts whether updated or created(added)
 func removeExistingInstances(c *cfn.StackSetInstancesConfig) {
 	// Get current stack set instances
-	instances, err := cfn.ListStackSetInstances(c.StackSetName)
+	instances, err := cfn.ListStackSetInstances(c.StackSetName, delegatedAdmin)
 	if err != nil {
 		panic(ui.Errorf(err, "unable to fetch instances for stack set - '%s'", c.StackSetName))
 	}
