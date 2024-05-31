@@ -1,22 +1,112 @@
 {
+  "typeName": "AWS::EC2::CustomerGateway",
+  "description": "Specifies a customer gateway.",
+  "additionalProperties": false,
+  "properties": {
+    "CertificateArn": {
+      "type": "string",
+      "description": "",
+      "pattern": "^arn:(aws[a-zA-Z-]*)?:acm:[a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\\d{1}:\\d{12}:certificate\\/[a-zA-Z0-9-_]+$"
+    },
+    "CustomerGatewayId": {
+      "type": "string",
+      "description": ""
+    },
+    "BgpAsn": {
+      "type": "integer",
+      "default": 65000,
+      "description": "For devices that support BGP, the customer gateway's BGP ASN.\n Default: 65000"
+    },
+    "BgpAsnExtended": {
+      "type": "number",
+      "multipleOf": 1,
+      "minimum": 2147483648,
+      "maximum": 4294967294,
+      "description": ""
+    },
+    "IpAddress": {
+      "type": "string",
+      "description": "IPv4 address for the customer gateway device's outside interface. The address must be static.",
+      "relationshipRef": {
+        "typeName": "AWS::EC2::Instance",
+        "propertyPath": "/properties/PublicIp"
+      }
+    },
+    "Tags": {
+      "type": "array",
+      "uniqueItems": false,
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/Tag"
+      },
+      "description": "One or more tags for the customer gateway."
+    },
+    "Type": {
+      "type": "string",
+      "description": "The type of VPN connection that this customer gateway supports (``ipsec.1``)."
+    },
+    "DeviceName": {
+      "type": "string",
+      "description": "The name of customer gateway device."
+    }
+  },
+  "definitions": {
+    "Tag": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Key": {
+          "type": "string",
+          "description": "The tag key."
+        },
+        "Value": {
+          "type": "string",
+          "description": "The tag value."
+        }
+      },
+      "required": [
+        "Value",
+        "Key"
+      ],
+      "description": "Specifies a tag. For more information, see [Add tags to a resource](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#cloudformation-add-tag-specifications)."
+    }
+  },
+  "required": [
+    "IpAddress",
+    "Type"
+  ],
+  "createOnlyProperties": [
+    "/properties/CertificateArn",
+    "/properties/BgpAsn",
+    "/properties/BgpAsnExtended",
+    "/properties/Type",
+    "/properties/IpAddress",
+    "/properties/DeviceName"
+  ],
+  "readOnlyProperties": [
+    "/properties/CustomerGatewayId"
+  ],
+  "primaryIdentifier": [
+    "/properties/CustomerGatewayId"
+  ],
   "tagging": {
     "taggable": true,
     "tagOnCreate": true,
     "tagUpdatable": true,
-    "tagProperty": "/properties/Tags",
-    "cloudFormationSystemTags": true
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags"
   },
   "handlers": {
-    "read": {
-      "permissions": [
-        "ec2:DescribeCustomerGateways"
-      ]
-    },
     "create": {
       "permissions": [
         "ec2:CreateCustomerGateway",
         "ec2:DescribeCustomerGateways",
         "ec2:CreateTags"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "ec2:DescribeCustomerGateways"
       ]
     },
     "update": {
@@ -26,99 +116,17 @@
         "ec2:DescribeCustomerGateways"
       ]
     },
-    "list": {
-      "permissions": [
-        "ec2:DescribeCustomerGateways"
-      ]
-    },
     "delete": {
       "permissions": [
         "ec2:DeleteCustomerGateway",
         "ec2:DescribeCustomerGateways",
         "ec2:DeleteTags"
       ]
-    }
-  },
-  "typeName": "AWS::EC2::CustomerGateway",
-  "readOnlyProperties": [
-    "/properties/CustomerGatewayId"
-  ],
-  "description": "Specifies a customer gateway.",
-  "createOnlyProperties": [
-    "/properties/CertificateArn",
-    "/properties/BgpAsn",
-    "/properties/Type",
-    "/properties/IpAddress",
-    "/properties/DeviceName"
-  ],
-  "additionalProperties": false,
-  "primaryIdentifier": [
-    "/properties/CustomerGatewayId"
-  ],
-  "definitions": {
-    "Tag": {
-      "description": "Specifies a tag. For more information, see [Add tags to a resource](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#cloudformation-add-tag-specifications).",
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "Value": {
-          "description": "The tag value.",
-          "type": "string"
-        },
-        "Key": {
-          "description": "The tag key.",
-          "type": "string"
-        }
-      },
-      "required": [
-        "Value",
-        "Key"
+    },
+    "list": {
+      "permissions": [
+        "ec2:DescribeCustomerGateways"
       ]
     }
-  },
-  "properties": {
-    "Type": {
-      "description": "The type of VPN connection that this customer gateway supports (``ipsec.1``).",
-      "type": "string"
-    },
-    "CustomerGatewayId": {
-      "description": "",
-      "type": "string"
-    },
-    "IpAddress": {
-      "relationshipRef": {
-        "typeName": "AWS::EC2::Instance",
-        "propertyPath": "/properties/PublicIp"
-      },
-      "description": "IPv4 address for the customer gateway device's outside interface. The address must be static.",
-      "type": "string"
-    },
-    "BgpAsn": {
-      "default": 65000,
-      "description": "For devices that support BGP, the customer gateway's BGP ASN.\n Default: 65000",
-      "type": "integer"
-    },
-    "Tags": {
-      "uniqueItems": false,
-      "description": "One or more tags for the customer gateway.",
-      "insertionOrder": false,
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/Tag"
-      }
-    },
-    "CertificateArn": {
-      "pattern": "^arn:(aws[a-zA-Z-]*)?:acm:[a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\\d{1}:\\d{12}:certificate\\/[a-zA-Z0-9-_]+$",
-      "description": "",
-      "type": "string"
-    },
-    "DeviceName": {
-      "description": "The name of customer gateway device.",
-      "type": "string"
-    }
-  },
-  "required": [
-    "IpAddress",
-    "Type"
-  ]
+  }
 }

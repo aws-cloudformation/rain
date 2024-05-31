@@ -2,6 +2,24 @@
   "typeName": "AWS::Chatbot::SlackChannelConfiguration",
   "description": "Resource schema for AWS::Chatbot::SlackChannelConfiguration.",
   "sourceUrl": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-chatbot-slackchannelconfiguration.html",
+  "definitions": {
+    "Tag": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Value": {
+          "type": "string"
+        },
+        "Key": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "Value",
+        "Key"
+      ]
+    }
+  },
   "properties": {
     "SlackWorkspaceId": {
       "description": "The id of the Slack workspace",
@@ -58,6 +76,15 @@
         "pattern": "^(^$|arn:aws:iam:[A-Za-z0-9_\\/.-]{0,63}:[A-Za-z0-9_\\/.-]{0,63}:[A-Za-z0-9][A-Za-z0-9:_\\/+=,@.-]{0,1023})$"
       }
     },
+    "Tags": {
+      "description": "The tags to add to the configuration",
+      "type": "array",
+      "uniqueItems": false,
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
+    },
     "UserRoleRequired": {
       "description": "Enables use of a user role requirement in your chat configuration",
       "type": "boolean",
@@ -85,6 +112,7 @@
     "create": {
       "permissions": [
         "chatbot:CreateSlackChannelConfiguration",
+        "chatbot:TagResource",
         "iam:PassRole",
         "iam:CreateServiceLinkedRole"
       ]
@@ -97,6 +125,9 @@
     "update": {
       "permissions": [
         "chatbot:UpdateSlackChannelConfiguration",
+        "chatbot:TagResource",
+        "chatbot:UntagResource",
+        "chatbot:ListTagsForResource",
         "iam:PassRole"
       ]
     },
@@ -110,5 +141,12 @@
         "chatbot:DescribeSlackChannelConfigurations"
       ]
     }
+  },
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags"
   }
 }

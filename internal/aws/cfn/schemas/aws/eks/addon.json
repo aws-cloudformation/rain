@@ -25,6 +25,26 @@
         "Key",
         "Value"
       ]
+    },
+    "PodIdentityAssociation": {
+      "description": "A pod identity to associate with an add-on.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ServiceAccount": {
+          "type": "string",
+          "description": "The Kubernetes service account that the pod identity association is created for."
+        },
+        "RoleArn": {
+          "type": "string",
+          "pattern": "^arn:aws(-cn|-us-gov|-iso(-[a-z])?)?:iam::\\d{12}:(role)\\/*",
+          "description": "The IAM role ARN that the pod identity association is created for."
+        }
+      },
+      "required": [
+        "ServiceAccount",
+        "RoleArn"
+      ]
     }
   },
   "properties": {
@@ -61,6 +81,15 @@
       "description": "IAM role to bind to the add-on's service account",
       "type": "string",
       "minLength": 1
+    },
+    "PodIdentityAssociations": {
+      "description": "An array of pod identities to apply to this add-on.",
+      "type": "array",
+      "uniqueItems": true,
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/PodIdentityAssociation"
+      }
     },
     "ConfigurationValues": {
       "description": "The configuration values to use with the add-on",
@@ -106,7 +135,8 @@
   ],
   "writeOnlyProperties": [
     "/properties/ResolveConflicts",
-    "/properties/PreserveOnDelete"
+    "/properties/PreserveOnDelete",
+    "/properties/PodIdentityAssociations"
   ],
   "handlers": {
     "create": {
@@ -114,7 +144,9 @@
         "eks:CreateAddon",
         "eks:DescribeAddon",
         "eks:TagResource",
-        "iam:PassRole"
+        "iam:PassRole",
+        "iam:GetRole",
+        "eks:CreatePodIdentityAssociation"
       ]
     },
     "read": {
@@ -125,7 +157,8 @@
     "delete": {
       "permissions": [
         "eks:DeleteAddon",
-        "eks:DescribeAddon"
+        "eks:DescribeAddon",
+        "eks:DeletePodIdentityAssociation"
       ]
     },
     "list": {
@@ -146,12 +179,15 @@
     "update": {
       "permissions": [
         "iam:PassRole",
+        "iam:GetRole",
         "eks:UpdateAddon",
         "eks:DescribeAddon",
         "eks:DescribeUpdate",
         "eks:ListTagsForResource",
         "eks:TagResource",
-        "eks:UntagResource"
+        "eks:UntagResource",
+        "eks:CreatePodIdentityAssociation",
+        "eks:DeletePodIdentityAssociation"
       ]
     }
   }

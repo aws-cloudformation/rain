@@ -5,7 +5,8 @@
   "properties": {
     "FunctionArn": {
       "type": "string",
-      "description": "The ARN of the version."
+      "description": "The ARN of the version.",
+      "pattern": "^(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:)?(\\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\\$LATEST|[a-zA-Z0-9-_]+))?$"
     },
     "Version": {
       "type": "string",
@@ -26,7 +27,25 @@
       "description": "The name of the Lambda function.",
       "minLength": 1,
       "maxLength": 140,
-      "pattern": "^(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}(-gov)?-[a-z]+-\\d{1}:)?(\\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\\$LATEST|[a-zA-Z0-9-_]+))?$"
+      "pattern": "^(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:)?(\\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\\$LATEST|[a-zA-Z0-9-_]+))?$",
+      "anyOf": [
+        {
+          "relationshipRef": {
+            "typeName": "AWS::Lambda::Function",
+            "propertyPath": "/properties/FunctionName"
+          }
+        },
+        {
+          "relationshipRef": {
+            "typeName": "AWS::Lambda::Function",
+            "propertyPath": "/properties/Arn"
+          }
+        }
+      ]
+    },
+    "Policy": {
+      "description": "The resource policy of your function",
+      "type": "object"
     },
     "ProvisionedConcurrencyConfig": {
       "description": "Specifies a provisioned concurrency configuration for a function's version. Updates are not supported for this property.",
@@ -62,7 +81,7 @@
           "description": "The ARN of the runtime the function is configured to use. If the runtime update mode is manual, the ARN is returned, otherwise null is returned.",
           "minLength": 26,
           "maxLength": 2048,
-          "pattern": "^arn:(aws[a-zA-Z-]*):lambda:[a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\\d{1}::runtime:.+$"
+          "pattern": "^arn:(aws[a-zA-Z-]*):lambda:[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}::runtime:.+$"
         },
         "UpdateRuntimeOn": {
           "type": "string",
@@ -131,7 +150,7 @@
           "FunctionName": {
             "description": "The name of the Lambda function, version, or alias.",
             "type": "string",
-            "pattern": "^(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}(-gov)?-[a-z]+-\\d{1}:)?(\\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\\$LATEST|[a-zA-Z0-9-_]+))?$",
+            "pattern": "^(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:)?(\\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\\$LATEST|[a-zA-Z0-9-_]+))?$",
             "minLength": 1,
             "maxLength": 140
           }
@@ -143,9 +162,6 @@
       "permissions": [
         "lambda:ListVersionsByFunction"
       ]
-    },
-    "update": {
-      "permissions": []
     }
   }
 }

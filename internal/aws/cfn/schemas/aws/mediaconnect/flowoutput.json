@@ -50,6 +50,102 @@
         }
       },
       "additionalProperties": false
+    },
+    "MediaStreamOutputConfiguration": {
+      "type": "object",
+      "description": "The media stream that is associated with the output, and the parameters for that association.",
+      "properties": {
+        "EncodingName": {
+          "type": "string",
+          "description": "The format that will be used to encode the data. For ancillary data streams, set the encoding name to smpte291. For audio streams, set the encoding name to pcm. For video streams on sources or outputs that use the CDI protocol, set the encoding name to raw. For video streams on sources or outputs that use the ST 2110 JPEG XS protocol, set the encoding name to jxsv.",
+          "enum": [
+            "jxsv",
+            "raw",
+            "smpte291",
+            "pcm"
+          ]
+        },
+        "DestinationConfigurations": {
+          "type": "array",
+          "description": "The media streams that you want to associate with the output.",
+          "items": {
+            "$ref": "#/definitions/DestinationConfiguration"
+          }
+        },
+        "MediaStreamName": {
+          "type": "string",
+          "description": "A name that helps you distinguish one media stream from another."
+        },
+        "EncodingParameters": {
+          "$ref": "#/definitions/EncodingParameters",
+          "description": "A collection of parameters that determine how MediaConnect will convert the content. These fields only apply to outputs on flows that have a CDI source."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "EncodingName",
+        "MediaStreamName"
+      ]
+    },
+    "DestinationConfiguration": {
+      "type": "object",
+      "description": "The definition of a media stream that is associated with the output.",
+      "properties": {
+        "DestinationIp": {
+          "type": "string",
+          "description": "The IP address where contents of the media stream will be sent."
+        },
+        "DestinationPort": {
+          "type": "integer",
+          "description": "The port to use when the content of the media stream is distributed to the output."
+        },
+        "Interface": {
+          "$ref": "#/definitions/Interface",
+          "description": "The VPC interface that is used for the media stream associated with the output."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "DestinationIp",
+        "DestinationPort",
+        "Interface"
+      ]
+    },
+    "Interface": {
+      "type": "object",
+      "description": "The VPC interface that you want to use for the media stream associated with the output.",
+      "properties": {
+        "Name": {
+          "type": "string",
+          "description": "The name of the VPC interface that you want to use for the media stream associated with the output."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "Name"
+      ]
+    },
+    "EncodingParameters": {
+      "type": "object",
+      "description": "A collection of parameters that determine how MediaConnect will convert the content. These fields only apply to outputs on flows that have a CDI source.",
+      "properties": {
+        "CompressionFactor": {
+          "type": "number",
+          "description": "A value that is used to calculate compression for an output. The bitrate of the output is calculated as follows: Output bitrate = (1 / compressionFactor) * (source bitrate) This property only applies to outputs that use the ST 2110 JPEG XS protocol, with a flow source that uses the CDI protocol. Valid values are in the range of 3.0 to 10.0, inclusive."
+        },
+        "EncoderProfile": {
+          "type": "string",
+          "description": "A setting on the encoder that drives compression settings. This property only applies to video media streams associated with outputs that use the ST 2110 JPEG XS protocol, with a flow source that uses the CDI protocol.",
+          "enum": [
+            "main",
+            "high"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "CompressionFactor"
+      ]
     }
   },
   "properties": {
@@ -106,7 +202,9 @@
         "rist",
         "fujitsu-qos",
         "srt-listener",
-        "srt-caller"
+        "srt-caller",
+        "st2110-jpegxs",
+        "cdi"
       ],
       "description": "The protocol that is used by the source or output."
     },
@@ -125,6 +223,13 @@
     "VpcInterfaceAttachment": {
       "$ref": "#/definitions/VpcInterfaceAttachment",
       "description": "The name of the VPC interface attachment to use for this output."
+    },
+    "MediaStreamOutputConfigurations": {
+      "type": "array",
+      "description": "The definition for each media stream that is associated with the output.",
+      "items": {
+        "$ref": "#/definitions/MediaStreamOutputConfiguration"
+      }
     }
   },
   "additionalProperties": false,

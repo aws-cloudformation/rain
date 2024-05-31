@@ -1,0 +1,83 @@
+{
+  "typeName": "AWS::SecurityHub::FindingAggregator",
+  "description": "The AWS::SecurityHub::FindingAggregator resource represents the AWS Security Hub Finding Aggregator in your account. One finding aggregator resource is created for each account in non opt-in region in which you configure region linking mode.",
+  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-securityhub",
+  "definitions": {
+    "Region": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9-]{1,32}$"
+    }
+  },
+  "properties": {
+    "FindingAggregatorArn": {
+      "description": "The ARN of the FindingAggregator being created and assigned as the unique identifier",
+      "type": "string",
+      "pattern": "arn:aws\\S*:securityhub:\\S*"
+    },
+    "RegionLinkingMode": {
+      "description": "Indicates whether to link all Regions, all Regions except for a list of excluded Regions, or a list of included Regions",
+      "type": "string",
+      "enum": [
+        "ALL_REGIONS",
+        "ALL_REGIONS_EXCEPT_SPECIFIED",
+        "SPECIFIED_REGIONS"
+      ]
+    },
+    "Regions": {
+      "description": "The list of excluded Regions or included Regions",
+      "type": "array",
+      "insertionOrder": false,
+      "uniqueItems": true,
+      "minItems": 1,
+      "maxItems": 50,
+      "items": {
+        "$ref": "#/definitions/Region"
+      }
+    },
+    "FindingAggregationRegion": {
+      "description": "The aggregation Region of the FindingAggregator",
+      "$ref": "#/definitions/Region"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "RegionLinkingMode"
+  ],
+  "readOnlyProperties": [
+    "/properties/FindingAggregatorArn",
+    "/properties/FindingAggregationRegion"
+  ],
+  "primaryIdentifier": [
+    "/properties/FindingAggregatorArn"
+  ],
+  "tagging": {
+    "taggable": false
+  },
+  "handlers": {
+    "create": {
+      "permissions": [
+        "securityhub:CreateFindingAggregator"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "securityhub:GetFindingAggregator"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "securityhub:UpdateFindingAggregator"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "securityhub:DeleteFindingAggregator"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "securityhub:ListFindingAggregators"
+      ]
+    }
+  }
+}

@@ -2,6 +2,13 @@
   "typeName": "AWS::MediaPackageV2::OriginEndpoint",
   "description": "<p>Represents an origin endpoint that is associated with a channel, offering a dynamically repackaged version of its content through various streaming media protocols. The content can be efficiently disseminated to end-users via a Content Delivery Network (CDN), like Amazon CloudFront.</p>",
   "definitions": {
+    "AdMarkerDash": {
+      "type": "string",
+      "enum": [
+        "BINARY",
+        "XML"
+      ]
+    },
     "AdMarkerHls": {
       "type": "string",
       "enum": [
@@ -20,6 +27,54 @@
       "enum": [
         "TS",
         "CMAF"
+      ]
+    },
+    "DashDrmSignaling": {
+      "type": "string",
+      "enum": [
+        "INDIVIDUAL",
+        "REFERENCED"
+      ]
+    },
+    "DashPeriodTrigger": {
+      "type": "string",
+      "enum": [
+        "AVAILS",
+        "DRM_KEY_ROTATION",
+        "SOURCE_CHANGES",
+        "SOURCE_DISRUPTIONS",
+        "NONE"
+      ]
+    },
+    "DashSegmentTemplateFormat": {
+      "type": "string",
+      "enum": [
+        "NUMBER_WITH_TIMELINE"
+      ]
+    },
+    "DashUtcTiming": {
+      "type": "object",
+      "description": "<p>Determines the type of UTC timing included in the DASH Media Presentation Description (MPD).</p>",
+      "properties": {
+        "TimingMode": {
+          "$ref": "#/definitions/DashUtcTimingMode"
+        },
+        "TimingSource": {
+          "type": "string",
+          "maxLength": 1024,
+          "minLength": 1,
+          "description": "<p>The the method that the player uses to synchronize to coordinated universal time (UTC) wall clock time.</p>"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DashUtcTimingMode": {
+      "type": "string",
+      "enum": [
+        "HTTP_HEAD",
+        "HTTP_ISO",
+        "HTTP_XSDATE",
+        "UTC_DIRECT"
       ]
     },
     "DrmSystem": {
@@ -118,6 +173,63 @@
           "description": "<p>Optionally specify the time delay for all of your manifest egress requests. Enter a value that is smaller than your endpoint's startover window. When you include time delay, note that you cannot use time delay query parameters for this manifest's endpoint URL.</p>"
         }
       },
+      "additionalProperties": false
+    },
+    "DashManifestConfiguration": {
+      "type": "object",
+      "description": "<p>Retrieve the DASH manifest configuration.</p>",
+      "properties": {
+        "ManifestName": {
+          "type": "string",
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "description": "<p>A short string that's appended to the endpoint URL. The manifest name creates a unique path to this endpoint. If you don't enter a value, MediaPackage uses the default manifest name, index. </p>"
+        },
+        "ManifestWindowSeconds": {
+          "type": "integer",
+          "description": "<p>The total duration (in seconds) of the manifest's content.</p>"
+        },
+        "FilterConfiguration": {
+          "$ref": "#/definitions/FilterConfiguration"
+        },
+        "MinUpdatePeriodSeconds": {
+          "type": "integer",
+          "description": "<p>Minimum amount of time (in seconds) that the player should wait before requesting updates to the manifest.</p>"
+        },
+        "MinBufferTimeSeconds": {
+          "type": "integer",
+          "description": "<p>Minimum amount of content (in seconds) that a player must keep available in the buffer.</p>"
+        },
+        "SuggestedPresentationDelaySeconds": {
+          "type": "integer",
+          "description": "<p>The amount of time (in seconds) that the player should be from the end of the manifest.</p>"
+        },
+        "SegmentTemplateFormat": {
+          "$ref": "#/definitions/DashSegmentTemplateFormat"
+        },
+        "PeriodTriggers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DashPeriodTrigger"
+          },
+          "maxItems": 100,
+          "minItems": 0,
+          "description": "<p>A list of triggers that controls when AWS Elemental MediaPackage separates the MPEG-DASH manifest into multiple periods. Leave this value empty to indicate that the manifest is contained all in one period.\n         For more information about periods in the DASH manifest, see <a href=\"https://docs.aws.amazon.com/mediapackage/latest/userguide/multi-period.html\">Multi-period DASH in AWS Elemental MediaPackage</a>.</p>"
+        },
+        "ScteDash": {
+          "$ref": "#/definitions/ScteDash"
+        },
+        "DrmSignaling": {
+          "$ref": "#/definitions/DashDrmSignaling"
+        },
+        "UtcTiming": {
+          "$ref": "#/definitions/DashUtcTiming"
+        }
+      },
+      "required": [
+        "ManifestName"
+      ],
       "additionalProperties": false
     },
     "HlsManifestConfiguration": {
@@ -241,6 +353,16 @@
           "maxItems": 100,
           "minItems": 0,
           "description": "<p>The SCTE-35 message types that you want to be treated as ad markers in the output.</p>"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ScteDash": {
+      "type": "object",
+      "description": "<p>The SCTE configuration.</p>",
+      "properties": {
+        "AdMarkerDash": {
+          "$ref": "#/definitions/AdMarkerDash"
         }
       },
       "additionalProperties": false
@@ -396,6 +518,13 @@
       "type": "string",
       "description": "<p>The date and time the origin endpoint was created.</p>",
       "format": "date-time"
+    },
+    "DashManifests": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/DashManifestConfiguration"
+      },
+      "description": "<p>A DASH manifest configuration.</p>"
     },
     "Description": {
       "type": "string",

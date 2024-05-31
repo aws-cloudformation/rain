@@ -10,6 +10,10 @@
     },
     "LoadBalancerArn": {
       "type": "string",
+      "relationshipRef": {
+        "typeName": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+        "propertyPath": "/properties/LoadBalancerArn"
+      },
       "description": "The Amazon Resource Name (ARN) of the load balancer."
     },
     "DefaultActions": {
@@ -100,6 +104,10 @@
       "properties": {
         "TargetGroupArn": {
           "type": "string",
+          "relationshipRef": {
+            "typeName": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "propertyPath": "/properties/TargetGroupArn"
+          },
           "description": "The Amazon Resource Name (ARN) of the target group."
         },
         "Weight": {
@@ -119,6 +127,10 @@
         },
         "TargetGroupArn": {
           "type": "string",
+          "relationshipRef": {
+            "typeName": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "propertyPath": "/properties/TargetGroupArn"
+          },
           "description": "The Amazon Resource Name (ARN) of the target group. Specify only when ``Type`` is ``forward`` and you want to route to a single target group. To route to one or more target groups, use ``ForwardConfig`` instead."
         },
         "FixedResponseConfig": {
@@ -161,10 +173,28 @@
         },
         "UserPoolClientId": {
           "type": "string",
+          "anyOf": [
+            {
+              "relationshipRef": {
+                "typeName": "AWS::Cognito::UserPoolClient",
+                "propertyPath": "/properties/UserPoolId"
+              }
+            },
+            {
+              "relationshipRef": {
+                "typeName": "AWS::Cognito::UserPoolClient",
+                "propertyPath": "/properties/ClientId"
+              }
+            }
+          ],
           "description": "The ID of the Amazon Cognito user pool client."
         },
         "UserPoolDomain": {
           "type": "string",
+          "relationshipRef": {
+            "typeName": "AWS::Cognito::UserPoolDomain",
+            "propertyPath": "/properties/Id"
+          },
           "description": "The domain prefix or fully-qualified domain name of the Amazon Cognito user pool."
         },
         "SessionTimeout": {
@@ -181,6 +211,10 @@
         },
         "UserPoolArn": {
           "type": "string",
+          "relationshipRef": {
+            "typeName": "AWS::Cognito::UserPool",
+            "propertyPath": "/properties/Arn"
+          },
           "description": "The Amazon Resource Name (ARN) of the Amazon Cognito user pool."
         },
         "AuthenticationRequestExtraParams": {
@@ -341,6 +375,20 @@
       "properties": {
         "CertificateArn": {
           "type": "string",
+          "anyOf": [
+            {
+              "relationshipRef": {
+                "typeName": "AWS::CertificateManager::Certificate",
+                "propertyPath": "/properties/Id"
+              }
+            },
+            {
+              "relationshipRef": {
+                "typeName": "AWS::IAM::ServerCertificate",
+                "propertyPath": "/properties/Arn"
+              }
+            }
+          ],
           "description": "The Amazon Resource Name (ARN) of the certificate."
         }
       },

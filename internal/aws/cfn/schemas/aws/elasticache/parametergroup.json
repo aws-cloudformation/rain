@@ -4,28 +4,35 @@
   "additionalProperties": false,
   "properties": {
     "Description": {
-      "type": "string"
-    },
-    "Id": {
-      "type": "string"
+      "type": "string",
+      "description": "The description for this cache parameter group."
     },
     "Properties": {
       "type": "object",
+      "additionalProperties": false,
       "patternProperties": {
         "[a-zA-Z0-9]+": {
           "type": "string"
         }
-      }
+      },
+      "description": "A comma-delimited list of parameter name/value pairs. For more information see ModifyCacheParameterGroup in the Amazon ElastiCache API Reference Guide."
     },
     "Tags": {
       "type": "array",
-      "uniqueItems": false,
+      "description": "Tags are composed of a Key/Value pair. You can use tags to categorize and track each parameter group. The tag value null is permitted.",
       "items": {
         "$ref": "#/definitions/Tag"
-      }
+      },
+      "insertionOrder": false,
+      "uniqueItems": false
+    },
+    "CacheParameterGroupName": {
+      "type": "string",
+      "description": "The name of the Cache Parameter Group."
     },
     "CacheParameterGroupFamily": {
-      "type": "string"
+      "type": "string",
+      "description": "The name of the cache parameter group family that this cache parameter group is compatible with."
     }
   },
   "definitions": {
@@ -33,10 +40,10 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "Value": {
+        "Key": {
           "type": "string"
         },
-        "Key": {
+        "Value": {
           "type": "string"
         }
       },
@@ -50,13 +57,58 @@
     "Description",
     "CacheParameterGroupFamily"
   ],
+  "readOnlyProperties": [
+    "/properties/CacheParameterGroupName"
+  ],
   "createOnlyProperties": [
     "/properties/CacheParameterGroupFamily"
   ],
   "primaryIdentifier": [
-    "/properties/Id"
+    "/properties/CacheParameterGroupName"
   ],
-  "readOnlyProperties": [
-    "/properties/Id"
-  ]
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": false,
+    "tagProperty": "/properties/Tags"
+  },
+  "handlers": {
+    "create": {
+      "permissions": [
+        "ElastiCache:CreateCacheParameterGroup",
+        "ElastiCache:DescribeCacheParameterGroups",
+        "ElastiCache:AddTagsToResource",
+        "ElastiCache:ModifyCacheParameterGroup"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "ElastiCache:DescribeCacheParameterGroups",
+        "ElastiCache:DescribeCacheParameters",
+        "ElastiCache:ListTagsForResource"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "ElastiCache:ModifyCacheParameterGroup",
+        "ElastiCache:DescribeCacheParameterGroups",
+        "ElastiCache:DescribeCacheParameters",
+        "ElastiCache:DescribeEngineDefaultParameters",
+        "ElastiCache:AddTagsToResource",
+        "ElastiCache:RemoveTagsFromResource"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "ElastiCache:DescribeCacheParameterGroups",
+        "ElastiCache:DeleteCacheParameterGroup"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "ElastiCache:DescribeCacheParameterGroups"
+      ]
+    }
+  }
 }
