@@ -1,5 +1,3 @@
-//go:build !func_test
-
 package ec2
 
 import (

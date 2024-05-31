@@ -15,8 +15,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// StackSetRmCmd is the rm command's entrypoint
-var StackSetRmCmd = &cobra.Command{
+// RmCmd is the rm command's entrypoint
+var RmCmd = &cobra.Command{
 	Use:                   "rm <stackset>",
 	Short:                 "Delete a CloudFormation stack set and/or its instances.",
 	Long:                  "Delete a CloudFormation stack set <stackset> and/or its instances.",
@@ -27,7 +27,7 @@ var StackSetRmCmd = &cobra.Command{
 		stackSetName := args[0]
 		config.Debugf("Deleting stack set: %s\n", stackSetName)
 
-		stackSet, err := cfn.GetStackSet(stackSetName)
+		stackSet, err := cfn.GetStackSet(stackSetName, delegatedAdmin)
 		if err != nil {
 			panic(ui.Errorf(err, "Could not find stack set '%s'", stackSetName))
 		} else if stackSet.Status == types.StackSetStatusDeleted {
@@ -35,7 +35,7 @@ var StackSetRmCmd = &cobra.Command{
 		}
 
 		spinner.Push("Deleting stack set..")
-		err = cfn.DeleteStackSet(stackSetName)
+		err = cfn.DeleteStackSet(stackSetName, delegatedAdmin)
 		spinner.Pop()
 		if err != nil {
 			var notEmptyException *types.StackSetNotEmptyException
@@ -49,9 +49,9 @@ var StackSetRmCmd = &cobra.Command{
 
 				spinner.Push("Deleting stack set instances...")
 				if deleteAll {
-					err = cfn.DeleteAllStackSetInstances(stackSetName, !detach, false)
+					err = cfn.DeleteAllStackSetInstances(stackSetName, !detach, false, delegatedAdmin)
 				} else {
-					err = cfn.DeleteStackSetInstances(stackSetName, accounts, regions, !detach, false)
+					err = cfn.DeleteStackSetInstances(stackSetName, accounts, regions, !detach, false, delegatedAdmin)
 				}
 				spinner.Pop()
 
@@ -61,7 +61,7 @@ var StackSetRmCmd = &cobra.Command{
 
 				if deleteAll {
 					spinner.Push("Deleting stack set...")
-					err = cfn.DeleteStackSet(stackSetName)
+					err = cfn.DeleteStackSet(stackSetName, delegatedAdmin)
 					spinner.Pop()
 					if err != nil {
 						panic(ui.Errorf(err, "Could not delete stack set '%s'", stackSetName))
@@ -81,14 +81,14 @@ var StackSetRmCmd = &cobra.Command{
 }
 
 func init() {
-	StackSetRmCmd.Flags().BoolVarP(&detach, "detach", "d", false, "once delete has started, don't wait around for it to finish")
+	RmCmd.Flags().BoolVarP(&detach, "detach", "d", false, "once delete has started, don't wait around for it to finish")
 }
 
 func getStackInstances(stackSetName string) (string, []types.StackInstanceSummary) {
 	out := strings.Builder{}
 	out.WriteString(console.Yellow("Instances (StackID/Account/Region/Status/Reason):\n"))
 	spinner.Push(fmt.Sprintf("Fetching stack set instances for '%s'", stackSetName))
-	instances, err := cfn.ListStackSetInstances(stackSetName)
+	instances, err := cfn.ListStackSetInstances(stackSetName, delegatedAdmin)
 	if err != nil {
 		panic(ui.Errorf(err, "failed to list stack set instancess"))
 	}

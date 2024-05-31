@@ -18,8 +18,8 @@ import (
 
 var all = false
 
-// StackSetLsCmd is the ls command's entrypoint
-var StackSetLsCmd = &cobra.Command{
+// LsCmd is the ls command's entrypoint
+var LsCmd = &cobra.Command{
 	Use:                   "ls <stack set>",
 	Short:                 "List a CloudFormation stack sets in a given region",
 	Long:                  "List a CloudFormation stack sets in a given region. If you specify a stack set name it will show all the stack instances and last 10 operations.",
@@ -47,7 +47,7 @@ var StackSetLsCmd = &cobra.Command{
 			for _, region := range regions {
 				spinner.Push(fmt.Sprintf("Fetching stack sets in %s", region))
 				aws.SetRegion(region)
-				stackSets, err := cfn.ListStackSets()
+				stackSets, err := cfn.ListStackSets(delegatedAdmin)
 				if err != nil {
 					panic(ui.Errorf(err, "failed to list stack sets"))
 				}
@@ -87,7 +87,7 @@ var StackSetLsCmd = &cobra.Command{
 }
 
 func init() {
-	StackSetLsCmd.Flags().BoolVarP(&all, "all", "a", false, "list stacks in all regions; if you specify a stack set name, show more details")
+	LsCmd.Flags().BoolVarP(&all, "all", "a", false, "list stacks in all regions; if you specify a stack set name, show more details")
 }
 
 // returns a string with stack set instances for a given stack set
@@ -95,7 +95,7 @@ func getStackSetInstances(stackSetName string) string {
 	out := strings.Builder{}
 	out.WriteString(console.Yellow("Instances (StackID/Account/Region/Status/Reason):\n"))
 	spinner.Push(fmt.Sprintf("Fetching stack set instances for '%s'", stackSetName))
-	instances, err := cfn.ListStackSetInstances(stackSetName)
+	instances, err := cfn.ListStackSetInstances(stackSetName, delegatedAdmin)
 	if err != nil {
 		panic(ui.Errorf(err, "failed to list stack set instancess"))
 	}
@@ -137,7 +137,7 @@ func getStackSetOperations(stackSetName string) string {
 	out := strings.Builder{}
 	out.WriteString(console.Yellow("Last 10 operations (ID/Type/Status/Created/Completed):\n"))
 	spinner.Push(fmt.Sprintf("Fetching stack set operations for '%s'", stackSetName))
-	stackSetOps, err := cfn.ListLast10StackSetOperations(stackSetName)
+	stackSetOps, err := cfn.ListLast10StackSetOperations(stackSetName, delegatedAdmin)
 	if err != nil {
 		panic(ui.Errorf(err, "failed to list stack set operations"))
 	}
@@ -166,7 +166,7 @@ func getStackSetOperations(stackSetName string) string {
 		))
 		if operation.Status == types.StackSetOperationStatusFailed {
 			spinner.Push(fmt.Sprintf("Fetching stack set operation result for operation '%s'", *operation.OperationId))
-			operationResult, err := cfn.GetStackSetOperationsResult(&stackSetName, operation.OperationId)
+			operationResult, err := cfn.GetStackSetOperationsResult(&stackSetName, operation.OperationId, delegatedAdmin)
 			if err != nil {
 				panic(ui.Errorf(err, "failed to list stack set operation results"))
 			}
@@ -184,7 +184,7 @@ func getStackSetOperations(stackSetName string) string {
 
 func displayStackSetSummaryWithInstancesAndLast10Operations(stackSetName string) {
 	spinner.Push("Fetching stack set status")
-	stackSet, err := cfn.GetStackSet(stackSetName)
+	stackSet, err := cfn.GetStackSet(stackSetName, delegatedAdmin)
 	if err != nil {
 		panic(ui.Errorf(err, "failed to list stack set '%s'", stackSetName))
 	}

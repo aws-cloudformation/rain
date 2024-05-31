@@ -1,5 +1,3 @@
-//go:build !func_test
-
 // Package aws contains functionality that wraps the AWS SDK
 package aws
 
