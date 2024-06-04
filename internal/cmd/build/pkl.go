@@ -224,6 +224,11 @@ func getPropType(defName string, propName string,
 					retval = "Listing<Int|Mapping>"
 				case "object":
 					retval = "Listing<Dynamic>"
+				case "array":
+					// This only happens in AWS::QuickSight::DataSet
+					// We could recurse here to cover all use cases if
+					// someone writes a more complicated schema
+					retval = "Listing<Dynamic>"
 				default:
 					if len(prop.Items.OneOf) > 0 {
 						err := handleOfs(defName+propName, prop.Items.OneOf, shortName, cls)
