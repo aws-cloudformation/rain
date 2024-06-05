@@ -36,6 +36,7 @@ func addCommonParams(c *cobra.Command) {
 }
 
 func init() {
-	Cmd.AddCommand(ModulePublishCmd)
-	Cmd.AddCommand(ModuleInstallCmd)
+	Cmd.AddCommand(PublishCmd)
+	Cmd.AddCommand(InstallCmd)
+	Cmd.AddCommand(BootstrapCmd)
 }

@@ -2,7 +2,6 @@ package module
 
 import (
 	"fmt"
-
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/spf13/cobra"
 )
@@ -15,9 +14,11 @@ func publish(cmd *cobra.Command, args []string) {
 
 	checkExperimental()
 
+	bootstrap()
+
 }
 
-var ModulePublishCmd = &cobra.Command{
+var PublishCmd = &cobra.Command{
 	Use:   "publish <name>",
 	Short: "Publish a directory of Rain modules to CodeArtifact",
 	Long:  ``,
@@ -26,5 +27,5 @@ var ModulePublishCmd = &cobra.Command{
 }
 
 func init() {
-	addCommonParams(ModulePublishCmd)
+	addCommonParams(PublishCmd)
 }
