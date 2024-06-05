@@ -21,6 +21,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/cmd/logs"
 	"github.com/aws-cloudformation/rain/internal/cmd/ls"
 	"github.com/aws-cloudformation/rain/internal/cmd/merge"
+	"github.com/aws-cloudformation/rain/internal/cmd/module"
 	"github.com/aws-cloudformation/rain/internal/cmd/pkg"
 	"github.com/aws-cloudformation/rain/internal/cmd/rm"
 	"github.com/aws-cloudformation/rain/internal/cmd/stackset"
@@ -100,6 +101,7 @@ func init() {
 	addCommand(templateGroup, true, true, pkg.Cmd)
 	addCommand(templateGroup, false, false, tree.Cmd)
 	addCommand(templateGroup, true, false, forecast.Cmd)
+	addCommand(templateGroup, true, false, module.Cmd)
 
 	// Other commands
 	addCommand("", true, false, consolecmd.Cmd)
