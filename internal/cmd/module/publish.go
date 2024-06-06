@@ -2,6 +2,7 @@ package module
 
 import (
 	"fmt"
+	"github.com/aws-cloudformation/rain/internal/aws/codeartifact"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/spf13/cobra"
 )
@@ -16,6 +17,18 @@ func publish(cmd *cobra.Command, args []string) {
 
 	bootstrap()
 
+	packageInfo := &codeartifact.PackageInfo{
+		Name:          args[0],
+		DirectoryPath: path,
+		Domain:        domain,
+		Repo:          repo,
+		Version:       version,
+	}
+
+	err := codeartifact.Publish(packageInfo)
+	if err != nil {
+		panic(err)
+	}
 }
 
 var PublishCmd = &cobra.Command{
@@ -28,4 +41,6 @@ var PublishCmd = &cobra.Command{
 
 func init() {
 	addCommonParams(PublishCmd)
+	// Add a version param
+	PublishCmd.Flags().StringVar(&version, "version", "", "Version of the module to publish")
 }

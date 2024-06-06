@@ -24,6 +24,7 @@ var domain string
 var repo string
 var path string
 var experimental bool
+var version string
 
 func addCommonParams(c *cobra.Command) {
 	c.Flags().StringVarP(&config.Profile, "profile", "p", "", "AWS profile name; read from the AWS CLI configuration file")

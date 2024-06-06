@@ -24,4 +24,5 @@ var InstallCmd = &cobra.Command{
 
 func init() {
 	addCommonParams(InstallCmd)
+	InstallCmd.Flags().StringVar(&version, "version", "", "Version of the module to install")
 }
