@@ -241,13 +241,15 @@ func Publish(packageInfo *PackageInfo) error {
 		return err
 	}
 	hashValue := hash.Sum(nil)
+	// Convert the hash value to a hex string
+	hashString := fmt.Sprintf("%x", hashValue)
 
 	config.Debugf("Hash value: %x", hashValue)
 
 	var newVersion string
 
 	// Reset the zipFile reader
-	//zipReader = bytes.NewReader(zipFile)
+	zipReader = bytes.NewReader(zipFile)
 
 	// If a package version was not specified, get the current
 	// version of the package from the codeartifact api,
@@ -284,6 +286,10 @@ func Publish(packageInfo *PackageInfo) error {
 				if version.Version == nil {
 					continue // Shouldn't happen
 				}
+				if newVersion == "" {
+					latestVersion = *version.Version
+					continue
+				}
 				isGreater, err := semverIsGreater(*version.Version, latestVersion)
 				if err != nil {
 					return fmt.Errorf("unable to compare versions %s and %s: %v", *version.Version, latestVersion, err)
@@ -309,6 +315,24 @@ func Publish(packageInfo *PackageInfo) error {
 	config.Debugf("About to publish new version: %s", newVersion)
 
 	// Call the codeartifact api to publish the package version
+	res, err := client.PublishPackageVersion(context.Background(),
+		&codeartifact.PublishPackageVersionInput{
+			Domain:         aws.String(packageInfo.Domain),
+			Repository:     aws.String(packageInfo.Repo),
+			Package:        aws.String(packageInfo.Name),
+			Format:         types.PackageFormatGeneric,
+			Namespace:      aws.String(DefaultNamespace),
+			PackageVersion: aws.String(newVersion),
+			AssetContent:   zipReader,
+			AssetSHA256:    aws.String(hashString),
+			AssetName:      aws.String(packageInfo.Name + ".zip"),
+		})
+
+	if err != nil {
+		return err
+	}
+
+	config.Debugf("Package version published: %+v", res)
 
 	return nil
 }
