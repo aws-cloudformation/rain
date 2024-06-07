@@ -8,9 +8,11 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact/types"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -162,12 +164,12 @@ func ZipDirectory(directoryPath string) ([]byte, error) {
 const DefaultNamespace = "default"
 const DefaultVersion = "0.1.0"
 
-// semverIsGreater checks if a version string is greater than another version string
+// SemverIsGreater checks if a version string is greater than another version string
 //
 //	The version strings are in the format "major.minor.patch"
 //	The function returns true if the first version string is greater than the second version string,
 //	and false otherwise.
-func semverIsGreater(a, b string) (bool, error) {
+func SemverIsGreater(a, b string) (bool, error) {
 	// Split the version strings into their individual components
 	aParts := strings.Split(a, ".")
 	if len(aParts) != 3 {
@@ -199,7 +201,7 @@ func semverIsGreater(a, b string) (bool, error) {
 	return false, nil
 }
 
-func incrementSemverMinorVersion(version string) (string, error) {
+func IncrementSemverMinorVersion(version string) (string, error) {
 	// Split the version string into its components
 	parts := strings.Split(version, ".")
 
@@ -219,6 +221,57 @@ func incrementSemverMinorVersion(version string) (string, error) {
 
 	// Return the new version string
 	return strings.Join(parts, "."), nil
+}
+
+// GetLatestPackageVersion gets the latest version of a package
+func GetLatestPackageVersion(packageInfo *PackageInfo) (string, error) {
+	var latestVersion string
+	client := getClient()
+
+	// Call the codeartifact api to get the current version of the package
+	res, err := client.ListPackageVersions(context.Background(),
+		&codeartifact.ListPackageVersionsInput{
+			Domain:     &packageInfo.Domain,
+			Repository: &packageInfo.Repo,
+			Package:    &packageInfo.Name,
+			Format:     types.PackageFormatGeneric,
+			Namespace:  aws.String(DefaultNamespace),
+		})
+	var ae smithy.APIError
+	if err != nil && errors.As(err, &ae) {
+		config.Debugf("code: %s, message: %s, fault: %s", ae.ErrorCode(), ae.ErrorMessage(), ae.ErrorFault().String())
+
+		if ae.ErrorCode() == "ResourceNotFoundException" {
+			return "", nil
+		}
+	} else if err != nil {
+		return "", err
+	}
+
+	// Get the current version of the package
+	config.Debugf("Package versions: %+v", res.Versions)
+
+	// Iterate through the versions and find the latest version
+	for _, version := range res.Versions {
+		if version.Version == nil {
+			continue // Shouldn't happen
+		}
+		if latestVersion == "" {
+			latestVersion = *version.Version
+			continue
+		}
+		isGreater, err := SemverIsGreater(*version.Version, latestVersion)
+		if err != nil {
+			return "", fmt.Errorf("unable to compare versions %s and %s: %v", *version.Version, latestVersion, err)
+		}
+		if isGreater {
+			latestVersion = *version.Version
+		}
+	}
+
+	config.Debugf("Latest version: %s", latestVersion)
+
+	return latestVersion, nil
 }
 
 // Publish publishes a package
@@ -241,78 +294,42 @@ func Publish(packageInfo *PackageInfo) error {
 		return err
 	}
 	hashValue := hash.Sum(nil)
+
 	// Convert the hash value to a hex string
 	hashString := fmt.Sprintf("%x", hashValue)
 
-	config.Debugf("Hash value: %x", hashValue)
+	config.Debugf("Hash value: %x", hashString)
 
 	var newVersion string
 
 	// Reset the zipFile reader
 	zipReader = bytes.NewReader(zipFile)
 
-	// If a package version was not specified, get the current
-	// version of the package from the codeartifact api,
-	// and increment the build number by 1
-	if packageInfo.Version == "" {
-		// Call the codeartifact api to get the current version of the package
-		res, err := client.ListPackageVersions(context.Background(),
-			&codeartifact.ListPackageVersionsInput{
-				Domain:     &packageInfo.Domain,
-				Repository: &packageInfo.Repo,
-				Package:    &packageInfo.Name,
-				Format:     types.PackageFormatGeneric,
-				Namespace:  aws.String(DefaultNamespace),
-			})
-		var ae smithy.APIError
-		if err != nil && errors.As(err, &ae) {
-			config.Debugf("code: %s, message: %s, fault: %s", ae.ErrorCode(), ae.ErrorMessage(), ae.ErrorFault().String())
+	if packageInfo.Version != "" {
+		newVersion = packageInfo.Version
 
-			if ae.ErrorCode() == "ResourceNotFoundException" {
-				// If the package does not exist, create it
-				newVersion = DefaultVersion
-			}
-		} else if err != nil {
-			return err
+		// TODO: Confirm replacing the version if it already exists or is lower than the latest
+
+	} else {
+		latestVersion, err := GetLatestPackageVersion(packageInfo)
+		if err != nil {
+			return fmt.Errorf("failed to get latest package version: %v", err)
 		}
-
-		if newVersion == "" {
-			// Get the current version of the package
-			config.Debugf("Package versions: %+v", res.Versions)
-
-			// Iterate through the versions and find the latest version
-			var latestVersion string
-			for _, version := range res.Versions {
-				if version.Version == nil {
-					continue // Shouldn't happen
-				}
-				if newVersion == "" {
-					latestVersion = *version.Version
-					continue
-				}
-				isGreater, err := semverIsGreater(*version.Version, latestVersion)
-				if err != nil {
-					return fmt.Errorf("unable to compare versions %s and %s: %v", *version.Version, latestVersion, err)
-				}
-				if isGreater {
-					latestVersion = *version.Version
-				}
-			}
-
-			config.Debugf("Latest version: %s", latestVersion)
-
+		if latestVersion == "" {
+			newVersion = DefaultVersion
+		} else {
 			// Increment the minor version number by 1
 			// For example, version 1.2.3 becomes 1.3.0
-			newVersion, err = incrementSemverMinorVersion(latestVersion)
+			newVersion, err = IncrementSemverMinorVersion(latestVersion)
 			if err != nil {
 				return fmt.Errorf("unable to increment version %s: %v", latestVersion, err)
 			}
 		}
-	} else {
-		newVersion = packageInfo.Version
 	}
 
 	config.Debugf("About to publish new version: %s", newVersion)
+
+	packageInfo.Version = newVersion
 
 	// Call the codeartifact api to publish the package version
 	res, err := client.PublishPackageVersion(context.Background(),
@@ -337,7 +354,136 @@ func Publish(packageInfo *PackageInfo) error {
 	return nil
 }
 
-//
-//func Install() error {
-//
-//}
+// Unzip unzips a zip file to a destination directory
+func Unzip(f *os.File, dest string) error {
+	// Open a file reader
+	r, err := zip.OpenReader(f.Name())
+	if err != nil {
+		return err
+	}
+	defer func(r *zip.ReadCloser) {
+		err := r.Close()
+		if err != nil {
+			config.Debugf("Error closing zip reader: %s", err)
+		}
+	}(r)
+
+	// Iterate through the files in the archive,
+	// extracting each to the output directory
+	for _, f := range r.File {
+		rc, err := f.Open()
+		if err != nil {
+			return err
+		}
+		defer func(rc io.ReadCloser) {
+			err := rc.Close()
+			if err != nil {
+				config.Debugf("Error closing file: %s", err)
+			}
+		}(rc)
+
+		fpath := filepath.Join(dest, f.Name)
+		if f.FileInfo().IsDir() {
+			mode := fs.ModePerm
+			err := os.MkdirAll(fpath, mode)
+			if err != nil {
+				return err
+			}
+			config.Debugf("Created directory: %s with mode %x", fpath, mode)
+		} else {
+			var fdir string
+			if lastIndex := strings.LastIndex(fpath, string(os.PathSeparator)); lastIndex > -1 {
+				fdir = fpath[:lastIndex]
+				mode := fs.ModePerm
+				err := os.MkdirAll(fdir, mode)
+				if err != nil {
+					return err
+				}
+				config.Debugf("Created subdirectory: %s with mode %x", fdir, mode)
+			}
+
+			f, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+			if err != nil {
+				return err
+			}
+			defer func(f *os.File) {
+				err := f.Close()
+				if err != nil {
+					config.Debugf("Error closing file: %s", err)
+				}
+			}(f)
+
+			_, err = io.Copy(f, rc)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// GetAssetHashForPackage returns the hash of the asset for a package
+func GetAssetHashForPackage(packageInfo *PackageInfo) (string, error) {
+
+	client := getClient()
+
+	// Call the api to describe the package version, so we can verify the hash
+	assets, err := client.ListPackageVersionAssets(context.Background(),
+		&codeartifact.ListPackageVersionAssetsInput{
+			Domain:         aws.String(packageInfo.Domain),
+			Repository:     aws.String(packageInfo.Repo),
+			Package:        aws.String(packageInfo.Name),
+			Format:         types.PackageFormatGeneric,
+			Namespace:      aws.String(DefaultNamespace),
+			PackageVersion: aws.String(packageInfo.Version),
+		})
+
+	if err != nil {
+		return "", err
+	}
+
+	config.Debugf("Package version description: %+v", assets)
+
+	if len(assets.Assets) == 0 {
+		return "", fmt.Errorf("no assets found")
+	}
+
+	singleAsset := assets.Assets[0]
+	if *singleAsset.Name != packageInfo.Name+".zip" {
+		return "", fmt.Errorf("unexpected first asset name does not match: %s", *singleAsset.Name)
+	}
+
+	// Verify the hash of the asset content
+	existingHash, ok := singleAsset.Hashes["SHA-256"]
+	if !ok {
+		return "", fmt.Errorf("no SHA-256 hash found in asset")
+	}
+
+	return existingHash, nil
+}
+
+func GetAsset(packageInfo *PackageInfo) (io.Reader, error) {
+	client := getClient()
+
+	// Call the api to get the asset content
+	res, err := client.GetPackageVersionAsset(context.Background(),
+		&codeartifact.GetPackageVersionAssetInput{
+			Domain:         aws.String(packageInfo.Domain),
+			Repository:     aws.String(packageInfo.Repo),
+			Package:        aws.String(packageInfo.Name),
+			Format:         types.PackageFormatGeneric,
+			Namespace:      aws.String(DefaultNamespace),
+			PackageVersion: aws.String(packageInfo.Version),
+			Asset:          aws.String(packageInfo.Name + ".zip"),
+		})
+
+	if err != nil {
+		spinner.Pop()
+		return nil, err
+	}
+
+	config.Debugf("Package version: %+v", res)
+
+	return res.Asset, nil
+}

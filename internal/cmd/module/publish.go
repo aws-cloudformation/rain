@@ -8,8 +8,6 @@ import (
 )
 
 func publish(cmd *cobra.Command, args []string) {
-	fmt.Println("publish cmd...", args[0])
-
 	config.Debugf("module install %s, domain %s, repo %s, path %s",
 		args[0], domain, repo, path)
 
@@ -29,6 +27,9 @@ func publish(cmd *cobra.Command, args []string) {
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Printf("Successfully published %s:%s:%s@%s\n",
+		domain, repo, args[0], packageInfo.Version)
 }
 
 var PublishCmd = &cobra.Command{

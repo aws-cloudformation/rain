@@ -33,13 +33,13 @@ func TestIncrementSemverMinorVersion(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := incrementSemverMinorVersion(tc.input)
+			result, err := IncrementSemverMinorVersion(tc.input)
 			if (err != nil) != tc.wantErr {
-				t.Errorf("incrementSemverMinorVersion(%s) error = %v, wantErr %v", tc.input, err, tc.wantErr)
+				t.Errorf("IncrementSemverMinorVersion(%s) error = %v, wantErr %v", tc.input, err, tc.wantErr)
 				return
 			}
 			if result != tc.expected {
-				t.Errorf("incrementSemverMinorVersion(%s) = %s, expected %s", tc.input, result, tc.expected)
+				t.Errorf("IncrementSemverMinorVersion(%s) = %s, expected %s", tc.input, result, tc.expected)
 			}
 		})
 	}
@@ -92,13 +92,13 @@ func TestSemverIsGreater(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := semverIsGreater(tc.a, tc.b)
+			result, err := SemverIsGreater(tc.a, tc.b)
 			if (err != nil) != tc.wantErr {
-				t.Errorf("semverIsGreater(%s, %s) error = %v, wantErr %v", tc.a, tc.b, err, tc.wantErr)
+				t.Errorf("SemverIsGreater(%s, %s) error = %v, wantErr %v", tc.a, tc.b, err, tc.wantErr)
 				return
 			}
 			if result != tc.expected {
-				t.Errorf("semverIsGreater(%s, %s) = %v, expected %v", tc.a, tc.b, result, tc.expected)
+				t.Errorf("SemverIsGreater(%s, %s) = %v, expected %v", tc.a, tc.b, result, tc.expected)
 			}
 		})
 	}
