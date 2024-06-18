@@ -1377,6 +1377,244 @@ _rain_merge()
     noun_aliases=()
 }
 
+_rain_module_bootstrap()
+{
+    last_command="rain_module_bootstrap"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--debug")
+    local_nonpersistent_flags+=("--debug")
+    flags+=("--domain=")
+    two_word_flags+=("--domain")
+    local_nonpersistent_flags+=("--domain")
+    local_nonpersistent_flags+=("--domain=")
+    flags+=("--experimental")
+    flags+=("-x")
+    local_nonpersistent_flags+=("--experimental")
+    local_nonpersistent_flags+=("-x")
+    flags+=("--help")
+    flags+=("-h")
+    local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
+    flags+=("--path=")
+    two_word_flags+=("--path")
+    local_nonpersistent_flags+=("--path")
+    local_nonpersistent_flags+=("--path=")
+    flags+=("--profile=")
+    two_word_flags+=("--profile")
+    two_word_flags+=("-p")
+    local_nonpersistent_flags+=("--profile")
+    local_nonpersistent_flags+=("--profile=")
+    local_nonpersistent_flags+=("-p")
+    flags+=("--region=")
+    two_word_flags+=("--region")
+    two_word_flags+=("-r")
+    local_nonpersistent_flags+=("--region")
+    local_nonpersistent_flags+=("--region=")
+    local_nonpersistent_flags+=("-r")
+    flags+=("--repo=")
+    two_word_flags+=("--repo")
+    local_nonpersistent_flags+=("--repo")
+    local_nonpersistent_flags+=("--repo=")
+    flags+=("--no-colour")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_rain_module_help()
+{
+    last_command="rain_module_help"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--debug")
+    flags+=("--no-colour")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    has_completion_function=1
+    noun_aliases=()
+}
+
+_rain_module_install()
+{
+    last_command="rain_module_install"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--debug")
+    local_nonpersistent_flags+=("--debug")
+    flags+=("--domain=")
+    two_word_flags+=("--domain")
+    local_nonpersistent_flags+=("--domain")
+    local_nonpersistent_flags+=("--domain=")
+    flags+=("--experimental")
+    flags+=("-x")
+    local_nonpersistent_flags+=("--experimental")
+    local_nonpersistent_flags+=("-x")
+    flags+=("--help")
+    flags+=("-h")
+    local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
+    flags+=("--path=")
+    two_word_flags+=("--path")
+    local_nonpersistent_flags+=("--path")
+    local_nonpersistent_flags+=("--path=")
+    flags+=("--profile=")
+    two_word_flags+=("--profile")
+    two_word_flags+=("-p")
+    local_nonpersistent_flags+=("--profile")
+    local_nonpersistent_flags+=("--profile=")
+    local_nonpersistent_flags+=("-p")
+    flags+=("--region=")
+    two_word_flags+=("--region")
+    two_word_flags+=("-r")
+    local_nonpersistent_flags+=("--region")
+    local_nonpersistent_flags+=("--region=")
+    local_nonpersistent_flags+=("-r")
+    flags+=("--repo=")
+    two_word_flags+=("--repo")
+    local_nonpersistent_flags+=("--repo")
+    local_nonpersistent_flags+=("--repo=")
+    flags+=("--version=")
+    two_word_flags+=("--version")
+    local_nonpersistent_flags+=("--version")
+    local_nonpersistent_flags+=("--version=")
+    flags+=("--no-colour")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_rain_module_publish()
+{
+    last_command="rain_module_publish"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--debug")
+    local_nonpersistent_flags+=("--debug")
+    flags+=("--domain=")
+    two_word_flags+=("--domain")
+    local_nonpersistent_flags+=("--domain")
+    local_nonpersistent_flags+=("--domain=")
+    flags+=("--experimental")
+    flags+=("-x")
+    local_nonpersistent_flags+=("--experimental")
+    local_nonpersistent_flags+=("-x")
+    flags+=("--help")
+    flags+=("-h")
+    local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
+    flags+=("--path=")
+    two_word_flags+=("--path")
+    local_nonpersistent_flags+=("--path")
+    local_nonpersistent_flags+=("--path=")
+    flags+=("--profile=")
+    two_word_flags+=("--profile")
+    two_word_flags+=("-p")
+    local_nonpersistent_flags+=("--profile")
+    local_nonpersistent_flags+=("--profile=")
+    local_nonpersistent_flags+=("-p")
+    flags+=("--region=")
+    two_word_flags+=("--region")
+    two_word_flags+=("-r")
+    local_nonpersistent_flags+=("--region")
+    local_nonpersistent_flags+=("--region=")
+    local_nonpersistent_flags+=("-r")
+    flags+=("--repo=")
+    two_word_flags+=("--repo")
+    local_nonpersistent_flags+=("--repo")
+    local_nonpersistent_flags+=("--repo=")
+    flags+=("--version=")
+    two_word_flags+=("--version")
+    local_nonpersistent_flags+=("--version")
+    local_nonpersistent_flags+=("--version=")
+    flags+=("--no-colour")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_rain_module()
+{
+    last_command="rain_module"
+
+    command_aliases=()
+
+    commands=()
+    commands+=("bootstrap")
+    commands+=("help")
+    commands+=("install")
+    commands+=("publish")
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--help")
+    flags+=("-h")
+    local_nonpersistent_flags+=("--help")
+    local_nonpersistent_flags+=("-h")
+    flags+=("--profile=")
+    two_word_flags+=("--profile")
+    two_word_flags+=("-p")
+    local_nonpersistent_flags+=("--profile")
+    local_nonpersistent_flags+=("--profile=")
+    local_nonpersistent_flags+=("-p")
+    flags+=("--region=")
+    two_word_flags+=("--region")
+    two_word_flags+=("-r")
+    local_nonpersistent_flags+=("--region")
+    local_nonpersistent_flags+=("--region=")
+    local_nonpersistent_flags+=("-r")
+    flags+=("--debug")
+    flags+=("--no-colour")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
 _rain_pkg()
 {
     last_command="rain_pkg"
@@ -1848,6 +2086,7 @@ _rain_root_command()
         aliashash["list"]="ls"
     fi
     commands+=("merge")
+    commands+=("module")
     commands+=("pkg")
     if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("package")

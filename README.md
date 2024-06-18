@@ -27,7 +27,7 @@ cfn-lint, Guard and more:
 
 * **Combined logs for nested stacks with sensible filtering**: When you run `rain log`, you will see a combined stream of logs from the stack you specified along with any nested stack associated with it. Rain also filters out uninteresting log messages by default so you just see the errors that require attention. You can also use `rain log --chart` to see a Gantt chart that shows you how long each operation took for a given stack.
 
-* **Build new CloudFormation templates**: `rain build` generates new CloudFormation templates containing skeleton resources that you specify. This saves you having to look up which properties are available and which are required vs. optional. Build skeleton templates by specifying a resource name like `AWS::S3::Bucket`, or enable the Bedrock Claude model in your account to use generative AI with a command like `rain build -p "A VPC with 2 subnets"`. (Note that Bedrock is not free, and requires some [setup](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html)). **NEW** Use the `rain build --recommend` command to pick from a list of functional templates that will pass typical compliance checks by default. These templates are great starting points for infrastructure projects.
+* **Build new CloudFormation templates**: `rain build` generates new CloudFormation templates containing skeleton resources that you specify. This saves you having to look up which properties are available and which are required vs. optional. Build skeleton templates by specifying a resource name like `AWS::S3::Bucket`, or enable the Bedrock Claude model in your account to use generative AI with a command like `rain build --prompt "A VPC with 2 subnets"`. (Note that Bedrock is not free, and requires some [setup](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html)). **NEW** Use the `rain build --recommend` command to pick from a list of functional templates that will pass typical compliance checks by default. These templates are great starting points for infrastructure projects.
 
 * **Build policy validation files**: The `rain build` command can now send prompts to the Bedrock Cloude3 Haiku and Sonnet models, which can write Open Policy Agent (OPA) Rego files or CloudFormation Guard files, to verify the compliance of your templates
 
@@ -35,7 +35,7 @@ cfn-lint, Guard and more:
 
 * **Predict deployment failures** (EXPERIMENTAL): `rain forecast` analyzes a template and the target deployment account to predict things that might go wrong when you attempt to create, update, or delete a stack. This command speeds up development by giving you advanced notice for issues like missing permissions, resources that already exist, and a variety of other common resource-specific deployment blockers.
 
-* **Modules** (EXPERIMENTAL): `rain pkg` supports client-side module development with the `!Rain::Module` directive. Rain modules are partial templates that are inserted into the parent template, with some extra functionality added to enable extending existing resource types.
+* **Modules** (EXPERIMENTAL): `rain pkg` supports client-side module development with the `!Rain::Module` directive. Rain modules are partial templates that are inserted into the parent template, with some extra functionality added to enable extending existing resource types. This feature integrates with CodeArtifact to enable package publish and install.
 
 _Note that in order to use experimental commands, you have to add `--experimental` or `-x` as an argument._
 
@@ -68,6 +68,7 @@ Template commands:
   fmt         Format CloudFormation templates
   forecast    Predict deployment failures
   merge       Merge two or more CloudFormation templates
+  module      Interact with Rain modules in CodeArtifact
   pkg         Package local artifacts into a template
   tree        Find dependencies of Resources and Outputs in a local template
 
@@ -343,7 +344,8 @@ name to that bucket. In the template that uses the module, we specify that name
 as a property. This shows how we have extended the basic behavior of a bucket
 to add something new. 
 
-A template that uses the module:
+A template that uses the module (in this example we reference a local module, 
+but it's also possible to reference a URL):
 
 ```yaml
 Resources:
@@ -407,6 +409,13 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
 ```
+
+### Module package publishing
+
+Rain integrates with AWS CodeArtifact to enable an experience similar to npm
+publish and install. A directory that includes Rain module YAML files can be
+packaged up with `rain module publish`, and then the package can be installed
+by developers with `rain module install`.
 
 ### Gantt Chart
 
