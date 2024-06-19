@@ -35,7 +35,7 @@ cfn-lint, Guard and more:
 
 * **Predict deployment failures** (EXPERIMENTAL): `rain forecast` analyzes a template and the target deployment account to predict things that might go wrong when you attempt to create, update, or delete a stack. This command speeds up development by giving you advanced notice for issues like missing permissions, resources that already exist, and a variety of other common resource-specific deployment blockers.
 
-* **Modules** (EXPERIMENTAL): `rain pkg` supports client-side module development with the `!Rain::Module` directive. Rain modules are partial templates that are inserted into the parent template, with some extra functionality added to enable extending existing resource types.
+* **Modules** (EXPERIMENTAL): `rain pkg` supports client-side module development with the `!Rain::Module` directive. Rain modules are partial templates that are inserted into the parent template, with some extra functionality added to enable extending existing resource types. This feature integrates with CodeArtifact to enable package publish and install.
 
 _Note that in order to use experimental commands, you have to add `--experimental` or `-x` as an argument._
 
@@ -316,7 +316,8 @@ name to that bucket. In the template that uses the module, we specify that name
 as a property. This shows how we have extended the basic behavior of a bucket
 to add something new. 
 
-A template that uses the module:
+A template that uses the module (in this example we reference a local module, 
+but it's also possible to reference a URL):
 
 ```yaml
 Resources:
@@ -380,6 +381,13 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
 ```
+
+### Module package publishing
+
+Rain integrates with AWS CodeArtifact to enable an experience similar to npm
+publish and install. A directory that includes Rain module YAML files can be
+packaged up with `rain module publish`, and then the package can be installed
+by developers with `rain module install`.
 
 ### Gantt Chart
 
