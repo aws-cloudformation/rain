@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	rainaws "github.com/aws-cloudformation/rain/internal/aws"
+	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
@@ -79,25 +80,54 @@ func GetImage(imageID string) (*types.Image, error) {
 	return &res.Images[0], nil
 }
 
+var typesByArchCache map[string][]string
+
 func GetInstanceTypesForArchitecture(architecture string) ([]string, error) {
-	res, err := getClient().DescribeInstanceTypes(context.Background(),
-		&ec2.DescribeInstanceTypesInput{
+	var nextToken *string
+	var input *ec2.DescribeInstanceTypesInput
+	retval := make([]string, 0)
+
+	if cached, ok := typesByArchCache[architecture]; ok {
+		config.Debugf("GetInstanceTypesForArchitecture returning cached result for %s",
+			architecture)
+		return cached, nil
+	}
+
+	for {
+		input = &ec2.DescribeInstanceTypesInput{
 			Filters: []types.Filter{
 				{
 					Name:   aws.String("processor-info.supported-architecture"),
 					Values: []string{architecture},
 				},
 			},
-		})
+		}
 
-	if err != nil {
-		return nil, err
+		if nextToken != nil {
+			input.NextToken = nextToken
+		}
+
+		res, err := getClient().DescribeInstanceTypes(context.Background(), input)
+
+		if err != nil {
+			return nil, err
+		}
+
+		for _, instanceType := range res.InstanceTypes {
+			retval = append(retval, string(instanceType.InstanceType))
+		}
+
+		if res.NextToken != nil {
+			nextToken = res.NextToken
+		} else {
+			break
+		}
 	}
 
-	retval := make([]string, len(res.InstanceTypes))
-	for i, instanceType := range res.InstanceTypes {
-		retval[i] = string(instanceType.InstanceType)
-	}
+	config.Debugf("Instance types for architecture %s: %v", architecture, retval)
+
+	typesByArchCache[architecture] = retval
+
 	return retval, nil
 }
 
@@ -119,4 +149,8 @@ func GetDefaultVPCId() (string, error) {
 	}
 
 	return defaultVpcID, nil
+}
+
+func init() {
+	typesByArchCache = make(map[string][]string)
 }

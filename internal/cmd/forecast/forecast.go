@@ -219,10 +219,10 @@ func forecastForType(input PredictionInput) Forecast {
 	// Make sure the resource does not already exist
 	if cfn.ResourceAlreadyExists(input.typeName, input.resource,
 		input.stackExists, input.source.Node, input.dc) {
-		forecast.Add(code, false, "Already exists")
+		forecast.Add(code, false, "Resource with this name already exists")
 	} else {
 		LineNumber = input.resource.Line
-		forecast.Add(code, true, "Does not exist")
+		forecast.Add(code, true, "Resource with this name does not already exist")
 	}
 
 	spinner.Pop()

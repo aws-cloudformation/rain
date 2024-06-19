@@ -2,14 +2,15 @@ package forecast
 
 import (
 	"fmt"
+	"slices"
+	"strings"
+
 	"github.com/aws-cloudformation/rain/internal/aws/ec2"
 	"github.com/aws-cloudformation/rain/internal/aws/ssm"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
-	"slices"
-	"strings"
 )
 
 func checkKeyName(input *PredictionInput, forecast *Forecast) {
@@ -114,11 +115,16 @@ func checkInstanceType(input *PredictionInput, forecast *Forecast) {
 	spin(input.typeName, input.logicalId, "EC2 instance type exists?")
 	instanceTypeInfo, err := ec2.GetInstanceType(instanceType)
 	if err != nil {
-		forecast.Add(code, false, err.Error())
+		config.Debugf("GetInstanceType %s: %v", instanceType, err)
+		forecast.Add(code, false, fmt.Sprintf("Instance type does not exist: %s", instanceType))
+		spinner.Pop()
+		return
 	} else {
 		forecast.Add(code, true, "Instance type exists")
 	}
 	spinner.Pop()
+
+	config.Debugf("instanceTypeInfo: %+v", instanceTypeInfo)
 
 	// Make sure the instance type and AMI agree
 
@@ -138,15 +144,20 @@ func checkInstanceType(input *PredictionInput, forecast *Forecast) {
 		return
 	}
 
+	config.Debugf("Image for %s: %+v", input.logicalId, image)
+
 	instanceTypesForArch, err := ec2.GetInstanceTypesForArchitecture(string(image.Architecture))
 	if err != nil {
 		config.Debugf("failed to get instance types for architecture %s: %v", image.Architecture, err)
 		spinner.Pop()
 		return
 	}
+	config.Debugf("instanceTypesForArch: %+v", instanceTypesForArch)
+
 	code = F0009
 	if !slices.Contains(instanceTypesForArch, string(instanceTypeInfo.InstanceType)) {
-		forecast.Add(code, false, fmt.Sprintf("Instance type %s does not support AMI %s", instanceType, imageId))
+		forecast.Add(code, false,
+			fmt.Sprintf("Instance type %s does not support AMI %s", instanceType, imageId))
 	} else {
 		forecast.Add(code, true, "Instance type matches AMI")
 	}
