@@ -35,7 +35,11 @@
     },
     "ExecutionRoleArn": {
       "description": "Lambda Execution role used to run your canaries",
-      "type": "string"
+      "type": "string",
+      "relationshipRef": {
+        "typeName": "AWS::IAM::Role",
+        "propertyPath": "/properties/Arn"
+      }
     },
     "RuntimeVersion": {
       "description": "Runtime version of Synthetics Library",
@@ -98,7 +102,11 @@
       "additionalProperties": false,
       "properties": {
         "S3Bucket": {
-          "type": "string"
+          "type": "string",
+          "relationshipRef": {
+            "typeName": "AWS::S3::Bucket",
+            "propertyPath": "/properties/BucketName"
+          }
         },
         "S3Key": {
           "type": "string"
@@ -161,18 +169,40 @@
       "additionalProperties": false,
       "properties": {
         "VpcId": {
-          "type": "string"
+          "type": "string",
+          "relationshipRef": {
+            "typeName": "AWS::EC2::VPC",
+            "propertyPath": "/properties/VpcId"
+          }
         },
         "SubnetIds": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "relationshipRef": {
+              "typeName": "AWS::EC2::Subnet",
+              "propertyPath": "/properties/SubnetId"
+            }
           }
         },
         "SecurityGroupIds": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "anyOf": [
+              {
+                "relationshipRef": {
+                  "typeName": "AWS::EC2::SecurityGroup",
+                  "propertyPath": "/properties/GroupId"
+                }
+              },
+              {
+                "relationshipRef": {
+                  "typeName": "AWS::EC2::VPC",
+                  "propertyPath": "/properties/DefaultSecurityGroup"
+                }
+              }
+            ]
           }
         }
       },

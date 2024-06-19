@@ -2,6 +2,45 @@
   "typeName": "AWS::RolesAnywhere::Profile",
   "description": "Definition of AWS::RolesAnywhere::Profile Resource Type",
   "definitions": {
+    "AttributeMapping": {
+      "type": "object",
+      "properties": {
+        "MappingRules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MappingRule"
+          }
+        },
+        "CertificateField": {
+          "$ref": "#/definitions/CertificateField"
+        }
+      },
+      "required": [
+        "CertificateField",
+        "MappingRules"
+      ],
+      "additionalProperties": false
+    },
+    "MappingRule": {
+      "type": "object",
+      "properties": {
+        "Specifier": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "Specifier"
+      ],
+      "additionalProperties": false
+    },
+    "CertificateField": {
+      "type": "string",
+      "enum": [
+        "x509Subject",
+        "x509Issuer",
+        "x509SAN"
+      ]
+    },
     "Tag": {
       "type": "object",
       "properties": {
@@ -69,6 +108,12 @@
       },
       "maxItems": 200,
       "minItems": 0
+    },
+    "AttributeMappings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/AttributeMapping"
+      }
     }
   },
   "readOnlyProperties": [
@@ -90,7 +135,9 @@
         "iam:PassRole",
         "rolesanywhere:CreateProfile",
         "rolesanywhere:TagResource",
-        "rolesanywhere:ListTagsForResource"
+        "rolesanywhere:ListTagsForResource",
+        "rolesanywhere:PutAttributeMapping",
+        "rolesanywhere:DeleteAttributeMapping"
       ]
     },
     "read": {
@@ -104,12 +151,15 @@
         "iam:GetRole",
         "iam:GetPolicy",
         "iam:PassRole",
+        "rolesanywhere:GetProfile",
         "rolesanywhere:UpdateProfile",
         "rolesanywhere:EnableProfile",
         "rolesanywhere:DisableProfile",
         "rolesanywhere:TagResource",
         "rolesanywhere:UntagResource",
-        "rolesanywhere:ListTagsForResource"
+        "rolesanywhere:ListTagsForResource",
+        "rolesanywhere:PutAttributeMapping",
+        "rolesanywhere:DeleteAttributeMapping"
       ]
     },
     "delete": {

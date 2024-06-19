@@ -221,6 +221,24 @@
       ],
       "additionalProperties": false
     },
+    "GuardrailConfiguration": {
+      "type": "object",
+      "description": "Configuration for a guardrail.",
+      "properties": {
+        "GuardrailIdentifier": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^(([a-z0-9]+)|(arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:guardrail/[a-z0-9]+))$",
+          "description": "Identifier for the guardrail, could be the id or the arn"
+        },
+        "GuardrailVersion": {
+          "type": "string",
+          "pattern": "^(([0-9]{1,8})|(DRAFT))$",
+          "description": "Version of the guardrail"
+        }
+      },
+      "additionalProperties": false
+    },
     "InferenceConfiguration": {
       "type": "object",
       "description": "Configuration for inference in prompt configuration",
@@ -507,6 +525,9 @@
       "pattern": "^arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:(([0-9]{12}:custom-model/[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}(([:][a-z0-9-]{1,63}){0,2})?/[a-z0-9]{12})|(:foundation-model/([a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.]?[a-z0-9-]{1,63})([:][a-z0-9-]{1,63}){0,2})))|(([a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.]?[a-z0-9-]{1,63})([:][a-z0-9-]{1,63}){0,2}))|(([0-9a-zA-Z][_-]?)+)$",
       "description": "ARN or name of a Bedrock model."
     },
+    "GuardrailConfiguration": {
+      "$ref": "#/definitions/GuardrailConfiguration"
+    },
     "IdleSessionTTLInSeconds": {
       "type": "number",
       "maximum": 3600,
@@ -594,6 +615,9 @@
         "bedrock:ListAgentActionGroups",
         "bedrock:TagResource",
         "bedrock:ListTagsForResource",
+        "bedrock:CreateGuardrail",
+        "bedrock:CreateGuardrailVersion",
+        "bedrock:GetGuardrail",
         "iam:PassRole"
       ]
     },
@@ -604,7 +628,9 @@
         "bedrock:ListAgentActionGroups",
         "bedrock:GetAgentKnowledgeBase",
         "bedrock:ListAgentKnowledgeBases",
-        "bedrock:ListTagsForResource"
+        "bedrock:ListTagsForResource",
+        "bedrock:GetGuardrail",
+        "kms:Decrypt"
       ]
     },
     "update": {
@@ -625,18 +651,24 @@
         "bedrock:TagResource",
         "bedrock:UntagResource",
         "bedrock:ListTagsForResource",
+        "bedrock:UpdateGuardrail",
+        "bedrock:GetGuardrail",
+        "kms:Decrypt",
         "iam:PassRole"
       ]
     },
     "delete": {
       "permissions": [
         "bedrock:GetAgent",
-        "bedrock:DeleteAgent"
+        "bedrock:DeleteAgent",
+        "bedrock:DeleteGuardrail",
+        "bedrock:GetGuardrail"
       ]
     },
     "list": {
       "permissions": [
-        "bedrock:ListAgents"
+        "bedrock:ListAgents",
+        "bedrock:ListGuardrails"
       ]
     }
   },
