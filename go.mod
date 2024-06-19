@@ -7,7 +7,7 @@ toolchain go1.22.4
 require (
 	//github.com/ake-persson/mapslice-json v0.0.0-20210720081907-22c8edf57807
 	github.com/appscode/jsonpatch v1.0.1
-	github.com/aws/aws-sdk-go-v2 v1.27.1
+	github.com/aws/aws-sdk-go-v2 v1.29.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.17
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.17
 	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.9.1
@@ -32,7 +32,7 @@ require (
 	github.com/apple/pkl-go v0.6.1-0.20240531164128-56cbddc609af
 	github.com/aws/aws-sdk-go-v2/service/acm v1.26.1
 	github.com/aws/aws-sdk-go-v2/service/codeartifact v1.27.5
-	github.com/aws/aws-sdk-go-v2/service/kms v1.32.2
+	github.com/aws/aws-sdk-go-v2/service/kms v1.34.0
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.38.2
 	github.com/aws/aws-sdk-go-v2/service/rds v1.79.5
 	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.21.9
@@ -58,8 +58,8 @@ require (
 require (
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.2 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.4 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.8 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.8 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.11 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.11 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/cloudcontrol v1.18.9
 	github.com/aws/aws-sdk-go-v2/service/iam v1.32.5
