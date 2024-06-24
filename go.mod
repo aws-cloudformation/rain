@@ -31,7 +31,7 @@ require (
 require (
 	github.com/apple/pkl-go v0.7.0
 	github.com/aws/aws-sdk-go-v2/service/acm v1.27.1
-	github.com/aws/aws-sdk-go-v2/service/codeartifact v1.28.1
+	github.com/aws/aws-sdk-go-v2/service/codeartifact v1.29.0
 	github.com/aws/aws-sdk-go-v2/service/kms v1.34.1
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.39.1
 	github.com/aws/aws-sdk-go-v2/service/rds v1.80.1
