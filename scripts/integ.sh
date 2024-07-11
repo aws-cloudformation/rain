@@ -34,3 +34,9 @@ set -eoux pipefail
 # Make sure build recommendations work
 ./internal/cmd/build/tmpl/scripts/validate.sh
 
+# Make sure pkl generation works
+./rain fmt test/templates/success.template --pkl
+./rain fmt test/templates/success.template --pkl --pkl-basic
+./rain fmt test/templates/condition-stringlike.yaml --pkl > test/pkl/condition-stringlike.pkl
+pkl eval --project-dir test/pkl test/pkl/condition-stringlike.pkl -f yaml
+

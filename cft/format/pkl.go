@@ -238,7 +238,11 @@ func writeMap(sb *strings.Builder, n *yaml.Node, indent string, basic bool) erro
 	for i := 0; i < len(n.Content); i += 2 {
 		name := n.Content[i].Value
 		val := n.Content[i+1]
-		if basic {
+		hasSpecialChars := false
+		if strings.Contains(name, ":") || strings.Contains(name, "/") {
+			hasSpecialChars = true
+		}
+		if basic || hasSpecialChars {
 			w(sb, "%s[\"%s\"]", indent, name)
 			if val.Kind == yaml.ScalarNode {
 				sb.WriteString(" = ")

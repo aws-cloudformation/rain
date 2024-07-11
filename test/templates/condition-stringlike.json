@@ -1,0 +1,47 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Metadata": {
+    },
+    "Resources": {
+
+        "TempRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "RoleName": "TempRole"
+            },
+            "Metadata": {
+            }
+        },
+        "TempManagedPolicy": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "Roles": [
+                    {
+                        "Ref": "TempRole"
+                    }
+                ],
+                "ManagedPolicyName": "TempManagedPolicy",
+                "PolicyDocument": {
+                    "Statement": [
+                        {
+                            "Action": [
+                                "secretsmanager:*"
+                            ],
+                            "Condition": {
+                                "StringLike": {
+                                    "aws:ResourceTag/owners": "*attributevalue*"
+                                }
+                            },
+                            "Effect": "Allow",
+                            "Resource": "*",
+                            "Sid": "AllowOwnersFullAccess"
+                        }
+                    ],
+                    "Version": "2012-10-17"
+                }
+            },
+            "Metadata": {
+            }
+        }
+    }
+}

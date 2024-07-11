@@ -1,0 +1,47 @@
+amends "@cfn/template.pkl"
+import "@cfn/cloudformation.pkl" as cfn
+import "@cfn/aws/iam/role.pkl"
+import "@cfn/aws/iam/managedpolicy.pkl"
+
+AWSTemplateFormatVersion = "2010-09-09"
+
+Metadata {
+}
+
+Resources {
+    ["TempRole"] = new role.Role {
+        Type = "AWS::IAM::Role"
+        Metadata {
+        }
+        RoleName = "TempRole"
+    }
+
+    ["TempManagedPolicy"] = new managedpolicy.ManagedPolicy {
+        Type = "AWS::IAM::ManagedPolicy"
+        Metadata {
+        }
+        Roles {
+            cfn.Ref("TempRole")
+        }
+        ManagedPolicyName = "TempManagedPolicy"
+        PolicyDocument {
+            Statement {
+                     new {
+                        Action {
+                                "secretsmanager:*"
+                            }
+                        Condition {
+                                StringLike {
+                                        ["aws:ResourceTag/owners"] = "*attributevalue*"
+                                    }
+                            }
+                        Effect = "Allow"
+                        Resource = "*"
+                        Sid = "AllowOwnersFullAccess"
+                    }
+                }
+            Version = "2012-10-17"
+        }
+    }
+
+}
