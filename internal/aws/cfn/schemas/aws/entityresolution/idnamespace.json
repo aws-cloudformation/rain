@@ -9,6 +9,12 @@
       "minLength": 1,
       "maxLength": 255
     },
+    "AttributeName": {
+      "type": "string",
+      "pattern": "^[a-zA-Z_0-9- \\t]*$",
+      "minLength": 0,
+      "maxLength": 255
+    },
     "IdNamespaceInputSource": {
       "type": "object",
       "properties": {
@@ -31,8 +37,12 @@
         "IdMappingType": {
           "type": "string",
           "enum": [
-            "PROVIDER"
+            "PROVIDER",
+            "RULE_BASED"
           ]
+        },
+        "RuleBasedProperties": {
+          "$ref": "#/definitions/NamespaceRuleBasedProperties"
         },
         "ProviderProperties": {
           "$ref": "#/definitions/NamespaceProviderProperties"
@@ -40,6 +50,81 @@
       },
       "required": [
         "IdMappingType"
+      ],
+      "additionalProperties": false
+    },
+    "NamespaceRuleBasedProperties": {
+      "type": "object",
+      "properties": {
+        "Rules": {
+          "type": "array",
+          "insertionOrder": false,
+          "minItems": 1,
+          "maxItems": 25,
+          "items": {
+            "$ref": "#/definitions/Rule"
+          }
+        },
+        "RuleDefinitionTypes": {
+          "type": "array",
+          "insertionOrder": false,
+          "items": {
+            "$ref": "#/definitions/RuleDefinitionType"
+          }
+        },
+        "AttributeMatchingModel": {
+          "type": "string",
+          "enum": [
+            "ONE_TO_ONE",
+            "MANY_TO_MANY"
+          ]
+        },
+        "RecordMatchingModels": {
+          "type": "array",
+          "insertionOrder": false,
+          "items": {
+            "$ref": "#/definitions/RecordMatchingModel"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "RecordMatchingModel": {
+      "type": "string",
+      "enum": [
+        "ONE_SOURCE_TO_ONE_TARGET",
+        "MANY_SOURCE_TO_ONE_TARGET"
+      ]
+    },
+    "RuleDefinitionType": {
+      "type": "string",
+      "enum": [
+        "SOURCE",
+        "TARGET"
+      ]
+    },
+    "Rule": {
+      "type": "object",
+      "properties": {
+        "RuleName": {
+          "type": "string",
+          "pattern": "^[a-zA-Z_0-9- \\t]*$",
+          "minLength": 0,
+          "maxLength": 255
+        },
+        "MatchingKeys": {
+          "type": "array",
+          "insertionOrder": false,
+          "minItems": 1,
+          "maxItems": 25,
+          "items": {
+            "$ref": "#/definitions/AttributeName"
+          }
+        }
+      },
+      "required": [
+        "RuleName",
+        "MatchingKeys"
       ],
       "additionalProperties": false
     },
