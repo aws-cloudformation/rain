@@ -1,93 +1,52 @@
 {
-  "tagging": {
-    "taggable": true,
-    "tagOnCreate": true,
-    "tagUpdatable": true,
-    "tagProperty": "/properties/Tags",
-    "cloudFormationSystemTags": true
-  },
   "typeName": "AWS::StepFunctions::StateMachine",
-  "readOnlyProperties": [
-    "/properties/Arn",
-    "/properties/Name",
-    "/properties/StateMachineRevisionId"
-  ],
   "description": "Resource schema for StateMachine",
-  "createOnlyProperties": [
-    "/properties/StateMachineName",
-    "/properties/StateMachineType"
-  ],
-  "primaryIdentifier": [
-    "/properties/Arn"
-  ],
-  "required": [
-    "RoleArn"
-  ],
   "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-stepfunctions.git",
-  "handlers": {
-    "read": {
-      "permissions": [
-        "states:DescribeStateMachine",
-        "states:ListTagsForResource"
-      ]
-    },
-    "create": {
-      "permissions": [
-        "states:CreateStateMachine",
-        "states:DescribeStateMachine",
-        "states:TagResource",
-        "iam:PassRole",
-        "s3:GetObject"
-      ]
-    },
-    "update": {
-      "permissions": [
-        "states:UpdateStateMachine",
-        "states:TagResource",
-        "states:UntagResource",
-        "states:ListTagsForResource",
-        "iam:PassRole"
-      ]
-    },
-    "list": {
-      "permissions": [
-        "states:ListStateMachines"
-      ]
-    },
-    "delete": {
-      "permissions": [
-        "states:DeleteStateMachine",
-        "states:DescribeStateMachine"
-      ]
-    }
-  },
-  "writeOnlyProperties": [
-    "/properties/Definition",
-    "/properties/DefinitionS3Location",
-    "/properties/DefinitionSubstitutions"
-  ],
-  "additionalIdentifiers": [
-    [
-      "/properties/StateMachineName"
-    ]
-  ],
-  "additionalProperties": false,
   "definitions": {
-    "LoggingConfiguration": {
-      "additionalProperties": false,
+    "TagsEntry": {
       "type": "object",
       "properties": {
-        "IncludeExecutionData": {
-          "type": "boolean"
+        "Key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
         },
-        "Destinations": {
-          "minItems": 1,
-          "insertionOrder": false,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/LogDestination"
-          }
-        },
+        "Value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "Key",
+        "Value"
+      ]
+    },
+    "CloudWatchLogsLogGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "LogGroupArn": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      }
+    },
+    "LogDestination": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "CloudWatchLogsLogGroup": {
+          "$ref": "#/definitions/CloudWatchLogsLogGroup"
+        }
+      }
+    },
+    "LoggingConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
         "Level": {
           "type": "string",
           "enum": [
@@ -96,10 +55,77 @@
             "FATAL",
             "OFF"
           ]
+        },
+        "IncludeExecutionData": {
+          "type": "boolean"
+        },
+        "Destinations": {
+          "type": "array",
+          "minItems": 1,
+          "insertionOrder": false,
+          "items": {
+            "$ref": "#/definitions/LogDestination"
+          }
         }
       }
     },
+    "TracingConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "EncryptionConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "KmsKeyId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "KmsDataKeyReusePeriodSeconds": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 900
+        },
+        "Type": {
+          "type": "string",
+          "enum": [
+            "CUSTOMER_MANAGED_KMS_KEY",
+            "AWS_OWNED_KEY"
+          ]
+        }
+      },
+      "required": [
+        "Type"
+      ]
+    },
+    "S3Location": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Bucket": {
+          "type": "string"
+        },
+        "Key": {
+          "type": "string"
+        },
+        "Version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "Bucket",
+        "Key"
+      ]
+    },
     "DefinitionSubstitutions": {
+      "type": "object",
+      "additionalProperties": false,
       "patternProperties": {
         ".*": {
           "anyOf": [
@@ -115,98 +141,37 @@
           ]
         }
       },
-      "additionalProperties": false,
-      "type": "object",
       "minProperties": 1
     },
     "Definition": {
       "type": "object",
       "minProperties": 1
-    },
-    "LogDestination": {
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "CloudWatchLogsLogGroup": {
-          "$ref": "#/definitions/CloudWatchLogsLogGroup"
-        }
-      }
-    },
-    "TagsEntry": {
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "Value": {
-          "minLength": 1,
-          "type": "string",
-          "maxLength": 256
-        },
-        "Key": {
-          "minLength": 1,
-          "type": "string",
-          "maxLength": 128
-        }
-      },
-      "required": [
-        "Key",
-        "Value"
-      ]
-    },
-    "CloudWatchLogsLogGroup": {
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "LogGroupArn": {
-          "minLength": 1,
-          "type": "string",
-          "maxLength": 256
-        }
-      }
-    },
-    "S3Location": {
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "Bucket": {
-          "type": "string"
-        },
-        "Version": {
-          "type": "string"
-        },
-        "Key": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "Bucket",
-        "Key"
-      ]
-    },
-    "TracingConfiguration": {
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "Enabled": {
-          "type": "boolean"
-        }
-      }
     }
   },
   "properties": {
-    "DefinitionSubstitutions": {
-      "$ref": "#/definitions/DefinitionSubstitutions"
-    },
-    "Definition": {
-      "$ref": "#/definitions/Definition"
-    },
-    "RoleArn": {
-      "minLength": 1,
+    "Arn": {
       "type": "string",
-      "maxLength": 256
+      "minLength": 1,
+      "maxLength": 2048
     },
     "Name": {
-      "minLength": 1,
       "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "DefinitionString": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1048576
+    },
+    "RoleArn": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "StateMachineName": {
+      "type": "string",
+      "minLength": 1,
       "maxLength": 80
     },
     "StateMachineType": {
@@ -216,42 +181,111 @@
         "EXPRESS"
       ]
     },
-    "TracingConfiguration": {
-      "$ref": "#/definitions/TracingConfiguration"
-    },
-    "DefinitionString": {
-      "minLength": 1,
+    "StateMachineRevisionId": {
       "type": "string",
-      "maxLength": 1048576
+      "minLength": 1,
+      "maxLength": 256
     },
     "LoggingConfiguration": {
       "$ref": "#/definitions/LoggingConfiguration"
     },
-    "StateMachineRevisionId": {
-      "minLength": 1,
-      "type": "string",
-      "maxLength": 256
+    "TracingConfiguration": {
+      "$ref": "#/definitions/TracingConfiguration"
+    },
+    "EncryptionConfiguration": {
+      "$ref": "#/definitions/EncryptionConfiguration"
     },
     "DefinitionS3Location": {
       "$ref": "#/definitions/S3Location"
     },
-    "Arn": {
-      "minLength": 1,
-      "type": "string",
-      "maxLength": 2048
+    "DefinitionSubstitutions": {
+      "$ref": "#/definitions/DefinitionSubstitutions"
     },
-    "StateMachineName": {
-      "minLength": 1,
-      "type": "string",
-      "maxLength": 80
+    "Definition": {
+      "$ref": "#/definitions/Definition"
     },
     "Tags": {
+      "type": "array",
       "uniqueItems": false,
       "insertionOrder": false,
-      "type": "array",
       "items": {
         "$ref": "#/definitions/TagsEntry"
       }
+    }
+  },
+  "required": [
+    "RoleArn"
+  ],
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags"
+  },
+  "additionalProperties": false,
+  "readOnlyProperties": [
+    "/properties/Arn",
+    "/properties/Name",
+    "/properties/StateMachineRevisionId"
+  ],
+  "createOnlyProperties": [
+    "/properties/StateMachineName",
+    "/properties/StateMachineType"
+  ],
+  "writeOnlyProperties": [
+    "/properties/Definition",
+    "/properties/DefinitionS3Location",
+    "/properties/DefinitionSubstitutions"
+  ],
+  "primaryIdentifier": [
+    "/properties/Arn"
+  ],
+  "additionalIdentifiers": [
+    [
+      "/properties/StateMachineName"
+    ]
+  ],
+  "handlers": {
+    "create": {
+      "permissions": [
+        "states:CreateStateMachine",
+        "states:DescribeStateMachine",
+        "states:TagResource",
+        "iam:PassRole",
+        "s3:GetObject",
+        "kms:DescribeKey",
+        "kms:GenerateDataKey"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "states:DescribeStateMachine",
+        "states:ListTagsForResource",
+        "kms:Decrypt"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "states:UpdateStateMachine",
+        "states:TagResource",
+        "states:UntagResource",
+        "states:ListTagsForResource",
+        "iam:PassRole",
+        "kms:DescribeKey",
+        "kms:GenerateDataKey"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "states:DeleteStateMachine",
+        "states:DescribeStateMachine"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "states:ListStateMachines"
+      ]
     }
   }
 }
