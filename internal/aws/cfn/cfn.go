@@ -272,7 +272,16 @@ func GetStackEvents(stackName string) ([]types.StackEvent, error) {
 }
 
 // CreateChangeSet creates a changeset
-func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[string]string, stackName string, roleArn string) (string, error) {
+//
+// changeSetName is optional, if "" is passed in, the name will be the stack name plus a timestamp
+func CreateChangeSet(
+	template cft.Template,
+	params []types.Parameter,
+	tags map[string]string,
+	stackName string,
+	changeSetName string,
+	roleArn string) (string, error) {
+
 	templateBody, err := checkTemplate(template)
 	if err != nil {
 		return "", err
@@ -289,7 +298,9 @@ func CreateChangeSet(template cft.Template, params []types.Parameter, tags map[s
 		changeSetType = "UPDATE"
 	}
 
-	changeSetName := stackName + "-" + fmt.Sprint(time.Now().Unix())
+	if changeSetName == "" {
+		changeSetName = stackName + "-" + fmt.Sprint(time.Now().Unix())
+	}
 
 	input := &cloudformation.CreateChangeSetInput{
 		ChangeSetType:       types.ChangeSetType(changeSetType),

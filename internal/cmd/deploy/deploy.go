@@ -67,9 +67,9 @@ YAML:
     TagKey: TagValue
     ...
 
-To create a changeset:
+To create a changeset (with optional stackName and changeSetName):
 
-rain deploy --no-exec <template> [stackName]
+rain deploy --no-exec <template> [stackName] [changeSetName]
 
 To execute a changeset:
 
@@ -77,7 +77,7 @@ rain deploy --changeset <stackName> <changeSetName>
 
 To list and delete changesets, use the ls and rm commands.
 `,
-	Args:                  cobra.RangeArgs(1, 2),
+	Args:                  cobra.RangeArgs(1, 3),
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 
@@ -105,6 +105,11 @@ To list and delete changesets, use the ls and rm commands.
 				suppliedStackName = args[1]
 			} else {
 				suppliedStackName = ""
+			}
+
+			// Optionally name the change set
+			if len(args) == 3 {
+				changeSetName = args[2]
 			}
 
 			// Package template
@@ -135,7 +140,7 @@ To list and delete changesets, use the ls and rm commands.
 			// Create change set
 			spinner.Push("Creating change set")
 			var createErr error
-			changeSetName, createErr = cfn.CreateChangeSet(template, dc.Params, dc.Tags, stackName, roleArn)
+			changeSetName, createErr = cfn.CreateChangeSet(template, dc.Params, dc.Tags, stackName, changeSetName, roleArn)
 			if createErr != nil {
 				if changeSetHasNoChanges(createErr.Error()) {
 					spinner.Pop()
