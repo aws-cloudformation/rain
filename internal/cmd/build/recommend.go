@@ -120,6 +120,11 @@ func recommend(args []string) {
 				{Name: "autoscaling", Text: "A VPC, AutoScaling Group, EC2 Launch Template, and ALB for a website"},
 			},
 		},
+		{Name: "eventbridge", Text: "Event Bridge",
+			Sub: []reco{
+				{Name: "central-logs", Text: "A centralized event bus and log group for collecting logs from org member accounts"},
+			},
+		},
 	}
 
 	showPrompt(selections, "")

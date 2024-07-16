@@ -23,6 +23,8 @@ echo "Building ecs cluster..."
 ./rain build --recommend ecs cluster -o ${OUT}/ecs/cluster.yaml
 echo "Building VPC..."
 ./rain build --recommend vpc vpc -o ${OUT}/vpc/vpc.yaml
+echo "Building Event Bridge..."
+./rain build --recommend eventbridge central-logs -o ${OUT}/eventbridge/central-logs.yaml
 
 echo "Linting..."
 cfn-lint ${FILES}
@@ -35,5 +37,6 @@ cfn-guard validate --data ${OUT}/bucket --rules ${RULES} --show-summary fail
 cfn-guard validate --data ${OUT}/pipeline --rules ${RULES} --show-summary fail
 cfn-guard validate --data ${OUT}/ecs --rules ${RULES} --show-summary fail
 cfn-guard validate --data ${OUT}/vpc --rules ${RULES} --show-summary fail
+cfn-guard validate --data ${OUT}/eventbridge --rules ${RULES} --show-summary fail
 
 echo "Success"
