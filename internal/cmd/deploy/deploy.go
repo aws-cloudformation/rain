@@ -101,10 +101,8 @@ To list and delete changesets, use the ls and rm commands.
 
 			var suppliedStackName string
 
-			if len(args) == 2 {
+			if len(args) >= 2 {
 				suppliedStackName = args[1]
-			} else {
-				suppliedStackName = ""
 			}
 
 			// Optionally name the change set
