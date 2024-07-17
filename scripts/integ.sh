@@ -18,6 +18,17 @@ set -eoux pipefail
 
 ./rain rm success-test -y
 
+# Unnamed stack
+./rain deploy test/templates/success.template -y --params BucketName=ezbeardatamazon-rain-test-1
+./rain cat success
+./rain ls success
+./rain rm -y success
+
+# Change sets
+./rain deploy --no-exec test/templates/success.template success-test success-changeset-name -y --params BucketName=ezbeardatamazon-rain-test-1
+./rain ls -c success-test success-changeset-name
+./rain rm -c -y success-test success-changeset-name
+
 ./rain build AWS::S3::Bucket
 ./rain build -l
 
