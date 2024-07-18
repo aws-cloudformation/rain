@@ -53,6 +53,8 @@ These can be ignored with the `--ignore` argument.
 | F0015 | ELB target groups must be of type instance if they are used by an ASG          |
 | F0016 | Lambda function role exists                                                    |
 | F0017 | Lambda function role can be assumed                                            |
+| F0018 | SageMaker Notebook quota limit has not been reached                            |
+
 ## Estimates
 
 The forecast command also tries to estimate how long it thinks your stack will

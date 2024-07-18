@@ -1,0 +1,36 @@
+Resources:
+
+  Notebook:
+    Type: AWS::SageMaker::NotebookInstance
+    DependsOn: NotebookRolePolicy
+    Properties:
+      InstanceType: ml.t2.medium
+      RoleArn: !GetAtt NotebookRole.Arn
+
+  NotebookRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: sagemaker.amazonaws.com
+            Action: 'sts:AssumeRole'
+
+  NotebookRolePolicy:
+    Type: AWS::IAM::RolePolicy
+    Properties:
+      PolicyName: SageMakerNotebookInstancePolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 's3:GetObject'
+              - 's3:PutObject'
+              - 's3:ListBucket'
+            Resource:
+              - 'arn:aws:s3:::*'
+      RoleName: !Ref NotebookRole
+
