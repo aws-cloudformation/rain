@@ -80,6 +80,8 @@ func checkNotebookLimit(input *PredictionInput, forecast *Forecast) {
 		return
 	}
 
+	config.Debugf("Instances: %+v", instances)
+
 	if len(instances) >= int(math.Round(quota)) {
 		atLimit = true
 	} else {
@@ -94,9 +96,9 @@ func checkNotebookLimit(input *PredictionInput, forecast *Forecast) {
 			return
 		}
 
-		codeMap := make(map[string]NotebookCode, 0)
+		codeMap := make(map[string]*NotebookCode, 0)
 		for _, code := range codes {
-			codeMap[code.InstanceType] = code
+			codeMap[code.InstanceType] = &code
 		}
 
 		config.Debugf("codeMap: %+v", codeMap)
@@ -127,13 +129,15 @@ func checkNotebookLimit(input *PredictionInput, forecast *Forecast) {
 			config.Debugf("InstanceType %s missing from codeMap", resourceInstanceType)
 			return
 		}
+		config.Debugf("code: %+v", code)
 
 		quota, err := servicequotas.GetQuota(serviceCode, code.Code)
 		if err != nil {
 			config.Debugf("Unable to get quota %s %s: %v", serviceCode, quotaCode, err)
 			return
 		}
-		config.Debugf("Quota for %s (%s) is %v", code.InstanceType, code.Code, quota)
+		config.Debugf("Quota for %s (%s) is %v. Current count is %v",
+			code.InstanceType, code.Code, quota, code.InstanceCount)
 
 		if code.InstanceCount >= int(math.Round(quota)) {
 			atLimit = true
