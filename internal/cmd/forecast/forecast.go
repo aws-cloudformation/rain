@@ -506,6 +506,7 @@ func init() {
 	forecasters["AWS::SNS::Topic"] = checkSNSTopic
 	forecasters["AWS::ElasticLoadBalancingV2::TargetGroup"] = checkELBTargetGroup
 	forecasters["AWS::Lambda::Function"] = checkLambdaFunction
+	forecasters["AWS::SageMaker::NotebookInstance"] = checkSageMakerNotebook
 
 	// Initialize estimates map
 	InitEstimates()
