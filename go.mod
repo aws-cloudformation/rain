@@ -9,7 +9,7 @@ require (
 	github.com/appscode/jsonpatch v1.0.1
 	github.com/aws/aws-sdk-go-v2 v1.30.3
 	github.com/aws/aws-sdk-go-v2/config v1.27.26
-	github.com/aws/aws-sdk-go-v2/credentials v1.17.26
+	github.com/aws/aws-sdk-go-v2/credentials v1.17.27
 	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.14.0
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.53.3
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.170.0
@@ -35,6 +35,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kms v1.35.3
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.40.3
 	github.com/aws/aws-sdk-go-v2/service/rds v1.81.4
+	github.com/aws/aws-sdk-go-v2/service/sagemaker v1.151.0
 	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.23.3
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.52.3
 	github.com/fatih/color v1.17.0
@@ -45,7 +46,6 @@ require (
 
 require (
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.15 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sagemaker v1.151.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.26.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -68,7 +68,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.17 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.17 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.15 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.22.3 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.22.4 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
