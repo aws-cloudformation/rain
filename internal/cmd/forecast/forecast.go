@@ -95,6 +95,12 @@ func (input *PredictionInput) GetPropertyNode(name string) *yaml.Node {
 	return nil
 }
 
+// GetNode is a simplified version of s11n.GetMapValue that returns the value only
+func GetNode(prop *yaml.Node, name string) *yaml.Node {
+	_, n, _ := s11n.GetMapValue(prop, name)
+	return n
+}
+
 // LineNumber is the current line number in the template
 var LineNumber int
 

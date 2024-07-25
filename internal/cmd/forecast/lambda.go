@@ -7,21 +7,12 @@ import (
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
-	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
 )
 
-// checkLambdaFunction checks for potential stack failures related to functions
-func checkLambdaFunction(input PredictionInput) Forecast {
+func checkLambdaRole(input *PredictionInput, forecast *Forecast) {
 
-	forecast := makeForecast(input.typeName, input.logicalId)
-
-	_, props, _ := s11n.GetMapValue(input.resource, "Properties")
-	if props == nil {
-		config.Debugf("No Properties found for %s", input.logicalId)
-		return forecast
-	}
-	_, roleProp, _ := s11n.GetMapValue(props, "Role")
+	roleProp := input.GetPropertyNode("Role")
 
 	// If the role is specified, and it's a scalar, check if it exists
 	if roleProp != nil && roleProp.Kind == yaml.ScalarNode {
@@ -49,12 +40,14 @@ func checkLambdaFunction(input PredictionInput) Forecast {
 		}
 		spinner.Pop()
 	}
+}
 
+func checkLambdaS3Bucket(input *PredictionInput, forecast *Forecast) {
 	// If the lambda function has an s3 bucket and key, make sure they exist
-	_, codeProp, _ := s11n.GetMapValue(props, "Code")
+	codeProp := input.GetPropertyNode("Code")
 	if codeProp != nil {
-		_, s3Bucket, _ := s11n.GetMapValue(codeProp, "S3Bucket")
-		_, s3Key, _ := s11n.GetMapValue(codeProp, "S3Key")
+		s3Bucket := GetNode(codeProp, "S3Bucket")
+		s3Key := GetNode(codeProp, "S3Key")
 		if s3Bucket != nil && s3Key != nil {
 			spin(input.typeName, input.logicalId,
 				fmt.Sprintf("Checking to see if S3 object %s/%s exists",
@@ -86,6 +79,16 @@ func checkLambdaFunction(input PredictionInput) Forecast {
 	} else {
 		config.Debugf("Unexpected missing Code property from %s", input.logicalId)
 	}
+}
+
+// checkLambdaFunction checks for potential stack failures related to functions
+func checkLambdaFunction(input PredictionInput) Forecast {
+
+	forecast := makeForecast(input.typeName, input.logicalId)
+
+	checkLambdaRole(&input, &forecast)
+
+	checkLambdaS3Bucket(&input, &forecast)
 
 	return forecast
 }
