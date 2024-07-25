@@ -1,6 +1,7 @@
 package s3
 
 import (
+	"archive/zip"
 	"bytes"
 	"context"
 	"crypto/sha256"
@@ -244,6 +245,81 @@ func GetObject(bucketName string, key string) ([]byte, error) {
 		return nil, err
 	}
 	return body, nil
+}
+
+// GetUnzippedObjectSize gets the uncompressed length in bytes of an object.
+// Calling this on a large object will be slow!
+func GetUnzippedObjectSize(bucketName string, key string) (int64, error) {
+	result, err := getClient().GetObject(context.Background(),
+		&s3.GetObjectInput{
+			Bucket: &bucketName,
+			Key:    &key,
+		})
+	if err != nil {
+		return 0, err
+	}
+	var size int64 = 0
+
+	body, err := io.ReadAll(result.Body)
+	if err != nil {
+		return 0, err
+	}
+
+	// Unzip the archive and count the total bytes of all files
+	zipReader, err := zip.NewReader(bytes.NewReader(body), int64(len(body)))
+	if err != nil {
+		// TODO: What if it's not a zip file? Maybe return something like -1?
+		return 0, err
+	}
+
+	// Read all the files from zip archive and count total size
+	for _, zipFile := range zipReader.File {
+		config.Debugf("Reading file from zip archive: %s", zipFile.Name)
+
+		f, err := zipFile.Open()
+		if err != nil {
+			config.Debugf("Error opening zip file %s: %v", zipFile.Name, err)
+			return 0, err
+		}
+		defer f.Close()
+
+		bytesRead := 0
+		buf := make([]byte, 256)
+		for {
+			bytesRead, err = f.Read(buf)
+			if err != nil {
+				config.Debugf("Error reading from zip file %s: %v", zipFile.Name, err)
+			}
+			if bytesRead == 0 {
+				break
+			}
+			size += int64(bytesRead)
+		}
+	}
+
+	config.Debugf("Total size for %s/%s is %d", bucketName, key, size)
+
+	return size, nil
+}
+
+type S3ObjectInfo struct {
+	SizeBytes int64
+}
+
+// HeadObject gets information about an object without downloading it
+func HeadObject(bucketName string, key string) (*S3ObjectInfo, error) {
+	result, err := getClient().HeadObject(context.Background(),
+		&s3.HeadObjectInput{
+			Bucket: &bucketName,
+			Key:    &key,
+		})
+	if err != nil {
+		return nil, err
+	}
+	retval := &S3ObjectInfo{
+		SizeBytes: *result.ContentLength,
+	}
+	return retval, nil
 }
 
 // PutObject puts an object into a bucket

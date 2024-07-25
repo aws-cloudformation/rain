@@ -64,11 +64,45 @@ func checkLambdaS3Bucket(input *PredictionInput, forecast *Forecast) {
 				forecast.Add(F0019, true, "S3 bucket exists")
 
 				// If the bucket exists, check to see if the object exists
-				obj, err := s3.GetObject(s3Bucket.Value, s3Key.Value)
+				obj, err := s3.HeadObject(s3Bucket.Value, s3Key.Value)
+
 				if err != nil || obj == nil {
 					forecast.Add(F0020, false, "S3 object does not exist")
 				} else {
 					forecast.Add(F0020, true, "S3 object exists")
+
+					config.Debugf("S3 Object %s/%s SizeBytes: %v",
+						s3Bucket.Value, s3Key.Value, obj.SizeBytes)
+
+					// Make sure it's less than 50Mb and greater than 0
+					// We are not downloading it and unzipping to check total size,
+					// since that would take too long for large files.
+					var max int64 = 50 * 1024 * 1024
+					if obj.SizeBytes > 0 && obj.SizeBytes <= max {
+
+						if obj.SizeBytes < 256 {
+							// This is suspiciously small. Download it and decompress
+							// to see if it's a zero byte file. A simple "Hello" python
+							// handler will zip down to 207b but an empty file has a
+							// similar zip size, so we can't know from the zip size itself.
+							unzippedSize, err := s3.GetUnzippedObjectSize(s3Bucket.Value, s3Key.Value)
+							if err != nil {
+								config.Debugf("Unable to unzip object: %v", err)
+							} else if unzippedSize == 0 {
+								forecast.Add(F0021, false, "S3 object has a zero byte unzipped size")
+							} else {
+								forecast.Add(F0021, true, "S3 object has a non-zero unzipped size")
+							}
+						} else {
+							forecast.Add(F0021, true, "S3 object has a non-zero length less than 50Mb")
+						}
+					} else {
+						if obj.SizeBytes == 0 {
+							forecast.Add(F0021, false, "S3 object has zero bytes")
+						} else {
+							forecast.Add(F0021, false, "S3 object is greater than 50Mb")
+						}
+					}
 				}
 			}
 

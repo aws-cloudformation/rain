@@ -56,6 +56,7 @@ These can be ignored with the `--ignore` argument.
 | F0018 | SageMaker Notebook quota limit has not been reached                            |
 | F0019 | Lambda S3Bucket exists                                                         |
 | F0020 | Lambda S3Key exists                                                            |
+| F0021 | Lambda zip file has a valid size                                               |
 
 ## Estimates
 
