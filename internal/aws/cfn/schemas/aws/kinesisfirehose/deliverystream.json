@@ -56,6 +56,9 @@
     "SnowflakeDestinationConfiguration": {
       "$ref": "#/definitions/SnowflakeDestinationConfiguration"
     },
+    "IcebergDestinationConfiguration": {
+      "$ref": "#/definitions/IcebergDestinationConfiguration"
+    },
     "Tags": {
       "type": "array",
       "items": {
@@ -242,6 +245,9 @@
           "minLength": 1,
           "maxLength": 255,
           "pattern": "[a-zA-Z0-9\\._\\-]+"
+        },
+        "ReadFromTimestamp": {
+          "type": "string"
         },
         "AuthenticationConfiguration": {
           "$ref": "#/definitions/AuthenticationConfiguration"
@@ -893,6 +899,9 @@
         },
         "SecretsManagerConfiguration": {
           "$ref": "#/definitions/SecretsManagerConfiguration"
+        },
+        "BufferingHints": {
+          "$ref": "#/definitions/SnowflakeBufferingHints"
         }
       },
       "required": [
@@ -903,6 +912,104 @@
         "RoleARN",
         "S3Configuration"
       ]
+    },
+    "IcebergDestinationConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "DestinationTableConfigurationList": {
+          "$ref": "#/definitions/DestinationTableConfigurationList"
+        },
+        "ProcessingConfiguration": {
+          "$ref": "#/definitions/ProcessingConfiguration"
+        },
+        "CloudWatchLoggingOptions": {
+          "$ref": "#/definitions/CloudWatchLoggingOptions"
+        },
+        "CatalogConfiguration": {
+          "$ref": "#/definitions/CatalogConfiguration"
+        },
+        "RoleARN": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "pattern": "arn:.*",
+          "relationshipRef": {
+            "typeName": "AWS::IAM::Role",
+            "propertyPath": "/properties/Arn"
+          }
+        },
+        "RetryOptions": {
+          "$ref": "#/definitions/RetryOptions"
+        },
+        "s3BackupMode": {
+          "type": "string",
+          "enum": [
+            "AllData",
+            "FailedDataOnly"
+          ]
+        },
+        "BufferingHints": {
+          "$ref": "#/definitions/BufferingHints"
+        },
+        "S3Configuration": {
+          "$ref": "#/definitions/S3DestinationConfiguration"
+        }
+      },
+      "required": [
+        "RoleARN",
+        "CatalogConfiguration",
+        "S3Configuration"
+      ]
+    },
+    "CatalogConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "CatalogArn": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "pattern": "arn:.*"
+        }
+      }
+    },
+    "DestinationTableConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "DestinationTableName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "DestinationDatabaseName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "S3ErrorOutputPrefix": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "UniqueKeys": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/definitions/UniqueKey"
+          }
+        }
+      },
+      "required": [
+        "DestinationDatabaseName",
+        "DestinationTableName"
+      ]
+    },
+    "UniqueKey": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
     },
     "BufferingHints": {
       "type": "object",
@@ -930,6 +1037,12 @@
             "$ref": "#/definitions/Processor"
           }
         }
+      }
+    },
+    "DestinationTableConfigurationList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/DestinationTableConfiguration"
       }
     },
     "SplunkRetryOptions": {
@@ -1101,6 +1214,18 @@
       }
     },
     "SplunkBufferingHints": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "IntervalInSeconds": {
+          "type": "integer"
+        },
+        "SizeInMBs": {
+          "type": "integer"
+        }
+      }
+    },
+    "SnowflakeBufferingHints": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -1598,6 +1723,7 @@
     "/properties/AmazonOpenSearchServerlessDestinationConfiguration/VpcConfiguration",
     "/properties/KinesisStreamSourceConfiguration",
     "/properties/MSKSourceConfiguration",
+    "/properties/IcebergDestinationConfiguration",
     "/properties/SnowflakeDestinationConfiguration/SnowflakeVpcConfiguration"
   ],
   "primaryIdentifier": [

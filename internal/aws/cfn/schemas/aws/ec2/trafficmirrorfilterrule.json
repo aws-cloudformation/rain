@@ -3,9 +3,6 @@
   "description": "Resource Type definition for AWS::EC2::TrafficMirrorFilterRule",
   "additionalProperties": false,
   "properties": {
-    "Id": {
-      "type": "string"
-    },
     "DestinationPortRange": {
       "$ref": "#/definitions/TrafficMirrorPortRange"
     },
@@ -27,6 +24,9 @@
     "DestinationCidrBlock": {
       "type": "string"
     },
+    "Id": {
+      "type": "string"
+    },
     "TrafficMirrorFilterId": {
       "type": "string"
     },
@@ -35,6 +35,13 @@
     },
     "Protocol": {
       "type": "integer"
+    },
+    "Tags": {
+      "type": "array",
+      "uniqueItems": false,
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
     }
   },
   "definitions": {
@@ -42,16 +49,32 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "FromPort": {
+        "ToPort": {
           "type": "integer"
         },
-        "ToPort": {
+        "FromPort": {
           "type": "integer"
         }
       },
       "required": [
-        "ToPort",
-        "FromPort"
+        "FromPort",
+        "ToPort"
+      ]
+    },
+    "Tag": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Value": {
+          "type": "string"
+        },
+        "Key": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "Value",
+        "Key"
       ]
     }
   },
@@ -66,10 +89,10 @@
   "createOnlyProperties": [
     "/properties/TrafficMirrorFilterId"
   ],
-  "readOnlyProperties": [
+  "primaryIdentifier": [
     "/properties/Id"
   ],
-  "primaryIdentifier": [
+  "readOnlyProperties": [
     "/properties/Id"
   ]
 }

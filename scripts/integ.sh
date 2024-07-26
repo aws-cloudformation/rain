@@ -8,15 +8,15 @@ set -eoux pipefail
 
 ./rain ls
 
-./rain deploy test/templates/success.template success-test -y --params BucketName=ezbeardatamazon-rain-test-1
+./rain deploy test/templates/success.template success-test3 -y --params BucketName=ezbeardatamazon-rain-test-1
 
-./rain cat success-test
+./rain cat success-test3
 
-./rain logs success-test
+./rain logs success-test3
 
-./rain logs --chart success-test
+./rain logs --chart success-test3
 
-./rain rm success-test -y
+./rain rm success-test3 -y
 
 # Unnamed stack
 ./rain deploy test/templates/success.template -y --params BucketName=ezbeardatamazon-rain-test-1
@@ -25,9 +25,15 @@ set -eoux pipefail
 ./rain rm -y success
 
 # Change sets
-./rain deploy --no-exec test/templates/success.template success-test success-changeset-name -y --params BucketName=ezbeardatamazon-rain-test-1
-./rain ls -c success-test success-changeset-name
-./rain rm -c -y success-test success-changeset-name
+# Create a named changeset
+./rain deploy --no-exec test/templates/success.template success-test3 success-changeset-name -y --params BucketName=ezbeardatamazon-rain-test-1
+./rain ls -c success-test3 success-changeset-name
+
+#./rain rm -c -y success-test3 success-changeset-name
+# This leaves the stack as review in progress, and then you can't delete it
+# Seems like a bug!
+# It also fails if we try to delete the stack, not just the stackset
+./rain rm -y success-test3 
 
 ./rain build AWS::S3::Bucket
 ./rain build -l

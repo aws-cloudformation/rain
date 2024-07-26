@@ -146,6 +146,15 @@
       },
       "additionalProperties": false
     },
+    "EndpointErrorCondition": {
+      "type": "string",
+      "enum": [
+        "STALE_MANIFEST",
+        "INCOMPLETE_MANIFEST",
+        "MISSING_DRM_KEY",
+        "SLATE_INPUT"
+      ]
+    },
     "FilterConfiguration": {
       "type": "object",
       "description": "<p>Filter configuration includes settings for manifest filtering, start and end times, and time delay that apply to all of your egress requests for this manifest. </p>",
@@ -171,6 +180,20 @@
           "maximum": 1209600,
           "minimum": 0,
           "description": "<p>Optionally specify the time delay for all of your manifest egress requests. Enter a value that is smaller than your endpoint's startover window. When you include time delay, note that you cannot use time delay query parameters for this manifest's endpoint URL.</p>"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ForceEndpointErrorConfiguration": {
+      "type": "object",
+      "description": "<p>The failover settings for the endpoint.</p>",
+      "properties": {
+        "EndpointErrorConditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/EndpointErrorCondition"
+          },
+          "description": "<p>The failover settings for the endpoint. The options are:</p>\n         <ul>\n            <li>\n               <p>\n                  <code>STALE_MANIFEST</code> - The manifest stalled and there a no new segments or parts.</p>\n            </li>\n            <li>\n               <p>\n                  <code>INCOMPLETE_MANIFEST</code> - There is a gap in the manifest.</p>\n            </li>\n            <li>\n               <p>\n                  <code>MISSING_DRM_KEY</code> - Key rotation is enabled but we're unable to fetch the key for the current key period.</p>\n            </li>\n         </ul>"
         }
       },
       "additionalProperties": false
@@ -531,6 +554,9 @@
       "maxLength": 1024,
       "minLength": 0,
       "description": "<p>Enter any descriptive text that helps you to identify the origin endpoint.</p>"
+    },
+    "ForceEndpointErrorConfiguration": {
+      "$ref": "#/definitions/ForceEndpointErrorConfiguration"
     },
     "HlsManifests": {
       "type": "array",
