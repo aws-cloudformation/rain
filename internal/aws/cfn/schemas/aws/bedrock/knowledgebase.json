@@ -37,7 +37,8 @@
       "enum": [
         "OPENSEARCH_SERVERLESS",
         "PINECONE",
-        "RDS"
+        "RDS",
+        "MONGO_DB_ATLAS"
       ]
     },
     "KnowledgeBaseType": {
@@ -298,6 +299,89 @@
       ],
       "additionalProperties": false
     },
+    "MongoDbAtlasFieldMapping": {
+      "type": "object",
+      "description": "Contains the names of the fields to which to map information about the vector store.",
+      "properties": {
+        "VectorField": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^.*$",
+          "description": "The name of the field in which Amazon Bedrock stores the vector embeddings for your data sources."
+        },
+        "TextField": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^.*$",
+          "description": "The name of the field in which Amazon Bedrock stores the raw text from your data. The text is split according to the chunking strategy you choose."
+        },
+        "MetadataField": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^.*$",
+          "description": "The name of the field in which Amazon Bedrock stores metadata about the vector store."
+        }
+      },
+      "required": [
+        "VectorField",
+        "MetadataField",
+        "TextField"
+      ],
+      "additionalProperties": false
+    },
+    "MongoDbAtlasConfiguration": {
+      "type": "object",
+      "description": "Contains the storage configuration of the knowledge base in MongoDb Atlas Cloud.",
+      "properties": {
+        "Endpoint": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+\\.mongodb\\.net$",
+          "description": "MongoDB Atlas endpoint."
+        },
+        "CredentialsSecretArn": {
+          "type": "string",
+          "pattern": "^arn:aws(|-cn|-us-gov):secretsmanager:[a-z0-9-]{1,20}:([0-9]{12}|):secret:[a-zA-Z0-9!/_+=.@-]{1,512}$",
+          "description": "The ARN of the secret that you created in AWS Secrets Manager that is linked to your Amazon Mongo database."
+        },
+        "DatabaseName": {
+          "type": "string",
+          "maxLength": 63,
+          "pattern": "^.*$",
+          "description": "Name of the database within MongoDB Atlas."
+        },
+        "CollectionName": {
+          "type": "string",
+          "maxLength": 63,
+          "pattern": "^.*$",
+          "description": "Name of the collection within MongoDB Atlas."
+        },
+        "VectorIndexName": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^.*$",
+          "description": "Name of a MongoDB Atlas index."
+        },
+        "EndpointServiceName": {
+          "type": "string",
+          "maxLength": 255,
+          "pattern": "^(?:arn:aws(?:-us-gov|-cn|-iso|-iso-[a-z])*:.+:.*:\\d+:.+/.+$|[a-zA-Z0-9*]+[a-zA-Z0-9._-]*)$",
+          "description": "MongoDB Atlas endpoint service name."
+        },
+        "FieldMapping": {
+          "$ref": "#/definitions/MongoDbAtlasFieldMapping"
+        }
+      },
+      "required": [
+        "Endpoint",
+        "CredentialsSecretArn",
+        "DatabaseName",
+        "CollectionName",
+        "VectorIndexName",
+        "FieldMapping"
+      ],
+      "additionalProperties": false
+    },
     "StorageConfiguration": {
       "type": "object",
       "description": "The vector store service in which the knowledge base is stored.",
@@ -313,6 +397,9 @@
         },
         "RdsConfiguration": {
           "$ref": "#/definitions/RdsConfiguration"
+        },
+        "MongoDbAtlasConfiguration": {
+          "$ref": "#/definitions/MongoDbAtlasConfiguration"
         }
       },
       "required": [
@@ -333,6 +420,11 @@
           "required": [
             "RdsConfiguration"
           ]
+        },
+        {
+          "required": [
+            "MongoDbAtlasConfiguration"
+          ]
         }
       ],
       "additionalProperties": false
@@ -351,6 +443,29 @@
       },
       "additionalProperties": false
     },
+    "BedrockEmbeddingModelConfiguration": {
+      "type": "object",
+      "description": "The vector configuration details for the Bedrock embeddings model.",
+      "properties": {
+        "Dimensions": {
+          "type": "integer",
+          "maximum": 4096,
+          "minimum": 0,
+          "description": "The dimensions details for the vector configuration used on the Bedrock embeddings model."
+        }
+      },
+      "additionalProperties": false
+    },
+    "EmbeddingModelConfiguration": {
+      "type": "object",
+      "description": "The embeddings model configuration details for the vector model used in Knowledge Base.",
+      "properties": {
+        "BedrockEmbeddingModelConfiguration": {
+          "$ref": "#/definitions/BedrockEmbeddingModelConfiguration"
+        }
+      },
+      "additionalProperties": false
+    },
     "VectorKnowledgeBaseConfiguration": {
       "type": "object",
       "description": "Contains details about the model used to create vector embeddings for the knowledge base.",
@@ -359,8 +474,11 @@
           "type": "string",
           "maxLength": 2048,
           "minLength": 20,
-          "pattern": "^(arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:(([0-9]{12}:custom-model/[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}/[a-z0-9]{12})|(:foundation-model/[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.:]?[a-z0-9-]{1,63}))|([0-9]{12}:provisioned-model/[a-z0-9]{12})))|([a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.:]?[a-z0-9-]{1,63}))|(([0-9a-zA-Z][_-]?)+)$",
+          "pattern": "^(arn:aws(-[^:]+)?:[a-z0-9-]+:[a-z0-9-]{1,20}:[0-9]{0,12}:[a-zA-Z0-9-:/._+]+)$",
           "description": "The ARN of the model used to create vector embeddings for the knowledge base."
+        },
+        "EmbeddingModelConfiguration": {
+          "$ref": "#/definitions/EmbeddingModelConfiguration"
         }
       },
       "required": [
