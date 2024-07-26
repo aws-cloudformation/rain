@@ -4,6 +4,10 @@
 #
 # Run this from the root directory
 #
+# TODO: We have a bunch of ad-hoc integ tests in 
+# /test/templates/forecast/ that we run manually.
+# Add them here. 
+#
 # ./internal/cmd/forecast/forecast_integ.sh
 
 set -x
