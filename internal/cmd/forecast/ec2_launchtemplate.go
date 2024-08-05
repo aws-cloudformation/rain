@@ -2,7 +2,7 @@ package forecast
 
 // AWS::EC2::LaunchTemplate
 
-func checkEC2LaunchTemplate(input PredictionInput) Forecast {
+func CheckEC2LaunchTemplate(input PredictionInput) Forecast {
 
 	forecast := makeForecast(input.typeName, input.logicalId)
 

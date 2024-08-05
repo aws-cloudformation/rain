@@ -11,7 +11,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func checkEC2SecurityGroup(input PredictionInput) Forecast {
+func CheckEC2SecurityGroup(input PredictionInput) Forecast {
 
 	// TODO - Cannot delete a security group that still has instances
 	// (See if there are instances not in this stack)

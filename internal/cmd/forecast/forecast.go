@@ -269,7 +269,7 @@ func forecastForType(input PredictionInput) Forecast {
 
 // Query the account to make predictions about deployment failures.
 // Returns true if no failures are predicted.
-func predict(source cft.Template, stackName string, stack types.Stack, stackExists bool, dc *dc.DeployConfig) bool {
+func Predict(source cft.Template, stackName string, stack types.Stack, stackExists bool, dc *dc.DeployConfig) bool {
 
 	config.Debugf("About to make API calls for failure prediction...")
 
@@ -476,7 +476,7 @@ resource-specific checks. See the README for more details.
 			panic(err)
 		}
 
-		if !predict(source, stackName, stack, stackExists, dc) {
+		if !Predict(source, stackName, stack, stackExists, dc) {
 			os.Exit(1)
 		}
 
@@ -501,18 +501,18 @@ func init() {
 	// For example:
 	// forecasters["AWS::New::Type"] = checkTheNewType
 
-	forecasters["AWS::S3::Bucket"] = checkS3Bucket
-	forecasters["AWS::S3::BucketPolicy"] = checkS3BucketPolicy
-	forecasters["AWS::EC2::Instance"] = checkEC2Instance
-	forecasters["AWS::EC2::SecurityGroup"] = checkEC2SecurityGroup
-	forecasters["AWS::RDS::DBCluster"] = checkRDSDBCluster
-	forecasters["AWS::AutoScaling::LaunchConfiguration"] = checkAutoScalingLaunchConfiguration
-	forecasters["AWS::EC2::LaunchTemplate"] = checkEC2LaunchTemplate
-	forecasters["AWS::ElasticLoadBalancingV2::Listener"] = checkELBListener
-	forecasters["AWS::SNS::Topic"] = checkSNSTopic
-	forecasters["AWS::ElasticLoadBalancingV2::TargetGroup"] = checkELBTargetGroup
-	forecasters["AWS::Lambda::Function"] = checkLambdaFunction
-	forecasters["AWS::SageMaker::NotebookInstance"] = checkSageMakerNotebook
+	forecasters["AWS::S3::Bucket"] = CheckS3Bucket
+	forecasters["AWS::S3::BucketPolicy"] = CheckS3BucketPolicy
+	forecasters["AWS::EC2::Instance"] = CheckEC2Instance
+	forecasters["AWS::EC2::SecurityGroup"] = CheckEC2SecurityGroup
+	forecasters["AWS::RDS::DBCluster"] = CheckRDSDBCluster
+	forecasters["AWS::AutoScaling::LaunchConfiguration"] = CheckAutoScalingLaunchConfiguration
+	forecasters["AWS::EC2::LaunchTemplate"] = CheckEC2LaunchTemplate
+	forecasters["AWS::ElasticLoadBalancingV2::Listener"] = CheckELBListener
+	forecasters["AWS::SNS::Topic"] = CheckSNSTopic
+	forecasters["AWS::ElasticLoadBalancingV2::TargetGroup"] = CheckELBTargetGroup
+	forecasters["AWS::Lambda::Function"] = CheckLambdaFunction
+	forecasters["AWS::SageMaker::NotebookInstance"] = CheckSageMakerNotebook
 
 	// Initialize estimates map
 	InitEstimates()

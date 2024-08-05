@@ -116,7 +116,7 @@ func checkLambdaS3Bucket(input *PredictionInput, forecast *Forecast) {
 }
 
 // checkLambdaFunction checks for potential stack failures related to functions
-func checkLambdaFunction(input PredictionInput) Forecast {
+func CheckLambdaFunction(input PredictionInput) Forecast {
 
 	forecast := makeForecast(input.typeName, input.logicalId)
 

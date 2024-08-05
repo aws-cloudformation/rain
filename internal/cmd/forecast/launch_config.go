@@ -4,7 +4,7 @@ import "github.com/aws-cloudformation/rain/internal/config"
 
 // AWS::AutoScaling::LaunchConfiguration
 
-func checkAutoScalingLaunchConfiguration(input PredictionInput) Forecast {
+func CheckAutoScalingLaunchConfiguration(input PredictionInput) Forecast {
 
 	forecast := makeForecast(input.typeName, input.logicalId)
 

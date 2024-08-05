@@ -37,7 +37,7 @@ func ParseNotebookCodes(jsonData string) ([]NotebookCode, error) {
 	return retval, nil
 }
 
-func checkSageMakerNotebook(input PredictionInput) Forecast {
+func CheckSageMakerNotebook(input PredictionInput) Forecast {
 	// AWS::SageMaker::NotebookInstance
 
 	forecast := makeForecast(input.typeName, input.logicalId)

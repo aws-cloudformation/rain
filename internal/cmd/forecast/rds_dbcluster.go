@@ -16,7 +16,7 @@ import (
 )
 
 // Checks configuration issues with RDS clusters
-func checkRDSDBCluster(input PredictionInput) Forecast {
+func CheckRDSDBCluster(input PredictionInput) Forecast {
 	forecast := makeForecast(input.typeName, input.logicalId)
 
 	// Resource handler returned message: "Cannot find version 11.16 for aurora-postgresql (Service: Rds, Status Code: 400

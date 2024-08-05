@@ -12,7 +12,7 @@ import (
 
 // Check everything that could go wrong with an AWS::S3::Bucket resource.
 // Returns numFailed, numChecked
-func checkS3BucketPolicy(input PredictionInput) Forecast {
+func CheckS3BucketPolicy(input PredictionInput) Forecast {
 
 	forecast := makeForecast(input.typeName, input.logicalId)
 
