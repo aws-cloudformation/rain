@@ -183,7 +183,7 @@ func getPropNode(input *PredictionInput) *yaml.Node {
 	return props
 }
 
-func checkEC2Instance(input PredictionInput) Forecast {
+func CheckEC2Instance(input PredictionInput) Forecast {
 
 	forecast := makeForecast(input.typeName, input.logicalId)
 

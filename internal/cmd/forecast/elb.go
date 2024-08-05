@@ -13,7 +13,7 @@ import (
 
 // AWS::ElasticLoadBalancingV2::Listener
 
-func checkELBListener(input PredictionInput) Forecast {
+func CheckELBListener(input PredictionInput) Forecast {
 
 	forecast := makeForecast(input.typeName, input.logicalId)
 
@@ -64,7 +64,7 @@ func checkELBListener(input PredictionInput) Forecast {
 	return forecast
 }
 
-func checkELBTargetGroup(input PredictionInput) Forecast {
+func CheckELBTargetGroup(input PredictionInput) Forecast {
 
 	forecast := makeForecast(input.typeName, input.logicalId)
 

@@ -5,7 +5,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 )
 
-func checkSNSTopic(input PredictionInput) Forecast {
+func CheckSNSTopic(input PredictionInput) Forecast {
 
 	forecast := makeForecast(input.typeName, input.logicalId)
 

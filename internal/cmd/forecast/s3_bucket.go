@@ -59,7 +59,7 @@ func checkBucketNotEmpty(input PredictionInput, bucket *types.StackResourceDetai
 }
 
 // Check everything that could go wrong with an AWS::S3::Bucket resource
-func checkS3Bucket(input PredictionInput) Forecast {
+func CheckS3Bucket(input PredictionInput) Forecast {
 
 	forecast := makeForecast(input.typeName, input.logicalId)
 
