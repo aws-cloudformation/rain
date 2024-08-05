@@ -13,7 +13,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.15.0
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.53.3
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.173.0
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.58.2
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.58.3
 	github.com/aws/aws-sdk-go-v2/service/sts v1.30.3
 	github.com/aws/smithy-go v1.20.3
 	github.com/chzyer/readline v1.5.1
