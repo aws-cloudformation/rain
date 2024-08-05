@@ -8,15 +8,15 @@ set -eoux pipefail
 
 ./rain ls
 
-./rain deploy test/templates/success.template success-test3 -y --params BucketName=ezbeardatamazon-rain-test-1
+./rain deploy test/templates/success.template success-test5 -y --params BucketName=ezbeardatamazon-rain-test-1
 
-./rain cat success-test3
+./rain cat success-test5
 
-./rain logs success-test3
+./rain logs success-test5
 
-./rain logs --chart success-test3
+./rain logs --chart success-test5
 
-./rain rm success-test3 -y
+./rain rm success-test5 -y
 
 # Unnamed stack
 ./rain deploy test/templates/success.template -y --params BucketName=ezbeardatamazon-rain-test-1
@@ -26,14 +26,18 @@ set -eoux pipefail
 
 # Change sets
 # Create a named changeset
-./rain deploy --no-exec test/templates/success.template success-test3 success-changeset-name -y --params BucketName=ezbeardatamazon-rain-test-1
-./rain ls -c success-test3 success-changeset-name
+#./rain deploy --no-exec test/templates/success.template success-test5 success-changeset-name -y --params BucketName=ezbeardatamazon-rain-test-1
+#./rain ls -c success-test5 success-changeset-name
 
-#./rain rm -c -y success-test3 success-changeset-name
-# This leaves the stack as review in progress, and then you can't delete it
-# Seems like a bug!
-# It also fails if we try to delete the stack, not just the stackset
-./rain rm -y success-test3 
+#./rain rm -c -y success-test5 success-changeset-name || true
+# The above might fail since you can't delete a changeset that is still pending
+# Stacks get stuck if you delete a changeset on a new stack, so I'm leaving
+# this test commented out.
+#sleep 5
+# Ideally we would keep trying but a sleep should be enough
+#
+# Delete the entire stack
+#./rain rm -y success-test5 
 
 ./rain build AWS::S3::Bucket
 ./rain build -l

@@ -32,6 +32,17 @@ func DeleteChangeSet(stack *types.Stack, changeSetName string) error {
 			ui.ColouriseStatus(string(cs.Status)))
 
 		fmt.Println()
+
+		// The API allows you to delete a changeset that is still in CREATE_PENDING
+		// If you do, the stack becomes stuck and you have to call support to delete it.
+		// The AWS console prevents this by graying out buttons.
+
+		if cs.ExecutionStatus == types.ExecutionStatusUnavailable ||
+			cs.Status == types.ChangeSetStatusCreatePending ||
+			cs.Status == types.ChangeSetStatusCreateInProgress {
+			panic(fmt.Errorf("cannot delete changeset '%s' due to current status", *cs.ChangeSetName))
+		}
+
 		if !console.Confirm(false, "Are you sure you want to delete this changeset?") {
 			panic(fmt.Errorf("user cancelled deletion of changeset '%s'", *cs.ChangeSetName))
 		}
