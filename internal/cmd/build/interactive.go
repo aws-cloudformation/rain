@@ -158,6 +158,7 @@ func generic() {
 		{Name: CLAUDE3HAIKU, Text: "Claude 3 Haiku"},
 		{Name: CLAUDE3SONNET, Text: "Claude 3 Sonnet"},
 		{Name: CLAUDE3OPUS, Text: "Claude 3 Opus"},
+		{Name: CLAUDE3_5SONNET, Text: "Claude 3.5 Sonnet"},
 	}
 	model = openPrompt("Choose a model", selections)
 
