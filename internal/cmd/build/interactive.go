@@ -103,9 +103,10 @@ func template() {
 	case PROMPT:
 		selections = []buildSelection{
 			{Name: CLAUDE2, Text: "Claude 2"},
-			{Name: HAIKU, Text: "Claude 3 Haiku"},
-			{Name: SONNET, Text: "Claude 3 Sonnet"},
-			{Name: OPUS, Text: "Claude 3 Opus"},
+			{Name: CLAUDE3HAIKU, Text: "Claude 3 Haiku"},
+			{Name: CLAUDE3SONNET, Text: "Claude 3 Sonnet"},
+			{Name: CLAUDE3OPUS, Text: "Claude 3 Opus"},
+			{Name: CLAUDE3_5SONNET, Text: "Claude 3.5 Sonnet"},
 		}
 		selected = openPrompt("Select a model", selections)
 		prompt := promptui.Prompt{
@@ -130,9 +131,10 @@ func policy() {
 	}
 	lang := openPrompt("Choose a language", selections)
 	selections = []buildSelection{
-		{Name: HAIKU, Text: "Claude 3 Haiku"},
-		{Name: SONNET, Text: "Claude 3 Sonnet"},
-		{Name: OPUS, Text: "Claude 3 Opus"},
+		{Name: CLAUDE3HAIKU, Text: "Claude 3 Haiku"},
+		{Name: CLAUDE3SONNET, Text: "Claude 3 Sonnet"},
+		{Name: CLAUDE3OPUS, Text: "Claude 3 Opus"},
+		{Name: CLAUDE3_5SONNET, Text: "Claude 3.5 Sonnet"},
 	}
 	model = openPrompt("Choose a model", selections)
 	prompt := promptui.Prompt{
@@ -153,9 +155,9 @@ func policy() {
 func generic() {
 	// Choose the model
 	selections := []buildSelection{
-		{Name: HAIKU, Text: "Claude 3 Haiku"},
-		{Name: SONNET, Text: "Claude 3 Sonnet"},
-		{Name: OPUS, Text: "Claude 3 Opus"},
+		{Name: CLAUDE3HAIKU, Text: "Claude 3 Haiku"},
+		{Name: CLAUDE3SONNET, Text: "Claude 3 Sonnet"},
+		{Name: CLAUDE3OPUS, Text: "Claude 3 Opus"},
 	}
 	model = openPrompt("Choose a model", selections)
 
@@ -240,6 +242,7 @@ func interactive() {
 				ii. Claude 3 Haiku
 				iii. Claude 3 Sonnet
 				iv. Claude 3 Opus
+				iv. Claude 3.5 Sonnet
 			d. Output a vetted recommended template for a use case
 		3. Create a policy validation file
 		    a. Guard
@@ -285,21 +288,22 @@ type buildSelection struct {
 }
 
 const (
-	LIST      = "list"
-	SCHEMA    = "schema"
-	TEMPLATE  = "template"
-	POLICY    = "policy"
-	ALL       = "all"
-	REQUIRED  = "required"
-	RECOMMEND = "recommend"
-	PROMPT    = "prompt"
-	CLAUDE2   = "claude2"
-	OPUS      = "claude3opus"
-	SONNET    = "claude3sonnet"
-	HAIKU     = "claude3haiku"
-	GUARD     = "guard"
-	OPA       = "opa"
-	GENERIC   = "generic"
-	YES       = "yes"
-	NO        = "no"
+	LIST               = "list"
+	SCHEMA             = "schema"
+	TEMPLATE           = "template"
+	POLICY             = "policy"
+	ALL                = "all"
+	REQUIRED           = "required"
+	RECOMMEND          = "recommend"
+	PROMPT             = "prompt"
+	CLAUDE2            = "claude2"
+	CLAUDE3OPUS        = "claude3opus"
+	CLAUDE3SONNET      = "claude3sonnet"
+	CLAUDE3HAIKU       = "claude3haiku"
+	CLAUDE3_5SONNET    = "claude3.5sonnet"
+	GUARD              = "guard"
+	OPA                = "opa"
+	GENERIC            = "generic"
+	YES                = "yes"
+	NO                 = "no"
 )
