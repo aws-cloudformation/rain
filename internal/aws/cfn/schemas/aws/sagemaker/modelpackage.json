@@ -410,6 +410,9 @@
           "pattern": "^(https|s3)://([^/]+)/?(.*)$",
           "maxLength": 1024
         },
+        "ModelDataSource": {
+          "$ref": "#/definitions/ModelDataSource"
+        },
         "Framework": {
           "type": "string",
           "description": "The machine learning framework of the model package container image."
@@ -931,6 +934,118 @@
     "Task": {
       "description": "The machine learning task your model package accomplishes.",
       "type": "string"
+    },
+    "ModelDataSource": {
+      "description": "Specifies the location of ML model data to deploy during endpoint creation.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "S3DataSource": {
+          "$ref": "#/definitions/S3ModelDataSource"
+        }
+      }
+    },
+    "S3ModelDataSource": {
+      "description": "Specifies the S3 location of ML model data to deploy.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "S3DataType": {
+          "description": "Specifies the type of ML model data to deploy.",
+          "type": "string",
+          "enum": [
+            "S3Prefix",
+            "S3Object"
+          ]
+        },
+        "S3Uri": {
+          "description": "Specifies the S3 path of ML model data to deploy.",
+          "type": "string",
+          "maxLength": 1024,
+          "pattern": "^(https|s3)://([^/]+)/?(.*)$"
+        },
+        "CompressionType": {
+          "description": "Specifies how the ML model data is prepared.",
+          "type": "string",
+          "enum": [
+            "None",
+            "Gzip"
+          ]
+        },
+        "ModelAccessConfig": {
+          "$ref": "#/definitions/ModelAccessConfig"
+        }
+      },
+      "required": [
+        "S3DataType",
+        "S3Uri",
+        "CompressionType"
+      ]
+    },
+    "ModelAccessConfig": {
+      "description": "Specifies the access configuration file for the ML model.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "AcceptEula": {
+          "description": "Specifies agreement to the model end-user license agreement (EULA).",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "AcceptEula"
+      ]
+    },
+    "SourceUri": {
+      "description": "The URI of the source for the model package.",
+      "type": "string",
+      "minLength": 0,
+      "maxLength": 1024,
+      "pattern": "[\\p{L}\\p{M}\\p{Z}\\p{N}\\p{P}]{0,1024}"
+    },
+    "SecurityConfig": {
+      "description": "An optional AWS Key Management Service key to encrypt, decrypt, and re-encrypt model package information for regulated workloads with highly sensitive data.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "KmsKeyId": {
+          "description": "The AWS KMS Key ID (KMSKeyId) used for encryption of model package information.",
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^[a-zA-Z0-9:/_-]*$"
+        }
+      },
+      "required": [
+        "KmsKeyId"
+      ]
+    },
+    "ModelCard": {
+      "description": "The model card associated with the model package.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ModelCardContent": {
+          "description": "The content of the model card.",
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 100000,
+          "pattern": ".*"
+        },
+        "ModelCardStatus": {
+          "description": "The approval status of the model card within your organization.",
+          "type": "string",
+          "enum": [
+            "Draft",
+            "PendingReview",
+            "Approved",
+            "Archived"
+          ]
+        }
+      },
+      "required": [
+        "ModelCardContent",
+        "ModelCardStatus"
+      ]
     }
   },
   "properties": {
@@ -1019,6 +1134,15 @@
     },
     "ModelPackageStatusDetails": {
       "$ref": "#/definitions/ModelPackageStatusDetails"
+    },
+    "SourceUri": {
+      "$ref": "#/definitions/SourceUri"
+    },
+    "ModelCard": {
+      "$ref": "#/definitions/ModelCard"
+    },
+    "SecurityConfig": {
+      "$ref": "#/definitions/SecurityConfig"
     }
   },
   "additionalProperties": false,
@@ -1046,7 +1170,12 @@
     "/properties/DriftCheckBaselines",
     "/properties/Domain",
     "/properties/Task",
-    "/properties/SamplePayloadUrl"
+    "/properties/SamplePayloadUrl",
+    "/properties/SecurityConfig"
+  ],
+  "conditionalCreateOnlyProperties": [
+    "/properties/ModelCard",
+    "/properties/SourceUri"
   ],
   "writeOnlyProperties": [
     "/properties/ClientToken",
@@ -1070,29 +1199,46 @@
         "sagemaker:DescribeTransformJob",
         "sagemaker:DescribeModelPackage",
         "sagemaker:ListTags",
+        "sagemaker:UpdateModelPackage",
         "iam:PassRole",
-        "s3:GetObject"
+        "s3:GetObject",
+        "s3:ListBucket",
+        "kms:CreateGrant",
+        "kms:DescribeKey",
+        "kms:GenerateDataKey",
+        "kms:Decrypt"
       ]
     },
     "read": {
       "permissions": [
         "sagemaker:DescribeModelPackage",
-        "sagemaker:ListTags"
+        "sagemaker:ListTags",
+        "kms:DescribeKey",
+        "kms:Decrypt"
       ]
     },
     "update": {
       "permissions": [
+        "ecr:BatchGetImage",
         "sagemaker:UpdateModelPackage",
         "sagemaker:DescribeModelPackage",
         "sagemaker:ListTags",
         "sagemaker:AddTags",
-        "sagemaker:DeleteTags"
+        "sagemaker:DeleteTags",
+        "s3:GetObject",
+        "s3:ListBucket",
+        "kms:CreateGrant",
+        "kms:DescribeKey",
+        "kms:GenerateDataKey",
+        "kms:Decrypt"
       ]
     },
     "delete": {
       "permissions": [
         "sagemaker:DeleteModelPackage",
-        "sagemaker:DescribeModelPackage"
+        "sagemaker:DescribeModelPackage",
+        "kms:DescribeKey",
+        "kms:Decrypt"
       ]
     },
     "list": {
