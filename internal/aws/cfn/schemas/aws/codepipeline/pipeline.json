@@ -293,6 +293,16 @@
           "type": "object",
           "description": "The method to use when a stage has not completed successfully",
           "$ref": "#/definitions/FailureConditions"
+        },
+        "OnSuccess": {
+          "type": "object",
+          "description": "The method to use when a stage has completed successfully",
+          "$ref": "#/definitions/SuccessConditions"
+        },
+        "BeforeEntry": {
+          "type": "object",
+          "description": "The method to use before stage runs.",
+          "$ref": "#/definitions/BeforeEntryConditions"
         }
       },
       "required": [
@@ -470,6 +480,116 @@
           "enum": [
             "ROLLBACK"
           ]
+        },
+        "Conditions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/definitions/Condition"
+          }
+        }
+      }
+    },
+    "SuccessConditions": {
+      "description": "The configuration that specifies the result, such as rollback, to occur upon stage failure",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Conditions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/definitions/Condition"
+          }
+        }
+      }
+    },
+    "BeforeEntryConditions": {
+      "description": "The configuration that specifies the rules to run before stage starts.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Conditions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/definitions/Condition"
+          }
+        }
+      }
+    },
+    "Condition": {
+      "description": "Represents information about condition.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Result": {
+          "type": "string",
+          "description": "The specified result for when the failure conditions are met, such as rolling back the stage"
+        },
+        "Rules": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/definitions/RuleDeclaration"
+          }
+        }
+      }
+    },
+    "RuleDeclaration": {
+      "description": "Represents information about condition.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "RuleTypeId": {
+          "$ref": "#/definitions/RuleTypeId"
+        },
+        "Configuration": {
+          "description": "The rule's configuration. These are key-value pairs that specify input values for a rule.",
+          "type": "object"
+        },
+        "InputArtifacts": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/definitions/InputArtifact"
+          }
+        },
+        "Region": {
+          "description": "The rule declaration's AWS Region, such as us-east-1.",
+          "type": "string"
+        },
+        "RoleArn": {
+          "description": "The ARN of the IAM service role that performs the declared rule. This is assumed through the roleArn for the pipeline.",
+          "type": "string",
+          "pattern": "arn:aws(-[\\w]+)*:iam::[0-9]{12}:role/.*"
+        },
+        "Name": {
+          "description": "The rule declaration's name.",
+          "type": "string"
+        }
+      }
+    },
+    "RuleTypeId": {
+      "description": "Represents information about a rule type.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Owner": {
+          "description": "The creator of the rule being called. Only AWS is supported.",
+          "type": "string"
+        },
+        "Category": {
+          "description": "A category for the provider type for the rule.",
+          "type": "string"
+        },
+        "Version": {
+          "description": "A string that describes the rule version.",
+          "type": "string"
+        },
+        "Provider": {
+          "description": "The provider of the service being called by the rule.",
+          "type": "string"
         }
       }
     }
@@ -569,7 +689,11 @@
     "tagOnCreate": true,
     "tagUpdatable": true,
     "cloudFormationSystemTags": false,
-    "tagProperty": "/properties/Tags"
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "codepipeline:TagResource",
+      "codepipeline:UntagResource"
+    ]
   },
   "required": [
     "Stages",

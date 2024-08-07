@@ -21,6 +21,149 @@
         "Value",
         "Key"
       ]
+    },
+    "ConfiguredTableAssociationAnalysisRuleType": {
+      "type": "string",
+      "enum": [
+        "AGGREGATION",
+        "LIST",
+        "CUSTOM"
+      ]
+    },
+    "AllowedResultReceiver": {
+      "type": "string",
+      "minLength": 12,
+      "maxLength": 12,
+      "pattern": "\\d+"
+    },
+    "AllowedResultReceivers": {
+      "type": "array",
+      "insertionOrder": false,
+      "minItems": 0,
+      "items": {
+        "$ref": "#/definitions/AllowedResultReceiver"
+      }
+    },
+    "AllowedAdditionalAnalysis": {
+      "type": "string",
+      "maxLength": 256
+    },
+    "AllowedAdditionalAnalyses": {
+      "type": "array",
+      "insertionOrder": false,
+      "minItems": 0,
+      "maxItems": 25,
+      "items": {
+        "$ref": "#/definitions/AllowedAdditionalAnalysis"
+      }
+    },
+    "ConfiguredTableAssociationAnalysisRuleCustom": {
+      "type": "object",
+      "properties": {
+        "AllowedResultReceivers": {
+          "$ref": "#/definitions/AllowedResultReceivers"
+        },
+        "AllowedAdditionalAnalyses": {
+          "$ref": "#/definitions/AllowedAdditionalAnalyses"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ConfiguredTableAssociationAnalysisRuleAggregation": {
+      "type": "object",
+      "properties": {
+        "AllowedResultReceivers": {
+          "$ref": "#/definitions/AllowedResultReceivers"
+        },
+        "AllowedAdditionalAnalyses": {
+          "$ref": "#/definitions/AllowedAdditionalAnalyses"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ConfiguredTableAssociationAnalysisRuleList": {
+      "type": "object",
+      "properties": {
+        "AllowedResultReceivers": {
+          "$ref": "#/definitions/AllowedResultReceivers"
+        },
+        "AllowedAdditionalAnalyses": {
+          "$ref": "#/definitions/AllowedAdditionalAnalyses"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ConfiguredTableAssociationAnalysisRulePolicyV1": {
+      "oneOf": [
+        {
+          "type": "object",
+          "title": "List",
+          "properties": {
+            "List": {
+              "$ref": "#/definitions/ConfiguredTableAssociationAnalysisRuleList"
+            }
+          },
+          "required": [
+            "List"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "title": "Aggregation",
+          "properties": {
+            "Aggregation": {
+              "$ref": "#/definitions/ConfiguredTableAssociationAnalysisRuleAggregation"
+            }
+          },
+          "required": [
+            "Aggregation"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "title": "Custom",
+          "properties": {
+            "Custom": {
+              "$ref": "#/definitions/ConfiguredTableAssociationAnalysisRuleCustom"
+            }
+          },
+          "required": [
+            "Custom"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "ConfiguredTableAssociationAnalysisRulePolicy": {
+      "type": "object",
+      "title": "V1",
+      "properties": {
+        "V1": {
+          "$ref": "#/definitions/ConfiguredTableAssociationAnalysisRulePolicyV1"
+        }
+      },
+      "required": [
+        "V1"
+      ],
+      "additionalProperties": false
+    },
+    "ConfiguredTableAssociationAnalysisRule": {
+      "type": "object",
+      "properties": {
+        "Type": {
+          "$ref": "#/definitions/ConfiguredTableAssociationAnalysisRuleType"
+        },
+        "Policy": {
+          "$ref": "#/definitions/ConfiguredTableAssociationAnalysisRulePolicy"
+        }
+      },
+      "required": [
+        "Type",
+        "Policy"
+      ],
+      "additionalProperties": false
     }
   },
   "properties": {
@@ -68,6 +211,15 @@
       "type": "string",
       "maxLength": 512,
       "minLength": 32
+    },
+    "ConfiguredTableAssociationAnalysisRules": {
+      "type": "array",
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/ConfiguredTableAssociationAnalysisRule"
+      },
+      "maxItems": 1,
+      "minItems": 1
     }
   },
   "required": [
@@ -94,7 +246,12 @@
     "tagOnCreate": true,
     "tagUpdatable": true,
     "cloudFormationSystemTags": true,
-    "tagProperty": "/properties/Tags"
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "cleanrooms:ListTagsForResource",
+      "cleanrooms:UntagResource",
+      "cleanrooms:TagResource"
+    ]
   },
   "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-cleanrooms",
   "handlers": {
@@ -105,13 +262,18 @@
         "cleanrooms:ListTagsForResource",
         "cleanrooms:TagResource",
         "cleanrooms:GetConfiguredTableAssociation",
-        "cleanrooms:ListConfiguredTableAssociations"
+        "cleanrooms:ListConfiguredTableAssociations",
+        "cleanrooms:DeleteConfiguredTableAssociation",
+        "cleanrooms:DeleteConfiguredTableAssociationAnalysisRule",
+        "cleanrooms:CreateConfiguredTableAssociationAnalysisRule",
+        "cleanrooms:GetConfiguredTableAssociationAnalysisRule"
       ]
     },
     "read": {
       "permissions": [
         "cleanrooms:GetConfiguredTableAssociation",
-        "cleanrooms:ListTagsForResource"
+        "cleanrooms:ListTagsForResource",
+        "cleanrooms:GetConfiguredTableAssociationAnalysisRule"
       ]
     },
     "update": {
@@ -121,7 +283,11 @@
         "iam:PassRole",
         "cleanrooms:ListTagsForResource",
         "cleanrooms:TagResource",
-        "cleanrooms:UntagResource"
+        "cleanrooms:UntagResource",
+        "cleanrooms:DeleteConfiguredTableAssociationAnalysisRule",
+        "cleanrooms:CreateConfiguredTableAssociationAnalysisRule",
+        "cleanrooms:GetConfiguredTableAssociationAnalysisRule",
+        "cleanrooms:UpdateConfiguredTableAssociationAnalysisRule"
       ]
     },
     "delete": {
@@ -130,7 +296,9 @@
         "cleanrooms:GetConfiguredTableAssociation",
         "cleanrooms:ListConfiguredTableAssociations",
         "cleanrooms:ListTagsForResource",
-        "cleanrooms:UntagResource"
+        "cleanrooms:UntagResource",
+        "cleanrooms:DeleteConfiguredTableAssociationAnalysisRule",
+        "cleanrooms:GetConfiguredTableAssociationAnalysisRule"
       ]
     },
     "list": {
