@@ -40,7 +40,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.52.3
 	github.com/fatih/color v1.17.0
 	github.com/manifoldco/promptui v0.9.0
-	github.com/mattn/go-runewidth v0.0.15
+	github.com/mattn/go-runewidth v0.0.16
 	github.com/stretchr/testify v1.9.0
 )
 
