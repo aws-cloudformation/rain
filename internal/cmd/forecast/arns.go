@@ -7,6 +7,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
+	fc "github.com/aws-cloudformation/rain/plugins/forecast"
 	"github.com/google/uuid"
 )
 
@@ -14,7 +15,7 @@ import (
 // Returns "" if we don't know how to make the arn, we haven't implemented it yet, or if
 // the resource does not have Arns that we can use to plug in to the simulator.
 // Supported services: S3, EC2
-func predictResourceArn(input PredictionInput) string {
+func predictResourceArn(input fc.PredictionInput) string {
 
 	// There's not a great way to do this in a truly generic fashion.
 	// There is no direct map between IAM resource ARNs and CloudFormation resource types.
@@ -25,9 +26,9 @@ func predictResourceArn(input PredictionInput) string {
 	// Make up an id if it doesn't exist yet
 	physicalId := fmt.Sprintf("rain-%v", uuid.New())
 
-	if input.stackExists {
+	if input.StackExists {
 
-		res, err := cfn.GetStackResource(input.stackName, input.logicalId)
+		res, err := cfn.GetStackResource(input.StackName, input.LogicalId)
 		if err == nil {
 			// The resource exists
 			physicalId = *res.PhysicalResourceId
@@ -43,7 +44,7 @@ func predictResourceArn(input PredictionInput) string {
 	// There might be restrictions on the format of a physical id, so
 	// we might have to change it per resource type.
 
-	// Some resources have complex arns that will require us to inspect input.resource
+	// Some resources have complex arns that will require us to inspect input.Resource
 
 	// To add new resources here, a good way to start is by opening both the CloudFormation
 	// docs for the service, and the Service Authorization Reference (Resource Types section)
@@ -54,7 +55,7 @@ func predictResourceArn(input PredictionInput) string {
 	// and
 	// https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazons3.html#amazons3-resources-for-iam-policies
 
-	switch input.typeName {
+	switch input.TypeName {
 	case "AWS::S3::Bucket":
 		return fmt.Sprintf("arn:aws:s3:::%v", physicalId)
 	case "AWS::S3::BucketPolicy":
@@ -62,11 +63,11 @@ func predictResourceArn(input PredictionInput) string {
 	case "AWS::S3::AccessPoint":
 		// arn:${Partition}:s3:${Region}:${Account}:accesspoint/${AccessPointName}
 		return fmt.Sprintf("arn:%v:s3:%v:%v:accesspoint/%v",
-			input.env.partition, input.env.region, input.env.account, physicalId)
+			input.Env.Partition, input.Env.Region, input.Env.Account, physicalId)
 	case "AWS::S3::MultiRegionAccessPoint":
 		// arn:${Partition}:s3::${Account}:accesspoint/${AccessPointAlias}
 		return fmt.Sprintf("arn:%v:s3::%v:accesspoint/%v",
-			input.env.partition, input.env.account, physicalId)
+			input.Env.Partition, input.Env.Account, physicalId)
 	case "AWS::S3::MultiRegionAccessPointPolicy":
 		return ""
 	case "AWS::S3::StorageLens":
@@ -310,22 +311,22 @@ func predictResourceArn(input PredictionInput) string {
 	case "AWS::Lambda::Alias":
 		// arn:${Partition}:lambda:${Region}:${Account}:function:${FunctionName}:${Alias}
 		// Get the function name and alias from the template
-		_, props, _ := s11n.GetMapValue(input.resource, "Properties")
+		_, props, _ := s11n.GetMapValue(input.Resource, "Properties")
 		if props == nil {
 			config.Debugf("unexpected, AWS::Lambda::Alias props are nil: %v",
-				node.ToJson(input.resource))
+				node.ToJson(input.Resource))
 			return ""
 		}
 		_, functionName, _ := s11n.GetMapValue(props, "FunctionName")
 		if functionName == nil {
 			config.Debugf("unexpected, AWS::Lambda::Alias FunctionName is nil: %v",
-				node.ToJson(input.resource))
+				node.ToJson(input.Resource))
 			return ""
 		}
 		_, name, _ := s11n.GetMapValue(props, "Name")
 		if name == nil {
 			config.Debugf("unexpected, AWS::Lambda::Alias Name is nil: %v",
-				node.ToJson(input.resource))
+				node.ToJson(input.Resource))
 			return ""
 		}
 		fn := functionName.Value
@@ -336,7 +337,7 @@ func predictResourceArn(input PredictionInput) string {
 			}
 		}
 		return fmt.Sprintf("arn:%v:lambda:%v:%v:function:%v:%v",
-			input.env.partition, input.env.region, input.env.account,
+			input.Env.Partition, input.Env.Region, input.Env.Account,
 			fn, name.Value)
 	case "AWS::Lambda::CodeSigningConfig":
 		// arn:${Partition}:lambda:${Region}:${Account}:code-signing-config:${CodeSigningConfigId}
@@ -351,10 +352,10 @@ func predictResourceArn(input PredictionInput) string {
 		return colonFormat("lambda", "function", input, physicalId)
 	case "AWS::Lambda::LayerVersion":
 		// arn:${Partition}:lambda:${Region}:${Account}:layer:${LayerName}:${LayerVersion}
-		_, props, _ := s11n.GetMapValue(input.resource, "Properties")
+		_, props, _ := s11n.GetMapValue(input.Resource, "Properties")
 		if props == nil {
 			config.Debugf("unexpected, AWS::Lambda::Alias props are nil: %v",
-				node.ToJson(input.resource))
+				node.ToJson(input.Resource))
 			return ""
 		}
 		_, layerNameProp, _ := s11n.GetMapValue(props, "LayerName")
@@ -369,7 +370,7 @@ func predictResourceArn(input PredictionInput) string {
 			}
 		}
 		return fmt.Sprintf("arn:%v:lambda:%v:%v:layer:%v:%v",
-			input.env.partition, input.env.region, input.env.account,
+			input.Env.Partition, input.Env.Region, input.Env.Account,
 			layerName, "1")
 	case "AWS::Lambda::LayerVersionPermission":
 		return ""
@@ -379,16 +380,16 @@ func predictResourceArn(input PredictionInput) string {
 		return ""
 	case "AWS::Lambda::Version":
 		// arn:${Partition}:lambda:${Region}:${Account}:function:${FunctionName}:${Version}
-		_, props, _ := s11n.GetMapValue(input.resource, "Properties")
+		_, props, _ := s11n.GetMapValue(input.Resource, "Properties")
 		if props == nil {
 			config.Debugf("unexpected, AWS::Lambda::Version props are nil: %v",
-				node.ToJson(input.resource))
+				node.ToJson(input.Resource))
 			return ""
 		}
 		_, functionName, _ := s11n.GetMapValue(props, "FunctionName")
 		if functionName == nil {
 			config.Debugf("unexpected, AWS::Lambda::Version FunctionName is nil: %v",
-				node.ToJson(input.resource))
+				node.ToJson(input.Resource))
 			return ""
 		}
 		fn := functionName.Value
@@ -399,7 +400,7 @@ func predictResourceArn(input PredictionInput) string {
 			}
 		}
 		return fmt.Sprintf("arn:%v:lambda:%v:%v:function:%v:%v",
-			input.env.partition, input.env.region, input.env.account,
+			input.Env.Partition, input.Env.Region, input.Env.Account,
 			fn, "1")
 	case "AWS::IAM::AccessKey":
 		return ""
@@ -452,23 +453,23 @@ func predictResourceArn(input PredictionInput) string {
 // standardFormat returns an arn that fits the standard arn format.
 // for example
 // arn:${Partition}:ec2:${Region}:${Account}:capacity-reservation/${CapacityReservationId}
-func standardFormat(service string, subType string, input PredictionInput, physicalId string) string {
+func standardFormat(service string, subType string, input fc.PredictionInput, physicalId string) string {
 	return fmt.Sprintf("arn:%v:%v:%v:%v:%v/%v",
-		input.env.partition, service, input.env.region, input.env.account, subType, physicalId)
+		input.Env.Partition, service, input.Env.Region, input.Env.Account, subType, physicalId)
 }
 
 // colonFormat returns an arn that fits the (other) standard arn format.
 // for example
 // arn:${Partition}:ec2:${Region}:${Account}:capacity-reservation:${CapacityReservationId}
-func colonFormat(service string, subType string, input PredictionInput, physicalId string) string {
+func colonFormat(service string, subType string, input fc.PredictionInput, physicalId string) string {
 	return fmt.Sprintf("arn:%v:%v:%v:%v:%v:%v",
-		input.env.partition, service, input.env.region, input.env.account, subType, physicalId)
+		input.Env.Partition, service, input.Env.Region, input.Env.Account, subType, physicalId)
 }
 
 // GlobalFormat returns an arn that fits IAM and other non-regional services
 // for example
 // arn:${Partition}:iam::${Account}:group/${GroupNameWithPath}
-func globalFormat(service string, subType string, input PredictionInput, physicalId string) string {
+func globalFormat(service string, subType string, input fc.PredictionInput, physicalId string) string {
 	return fmt.Sprintf("arn:%v:%v::%v:%v:%v",
-		input.env.partition, service, input.env.account, subType, physicalId)
+		input.Env.Partition, service, input.Env.Account, subType, physicalId)
 }

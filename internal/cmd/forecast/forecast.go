@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"slices"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
@@ -22,6 +21,8 @@ import (
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/dc"
 	"github.com/aws-cloudformation/rain/internal/s11n"
+	"github.com/aws-cloudformation/rain/plugins/deployconfig"
+	fc "github.com/aws-cloudformation/rain/plugins/forecast"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
@@ -55,9 +56,6 @@ var all bool
 // Which stack action to check (--action)
 var action string
 
-// Which checks to ignore (--ignore)
-var ignore []string
-
 const (
 	ALL    = "all"
 	CREATE = "create"
@@ -65,119 +63,30 @@ const (
 	DELETE = "delete"
 )
 
-type Env struct {
-	partition string
-	region    string
-	account   string
-}
-
-// PredictionInput is the input to forecast prediction functions
-type PredictionInput struct {
-	source      cft.Template
-	stackName   string
-	resource    *yaml.Node
-	logicalId   string
-	stackExists bool
-	stack       types.Stack
-	typeName    string
-	dc          *dc.DeployConfig
-	env         Env
-	roleArn     string
-}
-
-// GetPropertyNode returns the node for the given property name
-func (input *PredictionInput) GetPropertyNode(name string) *yaml.Node {
-	_, props, _ := s11n.GetMapValue(input.resource, "Properties")
-	if props != nil {
-		_, n, _ := s11n.GetMapValue(props, name)
-		return n
-	}
-	return nil
-}
-
 // GetNode is a simplified version of s11n.GetMapValue that returns the value only
 func GetNode(prop *yaml.Node, name string) *yaml.Node {
 	_, n, _ := s11n.GetMapValue(prop, name)
 	return n
 }
 
-// LineNumber is the current line number in the template
-var LineNumber int
+// TODO: Move these types to a new package 'fc', which will
+// be imported by plugins.
 
-// Forecast represents predictions for a single resource in the template
-type Forecast struct {
-	TypeName  string
-	LogicalId string
-	Passed    []Check
-	Failed    []Check
-}
+// TODO: Add an arg to ignore all aws checks and only process plugins.
 
-// Check is a specific check with a code that can be suppressed
-type Check struct {
-	Pass    bool
-	Code    string
-	Message string
-}
+// TODO: Write a sample plugin that does something simple like validate resource names
 
-func (f *Forecast) GetNumChecked() int {
-	return len(f.Passed) + len(f.Failed)
-}
-
-func (f *Forecast) GetNumFailed() int {
-	return len(f.Failed)
-}
-
-func (f *Forecast) GetNumPassed() int {
-	return len(f.Passed)
-}
-
-func (f *Forecast) Append(forecast Forecast) {
-	f.Failed = append(f.Failed, forecast.Failed...)
-	f.Passed = append(f.Passed, forecast.Passed...)
-}
-
-// Add adds a pass or fail message, formatting it to include the type name and logical id
-func (f *Forecast) Add(code string, passed bool, message string) {
-	msg := fmt.Sprintf("%v: %v %v - %v", LineNumber, f.TypeName, f.LogicalId, message)
-	check := Check{
-		Pass:    passed,
-		Code:    code,
-		Message: msg,
-	}
-
-	// If we are ignoring this check, don't add it to the forecast
-	if slices.Contains(ignore, code) || slices.Contains(ignore, f.TypeName) {
-		return
-	}
-
-	if passed {
-		f.Passed = append(f.Passed, check)
-	} else {
-		f.Failed = append(f.Failed, check)
-	}
-}
-
-func (c *Check) String() string {
-	var passFail string
-	if c.Pass {
-		passFail = "PASS"
-	} else {
-		passFail = "FAIL"
-	}
-	return fmt.Sprintf("%s %s on line %s", c.Code, passFail, c.Message)
-}
-
-func makeForecast(typeName string, logicalId string) Forecast {
-	return Forecast{
+func makeForecast(typeName string, logicalId string) fc.Forecast {
+	return fc.Forecast{
 		TypeName:  typeName,
 		LogicalId: logicalId,
-		Passed:    make([]Check, 0),
-		Failed:    make([]Check, 0),
+		Passed:    make([]fc.Check, 0),
+		Failed:    make([]fc.Check, 0),
 	}
 }
 
 // forecasters is a map of resource type names to prediction functions.
-var forecasters = make(map[string]func(input PredictionInput) Forecast)
+var forecasters = make(map[string]func(input fc.PredictionInput) fc.Forecast)
 
 // Push a message about checking a resource onto the spinner
 func spin(typeName string, logicalId string, message string) {
@@ -185,14 +94,14 @@ func spin(typeName string, logicalId string, message string) {
 }
 
 // Run all forecasters for the type
-func forecastForType(input PredictionInput) Forecast {
+func forecastForType(input fc.PredictionInput) fc.Forecast {
 
-	forecast := makeForecast(input.typeName, input.logicalId)
+	forecast := makeForecast(input.TypeName, input.LogicalId)
 
 	// Only run the forecaster if it matches the optional --type arg,
 	// or if that arg was not provided.
-	if ResourceType != "" && ResourceType != input.typeName {
-		config.Debugf("Not running forecasters for %v", input.typeName)
+	if ResourceType != "" && ResourceType != input.TypeName {
+		config.Debugf("Not running forecasters for %v", input.TypeName)
 		return forecast
 	}
 
@@ -202,32 +111,32 @@ func forecastForType(input PredictionInput) Forecast {
 	// Estimate how long the stackActionToEstimate will take
 	// (This is only for spinner output, we calculate total time separately)
 	var stackActionToEstimate StackAction
-	if input.stackExists {
+	if input.StackExists {
 		stackActionToEstimate = Update
 	} else {
 		stackActionToEstimate = Create
 	}
-	est, esterr := GetResourceEstimate(input.typeName, stackActionToEstimate)
+	est, esterr := GetResourceEstimate(input.TypeName, stackActionToEstimate)
 	if esterr != nil {
 		config.Debugf("could not get estimate: %v", esterr)
 		est = 1
 	}
-	config.Debugf("Got resource estimate for %v: %v", input.logicalId, est)
-	spin(input.typeName, input.logicalId, fmt.Sprintf("estimate: %v seconds", est))
+	config.Debugf("Got resource estimate for %v: %v", input.LogicalId, est)
+	spin(input.TypeName, input.LogicalId, fmt.Sprintf("estimate: %v seconds", est))
 	spinner.Pop()
 
 	// Call generic prediction functions that we can run against
 	// all resources, even if there is not a predictor.
 
-	spin(input.typeName, input.logicalId, "exists already?")
+	spin(input.TypeName, input.LogicalId, "exists already?")
 
 	code := FG001
 	// Make sure the resource does not already exist
-	if cfn.ResourceAlreadyExists(input.typeName, input.resource,
-		input.stackExists, input.source.Node, input.dc) {
+	if cfn.ResourceAlreadyExists(input.TypeName, input.Resource,
+		input.StackExists, input.Source.Node, input.Dc) {
 		forecast.Add(code, false, "Resource with this name already exists")
 	} else {
-		LineNumber = input.resource.Line
+		// TODO LineNumber = input.resource.Line
 		forecast.Add(code, true, "Resource with this name does not already exist")
 	}
 
@@ -238,7 +147,7 @@ func forecastForType(input PredictionInput) Forecast {
 		err := checkPermissions(input, &forecast)
 		if err != nil {
 			config.Debugf("Unable to check permissions: %v", err)
-			return Forecast{}
+			return fc.Forecast{}
 		}
 	}
 
@@ -253,12 +162,12 @@ func forecastForType(input PredictionInput) Forecast {
 	// TODO - Regional capabilities. Does this service/feature exist in the region?
 
 	// See if we have a specific forecaster for this type
-	fn, found := forecasters[input.typeName]
+	fn, found := forecasters[input.TypeName]
 
 	if found {
 		// Call the prediction function and append the results
-		config.Debugf("Running forecaster for %v", input.typeName)
-		LineNumber = input.resource.Line
+		config.Debugf("Running forecaster for %v", input.TypeName)
+		// TODO LineNumber = input.resource.Line
 		forecast.Append(fn(input))
 	}
 
@@ -269,7 +178,7 @@ func forecastForType(input PredictionInput) Forecast {
 
 // Query the account to make predictions about deployment failures.
 // Returns true if no failures are predicted.
-func Predict(source cft.Template, stackName string, stack types.Stack, stackExists bool, dc *dc.DeployConfig) bool {
+func Predict(source cft.Template, stackName string, stack types.Stack, stackExists bool, dc *deployconfig.DeployConfig) bool {
 
 	config.Debugf("About to make API calls for failure prediction...")
 
@@ -298,7 +207,7 @@ func Predict(source cft.Template, stackName string, stack types.Stack, stackExis
 			continue
 		}
 		logicalId := r.Value
-		LineNumber = r.Line
+		// TODO LineNumber = r.Line
 		config.Debugf("logicalId: %v", logicalId)
 
 		resource := resources.Content[i+1]
@@ -315,15 +224,15 @@ func Predict(source cft.Template, stackName string, stack types.Stack, stackExis
 
 		spinner.Push(fmt.Sprintf("Checking %s: %s", typeName, logicalId))
 
-		input := PredictionInput{}
-		input.logicalId = logicalId
-		input.source = source
-		input.resource = resource
-		input.stackName = stackName
-		input.stackExists = stackExists
-		input.stack = stack
-		input.typeName = typeName
-		input.dc = dc
+		input := fc.PredictionInput{}
+		input.LogicalId = logicalId
+		input.Source = source
+		input.Resource = resource
+		input.StackName = stackName
+		input.StackExists = stackExists
+		input.Stack = stack
+		input.TypeName = typeName
+		input.Dc = dc
 		cfg := aws.Config()
 		callerArn, err := iam.GetCallerArn(cfg) // arn:aws:iam::755952356119:role/Admin
 		if err != nil {
@@ -333,10 +242,10 @@ func Predict(source cft.Template, stackName string, stack types.Stack, stackExis
 		if len(arnTokens) != 6 {
 			panic(fmt.Sprintf("unexpected number of tokens in caller arn: %v", callerArn))
 		}
-		input.env = Env{partition: arnTokens[1], region: cfg.Region, account: arnTokens[4]}
-		input.roleArn = RoleArn
-		if input.roleArn == "" {
-			input.roleArn = callerArn
+		input.Env = fc.Env{Partition: arnTokens[1], Region: cfg.Region, Account: arnTokens[4]}
+		input.RoleArn = RoleArn
+		if input.RoleArn == "" {
+			input.RoleArn = callerArn
 		}
 
 		forecast.Append(forecastForType(input))
@@ -494,7 +403,7 @@ func init() {
 	Cmd.Flags().StringSliceVar(&params, "params", []string{}, "set parameter values; use the format key1=value1,key2=value2")
 	Cmd.Flags().StringVarP(&configFilePath, "config", "c", "", "YAML or JSON file to set tags and parameters")
 	Cmd.Flags().StringVar(&action, "action", ALL, "The stack action to check: create, update, delete, all (default is all)")
-	Cmd.Flags().StringSliceVar(&ignore, "ignore", []string{}, "Resource types and specific codes to ignore, separated by commas, for example, AWS::S3::Bucket,F0002")
+	Cmd.Flags().StringSliceVar(&fc.Ignore, "ignore", []string{}, "Resource types and specific codes to ignore, separated by commas, for example, AWS::S3::Bucket,F0002")
 
 	// If you want to add a prediction for a type that is not already covered, add it here
 	// The function must return a Forecast struct

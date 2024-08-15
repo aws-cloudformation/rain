@@ -8,17 +8,18 @@ import (
 	"github.com/aws-cloudformation/rain/internal/aws/iam"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
+	fc "github.com/aws-cloudformation/rain/plugins/forecast"
 	"golang.org/x/exp/slices"
 )
 
 // Returns true if the user has the required permissions on the resource
 // verb is create, delete, or update
-func checkTypePermissions(input PredictionInput, resourceArn string, verb string) (bool, []string) {
+func checkTypePermissions(input fc.PredictionInput, resourceArn string, verb string) (bool, []string) {
 
-	spin(input.typeName, input.logicalId, "permitted?")
+	spin(input.TypeName, input.LogicalId, "permitted?")
 
 	// Go get the list of permissions from the registry
-	actions, err := cfn.GetTypePermissions(input.typeName, verb)
+	actions, err := cfn.GetTypePermissions(input.TypeName, verb)
 	if err != nil {
 		return false, []string{err.Error()}
 	}
@@ -31,7 +32,7 @@ func checkTypePermissions(input PredictionInput, resourceArn string, verb string
 	// TODO - Is there a way we can figure out the arns for related services?
 	// This would likely not be practical in a generic way,
 	// but it's something we should eventually add to custom handling for each service.
-	svcLower := strings.ToLower(strings.Split(input.typeName, "::")[1])
+	svcLower := strings.ToLower(strings.Split(input.TypeName, "::")[1])
 	actionsToRemove := make([]string, 0)
 	for _, action := range actions {
 		// Remove all actions that don't belong to this service
@@ -48,7 +49,7 @@ func checkTypePermissions(input PredictionInput, resourceArn string, verb string
 		actionsToRemove = append(actionsToRemove, "lambda:GetCodeSigningConfig")
 		actionsToRemove = append(actionsToRemove, "lambda:GetLayerVersion")
 	}
-	if input.typeName == "AWS::IAM::Policy" {
+	if input.TypeName == "AWS::IAM::Policy" {
 		actionsToRemove = append(actionsToRemove, "iam:PutUserPolicy")
 		actionsToRemove = append(actionsToRemove, "iam:PutRolePolicy")
 		actionsToRemove = append(actionsToRemove, "iam:PutGroupPolicy")
@@ -70,23 +71,23 @@ func checkTypePermissions(input PredictionInput, resourceArn string, verb string
 
 	// Update the spinner with the action being checked
 	spinnerCallback := func(action string) {
-		spin(input.typeName, input.logicalId, action+" permitted?")
+		spin(input.TypeName, input.LogicalId, action+" permitted?")
 	}
 
 	// Simulate the actions
 	result, messages := iam.Simulate(actionsToCheck,
-		resourceArn, input.roleArn, spinnerCallback)
+		resourceArn, input.RoleArn, spinnerCallback)
 
 	spinner.Pop()
 	return result, messages
 }
 
 // Check permissions to make sure the current role can create-update-delete
-func checkPermissions(input PredictionInput, forecast *Forecast) error {
+func checkPermissions(input fc.PredictionInput, forecast *fc.Forecast) error {
 	resourceArn := predictResourceArn(input)
 	if resourceArn == "" {
 		// We don't know how to make an arn for this type
-		config.Debugf("Can't check permissions for %v %v, ARN unknown", input.typeName, input.logicalId)
+		config.Debugf("Can't check permissions for %v %v, ARN unknown", input.TypeName, input.LogicalId)
 		return nil
 	}
 
@@ -94,7 +95,7 @@ func checkPermissions(input PredictionInput, forecast *Forecast) error {
 
 	var ok bool
 	var reason []string
-	if input.stackExists {
+	if input.StackExists {
 		ok, reason = checkTypePermissions(input, resourceArn, "update")
 		if !ok {
 			forecast.Add(code, false,

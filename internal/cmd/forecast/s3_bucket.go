@@ -8,13 +8,14 @@ import (
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/s11n"
+	fc "github.com/aws-cloudformation/rain/plugins/forecast"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 )
 
 // An empty bucket cannot be deleted, which will cause a stack DELETE to fail.
 // Returns true if the stack operation will succeed.
-func checkBucketNotEmpty(input PredictionInput, bucket *types.StackResourceDetail) (bool, string) {
-	if !input.stackExists {
+func checkBucketNotEmpty(input fc.PredictionInput, bucket *types.StackResourceDetail) (bool, string) {
+	if !input.StackExists {
 		return true, "Stack does not exist"
 	}
 
@@ -22,7 +23,7 @@ func checkBucketNotEmpty(input PredictionInput, bucket *types.StackResourceDetai
 		return false, "bucket is nil"
 	}
 
-	spin(input.typeName, input.logicalId, "bucket not empty?")
+	spin(input.TypeName, input.LogicalId, "bucket not empty?")
 
 	config.Debugf("Checking if the bucket %v is not empty", *bucket.PhysicalResourceId)
 
@@ -40,7 +41,7 @@ func checkBucketNotEmpty(input PredictionInput, bucket *types.StackResourceDetai
 	hasContents, _ := s3.BucketHasContents(*bucket.PhysicalResourceId)
 	if hasContents {
 		// Check the deletion policy
-		_, deletionPolicy, _ := s11n.GetMapValue(input.resource, "DeletionPolicy")
+		_, deletionPolicy, _ := s11n.GetMapValue(input.Resource, "DeletionPolicy")
 		if deletionPolicy != nil && deletionPolicy.Value == "Retain" {
 			// The bucket is not empty but it is set to retain,
 			// so a stack DELETE will not fail
@@ -59,16 +60,16 @@ func checkBucketNotEmpty(input PredictionInput, bucket *types.StackResourceDetai
 }
 
 // Check everything that could go wrong with an AWS::S3::Bucket resource
-func CheckS3Bucket(input PredictionInput) Forecast {
+func CheckS3Bucket(input fc.PredictionInput) fc.Forecast {
 
-	forecast := makeForecast(input.typeName, input.logicalId)
+	forecast := makeForecast(input.TypeName, input.LogicalId)
 
-	if input.stackExists {
-		res, err := cfn.GetStackResource(input.stackName, input.logicalId)
+	if input.StackExists {
+		res, err := cfn.GetStackResource(input.StackName, input.LogicalId)
 
 		if err != nil {
 			// If this is an update, the bucket might not exist yet
-			config.Debugf("Unable to get details for %v: %v", input.logicalId, err)
+			config.Debugf("Unable to get details for %v: %v", input.LogicalId, err)
 		} else {
 			// The bucket exists
 			bucketName := *res.PhysicalResourceId

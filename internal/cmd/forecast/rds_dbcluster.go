@@ -12,23 +12,24 @@ import (
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
+	fc "github.com/aws-cloudformation/rain/plugins/forecast"
 	"gopkg.in/yaml.v3"
 )
 
 // Checks configuration issues with RDS clusters
-func CheckRDSDBCluster(input PredictionInput) Forecast {
-	forecast := makeForecast(input.typeName, input.logicalId)
+func CheckRDSDBCluster(input fc.PredictionInput) fc.Forecast {
+	forecast := makeForecast(input.TypeName, input.LogicalId)
 
 	// Resource handler returned message: "Cannot find version 11.16 for aurora-postgresql (Service: Rds, Status Code: 400
 	// https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-rds-dbcluster.html#cfn-rds-dbcluster-engineversion
 
-	_, props, _ := s11n.GetMapValue(input.resource, "Properties")
+	_, props, _ := s11n.GetMapValue(input.Resource, "Properties")
 	if props == nil {
-		config.Debugf("expected %s to have Properties", input.logicalId)
+		config.Debugf("expected %s to have Properties", input.LogicalId)
 		return forecast
 	}
 
-	spin(input.typeName, input.logicalId, "db cluster has correct engine version?")
+	spin(input.TypeName, input.LogicalId, "db cluster has correct engine version?")
 
 	var clusterEngineVersion string
 
@@ -58,15 +59,15 @@ func CheckRDSDBCluster(input PredictionInput) Forecast {
 				}
 			}
 			if unexpected {
-				LineNumber = input.resource.Line
-				config.Debugf("db cluster resource: %s", node.ToJson(input.resource))
+				// TODO LineNumber = input.resource.Line
+				config.Debugf("db cluster resource: %s", node.ToJson(input.Resource))
 				forecast.Add(code, false, fmt.Sprintf("unexpected EngineVersion: %s", engineVersion.Value))
 			} else {
 				forecast.Add(code, true, "EngineVersion ok")
 			}
 		default:
 			config.Debugf("unexpected Engine value for %s: %s",
-				input.logicalId, engine.Value)
+				input.LogicalId, engine.Value)
 			forecast.Add(code, false, "unexpected Engine value")
 		}
 	}
@@ -75,7 +76,7 @@ func CheckRDSDBCluster(input PredictionInput) Forecast {
 
 	code = F0004
 
-	spin(input.typeName, input.logicalId, "db cluster has MonitoringRoleARN?")
+	spin(input.TypeName, input.LogicalId, "db cluster has MonitoringRoleARN?")
 
 	// Resource handler returned message: A MonitoringRoleARN value is required if you specify a MonitoringInterval value other than 0.
 	_, monitoringRoleARN, _ := s11n.GetMapValue(props, "MonitoringRoleARN")
@@ -102,10 +103,10 @@ func CheckRDSDBCluster(input PredictionInput) Forecast {
 
 	code = F0005
 
-	spin(input.typeName, input.logicalId, "db clusters not at quota")
+	spin(input.TypeName, input.LogicalId, "db clusters not at quota")
 
 	// Check to make sure we're not at quota
-	if !input.stackExists {
+	if !input.StackExists {
 		quota, err := servicequotas.GetQuota("rds", "L-952B80B8")
 		if err != nil {
 			forecast.Add(code, false, fmt.Sprintf("failed: %v", err))
@@ -133,11 +134,11 @@ func CheckRDSDBCluster(input PredictionInput) Forecast {
 	// The engine version that you requested for your DB instance (a.b) does not match the engine version of your DB cluster (c.d)
 	// This kind of thing might be better in cfn-lint
 
-	spin(input.typeName, input.logicalId, "db cluster engine version matches instances")
+	spin(input.TypeName, input.LogicalId, "db cluster engine version matches instances")
 
 	// TODO: Move this to DBInstance checks when we implement them
 
-	resources, err := input.source.GetSection(cft.Resources)
+	resources, err := input.Source.GetSection(cft.Resources)
 	if err == nil {
 		for i := 0; i < len(resources.Content); i += 2 {
 			logicalId := resources.Content[i].Value
@@ -155,7 +156,7 @@ func CheckRDSDBCluster(input PredictionInput) Forecast {
 							config.Debugf("instanceVersion: %s", node.ToSJson(evNode))
 
 							// Resolve refs first
-							resolveParamRefs(propName, evNode, input.dc, instanceProps)
+							resolveParamRefs(propName, evNode, input.Dc, instanceProps)
 
 							config.Debugf("instanceVersion after: %s", node.ToSJson(evNode))
 

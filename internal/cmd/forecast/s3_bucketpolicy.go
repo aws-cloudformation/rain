@@ -8,31 +8,32 @@ import (
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/s11n"
+	fc "github.com/aws-cloudformation/rain/plugins/forecast"
 )
 
 // Check everything that could go wrong with an AWS::S3::Bucket resource.
 // Returns numFailed, numChecked
-func CheckS3BucketPolicy(input PredictionInput) Forecast {
+func CheckS3BucketPolicy(input fc.PredictionInput) fc.Forecast {
 
-	forecast := makeForecast(input.typeName, input.logicalId)
+	forecast := makeForecast(input.TypeName, input.LogicalId)
 
-	spin(input.typeName, input.logicalId, "bucket policy")
+	spin(input.TypeName, input.LogicalId, "bucket policy")
 
-	if input.stackExists {
-		_, err := cfn.GetStackResource(input.stackName, input.logicalId)
+	if input.StackExists {
+		_, err := cfn.GetStackResource(input.StackName, input.LogicalId)
 
 		// Do we need this?
 
 		if err != nil {
 			// Likely the resource has been added after the stack was created
-			config.Debugf("Unable to get stack resource %v: %v", input.logicalId, err)
+			config.Debugf("Unable to get stack resource %v: %v", input.LogicalId, err)
 		}
 	}
 
 	// Go back to the template to get the referenced bucket
 
 	// Check the policy for invalid principals
-	_, props, _ := s11n.GetMapValue(input.resource, "Properties")
+	_, props, _ := s11n.GetMapValue(input.Resource, "Properties")
 	if props != nil {
 		_, policyDocument, _ := s11n.GetMapValue(props, "PolicyDocument")
 		if policyDocument != nil {
@@ -45,7 +46,7 @@ func CheckS3BucketPolicy(input PredictionInput) Forecast {
 			}
 
 			if !res {
-				LineNumber = policyDocument.Line
+				// TODO LineNumber = policyDocument.Line
 				forecast.Add(code, false, "Invalid principal in policy document")
 			} else {
 				forecast.Add(code, true, "Principal is valid")

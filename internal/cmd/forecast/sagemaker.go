@@ -10,6 +10,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/s11n"
+	fc "github.com/aws-cloudformation/rain/plugins/forecast"
 )
 
 //go:embed sagemaker-notebook-instance-codes.json
@@ -37,24 +38,24 @@ func ParseNotebookCodes(jsonData string) ([]NotebookCode, error) {
 	return retval, nil
 }
 
-func CheckSageMakerNotebook(input PredictionInput) Forecast {
+func CheckSageMakerNotebook(input fc.PredictionInput) fc.Forecast {
 	// AWS::SageMaker::NotebookInstance
 
-	forecast := makeForecast(input.typeName, input.logicalId)
+	forecast := makeForecast(input.TypeName, input.LogicalId)
 
 	checkNotebookLimit(&input, &forecast)
 
 	return forecast
 }
 
-func checkNotebookLimit(input *PredictionInput, forecast *Forecast) {
+func checkNotebookLimit(input *fc.PredictionInput, forecast *fc.Forecast) {
 
 	// The account- service limit 'Total number of notebook instances' is 8
 	// NotebookInstances, with current utilization of 16 NotebookInstances and
 	// a request delta of 1 NotebookInstances. Please contact AWS support to
 	// request an increase for this limit.
 
-	spin(input.typeName, input.logicalId, "SageMaker notebook quota ok?")
+	spin(input.TypeName, input.LogicalId, "SageMaker notebook quota ok?")
 	defer spinner.Pop()
 
 	atLimit := false
@@ -111,18 +112,18 @@ func checkNotebookLimit(input *PredictionInput, forecast *Forecast) {
 
 		// Get the instance type from the resource we are checking
 		var resourceInstanceType string
-		_, props, _ := s11n.GetMapValue(input.resource, "Properties")
+		_, props, _ := s11n.GetMapValue(input.Resource, "Properties")
 		if props == nil {
-			config.Debugf("expected %s to have Properties", input.logicalId)
+			config.Debugf("expected %s to have Properties", input.LogicalId)
 			return
 		}
 		_, instanceTypeNode, _ := s11n.GetMapValue(props, "InstanceType")
 		if instanceTypeNode == nil {
-			config.Debugf("expected %s to have InstanceType", input.logicalId)
+			config.Debugf("expected %s to have InstanceType", input.LogicalId)
 			return
 		}
 		resourceInstanceType = instanceTypeNode.Value
-		config.Debugf("%s InstanceType is %s", input.logicalId, resourceInstanceType)
+		config.Debugf("%s InstanceType is %s", input.LogicalId, resourceInstanceType)
 
 		code, ok := codeMap[resourceInstanceType]
 		if !ok {

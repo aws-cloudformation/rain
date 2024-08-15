@@ -3,20 +3,21 @@ package forecast
 import (
 	"github.com/aws-cloudformation/rain/internal/aws/kms"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
+	fc "github.com/aws-cloudformation/rain/plugins/forecast"
 )
 
-func CheckSNSTopic(input PredictionInput) Forecast {
+func CheckSNSTopic(input fc.PredictionInput) fc.Forecast {
 
-	forecast := makeForecast(input.typeName, input.logicalId)
+	forecast := makeForecast(input.TypeName, input.LogicalId)
 
-	spin(input.typeName, input.logicalId, "Checking SNS Topic Key")
+	spin(input.TypeName, input.LogicalId, "Checking SNS Topic Key")
 	checkSNSTopicKey(&input, &forecast)
 	spinner.Pop()
 
 	return forecast
 }
 
-func checkSNSTopicKey(input *PredictionInput, forecast *Forecast) {
+func checkSNSTopicKey(input *fc.PredictionInput, forecast *fc.Forecast) {
 
 	// Get the KmsMasterKeyId from the input resource properties
 	k := input.GetPropertyNode("KmsMasterKeyId")

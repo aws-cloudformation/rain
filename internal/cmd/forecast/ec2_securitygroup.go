@@ -8,10 +8,11 @@ import (
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/s11n"
+	fc "github.com/aws-cloudformation/rain/plugins/forecast"
 	"gopkg.in/yaml.v3"
 )
 
-func CheckEC2SecurityGroup(input PredictionInput) Forecast {
+func CheckEC2SecurityGroup(input fc.PredictionInput) fc.Forecast {
 
 	// TODO - Cannot delete a security group that still has instances
 	// (See if there are instances not in this stack)
@@ -28,9 +29,9 @@ func CheckEC2SecurityGroup(input PredictionInput) Forecast {
 		SourceSecurityGroupId property and specify the security group ID.
 	*/
 
-	forecast := makeForecast(input.typeName, input.logicalId)
+	forecast := makeForecast(input.TypeName, input.LogicalId)
 
-	spin(input.typeName, input.logicalId, "Checking if all security groups are in the same VPC")
+	spin(input.TypeName, input.LogicalId, "Checking if all security groups are in the same VPC")
 	checkSecurityGroupsInSameVPC(&input, &forecast)
 	spinner.Pop()
 
@@ -62,7 +63,7 @@ func CheckEC2SecurityGroup(input PredictionInput) Forecast {
 //	}
 //}
 
-func checkSecurityGroupsInSameVPC(input *PredictionInput, forecast *Forecast) {
+func checkSecurityGroupsInSameVPC(input *fc.PredictionInput, forecast *fc.Forecast) {
 
 	code := F0010
 
@@ -76,7 +77,7 @@ func checkSecurityGroupsInSameVPC(input *PredictionInput, forecast *Forecast) {
 
 	config.Debugf("defaultVPCId: %s", defaultVPCId)
 
-	resources, err := input.source.GetSection(cft.Resources)
+	resources, err := input.Source.GetSection(cft.Resources)
 	if err != nil {
 		config.Debugf("Unable to get Resources: %v", err)
 		return
@@ -118,7 +119,7 @@ func checkSecurityGroupsInSameVPC(input *PredictionInput, forecast *Forecast) {
 			}
 			if resourceVpcId == "" {
 				// Not sure what this is
-				config.Debugf("Unable to determine VpcId for %s", input.logicalId)
+				config.Debugf("Unable to determine VpcId for %s", input.LogicalId)
 				return
 			}
 		} else {

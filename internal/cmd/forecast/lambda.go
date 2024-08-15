@@ -7,18 +7,19 @@ import (
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
+	fc "github.com/aws-cloudformation/rain/plugins/forecast"
 	"gopkg.in/yaml.v3"
 )
 
-func checkLambdaRole(input *PredictionInput, forecast *Forecast) {
+func checkLambdaRole(input *fc.PredictionInput, forecast *fc.Forecast) {
 
 	roleProp := input.GetPropertyNode("Role")
 
 	// If the role is specified, and it's a scalar, check if it exists
 	if roleProp != nil && roleProp.Kind == yaml.ScalarNode {
-		spin(input.typeName, input.logicalId, "Checking if lambda role exists")
+		spin(input.TypeName, input.LogicalId, "Checking if lambda role exists")
 		roleArn := roleProp.Value
-		LineNumber = roleProp.Line
+		// TODO LineNumber = roleProp.Line
 		if !iam.RoleExists(roleArn) {
 			forecast.Add(F0016, false, "Role does not exist")
 		} else {
@@ -27,7 +28,7 @@ func checkLambdaRole(input *PredictionInput, forecast *Forecast) {
 		spinner.Pop()
 
 		// Check to make sure the iam role can be assumed by the lambda function
-		spin(input.typeName, input.logicalId, "Checking if lambda role can be assumed")
+		spin(input.TypeName, input.LogicalId, "Checking if lambda role can be assumed")
 		canAssume, err := iam.CanAssumeRole(roleArn, "lambda.amazonaws.com")
 		if err != nil {
 			config.Debugf("Error checking role: %s", err)
@@ -42,14 +43,14 @@ func checkLambdaRole(input *PredictionInput, forecast *Forecast) {
 	}
 }
 
-func checkLambdaS3Bucket(input *PredictionInput, forecast *Forecast) {
+func checkLambdaS3Bucket(input *fc.PredictionInput, forecast *fc.Forecast) {
 	// If the lambda function has an s3 bucket and key, make sure they exist
 	codeProp := input.GetPropertyNode("Code")
 	if codeProp != nil {
 		s3Bucket := GetNode(codeProp, "S3Bucket")
 		s3Key := GetNode(codeProp, "S3Key")
 		if s3Bucket != nil && s3Key != nil {
-			spin(input.typeName, input.logicalId,
+			spin(input.TypeName, input.LogicalId,
 				fmt.Sprintf("Checking to see if S3 object %s/%s exists",
 					s3Bucket.Value, s3Key.Value))
 
@@ -108,17 +109,17 @@ func checkLambdaS3Bucket(input *PredictionInput, forecast *Forecast) {
 
 			spinner.Pop()
 		} else {
-			config.Debugf("%s does not have S3Bucket and S3Key", input.logicalId)
+			config.Debugf("%s does not have S3Bucket and S3Key", input.LogicalId)
 		}
 	} else {
-		config.Debugf("Unexpected missing Code property from %s", input.logicalId)
+		config.Debugf("Unexpected missing Code property from %s", input.LogicalId)
 	}
 }
 
 // checkLambdaFunction checks for potential stack failures related to functions
-func CheckLambdaFunction(input PredictionInput) Forecast {
+func CheckLambdaFunction(input fc.PredictionInput) fc.Forecast {
 
-	forecast := makeForecast(input.typeName, input.logicalId)
+	forecast := makeForecast(input.TypeName, input.LogicalId)
 
 	checkLambdaRole(&input, &forecast)
 
