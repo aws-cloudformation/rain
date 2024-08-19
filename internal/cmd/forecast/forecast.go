@@ -60,6 +60,9 @@ var action string
 // Path to a plugin .so file
 var pluginPath string
 
+// Only run predictions from the plugin, don't run any of the built in checks
+var pluginOnly bool
+
 const (
 	ALL    = "all"
 	CREATE = "create"
@@ -72,10 +75,6 @@ func GetNode(prop *yaml.Node, name string) *yaml.Node {
 	_, n, _ := s11n.GetMapValue(prop, name)
 	return n
 }
-
-// TODO: Add an arg to ignore all aws checks and only process plugins.
-
-// TODO: Write a sample plugin that does something simple like validate resource names
 
 // forecasters is a map of resource type names to prediction functions.
 var forecasters = make(map[string]func(input fc.PredictionInput) fc.Forecast)
@@ -120,30 +119,34 @@ func forecastForType(input fc.PredictionInput) fc.Forecast {
 	spin(input.TypeName, input.LogicalId, fmt.Sprintf("estimate: %v seconds", est))
 	spinner.Pop()
 
-	// Call generic prediction functions that we can run against
-	// all resources, even if there is not a predictor.
+	if !pluginOnly {
+		// Call generic prediction functions that we can run against
+		// all resources, even if there is not a predictor.
 
-	spin(input.TypeName, input.LogicalId, "exists already?")
+		spin(input.TypeName, input.LogicalId, "exists already?")
 
-	code := FG001
-	// Make sure the resource does not already exist
-	if cfn.ResourceAlreadyExists(input.TypeName, input.Resource,
-		input.StackExists, input.Source.Node, input.Dc) {
-		forecast.Add(code, false, "Resource with this name already exists",
-			input.Resource.Line)
-	} else {
-		forecast.Add(code, true, "Resource with this name does not already exist",
-			input.Resource.Line)
+		code := FG001
+		// Make sure the resource does not already exist
+		if cfn.ResourceAlreadyExists(input.TypeName, input.Resource,
+			input.StackExists, input.Source.Node, input.Dc) {
+			forecast.Add(code, false, "Resource with this name already exists",
+				input.Resource.Line)
+		} else {
+			forecast.Add(code, true, "Resource with this name does not already exist",
+				input.Resource.Line)
+		}
+
+		spinner.Pop()
 	}
 
-	spinner.Pop()
-
-	// Check permissions
-	if IncludeIAM {
-		err := checkPermissions(input, &forecast)
-		if err != nil {
-			config.Debugf("Unable to check permissions: %v", err)
-			return fc.Forecast{}
+	if !pluginOnly {
+		// Check permissions
+		if IncludeIAM {
+			err := checkPermissions(input, &forecast)
+			if err != nil {
+				config.Debugf("Unable to check permissions: %v", err)
+				return fc.Forecast{}
+			}
 		}
 	}
 
@@ -157,17 +160,19 @@ func forecastForType(input fc.PredictionInput) fc.Forecast {
 
 	// TODO - Regional capabilities. Does this service/feature exist in the region?
 
-	// See if we have a specific forecaster for this type
-	fn, found := forecasters[input.TypeName]
+	if !pluginOnly {
+		// See if we have a specific forecaster for this type
+		fn, found := forecasters[input.TypeName]
 
-	if found {
-		// Call the prediction function and append the results
-		config.Debugf("Running forecaster for %v", input.TypeName)
-		forecast.Append(fn(input))
+		if found {
+			// Call the prediction function and append the results
+			config.Debugf("Running forecaster for %v", input.TypeName)
+			forecast.Append(fn(input))
+		}
 	}
 
 	// If we loaded extra forecasters from a plugin, run them
-	fn, found = pluginForecasters[input.TypeName]
+	fn, found := pluginForecasters[input.TypeName]
 	if found {
 		config.Debugf("Running plugin forecaster for %v", input.TypeName)
 		forecast.Append(fn(input))
@@ -189,7 +194,9 @@ func Predict(source cft.Template, stackName string, stack types.Stack, stackExis
 	// Visit each resource in the template and see if it matches
 	// one of our predictions
 
-	forecast := fc.MakeForecast(&fc.PredictionInput{})
+	emptyInput := &fc.PredictionInput{}
+	emptyInput.Ignore = fc.Ignore
+	forecast := fc.MakeForecast(emptyInput)
 
 	rootMap := source.Node.Content[0]
 
@@ -234,6 +241,7 @@ func Predict(source cft.Template, stackName string, stack types.Stack, stackExis
 		input.Stack = stack
 		input.TypeName = typeName
 		input.Dc = dc
+		input.Ignore = fc.Ignore
 		cfg := aws.Config()
 		callerArn, err := iam.GetCallerArn(cfg) // arn:aws:iam::755952356119:role/Admin
 		if err != nil {
@@ -425,6 +433,7 @@ func init() {
 	Cmd.Flags().StringVar(&action, "action", ALL, "The stack action to check: create, update, delete, all (default is all)")
 	Cmd.Flags().StringSliceVar(&fc.Ignore, "ignore", []string{}, "Resource types and specific codes to ignore, separated by commas, for example, AWS::S3::Bucket,F0002")
 	Cmd.Flags().StringVar(&pluginPath, "plugin", "", "Path to a forecast plugin .so")
+	Cmd.Flags().BoolVar(&pluginOnly, "plugin-only", false, "If set, none of the built in prediction functions will be run")
 
 	// If you want to add a prediction for a type that is not already covered, add it here
 	// The function must return a Forecast struct
