@@ -83,6 +83,6 @@ lines
 	actual := Indent("  ", input)
 
 	if d := cmp.Diff(actual, expected); d != "" {
-		t.Errorf(d)
+		t.Error(d)
 	}
 }
