@@ -44,9 +44,9 @@ func checkKeyName(input *fc.PredictionInput, forecast *fc.Forecast) {
 			exists, _ := ec2.CheckKeyPairExists(keyName)
 			code := F0007
 			if exists {
-				forecast.Add(code, true, "Key exists")
+				forecast.Add(code, true, "Key exists", input.Resource.Line)
 			} else {
-				forecast.Add(code, false, "Key does not exist")
+				forecast.Add(code, false, "Key does not exist", input.Resource.Line)
 			}
 
 			spinner.Pop()
@@ -117,11 +117,12 @@ func checkInstanceType(input *fc.PredictionInput, forecast *fc.Forecast) {
 	instanceTypeInfo, err := ec2.GetInstanceType(instanceType)
 	if err != nil {
 		config.Debugf("GetInstanceType %s: %v", instanceType, err)
-		forecast.Add(code, false, fmt.Sprintf("Instance type does not exist: %s", instanceType))
+		forecast.Add(code, false, fmt.Sprintf("Instance type does not exist: %s", instanceType),
+			input.Resource.Line)
 		spinner.Pop()
 		return
 	} else {
-		forecast.Add(code, true, "Instance type exists")
+		forecast.Add(code, true, "Instance type exists", input.Resource.Line)
 	}
 	spinner.Pop()
 
@@ -140,7 +141,8 @@ func checkInstanceType(input *fc.PredictionInput, forecast *fc.Forecast) {
 	spin(input.TypeName, input.LogicalId, "EC2 instance type matches AMI?")
 	image, err := ec2.GetImage(imageId)
 	if err != nil {
-		forecast.Add(F0009, false, fmt.Sprintf("Image not found: %s", imageId))
+		forecast.Add(F0009, false, fmt.Sprintf("Image not found: %s", imageId),
+			input.Resource.Line)
 		spinner.Pop()
 		return
 	}
@@ -158,9 +160,10 @@ func checkInstanceType(input *fc.PredictionInput, forecast *fc.Forecast) {
 	code = F0009
 	if !slices.Contains(instanceTypesForArch, string(instanceTypeInfo.InstanceType)) {
 		forecast.Add(code, false,
-			fmt.Sprintf("Instance type %s does not support AMI %s", instanceType, imageId))
+			fmt.Sprintf("Instance type %s does not support AMI %s", instanceType, imageId),
+			input.Resource.Line)
 	} else {
-		forecast.Add(code, true, "Instance type matches AMI")
+		forecast.Add(code, true, "Instance type matches AMI", input.Resource.Line)
 	}
 	spinner.Pop()
 }
@@ -173,7 +176,7 @@ func getPropNode(input *fc.PredictionInput) *yaml.Node {
 		return nil
 	}
 
-	// If the input resource is an AWS::EC2::LaunchTemplate, props is LaunchTemplateData
+	// If the input.Resource is an AWS::EC2::LaunchTemplate, props is LaunchTemplateData
 	if input.TypeName == "AWS::EC2::LaunchTemplate" {
 		_, props, _ = s11n.GetMapValue(props, "LaunchTemplateData")
 		if props == nil {

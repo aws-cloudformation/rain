@@ -11,6 +11,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type ForecastPlugin interface {
+	// GetForecasters must be implemented by plugins to return a
+	// map of the prediction functions. The key is the resource type name.
+	GetForecasters() map[string]func(input PredictionInput) Forecast
+}
+
 // PredictionInput is the input to forecast prediction functions
 type PredictionInput struct {
 	Source      cft.Template
@@ -72,8 +78,8 @@ func (f *Forecast) Append(forecast Forecast) {
 }
 
 // Add adds a pass or fail message, formatting it to include the type name and logical id
-func (f *Forecast) Add(code string, passed bool, message string) {
-	msg := fmt.Sprintf("%v: %v %v - %v", LineNumber, f.TypeName, f.LogicalId, message)
+func (f *Forecast) Add(code string, passed bool, message string, lineNumber int) {
+	msg := fmt.Sprintf("%v: %v %v - %v", lineNumber, f.TypeName, f.LogicalId, message)
 	check := Check{
 		Pass:    passed,
 		Code:    code,
@@ -103,9 +109,6 @@ func (c *Check) String() string {
 	}
 	return fmt.Sprintf("%s %s on line %s", c.Code, passFail, c.Message)
 }
-
-// LineNumber is the current line number in the template
-var LineNumber int
 
 type Env struct {
 	Partition string

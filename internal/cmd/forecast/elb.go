@@ -54,9 +54,10 @@ func CheckELBListener(input fc.PredictionInput) fc.Forecast {
 		}
 		code := F0012
 		if !ok {
-			forecast.Add(code, false, "Certificate not found or expired")
+			forecast.Add(code, false, "Certificate not found or expired",
+				input.Resource.Line)
 		} else {
-			forecast.Add(code, true, "Certificate found")
+			forecast.Add(code, true, "Certificate found", input.Resource.Line)
 		}
 	}
 
@@ -77,16 +78,20 @@ func CheckELBTargetGroup(input fc.PredictionInput) fc.Forecast {
 		protocol := protocolNode.Value
 		if port == "443" {
 			if protocol == "HTTPS" {
-				forecast.Add(F0014, true, "ELB target group port and protocol match")
+				forecast.Add(F0014, true, "ELB target group port and protocol match",
+					input.Resource.Line)
 			} else {
-				forecast.Add(F0014, false, "ELB target group port and protocol do not match")
+				forecast.Add(F0014, false, "ELB target group port and protocol do not match",
+					input.Resource.Line)
 			}
 		}
 		if port == "80" {
 			if protocol == "HTTP" {
-				forecast.Add(F0014, true, "ELB target group port and protocol match")
+				forecast.Add(F0014, true, "ELB target group port and protocol match",
+					input.Resource.Line)
 			} else {
-				forecast.Add(F0014, false, "ELB target group port and protocol do not match")
+				forecast.Add(F0014, false, "ELB target group port and protocol do not match",
+					input.Resource.Line)
 			}
 		}
 	}
@@ -114,10 +119,12 @@ func CheckELBTargetGroup(input fc.PredictionInput) fc.Forecast {
 							targetGroupArn.Content[0].Value == "Ref" {
 							if targetGroupArn.Content[1].Value == input.LogicalId {
 								forecast.Add(F0015, false,
-									"ELB target group must be of type instance if it is used by an ASG")
+									"ELB target group must be of type instance if it is used by an ASG",
+									input.Resource.Line)
 							} else {
 								forecast.Add(F0015, true,
-									"ELB target group is of type instance if it is used by an ASG")
+									"ELB target group is of type instance if it is used by an ASG",
+									input.Resource.Line)
 							}
 						}
 					}

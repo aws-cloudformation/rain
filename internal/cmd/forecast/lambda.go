@@ -19,11 +19,10 @@ func checkLambdaRole(input *fc.PredictionInput, forecast *fc.Forecast) {
 	if roleProp != nil && roleProp.Kind == yaml.ScalarNode {
 		spin(input.TypeName, input.LogicalId, "Checking if lambda role exists")
 		roleArn := roleProp.Value
-		// TODO LineNumber = roleProp.Line
 		if !iam.RoleExists(roleArn) {
-			forecast.Add(F0016, false, "Role does not exist")
+			forecast.Add(F0016, false, "Role does not exist", roleProp.Line)
 		} else {
-			forecast.Add(F0016, true, "Role exists")
+			forecast.Add(F0016, true, "Role exists", roleProp.Line)
 		}
 		spinner.Pop()
 
@@ -34,9 +33,9 @@ func checkLambdaRole(input *fc.PredictionInput, forecast *fc.Forecast) {
 			config.Debugf("Error checking role: %s", err)
 		} else {
 			if !canAssume {
-				forecast.Add(F0017, false, "Role can not be assumed")
+				forecast.Add(F0017, false, "Role can not be assumed", input.Resource.Line)
 			} else {
-				forecast.Add(F0017, true, "Role can be assumed")
+				forecast.Add(F0017, true, "Role can be assumed", input.Resource.Line)
 			}
 		}
 		spinner.Pop()
@@ -60,17 +59,17 @@ func checkLambdaS3Bucket(input *fc.PredictionInput, forecast *fc.Forecast) {
 				config.Debugf("Unable to check if S3 bucket exists: %v", err)
 			}
 			if !exists {
-				forecast.Add(F0019, false, "S3 bucket does not exist")
+				forecast.Add(F0019, false, "S3 bucket does not exist", input.Resource.Line)
 			} else {
-				forecast.Add(F0019, true, "S3 bucket exists")
+				forecast.Add(F0019, true, "S3 bucket exists", input.Resource.Line)
 
 				// If the bucket exists, check to see if the object exists
 				obj, err := s3.HeadObject(s3Bucket.Value, s3Key.Value)
 
 				if err != nil || obj == nil {
-					forecast.Add(F0020, false, "S3 object does not exist")
+					forecast.Add(F0020, false, "S3 object does not exist", input.Resource.Line)
 				} else {
-					forecast.Add(F0020, true, "S3 object exists")
+					forecast.Add(F0020, true, "S3 object exists", input.Resource.Line)
 
 					config.Debugf("S3 Object %s/%s SizeBytes: %v",
 						s3Bucket.Value, s3Key.Value, obj.SizeBytes)
@@ -90,18 +89,18 @@ func checkLambdaS3Bucket(input *fc.PredictionInput, forecast *fc.Forecast) {
 							if err != nil {
 								config.Debugf("Unable to unzip object: %v", err)
 							} else if unzippedSize == 0 {
-								forecast.Add(F0021, false, "S3 object has a zero byte unzipped size")
+								forecast.Add(F0021, false, "S3 object has a zero byte unzipped size", input.Resource.Line)
 							} else {
-								forecast.Add(F0021, true, "S3 object has a non-zero unzipped size")
+								forecast.Add(F0021, true, "S3 object has a non-zero unzipped size", input.Resource.Line)
 							}
 						} else {
-							forecast.Add(F0021, true, "S3 object has a non-zero length less than 50Mb")
+							forecast.Add(F0021, true, "S3 object has a non-zero length less than 50Mb", input.Resource.Line)
 						}
 					} else {
 						if obj.SizeBytes == 0 {
-							forecast.Add(F0021, false, "S3 object has zero bytes")
+							forecast.Add(F0021, false, "S3 object has zero bytes", input.Resource.Line)
 						} else {
-							forecast.Add(F0021, false, "S3 object is greater than 50Mb")
+							forecast.Add(F0021, false, "S3 object is greater than 50Mb", input.Resource.Line)
 						}
 					}
 				}

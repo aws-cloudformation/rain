@@ -56,6 +56,9 @@ var all bool
 // Which stack action to check (--action)
 var action string
 
+// Path to a plugin .so file
+var pluginPath string
+
 const (
 	ALL    = "all"
 	CREATE = "create"
@@ -68,9 +71,6 @@ func GetNode(prop *yaml.Node, name string) *yaml.Node {
 	_, n, _ := s11n.GetMapValue(prop, name)
 	return n
 }
-
-// TODO: Move these types to a new package 'fc', which will
-// be imported by plugins.
 
 // TODO: Add an arg to ignore all aws checks and only process plugins.
 
@@ -134,10 +134,11 @@ func forecastForType(input fc.PredictionInput) fc.Forecast {
 	// Make sure the resource does not already exist
 	if cfn.ResourceAlreadyExists(input.TypeName, input.Resource,
 		input.StackExists, input.Source.Node, input.Dc) {
-		forecast.Add(code, false, "Resource with this name already exists")
+		forecast.Add(code, false, "Resource with this name already exists",
+			input.Resource.Line)
 	} else {
-		// TODO LineNumber = input.resource.Line
-		forecast.Add(code, true, "Resource with this name does not already exist")
+		forecast.Add(code, true, "Resource with this name does not already exist",
+			input.Resource.Line)
 	}
 
 	spinner.Pop()
@@ -167,7 +168,6 @@ func forecastForType(input fc.PredictionInput) fc.Forecast {
 	if found {
 		// Call the prediction function and append the results
 		config.Debugf("Running forecaster for %v", input.TypeName)
-		// TODO LineNumber = input.resource.Line
 		forecast.Append(fn(input))
 	}
 
@@ -207,7 +207,6 @@ func Predict(source cft.Template, stackName string, stack types.Stack, stackExis
 			continue
 		}
 		logicalId := r.Value
-		// TODO LineNumber = r.Line
 		config.Debugf("logicalId: %v", logicalId)
 
 		resource := resources.Content[i+1]
@@ -385,6 +384,12 @@ resource-specific checks. See the README for more details.
 			panic(err)
 		}
 
+		// TODO: Load the plugin if a path was provided
+		if pluginPath != "" {
+			// TODO
+			config.Debugf("pluginPath: %s", pluginPath)
+		}
+
 		if !Predict(source, stackName, stack, stackExists, dc) {
 			os.Exit(1)
 		}
@@ -404,6 +409,7 @@ func init() {
 	Cmd.Flags().StringVarP(&configFilePath, "config", "c", "", "YAML or JSON file to set tags and parameters")
 	Cmd.Flags().StringVar(&action, "action", ALL, "The stack action to check: create, update, delete, all (default is all)")
 	Cmd.Flags().StringSliceVar(&fc.Ignore, "ignore", []string{}, "Resource types and specific codes to ignore, separated by commas, for example, AWS::S3::Bucket,F0002")
+	Cmd.Flags().StringVar(&pluginPath, "plugin", "", "Path to a forecast plugin .so")
 
 	// If you want to add a prediction for a type that is not already covered, add it here
 	// The function must return a Forecast struct

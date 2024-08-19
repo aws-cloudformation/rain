@@ -4,8 +4,8 @@ import "testing"
 
 func TestForecastMethods(t *testing.T) {
 	forecast := makeForecast("A::B::C", "Id")
-	forecast.Add("CODE1", true, "Succeeded")
-	forecast.Add("CODE2", false, "Failed")
+	forecast.Add("CODE1", true, "Succeeded", 0)
+	forecast.Add("CODE2", false, "Failed", 0)
 
 	if forecast.GetNumChecked() != 2 {
 		t.Errorf("Expected 2 checks")
@@ -20,7 +20,7 @@ func TestForecastMethods(t *testing.T) {
 	}
 
 	f2 := makeForecast("D::E::F", "Id2")
-	f2.Add("CODE2", false, "f2 fail")
+	f2.Add("CODE2", false, "f2 fail", 0)
 	forecast.Append(f2)
 
 	if forecast.GetNumChecked() != 3 || forecast.GetNumFailed() != 2 {

@@ -59,16 +59,15 @@ func CheckRDSDBCluster(input fc.PredictionInput) fc.Forecast {
 				}
 			}
 			if unexpected {
-				// TODO LineNumber = input.resource.Line
 				config.Debugf("db cluster resource: %s", node.ToJson(input.Resource))
-				forecast.Add(code, false, fmt.Sprintf("unexpected EngineVersion: %s", engineVersion.Value))
+				forecast.Add(code, false, fmt.Sprintf("unexpected EngineVersion: %s", engineVersion.Value), input.Resource.Line)
 			} else {
-				forecast.Add(code, true, "EngineVersion ok")
+				forecast.Add(code, true, "EngineVersion ok", input.Resource.Line)
 			}
 		default:
 			config.Debugf("unexpected Engine value for %s: %s",
 				input.LogicalId, engine.Value)
-			forecast.Add(code, false, "unexpected Engine value")
+			forecast.Add(code, false, "unexpected Engine value", input.Resource.Line)
 		}
 	}
 
@@ -83,20 +82,21 @@ func CheckRDSDBCluster(input fc.PredictionInput) fc.Forecast {
 	_, monitoringInterval, _ := s11n.GetMapValue(props, "MonitoringInterval")
 	if monitoringInterval != nil && monitoringInterval.Value != "0" {
 		if monitoringRoleARN == nil {
-			forecast.Add(code, false, "a MonitoringRoleARN value is required if you specify a MonitoringInterval value other than 0.")
+			forecast.Add(code, false, "a MonitoringRoleARN value is required if you specify a MonitoringInterval value other than 0.", input.Resource.Line)
 		} else {
 			// Make sure the role actually exists
 			if monitoringRoleARN.Kind == yaml.ScalarNode &&
 				!iam.RoleExists(monitoringRoleARN.Value) {
 				forecast.Add(code, false,
 					fmt.Sprintf("MonitoringRoleARN not found: %s",
-						monitoringRoleARN.Value))
+						monitoringRoleARN.Value), input.Resource.Line)
 			} else {
-				forecast.Add(code, true, "MonitoringRoleARN set")
+				forecast.Add(code, true, "MonitoringRoleARN set", input.Resource.Line)
 			}
 		}
 	} else {
-		forecast.Add(code, true, "MonitoringInterval not set to something other than 0")
+		forecast.Add(code, true, "MonitoringInterval not set to something other than 0",
+			input.Resource.Line)
 	}
 
 	spinner.Pop()
@@ -109,19 +109,20 @@ func CheckRDSDBCluster(input fc.PredictionInput) fc.Forecast {
 	if !input.StackExists {
 		quota, err := servicequotas.GetQuota("rds", "L-952B80B8")
 		if err != nil {
-			forecast.Add(code, false, fmt.Sprintf("failed: %v", err))
+			forecast.Add(code, false, fmt.Sprintf("failed: %v", err), input.Resource.Line)
 		} else {
 			// Get the number of clusters
 			numClusters, err := rds.GetNumClusters()
 			if err != nil {
-				forecast.Add(code, false, fmt.Sprintf("failed: %v", err))
+				forecast.Add(code, false, fmt.Sprintf("failed: %v", err), input.Resource.Line)
 			} else {
 				if numClusters >= int(math.Round(quota)) {
-					forecast.Add(code, false, "already at quota for number of clusters")
+					forecast.Add(code, false, "already at quota for number of clusters",
+						input.Resource.Line)
 				} else {
 					forecast.Add(code, true,
 						fmt.Sprintf("quota for clusters ok: %v/%v",
-							numClusters, quota))
+							numClusters, quota), input.Resource.Line)
 				}
 			}
 		}
@@ -164,9 +165,11 @@ func CheckRDSDBCluster(input fc.PredictionInput) fc.Forecast {
 							if evNode.Kind == yaml.ScalarNode && instanceVersion != clusterEngineVersion {
 								forecast.Add(code, false, fmt.Sprintf(
 									"engine mismatch with %s: %s != %s",
-									logicalId, instanceVersion, clusterEngineVersion))
+									logicalId, instanceVersion, clusterEngineVersion),
+									input.Resource.Line)
 							} else {
-								forecast.Add(code, true, "instance engine version matches")
+								forecast.Add(code, true, "instance engine version matches",
+									input.Resource.Line)
 							}
 						}
 					}

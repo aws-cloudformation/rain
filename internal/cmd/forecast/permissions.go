@@ -99,25 +99,25 @@ func checkPermissions(input fc.PredictionInput, forecast *fc.Forecast) error {
 		ok, reason = checkTypePermissions(input, resourceArn, "update")
 		if !ok {
 			forecast.Add(code, false,
-				fmt.Sprintf("Insufficient permissions to update %v\n\t%v", resourceArn, strings.Join(reason, "\n\t")))
+				fmt.Sprintf("Insufficient permissions to update %v\n\t%v", resourceArn, strings.Join(reason, "\n\t")), input.Resource.Line)
 		} else {
-			forecast.Add(code, true, "Role has update permissions")
+			forecast.Add(code, true, "Role has update permissions", input.Resource.Line)
 		}
 
 		ok, reason = checkTypePermissions(input, resourceArn, "delete")
 		if !ok {
 			forecast.Add(code, false,
-				fmt.Sprintf("Insufficient permissions to delete %v\n\t%v", resourceArn, strings.Join(reason, "\n\t")))
+				fmt.Sprintf("Insufficient permissions to delete %v\n\t%v", resourceArn, strings.Join(reason, "\n\t")), input.Resource.Line)
 		} else {
-			forecast.Add(code, true, "Role has delete permissions")
+			forecast.Add(code, true, "Role has delete permissions", input.Resource.Line)
 		}
 	} else {
 		ok, reason = checkTypePermissions(input, resourceArn, "create")
 		if !ok {
 			forecast.Add(code, false,
-				fmt.Sprintf("Insufficient permissions to create %v\n\t%v", resourceArn, strings.Join(reason, "\n\t")))
+				fmt.Sprintf("Insufficient permissions to create %v\n\t%v", resourceArn, strings.Join(reason, "\n\t")), input.Resource.Line)
 		} else {
-			forecast.Add(code, true, "Role has create permissions")
+			forecast.Add(code, true, "Role has create permissions", input.Resource.Line)
 		}
 	}
 	return nil

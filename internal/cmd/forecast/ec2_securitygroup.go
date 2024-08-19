@@ -71,7 +71,7 @@ func checkSecurityGroupsInSameVPC(input *fc.PredictionInput, forecast *fc.Foreca
 	defaultVPCId, err := ec2.GetDefaultVPCId()
 	if err != nil {
 		msg := fmt.Sprintf("Unable to get default VPC Id: %v", err)
-		forecast.Add(code, false, msg)
+		forecast.Add(code, false, msg, input.Resource.Line)
 		return
 	}
 
@@ -126,7 +126,7 @@ func checkSecurityGroupsInSameVPC(input *fc.PredictionInput, forecast *fc.Foreca
 			resourceVpcId = defaultVPCId
 			if defaultVPCId == "" {
 				msg := fmt.Sprintf("There is no default VPC and VpcId is not set on %s", thisLogicalId)
-				forecast.Add(F0011, false, msg)
+				forecast.Add(F0011, false, msg, input.Resource.Line)
 			}
 		}
 
@@ -134,10 +134,11 @@ func checkSecurityGroupsInSameVPC(input *fc.PredictionInput, forecast *fc.Foreca
 			vpcId = resourceVpcId
 		} else if resourceVpcId != vpcId {
 			msg := fmt.Sprintf("VPC ID for this security group (%s) does not match %s", resourceVpcId, vpcId)
-			forecast.Add(code, false, msg)
+			forecast.Add(code, false, msg, input.Resource.Line)
 			return
 		}
 
 	}
-	forecast.Add(code, true, "All VPC Ids on security groups are the same")
+	forecast.Add(code, true, "All VPC Ids on security groups are the same",
+		input.Resource.Line)
 }
