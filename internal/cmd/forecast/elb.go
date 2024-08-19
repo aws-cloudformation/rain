@@ -16,7 +16,7 @@ import (
 
 func CheckELBListener(input fc.PredictionInput) fc.Forecast {
 
-	forecast := makeForecast(input.TypeName, input.LogicalId)
+	forecast := fc.MakeForecast(&input)
 
 	// Resource handler returned message:
 	// "Certificate 'arn:aws:acm:us-east-1:X:certificate/Y'
@@ -68,7 +68,7 @@ func CheckELBListener(input fc.PredictionInput) fc.Forecast {
 
 func CheckELBTargetGroup(input fc.PredictionInput) fc.Forecast {
 
-	forecast := makeForecast(input.TypeName, input.LogicalId)
+	forecast := fc.MakeForecast(&input)
 
 	// Check to make sure the Port and Protocol properties match
 	portNode := input.GetPropertyNode("Port")

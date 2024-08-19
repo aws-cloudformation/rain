@@ -18,7 +18,7 @@ import (
 
 // Checks configuration issues with RDS clusters
 func CheckRDSDBCluster(input fc.PredictionInput) fc.Forecast {
-	forecast := makeForecast(input.TypeName, input.LogicalId)
+	forecast := fc.MakeForecast(&input)
 
 	// Resource handler returned message: "Cannot find version 11.16 for aurora-postgresql (Service: Rds, Status Code: 400
 	// https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-rds-dbcluster.html#cfn-rds-dbcluster-engineversion

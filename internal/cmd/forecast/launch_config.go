@@ -9,7 +9,7 @@ import (
 
 func CheckAutoScalingLaunchConfiguration(input fc.PredictionInput) fc.Forecast {
 
-	forecast := makeForecast(input.TypeName, input.LogicalId)
+	forecast := fc.MakeForecast(&input)
 
 	config.Debugf("About to check key name for launch config")
 

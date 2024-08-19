@@ -41,7 +41,7 @@ func ParseNotebookCodes(jsonData string) ([]NotebookCode, error) {
 func CheckSageMakerNotebook(input fc.PredictionInput) fc.Forecast {
 	// AWS::SageMaker::NotebookInstance
 
-	forecast := makeForecast(input.TypeName, input.LogicalId)
+	forecast := fc.MakeForecast(&input)
 
 	checkNotebookLimit(&input, &forecast)
 

@@ -15,7 +15,7 @@ import (
 // Returns numFailed, numChecked
 func CheckS3BucketPolicy(input fc.PredictionInput) fc.Forecast {
 
-	forecast := makeForecast(input.TypeName, input.LogicalId)
+	forecast := fc.MakeForecast(&input)
 
 	spin(input.TypeName, input.LogicalId, "bucket policy")
 

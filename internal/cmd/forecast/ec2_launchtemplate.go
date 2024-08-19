@@ -6,7 +6,7 @@ import fc "github.com/aws-cloudformation/rain/plugins/forecast"
 
 func CheckEC2LaunchTemplate(input fc.PredictionInput) fc.Forecast {
 
-	forecast := makeForecast(input.TypeName, input.LogicalId)
+	forecast := fc.MakeForecast(&input)
 
 	// Check to see if the key name exists
 	checkKeyName(&input, &forecast)

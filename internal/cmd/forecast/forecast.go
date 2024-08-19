@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"plugin"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
@@ -76,17 +77,11 @@ func GetNode(prop *yaml.Node, name string) *yaml.Node {
 
 // TODO: Write a sample plugin that does something simple like validate resource names
 
-func makeForecast(typeName string, logicalId string) fc.Forecast {
-	return fc.Forecast{
-		TypeName:  typeName,
-		LogicalId: logicalId,
-		Passed:    make([]fc.Check, 0),
-		Failed:    make([]fc.Check, 0),
-	}
-}
-
 // forecasters is a map of resource type names to prediction functions.
 var forecasters = make(map[string]func(input fc.PredictionInput) fc.Forecast)
+
+// pluginForecasters are extra forecasters loaded from a .so
+var pluginForecasters = make(map[string]func(input fc.PredictionInput) fc.Forecast)
 
 // Push a message about checking a resource onto the spinner
 func spin(typeName string, logicalId string, message string) {
@@ -96,7 +91,7 @@ func spin(typeName string, logicalId string, message string) {
 // Run all forecasters for the type
 func forecastForType(input fc.PredictionInput) fc.Forecast {
 
-	forecast := makeForecast(input.TypeName, input.LogicalId)
+	forecast := fc.MakeForecast(&input)
 
 	// Only run the forecaster if it matches the optional --type arg,
 	// or if that arg was not provided.
@@ -171,6 +166,13 @@ func forecastForType(input fc.PredictionInput) fc.Forecast {
 		forecast.Append(fn(input))
 	}
 
+	// If we loaded extra forecasters from a plugin, run them
+	fn, found = pluginForecasters[input.TypeName]
+	if found {
+		config.Debugf("Running plugin forecaster for %v", input.TypeName)
+		forecast.Append(fn(input))
+	}
+
 	spinner.Pop()
 
 	return forecast
@@ -187,7 +189,7 @@ func Predict(source cft.Template, stackName string, stack types.Stack, stackExis
 	// Visit each resource in the template and see if it matches
 	// one of our predictions
 
-	forecast := makeForecast("", "")
+	forecast := fc.MakeForecast(&fc.PredictionInput{})
 
 	rootMap := source.Node.Content[0]
 
@@ -384,10 +386,23 @@ resource-specific checks. See the README for more details.
 			panic(err)
 		}
 
-		// TODO: Load the plugin if a path was provided
+		// Load the plugin if a path was provided
 		if pluginPath != "" {
-			// TODO
 			config.Debugf("pluginPath: %s", pluginPath)
+			plg, err := plugin.Open(pluginPath)
+			if err != nil {
+				panic(err)
+			}
+			p, err := plg.Lookup("Plugin")
+			if err != nil {
+				panic(err)
+			}
+			forecastPlugin, ok := p.(fc.ForecastPlugin)
+			if !ok {
+				panic("Could not cast to ForecastPlugin")
+			}
+
+			pluginForecasters = forecastPlugin.GetForecasters()
 		}
 
 		if !Predict(source, stackName, stack, stackExists, dc) {

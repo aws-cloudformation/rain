@@ -8,7 +8,7 @@ import (
 
 func CheckSNSTopic(input fc.PredictionInput) fc.Forecast {
 
-	forecast := makeForecast(input.TypeName, input.LogicalId)
+	forecast := fc.MakeForecast(&input)
 
 	spin(input.TypeName, input.LogicalId, "Checking SNS Topic Key")
 	checkSNSTopicKey(&input, &forecast)

@@ -189,7 +189,7 @@ func getPropNode(input *fc.PredictionInput) *yaml.Node {
 
 func CheckEC2Instance(input fc.PredictionInput) fc.Forecast {
 
-	forecast := makeForecast(input.TypeName, input.LogicalId)
+	forecast := fc.MakeForecast(&input)
 
 	// Check to see if the key name exists
 	checkKeyName(&input, &forecast)

@@ -48,9 +48,21 @@ type Forecast struct {
 	LogicalId string
 	Passed    []Check
 	Failed    []Check
+	Ignore    []string
 	// TODO: Errors []error
 	// Instead of config.Debugf, output unexpected errors
-	Input *PredictionInput
+	// Otherwise users won't know if checks are failing to run,
+	// unless they view debug output
+}
+
+func MakeForecast(input *PredictionInput) Forecast {
+	return Forecast{
+		TypeName:  input.TypeName,
+		LogicalId: input.LogicalId,
+		Ignore:    input.Ignore,
+		Passed:    make([]Check, 0),
+		Failed:    make([]Check, 0),
+	}
 }
 
 // Check is a specific check with a code that can be suppressed
@@ -86,11 +98,9 @@ func (f *Forecast) Add(code string, passed bool, message string, lineNumber int)
 		Message: msg,
 	}
 
-	if f.Input != nil {
-		// If we are ignoring this check, don't add it to the forecast
-		if slices.Contains(f.Input.Ignore, code) || slices.Contains(f.Input.Ignore, f.TypeName) {
-			return
-		}
+	// If we are ignoring this check, don't add it to the forecast
+	if slices.Contains(f.Ignore, code) || slices.Contains(f.Ignore, f.TypeName) {
+		return
 	}
 
 	if passed {

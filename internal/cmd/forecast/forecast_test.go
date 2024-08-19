@@ -1,9 +1,16 @@
 package forecast
 
-import "testing"
+import (
+	"testing"
+
+	fc "github.com/aws-cloudformation/rain/plugins/forecast"
+)
 
 func TestForecastMethods(t *testing.T) {
-	forecast := makeForecast("A::B::C", "Id")
+	input := fc.PredictionInput{}
+	input.TypeName = "A::B::C"
+	input.LogicalId = "Id"
+	forecast := fc.MakeForecast(&input)
 	forecast.Add("CODE1", true, "Succeeded", 0)
 	forecast.Add("CODE2", false, "Failed", 0)
 
@@ -19,7 +26,10 @@ func TestForecastMethods(t *testing.T) {
 		t.Errorf("Expected 1 pass")
 	}
 
-	f2 := makeForecast("D::E::F", "Id2")
+	input2 := fc.PredictionInput{}
+	input2.TypeName = "A::B::C"
+	input2.LogicalId = "Id"
+	f2 := fc.MakeForecast(&input2)
 	f2.Add("CODE2", false, "f2 fail", 0)
 	forecast.Append(f2)
 

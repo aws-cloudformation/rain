@@ -29,7 +29,7 @@ func CheckEC2SecurityGroup(input fc.PredictionInput) fc.Forecast {
 		SourceSecurityGroupId property and specify the security group ID.
 	*/
 
-	forecast := makeForecast(input.TypeName, input.LogicalId)
+	forecast := fc.MakeForecast(&input)
 
 	spin(input.TypeName, input.LogicalId, "Checking if all security groups are in the same VPC")
 	checkSecurityGroupsInSameVPC(&input, &forecast)
