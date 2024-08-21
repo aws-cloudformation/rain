@@ -70,6 +70,8 @@ const (
 	DELETE = "delete"
 )
 
+var lineNums = make(map[string]int)
+
 // GetNode is a simplified version of s11n.GetMapValue that returns the value only
 func GetNode(prop *yaml.Node, name string) *yaml.Node {
 	_, n, _ := s11n.GetMapValue(prop, name)
@@ -85,6 +87,18 @@ var pluginForecasters = make(map[string]func(input fc.PredictionInput) fc.Foreca
 // Push a message about checking a resource onto the spinner
 func spin(typeName string, logicalId string, message string) {
 	spinner.Push(fmt.Sprintf("%v %v - %v", typeName, logicalId, message))
+}
+
+// getLineNum returns the line number for the resource
+// It checks the lineNums map first and falls back to the yaml node Line
+func getLineNum(logicalId string, resource *yaml.Node) int {
+	if n, ok := lineNums[logicalId]; ok {
+		return n
+	}
+	if resource == nil {
+		return 0
+	}
+	return resource.Line
 }
 
 // Run all forecasters for the type
@@ -130,10 +144,10 @@ func forecastForType(input fc.PredictionInput) fc.Forecast {
 		if cfn.ResourceAlreadyExists(input.TypeName, input.Resource,
 			input.StackExists, input.Source.Node, input.Dc) {
 			forecast.Add(code, false, "Resource with this name already exists",
-				input.Resource.Line)
+				getLineNum(input.LogicalId, input.Resource))
 		} else {
 			forecast.Add(code, true, "Resource with this name does not already exist",
-				input.Resource.Line)
+				getLineNum(input.LogicalId, input.Resource))
 		}
 
 		spinner.Pop()
@@ -351,6 +365,22 @@ resource-specific checks. See the README for more details.
 
 		config.Debugf("Generating forecast for %v", fn)
 
+		// Parse the file without packaging to record accurate line numbers
+		// for each resource, since packaging will break line numbers
+		tForLines, err := parse.File(fn)
+		if err != nil {
+			panic(err)
+		}
+		resources, err := tForLines.GetSection(cft.Resources)
+		if err != nil {
+			panic(err)
+		}
+		for i := 0; i < len(resources.Content); i += 2 {
+			logicalId := resources.Content[i].Value
+			lineNum := resources.Content[i].Line
+			lineNums[logicalId] = lineNum
+		}
+
 		source, err := pkg.File(fn)
 		if err != nil {
 			panic(err)
@@ -359,6 +389,7 @@ resource-specific checks. See the README for more details.
 		// Packaging is necessary if we want to forecast a template with
 		// modules or anything else that needs packaging.
 		// But.. we lost line numbers, so we need to re-parse the file
+		// We do this as a backup to the lineNums map we created above
 		content := format.CftToYaml(source)
 		source, err = parse.String(content)
 		if err != nil {

@@ -78,9 +78,9 @@ func CheckS3Bucket(input fc.PredictionInput) fc.Forecast {
 			empty, reason := checkBucketNotEmpty(input, res)
 			code := F0001
 			if !empty {
-				forecast.Add(code, false, reason, input.Resource.Line)
+				forecast.Add(code, false, reason, getLineNum(input.LogicalId, input.Resource))
 			} else {
-				forecast.Add(code, true, "Bucket is empty", input.Resource.Line)
+				forecast.Add(code, true, "Bucket is empty", getLineNum(input.LogicalId, input.Resource))
 			}
 		}
 	} else {

@@ -44,9 +44,9 @@ func checkKeyName(input *fc.PredictionInput, forecast *fc.Forecast) {
 			exists, _ := ec2.CheckKeyPairExists(keyName)
 			code := F0007
 			if exists {
-				forecast.Add(code, true, "Key exists", input.Resource.Line)
+				forecast.Add(code, true, "Key exists", getLineNum(input.LogicalId, input.Resource))
 			} else {
-				forecast.Add(code, false, "Key does not exist", input.Resource.Line)
+				forecast.Add(code, false, "Key does not exist", getLineNum(input.LogicalId, input.Resource))
 			}
 
 			spinner.Pop()
@@ -118,11 +118,11 @@ func checkInstanceType(input *fc.PredictionInput, forecast *fc.Forecast) {
 	if err != nil {
 		config.Debugf("GetInstanceType %s: %v", instanceType, err)
 		forecast.Add(code, false, fmt.Sprintf("Instance type does not exist: %s", instanceType),
-			input.Resource.Line)
+			getLineNum(input.LogicalId, input.Resource))
 		spinner.Pop()
 		return
 	} else {
-		forecast.Add(code, true, "Instance type exists", input.Resource.Line)
+		forecast.Add(code, true, "Instance type exists", getLineNum(input.LogicalId, input.Resource))
 	}
 	spinner.Pop()
 
@@ -142,7 +142,7 @@ func checkInstanceType(input *fc.PredictionInput, forecast *fc.Forecast) {
 	image, err := ec2.GetImage(imageId)
 	if err != nil {
 		forecast.Add(F0009, false, fmt.Sprintf("Image not found: %s", imageId),
-			input.Resource.Line)
+			getLineNum(input.LogicalId, input.Resource))
 		spinner.Pop()
 		return
 	}
@@ -161,9 +161,10 @@ func checkInstanceType(input *fc.PredictionInput, forecast *fc.Forecast) {
 	if !slices.Contains(instanceTypesForArch, string(instanceTypeInfo.InstanceType)) {
 		forecast.Add(code, false,
 			fmt.Sprintf("Instance type %s does not support AMI %s", instanceType, imageId),
-			input.Resource.Line)
+			getLineNum(input.LogicalId, input.Resource))
 	} else {
-		forecast.Add(code, true, "Instance type matches AMI", input.Resource.Line)
+		forecast.Add(code, true, "Instance type matches AMI",
+			getLineNum(input.LogicalId, input.Resource))
 	}
 	spinner.Pop()
 }

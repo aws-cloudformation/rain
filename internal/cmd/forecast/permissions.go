@@ -84,10 +84,12 @@ func checkTypePermissions(input fc.PredictionInput, resourceArn string, verb str
 
 // Check permissions to make sure the current role can create-update-delete
 func checkPermissions(input fc.PredictionInput, forecast *fc.Forecast) error {
+	lineNum := getLineNum(input.LogicalId, input.Resource)
 	resourceArn := predictResourceArn(input)
 	if resourceArn == "" {
 		// We don't know how to make an arn for this type
-		config.Debugf("Can't check permissions for %v %v, ARN unknown", input.TypeName, input.LogicalId)
+		config.Debugf("Can't check permissions for %v %v, ARN unknown",
+			input.TypeName, input.LogicalId)
 		return nil
 	}
 
@@ -99,25 +101,28 @@ func checkPermissions(input fc.PredictionInput, forecast *fc.Forecast) error {
 		ok, reason = checkTypePermissions(input, resourceArn, "update")
 		if !ok {
 			forecast.Add(code, false,
-				fmt.Sprintf("Insufficient permissions to update %v\n\t%v", resourceArn, strings.Join(reason, "\n\t")), input.Resource.Line)
+				fmt.Sprintf("Insufficient permissions to update %v\n\t%v",
+					resourceArn, strings.Join(reason, "\n\t")), lineNum)
 		} else {
-			forecast.Add(code, true, "Role has update permissions", input.Resource.Line)
+			forecast.Add(code, true, "Role has update permissions", lineNum)
 		}
 
 		ok, reason = checkTypePermissions(input, resourceArn, "delete")
 		if !ok {
 			forecast.Add(code, false,
-				fmt.Sprintf("Insufficient permissions to delete %v\n\t%v", resourceArn, strings.Join(reason, "\n\t")), input.Resource.Line)
+				fmt.Sprintf("Insufficient permissions to delete %v\n\t%v",
+					resourceArn, strings.Join(reason, "\n\t")), lineNum)
 		} else {
-			forecast.Add(code, true, "Role has delete permissions", input.Resource.Line)
+			forecast.Add(code, true, "Role has delete permissions", lineNum)
 		}
 	} else {
 		ok, reason = checkTypePermissions(input, resourceArn, "create")
 		if !ok {
 			forecast.Add(code, false,
-				fmt.Sprintf("Insufficient permissions to create %v\n\t%v", resourceArn, strings.Join(reason, "\n\t")), input.Resource.Line)
+				fmt.Sprintf("Insufficient permissions to create %v\n\t%v",
+					resourceArn, strings.Join(reason, "\n\t")), lineNum)
 		} else {
-			forecast.Add(code, true, "Role has create permissions", input.Resource.Line)
+			forecast.Add(code, true, "Role has create permissions", lineNum)
 		}
 	}
 	return nil
