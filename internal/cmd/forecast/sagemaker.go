@@ -149,10 +149,10 @@ func checkNotebookLimit(input *fc.PredictionInput, forecast *fc.Forecast) {
 	forecastCode := F0018
 	if !atLimit {
 		forecast.Add(forecastCode, true, "Quota limit has not been reached",
-			input.Resource.Line)
+			getLineNum(input.LogicalId, input.Resource))
 	} else {
 		forecast.Add(forecastCode, false, "Over quota limit",
-			input.Resource.Line)
+			getLineNum(input.LogicalId, input.Resource))
 	}
 
 }

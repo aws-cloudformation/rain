@@ -25,9 +25,9 @@ func checkSNSTopicKey(input *fc.PredictionInput, forecast *fc.Forecast) {
 		keyArn := k.Value
 		valid := kms.IsKeyArnValid(keyArn)
 		if valid {
-			forecast.Add(F0013, true, "KMS Key is valid", input.Resource.Line)
+			forecast.Add(F0013, true, "KMS Key is valid", getLineNum(input.LogicalId, input.Resource))
 		} else {
-			forecast.Add(F0013, false, "KMS Key is invalid", input.Resource.Line)
+			forecast.Add(F0013, false, "KMS Key is invalid", getLineNum(input.LogicalId, input.Resource))
 		}
 	}
 }
