@@ -1,97 +1,18 @@
 {
-  "typeName": "AWS::ControlTower::LandingZone",
-  "description": "Definition of AWS::ControlTower::LandingZone Resource Type",
-  "definitions": {
-    "LandingZoneDriftStatus": {
-      "type": "string",
-      "enum": [
-        "DRIFTED",
-        "IN_SYNC"
-      ]
-    },
-    "LandingZoneStatus": {
-      "type": "string",
-      "enum": [
-        "ACTIVE",
-        "PROCESSING",
-        "FAILED"
-      ]
-    },
-    "Tag": {
-      "type": "object",
-      "properties": {
-        "Key": {
-          "type": "string",
-          "maxLength": 256,
-          "minLength": 1
-        },
-        "Value": {
-          "type": "string",
-          "maxLength": 256,
-          "minLength": 0
-        }
-      },
-      "additionalProperties": false
-    }
-  },
-  "properties": {
-    "LandingZoneIdentifier": {
-      "type": "string"
-    },
-    "Arn": {
-      "type": "string",
-      "maxLength": 2048,
-      "minLength": 20,
-      "pattern": "^arn:aws[0-9a-zA-Z_\\-:\\/]+$"
-    },
-    "Status": {
-      "$ref": "#/definitions/LandingZoneStatus"
-    },
-    "LatestAvailableVersion": {
-      "type": "string",
-      "maxLength": 10,
-      "minLength": 3,
-      "pattern": "\\d+.\\d+"
-    },
-    "DriftStatus": {
-      "$ref": "#/definitions/LandingZoneDriftStatus"
-    },
-    "Manifest": {},
-    "Version": {
-      "type": "string",
-      "maxLength": 10,
-      "minLength": 3,
-      "pattern": "\\d+.\\d+"
-    },
-    "Tags": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/Tag"
-      }
-    }
-  },
-  "required": [
-    "Manifest",
-    "Version"
-  ],
-  "readOnlyProperties": [
-    "/properties/LandingZoneIdentifier",
-    "/properties/Arn",
-    "/properties/Status",
-    "/properties/LatestAvailableVersion",
-    "/properties/DriftStatus"
-  ],
-  "primaryIdentifier": [
-    "/properties/LandingZoneIdentifier"
-  ],
   "tagging": {
     "taggable": true,
     "tagOnCreate": true,
     "tagUpdatable": true,
-    "cloudFormationSystemTags": true,
-    "tagProperty": "/properties/Tags"
+    "tagProperty": "/properties/Tags",
+    "cloudFormationSystemTags": true
   },
   "handlers": {
+    "read": {
+      "permissions": [
+        "controltower:GetLandingZone",
+        "controltower:ListTagsForResource"
+      ]
+    },
     "create": {
       "permissions": [
         "controltower:CreateLandingZone",
@@ -125,12 +46,6 @@
         "sso:ListDirectoryAssociations",
         "sso:StartPeregrine",
         "sso:RegisterRegion"
-      ]
-    },
-    "read": {
-      "permissions": [
-        "controltower:GetLandingZone",
-        "controltower:ListTagsForResource"
       ]
     },
     "update": {
@@ -169,6 +84,11 @@
         "sso:RegisterRegion"
       ]
     },
+    "list": {
+      "permissions": [
+        "controltower:ListLandingZones"
+      ]
+    },
     "delete": {
       "permissions": [
         "controltower:DeleteLandingZone",
@@ -194,12 +114,92 @@
         "iam:DetachRolePolicy",
         "iam:DeleteRole"
       ]
+    }
+  },
+  "typeName": "AWS::ControlTower::LandingZone",
+  "readOnlyProperties": [
+    "/properties/LandingZoneIdentifier",
+    "/properties/Arn",
+    "/properties/Status",
+    "/properties/LatestAvailableVersion",
+    "/properties/DriftStatus"
+  ],
+  "description": "Definition of AWS::ControlTower::LandingZone Resource Type",
+  "additionalProperties": false,
+  "primaryIdentifier": [
+    "/properties/LandingZoneIdentifier"
+  ],
+  "definitions": {
+    "Tag": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "Value": {
+          "minLength": 0,
+          "type": "string",
+          "maxLength": 256
+        },
+        "Key": {
+          "minLength": 1,
+          "type": "string",
+          "maxLength": 256
+        }
+      }
     },
-    "list": {
-      "permissions": [
-        "controltower:ListLandingZones"
+    "LandingZoneStatus": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "PROCESSING",
+        "FAILED"
+      ]
+    },
+    "LandingZoneDriftStatus": {
+      "type": "string",
+      "enum": [
+        "DRIFTED",
+        "IN_SYNC"
       ]
     }
   },
-  "additionalProperties": false
+  "properties": {
+    "Status": {
+      "$ref": "#/definitions/LandingZoneStatus"
+    },
+    "LatestAvailableVersion": {
+      "minLength": 3,
+      "pattern": "\\d+.\\d+",
+      "type": "string",
+      "maxLength": 10
+    },
+    "Version": {
+      "minLength": 3,
+      "pattern": "\\d+.\\d+",
+      "type": "string",
+      "maxLength": 10
+    },
+    "DriftStatus": {
+      "$ref": "#/definitions/LandingZoneDriftStatus"
+    },
+    "Arn": {
+      "minLength": 20,
+      "pattern": "^arn:aws[0-9a-zA-Z_\\-:\\/]+$",
+      "type": "string",
+      "maxLength": 2048
+    },
+    "Manifest": {},
+    "LandingZoneIdentifier": {
+      "type": "string"
+    },
+    "Tags": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
+    }
+  },
+  "required": [
+    "Manifest",
+    "Version"
+  ]
 }

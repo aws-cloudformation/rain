@@ -7,7 +7,12 @@
     "tagOnCreate": true,
     "tagUpdatable": true,
     "cloudFormationSystemTags": true,
-    "tagProperty": "/properties/Tags"
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "kafka:UntagResource",
+      "kafka:ListTagsForResource",
+      "kafka:TagResource"
+    ]
   },
   "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-msk-replicator.git",
   "properties": {
@@ -132,6 +137,10 @@
         "StartingPosition": {
           "description": "Configuration for specifying the position in the topics to start replicating from.",
           "$ref": "#/definitions/ReplicationStartingPosition"
+        },
+        "TopicNameConfiguration": {
+          "description": "Configuration for specifying replicated topic names should be the same as their corresponding upstream topics or prefixed with source cluster alias.",
+          "$ref": "#/definitions/ReplicationTopicNameConfiguration"
         }
       },
       "required": [
@@ -155,6 +164,25 @@
       "enum": [
         "LATEST",
         "EARLIEST"
+      ]
+    },
+    "ReplicationTopicNameConfiguration": {
+      "description": "Configuration for specifying replicated topic names should be the same as their corresponding upstream topics or prefixed with source cluster alias.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Type": {
+          "$ref": "#/definitions/ReplicationTopicNameConfigurationType"
+        }
+      },
+      "required": []
+    },
+    "ReplicationTopicNameConfigurationType": {
+      "description": "The type of replicated topic name.",
+      "type": "string",
+      "enum": [
+        "PREFIXED_WITH_SOURCE_CLUSTER_ALIAS",
+        "IDENTICAL"
       ]
     },
     "ConsumerGroupReplication": {
@@ -330,8 +358,7 @@
     "/properties/ReplicatorName",
     "/properties/Description",
     "/properties/KafkaClusters",
-    "/properties/ServiceExecutionRoleArn",
-    "/properties/ReplicationInfoList/-/TopicReplication/StartingPosition/Type"
+    "/properties/ServiceExecutionRoleArn"
   ],
   "handlers": {
     "create": {
