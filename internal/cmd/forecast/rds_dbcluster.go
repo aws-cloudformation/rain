@@ -12,23 +12,24 @@ import (
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
+	fc "github.com/aws-cloudformation/rain/plugins/forecast"
 	"gopkg.in/yaml.v3"
 )
 
 // Checks configuration issues with RDS clusters
-func CheckRDSDBCluster(input PredictionInput) Forecast {
-	forecast := makeForecast(input.typeName, input.logicalId)
+func CheckRDSDBCluster(input fc.PredictionInput) fc.Forecast {
+	forecast := fc.MakeForecast(&input)
 
 	// Resource handler returned message: "Cannot find version 11.16 for aurora-postgresql (Service: Rds, Status Code: 400
 	// https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-rds-dbcluster.html#cfn-rds-dbcluster-engineversion
 
-	_, props, _ := s11n.GetMapValue(input.resource, "Properties")
+	_, props, _ := s11n.GetMapValue(input.Resource, "Properties")
 	if props == nil {
-		config.Debugf("expected %s to have Properties", input.logicalId)
+		config.Debugf("expected %s to have Properties", input.LogicalId)
 		return forecast
 	}
 
-	spin(input.typeName, input.logicalId, "db cluster has correct engine version?")
+	spin(input.TypeName, input.LogicalId, "db cluster has correct engine version?")
 
 	var clusterEngineVersion string
 
@@ -58,16 +59,15 @@ func CheckRDSDBCluster(input PredictionInput) Forecast {
 				}
 			}
 			if unexpected {
-				LineNumber = input.resource.Line
-				config.Debugf("db cluster resource: %s", node.ToJson(input.resource))
-				forecast.Add(code, false, fmt.Sprintf("unexpected EngineVersion: %s", engineVersion.Value))
+				config.Debugf("db cluster resource: %s", node.ToJson(input.Resource))
+				forecast.Add(code, false, fmt.Sprintf("unexpected EngineVersion: %s", engineVersion.Value), input.Resource.Line)
 			} else {
-				forecast.Add(code, true, "EngineVersion ok")
+				forecast.Add(code, true, "EngineVersion ok", input.Resource.Line)
 			}
 		default:
 			config.Debugf("unexpected Engine value for %s: %s",
-				input.logicalId, engine.Value)
-			forecast.Add(code, false, "unexpected Engine value")
+				input.LogicalId, engine.Value)
+			forecast.Add(code, false, "unexpected Engine value", input.Resource.Line)
 		}
 	}
 
@@ -75,52 +75,54 @@ func CheckRDSDBCluster(input PredictionInput) Forecast {
 
 	code = F0004
 
-	spin(input.typeName, input.logicalId, "db cluster has MonitoringRoleARN?")
+	spin(input.TypeName, input.LogicalId, "db cluster has MonitoringRoleARN?")
 
 	// Resource handler returned message: A MonitoringRoleARN value is required if you specify a MonitoringInterval value other than 0.
 	_, monitoringRoleARN, _ := s11n.GetMapValue(props, "MonitoringRoleARN")
 	_, monitoringInterval, _ := s11n.GetMapValue(props, "MonitoringInterval")
 	if monitoringInterval != nil && monitoringInterval.Value != "0" {
 		if monitoringRoleARN == nil {
-			forecast.Add(code, false, "a MonitoringRoleARN value is required if you specify a MonitoringInterval value other than 0.")
+			forecast.Add(code, false, "a MonitoringRoleARN value is required if you specify a MonitoringInterval value other than 0.", input.Resource.Line)
 		} else {
 			// Make sure the role actually exists
 			if monitoringRoleARN.Kind == yaml.ScalarNode &&
 				!iam.RoleExists(monitoringRoleARN.Value) {
 				forecast.Add(code, false,
 					fmt.Sprintf("MonitoringRoleARN not found: %s",
-						monitoringRoleARN.Value))
+						monitoringRoleARN.Value), input.Resource.Line)
 			} else {
-				forecast.Add(code, true, "MonitoringRoleARN set")
+				forecast.Add(code, true, "MonitoringRoleARN set", input.Resource.Line)
 			}
 		}
 	} else {
-		forecast.Add(code, true, "MonitoringInterval not set to something other than 0")
+		forecast.Add(code, true, "MonitoringInterval not set to something other than 0",
+			input.Resource.Line)
 	}
 
 	spinner.Pop()
 
 	code = F0005
 
-	spin(input.typeName, input.logicalId, "db clusters not at quota")
+	spin(input.TypeName, input.LogicalId, "db clusters not at quota")
 
 	// Check to make sure we're not at quota
-	if !input.stackExists {
+	if !input.StackExists {
 		quota, err := servicequotas.GetQuota("rds", "L-952B80B8")
 		if err != nil {
-			forecast.Add(code, false, fmt.Sprintf("failed: %v", err))
+			forecast.Add(code, false, fmt.Sprintf("failed: %v", err), input.Resource.Line)
 		} else {
 			// Get the number of clusters
 			numClusters, err := rds.GetNumClusters()
 			if err != nil {
-				forecast.Add(code, false, fmt.Sprintf("failed: %v", err))
+				forecast.Add(code, false, fmt.Sprintf("failed: %v", err), input.Resource.Line)
 			} else {
 				if numClusters >= int(math.Round(quota)) {
-					forecast.Add(code, false, "already at quota for number of clusters")
+					forecast.Add(code, false, "already at quota for number of clusters",
+						input.Resource.Line)
 				} else {
 					forecast.Add(code, true,
 						fmt.Sprintf("quota for clusters ok: %v/%v",
-							numClusters, quota))
+							numClusters, quota), input.Resource.Line)
 				}
 			}
 		}
@@ -133,11 +135,11 @@ func CheckRDSDBCluster(input PredictionInput) Forecast {
 	// The engine version that you requested for your DB instance (a.b) does not match the engine version of your DB cluster (c.d)
 	// This kind of thing might be better in cfn-lint
 
-	spin(input.typeName, input.logicalId, "db cluster engine version matches instances")
+	spin(input.TypeName, input.LogicalId, "db cluster engine version matches instances")
 
 	// TODO: Move this to DBInstance checks when we implement them
 
-	resources, err := input.source.GetSection(cft.Resources)
+	resources, err := input.Source.GetSection(cft.Resources)
 	if err == nil {
 		for i := 0; i < len(resources.Content); i += 2 {
 			logicalId := resources.Content[i].Value
@@ -155,7 +157,7 @@ func CheckRDSDBCluster(input PredictionInput) Forecast {
 							config.Debugf("instanceVersion: %s", node.ToSJson(evNode))
 
 							// Resolve refs first
-							resolveParamRefs(propName, evNode, input.dc, instanceProps)
+							resolveParamRefs(propName, evNode, input.Dc, instanceProps)
 
 							config.Debugf("instanceVersion after: %s", node.ToSJson(evNode))
 
@@ -163,9 +165,11 @@ func CheckRDSDBCluster(input PredictionInput) Forecast {
 							if evNode.Kind == yaml.ScalarNode && instanceVersion != clusterEngineVersion {
 								forecast.Add(code, false, fmt.Sprintf(
 									"engine mismatch with %s: %s != %s",
-									logicalId, instanceVersion, clusterEngineVersion))
+									logicalId, instanceVersion, clusterEngineVersion),
+									input.Resource.Line)
 							} else {
-								forecast.Add(code, true, "instance engine version matches")
+								forecast.Add(code, true, "instance engine version matches",
+									input.Resource.Line)
 							}
 						}
 					}

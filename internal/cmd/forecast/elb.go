@@ -6,6 +6,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
+	fc "github.com/aws-cloudformation/rain/plugins/forecast"
 	"gopkg.in/yaml.v3"
 )
 
@@ -13,9 +14,9 @@ import (
 
 // AWS::ElasticLoadBalancingV2::Listener
 
-func CheckELBListener(input PredictionInput) Forecast {
+func CheckELBListener(input fc.PredictionInput) fc.Forecast {
 
-	forecast := makeForecast(input.typeName, input.logicalId)
+	forecast := fc.MakeForecast(&input)
 
 	// Resource handler returned message:
 	// "Certificate 'arn:aws:acm:us-east-1:X:certificate/Y'
@@ -23,20 +24,20 @@ func CheckELBListener(input PredictionInput) Forecast {
 	// (Expired certs cause this error)
 
 	// Get the certificate arn from props
-	_, props, _ := s11n.GetMapValue(input.resource, "Properties")
+	_, props, _ := s11n.GetMapValue(input.Resource, "Properties")
 	if props == nil {
-		config.Debugf("expected %s to have Properties", input.logicalId)
+		config.Debugf("expected %s to have Properties", input.LogicalId)
 		return forecast
 	}
 
 	_, certArns, _ := s11n.GetMapValue(props, "Certificates")
 	if certArns == nil {
-		config.Debugf("expected %s to have Certificates", input.logicalId)
+		config.Debugf("expected %s to have Certificates", input.LogicalId)
 		return forecast
 	}
 	config.Debugf("Certificates: %s", node.ToSJson(certArns))
 
-	spin(input.typeName, input.logicalId, "Checking ELB Certs")
+	spin(input.TypeName, input.LogicalId, "Checking ELB Certs")
 
 	for _, certArnNode := range certArns.Content {
 		if len(certArnNode.Content) != 2 {
@@ -53,9 +54,10 @@ func CheckELBListener(input PredictionInput) Forecast {
 		}
 		code := F0012
 		if !ok {
-			forecast.Add(code, false, "Certificate not found or expired")
+			forecast.Add(code, false, "Certificate not found or expired",
+				input.Resource.Line)
 		} else {
-			forecast.Add(code, true, "Certificate found")
+			forecast.Add(code, true, "Certificate found", input.Resource.Line)
 		}
 	}
 
@@ -64,9 +66,9 @@ func CheckELBListener(input PredictionInput) Forecast {
 	return forecast
 }
 
-func CheckELBTargetGroup(input PredictionInput) Forecast {
+func CheckELBTargetGroup(input fc.PredictionInput) fc.Forecast {
 
-	forecast := makeForecast(input.typeName, input.logicalId)
+	forecast := fc.MakeForecast(&input)
 
 	// Check to make sure the Port and Protocol properties match
 	portNode := input.GetPropertyNode("Port")
@@ -76,16 +78,20 @@ func CheckELBTargetGroup(input PredictionInput) Forecast {
 		protocol := protocolNode.Value
 		if port == "443" {
 			if protocol == "HTTPS" {
-				forecast.Add(F0014, true, "ELB target group port and protocol match")
+				forecast.Add(F0014, true, "ELB target group port and protocol match",
+					input.Resource.Line)
 			} else {
-				forecast.Add(F0014, false, "ELB target group port and protocol do not match")
+				forecast.Add(F0014, false, "ELB target group port and protocol do not match",
+					input.Resource.Line)
 			}
 		}
 		if port == "80" {
 			if protocol == "HTTP" {
-				forecast.Add(F0014, true, "ELB target group port and protocol match")
+				forecast.Add(F0014, true, "ELB target group port and protocol match",
+					input.Resource.Line)
 			} else {
-				forecast.Add(F0014, false, "ELB target group port and protocol do not match")
+				forecast.Add(F0014, false, "ELB target group port and protocol do not match",
+					input.Resource.Line)
 			}
 		}
 	}
@@ -96,7 +102,7 @@ func CheckELBTargetGroup(input PredictionInput) Forecast {
 		if targetType != "instance" {
 			// If this target group is being used by an ASG, the type must be instance
 			// Look at template resources to see if a launch template refers to this
-			autoscalingGroups := input.source.GetResourcesOfType("AWS::AutoScaling::AutoScalingGroup")
+			autoscalingGroups := input.Source.GetResourcesOfType("AWS::AutoScaling::AutoScalingGroup")
 			for _, asg := range autoscalingGroups {
 				_, props, _ := s11n.GetMapValue(asg, "Properties")
 				if props == nil {
@@ -111,12 +117,14 @@ func CheckELBTargetGroup(input PredictionInput) Forecast {
 					if targetGroupArn.Kind == yaml.MappingNode {
 						if targetGroupArn.Content[0].Kind == yaml.ScalarNode &&
 							targetGroupArn.Content[0].Value == "Ref" {
-							if targetGroupArn.Content[1].Value == input.logicalId {
+							if targetGroupArn.Content[1].Value == input.LogicalId {
 								forecast.Add(F0015, false,
-									"ELB target group must be of type instance if it is used by an ASG")
+									"ELB target group must be of type instance if it is used by an ASG",
+									input.Resource.Line)
 							} else {
 								forecast.Add(F0015, true,
-									"ELB target group is of type instance if it is used by an ASG")
+									"ELB target group is of type instance if it is used by an ASG",
+									input.Resource.Line)
 							}
 						}
 					}

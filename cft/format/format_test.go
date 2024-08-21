@@ -535,7 +535,7 @@ Resources:
 	})
 
 	if d := cmp.Diff(expect, actual); d != "" {
-		t.Fatalf(d)
+		t.Fatal(d)
 	}
 }
 

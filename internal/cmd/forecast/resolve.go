@@ -1,16 +1,18 @@
 package forecast
 
 import (
+	"strings"
+
 	"github.com/aws-cloudformation/rain/internal/aws/ssm"
 	"github.com/aws-cloudformation/rain/internal/config"
-	"github.com/aws-cloudformation/rain/internal/dc"
 	"github.com/aws-cloudformation/rain/internal/s11n"
+	"github.com/aws-cloudformation/rain/plugins/deployconfig"
+	fc "github.com/aws-cloudformation/rain/plugins/forecast"
 	"gopkg.in/yaml.v3"
-	"strings"
 )
 
 // recurse over properties to resolve Refs
-func resolveParamRefs(name string, prop *yaml.Node, dc *dc.DeployConfig, parent *yaml.Node) {
+func resolveParamRefs(name string, prop *yaml.Node, dc *deployconfig.DeployConfig, parent *yaml.Node) {
 	if name == "Ref" && prop.Kind == yaml.ScalarNode {
 
 		for _, param := range dc.Params {
@@ -55,11 +57,11 @@ func resolveParamRefs(name string, prop *yaml.Node, dc *dc.DeployConfig, parent 
 	}
 }
 
-func resolveRefs(input PredictionInput) {
-	_, props, _ := s11n.GetMapValue(input.resource, "Properties")
+func resolveRefs(input fc.PredictionInput) {
+	_, props, _ := s11n.GetMapValue(input.Resource, "Properties")
 	if props != nil {
 		for i := 0; i < len(props.Content); i += 2 {
-			resolveParamRefs(props.Content[i].Value, props.Content[i+1], input.dc, props)
+			resolveParamRefs(props.Content[i].Value, props.Content[i+1], input.Dc, props)
 		}
 	}
 }

@@ -20,6 +20,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/dc"
 	"github.com/aws-cloudformation/rain/internal/s11n"
+	"github.com/aws-cloudformation/rain/plugins/deployconfig"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/smithy-go/ptr"
@@ -732,7 +733,7 @@ func GetPrimaryIdentifierValues(
 	primaryIdentifier []string,
 	resource *yaml.Node,
 	template *yaml.Node,
-	dc *dc.DeployConfig) []string {
+	dc *deployconfig.DeployConfig) []string {
 
 	piValues := make([]string, 0)
 
@@ -779,7 +780,7 @@ func GetPrimaryIdentifierValues(
 // TODO: Is this dead code now? We resolve refs early in forecast.
 //
 //	What else uses this?
-func resolveRef(name string, template *yaml.Node, dc *dc.DeployConfig) (string, error) {
+func resolveRef(name string, template *yaml.Node, dc *deployconfig.DeployConfig) (string, error) {
 	_, params, _ := s11n.GetMapValue(template.Content[0], "Parameters")
 	if params != nil {
 		for i, param := range params.Content {
@@ -810,7 +811,7 @@ func ResourceAlreadyExists(
 	resource *yaml.Node,
 	stackExists bool,
 	template *yaml.Node,
-	dc *dc.DeployConfig) bool {
+	dc *deployconfig.DeployConfig) bool {
 
 	if !stackExists {
 		primaryIdentifiers, err := GetTypeIdentifier(typeName)

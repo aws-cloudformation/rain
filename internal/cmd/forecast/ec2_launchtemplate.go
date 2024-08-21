@@ -1,10 +1,12 @@
 package forecast
 
+import fc "github.com/aws-cloudformation/rain/plugins/forecast"
+
 // AWS::EC2::LaunchTemplate
 
-func CheckEC2LaunchTemplate(input PredictionInput) Forecast {
+func CheckEC2LaunchTemplate(input fc.PredictionInput) fc.Forecast {
 
-	forecast := makeForecast(input.typeName, input.logicalId)
+	forecast := fc.MakeForecast(&input)
 
 	// Check to see if the key name exists
 	checkKeyName(&input, &forecast)

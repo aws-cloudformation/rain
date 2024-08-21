@@ -1,12 +1,15 @@
 package forecast
 
-import "github.com/aws-cloudformation/rain/internal/config"
+import (
+	"github.com/aws-cloudformation/rain/internal/config"
+	fc "github.com/aws-cloudformation/rain/plugins/forecast"
+)
 
 // AWS::AutoScaling::LaunchConfiguration
 
-func CheckAutoScalingLaunchConfiguration(input PredictionInput) Forecast {
+func CheckAutoScalingLaunchConfiguration(input fc.PredictionInput) fc.Forecast {
 
-	forecast := makeForecast(input.typeName, input.logicalId)
+	forecast := fc.MakeForecast(&input)
 
 	config.Debugf("About to check key name for launch config")
 

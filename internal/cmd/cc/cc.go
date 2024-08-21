@@ -4,7 +4,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
-	"github.com/aws-cloudformation/rain/internal/dc"
+	"github.com/aws-cloudformation/rain/plugins/deployconfig"
 	"github.com/spf13/cobra"
 )
 
@@ -20,7 +20,7 @@ var unlock string
 // Globals (seems bad..? but cumbersome to pass them around)
 var deployedTemplate cft.Template
 var resMap map[string]*Resource
-var templateConfig *dc.DeployConfig
+var templateConfig *deployconfig.DeployConfig
 
 var Cmd = &cobra.Command{
 	Use:   "cc <command>",
