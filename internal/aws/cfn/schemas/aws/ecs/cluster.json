@@ -2,6 +2,9 @@
   "tagging": {
     "taggable": true
   },
+  "propertyTransform": {
+    "/properties/Configuration/ManagedStorageConfiguration/FargateEphemeralStorageKmsKeyId": "$join([\"arn:aws[-a-z]*:kms:[a-z0-9-]+:[0-9]{12}:key/\", FargateEphemeralStorageKmsKeyId])"
+  },
   "handlers": {
     "read": {
       "permissions": [
@@ -132,14 +135,16 @@
       }
     },
     "ManagedStorageConfiguration": {
-      "description": "",
+      "description": "The managed storage configuration for the cluster.",
       "additionalProperties": false,
       "type": "object",
       "properties": {
         "FargateEphemeralStorageKmsKeyId": {
+          "description": "Specify the KMSlong key ID for the Fargate ephemeral storage.",
           "type": "string"
         },
         "KmsKeyId": {
+          "description": "Specify a KMSlong key ID to encrypt the managed storage.",
           "type": "string"
         }
       }
@@ -171,12 +176,12 @@
       }
     },
     "ClusterConfiguration": {
-      "description": "The execute command configuration for the cluster.",
+      "description": "The execute command and managed storage configuration for the cluster.",
       "additionalProperties": false,
       "type": "object",
       "properties": {
         "ManagedStorageConfiguration": {
-          "description": "",
+          "description": "The details of the managed storage configuration.",
           "$ref": "#/definitions/ManagedStorageConfiguration"
         },
         "ExecuteCommandConfiguration": {
@@ -225,7 +230,7 @@
       }
     },
     "Configuration": {
-      "description": "The execute command configuration for the cluster.",
+      "description": "The execute command and managed storage configuration for the cluster.",
       "$ref": "#/definitions/ClusterConfiguration"
     },
     "ServiceConnectDefaults": {

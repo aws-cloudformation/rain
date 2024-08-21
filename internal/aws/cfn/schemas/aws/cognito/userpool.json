@@ -1,13 +1,18 @@
 {
   "typeName": "AWS::Cognito::UserPool",
-  "description": "Resource Type definition for AWS::Cognito::UserPool",
+  "description": "Definition of AWS::Cognito::UserPool Resource Type",
   "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
   "tagging": {
     "taggable": true,
     "tagOnCreate": true,
     "tagUpdatable": true,
     "cloudFormationSystemTags": false,
-    "tagProperty": "/properties/UserPoolTags"
+    "tagProperty": "/properties/UserPoolTags",
+    "permissions": [
+      "cognito-idp:ListTagsForResource",
+      "cognito-idp:UntagResource",
+      "cognito-idp:TagResource"
+    ]
   },
   "definitions": {
     "PasswordPolicy": {
@@ -29,6 +34,9 @@
           "type": "boolean"
         },
         "TemporaryPasswordValidityDays": {
+          "type": "integer"
+        },
+        "PasswordHistorySize": {
           "type": "integer"
         }
       },
@@ -328,11 +336,23 @@
       },
       "additionalProperties": false
     },
+    "AdvancedSecurityAdditionalFlows": {
+      "type": "object",
+      "properties": {
+        "CustomAuthMode": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
     "UserPoolAddOns": {
       "type": "object",
       "properties": {
         "AdvancedSecurityMode": {
           "type": "string"
+        },
+        "AdvancedSecurityAdditionalFlows": {
+          "$ref": "#/definitions/AdvancedSecurityAdditionalFlows"
         }
       },
       "additionalProperties": false
@@ -485,7 +505,8 @@
     },
     "read": {
       "permissions": [
-        "cognito-idp:DescribeUserPool"
+        "cognito-idp:DescribeUserPool",
+        "cognito-idp:GetUserPoolMfaConfig"
       ]
     },
     "update": {
@@ -497,6 +518,7 @@
         "cognito-idp:SetUserPoolMfaConfig",
         "cognito-idp:AddCustomAttributes",
         "cognito-idp:DescribeUserPool",
+        "cognito-idp:GetUserPoolMfaConfig",
         "iam:PassRole"
       ],
       "timeoutInMinutes": 2

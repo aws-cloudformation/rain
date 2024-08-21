@@ -22,6 +22,41 @@
         "Value",
         "Key"
       ]
+    },
+    "AutoParticipantRecordingConfiguration": {
+      "description": "Configuration object for individual participant recording, to attach to the new stage.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "StorageConfigurationArn": {
+          "description": "ARN of the StorageConfiguration resource to use for individual participant recording.",
+          "type": "string",
+          "pattern": "^$|^arn:aws:ivs:[a-z0-9-]+:[0-9]+:storage-configuration/[a-zA-Z0-9-]+$",
+          "minLength": 0,
+          "maxLength": 128
+        },
+        "MediaTypes": {
+          "description": "Types of media to be recorded. Default: AUDIO_VIDEO.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 1,
+          "uniqueItems": true,
+          "insertionOrder": false,
+          "items": {
+            "type": "string",
+            "enum": [
+              "AUDIO_VIDEO",
+              "AUDIO_ONLY"
+            ]
+          },
+          "default": [
+            "AUDIO_VIDEO"
+          ]
+        }
+      },
+      "required": [
+        "StorageConfigurationArn"
+      ]
     }
   },
   "properties": {
@@ -38,6 +73,9 @@
       "minLength": 0,
       "maxLength": 128,
       "pattern": "^[a-zA-Z0-9-_]*$"
+    },
+    "AutoParticipantRecordingConfiguration": {
+      "$ref": "#/definitions/AutoParticipantRecordingConfiguration"
     },
     "Tags": {
       "description": "An array of key-value pairs to apply to this resource.",
@@ -62,7 +100,12 @@
     "tagOnCreate": true,
     "tagUpdatable": true,
     "cloudFormationSystemTags": false,
-    "tagProperty": "/properties/Tags"
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "ivs:TagResource",
+      "ivs:UntagResource",
+      "ivs:ListTagsForResource"
+    ]
   },
   "readOnlyProperties": [
     "/properties/Arn",
@@ -91,14 +134,14 @@
         "ivs:GetStage",
         "ivs:UpdateStage",
         "ivs:TagResource",
-        "ivs:UnTagResource",
+        "ivs:UntagResource",
         "ivs:ListTagsForResource"
       ]
     },
     "delete": {
       "permissions": [
         "ivs:DeleteStage",
-        "ivs:UnTagResource"
+        "ivs:UntagResource"
       ]
     },
     "list": {
