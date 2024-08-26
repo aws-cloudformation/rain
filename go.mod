@@ -36,7 +36,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.40.4
 	github.com/aws/aws-sdk-go-v2/service/rds v1.82.1
 	github.com/aws/aws-sdk-go-v2/service/sagemaker v1.154.0
-	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.23.4
+	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.23.5
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.52.5
 	github.com/fatih/color v1.17.0
 	github.com/manifoldco/promptui v0.9.0
