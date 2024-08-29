@@ -5,15 +5,19 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/format"
 	cftpkg "github.com/aws-cloudformation/rain/cft/pkg"
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
+	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/dc"
+	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/ui"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	"gopkg.in/yaml.v3"
 
 	"github.com/spf13/cobra"
 )
@@ -84,6 +88,7 @@ To list and delete changesets, use the ls and rm commands.
 		var stackName, changeSetName, fn string
 		var err error
 		var stack types.Stack
+		var templateNode *yaml.Node
 
 		if changeset {
 
@@ -116,6 +121,8 @@ To list and delete changesets, use the ls and rm commands.
 			}
 			spinner.Push(fmt.Sprintf("Preparing template '%s'", base))
 			template := PackageTemplate(fn, yes)
+			templateNode = template.Node
+			config.Debugf("template Node: \n%s", node.ToSJson(templateNode))
 			spinner.Pop()
 
 			stackName = dc.GetStackName(suppliedStackName, base)
@@ -225,6 +232,18 @@ To list and delete changesets, use the ls and rm commands.
 			err = cfn.SetTerminationProtection(stackName, true)
 			if err != nil {
 				panic(ui.Errorf(err, "error while enabling termination protection on stack '%s'", stackName))
+			}
+		}
+
+		// Content deployment
+		//
+		// If the template contained any bucket with the Rain metadata node,
+		// upload content to the bucket.
+		//
+		if !changeset {
+			err := deployContent(cft.Template{Node: templateNode})
+			if err != nil {
+				panic(err)
 			}
 		}
 	},
