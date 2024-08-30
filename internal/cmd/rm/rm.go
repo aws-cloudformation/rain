@@ -4,9 +4,15 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/aws-cloudformation/rain/cft"
+	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
+	"github.com/aws-cloudformation/rain/internal/aws/s3"
+	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
+	"github.com/aws-cloudformation/rain/internal/node"
+	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/aws-cloudformation/rain/internal/ui"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/spf13/cobra"
@@ -16,6 +22,77 @@ var yes bool
 var detach bool
 var roleArn string
 var changeset bool
+
+// processMetadata looks for the EmptyOnDelete Rain Metadata command
+// and if it is set to true, deletes the contents of the bucket before
+// deleting the stack. If yes is false, confirm before deleting the objects.
+func processMetadata(stackName string, yes bool) error {
+	t, err := cfn.GetStackTemplate(stackName, false)
+	if err != nil {
+		return err
+	}
+	template, err := parse.String(t)
+	if err != nil {
+		return err
+	}
+	config.Debugf("template: %v", node.ToSJson(template.Node))
+
+	// Iterate over resources looking for buckets
+	resources, err := template.GetSection(cft.Resources)
+	if err != nil {
+		return err
+	}
+	for i := 0; i < len(resources.Content); i += 2 {
+		logicalId := resources.Content[i].Value
+		bucket := resources.Content[i+1]
+		_, typ, _ := s11n.GetMapValue(bucket, "Type")
+		if typ == nil {
+			continue
+		}
+		if typ.Value != "AWS::S3::Bucket" {
+			continue
+		}
+		config.Debugf("processMetadata bucket: %s \n%v", logicalId, node.ToSJson(bucket))
+		_, n, _ := s11n.GetMapValue(bucket, "Metadata")
+		if n == nil {
+			continue
+		}
+		config.Debugf("processMetadata found Metadata")
+		_, n, _ = s11n.GetMapValue(n, "Rain")
+		if n == nil {
+			continue
+		}
+		_, n, _ = s11n.GetMapValue(n, "EmptyOnDelete")
+		if n == nil {
+			continue
+		}
+		if n.Value != "true" {
+			continue
+		}
+		// Get the bucket name
+		sr, err := cfn.GetStackResource(stackName, logicalId)
+		if err != nil {
+			return err
+		}
+		bucketName := *sr.PhysicalResourceId
+		config.Debugf("About to delete contents of bucket %s: %s", logicalId, bucketName)
+		if !yes {
+			if !console.Confirm(false,
+				fmt.Sprintf("Are you sure you want to delete the contents of bucket %s?",
+					bucketName)) {
+				continue
+			}
+		}
+
+		// TODO: Console output for progress, spinner
+		err = s3.EmptyBucket(bucketName)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
 
 func DeleteChangeSet(stack *types.Stack, changeSetName string) error {
 	if !yes {
@@ -93,6 +170,10 @@ var Cmd = &cobra.Command{
 			}
 		}
 
+		err = processMetadata(stackName, yes)
+		if err != nil {
+			panic(err)
+		}
 		err = cfn.DeleteStack(stackName, roleArn)
 		if err != nil {
 			panic(ui.Errorf(err, "unable to delete stack '%s'", stackName))

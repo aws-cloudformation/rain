@@ -334,11 +334,69 @@ func PutObject(bucketName string, key string, body []byte) error {
 }
 
 // DeleteObject deletes an object from a bucket
-func DeleteObject(bucketName string, key string) error {
+func DeleteObject(bucketName string, key string, version *string) error {
 	_, err := getClient().DeleteObject(context.Background(),
 		&s3.DeleteObjectInput{
-			Bucket: &bucketName,
-			Key:    &key,
+			Bucket:    &bucketName,
+			Key:       &key,
+			VersionId: version,
 		})
 	return err
+}
+
+// EmptyBucket deletes all versions of all objects in a bucket
+func EmptyBucket(bucketName string) error {
+	client := getClient()
+	input := &s3.ListObjectsV2Input{
+		Bucket: &bucketName,
+	}
+	for {
+		res, err := client.ListObjectsV2(context.Background(), input)
+		if err != nil {
+			return err
+		}
+		for _, item := range res.Contents {
+			config.Debugf("Deleting %s/%s", bucketName, *item.Key)
+			derr := DeleteObject(bucketName, *item.Key, nil)
+			if derr != nil {
+				return derr
+			}
+		}
+		if *res.IsTruncated {
+			input.ContinuationToken = res.ContinuationToken
+		} else {
+			break
+		}
+	}
+
+	// Now delete old versions and delete markers
+
+	vinput := &s3.ListObjectVersionsInput{
+		Bucket: &bucketName,
+	}
+	for {
+		res, err := client.ListObjectVersions(context.Background(), vinput)
+		if err != nil {
+			return err
+		}
+
+		for _, item := range res.DeleteMarkers {
+			config.Debugf("Deleting delete marker %s/%s v%s", bucketName, *item.Key, *item.VersionId)
+			DeleteObject(bucketName, *item.Key, item.VersionId)
+		}
+
+		for _, item := range res.Versions {
+			config.Debugf("Deleting version %s/%s v%s", bucketName, *item.Key, *item.VersionId)
+			DeleteObject(bucketName, *item.Key, item.VersionId)
+		}
+
+		if *res.IsTruncated {
+			vinput.VersionIdMarker = res.NextVersionIdMarker
+			vinput.KeyMarker = res.NextKeyMarker
+		} else {
+			break
+		}
+	}
+
+	return nil
 }

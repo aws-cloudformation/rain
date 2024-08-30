@@ -10,11 +10,9 @@ import (
 	cftpkg "github.com/aws-cloudformation/rain/cft/pkg"
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
-	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/dc"
-	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/ui"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"gopkg.in/yaml.v3"
@@ -122,7 +120,6 @@ To list and delete changesets, use the ls and rm commands.
 			spinner.Push(fmt.Sprintf("Preparing template '%s'", base))
 			template := PackageTemplate(fn, yes)
 			templateNode = template.Node
-			config.Debugf("template Node: \n%s", node.ToSJson(templateNode))
 			spinner.Pop()
 
 			stackName = dc.GetStackName(suppliedStackName, base)
@@ -235,13 +232,9 @@ To list and delete changesets, use the ls and rm commands.
 			}
 		}
 
-		// Content deployment
-		//
-		// If the template contained any bucket with the Rain metadata node,
-		// upload content to the bucket.
-		//
+		// Process Rain Metadata commands (Content)
 		if !changeset {
-			err := deployContent(cft.Template{Node: templateNode})
+			err := processMetadata(cft.Template{Node: templateNode}, stackName)
 			if err != nil {
 				panic(err)
 			}

@@ -122,7 +122,7 @@ var CCRmCmd = &cobra.Command{
 		fmt.Printf("Deployment %v successfully removed\n", name)
 
 		spinner.Push("Deleting state file")
-		err = s3.DeleteObject(bucketName, key)
+		err = s3.DeleteObject(bucketName, key, nil)
 		if err != nil {
 			//lint:ignore ST1005 NA
 			panic(fmt.Errorf("Unable to delete state file %v/%v: %v", bucketName, key, err))

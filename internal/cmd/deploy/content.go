@@ -1,16 +1,22 @@
 package deploy
 
 import (
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/aws-cloudformation/rain/cft"
+	"github.com/aws-cloudformation/rain/internal/aws/cfn"
+	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 )
 
-func deployContent(template cft.Template) error {
-	config.Debugf("deployContent about to check for buckets with Rain Content")
-
-	config.Debugf("deployContent template Node: \n%s", node.ToSJson(template.Node))
+// processMetadata looks for Rain command in resource Metadata
+// For CREATE and UPDATE operations, a Content node on a bucket
+// will upload local assets to the bucket.
+func processMetadata(template cft.Template, stackName string) error {
 
 	// For some reason Package created an extra document node
 	// (And CreateChangeSet is ok with this...?)
@@ -33,12 +39,12 @@ func deployContent(template cft.Template) error {
 			continue
 		}
 
-		config.Debugf("deployContent bucket: %s \n%v", logicalId, node.ToSJson(bucket))
+		config.Debugf("processMetadata bucket: %s \n%v", logicalId, node.ToSJson(bucket))
 		_, n, _ := s11n.GetMapValue(bucket, "Metadata")
 		if n == nil {
 			continue
 		}
-		config.Debugf("deployContent found Metadata")
+		config.Debugf("processMetadata found Metadata")
 		_, n, _ = s11n.GetMapValue(n, "Rain")
 		if n == nil {
 			continue
@@ -47,13 +53,53 @@ func deployContent(template cft.Template) error {
 		if contentPath == nil {
 			continue
 		}
-		config.Debugf("deployContent found contentPath for resource: %s",
+		config.Debugf("processMetadata found contentPath for resource: %s",
 			contentPath.Value)
 
-		// TODO: We need to know the bucket name!
-		// We might not have it if it wasn't named in the template
-		// Use CCAPI to get the name based on the logical id
+		// Get the bucket name
+		sr, err := cfn.GetStackResource(stackName, logicalId)
+		if err != nil {
+			return err
+		}
+		bucketName := *sr.PhysicalResourceId
+		config.Debugf("processMetadata bucket %s name is %s", logicalId, bucketName)
 
+		// Assume contentPath.Value is a directory and Put all files
+		// TODO: Add options for a prefix, zip, single file
+
+		p := contentPath.Value
+
+		// TODO: Console output for progress
+
+		// Recursively walk the directory and upload all files
+		err = filepath.Walk(p, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				config.Debugf("error walking %s: %v", p, err)
+				return err
+			}
+			if !info.IsDir() {
+				f, readErr := os.ReadFile(path)
+				if readErr != nil {
+					config.Debugf("error reading %s: %v", path, err)
+					return readErr
+				}
+				// Get rid of the local directory path
+				// For example, if the local file is myfiles/foo/bar.txt,
+				// put bar.txt into the bucket
+				putPath := strings.Replace(path, p, "", 1)
+				putPath = strings.TrimLeft(putPath, "/")
+				putErr := s3.PutObject(bucketName, putPath, f)
+				config.Debugf("PutObject: %s/%s", bucketName, putPath)
+				if putErr != nil {
+					config.Debugf("error putting %s/%s: %v", bucketName, putPath, putErr)
+					return putErr
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

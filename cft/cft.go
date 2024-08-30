@@ -161,7 +161,6 @@ func (t Template) GetResourcesOfType(typeName string) []*yaml.Node {
 	retval := make([]*yaml.Node, 0)
 	for i := 0; i < len(resources.Content); i += 2 {
 		resource := resources.Content[i+1]
-		config.Debugf("found resource: %v", node.ToSJson(resource))
 		_, typ, _ := s11n.GetMapValue(resource, "Type")
 		if typ == nil {
 			continue
