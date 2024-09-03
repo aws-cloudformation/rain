@@ -1,6 +1,7 @@
 package deploy
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 )
@@ -22,25 +24,11 @@ func processMetadata(template cft.Template, stackName string) error {
 	// (And CreateChangeSet is ok with this...?)
 	template.Node = template.Node.Content[0]
 
-	// Iterate over resources looking for buckets
-	resources, err := template.GetSection(cft.Resources)
-	if err != nil {
-		return err
-	}
-
-	for i := 0; i < len(resources.Content); i += 2 {
-		logicalId := resources.Content[i].Value
-		bucket := resources.Content[i+1]
-		_, typ, _ := s11n.GetMapValue(bucket, "Type")
-		if typ == nil {
-			continue
-		}
-		if typ.Value != "AWS::S3::Bucket" {
-			continue
-		}
-
-		config.Debugf("processMetadata bucket: %s \n%v", logicalId, node.ToSJson(bucket))
-		_, n, _ := s11n.GetMapValue(bucket, "Metadata")
+	buckets := template.GetResourcesOfType("AWS::S3::Bucket")
+	for _, bucket := range buckets {
+		logicalId := bucket.LogicalId
+		config.Debugf("processMetadata bucket: %s \n%v", logicalId, node.ToSJson(bucket.Node))
+		_, n, _ := s11n.GetMapValue(bucket.Node, "Metadata")
 		if n == nil {
 			continue
 		}
@@ -49,12 +37,21 @@ func processMetadata(template cft.Template, stackName string) error {
 		if n == nil {
 			continue
 		}
+
 		_, contentPath, _ := s11n.GetMapValue(n, "Content")
 		if contentPath == nil {
 			continue
 		}
 		config.Debugf("processMetadata found contentPath for resource: %s",
 			contentPath.Value)
+
+		// Assume contentPath.Value is a directory and Put all files
+		p := contentPath.Value
+
+		// Ignore RAIN_NO_CONTENT or an empty string
+		if p == "" || p == "RAIN_NO_CONTENT" {
+			continue
+		}
 
 		// Get the bucket name
 		sr, err := cfn.GetStackResource(stackName, logicalId)
@@ -64,12 +61,7 @@ func processMetadata(template cft.Template, stackName string) error {
 		bucketName := *sr.PhysicalResourceId
 		config.Debugf("processMetadata bucket %s name is %s", logicalId, bucketName)
 
-		// Assume contentPath.Value is a directory and Put all files
-		// TODO: Add options for a prefix, zip, single file
-
-		p := contentPath.Value
-
-		// TODO: Console output for progress
+		spinner.Push(fmt.Sprintf("Uploading the contents of %s to %s", p, bucketName))
 
 		// Recursively walk the directory and upload all files
 		err = filepath.Walk(p, func(path string, info os.FileInfo, err error) error {
@@ -97,6 +89,7 @@ func processMetadata(template cft.Template, stackName string) error {
 			}
 			return nil
 		})
+		spinner.Pop()
 		if err != nil {
 			return err
 		}

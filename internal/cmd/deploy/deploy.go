@@ -10,9 +10,12 @@ import (
 	cftpkg "github.com/aws-cloudformation/rain/cft/pkg"
 	"github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
+	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/dc"
+	"github.com/aws-cloudformation/rain/internal/node"
+	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/aws-cloudformation/rain/internal/ui"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"gopkg.in/yaml.v3"
@@ -121,6 +124,12 @@ To list and delete changesets, use the ls and rm commands.
 			template := PackageTemplate(fn, yes)
 			templateNode = template.Node
 			spinner.Pop()
+
+			// Before deploying, check to see if there are any Metadata sections.
+			// If so, stop if the --experimental flag is not set
+			if HasRainMetadata(template) && !experimental {
+				panic("metadata commands require the --experimental flag")
+			}
 
 			stackName = dc.GetStackName(suppliedStackName, base)
 
@@ -255,6 +264,33 @@ func changeSetHasNoChanges(msg string) bool {
 		if m == msg {
 			return true
 		}
+	}
+	return false
+}
+
+// hasRainMetadata returns true if the template has a resource
+// with a Metadata section with a Rain node
+func HasRainMetadata(template cft.Template) bool {
+	config.Debugf("template: %v", node.ToSJson(template.Node))
+	if template.Node.Content[0].Kind == yaml.DocumentNode {
+		template.Node = template.Node.Content[0]
+	}
+	resources, err := template.GetSection(cft.Resources)
+	if err != nil {
+		config.Debugf("unexpected error getting resource section: %v", err)
+		return false
+	}
+	for i := 0; i < len(resources.Content); i += 2 {
+		resource := resources.Content[i+1]
+		_, n, _ := s11n.GetMapValue(resource, "Metadata")
+		if n == nil {
+			continue
+		}
+		_, n, _ = s11n.GetMapValue(n, "Rain")
+		if n == nil {
+			continue
+		}
+		return true
 	}
 	return false
 }

@@ -1,10 +1,10 @@
 package rm
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
-	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
@@ -22,6 +22,7 @@ var yes bool
 var detach bool
 var roleArn string
 var changeset bool
+var experimental bool
 
 // processMetadata looks for the EmptyOnDelete Rain Metadata command
 // and if it is set to true, deletes the contents of the bucket before
@@ -37,23 +38,11 @@ func processMetadata(stackName string, yes bool) error {
 	}
 	config.Debugf("template: %v", node.ToSJson(template.Node))
 
-	// Iterate over resources looking for buckets
-	resources, err := template.GetSection(cft.Resources)
-	if err != nil {
-		return err
-	}
-	for i := 0; i < len(resources.Content); i += 2 {
-		logicalId := resources.Content[i].Value
-		bucket := resources.Content[i+1]
-		_, typ, _ := s11n.GetMapValue(bucket, "Type")
-		if typ == nil {
-			continue
-		}
-		if typ.Value != "AWS::S3::Bucket" {
-			continue
-		}
-		config.Debugf("processMetadata bucket: %s \n%v", logicalId, node.ToSJson(bucket))
-		_, n, _ := s11n.GetMapValue(bucket, "Metadata")
+	buckets := template.GetResourcesOfType("AWS::S3::Bucket")
+	for _, bucket := range buckets {
+		logicalId := bucket.LogicalId
+		config.Debugf("processMetadata bucket: %s \n%v", logicalId, node.ToSJson(bucket.Node))
+		_, n, _ := s11n.GetMapValue(bucket.Node, "Metadata")
 		if n == nil {
 			continue
 		}
@@ -61,6 +50,9 @@ func processMetadata(stackName string, yes bool) error {
 		_, n, _ = s11n.GetMapValue(n, "Rain")
 		if n == nil {
 			continue
+		}
+		if !experimental {
+			return errors.New("metadata commands require the --experimental flag")
 		}
 		_, n, _ = s11n.GetMapValue(n, "EmptyOnDelete")
 		if n == nil {
@@ -84,11 +76,13 @@ func processMetadata(stackName string, yes bool) error {
 			}
 		}
 
-		// TODO: Console output for progress, spinner
+		spinner.Push(fmt.Sprintf("Deleting the contents of %s", bucketName))
 		err = s3.EmptyBucket(bucketName)
 		if err != nil {
+			spinner.Pop()
 			return err
 		}
+		spinner.Pop()
 	}
 
 	return nil
@@ -209,4 +203,5 @@ func init() {
 	Cmd.Flags().BoolVarP(&yes, "yes", "y", false, "don't ask questions; just delete")
 	Cmd.Flags().StringVar(&roleArn, "role-arn", "", "ARN of an IAM role that CloudFormation should assume to remove the stack")
 	Cmd.Flags().BoolVarP(&changeset, "changeset", "c", false, "delete a changeset")
+	Cmd.Flags().BoolVar(&experimental, "experimental", false, "Acknowledge that you want to deploy with an experimental feature")
 }

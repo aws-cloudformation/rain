@@ -30,6 +30,14 @@ func TestMany(t *testing.T) {
 	runTest("many", t)
 }
 
+func TestRef(t *testing.T) {
+	runTest("ref", t)
+}
+
+func TestMeta(t *testing.T) {
+	runTest("meta", t)
+}
+
 func TestRefFalse(t *testing.T) {
 	runTest("ref-false", t)
 }

@@ -447,15 +447,18 @@ func resolveRefs(ctx *refctx) error {
 
 	// Replace references to the module's parameters with the value supplied
 	// by the parent template. Rename refs to other resources in the module.
-
-	_, outNodeProps, _ := s11n.GetMapValue(outNode, "Properties")
-	if outNodeProps != nil {
-		for i, prop := range outNodeProps.Content {
-			if i%2 == 0 {
-				propName := prop.Value
-				err := renamePropRefs(propName, propName, outNodeProps.Content[i+1], -1, ctx)
-				if err != nil {
-					return fmt.Errorf("unable to resolve refs for %v: %v", propName, err)
+	propLikes := []string{"Properties", "Metadata"}
+	for _, propLike := range propLikes {
+		_, outNodeProps, _ := s11n.GetMapValue(outNode, propLike)
+		if outNodeProps != nil {
+			for i, prop := range outNodeProps.Content {
+				if i%2 == 0 {
+					propName := prop.Value
+					err := renamePropRefs(propName, propName, outNodeProps.Content[i+1], -1, ctx)
+					if err != nil {
+						return fmt.Errorf("unable to resolve refs for %s %v: %v",
+							propLike, propName, err)
+					}
 				}
 			}
 		}

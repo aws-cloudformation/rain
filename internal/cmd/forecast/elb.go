@@ -104,7 +104,7 @@ func CheckELBTargetGroup(input fc.PredictionInput) fc.Forecast {
 			// Look at template resources to see if a launch template refers to this
 			autoscalingGroups := input.Source.GetResourcesOfType("AWS::AutoScaling::AutoScalingGroup")
 			for _, asg := range autoscalingGroups {
-				_, props, _ := s11n.GetMapValue(asg, "Properties")
+				_, props, _ := s11n.GetMapValue(asg.Node, "Properties")
 				if props == nil {
 					continue
 				}

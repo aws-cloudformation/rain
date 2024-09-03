@@ -15,6 +15,11 @@ Parameters:
     Type: String
     Description: The web acl id of a CLOUDFRONT scoped web acl in us-east-1
 
+  Content:
+    Type: String
+    Description: An optional directory to upload to the bucket
+    Default: RAIN_NO_CONTENT
+
 Resources:
   OriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
@@ -128,6 +133,10 @@ Resources:
       guard:
         SuppressedRules:
           - S3_BUCKET_DEFAULT_LOCK_ENABLED
+      Rain:
+        Content:
+          Path: !Ref Content
+          Zip: false
 
   ContentReplicaBucket:
     Type: AWS::S3::Bucket
@@ -345,6 +354,10 @@ Resources:
       guard:
         SuppressedRules:
           - S3_BUCKET_DEFAULT_LOCK_ENABLED
+      Rain:
+        Content:
+          Path: RAIN_NO_CONTENT
+          Zip: false
 
   CloudFrontLogsReplicaBucket:
     Type: AWS::S3::Bucket
