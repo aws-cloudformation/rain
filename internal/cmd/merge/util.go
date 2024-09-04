@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
+	"github.com/aws-cloudformation/rain/internal/config"
 )
 
 func checkMerge(name string, dst, src map[string]interface{}) error {
@@ -138,10 +139,12 @@ func mergeTemplates(dstTemplate, srcTemplate cft.Template) (cft.Template, error)
 		default:
 			err := checkMerge(key, dst, src)
 			if err != nil {
+				config.Debugf("key: %v, dst: %v, src: %v", key, dst, src)
 				return cft.Template{}, err
 			}
 		}
 	}
 
+	config.Debugf("dst: %v", dst)
 	return parse.Map(dst)
 }

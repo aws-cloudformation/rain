@@ -125,6 +125,11 @@ func recommend(args []string) {
 				{Name: "central-logs", Text: "A centralized event bus and log group for collecting logs from org member accounts"},
 			},
 		},
+		{Name: "webapp", Text: "Web Application",
+			Sub: []reco{
+				{Name: "webapp", Text: "A serverless web application with static content, api gateway, lambda, and dynamodb"},
+			},
+		},
 	}
 
 	showPrompt(selections, "")
