@@ -2,7 +2,7 @@
 
 set -eoux pipefail
 
-declare -a platforms=(linux/amd64 linux/386 linux/arm darwin/amd64 darwin/arm64 windows/amd64 windows/386)
+declare -a platforms=(linux/amd64 linux/386 linux/arm linux/arm64 darwin/amd64 darwin/arm64 windows/amd64 windows/386)
 declare -A mapping=([darwin]=darwin [linux]=linux [windows]=windows [amd64]=amd64 [386]=i386 [arm]=arm [arm64]=arm64)
 declare -a CGO=(0 1)
 
@@ -14,7 +14,7 @@ for platform in "${platforms[@]}"; do
     for cgo in "${CGO[@]}"; do
       name="rain-${GITHUB_REF##*/}_${mapping[$os]}-${mapping[$arch]}"
       echo "$os $arch $cgo"
-      
+
       if [ "$cgo" == "0" ]; then
           name+="-nocgo"
       fi
