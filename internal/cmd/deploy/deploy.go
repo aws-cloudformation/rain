@@ -243,7 +243,7 @@ To list and delete changesets, use the ls and rm commands.
 
 		// Process Rain Metadata commands (Content)
 		if !changeset {
-			err := processMetadata(cft.Template{Node: templateNode}, stackName)
+			err := processMetadata(cft.Template{Node: templateNode}, stackName, filepath.Dir(fn))
 			if err != nil {
 				panic(err)
 			}

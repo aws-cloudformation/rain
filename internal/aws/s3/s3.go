@@ -22,6 +22,8 @@ import (
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
+
+	"github.com/gabriel-vasile/mimetype"
 )
 
 var BucketName = ""
@@ -324,11 +326,21 @@ func HeadObject(bucketName string, key string) (*S3ObjectInfo, error) {
 
 // PutObject puts an object into a bucket
 func PutObject(bucketName string, key string, body []byte) error {
+
+	// Determine the correct content type
+	// This seems to be the default. It breaks web pages served by S3.
+	contentType := "application/octet-stream"
+
+	mtype := mimetype.Detect(body)
+	config.Debugf("PutObject determine mime type for %s: %s", key, mtype.String())
+	contentType = mtype.String()
+
 	_, err := getClient().PutObject(context.Background(),
 		&s3.PutObjectInput{
-			Bucket: &bucketName,
-			Key:    &key,
-			Body:   bytes.NewReader(body),
+			Bucket:      &bucketName,
+			Key:         &key,
+			Body:        bytes.NewReader(body),
+			ContentType: &contentType,
 		})
 	return err
 }

@@ -46,7 +46,7 @@ Resources:
     Properties:
       DistributionConfig:
         DefaultCacheBehavior:
-          CachePolicyId: !Sub ${AppName}-cache-policy-1
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
           Compress: true
           TargetOriginId: !Sub ${AppName}-origin-1
           ViewerProtocolPolicy: redirect-to-https
@@ -58,19 +58,19 @@ Resources:
           Bucket: !GetAtt CloudFrontLogsBucket.RegionalDomainName
         Origins:
           - DomainName: !GetAtt ContentBucket.RegionalDomainName
-            Id: rain-build-origin-1
+            Id: !Sub ${AppName}-origin-1
             OriginAccessControlId: !GetAtt OriginAccessControl.Id
             S3OriginConfig:
               OriginAccessIdentity: ""
         ViewerCertificate:
           CloudFrontDefaultCertificate: true
-        WebACLId: !Ref WebACL
+        #WebACLId: !GetAtt WebACL.Arn
 
   WebACL:
     Type: AWS::WAFv2::WebACL
     Properties:
       Name: WebACLWithAMR
-      Scope: REGIONAL
+      Scope: CLOUDFRONT
       Description: Web ACL with AWS Managed Rules
       DefaultAction: 
         Block: {}
@@ -102,12 +102,56 @@ Resources:
     Properties:
       AppName: !Sub ${AppName}-content
       Content: site
+    Overrides:
+      Bucket:
+        Metadata:
+          Version: 4
+      BucketPolicyPolicy:
+        Properties:
+          PolicyDocument:
+            Statement:
+              - Action: s3:GetObject
+                Effect: Allow
+                Resource: !Sub arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*
+                Principal:
+                  Service: cloudfront.amazonaws.com
+                Condition:
+                  StringEquals:
+                    AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}
+              - Action: s3:*
+                Condition:
+                  Bool:
+                    aws:SecureTransport: false
+                Effect: Deny
+                Principal:
+                  AWS: '*'
+                Resource:
+                  - !Sub arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}
+                  - !Sub arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*
+              - Action: s3:PutObject
+                Condition:
+                  ArnLike:
+                    aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}
+                  StringEquals:
+                    aws:SourceAccount: !Ref AWS::AccountId
+                Effect: Allow
+                Principal:
+                  Service: logging.s3.amazonaws.com
+                Resource:
+                  - !Sub arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*
+            Version: "2012-10-17"
 
   CloudFrontLogs:
     Type: !Rain::Module "../modules/bucket.yaml"
     Properties:
       AppName: !Sub ${AppName}-cflogs
       Content: RAIN_NO_CONTENT
+    Overrides:
+      Bucket:
+        Properties:
+          OwnershipControls:
+            Rules:
+              - ObjectOwnership: BucketOwnerPreferred
 
 Outputs:
   SiteURL:

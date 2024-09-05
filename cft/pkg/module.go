@@ -523,6 +523,29 @@ func processModule(
 	// Overrides have overridden values for module resources. Anything in a module can be overridden.
 	_, overrides, _ := s11n.GetMapValue(templateResource, "Overrides")
 
+	// Validate that the overrides actually exist and error if not
+	if overrides != nil {
+		for i, override := range overrides.Content {
+			if i%2 != 0 {
+				continue
+			}
+			foundName := false
+			for i, moduleResource := range moduleResources.Content {
+				if moduleResource.Kind != yaml.MappingNode {
+					continue
+				}
+				name := moduleResources.Content[i-1].Value
+				if name == override.Value {
+					foundName = true
+					break
+				}
+			}
+			if !foundName {
+				return false, fmt.Errorf("override not found: %s", override.Value)
+			}
+		}
+	}
+
 	fe, err := handleForEach(moduleResources, t, logicalId, outputNode,
 		moduleParams, templateProps)
 	if err != nil {

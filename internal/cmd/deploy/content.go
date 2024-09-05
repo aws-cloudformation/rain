@@ -11,14 +11,13 @@ import (
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
-	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 )
 
 // processMetadata looks for Rain command in resource Metadata
 // For CREATE and UPDATE operations, a Content node on a bucket
 // will upload local assets to the bucket.
-func processMetadata(template cft.Template, stackName string) error {
+func processMetadata(template cft.Template, stackName string, rootDir string) error {
 
 	// For some reason Package created an extra document node
 	// (And CreateChangeSet is ok with this...?)
@@ -27,7 +26,7 @@ func processMetadata(template cft.Template, stackName string) error {
 	buckets := template.GetResourcesOfType("AWS::S3::Bucket")
 	for _, bucket := range buckets {
 		logicalId := bucket.LogicalId
-		config.Debugf("processMetadata bucket: %s \n%v", logicalId, node.ToSJson(bucket.Node))
+		//config.Debugf("processMetadata bucket: %s \n%v", logicalId, node.ToSJson(bucket.Node))
 		_, n, _ := s11n.GetMapValue(bucket.Node, "Metadata")
 		if n == nil {
 			continue
@@ -45,13 +44,13 @@ func processMetadata(template cft.Template, stackName string) error {
 		config.Debugf("processMetadata found contentPath for resource: %s",
 			contentPath.Value)
 
-		// Assume contentPath.Value is a directory and Put all files
-		p := contentPath.Value
-
 		// Ignore RAIN_NO_CONTENT or an empty string
-		if p == "" || p == "RAIN_NO_CONTENT" {
+		if contentPath.Value == "" || contentPath.Value == "RAIN_NO_CONTENT" {
 			continue
 		}
+
+		// Assume contentPath.Value is a directory and Put all files
+		p := filepath.Join(rootDir, contentPath.Value)
 
 		// Get the bucket name
 		sr, err := cfn.GetStackResource(stackName, logicalId)
