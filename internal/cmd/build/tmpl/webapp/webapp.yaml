@@ -15,6 +15,35 @@ Parameters:
 
 Resources:
 
+  ApiHandler:
+    Type: AWS::Lamda::Function
+    Properties:
+      Handler: bootstrap
+      Runtime: provided.al2023
+      Code: !Rain::S3
+        Run: buildapi.sh
+        Zip: false
+        Path: api/dist/lambda-handler.zip
+        KeyProperty: S3Key
+        BucketProperty: S3Bucket
+      Role: !GetAtt ApiHandlerRole.Arn
+
+  ApiHandlerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AmazonAPIGatewayInvokePolicy
+
   OriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:

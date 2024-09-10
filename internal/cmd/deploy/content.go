@@ -14,10 +14,11 @@ import (
 	"github.com/aws-cloudformation/rain/internal/s11n"
 )
 
-// processMetadata looks for Rain command in resource Metadata
+// processMetadataAfter looks for Rain commands in resource Metadata
+// that need to be run after deployment.
 // For CREATE and UPDATE operations, a Content node on a bucket
 // will upload local assets to the bucket.
-func processMetadata(template cft.Template, stackName string, rootDir string) error {
+func processMetadataAfter(template cft.Template, stackName string, rootDir string) error {
 
 	// For some reason Package created an extra document node
 	// (And CreateChangeSet is ok with this...?)
@@ -26,12 +27,10 @@ func processMetadata(template cft.Template, stackName string, rootDir string) er
 	buckets := template.GetResourcesOfType("AWS::S3::Bucket")
 	for _, bucket := range buckets {
 		logicalId := bucket.LogicalId
-		//config.Debugf("processMetadata bucket: %s \n%v", logicalId, node.ToSJson(bucket.Node))
 		_, n, _ := s11n.GetMapValue(bucket.Node, "Metadata")
 		if n == nil {
 			continue
 		}
-		config.Debugf("processMetadata found Metadata")
 		_, n, _ = s11n.GetMapValue(n, "Rain")
 		if n == nil {
 			continue
@@ -41,8 +40,6 @@ func processMetadata(template cft.Template, stackName string, rootDir string) er
 		if contentPath == nil {
 			continue
 		}
-		config.Debugf("processMetadata found contentPath for resource: %s",
-			contentPath.Value)
 
 		// Ignore RAIN_NO_CONTENT or an empty string
 		if contentPath.Value == "" || contentPath.Value == "RAIN_NO_CONTENT" {
@@ -58,7 +55,6 @@ func processMetadata(template cft.Template, stackName string, rootDir string) er
 			return err
 		}
 		bucketName := *sr.PhysicalResourceId
-		config.Debugf("processMetadata bucket %s name is %s", logicalId, bucketName)
 
 		spinner.Push(fmt.Sprintf("Uploading the contents of %s to %s", p, bucketName))
 

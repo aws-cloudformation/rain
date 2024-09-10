@@ -760,8 +760,6 @@ func downloadModule(uri string) ([]byte, error) {
 // Type: !Rain::Module
 func module(ctx *directiveContext) (bool, error) {
 
-	config.Debugf("module directiveContext: %+v", ctx)
-
 	n := ctx.n
 	root := ctx.rootDir
 	t := ctx.t

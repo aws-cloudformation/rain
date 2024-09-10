@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -32,6 +33,7 @@ type s3Options struct {
 	KeyProperty    string   `yaml:"KeyProperty"`
 	Zip            bool     `yaml:"Zip"`
 	Format         s3Format `yaml:"Format"`
+	Run            string   `yaml:"Run"`
 }
 
 type directiveContext struct {
@@ -131,6 +133,33 @@ func includeEnv(ctx *directiveContext) (bool, error) {
 }
 
 func handleS3(root string, options s3Options) (*yaml.Node, error) {
+
+	config.Debugf("handleS3 options: %+v", options)
+
+	// Check to see if we need to run a build command first
+	if options.Run != "" {
+		config.Debugf("Found s3Option Run: %s", options.Run)
+		relativePath := filepath.Join(".", root, options.Run)
+		absPath, absErr := filepath.Abs(relativePath)
+		if absErr != nil {
+			config.Debugf("filepath.Abs failed? %s", absErr)
+			return nil, absErr
+		}
+		cmd := exec.Command(absPath)
+		var stdout strings.Builder
+		var stderr strings.Builder
+		cmd.Stdout = &stdout
+		cmd.Stderr = &stderr
+		cmd.Dir = root
+		err := cmd.Run()
+		if err != nil {
+			config.Debugf("s3Option Run %s failed with %s: %s",
+				options.Run, err, stderr.String())
+			return nil, err
+		}
+		config.Debugf("s3Option Run output: %s", stdout.String())
+	}
+
 	s, err := upload(root, options.Path, options.Zip)
 	if err != nil {
 		return nil, err
