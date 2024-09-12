@@ -6,6 +6,50 @@ Parameters:
     Description: This name is used as a prefix for resource names
 
 Resources:
+  RestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Ref AppName
+
+  RestApiCWRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+      Path: /
+      Policies:
+        - PolicyName: cwlogsapigateway
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                  - logs:PutLogEvents
+                  - logs:GetLogEvents
+                  - logs:FilterLogEvents
+                Effect: Allow
+                Resource: '*'
+
+  RestApiAccount:
+    Type: AWS::ApiGateway::Account
+    Properties:
+      CloudWatchRoleArn: !GetAtt RestApiCWRole.Arn
+    DependsOn: RestApi
+
+  RestApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId: !Ref RestApi
+    DependsOn:
+      - RestApiProxy
+
   ApiHandler:
     Type: AWS::Lambda::Function
     Properties:
@@ -13,7 +57,7 @@ Resources:
       Runtime: provided.al2023
       Code:
         S3Bucket: rain-artifacts-755952356119-us-east-1
-        S3Key: 9dc38d1c3d69016f2e15880396f30b8c2998a01e17af21ef854d2b8e8f394ff1
+        S3Key: f187742926e5aa889917a2530333d94d95f4ea93266066b6f3689b2ccda07dde
       Role: !GetAtt ApiHandlerRole.Arn
 
   ApiHandlerRole:
@@ -30,6 +74,48 @@ Resources:
               - sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  RestApiStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId: !Ref RestApi
+      DeploymentId: !Ref RestApiDeployment
+      StageName: prod
+
+  RestApiResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt RestApi.RootResourceId
+      PathPart: test
+      RestApiId: !Ref RestApi
+
+  RestApiPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt ApiHandler.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/*
+
+  RestApiRootPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt ApiHandler.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/
+
+  RestApiProxy:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: ANY
+      ResourceId: !Ref RestApiResource
+      RestApiId: !Ref RestApi
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ApiHandler.Arn}/invocations
 
   OriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
@@ -566,4 +652,7 @@ Resources:
 Outputs:
   SiteURL:
     Value: !Sub https://${Distribution.DomainName}
+
+  RestApiInvokeURL:
+    Value: !Sub https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/${RestApiStage}
 

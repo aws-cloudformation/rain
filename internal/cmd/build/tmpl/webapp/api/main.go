@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
@@ -11,12 +12,17 @@ type MyEvent struct {
 	Name string `json:"name"`
 }
 
-func HandleRequest(ctx context.Context, event *MyEvent) (*string, error) {
-	if event == nil {
-		return nil, fmt.Errorf("received nil event")
+func HandleRequest(ctx context.Context,
+	request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+
+	fmt.Printf("request: %+v\n", request)
+	message := fmt.Sprintf("{\"message\": \"Request Resource: %s, Path: %s, HTTPMethod: %s\"}", request.Resource, request.Path, request.HTTPMethod)
+	response := events.APIGatewayProxyResponse{
+		StatusCode: 200,
+		Body:       message,
 	}
-	message := fmt.Sprintf("Hello %s!", event.Name)
-	return &message, nil
+
+	return response, nil
 }
 
 func main() {
