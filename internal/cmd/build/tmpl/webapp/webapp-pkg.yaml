@@ -11,111 +11,12 @@ Resources:
     Properties:
       Name: !Ref AppName
 
-  RestApiCWRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service: apigateway.amazonaws.com
-      Path: /
-      Policies:
-        - PolicyName: cwlogsapigateway
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:DescribeLogGroups
-                  - logs:DescribeLogStreams
-                  - logs:PutLogEvents
-                  - logs:GetLogEvents
-                  - logs:FilterLogEvents
-                Effect: Allow
-                Resource: '*'
-
-  RestApiAccount:
-    Type: AWS::ApiGateway::Account
-    Properties:
-      CloudWatchRoleArn: !GetAtt RestApiCWRole.Arn
-    DependsOn: RestApi
-
   RestApiDeployment:
     Type: AWS::ApiGateway::Deployment
     Properties:
       RestApiId: !Ref RestApi
     DependsOn:
-      - RestApiProxy
-
-  ApiHandler:
-    Type: AWS::Lambda::Function
-    Properties:
-      Handler: bootstrap
-      Runtime: provided.al2023
-      Code:
-        S3Bucket: rain-artifacts-755952356119-us-east-1
-        S3Key: f187742926e5aa889917a2530333d94d95f4ea93266066b6f3689b2ccda07dde
-      Role: !GetAtt ApiHandlerRole.Arn
-
-  ApiHandlerRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-
-  RestApiStage:
-    Type: AWS::ApiGateway::Stage
-    Properties:
-      RestApiId: !Ref RestApi
-      DeploymentId: !Ref RestApiDeployment
-      StageName: prod
-
-  RestApiResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId: !GetAtt RestApi.RootResourceId
-      PathPart: test
-      RestApiId: !Ref RestApi
-
-  RestApiPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !GetAtt ApiHandler.Arn
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/*
-
-  RestApiRootPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !GetAtt ApiHandler.Arn
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/
-
-  RestApiProxy:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      HttpMethod: ANY
-      ResourceId: !Ref RestApiResource
-      RestApiId: !Ref RestApi
-      AuthorizationType: NONE
-      Integration:
-        IntegrationHttpMethod: POST
-        Type: AWS_PROXY
-        Uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ApiHandler.Arn}/invocations
+      - TestResourceProxy
 
   OriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
@@ -199,6 +100,73 @@ Resources:
               ExcludedRules:
                 - Name: NoUserAgent_HEADER
 
+  TestResourceHandler:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: bootstrap
+      Runtime: provided.al2023
+      Code:
+        S3Bucket: rain-artifacts-755952356119-us-east-1
+        S3Key: 77036ccc8e7d5f01db1789d5641f5b728ec77255bc46a2ee0b76f27631f0092e
+      Role: !GetAtt TestResourceHandlerRole.Arn
+
+  TestResourceHandlerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  TestResourceStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId: !Ref RestApi
+      DeploymentId: !Ref RestApiDeployment
+      StageName: staging
+
+  TestResourceResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Sub ${RestApi.RootResourceId}
+      PathPart: test
+      RestApiId: !Ref RestApi
+
+  TestResourcePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt TestResourceHandler.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/*
+
+  TestResourceRootPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt TestResourceHandler.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/
+
+  TestResourceProxy:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: ANY
+      ResourceId: !Ref TestResourceResource
+      RestApiId: !Ref RestApi
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TestResourceHandler.Arn}/invocations
+
   ContentLogBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -231,6 +199,9 @@ Resources:
         SuppressedRules:
           - S3_BUCKET_LOGGING_ENABLED
           - S3_BUCKET_REPLICATION_ENABLED
+      Version: 1
+      Rain:
+        EmptyOnDelete: true
 
   ContentBucket:
     Type: AWS::S3::Bucket
@@ -261,8 +232,9 @@ Resources:
         SuppressedRules:
           - S3_BUCKET_DEFAULT_LOCK_ENABLED
       Rain:
+        EmptyOnDelete: true
         Content: site
-      Version: 4
+      Version: 1
 
   ContentReplicaBucket:
     Type: AWS::S3::Bucket
@@ -291,6 +263,9 @@ Resources:
           - S3_BUCKET_DEFAULT_LOCK_ENABLED
           - S3_BUCKET_REPLICATION_ENABLED
           - S3_BUCKET_LOGGING_ENABLED
+      Version: 1
+      Rain:
+        EmptyOnDelete: true
 
   ContentReplicationPolicy:
     Type: AWS::IAM::RolePolicy
@@ -493,6 +468,7 @@ Resources:
           - S3_BUCKET_DEFAULT_LOCK_ENABLED
       Rain:
         Content: RAIN_NO_CONTENT
+        EmptyOnDelete: true
 
   CloudFrontLogsReplicaBucket:
     Type: AWS::S3::Bucket
@@ -654,5 +630,5 @@ Outputs:
     Value: !Sub https://${Distribution.DomainName}
 
   RestApiInvokeURL:
-    Value: !Sub https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/${RestApiStage}
+    Value: !Sub https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/${TestResourceStage}
 

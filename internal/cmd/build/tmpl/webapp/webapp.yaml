@@ -20,116 +20,22 @@ Resources:
     Properties:
       Name: !Ref AppName
 
-  RestApiCWRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service: apigateway.amazonaws.com
-      Path: /
-      Policies:
-        -
-          PolicyName: cwlogsapigateway
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:DescribeLogGroups
-                  - logs:DescribeLogStreams
-                  - logs:PutLogEvents
-                  - logs:GetLogEvents
-                  - logs:FilterLogEvents
-                Effect: Allow
-                Resource: "*"
-
-  RestApiAccount:
-    Type: AWS::ApiGateway::Account
-    Properties:
-      CloudWatchRoleArn: !GetAtt RestApiCWRole.Arn
-    DependsOn: RestApi
-
   RestApiDeployment:
     Type: AWS::ApiGateway::Deployment
     Properties:
       RestApiId: !Ref RestApi
     DependsOn:
-      - RestApiProxy 
+      - TestResourceProxy 
 
-  ApiHandler:
-    Type: AWS::Lambda::Function
+  TestResource:
+    Type: !Rain::Module "../modules/api-resource.yaml"
     Properties:
-      Handler: bootstrap
-      Runtime: provided.al2023
-      Code: !Rain::S3
-        Run: buildapi.sh
-        Zip: false
-        Path: api/dist/lambda-handler.zip
-        KeyProperty: S3Key
-        BucketProperty: S3Bucket
-      Role: !GetAtt ApiHandlerRole.Arn
-
-  ApiHandlerRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-
-  RestApiStage:
-    Type: AWS::ApiGateway::Stage
-    Properties:
-      RestApiId: !Ref RestApi
-      DeploymentId: !Ref RestApiDeployment
-      StageName: prod
-
-  RestApiResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId: !GetAtt RestApi.RootResourceId
-      PathPart: test
-      RestApiId: !Ref RestApi
-
-  RestApiPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !GetAtt ApiHandler.Arn
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/*" 
-
-  RestApiRootPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !GetAtt ApiHandler.Arn
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/" 
-
-  RestApiProxy:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      HttpMethod: ANY
-      ResourceId: !Ref RestApiResource 
-      RestApiId: !Ref RestApi
-      AuthorizationType: NONE
-      Integration:
-        IntegrationHttpMethod: POST
-        Type: AWS_PROXY
-        Uri: !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ApiHandler.Arn}/invocations"
-
+      RestApi: !Ref RestApi
+      RestApiDeployment: !Ref RestApiDeployment
+      BuildScript: ../webapp/buildapi.sh
+      CodePath: ../webapp/api/dist/test/lambda-handler.zip
+      ResourcePath: test
+      StageName: staging
 
   OriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
@@ -221,7 +127,20 @@ Resources:
     Overrides:
       Bucket:
         Metadata:
-          Version: 4
+          Version: 1
+          Rain:
+            EmptyOnDelete: true
+            Content: site
+      LogBucket:
+        Metadata:
+          Version: 1
+          Rain:
+            EmptyOnDelete: true
+      ReplicaBucket:
+        Metadata:
+          Version: 1
+          Rain:
+            EmptyOnDelete: true
       BucketPolicyPolicy:
         Properties:
           PolicyDocument:
@@ -268,10 +187,16 @@ Resources:
           OwnershipControls:
             Rules:
               - ObjectOwnership: BucketOwnerPreferred
+        Metadata:
+          Rain:
+            Content: RAIN_NO_CONTENT
+            EmptyOnDelete: true
 
 Outputs:
+
   SiteURL:
     Value: !Sub "https://${Distribution.DomainName}"
+
   RestApiInvokeURL:
-    Value: !Sub https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/${RestApiStage}
+    Value: !Sub https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/${TestResourceStage}
 

@@ -111,7 +111,6 @@ func includeLiteral(ctx *directiveContext) (bool, error) {
 }
 
 func includeEnv(ctx *directiveContext) (bool, error) {
-	config.Debugf("includeEnv n: %v", node.ToSJson(ctx.n))
 	name, err := expectString(ctx.n)
 	if err != nil {
 		return false, err
@@ -134,11 +133,8 @@ func includeEnv(ctx *directiveContext) (bool, error) {
 
 func handleS3(root string, options s3Options) (*yaml.Node, error) {
 
-	config.Debugf("handleS3 options: %+v", options)
-
 	// Check to see if we need to run a build command first
 	if options.Run != "" {
-		config.Debugf("Found s3Option Run: %s", options.Run)
 		relativePath := filepath.Join(".", root, options.Run)
 		absPath, absErr := filepath.Abs(relativePath)
 		if absErr != nil {
@@ -157,7 +153,6 @@ func handleS3(root string, options s3Options) (*yaml.Node, error) {
 				options.Run, err, stderr.String())
 			return nil, err
 		}
-		config.Debugf("s3Option Run output: %s", stdout.String())
 	}
 
 	s, err := upload(root, options.Path, options.Zip)
@@ -208,31 +203,36 @@ func handleS3(root string, options s3Options) (*yaml.Node, error) {
 }
 
 func includeS3Object(ctx *directiveContext) (bool, error) {
+
 	n := ctx.n
 	parent := ctx.parent
 	if n.Kind != yaml.MappingNode || len(n.Content) != 2 {
 		return false, errors.New("expected a map")
 	}
 
-	// Check to see if the Path is a Ref.
+	// Check to see if any of the properties is a Ref.
 	// The only valid use case is if the !Rain::S3 directive is inside a module,
 	// and the Ref points to one of the properties set in the parent template
-	_, pathOption, _ := s11n.GetMapValue(n.Content[1], "Path")
-	if pathOption != nil && pathOption.Kind == yaml.MappingNode {
-		if pathOption.Content[0].Value == "Ref" {
-			if parent.Parent != nil {
-				moduleParentMap := parent.Parent.Value
-				_, moduleParentProps, _ := s11n.GetMapValue(moduleParentMap, "Properties")
-				if moduleParentProps != nil {
-					_, pathProp, _ := s11n.GetMapValue(moduleParentProps, pathOption.Content[1].Value)
-					if pathProp != nil {
-						// Replace the Ref with the value
-						node.SetMapValue(n.Content[1], "Path", node.Clone(pathProp))
+	for i := 0; i < len(n.Content[1].Content); i += 2 {
+		s3opt := n.Content[1].Content[i+1]
+		name := n.Content[1].Content[i].Value
+		if s3opt.Kind == yaml.MappingNode {
+			if s3opt.Content[0].Value == "Ref" {
+				if parent.Parent != nil {
+					moduleParentMap := parent.Parent.Value
+					_, moduleParentProps, _ := s11n.GetMapValue(moduleParentMap, "Properties")
+					if moduleParentProps != nil {
+						_, parentProp, _ := s11n.GetMapValue(moduleParentProps, s3opt.Content[1].Value)
+						if parentProp != nil {
+							// Replace the Ref with the value
+							node.SetMapValue(n.Content[1], name, node.Clone(parentProp))
+						} else {
+							config.Debugf("expected Properties to have Path")
+						}
 					} else {
-						config.Debugf("expected Properties to have Path")
+						config.Debugf("expected parent resource to have Properties")
+						config.Debugf("moduleParentMap: %s", node.ToSJson(moduleParentMap))
 					}
-				} else {
-					config.Debugf("expected parent resource to have Properties")
 				}
 			}
 		}
