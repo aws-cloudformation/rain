@@ -11,7 +11,7 @@ that this feature is currently experimental could change with minor version
 upgrades.
 
 ```sh 
-rain forecast -x --skip-iam my-template.yaml my-stack-name 
+rain forecast -x my-template.yaml my-stack-name 
 ```
 
 You can also supply a CLI profile with the `--profile` argument to assume a
