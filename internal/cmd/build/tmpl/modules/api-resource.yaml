@@ -23,6 +23,10 @@ Parameters:
     Type: String
     Description: The URI path name for the resource, for example, "user" or "order"
 
+  AuthProvider:
+    Type: String
+    Description: The ARN of the User Pool for the auth provider
+
 Resources:
 
   Handler:
@@ -53,12 +57,40 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
+  HandlerPolicy:
+    Type: AWS::IAM::RolePolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - dynamodb:BatchGetItem
+              - dynamodb:GetItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+            Effect: Allow
+            Resource: 
+              - !Ref TestTable
+      PolicyName: handler-policy
+      RoleName: !Ref HandlerRole
+
   Stage:
     Type: AWS::ApiGateway::Stage
     Properties:
       RestApiId: !Ref RestApi
       DeploymentId: !Ref RestApiDeployment
       StageName: !Ref StageName
+
+  Authorizer:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      IdentitySource: method.request.header.authorization
+      Name: CognitoAuthorizer
+      ProviderARNs: !Ref AuthProvider
+      RestApiId: !Ref RestApi
+      Type: COGNITO_USER_POOLS
 
   Resource:
     Type: AWS::ApiGateway::Resource

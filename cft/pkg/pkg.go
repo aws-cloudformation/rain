@@ -168,6 +168,7 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 	}
 
 	// We lose the Document node here
+	// TODO: Actually we're ending up with 2 document nodes somehow...
 	retval := cft.Template{}
 	retval.Node = &yaml.Node{Kind: yaml.DocumentNode, Content: make([]*yaml.Node, 0)}
 	retval.Node.Content = append(retval.Node.Content, templateNode)
