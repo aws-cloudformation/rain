@@ -54,31 +54,13 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
-  HandlerPolicy:
-    Type: AWS::IAM::RolePolicy
-    Properties:
-      PolicyDocument:
-        Statement:
-          - Action:
-              - dynamodb:BatchGetItem
-              - dynamodb:GetItem
-              - dynamodb:Query
-              - dynamodb:Scan
-              - dynamodb:BatchWriteItem
-              - dynamodb:PutItem
-              - dynamodb:UpdateItem
-            Effect: Allow
-            Resource: 
-              - !Ref TestTable
-      PolicyName: handler-policy
-      RoleName: !Ref HandlerRole
-
   Authorizer:
     Type: AWS::ApiGateway::Authorizer
     Properties:
       IdentitySource: method.request.header.authorization
       Name: CognitoAuthorizer
-      ProviderARNs: !Ref AuthProvider
+      ProviderARNs: 
+        - !Ref AuthProvider
       RestApiId: !Ref RestApi
       Type: COGNITO_USER_POOLS
 
