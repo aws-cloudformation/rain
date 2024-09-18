@@ -612,10 +612,11 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Handler: bootstrap
+      FunctionName: !Sub ${AppName}-handler
       Runtime: provided.al2023
       Code:
         S3Bucket: rain-artifacts-755952356119-us-east-1
-        S3Key: 707b709bd4c0336ba473bdbde68881dd4f93163b4daaa023a142fd2d76fa9ca1
+        S3Key: 802d9c3956bd9cebbbd13ff1487b8a8ba42f3344bc7ce0961f296a1e09d6b9a4
       Role: !GetAtt TestResourceHandlerRole.Arn
       Environment:
         Variables:
@@ -675,7 +676,8 @@ Resources:
       HttpMethod: ANY
       ResourceId: !Ref TestResourceResource
       RestApiId: !Ref RestApi
-      AuthorizationType: NONE
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref TestResourceAuthorizer
       Integration:
         IntegrationHttpMethod: POST
         Type: AWS_PROXY

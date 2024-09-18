@@ -1,6 +1,10 @@
 Description: This module contains a lambda handler and the API Gateway resource to proxy requests to the lambda. It is assumed that the lambda function can handle all HTTPMethods sent to the specified path.
 
 Parameters:
+
+  Name:
+    Type: String
+    Description: This name will be used for resource names and tags
   
   RestApi:
     Type: String
@@ -30,6 +34,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Handler: bootstrap
+      FunctionName: !Sub ${Name}-handler
       Runtime: provided.al2023
       Code: !Rain::S3
         Run: !Ref BuildScript
@@ -93,7 +98,8 @@ Resources:
       HttpMethod: ANY
       ResourceId: !Ref Resource 
       RestApiId: !Ref RestApi
-      AuthorizationType: NONE
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref Authorizer
       Integration:
         IntegrationHttpMethod: POST
         Type: AWS_PROXY
