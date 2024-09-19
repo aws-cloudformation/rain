@@ -1,7 +1,6 @@
 import { getParameterByName } from "./web-util"
 import * as restApi from "./rest-api"
 import Cookies from "js-cookie"
-import { TARGET_ENV } from "./config"
 
 /**
  * Set a secure cookie.
@@ -53,7 +52,7 @@ function setAuthCookies(data) {
 
     // Put the jwt in a link so it's easy to copy out for local dev
     const targetEnvDiv = document.getElementById("target-env")
-    targetEnvDiv.innerHTML = `<a href = "#jwt-modal">${TARGET_ENV}</a>`
+    targetEnvDiv.innerHTML = `<a href = "#jwt-modal">jwt</a>`
     document.getElementById("jwt-modal-content").innerHTML = refreshToken
 
     setCookie("jwt.refresh", refreshToken)

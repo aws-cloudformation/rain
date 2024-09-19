@@ -1,7 +1,7 @@
 // This is a minimal example of how to handle the auth flow with Cognito and 
 // then interact with DynamoDB once the user is logged in.
 
-import { checkAuthCode, setCookie, getCookie, removeCookie } from "./auth"
+import { checkAuthCode } from "./auth"
 
 
 (async function main() {
