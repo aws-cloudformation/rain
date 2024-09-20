@@ -34,6 +34,15 @@ func HandleRequest(ctx context.Context,
 		fmt.Printf("Scan result: %+v", res)
 	}
 
+	// TODO: OPTIONS request, return headers
+	/*
+
+	   method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-KG-Partition'''
+	   method.response.header.Access-Control-Allow-Origin: '''*'''
+	   method.response.header.Access-Control-Allow-Methods: '''OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'''
+	   StatusCode 204
+	*/
+
 	response := events.APIGatewayProxyResponse{
 		StatusCode: 200,
 		Body:       "{\"message\": \"Success\"}",

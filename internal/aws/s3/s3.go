@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"strings"
 	"time"
 
 	awssdk "github.com/aws/aws-sdk-go-v2/aws"
@@ -332,8 +333,20 @@ func PutObject(bucketName string, key string, body []byte) error {
 	contentType := "application/octet-stream"
 
 	mtype := mimetype.Detect(body)
-	config.Debugf("PutObject determine mime type for %s: %s", key, mtype.String())
 	contentType = mtype.String()
+	config.Debugf("PutObject determine mime type for %s: %s", key, contentType)
+
+	if strings.HasSuffix(key, ".css") {
+		config.Debugf("PutObject changing css content type to text/css")
+		contentType = strings.Replace(contentType, "text/plain", "text/css", 1)
+	}
+
+	if strings.HasSuffix(key, ".js") {
+		config.Debugf("PutObject changing js content type to text/js")
+		contentType = strings.Replace(contentType, "text/plain", "text/javascript", 1)
+	}
+
+	config.Debugf("PutObject final mime type for %s: %s", key, contentType)
 
 	_, err := getClient().PutObject(context.Background(),
 		&s3.PutObjectInput{
