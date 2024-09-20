@@ -3,6 +3,7 @@ package deploy
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -44,6 +45,32 @@ func processMetadataAfter(template cft.Template, stackName string, rootDir strin
 		// Ignore RAIN_NO_CONTENT or an empty string
 		if contentPath.Value == "" || contentPath.Value == "RAIN_NO_CONTENT" {
 			continue
+		}
+
+		_, run, _ := s11n.GetMapValue(n, "Run")
+		if run != nil && run.Value != "" {
+			// Run a script before uploading the content
+			config.Debugf("Running %s before uploading content", run.Value)
+			relativePath := filepath.Join(".", rootDir, run.Value)
+			absPath, absErr := filepath.Abs(relativePath)
+			if absErr != nil {
+				config.Debugf("filepath.Abs failed? %s", absErr)
+				return absErr
+			}
+			cmd := exec.Command(absPath)
+			var stdout strings.Builder
+			var stderr strings.Builder
+			cmd.Stdout = &stdout
+			cmd.Stderr = &stderr
+			cmd.Dir = rootDir
+			err := cmd.Run()
+			if err != nil {
+				config.Debugf("Content Run %s failed with %s: %s",
+					run.Value, err, stderr.String())
+				return err
+			}
+		} else {
+			config.Debugf("Run not found")
 		}
 
 		// Assume contentPath.Value is a directory and Put all files

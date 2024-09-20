@@ -8,29 +8,10 @@ Parameters:
 
   UserPoolArn:
     Type: String
-    Description: TODO - replace with a UserPool in this template after testing
+    Description: TODO - replace
     Default: arn:aws:cognito-idp:us-east-1:755952356119:userpool/us-east-1_OkBy88ce5
 
 Resources:
-  RestApi:
-    Type: AWS::ApiGateway::RestApi
-    Properties:
-      Name: !Ref AppName
-
-  RestApiDeployment:
-    Type: AWS::ApiGateway::Deployment
-    Properties:
-      RestApiId: !Ref RestApi
-    DependsOn:
-      - TestResourceProxy
-
-  RestApiStage:
-    Type: AWS::ApiGateway::Stage
-    Properties:
-      RestApiId: !Ref RestApi
-      DeploymentId: !Ref RestApiDeployment
-      StageName: prod
-
   TestResourceHandlerPolicy:
     Type: AWS::IAM::RolePolicy
     Properties:
@@ -211,7 +192,8 @@ Resources:
       Rain:
         Content: site/dist
         EmptyOnDelete: true
-      Version: 4
+        Run: buildsite.sh
+      Version: 1
 
   SiteContentReplicaBucket:
     Type: AWS::S3::Bucket
@@ -449,6 +431,7 @@ Resources:
       Rain:
         Content: RAIN_NO_CONTENT
         EmptyOnDelete: true
+        Run: ""
 
   SiteCloudFrontLogsReplicaBucket:
     Type: AWS::S3::Bucket
@@ -608,15 +591,114 @@ Resources:
               - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
+  RestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Ref AppName
+
+  RestApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId: !Ref RestApi
+    DependsOn:
+      - TestResourceProxy
+      - JwtResourceProxy
+
+  RestApiStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId: !Ref RestApi
+      DeploymentId: !Ref RestApiDeployment
+      StageName: prod
+
+  RestApiAuthorizer:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      IdentitySource: method.request.header.authorization
+      Name: CognitoApiAuthorizer
+      ProviderARNs:
+        - !Ref UserPoolArn
+      RestApiId: !Ref RestApi
+      Type: COGNITO_USER_POOLS
+
+  JwtResourceHandler:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: bootstrap
+      FunctionName: !Sub ${AppName}-jwt-handler
+      Runtime: provided.al2023
+      Code:
+        S3Bucket: rain-artifacts-755952356119-us-east-1
+        S3Key: 58b273f52b327c709e1d9c87eafff51908007644ec4b57c59efaaa5d271ec124
+      Role: !GetAtt JwtResourceHandlerRole.Arn
+      Environment:
+        Variables:
+          COGNITO_REGION: us-east-1
+          COGNITO_POOL_ID: us-east-1_OkBy88ce5
+          COGNITO_REDIRECT_URI: https://rain-webapp-manual-test1.auth.us-east-1.amazoncognito.com/index.html
+          COGNITO_DOMAIN_PREFIX: rain-webapp-manual-test1
+          COGNITO_APP_CLIENT_ID: 77p10r3qjrjeou9rvncrc1q33a
+
+  JwtResourceHandlerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  JwtResourceResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Sub ${RestApi.RootResourceId}
+      PathPart: jwt
+      RestApiId: !Ref RestApi
+
+  JwtResourcePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt JwtResourceHandler.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/*
+
+  JwtResourceRootPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt JwtResourceHandler.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/
+
+  JwtResourceProxy:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: ANY
+      ResourceId: !Ref JwtResourceResource
+      RestApiId: !Ref RestApi
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref RestApiAuthorizer
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${JwtResourceHandler.Arn}/invocations
+
   TestResourceHandler:
     Type: AWS::Lambda::Function
     Properties:
       Handler: bootstrap
-      FunctionName: !Sub ${AppName}-handler
+      FunctionName: !Sub ${AppName}-test-handler
       Runtime: provided.al2023
       Code:
         S3Bucket: rain-artifacts-755952356119-us-east-1
-        S3Key: 60b4ed10a05aa4488783c53b00b23ce2fee0fd6dd36bf1d153803f15b44d966f
+        S3Key: ce29262fd7fdd2411096bdc650486003ed2462be34b7785e98f8cf66edd6fb33
       Role: !GetAtt TestResourceHandlerRole.Arn
       Environment:
         Variables:
@@ -636,16 +718,6 @@ Resources:
               - sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-
-  TestResourceAuthorizer:
-    Type: AWS::ApiGateway::Authorizer
-    Properties:
-      IdentitySource: method.request.header.authorization
-      Name: CognitoAuthorizer
-      ProviderARNs:
-        - !Ref UserPoolArn
-      RestApiId: !Ref RestApi
-      Type: COGNITO_USER_POOLS
 
   TestResourceResource:
     Type: AWS::ApiGateway::Resource
@@ -677,7 +749,7 @@ Resources:
       ResourceId: !Ref TestResourceResource
       RestApiId: !Ref RestApi
       AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref TestResourceAuthorizer
+      AuthorizerId: !Ref RestApiAuthorizer
       Integration:
         IntegrationHttpMethod: POST
         Type: AWS_PROXY

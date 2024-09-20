@@ -221,8 +221,21 @@ func resolveModuleRef(parentName string, prop *yaml.Node, sidx int, ctx *refctx)
 			// Look for this property name in the parent template
 			_, parentVal, _ := s11n.GetMapValue(templateProps, prop.Value)
 			if parentVal == nil {
-				return fmt.Errorf("did not find %v in parent template Properties",
-					prop.Value)
+				// Check to see if there is a Default
+				_, mParam, _ := s11n.GetMapValue(moduleParams, prop.Value)
+				if mParam != nil {
+					config.Debugf("Found module param %s", prop.Value)
+					_, defaultNode, _ := s11n.GetMapValue(mParam, "Default")
+					if defaultNode != nil {
+						parentVal = defaultNode
+					}
+				}
+
+				// If we didn't find a parent template prop or a default, fail
+				if parentVal == nil {
+					return fmt.Errorf("did not find %v in parent template Properties",
+						prop.Value)
+				}
 			}
 
 			replaceProp(prop, parentName, parentVal, outNode, sidx)

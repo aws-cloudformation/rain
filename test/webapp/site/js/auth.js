@@ -77,8 +77,8 @@ async function checkAuthCode() {
     if (code) {
         console.log("Found code in query string: " + code)
 
-        const data = await restApi.get(`jwt-get?code=${code}`, null, null, false)
-        console.log("jwt-get response: " + JSON.stringify(data, null, 0))
+        const data = await restApi.get(`jwt?code=${code}`, null, null, false)
+        console.log("jwt response: " + JSON.stringify(data, null, 0))
 
         setAuthCookies(data)
 

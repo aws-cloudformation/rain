@@ -24,9 +24,9 @@ Parameters:
     Type: String
     Description: The URI path name for the resource, for example, "user" or "order"
 
-  AuthProvider:
+  AuthorizerId:
     Type: String
-    Description: The ARN of the User Pool for the auth provider
+    Description: The Id of the APIGateway Authorizer
 
 Resources:
 
@@ -59,15 +59,6 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
-  Authorizer:
-    Type: AWS::ApiGateway::Authorizer
-    Properties:
-      IdentitySource: method.request.header.authorization
-      Name: CognitoAuthorizer
-      ProviderARNs: 
-        - !Ref AuthProvider
-      RestApiId: !Ref RestApi
-      Type: COGNITO_USER_POOLS
 
   Resource:
     Type: AWS::ApiGateway::Resource
@@ -99,7 +90,7 @@ Resources:
       ResourceId: !Ref Resource 
       RestApiId: !Ref RestApi
       AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref Authorizer
+      AuthorizerId: !Ref AuthorizerId
       Integration:
         IntegrationHttpMethod: POST
         Type: AWS_PROXY

@@ -1,7 +1,10 @@
 #!/usr/local/bin/bash
 set -eou pipefail
 
-cd site
+SCRIPT_DIR=$(dirname "$0")
+echo "SCRIPT_DIR: ${SCRIPT_DIR}"
+
+cd ${SCRIPT_DIR}/site
 
 # Create the config file based on CloudFormation outputs
 

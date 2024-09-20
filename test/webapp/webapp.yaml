@@ -18,7 +18,7 @@ Parameters:
 
   UserPoolArn:
     Type: String
-    Description: TODO - replace with a UserPool in this template after testing
+    Description: TODO - replace
     Default: arn:aws:cognito-idp:us-east-1:755952356119:userpool/us-east-1_OkBy88ce5
 
 Resources:
@@ -30,42 +30,33 @@ Resources:
       AppName: !Ref AppName
       Content: site/dist
       Run: buildsite.sh
-      Version: 4
+      Version: 1
     Overrides:
-      
 
-  RestApi:
-    Type: AWS::ApiGateway::RestApi
+  Rest:
+    Type: !Rain::Module "../modules/rest-api.yaml"
     Properties:
-      Name: !Ref AppName
-
-  RestApiDeployment:
-    Type: AWS::ApiGateway::Deployment
-    Properties:
-      RestApiId: !Ref RestApi
-    DependsOn:
-      - TestResourceProxy 
-
-  RestApiStage:
-    Type: AWS::ApiGateway::Stage
-    Properties:
-      RestApiId: !Ref RestApi
-      DeploymentId: !Ref RestApiDeployment
-      StageName: prod
+      AppName: !Ref AppName
+      UserPoolArn: !Ref UserPoolArn
+    Overrides:
+      ApiDeployment:
+        DependsOn:
+          - TestResourceProxy 
+          - JwtResourceProxy 
 
   TestResource:
     Type: !Rain::Module "../modules/api-resource.yaml"
     Metadata:
       Comment: This module handles all methods on the /test path on the API. The lambda function code is located in api/resources/test.  
     Properties:
-      Name: !Ref AppName
+      Name: !Sub ${AppName}-test
       RestApi: !Ref RestApi
       RestApiDeployment: !Ref RestApiDeployment
       BuildScript: ../webapp/buildapi.sh
       CodePath: ../webapp/api/dist/test/lambda-handler.zip
       ResourcePath: test
       StageName: staging
-      AuthProvider: !Ref UserPoolArn
+      AuthorizerId: !Ref RestApiAuthorizer
     Overrides:
       Handler:
         Properties:
@@ -104,6 +95,29 @@ Resources:
         - AttributeName: id
           KeyType: HASH
 
+  JwtResource:
+    Type: !Rain::Module "../modules/api-resource.yaml"
+    Metadata:
+      Comment: This module handles all methods on the /jwt path on the API. The lambda function code is located in api/resources/jwt
+    Properties:
+      Name: !Sub ${AppName}-jwt
+      RestApi: !Ref RestApi
+      RestApiDeployment: !Ref RestApiDeployment
+      BuildScript: ../webapp/buildapi.sh
+      CodePath: ../webapp/api/dist/jwt/lambda-handler.zip
+      ResourcePath: jwt
+      StageName: staging
+      AuthorizerId: !Ref RestApiAuthorizer
+    Overrides:
+      Handler:
+        Properties:
+          Environment:
+            Variables:
+              COGNITO_REGION: us-east-1
+              COGNITO_POOL_ID: us-east-1_OkBy88ce5
+              COGNITO_REDIRECT_URI: https://rain-webapp-manual-test1.auth.us-east-1.amazoncognito.com/index.html
+              COGNITO_DOMAIN_PREFIX: rain-webapp-manual-test1
+              COGNITO_APP_CLIENT_ID: 77p10r3qjrjeou9rvncrc1q33a
 
 Outputs:
 
