@@ -4,16 +4,21 @@ set -eou pipefail
 
 SCRIPT_DIR=$(dirname "$0")
 echo "SCRIPT_DIR: ${SCRIPT_DIR}"
+cd $SCRIPT_DIR
 
-echo "Building test..."
-cd $SCRIPT_DIR/api/resources/test
-GOOS=linux GOARCH=amd64 go build -o bootstrap main.go
-mkdir -p ../../dist/test
-zip ../../dist/test/lambda-handler.zip bootstrap
+function build() {
+    echo "Building $1..."
+    cd ../$1
+    staticcheck .
+    go vet .
+    GOOS=linux GOARCH=amd64 go build -o bootstrap main.go
+    mkdir -p ../../dist/$1
+    zip ../../dist/$1/lambda-handler.zip bootstrap
+}
 
-echo "Building jwt..."
-cd ../jwt
-GOOS=linux GOARCH=amd64 go build -o bootstrap main.go
-mkdir -p ../../dist/jwt
-zip ../../dist/jwt/lambda-handler.zip bootstrap
+cd api/resources/test
+
+build test
+build jwt
+
 

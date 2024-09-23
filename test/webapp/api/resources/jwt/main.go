@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
+	"log"
 
 	"encoding/json"
 	"errors"
@@ -14,7 +14,6 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 )
@@ -43,16 +42,13 @@ func HandleRequest(ctx context.Context,
 	code := request.QueryStringParameters["code"]
 	refresh := request.QueryStringParameters["refresh"]
 
-	// Put CORS headers on all responses
-	headers["Access-Control-Allow-Headers"] = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-KG-Partition'"
-	headers["Access-Control-Allow-Origin"] = "'*'"
-	headers["Access-Control-Allow-Methods"] = "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
-
 	response := events.APIGatewayProxyResponse{
 		StatusCode: 200,
 		Headers:    headers,
 		Body:       "{\"message\": \"Success\"}",
 	}
+
+	addResponseHeaders(response)
 
 	switch request.HTTPMethod {
 	case "GET":
@@ -62,7 +58,7 @@ func HandleRequest(ctx context.Context,
 		jsonData, err := handleOptionsRequest(code, refresh)
 		if err != nil {
 			fmt.Printf("handleOptionsRequest: %v", err)
-			return fail(400, "enable to handle OPTIONS request"), nil
+			return fail(400, "Unable to handle OPTIONS request"), nil
 		}
 		response.StatusCode = 204
 		response.Body = jsonData
@@ -73,11 +69,22 @@ func HandleRequest(ctx context.Context,
 
 }
 
+func addResponseHeaders(response events.APIGatewayProxyResponse) {
+	// Put CORS headers on all responses
+	response.Headers["Access-Control-Allow-Headers"] = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-KG-Partition'"
+	response.Headers["Access-Control-Allow-Origin"] = "'*'"
+	response.Headers["Access-Control-Allow-Methods"] = "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+}
+
 func fail(code int, msg string) events.APIGatewayProxyResponse {
-	return events.APIGatewayProxyResponse{
+	response := events.APIGatewayProxyResponse{
 		StatusCode: code,
 		Body:       "{\"message\": \"" + msg + "\"}",
 	}
+	response.Headers = make(map[string]string)
+	addResponseHeaders(response)
+	response.Headers["X-Rain-Webapp-Error"] = msg
+	return response
 }
 
 func main() {
@@ -101,13 +108,8 @@ func getCognitoIssuer() (string, error) {
 	return fmt.Sprintf("https://cognito-idp.%s.amazonaws.com/%s", region, cognitoPoolID), nil
 }
 
-var cacheKeys map[string]jwk.Key
-
 // getPublicKeys retrieves the public keys from the Cognito issuer.
-func getPublicKeys() (map[string]jwk.Key, error) {
-	if cacheKeys != nil {
-		return cacheKeys, nil
-	}
+func getPublicKeys() (jwk.Set, error) {
 
 	cognitoIssuer, err := getCognitoIssuer()
 	if err != nil {
@@ -115,31 +117,25 @@ func getPublicKeys() (map[string]jwk.Key, error) {
 	}
 
 	url := cognitoIssuer + "/.well-known/jwks.json"
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
+	fmt.Printf("JWK URL: %s\n", url)
 
-	body, err := io.ReadAll(resp.Body)
+	set, err := jwk.Fetch(context.Background(), url)
 	if err != nil {
+		fmt.Printf("failed to fetch JWK: %s\n", err)
 		return nil, err
 	}
 
-	var keys struct {
-		Keys []jwk.Key `json:"keys"`
-	}
-	err = json.Unmarshal(body, &keys)
-	if err != nil {
-		return nil, err
-	}
-
-	cacheKeys = make(map[string]jwk.Key)
-	for _, key := range keys.Keys {
-		cacheKeys[key.KeyID()] = key
+	// Key sets can be serialized back to JSON
+	{
+		jsonbuf, err := json.Marshal(set)
+		if err != nil {
+			log.Printf("failed to marshal key set into JSON: %s\n", err)
+			return nil, err
+		}
+		fmt.Printf("json jwk: %s\n", jsonbuf)
 	}
 
-	return cacheKeys, nil
+	return set, nil
 }
 
 // verify verifies the JWT token.
@@ -251,11 +247,21 @@ func handleOptionsRequest(code string, refresh string) (string, error) {
 		}
 	}
 
+	fmt.Printf("About to post to %s: %+v\n", tokenEndpoint, postData)
+
 	resp, err := http.PostForm(tokenEndpoint, postData)
 	if err != nil {
+		fmt.Printf("PostForm error from %s: %v\n", tokenEndpoint, err)
 		return "", errors.New("token endpoint failed")
 	}
 	defer resp.Body.Close()
+
+	fmt.Printf("resp: %+v\n", resp)
+
+	if resp.StatusCode >= 400 {
+		return "", fmt.Errorf("request to %s failed with Status %d",
+			tokenEndpoint, resp.StatusCode)
+	}
 
 	var token struct {
 		AccessToken  string `json:"access_token"`
@@ -265,25 +271,19 @@ func handleOptionsRequest(code string, refresh string) (string, error) {
 	}
 	err = json.NewDecoder(resp.Body).Decode(&token)
 	if err != nil {
+		fmt.Printf("json token response error: %v\n", err)
 		return "", errors.New("failed to decode token response")
 	}
+
+	fmt.Printf("Got token: %+v\n", token)
 
 	keys, err := getPublicKeys()
 	if err != nil {
 		return "", err
 	}
-	fmt.Printf("keys: %+v", keys)
+	fmt.Printf("keys: %+v\n", keys)
 
-	/*
-		result, err := verify(token.AccessToken)
-		if err != nil {
-			return "", errors.New("token validation failed")
-		}
-	*/
-
-	pubkey := "?" // TODO
-
-	parsed, err := jwt.Parse([]byte(token.AccessToken), jwt.WithKey(jwa.RS256, pubkey))
+	parsed, err := jwt.Parse([]byte(token.AccessToken), jwt.WithKeySet(keys))
 	if err != nil {
 		fmt.Printf("failed to verify: %s\n", err)
 		return "", errors.New("failed to verify token")
