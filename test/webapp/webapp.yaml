@@ -41,8 +41,10 @@ Resources:
     Overrides:
       ApiDeployment:
         DependsOn:
-          - TestResourceProxy 
-          - JwtResourceProxy 
+          - TestResourceGet
+          - TestResourceOptions
+          - JwtResourceGet
+          - JwtResourceOptions
 
   TestResource:
     Type: !Rain::Module "../modules/api-resource.yaml"
@@ -107,7 +109,7 @@ Resources:
       CodePath: ../webapp/api/dist/jwt/lambda-handler.zip
       ResourcePath: jwt
       StageName: staging
-      AuthorizerId: !Ref RestApiAuthorizer
+      AuthorizerId: AWS::NoValue
     Overrides:
       Handler:
         Properties:
@@ -118,6 +120,10 @@ Resources:
               COGNITO_REDIRECT_URI: https://rain-webapp-manual-test1.auth.us-east-1.amazoncognito.com/index.html
               COGNITO_DOMAIN_PREFIX: rain-webapp-manual-test1
               COGNITO_APP_CLIENT_ID: 77p10r3qjrjeou9rvncrc1q33a
+      Get:
+        Properties:
+          AuthorizationType: NONE
+          AuthorizerId: FAIL
 
 Outputs:
 

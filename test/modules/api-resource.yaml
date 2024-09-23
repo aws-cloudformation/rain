@@ -1,4 +1,4 @@
-Description: This module contains a lambda handler and the API Gateway resource to proxy requests to the lambda. It is assumed that the lambda function can handle all HTTPMethods sent to the specified path.
+Description: This module contains a lambda handler and the API Gateway resource to proxy requests to the lambda. It is assumed that the lambda function can handle all HTTPMethods sent to the specified path, including the OPTIONS pre-flight request. The lambda function must also return the approppriate CORS headers with each response.
 
 Parameters:
 
@@ -59,7 +59,6 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
-
   Resource:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -83,10 +82,22 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/" 
 
-  Proxy:
+  Options:
     Type: AWS::ApiGateway::Method
     Properties:
-      HttpMethod: ANY
+      HttpMethod: OPTIONS
+      ResourceId: !Ref Resource 
+      RestApiId: !Ref RestApi
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Handler.Arn}/invocations"
+
+  Get:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
       ResourceId: !Ref Resource 
       RestApiId: !Ref RestApi
       AuthorizationType: COGNITO_USER_POOLS
@@ -95,5 +106,6 @@ Resources:
         IntegrationHttpMethod: POST
         Type: AWS_PROXY
         Uri: !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Handler.Arn}/invocations"
+
 
 

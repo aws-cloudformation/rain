@@ -601,8 +601,10 @@ Resources:
     Properties:
       RestApiId: !Ref RestApi
     DependsOn:
-      - TestResourceProxy
-      - JwtResourceProxy
+      - TestResourceGet
+      - TestResourceOptions
+      - JwtResourceGet
+      - JwtResourceOptions
 
   RestApiStage:
     Type: AWS::ApiGateway::Stage
@@ -629,7 +631,7 @@ Resources:
       Runtime: provided.al2023
       Code:
         S3Bucket: rain-artifacts-755952356119-us-east-1
-        S3Key: 58b273f52b327c709e1d9c87eafff51908007644ec4b57c59efaaa5d271ec124
+        S3Key: afa82250a6b93a69674ebf95b4c9d8c9bcfd3aca358c193db59ff57e738e1b42
       Role: !GetAtt JwtResourceHandlerRole.Arn
       Environment:
         Variables:
@@ -677,14 +679,26 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/
 
-  JwtResourceProxy:
+  JwtResourceOptions:
     Type: AWS::ApiGateway::Method
     Properties:
-      HttpMethod: ANY
+      HttpMethod: OPTIONS
       ResourceId: !Ref JwtResourceResource
       RestApiId: !Ref RestApi
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref RestApiAuthorizer
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${JwtResourceHandler.Arn}/invocations
+
+  JwtResourceGet:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: get
+      ResourceId: !Ref JwtResourceResource
+      RestApiId: !Ref RestApi
+      AuthorizationType: NONE
+      AuthorizerId: AWS::NoValue
       Integration:
         IntegrationHttpMethod: POST
         Type: AWS_PROXY
@@ -698,7 +712,7 @@ Resources:
       Runtime: provided.al2023
       Code:
         S3Bucket: rain-artifacts-755952356119-us-east-1
-        S3Key: ce29262fd7fdd2411096bdc650486003ed2462be34b7785e98f8cf66edd6fb33
+        S3Key: 811ccfbaa069fdf53ad0f1200793271857c0e7515994d672249ed9087a3cc5ef
       Role: !GetAtt TestResourceHandlerRole.Arn
       Environment:
         Variables:
@@ -742,10 +756,22 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/
 
-  TestResourceProxy:
+  TestResourceOptions:
     Type: AWS::ApiGateway::Method
     Properties:
-      HttpMethod: ANY
+      HttpMethod: OPTIONS
+      ResourceId: !Ref TestResourceResource
+      RestApiId: !Ref RestApi
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TestResourceHandler.Arn}/invocations
+
+  TestResourceGet:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
       ResourceId: !Ref TestResourceResource
       RestApiId: !Ref RestApi
       AuthorizationType: COGNITO_USER_POOLS

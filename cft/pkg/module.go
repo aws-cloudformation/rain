@@ -224,7 +224,6 @@ func resolveModuleRef(parentName string, prop *yaml.Node, sidx int, ctx *refctx)
 				// Check to see if there is a Default
 				_, mParam, _ := s11n.GetMapValue(moduleParams, prop.Value)
 				if mParam != nil {
-					config.Debugf("Found module param %s", prop.Value)
 					_, defaultNode, _ := s11n.GetMapValue(mParam, "Default")
 					if defaultNode != nil {
 						parentVal = defaultNode
@@ -555,6 +554,27 @@ func processModule(
 			}
 			if !foundName {
 				return false, fmt.Errorf("override not found: %s", override.Value)
+			}
+
+			// Make sure this Override name is not a module parameter.
+			// It is an error to try to override a property that shares
+			// a name with a module Parameter.
+			// TODO - return an error
+			if moduleParams != nil {
+				_, overrideProps, _ := s11n.GetMapValue(overrides.Content[i+1], "Properties")
+				if overrideProps != nil {
+					for op, overrideProp := range overrideProps.Content {
+						if op%2 != 0 {
+							continue
+						}
+						_, mp, _ := s11n.GetMapValue(moduleParams, overrideProp.Value)
+						if mp != nil {
+							return false,
+								fmt.Errorf("cannot override module parameter %s",
+									overrideProp.Value)
+						}
+					}
+				}
 			}
 		}
 	}

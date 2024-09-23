@@ -42,6 +42,10 @@ func TestRefFalse(t *testing.T) {
 	runTest("ref-false", t)
 }
 
+func TestOverride(t *testing.T) {
+	runFailTest("override", t)
+}
+
 // TODO: This was broken in the refactor, come back to it later
 //func TestForeach(t *testing.T) {
 //	runTest("foreach", t)
@@ -77,6 +81,19 @@ func runTest(test string, t *testing.T) {
 	if d.Mode() != "=" {
 		t.Errorf("Output does not match expected: %v", d.Format(true))
 	}
+}
+
+// runFailTest should fail to package
+func runFailTest(test string, t *testing.T) {
+
+	pkg.Experimental = true
+
+	_, err := pkg.File(fmt.Sprintf("./tmpl/%v-template.yaml", test))
+	if err == nil {
+		t.Errorf("did not fail: packaged %s", test)
+		return
+	}
+
 }
 
 func TestCsvToSequence(t *testing.T) {
