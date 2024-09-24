@@ -17,6 +17,90 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// mergeNodes merges two mapping nodes, replacing any values found in override
+func MergeNodes(original *yaml.Node, override *yaml.Node) *yaml.Node {
+
+	// If the nodes are not the same kind, just return the override
+	if override.Kind != original.Kind {
+		return override
+	}
+
+	retval := &yaml.Node{Kind: override.Kind, Content: make([]*yaml.Node, 0)}
+	overrideMap := make(map[string]bool)
+
+	if override.Kind == yaml.SequenceNode {
+		retval.Content = append(retval.Content, override.Content...)
+
+		for _, n := range original.Content {
+			already := false
+			for _, r := range retval.Content {
+				if r.Value == n.Value {
+					already = true
+					break
+				}
+			}
+			if !already {
+				retval.Content = append(retval.Content, n)
+			}
+		}
+
+		return retval
+	}
+
+	// else they are both Mapping nodes
+
+	// Add everything in the override Mapping
+	for i, n := range override.Content {
+		retval.Content = append(retval.Content, n)
+		var name string
+		if i%2 == 0 {
+			// Remember what we added
+			name = n.Value
+			overrideMap[name] = true
+		} else {
+			name = retval.Content[i-1].Value
+		}
+
+		/*
+			Original:
+				A: something
+				B:
+					foo: 1
+					bar: 2
+
+			Override:
+				A: something else
+				B:
+					foo: 3
+					baz: 6
+		*/
+
+		// Recurse if this is a mapping node
+		if i%2 == 1 && n.Kind == yaml.MappingNode {
+			// Find the matching node in original
+			for j, match := range original.Content {
+				if j%2 == 0 && match.Value == name {
+					n.Content[i] = MergeNodes(n.Content[i], original.Content[j])
+				}
+			}
+		}
+	}
+
+	// Only add things from the original if they weren't in original
+	for i := 0; i < len(original.Content); i++ {
+		n := original.Content[i]
+		if i%2 == 0 {
+			if _, exists := overrideMap[n.Value]; exists {
+				i = i + 1 // Skip the next node
+				continue
+			}
+		}
+		retval.Content = append(retval.Content, n)
+	}
+
+	return retval
+}
+
 // Clone a property-like node from the module and replace any overridden values
 func cloneAndReplaceProps(
 	n *yaml.Node,
@@ -67,7 +151,31 @@ func cloneAndReplaceProps(
 					// Is a clone good enough here? Could get weird.
 					// Maybe we just require that you replace the entire property if it's nested
 					// Otherwise we have to do a diff
-					props.Content[j+1] = node.Clone(templateProps.Content[i+1])
+					// TODO: We need to be smarter here.
+					// It's currently not possible to override just one nested property
+					// Bucket:
+					//   Metadata:
+					//     Rain:
+					//       Content: site
+					//       DistributionLogicalId: AWS::NoValue
+					//
+					// Override:
+					//   Bucket:
+					//     Metadata:
+					//       Rain:
+					//         DistributionLogicalId: MyDistribution
+					//
+					// The result is that the Content node is removed
+					//
+
+					// The old way
+					// props.Content[j+1] = node.Clone(templateProps.Content[i+1])
+
+					// The new way
+					clonedNode := node.Clone(templateProps.Content[i+1])
+					merged := MergeNodes(props.Content[j+1], clonedNode)
+					props.Content[j+1] = merged
+
 					found = true
 				}
 			}
@@ -559,7 +667,6 @@ func processModule(
 			// Make sure this Override name is not a module parameter.
 			// It is an error to try to override a property that shares
 			// a name with a module Parameter.
-			// TODO - return an error
 			if moduleParams != nil {
 				_, overrideProps, _ := s11n.GetMapValue(overrides.Content[i+1], "Properties")
 				if overrideProps != nil {

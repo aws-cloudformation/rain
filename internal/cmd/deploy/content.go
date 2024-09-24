@@ -115,6 +115,20 @@ func processMetadataAfter(template cft.Template, stackName string, rootDir strin
 		if err != nil {
 			return err
 		}
+
+		// Look for a LogicalId of a Distribution to invalidate
+		_, invalidate, _ := s11n.GetMapValue(n, "Invalidate")
+		if invalidate != nil {
+			//distributionLogicalId := invalidate.Value
+
+			spinner.Push("Invalidating CloudFront Distribution")
+
+			// TODO: Look up the distribution id
+
+			// TODO: Invalidate the distribution
+
+			spinner.Pop()
+		}
 	}
 
 	return nil

@@ -3,6 +3,7 @@ package node
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strconv"
 
 	"github.com/aws-cloudformation/rain/internal/config"
@@ -269,4 +270,80 @@ func YamlVal(n *yaml.Node) (any, error) {
 		v = string(n.Value)
 	}
 	return v, nil
+}
+
+// Diff returns an array of strings describing differences between two nodes
+func Diff(node1, node2 *yaml.Node) (diffs []string) {
+	switch {
+	case node1 == nil && node2 == nil:
+		return nil
+	case node1 == nil:
+		diffs = append(diffs, fmt.Sprintf("Node2: %v", node2.Value))
+	case node2 == nil:
+		diffs = append(diffs, fmt.Sprintf("Node1: %v", node1.Value))
+	default:
+		if node1.Kind != node2.Kind {
+			diffs = append(diffs, fmt.Sprintf("Node1: %v, Node2: %v", node1.Value, node2.Value))
+		} else {
+			switch node1.Kind {
+			case yaml.MappingNode:
+				diffs = appendMappingDiffs(diffs, node1, node2)
+			case yaml.SequenceNode:
+				diffs = appendSequenceDiffs(diffs, node1, node2)
+			case yaml.ScalarNode:
+				if node1.Value != node2.Value {
+					diffs = append(diffs,
+						fmt.Sprintf("Node1: %v, Node2: %v", node1.Value, node2.Value))
+				}
+			default:
+				diffs = append(diffs, fmt.Sprintf("Unsupported node kind: %v", node1.Kind))
+			}
+		}
+	}
+	return diffs
+}
+
+func appendMappingDiffs(diffs []string, node1, node2 *yaml.Node) []string {
+	keys1 := make(map[string]yaml.Node)
+	keys2 := make(map[string]yaml.Node)
+
+	for _, child := range node1.Content {
+		keys1[child.Value] = *child
+	}
+	for _, child := range node2.Content {
+		keys2[child.Value] = *child
+	}
+
+	for k, v := range keys1 {
+		if v2, ok := keys2[k]; ok {
+			diffs = appendDiffs(diffs, &v, &v2)
+			delete(keys2, k)
+		} else {
+			diffs = append(diffs, fmt.Sprintf("Node1: %v", v.Value))
+		}
+	}
+	for _, v := range keys2 {
+		diffs = append(diffs, fmt.Sprintf("Node2: %v", v.Value))
+	}
+	return diffs
+}
+
+func appendSequenceDiffs(diffs []string, node1, node2 *yaml.Node) []string {
+	for i := 0; i < len(node1.Content) && i < len(node2.Content); i++ {
+		diffs = appendDiffs(diffs, node1.Content[i], node2.Content[i])
+	}
+	for i := len(node1.Content); i < len(node2.Content); i++ {
+		diffs = append(diffs, fmt.Sprintf("Node2: %v", node2.Content[i].Value))
+	}
+	for i := len(node2.Content); i < len(node1.Content); i++ {
+		diffs = append(diffs, fmt.Sprintf("Node1: %v", node1.Content[i].Value))
+	}
+	return diffs
+}
+
+func appendDiffs(diffs []string, node1, node2 *yaml.Node) []string {
+	if reflect.DeepEqual(node1, node2) {
+		return diffs
+	}
+	return append(diffs, Diff(node1, node2)...)
 }

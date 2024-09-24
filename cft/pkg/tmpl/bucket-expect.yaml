@@ -1,12 +1,9 @@
 Resources:
   RainBucketBucket:
-    DeletionPolicy: !Ref RetentionPolicy
-    UpdateReplacePolicy: Delete
     Type: AWS::S3::Bucket
-    Metadata: {}
     Properties:
       LoggingConfiguration:
-        DestinationBucketName: !Ref ModuleExampleLogBucket
+        DestinationBucketName: !Ref RainBucketLogBucket
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
@@ -21,9 +18,10 @@ Resources:
           Value: test-value2
       VersioningConfiguration:
         Status: Enabled
+    DeletionPolicy: !Ref RetentionPolicy
+    UpdateReplacePolicy: Delete
 
   RainBucketLogBucket:
-    DeletionPolicy: Retain
     Type: AWS::S3::Bucket
     Properties:
       BucketName: test-module-log-bucket
@@ -34,8 +32,12 @@ Resources:
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
+        BlockPublicAcls: false
+        SomeNewThing: foo
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+    DeletionPolicy: Retain
+    Condition: HasLogBucket
+
 

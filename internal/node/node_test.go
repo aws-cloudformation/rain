@@ -177,3 +177,31 @@ func TestSetMapValue(t *testing.T) {
 		t.Errorf("Unexpected value: %v", n.Content[1].Value)
 	}
 }
+
+func TestDiff(t *testing.T) {
+
+	original := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
+	override := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
+
+	original.Content = append(original.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: "A"})
+	original.Content = append(original.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: "foo"})
+
+	override.Content = append(override.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: "A"})
+	override.Content = append(override.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: "bar"})
+
+	diff := node.Diff(original, override)
+	if len(diff) != 2 {
+		t.Fatalf("should have one difference, got %d", len(diff))
+	}
+
+	override.Content[1].Value = "foo"
+	diff = node.Diff(original, override)
+	if len(diff) != 0 {
+		t.Fatalf("should have no difference, got %d", len(diff))
+	}
+
+}
