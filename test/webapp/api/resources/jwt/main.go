@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"encoding/json"
 	"errors"
@@ -52,16 +53,16 @@ func HandleRequest(ctx context.Context,
 
 	switch request.HTTPMethod {
 	case "GET":
-		// TODO
+		jsonData, err := handleAuth(code, refresh)
+		if err != nil {
+			fmt.Printf("handleAuth: %v", err)
+			return fail(401, "Auth Failure"), nil
+		}
+		response.Body = jsonData
 		return response, nil
 	case "OPTIONS":
-		jsonData, err := handleOptionsRequest(code, refresh)
-		if err != nil {
-			fmt.Printf("handleOptionsRequest: %v", err)
-			return fail(400, "Unable to handle OPTIONS request"), nil
-		}
 		response.StatusCode = 204
-		response.Body = jsonData
+		response.Body = "{}"
 		return response, nil
 	default:
 		return fail(400, fmt.Sprintf("Unexpected HttpMethod: %s", request.HTTPMethod)), nil
@@ -71,9 +72,9 @@ func HandleRequest(ctx context.Context,
 
 func addResponseHeaders(response events.APIGatewayProxyResponse) {
 	// Put CORS headers on all responses
-	response.Headers["Access-Control-Allow-Headers"] = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-KG-Partition'"
-	response.Headers["Access-Control-Allow-Origin"] = "'*'"
-	response.Headers["Access-Control-Allow-Methods"] = "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+	response.Headers["Access-Control-Allow-Headers"] = "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-KG-Partition"
+	response.Headers["Access-Control-Allow-Origin"] = "*"
+	response.Headers["Access-Control-Allow-Methods"] = "OPTIONS, GET, PUT, POST, DELETE, PATCH, HEAD"
 }
 
 func fail(code int, msg string) events.APIGatewayProxyResponse {
@@ -90,8 +91,6 @@ func fail(code int, msg string) events.APIGatewayProxyResponse {
 func main() {
 	lambda.Start(HandleRequest)
 }
-
-// LLM output
 
 // getCognitoIssuer returns the Cognito issuer URL.
 func getCognitoIssuer() (string, error) {
@@ -125,7 +124,6 @@ func getPublicKeys() (jwk.Set, error) {
 		return nil, err
 	}
 
-	// Key sets can be serialized back to JSON
 	{
 		jsonbuf, err := json.Marshal(set)
 		if err != nil {
@@ -138,84 +136,7 @@ func getPublicKeys() (jwk.Set, error) {
 	return set, nil
 }
 
-// verify verifies the JWT token.
-/*
-func verify(t string) (map[string]interface{}, error) {
-
-	keys, err := getPublicKeys()
-	if err != nil {
-		return nil, err
-	}
-
-	tokenSections := strings.Split(t, ".")
-	if len(tokenSections) < 2 {
-		return nil, errors.New("requested token is invalid")
-	}
-
-	headerJSON, err := base64.RawURLEncoding.DecodeString(tokenSections[0])
-	if err != nil {
-		return nil, err
-	}
-
-	var header map[string]interface{}
-	err = json.Unmarshal(headerJSON, &header)
-	if err != nil {
-		return nil, err
-	}
-	key, ok := keys[header["kid"].(string)]
-	if !ok {
-		return nil, errors.New("claim made for unknown kid")
-	}
-
-	token, err := jwt.ParseWithClaims(t, &jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return key.Materialize()
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	claims, ok := token.Claims.(*jwt.MapClaims)
-	if !ok {
-		return nil, errors.New("failed to parse claims")
-	}
-
-	currentSeconds := time.Now().Unix()
-	exp, ok := (*claims)["exp"].(float64)
-	if !ok {
-		return nil, errors.New("missing exp claim")
-	}
-	if int64(exp) < currentSeconds {
-		return nil, errors.New("claim is expired")
-	}
-
-	authTime, ok := (*claims)["auth_time"].(float64)
-	if !ok {
-		return nil, errors.New("missing auth_time claim")
-	}
-	if int64(authTime) > currentSeconds {
-		return nil, errors.New("claim is invalid")
-	}
-
-	cognitoIssuer, err := getCognitoIssuer()
-	if err != nil {
-		return nil, err
-	}
-
-	iss, ok := (*claims)["iss"].(string)
-	if !ok || iss != cognitoIssuer {
-		return nil, errors.New("claim issuer is invalid")
-	}
-
-	tokenUse, ok := (*claims)["token_use"].(string)
-	if !ok || tokenUse != "access" {
-		return nil, errors.New("claim use is not access")
-	}
-
-	return *claims, nil
-}
-*/
-
-func handleOptionsRequest(code string, refresh string) (string, error) {
+func handleAuth(code string, refresh string) (string, error) {
 
 	redirectURI := os.Getenv("COGNITO_REDIRECT_URI")
 	cognitoDomainPrefix := os.Getenv("COGNITO_DOMAIN_PREFIX")
@@ -296,6 +217,11 @@ func handleOptionsRequest(code string, refresh string) (string, error) {
 		return "", errors.New("missing username")
 	}
 
+	refreshToken := refresh
+	if refreshToken == "" {
+		refreshToken = "?" // TODO: Get this from the jwt?
+	}
+
 	retval := struct {
 		IDToken      string `json:"idToken"`
 		RefreshToken string `json:"refreshToken"`
@@ -303,9 +229,9 @@ func handleOptionsRequest(code string, refresh string) (string, error) {
 		ExpiresIn    int64  `json:"expiresIn"`
 	}{
 		IDToken:      parsed.JwtID(),
-		RefreshToken: "?", // parsed.RefreshToken,
+		RefreshToken: refreshToken,
 		Username:     strings.TrimPrefix(userName.(string), "AmazonFederate_"),
-		ExpiresIn:    0, // parsed.ExpiresIn,
+		ExpiresIn:    int64(time.Until(parsed.Expiration())),
 	}
 
 	jsonData, err := json.Marshal(retval)
