@@ -19,6 +19,10 @@ func TestBucket(t *testing.T) {
 	runTest("bucket", t)
 }
 
+func TestApi(t *testing.T) {
+	runTest("api", t)
+}
+
 func TestSimple(t *testing.T) {
 	runTest("simple", t)
 }

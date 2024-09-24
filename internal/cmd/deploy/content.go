@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/internal/aws/cfn"
+	"github.com/aws-cloudformation/rain/internal/aws/cloudfront"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
@@ -67,6 +68,7 @@ func processMetadataAfter(template cft.Template, stackName string, rootDir strin
 			if err != nil {
 				config.Debugf("Content Run %s failed with %s: %s",
 					run.Value, err, stderr.String())
+				// TODO: Better error message when not debugging!
 				return err
 			}
 		} else {
@@ -117,17 +119,25 @@ func processMetadataAfter(template cft.Template, stackName string, rootDir strin
 		}
 
 		// Look for a LogicalId of a Distribution to invalidate
-		_, invalidate, _ := s11n.GetMapValue(n, "Invalidate")
-		if invalidate != nil {
-			//distributionLogicalId := invalidate.Value
+		_, dlid, _ := s11n.GetMapValue(n, "DistributionLogicalId")
+		if dlid != nil {
 
-			spinner.Push("Invalidating CloudFront Distribution")
+			spinner.Push(fmt.Sprintf("Invalidating CloudFront Distribution %s", dlid.Value))
 
-			// TODO: Look up the distribution id
+			// Look up the distribution id
+			sr, err := cfn.GetStackResource(stackName, dlid.Value)
+			if err != nil {
+				return err
+			}
+			did := *sr.PhysicalResourceId
+			config.Debugf("About to invalidate %s", did)
 
-			// TODO: Invalidate the distribution
-
+			// Invalidate the distribution
+			err = cloudfront.Invalidate(did)
 			spinner.Pop()
+			if err != nil {
+				return err
+			}
 		}
 	}
 

@@ -25,6 +25,10 @@ func MergeNodes(original *yaml.Node, override *yaml.Node) *yaml.Node {
 		return override
 	}
 
+	if override.Kind == yaml.ScalarNode {
+		return override
+	}
+
 	retval := &yaml.Node{Kind: override.Kind, Content: make([]*yaml.Node, 0)}
 	overrideMap := make(map[string]bool)
 
@@ -148,11 +152,8 @@ func cloneAndReplaceProps(
 			for j, mprop := range props.Content {
 				// Property names are even-indexed array elements
 				if tprop.Value == mprop.Value && i%2 == 0 && j%2 == 0 {
-					// Is a clone good enough here? Could get weird.
-					// Maybe we just require that you replace the entire property if it's nested
-					// Otherwise we have to do a diff
-					// TODO: We need to be smarter here.
-					// It's currently not possible to override just one nested property
+					// It's was not possible to override just one nested property
+					//
 					// Bucket:
 					//   Metadata:
 					//     Rain:
@@ -173,7 +174,10 @@ func cloneAndReplaceProps(
 
 					// The new way
 					clonedNode := node.Clone(templateProps.Content[i+1])
+					// config.Debugf("original: %s", node.ToSJson(templateProps.Content[i+1]))
+					// config.Debugf("clonedNode: %s", node.ToSJson(clonedNode))
 					merged := MergeNodes(props.Content[j+1], clonedNode)
+					// config.Debugf("merged: %s", node.ToSJson(merged))
 					props.Content[j+1] = merged
 
 					found = true
