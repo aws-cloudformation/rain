@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 
 	rainaws "github.com/aws-cloudformation/rain/internal/aws"
+	"github.com/aws-cloudformation/rain/internal/aws/apigateway"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -21,6 +23,14 @@ func HandleRequest(ctx context.Context,
 
 	client := dynamodb.NewFromConfig(rainaws.Config())
 
+	response := events.APIGatewayProxyResponse{
+		StatusCode: 200,
+		Body:       "{\"message\": \"Success\"}",
+		Headers:    make(map[string]string),
+	}
+
+	apigateway.AddCORSHeaders(response)
+
 	switch request.HTTPMethod {
 	case "GET":
 		input := &dynamodb.ScanInput{
@@ -29,33 +39,24 @@ func HandleRequest(ctx context.Context,
 		res, err := client.Scan(context.Background(), input)
 		if err != nil {
 			fmt.Printf("Scan failed: %v\n", err)
-			return fail500(fmt.Sprintf("%v", err)), nil
+			return apigateway.Fail(500, fmt.Sprintf("%v", err)), nil
 		}
 		fmt.Printf("Scan result: %+v", res)
-	}
-
-	// TODO: OPTIONS request, return headers
-	/*
-
-	   method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-KG-Partition'''
-	   method.response.header.Access-Control-Allow-Origin: '''*'''
-	   method.response.header.Access-Control-Allow-Methods: '''OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'''
-	   StatusCode 204
-	*/
-
-	response := events.APIGatewayProxyResponse{
-		StatusCode: 200,
-		Body:       "{\"message\": \"Success\"}",
+		jsonData, err := json.Marshal(res.Items)
+		if err != nil {
+			fmt.Printf("Marshal failed: %v\n", err)
+			return apigateway.Fail(500, fmt.Sprintf("%v", err)), nil
+		}
+		response.Body = string(jsonData)
+	case "OPTIONS":
+		response.StatusCode = 204
+		response.Body = "{}"
+		return response, nil
+	default:
+		return apigateway.Fail(400, fmt.Sprintf("Unexpected HttpMethod: %s", request.HTTPMethod)), nil
 	}
 
 	return response, nil
-}
-
-func fail500(msg string) events.APIGatewayProxyResponse {
-	return events.APIGatewayProxyResponse{
-		StatusCode: 500,
-		Body:       "{\"message\": \"" + msg + "\"}",
-	}
 }
 
 func main() {

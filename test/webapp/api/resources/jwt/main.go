@@ -16,6 +16,8 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
+
+	"github.com/aws-cloudformation/rain/internal/aws/apigateway"
 )
 
 func HandleRequest(ctx context.Context,
@@ -35,14 +37,14 @@ func HandleRequest(ctx context.Context,
 		Body:       "{\"message\": \"Success\"}",
 	}
 
-	addResponseHeaders(response)
+	apigateway.AddCORSHeaders(response)
 
 	switch request.HTTPMethod {
 	case "GET":
 		jsonData, err := handleAuth(code, refresh)
 		if err != nil {
 			fmt.Printf("handleAuth: %v", err)
-			return fail(401, "Auth Failure"), nil
+			return apigateway.Fail(401, "Auth Failure"), nil
 		}
 		response.Body = jsonData
 		return response, nil
@@ -51,27 +53,9 @@ func HandleRequest(ctx context.Context,
 		response.Body = "{}"
 		return response, nil
 	default:
-		return fail(400, fmt.Sprintf("Unexpected HttpMethod: %s", request.HTTPMethod)), nil
+		return apigateway.Fail(400, fmt.Sprintf("Unexpected HttpMethod: %s", request.HTTPMethod)), nil
 	}
 
-}
-
-func addResponseHeaders(response events.APIGatewayProxyResponse) {
-	// Put CORS headers on all responses
-	response.Headers["Access-Control-Allow-Headers"] = "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-KG-Partition"
-	response.Headers["Access-Control-Allow-Origin"] = "*"
-	response.Headers["Access-Control-Allow-Methods"] = "OPTIONS, GET, PUT, POST, DELETE, PATCH, HEAD"
-}
-
-func fail(code int, msg string) events.APIGatewayProxyResponse {
-	response := events.APIGatewayProxyResponse{
-		StatusCode: code,
-		Body:       "{\"message\": \"" + msg + "\"}",
-	}
-	response.Headers = make(map[string]string)
-	addResponseHeaders(response)
-	response.Headers["X-Rain-Webapp-Error"] = msg
-	return response
 }
 
 func main() {
