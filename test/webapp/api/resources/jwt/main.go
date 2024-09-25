@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
 	"encoding/json"
 	"errors"
@@ -204,11 +203,6 @@ func handleAuth(code string, refresh string) (string, error) {
 		return "", errors.New("missing username")
 	}
 
-	refreshToken := refresh
-	if refreshToken == "" {
-		refreshToken = "?" // TODO: Get this from the jwt?
-	}
-
 	retval := struct {
 		IDToken      string `json:"idToken"`
 		RefreshToken string `json:"refreshToken"`
@@ -216,9 +210,9 @@ func handleAuth(code string, refresh string) (string, error) {
 		ExpiresIn    int64  `json:"expiresIn"`
 	}{
 		IDToken:      parsed.JwtID(),
-		RefreshToken: refreshToken,
+		RefreshToken: token.RefreshToken,
 		Username:     strings.TrimPrefix(userName.(string), "AmazonFederate_"),
-		ExpiresIn:    int64(time.Until(parsed.Expiration())),
+		ExpiresIn:    token.ExpiresIn,
 	}
 
 	jsonData, err := json.Marshal(retval)
