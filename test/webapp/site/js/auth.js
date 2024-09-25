@@ -52,7 +52,7 @@ function setAuthCookies(data) {
 
     // Put the jwt in a link so it's easy to copy out for local dev
     const targetEnvDiv = document.getElementById("target-env")
-    if targetEnvDiv {
+    if (targetEnvDiv) {
         targetEnvDiv.innerHTML = `<a href = "#jwt-modal">jwt</a>`
         document.getElementById("jwt-modal-content").innerHTML = refreshToken
     }

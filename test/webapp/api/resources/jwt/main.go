@@ -19,19 +19,6 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwt"
 )
 
-/*
-
-	"github.com/dgrijalva/jwt-go"
-	replaced by github.com/golang-jwt/jwt
-
-	"github.com/lestrrat-go/jwx/jwk"
-
-	github.com/lestrrat-go/jwx/v2/jwk
-
-	Looks like this lib does JWT also... ? Why both?
-
-*/
-
 func HandleRequest(ctx context.Context,
 	request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 

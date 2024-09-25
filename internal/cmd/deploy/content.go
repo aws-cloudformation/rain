@@ -12,9 +12,67 @@ import (
 	"github.com/aws-cloudformation/rain/internal/aws/cloudfront"
 	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 )
+
+// processMetadataBefore looks for Rain commands in resource Metadata
+// that need to be run before deployment.
+// For CREATE and UPDATE operations, a Run node on a bucket
+// will run a script, which should run before deployment in case there
+// are any errors. Then after deployment, the Content node is processed
+func processMetadataBefore(template cft.Template, stackName string, rootDir string) error {
+
+	// For some reason Package created an extra document node
+	// (And CreateChangeSet is ok with this...?)
+	template.Node = template.Node.Content[0]
+
+	buckets := template.GetResourcesOfType("AWS::S3::Bucket")
+	for _, bucket := range buckets {
+		_, n, _ := s11n.GetMapValue(bucket.Node, "Metadata")
+		if n == nil {
+			continue
+		}
+		_, n, _ = s11n.GetMapValue(n, "Rain")
+		if n == nil {
+			continue
+		}
+
+		_, run, _ := s11n.GetMapValue(n, "Run")
+		if run != nil && run.Value != "" {
+			// Run a script before uploading the content
+			config.Debugf("Running %s before uploading content", run.Value)
+			relativePath := filepath.Join(".", rootDir, run.Value)
+			absPath, absErr := filepath.Abs(relativePath)
+			if absErr != nil {
+				config.Debugf("filepath.Abs failed? %s", absErr)
+				return absErr
+			}
+			cmd := exec.Command(absPath)
+			var stdout strings.Builder
+			var stderr strings.Builder
+			cmd.Stdout = &stdout
+			cmd.Stderr = &stderr
+			cmd.Dir = rootDir
+			err := cmd.Run()
+			if err != nil {
+				fmt.Println(console.Red(fmt.Sprintf(
+					"Run %s failed with %s: %s",
+					run.Value, err, stderr.String())))
+				fmt.Println(stdout.String())
+				return err
+			}
+			fmt.Printf("Successfully ran %s\n", run.Value)
+		} else {
+			config.Debugf("Run not found")
+		}
+
+	}
+
+	return nil
+
+}
 
 // processMetadataAfter looks for Rain commands in resource Metadata
 // that need to be run after deployment.
@@ -46,33 +104,6 @@ func processMetadataAfter(template cft.Template, stackName string, rootDir strin
 		// Ignore RAIN_NO_CONTENT or an empty string
 		if contentPath.Value == "" || contentPath.Value == "RAIN_NO_CONTENT" {
 			continue
-		}
-
-		_, run, _ := s11n.GetMapValue(n, "Run")
-		if run != nil && run.Value != "" {
-			// Run a script before uploading the content
-			config.Debugf("Running %s before uploading content", run.Value)
-			relativePath := filepath.Join(".", rootDir, run.Value)
-			absPath, absErr := filepath.Abs(relativePath)
-			if absErr != nil {
-				config.Debugf("filepath.Abs failed? %s", absErr)
-				return absErr
-			}
-			cmd := exec.Command(absPath)
-			var stdout strings.Builder
-			var stderr strings.Builder
-			cmd.Stdout = &stdout
-			cmd.Stderr = &stderr
-			cmd.Dir = rootDir
-			err := cmd.Run()
-			if err != nil {
-				config.Debugf("Content Run %s failed with %s: %s",
-					run.Value, err, stderr.String())
-				// TODO: Better error message when not debugging!
-				return err
-			}
-		} else {
-			config.Debugf("Run not found")
 		}
 
 		// Assume contentPath.Value is a directory and Put all files
@@ -117,6 +148,7 @@ func processMetadataAfter(template cft.Template, stackName string, rootDir strin
 		if err != nil {
 			return err
 		}
+		fmt.Printf("Copied contents of %s to %s", p, bucketName)
 
 		// Look for a LogicalId of a Distribution to invalidate
 		_, dlid, _ := s11n.GetMapValue(n, "DistributionLogicalId")
@@ -138,6 +170,7 @@ func processMetadataAfter(template cft.Template, stackName string, rootDir strin
 			if err != nil {
 				return err
 			}
+			fmt.Printf("CloudFront Distribution %s invalidated\n", did)
 		}
 	}
 

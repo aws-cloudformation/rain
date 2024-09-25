@@ -131,6 +131,15 @@ To list and delete changesets, use the ls and rm commands.
 				panic("metadata commands require the --experimental flag")
 			}
 
+			// Process metadata Rain Content before (Run build scripts before deployment)
+			if !changeset {
+				err := processMetadataBefore(cft.Template{Node: templateNode},
+					stackName, filepath.Dir(fn))
+				if err != nil {
+					panic(err)
+				}
+			}
+
 			stackName = dc.GetStackName(suppliedStackName, base)
 
 			// Check current stack status
