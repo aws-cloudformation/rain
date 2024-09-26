@@ -193,7 +193,7 @@ func handleAuth(code string, refresh string) (string, error) {
 		Username     string `json:"username"`
 		ExpiresIn    int64  `json:"expiresIn"`
 	}{
-		IDToken:      parsed.JwtID(),
+		IDToken:      token.IDToken,
 		RefreshToken: token.RefreshToken,
 		Username:     strings.TrimPrefix(userName.(string), "AmazonFederate_"),
 		ExpiresIn:    token.ExpiresIn,
