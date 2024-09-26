@@ -80,8 +80,8 @@ async function addAuthHeader(options) {
             console.log("Refreshing jwt token: " + refresh)
 
             // Refresh the token
-            const data = await get(`jwt-get?refresh=${refresh}`, null, false)
-            console.log("jwt-get refresh response: " + JSON.stringify(data, null, 0))
+            const data = await get(`jwt?refresh=${refresh}`, null, false)
+            console.log("jwt refresh response: " + JSON.stringify(data, null, 0))
 
             setAuthCookies(data)
             jwt = Cookies.get("jwt.id")

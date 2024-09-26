@@ -19,10 +19,57 @@ import * as restApi from "./rest-api"
 
     const testBtn = get("test-btn")
     testBtn.onclick = async function() {
-        get("about").style.display = "none"
-        get("test-data").style.display = "block"
+        hide("about")
+        show("test-data")
+        show("loading")
         const data = await restApi.get("test", null, null, true)
         console.log("test data: " + JSON.stringify(data, null, 0))
+        hide("loading")
+        /*
+         * [
+         *   {
+         *     "foo": {
+         *       "Value":"1"
+         *     },
+         *     "id": {
+         *       "Value":"abc"
+         *     }
+         *   },
+         *   {
+         *     "foo": {
+         *       "Value":"2"
+         *     },
+         *     "id": {
+         *       "Value":"def"
+         *     }
+         *   }
+         * ]
+         */
+        const tbl = get("test-table")
+        // Clear prior data
+        for (let i = tbl.rows.length - 1; i > 0; i--) {
+            tbl.deleteRow(i)
+        }
+        for (let i = 0; i < data.length; i++) {
+            const d = data[i]
+            const id = d.id.Value
+            let foo = ""
+            if (d.foo) {
+                foo = d.foo.Value
+            }
+            let bar = ""
+            if (d.bar) {
+                bar = d.bar.Value
+            }
+            // Create a new table row
+            const row = tbl.insertRow()
+            const idCell = row.insertCell(0)
+            idCell.innerHTML = id
+            const fooCell = row.insertCell(1)
+            fooCell.innerHTML = foo
+            const barCell = row.insertCell(2)
+            barCell.innerHTML = bar
+        }
     }
 
     // Check to see if we're logged in
@@ -41,3 +88,16 @@ function get(id) {
     return document.getElementById(id)
 }
 
+function show(id) {
+    const elem = get(id)
+    if (elem) {
+        elem.style.display = "block";
+    }
+}
+
+function hide(id) {
+    const elem = get(id)
+    if (elem) {
+        elem.style.display = "none";
+    }
+}
