@@ -1,0 +1,53 @@
+Parameters:
+
+  AppName:
+    Type: String
+    Default: rain-webapp
+
+  CallbackURL:
+    Type: String
+    Default: https://d3g1i2gq31u5lh.cloudfront.net/index.html
+
+Resources:
+
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Ref AppName
+      AdminCreateUserConfig: 
+        AllowAdminCreateUserOnly: true
+      AutoVerifiedAttributes:
+        - email
+      MfaConfiguration: "OFF" 
+      Schema:
+        - Name: email
+          Required: true
+        - Name: given_name
+          Required: true
+        - Name: family_name
+          Required: true
+
+  Domain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Ref AppName
+      UserPoolId: !Ref UserPool
+
+  Client:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Ref AppName
+      GenerateSecret: false
+      UserPoolId: !Ref UserPool
+      CallbackURLs:
+        - !Ref CallbackURL
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - phone
+        - email
+        - openid
+      SupportedIdentityProviders:
+        - COGNITO
+
