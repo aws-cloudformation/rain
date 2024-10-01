@@ -1,6 +1,7 @@
 package deploy
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -15,7 +16,52 @@ import (
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/s11n"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	"gopkg.in/yaml.v3"
 )
+
+func addCommandArgs(run *yaml.Node, cmd *exec.Cmd, isBefore bool, stackName string) error {
+	_, runArgs, _ := s11n.GetMapValue(run, "Args")
+	var outputValues []types.Output
+	gotOutputs := false
+	var err error
+	if runArgs != nil && runArgs.Kind == yaml.SequenceNode {
+		for _, arg := range runArgs.Content {
+			tokens := strings.Split(arg.Value, " ")
+			config.Debugf("Args tokens (%d): %v", len(tokens), tokens)
+			if len(tokens) == 2 && tokens[0] == "Rain::OutputValue" {
+				if isBefore {
+					return errors.New("Rain::OutputValue is invalid for RunBefore Args")
+				}
+				// Go get the stack and get the output value to use as the arg
+				if !gotOutputs {
+					outputValues, err = cfn.GetStackOutputs(stackName)
+					if err != nil {
+						return err
+					}
+					gotOutputs = true
+				}
+				foundOutput := false
+				for _, output := range outputValues {
+					config.Debugf("output %+v", output)
+					if *output.OutputKey == tokens[1] {
+						foundOutput = true
+						cmd.Args = append(cmd.Args, *output.OutputValue)
+						break
+					}
+				}
+				if !foundOutput {
+					return fmt.Errorf("did not find output value %s", tokens[1])
+				}
+			} else {
+				// Otherwise assume that the argument is literal
+				config.Debugf("Literal Arg: %s", arg.Value)
+				cmd.Args = append(cmd.Args, arg.Value)
+			}
+		}
+	}
+	return nil
+}
 
 // processMetadataBefore looks for Rain commands in resource Metadata
 // that need to be run before deployment.
@@ -39,39 +85,83 @@ func processMetadataBefore(template cft.Template, stackName string, rootDir stri
 			continue
 		}
 
-		_, run, _ := s11n.GetMapValue(n, "Run")
-		if run != nil && run.Value != "" {
-			// Run a script before uploading the content
-			config.Debugf("Running %s before uploading content", run.Value)
-			relativePath := filepath.Join(".", rootDir, run.Value)
-			absPath, absErr := filepath.Abs(relativePath)
-			if absErr != nil {
-				config.Debugf("filepath.Abs failed? %s", absErr)
-				return absErr
-			}
-			cmd := exec.Command(absPath)
-			var stdout strings.Builder
-			var stderr strings.Builder
-			cmd.Stdout = &stdout
-			cmd.Stderr = &stderr
-			cmd.Dir = rootDir
-			err := cmd.Run()
-			if err != nil {
-				fmt.Println(console.Red(fmt.Sprintf(
-					"Run %s failed with %s: %s",
-					run.Value, err, stderr.String())))
-				fmt.Println(stdout.String())
-				return err
-			}
-			fmt.Printf("Successfully ran %s\n", run.Value)
-		} else {
-			config.Debugf("Run not found")
+		// Run a script before deployment
+		err := Run(n, "RunBefore", stackName, rootDir)
+		if err != nil {
+			return err
 		}
-
 	}
 
 	return nil
 
+}
+
+// Run checks to ses if either RunBefore or RunAfter is defined in the
+// Rain metadata sections and runs and external command, like a build script.
+// Args to the command can be literal strings or stack output lookups,
+// if this is "RunAfter".
+//
+// Example:
+//
+//	Metadata:
+//	  Rain:
+//	    Content: site/dist
+//	    RunBefore:
+//	      Command: buildsite.sh
+//	    RunAfter: buildsite.sh
+//	      Command: buildsite.sh
+//	      Args:
+//	        - Rain::OutputValue  RestApiInvokeURL
+//	        - Rain::OutputValue  RedirectURI
+//	        - Rain::OutputValue  AppName
+//	        - Rain::OutputValue  AppClientId
+func Run(n *yaml.Node, key string, stackName string, rootDir string) error {
+
+	if key != "RunBefore" && key != "RunAfter" {
+		return errors.New("key must be RunBefore or RunAfter")
+	}
+
+	_, run, _ := s11n.GetMapValue(n, key)
+	if run == nil {
+		config.Debugf("%s not found", key)
+		return nil
+	}
+
+	_, runCmd, _ := s11n.GetMapValue(run, "Command")
+	if runCmd == nil {
+		config.Debugf("Run missing Command")
+		return nil
+	}
+	commandToRun := runCmd.Value
+	config.Debugf("Running %s", commandToRun)
+
+	relativePath := filepath.Join(".", rootDir, commandToRun)
+	absPath, absErr := filepath.Abs(relativePath)
+	if absErr != nil {
+		config.Debugf("filepath.Abs failed? %s", absErr)
+		return absErr
+	}
+	cmd := exec.Command(absPath)
+	var stdout strings.Builder
+	var stderr strings.Builder
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	cmd.Dir = rootDir
+	err := addCommandArgs(run, cmd, (key == "RunBefore"), stackName)
+	if err != nil {
+		return err
+	}
+	config.Debugf("Run command args: %v", cmd.Args)
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println(console.Red(fmt.Sprintf(
+			"Run %s failed with %s: %s",
+			commandToRun, err, stderr.String())))
+		fmt.Println(stdout.String())
+		return err
+	}
+	fmt.Printf("Successfully ran %s\n", commandToRun)
+	return nil
 }
 
 // processMetadataAfter looks for Rain commands in resource Metadata
@@ -94,6 +184,12 @@ func processMetadataAfter(template cft.Template, stackName string, rootDir strin
 		_, n, _ = s11n.GetMapValue(n, "Rain")
 		if n == nil {
 			continue
+		}
+
+		// Run a script after deployment but before uploading the content
+		err := Run(n, "RunAfter", stackName, rootDir)
+		if err != nil {
+			return err
 		}
 
 		_, contentPath, _ := s11n.GetMapValue(n, "Content")
@@ -148,7 +244,7 @@ func processMetadataAfter(template cft.Template, stackName string, rootDir strin
 		if err != nil {
 			return err
 		}
-		fmt.Printf("Copied contents of %s to %s", p, bucketName)
+		fmt.Printf("Copied contents of %s to %s\n", p, bucketName)
 
 		// Look for a LogicalId of a Distribution to invalidate
 		_, dlid, _ := s11n.GetMapValue(n, "DistributionLogicalId")

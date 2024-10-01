@@ -16,31 +16,44 @@ Parameters:
     Description: This name is used as a prefix for resource names
     Default: rain-webapp
 
-  UserPoolArn:
-    Type: String
-    Default: arn:aws:cognito-idp:us-east-1:755952356119:userpool/us-east-1_OkBy88ce5
-
 Resources:
-
 
   Site:
     Type: !Rain::Module "../modules/static-site.yaml"
     Properties:
       AppName: !Ref AppName
-      Content: site/dist
-      Run: buildsite.sh
-      Version: 2
     Overrides:
       ContentBucket:
         Metadata:
           Rain:
+            EmptyOnDelete: true
+            Content: site/dist
+            Version: 2
             DistributionLogicalId: SiteDistribution
+            RunBefore: 
+              Command: buildsite.sh
+            RunAfter:
+              Command: buildsite.sh
+              Args:
+                - Rain::OutputValue RestApiInvokeURL
+                - Rain::OutputValue RedirectURI
+                - Rain::OutputValue AppName
+                - Rain::OutputValue AppClientId
+
+  Cognito:
+    Type: !Rain::Module "../modules/cognito.yaml"
+    Properties:
+      AppName: !Ref AppName
+      CallbackURL: !Sub "https://${SiteDistribution.DomainName}/index.html"
+    Overrides:
+      UserPool:
+        DependsOn: SiteDistribution
 
   Rest:
     Type: !Rain::Module "../modules/rest-api.yaml"
     Properties:
       AppName: !Ref AppName
-      UserPoolArn: !Ref UserPoolArn
+      UserPoolArn: !GetAtt CognitoUserPool.Arn
     Overrides:
       ApiDeployment:
         Metadata:
@@ -134,6 +147,18 @@ Outputs:
   SiteURL:
     Value: !Sub "https://${SiteDistribution.DomainName}"
 
+  RedirectURI:
+    Value: !Sub "https://${SiteDistribution.DomainName}/index.html"
+
+  AppName:
+    Value: !Ref AppName
+
   RestApiInvokeURL:
     Value: !Sub https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/${RestApiStage}
+
+  AppClientId:
+    Value: !Ref CognitoClient
+
+  CognitoDomainPrefix:
+    Value: !Ref AppName
 

@@ -5,18 +5,6 @@ Parameters:
   AppName: 
     Type: String
 
-  Content:
-    Type: String
-    Description: The directory that contains the site contents, which will be uploaded automatically by Rain after stack deployment finishes.
-
-  Version:
-    Type: String
-    Description: Used as a metadata value on the content bucket to force deployment
-
-  Run:
-    Type: String
-    Description: The path to a script to run before uploading content to the bucket
-
 Resources:
 
   OriginAccessControl:
@@ -105,13 +93,6 @@ Resources:
     Type: !Rain::Module "bucket.yaml"
     Properties:
       AppName: !Sub ${AppName}-content
-      Content: !Ref Content
-      Run: !Ref Run
-      EmptyOnDelete: true
-    Overrides:
-      Bucket:
-        Metadata:
-          Version: !Ref Version
       BucketAccessPolicy:
         Properties:
           PolicyDocument:
@@ -151,8 +132,6 @@ Resources:
     Type: !Rain::Module "bucket.yaml"
     Properties:
       AppName: !Sub ${AppName}-cflogs
-      Content: RAIN_NO_CONTENT
-      EmptyOnDelete: true
     Overrides:
       Bucket:
         Properties:

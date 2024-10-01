@@ -3,7 +3,13 @@ Resources:
     Type: AWS::S3::Bucket
     Metadata:
       Rain:
-        Content: ../webapp/site/dist
-        Version: 3
+        Content: ./lambda-src
+        Version: 2
         EmptyOnDelete: true
-        Run: ../webapp/buildsite.sh
+        RunAfter: 
+          Command: testcommand.sh
+          Args:
+            - Rain::OutputValue BucketName
+Outputs:
+  BucketName:
+    Value: !Ref Bucket

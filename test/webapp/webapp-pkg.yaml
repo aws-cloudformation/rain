@@ -6,10 +6,6 @@ Parameters:
     Description: This name is used as a prefix for resource names
     Default: rain-webapp
 
-  UserPoolArn:
-    Type: String
-    Default: arn:aws:cognito-idp:us-east-1:755952356119:userpool/us-east-1_OkBy88ce5
-
 Resources:
   TestResourceHandlerPolicy:
     Type: AWS::IAM::RolePolicy
@@ -158,7 +154,7 @@ Resources:
           - S3_BUCKET_REPLICATION_ENABLED
       Rain:
         Content: RAIN_NO_CONTENT
-        EmptyOnDelete: true
+        EmptyOnDelete: false
 
   SiteContentBucket:
     Type: AWS::S3::Bucket
@@ -189,11 +185,19 @@ Resources:
         SuppressedRules:
           - S3_BUCKET_DEFAULT_LOCK_ENABLED
       Rain:
-        DistributionLogicalId: SiteDistribution
-        Content: site/dist
         EmptyOnDelete: true
-        Run: buildsite.sh
-      Version: 2
+        Content: site/dist
+        Version: 2
+        DistributionLogicalId: SiteDistribution
+        RunBefore:
+          Command: buildsite.sh
+        RunAfter:
+          Command: buildsite.sh
+          Args:
+            - Rain::OutputValue RestApiInvokeURL
+            - Rain::OutputValue RedirectURI
+            - Rain::OutputValue AppName
+            - Rain::OutputValue AppClientId
 
   SiteContentReplicaBucket:
     Type: AWS::S3::Bucket
@@ -224,7 +228,7 @@ Resources:
           - S3_BUCKET_LOGGING_ENABLED
       Rain:
         Content: RAIN_NO_CONTENT
-        EmptyOnDelete: true
+        EmptyOnDelete: false
 
   SiteContentReplicationPolicy:
     Type: AWS::IAM::RolePolicy
@@ -301,14 +305,6 @@ Resources:
       Bucket: !Sub ${AppName}-content-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
-          - Action: s3:GetObject
-            Effect: Allow
-            Resource: !Sub arn:${AWS::Partition}:s3:::${AppName}-content-${AWS::Region}-${AWS::AccountId}/*
-            Principal:
-              Service: cloudfront.amazonaws.com
-            Condition:
-              StringEquals:
-                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${SiteDistribution.Id}
           - Action: s3:*
             Condition:
               Bool:
@@ -395,7 +391,7 @@ Resources:
           - S3_BUCKET_REPLICATION_ENABLED
       Rain:
         Content: RAIN_NO_CONTENT
-        EmptyOnDelete: true
+        EmptyOnDelete: false
 
   SiteCloudFrontLogsBucket:
     Type: AWS::S3::Bucket
@@ -430,8 +426,7 @@ Resources:
           - S3_BUCKET_DEFAULT_LOCK_ENABLED
       Rain:
         Content: RAIN_NO_CONTENT
-        EmptyOnDelete: true
-        Run: ""
+        EmptyOnDelete: false
         DistributionLogicalId: NONE
 
   SiteCloudFrontLogsReplicaBucket:
@@ -463,7 +458,7 @@ Resources:
           - S3_BUCKET_LOGGING_ENABLED
       Rain:
         Content: RAIN_NO_CONTENT
-        EmptyOnDelete: true
+        EmptyOnDelete: false
 
   SiteCloudFrontLogsReplicationPolicy:
     Type: AWS::IAM::RolePolicy
@@ -592,39 +587,125 @@ Resources:
               - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
-  RestApi:
-    Type: AWS::ApiGateway::RestApi
+  CognitoUserPool:
+    Type: AWS::Cognito::UserPool
     Properties:
-      Name: !Ref AppName
-
-  RestApiDeployment:
-    Type: AWS::ApiGateway::Deployment
-    Properties:
-      RestApiId: !Ref RestApi
-    Metadata:
-      Version: 2
+      UserPoolName: !Ref AppName
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+      AutoVerifiedAttributes:
+        - email
+      MfaConfiguration: "OFF"
+      Schema:
+        - Name: email
+          Required: true
+        - Name: given_name
+          Required: true
+        - Name: family_name
+          Required: true
     DependsOn:
-      - TestResourceGet
-      - TestResourceOptions
-      - JwtResourceGet
-      - JwtResourceOptions
+      - SiteDistribution
 
-  RestApiStage:
-    Type: AWS::ApiGateway::Stage
+  CognitoDomain:
+    Type: AWS::Cognito::UserPoolDomain
     Properties:
-      RestApiId: !Ref RestApi
-      DeploymentId: !Ref RestApiDeployment
-      StageName: prod
+      Domain: !Ref AppName
+      UserPoolId: !Ref CognitoUserPool
 
-  RestApiAuthorizer:
-    Type: AWS::ApiGateway::Authorizer
+  CognitoClient:
+    Type: AWS::Cognito::UserPoolClient
     Properties:
-      IdentitySource: method.request.header.authorization
-      Name: CognitoApiAuthorizer
-      ProviderARNs:
-        - !Ref UserPoolArn
+      ClientName: !Ref AppName
+      GenerateSecret: false
+      UserPoolId: !Ref CognitoUserPool
+      CallbackURLs:
+        - !Sub "https://${SiteDistribution.DomainName}/index.html"
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - phone
+        - email
+        - openid
+      SupportedIdentityProviders:
+        - COGNITO
+
+  TestResourceHandler:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: bootstrap
+      FunctionName: !Sub ${AppName}-test-handler
+      Runtime: provided.al2023
+      Code:
+        S3Bucket: rain-artifacts-207567786752-us-east-1
+        S3Key: a5b5782a63f3e2827c15dab1aa7d0150ee1c366458c5f68838117848c81bc2ee
+      Role: !GetAtt TestResourceHandlerRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref TestTable
+
+  TestResourceHandlerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  TestResourceResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Sub ${RestApi.RootResourceId}
+      PathPart: test
       RestApiId: !Ref RestApi
-      Type: COGNITO_USER_POOLS
+
+  TestResourcePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt TestResourceHandler.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/*
+
+  TestResourceRootPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt TestResourceHandler.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/
+
+  TestResourceOptions:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: OPTIONS
+      ResourceId: !Ref TestResourceResource
+      RestApiId: !Ref RestApi
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TestResourceHandler.Arn}/invocations
+
+  TestResourceGet:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
+      ResourceId: !Ref TestResourceResource
+      RestApiId: !Ref RestApi
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref RestApiAuthorizer
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TestResourceHandler.Arn}/invocations
 
   JwtResourceHandler:
     Type: AWS::Lambda::Function
@@ -633,8 +714,8 @@ Resources:
       FunctionName: !Sub ${AppName}-jwt-handler
       Runtime: provided.al2023
       Code:
-        S3Bucket: rain-artifacts-755952356119-us-east-1
-        S3Key: 682787aad5aee5151dda529d43ea78a8922f84a6c9558e39ecd61b8c2dba95cc
+        S3Bucket: rain-artifacts-207567786752-us-east-1
+        S3Key: e68d4dd8939ed9713cdd7d9621986ddac0da97ad6daea220818496102d4ccb93
       Role: !GetAtt JwtResourceHandlerRole.Arn
       Environment:
         Variables:
@@ -707,87 +788,56 @@ Resources:
         Type: AWS_PROXY
         Uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${JwtResourceHandler.Arn}/invocations
 
-  TestResourceHandler:
-    Type: AWS::Lambda::Function
+  RestApi:
+    Type: AWS::ApiGateway::RestApi
     Properties:
-      Handler: bootstrap
-      FunctionName: !Sub ${AppName}-test-handler
-      Runtime: provided.al2023
-      Code:
-        S3Bucket: rain-artifacts-755952356119-us-east-1
-        S3Key: 599c5cbd0b0977d14946186055e101d0a65d09266792db1823994f73cbeb0cb8
-      Role: !GetAtt TestResourceHandlerRole.Arn
-      Environment:
-        Variables:
-          TABLE_NAME: !Ref TestTable
+      Name: !Ref AppName
 
-  TestResourceHandlerRole:
-    Type: AWS::IAM::Role
+  RestApiDeployment:
+    Type: AWS::ApiGateway::Deployment
     Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-
-  TestResourceResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId: !Sub ${RestApi.RootResourceId}
-      PathPart: test
       RestApiId: !Ref RestApi
+    Metadata:
+      Version: 2
+    DependsOn:
+      - TestResourceGet
+      - TestResourceOptions
+      - JwtResourceGet
+      - JwtResourceOptions
 
-  TestResourcePermission:
-    Type: AWS::Lambda::Permission
+  RestApiStage:
+    Type: AWS::ApiGateway::Stage
     Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !GetAtt TestResourceHandler.Arn
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/*
-
-  TestResourceRootPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !GetAtt TestResourceHandler.Arn
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/
-
-  TestResourceOptions:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      HttpMethod: OPTIONS
-      ResourceId: !Ref TestResourceResource
       RestApiId: !Ref RestApi
-      AuthorizationType: NONE
-      Integration:
-        IntegrationHttpMethod: POST
-        Type: AWS_PROXY
-        Uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TestResourceHandler.Arn}/invocations
+      DeploymentId: !Ref RestApiDeployment
+      StageName: prod
 
-  TestResourceGet:
-    Type: AWS::ApiGateway::Method
+  RestApiAuthorizer:
+    Type: AWS::ApiGateway::Authorizer
     Properties:
-      HttpMethod: GET
-      ResourceId: !Ref TestResourceResource
+      IdentitySource: method.request.header.authorization
+      Name: CognitoApiAuthorizer
+      ProviderARNs:
+        - !GetAtt CognitoUserPool.Arn
       RestApiId: !Ref RestApi
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref RestApiAuthorizer
-      Integration:
-        IntegrationHttpMethod: POST
-        Type: AWS_PROXY
-        Uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TestResourceHandler.Arn}/invocations
+      Type: COGNITO_USER_POOLS
 
 Outputs:
   SiteURL:
-    Value: !Sub https://${SiteDistribution.DomainName}
+    Value: !Sub "https://${SiteDistribution.DomainName}"
+
+  RedirectURI:
+    Value: !Sub "https://${SiteDistribution.DomainName}/index.html"
+
+  AppName:
+    Value: !Ref AppName
 
   RestApiInvokeURL:
     Value: !Sub https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/${RestApiStage}
+
+  AppClientId:
+    Value: !Ref CognitoClient
+
+  CognitoDomainPrefix:
+    Value: !Ref AppName
 
