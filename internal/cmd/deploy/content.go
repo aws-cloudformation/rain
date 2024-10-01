@@ -111,10 +111,10 @@ func processMetadataBefore(template cft.Template, stackName string, rootDir stri
 //	    RunAfter: buildsite.sh
 //	      Command: buildsite.sh
 //	      Args:
-//	        - Rain::OutputValue  RestApiInvokeURL
-//	        - Rain::OutputValue  RedirectURI
-//	        - Rain::OutputValue  AppName
-//	        - Rain::OutputValue  AppClientId
+//	        - Rain::OutputValue RestApiInvokeURL
+//	        - Rain::OutputValue RedirectURI
+//	        - Rain::OutputValue AppName
+//	        - Rain::OutputValue AppClientId
 func Run(n *yaml.Node, key string, stackName string, rootDir string) error {
 
 	if key != "RunBefore" && key != "RunAfter" {
