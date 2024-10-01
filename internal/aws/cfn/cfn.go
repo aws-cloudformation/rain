@@ -78,7 +78,7 @@ func checkTemplate(template cft.Template) (string, error) {
 		if strings.HasPrefix(region, "cn-") {
 			return fmt.Sprintf("https://%s.s3.%s.amazonaws.com.cn/%s", bucket, region, key), err
 		} else {
-			return fmt.Sprintf("https://%s.s3.amazonaws.com/%s", bucket, key), err
+			return fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", bucket, region, key), err
 		}
 	}
 
