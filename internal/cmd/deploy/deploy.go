@@ -318,6 +318,6 @@ func init() {
 	Cmd.Flags().BoolVarP(&ignoreUnknownParams, "ignore-unknown-params", "", false, "Ignore unknown parameters")
 	Cmd.Flags().BoolVarP(&noexec, "no-exec", "x", false, "do not execute the changeset")
 	Cmd.Flags().BoolVar(&changeset, "changeset", false, "execute the changeset, rain deploy --changeset <stackName> <changeSetName>")
-	Cmd.Flags().StringVar(&format.NodeStyle, "node-style", "", format.NodeStyleDocs)
+	Cmd.Flags().StringVar(&format.NodeStyle, "node-style", "original", format.NodeStyleDocs)
 	Cmd.Flags().BoolVar(&experimental, "experimental", false, "Acknowledge that you want to deploy with an experimental feature")
 }
