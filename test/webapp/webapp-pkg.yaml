@@ -305,6 +305,14 @@ Resources:
       Bucket: !Sub ${AppName}-content-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
+          - Action: s3:GetObject
+            Effect: Allow
+            Resource: !Sub arn:${AWS::Partition}:s3:::${AppName}-content-${AWS::Region}-${AWS::AccountId}/*
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${SiteDistribution.Id}
           - Action: s3:*
             Condition:
               Bool:
@@ -638,7 +646,7 @@ Resources:
       Runtime: provided.al2023
       Code:
         S3Bucket: rain-artifacts-207567786752-us-east-1
-        S3Key: a5b5782a63f3e2827c15dab1aa7d0150ee1c366458c5f68838117848c81bc2ee
+        S3Key: 512113b95e9fc6345b2e19a43350af82aaa815011120288f16b1f281d5efdc95
       Role: !GetAtt TestResourceHandlerRole.Arn
       Environment:
         Variables:
@@ -715,15 +723,15 @@ Resources:
       Runtime: provided.al2023
       Code:
         S3Bucket: rain-artifacts-207567786752-us-east-1
-        S3Key: e68d4dd8939ed9713cdd7d9621986ddac0da97ad6daea220818496102d4ccb93
+        S3Key: 15d7c92b571beed29cf6c012a96022482eee1df1b477ad528ddc03a4be52c076
       Role: !GetAtt JwtResourceHandlerRole.Arn
       Environment:
         Variables:
           COGNITO_REGION: us-east-1
-          COGNITO_POOL_ID: us-east-1_OkBy88ce5
-          COGNITO_REDIRECT_URI: https://d3g1i2gq31u5lh.cloudfront.net/index.html
-          COGNITO_DOMAIN_PREFIX: rain-webapp-manual-test1
-          COGNITO_APP_CLIENT_ID: 77p10r3qjrjeou9rvncrc1q33a
+          COGNITO_POOL_ID: !Ref CognitoUserPool
+          COGNITO_REDIRECT_URI: !Sub https://${SiteDistribution.DomainName}/index.html
+          COGNITO_DOMAIN_PREFIX: !Ref AppName
+          COGNITO_APP_CLIENT_ID: !Ref CognitoClient
 
   JwtResourceHandlerRole:
     Type: AWS::IAM::Role

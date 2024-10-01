@@ -20,6 +20,7 @@ const fetchOptions = {
  * @param {*} response 
  */
 async function checkError(response) {
+    /*
     if (response.status === 401) {
         // User is not logged in, send them to Cognito
         console.log("Got a 401 from API Gateway, redirecting to Cognito")
@@ -30,6 +31,7 @@ async function checkError(response) {
         }
         return
     }
+    */
     if (response.status >= 400 && response.status < 600) {
         console.info("response error", response)
         const txt = await response.text()
