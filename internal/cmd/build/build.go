@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"sort"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
@@ -187,11 +188,20 @@ func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema, 
 	return nil
 }
 
+func sortKeys(m map[string]*cfn.Prop) []string {
+	keys := make([]string, len(m))
+	i := 0
+	for k := range m {
+		keys[i] = k
+		i++
+	}
+	sort.Strings(keys)
+	return keys
+}
+
 // buildNode recursively builds a node for a schema-like object
 func buildNode(n *yaml.Node, s cfn.SchemaLike, schema *cfn.Schema, ancestorTypes []string, bare bool) error {
 
-	// Add all props or just the required ones
-	// TODO: Bug - we need them all, just don't output anything... ?
 	if bare {
 		requiredProps := s.GetRequired()
 		props := s.GetProperties()
@@ -208,8 +218,16 @@ func buildNode(n *yaml.Node, s cfn.SchemaLike, schema *cfn.Schema, ancestorTypes
 			}
 		}
 	} else {
-		for k, p := range s.GetProperties() {
-			propPath := "/properties/" + k
+		props := s.GetProperties()
+		// Sort the properties so we get consistent output
+		sortedKeys := sortKeys(props)
+		for _, k := range sortedKeys {
+			p := props[k]
+			propPath := "/properties/"
+			for _, ancestor := range ancestorTypes {
+				propPath = ancestor + "/"
+			}
+			propPath += k
 			// Don't emit read-only properties
 			if slices.Contains(schema.ReadOnlyProperties, propPath) {
 				continue
