@@ -38,9 +38,9 @@ set -eoux pipefail
 ./rain --profile rain build AWS::S3::Bucket
 ./rain --profile rain build -l
 
-./rain --profile rain fmt test/templates/fmtfindinmap.yaml
-./rain --profile rain fmt test/templates/fmtmultiwithgt.yaml
-./rain --profile rain fmt test/templates/fmtziplinesok.yaml
+./rain fmt test/templates/fmtfindinmap.yaml
+./rain fmt test/templates/fmtmultiwithgt.yaml
+./rain fmt test/templates/fmtziplinesok.yaml
 
 ./rain --profile rain pkg cft/pkg/tmpl/s3-props-template.yaml
 ./rain --profile rain pkg cft/pkg/tmpl/embed-template.yaml
@@ -52,8 +52,8 @@ set -eoux pipefail
 ./internal/cmd/build/tmpl/scripts/validate.sh
 
 # Make sure pkl generation works
-./rain --profile rain fmt test/templates/success.template --pkl
-./rain --profile rain fmt test/templates/success.template --pkl --pkl-basic
-./rain --profile rain fmt test/templates/condition-stringlike.yaml --pkl > test/pkl/condition-stringlike.pkl
+./rain fmt test/templates/success.template --pkl
+./rain fmt test/templates/success.template --pkl --pkl-basic
+./rain fmt test/templates/condition-stringlike.yaml --pkl > test/pkl/condition-stringlike.pkl
 pkl eval --project-dir test/pkl test/pkl/condition-stringlike.pkl -f yaml
 
