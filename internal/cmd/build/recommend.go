@@ -38,6 +38,12 @@ func writeFile(args []string) {
 		fmt.Println(console.Red(err))
 		return
 	}
+
+	// TODO: Local builds should not make any API calls like zipping
+	// files and putting them into an S3 bucket.
+	// Either hack the packaging code to not process S3 directives,
+	// or make sure none of the samples use them
+
 	transformed, err := pkg.Template(packaged, "tmpl", &templateFiles)
 	if err != nil {
 		fmt.Println(console.Red(err))
@@ -123,6 +129,11 @@ func recommend(args []string) {
 		{Name: "eventbridge", Text: "Event Bridge",
 			Sub: []reco{
 				{Name: "central-logs", Text: "A centralized event bus and log group for collecting logs from org member accounts"},
+			},
+		},
+		{Name: "webapp", Text: "Web Application",
+			Sub: []reco{
+				{Name: "webapp", Text: "A serverless web application with static content, api gateway, lambda, and dynamodb"},
 			},
 		},
 	}

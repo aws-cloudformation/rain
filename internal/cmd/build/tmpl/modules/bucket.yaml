@@ -3,11 +3,22 @@ Description: |
   by default. It also creates an associated log bucket and replica bucket.
 
 Parameters:
+
   AppName:
     Type: String
     Description: |
       This string will serve as a prefix for all resource names, which have 
       the general form of AppName-ResourceName-Region-Account. 
+
+  Content:
+    Type: String
+    Description: A local path to a directory that will be uploaded to the bucket
+    Default: RAIN_NO_CONTENT
+
+  EmptyOnDelete:
+    Type: Boolean
+    Description: If true, the contents of all buckets will be permanently deleted when the stack is deleted.
+    Default: false
 
 Resources:
 
@@ -23,6 +34,9 @@ Resources:
         SuppressedRules:
           - S3_BUCKET_LOGGING_ENABLED
           - S3_BUCKET_REPLICATION_ENABLED
+      Rain:
+        Content: RAIN_NO_CONTENT
+        EmptyOnDelete: !Ref EmptyOnDelete
     Properties:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -55,6 +69,9 @@ Resources:
       guard:
         SuppressedRules:
           - S3_BUCKET_DEFAULT_LOCK_ENABLED
+      Rain:
+        Content: !Ref Content
+        EmptyOnDelete: !Ref EmptyOnDelete
     Properties:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -96,6 +113,9 @@ Resources:
           - S3_BUCKET_DEFAULT_LOCK_ENABLED
           - S3_BUCKET_REPLICATION_ENABLED
           - S3_BUCKET_LOGGING_ENABLED
+      Rain:
+        Content: RAIN_NO_CONTENT
+        EmptyOnDelete: !Ref EmptyOnDelete
     Properties:
       BucketEncryption:
         ServerSideEncryptionConfiguration:

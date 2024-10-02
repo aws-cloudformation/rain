@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"strings"
 	"time"
 
 	awssdk "github.com/aws/aws-sdk-go-v2/aws"
@@ -22,6 +23,8 @@ import (
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
+
+	"github.com/gabriel-vasile/mimetype"
 )
 
 var BucketName = ""
@@ -324,21 +327,101 @@ func HeadObject(bucketName string, key string) (*S3ObjectInfo, error) {
 
 // PutObject puts an object into a bucket
 func PutObject(bucketName string, key string, body []byte) error {
+
+	// Determine the correct content type
+	// This seems to be the default. It breaks web pages served by S3.
+	contentType := "application/octet-stream"
+
+	mtype := mimetype.Detect(body)
+	contentType = mtype.String()
+	config.Debugf("PutObject determine mime type for %s: %s", key, contentType)
+
+	if strings.HasSuffix(key, ".css") {
+		config.Debugf("PutObject changing css content type to text/css")
+		contentType = strings.Replace(contentType, "text/plain", "text/css", 1)
+	}
+
+	if strings.HasSuffix(key, ".js") {
+		config.Debugf("PutObject changing js content type to text/js")
+		contentType = strings.Replace(contentType, "text/plain", "text/javascript", 1)
+	}
+
+	config.Debugf("PutObject final mime type for %s: %s", key, contentType)
+
 	_, err := getClient().PutObject(context.Background(),
 		&s3.PutObjectInput{
-			Bucket: &bucketName,
-			Key:    &key,
-			Body:   bytes.NewReader(body),
+			Bucket:      &bucketName,
+			Key:         &key,
+			Body:        bytes.NewReader(body),
+			ContentType: &contentType,
 		})
 	return err
 }
 
 // DeleteObject deletes an object from a bucket
-func DeleteObject(bucketName string, key string) error {
+func DeleteObject(bucketName string, key string, version *string) error {
 	_, err := getClient().DeleteObject(context.Background(),
 		&s3.DeleteObjectInput{
-			Bucket: &bucketName,
-			Key:    &key,
+			Bucket:    &bucketName,
+			Key:       &key,
+			VersionId: version,
 		})
 	return err
+}
+
+// EmptyBucket deletes all versions of all objects in a bucket
+func EmptyBucket(bucketName string) error {
+	client := getClient()
+	input := &s3.ListObjectsV2Input{
+		Bucket: &bucketName,
+	}
+	for {
+		res, err := client.ListObjectsV2(context.Background(), input)
+		if err != nil {
+			return err
+		}
+		for _, item := range res.Contents {
+			config.Debugf("Deleting %s/%s", bucketName, *item.Key)
+			derr := DeleteObject(bucketName, *item.Key, nil)
+			if derr != nil {
+				return derr
+			}
+		}
+		if *res.IsTruncated {
+			input.ContinuationToken = res.ContinuationToken
+		} else {
+			break
+		}
+	}
+
+	// Now delete old versions and delete markers
+
+	vinput := &s3.ListObjectVersionsInput{
+		Bucket: &bucketName,
+	}
+	for {
+		res, err := client.ListObjectVersions(context.Background(), vinput)
+		if err != nil {
+			return err
+		}
+
+		for _, item := range res.DeleteMarkers {
+			config.Debugf("Deleting delete marker %s/%s v%s", bucketName, *item.Key, *item.VersionId)
+			DeleteObject(bucketName, *item.Key, item.VersionId)
+		}
+
+		for _, item := range res.Versions {
+			config.Debugf("Deleting version %s/%s v%s", bucketName, *item.Key, *item.VersionId)
+			DeleteObject(bucketName, *item.Key, item.VersionId)
+		}
+
+		if *res.IsTruncated {
+			vinput.VersionIdMarker = res.NextVersionIdMarker
+			vinput.KeyMarker = res.NextKeyMarker
+		} else {
+			break
+		}
+	}
+
+	return nil
 }

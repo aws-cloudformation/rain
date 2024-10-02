@@ -6,47 +6,47 @@ set -eoux pipefail
 
 ./scripts/test.sh
 
-./rain ls
+./rain --profile rain ls
 
-./rain deploy test/templates/success.template success-test7 -y --params BucketName=ezbeardatamazon-rain-test-1
+./rain --profile rain deploy test/templates/success.template success-test7 -y --params BucketName=ezbeardatamazon-rain-test-1
 
-./rain cat success-test7
+./rain --profile rain cat success-test7
 
-./rain logs success-test7
+./rain --profile rain logs success-test7
 
-./rain logs --chart success-test7
+./rain --profile rain logs --chart success-test7
 
-./rain rm success-test7 -y
+./rain --profile rain rm success-test7 -y
 
 # Unnamed stack
-./rain deploy test/templates/success.template -y --params BucketName=ezbeardatamazon-rain-test-1
-./rain cat success
-./rain ls success
-./rain rm -y success
+./rain --profile rain deploy test/templates/success.template -y --params BucketName=ezbeardatamazon-rain-test-1
+./rain --profile rain cat success
+./rain --profile rain ls success
+./rain --profile rain rm -y success
 
 # Change sets
 # Create a named changeset
-#./rain deploy --no-exec test/templates/success.template success-test7 success-changeset-name -y --params BucketName=ezbeardatamazon-rain-test-1
-#./rain ls -c success-test7 success-changeset-name
+#./rain --profile rain deploy --no-exec test/templates/success.template success-test7 success-changeset-name -y --params BucketName=ezbeardatamazon-rain-test-1
+#./rain --profile rain ls -c success-test7 success-changeset-name
 
-#./rain rm -c -y success-test7 success-changeset-name
+#./rain --profile rain rm -c -y success-test7 success-changeset-name
 # This leaves the stack as review in progress, and then you can't delete it
 # Seems like a bug!
 # It also fails if we try to delete the stack, not just the stackset
-#./rain rm -y success-test7 
+#./rain --profile rain rm -y success-test7 
 
-./rain build AWS::S3::Bucket
-./rain build -l
+./rain --profile rain build AWS::S3::Bucket
+./rain --profile rain build -l
 
 ./rain fmt test/templates/fmtfindinmap.yaml
 ./rain fmt test/templates/fmtmultiwithgt.yaml
 ./rain fmt test/templates/fmtziplinesok.yaml
 
-./rain pkg cft/pkg/tmpl/s3-props-template.yaml
-./rain pkg cft/pkg/tmpl/embed-template.yaml
-./rain pkg cft/pkg/tmpl/include-template.yaml
-./rain pkg cft/pkg/tmpl/s3-template.yaml
-./rain pkg cft/pkg/tmpl/s3http-template.yaml
+./rain --profile rain pkg cft/pkg/tmpl/s3-props-template.yaml
+./rain --profile rain pkg cft/pkg/tmpl/embed-template.yaml
+./rain --profile rain pkg cft/pkg/tmpl/include-template.yaml
+./rain --profile rain pkg cft/pkg/tmpl/s3-template.yaml
+./rain --profile rain pkg cft/pkg/tmpl/s3http-template.yaml
 
 # Make sure build recommendations work
 ./internal/cmd/build/tmpl/scripts/validate.sh

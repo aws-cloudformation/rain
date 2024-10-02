@@ -7,11 +7,20 @@ import (
 	"github.com/aws-cloudformation/rain/cft/diff"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/cft/pkg"
+	"github.com/aws-cloudformation/rain/internal/node"
 	"gopkg.in/yaml.v3"
 )
 
 func TestModule(t *testing.T) {
 	runTest("test", t)
+}
+
+func TestBucket(t *testing.T) {
+	runTest("bucket", t)
+}
+
+func TestApi(t *testing.T) {
+	runTest("api", t)
 }
 
 func TestSimple(t *testing.T) {
@@ -30,8 +39,20 @@ func TestMany(t *testing.T) {
 	runTest("many", t)
 }
 
+func TestRef(t *testing.T) {
+	runTest("ref", t)
+}
+
+func TestMeta(t *testing.T) {
+	runTest("meta", t)
+}
+
 func TestRefFalse(t *testing.T) {
 	runTest("ref-false", t)
+}
+
+func TestOverride(t *testing.T) {
+	runFailTest("override", t)
 }
 
 // TODO: This was broken in the refactor, come back to it later
@@ -71,6 +92,19 @@ func runTest(test string, t *testing.T) {
 	}
 }
 
+// runFailTest should fail to package
+func runFailTest(test string, t *testing.T) {
+
+	pkg.Experimental = true
+
+	_, err := pkg.File(fmt.Sprintf("./tmpl/%v-template.yaml", test))
+	if err == nil {
+		t.Errorf("did not fail: packaged %s", test)
+		return
+	}
+
+}
+
 func TestCsvToSequence(t *testing.T) {
 	csv := "A,B,C"
 	seq := pkg.ConvertCsvToSequence(csv)
@@ -82,4 +116,37 @@ func TestCsvToSequence(t *testing.T) {
 		seq.Content[2].Value != "C" {
 		t.Errorf("Unexpected sequence")
 	}
+}
+
+func TestMergeNodes(t *testing.T) {
+	original := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
+	override := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
+	expected := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
+
+	original.Content = append(original.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: "A"})
+	original.Content = append(original.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: "foo"})
+
+	override.Content = append(override.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: "A"})
+	override.Content = append(override.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: "bar"})
+
+	expected.Content = append(expected.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: "A"})
+	expected.Content = append(expected.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: "bar"})
+
+	merged := pkg.MergeNodes(original, override)
+
+	diff := node.Diff(merged, expected)
+
+	if len(diff) > 0 {
+		for _, d := range diff {
+			fmt.Println(d)
+		}
+		t.Fatalf("nodes are not the same")
+	}
+
 }

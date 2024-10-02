@@ -232,3 +232,23 @@ Resources:
 		t.Error("Unexpected: resource is nil")
 	}
 }
+
+func TestGetResourcesOfType(t *testing.T) {
+
+	source := `
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+`
+
+	template, err := parse.String(source)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resources := template.GetResourcesOfType("AWS::S3::Bucket")
+
+	if len(resources) != 1 {
+		t.Fatal("should have found 1 resource")
+	}
+}

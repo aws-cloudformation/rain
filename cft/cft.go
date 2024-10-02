@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
@@ -118,6 +119,9 @@ func (t Template) AddMapSection(section Section) (*yaml.Node, error) {
 
 // GetSection returns the yaml node for the section
 func (t Template) GetSection(section Section) (*yaml.Node, error) {
+	if t.Node == nil {
+		return nil, fmt.Errorf("unable to get section because t.Node is nil")
+	}
 	_, s, _ := s11n.GetMapValue(t.Node.Content[0], string(section))
 	if s == nil {
 		return nil, fmt.Errorf("unable to locate the %s node", section)
@@ -148,20 +152,27 @@ func (t Template) GetTypes() ([]string, error) {
 	return retval, nil
 }
 
-func (t Template) GetResourcesOfType(typeName string) []*yaml.Node {
+type Resource struct {
+	LogicalId string
+	Node      *yaml.Node
+}
+
+func (t Template) GetResourcesOfType(typeName string) []*Resource {
 	resources, err := t.GetSection(Resources)
 	if err != nil {
+		config.Debugf("GetResourcesOfType error: %v", err)
 		return nil
 	}
-	retval := make([]*yaml.Node, 0)
+	retval := make([]*Resource, 0)
 	for i := 0; i < len(resources.Content); i += 2 {
+		logicalId := resources.Content[i].Value
 		resource := resources.Content[i+1]
 		_, typ, _ := s11n.GetMapValue(resource, "Type")
 		if typ == nil {
 			continue
 		}
 		if typ.Value == typeName {
-			retval = append(retval, resource)
+			retval = append(retval, &Resource{LogicalId: logicalId, Node: resource})
 		}
 	}
 	return retval

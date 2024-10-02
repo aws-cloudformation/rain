@@ -9,7 +9,12 @@ Description: |
 Parameters:
   AppName:
     Type: String
-    Description: This name be used as a prefix for resource names
+    Description: This name is used as a prefix for resource names
+
+  Content:
+    Type: String
+    Description: An optional directory to upload to the bucket
+    Default: RAIN_NO_CONTENT
 
 Resources:
   ObjectStorageLogBucket:
@@ -44,6 +49,9 @@ Resources:
         SuppressedRules:
           - S3_BUCKET_LOGGING_ENABLED
           - S3_BUCKET_REPLICATION_ENABLED
+      Rain:
+        Content: RAIN_NO_CONTENT
+        EmptyOnDelete: false
 
   ObjectStorageBucket:
     Type: AWS::S3::Bucket
@@ -73,6 +81,9 @@ Resources:
       guard:
         SuppressedRules:
           - S3_BUCKET_DEFAULT_LOCK_ENABLED
+      Rain:
+        Content: !Ref Content
+        EmptyOnDelete: false
 
   ObjectStorageReplicaBucket:
     Type: AWS::S3::Bucket
@@ -101,6 +112,9 @@ Resources:
           - S3_BUCKET_DEFAULT_LOCK_ENABLED
           - S3_BUCKET_REPLICATION_ENABLED
           - S3_BUCKET_LOGGING_ENABLED
+      Rain:
+        Content: RAIN_NO_CONTENT
+        EmptyOnDelete: false
 
   ObjectStorageReplicationPolicy:
     Type: AWS::IAM::RolePolicy

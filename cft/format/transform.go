@@ -34,12 +34,6 @@ func formatNode(n *yaml.Node) *yaml.Node {
 		// Does it have just one key/value pair?
 		if len(n.Content) == 2 {
 
-			if n.Content[1].Kind == yaml.ScalarNode {
-				if NodeStyle == "quotescalars" {
-					n.Content[1].Style = yaml.DoubleQuotedStyle
-				}
-			}
-
 			// Is the key relevant?
 			for tag, funcName := range cft.Tags {
 				if n.Content[0].Value == funcName {
@@ -121,6 +115,10 @@ func formatNode(n *yaml.Node) *yaml.Node {
 		n.Style = yaml.FlowStyle
 	case "original":
 		// Do nothing, leave it alone
+	case "quotescalars":
+		if n.Kind == yaml.ScalarNode {
+			n.Style = yaml.DoubleQuotedStyle
+		}
 	case "":
 		// Default style for consistent formatting
 		n.Style = 0

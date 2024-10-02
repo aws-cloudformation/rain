@@ -218,6 +218,15 @@ func GetStack(stackName string) (types.Stack, error) {
 	return res.Stacks[0], nil
 }
 
+// GetStackOutputs returns an array of Output values from a single deployed stack
+func GetStackOutputs(stackName string) ([]types.Output, error) {
+	stack, err := GetStack(stackName)
+	if err != nil {
+		return nil, err
+	}
+	return stack.Outputs, nil
+}
+
 // GetStackResource gets a single deployed stack resource
 func GetStackResource(stackName string, logicalId string) (*types.StackResourceDetail, error) {
 	res, err := getClient().DescribeStackResource(context.Background(),

@@ -46,7 +46,7 @@ func addCommon(stateMap *yaml.Node, absPath string) {
 // This is necessary when the user cancels a fresh deployment
 func deleteState(name string, bucketName string) error {
 	key := getStateFileKey(name)
-	return s3.DeleteObject(bucketName, key)
+	return s3.DeleteObject(bucketName, key, nil)
 }
 
 // Get the object key for the state file in S3

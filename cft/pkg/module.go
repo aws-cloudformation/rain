@@ -17,6 +17,94 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// mergeNodes merges two mapping nodes, replacing any values found in override
+func MergeNodes(original *yaml.Node, override *yaml.Node) *yaml.Node {
+
+	// If the nodes are not the same kind, just return the override
+	if override.Kind != original.Kind {
+		return override
+	}
+
+	if override.Kind == yaml.ScalarNode {
+		return override
+	}
+
+	retval := &yaml.Node{Kind: override.Kind, Content: make([]*yaml.Node, 0)}
+	overrideMap := make(map[string]bool)
+
+	if override.Kind == yaml.SequenceNode {
+		retval.Content = append(retval.Content, override.Content...)
+
+		for _, n := range original.Content {
+			already := false
+			for _, r := range retval.Content {
+				if r.Value == n.Value {
+					already = true
+					break
+				}
+			}
+			if !already {
+				retval.Content = append(retval.Content, n)
+			}
+		}
+
+		return retval
+	}
+
+	// else they are both Mapping nodes
+
+	// Add everything in the override Mapping
+	for i, n := range override.Content {
+		retval.Content = append(retval.Content, n)
+		var name string
+		if i%2 == 0 {
+			// Remember what we added
+			name = n.Value
+			overrideMap[name] = true
+		} else {
+			name = retval.Content[i-1].Value
+		}
+
+		/*
+			Original:
+				A: something
+				B:
+					foo: 1
+					bar: 2
+
+			Override:
+				A: something else
+				B:
+					foo: 3
+					baz: 6
+		*/
+
+		// Recurse if this is a mapping node
+		if i%2 == 1 && n.Kind == yaml.MappingNode {
+			// Find the matching node in original
+			for j, match := range original.Content {
+				if j%2 == 0 && match.Value == name {
+					n.Content[i] = MergeNodes(n.Content[i], original.Content[j])
+				}
+			}
+		}
+	}
+
+	// Only add things from the original if they weren't in original
+	for i := 0; i < len(original.Content); i++ {
+		n := original.Content[i]
+		if i%2 == 0 {
+			if _, exists := overrideMap[n.Value]; exists {
+				i = i + 1 // Skip the next node
+				continue
+			}
+		}
+		retval.Content = append(retval.Content, n)
+	}
+
+	return retval
+}
+
 // Clone a property-like node from the module and replace any overridden values
 func cloneAndReplaceProps(
 	n *yaml.Node,
@@ -64,10 +152,34 @@ func cloneAndReplaceProps(
 			for j, mprop := range props.Content {
 				// Property names are even-indexed array elements
 				if tprop.Value == mprop.Value && i%2 == 0 && j%2 == 0 {
-					// Is a clone good enough here? Could get weird.
-					// Maybe we just require that you replace the entire property if it's nested
-					// Otherwise we have to do a diff
-					props.Content[j+1] = node.Clone(templateProps.Content[i+1])
+					// It's was not possible to override just one nested property
+					//
+					// Bucket:
+					//   Metadata:
+					//     Rain:
+					//       Content: site
+					//       DistributionLogicalId: AWS::NoValue
+					//
+					// Override:
+					//   Bucket:
+					//     Metadata:
+					//       Rain:
+					//         DistributionLogicalId: MyDistribution
+					//
+					// The result is that the Content node is removed
+					//
+
+					// The old way
+					// props.Content[j+1] = node.Clone(templateProps.Content[i+1])
+
+					// The new way
+					clonedNode := node.Clone(templateProps.Content[i+1])
+					// config.Debugf("original: %s", node.ToSJson(templateProps.Content[i+1]))
+					// config.Debugf("clonedNode: %s", node.ToSJson(clonedNode))
+					merged := MergeNodes(props.Content[j+1], clonedNode)
+					// config.Debugf("merged: %s", node.ToSJson(merged))
+					props.Content[j+1] = merged
+
 					found = true
 				}
 			}
@@ -221,8 +333,20 @@ func resolveModuleRef(parentName string, prop *yaml.Node, sidx int, ctx *refctx)
 			// Look for this property name in the parent template
 			_, parentVal, _ := s11n.GetMapValue(templateProps, prop.Value)
 			if parentVal == nil {
-				return fmt.Errorf("did not find %v in parent template Properties",
-					prop.Value)
+				// Check to see if there is a Default
+				_, mParam, _ := s11n.GetMapValue(moduleParams, prop.Value)
+				if mParam != nil {
+					_, defaultNode, _ := s11n.GetMapValue(mParam, "Default")
+					if defaultNode != nil {
+						parentVal = defaultNode
+					}
+				}
+
+				// If we didn't find a parent template prop or a default, fail
+				if parentVal == nil {
+					return fmt.Errorf("did not find %v in parent template Properties",
+						prop.Value)
+				}
 			}
 
 			replaceProp(prop, parentName, parentVal, outNode, sidx)
@@ -447,15 +571,18 @@ func resolveRefs(ctx *refctx) error {
 
 	// Replace references to the module's parameters with the value supplied
 	// by the parent template. Rename refs to other resources in the module.
-
-	_, outNodeProps, _ := s11n.GetMapValue(outNode, "Properties")
-	if outNodeProps != nil {
-		for i, prop := range outNodeProps.Content {
-			if i%2 == 0 {
-				propName := prop.Value
-				err := renamePropRefs(propName, propName, outNodeProps.Content[i+1], -1, ctx)
-				if err != nil {
-					return fmt.Errorf("unable to resolve refs for %v: %v", propName, err)
+	propLikes := []string{"Properties", "Metadata"}
+	for _, propLike := range propLikes {
+		_, outNodeProps, _ := s11n.GetMapValue(outNode, propLike)
+		if outNodeProps != nil {
+			for i, prop := range outNodeProps.Content {
+				if i%2 == 0 {
+					propName := prop.Value
+					err := renamePropRefs(propName, propName, outNodeProps.Content[i+1], -1, ctx)
+					if err != nil {
+						return fmt.Errorf("unable to resolve refs for %s %v: %v",
+							propLike, propName, err)
+					}
 				}
 			}
 		}
@@ -519,6 +646,49 @@ func processModule(
 
 	// Overrides have overridden values for module resources. Anything in a module can be overridden.
 	_, overrides, _ := s11n.GetMapValue(templateResource, "Overrides")
+
+	// Validate that the overrides actually exist and error if not
+	if overrides != nil {
+		for i, override := range overrides.Content {
+			if i%2 != 0 {
+				continue
+			}
+			foundName := false
+			for i, moduleResource := range moduleResources.Content {
+				if moduleResource.Kind != yaml.MappingNode {
+					continue
+				}
+				name := moduleResources.Content[i-1].Value
+				if name == override.Value {
+					foundName = true
+					break
+				}
+			}
+			if !foundName {
+				return false, fmt.Errorf("override not found: %s", override.Value)
+			}
+
+			// Make sure this Override name is not a module parameter.
+			// It is an error to try to override a property that shares
+			// a name with a module Parameter.
+			if moduleParams != nil {
+				_, overrideProps, _ := s11n.GetMapValue(overrides.Content[i+1], "Properties")
+				if overrideProps != nil {
+					for op, overrideProp := range overrideProps.Content {
+						if op%2 != 0 {
+							continue
+						}
+						_, mp, _ := s11n.GetMapValue(moduleParams, overrideProp.Value)
+						if mp != nil {
+							return false,
+								fmt.Errorf("cannot override module parameter %s",
+									overrideProp.Value)
+						}
+					}
+				}
+			}
+		}
+	}
 
 	fe, err := handleForEach(moduleResources, t, logicalId, outputNode,
 		moduleParams, templateProps)
@@ -733,8 +903,6 @@ func downloadModule(uri string) ([]byte, error) {
 
 // Type: !Rain::Module
 func module(ctx *directiveContext) (bool, error) {
-
-	config.Debugf("module directiveContext: %+v", ctx)
 
 	n := ctx.n
 	root := ctx.rootDir
