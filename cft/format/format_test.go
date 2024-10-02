@@ -760,3 +760,44 @@ Resources:
 	}
 
 }
+
+func TestPkl(t *testing.T) {
+	source := `
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+Outputs:
+  BucketName:
+    Value: !Ref Bucket
+`
+	template, err := parse.String(source)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	output, err := format.CftToPkl(template, false, "@cfn")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expected := `amends "@cfn/template.pkl"
+import "@cfn/cloudformation.pkl" as cfn
+import "@cfn/aws/s3/bucket.pkl"
+
+Resources {
+    ["Bucket"] = new bucket.Bucket {
+        Type = "AWS::S3::Bucket"
+    }
+
+}
+
+Outputs {
+    ["BucketName"] = new cfn.Output {
+        Value = cfn.Ref("Bucket")
+    }
+}
+`
+	if output != expected {
+		t.Fatalf("Got:\n[%s]\nExpected:\n[%s]\n", output, expected)
+	}
+}

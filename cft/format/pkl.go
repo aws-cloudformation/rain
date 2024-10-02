@@ -10,6 +10,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
+	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
 )
 
@@ -131,6 +132,56 @@ func writeResource(sb *strings.Builder, name string, resource *yaml.Node, basic 
 	}
 
 	sb.WriteString(indent + "}\n\n")
+	return nil
+}
+
+func writeOutput(sb *strings.Builder, name string, output *yaml.Node, basic bool) error {
+	w(sb, "    [\"%s\"] = new cfn.Output {\n", name)
+
+	for i := 0; i < len(output.Content); i += 2 {
+
+		/*
+			/// A stack Output exported value
+			open class Export {
+				Name: RefString
+			}
+
+			/// A stack output value
+			open class Output {
+				Description: RefString?
+				Value: RefString
+				Export: Export?
+			}
+		*/
+
+		attrName := output.Content[i].Value
+		attrValue := output.Content[i+1]
+
+		switch attrName {
+		case "Description":
+			w(sb, "        Description = %s\n", attrValue.Value)
+		case "Value":
+			if attrValue.Kind == yaml.MappingNode {
+				w(sb, "        Value = ")
+				writeMap(sb, attrValue, "    ", basic)
+			} else {
+				w(sb, "        Value = %s\n", attrValue.Value)
+			}
+		case "Export":
+			w(sb, "        Export = new cfn.Export {\n")
+			_, nameNode, _ := s11n.GetMapValue(attrValue, "Name")
+			if nameNode == nil {
+				return errors.New("expected Export to have Name")
+			}
+			exportName := nameNode.Value
+			w(sb, "            Name = %s\n", exportName)
+			w(sb, "        }\n")
+		}
+
+	}
+
+	w(sb, "    }\n")
+
 	return nil
 }
 
@@ -375,13 +426,18 @@ func addSection(section cft.Section, n *yaml.Node, sb *strings.Builder, basic bo
 		sb.WriteString("}\n")
 	case cft.Transform:
 	case cft.Outputs:
+		w(sb, "%s {\n", section)
+		for i := 0; i < len(n.Content); i += 2 {
+			writeOutput(sb, n.Content[i].Value, n.Content[i+1], basic)
+		}
+		sb.WriteString("}\n")
 	}
 
 	return nil
 }
 
 // CftToPkl serializes the template as pkl.
-// It assumes that the user is import the cloudformation package
+// It assumes that the user is importing the cloudformation package
 func CftToPkl(t cft.Template, basic bool, pklPackageAlias string) (string, error) {
 	if t.Node == nil || len(t.Node.Content) != 1 {
 		return "", errors.New("expected t.Node.Content[0]")

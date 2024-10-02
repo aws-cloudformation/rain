@@ -18,6 +18,12 @@ Resources:
     Properties:
         BucketName: 
           Ref: Name
+Outputs:
+  BucketName:
+    Value: !Ref BucketName
+    Description: The bucket name
+    Export:
+      Name: ExportedBucketName
 `
 
 	expected := `amends "@cfn/template.pkl"
@@ -37,6 +43,16 @@ Resources {
 
     }
 
+}
+
+Outputs {
+    ["BucketName"] = new cfn.Output {
+        Value = cfn.Ref("BucketName")
+        Description = The bucket name
+        Export = new cfn.Export {
+            Name = ExportedBucketName
+        }
+    }
 }
 `
 
