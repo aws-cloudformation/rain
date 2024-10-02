@@ -2,6 +2,7 @@ package pkl
 
 import (
 	"context"
+	"path/filepath"
 
 	"github.com/apple/pkl-go/pkl"
 	"github.com/aws-cloudformation/rain/internal/config"
@@ -18,7 +19,8 @@ var EvaluatorOptionsFunc = func(opts *pkl.EvaluatorOptions) {
 
 func Yaml(filename string) (string, error) {
 	// Convert the template to YAML
-	evaluator, err := pkl.NewEvaluator(context.Background(), EvaluatorOptionsFunc)
+	evaluator, err := pkl.NewProjectEvaluator(
+		context.Background(), filepath.Dir(filename), EvaluatorOptionsFunc)
 	if err != nil {
 		return "", err
 	}
