@@ -2,6 +2,73 @@
   "typeName": "AWS::QBusiness::WebExperience",
   "description": "Definition of AWS::QBusiness::WebExperience Resource Type",
   "definitions": {
+    "IdentityProviderConfiguration": {
+      "oneOf": [
+        {
+          "type": "object",
+          "title": "SamlConfiguration",
+          "properties": {
+            "SamlConfiguration": {
+              "$ref": "#/definitions/SamlProviderConfiguration"
+            }
+          },
+          "required": [
+            "SamlConfiguration"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "title": "OpenIDConnectConfiguration",
+          "properties": {
+            "OpenIDConnectConfiguration": {
+              "$ref": "#/definitions/OpenIDConnectProviderConfiguration"
+            }
+          },
+          "required": [
+            "OpenIDConnectConfiguration"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "OpenIDConnectProviderConfiguration": {
+      "type": "object",
+      "properties": {
+        "SecretsArn": {
+          "type": "string",
+          "maxLength": 1284,
+          "minLength": 0,
+          "pattern": "^arn:[a-z0-9-\\.]{1,63}:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[^/].{0,1023}$"
+        },
+        "SecretsRole": {
+          "type": "string",
+          "maxLength": 1284,
+          "minLength": 0,
+          "pattern": "^arn:[a-z0-9-\\.]{1,63}:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[^/].{0,1023}$"
+        }
+      },
+      "required": [
+        "SecretsArn",
+        "SecretsRole"
+      ],
+      "additionalProperties": false
+    },
+    "SamlProviderConfiguration": {
+      "type": "object",
+      "properties": {
+        "AuthenticationUrl": {
+          "type": "string",
+          "maxLength": 1284,
+          "minLength": 1,
+          "pattern": "^https://.*$"
+        }
+      },
+      "required": [
+        "AuthenticationUrl"
+      ],
+      "additionalProperties": false
+    },
     "Tag": {
       "type": "object",
       "properties": {
@@ -56,6 +123,9 @@
       "maxLength": 2048,
       "minLength": 1,
       "pattern": "^(https?|ftp|file)://([^\\s]*)$"
+    },
+    "IdentityProviderConfiguration": {
+      "$ref": "#/definitions/IdentityProviderConfiguration"
     },
     "RoleArn": {
       "type": "string",

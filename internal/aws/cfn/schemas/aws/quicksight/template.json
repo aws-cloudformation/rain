@@ -291,6 +291,13 @@
         "DELETED"
       ]
     },
+    "CommitMode": {
+      "type": "string",
+      "enum": [
+        "AUTO",
+        "MANUAL"
+      ]
+    },
     "RadarChartFieldWells": {
       "additionalProperties": false,
       "type": "object",
@@ -753,6 +760,9 @@
         "Tooltip": {
           "$ref": "#/definitions/TooltipOptions"
         },
+        "SingleAxisOptions": {
+          "$ref": "#/definitions/SingleAxisOptions"
+        },
         "SmallMultiplesOptions": {
           "$ref": "#/definitions/SmallMultiplesOptions"
         },
@@ -1000,6 +1010,9 @@
         "DisplayOptions": {
           "$ref": "#/definitions/DropDownControlDisplayOptions"
         },
+        "CommitMode": {
+          "$ref": "#/definitions/CommitMode"
+        },
         "SelectableValues": {
           "$ref": "#/definitions/FilterSelectableValues"
         }
@@ -1232,6 +1245,14 @@
         }
       }
     },
+    "TooltipTarget": {
+      "type": "string",
+      "enum": [
+        "BOTH",
+        "BAR",
+        "LINE"
+      ]
+    },
     "DataLabelPosition": {
       "type": "string",
       "enum": [
@@ -1333,6 +1354,9 @@
           "minLength": 1,
           "type": "string",
           "maxLength": 2048
+        },
+        "CommitMode": {
+          "$ref": "#/definitions/CommitMode"
         },
         "SourceFilterId": {
           "minLength": 1,
@@ -1453,6 +1477,9 @@
           "minLength": 1,
           "type": "string",
           "maxLength": 2048
+        },
+        "CommitMode": {
+          "$ref": "#/definitions/CommitMode"
         },
         "SelectableValues": {
           "$ref": "#/definitions/ParameterSelectableValues"
@@ -1978,6 +2005,9 @@
         "Tooltip": {
           "$ref": "#/definitions/TooltipOptions"
         },
+        "SingleAxisOptions": {
+          "$ref": "#/definitions/SingleAxisOptions"
+        },
         "PrimaryYAxisDisplayOptions": {
           "$ref": "#/definitions/AxisDisplayOptions"
         },
@@ -2190,6 +2220,15 @@
       "properties": {
         "Relative": {
           "$ref": "#/definitions/RelativeFontSize"
+        }
+      }
+    },
+    "InnerFilter": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "CategoryInnerFilter": {
+          "$ref": "#/definitions/CategoryInnerFilter"
         }
       }
     },
@@ -2794,6 +2833,9 @@
             "$ref": "#/definitions/FilterGroup"
           }
         },
+        "QueryExecutionOptions": {
+          "$ref": "#/definitions/QueryExecutionOptions"
+        },
         "CalculatedFields": {
           "minItems": 0,
           "maxItems": 500,
@@ -2964,6 +3006,9 @@
           "minLength": 1,
           "type": "string",
           "maxLength": 2048
+        },
+        "CommitMode": {
+          "$ref": "#/definitions/CommitMode"
         },
         "SourceFilterId": {
           "minLength": 1,
@@ -4552,6 +4597,25 @@
         }
       }
     },
+    "CategoryInnerFilter": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "Configuration": {
+          "$ref": "#/definitions/CategoryFilterConfiguration"
+        },
+        "Column": {
+          "$ref": "#/definitions/ColumnIdentifier"
+        },
+        "DefaultFilterControlConfiguration": {
+          "$ref": "#/definitions/DefaultFilterControlConfiguration"
+        }
+      },
+      "required": [
+        "Column",
+        "Configuration"
+      ]
+    },
     "PivotTableCellConditionalFormatting": {
       "additionalProperties": false,
       "type": "object",
@@ -5050,6 +5114,18 @@
         }
       }
     },
+    "YAxisOptions": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "YAxis": {
+          "$ref": "#/definitions/SingleYAxisOption"
+        }
+      },
+      "required": [
+        "YAxis"
+      ]
+    },
     "ResourcePermission": {
       "description": "<p>Permission for the resource.</p>",
       "additionalProperties": false,
@@ -5345,6 +5421,12 @@
       },
       "required": [
         "Color"
+      ]
+    },
+    "SingleYAxisOption": {
+      "type": "string",
+      "enum": [
+        "PRIMARY_Y_AXIS"
       ]
     },
     "SpecialValue": {
@@ -6099,6 +6181,15 @@
           "items": {
             "$ref": "#/definitions/DimensionField"
           }
+        }
+      }
+    },
+    "SingleAxisOptions": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "YAxisOptions": {
+          "$ref": "#/definitions/YAxisOptions"
         }
       }
     },
@@ -7930,6 +8021,9 @@
       "properties": {
         "DisplayOptions": {
           "$ref": "#/definitions/RelativeDateTimeControlDisplayOptions"
+        },
+        "CommitMode": {
+          "$ref": "#/definitions/CommitMode"
         }
       }
     },
@@ -8119,6 +8213,34 @@
           "$ref": "#/definitions/PredefinedHierarchy"
         }
       }
+    },
+    "NestedFilter": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "Column": {
+          "$ref": "#/definitions/ColumnIdentifier"
+        },
+        "InnerFilter": {
+          "$ref": "#/definitions/InnerFilter"
+        },
+        "IncludeInnerSet": {
+          "default": false,
+          "type": "boolean"
+        },
+        "FilterId": {
+          "minLength": 1,
+          "pattern": "^[\\w\\-]+$",
+          "type": "string",
+          "maxLength": 512
+        }
+      },
+      "required": [
+        "Column",
+        "FilterId",
+        "IncludeInnerSet",
+        "InnerFilter"
+      ]
     },
     "MaximumMinimumComputation": {
       "additionalProperties": false,
@@ -8368,6 +8490,9 @@
       "additionalProperties": false,
       "type": "object",
       "properties": {
+        "NestedFilter": {
+          "$ref": "#/definitions/NestedFilter"
+        },
         "NumericEqualityFilter": {
           "$ref": "#/definitions/NumericEqualityFilter"
         },
@@ -8730,6 +8855,9 @@
       "additionalProperties": false,
       "type": "object",
       "properties": {
+        "TooltipTarget": {
+          "$ref": "#/definitions/TooltipTarget"
+        },
         "FieldId": {
           "minLength": 1,
           "type": "string",
@@ -8819,6 +8947,9 @@
           "minLength": 1,
           "type": "string",
           "maxLength": 2048
+        },
+        "CommitMode": {
+          "$ref": "#/definitions/CommitMode"
         },
         "SourceFilterId": {
           "minLength": 1,
@@ -9534,6 +9665,13 @@
         "SPACE"
       ]
     },
+    "QueryExecutionMode": {
+      "type": "string",
+      "enum": [
+        "AUTO",
+        "MANUAL"
+      ]
+    },
     "TemplateSourceAnalysis": {
       "description": "<p>The source analysis of the template.</p>",
       "additionalProperties": false,
@@ -9576,6 +9714,15 @@
         }
       }
     },
+    "QueryExecutionOptions": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "QueryExecutionMode": {
+          "$ref": "#/definitions/QueryExecutionMode"
+        }
+      }
+    },
     "ColumnSort": {
       "additionalProperties": false,
       "type": "object",
@@ -9604,6 +9751,9 @@
         },
         "DisplayOptions": {
           "$ref": "#/definitions/DateTimePickerControlDisplayOptions"
+        },
+        "CommitMode": {
+          "$ref": "#/definitions/CommitMode"
         }
       }
     },
@@ -9824,6 +9974,9 @@
       "properties": {
         "Aggregation": {
           "$ref": "#/definitions/AggregationFunction"
+        },
+        "TooltipTarget": {
+          "$ref": "#/definitions/TooltipTarget"
         },
         "Column": {
           "$ref": "#/definitions/ColumnIdentifier"

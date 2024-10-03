@@ -26,6 +26,15 @@
       "description": "A unique Arn for CodeSigningConfig resource",
       "type": "string",
       "pattern": "arn:(aws[a-zA-Z-]*)?:lambda:[a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\\d{1}:\\d{12}:code-signing-config:csc-[a-z0-9]{17}"
+    },
+    "Tags": {
+      "description": "A list of tags to apply to CodeSigningConfig resource",
+      "type": "array",
+      "uniqueItems": true,
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
     }
   },
   "definitions": {
@@ -69,6 +78,27 @@
       "required": [
         "UntrustedArtifactOnDeployment"
       ]
+    },
+    "Tag": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Key": {
+          "type": "string",
+          "description": "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "Value": {
+          "type": "string",
+          "description": "The value for the tag. You can specify a value that is 0 to 256 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.",
+          "minLength": 0,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "Key"
+      ]
     }
   },
   "required": [
@@ -81,20 +111,32 @@
   "primaryIdentifier": [
     "/properties/CodeSigningConfigArn"
   ],
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags"
+  },
   "handlers": {
     "create": {
       "permissions": [
-        "lambda:CreateCodeSigningConfig"
+        "lambda:CreateCodeSigningConfig",
+        "lambda:TagResource"
       ]
     },
     "read": {
       "permissions": [
-        "lambda:GetCodeSigningConfig"
+        "lambda:GetCodeSigningConfig",
+        "lambda:ListTags"
       ]
     },
     "update": {
       "permissions": [
-        "lambda:UpdateCodeSigningConfig"
+        "lambda:UpdateCodeSigningConfig",
+        "lambda:ListTags",
+        "lambda:TagResource",
+        "lambda:UntagResource"
       ]
     },
     "delete": {

@@ -16,6 +16,16 @@
       },
       "description": "The Amazon Resource Name (ARN) of the load balancer."
     },
+    "ListenerAttributes": {
+      "type": "array",
+      "description": "The listener attributes.",
+      "uniqueItems": true,
+      "insertionOrder": false,
+      "arrayType": "AttributeList",
+      "items": {
+        "$ref": "#/definitions/ListenerAttribute"
+      }
+    },
     "DefaultActions": {
       "type": "array",
       "uniqueItems": true,
@@ -57,6 +67,21 @@
     }
   },
   "definitions": {
+    "ListenerAttribute": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Value": {
+          "type": "string",
+          "description": "The value of the attribute."
+        },
+        "Key": {
+          "type": "string",
+          "description": "The name of the attribute.\n The following attribute is supported by Network Load Balancers, and Gateway Load Balancers.\n  +   ``tcp.idle_timeout.seconds`` - The tcp idle timeout value, in seconds. The valid range is 60-6000 seconds. The default is 350 seconds."
+        }
+      },
+      "description": "Information about a listener attribute."
+    },
     "MutualAuthentication": {
       "type": "object",
       "additionalProperties": false,
@@ -367,6 +392,18 @@
         "ClientId",
         "AuthorizationEndpoint"
       ],
+      "anyOf": [
+        {
+          "required": [
+            "ClientSecret"
+          ]
+        },
+        {
+          "required": [
+            "UseExistingClientSecret"
+          ]
+        }
+      ],
       "description": "Specifies information required using an identity provide (IdP) that is compliant with OpenID Connect (OIDC) to authenticate users."
     },
     "Certificate": {
@@ -422,7 +459,8 @@
       "permissions": [
         "elasticloadbalancing:CreateListener",
         "elasticloadbalancing:DescribeListeners",
-        "cognito-idp:DescribeUserPoolClient"
+        "cognito-idp:DescribeUserPoolClient",
+        "elasticloadbalancing:ModifyListenerAttributes"
       ]
     },
     "delete": {
@@ -464,14 +502,16 @@
     },
     "read": {
       "permissions": [
-        "elasticloadbalancing:DescribeListeners"
+        "elasticloadbalancing:DescribeListeners",
+        "elasticloadbalancing:DescribeListenerAttributes"
       ]
     },
     "update": {
       "permissions": [
         "elasticloadbalancing:ModifyListener",
         "elasticloadbalancing:DescribeListeners",
-        "cognito-idp:DescribeUserPoolClient"
+        "cognito-idp:DescribeUserPoolClient",
+        "elasticloadbalancing:ModifyListenerAttributes"
       ]
     }
   }

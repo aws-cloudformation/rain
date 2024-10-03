@@ -1746,6 +1746,11 @@
     "EnrichmentParameters": {
       "$ref": "#/definitions/PipeEnrichmentParameters"
     },
+    "KmsKeyIdentifier": {
+      "type": "string",
+      "maxLength": 2048,
+      "minLength": 0
+    },
     "LastModifiedTime": {
       "type": "string",
       "format": "date-time"
@@ -1817,10 +1822,10 @@
     "/properties/SourceParameters/ManagedStreamingKafkaParameters/TopicName",
     "/properties/SourceParameters/ManagedStreamingKafkaParameters/StartingPosition",
     "/properties/SourceParameters/ManagedStreamingKafkaParameters/ConsumerGroupID",
-    "/properties/SourceParameters/SelfManagedApacheKafkaParameters/TopicName",
-    "/properties/SourceParameters/SelfManagedApacheKafkaParameters/StartingPosition",
-    "/properties/SourceParameters/SelfManagedApacheKafkaParameters/AdditionalBootstrapServers",
-    "/properties/SourceParameters/SelfManagedApacheKafkaParameters/ConsumerGroupID"
+    "/properties/SourceParameters/SelfManagedKafkaParameters/TopicName",
+    "/properties/SourceParameters/SelfManagedKafkaParameters/StartingPosition",
+    "/properties/SourceParameters/SelfManagedKafkaParameters/AdditionalBootstrapServers",
+    "/properties/SourceParameters/SelfManagedKafkaParameters/ConsumerGroupID"
   ],
   "primaryIdentifier": [
     "/properties/Name"
@@ -1839,7 +1844,12 @@
     "tagOnCreate": true,
     "tagUpdatable": true,
     "cloudFormationSystemTags": false,
-    "tagProperty": "/properties/Tags"
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "pipes:TagResource",
+      "pipes:UntagResource",
+      "pipes:ListTagsForResource"
+    ]
   },
   "handlers": {
     "create": {
@@ -1857,12 +1867,16 @@
         "logs:ListLogDeliveries",
         "s3:PutBucketPolicy",
         "s3:GetBucketPolicy",
-        "firehose:TagDeliveryStream"
+        "firehose:TagDeliveryStream",
+        "kms:DescribeKey",
+        "kms:Decrypt",
+        "kms:GenerateDataKey"
       ]
     },
     "read": {
       "permissions": [
-        "pipes:DescribePipe"
+        "pipes:DescribePipe",
+        "kms:Decrypt"
       ]
     },
     "update": {
@@ -1883,18 +1897,25 @@
         "logs:ListLogDeliveries",
         "s3:PutBucketPolicy",
         "s3:GetBucketPolicy",
-        "firehose:TagDeliveryStream"
+        "firehose:TagDeliveryStream",
+        "kms:DescribeKey",
+        "kms:Decrypt",
+        "kms:GenerateDataKey"
       ]
     },
     "delete": {
       "permissions": [
         "pipes:DeletePipe",
         "pipes:DescribePipe",
+        "pipes:UntagResource",
         "logs:CreateLogDelivery",
         "logs:UpdateLogDelivery",
         "logs:DeleteLogDelivery",
         "logs:GetLogDelivery",
-        "logs:ListLogDeliveries"
+        "logs:ListLogDeliveries",
+        "kms:DescribeKey",
+        "kms:Decrypt",
+        "kms:GenerateDataKey"
       ]
     },
     "list": {

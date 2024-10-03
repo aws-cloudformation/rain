@@ -3,8 +3,8 @@
   "description": "Resource Type definition for AWS::MediaLive::Input",
   "additionalProperties": false,
   "properties": {
-    "Type": {
-      "type": "string"
+    "SrtSettings": {
+      "$ref": "#/definitions/SrtSettingsRequest"
     },
     "Destinations": {
       "type": "array",
@@ -23,6 +23,22 @@
         "$ref": "#/definitions/MediaConnectFlowRequest"
       }
     },
+    "Sources": {
+      "type": "array",
+      "uniqueItems": false,
+      "items": {
+        "$ref": "#/definitions/InputSourceRequest"
+      }
+    },
+    "RoleArn": {
+      "type": "string"
+    },
+    "Name": {
+      "type": "string"
+    },
+    "Type": {
+      "type": "string"
+    },
     "Id": {
       "type": "string"
     },
@@ -36,13 +52,6 @@
         "type": "string"
       }
     },
-    "Sources": {
-      "type": "array",
-      "uniqueItems": false,
-      "items": {
-        "$ref": "#/definitions/InputSourceRequest"
-      }
-    },
     "InputDevices": {
       "type": "array",
       "uniqueItems": false,
@@ -50,17 +59,44 @@
         "$ref": "#/definitions/InputDeviceSettings"
       }
     },
-    "RoleArn": {
-      "type": "string"
-    },
     "Tags": {
       "type": "object"
-    },
-    "Name": {
-      "type": "string"
     }
   },
   "definitions": {
+    "SrtCallerSourceRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "SrtListenerPort": {
+          "type": "string"
+        },
+        "StreamId": {
+          "type": "string"
+        },
+        "MinimumLatency": {
+          "type": "integer"
+        },
+        "Decryption": {
+          "$ref": "#/definitions/SrtCallerDecryptionRequest"
+        },
+        "SrtListenerAddress": {
+          "type": "string"
+        }
+      }
+    },
+    "SrtCallerDecryptionRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Algorithm": {
+          "type": "string"
+        },
+        "PassphraseSecretArn": {
+          "type": "string"
+        }
+      }
+    },
     "InputSourceRequest": {
       "type": "object",
       "additionalProperties": false,
@@ -91,6 +127,19 @@
       "properties": {
         "StreamName": {
           "type": "string"
+        }
+      }
+    },
+    "SrtSettingsRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "SrtCallerSources": {
+          "type": "array",
+          "uniqueItems": false,
+          "items": {
+            "$ref": "#/definitions/SrtCallerSourceRequest"
+          }
         }
       }
     },

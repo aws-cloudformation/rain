@@ -21,19 +21,19 @@
       "minLength": 1
     },
     "DateFilter": {
-      "description": "",
+      "description": "A date filter for querying findings.",
       "properties": {
         "DateRange": {
           "$ref": "#/definitions/DateRange",
-          "description": ""
+          "description": "A date range for the date filter."
         },
         "End": {
           "$ref": "#/definitions/ISO8601DateString",
-          "description": ""
+          "description": "A timestamp that provides the end date for the date filter.\n This field accepts only the specified formats. Timestamps can end with ``Z`` or ``(\"+\" / \"-\") time-hour [\":\" time-minute]``. The time-secfrac after seconds is limited to a maximum of 9 digits. The offset is bounded by +/-18:00. Here are valid timestamp formats with examples:\n  +   ``YYYY-MM-DDTHH:MM:SSZ`` (for example, ``2019-01-31T23:00:00Z``)\n  +   ``YYYY-MM-DDTHH:MM:SS.mmmmmmmmmZ`` (for example, ``2019-01-31T23:00:00.123456789Z``)\n  +   ``YYYY-MM-DDTHH:MM:SS+HH:MM`` (for example, ``2024-01-04T15:25:10+17:59``)\n  +   ``YYYY-MM-DDTHH:MM:SS-HHMM`` (for example, ``2024-01-04T15:25:10-1759``)\n  +   ``YYYY-MM-DDTHH:MM:SS.mmmmmmmmm+HH:MM`` (for example, ``2024-01-04T15:25:10.123456789+17:59``)"
         },
         "Start": {
           "$ref": "#/definitions/ISO8601DateString",
-          "description": ""
+          "description": "A timestamp that provides the start date for the date filter.\n This field accepts only the specified formats. Timestamps can end with ``Z`` or ``(\"+\" / \"-\") time-hour [\":\" time-minute]``. The time-secfrac after seconds is limited to a maximum of 9 digits. The offset is bounded by +/-18:00. Here are valid timestamp formats with examples:\n  +   ``YYYY-MM-DDTHH:MM:SSZ`` (for example, ``2019-01-31T23:00:00Z``)\n  +   ``YYYY-MM-DDTHH:MM:SS.mmmmmmmmmZ`` (for example, ``2019-01-31T23:00:00.123456789Z``)\n  +   ``YYYY-MM-DDTHH:MM:SS+HH:MM`` (for example, ``2024-01-04T15:25:10+17:59``)\n  +   ``YYYY-MM-DDTHH:MM:SS-HHMM`` (for example, ``2024-01-04T15:25:10-1759``)\n  +   ``YYYY-MM-DDTHH:MM:SS.mmmmmmmmm+HH:MM`` (for example, ``2024-01-04T15:25:10.123456789+17:59``)"
         }
       },
       "type": "object",
@@ -61,17 +61,17 @@
       "additionalProperties": false
     },
     "DateRange": {
-      "description": "",
+      "description": "A date range for the date filter.",
       "properties": {
         "Unit": {
-          "description": "",
+          "description": "A date range unit for the date filter.",
           "enum": [
             "DAYS"
           ],
           "type": "string"
         },
         "Value": {
-          "description": "",
+          "description": "A date range value for the date filter.",
           "type": "number"
         }
       },
@@ -97,10 +97,10 @@
       "additionalProperties": false
     },
     "MapFilter": {
-      "description": "",
+      "description": "A map filter for filtering ASHlong findings. Each map filter provides the field to check for, the value to check for, and the comparison operator.",
       "properties": {
         "Comparison": {
-          "description": "",
+          "description": "The condition to apply to the key value when filtering Security Hub findings with a map filter.\n To search for values that have the filter value, use one of the following comparison operators:\n  +  To search for values that include the filter value, use ``CONTAINS``. For example, for the ``ResourceTags`` field, the filter ``Department CONTAINS Security`` matches findings that include the value ``Security`` for the ``Department`` tag. In the same example, a finding with a value of ``Security team`` for the ``Department`` tag is a match.\n  +  To search for values that exactly match the filter value, use ``EQUALS``. For example, for the ``ResourceTags`` field, the filter ``Department EQUALS Security`` matches findings that have the value ``Security`` for the ``Department`` tag.\n  \n  ``CONTAINS`` and ``EQUALS`` filters on the same field are joined by ``OR``. A finding matches if it matches any one of those filters. For example, the filters ``Department CONTAINS Security OR Department CONTAINS Finance`` match a finding that includes either ``Security``, ``Finance``, or both values.\n To search for values that don't have the filter value, use one of the following comparison operators:\n  +  To search for values that exclude the filter value, use ``NOT_CONTAINS``. For example, for the ``ResourceTags`` field, the filter ``Department NOT_CONTAINS Finance`` matches findings that exclude the value ``Finance`` for the ``Department`` tag.\n  +  To search for values other than the filter value, use ``NOT_EQUALS``. For example, for the ``ResourceTags`` field, the filter ``Department NOT_EQUALS Finance`` matches findings that don?t have the value ``Finance`` for the ``Department`` tag.\n  \n  ``NOT_CONTAINS`` and ``NOT_EQUALS`` filters on the same field are joined by ``AND``. A finding matches only if it matches all of those filters. For example, the filters ``Department NOT_CONTAINS Security AND Department NOT_CONTAINS Finance`` match a finding that excludes both the ``Security`` and ``Finance`` values.\n  ``CONTAINS`` filters can only be used with other ``CONTAINS`` filters. ``NOT_CONTAINS`` filters can only be used with other ``NOT_CONTAINS`` filters.\n You can?t have both a ``CONTAINS`` filter and a ``NOT_CONTAINS`` filter on the same field. Similarly, you can?t have both an ``EQUALS`` filter and a ``NOT_EQUALS`` filter on the same field. Combining filters in this way returns an error. \n  ``CONTAINS`` and ``NOT_CONTAINS`` operators can be used only with automation rules. For more information, see [Automation rules](https://docs.aws.amazon.com/securityhub/latest/userguide/automation-rules.html) in the *User Guide*.",
           "enum": [
             "EQUALS",
             "NOT_EQUALS",
@@ -110,11 +110,11 @@
           "type": "string"
         },
         "Key": {
-          "description": "",
+          "description": "The key of the map filter. For example, for ``ResourceTags``, ``Key`` identifies the name of the tag. For ``UserDefinedFields``, ``Key`` is the name of the field.",
           "type": "string"
         },
         "Value": {
-          "description": "",
+          "description": "The value for the key in the map filter. Filter values are case sensitive. For example, one of the values for a tag called ``Department`` might be ``Security``. If you provide ``security`` as the filter value, then there's no match.",
           "type": "string"
         }
       },
@@ -127,18 +127,18 @@
       "additionalProperties": false
     },
     "NumberFilter": {
-      "description": "",
+      "description": "A number filter for querying findings.",
       "properties": {
         "Eq": {
-          "description": "",
+          "description": "The equal-to condition to be applied to a single field when querying for findings.",
           "type": "number"
         },
         "Gte": {
-          "description": "",
+          "description": "The greater-than-equal condition to be applied to a single field when querying for findings.",
           "type": "number"
         },
         "Lte": {
-          "description": "",
+          "description": "The less-than-equal condition to be applied to a single field when querying for findings.",
           "type": "number"
         }
       },
@@ -167,14 +167,14 @@
       "additionalProperties": false
     },
     "StringFilter": {
-      "description": "",
+      "description": "A string filter for filtering ASHlong findings.",
       "properties": {
         "Comparison": {
           "$ref": "#/definitions/StringFilterComparison",
-          "description": ""
+          "description": "The condition to apply to a string value when filtering Security Hub findings.\n To search for values that have the filter value, use one of the following comparison operators:\n  +  To search for values that include the filter value, use ``CONTAINS``. For example, the filter ``Title CONTAINS CloudFront`` matches findings that have a ``Title`` that includes the string CloudFront.\n  +  To search for values that exactly match the filter value, use ``EQUALS``. For example, the filter ``AwsAccountId EQUALS 123456789012`` only matches findings that have an account ID of ``123456789012``.\n  +  To search for values that start with the filter value, use ``PREFIX``. For example, the filter ``ResourceRegion PREFIX us`` matches findings that have a ``ResourceRegion`` that starts with ``us``. A ``ResourceRegion`` that starts with a different value, such as ``af``, ``ap``, or ``ca``, doesn't match.\n  \n  ``CONTAINS``, ``EQUALS``, and ``PREFIX`` filters on the same field are joined by ``OR``. A finding matches if it matches any one of those filters. For example, the filters ``Title CONTAINS CloudFront OR Title CONTAINS CloudWatch`` match a finding that includes either ``CloudFront``, ``CloudWatch``, or both strings in the title.\n To search for values that don?t have the filter value, use one of the following comparison operators:\n  +  To search for values that exclude the filter value, use ``NOT_CONTAINS``. For example, the filter ``Title NOT_CONTAINS CloudFront`` matches findings that have a ``Title`` that excludes the string CloudFront.\n  +  To search for values other than the filter value, use ``NOT_EQUALS``. For example, the filter ``AwsAccountId NOT_EQUALS 123456789012`` only matches findings that have an account ID other than ``123456789012``.\n  +  To search for values that don't start with the filter value, use ``PREFIX_NOT_EQUALS``. For example, the filter ``ResourceRegion PREFIX_NOT_EQUALS us`` matches findings with a ``ResourceRegion`` that starts with a value other than ``us``.\n  \n  ``NOT_CONTAINS``, ``NOT_EQUALS``, and ``PREFIX_NOT_EQUALS`` filters on the same field are joined by ``AND``. A finding matches only if it matches all of those filters. For example, the filters ``Title NOT_CONTAINS CloudFront AND Title NOT_CONTAINS CloudWatch`` match a finding that excludes both ``CloudFront`` and ``CloudWatch`` in the title.\n You can?t have both a ``CONTAINS`` filter and a ``NOT_CONTAINS`` filter on the same field. Similarly, you can't provide both an ``EQUALS`` filter and a ``NOT_EQUALS`` or ``PREFIX_NOT_EQUALS`` filter on the same field. Combining filters in this way returns an error. ``CONTAINS`` filters can only be used with other ``CONTAINS`` filters. ``NOT_CONTAINS`` filters can only be used with other ``NOT_CONTAINS`` filters. \n You can combine ``PREFIX`` filters with ``NOT_EQUALS`` or ``PREFIX_NOT_EQUALS`` filters for the same field. Security Hub first processes the ``PREFIX`` filters, and then the ``NOT_EQUALS`` or ``PREFIX_NOT_EQUALS`` filters.\n For example, for the following filters, Security Hub first identifies findings that have resource types that start with either ``AwsIam`` or ``AwsEc2``. It then excludes findings that have a resource type of ``AwsIamPolicy`` and findings that have a resource type of ``AwsEc2NetworkInterface``.\n  +   ``ResourceType PREFIX AwsIam`` \n  +   ``ResourceType PREFIX AwsEc2`` \n  +   ``ResourceType NOT_EQUALS AwsIamPolicy`` \n  +   ``ResourceType NOT_EQUALS AwsEc2NetworkInterface`` \n  \n  ``CONTAINS`` and ``NOT_CONTAINS`` operators can be used only with automation rules. For more information, see [Automation rules](https://docs.aws.amazon.com/securityhub/latest/userguide/automation-rules.html) in the *User Guide*."
         },
         "Value": {
-          "description": "",
+          "description": "The string filter value. Filter values are case sensitive. For example, the product name for control-based findings is ``Security Hub``. If you provide ``security hub`` as the filter value, there's no match.",
           "type": "string"
         }
       },
@@ -258,7 +258,7 @@
         },
         "Id": {
           "$ref": "#/definitions/arnOrId",
-          "description": ""
+          "description": "The product-generated identifier for a related finding. \n  Array Members: Minimum number of 1 item. Maximum number of 20 items."
         }
       },
       "additionalProperties": false,
@@ -268,18 +268,18 @@
       ]
     },
     "NoteUpdate": {
-      "description": "",
+      "description": "The updated note.",
       "type": "object",
       "properties": {
         "Text": {
-          "description": "",
+          "description": "The updated note text.",
           "type": "string",
           "minLength": 1,
           "maxLength": 512
         },
         "UpdatedBy": {
           "$ref": "#/definitions/arnOrId",
-          "description": ""
+          "description": "The principal that updated the note."
         }
       },
       "additionalProperties": false,
@@ -289,11 +289,11 @@
       ]
     },
     "WorkflowUpdate": {
-      "description": "",
+      "description": "Used to update information about the investigation into the finding.",
       "type": "object",
       "properties": {
         "Status": {
-          "description": "",
+          "description": "The status of the investigation into the finding. The workflow status is specific to an individual finding. It does not affect the generation of new findings. For example, setting the workflow status to ``SUPPRESSED`` or ``RESOLVED`` does not prevent a new finding for the same issue.\n The allowed values are the following.\n  +   ``NEW`` - The initial state of a finding, before it is reviewed.\n Security Hub also resets ``WorkFlowStatus`` from ``NOTIFIED`` or ``RESOLVED`` to ``NEW`` in the following cases:\n  +  The record state changes from ``ARCHIVED`` to ``ACTIVE``.\n  +  The compliance status changes from ``PASSED`` to either ``WARNING``, ``FAILED``, or ``NOT_AVAILABLE``.\n  \n  +   ``NOTIFIED`` - Indicates that you notified the resource owner about the security issue. Used when the initial reviewer is not the resource owner, and needs intervention from the resource owner.\n  +   ``RESOLVED`` - The finding was reviewed and remediated and is now considered resolved.\n  +   ``SUPPRESSED`` - Indicates that you reviewed the finding and do not believe that any action is needed. The finding is no longer updated.",
           "type": "string",
           "enum": [
             "NEW",
@@ -309,15 +309,15 @@
       "additionalProperties": false
     },
     "SeverityUpdate": {
-      "description": "",
+      "description": "Updates to the severity information for a finding.",
       "type": "object",
       "properties": {
         "Product": {
-          "description": "",
+          "description": "The native severity as defined by the AWS service or integrated partner product that generated the finding.",
           "type": "number"
         },
         "Label": {
-          "description": "",
+          "description": "The severity value of the finding. The allowed values are the following.\n  +   ``INFORMATIONAL`` - No issue was found.\n  +   ``LOW`` - The issue does not require action on its own.\n  +   ``MEDIUM`` - The issue must be addressed but not urgently.\n  +   ``HIGH`` - The issue must be addressed as a priority.\n  +   ``CRITICAL`` - The issue must be remediated immediately to avoid it escalating.",
           "type": "string",
           "enum": [
             "INFORMATIONAL",
@@ -329,17 +329,17 @@
         },
         "Normalized": {
           "$ref": "#/definitions/int100",
-          "description": ""
+          "description": "The normalized severity for the finding. This attribute is to be deprecated in favor of ``Label``.\n If you provide ``Normalized`` and do not provide ``Label``, ``Label`` is set automatically as follows.\n  +  0 - ``INFORMATIONAL`` \n  +  1?39 - ``LOW`` \n  +  40?69 - ``MEDIUM`` \n  +  70?89 - ``HIGH`` \n  +  90?100 - ``CRITICAL``"
         }
       },
       "additionalProperties": false
     },
     "AutomationRulesFindingFieldsUpdate": {
-      "description": "The rule action will update the ``Note`` field of a finding.",
+      "description": "Identifies the finding fields that the automation rule action updates when a finding matches the defined criteria.",
       "type": "object",
       "properties": {
         "Types": {
-          "description": "",
+          "description": "The rule action updates the ``Types`` field of a finding.",
           "type": "array",
           "maxItems": 50,
           "uniqueItems": true,
@@ -355,18 +355,18 @@
         },
         "Confidence": {
           "$ref": "#/definitions/int100",
-          "description": ""
+          "description": "The rule action updates the ``Confidence`` field of a finding."
         },
         "Criticality": {
           "$ref": "#/definitions/int100",
-          "description": ""
+          "description": "The rule action updates the ``Criticality`` field of a finding."
         },
         "UserDefinedFields": {
           "$ref": "#/definitions/map",
-          "description": ""
+          "description": "The rule action updates the ``UserDefinedFields`` field of a finding."
         },
         "VerificationState": {
-          "description": "",
+          "description": "The rule action updates the ``VerificationState`` field of a finding.",
           "type": "string",
           "enum": [
             "UNKNOWN",
@@ -397,11 +397,11 @@
       }
     },
     "AutomationRulesAction": {
-      "description": "",
+      "description": "One or more actions to update finding fields if a finding matches the defined criteria of the rule.",
       "type": "object",
       "properties": {
         "Type": {
-          "description": "",
+          "description": "Specifies that the rule action should update the ``Types`` finding field. The ``Types`` finding field classifies findings in the format of namespace/category/classifier. For more information, see [Types taxonomy for ASFF](https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-findings-format-type-taxonomy.html) in the *User Guide*.",
           "type": "string",
           "enum": [
             "FINDING_FIELDS_UPDATE"
@@ -409,7 +409,7 @@
         },
         "FindingFieldsUpdate": {
           "$ref": "#/definitions/AutomationRulesFindingFieldsUpdate",
-          "description": ""
+          "description": "Specifies that the automation rule action is an update to a finding field."
         }
       },
       "required": [
@@ -418,12 +418,12 @@
       ]
     },
     "AutomationRulesFindingFilters": {
-      "description": "",
+      "description": "The criteria that determine which findings a rule applies to.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "ProductArn": {
-          "description": "",
+          "description": "The Amazon Resource Name (ARN) for a third-party product that generated a finding in Security Hub. \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -431,7 +431,7 @@
           "maxItems": 20
         },
         "AwsAccountId": {
-          "description": "",
+          "description": "The AWS-account ID in which a finding was generated.\n  Array Members: Minimum number of 1 item. Maximum number of 100 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -439,7 +439,7 @@
           "maxItems": 100
         },
         "Id": {
-          "description": "",
+          "description": "The product-specific identifier for a finding. \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -447,7 +447,7 @@
           "maxItems": 20
         },
         "GeneratorId": {
-          "description": "",
+          "description": "The identifier for the solution-specific component that generated a finding. \n  Array Members: Minimum number of 1 item. Maximum number of 100 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -455,7 +455,7 @@
           "maxItems": 100
         },
         "Type": {
-          "description": "",
+          "description": "One or more finding types in the format of namespace/category/classifier that classify a finding. For a list of namespaces, classifiers, and categories, see [Types taxonomy for ASFF](https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-findings-format-type-taxonomy.html) in the *User Guide*.\n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -463,7 +463,7 @@
           "maxItems": 20
         },
         "FirstObservedAt": {
-          "description": "",
+          "description": "A timestamp that indicates when the potential security issue captured by a finding was first observed by the security findings product. \n This field accepts only the specified formats. Timestamps can end with ``Z`` or ``(\"+\" / \"-\") time-hour [\":\" time-minute]``. The time-secfrac after seconds is limited to a maximum of 9 digits. The offset is bounded by +/-18:00. Here are valid timestamp formats with examples:\n  +   ``YYYY-MM-DDTHH:MM:SSZ`` (for example, ``2019-01-31T23:00:00Z``)\n  +   ``YYYY-MM-DDTHH:MM:SS.mmmmmmmmmZ`` (for example, ``2019-01-31T23:00:00.123456789Z``)\n  +   ``YYYY-MM-DDTHH:MM:SS+HH:MM`` (for example, ``2024-01-04T15:25:10+17:59``)\n  +   ``YYYY-MM-DDTHH:MM:SS-HHMM`` (for example, ``2024-01-04T15:25:10-1759``)\n  +   ``YYYY-MM-DDTHH:MM:SS.mmmmmmmmm+HH:MM`` (for example, ``2024-01-04T15:25:10.123456789+17:59``)\n  \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/DateFilter"
           },
@@ -471,7 +471,7 @@
           "maxItems": 20
         },
         "LastObservedAt": {
-          "description": "",
+          "description": "A timestamp that indicates when the potential security issue captured by a finding was most recently observed by the security findings product. \n This field accepts only the specified formats. Timestamps can end with ``Z`` or ``(\"+\" / \"-\") time-hour [\":\" time-minute]``. The time-secfrac after seconds is limited to a maximum of 9 digits. The offset is bounded by +/-18:00. Here are valid timestamp formats with examples:\n  +   ``YYYY-MM-DDTHH:MM:SSZ`` (for example, ``2019-01-31T23:00:00Z``)\n  +   ``YYYY-MM-DDTHH:MM:SS.mmmmmmmmmZ`` (for example, ``2019-01-31T23:00:00.123456789Z``)\n  +   ``YYYY-MM-DDTHH:MM:SS+HH:MM`` (for example, ``2024-01-04T15:25:10+17:59``)\n  +   ``YYYY-MM-DDTHH:MM:SS-HHMM`` (for example, ``2024-01-04T15:25:10-1759``)\n  +   ``YYYY-MM-DDTHH:MM:SS.mmmmmmmmm+HH:MM`` (for example, ``2024-01-04T15:25:10.123456789+17:59``)\n  \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/DateFilter"
           },
@@ -479,7 +479,7 @@
           "maxItems": 20
         },
         "CreatedAt": {
-          "description": "",
+          "description": "A timestamp that indicates when this finding record was created. \n This field accepts only the specified formats. Timestamps can end with ``Z`` or ``(\"+\" / \"-\") time-hour [\":\" time-minute]``. The time-secfrac after seconds is limited to a maximum of 9 digits. The offset is bounded by +/-18:00. Here are valid timestamp formats with examples:\n  +   ``YYYY-MM-DDTHH:MM:SSZ`` (for example, ``2019-01-31T23:00:00Z``)\n  +   ``YYYY-MM-DDTHH:MM:SS.mmmmmmmmmZ`` (for example, ``2019-01-31T23:00:00.123456789Z``)\n  +   ``YYYY-MM-DDTHH:MM:SS+HH:MM`` (for example, ``2024-01-04T15:25:10+17:59``)\n  +   ``YYYY-MM-DDTHH:MM:SS-HHMM`` (for example, ``2024-01-04T15:25:10-1759``)\n  +   ``YYYY-MM-DDTHH:MM:SS.mmmmmmmmm+HH:MM`` (for example, ``2024-01-04T15:25:10.123456789+17:59``)\n  \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/DateFilter"
           },
@@ -487,7 +487,7 @@
           "maxItems": 20
         },
         "UpdatedAt": {
-          "description": "",
+          "description": "A timestamp that indicates when the finding record was most recently updated. \n This field accepts only the specified formats. Timestamps can end with ``Z`` or ``(\"+\" / \"-\") time-hour [\":\" time-minute]``. The time-secfrac after seconds is limited to a maximum of 9 digits. The offset is bounded by +/-18:00. Here are valid timestamp formats with examples:\n  +   ``YYYY-MM-DDTHH:MM:SSZ`` (for example, ``2019-01-31T23:00:00Z``)\n  +   ``YYYY-MM-DDTHH:MM:SS.mmmmmmmmmZ`` (for example, ``2019-01-31T23:00:00.123456789Z``)\n  +   ``YYYY-MM-DDTHH:MM:SS+HH:MM`` (for example, ``2024-01-04T15:25:10+17:59``)\n  +   ``YYYY-MM-DDTHH:MM:SS-HHMM`` (for example, ``2024-01-04T15:25:10-1759``)\n  +   ``YYYY-MM-DDTHH:MM:SS.mmmmmmmmm+HH:MM`` (for example, ``2024-01-04T15:25:10.123456789+17:59``)\n  \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/DateFilter"
           },
@@ -495,7 +495,7 @@
           "maxItems": 20
         },
         "Confidence": {
-          "description": "",
+          "description": "The likelihood that a finding accurately identifies the behavior or issue that it was intended to identify. ``Confidence`` is scored on a 0?100 basis using a ratio scale. A value of ``0`` means 0 percent confidence, and a value of ``100`` means 100 percent confidence. For example, a data exfiltration detection based on a statistical deviation of network traffic has low confidence because an actual exfiltration hasn't been verified. For more information, see [Confidence](https://docs.aws.amazon.com/securityhub/latest/userguide/asff-top-level-attributes.html#asff-confidence) in the *User Guide*.\n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/NumberFilter"
           },
@@ -503,7 +503,7 @@
           "maxItems": 20
         },
         "Criticality": {
-          "description": "",
+          "description": "The level of importance that is assigned to the resources that are associated with a finding. ``Criticality`` is scored on a 0?100 basis, using a ratio scale that supports only full integers. A score of ``0`` means that the underlying resources have no criticality, and a score of ``100`` is reserved for the most critical resources. For more information, see [Criticality](https://docs.aws.amazon.com/securityhub/latest/userguide/asff-top-level-attributes.html#asff-criticality) in the *User Guide*.\n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/NumberFilter"
           },
@@ -511,7 +511,7 @@
           "maxItems": 20
         },
         "Title": {
-          "description": "",
+          "description": "A finding's title. \n  Array Members: Minimum number of 1 item. Maximum number of 100 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -519,7 +519,7 @@
           "maxItems": 100
         },
         "Description": {
-          "description": "",
+          "description": "A finding's description. \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -527,7 +527,7 @@
           "maxItems": 20
         },
         "SourceUrl": {
-          "description": "",
+          "description": "Provides a URL that links to a page about the current finding in the finding product. \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -535,7 +535,7 @@
           "maxItems": 20
         },
         "ProductName": {
-          "description": "",
+          "description": "Provides the name of the product that generated the finding. For control-based findings, the product name is Security Hub. \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -543,7 +543,7 @@
           "maxItems": 20
         },
         "CompanyName": {
-          "description": "",
+          "description": "The name of the company for the product that generated the finding. For control-based findings, the company is AWS. \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -551,7 +551,7 @@
           "maxItems": 20
         },
         "SeverityLabel": {
-          "description": "",
+          "description": "The severity value of the finding. \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -559,7 +559,7 @@
           "maxItems": 20
         },
         "ResourceType": {
-          "description": "",
+          "description": "A finding's title. \n  Array Members: Minimum number of 1 item. Maximum number of 100 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -567,7 +567,7 @@
           "maxItems": 20
         },
         "ResourceId": {
-          "description": "",
+          "description": "The identifier for the given resource type. For AWS resources that are identified by Amazon Resource Names (ARNs), this is the ARN. For AWS resources that lack ARNs, this is the identifier as defined by the AWS-service that created the resource. For non-AWS resources, this is a unique identifier that is associated with the resource. \n  Array Members: Minimum number of 1 item. Maximum number of 100 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -575,7 +575,7 @@
           "maxItems": 100
         },
         "ResourcePartition": {
-          "description": "",
+          "description": "The partition in which the resource that the finding pertains to is located. A partition is a group of AWS-Regions. Each AWS-account is scoped to one partition. \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -583,7 +583,7 @@
           "maxItems": 20
         },
         "ResourceRegion": {
-          "description": "",
+          "description": "The AWS-Region where the resource that a finding pertains to is located. \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -591,7 +591,7 @@
           "maxItems": 20
         },
         "ResourceTags": {
-          "description": "",
+          "description": "A list of AWS tags associated with a resource at the time the finding was processed. \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/MapFilter"
           },
@@ -599,7 +599,7 @@
           "maxItems": 20
         },
         "ResourceDetailsOther": {
-          "description": "",
+          "description": "Custom fields and values about the resource that a finding pertains to. \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/MapFilter"
           },
@@ -607,7 +607,7 @@
           "maxItems": 20
         },
         "ComplianceStatus": {
-          "description": "",
+          "description": "The result of a security check. This field is only used for findings generated from controls. \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -615,7 +615,7 @@
           "maxItems": 20
         },
         "ComplianceSecurityControlId": {
-          "description": "",
+          "description": "The security control ID for which a finding was generated. Security control IDs are the same across standards.\n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -623,7 +623,7 @@
           "maxItems": 20
         },
         "ComplianceAssociatedStandardsId": {
-          "description": "",
+          "description": "The unique identifier of a standard in which a control is enabled. This field consists of the resource portion of the Amazon Resource Name (ARN) returned for a standard in the [DescribeStandards](https://docs.aws.amazon.com/securityhub/1.0/APIReference/API_DescribeStandards.html) API response.\n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -631,7 +631,7 @@
           "maxItems": 20
         },
         "VerificationState": {
-          "description": "",
+          "description": "Provides the veracity of a finding. \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -639,7 +639,7 @@
           "maxItems": 20
         },
         "WorkflowStatus": {
-          "description": "",
+          "description": "Provides information about the status of the investigation into a finding. \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -647,7 +647,7 @@
           "maxItems": 20
         },
         "RecordState": {
-          "description": "",
+          "description": "Provides the current state of a finding. \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -655,7 +655,7 @@
           "maxItems": 20
         },
         "RelatedFindingsProductArn": {
-          "description": "",
+          "description": "The ARN for the product that generated a related finding. \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -663,7 +663,7 @@
           "maxItems": 20
         },
         "RelatedFindingsId": {
-          "description": "",
+          "description": "The product-generated identifier for a related finding. \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -671,7 +671,7 @@
           "maxItems": 20
         },
         "NoteText": {
-          "description": "",
+          "description": "The text of a user-defined note that's added to a finding. \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -679,7 +679,7 @@
           "maxItems": 20
         },
         "NoteUpdatedAt": {
-          "description": "",
+          "description": "The timestamp of when the note was updated.\n This field accepts only the specified formats. Timestamps can end with ``Z`` or ``(\"+\" / \"-\") time-hour [\":\" time-minute]``. The time-secfrac after seconds is limited to a maximum of 9 digits. The offset is bounded by +/-18:00. Here are valid timestamp formats with examples:\n  +   ``YYYY-MM-DDTHH:MM:SSZ`` (for example, ``2019-01-31T23:00:00Z``)\n  +   ``YYYY-MM-DDTHH:MM:SS.mmmmmmmmmZ`` (for example, ``2019-01-31T23:00:00.123456789Z``)\n  +   ``YYYY-MM-DDTHH:MM:SS+HH:MM`` (for example, ``2024-01-04T15:25:10+17:59``)\n  +   ``YYYY-MM-DDTHH:MM:SS-HHMM`` (for example, ``2024-01-04T15:25:10-1759``)\n  +   ``YYYY-MM-DDTHH:MM:SS.mmmmmmmmm+HH:MM`` (for example, ``2024-01-04T15:25:10.123456789+17:59``)\n  \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/DateFilter"
           },
@@ -687,7 +687,7 @@
           "maxItems": 20
         },
         "NoteUpdatedBy": {
-          "description": "",
+          "description": "The principal that created a note. \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/StringFilter"
           },
@@ -695,7 +695,7 @@
           "maxItems": 20
         },
         "UserDefinedFields": {
-          "description": "",
+          "description": "A list of user-defined name and value string pairs added to a finding. \n  Array Members: Minimum number of 1 item. Maximum number of 20 items.",
           "items": {
             "$ref": "#/definitions/MapFilter"
           },
@@ -720,19 +720,19 @@
       ]
     },
     "RuleOrder": {
-      "description": "",
+      "description": "An integer ranging from 1 to 1000 that represents the order in which the rule action is applied to findings. Security Hub applies rules with lower values for this parameter first.",
       "type": "integer",
       "minimum": 1,
       "maximum": 1000
     },
     "Description": {
-      "description": "",
+      "description": "A description of the rule.",
       "type": "string",
       "minLength": 1,
       "maxLength": 1024
     },
     "RuleName": {
-      "description": "",
+      "description": "The name of the rule.",
       "type": "string",
       "minLength": 1,
       "maxLength": 256
@@ -752,12 +752,12 @@
       "maxLength": 256
     },
     "IsTerminal": {
-      "description": "",
+      "description": "Specifies whether a rule is the last to be applied with respect to a finding that matches the rule criteria. This is useful when a finding matches the criteria for multiple rules, and each rule has different actions. If a rule is terminal, Security Hub applies the rule action to a finding that matches the rule criteria and doesn't evaluate other rules for the finding. By default, a rule isn't terminal.",
       "type": "boolean"
     },
     "Actions": {
       "type": "array",
-      "description": "",
+      "description": "One or more actions to update finding fields if a finding matches the conditions specified in ``Criteria``.",
       "items": {
         "$ref": "#/definitions/AutomationRulesAction"
       },
@@ -769,11 +769,18 @@
       "$ref": "#/definitions/AutomationRulesFindingFilters"
     },
     "Tags": {
-      "description": "",
+      "description": "User-defined tags associated with an automation rule.",
       "$ref": "#/definitions/Tags"
     }
   },
   "additionalProperties": false,
+  "required": [
+    "RuleOrder",
+    "RuleName",
+    "Description",
+    "Criteria",
+    "Actions"
+  ],
   "primaryIdentifier": [
     "/properties/RuleArn"
   ],

@@ -10,10 +10,10 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.31.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.39
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.37
-	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.17.3
+	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.18.0
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.54.3
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.179.2
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.63.3
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.64.0
 	github.com/aws/aws-sdk-go-v2/service/sts v1.31.3
 	github.com/aws/smithy-go v1.21.0
 	github.com/chzyer/readline v1.5.1
@@ -38,7 +38,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kms v1.36.3
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.41.3
 	github.com/aws/aws-sdk-go-v2/service/rds v1.86.0
-	github.com/aws/aws-sdk-go-v2/service/sagemaker v1.161.1
+	github.com/aws/aws-sdk-go-v2/service/sagemaker v1.162.0
 	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.24.3
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.54.3
 	github.com/fatih/color v1.17.0

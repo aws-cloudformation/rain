@@ -35,12 +35,19 @@
       "minLength": 12,
       "maxLength": 1024
     },
+    "EventSourceMappingArn": {
+      "description": "",
+      "type": "string",
+      "pattern": "arn:(aws[a-zA-Z-]*)?:lambda:[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:\\d{12}:event-source-mapping:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
+      "minLength": 85,
+      "maxLength": 120
+    },
     "FilterCriteria": {
       "description": "An object that defines the filter criteria that determine whether Lambda should process an event. For more information, see [Lambda event filtering](https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventfiltering.html).",
       "$ref": "#/definitions/FilterCriteria"
     },
     "KmsKeyArn": {
-      "description": "",
+      "description": "The ARN of the KMSlong (KMS) customer managed key that Lambda uses to encrypt your function's [filter criteria](https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventfiltering.html#filtering-basics).",
       "type": "string",
       "pattern": "(arn:(aws[a-zA-Z-]*)?:[a-z0-9-.]+:.*)|()",
       "minLength": 12,
@@ -88,6 +95,15 @@
       "description": "With ``StartingPosition`` set to ``AT_TIMESTAMP``, the time from which to start reading, in Unix time seconds. ``StartingPositionTimestamp`` cannot be in the future.",
       "type": "number"
     },
+    "Tags": {
+      "description": "",
+      "type": "array",
+      "uniqueItems": true,
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
+    },
     "Topics": {
       "description": "The name of the Kafka topic.",
       "type": "array",
@@ -131,7 +147,7 @@
       "maximum": 900
     },
     "FunctionResponseTypes": {
-      "description": "(Streams and SQS) A list of current response type enums applied to the event source mapping.\n Valid Values: ``ReportBatchItemFailures``",
+      "description": "(Kinesis, DynamoDB Streams, and SQS) A list of current response type enums applied to the event source mapping.\n Valid Values: ``ReportBatchItemFailures``",
       "type": "array",
       "uniqueItems": true,
       "items": {
@@ -327,6 +343,28 @@
         }
       }
     },
+    "Tag": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Key": {
+          "type": "string",
+          "description": "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "Value": {
+          "type": "string",
+          "description": "The value for the tag. You can specify a value that is 0 to 256 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.",
+          "minLength": 0,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "Key"
+      ],
+      "description": ""
+    },
     "DocumentDBEventSourceConfig": {
       "description": "Specific configuration settings for a DocumentDB event source.",
       "type": "object",
@@ -367,7 +405,8 @@
     "/properties/SelfManagedKafkaEventSourceConfig"
   ],
   "readOnlyProperties": [
-    "/properties/Id"
+    "/properties/Id",
+    "/properties/EventSourceMappingArn"
   ],
   "primaryIdentifier": [
     "/properties/Id"
@@ -380,6 +419,7 @@
       "permissions": [
         "lambda:CreateEventSourceMapping",
         "lambda:GetEventSourceMapping",
+        "lambda:TagResource",
         "kms:DescribeKey",
         "kms:GenerateDataKey",
         "kms:Decrypt"
@@ -400,6 +440,7 @@
     "read": {
       "permissions": [
         "lambda:GetEventSourceMapping",
+        "lambda:ListTags",
         "kms:Decrypt"
       ]
     },
@@ -407,6 +448,9 @@
       "permissions": [
         "lambda:UpdateEventSourceMapping",
         "lambda:GetEventSourceMapping",
+        "lambda:ListTags",
+        "lambda:TagResource",
+        "lambda:UntagResource",
         "kms:DescribeKey",
         "kms:GenerateDataKey",
         "kms:Decrypt"
@@ -414,9 +458,10 @@
     }
   },
   "tagging": {
-    "taggable": false,
-    "tagOnCreate": false,
-    "tagUpdatable": false,
-    "cloudFormationSystemTags": false
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags"
   }
 }

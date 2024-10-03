@@ -34,6 +34,17 @@
     "Sli": {
       "$ref": "#/definitions/Sli"
     },
+    "RequestBasedSli": {
+      "$ref": "#/definitions/RequestBasedSli"
+    },
+    "EvaluationType": {
+      "description": "Displays whether this is a period-based SLO or a request-based SLO.",
+      "type": "string",
+      "enum": [
+        "PeriodBased",
+        "RequestBased"
+      ]
+    },
     "Goal": {
       "$ref": "#/definitions/Goal"
     },
@@ -42,13 +53,13 @@
     }
   },
   "required": [
-    "Name",
-    "Sli"
+    "Name"
   ],
   "readOnlyProperties": [
     "/properties/Arn",
     "/properties/CreatedTime",
-    "/properties/LastUpdatedTime"
+    "/properties/LastUpdatedTime",
+    "/properties/EvaluationType"
   ],
   "primaryIdentifier": [
     "/properties/Arn"
@@ -84,6 +95,33 @@
         "SliMetric",
         "MetricThreshold",
         "ComparisonOperator"
+      ]
+    },
+    "RequestBasedSli": {
+      "description": "This structure contains information about the performance metric that a request-based SLO monitors.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "RequestBasedSliMetric": {
+          "$ref": "#/definitions/RequestBasedSliMetric"
+        },
+        "MetricThreshold": {
+          "description": "The value that the SLI metric is compared to.",
+          "type": "number"
+        },
+        "ComparisonOperator": {
+          "description": "The arithmetic operation used when comparing the specified metric to the threshold.",
+          "type": "string",
+          "enum": [
+            "GreaterThanOrEqualTo",
+            "LessThanOrEqualTo",
+            "LessThan",
+            "GreaterThan"
+          ]
+        }
+      },
+      "required": [
+        "RequestBasedSliMetric"
       ]
     },
     "Goal": {
@@ -139,6 +177,52 @@
           "maximum": 900
         },
         "MetricDataQueries": {
+          "$ref": "#/definitions/MetricDataQueries"
+        }
+      }
+    },
+    "RequestBasedSliMetric": {
+      "description": "This structure contains the information about the metric that is used for a request-based SLO.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "KeyAttributes": {
+          "$ref": "#/definitions/KeyAttributes"
+        },
+        "OperationName": {
+          "description": "If the SLO monitors a specific operation of the service, this field displays that operation name.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "MetricType": {
+          "description": "If the SLO monitors either the LATENCY or AVAILABILITY metric that Application Signals collects, this field displays which of those metrics is used.",
+          "type": "string",
+          "enum": [
+            "LATENCY",
+            "AVAILABILITY"
+          ]
+        },
+        "TotalRequestCountMetric": {
+          "description": "This structure defines the metric that is used as the \"total requests\" number for a request-based SLO. The number observed for this metric is divided by the number of \"good requests\" or \"bad requests\" that is observed for the metric defined in `MonitoredRequestCountMetric`.",
+          "$ref": "#/definitions/MetricDataQueries"
+        },
+        "MonitoredRequestCountMetric": {
+          "$ref": "#/definitions/MonitoredRequestCountMetric"
+        }
+      }
+    },
+    "MonitoredRequestCountMetric": {
+      "description": "This structure defines the metric that is used as the \"good request\" or \"bad request\" value for a request-based SLO. This value observed for the metric defined in `TotalRequestCountMetric` is divided by the number found for `MonitoredRequestCountMetric` to determine the percentage of successful requests that this SLO tracks.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "GoodCountMetric": {
+          "description": "If you want to count \"good requests\" to determine the percentage of successful requests for this request-based SLO, specify the metric to use as \"good requests\" in this structure.",
+          "$ref": "#/definitions/MetricDataQueries"
+        },
+        "BadCountMetric": {
+          "description": "If you want to count \"bad requests\" to determine the percentage of successful requests for this request-based SLO, specify the metric to use as \"bad requests\" in this structure.",
           "$ref": "#/definitions/MetricDataQueries"
         }
       }
@@ -409,6 +493,11 @@
     "tagOnCreate": true,
     "tagUpdatable": true,
     "cloudFormationSystemTags": true,
-    "tagProperty": "/properties/Tags"
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "application-signals:ListTagsForResource",
+      "application-signals:TagResource",
+      "application-signals:UntagResource"
+    ]
   }
 }

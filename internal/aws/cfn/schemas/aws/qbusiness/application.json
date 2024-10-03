@@ -31,6 +31,28 @@
         "DISABLED"
       ]
     },
+    "AutoSubscriptionConfiguration": {
+      "type": "object",
+      "properties": {
+        "AutoSubscribe": {
+          "$ref": "#/definitions/AutoSubscriptionStatus"
+        },
+        "DefaultSubscriptionType": {
+          "$ref": "#/definitions/SubscriptionType"
+        }
+      },
+      "required": [
+        "AutoSubscribe"
+      ],
+      "additionalProperties": false
+    },
+    "AutoSubscriptionStatus": {
+      "type": "string",
+      "enum": [
+        "ENABLED",
+        "DISABLED"
+      ]
+    },
     "EncryptionConfiguration": {
       "type": "object",
       "properties": {
@@ -41,6 +63,14 @@
         }
       },
       "additionalProperties": false
+    },
+    "IdentityType": {
+      "type": "string",
+      "enum": [
+        "AWS_IAM_IDP_SAML",
+        "AWS_IAM_IDP_OIDC",
+        "AWS_IAM_IDC"
+      ]
     },
     "QAppsConfiguration": {
       "type": "object",
@@ -55,6 +85,32 @@
       "additionalProperties": false
     },
     "QAppsControlMode": {
+      "type": "string",
+      "enum": [
+        "ENABLED",
+        "DISABLED"
+      ]
+    },
+    "SubscriptionType": {
+      "type": "string",
+      "enum": [
+        "Q_LITE",
+        "Q_BUSINESS"
+      ]
+    },
+    "PersonalizationConfiguration": {
+      "type": "object",
+      "properties": {
+        "PersonalizationControlMode": {
+          "$ref": "#/definitions/PersonalizationControlMode"
+        }
+      },
+      "required": [
+        "PersonalizationControlMode"
+      ],
+      "additionalProperties": false
+    },
+    "PersonalizationControlMode": {
       "type": "string",
       "enum": [
         "ENABLED",
@@ -98,6 +154,19 @@
     "AttachmentsConfiguration": {
       "$ref": "#/definitions/AttachmentsConfiguration"
     },
+    "AutoSubscriptionConfiguration": {
+      "$ref": "#/definitions/AutoSubscriptionConfiguration"
+    },
+    "ClientIdsForOIDC": {
+      "type": "array",
+      "insertionOrder": false,
+      "items": {
+        "type": "string",
+        "maxLength": 255,
+        "minLength": 1,
+        "pattern": "^[a-zA-Z0-9_.:/()*?=-]*$"
+      }
+    },
     "CreatedAt": {
       "type": "string",
       "format": "date-time"
@@ -117,6 +186,12 @@
     "EncryptionConfiguration": {
       "$ref": "#/definitions/EncryptionConfiguration"
     },
+    "IamIdentityProviderArn": {
+      "type": "string",
+      "maxLength": 2048,
+      "minLength": 20,
+      "pattern": "^arn:aws:iam::\\d{12}:(oidc-provider|saml-provider)/[a-zA-Z0-9_\\.\\/@\\-]+$"
+    },
     "IdentityCenterApplicationArn": {
       "type": "string",
       "maxLength": 1224,
@@ -126,11 +201,17 @@
     "QAppsConfiguration": {
       "$ref": "#/definitions/QAppsConfiguration"
     },
+    "PersonalizationConfiguration": {
+      "$ref": "#/definitions/PersonalizationConfiguration"
+    },
     "IdentityCenterInstanceArn": {
       "type": "string",
       "maxLength": 1224,
       "minLength": 10,
       "pattern": "^arn:(aws|aws-us-gov|aws-cn|aws-iso|aws-iso-b):sso:::instance/(sso)?ins-[a-zA-Z0-9-.]{16}$"
+    },
+    "IdentityType": {
+      "$ref": "#/definitions/IdentityType"
     },
     "RoleArn": {
       "type": "string",
@@ -170,7 +251,10 @@
     "/properties/IdentityCenterInstanceArn"
   ],
   "createOnlyProperties": [
-    "/properties/EncryptionConfiguration"
+    "/properties/ClientIdsForOIDC",
+    "/properties/EncryptionConfiguration",
+    "/properties/IamIdentityProviderArn",
+    "/properties/IdentityType"
   ],
   "primaryIdentifier": [
     "/properties/ApplicationId"
@@ -178,19 +262,21 @@
   "handlers": {
     "create": {
       "permissions": [
+        "iam:GetSAMLProvider",
         "iam:PassRole",
         "kms:CreateGrant",
         "kms:DescribeKey",
         "qbusiness:CreateApplication",
         "qbusiness:GetApplication",
+        "qbusiness:UpdateApplication",
         "qbusiness:ListTagsForResource",
         "qbusiness:TagResource",
         "sso:CreateApplication",
         "sso:DeleteApplication",
+        "sso:DescribeInstance",
         "sso:PutApplicationAccessScope",
         "sso:PutApplicationAuthenticationMethod",
-        "sso:PutApplicationGrant",
-        "sso:DescribeInstance"
+        "sso:PutApplicationGrant"
       ]
     },
     "read": {
@@ -209,10 +295,10 @@
         "qbusiness:UpdateApplication",
         "sso:CreateApplication",
         "sso:DeleteApplication",
+        "sso:DescribeInstance",
         "sso:PutApplicationAccessScope",
         "sso:PutApplicationAuthenticationMethod",
-        "sso:PutApplicationGrant",
-        "sso:DescribeInstance"
+        "sso:PutApplicationGrant"
       ]
     },
     "delete": {

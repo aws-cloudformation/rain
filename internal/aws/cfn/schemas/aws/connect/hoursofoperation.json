@@ -1,24 +1,88 @@
 {
-  "typeName": "AWS::Connect::HoursOfOperation",
-  "description": "Resource Type definition for AWS::Connect::HoursOfOperation",
   "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-connect",
+  "tagging": {
+    "permissions": [
+      "connect:TagResource",
+      "connect:UntagResource"
+    ],
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "tagProperty": "/properties/Tags",
+    "cloudFormationSystemTags": true
+  },
+  "handlers": {
+    "read": {
+      "permissions": [
+        "connect:DescribeHoursOfOperation",
+        "connect:ListHoursOfOperationOverrides"
+      ]
+    },
+    "create": {
+      "permissions": [
+        "connect:CreateHoursOfOperation",
+        "connect:TagResource",
+        "connect:CreateHoursOfOperationOverride"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "connect:UpdateHoursOfOperation",
+        "connect:CreateHoursOfOperationOverride",
+        "connect:UpdateHoursOfOperationOverride",
+        "connect:DeleteHoursOfOperationOverride",
+        "connect:TagResource",
+        "connect:UntagResource"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "connect:ListHoursOfOperations"
+      ],
+      "handlerSchema": {
+        "properties": {
+          "InstanceArn": {
+            "$ref": "resource-schema.json#/properties/InstanceArn"
+          }
+        },
+        "required": [
+          "InstanceArn"
+        ]
+      }
+    },
+    "delete": {
+      "permissions": [
+        "connect:DeleteHoursOfOperation",
+        "connect:UntagResource"
+      ]
+    }
+  },
+  "typeName": "AWS::Connect::HoursOfOperation",
+  "readOnlyProperties": [
+    "/properties/HoursOfOperationArn"
+  ],
+  "description": "Resource Type definition for AWS::Connect::HoursOfOperation",
+  "additionalProperties": false,
+  "primaryIdentifier": [
+    "/properties/HoursOfOperationArn"
+  ],
   "definitions": {
     "HoursOfOperationTimeSlice": {
       "description": "The start time or end time for an hours of operation.",
-      "type": "object",
       "additionalProperties": false,
+      "type": "object",
       "properties": {
         "Hours": {
-          "type": "integer",
           "description": "The hours.",
-          "minimum": 0,
-          "maximum": 23
+          "maximum": 23,
+          "type": "integer",
+          "minimum": 0
         },
         "Minutes": {
-          "type": "integer",
           "description": "The minutes.",
-          "minimum": 0,
-          "maximum": 59
+          "maximum": 59,
+          "type": "integer",
+          "minimum": 0
         }
       },
       "required": [
@@ -28,12 +92,20 @@
     },
     "HoursOfOperationConfig": {
       "description": "Contains information about the hours of operation.",
-      "type": "object",
       "additionalProperties": false,
+      "type": "object",
       "properties": {
+        "EndTime": {
+          "description": "The end time that your contact center closes.",
+          "$ref": "#/definitions/HoursOfOperationTimeSlice"
+        },
+        "StartTime": {
+          "description": "The start time that your contact center opens.",
+          "$ref": "#/definitions/HoursOfOperationTimeSlice"
+        },
         "Day": {
-          "type": "string",
           "description": "The day that the hours of operation applies to.",
+          "type": "string",
           "enum": [
             "SUNDAY",
             "MONDAY",
@@ -43,14 +115,6 @@
             "FRIDAY",
             "SATURDAY"
           ]
-        },
-        "StartTime": {
-          "description": "The start time that your contact center opens.",
-          "$ref": "#/definitions/HoursOfOperationTimeSlice"
-        },
-        "EndTime": {
-          "description": "The end time that your contact center closes.",
-          "$ref": "#/definitions/HoursOfOperationTimeSlice"
         }
       },
       "required": [
@@ -61,20 +125,20 @@
     },
     "Tag": {
       "description": "A key-value pair to associate with a resource.",
-      "type": "object",
       "additionalProperties": false,
+      "type": "object",
       "properties": {
-        "Key": {
-          "type": "string",
-          "description": "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -. ",
-          "minLength": 1,
-          "maxLength": 128,
-          "pattern": "^(?!aws:)[a-zA-Z+-=._:/]+$"
-        },
         "Value": {
-          "type": "string",
           "description": "The value for the tag. You can specify a value that is maximum of 256 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -. ",
+          "type": "string",
           "maxLength": 256
+        },
+        "Key": {
+          "minLength": 1,
+          "pattern": "^(?!aws:)[a-zA-Z+-=._:/]+$",
+          "description": "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -. ",
+          "type": "string",
+          "maxLength": 128
         }
       },
       "required": [
@@ -83,113 +147,58 @@
       ]
     }
   },
-  "properties": {
-    "InstanceArn": {
-      "description": "The identifier of the Amazon Connect instance.",
-      "type": "string",
-      "pattern": "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$"
-    },
-    "Name": {
-      "description": "The name of the hours of operation.",
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 127
-    },
-    "Description": {
-      "description": "The description of the hours of operation.",
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 250
-    },
-    "TimeZone": {
-      "description": "The time zone of the hours of operation.",
-      "type": "string"
-    },
-    "Config": {
-      "description": "Configuration information for the hours of operation: day, start time, and end time.",
-      "type": "array",
-      "maxItems": 100,
-      "uniqueItems": true,
-      "insertionOrder": false,
-      "items": {
-        "$ref": "#/definitions/HoursOfOperationConfig"
-      }
-    },
-    "HoursOfOperationArn": {
-      "description": "The Amazon Resource Name (ARN) for the hours of operation.",
-      "type": "string",
-      "pattern": "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/operating-hours/[-a-zA-Z0-9]*$"
-    },
-    "Tags": {
-      "description": "One or more tags.",
-      "type": "array",
-      "maxItems": 50,
-      "uniqueItems": true,
-      "insertionOrder": false,
-      "items": {
-        "$ref": "#/definitions/Tag"
-      }
-    }
-  },
   "required": [
     "InstanceArn",
     "Name",
     "TimeZone",
     "Config"
   ],
-  "handlers": {
-    "create": {
-      "permissions": [
-        "connect:CreateHoursOfOperation",
-        "connect:TagResource"
-      ]
+  "properties": {
+    "TimeZone": {
+      "description": "The time zone of the hours of operation.",
+      "type": "string"
     },
-    "read": {
-      "permissions": [
-        "connect:DescribeHoursOfOperation"
-      ]
+    "HoursOfOperationArn": {
+      "pattern": "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/operating-hours/[-a-zA-Z0-9]*$",
+      "description": "The Amazon Resource Name (ARN) for the hours of operation.",
+      "type": "string"
     },
-    "delete": {
-      "permissions": [
-        "connect:DeleteHoursOfOperation",
-        "connect:UntagResource"
-      ]
+    "Description": {
+      "minLength": 1,
+      "description": "The description of the hours of operation.",
+      "type": "string",
+      "maxLength": 250
     },
-    "update": {
-      "permissions": [
-        "connect:UpdateHoursOfOperation",
-        "connect:TagResource",
-        "connect:UntagResource"
-      ]
+    "Config": {
+      "maxItems": 100,
+      "uniqueItems": true,
+      "description": "Configuration information for the hours of operation: day, start time, and end time.",
+      "insertionOrder": false,
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/HoursOfOperationConfig"
+      }
     },
-    "list": {
-      "handlerSchema": {
-        "properties": {
-          "InstanceArn": {
-            "$ref": "resource-schema.json#/properties/InstanceArn"
-          }
-        },
-        "required": [
-          "InstanceArn"
-        ]
-      },
-      "permissions": [
-        "connect:ListHoursOfOperations"
-      ]
+    "InstanceArn": {
+      "pattern": "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$",
+      "description": "The identifier of the Amazon Connect instance.",
+      "type": "string"
+    },
+    "Tags": {
+      "maxItems": 50,
+      "uniqueItems": true,
+      "description": "One or more tags.",
+      "insertionOrder": false,
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
+    },
+    "Name": {
+      "minLength": 1,
+      "description": "The name of the hours of operation.",
+      "type": "string",
+      "maxLength": 127
     }
-  },
-  "additionalProperties": false,
-  "primaryIdentifier": [
-    "/properties/HoursOfOperationArn"
-  ],
-  "readOnlyProperties": [
-    "/properties/HoursOfOperationArn"
-  ],
-  "tagging": {
-    "taggable": true,
-    "tagOnCreate": true,
-    "tagUpdatable": true,
-    "cloudFormationSystemTags": true,
-    "tagProperty": "/properties/Tags"
   }
 }
