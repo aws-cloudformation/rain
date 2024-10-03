@@ -242,7 +242,7 @@ Resources:
       TheS3URI: s3://rain-artifacts-755952356119-us-east-1/a84b588aa54068ed4b027b6e06e5e0bb283f83cf0d5a6720002d36af2225dfc3 
 ```
 
-If instead of providing a path to a file, you supply an object with properties, you can exercise more control over how the object is uploaded to S3. The following example is a common pattern for uploading Lambda function code.
+If instead of providing a path to a file, you supply an object with properties, you can exercise more control over how the object is uploaded to S3. The following example is a common pattern for uploading Lambda function code. The optional `Run` property is a local script that you want Rain to run before uploading the content at `Path`.
 
 ```yaml
 Resources:
@@ -250,10 +250,11 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Code: !Rain::S3 
-        Path: lambda-src 
+        Path: lambda-dist
         Zip: true
         BucketProperty: S3Bucket
         KeyProperty: S3Key
+        Run: buildscript.sh
 ```
 
 The packaged template:
@@ -267,6 +268,42 @@ Resources:
         S3Bucket: rain-artifacts-012345678912-us-east-1
         S3Key: 1b4844dacc843f09941c11c94f80981d3be8ae7578952c71e875ef7add37b1a7
 ```
+
+#### Metadata commands
+
+You can add a metadata section to an `AWS::S3::Bucket` resource to take additional actions during deployment, such as running pre and post build scripts, uploading content to the bucket after stack deployment completes, and emptying the contents of the bucket when the stack is deleted.
+
+```yaml
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+    Metadata:
+      Rain:
+        EmptyOnDelete: true
+        Content: site/dist
+        Version: 2
+        DistributionLogicalId: SiteDistribution
+        RunBefore: 
+          Command: buildsite.sh
+          Args:
+          - ALiteralArgument
+        RunAfter:
+          Command: buildsite.sh
+          Args:
+            - Rain::OutputValue AStackOutputKey
+```
+
+`EmptyOnDelete`: If true, the bucket's contents, including all versions, will be deleted so that the bucket itself can be deleted. This can be useful for development environments, but be careful about using it in production!
+
+`Version`: Rain doesn't do anything with this, but incrementing the number can force the stack to deploy if there have been no infrastructure changes to the stack.
+
+`RunBefore`: Rain will run this command before the stack deploys. Useful to run your website build script before bothering to deploy, to make sure it builds successfully.
+
+`RunAfter`: Rain will run this command after deployment, and it is capable of doing stack output lookups to provide arguments to the script. This is useful if you deployed a resource like an API Gateway and need to know the stage URL to plug in to your website configuration. Use `Rain::OutputValue OutputKey` to pass one of the arguments to the script.
+
+`DistributionLogicalId`: Supply the logical id of a CloudFront distribution to invalidate all files in it after the content upload completes.
+
+See `test/webapp/README.md` for a complete example of using these commands with Rain modules.
 
 #### Module
 

@@ -1,43 +1,7 @@
 {
   "typeName": "AWS::AmazonMQ::Configuration",
   "description": "Resource Type definition for AWS::AmazonMQ::Configuration",
-  "additionalProperties": false,
-  "properties": {
-    "EngineVersion": {
-      "type": "string"
-    },
-    "Description": {
-      "type": "string"
-    },
-    "Revision": {
-      "type": "integer"
-    },
-    "AuthenticationStrategy": {
-      "type": "string"
-    },
-    "EngineType": {
-      "type": "string"
-    },
-    "Data": {
-      "type": "string"
-    },
-    "Id": {
-      "type": "string"
-    },
-    "Arn": {
-      "type": "string"
-    },
-    "Tags": {
-      "type": "array",
-      "uniqueItems": false,
-      "items": {
-        "$ref": "#/definitions/TagsEntry"
-      }
-    },
-    "Name": {
-      "type": "string"
-    }
-  },
+  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
   "definitions": {
     "TagsEntry": {
       "type": "object",
@@ -56,23 +20,121 @@
       ]
     }
   },
+  "properties": {
+    "Arn": {
+      "type": "string",
+      "description": "The Amazon Resource Name (ARN) of the Amazon MQ configuration."
+    },
+    "AuthenticationStrategy": {
+      "type": "string",
+      "description": "The authentication strategy associated with the configuration. The default is SIMPLE."
+    },
+    "EngineType": {
+      "type": "string",
+      "description": "The type of broker engine. Note: Currently, Amazon MQ only supports ACTIVEMQ for creating and editing broker configurations."
+    },
+    "EngineVersion": {
+      "type": "string",
+      "description": "The version of the broker engine."
+    },
+    "Data": {
+      "type": "string",
+      "description": "The base64-encoded XML configuration."
+    },
+    "Description": {
+      "type": "string",
+      "description": "The description of the configuration."
+    },
+    "Id": {
+      "type": "string",
+      "description": "The ID of the Amazon MQ configuration."
+    },
+    "Name": {
+      "type": "string",
+      "description": "The name of the configuration."
+    },
+    "Revision": {
+      "type": "string",
+      "description": "The revision number of the configuration."
+    },
+    "Tags": {
+      "type": "array",
+      "description": "Create tags when creating the configuration.",
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/TagsEntry"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": false,
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "mq:ListTags",
+      "mq:CreateTags",
+      "mq:DeleteTags"
+    ]
+  },
   "required": [
     "EngineType",
     "Data",
     "Name"
   ],
+  "propertyTransform": {
+    "/properties/AuthenticationStrategy": "$uppercase(AuthenticationStrategy)",
+    "/properties/EngineType": "$uppercase(EngineType)"
+  },
   "createOnlyProperties": [
-    "/properties/EngineType",
-    "/properties/Name",
     "/properties/AuthenticationStrategy",
-    "/properties/EngineVersion"
+    "/properties/EngineType",
+    "/properties/EngineVersion",
+    "/properties/Name"
+  ],
+  "readOnlyProperties": [
+    "/properties/Arn",
+    "/properties/Id",
+    "/properties/Revision"
+  ],
+  "writeOnlyProperties": [
+    "/properties/Data"
   ],
   "primaryIdentifier": [
     "/properties/Id"
   ],
-  "readOnlyProperties": [
-    "/properties/Revision",
-    "/properties/Id",
-    "/properties/Arn"
-  ]
+  "handlers": {
+    "create": {
+      "permissions": [
+        "mq:CreateConfiguration",
+        "mq:CreateTags",
+        "mq:UpdateConfiguration"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "mq:DescribeConfiguration",
+        "mq:ListTags"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "mq:UpdateConfiguration",
+        "mq:CreateTags",
+        "mq:DeleteTags"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "mq:DescribeConfiguration"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "mq:ListConfigurations"
+      ]
+    }
+  }
 }

@@ -6,7 +6,7 @@
     "Name": {
       "description": "Name of the canary.",
       "type": "string",
-      "pattern": "^[0-9a-z_\\-]{1,21}$"
+      "pattern": "^[0-9a-z_\\-]{1,255}$"
     },
     "Id": {
       "description": "Id of the canary",
@@ -35,11 +35,7 @@
     },
     "ExecutionRoleArn": {
       "description": "Lambda Execution role used to run your canaries",
-      "type": "string",
-      "relationshipRef": {
-        "typeName": "AWS::IAM::Role",
-        "propertyPath": "/properties/Arn"
-      }
+      "type": "string"
     },
     "RuntimeVersion": {
       "description": "Runtime version of Synthetics Library",
@@ -79,6 +75,14 @@
     "DeleteLambdaResourcesOnCanaryDeletion": {
       "description": "Deletes associated lambda resources created by Synthetics if set to True. Default is False",
       "type": "boolean"
+    },
+    "ResourcesToReplicateTags": {
+      "type": "array",
+      "uniqueItems": true,
+      "description": "List of resources which canary tags should be replicated to.",
+      "items": {
+        "$ref": "#/definitions/ResourceToTag"
+      }
     }
   },
   "definitions": {
@@ -102,11 +106,7 @@
       "additionalProperties": false,
       "properties": {
         "S3Bucket": {
-          "type": "string",
-          "relationshipRef": {
-            "typeName": "AWS::S3::Bucket",
-            "propertyPath": "/properties/BucketName"
-          }
+          "type": "string"
         },
         "S3Key": {
           "type": "string"
@@ -169,40 +169,18 @@
       "additionalProperties": false,
       "properties": {
         "VpcId": {
-          "type": "string",
-          "relationshipRef": {
-            "typeName": "AWS::EC2::VPC",
-            "propertyPath": "/properties/VpcId"
-          }
+          "type": "string"
         },
         "SubnetIds": {
           "type": "array",
           "items": {
-            "type": "string",
-            "relationshipRef": {
-              "typeName": "AWS::EC2::Subnet",
-              "propertyPath": "/properties/SubnetId"
-            }
+            "type": "string"
           }
         },
         "SecurityGroupIds": {
           "type": "array",
           "items": {
-            "type": "string",
-            "anyOf": [
-              {
-                "relationshipRef": {
-                  "typeName": "AWS::EC2::SecurityGroup",
-                  "propertyPath": "/properties/GroupId"
-                }
-              },
-              {
-                "relationshipRef": {
-                  "typeName": "AWS::EC2::VPC",
-                  "propertyPath": "/properties/DefaultSecurityGroup"
-                }
-              }
-            ]
+            "type": "string"
           }
         }
       },
@@ -302,6 +280,13 @@
           "description": "KMS key Arn for encrypting artifacts when uploading to S3. You must specify KMS key Arn for SSE_KMS encryption mode only."
         }
       }
+    },
+    "ResourceToTag": {
+      "type": "string",
+      "description": "Specifies which resources canary tags should be replicated to.",
+      "enum": [
+        "lambda-function"
+      ]
     }
   },
   "required": [
@@ -336,6 +321,7 @@
         "lambda:GetLayerVersionByArn",
         "lambda:GetLayerVersion",
         "lambda:PublishLayerVersion",
+        "lambda:TagResource",
         "ec2:DescribeVpcs",
         "ec2:DescribeSubnets",
         "ec2:DescribeSecurityGroups",
@@ -362,6 +348,9 @@
         "lambda:GetLayerVersionByArn",
         "lambda:GetLayerVersion",
         "lambda:PublishLayerVersion",
+        "lambda:ListTags",
+        "lambda:TagResource",
+        "lambda:UntagResource",
         "iam:PassRole"
       ]
     },
@@ -406,6 +395,7 @@
     "/properties/Code/Script",
     "/properties/DeleteLambdaResourcesOnCanaryDeletion",
     "/properties/StartCanaryAfterCreation",
+    "/properties/ResourcesToReplicateTags",
     "/properties/RunConfig/EnvironmentVariables",
     "/properties/VisualReference"
   ],
