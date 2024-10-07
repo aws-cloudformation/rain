@@ -35,6 +35,7 @@ var ignoreUnknownParams bool
 var noexec bool
 var changeset bool
 var experimental bool
+var includeNested bool
 
 // Cmd is the deploy command's entrypoint
 var Cmd = &cobra.Command{
@@ -160,7 +161,16 @@ To list and delete changesets, use the ls and rm commands.
 			// Create change set
 			spinner.Push("Creating change set")
 			var createErr error
-			changeSetName, createErr = cfn.CreateChangeSet(template, dc.Params, dc.Tags, stackName, changeSetName, roleArn)
+			ctx := cfn.ChangeSetContext{
+				Template:      template,
+				Params:        dc.Params,
+				Tags:          dc.Tags,
+				StackName:     stackName,
+				ChangeSetName: changeSetName,
+				RoleArn:       roleArn,
+				IncludeNested: includeNested,
+			}
+			changeSetName, createErr = cfn.CreateChangeSet(&ctx)
 			if createErr != nil {
 				if changeSetHasNoChanges(createErr.Error()) {
 					spinner.Pop()
@@ -320,4 +330,5 @@ func init() {
 	Cmd.Flags().BoolVar(&changeset, "changeset", false, "execute the changeset, rain deploy --changeset <stackName> <changeSetName>")
 	Cmd.Flags().StringVar(&format.NodeStyle, "node-style", "original", format.NodeStyleDocs)
 	Cmd.Flags().BoolVar(&experimental, "experimental", false, "Acknowledge that you want to deploy with an experimental feature")
+	Cmd.Flags().BoolVar(&includeNested, "nested-change-set", true, "Whether or not to include nested stacks in the change set")
 }
