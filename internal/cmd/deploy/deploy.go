@@ -14,7 +14,6 @@ import (
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/aws-cloudformation/rain/internal/dc"
-	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"github.com/aws-cloudformation/rain/internal/ui"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
@@ -170,6 +169,7 @@ To list and delete changesets, use the ls and rm commands.
 				RoleArn:       roleArn,
 				IncludeNested: includeNested,
 			}
+			config.Debugf("ChangeSetContext: %+v", ctx)
 			changeSetName, createErr = cfn.CreateChangeSet(&ctx)
 			if createErr != nil {
 				if changeSetHasNoChanges(createErr.Error()) {
@@ -291,7 +291,6 @@ func changeSetHasNoChanges(msg string) bool {
 // hasRainMetadata returns true if the template has a resource
 // with a Metadata section with a Rain node
 func HasRainMetadata(template cft.Template) bool {
-	config.Debugf("template: %v", node.ToSJson(template.Node))
 	if template.Node.Content[0].Kind == yaml.DocumentNode {
 		template.Node = template.Node.Content[0]
 	}

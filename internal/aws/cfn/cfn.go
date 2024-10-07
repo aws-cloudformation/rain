@@ -296,8 +296,6 @@ type ChangeSetContext struct {
 }
 
 // CreateChangeSet creates a changeset
-//
-// changeSetName is optional, if "" is passed in,
 func CreateChangeSet(ctx *ChangeSetContext) (string, error) {
 
 	template := ctx.Template
@@ -558,8 +556,6 @@ func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
 	           "s3:PutBucketTagging",
 
 	*/
-
-	//config.Debugf("GetTypePermissions result: %v", result)
 
 	retval := make([]string, 0)
 
