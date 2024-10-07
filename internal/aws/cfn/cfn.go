@@ -281,16 +281,29 @@ func GetStackEvents(stackName string) ([]types.StackEvent, error) {
 	return events, nil
 }
 
+type ChangeSetContext struct {
+	Template  cft.Template
+	Params    []types.Parameter
+	Tags      map[string]string
+	StackName string
+
+	// ChangeSetName is optional, if "" is set, the name will be the stack name plus a timestamp
+	ChangeSetName string
+	RoleArn       string
+
+	// Whether or not to include nested stacks in the change set
+	IncludeNested bool
+}
+
 // CreateChangeSet creates a changeset
-//
-// changeSetName is optional, if "" is passed in, the name will be the stack name plus a timestamp
-func CreateChangeSet(
-	template cft.Template,
-	params []types.Parameter,
-	tags map[string]string,
-	stackName string,
-	changeSetName string,
-	roleArn string) (string, error) {
+func CreateChangeSet(ctx *ChangeSetContext) (string, error) {
+
+	template := ctx.Template
+	params := ctx.Params
+	tags := ctx.Tags
+	stackName := ctx.StackName
+	changeSetName := ctx.ChangeSetName
+	roleArn := ctx.RoleArn
 
 	templateBody, err := checkTemplate(template)
 	if err != nil {
@@ -317,7 +330,7 @@ func CreateChangeSet(
 		ChangeSetName:       ptr.String(changeSetName),
 		StackName:           ptr.String(stackName),
 		Tags:                dc.MakeTags(tags),
-		IncludeNestedStacks: ptr.Bool(true),
+		IncludeNestedStacks: ptr.Bool(ctx.IncludeNested),
 		Parameters:          params,
 		Capabilities: []types.Capability{
 			"CAPABILITY_NAMED_IAM",
@@ -543,8 +556,6 @@ func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
 	           "s3:PutBucketTagging",
 
 	*/
-
-	//config.Debugf("GetTypePermissions result: %v", result)
 
 	retval := make([]string, 0)
 
