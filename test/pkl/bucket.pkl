@@ -1,0 +1,24 @@
+amends "@cfn/template.pkl"
+import "@cfn/cloudformation.pkl" as cfn
+import "@cfn/aws/s3/bucket.pkl"
+
+Parameters {
+    ["AppName"] = new cfn.Parameter {
+        Type = "String"
+    }
+}
+
+Resources {
+    ["Bucket"] = new bucket.Bucket {
+        BucketName = cfn.Sub("${AppName}-content")
+    }
+    ["Bucket2"]  = new cfn.Resource {
+        Type = "AWS::S3::Bucket"
+        Properties  {
+            ["BucketName"]  {
+                ["Sub"] = "${AppName}-content2"
+            }
+        }
+    }
+}
+

@@ -115,6 +115,10 @@ func writeResource(sb *strings.Builder, name string, resource *yaml.Node, basic 
 			}
 
 		} else {
+			if attrName == "Type" && !basic {
+				// Don't bother outputting type, since it's in the module
+				continue
+			}
 			// Basic rendering, without using module classes
 			w(sb, "    %s%s", indent, attrName)
 			switch attr.Kind {
@@ -293,6 +297,9 @@ func writeMap(sb *strings.Builder, n *yaml.Node, indent string, basic bool) erro
 		if strings.Contains(name, ":") || strings.Contains(name, "/") {
 			hasSpecialChars = true
 		}
+		if isIntrinsic(name) {
+			hasSpecialChars = false
+		}
 		if basic || hasSpecialChars {
 			w(sb, "%s[\"%s\"]", indent, name)
 			if val.Kind == yaml.ScalarNode {
@@ -332,7 +339,7 @@ func writeMap(sb *strings.Builder, n *yaml.Node, indent string, basic bool) erro
 					sb.WriteString(" = ")
 					writeNode(sb, val, "", basic)
 				} else {
-					if isIntrinsic(val.Content[0].Value) {
+					if len(val.Content) > 0 && isIntrinsic(val.Content[0].Value) {
 						w(sb, " = ")
 						writeNode(sb, val, indent+"        ", basic)
 					} else {
