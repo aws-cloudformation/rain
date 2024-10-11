@@ -14,6 +14,33 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const (
+	SUB       = "Fn::Sub"
+	REF       = "Ref"
+	GETATT    = "Fn::GetAtt"
+	EQUALS    = "Fn::Equals"
+	CONTAINS  = "Fn::Contains"
+	FINDINMAP = "Fn::FindInMap"
+	GETAZS    = "Fn::GetAZs"
+	SELECT    = "Fn::Select"
+	SPLIT     = "Fn::Split"
+)
+
+func isIntrinsic(name string) bool {
+	intrinsics := []string{
+		SUB,
+		REF,
+		GETATT,
+		EQUALS,
+		CONTAINS,
+		FINDINMAP,
+		GETAZS,
+		SELECT,
+		SPLIT,
+	}
+	return slices.Contains(intrinsics, name)
+}
+
 func getClassName(resource *yaml.Node) string {
 	typeName := getTypeName(resource)
 	tokens := strings.Split(typeName, "::")
@@ -238,48 +265,24 @@ func w(sb *strings.Builder, f string, args ...any) {
 // writeSequence writes a generic sequence
 func writeSequence(sb *strings.Builder, n *yaml.Node, indent string, basic bool) error {
 	for i := 0; i < len(n.Content); i++ {
-		switch n.Content[i].Kind {
+		item := n.Content[i]
+		switch item.Kind {
 		case yaml.ScalarNode:
-			writeNode(sb, n.Content[i], indent, basic)
+			writeNode(sb, item, indent, basic)
 		case yaml.MappingNode:
-			if !basic && isIntrinsic(n.Content[i].Content[0].Value) {
+			if !basic && isIntrinsic(item.Content[0].Value) {
 				w(sb, indent)
-				writeNode(sb, n.Content[i], indent+"        ", basic)
+				writeNode(sb, item, indent+"        ", basic)
 			} else {
 				sb.WriteString(indent + " new {\n")
-				writeNode(sb, n.Content[i], indent+"    ", basic)
+				writeNode(sb, item, indent+"    ", basic)
 				sb.WriteString(indent + "}\n")
 			}
 		case yaml.SequenceNode:
-			writeNode(sb, n.Content[i], indent, basic)
+			writeNode(sb, item, indent, basic)
 		}
 	}
 	return nil
-}
-
-const (
-	SUB       = "Fn::Sub"
-	REF       = "Ref"
-	GETATT    = "Fn::GetAtt"
-	EQUALS    = "Fn::Equals"
-	CONTAINS  = "Fn::Contains"
-	FINDINMAP = "Fn::FindInMap"
-	GETAZS    = "Fn::GetAZs"
-	SELECT    = "Fn::Select"
-)
-
-func isIntrinsic(name string) bool {
-	intrinsics := []string{
-		SUB,
-		REF,
-		GETATT,
-		EQUALS,
-		CONTAINS,
-		FINDINMAP,
-		GETAZS,
-		SELECT,
-	}
-	return slices.Contains(intrinsics, name)
 }
 
 // writeMap writes out a generic Mapping
@@ -331,8 +334,13 @@ func writeMap(sb *strings.Builder, n *yaml.Node, indent string, basic bool) erro
 			case GETAZS:
 				w(sb, "cfn.GetAZs(\"%s\")\n", val.Value)
 			case SELECT:
-				w(sb, "cfn.Select(\"%s\", \"%s\")\n",
-					val.Content[0].Value, val.Content[1].Value)
+				w(sb, "cfn.Select(\"%s\", ", val.Content[0].Value)
+				writeNode(sb, val.Content[1], indent, basic)
+				w(sb, "%s)\n", indent)
+			case SPLIT:
+				w(sb, "cfn.Split(\"%s\", ", val.Content[0].Value)
+				writeNode(sb, val.Content[1], indent, basic)
+				w(sb, "%s)\n", indent)
 			default:
 				w(sb, "%s%s", indent, name)
 				if val.Kind == yaml.ScalarNode {

@@ -8,7 +8,7 @@ Description = "This module creates an S3 bucket that will pass common compliance
 
 // This string will serve as a prefix for all resource names, which have 
 // the general form of AppName-ResourceName-Region-Account. 
-AppName: String
+AppName: String|Mapping
 
 /// A local path to a directory that will be uploaded to the bucket
 Content: String
@@ -19,18 +19,23 @@ EmptyOnDelete: Boolean
 // The base logical id to use to name resources in this module
 LogicalId: String
 
+// TODO: AppName is broken. This ignores outer.AppName. 
+// But the module variable can be a Mapping.
+// In Rain, we have special handling for things like Sub
+// Do we need to look at the mapping? Like outer.AppName["Fn::Sub"]
+// if outer.AppName is Mapping and "Fn::Sub" in outer.Mapping then...
 logBucketPolicy = new bucketpolicy {
-    PolicyBucketName = cfn.Sub("\(AppName)-logs-${AWS::Region}-${AWS::AccountId}")
+    PolicyBucketName = cfn.Sub("${AppName}-logs-${AWS::Region}-${AWS::AccountId}")
     LogicalId = outer.LogicalId + "LogBucket"
 }
 
 bucketPolicy = new bucketpolicy {
-    PolicyBucketName = cfn.Sub("\(AppName)-${AWS::Region}-${AWS::AccountId}")
+    PolicyBucketName = cfn.Sub("${AppName}-${AWS::Region}-${AWS::AccountId}")
     LogicalId = outer.LogicalId + "Bucket"
 }
 
 replicaBucketPolicy = new bucketpolicy {
-    PolicyBucketName = cfn.Sub("\(AppName)-replicas-${AWS::Region}-${AWS::AccountId}")
+    PolicyBucketName = cfn.Sub("${AppName}-replicas-${AWS::Region}-${AWS::AccountId}")
     LogicalId = outer.LogicalId + "ReplicaBucket" 
 }
 

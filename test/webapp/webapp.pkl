@@ -1,258 +1,94 @@
 amends "@cfn/template.pkl"
-import "@cfn/cloudformation.pkl" as cfn
-import "@cfn/aws/iam/rolepolicy.pkl"
 import "@cfn/aws/dynamodb/table.pkl"
+import "@cfn/aws/iam/rolepolicy.pkl"
+import "@cfn/cloudformation.pkl" as cfn
+import "./pkl/static-site.pkl" as staticsite
 
-Description = "Creates a web application with a static website using S3 and CloudFront, \nan API Gateway REST API, and a DynamoDB table, with Cognito authentication.\nThis sample uses Rain Metadata commands to upload content to the static \nsite bucket, and uses a Run property on the S3 directive to build the \nlambda function, which for this example is written in Go.\nApache-2.0 License. Adapt this template to your needs and thoruoughly test\nit before introducing it in a production environment. **WARNING** This\ntemplate will create resources in your account that may incur billing\ncharges.\n"
+Description = "Creates a web application with a static website using S3 and CloudFront, an API Gateway REST API, and a DynamoDB table, with Cognito authentication. This sample uses Rain Metadata commands to upload content to the static  site bucket, and uses a Run property on the S3 directive to build the  lambda function, which for this example is written in Go. Apache-2.0 License. Adapt this template to your needs and thoruoughly test it before introducing it in a production environment. **WARNING** This template will create resources in your account that may incur billing charges. "
 
 Parameters {
-    ["AppName"] {
-        Type = "String"
-        Description = "This name is used as a prefix for resource names"
-        Default = "rain-webapp"
-    }
+  ["AppName"] {
+    Type = "String"
+    Description = "This name is used as a prefix for resource names"
+    Default = "rain-webapp"
+  }
+}
+
+local staticSite = new staticsite {
+    AppName = cfn.Ref("AppName")
+    LogicalId = "Site"
 }
 
 Resources {
-    ["Site"] {
-        Type {
-            ["Rain::Module"] = "../modules/static-site.yaml"
-        }
-        Properties {
-            ["AppName"] {
-                ["Ref"] = "AppName"
-            }
-        }
-        Overrides {
-            ["ContentBucket"] {
-                ["Metadata"] {
-                    ["Rain"] {
-                        ["EmptyOnDelete"] = true
-                        ["Content"] = "site/dist"
-                        ["Version"] = 2
-                        ["DistributionLogicalId"] = "SiteDistribution"
-                        ["RunBefore"] {
-                            ["Command"] = "buildsite.sh"
-                        }
-                        ["RunAfter"] {
-                            ["Command"] = "buildsite.sh"
-                            ["Args"] {
-                                "Rain::OutputValue RestApiInvokeURL"
-                                "Rain::OutputValue RedirectURI"
-                                "Rain::OutputValue AppName"
-                                "Rain::OutputValue AppClientId"
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
 
-    ["Cognito"] {
-        Type {
-            ["Rain::Module"] = "../modules/cognito.yaml"
-        }
-        Properties {
-            ["AppName"] {
-                ["Ref"] = "AppName"
-            }
-            ["CallbackURL"] {
-                ["Fn::Sub"] = "https://${SiteDistribution.DomainName}/index.html"
-            }
-        }
-        Overrides {
-            ["UserPool"] {
-                ["DependsOn"] = "SiteDistribution"
-            }
-        }
-    }
-
-    ["Rest"] {
-        Type {
-            ["Rain::Module"] = "../modules/rest-api.yaml"
-        }
-        Properties {
-            ["AppName"] {
-                ["Ref"] = "AppName"
-            }
-            ["UserPoolArn"] {
-                ["Fn::GetAtt"] {
-                    "CognitoUserPool"
-                    "Arn"
-                }
-            }
-        }
-        Overrides {
-            ["ApiDeployment"] {
-                ["Metadata"] {
-                    ["Version"] = 2
-                }
-                ["DependsOn"] {
-                    "TestResourceGet"
-                    "TestResourceOptions"
-                    "JwtResourceGet"
-                    "JwtResourceOptions"
-                }
-            }
-        }
-    }
-
-    ["TestResource"] {
-        Type {
-            ["Rain::Module"] = "../modules/api-resource.yaml"
-        }
+  // Add resources from the static site module and override the content bucket to add Rain metadata
+  for (logicalId, resource in staticSite.Resources) {
+    when (logicalId == "SiteContentBucket") {
+      [logicalId] = (resource) {
         Metadata {
-            ["Comment"] = "This module handles all methods on the /test path on the API. The lambda function code is located in api/resources/test."
+          ["Rain"] {
+            ["EmptyOnDelete"] = true
+            ["Content"] = "site/dist"
+            ["Version"] = 2
+            ["DistributionLogicalId"] = "SiteDistribution"
+            ["RunBefore"] {
+              ["Command"] = "buildsite.sh"
+            }
+            ["RunAfter"] {
+              ["Command"] = "buildsite.sh"
+              ["Args"] {
+                "Rain::OutputValue RestApiInvokeURL"
+                "Rain::OutputValue RedirectURI"
+                "Rain::OutputValue AppName"
+                "Rain::OutputValue AppClientId"
+              }
+            }
+          }
         }
-        Properties {
-            ["Name"] {
-                ["Fn::Sub"] = "${AppName}-test"
-            }
-            ["RestApi"] {
-                ["Ref"] = "RestApi"
-            }
-            ["RestApiDeployment"] {
-                ["Ref"] = "RestApiDeployment"
-            }
-            ["BuildScript"] = "../webapp/buildapi.sh"
-            ["CodePath"] = "../webapp/api/dist/test/lambda-handler.zip"
-            ["ResourcePath"] = "test"
-            ["StageName"] = "staging"
-            ["AuthorizerId"] {
-                ["Ref"] = "RestApiAuthorizer"
-            }
-        }
-        Overrides {
-            ["Handler"] {
-                ["Properties"] {
-                    ["Environment"] {
-                        ["Variables"] {
-                            ["TABLE_NAME"] {
-                                ["Ref"] = "TestTable"
-                            }
-                        }
-                    }
-                }
-            }
-        }
+      }
+    } else {
+      [logicalId] = resource
     }
+  }
 
-    ["TestResourceHandlerPolicy"] = new rolepolicy.RolePolicy {
-        PolicyDocument {
-            Statement {
-                     new {
-                        Action {
-                                "dynamodb:BatchGetItem"
-                                "dynamodb:GetItem"
-                                "dynamodb:Query"
-                                "dynamodb:Scan"
-                                "dynamodb:BatchWriteItem"
-                                "dynamodb:PutItem"
-                                "dynamodb:UpdateItem"
-                            }
-                        Effect = "Allow"
-                        Resource {
-                                cfn.GetAtt("TestTable", "Arn")
-                            }
-                    }
-                }
-        }
-        PolicyName = "handler-policy"
-        RoleName = cfn.Ref("TestResourceHandlerRole")
 
+  ["TestTable"] = new table.Table {
+    BillingMode = "PAY_PER_REQUEST"
+    TableName = cfn.Sub("${AppName}-test")
+
+    AttributeDefinitions {
+      new {
+        AttributeName = "id"
+        AttributeType = "S"
+      }
     }
-
-    ["TestTable"] = new table.Table {
-        BillingMode = "PAY_PER_REQUEST"
-        TableName = cfn.Sub("${AppName}-test")
-
-        AttributeDefinitions {
-             new {
-                AttributeName = "id"
-                AttributeType = "S"
-            }
-        }
-        KeySchema {
-             new {
-                AttributeName = "id"
-                KeyType = "HASH"
-            }
-        }
+    KeySchema {
+      new {
+        AttributeName = "id"
+        KeyType = "HASH"
+      }
     }
-
-    ["JwtResource"] {
-        Type {
-            ["Rain::Module"] = "../modules/api-resource.yaml"
-        }
-        Metadata {
-            ["Comment"] = "This module handles all methods on the /jwt path on the API. The lambda function code is located in api/resources/jwt"
-        }
-        Properties {
-            ["Name"] {
-                ["Fn::Sub"] = "${AppName}-jwt"
-            }
-            ["RestApi"] {
-                ["Ref"] = "RestApi"
-            }
-            ["RestApiDeployment"] {
-                ["Ref"] = "RestApiDeployment"
-            }
-            ["BuildScript"] = "../webapp/buildapi.sh"
-            ["CodePath"] = "../webapp/api/dist/jwt/lambda-handler.zip"
-            ["ResourcePath"] = "jwt"
-            ["StageName"] = "staging"
-            ["AuthorizerId"] = "AWS::NoValue"
-        }
-        Overrides {
-            ["Handler"] {
-                ["Properties"] {
-                    ["Environment"] {
-                        ["Variables"] {
-                            ["COGNITO_REGION"] = "us-east-1"
-                            ["COGNITO_POOL_ID"] {
-                                ["Ref"] = "CognitoUserPool"
-                            }
-                            ["COGNITO_REDIRECT_URI"] {
-                                ["Fn::Sub"] = "https://${SiteDistribution.DomainName}/index.html"
-                            }
-                            ["COGNITO_DOMAIN_PREFIX"] {
-                                ["Ref"] = "AppName"
-                            }
-                            ["COGNITO_APP_CLIENT_ID"] {
-                                ["Ref"] = "CognitoClient"
-                            }
-                        }
-                    }
-                }
-            }
-            ["Get"] {
-                ["Properties"] {
-                    ["AuthorizationType"] = "NONE"
-                }
-            }
-        }
-    }
+  }
 
 }
 
 Outputs {
-    ["SiteURL"] = new cfn.Output {
-        Value = cfn.Sub("https://${SiteDistribution.DomainName}")
-    }
-    ["RedirectURI"] = new cfn.Output {
-        Value = cfn.Sub("https://${SiteDistribution.DomainName}/index.html")
-    }
-    ["AppName"] = new cfn.Output {
-        Value = cfn.Ref("AppName")
-    }
-    ["RestApiInvokeURL"] = new cfn.Output {
-        Value = cfn.Sub("https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/${RestApiStage}")
-    }
-    ["AppClientId"] = new cfn.Output {
-        Value = cfn.Ref("CognitoClient")
-    }
-    ["CognitoDomainPrefix"] = new cfn.Output {
-        Value = cfn.Ref("AppName")
-    }
+  ["SiteURL"] = new cfn.Output {
+    Value = cfn.Sub("https://${SiteDistribution.DomainName}")
+  }
+  ["RedirectURI"] = new cfn.Output {
+    Value = cfn.Sub("https://${SiteDistribution.DomainName}/index.html")
+  }
+  ["AppName"] = new cfn.Output {
+    Value = cfn.Ref("AppName")
+  }
+  ["RestApiInvokeURL"] = new cfn.Output {
+    Value = cfn.Sub("https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/${RestApiStage}")
+  }
+  ["AppClientId"] = new cfn.Output {
+    Value = cfn.Ref("CognitoClient")
+  }
+  ["CognitoDomainPrefix"] = new cfn.Output {
+    Value = cfn.Ref("AppName")
+  }
 }
