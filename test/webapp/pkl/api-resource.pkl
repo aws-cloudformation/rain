@@ -34,6 +34,12 @@ AuthorizerId: String
 // The prefix to use for the Logical Id for all resources
 LogicalId: String
 
+// The S3 bucket that has the lambda handler code
+HandlerBucket: String
+
+// The S3 key for the lambda handler code
+HandlerKey: String
+
 local restApiLogicalId = LogicalId + "RestApi"
 local handlerLogicalId = LogicalId + "Handler"
 
@@ -41,19 +47,12 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
     [handlerLogicalId] = new func.Function {
         Handler = "bootstrap"
         FunctionName = cfn.Sub("\(Name)-handler")
-
         Runtime = "provided.al2023"
         Code {
-            ["Rain::S3"] {
-                Run = cfn.Ref("BuildScript")
-                Zip = false
-                Path = cfn.Ref("CodePath")
-                KeyProperty = "S3Key"
-                BucketProperty = "S3Bucket"
-            }
+            S3Key = cfn.Sub("\(HandlerKey)")
+            S3Bucket = cfn.Sub("\(HandlerBucket)")
         }
-        Role = cfn.GetAtt("HandlerRole", "Arn")
-
+        Role = cfn.GetAtt(LogicalId + "HandlerRole", "Arn")
     }
 
     [LogicalId + "HandlerRole"] = new role.Role {
@@ -83,13 +82,13 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
 
         PathPart = cfn.Sub("\(ResourcePath)")
 
-        RestApiId = cfn.Ref(LogicalId + "RestApi")
+        RestApiId = cfn.Sub("\(RestApi)")
 
     }
 
     [LogicalId + "Permission"] = new permission.Permission {
         Action = "lambda:InvokeFunction"
-        FunctionName = cfn.GetAtt("Handler", "Arn")
+        FunctionName = cfn.GetAtt(LogicalId + "Handler", "Arn")
 
         Principal = "apigateway.amazonaws.com"
         SourceArn = cfn.Sub("arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:\(restApiLogicalId)/*/*/*")
@@ -98,7 +97,7 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
 
     [LogicalId + "RootPermission"] = new permission.Permission {
         Action = "lambda:InvokeFunction"
-        FunctionName = cfn.GetAtt("Handler", "Arn")
+        FunctionName = cfn.GetAtt(LogicalId + "Handler", "Arn")
 
         Principal = "apigateway.amazonaws.com"
         SourceArn = cfn.Sub("arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:\(restApiLogicalId)/*/*/")
@@ -109,13 +108,13 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
         HttpMethod = "OPTIONS"
         ResourceId = cfn.Ref(LogicalId + "Resource")
 
-        RestApiId = cfn.Ref(LogicalId + "RestApi")
+        RestApiId = cfn.Sub("\(RestApi)")
 
         AuthorizationType = "NONE"
         Integration {
             IntegrationHttpMethod = "POST"
             Type = "AWS_PROXY"
-            Uri = cfn.Sub("arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Handler.Arn}/invocations")
+            Uri = cfn.Sub("arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${\(handlerLogicalId).Arn}/invocations")
         }
     }
 
@@ -123,7 +122,7 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
         HttpMethod = "GET"
         ResourceId = cfn.Ref(LogicalId + "Resource")
 
-        RestApiId = cfn.Ref(LogicalId + "RestApi")
+        RestApiId = cfn.Sub("\(RestApi)")
 
         AuthorizationType = "COGNITO_USER_POOLS"
         AuthorizerId = cfn.Sub("AuthorizerId")
@@ -131,7 +130,7 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
         Integration {
             IntegrationHttpMethod = "POST"
             Type = "AWS_PROXY"
-            Uri = cfn.Sub("arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${\(HandlerLogicalId).Arn}/invocations")
+            Uri = cfn.Sub("arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${\(handlerLogicalId).Arn}/invocations")
         }
     }
 

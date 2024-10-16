@@ -9,6 +9,8 @@ LogicalId: String
 UserPoolArn: String
 StageName: String
 
+local stageName = cfn.Sub("\(StageName)")
+
 fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
     [LogicalId + "Api"] = new restapi.RestApi {
         Name = cfn.Sub("AppName")
@@ -21,7 +23,7 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
     [LogicalId + "ApiStage"] = new stage.Stage {
         RestApiId = cfn.Ref(LogicalId + "Api")
         DeploymentId = cfn.Ref(LogicalId + "ApiDeployment")
-        StageName = outer.StageName
+        StageName = stageName
     }
 
     [LogicalId + "ApiAuthorizer"] = new authorizer.Authorizer {

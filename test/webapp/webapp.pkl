@@ -9,6 +9,16 @@ import "@cfn/cloudformation.pkl" as cfn
 
 Description = "Creates a web application with a static website using S3 and CloudFront, an API Gateway REST API, and a DynamoDB table, with Cognito authentication. This sample uses Rain Metadata commands to upload content to the static  site bucket, and uses a Run property on the S3 directive to build the  lambda function, which for this example is written in Go. Apache-2.0 License. Adapt this template to your needs and thoruoughly test it before introducing it in a production environment. **WARNING** This template will create resources in your account that may incur billing charges. "
 
+Metadata {
+    ["cfn-lint"] {
+        ["config"] {
+            ["ignore_checks"] {
+                "W1020"
+            }
+        }
+    }
+}
+
 Parameters {
   ["AppName"] {
     Type = "String"
@@ -41,10 +51,10 @@ local testResource = new apiresource {
   RestApi = "${RestApi}"
   RootResourceId = "${RestApi.RootResourceId}"
   RestApiDeployment = "${RestApiDeployment}"
-  BuildScript = "../webapp/buildapi.sh"
-  CodePath = "../webapp/api/dist/test/lambda-handler.zip"
   ResourcePath = "test"
   AuthorizerId = "${RestApiAuthorizer}"
+  HandlerBucket = "TODO"
+  HandlerKey = "TODO"
 }
 
 local jwtResource = new apiresource {
@@ -53,10 +63,10 @@ local jwtResource = new apiresource {
   RestApi = "${RestApi}"
   RootResourceId = "${RestApi.RootResourceId}"
   RestApiDeployment = "${RestApiDeployment}"
-  BuildScript = "../webapp/buildapi.sh"
-  CodePath = "../webapp/api/dist/jwt/lambda-handler.zip"
   ResourcePath = "test"
   AuthorizerId = "AWS::NoValue"
+  HandlerBucket = "TODO"
+  HandlerKey = "TODO"
 }
 
 Resources {

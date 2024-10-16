@@ -6,6 +6,253 @@ Parameters:
     Default: rain-webapp
     Description: This name is used as a prefix for resource names
 Resources:
+  TestHandler:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Fn::Sub: TODO
+        S3Key:
+          Fn::Sub: TODO
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: TestTable
+      FunctionName:
+        Fn::Sub: ${AppName}-test-handler
+      Handler: bootstrap
+      Role:
+        Fn::GetAtt:
+        - HandlerRole
+        - Arn
+      Runtime: provided.al2023
+  TestHandlerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  TestResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Fn::Sub: ${RestApi.RootResourceId}
+      PathPart:
+        Fn::Sub: test
+      RestApiId:
+        Ref: TestRestApi
+  TestPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - Handler
+        - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Sub: arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:TestRestApi/*/*/*
+  TestRootPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - Handler
+        - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Sub: arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:TestRestApi/*/*/
+  TestOptions:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Handler.Arn}/invocations
+      ResourceId:
+        Ref: TestResource
+      RestApiId:
+        Ref: TestRestApi
+  TestGet:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId:
+        Fn::Sub: AuthorizerId
+      HttpMethod: GET
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TestHandler.Arn}/invocations
+      ResourceId:
+        Ref: TestResource
+      RestApiId:
+        Ref: TestRestApi
+  JwtHandler:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Fn::Sub: TODO
+        S3Key:
+          Fn::Sub: TODO
+      Environment:
+        Variables:
+          COGNITO_REGION: us-east-1
+          COGNITO_POOL_ID:
+            Ref: CognitoUserPool
+          COGNITO_REDIRECT_URI:
+            Fn::Sub: https://${SiteDistribution.DomainName}/index.html
+          COGNITO_DOMAIN_PREFIX:
+            Ref: AppName
+          COGNITO_APP_CLIENT_ID:
+            Ref: CognitoClient
+      FunctionName:
+        Fn::Sub: ${AppName}-jwt-handler
+      Handler: bootstrap
+      Role:
+        Fn::GetAtt:
+        - HandlerRole
+        - Arn
+      Runtime: provided.al2023
+  JwtHandlerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  JwtResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Fn::Sub: ${RestApi.RootResourceId}
+      PathPart:
+        Fn::Sub: test
+      RestApiId:
+        Ref: JwtRestApi
+  JwtPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - Handler
+        - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Sub: arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:JwtRestApi/*/*/*
+  JwtRootPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - Handler
+        - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Sub: arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:JwtRestApi/*/*/
+  JwtOptions:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Handler.Arn}/invocations
+      ResourceId:
+        Ref: JwtResource
+      RestApiId:
+        Ref: JwtRestApi
+  JwtGet:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      AuthorizerId:
+        Fn::Sub: AuthorizerId
+      HttpMethod: GET
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${JwtHandler.Arn}/invocations
+      ResourceId:
+        Ref: JwtResource
+      RestApiId:
+        Ref: JwtRestApi
+  TestResourceHandlerPolicy:
+    Type: AWS::IAM::RolePolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action:
+          - dynamodb:BatchGetItem
+          - dynamodb:GetItem
+          - dynamodb:Query
+          - dynamodb:Scan
+          - dynamodb:BatchWriteItem
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          Effect: Allow
+          Resource:
+          - Fn::GetAtt:
+            - TestTable
+            - Arn
+      PolicyName: handler-policy
+      RoleName:
+        Ref: TestResourceHandlerRole
+  RestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name:
+        Fn::Sub: AppName
+  RestApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId:
+        Ref: RestApi
+  RestApiStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      DeploymentId:
+        Ref: RestApiDeployment
+      RestApiId:
+        Ref: RestApi
+      StageName:
+        Fn::Sub: prod
+  RestApiAuthorizer:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      IdentitySource: method.request.header.authorization
+      Name: CognitoApiAuthorizer
+      ProviderARNs:
+      - Fn::Sub: UserPoolArn
+      RestApiId:
+        Ref: RestApi
+      Type: COGNITO_USER_POOLS
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
     Properties:

@@ -141,9 +141,8 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
   for (logicalId, resource in contentBucket.Resources) {
     when (logicalId == "SiteContentBucketPolicy") {
       [logicalId] = (resource) {
-        Properties {
-          ["PolicyDocument"] {
-            ["Statement"] {
+          PolicyDocument {
+            Statement {
               new {
                 ["Action"] = "s3:GetObject"
                 ["Effect"] = "Allow"
@@ -161,54 +160,8 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
                   }
                 }
               }
-              new {
-                ["Action"] = "s3:*"
-                ["Condition"] {
-                  ["Bool"] {
-                    ["aws:SecureTransport"] = false
-                  }
-                }
-                ["Effect"] = "Deny"
-                ["Principal"] {
-                  ["AWS"] = "*"
-                }
-                ["Resource"] {
-                  new {
-                    ["Fn::Sub"] = "arn:${AWS::Partition}:s3:::\(AppName)-${AWS::Region}-${AWS::AccountId}"
-                  }
-                  new {
-                    ["Fn::Sub"] = "arn:${AWS::Partition}:s3:::\(AppName)-${AWS::Region}-${AWS::AccountId}/*"
-                  }
-                }
-              }
-              new {
-                ["Action"] = "s3:PutObject"
-                ["Condition"] {
-                  ["ArnLike"] {
-                    ["aws:SourceArn"] {
-                      ["Fn::Sub"] = "arn:${AWS::Partition}:s3:::\(AppName)-${AWS::Region}-${AWS::AccountId}"
-                    }
-                  }
-                  ["StringEquals"] {
-                    ["aws:SourceAccount"] {
-                      ["Ref"] = "AWS::AccountId"
-                    }
-                  }
-                }
-                ["Effect"] = "Allow"
-                ["Principal"] {
-                  ["Service"] = "logging.s3.amazonaws.com"
-                }
-                ["Resource"] {
-                  new {
-                    ["Fn::Sub"] = "arn:${AWS::Partition}:s3:::\(AppName)-${AWS::Region}-${AWS::AccountId}/*"
-                  }
-                }
-              }
             }
-            ["Version"] = "2012-10-17"
           }
-        }
       }
     } else {
       [logicalId] = resource
