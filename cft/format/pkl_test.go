@@ -38,7 +38,6 @@ Parameters {
 
 Resources {
     ["MyBucket"] = new bucket.Bucket {
-        Type = "AWS::S3::Bucket"
         BucketName = cfn.Ref("Name")
 
     }
@@ -93,8 +92,8 @@ Parameters {
 
 Resources {
     ["MyBucket"] {
-        Type = "AWS::S3::Bucket"
-        Properties {
+        ["Type"] = "AWS::S3::Bucket"
+        ["Properties"] {
             ["BucketName"] {
                 ["Ref"] = "Name"
             }
