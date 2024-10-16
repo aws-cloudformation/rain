@@ -1,0 +1,71 @@
+import "@cfn/cloudformation.pkl" as cfn
+import "@cfn/aws/cognito/userpool.pkl"
+import "@cfn/aws/cognito/userpooldomain.pkl"
+import "@cfn/aws/cognito/userpoolclient.pkl"
+
+Description = "This module creates a simple Cognito User Pool, Domain, and App Client."
+
+// The base name for resource ids and tags. Assumed to be a Sub string.
+AppName: String
+
+LogicalId: String
+
+CallbackURL: String
+
+fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
+    [LogicalId + "UserPool"] = new userpool.UserPool {
+        UserPoolName = cfn.Sub("AppName")
+
+        AdminCreateUserConfig {
+            AllowAdminCreateUserOnly = true
+        }
+        AutoVerifiedAttributes {
+            "email"
+        }
+        Schema {
+             new {
+                Name = "email"
+                Required = true
+            }
+             new {
+                Name = "given_name"
+                Required = true
+            }
+             new {
+                Name = "family_name"
+                Required = true
+            }
+        }
+    }
+
+    [LogicalId + "Domain"] = new userpooldomain.UserPoolDomain {
+        Domain = cfn.Sub("AppName")
+
+        UserPoolId = cfn.Ref("UserPool")
+
+    }
+
+    [LogicalId + "Client"] = new userpoolclient.UserPoolClient {
+        ClientName = cfn.Sub("AppName")
+
+        GenerateSecret = false
+        UserPoolId = cfn.Ref("UserPool")
+
+        CallbackURLs {
+            cfn.Ref("CallbackURL")
+        }
+        AllowedOAuthFlows {
+            "code"
+        }
+        AllowedOAuthFlowsUserPoolClient = true
+        AllowedOAuthScopes {
+            "phone"
+            "email"
+            "openid"
+        }
+        SupportedIdentityProviders {
+            "COGNITO"
+        }
+    }
+
+}

@@ -8,7 +8,8 @@ Description = "This module creates an S3 bucket that will pass common compliance
 
 // This string will serve as a prefix for all resource names, which have 
 // the general form of AppName-ResourceName-Region-Account. 
-AppName: String|Mapping
+// The string is assumed to be a Sub string that can be plugged into cfn.Sub
+AppName: String
 
 /// A local path to a directory that will be uploaded to the bucket
 Content: String
@@ -19,23 +20,18 @@ EmptyOnDelete: Boolean
 // The base logical id to use to name resources in this module
 LogicalId: String
 
-// TODO: AppName is broken. This ignores outer.AppName. 
-// But the module variable can be a Mapping.
-// In Rain, we have special handling for things like Sub
-// Do we need to look at the mapping? Like outer.AppName["Fn::Sub"]
-// if outer.AppName is Mapping and "Fn::Sub" in outer.Mapping then...
 logBucketPolicy = new bucketpolicy {
-    PolicyBucketName = cfn.Sub("${AppName}-logs-${AWS::Region}-${AWS::AccountId}")
+    PolicyBucketName = "${AppName}-logs-${AWS::Region}-${AWS::AccountId}"
     LogicalId = outer.LogicalId + "LogBucket"
 }
 
 bucketPolicy = new bucketpolicy {
-    PolicyBucketName = cfn.Sub("${AppName}-${AWS::Region}-${AWS::AccountId}")
+    PolicyBucketName = "${AppName}-${AWS::Region}-${AWS::AccountId}"
     LogicalId = outer.LogicalId + "Bucket"
 }
 
 replicaBucketPolicy = new bucketpolicy {
-    PolicyBucketName = cfn.Sub("${AppName}-replicas-${AWS::Region}-${AWS::AccountId}")
+    PolicyBucketName = "${AppName}-replicas-${AWS::Region}-${AWS::AccountId}"
     LogicalId = outer.LogicalId + "ReplicaBucket" 
 }
 
@@ -77,7 +73,7 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
                     }
                 }
         }
-        BucketName = cfn.Sub("${AppName}-logs-${AWS::Region}-${AWS::AccountId}")
+        BucketName = cfn.Sub("\(AppName)-logs-${AWS::Region}-${AWS::AccountId}")
 
         ObjectLockConfiguration {
             ObjectLockEnabled = "Enabled"
@@ -102,15 +98,15 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
 
     [LogicalId + "Bucket"] = new bucket.Bucket {
         Metadata {
-            guard {
-                    SuppressedRules {
+            ["guard"] {
+                    ["SuppressedRules"] {
                             "S3_BUCKET_DEFAULT_LOCK_ENABLED"
                         }
                 }
-            Rain {
-                    Content = cfn.Ref("Content")
-                    EmptyOnDelete = cfn.Ref("EmptyOnDelete")
-                    DistributionLogicalId = "NONE"
+            ["Rain"] {
+                    ["Content"] = cfn.Ref("Content")
+                    ["EmptyOnDelete"] = cfn.Ref("EmptyOnDelete")
+                    ["DistributionLogicalId"] = "NONE"
                 }
         }
         BucketEncryption {
@@ -122,7 +118,7 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
                     }
                 }
         }
-        BucketName = cfn.Sub("${AppName}-${AWS::Region}-${AWS::AccountId}")
+        BucketName = cfn.Sub("\(AppName)-${AWS::Region}-${AWS::AccountId}")
 
         LoggingConfiguration {
             DestinationBucketName = cfn.Ref("LogBucket")
@@ -183,7 +179,7 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
                     }
                 }
         }
-        BucketName = cfn.Sub("${AppName}-replicas-${AWS::Region}-${AWS::AccountId}")
+        BucketName = cfn.Sub("\(AppName)-replicas-${AWS::Region}-${AWS::AccountId}")
 
         ObjectLockEnabled = false
         PublicAccessBlockConfiguration {
@@ -207,7 +203,7 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
                                 "s3:ListBucket"
                             }
                         Effect = "Allow"
-                        Resource = cfn.Sub("arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}")
+                        Resource = cfn.Sub("arn:${AWS::Partition}:s3:::\(AppName)-${AWS::Region}-${AWS::AccountId}")
                     }
                      new {
                         Action {
@@ -216,7 +212,7 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
                                 "s3:GetObjectVersionTagging"
                             }
                         Effect = "Allow"
-                        Resource = cfn.Sub("arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*")
+                        Resource = cfn.Sub("arn:${AWS::Partition}:s3:::\(AppName)-${AWS::Region}-${AWS::AccountId}/*")
                     }
                      new {
                         Action {
@@ -225,7 +221,7 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
                                 "s3:ReplicationTags"
                             }
                         Effect = "Allow"
-                        Resource = cfn.Sub("arn:${AWS::Partition}:s3:::${AppName}-replicas-${AWS::Region}-${AWS::AccountId}/*")
+                        Resource = cfn.Sub("arn:${AWS::Partition}:s3:::\(AppName)-replicas-${AWS::Region}-${AWS::AccountId}/*")
                     }
                 }
             Version = "2012-10-17"

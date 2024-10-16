@@ -147,7 +147,7 @@ func writeResource(sb *strings.Builder, name string, resource *yaml.Node, basic 
 				continue
 			}
 			// Basic rendering, without using module classes
-			w(sb, "    %s%s", indent, attrName)
+			w(sb, "    %s[\"%s\"]", indent, attrName)
 			switch attr.Kind {
 			case yaml.ScalarNode:
 				sb.WriteString(" = ")

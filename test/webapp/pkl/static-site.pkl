@@ -6,7 +6,10 @@ import "./bucket.pkl"
 
 Description = "This module creates a static website consisting of an S3 bucket and a CloudFront distribution."
 
-AppName: String|Mapping
+// This is the name of the app that will be used for resource and tag names.
+// It is assumed to be a Sub string that can be plugged in to cfn.Sub
+AppName: String
+
 LogicalId: String
 
 local contentBucket = new bucket {
@@ -15,7 +18,7 @@ local contentBucket = new bucket {
 }
 
 local cloudfrontLogBucket = new bucket {
-  AppName = cfn.Sub("${AppName}-cflogs}")
+  AppName = "\(outer.AppName)-cflogs"
   LogicalId = outer.LogicalId + "CloudFrontLogs"
 }
 
@@ -26,7 +29,7 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
       Name = new Mapping {
         ["Fn::Join"] {
           ""
-          cfn.Ref("AppName")
+          cfn.Sub("\(AppName)")
           cfn.Select(2, cfn.Split("/", cfn.Ref("AWS::StackId")))
         }
       }
@@ -59,7 +62,7 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
       DefaultCacheBehavior {
         CachePolicyId = "658327ea-f89d-4fab-a63d-7e88639e58f6"
         Compress = true
-        TargetOriginId = cfn.Sub("${AppName}-origin-1")
+        TargetOriginId = cfn.Sub("\(AppName)-origin-1")
         ViewerProtocolPolicy = "redirect-to-https"
       }
       DefaultRootObject = "index.html"
@@ -72,7 +75,7 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
       Origins {
         new {
           DomainName = cfn.GetAtt("ContentBucket", "RegionalDomainName")
-          Id = cfn.Sub("${AppName}-origin-1")
+          Id = cfn.Sub("\(AppName)-origin-1")
           OriginAccessControlId = cfn.GetAtt("OriginAccessControl", "Id")
           S3OriginConfig {
             OriginAccessIdentity = ""
@@ -102,7 +105,7 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
     Tags {
       new {
         Key = "Name"
-        Value = cfn.Ref("AppName")
+        Value = cfn.Sub("\(AppName)")
       }
     }
     Rules {
@@ -134,18 +137,18 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
   }
 
   // Add resources defined by the bucket module, and override
-  // BucketAccessPolicy to add statements
+  // the policy to add statements
   for (logicalId, resource in contentBucket.Resources) {
-    when (logicalId == "BucketAccessPolicy") {
+    when (logicalId == "SiteContentBucketPolicy") {
       [logicalId] = (resource) {
-        ["Properties"] {
+        Properties {
           ["PolicyDocument"] {
             ["Statement"] {
               new {
                 ["Action"] = "s3:GetObject"
                 ["Effect"] = "Allow"
                 ["Resource"] {
-                  ["Fn::Sub"] = "arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*"
+                  ["Fn::Sub"] = "arn:${AWS::Partition}:s3:::\(AppName)-${AWS::Region}-${AWS::AccountId}/*"
                 }
                 ["Principal"] {
                   ["Service"] = "cloudfront.amazonaws.com"
@@ -171,10 +174,10 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
                 }
                 ["Resource"] {
                   new {
-                    ["Fn::Sub"] = "arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}"
+                    ["Fn::Sub"] = "arn:${AWS::Partition}:s3:::\(AppName)-${AWS::Region}-${AWS::AccountId}"
                   }
                   new {
-                    ["Fn::Sub"] = "arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*"
+                    ["Fn::Sub"] = "arn:${AWS::Partition}:s3:::\(AppName)-${AWS::Region}-${AWS::AccountId}/*"
                   }
                 }
               }
@@ -183,7 +186,7 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
                 ["Condition"] {
                   ["ArnLike"] {
                     ["aws:SourceArn"] {
-                      ["Fn::Sub"] = "arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}"
+                      ["Fn::Sub"] = "arn:${AWS::Partition}:s3:::\(AppName)-${AWS::Region}-${AWS::AccountId}"
                     }
                   }
                   ["StringEquals"] {
@@ -198,7 +201,7 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
                 }
                 ["Resource"] {
                   new {
-                    ["Fn::Sub"] = "arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*"
+                    ["Fn::Sub"] = "arn:${AWS::Partition}:s3:::\(AppName)-${AWS::Region}-${AWS::AccountId}/*"
                   }
                 }
               }
