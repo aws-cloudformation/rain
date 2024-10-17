@@ -190,7 +190,7 @@ Resources:
             Resource:
               - !GetAtt TestTable.Arn
       PolicyName: handler-policy
-      RoleName: !Ref TestResourceHandlerRole
+      RoleName: !Ref TestHandlerRole
 
   RestApi:
     Type: AWS::ApiGateway::RestApi
@@ -233,15 +233,15 @@ Resources:
           Required: true
         - Name: family_name
           Required: true
-      UserPoolName: !Sub AppName
+      UserPoolName: !Sub ${AppName}
     DependsOn:
       - SiteDistribution
 
   CognitoDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
-      Domain: !Sub AppName
-      UserPoolId: !Ref UserPool
+      Domain: !Sub ${AppName}
+      UserPoolId: !Ref CognitoUserPool
 
   CognitoClient:
     Type: AWS::Cognito::UserPoolClient
@@ -254,12 +254,12 @@ Resources:
         - email
         - openid
       CallbackURLs:
-        - !Ref CallbackURL
-      ClientName: !Sub AppName
+        - !Sub https://${SiteDistribution.DomainName}/index.html
+      ClientName: !Sub ${AppName}
       GenerateSecret: false
       SupportedIdentityProviders:
         - COGNITO
-      UserPoolId: !Ref UserPool
+      UserPoolId: !Ref CognitoUserPool
 
   SiteOriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
@@ -267,12 +267,12 @@ Resources:
       OriginAccessControlConfig:
         Name: !Join
           - ""
-          - !Sub ${AppName}
-          - !Select
-            - 2
-            - !Split
-              - /
-              - !Ref AWS::StackId
+          - - !Sub ${AppName}
+            - !Select
+              - 2
+              - !Split
+                - /
+                - !Ref AWS::StackId
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
@@ -291,16 +291,16 @@ Resources:
         HttpVersion: http2
         IPV6Enabled: true
         Logging:
-          Bucket: !GetAtt CloudFrontLogsBucket.RegionalDomainName
+          Bucket: !GetAtt SiteCloudFrontLogsBucket.RegionalDomainName
         Origins:
-          - DomainName: !GetAtt ContentBucket.RegionalDomainName
+          - DomainName: !GetAtt SiteContentBucket.RegionalDomainName
             Id: !Sub ${AppName}-origin-1
-            OriginAccessControlId: !GetAtt OriginAccessControl.Id
+            OriginAccessControlId: !GetAtt SiteOriginAccessControl.Id
             S3OriginConfig:
               OriginAccessIdentity: ""
         ViewerCertificate:
           CloudFrontDefaultCertificate: true
-        WebACLId: !GetAtt WebACL.Arn
+        WebACLId: !GetAtt SiteWebACL.Arn
     Metadata:
       checkov:
         skip:
@@ -346,7 +346,7 @@ Resources:
   SiteContentBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: ${AppName}-${AWS::Region}-${AWS::AccountId}
+      Bucket: !Sub ${AppName}-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
           - Action: s3:*
@@ -379,13 +379,13 @@ Resources:
               Service: cloudfront.amazonaws.com
             Condition:
               StringEquals:
-                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution.Id}
+                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${SiteDistribution.Id}
         Version: "2012-10-17"
 
   SiteContentLogBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: ${AppName}-logs-${AWS::Region}-${AWS::AccountId}
+      Bucket: !Sub ${AppName}-logs-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
           - Action: s3:*
@@ -416,7 +416,7 @@ Resources:
   SiteContentReplicaBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: ${AppName}-replicas-${AWS::Region}-${AWS::AccountId}
+      Bucket: !Sub ${AppName}-replicas-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
           - Action: s3:*
@@ -476,9 +476,6 @@ Resources:
         SuppressedRules:
           - S3_BUCKET_LOGGING_ENABLED
           - S3_BUCKET_REPLICATION_ENABLED
-      Rain:
-        Content: RAIN_NO_CONTENT
-        EmptyOnDelete: !Ref EmptyOnDelete
 
   SiteContentBucket:
     Type: AWS::S3::Bucket
@@ -489,7 +486,7 @@ Resources:
               SSEAlgorithm: AES256
       BucketName: !Sub ${AppName}-${AWS::Region}-${AWS::AccountId}
       LoggingConfiguration:
-        DestinationBucketName: !Ref LogBucket
+        DestinationBucketName: !Ref SiteContentLogBucket
       ObjectLockEnabled: false
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
@@ -497,10 +494,10 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
       ReplicationConfiguration:
-        Role: !GetAtt ReplicationRole.Arn
+        Role: !GetAtt SiteContentReplicationRole.Arn
         Rules:
           - Destination:
-              Bucket: !GetAtt ReplicaBucket.Arn
+              Bucket: !GetAtt SiteContentReplicaBucket.Arn
             Status: Enabled
       VersioningConfiguration:
         Status: Enabled
@@ -509,10 +506,10 @@ Resources:
         SuppressedRules:
           - S3_BUCKET_DEFAULT_LOCK_ENABLED
       Rain:
-        Content: site/dist
         EmptyOnDelete: true
-        DistributionLogicalId: SiteDistribution
+        Content: site/dist
         Version: 2
+        DistributionLogicalId: SiteDistribution
         RunBefore:
           Command: buildsite.sh
         RunAfter:
@@ -550,9 +547,6 @@ Resources:
           - S3_BUCKET_DEFAULT_LOCK_ENABLED
           - S3_BUCKET_REPLICATION_ENABLED
           - S3_BUCKET_LOGGING_ENABLED
-      Rain:
-        Content: RAIN_NO_CONTENT
-        EmptyOnDelete: !Ref EmptyOnDelete
 
   SiteContentReplicationPolicy:
     Type: AWS::IAM::RolePolicy
@@ -578,7 +572,7 @@ Resources:
             Resource: !Sub arn:${AWS::Partition}:s3:::${AppName}-replicas-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
       PolicyName: bucket-replication-policy
-      RoleName: !Ref ReplicationRole
+      RoleName: !Ref SiteContentReplicationRole
 
   SiteContentReplicationRole:
     Type: AWS::IAM::Role
@@ -597,7 +591,7 @@ Resources:
   SiteCloudFrontLogsBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: ${AppName}-${AWS::Region}-${AWS::AccountId}
+      Bucket: !Sub ${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
           - Action: s3:*
@@ -608,13 +602,13 @@ Resources:
             Principal:
               AWS: '*'
             Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}/*
           - Action: s3:PutObject
             Condition:
               ArnLike:
                 aws:SourceArn:
-                  - !Sub arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}
+                  - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}
               StringEquals:
                 aws:SourceAccount:
                   - !Ref AWS::AccountId
@@ -622,13 +616,13 @@ Resources:
             Principal:
               Service: logging.s3.amazonaws.com
             Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
   SiteCloudFrontLogsLogBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: ${AppName}-logs-${AWS::Region}-${AWS::AccountId}
+      Bucket: !Sub ${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
           - Action: s3:*
@@ -639,13 +633,13 @@ Resources:
             Principal:
               AWS: '*'
             Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-logs-${AWS::Region}-${AWS::AccountId}
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-logs-${AWS::Region}-${AWS::AccountId}/*
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}/*
           - Action: s3:PutObject
             Condition:
               ArnLike:
                 aws:SourceArn:
-                  - !Sub arn:${AWS::Partition}:s3:::${AppName}-logs-${AWS::Region}-${AWS::AccountId}
+                  - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
               StringEquals:
                 aws:SourceAccount:
                   - !Ref AWS::AccountId
@@ -653,13 +647,13 @@ Resources:
             Principal:
               Service: logging.s3.amazonaws.com
             Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-logs-${AWS::Region}-${AWS::AccountId}/*
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
   SiteCloudFrontLogsReplicaBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: ${AppName}-replicas-${AWS::Region}-${AWS::AccountId}
+      Bucket: !Sub ${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
           - Action: s3:*
@@ -670,13 +664,13 @@ Resources:
             Principal:
               AWS: '*'
             Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-replicas-${AWS::Region}-${AWS::AccountId}
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-replicas-${AWS::Region}-${AWS::AccountId}/*
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}/*
           - Action: s3:PutObject
             Condition:
               ArnLike:
                 aws:SourceArn:
-                  - !Sub arn:${AWS::Partition}:s3:::${AppName}-replicas-${AWS::Region}-${AWS::AccountId}
+                  - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
               StringEquals:
                 aws:SourceAccount:
                   - !Ref AWS::AccountId
@@ -684,7 +678,7 @@ Resources:
             Principal:
               Service: logging.s3.amazonaws.com
             Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-replicas-${AWS::Region}-${AWS::AccountId}/*
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
   SiteCloudFrontLogsLogBucket:
@@ -719,9 +713,6 @@ Resources:
         SuppressedRules:
           - S3_BUCKET_LOGGING_ENABLED
           - S3_BUCKET_REPLICATION_ENABLED
-      Rain:
-        Content: RAIN_NO_CONTENT
-        EmptyOnDelete: !Ref EmptyOnDelete
 
   SiteCloudFrontLogsBucket:
     Type: AWS::S3::Bucket
@@ -732,7 +723,7 @@ Resources:
               SSEAlgorithm: AES256
       BucketName: !Sub ${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}
       LoggingConfiguration:
-        DestinationBucketName: !Ref LogBucket
+        DestinationBucketName: !Ref SiteCloudFrontLogsLogBucket
       ObjectLockEnabled: false
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
@@ -740,10 +731,10 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
       ReplicationConfiguration:
-        Role: !GetAtt ReplicationRole.Arn
+        Role: !GetAtt SiteCloudFrontLogsReplicationRole.Arn
         Rules:
           - Destination:
-              Bucket: !GetAtt ReplicaBucket.Arn
+              Bucket: !GetAtt SiteCloudFrontLogsReplicaBucket.Arn
             Status: Enabled
       VersioningConfiguration:
         Status: Enabled
@@ -751,10 +742,6 @@ Resources:
       guard:
         SuppressedRules:
           - S3_BUCKET_DEFAULT_LOCK_ENABLED
-      Rain:
-        Content: !Ref Content
-        EmptyOnDelete: !Ref EmptyOnDelete
-        DistributionLogicalId: NONE
 
   SiteCloudFrontLogsReplicaBucket:
     Type: AWS::S3::Bucket
@@ -783,9 +770,6 @@ Resources:
           - S3_BUCKET_DEFAULT_LOCK_ENABLED
           - S3_BUCKET_REPLICATION_ENABLED
           - S3_BUCKET_LOGGING_ENABLED
-      Rain:
-        Content: RAIN_NO_CONTENT
-        EmptyOnDelete: !Ref EmptyOnDelete
 
   SiteCloudFrontLogsReplicationPolicy:
     Type: AWS::IAM::RolePolicy
@@ -811,7 +795,7 @@ Resources:
             Resource: !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
       PolicyName: bucket-replication-policy
-      RoleName: !Ref ReplicationRole
+      RoleName: !Ref SiteCloudFrontLogsReplicationRole
 
   SiteCloudFrontLogsReplicationRole:
     Type: AWS::IAM::Role

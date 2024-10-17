@@ -22,6 +22,8 @@ local cloudfrontLogBucket = new bucket {
   LogicalId = outer.LogicalId + "CloudFrontLogs"
 }
 
+local distributionLogicalId = LogicalId + "Distribution"
+
 fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
 
   [LogicalId + "OriginAccessControl"] = new originaccesscontrol.OriginAccessControl {
@@ -29,8 +31,10 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
       Name = new Mapping {
         ["Fn::Join"] {
           ""
-          cfn.Sub("\(AppName)")
-          cfn.Select(2, cfn.Split("/", cfn.Ref("AWS::StackId")))
+          new {
+            cfn.Sub("\(AppName)")
+            cfn.Select(2, cfn.Split("/", cfn.Ref("AWS::StackId")))
+          }
         }
       }
       OriginAccessControlOriginType = "s3"
@@ -40,7 +44,7 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
   }
 
 
-  [LogicalId + "Distribution"] = new distribution.Distribution {
+  [distributionLogicalId] = new distribution.Distribution {
     Metadata {
       checkov {
         skip {
@@ -70,13 +74,13 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
       HttpVersion = "http2"
       IPV6Enabled = true
       Logging {
-        Bucket = cfn.GetAtt("CloudFrontLogsBucket", "RegionalDomainName")
+        Bucket = cfn.GetAtt(LogicalId + "CloudFrontLogsBucket", "RegionalDomainName")
       }
       Origins {
         new {
-          DomainName = cfn.GetAtt("ContentBucket", "RegionalDomainName")
+          DomainName = cfn.GetAtt(LogicalId + "ContentBucket", "RegionalDomainName")
           Id = cfn.Sub("\(AppName)-origin-1")
-          OriginAccessControlId = cfn.GetAtt("OriginAccessControl", "Id")
+          OriginAccessControlId = cfn.GetAtt(LogicalId + "OriginAccessControl", "Id")
           S3OriginConfig {
             OriginAccessIdentity = ""
           }
@@ -85,7 +89,7 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
       ViewerCertificate {
         CloudFrontDefaultCertificate = true
       }
-      WebACLId = cfn.GetAtt("WebACL", "Arn")
+      WebACLId = cfn.GetAtt(LogicalId + "WebACL", "Arn")
     }
   }
 
@@ -155,7 +159,7 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
                 ["Condition"] {
                   ["StringEquals"] {
                     ["AWS:SourceArn"] {
-                      ["Fn::Sub"] = "arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution.Id}"
+                      ["Fn::Sub"] = "arn:aws:cloudfront::${AWS::AccountId}:distribution/${\(distributionLogicalId).Id}"
                     }
                   }
                 }

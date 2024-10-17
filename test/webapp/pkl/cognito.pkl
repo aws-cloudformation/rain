@@ -14,7 +14,7 @@ CallbackURL: String
 
 fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
     [LogicalId + "UserPool"] = new userpool.UserPool {
-        UserPoolName = cfn.Sub("AppName")
+        UserPoolName = cfn.Sub("\(AppName)")
 
         AdminCreateUserConfig {
             AllowAdminCreateUserOnly = true
@@ -39,20 +39,20 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
     }
 
     [LogicalId + "Domain"] = new userpooldomain.UserPoolDomain {
-        Domain = cfn.Sub("AppName")
+        Domain = cfn.Sub("\(AppName)")
 
-        UserPoolId = cfn.Ref("UserPool")
+        UserPoolId = cfn.Ref(LogicalId + "UserPool")
 
     }
 
     [LogicalId + "Client"] = new userpoolclient.UserPoolClient {
-        ClientName = cfn.Sub("AppName")
+        ClientName = cfn.Sub("\(AppName)")
 
         GenerateSecret = false
-        UserPoolId = cfn.Ref("UserPool")
+        UserPoolId = cfn.Ref(LogicalId + "UserPool")
 
         CallbackURLs {
-            cfn.Ref("CallbackURL")
+            cfn.Sub("\(CallbackURL)")
         }
         AllowedOAuthFlows {
             "code"

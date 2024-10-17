@@ -21,17 +21,17 @@ EmptyOnDelete: Boolean
 LogicalId: String
 
 logBucketPolicy = new bucketpolicy {
-    PolicyBucketName = "${AppName}-logs-${AWS::Region}-${AWS::AccountId}"
+    PolicyBucketName = "\(AppName)-logs-${AWS::Region}-${AWS::AccountId}"
     LogicalId = outer.LogicalId + "LogBucket"
 }
 
 bucketPolicy = new bucketpolicy {
-    PolicyBucketName = "${AppName}-${AWS::Region}-${AWS::AccountId}"
+    PolicyBucketName = "\(AppName)-${AWS::Region}-${AWS::AccountId}"
     LogicalId = outer.LogicalId + "Bucket"
 }
 
 replicaBucketPolicy = new bucketpolicy {
-    PolicyBucketName = "${AppName}-replicas-${AWS::Region}-${AWS::AccountId}"
+    PolicyBucketName = "\(AppName)-replicas-${AWS::Region}-${AWS::AccountId}"
     LogicalId = outer.LogicalId + "ReplicaBucket" 
 }
 
@@ -58,10 +58,6 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
                             "S3_BUCKET_LOGGING_ENABLED"
                             "S3_BUCKET_REPLICATION_ENABLED"
                         }
-                }
-            Rain {
-                    Content = "RAIN_NO_CONTENT"
-                    EmptyOnDelete = cfn.Ref("EmptyOnDelete")
                 }
         }
         BucketEncryption {
@@ -103,11 +99,6 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
                             "S3_BUCKET_DEFAULT_LOCK_ENABLED"
                         }
                 }
-            ["Rain"] {
-                    ["Content"] = cfn.Ref("Content")
-                    ["EmptyOnDelete"] = cfn.Ref("EmptyOnDelete")
-                    ["DistributionLogicalId"] = "NONE"
-                }
         }
         BucketEncryption {
             ServerSideEncryptionConfiguration {
@@ -121,7 +112,7 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
         BucketName = cfn.Sub("\(AppName)-${AWS::Region}-${AWS::AccountId}")
 
         LoggingConfiguration {
-            DestinationBucketName = cfn.Ref("LogBucket")
+            DestinationBucketName = cfn.Ref(LogicalId + "LogBucket")
         }
         ObjectLockEnabled = false
         PublicAccessBlockConfiguration {
@@ -131,11 +122,11 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
             RestrictPublicBuckets = true
         }
         ReplicationConfiguration {
-            Role = cfn.GetAtt("ReplicationRole", "Arn")
+            Role = cfn.GetAtt(LogicalId + "ReplicationRole", "Arn")
             Rules {
                      new {
                         Destination {
-                                Bucket = cfn.GetAtt("ReplicaBucket", "Arn")
+                                Bucket = cfn.GetAtt(LogicalId + "ReplicaBucket", "Arn")
                             }
                         Status = "Enabled"
                     }
@@ -164,10 +155,6 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
                             "S3_BUCKET_REPLICATION_ENABLED"
                             "S3_BUCKET_LOGGING_ENABLED"
                         }
-                }
-            Rain {
-                    Content = "RAIN_NO_CONTENT"
-                    EmptyOnDelete = cfn.Ref("EmptyOnDelete")
                 }
         }
         BucketEncryption {
@@ -227,7 +214,7 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
             Version = "2012-10-17"
         }
         PolicyName = "bucket-replication-policy"
-        RoleName = cfn.Ref("ReplicationRole")
+        RoleName = cfn.Ref(LogicalId + "ReplicationRole")
 
     }
 
