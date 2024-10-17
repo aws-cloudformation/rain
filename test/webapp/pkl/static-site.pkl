@@ -13,7 +13,7 @@ AppName: String
 LogicalId: String
 
 local contentBucket = new bucket {
-  AppName = outer.AppName
+  AppName = "\(outer.AppName)"
   LogicalId = outer.LogicalId + "Content"
 }
 
@@ -21,6 +21,8 @@ local cloudfrontLogBucket = new bucket {
   AppName = "\(outer.AppName)-cflogs"
   LogicalId = outer.LogicalId + "CloudFrontLogs"
 }
+
+local cflogBucketName = LogicalId + "CloudFrontLogsBucket"
 
 local distributionLogicalId = LogicalId + "Distribution"
 
@@ -174,16 +176,18 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
 
   // Add resources in the CloudFront log bucket module, overriding object ownership
   for (logicalId, resource in cloudfrontLogBucket.Resources) {
-    when (logicalId == "CloudFrontLogBucket") {
-        ["Properties"] {
-          ["OwnershipControls"] {
-            ["Rules"] {
-              new {
-                ["ObjectOwnership"] = "BucketOwnerPreferred"
+    when (logicalId == cflogBucketName) {
+        [logicalId] = (resource) {
+            Properties {
+              OwnershipControls {
+                Rules {
+                  new {
+                    ObjectOwnership = "BucketOwnerPreferred"
+                  }
+                }
               }
             }
           }
-        }
     } else {
         [logicalId] = resource
     }

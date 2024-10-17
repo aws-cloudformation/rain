@@ -23,7 +23,19 @@ Parameters {
   ["AppName"] {
     Type = "String"
     Description = "This name is used as a prefix for resource names"
-    Default = "rain-webapp"
+    Default = "rain-webapp-pkl"
+  }
+  ["LambdaCodeBucket"] {
+    Type = "String"
+    Default = "rain-artifacts-207567786752-us-east-1"
+  }
+  ["TestHandlerKey"] {
+    Type = "String"
+    Default = "db3706b9e9ec0046b308635fbc9ecdb3a4ad31e1069210e881e5442f546cc285" 
+  }
+  ["JwtHandlerKey"] {
+    Type = "String"
+    Default = "7b300d8fa211e93b14974d3e699a8c479470a1b31a6202176441cf11e5ad93f3" 
   }
 }
 
@@ -53,8 +65,8 @@ local testResource = new apiresource {
   RestApiDeployment = "${RestApiDeployment}"
   ResourcePath = "test"
   AuthorizerId = "${RestApiAuthorizer}"
-  HandlerBucket = "TODO"
-  HandlerKey = "TODO"
+  HandlerBucket = "${LambdaCodeBucket}" 
+  HandlerKey = "${TestHandlerKey}"
 }
 
 local jwtResource = new apiresource {
@@ -63,10 +75,10 @@ local jwtResource = new apiresource {
   RestApi = "${RestApi}"
   RootResourceId = "${RestApi.RootResourceId}"
   RestApiDeployment = "${RestApiDeployment}"
-  ResourcePath = "test"
+  ResourcePath = "jwt"
   AuthorizerId = "AWS::NoValue"
-  HandlerBucket = "TODO"
-  HandlerKey = "TODO"
+  HandlerBucket = "${LambdaCodeBucket}" 
+  HandlerKey = "${JwtHandlerKey}"
 }
 
 Resources {
@@ -150,16 +162,16 @@ Resources {
   }
 
   for (logicalId, resource in restApi.Resources) {
-    when (logicalId == "ApiDeployment") {
+    when (logicalId == "RestApiDeployment") {
       [logicalId] = (resource) {
         Metadata {
           ["Version"] = 2
         }
         DependsOn {
-          "TestResourceGet"
-          "TestResourceOptions"
-          "JwtResourceGet"
-          "JwtResourceOptions"
+          "TestGet"
+          "TestOptions"
+          "JwtGet"
+          "JwtOptions"
         }
       }
     } else {

@@ -11,16 +11,28 @@ Metadata:
 Parameters:
   AppName:
     Type: String
-    Default: rain-webapp
+    Default: rain-webapp-pkl
     Description: This name is used as a prefix for resource names
+
+  LambdaCodeBucket:
+    Type: String
+    Default: rain-artifacts-207567786752-us-east-1
+
+  TestHandlerKey:
+    Type: String
+    Default: db3706b9e9ec0046b308635fbc9ecdb3a4ad31e1069210e881e5442f546cc285
+
+  JwtHandlerKey:
+    Type: String
+    Default: 7b300d8fa211e93b14974d3e699a8c479470a1b31a6202176441cf11e5ad93f3
 
 Resources:
   TestHandler:
     Type: AWS::Lambda::Function
     Properties:
       Code:
-        S3Bucket: !Sub TODO
-        S3Key: !Sub TODO
+        S3Bucket: !Sub ${LambdaCodeBucket}
+        S3Key: !Sub ${TestHandlerKey}
       Environment:
         Variables:
           TABLE_NAME: !Ref TestTable
@@ -83,7 +95,7 @@ Resources:
     Type: AWS::ApiGateway::Method
     Properties:
       AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Sub AuthorizerId
+      AuthorizerId: !Sub ${RestApiAuthorizer}
       HttpMethod: GET
       Integration:
         IntegrationHttpMethod: POST
@@ -96,8 +108,8 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Code:
-        S3Bucket: !Sub TODO
-        S3Key: !Sub TODO
+        S3Bucket: !Sub ${LambdaCodeBucket}
+        S3Key: !Sub ${JwtHandlerKey}
       Environment:
         Variables:
           COGNITO_REGION: us-east-1
@@ -129,7 +141,7 @@ Resources:
     Type: AWS::ApiGateway::Resource
     Properties:
       ParentId: !Sub ${RestApi.RootResourceId}
-      PathPart: !Sub test
+      PathPart: !Sub jwt
       RestApiId: !Sub ${RestApi}
 
   JwtPermission:
@@ -164,7 +176,7 @@ Resources:
     Type: AWS::ApiGateway::Method
     Properties:
       AuthorizationType: NONE
-      AuthorizerId: !Sub AuthorizerId
+      AuthorizerId: !Sub AWS::NoValue
       HttpMethod: GET
       Integration:
         IntegrationHttpMethod: POST
@@ -201,6 +213,13 @@ Resources:
     Type: AWS::ApiGateway::Deployment
     Properties:
       RestApiId: !Ref RestApi
+    DependsOn:
+      - TestGet
+      - TestOptions
+      - JwtGet
+      - JwtOptions
+    Metadata:
+      Version: 2
 
   RestApiStage:
     Type: AWS::ApiGateway::Stage
@@ -215,7 +234,7 @@ Resources:
       IdentitySource: method.request.header.authorization
       Name: CognitoApiAuthorizer
       ProviderARNs:
-        - !Sub UserPoolArn
+        - !Sub ${CognitoUserPool.Arn}
       RestApiId: !Ref RestApi
       Type: COGNITO_USER_POOLS
 
@@ -343,7 +362,7 @@ Resources:
         MetricName: MetricForWebACLWithAMR
         SampledRequestsEnabled: true
 
-  SiteContentBucketPolicy:
+  SiteContentBucketAccessPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
       Bucket: !Sub ${AppName}-${AWS::Region}-${AWS::AccountId}
@@ -372,17 +391,9 @@ Resources:
               Service: logging.s3.amazonaws.com
             Resource:
               - !Sub arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*
-          - Action: s3:GetObject
-            Effect: Allow
-            Resource: !Sub arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*
-            Principal:
-              Service: cloudfront.amazonaws.com
-            Condition:
-              StringEquals:
-                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${SiteDistribution.Id}
         Version: "2012-10-17"
 
-  SiteContentLogBucketPolicy:
+  SiteContentLogBucketAccessPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
       Bucket: !Sub ${AppName}-logs-${AWS::Region}-${AWS::AccountId}
@@ -413,7 +424,7 @@ Resources:
               - !Sub arn:${AWS::Partition}:s3:::${AppName}-logs-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
-  SiteContentReplicaBucketPolicy:
+  SiteContentReplicaBucketAccessPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
       Bucket: !Sub ${AppName}-replicas-${AWS::Region}-${AWS::AccountId}
@@ -588,7 +599,7 @@ Resources:
         Version: "2012-10-17"
       Path: /
 
-  SiteCloudFrontLogsBucketPolicy:
+  SiteCloudFrontLogsBucketAccessPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
       Bucket: !Sub ${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}
@@ -619,7 +630,7 @@ Resources:
               - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
-  SiteCloudFrontLogsLogBucketPolicy:
+  SiteCloudFrontLogsLogBucketAccessPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
       Bucket: !Sub ${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
@@ -650,7 +661,7 @@ Resources:
               - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
-  SiteCloudFrontLogsReplicaBucketPolicy:
+  SiteCloudFrontLogsReplicaBucketAccessPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
       Bucket: !Sub ${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
@@ -738,6 +749,9 @@ Resources:
             Status: Enabled
       VersioningConfiguration:
         Status: Enabled
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
     Metadata:
       guard:
         SuppressedRules:

@@ -43,6 +43,8 @@ HandlerKey: String
 local restApiLogicalId = LogicalId + "RestApi"
 local handlerLogicalId = LogicalId + "Handler"
 
+local authorizerId = cfn.Sub("\(AuthorizerId)")
+
 fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
     [handlerLogicalId] = new func.Function {
         Handler = "bootstrap"
@@ -125,7 +127,7 @@ fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
         RestApiId = cfn.Sub("\(RestApi)")
 
         AuthorizationType = "COGNITO_USER_POOLS"
-        AuthorizerId = cfn.Sub("AuthorizerId")
+        AuthorizerId = authorizerId 
 
         Integration {
             IntegrationHttpMethod = "POST"
