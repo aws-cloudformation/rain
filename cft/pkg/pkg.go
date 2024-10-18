@@ -59,6 +59,8 @@ type transformContext struct {
 func transform(ctx *transformContext) (bool, error) {
 	changed := false
 
+	config.Debugf("transform: %s", node.ToSJson(ctx.nodeToTransform))
+
 	// registry is a map of functions defined in rain.go
 	for path, fn := range registry {
 		for found := range s11n.MatchAll(ctx.nodeToTransform, path) {
@@ -85,6 +87,9 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 
 	//config.Debugf("Original template short: %v", node.ToSJson(t.Node))
 	//config.Debugf("Original template long: %v", node.ToJson(t.Node))
+
+	// First look for a Rain section and store constants
+	// TODO
 
 	ctx := &transformContext{
 		nodeToTransform: templateNode,
