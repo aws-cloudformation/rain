@@ -1,19 +1,33 @@
 Description: 'Creates a web application with a static website using S3 and CloudFront, an API Gateway REST API, and a DynamoDB table, with Cognito authentication. This sample uses Rain Metadata commands to upload content to the static  site bucket, and uses a Run property on the S3 directive to build the  lambda function, which for this example is written in Go. Apache-2.0 License. Adapt this template to your needs and thoruoughly test it before introducing it in a production environment. **WARNING** This template will create resources in your account that may incur billing charges. '
 AWSTemplateFormatVersion: 2010-09-09
+Metadata:
+  cfn-lint:
+    config:
+      ignore_checks:
+      - W1020
 Parameters:
   AppName:
     Type: String
-    Default: rain-webapp
+    Default: rain-webapp-pkl
     Description: This name is used as a prefix for resource names
+  LambdaCodeBucket:
+    Type: String
+    Default: rain-artifacts-207567786752-us-east-1
+  TestHandlerKey:
+    Type: String
+    Default: db3706b9e9ec0046b308635fbc9ecdb3a4ad31e1069210e881e5442f546cc285
+  JwtHandlerKey:
+    Type: String
+    Default: 7b300d8fa211e93b14974d3e699a8c479470a1b31a6202176441cf11e5ad93f3
 Resources:
   TestHandler:
     Type: AWS::Lambda::Function
     Properties:
       Code:
         S3Bucket:
-          Fn::Sub: TODO
+          Fn::Sub: ${LambdaCodeBucket}
         S3Key:
-          Fn::Sub: TODO
+          Fn::Sub: ${TestHandlerKey}
       Environment:
         Variables:
           TABLE_NAME:
@@ -23,7 +37,7 @@ Resources:
       Handler: bootstrap
       Role:
         Fn::GetAtt:
-        - HandlerRole
+        - TestHandlerRole
         - Arn
       Runtime: provided.al2023
   TestHandlerRole:
@@ -48,14 +62,14 @@ Resources:
       PathPart:
         Fn::Sub: test
       RestApiId:
-        Ref: TestRestApi
+        Fn::Sub: ${RestApi}
   TestPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
       FunctionName:
         Fn::GetAtt:
-        - Handler
+        - TestHandler
         - Arn
       Principal: apigateway.amazonaws.com
       SourceArn:
@@ -66,7 +80,7 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName:
         Fn::GetAtt:
-        - Handler
+        - TestHandler
         - Arn
       Principal: apigateway.amazonaws.com
       SourceArn:
@@ -80,17 +94,17 @@ Resources:
         IntegrationHttpMethod: POST
         Type: AWS_PROXY
         Uri:
-          Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Handler.Arn}/invocations
+          Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TestHandler.Arn}/invocations
       ResourceId:
         Ref: TestResource
       RestApiId:
-        Ref: TestRestApi
+        Fn::Sub: ${RestApi}
   TestGet:
     Type: AWS::ApiGateway::Method
     Properties:
       AuthorizationType: COGNITO_USER_POOLS
       AuthorizerId:
-        Fn::Sub: AuthorizerId
+        Fn::Sub: ${RestApiAuthorizer}
       HttpMethod: GET
       Integration:
         IntegrationHttpMethod: POST
@@ -100,15 +114,15 @@ Resources:
       ResourceId:
         Ref: TestResource
       RestApiId:
-        Ref: TestRestApi
+        Fn::Sub: ${RestApi}
   JwtHandler:
     Type: AWS::Lambda::Function
     Properties:
       Code:
         S3Bucket:
-          Fn::Sub: TODO
+          Fn::Sub: ${LambdaCodeBucket}
         S3Key:
-          Fn::Sub: TODO
+          Fn::Sub: ${JwtHandlerKey}
       Environment:
         Variables:
           COGNITO_REGION: us-east-1
@@ -125,7 +139,7 @@ Resources:
       Handler: bootstrap
       Role:
         Fn::GetAtt:
-        - HandlerRole
+        - JwtHandlerRole
         - Arn
       Runtime: provided.al2023
   JwtHandlerRole:
@@ -148,16 +162,16 @@ Resources:
       ParentId:
         Fn::Sub: ${RestApi.RootResourceId}
       PathPart:
-        Fn::Sub: test
+        Fn::Sub: jwt
       RestApiId:
-        Ref: JwtRestApi
+        Fn::Sub: ${RestApi}
   JwtPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
       FunctionName:
         Fn::GetAtt:
-        - Handler
+        - JwtHandler
         - Arn
       Principal: apigateway.amazonaws.com
       SourceArn:
@@ -168,7 +182,7 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName:
         Fn::GetAtt:
-        - Handler
+        - JwtHandler
         - Arn
       Principal: apigateway.amazonaws.com
       SourceArn:
@@ -182,17 +196,17 @@ Resources:
         IntegrationHttpMethod: POST
         Type: AWS_PROXY
         Uri:
-          Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Handler.Arn}/invocations
+          Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${JwtHandler.Arn}/invocations
       ResourceId:
         Ref: JwtResource
       RestApiId:
-        Ref: JwtRestApi
+        Fn::Sub: ${RestApi}
   JwtGet:
     Type: AWS::ApiGateway::Method
     Properties:
       AuthorizationType: NONE
       AuthorizerId:
-        Fn::Sub: AuthorizerId
+        Fn::Sub: AWS::NoValue
       HttpMethod: GET
       Integration:
         IntegrationHttpMethod: POST
@@ -202,7 +216,7 @@ Resources:
       ResourceId:
         Ref: JwtResource
       RestApiId:
-        Ref: JwtRestApi
+        Fn::Sub: ${RestApi}
   TestResourceHandlerPolicy:
     Type: AWS::IAM::RolePolicy
     Properties:
@@ -223,7 +237,7 @@ Resources:
             - Arn
       PolicyName: handler-policy
       RoleName:
-        Ref: TestResourceHandlerRole
+        Ref: TestHandlerRole
   RestApi:
     Type: AWS::ApiGateway::RestApi
     Properties:
@@ -234,6 +248,13 @@ Resources:
     Properties:
       RestApiId:
         Ref: RestApi
+    DependsOn:
+    - TestGet
+    - TestOptions
+    - JwtGet
+    - JwtOptions
+    Metadata:
+      Version: 2
   RestApiStage:
     Type: AWS::ApiGateway::Stage
     Properties:
@@ -249,7 +270,7 @@ Resources:
       IdentitySource: method.request.header.authorization
       Name: CognitoApiAuthorizer
       ProviderARNs:
-      - Fn::Sub: UserPoolArn
+      - Fn::Sub: ${CognitoUserPool.Arn}
       RestApiId:
         Ref: RestApi
       Type: COGNITO_USER_POOLS
@@ -268,16 +289,16 @@ Resources:
       - Name: family_name
         Required: true
       UserPoolName:
-        Fn::Sub: AppName
+        Fn::Sub: ${AppName}
     DependsOn:
     - SiteDistribution
   CognitoDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
       Domain:
-        Fn::Sub: AppName
+        Fn::Sub: ${AppName}
       UserPoolId:
-        Ref: UserPool
+        Ref: CognitoUserPool
   CognitoClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
@@ -289,14 +310,14 @@ Resources:
       - email
       - openid
       CallbackURLs:
-      - Ref: CallbackURL
+      - Fn::Sub: https://${SiteDistribution.DomainName}/index.html
       ClientName:
-        Fn::Sub: AppName
+        Fn::Sub: ${AppName}
       GenerateSecret: false
       SupportedIdentityProviders:
       - COGNITO
       UserPoolId:
-        Ref: UserPool
+        Ref: CognitoUserPool
   SiteOriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
@@ -304,12 +325,12 @@ Resources:
         Name:
           Fn::Join:
           - ''
-          - Fn::Sub: ${AppName}
-          - Fn::Select:
-            - 2
-            - Fn::Split:
-              - /
-              - Ref: AWS::StackId
+          - - Fn::Sub: ${AppName}
+            - Fn::Select:
+              - 2
+              - Fn::Split:
+                - /
+                - Ref: AWS::StackId
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
@@ -330,18 +351,18 @@ Resources:
         Logging:
           Bucket:
             Fn::GetAtt:
-            - CloudFrontLogsBucket
+            - SiteCloudFrontLogsBucket
             - RegionalDomainName
         Origins:
         - DomainName:
             Fn::GetAtt:
-            - ContentBucket
+            - SiteContentBucket
             - RegionalDomainName
           Id:
             Fn::Sub: ${AppName}-origin-1
           OriginAccessControlId:
             Fn::GetAtt:
-            - OriginAccessControl
+            - SiteOriginAccessControl
             - Id
           S3OriginConfig:
             OriginAccessIdentity: ''
@@ -349,7 +370,7 @@ Resources:
           CloudFrontDefaultCertificate: true
         WebACLId:
           Fn::GetAtt:
-          - WebACL
+          - SiteWebACL
           - Arn
     Metadata:
       checkov:
@@ -392,10 +413,11 @@ Resources:
         CloudWatchMetricsEnabled: true
         MetricName: MetricForWebACLWithAMR
         SampledRequestsEnabled: true
-  SiteContentBucketPolicy:
+  SiteContentBucketAccessPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: ${AppName}-${AWS::Region}-${AWS::AccountId}
+      Bucket:
+        Fn::Sub: ${AppName}-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
         - Action: s3:*
@@ -421,8 +443,6 @@ Resources:
             Service: logging.s3.amazonaws.com
           Resource:
           - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*
-        Version: 2012-10-17
-        Statement:
         - Action: s3:GetObject
           Effect: Allow
           Resource:
@@ -432,35 +452,13 @@ Resources:
           Condition:
             StringEquals:
               AWS:SourceArn:
-                Fn::Sub: arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution.Id}
-        - Action: s3:*
-          Condition:
-            Bool:
-              aws:SecureTransport: false
-          Effect: Deny
-          Principal:
-            AWS: '*'
-          Resource:
-          - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}
-          - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*
-        - Action: s3:PutObject
-          Condition:
-            ArnLike:
-              aws:SourceArn:
-                Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}
-            StringEquals:
-              aws:SourceAccount:
-                Ref: AWS::AccountId
-          Effect: Allow
-          Principal:
-            Service: logging.s3.amazonaws.com
-          Resource:
-          - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*
+                Fn::Sub: arn:aws:cloudfront::${AWS::AccountId}:distribution/${SiteDistribution.Id}
         Version: 2012-10-17
-  SiteContentLogBucketPolicy:
+  SiteContentLogBucketAccessPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: ${AppName}-logs-${AWS::Region}-${AWS::AccountId}
+      Bucket:
+        Fn::Sub: ${AppName}-logs-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
         - Action: s3:*
@@ -487,10 +485,11 @@ Resources:
           Resource:
           - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-logs-${AWS::Region}-${AWS::AccountId}/*
         Version: 2012-10-17
-  SiteContentReplicaBucketPolicy:
+  SiteContentReplicaBucketAccessPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: ${AppName}-replicas-${AWS::Region}-${AWS::AccountId}
+      Bucket:
+        Fn::Sub: ${AppName}-replicas-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
         - Action: s3:*
@@ -550,10 +549,6 @@ Resources:
         SuppressedRules:
         - S3_BUCKET_LOGGING_ENABLED
         - S3_BUCKET_REPLICATION_ENABLED
-      Rain:
-        Content: RAIN_NO_CONTENT
-        EmptyOnDelete:
-          Ref: EmptyOnDelete
   SiteContentBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -565,7 +560,7 @@ Resources:
         Fn::Sub: ${AppName}-${AWS::Region}-${AWS::AccountId}
       LoggingConfiguration:
         DestinationBucketName:
-          Ref: LogBucket
+          Ref: SiteContentLogBucket
       ObjectLockEnabled: false
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
@@ -575,13 +570,13 @@ Resources:
       ReplicationConfiguration:
         Role:
           Fn::GetAtt:
-          - ReplicationRole
+          - SiteContentReplicationRole
           - Arn
         Rules:
         - Destination:
             Bucket:
               Fn::GetAtt:
-              - ReplicaBucket
+              - SiteContentReplicaBucket
               - Arn
           Status: Enabled
       VersioningConfiguration:
@@ -591,10 +586,10 @@ Resources:
         SuppressedRules:
         - S3_BUCKET_DEFAULT_LOCK_ENABLED
       Rain:
-        Content: site/dist
         EmptyOnDelete: true
-        DistributionLogicalId: SiteDistribution
+        Content: site/dist
         Version: 2
+        DistributionLogicalId: SiteDistribution
         RunBefore:
           Command: buildsite.sh
         RunAfter:
@@ -632,10 +627,6 @@ Resources:
         - S3_BUCKET_DEFAULT_LOCK_ENABLED
         - S3_BUCKET_REPLICATION_ENABLED
         - S3_BUCKET_LOGGING_ENABLED
-      Rain:
-        Content: RAIN_NO_CONTENT
-        EmptyOnDelete:
-          Ref: EmptyOnDelete
   SiteContentReplicationPolicy:
     Type: AWS::IAM::RolePolicy
     Properties:
@@ -664,7 +655,7 @@ Resources:
         Version: 2012-10-17
       PolicyName: bucket-replication-policy
       RoleName:
-        Ref: ReplicationRole
+        Ref: SiteContentReplicationRole
   SiteContentReplicationRole:
     Type: AWS::IAM::Role
     Properties:
@@ -678,10 +669,11 @@ Resources:
             - s3.amazonaws.com
         Version: 2012-10-17
       Path: /
-  SiteCloudFrontLogsBucketPolicy:
+  SiteCloudFrontLogsBucketAccessPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: ${AppName}-${AWS::Region}-${AWS::AccountId}
+      Bucket:
+        Fn::Sub: ${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
         - Action: s3:*
@@ -692,13 +684,13 @@ Resources:
           Principal:
             AWS: '*'
           Resource:
-          - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}
-          - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*
+          - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}
+          - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}/*
         - Action: s3:PutObject
           Condition:
             ArnLike:
               aws:SourceArn:
-              - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}
+              - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}
             StringEquals:
               aws:SourceAccount:
               - Ref: AWS::AccountId
@@ -706,12 +698,13 @@ Resources:
           Principal:
             Service: logging.s3.amazonaws.com
           Resource:
-          - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*
+          - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}/*
         Version: 2012-10-17
-  SiteCloudFrontLogsLogBucketPolicy:
+  SiteCloudFrontLogsLogBucketAccessPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: ${AppName}-logs-${AWS::Region}-${AWS::AccountId}
+      Bucket:
+        Fn::Sub: ${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
         - Action: s3:*
@@ -722,13 +715,13 @@ Resources:
           Principal:
             AWS: '*'
           Resource:
-          - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-logs-${AWS::Region}-${AWS::AccountId}
-          - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-logs-${AWS::Region}-${AWS::AccountId}/*
+          - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
+          - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}/*
         - Action: s3:PutObject
           Condition:
             ArnLike:
               aws:SourceArn:
-              - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-logs-${AWS::Region}-${AWS::AccountId}
+              - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
             StringEquals:
               aws:SourceAccount:
               - Ref: AWS::AccountId
@@ -736,12 +729,13 @@ Resources:
           Principal:
             Service: logging.s3.amazonaws.com
           Resource:
-          - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-logs-${AWS::Region}-${AWS::AccountId}/*
+          - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}/*
         Version: 2012-10-17
-  SiteCloudFrontLogsReplicaBucketPolicy:
+  SiteCloudFrontLogsReplicaBucketAccessPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: ${AppName}-replicas-${AWS::Region}-${AWS::AccountId}
+      Bucket:
+        Fn::Sub: ${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
         - Action: s3:*
@@ -752,13 +746,13 @@ Resources:
           Principal:
             AWS: '*'
           Resource:
-          - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-replicas-${AWS::Region}-${AWS::AccountId}
-          - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-replicas-${AWS::Region}-${AWS::AccountId}/*
+          - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
+          - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}/*
         - Action: s3:PutObject
           Condition:
             ArnLike:
               aws:SourceArn:
-              - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-replicas-${AWS::Region}-${AWS::AccountId}
+              - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
             StringEquals:
               aws:SourceAccount:
               - Ref: AWS::AccountId
@@ -766,7 +760,7 @@ Resources:
           Principal:
             Service: logging.s3.amazonaws.com
           Resource:
-          - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-replicas-${AWS::Region}-${AWS::AccountId}/*
+          - Fn::Sub: arn:${AWS::Partition}:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}/*
         Version: 2012-10-17
   SiteCloudFrontLogsLogBucket:
     Type: AWS::S3::Bucket
@@ -801,10 +795,6 @@ Resources:
         SuppressedRules:
         - S3_BUCKET_LOGGING_ENABLED
         - S3_BUCKET_REPLICATION_ENABLED
-      Rain:
-        Content: RAIN_NO_CONTENT
-        EmptyOnDelete:
-          Ref: EmptyOnDelete
   SiteCloudFrontLogsBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -816,7 +806,7 @@ Resources:
         Fn::Sub: ${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}
       LoggingConfiguration:
         DestinationBucketName:
-          Ref: LogBucket
+          Ref: SiteCloudFrontLogsLogBucket
       ObjectLockEnabled: false
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
@@ -826,27 +816,24 @@ Resources:
       ReplicationConfiguration:
         Role:
           Fn::GetAtt:
-          - ReplicationRole
+          - SiteCloudFrontLogsReplicationRole
           - Arn
         Rules:
         - Destination:
             Bucket:
               Fn::GetAtt:
-              - ReplicaBucket
+              - SiteCloudFrontLogsReplicaBucket
               - Arn
           Status: Enabled
       VersioningConfiguration:
         Status: Enabled
+      OwnershipControls:
+        Rules:
+        - ObjectOwnership: BucketOwnerPreferred
     Metadata:
       guard:
         SuppressedRules:
         - S3_BUCKET_DEFAULT_LOCK_ENABLED
-      Rain:
-        Content:
-          Ref: Content
-        EmptyOnDelete:
-          Ref: EmptyOnDelete
-        DistributionLogicalId: NONE
   SiteCloudFrontLogsReplicaBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -875,10 +862,6 @@ Resources:
         - S3_BUCKET_DEFAULT_LOCK_ENABLED
         - S3_BUCKET_REPLICATION_ENABLED
         - S3_BUCKET_LOGGING_ENABLED
-      Rain:
-        Content: RAIN_NO_CONTENT
-        EmptyOnDelete:
-          Ref: EmptyOnDelete
   SiteCloudFrontLogsReplicationPolicy:
     Type: AWS::IAM::RolePolicy
     Properties:
@@ -907,7 +890,7 @@ Resources:
         Version: 2012-10-17
       PolicyName: bucket-replication-policy
       RoleName:
-        Ref: ReplicationRole
+        Ref: SiteCloudFrontLogsReplicationRole
   SiteCloudFrontLogsReplicationRole:
     Type: AWS::IAM::Role
     Properties:
