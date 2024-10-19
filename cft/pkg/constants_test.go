@@ -6,6 +6,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft/diff"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"gopkg.in/yaml.v3"
 )
 
 func TestConstants(t *testing.T) {
@@ -63,4 +64,17 @@ Resources:
 		t.Errorf("Output does not match expected: %v", d.Format(true))
 	}
 
+}
+
+func TestReplaceConstants(t *testing.T) {
+	n := &yaml.Node{Kind: yaml.ScalarNode, Value: "${Rain::Test}"}
+	constants := make(map[string]*yaml.Node)
+	constants["Test"].Value = "Foo"
+	err := replaceConstants(n, constants)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n.Value != "Foo" {
+		t.Fatalf("Expected Foo, got %s", n.Value)
+	}
 }

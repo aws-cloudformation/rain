@@ -79,17 +79,55 @@ func transform(ctx *transformContext) (bool, error) {
 	return changed, nil
 }
 
+func replaceConstants(n *yaml.Node, constants map[string]*yaml.Node) error {
+	if n.Kind != yaml.ScalarNode {
+		return fmt.Errorf("expected n to be a ScalarNode")
+	}
+	// TODO: Parse every scalar as if it was a Sub. Look for ${Rain::X}
+
+	return nil
+}
+
 // Template returns t with assets included as per AWS CLI packaging rules
 // and any Rain:: functions used.
 // rootDir must be passed in so that any included assets can be loaded from the same directory
 func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error) {
 	templateNode := t.Node
+	var err error
 
 	//config.Debugf("Original template short: %v", node.ToSJson(t.Node))
 	//config.Debugf("Original template long: %v", node.ToJson(t.Node))
 
 	// First look for a Rain section and store constants
-	// TODO
+	t.Constants = make(map[string]*yaml.Node)
+	rainNode, err := t.GetSection(cft.Rain)
+	if err != nil {
+		config.Debugf("Unable to get Rain section: %v", err)
+	} else {
+		config.Debugf("Rain node: %s", node.ToSJson(rainNode))
+	}
+	_, c, _ := s11n.GetMapValue(rainNode, "Constants")
+	if c != nil {
+		for i := 0; i < len(c.Content); i += 2 {
+			name := c.Content[i].Value
+			val := c.Content[i+1]
+			t.Constants[name] = val
+			// Visit each node in val looking for any ${Rain::ConstantName}
+			// and replace it with prior constant entries
+			vf := func(v *visitor.Visitor) {
+				vnode := v.GetYamlNode()
+				if vnode.Kind == yaml.ScalarNode {
+					err := replaceConstants(vnode, t.Constants)
+					if err != nil {
+						// These constants must be scalars
+						config.Debugf("replaceConstants failed: %v", err)
+					}
+				}
+			}
+			v := visitor.NewVisitor(val)
+			v.Visit(vf)
+		}
+	}
 
 	ctx := &transformContext{
 		nodeToTransform: templateNode,
@@ -123,7 +161,6 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 		}
 	}
 
-	var err error
 	if changed {
 		t, err = parse.Node(templateNode)
 		if err != nil {

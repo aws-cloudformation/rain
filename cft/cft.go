@@ -17,7 +17,9 @@ import (
 // Template represents a CloudFormation template. The Template type
 // is minimal for now but will likely grow new features as needed by rain.
 type Template struct {
-	*yaml.Node
+	Node *yaml.Node
+
+	Constants map[string]*yaml.Node
 }
 
 // TODO - We really need a convenient Template data structure
@@ -31,7 +33,7 @@ type Template struct {
 func (t Template) Map() map[string]interface{} {
 	var out map[string]interface{}
 
-	err := t.Decode(&out)
+	err := t.Node.Decode(&out)
 	if err != nil {
 		panic(fmt.Errorf("error converting template to map: %s", err))
 	}
@@ -63,6 +65,7 @@ const (
 	Transform                Section = "Transform"
 	Outputs                  Section = "Outputs"
 	State                    Section = "State"
+	Rain                     Section = "Rain"
 )
 
 // GetResource returns the yaml node for a resource by logical id
