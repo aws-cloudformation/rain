@@ -83,7 +83,33 @@ func replaceConstants(n *yaml.Node, constants map[string]*yaml.Node) error {
 	if n.Kind != yaml.ScalarNode {
 		return fmt.Errorf("expected n to be a ScalarNode")
 	}
-	// TODO: Parse every scalar as if it was a Sub. Look for ${Rain::X}
+
+	// Parse every scalar as if it was a Sub. Look for ${Rain::X}
+
+	retval := ""
+	words, err := parse.ParseSub(n.Value)
+	if err != nil {
+		return err
+	}
+	for _, w := range words {
+		switch w.T {
+		case parse.STR:
+			retval += w.W
+		case parse.REF:
+			retval += fmt.Sprintf("${%s}", w.W)
+		case parse.AWS:
+			retval += fmt.Sprintf("${AWS::%s}", w.W)
+		case parse.GETATT:
+			retval += fmt.Sprintf("${%s}", w.W)
+		case parse.RAIN:
+			val, ok := constants[w.W]
+			if !ok {
+				return fmt.Errorf("did not find Rain constant %s", w.W)
+			}
+			retval += val.Value
+		}
+	}
+	n.Value = retval
 
 	return nil
 }

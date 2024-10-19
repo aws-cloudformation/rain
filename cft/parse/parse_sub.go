@@ -19,7 +19,7 @@ const (
 	STR    wordtype = iota // A literal string fragment
 	REF                    // ${ParamOrResourceName}
 	AWS                    // ${AWS::X}
-	RAIN                   // ${AWS::X}
+	RAIN                   // ${Rain::X}
 	GETATT                 // ${X.Y}
 )
 
