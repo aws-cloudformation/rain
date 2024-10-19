@@ -1,9 +1,10 @@
 package pkg
 
 import (
+	"fmt"
+
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
-	"gopkg.in/yaml.v3"
 )
 
 // rainConstant parses a !Rain::Constant node
@@ -14,9 +15,14 @@ import (
 func rainConstant(ctx *directiveContext) (bool, error) {
 
 	config.Debugf("Found a rain constant: %s", node.ToSJson(ctx.n))
+	name := ctx.n.Content[1].Value
+	val, ok := ctx.t.Constants[name]
+	if !ok {
+		return false, fmt.Errorf("rain constant %s not found", name)
+	}
+	config.Debugf("Found Rain constant %s: %s", name, node.ToSJson(val))
 
-	// TODO
-	*ctx.n = yaml.Node{Kind: yaml.ScalarNode, Value: "TODO"}
+	*ctx.n = *val
 
 	return true, nil
 }

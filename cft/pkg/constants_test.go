@@ -5,7 +5,6 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft/diff"
 	"github.com/aws-cloudformation/rain/cft/parse"
-	"github.com/aws-cloudformation/rain/internal/config"
 	"gopkg.in/yaml.v3"
 )
 
@@ -31,6 +30,10 @@ Resources:
       BucketName: !Rain::Constant Test2
 `
 	expect := `
+Parameters:
+  Prefix:
+    Type: String
+
 Resources:
   Bucket:
     Type: AWS::S3::Bucket
@@ -42,7 +45,7 @@ Resources:
       BucketName: !Sub ${Prefix}-ezbeard-rain-test-constants-SubTest
 `
 
-	config.Debug = true
+	//config.Debug = true
 
 	p, err := parse.String(source)
 	if err != nil {
@@ -69,7 +72,7 @@ Resources:
 func TestReplaceConstants(t *testing.T) {
 	n := &yaml.Node{Kind: yaml.ScalarNode, Value: "${Rain::Test}"}
 	constants := make(map[string]*yaml.Node)
-	constants["Test"].Value = "Foo"
+	constants["Test"] = &yaml.Node{Kind: yaml.ScalarNode, Value: "Foo"}
 	err := replaceConstants(n, constants)
 	if err != nil {
 		t.Fatal(err)

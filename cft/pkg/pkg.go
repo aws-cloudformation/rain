@@ -131,28 +131,31 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 		config.Debugf("Unable to get Rain section: %v", err)
 	} else {
 		config.Debugf("Rain node: %s", node.ToSJson(rainNode))
-	}
-	_, c, _ := s11n.GetMapValue(rainNode, "Constants")
-	if c != nil {
-		for i := 0; i < len(c.Content); i += 2 {
-			name := c.Content[i].Value
-			val := c.Content[i+1]
-			t.Constants[name] = val
-			// Visit each node in val looking for any ${Rain::ConstantName}
-			// and replace it with prior constant entries
-			vf := func(v *visitor.Visitor) {
-				vnode := v.GetYamlNode()
-				if vnode.Kind == yaml.ScalarNode {
-					err := replaceConstants(vnode, t.Constants)
-					if err != nil {
-						// These constants must be scalars
-						config.Debugf("replaceConstants failed: %v", err)
+		_, c, _ := s11n.GetMapValue(rainNode, "Constants")
+		if c != nil {
+			for i := 0; i < len(c.Content); i += 2 {
+				name := c.Content[i].Value
+				val := c.Content[i+1]
+				t.Constants[name] = val
+				// Visit each node in val looking for any ${Rain::ConstantName}
+				// and replace it with prior constant entries
+				vf := func(v *visitor.Visitor) {
+					vnode := v.GetYamlNode()
+					if vnode.Kind == yaml.ScalarNode {
+						err := replaceConstants(vnode, t.Constants)
+						if err != nil {
+							// These constants must be scalars
+							config.Debugf("replaceConstants failed: %v", err)
+						}
 					}
 				}
+				v := visitor.NewVisitor(val)
+				v.Visit(vf)
 			}
-			v := visitor.NewVisitor(val)
-			v.Visit(vf)
 		}
+
+		// Now remove the Rain node from the template
+		t.RemoveSection(cft.Rain)
 	}
 
 	ctx := &transformContext{
