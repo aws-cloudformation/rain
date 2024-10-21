@@ -469,8 +469,70 @@ Resources {
         BucketName = cfn.Ref("Name")
     }
 }
-
 ```
+
+## Constants
+
+You can put constants into the `Rain` section in the template and then refer to
+those constants later in the template. Constants can be strings or entire
+objects (but only strings can be used later in Sub functions). Use the
+`!Rain::Constant` directive to refer to a constant in the template. For
+strings, you can add constants to `!Sub` string with the
+`${Rain::ConstantName}` pseudo-parameter. Constants can contain previosuly
+declared constants in Sub strings using the same format. The `Rain` section
+gets removed during packaging.
+
+```yaml
+Parameters:
+  Prefix:
+    Type: String
+
+Rain:
+  Constants:
+    Test1: ezbeard-rain-test-constants
+    Test2: !Sub ${Prefix}-${Rain::Test1}-SubTest
+
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Rain::Constant Test1
+
+  Bucket2:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Rain::Constant Test2
+
+  Bucket3:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "pre-${Prefix}-${Rain::Test1}-suffix" 
+```
+
+Run `rain pkg` on that template to produce the following output:
+
+```yaml
+Parameters:
+  Prefix:
+    Type: String
+
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ezbeard-rain-test-constants
+
+  Bucket2:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${Prefix}-ezbeard-rain-test-constants-SubTest
+
+  Bucket3:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub pre-${Prefix}-ezbeard-rain-test-constants-suffix
+```
+
 
 ## Other CloudFormation tools
 
