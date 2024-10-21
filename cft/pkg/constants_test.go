@@ -28,6 +28,10 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Rain::Constant Test2
+  Bucket3:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "pre-${Prefix}-${Rain::Test1}-suffix" 
 `
 	expect := `
 Parameters:
@@ -43,6 +47,11 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub ${Prefix}-ezbeard-rain-test-constants-SubTest
+  Bucket3:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: 
+        Fn::Sub: pre-${Prefix}-ezbeard-rain-test-constants-suffix
 `
 
 	//config.Debug = true

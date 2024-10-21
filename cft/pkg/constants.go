@@ -20,7 +20,6 @@ func rainConstant(ctx *directiveContext) (bool, error) {
 	if !ok {
 		return false, fmt.Errorf("rain constant %s not found", name)
 	}
-	config.Debugf("Found Rain constant %s: %s", name, node.ToSJson(val))
 
 	*ctx.n = *val
 
