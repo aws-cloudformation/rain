@@ -2,6 +2,32 @@
   "typeName": "AWS::B2BI::Partnership",
   "description": "Definition of AWS::B2BI::Partnership Resource Type",
   "definitions": {
+    "CapabilityOptions": {
+      "type": "object",
+      "properties": {
+        "OutboundEdi": {
+          "$ref": "#/definitions/OutboundEdiOptions"
+        }
+      },
+      "additionalProperties": false
+    },
+    "OutboundEdiOptions": {
+      "oneOf": [
+        {
+          "type": "object",
+          "title": "X12",
+          "properties": {
+            "X12": {
+              "$ref": "#/definitions/X12Envelope"
+            }
+          },
+          "required": [
+            "X12"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
     "Tag": {
       "type": "object",
       "properties": {
@@ -21,6 +47,128 @@
         "Value"
       ],
       "additionalProperties": false
+    },
+    "X12Delimiters": {
+      "type": "object",
+      "properties": {
+        "ComponentSeparator": {
+          "type": "string",
+          "maxLength": 1,
+          "minLength": 1,
+          "pattern": "^[!&'()*+,\\-./:;?=%@\\[\\]_{}|<>~^`\"]$"
+        },
+        "DataElementSeparator": {
+          "type": "string",
+          "maxLength": 1,
+          "minLength": 1,
+          "pattern": "^[!&'()*+,\\-./:;?=%@\\[\\]_{}|<>~^`\"]$"
+        },
+        "SegmentTerminator": {
+          "type": "string",
+          "maxLength": 1,
+          "minLength": 1,
+          "pattern": "^[!&'()*+,\\-./:;?=%@\\[\\]_{}|<>~^`\"]$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "X12Envelope": {
+      "type": "object",
+      "properties": {
+        "Common": {
+          "$ref": "#/definitions/X12OutboundEdiHeaders"
+        }
+      },
+      "additionalProperties": false
+    },
+    "X12FunctionalGroupHeaders": {
+      "type": "object",
+      "properties": {
+        "ApplicationSenderCode": {
+          "type": "string",
+          "maxLength": 15,
+          "minLength": 2,
+          "pattern": "^[a-zA-Z0-9]*$"
+        },
+        "ApplicationReceiverCode": {
+          "type": "string",
+          "maxLength": 15,
+          "minLength": 2,
+          "pattern": "^[a-zA-Z0-9]*$"
+        },
+        "ResponsibleAgencyCode": {
+          "type": "string",
+          "maxLength": 2,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9]*$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "X12InterchangeControlHeaders": {
+      "type": "object",
+      "properties": {
+        "SenderIdQualifier": {
+          "type": "string",
+          "maxLength": 2,
+          "minLength": 2,
+          "pattern": "^[a-zA-Z0-9]*$"
+        },
+        "SenderId": {
+          "type": "string",
+          "maxLength": 15,
+          "minLength": 15,
+          "pattern": "^[a-zA-Z0-9]*$"
+        },
+        "ReceiverIdQualifier": {
+          "type": "string",
+          "maxLength": 2,
+          "minLength": 2,
+          "pattern": "^[a-zA-Z0-9]*$"
+        },
+        "ReceiverId": {
+          "type": "string",
+          "maxLength": 15,
+          "minLength": 15,
+          "pattern": "^[a-zA-Z0-9]*$"
+        },
+        "RepetitionSeparator": {
+          "type": "string",
+          "maxLength": 1,
+          "minLength": 1
+        },
+        "AcknowledgmentRequestedCode": {
+          "type": "string",
+          "maxLength": 1,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9]*$"
+        },
+        "UsageIndicatorCode": {
+          "type": "string",
+          "maxLength": 1,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9]*$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "X12OutboundEdiHeaders": {
+      "type": "object",
+      "properties": {
+        "InterchangeControlHeaders": {
+          "$ref": "#/definitions/X12InterchangeControlHeaders"
+        },
+        "FunctionalGroupHeaders": {
+          "$ref": "#/definitions/X12FunctionalGroupHeaders"
+        },
+        "Delimiters": {
+          "$ref": "#/definitions/X12Delimiters"
+        },
+        "ValidateEdi": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "properties": {
@@ -32,6 +180,9 @@
         "minLength": 1,
         "pattern": "^[a-zA-Z0-9_-]+$"
       }
+    },
+    "CapabilityOptions": {
+      "$ref": "#/definitions/CapabilityOptions"
     },
     "CreatedAt": {
       "type": "string",
@@ -91,6 +242,7 @@
     }
   },
   "required": [
+    "Capabilities",
     "Email",
     "Name",
     "ProfileId"
@@ -147,7 +299,12 @@
     "tagOnCreate": true,
     "tagProperty": "/properties/Tags",
     "tagUpdatable": true,
-    "taggable": true
+    "taggable": true,
+    "permissions": [
+      "b2bi:ListTagsForResource",
+      "b2bi:TagResource",
+      "b2bi:UntagResource"
+    ]
   },
   "additionalProperties": false
 }

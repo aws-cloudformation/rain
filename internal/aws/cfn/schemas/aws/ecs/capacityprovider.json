@@ -3,7 +3,16 @@
     "/properties/AutoScalingGroupProvider/AutoScalingGroupArn": "$split(AutoScalingGroupProvider.AutoScalingGroupArn, \"autoScalingGroupName/\")[-1] $OR $split(AutoScalingGroupArn, \"autoScalingGroupName/\")[-1]"
   },
   "tagging": {
-    "taggable": true
+    "permissions": [
+      "ecs:TagResource",
+      "ecs:UntagResource",
+      "ecs:ListTagsForResource"
+    ],
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "tagProperty": "/properties/Tags",
+    "cloudFormationSystemTags": true
   },
   "handlers": {
     "read": {
@@ -51,32 +60,6 @@
     "/properties/Name"
   ],
   "definitions": {
-    "ManagedScaling": {
-      "description": "The managed scaling settings for the Auto Scaling group capacity provider.",
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "Status": {
-          "type": "string",
-          "enum": [
-            "DISABLED",
-            "ENABLED"
-          ]
-        },
-        "MinimumScalingStepSize": {
-          "type": "integer"
-        },
-        "InstanceWarmupPeriod": {
-          "type": "integer"
-        },
-        "TargetCapacity": {
-          "type": "integer"
-        },
-        "MaximumScalingStepSize": {
-          "type": "integer"
-        }
-      }
-    },
     "AutoScalingGroupProvider": {
       "additionalProperties": false,
       "type": "object",
@@ -106,6 +89,32 @@
         "AutoScalingGroupArn"
       ]
     },
+    "ManagedScaling": {
+      "description": "The managed scaling settings for the Auto Scaling group capacity provider.",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "Status": {
+          "type": "string",
+          "enum": [
+            "DISABLED",
+            "ENABLED"
+          ]
+        },
+        "MinimumScalingStepSize": {
+          "type": "integer"
+        },
+        "InstanceWarmupPeriod": {
+          "type": "integer"
+        },
+        "TargetCapacity": {
+          "type": "integer"
+        },
+        "MaximumScalingStepSize": {
+          "type": "integer"
+        }
+      }
+    },
     "Tag": {
       "additionalProperties": false,
       "type": "object",
@@ -134,8 +143,5 @@
     "Name": {
       "type": "string"
     }
-  },
-  "required": [
-    "AutoScalingGroupProvider"
-  ]
+  }
 }

@@ -23,8 +23,123 @@
       "type": "string",
       "enum": [
         "XML",
-        "JSON"
+        "JSON",
+        "NOT_USED"
       ]
+    },
+    "FormatOptions": {
+      "oneOf": [
+        {
+          "type": "object",
+          "title": "X12",
+          "properties": {
+            "X12": {
+              "$ref": "#/definitions/X12Details"
+            }
+          },
+          "required": [
+            "X12"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "FromFormat": {
+      "type": "string",
+      "enum": [
+        "X12"
+      ]
+    },
+    "InputConversion": {
+      "type": "object",
+      "properties": {
+        "FromFormat": {
+          "$ref": "#/definitions/FromFormat"
+        },
+        "FormatOptions": {
+          "$ref": "#/definitions/FormatOptions"
+        }
+      },
+      "required": [
+        "FromFormat"
+      ],
+      "additionalProperties": false
+    },
+    "Mapping": {
+      "type": "object",
+      "properties": {
+        "TemplateLanguage": {
+          "$ref": "#/definitions/MappingTemplateLanguage"
+        },
+        "Template": {
+          "type": "string",
+          "maxLength": 350000,
+          "minLength": 0
+        }
+      },
+      "required": [
+        "TemplateLanguage"
+      ],
+      "additionalProperties": false
+    },
+    "MappingTemplateLanguage": {
+      "type": "string",
+      "enum": [
+        "XSLT",
+        "JSONATA"
+      ]
+    },
+    "OutputConversion": {
+      "type": "object",
+      "properties": {
+        "ToFormat": {
+          "$ref": "#/definitions/ToFormat"
+        },
+        "FormatOptions": {
+          "$ref": "#/definitions/FormatOptions"
+        }
+      },
+      "required": [
+        "ToFormat"
+      ],
+      "additionalProperties": false
+    },
+    "SampleDocumentKeys": {
+      "type": "object",
+      "properties": {
+        "Input": {
+          "type": "string",
+          "maxLength": 1024,
+          "minLength": 0
+        },
+        "Output": {
+          "type": "string",
+          "maxLength": 1024,
+          "minLength": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "SampleDocuments": {
+      "type": "object",
+      "properties": {
+        "BucketName": {
+          "type": "string",
+          "maxLength": 63,
+          "minLength": 3
+        },
+        "Keys": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SampleDocumentKeys"
+          }
+        }
+      },
+      "required": [
+        "BucketName",
+        "Keys"
+      ],
+      "additionalProperties": false
     },
     "Tag": {
       "type": "object",
@@ -45,6 +160,12 @@
         "Value"
       ],
       "additionalProperties": false
+    },
+    "ToFormat": {
+      "type": "string",
+      "enum": [
+        "X12"
+      ]
     },
     "TransformerStatus": {
       "type": "string",
@@ -166,10 +287,17 @@
     "FileFormat": {
       "$ref": "#/definitions/FileFormat"
     },
+    "InputConversion": {
+      "$ref": "#/definitions/InputConversion"
+    },
+    "Mapping": {
+      "$ref": "#/definitions/Mapping"
+    },
     "MappingTemplate": {
       "type": "string",
       "maxLength": 350000,
-      "minLength": 0
+      "minLength": 0,
+      "description": "This shape is deprecated: This is a legacy trait. Please use input-conversion or output-conversion."
     },
     "ModifiedAt": {
       "type": "string",
@@ -178,12 +306,20 @@
     "Name": {
       "type": "string",
       "maxLength": 254,
-      "minLength": 1
+      "minLength": 1,
+      "pattern": "^[a-zA-Z0-9_-]{1,512}$"
+    },
+    "OutputConversion": {
+      "$ref": "#/definitions/OutputConversion"
     },
     "SampleDocument": {
       "type": "string",
       "maxLength": 1024,
-      "minLength": 0
+      "minLength": 0,
+      "description": "This shape is deprecated: This is a legacy trait. Please use input-conversion or output-conversion."
+    },
+    "SampleDocuments": {
+      "$ref": "#/definitions/SampleDocuments"
     },
     "Status": {
       "$ref": "#/definitions/TransformerStatus"
@@ -209,9 +345,6 @@
     }
   },
   "required": [
-    "EdiType",
-    "FileFormat",
-    "MappingTemplate",
     "Name",
     "Status"
   ],
@@ -220,6 +353,12 @@
     "/properties/ModifiedAt",
     "/properties/TransformerArn",
     "/properties/TransformerId"
+  ],
+  "deprecatedProperties": [
+    "/properties/EdiType",
+    "/properties/FileFormat",
+    "/properties/MappingTemplate",
+    "/properties/SampleDocument"
   ],
   "primaryIdentifier": [
     "/properties/TransformerId"
@@ -272,7 +411,12 @@
     "tagOnCreate": true,
     "tagProperty": "/properties/Tags",
     "tagUpdatable": true,
-    "taggable": true
+    "taggable": true,
+    "permissions": [
+      "b2bi:ListTagsForResource",
+      "b2bi:TagResource",
+      "b2bi:UntagResource"
+    ]
   },
   "additionalProperties": false
 }
