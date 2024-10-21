@@ -19,6 +19,7 @@ const (
 	STR    wordtype = iota // A literal string fragment
 	REF                    // ${ParamOrResourceName}
 	AWS                    // ${AWS::X}
+	RAIN                   // ${Rain::X}
 	GETATT                 // ${X.Y}
 )
 
@@ -90,12 +91,15 @@ func ParseSub(sub string) ([]SubWord, error) {
 				// Figure out what type it is
 				if strings.HasPrefix(buf, "AWS::") {
 					wt = AWS
+				} else if strings.HasPrefix(buf, "Rain::") {
+					wt = RAIN
 				} else if strings.Contains(buf, ".") {
 					wt = GETATT
 				} else {
 					wt = REF
 				}
 				buf = strings.Replace(buf, "AWS::", "", 1)
+				buf = strings.Replace(buf, "Rain::", "", 1)
 				words = append(words, SubWord{T: wt, W: buf})
 				buf = ""
 				state = READSTR

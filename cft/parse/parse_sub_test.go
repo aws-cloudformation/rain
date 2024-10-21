@@ -69,4 +69,15 @@ func TestParseSub(t *testing.T) {
 	if err == nil {
 		t.Fatalf("\"%s\": should have failed, got %v", sub, words)
 	}
+
+	// Rain constants
+	sub = "${Rain::Test}"
+	words, err = parse.ParseSub(sub)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if words[0].T != parse.RAIN || words[0].W != "Test" {
+		t.Fatalf("Expected to get Test from ${Rain::Test}: %v", words)
+	}
+
 }

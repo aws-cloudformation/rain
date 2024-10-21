@@ -59,6 +59,9 @@ func init() {
 	registry["**/*|Rain::S3Http"] = includeS3Http
 	registry["**/*|Rain::S3"] = includeS3
 	registry["**/*|Rain::Module"] = module
+	registry["**/*|Rain::Constant"] = rainConstant
+
+	// Don't forget to also add new items to cft/tags.go
 }
 
 func includeString(ctx *directiveContext) (bool, error) {

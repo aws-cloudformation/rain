@@ -59,6 +59,8 @@ type transformContext struct {
 func transform(ctx *transformContext) (bool, error) {
 	changed := false
 
+	config.Debugf("transform: %s", node.ToSJson(ctx.nodeToTransform))
+
 	// registry is a map of functions defined in rain.go
 	for path, fn := range registry {
 		for found := range s11n.MatchAll(ctx.nodeToTransform, path) {
@@ -77,14 +79,117 @@ func transform(ctx *transformContext) (bool, error) {
 	return changed, nil
 }
 
+// replaceConstants replaces ${Rain::ConstantName} in a single scalar node
+// If the constant name is not found in the map created from the Rain section
+// In the template, an error is returned
+func replaceConstants(n *yaml.Node, constants map[string]*yaml.Node) error {
+	if n.Kind != yaml.ScalarNode {
+		return fmt.Errorf("expected n to be a ScalarNode")
+	}
+
+	// Parse every scalar as if it was a Sub. Look for ${Rain::X}
+
+	retval := ""
+	words, err := parse.ParseSub(n.Value)
+	if err != nil {
+		return err
+	}
+	for _, w := range words {
+		switch w.T {
+		case parse.STR:
+			retval += w.W
+		case parse.REF:
+			retval += fmt.Sprintf("${%s}", w.W)
+		case parse.AWS:
+			retval += fmt.Sprintf("${AWS::%s}", w.W)
+		case parse.GETATT:
+			retval += fmt.Sprintf("${%s}", w.W)
+		case parse.RAIN:
+			val, ok := constants[w.W]
+			if !ok {
+				return fmt.Errorf("did not find Rain constant %s", w.W)
+			}
+			retval += val.Value
+		}
+	}
+
+	config.Debugf("Replacing %s with %s", n.Value, retval)
+	n.Value = retval
+
+	return nil
+}
+
+// replaceTemplateConstants scans the entire template looking for Sub strings
+// and replaces all instances of ${Rain::ConstantName} if that name exists
+// in the Rain/Constants section of the template
+func replaceTemplateConstants(templateNode *yaml.Node, constants map[string]*yaml.Node) {
+
+	config.Debugf("Constants: %v", constants)
+
+	vf := func(n *visitor.Visitor) {
+		yamlNode := n.GetYamlNode()
+		if yamlNode.Kind == yaml.MappingNode {
+			if len(yamlNode.Content) == 2 && yamlNode.Content[0].Value == "Fn::Sub" {
+				config.Debugf("About to replace constants in %s", yamlNode.Content[1].Value)
+				err := replaceConstants(yamlNode.Content[1], constants)
+				if err != nil {
+					config.Debugf("%v", err)
+				}
+			}
+		}
+	}
+
+	visitor := visitor.NewVisitor(templateNode)
+	visitor.Visit(vf)
+}
+
 // Template returns t with assets included as per AWS CLI packaging rules
 // and any Rain:: functions used.
 // rootDir must be passed in so that any included assets can be loaded from the same directory
 func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error) {
 	templateNode := t.Node
+	var err error
 
 	//config.Debugf("Original template short: %v", node.ToSJson(t.Node))
 	//config.Debugf("Original template long: %v", node.ToJson(t.Node))
+
+	// First look for a Rain section and store constants
+	t.Constants = make(map[string]*yaml.Node)
+	rainNode, err := t.GetSection(cft.Rain)
+	if err != nil {
+		config.Debugf("Unable to get Rain section: %v", err)
+	} else {
+		config.Debugf("Rain node: %s", node.ToSJson(rainNode))
+		_, c, _ := s11n.GetMapValue(rainNode, "Constants")
+		if c != nil {
+			for i := 0; i < len(c.Content); i += 2 {
+				name := c.Content[i].Value
+				val := c.Content[i+1]
+				t.Constants[name] = val
+				// Visit each node in val looking for any ${Rain::ConstantName}
+				// and replace it with prior constant entries
+				vf := func(v *visitor.Visitor) {
+					vnode := v.GetYamlNode()
+					if vnode.Kind == yaml.ScalarNode {
+						err := replaceConstants(vnode, t.Constants)
+						if err != nil {
+							// These constants must be scalars
+							config.Debugf("replaceConstants failed: %v", err)
+						}
+					}
+				}
+				v := visitor.NewVisitor(val)
+				v.Visit(vf)
+			}
+		}
+
+		// Add handling for any other features we add to the Rain section here
+
+		// Now remove the Rain node from the template
+		t.RemoveSection(cft.Rain)
+	}
+
+	constants := t.Constants
 
 	ctx := &transformContext{
 		nodeToTransform: templateNode,
@@ -118,7 +223,6 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 		}
 	}
 
-	var err error
 	if changed {
 		t, err = parse.Node(templateNode)
 		if err != nil {
@@ -154,6 +258,9 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 
 	v.Visit(collectAnchors)
 	v.Visit(replaceAnchors)
+
+	// Look for ${Rain::ConstantName} in all Sub strings
+	replaceTemplateConstants(templateNode, constants)
 
 	// Marshal and Unmarshal to resolve new line/column numbers
 
