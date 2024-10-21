@@ -1,0 +1,55 @@
+import "@cfn/aws/s3/bucketpolicy.pkl"
+import "@cfn/cloudformation.pkl" as cfn
+
+PolicyBucketName: String
+LogicalId: String
+
+fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
+  [LogicalId + "AccessPolicy"] = new bucketpolicy.BucketPolicy {
+    Bucket = cfn.Sub("\(PolicyBucketName)")
+
+    PolicyDocument {
+      Statement {
+        new {
+          Action = "s3:*"
+          Condition {
+            Bool {
+              ["aws:SecureTransport"] = false
+            }
+          }
+          Effect = "Deny"
+          Principal {
+            AWS = "*"
+          }
+          Resource {
+            cfn.Sub("arn:${AWS::Partition}:s3:::\(PolicyBucketName)")
+            cfn.Sub("arn:${AWS::Partition}:s3:::\(PolicyBucketName)/*")
+          }
+        }
+        new {
+          Action = "s3:PutObject"
+          Condition {
+            ArnLike {
+              ["aws:SourceArn"] {
+                cfn.Sub("arn:${AWS::Partition}:s3:::\(PolicyBucketName)")
+              }
+            }
+            StringEquals {
+              ["aws:SourceAccount"] {
+                cfn.Ref("AWS::AccountId")
+              }
+            }
+          }
+          Effect = "Allow"
+          Principal {
+            Service = "logging.s3.amazonaws.com"
+          }
+          Resource {
+            cfn.Sub("arn:${AWS::Partition}:s3:::\(PolicyBucketName)/*")
+          }
+        }
+      }
+      Version = "2012-10-17"
+    }
+  }
+}

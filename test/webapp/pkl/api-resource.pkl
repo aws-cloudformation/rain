@@ -1,0 +1,139 @@
+import "@cfn/cloudformation.pkl" as cfn
+import "@cfn/aws/lambda/function.pkl" as func
+import "@cfn/aws/iam/role.pkl"
+import "@cfn/aws/apigateway/resource.pkl"
+import "@cfn/aws/lambda/permission.pkl"
+import "@cfn/aws/apigateway/method.pkl"
+
+Description = "This module contains a lambda handler and the API Gateway resource to proxy requests to the lambda. It is assumed that the lambda function can handle all HTTPMethods sent to the specified path, including the OPTIONS pre-flight request. The lambda function must also return the approppriate CORS headers with each response."
+
+// The name of the resource. This will be plugged into cfn.Sub functions
+Name: String
+
+// The name of the rest api (a Sub string)
+RestApi: String
+
+// The id of the root resource
+RootResourceId: String
+
+// The id of the deployment (a Sub string)
+RestApiDeployment: String
+
+// The name of the script to run before uploading the lambda handler to S3
+BuildScript: String
+
+// The path of the packaged lambda function created by BuildScript
+CodePath: String
+
+// The URI path name for the resource, for example, "user" or "order"
+ResourcePath: String
+
+// The Id of the APIGateway Authorizer
+AuthorizerId: String
+
+// The prefix to use for the Logical Id for all resources
+LogicalId: String
+
+// The S3 bucket that has the lambda handler code
+HandlerBucket: String
+
+// The S3 key for the lambda handler code
+HandlerKey: String
+
+local restApiLogicalId = LogicalId + "RestApi"
+local handlerLogicalId = LogicalId + "Handler"
+
+local authorizerId = cfn.Sub("\(AuthorizerId)")
+
+fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
+    [handlerLogicalId] = new func.Function {
+        Handler = "bootstrap"
+        FunctionName = cfn.Sub("\(Name)-handler")
+        Runtime = "provided.al2023"
+        Code {
+            S3Key = cfn.Sub("\(HandlerKey)")
+            S3Bucket = cfn.Sub("\(HandlerBucket)")
+        }
+        Role = cfn.GetAtt(LogicalId + "HandlerRole", "Arn")
+    }
+
+    [LogicalId + "HandlerRole"] = new role.Role {
+        AssumeRolePolicyDocument {
+            Version = "2012-10-17"
+            Statement {
+                     new {
+                        Effect = "Allow"
+                        Principal {
+                                Service {
+                                        "lambda.amazonaws.com"
+                                    }
+                            }
+                        Action {
+                                "sts:AssumeRole"
+                            }
+                    }
+                }
+        }
+        ManagedPolicyArns {
+            "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+        }
+    }
+
+    [LogicalId + "Resource"] = new resource.Resource {
+        ParentId = cfn.Sub("\(RootResourceId)")
+
+        PathPart = cfn.Sub("\(ResourcePath)")
+
+        RestApiId = cfn.Sub("\(RestApi)")
+
+    }
+
+    [LogicalId + "Permission"] = new permission.Permission {
+        Action = "lambda:InvokeFunction"
+        FunctionName = cfn.GetAtt(LogicalId + "Handler", "Arn")
+
+        Principal = "apigateway.amazonaws.com"
+        SourceArn = cfn.Sub("arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:\(restApiLogicalId)/*/*/*")
+
+    }
+
+    [LogicalId + "RootPermission"] = new permission.Permission {
+        Action = "lambda:InvokeFunction"
+        FunctionName = cfn.GetAtt(LogicalId + "Handler", "Arn")
+
+        Principal = "apigateway.amazonaws.com"
+        SourceArn = cfn.Sub("arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:\(restApiLogicalId)/*/*/")
+
+    }
+
+    [LogicalId + "Options"] = new method.Method {
+        HttpMethod = "OPTIONS"
+        ResourceId = cfn.Ref(LogicalId + "Resource")
+
+        RestApiId = cfn.Sub("\(RestApi)")
+
+        AuthorizationType = "NONE"
+        Integration {
+            IntegrationHttpMethod = "POST"
+            Type = "AWS_PROXY"
+            Uri = cfn.Sub("arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${\(handlerLogicalId).Arn}/invocations")
+        }
+    }
+
+    [LogicalId + "Get"] = new method.Method {
+        HttpMethod = "GET"
+        ResourceId = cfn.Ref(LogicalId + "Resource")
+
+        RestApiId = cfn.Sub("\(RestApi)")
+
+        AuthorizationType = "COGNITO_USER_POOLS"
+        AuthorizerId = authorizerId 
+
+        Integration {
+            IntegrationHttpMethod = "POST"
+            Type = "AWS_PROXY"
+            Uri = cfn.Sub("arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${\(handlerLogicalId).Arn}/invocations")
+        }
+    }
+
+}

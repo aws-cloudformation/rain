@@ -1,0 +1,197 @@
+import "@cfn/aws/cloudfront/distribution.pkl"
+import "@cfn/aws/cloudfront/originaccesscontrol.pkl"
+import "@cfn/aws/wafv2/webacl.pkl"
+import "@cfn/cloudformation.pkl" as cfn
+import "./bucket.pkl"
+
+Description = "This module creates a static website consisting of an S3 bucket and a CloudFront distribution."
+
+// This is the name of the app that will be used for resource and tag names.
+// It is assumed to be a Sub string that can be plugged in to cfn.Sub
+AppName: String
+
+LogicalId: String
+
+local contentBucket = new bucket {
+  AppName = "\(outer.AppName)"
+  LogicalId = outer.LogicalId + "Content"
+}
+
+local cloudfrontLogBucket = new bucket {
+  AppName = "\(outer.AppName)-cflogs"
+  LogicalId = outer.LogicalId + "CloudFrontLogs"
+}
+
+local cflogBucketName = LogicalId + "CloudFrontLogsBucket"
+
+local distributionLogicalId = LogicalId + "Distribution"
+
+fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
+
+  [LogicalId + "OriginAccessControl"] = new originaccesscontrol.OriginAccessControl {
+    OriginAccessControlConfig {
+      Name = new Mapping {
+        ["Fn::Join"] {
+          ""
+          new {
+            cfn.Sub("\(AppName)")
+            cfn.Select(2, cfn.Split("/", cfn.Ref("AWS::StackId")))
+          }
+        }
+      }
+      OriginAccessControlOriginType = "s3"
+      SigningBehavior = "always"
+      SigningProtocol = "sigv4"
+    }
+  }
+
+
+  [distributionLogicalId] = new distribution.Distribution {
+    Metadata {
+      checkov {
+        skip {
+          new {
+            id = "CKV_AWS_174"
+            comment = "Using the default cloudfront certificate with no aliases"
+          }
+        }
+      }
+      guard {
+        SuppressedRules {
+          "CLOUDFRONT_CUSTOM_SSL_CERTIFICATE"
+          "CLOUDFRONT_ORIGIN_FAILOVER_ENABLED"
+          "CLOUDFRONT_SNI_ENABLED"
+        }
+      }
+    }
+    DistributionConfig {
+      DefaultCacheBehavior {
+        CachePolicyId = "658327ea-f89d-4fab-a63d-7e88639e58f6"
+        Compress = true
+        TargetOriginId = cfn.Sub("\(AppName)-origin-1")
+        ViewerProtocolPolicy = "redirect-to-https"
+      }
+      DefaultRootObject = "index.html"
+      Enabled = true
+      HttpVersion = "http2"
+      IPV6Enabled = true
+      Logging {
+        Bucket = cfn.GetAtt(LogicalId + "CloudFrontLogsBucket", "RegionalDomainName")
+      }
+      Origins {
+        new {
+          DomainName = cfn.GetAtt(LogicalId + "ContentBucket", "RegionalDomainName")
+          Id = cfn.Sub("\(AppName)-origin-1")
+          OriginAccessControlId = cfn.GetAtt(LogicalId + "OriginAccessControl", "Id")
+          S3OriginConfig {
+            OriginAccessIdentity = ""
+          }
+        }
+      }
+      ViewerCertificate {
+        CloudFrontDefaultCertificate = true
+      }
+      WebACLId = cfn.GetAtt(LogicalId + "WebACL", "Arn")
+    }
+  }
+
+  [LogicalId + "WebACL"] = new webacl.WebACL {
+    Name = "WebACLWithAMR"
+    Scope = "CLOUDFRONT"
+    Description = "Web ACL with AWS Managed Rules"
+    DefaultAction {
+      Allow {
+      }
+    }
+    VisibilityConfig {
+      SampledRequestsEnabled = true
+      CloudWatchMetricsEnabled = true
+      MetricName = "MetricForWebACLWithAMR"
+    }
+    Tags {
+      new {
+        Key = "Name"
+        Value = cfn.Sub("\(AppName)")
+      }
+    }
+    Rules {
+      new {
+        Name = "AWS-AWSManagedRulesCommonRuleSet"
+        Priority = 0
+        OverrideAction {
+          None {
+          }
+        }
+        VisibilityConfig {
+          SampledRequestsEnabled = true
+          CloudWatchMetricsEnabled = true
+          MetricName = "MetricForAMRCRS"
+        }
+        Statement {
+          ManagedRuleGroupStatement {
+            VendorName = "AWS"
+            Name = "AWSManagedRulesCommonRuleSet"
+            ExcludedRules {
+              new {
+                Name = "NoUserAgent_HEADER"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Add resources defined by the bucket module, and override
+  // the policy to add statements
+  for (logicalId, resource in contentBucket.Resources) {
+    when (logicalId == "SiteContentBucketAccessPolicy") {
+      [logicalId] = (resource) {
+          PolicyDocument {
+            Statement {
+              new {
+                ["Action"] = "s3:GetObject"
+                ["Effect"] = "Allow"
+                ["Resource"] {
+                  ["Fn::Sub"] = "arn:${AWS::Partition}:s3:::\(AppName)-${AWS::Region}-${AWS::AccountId}/*"
+                }
+                ["Principal"] {
+                  ["Service"] = "cloudfront.amazonaws.com"
+                }
+                ["Condition"] {
+                  ["StringEquals"] {
+                    ["AWS:SourceArn"] {
+                      ["Fn::Sub"] = "arn:aws:cloudfront::${AWS::AccountId}:distribution/${\(distributionLogicalId).Id}"
+                    }
+                  }
+                }
+              }
+            }
+          }
+      }
+    } else {
+      [logicalId] = resource
+    }
+  }
+
+  // Add resources in the CloudFront log bucket module, overriding object ownership
+  for (logicalId, resource in cloudfrontLogBucket.Resources) {
+    when (logicalId == cflogBucketName) {
+        [logicalId] = (resource) {
+            Properties {
+              OwnershipControls {
+                Rules {
+                  new {
+                    ObjectOwnership = "BucketOwnerPreferred"
+                  }
+                }
+              }
+            }
+          }
+    } else {
+        [logicalId] = resource
+    }
+  }
+
+
+}

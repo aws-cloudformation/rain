@@ -1,0 +1,39 @@
+import "@cfn/cloudformation.pkl" as cfn
+import "@cfn/aws/apigateway/restapi.pkl"
+import "@cfn/aws/apigateway/deployment.pkl"
+import "@cfn/aws/apigateway/stage.pkl"
+import "@cfn/aws/apigateway/authorizer.pkl"
+
+AppName: String
+LogicalId: String
+UserPoolArn: String
+StageName: String
+
+local stageName = cfn.Sub("\(StageName)")
+
+fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
+    [LogicalId + "Api"] = new restapi.RestApi {
+        Name = cfn.Sub("AppName")
+    }
+
+    [LogicalId + "ApiDeployment"] = new deployment.Deployment {
+        RestApiId = cfn.Ref(LogicalId + "Api")
+    }
+
+    [LogicalId + "ApiStage"] = new stage.Stage {
+        RestApiId = cfn.Ref(LogicalId + "Api")
+        DeploymentId = cfn.Ref(LogicalId + "ApiDeployment")
+        StageName = stageName
+    }
+
+    [LogicalId + "ApiAuthorizer"] = new authorizer.Authorizer {
+        IdentitySource = "method.request.header.authorization"
+        Name = "CognitoApiAuthorizer"
+        ProviderARNs {
+            cfn.Sub("\(UserPoolArn)")
+        }
+        RestApiId = cfn.Ref(LogicalId + "Api")
+        TypeProperty = "COGNITO_USER_POOLS"
+    }
+
+}

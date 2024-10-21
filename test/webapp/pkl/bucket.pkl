@@ -1,0 +1,241 @@
+import "@cfn/cloudformation.pkl" as cfn
+import "@cfn/aws/s3/bucket.pkl"
+import "@cfn/aws/iam/rolepolicy.pkl"
+import "@cfn/aws/iam/role.pkl"
+import "./bucket-policy.pkl" as bucketpolicy
+
+Description = "This module creates an S3 bucket that will pass common compliance checks by default. It also creates an associated log bucket and replica bucket."
+
+// This string will serve as a prefix for all resource names, which have 
+// the general form of AppName-ResourceName-Region-Account. 
+// The string is assumed to be a Sub string that can be plugged into cfn.Sub
+AppName: String
+
+/// A local path to a directory that will be uploaded to the bucket
+Content: String
+
+/// If true, the contents of all buckets will be permanently deleted when the stack is deleted.
+EmptyOnDelete: Boolean
+
+// The base logical id to use to name resources in this module
+LogicalId: String
+
+logBucketPolicy = new bucketpolicy {
+    PolicyBucketName = "\(AppName)-logs-${AWS::Region}-${AWS::AccountId}"
+    LogicalId = outer.LogicalId + "LogBucket"
+}
+
+bucketPolicy = new bucketpolicy {
+    PolicyBucketName = "\(AppName)-${AWS::Region}-${AWS::AccountId}"
+    LogicalId = outer.LogicalId + "Bucket"
+}
+
+replicaBucketPolicy = new bucketpolicy {
+    PolicyBucketName = "\(AppName)-replicas-${AWS::Region}-${AWS::AccountId}"
+    LogicalId = outer.LogicalId + "ReplicaBucket" 
+}
+
+fixed Resources: Mapping<String, cfn.Resource> = new Mapping {
+
+    // Add resources from the bucket-policy module
+    ...bucketPolicy.Resources
+    ...logBucketPolicy.Resources
+    ...replicaBucketPolicy.Resources
+
+    [LogicalId + "LogBucket"] = new bucket.Bucket {
+        Metadata {
+            Comment = "This bucket records access logs for the main bucket"
+            checkov {
+                    skip {
+                             new {
+                                comment = "This is the log bucket"
+                                id = "CKV_AWS_18"
+                            }
+                        }
+                }
+            guard {
+                    SuppressedRules {
+                            "S3_BUCKET_LOGGING_ENABLED"
+                            "S3_BUCKET_REPLICATION_ENABLED"
+                        }
+                }
+        }
+        BucketEncryption {
+            ServerSideEncryptionConfiguration {
+                     new {
+                        ServerSideEncryptionByDefault {
+                                SSEAlgorithm = "AES256"
+                            }
+                    }
+                }
+        }
+        BucketName = cfn.Sub("\(AppName)-logs-${AWS::Region}-${AWS::AccountId}")
+
+        ObjectLockConfiguration {
+            ObjectLockEnabled = "Enabled"
+            Rule {
+                    DefaultRetention {
+                            Mode = "COMPLIANCE"
+                            Years = 1
+                        }
+                }
+        }
+        ObjectLockEnabled = true
+        PublicAccessBlockConfiguration {
+            BlockPublicAcls = true
+            BlockPublicPolicy = true
+            IgnorePublicAcls = true
+            RestrictPublicBuckets = true
+        }
+        VersioningConfiguration {
+            Status = "Enabled"
+        }
+    }
+
+    [LogicalId + "Bucket"] = new bucket.Bucket {
+        Metadata {
+            ["guard"] {
+                    ["SuppressedRules"] {
+                            "S3_BUCKET_DEFAULT_LOCK_ENABLED"
+                        }
+                }
+        }
+        BucketEncryption {
+            ServerSideEncryptionConfiguration {
+                     new {
+                        ServerSideEncryptionByDefault {
+                                SSEAlgorithm = "AES256"
+                            }
+                    }
+                }
+        }
+        BucketName = cfn.Sub("\(AppName)-${AWS::Region}-${AWS::AccountId}")
+
+        LoggingConfiguration {
+            DestinationBucketName = cfn.Ref(LogicalId + "LogBucket")
+        }
+        ObjectLockEnabled = false
+        PublicAccessBlockConfiguration {
+            BlockPublicAcls = true
+            BlockPublicPolicy = true
+            IgnorePublicAcls = true
+            RestrictPublicBuckets = true
+        }
+        ReplicationConfiguration {
+            Role = cfn.GetAtt(LogicalId + "ReplicationRole", "Arn")
+            Rules {
+                     new {
+                        Destination {
+                                Bucket = cfn.GetAtt(LogicalId + "ReplicaBucket", "Arn")
+                            }
+                        Status = "Enabled"
+                    }
+                }
+        }
+        VersioningConfiguration {
+            Status = "Enabled"
+        }
+    }
+
+
+    [LogicalId + "ReplicaBucket"] = new bucket.Bucket {
+        Metadata {
+            Comment = "This bucket is used as a target for replicas from the main bucket"
+            checkov {
+                    skip {
+                             new {
+                                comment = "This is the replica bucket"
+                                id = "CKV_AWS_18"
+                            }
+                        }
+                }
+            guard {
+                    SuppressedRules {
+                            "S3_BUCKET_DEFAULT_LOCK_ENABLED"
+                            "S3_BUCKET_REPLICATION_ENABLED"
+                            "S3_BUCKET_LOGGING_ENABLED"
+                        }
+                }
+        }
+        BucketEncryption {
+            ServerSideEncryptionConfiguration {
+                     new {
+                        ServerSideEncryptionByDefault {
+                                SSEAlgorithm = "AES256"
+                            }
+                    }
+                }
+        }
+        BucketName = cfn.Sub("\(AppName)-replicas-${AWS::Region}-${AWS::AccountId}")
+
+        ObjectLockEnabled = false
+        PublicAccessBlockConfiguration {
+            BlockPublicAcls = true
+            BlockPublicPolicy = true
+            IgnorePublicAcls = true
+            RestrictPublicBuckets = true
+        }
+        VersioningConfiguration {
+            Status = "Enabled"
+        }
+    }
+
+
+    [LogicalId + "ReplicationPolicy"] = new rolepolicy.RolePolicy {
+        PolicyDocument {
+            Statement {
+                     new {
+                        Action {
+                                "s3:GetReplicationConfiguration"
+                                "s3:ListBucket"
+                            }
+                        Effect = "Allow"
+                        Resource = cfn.Sub("arn:${AWS::Partition}:s3:::\(AppName)-${AWS::Region}-${AWS::AccountId}")
+                    }
+                     new {
+                        Action {
+                                "s3:GetObjectVersionForReplication"
+                                "s3:GetObjectVersionAcl"
+                                "s3:GetObjectVersionTagging"
+                            }
+                        Effect = "Allow"
+                        Resource = cfn.Sub("arn:${AWS::Partition}:s3:::\(AppName)-${AWS::Region}-${AWS::AccountId}/*")
+                    }
+                     new {
+                        Action {
+                                "s3:ReplicateObject"
+                                "s3:ReplicateDelete"
+                                "s3:ReplicationTags"
+                            }
+                        Effect = "Allow"
+                        Resource = cfn.Sub("arn:${AWS::Partition}:s3:::\(AppName)-replicas-${AWS::Region}-${AWS::AccountId}/*")
+                    }
+                }
+            Version = "2012-10-17"
+        }
+        PolicyName = "bucket-replication-policy"
+        RoleName = cfn.Ref(LogicalId + "ReplicationRole")
+
+    }
+
+    [LogicalId + "ReplicationRole"] = new role.Role {
+        AssumeRolePolicyDocument {
+            Statement {
+                     new {
+                        Action {
+                                "sts:AssumeRole"
+                            }
+                        Effect = "Allow"
+                        Principal {
+                                Service {
+                                        "s3.amazonaws.com"
+                                    }
+                            }
+                    }
+                }
+            Version = "2012-10-17"
+        }
+        Path = "/"
+    }
+
+}

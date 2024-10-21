@@ -47,6 +47,8 @@ func formatString(input string, res *result) {
 		return
 	}
 
+	config.Debugf("%s", node.ToSJson(source.Node))
+
 	if dataModel {
 		res.output = node.ToJson(source.Node)
 	} else if pklFlag {
@@ -91,16 +93,7 @@ func formatReader(name string, r io.Reader) result {
 
 func formatFile(filename string) result {
 
-	// TODO: Read pkl files
-	//
-	// Had to remove this since pkl doesn' support all of rain's platforms
-	// We would need to shell out to pkl instead (which is what pkl-go does)
-	//
-	// Fixed? https://github.com/apple/pkl-go/pull/32
-	//
 	if strings.HasSuffix(filename, ".pkl") {
-		// Don't need this?
-		//cfg, err := template.LoadFromPath(context.Background(), filename)
 
 		res := result{
 			name: filename,

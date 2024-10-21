@@ -786,7 +786,6 @@ import "@cfn/aws/s3/bucket.pkl"
 
 Resources {
     ["Bucket"] = new bucket.Bucket {
-        Type = "AWS::S3::Bucket"
     }
 
 }

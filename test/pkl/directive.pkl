@@ -1,0 +1,24 @@
+amends "@cfn/template.pkl"
+import "@cfn/cloudformation.pkl" as cfn
+import "./function.pkl" as func
+
+Parameters {
+    ["RoleArn"] {
+        Type = "String"
+    }
+}
+
+Resources {
+    ["Func"] = new func.Function { 
+        Role = cfn.Ref("RoleArn")
+        Runtime = "nodejs20x"
+        Code {
+            Rain__S3 {
+                Path = "."
+                KeyProperty = "S3Key"
+                BucketProperty = "S3Bucket"
+            }
+        }
+    }
+
+}
