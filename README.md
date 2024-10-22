@@ -505,7 +505,7 @@ You can put constants into the `Rain` section in the template and then refer to
 those constants later in the template. Constants can be strings or entire
 objects (but only strings can be used later in Sub functions). Use the
 `!Rain::Constant` directive to refer to a constant in the template. For
-strings, you can add constants to `!Sub` string with the
+strings, you can add constants to `!Sub` strings with the
 `${Rain::ConstantName}` pseudo-parameter. Constants can contain previosuly
 declared constants in Sub strings using the same format. The `Rain` section
 gets removed during packaging.
