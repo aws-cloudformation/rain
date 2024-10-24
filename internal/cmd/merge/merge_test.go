@@ -3,6 +3,7 @@ package merge
 import (
 	"testing"
 
+	"github.com/aws-cloudformation/rain/cft/diff"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/google/go-cmp/cmp"
 )
@@ -311,5 +312,69 @@ func TestMergeTemplatesClash(t *testing.T) {
 	forceMerge = false
 	if _, err := mergeTemplates(dst, src); err == nil {
 		t.Fail()
+	}
+}
+
+// TestMergeOutputs tests merging templates where one has Fn::Import statements that reference Outputs in the other
+func TestMergeOutputs(t *testing.T) {
+
+	// Export a value
+	t1 := `
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+Outputs:
+  BucketName:
+    Value: !Ref Bucket
+    Export: 
+      Name: BucketNameExport
+`
+
+	// Reference the value from a different template
+	t2 := `
+Resources:
+  AccessLogsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: 
+        Fn::Sub:
+          - ${ParentBucket}-access-logs
+          - ParentBucket: 
+              Fn::Import: BucketNameExport
+`
+
+	// The merged template converts the Import to a Ref and deletes the output
+	expected := `
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+  AccessLogsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref Bucket
+`
+
+	template1, err := parse.String(t1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	template2, err := parse.String(t2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedTemplate, err := parse.String(expected)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	merged, err := mergeTemplates(template1, template2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if d := diff.New(expectedTemplate, merged); d.Mode() != "=" {
+		t.Errorf("%s", d.Format(true))
 	}
 }
