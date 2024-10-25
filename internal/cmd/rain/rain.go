@@ -93,7 +93,7 @@ func init() {
 	addCommand(stackGroup, true, false, stackset.StackSetCmd)
 
 	// Template commands
-	addCommand(templateGroup, true, false, bootstrap.Cmd)
+	addCommand(templateGroup, true, true, bootstrap.Cmd)
 	addCommand(templateGroup, true, false, build.Cmd)
 	addCommand(templateGroup, false, false, diff.Cmd)
 	addCommand(templateGroup, false, false, rainfmt.Cmd)
