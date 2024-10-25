@@ -6,6 +6,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"gopkg.in/yaml.v3"
 )
 
 func checkMerge(name string, dst, src map[string]interface{}) error {
@@ -145,6 +146,20 @@ func mergeTemplates(dstTemplate, srcTemplate cft.Template) (cft.Template, error)
 		}
 	}
 
-	config.Debugf("dst: %v", dst)
-	return parse.Map(dst)
+	config.Debugf("map dst: %v", dst)
+	retval, err := parse.Map(dst)
+	if err != nil {
+		return retval, err
+	}
+
+	// parse.Map does not actually return a correct cft.Template
+	// It's mostly used for unit tests except for here.
+
+	// Add the document node
+	docNode := &yaml.Node{Kind: yaml.DocumentNode, Content: make([]*yaml.Node, 0)}
+	docNode.Content = append(docNode.Content, retval.Node)
+	retval = cft.Template{Node: docNode}
+
+	// Merge Outputs with Fn::ImportValue
+	return mergeOutputImports(retval)
 }

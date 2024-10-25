@@ -8,6 +8,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft/format"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/ui"
 	"github.com/spf13/cobra"
 )
@@ -48,7 +49,7 @@ var Cmd = &cobra.Command{
 			}
 		}
 
-		config.Debugf("merged: %v", merged)
+		config.Debugf("merged: %v", node.ToSJson(merged.Node))
 
 		out := format.String(merged, format.Options{})
 		if outFn != "" {

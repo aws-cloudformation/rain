@@ -146,8 +146,12 @@ func writeResource(sb *strings.Builder, name string, resource *yaml.Node, basic 
 				// Don't bother outputting type, since it's in the module
 				continue
 			}
-			// Basic rendering, without using module classes
-			w(sb, "    %s[\"%s\"]", indent, attrName)
+			if basic {
+				// Basic rendering, without using module classes
+				w(sb, "    %s[\"%s\"]", indent, attrName)
+			} else {
+				w(sb, "    %s%s ", indent, attrName)
+			}
 			switch attr.Kind {
 			case yaml.ScalarNode:
 				sb.WriteString(" = ")
