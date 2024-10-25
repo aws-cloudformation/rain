@@ -186,8 +186,8 @@ func Upload(bucketName string, content []byte) (string, error) {
 
 // RainBucket returns the name of the rain deployment bucket in the current region
 // and asks the user if they wish it to be created if it does not exist
-// unless forceCreation is true, then it will not ask
-// If a blank string is passed in, we look for a parameter store key named "rain/bucket".
+// unless forceCreation is true, then it will not ask.
+// If a blank string is passed in, we look for a parameter store key named "rain-bucket".
 // If that doesn't exist, we use "rain-artifacts-accountid-region".
 // If a non-blank string is passed in, we create that bucket if it doesn't exist.
 func RainBucket(forceCreation bool) string {
