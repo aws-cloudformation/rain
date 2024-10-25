@@ -52,8 +52,15 @@ func BucketHasContents(bucketName string) (bool, error) {
 
 // BucketExists checks whether the named bucket exists
 func BucketExists(bucketName string) (bool, error) {
-	_, err := getClient().HeadBucket(context.Background(), &s3.HeadBucketInput{
-		Bucket: ptr.String(bucketName),
+
+	accountId, err := sts.GetAccountID()
+	if err != nil {
+		return false, err
+	}
+
+	_, err = getClient().HeadBucket(context.Background(), &s3.HeadBucketInput{
+		Bucket:              ptr.String(bucketName),
+		ExpectedBucketOwner: awssdk.String(accountId),
 	})
 
 	if err != nil {
@@ -157,10 +164,16 @@ func Upload(bucketName string, content []byte) (string, error) {
 
 	key := filepath.Join(BucketKeyPrefix, fmt.Sprintf("%x", sha256.Sum256(content)))
 
-	_, err := getClient().PutObject(context.Background(), &s3.PutObjectInput{
-		Bucket: ptr.String(bucketName),
-		Key:    ptr.String(key),
-		Body:   bytes.NewReader(content),
+	accountId, err := sts.GetAccountID()
+	if err != nil {
+		return "", err
+	}
+
+	_, err = getClient().PutObject(context.Background(), &s3.PutObjectInput{
+		Bucket:              ptr.String(bucketName),
+		Key:                 ptr.String(key),
+		Body:                bytes.NewReader(content),
+		ExpectedBucketOwner: awssdk.String(accountId),
 	})
 
 	config.Debugf("Artifact key: %s", key)
@@ -235,10 +248,17 @@ func RainBucket(forceCreation bool) string {
 
 // GetObject gets an object by key from an S3 bucket
 func GetObject(bucketName string, key string) ([]byte, error) {
+
+	accountId, err := sts.GetAccountID()
+	if err != nil {
+		return nil, err
+	}
+
 	result, err := getClient().GetObject(context.Background(),
 		&s3.GetObjectInput{
-			Bucket: &bucketName,
-			Key:    &key,
+			Bucket:              &bucketName,
+			Key:                 &key,
+			ExpectedBucketOwner: awssdk.String(accountId),
 		})
 	if err != nil {
 		return nil, err
@@ -348,12 +368,18 @@ func PutObject(bucketName string, key string, body []byte) error {
 
 	config.Debugf("PutObject final mime type for %s: %s", key, contentType)
 
-	_, err := getClient().PutObject(context.Background(),
+	accountId, err := sts.GetAccountID()
+	if err != nil {
+		return err
+	}
+
+	_, err = getClient().PutObject(context.Background(),
 		&s3.PutObjectInput{
-			Bucket:      &bucketName,
-			Key:         &key,
-			Body:        bytes.NewReader(body),
-			ContentType: &contentType,
+			Bucket:              &bucketName,
+			Key:                 &key,
+			Body:                bytes.NewReader(body),
+			ContentType:         &contentType,
+			ExpectedBucketOwner: awssdk.String(accountId),
 		})
 	return err
 }
