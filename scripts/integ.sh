@@ -48,6 +48,9 @@ set -eoux pipefail
 ./rain --profile rain pkg cft/pkg/tmpl/s3-template.yaml
 ./rain --profile rain pkg cft/pkg/tmpl/s3http-template.yaml
 
+# Make sure merge works
+./rain merge test/templates/merge-out-1.yaml test/templates/merge-out-2.yaml
+
 # Make sure build recommendations work
 ./internal/cmd/build/tmpl/scripts/validate.sh
 
@@ -56,4 +59,5 @@ set -eoux pipefail
 ./rain fmt test/templates/success.template --pkl --pkl-basic
 ./rain fmt test/templates/condition-stringlike.yaml --pkl > test/pkl/condition-stringlike.pkl
 pkl eval --project-dir test/pkl test/pkl/condition-stringlike.pkl -f yaml
+./rain --profile rain pkg test/webapp/webapp.pkl | cfn-lint
 
