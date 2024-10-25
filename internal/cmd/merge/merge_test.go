@@ -343,7 +343,7 @@ Resources:
               Fn::Import: BucketNameExport
 `
 
-	// The merged template converts the Import to a Ref and deletes the output
+	// The merged template converts the Import to a Ref
 	expected := `
 Resources:
   Bucket:
@@ -351,7 +351,14 @@ Resources:
   AccessLogsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Ref Bucket
+      BucketName: !Sub
+        - ${ParentBucket}-access-logs
+        - ParentBucket: !Ref Bucket
+Outputs:
+  BucketName:
+    Value: !Ref Bucket
+    Export: 
+      Name: BucketNameExport
 `
 
 	template1, err := parse.String(t1)
