@@ -19,6 +19,7 @@ import (
 	"github.com/aws/smithy-go/ptr"
 
 	"github.com/aws-cloudformation/rain/internal/aws"
+	"github.com/aws-cloudformation/rain/internal/aws/ssm"
 	"github.com/aws-cloudformation/rain/internal/aws/sts"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
@@ -26,6 +27,8 @@ import (
 
 	"github.com/gabriel-vasile/mimetype"
 )
+
+const RAIN_BUCKET_SSM_KEY = "rain-bucket"
 
 var BucketName = ""
 var BucketKeyPrefix = ""
@@ -52,8 +55,15 @@ func BucketHasContents(bucketName string) (bool, error) {
 
 // BucketExists checks whether the named bucket exists
 func BucketExists(bucketName string) (bool, error) {
-	_, err := getClient().HeadBucket(context.Background(), &s3.HeadBucketInput{
-		Bucket: ptr.String(bucketName),
+
+	accountId, err := sts.GetAccountID()
+	if err != nil {
+		return false, err
+	}
+
+	_, err = getClient().HeadBucket(context.Background(), &s3.HeadBucketInput{
+		Bucket:              ptr.String(bucketName),
+		ExpectedBucketOwner: awssdk.String(accountId),
 	})
 
 	if err != nil {
@@ -157,10 +167,16 @@ func Upload(bucketName string, content []byte) (string, error) {
 
 	key := filepath.Join(BucketKeyPrefix, fmt.Sprintf("%x", sha256.Sum256(content)))
 
-	_, err := getClient().PutObject(context.Background(), &s3.PutObjectInput{
-		Bucket: ptr.String(bucketName),
-		Key:    ptr.String(key),
-		Body:   bytes.NewReader(content),
+	accountId, err := sts.GetAccountID()
+	if err != nil {
+		return "", err
+	}
+
+	_, err = getClient().PutObject(context.Background(), &s3.PutObjectInput{
+		Bucket:              ptr.String(bucketName),
+		Key:                 ptr.String(key),
+		Body:                bytes.NewReader(content),
+		ExpectedBucketOwner: awssdk.String(accountId),
 	})
 
 	config.Debugf("Artifact key: %s", key)
@@ -170,16 +186,32 @@ func Upload(bucketName string, content []byte) (string, error) {
 
 // RainBucket returns the name of the rain deployment bucket in the current region
 // and asks the user if they wish it to be created if it does not exist
-// unless forceCreation is true, then it will not ask
+// unless forceCreation is true, then it will not ask.
+// If a blank string is passed in, we look for a parameter store key named "rain-bucket".
+// If that doesn't exist, we use "rain-artifacts-accountid-region".
+// If a non-blank string is passed in, we create that bucket if it doesn't exist.
 func RainBucket(forceCreation bool) string {
 	accountID, err := sts.GetAccountID()
 	if err != nil {
 		panic(fmt.Errorf("unable to get account ID: %w", err))
 	}
 
+	// --bucket-name is passed in as an arg to various commands
 	bucketName := BucketName
+
 	if bucketName == "" {
-		bucketName = fmt.Sprintf("rain-artifacts-%s-%s", accountID, aws.Config().Region)
+		storedName, err := ssm.GetParameter(RAIN_BUCKET_SSM_KEY)
+		if err != nil {
+			// This is expected if the key is not found
+			config.Debugf("Could not get %s: %v", RAIN_BUCKET_SSM_KEY, err)
+		}
+		if storedName != "" {
+			config.Debugf("Found bucket name in parameter store: %s", storedName)
+			bucketName = storedName
+		} else {
+			config.Debugf("Bucket name not found in parameter store")
+			bucketName = fmt.Sprintf("rain-artifacts-%s-%s", accountID, aws.Config().Region)
+		}
 	}
 
 	config.Debugf("Artifact bucket: %s", bucketName)
@@ -200,6 +232,14 @@ func RainBucket(forceCreation bool) string {
 		if err != nil {
 			panic(fmt.Errorf("unable to create artifact bucket '%s': %w", bucketName, err))
 		}
+
+		// Save the bucket to parameter store for future reference
+		err = ssm.SetParameter(RAIN_BUCKET_SSM_KEY, bucketName)
+		if err != nil {
+			panic(fmt.Errorf("unable to write the rain bucket name to parameter store: %w", err))
+		}
+		config.Debugf("Saved bucket name to parameter store. %s = %s", RAIN_BUCKET_SSM_KEY, bucketName)
+
 	}
 
 	// Sleep for 2 seconds to give the bucket time to stabilize
@@ -235,10 +275,17 @@ func RainBucket(forceCreation bool) string {
 
 // GetObject gets an object by key from an S3 bucket
 func GetObject(bucketName string, key string) ([]byte, error) {
+
+	accountId, err := sts.GetAccountID()
+	if err != nil {
+		return nil, err
+	}
+
 	result, err := getClient().GetObject(context.Background(),
 		&s3.GetObjectInput{
-			Bucket: &bucketName,
-			Key:    &key,
+			Bucket:              &bucketName,
+			Key:                 &key,
+			ExpectedBucketOwner: awssdk.String(accountId),
 		})
 	if err != nil {
 		return nil, err
@@ -348,12 +395,18 @@ func PutObject(bucketName string, key string, body []byte) error {
 
 	config.Debugf("PutObject final mime type for %s: %s", key, contentType)
 
-	_, err := getClient().PutObject(context.Background(),
+	accountId, err := sts.GetAccountID()
+	if err != nil {
+		return err
+	}
+
+	_, err = getClient().PutObject(context.Background(),
 		&s3.PutObjectInput{
-			Bucket:      &bucketName,
-			Key:         &key,
-			Body:        bytes.NewReader(body),
-			ContentType: &contentType,
+			Bucket:              &bucketName,
+			Key:                 &key,
+			Body:                bytes.NewReader(body),
+			ContentType:         &contentType,
+			ExpectedBucketOwner: awssdk.String(accountId),
 		})
 	return err
 }
