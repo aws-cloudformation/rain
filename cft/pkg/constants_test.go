@@ -5,6 +5,8 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft/diff"
 	"github.com/aws-cloudformation/rain/cft/parse"
+	"github.com/aws-cloudformation/rain/internal/config"
+	"github.com/aws-cloudformation/rain/internal/node"
 	"gopkg.in/yaml.v3"
 )
 
@@ -32,6 +34,8 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "pre-${Prefix}-${Rain::Test1}-suffix" 
+      Foo: !Sub ${Rain::Test1}
+      Bar: !Sub ${!leavemealone}
 `
 	expect := `
 Parameters:
@@ -50,11 +54,12 @@ Resources:
   Bucket3:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: 
-        Fn::Sub: pre-${Prefix}-ezbeard-rain-test-constants-suffix
+      BucketName: !Sub pre-${Prefix}-ezbeard-rain-test-constants-suffix
+      Foo: ezbeard-rain-test-constants
+      Bar: ${!leavemealone}
 `
 
-	//config.Debug = true
+	config.Debug = true
 
 	p, err := parse.String(source)
 	if err != nil {
@@ -70,6 +75,9 @@ Resources:
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	config.Debugf("tmpl: %s", node.ToSJson(tmpl.Node))
+	config.Debugf("et: %s", node.ToSJson(et.Node))
 
 	d := diff.New(tmpl, et)
 	if d.Mode() != "=" {
@@ -88,5 +96,23 @@ func TestReplaceConstants(t *testing.T) {
 	}
 	if n.Value != "Foo" {
 		t.Fatalf("Expected Foo, got %s", n.Value)
+	}
+}
+
+func TestIsSubNeeded(t *testing.T) {
+	cases := make(map[string]bool)
+	cases["ABC"] = false
+	cases["${A}bc"] = true
+	cases["${Rain::Something}"] = true
+	cases[""] = false
+	cases["${Abc.Def"] = true
+	cases["${!saml:sub}"] = false
+	cases["${!Literal}-abc"] = false
+	cases["$foo$bar"] = false
+
+	for k, v := range cases {
+		if IsSubNeeded(k) != v {
+			t.Errorf("IsSubNeeded(%s) should be %v", k, v)
+		}
 	}
 }

@@ -13,7 +13,7 @@ func getRefs(t map[string]interface{}) []string {
 }
 
 func parseSubString(refs []string, substr string) []string {
-	words, err := parse.ParseSub(substr)
+	words, err := parse.ParseSub(substr, false)
 	if err != nil {
 		config.Debugf("Unable to parse Sub %s: %v", substr, err)
 		return refs
