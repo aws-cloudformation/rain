@@ -5,8 +5,6 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft/diff"
 	"github.com/aws-cloudformation/rain/cft/parse"
-	"github.com/aws-cloudformation/rain/internal/config"
-	"github.com/aws-cloudformation/rain/internal/node"
 	"gopkg.in/yaml.v3"
 )
 
@@ -59,7 +57,7 @@ Resources:
       Bar: ${!leavemealone}
 `
 
-	config.Debug = true
+	//config.Debug = true
 
 	p, err := parse.String(source)
 	if err != nil {
@@ -75,9 +73,6 @@ Resources:
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	config.Debugf("tmpl: %s", node.ToSJson(tmpl.Node))
-	config.Debugf("et: %s", node.ToSJson(et.Node))
 
 	d := diff.New(tmpl, et)
 	if d.Mode() != "=" {
