@@ -12,7 +12,7 @@ import (
 // mergeOutputImports looks for exported output values that are imported in this template.
 // This happens when we merge template A that has Outputs, and template B imports them.
 // Since we are merging the templates, the outputs and imports are not necessary.
-// If there are any, it replaces the Fn::Import nodes with the value.
+// If there are any, it replaces the Fn::ImportValue nodes with the value.
 // Otherwise the template is returned as is
 func mergeOutputImports(t cft.Template) (cft.Template, error) {
 	outputs, err := t.GetSection(cft.Outputs)
@@ -32,7 +32,7 @@ func mergeOutputImports(t cft.Template) (cft.Template, error) {
 		if exp != nil {
 			_, exportName, _ := s11n.GetMapValue(exp, "Name")
 			if exportName != nil {
-				// We found an export. Store the value for later when we go look for Fn::Import
+				// We found an export. Store the value for later when we go look for Fn::ImportValue
 				_, exportVal, _ := s11n.GetMapValue(val, "Value")
 				if exportVal != nil {
 					exportMap[exportName.Value] = exportVal
@@ -51,7 +51,7 @@ func mergeOutputImports(t cft.Template) (cft.Template, error) {
 		vf := func(n *visitor.Visitor) {
 			yamlNode := n.GetYamlNode()
 			if yamlNode.Kind == yaml.MappingNode {
-				if len(yamlNode.Content) == 2 && yamlNode.Content[0].Value == "Fn::Import" {
+				if len(yamlNode.Content) == 2 && yamlNode.Content[0].Value == "Fn::ImportValue" {
 					exportVal, ok := exportMap[yamlNode.Content[1].Value]
 					if ok {
 						// We found a match

@@ -340,7 +340,7 @@ Resources:
         Fn::Sub:
           - ${ParentBucket}-access-logs
           - ParentBucket: 
-              Fn::Import: BucketNameExport
+              Fn::ImportValue: BucketNameExport
 `
 
 	// The merged template converts the Import to a Ref
