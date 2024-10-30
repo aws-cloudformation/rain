@@ -76,6 +76,7 @@ func addCommand(label string, profileOptions, bucketOptions bool, c *cobra.Comma
 	if bucketOptions {
 		c.Flags().StringVar(&s3.BucketName, "s3-bucket", "", "Name of the S3 bucket that is used to upload assets")
 		c.Flags().StringVar(&s3.BucketKeyPrefix, "s3-prefix", "", "Prefix to add to objects uploaded to S3 bucket")
+		c.Flags().StringVar(&s3.ExpectedBucketOwner, "s3-owner", "", "The account where S3 assets are stored")
 	}
 
 	Cmd.AddCommand(c)
