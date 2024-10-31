@@ -30,8 +30,14 @@ import (
 
 const RAIN_BUCKET_SSM_KEY = "rain-bucket"
 
+// BucketName is set by the --s3-bucket param to deploy and pkg commands
 var BucketName = ""
+
+// BucketKeyPrefix is set by the --s3-prefix param to deploy and pkg commands
 var BucketKeyPrefix = ""
+
+// ExpectedBucketOwner is set by the --s3-owner param to deploy and pkg commands
+var ExpectedBucketOwner = ""
 
 func getClient() *s3.Client {
 	return s3.NewFromConfig(aws.Config())
@@ -53,10 +59,23 @@ func BucketHasContents(bucketName string) (bool, error) {
 	return false, nil
 }
 
+func getAccountId() (string, error) {
+
+	accountId := ExpectedBucketOwner
+	var err error
+	if accountId == "" {
+		accountId, err = sts.GetAccountID()
+		if err != nil {
+			return "", err
+		}
+	}
+	return accountId, nil
+}
+
 // BucketExists checks whether the named bucket exists
 func BucketExists(bucketName string) (bool, error) {
 
-	accountId, err := sts.GetAccountID()
+	accountId, err := getAccountId()
 	if err != nil {
 		return false, err
 	}
@@ -167,7 +186,7 @@ func Upload(bucketName string, content []byte) (string, error) {
 
 	key := filepath.Join(BucketKeyPrefix, fmt.Sprintf("%x", sha256.Sum256(content)))
 
-	accountId, err := sts.GetAccountID()
+	accountId, err := getAccountId()
 	if err != nil {
 		return "", err
 	}
@@ -276,7 +295,7 @@ func RainBucket(forceCreation bool) string {
 // GetObject gets an object by key from an S3 bucket
 func GetObject(bucketName string, key string) ([]byte, error) {
 
-	accountId, err := sts.GetAccountID()
+	accountId, err := getAccountId()
 	if err != nil {
 		return nil, err
 	}
@@ -395,7 +414,7 @@ func PutObject(bucketName string, key string, body []byte) error {
 
 	config.Debugf("PutObject final mime type for %s: %s", key, contentType)
 
-	accountId, err := sts.GetAccountID()
+	accountId, err := getAccountId()
 	if err != nil {
 		return err
 	}
