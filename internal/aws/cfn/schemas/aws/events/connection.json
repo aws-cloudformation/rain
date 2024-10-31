@@ -1,25 +1,66 @@
 {
+  "tagging": {
+    "taggable": false,
+    "tagOnCreate": false,
+    "tagUpdatable": false,
+    "cloudFormationSystemTags": false
+  },
+  "handlers": {
+    "read": {
+      "permissions": [
+        "events:DescribeConnection"
+      ]
+    },
+    "create": {
+      "permissions": [
+        "events:CreateConnection",
+        "events:DescribeConnection",
+        "secretsmanager:CreateSecret",
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:PutSecretValue",
+        "iam:CreateServiceLinkedRole"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "events:UpdateConnection",
+        "events:DescribeConnection",
+        "secretsmanager:CreateSecret",
+        "secretsmanager:UpdateSecret",
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:PutSecretValue"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "events:ListConnections"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "events:DeleteConnection",
+        "events:DescribeConnection"
+      ]
+    }
+  },
   "typeName": "AWS::Events::Connection",
+  "readOnlyProperties": [
+    "/properties/Arn",
+    "/properties/SecretArn"
+  ],
   "description": "Resource Type definition for AWS::Events::Connection.",
+  "writeOnlyProperties": [
+    "/properties/AuthParameters"
+  ],
+  "createOnlyProperties": [
+    "/properties/Name"
+  ],
+  "additionalProperties": false,
+  "primaryIdentifier": [
+    "/properties/Name"
+  ],
   "definitions": {
     "AuthParameters": {
-      "type": "object",
-      "minProperties": 1,
-      "maxProperties": 2,
-      "properties": {
-        "ApiKeyAuthParameters": {
-          "$ref": "#/definitions/ApiKeyAuthParameters"
-        },
-        "BasicAuthParameters": {
-          "$ref": "#/definitions/BasicAuthParameters"
-        },
-        "OAuthParameters": {
-          "$ref": "#/definitions/OAuthParameters"
-        },
-        "InvocationHttpParameters": {
-          "$ref": "#/definitions/ConnectionHttpParameters"
-        }
-      },
       "oneOf": [
         {
           "required": [
@@ -37,33 +78,93 @@
           ]
         }
       ],
-      "additionalProperties": false
+      "maxProperties": 2,
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "InvocationHttpParameters": {
+          "$ref": "#/definitions/ConnectionHttpParameters"
+        },
+        "BasicAuthParameters": {
+          "$ref": "#/definitions/BasicAuthParameters"
+        },
+        "ApiKeyAuthParameters": {
+          "$ref": "#/definitions/ApiKeyAuthParameters"
+        },
+        "OAuthParameters": {
+          "$ref": "#/definitions/OAuthParameters"
+        }
+      },
+      "minProperties": 1
+    },
+    "ClientParameters": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "ClientSecret": {
+          "pattern": "^[ \\t]*[^\\x00-\\x1F\\x7F]+([ \\t]+[^\\x00-\\x1F\\x7F]+)*[ \\t]*$",
+          "type": "string"
+        },
+        "ClientID": {
+          "pattern": "^[ \\t]*[^\\x00-\\x1F\\x7F]+([ \\t]+[^\\x00-\\x1F\\x7F]+)*[ \\t]*$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ClientID",
+        "ClientSecret"
+      ]
     },
     "BasicAuthParameters": {
+      "additionalProperties": false,
       "type": "object",
       "properties": {
         "Username": {
+          "pattern": "^[ \\t]*[^\\x00-\\x1F\\x7F]+([ \\t]+[^\\x00-\\x1F\\x7F]+)*[ \\t]*$",
           "type": "string"
         },
         "Password": {
+          "pattern": "^[ \\t]*[^\\x00-\\x1F\\x7F]+([ \\t]+[^\\x00-\\x1F\\x7F]+)*[ \\t]*$",
           "type": "string"
         }
       },
       "required": [
         "Username",
         "Password"
-      ],
-      "additionalProperties": false
+      ]
+    },
+    "ApiKeyAuthParameters": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "ApiKeyValue": {
+          "pattern": "^[ \\t]*[^\\x00-\\x1F\\x7F]+([ \\t]+[^\\x00-\\x1F\\x7F]+)*[ \\t]*$",
+          "type": "string"
+        },
+        "ApiKeyName": {
+          "pattern": "^[ \\t]*[^\\x00-\\x1F\\x7F]+([ \\t]+[^\\x00-\\x1F\\x7F]+)*[ \\t]*$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ApiKeyName",
+        "ApiKeyValue"
+      ]
     },
     "OAuthParameters": {
+      "additionalProperties": false,
       "type": "object",
       "properties": {
         "ClientParameters": {
           "$ref": "#/definitions/ClientParameters"
         },
+        "OAuthHttpParameters": {
+          "$ref": "#/definitions/ConnectionHttpParameters"
+        },
         "AuthorizationEndpoint": {
-          "type": "string",
           "minLength": 1,
+          "pattern": "^((%[0-9A-Fa-f]{2}|[-()_.!~*';/?:@\\x26=+$,A-Za-z0-9])+)([).!';/?:,])?$",
+          "type": "string",
           "maxLength": 2048
         },
         "HttpMethod": {
@@ -73,51 +174,36 @@
             "POST",
             "PUT"
           ]
-        },
-        "OAuthHttpParameters": {
-          "$ref": "#/definitions/ConnectionHttpParameters"
         }
       },
       "required": [
         "ClientParameters",
         "AuthorizationEndpoint",
         "HttpMethod"
-      ],
-      "additionalProperties": false
+      ]
     },
-    "ApiKeyAuthParameters": {
+    "Parameter": {
+      "additionalProperties": false,
       "type": "object",
       "properties": {
-        "ApiKeyName": {
+        "Value": {
           "type": "string"
         },
-        "ApiKeyValue": {
+        "IsValueSecret": {
+          "default": true,
+          "type": "boolean"
+        },
+        "Key": {
           "type": "string"
         }
       },
       "required": [
-        "ApiKeyName",
-        "ApiKeyValue"
-      ],
-      "additionalProperties": false
-    },
-    "ClientParameters": {
-      "type": "object",
-      "properties": {
-        "ClientID": {
-          "type": "string"
-        },
-        "ClientSecret": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "ClientID",
-        "ClientSecret"
-      ],
-      "additionalProperties": false
+        "Key",
+        "Value"
+      ]
     },
     "ConnectionHttpParameters": {
+      "additionalProperties": false,
       "type": "object",
       "properties": {
         "HeaderParameters": {
@@ -138,49 +224,27 @@
             "$ref": "#/definitions/Parameter"
           }
         }
-      },
-      "additionalProperties": false
-    },
-    "Parameter": {
-      "type": "object",
-      "properties": {
-        "Key": {
-          "type": "string"
-        },
-        "Value": {
-          "type": "string"
-        },
-        "IsValueSecret": {
-          "type": "boolean",
-          "default": true
-        }
-      },
-      "required": [
-        "Key",
-        "Value"
-      ],
-      "additionalProperties": false
+      }
     }
   },
   "properties": {
-    "Name": {
-      "description": "Name of the connection.",
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 64
-    },
-    "Arn": {
-      "description": "The arn of the connection resource.",
-      "type": "string"
-    },
     "SecretArn": {
+      "pattern": "^arn:aws([a-z]|\\-)*:secretsmanager:([a-z]|\\d|\\-)*:([0-9]{12})?:secret:[\\/_+=\\.@\\-A-Za-z0-9]+$",
       "description": "The arn of the secrets manager secret created in the customer account.",
       "type": "string"
+    },
+    "AuthParameters": {
+      "$ref": "#/definitions/AuthParameters"
     },
     "Description": {
       "description": "Description of the connection.",
       "type": "string",
       "maxLength": 512
+    },
+    "Arn": {
+      "pattern": "^arn:aws([a-z]|\\-)*:events:([a-z]|\\d|\\-)*:([0-9]{12})?:connection\\/[\\.\\-_A-Za-z0-9]+\\/[\\-A-Za-z0-9]+$",
+      "description": "The arn of the connection resource.",
+      "type": "string"
     },
     "AuthorizationType": {
       "type": "string",
@@ -190,63 +254,12 @@
         "OAUTH_CLIENT_CREDENTIALS"
       ]
     },
-    "AuthParameters": {
-      "$ref": "#/definitions/AuthParameters"
-    }
-  },
-  "additionalProperties": false,
-  "createOnlyProperties": [
-    "/properties/Name"
-  ],
-  "readOnlyProperties": [
-    "/properties/Arn",
-    "/properties/SecretArn"
-  ],
-  "writeOnlyProperties": [
-    "/properties/AuthParameters"
-  ],
-  "primaryIdentifier": [
-    "/properties/Name"
-  ],
-  "tagging": {
-    "taggable": false
-  },
-  "handlers": {
-    "create": {
-      "permissions": [
-        "events:CreateConnection",
-        "events:DescribeConnection",
-        "secretsmanager:CreateSecret",
-        "secretsmanager:GetSecretValue",
-        "secretsmanager:PutSecretValue",
-        "iam:CreateServiceLinkedRole"
-      ]
-    },
-    "read": {
-      "permissions": [
-        "events:DescribeConnection"
-      ]
-    },
-    "update": {
-      "permissions": [
-        "events:UpdateConnection",
-        "events:DescribeConnection",
-        "secretsmanager:CreateSecret",
-        "secretsmanager:UpdateSecret",
-        "secretsmanager:GetSecretValue",
-        "secretsmanager:PutSecretValue"
-      ]
-    },
-    "delete": {
-      "permissions": [
-        "events:DeleteConnection",
-        "events:DescribeConnection"
-      ]
-    },
-    "list": {
-      "permissions": [
-        "events:ListConnections"
-      ]
+    "Name": {
+      "minLength": 1,
+      "pattern": "[\\.\\-_A-Za-z0-9]+",
+      "description": "Name of the connection.",
+      "type": "string",
+      "maxLength": 64
     }
   }
 }

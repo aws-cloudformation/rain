@@ -3,7 +3,7 @@
 set -eou pipefail
 
 echo "Updating dependencies..."
-go get -u ./...
+./scripts/update.sh
 go mod vendor
 
 echo "Generating cached schemas..."

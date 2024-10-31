@@ -1,7 +1,7 @@
 {
   "typeName": "AWS::S3::AccessGrant",
   "description": "The AWS::S3::AccessGrant resource is an Amazon S3 resource type representing permissions to a specific S3 bucket or prefix hosted in an S3 Access Grants instance.",
-  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-s3",
+  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
   "definitions": {
     "Grantee": {
       "type": "object",
@@ -133,7 +133,6 @@
     "/properties/Tags"
   ],
   "writeOnlyProperties": [
-    "/properties/Tags",
     "/properties/S3PrefixType"
   ],
   "readOnlyProperties": [
@@ -148,7 +147,13 @@
     "taggable": true,
     "tagOnCreate": true,
     "tagUpdatable": true,
-    "tagProperty": "/properties/Tags"
+    "cloudFormationSystemTags": false,
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "s3:UntagResource",
+      "s3:TagResource",
+      "s3:ListTagsForResource"
+    ]
   },
   "handlers": {
     "create": {
@@ -159,7 +164,8 @@
     },
     "read": {
       "permissions": [
-        "s3:GetAccessGrant"
+        "s3:GetAccessGrant",
+        "s3:ListTagsForResource"
       ]
     },
     "delete": {
@@ -174,7 +180,8 @@
     },
     "update": {
       "permissions": [
-        "s3:TagResource"
+        "s3:TagResource",
+        "s3:UntagResource"
       ]
     }
   },

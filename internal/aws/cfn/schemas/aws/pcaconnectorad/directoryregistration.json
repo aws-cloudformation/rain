@@ -35,14 +35,15 @@
     "tagOnCreate": true,
     "tagUpdatable": true,
     "cloudFormationSystemTags": true,
-    "tagProperty": "/properties/Tags"
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "pca-connector-ad:ListTagsForResource",
+      "pca-connector-ad:TagResource",
+      "pca-connector-ad:UntagResource"
+    ]
   },
   "readOnlyProperties": [
     "/properties/DirectoryRegistrationArn"
-  ],
-  "writeOnlyProperties": [
-    "/properties/DirectoryId",
-    "/properties/Tags"
   ],
   "createOnlyProperties": [
     "/properties/DirectoryId"
@@ -53,25 +54,27 @@
   "handlers": {
     "create": {
       "permissions": [
+        "ds:AuthorizeApplication",
+        "ds:DescribeDirectories",
         "pca-connector-ad:GetDirectoryRegistration",
         "pca-connector-ad:CreateDirectoryRegistration",
-        "ds:AuthorizeApplication",
-        "ds:DescribeDirectories"
+        "pca-connector-ad:TagResource"
       ]
     },
     "read": {
       "permissions": [
-        "pca-connector-ad:ListTagsForResource",
-        "pca-connector-ad:GetDirectoryRegistration"
+        "pca-connector-ad:GetDirectoryRegistration",
+        "pca-connector-ad:ListTagsForResource"
       ]
     },
     "delete": {
       "permissions": [
-        "pca-connector-ad:GetDirectoryRegistration",
-        "pca-connector-ad:DeleteDirectoryRegistration",
         "ds:DescribeDirectories",
         "ds:UnauthorizeApplication",
-        "ds:UpdateAuthorizedApplication"
+        "ds:UpdateAuthorizedApplication",
+        "pca-connector-ad:GetDirectoryRegistration",
+        "pca-connector-ad:DeleteDirectoryRegistration",
+        "pca-connector-ad:UntagResource"
       ]
     },
     "list": {

@@ -520,8 +520,11 @@
           "type": "string",
           "maxLength": 2048,
           "minLength": 1,
-          "pattern": "^arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:(([0-9]{12}:custom-model/[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}(([:][a-z0-9-]{1,63}){0,2})?/[a-z0-9]{12})|(:foundation-model/([a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.]?[a-z0-9-]{1,63})([:][a-z0-9-]{1,63}){0,2})))|(([a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.]?[a-z0-9-]{1,63})([:][a-z0-9-]{1,63}){0,2}))|(([0-9a-zA-Z][_-]?)+)$",
-          "description": "ARN or name of a Bedrock model."
+          "pattern": "^(arn:aws(-[^:]{1,12})?:bedrock:[a-z0-9-]{1,20}:([0-9]{12})?:([a-z-]+/)?)?([a-zA-Z0-9.-]{1,63}){0,2}(([:][a-z0-9-]{1,63}){0,2})?(/[a-z0-9]{1,12})?$",
+          "description": "ARN or Id of a Bedrock Foundational Model or Inference Profile, or the ARN of a imported model, or a provisioned throughput ARN for custom models."
+        },
+        "GuardrailConfiguration": {
+          "$ref": "#/definitions/GuardrailConfiguration"
         }
       },
       "required": [
@@ -589,6 +592,9 @@
       "properties": {
         "SourceConfiguration": {
           "$ref": "#/definitions/PromptFlowNodeSourceConfiguration"
+        },
+        "GuardrailConfiguration": {
+          "$ref": "#/definitions/GuardrailConfiguration"
         }
       },
       "required": [
@@ -636,8 +642,8 @@
           "type": "string",
           "maxLength": 2048,
           "minLength": 1,
-          "pattern": "^(arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:(([0-9]{12}:custom-model/[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}/[a-z0-9]{12})|(:foundation-model/[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.:]?[a-z0-9-]{1,63}))|([0-9]{12}:provisioned-model/[a-z0-9]{12})))|([a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.:]?[a-z0-9-]{1,63}))|(([0-9a-zA-Z][_-]?)+)$",
-          "description": "ARN or name of a Bedrock model."
+          "pattern": "^(arn:aws(-[^:]{1,12})?:bedrock:[a-z0-9-]{1,20}:([0-9]{12})?:([a-z-]+/)?)?([a-zA-Z0-9.-]{1,63}){0,2}(([:][a-z0-9-]{1,63}){0,2})?(/[a-z0-9]{1,12})?$",
+          "description": "ARN or Id of a Bedrock Foundational Model or Inference Profile, or the ARN of a imported model, or a provisioned throughput ARN for custom models."
         },
         "InferenceConfiguration": {
           "$ref": "#/definitions/PromptInferenceConfiguration"
@@ -802,12 +808,6 @@
           "minimum": 0,
           "description": "Cumulative probability cutoff for token selection"
         },
-        "TopK": {
-          "type": "number",
-          "maximum": 500,
-          "minimum": 0,
-          "description": "Sample from the k most likely next tokens"
-        },
         "MaxTokens": {
           "type": "number",
           "maximum": 4096,
@@ -943,6 +943,24 @@
         }
       },
       "additionalProperties": false
+    },
+    "GuardrailConfiguration": {
+      "type": "object",
+      "description": "Configuration for a guardrail",
+      "properties": {
+        "GuardrailIdentifier": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^(([a-z0-9]+)|(arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:guardrail/[a-z0-9]+))$",
+          "description": "Identifier for the guardrail, could be the id or the arn"
+        },
+        "GuardrailVersion": {
+          "type": "string",
+          "pattern": "^(([0-9]{1,8})|(DRAFT))$",
+          "description": "Version of the guardrail"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "properties": {
@@ -1064,14 +1082,18 @@
         "bedrock:TagResource",
         "bedrock:ListTagsForResource",
         "kms:GenerateDataKey",
-        "kms:Decrypt"
+        "kms:Decrypt",
+        "bedrock:CreateGuardrail",
+        "bedrock:CreateGuardrailVersion",
+        "bedrock:GetGuardrail"
       ]
     },
     "read": {
       "permissions": [
         "bedrock:GetFlow",
         "bedrock:ListTagsForResource",
-        "kms:Decrypt"
+        "kms:Decrypt",
+        "bedrock:GetGuardrail"
       ]
     },
     "update": {
@@ -1086,18 +1108,23 @@
         "bedrock:UntagResource",
         "bedrock:ListTagsForResource",
         "kms:GenerateDataKey",
-        "kms:Decrypt"
+        "kms:Decrypt",
+        "bedrock:UpdateGuardrail",
+        "bedrock:GetGuardrail"
       ]
     },
     "delete": {
       "permissions": [
         "bedrock:DeleteFlow",
-        "bedrock:GetFlow"
+        "bedrock:GetFlow",
+        "bedrock:DeleteGuardrail",
+        "bedrock:GetGuardrail"
       ]
     },
     "list": {
       "permissions": [
-        "bedrock:ListFlows"
+        "bedrock:ListFlows",
+        "bedrock:ListGuardrails"
       ]
     }
   },

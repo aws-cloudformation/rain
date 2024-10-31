@@ -1,204 +1,85 @@
 {
-  "tagging": {
-    "permissions": [
-      "network-firewall:TagResource",
-      "network-firewall:UntagResource",
-      "network-firewall:ListTagsForResource"
-    ],
-    "taggable": true,
-    "tagOnCreate": true,
-    "tagUpdatable": true,
-    "tagProperty": "/properties/Tags",
-    "cloudFormationSystemTags": true
-  },
   "typeName": "AWS::NetworkFirewall::FirewallPolicy",
-  "readOnlyProperties": [
-    "/properties/FirewallPolicyArn",
-    "/properties/FirewallPolicyId"
-  ],
   "description": "Resource type definition for AWS::NetworkFirewall::FirewallPolicy",
-  "createOnlyProperties": [
-    "/properties/FirewallPolicyName"
-  ],
-  "primaryIdentifier": [
-    "/properties/FirewallPolicyArn"
-  ],
-  "required": [
-    "FirewallPolicyName",
-    "FirewallPolicy"
-  ],
   "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-networkfirewall.git",
-  "handlers": {
-    "read": {
-      "permissions": [
-        "network-firewall:DescribeFirewallPolicy",
-        "network-firewall:ListTagsForResources"
-      ]
-    },
-    "create": {
-      "permissions": [
-        "network-firewall:CreateFirewallPolicy",
-        "network-firewall:DescribeFirewallPolicy",
-        "network-firewall:ListTLSInspectionConfigurations",
-        "network-firewall:TagResource",
-        "network-firewall:ListRuleGroups"
-      ]
-    },
-    "update": {
-      "permissions": [
-        "network-firewall:UpdateFirewallPolicy",
-        "network-firewall:DescribeFirewallPolicy",
-        "network-firewall:TagResource",
-        "network-firewall:UntagResource",
-        "network-firewall:ListRuleGroups",
-        "network-firewall:ListTLSInspectionConfigurations"
-      ]
-    },
-    "list": {
-      "permissions": [
-        "network-firewall:ListFirewallPolicies"
-      ]
-    },
-    "delete": {
-      "permissions": [
-        "network-firewall:DeleteFirewallPolicy",
-        "network-firewall:DescribeFirewallPolicy",
-        "network-firewall:UntagResource"
-      ]
-    }
-  },
   "additionalProperties": false,
   "definitions": {
-    "VariableDefinition": {
+    "ResourceArn": {
+      "description": "A resource ARN.",
+      "type": "string",
+      "pattern": "^(arn:aws.*)$",
       "minLength": 1,
-      "pattern": "^.*$",
-      "type": "string"
+      "maxLength": 256
     },
-    "CustomAction": {
-      "additionalProperties": false,
+    "Tag": {
       "type": "object",
       "properties": {
-        "ActionName": {
-          "minLength": 1,
-          "pattern": "^[a-zA-Z0-9]+$",
+        "Key": {
           "type": "string",
-          "maxLength": 128
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^.*$"
         },
-        "ActionDefinition": {
-          "$ref": "#/definitions/ActionDefinition"
-        }
-      },
-      "required": [
-        "ActionName",
-        "ActionDefinition"
-      ]
-    },
-    "Priority": {
-      "maximum": 65535,
-      "type": "integer",
-      "minimum": 1
-    },
-    "StatefulEngineOptions": {
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "StreamExceptionPolicy": {
-          "$ref": "#/definitions/StreamExceptionPolicy"
-        },
-        "FlowTimeouts": {
-          "additionalProperties": false,
-          "type": "object",
-          "properties": {
-            "TcpIdleTimeoutSeconds": {
-              "maximum": 600,
-              "type": "integer",
-              "minimum": 60
-            }
-          }
-        },
-        "RuleOrder": {
-          "$ref": "#/definitions/RuleOrder"
-        }
-      }
-    },
-    "Dimension": {
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
         "Value": {
-          "minLength": 1,
-          "pattern": "^[a-zA-Z0-9-_ ]+$",
           "type": "string",
-          "maxLength": 128
+          "minLength": 0,
+          "maxLength": 255,
+          "pattern": "^.*$"
         }
       },
       "required": [
+        "Key",
         "Value"
-      ]
-    },
-    "OverrideAction": {
-      "type": "string",
-      "enum": [
-        "DROP_TO_ALERT"
-      ]
-    },
-    "RuleOrder": {
-      "type": "string",
-      "enum": [
-        "DEFAULT_ACTION_ORDER",
-        "STRICT_ORDER"
-      ]
-    },
-    "PublishMetricAction": {
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "Dimensions": {
-          "uniqueItems": false,
-          "insertionOrder": true,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Dimension"
-          }
-        }
-      },
-      "required": [
-        "Dimensions"
-      ]
-    },
-    "ActionDefinition": {
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "PublishMetricAction": {
-          "$ref": "#/definitions/PublishMetricAction"
-        }
-      }
+      ],
+      "additionalProperties": false
     },
     "FirewallPolicy": {
-      "additionalProperties": false,
       "type": "object",
       "properties": {
-        "StatelessRuleGroupReferences": {
-          "uniqueItems": false,
-          "insertionOrder": true,
+        "StatelessDefaultActions": {
           "type": "array",
+          "insertionOrder": true,
+          "uniqueItems": false,
+          "items": {
+            "type": "string"
+          }
+        },
+        "StatelessFragmentDefaultActions": {
+          "type": "array",
+          "insertionOrder": true,
+          "uniqueItems": false,
+          "items": {
+            "type": "string"
+          }
+        },
+        "StatelessCustomActions": {
+          "type": "array",
+          "insertionOrder": true,
+          "uniqueItems": false,
+          "items": {
+            "$ref": "#/definitions/CustomAction"
+          }
+        },
+        "StatelessRuleGroupReferences": {
+          "type": "array",
+          "insertionOrder": true,
+          "uniqueItems": false,
           "items": {
             "$ref": "#/definitions/StatelessRuleGroupReference"
           }
         },
         "StatefulRuleGroupReferences": {
-          "uniqueItems": false,
-          "insertionOrder": true,
           "type": "array",
+          "insertionOrder": true,
+          "uniqueItems": false,
           "items": {
             "$ref": "#/definitions/StatefulRuleGroupReference"
           }
         },
-        "StatelessDefaultActions": {
-          "uniqueItems": false,
-          "insertionOrder": true,
+        "StatefulDefaultActions": {
           "type": "array",
+          "insertionOrder": true,
+          "uniqueItems": false,
           "items": {
             "type": "string"
           }
@@ -206,38 +87,14 @@
         "StatefulEngineOptions": {
           "$ref": "#/definitions/StatefulEngineOptions"
         },
-        "StatelessCustomActions": {
-          "uniqueItems": false,
-          "insertionOrder": true,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/CustomAction"
-          }
-        },
-        "StatelessFragmentDefaultActions": {
-          "uniqueItems": false,
-          "insertionOrder": true,
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
         "PolicyVariables": {
-          "additionalProperties": false,
           "type": "object",
           "properties": {
             "RuleVariables": {
               "$ref": "#/definitions/RuleVariables"
             }
-          }
-        },
-        "StatefulDefaultActions": {
-          "uniqueItems": false,
-          "insertionOrder": true,
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+          },
+          "additionalProperties": false
         },
         "TLSInspectionConfigurationArn": {
           "$ref": "#/definitions/ResourceArn"
@@ -246,10 +103,79 @@
       "required": [
         "StatelessDefaultActions",
         "StatelessFragmentDefaultActions"
-      ]
+      ],
+      "additionalProperties": false
+    },
+    "RuleVariables": {
+      "type": "object",
+      "patternProperties": {
+        "^[A-Za-z0-9_]{1,32}$": {
+          "$ref": "#/definitions/IPSet"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CustomAction": {
+      "type": "object",
+      "properties": {
+        "ActionName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9]+$"
+        },
+        "ActionDefinition": {
+          "$ref": "#/definitions/ActionDefinition"
+        }
+      },
+      "required": [
+        "ActionName",
+        "ActionDefinition"
+      ],
+      "additionalProperties": false
+    },
+    "ActionDefinition": {
+      "type": "object",
+      "properties": {
+        "PublishMetricAction": {
+          "$ref": "#/definitions/PublishMetricAction"
+        }
+      },
+      "additionalProperties": false
+    },
+    "PublishMetricAction": {
+      "type": "object",
+      "properties": {
+        "Dimensions": {
+          "type": "array",
+          "insertionOrder": true,
+          "uniqueItems": false,
+          "items": {
+            "$ref": "#/definitions/Dimension"
+          }
+        }
+      },
+      "required": [
+        "Dimensions"
+      ],
+      "additionalProperties": false
+    },
+    "Dimension": {
+      "type": "object",
+      "properties": {
+        "Value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9-_ ]+$"
+        }
+      },
+      "required": [
+        "Value"
+      ],
+      "additionalProperties": false
     },
     "StatefulRuleGroupReference": {
-      "additionalProperties": false,
       "type": "object",
       "properties": {
         "ResourceArn": {
@@ -264,40 +190,10 @@
       },
       "required": [
         "ResourceArn"
-      ]
-    },
-    "StatefulRuleGroupOverride": {
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "Action": {
-          "$ref": "#/definitions/OverrideAction"
-        }
-      }
-    },
-    "ResourceArn": {
-      "minLength": 1,
-      "pattern": "^(arn:aws.*)$",
-      "description": "A resource ARN.",
-      "type": "string",
-      "maxLength": 256
-    },
-    "IPSet": {
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "Definition": {
-          "uniqueItems": false,
-          "insertionOrder": true,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/VariableDefinition"
-          }
-        }
-      }
+      ],
+      "additionalProperties": false
     },
     "StatelessRuleGroupReference": {
-      "additionalProperties": false,
       "type": "object",
       "properties": {
         "ResourceArn": {
@@ -310,6 +206,76 @@
       "required": [
         "ResourceArn",
         "Priority"
+      ],
+      "additionalProperties": false
+    },
+    "Priority": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535
+    },
+    "VariableDefinition": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^.*$"
+    },
+    "IPSet": {
+      "type": "object",
+      "properties": {
+        "Definition": {
+          "type": "array",
+          "insertionOrder": true,
+          "uniqueItems": false,
+          "items": {
+            "$ref": "#/definitions/VariableDefinition"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "StatefulRuleGroupOverride": {
+      "type": "object",
+      "properties": {
+        "Action": {
+          "$ref": "#/definitions/OverrideAction"
+        }
+      },
+      "additionalProperties": false
+    },
+    "OverrideAction": {
+      "type": "string",
+      "enum": [
+        "DROP_TO_ALERT"
+      ]
+    },
+    "StatefulEngineOptions": {
+      "type": "object",
+      "properties": {
+        "RuleOrder": {
+          "$ref": "#/definitions/RuleOrder"
+        },
+        "StreamExceptionPolicy": {
+          "$ref": "#/definitions/StreamExceptionPolicy"
+        },
+        "FlowTimeouts": {
+          "type": "object",
+          "properties": {
+            "TcpIdleTimeoutSeconds": {
+              "type": "integer",
+              "minimum": 60,
+              "maximum": 6000
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "RuleOrder": {
+      "type": "string",
+      "enum": [
+        "DEFAULT_ACTION_ORDER",
+        "STRICT_ORDER"
       ]
     },
     "StreamExceptionPolicy": {
@@ -319,71 +285,105 @@
         "CONTINUE",
         "REJECT"
       ]
-    },
-    "Tag": {
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "Value": {
-          "minLength": 0,
-          "pattern": "^.*$",
-          "type": "string",
-          "maxLength": 255
-        },
-        "Key": {
-          "minLength": 1,
-          "pattern": "^.*$",
-          "type": "string",
-          "maxLength": 128
-        }
-      },
-      "required": [
-        "Key",
-        "Value"
-      ]
-    },
-    "RuleVariables": {
-      "patternProperties": {
-        "^[A-Za-z0-9_]{1,32}$": {
-          "$ref": "#/definitions/IPSet"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
     }
   },
   "properties": {
+    "FirewallPolicyName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[a-zA-Z0-9-]+$"
+    },
     "FirewallPolicyArn": {
       "$ref": "#/definitions/ResourceArn"
     },
-    "Description": {
-      "minLength": 1,
-      "pattern": "^.*$",
-      "type": "string",
-      "maxLength": 512
-    },
-    "FirewallPolicyName": {
-      "minLength": 1,
-      "pattern": "^[a-zA-Z0-9-]+$",
-      "type": "string",
-      "maxLength": 128
+    "FirewallPolicy": {
+      "$ref": "#/definitions/FirewallPolicy"
     },
     "FirewallPolicyId": {
-      "minLength": 36,
-      "pattern": "^([0-9a-f]{8})-([0-9a-f]{4}-){3}([0-9a-f]{12})$",
       "type": "string",
-      "maxLength": 36
+      "minLength": 36,
+      "maxLength": 36,
+      "pattern": "^([0-9a-f]{8})-([0-9a-f]{4}-){3}([0-9a-f]{12})$"
+    },
+    "Description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^.*$"
     },
     "Tags": {
-      "uniqueItems": true,
-      "insertionOrder": false,
       "type": "array",
+      "insertionOrder": false,
+      "uniqueItems": true,
       "items": {
         "$ref": "#/definitions/Tag"
       }
+    }
+  },
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "network-firewall:TagResource",
+      "network-firewall:UntagResource",
+      "network-firewall:ListTagsForResource"
+    ]
+  },
+  "required": [
+    "FirewallPolicyName",
+    "FirewallPolicy"
+  ],
+  "readOnlyProperties": [
+    "/properties/FirewallPolicyArn",
+    "/properties/FirewallPolicyId"
+  ],
+  "primaryIdentifier": [
+    "/properties/FirewallPolicyArn"
+  ],
+  "createOnlyProperties": [
+    "/properties/FirewallPolicyName"
+  ],
+  "handlers": {
+    "create": {
+      "permissions": [
+        "network-firewall:CreateFirewallPolicy",
+        "network-firewall:DescribeFirewallPolicy",
+        "network-firewall:ListTLSInspectionConfigurations",
+        "network-firewall:TagResource",
+        "network-firewall:ListRuleGroups"
+      ]
     },
-    "FirewallPolicy": {
-      "$ref": "#/definitions/FirewallPolicy"
+    "read": {
+      "permissions": [
+        "network-firewall:DescribeFirewallPolicy",
+        "network-firewall:ListTagsForResources"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "network-firewall:UpdateFirewallPolicy",
+        "network-firewall:DescribeFirewallPolicy",
+        "network-firewall:TagResource",
+        "network-firewall:UntagResource",
+        "network-firewall:ListRuleGroups",
+        "network-firewall:ListTLSInspectionConfigurations"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "network-firewall:DeleteFirewallPolicy",
+        "network-firewall:DescribeFirewallPolicy",
+        "network-firewall:UntagResource"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "network-firewall:ListFirewallPolicies"
+      ]
     }
   }
 }

@@ -25,7 +25,6 @@
   "conditionalCreateOnlyProperties": [
     "/properties/LaunchConfigurationName",
     "/properties/VPCZoneIdentifier",
-    "/properties/PlacementGroup",
     "/properties/LaunchTemplate",
     "/properties/MixedInstancesPolicy"
   ],
@@ -57,7 +56,11 @@
         "managed-fleets:Get*",
         "managed-fleets:CreateAutoScalingGroup",
         "managed-fleets:UpdateAutoScalingGroup",
-        "ssm:Get*"
+        "ssm:Get*",
+        "vpc-lattice:DeregisterTargets",
+        "vpc-lattice:GetTargetGroup",
+        "vpc-lattice:ListTargets",
+        "vpc-lattice:RegisterTargets"
       ],
       "timeoutInMinutes": 360
     },
@@ -90,7 +93,11 @@
         "managed-fleets:RegisterAutoScalingGroup",
         "managed-fleets:DeregisterAutoScalingGroup",
         "managed-fleets:UpdateAutoScalingGroup",
-        "ssm:Get*"
+        "ssm:Get*",
+        "vpc-lattice:DeregisterTargets",
+        "vpc-lattice:GetTargetGroup",
+        "vpc-lattice:ListTargets",
+        "vpc-lattice:RegisterTargets"
       ],
       "timeoutInMinutes": 660
     },
@@ -487,6 +494,23 @@
         }
       }
     },
+    "TrafficSourceIdentifier": {
+      "description": "",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "Type": {
+          "type": "string"
+        },
+        "Identifier": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "Identifier",
+        "Type"
+      ]
+    },
     "MixedInstancesPolicy": {
       "description": "Use this structure to launch multiple instance types and On-Demand Instances and Spot Instances within a single Auto Scaling group.\n A mixed instances policy contains information that Amazon EC2 Auto Scaling can use to launch instances and help optimize your costs. For more information, see [Auto Scaling groups with multiple instance types and purchase options](https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-mixed-instances-groups.html) in the *Amazon EC2 Auto Scaling User Guide*.\n You can create a mixed instances policy for new and existing Auto Scaling groups. You must use a launch template to configure the policy. You cannot use a launch configuration.\n There are key differences between Spot Instances and On-Demand Instances:\n  +  The price for Spot Instances varies based on demand\n  +  Amazon EC2 can terminate an individual Spot Instance as the availability of, or price for, Spot Instances changes\n  \n When a Spot Instance is terminated, Amazon EC2 Auto Scaling group attempts to launch a replacement instance to maintain the desired capacity for the group. \n  ``MixedInstancesPolicy`` is a property of the [AWS::AutoScaling::AutoScalingGroup](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-autoscaling-autoscalinggroup.html) resource.",
       "additionalProperties": false,
@@ -805,6 +829,15 @@
       "description": "The name of the Auto Scaling group. This name must be unique per Region per account.\n The name can contain any ASCII character 33 to 126 including most punctuation characters, digits, and upper and lowercased letters.\n  You cannot use a colon (:) in the name.",
       "type": "string"
     },
+    "TrafficSources": {
+      "uniqueItems": true,
+      "description": "",
+      "insertionOrder": false,
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/TrafficSourceIdentifier"
+      }
+    },
     "DesiredCapacityType": {
       "description": "The unit of measurement for the value specified for desired capacity. Amazon EC2 Auto Scaling supports ``DesiredCapacityType`` for attribute-based instance type selection only. For more information, see [Create a mixed instances group using attribute-based instance type selection](https://docs.aws.amazon.com/autoscaling/ec2/userguide/create-mixed-instances-group-attribute-based-instance-type-selection.html) in the *Amazon EC2 Auto Scaling User Guide*.\n By default, Amazon EC2 Auto Scaling specifies ``units``, which translates into number of instances.\n Valid values: ``units`` | ``vcpu`` | ``memory-mib``",
       "type": "string"
@@ -814,7 +847,7 @@
       "type": "string"
     },
     "HealthCheckType": {
-      "description": "A comma-separated value string of one or more health check types.\n The valid values are ``EC2``, ``ELB``, and ``VPC_LATTICE``. ``EC2`` is the default health check and cannot be disabled. For more information, see [Health checks for instances in an Auto Scaling group](https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-health-checks.html) in the *Amazon EC2 Auto Scaling User Guide*.\n Only specify ``EC2`` if you must clear a value that was previously set.",
+      "description": "A comma-separated value string of one or more health check types.\n The valid values are ``EC2``, ``EBS``, ``ELB``, and ``VPC_LATTICE``. ``EC2`` is the default health check and cannot be disabled. For more information, see [Health checks for instances in an Auto Scaling group](https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-health-checks.html) in the *Amazon EC2 Auto Scaling User Guide*.\n Only specify ``EC2`` if you must clear a value that was previously set.",
       "type": "string"
     },
     "MaxInstanceLifetime": {
