@@ -361,7 +361,7 @@ func resolveSub(n *yaml.Node, resource *Resource) (string, error) {
 		// Ref for single strings like ${MyParam} or ${MyBucket}
 		// Map values
 		// ${!Literal}
-		words, err := parse.ParseSub(n.Value)
+		words, err := parse.ParseSub(n.Value, false)
 		if err != nil {
 			return "", err
 		}
@@ -377,7 +377,7 @@ func resolveSub(n *yaml.Node, resource *Resource) (string, error) {
 		if n.Content[1].Kind != yaml.MappingNode {
 			return "", fmt.Errorf("expected Sub %s Content[1] to be a Mapping", sub)
 		}
-		words, err := parse.ParseSub(sub)
+		words, err := parse.ParseSub(sub, false)
 		if err != nil {
 			return "", err
 		}

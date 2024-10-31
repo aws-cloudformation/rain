@@ -49,7 +49,7 @@ const (
 //	SubWord { T: STR, W: "-123" }
 //
 // Invalid syntax like "${AAA" returns an error
-func ParseSub(sub string) ([]SubWord, error) {
+func ParseSub(sub string, leaveBang bool) ([]SubWord, error) {
 	words := make([]SubWord, 0)
 	state := READSTR
 	var last rune
@@ -111,6 +111,12 @@ func ParseSub(sub string) ([]SubWord, error) {
 			if state == READLIT {
 				// Don't write the ! to the string
 				state = READSTR
+				if leaveBang {
+					// Unless we actually want it
+					// The cc command doesn't want it
+					// The Rain Constants parser wants it
+					buf += string(r)
+				}
 			} else {
 				// This is a ! somewhere not related to a LITERAL
 				buf += string(r)

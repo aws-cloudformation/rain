@@ -395,7 +395,7 @@ func resolveModuleSub(parentName string, prop *yaml.Node, sidx int, ctx *refctx)
 
 	refFoundInParams := false
 
-	words, err := parse.ParseSub(prop.Value)
+	words, err := parse.ParseSub(prop.Value, true)
 	if err != nil {
 		return err
 	}

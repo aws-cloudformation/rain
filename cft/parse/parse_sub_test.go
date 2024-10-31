@@ -48,7 +48,7 @@ func TestParseSub(t *testing.T) {
 	}
 
 	for sub, expect := range cases {
-		words, err := parse.ParseSub(sub)
+		words, err := parse.ParseSub(sub, false)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -65,14 +65,14 @@ func TestParseSub(t *testing.T) {
 
 	// Invalid strings should fail
 	sub := "${AAA"
-	words, err := parse.ParseSub(sub)
+	words, err := parse.ParseSub(sub, false)
 	if err == nil {
 		t.Fatalf("\"%s\": should have failed, got %v", sub, words)
 	}
 
 	// Rain constants
 	sub = "${Rain::Test}"
-	words, err = parse.ParseSub(sub)
+	words, err = parse.ParseSub(sub, false)
 	if err != nil {
 		t.Fatal(err)
 	}
