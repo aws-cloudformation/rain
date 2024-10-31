@@ -91,7 +91,7 @@ func init() {
 	addCommand(stackGroup, true, false, ls.Cmd)
 	addCommand(stackGroup, true, false, rm.Cmd)
 	addCommand(stackGroup, true, false, watch.Cmd)
-	addCommand(stackGroup, true, false, stackset.StackSetCmd)
+	addCommand(stackGroup, true, true, stackset.StackSetCmd)
 
 	// Template commands
 	addCommand(templateGroup, true, true, bootstrap.Cmd)
