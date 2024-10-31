@@ -2,7 +2,6 @@
   "typeName": "AWS::MemoryDB::Cluster",
   "description": "The AWS::MemoryDB::Cluster resource creates an Amazon MemoryDB Cluster.",
   "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-memorydb",
-  "taggable": true,
   "definitions": {
     "Endpoint": {
       "type": "object",
@@ -161,6 +160,10 @@
       "description": "The Amazon Resource Name (ARN) of the cluster.",
       "type": "string"
     },
+    "Engine": {
+      "description": "The engine type used by the cluster.",
+      "type": "string"
+    },
     "EngineVersion": {
       "description": "The Redis engine version used by the cluster.",
       "type": "string"
@@ -183,6 +186,18 @@
         "$ref": "#/definitions/Tag"
       }
     }
+  },
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "memorydb:TagResource",
+      "memorydb:ListTags",
+      "memorydb:UntagResource"
+    ]
   },
   "additionalProperties": false,
   "readOnlyProperties": [
@@ -218,8 +233,11 @@
   "handlers": {
     "create": {
       "permissions": [
+        "kms:DescribeKey",
+        "kms:CreateGrant",
         "memorydb:CreateCluster",
         "memorydb:DescribeClusters",
+        "memorydb:TagResource",
         "memorydb:ListTags"
       ]
     },
@@ -236,7 +254,8 @@
         "memorydb:ListTags",
         "memorydb:TagResource",
         "memorydb:UntagResource"
-      ]
+      ],
+      "timeoutInMinutes": 2160
     },
     "delete": {
       "permissions": [

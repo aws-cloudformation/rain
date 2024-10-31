@@ -5,5 +5,5 @@ const (
 	NAME = "Rain"
 
 	// VERSION is the application's version string
-	VERSION = "v1.18.0"
+	VERSION = "v1.19.0"
 )

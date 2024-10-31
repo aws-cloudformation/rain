@@ -1,6 +1,6 @@
 {
-  "typeName": "AWS::Backup::BackupVault",
-  "description": "Resource Type definition for AWS::Backup::BackupVault",
+  "typeName": "AWS::Backup::LogicallyAirGappedBackupVault",
+  "description": "Resource Type definition for AWS::Backup::LogicallyAirGappedBackupVault",
   "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
   "definitions": {
     "NotificationObjectType": {
@@ -24,24 +24,6 @@
         "BackupVaultEvents"
       ]
     },
-    "LockConfigurationType": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "MinRetentionDays": {
-          "type": "integer"
-        },
-        "MaxRetentionDays": {
-          "type": "integer"
-        },
-        "ChangeableForDays": {
-          "type": "integer"
-        }
-      },
-      "required": [
-        "MinRetentionDays"
-      ]
-    },
     "BackupVaultNamePattern": {
       "type": "string",
       "pattern": "^[a-zA-Z0-9\\-\\_]{2,50}$"
@@ -57,6 +39,12 @@
     "BackupVaultName": {
       "$ref": "#/definitions/BackupVaultNamePattern"
     },
+    "MinRetentionDays": {
+      "type": "integer"
+    },
+    "MaxRetentionDays": {
+      "type": "integer"
+    },
     "BackupVaultTags": {
       "type": "object",
       "additionalProperties": false,
@@ -66,16 +54,19 @@
         }
       }
     },
-    "EncryptionKeyArn": {
-      "type": "string"
-    },
     "Notifications": {
       "$ref": "#/definitions/NotificationObjectType"
     },
-    "LockConfiguration": {
-      "$ref": "#/definitions/LockConfigurationType"
+    "EncryptionKeyArn": {
+      "type": "string"
     },
     "BackupVaultArn": {
+      "type": "string"
+    },
+    "VaultState": {
+      "type": "string"
+    },
+    "VaultType": {
       "type": "string"
     }
   },
@@ -93,17 +84,18 @@
     ]
   },
   "required": [
-    "BackupVaultName"
+    "BackupVaultName",
+    "MinRetentionDays",
+    "MaxRetentionDays"
   ],
   "createOnlyProperties": [
     "/properties/BackupVaultName",
-    "/properties/EncryptionKeyArn"
-  ],
-  "writeOnlyProperties": [
-    "/properties/LockConfiguration/ChangeableForDays"
+    "/properties/MinRetentionDays",
+    "/properties/MaxRetentionDays"
   ],
   "readOnlyProperties": [
-    "/properties/BackupVaultArn"
+    "/properties/BackupVaultArn",
+    "/properties/EncryptionKeyArn"
   ],
   "primaryIdentifier": [
     "/properties/BackupVaultName"
@@ -112,17 +104,12 @@
     "create": {
       "permissions": [
         "backup:TagResource",
-        "backup:CreateBackupVault",
+        "backup:CreateLogicallyAirGappedBackupVault",
         "backup:PutBackupVaultAccessPolicy",
         "backup:PutBackupVaultNotifications",
-        "backup:PutBackupVaultLockConfiguration",
         "backup-storage:Mount",
         "backup-storage:MountCapsule",
-        "kms:CreateGrant",
-        "kms:GenerateDataKey",
-        "kms:Decrypt",
-        "kms:RetireGrant",
-        "kms:DescribeKey"
+        "backup:DescribeBackupVault"
       ]
     },
     "read": {
@@ -139,6 +126,7 @@
         "backup:DeleteBackupVaultAccessPolicy",
         "backup:DeleteBackupVaultNotifications",
         "backup:DeleteBackupVaultLockConfiguration",
+        "backup:GetBackupVaultAccessPolicy",
         "backup:ListTags",
         "backup:TagResource",
         "backup:UntagResource",
