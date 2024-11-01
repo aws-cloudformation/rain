@@ -20,6 +20,15 @@ Parameters:
     Description: If true, the contents of all buckets will be permanently deleted when the stack is deleted.
     Default: false
 
+Rain:
+  Constants:
+    S3Arn: arn:${AWS::Partition}:s3:::
+    BucketName: ${AppName}-${AWS::Region}-${AWS::AccountId}
+    LogBucketName: ${AppName}-logs-${AWS::Region}-${AWS::AccountId}
+    LogBucketArn: ${Rain::S3Arn}${Rain::LogBucketName}
+    ReplicaBucketName: ${AppName}-replicas-${AWS::Region}-${AWS::AccountId}
+
+
 Resources:
 
   LogBucket:
@@ -42,7 +51,7 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
-      BucketName: !Sub ${AppName}-logs-${AWS::Region}-${AWS::AccountId}
+      BucketName: !Sub ${Rain::LogBucketName}
       ObjectLockConfiguration:
         ObjectLockEnabled: Enabled
         Rule:
@@ -61,7 +70,33 @@ Resources:
   LogBucketAccess:
     Type: !Rain::Module "bucket-policy.yaml"
     Properties:
-      PolicyBucketName: !Sub ${AppName}-logs-${AWS::Region}-${AWS::AccountId}
+      PolicyBucketName: !Sub ${Rain::LogBucketName}
+    Overrides:
+      Policy:
+        Properties:
+          PolicyDocument:
+            Statement:
+              - Action: s3:*
+                Condition:
+                  Bool:
+                    aws:SecureTransport: false
+                Effect: Deny
+                Principal:
+                  AWS: '*'
+                Resource:
+                  - !Sub ${Rain::LogBucketArn}
+                  - !Sub ${Rain::LogBucketArn}/*
+              - Action: s3:PutObject
+                Condition:
+                  ArnLike:
+                    aws:SourceArn: ${Rain::LogBucketArn}/*
+                  StringEquals:
+                    aws:SourceAccount: !Ref AWS::AccountId
+                Effect: Allow
+                Principal:
+                  Service: logging.s3.amazonaws.com
+                Resource:
+                  - !Sub ${Rain::LogBucketName}/*
 
   Bucket:
     Type: AWS::S3::Bucket
@@ -78,7 +113,7 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
-      BucketName: !Sub ${AppName}-${AWS::Region}-${AWS::AccountId}
+      BucketName: !Sub ${Rain::BucketName}
       LoggingConfiguration:
         DestinationBucketName: !Ref LogBucket
       ObjectLockEnabled: false

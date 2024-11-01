@@ -1,0 +1,35 @@
+on:
+  push:
+    tags:
+    - 'm*'
+
+name: Create a module release from tag
+
+jobs:
+
+  release:
+    name: Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4.1.7
+        with:
+          name: dist
+          path: dist
+
+      - run: |
+          set -x
+          (echo "${GITHUB_REF##*/}"; echo; git cherry -v "$(git describe --abbrev=0 HEAD^)" | cut -d" " -f3-) > CHANGELOG
+          assets=()
+          for zip in ./dist/*.zip; do
+            assets+=("$zip")
+          done
+          gh release upload "${GITHUB_REF##*/}" "${assets[@]}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

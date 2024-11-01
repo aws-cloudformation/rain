@@ -19,7 +19,7 @@ Parameters:
 Resources:
 
   Site:
-    Type: !Rain::Module "../modules/static-site.yaml"
+    Type: !Rain::Module "../../modules/static-site.yaml"
     Properties:
       AppName: !Ref AppName
     Overrides:
@@ -41,7 +41,7 @@ Resources:
                 - Rain::OutputValue AppClientId
 
   Cognito:
-    Type: !Rain::Module "../modules/cognito.yaml"
+    Type: !Rain::Module "../../modules/cognito.yaml"
     Properties:
       AppName: !Ref AppName
       CallbackURL: !Sub "https://${SiteDistribution.DomainName}/index.html"
@@ -50,7 +50,7 @@ Resources:
         DependsOn: SiteDistribution
 
   Rest:
-    Type: !Rain::Module "../modules/rest-api.yaml"
+    Type: !Rain::Module "../../modules/rest-api.yaml"
     Properties:
       AppName: !Ref AppName
       UserPoolArn: !GetAtt CognitoUserPool.Arn
@@ -65,15 +65,15 @@ Resources:
           - JwtResourceOptions
 
   TestResource:
-    Type: !Rain::Module "../modules/api-resource.yaml"
+    Type: !Rain::Module "../../modules/api-resource.yaml"
     Metadata:
       Comment: This module handles all methods on the /test path on the API. The lambda function code is located in api/resources/test.  
     Properties:
       Name: !Sub ${AppName}-test
       RestApi: !Ref RestApi
       RestApiDeployment: !Ref RestApiDeployment
-      BuildScript: ../webapp/buildapi.sh
-      CodePath: ../webapp/api/dist/test/lambda-handler.zip
+      BuildScript: ../test/webapp/buildapi.sh
+      CodePath: ../test/webapp/api/dist/test/lambda-handler.zip
       ResourcePath: test
       StageName: staging
       AuthorizerId: !Ref RestApiAuthorizer
@@ -116,15 +116,15 @@ Resources:
           KeyType: HASH
 
   JwtResource:
-    Type: !Rain::Module "../modules/api-resource.yaml"
+    Type: !Rain::Module "../../modules/api-resource.yaml"
     Metadata:
       Comment: This module handles all methods on the /jwt path on the API. The lambda function code is located in api/resources/jwt
     Properties:
       Name: !Sub ${AppName}-jwt
       RestApi: !Ref RestApi
       RestApiDeployment: !Ref RestApiDeployment
-      BuildScript: ../webapp/buildapi.sh
-      CodePath: ../webapp/api/dist/jwt/lambda-handler.zip
+      BuildScript: ../test/webapp/buildapi.sh
+      CodePath: ../test/webapp/api/dist/jwt/lambda-handler.zip
       ResourcePath: jwt
       StageName: staging
       AuthorizerId: AWS::NoValue

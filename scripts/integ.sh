@@ -54,6 +54,9 @@ set -eoux pipefail
 # Make sure build recommendations work
 ./internal/cmd/build/tmpl/scripts/validate.sh
 
+# Make sure modules package and lint
+./rain pkg -x --profile rain test/webapp/webapp.yaml | cfn-lint
+
 # Make sure pkl generation works
 ./rain fmt test/templates/success.template --pkl
 ./rain fmt test/templates/success.template --pkl --pkl-basic
