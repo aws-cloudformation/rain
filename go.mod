@@ -38,7 +38,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kms v1.37.3
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.42.3
 	github.com/aws/aws-sdk-go-v2/service/rds v1.89.0
-	github.com/aws/aws-sdk-go-v2/service/sagemaker v1.165.0
+	github.com/aws/aws-sdk-go-v2/service/sagemaker v1.166.0
 	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.25.3
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.55.3
 	github.com/fatih/color v1.18.0
@@ -50,14 +50,12 @@ require (
 )
 
 require (
-	github.com/aws/aws-sdk-go v1.55.5 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.22 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.10.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.28.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
-	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/lestrrat-go/blackmagic v1.0.2 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/httprc v1.0.6 // indirect
