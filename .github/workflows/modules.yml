@@ -6,6 +6,29 @@ on:
 name: Create a module release from tag
 
 jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    container: golang:latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y zip
+
+      - name: Build
+        run: ./.github/workflows/modules.sh 
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: ./dist/*
 
   release:
     name: Release
@@ -28,6 +51,9 @@ jobs:
           assets=()
           for zip in ./dist/*.zip; do
             assets+=("$zip")
+          done
+          for hash in ./dist/*.rsa256; do
+            assets+=("$hash")
           done
           gh release upload "${GITHUB_REF##*/}" "${assets[@]}"
         env:

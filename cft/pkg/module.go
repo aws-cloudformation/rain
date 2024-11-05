@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -50,6 +51,7 @@ func MergeNodes(original *yaml.Node, override *yaml.Node) *yaml.Node {
 
 		return retval
 	}
+	// TODO: Not working for adding statements to a Policy
 
 	// else they are both Mapping nodes
 
@@ -901,6 +903,20 @@ func downloadModule(uri string) ([]byte, error) {
 	return content, nil
 }
 
+func checkPackageAlias(t cft.Template, uri string) *cft.PackageAlias {
+	config.Debugf("checkPackageAlias uri: %s", uri)
+	tokens := strings.Split(uri, "/")
+	if len(tokens) > 1 {
+		// See if this is one of the template package aliases
+		if t.Packages != nil {
+			if p, ok := t.Packages[tokens[0]]; ok {
+				return p
+			}
+		}
+	}
+	return nil
+}
+
 // Type: !Rain::Module
 func module(ctx *directiveContext) (bool, error) {
 
@@ -926,6 +942,15 @@ func module(ctx *directiveContext) (bool, error) {
 
 	baseUri := ctx.baseUri
 
+	// Check to see if this is an alias like "alias/foo.yaml"
+	packageAlias := checkPackageAlias(t, uri)
+	if packageAlias != nil {
+		config.Debugf("Found package alias: %+v", packageAlias)
+		uri = strings.Replace(uri, packageAlias.Alias, packageAlias.Location, 1)
+		config.Debugf("uri is now %s", uri)
+		config.Debugf("baseUri is %s", baseUri)
+	}
+
 	// Is this a local file or a URL?
 	if strings.HasPrefix(uri, "https://") {
 
@@ -941,6 +966,8 @@ func module(ctx *directiveContext) (bool, error) {
 		// Strip the file name from the uri
 		urlParts := strings.Split(uri, "/")
 		baseUri = strings.Join(urlParts[:len(urlParts)-1], "/")
+
+		// TODO: This might be a zipped directory. Validate the hash and unzip.
 	} else {
 		if baseUri != "" {
 			// If we have a base URL, prepend it to the relative path
@@ -966,13 +993,31 @@ func module(ctx *directiveContext) (bool, error) {
 			newRootDir = filepath.Dir(embeddedPath)
 		} else {
 			// Read the local file
-			content, path, err = expectFile(n, root)
+			path := uri
+			if !filepath.IsAbs(path) {
+				path = filepath.Join(root, path)
+			}
+
+			config.Debugf("abs path: %v", path)
+
+			info, err := os.Stat(path)
+			if err != nil {
+				return false, err
+			}
+
+			if info.IsDir() {
+				return false, fmt.Errorf("'%s' is a directory", path)
+			}
+
+			content, err = os.ReadFile(path)
 			if err != nil {
 				return false, err
 			}
 			newRootDir = filepath.Dir(path)
 		}
 	}
+
+	// TODO: Download if it's a zip
 
 	// Parse the file
 	var moduleNode yaml.Node
@@ -986,16 +1031,23 @@ func module(ctx *directiveContext) (bool, error) {
 		return false, err
 	}
 
+	// Figure out parent nodes to handle nested modules
 	var newParent node.NodePair
 	if parent.Parent != nil && parent.Parent.Value != nil {
 		newParent = node.GetParent(n, parent.Parent.Value, nil)
 		newParent.Parent = &parent
 	}
 
+	// Treat the module as a template
+	moduleAsTemplate := cft.Template{Node: &moduleNode}
+
+	// Read things like Constants
+	processRainSection(&moduleAsTemplate)
+
 	_, err = transform(&transformContext{
 		nodeToTransform: &moduleNode,
 		rootDir:         newRootDir,
-		t:               cft.Template{Node: &moduleNode},
+		t:               moduleAsTemplate,
 		parent:          &newParent,
 		fs:              ctx.fs,
 		baseUri:         baseUri,

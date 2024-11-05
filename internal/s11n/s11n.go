@@ -39,6 +39,36 @@ func GetMapValue(n *yaml.Node, key string) (*yaml.Node, *yaml.Node, error) {
 	return nil, nil, fmt.Errorf("key %s not found", key)
 }
 
+// GetValue tries to get a scalar value from a mapping node
+// If anything goes wrong, it returns an empty string.
+// Use GetMapValue if you need more control.
+func GetValue(n *yaml.Node, name string) string {
+	_, v, _ := GetMapValue(n, name)
+	if v != nil && v.Kind == yaml.ScalarNode {
+		return v.Value
+	}
+	return ""
+}
+
+// GetMap returns a map of the names and values in a MappingNode
+// This is a shorthand version of calling GetMapValue and iterating over the results.
+// One difference is that keys will no longer be in their original order,
+// which matters for several use cases like processing Constants.
+func GetMap(n *yaml.Node, name string) map[string]*yaml.Node {
+	_, c, _ := GetMapValue(n, name)
+	if c == nil {
+		return nil
+	}
+	retval := make(map[string]*yaml.Node)
+
+	for i := 0; i < len(c.Content); i += 2 {
+		k := c.Content[i].Value
+		v := c.Content[i+1]
+		retval[k] = v
+	}
+	return retval
+}
+
 // GetPath returns the node by descending into map and array nodes for each element of path
 func GetPath(node *yaml.Node, path []interface{}) (*yaml.Node, error) {
 	if node.Kind == yaml.DocumentNode {
