@@ -59,6 +59,10 @@ func TestPackageAlias(t *testing.T) {
 	runTest("alias", t)
 }
 
+func TestIfPAram(t *testing.T) {
+	runTest("ifparam", t)
+}
+
 // TODO: This was broken in the refactor, come back to it later
 //func TestForeach(t *testing.T) {
 //	runTest("foreach", t)

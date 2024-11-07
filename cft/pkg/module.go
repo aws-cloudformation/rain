@@ -704,6 +704,29 @@ func processModule(
 			continue
 		}
 		name := moduleResources.Content[i-1].Value
+
+		// Check to see if there is a Rain attribute in the Metadata.
+		// If so, check conditionals like IfParam
+		metadata := s11n.GetMap(moduleResource, "Metadata")
+		if metadata != nil {
+			if rainMetadata, ok := metadata["Rain"]; ok {
+				config.Debugf("Found Metadata Rain in %s: %v", name, node.ToSJson(rainMetadata))
+				ifParam := s11n.GetValue(rainMetadata, "IfParam")
+				// If the value of IfParam is not set, omit this resource
+				if ifParam != "" {
+					if moduleParams != nil &&
+						s11n.GetMap(moduleParams, ifParam) != nil &&
+						s11n.GetValue(templateProps, ifParam) == "" {
+						config.Debugf("Omitting %s", name)
+						continue
+					} else {
+						// Get rid of the IfParam, since it's irrelevant in the resulting template
+						node.RemoveFromMap(rainMetadata, "IfParam")
+					}
+				}
+			}
+		}
+
 		nameNode := node.Clone(moduleResources.Content[i-1])
 		nameNode.Value = rename(logicalId, nameNode.Value)
 		outputNode.Content = append(outputNode.Content, nameNode)
@@ -944,15 +967,27 @@ func module(ctx *directiveContext) (bool, error) {
 
 	// Check to see if this is an alias like "alias/foo.yaml"
 	packageAlias := checkPackageAlias(t, uri)
+	isZip := false
 	if packageAlias != nil {
 		config.Debugf("Found package alias: %+v", packageAlias)
 		uri = strings.Replace(uri, packageAlias.Alias, packageAlias.Location, 1)
 		config.Debugf("uri is now %s", uri)
 		config.Debugf("baseUri is %s", baseUri)
+
+		// This might be a zipped directory.
+		if strings.HasSuffix(uri, ".zip") {
+			// Unzip, verify hash if there is one, and put the files in memory
+			isZip = true
+			// TODO
+		}
 	}
 
-	// Is this a local file or a URL?
-	if strings.HasPrefix(uri, "https://") {
+	// Is this a local file or a URL or an in memory file system?
+	if isZip {
+
+		// TODO - Get content from in memory unzipped files
+
+	} else if strings.HasPrefix(uri, "https://") {
 
 		content, err = downloadModule(uri)
 		if err != nil {
@@ -967,7 +1002,6 @@ func module(ctx *directiveContext) (bool, error) {
 		urlParts := strings.Split(uri, "/")
 		baseUri = strings.Join(urlParts[:len(urlParts)-1], "/")
 
-		// TODO: This might be a zipped directory. Validate the hash and unzip.
 	} else {
 		if baseUri != "" {
 			// If we have a base URL, prepend it to the relative path

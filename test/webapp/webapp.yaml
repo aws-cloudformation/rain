@@ -84,36 +84,11 @@ Resources:
             Variables:
               TABLE_NAME: !Ref TestTable
 
-  TestResourceHandlerPolicy:
-    Type: AWS::IAM::RolePolicy
+  TestData:
+    Type: !Rain::Module "../../modules/simple-table.yaml" 
     Properties:
-      PolicyDocument:
-        Statement:
-          - Action:
-              - dynamodb:BatchGetItem
-              - dynamodb:GetItem
-              - dynamodb:Query
-              - dynamodb:Scan
-              - dynamodb:BatchWriteItem
-              - dynamodb:PutItem
-              - dynamodb:UpdateItem
-            Effect: Allow
-            Resource: 
-              - !GetAtt TestTable.Arn
-      PolicyName: handler-policy
-      RoleName: !Ref TestResourceHandlerRole
-
-  TestTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      BillingMode: PAY_PER_REQUEST
       TableName: !Sub ${AppName}-test
-      AttributeDefinitions:
-        - AttributeName: id
-          AttributeType: S
-      KeySchema:
-        - AttributeName: id
-          KeyType: HASH
+      LambdaRoleArn: !GetAtt TestResourceHandlerRole.Arn 
 
   JwtResource:
     Type: !Rain::Module "../../modules/api-resource.yaml"
