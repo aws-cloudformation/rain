@@ -260,11 +260,14 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 		return t, fmt.Errorf("failed to unmarshal template: %v", err)
 	}
 
-	// We lose the Document node here
-	// TODO: Actually we're ending up with 2 document nodes somehow...
+	// We might lose the Document node here
 	retval := cft.Template{}
-	retval.Node = &yaml.Node{Kind: yaml.DocumentNode, Content: make([]*yaml.Node, 0)}
-	retval.Node.Content = append(retval.Node.Content, templateNode)
+	if templateNode.Kind == yaml.DocumentNode {
+		retval.Node = templateNode
+	} else {
+		retval.Node = &yaml.Node{Kind: yaml.DocumentNode, Content: make([]*yaml.Node, 0)}
+		retval.Node.Content = append(retval.Node.Content, templateNode)
+	}
 
 	return retval, err
 }

@@ -722,6 +722,7 @@ func processModule(
 					} else {
 						// Get rid of the IfParam, since it's irrelevant in the resulting template
 						node.RemoveFromMap(rainMetadata, "IfParam")
+						// TODO: If there's nothing left in the Rain or Metadata, get rid of them too
 					}
 				}
 			}
