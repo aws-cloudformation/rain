@@ -1,6 +1,7 @@
 package node_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/aws-cloudformation/rain/internal/node"
@@ -202,6 +203,39 @@ func TestDiff(t *testing.T) {
 	diff = node.Diff(original, override)
 	if len(diff) != 0 {
 		t.Fatalf("should have no difference, got %d", len(diff))
+	}
+
+}
+
+func TestMergeNodes(t *testing.T) {
+	original := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
+	override := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
+	expected := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
+
+	original.Content = append(original.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: "A"})
+	original.Content = append(original.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: "foo"})
+
+	override.Content = append(override.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: "A"})
+	override.Content = append(override.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: "bar"})
+
+	expected.Content = append(expected.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: "A"})
+	expected.Content = append(expected.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: "bar"})
+
+	merged := node.MergeNodes(original, override)
+
+	diff := node.Diff(merged, expected)
+
+	if len(diff) > 0 {
+		for _, d := range diff {
+			fmt.Println(d)
+		}
+		t.Fatalf("nodes are not the same")
 	}
 
 }

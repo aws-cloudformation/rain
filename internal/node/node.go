@@ -347,3 +347,92 @@ func appendDiffs(diffs []string, node1, node2 *yaml.Node) []string {
 	}
 	return append(diffs, Diff(node1, node2)...)
 }
+
+// MergeNodes merges two mapping nodes, replacing any values found in override
+func MergeNodes(original *yaml.Node, override *yaml.Node) *yaml.Node {
+
+	// If the nodes are not the same kind, just return the override
+	if override.Kind != original.Kind {
+		return override
+	}
+
+	if override.Kind == yaml.ScalarNode {
+		return override
+	}
+
+	retval := &yaml.Node{Kind: override.Kind, Content: make([]*yaml.Node, 0)}
+	overrideMap := make(map[string]bool)
+
+	if override.Kind == yaml.SequenceNode {
+		retval.Content = append(retval.Content, override.Content...)
+
+		for _, n := range original.Content {
+			already := false
+			for _, r := range retval.Content {
+				if r.Value == n.Value {
+					already = true
+					break
+				}
+			}
+			if !already {
+				retval.Content = append(retval.Content, n)
+			}
+		}
+
+		return retval
+	}
+	// TODO: Not working for adding statements to a Policy
+
+	// else they are both Mapping nodes
+
+	// Add everything in the override Mapping
+	for i, n := range override.Content {
+		retval.Content = append(retval.Content, n)
+		var name string
+		if i%2 == 0 {
+			// Remember what we added
+			name = n.Value
+			overrideMap[name] = true
+		} else {
+			name = retval.Content[i-1].Value
+		}
+
+		/*
+			Original:
+				A: something
+				B:
+					foo: 1
+					bar: 2
+
+			Override:
+				A: something else
+				B:
+					foo: 3
+					baz: 6
+		*/
+
+		// Recurse if this is a mapping node
+		if i%2 == 1 && n.Kind == yaml.MappingNode {
+			// Find the matching node in original
+			for j, match := range original.Content {
+				if j%2 == 0 && match.Value == name {
+					n.Content[i] = MergeNodes(n.Content[i], original.Content[j])
+				}
+			}
+		}
+	}
+
+	// Only add things from the original if they weren't in original
+	for i := 0; i < len(original.Content); i++ {
+		n := original.Content[i]
+		if i%2 == 0 {
+			if _, exists := overrideMap[n.Value]; exists {
+				i = i + 1 // Skip the next node
+				continue
+			}
+		}
+		retval.Content = append(retval.Content, n)
+	}
+
+	return retval
+}
