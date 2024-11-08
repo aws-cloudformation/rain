@@ -16,6 +16,29 @@ import (
 	"github.com/google/uuid"
 )
 
+// Downloads the hash file and returns the contents
+func downloadHash(uri string) (string, error) {
+
+	config.Debugf("Downloading %s", uri)
+	resp, err := http.Get(uri)
+	if err != nil {
+		return "", err
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			config.Debugf("Error closing body: %v", err)
+		}
+	}(resp.Body)
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", nil
+	}
+
+	return string(data), nil
+}
+
 // DownloadFromZip retrieves a single file from a zip file hosted on a URI
 func DownloadFromZip(uriString string, verifyHash string, path string) ([]byte, error) {
 
@@ -81,8 +104,14 @@ func DownloadFromZip(uriString string, verifyHash string, path string) ([]byte, 
 			return nil, err
 		}
 
-		if verifyHash != hashString {
-			return nil, fmt.Errorf("hash does not match: %s != %s", verifyHash, hashString)
+		// Download the hash
+		originalHash, err := downloadHash(verifyHash)
+		if err != nil {
+			return nil, err
+		}
+
+		if originalHash != hashString {
+			return nil, fmt.Errorf("hash does not match: %s != %s", originalHash, hashString)
 		}
 	}
 
