@@ -378,22 +378,22 @@ func resolveModuleSub(parentName string, prop *yaml.Node, sidx int, ctx *refctx)
 			}
 			sub += fmt.Sprintf("${%s.%s}", left, right)
 			needSub = true
-		case parse.RAIN:
-			// Replace ${Rain::ConstantName} with template constant value
-			if ctx.constants == nil {
-				return fmt.Errorf("no Rain Constants section, looking for %s", word.W)
-			}
-			if c, ok := ctx.constants[word.W]; ok {
-				sub += c.Value
-			} else {
-				if len(ctx.constants) == 0 {
-					config.Debugf("Constants are empty")
-				}
-				for k, v := range ctx.constants {
-					config.Debugf("Constant %s: %s", k, v.Value)
-				}
-				return fmt.Errorf("unable to find Rain constant %s", word.W)
-			}
+		//case parse.RAIN:
+		//	// Replace ${Rain::ConstantName} with template constant value
+		//	if ctx.constants == nil {
+		//		return fmt.Errorf("no Rain Constants section, looking for %s", word.W)
+		//	}
+		//	if c, ok := ctx.constants[word.W]; ok {
+		//		sub += c.Value
+		//	} else {
+		//		if len(ctx.constants) == 0 {
+		//			config.Debugf("Constants are empty")
+		//		}
+		//		for k, v := range ctx.constants {
+		//			config.Debugf("Constant %s: %s", k, v.Value)
+		//		}
+		//		return fmt.Errorf("unable to find Rain constant %s", word.W)
+		//	}
 		default:
 			return fmt.Errorf("unexpected word type %v for %s", word.T, word.W)
 		}
@@ -637,7 +637,8 @@ func processModule(
 				if ifp != "" {
 					if moduleParams != nil &&
 						s11n.GetMap(moduleParams, ifp) != nil &&
-						s11n.GetValue(templateProps, ifp) == "" {
+						s11n.GetValue(templateProps, ifp) == "" &&
+						len(s11n.GetMap(templateProps, ifp)) == 0 {
 						continue
 					} else {
 						// Get rid of the IfParam, since it's irrelevant in the resulting template

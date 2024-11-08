@@ -2,42 +2,11 @@ Description: "Creates a web application with a static website using S3 and Cloud
 
 Parameters:
   AppName:
-    Type: String
     Description: This name is used as a prefix for resource names
+    Type: String
     Default: rain-webapp
 
 Resources:
-  TestResourceHandlerPolicy:
-    Type: AWS::IAM::RolePolicy
-    Properties:
-      PolicyDocument:
-        Statement:
-          - Action:
-              - dynamodb:BatchGetItem
-              - dynamodb:GetItem
-              - dynamodb:Query
-              - dynamodb:Scan
-              - dynamodb:BatchWriteItem
-              - dynamodb:PutItem
-              - dynamodb:UpdateItem
-            Effect: Allow
-            Resource:
-              - !GetAtt TestTable.Arn
-      PolicyName: handler-policy
-      RoleName: !Ref TestResourceHandlerRole
-
-  TestTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      BillingMode: PAY_PER_REQUEST
-      TableName: !Sub ${AppName}-test
-      AttributeDefinitions:
-        - AttributeName: id
-          AttributeType: S
-      KeySchema:
-        - AttributeName: id
-          KeyType: HASH
-
   SiteOriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
@@ -56,6 +25,16 @@ Resources:
 
   SiteDistribution:
     Type: AWS::CloudFront::Distribution
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_174
+            comment: Using the default cloudfront certificate with no aliases
+      guard:
+        SuppressedRules:
+          - CLOUDFRONT_CUSTOM_SSL_CERTIFICATE
+          - CLOUDFRONT_ORIGIN_FAILOVER_ENABLED
+          - CLOUDFRONT_SNI_ENABLED
     Properties:
       DistributionConfig:
         DefaultCacheBehavior:
@@ -78,16 +57,6 @@ Resources:
         ViewerCertificate:
           CloudFrontDefaultCertificate: true
         WebACLId: !GetAtt SiteWebACL.Arn
-    Metadata:
-      checkov:
-        skip:
-          - id: CKV_AWS_174
-            comment: Using the default cloudfront certificate with no aliases
-      guard:
-        SuppressedRules:
-          - CLOUDFRONT_CUSTOM_SSL_CERTIFICATE
-          - CLOUDFRONT_ORIGIN_FAILOVER_ENABLED
-          - CLOUDFRONT_SNI_ENABLED
 
   SiteWebACL:
     Type: AWS::WAFv2::WebACL
@@ -122,6 +91,19 @@ Resources:
 
   SiteContentLogBucket:
     Type: AWS::S3::Bucket
+    Metadata:
+      Comment: This bucket records access logs for the main bucket
+      checkov:
+        skip:
+          - comment: This is the log bucket
+            id: CKV_AWS_18
+      guard:
+        SuppressedRules:
+          - S3_BUCKET_LOGGING_ENABLED
+          - S3_BUCKET_REPLICATION_ENABLED
+      Rain:
+        Content: RAIN_NO_CONTENT
+        EmptyOnDelete: true
     Properties:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -142,22 +124,27 @@ Resources:
         RestrictPublicBuckets: true
       VersioningConfiguration:
         Status: Enabled
-    Metadata:
-      Comment: This bucket records access logs for the main bucket
-      checkov:
-        skip:
-          - comment: This is the log bucket
-            id: CKV_AWS_18
-      guard:
-        SuppressedRules:
-          - S3_BUCKET_LOGGING_ENABLED
-          - S3_BUCKET_REPLICATION_ENABLED
-      Rain:
-        Content: RAIN_NO_CONTENT
-        EmptyOnDelete: true
 
   SiteContentBucket:
     Type: AWS::S3::Bucket
+    Metadata:
+      guard:
+        SuppressedRules:
+          - S3_BUCKET_DEFAULT_LOCK_ENABLED
+      Rain:
+        EmptyOnDelete: true
+        Content: site/dist
+        Version: 2
+        DistributionLogicalId: SiteDistribution
+        RunBefore:
+          Command: buildsite.sh
+        RunAfter:
+          Command: buildsite.sh
+          Args:
+            - Rain::OutputValue RestApiInvokeURL
+            - Rain::OutputValue RedirectURI
+            - Rain::OutputValue AppName
+            - Rain::OutputValue AppClientId
     Properties:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -180,41 +167,9 @@ Resources:
             Status: Enabled
       VersioningConfiguration:
         Status: Enabled
-    Metadata:
-      guard:
-        SuppressedRules:
-          - S3_BUCKET_DEFAULT_LOCK_ENABLED
-      Rain:
-        EmptyOnDelete: true
-        Content: site/dist
-        Version: 2
-        DistributionLogicalId: SiteDistribution
-        RunBefore:
-          Command: buildsite.sh
-        RunAfter:
-          Command: buildsite.sh
-          Args:
-            - Rain::OutputValue RestApiInvokeURL
-            - Rain::OutputValue RedirectURI
-            - Rain::OutputValue AppName
-            - Rain::OutputValue AppClientId
 
   SiteContentReplicaBucket:
     Type: AWS::S3::Bucket
-    Properties:
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      BucketName: !Sub ${AppName}-content-replicas-${AWS::Region}-${AWS::AccountId}
-      ObjectLockEnabled: false
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-      VersioningConfiguration:
-        Status: Enabled
     Metadata:
       Comment: This bucket is used as a target for replicas from the main bucket
       checkov:
@@ -229,6 +184,20 @@ Resources:
       Rain:
         Content: RAIN_NO_CONTENT
         EmptyOnDelete: true
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      BucketName: !Sub ${AppName}-content-replicas-${AWS::Region}-${AWS::AccountId}
+      ObjectLockEnabled: false
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
 
   SiteContentReplicationPolicy:
     Type: AWS::IAM::RolePolicy
@@ -289,7 +258,7 @@ Resources:
           - Action: s3:PutObject
             Condition:
               ArnLike:
-                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${AppName}-content-logs-${AWS::Region}-${AWS::AccountId}
+                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${AppName}-content-logs-${AWS::Region}-${AWS::AccountId}/*
               StringEquals:
                 aws:SourceAccount: !Ref AWS::AccountId
             Effect: Allow
@@ -323,17 +292,6 @@ Resources:
             Resource:
               - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-${AWS::Region}-${AWS::AccountId}
               - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-${AWS::Region}-${AWS::AccountId}/*
-          - Action: s3:PutObject
-            Condition:
-              ArnLike:
-                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${AppName}-content-${AWS::Region}-${AWS::AccountId}
-              StringEquals:
-                aws:SourceAccount: !Ref AWS::AccountId
-            Effect: Allow
-            Principal:
-              Service: logging.s3.amazonaws.com
-            Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
   SiteContentReplicaBucketAccessPolicy:
@@ -352,21 +310,23 @@ Resources:
             Resource:
               - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-replicas-${AWS::Region}-${AWS::AccountId}
               - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-replicas-${AWS::Region}-${AWS::AccountId}/*
-          - Action: s3:PutObject
-            Condition:
-              ArnLike:
-                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${AppName}-content-replicas-${AWS::Region}-${AWS::AccountId}
-              StringEquals:
-                aws:SourceAccount: !Ref AWS::AccountId
-            Effect: Allow
-            Principal:
-              Service: logging.s3.amazonaws.com
-            Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-replicas-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
   SiteCloudFrontLogsLogBucket:
     Type: AWS::S3::Bucket
+    Metadata:
+      Comment: This bucket records access logs for the main bucket
+      checkov:
+        skip:
+          - comment: This is the log bucket
+            id: CKV_AWS_18
+      guard:
+        SuppressedRules:
+          - S3_BUCKET_LOGGING_ENABLED
+          - S3_BUCKET_REPLICATION_ENABLED
+      Rain:
+        Content: RAIN_NO_CONTENT
+        EmptyOnDelete: true
     Properties:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -387,22 +347,17 @@ Resources:
         RestrictPublicBuckets: true
       VersioningConfiguration:
         Status: Enabled
-    Metadata:
-      Comment: This bucket records access logs for the main bucket
-      checkov:
-        skip:
-          - comment: This is the log bucket
-            id: CKV_AWS_18
-      guard:
-        SuppressedRules:
-          - S3_BUCKET_LOGGING_ENABLED
-          - S3_BUCKET_REPLICATION_ENABLED
-      Rain:
-        Content: RAIN_NO_CONTENT
-        EmptyOnDelete: true
 
   SiteCloudFrontLogsBucket:
     Type: AWS::S3::Bucket
+    Metadata:
+      guard:
+        SuppressedRules:
+          - S3_BUCKET_DEFAULT_LOCK_ENABLED
+      Rain:
+        Content: RAIN_NO_CONTENT
+        EmptyOnDelete: true
+        DistributionLogicalId: NONE
     Properties:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -428,31 +383,9 @@ Resources:
       OwnershipControls:
         Rules:
           - ObjectOwnership: BucketOwnerPreferred
-    Metadata:
-      guard:
-        SuppressedRules:
-          - S3_BUCKET_DEFAULT_LOCK_ENABLED
-      Rain:
-        Content: RAIN_NO_CONTENT
-        EmptyOnDelete: true
-        DistributionLogicalId: NONE
 
   SiteCloudFrontLogsReplicaBucket:
     Type: AWS::S3::Bucket
-    Properties:
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      BucketName: !Sub ${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
-      ObjectLockEnabled: false
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-      VersioningConfiguration:
-        Status: Enabled
     Metadata:
       Comment: This bucket is used as a target for replicas from the main bucket
       checkov:
@@ -467,6 +400,20 @@ Resources:
       Rain:
         Content: RAIN_NO_CONTENT
         EmptyOnDelete: true
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      BucketName: !Sub ${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
+      ObjectLockEnabled: false
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
 
   SiteCloudFrontLogsReplicationPolicy:
     Type: AWS::IAM::RolePolicy
@@ -527,7 +474,7 @@ Resources:
           - Action: s3:PutObject
             Condition:
               ArnLike:
-                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
+                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}/*
               StringEquals:
                 aws:SourceAccount: !Ref AWS::AccountId
             Effect: Allow
@@ -553,17 +500,6 @@ Resources:
             Resource:
               - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}
               - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}/*
-          - Action: s3:PutObject
-            Condition:
-              ArnLike:
-                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}
-              StringEquals:
-                aws:SourceAccount: !Ref AWS::AccountId
-            Effect: Allow
-            Principal:
-              Service: logging.s3.amazonaws.com
-            Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
   SiteCloudFrontLogsReplicaBucketAccessPolicy:
@@ -582,21 +518,12 @@ Resources:
             Resource:
               - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
               - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}/*
-          - Action: s3:PutObject
-            Condition:
-              ArnLike:
-                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
-              StringEquals:
-                aws:SourceAccount: !Ref AWS::AccountId
-            Effect: Allow
-            Principal:
-              Service: logging.s3.amazonaws.com
-            Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
+    DependsOn:
+      - SiteDistribution
     Properties:
       UserPoolName: !Ref AppName
       AdminCreateUserConfig:
@@ -610,8 +537,6 @@ Resources:
           Required: true
         - Name: family_name
           Required: true
-    DependsOn:
-      - SiteDistribution
 
   CognitoDomain:
     Type: AWS::Cognito::UserPoolDomain
@@ -645,11 +570,11 @@ Resources:
       Runtime: provided.al2023
       Code:
         S3Bucket: rain-artifacts-207567786752-us-east-1
-        S3Key: db3706b9e9ec0046b308635fbc9ecdb3a4ad31e1069210e881e5442f546cc285
+        S3Key: 66657f52f75173dd78bf54255eec803c9eb4fd2485e702c6724200bacad6770a
       Role: !GetAtt TestResourceHandlerRole.Arn
       Environment:
         Variables:
-          TABLE_NAME: !Ref TestTable
+          TABLE_NAME: !Ref TestDataTable
 
   TestResourceHandlerRole:
     Type: AWS::IAM::Role
@@ -722,7 +647,7 @@ Resources:
       Runtime: provided.al2023
       Code:
         S3Bucket: rain-artifacts-207567786752-us-east-1
-        S3Key: 7b300d8fa211e93b14974d3e699a8c479470a1b31a6202176441cf11e5ad93f3
+        S3Key: 175e360cbc251193e4e3113b9fe7aecfbe6af368cf60447152b558b0a1d554c8
       Role: !GetAtt JwtResourceHandlerRole.Arn
       Environment:
         Variables:
@@ -802,15 +727,15 @@ Resources:
 
   RestApiDeployment:
     Type: AWS::ApiGateway::Deployment
-    Properties:
-      RestApiId: !Ref RestApi
-    Metadata:
-      Version: 2
     DependsOn:
       - TestResourceGet
       - TestResourceOptions
       - JwtResourceGet
       - JwtResourceOptions
+    Metadata:
+      Version: 2
+    Properties:
+      RestApiId: !Ref RestApi
 
   RestApiStage:
     Type: AWS::ApiGateway::Stage
@@ -828,6 +753,39 @@ Resources:
         - !GetAtt CognitoUserPool.Arn
       RestApiId: !Ref RestApi
       Type: COGNITO_USER_POOLS
+
+  TestDataTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      TableName: !Sub ${AppName}-test
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+
+  TestDataLambdaPolicy:
+    Type: AWS::IAM::RolePolicy
+    Metadata:
+      Comment: This resource is created only if the LambdaRoleArn is set
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - dynamodb:BatchGetItem
+              - dynamodb:GetItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+            Effect: Allow
+            Resource:
+              - !GetAtt TestDataTable.Arn
+      PolicyName: !Sub ${AppName}-test-policy
+      RoleName: !Ref TestResourceHandlerRole
 
 Outputs:
   SiteURL:
