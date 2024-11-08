@@ -48,14 +48,8 @@ jobs:
       - run: |
           set -x
           (echo "${GITHUB_REF##*/}"; echo; git cherry -v "$(git describe --abbrev=0 HEAD^)" | cut -d" " -f3-) > CHANGELOG
-          assets=()
-          for zip in ./dist/*.zip; do
-            assets+=("$zip")
-          done
-          for hash in ./dist/*.rsa256; do
-            assets+=("$hash")
-          done
-          gh release upload "${GITHUB_REF##*/}" "${assets[@]}"
+          gh release upload "${GITHUB_REF##*/}" dist/modules.zip
+          gh release upload "${GITHUB_REF##*/}" dist/modules.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
