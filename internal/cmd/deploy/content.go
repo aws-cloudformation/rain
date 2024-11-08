@@ -70,10 +70,6 @@ func addCommandArgs(run *yaml.Node, cmd *exec.Cmd, isBefore bool, stackName stri
 // are any errors. Then after deployment, the Content node is processed
 func processMetadataBefore(template cft.Template, stackName string, rootDir string) error {
 
-	// For some reason Package created an extra document node
-	// (And CreateChangeSet is ok with this...?)
-	template.Node = template.Node.Content[0]
-
 	buckets := template.GetResourcesOfType("AWS::S3::Bucket")
 	for _, bucket := range buckets {
 		_, n, _ := s11n.GetMapValue(bucket.Node, "Metadata")
@@ -169,10 +165,6 @@ func Run(n *yaml.Node, key string, stackName string, rootDir string) error {
 // For CREATE and UPDATE operations, a Content node on a bucket
 // will upload local assets to the bucket.
 func processMetadataAfter(template cft.Template, stackName string, rootDir string) error {
-
-	// For some reason Package created an extra document node
-	// (And CreateChangeSet is ok with this...?)
-	template.Node = template.Node.Content[0]
 
 	buckets := template.GetResourcesOfType("AWS::S3::Bucket")
 	for _, bucket := range buckets {

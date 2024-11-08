@@ -141,7 +141,8 @@ func (t Template) GetSection(section Section) (*yaml.Node, error) {
 	if t.Node == nil {
 		return nil, fmt.Errorf("unable to get section because t.Node is nil")
 	}
-	_, s, _ := s11n.GetMapValue(t.Node.Content[0], string(section))
+	m := t.Node.Content[0]
+	_, s, _ := s11n.GetMapValue(m, string(section))
 	if s == nil {
 		config.Debugf("GetSection t.Node: %s", node.ToSJson(t.Node))
 		return nil, fmt.Errorf("unable to locate the %s node", section)
