@@ -36,7 +36,9 @@ func downloadHash(uri string) (string, error) {
 		return "", nil
 	}
 
-	return string(data), nil
+	retval := string(data)
+	retval = strings.Trim(retval, " \n")
+	return retval, nil
 }
 
 // DownloadFromZip retrieves a single file from a zip file hosted on a URI
@@ -60,6 +62,8 @@ func DownloadFromZip(uriString string, verifyHash string, path string) ([]byte, 
 	}
 
 	filename := filepath.Base(u.Path)
+
+	config.Debugf("filename is %s", filename)
 
 	// Save the asset content to a temp file
 	pFile, err := os.CreateTemp("", filename)
