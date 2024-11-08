@@ -782,7 +782,6 @@ func processModule(
 }
 
 func checkPackageAlias(t cft.Template, uri string) *cft.PackageAlias {
-	config.Debugf("checkPackageAlias uri: %s", uri)
 	tokens := strings.Split(uri, "/")
 	if len(tokens) > 1 {
 		// See if this is one of the template package aliases
@@ -889,8 +888,6 @@ func module(ctx *directiveContext) (bool, error) {
 				path = filepath.Join(root, path)
 			}
 
-			config.Debugf("abs path: %v", path)
-
 			info, err := os.Stat(path)
 			if err != nil {
 				return false, err
@@ -931,11 +928,7 @@ func module(ctx *directiveContext) (bool, error) {
 	moduleAsTemplate := cft.Template{Node: &moduleNode}
 
 	// Read things like Constants
-	config.Debugf("About to processRainSection in %s", uri)
 	processRainSection(&moduleAsTemplate)
-	for k, v := range moduleAsTemplate.Constants {
-		config.Debugf("%s = %s", k, v.Value)
-	}
 
 	if moduleAsTemplate.Constants != nil {
 		replaceTemplateConstants(moduleAsTemplate.Node, moduleAsTemplate.Constants)

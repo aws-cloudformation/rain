@@ -86,11 +86,9 @@ func processRainSection(t *cft.Template) bool {
 	rainNode, err := t.GetSection(cft.Rain)
 	if err != nil {
 		// This is okay, not all templates have a Rain section
-		config.Debugf("Unable to get Rain section: %v", err)
 		return false
 	}
 
-	config.Debugf("Rain node: %s", node.ToSJson(rainNode))
 	// Process constants in order, since they can refer to previous ones
 	_, c, _ := s11n.GetMapValue(rainNode, "Constants")
 	if c != nil {
@@ -194,11 +192,9 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 			return t, err
 		}
 		if changedThisPass {
-			config.Debugf("Need another pass: %d", passes)
 			changed = true
 		}
 		if !changedThisPass {
-			config.Debugf("No changes this pass: %d", passes)
 			break
 		}
 		if passes > maxPasses {

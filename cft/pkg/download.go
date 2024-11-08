@@ -63,8 +63,6 @@ func DownloadFromZip(uriString string, verifyHash string, path string) ([]byte, 
 
 	filename := filepath.Base(u.Path)
 
-	config.Debugf("filename is %s", filename)
-
 	// Save the asset content to a temp file
 	pFile, err := os.CreateTemp("", filename)
 	if err != nil {
@@ -100,8 +98,6 @@ func DownloadFromZip(uriString string, verifyHash string, path string) ([]byte, 
 
 		// Convert the hash value to a hex string
 		hashString := fmt.Sprintf("%x", hashValue)
-
-		config.Debugf("Hash value: %x", hashString)
 
 		// Reset pFile to the beginning
 		if _, err := pFile.Seek(0, 0); err != nil {
@@ -169,7 +165,6 @@ func Unzip(f *os.File, dest string) error {
 			if err != nil {
 				return err
 			}
-			config.Debugf("Created directory: %s with mode %x", fpath, mode)
 		} else {
 			var fdir string
 			if lastIndex := strings.LastIndex(fpath, string(os.PathSeparator)); lastIndex > -1 {
@@ -179,7 +174,6 @@ func Unzip(f *os.File, dest string) error {
 				if err != nil {
 					return err
 				}
-				config.Debugf("Created subdirectory: %s with mode %x", fdir, mode)
 			}
 
 			f, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
