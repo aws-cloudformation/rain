@@ -3,13 +3,15 @@ package module
 import (
 	"crypto/sha256"
 	"fmt"
+	"io"
+	"os"
+
+	"github.com/aws-cloudformation/rain/cft/pkg"
 	"github.com/aws-cloudformation/rain/internal/aws/codeartifact"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/aws-cloudformation/rain/internal/console/spinner"
 	"github.com/spf13/cobra"
-	"io"
-	"os"
 )
 
 func install(cmd *cobra.Command, args []string) {
@@ -129,7 +131,7 @@ func install(cmd *cobra.Command, args []string) {
 	}
 
 	// Unzip pFile into the new package directory
-	err = codeartifact.Unzip(pFile, packageInfo.DirectoryPath)
+	err = pkg.Unzip(pFile, packageInfo.DirectoryPath)
 	if err != nil {
 		panic(err)
 	}

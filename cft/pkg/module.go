@@ -4,8 +4,6 @@ package pkg
 import (
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -378,6 +376,7 @@ func resolveModuleSub(parentName string, prop *yaml.Node, sidx int, ctx *refctx)
 			}
 			sub += fmt.Sprintf("${%s.%s}", left, right)
 			needSub = true
+		// This should not be necessary since we process Rain constants earlier
 		//case parse.RAIN:
 		//	// Replace ${Rain::ConstantName} with template constant value
 		//	if ctx.constants == nil {
@@ -782,28 +781,6 @@ func processModule(
 	return true, nil
 }
 
-// downloadModule downloads the file from the given URI and returns its content as a byte slice.
-func downloadModule(uri string) ([]byte, error) {
-	config.Debugf("Downloading %s", uri)
-	resp, err := http.Get(uri)
-	if err != nil {
-		return nil, err
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			config.Debugf("Error closing body: %v", err)
-		}
-	}(resp.Body)
-
-	content, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return content, nil
-}
-
 func checkPackageAlias(t cft.Template, uri string) *cft.PackageAlias {
 	config.Debugf("checkPackageAlias uri: %s", uri)
 	tokens := strings.Split(uri, "/")
@@ -848,23 +825,25 @@ func module(ctx *directiveContext) (bool, error) {
 	isZip := false
 	if packageAlias != nil {
 		config.Debugf("Found package alias: %+v", packageAlias)
-		uri = strings.Replace(uri, packageAlias.Alias, packageAlias.Location, 1)
-		config.Debugf("uri is now %s", uri)
-		config.Debugf("baseUri is %s", baseUri)
-
-		// This might be a zipped directory.
-		if strings.HasSuffix(uri, ".zip") {
+		path := strings.Replace(uri, packageAlias.Alias+"/", "", 1)
+		config.Debugf("path is %s", path)
+		if strings.HasSuffix(packageAlias.Location, ".zip") {
 			// Unzip, verify hash if there is one, and put the files in memory
 			isZip = true
-			// TODO
+			content, err = DownloadFromZip(packageAlias.Location, packageAlias.Hash, path)
+			if err != nil {
+				return false, err
+			}
+		} else {
+			uri = strings.Replace(uri, packageAlias.Alias, packageAlias.Location, 1)
+			config.Debugf("uri is now %s", uri)
+			config.Debugf("baseUri is %s", baseUri)
 		}
 	}
 
-	// Is this a local file or a URL or an in memory file system?
+	// Is this a local file or a URL or did we already unzip a package?
 	if isZip {
-
-		// TODO - Get content from in memory unzipped files
-
+		config.Debugf("Got content from a zipped module package: %s", string(content))
 	} else if strings.HasPrefix(uri, "https://") {
 
 		content, err = downloadModule(uri)
