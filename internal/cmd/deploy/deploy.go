@@ -182,6 +182,19 @@ To list and delete changesets, use the ls and rm commands.
 			}
 			spinner.Pop()
 
+			// Display changeset and exit
+			if noexec {
+				spinner.Push("Formatting change set")
+				status := formatChangeSet(stackName, changeSetName)
+				spinner.Pop()
+
+				fmt.Println("Changeset contains the following changes:")
+				fmt.Println(status)
+
+				fmt.Println("changeset created but not executed:", changeSetName)
+				return
+			}
+
 			// Confirm changes
 			if !yes {
 				spinner.Push("Formatting change set")
@@ -208,10 +221,6 @@ To list and delete changesets, use the ls and rm commands.
 				}
 			}
 
-			if noexec {
-				fmt.Println("changeset created but not executed:", changeSetName)
-				return
-			}
 		}
 
 		// Deploy!
