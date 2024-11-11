@@ -3,16 +3,16 @@ Description: |
 
 Parameters:
   ImageURL:
-    Type: String
     Description: The URL to the container image
+    Type: String
 
   CertificateArn:
-    Type: String
     Description: The arn to the certificate for the load balancer
+    Type: String
 
   AppName:
-    Type: String
     Description: This will be used as part of resource names
+    Type: String
 
 Resources:
   Cluster:
@@ -101,6 +101,8 @@ Resources:
         - !Ref TaskExecutionRole
 
   LogGroup:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
     Type: AWS::Logs::LogGroup
     Metadata:
       checkov:
@@ -112,11 +114,12 @@ Resources:
     Properties:
       LogGroupName: !Sub ${AppName}-svc-logs
       RetentionInDays: 30
-    UpdateReplacePolicy: Delete
-    DeletionPolicy: Delete
 
   Service:
     Type: AWS::ECS::Service
+    DependsOn:
+      - ELBLoadBalancerListener
+      - TaskRole
     Metadata:
       cfn-lint:
         config:
@@ -148,12 +151,11 @@ Resources:
             - !Ref NetworkPrivateSubnet1Subnet
             - !Ref NetworkPrivateSubnet2Subnet
       TaskDefinition: !Ref TaskDefinition
-    DependsOn:
-      - ELBLoadBalancerListener
-      - TaskRole
 
   ServiceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
+    DependsOn:
+      - TaskRole
     Properties:
       GroupDescription: !Sub ${AppName}-svc-service/SecurityGroup
       SecurityGroupEgress:
@@ -161,11 +163,10 @@ Resources:
           Description: Allow all outbound traffic by default
           IpProtocol: "-1"
       VpcId: !Ref NetworkVPC
-    DependsOn:
-      - TaskRole
 
   Ingress:
     Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: TaskRole
     Properties:
       Description: Load balancer to target
       FromPort: 80
@@ -173,7 +174,6 @@ Resources:
       IpProtocol: tcp
       SourceSecurityGroupId: !GetAtt ELBLoadBalancerSecurityGroup.GroupId
       ToPort: 80
-    DependsOn: TaskRole
 
   NetworkVPC:
     Type: AWS::EC2::VPC
@@ -185,6 +185,10 @@ Resources:
 
   NetworkPublicSubnet1:
     Type: AWS::EC2::Subnet
+    Metadata:
+      guard:
+        SuppressedRules:
+          - SUBNET_AUTO_ASSIGN_PUBLIC_IP_DISABLED
     Properties:
       AvailabilityZone: !Select
         - 0
@@ -193,10 +197,6 @@ Resources:
       CidrBlock: 10.0.0.0/18
       MapPublicIpOnLaunch: true
       VpcId: !Ref NetworkVPC
-    Metadata:
-      guard:
-        SuppressedRules:
-          - SUBNET_AUTO_ASSIGN_PUBLIC_IP_DISABLED
 
   NetworkPublicSubnet1RouteTable:
     Type: AWS::EC2::RouteTable
@@ -211,16 +211,16 @@ Resources:
 
   NetworkPublicSubnet1DefaultRoute:
     Type: AWS::EC2::Route
-    Properties:
-      DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref NetworkInternetGateway
-      RouteTableId: !Ref NetworkPublicSubnet1RouteTable
+    DependsOn:
+      - NetworkVPCGW
     Metadata:
       guard:
         SuppressedRules:
           - NO_UNRESTRICTED_ROUTE_TO_IGW
-    DependsOn:
-      - NetworkVPCGW
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref NetworkInternetGateway
+      RouteTableId: !Ref NetworkPublicSubnet1RouteTable
 
   NetworkPublicSubnet1EIP:
     Type: AWS::EC2::EIP
@@ -229,15 +229,19 @@ Resources:
 
   NetworkPublicSubnet1NATGateway:
     Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt NetworkPublicSubnet1EIP.AllocationId
-      SubnetId: !Ref NetworkPublicSubnet1
     DependsOn:
       - NetworkPublicSubnet1DefaultRoute
       - NetworkPublicSubnet1RouteTableAssociation
+    Properties:
+      AllocationId: !GetAtt NetworkPublicSubnet1EIP.AllocationId
+      SubnetId: !Ref NetworkPublicSubnet1
 
   NetworkPublicSubnet2:
     Type: AWS::EC2::Subnet
+    Metadata:
+      guard:
+        SuppressedRules:
+          - SUBNET_AUTO_ASSIGN_PUBLIC_IP_DISABLED
     Properties:
       AvailabilityZone: !Select
         - 1
@@ -246,10 +250,6 @@ Resources:
       CidrBlock: 10.0.64.0/18
       MapPublicIpOnLaunch: true
       VpcId: !Ref NetworkVPC
-    Metadata:
-      guard:
-        SuppressedRules:
-          - SUBNET_AUTO_ASSIGN_PUBLIC_IP_DISABLED
 
   NetworkPublicSubnet2RouteTable:
     Type: AWS::EC2::RouteTable
@@ -264,16 +264,16 @@ Resources:
 
   NetworkPublicSubnet2DefaultRoute:
     Type: AWS::EC2::Route
-    Properties:
-      DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref NetworkInternetGateway
-      RouteTableId: !Ref NetworkPublicSubnet2RouteTable
+    DependsOn:
+      - NetworkVPCGW
     Metadata:
       guard:
         SuppressedRules:
           - NO_UNRESTRICTED_ROUTE_TO_IGW
-    DependsOn:
-      - NetworkVPCGW
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref NetworkInternetGateway
+      RouteTableId: !Ref NetworkPublicSubnet2RouteTable
 
   NetworkPublicSubnet2EIP:
     Type: AWS::EC2::EIP
@@ -282,12 +282,12 @@ Resources:
 
   NetworkPublicSubnet2NATGateway:
     Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt NetworkPublicSubnet2EIP.AllocationId
-      SubnetId: !Ref NetworkPublicSubnet2
     DependsOn:
       - NetworkPublicSubnet2DefaultRoute
       - NetworkPublicSubnet2RouteTableAssociation
+    Properties:
+      AllocationId: !GetAtt NetworkPublicSubnet2EIP.AllocationId
+      SubnetId: !Ref NetworkPublicSubnet2
 
   NetworkPrivateSubnet1Subnet:
     Type: AWS::EC2::Subnet
@@ -358,6 +358,18 @@ Resources:
 
   ELBLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    DependsOn:
+      - NetworkPublicSubnet1DefaultRoute
+      - NetworkPublicSubnet1RouteTableAssociation
+      - NetworkPublicSubnet2DefaultRoute
+      - NetworkPublicSubnet2RouteTableAssociation
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_91
+      guard:
+        SuppressedRules:
+          - ELB_DELETION_PROTECTION_ENABLED
     Properties:
       LoadBalancerAttributes:
         - Key: deletion_protection.enabled
@@ -379,19 +391,6 @@ Resources:
       #  - PublicSubnet1RouteTableAssociation
       #  - PublicSubnet2DefaultRoute
       #  - PublicSubnet2RouteTableAssociation
-    Metadata:
-      checkov:
-        skip:
-          - id: CKV_AWS_91
-      guard:
-        SuppressedRules:
-          - ELB_DELETION_PROTECTION_ENABLED
-    DependsOn:
-      - NetworkPublicSubnet1DefaultRoute
-      - NetworkPublicSubnet1RouteTableAssociation
-      - NetworkPublicSubnet2DefaultRoute
-      - NetworkPublicSubnet2RouteTableAssociation
-
   ELBLoadBalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -416,6 +415,10 @@ Resources:
 
   ELBLoadBalancerListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
+    Metadata:
+      guard:
+        SuppressedRules:
+          - ELBV2_ACM_CERTIFICATE_REQUIRED
     Properties:
       DefaultActions:
         - TargetGroupArn: !Ref ELBTargetGroup
@@ -426,10 +429,6 @@ Resources:
       Certificates:
         - CertificateArn: !Ref CertificateArn
       SslPolicy: ELBSecurityPolicy-TLS13-1-2-2021-06
-    Metadata:
-      guard:
-        SuppressedRules:
-          - ELBV2_ACM_CERTIFICATE_REQUIRED
 
   ELBTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
