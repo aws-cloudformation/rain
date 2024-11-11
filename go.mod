@@ -7,7 +7,7 @@ toolchain go1.22.4
 require (
 	//github.com/ake-persson/mapslice-json v0.0.0-20210720081907-22c8edf57807
 	github.com/appscode/jsonpatch v1.0.1
-	github.com/aws/aws-sdk-go-v2 v1.32.3
+	github.com/aws/aws-sdk-go-v2 v1.32.4
 	github.com/aws/aws-sdk-go-v2/config v1.28.1
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.42
 	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.19.3
@@ -33,7 +33,7 @@ require (
 	github.com/aws/aws-lambda-go v1.47.0
 	github.com/aws/aws-sdk-go-v2/service/acm v1.30.3
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.40.3
-	github.com/aws/aws-sdk-go-v2/service/codeartifact v1.33.3
+	github.com/aws/aws-sdk-go-v2/service/codeartifact v1.33.5
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.36.3
 	github.com/aws/aws-sdk-go-v2/service/kms v1.37.3
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.42.3
@@ -50,14 +50,12 @@ require (
 )
 
 require (
-	github.com/aws/aws-sdk-go v1.55.5 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.22 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.10.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.28.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
-	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/lestrrat-go/blackmagic v1.0.2 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/httprc v1.0.6 // indirect
@@ -77,8 +75,8 @@ require (
 require (
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.6 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.18 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.22 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.22 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.23 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.23 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/cloudcontrol v1.22.3
 	github.com/aws/aws-sdk-go-v2/service/iam v1.37.3
