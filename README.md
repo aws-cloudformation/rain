@@ -528,6 +528,30 @@ An API Gateway REST API
 
 A Lambda function and associated API Gateway resources
 
+### IfParam and IfNotParam
+
+Inside a module, you can add a Metadata attribute to show or hide resources, 
+depending on whether the parent template sets a parameter value. This is similar 
+to the Conditional section in a template, but somewhat simpler, and it only works in modules.
+
+```yaml
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+    Metadata:
+      Rain:
+        IfParam: Foo
+```
+
+If the parent template does not set a value for the `Foo` property, the module will 
+omit the resource. The opposite is true for `IfNotParam`. 
+
+`IfParam` can be useful to make flexible modules that can optionally do things like 
+configure permissions for related resources, like allowing access to a bucket or table.
+
+`IfNotParam` is useful if you have pre-created a resource and you don't want the module 
+to create it for you.
+
 ### Gantt Chart
 
 Output a chart to an HTML file that you can view with a browser to look at how long stack operations take for each resource.

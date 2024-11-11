@@ -20,6 +20,7 @@ const (
 	Rain                = "Rain"
 	Metadata            = "Metadata"
 	IfParam             = "IfParam"
+	IfNotParam          = "IfNotParam"
 	Overrides           = "Overrides"
 	DependsOn           = "DependsOn"
 	Properties          = "Properties"
@@ -631,25 +632,8 @@ func processModule(
 		metadata := s11n.GetMap(moduleResource, Metadata)
 		if metadata != nil {
 			if rainMetadata, ok := metadata[Rain]; ok {
-				ifp := s11n.GetValue(rainMetadata, IfParam)
-				// If the value of IfParam is not set, omit this resource
-				if ifp != "" {
-					if moduleParams != nil &&
-						s11n.GetMap(moduleParams, ifp) != nil &&
-						s11n.GetValue(templateProps, ifp) == "" &&
-						len(s11n.GetMap(templateProps, ifp)) == 0 {
-						continue
-					} else {
-						// Get rid of the IfParam, since it's irrelevant in the resulting template
-						node.RemoveFromMap(rainMetadata, IfParam)
-						if len(rainMetadata.Content) == 0 {
-							_, metadataNode, _ := s11n.GetMapValue(moduleResource, Metadata)
-							node.RemoveFromMap(metadataNode, Rain)
-							if len(metadataNode.Content) == 0 {
-								node.RemoveFromMap(moduleResource, Metadata)
-							}
-						}
-					}
+				if omitIfs(rainMetadata, moduleParams, templateProps, moduleResource) {
+					continue
 				}
 			}
 		}
