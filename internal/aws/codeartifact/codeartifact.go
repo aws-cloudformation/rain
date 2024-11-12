@@ -8,15 +8,15 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
-	"github.com/aws-cloudformation/rain/internal/console/spinner"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/codeartifact/types"
 	"io"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/aws-cloudformation/rain/internal/console/spinner"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/codeartifact/types"
 
 	rainaws "github.com/aws-cloudformation/rain/internal/aws"
 	"github.com/aws-cloudformation/rain/internal/config"
@@ -350,75 +350,6 @@ func Publish(packageInfo *PackageInfo) error {
 	}
 
 	config.Debugf("Package version published: %+v", res)
-
-	return nil
-}
-
-// Unzip unzips a zip file to a destination directory
-func Unzip(f *os.File, dest string) error {
-	// Open a file reader
-	r, err := zip.OpenReader(f.Name())
-	if err != nil {
-		return err
-	}
-	defer func(r *zip.ReadCloser) {
-		err := r.Close()
-		if err != nil {
-			config.Debugf("Error closing zip reader: %s", err)
-		}
-	}(r)
-
-	// Iterate through the files in the archive,
-	// extracting each to the output directory
-	for _, f := range r.File {
-		rc, err := f.Open()
-		if err != nil {
-			return err
-		}
-		defer func(rc io.ReadCloser) {
-			err := rc.Close()
-			if err != nil {
-				config.Debugf("Error closing file: %s", err)
-			}
-		}(rc)
-
-		fpath := filepath.Join(dest, f.Name)
-		if f.FileInfo().IsDir() {
-			mode := fs.ModePerm
-			err := os.MkdirAll(fpath, mode)
-			if err != nil {
-				return err
-			}
-			config.Debugf("Created directory: %s with mode %x", fpath, mode)
-		} else {
-			var fdir string
-			if lastIndex := strings.LastIndex(fpath, string(os.PathSeparator)); lastIndex > -1 {
-				fdir = fpath[:lastIndex]
-				mode := fs.ModePerm
-				err := os.MkdirAll(fdir, mode)
-				if err != nil {
-					return err
-				}
-				config.Debugf("Created subdirectory: %s with mode %x", fdir, mode)
-			}
-
-			f, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
-			if err != nil {
-				return err
-			}
-			defer func(f *os.File) {
-				err := f.Close()
-				if err != nil {
-					config.Debugf("Error closing file: %s", err)
-				}
-			}(f)
-
-			_, err = io.Copy(f, rc)
-			if err != nil {
-				return err
-			}
-		}
-	}
 
 	return nil
 }

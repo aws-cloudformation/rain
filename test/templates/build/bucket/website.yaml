@@ -8,16 +8,16 @@ Description: |
 
 Parameters:
   AppName:
-    Type: String
     Description: This name be used as a prefix for resource names
+    Type: String
 
   WebACL:
-    Type: String
     Description: The web acl id of a CLOUDFRONT scoped web acl in us-east-1
+    Type: String
 
   Content:
-    Type: String
     Description: An optional directory to upload to the bucket
+    Type: String
     Default: RAIN_NO_CONTENT
 
 Resources:
@@ -74,6 +74,19 @@ Resources:
 
   ContentLogBucket:
     Type: AWS::S3::Bucket
+    Metadata:
+      Comment: This bucket records access logs for the main bucket
+      checkov:
+        skip:
+          - comment: This is the log bucket
+            id: CKV_AWS_18
+      guard:
+        SuppressedRules:
+          - S3_BUCKET_LOGGING_ENABLED
+          - S3_BUCKET_REPLICATION_ENABLED
+      Rain:
+        Content: RAIN_NO_CONTENT
+        EmptyOnDelete: false
     Properties:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -94,22 +107,16 @@ Resources:
         RestrictPublicBuckets: true
       VersioningConfiguration:
         Status: Enabled
-    Metadata:
-      Comment: This bucket records access logs for the main bucket
-      checkov:
-        skip:
-          - comment: This is the log bucket
-            id: CKV_AWS_18
-      guard:
-        SuppressedRules:
-          - S3_BUCKET_LOGGING_ENABLED
-          - S3_BUCKET_REPLICATION_ENABLED
-      Rain:
-        Content: RAIN_NO_CONTENT
-        EmptyOnDelete: false
 
   ContentBucket:
     Type: AWS::S3::Bucket
+    Metadata:
+      guard:
+        SuppressedRules:
+          - S3_BUCKET_DEFAULT_LOCK_ENABLED
+      Rain:
+        Content: !Ref Content
+        EmptyOnDelete: false
     Properties:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -132,30 +139,9 @@ Resources:
             Status: Enabled
       VersioningConfiguration:
         Status: Enabled
-    Metadata:
-      guard:
-        SuppressedRules:
-          - S3_BUCKET_DEFAULT_LOCK_ENABLED
-      Rain:
-        Content: !Ref Content
-        EmptyOnDelete: false
 
   ContentReplicaBucket:
     Type: AWS::S3::Bucket
-    Properties:
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      BucketName: !Sub ${AppName}-replicas-${AWS::Region}-${AWS::AccountId}
-      ObjectLockEnabled: false
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-      VersioningConfiguration:
-        Status: Enabled
     Metadata:
       Comment: This bucket is used as a target for replicas from the main bucket
       checkov:
@@ -170,6 +156,20 @@ Resources:
       Rain:
         Content: RAIN_NO_CONTENT
         EmptyOnDelete: false
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      BucketName: !Sub ${AppName}-replicas-${AWS::Region}-${AWS::AccountId}
+      ObjectLockEnabled: false
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
 
   ContentReplicationPolicy:
     Type: AWS::IAM::RolePolicy
@@ -300,6 +300,19 @@ Resources:
 
   CloudFrontLogsLogBucket:
     Type: AWS::S3::Bucket
+    Metadata:
+      Comment: This bucket records access logs for the main bucket
+      checkov:
+        skip:
+          - comment: This is the log bucket
+            id: CKV_AWS_18
+      guard:
+        SuppressedRules:
+          - S3_BUCKET_LOGGING_ENABLED
+          - S3_BUCKET_REPLICATION_ENABLED
+      Rain:
+        Content: RAIN_NO_CONTENT
+        EmptyOnDelete: false
     Properties:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -320,22 +333,16 @@ Resources:
         RestrictPublicBuckets: true
       VersioningConfiguration:
         Status: Enabled
-    Metadata:
-      Comment: This bucket records access logs for the main bucket
-      checkov:
-        skip:
-          - comment: This is the log bucket
-            id: CKV_AWS_18
-      guard:
-        SuppressedRules:
-          - S3_BUCKET_LOGGING_ENABLED
-          - S3_BUCKET_REPLICATION_ENABLED
-      Rain:
-        Content: RAIN_NO_CONTENT
-        EmptyOnDelete: false
 
   CloudFrontLogsBucket:
     Type: AWS::S3::Bucket
+    Metadata:
+      guard:
+        SuppressedRules:
+          - S3_BUCKET_DEFAULT_LOCK_ENABLED
+      Rain:
+        Content: RAIN_NO_CONTENT
+        EmptyOnDelete: false
     Properties:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -358,30 +365,9 @@ Resources:
             Status: Enabled
       VersioningConfiguration:
         Status: Enabled
-    Metadata:
-      guard:
-        SuppressedRules:
-          - S3_BUCKET_DEFAULT_LOCK_ENABLED
-      Rain:
-        Content: RAIN_NO_CONTENT
-        EmptyOnDelete: false
 
   CloudFrontLogsReplicaBucket:
     Type: AWS::S3::Bucket
-    Properties:
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      BucketName: !Sub ${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
-      ObjectLockEnabled: false
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-      VersioningConfiguration:
-        Status: Enabled
     Metadata:
       Comment: This bucket is used as a target for replicas from the main bucket
       checkov:
@@ -396,6 +382,20 @@ Resources:
       Rain:
         Content: RAIN_NO_CONTENT
         EmptyOnDelete: false
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      BucketName: !Sub ${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
+      ObjectLockEnabled: false
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
 
   CloudFrontLogsReplicationPolicy:
     Type: AWS::IAM::RolePolicy

@@ -2,18 +2,18 @@ Description: Creates a web application with a static website using S3 and CloudF
 
 Parameters:
   AppName:
-    Type: String
     Description: This name is used as a prefix for resource names
+    Type: String
     Default: rain-webapp-sample
 
   LambdaCodeS3Bucket:
-    Type: String
     Description: The bucket where your lambda handler is
+    Type: String
     Default: rain-artifacts-207567786752-us-east-1
 
   LambdaCodeS3Key:
-    Type: String
     Description: The object key for your lambda handler
+    Type: String
     Default: 512113b95e9fc6345b2e19a43350af82aaa815011120288f16b1f281d5efdc95
 
 Resources:
@@ -76,6 +76,16 @@ Resources:
 
   SiteDistribution:
     Type: AWS::CloudFront::Distribution
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_174
+            comment: Using the default cloudfront certificate with no aliases
+      guard:
+        SuppressedRules:
+          - CLOUDFRONT_CUSTOM_SSL_CERTIFICATE
+          - CLOUDFRONT_ORIGIN_FAILOVER_ENABLED
+          - CLOUDFRONT_SNI_ENABLED
     Properties:
       DistributionConfig:
         DefaultCacheBehavior:
@@ -98,16 +108,6 @@ Resources:
         ViewerCertificate:
           CloudFrontDefaultCertificate: true
         WebACLId: !GetAtt SiteWebACL.Arn
-    Metadata:
-      checkov:
-        skip:
-          - id: CKV_AWS_174
-            comment: Using the default cloudfront certificate with no aliases
-      guard:
-        SuppressedRules:
-          - CLOUDFRONT_CUSTOM_SSL_CERTIFICATE
-          - CLOUDFRONT_ORIGIN_FAILOVER_ENABLED
-          - CLOUDFRONT_SNI_ENABLED
 
   SiteWebACL:
     Type: AWS::WAFv2::WebACL
@@ -154,6 +154,16 @@ Resources:
 
   SiteContentLogBucket:
     Type: AWS::S3::Bucket
+    Metadata:
+      Comment: This bucket records access logs for the main bucket
+      checkov:
+        skip:
+          - comment: This is the log bucket
+            id: CKV_AWS_18
+      guard:
+        SuppressedRules:
+          - S3_BUCKET_LOGGING_ENABLED
+          - S3_BUCKET_REPLICATION_ENABLED
     Properties:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -174,19 +184,13 @@ Resources:
         RestrictPublicBuckets: true
       VersioningConfiguration:
         Status: Enabled
-    Metadata:
-      Comment: This bucket records access logs for the main bucket
-      checkov:
-        skip:
-          - comment: This is the log bucket
-            id: CKV_AWS_18
-      guard:
-        SuppressedRules:
-          - S3_BUCKET_LOGGING_ENABLED
-          - S3_BUCKET_REPLICATION_ENABLED
 
   SiteContentBucket:
     Type: AWS::S3::Bucket
+    Metadata:
+      guard:
+        SuppressedRules:
+          - S3_BUCKET_DEFAULT_LOCK_ENABLED
     Properties:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -209,13 +213,20 @@ Resources:
             Status: Enabled
       VersioningConfiguration:
         Status: Enabled
-    Metadata:
-      guard:
-        SuppressedRules:
-          - S3_BUCKET_DEFAULT_LOCK_ENABLED
 
   SiteContentReplicaBucket:
     Type: AWS::S3::Bucket
+    Metadata:
+      Comment: This bucket is used as a target for replicas from the main bucket
+      checkov:
+        skip:
+          - comment: This is the replica bucket
+            id: CKV_AWS_18
+      guard:
+        SuppressedRules:
+          - S3_BUCKET_DEFAULT_LOCK_ENABLED
+          - S3_BUCKET_REPLICATION_ENABLED
+          - S3_BUCKET_LOGGING_ENABLED
     Properties:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -230,17 +241,6 @@ Resources:
         RestrictPublicBuckets: true
       VersioningConfiguration:
         Status: Enabled
-    Metadata:
-      Comment: This bucket is used as a target for replicas from the main bucket
-      checkov:
-        skip:
-          - comment: This is the replica bucket
-            id: CKV_AWS_18
-      guard:
-        SuppressedRules:
-          - S3_BUCKET_DEFAULT_LOCK_ENABLED
-          - S3_BUCKET_REPLICATION_ENABLED
-          - S3_BUCKET_LOGGING_ENABLED
 
   SiteContentReplicationPolicy:
     Type: AWS::IAM::RolePolicy
@@ -379,6 +379,16 @@ Resources:
 
   SiteCloudFrontLogsLogBucket:
     Type: AWS::S3::Bucket
+    Metadata:
+      Comment: This bucket records access logs for the main bucket
+      checkov:
+        skip:
+          - comment: This is the log bucket
+            id: CKV_AWS_18
+      guard:
+        SuppressedRules:
+          - S3_BUCKET_LOGGING_ENABLED
+          - S3_BUCKET_REPLICATION_ENABLED
     Properties:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -399,19 +409,13 @@ Resources:
         RestrictPublicBuckets: true
       VersioningConfiguration:
         Status: Enabled
-    Metadata:
-      Comment: This bucket records access logs for the main bucket
-      checkov:
-        skip:
-          - comment: This is the log bucket
-            id: CKV_AWS_18
-      guard:
-        SuppressedRules:
-          - S3_BUCKET_LOGGING_ENABLED
-          - S3_BUCKET_REPLICATION_ENABLED
 
   SiteCloudFrontLogsBucket:
     Type: AWS::S3::Bucket
+    Metadata:
+      guard:
+        SuppressedRules:
+          - S3_BUCKET_DEFAULT_LOCK_ENABLED
     Properties:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -437,13 +441,20 @@ Resources:
       OwnershipControls:
         Rules:
           - ObjectOwnership: BucketOwnerPreferred
-    Metadata:
-      guard:
-        SuppressedRules:
-          - S3_BUCKET_DEFAULT_LOCK_ENABLED
 
   SiteCloudFrontLogsReplicaBucket:
     Type: AWS::S3::Bucket
+    Metadata:
+      Comment: This bucket is used as a target for replicas from the main bucket
+      checkov:
+        skip:
+          - comment: This is the replica bucket
+            id: CKV_AWS_18
+      guard:
+        SuppressedRules:
+          - S3_BUCKET_DEFAULT_LOCK_ENABLED
+          - S3_BUCKET_REPLICATION_ENABLED
+          - S3_BUCKET_LOGGING_ENABLED
     Properties:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -458,17 +469,6 @@ Resources:
         RestrictPublicBuckets: true
       VersioningConfiguration:
         Status: Enabled
-    Metadata:
-      Comment: This bucket is used as a target for replicas from the main bucket
-      checkov:
-        skip:
-          - comment: This is the replica bucket
-            id: CKV_AWS_18
-      guard:
-        SuppressedRules:
-          - S3_BUCKET_DEFAULT_LOCK_ENABLED
-          - S3_BUCKET_REPLICATION_ENABLED
-          - S3_BUCKET_LOGGING_ENABLED
 
   SiteCloudFrontLogsReplicationPolicy:
     Type: AWS::IAM::RolePolicy
@@ -599,6 +599,8 @@ Resources:
 
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
+    DependsOn:
+      - SiteDistribution
     Properties:
       UserPoolName: !Ref AppName
       AdminCreateUserConfig:
@@ -612,8 +614,6 @@ Resources:
           Required: true
         - Name: family_name
           Required: true
-    DependsOn:
-      - SiteDistribution
 
   CognitoDomain:
     Type: AWS::Cognito::UserPoolDomain
@@ -833,15 +833,15 @@ Resources:
 
   RestApiDeployment:
     Type: AWS::ApiGateway::Deployment
-    Properties:
-      RestApiId: !Ref RestApi
-    Metadata:
-      Version: 2
     DependsOn:
       - TestResourceGet
       - TestResourceOptions
       - JwtResourceGet
       - JwtResourceOptions
+    Metadata:
+      Version: 2
+    Properties:
+      RestApiId: !Ref RestApi
 
   RestApiStage:
     Type: AWS::ApiGateway::Stage

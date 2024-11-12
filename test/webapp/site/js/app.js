@@ -54,12 +54,12 @@ import * as restApi from "./rest-api"
             const d = data[i]
             const id = d.id.Value
             let foo = ""
-            if (d.foo) {
-                foo = d.foo.Value
+            if (d.Foo) {
+                foo = d.Foo.Value
             }
             let bar = ""
-            if (d.bar) {
-                bar = d.bar.Value
+            if (d.Bar) {
+                bar = d.Bar.Value
             }
             // Create a new table row
             const row = tbl.insertRow()

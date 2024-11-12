@@ -4,8 +4,7 @@ package pkg
 import (
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -17,93 +16,21 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// mergeNodes merges two mapping nodes, replacing any values found in override
-func MergeNodes(original *yaml.Node, override *yaml.Node) *yaml.Node {
-
-	// If the nodes are not the same kind, just return the override
-	if override.Kind != original.Kind {
-		return override
-	}
-
-	if override.Kind == yaml.ScalarNode {
-		return override
-	}
-
-	retval := &yaml.Node{Kind: override.Kind, Content: make([]*yaml.Node, 0)}
-	overrideMap := make(map[string]bool)
-
-	if override.Kind == yaml.SequenceNode {
-		retval.Content = append(retval.Content, override.Content...)
-
-		for _, n := range original.Content {
-			already := false
-			for _, r := range retval.Content {
-				if r.Value == n.Value {
-					already = true
-					break
-				}
-			}
-			if !already {
-				retval.Content = append(retval.Content, n)
-			}
-		}
-
-		return retval
-	}
-
-	// else they are both Mapping nodes
-
-	// Add everything in the override Mapping
-	for i, n := range override.Content {
-		retval.Content = append(retval.Content, n)
-		var name string
-		if i%2 == 0 {
-			// Remember what we added
-			name = n.Value
-			overrideMap[name] = true
-		} else {
-			name = retval.Content[i-1].Value
-		}
-
-		/*
-			Original:
-				A: something
-				B:
-					foo: 1
-					bar: 2
-
-			Override:
-				A: something else
-				B:
-					foo: 3
-					baz: 6
-		*/
-
-		// Recurse if this is a mapping node
-		if i%2 == 1 && n.Kind == yaml.MappingNode {
-			// Find the matching node in original
-			for j, match := range original.Content {
-				if j%2 == 0 && match.Value == name {
-					n.Content[i] = MergeNodes(n.Content[i], original.Content[j])
-				}
-			}
-		}
-	}
-
-	// Only add things from the original if they weren't in original
-	for i := 0; i < len(original.Content); i++ {
-		n := original.Content[i]
-		if i%2 == 0 {
-			if _, exists := overrideMap[n.Value]; exists {
-				i = i + 1 // Skip the next node
-				continue
-			}
-		}
-		retval.Content = append(retval.Content, n)
-	}
-
-	return retval
-}
+const (
+	Rain                = "Rain"
+	Metadata            = "Metadata"
+	IfParam             = "IfParam"
+	IfNotParam          = "IfNotParam"
+	Overrides           = "Overrides"
+	DependsOn           = "DependsOn"
+	Properties          = "Properties"
+	CreationPolicy      = "CreationPolicy"
+	UpdatePolicy        = "UpdatePolicy"
+	DeletionPolicy      = "DeletionPolicy"
+	UpdateReplacePolicy = "UpdateReplacePolicy"
+	Condition           = "Condition"
+	Default             = "Default"
+)
 
 // Clone a property-like node from the module and replace any overridden values
 func cloneAndReplaceProps(
@@ -148,35 +75,14 @@ func cloneAndReplaceProps(
 				}
 			}
 
-			// Override anything hard coded into the module that is present in the parent template
+			// Overwrite anything hard coded into the module that is
+			// present in the parent template
 			for j, mprop := range props.Content {
-				// Property names are even-indexed array elements
 				if tprop.Value == mprop.Value && i%2 == 0 && j%2 == 0 {
-					// It's was not possible to override just one nested property
-					//
-					// Bucket:
-					//   Metadata:
-					//     Rain:
-					//       Content: site
-					//       DistributionLogicalId: AWS::NoValue
-					//
-					// Override:
-					//   Bucket:
-					//     Metadata:
-					//       Rain:
-					//         DistributionLogicalId: MyDistribution
-					//
-					// The result is that the Content node is removed
-					//
-
-					// The old way
-					// props.Content[j+1] = node.Clone(templateProps.Content[i+1])
-
-					// The new way
 					clonedNode := node.Clone(templateProps.Content[i+1])
 					// config.Debugf("original: %s", node.ToSJson(templateProps.Content[i+1]))
 					// config.Debugf("clonedNode: %s", node.ToSJson(clonedNode))
-					merged := MergeNodes(props.Content[j+1], clonedNode)
+					merged := node.MergeNodes(props.Content[j+1], clonedNode)
 					// config.Debugf("merged: %s", node.ToSJson(merged))
 					props.Content[j+1] = merged
 
@@ -241,6 +147,9 @@ type refctx struct {
 	// Template property overrides map for the resource
 	// TODO: Not necessary? We don't look anything up here...
 	overrides *yaml.Node
+
+	// The module's Constants from the Rain section
+	constants map[string]*yaml.Node
 }
 
 func replaceProp(prop *yaml.Node, parentName string, v *yaml.Node, outNode *yaml.Node, sidx int) error {
@@ -263,9 +172,6 @@ func replaceProp(prop *yaml.Node, parentName string, v *yaml.Node, outNode *yaml
 		}
 		return nil
 	}
-	// TODO Is the above good enough for the below?
-	// TODO: It doesn't work when a map needs to be replaced.
-	// But the below relies on a parentName
 
 	// We can't just set prop.Value, since we would end up with
 	// Prop: !Ref Value instead of just Prop: Value. Get the
@@ -336,7 +242,7 @@ func resolveModuleRef(parentName string, prop *yaml.Node, sidx int, ctx *refctx)
 				// Check to see if there is a Default
 				_, mParam, _ := s11n.GetMapValue(moduleParams, prop.Value)
 				if mParam != nil {
-					_, defaultNode, _ := s11n.GetMapValue(mParam, "Default")
+					_, defaultNode, _ := s11n.GetMapValue(mParam, Default)
 					if defaultNode != nil {
 						parentVal = defaultNode
 					}
@@ -471,6 +377,23 @@ func resolveModuleSub(parentName string, prop *yaml.Node, sidx int, ctx *refctx)
 			}
 			sub += fmt.Sprintf("${%s.%s}", left, right)
 			needSub = true
+		// This should not be necessary since we process Rain constants earlier
+		//case parse.RAIN:
+		//	// Replace ${Rain::ConstantName} with template constant value
+		//	if ctx.constants == nil {
+		//		return fmt.Errorf("no Rain Constants section, looking for %s", word.W)
+		//	}
+		//	if c, ok := ctx.constants[word.W]; ok {
+		//		sub += c.Value
+		//	} else {
+		//		if len(ctx.constants) == 0 {
+		//			config.Debugf("Constants are empty")
+		//		}
+		//		for k, v := range ctx.constants {
+		//			config.Debugf("Constant %s: %s", k, v.Value)
+		//		}
+		//		return fmt.Errorf("unable to find Rain constant %s", word.W)
+		//	}
 		default:
 			return fmt.Errorf("unexpected word type %v for %s", word.T, word.W)
 		}
@@ -571,7 +494,7 @@ func resolveRefs(ctx *refctx) error {
 
 	// Replace references to the module's parameters with the value supplied
 	// by the parent template. Rename refs to other resources in the module.
-	propLikes := []string{"Properties", "Metadata"}
+	propLikes := []string{Properties, Metadata}
 	for _, propLike := range propLikes {
 		_, outNodeProps, _ := s11n.GetMapValue(outNode, propLike)
 		if outNodeProps != nil {
@@ -589,7 +512,7 @@ func resolveRefs(ctx *refctx) error {
 	}
 
 	// DeletionPolicy, UpdateReplacePolicy, Condition
-	policies := []string{"DeletionPolicy", "UpdateReplacePolicy", "Condition"}
+	policies := []string{DeletionPolicy, UpdateReplacePolicy, Condition}
 	for _, policy := range policies {
 		_, policyNode, _ := s11n.GetMapValue(outNode, policy)
 		if policyNode != nil {
@@ -609,7 +532,8 @@ func processModule(
 	outputNode *yaml.Node,
 	t cft.Template,
 	typeNode *yaml.Node,
-	parent node.NodePair) (bool, error) {
+	parent node.NodePair,
+	moduleConstants map[string]*yaml.Node) (bool, error) {
 
 	// The parent arg is the map in the template resource's Content[1] that contains Type, Properties, etc
 
@@ -642,10 +566,10 @@ func processModule(
 	templateResource := parent.Value // The !!map node of the resource with Type !Rain::Module
 
 	// Properties are the args that match module params
-	_, templateProps, _ := s11n.GetMapValue(templateResource, "Properties")
+	_, templateProps, _ := s11n.GetMapValue(templateResource, Properties)
 
 	// Overrides have overridden values for module resources. Anything in a module can be overridden.
-	_, overrides, _ := s11n.GetMapValue(templateResource, "Overrides")
+	_, overrides, _ := s11n.GetMapValue(templateResource, Overrides)
 
 	// Validate that the overrides actually exist and error if not
 	if overrides != nil {
@@ -672,7 +596,7 @@ func processModule(
 			// It is an error to try to override a property that shares
 			// a name with a module Parameter.
 			if moduleParams != nil {
-				_, overrideProps, _ := s11n.GetMapValue(overrides.Content[i+1], "Properties")
+				_, overrideProps, _ := s11n.GetMapValue(overrides.Content[i+1], Properties)
 				if overrideProps != nil {
 					for op, overrideProp := range overrideProps.Content {
 						if op%2 != 0 {
@@ -702,6 +626,18 @@ func processModule(
 			continue
 		}
 		name := moduleResources.Content[i-1].Value
+
+		// Check to see if there is a Rain attribute in the Metadata.
+		// If so, check conditionals like IfParam
+		metadata := s11n.GetMap(moduleResource, Metadata)
+		if metadata != nil {
+			if rainMetadata, ok := metadata[Rain]; ok {
+				if omitIfs(rainMetadata, moduleParams, templateProps, moduleResource) {
+					continue
+				}
+			}
+		}
+
 		nameNode := node.Clone(moduleResources.Content[i-1])
 		nameNode.Value = rename(logicalId, nameNode.Value)
 		outputNode.Content = append(outputNode.Content, nameNode)
@@ -714,7 +650,7 @@ func processModule(
 		}
 
 		// Clone attributes that are like Properties, and replace overridden values
-		propLike := []string{"Properties", "CreationPolicy", "Metadata", "UpdatePolicy"}
+		propLike := []string{Properties, CreationPolicy, Metadata, UpdatePolicy}
 		for _, pl := range propLike {
 			_, plProps, _ := s11n.GetMapValue(moduleResource, pl)
 			_, plTemplateProps, _ := s11n.GetMapValue(templateOverrides, pl)
@@ -732,23 +668,23 @@ func processModule(
 		}
 
 		// DeletionPolicy
-		addScalarAttribute(clonedResource, "DeletionPolicy", moduleResource, templateOverrides)
+		addScalarAttribute(clonedResource, DeletionPolicy, moduleResource, templateOverrides)
 
 		// UpdateReplacePolicy
-		addScalarAttribute(clonedResource, "UpdateReplacePolicy", moduleResource, templateOverrides)
+		addScalarAttribute(clonedResource, UpdateReplacePolicy, moduleResource, templateOverrides)
 
 		// Condition
-		addScalarAttribute(clonedResource, "Condition", moduleResource, templateOverrides)
+		addScalarAttribute(clonedResource, Condition, moduleResource, templateOverrides)
 
 		// DependsOn is an array of scalars or a single scalar
-		_, moduleDependsOn, _ := s11n.GetMapValue(moduleResource, "DependsOn")
-		_, templateDependsOn, _ := s11n.GetMapValue(templateOverrides, "DependsOn")
+		_, moduleDependsOn, _ := s11n.GetMapValue(moduleResource, DependsOn)
+		_, templateDependsOn, _ := s11n.GetMapValue(templateOverrides, DependsOn)
 		if moduleDependsOn != nil || templateDependsOn != nil {
-			clonedResource.Content = append(clonedResource.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: "DependsOn"})
+			clonedResource.Content = append(clonedResource.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: DependsOn})
 			dependsOnValue := &yaml.Node{Kind: yaml.SequenceNode, Content: make([]*yaml.Node, 0)}
 			if moduleDependsOn != nil {
 				// Remove the original DependsOn, so we don't end up with two
-				node.RemoveFromMap(clonedResource, "DependsOn")
+				node.RemoveFromMap(clonedResource, DependsOn)
 
 				// Change the names to the modified resource name for the template
 				c := make([]*yaml.Node, 0)
@@ -783,9 +719,9 @@ func processModule(
 
 		/*
 			// Add the Condition from the parent template
-			_, parentCondition, _ := s11n.GetMapValue(templateOverrides, "Condition")
+			_, parentCondition, _ := s11n.GetMapValue(templateOverrides, Condition)
 			if parentCondition != nil {
-				clonedResource.Content = append(clonedResource.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: "Condition"})
+				clonedResource.Content = append(clonedResource.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: Condition})
 				clonedResource.Content = append(clonedResource.Content, node.Clone(parentCondition))
 			}
 		*/
@@ -800,6 +736,7 @@ func processModule(
 			logicalId:       logicalId,
 			moduleResources: moduleResources,
 			overrides:       templateOverrides,
+			constants:       moduleConstants,
 		}
 		err := resolveRefs(ctx)
 		if err != nil {
@@ -822,83 +759,23 @@ func processModule(
 
 		}
 
-		/*
-			// Resolve Conditions. Rain handles this differently, since a rain
-			// module cannot have a Condition section. This value must be a module parameter
-			// name, and the value must be set in the parent template as the name of
-			// a Condition that is defined in the parent.
-			_, condition, _ := s11n.GetMapValue(moduleResource, "Condition")
-			if condition != nil {
-				conditionErr := errors.New("a Condition in a rain module must be the name of " +
-					"a Parameter that is set the name of a Condition in the parent template")
-				// The value must be present in the module's parameters
-				if condition.Kind != yaml.ScalarNode {
-					return false, conditionErr
-				}
-				_, param, _ := s11n.GetMapValue(moduleParams, condition.Value)
-				if param == nil {
-					return false, conditionErr
-				}
-				_, conditionVal, _ := s11n.GetMapValue(templateProps, condition.Value)
-				if conditionVal == nil {
-					return false, conditionErr
-				}
-				if conditionVal.Kind != yaml.ScalarNode {
-					return false, conditionErr
-				}
-				condition.Value = conditionVal.Value
-			}
-		*/
-
-		/*
-			// Modify referenced resource names
-			_, dependsOn, _ := s11n.GetMapValue(clonedResource, "DependsOn")
-			if dependsOn != nil {
-				replaceDependsOn := &yaml.Node{Kind: yaml.SequenceNode, Content: make([]*yaml.Node, 0)}
-				if dependsOn.Kind == yaml.ScalarNode {
-					for _, v := range strings.Split(dependsOn.Value, " ") {
-						replaceDependsOn.Content = append(replaceDependsOn.Content,
-							&yaml.Node{Kind: yaml.ScalarNode, Value: rename(logicalId, v)})
-					}
-				} else {
-					for _, c := range dependsOn.Content {
-						for _, v := range strings.Split(c.Value, " ") {
-							replaceDependsOn.Content = append(replaceDependsOn.Content,
-								&yaml.Node{Kind: yaml.ScalarNode, Value: rename(logicalId, v)})
-						}
-					}
-				}
-				node.SetMapValue(clonedResource, "DependsOn", replaceDependsOn)
-			}
-		*/
-
-		//resolveRefs(clonedResource, moduleParams, moduleResources, logicalId, templateProps)
 		outputNode.Content = append(outputNode.Content, clonedResource)
 	}
 
 	return true, nil
 }
 
-// downloadModule downloads the file from the given URI and returns its content as a byte slice.
-func downloadModule(uri string) ([]byte, error) {
-	config.Debugf("Downloading %s", uri)
-	resp, err := http.Get(uri)
-	if err != nil {
-		return nil, err
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			config.Debugf("Error closing body: %v", err)
+func checkPackageAlias(t cft.Template, uri string) *cft.PackageAlias {
+	tokens := strings.Split(uri, "/")
+	if len(tokens) > 1 {
+		// See if this is one of the template package aliases
+		if t.Packages != nil {
+			if p, ok := t.Packages[tokens[0]]; ok {
+				return p
+			}
 		}
-	}(resp.Body)
-
-	content, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
 	}
-
-	return content, nil
+	return nil
 }
 
 // Type: !Rain::Module
@@ -926,8 +803,31 @@ func module(ctx *directiveContext) (bool, error) {
 
 	baseUri := ctx.baseUri
 
-	// Is this a local file or a URL?
-	if strings.HasPrefix(uri, "https://") {
+	// Check to see if this is an alias like "alias/foo.yaml"
+	packageAlias := checkPackageAlias(t, uri)
+	isZip := false
+	if packageAlias != nil {
+		config.Debugf("Found package alias: %+v", packageAlias)
+		path := strings.Replace(uri, packageAlias.Alias+"/", "", 1)
+		config.Debugf("path is %s", path)
+		if strings.HasSuffix(packageAlias.Location, ".zip") {
+			// Unzip, verify hash if there is one, and put the files in memory
+			isZip = true
+			content, err = DownloadFromZip(packageAlias.Location, packageAlias.Hash, path)
+			if err != nil {
+				return false, err
+			}
+		} else {
+			uri = strings.Replace(uri, packageAlias.Alias, packageAlias.Location, 1)
+			config.Debugf("uri is now %s", uri)
+			config.Debugf("baseUri is %s", baseUri)
+		}
+	}
+
+	// Is this a local file or a URL or did we already unzip a package?
+	if isZip {
+		config.Debugf("Got content from a zipped module package: %s", string(content))
+	} else if strings.HasPrefix(uri, "https://") {
 
 		content, err = downloadModule(uri)
 		if err != nil {
@@ -941,6 +841,7 @@ func module(ctx *directiveContext) (bool, error) {
 		// Strip the file name from the uri
 		urlParts := strings.Split(uri, "/")
 		baseUri = strings.Join(urlParts[:len(urlParts)-1], "/")
+
 	} else {
 		if baseUri != "" {
 			// If we have a base URL, prepend it to the relative path
@@ -966,7 +867,21 @@ func module(ctx *directiveContext) (bool, error) {
 			newRootDir = filepath.Dir(embeddedPath)
 		} else {
 			// Read the local file
-			content, path, err = expectFile(n, root)
+			path := uri
+			if !filepath.IsAbs(path) {
+				path = filepath.Join(root, path)
+			}
+
+			info, err := os.Stat(path)
+			if err != nil {
+				return false, err
+			}
+
+			if info.IsDir() {
+				return false, fmt.Errorf("'%s' is a directory", path)
+			}
+
+			content, err = os.ReadFile(path)
 			if err != nil {
 				return false, err
 			}
@@ -986,16 +901,27 @@ func module(ctx *directiveContext) (bool, error) {
 		return false, err
 	}
 
+	// Figure out parent nodes to handle nested modules
 	var newParent node.NodePair
 	if parent.Parent != nil && parent.Parent.Value != nil {
 		newParent = node.GetParent(n, parent.Parent.Value, nil)
 		newParent.Parent = &parent
 	}
 
+	// Treat the module as a template
+	moduleAsTemplate := cft.Template{Node: &moduleNode}
+
+	// Read things like Constants
+	processRainSection(&moduleAsTemplate)
+
+	if moduleAsTemplate.Constants != nil {
+		replaceTemplateConstants(moduleAsTemplate.Node, moduleAsTemplate.Constants)
+	}
+
 	_, err = transform(&transformContext{
 		nodeToTransform: &moduleNode,
 		rootDir:         newRootDir,
-		t:               cft.Template{Node: &moduleNode},
+		t:               moduleAsTemplate,
 		parent:          &newParent,
 		fs:              ctx.fs,
 		baseUri:         baseUri,
@@ -1006,8 +932,9 @@ func module(ctx *directiveContext) (bool, error) {
 
 	// Create a new node to represent the processed module
 	var outputNode yaml.Node
-	_, err = processModule(&moduleNode, &outputNode, t, n, parent)
+	_, err = processModule(&moduleNode, &outputNode, t, n, parent, moduleAsTemplate.Constants)
 	if err != nil {
+		config.Debugf("processModule error: %v, moduleNode: %s", err, node.ToSJson(&moduleNode))
 		return false, fmt.Errorf("failed to process module %s: %v", uri, err)
 	}
 

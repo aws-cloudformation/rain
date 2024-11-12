@@ -64,6 +64,10 @@ Resources:
 
   NetworkPublicSubnet1:
     Type: AWS::EC2::Subnet
+    Metadata:
+      guard:
+        SuppressedRules:
+          - SUBNET_AUTO_ASSIGN_PUBLIC_IP_DISABLED
     Properties:
       AvailabilityZone: !Select
         - 0
@@ -72,10 +76,6 @@ Resources:
       CidrBlock: 10.0.0.0/18
       MapPublicIpOnLaunch: true
       VpcId: !Ref NetworkVPC
-    Metadata:
-      guard:
-        SuppressedRules:
-          - SUBNET_AUTO_ASSIGN_PUBLIC_IP_DISABLED
 
   NetworkPublicSubnet1RouteTable:
     Type: AWS::EC2::RouteTable
@@ -90,16 +90,16 @@ Resources:
 
   NetworkPublicSubnet1DefaultRoute:
     Type: AWS::EC2::Route
-    Properties:
-      DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref NetworkInternetGateway
-      RouteTableId: !Ref NetworkPublicSubnet1RouteTable
+    DependsOn:
+      - NetworkVPCGW
     Metadata:
       guard:
         SuppressedRules:
           - NO_UNRESTRICTED_ROUTE_TO_IGW
-    DependsOn:
-      - NetworkVPCGW
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref NetworkInternetGateway
+      RouteTableId: !Ref NetworkPublicSubnet1RouteTable
 
   NetworkPublicSubnet1EIP:
     Type: AWS::EC2::EIP
@@ -108,15 +108,19 @@ Resources:
 
   NetworkPublicSubnet1NATGateway:
     Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt NetworkPublicSubnet1EIP.AllocationId
-      SubnetId: !Ref NetworkPublicSubnet1
     DependsOn:
       - NetworkPublicSubnet1DefaultRoute
       - NetworkPublicSubnet1RouteTableAssociation
+    Properties:
+      AllocationId: !GetAtt NetworkPublicSubnet1EIP.AllocationId
+      SubnetId: !Ref NetworkPublicSubnet1
 
   NetworkPublicSubnet2:
     Type: AWS::EC2::Subnet
+    Metadata:
+      guard:
+        SuppressedRules:
+          - SUBNET_AUTO_ASSIGN_PUBLIC_IP_DISABLED
     Properties:
       AvailabilityZone: !Select
         - 1
@@ -125,10 +129,6 @@ Resources:
       CidrBlock: 10.0.64.0/18
       MapPublicIpOnLaunch: true
       VpcId: !Ref NetworkVPC
-    Metadata:
-      guard:
-        SuppressedRules:
-          - SUBNET_AUTO_ASSIGN_PUBLIC_IP_DISABLED
 
   NetworkPublicSubnet2RouteTable:
     Type: AWS::EC2::RouteTable
@@ -143,16 +143,16 @@ Resources:
 
   NetworkPublicSubnet2DefaultRoute:
     Type: AWS::EC2::Route
-    Properties:
-      DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref NetworkInternetGateway
-      RouteTableId: !Ref NetworkPublicSubnet2RouteTable
+    DependsOn:
+      - NetworkVPCGW
     Metadata:
       guard:
         SuppressedRules:
           - NO_UNRESTRICTED_ROUTE_TO_IGW
-    DependsOn:
-      - NetworkVPCGW
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref NetworkInternetGateway
+      RouteTableId: !Ref NetworkPublicSubnet2RouteTable
 
   NetworkPublicSubnet2EIP:
     Type: AWS::EC2::EIP
@@ -161,12 +161,12 @@ Resources:
 
   NetworkPublicSubnet2NATGateway:
     Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt NetworkPublicSubnet2EIP.AllocationId
-      SubnetId: !Ref NetworkPublicSubnet2
     DependsOn:
       - NetworkPublicSubnet2DefaultRoute
       - NetworkPublicSubnet2RouteTableAssociation
+    Properties:
+      AllocationId: !GetAtt NetworkPublicSubnet2EIP.AllocationId
+      SubnetId: !Ref NetworkPublicSubnet2
 
   NetworkPrivateSubnet1Subnet:
     Type: AWS::EC2::Subnet

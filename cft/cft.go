@@ -14,12 +14,27 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// PackageAlias is an alias to a module package location
+// A Rain package is a directory of modules, which are single yaml files.
+// See the main README for more
+type PackageAlias struct {
+	// Alias is a simple string like "aws"
+	Alias string
+
+	// Location is the URI where the package is stored
+	Location string
+
+	// Hash is an optional hash for zipped packages hosted on a URL
+	Hash string
+}
+
 // Template represents a CloudFormation template. The Template type
 // is minimal for now but will likely grow new features as needed by rain.
 type Template struct {
 	Node *yaml.Node
 
 	Constants map[string]*yaml.Node
+	Packages  map[string]*PackageAlias
 }
 
 // TODO - We really need a convenient Template data structure
@@ -82,6 +97,7 @@ func (t Template) GetParameter(name string) (*yaml.Node, error) {
 func (t Template) GetNode(section Section, name string) (*yaml.Node, error) {
 	_, resMap, _ := s11n.GetMapValue(t.Node.Content[0], string(section))
 	if resMap == nil {
+		config.Debugf("GetNode t.Node: %s", node.ToSJson(t.Node))
 		return nil, fmt.Errorf("unable to locate the %s node", section)
 	}
 	// TODO: Some Sections are not Maps
@@ -125,8 +141,10 @@ func (t Template) GetSection(section Section) (*yaml.Node, error) {
 	if t.Node == nil {
 		return nil, fmt.Errorf("unable to get section because t.Node is nil")
 	}
-	_, s, _ := s11n.GetMapValue(t.Node.Content[0], string(section))
+	m := t.Node.Content[0]
+	_, s, _ := s11n.GetMapValue(m, string(section))
 	if s == nil {
+		config.Debugf("GetSection t.Node: %s", node.ToSJson(t.Node))
 		return nil, fmt.Errorf("unable to locate the %s node", section)
 	}
 	return s, nil

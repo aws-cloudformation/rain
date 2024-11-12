@@ -48,3 +48,36 @@ func TestGetNodePath(t *testing.T) {
 		}
 	}
 }
+
+func TestGetMap(t *testing.T) {
+	var base yaml.Node
+	err := yaml.Unmarshal([]byte(nodeTestBase), &base)
+	if err != nil {
+		t.Fatal(err)
+	}
+	n := base.Content[0]
+	m := s11n.GetMap(n, "baz")
+	if m == nil {
+		t.Fatal("expected baz map")
+	}
+	if v, ok := m["quux"]; ok {
+		if v.Value != "mooz" {
+			t.Fatalf("expected baaz.quux to be mooz")
+		}
+	} else {
+		t.Fatalf("expected to find baaz.quux")
+	}
+}
+
+func TestGetValue(t *testing.T) {
+	var base yaml.Node
+	err := yaml.Unmarshal([]byte(nodeTestBase), &base)
+	if err != nil {
+		t.Fatal(err)
+	}
+	n := base.Content[0]
+	v := s11n.GetValue(n, "foo")
+	if v != "bar" {
+		t.Fatal("expected foo: bar")
+	}
+}

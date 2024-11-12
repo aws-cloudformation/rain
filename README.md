@@ -308,14 +308,11 @@ See `test/webapp/README.md` for a complete example of using these commands with 
 #### Module
 
 The `!Rain::Module` directive is an experimental feature that allows you to
-create local modules of reuseable code that can be inserted into templates. A
-rain module is similar in some ways to a CDK construct, in that a module can
-extend existing resources, allowing the user of the module to override
-properties. For example, your module could extend an S3 bucket to provide a
-default implementation that passes static security scans. Users of the module
-would inherit these best practices by default, but they would still have the
-ability to configure any of the original properties on `AWS::S3::Bucket`, in
-addition to the properties defined as module parameters.
+create local modules of reuseable code that can be inserted into templates. 
+Rain modules are basically just CloudFormation templates, with a Parameters 
+section that corresponds to the Properties that a consumer will set when 
+using the module. Rain modules are very flexible, since you can override 
+any of the resource properties from the parent template.
 
 In order to use this feature, you have to acknowledge that it's experimental by
 adding a flag on the command line:
@@ -333,8 +330,7 @@ directives.
 A sample module:
 
 ```yaml
-Description: |
-  This module extends AWS::S3::Bucket
+Description: This module creates a compliant bucket, along with a second bucket to store access logs
 
 Parameters:
   LogBucketName:
@@ -449,12 +445,112 @@ Resources:
         RestrictPublicBuckets: true
 ```
 
-### Module package publishing
+### Publish modules to CodeArtifact 
 
 Rain integrates with AWS CodeArtifact to enable an experience similar to npm
 publish and install. A directory that includes Rain module YAML files can be
-packaged up with `rain module publish`, and then the package can be installed
+packaged up with `rain module publish`, and then the directory can be installed
 by developers with `rain module install`.
+
+### Module packaging
+
+You can reference a collection of Rain modules with an alias inside of the
+parent template. Add a `Rain` section to the template to configure the package
+alias. There's nothing special about a package, it's just an alias to a
+directory or a zip file. A zip file can also have a sha256 hash associated with
+it to verify the contents.
+
+```yaml
+Rain:
+  Packages:
+    aws:
+      Location: https://github.com/aws-cloudformation/rain/modules
+    xyz:
+      Location: ./my-modules
+    abc:
+      Location: https://github.com/aws-cloudformation/rain/releases/tag/m0.1.0/modules.zip
+      Hash: https://github.com/aws-cloudformation/rain/releases/tag/m0.1.0/modules.sha256
+
+Resources:
+  Foo:
+    Type: !Rain::Module aws/foo.yaml
+
+  Bar:
+    Type: !Rain::Module xyz/bar.yaml
+
+  Baz:
+    Type: $abc/baz.yaml
+    # Shorthand for !Rain::Module abc/baz.yaml
+```
+
+A module package is published and released from this repository separately from
+the Rain binary release. This allows the package to be referenced by version
+numbers using tags, such as `m0.1.0` as shown in the example above. The major
+version number will be incremented if any breaking changes are introduced to
+the modules. The available modules in the release package are listed below. 
+
+Treat these modules as samples to be used as a proof-of-concept for building your 
+own module packages.
+
+#### simple-vpc.yaml
+
+A VPC with just two availability zones. This module is useful for POCs and simple projects.
+
+#### encrypted-bucket.yaml
+
+A simple bucket with encryption enabled and public access blocked
+
+#### compliant-bucket.yaml
+
+A bucket, plus extra buckets for access logs and replication and a bucket policy that should pass most typical compliance checks.
+
+#### bucket-policy.yaml
+
+A bucket policy that denies requests not made with TLS.
+
+#### load-balancer.yaml
+
+An ELBv2 load balancer
+
+#### static-site.yaml
+
+An S3 bucket and a CloudFront distribution to host content for a web site
+
+#### cognito.yaml
+
+A Cognito User Pool and associated resources
+
+#### rest-api.yaml
+
+An API Gateway REST API
+
+#### api-resource.yaml
+
+A Lambda function and associated API Gateway resources
+
+### IfParam and IfNotParam
+
+Inside a module, you can add a Metadata attribute to show or hide resources, 
+depending on whether the parent template sets a parameter value. This is similar 
+to the Conditional section in a template, but somewhat simpler, and it only works in modules.
+
+```yaml
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+    Metadata:
+      Rain:
+        IfParam: Foo
+```
+
+If the parent template does not set a value for the `Foo` property, the module will 
+omit the resource. The opposite is true for `IfNotParam`. 
+
+`IfParam` can be useful to make flexible modules that can optionally do things like 
+configure permissions for related resources, like allowing access to a bucket or table.
+
+`IfNotParam` is useful if you have pre-created a resource and you don't want the module 
+to create it for you.
 
 ### Gantt Chart
 

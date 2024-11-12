@@ -1,17 +1,15 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
-Transform: AWS::LanguageExtensions
-
 Description: "A central event bus rule and log group to collect CloudFormation logs \nfrom all target accounts. This example can be adapted to collect logs\nfrom other services besides CloudFormation, by editing the embedded template \nthat is used to create stack instances in target accounts.\n"
 
 Parameters:
   OUID:
-    Type: String
     Description: "The Id of the Organization Unit to deploy the stack set to. \nAll accounts under this OU will receive stack instances of the \nchild template embedded in this template.\n"
+    Type: String
 
   OrgID:
-    Type: String
     Description: "The Id of the Organization to verify the cross account API call. \nAll accounts in this org will be granted permissions to put events \nonto the default event bus in this account. \nNote that this is not the OUID, it's the org itself and should start with \"o-\"\n"
+    Type: String
 
   CentralEventBusName:
     Type: String
@@ -20,6 +18,8 @@ Parameters:
   CentralEventLogName:
     Type: String
     Default: central-cloudformation-logs
+
+Transform: AWS::LanguageExtensions
 
 Resources:
   CentralEventBus:
@@ -47,8 +47,8 @@ Resources:
             aws:PrincipalOrgID: !Ref OrgID
 
   CentralEventLog:
-    DependsOn: CentralEventBus
     Type: AWS::Logs::LogGroup
+    DependsOn: CentralEventBus
     Properties:
       LogGroupClass: STANDARD
       LogGroupName: !Ref CentralEventLogName

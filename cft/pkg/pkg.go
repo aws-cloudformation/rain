@@ -79,6 +79,84 @@ func transform(ctx *transformContext) (bool, error) {
 	return changed, nil
 }
 
+// processRainSection returns true if the Rain section of the template existed
+// The section is removed by this function
+func processRainSection(t *cft.Template) bool {
+	t.Constants = make(map[string]*yaml.Node)
+	rainNode, err := t.GetSection(cft.Rain)
+	if err != nil {
+		// This is okay, not all templates have a Rain section
+		return false
+	}
+
+	// Process constants in order, since they can refer to previous ones
+	_, c, _ := s11n.GetMapValue(rainNode, "Constants")
+	if c != nil {
+		for i := 0; i < len(c.Content); i += 2 {
+			name := c.Content[i].Value
+			val := c.Content[i+1]
+			t.Constants[name] = val
+			// Visit each node in val looking for any ${Rain::ConstantName}
+			// and replace it with prior constant entries
+			vf := func(v *visitor.Visitor) {
+				vnode := v.GetYamlNode()
+				if vnode.Kind == yaml.ScalarNode {
+					err := replaceConstants(vnode, t.Constants)
+					if err != nil {
+						// These constants must be scalars
+						config.Debugf("replaceConstants failed: %v", err)
+					}
+				}
+			}
+			v := visitor.NewVisitor(val)
+			v.Visit(vf)
+		}
+	}
+
+	// Package aliases
+	packages := s11n.GetMap(rainNode, "Packages")
+	if packages != nil {
+		t.Packages = make(map[string]*cft.PackageAlias)
+		for k, v := range packages {
+			p := &cft.PackageAlias{}
+			p.Alias = k
+			p.Location = s11n.GetValue(v, "Location")
+			p.Hash = s11n.GetValue(v, "Hash")
+			t.Packages[k] = p
+		}
+
+		// Visit all resources to look for Type nodes that use $alias.module shorthand
+		resources, err := t.GetSection(cft.Resources)
+		if err == nil {
+			for i := 0; i < len(resources.Content); i += 2 {
+				resource := resources.Content[i+1]
+				_, typ, _ := s11n.GetMapValue(resource, "Type")
+				if typ == nil {
+					continue
+				}
+				if strings.HasPrefix(typ.Value, "$") {
+					// This is a package alias, fix it so it gets processed later
+					//typ.Value = "!Rain::Module " + strings.Trim(typ.Value, "$")
+					newTypeNode := yaml.Node{Kind: yaml.MappingNode}
+					newTypeNode.Content = []*yaml.Node{
+						&yaml.Node{Kind: yaml.ScalarNode, Value: "Rain::Module"},
+						&yaml.Node{Kind: yaml.ScalarNode, Value: strings.Trim(typ.Value, "$")},
+					}
+					*typ = newTypeNode
+				}
+			}
+		}
+
+	}
+
+	// Add handling for any other features we add to the Rain section here
+
+	// Now remove the Rain node from the template
+	t.RemoveSection(cft.Rain)
+
+	return true
+}
+
 // Template returns t with assets included as per AWS CLI packaging rules
 // and any Rain:: functions used.
 // rootDir must be passed in so that any included assets can be loaded from the same directory
@@ -90,42 +168,7 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 	//config.Debugf("Original template long: %v", node.ToJson(t.Node))
 
 	// First look for a Rain section and store constants
-	t.Constants = make(map[string]*yaml.Node)
-	rainNode, err := t.GetSection(cft.Rain)
-	hasRainNode := false
-	if err != nil {
-		config.Debugf("Unable to get Rain section: %v", err)
-	} else {
-		hasRainNode = true
-		config.Debugf("Rain node: %s", node.ToSJson(rainNode))
-		_, c, _ := s11n.GetMapValue(rainNode, "Constants")
-		if c != nil {
-			for i := 0; i < len(c.Content); i += 2 {
-				name := c.Content[i].Value
-				val := c.Content[i+1]
-				t.Constants[name] = val
-				// Visit each node in val looking for any ${Rain::ConstantName}
-				// and replace it with prior constant entries
-				vf := func(v *visitor.Visitor) {
-					vnode := v.GetYamlNode()
-					if vnode.Kind == yaml.ScalarNode {
-						err := replaceConstants(vnode, t.Constants)
-						if err != nil {
-							// These constants must be scalars
-							config.Debugf("replaceConstants failed: %v", err)
-						}
-					}
-				}
-				v := visitor.NewVisitor(val)
-				v.Visit(vf)
-			}
-		}
-
-		// Add handling for any other features we add to the Rain section here
-
-		// Now remove the Rain node from the template
-		t.RemoveSection(cft.Rain)
-	}
+	hasRainSection := processRainSection(&t)
 
 	constants := t.Constants
 
@@ -149,11 +192,9 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 			return t, err
 		}
 		if changedThisPass {
-			config.Debugf("Need another pass: %d", passes)
 			changed = true
 		}
 		if !changedThisPass {
-			config.Debugf("No changes this pass: %d", passes)
 			break
 		}
 		if passes > maxPasses {
@@ -198,7 +239,8 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 	v.Visit(replaceAnchors)
 
 	// Look for ${Rain::ConstantName} in all Sub strings
-	if hasRainNode {
+	if hasRainSection {
+		// Note that this rewrites all Subs and might have side effects
 		replaceTemplateConstants(templateNode, constants)
 	}
 
@@ -214,11 +256,14 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 		return t, fmt.Errorf("failed to unmarshal template: %v", err)
 	}
 
-	// We lose the Document node here
-	// TODO: Actually we're ending up with 2 document nodes somehow...
+	// We might lose the Document node here
 	retval := cft.Template{}
-	retval.Node = &yaml.Node{Kind: yaml.DocumentNode, Content: make([]*yaml.Node, 0)}
-	retval.Node.Content = append(retval.Node.Content, templateNode)
+	if templateNode.Kind == yaml.DocumentNode {
+		retval.Node = templateNode
+	} else {
+		retval.Node = &yaml.Node{Kind: yaml.DocumentNode, Content: make([]*yaml.Node, 0)}
+		retval.Node.Content = append(retval.Node.Content, templateNode)
+	}
 
 	return retval, err
 }
