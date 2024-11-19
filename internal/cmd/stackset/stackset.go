@@ -1,6 +1,7 @@
 package stackset
 
 import (
+	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/console"
 	"github.com/spf13/cobra"
@@ -33,10 +34,15 @@ Use "{{.CommandPath}} [command] --help" for more information about a command.{{e
 var delegatedAdmin bool
 
 // addCommand adds a command to the root command.
-func addCommand(profileOptions bool, c *cobra.Command) {
+func addCommand(profileOptions bool, bucketOptions bool, c *cobra.Command) {
 	if profileOptions {
 		c.Flags().StringVarP(&config.Profile, "profile", "p", "", "AWS profile name; read from the AWS CLI configuration file")
 		c.Flags().StringVarP(&config.Region, "region", "r", "", "AWS region to use")
+	}
+	if bucketOptions {
+		c.Flags().StringVar(&s3.BucketName, "s3-bucket", "", "Name of the S3 bucket that is used to upload assets")
+		c.Flags().StringVar(&s3.BucketKeyPrefix, "s3-prefix", "", "Prefix to add to objects uploaded to S3 bucket")
+		c.Flags().StringVar(&s3.ExpectedBucketOwner, "s3-owner", "", "The account where S3 assets are stored")
 	}
 
 	c.Flags().BoolVar(&delegatedAdmin, "admin", false, "Use delegated admin permissions")
@@ -51,9 +57,9 @@ var StackSetCmd = &cobra.Command{
 }
 
 func init() {
-	addCommand(true, LsCmd)
-	addCommand(true, DeployCmd)
-	addCommand(true, RmCmd)
+	addCommand(true, false, LsCmd)
+	addCommand(true, true, DeployCmd)
+	addCommand(true, false, RmCmd)
 
 	oldUsageFunc := StackSetCmd.UsageFunc()
 	StackSetCmd.SetUsageFunc(func(c *cobra.Command) error {
