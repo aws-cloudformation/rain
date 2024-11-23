@@ -52,9 +52,10 @@ Rain will attempt to create an S3 bucket to store artifacts that it packages and
 The bucket's name will be of the format rain-artifacts-<AWS account id>-<AWS region>.
 
 The config flags can be used to set accounts, regions to operate and tags with parameters to use.
-Configuration file with extended options can be provided along with '--config' flag in YAML or JSON format (see example file for details).
+Configuration file with extended options can be provided along with '--config' flag in YAML or JSON format (see [example file](https://github.com/aws-cloudformation/rain/blob/main/test/samples/test-config.yaml) for details).
 
 YAML:
+` + "```" + `
 Parameters:
 	Name: Value
 Tags:
@@ -68,9 +69,10 @@ StackSetInstances:
 	regions:
 		- us-east-1
 		- us-east-2
-...
+	...
+` + "```" + `
 
-Account(s) and region(s) provided as flags OVERRIDE values from configuration files. Tags and parameters from the configuration file are MERGED with CLI flag values. 
+Account(s) and region(s) provided as flags OVERRIDE values from configuration files. Tags and parameters from the configuration file are MERGED with CLI flag values.
 `,
 	Args:                  cobra.RangeArgs(1, 2),
 	DisableFlagsInUseLine: false,
