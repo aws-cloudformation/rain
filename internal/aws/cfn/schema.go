@@ -98,7 +98,9 @@ func (schema *Schema) Patch() error {
 	case "AWS::DynamoDB::Table":
 		return patchDynamoDBTable(schema)
 	case "AWS::EC2::VerifiedAccessTrustProvider":
-		return patchAEC2VerifiedAccessTrustProvider(schema)
+		return patchEC2VerifiedAccessTrustProvider(schema)
+	case "AWS::EC2::LaunchTemplate":
+		return patchEC2LaunchTemplate(schema)
 	}
 	return nil
 }

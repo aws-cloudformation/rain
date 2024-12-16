@@ -180,9 +180,22 @@ func patchDynamoDBTable(schema *Schema) error {
 	return nil
 }
 
-func patchAEC2VerifiedAccessTrustProvider(schema *Schema) error {
+func patchEC2VerifiedAccessTrustProvider(schema *Schema) error {
 	// This one is apparently a placeholder schema
 	// Remove the extraneous def that points to itself
 	delete(schema.Definitions, "SseSpecification")
+	return nil
+}
+
+func patchEC2LaunchTemplate(schema *Schema) error {
+	// The schema is missing a definition for NetworkPerformanceOptions
+	// Delete it if the definition is not there (so this works if they add it)
+	name := "NetworkPerformanceOptions"
+	if _, ok := schema.Definitions[name]; !ok {
+		ltd, exists := schema.Definitions["LaunchTemplateData"]
+		if exists {
+			delete(ltd.Properties, name)
+		}
+	}
 	return nil
 }
