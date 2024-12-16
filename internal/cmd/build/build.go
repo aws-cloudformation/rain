@@ -65,6 +65,10 @@ func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema, 
 
 	prop.Type = cfn.ConvertPropType(prop.Type)
 
+	if prop.Type == "" && len(prop.OneOf) > 0 || len(prop.AnyOf) > 0 {
+		prop.Type = "object"
+	}
+
 	switch prop.Type {
 	case "string":
 		if len(prop.Enum) > 0 {
@@ -179,6 +183,8 @@ func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema, 
 				}
 			}
 		} else {
+			config.Debugf("Missing Ref: %s, ancestors: %v, %+v",
+				propName, ancestorTypes, prop)
 			return fmt.Errorf("expected blank type to have $ref: %s", propName)
 		}
 	default:
