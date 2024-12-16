@@ -30,7 +30,8 @@
         "BUILD_GENERAL1_MEDIUM",
         "BUILD_GENERAL1_LARGE",
         "BUILD_GENERAL1_XLARGE",
-        "BUILD_GENERAL1_2XLARGE"
+        "BUILD_GENERAL1_2XLARGE",
+        "ATTRIBUTE_BASED_COMPUTE"
       ]
     },
     "OverflowBehavior": {
@@ -47,6 +48,9 @@
     "FleetVpcConfig": {
       "$ref": "#/definitions/VpcConfig"
     },
+    "FleetProxyConfiguration": {
+      "$ref": "#/definitions/ProxyConfiguration"
+    },
     "Tags": {
       "type": "array",
       "insertionOrder": false,
@@ -61,6 +65,12 @@
     "ImageId": {
       "type": "string",
       "pattern": "^((aws/codebuild/[A-Za-z-]+:[0-9]+(-[0-9._]+)?)|ami-[a-z0-9]{1,1020})$"
+    },
+    "ScalingConfiguration": {
+      "$ref": "#/definitions/ScalingConfigurationInput"
+    },
+    "ComputeConfiguration": {
+      "$ref": "#/definitions/ComputeConfiguration"
     }
   },
   "definitions": {
@@ -108,6 +118,112 @@
           "items": {
             "type": "string"
           }
+        }
+      }
+    },
+    "ProxyConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "DefaultBehavior": {
+          "type": "string",
+          "enum": [
+            "ALLOW_ALL",
+            "DENY_ALL"
+          ]
+        },
+        "OrderedProxyRules": {
+          "type": "array",
+          "insertionOrder": true,
+          "items": {
+            "$ref": "#/definitions/FleetProxyRule"
+          }
+        }
+      }
+    },
+    "FleetProxyRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Type": {
+          "type": "string",
+          "enum": [
+            "DOMAIN",
+            "IP"
+          ]
+        },
+        "Effect": {
+          "type": "string",
+          "enum": [
+            "ALLOW",
+            "DENY"
+          ]
+        },
+        "Entities": {
+          "type": "array",
+          "insertionOrder": false,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ScalingConfigurationInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "MaxCapacity": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "ScalingType": {
+          "type": "string",
+          "enum": [
+            "TARGET_TRACKING_SCALING"
+          ]
+        },
+        "TargetTrackingScalingConfigs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TargetTrackingScalingConfiguration"
+          }
+        }
+      }
+    },
+    "TargetTrackingScalingConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "MetricType": {
+          "type": "string",
+          "enum": [
+            "FLEET_UTILIZATION_RATE"
+          ]
+        },
+        "TargetValue": {
+          "type": "number"
+        }
+      }
+    },
+    "ComputeConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "vCpu": {
+          "type": "integer"
+        },
+        "memory": {
+          "type": "integer"
+        },
+        "disk": {
+          "type": "integer"
+        },
+        "machineType": {
+          "type": "string",
+          "enum": [
+            "GENERAL",
+            "NVME"
+          ]
         }
       }
     }

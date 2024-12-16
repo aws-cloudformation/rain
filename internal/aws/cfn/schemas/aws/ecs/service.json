@@ -12,7 +12,8 @@
     "cloudFormationSystemTags": false
   },
   "propertyTransform": {
-    "/properties/Role": "Role $OR $join([\"arn:(aws)[-]{0,1}[a-z]{0,2}[-]{0,1}[a-z]{0,3}:iam::[0-9]{12}[:]role/{1}\", Role])"
+    "/properties/TaskDefinition": "TaskDefinition $OR $join([\"arn:(aws)[-]{0,1}[a-z]{0,3}[-]{0,1}[a-z]{0,3}:ecs:[a-z0-9-]+:[0-9]{12}:task-definition/\", $contains(TaskDefinition,\":\")?TaskDefinition:$join([TaskDefinition, \":[0-9]+\"])])",
+    "/properties/Role": "Role $OR $join([\"arn:(aws)[-]{0,1}[a-z]{0,3}[-]{0,1}[a-z]{0,3}:iam::[0-9]{12}[:]role/{1}\", Role])"
   },
   "handlers": {
     "read": {
@@ -150,6 +151,30 @@
         }
       }
     },
+    "VpcLatticeConfiguration": {
+      "description": "The VPC Lattice configuration for your service that holds the information for the target group(s) Amazon ECS tasks will be registered to.",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "TargetGroupArn": {
+          "description": "The full Amazon Resource Name (ARN) of the target group or groups associated with the VPC Lattice configuration that the Amazon ECS tasks will be registered to.",
+          "type": "string"
+        },
+        "PortName": {
+          "description": "The name of the port mapping to register in the VPC Lattice target group. This is the name of the ``portMapping`` you defined in your task definition.",
+          "type": "string"
+        },
+        "RoleArn": {
+          "description": "The ARN of the IAM role to associate with this VPC Lattice configuration. This is the Amazon ECS  infrastructure IAM role that is used to manage your VPC Lattice infrastructure.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "RoleArn",
+        "TargetGroupArn",
+        "PortName"
+      ]
+    },
     "LoadBalancer": {
       "description": "The ``LoadBalancer`` property specifies details on a load balancer that is used with a service.\n If the service is using the ``CODE_DEPLOY`` deployment controller, the service is required to use either an Application Load Balancer or Network Load Balancer. When you are creating an ACDlong deployment group, you specify two target groups (referred to as a ``targetGroupPair``). Each target group binds to a separate task set in the deployment. The load balancer can also have up to two listeners, a required listener for production traffic and an optional listener that allows you to test new revisions of the service before routing production traffic to it.\n Services with tasks that use the ``awsvpc`` network mode (for example, those with the Fargate launch type) only support Application Load Balancers and Network Load Balancers. Classic Load Balancers are not supported. Also, when you create any target groups for these services, you must choose ``ip`` as the target type, not ``instance``. Tasks that use the ``awsvpc`` network mode are associated with an elastic network interface, not an Amazon EC2 instance.",
       "additionalProperties": false,
@@ -248,7 +273,7 @@
       ]
     },
     "DeploymentController": {
-      "description": "The deployment controller to use for the service. For more information, see [Amazon ECS deployment types](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-types.html) in the *Amazon Elastic Container Service Developer Guide*.",
+      "description": "The deployment controller to use for the service.",
       "additionalProperties": false,
       "type": "object",
       "properties": {
@@ -331,7 +356,7 @@
           }
         },
         "AssignPublicIp": {
-          "description": "Whether the task's elastic network interface receives a public IP address. The default value is ``DISABLED``.",
+          "description": "Whether the task's elastic network interface receives a public IP address. The default value is ``ENABLED``.",
           "type": "string",
           "enum": [
             "DISABLED",
@@ -363,7 +388,7 @@
       ]
     },
     "ServiceManagedEBSVolumeConfiguration": {
-      "description": "The configuration for the Amazon EBS volume that Amazon ECS creates and manages on your behalf. These settings are used to create each Amazon EBS volume, with one volume created for each task in the service.\n Many of these parameters map 1:1 with the Amazon EBS ``CreateVolume`` API request parameters.",
+      "description": "The configuration for the Amazon EBS volume that Amazon ECS creates and manages on your behalf. These settings are used to create each Amazon EBS volume, with one volume created for each task in the service. For information about the supported launch types and operating systems, see [Supported operating systems and launch types](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ebs-volumes.html#ebs-volumes-configuration) in the*Amazon Elastic Container Service Developer Guide*.\n Many of these parameters map 1:1 with the Amazon EBS ``CreateVolume`` API request parameters.",
       "additionalProperties": false,
       "type": "object",
       "required": [
@@ -390,7 +415,7 @@
           }
         },
         "FilesystemType": {
-          "description": "The Linux filesystem type for the volume. For volumes created from a snapshot, you must specify the same filesystem type that the volume was using when the snapshot was created. If there is a filesystem type mismatch, the task will fail to start.\n The available filesystem types are  ``ext3``, ``ext4``, and ``xfs``. If no value is specified, the ``xfs`` filesystem type is used by default.",
+          "description": "The filesystem type for the volume. For volumes created from a snapshot, you must specify the same filesystem type that the volume was using when the snapshot was created. If there is a filesystem type mismatch, the task will fail to start.\n The available Linux filesystem types are  ``ext3``, ``ext4``, and ``xfs``. If no value is specified, the ``xfs`` filesystem type is used by default.\n The available Windows filesystem types are ``NTFS``.",
           "type": "string"
         },
         "Encrypted": {
@@ -668,6 +693,15 @@
       "description": "",
       "type": "string"
     },
+    "AvailabilityZoneRebalancing": {
+      "default": "DISABLED",
+      "description": "Indicates whether to use Availability Zone rebalancing for the service.\n For more information, see [Balancing an Amazon ECS service across Availability Zones](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-rebalancing.html) in the *Amazon Elastic Container Service Developer Guide*.",
+      "type": "string",
+      "enum": [
+        "ENABLED",
+        "DISABLED"
+      ]
+    },
     "SchedulingStrategy": {
       "description": "The scheduling strategy to use for the service. For more information, see [Services](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html).\n There are two service scheduler strategies available:\n  +   ``REPLICA``-The replica scheduling strategy places and maintains the desired number of tasks across your cluster. By default, the service scheduler spreads tasks across Availability Zones. You can use task placement strategies and constraints to customize task placement decisions. This scheduler strategy is required if the service uses the ``CODE_DEPLOY`` or ``EXTERNAL`` deployment controller types.\n  +   ``DAEMON``-The daemon scheduling strategy deploys exactly one task on each active container instance that meets all of the task placement constraints that you specify in your cluster. The service scheduler also evaluates the task placement constraints for running tasks and will stop tasks that don't meet the placement constraints. When you're using this strategy, you don't need to specify a desired number of tasks, a task placement strategy, or use Service Auto Scaling policies.\n  Tasks using the Fargate launch type or the ``CODE_DEPLOY`` or ``EXTERNAL`` deployment controller types don't support the ``DAEMON`` scheduling strategy.",
       "type": "string",
@@ -688,7 +722,7 @@
       }
     },
     "HealthCheckGracePeriodSeconds": {
-      "description": "The period of time, in seconds, that the Amazon ECS service scheduler ignores unhealthy Elastic Load Balancing target health checks after a task has first started. This is only used when your service is configured to use a load balancer. If your service has a load balancer defined and you don't specify a health check grace period value, the default value of ``0`` is used.\n If you do not use an Elastic Load Balancing, we recommend that you use the ``startPeriod`` in the task definition health check parameters. For more information, see [Health check](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_HealthCheck.html).\n If your service's tasks take a while to start and respond to Elastic Load Balancing health checks, you can specify a health check grace period of up to 2,147,483,647 seconds (about 69 years). During that time, the Amazon ECS service scheduler ignores health check status. This grace period can prevent the service scheduler from marking tasks as unhealthy and stopping them before they have time to come up.",
+      "description": "The period of time, in seconds, that the Amazon ECS service scheduler ignores unhealthy Elastic Load Balancing, VPC Lattice, and container health checks after a task has first started. If you don't specify a health check grace period value, the default value of ``0`` is used. If you don't use any of the health checks, then ``healthCheckGracePeriodSeconds`` is unused.\n If your service's tasks take a while to start and respond to health checks, you can specify a health check grace period of up to 2,147,483,647 seconds (about 69 years). During that time, the Amazon ECS service scheduler ignores health check status. This grace period can prevent the service scheduler from marking tasks as unhealthy and stopping them before they have time to come up.",
       "type": "integer"
     },
     "EnableECSManagedTags": {
@@ -724,6 +758,13 @@
     "DesiredCount": {
       "description": "The number of instantiations of the specified task definition to place and keep running in your service.\n For new services, if a desired count is not specified, a default value of ``1`` is used. When using the ``DAEMON`` scheduling strategy, the desired count is not required.\n For existing services, if a desired count is not specified, it is omitted from the operation.",
       "type": "integer"
+    },
+    "VpcLatticeConfigurations": {
+      "description": "The VPC Lattice configuration for the service being created.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/VpcLatticeConfiguration"
+      }
     },
     "DeploymentController": {
       "description": "The deployment controller to use for the service. If no deployment controller is specified, the default value of ``ECS`` is used.",

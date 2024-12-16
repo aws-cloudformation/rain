@@ -16,7 +16,7 @@
     "/properties/Arn",
     "/properties/StreamArn"
   ],
-  "description": "The ``AWS::DynamoDB::Table`` resource creates a DDB table. For more information, see [CreateTable](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_CreateTable.html) in the *API Reference*.\n You should be aware of the following behaviors when working with DDB tables:\n  +   CFNlong typically creates DDB tables in parallel. However, if your template includes multiple DDB tables with indexes, you must declare dependencies so that the tables are created sequentially. DDBlong limits the number of tables with secondary indexes that are in the creating state. If you create multiple tables with indexes at the same time, DDB returns an error and the stack operation fails. For an example, see [DynamoDB Table with a DependsOn Attribute](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dynamodb-table.html#aws-resource-dynamodb-table--examples--DynamoDB_Table_with_a_DependsOn_Attribute).\n  \n   Our guidance is to use the latest schema documented here for your CFNlong templates. This schema supports the provisioning of all table settings below. When using this schema in your CFNlong templates, please ensure that your Identity and Access Management (IAM) policies are updated with appropriate permissions to allow for the authorization of these setting changes.",
+  "description": "The ``AWS::DynamoDB::Table`` resource creates a DDB table. For more information, see [CreateTable](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_CreateTable.html) in the *API Reference*.\n You should be aware of the following behaviors when working with DDB tables:\n  +   CFNlong typically creates DDB tables in parallel. However, if your template includes multiple DDB tables with indexes, you must declare dependencies so that the tables are created sequentially. DDBlong limits the number of tables with secondary indexes that are in the creating state. If you create multiple tables with indexes at the same time, DDB returns an error and the stack operation fails. For an example, see [DynamoDB Table with a DependsOn Attribute](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dynamodb-table.html#aws-resource-dynamodb-table--examples--DynamoDB_Table_with_a_DependsOn_Attribute).\n  \n   Our guidance is to use the latest schema documented for your CFNlong templates. This schema supports the provisioning of all table settings below. When using this schema in your CFNlong templates, please ensure that your Identity and Access Management (IAM) policies are updated with appropriate permissions to allow for the authorization of these setting changes.",
   "createOnlyProperties": [
     "/properties/TableName",
     "/properties/ImportSourceSpecification"
@@ -26,6 +26,9 @@
   ],
   "required": [
     "KeySchema"
+  ],
+  "conditionalCreateOnlyProperties": [
+    "/properties/KeySchema"
   ],
   "propertyTransform": {
     "/properties/SSESpecification/KMSMasterKeyId": "$join([\"arn:aws(-[a-z]{1,4}){0,2}:kms:[a-z]{2,4}(-[a-z]{1,4})?-[a-z]{1,10}-[0-9]:[0-9]{12}:key\\/\", SSESpecification.KMSMasterKeyId]) $OR $join([\"arn:aws(-[a-z]{1,4}){0,2}:kms:[a-z]{2,4}(-[a-z]{1,4})?-[a-z]{1,10}-[0-9]:[0-9]{12}:key\\/\", KMSMasterKeyId])"
@@ -400,6 +403,35 @@
         "ReadCapacityUnits"
       ]
     },
+    "WarmThroughput": {
+      "anyOf": [
+        {
+          "required": [
+            "ReadUnitsPerSecond"
+          ]
+        },
+        {
+          "required": [
+            "WriteUnitsPerSecond"
+          ]
+        }
+      ],
+      "description": "Provides visibility into the number of read and write operations your table or secondary index can instantaneously support. The settings can be modified using the ``UpdateTable`` operation to meet the throughput requirements of an upcoming peak event.",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "ReadUnitsPerSecond": {
+          "description": "Represents the number of read operations your base table can instantaneously support.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "WriteUnitsPerSecond": {
+          "description": "Represents the number of write operations your base table can instantaneously support.",
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
     "GlobalSecondaryIndex": {
       "description": "Represents the properties of a global secondary index.",
       "additionalProperties": false,
@@ -432,6 +464,10 @@
           "items": {
             "$ref": "#/definitions/KeySchema"
           }
+        },
+        "WarmThroughput": {
+          "description": "Represents the warm throughput value (in read units per second and write units per second) for the specified secondary index. If you use this parameter, you must specify ``ReadUnitsPerSecond``, ``WriteUnitsPerSecond``, or both.",
+          "$ref": "#/definitions/WarmThroughput"
         }
       },
       "required": [
@@ -589,7 +625,7 @@
       "$ref": "#/definitions/ContributorInsightsSpecification"
     },
     "ImportSourceSpecification": {
-      "description": "Specifies the properties of data being imported from the S3 bucket source to the table.\n  If you specify the ``ImportSourceSpecification`` property, and also specify either the ``StreamSpecification``, the ``TableClass`` property, or the ``DeletionProtectionEnabled`` property, the IAM entity creating/updating stack must have ``UpdateTable`` permission.",
+      "description": "Specifies the properties of data being imported from the S3 bucket source to the\" table.\n  If you specify the ``ImportSourceSpecification`` property, and also specify either the ``StreamSpecification``, the ``TableClass`` property, the ``DeletionProtectionEnabled`` property, or the ``WarmThroughput`` property, the IAM entity creating/updating stack must have ``UpdateTable`` permission.",
       "$ref": "#/definitions/ImportSourceSpecification"
     },
     "PointInTimeRecoverySpecification": {
@@ -599,6 +635,10 @@
     "ProvisionedThroughput": {
       "description": "Throughput for the specified table, which consists of values for ``ReadCapacityUnits`` and ``WriteCapacityUnits``. For more information about the contents of a provisioned throughput structure, see [Amazon DynamoDB Table ProvisionedThroughput](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_ProvisionedThroughput.html). \n If you set ``BillingMode`` as ``PROVISIONED``, you must specify this property. If you set ``BillingMode`` as ``PAY_PER_REQUEST``, you cannot specify this property.",
       "$ref": "#/definitions/ProvisionedThroughput"
+    },
+    "WarmThroughput": {
+      "description": "Represents the warm throughput (in read units per second and write units per second) for creating a table.",
+      "$ref": "#/definitions/WarmThroughput"
     },
     "TableName": {
       "description": "A name for the table. If you don't specify a name, CFNlong generates a unique physical ID and uses that ID for the table name. For more information, see [Name Type](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-name.html).\n  If you specify a name, you cannot perform updates that require replacement of this resource. You can perform updates that require no or some interruption. If you must replace the resource, specify a new name.",

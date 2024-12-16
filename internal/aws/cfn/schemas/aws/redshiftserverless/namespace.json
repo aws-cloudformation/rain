@@ -225,7 +225,16 @@
     }
   },
   "tagging": {
-    "taggable": false
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": false,
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "redshift-serverless:ListTagsForResource",
+      "redshift-serverless:TagResource",
+      "redshift-serverless:UntagResource"
+    ]
   },
   "required": [
     "NamespaceName"
@@ -248,9 +257,6 @@
     "/properties/AdminUserPassword",
     "/properties/FinalSnapshotName",
     "/properties/FinalSnapshotRetentionPeriod",
-    "/properties/Tags",
-    "/properties/Tags/*/Key",
-    "/properties/Tags/*/Value",
     "/properties/ManageAdminPassword",
     "/properties/RedshiftIdcApplicationArn"
   ],
@@ -264,6 +270,7 @@
   "handlers": {
     "create": {
       "permissions": [
+        "iam:CreateServiceLinkedRole",
         "iam:PassRole",
         "kms:TagResource",
         "kms:UntagResource",
@@ -282,6 +289,8 @@
         "redshift-serverless:GetNamespace",
         "redshift-serverless:ListSnapshotCopyConfigurations",
         "redshift-serverless:CreateSnapshotCopyConfiguration",
+        "redshift-serverless:ListTagsForResource",
+        "redshift-serverless:TagResource",
         "redshift:GetResourcePolicy",
         "redshift:PutResourcePolicy",
         "secretsmanager:CreateSecret",
@@ -294,6 +303,7 @@
       "permissions": [
         "iam:PassRole",
         "redshift-serverless:GetNamespace",
+        "redshift-serverless:ListTagsForResource",
         "redshift:GetResourcePolicy",
         "redshift-serverless:ListSnapshotCopyConfigurations"
       ]
@@ -320,6 +330,9 @@
         "redshift-serverless:CreateSnapshotCopyConfiguration",
         "redshift-serverless:UpdateSnapshotCopyConfiguration",
         "redshift-serverless:DeleteSnapshotCopyConfiguration",
+        "redshift-serverless:ListTagsForResource",
+        "redshift-serverless:TagResource",
+        "redshift-serverless:UntagResource",
         "redshift:GetResourcePolicy",
         "redshift:PutResourcePolicy",
         "redshift:DeleteResourcePolicy",
@@ -336,6 +349,8 @@
         "iam:PassRole",
         "redshift-serverless:DeleteNamespace",
         "redshift-serverless:GetNamespace",
+        "redshift-serverless:ListTagsForResource",
+        "redshift-serverless:UntagResource",
         "kms:RetireGrant",
         "secretsmanager:DescribeSecret",
         "secretsmanager:DeleteSecret",
@@ -345,7 +360,8 @@
     "list": {
       "permissions": [
         "iam:PassRole",
-        "redshift-serverless:ListNamespaces"
+        "redshift-serverless:ListNamespaces",
+        "redshift-serverless:ListTagsForResource"
       ]
     }
   },

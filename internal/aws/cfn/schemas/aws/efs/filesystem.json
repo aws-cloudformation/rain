@@ -81,13 +81,26 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "Status": {
+          "type": "string",
+          "description": ""
+        },
+        "StatusMessage": {
+          "type": "string",
+          "description": ""
+        },
         "FileSystemId": {
+          "pattern": "^(arn:aws[-a-z]*:elasticfilesystem:[0-9a-z-:]+:file-system/fs-[0-9a-f]{8,40}|fs-[0-9a-f]{8,40})$",
           "type": "string",
           "description": "The ID of the destination Amazon EFS file system."
         },
         "Region": {
           "type": "string",
           "description": "The AWS-Region in which the destination file system is located.\n  For One Zone file systems, the replication configuration must specify the AWS-Region in which the destination file system is located."
+        },
+        "RoleArn": {
+          "type": "string",
+          "description": ""
         },
         "AvailabilityZoneName": {
           "type": "string",
@@ -191,7 +204,9 @@
   "additionalProperties": false,
   "readOnlyProperties": [
     "/properties/Arn",
-    "/properties/FileSystemId"
+    "/properties/FileSystemId",
+    "/properties/ReplicationConfiguration/Destinations/*/Status",
+    "/properties/ReplicationConfiguration/Destinations/*/StatusMessage"
   ],
   "primaryIdentifier": [
     "/properties/FileSystemId"
@@ -209,14 +224,21 @@
   ],
   "propertyTransform": {
     "/properties/KmsKeyId": "\"arn:aws[-a-z]*:kms:[a-z0-9-]+:[0-9]{12}:key/[a-zA-Z0-9-]+\"",
-    "/properties/FileSystemProtection/ReplicationOverwriteProtection": "$uppercase(FileSystemProtection.ReplicationOverwriteProtection)='DISABLED' ? 'REPLICATING' : $uppercase(FileSystemProtection.ReplicationOverwriteProtection)"
+    "/properties/FileSystemProtection/ReplicationOverwriteProtection": "$uppercase(FileSystemProtection.ReplicationOverwriteProtection)='DISABLED' ? 'REPLICATING' : $uppercase(FileSystemProtection.ReplicationOverwriteProtection)",
+    "/properties/ReplicationConfiguration/Destinations/*/FileSystemId": "$split(FileSystemId, \"/\")[-1]"
   },
   "tagging": {
     "taggable": true,
     "tagOnCreate": true,
     "tagUpdatable": true,
-    "cloudFormationSystemTags": false,
-    "tagProperty": "/properties/FileSystemTags"
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/FileSystemTags",
+    "permissions": [
+      "elasticfilesystem:TagResource",
+      "elasticfilesystem:ListTagsForResource",
+      "elasticfilesystem:UntagResource",
+      "elasticfilesystem:DeleteTags"
+    ]
   },
   "handlers": {
     "create": {
@@ -232,7 +254,9 @@
         "elasticfilesystem:UpdateFileSystemProtection",
         "kms:DescribeKey",
         "kms:GenerateDataKeyWithoutPlaintext",
-        "kms:CreateGrant"
+        "kms:CreateGrant",
+        "iam:PassRole",
+        "iam:CreateServiceLinkedRole"
       ]
     },
     "read": {
@@ -265,7 +289,9 @@
         "elasticfilesystem:UpdateFileSystemProtection",
         "kms:DescribeKey",
         "kms:GenerateDataKeyWithoutPlaintext",
-        "kms:CreateGrant"
+        "kms:CreateGrant",
+        "iam:PassRole",
+        "iam:CreateServiceLinkedRole"
       ]
     },
     "delete": {

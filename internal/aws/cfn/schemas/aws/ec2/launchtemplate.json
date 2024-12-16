@@ -76,6 +76,10 @@
             "$ref": "#/definitions/TagSpecification"
           }
         },
+        "NetworkPerformanceOptions": {
+          "description": "",
+          "$ref": "#/definitions/NetworkPerformanceOptions"
+        },
         "UserData": {
           "description": "The user data to make available to the instance. You must provide base64-encoded text. User data is limited to 16 KB. For more information, see [Run commands on your Amazon EC2 instance at launch](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html) in the *Amazon EC2 User Guide*.\n If you are creating the launch template for use with BATCH, the user data must be provided in the [MIME multi-part archive format](https://docs.aws.amazon.com/https://cloudinit.readthedocs.io/en/latest/topics/format.html#mime-multi-part-archive). For more information, see [Amazon EC2 user data in launch templates](https://docs.aws.amazon.com/batch/latest/userguide/launch-templates.html) in the *User Guide*.",
           "type": "string"
@@ -259,6 +263,16 @@
         "Type": {
           "description": "The type of Elastic Graphics accelerator.",
           "type": "string"
+        }
+      }
+    },
+    "Cpu": {
+      "description": "",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "References": {
+          "$ref": "#/definitions/References"
         }
       }
     },
@@ -525,6 +539,17 @@
         "Max": {
           "description": "The maximum number of network interfaces. To specify no maximum limit, omit this parameter.",
           "type": "integer"
+        }
+      }
+    },
+    "Reference": {
+      "description": "",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "InstanceFamily": {
+          "description": "The instance family to refer. Ensure that you specify the correct family name. For example, C6i and C6g are valid values, but C6 is not.",
+          "type": "string"
         }
       }
     },
@@ -832,6 +857,25 @@
         }
       }
     },
+    "References": {
+      "uniqueItems": true,
+      "description": "A list of references to be used as baseline for the CPU performance. Currently, you can only specify a single reference across different instance type variations such as CPU manufacturers, architectures etc.",
+      "insertionOrder": true,
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Reference"
+      }
+    },
+    "BaselinePerformanceFactors": {
+      "description": "",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "Cpu": {
+          "$ref": "#/definitions/Cpu"
+        }
+      }
+    },
     "LaunchTemplateElasticInferenceAccelerator": {
       "description": "Specifies an elastic inference accelerator.\n  ``LaunchTemplateElasticInferenceAccelerator`` is a property of [AWS::EC2::LaunchTemplate LaunchTemplateData](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html).",
       "additionalProperties": false,
@@ -867,14 +911,6 @@
       "additionalProperties": false,
       "type": "object",
       "properties": {
-        "LocalStorageTypes": {
-          "uniqueItems": false,
-          "description": "The type of local storage that is required.\n  +  For instance types with hard disk drive (HDD) storage, specify ``hdd``.\n  +  For instance types with solid state drive (SSD) storage, specify ``ssd``.\n  \n Default: ``hdd`` and ``ssd``",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
         "InstanceGenerations": {
           "uniqueItems": false,
           "description": "Indicates whether current or previous generation instance types are included. The current generation instance types are recommended for use. Current generation instance types are typically the latest two to three generations in each instance family. For more information, see [Instance types](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html) in the *Amazon EC2 User Guide*.\n For current generation instance types, specify ``current``.\n For previous generation instance types, specify ``previous``.\n Default: Current and previous generation instance types",
@@ -882,10 +918,6 @@
           "items": {
             "type": "string"
           }
-        },
-        "NetworkInterfaceCount": {
-          "description": "The minimum and maximum number of network interfaces.\n Default: No minimum or maximum limits",
-          "$ref": "#/definitions/NetworkInterfaceCount"
         },
         "MemoryGiBPerVCpu": {
           "description": "The minimum and maximum amount of memory per vCPU, in GiB.\n Default: No minimum or maximum limits",
@@ -903,26 +935,9 @@
           "description": "The minimum and maximum number of vCPUs.",
           "$ref": "#/definitions/VCpuCount"
         },
-        "ExcludedInstanceTypes": {
-          "uniqueItems": false,
-          "description": "The instance types to exclude.\n You can use strings with one or more wild cards, represented by an asterisk (``*``), to exclude an instance type, size, or generation. The following are examples: ``m5.8xlarge``, ``c5*.*``, ``m5a.*``, ``r*``, ``*3*``.\n For example, if you specify ``c5*``,Amazon EC2 will exclude the entire C5 instance family, which includes all C5a and C5n instance types. If you specify ``m5a.*``, Amazon EC2 will exclude all the M5a instance types, but not the M5n instance types.\n  If you specify ``ExcludedInstanceTypes``, you can't specify ``AllowedInstanceTypes``.\n  Default: No excluded instance types",
-          "type": "array",
-          "items": {
-            "description": "The user data to make available to the instance.",
-            "type": "string"
-          }
-        },
         "AcceleratorManufacturers": {
           "uniqueItems": false,
           "description": "Indicates whether instance types must have accelerators by specific manufacturers.\n  +  For instance types with AWS devices, specify ``amazon-web-services``.\n  +  For instance types with AMD devices, specify ``amd``.\n  +  For instance types with Habana devices, specify ``habana``.\n  +  For instance types with NVIDIA devices, specify ``nvidia``.\n  +  For instance types with Xilinx devices, specify ``xilinx``.\n  \n Default: Any manufacturer",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "AllowedInstanceTypes": {
-          "uniqueItems": false,
-          "description": "The instance types to apply your specified attributes against. All other instance types are ignored, even if they match your specified attributes.\n You can use strings with one or more wild cards, represented by an asterisk (``*``), to allow an instance type, size, or generation. The following are examples: ``m5.8xlarge``, ``c5*.*``, ``m5a.*``, ``r*``, ``*3*``.\n For example, if you specify ``c5*``,Amazon EC2 will allow the entire C5 instance family, which includes all C5a and C5n instance types. If you specify ``m5a.*``, Amazon EC2 will allow all the M5a instance types, but not the M5n instance types.\n  If you specify ``AllowedInstanceTypes``, you can't specify ``ExcludedInstanceTypes``.\n  Default: All instance types",
           "type": "array",
           "items": {
             "type": "string"
@@ -940,14 +955,6 @@
             "type": "string"
           }
         },
-        "AcceleratorCount": {
-          "description": "The minimum and maximum number of accelerators (GPUs, FPGAs, or AWS Inferentia chips) on an instance.\n To exclude accelerator-enabled instance types, set ``Max`` to ``0``.\n Default: No minimum or maximum limits",
-          "$ref": "#/definitions/AcceleratorCount"
-        },
-        "NetworkBandwidthGbps": {
-          "description": "The minimum and maximum amount of network bandwidth, in gigabits per second (Gbps).\n Default: No minimum or maximum limits",
-          "$ref": "#/definitions/NetworkBandwidthGbps"
-        },
         "BareMetal": {
           "description": "Indicates whether bare metal instance types must be included, excluded, or required.\n  +  To include bare metal instance types, specify ``included``.\n  +  To require only bare metal instance types, specify ``required``.\n  +  To exclude bare metal instance types, specify ``excluded``.\n  \n Default: ``excluded``",
           "type": "string"
@@ -960,6 +967,55 @@
           "description": "[Price protection] The price protection threshold for Spot Instances, as a percentage of an identified On-Demand price. The identified On-Demand price is the price of the lowest priced current generation C, M, or R instance type with your specified attributes. If no current generation C, M, or R instance type matches your attributes, then the identified price is from the lowest priced current generation instance types, and failing that, from the lowest priced previous generation instance types that match your attributes. When Amazon EC2 selects instance types with your attributes, it will exclude instance types whose price exceeds your specified threshold.\n The parameter accepts an integer, which Amazon EC2 interprets as a percentage.\n If you set ``TargetCapacityUnitType`` to ``vcpu`` or ``memory-mib``, the price protection threshold is based on the per vCPU or per memory price instead of the per instance price.\n  Only one of ``SpotMaxPricePercentageOverLowestPrice`` or ``MaxSpotPriceAsPercentageOfOptimalOnDemandPrice`` can be specified. If you don't specify either, Amazon EC2 will automatically apply optimal price protection to consistently select from a wide range of instance types. To indicate no price protection threshold for Spot Instances, meaning you want to consider all instance types that match your attributes, include one of these parameters and specify a high value, such as ``999999``.",
           "type": "integer"
         },
+        "OnDemandMaxPricePercentageOverLowestPrice": {
+          "description": "[Price protection] The price protection threshold for On-Demand Instances, as a percentage higher than an identified On-Demand price. The identified On-Demand price is the price of the lowest priced current generation C, M, or R instance type with your specified attributes. When Amazon EC2 selects instance types with your attributes, it will exclude instance types whose price exceeds your specified threshold.\n The parameter accepts an integer, which Amazon EC2 interprets as a percentage.\n To turn off price protection, specify a high value, such as ``999999``.\n This parameter is not supported for [GetSpotPlacementScores](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetSpotPlacementScores.html) and [GetInstanceTypesFromInstanceRequirements](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetInstanceTypesFromInstanceRequirements.html).\n  If you set ``TargetCapacityUnitType`` to ``vcpu`` or ``memory-mib``, the price protection threshold is applied based on the per-vCPU or per-memory price instead of the per-instance price.\n  Default: ``20``",
+          "type": "integer"
+        },
+        "MemoryMiB": {
+          "description": "The minimum and maximum amount of memory, in MiB.",
+          "$ref": "#/definitions/MemoryMiB"
+        },
+        "LocalStorageTypes": {
+          "uniqueItems": false,
+          "description": "The type of local storage that is required.\n  +  For instance types with hard disk drive (HDD) storage, specify ``hdd``.\n  +  For instance types with solid state drive (SSD) storage, specify ``ssd``.\n  \n Default: ``hdd`` and ``ssd``",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "NetworkInterfaceCount": {
+          "description": "The minimum and maximum number of network interfaces.\n Default: No minimum or maximum limits",
+          "$ref": "#/definitions/NetworkInterfaceCount"
+        },
+        "ExcludedInstanceTypes": {
+          "uniqueItems": false,
+          "description": "The instance types to exclude.\n You can use strings with one or more wild cards, represented by an asterisk (``*``), to exclude an instance type, size, or generation. The following are examples: ``m5.8xlarge``, ``c5*.*``, ``m5a.*``, ``r*``, ``*3*``.\n For example, if you specify ``c5*``,Amazon EC2 will exclude the entire C5 instance family, which includes all C5a and C5n instance types. If you specify ``m5a.*``, Amazon EC2 will exclude all the M5a instance types, but not the M5n instance types.\n  If you specify ``ExcludedInstanceTypes``, you can't specify ``AllowedInstanceTypes``.\n  Default: No excluded instance types",
+          "type": "array",
+          "items": {
+            "description": "The user data to make available to the instance.",
+            "type": "string"
+          }
+        },
+        "AllowedInstanceTypes": {
+          "uniqueItems": false,
+          "description": "The instance types to apply your specified attributes against. All other instance types are ignored, even if they match your specified attributes.\n You can use strings with one or more wild cards, represented by an asterisk (``*``), to allow an instance type, size, or generation. The following are examples: ``m5.8xlarge``, ``c5*.*``, ``m5a.*``, ``r*``, ``*3*``.\n For example, if you specify ``c5*``,Amazon EC2 will allow the entire C5 instance family, which includes all C5a and C5n instance types. If you specify ``m5a.*``, Amazon EC2 will allow all the M5a instance types, but not the M5n instance types.\n  If you specify ``AllowedInstanceTypes``, you can't specify ``ExcludedInstanceTypes``.\n  Default: All instance types",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "AcceleratorCount": {
+          "description": "The minimum and maximum number of accelerators (GPUs, FPGAs, or AWS Inferentia chips) on an instance.\n To exclude accelerator-enabled instance types, set ``Max`` to ``0``.\n Default: No minimum or maximum limits",
+          "$ref": "#/definitions/AcceleratorCount"
+        },
+        "NetworkBandwidthGbps": {
+          "description": "The minimum and maximum amount of network bandwidth, in gigabits per second (Gbps).\n Default: No minimum or maximum limits",
+          "$ref": "#/definitions/NetworkBandwidthGbps"
+        },
+        "BaselinePerformanceFactors": {
+          "description": "",
+          "$ref": "#/definitions/BaselinePerformanceFactors"
+        },
         "SpotMaxPricePercentageOverLowestPrice": {
           "description": "[Price protection] The price protection threshold for Spot Instances, as a percentage higher than an identified Spot price. The identified Spot price is the Spot price of the lowest priced current generation C, M, or R instance type with your specified attributes. If no current generation C, M, or R instance type matches your attributes, then the identified Spot price is from the lowest priced current generation instance types, and failing that, from the lowest priced previous generation instance types that match your attributes. When Amazon EC2 selects instance types with your attributes, it will exclude instance types whose Spot price exceeds your specified threshold.\n The parameter accepts an integer, which Amazon EC2 interprets as a percentage.\n If you set ``TargetCapacityUnitType`` to ``vcpu`` or ``memory-mib``, the price protection threshold is applied based on the per-vCPU or per-memory price instead of the per-instance price.\n This parameter is not supported for [GetSpotPlacementScores](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetSpotPlacementScores.html) and [GetInstanceTypesFromInstanceRequirements](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetInstanceTypesFromInstanceRequirements.html).\n  Only one of ``SpotMaxPricePercentageOverLowestPrice`` or ``MaxSpotPriceAsPercentageOfOptimalOnDemandPrice`` can be specified. If you don't specify either, Amazon EC2 will automatically apply optimal price protection to consistently select from a wide range of instance types. To indicate no price protection threshold for Spot Instances, meaning you want to consider all instance types that match your attributes, include one of these parameters and specify a high value, such as ``999999``.\n  Default: ``100``",
           "type": "integer"
@@ -967,10 +1023,6 @@
         "BaselineEbsBandwidthMbps": {
           "description": "The minimum and maximum baseline bandwidth to Amazon EBS, in Mbps. For more information, see [Amazon EBS–optimized instances](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html) in the *Amazon EC2 User Guide*.\n Default: No minimum or maximum limits",
           "$ref": "#/definitions/BaselineEbsBandwidthMbps"
-        },
-        "OnDemandMaxPricePercentageOverLowestPrice": {
-          "description": "[Price protection] The price protection threshold for On-Demand Instances, as a percentage higher than an identified On-Demand price. The identified On-Demand price is the price of the lowest priced current generation C, M, or R instance type with your specified attributes. When Amazon EC2 selects instance types with your attributes, it will exclude instance types whose price exceeds your specified threshold.\n The parameter accepts an integer, which Amazon EC2 interprets as a percentage.\n To turn off price protection, specify a high value, such as ``999999``.\n This parameter is not supported for [GetSpotPlacementScores](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetSpotPlacementScores.html) and [GetInstanceTypesFromInstanceRequirements](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetInstanceTypesFromInstanceRequirements.html).\n  If you set ``TargetCapacityUnitType`` to ``vcpu`` or ``memory-mib``, the price protection threshold is applied based on the per-vCPU or per-memory price instead of the per-instance price.\n  Default: ``20``",
-          "type": "integer"
         },
         "AcceleratorNames": {
           "uniqueItems": false,
@@ -987,10 +1039,6 @@
         "BurstablePerformance": {
           "description": "Indicates whether burstable performance T instance types are included, excluded, or required. For more information, see [Burstable performance instances](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances.html).\n  +  To include burstable performance instance types, specify ``included``.\n  +  To require only burstable performance instance types, specify ``required``.\n  +  To exclude burstable performance instance types, specify ``excluded``.\n  \n Default: ``excluded``",
           "type": "string"
-        },
-        "MemoryMiB": {
-          "description": "The minimum and maximum amount of memory, in MiB.",
-          "$ref": "#/definitions/MemoryMiB"
         },
         "TotalLocalStorageGB": {
           "description": "The minimum and maximum amount of total local storage, in GB.\n Default: No minimum or maximum limits",

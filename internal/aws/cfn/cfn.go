@@ -64,7 +64,8 @@ var schemaFiles embed.FS
 func checkTemplate(template cft.Template) (string, error) {
 	templateBody := format.String(template, format.Options{})
 
-	if len(templateBody) > 460800 {
+	// Max template size is 1MB
+	if len(templateBody) > (1024 * 1024) {
 		return "", fmt.Errorf("template is too large to deploy")
 	}
 

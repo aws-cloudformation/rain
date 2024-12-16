@@ -3,6 +3,36 @@
   "description": "Resource schema for AWS::IoTSiteWise::Portal",
   "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-iotsitewise.git",
   "definitions": {
+    "PortalTypeEntry": {
+      "description": "Container associated a certain PortalType.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "PortalTools": {
+          "$ref": "#/definitions/PortalTools"
+        }
+      },
+      "required": [
+        "PortalTools"
+      ]
+    },
+    "PortalTools": {
+      "description": "List of enabled Tools for a certain portal.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "PortalTypeConfiguration": {
+      "description": "Map to associate detail of configuration related with a PortalType.",
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "$ref": "#/definitions/PortalTypeEntry"
+        }
+      }
+    },
     "Tag": {
       "description": "To add or update tag, provide both key and value. To delete tag, provide only tag key to be deleted.",
       "type": "object",
@@ -54,6 +84,17 @@
       "description": "The public root URL for the AWS IoT AWS IoT SiteWise Monitor application portal.",
       "type": "string"
     },
+    "PortalType": {
+      "description": "The type of portal",
+      "type": "string",
+      "enum": [
+        "SITEWISE_PORTAL_V1",
+        "SITEWISE_PORTAL_V2"
+      ]
+    },
+    "PortalTypeConfiguration": {
+      "$ref": "#/definitions/PortalTypeConfiguration"
+    },
     "RoleArn": {
       "description": "The ARN of a service role that allows the portal's users to access your AWS IoT SiteWise resources on your behalf.",
       "type": "string"
@@ -88,14 +129,26 @@
     }
   },
   "additionalProperties": false,
-  "taggable": true,
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "iotsitewise:TagResource",
+      "iotsitewise:UntagResource",
+      "iotsitewise:ListTagsForResource"
+    ]
+  },
   "required": [
     "PortalContactEmail",
     "PortalName",
     "RoleArn"
   ],
   "createOnlyProperties": [
-    "/properties/PortalAuthMode"
+    "/properties/PortalAuthMode",
+    "/properties/PortalType"
   ],
   "readOnlyProperties": [
     "/properties/PortalArn",
@@ -110,9 +163,6 @@
     [
       "/properties/PortalArn"
     ]
-  ],
-  "writeOnlyProperties": [
-    "/properties/Tags"
   ],
   "handlers": {
     "create": {
@@ -153,7 +203,8 @@
     },
     "list": {
       "permissions": [
-        "iotsitewise:ListPortals"
+        "iotsitewise:ListPortals",
+        "iotsitewise:ListTagsForResource"
       ]
     }
   }

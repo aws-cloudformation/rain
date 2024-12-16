@@ -10,24 +10,6 @@
       ],
       "default": "OFF"
     },
-    "ConditionBasedSignalFetchConfig": {
-      "type": "object",
-      "properties": {
-        "ConditionExpression": {
-          "type": "string",
-          "maxLength": 2048,
-          "minLength": 1
-        },
-        "TriggerMode": {
-          "$ref": "#/definitions/TriggerMode"
-        }
-      },
-      "required": [
-        "ConditionExpression",
-        "TriggerMode"
-      ],
-      "additionalProperties": false
-    },
     "DataDestinationConfig": {
       "oneOf": [
         {
@@ -160,6 +142,24 @@
         "SUSPENDED"
       ]
     },
+    "ConditionBasedSignalFetchConfig": {
+      "type": "object",
+      "properties": {
+        "ConditionExpression": {
+          "type": "string",
+          "maxLength": 2048,
+          "minLength": 1
+        },
+        "TriggerMode": {
+          "$ref": "#/definitions/TriggerMode"
+        }
+      },
+      "required": [
+        "ConditionExpression",
+        "TriggerMode"
+      ],
+      "additionalProperties": false
+    },
     "DiagnosticsMode": {
       "type": "string",
       "enum": [
@@ -187,6 +187,9 @@
           "maximum": 4294967295,
           "type": "number",
           "minimum": 0
+        },
+        "DataPartitionId": {
+          "$ref": "#/definitions/DataPartitionId"
         }
       },
       "required": [
@@ -354,21 +357,150 @@
           "minimum": 0
         },
         "Expression": {
-          "minLength": 1,
-          "type": "string",
-          "maxLength": 2048
+          "$ref": "#/definitions/EventExpression"
         },
         "TriggerMode": {
           "$ref": "#/definitions/TriggerMode"
         },
         "ConditionLanguageVersion": {
-          "type": "integer",
-          "minimum": 1
+          "$ref": "#/definitions/LanguageVersion"
         }
       },
       "required": [
         "Expression"
       ]
+    },
+    "EventExpression": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "LanguageVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "DataPartition": {
+      "type": "object",
+      "properties": {
+        "Id": {
+          "$ref": "#/definitions/DataPartitionId"
+        },
+        "StorageOptions": {
+          "$ref": "#/definitions/DataPartitionStorageOptions"
+        },
+        "UploadOptions": {
+          "$ref": "#/definitions/DataPartitionUploadOptions"
+        }
+      },
+      "required": [
+        "Id",
+        "StorageOptions"
+      ],
+      "additionalProperties": false
+    },
+    "DataPartitionStorageOptions": {
+      "type": "object",
+      "properties": {
+        "MaximumSize": {
+          "$ref": "#/definitions/StorageMaximumSize"
+        },
+        "MinimumTimeToLive": {
+          "$ref": "#/definitions/StorageMinimumTimeToLive"
+        },
+        "StorageLocation": {
+          "$ref": "#/definitions/StorageLocation"
+        }
+      },
+      "required": [
+        "MaximumSize",
+        "MinimumTimeToLive",
+        "StorageLocation"
+      ],
+      "additionalProperties": false
+    },
+    "StorageLocation": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "StorageMaximumSize": {
+      "type": "object",
+      "properties": {
+        "Unit": {
+          "$ref": "#/definitions/StorageMaximumSizeUnit"
+        },
+        "Value": {
+          "$ref": "#/definitions/StorageMaximumSizeValue"
+        }
+      },
+      "required": [
+        "Unit",
+        "Value"
+      ],
+      "additionalProperties": false
+    },
+    "StorageMaximumSizeUnit": {
+      "type": "string",
+      "enum": [
+        "MB",
+        "GB",
+        "TB"
+      ]
+    },
+    "StorageMaximumSizeValue": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1073741824
+    },
+    "StorageMinimumTimeToLive": {
+      "type": "object",
+      "properties": {
+        "Unit": {
+          "$ref": "#/definitions/StorageMinimumTimeToLiveUnit"
+        },
+        "Value": {
+          "$ref": "#/definitions/StorageMinimumTimeToLiveValue"
+        }
+      },
+      "required": [
+        "Unit",
+        "Value"
+      ],
+      "additionalProperties": false
+    },
+    "StorageMinimumTimeToLiveUnit": {
+      "type": "string",
+      "enum": [
+        "HOURS",
+        "DAYS",
+        "WEEKS"
+      ]
+    },
+    "StorageMinimumTimeToLiveValue": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10000
+    },
+    "DataPartitionUploadOptions": {
+      "type": "object",
+      "properties": {
+        "Expression": {
+          "$ref": "#/definitions/EventExpression"
+        },
+        "ConditionLanguageVersion": {
+          "$ref": "#/definitions/LanguageVersion"
+        }
+      },
+      "required": [
+        "Expression"
+      ],
+      "additionalProperties": false
+    },
+    "DataPartitionId": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9]+$",
+      "minLength": 1,
+      "maxLength": 128
     },
     "Tag": {
       "type": "object",
@@ -525,6 +657,16 @@
     "CollectionScheme": {
       "$ref": "#/definitions/CollectionScheme"
     },
+    "DataPartitions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/DataPartition"
+      },
+      "insertionOrder": true,
+      "uniqueItems": true,
+      "maxItems": 20,
+      "minItems": 0
+    },
     "Tags": {
       "type": "array",
       "items": {
@@ -568,7 +710,8 @@
     "/properties/Priority",
     "/properties/Compression",
     "/properties/StartTime",
-    "/properties/ExpiryTime"
+    "/properties/ExpiryTime",
+    "/properties/DataPartitions"
   ],
   "additionalProperties": false,
   "primaryIdentifier": [

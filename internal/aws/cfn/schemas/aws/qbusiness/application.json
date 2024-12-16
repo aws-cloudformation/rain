@@ -69,7 +69,27 @@
       "enum": [
         "AWS_IAM_IDP_SAML",
         "AWS_IAM_IDP_OIDC",
-        "AWS_IAM_IDC"
+        "AWS_IAM_IDC",
+        "AWS_QUICKSIGHT_IDP"
+      ]
+    },
+    "PersonalizationConfiguration": {
+      "type": "object",
+      "properties": {
+        "PersonalizationControlMode": {
+          "$ref": "#/definitions/PersonalizationControlMode"
+        }
+      },
+      "required": [
+        "PersonalizationControlMode"
+      ],
+      "additionalProperties": false
+    },
+    "PersonalizationControlMode": {
+      "type": "string",
+      "enum": [
+        "ENABLED",
+        "DISABLED"
       ]
     },
     "QAppsConfiguration": {
@@ -91,30 +111,26 @@
         "DISABLED"
       ]
     },
+    "QuickSightConfiguration": {
+      "type": "object",
+      "properties": {
+        "ClientNamespace": {
+          "type": "string",
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9._-]*$"
+        }
+      },
+      "required": [
+        "ClientNamespace"
+      ],
+      "additionalProperties": false
+    },
     "SubscriptionType": {
       "type": "string",
       "enum": [
         "Q_LITE",
         "Q_BUSINESS"
-      ]
-    },
-    "PersonalizationConfiguration": {
-      "type": "object",
-      "properties": {
-        "PersonalizationControlMode": {
-          "$ref": "#/definitions/PersonalizationControlMode"
-        }
-      },
-      "required": [
-        "PersonalizationControlMode"
-      ],
-      "additionalProperties": false
-    },
-    "PersonalizationControlMode": {
-      "type": "string",
-      "enum": [
-        "ENABLED",
-        "DISABLED"
       ]
     },
     "Tag": {
@@ -159,7 +175,6 @@
     },
     "ClientIdsForOIDC": {
       "type": "array",
-      "insertionOrder": false,
       "items": {
         "type": "string",
         "maxLength": 255,
@@ -198,12 +213,6 @@
       "minLength": 10,
       "pattern": "^arn:(aws|aws-us-gov|aws-cn|aws-iso|aws-iso-b):sso::\\d{12}:application/(sso)?ins-[a-zA-Z0-9-.]{16}/apl-[a-zA-Z0-9]{16}$"
     },
-    "QAppsConfiguration": {
-      "$ref": "#/definitions/QAppsConfiguration"
-    },
-    "PersonalizationConfiguration": {
-      "$ref": "#/definitions/PersonalizationConfiguration"
-    },
     "IdentityCenterInstanceArn": {
       "type": "string",
       "maxLength": 1224,
@@ -212,6 +221,15 @@
     },
     "IdentityType": {
       "$ref": "#/definitions/IdentityType"
+    },
+    "PersonalizationConfiguration": {
+      "$ref": "#/definitions/PersonalizationConfiguration"
+    },
+    "QAppsConfiguration": {
+      "$ref": "#/definitions/QAppsConfiguration"
+    },
+    "QuickSightConfiguration": {
+      "$ref": "#/definitions/QuickSightConfiguration"
     },
     "RoleArn": {
       "type": "string",
@@ -224,7 +242,6 @@
     },
     "Tags": {
       "type": "array",
-      "insertionOrder": false,
       "items": {
         "$ref": "#/definitions/Tag"
       },
@@ -254,7 +271,8 @@
     "/properties/ClientIdsForOIDC",
     "/properties/EncryptionConfiguration",
     "/properties/IamIdentityProviderArn",
-    "/properties/IdentityType"
+    "/properties/IdentityType",
+    "/properties/QuickSightConfiguration"
   ],
   "primaryIdentifier": [
     "/properties/ApplicationId"
@@ -268,9 +286,11 @@
         "kms:DescribeKey",
         "qbusiness:CreateApplication",
         "qbusiness:GetApplication",
-        "qbusiness:UpdateApplication",
         "qbusiness:ListTagsForResource",
         "qbusiness:TagResource",
+        "qbusiness:UpdateApplication",
+        "quicksight:DescribeAccountSubscription",
+        "quicksight:ListNamespaces",
         "sso:CreateApplication",
         "sso:DeleteApplication",
         "sso:DescribeInstance",
@@ -316,7 +336,16 @@
     }
   },
   "tagging": {
-    "taggable": true
+    "taggable": true,
+    "tagUpdatable": true,
+    "tagOnCreate": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "qbusiness:UntagResource",
+      "qbusiness:TagResource",
+      "qbusiness:ListTagsForResource"
+    ]
   },
   "additionalProperties": false
 }
