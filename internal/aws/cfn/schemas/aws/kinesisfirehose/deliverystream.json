@@ -18,6 +18,7 @@
     "DeliveryStreamType": {
       "type": "string",
       "enum": [
+        "DatabaseAsSource",
         "DirectPut",
         "KinesisStreamAsSource",
         "MSKAsSource"
@@ -34,6 +35,9 @@
     },
     "ExtendedS3DestinationConfiguration": {
       "$ref": "#/definitions/ExtendedS3DestinationConfiguration"
+    },
+    "DatabaseSourceConfiguration": {
+      "$ref": "#/definitions/DatabaseSourceConfiguration"
     },
     "KinesisStreamSourceConfiguration": {
       "$ref": "#/definitions/KinesisStreamSourceConfiguration"
@@ -225,6 +229,188 @@
         "RoleARN",
         "KinesisStreamARN"
       ]
+    },
+    "DatabaseSourceConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Type": {
+          "type": "string",
+          "enum": [
+            "MySQL",
+            "PostgreSQL"
+          ]
+        },
+        "Endpoint": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "pattern": "^(?!\\s*$).+"
+        },
+        "Port": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "SSLMode": {
+          "type": "string",
+          "enum": [
+            "Disabled",
+            "Enabled"
+          ]
+        },
+        "Databases": {
+          "$ref": "#/definitions/Databases"
+        },
+        "Tables": {
+          "$ref": "#/definitions/DatabaseTables"
+        },
+        "Columns": {
+          "$ref": "#/definitions/DatabaseColumns"
+        },
+        "SurrogateKeys": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "pattern": "^\\S+$"
+          }
+        },
+        "SnapshotWatermarkTable": {
+          "$ref": "#/definitions/DatabaseTableName"
+        },
+        "DatabaseSourceAuthenticationConfiguration": {
+          "$ref": "#/definitions/DatabaseSourceAuthenticationConfiguration"
+        },
+        "DatabaseSourceVPCConfiguration": {
+          "$ref": "#/definitions/DatabaseSourceVPCConfiguration"
+        },
+        "Digest": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "pattern": ".*"
+        },
+        "PublicCertificate": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096,
+          "pattern": ".*"
+        }
+      },
+      "required": [
+        "Type",
+        "Endpoint",
+        "Port",
+        "Databases",
+        "Tables",
+        "SnapshotWatermarkTable",
+        "DatabaseSourceAuthenticationConfiguration",
+        "DatabaseSourceVPCConfiguration"
+      ]
+    },
+    "Databases": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Include": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DatabaseName"
+          }
+        },
+        "Exclude": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DatabaseName"
+          }
+        }
+      }
+    },
+    "DatabaseName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "[\\u0001-\\uFFFF]*"
+    },
+    "DatabaseTables": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Include": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DatabaseTableName"
+          }
+        },
+        "Exclude": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DatabaseTableName"
+          }
+        }
+      }
+    },
+    "DatabaseTableName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 129,
+      "pattern": "[\\u0001-\\uFFFF]*"
+    },
+    "DatabaseColumns": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Include": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DatabaseColumnName"
+          }
+        },
+        "Exclude": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DatabaseColumnName"
+          }
+        }
+      }
+    },
+    "DatabaseColumnName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 194,
+      "pattern": "[\\u0001-\\uFFFF]*"
+    },
+    "DatabaseSourceAuthenticationConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "SecretsManagerConfiguration": {
+          "$ref": "#/definitions/SecretsManagerConfiguration"
+        }
+      },
+      "required": [
+        "SecretsManagerConfiguration"
+      ]
+    },
+    "DatabaseSourceVPCConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "VpcEndpointServiceName": {
+          "$ref": "#/definitions/VpcEndpointServiceName"
+        }
+      },
+      "required": [
+        "VpcEndpointServiceName"
+      ]
+    },
+    "VpcEndpointServiceName": {
+      "type": "string",
+      "minLength": 47,
+      "maxLength": 255,
+      "pattern": "([a-zA-Z0-9\\-\\_]+\\.){2,3}vpce\\.[a-zA-Z0-9\\-]*\\.vpce-svc\\-[a-zA-Z0-9\\-]{17}$"
     },
     "MSKSourceConfiguration": {
       "type": "object",
@@ -1624,7 +1810,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 512,
-          "pattern": "arn:.*",
+          "pattern": "arn:.*:iam::\\d{12}:role/[a-zA-Z_0-9+=,.@\\-_/]+",
           "relationshipRef": {
             "typeName": "AWS::IAM::Role",
             "propertyPath": "/properties/Arn"
@@ -1633,8 +1819,8 @@
         "SecretARN": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 512,
-          "pattern": "arn:.*",
+          "maxLength": 2048,
+          "pattern": "arn:.*:secretsmanager:[a-zA-Z0-9\\-]+:\\d{12}:secret:[a-zA-Z0-9\\-/_+=.@]+",
           "relationshipRef": {
             "typeName": "AWS::SecretsManager::Secret",
             "propertyPath": "/properties/Arn"
@@ -1721,6 +1907,7 @@
     "/properties/ElasticsearchDestinationConfiguration/VpcConfiguration",
     "/properties/AmazonopensearchserviceDestinationConfiguration/VpcConfiguration",
     "/properties/AmazonOpenSearchServerlessDestinationConfiguration/VpcConfiguration",
+    "/properties/DatabaseSourceConfiguration",
     "/properties/KinesisStreamSourceConfiguration",
     "/properties/MSKSourceConfiguration",
     "/properties/IcebergDestinationConfiguration",

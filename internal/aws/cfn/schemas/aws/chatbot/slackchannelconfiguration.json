@@ -89,6 +89,15 @@
       "description": "Enables use of a user role requirement in your chat configuration",
       "type": "boolean",
       "default": false
+    },
+    "CustomizationResourceArns": {
+      "description": "ARNs of Custom Actions to associate with notifications in the provided chat channel.",
+      "type": "array",
+      "insertionOrder": false,
+      "items": {
+        "type": "string",
+        "pattern": "^arn:aws:chatbot:[A-Za-z0-9_/.-]{0,63}:[A-Za-z0-9_/.-]{0,63}:custom-action/[a-zA-Z0-9_-]{1,64}$"
+      }
     }
   },
   "required": [
@@ -113,13 +122,16 @@
       "permissions": [
         "chatbot:CreateSlackChannelConfiguration",
         "chatbot:TagResource",
+        "chatbot:AssociateToConfiguration",
+        "chatbot:ListAssociations",
         "iam:PassRole",
         "iam:CreateServiceLinkedRole"
       ]
     },
     "read": {
       "permissions": [
-        "chatbot:DescribeSlackChannelConfigurations"
+        "chatbot:DescribeSlackChannelConfigurations",
+        "chatbot:ListAssociations"
       ]
     },
     "update": {
@@ -128,17 +140,23 @@
         "chatbot:TagResource",
         "chatbot:UntagResource",
         "chatbot:ListTagsForResource",
+        "chatbot:AssociateToConfiguration",
+        "chatbot:DisassociateFromConfiguration",
+        "chatbot:ListAssociations",
         "iam:PassRole"
       ]
     },
     "delete": {
       "permissions": [
-        "chatbot:DeleteSlackChannelConfiguration"
+        "chatbot:DeleteSlackChannelConfiguration",
+        "chatbot:DisassociateFromConfiguration",
+        "chatbot:ListAssociations"
       ]
     },
     "list": {
       "permissions": [
-        "chatbot:DescribeSlackChannelConfigurations"
+        "chatbot:DescribeSlackChannelConfigurations",
+        "chatbot:ListAssociations"
       ]
     }
   },
@@ -147,6 +165,11 @@
     "tagOnCreate": true,
     "tagUpdatable": true,
     "cloudFormationSystemTags": true,
-    "tagProperty": "/properties/Tags"
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "chatbot:TagResource",
+      "chatbot:ListTagsForResource",
+      "chatbot:UntagResource"
+    ]
   }
 }

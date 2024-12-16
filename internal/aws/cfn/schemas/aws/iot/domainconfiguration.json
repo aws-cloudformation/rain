@@ -23,6 +23,17 @@
       "properties": {
         "EnableOCSPCheck": {
           "type": "boolean"
+        },
+        "OcspLambdaArn": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 170
+        },
+        "OcspAuthorizedResponderArn": {
+          "type": "string",
+          "pattern": "^arn:aws(-cn|-us-gov|-iso-b|-iso)?:acm:[a-z]{2}-(gov-|iso-|isob-)?[a-z]{4,9}-\\d{1}:\\d{12}:certificate/[a-zA-Z0-9/-]+$",
+          "minLength": 1,
+          "maxLength": 2048
         }
       },
       "additionalProperties": false
@@ -193,7 +204,12 @@
     "tagOnCreate": true,
     "tagUpdatable": true,
     "cloudFormationSystemTags": true,
-    "tagProperty": "/properties/Tags"
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "iot:ListTagsForResource",
+      "iot:TagResource",
+      "iot:UntagResource"
+    ]
   },
   "additionalProperties": false,
   "required": [],

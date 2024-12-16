@@ -4,27 +4,28 @@
   "additionalProperties": false,
   "properties": {
     "BucketName": {
-      "description": "Specifies a name for the bucket. The bucket name must contain only lowercase letters, numbers, and hyphens (-). A directory bucket name must be unique in the chosen Availability Zone. The bucket name must also follow the format 'bucket_base_name--az_id--x-s3' (for example, 'DOC-EXAMPLE-BUCKET--usw2-az1--x-s3'). If you don't specify a name, AWS CloudFormation generates a unique physical ID and uses that ID for the bucket name.",
+      "description": "Specifies a name for the bucket. The bucket name must contain only lowercase letters, numbers, and hyphens (-). A directory bucket name must be unique in the chosen Availability Zone or Local Zone. The bucket name must also follow the format 'bucket_base_name--zone_id--x-s3'. The zone_id can be the ID of an Availability Zone or a Local Zone. If you don't specify a name, AWS CloudFormation generates a unique physical ID and uses that ID for the bucket name.",
       "maxLength": 63,
       "pattern": "^[a-z0-9][a-z0-9//.//-]*[a-z0-9]$",
       "type": "string"
     },
     "LocationName": {
-      "description": "Specifies the AZ ID of the Availability Zone where the directory bucket will be created. An example AZ ID value is 'use1-az5'.",
+      "description": "Specifies the Zone ID of the Availability Zone or Local Zone where the directory bucket will be created. An example Availability Zone ID value is 'use1-az5'.",
       "type": "string"
     },
     "AvailabilityZoneName": {
-      "description": "Returns the code for the Availability Zone where the directory bucket was created.",
+      "description": "Returns the code for the Availability Zone or Local Zone where the directory bucket was created. An example for the code of an Availability Zone is 'us-east-1f'.",
       "examples": [
         "us-east-1f"
       ],
       "type": "string"
     },
     "DataRedundancy": {
-      "description": "Specifies the number of Availability Zone that's used for redundancy for the bucket.",
+      "description": "Specifies the number of Availability Zone or Local Zone that's used for redundancy for the bucket.",
       "type": "string",
       "enum": [
-        "SingleAvailabilityZone"
+        "SingleAvailabilityZone",
+        "SingleLocalZone"
       ]
     },
     "Arn": {
@@ -36,6 +37,10 @@
     },
     "BucketEncryption": {
       "$ref": "#/definitions/BucketEncryption"
+    },
+    "LifecycleConfiguration": {
+      "$ref": "#/definitions/LifecycleConfiguration",
+      "description": "Lifecycle rules that define how Amazon S3 Express manages objects during their lifetime."
     }
   },
   "definitions": {
@@ -110,6 +115,79 @@
       "required": [
         "SSEAlgorithm"
       ]
+    },
+    "LifecycleConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Rules": {
+          "description": "A lifecycle rule for individual objects in an Amazon S3 Express bucket.",
+          "type": "array",
+          "uniqueItems": true,
+          "insertionOrder": true,
+          "items": {
+            "$ref": "#/definitions/Rule"
+          }
+        }
+      },
+      "required": [
+        "Rules"
+      ]
+    },
+    "Rule": {
+      "type": "object",
+      "description": "You must specify at least one of the following properties: AbortIncompleteMultipartUpload, or ExpirationInDays.",
+      "additionalProperties": false,
+      "properties": {
+        "AbortIncompleteMultipartUpload": {
+          "$ref": "#/definitions/AbortIncompleteMultipartUpload"
+        },
+        "ExpirationInDays": {
+          "type": "integer"
+        },
+        "Id": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "Prefix": {
+          "type": "string"
+        },
+        "Status": {
+          "type": "string",
+          "enum": [
+            "Enabled",
+            "Disabled"
+          ]
+        },
+        "ObjectSizeGreaterThan": {
+          "type": "string",
+          "maxLength": 20,
+          "pattern": "[0-9]+"
+        },
+        "ObjectSizeLessThan": {
+          "type": "string",
+          "maxLength": 20,
+          "pattern": "[0-9]+"
+        }
+      },
+      "required": [
+        "Status"
+      ]
+    },
+    "AbortIncompleteMultipartUpload": {
+      "description": "Specifies the days since the initiation of an incomplete multipart upload that Amazon S3 will wait before permanently removing all parts of the upload.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "DaysAfterInitiation": {
+          "description": "Specifies the number of days after which Amazon S3 aborts an incomplete multipart upload.",
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "DaysAfterInitiation"
+      ]
     }
   },
   "createOnlyProperties": [
@@ -141,7 +219,8 @@
         "kms:Decrypt",
         "s3express:CreateBucket",
         "s3express:ListAllMyDirectoryBuckets",
-        "s3express:PutEncryptionConfiguration"
+        "s3express:PutEncryptionConfiguration",
+        "s3express:PutLifecycleConfiguration"
       ]
     },
     "read": {
@@ -149,14 +228,15 @@
         "s3express:ListAllMyDirectoryBuckets",
         "ec2:DescribeAvailabilityZones",
         "s3express:GetEncryptionConfiguration",
-        "s3express:ListAllMyDirectoryBuckets"
+        "s3express:GetLifecycleConfiguration"
       ]
     },
     "update": {
       "permissions": [
         "kms:GenerateDataKey",
         "kms:Decrypt",
-        "s3express:PutEncryptionConfiguration"
+        "s3express:PutEncryptionConfiguration",
+        "s3express:PutLifecycleConfiguration"
       ]
     },
     "delete": {

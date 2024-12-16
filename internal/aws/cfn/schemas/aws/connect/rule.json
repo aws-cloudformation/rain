@@ -1,39 +1,44 @@
 {
   "typeName": "AWS::Connect::Rule",
-  "description": "Resource Type definition for AWS:Connect::Rule",
+  "description": "Creates a rule for the specified CON instance.",
   "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-connect",
   "definitions": {
     "FieldValue": {
-      "description": "The value of the field.",
+      "description": "Object for case field values.",
       "type": "object",
       "properties": {
         "StringValue": {
-          "type": "string"
+          "type": "string",
+          "description": ""
         },
         "BooleanValue": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": ""
         },
         "DoubleValue": {
-          "type": "number"
+          "type": "number",
+          "description": ""
         },
         "EmptyValue": {
-          "type": "object"
+          "type": "object",
+          "description": ""
         }
       },
       "additionalProperties": false
     },
     "Field": {
-      "description": "The field of the case.",
+      "description": "",
       "type": "object",
       "properties": {
         "Id": {
-          "description": "The Id of the field",
+          "description": "",
           "type": "string",
           "minLength": 1,
           "maxLength": 500
         },
         "Value": {
-          "$ref": "#/definitions/FieldValue"
+          "$ref": "#/definitions/FieldValue",
+          "description": ""
         }
       },
       "required": [
@@ -63,7 +68,7 @@
       "type": "object",
       "properties": {
         "UserTags": {
-          "description": "The collection of recipients who are identified by user tags",
+          "description": "The tags used to organize, track, or control access for this resource. For example, { \"tags\": {\"key1\":\"value1\", \"key2\":\"value2\"} }. CON users with the specified tags will be notified.",
           "patternProperties": {
             "^(?=.{1,128}$).+$": {
               "type": "string"
@@ -72,7 +77,7 @@
           "additionalProperties": false
         },
         "UserArns": {
-          "description": "The list of recipients by user arns.",
+          "description": "The Amazon Resource Name (ARN) of the user account.",
           "type": "array",
           "minItems": 1,
           "maxItems": 5,
@@ -86,12 +91,13 @@
       "additionalProperties": false
     },
     "Reference": {
-      "description": "A contact reference.",
+      "description": "Information about the reference when the ``referenceType`` is ``URL``. Otherwise, null. (Supports variable injection in the ``Value`` field.)",
       "type": "object",
       "properties": {
         "Value": {
           "type": "string",
-          "pattern": "^(/|https:)"
+          "pattern": "^(/|https:)",
+          "description": "A valid value for the reference. For example, for a URL reference, a formatted URL that is displayed to an agent in the Contact Control Panel (CCP)."
         },
         "Type": {
           "type": "string",
@@ -102,7 +108,8 @@
             "STRING",
             "DATE",
             "EMAIL"
-          ]
+          ],
+          "description": "The type of the reference. ``DATE`` must be of type Epoch timestamp. \n  *Allowed values*: ``URL`` | ``ATTACHMENT`` | ``NUMBER`` | ``STRING`` | ``DATE`` | ``EMAIL``"
         }
       },
       "required": [
@@ -112,28 +119,28 @@
       "additionalProperties": false
     },
     "TaskAction": {
-      "description": "The definition of task action.",
+      "description": "Information about the task action. This field is required if ``TriggerEventSource`` is one of the following values: ``OnZendeskTicketCreate`` | ``OnZendeskTicketStatusUpdate`` | ``OnSalesforceCaseCreate``",
       "type": "object",
       "properties": {
         "Name": {
-          "description": "The name which appears in the agent's Contact Control Panel (CCP).",
+          "description": "The name. Supports variable injection. For more information, see [JSONPath reference](https://docs.aws.amazon.com/connect/latest/adminguide/contact-lens-variable-injection.html) in the *Administrators Guide*.",
           "type": "string",
           "minLength": 1,
           "maxLength": 512
         },
         "Description": {
-          "description": "The description which appears in the agent's Contact Control Panel (CCP).",
+          "description": "The description. Supports variable injection. For more information, see [JSONPath reference](https://docs.aws.amazon.com/connect/latest/adminguide/contact-lens-variable-injection.html) in the *Administrators Guide*.",
           "type": "string",
           "minLength": 0,
           "maxLength": 4096
         },
         "ContactFlowArn": {
-          "description": "The Amazon Resource Name (ARN) of the contact flow.",
+          "description": "The Amazon Resource Name (ARN) of the flow.",
           "type": "string",
           "pattern": "^$|arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/contact-flow/[-a-zA-Z0-9]*$"
         },
         "References": {
-          "description": "A formatted URL that is shown to an agent in the Contact Control Panel (CCP).",
+          "description": "Information about the reference when the ``referenceType`` is ``URL``. Otherwise, null. ``URL`` is the only accepted type. (Supports variable injection in the ``Value`` field.)",
           "patternProperties": {
             "^(?=.{1,4096}$).+$": {
               "$ref": "#/definitions/Reference"
@@ -149,11 +156,11 @@
       "additionalProperties": false
     },
     "SubmitAutoEvaluationAction": {
-      "description": "The definition of submit auto evaluation action.",
+      "description": "",
       "type": "object",
       "properties": {
         "EvaluationFormArn": {
-          "description": "The Amazon Resource Name (ARN) of the evaluation form.",
+          "description": "",
           "type": "string",
           "pattern": "^$|arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/evaluation-form/[-a-zA-Z0-9]*$"
         }
@@ -164,11 +171,11 @@
       "additionalProperties": false
     },
     "EventBridgeAction": {
-      "description": "The definition for event bridge action.",
+      "description": "The EV action definition.",
       "type": "object",
       "properties": {
         "Name": {
-          "description": "The name of the event bridge action.",
+          "description": "The name.",
           "type": "string",
           "pattern": "^[a-zA-Z0-9._-]{1,100}$"
         }
@@ -183,37 +190,38 @@
       "type": "object"
     },
     "SendNotificationAction": {
-      "description": "The definition for sending notification action.",
+      "description": "Information about the send notification action.",
       "type": "object",
       "properties": {
         "DeliveryMethod": {
-          "description": "The means of delivery.",
+          "description": "Notification delivery method.\n  *Allowed value*: ``EMAIL``",
           "type": "string",
           "enum": [
             "EMAIL"
           ]
         },
         "Subject": {
-          "description": "The subject of notification.",
+          "description": "The subject of the email if the delivery method is ``EMAIL``. Supports variable injection. For more information, see [JSONPath reference](https://docs.aws.amazon.com/connect/latest/adminguide/contact-lens-variable-injection.html) in the *Administrators Guide*.",
           "type": "string",
           "minLength": 1,
           "maxLength": 200
         },
         "Content": {
-          "description": "The content of notification.",
+          "description": "Notification content. Supports variable injection. For more information, see [JSONPath reference](https://docs.aws.amazon.com/connect/latest/adminguide/contact-lens-variable-injection.html) in the *Administrators Guide*.",
           "type": "string",
           "minLength": 1,
           "maxLength": 1024
         },
         "ContentType": {
-          "description": "The type of content.",
+          "description": "Content type format.\n  *Allowed value*: ``PLAIN_TEXT``",
           "type": "string",
           "enum": [
             "PLAIN_TEXT"
           ]
         },
         "Recipient": {
-          "$ref": "#/definitions/NotificationRecipientType"
+          "$ref": "#/definitions/NotificationRecipientType",
+          "description": "Notification recipient."
         }
       },
       "required": [
@@ -225,14 +233,15 @@
       "additionalProperties": false
     },
     "CreateCaseAction": {
-      "description": "The definition for create case action.",
+      "description": "",
       "type": "object",
       "properties": {
         "Fields": {
-          "$ref": "#/definitions/Fields"
+          "$ref": "#/definitions/Fields",
+          "description": ""
         },
         "TemplateId": {
-          "description": "The Id of template.",
+          "description": "",
           "type": "string",
           "minLength": 1,
           "maxLength": 500
@@ -245,11 +254,12 @@
       "additionalProperties": false
     },
     "UpdateCaseAction": {
-      "description": "The definition for update case action.",
+      "description": "",
       "type": "object",
       "properties": {
         "Fields": {
-          "$ref": "#/definitions/Fields"
+          "$ref": "#/definitions/Fields",
+          "description": ""
         }
       },
       "required": [
@@ -284,11 +294,11 @@
       "maxItems": 1
     },
     "RuleTriggerEventSource": {
-      "description": "The event source that will trigger the rule.",
+      "description": "The name of the event source.",
       "type": "object",
       "properties": {
         "EventSourceName": {
-          "description": "The name of event source.",
+          "description": "The name of the event source.",
           "type": "string",
           "enum": [
             "OnContactEvaluationSubmit",
@@ -305,7 +315,7 @@
           ]
         },
         "IntegrationAssociationArn": {
-          "description": "The Amazon Resource Name (ARN) for the AppIntegration association.",
+          "description": "The Amazon Resource Name (ARN) of the integration association. ``IntegrationAssociationArn`` is required if ``TriggerEventSource`` is one of the following values: ``OnZendeskTicketCreate`` | ``OnZendeskTicketStatusUpdate`` | ``OnSalesforceCaseCreate``",
           "type": "string",
           "pattern": "^$|arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/integration-association/[-a-zA-Z0-9]*$"
         }
@@ -382,32 +392,40 @@
       "maxItems": 1
     },
     "Actions": {
-      "description": "The list of actions that will be executed when a rule is triggered.",
+      "description": "A list of actions to be run when the rule is triggered.",
       "type": "object",
       "properties": {
         "AssignContactCategoryActions": {
-          "$ref": "#/definitions/AssignContactCategoryActions"
+          "$ref": "#/definitions/AssignContactCategoryActions",
+          "description": "Information about the contact category action. The syntax can be empty, for example, ``{}``."
         },
         "EventBridgeActions": {
-          "$ref": "#/definitions/EventBridgeActions"
+          "$ref": "#/definitions/EventBridgeActions",
+          "description": "Information about the EV action."
         },
         "TaskActions": {
-          "$ref": "#/definitions/TaskActions"
+          "$ref": "#/definitions/TaskActions",
+          "description": "Information about the task action. This field is required if ``TriggerEventSource`` is one of the following values: ``OnZendeskTicketCreate`` | ``OnZendeskTicketStatusUpdate`` | ``OnSalesforceCaseCreate``"
         },
         "SendNotificationActions": {
-          "$ref": "#/definitions/SendNotificationActions"
+          "$ref": "#/definitions/SendNotificationActions",
+          "description": "Information about the send notification action."
         },
         "CreateCaseActions": {
-          "$ref": "#/definitions/CreateCaseActions"
+          "$ref": "#/definitions/CreateCaseActions",
+          "description": ""
         },
         "UpdateCaseActions": {
-          "$ref": "#/definitions/UpdateCaseActions"
+          "$ref": "#/definitions/UpdateCaseActions",
+          "description": ""
         },
         "EndAssociatedTasksActions": {
-          "$ref": "#/definitions/EndAssociatedTasksActions"
+          "$ref": "#/definitions/EndAssociatedTasksActions",
+          "description": ""
         },
         "SubmitAutoEvaluationActions": {
-          "$ref": "#/definitions/SubmitAutoEvaluationActions"
+          "$ref": "#/definitions/SubmitAutoEvaluationActions",
+          "description": ""
         }
       },
       "additionalProperties": false
@@ -419,14 +437,14 @@
       "properties": {
         "Key": {
           "type": "string",
-          "description": "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -. ",
+          "description": "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -",
           "pattern": "^(?!aws:)[a-zA-Z+-=._:/]+$",
           "minLength": 1,
           "maxLength": 128
         },
         "Value": {
           "type": "string",
-          "description": "The value for the tag. You can specify a value that's 1 to 256 characters in length.",
+          "description": "The value for the tag. You can specify a value that is 0 to 256 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -",
           "maxLength": 256
         }
       },
@@ -443,7 +461,7 @@
       "pattern": "^[a-zA-Z0-9._-]{1,200}$"
     },
     "RuleArn": {
-      "description": "The Amazon Resource Name (ARN) of the rule.",
+      "description": "",
       "type": "string",
       "pattern": "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/rule/[-a-zA-Z0-9]*$"
     },
@@ -453,19 +471,19 @@
       "pattern": "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$"
     },
     "TriggerEventSource": {
-      "description": "The event source that triggers the rule.",
+      "description": "The event source to trigger the rule.",
       "$ref": "#/definitions/RuleTriggerEventSource"
     },
     "Function": {
-      "description": "The conditions of a rule.",
+      "description": "The conditions of the rule.",
       "type": "string"
     },
     "Actions": {
-      "description": "The list of actions that will be executed when a rule is triggered.",
+      "description": "A list of actions to be run when the rule is triggered.",
       "$ref": "#/definitions/Actions"
     },
     "PublishStatus": {
-      "description": "The publish status of a rule, either draft or published.",
+      "description": "The publish status of the rule.\n  *Allowed values*: ``DRAFT`` | ``PUBLISHED``",
       "type": "string",
       "enum": [
         "DRAFT",
@@ -473,7 +491,7 @@
       ]
     },
     "Tags": {
-      "description": "One or more tags.",
+      "description": "The tags used to organize, track, or control access for this resource. For example, { \"tags\": {\"key1\":\"value1\", \"key2\":\"value2\"} }.",
       "type": "array",
       "maxItems": 50,
       "uniqueItems": true,

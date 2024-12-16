@@ -80,15 +80,46 @@
         },
         "Value": {
           "type": "string",
-          "description": "The value for the tag. You can specify a value that is 1 to 255 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -. ",
-          "minLength": 1,
+          "description": "The value for the tag. You can specify a value that is 0 to 255 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -. ",
+          "minLength": 0,
           "maxLength": 255
         }
       },
       "required": [
-        "Key",
-        "Value"
+        "Key"
       ],
+      "additionalProperties": false
+    },
+    "Tags": {
+      "type": "array",
+      "insertionOrder": false,
+      "uniqueItems": true,
+      "description": "An array of key-value pairs to apply to this resource.",
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
+    },
+    "AnalysisRuleCriteria": {
+      "description": "The criteria for an analysis rule for an analyzer.",
+      "type": "object",
+      "properties": {
+        "AccountIds": {
+          "description": "A list of AWS account IDs to apply to the analysis rule criteria. The accounts cannot include the organization analyzer owner account. Account IDs can only be applied to the analysis rule criteria for organization-level analyzers.",
+          "type": "array",
+          "insertionOrder": false,
+          "items": {
+            "type": "string"
+          }
+        },
+        "ResourceTags": {
+          "description": "An array of key-value pairs to match for your resources. You can use the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.\n\nFor the tag key, you can specify a value that is 1 to 128 characters in length and cannot be prefixed with aws:.\n\nFor the tag value, you can specify a value that is 0 to 256 characters in length. If the specified tag value is 0 characters, the rule is applied to all principals with the specified tag key.",
+          "type": "array",
+          "insertionOrder": false,
+          "items": {
+            "$ref": "#/definitions/Tags"
+          }
+        }
+      },
       "additionalProperties": false
     },
     "UnusedAccessConfiguration": {
@@ -96,10 +127,25 @@
       "type": "object",
       "properties": {
         "UnusedAccessAge": {
-          "description": "The specified access age in days for which to generate findings for unused access. For example, if you specify 90 days, the analyzer will generate findings for IAM entities within the accounts of the selected organization for any access that hasn't been used in 90 or more days since the analyzer's last scan. You can choose a value between 1 and 180 days.",
+          "description": "The specified access age in days for which to generate findings for unused access. For example, if you specify 90 days, the analyzer will generate findings for IAM entities within the accounts of the selected organization for any access that hasn't been used in 90 or more days since the analyzer's last scan. You can choose a value between 1 and 365 days.",
           "type": "integer",
           "minimum": 1,
-          "maximum": 180
+          "maximum": 365
+        },
+        "AnalysisRule": {
+          "description": "Contains information about rules for the analyzer.",
+          "type": "object",
+          "properties": {
+            "Exclusions": {
+              "description": "A list of rules for the analyzer containing criteria to exclude from analysis. Entities that meet the rule criteria will not generate findings.",
+              "type": "array",
+              "insertionOrder": false,
+              "items": {
+                "$ref": "#/definitions/AnalysisRuleCriteria"
+              }
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -160,7 +206,9 @@
   ],
   "createOnlyProperties": [
     "/properties/AnalyzerName",
-    "/properties/Type",
+    "/properties/Type"
+  ],
+  "conditionalCreateOnlyProperties": [
     "/properties/AnalyzerConfiguration"
   ],
   "primaryIdentifier": [
@@ -191,6 +239,7 @@
         "access-analyzer:ListAnalyzers",
         "access-analyzer:TagResource",
         "access-analyzer:UntagResource",
+        "access-analyzer:UpdateAnalyzer",
         "access-analyzer:UpdateArchiveRule"
       ]
     },
@@ -213,7 +262,8 @@
     "tagProperty": "/properties/Tags",
     "permissions": [
       "access-analyzer:UntagResource",
-      "access-analyzer:TagResource"
+      "access-analyzer:TagResource",
+      "access-analyzer:ListTagsForResource"
     ]
   }
 }

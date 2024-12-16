@@ -1,0 +1,259 @@
+{
+  "typeName": "AWS::VpcLattice::ResourceConfiguration",
+  "description": "VpcLattice ResourceConfiguration CFN resource",
+  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+  "additionalProperties": false,
+  "definitions": {
+    "DnsResource": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "DomainName": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 255
+        },
+        "IpAddressType": {
+          "type": "string",
+          "enum": [
+            "IPV4",
+            "IPV6",
+            "DUALSTACK"
+          ]
+        }
+      },
+      "required": [
+        "DomainName",
+        "IpAddressType"
+      ]
+    },
+    "IpResource": {
+      "type": "string",
+      "minLength": 4,
+      "maxLength": 39
+    },
+    "ArnResource": {
+      "type": "string",
+      "maxLength": 1224,
+      "pattern": "^arn:[a-z0-9][-.a-z0-9]{0,62}:vpc-lattice:([a-z0-9][-.a-z0-9]{0,62})?:\\d{12}?:[^/].{0,1023}$"
+    },
+    "PortRange": {
+      "type": "string",
+      "pattern": "^((\\d{1,5}\\-\\d{1,5})|(\\d+))$",
+      "minLength": 1,
+      "maxLength": 11
+    },
+    "Tag": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "Value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "Key"
+      ]
+    },
+    "Id": {
+      "type": "string",
+      "maxLength": 22,
+      "minLength": 22,
+      "pattern": "^rcfg-[0-9a-z]{17}$"
+    }
+  },
+  "properties": {
+    "Name": {
+      "type": "string",
+      "maxLength": 40,
+      "minLength": 3,
+      "pattern": "^(?!rcfg-)(?![-])(?!.*[-]$)(?!.*[-]{2})[a-z0-9-]+$"
+    },
+    "ResourceConfigurationType": {
+      "type": "string",
+      "enum": [
+        "GROUP",
+        "CHILD",
+        "SINGLE",
+        "ARN"
+      ]
+    },
+    "PortRanges": {
+      "type": "array",
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/PortRange"
+      }
+    },
+    "ProtocolType": {
+      "type": "string",
+      "enum": [
+        "TCP"
+      ]
+    },
+    "ResourceConfigurationAuthType": {
+      "type": "string",
+      "enum": [
+        "NONE",
+        "AWS_IAM"
+      ]
+    },
+    "ResourceGatewayId": {
+      "type": "string",
+      "relationshipRef": {
+        "typeName": "AWS::VpcLattice::ResourceGateway",
+        "propertyPath": "/properties/Id"
+      }
+    },
+    "Id": {
+      "$ref": "#/definitions/Id"
+    },
+    "Arn": {
+      "type": "string",
+      "maxLength": 2048,
+      "minLength": 20,
+      "pattern": "^arn:[a-z0-9f\\-]+:vpc-lattice:[a-zA-Z0-9\\-]+:\\d{12}:resourceconfiguration/rcfg-[0-9a-z]{17}$"
+    },
+    "ResourceConfigurationGroupId": {
+      "$ref": "#/definitions/Id"
+    },
+    "ResourceConfigurationDefinition": {
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "title": "IpResource",
+          "properties": {
+            "IpResource": {
+              "$ref": "#/definitions/IpResource"
+            }
+          },
+          "required": [
+            "IpResource"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "title": "ArnResource",
+          "properties": {
+            "ArnResource": {
+              "$ref": "#/definitions/ArnResource"
+            }
+          },
+          "required": [
+            "ArnResource"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "title": "DnsResource",
+          "properties": {
+            "DnsResource": {
+              "$ref": "#/definitions/DnsResource"
+            }
+          },
+          "required": [
+            "DnsResource"
+          ]
+        }
+      ]
+    },
+    "AllowAssociationToSharableServiceNetwork": {
+      "type": "boolean"
+    },
+    "Tags": {
+      "type": "array",
+      "insertionOrder": false,
+      "uniqueItems": true,
+      "minItems": 0,
+      "maxItems": 50,
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
+    }
+  },
+  "required": [],
+  "readOnlyProperties": [
+    "/properties/Id",
+    "/properties/Arn"
+  ],
+  "createOnlyProperties": [
+    "/properties/ResourceGatewayId",
+    "/properties/ResourceConfigurationType",
+    "/properties/ProtocolType",
+    "/properties/ResourceConfigurationAuthType"
+  ],
+  "writeOnlyProperties": [
+    "/properties/ResourceConfigurationAuthType",
+    "/properties/ResourceConfigurationGroupId"
+  ],
+  "primaryIdentifier": [
+    "/properties/Arn"
+  ],
+  "additionalIdentifiers": [
+    [
+      "/properties/Id"
+    ]
+  ],
+  "handlers": {
+    "create": {
+      "permissions": [
+        "ec2:DescribeSubnets",
+        "vpc-lattice:CreateResourceConfiguration",
+        "vpc-lattice:GetResourceConfiguration",
+        "vpc-lattice:TagResource",
+        "vpc-lattice:ListTagsForResource"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "vpc-lattice:GetResourceConfiguration",
+        "vpc-lattice:ListTagsForResource"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "ec2:DescribeSubnets",
+        "vpc-lattice:TagResource",
+        "vpc-lattice:UntagResource",
+        "vpc-lattice:ListTagsForResource",
+        "vpc-lattice:UpdateResourceConfiguration",
+        "vpc-lattice:GetResourceConfiguration"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "vpc-lattice:DeleteResourceConfiguration",
+        "vpc-lattice:GetResourceConfiguration",
+        "vpc-lattice:UntagResource"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "vpc-lattice:ListResourceConfigurations"
+      ]
+    }
+  },
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "vpc-lattice:UntagResource",
+      "vpc-lattice:TagResource",
+      "vpc-lattice:ListTagsForResource"
+    ]
+  }
+}
