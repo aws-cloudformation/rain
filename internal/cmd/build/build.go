@@ -29,6 +29,7 @@ var recommendFlag = false
 var outFn = ""
 var pklClass = false
 var noCache = false
+var onlyCache = false
 var promptLanguage = "cfn"
 var model string
 var models map[string]string
@@ -64,6 +65,18 @@ func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema, 
 	isCircular := false
 
 	prop.Type = cfn.ConvertPropType(prop.Type)
+
+	if prop.Type == "" && len(prop.OneOf) > 0 || len(prop.AnyOf) > 0 {
+		prop.Type = "object"
+	}
+
+	if prop.Type == "" && prop.PatternProperties != nil {
+		prop.Type = "object"
+	}
+
+	if prop.Type == "" && len(prop.Properties) > 0 {
+		prop.Type = "object"
+	}
 
 	switch prop.Type {
 	case "string":
@@ -179,6 +192,8 @@ func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema, 
 				}
 			}
 		} else {
+			config.Debugf("Missing Ref: %s, ancestors: %v, %+v",
+				propName, ancestorTypes, prop)
 			return fmt.Errorf("expected blank type to have $ref: %s", propName)
 		}
 	default:
@@ -317,8 +332,18 @@ func output(out string) {
 	}
 }
 
+func getCacheUsage() cfn.ResourceCacheUsage {
+	cacheUsage := cfn.UseCacheNormally
+	if noCache {
+		cacheUsage = cfn.DoNotUseCache
+	} else if onlyCache {
+		cacheUsage = cfn.OnlyUseCache
+	}
+	return cacheUsage
+}
+
 func list(prefix string) {
-	types, err := cfn.ListResourceTypes(noCache)
+	types, err := cfn.ListResourceTypes(getCacheUsage())
 	if err != nil {
 		panic(err)
 	}
@@ -350,7 +375,7 @@ func schema(typeName string) {
 		j, _ := json.MarshalIndent(schema, "", "    ")
 		output(string(j))
 	} else {
-		schema, err := cfn.GetTypeSchema(typeName, noCache)
+		schema, err := cfn.GetTypeSchema(typeName, getCacheUsage())
 		if err != nil {
 			panic(err)
 		}
@@ -475,6 +500,7 @@ func init() {
 	Cmd.Flags().StringVarP(&outFn, "output", "o", "", "Output to a file")
 	Cmd.Flags().BoolVar(&pklClass, "pkl-class", false, "Output a pkl class based on a resource type schema")
 	Cmd.Flags().BoolVar(&noCache, "no-cache", false, "Do not used cached schema files")
+	Cmd.Flags().BoolVar(&noCache, "only-cache", false, "Only use cached schema files")
 	Cmd.Flags().StringVar(&promptLanguage, "prompt-lang", "cfn", "The language to target for --prompt, CloudFormation YAML (cfn), CloudFormation Guard (guard), Open Policy Agent Rego (rego)")
 	Cmd.Flags().StringVar(&model, "model", "claude2", "The ID of the Bedrock model to use for --prompt. Shorthand: claude2, claude3haiku, claude3sonnet, claude3opus, claude3.5sonnet")
 }

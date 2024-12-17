@@ -2,6 +2,7 @@ package build
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/aws-cloudformation/rain/cft"
@@ -107,4 +108,24 @@ func Example_omit_read_only() {
 	//               - Filter: ^(?:[a-z0-9]+(?:[._-][a-z0-9]*)*/)*[a-z0-9]*(?:[._-][a-z0-9]*)*$
 	//                 FilterType: PREFIX_MATCH
 
+}
+
+func TestAllSchemas(t *testing.T) {
+	// Make sure rain build works for all schemas
+	// Sometimes service teams post incorrect schemas and it breaks us
+	// If something fails here, we need to add a patch
+	// See internal/aws/cfn/schema.go and patch.go
+	types, err := cfn.ListResourceTypes(cfn.OnlyUseCache)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, typeName := range types {
+		if !strings.HasPrefix(typeName, "AWS::") {
+			continue
+		}
+		_, err := build([]string{typeName})
+		if err != nil {
+			t.Errorf("Unable to build type %s: %v", typeName, err)
+		}
+	}
 }

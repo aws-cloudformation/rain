@@ -12,7 +12,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.47
 	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.23.0
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.56.1
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.197.0
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.198.0
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.71.0
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.2
 	github.com/aws/smithy-go v1.22.1
@@ -37,7 +37,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.38.0
 	github.com/aws/aws-sdk-go-v2/service/kms v1.37.7
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.42.7
-	github.com/aws/aws-sdk-go-v2/service/rds v1.92.0
+	github.com/aws/aws-sdk-go-v2/service/rds v1.93.0
 	github.com/aws/aws-sdk-go-v2/service/sagemaker v1.169.0
 	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.25.7
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.56.1
@@ -92,6 +92,6 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
-	golang.org/x/exp v0.0.0-20241215155358-4a5509556b9e
+	golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67
 	gopkg.in/yaml.v2 v2.4.0
 )

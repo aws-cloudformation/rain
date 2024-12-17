@@ -79,16 +79,18 @@ func ParseSchema(source string) (*Schema, error) {
 // Patch applies patches to the schema to add things like undocumented enums
 func (schema *Schema) Patch() error {
 	switch schema.TypeName {
-	case "AWS::Lightsail::Instance":
-		return patchLightsailInstance(schema)
-	case "AWS::Lightsail::Bucket":
-		return patchLightsailBucket(schema)
-	case "AWS::Lightsail::Database":
-		return patchLightsailDatabase(schema)
-	case "AWS::Lightsail::Alarm":
-		return patchLightsailAlarm(schema)
-	case "AWS::Lightsail::Distribution":
-		return patchLightsailDistribution(schema)
+	/*
+		case "AWS::Lightsail::Instance":
+			return patchLightsailInstance(schema)
+		case "AWS::Lightsail::Bucket":
+			return patchLightsailBucket(schema)
+		case "AWS::Lightsail::Database":
+			return patchLightsailDatabase(schema)
+		case "AWS::Lightsail::Alarm":
+			return patchLightsailAlarm(schema)
+		case "AWS::Lightsail::Distribution":
+			return patchLightsailDistribution(schema)
+	*/
 	case "AWS::SES::ConfigurationSetEventDestination":
 		return patchSESConfigurationSetEventDestination(schema)
 	case "AWS::SES::ContactList":
@@ -101,6 +103,18 @@ func (schema *Schema) Patch() error {
 		return patchEC2VerifiedAccessTrustProvider(schema)
 	case "AWS::EC2::LaunchTemplate":
 		return patchEC2LaunchTemplate(schema)
+	case "AWS::ControlTower::LandingZone":
+		return patchControlTowerLandingZone(schema)
+	case "AWS::QuickSight::Analysis":
+		return patchQuickSightAnalysis(schema)
+	case "AWS::QuickSight::Dashboard":
+		return patchQuickSightDashboard(schema)
+	case "AWS::QuickSight::Template":
+		return patchQuickSightTemplate(schema)
+	case "AWS::OpenSearchService::Application":
+		return patchOpenSearchServiceApplication(schema)
+	case "AWS::QBusiness::DataSource":
+		return patchQBusinessDataSource(schema)
 	}
 	return nil
 }

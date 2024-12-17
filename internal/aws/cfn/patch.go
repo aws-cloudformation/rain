@@ -2,9 +2,8 @@ package cfn
 
 import (
 	"errors"
-	"fmt"
 
-	"github.com/aws-cloudformation/rain/internal/aws/lightsail"
+	"github.com/aws-cloudformation/rain/internal/config"
 )
 
 func convertStrings(sa []string) []any {
@@ -15,6 +14,7 @@ func convertStrings(sa []string) []any {
 	return r
 }
 
+/*
 func patchLightsailInstance(schema *Schema) error {
 	blueprintId, found := schema.Properties["BlueprintId"]
 	if !found {
@@ -106,6 +106,7 @@ func patchLightsailAlarm(schema *Schema) error {
 	comparisonOperator.Enum = convertStrings(valid)
 	return nil
 }
+*/
 
 func patchSESConfigurationSetEventDestination(schema *Schema) error {
 	valid := []string{
@@ -195,6 +196,110 @@ func patchEC2LaunchTemplate(schema *Schema) error {
 		ltd, exists := schema.Definitions["LaunchTemplateData"]
 		if exists {
 			delete(ltd.Properties, name)
+		}
+	}
+	return nil
+}
+
+func patchControlTowerLandingZone(schema *Schema) error {
+	name := "Manifest"
+	// Manifest is empty, looks like a placeholder
+	if manifest, ok := schema.Properties[name]; ok {
+		if (manifest.Type == "" || manifest.Type == nil) && manifest.Ref == "" {
+			config.Debugf("Removing Manifest from ControlTower LandingZone")
+			delete(schema.Properties, name)
+		}
+	}
+	return nil
+}
+
+func patchQuickSightAnalysis(schema *Schema) error {
+	name := "ImageMenuOption"
+	if imo, ok := schema.Definitions[name]; ok {
+		badProp := "AvailabilityStatus"
+		config.Debugf("Found prop %s, removing %s", name, badProp)
+		delete(imo.Properties, badProp)
+	}
+
+	name = "GeospatialLayerMapConfiguration"
+	if c, ok := schema.Definitions[name]; ok {
+		badProp := "Interactions"
+		config.Debugf("Found QuickSightAnalysis prop %s, removing %s", name, badProp)
+		delete(c.Properties, badProp)
+	}
+
+	name = "GeospatialMapConfiguration"
+	if c, ok := schema.Definitions[name]; ok {
+		badProp := "Interactions"
+		config.Debugf("Found prop %s, removing %s", name, badProp)
+		delete(c.Properties, badProp)
+	}
+
+	return nil
+}
+
+func patchQuickSightDashboard(schema *Schema) error {
+
+	name := "GeospatialLayerMapConfiguration"
+	if c, ok := schema.Definitions[name]; ok {
+		badProp := "Interactions"
+		config.Debugf("Found prop %s, removing %s", name, badProp)
+		delete(c.Properties, badProp)
+	}
+
+	name = "GeospatialMapConfiguration"
+	if c, ok := schema.Definitions[name]; ok {
+		badProp := "Interactions"
+		config.Debugf("Found QuickSight Dashboard prop  %s, removing %s", name, badProp)
+		delete(c.Properties, badProp)
+	}
+
+	return nil
+}
+
+func patchQuickSightTemplate(schema *Schema) error {
+	name := "ImageMenuOption"
+	if imo, ok := schema.Definitions[name]; ok {
+		badProp := "AvailabilityStatus"
+		config.Debugf("Found QuickSight Template prop %s, removing %s", name, badProp)
+		delete(imo.Properties, badProp)
+	}
+	return nil
+}
+
+func patchOpenSearchServiceApplication(schema *Schema) error {
+	name := "DataSource"
+	if dataSource, ok := schema.Definitions[name]; ok {
+		propName := "DataSourceArn"
+		if dsa, ok := dataSource.Properties[propName]; ok {
+			if dsa.Ref != "" && (dsa.Type == nil || dsa.Type == "") {
+				config.Debugf("Patching OpenSearchServiceApplication ref to a property")
+				dsa.Ref = ""
+				dsa.Type = "string"
+			}
+		}
+	}
+
+	name = "IamIdentityCenterOptions"
+	if dataSource, ok := schema.Properties[name]; ok {
+		propName := "IamIdentityCenterInstanceArn"
+		if arn, ok := dataSource.Properties[propName]; ok {
+			if arn.Ref != "" && (arn.Type == nil || arn.Type == "") {
+				config.Debugf("Patching OpenSearchServiceApplication ref to a property")
+				arn.Ref = ""
+				arn.Type = "string"
+			}
+		}
+	}
+	return nil
+}
+
+func patchQBusinessDataSource(schema *Schema) error {
+	name := "Configuration"
+	if c, ok := schema.Properties[name]; ok {
+		if c.Type == nil && c.Ref == "" {
+			config.Debugf("Removing blank {name} from QBusiness DataSource")
+			delete(schema.Properties, name)
 		}
 	}
 	return nil

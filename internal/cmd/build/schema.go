@@ -21,7 +21,7 @@ func getSchema(typeName string) (*cfn.Schema, error) {
 	} else {
 
 		// Call CCAPI to get the schema for the resource
-		schemaSource, err := cfn.GetTypeSchema(typeName, noCache)
+		schemaSource, err := cfn.GetTypeSchema(typeName, getCacheUsage())
 		if err != nil {
 			return nil, err
 		}
