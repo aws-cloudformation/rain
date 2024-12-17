@@ -101,6 +101,14 @@ func (schema *Schema) Patch() error {
 		return patchEC2VerifiedAccessTrustProvider(schema)
 	case "AWS::EC2::LaunchTemplate":
 		return patchEC2LaunchTemplate(schema)
+	case "AWS::ControlTower::LandingZone":
+		return patchControlTowerLandingZone(schema)
+	case "AWS::QuickSight::Analysis":
+		return patchQuickSightAnalysis(schema)
+	case "AWS::QuickSight::Dashboard":
+		return patchQuickSightDashboard(schema)
+	case "AWS::QuickSight::Template":
+		return patchQuickSightTemplate(schema)
 	}
 	return nil
 }

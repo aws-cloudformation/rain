@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/aws-cloudformation/rain/internal/aws/lightsail"
+	"github.com/aws-cloudformation/rain/internal/config"
 )
 
 func convertStrings(sa []string) []any {
@@ -196,6 +197,72 @@ func patchEC2LaunchTemplate(schema *Schema) error {
 		if exists {
 			delete(ltd.Properties, name)
 		}
+	}
+	return nil
+}
+
+func patchControlTowerLandingZone(schema *Schema) error {
+	name := "Manifest"
+	// Manifest is empty, looks like a placeholder
+	if manifest, ok := schema.Properties[name]; ok {
+		if (manifest.Type == "" || manifest.Type == nil) && manifest.Ref == "" {
+			config.Debugf("Removing Manifest from ControlTower LandingZone")
+			delete(schema.Properties, name)
+		}
+	}
+	return nil
+}
+
+func patchQuickSightAnalysis(schema *Schema) error {
+	name := "ImageMenuOption"
+	if imo, ok := schema.Definitions[name]; ok {
+		badProp := "AvailabilityStatus"
+		config.Debugf("Found prop %s, removing %s", name, badProp)
+		delete(imo.Properties, badProp)
+	}
+
+	name = "GeospatialLayerMapConfiguration"
+	if c, ok := schema.Definitions[name]; ok {
+		badProp := "Interactions"
+		config.Debugf("Found QuickSightAnalysis prop %s, removing %s", name, badProp)
+		delete(c.Properties, badProp)
+	}
+
+	name = "GeospatialMapConfiguration"
+	if c, ok := schema.Definitions[name]; ok {
+		badProp := "Interactions"
+		config.Debugf("Found prop %s, removing %s", name, badProp)
+		delete(c.Properties, badProp)
+	}
+
+	return nil
+}
+
+func patchQuickSightDashboard(schema *Schema) error {
+
+	name := "GeospatialLayerMapConfiguration"
+	if c, ok := schema.Definitions[name]; ok {
+		badProp := "Interactions"
+		config.Debugf("Found prop %s, removing %s", name, badProp)
+		delete(c.Properties, badProp)
+	}
+
+	name = "GeospatialMapConfiguration"
+	if c, ok := schema.Definitions[name]; ok {
+		badProp := "Interactions"
+		config.Debugf("Found QuickSight Dashboard prop  %s, removing %s", name, badProp)
+		delete(c.Properties, badProp)
+	}
+
+	return nil
+}
+
+func patchQuickSightTemplate(schema *Schema) error {
+	name := "ImageMenuOption"
+	if imo, ok := schema.Definitions[name]; ok {
+		badProp := "AvailabilityStatus"
+		config.Debugf("Found QuickSight Template prop %s, removing %s", name, badProp)
+		delete(imo.Properties, badProp)
 	}
 	return nil
 }

@@ -69,6 +69,14 @@ func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema, 
 		prop.Type = "object"
 	}
 
+	if prop.Type == "" && prop.PatternProperties != nil {
+		prop.Type = "object"
+	}
+
+	if prop.Type == "" && len(prop.Properties) > 0 {
+		prop.Type = "object"
+	}
+
 	switch prop.Type {
 	case "string":
 		if len(prop.Enum) > 0 {
