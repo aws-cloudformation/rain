@@ -2,6 +2,33 @@
   "typeName": "AWS::EC2::VPCEndpoint",
   "description": "Specifies a VPC endpoint. A VPC endpoint provides a private connection between your VPC and an endpoint service. You can use an endpoint service provided by AWS, an MKT Partner, or another AWS accounts in your organization. For more information, see the [User Guide](https://docs.aws.amazon.com/vpc/latest/privatelink/).\n An endpoint of type ``Interface`` establishes connections between the subnets in your VPC and an AWS-service, your own service, or a service hosted by another AWS-account. With an interface VPC endpoint, you specify the subnets in which to create the endpoint and the security groups to associate with the endpoint network interfaces.\n An endpoint of type ``gateway`` serves as a target for a route in your route table for traffic destined for S3 or DDB. You can specify an endpoint policy for the endpoint, which controls access to the service from your VPC. You can also specify the VPC route tables that use the endpoint. For more information about connectivity to S3, see [Why can't I connect to an S3 bucket using a gateway VPC endpoint?](https://docs.aws.amazon.com/premiumsupport/knowledge-center/connect-s3-vpc-endpoint) \n An endpoint of type ``GatewayLoadBalancer`` provides private connectivity between your VPC and virtual appliances from a service provider.",
   "additionalProperties": false,
+  "definitions": {
+    "DnsOptionsSpecification": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "DnsRecordIpType": {
+          "type": "string",
+          "enum": [
+            "ipv4",
+            "ipv6",
+            "dualstack",
+            "service-defined",
+            "not-specified"
+          ]
+        },
+        "PrivateDnsOnlyForInboundResolverEndpoint": {
+          "type": "string",
+          "enum": [
+            "OnlyInboundResolver",
+            "AllResolvers",
+            "NotSpecified"
+          ]
+        }
+      },
+      "description": ""
+    }
+  },
   "properties": {
     "Id": {
       "type": "string",
@@ -104,7 +131,9 @@
       "enum": [
         "Interface",
         "Gateway",
-        "GatewayLoadBalancer"
+        "GatewayLoadBalancer",
+        "ServiceNetwork",
+        "Resource"
       ],
       "description": "The type of endpoint.\n Default: Gateway"
     },
@@ -115,11 +144,32 @@
         "typeName": "AWS::EC2::VPC",
         "propertyPath": "/properties/VpcId"
       }
+    },
+    "ServiceNetworkArn": {
+      "type": "string",
+      "description": ""
+    },
+    "ResourceConfigurationArn": {
+      "type": "string",
+      "description": ""
+    },
+    "IpAddressType": {
+      "type": "string",
+      "enum": [
+        "ipv4",
+        "ipv6",
+        "dualstack",
+        "not-specified"
+      ],
+      "description": ""
+    },
+    "DnsOptions": {
+      "$ref": "#/definitions/DnsOptionsSpecification",
+      "description": ""
     }
   },
   "required": [
-    "VpcId",
-    "ServiceName"
+    "VpcId"
   ],
   "readOnlyProperties": [
     "/properties/NetworkInterfaceIds",
@@ -130,7 +180,9 @@
   "createOnlyProperties": [
     "/properties/ServiceName",
     "/properties/VpcEndpointType",
-    "/properties/VpcId"
+    "/properties/VpcId",
+    "/properties/ServiceNetworkArn",
+    "/properties/ResourceConfigurationArn"
   ],
   "primaryIdentifier": [
     "/properties/Id"
@@ -145,32 +197,49 @@
     "create": {
       "permissions": [
         "ec2:CreateVpcEndpoint",
-        "ec2:DescribeVpcEndpoints"
+        "ec2:DescribeVpcEndpoints",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeSecurityGroups",
+        "vpc-lattice:CreateServiceNetworkVpcEndpointAssociation",
+        "vpc-lattice:DescribeServiceNetworkVpcEndpointAssociation"
       ],
       "timeoutInMinutes": 210
     },
     "read": {
       "permissions": [
-        "ec2:DescribeVpcEndpoints"
+        "ec2:DescribeVpcEndpoints",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeSecurityGroups",
+        "vpc-lattice:DescribeServiceNetworkVpcEndpointAssociation"
       ]
     },
     "update": {
       "permissions": [
         "ec2:ModifyVpcEndpoint",
-        "ec2:DescribeVpcEndpoints"
+        "ec2:DescribeVpcEndpoints",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeSecurityGroups",
+        "vpc-lattice:CreateServiceNetworkVpcEndpointAssociation",
+        "vpc-lattice:DescribeServiceNetworkVpcEndpointAssociation"
       ],
       "timeoutInMinutes": 210
     },
     "delete": {
       "permissions": [
         "ec2:DeleteVpcEndpoints",
-        "ec2:DescribeVpcEndpoints"
+        "ec2:DescribeVpcEndpoints",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeSecurityGroups",
+        "vpc-lattice:DescribeServiceNetworkVpcEndpointAssociation"
       ],
       "timeoutInMinutes": 210
     },
     "list": {
       "permissions": [
-        "ec2:DescribeVpcEndpoints"
+        "ec2:DescribeVpcEndpoints",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeSecurityGroups",
+        "vpc-lattice:DescribeServiceNetworkVpcEndpointAssociation"
       ]
     }
   }

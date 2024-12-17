@@ -115,7 +115,7 @@ func TestAllSchemas(t *testing.T) {
 	// Sometimes service teams post incorrect schemas and it breaks us
 	// If something fails here, we need to add a patch
 	// See internal/aws/cfn/schema.go and patch.go
-	types, err := cfn.ListResourceTypes(noCache)
+	types, err := cfn.ListResourceTypes(cfn.OnlyUseCache)
 	if err != nil {
 		t.Fatal(err)
 	}

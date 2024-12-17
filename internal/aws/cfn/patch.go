@@ -266,3 +266,41 @@ func patchQuickSightTemplate(schema *Schema) error {
 	}
 	return nil
 }
+
+func patchOpenSearchServiceApplication(schema *Schema) error {
+	name := "DataSource"
+	if dataSource, ok := schema.Definitions[name]; ok {
+		propName := "DataSourceArn"
+		if dsa, ok := dataSource.Properties[propName]; ok {
+			if dsa.Ref != "" && (dsa.Type == nil || dsa.Type == "") {
+				config.Debugf("Patching OpenSearchServiceApplication ref to a property")
+				dsa.Ref = ""
+				dsa.Type = "string"
+			}
+		}
+	}
+
+	name = "IamIdentityCenterOptions"
+	if dataSource, ok := schema.Properties[name]; ok {
+		propName := "IamIdentityCenterInstanceArn"
+		if arn, ok := dataSource.Properties[propName]; ok {
+			if arn.Ref != "" && (arn.Type == nil || arn.Type == "") {
+				config.Debugf("Patching OpenSearchServiceApplication ref to a property")
+				arn.Ref = ""
+				arn.Type = "string"
+			}
+		}
+	}
+	return nil
+}
+
+func patchQBusinessDataSource(schema *Schema) error {
+	name := "Configuration"
+	if c, ok := schema.Properties[name]; ok {
+		if c.Type == nil && c.Ref == "" {
+			config.Debugf("Removing blank {name} from QBusiness DataSource")
+			delete(schema.Properties, name)
+		}
+	}
+	return nil
+}

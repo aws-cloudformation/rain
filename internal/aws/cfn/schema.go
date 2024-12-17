@@ -109,6 +109,10 @@ func (schema *Schema) Patch() error {
 		return patchQuickSightDashboard(schema)
 	case "AWS::QuickSight::Template":
 		return patchQuickSightTemplate(schema)
+	case "AWS::OpenSearchService::Application":
+		return patchOpenSearchServiceApplication(schema)
+	case "AWS::QBusiness::DataSource":
+		return patchQBusinessDataSource(schema)
 	}
 	return nil
 }

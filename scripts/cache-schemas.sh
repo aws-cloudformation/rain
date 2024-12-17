@@ -6,6 +6,8 @@ set -eou pipefail
 
 export RAIN_CACHE_DIR=$1
 
-./rain build -l --no-cache | grep "^AWS::" | xargs -n1 scripts/one-schema.sh
+./rain build -l --no-cache > internal/aws/cfn/all-types.txt
+
+cat internal/aws/cfn/all-types.txt | grep "^AWS::" | xargs -n1 scripts/one-schema.sh
 
 

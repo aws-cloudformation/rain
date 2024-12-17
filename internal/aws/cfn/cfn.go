@@ -478,16 +478,16 @@ func WaitUntilStackCreateComplete(stackName string) error {
 }
 
 // GetTypeSchema gets the schema for a CloudFormation resource type
-func GetTypeSchema(name string, noCache bool) (string, error) {
+func GetTypeSchema(name string, cacheUsage ResourceCacheUsage) (string, error) {
 
 	// Check for a schema in memory
 	schema, exists := Schemas[name]
-	if exists && !noCache {
+	if exists && cacheUsage != DoNotUseCache {
 		return schema, nil
 	}
 
 	// Look in the embedded file system next
-	if !noCache {
+	if cacheUsage != DoNotUseCache {
 		path := strings.Replace(name, "::", "/", -1)
 		path = strings.ToLower(path)
 		path = "schemas/" + path + ".json"
@@ -499,6 +499,10 @@ func GetTypeSchema(name string, noCache bool) (string, error) {
 		} else {
 			config.Debugf("unable to read schema from path %s: %v", path, err)
 		}
+	}
+
+	if cacheUsage == OnlyUseCache {
+		return "", errors.New("cacheUsage is OnlyUseCache")
 	}
 
 	// Go ahead and download the schema from the registry
@@ -539,7 +543,7 @@ func IsCCAPI(name string) (bool, error) {
 func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
 
 	// Get the schema, checking to see if we cached it
-	schema, err := GetTypeSchema(name, false)
+	schema, err := GetTypeSchema(name, UseCacheNormally)
 	if err != nil {
 		return nil, err
 	}
@@ -718,7 +722,7 @@ func GetTypePermissions(name string, handlerVerb string) ([]string, error) {
 
 // GetTypeIdentifier gets the primaryIdentifier of a resource type from the schema
 func GetTypeIdentifier(name string) ([]string, error) {
-	schema, err := GetTypeSchema(name, false)
+	schema, err := GetTypeSchema(name, UseCacheNormally)
 	if err != nil {
 		return nil, err
 	}
@@ -867,10 +871,18 @@ func ResourceAlreadyExists(
 	return false
 }
 
-// ListResourceTypes lists all live registry resource types
-func ListResourceTypes(noCache bool) ([]string, error) {
+type ResourceCacheUsage int
 
-	if !noCache {
+const (
+	OnlyUseCache     ResourceCacheUsage = 1
+	DoNotUseCache    ResourceCacheUsage = 2
+	UseCacheNormally ResourceCacheUsage = 3
+)
+
+// ListResourceTypes lists all live registry resource types
+func ListResourceTypes(cacheUsage ResourceCacheUsage) ([]string, error) {
+
+	if cacheUsage != DoNotUseCache {
 		return strings.Split(AllTypes, "\n"), nil
 	}
 
