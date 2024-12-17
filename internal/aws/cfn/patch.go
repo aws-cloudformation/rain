@@ -2,9 +2,7 @@ package cfn
 
 import (
 	"errors"
-	"fmt"
 
-	"github.com/aws-cloudformation/rain/internal/aws/lightsail"
 	"github.com/aws-cloudformation/rain/internal/config"
 )
 
@@ -16,6 +14,7 @@ func convertStrings(sa []string) []any {
 	return r
 }
 
+/*
 func patchLightsailInstance(schema *Schema) error {
 	blueprintId, found := schema.Properties["BlueprintId"]
 	if !found {
@@ -107,6 +106,7 @@ func patchLightsailAlarm(schema *Schema) error {
 	comparisonOperator.Enum = convertStrings(valid)
 	return nil
 }
+*/
 
 func patchSESConfigurationSetEventDestination(schema *Schema) error {
 	valid := []string{

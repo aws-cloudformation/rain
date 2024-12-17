@@ -79,16 +79,18 @@ func ParseSchema(source string) (*Schema, error) {
 // Patch applies patches to the schema to add things like undocumented enums
 func (schema *Schema) Patch() error {
 	switch schema.TypeName {
-	case "AWS::Lightsail::Instance":
-		return patchLightsailInstance(schema)
-	case "AWS::Lightsail::Bucket":
-		return patchLightsailBucket(schema)
-	case "AWS::Lightsail::Database":
-		return patchLightsailDatabase(schema)
-	case "AWS::Lightsail::Alarm":
-		return patchLightsailAlarm(schema)
-	case "AWS::Lightsail::Distribution":
-		return patchLightsailDistribution(schema)
+	/*
+		case "AWS::Lightsail::Instance":
+			return patchLightsailInstance(schema)
+		case "AWS::Lightsail::Bucket":
+			return patchLightsailBucket(schema)
+		case "AWS::Lightsail::Database":
+			return patchLightsailDatabase(schema)
+		case "AWS::Lightsail::Alarm":
+			return patchLightsailAlarm(schema)
+		case "AWS::Lightsail::Distribution":
+			return patchLightsailDistribution(schema)
+	*/
 	case "AWS::SES::ConfigurationSetEventDestination":
 		return patchSESConfigurationSetEventDestination(schema)
 	case "AWS::SES::ContactList":
