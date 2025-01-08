@@ -1,0 +1,46 @@
+Resources:
+  Queue0:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 300
+
+  Queue1:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 300
+
+  QueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Metadata:
+      Comment: A comment
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: sqs:SendMessage
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !Ref Topic
+            Effect: Allow
+            Principal:
+              Service: sns.amazonaws.com
+            Resource: !GetAtt Queue0.Arn
+        Version: "2012-10-17"
+      Queues:
+        - !Ref Queue0
+        - !Ref Queue1
+
+  Subscription:
+    Type: AWS::SNS::Subscription
+    DependsOn:
+      - QueuePolicy
+    Properties:
+      Endpoint: !GetAtt Queue0.Arn
+      Protocol: sqs
+      TopicArn: !Ref Topic
+
+  Topic:
+    Type: AWS::SNS::Topic

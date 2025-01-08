@@ -3,11 +3,9 @@ package format
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft/parse"
-	"github.com/aws-cloudformation/rain/internal/config"
 	"gopkg.in/yaml.v3"
 )
 
@@ -33,8 +31,6 @@ func handleScalar(node *yaml.Node) interface{} {
 	if err != nil {
 		panic(err)
 	}
-
-	config.Debugf("intermediate: %v", string(intermediate))
 
 	var out interface{}
 	err = yaml.Unmarshal(intermediate, &out)
@@ -72,8 +68,6 @@ func Jsonise(node *yaml.Node) interface{} {
 
 func convertToJSON(in string) string {
 
-	config.Debugf("convertToJson: %v", in)
-
 	var d yaml.Node
 
 	err := yaml.Unmarshal([]byte(in), &d)
@@ -104,14 +98,11 @@ func PrettyPrint(i interface{}) string {
 
 // ToJson overrides the default behavior of json.Marshal to leave < > alone
 func ToJson(i interface{}, indent string) ([]byte, error) {
-	si := fmt.Sprintf("%#v", i)
-	config.Debugf("ToJson(%s)", si)
 	buf := &bytes.Buffer{}
 	enc := json.NewEncoder(buf)
 	enc.SetEscapeHTML(false)
 	enc.SetIndent("", indent)
 	err := enc.Encode(i)
 	retval := bytes.TrimRight(buf.Bytes(), "\n")
-	config.Debugf("ToJson retval: %s", retval)
 	return retval, err
 }
