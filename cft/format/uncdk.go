@@ -133,7 +133,6 @@ func replaceNames(t cft.Template, oldName, newName string) {
 		yamlNode := n.GetYamlNode()
 		if yamlNode.Kind == yaml.ScalarNode {
 			if yamlNode.Value == oldName {
-				config.Debugf("replacing %s with %s", oldName, newName)
 				yamlNode.Value = newName
 			}
 		}
