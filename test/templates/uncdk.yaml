@@ -1,0 +1,220 @@
+Parameters:
+  BootstrapVersion:
+    Description: Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /cdk-bootstrap/hnb659fds/version
+
+Rules:
+  CheckBootstrapVersion:
+    Assertions:
+      - Assert: !Not
+          - Fn::Contains:
+              - - "1"
+                - "2"
+                - "3"
+                - "4"
+                - "5"
+              - !Ref BootstrapVersion
+        AssertDescription: CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.
+
+Conditions:
+  CDKMetadataAvailable: !Or
+    - !Or
+      - !Equals
+        - !Ref AWS::Region
+        - af-south-1
+      - !Equals
+        - !Ref AWS::Region
+        - ap-east-1
+      - !Equals
+        - !Ref AWS::Region
+        - ap-northeast-1
+      - !Equals
+        - !Ref AWS::Region
+        - ap-northeast-2
+      - !Equals
+        - !Ref AWS::Region
+        - ap-northeast-3
+      - !Equals
+        - !Ref AWS::Region
+        - ap-south-1
+      - !Equals
+        - !Ref AWS::Region
+        - ap-south-2
+      - !Equals
+        - !Ref AWS::Region
+        - ap-southeast-1
+      - !Equals
+        - !Ref AWS::Region
+        - ap-southeast-2
+      - !Equals
+        - !Ref AWS::Region
+        - ap-southeast-3
+    - !Or
+      - !Equals
+        - !Ref AWS::Region
+        - ap-southeast-4
+      - !Equals
+        - !Ref AWS::Region
+        - ca-central-1
+      - !Equals
+        - !Ref AWS::Region
+        - ca-west-1
+      - !Equals
+        - !Ref AWS::Region
+        - cn-north-1
+      - !Equals
+        - !Ref AWS::Region
+        - cn-northwest-1
+      - !Equals
+        - !Ref AWS::Region
+        - eu-central-1
+      - !Equals
+        - !Ref AWS::Region
+        - eu-central-2
+      - !Equals
+        - !Ref AWS::Region
+        - eu-north-1
+      - !Equals
+        - !Ref AWS::Region
+        - eu-south-1
+      - !Equals
+        - !Ref AWS::Region
+        - eu-south-2
+    - !Or
+      - !Equals
+        - !Ref AWS::Region
+        - eu-west-1
+      - !Equals
+        - !Ref AWS::Region
+        - eu-west-2
+      - !Equals
+        - !Ref AWS::Region
+        - eu-west-3
+      - !Equals
+        - !Ref AWS::Region
+        - il-central-1
+      - !Equals
+        - !Ref AWS::Region
+        - me-central-1
+      - !Equals
+        - !Ref AWS::Region
+        - me-south-1
+      - !Equals
+        - !Ref AWS::Region
+        - sa-east-1
+      - !Equals
+        - !Ref AWS::Region
+        - us-east-1
+      - !Equals
+        - !Ref AWS::Region
+        - us-east-2
+      - !Equals
+        - !Ref AWS::Region
+        - us-west-1
+    - !Equals
+      - !Ref AWS::Region
+      - us-west-2
+
+Resources:
+  TryConvertCdkQueueA6B3948A:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Type: AWS::SQS::Queue
+    Metadata:
+      aws:cdk:path: TryConvertCdkStack/TryConvertCdkQueue/Resource
+    Properties:
+      VisibilityTimeout: 300
+  TryConvertCdkQueueA6B3948B:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Type: AWS::SQS::Queue
+    Metadata:
+      aws:cdk:path: TryConvertCdkStack/TryConvertCdkQueue/Resource
+    Properties:
+      VisibilityTimeout: 300
+  TryConvertCdkQueueA6B3948C:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Type: AWS::SQS::Queue
+    Metadata:
+      aws:cdk:path: TryConvertCdkStack/TryConvertCdkQueue/Resource
+    Properties:
+      VisibilityTimeout: 300
+
+  TryConvertCdkQueuePolicy8C365983:
+    Type: AWS::SQS::QueuePolicy
+    Metadata:
+      aws:cdk:path: TryConvertCdkStack/TryConvertCdkQueue/Policy/Resource
+      Comment: A comment
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: sqs:SendMessage
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !Ref TryConvertCdkTopic2CABFDF4
+            Effect: Allow
+            Principal:
+              Service: sns.amazonaws.com
+            Resource: !GetAtt TryConvertCdkQueueA6B3948A.Arn
+        Version: "2012-10-17"
+      Queues:
+        - !Ref TryConvertCdkQueueA6B3948A
+        - !Ref TryConvertCdkQueueA6B3948B
+
+  TryConvertCdkQueueTryConvertCdkStackTryConvertCdkTopic4C9C531F7A91899A:
+    Type: AWS::SNS::Subscription
+    DependsOn:
+      - TryConvertCdkQueuePolicy8C365983
+    Metadata:
+      aws:cdk:path: TryConvertCdkStack/TryConvertCdkQueue/TryConvertCdkStackTryConvertCdkTopic4C9C531F/Resource
+    Properties:
+      Endpoint: !GetAtt TryConvertCdkQueueA6B3948A.Arn
+      Protocol: sqs
+      TopicArn: !Ref TryConvertCdkTopic2CABFDF4
+
+  TryConvertCdkTopic2CABFDF4:
+    Type: AWS::SNS::Topic
+    Metadata:
+      aws:cdk:path: TryConvertCdkStack/TryConvertCdkTopic/Resource
+
+  TryConvertCdkACustomResourceABCDEFGH:
+    Type: Custom::CustomThing
+    Properties:
+      ServiceToken: foo
+
+  TryConvertCdkAnotherCustomResourceABCDEFGI:
+    Type: Custom::AnotherCustomThing
+    Properties:
+      ServiceToken: foo
+
+  TryConvertCdkAnotherCustomResource2ABCDEFGJ:
+    Type: Custom::AnotherCustomThing
+    Properties:
+      ServiceToken: foo
+      FixThisJoin: 
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":logs:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Fn::GetAtt:
+              - "Foo"
+              - "Bar"
+
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Metadata:
+      aws:cdk:path: TryConvertCdkStack/CDKMetadata/Default
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAA/1WNQQqDMBREz+I+/hop9ABeoNXuS0xS+GoT9SeVEnL3kgQK3cy8GQamBX45A6/EQbVUc73gCGFwQs5MHPQItBGEm9des+5pCmS92gXl51eWGBkZgjD4keSOq0Nr0uIv3+2KMrUZYkzYa7J+l/mjs0ZhWkZmrNIw0endNsBbaKqJEOvdG4cvDX3xL90E7lHCAAAA
+    Condition: CDKMetadataAvailable
+
+Outputs:
+  TryConvertCdkQueueA6B3948CName:
+    Value: !Ref TryConvertCdkQueueA6B3948C

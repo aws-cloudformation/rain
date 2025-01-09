@@ -24,6 +24,7 @@ var verifyFlag bool
 var writeFlag bool
 var unsortedFlag bool
 var dataModel bool
+var uncdk bool
 
 // pklPackageAlias is the package name to use in module imports
 var pklPackageAlias string = "@cfn"
@@ -48,6 +49,16 @@ func formatString(input string, res *result) {
 	}
 
 	config.Debugf("%s", node.ToSJson(source.Node))
+
+	if uncdk {
+		// Remove CDK Metadata
+		// Simplify logical IDs
+		err := format.UnCDK(source)
+		if err != nil {
+			res.err = ui.Errorf(err, "uncdk failed")
+			return
+		}
+	}
 
 	if dataModel {
 		res.output = node.ToJson(source.Node)
@@ -202,4 +213,5 @@ func init() {
 	Cmd.Flags().BoolVar(&dataModel, "datamodel", false, "Output the go yaml data model")
 	Cmd.Flags().StringVar(&pklPackageAlias, "pkl-package", "@cfn", "An alias or full package URI for the Pkl package for generated Pkl files")
 	Cmd.Flags().StringVar(&format.NodeStyle, "node-style", "", format.NodeStyleDocs)
+	Cmd.Flags().BoolVar(&uncdk, "uncdk", false, "Remove CDK Metadata and simplify logical ids")
 }

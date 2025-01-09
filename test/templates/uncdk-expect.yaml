@@ -1,0 +1,74 @@
+Resources:
+  Queue0:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 300
+
+  Queue1:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 300
+
+  Queue2:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 300
+
+  QueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Metadata:
+      Comment: A comment
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: sqs:SendMessage
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !Ref Topic
+            Effect: Allow
+            Principal:
+              Service: sns.amazonaws.com
+            Resource: !GetAtt Queue0.Arn
+        Version: "2012-10-17"
+      Queues:
+        - !Ref Queue0
+        - !Ref Queue1
+
+  QueueStackTopic:
+    Type: AWS::SNS::Subscription
+    DependsOn:
+      - QueuePolicy
+    Properties:
+      Endpoint: !GetAtt Queue0.Arn
+      Protocol: sqs
+      TopicArn: !Ref Topic
+
+  Topic:
+    Type: AWS::SNS::Topic
+
+  ACustomResource:
+    Type: Custom::CustomThing
+    Properties:
+      ServiceToken: foo
+
+  AnotherCustomResource:
+    Type: Custom::AnotherCustomThing
+    Properties:
+      ServiceToken: foo
+
+  AnotherCustomResource2:
+    Type: Custom::AnotherCustomThing
+    Properties:
+      ServiceToken: foo
+      FixThisJoin:
+        Fn::Sub: arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:${Foo.Bar}
+
+Outputs:
+  TryConvertCdkQueueA6B3948CName:
+    Value: !Ref Queue2

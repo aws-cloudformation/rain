@@ -97,7 +97,6 @@ func (t Template) GetParameter(name string) (*yaml.Node, error) {
 func (t Template) GetNode(section Section, name string) (*yaml.Node, error) {
 	_, resMap, _ := s11n.GetMapValue(t.Node.Content[0], string(section))
 	if resMap == nil {
-		config.Debugf("GetNode t.Node: %s", node.ToSJson(t.Node))
 		return nil, fmt.Errorf("unable to locate the %s node", section)
 	}
 	// TODO: Some Sections are not Maps
@@ -144,7 +143,6 @@ func (t Template) GetSection(section Section) (*yaml.Node, error) {
 	m := t.Node.Content[0]
 	_, s, _ := s11n.GetMapValue(m, string(section))
 	if s == nil {
-		config.Debugf("GetSection t.Node: %s", node.ToSJson(t.Node))
 		return nil, fmt.Errorf("unable to locate the %s node", section)
 	}
 	return s, nil
@@ -202,4 +200,27 @@ func (t Template) GetResourcesOfType(typeName string) []*Resource {
 		}
 	}
 	return retval
+}
+
+// RemoveEmptySections removes sections from the template that have no content
+func (t Template) RemoveEmptySections() {
+	if t.Node == nil {
+		config.Debugf("t.Node is nil")
+		return
+	}
+	m := t.Node.Content[0]
+	sectionsToRemove := make([]string, 0)
+	for i := 0; i < len(m.Content); i++ {
+		if i%2 != 0 {
+			continue
+		}
+		name := m.Content[i].Value
+		node := m.Content[i+1]
+		if len(node.Content) == 0 {
+			sectionsToRemove = append(sectionsToRemove, name)
+		}
+	}
+	for _, name := range sectionsToRemove {
+		node.RemoveFromMap(m, name)
+	}
 }
