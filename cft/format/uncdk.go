@@ -21,6 +21,8 @@ func UnCDK(t cft.Template) error {
 	//   {*}:
 	//     Metadata:
 	//       aws:cdk:path:
+	//       aws:asset:path:
+	//       aws:asset:property:
 	// Conditions:
 	//   CDKMetadataAvailable:
 	// Parameters:
@@ -73,51 +75,49 @@ func UnCDK(t cft.Template) error {
 			return fmt.Errorf("expected %s to have Type", logicalId)
 		}
 		tokens := strings.Split(typ.Value, "::")
-		if len(tokens) < 3 {
-			// TODO ::Module would break here
-			config.Debugf("unexpected %s Type is %s", logicalId, typ.Value)
+		oldName := resources.Content[i].Value
+		newName := ""
+		if len(tokens) == 3 {
+			newName = tokens[2]
+		} else if len(tokens) == 2 && tokens[0] == "Custom" {
+			newName = strings.Replace(tokens[1], "-", "", -1)
 		} else {
-			oldName := resources.Content[i].Value
-			newName := tokens[2]
-			if nameNodes, ok := allNames[newName]; ok {
-				// We've seen this one before
-				nameNodes = append(nameNodes, resources.Content[i])
-				for nodeIdx, node := range nameNodes {
-					sequential := fmt.Sprintf("%s%d", newName, nodeIdx)
-					priorValue := node.Value
-					node.Value = sequential
-					replaceNames(t, priorValue, sequential)
-				}
-			} else {
-				// We haven't seen this name yet
-				resources.Content[i].Value = newName
-				allNames[newName] = make([]*yaml.Node, 0)
-				allNames[newName] = append(allNames[newName], resources.Content[i])
-				replaceNames(t, oldName, newName)
+			newName = strings.Replace(typ.Value, "::", "", -1)
+		}
+		if nameNodes, ok := allNames[newName]; ok {
+			// We've seen this one before
+			nameNodes = append(nameNodes, resources.Content[i])
+			allNames[newName] = nameNodes
+			config.Debugf("For %s (%s), nameNodes is now %v", logicalId, newName, nameNodes)
+			for nodeIdx, node := range nameNodes {
+				sequential := fmt.Sprintf("%s%d", newName, nodeIdx)
+				priorValue := node.Value
+				node.Value = sequential
+				replaceNames(t, priorValue, sequential)
 			}
+		} else {
+			// We haven't seen this name yet
+			resources.Content[i].Value = newName
+			allNames[newName] = make([]*yaml.Node, 0)
+			allNames[newName] = append(allNames[newName], resources.Content[i])
+			replaceNames(t, oldName, newName)
 		}
 
-		// Remove the cdk path
+		// Remove the cdk path and asset metadata
 		_, metadata, _ := s11n.GetMapValue(resource, string(cft.Metadata))
 		if metadata != nil {
-			cdkPath := "aws:cdk:path"
-			found := false
-			for m := 0; m < len(metadata.Content); m += 2 {
-				if metadata.Content[m].Value == cdkPath {
-					found = true
-					break
-				}
+			stringsToRemove := []string{
+				"aws:cdk:path",
+				"aws:asset:path",
+				"aws:asset:property",
 			}
-			if found {
-				err := node.RemoveFromMap(metadata, cdkPath)
-				if err != nil {
-					return err // This should not happen
-				}
+			for _, s := range stringsToRemove {
+				node.RemoveFromMap(metadata, s)
 			}
-		}
-		// If the resource Metadata node is empty, remove it
-		if len(metadata.Content) == 0 {
-			node.RemoveFromMap(resource, string(cft.Metadata))
+			// If the resource Metadata node is empty, remove it
+			if len(metadata.Content) == 0 {
+				node.RemoveFromMap(resource, string(cft.Metadata))
+			}
 		}
 	}
 
@@ -133,6 +133,7 @@ func replaceNames(t cft.Template, oldName, newName string) {
 		yamlNode := n.GetYamlNode()
 		if yamlNode.Kind == yaml.ScalarNode {
 			if yamlNode.Value == oldName {
+				config.Debugf("replaceNames %s %s", oldName, newName)
 				yamlNode.Value = newName
 			}
 		}
