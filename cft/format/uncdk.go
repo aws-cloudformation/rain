@@ -107,6 +107,7 @@ func UnCDK(t cft.Template) error {
 				"aws:asset:path",
 				"aws:asset:property",
 				"aws:asset:is-bundled",
+				"cfn_nag",
 			}
 			for _, s := range stringsToRemove {
 				node.RemoveFromMap(metadata, s)
@@ -121,7 +122,60 @@ func UnCDK(t cft.Template) error {
 	// Remove any empty sections
 	t.RemoveEmptySections()
 
+	// Replace Joins with Subs to make them easier to read
+	joinToSub(t)
+
 	return nil // TODO
+
+}
+
+func joinSeqToString(seq *yaml.Node) string {
+	if len(seq.Content) != 2 {
+		return "Invalid Join"
+	}
+	j := seq.Content[0].Value
+	tokens := seq.Content[1]
+	retval := ""
+	for i, token := range tokens.Content {
+		if i != 0 {
+			retval += j
+		}
+		if token.Kind == yaml.ScalarNode {
+			retval += token.Value
+		}
+		if token.Kind == yaml.MappingNode {
+			if token.Content[0].Value == "Ref" {
+				retval += "${" + token.Content[1].Value + "}"
+			}
+			if token.Content[0].Value == "Fn::GetAtt" {
+				retval += "${" + token.Content[1].Content[0].Value
+				retval += "." + token.Content[1].Content[1].Value + "}"
+			}
+		}
+	}
+	return retval
+}
+
+func joinToSub(t cft.Template) {
+	vf := func(n *visitor.Visitor) {
+		yamlNode := n.GetYamlNode()
+		if yamlNode.Kind == yaml.MappingNode {
+			if len(yamlNode.Content) == 2 && yamlNode.Content[0].Value == "Fn::Join" {
+				config.Debugf("Found a Join: %s", node.ToSJson(yamlNode))
+				seq := yamlNode.Content[1]
+				if seq.Kind == yaml.SequenceNode {
+					yamlNode.Content[0].Value = "Fn::Sub"
+					yamlNode.Content[1].Value = joinSeqToString(seq)
+					yamlNode.Content[1].Kind = yaml.ScalarNode
+					yamlNode.Content[1].Content = make([]*yaml.Node, 0)
+
+					config.Debugf("after: %s", node.ToSJson(yamlNode))
+				}
+			}
+		}
+	}
+	visitor := visitor.NewVisitor(t.Node)
+	visitor.Visit(vf)
 
 }
 

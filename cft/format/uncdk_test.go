@@ -7,6 +7,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft/diff"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/internal/config"
+	"gopkg.in/yaml.v3"
 )
 
 func TestRemoveEmptySections(t *testing.T) {
@@ -112,5 +113,32 @@ func TestGetCommonPrefix(t *testing.T) {
 				t.Errorf("Expected prefix '%s', got '%s'", tc.expectedPrefix, prefix)
 			}
 		})
+	}
+}
+
+func TestJoinSeqToString(t *testing.T) {
+	src := `
+Fn::Join:
+  - ""
+  - - "arn:"
+    - Ref: AWS::Partition
+    - ":logs:"
+    - Ref: AWS::Region
+    - ":"
+    - Ref: AWS::AccountId
+    - ":"
+    - Fn::GetAtt:
+      - "Foo"
+      - "Bar"
+`
+	var n yaml.Node
+	err := yaml.Unmarshal([]byte(src), &n)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sub := joinSeqToString(n.Content[0].Content[1])
+	expect := "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:${Foo.Bar}"
+	if sub != expect {
+		t.Fatalf("unexpected sub: %s", sub)
 	}
 }
