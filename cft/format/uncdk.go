@@ -7,7 +7,6 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/visitor"
-	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
@@ -59,7 +58,6 @@ func UnCDK(t cft.Template) error {
 	}
 
 	commonPrefix := getCommonResourcePrefix(t)
-	config.Debugf("commonPrefix is %s", commonPrefix)
 
 	// Store the resource logical id node each time we see a repeated name
 	// Start without a number, for example "Bucket"
@@ -84,7 +82,6 @@ func UnCDK(t cft.Template) error {
 			// We've seen this one before
 			nameNodes = append(nameNodes, resources.Content[i])
 			allNames[newName] = nameNodes
-			config.Debugf("For %s (%s), nameNodes is now %v", logicalId, newName, nameNodes)
 			for nodeIdx, node := range nameNodes {
 				sequential := fmt.Sprintf("%s%d", newName, nodeIdx)
 				priorValue := node.Value
@@ -161,15 +158,12 @@ func joinToSub(t cft.Template) {
 		yamlNode := n.GetYamlNode()
 		if yamlNode.Kind == yaml.MappingNode {
 			if len(yamlNode.Content) == 2 && yamlNode.Content[0].Value == "Fn::Join" {
-				config.Debugf("Found a Join: %s", node.ToSJson(yamlNode))
 				seq := yamlNode.Content[1]
 				if seq.Kind == yaml.SequenceNode {
 					yamlNode.Content[0].Value = "Fn::Sub"
 					yamlNode.Content[1].Value = joinSeqToString(seq)
 					yamlNode.Content[1].Kind = yaml.ScalarNode
 					yamlNode.Content[1].Content = make([]*yaml.Node, 0)
-
-					config.Debugf("after: %s", node.ToSJson(yamlNode))
 				}
 			}
 		}
@@ -184,7 +178,6 @@ func replaceNames(t cft.Template, oldName, newName string) {
 		yamlNode := n.GetYamlNode()
 		if yamlNode.Kind == yaml.ScalarNode {
 			if yamlNode.Value == oldName {
-				config.Debugf("replaceNames %s %s", oldName, newName)
 				yamlNode.Value = newName
 			}
 		}
@@ -204,7 +197,6 @@ func getCommonResourcePrefix(t cft.Template) string {
 		logicalId := resources.Content[i].Value
 		logicalIds = append(logicalIds, logicalId)
 	}
-	config.Debugf("logicalIds: %v", logicalIds)
 	return getCommonPrefix(logicalIds)
 }
 
@@ -237,7 +229,6 @@ func getCommonPrefix(logicalIds []string) string {
 		}
 	}
 
-	config.Debugf("getCommonPrefix candidate is %s", retval)
 	common := true
 	for _, id := range logicalIds {
 		if !strings.HasPrefix(id, retval) {
