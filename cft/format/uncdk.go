@@ -3,6 +3,7 @@ package format
 import (
 	"fmt"
 	"strings"
+	"unicode"
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/visitor"
@@ -57,6 +58,9 @@ func UnCDK(t cft.Template) error {
 		return err
 	}
 
+	commonPrefix := getCommonResourcePrefix(t)
+	config.Debugf("commonPrefix is %s", commonPrefix)
+
 	// Store the resource logical id node each time we see a repeated name
 	// Start without a number, for example "Bucket"
 	// If we see another one, fix the first one to be "Bucket0"
@@ -74,16 +78,8 @@ func UnCDK(t cft.Template) error {
 		if typ == nil {
 			return fmt.Errorf("expected %s to have Type", logicalId)
 		}
-		tokens := strings.Split(typ.Value, "::")
 		oldName := resources.Content[i].Value
-		newName := ""
-		if len(tokens) == 3 {
-			newName = tokens[2]
-		} else if len(tokens) == 2 && tokens[0] == "Custom" {
-			newName = strings.Replace(tokens[1], "-", "", -1)
-		} else {
-			newName = strings.Replace(typ.Value, "::", "", -1)
-		}
+		newName := createNewName(typ.Value, logicalId, commonPrefix)
 		if nameNodes, ok := allNames[newName]; ok {
 			// We've seen this one before
 			nameNodes = append(nameNodes, resources.Content[i])
@@ -110,6 +106,7 @@ func UnCDK(t cft.Template) error {
 				"aws:cdk:path",
 				"aws:asset:path",
 				"aws:asset:property",
+				"aws:asset:is-bundled",
 			}
 			for _, s := range stringsToRemove {
 				node.RemoveFromMap(metadata, s)
@@ -140,4 +137,113 @@ func replaceNames(t cft.Template, oldName, newName string) {
 	}
 	visitor := visitor.NewVisitor(t.Node)
 	visitor.Visit(vf)
+}
+
+// getCommonTemplatePrefix attempts to find a common string that begins all resource names.
+func getCommonResourcePrefix(t cft.Template) string {
+	resources, err := t.GetSection(cft.Resources)
+	if err != nil {
+		return ""
+	}
+	logicalIds := make([]string, 0)
+	for i := 0; i < len(resources.Content); i += 2 {
+		logicalId := resources.Content[i].Value
+		logicalIds = append(logicalIds, logicalId)
+	}
+	config.Debugf("logicalIds: %v", logicalIds)
+	return getCommonPrefix(logicalIds)
+}
+
+// getCommonPrefix attempts to find a common string that begins all strings in the slice.
+func getCommonPrefix(logicalIds []string) string {
+	if len(logicalIds) < 2 {
+		return ""
+	}
+	retval := ""
+	prefixes := make([]string, 0)
+	for j := 1; j < len(logicalIds); j++ {
+		prefix := ""
+		for i, c := range logicalIds[0] {
+			second := []rune(logicalIds[j])
+			if len(second) > i && second[i] == c {
+				prefix += string(c)
+			} else {
+				prefixes = append(prefixes, prefix)
+				if retval == "" {
+					retval = prefix
+				}
+				for _, p := range prefixes {
+					// Pick the shortest prefix
+					if len(p) < len(retval) && retval != "" {
+						retval = p
+					}
+				}
+				break
+			}
+		}
+	}
+
+	config.Debugf("getCommonPrefix candidate is %s", retval)
+	common := true
+	for _, id := range logicalIds {
+		if !strings.HasPrefix(id, retval) {
+			common = false
+			break
+		}
+	}
+	if common {
+		return retval
+	}
+	return ""
+}
+
+// stripSuffix attempts to remove the random 8 characters at the end of ids
+func stripSuffix(s string) string {
+
+	if len(s) <= 8 {
+		return s
+	}
+
+	// Too simple. For imported constructs, you can end up with several
+	// Strip off the random 8 digit string at the end
+	//return newName[:len(newName)-8]
+
+	suffixLen := 0
+
+	for i := len(s) - 1; i >= 0; i-- {
+		isUpper := unicode.IsUpper(rune(s[i])) && unicode.IsLetter(rune(s[i]))
+		isDigit := unicode.IsDigit(rune(s[i]))
+		if isUpper || isDigit {
+			suffixLen += 1
+		} else {
+			break
+		}
+	}
+
+	if suffixLen == len(s) {
+		return s
+	}
+
+	// Round to the nearest 8 in case a name ended with a capital letter or number
+	suffixLen = suffixLen - (suffixLen % 8)
+
+	return s[:len(s)-suffixLen]
+}
+
+// createNewName converts the cdk generated name into something that is easier to read.
+func createNewName(typeName string, logicalId string, commonPrefix string) string {
+	newName := ""
+	if commonPrefix != "" {
+		newName = strings.Replace(logicalId, commonPrefix, "", -1)
+		return stripSuffix(newName)
+	}
+	tokens := strings.Split(typeName, "::")
+	if len(tokens) == 3 {
+		newName = tokens[2]
+	} else if len(tokens) == 2 && tokens[0] == "Custom" {
+		newName = strings.Replace(tokens[1], "-", "", -1)
+	} else {
+		newName = strings.Replace(typeName, "::", "", -1)
+	}
+	return newName
 }
