@@ -143,7 +143,7 @@ func (t Template) GetSection(section Section) (*yaml.Node, error) {
 	m := t.Node.Content[0]
 	_, s, _ := s11n.GetMapValue(m, string(section))
 	if s == nil {
-		return nil, fmt.Errorf("unable to locate the %s node", section)
+		return nil, fmt.Errorf("unable to locate the %s section", section)
 	}
 	return s, nil
 }

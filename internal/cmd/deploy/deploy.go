@@ -153,7 +153,7 @@ To list and delete changesets, use the ls and rm commands.
 				panic(err)
 			}
 
-			// Figure out how long we thing the stack will take to execute
+			// Figure out how long we think the stack will take to execute
 			//totalSeconds := forecast.PredictTotalEstimate(template, stackExists)
 			// TODO - Wait until the forecast command is GA and add this to output
 
@@ -339,4 +339,5 @@ func init() {
 	Cmd.Flags().StringVar(&format.NodeStyle, "node-style", "original", format.NodeStyleDocs)
 	Cmd.Flags().BoolVar(&experimental, "experimental", false, "Acknowledge that you want to deploy with an experimental feature")
 	Cmd.Flags().BoolVar(&includeNested, "nested-change-set", true, "Whether or not to include nested stacks in the change set")
+	Cmd.Flags().BoolVar(&cftpkg.NoAnalytics, "no-analytics", false, "Do not write analytics to Metadata")
 }

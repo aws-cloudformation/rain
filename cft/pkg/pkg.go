@@ -26,6 +26,7 @@ package pkg
 
 import (
 	"embed"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -44,6 +45,22 @@ import (
 
 // Experimental must be set to true to enable !Rain::Module
 var Experimental bool
+var NoAnalytics bool
+var HasRainSection bool
+
+type analytics struct {
+	// Current Rain version
+	Version string
+
+	// Are we using experimental features?
+	Experimental bool
+
+	// Did we use any Rain modules?
+	HasModules bool
+
+	// Did the template have a Rain section?
+	HasRainSection bool
+}
 
 type transformContext struct {
 	nodeToTransform *yaml.Node
@@ -153,6 +170,8 @@ func processRainSection(t *cft.Template) bool {
 
 	// Now remove the Rain node from the template
 	t.RemoveSection(cft.Rain)
+
+	HasRainSection = true
 
 	return true
 }
@@ -265,7 +284,27 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 		retval.Node.Content = append(retval.Node.Content, templateNode)
 	}
 
-	return retval, err
+	// Add analytics to Metadata
+	if !NoAnalytics {
+		metadata, err := retval.GetSection(cft.Metadata)
+		if err != nil || metadata == nil {
+			metadata = node.AddMap(retval.Node.Content[0], string(cft.Metadata))
+		}
+		awsToolsMetrics := node.AddMap(metadata, "AWSToolsMetrics")
+		a := analytics{
+			Version:        config.VERSION,
+			HasModules:     HasModules,
+			Experimental:   Experimental,
+			HasRainSection: HasRainSection,
+		}
+		s, _ := json.Marshal(&a)
+		awsToolsMetrics.Content = append(awsToolsMetrics.Content,
+			&yaml.Node{Kind: yaml.ScalarNode, Value: "Rain"})
+		awsToolsMetrics.Content = append(awsToolsMetrics.Content,
+			&yaml.Node{Kind: yaml.ScalarNode, Value: string(s)})
+	}
+
+	return retval, nil
 }
 
 // File opens path as a CloudFormation template and returns a cft.Template
