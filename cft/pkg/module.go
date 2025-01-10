@@ -16,6 +16,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+var HasModules bool
+
 const (
 	Rain                = "Rain"
 	Metadata            = "Metadata"
@@ -794,6 +796,8 @@ func module(ctx *directiveContext) (bool, error) {
 	if len(n.Content) != 2 {
 		return false, errors.New("expected !Rain::Module <URI>")
 	}
+
+	HasModules = true
 
 	uri := n.Content[1].Value
 	var content []byte

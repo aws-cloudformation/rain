@@ -128,3 +128,7 @@ func TestCsvToSequence(t *testing.T) {
 		t.Errorf("Unexpected sequence")
 	}
 }
+
+func init() {
+	pkg.NoAnalytics = true
+}
