@@ -11,11 +11,13 @@
         },
         "VectorKnowledgeBaseConfiguration": {
           "$ref": "#/definitions/VectorKnowledgeBaseConfiguration"
+        },
+        "KendraKnowledgeBaseConfiguration": {
+          "$ref": "#/definitions/KendraKnowledgeBaseConfiguration"
         }
       },
       "required": [
-        "Type",
-        "VectorKnowledgeBaseConfiguration"
+        "Type"
       ],
       "additionalProperties": false
     },
@@ -45,7 +47,8 @@
       "type": "string",
       "description": "The type of a knowledge base.",
       "enum": [
-        "VECTOR"
+        "VECTOR",
+        "KENDRA"
       ]
     },
     "OpenSearchServerlessConfiguration": {
@@ -55,7 +58,7 @@
         "CollectionArn": {
           "type": "string",
           "maxLength": 2048,
-          "pattern": "^arn:aws:aoss:[a-z]{2}(-gov)?-[a-z]+-\\d{1}:\\d{12}:collection/[a-z0-9-]{3,32}$",
+          "pattern": "^arn:aws(|-cn|-us-gov|-iso):aoss:[a-z]{2}(-gov)?-[a-z]+-\\d{1}:\\d{12}:collection/[a-z0-9-]{3,32}$",
           "description": "The ARN of the OpenSearch Service vector store."
         },
         "VectorIndexName": {
@@ -479,12 +482,96 @@
         },
         "EmbeddingModelConfiguration": {
           "$ref": "#/definitions/EmbeddingModelConfiguration"
+        },
+        "SupplementalDataStorageConfiguration": {
+          "$ref": "#/definitions/SupplementalDataStorageConfiguration"
         }
       },
       "required": [
         "EmbeddingModelArn"
       ],
       "additionalProperties": false
+    },
+    "S3Location": {
+      "type": "object",
+      "description": "An Amazon S3 location.",
+      "properties": {
+        "URI": {
+          "type": "string",
+          "maxLength": 2048,
+          "minLength": 1,
+          "pattern": "^s3://.{1,128}$",
+          "description": "The location's URI"
+        }
+      },
+      "required": [
+        "URI"
+      ],
+      "additionalProperties": false
+    },
+    "SupplementalDataStorageLocationType": {
+      "type": "string",
+      "description": "Supplemental data storage location type.",
+      "enum": [
+        "S3"
+      ]
+    },
+    "SupplementalDataStorageLocation": {
+      "type": "object",
+      "description": "Supplemental data storage location.",
+      "properties": {
+        "SupplementalDataStorageLocationType": {
+          "$ref": "#/definitions/SupplementalDataStorageLocationType"
+        },
+        "S3Location": {
+          "$ref": "#/definitions/S3Location"
+        }
+      },
+      "required": [
+        "SupplementalDataStorageLocationType"
+      ],
+      "additionalProperties": false
+    },
+    "SupplementalDataStorageLocations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/SupplementalDataStorageLocation"
+      },
+      "maxItems": 1,
+      "minItems": 1,
+      "description": "List of supplemental data storage locations.",
+      "insertionOrder": false
+    },
+    "SupplementalDataStorageConfiguration": {
+      "type": "object",
+      "description": "Configurations for supplemental data storage.",
+      "properties": {
+        "SupplementalDataStorageLocations": {
+          "$ref": "#/definitions/SupplementalDataStorageLocations"
+        }
+      },
+      "required": [
+        "SupplementalDataStorageLocations"
+      ],
+      "additionalProperties": false
+    },
+    "KendraKnowledgeBaseConfiguration": {
+      "type": "object",
+      "description": "Configurations for a Kendra knowledge base",
+      "properties": {
+        "KendraIndexArn": {
+          "$ref": "#/definitions/KendraIndexArn"
+        }
+      },
+      "required": [
+        "KendraIndexArn"
+      ],
+      "additionalProperties": false
+    },
+    "KendraIndexArn": {
+      "type": "string",
+      "description": "Arn of a Kendra index",
+      "pattern": "^arn:aws(|-cn|-us-gov):kendra:[a-z0-9-]{1,20}:([0-9]{12}|):index/([a-zA-Z0-9][a-zA-Z0-9-]{35}|[a-zA-Z0-9][a-zA-Z0-9-]{35}-[a-zA-Z0-9][a-zA-Z0-9-]{35})$"
     }
   },
   "properties": {
@@ -552,8 +639,7 @@
   "required": [
     "KnowledgeBaseConfiguration",
     "Name",
-    "RoleArn",
-    "StorageConfiguration"
+    "RoleArn"
   ],
   "readOnlyProperties": [
     "/properties/KnowledgeBaseId",

@@ -16,6 +16,9 @@
         },
         "ParsingPrompt": {
           "$ref": "#/definitions/ParsingPrompt"
+        },
+        "ParsingModality": {
+          "$ref": "#/definitions/ParsingModality"
         }
       },
       "required": [
@@ -105,33 +108,6 @@
       "required": [
         "Type"
       ],
-      "oneOf": [
-        {
-          "required": [
-            "S3Configuration"
-          ]
-        },
-        {
-          "required": [
-            "ConfluenceConfiguration"
-          ]
-        },
-        {
-          "required": [
-            "SalesforceConfiguration"
-          ]
-        },
-        {
-          "required": [
-            "SharePointConfiguration"
-          ]
-        },
-        {
-          "required": [
-            "WebConfiguration"
-          ]
-        }
-      ],
       "additionalProperties": false
     },
     "DataSourceStatus": {
@@ -151,7 +127,8 @@
         "CONFLUENCE",
         "SALESFORCE",
         "SHAREPOINT",
-        "WEB"
+        "WEB",
+        "CUSTOM"
       ]
     },
     "DataDeletionPolicy": {
@@ -248,11 +225,31 @@
         },
         "BedrockFoundationModelConfiguration": {
           "$ref": "#/definitions/BedrockFoundationModelConfiguration"
+        },
+        "BedrockDataAutomationConfiguration": {
+          "$ref": "#/definitions/BedrockDataAutomationConfiguration"
         }
       },
       "required": [
         "ParsingStrategy"
       ],
+      "additionalProperties": false
+    },
+    "ParsingModality": {
+      "type": "string",
+      "description": "Determine how will parsed content be stored.",
+      "enum": [
+        "MULTIMODAL"
+      ]
+    },
+    "BedrockDataAutomationConfiguration": {
+      "type": "object",
+      "description": "Settings for a Bedrock Data Automation used to parse documents for a data source.",
+      "properties": {
+        "ParsingModality": {
+          "$ref": "#/definitions/ParsingModality"
+        }
+      },
       "additionalProperties": false
     },
     "ParsingPrompt": {
@@ -275,7 +272,8 @@
       "type": "string",
       "description": "The parsing strategy for the data source.",
       "enum": [
-        "BEDROCK_FOUNDATION_MODEL"
+        "BEDROCK_FOUNDATION_MODEL",
+        "BEDROCK_DATA_AUTOMATION"
       ]
     },
     "S3DataSourceConfiguration": {

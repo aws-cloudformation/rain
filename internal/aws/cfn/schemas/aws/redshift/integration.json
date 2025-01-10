@@ -15,11 +15,11 @@
     },
     "SourceArn": {
       "type": "string",
-      "description": "The Amazon Resource Name (ARN) of the database to use as the source for replication, for example, arn:aws:dynamodb:us-east-2:123412341234:table/dynamotable"
+      "description": "The Amazon Resource Name (ARN) of the database to use as the source for replication"
     },
     "TargetArn": {
       "type": "string",
-      "description": "The Amazon Resource Name (ARN) of the Redshift data warehouse to use as the target for replication, for example, arn:aws:redshift:us-east-2:123412341234:namespace:e43aab3e-10a3-4ec4-83d4-f227ff9bfbcf"
+      "description": "The Amazon Resource Name (ARN) of the Redshift data warehouse to use as the target for replication"
     },
     "Tags": {
       "type": "array",
@@ -37,21 +37,7 @@
     },
     "KMSKeyId": {
       "type": "string",
-      "description": "An KMS key identifier for the key to use to encrypt the integration. If you don't specify an encryption key, the default AWS owned KMS key is used.",
-      "anyOf": [
-        {
-          "relationshipRef": {
-            "typeName": "AWS::KMS::Key",
-            "propertyPath": "/properties/Arn"
-          }
-        },
-        {
-          "relationshipRef": {
-            "typeName": "AWS::KMS::Key",
-            "propertyPath": "/properties/KeyId"
-          }
-        }
-      ]
+      "description": "An KMS key identifier for the key to use to encrypt the integration. If you don't specify an encryption key, the default AWS owned KMS key is used."
     },
     "AdditionalEncryptionContext": {
       "$ref": "#/definitions/EncryptionContextMap"
@@ -103,7 +89,7 @@
           "minLength": 0
         }
       },
-      "description": "An optional set of non-secret key?value pairs that contains additional contextual information about the data.",
+      "description": "An optional set of non-secret key–value pairs that contains additional contextual information about the data.",
       "additionalProperties": false
     }
   },
@@ -131,9 +117,10 @@
         "redshift:CreateTags",
         "redshift:DescribeTags",
         "redshift:DescribeClusters",
+        "redshift:CreateInboundIntegration",
+        "redshift-serverless:ListNamespaces",
         "kms:CreateGrant",
-        "kms:DescribeKey",
-        "redshift:CreateInboundIntegration"
+        "kms:DescribeKey"
       ]
     },
     "read": {
@@ -149,7 +136,8 @@
         "redshift:CreateTags",
         "redshift:DeleteTags",
         "redshift:DescribeClusters",
-        "redshift:DescribeTags"
+        "redshift:DescribeTags",
+        "redshift-serverless:ListNamespaces"
       ]
     },
     "delete": {
