@@ -15,6 +15,10 @@ func convertStrings(sa []string) []any {
 }
 
 /*
+
+// We can't patch these since we now run patching during unit tests,
+// and these patches make SDK calls to get enumeration values.
+
 func patchLightsailInstance(schema *Schema) error {
 	blueprintId, found := schema.Properties["BlueprintId"]
 	if !found {
@@ -243,14 +247,21 @@ func patchQuickSightDashboard(schema *Schema) error {
 	name := "GeospatialLayerMapConfiguration"
 	if c, ok := schema.Definitions[name]; ok {
 		badProp := "Interactions"
-		config.Debugf("Found prop %s, removing %s", name, badProp)
+		config.Debugf("Found QuickSight Dashboard def %s, removing %s", name, badProp)
 		delete(c.Properties, badProp)
 	}
 
 	name = "GeospatialMapConfiguration"
 	if c, ok := schema.Definitions[name]; ok {
 		badProp := "Interactions"
-		config.Debugf("Found QuickSight Dashboard prop  %s, removing %s", name, badProp)
+		config.Debugf("Found QuickSight Dashboard def  %s, removing %s", name, badProp)
+		delete(c.Properties, badProp)
+	}
+
+	name = "DashboardPublishOptions"
+	if c, ok := schema.Definitions[name]; ok {
+		badProp := "VisualMenuOption"
+		config.Debugf("Found QuickSight Dashboard def  %s, removing %s", name, badProp)
 		delete(c.Properties, badProp)
 	}
 

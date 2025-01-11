@@ -3,6 +3,33 @@
   "description": "Amazon Lex conversational bot performing automated tasks such as ordering a pizza, booking a hotel, and so on.",
   "sourceUrl": "https://docs.aws.amazon.com/lexv2/latest/dg/build-create.html",
   "definitions": {
+    "ReplicaRegion": {
+      "description": "The secondary region that will be used in the replication of the source bot.",
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 25
+    },
+    "Replication": {
+      "description": "Parameter used to create a replication of the source bot in the secondary region.",
+      "type": "object",
+      "properties": {
+        "ReplicaRegions": {
+          "description": "List of secondary regions for bot replication.",
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 1,
+          "minItems": 1,
+          "insertionOrder": false,
+          "items": {
+            "$ref": "#/definitions/ReplicaRegion"
+          }
+        }
+      },
+      "required": [
+        "ReplicaRegions"
+      ],
+      "additionalProperties": false
+    },
     "BotAliasLocaleSettingsList": {
       "description": "A list of bot alias locale settings to add to the bot alias.",
       "type": "array",
@@ -2216,6 +2243,9 @@
     },
     "TestBotAliasSettings": {
       "$ref": "#/definitions/TestBotAliasSettings"
+    },
+    "Replication": {
+      "$ref": "#/definitions/Replication"
     }
   },
   "taggable": true,
@@ -2238,7 +2268,8 @@
     "/properties/BotFileS3Location",
     "/properties/AutoBuildBotLocales",
     "/properties/BotTags",
-    "/properties/TestBotAliasTags"
+    "/properties/TestBotAliasTags",
+    "/properties/Replication"
   ],
   "handlers": {
     "create": {
@@ -2272,13 +2303,19 @@
         "lex:UpdateCustomVocabulary",
         "lex:DeleteCustomVocabulary",
         "s3:GetObject",
-        "lex:UpdateBotAlias"
+        "lex:UpdateBotAlias",
+        "iam:CreateServiceLinkedRole",
+        "iam:GetRole",
+        "lex:CreateBotReplica",
+        "lex:DescribeBotReplica",
+        "lex:DeleteBotReplica"
       ]
     },
     "read": {
       "permissions": [
         "lex:DescribeBot",
-        "lex:ListTagsForResource"
+        "lex:ListTagsForResource",
+        "lex:DescribeBotReplica"
       ]
     },
     "update": {
@@ -2313,7 +2350,10 @@
         "lex:UpdateCustomVocabulary",
         "lex:DeleteCustomVocabulary",
         "s3:GetObject",
-        "lex:UpdateBotAlias"
+        "lex:UpdateBotAlias",
+        "lex:CreateBotReplica",
+        "lex:DescribeBotReplica",
+        "lex:DeleteBotReplica"
       ]
     },
     "delete": {
@@ -2327,12 +2367,14 @@
         "lex:DeleteBotVersion",
         "lex:DeleteBotChannel",
         "lex:DeleteBotAlias",
-        "lex:DeleteCustomVocabulary"
+        "lex:DeleteCustomVocabulary",
+        "lex:DeleteBotReplica"
       ]
     },
     "list": {
       "permissions": [
-        "lex:ListBots"
+        "lex:ListBots",
+        "lex:ListBotReplicas"
       ]
     }
   }

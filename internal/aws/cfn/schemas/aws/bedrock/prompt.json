@@ -6,7 +6,8 @@
       "type": "string",
       "description": "Prompt template type",
       "enum": [
-        "TEXT"
+        "TEXT",
+        "CHAT"
       ]
     },
     "PromptVariant": {
@@ -33,6 +34,9 @@
         },
         "InferenceConfiguration": {
           "$ref": "#/definitions/PromptInferenceConfiguration"
+        },
+        "GenAiResource": {
+          "$ref": "#/definitions/PromptGenAiResource"
         }
       },
       "required": [
@@ -69,6 +73,47 @@
       "required": [],
       "additionalProperties": false
     },
+    "ChatPromptTemplateConfiguration": {
+      "type": "object",
+      "description": "Configuration for chat prompt template",
+      "properties": {
+        "Messages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Message"
+          },
+          "minItems": 0,
+          "description": "List of messages for chat prompt template",
+          "insertionOrder": true
+        },
+        "System": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SystemContentBlock"
+          },
+          "minItems": 0,
+          "description": "Configuration for chat prompt template",
+          "insertionOrder": true
+        },
+        "ToolConfiguration": {
+          "$ref": "#/definitions/ToolConfiguration"
+        },
+        "InputVariables": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PromptInputVariable"
+          },
+          "maxItems": 5,
+          "minItems": 0,
+          "description": "List of input variables",
+          "insertionOrder": true
+        }
+      },
+      "required": [
+        "Messages"
+      ],
+      "additionalProperties": false
+    },
     "PromptTemplateConfiguration": {
       "description": "Prompt template configuration",
       "oneOf": [
@@ -82,6 +127,19 @@
           },
           "required": [
             "Text"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "title": "Chat",
+          "properties": {
+            "Chat": {
+              "$ref": "#/definitions/ChatPromptTemplateConfiguration"
+            }
+          },
+          "required": [
+            "Chat"
           ],
           "additionalProperties": false
         }
@@ -114,6 +172,232 @@
       "required": [
         "Bucket",
         "Key"
+      ],
+      "additionalProperties": false
+    },
+    "ConversationRole": {
+      "type": "string",
+      "description": "Conversation roles for the chat prompt",
+      "enum": [
+        "user",
+        "assistant"
+      ]
+    },
+    "ContentBlock": {
+      "description": "Configuration for chat prompt template",
+      "oneOf": [
+        {
+          "title": "Text",
+          "type": "object",
+          "properties": {
+            "Text": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Configuration for chat prompt template"
+            }
+          },
+          "required": [
+            "Text"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "SystemContentBlock": {
+      "description": "Configuration for chat prompt template",
+      "oneOf": [
+        {
+          "title": "Text",
+          "type": "object",
+          "properties": {
+            "Text": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Configuration for chat prompt template"
+            }
+          },
+          "required": [
+            "Text"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Message": {
+      "type": "object",
+      "description": "Chat prompt Message",
+      "properties": {
+        "Role": {
+          "$ref": "#/definitions/ConversationRole"
+        },
+        "Content": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ContentBlock"
+          },
+          "minItems": 1,
+          "description": "List of Content Blocks",
+          "insertionOrder": true
+        }
+      },
+      "required": [
+        "Role",
+        "Content"
+      ],
+      "additionalProperties": false
+    },
+    "ToolInputSchema": {
+      "description": "Tool input schema",
+      "oneOf": [
+        {
+          "type": "object",
+          "title": "Json",
+          "properties": {
+            "Json": {
+              "type": "object"
+            }
+          },
+          "description": "Tool input schema json",
+          "required": [
+            "Json"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "ToolSpecification": {
+      "type": "object",
+      "description": "Tool specification",
+      "properties": {
+        "Name": {
+          "type": "string",
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "Tool name"
+        },
+        "Description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "InputSchema": {
+          "$ref": "#/definitions/ToolInputSchema"
+        }
+      },
+      "required": [
+        "Name",
+        "InputSchema"
+      ],
+      "additionalProperties": false
+    },
+    "Tool": {
+      "description": "Tool details",
+      "oneOf": [
+        {
+          "type": "object",
+          "title": "ToolSpec",
+          "properties": {
+            "ToolSpec": {
+              "$ref": "#/definitions/ToolSpecification"
+            }
+          },
+          "required": [
+            "ToolSpec"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "AutoToolChoice": {
+      "type": "object",
+      "description": "Auto Tool choice",
+      "additionalProperties": false
+    },
+    "AnyToolChoice": {
+      "type": "object",
+      "description": "Any Tool choice",
+      "additionalProperties": false
+    },
+    "SpecificToolChoice": {
+      "type": "object",
+      "description": "Specific Tool choice",
+      "properties": {
+        "Name": {
+          "type": "string",
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "Tool name"
+        }
+      },
+      "required": [
+        "Name"
+      ],
+      "additionalProperties": false
+    },
+    "ToolChoice": {
+      "description": "Tool choice",
+      "oneOf": [
+        {
+          "title": "Auto",
+          "type": "object",
+          "properties": {
+            "Auto": {
+              "$ref": "#/definitions/AutoToolChoice"
+            }
+          },
+          "required": [
+            "Auto"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "title": "Any",
+          "type": "object",
+          "properties": {
+            "Any": {
+              "$ref": "#/definitions/AnyToolChoice"
+            }
+          },
+          "required": [
+            "Any"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "title": "Tool",
+          "type": "object",
+          "properties": {
+            "Tool": {
+              "$ref": "#/definitions/SpecificToolChoice"
+            }
+          },
+          "required": [
+            "Tool"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "ToolConfiguration": {
+      "type": "object",
+      "description": "Tool configuration",
+      "properties": {
+        "Tools": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Tool"
+          },
+          "minItems": 1,
+          "description": "List of Tools",
+          "insertionOrder": true
+        },
+        "ToolChoice": {
+          "$ref": "#/definitions/ToolChoice"
+        }
+      },
+      "required": [
+        "Tools"
       ],
       "additionalProperties": false
     },
@@ -195,6 +479,40 @@
         }
       },
       "additionalProperties": false
+    },
+    "PromptAgentResource": {
+      "description": "Target Agent to invoke with Prompt",
+      "type": "object",
+      "properties": {
+        "AgentIdentifier": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:agent-alias/[0-9a-zA-Z]{10}/[0-9a-zA-Z]{10}$",
+          "description": "Arn representation of the Agent Alias."
+        }
+      },
+      "required": [
+        "AgentIdentifier"
+      ],
+      "additionalProperties": false
+    },
+    "PromptGenAiResource": {
+      "description": "Target resource to invoke with Prompt",
+      "oneOf": [
+        {
+          "type": "object",
+          "title": "Agent",
+          "properties": {
+            "Agent": {
+              "$ref": "#/definitions/PromptAgentResource"
+            }
+          },
+          "required": [
+            "Agent"
+          ],
+          "additionalProperties": false
+        }
+      ]
     }
   },
   "properties": {

@@ -56,6 +56,33 @@
       },
       "uniqueItems": true
     },
+    "MLMemberAbilities": {
+      "type": "object",
+      "properties": {
+        "CustomMLMemberAbilities": {
+          "$ref": "#/definitions/CustomMLMemberAbilities"
+        }
+      },
+      "required": [
+        "CustomMLMemberAbilities"
+      ],
+      "additionalProperties": false
+    },
+    "CustomMLMemberAbility": {
+      "type": "string",
+      "enum": [
+        "CAN_RECEIVE_MODEL_OUTPUT",
+        "CAN_RECEIVE_INFERENCE_OUTPUT"
+      ]
+    },
+    "CustomMLMemberAbilities": {
+      "type": "array",
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/CustomMLMemberAbility"
+      },
+      "uniqueItems": true
+    },
     "MemberSpecification": {
       "type": "object",
       "properties": {
@@ -67,6 +94,9 @@
         },
         "MemberAbilities": {
           "$ref": "#/definitions/MemberAbilities"
+        },
+        "MLMemberAbilities": {
+          "$ref": "#/definitions/MLMemberAbilities"
         },
         "DisplayName": {
           "$ref": "#/definitions/Name"
@@ -123,6 +153,9 @@
       "properties": {
         "QueryCompute": {
           "$ref": "#/definitions/QueryComputePaymentConfig"
+        },
+        "MachineLearning": {
+          "$ref": "#/definitions/MLPaymentConfig"
         }
       },
       "required": [
@@ -130,6 +163,42 @@
       ]
     },
     "QueryComputePaymentConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "IsResponsible": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "IsResponsible"
+      ]
+    },
+    "MLPaymentConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ModelTraining": {
+          "$ref": "#/definitions/ModelTrainingPaymentConfig"
+        },
+        "ModelInference": {
+          "$ref": "#/definitions/ModelInferencePaymentConfig"
+        }
+      }
+    },
+    "ModelTrainingPaymentConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "IsResponsible": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "IsResponsible"
+      ]
+    },
+    "ModelInferencePaymentConfig": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -167,6 +236,9 @@
     },
     "CreatorMemberAbilities": {
       "$ref": "#/definitions/MemberAbilities"
+    },
+    "CreatorMLMemberAbilities": {
+      "$ref": "#/definitions/MLMemberAbilities"
     },
     "DataEncryptionMetadata": {
       "$ref": "#/definitions/DataEncryptionMetadata"
@@ -217,6 +289,7 @@
   "createOnlyProperties": [
     "/properties/CreatorDisplayName",
     "/properties/CreatorMemberAbilities",
+    "/properties/CreatorMLMemberAbilities",
     "/properties/DataEncryptionMetadata",
     "/properties/QueryLogStatus",
     "/properties/Members",

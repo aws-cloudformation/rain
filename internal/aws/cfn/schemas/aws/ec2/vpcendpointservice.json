@@ -2,6 +2,24 @@
   "typeName": "AWS::EC2::VPCEndpointService",
   "description": "Resource Type definition for AWS::EC2::VPCEndpointService",
   "additionalProperties": false,
+  "definitions": {
+    "Tag": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Value": {
+          "type": "string"
+        },
+        "Key": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "Value",
+        "Key"
+      ]
+    }
+  },
   "properties": {
     "NetworkLoadBalancerArns": {
       "type": "array",
@@ -32,6 +50,15 @@
       "items": {
         "type": "string"
       }
+    },
+    "Tags": {
+      "type": "array",
+      "description": "The tags to add to the VPC endpoint service.",
+      "uniqueItems": false,
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
     }
   },
   "primaryIdentifier": [
@@ -44,32 +71,38 @@
     "/properties/ContributorInsightsEnabled"
   ],
   "tagging": {
-    "taggable": false,
-    "tagOnCreate": false,
-    "tagUpdatable": false,
-    "cloudFormationSystemTags": false
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": false,
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "ec2:CreateTags",
+      "ec2:DeleteTags"
+    ]
   },
   "handlers": {
     "create": {
       "permissions": [
         "ec2:CreateVpcEndpointServiceConfiguration",
-        "ec2:ModifyVpcEndpointServiceConfiguration",
         "ec2:ModifyVpcEndpointServicePayerResponsibility",
         "cloudwatch:ListManagedInsightRules",
         "cloudwatch:DeleteInsightRules",
         "cloudwatch:PutManagedInsightRules",
-        "ec2:DescribeVpcEndpointServiceConfigurations"
+        "ec2:DescribeVpcEndpointServiceConfigurations",
+        "ec2:CreateTags"
       ]
     },
     "update": {
       "permissions": [
         "ec2:ModifyVpcEndpointServiceConfiguration",
-        "ec2:DeleteVpcEndpointServiceConfigurations",
         "ec2:DescribeVpcEndpointServiceConfigurations",
         "ec2:ModifyVpcEndpointServicePayerResponsibility",
         "cloudwatch:ListManagedInsightRules",
         "cloudwatch:DeleteInsightRules",
-        "cloudwatch:PutManagedInsightRules"
+        "cloudwatch:PutManagedInsightRules",
+        "ec2:CreateTags",
+        "ec2:DeleteTags"
       ]
     },
     "read": {
@@ -83,7 +116,8 @@
         "ec2:DeleteVpcEndpointServiceConfigurations",
         "ec2:DescribeVpcEndpointServiceConfigurations",
         "cloudwatch:ListManagedInsightRules",
-        "cloudwatch:DeleteInsightRules"
+        "cloudwatch:DeleteInsightRules",
+        "ec2:DeleteTags"
       ]
     },
     "list": {

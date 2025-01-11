@@ -194,7 +194,10 @@ func buildProp(n *yaml.Node, propName string, prop cfn.Prop, schema cfn.Schema, 
 		} else {
 			config.Debugf("Missing Ref: %s, ancestors: %v, %+v",
 				propName, ancestorTypes, prop)
-			return fmt.Errorf("expected blank type to have $ref: %s", propName)
+			// Sometimes there are properties that are defined as "{}",
+			// possibly as a placeholder for future definitions?
+			config.Debugf("expected blank type to have $ref: %s", propName)
+			return nil // Ignore this property... will this break for defs referenced by props?
 		}
 	default:
 		return fmt.Errorf("unexpected prop type for %s: %s", propName, prop.Type)

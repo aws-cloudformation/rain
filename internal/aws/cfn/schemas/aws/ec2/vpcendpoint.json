@@ -27,6 +27,23 @@
         }
       },
       "description": ""
+    },
+    "Tag": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Key": {
+          "type": "string"
+        },
+        "Value": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "Value",
+        "Key"
+      ],
+      "description": ""
     }
   },
   "properties": {
@@ -166,6 +183,15 @@
     "DnsOptions": {
       "$ref": "#/definitions/DnsOptionsSpecification",
       "description": ""
+    },
+    "Tags": {
+      "type": "array",
+      "description": "",
+      "uniqueItems": false,
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
     }
   },
   "required": [
@@ -188,10 +214,16 @@
     "/properties/Id"
   ],
   "tagging": {
-    "taggable": false,
-    "tagOnCreate": false,
-    "tagUpdatable": false,
-    "cloudFormationSystemTags": false
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": false,
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "ec2:CreateTags",
+      "ec2:DeleteTags",
+      "ec2:DescribeVpcEndpoints"
+    ]
   },
   "handlers": {
     "create": {
@@ -201,7 +233,9 @@
         "ec2:DescribeSubnets",
         "ec2:DescribeSecurityGroups",
         "vpc-lattice:CreateServiceNetworkVpcEndpointAssociation",
-        "vpc-lattice:DescribeServiceNetworkVpcEndpointAssociation"
+        "vpc-lattice:DescribeServiceNetworkVpcEndpointAssociation",
+        "ec2:CreateTags",
+        "ec2:DeleteTags"
       ],
       "timeoutInMinutes": 210
     },
@@ -220,7 +254,9 @@
         "ec2:DescribeSubnets",
         "ec2:DescribeSecurityGroups",
         "vpc-lattice:CreateServiceNetworkVpcEndpointAssociation",
-        "vpc-lattice:DescribeServiceNetworkVpcEndpointAssociation"
+        "vpc-lattice:DescribeServiceNetworkVpcEndpointAssociation",
+        "ec2:CreateTags",
+        "ec2:DeleteTags"
       ],
       "timeoutInMinutes": 210
     },
@@ -230,7 +266,9 @@
         "ec2:DescribeVpcEndpoints",
         "ec2:DescribeSubnets",
         "ec2:DescribeSecurityGroups",
-        "vpc-lattice:DescribeServiceNetworkVpcEndpointAssociation"
+        "vpc-lattice:DescribeServiceNetworkVpcEndpointAssociation",
+        "ec2:CreateTags",
+        "ec2:DeleteTags"
       ],
       "timeoutInMinutes": 210
     },
