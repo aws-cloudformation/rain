@@ -29,7 +29,7 @@ require (
 )
 
 require (
-	github.com/apple/pkl-go v0.8.0
+	github.com/apple/pkl-go v0.9.0
 	github.com/aws/aws-lambda-go v1.47.0
 	github.com/aws/aws-sdk-go-v2/service/acm v1.30.10
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.44.2
