@@ -161,5 +161,9 @@ func mergeTemplates(dstTemplate, srcTemplate cft.Template) (cft.Template, error)
 	retval = cft.Template{Node: docNode}
 
 	// Merge Outputs with Fn::ImportValue
-	return mergeOutputImports(retval)
+	if mergeImports {
+		return mergeOutputImports(retval)
+	} else {
+		return retval, nil
+	}
 }

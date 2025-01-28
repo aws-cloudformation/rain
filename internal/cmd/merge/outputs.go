@@ -18,7 +18,7 @@ func mergeOutputImports(t cft.Template) (cft.Template, error) {
 	outputs, err := t.GetSection(cft.Outputs)
 	if err != nil {
 		// This is expected if the template has no Outputs
-		config.Debugf("No outputs: %v", err)
+		config.Debugf("mergeOutputImports has no outputs: %v", err)
 		return t, nil
 	}
 	exportMap := make(map[string]*yaml.Node)
