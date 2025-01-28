@@ -376,12 +376,23 @@ Outputs:
 		t.Fatal(err)
 	}
 
+	mergeImports = true
 	merged, err := mergeTemplates(template1, template2)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	if d := diff.New(expectedTemplate, merged); d.Mode() != "=" {
+		t.Errorf("%s", d.Format(true))
+	}
+
+	mergeImports = false
+	merged, err = mergeTemplates(template1, template2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if d := diff.New(expectedTemplate, merged); d.Mode() == "=" {
 		t.Errorf("%s", d.Format(true))
 	}
 }

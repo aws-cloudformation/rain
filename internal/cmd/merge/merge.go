@@ -14,6 +14,7 @@ import (
 )
 
 var forceMerge = false
+var mergeImports = false
 var outFn = ""
 
 // Cmd is the merge command's entrypoint
@@ -64,4 +65,5 @@ func init() {
 	Cmd.Flags().StringVarP(&outFn, "output", "o", "", "Output merged template to a file")
 	Cmd.Flags().BoolVarP(&forceMerge, "force", "f", false, "Don't warn on clashing attributes; rename them instead. Note: this will not rename Refs, GetAtts, etc.")
 	Cmd.Flags().StringVar(&format.NodeStyle, "node-style", "", format.NodeStyleDocs)
+	Cmd.Flags().BoolVar(&mergeImports, "merge-imports", false, "Convert imported output values into GetAtts")
 }
