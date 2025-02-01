@@ -7,7 +7,7 @@ toolchain go1.22.4
 require (
 	//github.com/ake-persson/mapslice-json v0.0.0-20210720081907-22c8edf57807
 	github.com/appscode/jsonpatch v1.0.1
-	github.com/aws/aws-sdk-go-v2 v1.32.8
+	github.com/aws/aws-sdk-go-v2 v1.36.0
 	github.com/aws/aws-sdk-go-v2/config v1.28.10
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.51
 	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.23.2
@@ -15,7 +15,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.198.3
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.72.2
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.6
-	github.com/aws/smithy-go v1.22.1
+	github.com/aws/smithy-go v1.22.2
 	github.com/chzyer/readline v1.5.1
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0
@@ -35,7 +35,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.44.2
 	github.com/aws/aws-sdk-go-v2/service/codeartifact v1.33.9
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.39.2
-	github.com/aws/aws-sdk-go-v2/service/kms v1.37.10
+	github.com/aws/aws-sdk-go-v2/service/kms v1.37.16
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.42.9
 	github.com/aws/aws-sdk-go-v2/service/rds v1.93.4
 	github.com/aws/aws-sdk-go-v2/service/sagemaker v1.172.1
@@ -75,8 +75,8 @@ require (
 require (
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.7 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.23 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.27 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.27 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.31 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.31 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/cloudcontrol v1.23.4
 	github.com/aws/aws-sdk-go-v2/service/iam v1.38.4
