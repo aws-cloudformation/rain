@@ -173,7 +173,7 @@ func CreateBucket(bucketName string) error {
 }
 
 // Upload uploads an artifact to the bucket with a unique name
-func Upload(bucketName string, content []byte) (string, error) {
+func Upload(bucketName string, content []byte, extension string) (string, error) {
 	isBucketExists, errBucketExists := BucketExists(bucketName)
 
 	if errBucketExists != nil {
@@ -185,6 +185,9 @@ func Upload(bucketName string, content []byte) (string, error) {
 	}
 
 	key := filepath.Join(BucketKeyPrefix, fmt.Sprintf("%x", sha256.Sum256(content)))
+	if extension != "" {
+		key = fmt.Sprintf("%s.%s", key, extension)
+	}
 
 	accountId, err := getAccountId()
 	if err != nil {
