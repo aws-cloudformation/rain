@@ -243,7 +243,17 @@ func Add(m *yaml.Node, name string, val string) {
 }
 
 // AddMap adds a new map to the parent node
+// If it already exists, returns the existing map
+// If it doesn't exist, returns the new map
 func AddMap(parent *yaml.Node, name string) *yaml.Node {
+	for i := 0; i < len(parent.Content); i++ {
+		if i%2 != 0 {
+			continue
+		}
+		if parent.Content[i].Value == name {
+			return parent.Content[i+1]
+		}
+	}
 	parent.Content = append(parent.Content,
 		&yaml.Node{Kind: yaml.ScalarNode, Value: name})
 	m := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}

@@ -239,3 +239,15 @@ func TestMergeNodes(t *testing.T) {
 	}
 
 }
+
+func TestAddMap(t *testing.T) {
+	parent := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
+	m := node.AddMap(parent, "Test")
+	if m == nil {
+		t.Errorf("AddMap returned nil")
+	}
+	mm := node.AddMap(parent, "Test")
+	if m != mm {
+		t.Errorf("AddMap second add should return the same object")
+	}
+}

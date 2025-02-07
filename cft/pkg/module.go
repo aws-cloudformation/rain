@@ -19,7 +19,6 @@ import (
 var HasModules bool
 
 const (
-	Rain                = "Rain"
 	Metadata            = "Metadata"
 	IfParam             = "IfParam"
 	IfNotParam          = "IfNotParam"
