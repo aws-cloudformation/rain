@@ -269,7 +269,7 @@ Resources:
         S3Key: 1b4844dacc843f09941c11c94f80981d3be8ae7578952c71e875ef7add37b1a7
 ```
 
-Sometimes you require uploaded objects to have a specific extension
+Sometimes you require that objects uploaded to S3 have a specific extension, use the `Extension` property to ensure the artifact in S3 ends .<Extension>.
 
 ```yaml
 Resources:
