@@ -48,6 +48,9 @@ var Experimental bool
 var NoAnalytics bool
 var HasRainSection bool
 
+const AWSToolsMetrics = "AWSToolsMetrics"
+const Rain = "Rain"
+
 type analytics struct {
 	// Current Rain version
 	Version string
@@ -290,7 +293,10 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 		if err != nil || metadata == nil {
 			metadata = node.AddMap(retval.Node.Content[0], string(cft.Metadata))
 		}
-		awsToolsMetrics := node.AddMap(metadata, "AWSToolsMetrics")
+		_, awsToolsMetrics, _ := s11n.GetMapValue(metadata, AWSToolsMetrics)
+		if awsToolsMetrics == nil {
+			awsToolsMetrics = node.AddMap(metadata, AWSToolsMetrics)
+		}
 		a := analytics{
 			Version:        config.VERSION,
 			HasModules:     HasModules,
@@ -298,10 +304,17 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 			HasRainSection: HasRainSection,
 		}
 		s, _ := json.Marshal(&a)
-		awsToolsMetrics.Content = append(awsToolsMetrics.Content,
-			&yaml.Node{Kind: yaml.ScalarNode, Value: "Rain"})
-		awsToolsMetrics.Content = append(awsToolsMetrics.Content,
-			&yaml.Node{Kind: yaml.ScalarNode, Value: string(s)})
+		_, rain, _ := s11n.GetMapValue(awsToolsMetrics, Rain)
+		rainNode := &yaml.Node{Kind: yaml.ScalarNode, Value: string(s)}
+		if rain == nil {
+			config.Debugf("Adding Rain analytics")
+			awsToolsMetrics.Content = append(awsToolsMetrics.Content,
+				&yaml.Node{Kind: yaml.ScalarNode, Value: Rain})
+			awsToolsMetrics.Content = append(awsToolsMetrics.Content, rainNode)
+		} else {
+			config.Debugf("Already had Rain analytics")
+			*rain = *rainNode
+		}
 	}
 
 	return retval, nil
