@@ -269,28 +269,6 @@ Resources:
         S3Key: 1b4844dacc843f09941c11c94f80981d3be8ae7578952c71e875ef7add37b1a7
 ```
 
-Sometimes you require that objects uploaded to S3 have a specific extension, use the `Extension` property to ensure the artifact in S3 ends .<Extension>.
-
-```yaml
-Resources:
-  Test:
-    Type: A::B::C
-    Properties:
-      TheS3URI: !Rain::S3 
-        Path: test
-        Extension: sh
-```
-
-The packaged template:
-
-```yaml
-Resources:
-  Test:
-    Type: A::B::C
-    Properties:
-      TheS3URI: s3://rain-artifacts-012345678912-us-east-1/a84b588aa54068ed4b027b6e06e5e0bb283f83cf0d5a6720002d36af2225dfc3.sh
-```
-
 #### Metadata commands
 
 You can add a metadata section to an `AWS::S3::Bucket` resource to take additional actions during deployment, such as running pre and post build scripts, uploading content to the bucket after stack deployment completes, and emptying the contents of the bucket when the stack is deleted.
