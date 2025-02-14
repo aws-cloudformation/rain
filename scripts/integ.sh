@@ -47,7 +47,8 @@ set -eoux pipefail
 ./rain --profile rain pkg cft/pkg/tmpl/include-template.yaml
 ./rain --profile rain pkg cft/pkg/tmpl/s3-template.yaml
 ./rain --profile rain pkg cft/pkg/tmpl/s3http-template.yaml
-./rain --profile rain pkg cft/pkg/tmpl/s3-extension-template.yaml
+# Given a Template with an Extension value of txt, When Packaged, Then the S3 URI ends '.txt'
+./rain --profile rain pkg cft/pkg/tmpl/s3-extension-template.yaml | yq --exit-status '.Resources.Test.Properties.TheS3URI | test("\.txt$")'
 
 # Make sure merge works
 ./rain merge test/templates/merge-out-1.yaml test/templates/merge-out-2.yaml
