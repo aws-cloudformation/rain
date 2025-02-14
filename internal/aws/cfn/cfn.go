@@ -74,7 +74,7 @@ func checkTemplate(template cft.Template) (string, error) {
 
 		bucket := s3.RainBucket(false)
 
-		key, err := s3.Upload(bucket, []byte(templateBody))
+		key, err := s3.Upload(bucket, []byte(templateBody), "")
 		region := aws.Config().Region
 		if strings.HasPrefix(region, "cn-") {
 			return fmt.Sprintf("https://%s.s3.%s.amazonaws.com.cn/%s", bucket, region, key), err

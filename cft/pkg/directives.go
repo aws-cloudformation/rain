@@ -34,6 +34,7 @@ type s3Options struct {
 	Zip            bool     `yaml:"Zip"`
 	Format         s3Format `yaml:"Format"`
 	Run            string   `yaml:"Run"`
+	Extension      string   `yaml:"Extension"`
 }
 
 type directiveContext struct {
@@ -158,7 +159,7 @@ func handleS3(root string, options s3Options) (*yaml.Node, error) {
 		}
 	}
 
-	s, err := upload(root, options.Path, options.Zip)
+	s, err := upload(root, options.Path, options.Zip, options.Extension)
 	if err != nil {
 		return nil, err
 	}

@@ -29,6 +29,7 @@ You may use the following, rain-specific directives in templates packaged with "
     Format: Uri|Http           Specify which format rain pkg should return the S3 location as.
                                Do not specify this property if you supply BucketProperty and KeyProperty.
                                The default Format is "Uri".
+    Extension: <ext>           If specified, Appends .<ext> to the artifact object in S3.
 
   !Rain::Module <url>          Supply a URL to a rain module, which is similar to a CloudFormation module, 
                                but allows for type inheritance. One of the resources in the module yaml file 
