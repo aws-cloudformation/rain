@@ -256,6 +256,8 @@ To list and delete changesets, use the ls and rm commands.
 				fmt.Println(console.Green("Successfully deployed " + stackName))
 			} else if status == "UPDATE_COMPLETE" {
 				fmt.Println(console.Green("Successfully updated " + stackName))
+			} else if status == "IMPORT_COMPLETE" {
+				fmt.Println(console.Green("Successfully imported " + stackName))
 			} else {
 				panic(fmt.Errorf("failed deploying stack '%s'", stackName))
 			}
