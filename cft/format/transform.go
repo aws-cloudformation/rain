@@ -120,11 +120,25 @@ func formatNode(n *yaml.Node) *yaml.Node {
 			n.Style = yaml.DoubleQuotedStyle
 		}
 	case "":
-		// Default style for consistent formatting
-		n.Style = 0
+		// Default style for consistent formatting:
+		// Force double quotes on ambiguous scalar strings.
+		if n.Kind == yaml.ScalarNode && n.Tag == "!!str" && isAmbiguousScalar(n.Value) {
+			n.Style = yaml.DoubleQuotedStyle
+		} else {
+			n.Style = 0
+		}
 	default:
 		panic("invalid --node-style: " + NodeStyle)
 	}
 
 	return n
+}
+
+func isAmbiguousScalar(val string) bool {
+	switch strings.ToLower(val) {
+	case "y", "yes", "n", "no", "true", "false", "on", "off":
+		return true
+	default:
+		return false
+	}
 }
