@@ -800,3 +800,108 @@ Outputs {
 		t.Fatalf("Got:\n[%s]\nExpected:\n[%s]\n", output, expected)
 	}
 }
+
+func TestAmbiguousScalarOn(t *testing.T) {
+	input := `
+Resources:
+  MyResource:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties:
+      Parameters:
+        require_secure_transport: "ON"
+`
+	// We expect the ambiguous value "ON" to remain quoted in the output.
+	expected := `Resources:
+  MyResource:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties:
+      Parameters:
+        require_secure_transport: "ON"
+`
+	template, err := parse.String(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	actual := format.String(template, format.Options{Unsorted: true})
+	if d := cmp.Diff(strings.TrimSpace(expected), strings.TrimSpace(actual)); d != "" {
+		t.Fatalf("Diff: %s", d)
+	}
+}
+
+func TestAmbiguousScalarsInParameters(t *testing.T) {
+	input := `
+Parameters:
+  Param1:
+    Default: "ON"
+  Param2:
+    Default: "OFF"
+  Param3:
+    Default: "Yes"
+  Param4:
+    Default: "No"
+  Param5:
+    Default: "True"
+  Param6:
+    Default: "False"
+  Param7:
+    Default: "Maybe"
+`
+	// The ambiguous values (Param1 through Param6) should be rendered with quotes,
+	// while a non-ambiguous value (Param7) may be unquoted.
+	expected := `Parameters:
+  Param1:
+    Default: "ON"
+
+  Param2:
+    Default: "OFF"
+
+  Param3:
+    Default: "Yes"
+
+  Param4:
+    Default: "No"
+
+  Param5:
+    Default: "True"
+
+  Param6:
+    Default: "False"
+
+  Param7:
+    Default: Maybe
+`
+	template, err := parse.String(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	actual := format.String(template, format.Options{Unsorted: true})
+	if d := cmp.Diff(strings.TrimSpace(expected), strings.TrimSpace(actual)); d != "" {
+		t.Fatalf("Diff: %s", d)
+	}
+}
+
+func TestNonAmbiguousScalar(t *testing.T) {
+	input := `
+Resources:
+  MyResource:
+    Properties:
+      example_value: "OnX"
+`
+	// Since "OnX" is not an ambiguous token, it can be rendered without quotes.
+	expected := `Resources:
+  MyResource:
+    Properties:
+      example_value: OnX
+`
+	template, err := parse.String(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	actual := format.String(template, format.Options{Unsorted: true})
+	if d := cmp.Diff(strings.TrimSpace(expected), strings.TrimSpace(actual)); d != "" {
+		t.Fatalf("Diff: %s", d)
+	}
+}
