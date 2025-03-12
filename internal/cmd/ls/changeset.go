@@ -30,7 +30,11 @@ func valueForPath(path string, j map[string]any) string {
 				config.Debugf("j: %v", j)
 				return "??"
 			}
-			j = j[token].(map[string]any)
+			j, ok := j[token].(map[string]any)
+			if !ok {
+				config.Debugf("Unexpected type for j[token]: %v", j[token])
+				return "??"
+			}
 		}
 	}
 	return "?"
