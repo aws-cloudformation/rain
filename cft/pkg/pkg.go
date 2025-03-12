@@ -1,27 +1,34 @@
-// Package pkg provides functionality similar to the AWS CLI cloudformation package command
-// but has greater flexibility, allowing content to be included anywhere in a template
+// Package pkg provides functionality similar to the AWS CLI cloudformation
+// package command but has greater flexibility, allowing content to be included
+// anywhere in a template
 //
-// To include content into your templates, use any of the following either as YAML tags
-// or as one-property objects, much as AWS intrinsic functions are used, e.g. "Fn::Join"
+// To include content into your templates, use any of the following either as
+// YAML tags or as one-property objects, much as AWS intrinsic functions are
+// used, e.g. "Fn::Join"
 //
-// `Rain::Include`: insert the content of the file into the template directly. The file must be in YAML or JSON format.
-// `Rain::Env`: inserts environmental variable value into the template as a string. Variable must be set.
+// `Rain::Include`: insert the content of the file into the template directly.
+// The file must be in YAML or JSON format.
+//
+// `Rain::Env`: inserts environmental variable value into the template as a
+// string. Variable must be set.
+//
 // `Rain::Embed`: insert the content of the file as a string
-// `Rain::S3Http`: uploads the file or directory (zipping it first) to S3 and returns the HTTP URI (i.e. `https://bucket.s3.region.amazonaws.com/key`)
-// `Rain::S3`: a string value uploads the file or directory (zipping it first) to S3 and returns the S3 URI (i.e. `s3://bucket/key`)
+//
+// `Rain::S3Http`: uploads the file or directory (zipping it first) to S3 and
+// returns the HTTP URI (i.e.  `https://bucket.s3.region.amazonaws.com/key`)
+//
+// `Rain::S3`: a string value uploads the file or directory (zipping it
+// first) to S3 and returns the S3 URI (i.e. `s3://bucket/key`)
+//
 // `Rain::S3`: an object with the following properties
 //
-//	`Path`: path to the file or directory. If a directory is supplied, it will be zipped before uploading to S3
-//	`BucketProperty`: Name of returned property that will contain the bucket name
-//	`KeyProperty`: Name of returned property that will contain the object key
-//	`VersionProperty`: (optional) Name of returned property that will contain the object version
+//	`Path`: path to the file or directory. If a directory is supplied, it will
+//	be zipped before uploading to S3 `BucketProperty`: Name of returned
+//	property that will contain the bucket name `KeyProperty`: Name of returned
+//	property that will contain the object key `VersionProperty`: (optional)
+//	Name of returned property that will contain the object version
 //
-// `Rain::Module`: Supply a URL to a rain module, which is similar to a CloudFormation module,
-//
-//	but allows for type inheritance. One of the resources in the module yaml file
-//	must be called "ModuleExtension", and it must have a Metadata entry called
-//	"Extends" that supplies the existing type to be extended. The Parameters section
-//	of the module can be used to define additional properties for the extension.
+// `Rain::Module`: Supply a URL to a rain module
 package pkg
 
 import (
@@ -109,74 +116,67 @@ func processRainSection(t *cft.Template) bool {
 		return false
 	}
 
-	// Process constants in order, since they can refer to previous ones
-	_, c, _ := s11n.GetMapValue(rainNode, "Constants")
-	if c != nil {
-		for i := 0; i < len(c.Content); i += 2 {
-			name := c.Content[i].Value
-			val := c.Content[i+1]
-			t.Constants[name] = val
-			// Visit each node in val looking for any ${Rain::ConstantName}
-			// and replace it with prior constant entries
-			vf := func(v *visitor.Visitor) {
-				vnode := v.GetYamlNode()
-				if vnode.Kind == yaml.ScalarNode {
-					err := replaceConstants(vnode, t.Constants)
-					if err != nil {
-						// These constants must be scalars
-						config.Debugf("replaceConstants failed: %v", err)
-					}
-				}
-			}
-			v := visitor.NewVisitor(val)
-			v.Visit(vf)
-		}
-	}
+	HasRainSection = true
 
-	// Package aliases
-	packages := s11n.GetMap(rainNode, "Packages")
-	if packages != nil {
-		t.Packages = make(map[string]*cft.PackageAlias)
-		for k, v := range packages {
-			p := &cft.PackageAlias{}
-			p.Alias = k
-			p.Location = s11n.GetValue(v, "Location")
-			p.Hash = s11n.GetValue(v, "Hash")
-			t.Packages[k] = p
-		}
-
-		// Visit all resources to look for Type nodes that use $alias.module shorthand
-		resources, err := t.GetSection(cft.Resources)
-		if err == nil {
-			for i := 0; i < len(resources.Content); i += 2 {
-				resource := resources.Content[i+1]
-				_, typ, _ := s11n.GetMapValue(resource, "Type")
-				if typ == nil {
-					continue
-				}
-				if strings.HasPrefix(typ.Value, "$") {
-					// This is a package alias, fix it so it gets processed later
-					//typ.Value = "!Rain::Module " + strings.Trim(typ.Value, "$")
-					newTypeNode := yaml.Node{Kind: yaml.MappingNode}
-					newTypeNode.Content = []*yaml.Node{
-						&yaml.Node{Kind: yaml.ScalarNode, Value: "Rain::Module"},
-						&yaml.Node{Kind: yaml.ScalarNode, Value: strings.Trim(typ.Value, "$")},
-					}
-					*typ = newTypeNode
-				}
-			}
-		}
-
-	}
-
-	// Add handling for any other features we add to the Rain section here
+	retval := processAddedSections(t, rainNode)
 
 	// Now remove the Rain node from the template
 	t.RemoveSection(cft.Rain)
 
-	HasRainSection = true
+	return retval
+}
+
+// processAddedSections can be used for Constants and Modules
+// in either the Rain section (backwards comapatibility) or
+// if they are at the top level (like the AWS CLI)
+func processAddedSections(t *cft.Template, n *yaml.Node) bool {
+
+	config.Debugf("processAddedSections for %s", t.Name)
+	//config.Debugf("n: %v", node.ToSJson(n))
+
+	processConstants(t, n)
+	processPackages(t, n)
+	processModules(t, n)
 
 	return true
+}
+
+// Process the Packages section with aliases to modules
+func processPackages(t *cft.Template, n *yaml.Node) {
+	packages := s11n.GetMap(n, "Packages")
+	if packages == nil {
+		return
+	}
+	t.Packages = make(map[string]*cft.PackageAlias)
+	for k, v := range packages {
+		p := &cft.PackageAlias{}
+		p.Alias = k
+		p.Location = s11n.GetValue(v, "Location")
+		p.Hash = s11n.GetValue(v, "Hash")
+		t.Packages[k] = p
+	}
+
+	// Visit all resources to look for Type nodes that use $alias.module shorthand
+	resources, err := t.GetSection(cft.Resources)
+	if err == nil {
+		for i := 0; i < len(resources.Content); i += 2 {
+			resource := resources.Content[i+1]
+			_, typ, _ := s11n.GetMapValue(resource, "Type")
+			if typ == nil {
+				continue
+			}
+			if strings.HasPrefix(typ.Value, "$") {
+				// This is a package alias, fix it so it gets processed later
+				//typ.Value = "!Rain::Module " + strings.Trim(typ.Value, "$")
+				newTypeNode := yaml.Node{Kind: yaml.MappingNode}
+				newTypeNode.Content = []*yaml.Node{
+					&yaml.Node{Kind: yaml.ScalarNode, Value: "Rain::Module"},
+					&yaml.Node{Kind: yaml.ScalarNode, Value: strings.Trim(typ.Value, "$")},
+				}
+				*typ = newTypeNode
+			}
+		}
+	}
 }
 
 // Template returns t with assets included as per AWS CLI packaging rules
@@ -191,6 +191,9 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 
 	// First look for a Rain section and store constants
 	hasRainSection := processRainSection(&t)
+
+	// See if those sections are defined at the top level
+	processAddedSections(&t, t.Node.Content[0])
 
 	constants := t.Constants
 

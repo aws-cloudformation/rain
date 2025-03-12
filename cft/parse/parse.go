@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/diff"
@@ -30,7 +31,18 @@ func File(fileName string) (cft.Template, error) {
 		return cft.Template{}, fmt.Errorf("unable to read file: %s", err)
 	}
 
-	return String(string(source))
+	t, err := String(string(source))
+	if err != nil {
+		return t, err
+	}
+	t.FileName = fileName
+	tokens := strings.Split(fileName, "/")
+	if len(tokens) > 1 {
+		t.Name = tokens[len(tokens)-1]
+	} else {
+		t.Name = fileName
+	}
+	return t, nil
 }
 
 // Map returns a cft.Template parsed from a map[string]interface{}

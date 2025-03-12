@@ -30,9 +30,13 @@ type PackageAlias struct {
 
 // Template represents a CloudFormation template. The Template type
 // is minimal for now but will likely grow new features as needed by rain.
+//
+// Node is the only member that is guaranteed to exist after
+// parsing a template.
 type Template struct {
-	Node *yaml.Node
-
+	FileName  string
+	Name      string
+	Node      *yaml.Node
 	Constants map[string]*yaml.Node
 	Packages  map[string]*PackageAlias
 }

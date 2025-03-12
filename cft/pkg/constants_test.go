@@ -106,7 +106,7 @@ func TestIsSubNeeded(t *testing.T) {
 	cases["$foo$bar"] = false
 
 	for k, v := range cases {
-		if IsSubNeeded(k) != v {
+		if parse.IsSubNeeded(k) != v {
 			t.Errorf("IsSubNeeded(%s) should be %v", k, v)
 		}
 	}

@@ -2,6 +2,7 @@
 package pkg
 
 import (
+	"embed"
 	"errors"
 	"fmt"
 	"os"
@@ -32,6 +33,78 @@ const (
 	Condition           = "Condition"
 	Default             = "Default"
 )
+
+type Module struct {
+	Name       string
+	Source     string
+	Properties map[string]any
+	Overrides  map[string]any
+	Node       *yaml.Node
+}
+
+func parseModule(name string, n *yaml.Node) (*Module, error) {
+	if n.Kind != yaml.MappingNode {
+		return nil, errors.New("not a mapping node")
+	}
+	m := &Module{}
+	m.Name = name
+	m.Node = n
+
+	// TODO
+	content := n.Content
+	for i := 0; i < len(content); i += 2 {
+		attr := content[i].Value
+		val := content[i+1]
+		switch attr {
+		case "Source":
+			m.Source = val.Value
+		case "Properties":
+			decodeErr := val.Decode(&m.Properties)
+			if decodeErr != nil {
+				return nil, decodeErr
+			}
+		case "Overrides":
+			decodeErr := val.Decode(&m.Overrides)
+			if decodeErr != nil {
+				return nil, decodeErr
+			}
+		}
+	}
+
+	return m, nil
+}
+
+// Process the Modules section of a template or module.
+// Modifies t in place.
+func processModules(t *cft.Template, n *yaml.Node) error {
+
+	// AWS CLI package Modules compatibility.
+	// This is basically the same as !Rain::Module but the modules are
+	// defined in a new Modules Section.
+	_, moduleSection, _ := s11n.GetMapValue(n, "Modules")
+	if moduleSection == nil {
+		config.Debugf("No modules section")
+		return nil
+	}
+	config.Debugf("Modules:\n%v", moduleSection)
+
+	if moduleSection.Kind != yaml.MappingNode {
+		return errors.New("the Modules section is not a mapping node")
+	}
+
+	content := moduleSection.Content
+	for i := 0; i < len(content); i += 2 {
+		name := content[i].Value
+		m, err := parseModule(name, content[i+1])
+		if err != nil {
+			return err
+		}
+		// TODO - process the module
+		config.Debugf("Module: %+v", m)
+	}
+
+	return nil
+}
 
 // Clone a property-like node from the module and replace any overridden values
 func cloneAndReplaceProps(
@@ -779,32 +852,23 @@ func checkPackageAlias(t cft.Template, uri string) *cft.PackageAlias {
 	return nil
 }
 
-// Type: !Rain::Module
-func module(ctx *directiveContext) (bool, error) {
+type ModuleContent struct {
+	Content    []byte
+	NewRootDir string
+	BaseUri    string
+}
 
-	n := ctx.n
-	root := ctx.rootDir
-	t := ctx.t
-	parent := ctx.parent
-	templateFiles := ctx.fs
+// Get the module's content from a local file, memory, or a remote uri
+func getModuleContent(
+	root string,
+	t cft.Template,
+	templateFiles *embed.FS,
+	baseUri string,
+	uri string) (*ModuleContent, error) {
 
-	if !Experimental {
-		panic("You must add the --experimental arg to use the !Rain::Module directive")
-	}
-
-	if len(n.Content) != 2 {
-		return false, errors.New("expected !Rain::Module <URI>")
-	}
-
-	HasModules = true
-
-	uri := n.Content[1].Value
 	var content []byte
 	var err error
-	var path string
 	var newRootDir string
-
-	baseUri := ctx.baseUri
 
 	// Check to see if this is an alias like "alias/foo.yaml"
 	packageAlias := checkPackageAlias(t, uri)
@@ -818,7 +882,7 @@ func module(ctx *directiveContext) (bool, error) {
 			isZip = true
 			content, err = DownloadFromZip(packageAlias.Location, packageAlias.Hash, path)
 			if err != nil {
-				return false, err
+				return nil, err
 			}
 		} else {
 			uri = strings.Replace(uri, packageAlias.Alias, packageAlias.Location, 1)
@@ -834,7 +898,7 @@ func module(ctx *directiveContext) (bool, error) {
 
 		content, err = downloadModule(uri)
 		if err != nil {
-			return false, err
+			return nil, err
 		}
 
 		// Once we see a URL instead of a relative local path,
@@ -851,21 +915,17 @@ func module(ctx *directiveContext) (bool, error) {
 			uri = baseUri + "/" + uri
 			content, err = downloadModule(uri)
 			if err != nil {
-				return false, err
+				return nil, err
 			}
 		} else if templateFiles != nil {
 			// Read from the embedded file system (for the build -r command)
-			path, err = expectString(n)
-			if err != nil {
-				return false, err
-			}
 			// We have to hack this since embed doesn't understand "path/../"
 			embeddedPath := strings.Replace(root, "../", "", 1) +
-				"/" + strings.Replace(path, "../", "", 1)
+				"/" + strings.Replace(uri, "../", "", 1)
 
 			content, err = templateFiles.ReadFile(embeddedPath)
 			if err != nil {
-				return false, err
+				return nil, err
 			}
 			newRootDir = filepath.Dir(embeddedPath)
 		} else {
@@ -877,32 +937,91 @@ func module(ctx *directiveContext) (bool, error) {
 
 			info, err := os.Stat(path)
 			if err != nil {
-				return false, err
+				return nil, err
 			}
 
 			if info.IsDir() {
-				return false, fmt.Errorf("'%s' is a directory", path)
+				return nil, fmt.Errorf("'%s' is a directory", path)
 			}
 
 			content, err = os.ReadFile(path)
 			if err != nil {
-				return false, err
+				return nil, err
 			}
 			newRootDir = filepath.Dir(path)
 		}
 	}
 
+	return &ModuleContent{content, newRootDir, baseUri}, nil
+}
+
+type ProcessedModule struct {
+	Node       *yaml.Node
+	AsTemplate *cft.Template
+}
+
+func parseAndProcessModule(content []byte) (*ProcessedModule, error) {
+
+	var err error
+
 	// Parse the file
 	var moduleNode yaml.Node
 	err = yaml.Unmarshal(content, &moduleNode)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	err = parse.NormalizeNode(&moduleNode)
 	if err != nil {
+		return nil, err
+	}
+
+	// Treat the module as a template
+	moduleAsTemplate := cft.Template{Node: &moduleNode}
+
+	// Read things like Constants, Modules, Packages
+	processRainSection(&moduleAsTemplate)
+	processAddedSections(&moduleAsTemplate, moduleAsTemplate.Node.Content[0])
+
+	if moduleAsTemplate.Constants != nil {
+		replaceTemplateConstants(moduleAsTemplate.Node, moduleAsTemplate.Constants)
+	}
+
+	return &ProcessedModule{Node: &moduleNode, AsTemplate: &moduleAsTemplate}, nil
+}
+
+// Type: !Rain::Module
+func module(ctx *directiveContext) (bool, error) {
+
+	n := ctx.n
+	t := ctx.t
+	parent := ctx.parent
+
+	if !Experimental {
+		panic("You must add the --experimental arg to use the !Rain::Module directive")
+	}
+
+	if len(n.Content) != 2 {
+		return false, errors.New("expected !Rain::Module <URI>")
+	}
+
+	HasModules = true
+
+	uri := n.Content[1].Value
+
+	moduleContent, err := getModuleContent(ctx.rootDir, ctx.t, ctx.fs, ctx.baseUri, uri)
+	if err != nil {
 		return false, err
 	}
+	content := moduleContent.Content
+	baseUri := moduleContent.BaseUri
+
+	processed, err := parseAndProcessModule(content)
+	if err != nil {
+		return false, err
+	}
+	moduleNode := processed.Node
+	moduleAsTemplate := processed.AsTemplate
 
 	// Figure out parent nodes to handle nested modules
 	var newParent node.NodePair
@@ -911,20 +1030,10 @@ func module(ctx *directiveContext) (bool, error) {
 		newParent.Parent = &parent
 	}
 
-	// Treat the module as a template
-	moduleAsTemplate := cft.Template{Node: &moduleNode}
-
-	// Read things like Constants
-	processRainSection(&moduleAsTemplate)
-
-	if moduleAsTemplate.Constants != nil {
-		replaceTemplateConstants(moduleAsTemplate.Node, moduleAsTemplate.Constants)
-	}
-
 	_, err = transform(&transformContext{
-		nodeToTransform: &moduleNode,
-		rootDir:         newRootDir,
-		t:               moduleAsTemplate,
+		nodeToTransform: moduleNode,
+		rootDir:         moduleContent.NewRootDir,
+		t:               *moduleAsTemplate,
 		parent:          &newParent,
 		fs:              ctx.fs,
 		baseUri:         baseUri,
@@ -935,9 +1044,9 @@ func module(ctx *directiveContext) (bool, error) {
 
 	// Create a new node to represent the processed module
 	var outputNode yaml.Node
-	_, err = processModule(&moduleNode, &outputNode, t, n, parent, moduleAsTemplate.Constants)
+	_, err = processModule(moduleNode, &outputNode, t, n, parent, moduleAsTemplate.Constants)
 	if err != nil {
-		config.Debugf("processModule error: %v, moduleNode: %s", err, node.ToSJson(&moduleNode))
+		config.Debugf("processModule error: %v, moduleNode: %s", err, node.ToSJson(moduleNode))
 		return false, fmt.Errorf("failed to process module %s: %v", uri, err)
 	}
 

@@ -3,10 +3,12 @@ package pkg
 import (
 	"fmt"
 
+	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/cft/visitor"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
+	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
 )
 
@@ -29,9 +31,9 @@ func rainConstant(ctx *directiveContext) (bool, error) {
 	return true, nil
 }
 
-// replaceConstants replaces ${Rain::ConstantName} in a single scalar node
-// If the constant name is not found in the map created from the Rain section
-// In the template, an error is returned
+// replaceConstants replaces ${Rain::ConstantName} and ${Const::} in a single
+// scalar node If the constant name is not found in the map created from the
+// Rain section In the template, an error is returned
 func replaceConstants(n *yaml.Node, constants map[string]*yaml.Node) error {
 	if n.Kind != yaml.ScalarNode {
 		return fmt.Errorf("expected n to be a ScalarNode")
@@ -69,25 +71,6 @@ func replaceConstants(n *yaml.Node, constants map[string]*yaml.Node) error {
 	return nil
 }
 
-func IsSubNeeded(s string) bool {
-
-	words, err := parse.ParseSub(s, true)
-	if err != nil {
-		config.Debugf("error in IsSubNeeded: %v", err)
-		return true
-	}
-	for _, w := range words {
-		switch w.T {
-		case parse.STR:
-			// Ignore this
-		default:
-			// Anything else means it's needed
-			return true
-		}
-	}
-	return false
-}
-
 // replaceTemplateConstants scans the entire template looking for Sub strings
 // and replaces all instances of ${Rain::ConstantName} if that name exists
 // in the Rain/Constants section of the template
@@ -107,7 +90,7 @@ func replaceTemplateConstants(templateNode *yaml.Node, constants map[string]*yam
 
 				// Remove unnecessary Subs
 				// Parse the value again and see if it has any non-words
-				if !IsSubNeeded(yamlNode.Content[1].Value) {
+				if !parse.IsSubNeeded(yamlNode.Content[1].Value) {
 					config.Debugf("Sub is not needed for %s", yamlNode.Content[1].Value)
 					*yamlNode = yaml.Node{Kind: yaml.ScalarNode, Value: yamlNode.Content[1].Value}
 				}
@@ -118,4 +101,30 @@ func replaceTemplateConstants(templateNode *yaml.Node, constants map[string]*yam
 
 	visitor := visitor.NewVisitor(templateNode)
 	visitor.Visit(vf)
+}
+
+func processConstants(t *cft.Template, n *yaml.Node) {
+	// Process constants in order, since they can refer to previous ones
+	_, c, _ := s11n.GetMapValue(n, "Constants")
+	if c != nil {
+		for i := 0; i < len(c.Content); i += 2 {
+			name := c.Content[i].Value
+			val := c.Content[i+1]
+			t.Constants[name] = val
+			// Visit each node in val looking for prior constant entries
+			vf := func(v *visitor.Visitor) {
+				vnode := v.GetYamlNode()
+				if vnode.Kind == yaml.ScalarNode {
+					err := replaceConstants(vnode, t.Constants)
+					if err != nil {
+						// These constants must be scalars
+						// TODO: Constant values can be objects!
+						config.Debugf("replaceConstants failed: %v", err)
+					}
+				}
+			}
+			v := visitor.NewVisitor(val)
+			v.Visit(vf)
+		}
+	}
 }

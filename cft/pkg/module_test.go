@@ -66,10 +66,41 @@ func TestConstant(t *testing.T) {
 	runTest("constant", t)
 }
 
-// TODO: This was broken in the refactor, come back to it later
-//func TestForeach(t *testing.T) {
-//	runTest("foreach", t)
-//}
+// TestAWSCLIModules runs the unit tests for the AWS CLI
+// cloudformation package command module functionality.
+// The goal is for Rain to be 100% compatible with the
+// AWS CLI module format
+func TestAWSCLIModules(t *testing.T) {
+	tests := []string{
+		"basic",
+		"type",
+		"sub",
+		"modinmod",
+		"output",
+		"policy",
+		"vpc",
+		"map",
+		"mapout",
+		"conditional",
+		"cond-intrinsics",
+		"example",
+		"getatt",
+		"constant",
+		"proparray",
+		"depends",
+		"select",
+		"merge",
+		"mergetags",
+		"insertfile",
+		"outsublist",
+		"outjoin",
+		"invoke",
+		"zip",
+	}
+	for _, test := range tests {
+		runTest("awscli-modules/"+test, t)
+	}
+}
 
 func runTest(test string, t *testing.T) {
 
@@ -99,7 +130,7 @@ func runTest(test string, t *testing.T) {
 
 	d := diff.New(packaged, expectedTemplate)
 	if d.Mode() != "=" {
-		t.Errorf("Output does not match expected: %v", d.Format(true))
+		t.Errorf("Module test %s failed: %v", test, d.Format(true))
 	}
 }
 
