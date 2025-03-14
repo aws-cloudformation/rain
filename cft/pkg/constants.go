@@ -103,7 +103,7 @@ func replaceTemplateConstants(templateNode *yaml.Node, constants map[string]*yam
 	visitor.Visit(vf)
 }
 
-func processConstants(t *cft.Template, n *yaml.Node) {
+func processConstants(t *cft.Template, n *yaml.Node) error {
 	// Process constants in order, since they can refer to previous ones
 	_, c, _ := s11n.GetMapValue(n, "Constants")
 	if c != nil {
@@ -127,4 +127,5 @@ func processConstants(t *cft.Template, n *yaml.Node) {
 			v.Visit(vf)
 		}
 	}
+	return nil
 }

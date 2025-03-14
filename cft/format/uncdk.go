@@ -12,7 +12,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func UnCDK(t cft.Template) error {
+func UnCDK(t *cft.Template) error {
 
 	// Remove these nodes:
 	//
@@ -153,7 +153,7 @@ func joinSeqToString(seq *yaml.Node) string {
 	return retval
 }
 
-func joinToSub(t cft.Template) {
+func joinToSub(t *cft.Template) {
 	vf := func(n *visitor.Visitor) {
 		yamlNode := n.GetYamlNode()
 		if yamlNode.Kind == yaml.MappingNode {
@@ -173,7 +173,7 @@ func joinToSub(t cft.Template) {
 
 }
 
-func replaceNames(t cft.Template, oldName, newName string) {
+func replaceNames(t *cft.Template, oldName, newName string) {
 	vf := func(n *visitor.Visitor) {
 		yamlNode := n.GetYamlNode()
 		if yamlNode.Kind == yaml.ScalarNode {
@@ -187,7 +187,7 @@ func replaceNames(t cft.Template, oldName, newName string) {
 }
 
 // getCommonTemplatePrefix attempts to find a common string that begins all resource names.
-func getCommonResourcePrefix(t cft.Template) string {
+func getCommonResourcePrefix(t *cft.Template) string {
 	resources, err := t.GetSection(cft.Resources)
 	if err != nil {
 		return ""

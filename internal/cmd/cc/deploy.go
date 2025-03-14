@@ -22,7 +22,7 @@ import (
 
 // PackageTemplate reads the template and performs any necessary packaging on it
 // before deployment. The rain bucket will be created if it does not already exist.
-func PackageTemplate(fn string, yes bool) cft.Template {
+func PackageTemplate(fn string, yes bool) *cft.Template {
 
 	t, err := pkg.File(fn)
 	if err != nil {
@@ -91,7 +91,7 @@ func deploy(cmd *cobra.Command, args []string) {
 	config.Debugf("StateFile:\n%v", format.String(stateResult.StateFile,
 		format.Options{JSON: false, Unsorted: false}))
 
-	var changes cft.Template
+	var changes *cft.Template
 
 	if stateResult.IsUpdate {
 		var err error

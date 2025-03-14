@@ -61,7 +61,7 @@ var AllTypes string
 //go:embed schemas
 var schemaFiles embed.FS
 
-func checkTemplate(template cft.Template) (string, error) {
+func checkTemplate(template *cft.Template) (string, error) {
 	templateBody := format.String(template, format.Options{})
 
 	// Max template size is 1MB
@@ -283,7 +283,7 @@ func GetStackEvents(stackName string) ([]types.StackEvent, error) {
 }
 
 type ChangeSetContext struct {
-	Template  cft.Template
+	Template  *cft.Template
 	Params    []types.Parameter
 	Tags      map[string]string
 	StackName string

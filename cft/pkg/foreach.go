@@ -18,7 +18,7 @@ type fnfe struct {
 // TODO: This was broken in the refactor, come back to it later
 func handleForEach(
 	moduleResources *yaml.Node,
-	t cft.Template,
+	t *cft.Template,
 	logicalId string,
 	outputNode *yaml.Node,
 	moduleParams *yaml.Node,

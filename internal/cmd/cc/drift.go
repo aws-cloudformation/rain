@@ -57,7 +57,7 @@ func runDrift(cmd *cobra.Command, args []string) {
 	}
 }
 
-func runDriftOnState(name string, template cft.Template, bucketName string, key string) error {
+func runDriftOnState(name string, template *cft.Template, bucketName string, key string) error {
 
 	resources, err := template.GetSection(cft.Resources)
 	if err != nil {

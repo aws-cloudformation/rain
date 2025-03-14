@@ -371,7 +371,7 @@ func createStackSet(configData configFormat) {
 }
 
 // converts 'string' parameters to typed objects
-func buildParameterTypes(template cft.Template, combinedParams map[string]string, stackSet *types.StackSet) []types.Parameter {
+func buildParameterTypes(template *cft.Template, combinedParams map[string]string, stackSet *types.StackSet) []types.Parameter {
 
 	defer func() { //catch or finally
 		if err := recover(); err != nil { //catch

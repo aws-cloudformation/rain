@@ -61,7 +61,7 @@ func (t Template) Map() map[string]interface{} {
 }
 
 // AppendStateMap appends a "State" section to the template
-func AppendStateMap(state Template) *yaml.Node {
+func AppendStateMap(state *Template) *yaml.Node {
 	state.Node.Content[0].Content = append(state.Node.Content[0].Content,
 		&yaml.Node{Kind: yaml.ScalarNode, Value: "State"})
 	stateMap := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
@@ -85,6 +85,9 @@ const (
 	Outputs                  Section = "Outputs"
 	State                    Section = "State"
 	Rain                     Section = "Rain"
+	Modules                  Section = "Modules"
+	Packages                 Section = "Packages"
+	Constants                Section = "Constants"
 )
 
 // GetResource returns the yaml node for a resource by logical id
@@ -154,7 +157,7 @@ func (t Template) GetSection(section Section) (*yaml.Node, error) {
 
 // RemoveSection removes a section node from the template
 func (t Template) RemoveSection(section Section) error {
-	return node.RemoveFromMap(t.Node.Content[0], string(Rain))
+	return node.RemoveFromMap(t.Node.Content[0], string(section))
 }
 
 // GetTypes returns all unique type names for resources in the template

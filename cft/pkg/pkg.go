@@ -75,7 +75,7 @@ type analytics struct {
 type transformContext struct {
 	nodeToTransform *yaml.Node
 	rootDir         string // Using normal files
-	t               cft.Template
+	t               *cft.Template
 	parent          *node.NodePair
 	fs              *embed.FS // Used by build with embedded filesystem
 
@@ -108,17 +108,17 @@ func transform(ctx *transformContext) (bool, error) {
 
 // processRainSection returns true if the Rain section of the template existed
 // The section is removed by this function
-func processRainSection(t *cft.Template) bool {
+func processRainSection(t *cft.Template, rootDir string, fs *embed.FS) error {
 	t.Constants = make(map[string]*yaml.Node)
 	rainNode, err := t.GetSection(cft.Rain)
 	if err != nil {
 		// This is okay, not all templates have a Rain section
-		return false
+		return nil
 	}
 
 	HasRainSection = true
 
-	retval := processAddedSections(t, rainNode)
+	retval := processAddedSections(t, rainNode, rootDir, fs)
 
 	// Now remove the Rain node from the template
 	t.RemoveSection(cft.Rain)
@@ -129,23 +129,35 @@ func processRainSection(t *cft.Template) bool {
 // processAddedSections can be used for Constants and Modules
 // in either the Rain section (backwards comapatibility) or
 // if they are at the top level (like the AWS CLI)
-func processAddedSections(t *cft.Template, n *yaml.Node) bool {
+func processAddedSections(
+	t *cft.Template, n *yaml.Node, rootDir string, fs *embed.FS) error {
 
 	config.Debugf("processAddedSections for %s", t.Name)
 	//config.Debugf("n: %v", node.ToSJson(n))
 
-	processConstants(t, n)
-	processPackages(t, n)
-	processModules(t, n)
+	var err error
 
-	return true
+	err = processConstants(t, n)
+	if err != nil {
+		return err
+	}
+	err = processPackages(t, n)
+	if err != nil {
+		return err
+	}
+	err = processModulesSection(t, n, rootDir, fs)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Process the Packages section with aliases to modules
-func processPackages(t *cft.Template, n *yaml.Node) {
+func processPackages(t *cft.Template, n *yaml.Node) error {
 	packages := s11n.GetMap(n, "Packages")
 	if packages == nil {
-		return
+		return nil
 	}
 	t.Packages = make(map[string]*cft.PackageAlias)
 	for k, v := range packages {
@@ -177,12 +189,13 @@ func processPackages(t *cft.Template, n *yaml.Node) {
 			}
 		}
 	}
+	return nil
 }
 
 // Template returns t with assets included as per AWS CLI packaging rules
 // and any Rain:: functions used.
 // rootDir must be passed in so that any included assets can be loaded from the same directory
-func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error) {
+func Template(t *cft.Template, rootDir string, fs *embed.FS) (*cft.Template, error) {
 	templateNode := t.Node
 	var err error
 
@@ -190,10 +203,16 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 	//config.Debugf("Original template long: %v", node.ToJson(t.Node))
 
 	// First look for a Rain section and store constants
-	hasRainSection := processRainSection(&t)
+	err = processRainSection(t, rootDir, fs)
+	if err != nil {
+		return t, err
+	}
 
 	// See if those sections are defined at the top level
-	processAddedSections(&t, t.Node.Content[0])
+	err = processAddedSections(t, t.Node.Content[0], rootDir, fs)
+	if err != nil {
+		return t, err
+	}
 
 	constants := t.Constants
 
@@ -264,7 +283,8 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 	v.Visit(replaceAnchors)
 
 	// Look for ${Rain::ConstantName} in all Sub strings
-	if hasRainSection {
+	_, err = t.GetSection(cft.Rain)
+	if err == nil {
 		// Note that this rewrites all Subs and might have side effects
 		replaceTemplateConstants(templateNode, constants)
 	}
@@ -282,7 +302,7 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 	}
 
 	// We might lose the Document node here
-	retval := cft.Template{}
+	retval := &cft.Template{}
 	if templateNode.Kind == yaml.DocumentNode {
 		retval.Node = templateNode
 	} else {
@@ -326,10 +346,10 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 // File opens path as a CloudFormation template and returns a cft.Template
 // with assets included as per AWS CLI packaging rules
 // and any Rain:: functions used
-func File(path string) (cft.Template, error) {
+func File(path string) (*cft.Template, error) {
 	// config.Debugf("Packaging template: %s\n", path)
 
-	var t cft.Template
+	var t *cft.Template
 	var err error
 
 	if strings.HasSuffix(path, ".pkl") {

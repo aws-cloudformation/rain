@@ -62,7 +62,7 @@ func GetResourceEstimate(resourceType string, action StackAction) (int, error) {
 // getResourceType returns the resource type for the logical id
 // For example, "MyBucket" would return "AWS::S3::Bucket" if it is present,
 // otherwise "" is returned
-func getResourceType(t cft.Template, logicalId string) string {
+func getResourceType(t *cft.Template, logicalId string) string {
 	rootMap := t.Node.Content[0]
 	_, resources, _ := s11n.GetMapValue(rootMap, "Resources")
 	if resources == nil {
@@ -88,7 +88,7 @@ func getResourceType(t cft.Template, logicalId string) string {
 // the total duration estimated for stack actions
 func addDurations(
 	g graph.Graph,
-	t cft.Template,
+	t *cft.Template,
 	action StackAction,
 	dependencies []graph.Node,
 	parentDuration *int,
@@ -126,7 +126,7 @@ func addDurations(
 
 // PredictTotalEstimate returns the total number of seconds expected to deploy the stack.
 // This function takes into account resources that will be deployed in parallel.
-func PredictTotalEstimate(t cft.Template, stackExists bool) int {
+func PredictTotalEstimate(t *cft.Template, stackExists bool) int {
 	total := 0
 
 	var action StackAction

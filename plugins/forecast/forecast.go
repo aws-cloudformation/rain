@@ -19,7 +19,7 @@ type ForecastPlugin interface {
 
 // PredictionInput is the input to forecast prediction functions
 type PredictionInput struct {
-	Source      cft.Template
+	Source      *cft.Template
 	StackName   string
 	Resource    *yaml.Node
 	LogicalId   string

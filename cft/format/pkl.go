@@ -457,7 +457,7 @@ func addSection(section cft.Section, n *yaml.Node, sb *strings.Builder, basic bo
 
 // CftToPkl serializes the template as pkl.
 // It assumes that the user is importing the cloudformation package
-func CftToPkl(t cft.Template, basic bool, pklPackageAlias string) (string, error) {
+func CftToPkl(t *cft.Template, basic bool, pklPackageAlias string) (string, error) {
 	if t.Node == nil || len(t.Node.Content) != 1 {
 		return "", errors.New("expected t.Node.Content[0]")
 	}

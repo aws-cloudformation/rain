@@ -24,7 +24,7 @@ import (
 const FILE_PATH string = "FilePath"
 
 type StateResult struct {
-	StateFile cft.Template
+	StateFile *cft.Template
 	Lock      string
 	IsUpdate  bool
 }
@@ -70,7 +70,7 @@ func getStateFileKey(name string) string {
 // Save the state file back with a lock that we own
 func checkState(
 	name string,
-	template cft.Template,
+	template *cft.Template,
 	bucketName string,
 	priorLock string,
 	absPath string,
@@ -79,7 +79,7 @@ func checkState(
 	spinner.Push("Checking state")
 
 	key := getStateFileKey(name)
-	var state cft.Template
+	var state *cft.Template
 
 	result := &StateResult{}
 
@@ -103,7 +103,7 @@ func checkState(
 		spinner.Push("Creating a new state file")
 		lock := uuid.New().String()
 		config.Debugf("Creating new state file with lock %v", lock)
-		state = cft.Template{Node: node.Clone(template.Node)}
+		state = &cft.Template{Node: node.Clone(template.Node)}
 		result.StateFile = state
 		result.Lock = lock
 		result.IsUpdate = false
@@ -199,7 +199,7 @@ func checkState(
 // The state passed in should be the original template, since we will
 // overwrite state with current values.
 func writeState(
-	state cft.Template,
+	state *cft.Template,
 	results *DeploymentResults,
 	bucketName string,
 	name string,

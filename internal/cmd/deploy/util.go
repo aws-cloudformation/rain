@@ -81,7 +81,7 @@ func formatChangeSet(stackName, changeSetName string) string {
 	return strings.TrimSpace(out.String())
 }
 
-func PackageTemplate(fn string, yes bool) cft.Template {
+func PackageTemplate(fn string, yes bool) *cft.Template {
 	// Call RainBucket for side-effects in case we want to force bucket creation
 	s3.RainBucket(yes)
 
