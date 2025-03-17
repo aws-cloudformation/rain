@@ -446,3 +446,18 @@ func MergeNodes(original *yaml.Node, override *yaml.Node) *yaml.Node {
 
 	return retval
 }
+
+// MakeMappingNode returns a pointer to a new yaml mapping node
+func MakeMappingNode() *yaml.Node {
+	return &yaml.Node{
+		Kind:    yaml.MappingNode,
+		Content: make([]*yaml.Node, 0),
+	}
+}
+
+func MakeScalarNode(v string) *yaml.Node {
+	return &yaml.Node{
+		Kind:  yaml.ScalarNode,
+		Value: v,
+	}
+}

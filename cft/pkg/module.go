@@ -94,6 +94,7 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 		return nil
 	}
 	config.Debugf("Modules:\n%v", moduleSection)
+	HasModules = true
 
 	if moduleSection.Kind != yaml.MappingNode {
 		return errors.New("the Modules section is not a mapping node")
@@ -125,7 +126,7 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 		config.Debugf("Module %s Parsed: %s", name, node.ToSJson(parsed.Node))
 
 		// Transform the parsed module content
-		outputNode := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
+		outputNode := node.MakeMappingNode()
 
 		err = processModule(
 			name,
@@ -144,7 +145,7 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 		if len(outputNode.Content) > 0 {
 			resources, err := t.GetSection(cft.Resources)
 			if err != nil {
-				resources = node.AddMap(t.Node, string(cft.Resources))
+				resources = node.AddMap(t.Node.Content[0], string(cft.Resources))
 			}
 			resources.Content = append(resources.Content, outputNode.Content...)
 		} else {

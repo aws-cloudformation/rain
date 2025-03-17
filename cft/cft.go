@@ -155,6 +155,16 @@ func (t Template) GetSection(section Section) (*yaml.Node, error) {
 	return s, nil
 }
 
+// HasSection returns true if the template has the section
+func (t Template) HasSection(section Section) bool {
+	if t.Node == nil {
+		return false
+	}
+	m := t.Node.Content[0]
+	_, s, _ := s11n.GetMapValue(m, string(section))
+	return s != nil
+}
+
 // RemoveSection removes a section node from the template
 func (t Template) RemoveSection(section Section) error {
 	return node.RemoveFromMap(t.Node.Content[0], string(section))

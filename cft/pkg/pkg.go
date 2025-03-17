@@ -199,20 +199,22 @@ func Template(t *cft.Template, rootDir string, fs *embed.FS) (*cft.Template, err
 	templateNode := t.Node
 	var err error
 
-	//config.Debugf("Original template short: %v", node.ToSJson(t.Node))
+	config.Debugf("Original template short: %v", node.ToSJson(t.Node))
 	//config.Debugf("Original template long: %v", node.ToJson(t.Node))
 
 	// First look for a Rain section and store constants
 	err = processRainSection(t, rootDir, fs)
 	if err != nil {
-		return t, err
+		return nil, fmt.Errorf("failed to process Rain section: %v", err)
 	}
 
 	// See if those sections are defined at the top level
 	err = processAddedSections(t, t.Node.Content[0], rootDir, fs)
 	if err != nil {
-		return t, err
+		return nil, fmt.Errorf("failed to process added sections: %v", err)
 	}
+
+	config.Debugf("Processed added sections: %s", node.ToSJson(t.Node))
 
 	constants := t.Constants
 
@@ -233,7 +235,7 @@ func Template(t *cft.Template, rootDir string, fs *embed.FS) (*cft.Template, err
 		// Just start over and transform the whole template again.
 		changedThisPass, err := transform(ctx)
 		if err != nil {
-			return t, err
+			return nil, err
 		}
 		if changedThisPass {
 			changed = true
@@ -242,14 +244,14 @@ func Template(t *cft.Template, rootDir string, fs *embed.FS) (*cft.Template, err
 			break
 		}
 		if passes > maxPasses {
-			return t, errors.New("reached maxPasses while transforming")
+			return nil, errors.New("reached maxPasses while transforming")
 		}
 	}
 
 	if changed {
 		t, err = parse.Node(templateNode)
 		if err != nil {
-			return t, err
+			return nil, err
 		}
 	}
 
@@ -282,23 +284,25 @@ func Template(t *cft.Template, rootDir string, fs *embed.FS) (*cft.Template, err
 	v.Visit(collectAnchors)
 	v.Visit(replaceAnchors)
 
-	// Look for ${Rain::ConstantName} in all Sub strings
-	_, err = t.GetSection(cft.Rain)
-	if err == nil {
+	// Look for ${Rain::ConstantName} and ${Const::ConstantName}
+	if t.HasSection(cft.Rain) || t.HasSection(cft.Constants) {
 		// Note that this rewrites all Subs and might have side effects
-		replaceTemplateConstants(templateNode, constants)
+		err = replaceTemplateConstants(templateNode, constants)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Marshal and Unmarshal to resolve new line/column numbers
 
 	serialized, err := yaml.Marshal(templateNode)
 	if err != nil {
-		return t, fmt.Errorf("failed to marshal template: %v", err)
+		return nil, fmt.Errorf("failed to marshal template: %v", err)
 	}
 
 	err = yaml.Unmarshal(serialized, templateNode)
 	if err != nil {
-		return t, fmt.Errorf("failed to unmarshal template: %v", err)
+		return nil, fmt.Errorf("failed to unmarshal template: %v", err)
 	}
 
 	// We might lose the Document node here
@@ -355,17 +359,17 @@ func File(path string) (*cft.Template, error) {
 	if strings.HasSuffix(path, ".pkl") {
 		y, err := rainpkl.Yaml(path)
 		if err != nil {
-			return t, err
+			return nil, err
 		}
 		t, err = parse.String(y)
 		if err != nil {
-			return t, err
+			return nil, err
 		}
 	} else {
 		t, err = parse.File(path)
 		if err != nil {
 			config.Debugf("pkg.File unable to parse %v", path)
-			return t, err
+			return nil, err
 		}
 	}
 
