@@ -90,6 +90,15 @@ const (
 	Constants                Section = "Constants"
 )
 
+type Intrinsic string
+
+const (
+	Sub    Intrinsic = "Fn::Sub"
+	GetAtt Intrinsic = "Fn::GetAtt"
+	Ref    Intrinsic = "Ref"
+	If     Intrinsic = "Fn::If"
+)
+
 // GetResource returns the yaml node for a resource by logical id
 func (t Template) GetResource(name string) (*yaml.Node, error) {
 	return t.GetNode(Resources, name)

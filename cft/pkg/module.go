@@ -11,6 +11,7 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
+	"github.com/aws-cloudformation/rain/cft/visitor"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
@@ -34,6 +35,16 @@ const (
 	Default             = "Default"
 )
 
+// Module represents a complete module, including parent config
+type Module struct {
+	Config     *ModuleConfig
+	Parameters map[string]any
+	Resources  map[string]any
+	Outputs    map[string]any
+	Node       *yaml.Node
+	Parent     *cft.Template
+}
+
 // ModuleConfig is the configuration of the module in
 // the parent template.
 type ModuleConfig struct {
@@ -44,6 +55,8 @@ type ModuleConfig struct {
 	Overrides      map[string]any
 	OverridesNode  *yaml.Node
 	Node           *yaml.Node
+	Map            *yaml.Node
+	OriginalName   string
 }
 
 // parseModuleConfig parses a single module configuration
@@ -75,10 +88,71 @@ func parseModuleConfig(name string, n *yaml.Node) (*ModuleConfig, error) {
 			if decodeErr != nil {
 				return nil, decodeErr
 			}
+		case "Map":
+			m.Map = val
 		}
 	}
 
 	return m, nil
+}
+
+// stringsFromNode returns a string slice based on a scalar with a CSV or a sequence.
+func stringsFromNode(n *yaml.Node) []string {
+	if n == nil {
+		return nil
+	}
+	if n.Kind == yaml.ScalarNode {
+		return strings.Split(n.Value, ",")
+	}
+	if n.Kind == yaml.SequenceNode {
+		retval := make([]string, 0)
+		for _, s := range n.Content {
+			retval = append(retval, s.Value)
+		}
+		return retval
+	}
+	return nil
+}
+
+const (
+	MI = "$MapIndex"
+	MV = "$MapValue"
+)
+
+func replaceMapStr(s string, index int, key string) string {
+	s = strings.Replace(s, MI, fmt.Sprintf("%d", index), -1)
+	s = strings.Replace(s, MV, key, -1)
+	return s
+}
+
+// mapPlaceholders looks for MapValue and MapIndex and replaces them
+func mapPlaceholders(n *yaml.Node, index int, key string) {
+
+	vf := func(v *visitor.Visitor) {
+		yamlNode := v.GetYamlNode()
+		if yamlNode.Kind == yaml.MappingNode {
+			content := yamlNode.Content
+			if len(content) == 2 {
+				switch content[0].Value {
+				case string(cft.Sub):
+					r := replaceMapStr(content[1].Value, index, key)
+					if parse.IsSubNeeded(r) {
+						yamlNode.Value = r
+					} else {
+						*yamlNode = *node.MakeScalarNode(r)
+					}
+				case string(cft.GetAtt):
+					for _, getatt := range content[1].Content {
+						getatt.Value = replaceMapStr(getatt.Value, index, key)
+					}
+				}
+			}
+		} else if yamlNode.Kind == yaml.ScalarNode {
+			yamlNode.Value = replaceMapStr(yamlNode.Value, index, key)
+		}
+	}
+
+	visitor.NewVisitor(n).Visit(vf)
 }
 
 // Process the Modules section of a template or module.
@@ -100,17 +174,99 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 		return errors.New("the Modules section is not a mapping node")
 	}
 
-	content := moduleSection.Content
-	for i := 0; i < len(content); i += 2 {
-		name := content[i].Value
-		m, err := parseModuleConfig(name, content[i+1])
+	originalContent := moduleSection.Content
+
+	config.Debugf("originalContent: \n%s", node.ToSJson(moduleSection))
+
+	content := make([]*yaml.Node, 0)
+
+	// This will hold info about original mapped modules
+	moduleMaps := make(map[string]any)
+
+	// Process Maps, which duplicate the module for each element in a list
+	for i := 0; i < len(originalContent); i += 2 {
+		name := originalContent[i].Value
+		moduleConfig, err := parseModuleConfig(name, originalContent[i+1])
 		if err != nil {
 			return err
 		}
-		config.Debugf("Module Config: %+v", m)
+
+		config.Debugf("processing Maps, module %s: %+v", name, moduleConfig)
+
+		if moduleConfig.Map != nil {
+			// The map is either a CSV or a Ref to a CSV that we can fully resolve
+			mapJson := node.ToSJson(moduleConfig.Map)
+			var keys []string
+			if moduleConfig.Map.Kind == yaml.ScalarNode {
+				keys = stringsFromNode(moduleConfig.Map)
+			} else if moduleConfig.Map.Kind == yaml.SequenceNode {
+				keys = stringsFromNode(moduleConfig.Map)
+			} else if moduleConfig.Map.Kind == yaml.MappingNode {
+				if len(moduleConfig.Map.Content) == 2 && moduleConfig.Map.Content[0].Value == "Ref" {
+					r := moduleConfig.Map.Content[1].Value
+					// Look in the parent templates Parameters for the Ref
+					if !t.HasSection(cft.Parameters) {
+						return fmt.Errorf("module Map Ref no Parameters: %s", mapJson)
+					}
+					params, _ := t.GetSection(cft.Parameters)
+					_, keysNode, _ := s11n.GetMapValue(params, r)
+					if keysNode == nil {
+						return fmt.Errorf("expected module Map Ref to a Parameter: %s", mapJson)
+					}
+					// TODO - This is too simple. What about sub-modules?
+					_, d, _ := s11n.GetMapValue(keysNode, "Default")
+					if d == nil {
+						return fmt.Errorf("expected module Map Ref to a Default: %s", mapJson)
+					}
+					keys = stringsFromNode(d)
+				} else {
+					return fmt.Errorf("expected module Map to be a Ref: %s", mapJson)
+				}
+			} else {
+				return fmt.Errorf("unexpected module Map Kind: %s", mapJson)
+			}
+
+			if len(keys) < 1 {
+				mapErr := fmt.Errorf("expected module Map to have items: %s", mapJson)
+				return mapErr
+			}
+
+			// Record the number of items in the map
+			moduleMaps[moduleConfig.Name] = len(keys)
+
+			// Duplicate the config
+			for i, key := range keys {
+				mapName := fmt.Sprintf("%s%d", moduleConfig.Name, i)
+				copiedNode := node.Clone(moduleConfig.Node)
+				node.RemoveFromMap(copiedNode, "Map")
+				copiedConfig, err := parseModuleConfig(mapName, copiedNode)
+				if err != nil {
+					return err
+				}
+				copiedConfig.OriginalName = moduleConfig.Name
+				mapPlaceholders(copiedConfig.Node, i, key)
+				content = append(content, node.MakeScalarNode(mapName))
+				content = append(content, copiedNode)
+			}
+		} else {
+			content = append(content, originalContent[i])
+			content = append(content, originalContent[i+1])
+		}
+	}
+
+	config.Debugf("content after Maps: \n%s",
+		node.ToSJson(&yaml.Node{Kind: yaml.MappingNode, Content: content}))
+
+	for i := 0; i < len(content); i += 2 {
+		name := content[i].Value
+		moduleConfig, err := parseModuleConfig(name, content[i+1])
+		if err != nil {
+			return err
+		}
+		config.Debugf("Module Config: %+v", moduleConfig)
 
 		baseUri := ""
-		uri := m.Source
+		uri := moduleConfig.Source
 
 		moduleContent, err := getModuleContent(rootDir, t, fs, baseUri, uri)
 		if err != nil {
@@ -134,7 +290,7 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 			outputNode,
 			t,
 			parsed.AsTemplate.Constants,
-			m.Node)
+			moduleConfig)
 		if err != nil {
 			return err
 		}
@@ -254,34 +410,6 @@ func rename(logicalId string, resourceName string) string {
 	return logicalId + resourceName
 }
 
-// TODO: Should refctx be a more general "Module" struct?
-
-// Common context needed to resolve Refs in the module.
-// This is all the common stuff that is the same for this module.
-type refctx struct {
-	// The module's Parameters
-	moduleParams *yaml.Node
-
-	// The parent template's Properties
-	templateProps *yaml.Node
-
-	// The node we're writing to for output to the resulting template
-	outNode *yaml.Node
-
-	// The logical id of the resource in the parent template
-	logicalId string
-
-	// The module's Resources map
-	moduleResources *yaml.Node
-
-	// Template property overrides map for the resource
-	// TODO: Not necessary? We don't look anything up here...
-	overrides *yaml.Node
-
-	// The module's Constants from the Rain section
-	constants map[string]*yaml.Node
-}
-
 func replaceProp(prop *yaml.Node, parentName string, v *yaml.Node, outNode *yaml.Node, sidx int) error {
 
 	if sidx > -1 {
@@ -330,28 +458,40 @@ func processModule(
 	outputNode *yaml.Node,
 	t *cft.Template,
 	moduleConstants map[string]*yaml.Node,
-	moduleConfig *yaml.Node) error {
+	moduleConfig *ModuleConfig) error {
+
+	m := &Module{}
+	m.Config = moduleConfig
+	m.Node = module
+	m.Parent = t
+
+	var decodeErr error
 
 	// Locate the Resources: section in the module
 	_, moduleResources, _ := s11n.GetMapValue(module, "Resources")
-
-	if moduleResources == nil {
-		return errors.New("expected the module to have a Resources section")
+	if moduleResources != nil {
+		decodeErr = moduleResources.Decode(&m.Resources)
+		if decodeErr != nil {
+			return decodeErr
+		}
 	}
 
 	// Locate the Parameters: section in the module (might be nil)
 	_, moduleParams, _ := s11n.GetMapValue(module, "Parameters")
+	if moduleParams != nil {
+		decodeErr = moduleParams.Decode(&m.Parameters)
+		if decodeErr != nil {
+			return decodeErr
+		}
+	}
 
-	// Properties are the args that match module params
-	_, templateProps, _ := s11n.GetMapValue(moduleConfig, Properties)
-
-	err := validateOverrides(moduleConfig, moduleResources, moduleParams)
+	err := validateOverrides(moduleConfig.Node, moduleResources, moduleParams)
 	if err != nil {
 		return err
 	}
 
 	fe, err := handleForEach(moduleResources, t, logicalId, outputNode,
-		moduleParams, templateProps)
+		moduleParams, moduleConfig.PropertiesNode)
 	if err != nil {
 		return err
 	}
@@ -368,7 +508,7 @@ func processModule(
 		metadata := s11n.GetMap(moduleResource, Metadata)
 		if metadata != nil {
 			if rainMetadata, ok := metadata[Rain]; ok {
-				if omitIfs(rainMetadata, moduleParams, templateProps, moduleResource) {
+				if omitIfs(rainMetadata, moduleParams, moduleConfig.PropertiesNode, moduleResource) {
 					continue
 				}
 			}
@@ -379,7 +519,7 @@ func processModule(
 		outputNode.Content = append(outputNode.Content, nameNode)
 		clonedResource := node.Clone(moduleResource)
 
-		overrides, err := processOverrides(logicalId, moduleConfig, name, moduleResource, clonedResource, moduleParams)
+		overrides, err := processOverrides(logicalId, moduleConfig.Node, name, moduleResource, clonedResource, moduleParams)
 		if err != nil {
 			return err
 		}
@@ -387,9 +527,9 @@ func processModule(
 		// Resolve Refs in the module
 		// Some refs are to other resources in the module
 		// Other refs are to the module's parameters
-		ctx := &refctx{
+		ctx := &ReferenceContext{
 			moduleParams:    moduleParams,
-			templateProps:   templateProps,
+			templateProps:   moduleConfig.PropertiesNode,
 			outNode:         clonedResource,
 			logicalId:       logicalId,
 			moduleResources: moduleResources,
@@ -420,6 +560,12 @@ func processModule(
 		outputNode.Content = append(outputNode.Content, clonedResource)
 	}
 
+	// Look for references to this module's outputs in the parent
+	err = processModuleOutputs(m)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -430,7 +576,8 @@ func processRainResourceModule(
 	outputNode *yaml.Node,
 	t *cft.Template,
 	parent node.NodePair,
-	moduleConstants map[string]*yaml.Node) error {
+	moduleConstants map[string]*yaml.Node,
+	source string) error {
 
 	// The parent arg is the map in the template resource's Content[1] that contains Type, Properties, etc
 
@@ -444,15 +591,24 @@ func processRainResourceModule(
 	// Make a new node that will hold our additions to the original template
 	outputNode.Content = make([]*yaml.Node, 0)
 
-	if module.Kind != yaml.DocumentNode {
-		return errors.New("expected module to be a DocumentNode")
+	if module.Kind == yaml.DocumentNode {
+		module = module.Content[0] // ScalarNode !!map
 	}
 
-	module = module.Content[0] // ScalarNode !!map
+	if module.Kind != yaml.MappingNode {
+		config.Debugf("%s", node.ToSJson(module))
+		return fmt.Errorf("expected module %s to be a Mapping node", logicalId)
+	}
 
 	templateResource := parent.Value // The !!map node of the resource with Type !Rain::Module
 
-	return processModule(logicalId, module, outputNode, t, moduleConstants, templateResource)
+	moduleConfig, err := parseModuleConfig(logicalId, templateResource)
+	if err != nil {
+		return err
+	}
+	moduleConfig.Source = source
+
+	return processModule(logicalId, module, outputNode, t, moduleConstants, moduleConfig)
 }
 
 func checkPackageAlias(t *cft.Template, uri string) *cft.PackageAlias {
@@ -665,7 +821,7 @@ func module(ctx *directiveContext) (bool, error) {
 
 	// Create a new node to represent the parsed module
 	var outputNode yaml.Node
-	err = processRainResourceModule(moduleNode, &outputNode, t, parent, moduleAsTemplate.Constants)
+	err = processRainResourceModule(moduleNode, &outputNode, t, parent, moduleAsTemplate.Constants, uri)
 	if err != nil {
 		config.Debugf("processModule error: %v, moduleNode: %s", err, node.ToSJson(moduleNode))
 		return false, fmt.Errorf("failed to process module %s: %v", uri, err)

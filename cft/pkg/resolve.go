@@ -10,10 +10,36 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Common context needed to resolve Refs in the module.
+// This is all the common stuff that is the same for this module.
+type ReferenceContext struct {
+	// The module's Parameters
+	moduleParams *yaml.Node
+
+	// The parent template's Properties
+	templateProps *yaml.Node
+
+	// The node we're writing to for output to the resulting template
+	outNode *yaml.Node
+
+	// The logical id of the resource in the parent template
+	logicalId string
+
+	// The module's Resources map
+	moduleResources *yaml.Node
+
+	// Template property overrides map for the resource
+	// TODO: Not necessary? We don't look anything up here...
+	overrides *yaml.Node
+
+	// The module's Constants from the Rain section
+	constants map[string]*yaml.Node
+}
+
 // Resolve a Ref.  parentName is the name of the Property with the Ref in it.
 // prop is the Scalar node with the value for the Ref.  The output node is
 // modified by this function (or the prop, which is part of the output)
-func resolveModuleRef(parentName string, prop *yaml.Node, sidx int, ctx *refctx) error {
+func resolveModuleRef(parentName string, prop *yaml.Node, sidx int, ctx *ReferenceContext) error {
 
 	// MyProperty: !Ref NameOfParam
 	//
@@ -108,7 +134,7 @@ func resolveModuleRef(parentName string, prop *yaml.Node, sidx int, ctx *refctx)
 // prop.Value is the Sub string
 // sidx is the sequence index if it's > -1
 // ctx.outNode will be modified to replace prop.Value with the references
-func resolveModuleSub(parentName string, prop *yaml.Node, sidx int, ctx *refctx) error {
+func resolveModuleSub(parentName string, prop *yaml.Node, sidx int, ctx *ReferenceContext) error {
 
 	moduleParams := ctx.moduleParams
 	templateProps := ctx.templateProps
@@ -193,23 +219,6 @@ func resolveModuleSub(parentName string, prop *yaml.Node, sidx int, ctx *refctx)
 			}
 			sub += fmt.Sprintf("${%s.%s}", left, right)
 			needSub = true
-		// This should not be necessary since we process Rain constants earlier
-		//case parse.RAIN:
-		//	// Replace ${Rain::ConstantName} with template constant value
-		//	if ctx.constants == nil {
-		//		return fmt.Errorf("no Rain Constants section, looking for %s", word.W)
-		//	}
-		//	if c, ok := ctx.constants[word.W]; ok {
-		//		sub += c.Value
-		//	} else {
-		//		if len(ctx.constants) == 0 {
-		//			config.Debugf("Constants are empty")
-		//		}
-		//		for k, v := range ctx.constants {
-		//			config.Debugf("Constant %s: %s", k, v.Value)
-		//		}
-		//		return fmt.Errorf("unable to find Rain constant %s", word.W)
-		//	}
 		default:
 			return fmt.Errorf("unexpected word type %v for %s", word.T, word.W)
 		}
@@ -237,7 +246,7 @@ func resolveModuleSub(parentName string, prop *yaml.Node, sidx int, ctx *refctx)
 // Recursive function to find all refs in properties
 // Also handles DeletionPolicy, UpdateRetainPolicy
 // If sidx is > -1, this prop is in a sequence
-func renamePropRefs(parentName string, propName string, prop *yaml.Node, sidx int, ctx *refctx) error {
+func renamePropRefs(parentName string, propName string, prop *yaml.Node, sidx int, ctx *ReferenceContext) error {
 
 	logicalId := ctx.logicalId
 
@@ -304,7 +313,7 @@ func renamePropRefs(parentName string, propName string, prop *yaml.Node, sidx in
 }
 
 // Convert !Ref values
-func resolveRefs(ctx *refctx) error {
+func resolveRefs(ctx *ReferenceContext) error {
 
 	outNode := ctx.outNode
 
