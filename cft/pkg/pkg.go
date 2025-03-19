@@ -182,8 +182,8 @@ func processPackages(t *cft.Template, n *yaml.Node) error {
 				//typ.Value = "!Rain::Module " + strings.Trim(typ.Value, "$")
 				newTypeNode := yaml.Node{Kind: yaml.MappingNode}
 				newTypeNode.Content = []*yaml.Node{
-					&yaml.Node{Kind: yaml.ScalarNode, Value: "Rain::Module"},
-					&yaml.Node{Kind: yaml.ScalarNode, Value: strings.Trim(typ.Value, "$")},
+					{Kind: yaml.ScalarNode, Value: "Rain::Module"},
+					{Kind: yaml.ScalarNode, Value: strings.Trim(typ.Value, "$")},
 				}
 				*typ = newTypeNode
 			}

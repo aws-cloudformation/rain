@@ -6,51 +6,25 @@ import (
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft/parse"
+	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
 )
 
-// Common context needed to resolve Refs in the module.
-// This is all the common stuff that is the same for this module.
-type ReferenceContext struct {
-	// The module's Parameters
-	moduleParams *yaml.Node
-
-	// The parent template's Properties
-	templateProps *yaml.Node
-
-	// The node we're writing to for output to the resulting template
-	outNode *yaml.Node
-
-	// The logical id of the resource in the parent template
-	logicalId string
-
-	// The module's Resources map
-	moduleResources *yaml.Node
-
-	// Template property overrides map for the resource
-	// TODO: Not necessary? We don't look anything up here...
-	overrides *yaml.Node
-
-	// The module's Constants from the Rain section
-	constants map[string]*yaml.Node
-}
-
 // Resolve a Ref.  parentName is the name of the Property with the Ref in it.
 // prop is the Scalar node with the value for the Ref.  The output node is
 // modified by this function (or the prop, which is part of the output)
-func resolveModuleRef(parentName string, prop *yaml.Node, sidx int, ctx *ReferenceContext) error {
+func (module *Module) ResolveRef(parentName string, prop *yaml.Node, sidx int, outNode *yaml.Node) error {
 
 	// MyProperty: !Ref NameOfParam
 	//
 	// MyProperty is the parentName
 	// NameOfParam is prop.Value
 
-	moduleParams := ctx.moduleParams
-	templateProps := ctx.templateProps
-	outNode := ctx.outNode
-	logicalId := ctx.logicalId
-	moduleResources := ctx.moduleResources
+	moduleParams := module.ParametersNode
+	templateProps := module.Config.PropertiesNode
+	logicalId := module.Config.Name
+	moduleResources := module.ResourcesNode
 
 	refFoundInParams := false
 
@@ -134,12 +108,12 @@ func resolveModuleRef(parentName string, prop *yaml.Node, sidx int, ctx *Referen
 // prop.Value is the Sub string
 // sidx is the sequence index if it's > -1
 // ctx.outNode will be modified to replace prop.Value with the references
-func resolveModuleSub(parentName string, prop *yaml.Node, sidx int, ctx *ReferenceContext) error {
+func (module *Module) ResolveSub(parentName string, prop *yaml.Node, sidx int, outNode *yaml.Node) error {
 
-	moduleParams := ctx.moduleParams
-	templateProps := ctx.templateProps
-	logicalId := ctx.logicalId
-	moduleResources := ctx.moduleResources
+	moduleParams := module.ParametersNode
+	templateProps := module.Config.PropertiesNode
+	logicalId := module.Config.Name
+	moduleResources := module.ResourcesNode
 
 	refFoundInParams := false
 
@@ -238,7 +212,7 @@ func resolveModuleSub(parentName string, prop *yaml.Node, sidx int, ctx *Referen
 	}
 
 	// Replace the prop in the output node
-	replaceProp(prop, parentName, newProp, ctx.outNode, sidx)
+	replaceProp(prop, parentName, newProp, outNode, sidx)
 
 	return nil
 }
@@ -246,9 +220,9 @@ func resolveModuleSub(parentName string, prop *yaml.Node, sidx int, ctx *Referen
 // Recursive function to find all refs in properties
 // Also handles DeletionPolicy, UpdateRetainPolicy
 // If sidx is > -1, this prop is in a sequence
-func renamePropRefs(parentName string, propName string, prop *yaml.Node, sidx int, ctx *ReferenceContext) error {
+func (module *Module) RenamePropRefs(parentName string, propName string, prop *yaml.Node, sidx int, outNode *yaml.Node) error {
 
-	logicalId := ctx.logicalId
+	logicalId := module.Config.Name
 
 	// Properties:
 	//   SimpleProp: Val
@@ -263,12 +237,11 @@ func renamePropRefs(parentName string, propName string, prop *yaml.Node, sidx in
 
 	if prop.Kind == yaml.ScalarNode {
 		if propName == "Ref" {
-			if err := resolveModuleRef(parentName, prop, sidx, ctx); err != nil {
+			if err := module.ResolveRef(parentName, prop, sidx, outNode); err != nil {
 				return fmt.Errorf("resolving module ref %s: %v", parentName, err)
 			}
 		} else if propName == "Fn::Sub" {
-
-			if err := resolveModuleSub(parentName, prop, sidx, ctx); err != nil {
+			if err := module.ResolveSub(parentName, prop, sidx, outNode); err != nil {
 				return fmt.Errorf("resolving module sub %s: %v", parentName, err)
 			}
 
@@ -283,7 +256,7 @@ func renamePropRefs(parentName string, propName string, prop *yaml.Node, sidx in
 			// Recurse over array elements
 			for i, p := range prop.Content {
 				// propName is blank so the next parentName is blank
-				result := renamePropRefs(propName, p.Value, prop.Content[i], i, ctx)
+				result := module.RenamePropRefs(propName, p.Value, prop.Content[i], i, outNode)
 				if result != nil {
 					return fmt.Errorf("recursing over array %s: %v", parentName, result)
 				}
@@ -299,7 +272,7 @@ func renamePropRefs(parentName string, propName string, prop *yaml.Node, sidx in
 				if propName != "" {
 					passSidx = -1
 				}
-				result := renamePropRefs(propName, p.Value, prop.Content[i+1], passSidx, ctx)
+				result := module.RenamePropRefs(propName, p.Value, prop.Content[i+1], passSidx, outNode)
 				if result != nil {
 					return fmt.Errorf("recursing over mapping node %s: %v", propName, result)
 				}
@@ -312,21 +285,21 @@ func renamePropRefs(parentName string, propName string, prop *yaml.Node, sidx in
 	return nil
 }
 
-// Convert !Ref values
-func resolveRefs(ctx *ReferenceContext) error {
-
-	outNode := ctx.outNode
+// Resolve resolves Ref, Sub, and GetAtt in the node,
+// using module config Properties, Parameter defaults, and
+// other Resource names within the module.
+func (module *Module) Resolve(n *yaml.Node) error {
 
 	// Replace references to the module's parameters with the value supplied
 	// by the parent template. Rename refs to other resources in the module.
 	propLikes := []string{Properties, Metadata}
 	for _, propLike := range propLikes {
-		_, outNodeProps, _ := s11n.GetMapValue(outNode, propLike)
+		_, outNodeProps, _ := s11n.GetMapValue(n, propLike)
 		if outNodeProps != nil {
 			for i, prop := range outNodeProps.Content {
 				if i%2 == 0 {
 					propName := prop.Value
-					err := renamePropRefs(propName, propName, outNodeProps.Content[i+1], -1, ctx)
+					err := module.RenamePropRefs(propName, propName, outNodeProps.Content[i+1], -1, n)
 					if err != nil {
 						return fmt.Errorf("unable to resolve refs for %s %v: %v",
 							propLike, propName, err)
@@ -339,14 +312,60 @@ func resolveRefs(ctx *ReferenceContext) error {
 	// DeletionPolicy, UpdateReplacePolicy, Condition
 	policies := []string{DeletionPolicy, UpdateReplacePolicy, Condition}
 	for _, policy := range policies {
-		_, policyNode, _ := s11n.GetMapValue(outNode, policy)
+		_, policyNode, _ := s11n.GetMapValue(n, policy)
 		if policyNode != nil {
-			err := renamePropRefs(policy, policy, policyNode, -1, ctx)
+			err := module.RenamePropRefs(policy, policy, policyNode, -1, n)
 			if err != nil {
 				return fmt.Errorf("unable to resolve refs for %v, %v", policy, err)
 			}
 		}
 	}
+
+	return nil
+}
+
+// Rename a resource defined in the module to add the template resource name
+func rename(logicalId string, resourceName string) string {
+	return logicalId + resourceName
+}
+
+func replaceProp(prop *yaml.Node, parentName string, v *yaml.Node, outNode *yaml.Node, sidx int) error {
+
+	if sidx > -1 {
+		// The node is a sequence element
+
+		newVal := node.Clone(v)
+
+		if v.Kind == yaml.MappingNode {
+			parentNode := node.GetParent(prop, outNode, nil)
+			*parentNode.Value = *newVal
+		} else {
+			parentNode := node.GetParent(prop, outNode, nil)
+			if parentNode.Key != nil {
+				*parentNode.Value = *newVal
+			} else {
+				*prop = *newVal
+			}
+		}
+		return nil
+	}
+
+	// We can't just set prop.Value, since we would end up with
+	// Prop: !Ref Value instead of just Prop: Value. Get the
+	// property's parent and set the entire map value for the
+	// property
+
+	// Get the map parent within the output node we created
+	refMap := node.GetParent(prop, outNode, nil)
+	if refMap.Value == nil {
+		return fmt.Errorf("could not find parent for %v", prop)
+	}
+	propParentPair := node.GetParent(refMap.Value, outNode, nil)
+
+	// Create a new node to replace what's defined in the module
+	newValue := node.Clone(v)
+
+	node.SetMapValue(propParentPair.Value, parentName, newValue)
 
 	return nil
 }

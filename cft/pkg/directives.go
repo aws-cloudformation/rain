@@ -128,9 +128,6 @@ func includeEnv(ctx *directiveContext) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	if err != nil {
-		return false, err
-	}
 	*ctx.n = newNode
 	return true, nil
 }

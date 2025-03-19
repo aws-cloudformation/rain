@@ -83,7 +83,7 @@ func processOverrides(
 	for _, pl := range propLike {
 		_, plProps, _ := s11n.GetMapValue(moduleResource, pl)
 		_, plTemplateProps, _ := s11n.GetMapValue(overrides, pl)
-		clonedProps := cloneAndReplaceProps(clonedResource, pl, plProps, plTemplateProps, moduleParams)
+		clonedProps := cloneAndReplaceProps(plProps, plTemplateProps, moduleParams)
 		if clonedProps == nil {
 			// Was not present in the module or in the template, so skip it
 			continue

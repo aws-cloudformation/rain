@@ -37,26 +37,47 @@ const (
 
 // Module represents a complete module, including parent config
 type Module struct {
-	Config     *ModuleConfig
-	Parameters map[string]any
-	Resources  map[string]any
-	Outputs    map[string]any
-	Node       *yaml.Node
-	Parent     *cft.Template
+	Config         *ModuleConfig
+	Parameters     map[string]any
+	ParametersNode *yaml.Node
+	Resources      map[string]any
+	ResourcesNode  *yaml.Node
+	Outputs        map[string]any
+	OutputsNode    *yaml.Node
+	Node           *yaml.Node
+	Parent         *cft.Template
 }
 
 // ModuleConfig is the configuration of the module in
 // the parent template.
 type ModuleConfig struct {
-	Name           string
-	Source         string
-	Properties     map[string]any
+
+	// Name is the name of the module, which is used as a logical id prefix
+	Name string
+
+	// Source is the URI for the module, a local file or remote URL
+	Source string
+
+	// Properties map to the module's Parameters
+	Properties map[string]any
+
+	// PropertiesNode is the yaml node for the Properties
 	PropertiesNode *yaml.Node
-	Overrides      map[string]any
-	OverridesNode  *yaml.Node
-	Node           *yaml.Node
-	Map            *yaml.Node
-	OriginalName   string
+
+	// Overrides are used to directly override module content
+	Overrides map[string]any
+
+	// OverridesNode is the yaml node for overrides
+	OverridesNode *yaml.Node
+
+	// Node is the yaml node for the Module config mapping node
+	Node *yaml.Node
+
+	// Map is the node for mapping (duplicating) the module based on a CSV
+	Map *yaml.Node
+
+	// OriginalName is the Name of the module before it got Mapped (duplicated)
+	OriginalName string
 }
 
 // parseModuleConfig parses a single module configuration
@@ -318,8 +339,6 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 
 // Clone a property-like node from the module and replace any overridden values
 func cloneAndReplaceProps(
-	n *yaml.Node,
-	name string,
 	moduleProps *yaml.Node,
 	templateProps *yaml.Node,
 	moduleParams *yaml.Node) *yaml.Node {
@@ -405,52 +424,6 @@ func addScalarAttribute(out *yaml.Node, name string, moduleResource *yaml.Node, 
 	}
 }
 
-// Rename a resource defined in the module to add the template resource name
-func rename(logicalId string, resourceName string) string {
-	return logicalId + resourceName
-}
-
-func replaceProp(prop *yaml.Node, parentName string, v *yaml.Node, outNode *yaml.Node, sidx int) error {
-
-	if sidx > -1 {
-		// The node is a sequence element
-
-		newVal := node.Clone(v)
-
-		if v.Kind == yaml.MappingNode {
-			parentNode := node.GetParent(prop, outNode, nil)
-			*parentNode.Value = *newVal
-		} else {
-			parentNode := node.GetParent(prop, outNode, nil)
-			if parentNode.Key != nil {
-				*parentNode.Value = *newVal
-			} else {
-				*prop = *newVal
-			}
-		}
-		return nil
-	}
-
-	// We can't just set prop.Value, since we would end up with
-	// Prop: !Ref Value instead of just Prop: Value. Get the
-	// property's parent and set the entire map value for the
-	// property
-
-	// Get the map parent within the output node we created
-	refMap := node.GetParent(prop, outNode, nil)
-	if refMap.Value == nil {
-		return fmt.Errorf("could not find parent for %v", prop)
-	}
-	propParentPair := node.GetParent(refMap.Value, outNode, nil)
-
-	// Create a new node to replace what's defined in the module
-	newValue := node.Clone(v)
-
-	node.SetMapValue(propParentPair.Value, parentName, newValue)
-
-	return nil
-}
-
 // processModule performs all of the module logic and injects the content into the parent
 func processModule(
 	logicalId string,
@@ -469,6 +442,7 @@ func processModule(
 
 	// Locate the Resources: section in the module
 	_, moduleResources, _ := s11n.GetMapValue(module, "Resources")
+	m.ResourcesNode = moduleResources
 	if moduleResources != nil {
 		decodeErr = moduleResources.Decode(&m.Resources)
 		if decodeErr != nil {
@@ -478,6 +452,7 @@ func processModule(
 
 	// Locate the Parameters: section in the module (might be nil)
 	_, moduleParams, _ := s11n.GetMapValue(module, "Parameters")
+	m.ParametersNode = moduleParams
 	if moduleParams != nil {
 		decodeErr = moduleParams.Decode(&m.Parameters)
 		if decodeErr != nil {
@@ -485,13 +460,17 @@ func processModule(
 		}
 	}
 
-	err := validateOverrides(moduleConfig.Node, moduleResources, moduleParams)
-	if err != nil {
-		return err
+	// Locate the Outputs: section in the module (might be nil)
+	_, moduleOutputs, _ := s11n.GetMapValue(module, "Outputs")
+	m.OutputsNode = moduleOutputs
+	if moduleOutputs != nil {
+		decodeErr = moduleOutputs.Decode(&m.Outputs)
+		if decodeErr != nil {
+			return decodeErr
+		}
 	}
 
-	fe, err := handleForEach(moduleResources, t, logicalId, outputNode,
-		moduleParams, moduleConfig.PropertiesNode)
+	err := validateOverrides(moduleConfig.Node, moduleResources, moduleParams)
 	if err != nil {
 		return err
 	}
@@ -519,7 +498,7 @@ func processModule(
 		outputNode.Content = append(outputNode.Content, nameNode)
 		clonedResource := node.Clone(moduleResource)
 
-		overrides, err := processOverrides(logicalId, moduleConfig.Node, name, moduleResource, clonedResource, moduleParams)
+		_, err := processOverrides(logicalId, moduleConfig.Node, name, moduleResource, clonedResource, moduleParams)
 		if err != nil {
 			return err
 		}
@@ -527,41 +506,16 @@ func processModule(
 		// Resolve Refs in the module
 		// Some refs are to other resources in the module
 		// Other refs are to the module's parameters
-		ctx := &ReferenceContext{
-			moduleParams:    moduleParams,
-			templateProps:   moduleConfig.PropertiesNode,
-			outNode:         clonedResource,
-			logicalId:       logicalId,
-			moduleResources: moduleResources,
-			overrides:       overrides,
-			constants:       moduleConstants,
-		}
-		err = resolveRefs(ctx)
+		err = m.Resolve(clonedResource)
 		if err != nil {
 			return fmt.Errorf("failed to resolve refs: %v", err)
-		}
-
-		if fe != nil && fe.fnForEachSequence != nil {
-			// If the module has a ForEach extension, add it to the sequence instead
-
-			// The Fn::ForEach resource is a map, so we create that and append outNode to it
-			fnForEachMap := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
-			// TODO
-			newLogicalId := strings.Replace(fe.fnForEachLogicalId, "ModuleExtension", logicalId, 1)
-			fnForEachMap.Content = append(fnForEachMap.Content,
-				&yaml.Node{Kind: yaml.ScalarNode, Value: newLogicalId})
-			fnForEachMap.Content = append(fnForEachMap.Content, clonedResource)
-
-			// Add the map as the 3rd array element in the Fn::ForEach sequence
-			fe.fnForEachSequence.Content = append(fe.fnForEachSequence.Content, fnForEachMap)
-
 		}
 
 		outputNode.Content = append(outputNode.Content, clonedResource)
 	}
 
 	// Look for references to this module's outputs in the parent
-	err = processModuleOutputs(m)
+	err = m.ProcessOutputs()
 	if err != nil {
 		return err
 	}
