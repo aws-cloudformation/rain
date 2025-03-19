@@ -801,75 +801,86 @@ Outputs {
 	}
 }
 
-func TestAmbiguousScalarOn(t *testing.T) {
-	input := `
-Resources:
-  MyResource:
-    Type: AWS::RDS::DBClusterParameterGroup
-    Properties:
-      Parameters:
-        require_secure_transport: "ON"
-`
-	// We expect the ambiguous value "ON" to remain quoted in the output.
-	expected := `Resources:
-  MyResource:
-    Type: AWS::RDS::DBClusterParameterGroup
-    Properties:
-      Parameters:
-        require_secure_transport: "ON"
-`
-	template, err := parse.String(input)
-	if err != nil {
-		t.Fatal(err)
-	}
+func TestAmbiguousScalars_StrictBooleans_On(t *testing.T) {
+	// Save the original style
+	originalStyle := format.NodeStyle
+	// Restore after test completes
+	defer func() {
+		format.NodeStyle = originalStyle
+	}()
 
-	actual := format.String(template, format.Options{Unsorted: true})
-	if d := cmp.Diff(strings.TrimSpace(expected), strings.TrimSpace(actual)); d != "" {
-		t.Fatalf("Diff: %s", d)
-	}
-}
+	// Override for this test only
+	format.NodeStyle = "strict-booleans"
 
-func TestAmbiguousScalarsInParameters(t *testing.T) {
 	input := `
-Parameters:
-  Param1:
-    Default: "ON"
-  Param2:
-    Default: "OFF"
-  Param3:
-    Default: "Yes"
-  Param4:
-    Default: "No"
-  Param5:
-    Default: "True"
-  Param6:
-    Default: "False"
-  Param7:
-    Default: "Maybe"
+Param1:
+  Default: "ON"
+Param2:
+  Default: "OFF"
+Param3:
+  Default: "Yes"
+Param4:
+  Default: "No"
+Param5:
+  Default: "True"
+Param6:
+  Default: "False"
+Param7:
+  Default: Maybe
+Param8:
+  Default: ON
+Param9:
+  Default: OFF
+Param10:
+  Default: Yes
+Param11:
+  Default: No
+Param12:
+  Default: True
+Param13:
+  Default: False
 `
 	// The ambiguous values (Param1 through Param6) should be rendered with quotes,
 	// while a non-ambiguous value (Param7) may be unquoted.
-	expected := `Parameters:
-  Param1:
-    Default: "ON"
+	expected := `
+Param1:
+  Default: "ON"
 
-  Param2:
-    Default: "OFF"
+Param2:
+  Default: "OFF"
 
-  Param3:
-    Default: "Yes"
+Param3:
+  Default: "Yes"
 
-  Param4:
-    Default: "No"
+Param4:
+  Default: "No"
 
-  Param5:
-    Default: "True"
+Param5:
+  Default: "True"
 
-  Param6:
-    Default: "False"
+Param6:
+  Default: "False"
 
-  Param7:
-    Default: Maybe
+Param7:
+  Default: Maybe
+
+Param8:
+  Default: "ON"
+
+Param9:
+  Default: "OFF"
+
+Param10:
+  Default: "Yes"
+
+Param11:
+  Default: "No"
+
+Param12:
+  Default: True
+
+Param13:
+  Default: False
 `
 	template, err := parse.String(input)
 	if err != nil {
@@ -882,18 +893,76 @@ Parameters:
 	}
 }
 
-func TestNonAmbiguousScalar(t *testing.T) {
+func TestAmbiguousScalars_StrictBooleans_Off(t *testing.T) {
 	input := `
-Resources:
-  MyResource:
-    Properties:
-      example_value: "OnX"
+Param1:
+  Default: "ON"
+Param2:
+  Default: "OFF"
+Param3:
+  Default: "Yes"
+Param4:
+  Default: "No"
+Param5:
+  Default: "True"
+Param6:
+  Default: "False"
+Param7:
+  Default: Maybe
+Param8:
+  Default: ON
+Param9:
+  Default: OFF
+Param10:
+  Default: Yes
+Param11:
+  Default: No
+Param12:
+  Default: True
+Param13:
+  Default: False
 `
-	// Since "OnX" is not an ambiguous token, it can be rendered without quotes.
-	expected := `Resources:
-  MyResource:
-    Properties:
-      example_value: OnX
+	// The ambiguous values (Param1 through Param6) should be rendered with quotes,
+	// while a non-ambiguous value (Param7) may be unquoted.
+	expected := `
+Param1:
+  Default: ON
+
+Param2:
+  Default: OFF
+
+Param3:
+  Default: Yes
+
+Param4:
+  Default: No
+
+Param5:
+  Default: "True"
+
+Param6:
+  Default: "False"
+
+Param7:
+  Default: Maybe
+
+Param8:
+  Default: ON
+
+Param9:
+  Default: OFF
+
+Param10:
+  Default: Yes
+
+Param11:
+  Default: No
+
+Param12:
+  Default: True
+
+Param13:
+  Default: False
 `
 	template, err := parse.String(input)
 	if err != nil {
