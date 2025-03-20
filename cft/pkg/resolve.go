@@ -5,21 +5,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
+	"github.com/aws-cloudformation/rain/cft/visitor"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
 )
 
-// Resolve a Ref.  parentName is the name of the Property with the Ref in it.
-// prop is the Scalar node with the value for the Ref.  The output node is
-// modified by this function (or the prop, which is part of the output)
-func (module *Module) ResolveRef(parentName string, prop *yaml.Node, sidx int, outNode *yaml.Node) error {
-
-	// MyProperty: !Ref NameOfParam
-	//
-	// MyProperty is the parentName
-	// NameOfParam is prop.Value
+func (module *Module) ResolveRef(n *yaml.Node) error {
+	//func (module *Module) ResolveRef(parentName string, prop *yaml.Node, sidx int, outNode *yaml.Node) error {
 
 	moduleParams := module.ParametersNode
 	templateProps := module.Config.PropertiesNode
@@ -28,6 +23,7 @@ func (module *Module) ResolveRef(parentName string, prop *yaml.Node, sidx int, o
 
 	refFoundInParams := false
 
+	prop := n.Content[1]
 	if moduleParams != nil {
 		// Find the module parameter that matches the !Ref
 		_, param, _ := s11n.GetMapValue(moduleParams, prop.Value)
@@ -71,7 +67,8 @@ func (module *Module) ResolveRef(parentName string, prop *yaml.Node, sidx int, o
 				}
 			}
 
-			replaceProp(prop, parentName, parentVal, outNode, sidx)
+			*n = *parentVal
+			//replaceProp(prop, parentName, parentVal, outNode, sidx)
 
 			refFoundInParams = true
 		}
@@ -108,7 +105,8 @@ func (module *Module) ResolveRef(parentName string, prop *yaml.Node, sidx int, o
 // prop.Value is the Sub string
 // sidx is the sequence index if it's > -1
 // ctx.outNode will be modified to replace prop.Value with the references
-func (module *Module) ResolveSub(parentName string, prop *yaml.Node, sidx int, outNode *yaml.Node) error {
+func (module *Module) ResolveSub(n *yaml.Node) error {
+	//func (module *Module) ResolveSub(parentName string, prop *yaml.Node, sidx int, outNode *yaml.Node) error {
 
 	moduleParams := module.ParametersNode
 	templateProps := module.Config.PropertiesNode
@@ -117,20 +115,19 @@ func (module *Module) ResolveSub(parentName string, prop *yaml.Node, sidx int, o
 
 	refFoundInParams := false
 
+	prop := n.Content[1]
 	words, err := parse.ParseSub(prop.Value, true)
 	if err != nil {
 		return err
 	}
 
 	sub := ""
-	needSub := false // If we can fully resolve everything, we can remove the !Sub
 	for _, word := range words {
 		switch word.T {
 		case parse.STR:
 			sub += word.W
 		case parse.AWS:
 			sub += "${AWS::" + word.W + "}"
-			needSub = true
 		case parse.REF:
 			resolved := fmt.Sprintf("${%s}", word.W)
 
@@ -147,7 +144,6 @@ func (module *Module) ResolveSub(parentName string, prop *yaml.Node, sidx int, o
 						// In the parent template, the property is a Sub
 						// This would need to resolve to a string so assume a len of 2
 						if len(parentVal.Content) == 2 {
-							needSub = true
 							if parentVal.Content[0].Value == "Ref" {
 								resolved = fmt.Sprintf("${%s}", parentVal.Content[1].Value)
 							} else {
@@ -159,19 +155,13 @@ func (module *Module) ResolveSub(parentName string, prop *yaml.Node, sidx int, o
 						resolved = parentVal.Value
 					}
 					refFoundInParams = true
-				} else {
-					needSub = true
 				}
-			} else {
-				needSub = true
 			}
 			if !refFoundInParams {
 				// Look for a resource in the module
 				_, resource, _ := s11n.GetMapValue(moduleResources, word.W)
 				if resource != nil {
 					resolved = rename(logicalId, word.W)
-				} else {
-					needSub = true
 				}
 			}
 
@@ -182,7 +172,6 @@ func (module *Module) ResolveSub(parentName string, prop *yaml.Node, sidx int, o
 		case parse.GETATT:
 			// All we do here is fix the left part of the GetAtt
 			// ${Foo.Bar} becomes ${NameFoo.Bar} where Name is the logicalId
-			needSub = true
 			left, right, found := strings.Cut(word.W, ".")
 			if !found {
 				return fmt.Errorf("unexpected GetAtt %s", word.W)
@@ -192,7 +181,6 @@ func (module *Module) ResolveSub(parentName string, prop *yaml.Node, sidx int, o
 				left = rename(logicalId, left)
 			}
 			sub += fmt.Sprintf("${%s.%s}", left, right)
-			needSub = true
 		default:
 			return fmt.Errorf("unexpected word type %v for %s", word.T, word.W)
 		}
@@ -200,23 +188,32 @@ func (module *Module) ResolveSub(parentName string, prop *yaml.Node, sidx int, o
 
 	// Put the sub back if there were any unresolved variables
 	var newProp *yaml.Node
-	if needSub && sidx < 0 {
-		newProp = &yaml.Node{Kind: yaml.MappingNode, Value: parentName}
-		newProp.Content = make([]*yaml.Node, 0)
-		newProp.Content = append(newProp.Content,
-			&yaml.Node{Kind: yaml.ScalarNode, Value: "Fn::Sub"})
-		newProp.Content = append(newProp.Content,
-			&yaml.Node{Kind: yaml.ScalarNode, Value: sub})
+	if parse.IsSubNeeded(sub) {
+		newProp = node.MakeMappingNode()
+		newProp.Content = append(newProp.Content, node.MakeScalarNode(string(cft.Sub)))
+		newProp.Content = append(newProp.Content, node.MakeScalarNode(sub))
 	} else {
-		newProp = &yaml.Node{Kind: yaml.ScalarNode, Value: sub}
+		newProp = node.MakeScalarNode(sub)
 	}
 
+	*n = *newProp
+
 	// Replace the prop in the output node
-	replaceProp(prop, parentName, newProp, outNode, sidx)
+	// replaceProp(prop, parentName, newProp, outNode, sidx)
 
 	return nil
 }
 
+func (module *Module) ResolveGetAtt(n *yaml.Node) error {
+	// A GetAtt somewhere in the module refers to another Resource in the module.
+	// Simply prepend the module name.
+	prop := n.Content[1]
+	fixedName := rename(module.Config.Name, prop.Content[0].Value)
+	prop.Content[0].Value = fixedName
+	return nil
+}
+
+/*
 // Recursive function to find all refs in properties
 // Also handles DeletionPolicy, UpdateRetainPolicy
 // If sidx is > -1, this prop is in a sequence
@@ -284,44 +281,67 @@ func (module *Module) RenamePropRefs(parentName string, propName string, prop *y
 
 	return nil
 }
+*/
 
 // Resolve resolves Ref, Sub, and GetAtt in the node,
 // using module config Properties, Parameter defaults, and
 // other Resource names within the module.
 func (module *Module) Resolve(n *yaml.Node) error {
 
-	// Replace references to the module's parameters with the value supplied
-	// by the parent template. Rename refs to other resources in the module.
-	propLikes := []string{Properties, Metadata}
-	for _, propLike := range propLikes {
-		_, outNodeProps, _ := s11n.GetMapValue(n, propLike)
-		if outNodeProps != nil {
-			for i, prop := range outNodeProps.Content {
-				if i%2 == 0 {
-					propName := prop.Value
-					err := module.RenamePropRefs(propName, propName, outNodeProps.Content[i+1], -1, n)
-					if err != nil {
-						return fmt.Errorf("unable to resolve refs for %s %v: %v",
-							propLike, propName, err)
+	var err error
+	vf := func(v *visitor.Visitor) {
+		vn := v.GetYamlNode()
+		if vn.Kind != yaml.MappingNode || len(vn.Content) != 2 {
+			return
+		}
+		switch vn.Content[0].Value {
+		case string(cft.Ref):
+			err = module.ResolveRef(vn)
+		case string(cft.Sub):
+			err = module.ResolveSub(vn)
+		case string(cft.GetAtt):
+			err = module.ResolveGetAtt(vn)
+		}
+		if err != nil {
+			v.Stop()
+		}
+	}
+	visitor.NewVisitor(n).Visit(vf)
+	return err
+
+	/*
+			// Replace references to the module's parameters with the value supplied
+			// by the parent template. Rename refs to other resources in the module.
+			propLikes := []string{Properties, Metadata}
+			for _, propLike := range propLikes {
+				_, outNodeProps, _ := s11n.GetMapValue(n, propLike)
+				if outNodeProps != nil {
+					for i, prop := range outNodeProps.Content {
+						if i%2 == 0 {
+							propName := prop.Value
+							err := module.RenamePropRefs(propName, propName, outNodeProps.Content[i+1], -1, n)
+							if err != nil {
+								return fmt.Errorf("unable to resolve refs for %s %v: %v",
+									propLike, propName, err)
+							}
+						}
 					}
 				}
 			}
-		}
-	}
 
-	// DeletionPolicy, UpdateReplacePolicy, Condition
-	policies := []string{DeletionPolicy, UpdateReplacePolicy, Condition}
-	for _, policy := range policies {
-		_, policyNode, _ := s11n.GetMapValue(n, policy)
-		if policyNode != nil {
-			err := module.RenamePropRefs(policy, policy, policyNode, -1, n)
-			if err != nil {
-				return fmt.Errorf("unable to resolve refs for %v, %v", policy, err)
+			// DeletionPolicy, UpdateReplacePolicy, Condition
+			policies := []string{DeletionPolicy, UpdateReplacePolicy, Condition}
+			for _, policy := range policies {
+				_, policyNode, _ := s11n.GetMapValue(n, policy)
+				if policyNode != nil {
+					err := module.RenamePropRefs(policy, policy, policyNode, -1, n)
+					if err != nil {
+						return fmt.Errorf("unable to resolve refs for %v, %v", policy, err)
+					}
+				}
 			}
-		}
-	}
-
-	return nil
+		return nil
+	*/
 }
 
 // Rename a resource defined in the module to add the template resource name
@@ -329,6 +349,7 @@ func rename(logicalId string, resourceName string) string {
 	return logicalId + resourceName
 }
 
+/*
 func replaceProp(prop *yaml.Node, parentName string, v *yaml.Node, outNode *yaml.Node, sidx int) error {
 
 	if sidx > -1 {
@@ -369,3 +390,4 @@ func replaceProp(prop *yaml.Node, parentName string, v *yaml.Node, outNode *yaml
 
 	return nil
 }
+*/

@@ -28,13 +28,27 @@ func (module *Module) ProcessOutputs() error {
 		return fmt.Errorf("module config is nil")
 	}
 
-	if module.Outputs == nil {
+	if module.OutputsNode == nil {
 		config.Debugf("module %s has no outputs", module.Config.Name)
 		return nil
 	}
 
+	// Resolve output values first
+	for i := 0; i < len(module.OutputsNode.Content); i += 2 {
+		outputName := module.OutputsNode.Content[i].Value
+		outputNode := module.OutputsNode.Content[i+1]
+
+		config.Debugf("%s outputNode before resolve: %s",
+			outputName, node.ToSJson(outputNode))
+
+		module.Resolve(outputNode)
+
+		config.Debugf("%s outputNode after resolve: %s",
+			outputName, node.ToSJson(outputNode))
+	}
+
 	// Iterate over module outputs
-	for outputName, outputVal := range module.Outputs {
+	for outputName, outputVal := range module.Outputs() {
 		config.Debugf("processing output %s: %v", outputName, outputVal)
 
 		var err error

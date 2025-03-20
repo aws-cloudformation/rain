@@ -38,14 +38,38 @@ const (
 // Module represents a complete module, including parent config
 type Module struct {
 	Config         *ModuleConfig
-	Parameters     map[string]any
 	ParametersNode *yaml.Node
-	Resources      map[string]any
 	ResourcesNode  *yaml.Node
-	Outputs        map[string]any
 	OutputsNode    *yaml.Node
 	Node           *yaml.Node
 	Parent         *cft.Template
+}
+
+// Outputs returns the Outputs node as a map, which is easier to use
+func (module *Module) Outputs() map[string]any {
+	return decodeMapNode(module.OutputsNode)
+}
+
+// Parameters returns the Parameters node as a map, which is easier to use
+func (module *Module) Parameters() map[string]any {
+	return decodeMapNode(module.ParametersNode)
+}
+
+// Resources returns the Resources node as a map, which is easier to use
+func (module *Module) Resources() map[string]any {
+	return decodeMapNode(module.ResourcesNode)
+}
+
+func decodeMapNode(n *yaml.Node) map[string]any {
+	var m map[string]any
+	if n != nil {
+		decodeErr := n.Decode(&m)
+		if decodeErr != nil {
+			config.Debugf("decodeMapNode error: %v", decodeErr)
+			return m
+		}
+	}
+	return m
 }
 
 // ModuleConfig is the configuration of the module in
@@ -197,7 +221,7 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 
 	originalContent := moduleSection.Content
 
-	config.Debugf("originalContent: \n%s", node.ToSJson(moduleSection))
+	//config.Debugf("originalContent: \n%s", node.ToSJson(moduleSection))
 
 	content := make([]*yaml.Node, 0)
 
@@ -212,7 +236,7 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 			return err
 		}
 
-		config.Debugf("processing Maps, module %s: %+v", name, moduleConfig)
+		//config.Debugf("processing Maps, module %s: %+v", name, moduleConfig)
 
 		if moduleConfig.Map != nil {
 			// The map is either a CSV or a Ref to a CSV that we can fully resolve
@@ -275,8 +299,8 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 		}
 	}
 
-	config.Debugf("content after Maps: \n%s",
-		node.ToSJson(&yaml.Node{Kind: yaml.MappingNode, Content: content}))
+	//config.Debugf("content after Maps: \n%s",
+	//	node.ToSJson(&yaml.Node{Kind: yaml.MappingNode, Content: content}))
 
 	for i := 0; i < len(content); i += 2 {
 		name := content[i].Value
@@ -284,7 +308,7 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 		if err != nil {
 			return err
 		}
-		config.Debugf("Module Config: %+v", moduleConfig)
+		//config.Debugf("Module Config: %+v", moduleConfig)
 
 		baseUri := ""
 		uri := moduleConfig.Source
@@ -293,14 +317,14 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 		if err != nil {
 			return err
 		}
-		config.Debugf("Module %s content:\n%s", name, moduleContent.Content)
+		//config.Debugf("Module %s content:\n%s", name, moduleContent.Content)
 
 		parsed, err := parseModule(moduleContent.Content, rootDir, fs)
 		if err != nil {
 			return err
 		}
 
-		config.Debugf("Module %s Parsed: %s", name, node.ToSJson(parsed.Node))
+		//config.Debugf("Module %s Parsed: %s", name, node.ToSJson(parsed.Node))
 
 		// Transform the parsed module content
 		outputNode := node.MakeMappingNode()
@@ -316,7 +340,7 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 			return err
 		}
 
-		config.Debugf("outputNode:\n%s", node.ToSJson(outputNode))
+		//config.Debugf("outputNode:\n%s", node.ToSJson(outputNode))
 
 		// Put the content into the template
 		if len(outputNode.Content) > 0 {
@@ -438,37 +462,17 @@ func processModule(
 	m.Node = module
 	m.Parent = t
 
-	var decodeErr error
-
 	// Locate the Resources: section in the module
 	_, moduleResources, _ := s11n.GetMapValue(module, "Resources")
 	m.ResourcesNode = moduleResources
-	if moduleResources != nil {
-		decodeErr = moduleResources.Decode(&m.Resources)
-		if decodeErr != nil {
-			return decodeErr
-		}
-	}
 
 	// Locate the Parameters: section in the module (might be nil)
 	_, moduleParams, _ := s11n.GetMapValue(module, "Parameters")
 	m.ParametersNode = moduleParams
-	if moduleParams != nil {
-		decodeErr = moduleParams.Decode(&m.Parameters)
-		if decodeErr != nil {
-			return decodeErr
-		}
-	}
 
 	// Locate the Outputs: section in the module (might be nil)
 	_, moduleOutputs, _ := s11n.GetMapValue(module, "Outputs")
 	m.OutputsNode = moduleOutputs
-	if moduleOutputs != nil {
-		decodeErr = moduleOutputs.Decode(&m.Outputs)
-		if decodeErr != nil {
-			return decodeErr
-		}
-	}
 
 	err := validateOverrides(moduleConfig.Node, moduleResources, moduleParams)
 	if err != nil {
@@ -710,10 +714,6 @@ func parseModule(content []byte, rootDir string, fs *embed.FS) (*ParsedModule, e
 	// Read things like Constants, Modules, Packages
 	processRainSection(&moduleAsTemplate, rootDir, fs)
 	processAddedSections(&moduleAsTemplate, moduleAsTemplate.Node.Content[0], rootDir, fs)
-
-	if moduleAsTemplate.Constants != nil {
-		replaceTemplateConstants(moduleAsTemplate.Node, moduleAsTemplate.Constants)
-	}
 
 	return &ParsedModule{Node: moduleNode.Content[0], AsTemplate: &moduleAsTemplate}, nil
 }

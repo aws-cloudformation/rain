@@ -32,7 +32,7 @@ func rainConstant(ctx *directiveContext) (bool, error) {
 	return true, nil
 }
 
-// replaceConstants replaces ${Rain::ConstantName} and ${Const::} in a single
+// replaceConstants replaces ${Rain::Name} and ${Const::Name} in a single
 // scalar node. If the constant name is not found in the map created from the
 // Rain section In the template, an error is returned
 func replaceConstants(n *yaml.Node, constants map[string]*yaml.Node) error {
@@ -60,23 +60,26 @@ func replaceConstants(n *yaml.Node, constants map[string]*yaml.Node) error {
 		case parse.RAIN:
 			val, ok := constants[w.W]
 			if !ok {
-				return fmt.Errorf("did not find Rain constant %s", w.W)
+				return fmt.Errorf("did not find Constant %s", w.W)
 			}
 			retval += val.Value
 		}
 	}
 
-	config.Debugf("Replacing %s with %s", n.Value, retval)
+	if n.Value != retval {
+		config.Debugf("Replacing %s with %s", n.Value, retval)
+	}
 	n.Value = retval
 
 	return nil
 }
 
 // replaceTemplateConstants scans the entire template looking for Sub strings
-// and replaces all instances of ${Rain::ConstantName} if that name exists
-// in the Rain/Constants section of the template
-func replaceTemplateConstants(templateNode *yaml.Node, constants map[string]*yaml.Node) error {
+// and replaces all instances of ${Rain::Name} and ${Const::Name} if that name
+// exists in the Rain/Constants section of the template
+func replaceTemplateConstants(t *cft.Template) error {
 
+	constants := t.Constants
 	config.Debugf("Constants: %v", constants)
 
 	var err error
@@ -118,7 +121,7 @@ func replaceTemplateConstants(templateNode *yaml.Node, constants map[string]*yam
 		}
 	}
 
-	visitor := visitor.NewVisitor(templateNode)
+	visitor := visitor.NewVisitor(t.Node)
 	visitor.Visit(vf)
 
 	return nil
@@ -147,6 +150,12 @@ func processConstants(t *cft.Template, n *yaml.Node) error {
 			v := visitor.NewVisitor(val)
 			v.Visit(vf)
 		}
+	}
+
+	// Now scan the template to replace constants
+	err := replaceTemplateConstants(t)
+	if err != nil {
+		return err
 	}
 	return nil
 }

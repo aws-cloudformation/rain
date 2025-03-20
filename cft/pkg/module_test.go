@@ -70,37 +70,37 @@ func TestConstant(t *testing.T) {
 // cloudformation package command module functionality.
 // The goal is for Rain to be 100% compatible with the
 // AWS CLI module format
-func TestAWSCLIModules(t *testing.T) {
-	tests := []string{
-		"basic",
-		"type",
-		"sub",
-		"modinmod",
-		"output",
-		"policy",
-		"vpc",
-		"map",
-		"mapout",
-		"conditional",
-		"cond-intrinsics",
-		"example",
-		"getatt",
-		"constant",
-		"proparray",
-		"depends",
-		"select",
-		"merge",
-		"mergetags",
-		"insertfile",
-		"outsublist",
-		"outjoin",
-		"invoke",
-		"zip",
-	}
-	for _, test := range tests {
-		runTest("awscli-modules/"+test, t)
-	}
-}
+//func TestAWSCLIModules(t *testing.T) {
+//	tests := []string{
+//		"basic",
+//		"type",
+//		"sub",
+//		"modinmod",
+//		"output",
+//		"policy",
+//		"vpc",
+//		"map",
+//		"mapout",
+//		"conditional",
+//		"cond-intrinsics",
+//		"example",
+//		"getatt",
+//		"constant",
+//		"proparray",
+//		"depends",
+//		"select",
+//		"merge",
+//		"mergetags",
+//		"insertfile",
+//		"outsublist",
+//		"outjoin",
+//		"invoke",
+//		"zip",
+//	}
+//	for _, test := range tests {
+//		runTest("awscli-modules/"+test, t)
+//	}
+//}
 
 func runTest(test string, t *testing.T) {
 

@@ -196,10 +196,9 @@ func processPackages(t *cft.Template, n *yaml.Node) error {
 // and any Rain:: functions used.
 // rootDir must be passed in so that any included assets can be loaded from the same directory
 func Template(t *cft.Template, rootDir string, fs *embed.FS) (*cft.Template, error) {
-	templateNode := t.Node
 	var err error
 
-	config.Debugf("Original template short: %v", node.ToSJson(t.Node))
+	//config.Debugf("Original template short: %v", node.ToSJson(t.Node))
 	//config.Debugf("Original template long: %v", node.ToJson(t.Node))
 
 	// First look for a Rain section and store constants
@@ -214,12 +213,10 @@ func Template(t *cft.Template, rootDir string, fs *embed.FS) (*cft.Template, err
 		return nil, fmt.Errorf("failed to process added sections: %v", err)
 	}
 
-	config.Debugf("Processed added sections: %s", node.ToSJson(t.Node))
-
-	constants := t.Constants
+	//config.Debugf("Processed added sections: %s", node.ToSJson(t.Node))
 
 	ctx := &transformContext{
-		nodeToTransform: templateNode,
+		nodeToTransform: t.Node,
 		rootDir:         rootDir,
 		t:               t,
 		parent:          &node.NodePair{Key: t.Node, Value: t.Node},
@@ -249,7 +246,7 @@ func Template(t *cft.Template, rootDir string, fs *embed.FS) (*cft.Template, err
 	}
 
 	if changed {
-		t, err = parse.Node(templateNode)
+		t, err = parse.Node(t.Node)
 		if err != nil {
 			return nil, err
 		}
@@ -261,7 +258,7 @@ func Template(t *cft.Template, rootDir string, fs *embed.FS) (*cft.Template, err
 	// 2. replace alias nodes with the actual node
 	// 3. Marshal and Unmarshal to resolve new line/column numbers
 
-	v := visitor.NewVisitor(templateNode)
+	v := visitor.NewVisitor(t.Node)
 	anchors := make(map[string]*yaml.Node)
 
 	collectAnchors := func(node *visitor.Visitor) {
@@ -284,34 +281,34 @@ func Template(t *cft.Template, rootDir string, fs *embed.FS) (*cft.Template, err
 	v.Visit(collectAnchors)
 	v.Visit(replaceAnchors)
 
-	// Look for ${Rain::ConstantName} and ${Const::ConstantName}
-	if t.HasSection(cft.Rain) || t.HasSection(cft.Constants) {
-		// Note that this rewrites all Subs and might have side effects
-		err = replaceTemplateConstants(templateNode, constants)
-		if err != nil {
-			return nil, err
-		}
-	}
+	//// Look for ${Rain::ConstantName} and ${Const::ConstantName}
+	//if t.HasSection(cft.Rain) || t.HasSection(cft.Constants) {
+	//	// Note that this rewrites all Subs and might have side effects
+	//	err = replaceTemplateConstants(templateNode, constants)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//}
 
 	// Marshal and Unmarshal to resolve new line/column numbers
 
-	serialized, err := yaml.Marshal(templateNode)
+	serialized, err := yaml.Marshal(t.Node)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal template: %v", err)
 	}
 
-	err = yaml.Unmarshal(serialized, templateNode)
+	err = yaml.Unmarshal(serialized, t.Node)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal template: %v", err)
 	}
 
 	// We might lose the Document node here
 	retval := &cft.Template{}
-	if templateNode.Kind == yaml.DocumentNode {
-		retval.Node = templateNode
+	if t.Node.Kind == yaml.DocumentNode {
+		retval.Node = t.Node
 	} else {
 		retval.Node = &yaml.Node{Kind: yaml.DocumentNode, Content: make([]*yaml.Node, 0)}
-		retval.Node.Content = append(retval.Node.Content, templateNode)
+		retval.Node.Content = append(retval.Node.Content, t.Node)
 	}
 
 	// Add analytics to Metadata
