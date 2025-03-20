@@ -14,7 +14,7 @@ import (
 // Since we are merging the templates, the outputs and imports are not necessary.
 // If there are any, it replaces the Fn::ImportValue nodes with the value.
 // Otherwise the template is returned as is
-func mergeOutputImports(t cft.Template) (cft.Template, error) {
+func mergeOutputImports(t *cft.Template) (*cft.Template, error) {
 	outputs, err := t.GetSection(cft.Outputs)
 	if err != nil {
 		// This is expected if the template has no Outputs

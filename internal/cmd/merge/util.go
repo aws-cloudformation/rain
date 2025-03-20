@@ -38,7 +38,7 @@ func checkMerge(name string, dst, src map[string]interface{}) error {
 	return nil
 }
 
-func mergeTemplates(dstTemplate, srcTemplate cft.Template) (cft.Template, error) {
+func mergeTemplates(dstTemplate, srcTemplate *cft.Template) (*cft.Template, error) {
 	dst := dstTemplate.Map()
 	src := srcTemplate.Map()
 
@@ -71,11 +71,11 @@ func mergeTemplates(dstTemplate, srcTemplate cft.Template) (cft.Template, error)
 
 			dstMap, ok := dst[key].(map[string]interface{})
 			if !ok {
-				return cft.Template{}, fmt.Errorf("metadata section is not an object (key-value pairs)")
+				return &cft.Template{}, fmt.Errorf("metadata section is not an object (key-value pairs)")
 			}
 			srcMap, ok := src[key].(map[string]interface{})
 			if !ok {
-				return cft.Template{}, fmt.Errorf("metadata section is not an object (key-value pairs)")
+				return &cft.Template{}, fmt.Errorf("metadata section is not an object (key-value pairs)")
 			}
 
 			for k := range srcMap {
@@ -86,11 +86,11 @@ func mergeTemplates(dstTemplate, srcTemplate cft.Template) (cft.Template, error)
 
 					dstInterface, ok := dstMap[k].(map[string]interface{})
 					if !ok {
-						return cft.Template{}, fmt.Errorf("metadata key %s is not an object (key-value pairs)", k)
+						return &cft.Template{}, fmt.Errorf("metadata key %s is not an object (key-value pairs)", k)
 					}
 					srcInterface, ok := srcMap[k].(map[string]interface{})
 					if !ok {
-						return cft.Template{}, fmt.Errorf("metadata key %s is not an object (key-value pairs)", k)
+						return &cft.Template{}, fmt.Errorf("metadata key %s is not an object (key-value pairs)", k)
 					}
 
 					// Concatenate ParameterGroups
@@ -100,11 +100,11 @@ func mergeTemplates(dstTemplate, srcTemplate cft.Template) (cft.Template, error)
 						}
 						dstParameterGroups, ok := dstInterface["ParameterGroups"].([]interface{})
 						if !ok {
-							return cft.Template{}, fmt.Errorf("metadata key ParameterGroups is not an array")
+							return &cft.Template{}, fmt.Errorf("metadata key ParameterGroups is not an array")
 						}
 						srcParameterGroups, ok := srcInterface["ParameterGroups"].([]interface{})
 						if !ok {
-							return cft.Template{}, fmt.Errorf("metadata key ParameterGroups is not an array")
+							return &cft.Template{}, fmt.Errorf("metadata key ParameterGroups is not an array")
 						}
 
 						dstInterface["ParameterGroups"] = append(dstParameterGroups, srcParameterGroups...)
@@ -113,7 +113,7 @@ func mergeTemplates(dstTemplate, srcTemplate cft.Template) (cft.Template, error)
 					// Combine ParameterLabels
 					if _, ok := srcInterface["ParameterLabels"]; ok {
 						if err := checkMerge("ParameterLabels", dstInterface, srcInterface); err != nil {
-							return cft.Template{}, err
+							return &cft.Template{}, err
 						}
 					}
 					dstMap[k] = dstInterface
@@ -130,7 +130,7 @@ func mergeTemplates(dstTemplate, srcTemplate cft.Template) (cft.Template, error)
 								}
 							}
 						} else {
-							return cft.Template{}, fmt.Errorf("templates have clashing %s: %s", key, k)
+							return &cft.Template{}, fmt.Errorf("templates have clashing %s: %s", key, k)
 						}
 					}
 					dst[key] = dstMap
@@ -141,7 +141,7 @@ func mergeTemplates(dstTemplate, srcTemplate cft.Template) (cft.Template, error)
 			err := checkMerge(key, dst, src)
 			if err != nil {
 				config.Debugf("key: %v, dst: %v, src: %v", key, dst, src)
-				return cft.Template{}, err
+				return &cft.Template{}, err
 			}
 		}
 	}
@@ -158,7 +158,7 @@ func mergeTemplates(dstTemplate, srcTemplate cft.Template) (cft.Template, error)
 	// Add the document node
 	docNode := &yaml.Node{Kind: yaml.DocumentNode, Content: make([]*yaml.Node, 0)}
 	docNode.Content = append(docNode.Content, retval.Node)
-	retval = cft.Template{Node: docNode}
+	retval = &cft.Template{Node: docNode}
 
 	// Merge Outputs with Fn::ImportValue
 	if mergeImports {

@@ -27,7 +27,7 @@ var Cmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 
-		templates := make([]cft.Template, len(args))
+		templates := make([]*cft.Template, len(args))
 
 		for i, fn := range args {
 			templates[i], err = parse.File(fn)
@@ -36,7 +36,7 @@ var Cmd = &cobra.Command{
 			}
 		}
 
-		var merged cft.Template
+		var merged *cft.Template
 
 		for i, template := range templates {
 			if i == 0 {

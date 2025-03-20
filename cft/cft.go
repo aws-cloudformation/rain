@@ -30,9 +30,13 @@ type PackageAlias struct {
 
 // Template represents a CloudFormation template. The Template type
 // is minimal for now but will likely grow new features as needed by rain.
+//
+// Node is the only member that is guaranteed to exist after
+// parsing a template.
 type Template struct {
-	Node *yaml.Node
-
+	FileName  string
+	Name      string
+	Node      *yaml.Node
 	Constants map[string]*yaml.Node
 	Packages  map[string]*PackageAlias
 }
@@ -57,7 +61,7 @@ func (t Template) Map() map[string]interface{} {
 }
 
 // AppendStateMap appends a "State" section to the template
-func AppendStateMap(state Template) *yaml.Node {
+func AppendStateMap(state *Template) *yaml.Node {
 	state.Node.Content[0].Content = append(state.Node.Content[0].Content,
 		&yaml.Node{Kind: yaml.ScalarNode, Value: "State"})
 	stateMap := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
@@ -81,6 +85,18 @@ const (
 	Outputs                  Section = "Outputs"
 	State                    Section = "State"
 	Rain                     Section = "Rain"
+	Modules                  Section = "Modules"
+	Packages                 Section = "Packages"
+	Constants                Section = "Constants"
+)
+
+type Intrinsic string
+
+const (
+	Sub    Intrinsic = "Fn::Sub"
+	GetAtt Intrinsic = "Fn::GetAtt"
+	Ref    Intrinsic = "Ref"
+	If     Intrinsic = "Fn::If"
 )
 
 // GetResource returns the yaml node for a resource by logical id
@@ -148,9 +164,19 @@ func (t Template) GetSection(section Section) (*yaml.Node, error) {
 	return s, nil
 }
 
+// HasSection returns true if the template has the section
+func (t Template) HasSection(section Section) bool {
+	if t.Node == nil {
+		return false
+	}
+	m := t.Node.Content[0]
+	_, s, _ := s11n.GetMapValue(m, string(section))
+	return s != nil
+}
+
 // RemoveSection removes a section node from the template
 func (t Template) RemoveSection(section Section) error {
-	return node.RemoveFromMap(t.Node.Content[0], string(Rain))
+	return node.RemoveFromMap(t.Node.Content[0], string(section))
 }
 
 // GetTypes returns all unique type names for resources in the template

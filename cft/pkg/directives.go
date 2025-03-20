@@ -40,7 +40,7 @@ type s3Options struct {
 type directiveContext struct {
 	n       *yaml.Node
 	rootDir string
-	t       cft.Template
+	t       *cft.Template
 	parent  node.NodePair
 	fs      *embed.FS
 
@@ -125,9 +125,6 @@ func includeEnv(ctx *directiveContext) (bool, error) {
 	}
 	var newNode yaml.Node
 	err = newNode.Encode(val)
-	if err != nil {
-		return false, err
-	}
 	if err != nil {
 		return false, err
 	}

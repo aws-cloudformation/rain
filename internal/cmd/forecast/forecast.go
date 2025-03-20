@@ -199,7 +199,7 @@ func forecastForType(input fc.PredictionInput) fc.Forecast {
 
 // Query the account to make predictions about deployment failures.
 // Returns true if no failures are predicted.
-func Predict(source cft.Template, stackName string, stack types.Stack, stackExists bool, dc *deployconfig.DeployConfig) bool {
+func Predict(source *cft.Template, stackName string, stack types.Stack, stackExists bool, dc *deployconfig.DeployConfig) bool {
 
 	config.Debugf("About to make API calls for failure prediction...")
 

@@ -12,7 +12,7 @@ import (
 
 const SCHEMAS = "../../../test/schemas/"
 
-func fromFile(path string, rt string, short string, bare bool, t *testing.T) cft.Template {
+func fromFile(path string, rt string, short string, bare bool, t *testing.T) *cft.Template {
 	source, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatal(err)

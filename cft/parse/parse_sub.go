@@ -3,6 +3,8 @@ package parse
 import (
 	"errors"
 	"strings"
+
+	"github.com/aws-cloudformation/rain/internal/config"
 )
 
 const (
@@ -35,6 +37,12 @@ const (
 	MAYBE
 	READVAR
 	READLIT
+)
+
+const (
+	AWScc   = "AWS::"
+	RAINcc  = "Rain::"
+	CONSTcc = "Const::"
 )
 
 // ParseSub returns a slice of words, based on a string
@@ -89,17 +97,20 @@ func ParseSub(sub string, leaveBang bool) ([]SubWord, error) {
 		case CLOSE:
 			if state == READVAR {
 				// Figure out what type it is
-				if strings.HasPrefix(buf, "AWS::") {
+				if strings.HasPrefix(buf, AWScc) {
 					wt = AWS
-				} else if strings.HasPrefix(buf, "Rain::") {
+				} else if strings.HasPrefix(buf, RAINcc) {
+					wt = RAIN
+				} else if strings.HasPrefix(buf, CONSTcc) {
 					wt = RAIN
 				} else if strings.Contains(buf, ".") {
 					wt = GETATT
 				} else {
 					wt = REF
 				}
-				buf = strings.Replace(buf, "AWS::", "", 1)
-				buf = strings.Replace(buf, "Rain::", "", 1)
+				buf = strings.Replace(buf, AWScc, "", 1)
+				buf = strings.Replace(buf, RAINcc, "", 1)
+				buf = strings.Replace(buf, CONSTcc, "", 1)
 				words = append(words, SubWord{T: wt, W: buf})
 				buf = ""
 				state = READSTR
@@ -144,4 +155,23 @@ func ParseSub(sub string, leaveBang bool) ([]SubWord, error) {
 	}
 
 	return words, nil
+}
+
+func IsSubNeeded(s string) bool {
+
+	words, err := ParseSub(s, true)
+	if err != nil {
+		config.Debugf("error in IsSubNeeded: %v", err)
+		return true
+	}
+	for _, w := range words {
+		switch w.T {
+		case STR:
+			// Ignore this
+		default:
+			// Anything else means it's needed
+			return true
+		}
+	}
+	return false
 }

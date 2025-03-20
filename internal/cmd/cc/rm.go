@@ -33,7 +33,7 @@ var CCRmCmd = &cobra.Command{
 
 		spinner.Push("Fetching deployment status")
 		key := getStateFileKey(name)
-		var state cft.Template
+		var state *cft.Template
 
 		// Call RainBucket for side-effects in case we want to force bucket creation
 		bucketName := s3.RainBucket(yes)
@@ -77,7 +77,7 @@ var CCRmCmd = &cobra.Command{
 		spinner.StartTimer(fmt.Sprintf("Removing deployment %v", name))
 
 		// Mark each resource with the delete action
-		template := cft.Template{Node: node.Clone(state.Node)}
+		template := &cft.Template{Node: node.Clone(state.Node)}
 		rootMap := template.Node.Content[0]
 
 		_, stateResourceModels, _ := s11n.GetMapValue(stateMap, "ResourceModels")

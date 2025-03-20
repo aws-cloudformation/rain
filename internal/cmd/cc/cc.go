@@ -18,7 +18,7 @@ var ignoreUnknownParams bool
 var unlock string
 
 // Globals (seems bad..? but cumbersome to pass them around)
-var deployedTemplate cft.Template
+var deployedTemplate *cft.Template
 var resMap map[string]*Resource
 var templateConfig *deployconfig.DeployConfig
 

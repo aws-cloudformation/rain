@@ -32,7 +32,7 @@ Outputs:
     Value: !GetAtt Bucket.Arn
 `
 
-var template cft.Template
+var template *cft.Template
 
 var g graph.Graph
 

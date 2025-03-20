@@ -43,7 +43,7 @@ func Empty() Graph {
 // New returns a Graph representing the connections
 // between elements in the provided template.
 // The type of each item in the graph is Node
-func New(t cft.Template) Graph {
+func New(t *cft.Template) Graph {
 	// Map out parameter and resource names so we know which is which
 	entities := make(map[string]string)
 	for typeName, entity := range t.Map() {

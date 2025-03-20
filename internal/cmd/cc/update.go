@@ -17,7 +17,7 @@ import (
 
 // update compares the template with the current state and returns a
 // cloned template annotated with operations to perform on each resource
-func update(stateTemplate cft.Template, template cft.Template) (cft.Template, error) {
+func update(stateTemplate *cft.Template, template *cft.Template) (*cft.Template, error) {
 
 	// Create a diff between the current state and template
 	d := diff.New(stateTemplate, template)
@@ -75,7 +75,7 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 	config.Debugf("identifiers: %v", identifiers)
 
 	// Make a copy of the template so the caller still has the original as the user wrote it
-	newTemplate := cft.Template{}
+	newTemplate := &cft.Template{}
 	newTemplate.Node = node.Clone(template.Node)
 
 	// Get a reference to the resources in the new template
@@ -228,7 +228,7 @@ func update(stateTemplate cft.Template, template cft.Template) (cft.Template, er
 // summarizeChanges prints out a summary of the changes that will be made
 // when the template is deployed. This function expects the State property
 // to be populated on each resource.
-func summarizeChanges(changes cft.Template) {
+func summarizeChanges(changes *cft.Template) {
 
 	d := format.String(changes, format.Options{
 		JSON:     false,

@@ -8,7 +8,7 @@ import (
 )
 
 // New returns a Diff that represents the difference between two templates
-func New(a, b cft.Template) Diff {
+func New(a, b *cft.Template) Diff {
 	return CompareMaps(a.Map(), b.Map())
 }
 
