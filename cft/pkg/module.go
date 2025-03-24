@@ -130,7 +130,6 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 	// defined in a new Modules Section.
 	_, moduleSection, _ := s11n.GetMapValue(n, "Modules")
 	if moduleSection == nil {
-		config.Debugf("No modules section")
 		return nil
 	}
 	HasModules = true
@@ -140,8 +139,6 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 	}
 
 	originalContent := moduleSection.Content
-
-	//config.Debugf("originalContent: \n%s", node.ToSJson(moduleSection))
 
 	content := make([]*yaml.Node, 0)
 
@@ -155,8 +152,6 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 		if err != nil {
 			return err
 		}
-
-		//config.Debugf("processing Maps, module %s: %+v", name, moduleConfig)
 
 		if moduleConfig.Map != nil {
 			// The map is either a CSV or a Ref to a CSV that we can fully resolve
@@ -230,9 +225,6 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 		}
 	}
 
-	config.Debugf("content after Maps: \n%s",
-		node.ToSJson(&yaml.Node{Kind: yaml.MappingNode, Content: content}))
-
 	// Replace the original Modules content
 	moduleSection.Content = content
 
@@ -242,7 +234,6 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 		if err != nil {
 			return err
 		}
-		//config.Debugf("Module Config: %+v", moduleConfig)
 
 		baseUri := ""
 		uri := moduleConfig.Source
@@ -251,14 +242,11 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 		if err != nil {
 			return err
 		}
-		//config.Debugf("Module %s content:\n%s", name, moduleContent.Content)
 
 		parsed, err := parseModule(moduleContent.Content, rootDir, fs)
 		if err != nil {
 			return err
 		}
-
-		//config.Debugf("Module %s Parsed: %s", name, node.ToSJson(parsed.Node))
 
 		// Transform the parsed module content
 		outputNode := node.MakeMapping()
@@ -273,8 +261,6 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 		if err != nil {
 			return err
 		}
-
-		//config.Debugf("outputNode:\n%s", node.ToSJson(outputNode))
 
 		// Put the content into the template
 		if len(outputNode.Content) > 0 {

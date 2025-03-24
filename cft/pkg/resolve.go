@@ -211,8 +211,14 @@ func (module *Module) ResolveGetAtt(n *yaml.Node) error {
 	// A GetAtt somewhere in the module refers to another Resource in the module.
 	// Simply prepend the module name.
 	prop := n.Content[1]
-	fixedName := rename(module.Config.Name, prop.Content[0].Value)
-	prop.Content[0].Value = fixedName
+	resourceName := prop.Content[0].Value
+	if module.ResourcesNode != nil {
+		_, resource, _ := s11n.GetMapValue(module.ResourcesNode, resourceName)
+		if resource != nil {
+			fixedName := rename(module.Config.Name, resourceName)
+			prop.Content[0].Value = fixedName
+		}
+	}
 	return nil
 }
 

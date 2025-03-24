@@ -8,7 +8,6 @@ import (
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/cft/visitor"
-	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"gopkg.in/yaml.v3"
 )
@@ -30,7 +29,6 @@ func (module *Module) ProcessOutputs() error {
 	}
 
 	if module.OutputsNode == nil {
-		config.Debugf("module %s has no outputs", module.Config.Name)
 		return nil
 	}
 
@@ -40,11 +38,8 @@ func (module *Module) ProcessOutputs() error {
 		module.Resolve(outputNode)
 	}
 
-	config.Debugf("ProcessOutputs:\n%s", node.YamlStr(module.OutputsNode))
-
 	// Iterate over module outputs
 	for outputName, outputVal := range module.Outputs() {
-		config.Debugf("processing output %s: %v", outputName, outputVal)
 
 		var err error
 
@@ -108,7 +103,6 @@ func GetArrayIndexFromString(s string) (int, error) {
 // Returns nil if it's not a match.
 func (module *Module) CheckOutputGetAtt(s string, outputName string, outputVal any) (*yaml.Node, error) {
 	tokens := strings.Split(s, ".")
-	config.Debugf("CheckOutputGetAtt %s.%s == %s?", module.Config.Name, outputName, s)
 	outputValue, err := encodeOutputValue(outputName, outputVal)
 	if err != nil {
 		return nil, err
@@ -126,11 +120,9 @@ func (module *Module) CheckOutputGetAtt(s string, outputName string, outputVal a
 	// If we are referencing the entire array using [], then we have to
 	// do this later, since we need all Output values.
 	if strings.Contains(reffedModuleName, "[") && !strings.Contains(reffedModuleName, "[]") {
-		config.Debugf("found [ %+v", module.Config)
 		// Look for the reference we saved on the template.
 		// This instance of module.Config does not have information about Maps
 		if mappedConfig, ok := module.Parent.ModuleMaps[module.Config.Name]; ok {
-			config.Debugf("mapped config: %+v", mappedConfig)
 			fixedName := strings.Split(reffedModuleName, "[")[0]
 			if mappedConfig.OriginalName == fixedName && tokens[1] == outputName {
 				idx, err := GetArrayIndexFromString(reffedModuleName)
@@ -190,14 +182,12 @@ func (module *Module) OutputGetAtt(outputName string, outputVal any, n *yaml.Nod
 		return fmt.Errorf("expected GetAtt in %s to be a sequence: %s",
 			module.Config.Name, node.ToSJson(n))
 	}
-	config.Debugf("OutputGetAtt %s %s:\n%s", outputName, outputVal, node.YamlStr(n))
 	ss := node.SequenceToStrings(n.Content[1])
 	o, err := module.CheckOutputGetAtt(strings.Join(ss, "."), outputName, outputVal)
 	if err != nil {
 		return err
 	}
 	if o != nil {
-		config.Debugf("getatt replacing\n%s\n\nwith\n\n%s", node.ToSJson(n), node.ToSJson(o))
 		*n = *o
 	}
 	return nil
@@ -259,7 +249,6 @@ func (module *Module) OutputSub(outputName string, outputVal any, n *yaml.Node) 
 		subNode = node.MakeScalar(sub)
 	}
 	if sub != s {
-		config.Debugf("sub replacing\n%s\n\nwith\n\n%s", node.ToSJson(n), node.ToSJson(subNode))
 		*n = *subNode
 	}
 	return nil
