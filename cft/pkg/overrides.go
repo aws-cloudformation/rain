@@ -10,12 +10,11 @@ import (
 )
 
 // validateOverrides returns an error if one of the Overrides isn't found
-func validateOverrides(
-	templateResource *yaml.Node,
-	moduleResources *yaml.Node,
-	moduleParams *yaml.Node) error {
+func (module *Module) ValidateOverrides() error {
 
-	_, overrides, _ := s11n.GetMapValue(templateResource, Overrides)
+	resources := module.ResourcesNode
+	moduleParams := module.ParametersNode
+	overrides := module.Config.OverridesNode
 
 	// Validate that the overrides actually exist and error if not
 	if overrides != nil {
@@ -24,11 +23,11 @@ func validateOverrides(
 				continue
 			}
 			foundName := false
-			for i, moduleResource := range moduleResources.Content {
-				if moduleResource.Kind != yaml.MappingNode {
+			for i, resource := range resources.Content {
+				if resource.Kind != yaml.MappingNode {
 					continue
 				}
-				name := moduleResources.Content[i-1].Value
+				name := resources.Content[i-1].Value
 				if name == override.Value {
 					foundName = true
 					break
@@ -63,27 +62,24 @@ func validateOverrides(
 
 // processOverrides copies module properties to the new node
 // and checks to see if the template overrides anything
-func processOverrides(
-	logicalId string,
-	moduleConfig *yaml.Node,
-	moduleResourceName string,
-	moduleResource *yaml.Node,
-	clonedResource *yaml.Node,
-	moduleParams *yaml.Node) (*yaml.Node, error) {
+func (module *Module) ProcessOverrides(
+	resourceName string,
+	resource *yaml.Node,
+	clonedResource *yaml.Node) error {
+
+	logicalId := module.Config.Name
+	moduleConfig := module.Config
+	moduleParams := module.ParametersNode
 
 	// Get the overrides from the module config if there are any
-	var overrides *yaml.Node
-	_, allOverrides, _ := s11n.GetMapValue(moduleConfig, Overrides)
-	if allOverrides != nil {
-		_, overrides, _ = s11n.GetMapValue(allOverrides, moduleResourceName)
-	}
+	overrides := moduleConfig.ResourceOverridesNode(resourceName)
 
 	// Clone attributes that are like Properties, and replace overridden values
 	propLike := []string{Properties, CreationPolicy, Metadata, UpdatePolicy}
 	for _, pl := range propLike {
-		_, plProps, _ := s11n.GetMapValue(moduleResource, pl)
-		_, plTemplateProps, _ := s11n.GetMapValue(overrides, pl)
-		clonedProps := cloneAndReplaceProps(plProps, plTemplateProps, moduleParams)
+		_, plProps, _ := s11n.GetMapValue(resource, pl)
+		_, plOverrides, _ := s11n.GetMapValue(overrides, pl)
+		clonedProps := cloneAndReplaceProps(plProps, plOverrides, moduleParams)
 		if clonedProps == nil {
 			// Was not present in the module or in the template, so skip it
 			continue
@@ -97,16 +93,16 @@ func processOverrides(
 	}
 
 	// DeletionPolicy
-	addScalarAttribute(clonedResource, DeletionPolicy, moduleResource, overrides)
+	addScalarAttribute(clonedResource, DeletionPolicy, resource, overrides)
 
 	// UpdateReplacePolicy
-	addScalarAttribute(clonedResource, UpdateReplacePolicy, moduleResource, overrides)
+	addScalarAttribute(clonedResource, UpdateReplacePolicy, resource, overrides)
 
 	// Condition
-	addScalarAttribute(clonedResource, Condition, moduleResource, overrides)
+	addScalarAttribute(clonedResource, Condition, resource, overrides)
 
 	// DependsOn is an array of scalars or a single scalar
-	_, moduleDependsOn, _ := s11n.GetMapValue(moduleResource, DependsOn)
+	_, moduleDependsOn, _ := s11n.GetMapValue(resource, DependsOn)
 	_, templateDependsOn, _ := s11n.GetMapValue(overrides, DependsOn)
 	if moduleDependsOn != nil || templateDependsOn != nil {
 		clonedResource.Content = append(clonedResource.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: DependsOn})
@@ -146,5 +142,75 @@ func processOverrides(
 		clonedResource.Content = append(clonedResource.Content, dependsOnValue)
 	}
 
-	return overrides, nil
+	return nil
+}
+
+// Clone a property-like node from the module and replace any overridden values
+func cloneAndReplaceProps(
+	moduleProps *yaml.Node,
+	overrides *yaml.Node,
+	moduleParams *yaml.Node) *yaml.Node {
+
+	// Not all property-like attributes are required
+	if moduleProps == nil && overrides == nil {
+		return nil
+	}
+
+	var props *yaml.Node
+
+	if moduleProps != nil {
+		// Start by cloning the properties in the module
+		props = node.Clone(moduleProps)
+	} else {
+		props = &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
+	}
+
+	// Replace any property values overridden in the parent template
+	if overrides != nil {
+		for i, tprop := range overrides.Content {
+
+			// Only look at the names, which have even indexes
+			if i%2 != 0 {
+				continue
+			}
+
+			found := false
+
+			if moduleParams != nil {
+				_, moduleParam, _ := s11n.GetMapValue(moduleParams, tprop.Value)
+
+				// Don't clone template props that are module parameters.
+				// Module params are used when we resolve Refs later
+				if moduleParam != nil {
+					continue
+				}
+			}
+
+			// Overwrite anything hard coded into the module that is
+			// present in the parent template
+			for j, mprop := range props.Content {
+				if tprop.Value == mprop.Value && i%2 == 0 && j%2 == 0 {
+					clonedNode := node.Clone(overrides.Content[i+1])
+					// config.Debugf("original: %s", node.ToSJson(overrides.Content[i+1]))
+					// config.Debugf("clonedNode: %s", node.ToSJson(clonedNode))
+					merged := node.MergeNodes(props.Content[j+1], clonedNode)
+
+					// TODO: AWS CLI test to append new array elements instead of replacing
+
+					// config.Debugf("merged: %s", node.ToSJson(merged))
+					props.Content[j+1] = merged
+
+					found = true
+				}
+			}
+
+			if !found && i%2 == 0 {
+				props.Content = append(props.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: tprop.Value})
+				props.Content = append(props.Content, node.Clone(overrides.Content[i+1]))
+			}
+
+		}
+	}
+
+	return props
 }

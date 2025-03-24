@@ -33,6 +33,8 @@ const (
 	UpdateReplacePolicy = "UpdateReplacePolicy"
 	Condition           = "Condition"
 	Default             = "Default"
+	Source              = "Source"
+	Map                 = "Map"
 )
 
 // Module represents a complete module, including parent config
@@ -45,21 +47,22 @@ type Module struct {
 	Parent         *cft.Template
 }
 
-// Outputs returns the Outputs node as a map, which is easier to use
+// Outputs returns the Outputs node as a map
 func (module *Module) Outputs() map[string]any {
 	return decodeMapNode(module.OutputsNode)
 }
 
-// Parameters returns the Parameters node as a map, which is easier to use
+// Parameters returns the Parameters node as a map
 func (module *Module) Parameters() map[string]any {
 	return decodeMapNode(module.ParametersNode)
 }
 
-// Resources returns the Resources node as a map, which is easier to use
+// Resources returns the Resources node as a map
 func (module *Module) Resources() map[string]any {
 	return decodeMapNode(module.ResourcesNode)
 }
 
+// decodeMapNode converts a node to a string map
 func decodeMapNode(n *yaml.Node) map[string]any {
 	var m map[string]any
 	if n != nil {
@@ -72,8 +75,7 @@ func decodeMapNode(n *yaml.Node) map[string]any {
 	return m
 }
 
-// ModuleConfig is the configuration of the module in
-// the parent template.
+// ModuleConfig is the configuration of the module in the parent template.
 type ModuleConfig struct {
 
 	// Name is the name of the module, which is used as a logical id prefix
@@ -82,14 +84,8 @@ type ModuleConfig struct {
 	// Source is the URI for the module, a local file or remote URL
 	Source string
 
-	// Properties map to the module's Parameters
-	Properties map[string]any
-
 	// PropertiesNode is the yaml node for the Properties
 	PropertiesNode *yaml.Node
-
-	// Overrides are used to directly override module content
-	Overrides map[string]any
 
 	// OverridesNode is the yaml node for overrides
 	OverridesNode *yaml.Node
@@ -102,6 +98,23 @@ type ModuleConfig struct {
 
 	// OriginalName is the Name of the module before it got Mapped (duplicated)
 	OriginalName string
+}
+
+func (c *ModuleConfig) Properties() map[string]any {
+	return decodeMapNode(c.PropertiesNode)
+}
+
+func (c *ModuleConfig) Overrides() map[string]any {
+	return decodeMapNode(c.OverridesNode)
+}
+
+// ResourceOverridesNode returns the Overrides node for the given resource if it exists
+func (c *ModuleConfig) ResourceOverridesNode(name string) *yaml.Node {
+	if c.OverridesNode == nil {
+		return nil
+	}
+	_, n, _ := s11n.GetMapValue(c.OverridesNode, name)
+	return n
 }
 
 // parseModuleConfig parses a single module configuration
@@ -119,21 +132,13 @@ func parseModuleConfig(name string, n *yaml.Node) (*ModuleConfig, error) {
 		attr := content[i].Value
 		val := content[i+1]
 		switch attr {
-		case "Source":
+		case Source:
 			m.Source = val.Value
-		case "Properties":
+		case Properties:
 			m.PropertiesNode = val
-			decodeErr := val.Decode(&m.Properties)
-			if decodeErr != nil {
-				return nil, decodeErr
-			}
-		case "Overrides":
+		case Overrides:
 			m.OverridesNode = val
-			decodeErr := val.Decode(&m.Overrides)
-			if decodeErr != nil {
-				return nil, decodeErr
-			}
-		case "Map":
+		case Map:
 			m.Map = val
 		}
 	}
@@ -184,7 +189,7 @@ func mapPlaceholders(n *yaml.Node, index int, key string) {
 					if parse.IsSubNeeded(r) {
 						yamlNode.Value = r
 					} else {
-						*yamlNode = *node.MakeScalarNode(r)
+						*yamlNode = *node.MakeScalar(r)
 					}
 				case string(cft.GetAtt):
 					for _, getatt := range content[1].Content {
@@ -290,7 +295,7 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 				}
 				copiedConfig.OriginalName = moduleConfig.Name
 				mapPlaceholders(copiedConfig.Node, i, key)
-				content = append(content, node.MakeScalarNode(mapName))
+				content = append(content, node.MakeScalar(mapName))
 				content = append(content, copiedNode)
 			}
 		} else {
@@ -327,7 +332,7 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 		//config.Debugf("Module %s Parsed: %s", name, node.ToSJson(parsed.Node))
 
 		// Transform the parsed module content
-		outputNode := node.MakeMappingNode()
+		outputNode := node.MakeMapping()
 
 		err = processModule(
 			name,
@@ -359,73 +364,6 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 	t.RemoveSection(cft.Modules)
 
 	return nil
-}
-
-// Clone a property-like node from the module and replace any overridden values
-func cloneAndReplaceProps(
-	moduleProps *yaml.Node,
-	templateProps *yaml.Node,
-	moduleParams *yaml.Node) *yaml.Node {
-
-	// Not all property-like attributes are required
-	if moduleProps == nil && templateProps == nil {
-		return nil
-	}
-
-	var props *yaml.Node
-
-	if moduleProps != nil {
-		// Start by cloning the properties in the module
-		props = node.Clone(moduleProps)
-	} else {
-		props = &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
-	}
-
-	// Replace any property values overridden in the parent template
-	if templateProps != nil {
-		for i, tprop := range templateProps.Content {
-
-			// Only look at the names, which have even indexes
-			if i%2 != 0 {
-				continue
-			}
-
-			found := false
-
-			if moduleParams != nil {
-				_, moduleParam, _ := s11n.GetMapValue(moduleParams, tprop.Value)
-
-				// Don't clone template props that are module parameters.
-				// Module params are used when we resolve Refs later
-				if moduleParam != nil {
-					continue
-				}
-			}
-
-			// Overwrite anything hard coded into the module that is
-			// present in the parent template
-			for j, mprop := range props.Content {
-				if tprop.Value == mprop.Value && i%2 == 0 && j%2 == 0 {
-					clonedNode := node.Clone(templateProps.Content[i+1])
-					// config.Debugf("original: %s", node.ToSJson(templateProps.Content[i+1]))
-					// config.Debugf("clonedNode: %s", node.ToSJson(clonedNode))
-					merged := node.MergeNodes(props.Content[j+1], clonedNode)
-					// config.Debugf("merged: %s", node.ToSJson(merged))
-					props.Content[j+1] = merged
-
-					found = true
-				}
-			}
-
-			if !found && i%2 == 0 {
-				props.Content = append(props.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: tprop.Value})
-				props.Content = append(props.Content, node.Clone(templateProps.Content[i+1]))
-			}
-
-		}
-	}
-
-	return props
 }
 
 // Add DeletionPolicy, UpdateReplacePolicy, and Condition
@@ -474,35 +412,57 @@ func processModule(
 	_, moduleOutputs, _ := s11n.GetMapValue(module, "Outputs")
 	m.OutputsNode = moduleOutputs
 
-	err := validateOverrides(moduleConfig.Node, moduleResources, moduleParams)
+	err := m.ValidateOverrides()
 	if err != nil {
 		return err
 	}
 
+	err = m.ProcessResources(outputNode)
+	if err != nil {
+		return err
+	}
+
+	// Look for references to this module's outputs in the parent
+	err = m.ProcessOutputs()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ProcessResources injects the module's resources into the output node
+func (module *Module) ProcessResources(outputNode *yaml.Node) error {
+
+	if module.ResourcesNode == nil {
+		config.Debugf("Module %s has no resources", module.Config.Name)
+		return nil
+	}
+
 	// Get module resources and add them to the output
-	for i, moduleResource := range moduleResources.Content {
+	for i, moduleResource := range module.ResourcesNode.Content {
 		if moduleResource.Kind != yaml.MappingNode {
 			continue
 		}
-		name := moduleResources.Content[i-1].Value
+		name := module.ResourcesNode.Content[i-1].Value
 
 		// Check to see if there is a Rain attribute in the Metadata.
 		// If so, check conditionals like IfParam
 		metadata := s11n.GetMap(moduleResource, Metadata)
 		if metadata != nil {
 			if rainMetadata, ok := metadata[Rain]; ok {
-				if omitIfs(rainMetadata, moduleParams, moduleConfig.PropertiesNode, moduleResource) {
+				if omitIfs(rainMetadata, module.ParametersNode, module.Config.PropertiesNode, moduleResource) {
 					continue
 				}
 			}
 		}
 
-		nameNode := node.Clone(moduleResources.Content[i-1])
-		nameNode.Value = rename(logicalId, nameNode.Value)
+		nameNode := node.Clone(module.ResourcesNode.Content[i-1])
+		nameNode.Value = rename(module.Config.Name, nameNode.Value)
 		outputNode.Content = append(outputNode.Content, nameNode)
 		clonedResource := node.Clone(moduleResource)
 
-		_, err := processOverrides(logicalId, moduleConfig.Node, name, moduleResource, clonedResource, moduleParams)
+		err := module.ProcessOverrides(name, moduleResource, clonedResource)
 		if err != nil {
 			return err
 		}
@@ -510,18 +470,12 @@ func processModule(
 		// Resolve Refs in the module
 		// Some refs are to other resources in the module
 		// Other refs are to the module's parameters
-		err = m.Resolve(clonedResource)
+		err = module.Resolve(clonedResource)
 		if err != nil {
 			return fmt.Errorf("failed to resolve refs: %v", err)
 		}
 
 		outputNode.Content = append(outputNode.Content, clonedResource)
-	}
-
-	// Look for references to this module's outputs in the parent
-	err = m.ProcessOutputs()
-	if err != nil {
-		return err
 	}
 
 	return nil

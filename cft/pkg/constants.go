@@ -102,7 +102,7 @@ func replaceTemplateConstants(t *cft.Template) error {
 				// Parse the value again and see if it has any non-words
 				if !parse.IsSubNeeded(yamlNode.Content[1].Value) {
 					config.Debugf("Sub is not needed for %s", yamlNode.Content[1].Value)
-					*yamlNode = *node.MakeScalarNode(yamlNode.Content[1].Value)
+					*yamlNode = *node.MakeScalar(yamlNode.Content[1].Value)
 				}
 			case "Ref":
 				// Ref is used with object constants

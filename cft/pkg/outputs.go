@@ -136,7 +136,7 @@ func (module *Module) OutputGetAtt(outputName string, outputVal any, n *yaml.Nod
 		return fmt.Errorf("expected GetAtt in %s to be a sequence: %s",
 			module.Config.Name, node.ToSJson(n))
 	}
-	ss := sequenceToStrings(n.Content[1])
+	ss := node.SequenceToStrings(n.Content[1])
 	o, err := module.CheckOutputGetAtt(strings.Join(ss, "."), outputName, outputVal)
 	if err != nil {
 		return err
@@ -181,13 +181,13 @@ func (module *Module) OutputSub(outputName string, outputVal any, n *yaml.Node) 
 					v := outputValue.Content[1]
 					switch outputValue.Content[0].Value {
 					case string(cft.Sub):
-						sub += "${" + module.Config.Name + v.Value + "}"
+						sub += "${" + v.Value + "}"
 					case string(cft.GetAtt):
-						ss := sequenceToStrings(v)
+						ss := node.SequenceToStrings(v)
 						joined := strings.Join(ss, ".")
-						sub += "${" + module.Config.Name + joined + "}"
+						sub += "${" + joined + "}"
 					case string(cft.Ref):
-						sub += "${" + module.Config.Name + v.Value + "}"
+						sub += "${" + v.Value + "}"
 					}
 				} else if outputValue.Kind == yaml.ScalarNode {
 					sub += outputValue.Value
@@ -198,24 +198,15 @@ func (module *Module) OutputSub(outputName string, outputVal any, n *yaml.Node) 
 
 	var subNode *yaml.Node
 	if parse.IsSubNeeded(sub) {
-		subNode = node.MakeMappingNode()
-		subNode.Content = append(subNode.Content, node.MakeScalarNode(string(cft.Sub)))
-		subNode.Content = append(subNode.Content, node.MakeScalarNode(sub))
+		subNode = node.MakeMapping()
+		subNode.Content = append(subNode.Content, node.MakeScalar(string(cft.Sub)))
+		subNode.Content = append(subNode.Content, node.MakeScalar(sub))
 	} else {
-		subNode = node.MakeScalarNode(sub)
+		subNode = node.MakeScalar(sub)
 	}
 	if sub != s {
 		config.Debugf("sub replacing\n%s\n\nwith\n\n%s", node.ToSJson(n), node.ToSJson(subNode))
 		*n = *subNode
 	}
 	return nil
-}
-
-// sequenceToStrings converts a sequence of Scalars to a string slice
-func sequenceToStrings(n *yaml.Node) []string {
-	ss := []string{}
-	for _, v := range n.Content {
-		ss = append(ss, v.Value)
-	}
-	return ss
 }
