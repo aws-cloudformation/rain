@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/aws-cloudformation/rain/internal/config"
 	"gopkg.in/yaml.v3"
@@ -176,6 +177,21 @@ func ToJson(node *yaml.Node) string {
 		return fmt.Sprintf("Failed to marshal node to json: %v:", err)
 	}
 	return string(j)
+}
+
+// Convert a node to a YAML string for troubleshooting
+func YamlStr(node *yaml.Node) string {
+	if node == nil {
+		return "nil"
+	}
+	buf := strings.Builder{}
+	enc := yaml.NewEncoder(&buf)
+	enc.SetIndent(2)
+	err := enc.Encode(node)
+	if err != nil {
+		return fmt.Sprintf("%s", err)
+	}
+	return buf.String()
 }
 
 // Remove a map key-value pair from node.Content
@@ -407,4 +423,17 @@ func SequenceToStrings(n *yaml.Node) []string {
 		ss = append(ss, v.Value)
 	}
 	return ss
+}
+
+// DecodeMap converts a node to a string map
+func DecodeMap(n *yaml.Node) map[string]any {
+	var m map[string]any
+	if n != nil {
+		decodeErr := n.Decode(&m)
+		if decodeErr != nil {
+			config.Debugf("decodeMapNode error: %v", decodeErr)
+			return m
+		}
+	}
+	return m
 }

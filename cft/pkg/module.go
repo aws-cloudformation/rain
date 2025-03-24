@@ -39,7 +39,7 @@ const (
 
 // Module represents a complete module, including parent config
 type Module struct {
-	Config         *ModuleConfig
+	Config         *cft.ModuleConfig
 	ParametersNode *yaml.Node
 	ResourcesNode  *yaml.Node
 	OutputsNode    *yaml.Node
@@ -49,101 +49,17 @@ type Module struct {
 
 // Outputs returns the Outputs node as a map
 func (module *Module) Outputs() map[string]any {
-	return decodeMapNode(module.OutputsNode)
+	return node.DecodeMap(module.OutputsNode)
 }
 
 // Parameters returns the Parameters node as a map
 func (module *Module) Parameters() map[string]any {
-	return decodeMapNode(module.ParametersNode)
+	return node.DecodeMap(module.ParametersNode)
 }
 
 // Resources returns the Resources node as a map
 func (module *Module) Resources() map[string]any {
-	return decodeMapNode(module.ResourcesNode)
-}
-
-// decodeMapNode converts a node to a string map
-func decodeMapNode(n *yaml.Node) map[string]any {
-	var m map[string]any
-	if n != nil {
-		decodeErr := n.Decode(&m)
-		if decodeErr != nil {
-			config.Debugf("decodeMapNode error: %v", decodeErr)
-			return m
-		}
-	}
-	return m
-}
-
-// ModuleConfig is the configuration of the module in the parent template.
-type ModuleConfig struct {
-
-	// Name is the name of the module, which is used as a logical id prefix
-	Name string
-
-	// Source is the URI for the module, a local file or remote URL
-	Source string
-
-	// PropertiesNode is the yaml node for the Properties
-	PropertiesNode *yaml.Node
-
-	// OverridesNode is the yaml node for overrides
-	OverridesNode *yaml.Node
-
-	// Node is the yaml node for the Module config mapping node
-	Node *yaml.Node
-
-	// Map is the node for mapping (duplicating) the module based on a CSV
-	Map *yaml.Node
-
-	// OriginalName is the Name of the module before it got Mapped (duplicated)
-	OriginalName string
-}
-
-func (c *ModuleConfig) Properties() map[string]any {
-	return decodeMapNode(c.PropertiesNode)
-}
-
-func (c *ModuleConfig) Overrides() map[string]any {
-	return decodeMapNode(c.OverridesNode)
-}
-
-// ResourceOverridesNode returns the Overrides node for the given resource if it exists
-func (c *ModuleConfig) ResourceOverridesNode(name string) *yaml.Node {
-	if c.OverridesNode == nil {
-		return nil
-	}
-	_, n, _ := s11n.GetMapValue(c.OverridesNode, name)
-	return n
-}
-
-// parseModuleConfig parses a single module configuration
-// from the Modules section in the template
-func parseModuleConfig(name string, n *yaml.Node) (*ModuleConfig, error) {
-	if n.Kind != yaml.MappingNode {
-		return nil, errors.New("not a mapping node")
-	}
-	m := &ModuleConfig{}
-	m.Name = name
-	m.Node = n
-
-	content := n.Content
-	for i := 0; i < len(content); i += 2 {
-		attr := content[i].Value
-		val := content[i+1]
-		switch attr {
-		case Source:
-			m.Source = val.Value
-		case Properties:
-			m.PropertiesNode = val
-		case Overrides:
-			m.OverridesNode = val
-		case Map:
-			m.Map = val
-		}
-	}
-
-	return m, nil
+	return node.DecodeMap(module.ResourcesNode)
 }
 
 // stringsFromNode returns a string slice based on a scalar with a CSV or a sequence.
@@ -217,7 +133,6 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 		config.Debugf("No modules section")
 		return nil
 	}
-	config.Debugf("Modules:\n%v", moduleSection)
 	HasModules = true
 
 	if moduleSection.Kind != yaml.MappingNode {
@@ -236,7 +151,7 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 	// Process Maps, which duplicate the module for each element in a list
 	for i := 0; i < len(originalContent); i += 2 {
 		name := originalContent[i].Value
-		moduleConfig, err := parseModuleConfig(name, originalContent[i+1])
+		moduleConfig, err := cft.ParseModuleConfig(name, originalContent[i+1])
 		if err != nil {
 			return err
 		}
@@ -289,12 +204,23 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 				mapName := fmt.Sprintf("%s%d", moduleConfig.Name, i)
 				copiedNode := node.Clone(moduleConfig.Node)
 				node.RemoveFromMap(copiedNode, "Map")
-				copiedConfig, err := parseModuleConfig(mapName, copiedNode)
+				copiedConfig, err := cft.ParseModuleConfig(mapName, copiedNode)
 				if err != nil {
 					return err
 				}
+
+				// These values won't go into the YAML but we'll store them for later
 				copiedConfig.OriginalName = moduleConfig.Name
-				mapPlaceholders(copiedConfig.Node, i, key)
+				copiedConfig.IsMapCopy = true
+				copiedConfig.MapIndex = i
+				copiedConfig.MapKey = key
+
+				// Add a reference to the template so we can find it later for Outputs
+				t.AddMappedModule(copiedConfig)
+
+				// Replace $MapIndex and $MapValue
+				mapPlaceholders(copiedNode, i, key)
+
 				content = append(content, node.MakeScalar(mapName))
 				content = append(content, copiedNode)
 			}
@@ -304,12 +230,15 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 		}
 	}
 
-	//config.Debugf("content after Maps: \n%s",
-	//	node.ToSJson(&yaml.Node{Kind: yaml.MappingNode, Content: content}))
+	config.Debugf("content after Maps: \n%s",
+		node.ToSJson(&yaml.Node{Kind: yaml.MappingNode, Content: content}))
+
+	// Replace the original Modules content
+	moduleSection.Content = content
 
 	for i := 0; i < len(content); i += 2 {
 		name := content[i].Value
-		moduleConfig, err := parseModuleConfig(name, content[i+1])
+		moduleConfig, err := cft.ParseModuleConfig(name, content[i+1])
 		if err != nil {
 			return err
 		}
@@ -393,7 +322,7 @@ func processModule(
 	outputNode *yaml.Node,
 	t *cft.Template,
 	moduleConstants map[string]*yaml.Node,
-	moduleConfig *ModuleConfig) error {
+	moduleConfig *cft.ModuleConfig) error {
 
 	m := &Module{}
 	m.Config = moduleConfig
@@ -514,7 +443,7 @@ func processRainResourceModule(
 
 	templateResource := parent.Value // The !!map node of the resource with Type !Rain::Module
 
-	moduleConfig, err := parseModuleConfig(logicalId, templateResource)
+	moduleConfig, err := cft.ParseModuleConfig(logicalId, templateResource)
 	if err != nil {
 		return err
 	}
@@ -558,9 +487,7 @@ func getModuleContent(
 	packageAlias := checkPackageAlias(t, uri)
 	isZip := false
 	if packageAlias != nil {
-		config.Debugf("Found package alias: %+v", packageAlias)
 		path := strings.Replace(uri, packageAlias.Alias+"/", "", 1)
-		config.Debugf("path is %s", path)
 		if strings.HasSuffix(packageAlias.Location, ".zip") {
 			// Unzip, verify hash if there is one, and put the files in memory
 			isZip = true
@@ -570,8 +497,6 @@ func getModuleContent(
 			}
 		} else {
 			uri = strings.Replace(uri, packageAlias.Alias, packageAlias.Location, 1)
-			config.Debugf("uri is now %s", uri)
-			config.Debugf("baseUri is %s", baseUri)
 		}
 	}
 

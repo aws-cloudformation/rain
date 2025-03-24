@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
@@ -35,17 +36,11 @@ func (module *Module) ProcessOutputs() error {
 
 	// Resolve output values first
 	for i := 0; i < len(module.OutputsNode.Content); i += 2 {
-		outputName := module.OutputsNode.Content[i].Value
 		outputNode := module.OutputsNode.Content[i+1]
-
-		config.Debugf("%s outputNode before resolve: %s",
-			outputName, node.ToSJson(outputNode))
-
 		module.Resolve(outputNode)
-
-		config.Debugf("%s outputNode after resolve: %s",
-			outputName, node.ToSJson(outputNode))
 	}
+
+	config.Debugf("ProcessOutputs:\n%s", node.YamlStr(module.OutputsNode))
 
 	// Iterate over module outputs
 	for outputName, outputVal := range module.Outputs() {
@@ -53,8 +48,9 @@ func (module *Module) ProcessOutputs() error {
 
 		var err error
 
-		// Use a visitor function to find Fn::Sub or Fn::GetAtt that points to this output
-		// Refs can't point to module outputs since you need ModuleName.OutputName
+		// Use a visitor function to find Fn::Sub or Fn::GetAtt that points to
+		// this output. Refs can't point to module outputs since you need
+		// ModuleName.OutputName
 		vf := func(v *visitor.Visitor) {
 			n := v.GetYamlNode()
 			if n.Kind != yaml.MappingNode || len(n.Content) != 2 {
@@ -80,27 +76,81 @@ func (module *Module) ProcessOutputs() error {
 	return nil
 }
 
+// GetArrayIndexFromString extracts an integer array index from a string with
+// embedded brackets.  For example, from "Content[1].Arn" it would return 1.
+// Returns an error if no valid index is found.
+func GetArrayIndexFromString(s string) (int, error) {
+	// Find the opening bracket position
+	start := strings.Index(s, "[")
+	if start == -1 {
+		return 0, fmt.Errorf("no opening bracket found in string: %s", s)
+	}
+
+	// Find the closing bracket position
+	end := strings.Index(s[start:], "]")
+	if end == -1 {
+		return 0, fmt.Errorf("no closing bracket found in string: %s", s)
+	}
+
+	// Extract the number between brackets
+	numStr := s[start+1 : start+end]
+
+	// Convert to integer
+	num, err := strconv.Atoi(numStr)
+	if err != nil {
+		return 0, fmt.Errorf("invalid array index in string %s: %w", s, err)
+	}
+
+	return num, nil
+}
+
 // CheckOutputGetAtt checks to see if a GetAtt string matches an Output.
 // Returns nil if it's not a match.
 func (module *Module) CheckOutputGetAtt(s string, outputName string, outputVal any) (*yaml.Node, error) {
 	tokens := strings.Split(s, ".")
-	config.Debugf("getOutputAtt %s.%s == %s?", module.Config.Name, outputName, s)
-	if len(tokens) != 2 {
-		return nil, nil
-	}
-	if tokens[0] != module.Config.Name {
-		return nil, nil
-		// TODO: Content[].Arn and Content[0].Arn
-	}
-	if tokens[1] != outputName {
-		return nil, nil
-	}
+	config.Debugf("CheckOutputGetAtt %s.%s == %s?", module.Config.Name, outputName, s)
 	outputValue, err := encodeOutputValue(outputName, outputVal)
 	if err != nil {
 		return nil, err
 	}
-	config.Debugf("getOutputAtt %s.%s returning %v", module.Config.Name, outputName,
-		node.ToSJson(outputValue))
+	if len(tokens) != 2 {
+		return nil, nil
+	}
+
+	reffedModuleName := tokens[0]
+
+	// Content[0].Arn
+	// If this was a Mapped module, check the original name of the module to see
+	// if this is a match. If so, and if the array element matches this module's
+	// Map index, return the encoded output value.
+	// If we are referencing the entire array using [], then we have to
+	// do this later, since we need all Output values.
+	if strings.Contains(reffedModuleName, "[") && !strings.Contains(reffedModuleName, "[]") {
+		config.Debugf("found [ %+v", module.Config)
+		// Look for the reference we saved on the template.
+		// This instance of module.Config does not have information about Maps
+		if mappedConfig, ok := module.Parent.ModuleMaps[module.Config.Name]; ok {
+			config.Debugf("mapped config: %+v", mappedConfig)
+			fixedName := strings.Split(reffedModuleName, "[")[0]
+			if mappedConfig.OriginalName == fixedName && tokens[1] == outputName {
+				idx, err := GetArrayIndexFromString(reffedModuleName)
+				if err != nil {
+					return nil, err
+				}
+				if idx == mappedConfig.MapIndex {
+					return outputValue, nil
+				}
+			}
+		}
+	}
+
+	if reffedModuleName != module.Config.Name {
+
+		return nil, nil
+	}
+	if tokens[1] != outputName {
+		return nil, nil
+	}
 	return outputValue, nil
 }
 
@@ -131,11 +181,16 @@ func encodeOutputValue(outputName string, outputVal any) (*yaml.Node, error) {
 // A GetAtt to a module output.
 // For example, !GetAtt A.B, where A is a module name, and B is a module output.
 // B could be anything, a Scalar or an Object.
+// It is also possible to reference module Maps (duplicate copies of a module),
+// by using array brackets in the name, like A[0].B to reference a single
+// instance of the module's Output, or A[].B, to get all module Outputs that
+// have that name and return a Sequence with all of the Output values.
 func (module *Module) OutputGetAtt(outputName string, outputVal any, n *yaml.Node) error {
 	if n.Content[1].Kind != yaml.SequenceNode {
 		return fmt.Errorf("expected GetAtt in %s to be a sequence: %s",
 			module.Config.Name, node.ToSJson(n))
 	}
+	config.Debugf("OutputGetAtt %s %s:\n%s", outputName, outputVal, node.YamlStr(n))
 	ss := node.SequenceToStrings(n.Content[1])
 	o, err := module.CheckOutputGetAtt(strings.Join(ss, "."), outputName, outputVal)
 	if err != nil {
@@ -168,7 +223,6 @@ func (module *Module) OutputSub(outputName string, outputVal any, n *yaml.Node) 
 		case parse.REF:
 			sub += "${" + word.W + "}"
 		case parse.GETATT:
-			config.Debugf("sub GetAtt: %s", word.W)
 			outputValue, err := module.CheckOutputGetAtt(word.W, outputName, outputVal)
 			if err != nil {
 				return err

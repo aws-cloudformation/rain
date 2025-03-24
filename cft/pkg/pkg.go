@@ -132,9 +132,6 @@ func processRainSection(t *cft.Template, rootDir string, fs *embed.FS) error {
 func processAddedSections(
 	t *cft.Template, n *yaml.Node, rootDir string, fs *embed.FS) error {
 
-	config.Debugf("processAddedSections for %s", t.Name)
-	//config.Debugf("n: %v", node.ToSJson(n))
-
 	var err error
 
 	err = processConstants(t, n)
@@ -212,8 +209,6 @@ func Template(t *cft.Template, rootDir string, fs *embed.FS) (*cft.Template, err
 	if err != nil {
 		return nil, fmt.Errorf("failed to process added sections: %v", err)
 	}
-
-	//config.Debugf("Processed added sections: %s", node.ToSJson(t.Node))
 
 	ctx := &transformContext{
 		nodeToTransform: t.Node,
@@ -331,12 +326,10 @@ func Template(t *cft.Template, rootDir string, fs *embed.FS) (*cft.Template, err
 		_, rain, _ := s11n.GetMapValue(awsToolsMetrics, Rain)
 		rainNode := &yaml.Node{Kind: yaml.ScalarNode, Value: string(s)}
 		if rain == nil {
-			config.Debugf("Adding Rain analytics")
 			awsToolsMetrics.Content = append(awsToolsMetrics.Content,
 				&yaml.Node{Kind: yaml.ScalarNode, Value: Rain})
 			awsToolsMetrics.Content = append(awsToolsMetrics.Content, rainNode)
 		} else {
-			config.Debugf("Already had Rain analytics")
 			*rain = *rainNode
 		}
 	}

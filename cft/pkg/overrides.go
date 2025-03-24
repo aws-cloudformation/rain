@@ -191,13 +191,7 @@ func cloneAndReplaceProps(
 			for j, mprop := range props.Content {
 				if tprop.Value == mprop.Value && i%2 == 0 && j%2 == 0 {
 					clonedNode := node.Clone(overrides.Content[i+1])
-					// config.Debugf("original: %s", node.ToSJson(overrides.Content[i+1]))
-					// config.Debugf("clonedNode: %s", node.ToSJson(clonedNode))
 					merged := node.MergeNodes(props.Content[j+1], clonedNode)
-
-					// TODO: AWS CLI test to append new array elements instead of replacing
-
-					// config.Debugf("merged: %s", node.ToSJson(merged))
 					props.Content[j+1] = merged
 
 					found = true

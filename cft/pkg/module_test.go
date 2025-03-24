@@ -66,41 +66,125 @@ func TestConstant(t *testing.T) {
 	runTest("constant", t)
 }
 
-// TestAWSCLIModules runs the unit tests for the AWS CLI
-// cloudformation package command module functionality.
-// The goal is for Rain to be 100% compatible with the
-// AWS CLI module format
-//func TestAWSCLIModules(t *testing.T) {
-//	tests := []string{
-//		"basic",
-//		"type",
-//		"sub",
-//		"modinmod",
-//		"output",
-//		"policy",
-//		"vpc",
-//		"map",
-//		"mapout",
-//		"conditional",
-//		"cond-intrinsics",
-//		"example",
-//		"getatt",
-//		"constant",
-//		"proparray",
-//		"depends",
-//		"select",
-//		"merge",
-//		"mergetags",
-//		"insertfile",
-//		"outsublist",
-//		"outjoin",
-//		"invoke",
-//		"zip",
-//	}
-//	for _, test := range tests {
-//		runTest("awscli-modules/"+test, t)
-//	}
-//}
+// TestAWSCLIModuleBasic tests the basic AWS CLI module functionality
+func TestAWSCLIModuleBasic(t *testing.T) {
+	runTest("awscli-modules/basic", t)
+}
+
+// TestAWSCLIModuleType tests the type AWS CLI module functionality
+func TestAWSCLIModuleType(t *testing.T) {
+	runTest("awscli-modules/type", t)
+}
+
+// TestAWSCLIModuleSub tests the sub AWS CLI module functionality
+func TestAWSCLIModuleSub(t *testing.T) {
+	runTest("awscli-modules/sub", t)
+}
+
+// TestAWSCLIModuleModInMod tests the module-in-module AWS CLI functionality
+func TestAWSCLIModuleModInMod(t *testing.T) {
+	runTest("awscli-modules/modinmod", t)
+}
+
+// TestAWSCLIModuleOutput tests the output AWS CLI module functionality
+func TestAWSCLIModuleOutput(t *testing.T) {
+	runTest("awscli-modules/output", t)
+}
+
+// TestAWSCLIModulePolicy tests the policy AWS CLI module functionality
+func TestAWSCLIModulePolicy(t *testing.T) {
+	runTest("awscli-modules/policy", t)
+}
+
+// TestAWSCLIModuleVPC tests the VPC AWS CLI module functionality
+func TestAWSCLIModuleVPC(t *testing.T) {
+	runTest("awscli-modules/vpc", t)
+}
+
+// TestAWSCLIModuleMap tests the map AWS CLI module functionality
+func TestAWSCLIModuleMap(t *testing.T) {
+	runTest("awscli-modules/map", t)
+}
+
+// TestAWSCLIModuleMapOut tests the map output AWS CLI module functionality
+func TestAWSCLIModuleMapOut(t *testing.T) {
+	runTest("awscli-modules/mapout", t)
+}
+
+// TestAWSCLIModuleConditional tests the conditional AWS CLI module functionality
+func TestAWSCLIModuleConditional(t *testing.T) {
+	runTest("awscli-modules/conditional", t)
+}
+
+// TestAWSCLIModuleCondIntrinsics tests the conditional intrinsics AWS CLI module functionality
+func TestAWSCLIModuleCondIntrinsics(t *testing.T) {
+	runTest("awscli-modules/cond-intrinsics", t)
+}
+
+// TestAWSCLIModuleExample tests the example AWS CLI module functionality
+func TestAWSCLIModuleExample(t *testing.T) {
+	runTest("awscli-modules/example", t)
+}
+
+// TestAWSCLIModuleGetAtt tests the GetAtt AWS CLI module functionality
+func TestAWSCLIModuleGetAtt(t *testing.T) {
+	runTest("awscli-modules/getatt", t)
+}
+
+// TestAWSCLIModuleConstant tests the constant AWS CLI module functionality
+func TestAWSCLIModuleConstant(t *testing.T) {
+	runTest("awscli-modules/constant", t)
+}
+
+// TestAWSCLIModulePropArray tests the property array AWS CLI module functionality
+func TestAWSCLIModulePropArray(t *testing.T) {
+	runTest("awscli-modules/proparray", t)
+}
+
+// TestAWSCLIModuleDepends tests the depends AWS CLI module functionality
+func TestAWSCLIModuleDepends(t *testing.T) {
+	runTest("awscli-modules/depends", t)
+}
+
+// TestAWSCLIModuleSelect tests the select AWS CLI module functionality
+func TestAWSCLIModuleSelect(t *testing.T) {
+	runTest("awscli-modules/select", t)
+}
+
+// TestAWSCLIModuleMerge tests the merge AWS CLI module functionality
+func TestAWSCLIModuleMerge(t *testing.T) {
+	runTest("awscli-modules/merge", t)
+}
+
+// TestAWSCLIModuleMergeTags tests the merge tags AWS CLI module functionality
+func TestAWSCLIModuleMergeTags(t *testing.T) {
+	runTest("awscli-modules/mergetags", t)
+}
+
+// TestAWSCLIModuleInsertFile tests the insert file AWS CLI module functionality
+func TestAWSCLIModuleInsertFile(t *testing.T) {
+	runTest("awscli-modules/insertfile", t)
+}
+
+// TestAWSCLIModuleOutSubList tests the output sub list AWS CLI module functionality
+func TestAWSCLIModuleOutSubList(t *testing.T) {
+	runTest("awscli-modules/outsublist", t)
+}
+
+// TestAWSCLIModuleOutJoin tests the output join AWS CLI module functionality
+func TestAWSCLIModuleOutJoin(t *testing.T) {
+	runTest("awscli-modules/outjoin", t)
+}
+
+// TestAWSCLIModuleInvoke tests the invoke AWS CLI module functionality
+func TestAWSCLIModuleInvoke(t *testing.T) {
+	runTest("awscli-modules/invoke", t)
+}
+
+// TestAWSCLIModuleZip tests the zip AWS CLI module functionality
+func TestAWSCLIModuleZip(t *testing.T) {
+	runTest("awscli-modules/zip", t)
+}
 
 func runTest(test string, t *testing.T) {
 

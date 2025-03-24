@@ -39,14 +39,9 @@ type Template struct {
 	Node      *yaml.Node
 	Constants map[string]*yaml.Node
 	Packages  map[string]*PackageAlias
-}
 
-// TODO - We really need a convenient Template data structure
-// that lets us easily access elements.
-// t.Resources["MyResource"].Properties["MyProp"]
-//
-// Add a Model attribute to the struct and an Init function to populate it.
-// t.Model.Resources
+	ModuleMaps map[string]*ModuleConfig
+}
 
 // Map returns the template as a map[string]interface{}
 func (t Template) Map() map[string]interface{} {
@@ -249,4 +244,15 @@ func (t Template) RemoveEmptySections() {
 	for _, name := range sectionsToRemove {
 		node.RemoveFromMap(m, name)
 	}
+}
+
+// AddMappedModule adds a reference to a module that was mapped to a CSV of keys,
+// which duplicates the module in the template. We store a reference here so
+// that we can resolve references like Content[0].Arn, which points to the first
+// mapped instance of a Module called Content, with an Output called Arn.
+func (t *Template) AddMappedModule(copiedConfig *ModuleConfig) {
+	if t.ModuleMaps == nil {
+		t.ModuleMaps = make(map[string]*ModuleConfig)
+	}
+	t.ModuleMaps[copiedConfig.Name] = copiedConfig
 }
