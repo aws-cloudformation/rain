@@ -275,6 +275,10 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 
 	}
 
+	// Look for GetAtts like Content[].Arn that reference
+	// all items in Mapped module Outputs
+	ProcessOutputArrays(t)
+
 	// Remove the Modules section
 	t.RemoveSection(cft.Modules)
 

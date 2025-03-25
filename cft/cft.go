@@ -34,13 +34,14 @@ type PackageAlias struct {
 // Node is the only member that is guaranteed to exist after
 // parsing a template.
 type Template struct {
-	FileName  string
-	Name      string
-	Node      *yaml.Node
-	Constants map[string]*yaml.Node
-	Packages  map[string]*PackageAlias
-
-	ModuleMaps map[string]*ModuleConfig
+	FileName       string
+	Name           string
+	Node           *yaml.Node
+	Constants      map[string]*yaml.Node
+	Packages       map[string]*PackageAlias
+	ModuleMapNames map[string][]string
+	ModuleMaps     map[string]*ModuleConfig
+	ModuleOutputs  map[string]*yaml.Node
 }
 
 // Map returns the template as a map[string]interface{}
@@ -255,4 +256,17 @@ func (t *Template) AddMappedModule(copiedConfig *ModuleConfig) {
 		t.ModuleMaps = make(map[string]*ModuleConfig)
 	}
 	t.ModuleMaps[copiedConfig.Name] = copiedConfig
+	if t.ModuleMapNames == nil {
+		t.ModuleMapNames = make(map[string][]string)
+	}
+	originalName := copiedConfig.OriginalName
+	var mappedModules []string
+	var ok bool
+	if mappedModules, ok = t.ModuleMapNames[originalName]; !ok {
+		mappedModules = make([]string, 0)
+	}
+	if !slices.Contains(mappedModules, copiedConfig.Name) {
+		mappedModules = append(mappedModules, copiedConfig.Name)
+	}
+	t.ModuleMapNames[originalName] = mappedModules
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/cft/visitor"
-	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
@@ -144,12 +143,10 @@ func (module *Module) ResolveSub(n *yaml.Node) error {
 			sub += "${AWS::" + word.W + "}"
 		case parse.REF:
 			var resolved string
-			config.Debugf("ResolveSub Ref: %s", word.W)
 
 			// Create a fake node that we can send to Resolve
 			fakeNode := node.MakeRef(word.W)
 			module.Resolve(fakeNode)
-			config.Debugf("fakeNode after Resolve: %s", node.ToSJson(fakeNode))
 			switch fakeNode.Kind {
 			case yaml.ScalarNode:
 				resolved = fakeNode.Value

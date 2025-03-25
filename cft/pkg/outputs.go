@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/cft/visitor"
 	"github.com/aws-cloudformation/rain/internal/node"
+	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
 )
 
@@ -37,6 +39,14 @@ func (module *Module) ProcessOutputs() error {
 		outputNode := module.OutputsNode.Content[i+1]
 		module.Resolve(outputNode)
 	}
+
+	t := module.Parent
+
+	// Store the Outputs node on the template for later use
+	if t.ModuleOutputs == nil {
+		t.ModuleOutputs = make(map[string]*yaml.Node)
+	}
+	t.ModuleOutputs[module.Config.Name] = module.OutputsNode
 
 	// Iterate over module outputs
 	for outputName, outputVal := range module.Outputs() {
@@ -252,4 +262,73 @@ func (module *Module) OutputSub(outputName string, outputVal any, n *yaml.Node) 
 		*n = *subNode
 	}
 	return nil
+}
+
+// After processing normal outputs, go back and look for array references
+// like Content[].Arn. Values for these should be stored on the
+// template.
+func ProcessOutputArrays(t *cft.Template) error {
+	if t == nil {
+		return errors.New("t is nil")
+	}
+
+	var err error
+
+	vf := func(v *visitor.Visitor) {
+		// Look for A[].B
+		// Get t.ModuleOutputs for all of them, convert to Sequence
+
+		n := v.GetYamlNode()
+		if n.Kind != yaml.MappingNode || len(n.Content) != 2 {
+			return
+		}
+
+		if n.Content[0].Value != string(cft.GetAtt) {
+			return
+		}
+
+		getatt := n.Content[1]
+		if getatt.Kind != yaml.SequenceNode || len(getatt.Content) != 2 {
+			err = fmt.Errorf("invalid getatt: %s", node.YamlStr(getatt))
+			v.Stop()
+			return
+		}
+
+		if !strings.Contains(getatt.Content[0].Value, "[]") {
+			return
+		}
+
+		moduleName := strings.Replace(getatt.Content[0].Value, "[]", "", 1)
+		outputName := getatt.Content[1].Value
+
+		names, ok := t.ModuleMapNames[moduleName]
+		if !ok {
+			err = fmt.Errorf("module names not found for %s", moduleName)
+			v.Stop()
+			return
+		}
+
+		items := make([]*yaml.Node, 0)
+		for _, name := range names {
+			outputs, ok := t.ModuleOutputs[name]
+			if !ok {
+				err = fmt.Errorf("%s not found in ModuleOutputs", name)
+				v.Stop()
+				return
+			}
+			_, o, _ := s11n.GetMapValue(outputs, outputName)
+			if o == nil {
+				err = fmt.Errorf("%s not found in Outputs for %s", outputName, name)
+				v.Stop()
+				return
+			}
+			items = append(items, o)
+		}
+		seq := &yaml.Node{Kind: yaml.SequenceNode, Content: items}
+		*n = *seq
+	}
+
+	visitor.NewVisitor(t.Node).Visit(vf)
+
+	return err
 }

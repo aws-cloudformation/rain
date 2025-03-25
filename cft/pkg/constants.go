@@ -20,7 +20,6 @@ import (
 // refer to other constants declared previously.
 func rainConstant(ctx *directiveContext) (bool, error) {
 
-	config.Debugf("Found a rain constant: %s", node.ToSJson(ctx.n))
 	name := ctx.n.Content[1].Value
 	val, ok := ctx.t.Constants[name]
 	if !ok {
@@ -67,9 +66,8 @@ func replaceConstants(n *yaml.Node, constants map[string]*yaml.Node) error {
 	}
 
 	if n.Value != retval {
-		config.Debugf("Replacing %s with %s", n.Value, retval)
+		n.Value = retval
 	}
-	n.Value = retval
 
 	return nil
 }
