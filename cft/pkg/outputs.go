@@ -322,7 +322,13 @@ func ProcessOutputArrays(t *cft.Template) error {
 				v.Stop()
 				return
 			}
-			items = append(items, o)
+			_, val, _ := s11n.GetMapValue(o, "Value")
+			if val == nil {
+				err = fmt.Errorf("module output %s.%s missing Value", name, outputName)
+				v.Stop()
+				return
+			}
+			items = append(items, val)
 		}
 		seq := &yaml.Node{Kind: yaml.SequenceNode, Content: items}
 		*n = *seq

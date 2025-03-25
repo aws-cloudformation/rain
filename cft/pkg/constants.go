@@ -78,7 +78,6 @@ func replaceConstants(n *yaml.Node, constants map[string]*yaml.Node) error {
 func replaceTemplateConstants(t *cft.Template) error {
 
 	constants := t.Constants
-	config.Debugf("Constants: %v", constants)
 
 	var err error
 
@@ -89,7 +88,6 @@ func replaceTemplateConstants(t *cft.Template) error {
 			key := yamlNode.Content[0].Value
 			switch key {
 			case "Fn::Sub":
-				config.Debugf("About to replace Sub constants in %s", yamlNode.Content[1].Value)
 				err = replaceConstants(yamlNode.Content[1], constants)
 				if err != nil {
 					config.Debugf("%v", err)
@@ -99,14 +97,12 @@ func replaceTemplateConstants(t *cft.Template) error {
 				// Remove unnecessary Subs
 				// Parse the value again and see if it has any non-words
 				if !parse.IsSubNeeded(yamlNode.Content[1].Value) {
-					config.Debugf("Sub is not needed for %s", yamlNode.Content[1].Value)
 					*yamlNode = *node.MakeScalar(yamlNode.Content[1].Value)
 				}
 			case "Ref":
 				// Ref is used with object constants
 				val := yamlNode.Content[1]
 				if strings.HasPrefix(val.Value, parse.CONSTcc) {
-					config.Debugf("About to replace Ref constants in %s", node.ToSJson(val))
 					constName := strings.Replace(val.Value, parse.CONSTcc, "", 1)
 					constVal, ok := constants[constName]
 					if !ok {

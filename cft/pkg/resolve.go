@@ -8,6 +8,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/cft/visitor"
+	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
@@ -33,6 +34,8 @@ func (module *Module) Resolve(n *yaml.Node) error {
 			err = module.ResolveGetAtt(vn)
 		}
 		if err != nil {
+			config.Debugf("Resolve visitor got an error: %v\n%s",
+				err, node.YamlStr(vn))
 			v.Stop()
 		}
 	}
@@ -125,9 +128,6 @@ func (module *Module) ResolveRef(n *yaml.Node) error {
 // ${Foo.Bar} is treated like a GetAtt.
 func (module *Module) ResolveSub(n *yaml.Node) error {
 
-	logicalId := module.Config.Name
-	moduleResources := module.ResourcesNode
-
 	prop := n.Content[1]
 	words, err := parse.ParseSub(prop.Value, true)
 	if err != nil {
@@ -142,10 +142,21 @@ func (module *Module) ResolveSub(n *yaml.Node) error {
 		case parse.AWS:
 			sub += "${AWS::" + word.W + "}"
 		case parse.REF:
+			fallthrough
+		case parse.GETATT:
 			var resolved string
 
 			// Create a fake node that we can send to Resolve
-			fakeNode := node.MakeRef(word.W)
+			var fakeNode *yaml.Node
+			if word.T == parse.REF {
+				fakeNode = node.MakeRef(word.W)
+			} else if word.T == parse.GETATT {
+				left, right, found := strings.Cut(word.W, ".")
+				if !found {
+					return fmt.Errorf("unexpected GetAtt %s", word.W)
+				}
+				fakeNode = node.MakeGetAtt(left, right)
+			}
 			module.Resolve(fakeNode)
 			switch fakeNode.Kind {
 			case yaml.ScalarNode:
@@ -172,18 +183,6 @@ func (module *Module) ResolveSub(n *yaml.Node) error {
 			// template, which is up to the user
 
 			sub += resolved
-		case parse.GETATT:
-			// All we do here is fix the left part of the GetAtt
-			// ${Foo.Bar} becomes ${NameFoo.Bar} where Name is the logicalId
-			left, right, found := strings.Cut(word.W, ".")
-			if !found {
-				return fmt.Errorf("unexpected GetAtt %s", word.W)
-			}
-			_, resource, _ := s11n.GetMapValue(moduleResources, left)
-			if resource != nil {
-				left = rename(logicalId, left)
-			}
-			sub += fmt.Sprintf("${%s.%s}", left, right)
 		default:
 			return fmt.Errorf("unexpected word type %v for %s", word.T, word.W)
 		}
@@ -205,17 +204,40 @@ func (module *Module) ResolveSub(n *yaml.Node) error {
 }
 
 func (module *Module) ResolveGetAtt(n *yaml.Node) error {
+
 	// A GetAtt somewhere in the module refers to another Resource in the module.
 	// Simply prepend the module name.
+	// A GetAtt can also refer directly to the Property value in another
+	// module's configuration.
+
+	if len(n.Content) < 2 {
+		return fmt.Errorf("invalid GetAtt: %s", node.YamlStr(n))
+	}
+
 	prop := n.Content[1]
 	resourceName := prop.Content[0].Value
+
+	config.Debugf("ResolveGetAtt %s.%s", resourceName, prop.Content[1].Value)
+
 	if module.ResourcesNode != nil {
 		_, resource, _ := s11n.GetMapValue(module.ResourcesNode, resourceName)
 		if resource != nil {
 			fixedName := rename(module.Config.Name, resourceName)
 			prop.Content[0].Value = fixedName
+			return nil
 		}
 	}
+
+	config.Debugf("ResolveGetAtt can't find %s, looking in Properties: %+v",
+		resourceName, module.Config.Properties())
+
+	moduleProps := module.Config.Properties()
+	propName := prop.Content[1].Value
+	if _, ok := moduleProps[propName]; ok {
+		_, propNode, _ := s11n.GetMapValue(module.Config.PropertiesNode, propName)
+		*n = *propNode
+	}
+
 	return nil
 }
 

@@ -347,6 +347,12 @@ func processModule(
 		return err
 	}
 
+	// Resolve any references to this module in the parent template
+	err = m.Resolve(t.Node)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

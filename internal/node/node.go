@@ -395,6 +395,13 @@ func MakeRef(v string) *yaml.Node {
 	return n
 }
 
+func MakeGetAtt(v1 string, v2 string) *yaml.Node {
+	n := MakeMapping()
+	n.Content = append(n.Content, MakeScalar(GetAtt))
+	n.Content = append(n.Content, MakeSequence([]string{v1, v2}))
+	return n
+}
+
 func MakeScalar(v string) *yaml.Node {
 	return &yaml.Node{
 		Kind:  yaml.ScalarNode,
