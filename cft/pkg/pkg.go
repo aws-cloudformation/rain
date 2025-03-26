@@ -147,6 +147,11 @@ func processAddedSections(
 		return err
 	}
 
+	err = FnJoin(t.Node)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

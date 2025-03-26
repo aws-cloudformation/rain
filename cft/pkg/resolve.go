@@ -217,8 +217,6 @@ func (module *Module) ResolveGetAtt(n *yaml.Node) error {
 	prop := n.Content[1]
 	resourceName := prop.Content[0].Value
 
-	config.Debugf("ResolveGetAtt %s.%s", resourceName, prop.Content[1].Value)
-
 	if module.ResourcesNode != nil {
 		_, resource, _ := s11n.GetMapValue(module.ResourcesNode, resourceName)
 		if resource != nil {
@@ -227,9 +225,6 @@ func (module *Module) ResolveGetAtt(n *yaml.Node) error {
 			return nil
 		}
 	}
-
-	config.Debugf("ResolveGetAtt can't find %s, looking in Properties: %+v",
-		resourceName, module.Config.Properties())
 
 	moduleProps := module.Config.Properties()
 	propName := prop.Content[1].Value

@@ -123,7 +123,7 @@ func replaceTemplateConstants(t *cft.Template) error {
 
 func processConstants(t *cft.Template, n *yaml.Node) error {
 	// Process constants in order, since they can refer to previous ones
-	_, c, _ := s11n.GetMapValue(n, "Constants")
+	_, c, _ := s11n.GetMapValue(n, string(cft.Constants))
 	if c != nil {
 		for i := 0; i < len(c.Content); i += 2 {
 			name := c.Content[i].Value
@@ -151,5 +151,6 @@ func processConstants(t *cft.Template, n *yaml.Node) error {
 	if err != nil {
 		return err
 	}
+	node.RemoveFromMap(n, string(cft.Constants))
 	return nil
 }

@@ -444,3 +444,21 @@ func DecodeMap(n *yaml.Node) map[string]any {
 	}
 	return m
 }
+
+// StringsFromNode returns a string slice based on a scalar with a CSV or a sequence.
+func StringsFromNode(n *yaml.Node) []string {
+	if n == nil {
+		return nil
+	}
+	if n.Kind == yaml.ScalarNode {
+		return strings.Split(n.Value, ",")
+	}
+	if n.Kind == yaml.SequenceNode {
+		retval := make([]string, 0)
+		for _, s := range n.Content {
+			retval = append(retval, s.Value)
+		}
+		return retval
+	}
+	return nil
+}

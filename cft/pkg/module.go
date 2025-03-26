@@ -11,7 +11,6 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
-	"github.com/aws-cloudformation/rain/cft/visitor"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
@@ -45,6 +44,8 @@ type Module struct {
 	OutputsNode    *yaml.Node
 	Node           *yaml.Node
 	Parent         *cft.Template
+	ConditionsNode *yaml.Node
+	ModulesNode    *yaml.Node
 }
 
 // Outputs returns the Outputs node as a map
@@ -62,63 +63,14 @@ func (module *Module) Resources() map[string]any {
 	return node.DecodeMap(module.ResourcesNode)
 }
 
-// stringsFromNode returns a string slice based on a scalar with a CSV or a sequence.
-func stringsFromNode(n *yaml.Node) []string {
-	if n == nil {
-		return nil
-	}
-	if n.Kind == yaml.ScalarNode {
-		return strings.Split(n.Value, ",")
-	}
-	if n.Kind == yaml.SequenceNode {
-		retval := make([]string, 0)
-		for _, s := range n.Content {
-			retval = append(retval, s.Value)
-		}
-		return retval
-	}
-	return nil
+// Modules returns the Modules node as a map
+func (module *Module) Modules() map[string]any {
+	return node.DecodeMap(module.ModulesNode)
 }
 
-const (
-	MI = "$MapIndex"
-	MV = "$MapValue"
-)
-
-func replaceMapStr(s string, index int, key string) string {
-	s = strings.Replace(s, MI, fmt.Sprintf("%d", index), -1)
-	s = strings.Replace(s, MV, key, -1)
-	return s
-}
-
-// mapPlaceholders looks for MapValue and MapIndex and replaces them
-func mapPlaceholders(n *yaml.Node, index int, key string) {
-
-	vf := func(v *visitor.Visitor) {
-		yamlNode := v.GetYamlNode()
-		if yamlNode.Kind == yaml.MappingNode {
-			content := yamlNode.Content
-			if len(content) == 2 {
-				switch content[0].Value {
-				case string(cft.Sub):
-					r := replaceMapStr(content[1].Value, index, key)
-					if parse.IsSubNeeded(r) {
-						yamlNode.Value = r
-					} else {
-						*yamlNode = *node.MakeScalar(r)
-					}
-				case string(cft.GetAtt):
-					for _, getatt := range content[1].Content {
-						getatt.Value = replaceMapStr(getatt.Value, index, key)
-					}
-				}
-			}
-		} else if yamlNode.Kind == yaml.ScalarNode {
-			yamlNode.Value = replaceMapStr(yamlNode.Value, index, key)
-		}
-	}
-
-	visitor.NewVisitor(n).Visit(vf)
+// Conditions returns the Conditions node as a map
+func (module *Module) Conditions() map[string]any {
+	return node.DecodeMap(module.ConditionsNode)
 }
 
 // Process the Modules section of a template or module.
@@ -140,89 +92,10 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 
 	originalContent := moduleSection.Content
 
-	content := make([]*yaml.Node, 0)
-
-	// This will hold info about original mapped modules
-	moduleMaps := make(map[string]any)
-
-	// Process Maps, which duplicate the module for each element in a list
-	for i := 0; i < len(originalContent); i += 2 {
-		name := originalContent[i].Value
-		moduleConfig, err := cft.ParseModuleConfig(name, originalContent[i+1])
-		if err != nil {
-			return err
-		}
-
-		if moduleConfig.Map != nil {
-			// The map is either a CSV or a Ref to a CSV that we can fully resolve
-			mapJson := node.ToSJson(moduleConfig.Map)
-			var keys []string
-			if moduleConfig.Map.Kind == yaml.ScalarNode {
-				keys = stringsFromNode(moduleConfig.Map)
-			} else if moduleConfig.Map.Kind == yaml.SequenceNode {
-				keys = stringsFromNode(moduleConfig.Map)
-			} else if moduleConfig.Map.Kind == yaml.MappingNode {
-				if len(moduleConfig.Map.Content) == 2 && moduleConfig.Map.Content[0].Value == "Ref" {
-					r := moduleConfig.Map.Content[1].Value
-					// Look in the parent templates Parameters for the Ref
-					if !t.HasSection(cft.Parameters) {
-						return fmt.Errorf("module Map Ref no Parameters: %s", mapJson)
-					}
-					params, _ := t.GetSection(cft.Parameters)
-					_, keysNode, _ := s11n.GetMapValue(params, r)
-					if keysNode == nil {
-						return fmt.Errorf("expected module Map Ref to a Parameter: %s", mapJson)
-					}
-					// TODO - This is too simple. What about sub-modules?
-					_, d, _ := s11n.GetMapValue(keysNode, "Default")
-					if d == nil {
-						return fmt.Errorf("expected module Map Ref to a Default: %s", mapJson)
-					}
-					keys = stringsFromNode(d)
-				} else {
-					return fmt.Errorf("expected module Map to be a Ref: %s", mapJson)
-				}
-			} else {
-				return fmt.Errorf("unexpected module Map Kind: %s", mapJson)
-			}
-
-			if len(keys) < 1 {
-				mapErr := fmt.Errorf("expected module Map to have items: %s", mapJson)
-				return mapErr
-			}
-
-			// Record the number of items in the map
-			moduleMaps[moduleConfig.Name] = len(keys)
-
-			// Duplicate the config
-			for i, key := range keys {
-				mapName := fmt.Sprintf("%s%d", moduleConfig.Name, i)
-				copiedNode := node.Clone(moduleConfig.Node)
-				node.RemoveFromMap(copiedNode, "Map")
-				copiedConfig, err := cft.ParseModuleConfig(mapName, copiedNode)
-				if err != nil {
-					return err
-				}
-
-				// These values won't go into the YAML but we'll store them for later
-				copiedConfig.OriginalName = moduleConfig.Name
-				copiedConfig.IsMapCopy = true
-				copiedConfig.MapIndex = i
-				copiedConfig.MapKey = key
-
-				// Add a reference to the template so we can find it later for Outputs
-				t.AddMappedModule(copiedConfig)
-
-				// Replace $MapIndex and $MapValue
-				mapPlaceholders(copiedNode, i, key)
-
-				content = append(content, node.MakeScalar(mapName))
-				content = append(content, copiedNode)
-			}
-		} else {
-			content = append(content, originalContent[i])
-			content = append(content, originalContent[i+1])
-		}
+	// Duplicate module content that has a Map attribute
+	content, err := processMaps(originalContent, t)
+	if err != nil {
+		return err
 	}
 
 	// Replace the original Modules content
@@ -320,18 +193,31 @@ func processModule(
 	m.Parent = t
 
 	// Locate the Resources: section in the module
-	_, moduleResources, _ := s11n.GetMapValue(module, "Resources")
+	_, moduleResources, _ := s11n.GetMapValue(module, string(cft.Resources))
 	m.ResourcesNode = moduleResources
 
 	// Locate the Parameters: section in the module (might be nil)
-	_, moduleParams, _ := s11n.GetMapValue(module, "Parameters")
+	_, moduleParams, _ := s11n.GetMapValue(module, string(cft.Parameters))
 	m.ParametersNode = moduleParams
 
 	// Locate the Outputs: section in the module (might be nil)
-	_, moduleOutputs, _ := s11n.GetMapValue(module, "Outputs")
+	_, moduleOutputs, _ := s11n.GetMapValue(module, string(cft.Outputs))
 	m.OutputsNode = moduleOutputs
 
-	err := m.ValidateOverrides()
+	// Locate the Conditions: section in the module (might be nil)
+	_, moduleConditions, _ := s11n.GetMapValue(module, string(cft.Conditions))
+	m.ConditionsNode = moduleConditions
+
+	// Locate the Modules: section in the module (might be nil)
+	_, moduleModules, _ := s11n.GetMapValue(module, string(cft.Modules))
+	m.ModulesNode = moduleModules
+
+	err := m.ProcessConditions()
+	if err != nil {
+		return err
+	}
+
+	err = m.ValidateOverrides()
 	if err != nil {
 		return err
 	}
