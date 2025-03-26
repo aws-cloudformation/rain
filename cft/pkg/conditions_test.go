@@ -41,15 +41,9 @@ Parameters:
   Environment:
     Type: String
     Default: prod
-Conditions:
-  IsProd:
-    Fn::Equals:
-      - !Ref Environment
-      - prod
 Resources:
   ProdBucket:
     Type: AWS::S3::Bucket
-    Condition: IsProd
 `,
 		},
 		{
@@ -84,19 +78,12 @@ Parameters:
   Region:
     Type: String
     Default: us-east-1
-Conditions:
-  IsProdAndEast:
-    Fn::And:
-      - !Equals [!Ref Environment, prod]
-      - !Equals [!Ref Region, us-east-1]
 Resources:
   ProdEastBucket:
     Type: AWS::S3::Bucket
-    Condition: IsProdAndEast
 Modules:
   ProdModule:
     Source: ./prod-module.yaml
-    Condition: IsProdAndEast
 `,
 		},
 		{
@@ -131,11 +118,6 @@ Parameters:
   Region:
     Type: String
     Default: us-east-1
-Conditions:
-  IsProdOrEast:
-    Fn::Or:
-      - !Equals [!Ref Environment, prod]
-      - !Equals [!Ref Region, us-east-1]
 Resources:
   ConditionalBucket:
     Type: AWS::S3::Bucket
@@ -188,23 +170,9 @@ Parameters:
   Feature:
     Type: String
     Default: enabled
-Conditions:
-  IsProd:
-    Fn::Equals: [!Ref Environment, prod]
-  IsEast:
-    Fn::Equals: [!Ref Region, us-east-1]
-  IsFeatureEnabled:
-    Fn::Equals: [!Ref Feature, enabled]
-  ShouldDeploy:
-    Fn::And:
-      - !Condition IsProd
-      - Fn::Or:
-        - !Condition IsEast
-        - !Condition IsFeatureEnabled
 Resources:
   ConditionalBucket:
     Type: AWS::S3::Bucket
-    Condition: ShouldDeploy
 `,
 		},
 		{
@@ -221,9 +189,6 @@ Resources:
     Type: AWS::S3::Bucket
 `,
 			want: `
-Conditions:
-  AlwaysFalse:
-    Fn::Equals: [true, false]
 Resources:
   AlwaysCreated:
     Type: AWS::S3::Bucket
@@ -248,6 +213,10 @@ Resources:
 			// Create a Module instance
 			m := &Module{
 				Node: templateNode.Content[0],
+			}
+
+			m.Config = &cft.ModuleConfig{
+				Name: "Test",
 			}
 
 			// Get the sections
@@ -356,7 +325,8 @@ Resources:
 
 			// Create a Module instance
 			m := &Module{
-				Node: templateNode.Content[0],
+				Node:   templateNode.Content[0],
+				Config: &cft.ModuleConfig{Name: "Test"},
 			}
 
 			// Get the sections

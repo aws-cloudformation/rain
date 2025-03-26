@@ -187,6 +187,10 @@ func processModule(
 	moduleConstants map[string]*yaml.Node,
 	moduleConfig *cft.ModuleConfig) error {
 
+	if moduleConfig == nil {
+		return errors.New("moduleConfig is nil")
+	}
+
 	m := &Module{}
 	m.Config = moduleConfig
 	m.Node = module

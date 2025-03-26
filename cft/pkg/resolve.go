@@ -2,6 +2,7 @@
 package pkg
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -44,6 +45,10 @@ func (module *Module) Resolve(n *yaml.Node) error {
 }
 
 func (module *Module) ResolveRef(n *yaml.Node) error {
+
+	if module.Config == nil {
+		return errors.New("module.Config is nil")
+	}
 
 	moduleParams := module.ParametersNode
 	templateProps := module.Config.PropertiesNode

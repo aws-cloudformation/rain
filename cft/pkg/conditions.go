@@ -3,6 +3,7 @@ package pkg
 import (
 	"fmt"
 
+	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
@@ -17,6 +18,12 @@ func (module *Module) ProcessConditions() error {
 	// If there are no conditions in the module, nothing to do
 	if module.ConditionsNode == nil {
 		return nil
+	}
+
+	// First resolve condition values
+	err := module.Resolve(module.ConditionsNode)
+	if err != nil {
+		return err
 	}
 
 	// Create a dictionary of condition names to boolean values
@@ -77,6 +84,8 @@ func (module *Module) ProcessConditions() error {
 				if !conditionResult {
 					itemsToRemove = append(itemsToRemove, itemName)
 				}
+
+				node.RemoveFromMap(itemNode, Condition)
 			}
 		}
 
@@ -94,6 +103,8 @@ func (module *Module) ProcessConditions() error {
 			return fmt.Errorf("error processing Fn::If in %s section: %v", section.name, err)
 		}
 	}
+
+	node.RemoveFromMap(module.Node, string(cft.Conditions))
 
 	return nil
 }
@@ -139,7 +150,7 @@ func evaluateCondition(condName string, condValue interface{}, conditions map[st
 			return evaluateCondition("", result, conditions, module)
 		}
 	}
-	
+
 	// Default to false if we can't evaluate the condition
 	return false, fmt.Errorf("unable to evaluate condition '%s': unsupported format", condName)
 }
@@ -206,44 +217,11 @@ func evaluateEquals(equalsExpr interface{}, module *Module) (bool, error) {
 	}
 
 	// Resolve parameter references if needed
-	val1 := resolveValue(equalsList[0], module)
-	val2 := resolveValue(equalsList[1], module)
+	val1 := equalsList[0]
+	val2 := equalsList[1]
 
 	// Compare the values
 	return val1 == val2, nil
-}
-
-// resolveValue resolves parameter references and other simple values
-func resolveValue(value interface{}, module *Module) interface{} {
-	// Handle parameter references
-	if refMap, ok := value.(map[string]interface{}); ok {
-		if ref, ok := refMap["Ref"]; ok {
-			paramName, ok := ref.(string)
-			if ok && module.ParametersNode != nil {
-				// Check if this is a parameter reference
-				params := module.Parameters()
-				if param, exists := params[paramName]; exists {
-					// Get the default value if available
-					if paramMap, ok := param.(map[string]interface{}); ok {
-						if defaultVal, ok := paramMap[Default]; ok {
-							return defaultVal
-						}
-					}
-				}
-
-				// Check if the parameter is provided in the module config
-				if module.Config != nil && module.Config.PropertiesNode != nil {
-					props := node.DecodeMap(module.Config.PropertiesNode)
-					if propVal, exists := props[paramName]; exists {
-						return propVal
-					}
-				}
-			}
-		}
-	}
-
-	// Return the original value if we couldn't resolve it
-	return value
 }
 
 // processFnIf processes Fn::If functions in a node and its children
@@ -271,7 +249,7 @@ func processFnIf(n *yaml.Node, conditionValues map[string]bool) error {
 						} else {
 							replacement = node.Clone(value.Content[2]) // false value
 						}
-						
+
 						// Replace the entire mapping node with the replacement
 						*n = *replacement
 						return nil // We've replaced the entire node, so we're done
@@ -284,7 +262,7 @@ func processFnIf(n *yaml.Node, conditionValues map[string]bool) error {
 			if err != nil {
 				return err
 			}
-			
+
 			i += 2
 		}
 
