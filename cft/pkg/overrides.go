@@ -139,6 +139,9 @@ func (module *Module) ProcessOverrides(
 				}
 			}
 		}
+		if len(dependsOnValue.Content) == 1 {
+			dependsOnValue = node.MakeScalar(dependsOnValue.Content[0].Value)
+		}
 		clonedResource.Content = append(clonedResource.Content, dependsOnValue)
 	}
 

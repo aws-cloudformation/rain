@@ -73,7 +73,8 @@ func (module *Module) Conditions() map[string]any {
 
 // Process the Modules section of a template or module.
 // Modifies t in place.
-func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *embed.FS) error {
+func processModulesSection(t *cft.Template, n *yaml.Node,
+	rootDir string, fs *embed.FS, parentModule *Module) error {
 
 	// AWS CLI package Modules compatibility.
 	// This is basically the same as !Rain::Module but the modules are
@@ -91,8 +92,10 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 
 	originalContent := moduleSection.Content
 
+	config.Debugf("before maps: %s", node.YamlStr(moduleSection))
+
 	// Duplicate module content that has a Map attribute
-	content, err := processMaps(originalContent, t)
+	content, err := processMaps(originalContent, t, parentModule)
 	if err != nil {
 		return err
 	}
@@ -100,8 +103,11 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 	// Replace the original Modules content
 	moduleSection.Content = content
 
+	config.Debugf("after maps: %s", node.YamlStr(moduleSection))
+
 	for i := 0; i < len(content); i += 2 {
 		name := content[i].Value
+		config.Debugf("processModulesSection: %s", name)
 		moduleConfig, err := cft.ParseModuleConfig(name, content[i+1])
 		if err != nil {
 			return err
@@ -213,11 +219,17 @@ func processModule(
 	}
 
 	// Move processRainSection and processAddedSections here?
-	processRainSection(moduleAsTemplate,
+	err = processRainSection(moduleAsTemplate,
 		parsedModule.RootDir, parsedModule.FS)
+	if err != nil {
+		return err
+	}
 
-	processAddedSections(moduleAsTemplate, moduleAsTemplate.Node.Content[0],
-		parsedModule.RootDir, parsedModule.FS)
+	err = processAddedSections(moduleAsTemplate, moduleAsTemplate.Node.Content[0],
+		parsedModule.RootDir, parsedModule.FS, m)
+	if err != nil {
+		return err
+	}
 
 	err = m.ValidateOverrides()
 	if err != nil {
@@ -236,12 +248,12 @@ func processModule(
 	}
 
 	// Resolve any references to this module in the parent template
-	config.Debugf("About to resolve in processModule %s", m.Config.Name)
 	err = m.Resolve(t.Node)
 	if err != nil {
 		return err
 	}
 
+	// TODO: Move into Resolve?
 	err = FnMerge(t.Node)
 	if err != nil {
 		return err
@@ -315,12 +327,12 @@ func (module *Module) ProcessResources(outputNode *yaml.Node) error {
 		// Resolve Refs in the module
 		// Some refs are to other resources in the module
 		// Other refs are to the module's parameters
-		config.Debugf("About to resolve resource %s", name)
 		err = module.Resolve(clonedResource)
 		if err != nil {
 			return fmt.Errorf("failed to resolve refs: %v", err)
 		}
 
+		// TODO: Move final intrinsics inside Resolve?
 		err = FnMerge(clonedResource)
 		if err != nil {
 			return err
@@ -518,7 +530,7 @@ func module(ctx *directiveContext) (bool, error) {
 // in either the Rain section (backwards comapatibility) or
 // if they are at the top level (like the AWS CLI)
 func processAddedSections(
-	t *cft.Template, n *yaml.Node, rootDir string, fs *embed.FS) error {
+	t *cft.Template, n *yaml.Node, rootDir string, fs *embed.FS, parentModule *Module) error {
 
 	var err error
 
@@ -531,7 +543,7 @@ func processAddedSections(
 		return err
 	}
 
-	err = processModulesSection(t, n, rootDir, fs)
+	err = processModulesSection(t, n, rootDir, fs, parentModule)
 	if err != nil {
 		return err
 	}

@@ -53,7 +53,9 @@ func mapPlaceholders(n *yaml.Node, index int, key string) {
 	visitor.NewVisitor(n).Visit(vf)
 }
 
-func processMaps(originalContent []*yaml.Node, t *cft.Template) ([]*yaml.Node, error) {
+// processMaps duplicates module configuration in the template for each value in a CSV
+func processMaps(originalContent []*yaml.Node, t *cft.Template, parentModule *Module) ([]*yaml.Node, error) {
+
 	content := make([]*yaml.Node, 0)
 
 	// This will hold info about original mapped modules
@@ -87,12 +89,27 @@ func processMaps(originalContent []*yaml.Node, t *cft.Template) ([]*yaml.Node, e
 					if keysNode == nil {
 						return nil, fmt.Errorf("expected module Map Ref to a Parameter: %s", mapJson)
 					}
-					// TODO - This is too simple. What about sub-modules?
-					_, d, _ := s11n.GetMapValue(keysNode, "Default")
-					if d == nil {
-						return nil, fmt.Errorf("expected module Map Ref to a Default: %s", mapJson)
+
+					// Look at the parent module Properties
+					// TODO: Will this work in nested modules? Have those props been resolved?
+					if parentModule != nil {
+						if parentPropVal, ok := parentModule.Config.Properties()[r]; ok {
+							csv, ok := parentPropVal.(string)
+							if ok {
+								keys = strings.Split(csv, ",")
+							} else {
+								return nil, fmt.Errorf("expected Map keys to be a CSV: %v", parentPropVal)
+							}
+						}
 					}
-					keys = node.StringsFromNode(d)
+
+					if len(keys) == 0 {
+						_, d, _ := s11n.GetMapValue(keysNode, "Default")
+						if d == nil {
+							return nil, fmt.Errorf("expected module Map Ref to a Default: %s", mapJson)
+						}
+						keys = node.StringsFromNode(d)
+					}
 				} else {
 					return nil, fmt.Errorf("expected module Map to be a Ref: %s", mapJson)
 				}

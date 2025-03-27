@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft/visitor"
-	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"gopkg.in/yaml.v3"
 )
@@ -66,8 +65,6 @@ func FnJoin(n *yaml.Node) error {
 // The arguments must be fully resolvable client-side
 func FnMerge(n *yaml.Node) error {
 
-	config.Debugf("FnMerge:\n%s", node.YamlStr(n))
-
 	var err error
 	vf := func(v *visitor.Visitor) {
 		vn := v.GetYamlNode()
@@ -91,7 +88,6 @@ func FnMerge(n *yaml.Node) error {
 			v.Stop()
 			return
 		}
-		config.Debugf("FnMerge:\n%s", node.YamlStr(mrg))
 		merged := &yaml.Node{}
 		for _, nodeToMerge := range mrg.Content {
 			merged = node.MergeNodes(merged, nodeToMerge)

@@ -118,7 +118,7 @@ func processRainSection(t *cft.Template, rootDir string, fs *embed.FS) error {
 
 	HasRainSection = true
 
-	retval := processAddedSections(t, rainNode, rootDir, fs)
+	retval := processAddedSections(t, rainNode, rootDir, fs, nil)
 
 	// Now remove the Rain node from the template
 	t.RemoveSection(cft.Rain)
@@ -142,7 +142,7 @@ func Template(t *cft.Template, rootDir string, fs *embed.FS) (*cft.Template, err
 	}
 
 	// See if those sections are defined at the top level
-	err = processAddedSections(t, t.Node.Content[0], rootDir, fs)
+	err = processAddedSections(t, t.Node.Content[0], rootDir, fs, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process added sections: %v", err)
 	}

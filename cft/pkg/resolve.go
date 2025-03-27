@@ -20,8 +20,6 @@ import (
 // other Resource names within the module.
 func (module *Module) Resolve(n *yaml.Node) error {
 
-	config.Debugf("Resolve %s: \n%s", module.Config.Name, node.YamlStr(n))
-
 	var err error
 	vf := func(v *visitor.Visitor) {
 		vn := v.GetYamlNode()
