@@ -44,6 +44,7 @@ type Module struct {
 	Parent         *cft.Template
 	ConditionsNode *yaml.Node
 	ModulesNode    *yaml.Node
+	Parsed         *ParsedModule
 }
 
 // Outputs returns the Outputs node as a map
@@ -203,6 +204,7 @@ func processModule(
 	m.Config = moduleConfig
 	m.Node = moduleNode
 	m.Parent = t
+	m.Parsed = parsedModule
 
 	m.InitNodes()
 
@@ -253,8 +255,34 @@ func processModule(
 		return err
 	}
 
-	// TODO: Move into Resolve?
-	err = FnMerge(t.Node)
+	err = ExtraIntrinsics(t.Node, parsedModule.RootDir)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ExtraIntrinsics(n *yaml.Node, basePath string) error {
+
+	var err error
+
+	err = FnJoin(n)
+	if err != nil {
+		return err
+	}
+
+	err = FnMerge(n)
+	if err != nil {
+		return err
+	}
+
+	err = FnSelect(n)
+	if err != nil {
+		return err
+	}
+
+	err = FnInsertFile(n, basePath)
 	if err != nil {
 		return err
 	}
@@ -332,8 +360,7 @@ func (module *Module) ProcessResources(outputNode *yaml.Node) error {
 			return fmt.Errorf("failed to resolve refs: %v", err)
 		}
 
-		// TODO: Move final intrinsics inside Resolve?
-		err = FnMerge(clonedResource)
+		err = ExtraIntrinsics(clonedResource, module.Parsed.RootDir)
 		if err != nil {
 			return err
 		}
@@ -548,7 +575,20 @@ func processAddedSections(
 		return err
 	}
 
-	err = FnJoin(t.Node)
+	err = FnJoin(n)
+	if err != nil {
+		return err
+	}
+
+	// Putting Merge here breaks it, since it merges unresolved Refs...
+	// TODO: Need to make sure Merge doesn't run until the very end..
+
+	err = FnSelect(n)
+	if err != nil {
+		return err
+	}
+
+	err = FnInsertFile(n, rootDir)
 	if err != nil {
 		return err
 	}
