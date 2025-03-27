@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/aws-cloudformation/rain/cft"
+	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
@@ -40,6 +41,8 @@ func (module *Module) ProcessConditions() error {
 		conditionValues[condName] = result
 	}
 
+	config.Debugf("Conditions for %s: %v", module.Config.Name, conditionValues)
+
 	// Process both Resources and Modules sections
 	sections := []struct {
 		name string
@@ -48,6 +51,17 @@ func (module *Module) ProcessConditions() error {
 		{"Resources", module.ResourcesNode},
 		{"Modules", module.ModulesNode},
 	}
+
+	numResources := 0
+	numModules := 0
+	if module.ResourcesNode != nil {
+		numResources = len(module.ResourcesNode.Content)
+	}
+	if module.ModulesNode != nil {
+		numModules = len(module.ModulesNode.Content)
+	}
+	config.Debugf("Module %s has %d Resources and %d Modules",
+		module.Config.Name, numResources, numModules)
 
 	for _, section := range sections {
 		if section.node == nil {
@@ -62,26 +76,30 @@ func (module *Module) ProcessConditions() error {
 			itemName := section.node.Content[i].Value
 			itemNode := section.node.Content[i+1]
 
+			config.Debugf("Checking %s %s", section.name, itemName)
+
 			// Check if this item has a Condition attribute
 			_, conditionNode, _ := s11n.GetMapValue(itemNode, Condition)
 			if conditionNode != nil {
 				var conditionResult bool
-				var err error
 
-				// Handle condition as a simple string reference
 				if conditionNode.Kind == yaml.ScalarNode {
 					conditionName := conditionNode.Value
 					conditionResult = conditionValues[conditionName]
 				} else {
-					// This might be a condition function that's already been parsed by YAML parser
-					condValue := node.DecodeMap(conditionNode)
-					conditionResult, err = evaluateCondition("", condValue, conditions, module)
-					if err != nil {
-						return fmt.Errorf("error evaluating condition for %s: %v", itemName, err)
-					}
+					return fmt.Errorf("invalid Condition: %s", node.YamlStr(itemNode))
+
+					//// This might be a condition function that's already been parsed by YAML parser
+					//condValue := node.DecodeMap(conditionNode)
+					//conditionResult, err = evaluateCondition("", condValue, conditions, module)
+					//if err != nil {
+					//	return fmt.Errorf("error evaluating condition for %s: %v", itemName, err)
+					//}
 				}
 
 				if !conditionResult {
+					config.Debugf("Removing %s %s", section.name, itemName)
+
 					itemsToRemove = append(itemsToRemove, itemName)
 				}
 
@@ -98,7 +116,7 @@ func (module *Module) ProcessConditions() error {
 		}
 
 		// Process Fn::If functions in the remaining items
-		err := processFnIf(section.node, conditionValues)
+		_, err := processFnIf(section.node, conditionValues)
 		if err != nil {
 			return fmt.Errorf("error processing Fn::If in %s section: %v", section.name, err)
 		}
@@ -225,42 +243,68 @@ func evaluateEquals(equalsExpr interface{}, module *Module) (bool, error) {
 }
 
 // processFnIf processes Fn::If functions in a node and its children
-func processFnIf(n *yaml.Node, conditionValues map[string]bool) error {
+// Returns true if the node should be removed from its parent
+func processFnIf(n *yaml.Node, conditionValues map[string]bool) (bool, error) {
 	if n == nil {
-		return nil
+		return false, nil
 	}
 
 	switch n.Kind {
 	case yaml.MappingNode:
-		i := 0
-		for i < len(n.Content) {
-			key := n.Content[i]
-			value := n.Content[i+1]
-
-			// Check if this is an Fn::If - no need to check for !If since YAML parser already converted it
-			if key.Value == "Fn::If" {
-				if value.Kind == yaml.SequenceNode && len(value.Content) == 3 {
-					condName := value.Content[0].Value
-					if condVal, exists := conditionValues[condName]; exists {
-						// Get the appropriate value based on condition
-						var replacement *yaml.Node
-						if condVal {
-							replacement = node.Clone(value.Content[1]) // true value
-						} else {
-							replacement = node.Clone(value.Content[2]) // false value
-						}
-
-						// Replace the entire mapping node with the replacement
-						*n = *replacement
-						return nil // We've replaced the entire node, so we're done
+		// Check if this is an Fn::If node directly
+		if len(n.Content) >= 2 && n.Content[0].Value == "Fn::If" {
+			value := n.Content[1]
+			if value.Kind == yaml.SequenceNode && len(value.Content) == 3 {
+				condName := value.Content[0].Value
+				if condVal, exists := conditionValues[condName]; exists {
+					// Get the appropriate value based on condition
+					var replacement *yaml.Node
+					if condVal {
+						replacement = node.Clone(value.Content[1]) // true value
+					} else {
+						replacement = node.Clone(value.Content[2]) // false value
 					}
+
+					// Check if this is AWS::NoValue
+					if replacement.Kind == yaml.MappingNode && len(replacement.Content) >= 2 {
+						if replacement.Content[0].Value == "Ref" &&
+							replacement.Content[1].Value == "AWS::NoValue" {
+							return true, nil // Signal that this node should be removed
+						}
+					}
+
+					// Replace the entire node with the replacement
+					*n = *replacement
+					return false, nil
 				}
 			}
+		}
 
-			// Recursively process the value
-			err := processFnIf(value, conditionValues)
+		// Process each key-value pair in the mapping
+		i := 0
+		for i < len(n.Content) {
+			// Make sure we have both key and value
+			if i+1 >= len(n.Content) {
+				break
+			}
+
+			value := n.Content[i+1]
+
+			// Process the value recursively
+			shouldRemove, err := processFnIf(value, conditionValues)
 			if err != nil {
-				return err
+				return false, err
+			}
+
+			if shouldRemove {
+				// Remove this key-value pair
+				if i+2 <= len(n.Content) {
+					n.Content = append(n.Content[:i], n.Content[i+2:]...)
+				} else {
+					n.Content = n.Content[:i]
+				}
+				// Don't increment i since we've removed elements
+				continue
 			}
 
 			i += 2
@@ -268,13 +312,27 @@ func processFnIf(n *yaml.Node, conditionValues map[string]bool) error {
 
 	case yaml.SequenceNode:
 		// Process each item in the sequence
-		for _, item := range n.Content {
-			err := processFnIf(item, conditionValues)
+		i := 0
+		for i < len(n.Content) {
+			shouldRemove, err := processFnIf(n.Content[i], conditionValues)
 			if err != nil {
-				return err
+				return false, err
 			}
+
+			if shouldRemove {
+				// Remove this item from the sequence
+				if i+1 <= len(n.Content) {
+					n.Content = append(n.Content[:i], n.Content[i+1:]...)
+				} else {
+					n.Content = n.Content[:i]
+				}
+				// Don't increment i since we've removed an element
+				continue
+			}
+
+			i++
 		}
 	}
 
-	return nil
+	return false, nil
 }

@@ -5,8 +5,6 @@ import (
 	"embed"
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
@@ -77,11 +75,15 @@ func (module *Module) Conditions() map[string]any {
 // Modifies t in place.
 func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *embed.FS) error {
 
+	config.Debugf("processModulesSection t:\n%s", node.YamlStr(t.Node))
+	config.Debugf("processModulesSection n:\n%s", node.ToSJson(n))
+
 	// AWS CLI package Modules compatibility.
 	// This is basically the same as !Rain::Module but the modules are
 	// defined in a new Modules Section.
 	_, moduleSection, _ := s11n.GetMapValue(n, "Modules")
 	if moduleSection == nil {
+		config.Debugf("No Modules section found")
 		return nil
 	}
 	HasModules = true
@@ -100,6 +102,8 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 
 	// Replace the original Modules content
 	moduleSection.Content = content
+
+	config.Debugf("content after Maps: \n%s", node.YamlStr(moduleSection))
 
 	for i := 0; i < len(content); i += 2 {
 		name := content[i].Value
@@ -126,7 +130,7 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 
 		err = processModule(
 			name,
-			parsed.Node,
+			parsed,
 			outputNode,
 			t,
 			parsed.AsTemplate.Constants,
@@ -135,6 +139,11 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 			return err
 		}
 
+		config.Debugf("after processModule %s outputNode:\n%s",
+			name, node.ToSJson(outputNode))
+
+		config.Debugf("t before adding resources:\n%s", node.ToSJson(t.Node))
+
 		// Put the content into the template
 		if len(outputNode.Content) > 0 {
 			resources, err := t.GetSection(cft.Resources)
@@ -142,9 +151,13 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 				resources = node.AddMap(t.Node.Content[0], string(cft.Resources))
 			}
 			resources.Content = append(resources.Content, outputNode.Content...)
+
+			config.Debugf("resources after append:\n%s", node.YamlStr(resources))
 		} else {
-			config.Debugf("Module %s did not have any Resources", name)
+			config.Debugf("processModuleSection %s outputNode did not have any Resources", name)
 		}
+
+		config.Debugf("t after processModule:\n%s", node.ToSJson(t.Node))
 
 	}
 
@@ -181,7 +194,7 @@ func addScalarAttribute(out *yaml.Node, name string, moduleResource *yaml.Node, 
 // processModule performs all of the module logic and injects the content into the parent
 func processModule(
 	logicalId string,
-	module *yaml.Node,
+	parsedModule *ParsedModule,
 	outputNode *yaml.Node,
 	t *cft.Template,
 	moduleConstants map[string]*yaml.Node,
@@ -191,35 +204,35 @@ func processModule(
 		return errors.New("moduleConfig is nil")
 	}
 
+	moduleNode := parsedModule.Node
+
+	config.Debugf("processModule %s:\n%s", logicalId, node.YamlStr(moduleNode))
+
 	m := &Module{}
 	m.Config = moduleConfig
-	m.Node = module
+	m.Node = moduleNode
 	m.Parent = t
 
-	// Locate the Resources: section in the module
-	_, moduleResources, _ := s11n.GetMapValue(module, string(cft.Resources))
-	m.ResourcesNode = moduleResources
-
-	// Locate the Parameters: section in the module (might be nil)
-	_, moduleParams, _ := s11n.GetMapValue(module, string(cft.Parameters))
-	m.ParametersNode = moduleParams
-
-	// Locate the Outputs: section in the module (might be nil)
-	_, moduleOutputs, _ := s11n.GetMapValue(module, string(cft.Outputs))
-	m.OutputsNode = moduleOutputs
-
-	// Locate the Conditions: section in the module (might be nil)
-	_, moduleConditions, _ := s11n.GetMapValue(module, string(cft.Conditions))
-	m.ConditionsNode = moduleConditions
-
-	// Locate the Modules: section in the module (might be nil)
-	_, moduleModules, _ := s11n.GetMapValue(module, string(cft.Modules))
-	m.ModulesNode = moduleModules
+	m.InitNodes()
 
 	err := m.ProcessConditions()
 	if err != nil {
 		return err
 	}
+
+	moduleAsTemplate := &cft.Template{
+		Node: &yaml.Node{
+			Kind:    yaml.DocumentNode,
+			Content: []*yaml.Node{moduleNode},
+		},
+	}
+
+	// Move processRainSection and processAddedSections here?
+	processRainSection(moduleAsTemplate,
+		parsedModule.RootDir, parsedModule.FS)
+
+	processAddedSections(moduleAsTemplate, moduleAsTemplate.Node.Content[0],
+		parsedModule.RootDir, parsedModule.FS)
 
 	err = m.ValidateOverrides()
 	if err != nil {
@@ -246,13 +259,44 @@ func processModule(
 	return nil
 }
 
+func (module *Module) InitNodes() {
+	// Locate the Resources: section in the module
+	_, moduleResources, _ := s11n.GetMapValue(module.Node, string(cft.Resources))
+	module.ResourcesNode = moduleResources
+
+	// Locate the Parameters: section in the module (might be nil)
+	_, moduleParams, _ := s11n.GetMapValue(module.Node, string(cft.Parameters))
+	module.ParametersNode = moduleParams
+
+	// Locate the Outputs: section in the module (might be nil)
+	_, moduleOutputs, _ := s11n.GetMapValue(module.Node, string(cft.Outputs))
+	module.OutputsNode = moduleOutputs
+
+	// Locate the Conditions: section in the module (might be nil)
+	_, moduleConditions, _ := s11n.GetMapValue(module.Node, string(cft.Conditions))
+	module.ConditionsNode = moduleConditions
+
+	// Locate the Modules: section in the module (might be nil)
+	_, moduleModules, _ := s11n.GetMapValue(module.Node, string(cft.Modules))
+	module.ModulesNode = moduleModules
+}
+
 // ProcessResources injects the module's resources into the output node
 func (module *Module) ProcessResources(outputNode *yaml.Node) error {
+
+	config.Debugf("ProcessResources %s: %s",
+		module.Config.Name, node.ToSJson(module.Node))
+
+	// Resources Node may have been replaced
+	module.InitNodes()
 
 	if module.ResourcesNode == nil {
 		config.Debugf("Module %s has no resources", module.Config.Name)
 		return nil
 	}
+
+	config.Debugf("ProcessResources %s has %d Resources", module.Config.Name,
+		len(module.ResourcesNode.Content)/2)
 
 	// Get module resources and add them to the output
 	for i, moduleResource := range module.ResourcesNode.Content {
@@ -261,12 +305,16 @@ func (module *Module) ProcessResources(outputNode *yaml.Node) error {
 		}
 		name := module.ResourcesNode.Content[i-1].Value
 
+		config.Debugf("ProcessResources %s, resource %s",
+			module.Config.Name, name)
+
 		// Check to see if there is a Rain attribute in the Metadata.
 		// If so, check conditionals like IfParam
 		metadata := s11n.GetMap(moduleResource, Metadata)
 		if metadata != nil {
 			if rainMetadata, ok := metadata[Rain]; ok {
-				if omitIfs(rainMetadata, module.ParametersNode, module.Config.PropertiesNode, moduleResource) {
+				if omitIfs(rainMetadata, module.ParametersNode,
+					module.Config.PropertiesNode, moduleResource) {
 					continue
 				}
 			}
@@ -293,6 +341,8 @@ func (module *Module) ProcessResources(outputNode *yaml.Node) error {
 		outputNode.Content = append(outputNode.Content, clonedResource)
 	}
 
+	config.Debugf("ProcessResources outputNode: %s", node.ToSJson(outputNode))
+
 	return nil
 }
 
@@ -304,7 +354,8 @@ func processRainResourceModule(
 	t *cft.Template,
 	parent node.NodePair,
 	moduleConstants map[string]*yaml.Node,
-	source string) error {
+	source string,
+	parsed *ParsedModule) error {
 
 	// The parent arg is the map in the template resource's Content[1] that contains Type, Properties, etc
 
@@ -335,7 +386,7 @@ func processRainResourceModule(
 	}
 	moduleConfig.Source = source
 
-	return processModule(logicalId, module, outputNode, t, moduleConstants, moduleConfig)
+	return processModule(logicalId, parsed, outputNode, t, moduleConstants, moduleConfig)
 }
 
 func checkPackageAlias(t *cft.Template, uri string) *cft.PackageAlias {
@@ -351,108 +402,11 @@ func checkPackageAlias(t *cft.Template, uri string) *cft.PackageAlias {
 	return nil
 }
 
-type ModuleContent struct {
-	Content    []byte
-	NewRootDir string
-	BaseUri    string
-}
-
-// Get the module's content from a local file, memory, or a remote uri
-func getModuleContent(
-	root string,
-	t *cft.Template,
-	templateFiles *embed.FS,
-	baseUri string,
-	uri string) (*ModuleContent, error) {
-
-	var content []byte
-	var err error
-	var newRootDir string
-
-	// Check to see if this is an alias like "alias/foo.yaml"
-	packageAlias := checkPackageAlias(t, uri)
-	isZip := false
-	if packageAlias != nil {
-		path := strings.Replace(uri, packageAlias.Alias+"/", "", 1)
-		if strings.HasSuffix(packageAlias.Location, ".zip") {
-			// Unzip, verify hash if there is one, and put the files in memory
-			isZip = true
-			content, err = DownloadFromZip(packageAlias.Location, packageAlias.Hash, path)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			uri = strings.Replace(uri, packageAlias.Alias, packageAlias.Location, 1)
-		}
-	}
-
-	// Is this a local file or a URL or did we already unzip a package?
-	if isZip {
-		config.Debugf("Got content from a zipped module package: %s", string(content))
-	} else if strings.HasPrefix(uri, "https://") {
-
-		content, err = downloadModule(uri)
-		if err != nil {
-			return nil, err
-		}
-
-		// Once we see a URL instead of a relative local path,
-		// we need to remember the base URL so that we can
-		// fix relative paths in any referenced modules.
-
-		// Strip the file name from the uri
-		urlParts := strings.Split(uri, "/")
-		baseUri = strings.Join(urlParts[:len(urlParts)-1], "/")
-
-	} else {
-		if baseUri != "" {
-			// If we have a base URL, prepend it to the relative path
-			uri = baseUri + "/" + uri
-			content, err = downloadModule(uri)
-			if err != nil {
-				return nil, err
-			}
-		} else if templateFiles != nil {
-			// Read from the embedded file system (for the build -r command)
-			// We have to hack this since embed doesn't understand "path/../"
-			embeddedPath := strings.Replace(root, "../", "", 1) +
-				"/" + strings.Replace(uri, "../", "", 1)
-
-			content, err = templateFiles.ReadFile(embeddedPath)
-			if err != nil {
-				return nil, err
-			}
-			newRootDir = filepath.Dir(embeddedPath)
-		} else {
-			// Read the local file
-			path := uri
-			if !filepath.IsAbs(path) {
-				path = filepath.Join(root, path)
-			}
-
-			info, err := os.Stat(path)
-			if err != nil {
-				return nil, err
-			}
-
-			if info.IsDir() {
-				return nil, fmt.Errorf("'%s' is a directory", path)
-			}
-
-			content, err = os.ReadFile(path)
-			if err != nil {
-				return nil, err
-			}
-			newRootDir = filepath.Dir(path)
-		}
-	}
-
-	return &ModuleContent{content, newRootDir, baseUri}, nil
-}
-
 type ParsedModule struct {
 	Node       *yaml.Node
 	AsTemplate *cft.Template
+	RootDir    string
+	FS         *embed.FS
 }
 
 // parseModule parses module content and converts it to a yaml node
@@ -473,14 +427,22 @@ func parseModule(content []byte, rootDir string, fs *embed.FS) (*ParsedModule, e
 		return nil, err
 	}
 
+	config.Debugf("parseModule: \n%s", node.ToSJson(&moduleNode))
+
 	// Treat the module as a template
 	moduleAsTemplate := cft.Template{Node: &moduleNode}
 
 	// Read things like Constants, Modules, Packages
-	processRainSection(&moduleAsTemplate, rootDir, fs)
-	processAddedSections(&moduleAsTemplate, moduleAsTemplate.Node.Content[0], rootDir, fs)
+	//processRainSection(&moduleAsTemplate, rootDir, fs)
+	//processAddedSections(&moduleAsTemplate, moduleAsTemplate.Node.Content[0], rootDir, fs)
+	// TODO: Move these out for later?
 
-	return &ParsedModule{Node: moduleNode.Content[0], AsTemplate: &moduleAsTemplate}, nil
+	return &ParsedModule{
+		Node:       moduleNode.Content[0],
+		AsTemplate: &moduleAsTemplate,
+		RootDir:    rootDir,
+		FS:         fs,
+	}, nil
 }
 
 // Type: !Rain::Module
@@ -540,7 +502,8 @@ func module(ctx *directiveContext) (bool, error) {
 
 	// Create a new node to represent the parsed module
 	var outputNode yaml.Node
-	err = processRainResourceModule(moduleNode, &outputNode, t, parent, moduleAsTemplate.Constants, uri)
+	err = processRainResourceModule(moduleNode,
+		&outputNode, t, parent, moduleAsTemplate.Constants, uri, parsed)
 	if err != nil {
 		config.Debugf("processModule error: %v, moduleNode: %s", err, node.ToSJson(moduleNode))
 		return false, fmt.Errorf("failed to process module %s: %v", uri, err)
@@ -565,4 +528,34 @@ func module(ctx *directiveContext) (bool, error) {
 
 	return true, nil
 
+}
+
+// processAddedSections can be used for Constants and Modules
+// in either the Rain section (backwards comapatibility) or
+// if they are at the top level (like the AWS CLI)
+func processAddedSections(
+	t *cft.Template, n *yaml.Node, rootDir string, fs *embed.FS) error {
+
+	var err error
+
+	err = processConstants(t, n)
+	if err != nil {
+		return err
+	}
+	err = processPackages(t, n)
+	if err != nil {
+		return err
+	}
+
+	err = processModulesSection(t, n, rootDir, fs)
+	if err != nil {
+		return err
+	}
+
+	err = FnJoin(t.Node)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
