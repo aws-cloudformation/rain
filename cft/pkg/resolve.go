@@ -20,6 +20,8 @@ import (
 // other Resource names within the module.
 func (module *Module) Resolve(n *yaml.Node) error {
 
+	config.Debugf("Resolve %s: \n%s", module.Config.Name, node.YamlStr(n))
+
 	var err error
 	vf := func(v *visitor.Visitor) {
 		vn := v.GetYamlNode()
@@ -56,56 +58,17 @@ func (module *Module) ResolveRef(n *yaml.Node) error {
 	moduleResources := module.ResourcesNode
 
 	refFoundInParams := false
+	var err error
 
 	prop := n.Content[1]
+
 	if moduleParams != nil {
-		// Find the module parameter that matches the !Ref
-		_, param, _ := s11n.GetMapValue(moduleParams, prop.Value)
-		if param != nil {
-			// We need to get the parameter value from the parent template.
-			// Module params are set by the parent template resource properties.
-			//
-			// For example:
-			//
-			// The module has this section:
-			//
-			// Parameters:
-			//   Foo:
-			//     Type: String
-			//
-			// And the parent template has this:
-			//
-			// MyResource:
-			//   Type: !Rain::Module "this-module.yaml"
-			//   Properties:
-			//     Foo: bar
-			//
-			// Inside the module, we replace !Ref Foo with bar
-
-			// Look for this property name in the parent template
-			_, parentVal, _ := s11n.GetMapValue(templateProps, prop.Value)
-			if parentVal == nil {
-				// Check to see if there is a Default
-				_, mParam, _ := s11n.GetMapValue(moduleParams, prop.Value)
-				if mParam != nil {
-					_, defaultNode, _ := s11n.GetMapValue(mParam, Default)
-					if defaultNode != nil {
-						parentVal = defaultNode
-					}
-				}
-
-				// If we didn't find a parent template prop or a default, fail
-				if parentVal == nil {
-					return fmt.Errorf("did not find %v in parent template Properties",
-						prop.Value)
-				}
-			}
-
-			*n = *parentVal
-
-			refFoundInParams = true
+		refFoundInParams, err = resolveParam(moduleParams, n, templateProps)
+		if err != nil {
+			return err
 		}
 	}
+
 	if !refFoundInParams {
 		// Look for a resource in the module
 		_, resource, _ := s11n.GetMapValue(moduleResources, prop.Value)
@@ -123,6 +86,58 @@ func (module *Module) ResolveRef(n *yaml.Node) error {
 		prop.Value = fixedName
 	}
 	return nil
+}
+
+func resolveParam(params *yaml.Node, n *yaml.Node, parentProps *yaml.Node) (bool, error) {
+
+	prop := n.Content[1]
+
+	// Find the parameter that matches the !Ref
+	_, param, _ := s11n.GetMapValue(params, prop.Value)
+	if param != nil {
+		// We need to get the parameter value from the parent template.
+		// Module params are set by the parent template resource properties.
+		//
+		// For example:
+		//
+		// The module has this section:
+		//
+		// Parameters:
+		//   Foo:
+		//     Type: String
+		//
+		// And the parent template has this:
+		//
+		// MyResource:
+		//   Type: !Rain::Module "this-module.yaml"
+		//   Properties:
+		//     Foo: bar
+		//
+		// Inside the module, we replace !Ref Foo with bar
+
+		// Look for this property name in the parent template
+		_, parentVal, _ := s11n.GetMapValue(parentProps, prop.Value)
+		if parentVal == nil {
+			// Check to see if there is a Default
+			_, mParam, _ := s11n.GetMapValue(params, prop.Value)
+			if mParam != nil {
+				_, defaultNode, _ := s11n.GetMapValue(mParam, Default)
+				if defaultNode != nil {
+					parentVal = defaultNode
+				}
+			}
+
+			// If we didn't find a parent template prop or a default, fail
+			if parentVal == nil {
+				return false, fmt.Errorf("did not find %v in parent template Properties",
+					prop.Value)
+			}
+		}
+
+		*n = *parentVal
+		return true, nil
+	}
+	return false, nil
 }
 
 // Resolve a Sub string in a module.

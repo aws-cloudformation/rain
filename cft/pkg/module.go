@@ -75,9 +75,6 @@ func (module *Module) Conditions() map[string]any {
 // Modifies t in place.
 func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *embed.FS) error {
 
-	config.Debugf("processModulesSection t:\n%s", node.YamlStr(t.Node))
-	config.Debugf("processModulesSection n:\n%s", node.ToSJson(n))
-
 	// AWS CLI package Modules compatibility.
 	// This is basically the same as !Rain::Module but the modules are
 	// defined in a new Modules Section.
@@ -102,8 +99,6 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 
 	// Replace the original Modules content
 	moduleSection.Content = content
-
-	config.Debugf("content after Maps: \n%s", node.YamlStr(moduleSection))
 
 	for i := 0; i < len(content); i += 2 {
 		name := content[i].Value
@@ -139,11 +134,6 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 			return err
 		}
 
-		config.Debugf("after processModule %s outputNode:\n%s",
-			name, node.ToSJson(outputNode))
-
-		config.Debugf("t before adding resources:\n%s", node.ToSJson(t.Node))
-
 		// Put the content into the template
 		if len(outputNode.Content) > 0 {
 			resources, err := t.GetSection(cft.Resources)
@@ -152,12 +142,9 @@ func processModulesSection(t *cft.Template, n *yaml.Node, rootDir string, fs *em
 			}
 			resources.Content = append(resources.Content, outputNode.Content...)
 
-			config.Debugf("resources after append:\n%s", node.YamlStr(resources))
 		} else {
 			config.Debugf("processModuleSection %s outputNode did not have any Resources", name)
 		}
-
-		config.Debugf("t after processModule:\n%s", node.ToSJson(t.Node))
 
 	}
 
@@ -206,8 +193,6 @@ func processModule(
 
 	moduleNode := parsedModule.Node
 
-	config.Debugf("processModule %s:\n%s", logicalId, node.YamlStr(moduleNode))
-
 	m := &Module{}
 	m.Config = moduleConfig
 	m.Node = moduleNode
@@ -251,7 +236,13 @@ func processModule(
 	}
 
 	// Resolve any references to this module in the parent template
+	config.Debugf("About to resolve in processModule %s", m.Config.Name)
 	err = m.Resolve(t.Node)
+	if err != nil {
+		return err
+	}
+
+	err = FnMerge(t.Node)
 	if err != nil {
 		return err
 	}
@@ -284,9 +275,6 @@ func (module *Module) InitNodes() {
 // ProcessResources injects the module's resources into the output node
 func (module *Module) ProcessResources(outputNode *yaml.Node) error {
 
-	config.Debugf("ProcessResources %s: %s",
-		module.Config.Name, node.ToSJson(module.Node))
-
 	// Resources Node may have been replaced
 	module.InitNodes()
 
@@ -295,18 +283,12 @@ func (module *Module) ProcessResources(outputNode *yaml.Node) error {
 		return nil
 	}
 
-	config.Debugf("ProcessResources %s has %d Resources", module.Config.Name,
-		len(module.ResourcesNode.Content)/2)
-
 	// Get module resources and add them to the output
 	for i, moduleResource := range module.ResourcesNode.Content {
 		if moduleResource.Kind != yaml.MappingNode {
 			continue
 		}
 		name := module.ResourcesNode.Content[i-1].Value
-
-		config.Debugf("ProcessResources %s, resource %s",
-			module.Config.Name, name)
 
 		// Check to see if there is a Rain attribute in the Metadata.
 		// If so, check conditionals like IfParam
@@ -333,15 +315,19 @@ func (module *Module) ProcessResources(outputNode *yaml.Node) error {
 		// Resolve Refs in the module
 		// Some refs are to other resources in the module
 		// Other refs are to the module's parameters
+		config.Debugf("About to resolve resource %s", name)
 		err = module.Resolve(clonedResource)
 		if err != nil {
 			return fmt.Errorf("failed to resolve refs: %v", err)
 		}
 
+		err = FnMerge(clonedResource)
+		if err != nil {
+			return err
+		}
+
 		outputNode.Content = append(outputNode.Content, clonedResource)
 	}
-
-	config.Debugf("ProcessResources outputNode: %s", node.ToSJson(outputNode))
 
 	return nil
 }
@@ -426,8 +412,6 @@ func parseModule(content []byte, rootDir string, fs *embed.FS) (*ParsedModule, e
 	if err != nil {
 		return nil, err
 	}
-
-	config.Debugf("parseModule: \n%s", node.ToSJson(&moduleNode))
 
 	// Treat the module as a template
 	moduleAsTemplate := cft.Template{Node: &moduleNode}

@@ -28,13 +28,18 @@ Conditions:
     Fn::Equals:
       - !Ref Environment
       - prod
+  NotProd:
+    Fn::Not:
+      - Fn::Equals:
+        - !Ref Environment
+        - prod
 Resources:
   ProdBucket:
     Type: AWS::S3::Bucket
     Condition: IsProd
   DevBucket:
     Type: AWS::S3::Bucket
-    Condition: !Not [IsProd]
+    Condition: NotProd 
 `,
 			want: `
 Parameters:
@@ -218,19 +223,10 @@ Resources:
 			m.Config = &cft.ModuleConfig{
 				Name: "Test",
 			}
+			m.Parent = &cft.Template{Node: &templateNode}
 
 			// Get the sections
-			_, resources, _ := s11n.GetMapValue(m.Node, string(cft.Resources))
-			m.ResourcesNode = resources
-
-			_, modules, _ := s11n.GetMapValue(m.Node, string(cft.Modules))
-			m.ModulesNode = modules
-
-			_, conditions, _ := s11n.GetMapValue(m.Node, string(cft.Conditions))
-			m.ConditionsNode = conditions
-
-			_, parameters, _ := s11n.GetMapValue(m.Node, string(cft.Parameters))
-			m.ParametersNode = parameters
+			m.InitNodes()
 
 			// Process conditions
 			err = m.ProcessConditions()

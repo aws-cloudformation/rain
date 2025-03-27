@@ -27,6 +27,8 @@ func (module *Module) ProcessConditions() error {
 		return err
 	}
 
+	config.Debugf("ProcessConditions: \n%s", node.YamlStr(module.ConditionsNode))
+
 	// Create a dictionary of condition names to boolean values
 	conditionValues := make(map[string]bool)
 
@@ -88,13 +90,6 @@ func (module *Module) ProcessConditions() error {
 					conditionResult = conditionValues[conditionName]
 				} else {
 					return fmt.Errorf("invalid Condition: %s", node.YamlStr(itemNode))
-
-					//// This might be a condition function that's already been parsed by YAML parser
-					//condValue := node.DecodeMap(conditionNode)
-					//conditionResult, err = evaluateCondition("", condValue, conditions, module)
-					//if err != nil {
-					//	return fmt.Errorf("error evaluating condition for %s: %v", itemName, err)
-					//}
 				}
 
 				if !conditionResult {
