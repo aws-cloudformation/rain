@@ -7,9 +7,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/visitor"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
+	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
 )
 
@@ -220,17 +222,17 @@ func (module *Module) FnInvoke(n *yaml.Node) error {
 		// Get the invoke arguments
 		invokeArgs := vn.Content[1]
 		if invokeArgs.Kind != yaml.SequenceNode || len(invokeArgs.Content) != 3 {
-			err = fmt.Errorf("Fn::Invoke requires 3 arguments [moduleName, parameters, outputs]: %s", node.YamlStr(vn))
+			err = fmt.Errorf("Fn::Invoke requires 3 arguments [moduleName, parameters, outputKey]: %s", node.YamlStr(vn))
 			v.Stop()
 			return
 		}
 
-		// Extract the module name, parameters, and outputs
+		// Extract the module name, parameters, and output key
 		moduleName := invokeArgs.Content[0]
 		parameters := invokeArgs.Content[1]
-		outputs := invokeArgs.Content[2]
+		outputKey := invokeArgs.Content[2]
 
-		config.Debugf("outputs: %s", node.YamlStr(outputs))
+		config.Debugf("outputKey: %s", node.YamlStr(outputKey))
 
 		if moduleName.Kind != yaml.ScalarNode {
 			err = fmt.Errorf("Fn::Invoke module name must be a scalar: %s", node.YamlStr(moduleName))
@@ -244,11 +246,149 @@ func (module *Module) FnInvoke(n *yaml.Node) error {
 			return
 		}
 
+		if outputKey.Kind != yaml.ScalarNode {
+			err = fmt.Errorf("Fn::Invoke output key must be a scalar: %s", node.YamlStr(outputKey))
+			v.Stop()
+			return
+		}
+
+		// Find the module in the parent template's Modules section
+		moduleNameStr := moduleName.Value
+
+		// Check if this module name matches the current module
+		if module.Config != nil && module.Config.Name == moduleNameStr {
+			err = fmt.Errorf("cannot invoke the current module (%s) from within itself", moduleNameStr)
+			v.Stop()
+			return
+		}
+
+		// Find the module in the parent template
+		var moduleConfig *cft.ModuleConfig
+		var moduleNode *yaml.Node
+
+		if module.Parent != nil && module.Parent.Node != nil {
+			// Look for the module in the Modules section
+			_, modulesSection, _ := s11n.GetMapValue(module.Parent.Node.Content[0], "Modules")
+			if modulesSection != nil && modulesSection.Kind == yaml.MappingNode {
+				for i := 0; i < len(modulesSection.Content); i += 2 {
+					if modulesSection.Content[i].Value == moduleNameStr {
+						// Found the module
+						moduleNode = modulesSection.Content[i+1]
+						var parseErr error
+						moduleConfig, parseErr = cft.ParseModuleConfig(moduleNameStr, moduleNode)
+						if parseErr != nil {
+							err = fmt.Errorf("failed to parse module config for %s: %v", moduleNameStr, parseErr)
+							v.Stop()
+							return
+						}
+						break
+					}
+				}
+			}
+		}
+
+		if moduleConfig == nil {
+			err = fmt.Errorf("module %s not found in parent template", moduleNameStr)
+			v.Stop()
+			return
+		}
+
+		// Get the module content
+		moduleContent, getErr := getModuleContent(module.Parsed.RootDir, module.Parent, module.Parsed.FS, "", moduleConfig.Source)
+		if getErr != nil {
+			err = fmt.Errorf("failed to get module content for %s: %v", moduleNameStr, getErr)
+			v.Stop()
+			return
+		}
+
+		// Parse the module
+		parsed, parseErr := parseModule(moduleContent.Content, moduleContent.NewRootDir, module.Parsed.FS)
+		if parseErr != nil {
+			err = fmt.Errorf("failed to parse module %s: %v", moduleNameStr, parseErr)
+			v.Stop()
+			return
+		}
+
+		// Create a copy of the module config with the overridden parameters
+		newModuleConfig := *moduleConfig
+
+		// Create a deep copy of the PropertiesNode or create a new one if it doesn't exist
+		if moduleConfig.PropertiesNode != nil {
+			newModuleConfig.PropertiesNode = node.Clone(moduleConfig.PropertiesNode)
+		} else {
+			newModuleConfig.PropertiesNode = node.MakeMapping()
+		}
+
+		// Merge the parameters from the Fn::Invoke into the module config
+		for i := 0; i < len(parameters.Content); i += 2 {
+			paramName := parameters.Content[i].Value
+			paramValue := parameters.Content[i+1]
+
+			// Add or replace the parameter in the module config
+			node.RemoveFromMap(newModuleConfig.PropertiesNode, paramName)
+			newModuleConfig.PropertiesNode.Content = append(newModuleConfig.PropertiesNode.Content,
+				node.Clone(parameters.Content[i]), node.Clone(paramValue))
+		}
+
+		// Create a temporary module to process
+		tempModule := &Module{
+			Config: &newModuleConfig,
+			Node:   parsed.Node,
+			Parent: module.Parent,
+			Parsed: parsed,
+		}
+		tempModule.InitNodes()
+
+		// Process the module to evaluate conditions and resolve references
+		err = tempModule.ProcessConditions()
+		if err != nil {
+			err = fmt.Errorf("failed to process conditions in module %s: %v", moduleNameStr, err)
+			v.Stop()
+			return
+		}
+
+		// Find the output with the specified key
+		outputKeyStr := outputKey.Value
 		var result *yaml.Node
 
-		// TODO: If the module name does match this module's name, return.
-		// TODO: Make a copy of the module and process it
-		// TODO: Replace the Fn::Invoke node with the module's outputs
+		// Look for the output in the module's Outputs section
+		if tempModule.OutputsNode != nil {
+			for i := 0; i < len(tempModule.OutputsNode.Content); i += 2 {
+				if tempModule.OutputsNode.Content[i].Value == outputKeyStr {
+					// Found the output
+					outputObj := tempModule.OutputsNode.Content[i+1]
+					_, valueNode, _ := s11n.GetMapValue(outputObj, "Value")
+					if valueNode != nil {
+						// Clone the output value
+						result = node.Clone(valueNode)
+
+						// Resolve references in the output value
+						err = tempModule.Resolve(result)
+						if err != nil {
+							err = fmt.Errorf("failed to resolve references in output %s: %v", outputKeyStr, err)
+							v.Stop()
+							return
+						}
+
+						// Process any intrinsic functions in the result
+						err = ExtraIntrinsics(result, tempModule.Parsed.RootDir)
+						if err != nil {
+							err = fmt.Errorf("failed to process intrinsic functions in output %s: %v", outputKeyStr, err)
+							v.Stop()
+							return
+						}
+
+						break
+					}
+				}
+			}
+		}
+
+		if result == nil {
+			err = fmt.Errorf("output %s not found in module %s", outputKeyStr, moduleNameStr)
+			v.Stop()
+			return
+		}
 
 		// Replace the Fn::Invoke node with the result
 		*vn = *result

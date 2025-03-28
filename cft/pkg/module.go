@@ -260,6 +260,11 @@ func processModule(
 		return err
 	}
 
+	err = m.FnInvoke(t.Node)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -575,22 +580,27 @@ func processAddedSections(
 		return err
 	}
 
-	err = FnJoin(n)
-	if err != nil {
-		return err
-	}
+	// TODO - Only if parentModule is nil?
+	if parentModule == nil {
 
-	// Putting Merge here breaks it, since it merges unresolved Refs...
-	// TODO: Need to make sure Merge doesn't run until the very end..
+		err = FnJoin(n)
+		if err != nil {
+			return err
+		}
 
-	err = FnSelect(n)
-	if err != nil {
-		return err
-	}
+		// Putting Merge here breaks it, since it merges unresolved Refs...
+		// TODO: Need to make sure Merge doesn't run until the very end..
 
-	err = FnInsertFile(n, rootDir)
-	if err != nil {
-		return err
+		err = FnSelect(n)
+		if err != nil {
+			return err
+		}
+
+		err = FnInsertFile(n, rootDir)
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return nil

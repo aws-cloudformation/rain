@@ -26,4 +26,7 @@ var Tags = map[string]string{
 	"!Rain::S3":       "Rain::S3",
 	"!Rain::Module":   "Rain::Module",
 	"!Rain::Constant": "Rain::Constant",
+	"!Invoke":         "Fn::Invoke",
+	"!InsertFile":     "Fn::InsertFile",
+	"!Merge":          "Fn::Merge",
 }
