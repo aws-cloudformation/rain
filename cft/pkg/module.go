@@ -93,8 +93,6 @@ func processModulesSection(t *cft.Template, n *yaml.Node,
 
 	originalContent := moduleSection.Content
 
-	config.Debugf("before maps: %s", node.YamlStr(moduleSection))
-
 	// Duplicate module content that has a Map attribute
 	content, err := processMaps(originalContent, t, parentModule)
 	if err != nil {
@@ -103,8 +101,6 @@ func processModulesSection(t *cft.Template, n *yaml.Node,
 
 	// Replace the original Modules content
 	moduleSection.Content = content
-
-	config.Debugf("after maps: %s", node.YamlStr(moduleSection))
 
 	for i := 0; i < len(content); i += 2 {
 		name := content[i].Value

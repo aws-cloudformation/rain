@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/aws-cloudformation/rain/cft"
-	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
@@ -27,8 +26,6 @@ func (module *Module) ProcessConditions() error {
 		return err
 	}
 
-	config.Debugf("ProcessConditions: \n%s", node.YamlStr(module.ConditionsNode))
-
 	// Create a dictionary of condition names to boolean values
 	conditionValues := make(map[string]bool)
 
@@ -43,8 +40,6 @@ func (module *Module) ProcessConditions() error {
 		conditionValues[condName] = result
 	}
 
-	config.Debugf("Conditions for %s: %v", module.Config.Name, conditionValues)
-
 	// Process both Resources and Modules sections
 	sections := []struct {
 		name string
@@ -52,18 +47,8 @@ func (module *Module) ProcessConditions() error {
 	}{
 		{"Resources", module.ResourcesNode},
 		{"Modules", module.ModulesNode},
+		{"Outputs", module.OutputsNode},
 	}
-
-	numResources := 0
-	numModules := 0
-	if module.ResourcesNode != nil {
-		numResources = len(module.ResourcesNode.Content)
-	}
-	if module.ModulesNode != nil {
-		numModules = len(module.ModulesNode.Content)
-	}
-	config.Debugf("Module %s has %d Resources and %d Modules",
-		module.Config.Name, numResources, numModules)
 
 	for _, section := range sections {
 		if section.node == nil {
@@ -78,8 +63,6 @@ func (module *Module) ProcessConditions() error {
 			itemName := section.node.Content[i].Value
 			itemNode := section.node.Content[i+1]
 
-			config.Debugf("Checking %s %s", section.name, itemName)
-
 			// Check if this item has a Condition attribute
 			_, conditionNode, _ := s11n.GetMapValue(itemNode, Condition)
 			if conditionNode != nil {
@@ -93,7 +76,6 @@ func (module *Module) ProcessConditions() error {
 				}
 
 				if !conditionResult {
-					config.Debugf("Removing %s %s", section.name, itemName)
 
 					itemsToRemove = append(itemsToRemove, itemName)
 				}

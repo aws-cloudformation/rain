@@ -9,7 +9,6 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/visitor"
-	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
@@ -160,7 +159,6 @@ func FnSelect(n *yaml.Node) error {
 // FnInsertFile inserts the contents of a local file into the template
 func FnInsertFile(n *yaml.Node, basePath string) error {
 
-	config.Debugf("FnInsertFile basePath: %s, n:\n%s", basePath, node.YamlStr(n))
 	var err error
 	vf := func(v *visitor.Visitor) {
 		vn := v.GetYamlNode()
@@ -231,8 +229,6 @@ func (module *Module) FnInvoke(n *yaml.Node) error {
 		moduleName := invokeArgs.Content[0]
 		parameters := invokeArgs.Content[1]
 		outputKey := invokeArgs.Content[2]
-
-		config.Debugf("outputKey: %s", node.YamlStr(outputKey))
 
 		if moduleName.Kind != yaml.ScalarNode {
 			err = fmt.Errorf("Fn::Invoke module name must be a scalar: %s", node.YamlStr(moduleName))
@@ -333,7 +329,7 @@ func (module *Module) FnInvoke(n *yaml.Node) error {
 		// Create a temporary module to process
 		tempModule := &Module{
 			Config: &newModuleConfig,
-			Node:   parsed.Node,
+			Node:   node.Clone(parsed.Node),
 			Parent: module.Parent,
 			Parsed: parsed,
 		}
