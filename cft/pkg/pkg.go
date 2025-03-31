@@ -118,12 +118,20 @@ func processRainSection(t *cft.Template, rootDir string, fs *embed.FS) error {
 
 	HasRainSection = true
 
-	retval := processAddedSections(t, rainNode, rootDir, fs, nil)
+	err = processConstants(t, rainNode)
+	if err != nil {
+		return err
+	}
+
+	err = processPackages(t, t.Node)
+	if err != nil {
+		return err
+	}
 
 	// Now remove the Rain node from the template
 	t.RemoveSection(cft.Rain)
 
-	return retval
+	return nil
 }
 
 // Template returns t with assets included as per AWS CLI packaging rules

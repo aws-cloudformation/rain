@@ -104,7 +104,6 @@ func processModulesSection(t *cft.Template, n *yaml.Node,
 
 	for i := 0; i < len(content); i += 2 {
 		name := content[i].Value
-		config.Debugf("processModulesSection: %s", name)
 		moduleConfig, err := cft.ParseModuleConfig(name, content[i+1])
 		if err != nil {
 			return err
@@ -216,7 +215,6 @@ func processModule(
 		},
 	}
 
-	// Move processRainSection and processAddedSections here?
 	err = processRainSection(moduleAsTemplate,
 		parsedModule.RootDir, parsedModule.FS)
 	if err != nil {
@@ -455,11 +453,6 @@ func parseModule(content []byte, rootDir string, fs *embed.FS) (*ParsedModule, e
 
 	// Treat the module as a template
 	moduleAsTemplate := cft.Template{Node: &moduleNode}
-
-	// Read things like Constants, Modules, Packages
-	//processRainSection(&moduleAsTemplate, rootDir, fs)
-	//processAddedSections(&moduleAsTemplate, moduleAsTemplate.Node.Content[0], rootDir, fs)
-	// TODO: Move these out for later?
 
 	return &ParsedModule{
 		Node:       moduleNode.Content[0],
