@@ -262,7 +262,9 @@ func (module *Module) FnInvoke(n *yaml.Node) error {
 		var moduleConfig *cft.ModuleConfig
 		var moduleNode *yaml.Node
 
-		if module.ParentTemplate != nil && module.ParentTemplate.Node != nil {
+		t := module.ParentTemplate
+
+		if t != nil && t.Node != nil {
 			// Look for the module in the Modules section
 			_, modulesSection, _ := s11n.GetMapValue(module.ParentTemplate.Node.Content[0], "Modules")
 			if modulesSection != nil && modulesSection.Kind == yaml.MappingNode {
@@ -271,7 +273,7 @@ func (module *Module) FnInvoke(n *yaml.Node) error {
 						// Found the module
 						moduleNode = modulesSection.Content[i+1]
 						var parseErr error
-						moduleConfig, parseErr = cft.ParseModuleConfig(moduleNameStr, moduleNode)
+						moduleConfig, parseErr = t.ParseModuleConfig(moduleNameStr, moduleNode)
 						if parseErr != nil {
 							err = fmt.Errorf("failed to parse module config for %s: %v", moduleNameStr, parseErr)
 							v.Stop()

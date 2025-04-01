@@ -71,7 +71,7 @@ const (
 
 // parseModuleConfig parses a single module configuration
 // from the Modules section in the template
-func ParseModuleConfig(name string, n *yaml.Node) (*ModuleConfig, error) {
+func (t *Template) ParseModuleConfig(name string, n *yaml.Node) (*ModuleConfig, error) {
 	if n.Kind != yaml.MappingNode {
 		return nil, errors.New("not a mapping node")
 	}
@@ -95,5 +95,25 @@ func ParseModuleConfig(name string, n *yaml.Node) (*ModuleConfig, error) {
 		}
 	}
 
+	//err := t.ValidateModuleConfig(m)
+	//if err != nil {
+	//	return nil, err
+	//}
+
 	return m, nil
 }
+
+// ValidateModuleConfig makes sure the configuration does not
+// break any rules, such as not having a Property with the
+// same name as a Parameter.
+//func (t *Template) ValidateModuleConfig(moduleConfig *ModuleConfig) error {
+//	props := moduleConfig.Properties()
+//	for key := range props {
+//		_, err := t.GetParameter(key)
+//		if err == nil {
+//			return fmt.Errorf("module %s in %s has Property %s with the same name as a template Parameter",
+//				moduleConfig.Name, moduleConfig.ParentRootDir, key)
+//		}
+//	}
+//	return nil
+//}

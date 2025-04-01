@@ -64,7 +64,7 @@ func processMaps(originalContent []*yaml.Node, t *cft.Template, parentModule *Mo
 	// Process Maps, which duplicate the module for each element in a list
 	for i := 0; i < len(originalContent); i += 2 {
 		name := originalContent[i].Value
-		moduleConfig, err := cft.ParseModuleConfig(name, originalContent[i+1])
+		moduleConfig, err := t.ParseModuleConfig(name, originalContent[i+1])
 		if err != nil {
 			return nil, err
 		}
@@ -130,7 +130,7 @@ func processMaps(originalContent []*yaml.Node, t *cft.Template, parentModule *Mo
 				mapName := fmt.Sprintf("%s%d", moduleConfig.Name, i)
 				copiedNode := node.Clone(moduleConfig.Node)
 				node.RemoveFromMap(copiedNode, "Map")
-				copiedConfig, err := cft.ParseModuleConfig(mapName, copiedNode)
+				copiedConfig, err := t.ParseModuleConfig(mapName, copiedNode)
 				if err != nil {
 					return nil, err
 				}

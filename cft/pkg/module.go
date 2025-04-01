@@ -104,11 +104,11 @@ func processModulesSection(t *cft.Template, n *yaml.Node,
 
 	for i := 0; i < len(content); i += 2 {
 		name := content[i].Value
-		moduleConfig, err := cft.ParseModuleConfig(name, content[i+1])
-		moduleConfig.ParentRootDir = rootDir
+		moduleConfig, err := t.ParseModuleConfig(name, content[i+1])
 		if err != nil {
 			return err
 		}
+		moduleConfig.ParentRootDir = rootDir
 
 		baseUri := ""
 		uri := moduleConfig.Source
@@ -369,6 +369,7 @@ func (module *Module) ProcessResources(outputNode *yaml.Node) error {
 		// Resolve Refs in the module
 		// Some refs are to other resources in the module
 		// Other refs are to the module's parameters
+
 		err = module.Resolve(clonedResource)
 		if err != nil {
 			return fmt.Errorf("failed to resolve refs: %v", err)
@@ -428,7 +429,7 @@ func processRainResourceModule(
 
 	templateResource := parent.Value // The !!map node of the resource with Type !Rain::Module
 
-	moduleConfig, err := cft.ParseModuleConfig(logicalId, templateResource)
+	moduleConfig, err := t.ParseModuleConfig(logicalId, templateResource)
 	if err != nil {
 		return err
 	}

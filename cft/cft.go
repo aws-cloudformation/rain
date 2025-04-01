@@ -42,6 +42,7 @@ type Template struct {
 	ModuleMapNames map[string][]string
 	ModuleMaps     map[string]*ModuleConfig
 	ModuleOutputs  map[string]*yaml.Node
+	ModuleResolved []*yaml.Node
 }
 
 // Map returns the template as a map[string]interface{}
@@ -269,4 +270,11 @@ func (t *Template) AddMappedModule(copiedConfig *ModuleConfig) {
 		mappedModules = append(mappedModules, copiedConfig.Name)
 	}
 	t.ModuleMapNames[originalName] = mappedModules
+}
+
+func (t *Template) AddResolvedModuleNode(n *yaml.Node) {
+	if t.ModuleResolved == nil {
+		t.ModuleResolved = make([]*yaml.Node, 0)
+	}
+	t.ModuleResolved = append(t.ModuleResolved, n)
 }

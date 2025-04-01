@@ -4,6 +4,7 @@ package pkg
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
@@ -51,6 +52,14 @@ func (module *Module) ResolveRef(n *yaml.Node) error {
 		return errors.New("module.Config is nil")
 	}
 
+	// Make sure we aren't re-resolving something.
+	// This happens with resources in a module and
+	// can result in a ref being overwritten with props
+	// from another module with the same property names.
+	if slices.Contains(module.ParentTemplate.ModuleResolved, n) {
+		return nil
+	}
+
 	moduleParams := module.ParametersNode
 	templateProps := module.Config.PropertiesNode
 	logicalId := module.Config.Name
@@ -84,13 +93,14 @@ func (module *Module) ResolveRef(n *yaml.Node) error {
 		fixedName := rename(logicalId, prop.Value)
 		prop.Value = fixedName
 	}
+
+	module.ParentTemplate.AddResolvedModuleNode(n)
 	return nil
 }
 
 func (module *Module) resolveParam(params *yaml.Node, n *yaml.Node, parentProps *yaml.Node) (bool, error) {
 
 	prop := n.Content[1]
-	reffedName := prop.Value
 
 	// Find the parameter that matches the !Ref
 	_, param, _ := s11n.GetMapValue(params, prop.Value)
@@ -135,12 +145,6 @@ func (module *Module) resolveParam(params *yaml.Node, n *yaml.Node, parentProps 
 		}
 
 		*n = *parentVal
-
-		if reffedName == "Content" {
-			config.Debugf("\n===%s\nresolveParam params:\n%s\nn:\n%s\nparentProps:\n%s\n",
-				module.Config.Name, node.YamlStr(params), node.YamlStr(n), node.YamlStr(parentProps))
-			config.Debugf("set %s to %s\n", reffedName, node.YamlStr(n))
-		}
 
 		return true, nil
 	}
