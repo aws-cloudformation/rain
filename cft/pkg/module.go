@@ -83,7 +83,6 @@ func processModulesSection(t *cft.Template, n *yaml.Node,
 	// defined in a new Modules Section.
 	_, moduleSection, _ := s11n.GetMapValue(n, "Modules")
 	if moduleSection == nil {
-		config.Debugf("No Modules section found")
 		return nil
 	}
 	HasModules = true
@@ -227,9 +226,6 @@ func processModule(
 		return err
 	}
 
-	config.Debugf("processModule %s rootDir: %s",
-		m.Config.Name, parsedModule.RootDir)
-
 	err = processAddedSections(moduleAsTemplate, moduleAsTemplate.Node.Content[0],
 		parsedModule.RootDir, parsedModule.FS, m)
 	if err != nil {
@@ -268,8 +264,6 @@ func processModule(
 		fileRootDir = parsedModule.RootDir
 	}
 
-	config.Debugf("processModule about to call ExtraIntrinsics, fileRootDir: %s", fileRootDir)
-
 	err = ExtraIntrinsics(t.Node, fileRootDir)
 	if err != nil {
 		return err
@@ -284,8 +278,6 @@ func processModule(
 }
 
 func ExtraIntrinsics(n *yaml.Node, basePath string) error {
-
-	config.Debugf("ExtraIntrinsics basePath: %s", basePath)
 
 	var err error
 
@@ -381,9 +373,6 @@ func (module *Module) ProcessResources(outputNode *yaml.Node) error {
 		if err != nil {
 			return fmt.Errorf("failed to resolve refs: %v", err)
 		}
-
-		config.Debugf("%s ProcessResources about to call ExtraIntrinsics rootDir: %s",
-			module.Config.Name, module.Parsed.RootDir)
 
 		fileRootDir := ""
 		if module.ParentModule != nil {
@@ -587,8 +576,6 @@ func module(ctx *directiveContext) (bool, error) {
 // if they are at the top level (like the AWS CLI)
 func processAddedSections(
 	t *cft.Template, n *yaml.Node, rootDir string, fs *embed.FS, parentModule *Module) error {
-
-	config.Debugf("processAddedSections rootDir: %s", rootDir)
 
 	var err error
 

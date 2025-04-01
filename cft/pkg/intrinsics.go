@@ -9,7 +9,6 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/visitor"
-	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
@@ -160,8 +159,6 @@ func FnSelect(n *yaml.Node) error {
 // FnInsertFile inserts the contents of a local file into the template
 func FnInsertFile(n *yaml.Node, basePath string) error {
 
-	config.Debugf("FnInsertFile basePath: %s", basePath)
-
 	var err error
 	vf := func(v *visitor.Visitor) {
 		vn := v.GetYamlNode()
@@ -185,10 +182,8 @@ func FnInsertFile(n *yaml.Node, basePath string) error {
 
 		// Resolve the file path (handle relative paths)
 		path := filePath.Value
-		config.Debugf("path: %s", path)
 		if !filepath.IsAbs(path) {
 			path = filepath.Join(basePath, path)
-			config.Debugf("path is now %s", path)
 		}
 
 		// Read the file contents

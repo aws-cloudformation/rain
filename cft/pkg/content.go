@@ -54,9 +54,6 @@ func getModuleContent(
 	baseUri string,
 	uri string) (*ModuleContent, error) {
 
-	config.Debugf("getModuleContent root: %s, baseUri: %s, uri: %s",
-		root, baseUri, uri)
-
 	var content []byte
 	var err error
 	var newRootDir string

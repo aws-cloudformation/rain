@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
@@ -16,9 +15,6 @@ func (module *Module) ValidateOverrides() error {
 	resources := module.ResourcesNode
 	moduleParams := module.ParametersNode
 	overrides := module.Config.OverridesNode
-
-	config.Debugf("ValidateOverrides resources:\n\n%s\n\nOverrides:\n\n%s\n",
-		node.YamlStr(resources), node.YamlStr(overrides))
 
 	// Validate that the overrides actually exist and error if not
 	if overrides != nil {

@@ -38,6 +38,7 @@ func (module *Module) Resolve(n *yaml.Node) error {
 			config.Debugf("Resolve visitor got an error: %v\n%s",
 				err, node.YamlStr(vn))
 			v.Stop()
+			return
 		}
 	}
 	visitor.NewVisitor(n).Visit(vf)
@@ -61,7 +62,7 @@ func (module *Module) ResolveRef(n *yaml.Node) error {
 	prop := n.Content[1]
 
 	if moduleParams != nil {
-		refFoundInParams, err = resolveParam(moduleParams, n, templateProps)
+		refFoundInParams, err = module.resolveParam(moduleParams, n, templateProps)
 		if err != nil {
 			return err
 		}
@@ -86,9 +87,10 @@ func (module *Module) ResolveRef(n *yaml.Node) error {
 	return nil
 }
 
-func resolveParam(params *yaml.Node, n *yaml.Node, parentProps *yaml.Node) (bool, error) {
+func (module *Module) resolveParam(params *yaml.Node, n *yaml.Node, parentProps *yaml.Node) (bool, error) {
 
 	prop := n.Content[1]
+	reffedName := prop.Value
 
 	// Find the parameter that matches the !Ref
 	_, param, _ := s11n.GetMapValue(params, prop.Value)
@@ -133,6 +135,13 @@ func resolveParam(params *yaml.Node, n *yaml.Node, parentProps *yaml.Node) (bool
 		}
 
 		*n = *parentVal
+
+		if reffedName == "Content" {
+			config.Debugf("\n===%s\nresolveParam params:\n%s\nn:\n%s\nparentProps:\n%s\n",
+				module.Config.Name, node.YamlStr(params), node.YamlStr(n), node.YamlStr(parentProps))
+			config.Debugf("set %s to %s\n", reffedName, node.YamlStr(n))
+		}
+
 		return true, nil
 	}
 	return false, nil

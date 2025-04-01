@@ -66,6 +66,14 @@ func TestConstant(t *testing.T) {
 	runTest("constant", t)
 }
 
+func TestDefault(t *testing.T) {
+	runTest("default", t)
+}
+
+func TestSameMod(t *testing.T) {
+	runTest("same-mod", t)
+}
+
 // TestAWSCLIModuleBasic tests the basic AWS CLI module functionality
 func TestAWSCLIModuleBasic(t *testing.T) {
 	runTest("awscli-modules/basic", t)
@@ -184,6 +192,16 @@ func TestAWSCLIModuleInvoke(t *testing.T) {
 // TestAWSCLIModuleZip tests the zip AWS CLI module functionality
 func TestAWSCLIModuleZip(t *testing.T) {
 	runTest("awscli-modules/zip", t)
+}
+
+// TestAWSCLIModuleDefault tests the default AWS CLI module functionality
+func TestAWSCLIModuleDefault(t *testing.T) {
+	runTest("awscli-modules/default", t)
+}
+
+// TestAWSCLIModuleSameMod tests the same-mod AWS CLI module functionality
+func TestAWSCLIModuleSameMod(t *testing.T) {
+	runTest("awscli-modules/same-mod", t)
 }
 
 func runTest(test string, t *testing.T) {
