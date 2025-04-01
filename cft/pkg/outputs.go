@@ -40,7 +40,7 @@ func (module *Module) ProcessOutputs() error {
 		module.Resolve(outputNode)
 	}
 
-	t := module.Parent
+	t := module.ParentTemplate
 
 	// Store the Outputs node on the template for later use
 	if t.ModuleOutputs == nil {
@@ -72,7 +72,7 @@ func (module *Module) ProcessOutputs() error {
 				return
 			}
 		}
-		visitor.NewVisitor(module.Parent.Node).Visit(vf)
+		visitor.NewVisitor(module.ParentTemplate.Node).Visit(vf)
 		if err != nil {
 			return err
 		}
@@ -132,7 +132,7 @@ func (module *Module) CheckOutputGetAtt(s string, outputName string, outputVal a
 	if strings.Contains(reffedModuleName, "[") && !strings.Contains(reffedModuleName, "[]") {
 		// Look for the reference we saved on the template.
 		// This instance of module.Config does not have information about Maps
-		if mappedConfig, ok := module.Parent.ModuleMaps[module.Config.Name]; ok {
+		if mappedConfig, ok := module.ParentTemplate.ModuleMaps[module.Config.Name]; ok {
 			fixedName := strings.Split(reffedModuleName, "[")[0]
 			if mappedConfig.OriginalName == fixedName && tokens[1] == outputName {
 				idx, err := GetArrayIndexFromString(reffedModuleName)

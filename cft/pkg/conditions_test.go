@@ -223,7 +223,7 @@ Resources:
 			m.Config = &cft.ModuleConfig{
 				Name: "Test",
 			}
-			m.Parent = &cft.Template{Node: &templateNode}
+			m.ParentTemplate = &cft.Template{Node: &templateNode}
 
 			// Get the sections
 			m.InitNodes()

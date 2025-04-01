@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/aws-cloudformation/rain/cft"
+	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
@@ -33,7 +34,7 @@ func (module *Module) ProcessConditions() error {
 	conditions := module.Conditions()
 	for condName, condValue := range conditions {
 		// Evaluate the condition expression
-		result, err := evaluateCondition(condName, condValue, conditions, module)
+		result, err := evalCond(condName, condValue, conditions, module)
 		if err != nil {
 			return err
 		}
@@ -104,8 +105,11 @@ func (module *Module) ProcessConditions() error {
 	return nil
 }
 
-// evaluateCondition evaluates a CloudFormation condition expression and returns its boolean value
-func evaluateCondition(condName string, condValue interface{}, conditions map[string]interface{}, module *Module) (bool, error) {
+// evalCond evaluates a CloudFormation condition expression and returns its boolean value
+func evalCond(condName string, condValue interface{}, conditions map[string]interface{}, module *Module) (bool, error) {
+
+	config.Debugf("evalCond %s %s:\n%s", module.Config.Name, condName, node.EncodeMap(condValue))
+
 	// Handle condition node based on its type
 	switch v := condValue.(type) {
 	case map[string]interface{}:
@@ -135,19 +139,20 @@ func evaluateCondition(condName string, condValue interface{}, conditions map[st
 					return boolResult, nil
 				}
 				// If not already evaluated as boolean, recursively evaluate it
-				return evaluateCondition(conditionName, result, conditions, module)
+				return evalCond(conditionName, result, conditions, module)
 			}
 			return false, fmt.Errorf("referenced condition '%s' not found", conditionName)
 		}
 	case string:
 		// This might be a direct condition reference
 		if result, exists := conditions[v]; exists {
-			return evaluateCondition("", result, conditions, module)
+			return evalCond("", result, conditions, module)
 		}
 	}
 
 	// Default to false if we can't evaluate the condition
-	return false, fmt.Errorf("unable to evaluate condition '%s': unsupported format", condName)
+	return false, fmt.Errorf("unable to evaluate condition '%s' in %s: unsupported format: %v",
+		condName, module.Config.Name, condValue)
 }
 
 // evaluateAnd evaluates an Fn::And condition
@@ -159,7 +164,7 @@ func evaluateAnd(andExpr interface{}, conditions map[string]interface{}, module 
 
 	// All conditions must be true for And to be true
 	for _, cond := range andList {
-		result, err := evaluateCondition("", cond, conditions, module)
+		result, err := evalCond("", cond, conditions, module)
 		if err != nil {
 			return false, err
 		}
@@ -179,7 +184,7 @@ func evaluateOr(orExpr interface{}, conditions map[string]interface{}, module *M
 
 	// Any condition being true makes Or true
 	for _, cond := range orList {
-		result, err := evaluateCondition("", cond, conditions, module)
+		result, err := evalCond("", cond, conditions, module)
 		if err != nil {
 			return false, err
 		}
@@ -197,7 +202,7 @@ func evaluateNot(notExpr interface{}, conditions map[string]interface{}, module 
 		return false, fmt.Errorf("Fn::Not requires exactly one condition")
 	}
 
-	result, err := evaluateCondition("", notList[0], conditions, module)
+	result, err := evalCond("", notList[0], conditions, module)
 	if err != nil {
 		return false, err
 	}

@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/visitor"
+	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
@@ -159,6 +160,8 @@ func FnSelect(n *yaml.Node) error {
 // FnInsertFile inserts the contents of a local file into the template
 func FnInsertFile(n *yaml.Node, basePath string) error {
 
+	config.Debugf("FnInsertFile basePath: %s", basePath)
+
 	var err error
 	vf := func(v *visitor.Visitor) {
 		vn := v.GetYamlNode()
@@ -182,8 +185,10 @@ func FnInsertFile(n *yaml.Node, basePath string) error {
 
 		// Resolve the file path (handle relative paths)
 		path := filePath.Value
+		config.Debugf("path: %s", path)
 		if !filepath.IsAbs(path) {
 			path = filepath.Join(basePath, path)
+			config.Debugf("path is now %s", path)
 		}
 
 		// Read the file contents
@@ -262,9 +267,9 @@ func (module *Module) FnInvoke(n *yaml.Node) error {
 		var moduleConfig *cft.ModuleConfig
 		var moduleNode *yaml.Node
 
-		if module.Parent != nil && module.Parent.Node != nil {
+		if module.ParentTemplate != nil && module.ParentTemplate.Node != nil {
 			// Look for the module in the Modules section
-			_, modulesSection, _ := s11n.GetMapValue(module.Parent.Node.Content[0], "Modules")
+			_, modulesSection, _ := s11n.GetMapValue(module.ParentTemplate.Node.Content[0], "Modules")
 			if modulesSection != nil && modulesSection.Kind == yaml.MappingNode {
 				for i := 0; i < len(modulesSection.Content); i += 2 {
 					if modulesSection.Content[i].Value == moduleNameStr {
@@ -290,7 +295,7 @@ func (module *Module) FnInvoke(n *yaml.Node) error {
 		}
 
 		// Get the module content
-		moduleContent, getErr := getModuleContent(module.Parsed.RootDir, module.Parent, module.Parsed.FS, "", moduleConfig.Source)
+		moduleContent, getErr := getModuleContent(module.Parsed.RootDir, module.ParentTemplate, module.Parsed.FS, "", moduleConfig.Source)
 		if getErr != nil {
 			err = fmt.Errorf("failed to get module content for %s: %v", moduleNameStr, getErr)
 			v.Stop()
@@ -328,10 +333,10 @@ func (module *Module) FnInvoke(n *yaml.Node) error {
 
 		// Create a temporary module to process
 		tempModule := &Module{
-			Config: &newModuleConfig,
-			Node:   node.Clone(parsed.Node),
-			Parent: module.Parent,
-			Parsed: parsed,
+			Config:         &newModuleConfig,
+			Node:           node.Clone(parsed.Node),
+			ParentTemplate: module.ParentTemplate,
+			Parsed:         parsed,
 		}
 		tempModule.InitNodes()
 

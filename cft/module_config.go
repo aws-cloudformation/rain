@@ -40,6 +40,9 @@ type ModuleConfig struct {
 
 	// IsMapCopy will be true if this instance was a duplicate of a Mapped module
 	IsMapCopy bool
+
+	// The root directory of the template that configures this module
+	ParentRootDir string
 }
 
 func (c *ModuleConfig) Properties() map[string]any {

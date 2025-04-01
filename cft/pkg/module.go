@@ -41,10 +41,11 @@ type Module struct {
 	ResourcesNode  *yaml.Node
 	OutputsNode    *yaml.Node
 	Node           *yaml.Node
-	Parent         *cft.Template
+	ParentTemplate *cft.Template
 	ConditionsNode *yaml.Node
 	ModulesNode    *yaml.Node
 	Parsed         *ParsedModule
+	ParentModule   *Module
 }
 
 // Outputs returns the Outputs node as a map
@@ -105,6 +106,7 @@ func processModulesSection(t *cft.Template, n *yaml.Node,
 	for i := 0; i < len(content); i += 2 {
 		name := content[i].Value
 		moduleConfig, err := cft.ParseModuleConfig(name, content[i+1])
+		moduleConfig.ParentRootDir = rootDir
 		if err != nil {
 			return err
 		}
@@ -117,7 +119,8 @@ func processModulesSection(t *cft.Template, n *yaml.Node,
 			return err
 		}
 
-		parsed, err := parseModule(moduleContent.Content, rootDir, fs)
+		parsed, err := parseModule(moduleContent.Content,
+			moduleContent.NewRootDir, fs)
 		if err != nil {
 			return err
 		}
@@ -131,7 +134,8 @@ func processModulesSection(t *cft.Template, n *yaml.Node,
 			outputNode,
 			t,
 			parsed.AsTemplate.Constants,
-			moduleConfig)
+			moduleConfig,
+			parentModule)
 		if err != nil {
 			return err
 		}
@@ -187,7 +191,8 @@ func processModule(
 	outputNode *yaml.Node,
 	t *cft.Template,
 	moduleConstants map[string]*yaml.Node,
-	moduleConfig *cft.ModuleConfig) error {
+	moduleConfig *cft.ModuleConfig,
+	parentModule *Module) error {
 
 	if moduleConfig == nil {
 		return errors.New("moduleConfig is nil")
@@ -198,7 +203,8 @@ func processModule(
 	m := &Module{}
 	m.Config = moduleConfig
 	m.Node = moduleNode
-	m.Parent = t
+	m.ParentTemplate = t
+	m.ParentModule = parentModule
 	m.Parsed = parsedModule
 
 	m.InitNodes()
@@ -220,6 +226,9 @@ func processModule(
 	if err != nil {
 		return err
 	}
+
+	config.Debugf("processModule %s rootDir: %s",
+		m.Config.Name, parsedModule.RootDir)
 
 	err = processAddedSections(moduleAsTemplate, moduleAsTemplate.Node.Content[0],
 		parsedModule.RootDir, parsedModule.FS, m)
@@ -249,7 +258,19 @@ func processModule(
 		return err
 	}
 
-	err = ExtraIntrinsics(t.Node, parsedModule.RootDir)
+	fileRootDir := ""
+	if parentModule != nil {
+		fileRootDir = parentModule.Parsed.RootDir
+	} else {
+		fileRootDir = m.Config.ParentRootDir
+	}
+	if fileRootDir == "" {
+		fileRootDir = parsedModule.RootDir
+	}
+
+	config.Debugf("processModule about to call ExtraIntrinsics, fileRootDir: %s", fileRootDir)
+
+	err = ExtraIntrinsics(t.Node, fileRootDir)
 	if err != nil {
 		return err
 	}
@@ -263,6 +284,8 @@ func processModule(
 }
 
 func ExtraIntrinsics(n *yaml.Node, basePath string) error {
+
+	config.Debugf("ExtraIntrinsics basePath: %s", basePath)
 
 	var err error
 
@@ -359,7 +382,19 @@ func (module *Module) ProcessResources(outputNode *yaml.Node) error {
 			return fmt.Errorf("failed to resolve refs: %v", err)
 		}
 
-		err = ExtraIntrinsics(clonedResource, module.Parsed.RootDir)
+		config.Debugf("%s ProcessResources about to call ExtraIntrinsics rootDir: %s",
+			module.Config.Name, module.Parsed.RootDir)
+
+		fileRootDir := ""
+		if module.ParentModule != nil {
+			fileRootDir = module.ParentModule.Parsed.RootDir
+		} else {
+			fileRootDir = module.Config.ParentRootDir
+		}
+		if fileRootDir == "" {
+			fileRootDir = module.Parsed.RootDir
+		}
+		err = ExtraIntrinsics(clonedResource, fileRootDir)
 		if err != nil {
 			return err
 		}
@@ -410,7 +445,7 @@ func processRainResourceModule(
 	}
 	moduleConfig.Source = source
 
-	return processModule(logicalId, parsed, outputNode, t, moduleConstants, moduleConfig)
+	return processModule(logicalId, parsed, outputNode, t, moduleConstants, moduleConfig, nil)
 }
 
 func checkPackageAlias(t *cft.Template, uri string) *cft.PackageAlias {
@@ -553,6 +588,8 @@ func module(ctx *directiveContext) (bool, error) {
 func processAddedSections(
 	t *cft.Template, n *yaml.Node, rootDir string, fs *embed.FS, parentModule *Module) error {
 
+	config.Debugf("processAddedSections rootDir: %s", rootDir)
+
 	var err error
 
 	err = processConstants(t, n)
@@ -569,7 +606,6 @@ func processAddedSections(
 		return err
 	}
 
-	// TODO - Only if parentModule is nil?
 	if parentModule == nil {
 
 		err = FnJoin(n)

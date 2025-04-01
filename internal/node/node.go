@@ -438,11 +438,24 @@ func DecodeMap(n *yaml.Node) map[string]any {
 	if n != nil {
 		decodeErr := n.Decode(&m)
 		if decodeErr != nil {
-			config.Debugf("decodeMapNode error: %v", decodeErr)
+			config.Debugf("DecodeMap error: %v", decodeErr)
 			return m
 		}
 	}
 	return m
+}
+
+// EncodeMap attempts to convert an interface to a yaml node
+func EncodeMap(m any) string {
+	buf := strings.Builder{}
+	enc := yaml.NewEncoder(&buf)
+	enc.SetIndent(2)
+	err := enc.Encode(m)
+	if err != nil {
+		config.Debugf("EncodeMap error: %v", err)
+		return ""
+	}
+	return buf.String()
 }
 
 // StringsFromNode returns a string slice based on a scalar with a CSV or a sequence.
