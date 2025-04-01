@@ -2,7 +2,7 @@ module github.com/aws-cloudformation/rain
 
 go 1.22.1
 
-toolchain go1.22.4
+toolchain go1.24.1
 
 require (
 	//github.com/ake-persson/mapslice-json v0.0.0-20210720081907-22c8edf57807
@@ -21,8 +21,8 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/gookit/color v1.5.4
 	github.com/nathan-fiscaletti/consolesize-go v0.0.0-20220204101620-317176b6684d
-	github.com/spf13/cobra v1.8.1
-	github.com/spf13/pflag v1.0.5
+	github.com/spf13/cobra v1.9.1
+	github.com/spf13/pflag v1.0.6
 	golang.org/x/sys v0.29.0
 	golang.org/x/term v0.28.0
 	gopkg.in/yaml.v3 v3.0.1
