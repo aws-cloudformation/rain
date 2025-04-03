@@ -36,6 +36,14 @@
       "description": "The load balancer details if creating the AWS Verified Access endpoint as load-balancer type.",
       "$ref": "#/definitions/LoadBalancerOptions"
     },
+    "RdsOptions": {
+      "description": "The options for rds type endpoint.",
+      "$ref": "#/definitions/RdsOptions"
+    },
+    "CidrOptions": {
+      "description": "The options for cidr type endpoint.",
+      "$ref": "#/definitions/CidrOptions"
+    },
     "EndpointType": {
       "description": "The type of AWS Verified Access endpoint. Incoming application requests will be sent to an IP address, load balancer or a network interface depending on the endpoint type specified.The type of AWS Verified Access endpoint. Incoming application requests will be sent to an IP address, load balancer or a network interface depending on the endpoint type specified.",
       "type": "string"
@@ -117,6 +125,15 @@
           "minimum": 1,
           "maximum": 65535
         },
+        "PortRanges": {
+          "description": "The list of port ranges.",
+          "type": "array",
+          "uniqueItems": true,
+          "insertionOrder": false,
+          "items": {
+            "$ref": "#/definitions/PortRange"
+          }
+        },
         "Protocol": {
           "description": "The IP protocol.",
           "type": "string"
@@ -138,6 +155,15 @@
           "minimum": 1,
           "maximum": 65535
         },
+        "PortRanges": {
+          "description": "The list of port range.",
+          "type": "array",
+          "uniqueItems": true,
+          "insertionOrder": false,
+          "items": {
+            "$ref": "#/definitions/PortRange"
+          }
+        },
         "Protocol": {
           "description": "The IP protocol.",
           "type": "string"
@@ -150,6 +176,100 @@
           "items": {
             "$ref": "#/definitions/SubnetId"
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "RdsOptions": {
+      "description": "The options for rds type endpoint.",
+      "type": "object",
+      "properties": {
+        "Protocol": {
+          "description": "The IP protocol.",
+          "type": "string"
+        },
+        "Port": {
+          "description": "The IP port number.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "RdsDbInstanceArn": {
+          "description": "The ARN of the RDS DB instance.",
+          "type": "string"
+        },
+        "RdsDbClusterArn": {
+          "description": "The ARN of the RDS DB cluster.",
+          "type": "string"
+        },
+        "RdsDbProxyArn": {
+          "description": "The ARN of the RDS DB proxy.",
+          "type": "string"
+        },
+        "RdsEndpoint": {
+          "description": "The RDS endpoint.",
+          "type": "string"
+        },
+        "SubnetIds": {
+          "description": "The IDs of the subnets.",
+          "type": "array",
+          "uniqueItems": true,
+          "insertionOrder": false,
+          "items": {
+            "$ref": "#/definitions/SubnetId"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "CidrOptions": {
+      "description": "The options for cidr type endpoint.",
+      "type": "object",
+      "properties": {
+        "Cidr": {
+          "description": "The IP address range, in CIDR notation.",
+          "type": "string"
+        },
+        "PortRanges": {
+          "description": "The list of port range.",
+          "type": "array",
+          "uniqueItems": true,
+          "insertionOrder": false,
+          "items": {
+            "$ref": "#/definitions/PortRange"
+          }
+        },
+        "Protocol": {
+          "description": "The IP protocol.",
+          "type": "string"
+        },
+        "SubnetIds": {
+          "description": "The IDs of the subnets.",
+          "type": "array",
+          "uniqueItems": true,
+          "insertionOrder": false,
+          "items": {
+            "$ref": "#/definitions/SubnetId"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "PortRange": {
+      "description": "The IP port range.",
+      "type": "object",
+      "properties": {
+        "FromPort": {
+          "description": "The first port in the range.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "ToPort": {
+          "description": "The last port in the range.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
         }
       },
       "additionalProperties": false
@@ -199,12 +319,9 @@
   },
   "additionalProperties": false,
   "required": [
-    "ApplicationDomain",
     "AttachmentType",
-    "DomainCertificateArn",
     "EndpointType",
-    "VerifiedAccessGroupId",
-    "EndpointDomainPrefix"
+    "VerifiedAccessGroupId"
   ],
   "readOnlyProperties": [
     "/properties/VerifiedAccessEndpointId",
@@ -223,7 +340,14 @@
     "/properties/EndpointType",
     "/properties/SecurityGroupIds",
     "/properties/NetworkInterfaceOptions/NetworkInterfaceId",
-    "/properties/LoadBalancerOptions/LoadBalancerArn"
+    "/properties/LoadBalancerOptions/LoadBalancerArn",
+    "/properties/RdsOptions/Protocol",
+    "/properties/RdsOptions/RdsDbInstanceArn",
+    "/properties/RdsOptions/RdsDbClusterArn",
+    "/properties/RdsOptions/RdsDbProxyArn",
+    "/properties/CidrOptions/Cidr",
+    "/properties/CidrOptions/Protocol",
+    "/properties/CidrOptions/SubnetIds"
   ],
   "primaryIdentifier": [
     "/properties/VerifiedAccessEndpointId"
@@ -245,70 +369,44 @@
       "permissions": [
         "ec2:CreateVerifiedAccessEndpoint",
         "ec2:DescribeVerifiedAccessEndpoints",
-        "iam:CreateServiceLinkedRole",
-        "iam:ListRoles",
-        "acm:GetCertificateWithPK",
-        "acm:DescribeCertificate",
-        "acm:CreateCertificateRelation",
-        "sso:GetManagedApplicationInstance",
-        "sso:GetPeregrineStatus",
-        "sso:GetSharedSsoConfiguration",
-        "sso:CreateManagedApplicationInstance",
         "ec2:DescribeSubnets",
         "ec2:DescribeSecurityGroups",
         "ec2:DescribeNetworkInterfaces",
         "ec2:DescribeAccountAttributes",
+        "ec2:CreateTags",
+        "ec2:DescribeTags",
+        "ec2:DescribeVpcs",
+        "ec2:GetVerifiedAccessEndpointPolicy",
         "elasticloadbalancing:DescribeLoadBalancers",
         "elasticloadbalancing:DescribeListeners",
         "elasticloadbalancing:DescribeListenerCertificates",
-        "ec2:CreateTags",
-        "ec2:DescribeTags",
-        "acm:DeleteCertificateRelation",
-        "ec2:DeleteVerifiedAccessEndpoint",
-        "ec2:GetVerifiedAccessEndpointPolicy",
-        "ec2:ModifyVerifiedAccessEndpoint",
-        "ec2:ModifyVerifiedAccessEndpointPolicy",
+        "iam:CreateServiceLinkedRole",
+        "acm:DescribeCertificate",
+        "sso:PutApplicationAccessScope",
+        "sso:GetSharedSsoConfiguration",
+        "sso:CreateManagedApplicationInstance",
         "sso:DeleteManagedApplicationInstance",
         "kms:DescribeKey",
+        "kms:GenerateDataKey",
         "kms:RetireGrant",
         "kms:CreateGrant",
-        "kms:GenerateDataKey",
-        "kms:Decrypt"
+        "kms:Decrypt",
+        "rds:DescribeDbInstances",
+        "rds:DescribeDbProxies",
+        "rds:DescribeDbClusters",
+        "ec2:DescribeAvailabilityZones",
+        "ec2:DescribeVpcEndpointServiceConfigurations"
       ],
-      "timeoutInMinutes": 60
+      "timeoutInMinutes": 600
     },
     "read": {
       "permissions": [
         "ec2:DescribeVerifiedAccessEndpoints",
         "ec2:GetVerifiedAccessEndpointPolicy",
         "ec2:DescribeTags",
-        "acm:CreateCertificateRelation",
-        "acm:DeleteCertificateRelation",
-        "acm:DescribeCertificate",
-        "acm:GetCertificateWithPK",
-        "ec2:CreateVerifiedAccessEndpoint",
-        "ec2:DeleteVerifiedAccessEndpoint",
-        "ec2:DescribeAccountAttributes",
-        "ec2:DescribeNetworkInterfaces",
-        "ec2:DescribeSecurityGroups",
-        "ec2:DescribeSubnets",
-        "ec2:ModifyVerifiedAccessEndpoint",
-        "ec2:ModifyVerifiedAccessEndpointPolicy",
-        "elasticloadbalancing:DescribeListenerCertificates",
-        "elasticloadbalancing:DescribeListeners",
-        "elasticloadbalancing:DescribeLoadBalancers",
-        "iam:CreateServiceLinkedRole",
-        "iam:ListRoles",
-        "sso:CreateManagedApplicationInstance",
-        "sso:DeleteManagedApplicationInstance",
-        "sso:GetManagedApplicationInstance",
-        "sso:GetPeregrineStatus",
-        "sso:GetSharedSsoConfiguration",
         "kms:DescribeKey",
-        "kms:RetireGrant",
-        "kms:CreateGrant",
-        "kms:GenerateDataKey",
-        "kms:Decrypt"
+        "kms:Decrypt",
+        "kms:GenerateDataKey"
       ]
     },
     "update": {
@@ -317,34 +415,24 @@
         "ec2:ModifyVerifiedAccessEndpointPolicy",
         "ec2:DescribeVerifiedAccessEndpoints",
         "ec2:GetVerifiedAccessEndpointPolicy",
-        "acm:GetCertificateWithPK",
-        "acm:DescribeCertificate",
-        "acm:CreateCertificateRelation",
-        "acm:DeleteCertificateRelation",
-        "sso:GetManagedApplicationInstance",
-        "sso:GetPeregrineStatus",
-        "sso:GetSharedSsoConfiguration",
-        "sso:CreateManagedApplicationInstance",
-        "sso:DeleteManagedApplicationInstance",
         "ec2:DescribeSubnets",
         "ec2:DescribeSecurityGroups",
         "ec2:DescribeNetworkInterfaces",
-        "ec2:DescribeAccountAttributes",
-        "elasticloadbalancing:DescribeLoadBalancers",
-        "elasticloadbalancing:DescribeListeners",
-        "elasticloadbalancing:DescribeListenerCertificates",
+        "ec2:DescribeVpcs",
         "ec2:DescribeTags",
         "ec2:DeleteTags",
         "ec2:CreateTags",
-        "ec2:CreateVerifiedAccessEndpoint",
-        "ec2:DeleteVerifiedAccessEndpoint",
-        "iam:CreateServiceLinkedRole",
-        "iam:ListRoles",
+        "elasticloadbalancing:DescribeLoadBalancers",
+        "elasticloadbalancing:DescribeListeners",
+        "elasticloadbalancing:DescribeListenerCertificates",
         "kms:DescribeKey",
+        "kms:GenerateDataKey",
         "kms:RetireGrant",
         "kms:CreateGrant",
-        "kms:GenerateDataKey",
-        "kms:Decrypt"
+        "kms:Decrypt",
+        "rds:DescribeDbInstances",
+        "rds:DescribeDbProxies",
+        "rds:DescribeDbClusters"
       ],
       "timeoutInMinutes": 60
     },
@@ -352,70 +440,25 @@
       "permissions": [
         "ec2:DescribeVerifiedAccessEndpoints",
         "ec2:DeleteVerifiedAccessEndpoint",
+        "ec2:GetVerifiedAccessEndpointPolicy",
         "ec2:DescribeTags",
         "ec2:DeleteTags",
         "sso:DeleteManagedApplicationInstance",
-        "acm:DeleteCertificateRelation",
-        "acm:DescribeCertificate",
-        "acm:CreateCertificateRelation",
-        "acm:GetCertificateWithPK",
-        "ec2:CreateVerifiedAccessEndpoint",
-        "ec2:DescribeAccountAttributes",
-        "ec2:DescribeNetworkInterfaces",
-        "ec2:DescribeSecurityGroups",
-        "ec2:DescribeSubnets",
-        "ec2:GetVerifiedAccessEndpointPolicy",
-        "ec2:ModifyVerifiedAccessEndpoint",
-        "ec2:ModifyVerifiedAccessEndpointPolicy",
-        "elasticloadbalancing:DescribeListenerCertificates",
-        "elasticloadbalancing:DescribeListeners",
-        "elasticloadbalancing:DescribeLoadBalancers",
-        "iam:CreateServiceLinkedRole",
-        "iam:ListRoles",
-        "sso:CreateManagedApplicationInstance",
-        "sso:GetManagedApplicationInstance",
-        "sso:GetPeregrineStatus",
-        "sso:GetSharedSsoConfiguration",
         "kms:DescribeKey",
         "kms:RetireGrant",
-        "kms:CreateGrant",
-        "kms:GenerateDataKey",
-        "kms:Decrypt"
+        "kms:Decrypt",
+        "kms:GenerateDataKey"
       ],
       "timeoutInMinutes": 60
     },
     "list": {
       "permissions": [
         "ec2:DescribeVerifiedAccessEndpoints",
-        "ec2:DescribeTags",
-        "acm:CreateCertificateRelation",
-        "acm:DeleteCertificateRelation",
-        "acm:DescribeCertificate",
-        "acm:GetCertificateWithPK",
-        "ec2:CreateVerifiedAccessEndpoint",
-        "ec2:DeleteVerifiedAccessEndpoint",
-        "ec2:DescribeAccountAttributes",
-        "ec2:DescribeNetworkInterfaces",
-        "ec2:DescribeSecurityGroups",
-        "ec2:DescribeSubnets",
         "ec2:GetVerifiedAccessEndpointPolicy",
-        "ec2:ModifyVerifiedAccessEndpoint",
-        "ec2:ModifyVerifiedAccessEndpointPolicy",
-        "elasticloadbalancing:DescribeListenerCertificates",
-        "elasticloadbalancing:DescribeListeners",
-        "elasticloadbalancing:DescribeLoadBalancers",
-        "iam:CreateServiceLinkedRole",
-        "iam:ListRoles",
-        "sso:CreateManagedApplicationInstance",
-        "sso:DeleteManagedApplicationInstance",
-        "sso:GetManagedApplicationInstance",
-        "sso:GetPeregrineStatus",
-        "sso:GetSharedSsoConfiguration",
+        "ec2:DescribeTags",
         "kms:DescribeKey",
-        "kms:RetireGrant",
-        "kms:CreateGrant",
-        "kms:GenerateDataKey",
-        "kms:Decrypt"
+        "kms:Decrypt",
+        "kms:GenerateDataKey"
       ]
     }
   }

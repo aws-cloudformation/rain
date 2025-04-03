@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!/bin/bash
 # Cache one schema
 # $1 is the resource type name
 # $RAIN_CACHE_DIR is the root cache dir

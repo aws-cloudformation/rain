@@ -1,5 +1,6 @@
 {
   "typeName": "AWS::IoT::SoftwarePackageVersion",
+  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-iot",
   "description": "resource definition",
   "definitions": {
     "PackageVersionStatus": {
@@ -9,6 +10,19 @@
         "PUBLISHED",
         "DEPRECATED"
       ]
+    },
+    "PackageVersionArtifact": {
+      "description": "The artifact location of the package version",
+      "type": "object",
+      "properties": {
+        "S3Location": {
+          "$ref": "#/definitions/S3Location"
+        }
+      },
+      "required": [
+        "S3Location"
+      ],
+      "additionalProperties": false
     },
     "ResourceAttributes": {
       "type": "object",
@@ -44,11 +58,63 @@
         "Value"
       ],
       "additionalProperties": false
+    },
+    "Sbom": {
+      "description": "The sbom zip archive location of the package version",
+      "type": "object",
+      "properties": {
+        "S3Location": {
+          "$ref": "#/definitions/S3Location"
+        }
+      },
+      "required": [
+        "S3Location"
+      ],
+      "additionalProperties": false
+    },
+    "S3Location": {
+      "description": "The Amazon S3 location",
+      "type": "object",
+      "properties": {
+        "Bucket": {
+          "type": "string",
+          "description": "The S3 bucket",
+          "minLength": 1
+        },
+        "Key": {
+          "type": "string",
+          "description": "The S3 key",
+          "minLength": 1
+        },
+        "Version": {
+          "type": "string",
+          "description": "The S3 version"
+        }
+      },
+      "required": [
+        "Bucket",
+        "Key",
+        "Version"
+      ],
+      "additionalProperties": false
+    },
+    "SbomValidationStatus": {
+      "description": "The validation status of the Sbom file",
+      "type": "string",
+      "enum": [
+        "IN_PROGRESS",
+        "FAILED",
+        "SUCCEEDED",
+        ""
+      ]
     }
   },
   "properties": {
     "Attributes": {
       "$ref": "#/definitions/ResourceAttributes"
+    },
+    "Artifact": {
+      "$ref": "#/definitions/PackageVersionArtifact"
     },
     "Description": {
       "type": "string",
@@ -68,6 +134,16 @@
     "PackageVersionArn": {
       "type": "string",
       "pattern": "^arn:[!-~]+$"
+    },
+    "Recipe": {
+      "description": "The inline json job document associated with a software package version",
+      "type": "string"
+    },
+    "Sbom": {
+      "$ref": "#/definitions/Sbom"
+    },
+    "SbomValidationStatus": {
+      "$ref": "#/definitions/SbomValidationStatus"
     },
     "Status": {
       "$ref": "#/definitions/PackageVersionStatus"
@@ -93,7 +169,7 @@
     "taggable": true,
     "tagOnCreate": true,
     "tagUpdatable": true,
-    "cloudFormationSystemTags": true,
+    "cloudFormationSystemTags": false,
     "tagProperty": "/properties/Tags",
     "permissions": [
       "iot:TagResource",
@@ -107,7 +183,8 @@
   "readOnlyProperties": [
     "/properties/ErrorReason",
     "/properties/PackageVersionArn",
-    "/properties/Status"
+    "/properties/Status",
+    "/properties/SbomValidationStatus"
   ],
   "createOnlyProperties": [
     "/properties/PackageName",
@@ -122,8 +199,11 @@
       "permissions": [
         "iot:CreatePackageVersion",
         "iot:GetPackageVersion",
+        "iot:ListTagsForResource",
         "iot:TagResource",
-        "iot:GetIndexingConfiguration"
+        "iot:GetIndexingConfiguration",
+        "s3:GetObjectVersion",
+        "iot:AssociateSbomWithPackageVersion"
       ]
     },
     "read": {
@@ -139,7 +219,10 @@
         "iot:ListTagsForResource",
         "iot:TagResource",
         "iot:UntagResource",
-        "iot:GetIndexingConfiguration"
+        "iot:GetIndexingConfiguration",
+        "s3:GetObjectVersion",
+        "iot:AssociateSbomWithPackageVersion",
+        "iot:DisassociateSbomFromPackageVersion"
       ]
     },
     "delete": {
@@ -151,6 +234,16 @@
       ]
     },
     "list": {
+      "handlerSchema": {
+        "properties": {
+          "PackageName": {
+            "$ref": "resource-schema.json#/properties/PackageName"
+          }
+        },
+        "required": [
+          "PackageName"
+        ]
+      },
       "permissions": [
         "iot:ListPackageVersions"
       ]

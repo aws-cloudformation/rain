@@ -151,6 +151,9 @@ func processModulesSection(t *cft.Template, n *yaml.Node,
 			config.Debugf("processModuleSection %s outputNode did not have any Resources", name)
 		}
 
+		config.Debugf("\nparent template after %s processModule ==== \n%s\n",
+			name, node.YamlStr(t.Node))
+
 	}
 
 	// Look for GetAtts like Content[].Arn that reference
@@ -248,11 +251,14 @@ func processModule(
 		return err
 	}
 
+	config.Debugf("Module %s about to resolve t.Node in processModule",
+		m.Config.Name)
+
 	// Resolve any references to this module in the parent template
-	err = m.Resolve(t.Node)
-	if err != nil {
-		return err
-	}
+	//err = m.Resolve(t.Node)
+	//if err != nil {
+	//	return err
+	//}
 
 	fileRootDir := ""
 	if parentModule != nil {
@@ -370,6 +376,8 @@ func (module *Module) ProcessResources(outputNode *yaml.Node) error {
 		// Some refs are to other resources in the module
 		// Other refs are to the module's parameters
 
+		config.Debugf("%s about to resolve resource %s", module.Config.Name, nameNode.Value)
+
 		err = module.Resolve(clonedResource)
 		if err != nil {
 			return fmt.Errorf("failed to resolve refs: %v", err)
@@ -390,6 +398,18 @@ func (module *Module) ProcessResources(outputNode *yaml.Node) error {
 		}
 
 		outputNode.Content = append(outputNode.Content, clonedResource)
+
+		// We already resolved this resource, so skip its children
+		// if we try to resolve it again later.
+		module.ParentTemplate.AddResolvedModuleNode(clonedResource)
+
+		parentName := ""
+		if module.ParentModule != nil {
+			parentName = module.ParentModule.Config.Name
+		}
+		config.Debugf("Module %s (p:%s) adding resource:\n%s\n", module.Config.Name,
+			parentName,
+			node.YamlStr(clonedResource))
 	}
 
 	return nil
@@ -528,6 +548,12 @@ func module(ctx *directiveContext) (bool, error) {
 	if parent.Parent != nil && parent.Parent.Value != nil {
 		newParent = node.GetParent(n, parent.Parent.Value, nil)
 		newParent.Parent = &parent
+	}
+
+	// This needs to happen before recursing, since sub-modules need resolved constants in the parent
+	err = processRainSection(moduleAsTemplate, moduleContent.NewRootDir, ctx.fs)
+	if err != nil {
+		return false, err
 	}
 
 	_, err = transform(&transformContext{

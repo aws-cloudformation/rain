@@ -4,7 +4,6 @@ package pkg
 import (
 	"errors"
 	"fmt"
-	"slices"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
@@ -24,9 +23,37 @@ func (module *Module) Resolve(n *yaml.Node) error {
 	var err error
 	vf := func(v *visitor.Visitor) {
 		vn := v.GetYamlNode()
+
+		if vn.Value != "" {
+			config.Debugf("Resolve %s", vn.Value)
+		}
+
+		if vn == module.Config.Node {
+			// Don't resolve my own config
+			config.Debugf("Resolve skipping self:\n%s\n", node.YamlStr(vn))
+			v.SkipChildren()
+			return
+		}
+
+		p := v.GetParentNode()
+
+		// Make sure we aren't re-resolving something.
+		// This happens with resources in a module and
+		// can result in a ref being overwritten with props
+		// from another module with the same property names.
+		if module.ParentTemplate.ModuleAlreadyResolved(vn) {
+			// If we marked a node as resolved, skip all
+			// of its child nodes
+			config.Debugf("Resolve skipping:\n%s\n", node.YamlStr(vn))
+			v.SkipChildren()
+			return
+		}
+
+		// We're only concerned with Ref, Sub, GetAtt
 		if vn.Kind != yaml.MappingNode || len(vn.Content) != 2 {
 			return
 		}
+
 		switch vn.Content[0].Value {
 		case string(cft.Ref):
 			err = module.ResolveRef(vn)
@@ -36,10 +63,15 @@ func (module *Module) Resolve(n *yaml.Node) error {
 			err = module.ResolveGetAtt(vn)
 		}
 		if err != nil {
-			config.Debugf("Resolve visitor got an error: %v\n%s",
-				err, node.YamlStr(vn))
+			config.Debugf("Resolve visitor for module %s got an error: %v\n%s",
+				module.Config.Name, err, node.YamlStr(vn))
 			v.Stop()
 			return
+		}
+
+		module.ParentTemplate.AddResolvedModuleNode(vn)
+		if p != nil {
+			module.ParentTemplate.AddResolvedModuleNode(p)
 		}
 	}
 	visitor.NewVisitor(n).Visit(vf)
@@ -50,14 +82,6 @@ func (module *Module) ResolveRef(n *yaml.Node) error {
 
 	if module.Config == nil {
 		return errors.New("module.Config is nil")
-	}
-
-	// Make sure we aren't re-resolving something.
-	// This happens with resources in a module and
-	// can result in a ref being overwritten with props
-	// from another module with the same property names.
-	if slices.Contains(module.ParentTemplate.ModuleResolved, n) {
-		return nil
 	}
 
 	moduleParams := module.ParametersNode
@@ -94,7 +118,6 @@ func (module *Module) ResolveRef(n *yaml.Node) error {
 		prop.Value = fixedName
 	}
 
-	module.ParentTemplate.AddResolvedModuleNode(n)
 	return nil
 }
 
@@ -158,6 +181,8 @@ func (module *Module) resolveParam(params *yaml.Node, n *yaml.Node, parentProps 
 // ${Foo} is treated like a Ref to Foo
 // ${Foo.Bar} is treated like a GetAtt.
 func (module *Module) ResolveSub(n *yaml.Node) error {
+
+	original := node.Clone(n)
 
 	prop := n.Content[1]
 	words, err := parse.ParseSub(prop.Value, true)
@@ -231,6 +256,10 @@ func (module *Module) ResolveSub(n *yaml.Node) error {
 
 	*n = *newProp
 
+	config.Debugf("ResolveSub:\n%s\n -> \n%s\n",
+		node.YamlStr(original),
+		node.YamlStr(n))
+
 	return nil
 }
 
@@ -238,8 +267,6 @@ func (module *Module) ResolveGetAtt(n *yaml.Node) error {
 
 	// A GetAtt somewhere in the module refers to another Resource in the module.
 	// Simply prepend the module name.
-	// A GetAtt can also refer directly to the Property value in another
-	// module's configuration.
 
 	if len(n.Content) < 2 {
 		return fmt.Errorf("invalid GetAtt: %s", node.YamlStr(n))
@@ -255,13 +282,6 @@ func (module *Module) ResolveGetAtt(n *yaml.Node) error {
 			prop.Content[0].Value = fixedName
 			return nil
 		}
-	}
-
-	moduleProps := module.Config.Properties()
-	propName := prop.Content[1].Value
-	if _, ok := moduleProps[propName]; ok {
-		_, propNode, _ := s11n.GetMapValue(module.Config.PropertiesNode, propName)
-		*n = *propNode
 	}
 
 	return nil

@@ -86,8 +86,6 @@ type transformContext struct {
 func transform(ctx *transformContext) (bool, error) {
 	changed := false
 
-	// config.Debugf("transform: %s", node.ToSJson(ctx.nodeToTransform))
-
 	// registry is a map of functions defined in rain.go
 	for path, fn := range registry {
 		for found := range s11n.MatchAll(ctx.nodeToTransform, path) {
@@ -139,9 +137,6 @@ func processRainSection(t *cft.Template, rootDir string, fs *embed.FS) error {
 // rootDir must be passed in so that any included assets can be loaded from the same directory
 func Template(t *cft.Template, rootDir string, fs *embed.FS) (*cft.Template, error) {
 	var err error
-
-	//config.Debugf("Original template short: %v", node.ToSJson(t.Node))
-	//config.Debugf("Original template long: %v", node.ToJson(t.Node))
 
 	// First look for a Rain section and store constants
 	err = processRainSection(t, rootDir, fs)
@@ -286,7 +281,6 @@ func Template(t *cft.Template, rootDir string, fs *embed.FS) (*cft.Template, err
 // with assets included as per AWS CLI packaging rules
 // and any Rain:: functions used
 func File(path string) (*cft.Template, error) {
-	// config.Debugf("Packaging template: %s\n", path)
 
 	var t *cft.Template
 	var err error

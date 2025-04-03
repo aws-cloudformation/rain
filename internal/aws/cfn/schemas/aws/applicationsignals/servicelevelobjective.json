@@ -53,6 +53,9 @@
     },
     "BurnRateConfigurations": {
       "$ref": "#/definitions/BurnRateConfigurations"
+    },
+    "ExclusionWindows": {
+      "$ref": "#/definitions/ExclusionWindows"
     }
   },
   "required": [
@@ -181,6 +184,9 @@
         },
         "MetricDataQueries": {
           "$ref": "#/definitions/MetricDataQueries"
+        },
+        "DependencyConfig": {
+          "$ref": "#/definitions/DependencyConfig"
         }
       }
     },
@@ -212,6 +218,9 @@
         },
         "MonitoredRequestCountMetric": {
           "$ref": "#/definitions/MonitoredRequestCountMetric"
+        },
+        "DependencyConfig": {
+          "$ref": "#/definitions/DependencyConfig"
         }
       }
     },
@@ -293,15 +302,17 @@
       ]
     },
     "DurationUnit": {
-      "description": "Specifies the calendar interval unit.",
+      "description": "Specifies the interval unit.",
       "type": "string",
       "enum": [
+        "MINUTE",
+        "HOUR",
         "DAY",
         "MONTH"
       ]
     },
     "Duration": {
-      "description": "Specifies the duration of each calendar interval. For example, if `Duration` is 1 and `DurationUnit` is `MONTH`, each interval is one month, aligned with the calendar.",
+      "description": "Specifies the duration of each interval. For example, if `Duration` is 1 and `DurationUnit` is `MONTH`, each interval is one month, aligned with the calendar.",
       "type": "integer",
       "minimum": 1
     },
@@ -474,6 +485,106 @@
       "required": [
         "LookBackWindowMinutes"
       ]
+    },
+    "ExclusionWindows": {
+      "description": "Each object in this array defines a time exclusion window for this SLO. The time exclusion window is used to exclude breaching data points from affecting attainment rate, error budget, and burn rate metrics.",
+      "type": "array",
+      "uniqueItems": true,
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/ExclusionWindow"
+      },
+      "minItems": 0,
+      "maxItems": 10
+    },
+    "ExclusionWindow": {
+      "description": "This object defines a time exclusion window for this SLO. The time exclusion window is used to exclude breaching data points from affecting attainment rate, error budget, and burn rate metrics.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Window": {
+          "$ref": "#/definitions/Window"
+        },
+        "StartTime": {
+          "type": "string",
+          "description": "The time you want the exclusion window to start at. Note that time exclusion windows can only be scheduled in the future, not the past."
+        },
+        "RecurrenceRule": {
+          "$ref": "#/definitions/RecurrenceRule"
+        },
+        "Reason": {
+          "description": "An optional reason for scheduling this time exclusion window. Default is 'No reason'.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "default": "No reason"
+        }
+      },
+      "required": [
+        "Window"
+      ]
+    },
+    "Window": {
+      "description": "This object defines the length of time an exclusion window should span.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "DurationUnit": {
+          "$ref": "#/definitions/DurationUnit"
+        },
+        "Duration": {
+          "$ref": "#/definitions/Duration"
+        }
+      },
+      "required": [
+        "DurationUnit",
+        "Duration"
+      ]
+    },
+    "RecurrenceRule": {
+      "description": "This object defines how often to repeat a time exclusion window.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Expression": {
+          "description": "A cron or rate expression denoting how often to repeat this exclusion window.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      },
+      "required": [
+        "Expression"
+      ]
+    },
+    "DependencyConfig": {
+      "description": "Configuration for identifying a dependency and its operation",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "DependencyKeyAttributes": {
+          "$ref": "#/definitions/DependencyKeyAttributes"
+        },
+        "DependencyOperationName": {
+          "type": "string",
+          "description": "When the SLO monitors a specific operation of the dependency, this field specifies the name of that operation in the dependency.",
+          "minLength": 1,
+          "maxLength": 255
+        }
+      },
+      "required": [
+        "DependencyKeyAttributes",
+        "DependencyOperationName"
+      ]
+    },
+    "DependencyKeyAttributes": {
+      "description": "If this SLO is related to a metric collected by Application Signals, you must use this field to specify which dependency the SLO metric is related to.",
+      "patternProperties": {
+        "^.+$": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "handlers": {
@@ -485,13 +596,16 @@
         "application-signals:GetServiceLevelObjective",
         "application-signals:ListTagsForResource",
         "iam:GetRole",
-        "iam:CreateServiceLinkedRole"
+        "iam:CreateServiceLinkedRole",
+        "application-signals:ListServiceLevelObjectiveExclusionWindows",
+        "application-signals:BatchUpdateExclusionWindows"
       ]
     },
     "read": {
       "permissions": [
         "application-signals:GetServiceLevelObjective",
-        "application-signals:ListTagsForResource"
+        "application-signals:ListTagsForResource",
+        "application-signals:ListServiceLevelObjectiveExclusionWindows"
       ]
     },
     "update": {
@@ -501,7 +615,9 @@
         "application-signals:TagResource",
         "application-signals:UntagResource",
         "application-signals:GetServiceLevelObjective",
-        "application-signals:ListTagsForResource"
+        "application-signals:ListTagsForResource",
+        "application-signals:ListServiceLevelObjectiveExclusionWindows",
+        "application-signals:BatchUpdateExclusionWindows"
       ]
     },
     "delete": {
@@ -514,7 +630,8 @@
     "list": {
       "permissions": [
         "application-signals:ListServiceLevelObjectives",
-        "application-signals:ListTagsForResource"
+        "application-signals:ListTagsForResource",
+        "application-signals:ListServiceLevelObjectiveExclusionWindows"
       ]
     }
   },

@@ -64,10 +64,16 @@ func (module *Module) ProcessOutputs() error {
 			switch n.Content[0].Value {
 			case string(cft.Sub):
 				err = module.OutputSub(outputName, outputVal, n)
-				v.Stop()
+				if err != nil {
+					v.Stop()
+					return
+				}
 			case string(cft.GetAtt):
 				err = module.OutputGetAtt(outputName, outputVal, n)
-				v.Stop()
+				if err != nil {
+					v.Stop()
+					return
+				}
 			default:
 				return
 			}

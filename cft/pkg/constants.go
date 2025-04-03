@@ -58,6 +58,7 @@ func replaceConstants(n *yaml.Node, constants map[string]*yaml.Node) error {
 			retval += fmt.Sprintf("${%s}", w.W)
 		case parse.RAIN:
 			val, ok := constants[w.W]
+			config.Debugf("Found a Rain constant: %s = %s", w.W, val.Value)
 			if !ok {
 				return fmt.Errorf("did not find Constant %s", w.W)
 			}
@@ -78,6 +79,10 @@ func replaceConstants(n *yaml.Node, constants map[string]*yaml.Node) error {
 func replaceTemplateConstants(t *cft.Template) error {
 
 	constants := t.Constants
+
+	for k, v := range constants {
+		config.Debugf("replaceTemplateConstants %s: %v", k, node.YamlStr(v))
+	}
 
 	var err error
 

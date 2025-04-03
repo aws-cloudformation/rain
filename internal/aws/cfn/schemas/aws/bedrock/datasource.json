@@ -3,16 +3,72 @@
   "description": "Definition of AWS::Bedrock::DataSource Resource Type",
   "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-aps",
   "definitions": {
+    "ContextEnrichmentConfiguration": {
+      "type": "object",
+      "description": "Additional Enrichment Configuration for example when using GraphRag.",
+      "properties": {
+        "Type": {
+          "$ref": "#/definitions/ContextEnrichmentType"
+        },
+        "BedrockFoundationModelConfiguration": {
+          "$ref": "#/definitions/BedrockFoundationModelContextEnrichmentConfiguration"
+        }
+      },
+      "required": [
+        "Type"
+      ],
+      "additionalProperties": false
+    },
+    "ContextEnrichmentType": {
+      "type": "string",
+      "description": "Enrichment type to be used for the vector database.",
+      "enum": [
+        "BEDROCK_FOUNDATION_MODEL"
+      ]
+    },
+    "BedrockFoundationModelContextEnrichmentConfiguration": {
+      "type": "object",
+      "description": "Bedrock Foundation Model configuration to be used for Context Enrichment.",
+      "properties": {
+        "EnrichmentStrategyConfiguration": {
+          "$ref": "#/definitions/EnrichmentStrategyConfiguration"
+        },
+        "ModelArn": {
+          "$ref": "#/definitions/ModelArn"
+        }
+      },
+      "required": [
+        "EnrichmentStrategyConfiguration",
+        "ModelArn"
+      ],
+      "additionalProperties": false
+    },
+    "EnrichmentStrategyConfiguration": {
+      "type": "object",
+      "description": "Strategy to be used when using Bedrock Foundation Model for Context Enrichment.",
+      "properties": {
+        "Method": {
+          "$ref": "#/definitions/EnrichmentStrategyMethod"
+        }
+      },
+      "required": [
+        "Method"
+      ],
+      "additionalProperties": false
+    },
+    "EnrichmentStrategyMethod": {
+      "type": "string",
+      "description": "Enrichment Strategy method.",
+      "enum": [
+        "CHUNK_ENTITY_EXTRACTION"
+      ]
+    },
     "BedrockFoundationModelConfiguration": {
       "type": "object",
       "description": "Settings for a foundation model used to parse documents for a data source.",
       "properties": {
         "ModelArn": {
-          "type": "string",
-          "maxLength": 2048,
-          "minLength": 1,
-          "pattern": "^arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}::foundation-model/([a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.]?[a-z0-9-]{1,63})([:][a-z0-9-]{1,63}){0,2})|(arn:aws(|-us-gov|-cn|-iso|-iso-b):bedrock:(|[0-9a-z-]{1,20}):(|[0-9]{12}):(inference-profile|application-inference-profile)/[a-zA-Z0-9-:.]+)$",
-          "description": "The model's ARN."
+          "$ref": "#/definitions/ModelArn"
         },
         "ParsingPrompt": {
           "$ref": "#/definitions/ParsingPrompt"
@@ -25,6 +81,13 @@
         "ModelArn"
       ],
       "additionalProperties": false
+    },
+    "ModelArn": {
+      "type": "string",
+      "maxLength": 2048,
+      "minLength": 1,
+      "pattern": "^arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}::foundation-model/([a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.]?[a-z0-9-]{1,63})([:][a-z0-9-]{1,63}){0,2})|(arn:aws(|-us-gov|-cn|-iso|-iso-b):bedrock:(|[0-9a-z-]{1,20}):(|[0-9]{12}):(inference-profile|application-inference-profile)/[a-zA-Z0-9-:.]+)$",
+      "description": "The model's ARN."
     },
     "ChunkingConfiguration": {
       "type": "object",
@@ -128,7 +191,8 @@
         "SALESFORCE",
         "SHAREPOINT",
         "WEB",
-        "CUSTOM"
+        "CUSTOM",
+        "REDSHIFT_METADATA"
       ]
     },
     "DataDeletionPolicy": {
@@ -500,6 +564,9 @@
         },
         "ParsingConfiguration": {
           "$ref": "#/definitions/ParsingConfiguration"
+        },
+        "ContextEnrichmentConfiguration": {
+          "$ref": "#/definitions/ContextEnrichmentConfiguration"
         }
       },
       "additionalProperties": false
@@ -622,7 +689,8 @@
           "type": "string",
           "description": "The supported authentication type to authenticate and connect to your SharePoint site/sites.",
           "enum": [
-            "OAUTH2_CLIENT_CREDENTIALS"
+            "OAUTH2_CLIENT_CREDENTIALS",
+            "OAUTH2_SHAREPOINT_APP_ONLY_CLIENT_CREDENTIALS"
           ]
         },
         "CredentialsSecretArn": {
@@ -727,6 +795,18 @@
         },
         "Scope": {
           "$ref": "#/definitions/WebScopeType"
+        },
+        "UserAgent": {
+          "type": "string",
+          "description": "The suffix that will be included in the user agent header.",
+          "maxLength": 40,
+          "minLength": 15
+        },
+        "UserAgentHeader": {
+          "type": "string",
+          "description": "The full user agent header, including UUID and suffix.",
+          "maxLength": 86,
+          "minLength": 61
         }
       },
       "additionalProperties": false
@@ -740,6 +820,11 @@
           "minimum": 1,
           "maximum": 300,
           "description": "Rate of web URLs retrieved per minute."
+        },
+        "MaxPages": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum number of pages the crawler can crawl."
         }
       },
       "additionalProperties": false
@@ -896,7 +981,8 @@
     "/properties/DataSourceStatus",
     "/properties/CreatedAt",
     "/properties/UpdatedAt",
-    "/properties/FailureReasons"
+    "/properties/FailureReasons",
+    "/properties/DataSourceConfiguration/WebConfiguration/CrawlerConfiguration/UserAgentHeader"
   ],
   "createOnlyProperties": [
     "/properties/KnowledgeBaseId",
@@ -917,7 +1003,8 @@
       "permissions": [
         "bedrock:CreateDataSource",
         "bedrock:GetDataSource",
-        "bedrock:GetKnowledgeBase"
+        "bedrock:GetKnowledgeBase",
+        "kms:GenerateDataKey"
       ]
     },
     "read": {
@@ -928,7 +1015,8 @@
     "update": {
       "permissions": [
         "bedrock:GetDataSource",
-        "bedrock:UpdateDataSource"
+        "bedrock:UpdateDataSource",
+        "kms:GenerateDataKey"
       ]
     },
     "delete": {

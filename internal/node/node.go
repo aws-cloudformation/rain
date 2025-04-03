@@ -191,7 +191,8 @@ func YamlStr(node *yaml.Node) string {
 	if err != nil {
 		return fmt.Sprintf("%s", err)
 	}
-	return buf.String()
+	s := buf.String()
+	return strings.TrimSpace(s)
 }
 
 // Remove a map key-value pair from node.Content

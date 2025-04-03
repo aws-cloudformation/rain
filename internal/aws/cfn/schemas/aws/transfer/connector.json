@@ -120,6 +120,14 @@
           "description": "ARN or name of the secret in AWS Secrets Manager which contains the credentials for Basic authentication. If empty, Basic authentication is disabled for the AS2 connector",
           "minLength": 0,
           "maxLength": 2048
+        },
+        "PreserveContentType": {
+          "description": "Specifies whether to use the AWS S3 object content-type as the content-type for the AS2 message.",
+          "type": "string",
+          "enum": [
+            "ENABLED",
+            "DISABLED"
+          ]
         }
       },
       "additionalProperties": false
@@ -217,7 +225,12 @@
     "tagOnCreate": true,
     "tagUpdatable": true,
     "cloudFormationSystemTags": true,
-    "tagProperty": "/properties/Tags"
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "transfer:ListTagsForResource",
+      "transfer:UnTagResource",
+      "transfer:TagResource"
+    ]
   },
   "handlers": {
     "create": {

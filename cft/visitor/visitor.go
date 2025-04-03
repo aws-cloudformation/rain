@@ -5,8 +5,10 @@ import (
 )
 
 type Visitor struct {
-	rootNode *yaml.Node
-	stop     bool
+	rootNode   *yaml.Node
+	stop       bool
+	skip       bool
+	parentNode *yaml.Node
 }
 
 type FilterFunc func(*Visitor) bool
@@ -14,6 +16,14 @@ type VisitFunc func(*Visitor)
 
 func (v *Visitor) GetYamlNode() *yaml.Node {
 	return v.rootNode
+}
+
+func (v *Visitor) GetParentNode() *yaml.Node {
+	return v.parentNode
+}
+
+func (v *Visitor) SkipChildren() {
+	v.skip = true
 }
 
 // Stop can be called from a visitor function to stop recursion
@@ -34,9 +44,15 @@ func (v *Visitor) Visit(visitFunc VisitFunc) {
 		if node.stop {
 			return
 		}
-		for _, child := range node.rootNode.Content {
-			node := NewVisitor(child)
-			walk(node)
+		if !node.skip {
+			for _, child := range node.rootNode.Content {
+				childVisitor := NewVisitor(child)
+				childVisitor.parentNode = node.rootNode
+				walk(childVisitor)
+				if childVisitor.stop {
+					return
+				}
+			}
 		}
 	}
 	node := NewVisitor(v.rootNode)

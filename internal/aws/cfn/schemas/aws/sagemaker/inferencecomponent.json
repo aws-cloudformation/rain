@@ -26,6 +26,9 @@
     "RuntimeConfig": {
       "$ref": "#/definitions/InferenceComponentRuntimeConfig"
     },
+    "DeploymentConfig": {
+      "$ref": "#/definitions/InferenceComponentDeploymentConfig"
+    },
     "InferenceComponentStatus": {
       "$ref": "#/definitions/InferenceComponentStatus"
     },
@@ -246,6 +249,108 @@
         }
       }
     },
+    "InferenceComponentDeploymentConfig": {
+      "description": "The deployment config for the inference component",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "RollingUpdatePolicy": {
+          "$ref": "#/definitions/InferenceComponentRollingUpdatePolicy"
+        },
+        "AutoRollbackConfiguration": {
+          "$ref": "#/definitions/AutoRollbackConfiguration"
+        }
+      }
+    },
+    "AutoRollbackConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Alarms": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": {
+            "$ref": "#/definitions/Alarm"
+          }
+        }
+      },
+      "required": [
+        "Alarms"
+      ]
+    },
+    "Alarm": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "AlarmName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "pattern": "^(?!\\s*$).+"
+        }
+      },
+      "required": [
+        "AlarmName"
+      ]
+    },
+    "InferenceComponentRollingUpdatePolicy": {
+      "description": "The rolling update policy for the inference component",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "MaximumBatchSize": {
+          "$ref": "#/definitions/InferenceComponentCapacitySize"
+        },
+        "WaitIntervalInSeconds": {
+          "$ref": "#/definitions/WaitIntervalInSeconds"
+        },
+        "RollbackMaximumBatchSize": {
+          "$ref": "#/definitions/InferenceComponentCapacitySize"
+        },
+        "MaximumExecutionTimeoutInSeconds": {
+          "$ref": "#/definitions/MaximumExecutionTimeoutInSeconds"
+        }
+      }
+    },
+    "WaitIntervalInSeconds": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 3600
+    },
+    "MaximumExecutionTimeoutInSeconds": {
+      "type": "integer",
+      "minimum": 600,
+      "maximum": 28800
+    },
+    "InferenceComponentCapacitySize": {
+      "type": "object",
+      "description": "Capacity size configuration for the inference component",
+      "required": [
+        "Type",
+        "Value"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "Type": {
+          "$ref": "#/definitions/InferenceComponentCapacitySizeType"
+        },
+        "Value": {
+          "$ref": "#/definitions/CapacitySizeValue"
+        }
+      }
+    },
+    "InferenceComponentCapacitySizeType": {
+      "type": "string",
+      "enum": [
+        "COPY_COUNT",
+        "CAPACITY_PERCENT"
+      ]
+    },
+    "CapacitySizeValue": {
+      "description": "The number of copies for the inference component",
+      "type": "integer"
+    },
     "InferenceComponentStatus": {
       "type": "string",
       "enum": [
@@ -293,7 +398,12 @@
     "tagOnCreate": true,
     "tagUpdatable": true,
     "cloudFormationSystemTags": false,
-    "tagProperty": "/properties/Tags"
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "sagemaker:AddTags",
+      "sagemaker:ListTags",
+      "sagemaker:DeleteTags"
+    ]
   },
   "primaryIdentifier": [
     "/properties/InferenceComponentArn"
@@ -350,6 +460,7 @@
   ],
   "writeOnlyProperties": [
     "/properties/Specification/Container/Image",
-    "/properties/RuntimeConfig/CopyCount"
+    "/properties/RuntimeConfig/CopyCount",
+    "/properties/DeploymentConfig"
   ]
 }

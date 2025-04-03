@@ -35,7 +35,7 @@ cfn-lint, Guard and more:
 
 * **Predict deployment failures** (EXPERIMENTAL): `rain forecast` analyzes a template and the target deployment account to predict things that might go wrong when you attempt to create, update, or delete a stack. This command speeds up development by giving you advanced notice for issues like missing permissions, resources that already exist, and a variety of other common resource-specific deployment blockers.
 
-* **Modules** (EXPERIMENTAL): `rain pkg` supports client-side module development with the `!Rain::Module` directive. Rain modules are partial templates that are inserted into the parent template, with some extra functionality added to enable extending existing resource types. This feature integrates with CodeArtifact to enable package publish and install.
+* **Modules** (EXPERIMENTAL): `rain pkg` supports client-side module development. Rain modules are partial templates that are inserted into the parent template, with some extra functionality added to enable extending existing resource types. This feature integrates with CodeArtifact to enable package publish and install.
 
 * **Content Deployment** (EXPERIMENTAL): `rain deploy` and `rain rm` support metadata commands that can upload static assets to a bucket and then delete those assets when the bucket is deleted. Rain can also run build scripts before and after stack deployment to prepare content like web sites and lambda functions before uploading to S3.
 
@@ -269,6 +269,28 @@ Resources:
         S3Key: 1b4844dacc843f09941c11c94f80981d3be8ae7578952c71e875ef7add37b1a7
 ```
 
+Sometimes you require that objects uploaded to S3 have a specific extension, use the `Extension` property to ensure the artifact in S3 ends .<Extension>.
+
+```yaml
+Resources:
+  Test:
+    Type: A::B::C
+    Properties:
+      TheS3URI: !Rain::S3
+        Path: test
+        Extension: sh
+```
+
+The packaged template:
+
+```yaml
+Resources:
+  Test:
+    Type: A::B::C
+    Properties:
+      TheS3URI: s3://rain-artifacts-012345678912-us-east-1/a84b588aa54068ed4b027b6e06e5e0bb283f83cf0d5a6720002d36af2225dfc3.sh
+```
+
 #### Metadata commands
 
 You can add a metadata section to an `AWS::S3::Bucket` resource to take additional actions during deployment, such as running pre and post build scripts, uploading content to the bucket after stack deployment completes, and emptying the contents of the bucket when the stack is deleted.
@@ -305,145 +327,295 @@ Resources:
 
 See `test/webapp/README.md` for a complete example of using these commands with Rain modules.
 
-#### Module
+#### Modules
 
-The `!Rain::Module` directive is an experimental feature that allows you to
-create local modules of reuseable code that can be inserted into templates. 
-Rain modules are basically just CloudFormation templates, with a Parameters 
-section that corresponds to the Properties that a consumer will set when 
-using the module. Rain modules are very flexible, since you can override 
-any of the resource properties from the parent template.
+You can use Rain to package templates with client-side modules, which gives
+CloudFormation multi-file support. This feature is compatible with (upcoming)
+functionality in the AWS CLI `cloudformation package` command. This feature is
+still considered experimental, so you need to use the `--experimental` flag to
+use it. The UX is fairly stable at this point, but we still reserve the right
+to change the behavior in a minor version release.
 
-In order to use this feature, you have to acknowledge that it's experimental by
-adding a flag on the command line:
-
-`rain pkg -x my-template.yaml`
-
-Keep in mind that with new versions of rain, this functionality could change,
-so use caution if you decide to use this feature for production applications.
 The `rain pkg` command does not actually deploy any resources if the template
 does not upload any objects to S3, so you always have a chance to review the
 packaged template. It's recommended to run linters and scanners on the packaged
 template, rather than a pre-processed template that makes use of these advanced
-directives.
+directives. (We are working on native support for modules in cfn-lint and in
+IDE plugins)
+
+A prior version of modules in Rain made use of the `Rain::Module` resource type
+directive, which is still available for backwards compatibility.
+
+Modules are imported into the parent template or parent module via a new
+`Modules` section. This is a departure from registry modules and from the prior
+version of Rain modules, which are configured as resources. 
+
+```
+Modules:
+  Content:
+    Source: ./module.yaml
+```
+
+Modules are very similar to CloudFormation templates. They support
+`Parameters`, `Resources`, `Conditions`, and `Outputs`. `Parameters` are
+configured with the `Properties` attribute in the parent, and act much like
+normal parameters, except it is possible to pass in objects and lists to a
+module. Any valid CloudFormation template can be used as a module.
+
+<img src="./docs/module.png" />
 
 A sample module:
 
-```yaml
-Description: This module creates a compliant bucket, along with a second bucket to store access logs
-
+```
 Parameters:
-  LogBucketName:
-    Type: String
-
+  Name:
+    Type: Scalar
 Resources:
   Bucket:
     Type: AWS::S3::Bucket
+    Metadata:
+      OverrideMe: abc
     Properties:
-      LoggingConfiguration:
-        DestinationBucketName: !Ref LogBucket
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-             SSEAlgorithm: AES256
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-      Tags:
-        - Key: test-tag
-          Value: test-value1
-  
-  LogBucket:
-    Type: AWS::S3::Bucket
-    DeletionPolicy: Retain
-    Properties:
-      BucketName: !Ref LogBucketName
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      VersioningConfiguration:
-        Status: Enabled
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
+      BucketName: !Ref Name
+Outputs:
+   BucketArn: 
+    Value: !GetAtt Bucket.Arn
 ```
 
-Note that we defined a single parameter to the module called `LogBucketName`.
-In the module, we create an additional bucket to hold logs, and we apply the
-name to that bucket. In the template that uses the module, we specify that name
-as a property. This shows how we have extended the basic behavior of a bucket
-to add something new. 
+The `Outputs` of a module are reference-able in the parent by using `GetAtt` or `Sub` for scalars and `Ref` for objects.
 
-A template that uses the module (in this example we reference a local module, 
-but it's also possible to reference a URL):
+An example of using the module above:
 
-```yaml
-Resources:
-  ModuleExample:
-    Type: !Rain::Module "./bucket-module.yaml"
+```
+Modules:
+  Content:
+    Source: ./module.yaml
     Properties:
-      LogBucketName: test-module-log-bucket
+      Name: foo
     Overrides:
       Bucket:
-        UpdateReplacePolicy: Delete
-        Properties:
-          VersioningConfiguration:
-            Status: Enabled
-          Tags:
-            - Key: test-tag
-              Value: test-value2
+        Metadata:
+          OverrideMe: def
+Outputs:
+  TheArn:
+    Value: !GetAtt Content.BucketArn
 ```
 
-Note that in addition to supplying the expected `LogBucketName` property, we have also 
-decided to override a few of the properties on the underlying `AWS::S3::Bucket` resource, 
-which shows the flexibility of the inheritance model.
+The `Overrides` attribute is a new feature that distinguishes local modules
+from registry modules. This allows the consumer to override content from the
+module that is included in the parent template, if they know the internal
+structure of the module. Instead of forcing a module author to anticipate every
+possible use case with numerous parameters, the author can focus on basic use
+cases and allow the consumer to get creative if they want to change certain
+elements of the output. Using `Overrides` carries a risk of breaking changes
+when a module author changes things, so it will generally be safer to rely on
+`Parameters` and `References`, but the overrides provide a flexible and
+easy-to-use escape hatch that can solve some tricky design challenges
+associated with a declarative language like YAML.
 
-The resulting template after running `rain pkg`:
+The packaged output of the above template:
 
-```yaml
+```
 Resources:
-  ModuleExampleBucket:
+  ContentBucket:
     Type: AWS::S3::Bucket
+    Metadata:
+      OverrideMe: def
     Properties:
-      LoggingConfiguration:
-        DestinationBucketName: !Ref ModuleExampleLogBucket
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-      Tags:
-        - Key: test-tag
-          Value: test-value2
-      VersioningConfiguration:
-        Status: Enabled
-
-  ModuleExampleLogBucket:
-    DeletionPolicy: Retain
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: test-module-log-bucket
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      VersioningConfiguration:
-        Status: Enabled
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
+      BucketName: foo
 ```
+
+You can also define constant values in modules. The `Constants` section is a
+simple key-value list of strings or objects that are referred to later with
+`Fn::Sub` or `Ref`. When referencing an object, only the entire object can be
+referenced, not any sub-elements of the object.
+
+```
+Constants:
+  S3Arn: "arn:${AWS::Partition}:s3:::"
+  BucketName: "${Name}-${AWS::Region}-${AWS::AccountId}"
+  BucketArn: "${Const::S3Arn}${Const::BucketName}"
+  AnObject:
+    Foo: bar
+```
+
+Before any processing of the template happens, all instances of constants in
+`!Sub` strings are replaced, including in subsequent constant declarations.
+Constant references are prefixed by `Const::`. Constants are supported not
+just in modules, but in the parent template as well. For constants that are
+objects, they are referenced with `!Ref Const::name`. 
+
+After constants are processed, the `Modules` section is processed. Module
+source files are specified using a path that is relative to the parent template
+or module. The path is not relative to where the `package` command is being
+run. So, if a module is in the same directory as the parent, it is simply
+referred to as `module.yaml` or `./module.yaml`. Modules can also reference an
+HTTPS URL as the source location.
+
+Modules can contain other modules, with no enforced maximum limit on nesting.
+Modules are not allowed to refer to themselves directly or in cycles. Module A
+can’t import Module A, and it can’t import Module B if that module imports
+Module A.
+
+Modules support a basic form of looping/foreach by adding a `Map` attribute to
+the module configuration. Special variables `$MapIndex` and `$MapValue` can be
+used to refer to the index and list value. Logical Ids are auto-incremented by
+adding an integer starting at zero. Since this is a client-side-only feature,
+list values must be fully resolved scalars, not values that must be resolved at
+deploy time. When deploy-time values are needed, `Fn::ForEach` is a better
+design option. Local modules do not process `Fn::ForEach`.
+
+```
+Parameters:
+  List:
+    Type: CommaDelimitedList
+    Default: A,B,C
+
+Modules:
+  Content:
+    Source: ./map-module.yaml
+    Map: !Ref List
+    Properties:
+      Name: !Sub my-bucket-$MapValue
+```
+
+Assuming the module itself simply creates a bucket, the output would be:
+
+```
+Parameters:
+  List: 
+    Type: CommaDelimitedList  
+    Default: A,B,C
+Resources:  
+  Content0Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: my-bucket-A
+  Content1Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: my-bucket-B
+  Content2Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: my-bucket-C
+```
+
+It’s also possible to refer to elements within a `Map` using something like
+`!GetAtt Content[0].Arn` for a single element, or `!GetAtt Content[].Arn`,
+which resolves to a list of all of the `Arn` outputs from that module.
+
+When a module is processed, the first thing that happens is parsing of the
+`Conditions` within the module. These conditions must be fully resolvable
+client-side, since the package command does not have access to Parameters or
+deploy-time values. These conditions are converted to a dictionary of boolean
+values and the `Conditions` section is not emitted into the parent template. It
+is not merged into the parent. Any resources marked with a false condition are
+removed, and any property nodes with conditions are processed. Any values of
+`!Ref AWS::NoValue` are removed. No evidence of conditions will remain in the
+markup that is merged into the parent template, unless the condition is not
+found in the module. 
+
+Much of the value of module output is in the smart handling of `Ref`,
+`Fn::GetAtt`, and `Fn::Sub`. For the most part, we want these to “just work” in
+the way that an author would expect them to. Since the logical IDs in the
+module result in a concatenation of the module name and the ID specified inside
+the module, we have to modify self-references within the module. And we have to
+fix up any references to parameter values, so that in the final rendered
+output, they match up with actual IDs and property names.
+
+From the parent, the author has two options for referring to module properties.
+If they know the structure of the module, they can use the predicted final name
+for resources, in which case we leave the strings alone. For example, in a
+module that creates a bucket, if the logical id within the module is `Bucket`
+and the name of the module in the parent is `Content`, the author could write
+`!Ref ContentBucket` or `!GetAtt ContentBucket.BucketName`. The second, safer
+way would be for the module author to specify an output reference called `Name`
+that refs the bucket name, so the parent author could write `!GetAtt
+Content.Name`. Module authors are encouraged to provide `Outputs` that provide
+access to all needed values, but there will be cases when they cannot predict
+everything a consumer needs. For `Sub` strings, if we can fully resolve the
+value, we get rid of the `Fn::Sub` and simply write the string to the output.
+The parent can also refer directly to the `Properties` defined for a module
+import in the `Modules` section.
+
+Complex objects are merged when an override is specified, so it’s possible to
+do things like add statements to a policy without actually overwriting the
+entire thing. This is usually what the author wants, but the tradeoff is that
+there is no way to delete an element from a list in the module.
+
+#### Intrinsics
+
+As a part of this design, we are adding support for intrinsic functions that do
+not exist for normal CloudFormation templates, and can only be processed by the
+`package` command. We also augment the behavior of some intrinsics. These
+functions are fully resolved locally and won’t need server-side support.
+
+`Fn::Merge` merges the contents of multiple objects. This is useful for things
+like tagging, where each module might want to add a set of tags, in addition to
+any tags defined by the parent module. 
+
+`Fn::Select` is collapsed if we can fully resolve the return value as a string.
+We do the same for `Fn::Join`.
+
+`Fn::InsertFile` inserts the contents of a local file directly into the
+template as a string.
+
+`Fn::Invoke` allows modules to be treated sort of like functions. A module can
+be created with only `Parameters` and `Outputs`, and by using `Invoke` later,
+you can get different outputs. An example use case is a module that creates
+standard resource names, accepting things like `Env` and `App` and `Name` as
+parameters, and returning a concatenated string. 
+
+#### Metadata
+
+When processing modules, the package command adds metadata to the template for
+metrics gathering.
+
+```
+Metadata:
+  AWSToolsMetrics:
+    Rain: '{"Version":"v1.21.0","Experimental":true,"HasModules":true,"HasRainSection":false}'
+```
+
+Each rendered resource has an added Metadata property to indicate where it
+originated. This can be useful for tooling such as IDE integration, and for
+troubleshooting in the console.
+
+```
+Resources:
+  ContentBucket:
+    Metadata:
+      SourceMap: "./modules/bucket.yaml:Bucket:35"
+```
+
+### Packaging
+
+In order to reference a collection of modules, you can add a `Packages` section
+to the template. Packages are zip files containing modules.
+
+```
+Packages:
+  abc:
+    Source: ./package.zip
+  def:
+    Source: https://example.com/packages/package.zip
+```
+
+Packages are referenced by using an alias to the package name that starts with `$`.
+
+```
+Modules:
+  Foo:
+    Source: $abc/foo.yaml
+  Bar:
+    Source: $def/a/b/bar.yaml
+```
+
+
+
+
+
 
 ### Publish modules to CodeArtifact 
 
@@ -452,45 +624,14 @@ publish and install. A directory that includes Rain module YAML files can be
 packaged up with `rain module publish`, and then the directory can be installed
 by developers with `rain module install`.
 
-### Module packaging
-
-You can reference a collection of Rain modules with an alias inside of the
-parent template. Add a `Rain` section to the template to configure the package
-alias. There's nothing special about a package, it's just an alias to a
-directory or a zip file. A zip file can also have a sha256 hash associated with
-it to verify the contents.
-
-```yaml
-Rain:
-  Packages:
-    aws:
-      Location: https://github.com/aws-cloudformation/rain/modules
-    xyz:
-      Location: ./my-modules
-    abc:
-      Location: https://github.com/aws-cloudformation/rain/releases/tag/m0.1.0/modules.zip
-      Hash: https://github.com/aws-cloudformation/rain/releases/tag/m0.1.0/modules.sha256
-
-Resources:
-  Foo:
-    Type: !Rain::Module aws/foo.yaml
-
-  Bar:
-    Type: !Rain::Module xyz/bar.yaml
-
-  Baz:
-    Type: $abc/baz.yaml
-    # Shorthand for !Rain::Module abc/baz.yaml
-```
 
 A module package is published and released from this repository separately from
 the Rain binary release. This allows the package to be referenced by version
 numbers using tags, such as `m0.1.0` as shown in the example above. The major
 version number will be incremented if any breaking changes are introduced to
-the modules. The available modules in the release package are listed below. 
-
-Treat these modules as samples to be used as a proof-of-concept for building your 
-own module packages.
+the modules. The available modules in the release package are listed below.
+Treat these modules as samples to be used as a proof-of-concept for building
+your own module packages.
 
 #### simple-vpc.yaml
 
@@ -530,9 +671,11 @@ A Lambda function and associated API Gateway resources
 
 ### IfParam and IfNotParam
 
-Inside a module, you can add a Metadata attribute to show or hide resources, 
-depending on whether the parent template sets a parameter value. This is similar 
-to the Conditional section in a template, but somewhat simpler, and it only works in modules.
+Inside a module, you can add a Metadata attribute to show or hide resources,
+depending on whether the parent template sets a parameter value. This is
+similar to the Conditional section in a template, but somewhat simpler, and it
+only works in modules. Modules also support normal Conditions. `IfParam` is
+basically just a shorthand for writing the complete Condition.
 
 ```yaml
 Resources:

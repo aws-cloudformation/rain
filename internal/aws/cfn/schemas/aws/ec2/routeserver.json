@@ -1,0 +1,144 @@
+{
+  "typeName": "AWS::EC2::RouteServer",
+  "description": "VPC Route Server",
+  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+  "definitions": {
+    "Tag": {
+      "description": "A key-value pair to associate with a resource.",
+      "type": "object",
+      "properties": {
+        "Key": {
+          "type": "string",
+          "description": "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "Value": {
+          "type": "string",
+          "description": "The value for the tag. You can specify a value that is 0 to 256 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.",
+          "minLength": 0,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "Key",
+        "Value"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "AmazonSideAsn": {
+      "description": "The Amazon-side ASN of the Route Server.",
+      "type": "integer",
+      "format": "int64",
+      "minimum": 1,
+      "maximum": 4294967294
+    },
+    "Arn": {
+      "description": "The Amazon Resource Name (ARN) of the Route Server.",
+      "type": "string"
+    },
+    "Id": {
+      "description": "The ID of the Route Server.",
+      "type": "string"
+    },
+    "PersistRoutes": {
+      "description": "Whether to enable persistent routes",
+      "type": "string",
+      "enum": [
+        "enable",
+        "disable"
+      ]
+    },
+    "PersistRoutesDuration": {
+      "description": "The duration of persistent routes in minutes",
+      "type": "integer",
+      "format": "int64",
+      "minimum": 0,
+      "maximum": 5
+    },
+    "SnsNotificationsEnabled": {
+      "description": "Whether to enable SNS notifications",
+      "type": "boolean"
+    },
+    "Tags": {
+      "description": "An array of key-value pairs to apply to this resource.",
+      "type": "array",
+      "uniqueItems": false,
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "AmazonSideAsn"
+  ],
+  "readOnlyProperties": [
+    "/properties/Arn",
+    "/properties/Id"
+  ],
+  "primaryIdentifier": [
+    "/properties/Id"
+  ],
+  "createOnlyProperties": [
+    "/properties/AmazonSideAsn"
+  ],
+  "writeOnlyProperties": [
+    "/properties/PersistRoutesDuration"
+  ],
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "ec2:CreateTags",
+      "ec2:DescribeTags",
+      "ec2:DeleteTags"
+    ]
+  },
+  "handlers": {
+    "create": {
+      "permissions": [
+        "ec2:CreateRouteServer",
+        "ec2:CreateTags",
+        "ec2:DescribeRouteServers",
+        "sns:CreateTopic"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "ec2:DescribeRouteServers",
+        "ec2:DescribeTags"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "ec2:CreateTags",
+        "ec2:DeleteTags",
+        "ec2:DescribeRouteServers",
+        "ec2:DescribeTags",
+        "ec2:ModifyRouteServer"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "ec2:DescribeTags",
+        "ec2:DescribeRouteServers",
+        "ec2:DeleteRouteServer",
+        "ec2:DeleteTags",
+        "sns:DeleteTopic"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "ec2:DescribeTags",
+        "ec2:DescribeRouteServers"
+      ]
+    }
+  }
+}

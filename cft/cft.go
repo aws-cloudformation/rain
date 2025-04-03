@@ -278,3 +278,7 @@ func (t *Template) AddResolvedModuleNode(n *yaml.Node) {
 	}
 	t.ModuleResolved = append(t.ModuleResolved, n)
 }
+
+func (t *Template) ModuleAlreadyResolved(n *yaml.Node) bool {
+	return slices.Contains(t.ModuleResolved, n)
+}

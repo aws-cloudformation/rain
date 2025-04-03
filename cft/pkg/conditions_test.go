@@ -324,6 +324,7 @@ Resources:
 				Node:   templateNode.Content[0],
 				Config: &cft.ModuleConfig{Name: "Test"},
 			}
+			m.ParentTemplate = &cft.Template{Node: &templateNode}
 
 			// Get the sections
 			_, resources, _ := s11n.GetMapValue(m.Node, string(cft.Resources))

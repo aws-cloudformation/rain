@@ -52,6 +52,22 @@
     "SourceMonitoringConfig": {
       "description": "The source monitoring config of the flow.",
       "$ref": "#/definitions/SourceMonitoringConfig"
+    },
+    "FlowSize": {
+      "type": "string",
+      "description": "Determines the processing capacity and feature set of the flow. Set this optional parameter to LARGE if you want to enable NDI outputs on the flow.",
+      "enum": [
+        "MEDIUM",
+        "LARGE"
+      ]
+    },
+    "NdiConfig": {
+      "description": "Specifies the configuration settings for NDI outputs. Required when the flow includes NDI outputs.",
+      "$ref": "#/definitions/NdiConfig"
+    },
+    "FlowNdiMachineName": {
+      "type": "string",
+      "description": "A prefix for the names of the NDI sources that the flow creates.(ReadOnly)"
     }
   },
   "definitions": {
@@ -577,11 +593,160 @@
             "ENABLED",
             "DISABLED"
           ]
+        },
+        "ContentQualityAnalysisState": {
+          "type": "string",
+          "description": "Indicates whether content quality analysis is enabled or disabled.",
+          "enum": [
+            "ENABLED",
+            "DISABLED"
+          ]
+        },
+        "AudioMonitoringSettings": {
+          "type": "array",
+          "description": "Contains the settings for audio stream metrics monitoring.",
+          "items": {
+            "$ref": "#/definitions/AudioMonitoringSetting"
+          }
+        },
+        "VideoMonitoringSettings": {
+          "type": "array",
+          "description": "Contains the settings for video stream metrics monitoring.",
+          "items": {
+            "$ref": "#/definitions/VideoMonitoringSetting"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "AudioMonitoringSetting": {
+      "type": "object",
+      "description": "Specifies the configuration for audio stream metrics monitoring.",
+      "properties": {
+        "SilentAudio": {
+          "$ref": "#/definitions/SilentAudio"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SilentAudio": {
+      "type": "object",
+      "description": "Configures settings for the SilentAudio metric.",
+      "properties": {
+        "State": {
+          "type": "string",
+          "description": "Indicates whether the SilentAudio metric is enabled or disabled.",
+          "enum": [
+            "ENABLED",
+            "DISABLED"
+          ]
+        },
+        "ThresholdSeconds": {
+          "type": "integer",
+          "description": "Specifies the number of consecutive seconds of silence that triggers an event or alert."
+        }
+      },
+      "additionalProperties": false
+    },
+    "VideoMonitoringSetting": {
+      "type": "object",
+      "description": "Specifies the configuration for video stream metrics monitoring.",
+      "properties": {
+        "BlackFrames": {
+          "$ref": "#/definitions/BlackFrames"
+        },
+        "FrozenFrames": {
+          "$ref": "#/definitions/FrozenFrames"
+        }
+      },
+      "additionalProperties": false
+    },
+    "BlackFrames": {
+      "type": "object",
+      "description": "Configures settings for the BlackFrames metric.",
+      "properties": {
+        "State": {
+          "type": "string",
+          "description": "Indicates whether the BlackFrames metric is enabled or disabled.",
+          "enum": [
+            "ENABLED",
+            "DISABLED"
+          ]
+        },
+        "ThresholdSeconds": {
+          "type": "integer",
+          "description": "Specifies the number of consecutive seconds of black frames that triggers an event or alert."
+        }
+      },
+      "additionalProperties": false
+    },
+    "FrozenFrames": {
+      "type": "object",
+      "description": "Configures settings for the FrozenFrames metric.",
+      "properties": {
+        "State": {
+          "type": "string",
+          "description": "Indicates whether the FrozenFrames metric is enabled or disabled.",
+          "enum": [
+            "ENABLED",
+            "DISABLED"
+          ]
+        },
+        "ThresholdSeconds": {
+          "type": "integer",
+          "description": "Specifies the number of consecutive seconds of a static image that triggers an event or alert."
+        }
+      },
+      "additionalProperties": false
+    },
+    "NdiConfig": {
+      "type": "object",
+      "description": "Specifies the configuration settings for NDI outputs. Required when the flow includes NDI outputs.",
+      "properties": {
+        "NdiDiscoveryServers": {
+          "type": "array",
+          "description": "A list of up to three NDI discovery server configurations. While not required by the API, this configuration is necessary for NDI functionality to work properly.",
+          "items": {
+            "$ref": "#/definitions/NdiDiscoveryServerConfig"
+          }
+        },
+        "NdiState": {
+          "type": "string",
+          "description": "A setting that controls whether NDI outputs can be used in the flow. Must be ENABLED to add NDI outputs. Default is DISABLED.",
+          "enum": [
+            "ENABLED",
+            "DISABLED"
+          ]
+        },
+        "MachineName": {
+          "type": "string",
+          "description": "A prefix for the names of the NDI sources that the flow creates. If a custom name isn't specified, MediaConnect generates a unique 12-character ID as the prefix."
+        }
+      },
+      "additionalProperties": false
+    },
+    "NdiDiscoveryServerConfig": {
+      "type": "object",
+      "description": "Specifies the configuration settings for individual NDI discovery servers. A maximum of 3 servers is allowed.",
+      "properties": {
+        "VpcInterfaceAdapter": {
+          "type": "string",
+          "description": "The identifier for the Virtual Private Cloud (VPC) network interface used by the flow."
+        },
+        "DiscoveryServerAddress": {
+          "type": "string",
+          "description": "The unique network address of the NDI discovery server."
+        },
+        "DiscoveryServerPort": {
+          "type": "integer",
+          "description": "The port for the NDI discovery server. Defaults to 5959 if a custom port isn't specified.",
+          "format": "int32"
         }
       },
       "additionalProperties": false,
       "required": [
-        "ThumbnailState"
+        "DiscoveryServerAddress",
+        "VpcInterfaceAdapter"
       ]
     }
   },
@@ -603,7 +768,8 @@
     "/properties/Source/SourceIngestPort",
     "/properties/VpcInterfaces/*/NetworkInterfaceIds",
     "/properties/MediaStreams/*/Fmt",
-    "/properties/EgressIp"
+    "/properties/EgressIp",
+    "/properties/FlowNdiMachineName"
   ],
   "primaryIdentifier": [
     "/properties/FlowArn"
@@ -618,6 +784,9 @@
     "create": {
       "permissions": [
         "mediaconnect:CreateFlow",
+        "mediaconnect:AddFlowMediaStreams",
+        "mediaconnect:AddFlowSources",
+        "mediaconnect:AddFlowVpcInterfaces",
         "iam:PassRole"
       ]
     },
@@ -641,7 +810,12 @@
     "delete": {
       "permissions": [
         "mediaconnect:DescribeFlow",
-        "mediaconnect:DeleteFlow"
+        "mediaconnect:DeleteFlow",
+        "mediaconnect:RemoveFlowMediaStream",
+        "mediaconnect:RemoveFlowOutput",
+        "mediaconnect:RemoveFlowSource",
+        "mediaconnect:RemoveFlowVpcInterface",
+        "mediaconnect:RevokeFlowEntitlement"
       ]
     },
     "list": {

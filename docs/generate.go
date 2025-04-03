@@ -63,7 +63,7 @@ func main() {
 
 	// Generate usage
 	usage := bytes.Buffer{}
-	rain.Cmd.SetOutput(&usage)
+	rain.Cmd.SetOut(&usage)
 	rain.Cmd.Usage()
 
 	// Generate README
