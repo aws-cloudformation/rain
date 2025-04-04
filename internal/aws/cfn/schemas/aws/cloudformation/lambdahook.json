@@ -9,8 +9,21 @@
       "type": "string",
       "maxLength": 256
     },
+    "StackRole": {
+      "description": "IAM Stack Role ARN filter",
+      "type": "string",
+      "maxLength": 256,
+      "anyOf": [
+        {
+          "pattern": "arn:.+:iam::[0-9]{12}:role/.+"
+        },
+        {
+          "pattern": "^(arn:.+:iam::((?!\\*|\\?)[0-9]{12}|(?=.*\\*)[0-9*?]{1,12}|[0-9?]{12}):role/.+|\\*)$"
+        }
+      ]
+    },
     "StackName": {
-      "pattern": "^[a-zA-Z][-a-zA-Z0-9]*$",
+      "pattern": "^[a-zA-Z*?][-a-zA-Z0-9*?]*$",
       "description": "CloudFormation Stack name",
       "type": "string",
       "maxLength": 128
@@ -225,7 +238,7 @@
               "uniqueItems": true,
               "insertionOrder": false,
               "items": {
-                "$ref": "#/definitions/Role"
+                "$ref": "#/definitions/StackRole"
               }
             },
             "Exclude": {
@@ -236,7 +249,7 @@
               "uniqueItems": true,
               "insertionOrder": false,
               "items": {
-                "$ref": "#/definitions/Role"
+                "$ref": "#/definitions/StackRole"
               }
             }
           }

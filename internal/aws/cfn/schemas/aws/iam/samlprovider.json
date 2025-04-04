@@ -27,6 +27,43 @@
       "items": {
         "$ref": "#/definitions/Tag"
       }
+    },
+    "AssertionEncryptionMode": {
+      "description": "The encryption setting for the SAML provider",
+      "type": "string",
+      "enum": [
+        "Allowed",
+        "Required"
+      ]
+    },
+    "AddPrivateKey": {
+      "description": "The private key from your external identity provider",
+      "minLength": 1,
+      "maxLength": 16384,
+      "pattern": "[\\u0009\\u000A\\u000D\\u0020-\\u00FF]+",
+      "type": "string"
+    },
+    "RemovePrivateKey": {
+      "description": "The Key ID of the private key to remove",
+      "minLength": 22,
+      "maxLength": 64,
+      "pattern": "[A-Z0-9]+",
+      "type": "string"
+    },
+    "PrivateKeyList": {
+      "type": "array",
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/SAMLPrivateKey"
+      },
+      "maxItems": 2
+    },
+    "SamlProviderUUID": {
+      "description": "The unique identifier assigned to the SAML provider",
+      "minLength": 22,
+      "maxLength": 64,
+      "pattern": "[A-Z0-9]+",
+      "type": "string"
     }
   },
   "definitions": {
@@ -52,16 +89,43 @@
         "Value",
         "Key"
       ]
+    },
+    "SAMLPrivateKey": {
+      "description": "The private key metadata for the SAML provider",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "KeyId": {
+          "description": "The unique identifier for the SAML private key.",
+          "minLength": 22,
+          "maxLength": 64,
+          "pattern": "[A-Z0-9]+",
+          "type": "string"
+        },
+        "Timestamp": {
+          "description": "The date and time, in <a href=\\\"http://www.iso.org/iso/iso8601\\\">ISO 8601 date-time </a> format, when the private key was uploaded.",
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "KeyId",
+        "Timestamp"
+      ]
     }
   },
-  "required": [
-    "SamlMetadataDocument"
-  ],
   "createOnlyProperties": [
-    "/properties/Name"
+    "/properties/Name",
+    "/properties/AddPrivateKey",
+    "/properties/RemovePrivateKey"
   ],
   "readOnlyProperties": [
-    "/properties/Arn"
+    "/properties/Arn",
+    "/properties/SamlProviderUUID"
+  ],
+  "writeOnlyProperties": [
+    "/properties/AddPrivateKey",
+    "/properties/RemovePrivateKey"
   ],
   "primaryIdentifier": [
     "/properties/Arn"

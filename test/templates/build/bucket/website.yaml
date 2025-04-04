@@ -11,7 +11,7 @@ Metadata:
     Rain: '{"Version":"v1.21.0","Experimental":true,"HasModules":true,"HasRainSection":false}'
 
 Parameters:
-  AppName:
+  ApplicationName:
     Description: This name be used as a prefix for resource names
     Type: String
 
@@ -19,7 +19,7 @@ Parameters:
     Description: The web acl id of a CLOUDFRONT scoped web acl in us-east-1
     Type: String
 
-  Content:
+  ContentDir:
     Description: An optional directory to upload to the bucket
     Type: String
     Default: RAIN_NO_CONTENT
@@ -96,7 +96,7 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
-      BucketName: !Sub ${AppName}-logs-${AWS::Region}-${AWS::AccountId}
+      BucketName: !Sub ${ApplicationName}-logs-${AWS::Region}-${AWS::AccountId}
       ObjectLockConfiguration:
         ObjectLockEnabled: Enabled
         Rule:
@@ -119,14 +119,14 @@ Resources:
         SuppressedRules:
           - S3_BUCKET_DEFAULT_LOCK_ENABLED
       Rain:
-        Content: !Ref Content
+        Content: !Ref ContentDir
         EmptyOnDelete: false
     Properties:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
-      BucketName: !Sub ${AppName}-${AWS::Region}-${AWS::AccountId}
+      BucketName: !Sub ${ApplicationName}-${AWS::Region}-${AWS::AccountId}
       LoggingConfiguration:
         DestinationBucketName: !Ref ContentLogBucket
       ObjectLockEnabled: false
@@ -165,7 +165,7 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
-      BucketName: !Sub ${AppName}-replicas-${AWS::Region}-${AWS::AccountId}
+      BucketName: !Sub ${ApplicationName}-replicas-${AWS::Region}-${AWS::AccountId}
       ObjectLockEnabled: false
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
@@ -184,19 +184,19 @@ Resources:
               - s3:GetReplicationConfiguration
               - s3:ListBucket
             Effect: Allow
-            Resource: !Sub arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}
+            Resource: !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-${AWS::Region}-${AWS::AccountId}
           - Action:
               - s3:GetObjectVersionForReplication
               - s3:GetObjectVersionAcl
               - s3:GetObjectVersionTagging
             Effect: Allow
-            Resource: !Sub arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*
+            Resource: !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-${AWS::Region}-${AWS::AccountId}/*
           - Action:
               - s3:ReplicateObject
               - s3:ReplicateDelete
               - s3:ReplicationTags
             Effect: Allow
-            Resource: !Sub arn:${AWS::Partition}:s3:::${AppName}-replicas-${AWS::Region}-${AWS::AccountId}/*
+            Resource: !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-replicas-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
       PolicyName: bucket-replication-policy
       RoleName: !Ref ContentReplicationRole
@@ -218,7 +218,7 @@ Resources:
   ContentLogBucketPolicyPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Sub ${AppName}-logs-${AWS::Region}-${AWS::AccountId}
+      Bucket: !Sub ${ApplicationName}-logs-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
           - Action: s3:*
@@ -229,25 +229,25 @@ Resources:
             Principal:
               AWS: '*'
             Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-logs-${AWS::Region}-${AWS::AccountId}
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-logs-${AWS::Region}-${AWS::AccountId}/*
+              - !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-logs-${AWS::Region}-${AWS::AccountId}
+              - !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-logs-${AWS::Region}-${AWS::AccountId}/*
           - Action: s3:PutObject
             Condition:
               ArnLike:
-                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${AppName}-logs-${AWS::Region}-${AWS::AccountId}
+                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-logs-${AWS::Region}-${AWS::AccountId}
               StringEquals:
                 aws:SourceAccount: !Ref AWS::AccountId
             Effect: Allow
             Principal:
               Service: logging.s3.amazonaws.com
             Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-logs-${AWS::Region}-${AWS::AccountId}/*
+              - !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-logs-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
   ContentBucketPolicyPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Sub ${AppName}-${AWS::Region}-${AWS::AccountId}
+      Bucket: !Sub ${ApplicationName}-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
           - Action: s3:*
@@ -258,25 +258,25 @@ Resources:
             Principal:
               AWS: '*'
             Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*
+              - !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-${AWS::Region}-${AWS::AccountId}
+              - !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-${AWS::Region}-${AWS::AccountId}/*
           - Action: s3:PutObject
             Condition:
               ArnLike:
-                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}
+                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-${AWS::Region}-${AWS::AccountId}
               StringEquals:
                 aws:SourceAccount: !Ref AWS::AccountId
             Effect: Allow
             Principal:
               Service: logging.s3.amazonaws.com
             Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-${AWS::Region}-${AWS::AccountId}/*
+              - !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
   ContentReplicaBucketPolicyPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Sub ${AppName}-replicas-${AWS::Region}-${AWS::AccountId}
+      Bucket: !Sub ${ApplicationName}-replicas-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
           - Action: s3:*
@@ -287,19 +287,19 @@ Resources:
             Principal:
               AWS: '*'
             Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-replicas-${AWS::Region}-${AWS::AccountId}
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-replicas-${AWS::Region}-${AWS::AccountId}/*
+              - !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-replicas-${AWS::Region}-${AWS::AccountId}
+              - !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-replicas-${AWS::Region}-${AWS::AccountId}/*
           - Action: s3:PutObject
             Condition:
               ArnLike:
-                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${AppName}-replicas-${AWS::Region}-${AWS::AccountId}
+                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-replicas-${AWS::Region}-${AWS::AccountId}
               StringEquals:
                 aws:SourceAccount: !Ref AWS::AccountId
             Effect: Allow
             Principal:
               Service: logging.s3.amazonaws.com
             Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-replicas-${AWS::Region}-${AWS::AccountId}/*
+              - !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-replicas-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
   CloudFrontLogsLogBucket:
@@ -322,7 +322,7 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
-      BucketName: !Sub ${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
+      BucketName: !Sub ${ApplicationName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
       ObjectLockConfiguration:
         ObjectLockEnabled: Enabled
         Rule:
@@ -352,7 +352,7 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
-      BucketName: !Sub ${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}
+      BucketName: !Sub ${ApplicationName}-cflogs-${AWS::Region}-${AWS::AccountId}
       LoggingConfiguration:
         DestinationBucketName: !Ref CloudFrontLogsLogBucket
       ObjectLockEnabled: false
@@ -391,7 +391,7 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
-      BucketName: !Sub ${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
+      BucketName: !Sub ${ApplicationName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
       ObjectLockEnabled: false
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
@@ -410,19 +410,19 @@ Resources:
               - s3:GetReplicationConfiguration
               - s3:ListBucket
             Effect: Allow
-            Resource: !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}
+            Resource: !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-cflogs-${AWS::Region}-${AWS::AccountId}
           - Action:
               - s3:GetObjectVersionForReplication
               - s3:GetObjectVersionAcl
               - s3:GetObjectVersionTagging
             Effect: Allow
-            Resource: !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}/*
+            Resource: !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-cflogs-${AWS::Region}-${AWS::AccountId}/*
           - Action:
               - s3:ReplicateObject
               - s3:ReplicateDelete
               - s3:ReplicationTags
             Effect: Allow
-            Resource: !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}/*
+            Resource: !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
       PolicyName: bucket-replication-policy
       RoleName: !Ref CloudFrontLogsReplicationRole
@@ -444,7 +444,7 @@ Resources:
   CloudFrontLogsLogBucketPolicyPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Sub ${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
+      Bucket: !Sub ${ApplicationName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
           - Action: s3:*
@@ -455,25 +455,25 @@ Resources:
             Principal:
               AWS: '*'
             Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}/*
+              - !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
+              - !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}/*
           - Action: s3:PutObject
             Condition:
               ArnLike:
-                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
+                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
               StringEquals:
                 aws:SourceAccount: !Ref AWS::AccountId
             Effect: Allow
             Principal:
               Service: logging.s3.amazonaws.com
             Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}/*
+              - !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
   CloudFrontLogsBucketPolicyPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Sub ${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}
+      Bucket: !Sub ${ApplicationName}-cflogs-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
           - Action: s3:*
@@ -484,25 +484,25 @@ Resources:
             Principal:
               AWS: '*'
             Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}/*
+              - !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-cflogs-${AWS::Region}-${AWS::AccountId}
+              - !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-cflogs-${AWS::Region}-${AWS::AccountId}/*
           - Action: s3:PutObject
             Condition:
               ArnLike:
-                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}
+                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-cflogs-${AWS::Region}-${AWS::AccountId}
               StringEquals:
                 aws:SourceAccount: !Ref AWS::AccountId
             Effect: Allow
             Principal:
               Service: logging.s3.amazonaws.com
             Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-${AWS::Region}-${AWS::AccountId}/*
+              - !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-cflogs-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
   CloudFrontLogsReplicaBucketPolicyPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Sub ${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
+      Bucket: !Sub ${ApplicationName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
           - Action: s3:*
@@ -513,19 +513,19 @@ Resources:
             Principal:
               AWS: '*'
             Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}/*
+              - !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
+              - !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}/*
           - Action: s3:PutObject
             Condition:
               ArnLike:
-                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
+                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
               StringEquals:
                 aws:SourceAccount: !Ref AWS::AccountId
             Effect: Allow
             Principal:
               Service: logging.s3.amazonaws.com
             Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}/*
+              - !Sub arn:${AWS::Partition}:s3:::${ApplicationName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
 Outputs:

@@ -30,7 +30,7 @@ func CheckMultilineBegin(s string) bool {
 }
 
 // String returns a string representation of the supplied cft.Template
-func String(t cft.Template, opt Options) string {
+func String(t *cft.Template, opt Options) string {
 	node := t.Node
 
 	buf := strings.Builder{}
@@ -122,6 +122,6 @@ func String(t cft.Template, opt Options) string {
 }
 
 // CftToYaml converts a template to a YAML string
-func CftToYaml(t cft.Template) string {
+func CftToYaml(t *cft.Template) string {
 	return String(t, Options{JSON: false, Unsorted: false})
 }

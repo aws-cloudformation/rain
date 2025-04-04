@@ -38,6 +38,95 @@
         "Value"
       ],
       "additionalProperties": false
+    },
+    "OnChangeStateTemplateUpdateStrategy": {
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "PeriodicStateTemplateUpdateStrategy": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "StateTemplateUpdateRate": {
+          "$ref": "#/definitions/TimePeriod"
+        }
+      },
+      "required": [
+        "StateTemplateUpdateRate"
+      ]
+    },
+    "StateTemplateUpdateStrategy": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "properties": {
+            "Periodic": {
+              "$ref": "#/definitions/PeriodicStateTemplateUpdateStrategy"
+            }
+          },
+          "required": [
+            "Periodic"
+          ]
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "properties": {
+            "OnChange": {
+              "$ref": "#/definitions/OnChangeStateTemplateUpdateStrategy"
+            }
+          },
+          "required": [
+            "OnChange"
+          ]
+        }
+      ]
+    },
+    "StateTemplateAssociation": {
+      "type": "object",
+      "properties": {
+        "Identifier": {
+          "type": "string",
+          "maxLength": 100,
+          "minLength": 1
+        },
+        "StateTemplateUpdateStrategy": {
+          "$ref": "#/definitions/StateTemplateUpdateStrategy"
+        }
+      },
+      "required": [
+        "Identifier",
+        "StateTemplateUpdateStrategy"
+      ],
+      "additionalProperties": false,
+      "minProperties": 0
+    },
+    "TimePeriod": {
+      "type": "object",
+      "properties": {
+        "Unit": {
+          "$ref": "#/definitions/TimeUnit"
+        },
+        "Value": {
+          "type": "number",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "Unit",
+        "Value"
+      ],
+      "additionalProperties": false
+    },
+    "TimeUnit": {
+      "type": "string",
+      "enum": [
+        "MILLISECOND",
+        "SECOND",
+        "MINUTE",
+        "HOUR"
+      ]
     }
   },
   "properties": {
@@ -78,6 +167,16 @@
       "insertionOrder": false,
       "uniqueItems": true,
       "maxItems": 50,
+      "minItems": 0
+    },
+    "StateTemplates": {
+      "type": "array",
+      "insertionOrder": false,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/definitions/StateTemplateAssociation"
+      },
+      "maxItems": 20,
       "minItems": 0
     }
   },

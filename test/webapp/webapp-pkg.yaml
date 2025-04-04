@@ -1,5 +1,9 @@
 Description: "Creates a web application with a static website using S3 and CloudFront, \nan API Gateway REST API, and a DynamoDB table, with Cognito authentication.\nThis sample uses Rain Metadata commands to upload content to the static \nsite bucket, and uses a Run property on the S3 directive to build the \nlambda function, which for this example is written in Go.\nApache-2.0 License. Adapt this template to your needs and thoruoughly test\nit before introducing it in a production environment. **WARNING** This\ntemplate will create resources in your account that may incur billing\ncharges.\n"
 
+Metadata:
+  AWSToolsMetrics:
+    Rain: '{"Version":"v1.21.0","Experimental":true,"HasModules":true,"HasRainSection":true}'
+
 Parameters:
   AppName:
     Description: This name is used as a prefix for resource names
@@ -134,7 +138,7 @@ Resources:
       Rain:
         EmptyOnDelete: true
         Content: site/dist
-        Version: 4
+        Version: 2
         DistributionLogicalId: SiteDistribution
         RunBefore:
           Command: buildsite.sh
@@ -245,26 +249,22 @@ Resources:
       Bucket: !Sub ${AppName}-content-logs-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
-          - Action: s3:*
-            Condition:
-              Bool:
-                aws:SecureTransport: false
-            Effect: Deny
-            Principal:
-              AWS: '*'
-            Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-logs-${AWS::Region}-${AWS::AccountId}
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-logs-${AWS::Region}-${AWS::AccountId}/*
           - Action: s3:PutObject
             Condition:
               ArnLike:
                 aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${AppName}-content-logs-${AWS::Region}-${AWS::AccountId}/*
               StringEquals:
                 aws:SourceAccount: !Ref AWS::AccountId
+              Bool:
+                aws:SecureTransport: false
             Effect: Allow
             Principal:
               Service: logging.s3.amazonaws.com
+              AWS: '*'
             Resource:
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-logs-${AWS::Region}-${AWS::AccountId}
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-logs-${AWS::Region}-${AWS::AccountId}/*
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-logs-${AWS::Region}-${AWS::AccountId}
               - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-logs-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
@@ -274,21 +274,16 @@ Resources:
       Bucket: !Sub ${AppName}-content-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
-          - Action: s3:GetObject
-            Effect: Allow
-            Resource: !Sub arn:${AWS::Partition}:s3:::${AppName}-content-${AWS::Region}-${AWS::AccountId}/*
-            Principal:
-              Service: cloudfront.amazonaws.com
-            Condition:
-              StringEquals:
-                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${SiteDistribution.Id}
           - Action: s3:*
             Condition:
               Bool:
                 aws:SecureTransport: false
+              StringEquals:
+                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${SiteDistribution.Id}
             Effect: Deny
             Principal:
               AWS: '*'
+              Service: cloudfront.amazonaws.com
             Resource:
               - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-${AWS::Region}-${AWS::AccountId}
               - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-${AWS::Region}-${AWS::AccountId}/*
@@ -461,26 +456,22 @@ Resources:
       Bucket: !Sub ${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
       PolicyDocument:
         Statement:
-          - Action: s3:*
-            Condition:
-              Bool:
-                aws:SecureTransport: false
-            Effect: Deny
-            Principal:
-              AWS: '*'
-            Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}/*
           - Action: s3:PutObject
             Condition:
               ArnLike:
                 aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}/*
               StringEquals:
                 aws:SourceAccount: !Ref AWS::AccountId
+              Bool:
+                aws:SecureTransport: false
             Effect: Allow
             Principal:
               Service: logging.s3.amazonaws.com
+              AWS: '*'
             Resource:
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}/*
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
               - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
@@ -522,8 +513,7 @@ Resources:
 
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
-    DependsOn:
-      - SiteDistribution
+    DependsOn: SiteDistribution
     Properties:
       UserPoolName: !Ref AppName
       AdminCreateUserConfig:
@@ -569,8 +559,8 @@ Resources:
       FunctionName: !Sub ${AppName}-test-handler
       Runtime: provided.al2023
       Code:
-        S3Bucket: rain-artifacts-207567786752-us-east-1
-        S3Key: 66657f52f75173dd78bf54255eec803c9eb4fd2485e702c6724200bacad6770a
+        S3Bucket: rain-artifacts-755952356119-us-east-1
+        S3Key: 77a966929bda29d575910093c38c9c1234ce19121144b0efa1a3e0b77155dc21
       Role: !GetAtt TestResourceHandlerRole.Arn
       Environment:
         Variables:
@@ -646,8 +636,8 @@ Resources:
       FunctionName: !Sub ${AppName}-jwt-handler
       Runtime: provided.al2023
       Code:
-        S3Bucket: rain-artifacts-207567786752-us-east-1
-        S3Key: 175e360cbc251193e4e3113b9fe7aecfbe6af368cf60447152b558b0a1d554c8
+        S3Bucket: rain-artifacts-755952356119-us-east-1
+        S3Key: 7bde57b13984589f9359b01fc4282afc17a16d166953da50f663d0b5212c1ac7
       Role: !GetAtt JwtResourceHandlerRole.Arn
       Environment:
         Variables:

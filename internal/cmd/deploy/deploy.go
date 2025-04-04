@@ -301,7 +301,7 @@ func changeSetHasNoChanges(msg string) bool {
 
 // hasRainMetadata returns true if the template has a resource
 // with a Metadata section with a Rain node
-func HasRainMetadata(template cft.Template) bool {
+func HasRainMetadata(template *cft.Template) bool {
 	if template.Node.Content[0].Kind == yaml.DocumentNode {
 		template.Node = template.Node.Content[0]
 	}

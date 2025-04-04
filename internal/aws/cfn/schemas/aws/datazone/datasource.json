@@ -142,6 +142,12 @@
           "description": "Specifies whether to automatically import data quality metrics as part of the data source run.",
           "type": "boolean"
         },
+        "CatalogName": {
+          "type": "string",
+          "description": "The catalog name in the AWS Glue run configuration.",
+          "maxLength": 128,
+          "minLength": 1
+        },
         "DataAccessRole": {
           "description": "The data access role included in the configuration details of the AWS Glue data source.",
           "$ref": "#/definitions/DataAccessRole"
@@ -225,8 +231,6 @@
         }
       },
       "required": [
-        "RedshiftCredentialConfiguration",
-        "RedshiftStorage",
         "RelationalFilterConfigurations"
       ],
       "additionalProperties": false
@@ -395,6 +399,14 @@
       "minItems": 0,
       "insertionOrder": false
     },
+    "ConnectionId": {
+      "type": "string",
+      "description": "The unique identifier of a connection used to fetch relevant parameters from connection during Datasource run"
+    },
+    "ConnectionIdentifier": {
+      "type": "string",
+      "description": "The unique identifier of a connection used to fetch relevant parameters from connection during Datasource run"
+    },
     "CreatedAt": {
       "type": "string",
       "description": "The timestamp of when the data source was created.",
@@ -421,8 +433,7 @@
     },
     "EnvironmentId": {
       "type": "string",
-      "description": "The unique identifier of the Amazon DataZone environment to which the data source publishes assets.",
-      "pattern": "^[a-zA-Z0-9_-]{1,36}$"
+      "description": "The unique identifier of the Amazon DataZone environment to which the data source publishes assets."
     },
     "EnvironmentIdentifier": {
       "description": "The unique identifier of the Amazon DataZone environment to which the data source publishes assets.",
@@ -496,10 +507,10 @@
     "Name",
     "DomainIdentifier",
     "ProjectIdentifier",
-    "EnvironmentIdentifier",
     "Type"
   ],
   "readOnlyProperties": [
+    "/properties/ConnectionId",
     "/properties/CreatedAt",
     "/properties/DomainId",
     "/properties/EnvironmentId",
@@ -513,12 +524,14 @@
   ],
   "writeOnlyProperties": [
     "/properties/AssetFormsInput",
+    "/properties/ConnectionIdentifier",
     "/properties/EnvironmentIdentifier",
     "/properties/DomainIdentifier",
     "/properties/Configuration",
     "/properties/ProjectIdentifier"
   ],
   "createOnlyProperties": [
+    "/properties/ConnectionIdentifier",
     "/properties/EnvironmentIdentifier",
     "/properties/DomainIdentifier",
     "/properties/ProjectIdentifier",

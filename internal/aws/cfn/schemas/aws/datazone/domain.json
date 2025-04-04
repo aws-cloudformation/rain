@@ -68,6 +68,13 @@
     }
   },
   "properties": {
+    "RootDomainUnitId": {
+      "type": "string",
+      "description": "The ID of the root domain in Amazon Datazone.",
+      "pattern": "^[a-z0-9_\\-]+$",
+      "minLength": 1,
+      "maxLength": 256
+    },
     "Arn": {
       "type": "string",
       "description": "The ARN of the Amazon DataZone domain.",
@@ -86,6 +93,19 @@
       "type": "string",
       "description": "The domain execution role that is created when an Amazon DataZone domain is created. The domain execution role is created in the AWS account that houses the Amazon DataZone domain.",
       "pattern": "^arn:aws[^:]*:iam::\\d{12}:(role|role/service-role)/[\\w+=,.@-]*$"
+    },
+    "ServiceRole": {
+      "type": "string",
+      "description": "The service role of the domain that is created.",
+      "pattern": "^arn:aws[^:]*:iam::\\d{12}:(role|role/service-role)/[\\w+=,.@-]*$"
+    },
+    "DomainVersion": {
+      "type": "string",
+      "description": "The version of the domain.",
+      "enum": [
+        "V1",
+        "V2"
+      ]
     },
     "Id": {
       "type": "string",
@@ -139,6 +159,7 @@
     "Name"
   ],
   "readOnlyProperties": [
+    "/properties/RootDomainUnitId",
     "/properties/Arn",
     "/properties/CreatedAt",
     "/properties/Id",
@@ -148,7 +169,8 @@
     "/properties/Status"
   ],
   "createOnlyProperties": [
-    "/properties/KmsKeyIdentifier"
+    "/properties/KmsKeyIdentifier",
+    "/properties/DomainVersion"
   ],
   "primaryIdentifier": [
     "/properties/Id"
@@ -180,6 +202,7 @@
         "sso:DeleteManagedApplicationInstance",
         "sso:PutApplicationAssignmentConfiguration",
         "sso:ListInstances",
+        "sso:PutApplicationAccessScope",
         "iam:PassRole"
       ]
     },
@@ -198,6 +221,7 @@
         "sso:DeleteManagedApplicationInstance",
         "sso:PutApplicationAssignmentConfiguration",
         "sso:ListInstances",
+        "sso:PutApplicationAccessScope",
         "iam:PassRole"
       ]
     },

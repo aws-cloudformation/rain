@@ -12,7 +12,7 @@ import (
 
 func TestPredictResourceArn(t *testing.T) {
 	input := fc.PredictionInput{
-		Source:      cft.Template{},
+		Source:      &cft.Template{},
 		StackName:   "mystack",
 		Resource:    &yaml.Node{},
 		LogicalId:   "myresource",

@@ -1,0 +1,147 @@
+{
+  "typeName": "AWS::EC2::RouteServerEndpoint",
+  "description": "VPC Route Server Endpoint",
+  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+  "definitions": {
+    "Tag": {
+      "description": "A key-value pair to associate with a resource.",
+      "type": "object",
+      "properties": {
+        "Key": {
+          "type": "string",
+          "description": "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "Value": {
+          "type": "string",
+          "description": "The value for the tag. You can specify a value that is 0 to 256 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.",
+          "minLength": 0,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "Key",
+        "Value"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "RouteServerId": {
+      "description": "Route Server ID",
+      "type": "string"
+    },
+    "Arn": {
+      "description": "The Amazon Resource Name (ARN) of the Route Server Endpoint.",
+      "type": "string"
+    },
+    "Id": {
+      "description": "The ID of the Route Server Endpoint.",
+      "type": "string"
+    },
+    "SubnetId": {
+      "description": "Subnet ID",
+      "type": "string"
+    },
+    "VpcId": {
+      "description": "VPC ID",
+      "type": "string"
+    },
+    "EniId": {
+      "description": "Elastic Network Interface ID owned by the Route Server Endpoint",
+      "type": "string"
+    },
+    "EniAddress": {
+      "description": "Elastic Network Interface IP address owned by the Route Server Endpoint",
+      "type": "string"
+    },
+    "Tags": {
+      "description": "An array of key-value pairs to apply to this resource.",
+      "type": "array",
+      "uniqueItems": false,
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "RouteServerId",
+    "SubnetId"
+  ],
+  "readOnlyProperties": [
+    "/properties/Arn",
+    "/properties/Id",
+    "/properties/EniId",
+    "/properties/EniAddress",
+    "/properties/VpcId"
+  ],
+  "primaryIdentifier": [
+    "/properties/Id"
+  ],
+  "createOnlyProperties": [
+    "/properties/RouteServerId",
+    "/properties/SubnetId"
+  ],
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "ec2:CreateTags",
+      "ec2:DescribeTags",
+      "ec2:DeleteTags"
+    ]
+  },
+  "handlers": {
+    "create": {
+      "permissions": [
+        "ec2:CreateRouteServerEndpoint",
+        "ec2:CreateTags",
+        "ec2:DescribeRouteServerEndpoints",
+        "ec2:CreateNetworkInterface",
+        "ec2:CreateNetworkInterfacePermission",
+        "ec2:CreateSecurityGroup",
+        "ec2:DescribeSecurityGroups",
+        "ec2:AuthorizeSecurityGroupIngress"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "ec2:DescribeRouteServerEndpoints",
+        "ec2:DescribeTags"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "ec2:CreateTags",
+        "ec2:DeleteTags",
+        "ec2:DescribeRouteServerEndpoints",
+        "ec2:DescribeTags",
+        "ec2:ModifyRouteServerEndpoint"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "ec2:DescribeTags",
+        "ec2:DescribeRouteServerEndpoints",
+        "ec2:DeleteRouteServerEndpoint",
+        "ec2:DeleteTags",
+        "ec2:DeleteNetworkInterface",
+        "ec2:DeleteSecurityGroup",
+        "ec2:DescribeSecurityGroups",
+        "ec2:RevokeSecurityGroupIngress"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "ec2:DescribeTags",
+        "ec2:DescribeRouteServerEndpoints"
+      ]
+    }
+  }
+}

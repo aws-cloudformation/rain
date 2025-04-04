@@ -60,13 +60,37 @@
       "$ref": "#/definitions/Tags"
     },
     "Type": {
-      "description": "The type of data catalog to create: LAMBDA for a federated catalog, GLUE for AWS Glue Catalog, or HIVE for an external hive metastore. ",
+      "description": "The type of data catalog to create: LAMBDA for a federated catalog, GLUE for AWS Glue Catalog, or HIVE for an external hive metastore. FEDERATED is a federated catalog for which Athena creates the connection and the Lambda function for you based on the parameters that you pass.",
       "type": "string",
       "enum": [
         "LAMBDA",
         "GLUE",
-        "HIVE"
+        "HIVE",
+        "FEDERATED"
       ]
+    },
+    "Status": {
+      "description": "The status of the creation or deletion of the data catalog. LAMBDA, GLUE, and HIVE data catalog types are created synchronously. Their status is either CREATE_COMPLETE or CREATE_FAILED. The FEDERATED data catalog type is created asynchronously.",
+      "type": "string",
+      "enum": [
+        "CREATE_IN_PROGRESS",
+        "CREATE_COMPLETE",
+        "CREATE_FAILED",
+        "CREATE_FAILED_CLEANUP_IN_PROGRESS",
+        "CREATE_FAILED_CLEANUP_COMPLETE",
+        "CREATE_FAILED_CLEANUP_FAILED",
+        "DELETE_IN_PROGRESS",
+        "DELETE_COMPLETE",
+        "DELETE_FAILED"
+      ]
+    },
+    "ConnectionType": {
+      "description": "The type of connection for a FEDERATED data catalog",
+      "type": "string"
+    },
+    "Error": {
+      "description": "Text of the error that occurred during data catalog creation or deletion.",
+      "type": "string"
     }
   },
   "required": [
@@ -77,7 +101,40 @@
     "create": {
       "permissions": [
         "athena:CreateDataCatalog",
-        "athena:TagResource"
+        "athena:GetDataCatalog",
+        "athena:TagResource",
+        "s3:ListBucket",
+        "glue:TagResource",
+        "glue:CreateConnection",
+        "glue:DeleteConnection",
+        "glue:UpdateConnection",
+        "serverlessrepo:CreateCloudFormationTemplate",
+        "serverlessrepo:GetCloudFormationTemplate",
+        "cloudformation:CreateStack",
+        "cloudformation:DeleteStack",
+        "cloudformation:DescribeStacks",
+        "cloudformation:CreateChangeSet",
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:PutRolePolicy",
+        "iam:CreateRole",
+        "iam:TagRole",
+        "iam:DeleteRole",
+        "iam:GetRole",
+        "iam:GetRolePolicy",
+        "iam:PassRole",
+        "lambda:DeleteFunction",
+        "lambda:CreateFunction",
+        "lambda:TagResource",
+        "lambda:GetFunction",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeVpcs",
+        "secretsmanager:ListSecrets",
+        "glue:GetConnection",
+        "ecr:BatchGetImage",
+        "ecr:GetDownloadUrlForLayer"
       ]
     },
     "read": {
@@ -97,12 +154,22 @@
     },
     "delete": {
       "permissions": [
-        "athena:DeleteDataCatalog"
+        "athena:DeleteDataCatalog",
+        "athena:GetDataCatalog",
+        "glue:GetConnection",
+        "glue:UpdateConnection",
+        "cloudformation:DeleteStack",
+        "cloudformation:DescribeStacks",
+        "lambda:DeleteFunction",
+        "iam:DeleteRole",
+        "iam:DeleteRolePolicy",
+        "iam:DetachRolePolicy",
+        "s3:ListBucket"
       ]
     },
     "list": {
       "permissions": [
-        "athena:ListDataCatalog"
+        "athena:ListDataCatalogs"
       ]
     }
   },
@@ -113,5 +180,16 @@
     "/properties/Name"
   ],
   "additionalProperties": false,
-  "taggable": true
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "athena:UntagResource",
+      "athena:TagResource",
+      "athena:ListTagsForResource"
+    ]
+  }
 }

@@ -1,0 +1,888 @@
+{
+  "typeName": "AWS::DataZone::Connection",
+  "description": "Connections enables users to connect their DataZone resources (domains, projects, and environments) to external resources/services (data, compute, etc)",
+  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-datazone",
+  "definitions": {
+    "AthenaPropertiesInput": {
+      "type": "object",
+      "description": "Athena Properties Input",
+      "properties": {
+        "WorkgroupName": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9._-]+$"
+        }
+      },
+      "required": [
+        "WorkgroupName"
+      ],
+      "additionalProperties": false
+    },
+    "AuthenticationConfigurationInput": {
+      "type": "object",
+      "description": "Authentication Configuration Input",
+      "properties": {
+        "AuthenticationType": {
+          "$ref": "#/definitions/AuthenticationType"
+        },
+        "OAuth2Properties": {
+          "$ref": "#/definitions/OAuth2Properties"
+        },
+        "SecretArn": {
+          "type": "string",
+          "pattern": "^arn:aws(-(cn|us-gov|iso(-[bef])?))?:secretsmanager:.*$"
+        },
+        "KmsKeyArn": {
+          "type": "string",
+          "pattern": "^$|arn:aws[a-z0-9-]*:kms:.*$"
+        },
+        "BasicAuthenticationCredentials": {
+          "$ref": "#/definitions/BasicAuthenticationCredentials"
+        },
+        "CustomAuthenticationCredentials": {
+          "$ref": "#/definitions/CredentialMap"
+        }
+      },
+      "additionalProperties": false
+    },
+    "AuthenticationType": {
+      "type": "string",
+      "description": "Authentication Type",
+      "enum": [
+        "BASIC",
+        "OAUTH2",
+        "CUSTOM"
+      ]
+    },
+    "AuthorizationCodeProperties": {
+      "type": "object",
+      "description": "Authorization Code Properties",
+      "properties": {
+        "AuthorizationCode": {
+          "type": "string",
+          "maxLength": 4096,
+          "minLength": 1
+        },
+        "RedirectUri": {
+          "type": "string",
+          "maxLength": 512
+        }
+      },
+      "additionalProperties": false
+    },
+    "AwsLocation": {
+      "type": "object",
+      "description": "AWS Location of project",
+      "properties": {
+        "AccessRole": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^arn:aws[^:]*:iam::\\d{12}:(role|role/service-role)/[\\w+=,.@-]*$"
+        },
+        "AwsAccountId": {
+          "type": "string",
+          "pattern": "^\\d{12}$"
+        },
+        "AwsRegion": {
+          "type": "string",
+          "pattern": "^[a-z]{2}-[a-z]{4,10}-\\d$"
+        },
+        "IamConnectionId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "BasicAuthenticationCredentials": {
+      "type": "object",
+      "description": "Basic Authentication Credentials",
+      "properties": {
+        "UserName": {
+          "type": "string",
+          "maxLength": 512,
+          "pattern": "^\\S+$"
+        },
+        "Password": {
+          "type": "string",
+          "maxLength": 512,
+          "pattern": "^.*$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ComputeEnvironments": {
+      "type": "string",
+      "description": "Compute Environments"
+    },
+    "ConnectionProperties": {
+      "type": "object",
+      "description": "Connection Properties",
+      "patternProperties": {
+        ".+": {
+          "type": "string",
+          "maxLength": 2048,
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "ConnectionPropertiesInput": {
+      "oneOf": [
+        {
+          "type": "object",
+          "title": "AthenaProperties",
+          "properties": {
+            "AthenaProperties": {
+              "$ref": "#/definitions/AthenaPropertiesInput"
+            }
+          },
+          "required": [
+            "AthenaProperties"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "title": "GlueProperties",
+          "properties": {
+            "GlueProperties": {
+              "$ref": "#/definitions/GluePropertiesInput"
+            }
+          },
+          "required": [
+            "GlueProperties"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "title": "HyperPodProperties",
+          "properties": {
+            "HyperPodProperties": {
+              "$ref": "#/definitions/HyperPodPropertiesInput"
+            }
+          },
+          "required": [
+            "HyperPodProperties"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "title": "IamProperties",
+          "properties": {
+            "IamProperties": {
+              "$ref": "#/definitions/IamPropertiesInput"
+            }
+          },
+          "required": [
+            "IamProperties"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "title": "RedshiftProperties",
+          "properties": {
+            "RedshiftProperties": {
+              "$ref": "#/definitions/RedshiftPropertiesInput"
+            }
+          },
+          "required": [
+            "RedshiftProperties"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "title": "SparkEmrProperties",
+          "properties": {
+            "SparkEmrProperties": {
+              "$ref": "#/definitions/SparkEmrPropertiesInput"
+            }
+          },
+          "required": [
+            "SparkEmrProperties"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "title": "SparkGlueProperties",
+          "properties": {
+            "SparkGlueProperties": {
+              "$ref": "#/definitions/SparkGluePropertiesInput"
+            }
+          },
+          "required": [
+            "SparkGlueProperties"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "ConnectionStatus": {
+      "type": "string",
+      "description": "Connection Status",
+      "enum": [
+        "CREATING",
+        "CREATE_FAILED",
+        "DELETING",
+        "DELETE_FAILED",
+        "READY",
+        "UPDATING",
+        "UPDATE_FAILED",
+        "DELETED"
+      ]
+    },
+    "ConnectionType": {
+      "type": "string",
+      "description": "Connection Type"
+    },
+    "CredentialMap": {
+      "type": "object",
+      "description": "Credential Map",
+      "patternProperties": {
+        ".+": {
+          "type": "string",
+          "maxLength": 2048,
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "GlueConnectionInput": {
+      "type": "object",
+      "description": "Glue Connection Input",
+      "properties": {
+        "ConnectionProperties": {
+          "$ref": "#/definitions/ConnectionProperties"
+        },
+        "PhysicalConnectionRequirements": {
+          "$ref": "#/definitions/PhysicalConnectionRequirements"
+        },
+        "Name": {
+          "type": "string",
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\u0020-\\uD7FF\\uE000-\\uFFFF\\t]*$"
+        },
+        "Description": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^[\\u0020-\\uD7FF\\uE000-\\uFFFF\\r\\n\\t]*$"
+        },
+        "ConnectionType": {
+          "$ref": "#/definitions/GlueConnectionType"
+        },
+        "MatchCriteria": {
+          "type": "string",
+          "maxLength": 10,
+          "minLength": 0
+        },
+        "ValidateCredentials": {
+          "type": "boolean"
+        },
+        "ValidateForComputeEnvironments": {
+          "type": "array",
+          "insertionOrder": false,
+          "items": {
+            "$ref": "#/definitions/ComputeEnvironments"
+          },
+          "maxItems": 50,
+          "minItems": 1
+        },
+        "SparkProperties": {
+          "$ref": "#/definitions/PropertyMap"
+        },
+        "AthenaProperties": {
+          "$ref": "#/definitions/PropertyMap"
+        },
+        "PythonProperties": {
+          "$ref": "#/definitions/PropertyMap"
+        },
+        "AuthenticationConfiguration": {
+          "$ref": "#/definitions/AuthenticationConfigurationInput"
+        }
+      },
+      "additionalProperties": false
+    },
+    "GlueConnectionType": {
+      "type": "string",
+      "description": "Glue Connection Type"
+    },
+    "GlueOAuth2Credentials": {
+      "type": "object",
+      "description": "Glue OAuth2 Credentials",
+      "properties": {
+        "UserManagedClientApplicationClientSecret": {
+          "type": "string",
+          "maxLength": 512,
+          "pattern": "^[\\x20-\\x7E]*$"
+        },
+        "AccessToken": {
+          "type": "string",
+          "maxLength": 4096,
+          "pattern": "^[\\x20-\\x7E]*$"
+        },
+        "RefreshToken": {
+          "type": "string",
+          "maxLength": 4096,
+          "pattern": "^[\\x20-\\x7E]*$"
+        },
+        "JwtToken": {
+          "type": "string",
+          "maxLength": 8000,
+          "pattern": "^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "GluePropertiesInput": {
+      "type": "object",
+      "description": "Glue Properties Input",
+      "properties": {
+        "GlueConnectionInput": {
+          "$ref": "#/definitions/GlueConnectionInput"
+        }
+      },
+      "additionalProperties": false
+    },
+    "HyperPodPropertiesInput": {
+      "type": "object",
+      "description": "HyperPod Properties Input",
+      "properties": {
+        "ClusterName": {
+          "type": "string",
+          "maxLength": 63,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9](-*[a-zA-Z0-9])*$"
+        }
+      },
+      "required": [
+        "ClusterName"
+      ],
+      "additionalProperties": false
+    },
+    "IamPropertiesInput": {
+      "type": "object",
+      "description": "IAM Properties Input",
+      "properties": {
+        "GlueLineageSyncEnabled": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "LineageSyncSchedule": {
+      "type": "object",
+      "description": "Lineage Sync Schedule",
+      "properties": {
+        "Schedule": {
+          "type": "string",
+          "pattern": "^cron\\((\\b[0-5]?[0-9]\\b) (\\b2[0-3]\\b|\\b[0-1]?[0-9]\\b) ([-?*,/\\dLW]){1,83} ([-*,/\\d]|[a-zA-Z]{3}){1,23} ([-?#*,/\\dL]|[a-zA-Z]{3}){1,13} ([^\\)]+)\\)$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "OAuth2ClientApplication": {
+      "type": "object",
+      "description": "OAuth2 Client Application",
+      "properties": {
+        "UserManagedClientApplicationClientId": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^\\S+$"
+        },
+        "AWSManagedClientApplicationReference": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^\\S+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "OAuth2GrantType": {
+      "type": "string",
+      "description": "OAuth2 Grant Type",
+      "enum": [
+        "AUTHORIZATION_CODE",
+        "CLIENT_CREDENTIALS",
+        "JWT_BEARER"
+      ]
+    },
+    "OAuth2Properties": {
+      "type": "object",
+      "description": "OAuth2 Properties",
+      "properties": {
+        "OAuth2GrantType": {
+          "$ref": "#/definitions/OAuth2GrantType"
+        },
+        "OAuth2ClientApplication": {
+          "$ref": "#/definitions/OAuth2ClientApplication"
+        },
+        "TokenUrl": {
+          "type": "string",
+          "maxLength": 256,
+          "pattern": "^(https?)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]$"
+        },
+        "TokenUrlParametersMap": {
+          "$ref": "#/definitions/TokenUrlParametersMap"
+        },
+        "AuthorizationCodeProperties": {
+          "$ref": "#/definitions/AuthorizationCodeProperties"
+        },
+        "OAuth2Credentials": {
+          "$ref": "#/definitions/GlueOAuth2Credentials"
+        }
+      },
+      "additionalProperties": false
+    },
+    "PhysicalConnectionRequirements": {
+      "type": "object",
+      "description": "Physical Connection Requirements",
+      "properties": {
+        "SubnetId": {
+          "type": "string",
+          "maxLength": 32,
+          "pattern": "^subnet-[a-z0-9]+$"
+        },
+        "SubnetIdList": {
+          "type": "array",
+          "insertionOrder": false,
+          "items": {
+            "type": "string",
+            "maxLength": 32,
+            "pattern": "^subnet-[a-z0-9]+$"
+          },
+          "maxItems": 50,
+          "minItems": 1
+        },
+        "SecurityGroupIdList": {
+          "type": "array",
+          "insertionOrder": false,
+          "items": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1
+          },
+          "maxItems": 50,
+          "minItems": 0
+        },
+        "AvailabilityZone": {
+          "type": "string",
+          "maxLength": 255,
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "PropertyMap": {
+      "type": "object",
+      "description": "Property Map",
+      "patternProperties": {
+        "^[\\u0020-\\uD7FF\\uE000-\\uFFFF\\t]*$": {
+          "type": "string",
+          "maxLength": 2048,
+          "minLength": 1,
+          "pattern": "^[\\u0020-\\uD7FF\\uE000-\\uFFFF\\t]*$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "RedshiftCredentials": {
+      "oneOf": [
+        {
+          "type": "object",
+          "title": "SecretArn",
+          "properties": {
+            "SecretArn": {
+              "type": "string",
+              "maxLength": 2048,
+              "pattern": "^arn:aws[^:]*:secretsmanager:[a-z]{2}-?(iso|gov)?-{1}[a-z]*-{1}[0-9]:\\d{12}:secret:.*$"
+            }
+          },
+          "required": [
+            "SecretArn"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "title": "UsernamePassword",
+          "properties": {
+            "UsernamePassword": {
+              "$ref": "#/definitions/UsernamePassword"
+            }
+          },
+          "required": [
+            "UsernamePassword"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "RedshiftLineageSyncConfigurationInput": {
+      "type": "object",
+      "description": "Redshift Lineage Sync Configuration Input",
+      "properties": {
+        "Enabled": {
+          "type": "boolean"
+        },
+        "Schedule": {
+          "$ref": "#/definitions/LineageSyncSchedule"
+        }
+      },
+      "additionalProperties": false
+    },
+    "RedshiftPropertiesInput": {
+      "type": "object",
+      "description": "Redshift Properties Input",
+      "properties": {
+        "Storage": {
+          "$ref": "#/definitions/RedshiftStorageProperties"
+        },
+        "DatabaseName": {
+          "type": "string",
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+$"
+        },
+        "Host": {
+          "type": "string",
+          "maxLength": 256,
+          "pattern": "^[\\S]*$"
+        },
+        "Port": {
+          "type": "number",
+          "maximum": 65535,
+          "minimum": 0
+        },
+        "Credentials": {
+          "$ref": "#/definitions/RedshiftCredentials"
+        },
+        "LineageSync": {
+          "$ref": "#/definitions/RedshiftLineageSyncConfigurationInput"
+        }
+      },
+      "additionalProperties": false
+    },
+    "RedshiftStorageProperties": {
+      "oneOf": [
+        {
+          "type": "object",
+          "title": "ClusterName",
+          "properties": {
+            "ClusterName": {
+              "type": "string",
+              "maxLength": 63,
+              "minLength": 0,
+              "pattern": "^[a-z0-9-]+$"
+            }
+          },
+          "required": [
+            "ClusterName"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "title": "WorkgroupName",
+          "properties": {
+            "WorkgroupName": {
+              "type": "string",
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9-]+$"
+            }
+          },
+          "required": [
+            "WorkgroupName"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "SparkEmrPropertiesInput": {
+      "type": "object",
+      "description": "Spark EMR Properties Input.",
+      "properties": {
+        "ComputeArn": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^arn:aws(-(cn|us-gov|iso(-[bef])?))?:(elasticmapreduce|emr-serverless):.*"
+        },
+        "InstanceProfileArn": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^arn:aws[^:]*:iam::\\d{12}:(role|role/service-role)/[\\w+=,.@-]*$"
+        },
+        "JavaVirtualEnv": {
+          "type": "string",
+          "maxLength": 256,
+          "pattern": "^[\\S]*$"
+        },
+        "LogUri": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^s3://.+$"
+        },
+        "PythonVirtualEnv": {
+          "type": "string",
+          "maxLength": 256,
+          "pattern": "^[\\S]*$"
+        },
+        "RuntimeRole": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^arn:aws[^:]*:iam::\\d{12}:(role|role/service-role)/[\\w+=,.@-]*$"
+        },
+        "TrustedCertificatesS3Uri": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^s3://.+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SparkGlueArgs": {
+      "type": "object",
+      "description": "Spark Glue Args.",
+      "properties": {
+        "Connection": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SparkGluePropertiesInput": {
+      "type": "object",
+      "description": "Spark Glue Properties Input.",
+      "properties": {
+        "AdditionalArgs": {
+          "$ref": "#/definitions/SparkGlueArgs"
+        },
+        "GlueConnectionName": {
+          "type": "string",
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\S]*$"
+        },
+        "GlueVersion": {
+          "type": "string",
+          "maxLength": 256,
+          "pattern": "^\\w+\\.\\w+$"
+        },
+        "IdleTimeout": {
+          "type": "number",
+          "maximum": 3000,
+          "minimum": 1
+        },
+        "JavaVirtualEnv": {
+          "type": "string",
+          "maxLength": 256,
+          "pattern": "^[\\S]*$"
+        },
+        "NumberOfWorkers": {
+          "type": "number",
+          "maximum": 1000,
+          "minimum": 1
+        },
+        "PythonVirtualEnv": {
+          "type": "string",
+          "maxLength": 256,
+          "pattern": "^[\\S]*$"
+        },
+        "WorkerType": {
+          "type": "string",
+          "maxLength": 256,
+          "pattern": "^[G|Z].*$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "TokenUrlParametersMap": {
+      "type": "object",
+      "description": "The token URL parameters.",
+      "patternProperties": {
+        ".+": {
+          "type": "string",
+          "maxLength": 512,
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "UsernamePassword": {
+      "type": "object",
+      "description": "The username and password to be used for authentication.",
+      "properties": {
+        "Password": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[\\S]*$"
+        },
+        "Username": {
+          "type": "string",
+          "maxLength": 127,
+          "minLength": 1,
+          "pattern": "^[\\S]*$"
+        }
+      },
+      "required": [
+        "Password",
+        "Username"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "AwsLocation": {
+      "$ref": "#/definitions/AwsLocation"
+    },
+    "ConnectionId": {
+      "type": "string",
+      "description": "The ID of the connection.",
+      "maxLength": 128,
+      "pattern": "^[a-zA-Z0-9]+$"
+    },
+    "Description": {
+      "type": "string",
+      "description": "The description of the connection.",
+      "maxLength": 128,
+      "pattern": "^[\\S\\s]*$"
+    },
+    "DomainId": {
+      "type": "string",
+      "description": "The ID of the domain in which the connection is created.",
+      "pattern": "^dzd[_][a-zA-Z0-9_-]{1,36}$"
+    },
+    "DomainIdentifier": {
+      "type": "string",
+      "description": "The identifier of the domain in which the connection is created.",
+      "pattern": "^dzd[_][a-zA-Z0-9_-]{1,36}$"
+    },
+    "DomainUnitId": {
+      "type": "string",
+      "description": "The ID of the domain unit in which the connection is created.",
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[a-z0-9_\\-]+$"
+    },
+    "EnvironmentId": {
+      "type": "string",
+      "description": "The ID of the environment in which the connection is created.",
+      "pattern": "^[a-zA-Z0-9_-]{1,36}$"
+    },
+    "EnvironmentIdentifier": {
+      "type": "string",
+      "description": "The identifier of the environment in which the connection is created."
+    },
+    "EnvironmentUserRole": {
+      "type": "string",
+      "description": "The role of the user in the environment."
+    },
+    "Name": {
+      "type": "string",
+      "description": "The name of the connection.",
+      "maxLength": 64,
+      "pattern": "^[\\w][\\w\\.\\-\\_]*$"
+    },
+    "ProjectId": {
+      "type": "string",
+      "description": "The ID of the project in which the connection is created.",
+      "pattern": "^[a-zA-Z0-9_-]{1,36}$"
+    },
+    "Props": {
+      "$ref": "#/definitions/ConnectionPropertiesInput"
+    },
+    "Type": {
+      "$ref": "#/definitions/ConnectionType"
+    }
+  },
+  "required": [
+    "DomainIdentifier",
+    "EnvironmentIdentifier",
+    "Name"
+  ],
+  "readOnlyProperties": [
+    "/properties/ConnectionId",
+    "/properties/DomainId",
+    "/properties/DomainUnitId",
+    "/properties/EnvironmentId",
+    "/properties/EnvironmentUserRole",
+    "/properties/ProjectId",
+    "/properties/Type"
+  ],
+  "writeOnlyProperties": [
+    "/properties/AwsLocation",
+    "/properties/DomainIdentifier",
+    "/properties/EnvironmentIdentifier",
+    "/properties/Props"
+  ],
+  "createOnlyProperties": [
+    "/properties/DomainIdentifier",
+    "/properties/EnvironmentIdentifier",
+    "/properties/Name"
+  ],
+  "primaryIdentifier": [
+    "/properties/DomainId",
+    "/properties/ConnectionId"
+  ],
+  "tagging": {
+    "taggable": false,
+    "tagOnCreate": false,
+    "tagUpdatable": false,
+    "cloudFormationSystemTags": false
+  },
+  "handlers": {
+    "create": {
+      "permissions": [
+        "datazone:CreateConnection",
+        "datazone:GetConnection",
+        "datazone:DeleteConnection"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "datazone:GetConnection"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "datazone:UpdateConnection",
+        "datazone:GetConnection",
+        "datazone:DeleteConnection"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "datazone:DeleteConnection",
+        "datazone:GetConnection"
+      ]
+    },
+    "list": {
+      "handlerSchema": {
+        "properties": {
+          "DomainIdentifier": {
+            "$ref": "resource-schema.json#/properties/DomainIdentifier"
+          },
+          "ProjectIdentifier": {
+            "$ref": "resource-schema.json#/properties/ProjectId"
+          }
+        },
+        "required": [
+          "DomainIdentifier"
+        ]
+      },
+      "permissions": [
+        "datazone:ListConnections"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

@@ -31,7 +31,7 @@ type configFileFormat struct {
 // GetParameters checks the combined params supplied as args and in a file
 // and asks the user to supply any values that are missing
 func GetParameters(
-	template cft.Template,
+	template *cft.Template,
 	combinedParameters map[string]string,
 	old []types.Parameter,
 	stackExists bool,
@@ -203,7 +203,7 @@ func GetDeployConfig(
 	params []string,
 	configFilePath string,
 	base string,
-	template cft.Template,
+	template *cft.Template,
 	stack types.Stack,
 	stackExists bool,
 	yes bool,

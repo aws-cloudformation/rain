@@ -23,6 +23,14 @@
       ],
       "additionalProperties": false
     },
+    "Modality": {
+      "type": "string",
+      "description": "Modality for filters",
+      "enum": [
+        "TEXT",
+        "IMAGE"
+      ]
+    },
     "ContentFilterConfig": {
       "type": "object",
       "description": "Content filter config in content policy.",
@@ -35,6 +43,22 @@
         },
         "OutputStrength": {
           "$ref": "#/definitions/FilterStrength"
+        },
+        "InputModalities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Modality"
+          },
+          "minItems": 1,
+          "description": "List of modalities"
+        },
+        "OutputModalities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Modality"
+          },
+          "minItems": 1,
+          "description": "List of modalities"
         }
       },
       "required": [
@@ -656,7 +680,12 @@
     "tagOnCreate": true,
     "tagProperty": "/properties/Tags",
     "tagUpdatable": true,
-    "taggable": true
+    "taggable": true,
+    "permissions": [
+      "bedrock:ListTagsForResource",
+      "bedrock:TagResource",
+      "bedrock:UntagResource"
+    ]
   },
   "additionalProperties": false
 }

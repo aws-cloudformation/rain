@@ -44,6 +44,21 @@
       ],
       "additionalProperties": false
     },
+    "RoleConfiguration": {
+      "description": "Role configuration",
+      "type": "object",
+      "properties": {
+        "SourceRoleArn": {
+          "description": "IAM Role in source account",
+          "type": "string"
+        },
+        "TargetRoleArn": {
+          "description": "IAM Role in the target account",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
     "Source": {
       "description": "Scraper metrics source",
       "type": "object",
@@ -160,6 +175,9 @@
     "ScrapeConfiguration": {
       "$ref": "#/definitions/ScrapeConfiguration"
     },
+    "RoleConfiguration": {
+      "$ref": "#/definitions/RoleConfiguration"
+    },
     "Source": {
       "$ref": "#/definitions/Source"
     },
@@ -195,7 +213,11 @@
     "tagOnCreate": true,
     "tagUpdatable": true,
     "cloudFormationSystemTags": true,
-    "tagProperty": "/properties/Tags"
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "aps:TagResource",
+      "aps:UntagResource"
+    ]
   },
   "primaryIdentifier": [
     "/properties/Arn"
@@ -212,7 +234,8 @@
         "eks:DescribeCluster",
         "ec2:DescribeSubnets",
         "ec2:DescribeSecurityGroups",
-        "iam:CreateServiceLinkedRole"
+        "iam:CreateServiceLinkedRole",
+        "iam:PassRole"
       ]
     },
     "read": {
@@ -229,7 +252,8 @@
         "aps:DescribeWorkspace",
         "aps:TagResource",
         "aps:UntagResource",
-        "aps:ListTagsForResource"
+        "aps:ListTagsForResource",
+        "iam:PassRole"
       ]
     },
     "delete": {

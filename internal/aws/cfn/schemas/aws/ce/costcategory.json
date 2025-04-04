@@ -1,6 +1,6 @@
 {
   "typeName": "AWS::CE::CostCategory",
-  "description": "Cost Category enables you to map your cost and usage into meaningful categories. You can use Cost Category to organize your costs using a rule-based engine.",
+  "description": "Resource Type definition for AWS::CE::CostCategory. Cost Category enables you to map your cost and usage into meaningful categories. You can use Cost Category to organize your costs using a rule-based engine.",
   "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-cost-explorer.git",
   "definitions": {
     "ZonedDateTime": {
@@ -9,6 +9,30 @@
       "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(([+-]\\d\\d:\\d\\d)|Z)$",
       "minLength": 20,
       "maxLength": 25
+    },
+    "ResourceTag": {
+      "description": "A key-value pair to associate with a resource.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Key": {
+          "type": "string",
+          "description": "The key name for the tag.",
+          "pattern": "^(?!aws:).*$",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "Value": {
+          "type": "string",
+          "description": "The value for the tag.",
+          "minLength": 0,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "Key",
+        "Value"
+      ]
     }
   },
   "properties": {
@@ -44,6 +68,16 @@
       "description": "The default value for the cost category",
       "minLength": 1,
       "maxLength": 50
+    },
+    "Tags": {
+      "type": "array",
+      "description": "Tags to assign to the cost category.",
+      "items": {
+        "$ref": "#/definitions/ResourceTag"
+      },
+      "minItems": 0,
+      "maxItems": 200,
+      "insertionOrder": false
     }
   },
   "additionalProperties": false,
@@ -65,17 +99,21 @@
   "handlers": {
     "create": {
       "permissions": [
-        "ce:CreateCostCategoryDefinition"
+        "ce:CreateCostCategoryDefinition",
+        "ce:TagResource"
       ]
     },
     "read": {
       "permissions": [
-        "ce:DescribeCostCategoryDefinition"
+        "ce:DescribeCostCategoryDefinition",
+        "ce:ListTagsForResource"
       ]
     },
     "update": {
       "permissions": [
-        "ce:UpdateCostCategoryDefinition"
+        "ce:UpdateCostCategoryDefinition",
+        "ce:TagResource",
+        "ce:UntagResource"
       ]
     },
     "delete": {
@@ -88,5 +126,17 @@
         "ce:ListCostCategoryDefinitions"
       ]
     }
+  },
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "ce:TagResource",
+      "ce:UntagResource",
+      "ce:ListTagsForResource"
+    ]
   }
 }

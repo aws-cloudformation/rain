@@ -77,10 +77,11 @@
           }
         },
         "NetworkPerformanceOptions": {
-          "description": ""
+          "description": "The settings for the network performance options for the instance. For more information, see [EC2 instance bandwidth weighting configuration](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configure-bandwidth-weighting.html).",
+          "$ref": "#/definitions/NetworkPerformanceOptions"
         },
         "UserData": {
-          "description": "The user data to make available to the instance. You must provide base64-encoded text. User data is limited to 16 KB. For more information, see [Run commands on your Amazon EC2 instance at launch](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html) in the *Amazon EC2 User Guide*.\n If you are creating the launch template for use with BATCH, the user data must be provided in the [MIME multi-part archive format](https://docs.aws.amazon.com/https://cloudinit.readthedocs.io/en/latest/topics/format.html#mime-multi-part-archive). For more information, see [Amazon EC2 user data in launch templates](https://docs.aws.amazon.com/batch/latest/userguide/launch-templates.html) in the *User Guide*.",
+          "description": "The user data to make available to the instance. You must provide base64-encoded text. User data is limited to 16 KB. For more information, see [Run commands when you launch an EC2 instance with user data input](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html) in the *Amazon EC2 User Guide*.\n If you are creating the launch template for use with BATCH, the user data must be provided in the [MIME multi-part archive format](https://docs.aws.amazon.com/https://cloudinit.readthedocs.io/en/latest/topics/format.html#mime-multi-part-archive). For more information, see [Amazon EC2 user data in launch templates](https://docs.aws.amazon.com/batch/latest/userguide/launch-templates.html#lt-user-data) in the *User Guide*.",
           "type": "string"
         },
         "BlockDeviceMappings": {
@@ -156,7 +157,7 @@
           "$ref": "#/definitions/HibernationOptions"
         },
         "MetadataOptions": {
-          "description": "The metadata options for the instance. For more information, see [Instance metadata and user data](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html) in the *Amazon EC2 User Guide*.",
+          "description": "The metadata options for the instance. For more information, see [Configure the Instance Metadata Service options](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-options.html) in the *Amazon EC2 User Guide*.",
           "$ref": "#/definitions/MetadataOptions"
         },
         "LicenseSpecifications": {
@@ -172,11 +173,11 @@
           "type": "string"
         },
         "DisableApiStop": {
-          "description": "Indicates whether to enable the instance for stop protection. For more information, see [Enable stop protection for your instance](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-stop-protection.html) in the *Amazon EC2 User Guide*.",
+          "description": "Indicates whether to enable the instance for stop protection. For more information, see [Enable stop protection for your EC2 instances](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-stop-protection.html) in the *Amazon EC2 User Guide*.",
           "type": "boolean"
         },
         "CpuOptions": {
-          "description": "The CPU options for the instance. For more information, see [Optimize CPU options](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-optimize-cpu.html) in the *Amazon EC2 User Guide*.",
+          "description": "The CPU options for the instance. For more information, see [CPU options for Amazon EC2 instances](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-optimize-cpu.html) in the *Amazon EC2 User Guide*.",
           "$ref": "#/definitions/CpuOptions"
         },
         "PrivateDnsNameOptions": {
@@ -196,7 +197,7 @@
           "type": "string"
         },
         "DisableApiTermination": {
-          "description": "If you set this parameter to ``true``, you can't terminate the instance using the Amazon EC2 console, CLI, or API; otherwise, you can. To change this attribute after launch, use [ModifyInstanceAttribute](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifyInstanceAttribute.html). Alternatively, if you set ``InstanceInitiatedShutdownBehavior`` to ``terminate``, you can terminate the instance by running the shutdown command from the instance.",
+          "description": "Indicates whether termination protection is enabled for the instance. The default is ``false``, which means that you can terminate the instance using the Amazon EC2 console, command line tools, or API. You can enable termination protection when you launch an instance, while the instance is running, or while the instance is stopped.",
           "type": "boolean"
         },
         "InstanceMarketOptions": {
@@ -228,6 +229,17 @@
       "properties": {
         "Ipv6Address": {
           "description": "One or more specific IPv6 addresses from the IPv6 CIDR block range of your subnet. You can't use this option if you're specifying a number of IPv6 addresses.",
+          "type": "string"
+        }
+      }
+    },
+    "NetworkPerformanceOptions": {
+      "description": "",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "BandwidthWeighting": {
+          "description": "Specifies the performance options of your instance or sets it to default.",
           "type": "string"
         }
       }
@@ -427,7 +439,7 @@
           "type": "integer"
         },
         "Iops": {
-          "description": "The number of I/O operations per second (IOPS). For ``gp3``, ``io1``, and ``io2`` volumes, this represents the number of IOPS that are provisioned for the volume. For ``gp2`` volumes, this represents the baseline performance of the volume and the rate at which the volume accumulates I/O credits for bursting.\n The following are the supported values for each volume type:\n  +   ``gp3``: 3,000 - 16,000 IOPS\n  +   ``io1``: 100 - 64,000 IOPS\n  +   ``io2``: 100 - 256,000 IOPS\n  \n For ``io2`` volumes, you can achieve up to 256,000 IOPS on [instances built on the Nitro System](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html#ec2-nitro-instances). On other instances, you can achieve performance up to 32,000 IOPS.\n This parameter is supported for ``io1``, ``io2``, and ``gp3`` volumes only.",
+          "description": "The number of I/O operations per second (IOPS). For ``gp3``, ``io1``, and ``io2`` volumes, this represents the number of IOPS that are provisioned for the volume. For ``gp2`` volumes, this represents the baseline performance of the volume and the rate at which the volume accumulates I/O credits for bursting.\n The following are the supported values for each volume type:\n  +   ``gp3``: 3,000 - 16,000 IOPS\n  +   ``io1``: 100 - 64,000 IOPS\n  +   ``io2``: 100 - 256,000 IOPS\n  \n For ``io2`` volumes, you can achieve up to 256,000 IOPS on [instances built on the Nitro System](https://docs.aws.amazon.com/ec2/latest/instancetypes/ec2-nitro-instances.html). On other instances, you can achieve performance up to 32,000 IOPS.\n This parameter is supported for ``io1``, ``io2``, and ``gp3`` volumes only.",
           "type": "integer"
         },
         "VolumeSize": {
@@ -518,7 +530,7 @@
           "type": "string"
         },
         "InstanceMetadataTags": {
-          "description": "Set to ``enabled`` to allow access to instance tags from the instance metadata. Set to ``disabled`` to turn off access to instance tags from the instance metadata. For more information, see [Work with instance tags using the instance metadata](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#work-with-tags-in-IMDS).\n Default: ``disabled``",
+          "description": "Set to ``enabled`` to allow access to instance tags from the instance metadata. Set to ``disabled`` to turn off access to instance tags from the instance metadata. For more information, see [View tags for your EC2 instances using instance metadata](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/work-with-tags-in-IMDS.html).\n Default: ``disabled``",
           "type": "string"
         },
         "HttpEndpoint": {
@@ -563,7 +575,7 @@
           "type": "integer"
         },
         "AmdSevSnp": {
-          "description": "Indicates whether to enable the instance for AMD SEV-SNP. AMD SEV-SNP is supported with M6a, R6a, and C6a instance types only. For more information, see [AMD SEV-SNP](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/sev-snp.html).",
+          "description": "Indicates whether to enable the instance for AMD SEV-SNP. AMD SEV-SNP is supported with M6a, R6a, and C6a instance types only. For more information, see [AMD SEV-SNP for Amazon EC2 instances](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/sev-snp.html).",
           "type": "string",
           "enum": [
             "enabled",
@@ -590,7 +602,7 @@
           "type": "string"
         },
         "MaxPrice": {
-          "description": "The maximum hourly price you're willing to pay for the Spot Instances. We do not recommend using this parameter because it can lead to increased interruptions. If you do not specify this parameter, you will pay the current Spot price.\n  If you specify a maximum price, your Spot Instances will be interrupted more frequently than if you do not specify this parameter.",
+          "description": "The maximum hourly price you're willing to pay for a Spot Instance. We do not recommend using this parameter because it can lead to increased interruptions. If you do not specify this parameter, you will pay the current Spot price. If you do specify this parameter, it must be more than USD $0.001. Specifying a value below USD $0.001 will result in an ``InvalidParameterValue`` error message when the launch template is used to launch an instance.\n  If you specify a maximum price, your Spot Instances will be interrupted more frequently than if you do not specify this parameter.",
           "type": "string"
         },
         "BlockDurationMinutes": {
@@ -641,7 +653,7 @@
           }
         },
         "DeviceIndex": {
-          "description": "The device index for the network interface attachment. Each network interface requires a device index. If you create a launch template that includes secondary network interfaces but not a primary network interface, then you must add a primary network interface as a launch parameter when you launch an instance from the template.",
+          "description": "The device index for the network interface attachment. If the network interface is of type ``interface``, you must specify a device index.\n If you create a launch template that includes secondary network interfaces but no primary network interface, and you specify it using the ``LaunchTemplate`` property of ``AWS::EC2::Instance``, then you must include a primary network interface using the ``NetworkInterfaces`` property of ``AWS::EC2::Instance``.",
           "type": "integer"
         },
         "PrimaryIpv6": {
@@ -685,7 +697,7 @@
           "type": "integer"
         },
         "InterfaceType": {
-          "description": "The type of network interface. To create an Elastic Fabric Adapter (EFA), specify ``efa`` or ``efa``. For more information, see [Elastic Fabric Adapter](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html) in the *Amazon EC2 User Guide*.\n If you are not creating an EFA, specify ``interface`` or omit this parameter.\n If you specify ``efa-only``, do not assign any IP addresses to the network interface. EFA-only network interfaces do not support IP addresses.\n Valid values: ``interface`` | ``efa`` | ``efa-only``",
+          "description": "The type of network interface. To create an Elastic Fabric Adapter (EFA), specify ``efa`` or ``efa``. For more information, see [Elastic Fabric Adapter for AI/ML and HPC workloads on Amazon EC2](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html) in the *Amazon EC2 User Guide*.\n If you are not creating an EFA, specify ``interface`` or omit this parameter.\n If you specify ``efa-only``, do not assign any IP addresses to the network interface. EFA-only network interfaces do not support IP addresses.\n Valid values: ``interface`` | ``efa`` | ``efa-only``",
           "type": "string"
         },
         "AssociateCarrierIpAddress": {
@@ -926,7 +938,7 @@
         },
         "AcceleratorTypes": {
           "uniqueItems": false,
-          "description": "The accelerator types that must be on the instance type.\n  +  For instance types with GPU accelerators, specify ``gpu``.\n  +  For instance types with FPGA accelerators, specify ``fpga``.\n  \n Default: Any accelerator type",
+          "description": "The accelerator types that must be on the instance type.\n  +  For instance types with FPGA accelerators, specify ``fpga``.\n  +  For instance types with GPU accelerators, specify ``gpu``.\n  +  For instance types with Inference accelerators, specify ``inference``.\n  \n Default: Any accelerator type",
           "type": "array",
           "items": {
             "type": "string"

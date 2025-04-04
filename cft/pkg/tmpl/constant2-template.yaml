@@ -1,0 +1,25 @@
+Parameters:
+  Prefix:
+    Type: String
+
+Rain:
+  Constants:
+    Test1: ezbeard-rain-test-constants
+    Test2: !Sub ${Prefix}-${Rain::Test1}-SubTest
+
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Rain::Constant Test1
+  Bucket2:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Rain::Constant Test2
+  Bucket3:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "pre-${Prefix}-${Rain::Test1}-suffix" 
+      Foo: !Sub ${Rain::Test1}
+      Bar: !Sub ${!leavemealone}
+

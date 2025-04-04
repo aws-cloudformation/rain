@@ -157,6 +157,37 @@
         }
       }
     },
+    "HudiTarget": {
+      "type": "object",
+      "description": "Specifies Apache Hudi data store targets.",
+      "additionalProperties": false,
+      "properties": {
+        "ConnectionName": {
+          "type": "string",
+          "description": "The name of the connection to use to connect to the Hudi target."
+        },
+        "Paths": {
+          "type": "array",
+          "description": "One or more Amazon S3 paths that contains Hudi metadata folders as s3://bucket/prefix .",
+          "uniqueItems": false,
+          "items": {
+            "type": "string"
+          }
+        },
+        "Exclusions": {
+          "type": "array",
+          "description": "A list of global patterns used to exclude from the crawl.",
+          "uniqueItems": false,
+          "items": {
+            "type": "string"
+          }
+        },
+        "MaximumTraversalDepth": {
+          "type": "integer",
+          "description": "The maximum depth of Amazon S3 paths that the crawler can traverse to discover the Hudi metadata folder in your Amazon S3 path. Used to limit the crawler run time."
+        }
+      }
+    },
     "Schedule": {
       "type": "object",
       "description": "A scheduling object using a cron statement to schedule an event.",
@@ -313,6 +344,14 @@
           "items": {
             "$ref": "#/definitions/IcebergTarget"
           }
+        },
+        "HudiTargets": {
+          "type": "array",
+          "description": "Specifies Apache Hudi data store targets.",
+          "uniqueItems": false,
+          "items": {
+            "$ref": "#/definitions/HudiTarget"
+          }
         }
       }
     },
@@ -364,7 +403,11 @@
     "tagOnCreate": true,
     "tagUpdatable": true,
     "cloudFormationSystemTags": false,
-    "tagProperty": "/properties/Tags"
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "glue:TagResource",
+      "glue:UntagResource"
+    ]
   },
   "required": [
     "Role",

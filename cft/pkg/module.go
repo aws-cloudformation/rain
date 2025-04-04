@@ -2,10 +2,9 @@
 package pkg
 
 import (
+	"embed"
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/aws-cloudformation/rain/cft"
@@ -31,80 +30,145 @@ const (
 	UpdateReplacePolicy = "UpdateReplacePolicy"
 	Condition           = "Condition"
 	Default             = "Default"
+	Source              = "Source"
+	Map                 = "Map"
 )
 
-// Clone a property-like node from the module and replace any overridden values
-func cloneAndReplaceProps(
-	n *yaml.Node,
-	name string,
-	moduleProps *yaml.Node,
-	templateProps *yaml.Node,
-	moduleParams *yaml.Node) *yaml.Node {
+// Module represents a complete module, including parent config
+type Module struct {
+	Config         *cft.ModuleConfig
+	ParametersNode *yaml.Node
+	ResourcesNode  *yaml.Node
+	OutputsNode    *yaml.Node
+	Node           *yaml.Node
+	ParentTemplate *cft.Template
+	ConditionsNode *yaml.Node
+	ModulesNode    *yaml.Node
+	Parsed         *ParsedModule
+	ParentModule   *Module
+}
 
-	// Not all property-like attributes are required
-	if moduleProps == nil && templateProps == nil {
+// Outputs returns the Outputs node as a map
+func (module *Module) Outputs() map[string]any {
+	return node.DecodeMap(module.OutputsNode)
+}
+
+// Parameters returns the Parameters node as a map
+func (module *Module) Parameters() map[string]any {
+	return node.DecodeMap(module.ParametersNode)
+}
+
+// Resources returns the Resources node as a map
+func (module *Module) Resources() map[string]any {
+	return node.DecodeMap(module.ResourcesNode)
+}
+
+// Modules returns the Modules node as a map
+func (module *Module) Modules() map[string]any {
+	return node.DecodeMap(module.ModulesNode)
+}
+
+// Conditions returns the Conditions node as a map
+func (module *Module) Conditions() map[string]any {
+	return node.DecodeMap(module.ConditionsNode)
+}
+
+// Process the Modules section of a template or module.
+// Modifies t in place.
+func processModulesSection(t *cft.Template, n *yaml.Node,
+	rootDir string, fs *embed.FS, parentModule *Module) error {
+
+	// AWS CLI package Modules compatibility.
+	// This is basically the same as !Rain::Module but the modules are
+	// defined in a new Modules Section.
+	_, moduleSection, _ := s11n.GetMapValue(n, "Modules")
+	if moduleSection == nil {
 		return nil
 	}
+	HasModules = true
 
-	var props *yaml.Node
-
-	if moduleProps != nil {
-		// Start by cloning the properties in the module
-		props = node.Clone(moduleProps)
-	} else {
-		props = &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
+	if moduleSection.Kind != yaml.MappingNode {
+		return errors.New("the Modules section is not a mapping node")
 	}
 
-	// Replace any property values overridden in the parent template
-	if templateProps != nil {
-		for i, tprop := range templateProps.Content {
+	originalContent := moduleSection.Content
 
-			// Only look at the names, which have even indexes
-			if i%2 != 0 {
-				continue
-			}
+	// Duplicate module content that has a Map attribute
+	content, err := processMaps(originalContent, t, parentModule)
+	if err != nil {
+		return err
+	}
 
-			found := false
+	// Replace the original Modules content
+	moduleSection.Content = content
 
-			if moduleParams != nil {
-				_, moduleParam, _ := s11n.GetMapValue(moduleParams, tprop.Value)
-
-				// Don't clone template props that are module parameters.
-				// Module params are used when we resolve Refs later
-				if moduleParam != nil {
-					continue
-				}
-			}
-
-			// Overwrite anything hard coded into the module that is
-			// present in the parent template
-			for j, mprop := range props.Content {
-				if tprop.Value == mprop.Value && i%2 == 0 && j%2 == 0 {
-					clonedNode := node.Clone(templateProps.Content[i+1])
-					// config.Debugf("original: %s", node.ToSJson(templateProps.Content[i+1]))
-					// config.Debugf("clonedNode: %s", node.ToSJson(clonedNode))
-					merged := node.MergeNodes(props.Content[j+1], clonedNode)
-					// config.Debugf("merged: %s", node.ToSJson(merged))
-					props.Content[j+1] = merged
-
-					found = true
-				}
-			}
-
-			if !found && i%2 == 0 {
-				props.Content = append(props.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: tprop.Value})
-				props.Content = append(props.Content, node.Clone(templateProps.Content[i+1]))
-			}
-
+	for i := 0; i < len(content); i += 2 {
+		name := content[i].Value
+		moduleConfig, err := t.ParseModuleConfig(name, content[i+1])
+		if err != nil {
+			return err
 		}
+		moduleConfig.ParentRootDir = rootDir
+
+		baseUri := ""
+		uri := moduleConfig.Source
+
+		moduleContent, err := getModuleContent(rootDir, t, fs, baseUri, uri)
+		if err != nil {
+			return err
+		}
+
+		parsed, err := parseModule(moduleContent.Content,
+			moduleContent.NewRootDir, fs)
+		if err != nil {
+			return err
+		}
+
+		// Transform the parsed module content
+		outputNode := node.MakeMapping()
+
+		err = processModule(
+			name,
+			parsed,
+			outputNode,
+			t,
+			parsed.AsTemplate.Constants,
+			moduleConfig,
+			parentModule)
+		if err != nil {
+			return err
+		}
+
+		// Put the content into the template
+		if len(outputNode.Content) > 0 {
+			resources, err := t.GetSection(cft.Resources)
+			if err != nil {
+				resources = node.AddMap(t.Node.Content[0], string(cft.Resources))
+			}
+			resources.Content = append(resources.Content, outputNode.Content...)
+
+		} else {
+			config.Debugf("processModuleSection %s outputNode did not have any Resources", name)
+		}
+
+		config.Debugf("\nparent template after %s processModule ==== \n%s\n",
+			name, node.YamlStr(t.Node))
+
 	}
 
-	return props
+	// Look for GetAtts like Content[].Arn that reference
+	// all items in Mapped module Outputs
+	ProcessOutputArrays(t)
+
+	// Remove the Modules section
+	t.RemoveSection(cft.Modules)
+
+	return nil
 }
 
 // Add DeletionPolicy, UpdateReplacePolicy, and Condition
-func addScalarAttribute(out *yaml.Node, name string, moduleResource *yaml.Node, templateOverrides *yaml.Node) {
-	_, templatePolicy, _ := s11n.GetMapValue(templateOverrides, name)
+func addScalarAttribute(out *yaml.Node, name string, moduleResource *yaml.Node, overrides *yaml.Node) {
+	_, templatePolicy, _ := s11n.GetMapValue(overrides, name)
 	_, modulePolicy, _ := s11n.GetMapValue(moduleResource, name)
 	if modulePolicy != nil {
 		node.RemoveFromMap(out, name)
@@ -122,424 +186,250 @@ func addScalarAttribute(out *yaml.Node, name string, moduleResource *yaml.Node, 
 	}
 }
 
-// Rename a resource defined in the module to add the template resource name
-func rename(logicalId string, resourceName string) string {
-	return logicalId + resourceName
-}
+// processModule performs all of the module logic and injects the content into the parent
+func processModule(
+	logicalId string,
+	parsedModule *ParsedModule,
+	outputNode *yaml.Node,
+	t *cft.Template,
+	moduleConstants map[string]*yaml.Node,
+	moduleConfig *cft.ModuleConfig,
+	parentModule *Module) error {
 
-// Common context needed to resolve Refs in the module.
-// This is all the common stuff that is the same for this module.
-type refctx struct {
-	// The module's Parameters
-	moduleParams *yaml.Node
-
-	// The parent template's Properties
-	templateProps *yaml.Node
-
-	// The node we're writing to for output to the resulting template
-	outNode *yaml.Node
-
-	// The logical id of the resource in the parent template
-	logicalId string
-
-	// The module's Resources map
-	moduleResources *yaml.Node
-
-	// Template property overrides map for the resource
-	// TODO: Not necessary? We don't look anything up here...
-	overrides *yaml.Node
-
-	// The module's Constants from the Rain section
-	constants map[string]*yaml.Node
-}
-
-func replaceProp(prop *yaml.Node, parentName string, v *yaml.Node, outNode *yaml.Node, sidx int) error {
-
-	if sidx > -1 {
-		// The node is a sequence element
-
-		newVal := node.Clone(v)
-
-		if v.Kind == yaml.MappingNode {
-			parentNode := node.GetParent(prop, outNode, nil)
-			*parentNode.Value = *newVal
-		} else {
-			parentNode := node.GetParent(prop, outNode, nil)
-			if parentNode.Key != nil {
-				*parentNode.Value = *newVal
-			} else {
-				*prop = *newVal
-			}
-		}
-		return nil
+	if moduleConfig == nil {
+		return errors.New("moduleConfig is nil")
 	}
 
-	// We can't just set prop.Value, since we would end up with
-	// Prop: !Ref Value instead of just Prop: Value. Get the
-	// property's parent and set the entire map value for the
-	// property
+	moduleNode := parsedModule.Node
 
-	// Get the map parent within the output node we created
-	refMap := node.GetParent(prop, outNode, nil)
-	if refMap.Value == nil {
-		return fmt.Errorf("could not find parent for %v", prop)
-	}
-	propParentPair := node.GetParent(refMap.Value, outNode, nil)
+	m := &Module{}
+	m.Config = moduleConfig
+	m.Node = moduleNode
+	m.ParentTemplate = t
+	m.ParentModule = parentModule
+	m.Parsed = parsedModule
 
-	// Create a new node to replace what's defined in the module
-	newValue := node.Clone(v)
+	m.InitNodes()
 
-	node.SetMapValue(propParentPair.Value, parentName, newValue)
-
-	return nil
-}
-
-// Resolve a Ref.
-// parentName is the name of the Property with the Ref in it.
-// prop is the Scalar node with the value for the Ref.
-// The output node is modified by this function (or the prop, which is part of the output)
-func resolveModuleRef(parentName string, prop *yaml.Node, sidx int, ctx *refctx) error {
-
-	// MyProperty: !Ref NameOfParam
-	//
-	// MyProperty is the parentName
-	// NameOfParam is prop.Value
-
-	moduleParams := ctx.moduleParams
-	templateProps := ctx.templateProps
-	outNode := ctx.outNode
-	logicalId := ctx.logicalId
-	moduleResources := ctx.moduleResources
-
-	refFoundInParams := false
-
-	if moduleParams != nil {
-		// Find the module parameter that matches the !Ref
-		_, param, _ := s11n.GetMapValue(moduleParams, prop.Value)
-		if param != nil {
-			// We need to get the parameter value from the parent template.
-			// Module params are set by the parent template resource properties.
-			//
-			// For example:
-			//
-			// The module has this section:
-			//
-			// Parameters:
-			//   Foo:
-			//     Type: String
-			//
-			// And the parent template has this:
-			//
-			// MyResource:
-			//   Type: !Rain::Module "this-module.yaml"
-			//   Properties:
-			//     Foo: bar
-			//
-			// Inside the module, we replace !Ref Foo with bar
-
-			// Look for this property name in the parent template
-			_, parentVal, _ := s11n.GetMapValue(templateProps, prop.Value)
-			if parentVal == nil {
-				// Check to see if there is a Default
-				_, mParam, _ := s11n.GetMapValue(moduleParams, prop.Value)
-				if mParam != nil {
-					_, defaultNode, _ := s11n.GetMapValue(mParam, Default)
-					if defaultNode != nil {
-						parentVal = defaultNode
-					}
-				}
-
-				// If we didn't find a parent template prop or a default, fail
-				if parentVal == nil {
-					return fmt.Errorf("did not find %v in parent template Properties",
-						prop.Value)
-				}
-			}
-
-			replaceProp(prop, parentName, parentVal, outNode, sidx)
-
-			refFoundInParams = true
-		}
-	}
-	if !refFoundInParams {
-		// Look for a resource in the module
-		_, resource, _ := s11n.GetMapValue(moduleResources, prop.Value)
-		if resource == nil {
-			// If we can't find the Ref, leave it alone and assume it's
-			// expected to be in the parent template to be resolved at deploy
-			// time. This is sort of cheating. It means you can write a module
-			// that has to know about its parent. For example, if you put !Ref
-			// Foo in the module, and Foo appears nowhere in the module, we
-			// assume it will show up in the parent template. For some use
-			// cases, it makes sense to allow this and not consider it an error.
-			return nil
-		}
-		fixedName := rename(logicalId, prop.Value)
-		prop.Value = fixedName
-	}
-	return nil
-}
-
-// Resolve a Sub string in a module.
-//
-// Sub strings can contain several types of variables.
-// We leave intrinsics like ${AWS::Region} alone.
-// ${Foo} is treated like a Ref to Foo
-// ${Foo.Bar} is treated like a GetAtt.
-//
-// Shares logic with resolveModuleRef, but operates on substrings,
-// which must resolve to strings and not objects.
-//
-// prop.Value is the Sub string
-// sidx is the sequence index if it's > -1
-// ctx.outNode will be modified to replace prop.Value with the references
-func resolveModuleSub(parentName string, prop *yaml.Node, sidx int, ctx *refctx) error {
-
-	moduleParams := ctx.moduleParams
-	templateProps := ctx.templateProps
-	logicalId := ctx.logicalId
-	moduleResources := ctx.moduleResources
-
-	refFoundInParams := false
-
-	words, err := parse.ParseSub(prop.Value, true)
+	err := m.ProcessConditions()
 	if err != nil {
 		return err
 	}
 
-	sub := ""
-	needSub := false // If we can fully resolve everything, we can remove the !Sub
-	for _, word := range words {
-		switch word.T {
-		case parse.STR:
-			sub += word.W
-		case parse.AWS:
-			sub += "${AWS::" + word.W + "}"
-			needSub = true
-		case parse.REF:
-			resolved := fmt.Sprintf("${%s}", word.W)
-
-			// Look for the name in module params
-			if moduleParams != nil {
-				// Find the module parameter that matches the !Ref
-				_, param, _ := s11n.GetMapValue(moduleParams, word.W)
-				if param != nil {
-					_, parentVal, _ := s11n.GetMapValue(templateProps, word.W)
-					if parentVal == nil {
-						return fmt.Errorf("did not find %v in parent template Properties", prop.Value)
-					}
-					if parentVal.Kind == yaml.MappingNode {
-						// In the parent template, the property is a Sub
-						// This would need to resolve to a string so assume a len of 2
-						if len(parentVal.Content) == 2 {
-							needSub = true
-							if parentVal.Content[0].Value == "Ref" {
-								resolved = fmt.Sprintf("${%s}", parentVal.Content[1].Value)
-							} else {
-								resolved = parentVal.Content[1].Value
-							}
-						}
-					} else {
-						// It's a string
-						resolved = parentVal.Value
-					}
-					refFoundInParams = true
-				} else {
-					needSub = true
-				}
-			} else {
-				needSub = true
-			}
-			if !refFoundInParams {
-				// Look for a resource in the module
-				_, resource, _ := s11n.GetMapValue(moduleResources, word.W)
-				if resource != nil {
-					resolved = rename(logicalId, word.W)
-				} else {
-					needSub = true
-				}
-			}
-
-			// If we didn't change the word, it is either an intrinsic like AWS::Region or
-			// a value that is expected to be in the parent template, which is up to the user
-
-			sub += resolved
-		case parse.GETATT:
-			// All we do here is fix the left part of the GetAtt
-			// ${Foo.Bar} becomes ${NameFoo.Bar} where Name is the logicalId
-			needSub = true
-			left, right, found := strings.Cut(word.W, ".")
-			if !found {
-				return fmt.Errorf("unexpected GetAtt %s", word.W)
-			}
-			_, resource, _ := s11n.GetMapValue(moduleResources, left)
-			if resource != nil {
-				left = rename(logicalId, left)
-			}
-			sub += fmt.Sprintf("${%s.%s}", left, right)
-			needSub = true
-		// This should not be necessary since we process Rain constants earlier
-		//case parse.RAIN:
-		//	// Replace ${Rain::ConstantName} with template constant value
-		//	if ctx.constants == nil {
-		//		return fmt.Errorf("no Rain Constants section, looking for %s", word.W)
-		//	}
-		//	if c, ok := ctx.constants[word.W]; ok {
-		//		sub += c.Value
-		//	} else {
-		//		if len(ctx.constants) == 0 {
-		//			config.Debugf("Constants are empty")
-		//		}
-		//		for k, v := range ctx.constants {
-		//			config.Debugf("Constant %s: %s", k, v.Value)
-		//		}
-		//		return fmt.Errorf("unable to find Rain constant %s", word.W)
-		//	}
-		default:
-			return fmt.Errorf("unexpected word type %v for %s", word.T, word.W)
-		}
+	moduleAsTemplate := &cft.Template{
+		Node: &yaml.Node{
+			Kind:    yaml.DocumentNode,
+			Content: []*yaml.Node{moduleNode},
+		},
 	}
 
-	// Put the sub back if there were any unresolved variables
-	var newProp *yaml.Node
-	if needSub && sidx < 0 {
-		newProp = &yaml.Node{Kind: yaml.MappingNode, Value: parentName}
-		newProp.Content = make([]*yaml.Node, 0)
-		newProp.Content = append(newProp.Content,
-			&yaml.Node{Kind: yaml.ScalarNode, Value: "Fn::Sub"})
-		newProp.Content = append(newProp.Content,
-			&yaml.Node{Kind: yaml.ScalarNode, Value: sub})
+	err = processRainSection(moduleAsTemplate,
+		parsedModule.RootDir, parsedModule.FS)
+	if err != nil {
+		return err
+	}
+
+	err = processAddedSections(moduleAsTemplate, moduleAsTemplate.Node.Content[0],
+		parsedModule.RootDir, parsedModule.FS, m)
+	if err != nil {
+		return err
+	}
+
+	err = m.ValidateOverrides()
+	if err != nil {
+		return err
+	}
+
+	err = m.ProcessResources(outputNode)
+	if err != nil {
+		return err
+	}
+
+	// Look for references to this module's outputs in the parent
+	err = m.ProcessOutputs()
+	if err != nil {
+		return err
+	}
+
+	config.Debugf("Module %s about to resolve t.Node in processModule",
+		m.Config.Name)
+
+	// Resolve any references to this module in the parent template
+	//err = m.Resolve(t.Node)
+	//if err != nil {
+	//	return err
+	//}
+
+	fileRootDir := ""
+	if parentModule != nil {
+		fileRootDir = parentModule.Parsed.RootDir
 	} else {
-		newProp = &yaml.Node{Kind: yaml.ScalarNode, Value: sub}
+		fileRootDir = m.Config.ParentRootDir
+	}
+	if fileRootDir == "" {
+		fileRootDir = parsedModule.RootDir
 	}
 
-	// Replace the prop in the output node
-	replaceProp(prop, parentName, newProp, ctx.outNode, sidx)
+	err = ExtraIntrinsics(t.Node, fileRootDir)
+	if err != nil {
+		return err
+	}
+
+	err = m.FnInvoke(t.Node)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
 
-// Recursive function to find all refs in properties
-// Also handles DeletionPolicy, UpdateRetainPolicy
-// If sidx is > -1, this prop is in a sequence
-func renamePropRefs(parentName string, propName string, prop *yaml.Node, sidx int, ctx *refctx) error {
+func ExtraIntrinsics(n *yaml.Node, basePath string) error {
 
-	logicalId := ctx.logicalId
+	var err error
 
-	// Properties:
-	//   SimpleProp: Val
-	//   RefParam: !Ref NameOfParam
-	//   RefResource: !Ref NameOfResource
-	//   GetAtt: !GetAtt Name.Arn
-	//   Complex:
-	//     AnArray:
-	//       - Element0
-	//           A: B
-	//           C: !Ref D
+	err = FnJoin(n)
+	if err != nil {
+		return err
+	}
 
-	if prop.Kind == yaml.ScalarNode {
-		if propName == "Ref" {
-			if err := resolveModuleRef(parentName, prop, sidx, ctx); err != nil {
-				return fmt.Errorf("resolving module ref %s: %v", parentName, err)
-			}
-		} else if propName == "Fn::Sub" {
+	err = FnMerge(n)
+	if err != nil {
+		return err
+	}
 
-			if err := resolveModuleSub(parentName, prop, sidx, ctx); err != nil {
-				return fmt.Errorf("resolving module sub %s: %v", parentName, err)
-			}
+	err = FnSelect(n)
+	if err != nil {
+		return err
+	}
 
-			// TODO: Also handle Seq Subs
+	err = FnInsertFile(n, basePath)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (module *Module) InitNodes() {
+	// Locate the Resources: section in the module
+	_, moduleResources, _ := s11n.GetMapValue(module.Node, string(cft.Resources))
+	module.ResourcesNode = moduleResources
+
+	// Locate the Parameters: section in the module (might be nil)
+	_, moduleParams, _ := s11n.GetMapValue(module.Node, string(cft.Parameters))
+	module.ParametersNode = moduleParams
+
+	// Locate the Outputs: section in the module (might be nil)
+	_, moduleOutputs, _ := s11n.GetMapValue(module.Node, string(cft.Outputs))
+	module.OutputsNode = moduleOutputs
+
+	// Locate the Conditions: section in the module (might be nil)
+	_, moduleConditions, _ := s11n.GetMapValue(module.Node, string(cft.Conditions))
+	module.ConditionsNode = moduleConditions
+
+	// Locate the Modules: section in the module (might be nil)
+	_, moduleModules, _ := s11n.GetMapValue(module.Node, string(cft.Modules))
+	module.ModulesNode = moduleModules
+}
+
+// ProcessResources injects the module's resources into the output node
+func (module *Module) ProcessResources(outputNode *yaml.Node) error {
+
+	// Resources Node may have been replaced
+	module.InitNodes()
+
+	if module.ResourcesNode == nil {
+		config.Debugf("Module %s has no resources", module.Config.Name)
+		return nil
+	}
+
+	// Get module resources and add them to the output
+	for i, moduleResource := range module.ResourcesNode.Content {
+		if moduleResource.Kind != yaml.MappingNode {
+			continue
 		}
-	} else if prop.Kind == yaml.SequenceNode {
-		if propName == "Fn::GetAtt" {
-			// Convert !GetAtt Name.Property to !GetAtt LogicalId.Property
-			fixedName := rename(logicalId, prop.Content[0].Value)
-			prop.Content[0].Value = fixedName
+		name := module.ResourcesNode.Content[i-1].Value
+
+		// Check to see if there is a Rain attribute in the Metadata.
+		// If so, check conditionals like IfParam
+		metadata := s11n.GetMap(moduleResource, Metadata)
+		if metadata != nil {
+			if rainMetadata, ok := metadata[Rain]; ok {
+				if omitIfs(rainMetadata, module.ParametersNode,
+					module.Config.PropertiesNode, moduleResource) {
+					continue
+				}
+			}
+		}
+
+		nameNode := node.Clone(module.ResourcesNode.Content[i-1])
+		nameNode.Value = rename(module.Config.Name, nameNode.Value)
+		outputNode.Content = append(outputNode.Content, nameNode)
+		clonedResource := node.Clone(moduleResource)
+
+		err := module.ProcessOverrides(name, moduleResource, clonedResource)
+		if err != nil {
+			return err
+		}
+
+		// Resolve Refs in the module
+		// Some refs are to other resources in the module
+		// Other refs are to the module's parameters
+
+		config.Debugf("%s about to resolve resource %s", module.Config.Name, nameNode.Value)
+
+		err = module.Resolve(clonedResource)
+		if err != nil {
+			return fmt.Errorf("failed to resolve refs: %v", err)
+		}
+
+		fileRootDir := ""
+		if module.ParentModule != nil {
+			fileRootDir = module.ParentModule.Parsed.RootDir
 		} else {
-			// Recurse over array elements
-			for i, p := range prop.Content {
-				// propName is blank so the next parentName is blank
-				result := renamePropRefs(propName, p.Value, prop.Content[i], i, ctx)
-				if result != nil {
-					return fmt.Errorf("recursing over array %s: %v", parentName, result)
-				}
-			}
+			fileRootDir = module.Config.ParentRootDir
 		}
-	} else if prop.Kind == yaml.MappingNode {
-		// Iterate over all map elements and recurse on the contents
-		for i, p := range prop.Content {
-			if i%2 == 0 {
-
-				// Don't pass sidx through if we're in a child node of the sequence
-				passSidx := sidx
-				if propName != "" {
-					passSidx = -1
-				}
-				result := renamePropRefs(propName, p.Value, prop.Content[i+1], passSidx, ctx)
-				if result != nil {
-					return fmt.Errorf("recursing over mapping node %s: %v", propName, result)
-				}
-			}
+		if fileRootDir == "" {
+			fileRootDir = module.Parsed.RootDir
 		}
-	} else {
-		return fmt.Errorf("unexpected prop Kind: %v", prop.Kind)
-	}
-
-	return nil
-}
-
-// Convert !Ref values
-func resolveRefs(ctx *refctx) error {
-
-	outNode := ctx.outNode
-
-	// Replace references to the module's parameters with the value supplied
-	// by the parent template. Rename refs to other resources in the module.
-	propLikes := []string{Properties, Metadata}
-	for _, propLike := range propLikes {
-		_, outNodeProps, _ := s11n.GetMapValue(outNode, propLike)
-		if outNodeProps != nil {
-			for i, prop := range outNodeProps.Content {
-				if i%2 == 0 {
-					propName := prop.Value
-					err := renamePropRefs(propName, propName, outNodeProps.Content[i+1], -1, ctx)
-					if err != nil {
-						return fmt.Errorf("unable to resolve refs for %s %v: %v",
-							propLike, propName, err)
-					}
-				}
-			}
+		err = ExtraIntrinsics(clonedResource, fileRootDir)
+		if err != nil {
+			return err
 		}
-	}
 
-	// DeletionPolicy, UpdateReplacePolicy, Condition
-	policies := []string{DeletionPolicy, UpdateReplacePolicy, Condition}
-	for _, policy := range policies {
-		_, policyNode, _ := s11n.GetMapValue(outNode, policy)
-		if policyNode != nil {
-			err := renamePropRefs(policy, policy, policyNode, -1, ctx)
-			if err != nil {
-				return fmt.Errorf("unable to resolve refs for %v, %v", policy, err)
-			}
+		outputNode.Content = append(outputNode.Content, clonedResource)
+
+		// We already resolved this resource, so skip its children
+		// if we try to resolve it again later.
+		module.ParentTemplate.AddResolvedModuleNode(clonedResource)
+
+		parentName := ""
+		if module.ParentModule != nil {
+			parentName = module.ParentModule.Config.Name
 		}
+		config.Debugf("Module %s (p:%s) adding resource:\n%s\n", module.Config.Name,
+			parentName,
+			node.YamlStr(clonedResource))
 	}
 
 	return nil
 }
 
 // Convert the module into a node for the packaged template
-func processModule(
+// This is for !Rain::Module Resources
+func processRainResourceModule(
 	module *yaml.Node,
 	outputNode *yaml.Node,
-	t cft.Template,
-	typeNode *yaml.Node,
+	t *cft.Template,
 	parent node.NodePair,
-	moduleConstants map[string]*yaml.Node) (bool, error) {
+	moduleConstants map[string]*yaml.Node,
+	source string,
+	parsed *ParsedModule) error {
 
 	// The parent arg is the map in the template resource's Content[1] that contains Type, Properties, etc
 
 	if parent.Key == nil {
-		return false, errors.New("expected parent.Key to not be nil. The !Rain::Module directive should come after Type: ")
+		return errors.New("expected parent.Key to not be nil. The !Rain::Module directive should come after Type: ")
 	}
 
 	// Get the logical id of the resource we are transforming
@@ -548,225 +438,27 @@ func processModule(
 	// Make a new node that will hold our additions to the original template
 	outputNode.Content = make([]*yaml.Node, 0)
 
-	if module.Kind != yaml.DocumentNode {
-		return false, errors.New("expected module to be a DocumentNode")
+	if module.Kind == yaml.DocumentNode {
+		module = module.Content[0] // ScalarNode !!map
 	}
 
-	curNode := module.Content[0] // ScalarNode !!map
-
-	// Locate the Resources: section in the module
-	_, moduleResources, _ := s11n.GetMapValue(curNode, "Resources")
-
-	if moduleResources == nil {
-		return false, errors.New("expected the module to have a Resources section")
+	if module.Kind != yaml.MappingNode {
+		config.Debugf("%s", node.ToSJson(module))
+		return fmt.Errorf("expected module %s to be a Mapping node", logicalId)
 	}
-
-	// Locate the Parameters: section in the module (might be nil)
-	_, moduleParams, _ := s11n.GetMapValue(curNode, "Parameters")
 
 	templateResource := parent.Value // The !!map node of the resource with Type !Rain::Module
 
-	// Properties are the args that match module params
-	_, templateProps, _ := s11n.GetMapValue(templateResource, Properties)
-
-	// Overrides have overridden values for module resources. Anything in a module can be overridden.
-	_, overrides, _ := s11n.GetMapValue(templateResource, Overrides)
-
-	// Validate that the overrides actually exist and error if not
-	if overrides != nil {
-		for i, override := range overrides.Content {
-			if i%2 != 0 {
-				continue
-			}
-			foundName := false
-			for i, moduleResource := range moduleResources.Content {
-				if moduleResource.Kind != yaml.MappingNode {
-					continue
-				}
-				name := moduleResources.Content[i-1].Value
-				if name == override.Value {
-					foundName = true
-					break
-				}
-			}
-			if !foundName {
-				return false, fmt.Errorf("override not found: %s", override.Value)
-			}
-
-			// Make sure this Override name is not a module parameter.
-			// It is an error to try to override a property that shares
-			// a name with a module Parameter.
-			if moduleParams != nil {
-				_, overrideProps, _ := s11n.GetMapValue(overrides.Content[i+1], Properties)
-				if overrideProps != nil {
-					for op, overrideProp := range overrideProps.Content {
-						if op%2 != 0 {
-							continue
-						}
-						_, mp, _ := s11n.GetMapValue(moduleParams, overrideProp.Value)
-						if mp != nil {
-							return false,
-								fmt.Errorf("cannot override module parameter %s",
-									overrideProp.Value)
-						}
-					}
-				}
-			}
-		}
-	}
-
-	fe, err := handleForEach(moduleResources, t, logicalId, outputNode,
-		moduleParams, templateProps)
+	moduleConfig, err := t.ParseModuleConfig(logicalId, templateResource)
 	if err != nil {
-		return false, err
+		return err
 	}
+	moduleConfig.Source = source
 
-	// Get module resources and add them to the output
-	for i, moduleResource := range moduleResources.Content {
-		if moduleResource.Kind != yaml.MappingNode {
-			continue
-		}
-		name := moduleResources.Content[i-1].Value
-
-		// Check to see if there is a Rain attribute in the Metadata.
-		// If so, check conditionals like IfParam
-		metadata := s11n.GetMap(moduleResource, Metadata)
-		if metadata != nil {
-			if rainMetadata, ok := metadata[Rain]; ok {
-				if omitIfs(rainMetadata, moduleParams, templateProps, moduleResource) {
-					continue
-				}
-			}
-		}
-
-		nameNode := node.Clone(moduleResources.Content[i-1])
-		nameNode.Value = rename(logicalId, nameNode.Value)
-		outputNode.Content = append(outputNode.Content, nameNode)
-		clonedResource := node.Clone(moduleResource)
-
-		// Get the overrides from the templates resource if there are any
-		var templateOverrides *yaml.Node
-		if overrides != nil {
-			_, templateOverrides, _ = s11n.GetMapValue(overrides, name)
-		}
-
-		// Clone attributes that are like Properties, and replace overridden values
-		propLike := []string{Properties, CreationPolicy, Metadata, UpdatePolicy}
-		for _, pl := range propLike {
-			_, plProps, _ := s11n.GetMapValue(moduleResource, pl)
-			_, plTemplateProps, _ := s11n.GetMapValue(templateOverrides, pl)
-			clonedProps := cloneAndReplaceProps(clonedResource, pl, plProps, plTemplateProps, moduleParams)
-			if clonedProps == nil {
-				// Was not present in the module or in the template, so skip it
-				continue
-			}
-			if plProps != nil {
-				// Get rid of what we cloned, so we can replace it entirely
-				node.RemoveFromMap(clonedResource, pl)
-			}
-			clonedResource.Content = append(clonedResource.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: pl})
-			clonedResource.Content = append(clonedResource.Content, clonedProps)
-		}
-
-		// DeletionPolicy
-		addScalarAttribute(clonedResource, DeletionPolicy, moduleResource, templateOverrides)
-
-		// UpdateReplacePolicy
-		addScalarAttribute(clonedResource, UpdateReplacePolicy, moduleResource, templateOverrides)
-
-		// Condition
-		addScalarAttribute(clonedResource, Condition, moduleResource, templateOverrides)
-
-		// DependsOn is an array of scalars or a single scalar
-		_, moduleDependsOn, _ := s11n.GetMapValue(moduleResource, DependsOn)
-		_, templateDependsOn, _ := s11n.GetMapValue(templateOverrides, DependsOn)
-		if moduleDependsOn != nil || templateDependsOn != nil {
-			clonedResource.Content = append(clonedResource.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: DependsOn})
-			dependsOnValue := &yaml.Node{Kind: yaml.SequenceNode, Content: make([]*yaml.Node, 0)}
-			if moduleDependsOn != nil {
-				// Remove the original DependsOn, so we don't end up with two
-				node.RemoveFromMap(clonedResource, DependsOn)
-
-				// Change the names to the modified resource name for the template
-				c := make([]*yaml.Node, 0)
-				if moduleDependsOn.Kind == yaml.ScalarNode {
-					for _, v := range strings.Split(moduleDependsOn.Value, " ") {
-						c = append(c, &yaml.Node{Kind: yaml.ScalarNode, Value: v})
-					}
-				} else {
-					// Arrays get converted to space delimited strings
-					for _, content := range moduleDependsOn.Content {
-						for _, v := range strings.Split(content.Value, " ") {
-							c = append(c, &yaml.Node{Kind: yaml.ScalarNode, Value: v})
-						}
-					}
-				}
-				for _, r := range c {
-					dependsOnValue.Content = append(dependsOnValue.Content,
-						&yaml.Node{Kind: yaml.ScalarNode, Value: rename(logicalId, r.Value)})
-				}
-			}
-			if templateDependsOn != nil {
-				if templateDependsOn.Kind == yaml.ScalarNode {
-					dependsOnValue.Content = append(dependsOnValue.Content, node.Clone(templateDependsOn))
-				} else {
-					for _, r := range templateDependsOn.Content {
-						dependsOnValue.Content = append(dependsOnValue.Content, node.Clone(r))
-					}
-				}
-			}
-			clonedResource.Content = append(clonedResource.Content, dependsOnValue)
-		}
-
-		/*
-			// Add the Condition from the parent template
-			_, parentCondition, _ := s11n.GetMapValue(templateOverrides, Condition)
-			if parentCondition != nil {
-				clonedResource.Content = append(clonedResource.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: Condition})
-				clonedResource.Content = append(clonedResource.Content, node.Clone(parentCondition))
-			}
-		*/
-
-		// Resolve Refs in the module
-		// Some refs are to other resources in the module
-		// Other refs are to the module's parameters
-		ctx := &refctx{
-			moduleParams:    moduleParams,
-			templateProps:   templateProps,
-			outNode:         clonedResource,
-			logicalId:       logicalId,
-			moduleResources: moduleResources,
-			overrides:       templateOverrides,
-			constants:       moduleConstants,
-		}
-		err := resolveRefs(ctx)
-		if err != nil {
-			return false, fmt.Errorf("failed to resolve refs: %v", err)
-		}
-
-		if fe != nil && fe.fnForEachSequence != nil {
-			// If the module has a ForEach extension, add it to the sequence instead
-
-			// The Fn::ForEach resource is a map, so we create that and append outNode to it
-			fnForEachMap := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
-			// TODO
-			newLogicalId := strings.Replace(fe.fnForEachLogicalId, "ModuleExtension", logicalId, 1)
-			fnForEachMap.Content = append(fnForEachMap.Content,
-				&yaml.Node{Kind: yaml.ScalarNode, Value: newLogicalId})
-			fnForEachMap.Content = append(fnForEachMap.Content, clonedResource)
-
-			// Add the map as the 3rd array element in the Fn::ForEach sequence
-			fe.fnForEachSequence.Content = append(fe.fnForEachSequence.Content, fnForEachMap)
-
-		}
-
-		outputNode.Content = append(outputNode.Content, clonedResource)
-	}
-
-	return true, nil
+	return processModule(logicalId, parsed, outputNode, t, moduleConstants, moduleConfig, nil)
 }
 
-func checkPackageAlias(t cft.Template, uri string) *cft.PackageAlias {
+func checkPackageAlias(t *cft.Template, uri string) *cft.PackageAlias {
 	tokens := strings.Split(uri, "/")
 	if len(tokens) > 1 {
 		// See if this is one of the template package aliases
@@ -779,14 +471,49 @@ func checkPackageAlias(t cft.Template, uri string) *cft.PackageAlias {
 	return nil
 }
 
+type ParsedModule struct {
+	Node       *yaml.Node
+	AsTemplate *cft.Template
+	RootDir    string
+	FS         *embed.FS
+}
+
+// parseModule parses module content and converts it to a yaml node
+// Also process new sections: Rain, Constants, Modules, Packages
+func parseModule(content []byte, rootDir string, fs *embed.FS) (*ParsedModule, error) {
+
+	var err error
+
+	// Parse the file
+	var moduleNode yaml.Node
+	err = yaml.Unmarshal(content, &moduleNode)
+	if err != nil {
+		return nil, err
+	}
+
+	err = parse.NormalizeNode(&moduleNode)
+	if err != nil {
+		return nil, err
+	}
+
+	// Treat the module as a template
+	moduleAsTemplate := cft.Template{Node: &moduleNode}
+
+	return &ParsedModule{
+		Node:       moduleNode.Content[0],
+		AsTemplate: &moduleAsTemplate,
+		RootDir:    rootDir,
+		FS:         fs,
+	}, nil
+}
+
 // Type: !Rain::Module
+// This handles the Rain Module directive, not the Modules section
 func module(ctx *directiveContext) (bool, error) {
 
 	n := ctx.n
-	root := ctx.rootDir
 	t := ctx.t
 	parent := ctx.parent
-	templateFiles := ctx.fs
 
 	if !Experimental {
 		panic("You must add the --experimental arg to use the !Rain::Module directive")
@@ -799,110 +526,22 @@ func module(ctx *directiveContext) (bool, error) {
 	HasModules = true
 
 	uri := n.Content[1].Value
-	var content []byte
-	var err error
-	var path string
-	var newRootDir string
 
-	baseUri := ctx.baseUri
-
-	// Check to see if this is an alias like "alias/foo.yaml"
-	packageAlias := checkPackageAlias(t, uri)
-	isZip := false
-	if packageAlias != nil {
-		config.Debugf("Found package alias: %+v", packageAlias)
-		path := strings.Replace(uri, packageAlias.Alias+"/", "", 1)
-		config.Debugf("path is %s", path)
-		if strings.HasSuffix(packageAlias.Location, ".zip") {
-			// Unzip, verify hash if there is one, and put the files in memory
-			isZip = true
-			content, err = DownloadFromZip(packageAlias.Location, packageAlias.Hash, path)
-			if err != nil {
-				return false, err
-			}
-		} else {
-			uri = strings.Replace(uri, packageAlias.Alias, packageAlias.Location, 1)
-			config.Debugf("uri is now %s", uri)
-			config.Debugf("baseUri is %s", baseUri)
-		}
-	}
-
-	// Is this a local file or a URL or did we already unzip a package?
-	if isZip {
-		config.Debugf("Got content from a zipped module package: %s", string(content))
-	} else if strings.HasPrefix(uri, "https://") {
-
-		content, err = downloadModule(uri)
-		if err != nil {
-			return false, err
-		}
-
-		// Once we see a URL instead of a relative local path,
-		// we need to remember the base URL so that we can
-		// fix relative paths in any referenced modules.
-
-		// Strip the file name from the uri
-		urlParts := strings.Split(uri, "/")
-		baseUri = strings.Join(urlParts[:len(urlParts)-1], "/")
-
-	} else {
-		if baseUri != "" {
-			// If we have a base URL, prepend it to the relative path
-			uri = baseUri + "/" + uri
-			content, err = downloadModule(uri)
-			if err != nil {
-				return false, err
-			}
-		} else if templateFiles != nil {
-			// Read from the embedded file system (for the build -r command)
-			path, err = expectString(n)
-			if err != nil {
-				return false, err
-			}
-			// We have to hack this since embed doesn't understand "path/../"
-			embeddedPath := strings.Replace(root, "../", "", 1) +
-				"/" + strings.Replace(path, "../", "", 1)
-
-			content, err = templateFiles.ReadFile(embeddedPath)
-			if err != nil {
-				return false, err
-			}
-			newRootDir = filepath.Dir(embeddedPath)
-		} else {
-			// Read the local file
-			path := uri
-			if !filepath.IsAbs(path) {
-				path = filepath.Join(root, path)
-			}
-
-			info, err := os.Stat(path)
-			if err != nil {
-				return false, err
-			}
-
-			if info.IsDir() {
-				return false, fmt.Errorf("'%s' is a directory", path)
-			}
-
-			content, err = os.ReadFile(path)
-			if err != nil {
-				return false, err
-			}
-			newRootDir = filepath.Dir(path)
-		}
-	}
-
-	// Parse the file
-	var moduleNode yaml.Node
-	err = yaml.Unmarshal(content, &moduleNode)
+	moduleContent, err := getModuleContent(ctx.rootDir,
+		ctx.t, ctx.fs, ctx.baseUri, uri)
 	if err != nil {
 		return false, err
 	}
 
-	err = parse.NormalizeNode(&moduleNode)
+	content := moduleContent.Content
+	baseUri := moduleContent.BaseUri
+
+	parsed, err := parseModule(content, ctx.rootDir, ctx.fs)
 	if err != nil {
 		return false, err
 	}
+	moduleNode := parsed.Node
+	moduleAsTemplate := parsed.AsTemplate
 
 	// Figure out parent nodes to handle nested modules
 	var newParent node.NodePair
@@ -911,19 +550,15 @@ func module(ctx *directiveContext) (bool, error) {
 		newParent.Parent = &parent
 	}
 
-	// Treat the module as a template
-	moduleAsTemplate := cft.Template{Node: &moduleNode}
-
-	// Read things like Constants
-	processRainSection(&moduleAsTemplate)
-
-	if moduleAsTemplate.Constants != nil {
-		replaceTemplateConstants(moduleAsTemplate.Node, moduleAsTemplate.Constants)
+	// This needs to happen before recursing, since sub-modules need resolved constants in the parent
+	err = processRainSection(moduleAsTemplate, moduleContent.NewRootDir, ctx.fs)
+	if err != nil {
+		return false, err
 	}
 
 	_, err = transform(&transformContext{
-		nodeToTransform: &moduleNode,
-		rootDir:         newRootDir,
+		nodeToTransform: moduleNode,
+		rootDir:         moduleContent.NewRootDir,
 		t:               moduleAsTemplate,
 		parent:          &newParent,
 		fs:              ctx.fs,
@@ -933,11 +568,12 @@ func module(ctx *directiveContext) (bool, error) {
 		return false, err
 	}
 
-	// Create a new node to represent the processed module
+	// Create a new node to represent the parsed module
 	var outputNode yaml.Node
-	_, err = processModule(&moduleNode, &outputNode, t, n, parent, moduleAsTemplate.Constants)
+	err = processRainResourceModule(moduleNode,
+		&outputNode, t, parent, moduleAsTemplate.Constants, uri, parsed)
 	if err != nil {
-		config.Debugf("processModule error: %v, moduleNode: %s", err, node.ToSJson(&moduleNode))
+		config.Debugf("processModule error: %v, moduleNode: %s", err, node.ToSJson(moduleNode))
 		return false, fmt.Errorf("failed to process module %s: %v", uri, err)
 	}
 
@@ -960,4 +596,51 @@ func module(ctx *directiveContext) (bool, error) {
 
 	return true, nil
 
+}
+
+// processAddedSections can be used for Constants and Modules
+// in either the Rain section (backwards comapatibility) or
+// if they are at the top level (like the AWS CLI)
+func processAddedSections(
+	t *cft.Template, n *yaml.Node, rootDir string, fs *embed.FS, parentModule *Module) error {
+
+	var err error
+
+	err = processConstants(t, n)
+	if err != nil {
+		return err
+	}
+	err = processPackages(t, n)
+	if err != nil {
+		return err
+	}
+
+	err = processModulesSection(t, n, rootDir, fs, parentModule)
+	if err != nil {
+		return err
+	}
+
+	if parentModule == nil {
+
+		err = FnJoin(n)
+		if err != nil {
+			return err
+		}
+
+		// Putting Merge here breaks it, since it merges unresolved Refs...
+		// TODO: Need to make sure Merge doesn't run until the very end..
+
+		err = FnSelect(n)
+		if err != nil {
+			return err
+		}
+
+		err = FnInsertFile(n, rootDir)
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return nil
 }

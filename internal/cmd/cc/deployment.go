@@ -28,7 +28,7 @@ var failFormat table.Formatter
 var successFormat table.Formatter
 
 // getTemplateResource returns the yaml node based on the logical id
-func getTemplateResource(template cft.Template, logicalId string) (*yaml.Node, error) {
+func getTemplateResource(template *cft.Template, logicalId string) (*yaml.Node, error) {
 	rootMap := template.Node.Content[0]
 	_, resources, _ := s11n.GetMapValue(rootMap, "Resources")
 	if resources == nil {
@@ -170,7 +170,7 @@ func ready(resource *Resource, g *graph.Graph) bool {
 // DeploymentResults captures everything that happened as a result of deployment
 type DeploymentResults struct {
 	Succeeded bool
-	State     cft.Template
+	State     *cft.Template
 	Resources map[string]*Resource
 }
 
@@ -377,11 +377,11 @@ func deployResources(resources []*Resource, results *DeploymentResults, g *graph
 // A failed deployment will result in DeploymentResults.Succeeded = false.
 // A non-nil error is returned when something unexpected caused a failure
 // not related to actually deploying resources, like an invalid template.
-func DeployTemplate(template cft.Template) (*DeploymentResults, error) {
+func DeployTemplate(template *cft.Template) (*DeploymentResults, error) {
 
 	results := &DeploymentResults{
 		Succeeded: true,
-		State:     cft.Template{},
+		State:     &cft.Template{},
 		Resources: make(map[string]*Resource),
 	}
 

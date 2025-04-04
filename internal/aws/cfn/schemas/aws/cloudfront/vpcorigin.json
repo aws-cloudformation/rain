@@ -1,0 +1,181 @@
+{
+  "additionalProperties": false,
+  "definitions": {
+    "Tag": {
+      "additionalProperties": false,
+      "properties": {
+        "Key": {
+          "type": "string",
+          "description": "A string that contains ``Tag`` key.\n The string length should be between 1 and 128 characters. Valid characters include ``a-z``, ``A-Z``, ``0-9``, space, and the special characters ``_ - . : / = + @``."
+        },
+        "Value": {
+          "type": "string",
+          "description": "A string that contains an optional ``Tag`` value.\n The string length should be between 0 and 256 characters. Valid characters include ``a-z``, ``A-Z``, ``0-9``, space, and the special characters ``_ - . : / = + @``."
+        }
+      },
+      "required": [
+        "Value",
+        "Key"
+      ],
+      "type": "object",
+      "description": "A complex type that contains ``Tag`` key and ``Tag`` value."
+    },
+    "VpcOriginEndpointConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "Arn": {
+          "type": "string",
+          "description": "The ARN of the CloudFront VPC origin endpoint configuration."
+        },
+        "HTTPPort": {
+          "default": 80,
+          "type": "integer",
+          "description": "The HTTP port for the CloudFront VPC origin endpoint configuration. The default value is ``80``."
+        },
+        "HTTPSPort": {
+          "default": 443,
+          "type": "integer",
+          "description": "The HTTPS port of the CloudFront VPC origin endpoint configuration. The default value is ``443``."
+        },
+        "Name": {
+          "type": "string",
+          "description": "The name of the CloudFront VPC origin endpoint configuration."
+        },
+        "OriginProtocolPolicy": {
+          "default": "match-viewer",
+          "type": "string",
+          "description": "The origin protocol policy for the CloudFront VPC origin endpoint configuration."
+        },
+        "OriginSSLProtocols": {
+          "default": [
+            "TLSv1",
+            "SSLv3"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": false,
+          "description": ""
+        }
+      },
+      "required": [
+        "Name",
+        "Arn"
+      ],
+      "type": "object",
+      "description": "An Amazon CloudFront VPC origin endpoint configuration."
+    }
+  },
+  "description": "An Amazon CloudFront VPC origin.",
+  "handlers": {
+    "create": {
+      "permissions": [
+        "cloudfront:CreateVpcOrigin",
+        "cloudfront:GetVpcOrigin",
+        "cloudfront:TagResource",
+        "ec2:DescribeInstances",
+        "elasticloadbalancing:DescribeLoadBalancers",
+        "ec2:DescribeInternetGateways",
+        "iam:CreateServiceLinkedRole",
+        "sts:AssumeRole"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "cloudfront:DeleteVpcOrigin",
+        "cloudfront:GetVpcOrigin",
+        "elasticloadbalancing:DescribeLoadBalancers",
+        "ec2:DescribeInstances",
+        "ec2:DescribeInternetGateways",
+        "iam:CreateServiceLinkedRole",
+        "sts:AssumeRole"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "cloudfront:ListVpcOrigins"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "cloudfront:GetVpcOrigin",
+        "cloudfront:ListTagsForResource"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "cloudfront:UpdateVpcOrigin",
+        "cloudfront:GetVpcOrigin",
+        "cloudfront:TagResource",
+        "ec2:DescribeInstances",
+        "cloudfront:UntagResource",
+        "cloudfront:ListTagsForResource",
+        "elasticloadbalancing:DescribeLoadBalancers",
+        "ec2:DescribeInternetGateways",
+        "iam:CreateServiceLinkedRole",
+        "sts:AssumeRole"
+      ]
+    }
+  },
+  "primaryIdentifier": [
+    "/properties/Id"
+  ],
+  "properties": {
+    "Arn": {
+      "type": "string",
+      "description": ""
+    },
+    "CreatedTime": {
+      "type": "string",
+      "description": ""
+    },
+    "Id": {
+      "type": "string",
+      "description": ""
+    },
+    "LastModifiedTime": {
+      "type": "string",
+      "description": ""
+    },
+    "Status": {
+      "type": "string",
+      "description": ""
+    },
+    "Tags": {
+      "items": {
+        "$ref": "#/definitions/Tag"
+      },
+      "type": "array",
+      "uniqueItems": false,
+      "description": "A complex type that contains zero or more ``Tag`` elements."
+    },
+    "VpcOriginEndpointConfig": {
+      "$ref": "#/definitions/VpcOriginEndpointConfig",
+      "description": "The VPC origin endpoint configuration."
+    }
+  },
+  "readOnlyProperties": [
+    "/properties/Id",
+    "/properties/Arn",
+    "/properties/Status",
+    "/properties/CreatedTime",
+    "/properties/LastModifiedTime"
+  ],
+  "required": [
+    "VpcOriginEndpointConfig"
+  ],
+  "tagging": {
+    "cloudFormationSystemTags": false,
+    "permissions": [
+      "cloudfront:TagResource",
+      "cloudfront:UntagResource",
+      "cloudfront:ListTagsForResource"
+    ],
+    "tagOnCreate": true,
+    "tagProperty": "/properties/Tags",
+    "tagUpdatable": true,
+    "taggable": true
+  },
+  "typeName": "AWS::CloudFront::VpcOrigin"
+}

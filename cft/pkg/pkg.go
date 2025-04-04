@@ -1,27 +1,34 @@
-// Package pkg provides functionality similar to the AWS CLI cloudformation package command
-// but has greater flexibility, allowing content to be included anywhere in a template
+// Package pkg provides functionality similar to the AWS CLI cloudformation
+// package command but has greater flexibility, allowing content to be included
+// anywhere in a template
 //
-// To include content into your templates, use any of the following either as YAML tags
-// or as one-property objects, much as AWS intrinsic functions are used, e.g. "Fn::Join"
+// To include content into your templates, use any of the following either as
+// YAML tags or as one-property objects, much as AWS intrinsic functions are
+// used, e.g. "Fn::Join"
 //
-// `Rain::Include`: insert the content of the file into the template directly. The file must be in YAML or JSON format.
-// `Rain::Env`: inserts environmental variable value into the template as a string. Variable must be set.
+// `Rain::Include`: insert the content of the file into the template directly.
+// The file must be in YAML or JSON format.
+//
+// `Rain::Env`: inserts environmental variable value into the template as a
+// string. Variable must be set.
+//
 // `Rain::Embed`: insert the content of the file as a string
-// `Rain::S3Http`: uploads the file or directory (zipping it first) to S3 and returns the HTTP URI (i.e. `https://bucket.s3.region.amazonaws.com/key`)
-// `Rain::S3`: a string value uploads the file or directory (zipping it first) to S3 and returns the S3 URI (i.e. `s3://bucket/key`)
+//
+// `Rain::S3Http`: uploads the file or directory (zipping it first) to S3 and
+// returns the HTTP URI (i.e.  `https://bucket.s3.region.amazonaws.com/key`)
+//
+// `Rain::S3`: a string value uploads the file or directory (zipping it
+// first) to S3 and returns the S3 URI (i.e. `s3://bucket/key`)
+//
 // `Rain::S3`: an object with the following properties
 //
-//	`Path`: path to the file or directory. If a directory is supplied, it will be zipped before uploading to S3
-//	`BucketProperty`: Name of returned property that will contain the bucket name
-//	`KeyProperty`: Name of returned property that will contain the object key
-//	`VersionProperty`: (optional) Name of returned property that will contain the object version
+//	`Path`: path to the file or directory. If a directory is supplied, it will
+//	be zipped before uploading to S3 `BucketProperty`: Name of returned
+//	property that will contain the bucket name `KeyProperty`: Name of returned
+//	property that will contain the object key `VersionProperty`: (optional)
+//	Name of returned property that will contain the object version
 //
-// `Rain::Module`: Supply a URL to a rain module, which is similar to a CloudFormation module,
-//
-//	but allows for type inheritance. One of the resources in the module yaml file
-//	must be called "ModuleExtension", and it must have a Metadata entry called
-//	"Extends" that supplies the existing type to be extended. The Parameters section
-//	of the module can be used to define additional properties for the extension.
+// `Rain::Module`: Supply a URL to a rain module
 package pkg
 
 import (
@@ -68,7 +75,7 @@ type analytics struct {
 type transformContext struct {
 	nodeToTransform *yaml.Node
 	rootDir         string // Using normal files
-	t               cft.Template
+	t               *cft.Template
 	parent          *node.NodePair
 	fs              *embed.FS // Used by build with embedded filesystem
 
@@ -78,8 +85,6 @@ type transformContext struct {
 
 func transform(ctx *transformContext) (bool, error) {
 	changed := false
-
-	// config.Debugf("transform: %s", node.ToSJson(ctx.nodeToTransform))
 
 	// registry is a map of functions defined in rain.go
 	for path, fn := range registry {
@@ -101,101 +106,52 @@ func transform(ctx *transformContext) (bool, error) {
 
 // processRainSection returns true if the Rain section of the template existed
 // The section is removed by this function
-func processRainSection(t *cft.Template) bool {
+func processRainSection(t *cft.Template, rootDir string, fs *embed.FS) error {
 	t.Constants = make(map[string]*yaml.Node)
 	rainNode, err := t.GetSection(cft.Rain)
 	if err != nil {
 		// This is okay, not all templates have a Rain section
-		return false
+		return nil
 	}
 
-	// Process constants in order, since they can refer to previous ones
-	_, c, _ := s11n.GetMapValue(rainNode, "Constants")
-	if c != nil {
-		for i := 0; i < len(c.Content); i += 2 {
-			name := c.Content[i].Value
-			val := c.Content[i+1]
-			t.Constants[name] = val
-			// Visit each node in val looking for any ${Rain::ConstantName}
-			// and replace it with prior constant entries
-			vf := func(v *visitor.Visitor) {
-				vnode := v.GetYamlNode()
-				if vnode.Kind == yaml.ScalarNode {
-					err := replaceConstants(vnode, t.Constants)
-					if err != nil {
-						// These constants must be scalars
-						config.Debugf("replaceConstants failed: %v", err)
-					}
-				}
-			}
-			v := visitor.NewVisitor(val)
-			v.Visit(vf)
-		}
+	HasRainSection = true
+
+	err = processConstants(t, rainNode)
+	if err != nil {
+		return err
 	}
 
-	// Package aliases
-	packages := s11n.GetMap(rainNode, "Packages")
-	if packages != nil {
-		t.Packages = make(map[string]*cft.PackageAlias)
-		for k, v := range packages {
-			p := &cft.PackageAlias{}
-			p.Alias = k
-			p.Location = s11n.GetValue(v, "Location")
-			p.Hash = s11n.GetValue(v, "Hash")
-			t.Packages[k] = p
-		}
-
-		// Visit all resources to look for Type nodes that use $alias.module shorthand
-		resources, err := t.GetSection(cft.Resources)
-		if err == nil {
-			for i := 0; i < len(resources.Content); i += 2 {
-				resource := resources.Content[i+1]
-				_, typ, _ := s11n.GetMapValue(resource, "Type")
-				if typ == nil {
-					continue
-				}
-				if strings.HasPrefix(typ.Value, "$") {
-					// This is a package alias, fix it so it gets processed later
-					//typ.Value = "!Rain::Module " + strings.Trim(typ.Value, "$")
-					newTypeNode := yaml.Node{Kind: yaml.MappingNode}
-					newTypeNode.Content = []*yaml.Node{
-						&yaml.Node{Kind: yaml.ScalarNode, Value: "Rain::Module"},
-						&yaml.Node{Kind: yaml.ScalarNode, Value: strings.Trim(typ.Value, "$")},
-					}
-					*typ = newTypeNode
-				}
-			}
-		}
-
+	err = processPackages(t, t.Node)
+	if err != nil {
+		return err
 	}
-
-	// Add handling for any other features we add to the Rain section here
 
 	// Now remove the Rain node from the template
 	t.RemoveSection(cft.Rain)
 
-	HasRainSection = true
-
-	return true
+	return nil
 }
 
 // Template returns t with assets included as per AWS CLI packaging rules
 // and any Rain:: functions used.
 // rootDir must be passed in so that any included assets can be loaded from the same directory
-func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error) {
-	templateNode := t.Node
+func Template(t *cft.Template, rootDir string, fs *embed.FS) (*cft.Template, error) {
 	var err error
 
-	//config.Debugf("Original template short: %v", node.ToSJson(t.Node))
-	//config.Debugf("Original template long: %v", node.ToJson(t.Node))
-
 	// First look for a Rain section and store constants
-	hasRainSection := processRainSection(&t)
+	err = processRainSection(t, rootDir, fs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to process Rain section: %v", err)
+	}
 
-	constants := t.Constants
+	// See if those sections are defined at the top level
+	err = processAddedSections(t, t.Node.Content[0], rootDir, fs, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to process added sections: %v", err)
+	}
 
 	ctx := &transformContext{
-		nodeToTransform: templateNode,
+		nodeToTransform: t.Node,
 		rootDir:         rootDir,
 		t:               t,
 		parent:          &node.NodePair{Key: t.Node, Value: t.Node},
@@ -211,7 +167,7 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 		// Just start over and transform the whole template again.
 		changedThisPass, err := transform(ctx)
 		if err != nil {
-			return t, err
+			return nil, err
 		}
 		if changedThisPass {
 			changed = true
@@ -220,14 +176,14 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 			break
 		}
 		if passes > maxPasses {
-			return t, errors.New("reached maxPasses while transforming")
+			return nil, errors.New("reached maxPasses while transforming")
 		}
 	}
 
 	if changed {
-		t, err = parse.Node(templateNode)
+		t, err = parse.Node(t.Node)
 		if err != nil {
-			return t, err
+			return nil, err
 		}
 	}
 
@@ -237,7 +193,7 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 	// 2. replace alias nodes with the actual node
 	// 3. Marshal and Unmarshal to resolve new line/column numbers
 
-	v := visitor.NewVisitor(templateNode)
+	v := visitor.NewVisitor(t.Node)
 	anchors := make(map[string]*yaml.Node)
 
 	collectAnchors := func(node *visitor.Visitor) {
@@ -260,31 +216,34 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 	v.Visit(collectAnchors)
 	v.Visit(replaceAnchors)
 
-	// Look for ${Rain::ConstantName} in all Sub strings
-	if hasRainSection {
-		// Note that this rewrites all Subs and might have side effects
-		replaceTemplateConstants(templateNode, constants)
-	}
+	//// Look for ${Rain::ConstantName} and ${Const::ConstantName}
+	//if t.HasSection(cft.Rain) || t.HasSection(cft.Constants) {
+	//	// Note that this rewrites all Subs and might have side effects
+	//	err = replaceTemplateConstants(templateNode, constants)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//}
 
 	// Marshal and Unmarshal to resolve new line/column numbers
 
-	serialized, err := yaml.Marshal(templateNode)
+	serialized, err := yaml.Marshal(t.Node)
 	if err != nil {
-		return t, fmt.Errorf("failed to marshal template: %v", err)
+		return nil, fmt.Errorf("failed to marshal template: %v", err)
 	}
 
-	err = yaml.Unmarshal(serialized, templateNode)
+	err = yaml.Unmarshal(serialized, t.Node)
 	if err != nil {
-		return t, fmt.Errorf("failed to unmarshal template: %v", err)
+		return nil, fmt.Errorf("failed to unmarshal template: %v", err)
 	}
 
 	// We might lose the Document node here
-	retval := cft.Template{}
-	if templateNode.Kind == yaml.DocumentNode {
-		retval.Node = templateNode
+	retval := &cft.Template{}
+	if t.Node.Kind == yaml.DocumentNode {
+		retval.Node = t.Node
 	} else {
 		retval.Node = &yaml.Node{Kind: yaml.DocumentNode, Content: make([]*yaml.Node, 0)}
-		retval.Node.Content = append(retval.Node.Content, templateNode)
+		retval.Node.Content = append(retval.Node.Content, t.Node)
 	}
 
 	// Add analytics to Metadata
@@ -307,12 +266,10 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 		_, rain, _ := s11n.GetMapValue(awsToolsMetrics, Rain)
 		rainNode := &yaml.Node{Kind: yaml.ScalarNode, Value: string(s)}
 		if rain == nil {
-			config.Debugf("Adding Rain analytics")
 			awsToolsMetrics.Content = append(awsToolsMetrics.Content,
 				&yaml.Node{Kind: yaml.ScalarNode, Value: Rain})
 			awsToolsMetrics.Content = append(awsToolsMetrics.Content, rainNode)
 		} else {
-			config.Debugf("Already had Rain analytics")
 			*rain = *rainNode
 		}
 	}
@@ -323,26 +280,25 @@ func Template(t cft.Template, rootDir string, fs *embed.FS) (cft.Template, error
 // File opens path as a CloudFormation template and returns a cft.Template
 // with assets included as per AWS CLI packaging rules
 // and any Rain:: functions used
-func File(path string) (cft.Template, error) {
-	// config.Debugf("Packaging template: %s\n", path)
+func File(path string) (*cft.Template, error) {
 
-	var t cft.Template
+	var t *cft.Template
 	var err error
 
 	if strings.HasSuffix(path, ".pkl") {
 		y, err := rainpkl.Yaml(path)
 		if err != nil {
-			return t, err
+			return nil, err
 		}
 		t, err = parse.String(y)
 		if err != nil {
-			return t, err
+			return nil, err
 		}
 	} else {
 		t, err = parse.File(path)
 		if err != nil {
 			config.Debugf("pkg.File unable to parse %v", path)
-			return t, err
+			return nil, err
 		}
 	}
 

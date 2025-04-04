@@ -1,5 +1,10 @@
 {
   "tagging": {
+    "permissions": [
+      "quicksight:TagResource",
+      "quicksight:UntagResource",
+      "quicksight:ListTagsForResource"
+    ],
     "taggable": true,
     "tagOnCreate": true,
     "tagUpdatable": true,
@@ -96,38 +101,6 @@
     "/properties/DataSetId"
   ],
   "definitions": {
-    "IntegerDatasetParameter": {
-      "description": "<p>An integer parameter for a dataset.</p>",
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "ValueType": {
-          "$ref": "#/definitions/DatasetParameterValueType"
-        },
-        "DefaultValues": {
-          "$ref": "#/definitions/IntegerDatasetParameterDefaultValues"
-        },
-        "Id": {
-          "minLength": 1,
-          "pattern": "^[a-zA-Z0-9-]+$",
-          "description": "<p>An identifier for the integer parameter created in the dataset.</p>",
-          "type": "string",
-          "maxLength": 128
-        },
-        "Name": {
-          "minLength": 1,
-          "pattern": "^[a-zA-Z0-9]+$",
-          "description": "<p>The name of the integer parameter that is created in the dataset.</p>",
-          "type": "string",
-          "maxLength": 2048
-        }
-      },
-      "required": [
-        "Id",
-        "Name",
-        "ValueType"
-      ]
-    },
     "RowLevelPermissionPolicy": {
       "type": "string",
       "enum": [
@@ -168,6 +141,503 @@
         "TagKey"
       ]
     },
+    "FileFormat": {
+      "type": "string",
+      "enum": [
+        "CSV",
+        "TSV",
+        "CLF",
+        "ELF",
+        "XLSX",
+        "JSON"
+      ]
+    },
+    "JoinKeyProperties": {
+      "description": "<p>Properties associated with the columns participating in a join.</p>",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "UniqueKey": {
+          "description": "<p>A value that indicates that a row in a table is uniquely identified by the columns in\n            a join key. This is used by Amazon QuickSight to optimize query performance.</p>",
+          "type": "boolean"
+        }
+      }
+    },
+    "DecimalDatasetParameterDefaultValues": {
+      "description": "<p>The default values of a decimal parameter.</p>",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "StaticValues": {
+          "minItems": 0,
+          "maxItems": 32,
+          "description": "<p>A list of static default values for a given decimal parameter.</p>",
+          "type": "array",
+          "items": {
+            "default": 0,
+            "description": "<p>The default value for the decimal parameter.</p>",
+            "type": "number"
+          }
+        }
+      }
+    },
+    "Status": {
+      "type": "string",
+      "enum": [
+        "ENABLED",
+        "DISABLED"
+      ]
+    },
+    "PhysicalTableMap": {
+      "patternProperties": {
+        "^[0-9a-zA-Z-]*$": {
+          "$ref": "#/definitions/PhysicalTable"
+        }
+      },
+      "maxProperties": 32,
+      "additionalProperties": false,
+      "type": "object",
+      "minProperties": 0
+    },
+    "RefreshConfiguration": {
+      "description": "<p>The refresh configuration of a dataset.</p>",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "IncrementalRefresh": {
+          "$ref": "#/definitions/IncrementalRefresh"
+        }
+      },
+      "required": [
+        "IncrementalRefresh"
+      ]
+    },
+    "RelationalTable": {
+      "description": "<p>A physical table type for relational data sources.</p>",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "DataSourceArn": {
+          "description": "<p>The Amazon Resource Name (ARN) for the data source.</p>",
+          "type": "string"
+        },
+        "InputColumns": {
+          "minItems": 1,
+          "maxItems": 2048,
+          "description": "<p>The column schema of the table.</p>",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/InputColumn"
+          }
+        },
+        "Schema": {
+          "minLength": 0,
+          "description": "<p>The schema name. This name applies to certain relational database engines.</p>",
+          "type": "string",
+          "maxLength": 256
+        },
+        "Catalog": {
+          "minLength": 0,
+          "description": "<p>The catalog associated with a table.</p>",
+          "type": "string",
+          "maxLength": 256
+        },
+        "Name": {
+          "minLength": 1,
+          "description": "<p>The name of the relational table.</p>",
+          "type": "string",
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "DataSourceArn",
+        "Name"
+      ]
+    },
+    "PerformanceConfiguration": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "UniqueKeys": {
+          "minItems": 1,
+          "maxItems": 1,
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UniqueKey"
+          }
+        }
+      }
+    },
+    "InputColumn": {
+      "description": "<p>Metadata for a column that is used as the input of a transform operation.</p>",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "Type": {
+          "$ref": "#/definitions/InputColumnDataType"
+        },
+        "SubType": {
+          "$ref": "#/definitions/ColumnDataSubType"
+        },
+        "Name": {
+          "minLength": 1,
+          "description": "<p>The name of this column in the underlying data source.</p>",
+          "type": "string",
+          "maxLength": 127
+        }
+      },
+      "required": [
+        "Name",
+        "Type"
+      ]
+    },
+    "LogicalTableMap": {
+      "patternProperties": {
+        "^[0-9a-zA-Z-]*$": {
+          "$ref": "#/definitions/LogicalTable"
+        }
+      },
+      "maxProperties": 64,
+      "additionalProperties": false,
+      "type": "object",
+      "minProperties": 1
+    },
+    "DateTimeDatasetParameterDefaultValues": {
+      "description": "<p>The default values of a date time parameter.</p>",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "StaticValues": {
+          "minItems": 0,
+          "maxItems": 32,
+          "description": "<p>A list of static default values for a given date time parameter.</p>",
+          "type": "array",
+          "items": {
+            "description": "<p>The default value for the date time parameter.</p>",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "LogicalTableSource": {
+      "description": "<p>Information about the source of a logical table. This is a variant type structure. For\n            this structure to be valid, only one of the attributes can be non-null.</p>",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "PhysicalTableId": {
+          "minLength": 1,
+          "pattern": "^[0-9a-zA-Z-]*$",
+          "description": "<p>Physical table ID.</p>",
+          "type": "string",
+          "maxLength": 64
+        },
+        "JoinInstruction": {
+          "$ref": "#/definitions/JoinInstruction"
+        },
+        "DataSetArn": {
+          "description": "<p>The Amazon Resource Number (ARN) of the parent dataset.</p>",
+          "type": "string"
+        }
+      }
+    },
+    "TextQualifier": {
+      "type": "string",
+      "enum": [
+        "DOUBLE_QUOTE",
+        "SINGLE_QUOTE"
+      ]
+    },
+    "DecimalDatasetParameter": {
+      "description": "<p>A decimal parameter for a dataset.</p>",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "ValueType": {
+          "$ref": "#/definitions/DatasetParameterValueType"
+        },
+        "DefaultValues": {
+          "$ref": "#/definitions/DecimalDatasetParameterDefaultValues"
+        },
+        "Id": {
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9-]+$",
+          "description": "<p>An identifier for the decimal parameter created in the dataset.</p>",
+          "type": "string",
+          "maxLength": 128
+        },
+        "Name": {
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9]+$",
+          "description": "<p>The name of the decimal parameter that is created in the dataset.</p>",
+          "type": "string",
+          "maxLength": 2048
+        }
+      },
+      "required": [
+        "Id",
+        "Name",
+        "ValueType"
+      ]
+    },
+    "DateTimeDatasetParameter": {
+      "description": "<p>A date time parameter for a dataset.</p>",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "ValueType": {
+          "$ref": "#/definitions/DatasetParameterValueType"
+        },
+        "TimeGranularity": {
+          "$ref": "#/definitions/TimeGranularity"
+        },
+        "DefaultValues": {
+          "$ref": "#/definitions/DateTimeDatasetParameterDefaultValues"
+        },
+        "Id": {
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9-]+$",
+          "description": "<p>An identifier for the parameter that is created in the dataset.</p>",
+          "type": "string",
+          "maxLength": 128
+        },
+        "Name": {
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9]+$",
+          "description": "<p>The name of the date time parameter that is created in the dataset.</p>",
+          "type": "string",
+          "maxLength": 2048
+        }
+      },
+      "required": [
+        "Id",
+        "Name",
+        "ValueType"
+      ]
+    },
+    "RefreshFailureAlertStatus": {
+      "type": "string",
+      "enum": [
+        "ENABLED",
+        "DISABLED"
+      ]
+    },
+    "GeoSpatialColumnGroup": {
+      "description": "<p>Geospatial column group that denotes a hierarchy.</p>",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "Columns": {
+          "minItems": 1,
+          "maxItems": 16,
+          "description": "<p>Columns in this hierarchy.</p>",
+          "type": "array",
+          "items": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 127
+          }
+        },
+        "CountryCode": {
+          "$ref": "#/definitions/GeoSpatialCountryCode"
+        },
+        "Name": {
+          "minLength": 1,
+          "description": "<p>A display name for the hierarchy.</p>",
+          "type": "string",
+          "maxLength": 64
+        }
+      },
+      "required": [
+        "Columns",
+        "Name"
+      ]
+    },
+    "GeoSpatialCountryCode": {
+      "type": "string",
+      "enum": [
+        "US"
+      ]
+    },
+    "OverrideDatasetParameterOperation": {
+      "description": "<p>A transform operation that overrides the dataset parameter values that are defined in another dataset.</p>",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "NewDefaultValues": {
+          "$ref": "#/definitions/NewDefaultValues"
+        },
+        "ParameterName": {
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9]+$",
+          "description": "<p>The name of the parameter to be overridden with different values.</p>",
+          "type": "string",
+          "maxLength": 2048
+        },
+        "NewParameterName": {
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9]+$",
+          "description": "<p>The new name for the parameter.</p>",
+          "type": "string",
+          "maxLength": 2048
+        }
+      },
+      "required": [
+        "ParameterName"
+      ]
+    },
+    "DatasetParameter": {
+      "description": "<p>A dataset parameter.</p>",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "IntegerDatasetParameter": {
+          "$ref": "#/definitions/IntegerDatasetParameter"
+        },
+        "DateTimeDatasetParameter": {
+          "$ref": "#/definitions/DateTimeDatasetParameter"
+        },
+        "DecimalDatasetParameter": {
+          "$ref": "#/definitions/DecimalDatasetParameter"
+        },
+        "StringDatasetParameter": {
+          "$ref": "#/definitions/StringDatasetParameter"
+        }
+      }
+    },
+    "IntegerDatasetParameterDefaultValues": {
+      "description": "<p>The default values of an integer parameter.</p>",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "StaticValues": {
+          "minItems": 0,
+          "maxItems": 32,
+          "description": "<p>A list of static default values for a given integer parameter.</p>",
+          "type": "array",
+          "items": {
+            "default": 0,
+            "description": "<p>The default value for the integer parameter.</p>",
+            "type": "number"
+          }
+        }
+      }
+    },
+    "DataSetUseAs": {
+      "type": "string",
+      "enum": [
+        "RLS_RULES"
+      ]
+    },
+    "StringDatasetParameterDefaultValues": {
+      "description": "<p>The default values of a string parameter.</p>",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "StaticValues": {
+          "minItems": 0,
+          "maxItems": 32,
+          "description": "<p>A list of static default values for a given string parameter.</p>",
+          "type": "array",
+          "items": {
+            "minLength": 0,
+            "description": "<p>The default value for the string parameter.</p>",
+            "type": "string",
+            "maxLength": 512
+          }
+        }
+      }
+    },
+    "LookbackWindowSizeUnit": {
+      "type": "string",
+      "enum": [
+        "HOUR",
+        "DAY",
+        "WEEK"
+      ]
+    },
+    "Tag": {
+      "description": "<p>The key or keys of the key-value pairs for the resource tag or tags assigned to the\n            resource.</p>",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "Value": {
+          "minLength": 1,
+          "description": "<p>Tag value.</p>",
+          "type": "string",
+          "maxLength": 256
+        },
+        "Key": {
+          "minLength": 1,
+          "description": "<p>Tag key.</p>",
+          "type": "string",
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "Key",
+        "Value"
+      ]
+    },
+    "ProjectOperation": {
+      "description": "<p>A transform operation that projects columns. Operations that come after a projection\n            can only refer to projected columns.</p>",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "ProjectedColumns": {
+          "minItems": 0,
+          "maxItems": 2000,
+          "description": "<p>Projected columns.</p>",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "ProjectedColumns"
+      ]
+    },
+    "IntegerDatasetParameter": {
+      "description": "<p>An integer parameter for a dataset.</p>",
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "ValueType": {
+          "$ref": "#/definitions/DatasetParameterValueType"
+        },
+        "DefaultValues": {
+          "$ref": "#/definitions/IntegerDatasetParameterDefaultValues"
+        },
+        "Id": {
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9-]+$",
+          "description": "<p>An identifier for the integer parameter created in the dataset.</p>",
+          "type": "string",
+          "maxLength": 128
+        },
+        "Name": {
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9]+$",
+          "description": "<p>The name of the integer parameter that is created in the dataset.</p>",
+          "type": "string",
+          "maxLength": 2048
+        }
+      },
+      "required": [
+        "Id",
+        "Name",
+        "ValueType"
+      ]
+    },
+    "RefreshFailureConfiguration": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "EmailAlert": {
+          "$ref": "#/definitions/RefreshFailureEmailAlert"
+        }
+      }
+    },
     "LogicalTable": {
       "description": "<p>A <i>logical table</i> is a unit that joins and that data\n            transformations operate on. A logical table has a source, which can be either a physical\n            table or result of a join. When a logical table points to a physical table, the logical\n            table acts as a mutable copy of that physical table through transform operations.</p>",
       "additionalProperties": false,
@@ -194,17 +664,6 @@
       },
       "required": [
         "Alias"
-      ]
-    },
-    "FileFormat": {
-      "type": "string",
-      "enum": [
-        "CSV",
-        "TSV",
-        "CLF",
-        "ELF",
-        "XLSX",
-        "JSON"
       ]
     },
     "IngestionWaitPolicy": {
@@ -257,6 +716,15 @@
         "Name",
         "ValueType"
       ]
+    },
+    "RefreshFailureEmailAlert": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "AlertStatus": {
+          "$ref": "#/definitions/RefreshFailureAlertStatus"
+        }
+      }
     },
     "UntagColumnOperation": {
       "description": "<p>A transform operation that removes tags associated with a column.</p>",
@@ -399,27 +867,13 @@
       "type": "object",
       "properties": {
         "Columns": {
-          "minItems": 1,
+          "minItems": 0,
           "maxItems": 128,
           "description": "<p>Calculated columns to create.</p>",
           "type": "array",
           "items": {
             "$ref": "#/definitions/CalculatedColumn"
           }
-        }
-      },
-      "required": [
-        "Columns"
-      ]
-    },
-    "JoinKeyProperties": {
-      "description": "<p>Properties associated with the columns participating in a join.</p>",
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "UniqueKey": {
-          "description": "<p>A value that indicates that a row in a table is uniquely identified by the columns in\n            a join key. This is used by Amazon QuickSight to optimize query performance.</p>",
-          "type": "boolean"
         }
       }
     },
@@ -449,42 +903,6 @@
         "Principal"
       ]
     },
-    "DecimalDatasetParameterDefaultValues": {
-      "description": "<p>The default values of a decimal parameter.</p>",
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "StaticValues": {
-          "minItems": 0,
-          "maxItems": 32,
-          "description": "<p>A list of static default values for a given decimal parameter.</p>",
-          "type": "array",
-          "items": {
-            "default": 0,
-            "description": "<p>The default value for the decimal parameter.</p>",
-            "type": "number"
-          }
-        }
-      }
-    },
-    "Status": {
-      "type": "string",
-      "enum": [
-        "ENABLED",
-        "DISABLED"
-      ]
-    },
-    "PhysicalTableMap": {
-      "patternProperties": {
-        "^[0-9a-zA-Z-]*$": {
-          "$ref": "#/definitions/PhysicalTable"
-        }
-      },
-      "maxProperties": 32,
-      "additionalProperties": false,
-      "type": "object",
-      "minProperties": 0
-    },
     "TagColumnOperation": {
       "description": "<p>A transform operation that tags a column with additional information.</p>",
       "additionalProperties": false,
@@ -509,19 +927,6 @@
       "required": [
         "ColumnName",
         "Tags"
-      ]
-    },
-    "RefreshConfiguration": {
-      "description": "<p>The refresh configuration of a dataset.</p>",
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "IncrementalRefresh": {
-          "$ref": "#/definitions/IncrementalRefresh"
-        }
-      },
-      "required": [
-        "IncrementalRefresh"
       ]
     },
     "LookbackWindow": {
@@ -549,68 +954,12 @@
         "SizeUnit"
       ]
     },
-    "RelationalTable": {
-      "description": "<p>A physical table type for relational data sources.</p>",
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "DataSourceArn": {
-          "description": "<p>The Amazon Resource Name (ARN) for the data source.</p>",
-          "type": "string"
-        },
-        "InputColumns": {
-          "minItems": 1,
-          "maxItems": 2048,
-          "description": "<p>The column schema of the table.</p>",
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/InputColumn"
-          }
-        },
-        "Schema": {
-          "minLength": 0,
-          "description": "<p>The schema name. This name applies to certain relational database engines.</p>",
-          "type": "string",
-          "maxLength": 256
-        },
-        "Catalog": {
-          "minLength": 0,
-          "description": "<p>The catalog associated with a table.</p>",
-          "type": "string",
-          "maxLength": 256
-        },
-        "Name": {
-          "minLength": 1,
-          "description": "<p>The name of the relational table.</p>",
-          "type": "string",
-          "maxLength": 256
-        }
-      },
-      "required": [
-        "DataSourceArn",
-        "Name"
-      ]
-    },
     "DatasetParameterValueType": {
       "type": "string",
       "enum": [
         "MULTI_VALUED",
         "SINGLE_VALUED"
       ]
-    },
-    "PerformanceConfiguration": {
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "UniqueKeys": {
-          "minItems": 1,
-          "maxItems": 1,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/UniqueKey"
-          }
-        }
-      }
     },
     "CalculatedColumn": {
       "description": "<p>A calculated column for a dataset.</p>",
@@ -649,6 +998,9 @@
       "properties": {
         "RefreshConfiguration": {
           "$ref": "#/definitions/RefreshConfiguration"
+        },
+        "FailureConfiguration": {
+          "$ref": "#/definitions/RefreshFailureConfiguration"
         }
       }
     },
@@ -670,11 +1022,12 @@
             "$ref": "#/definitions/InputColumn"
           }
         },
-        "UploadSettings": {}
+        "UploadSettings": {
+          "$ref": "#/definitions/UploadSettings"
+        }
       },
       "required": [
-        "DataSourceArn",
-        "InputColumns"
+        "DataSourceArn"
       ]
     },
     "FieldFolder": {
@@ -698,40 +1051,6 @@
           }
         }
       }
-    },
-    "InputColumn": {
-      "description": "<p>Metadata for a column that is used as the input of a transform operation.</p>",
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "Type": {
-          "$ref": "#/definitions/InputColumnDataType"
-        },
-        "SubType": {
-          "$ref": "#/definitions/ColumnDataSubType"
-        },
-        "Name": {
-          "minLength": 1,
-          "description": "<p>The name of this column in the underlying data source.</p>",
-          "type": "string",
-          "maxLength": 127
-        }
-      },
-      "required": [
-        "Name",
-        "Type"
-      ]
-    },
-    "LogicalTableMap": {
-      "patternProperties": {
-        "^[0-9a-zA-Z-]*$": {
-          "$ref": "#/definitions/LogicalTable"
-        }
-      },
-      "maxProperties": 64,
-      "additionalProperties": false,
-      "type": "object",
-      "minProperties": 1
     },
     "IncrementalRefresh": {
       "description": "<p>The incremental refresh configuration for a dataset.</p>",
@@ -794,44 +1113,6 @@
         "FIXED"
       ]
     },
-    "DateTimeDatasetParameterDefaultValues": {
-      "description": "<p>The default values of a date time parameter.</p>",
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "StaticValues": {
-          "minItems": 0,
-          "maxItems": 32,
-          "description": "<p>A list of static default values for a given date time parameter.</p>",
-          "type": "array",
-          "items": {
-            "description": "<p>The default value for the date time parameter.</p>",
-            "type": "string"
-          }
-        }
-      }
-    },
-    "LogicalTableSource": {
-      "description": "<p>Information about the source of a logical table. This is a variant type structure. For\n            this structure to be valid, only one of the attributes can be non-null.</p>",
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "PhysicalTableId": {
-          "minLength": 1,
-          "pattern": "^[0-9a-zA-Z-]*$",
-          "description": "<p>Physical table ID.</p>",
-          "type": "string",
-          "maxLength": 64
-        },
-        "JoinInstruction": {
-          "$ref": "#/definitions/JoinInstruction"
-        },
-        "DataSetArn": {
-          "description": "<p>The Amazon Resource Number (ARN) of the parent dataset.</p>",
-          "type": "string"
-        }
-      }
-    },
     "ColumnTag": {
       "description": "<p>A tag for a column in a\n            <code>\n               <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_TagColumnOperation.html\">TagColumnOperation</a>\n            </code>\n            structure. This is a\n            variant type structure. For this structure to be valid, only one of the attributes can\n            be non-null.</p>",
       "additionalProperties": false,
@@ -844,13 +1125,6 @@
           "$ref": "#/definitions/ColumnDescription"
         }
       }
-    },
-    "TextQualifier": {
-      "type": "string",
-      "enum": [
-        "DOUBLE_QUOTE",
-        "SINGLE_QUOTE"
-      ]
     },
     "ColumnDescription": {
       "description": "<p>Metadata that contains a description for a column.</p>",
@@ -929,8 +1203,7 @@
         }
       },
       "required": [
-        "ColumnName",
-        "NewColumnName"
+        "ColumnName"
       ]
     },
     "FieldFolderMap": {
@@ -949,38 +1222,6 @@
         "VERSION_2"
       ]
     },
-    "DecimalDatasetParameter": {
-      "description": "<p>A decimal parameter for a dataset.</p>",
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "ValueType": {
-          "$ref": "#/definitions/DatasetParameterValueType"
-        },
-        "DefaultValues": {
-          "$ref": "#/definitions/DecimalDatasetParameterDefaultValues"
-        },
-        "Id": {
-          "minLength": 1,
-          "pattern": "^[a-zA-Z0-9-]+$",
-          "description": "<p>An identifier for the decimal parameter created in the dataset.</p>",
-          "type": "string",
-          "maxLength": 128
-        },
-        "Name": {
-          "minLength": 1,
-          "pattern": "^[a-zA-Z0-9]+$",
-          "description": "<p>The name of the decimal parameter that is created in the dataset.</p>",
-          "type": "string",
-          "maxLength": 2048
-        }
-      },
-      "required": [
-        "Id",
-        "Name",
-        "ValueType"
-      ]
-    },
     "ColumnDataType": {
       "type": "string",
       "enum": [
@@ -988,41 +1229,6 @@
         "INTEGER",
         "DECIMAL",
         "DATETIME"
-      ]
-    },
-    "DateTimeDatasetParameter": {
-      "description": "<p>A date time parameter for a dataset.</p>",
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "ValueType": {
-          "$ref": "#/definitions/DatasetParameterValueType"
-        },
-        "TimeGranularity": {
-          "$ref": "#/definitions/TimeGranularity"
-        },
-        "DefaultValues": {
-          "$ref": "#/definitions/DateTimeDatasetParameterDefaultValues"
-        },
-        "Id": {
-          "minLength": 1,
-          "pattern": "^[a-zA-Z0-9-]+$",
-          "description": "<p>An identifier for the parameter that is created in the dataset.</p>",
-          "type": "string",
-          "maxLength": 128
-        },
-        "Name": {
-          "minLength": 1,
-          "pattern": "^[a-zA-Z0-9]+$",
-          "description": "<p>The name of the date time parameter that is created in the dataset.</p>",
-          "type": "string",
-          "maxLength": 2048
-        }
-      },
-      "required": [
-        "Id",
-        "Name",
-        "ValueType"
       ]
     },
     "JoinInstruction": {
@@ -1157,70 +1363,6 @@
         "JSON"
       ]
     },
-    "GeoSpatialColumnGroup": {
-      "description": "<p>Geospatial column group that denotes a hierarchy.</p>",
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "Columns": {
-          "minItems": 1,
-          "maxItems": 16,
-          "description": "<p>Columns in this hierarchy.</p>",
-          "type": "array",
-          "items": {
-            "minLength": 1,
-            "type": "string",
-            "maxLength": 127
-          }
-        },
-        "CountryCode": {
-          "$ref": "#/definitions/GeoSpatialCountryCode"
-        },
-        "Name": {
-          "minLength": 1,
-          "description": "<p>A display name for the hierarchy.</p>",
-          "type": "string",
-          "maxLength": 64
-        }
-      },
-      "required": [
-        "Columns",
-        "Name"
-      ]
-    },
-    "GeoSpatialCountryCode": {
-      "type": "string",
-      "enum": [
-        "US"
-      ]
-    },
-    "OverrideDatasetParameterOperation": {
-      "description": "<p>A transform operation that overrides the dataset parameter values that are defined in another dataset.</p>",
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "NewDefaultValues": {
-          "$ref": "#/definitions/NewDefaultValues"
-        },
-        "ParameterName": {
-          "minLength": 1,
-          "pattern": "^[a-zA-Z0-9]+$",
-          "description": "<p>The name of the parameter to be overridden with different values.</p>",
-          "type": "string",
-          "maxLength": 2048
-        },
-        "NewParameterName": {
-          "minLength": 1,
-          "pattern": "^[a-zA-Z0-9]+$",
-          "description": "<p>The new name for the parameter.</p>",
-          "type": "string",
-          "maxLength": 2048
-        }
-      },
-      "required": [
-        "ParameterName"
-      ]
-    },
     "UniqueKey": {
       "additionalProperties": false,
       "type": "object",
@@ -1307,43 +1449,6 @@
         }
       }
     },
-    "DatasetParameter": {
-      "description": "<p>A dataset parameter.</p>",
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "IntegerDatasetParameter": {
-          "$ref": "#/definitions/IntegerDatasetParameter"
-        },
-        "DateTimeDatasetParameter": {
-          "$ref": "#/definitions/DateTimeDatasetParameter"
-        },
-        "DecimalDatasetParameter": {
-          "$ref": "#/definitions/DecimalDatasetParameter"
-        },
-        "StringDatasetParameter": {
-          "$ref": "#/definitions/StringDatasetParameter"
-        }
-      }
-    },
-    "IntegerDatasetParameterDefaultValues": {
-      "description": "<p>The default values of an integer parameter.</p>",
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "StaticValues": {
-          "minItems": 0,
-          "maxItems": 32,
-          "description": "<p>A list of static default values for a given integer parameter.</p>",
-          "type": "array",
-          "items": {
-            "default": 0,
-            "description": "<p>The default value for the integer parameter.</p>",
-            "type": "number"
-          }
-        }
-      }
-    },
     "DataSetUsageConfiguration": {
       "description": "<p>The usage configuration to apply to child datasets that reference this dataset as a source.</p>",
       "additionalProperties": false,
@@ -1360,56 +1465,6 @@
           "type": "boolean"
         }
       }
-    },
-    "StringDatasetParameterDefaultValues": {
-      "description": "<p>The default values of a string parameter.</p>",
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "StaticValues": {
-          "minItems": 0,
-          "maxItems": 32,
-          "description": "<p>A list of static default values for a given string parameter.</p>",
-          "type": "array",
-          "items": {
-            "minLength": 0,
-            "description": "<p>The default value for the string parameter.</p>",
-            "type": "string",
-            "maxLength": 512
-          }
-        }
-      }
-    },
-    "LookbackWindowSizeUnit": {
-      "type": "string",
-      "enum": [
-        "HOUR",
-        "DAY",
-        "WEEK"
-      ]
-    },
-    "Tag": {
-      "description": "<p>The key or keys of the key-value pairs for the resource tag or tags assigned to the\n            resource.</p>",
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "Value": {
-          "minLength": 1,
-          "description": "<p>Tag value.</p>",
-          "type": "string",
-          "maxLength": 256
-        },
-        "Key": {
-          "minLength": 1,
-          "description": "<p>Tag key.</p>",
-          "type": "string",
-          "maxLength": 128
-        }
-      },
-      "required": [
-        "Key",
-        "Value"
-      ]
     },
     "ColumnGroup": {
       "description": "<p>Groupings of columns that work together in certain Amazon QuickSight features. This is\n            a variant type structure. For this structure to be valid, only one of the attributes can\n            be non-null.</p>",
@@ -1457,45 +1512,12 @@
         "Name",
         "SqlQuery"
       ]
-    },
-    "ProjectOperation": {
-      "description": "<p>A transform operation that projects columns. Operations that come after a projection\n            can only refer to projected columns.</p>",
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "ProjectedColumns": {
-          "minItems": 1,
-          "maxItems": 2000,
-          "description": "<p>Projected columns.</p>",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "required": [
-        "ProjectedColumns"
-      ]
     }
   },
   "properties": {
-    "PhysicalTableMap": {
-      "$ref": "#/definitions/PhysicalTableMap"
-    },
     "CreatedTime": {
       "format": "string",
       "description": "<p>The time that this dataset was created.</p>",
-      "type": "string"
-    },
-    "FieldFolders": {
-      "$ref": "#/definitions/FieldFolderMap"
-    },
-    "LastUpdatedTime": {
-      "format": "string",
-      "description": "<p>The last time that this dataset was updated.</p>",
-      "type": "string"
-    },
-    "DataSetId": {
       "type": "string"
     },
     "FolderArns": {
@@ -1512,17 +1534,8 @@
       "description": "<p>The amount of SPICE capacity used by this dataset. This is 0 if the dataset isn't\n            imported into SPICE.</p>",
       "type": "number"
     },
-    "PerformanceConfiguration": {
-      "$ref": "#/definitions/PerformanceConfiguration"
-    },
     "RowLevelPermissionDataSet": {
       "$ref": "#/definitions/RowLevelPermissionDataSet"
-    },
-    "DataSetRefreshProperties": {
-      "$ref": "#/definitions/DataSetRefreshProperties"
-    },
-    "RowLevelPermissionTagConfiguration": {
-      "$ref": "#/definitions/RowLevelPermissionTagConfiguration"
     },
     "IngestionWaitPolicy": {
       "$ref": "#/definitions/IngestionWaitPolicy"
@@ -1540,6 +1553,50 @@
       "description": "<p>The display name for the dataset.</p>",
       "type": "string",
       "maxLength": 128
+    },
+    "Permissions": {
+      "minItems": 1,
+      "maxItems": 64,
+      "description": "<p>A list of resource permissions on the dataset.</p>",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ResourcePermission"
+      }
+    },
+    "UseAs": {
+      "$ref": "#/definitions/DataSetUseAs"
+    },
+    "Tags": {
+      "minItems": 1,
+      "maxItems": 200,
+      "description": "<p>Contains a map of the key-value pairs for the resource tag or tags assigned to the dataset.</p>",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
+    },
+    "PhysicalTableMap": {
+      "$ref": "#/definitions/PhysicalTableMap"
+    },
+    "FieldFolders": {
+      "$ref": "#/definitions/FieldFolderMap"
+    },
+    "LastUpdatedTime": {
+      "format": "string",
+      "description": "<p>The last time that this dataset was updated.</p>",
+      "type": "string"
+    },
+    "DataSetId": {
+      "type": "string"
+    },
+    "PerformanceConfiguration": {
+      "$ref": "#/definitions/PerformanceConfiguration"
+    },
+    "DataSetRefreshProperties": {
+      "$ref": "#/definitions/DataSetRefreshProperties"
+    },
+    "RowLevelPermissionTagConfiguration": {
+      "$ref": "#/definitions/RowLevelPermissionTagConfiguration"
     },
     "ColumnGroups": {
       "minItems": 1,
@@ -1574,15 +1631,6 @@
     "DataSetUsageConfiguration": {
       "$ref": "#/definitions/DataSetUsageConfiguration"
     },
-    "Permissions": {
-      "minItems": 1,
-      "maxItems": 64,
-      "description": "<p>A list of resource permissions on the dataset.</p>",
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/ResourcePermission"
-      }
-    },
     "OutputColumns": {
       "description": "<p>The list of columns after all transforms. These columns are available in templates,\n            analyses, and dashboards.</p>",
       "type": "array",
@@ -1593,15 +1641,6 @@
     "Arn": {
       "description": "<p>The Amazon Resource Name (ARN) of the resource.</p>",
       "type": "string"
-    },
-    "Tags": {
-      "minItems": 1,
-      "maxItems": 200,
-      "description": "<p>Contains a map of the key-value pairs for the resource tag or tags assigned to the dataset.</p>",
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/Tag"
-      }
     }
   }
 }

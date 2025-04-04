@@ -149,7 +149,7 @@ type StackSetConfig struct {
 
 	// service fields, not to be used in configuration file
 	StackSetName string            `yaml:"-"`
-	Template     cft.Template      `yaml:"-"`
+	Template     *cft.Template     `yaml:"-"`
 	Parameters   []types.Parameter `yaml:"-"`
 	Tags         []types.Tag       `yaml:"-"`
 }

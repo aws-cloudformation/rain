@@ -2,6 +2,42 @@
   "typeName": "AWS::AppSync::DomainName",
   "description": "Resource Type definition for AWS::AppSync::DomainName",
   "additionalProperties": false,
+  "definitions": {
+    "Tag": {
+      "description": "An arbitrary set of tags (key-value pairs) for this Domain Name.",
+      "type": "object",
+      "properties": {
+        "Key": {
+          "description": "A string used to identify this tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^(?!aws:)[ a-zA-Z+-=._:/]+$"
+        },
+        "Value": {
+          "description": "A string containing the value for this tag. You can specify a maximum of 256 characters for a tag value.",
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 256,
+          "pattern": "^[\\s\\w+-=\\.:/@]*$"
+        }
+      },
+      "required": [
+        "Key",
+        "Value"
+      ],
+      "additionalProperties": false
+    },
+    "Tags": {
+      "description": "An arbitrary set of tags (key-value pairs) for this Domain Name.",
+      "type": "array",
+      "uniqueItems": true,
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
+    }
+  },
   "properties": {
     "DomainName": {
       "type": "string",
@@ -25,13 +61,25 @@
     },
     "HostedZoneId": {
       "type": "string"
+    },
+    "DomainNameArn": {
+      "type": "string",
+      "description": "The Amazon Resource Name (ARN) for the Domain Name."
+    },
+    "Tags": {
+      "$ref": "#/definitions/Tags"
     }
   },
   "tagging": {
-    "taggable": false,
-    "tagOnCreate": false,
-    "tagUpdatable": false,
-    "cloudFormationSystemTags": false
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "appsync:TagResource",
+      "appsync:UntagResource"
+    ]
   },
   "required": [
     "DomainName",
@@ -42,7 +90,8 @@
   ],
   "readOnlyProperties": [
     "/properties/AppSyncDomainName",
-    "/properties/HostedZoneId"
+    "/properties/HostedZoneId",
+    "/properties/DomainNameArn"
   ],
   "createOnlyProperties": [
     "/properties/DomainName",
@@ -54,18 +103,23 @@
         "appsync:CreateDomainName",
         "appsync:GetDomainName",
         "acm:DescribeCertificate",
-        "cloudfront:UpdateDistribution"
+        "cloudfront:UpdateDistribution",
+        "appsync:TagResource"
       ]
     },
     "delete": {
       "permissions": [
         "appsync:GetDomainName",
-        "appsync:DeleteDomainName"
+        "appsync:DeleteDomainName",
+        "appsync:UntagResource"
       ]
     },
     "update": {
       "permissions": [
-        "appsync:UpdateDomainName"
+        "appsync:UpdateDomainName",
+        "appsync:TagResource",
+        "appsync:UntagResource",
+        "appsync:GetDomainName"
       ]
     },
     "read": {

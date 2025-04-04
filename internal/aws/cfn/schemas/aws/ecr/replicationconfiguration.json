@@ -1,6 +1,6 @@
 {
   "typeName": "AWS::ECR::ReplicationConfiguration",
-  "description": "The AWS::ECR::ReplicationConfiguration resource configures the replication destinations for an Amazon Elastic Container Registry (Amazon Private ECR). For more information, see https://docs.aws.amazon.com/AmazonECR/latest/userguide/replication.html",
+  "description": "The ``AWS::ECR::ReplicationConfiguration`` resource creates or updates the replication configuration for a private registry. The first time a replication configuration is applied to a private registry, a service-linked IAM role is created in your account for the replication process. For more information, see [Using Service-Linked Roles for Amazon ECR](https://docs.aws.amazon.com/AmazonECR/latest/userguide/using-service-linked-roles.html) in the *Amazon Elastic Container Registry User Guide*.\n  When configuring cross-account replication, the destination account must grant the source account permission to replicate. This permission is controlled using a private registry permissions policy. For more information, see ``AWS::ECR::RegistryPolicy``.",
   "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-ecr.git",
   "definitions": {
     "ReplicationConfiguration": {
@@ -13,10 +13,10 @@
           "items": {
             "$ref": "#/definitions/ReplicationRule"
           },
-          "description": "An array of objects representing the replication rules for a replication configuration. A replication configuration may contain a maximum of 10 rules."
+          "description": "An array of objects representing the replication destinations and repository filters for a replication configuration."
         }
       },
-      "description": "An object representing the replication configuration for a registry.",
+      "description": "The replication configuration for a registry.",
       "required": [
         "Rules"
       ],
@@ -32,7 +32,7 @@
           "items": {
             "$ref": "#/definitions/RepositoryFilter"
           },
-          "description": "An array of objects representing the details of a repository filter."
+          "description": "An array of objects representing the filters for a replication rule. Specifying a repository filter for a replication rule provides a method for controlling which repositories in a private registry are replicated."
         },
         "Destinations": {
           "type": "array",
@@ -41,10 +41,10 @@
           "items": {
             "$ref": "#/definitions/ReplicationDestination"
           },
-          "description": "An array of objects representing the details of a replication destination."
+          "description": "An array of objects representing the destination for a replication rule."
         }
       },
-      "description": "An array of objects representing the details of a replication destination.",
+      "description": "An array of objects representing the replication destinations and repository filters for a replication configuration.",
       "required": [
         "Destinations"
       ],
@@ -54,13 +54,15 @@
       "type": "object",
       "properties": {
         "Filter": {
-          "$ref": "#/definitions/Filter"
+          "$ref": "#/definitions/Filter",
+          "description": "The repository filter details. When the ``PREFIX_MATCH`` filter type is specified, this value is required and should be the repository name prefix to configure replication for."
         },
         "FilterType": {
-          "$ref": "#/definitions/FilterType"
+          "$ref": "#/definitions/FilterType",
+          "description": "The repository filter type. The only supported value is ``PREFIX_MATCH``, which is a repository name prefix specified with the ``filter`` parameter."
         }
       },
-      "description": "An array of objects representing the details of a repository filter.",
+      "description": "The filter settings used with image replication. Specifying a repository filter to a replication rule provides a method for controlling which repositories in a private registry are replicated. If no filters are added, the contents of all repositories are replicated.",
       "required": [
         "Filter",
         "FilterType"
@@ -83,13 +85,15 @@
       "type": "object",
       "properties": {
         "Region": {
-          "$ref": "#/definitions/Region"
+          "$ref": "#/definitions/Region",
+          "description": "The Region to replicate to."
         },
         "RegistryId": {
-          "$ref": "#/definitions/RegistryId"
+          "$ref": "#/definitions/RegistryId",
+          "description": "The AWS account ID of the Amazon ECR private registry to replicate to. When configuring cross-Region replication within your own registry, specify your own account ID."
         }
       },
-      "description": "An array of objects representing the details of a replication destination.",
+      "description": "An array of objects representing the destination for a replication rule.",
       "required": [
         "Region",
         "RegistryId"
@@ -109,11 +113,12 @@
   },
   "properties": {
     "ReplicationConfiguration": {
-      "$ref": "#/definitions/ReplicationConfiguration"
+      "$ref": "#/definitions/ReplicationConfiguration",
+      "description": "The replication configuration for a registry."
     },
     "RegistryId": {
       "type": "string",
-      "description": "The RegistryId associated with the aws account."
+      "description": ""
     }
   },
   "required": [

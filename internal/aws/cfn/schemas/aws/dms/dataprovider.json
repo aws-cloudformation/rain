@@ -47,6 +47,13 @@
         "verify-full"
       ]
     },
+    "Db2SslModeValue": {
+      "type": "string",
+      "enum": [
+        "none",
+        "verify-ca"
+      ]
+    },
     "MongoDbSslModeValue": {
       "type": "string",
       "enum": [
@@ -115,7 +122,9 @@
         "redshift",
         "mariadb",
         "mongodb",
-        "docdb"
+        "docdb",
+        "db2",
+        "db2_zos"
       ]
     },
     "ExactSettings": {
@@ -141,7 +150,6 @@
               "type": "string"
             },
             "SslMode": {
-              "type": "object",
               "$ref": "#/definitions/DmsSslModeValue"
             },
             "CertificateArn": {
@@ -167,7 +175,6 @@
               "type": "integer"
             },
             "SslMode": {
-              "type": "object",
               "$ref": "#/definitions/DmsSslModeValue"
             },
             "CertificateArn": {
@@ -195,7 +202,6 @@
               "type": "string"
             },
             "SslMode": {
-              "type": "object",
               "$ref": "#/definitions/DmsSslModeValue"
             },
             "CertificateArn": {
@@ -239,7 +245,6 @@
               "type": "string"
             },
             "SslMode": {
-              "type": "object",
               "$ref": "#/definitions/DmsSslModeValue"
             },
             "CertificateArn": {
@@ -286,7 +291,6 @@
               "type": "integer"
             },
             "SslMode": {
-              "type": "object",
               "$ref": "#/definitions/DmsSslModeValue"
             },
             "CertificateArn": {
@@ -314,7 +318,6 @@
               "type": "string"
             },
             "SslMode": {
-              "type": "object",
               "$ref": "#/definitions/MongoDbSslModeValue"
             },
             "CertificateArn": {
@@ -342,27 +345,80 @@
               "type": "string"
             },
             "SslMode": {
-              "type": "object",
               "$ref": "#/definitions/MongoDbSslModeValue"
             },
             "CertificateArn": {
               "type": "string"
             },
             "AuthType": {
-              "type": "object",
               "$ref": "#/definitions/MongoDbAuthType"
             },
             "AuthSource": {
               "type": "string"
             },
             "AuthMechanism": {
-              "type": "object",
               "$ref": "#/definitions/MongoDbAuthMechanism"
             }
           },
           "required": [
             "ServerName",
             "Port"
+          ],
+          "additionalProperties": false
+        },
+        "IbmDb2LuwSettings": {
+          "description": "IbmDb2LuwSettings property identifier.",
+          "type": "object",
+          "properties": {
+            "ServerName": {
+              "type": "string"
+            },
+            "Port": {
+              "type": "integer"
+            },
+            "DatabaseName": {
+              "type": "string"
+            },
+            "SslMode": {
+              "$ref": "#/definitions/Db2SslModeValue"
+            },
+            "CertificateArn": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "ServerName",
+            "Port",
+            "SslMode",
+            "DatabaseName"
+          ],
+          "additionalProperties": false
+        },
+        "IbmDb2zOsSettings": {
+          "description": "IbmDb2zOsSettings property identifier.",
+          "type": "object",
+          "properties": {
+            "ServerName": {
+              "type": "string"
+            },
+            "Port": {
+              "type": "integer"
+            },
+            "DatabaseName": {
+              "type": "string"
+            },
+            "SslMode": {
+              "$ref": "#/definitions/Db2SslModeValue"
+            },
+            "CertificateArn": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "ServerName",
+            "Port",
+            "SslMode",
+            "DatabaseName"
           ],
           "additionalProperties": false
         }
@@ -406,6 +462,16 @@
         {
           "required": [
             "MongoDbSettings"
+          ]
+        },
+        {
+          "required": [
+            "IbmDb2LuwSettings"
+          ]
+        },
+        {
+          "required": [
+            "IbmDb2zOsSettings"
           ]
         }
       ],

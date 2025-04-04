@@ -1,0 +1,177 @@
+{
+  "typeName": "AWS::IoTSiteWise::Dataset",
+  "description": "Resource schema for AWS::IoTSiteWise::Dataset.",
+  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-IoTSiteWise.git",
+  "definitions": {
+    "DatasetSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "SourceFormat",
+        "SourceType"
+      ],
+      "properties": {
+        "SourceFormat": {
+          "type": "string",
+          "description": "The format of the dataset source associated with the dataset.",
+          "enum": [
+            "KNOWLEDGE_BASE"
+          ]
+        },
+        "SourceType": {
+          "type": "string",
+          "description": "The type of data source for the dataset.",
+          "enum": [
+            "KENDRA"
+          ]
+        },
+        "SourceDetail": {
+          "description": "The details of the dataset source associated with the dataset.",
+          "$ref": "#/definitions/SourceDetail"
+        }
+      }
+    },
+    "SourceDetail": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Kendra": {
+          "description": "Contains details about the Kendra dataset source.",
+          "$ref": "#/definitions/KendraSourceDetail"
+        }
+      }
+    },
+    "KendraSourceDetail": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "KnowledgeBaseArn",
+        "RoleArn"
+      ],
+      "properties": {
+        "KnowledgeBaseArn": {
+          "type": "string",
+          "description": "The knowledgeBaseArn details for the Kendra dataset source."
+        },
+        "RoleArn": {
+          "type": "string",
+          "description": "The roleARN details for the Kendra dataset source."
+        }
+      }
+    },
+    "Tag": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Key": {
+          "type": "string"
+        },
+        "Value": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "Value",
+        "Key"
+      ]
+    }
+  },
+  "properties": {
+    "DatasetId": {
+      "description": "The ID of the dataset.",
+      "type": "string",
+      "minLength": 36,
+      "maxLength": 36,
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "DatasetArn": {
+      "description": "The ARN of the dataset.",
+      "type": "string"
+    },
+    "DatasetName": {
+      "description": "The name of the dataset.",
+      "type": "string"
+    },
+    "DatasetDescription": {
+      "description": "A description about the dataset, and its functionality.",
+      "type": "string"
+    },
+    "DatasetSource": {
+      "description": "The data source for the dataset.",
+      "$ref": "#/definitions/DatasetSource"
+    },
+    "Tags": {
+      "description": "An array of key-value pairs to apply to this resource.",
+      "type": "array",
+      "uniqueItems": true,
+      "insertionOrder": false,
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "iotsitewise:TagResource",
+      "iotsitewise:UntagResource",
+      "iotsitewise:ListTagsForResource"
+    ]
+  },
+  "required": [
+    "DatasetName",
+    "DatasetSource"
+  ],
+  "readOnlyProperties": [
+    "/properties/DatasetArn",
+    "/properties/DatasetId"
+  ],
+  "primaryIdentifier": [
+    "/properties/DatasetId"
+  ],
+  "handlers": {
+    "create": {
+      "permissions": [
+        "iotsitewise:CreateDataset",
+        "iotsitewise:DescribeDataset",
+        "iam:PassRole",
+        "iotsitewise:ListTagsForResource",
+        "iotsitewise:TagResource"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "iotsitewise:DescribeDataset",
+        "iotsitewise:ListTagsForResource"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "iotsitewise:UpdateDataset",
+        "iotsitewise:DescribeDataset",
+        "iam:PassRole",
+        "iotsitewise:ListTagsForResource",
+        "iotsitewise:TagResource",
+        "iotsitewise:UntagResource"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "iotsitewise:DeleteDataset",
+        "iotsitewise:DescribeDataset",
+        "iotsitewise:ListTagsForResource"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "iotsitewise:ListDatasets",
+        "iotsitewise:ListTagsForResource"
+      ]
+    }
+  }
+}

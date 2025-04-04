@@ -143,6 +143,11 @@
       "type": "string",
       "description": "The AWS KMS key identifier for encryption of the replicated automated backups. The KMS key ID is the Amazon Resource Name (ARN) for the KMS encryption key in the destination AWS-Region, for example, ``arn:aws:kms:us-east-1:123456789012:key/AKIAIOSFODNN7EXAMPLE``."
     },
+    "AutomaticBackupReplicationRetentionPeriod": {
+      "type": "integer",
+      "minimum": 1,
+      "description": ""
+    },
     "AvailabilityZone": {
       "type": "string",
       "description": "The Availability Zone (AZ) where the database will be created. For information on AWS-Regions and Availability Zones, see [Regions and Availability Zones](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html).\n For Amazon Aurora, each Aurora DB cluster hosts copies of its storage in three separate Availability Zones. Specify one of these Availability Zones. Aurora automatically chooses an appropriate Availability Zone if you don't specify one.\n Default: A random, system-chosen Availability Zone in the endpoint's AWS-Region.\n Constraints:\n  +  The ``AvailabilityZone`` parameter can't be specified if the DB instance is a Multi-AZ deployment.\n  +  The specified Availability Zone must be in the same AWS-Region as the current endpoint.\n  \n Example: ``us-east-1d``"
@@ -225,11 +230,11 @@
     },
     "DBSnapshotIdentifier": {
       "type": "string",
-      "description": "The name or Amazon Resource Name (ARN) of the DB snapshot that's used to restore the DB instance. If you're restoring from a shared manual DB snapshot, you must specify the ARN of the snapshot.\n By specifying this property, you can create a DB instance from the specified DB snapshot. If the ``DBSnapshotIdentifier`` property is an empty string or the ``AWS::RDS::DBInstance`` declaration has no ``DBSnapshotIdentifier`` property, AWS CloudFormation creates a new database. If the property contains a value (other than an empty string), AWS CloudFormation creates a database from the specified snapshot. If a snapshot with the specified name doesn't exist, AWS CloudFormation can't create the database and it rolls back the stack.\n Some DB instance properties aren't valid when you restore from a snapshot, such as the ``MasterUsername`` and ``MasterUserPassword`` properties. For information about the properties that you can specify, see the ``RestoreDBInstanceFromDBSnapshot`` action in the *Amazon RDS API Reference*.\n After you restore a DB instance with a ``DBSnapshotIdentifier`` property, you must specify the same ``DBSnapshotIdentifier`` property for any future updates to the DB instance. When you specify this property for an update, the DB instance is not restored from the DB snapshot again, and the data in the database is not changed. However, if you don't specify the ``DBSnapshotIdentifier`` property, an empty DB instance is created, and the original DB instance is deleted. If you specify a property that is different from the previous snapshot restore property, a new DB instance is restored from the specified ``DBSnapshotIdentifier`` property, and the original DB instance is deleted.\n If you specify the ``DBSnapshotIdentifier`` property to restore a DB instance (as opposed to specifying it for DB instance updates), then don't specify the following properties:\n  +   ``CharacterSetName`` \n  +   ``DBClusterIdentifier`` \n  +   ``DBName`` \n  +   ``KmsKeyId`` \n  +   ``MasterUsername`` \n  +   ``MasterUserPassword`` \n  +   ``PromotionTier`` \n  +   ``SourceDBInstanceIdentifier`` \n  +   ``SourceRegion`` \n  +   ``StorageEncrypted`` (for an unencrypted snapshot)\n  +   ``Timezone`` \n  \n  *Amazon Aurora* \n Not applicable. Snapshot restore is managed by the DB cluster."
+      "description": "The name or Amazon Resource Name (ARN) of the DB snapshot that's used to restore the DB instance. If you're restoring from a shared manual DB snapshot, you must specify the ARN of the snapshot.\n By specifying this property, you can create a DB instance from the specified DB snapshot. If the ``DBSnapshotIdentifier`` property is an empty string or the ``AWS::RDS::DBInstance`` declaration has no ``DBSnapshotIdentifier`` property, AWS CloudFormation creates a new database. If the property contains a value (other than an empty string), AWS CloudFormation creates a database from the specified snapshot. If a snapshot with the specified name doesn't exist, AWS CloudFormation can't create the database and it rolls back the stack.\n Some DB instance properties aren't valid when you restore from a snapshot, such as the ``MasterUsername`` and ``MasterUserPassword`` properties, and the point-in-time recovery properties ``RestoreTime`` and ``UseLatestRestorableTime``. For information about the properties that you can specify, see the [RestoreDBInstanceFromDBSnapshot](https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_RestoreDBInstanceFromDBSnapshot.html) action in the *Amazon RDS API Reference*.\n After you restore a DB instance with a ``DBSnapshotIdentifier`` property, you must specify the same ``DBSnapshotIdentifier`` property for any future updates to the DB instance. When you specify this property for an update, the DB instance is not restored from the DB snapshot again, and the data in the database is not changed. However, if you don't specify the ``DBSnapshotIdentifier`` property, an empty DB instance is created, and the original DB instance is deleted. If you specify a property that is different from the previous snapshot restore property, a new DB instance is restored from the specified ``DBSnapshotIdentifier`` property, and the original DB instance is deleted.\n If you specify the ``DBSnapshotIdentifier`` property to restore a DB instance (as opposed to specifying it for DB instance updates), then don't specify the following properties:\n  +   ``CharacterSetName`` \n  +   ``DBClusterIdentifier`` \n  +   ``DBName`` \n  +   ``KmsKeyId`` \n  +   ``MasterUsername`` \n  +   ``MasterUserPassword`` \n  +   ``PromotionTier`` \n  +   ``SourceDBInstanceIdentifier`` \n  +   ``SourceRegion`` \n  +   ``StorageEncrypted`` (for an unencrypted snapshot)\n  +   ``Timezone`` \n  \n  *Amazon Aurora* \n Not applicable. Snapshot restore is managed by the DB cluster."
     },
     "DBSubnetGroupName": {
       "type": "string",
-      "description": "A DB subnet group to associate with the DB instance. If you update this value, the new subnet group must be a subnet group in a new VPC. \n If there's no DB subnet group, then the DB instance isn't a VPC DB instance.\n For more information about using Amazon RDS in a VPC, see [Amazon VPC and Amazon RDS](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.html) in the *Amazon RDS User Guide*. \n This setting doesn't apply to Amazon Aurora DB instances. The DB subnet group is managed by the DB cluster. If specified, the setting must match the DB cluster setting."
+      "description": "A DB subnet group to associate with the DB instance. If you update this value, the new subnet group must be a subnet group in a new VPC. \n If you don't specify a DB subnet group, RDS uses the default DB subnet group if one exists. If a default DB subnet group does not exist, and you don't specify a ``DBSubnetGroupName``, the DB instance fails to launch. \n For more information about using Amazon RDS in a VPC, see [Amazon VPC and Amazon RDS](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.html) in the *Amazon RDS User Guide*. \n This setting doesn't apply to Amazon Aurora DB instances. The DB subnet group is managed by the DB cluster. If specified, the setting must match the DB cluster setting."
     },
     "DBSystemId": {
       "type": "string",
@@ -370,7 +375,7 @@
     },
     "PerformanceInsightsRetentionPeriod": {
       "type": "integer",
-      "description": "The number of days to retain Performance Insights data.\n This setting doesn't apply to RDS Custom DB instances.\n Valid Values:\n  +   ``7`` \n  +   *month* * 31, where *month* is a number of months from 1-23. Examples: ``93`` (3 months * 31), ``341`` (11 months * 31), ``589`` (19 months * 31)\n  +   ``731`` \n  \n Default: ``7`` days\n If you specify a retention period that isn't valid, such as ``94``, Amazon RDS returns an error."
+      "description": "The number of days to retain Performance Insights data. When creating a DB instance without enabling Performance Insights, you can't specify the parameter ``PerformanceInsightsRetentionPeriod``.\n This setting doesn't apply to RDS Custom DB instances.\n Valid Values:\n  +   ``7`` \n  +   *month* * 31, where *month* is a number of months from 1-23. Examples: ``93`` (3 months * 31), ``341`` (11 months * 31), ``589`` (19 months * 31)\n  +   ``731`` \n  \n Default: ``7`` days\n If you specify a retention period that isn't valid, such as ``94``, Amazon RDS returns an error."
     },
     "Port": {
       "type": "string",
@@ -383,7 +388,7 @@
     },
     "PreferredMaintenanceWindow": {
       "type": "string",
-      "description": "The weekly time range during which system maintenance can occur, in Universal Coordinated Time (UTC).\n Format: ``ddd:hh24:mi-ddd:hh24:mi`` \n The default is a 30-minute window selected at random from an 8-hour block of time for each AWS Region, occurring on a random day of the week. To see the time blocks available, see [Adjusting the Preferred DB Instance Maintenance Window](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_UpgradeDBInstance.Maintenance.html#AdjustingTheMaintenanceWindow) in the *Amazon RDS User Guide.* \n  This property applies when AWS CloudFormation initially creates the DB instance. If you use AWS CloudFormation to update the DB instance, those updates are applied immediately.\n  Constraints: Minimum 30-minute window."
+      "description": "The weekly time range during which system maintenance can occur, in Universal Coordinated Time (UTC).\n Format: ``ddd:hh24:mi-ddd:hh24:mi`` \n The default is a 30-minute window selected at random from an 8-hour block of time for each AWS Region, occurring on a random day of the week. To see the time blocks available, see [Maintaining a DB instance](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_UpgradeDBInstance.Maintenance.html#AdjustingTheMaintenanceWindow) in the *Amazon RDS User Guide.* \n  This property applies when AWS CloudFormation initially creates the DB instance. If you use AWS CloudFormation to update the DB instance, those updates are applied immediately.\n  Constraints: Minimum 30-minute window."
     },
     "ProcessorFeatures": {
       "type": "array",
@@ -436,11 +441,11 @@
     },
     "StorageType": {
       "type": "string",
-      "description": "The storage type to associate with the DB instance.\n If you specify ``io1``, ``io2``, or ``gp3``, you must also include a value for the ``Iops`` parameter.\n This setting doesn't apply to Amazon Aurora DB instances. Storage is managed by the DB cluster.\n Valid Values: ``gp2 | gp3 | io1 | io2 | standard`` \n Default: ``io1``, if the ``Iops`` parameter is specified. Otherwise, ``gp2``."
+      "description": "The storage type to associate with the DB instance.\n If you specify ``io1``, ``io2``, or ``gp3``, you must also include a value for the ``Iops`` parameter.\n This setting doesn't apply to Amazon Aurora DB instances. Storage is managed by the DB cluster.\n Valid Values: ``gp2 | gp3 | io1 | io2 | standard`` \n Default: ``io1``, if the ``Iops`` parameter is specified. Otherwise, ``gp3``."
     },
     "StorageThroughput": {
       "type": "integer",
-      "description": "Specifies the storage throughput value for the DB instance. This setting applies only to the ``gp3`` storage type. \n This setting doesn't apply to RDS Custom or Amazon Aurora."
+      "description": "Specifies the storage throughput value, in mebibyte per second (MiBps), for the DB instance. This setting applies only to the ``gp3`` storage type. \n This setting doesn't apply to RDS Custom or Amazon Aurora."
     },
     "Tags": {
       "type": "array",
@@ -478,6 +483,10 @@
         "type": "string"
       },
       "description": "A list of the VPC security group IDs to assign to the DB instance. The list can include both the physical IDs of existing VPC security groups and references to [AWS::EC2::SecurityGroup](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html) resources created in the template.\n If you plan to update the resource, don't specify VPC security groups in a shared VPC.\n  If you set ``VPCSecurityGroups``, you must not set [DBSecurityGroups](https://docs.aws.amazon.com//AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html#cfn-rds-dbinstance-dbsecuritygroups), and vice versa.\n  You can migrate a DB instance in your stack from an RDS DB security group to a VPC security group, but keep the following in mind:\n  +  You can't revert to using an RDS security group after you establish a VPC security group membership.\n  +  When you migrate your DB instance to VPC security groups, if your stack update rolls back because the DB instance update fails or because an update fails in another AWS CloudFormation resource, the rollback fails because it can't revert to an RDS security group.\n  +  To use the properties that are available when you use a VPC security group, you must recreate the DB instance. If you don't, AWS CloudFormation submits only the property values that are listed in the [DBSecurityGroups](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html#cfn-rds-dbinstance-dbsecuritygroups) property.\n  \n  To avoid this situation, migrate your DB instance to using VPC security groups only when that is the only change in your stack template. \n  *Amazon Aurora* \n Not applicable. The associated list of EC2 VPC security groups is managed by the DB cluster. If specified, the setting must match the DB cluster setting."
+    },
+    "ApplyImmediately": {
+      "type": "boolean",
+      "description": "Specifies whether changes to the DB instance and any pending modifications are applied immediately, regardless of the ``PreferredMaintenanceWindow`` setting. If set to ``false``, changes are applied during the next maintenance window. Until RDS applies the changes, the DB instance remains in a drift state. As a result, the configuration doesn't fully reflect the requested modifications and temporarily diverges from the intended state.\n In addition to the settings described in [Modifying a DB instance](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.DBInstance.Modifying.html), this property also determines whether the DB instance reboots when a static parameter is modified in the associated DB parameter group.\n Default: ``true``"
     }
   },
   "additionalProperties": false,
@@ -554,15 +563,18 @@
     "/properties/SourceRegion",
     "/properties/TdeCredentialPassword",
     "/properties/UseDefaultProcessorFeatures",
-    "/properties/UseLatestRestorableTime"
+    "/properties/UseLatestRestorableTime",
+    "/properties/ApplyImmediately"
   ],
   "readOnlyProperties": [
+    "/properties/Endpoint",
     "/properties/Endpoint/Address",
     "/properties/Endpoint/Port",
     "/properties/Endpoint/HostedZoneId",
     "/properties/DbiResourceId",
     "/properties/DBInstanceArn",
     "/properties/MasterUserSecret/SecretArn",
+    "/properties/CertificateDetails",
     "/properties/CertificateDetails/CAIdentifier",
     "/properties/CertificateDetails/ValidTill",
     "/properties/DatabaseInsightsMode"
@@ -639,6 +651,7 @@
         "rds:DescribeDBEngineVersions",
         "rds:DescribeDBInstances",
         "rds:DescribeDBParameterGroups",
+        "rds:DescribeDBInstanceAutomatedBackups",
         "rds:DescribeEvents",
         "rds:ModifyDBInstance",
         "rds:PromoteReadReplica",

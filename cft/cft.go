@@ -30,19 +30,20 @@ type PackageAlias struct {
 
 // Template represents a CloudFormation template. The Template type
 // is minimal for now but will likely grow new features as needed by rain.
-type Template struct {
-	Node *yaml.Node
-
-	Constants map[string]*yaml.Node
-	Packages  map[string]*PackageAlias
-}
-
-// TODO - We really need a convenient Template data structure
-// that lets us easily access elements.
-// t.Resources["MyResource"].Properties["MyProp"]
 //
-// Add a Model attribute to the struct and an Init function to populate it.
-// t.Model.Resources
+// Node is the only member that is guaranteed to exist after
+// parsing a template.
+type Template struct {
+	FileName       string
+	Name           string
+	Node           *yaml.Node
+	Constants      map[string]*yaml.Node
+	Packages       map[string]*PackageAlias
+	ModuleMapNames map[string][]string
+	ModuleMaps     map[string]*ModuleConfig
+	ModuleOutputs  map[string]*yaml.Node
+	ModuleResolved []*yaml.Node
+}
 
 // Map returns the template as a map[string]interface{}
 func (t Template) Map() map[string]interface{} {
@@ -57,7 +58,7 @@ func (t Template) Map() map[string]interface{} {
 }
 
 // AppendStateMap appends a "State" section to the template
-func AppendStateMap(state Template) *yaml.Node {
+func AppendStateMap(state *Template) *yaml.Node {
 	state.Node.Content[0].Content = append(state.Node.Content[0].Content,
 		&yaml.Node{Kind: yaml.ScalarNode, Value: "State"})
 	stateMap := &yaml.Node{Kind: yaml.MappingNode, Content: make([]*yaml.Node, 0)}
@@ -81,6 +82,18 @@ const (
 	Outputs                  Section = "Outputs"
 	State                    Section = "State"
 	Rain                     Section = "Rain"
+	Modules                  Section = "Modules"
+	Packages                 Section = "Packages"
+	Constants                Section = "Constants"
+)
+
+type Intrinsic string
+
+const (
+	Sub    Intrinsic = "Fn::Sub"
+	GetAtt Intrinsic = "Fn::GetAtt"
+	Ref    Intrinsic = "Ref"
+	If     Intrinsic = "Fn::If"
 )
 
 // GetResource returns the yaml node for a resource by logical id
@@ -148,9 +161,19 @@ func (t Template) GetSection(section Section) (*yaml.Node, error) {
 	return s, nil
 }
 
+// HasSection returns true if the template has the section
+func (t Template) HasSection(section Section) bool {
+	if t.Node == nil {
+		return false
+	}
+	m := t.Node.Content[0]
+	_, s, _ := s11n.GetMapValue(m, string(section))
+	return s != nil
+}
+
 // RemoveSection removes a section node from the template
 func (t Template) RemoveSection(section Section) error {
-	return node.RemoveFromMap(t.Node.Content[0], string(Rain))
+	return node.RemoveFromMap(t.Node.Content[0], string(section))
 }
 
 // GetTypes returns all unique type names for resources in the template
@@ -223,4 +246,39 @@ func (t Template) RemoveEmptySections() {
 	for _, name := range sectionsToRemove {
 		node.RemoveFromMap(m, name)
 	}
+}
+
+// AddMappedModule adds a reference to a module that was mapped to a CSV of keys,
+// which duplicates the module in the template. We store a reference here so
+// that we can resolve references like Content[0].Arn, which points to the first
+// mapped instance of a Module called Content, with an Output called Arn.
+func (t *Template) AddMappedModule(copiedConfig *ModuleConfig) {
+	if t.ModuleMaps == nil {
+		t.ModuleMaps = make(map[string]*ModuleConfig)
+	}
+	t.ModuleMaps[copiedConfig.Name] = copiedConfig
+	if t.ModuleMapNames == nil {
+		t.ModuleMapNames = make(map[string][]string)
+	}
+	originalName := copiedConfig.OriginalName
+	var mappedModules []string
+	var ok bool
+	if mappedModules, ok = t.ModuleMapNames[originalName]; !ok {
+		mappedModules = make([]string, 0)
+	}
+	if !slices.Contains(mappedModules, copiedConfig.Name) {
+		mappedModules = append(mappedModules, copiedConfig.Name)
+	}
+	t.ModuleMapNames[originalName] = mappedModules
+}
+
+func (t *Template) AddResolvedModuleNode(n *yaml.Node) {
+	if t.ModuleResolved == nil {
+		t.ModuleResolved = make([]*yaml.Node, 0)
+	}
+	t.ModuleResolved = append(t.ModuleResolved, n)
+}
+
+func (t *Template) ModuleAlreadyResolved(n *yaml.Node) bool {
+	return slices.Contains(t.ModuleResolved, n)
 }

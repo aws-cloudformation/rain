@@ -14,6 +14,9 @@
         },
         "KendraKnowledgeBaseConfiguration": {
           "$ref": "#/definitions/KendraKnowledgeBaseConfiguration"
+        },
+        "SqlKnowledgeBaseConfiguration": {
+          "$ref": "#/definitions/SqlKnowledgeBaseConfiguration"
         }
       },
       "required": [
@@ -40,7 +43,8 @@
         "OPENSEARCH_SERVERLESS",
         "PINECONE",
         "RDS",
-        "MONGO_DB_ATLAS"
+        "MONGO_DB_ATLAS",
+        "NEPTUNE_ANALYTICS"
       ]
     },
     "KnowledgeBaseType": {
@@ -48,7 +52,8 @@
       "description": "The type of a knowledge base.",
       "enum": [
         "VECTOR",
-        "KENDRA"
+        "KENDRA",
+        "SQL"
       ]
     },
     "OpenSearchServerlessConfiguration": {
@@ -385,6 +390,50 @@
       ],
       "additionalProperties": false
     },
+    "NeptuneAnalyticsFieldMapping": {
+      "type": "object",
+      "description": "A mapping of Bedrock Knowledge Base fields to Neptune Analytics fields.",
+      "properties": {
+        "TextField": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^.*$",
+          "description": "The name of the field in which Amazon Bedrock stores the raw text from your data. The text is split according to the chunking strategy you choose."
+        },
+        "MetadataField": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^.*$",
+          "description": "The name of the field in which Amazon Bedrock stores metadata about the vector store."
+        }
+      },
+      "required": [
+        "TextField",
+        "MetadataField"
+      ],
+      "additionalProperties": false
+    },
+    "NeptuneAnalyticsConfiguration": {
+      "type": "object",
+      "description": "Contains the configurations to use Neptune Analytics as Vector Store.",
+      "properties": {
+        "GraphArn": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "pattern": "^arn:aws(|-cn|-us-gov):neptune-graph:[a-zA-Z0-9-]*:[0-9]{12}:graph\\/g-[a-zA-Z0-9]{10}$",
+          "description": "ARN for Neptune Analytics graph database."
+        },
+        "FieldMapping": {
+          "$ref": "#/definitions/NeptuneAnalyticsFieldMapping"
+        }
+      },
+      "required": [
+        "GraphArn",
+        "FieldMapping"
+      ],
+      "additionalProperties": false
+    },
     "StorageConfiguration": {
       "type": "object",
       "description": "The vector store service in which the knowledge base is stored.",
@@ -403,6 +452,9 @@
         },
         "MongoDbAtlasConfiguration": {
           "$ref": "#/definitions/MongoDbAtlasConfiguration"
+        },
+        "NeptuneAnalyticsConfiguration": {
+          "$ref": "#/definitions/NeptuneAnalyticsConfiguration"
         }
       },
       "required": [
@@ -422,6 +474,11 @@
         {
           "required": [
             "RdsConfiguration"
+          ]
+        },
+        {
+          "required": [
+            "NeptuneAnalyticsConfiguration"
           ]
         },
         {
@@ -455,6 +512,14 @@
           "maximum": 4096,
           "minimum": 0,
           "description": "The dimensions details for the vector configuration used on the Bedrock embeddings model."
+        },
+        "EmbeddingDataType": {
+          "type": "string",
+          "description": "The data type for the vectors when using a model to convert text into vector embeddings.",
+          "enum": [
+            "FLOAT32",
+            "BINARY"
+          ]
         }
       },
       "additionalProperties": false
@@ -572,6 +637,415 @@
       "type": "string",
       "description": "Arn of a Kendra index",
       "pattern": "^arn:aws(|-cn|-us-gov):kendra:[a-z0-9-]{1,20}:([0-9]{12}|):index/([a-zA-Z0-9][a-zA-Z0-9-]{35}|[a-zA-Z0-9][a-zA-Z0-9-]{35}-[a-zA-Z0-9][a-zA-Z0-9-]{35})$"
+    },
+    "SqlKnowledgeBaseConfiguration": {
+      "type": "object",
+      "description": "Configurations for a SQL knowledge base",
+      "properties": {
+        "Type": {
+          "$ref": "#/definitions/QueryEngineType"
+        },
+        "RedshiftConfiguration": {
+          "$ref": "#/definitions/RedshiftConfiguration"
+        }
+      },
+      "required": [
+        "Type"
+      ],
+      "additionalProperties": false
+    },
+    "QueryEngineType": {
+      "type": "string",
+      "description": "SQL query engine type",
+      "enum": [
+        "REDSHIFT"
+      ]
+    },
+    "RedshiftConfiguration": {
+      "type": "object",
+      "description": "Configurations for a Redshift knowledge base",
+      "properties": {
+        "StorageConfigurations": {
+          "$ref": "#/definitions/RedshiftQueryEngineStorageConfigurations"
+        },
+        "QueryEngineConfiguration": {
+          "$ref": "#/definitions/RedshiftQueryEngineConfiguration"
+        },
+        "QueryGenerationConfiguration": {
+          "$ref": "#/definitions/QueryGenerationConfiguration"
+        }
+      },
+      "required": [
+        "StorageConfigurations",
+        "QueryEngineConfiguration"
+      ],
+      "additionalProperties": false
+    },
+    "RedshiftQueryEngineStorageConfigurations": {
+      "type": "array",
+      "description": "List of configurations for available Redshift query engine storage types",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "$ref": "#/definitions/RedshiftQueryEngineStorageConfiguration"
+      },
+      "insertionOrder": false
+    },
+    "RedshiftQueryEngineStorageConfiguration": {
+      "type": "object",
+      "description": "Configurations for available Redshift query engine storage types",
+      "properties": {
+        "Type": {
+          "$ref": "#/definitions/RedshiftQueryEngineStorageType"
+        },
+        "AwsDataCatalogConfiguration": {
+          "$ref": "#/definitions/RedshiftQueryEngineAwsDataCatalogStorageConfiguration"
+        },
+        "RedshiftConfiguration": {
+          "$ref": "#/definitions/RedshiftQueryEngineRedshiftStorageConfiguration"
+        }
+      },
+      "required": [
+        "Type"
+      ],
+      "additionalProperties": false
+    },
+    "RedshiftQueryEngineStorageType": {
+      "type": "string",
+      "description": "Redshift query engine storage type",
+      "enum": [
+        "REDSHIFT",
+        "AWS_DATA_CATALOG"
+      ]
+    },
+    "RedshiftQueryEngineAwsDataCatalogStorageConfiguration": {
+      "type": "object",
+      "description": "Configurations for Redshift query engine AWS Data Catalog backed storage",
+      "properties": {
+        "TableNames": {
+          "$ref": "#/definitions/AwsDataCatalogTableNames"
+        }
+      },
+      "required": [
+        "TableNames"
+      ],
+      "additionalProperties": false
+    },
+    "AwsDataCatalogTableNames": {
+      "type": "array",
+      "description": "List of table names in AWS Data Catalog. Must follow two part notation",
+      "items": {
+        "$ref": "#/definitions/AwsDataCatalogTableName"
+      },
+      "minItems": 1,
+      "maxItems": 1000,
+      "insertionOrder": false
+    },
+    "AwsDataCatalogTableName": {
+      "type": "string",
+      "description": "AWS Data Catalog table name",
+      "pattern": "^.*\\.*$",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "RedshiftQueryEngineRedshiftStorageConfiguration": {
+      "type": "object",
+      "description": "Configurations for Redshift query engine Redshift backed storage",
+      "properties": {
+        "DatabaseName": {
+          "$ref": "#/definitions/RedshiftDatabase"
+        }
+      },
+      "required": [
+        "DatabaseName"
+      ],
+      "additionalProperties": false
+    },
+    "RedshiftDatabase": {
+      "type": "string",
+      "description": "Redshift database name",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "RedshiftQueryEngineConfiguration": {
+      "type": "object",
+      "description": "Configurations for Redshift query engine",
+      "properties": {
+        "Type": {
+          "$ref": "#/definitions/RedshiftQueryEngineType"
+        },
+        "ServerlessConfiguration": {
+          "$ref": "#/definitions/RedshiftServerlessConfiguration"
+        },
+        "ProvisionedConfiguration": {
+          "$ref": "#/definitions/RedshiftProvisionedConfiguration"
+        }
+      },
+      "required": [
+        "Type"
+      ],
+      "additionalProperties": false
+    },
+    "RedshiftQueryEngineType": {
+      "type": "string",
+      "description": "Redshift query engine type",
+      "enum": [
+        "SERVERLESS",
+        "PROVISIONED"
+      ]
+    },
+    "RedshiftServerlessConfiguration": {
+      "type": "object",
+      "description": "Configurations for serverless Redshift query engine",
+      "properties": {
+        "WorkgroupArn": {
+          "$ref": "#/definitions/WorkgroupArn"
+        },
+        "AuthConfiguration": {
+          "$ref": "#/definitions/RedshiftServerlessAuthConfiguration"
+        }
+      },
+      "required": [
+        "WorkgroupArn",
+        "AuthConfiguration"
+      ],
+      "additionalProperties": false
+    },
+    "WorkgroupArn": {
+      "type": "string",
+      "description": "Workgroup arn",
+      "pattern": "^(arn:(aws(-[a-z]+)*):redshift-serverless:[a-z]{2}(-gov)?-[a-z]+-\\d{1}:\\d{12}:workgroup/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$"
+    },
+    "RedshiftServerlessAuthConfiguration": {
+      "type": "object",
+      "description": "Configurations for Redshift query engine serverless auth setup",
+      "properties": {
+        "Type": {
+          "$ref": "#/definitions/RedshiftServerlessAuthType"
+        },
+        "UsernamePasswordSecretArn": {
+          "$ref": "#/definitions/SecretArn"
+        }
+      },
+      "required": [
+        "Type"
+      ],
+      "additionalProperties": false
+    },
+    "RedshiftServerlessAuthType": {
+      "type": "string",
+      "description": "Serverless Redshift auth type",
+      "enum": [
+        "IAM",
+        "USERNAME_PASSWORD"
+      ]
+    },
+    "SecretArn": {
+      "type": "string",
+      "description": "Arn of a SecretsManager Secret",
+      "pattern": "^arn:aws(|-cn|-us-gov):secretsmanager:[a-z0-9-]{1,20}:([0-9]{12}|):secret:[a-zA-Z0-9!/_+=.@-]{1,512}$"
+    },
+    "RedshiftProvisionedConfiguration": {
+      "type": "object",
+      "description": "Configurations for provisioned Redshift query engine",
+      "properties": {
+        "ClusterIdentifier": {
+          "$ref": "#/definitions/RedshiftClusterIdentifier"
+        },
+        "AuthConfiguration": {
+          "$ref": "#/definitions/RedshiftProvisionedAuthConfiguration"
+        }
+      },
+      "required": [
+        "ClusterIdentifier",
+        "AuthConfiguration"
+      ],
+      "additionalProperties": false
+    },
+    "RedshiftClusterIdentifier": {
+      "type": "string",
+      "description": "Redshift cluster identifier",
+      "minLength": 1,
+      "maxLength": 63
+    },
+    "RedshiftProvisionedAuthConfiguration": {
+      "type": "object",
+      "description": "Configurations for Redshift query engine provisioned auth setup",
+      "properties": {
+        "Type": {
+          "$ref": "#/definitions/RedshiftProvisionedAuthType"
+        },
+        "DatabaseUser": {
+          "type": "string",
+          "description": "Redshift database user"
+        },
+        "UsernamePasswordSecretArn": {
+          "$ref": "#/definitions/SecretArn"
+        }
+      },
+      "required": [
+        "Type"
+      ],
+      "additionalProperties": false
+    },
+    "RedshiftProvisionedAuthType": {
+      "type": "string",
+      "description": "Provisioned Redshift auth type",
+      "enum": [
+        "IAM",
+        "USERNAME_PASSWORD",
+        "USERNAME"
+      ]
+    },
+    "QueryGenerationConfiguration": {
+      "type": "object",
+      "description": "Configurations for generating Redshift engine queries",
+      "properties": {
+        "ExecutionTimeoutSeconds": {
+          "$ref": "#/definitions/QueryExecutionTimeoutSeconds"
+        },
+        "GenerationContext": {
+          "$ref": "#/definitions/QueryGenerationContext"
+        }
+      },
+      "additionalProperties": false
+    },
+    "QueryExecutionTimeoutSeconds": {
+      "type": "integer",
+      "description": "Max query execution timeout",
+      "minimum": 1,
+      "maximum": 200
+    },
+    "QueryGenerationContext": {
+      "type": "object",
+      "description": "Context used to improve query generation",
+      "properties": {
+        "Tables": {
+          "$ref": "#/definitions/QueryGenerationTables"
+        },
+        "CuratedQueries": {
+          "$ref": "#/definitions/CuratedQueries"
+        }
+      },
+      "additionalProperties": false
+    },
+    "QueryGenerationTables": {
+      "type": "array",
+      "description": "List of tables used for Redshift query generation context",
+      "items": {
+        "$ref": "#/definitions/QueryGenerationTable"
+      },
+      "maxItems": 50,
+      "insertionOrder": false
+    },
+    "QueryGenerationTable": {
+      "type": "object",
+      "description": "Tables used for Redshift query generation context",
+      "properties": {
+        "Name": {
+          "$ref": "#/definitions/QueryGenerationTableName"
+        },
+        "Description": {
+          "$ref": "#/definitions/DescriptionString"
+        },
+        "Inclusion": {
+          "$ref": "#/definitions/InclusionType"
+        },
+        "Columns": {
+          "$ref": "#/definitions/QueryGenerationColumns"
+        }
+      },
+      "required": [
+        "Name"
+      ],
+      "additionalProperties": false
+    },
+    "QueryGenerationTableName": {
+      "type": "string",
+      "description": "Query generation table name. Must follow three-part notation",
+      "pattern": "^.*\\..*\\..*$"
+    },
+    "DescriptionString": {
+      "type": "string",
+      "description": "Description for the attached entity",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "InclusionType": {
+      "type": "string",
+      "description": "Include or Exclude status for an entity",
+      "enum": [
+        "INCLUDE",
+        "EXCLUDE"
+      ]
+    },
+    "QueryGenerationColumns": {
+      "type": "array",
+      "description": "List of Redshift query generation columns",
+      "items": {
+        "$ref": "#/definitions/QueryGenerationColumn"
+      },
+      "insertionOrder": false
+    },
+    "QueryGenerationColumn": {
+      "type": "object",
+      "description": "Redshift query generation column",
+      "properties": {
+        "Name": {
+          "$ref": "#/definitions/QueryGenerationColumnName"
+        },
+        "Description": {
+          "$ref": "#/definitions/DescriptionString"
+        },
+        "Inclusion": {
+          "$ref": "#/definitions/InclusionType"
+        }
+      },
+      "additionalProperties": false
+    },
+    "QueryGenerationColumnName": {
+      "type": "string",
+      "description": "Query generation column name",
+      "minLength": 1,
+      "maxLength": 127
+    },
+    "CuratedQueries": {
+      "type": "array",
+      "description": "List of example queries and results",
+      "maxItems": 10,
+      "items": {
+        "$ref": "#/definitions/CuratedQuery"
+      },
+      "insertionOrder": false
+    },
+    "CuratedQuery": {
+      "type": "object",
+      "description": "Curated query or question and answer pair",
+      "properties": {
+        "NaturalLanguage": {
+          "$ref": "#/definitions/NaturalLanguageString"
+        },
+        "Sql": {
+          "$ref": "#/definitions/SqlString"
+        }
+      },
+      "required": [
+        "NaturalLanguage",
+        "Sql"
+      ],
+      "additionalProperties": false
+    },
+    "NaturalLanguageString": {
+      "type": "string",
+      "description": "Question for the curated query",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "SqlString": {
+      "type": "string",
+      "description": "Answer for the curated query",
+      "minLength": 1,
+      "maxLength": 1000
     }
   },
   "properties": {
@@ -651,7 +1125,12 @@
   ],
   "createOnlyProperties": [
     "/properties/StorageConfiguration",
-    "/properties/KnowledgeBaseConfiguration"
+    "/properties/KnowledgeBaseConfiguration/Type",
+    "/properties/KnowledgeBaseConfiguration/VectorKnowledgeBaseConfiguration",
+    "/properties/KnowledgeBaseConfiguration/KendraKnowledgeBaseConfiguration",
+    "/properties/KnowledgeBaseConfiguration/SqlKnowledgeBaseConfiguration/Type",
+    "/properties/KnowledgeBaseConfiguration/SqlKnowledgeBaseConfiguration/RedshiftConfiguration/StorageConfigurations",
+    "/properties/KnowledgeBaseConfiguration/SqlKnowledgeBaseConfiguration/RedshiftConfiguration/QueryEngineConfiguration"
   ],
   "primaryIdentifier": [
     "/properties/KnowledgeBaseId"
@@ -702,7 +1181,12 @@
     "tagOnCreate": true,
     "tagProperty": "/properties/Tags",
     "tagUpdatable": true,
-    "taggable": true
+    "taggable": true,
+    "permissions": [
+      "bedrock:TagResource",
+      "bedrock:UntagResource",
+      "bedrock:ListTagsForResource"
+    ]
   },
   "additionalProperties": false
 }

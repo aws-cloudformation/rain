@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!/bin/bash
 #
 # $1 is the name of the yaml file
 # If $2 is "modules", use modules instead of basic syntax

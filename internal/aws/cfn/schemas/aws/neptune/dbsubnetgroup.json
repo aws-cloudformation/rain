@@ -1,18 +1,18 @@
 {
   "typeName": "AWS::Neptune::DBSubnetGroup",
-  "description": "Resource Type definition for AWS::Neptune::DBSubnetGroup",
-  "additionalProperties": false,
+  "description": "The AWS::Neptune::DBSubnetGroup type creates an Amazon Neptune DB subnet group. Subnet groups must contain at least two subnets in two different Availability Zones in the same AWS Region.",
+  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-neptune",
   "properties": {
-    "Id": {
-      "type": "string"
-    },
     "DBSubnetGroupName": {
+      "description": "The name for the DB subnet group. This value is stored as a lowercase string.\n\nConstraints: Must contain no more than 255 lowercase alphanumeric characters or hyphens. Must not be \"Default\".\n\nExample: mysubnetgroup\n\n",
       "type": "string"
     },
     "DBSubnetGroupDescription": {
+      "description": "The description for the DB subnet group.",
       "type": "string"
     },
     "SubnetIds": {
+      "description": "The Amazon EC2 subnet IDs for the DB subnet group.",
       "type": "array",
       "uniqueItems": false,
       "items": {
@@ -22,6 +22,7 @@
     "Tags": {
       "type": "array",
       "uniqueItems": false,
+      "description": "An optional array of key-value pairs to apply to this DB subnet group.",
       "items": {
         "$ref": "#/definitions/Tag"
       }
@@ -29,33 +30,89 @@
   },
   "definitions": {
     "Tag": {
+      "description": "An optional array of key-value pairs to apply to this DB subnet group.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "Key": {
-          "type": "string"
+          "type": "string",
+          "description": "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -. "
         },
         "Value": {
-          "type": "string"
+          "type": "string",
+          "description": "The value for the tag. You can specify a value that is 0 to 256 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -. "
         }
       },
       "required": [
-        "Value",
-        "Key"
+        "Key",
+        "Value"
       ]
     }
   },
+  "additionalProperties": false,
   "required": [
     "DBSubnetGroupDescription",
     "SubnetIds"
   ],
+  "propertyTransform": {
+    "/properties/DBSubnetGroupName": "$lowercase(DBSubnetGroupName)"
+  },
   "createOnlyProperties": [
     "/properties/DBSubnetGroupName"
   ],
   "primaryIdentifier": [
-    "/properties/Id"
+    "/properties/DBSubnetGroupName"
   ],
-  "readOnlyProperties": [
-    "/properties/Id"
-  ]
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "rds:AddTagsToResource",
+      "rds:ListTagsForResource",
+      "rds:RemoveTagsFromResource"
+    ]
+  },
+  "handlers": {
+    "create": {
+      "permissions": [
+        "rds:CreateDBSubnetGroup",
+        "rds:DescribeDBSubnetGroups",
+        "rds:ListTagsForResource",
+        "rds:AddTagsToResource",
+        "iam:CreateServiceLinkedRole"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "rds:DescribeDBSubnetGroups",
+        "rds:ListTagsForResource"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "rds:ModifyDBSubnetGroup",
+        "rds:DescribeDBSubnetGroups",
+        "rds:AddTagsToResource",
+        "rds:RemoveTagsFromResource",
+        "rds:ListTagsForResource"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "rds:DeleteDBSubnetGroup",
+        "rds:DescribeDBSubnetGroups",
+        "rds:ListTagsForResource",
+        "rds:RemoveTagsFromResource"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "rds:DescribeDBSubnetGroups",
+        "rds:ListTagsForResource"
+      ]
+    }
+  }
 }

@@ -7,7 +7,6 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -43,28 +42,39 @@ func downloadHash(uri string) (string, error) {
 
 // DownloadFromZip retrieves a single file from a zip file hosted on a URI
 func DownloadFromZip(uriString string, verifyHash string, path string) ([]byte, error) {
-
-	config.Debugf("Downloading %s", uriString)
-	resp, err := http.Get(uriString)
-	if err != nil {
-		return nil, err
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
+	var zipData []byte
+	var err error
+	
+	// Check if it's a URL or local file
+	if strings.HasPrefix(uriString, "http://") || strings.HasPrefix(uriString, "https://") {
+		// Download from URL
+		config.Debugf("Downloading %s", uriString)
+		resp, err := http.Get(uriString)
 		if err != nil {
-			config.Debugf("Error closing body: %v", err)
+			return nil, err
 		}
-	}(resp.Body)
-
-	u, err := url.Parse(uriString)
-	if err != nil {
-		return nil, err
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				config.Debugf("Error closing body: %v", err)
+			}
+		}(resp.Body)
+		
+		zipData, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		// Read local file
+		config.Debugf("Reading local file %s", uriString)
+		zipData, err = os.ReadFile(uriString)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	filename := filepath.Base(u.Path)
-
-	// Save the asset content to a temp file
-	pFile, err := os.CreateTemp("", filename)
+	// Save the zip data to a temp file
+	pFile, err := os.CreateTemp("", "rain-package-*.zip")
 	if err != nil {
 		return nil, err
 	}
@@ -73,12 +83,14 @@ func DownloadFromZip(uriString string, verifyHash string, path string) ([]byte, 
 		if err != nil {
 			config.Debugf("Error closing file: %s", err)
 		}
+		// Clean up the temp file
+		os.Remove(pFile.Name())
 	}(pFile)
 
 	config.Debugf("Saving zip content to %s", pFile.Name())
 
-	// Write the asset content to the temp file
-	if _, err := io.Copy(pFile, resp.Body); err != nil {
+	// Write the zip data to the temp file
+	if _, err := pFile.Write(zipData); err != nil {
 		return nil, err
 	}
 
@@ -90,8 +102,7 @@ func DownloadFromZip(uriString string, verifyHash string, path string) ([]byte, 
 	if verifyHash != "" {
 		// Create a sha256 hash of the asset content and verify it
 		hash := sha256.New()
-		// Read the contents of the temporary pFile and generate a sha256 hash
-		if _, err := io.Copy(hash, pFile); err != nil {
+		if _, err := hash.Write(zipData); err != nil {
 			return nil, err
 		}
 		hashValue := hash.Sum(nil)
@@ -99,15 +110,19 @@ func DownloadFromZip(uriString string, verifyHash string, path string) ([]byte, 
 		// Convert the hash value to a hex string
 		hashString := fmt.Sprintf("%x", hashValue)
 
-		// Reset pFile to the beginning
-		if _, err := pFile.Seek(0, 0); err != nil {
-			return nil, err
-		}
-
-		// Download the hash
-		originalHash, err := downloadHash(verifyHash)
-		if err != nil {
-			return nil, err
+		// Download or read the hash
+		var originalHash string
+		if strings.HasPrefix(verifyHash, "http://") || strings.HasPrefix(verifyHash, "https://") {
+			originalHash, err = downloadHash(verifyHash)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			hashData, err := os.ReadFile(verifyHash)
+			if err != nil {
+				return nil, err
+			}
+			originalHash = strings.TrimSpace(string(hashData))
 		}
 
 		if originalHash != hashString {
@@ -121,10 +136,13 @@ func DownloadFromZip(uriString string, verifyHash string, path string) ([]byte, 
 	if err != nil {
 		return nil, err
 	}
+	defer os.RemoveAll(dir) // Clean up the temp directory
 
-	content, err := os.ReadFile(filepath.Join(dir, path))
+	// Read the requested file from the unzipped directory
+	filePath := filepath.Join(dir, path)
+	content, err := os.ReadFile(filePath)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read %s from zip: %v", path, err)
 	}
 
 	return content, nil

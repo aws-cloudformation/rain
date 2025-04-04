@@ -20,7 +20,7 @@
           "$ref": "#/definitions/AuditCheckConfiguration"
         },
         "DeviceCertificateExpiringCheck": {
-          "$ref": "#/definitions/AuditCheckConfiguration"
+          "$ref": "#/definitions/DeviceCertExpirationAuditCheckConfiguration"
         },
         "DeviceCertificateKeyQualityCheck": {
           "$ref": "#/definitions/AuditCheckConfiguration"
@@ -54,6 +54,9 @@
         },
         "IoTPolicyPotentialMisConfigurationCheck": {
           "$ref": "#/definitions/AuditCheckConfiguration"
+        },
+        "DeviceCertificateAgeCheck": {
+          "$ref": "#/definitions/DeviceCertAgeAuditCheckConfiguration"
         }
       },
       "additionalProperties": false
@@ -79,6 +82,34 @@
       },
       "additionalProperties": false
     },
+    "DeviceCertAgeAuditCheckConfiguration": {
+      "description": "A structure containing the configName and corresponding configValue for configuring DeviceCertAgeCheck.",
+      "type": "object",
+      "properties": {
+        "Enabled": {
+          "description": "True if the check is enabled.",
+          "type": "boolean"
+        },
+        "Configuration": {
+          "$ref": "#/definitions/CertAgeCheckCustomConfiguration"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DeviceCertExpirationAuditCheckConfiguration": {
+      "description": "A structure containing the configName and corresponding configValue for configuring DeviceCertExpirationCheck.",
+      "type": "object",
+      "properties": {
+        "Enabled": {
+          "description": "True if the check is enabled.",
+          "type": "boolean"
+        },
+        "Configuration": {
+          "$ref": "#/definitions/CertExpirationCheckCustomConfiguration"
+        }
+      },
+      "additionalProperties": false
+    },
     "AuditNotificationTarget": {
       "type": "object",
       "properties": {
@@ -96,6 +127,32 @@
         "Enabled": {
           "description": "True if notifications to the target are enabled.",
           "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ConfigValue": {
+      "type": "string",
+      "description": "The configValue for configuring audit checks.",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "CertAgeCheckCustomConfiguration": {
+      "type": "object",
+      "description": "A structure containing the configName and corresponding configValue for configuring audit checks.",
+      "properties": {
+        "CertAgeThresholdInDays": {
+          "$ref": "#/definitions/ConfigValue"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CertExpirationCheckCustomConfiguration": {
+      "type": "object",
+      "description": "A structure containing the configName and corresponding configValue for configuring audit checks.",
+      "properties": {
+        "CertExpirationThresholdInDays": {
+          "$ref": "#/definitions/ConfigValue"
         }
       },
       "additionalProperties": false

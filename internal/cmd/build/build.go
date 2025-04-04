@@ -259,9 +259,9 @@ func buildNode(n *yaml.Node, s cfn.SchemaLike, schema *cfn.Schema, ancestorTypes
 	return nil
 }
 
-func startTemplate() cft.Template {
+func startTemplate() *cft.Template {
 
-	t := cft.Template{}
+	t := &cft.Template{}
 
 	// Create the template header sections
 	t.Node = &yaml.Node{Kind: yaml.DocumentNode, Content: make([]*yaml.Node, 0)}
@@ -287,7 +287,7 @@ func isSAM(typeName string) bool {
 	return slices.Contains(transforms, typeName)
 }
 
-func build(typeNames []string) (cft.Template, error) {
+func build(typeNames []string) (*cft.Template, error) {
 
 	t := startTemplate()
 

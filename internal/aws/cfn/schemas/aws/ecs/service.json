@@ -60,7 +60,7 @@
     "/properties/ServiceArn",
     "/properties/Name"
   ],
-  "description": "The ``AWS::ECS::Service`` resource creates an Amazon Elastic Container Service (Amazon ECS) service that runs and maintains the requested number of tasks and associated load balancers.\n  The stack update fails if you change any properties that require replacement and at least one ECS Service Connect ``ServiceConnectConfiguration`` property the is configured. This is because AWS CloudFormation creates the replacement service first, but each ``ServiceConnectService`` must have a name that is unique in the namespace.\n   Starting April 15, 2023, AWS; will not onboard new customers to Amazon Elastic Inference (EI), and will help current customers migrate their workloads to options that offer better price and performance. After April 15, 2023, new customers will not be able to launch instances with Amazon EI accelerators in Amazon SageMaker, ECS, or EC2. However, customers who have used Amazon EI at least once during the past 30-day period are considered current customers and will be able to continue using the service.",
+  "description": "The ``AWS::ECS::Service`` resource creates an Amazon Elastic Container Service (Amazon ECS) service that runs and maintains the requested number of tasks and associated load balancers.\n  The stack update fails if you change any properties that require replacement and at least one ECS Service Connect ``ServiceConnectConfiguration`` property is configured. This is because AWS CloudFormation creates the replacement service first, but each ``ServiceConnectService`` must have a name that is unique in the namespace.\n   Starting April 15, 2023, AWS; will not onboard new customers to Amazon Elastic Inference (EI), and will help current customers migrate their workloads to options that offer better price and performance. After April 15, 2023, new customers will not be able to launch instances with Amazon EI accelerators in Amazon SageMaker, ECS, or EC2. However, customers who have used Amazon EI at least once during the past 30-day period are considered current customers and will be able to continue using the service.",
   "writeOnlyProperties": [
     "/properties/ServiceConnectConfiguration",
     "/properties/VolumeConfigurations"
@@ -342,21 +342,21 @@
       "type": "object",
       "properties": {
         "SecurityGroups": {
-          "description": "The IDs of the security groups associated with the task or service. If you don't specify a security group, the default security group for the VPC is used. There's a limit of 5 security groups that can be specified per ``awsvpcConfiguration``.\n  All specified security groups must be from the same VPC.",
+          "description": "The IDs of the security groups associated with the task or service. If you don't specify a security group, the default security group for the VPC is used. There's a limit of 5 security groups that can be specified.\n  All specified security groups must be from the same VPC.",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "Subnets": {
-          "description": "The IDs of the subnets associated with the task or service. There's a limit of 16 subnets that can be specified per ``awsvpcConfiguration``.\n  All specified subnets must be from the same VPC.",
+          "description": "The IDs of the subnets associated with the task or service. There's a limit of 16 subnets that can be specified.\n  All specified subnets must be from the same VPC.",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "AssignPublicIp": {
-          "description": "Whether the task's elastic network interface receives a public IP address. The default value is ``ENABLED``.",
+          "description": "Whether the task's elastic network interface receives a public IP address. \n Consider the following when you set this value:\n  +  When you use ``create-service`` or ``update-service``, the default is ``DISABLED``. \n  +  When the service ``deploymentController`` is ``ECS``, the value must be ``DISABLED``.",
           "type": "string",
           "enum": [
             "DISABLED",
@@ -424,10 +424,6 @@
         },
         "Throughput": {
           "description": "The throughput to provision for a volume, in MiB/s, with a maximum of 1,000 MiB/s. This parameter maps 1:1 with the ``Throughput`` parameter of the [CreateVolume API](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateVolume.html) in the *Amazon EC2 API Reference*.\n  This parameter is only supported for the ``gp3`` volume type.",
-          "type": "integer"
-        },
-        "VolumeInitializationRate": {
-          "description": "",
           "type": "integer"
         },
         "Iops": {
@@ -515,7 +511,7 @@
       }
     },
     "Tag": {
-      "description": "The metadata that you apply to a resource to help you categorize and organize them. Each tag consists of a key and an optional value. You define them.\n The following basic restrictions apply to tags:\n  +  Maximum number of tags per resource - 50\n  +  For each resource, each tag key must be unique, and each tag key can have only one value.\n  +  Maximum key length - 128 Unicode characters in UTF-8\n  +  Maximum value length - 256 Unicode characters in UTF-8\n  +  If your tagging schema is used across multiple services and resources, remember that other services may have restrictions on allowed characters. Generally allowed characters are: letters, numbers, and spaces representable in UTF-8, and the following characters: + - = . _ : / @.\n  +  Tag keys and values are case-sensitive.\n  +  Do not use ``aws:``, ``AWS:``, or any upper or lowercase combination of such as a prefix for either keys or values as it is reserved for AWS use. You cannot edit or delete tag keys or values with this prefix. Tags with this prefix do not count against your tags per resource limit.",
+      "description": "The metadata that you apply to a resource to help you categorize and organize them. Each tag consists of a key and an optional value. You define them.\n The following basic restrictions apply to tags:\n  +  Maximum number of tags per resource - 50\n  +  For each resource, each tag key must be unique, and each tag key can have only one value.\n  +  Maximum key length - 128 Unicode characters in UTF-8\n  +  Maximum value length - 256 Unicode characters in UTF-8\n  +  If your tagging schema is used across multiple services and resources, remember that other services may have restrictions on allowed characters. Generally allowed characters are: letters, numbers, and spaces representable in UTF-8, and the following characters: + - = . _ : / @.\n  +  Tag keys and values are case-sensitive.\n  +  Do not use ``aws:``, ``AWS:``, or any upper or lowercase combination of such as a prefix for either keys or values as it is reserved for AWS use. You cannot edit or delete tag keys or values with this prefix. Tags with this prefix do not count against your tags per resource limit.\n  \n In order to tag a service that has the following ARN format, you need to migrate the service to the long ARN. You must use the API, CLI or console to migrate the service ARN. For more information, see [Migrate an short service ARN to a long ARN](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-arn-migration.html) in the *Developer Guide*.\n  ``arn:aws:ecs:region:aws_account_id:service/service-name`` \n After the migration is complete, the following are true:\n  +   The service ARN is: ``arn:aws:ecs:region:aws_account_id:service/cluster-name/service-name`` \n  +  You can use CFN to tag the service as you would a service with a long ARN format.\n  +  When the ``PhysicalResourceId`` in the CFN stack represents a service, the value does not change and will be the short service ARN.",
       "additionalProperties": false,
       "type": "object",
       "properties": {
@@ -657,28 +653,28 @@
       "type": "string"
     },
     "PlacementStrategies": {
-      "description": "The placement strategy objects to use for tasks in your service. You can specify a maximum of 5 strategy rules for each service.",
+      "description": "The placement strategy objects to use for tasks in your service. You can specify a maximum of 5 strategy rules for each service.\n  To remove this property from your service resource, specify an empty ``PlacementStrategy`` array.",
       "type": "array",
       "items": {
         "$ref": "#/definitions/PlacementStrategy"
       }
     },
     "ServiceRegistries": {
-      "description": "The details of the service discovery registry to associate with this service. For more information, see [Service discovery](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-discovery.html).\n  Each service may be associated with one service registry. Multiple service registries for each service isn't supported.",
+      "description": "The details of the service discovery registry to associate with this service. For more information, see [Service discovery](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-discovery.html).\n  Each service may be associated with one service registry. Multiple service registries for each service isn't supported.\n   To remove this property from your service resource, specify an empty ``ServiceRegistry`` array.",
       "type": "array",
       "items": {
         "$ref": "#/definitions/ServiceRegistry"
       }
     },
     "VolumeConfigurations": {
-      "description": "The configuration for a volume specified in the task definition as a volume that is configured at launch time. Currently, the only supported volume type is an Amazon EBS volume.",
+      "description": "The configuration for a volume specified in the task definition as a volume that is configured at launch time. Currently, the only supported volume type is an Amazon EBS volume.\n  To remove this property from your service resource, specify an empty ``ServiceVolumeConfiguration`` array.",
       "type": "array",
       "items": {
         "$ref": "#/definitions/ServiceVolumeConfiguration"
       }
     },
     "CapacityProviderStrategy": {
-      "description": "The capacity provider strategy to use for the service.\n If a ``capacityProviderStrategy`` is specified, the ``launchType`` parameter must be omitted. If no ``capacityProviderStrategy`` or ``launchType`` is specified, the ``defaultCapacityProviderStrategy`` for the cluster is used.\n A capacity provider strategy can contain a maximum of 20 capacity providers.",
+      "description": "The capacity provider strategy to use for the service.\n If a ``capacityProviderStrategy`` is specified, the ``launchType`` parameter must be omitted. If no ``capacityProviderStrategy`` or ``launchType`` is specified, the ``defaultCapacityProviderStrategy`` for the cluster is used.\n A capacity provider strategy can contain a maximum of 20 capacity providers.\n  To remove this property from your service resource, specify an empty ``CapacityProviderStrategyItem`` array.",
       "type": "array",
       "items": {
         "$ref": "#/definitions/CapacityProviderStrategyItem"
@@ -738,7 +734,7 @@
       "type": "boolean"
     },
     "PlacementConstraints": {
-      "description": "An array of placement constraint objects to use for tasks in your service. You can specify a maximum of 10 constraints for each task. This limit includes constraints in the task definition and those specified at runtime.",
+      "description": "An array of placement constraint objects to use for tasks in your service. You can specify a maximum of 10 constraints for each task. This limit includes constraints in the task definition and those specified at runtime.\n  To remove this property from your service resource, specify an empty ``PlacementConstraint`` array.",
       "type": "array",
       "items": {
         "$ref": "#/definitions/PlacementConstraint"
@@ -749,7 +745,7 @@
       "type": "string"
     },
     "LoadBalancers": {
-      "description": "A list of load balancer objects to associate with the service. If you specify the ``Role`` property, ``LoadBalancers`` must be specified as well. For information about the number of load balancers that you can specify per service, see [Service Load Balancing](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-load-balancing.html) in the *Amazon Elastic Container Service Developer Guide*.",
+      "description": "A list of load balancer objects to associate with the service. If you specify the ``Role`` property, ``LoadBalancers`` must be specified as well. For information about the number of load balancers that you can specify per service, see [Service Load Balancing](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-load-balancing.html) in the *Amazon Elastic Container Service Developer Guide*.\n  To remove this property from your service resource, specify an empty ``LoadBalancer`` array.",
       "type": "array",
       "items": {
         "$ref": "#/definitions/LoadBalancer"
