@@ -128,11 +128,9 @@ func processModulesSection(t *cft.Template, n *yaml.Node,
 		outputNode := node.MakeMapping()
 
 		err = processModule(
-			name,
 			parsed,
 			outputNode,
 			t,
-			parsed.AsTemplate.Constants,
 			moduleConfig,
 			parentModule)
 		if err != nil {
@@ -150,9 +148,6 @@ func processModulesSection(t *cft.Template, n *yaml.Node,
 		} else {
 			config.Debugf("processModuleSection %s outputNode did not have any Resources", name)
 		}
-
-		config.Debugf("\nparent template after %s processModule ==== \n%s\n",
-			name, node.YamlStr(t.Node))
 
 	}
 
@@ -188,11 +183,9 @@ func addScalarAttribute(out *yaml.Node, name string, moduleResource *yaml.Node, 
 
 // processModule performs all of the module logic and injects the content into the parent
 func processModule(
-	logicalId string,
 	parsedModule *ParsedModule,
 	outputNode *yaml.Node,
 	t *cft.Template,
-	moduleConstants map[string]*yaml.Node,
 	moduleConfig *cft.ModuleConfig,
 	parentModule *Module) error {
 
@@ -223,8 +216,7 @@ func processModule(
 		},
 	}
 
-	err = processRainSection(moduleAsTemplate,
-		parsedModule.RootDir, parsedModule.FS)
+	err = processRainSection(moduleAsTemplate)
 	if err != nil {
 		return err
 	}
@@ -250,9 +242,6 @@ func processModule(
 	if err != nil {
 		return err
 	}
-
-	config.Debugf("Module %s about to resolve t.Node in processModule",
-		m.Config.Name)
 
 	// Resolve any references to this module in the parent template
 	//err = m.Resolve(t.Node)
@@ -376,8 +365,6 @@ func (module *Module) ProcessResources(outputNode *yaml.Node) error {
 		// Some refs are to other resources in the module
 		// Other refs are to the module's parameters
 
-		config.Debugf("%s about to resolve resource %s", module.Config.Name, nameNode.Value)
-
 		err = module.Resolve(clonedResource)
 		if err != nil {
 			return fmt.Errorf("failed to resolve refs: %v", err)
@@ -403,13 +390,6 @@ func (module *Module) ProcessResources(outputNode *yaml.Node) error {
 		// if we try to resolve it again later.
 		module.ParentTemplate.AddResolvedModuleNode(clonedResource)
 
-		parentName := ""
-		if module.ParentModule != nil {
-			parentName = module.ParentModule.Config.Name
-		}
-		config.Debugf("Module %s (p:%s) adding resource:\n%s\n", module.Config.Name,
-			parentName,
-			node.YamlStr(clonedResource))
 	}
 
 	return nil
@@ -422,7 +402,6 @@ func processRainResourceModule(
 	outputNode *yaml.Node,
 	t *cft.Template,
 	parent node.NodePair,
-	moduleConstants map[string]*yaml.Node,
 	source string,
 	parsed *ParsedModule) error {
 
@@ -455,7 +434,7 @@ func processRainResourceModule(
 	}
 	moduleConfig.Source = source
 
-	return processModule(logicalId, parsed, outputNode, t, moduleConstants, moduleConfig, nil)
+	return processModule(parsed, outputNode, t, moduleConfig, nil)
 }
 
 func checkPackageAlias(t *cft.Template, uri string) *cft.PackageAlias {
@@ -551,7 +530,7 @@ func module(ctx *directiveContext) (bool, error) {
 	}
 
 	// This needs to happen before recursing, since sub-modules need resolved constants in the parent
-	err = processRainSection(moduleAsTemplate, moduleContent.NewRootDir, ctx.fs)
+	err = processRainSection(moduleAsTemplate)
 	if err != nil {
 		return false, err
 	}
@@ -570,8 +549,7 @@ func module(ctx *directiveContext) (bool, error) {
 
 	// Create a new node to represent the parsed module
 	var outputNode yaml.Node
-	err = processRainResourceModule(moduleNode,
-		&outputNode, t, parent, moduleAsTemplate.Constants, uri, parsed)
+	err = processRainResourceModule(moduleNode, &outputNode, t, parent, uri, parsed)
 	if err != nil {
 		config.Debugf("processModule error: %v, moduleNode: %s", err, node.ToSJson(moduleNode))
 		return false, fmt.Errorf("failed to process module %s: %v", uri, err)

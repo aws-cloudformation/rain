@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/aws-cloudformation/rain/internal/aws/s3"
 	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/google/uuid"
 )
@@ -42,11 +43,25 @@ func downloadHash(uri string) (string, error) {
 
 // DownloadFromZip retrieves a single file from a zip file hosted on a URI
 func DownloadFromZip(uriString string, verifyHash string, path string) ([]byte, error) {
+
+	config.Debugf("DownloadFromZip uriString: %s, path: %s",
+		uriString, path)
+
 	var zipData []byte
 	var err error
-	
-	// Check if it's a URL or local file
-	if strings.HasPrefix(uriString, "http://") || strings.HasPrefix(uriString, "https://") {
+
+	isUrl := isHttpsUrl(uriString)
+	isS3 := isS3URI(uriString)
+
+	// Check if it's an S3 URI, HTTPS URL, or local file
+	if isS3 {
+		// Download from S3
+		config.Debugf("Downloading from S3: %s", uriString)
+		zipData, err = downloadS3(uriString)
+		if err != nil {
+			return nil, fmt.Errorf("failed to download zip from S3: %v", err)
+		}
+	} else if isUrl {
 		// Download from URL
 		config.Debugf("Downloading %s", uriString)
 		resp, err := http.Get(uriString)
@@ -59,7 +74,7 @@ func DownloadFromZip(uriString string, verifyHash string, path string) ([]byte, 
 				config.Debugf("Error closing body: %v", err)
 			}
 		}(resp.Body)
-		
+
 		zipData, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, err
@@ -112,7 +127,7 @@ func DownloadFromZip(uriString string, verifyHash string, path string) ([]byte, 
 
 		// Download or read the hash
 		var originalHash string
-		if strings.HasPrefix(verifyHash, "http://") || strings.HasPrefix(verifyHash, "https://") {
+		if isUrl {
 			originalHash, err = downloadHash(verifyHash)
 			if err != nil {
 				return nil, err
@@ -215,9 +230,31 @@ func Unzip(f *os.File, dest string) error {
 	return nil
 }
 
+func downloadS3(uri string) ([]byte, error) {
+	// Parse the S3 URI
+	bucket, key, err := s3.ParseURI(uri)
+	if err != nil {
+		return nil, err
+	}
+
+	// Download the file from S3
+	content, err := s3.GetObject(bucket, key)
+	if err != nil {
+		return nil, err
+	}
+
+	return content, nil
+}
+
 // downloadModule downloads the file from the given URI and returns its content as a byte slice.
 func downloadModule(uri string) ([]byte, error) {
 	config.Debugf("Downloading %s", uri)
+
+	// If it's an S3 uri, use the s3 package to download the file
+	if strings.HasPrefix(uri, "s3://") {
+		return downloadS3(uri)
+	}
+
 	resp, err := http.Get(uri)
 	if err != nil {
 		return nil, err

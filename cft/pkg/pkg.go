@@ -106,7 +106,7 @@ func transform(ctx *transformContext) (bool, error) {
 
 // processRainSection returns true if the Rain section of the template existed
 // The section is removed by this function
-func processRainSection(t *cft.Template, rootDir string, fs *embed.FS) error {
+func processRainSection(t *cft.Template) error {
 	t.Constants = make(map[string]*yaml.Node)
 	rainNode, err := t.GetSection(cft.Rain)
 	if err != nil {
@@ -139,7 +139,7 @@ func Template(t *cft.Template, rootDir string, fs *embed.FS) (*cft.Template, err
 	var err error
 
 	// First look for a Rain section and store constants
-	err = processRainSection(t, rootDir, fs)
+	err = processRainSection(t)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process Rain section: %v", err)
 	}
