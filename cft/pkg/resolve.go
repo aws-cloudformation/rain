@@ -24,13 +24,8 @@ func (module *Module) Resolve(n *yaml.Node) error {
 	vf := func(v *visitor.Visitor) {
 		vn := v.GetYamlNode()
 
-		if vn.Value != "" {
-			config.Debugf("Resolve %s", vn.Value)
-		}
-
 		if vn == module.Config.Node {
 			// Don't resolve my own config
-			config.Debugf("Resolve skipping self:\n%s\n", node.YamlStr(vn))
 			v.SkipChildren()
 			return
 		}
@@ -44,7 +39,6 @@ func (module *Module) Resolve(n *yaml.Node) error {
 		if module.ParentTemplate.ModuleAlreadyResolved(vn) {
 			// If we marked a node as resolved, skip all
 			// of its child nodes
-			config.Debugf("Resolve skipping:\n%s\n", node.YamlStr(vn))
 			v.SkipChildren()
 			return
 		}
@@ -182,8 +176,6 @@ func (module *Module) resolveParam(params *yaml.Node, n *yaml.Node, parentProps 
 // ${Foo.Bar} is treated like a GetAtt.
 func (module *Module) ResolveSub(n *yaml.Node) error {
 
-	original := node.Clone(n)
-
 	prop := n.Content[1]
 	words, err := parse.ParseSub(prop.Value, true)
 	if err != nil {
@@ -255,10 +247,6 @@ func (module *Module) ResolveSub(n *yaml.Node) error {
 	}
 
 	*n = *newProp
-
-	config.Debugf("ResolveSub:\n%s\n -> \n%s\n",
-		node.YamlStr(original),
-		node.YamlStr(n))
 
 	return nil
 }
