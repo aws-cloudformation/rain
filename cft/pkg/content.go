@@ -17,14 +17,21 @@ type ModuleContent struct {
 	BaseUri    string
 }
 
-
-
 func isHttpsUrl(uri string) bool {
 	return strings.HasPrefix(uri, "https://")
 }
 
 func isS3URI(uri string) bool {
 	return strings.HasPrefix(uri, "s3://")
+}
+
+// resolveZipLocation ensures that local zip paths are resolved relative to the template's directory
+func resolveZipLocation(root string, zipLocation string) string {
+	// For local files, resolve the path relative to the template's directory
+	if !isS3URI(zipLocation) && !isHttpsUrl(zipLocation) && !filepath.IsAbs(zipLocation) {
+		return filepath.Join(root, zipLocation)
+	}
+	return zipLocation
 }
 
 // Get the module's content from a local file, memory, or a remote uri
@@ -54,14 +61,7 @@ func getModuleContent(
 
 					if strings.HasSuffix(packageAlias.Location, ".zip") {
 						isZip = true
-						
-						// Use DownloadFromZip directly
-						zipLocation := packageAlias.Location
-						// For local files, resolve the path relative to the template's directory
-						if !isS3URI(zipLocation) && !isHttpsUrl(zipLocation) && !filepath.IsAbs(zipLocation) {
-							zipLocation = filepath.Join(root, zipLocation)
-						}
-						
+						zipLocation := resolveZipLocation(root, packageAlias.Location)
 						content, err = DownloadFromZip(zipLocation, packageAlias.Hash, path)
 						if err != nil {
 							return nil, err
@@ -90,11 +90,7 @@ func getModuleContent(
 			zipLocation := uri[:zipIndex+4]  // Include the .zip part
 			zipPath := uri[zipIndex+5:]      // Skip the .zip/ part
 			
-			// For local files, resolve the path relative to the template's directory
-			if !isS3URI(zipLocation) && !isHttpsUrl(zipLocation) && !filepath.IsAbs(zipLocation) {
-				zipLocation = filepath.Join(root, zipLocation)
-			}
-			
+			zipLocation = resolveZipLocation(root, zipLocation)
 			config.Debugf("Extracting from zip: %s, path: %s", zipLocation, zipPath)
 			
 			// Use DownloadFromZip directly - it can handle S3, HTTPS, and local files
@@ -113,14 +109,7 @@ func getModuleContent(
 			path := strings.Replace(uri, packageAlias.Alias+"/", "", 1)
 			if strings.HasSuffix(packageAlias.Location, ".zip") {
 				isZip = true
-				
-				// Use DownloadFromZip directly
-				zipLocation := packageAlias.Location
-				// For local files, resolve the path relative to the template's directory
-				if !isS3URI(zipLocation) && !isHttpsUrl(zipLocation) && !filepath.IsAbs(zipLocation) {
-					zipLocation = filepath.Join(root, zipLocation)
-				}
-				
+				zipLocation := resolveZipLocation(root, packageAlias.Location)
 				content, err = DownloadFromZip(zipLocation, packageAlias.Hash, path)
 				if err != nil {
 					return nil, err
