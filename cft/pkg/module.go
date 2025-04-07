@@ -128,11 +128,9 @@ func processModulesSection(t *cft.Template, n *yaml.Node,
 		outputNode := node.MakeMapping()
 
 		err = processModule(
-			name,
 			parsed,
 			outputNode,
 			t,
-			parsed.AsTemplate.Constants,
 			moduleConfig,
 			parentModule)
 		if err != nil {
@@ -188,11 +186,9 @@ func addScalarAttribute(out *yaml.Node, name string, moduleResource *yaml.Node, 
 
 // processModule performs all of the module logic and injects the content into the parent
 func processModule(
-	logicalId string,
 	parsedModule *ParsedModule,
 	outputNode *yaml.Node,
 	t *cft.Template,
-	moduleConstants map[string]*yaml.Node,
 	moduleConfig *cft.ModuleConfig,
 	parentModule *Module) error {
 
@@ -223,8 +219,7 @@ func processModule(
 		},
 	}
 
-	err = processRainSection(moduleAsTemplate,
-		parsedModule.RootDir, parsedModule.FS)
+	err = processRainSection(moduleAsTemplate)
 	if err != nil {
 		return err
 	}
@@ -422,7 +417,6 @@ func processRainResourceModule(
 	outputNode *yaml.Node,
 	t *cft.Template,
 	parent node.NodePair,
-	moduleConstants map[string]*yaml.Node,
 	source string,
 	parsed *ParsedModule) error {
 
@@ -455,7 +449,7 @@ func processRainResourceModule(
 	}
 	moduleConfig.Source = source
 
-	return processModule(logicalId, parsed, outputNode, t, moduleConstants, moduleConfig, nil)
+	return processModule(parsed, outputNode, t, moduleConfig, nil)
 }
 
 func checkPackageAlias(t *cft.Template, uri string) *cft.PackageAlias {
@@ -551,7 +545,7 @@ func module(ctx *directiveContext) (bool, error) {
 	}
 
 	// This needs to happen before recursing, since sub-modules need resolved constants in the parent
-	err = processRainSection(moduleAsTemplate, moduleContent.NewRootDir, ctx.fs)
+	err = processRainSection(moduleAsTemplate)
 	if err != nil {
 		return false, err
 	}
@@ -570,8 +564,7 @@ func module(ctx *directiveContext) (bool, error) {
 
 	// Create a new node to represent the parsed module
 	var outputNode yaml.Node
-	err = processRainResourceModule(moduleNode,
-		&outputNode, t, parent, moduleAsTemplate.Constants, uri, parsed)
+	err = processRainResourceModule(moduleNode, &outputNode, t, parent, uri, parsed)
 	if err != nil {
 		config.Debugf("processModule error: %v, moduleNode: %s", err, node.ToSJson(moduleNode))
 		return false, fmt.Errorf("failed to process module %s: %v", uri, err)

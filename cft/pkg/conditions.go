@@ -124,7 +124,7 @@ func evalCond(condName string, condValue interface{}, conditions map[string]inte
 			return evaluateNot(not, conditions, module)
 		}
 		if equals, ok := v["Fn::Equals"]; ok {
-			return evaluateEquals(equals, module)
+			return evaluateEquals(equals)
 		}
 		if condition, ok := v["Condition"]; ok {
 			// Reference to another condition
@@ -210,7 +210,7 @@ func evaluateNot(notExpr interface{}, conditions map[string]interface{}, module 
 }
 
 // evaluateEquals evaluates an Fn::Equals condition
-func evaluateEquals(equalsExpr interface{}, module *Module) (bool, error) {
+func evaluateEquals(equalsExpr interface{}) (bool, error) {
 	equalsList, ok := equalsExpr.([]interface{})
 	if !ok || len(equalsList) != 2 {
 		return false, fmt.Errorf("Fn::Equals requires exactly two values")
