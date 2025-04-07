@@ -17,33 +17,14 @@ type ModuleContent struct {
 	BaseUri    string
 }
 
-// Helper function to handle zip file extraction with proper path resolution
-func handleZipFile(root string, location string, hash string, path string) ([]byte, error) {
-	// Resolve the path to the zip file if it's a local path
-	zipPath := location
-	if !strings.HasPrefix(zipPath, "http://") && !strings.HasPrefix(zipPath, "https://") {
-		// If it's a relative path, resolve it relative to the template's directory
-		if !filepath.IsAbs(zipPath) {
-			zipPath = filepath.Join(root, zipPath)
-		}
-	}
 
-	// Check if the zip file exists if it's a local file
-	if !strings.HasPrefix(zipPath, "http://") && !strings.HasPrefix(zipPath, "https://") {
-		_, err := os.Stat(zipPath)
-		if err != nil {
-			return nil, fmt.Errorf("error accessing zip file %s: %v", zipPath, err)
-		}
-	}
 
-	// Unzip, verify hash if there is one, and put the files in memory
-	content, err := DownloadFromZip(zipPath, hash, path)
-	if err != nil {
-		config.Debugf("ZIP: Error extracting from zip: %v", err)
-		return nil, err
-	}
+func isHttpsUrl(uri string) bool {
+	return strings.HasPrefix(uri, "https://")
+}
 
-	return content, nil
+func isS3URI(uri string) bool {
+	return strings.HasPrefix(uri, "s3://")
 }
 
 // Get the module's content from a local file, memory, or a remote uri
@@ -53,6 +34,8 @@ func getModuleContent(
 	templateFiles *embed.FS,
 	baseUri string,
 	uri string) (*ModuleContent, error) {
+
+	config.Debugf("getModuleContent root: %s, uri: %s", root, uri)
 
 	var content []byte
 	var err error
@@ -71,7 +54,15 @@ func getModuleContent(
 
 					if strings.HasSuffix(packageAlias.Location, ".zip") {
 						isZip = true
-						content, err = handleZipFile(root, packageAlias.Location, packageAlias.Hash, path)
+						
+						// Use DownloadFromZip directly
+						zipLocation := packageAlias.Location
+						// For local files, resolve the path relative to the template's directory
+						if !isS3URI(zipLocation) && !isHttpsUrl(zipLocation) && !filepath.IsAbs(zipLocation) {
+							zipLocation = filepath.Join(root, zipLocation)
+						}
+						
+						content, err = DownloadFromZip(zipLocation, packageAlias.Hash, path)
 						if err != nil {
 							return nil, err
 						}
@@ -92,12 +83,25 @@ func getModuleContent(
 	// getModuleContent: root=cft/pkg/tmpl/awscli-modules, baseUri=, uri=package.zip/zip-module.yaml
 	if strings.Contains(uri, ".zip/") {
 		isZip = true
-		tokens := strings.Split(uri, "/")
-		location := tokens[0]
-		path := strings.Join(tokens[1:], "/")
-		content, err = handleZipFile(root, location, "", path)
-		if err != nil {
-			return nil, err
+		
+		// Extract the zip location and path within the zip
+		zipIndex := strings.Index(uri, ".zip/")
+		if zipIndex > 0 {
+			zipLocation := uri[:zipIndex+4]  // Include the .zip part
+			zipPath := uri[zipIndex+5:]      // Skip the .zip/ part
+			
+			// For local files, resolve the path relative to the template's directory
+			if !isS3URI(zipLocation) && !isHttpsUrl(zipLocation) && !filepath.IsAbs(zipLocation) {
+				zipLocation = filepath.Join(root, zipLocation)
+			}
+			
+			config.Debugf("Extracting from zip: %s, path: %s", zipLocation, zipPath)
+			
+			// Use DownloadFromZip directly - it can handle S3, HTTPS, and local files
+			content, err = DownloadFromZip(zipLocation, "", zipPath)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -109,7 +113,15 @@ func getModuleContent(
 			path := strings.Replace(uri, packageAlias.Alias+"/", "", 1)
 			if strings.HasSuffix(packageAlias.Location, ".zip") {
 				isZip = true
-				content, err = handleZipFile(root, packageAlias.Location, packageAlias.Hash, path)
+				
+				// Use DownloadFromZip directly
+				zipLocation := packageAlias.Location
+				// For local files, resolve the path relative to the template's directory
+				if !isS3URI(zipLocation) && !isHttpsUrl(zipLocation) && !filepath.IsAbs(zipLocation) {
+					zipLocation = filepath.Join(root, zipLocation)
+				}
+				
+				content, err = DownloadFromZip(zipLocation, packageAlias.Hash, path)
 				if err != nil {
 					return nil, err
 				}
@@ -122,7 +134,7 @@ func getModuleContent(
 	// Is this a local file or a URL or did we already unzip a package?
 	if isZip {
 		config.Debugf("Using content from a zipped module package (length: %d bytes)", len(content))
-	} else if strings.HasPrefix(uri, "https://") {
+	} else if isHttpsUrl(uri) || isS3URI(uri) {
 		config.Debugf("Downloading from URL: %s", uri)
 		content, err = downloadModule(uri)
 		if err != nil {
@@ -138,6 +150,7 @@ func getModuleContent(
 		baseUri = strings.Join(urlParts[:len(urlParts)-1], "/")
 
 	} else {
+		config.Debugf("Downloading from a local file, baseUri=%s, uri=%s", baseUri, uri)
 		if baseUri != "" {
 			// If we have a base URL, prepend it to the relative path
 			uri = baseUri + "/" + uri

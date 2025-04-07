@@ -295,9 +295,52 @@ func RainBucket(forceCreation bool) string {
 	return bucketName
 }
 
+// ParseURI parses an S3 URI like s3://bucket/key
+// The object key name is a sequence of Unicode characters with UTF-8 encoding of up to 1,024 bytes long.
+// The bucket name must be a valid DNS name and follow S3 bucket naming rules.
+func ParseURI(uri string) (bucket string, key string, err error) {
+	// Check if the URI starts with s3:// prefix
+	if !strings.HasPrefix(uri, "s3://") {
+		err = fmt.Errorf("invalid s3 uri: %s, must start with s3://", uri)
+		return
+	}
+	
+	// Remove the s3:// prefix
+	uri = strings.TrimPrefix(uri, "s3://")
+	
+	// Split the remaining string by the first /
+	parts := strings.SplitN(uri, "/", 2)
+	if len(parts) == 0 || parts[0] == "" {
+		err = fmt.Errorf("invalid s3 uri: %s, bucket name missing", uri)
+		return
+	}
+	
+	bucket = parts[0]
+	
+	// Validate bucket name (basic validation)
+	if len(bucket) < 3 || len(bucket) > 63 {
+		err = fmt.Errorf("invalid bucket name: %s, length must be between 3 and 63 characters", bucket)
+		return
+	}
+	
+	if len(parts) == 1 {
+		key = ""
+	} else {
+		key = parts[1]
+		
+		// Validate key length (S3 limit is 1024 bytes)
+		if len(key) > 1024 {
+			err = fmt.Errorf("invalid key: %s, length exceeds 1024 bytes", key)
+			return
+		}
+	}
+	return
+}
+
 // GetObject gets an object by key from an S3 bucket
 func GetObject(bucketName string, key string) ([]byte, error) {
 
+	config.Debugf("GetObject bucket %s, key: %s", bucketName, key)
 	accountId, err := getAccountId()
 	if err != nil {
 		return nil, err
