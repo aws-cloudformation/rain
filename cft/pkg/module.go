@@ -36,16 +36,17 @@ const (
 
 // Module represents a complete module, including parent config
 type Module struct {
-	Config         *cft.ModuleConfig
-	ParametersNode *yaml.Node
-	ResourcesNode  *yaml.Node
-	OutputsNode    *yaml.Node
-	Node           *yaml.Node
-	ParentTemplate *cft.Template
-	ConditionsNode *yaml.Node
-	ModulesNode    *yaml.Node
-	Parsed         *ParsedModule
-	ParentModule   *Module
+	Config          *cft.ModuleConfig
+	ParametersNode  *yaml.Node
+	ResourcesNode   *yaml.Node
+	OutputsNode     *yaml.Node
+	Node            *yaml.Node
+	ParentTemplate  *cft.Template
+	ConditionsNode  *yaml.Node
+	ConditionValues map[string]bool
+	ModulesNode     *yaml.Node
+	Parsed          *ParsedModule
+	ParentModule    *Module
 }
 
 // Outputs returns the Outputs node as a map
@@ -242,12 +243,6 @@ func processModule(
 	if err != nil {
 		return err
 	}
-
-	// Resolve any references to this module in the parent template
-	//err = m.Resolve(t.Node)
-	//if err != nil {
-	//	return err
-	//}
 
 	fileRootDir := ""
 	if parentModule != nil {

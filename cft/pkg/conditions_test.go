@@ -288,7 +288,7 @@ Resources:
     Type: AWS::S3::Bucket
     Condition: Test
 `,
-			wantErr: "Fn::Equals requires exactly two values",
+			wantErr: "Fn::Equals requires exactly two values: - only one value",
 		},
 		{
 			name: "invalid and condition",
@@ -301,7 +301,7 @@ Resources:
     Type: AWS::S3::Bucket
     Condition: Test
 `,
-			wantErr: "Fn::And requires a list of conditions",
+			wantErr: "Fn::And requires a list of conditions: true",
 		},
 	}
 
