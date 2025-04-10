@@ -204,6 +204,16 @@ func TestAWSCLIModuleSameMod(t *testing.T) {
 	runTest("awscli-modules/same-mod", t)
 }
 
+// TestAWSCLIModuleCondUnRes tests the cond-unres AWS CLI module functionality
+func TestAWSCLIModuleCondUnRes(t *testing.T) {
+	runTest("awscli-modules/cond-unres", t)
+}
+
+// TestAWSCLIModuleCondConflict test a Condition conflict
+func TestAWSCLIModuleCondConflict(t *testing.T) {
+	runFailTest("awscli-modules/cond-conflict", t)
+}
+
 func runTest(test string, t *testing.T) {
 
 	// There should be 3 files for each test, for example:

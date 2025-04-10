@@ -476,3 +476,11 @@ func StringsFromNode(n *yaml.Node) []string {
 	}
 	return nil
 }
+
+// Append appends to node.Content
+func Append(n *yaml.Node, a *yaml.Node) {
+	if n.Content == nil {
+		n.Content = make([]*yaml.Node, 0)
+	}
+	n.Content = append(n.Content, a)
+}
