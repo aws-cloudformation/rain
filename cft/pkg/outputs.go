@@ -9,6 +9,7 @@ import (
 	"github.com/aws-cloudformation/rain/cft"
 	"github.com/aws-cloudformation/rain/cft/parse"
 	"github.com/aws-cloudformation/rain/cft/visitor"
+	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
@@ -90,7 +91,7 @@ func (module *Module) ProcessOutputs() error {
 // GetArrayIndexFromString extracts an integer array index from a string with
 // embedded brackets.  For example, from "Content[1].Arn" it would return 1.
 // Returns an error if no valid index is found.
-func GetArrayIndexFromString(s string) (int, error) {
+func (module *Module) GetArrayIndexFromString(s string) (int, error) {
 	// Find the opening bracket position
 	start := strings.Index(s, "[")
 	if start == -1 {
@@ -109,6 +110,16 @@ func GetArrayIndexFromString(s string) (int, error) {
 	// Convert to integer
 	num, err := strconv.Atoi(numStr)
 	if err != nil {
+		// This might be a map key instead of an index
+		maps := module.ParentTemplate.ModuleMaps
+		if maps != nil {
+			config.Debugf("maps: %v", maps)
+			name := s[0:start] + numStr
+			config.Debugf("Looking for ModuleMaps[%s]", name)
+			if cfg, ok := maps[name]; ok {
+				return cfg.MapIndex, nil
+			}
+		}
 		return 0, fmt.Errorf("invalid array index in string %s: %w", s, err)
 	}
 
@@ -141,7 +152,7 @@ func (module *Module) CheckOutputGetAtt(s string, outputName string, outputVal a
 		if mappedConfig, ok := module.ParentTemplate.ModuleMaps[module.Config.Name]; ok {
 			fixedName := strings.Split(reffedModuleName, "[")[0]
 			if mappedConfig.OriginalName == fixedName && tokens[1] == outputName {
-				idx, err := GetArrayIndexFromString(reffedModuleName)
+				idx, err := module.GetArrayIndexFromString(reffedModuleName)
 				if err != nil {
 					return nil, err
 				}

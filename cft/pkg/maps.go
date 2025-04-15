@@ -58,9 +58,6 @@ func processMaps(originalContent []*yaml.Node, t *cft.Template, parentModule *Mo
 
 	content := make([]*yaml.Node, 0)
 
-	// This will hold info about original mapped modules
-	moduleMaps := make(map[string]any)
-
 	// Process Maps, which duplicate the module for each element in a list
 	for i := 0; i < len(originalContent); i += 2 {
 		name := originalContent[i].Value
@@ -78,7 +75,7 @@ func processMaps(originalContent []*yaml.Node, t *cft.Template, parentModule *Mo
 			} else if moduleConfig.Map.Kind == yaml.SequenceNode {
 				keys = node.StringsFromNode(moduleConfig.Map)
 			} else if moduleConfig.Map.Kind == yaml.MappingNode {
-				if len(moduleConfig.Map.Content) == 2 && moduleConfig.Map.Content[0].Value == "Ref" {
+				if cft.IsRef(moduleConfig.Map) {
 					r := moduleConfig.Map.Content[1].Value
 					// Look in the parent templates Parameters for the Ref
 					if !t.HasSection(cft.Parameters) {
@@ -121,9 +118,6 @@ func processMaps(originalContent []*yaml.Node, t *cft.Template, parentModule *Mo
 				mapErr := fmt.Errorf("expected module Map to have items: %s", mapJson)
 				return nil, mapErr
 			}
-
-			// Record the number of items in the map
-			moduleMaps[moduleConfig.Name] = len(keys)
 
 			// Duplicate the config
 			for i, key := range keys {

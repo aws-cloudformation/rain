@@ -2,6 +2,8 @@ package pkg
 
 import (
 	"testing"
+
+	"github.com/aws-cloudformation/rain/cft"
 )
 
 func TestGetArrayIndexFromString(t *testing.T) {
@@ -69,18 +71,20 @@ func TestGetArrayIndexFromString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := GetArrayIndexFromString(tt.input)
-			
+			m := &Module{}
+			m.ParentTemplate = &cft.Template{}
+			result, err := m.GetArrayIndexFromString(tt.input)
+
 			// Check error status
 			if (err != nil) != tt.hasError {
-				t.Errorf("GetArrayIndexFromString(%q) error = %v, wantErr %v", 
+				t.Errorf("GetArrayIndexFromString(%q) error = %v, wantErr %v",
 					tt.input, err, tt.hasError)
 				return
 			}
-			
+
 			// If we expect no error, check the result value
 			if !tt.hasError && result != tt.expected {
-				t.Errorf("GetArrayIndexFromString(%q) = %d, want %d", 
+				t.Errorf("GetArrayIndexFromString(%q) = %d, want %d",
 					tt.input, result, tt.expected)
 			}
 		})
