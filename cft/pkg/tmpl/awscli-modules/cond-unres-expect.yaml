@@ -1,5 +1,5 @@
 Conditions:
-  IsRegionUsEast1:
+  FooIsRegionUsEast1:
     Fn::Equals:
     - Ref: AWS::Region
     - us-east-1
@@ -7,6 +7,12 @@ Conditions:
 Resources:
   FooS3Bucket:
     Type: AWS::S3::Bucket
-    Condition: IsRegionUsEast1
+    Condition: FooIsRegionUsEast1
   FooA:
     Type: A::B::C
+    Properties:
+      Name:
+        Fn::If:
+          - FooIsRegionUsEast1
+          - a-east
+          - a-not-east

@@ -113,6 +113,10 @@ func (module *Module) ProcessConditions() error {
 						// If it's not in that list, it's likely a mistake
 						return fmt.Errorf(msg, condName, module.Config.Source)
 					}
+
+					// Prepend the module name to the condition
+					newName := module.Config.Name + conditionNode.Value
+					conditionNode.Value = newName
 				} else {
 					if !condResult {
 						itemsToRemove = append(itemsToRemove, itemName)
@@ -132,7 +136,7 @@ func (module *Module) ProcessConditions() error {
 		}
 
 		// Process Fn::If functions in the remaining items
-		_, err := module.ProcessFnIf(section.node)
+		_, err := module.ProcessFnIf(section.node, unResolved)
 		if err != nil {
 			return fmt.Errorf("error processing Fn::If in %s section: %v",
 				section.name, err)
@@ -159,7 +163,8 @@ func (module *Module) ProcessConditions() error {
 		}
 		for i, condNode := range module.ConditionsNode.Content {
 			if i%2 == 0 {
-				name := condNode.Value
+				// Prepend the module name to the condition
+				name := module.Config.Name + condNode.Value
 				val := module.ConditionsNode.Content[i+1]
 				if existing, ok := tcNames[name]; ok {
 					if node.YamlStr(existing) != node.YamlStr(val) {
@@ -347,7 +352,9 @@ func (module *Module) EvalEquals(n *yaml.Node) (EvalResult, error) {
 
 // ProcessFnIf processes Fn::If functions in a node and its children
 // Returns true if the node should be removed from its parent
-func (module *Module) ProcessFnIf(n *yaml.Node) (bool, error) {
+func (module *Module) ProcessFnIf(n *yaml.Node,
+	unResolved []string) (bool, error) {
+
 	if n == nil {
 		return false, nil
 	}
@@ -380,6 +387,9 @@ func (module *Module) ProcessFnIf(n *yaml.Node) (bool, error) {
 					// Replace the entire node with the replacement
 					*n = *replacement
 					return false, nil
+				} else if slices.Contains(unResolved, name) {
+					newName := module.Config.Name + name
+					value.Content[0].Value = newName
 				}
 			}
 		}
@@ -395,7 +405,7 @@ func (module *Module) ProcessFnIf(n *yaml.Node) (bool, error) {
 			value := n.Content[i+1]
 
 			// Process the value recursively
-			shouldRemove, err := module.ProcessFnIf(value)
+			shouldRemove, err := module.ProcessFnIf(value, unResolved)
 			if err != nil {
 				return false, err
 			}
@@ -418,7 +428,7 @@ func (module *Module) ProcessFnIf(n *yaml.Node) (bool, error) {
 		// Process each item in the sequence
 		i := 0
 		for i < len(n.Content) {
-			shouldRemove, err := module.ProcessFnIf(n.Content[i])
+			shouldRemove, err := module.ProcessFnIf(n.Content[i], unResolved)
 			if err != nil {
 				return false, err
 			}
