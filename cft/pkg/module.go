@@ -217,6 +217,26 @@ func processModule(
 		},
 	}
 
+	transforms, err := moduleAsTemplate.GetSection(cft.Transform)
+	if err == nil {
+		// The module has Transforms
+		parentTransforms, err := t.GetSection(cft.Transform)
+		if err != nil {
+			parentTransforms, _ = t.AddMapSection(cft.Transform)
+		}
+		merged := node.MakeSequence([]string{})
+		both := []*yaml.Node{transforms, parentTransforms}
+		for _, tr := range both {
+			if tr.Kind == yaml.ScalarNode {
+				merged.Content = append(merged.Content, tr)
+			} else {
+				merged.Content = append(merged.Content, tr.Content...)
+			}
+		}
+		merged = node.Clone(merged)
+		*parentTransforms = *merged
+	}
+
 	err = processRainSection(moduleAsTemplate)
 	if err != nil {
 		return err
