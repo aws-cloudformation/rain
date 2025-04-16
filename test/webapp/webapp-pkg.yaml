@@ -2,7 +2,7 @@ Description: "Creates a web application with a static website using S3 and Cloud
 
 Metadata:
   AWSToolsMetrics:
-    Rain: '{"Version":"v1.21.0","Experimental":true,"HasModules":true,"HasRainSection":true}'
+    Rain: '{"Version":"v1.22.0","Experimental":true,"HasModules":true,"HasRainSection":true}'
 
 Parameters:
   AppName:
@@ -243,31 +243,6 @@ Resources:
         Version: "2012-10-17"
       Path: /
 
-  SiteContentLogBucketAccessPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Sub ${AppName}-content-logs-${AWS::Region}-${AWS::AccountId}
-      PolicyDocument:
-        Statement:
-          - Action: s3:PutObject
-            Condition:
-              ArnLike:
-                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${AppName}-content-logs-${AWS::Region}-${AWS::AccountId}/*
-              StringEquals:
-                aws:SourceAccount: !Ref AWS::AccountId
-              Bool:
-                aws:SecureTransport: false
-            Effect: Allow
-            Principal:
-              Service: logging.s3.amazonaws.com
-              AWS: '*'
-            Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-logs-${AWS::Region}-${AWS::AccountId}
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-logs-${AWS::Region}-${AWS::AccountId}/*
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-logs-${AWS::Region}-${AWS::AccountId}
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-logs-${AWS::Region}-${AWS::AccountId}/*
-        Version: "2012-10-17"
-
   SiteContentBucketAccessPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -305,6 +280,31 @@ Resources:
             Resource:
               - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-replicas-${AWS::Region}-${AWS::AccountId}
               - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-replicas-${AWS::Region}-${AWS::AccountId}/*
+        Version: "2012-10-17"
+
+  SiteContentLogBucketAccessPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Sub ${AppName}-content-logs-${AWS::Region}-${AWS::AccountId}
+      PolicyDocument:
+        Statement:
+          - Action: s3:PutObject
+            Condition:
+              ArnLike:
+                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${AppName}-content-logs-${AWS::Region}-${AWS::AccountId}/*
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+              Bool:
+                aws:SecureTransport: false
+            Effect: Allow
+            Principal:
+              Service: logging.s3.amazonaws.com
+              AWS: '*'
+            Resource:
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-logs-${AWS::Region}-${AWS::AccountId}
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-logs-${AWS::Region}-${AWS::AccountId}/*
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-logs-${AWS::Region}-${AWS::AccountId}
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-content-logs-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
   SiteCloudFrontLogsLogBucket:
@@ -450,31 +450,6 @@ Resources:
         Version: "2012-10-17"
       Path: /
 
-  SiteCloudFrontLogsLogBucketAccessPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Sub ${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
-      PolicyDocument:
-        Statement:
-          - Action: s3:PutObject
-            Condition:
-              ArnLike:
-                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}/*
-              StringEquals:
-                aws:SourceAccount: !Ref AWS::AccountId
-              Bool:
-                aws:SecureTransport: false
-            Effect: Allow
-            Principal:
-              Service: logging.s3.amazonaws.com
-              AWS: '*'
-            Resource:
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}/*
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
-              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}/*
-        Version: "2012-10-17"
-
   SiteCloudFrontLogsBucketAccessPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -509,6 +484,31 @@ Resources:
             Resource:
               - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}
               - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-replicas-${AWS::Region}-${AWS::AccountId}/*
+        Version: "2012-10-17"
+
+  SiteCloudFrontLogsLogBucketAccessPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Sub ${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
+      PolicyDocument:
+        Statement:
+          - Action: s3:PutObject
+            Condition:
+              ArnLike:
+                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}/*
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+              Bool:
+                aws:SecureTransport: false
+            Effect: Allow
+            Principal:
+              Service: logging.s3.amazonaws.com
+              AWS: '*'
+            Resource:
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}/*
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}
+              - !Sub arn:${AWS::Partition}:s3:::${AppName}-cflogs-logs-${AWS::Region}-${AWS::AccountId}/*
         Version: "2012-10-17"
 
   CognitoUserPool:
@@ -552,6 +552,40 @@ Resources:
       SupportedIdentityProviders:
         - COGNITO
 
+  RestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Ref AppName
+
+  RestApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - TestResourceGet
+      - TestResourceOptions
+      - JwtResourceGet
+      - JwtResourceOptions
+    Metadata:
+      Version: 2
+    Properties:
+      RestApiId: !Ref RestApi
+
+  RestApiStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId: !Ref RestApi
+      DeploymentId: !Ref RestApiDeployment
+      StageName: prod
+
+  RestApiAuthorizer:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      IdentitySource: method.request.header.authorization
+      Name: CognitoApiAuthorizer
+      ProviderARNs:
+        - !GetAtt CognitoUserPool.Arn
+      RestApiId: !Ref RestApi
+      Type: COGNITO_USER_POOLS
+
   TestResourceHandler:
     Type: AWS::Lambda::Function
     Properties:
@@ -559,8 +593,8 @@ Resources:
       FunctionName: !Sub ${AppName}-test-handler
       Runtime: provided.al2023
       Code:
-        S3Bucket: rain-artifacts-755952356119-us-east-1
-        S3Key: 77a966929bda29d575910093c38c9c1234ce19121144b0efa1a3e0b77155dc21
+        S3Bucket: rain-artifacts-207567786752-us-east-1
+        S3Key: d4e37950015c58dc7c4e9e0ac7ab1dd41ab4d914a44e92244758b966573d166e
       Role: !GetAtt TestResourceHandlerRole.Arn
       Environment:
         Variables:
@@ -629,6 +663,39 @@ Resources:
         Type: AWS_PROXY
         Uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TestResourceHandler.Arn}/invocations
 
+  TestDataTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      TableName: !Sub ${AppName}-test
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+
+  TestDataLambdaPolicy:
+    Type: AWS::IAM::RolePolicy
+    Metadata:
+      Comment: This resource is created only if the LambdaRoleArn is set
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - dynamodb:BatchGetItem
+              - dynamodb:GetItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+            Effect: Allow
+            Resource:
+              - !GetAtt TestDataTable.Arn
+      PolicyName: !Sub ${AppName}-test-policy
+      RoleName: !Ref TestResourceHandlerRole
+
   JwtResourceHandler:
     Type: AWS::Lambda::Function
     Properties:
@@ -636,8 +703,8 @@ Resources:
       FunctionName: !Sub ${AppName}-jwt-handler
       Runtime: provided.al2023
       Code:
-        S3Bucket: rain-artifacts-755952356119-us-east-1
-        S3Key: 7bde57b13984589f9359b01fc4282afc17a16d166953da50f663d0b5212c1ac7
+        S3Bucket: rain-artifacts-207567786752-us-east-1
+        S3Key: 9e3528cc44b150ec0457f13fa6215b920fb2fac546df321a74f23e06014d3d71
       Role: !GetAtt JwtResourceHandlerRole.Arn
       Environment:
         Variables:
@@ -709,73 +776,6 @@ Resources:
         IntegrationHttpMethod: POST
         Type: AWS_PROXY
         Uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${JwtResourceHandler.Arn}/invocations
-
-  RestApi:
-    Type: AWS::ApiGateway::RestApi
-    Properties:
-      Name: !Ref AppName
-
-  RestApiDeployment:
-    Type: AWS::ApiGateway::Deployment
-    DependsOn:
-      - TestResourceGet
-      - TestResourceOptions
-      - JwtResourceGet
-      - JwtResourceOptions
-    Metadata:
-      Version: 2
-    Properties:
-      RestApiId: !Ref RestApi
-
-  RestApiStage:
-    Type: AWS::ApiGateway::Stage
-    Properties:
-      RestApiId: !Ref RestApi
-      DeploymentId: !Ref RestApiDeployment
-      StageName: prod
-
-  RestApiAuthorizer:
-    Type: AWS::ApiGateway::Authorizer
-    Properties:
-      IdentitySource: method.request.header.authorization
-      Name: CognitoApiAuthorizer
-      ProviderARNs:
-        - !GetAtt CognitoUserPool.Arn
-      RestApiId: !Ref RestApi
-      Type: COGNITO_USER_POOLS
-
-  TestDataTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      BillingMode: PAY_PER_REQUEST
-      TableName: !Sub ${AppName}-test
-      AttributeDefinitions:
-        - AttributeName: id
-          AttributeType: S
-      KeySchema:
-        - AttributeName: id
-          KeyType: HASH
-
-  TestDataLambdaPolicy:
-    Type: AWS::IAM::RolePolicy
-    Metadata:
-      Comment: This resource is created only if the LambdaRoleArn is set
-    Properties:
-      PolicyDocument:
-        Statement:
-          - Action:
-              - dynamodb:BatchGetItem
-              - dynamodb:GetItem
-              - dynamodb:Query
-              - dynamodb:Scan
-              - dynamodb:BatchWriteItem
-              - dynamodb:PutItem
-              - dynamodb:UpdateItem
-            Effect: Allow
-            Resource:
-              - !GetAtt TestDataTable.Arn
-      PolicyName: !Sub ${AppName}-test-policy
-      RoleName: !Ref TestResourceHandlerRole
 
 Outputs:
   SiteURL:
