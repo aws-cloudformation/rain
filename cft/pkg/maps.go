@@ -1,3 +1,4 @@
+// ForEach (aka Map) processing for modules
 package pkg
 
 import (
@@ -13,18 +14,27 @@ import (
 )
 
 const (
-	MI = "$MapIndex"
-	MV = "$MapValue"
+	MI = "$Index"
+	MV = "$Identifier"
 )
 
-func replaceMapStr(s string, index int, key string) string {
+func replaceMapStr(s string, index int, key string, identifier string) string {
+	s = strings.Replace(s, "${"+MI+"}", fmt.Sprintf("%d", index), -1)
+	s = strings.Replace(s, "&{"+MI+"}", fmt.Sprintf("%d", index), -1)
 	s = strings.Replace(s, MI, fmt.Sprintf("%d", index), -1)
+	s = strings.Replace(s, "${"+MV+"}", key, -1)
+	s = strings.Replace(s, "&{"+MV+"}", key, -1)
 	s = strings.Replace(s, MV, key, -1)
+
+	if identifier != "" {
+		s = cft.ReplaceIdentifier(s, key, identifier)
+	}
+
 	return s
 }
 
-// mapPlaceholders looks for MapValue and MapIndex and replaces them
-func mapPlaceholders(n *yaml.Node, index int, key string) {
+// mapPlaceholders looks for Index and Identifier and replaces them
+func mapPlaceholders(n *yaml.Node, index int, key string, identifier string) {
 
 	vf := func(v *visitor.Visitor) {
 		yamlNode := v.GetYamlNode()
@@ -33,7 +43,8 @@ func mapPlaceholders(n *yaml.Node, index int, key string) {
 			if len(content) == 2 {
 				switch content[0].Value {
 				case string(cft.Sub):
-					r := replaceMapStr(content[1].Value, index, key)
+					r := replaceMapStr(content[1].Value,
+						index, key, identifier)
 					if parse.IsSubNeeded(r) {
 						yamlNode.Value = r
 					} else {
@@ -41,12 +52,14 @@ func mapPlaceholders(n *yaml.Node, index int, key string) {
 					}
 				case string(cft.GetAtt):
 					for _, getatt := range content[1].Content {
-						getatt.Value = replaceMapStr(getatt.Value, index, key)
+						getatt.Value = replaceMapStr(getatt.Value, index, key,
+							identifier)
 					}
 				}
 			}
 		} else if yamlNode.Kind == yaml.ScalarNode {
-			yamlNode.Value = replaceMapStr(yamlNode.Value, index, key)
+			yamlNode.Value = replaceMapStr(yamlNode.Value, index, key,
+				identifier)
 		}
 	}
 
@@ -85,12 +98,13 @@ func getMapKeys(moduleConfig *cft.ModuleConfig, t *cft.Template,
 			// TODO: Will this work in nested modules?
 			// Have those props been resolved?
 			if parentModule != nil {
-				if parentPropVal, ok := parentModule.Config.Properties()[r]; ok {
-					csv, ok := parentPropVal.(string)
+				if parentVal, ok := parentModule.Config.Properties()[r]; ok {
+					csv, ok := parentVal.(string)
 					if ok {
 						keys = strings.Split(csv, ",")
 					} else {
-						return nil, fmt.Errorf("expected Map keys to be a CSV: %v", parentPropVal)
+						msg := "expected Map keys to be a CSV: %v"
+						return nil, fmt.Errorf(msg, parentVal)
 					}
 				}
 			}
@@ -98,12 +112,14 @@ func getMapKeys(moduleConfig *cft.ModuleConfig, t *cft.Template,
 			if len(keys) == 0 {
 				_, d, _ := s11n.GetMapValue(keysNode, "Default")
 				if d == nil {
-					return nil, fmt.Errorf("expected module Map Ref to a Default: %s", mapJson)
+					msg := "expected module Map Ref to a Default: %s"
+					return nil, fmt.Errorf(msg, mapJson)
 				}
 				keys = node.StringsFromNode(d)
 			}
 		} else {
-			return nil, fmt.Errorf("expected module Map to be a Ref: %s", mapJson)
+			msg := "expected module Map to be a Ref: %s"
+			return nil, fmt.Errorf(msg, mapJson)
 		}
 	} else {
 		return nil, fmt.Errorf("unexpected module Map Kind: %s", mapJson)
@@ -113,7 +129,8 @@ func getMapKeys(moduleConfig *cft.ModuleConfig, t *cft.Template,
 }
 
 // processMaps duplicates module configuration in the template for
-// each value in a CSV.
+// each value in a CSV. The external name for this is now "ForEach",
+// but originally it was called "Map".
 func processMaps(originalContent []*yaml.Node,
 	t *cft.Template, parentModule *Module) ([]*yaml.Node, error) {
 
@@ -127,46 +144,64 @@ func processMaps(originalContent []*yaml.Node,
 			return nil, err
 		}
 
-		if moduleConfig.Map != nil {
-			keys, err := getMapKeys(moduleConfig, t, parentModule)
+		if moduleConfig.Map == nil {
+			content = append(content, originalContent[i])
+			content = append(content, originalContent[i+1])
+			continue
+		}
+
+		keys, err := getMapKeys(moduleConfig, t, parentModule)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(keys) < 1 {
+			msg := "expected module Map to have items: %s"
+			mapErr := fmt.Errorf(msg, node.YamlStr(moduleConfig.Node))
+			return nil, mapErr
+		}
+
+		// Duplicate the config
+		for i, key := range keys {
+			mapName := fmt.Sprintf("%s%d", moduleConfig.Name, i)
+
+			if moduleConfig.FnForEach != nil &&
+				moduleConfig.FnForEach.OutputKeyHasIdentifier() {
+				// The OutputKey is something like A${Identifier},
+				// which means we use the key instead of the
+				// array index to create the logical id
+				mapName = fmt.Sprintf("%s%s", moduleConfig.Name, key)
+			}
+
+			copiedNode := node.Clone(moduleConfig.Node)
+			node.RemoveFromMap(copiedNode, ForEach)
+			copiedConfig, err := t.ParseModuleConfig(mapName, copiedNode)
 			if err != nil {
 				return nil, err
 			}
 
-			if len(keys) < 1 {
-				msg := "expected module Map to have items: %s"
-				mapErr := fmt.Errorf(msg, node.YamlStr(moduleConfig.Node))
-				return nil, mapErr
+			// These values won't go into the YAML but we'll store them for
+			// later
+
+			copiedConfig.OriginalName = moduleConfig.Name
+			copiedConfig.IsMapCopy = true
+			copiedConfig.MapIndex = i
+			copiedConfig.MapKey = key
+
+			// Add a reference to the template so we can find it later for
+			// Outputs
+
+			t.AddMappedModule(copiedConfig)
+
+			// Replace $Index and $Identifier
+			identifier := ""
+			if moduleConfig.FnForEach != nil {
+				identifier = moduleConfig.FnForEach.Identifier
 			}
+			mapPlaceholders(copiedNode, i, key, identifier)
 
-			// Duplicate the config
-			for i, key := range keys {
-				mapName := fmt.Sprintf("%s%d", moduleConfig.Name, i)
-				copiedNode := node.Clone(moduleConfig.Node)
-				node.RemoveFromMap(copiedNode, "Map")
-				copiedConfig, err := t.ParseModuleConfig(mapName, copiedNode)
-				if err != nil {
-					return nil, err
-				}
-
-				// These values won't go into the YAML but we'll store them for later
-				copiedConfig.OriginalName = moduleConfig.Name
-				copiedConfig.IsMapCopy = true
-				copiedConfig.MapIndex = i
-				copiedConfig.MapKey = key
-
-				// Add a reference to the template so we can find it later for Outputs
-				t.AddMappedModule(copiedConfig)
-
-				// Replace $MapIndex and $MapValue
-				mapPlaceholders(copiedNode, i, key)
-
-				content = append(content, node.MakeScalar(mapName))
-				content = append(content, copiedNode)
-			}
-		} else {
-			content = append(content, originalContent[i])
-			content = append(content, originalContent[i+1])
+			content = append(content, node.MakeScalar(mapName))
+			content = append(content, copiedNode)
 		}
 	}
 	return content, nil

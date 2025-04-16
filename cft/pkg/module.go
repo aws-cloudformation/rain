@@ -31,7 +31,7 @@ const (
 	Condition           = "Condition"
 	Default             = "Default"
 	Source              = "Source"
-	Map                 = "Map"
+	ForEach             = "ForEach"
 )
 
 // Module represents a complete module, including parent config
@@ -94,7 +94,7 @@ func processModulesSection(t *cft.Template, n *yaml.Node,
 
 	originalContent := moduleSection.Content
 
-	// Duplicate module content that has a Map attribute
+	// Duplicate module content that has a ForEach attribute
 	content, err := processMaps(originalContent, t, parentModule)
 	if err != nil {
 		return err
