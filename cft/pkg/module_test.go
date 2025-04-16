@@ -214,6 +214,10 @@ func TestAWSCLIModuleCondConflict(t *testing.T) {
 	runFailTest("awscli-modules/cond-conflict", t)
 }
 
+func TestAWSCLIModuleForEach(t *testing.T) {
+	runTest("awscli-modules/foreach", t)
+}
+
 func runTest(test string, t *testing.T) {
 
 	// There should be 3 files for each test, for example:
