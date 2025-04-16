@@ -53,8 +53,69 @@ func mapPlaceholders(n *yaml.Node, index int, key string) {
 	visitor.NewVisitor(n).Visit(vf)
 }
 
-// processMaps duplicates module configuration in the template for each value in a CSV
-func processMaps(originalContent []*yaml.Node, t *cft.Template, parentModule *Module) ([]*yaml.Node, error) {
+// getMapKeys gets the CSV key values from either a hard-coded
+// string or from a Ref.
+func getMapKeys(moduleConfig *cft.ModuleConfig, t *cft.Template,
+	parentModule *Module) ([]string, error) {
+
+	// The map is either a CSV or a Ref to a CSV that we can fully
+	// resolve
+	mapJson := node.ToSJson(moduleConfig.Map)
+	var keys []string
+	if moduleConfig.Map.Kind == yaml.ScalarNode {
+		keys = node.StringsFromNode(moduleConfig.Map)
+	} else if moduleConfig.Map.Kind == yaml.SequenceNode {
+		keys = node.StringsFromNode(moduleConfig.Map)
+	} else if moduleConfig.Map.Kind == yaml.MappingNode {
+		if cft.IsRef(moduleConfig.Map) {
+			r := moduleConfig.Map.Content[1].Value
+			// Look in the parent templates Parameters for the Ref
+			if !t.HasSection(cft.Parameters) {
+				msg := "module Map Ref no Parameters: %s"
+				return nil, fmt.Errorf(msg, mapJson)
+			}
+			params, _ := t.GetSection(cft.Parameters)
+			_, keysNode, _ := s11n.GetMapValue(params, r)
+			if keysNode == nil {
+				msg := "expected module Map Ref to a Parameter: %s"
+				return nil, fmt.Errorf(msg, mapJson)
+			}
+
+			// Look at the parent module Properties
+			// TODO: Will this work in nested modules?
+			// Have those props been resolved?
+			if parentModule != nil {
+				if parentPropVal, ok := parentModule.Config.Properties()[r]; ok {
+					csv, ok := parentPropVal.(string)
+					if ok {
+						keys = strings.Split(csv, ",")
+					} else {
+						return nil, fmt.Errorf("expected Map keys to be a CSV: %v", parentPropVal)
+					}
+				}
+			}
+
+			if len(keys) == 0 {
+				_, d, _ := s11n.GetMapValue(keysNode, "Default")
+				if d == nil {
+					return nil, fmt.Errorf("expected module Map Ref to a Default: %s", mapJson)
+				}
+				keys = node.StringsFromNode(d)
+			}
+		} else {
+			return nil, fmt.Errorf("expected module Map to be a Ref: %s", mapJson)
+		}
+	} else {
+		return nil, fmt.Errorf("unexpected module Map Kind: %s", mapJson)
+	}
+
+	return keys, nil
+}
+
+// processMaps duplicates module configuration in the template for
+// each value in a CSV.
+func processMaps(originalContent []*yaml.Node,
+	t *cft.Template, parentModule *Module) ([]*yaml.Node, error) {
 
 	content := make([]*yaml.Node, 0)
 
@@ -67,55 +128,14 @@ func processMaps(originalContent []*yaml.Node, t *cft.Template, parentModule *Mo
 		}
 
 		if moduleConfig.Map != nil {
-			// The map is either a CSV or a Ref to a CSV that we can fully resolve
-			mapJson := node.ToSJson(moduleConfig.Map)
-			var keys []string
-			if moduleConfig.Map.Kind == yaml.ScalarNode {
-				keys = node.StringsFromNode(moduleConfig.Map)
-			} else if moduleConfig.Map.Kind == yaml.SequenceNode {
-				keys = node.StringsFromNode(moduleConfig.Map)
-			} else if moduleConfig.Map.Kind == yaml.MappingNode {
-				if cft.IsRef(moduleConfig.Map) {
-					r := moduleConfig.Map.Content[1].Value
-					// Look in the parent templates Parameters for the Ref
-					if !t.HasSection(cft.Parameters) {
-						return nil, fmt.Errorf("module Map Ref no Parameters: %s", mapJson)
-					}
-					params, _ := t.GetSection(cft.Parameters)
-					_, keysNode, _ := s11n.GetMapValue(params, r)
-					if keysNode == nil {
-						return nil, fmt.Errorf("expected module Map Ref to a Parameter: %s", mapJson)
-					}
-
-					// Look at the parent module Properties
-					// TODO: Will this work in nested modules? Have those props been resolved?
-					if parentModule != nil {
-						if parentPropVal, ok := parentModule.Config.Properties()[r]; ok {
-							csv, ok := parentPropVal.(string)
-							if ok {
-								keys = strings.Split(csv, ",")
-							} else {
-								return nil, fmt.Errorf("expected Map keys to be a CSV: %v", parentPropVal)
-							}
-						}
-					}
-
-					if len(keys) == 0 {
-						_, d, _ := s11n.GetMapValue(keysNode, "Default")
-						if d == nil {
-							return nil, fmt.Errorf("expected module Map Ref to a Default: %s", mapJson)
-						}
-						keys = node.StringsFromNode(d)
-					}
-				} else {
-					return nil, fmt.Errorf("expected module Map to be a Ref: %s", mapJson)
-				}
-			} else {
-				return nil, fmt.Errorf("unexpected module Map Kind: %s", mapJson)
+			keys, err := getMapKeys(moduleConfig, t, parentModule)
+			if err != nil {
+				return nil, err
 			}
 
 			if len(keys) < 1 {
-				mapErr := fmt.Errorf("expected module Map to have items: %s", mapJson)
+				msg := "expected module Map to have items: %s"
+				mapErr := fmt.Errorf(msg, node.YamlStr(moduleConfig.Node))
 				return nil, mapErr
 			}
 
