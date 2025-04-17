@@ -17,7 +17,7 @@
       "maximum": 10000
     },
     "BisectBatchOnFunctionError": {
-      "description": "(Kinesis and DynamoDB Streams only) If the function returns an error, split the batch in two and retry. The default value is false.",
+      "description": "(Kinesis and DynamoDB Streams only) If the function returns an error, split the batch in two and retry. The default value is false.\n  When using ``BisectBatchOnFunctionError``, check the ``BatchSize`` parameter in the ``OnFailure`` destination message's metadata. The ``BatchSize`` could be greater than 1 since LAM consolidates failed messages metadata when writing to the ``OnFailure`` destination.",
       "type": "boolean"
     },
     "DestinationConfig": {
@@ -495,7 +495,6 @@
       "permissions": [
         "lambda:UpdateEventSourceMapping",
         "lambda:GetEventSourceMapping",
-        "lambda:ListTags",
         "lambda:TagResource",
         "lambda:UntagResource",
         "kms:DescribeKey",
@@ -509,6 +508,11 @@
     "tagOnCreate": true,
     "tagUpdatable": true,
     "cloudFormationSystemTags": true,
-    "tagProperty": "/properties/Tags"
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "lambda:ListTags",
+      "lambda:TagResource",
+      "lambda:UntagResource"
+    ]
   }
 }

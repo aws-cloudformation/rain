@@ -48,6 +48,21 @@
         "true",
         "false"
       ]
+    },
+    "SupportedNetworkTypes": {
+      "type": "string",
+      "enum": [
+        "ipv4",
+        "ipv6",
+        "dual_stack"
+      ]
+    },
+    "SupportedIpDiscoveryTypes": {
+      "type": "string",
+      "enum": [
+        "ipv4",
+        "ipv6"
+      ]
     }
   },
   "properties": {
@@ -139,6 +154,16 @@
       "description": "Enables data tiering. Data tiering is only supported for clusters using the r6gd node type. This parameter must be set when using r6gd nodes.",
       "$ref": "#/definitions/DataTieringStatus"
     },
+    "NetworkType": {
+      "type": "object",
+      "description": "Must be either ipv4 | ipv6 | dual_stack.",
+      "$ref": "#/definitions/SupportedNetworkTypes"
+    },
+    "IpDiscovery": {
+      "type": "object",
+      "description": "For clusters wth dual stack NetworkType, IpDiscovery controls the Ip protocol (ipv4 or ipv6) returned by the engine commands such as `cluster info` and `cluster nodes` which are used by clients to connect to the nodes in the cluster.",
+      "$ref": "#/definitions/SupportedIpDiscoveryTypes"
+    },
     "KmsKeyId": {
       "description": "The ID of the KMS key used to encrypt the cluster.",
       "type": "string"
@@ -225,7 +250,8 @@
     "/properties/SubnetGroupName",
     "/properties/SnapshotArns",
     "/properties/MultiRegionClusterName",
-    "/properties/SnapshotName"
+    "/properties/SnapshotName",
+    "/properties/NetworkType"
   ],
   "writeOnlyProperties": [
     "/properties/SnapshotArns",
@@ -244,8 +270,10 @@
         "memorydb:CreateCluster",
         "memorydb:DescribeClusters",
         "memorydb:TagResource",
-        "memorydb:ListTags"
-      ]
+        "memorydb:ListTags",
+        "iam:CreateServiceLinkedRole"
+      ],
+      "timeoutInMinutes": 720
     },
     "read": {
       "permissions": [

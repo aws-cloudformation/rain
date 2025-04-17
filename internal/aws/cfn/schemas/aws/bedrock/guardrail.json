@@ -2,26 +2,12 @@
   "typeName": "AWS::Bedrock::Guardrail",
   "description": "Definition of AWS::Bedrock::Guardrail Resource Type",
   "definitions": {
-    "ContentFilter": {
-      "type": "object",
-      "description": "Content filter in content policy.",
-      "properties": {
-        "Type": {
-          "$ref": "#/definitions/ContentFilterType"
-        },
-        "InputStrength": {
-          "$ref": "#/definitions/FilterStrength"
-        },
-        "OutputStrength": {
-          "$ref": "#/definitions/FilterStrength"
-        }
-      },
-      "required": [
-        "InputStrength",
-        "OutputStrength",
-        "Type"
-      ],
-      "additionalProperties": false
+    "ContentFilterAction": {
+      "type": "string",
+      "enum": [
+        "BLOCK",
+        "NONE"
+      ]
     },
     "Modality": {
       "type": "string",
@@ -59,6 +45,18 @@
           },
           "minItems": 1,
           "description": "List of modalities"
+        },
+        "InputAction": {
+          "$ref": "#/definitions/ContentFilterAction"
+        },
+        "OutputAction": {
+          "$ref": "#/definitions/ContentFilterAction"
+        },
+        "InputEnabled": {
+          "type": "boolean"
+        },
+        "OutputEnabled": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -99,6 +97,13 @@
       ],
       "additionalProperties": false
     },
+    "ContextualGroundingAction": {
+      "type": "string",
+      "enum": [
+        "BLOCK",
+        "NONE"
+      ]
+    },
     "ContextualGroundingFilterConfig": {
       "type": "object",
       "description": "A config for grounding filter.",
@@ -110,6 +115,12 @@
           "type": "number",
           "minimum": 0,
           "description": "The threshold for this filter."
+        },
+        "Action": {
+          "$ref": "#/definitions/ContextualGroundingAction"
+        },
+        "Enabled": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -166,25 +177,24 @@
         "DELETING"
       ]
     },
-    "ManagedWords": {
-      "type": "object",
-      "description": "A managed words definition.",
-      "properties": {
-        "Type": {
-          "$ref": "#/definitions/ManagedWordsType"
-        }
-      },
-      "required": [
-        "Type"
-      ],
-      "additionalProperties": false
-    },
     "ManagedWordsConfig": {
       "type": "object",
       "description": "A managed words config.",
       "properties": {
         "Type": {
           "$ref": "#/definitions/ManagedWordsType"
+        },
+        "InputAction": {
+          "$ref": "#/definitions/WordAction"
+        },
+        "OutputAction": {
+          "$ref": "#/definitions/WordAction"
+        },
+        "InputEnabled": {
+          "type": "boolean"
+        },
+        "OutputEnabled": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -199,23 +209,6 @@
         "PROFANITY"
       ]
     },
-    "PiiEntity": {
-      "type": "object",
-      "description": "Entity name and behavior.",
-      "properties": {
-        "Type": {
-          "$ref": "#/definitions/PiiEntityType"
-        },
-        "Action": {
-          "$ref": "#/definitions/SensitiveInformationAction"
-        }
-      },
-      "required": [
-        "Action",
-        "Type"
-      ],
-      "additionalProperties": false
-    },
     "PiiEntityConfig": {
       "type": "object",
       "description": "Pii entity configuration.",
@@ -225,6 +218,18 @@
         },
         "Action": {
           "$ref": "#/definitions/SensitiveInformationAction"
+        },
+        "InputAction": {
+          "$ref": "#/definitions/SensitiveInformationAction"
+        },
+        "OutputAction": {
+          "$ref": "#/definitions/SensitiveInformationAction"
+        },
+        "InputEnabled": {
+          "type": "boolean"
+        },
+        "OutputEnabled": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -293,6 +298,18 @@
         },
         "Action": {
           "$ref": "#/definitions/SensitiveInformationAction"
+        },
+        "InputAction": {
+          "$ref": "#/definitions/SensitiveInformationAction"
+        },
+        "OutputAction": {
+          "$ref": "#/definitions/SensitiveInformationAction"
+        },
+        "InputEnabled": {
+          "type": "boolean"
+        },
+        "OutputEnabled": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -307,7 +324,8 @@
       "description": "Options for sensitive information action.",
       "enum": [
         "BLOCK",
-        "ANONYMIZE"
+        "ANONYMIZE",
+        "NONE"
       ]
     },
     "SensitiveInformationPolicyConfig": {
@@ -359,44 +377,12 @@
       ],
       "additionalProperties": false
     },
-    "Topic": {
-      "type": "object",
-      "description": "Topic in topic policy.",
-      "properties": {
-        "Name": {
-          "type": "string",
-          "maxLength": 100,
-          "minLength": 1,
-          "pattern": "^[0-9a-zA-Z-_ !?.]+$",
-          "description": "Name of topic in topic policy"
-        },
-        "Definition": {
-          "type": "string",
-          "maxLength": 200,
-          "minLength": 1,
-          "description": "Definition of topic in topic policy"
-        },
-        "Examples": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "maxLength": 100,
-            "minLength": 1,
-            "description": "Text example in topic policy"
-          },
-          "minItems": 0,
-          "description": "List of text examples"
-        },
-        "Type": {
-          "$ref": "#/definitions/TopicType"
-        }
-      },
-      "required": [
-        "Definition",
-        "Name",
-        "Type"
-      ],
-      "additionalProperties": false
+    "TopicAction": {
+      "type": "string",
+      "enum": [
+        "BLOCK",
+        "NONE"
+      ]
     },
     "TopicConfig": {
       "type": "object",
@@ -428,6 +414,18 @@
         },
         "Type": {
           "$ref": "#/definitions/TopicType"
+        },
+        "InputAction": {
+          "$ref": "#/definitions/TopicAction"
+        },
+        "OutputAction": {
+          "$ref": "#/definitions/TopicAction"
+        },
+        "InputEnabled": {
+          "type": "boolean"
+        },
+        "OutputEnabled": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -462,6 +460,13 @@
         "DENY"
       ]
     },
+    "WordAction": {
+      "type": "string",
+      "enum": [
+        "BLOCK",
+        "NONE"
+      ]
+    },
     "WordConfig": {
       "type": "object",
       "description": "A custom word config.",
@@ -470,6 +475,18 @@
           "type": "string",
           "minLength": 1,
           "description": "The custom word text."
+        },
+        "InputAction": {
+          "$ref": "#/definitions/WordAction"
+        },
+        "OutputAction": {
+          "$ref": "#/definitions/WordAction"
+        },
+        "InputEnabled": {
+          "type": "boolean"
+        },
+        "OutputEnabled": {
+          "type": "boolean"
         }
       },
       "required": [
