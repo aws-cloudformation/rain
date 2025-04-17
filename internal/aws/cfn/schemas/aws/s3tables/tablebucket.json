@@ -10,6 +10,9 @@
     },
     "UnreferencedFileRemoval": {
       "$ref": "#/definitions/UnreferencedFileRemoval"
+    },
+    "EncryptionConfiguration": {
+      "$ref": "#/definitions/EncryptionConfiguration"
     }
   },
   "definitions": {
@@ -50,6 +53,25 @@
           "minimum": 1
         }
       }
+    },
+    "EncryptionConfiguration": {
+      "type": "object",
+      "description": "Specifies encryption settings for the table bucket",
+      "properties": {
+        "SSEAlgorithm": {
+          "type": "string",
+          "description": "Server-side encryption algorithm",
+          "enum": [
+            "AES256",
+            "aws:kms"
+          ]
+        },
+        "KMSKeyArn": {
+          "type": "string",
+          "description": "ARN of the KMS key to use for encryption"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false,
@@ -76,21 +98,28 @@
       "permissions": [
         "s3tables:CreateTableBucket",
         "s3tables:PutTableBucketMaintenanceConfiguration",
+        "s3tables:PutTableBucketEncryption",
         "s3tables:GetTableBucket",
-        "s3tables:GetTableBucketMaintenanceConfiguration"
+        "s3tables:GetTableBucketMaintenanceConfiguration",
+        "s3tables:GetTableBucketEncryption",
+        "kms:DescribeKey"
       ]
     },
     "read": {
       "permissions": [
         "s3tables:GetTableBucket",
-        "s3tables:GetTableBucketMaintenanceConfiguration"
+        "s3tables:GetTableBucketMaintenanceConfiguration",
+        "s3tables:GetTableBucketEncryption"
       ]
     },
     "update": {
       "permissions": [
         "s3tables:PutTableBucketMaintenanceConfiguration",
+        "s3tables:PutTableBucketEncryption",
+        "s3tables:GetTableBucketMaintenanceConfiguration",
+        "s3tables:GetTableBucketEncryption",
         "s3tables:GetTableBucket",
-        "s3tables:GetTableBucketMaintenanceConfiguration"
+        "kms:DescribeKey"
       ]
     },
     "delete": {

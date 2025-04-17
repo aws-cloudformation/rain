@@ -257,6 +257,10 @@ func (t *Template) AddMappedModule(copiedConfig *ModuleConfig) {
 		t.ModuleMaps = make(map[string]*ModuleConfig)
 	}
 	t.ModuleMaps[copiedConfig.Name] = copiedConfig
+	keyName := copiedConfig.OriginalName + copiedConfig.MapKey
+	// Also add the name if referenced by key
+	t.ModuleMaps[keyName] = copiedConfig
+
 	if t.ModuleMapNames == nil {
 		t.ModuleMapNames = make(map[string][]string)
 	}
@@ -281,4 +285,10 @@ func (t *Template) AddResolvedModuleNode(n *yaml.Node) {
 
 func (t *Template) ModuleAlreadyResolved(n *yaml.Node) bool {
 	return slices.Contains(t.ModuleResolved, n)
+}
+
+// IsRef returns true if the node is a 2-length Mapping node
+// that starts with "Ref"
+func IsRef(n *yaml.Node) bool {
+	return len(n.Content) == 2 && n.Content[0].Value == string(Ref)
 }

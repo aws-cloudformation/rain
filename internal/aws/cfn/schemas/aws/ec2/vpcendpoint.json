@@ -15,7 +15,8 @@
             "dualstack",
             "service-defined",
             "not-specified"
-          ]
+          ],
+          "description": "The DNS records created for the endpoint."
         },
         "PrivateDnsOnlyForInboundResolverEndpoint": {
           "type": "string",
@@ -23,27 +24,30 @@
             "OnlyInboundResolver",
             "AllResolvers",
             "NotSpecified"
-          ]
+          ],
+          "description": "Indicates whether to enable private DNS only for inbound endpoints. This option is available only for services that support both gateway and interface endpoints. It routes traffic that originates from the VPC to the gateway endpoint and traffic that originates from on-premises to the interface endpoint."
         }
       },
-      "description": ""
+      "description": "Describes the DNS options for an endpoint."
     },
     "Tag": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "Key": {
-          "type": "string"
+          "type": "string",
+          "description": "The key of the tag.\n Constraints: Tag keys are case-sensitive and accept a maximum of 127 Unicode characters. May not begin with ``aws:``."
         },
         "Value": {
-          "type": "string"
+          "type": "string",
+          "description": "The value of the tag.\n Constraints: Tag values are case-sensitive and accept a maximum of 256 Unicode characters."
         }
       },
       "required": [
         "Value",
         "Key"
       ],
-      "description": ""
+      "description": "Describes a tag."
     }
   },
   "properties": {
@@ -164,11 +168,11 @@
     },
     "ServiceNetworkArn": {
       "type": "string",
-      "description": ""
+      "description": "The Amazon Resource Name (ARN) of the service network."
     },
     "ResourceConfigurationArn": {
       "type": "string",
-      "description": ""
+      "description": "The Amazon Resource Name (ARN) of the resource configuration."
     },
     "IpAddressType": {
       "type": "string",
@@ -178,20 +182,24 @@
         "dualstack",
         "not-specified"
       ],
-      "description": ""
+      "description": "The supported IP address types."
     },
     "DnsOptions": {
       "$ref": "#/definitions/DnsOptionsSpecification",
-      "description": ""
+      "description": "Describes the DNS options for an endpoint."
     },
     "Tags": {
       "type": "array",
-      "description": "",
+      "description": "The tags to associate with the endpoint.",
       "uniqueItems": false,
       "insertionOrder": false,
       "items": {
         "$ref": "#/definitions/Tag"
       }
+    },
+    "ServiceRegion": {
+      "type": "string",
+      "description": ""
     }
   },
   "required": [
@@ -208,7 +216,8 @@
     "/properties/VpcEndpointType",
     "/properties/VpcId",
     "/properties/ServiceNetworkArn",
-    "/properties/ResourceConfigurationArn"
+    "/properties/ResourceConfigurationArn",
+    "/properties/ServiceRegion"
   ],
   "primaryIdentifier": [
     "/properties/Id"
@@ -217,7 +226,7 @@
     "taggable": true,
     "tagOnCreate": true,
     "tagUpdatable": true,
-    "cloudFormationSystemTags": false,
+    "cloudFormationSystemTags": true,
     "tagProperty": "/properties/Tags",
     "permissions": [
       "ec2:CreateTags",
@@ -235,7 +244,8 @@
         "vpc-lattice:CreateServiceNetworkVpcEndpointAssociation",
         "vpc-lattice:DescribeServiceNetworkVpcEndpointAssociation",
         "ec2:CreateTags",
-        "ec2:DeleteTags"
+        "ec2:DeleteTags",
+        "vpce:AllowMultiRegion"
       ],
       "timeoutInMinutes": 210
     },
@@ -256,7 +266,8 @@
         "vpc-lattice:CreateServiceNetworkVpcEndpointAssociation",
         "vpc-lattice:DescribeServiceNetworkVpcEndpointAssociation",
         "ec2:CreateTags",
-        "ec2:DeleteTags"
+        "ec2:DeleteTags",
+        "vpce:AllowMultiRegion"
       ],
       "timeoutInMinutes": 210
     },
@@ -268,7 +279,8 @@
         "ec2:DescribeSecurityGroups",
         "vpc-lattice:DescribeServiceNetworkVpcEndpointAssociation",
         "ec2:CreateTags",
-        "ec2:DeleteTags"
+        "ec2:DeleteTags",
+        "vpce:AllowMultiRegion"
       ],
       "timeoutInMinutes": 210
     },

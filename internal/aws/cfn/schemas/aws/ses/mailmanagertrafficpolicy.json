@@ -21,7 +21,7 @@
           "type": "string",
           "maxLength": 256,
           "minLength": 1,
-          "pattern": "^[\\sa-zA-Z0-9_]+$"
+          "pattern": "^(addon\\.)?[\\sa-zA-Z0-9_]+$"
         }
       },
       "required": [
@@ -124,6 +124,54 @@
       ],
       "additionalProperties": false
     },
+    "IngressIpv6Attribute": {
+      "type": "string",
+      "enum": [
+        "SENDER_IPV6"
+      ]
+    },
+    "IngressIpv6Expression": {
+      "type": "object",
+      "properties": {
+        "Evaluate": {
+          "$ref": "#/definitions/IngressIpv6ToEvaluate"
+        },
+        "Operator": {
+          "$ref": "#/definitions/IngressIpOperator"
+        },
+        "Values": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 49,
+            "pattern": "^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:))\\/(12[0-8]|1[0-1][0-9]|[1-9][0-9]|[0-9])$"
+          }
+        }
+      },
+      "required": [
+        "Evaluate",
+        "Operator",
+        "Values"
+      ],
+      "additionalProperties": false
+    },
+    "IngressIpv6ToEvaluate": {
+      "oneOf": [
+        {
+          "type": "object",
+          "title": "Attribute",
+          "properties": {
+            "Attribute": {
+              "$ref": "#/definitions/IngressIpv6Attribute"
+            }
+          },
+          "required": [
+            "Attribute"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
     "IngressStringEmailAttribute": {
       "type": "string",
       "enum": [
@@ -175,6 +223,19 @@
           },
           "required": [
             "Attribute"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "title": "Analysis",
+          "properties": {
+            "Analysis": {
+              "$ref": "#/definitions/IngressAnalysis"
+            }
+          },
+          "required": [
+            "Analysis"
           ],
           "additionalProperties": false
         }
@@ -262,6 +323,19 @@
           },
           "required": [
             "IpExpression"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "title": "Ipv6Expression",
+          "properties": {
+            "Ipv6Expression": {
+              "$ref": "#/definitions/IngressIpv6Expression"
+            }
+          },
+          "required": [
+            "Ipv6Expression"
           ],
           "additionalProperties": false
         },

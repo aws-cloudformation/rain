@@ -1,0 +1,124 @@
+{
+  "typeName": "AWS::DSQL::Cluster",
+  "description": "Resource Type definition for AWS::DSQL::Cluster",
+  "definitions": {
+    "Tag": {
+      "description": "A map of key and value pairs to use to tag your cluster.",
+      "properties": {
+        "Key": {
+          "type": "string",
+          "description": "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "Value": {
+          "type": "string",
+          "description": "The value for the tag. You can specify a value that is 1 to 256 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "Key",
+        "Value"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "DeletionProtectionEnabled": {
+      "description": "Whether deletion protection is enabled in this cluster.",
+      "type": "boolean"
+    },
+    "Tags": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Tag"
+      },
+      "uniqueItems": false,
+      "insertionOrder": false
+    },
+    "ResourceArn": {
+      "description": "The Amazon Resource Name (ARN) for the cluster.",
+      "type": "string"
+    },
+    "Identifier": {
+      "description": "The ID of the created cluster.",
+      "type": "string"
+    },
+    "CreationTime": {
+      "description": "The time of when the cluster was created in ISO-8601 format.",
+      "type": "string"
+    },
+    "Status": {
+      "description": "The status of the cluster.",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [],
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "dsql:UntagResource",
+      "dsql:TagResource",
+      "dsql:ListTagsForResource"
+    ]
+  },
+  "primaryIdentifier": [
+    "/properties/Identifier"
+  ],
+  "readOnlyProperties": [
+    "/properties/ResourceArn",
+    "/properties/Identifier",
+    "/properties/CreationTime",
+    "/properties/Status"
+  ],
+  "handlers": {
+    "create": {
+      "permissions": [
+        "dsql:CreateCluster",
+        "dsql:GetCluster",
+        "dsql:TagResource",
+        "dsql:ListTagsForResource",
+        "iam:CreateServiceLinkedRole"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "dsql:GetCluster",
+        "dsql:ListTagsForResource",
+        "tag:GetTagKeys",
+        "tag:GetTagValues"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "dsql:UpdateCluster",
+        "dsql:GetCluster",
+        "dsql:UntagResource",
+        "dsql:TagResource",
+        "dsql:ListTagsForResource"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "dsql:DeleteCluster",
+        "dsql:GetCluster",
+        "dsql:ListTagsForResource"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "dsql:ListClusters",
+        "dsql:ListTagsForResource",
+        "tag:GetTagKeys",
+        "tag:GetTagValues"
+      ]
+    }
+  }
+}

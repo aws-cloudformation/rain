@@ -429,13 +429,14 @@ Modules are not allowed to refer to themselves directly or in cycles. Module A
 can’t import Module A, and it can’t import Module B if that module imports
 Module A.
 
-Modules support a basic form of looping/foreach by adding a `Map` attribute to
-the module configuration. Special variables `$MapIndex` and `$MapValue` can be
-used to refer to the index and list value. Logical Ids are auto-incremented by
+Modules support a basic form of looping/foreach by either using the familiar
+`Fn::ForEach` syntax, or with a shorthand by adding a `ForEach` attribute to
+the module configuration. Special variables `$Identifier` and `$Index` can be
+used to refer to the value and list index. With the shorthand, or if you don't
+put the Identifier in the logical id, logical ids are auto-incremented by
 adding an integer starting at zero. Since this is a client-side-only feature,
 list values must be fully resolved scalars, not values that must be resolved at
-deploy time. When deploy-time values are needed, `Fn::ForEach` is a better
-design option. Local modules do not process `Fn::ForEach`.
+deploy time. 
 
 ```
 Parameters:
@@ -446,7 +447,7 @@ Parameters:
 Modules:
   Content:
     Source: ./map-module.yaml
-    Map: !Ref List
+    ForEach: !Ref List
     Properties:
       Name: !Sub my-bucket-$MapValue
 ```
@@ -478,15 +479,12 @@ It’s also possible to refer to elements within a `Map` using something like
 which resolves to a list of all of the `Arn` outputs from that module.
 
 When a module is processed, the first thing that happens is parsing of the
-`Conditions` within the module. These conditions must be fully resolvable
-client-side, since the package command does not have access to Parameters or
-deploy-time values. These conditions are converted to a dictionary of boolean
-values and the `Conditions` section is not emitted into the parent template. It
-is not merged into the parent. Any resources marked with a false condition are
-removed, and any property nodes with conditions are processed. Any values of
-`!Ref AWS::NoValue` are removed. No evidence of conditions will remain in the
-markup that is merged into the parent template, unless the condition is not
-found in the module. 
+Conditions within the module. Any Resources, Modules, or Outputs marked with a
+false condition are removed, and any property nodes with conditions are
+processed. Any values of !Ref AWS::NoValue are removed. Any unresolved
+conditions (for example, a condition that references a paramter in the parent
+template, or something like AWS::Region) are emitted into the parent template,
+prefixed with the module name.
 
 Much of the value of module output is in the smart handling of `Ref`,
 `Fn::GetAtt`, and `Fn::Sub`. For the most part, we want these to “just work” in
@@ -583,11 +581,6 @@ Modules:
   Bar:
     Source: $def/a/b/bar.yaml
 ```
-
-
-
-
-
 
 ### Publish modules to CodeArtifact 
 

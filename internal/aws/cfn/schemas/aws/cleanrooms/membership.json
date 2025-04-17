@@ -9,6 +9,13 @@
         "DISABLED"
       ]
     },
+    "MembershipJobLogStatus": {
+      "type": "string",
+      "enum": [
+        "ENABLED",
+        "DISABLED"
+      ]
+    },
     "MembershipStatus": {
       "type": "string",
       "enum": [
@@ -68,12 +75,41 @@
         "Bucket"
       ]
     },
+    "ProtectedJobS3OutputConfigurationInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Bucket": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 63
+        },
+        "KeyPrefix": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "Bucket"
+      ]
+    },
     "MembershipProtectedQueryOutputConfiguration": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "S3": {
           "$ref": "#/definitions/ProtectedQueryS3OutputConfiguration"
+        }
+      },
+      "required": [
+        "S3"
+      ]
+    },
+    "MembershipProtectedJobOutputConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "S3": {
+          "$ref": "#/definitions/ProtectedJobS3OutputConfigurationInput"
         }
       },
       "required": [
@@ -97,6 +133,24 @@
         "OutputConfiguration"
       ]
     },
+    "MembershipProtectedJobResultConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "OutputConfiguration": {
+          "$ref": "#/definitions/MembershipProtectedJobOutputConfiguration"
+        },
+        "RoleArn": {
+          "type": "string",
+          "minLength": 32,
+          "maxLength": 512
+        }
+      },
+      "required": [
+        "OutputConfiguration",
+        "RoleArn"
+      ]
+    },
     "MembershipPaymentConfiguration": {
       "type": "object",
       "additionalProperties": false,
@@ -106,6 +160,9 @@
         },
         "MachineLearning": {
           "$ref": "#/definitions/MembershipMLPaymentConfig"
+        },
+        "JobCompute": {
+          "$ref": "#/definitions/MembershipJobComputePaymentConfig"
         }
       },
       "required": [
@@ -159,6 +216,18 @@
       "required": [
         "IsResponsible"
       ]
+    },
+    "MembershipJobComputePaymentConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "IsResponsible": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "IsResponsible"
+      ]
     }
   },
   "properties": {
@@ -200,8 +269,14 @@
     "QueryLogStatus": {
       "$ref": "#/definitions/MembershipQueryLogStatus"
     },
+    "JobLogStatus": {
+      "$ref": "#/definitions/MembershipJobLogStatus"
+    },
     "DefaultResultConfiguration": {
       "$ref": "#/definitions/MembershipProtectedQueryResultConfiguration"
+    },
+    "DefaultJobResultConfiguration": {
+      "$ref": "#/definitions/MembershipProtectedJobResultConfiguration"
     },
     "PaymentConfiguration": {
       "$ref": "#/definitions/MembershipPaymentConfiguration"

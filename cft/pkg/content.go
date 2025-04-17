@@ -11,6 +11,8 @@ import (
 	"github.com/aws-cloudformation/rain/internal/config"
 )
 
+var contentCache map[string]*ModuleContent
+
 type ModuleContent struct {
 	Content    []byte
 	NewRootDir string
@@ -42,7 +44,15 @@ func getModuleContent(
 	baseUri string,
 	uri string) (*ModuleContent, error) {
 
-	config.Debugf("getModuleContent root: %s, uri: %s", root, uri)
+	config.Debugf("getModuleContent root: %s, baseUri: %s, uri: %s",
+		root, baseUri, uri)
+
+	cacheKey := fmt.Sprintf("%s/%s/%s", root, baseUri, uri)
+
+	if cached, ok := contentCache[cacheKey]; ok {
+		config.Debugf("getModuleContent cache hit: %s", cacheKey)
+		return cached, nil
+	}
 
 	var content []byte
 	var err error
@@ -83,16 +93,16 @@ func getModuleContent(
 	// getModuleContent: root=cft/pkg/tmpl/awscli-modules, baseUri=, uri=package.zip/zip-module.yaml
 	if strings.Contains(uri, ".zip/") {
 		isZip = true
-		
+
 		// Extract the zip location and path within the zip
 		zipIndex := strings.Index(uri, ".zip/")
 		if zipIndex > 0 {
-			zipLocation := uri[:zipIndex+4]  // Include the .zip part
-			zipPath := uri[zipIndex+5:]      // Skip the .zip/ part
-			
+			zipLocation := uri[:zipIndex+4] // Include the .zip part
+			zipPath := uri[zipIndex+5:]     // Skip the .zip/ part
+
 			zipLocation = resolveZipLocation(root, zipLocation)
 			config.Debugf("Extracting from zip: %s, path: %s", zipLocation, zipPath)
-			
+
 			// Use DownloadFromZip directly - it can handle S3, HTTPS, and local files
 			content, err = DownloadFromZip(zipLocation, "", zipPath)
 			if err != nil {
@@ -183,5 +193,11 @@ func getModuleContent(
 		}
 	}
 
-	return &ModuleContent{content, newRootDir, baseUri}, nil
+	retval := &ModuleContent{content, newRootDir, baseUri}
+	contentCache[cacheKey] = retval
+	return retval, nil
+}
+
+func init() {
+	contentCache = make(map[string]*ModuleContent)
 }

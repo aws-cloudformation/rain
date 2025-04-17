@@ -2,19 +2,26 @@ package pkg
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/aws-cloudformation/rain/cft"
-	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
 )
 
-// ProcessConditions evaluates conditions in the module and
-// removes Modules and Resources that should be omitted by
-// a Condition that evaluates to false. It then looks for
-// Fn::If function calls that reference the condition and
-// resolves them, removing the false item.
+type EvalResult string
+
+const (
+	Equals     EvalResult = "=="
+	NotEquals  EvalResult = "!="
+	UnResolved EvalResult = "?"
+)
+
+// ProcessConditions evaluates conditions in the module and removes Modules and
+// Resources that should be omitted by a Condition that evaluates to false. It
+// then looks for Fn::If function calls that reference the condition and
+// resolves them, removing false nodes.
 func (module *Module) ProcessConditions() error {
 	// If there are no conditions in the module, nothing to do
 	if module.ConditionsNode == nil {
@@ -27,21 +34,40 @@ func (module *Module) ProcessConditions() error {
 		return err
 	}
 
-	// Create a dictionary of condition names to boolean values
-	conditionValues := make(map[string]bool)
+	// Initialize the module's ConditionValues map if it doesn't exist
+	if module.ConditionValues == nil {
+		module.ConditionValues = make(map[string]bool)
+	}
 
-	// Evaluate each condition in the Conditions section
-	conditions := module.Conditions()
-	for condName, condValue := range conditions {
-		// Evaluate the condition expression
-		result, err := evalCond(condName, condValue, conditions, module)
+	unResolved := make([]string, 0)
+	resolved := make([]string, 0)
+
+	// Evaluate each condition in the Conditions section in the order they
+	// appear in the YAML. This ensures that conditions that depend on other
+	// conditions are evaluated after their dependencies
+	for i := 0; i < len(module.ConditionsNode.Content); i += 2 {
+		name := module.ConditionsNode.Content[i].Value
+		valNode := module.ConditionsNode.Content[i+1]
+
+		result, err := module.EvalCond(name, valNode)
 		if err != nil {
 			return err
 		}
-		conditionValues[condName] = result
+		isResolved := true
+		switch result {
+		case Equals:
+			module.ConditionValues[name] = true
+		case NotEquals:
+			module.ConditionValues[name] = false
+		case UnResolved:
+			unResolved = append(unResolved, name)
+			isResolved = false
+		}
+		if isResolved {
+			resolved = append(resolved, name)
+		}
 	}
 
-	// Process both Resources and Modules sections
 	sections := []struct {
 		name string
 		node *yaml.Node
@@ -57,7 +83,7 @@ func (module *Module) ProcessConditions() error {
 		}
 
 		// Filter items based on conditions
-		// We need to collect items to remove first to avoid modifying while iterating
+		// Collect items to remove first to avoid modifying while iterating
 		var itemsToRemove []string
 
 		for i := 0; i < len(section.node.Content); i += 2 {
@@ -67,21 +93,29 @@ func (module *Module) ProcessConditions() error {
 			// Check if this item has a Condition attribute
 			_, conditionNode, _ := s11n.GetMapValue(itemNode, Condition)
 			if conditionNode != nil {
-				var conditionResult bool
+				var condResult bool
+				if conditionNode.Kind != yaml.ScalarNode {
+					return fmt.Errorf("invalid Condition: %s",
+						node.YamlStr(itemNode))
+				}
+				condName := conditionNode.Value
+				condResult, ok := module.ConditionValues[condName]
+				if !ok {
+					// Is this a condition that we could not
+					// fully resolve, or a condition that doesn't exist?
 
-				if conditionNode.Kind == yaml.ScalarNode {
-					conditionName := conditionNode.Value
-					conditionResult = conditionValues[conditionName]
+					if slices.Contains(unResolved, condName) {
+						// Prepend the module name to the condition
+						newName := module.Config.Name + conditionNode.Value
+						conditionNode.Value = newName
+
+					}
 				} else {
-					return fmt.Errorf("invalid Condition: %s", node.YamlStr(itemNode))
+					if !condResult {
+						itemsToRemove = append(itemsToRemove, itemName)
+					}
+					node.RemoveFromMap(itemNode, Condition)
 				}
-
-				if !conditionResult {
-
-					itemsToRemove = append(itemsToRemove, itemName)
-				}
-
-				node.RemoveFromMap(itemNode, Condition)
 			}
 		}
 
@@ -89,144 +123,228 @@ func (module *Module) ProcessConditions() error {
 		for _, itemName := range itemsToRemove {
 			err := node.RemoveFromMap(section.node, itemName)
 			if err != nil {
-				return fmt.Errorf("error removing %s from %s section: %v", itemName, section.name, err)
+				return fmt.Errorf("error removing %s from %s section: %v",
+					itemName, section.name, err)
 			}
 		}
 
 		// Process Fn::If functions in the remaining items
-		_, err := processFnIf(section.node, conditionValues)
+		_, err := module.ProcessFnIf(section.node, unResolved)
 		if err != nil {
-			return fmt.Errorf("error processing Fn::If in %s section: %v", section.name, err)
+			return fmt.Errorf("error processing Fn::If in %s section: %v",
+				section.name, err)
 		}
 	}
 
-	node.RemoveFromMap(module.Node, string(cft.Conditions))
+	if len(unResolved) == 0 {
+		node.RemoveFromMap(module.Node, string(cft.Conditions))
+	} else {
+		// Only remove those that we fully resolved.
+		// Emit the rest into the parent template.
+		for _, name := range resolved {
+			node.RemoveFromMap(module.ConditionsNode, name)
+		}
+
+		// Ensure that the parent template has a Conditions section
+		t := module.ParentTemplate
+		tc, err := t.GetSection(cft.Conditions)
+		if err != nil {
+			tc, _ = t.AddMapSection(cft.Conditions)
+		}
+
+		// Record the existing conditions in the parent
+		tcNames := make(map[string]*yaml.Node)
+		for i := 0; i < len(tc.Content); i += 2 {
+			tcNames[tc.Content[i].Value] = tc.Content[i+1]
+		}
+
+		for i, condNode := range module.ConditionsNode.Content {
+			if i%2 == 0 {
+				// Prepend the module name to the condition
+				name := module.Config.Name + condNode.Value
+				val := module.ConditionsNode.Content[i+1]
+				if existing, ok := tcNames[name]; ok {
+					if node.YamlStr(existing) != node.YamlStr(val) {
+						msg := "module %s has an unresolved Condition " +
+							"%s that conflicts with a Condition in the parent"
+						return fmt.Errorf(msg, module.Config.Source, name)
+					}
+				} else {
+					nameNode := node.MakeScalar(name)
+					node.Append(tc, nameNode)
+					cloned := node.Clone(val)
+					node.Append(tc, cloned)
+				}
+			}
+		}
+
+	}
 
 	return nil
 }
 
-// evalCond evaluates a CloudFormation condition expression and returns its boolean value
-func evalCond(condName string, condValue interface{}, conditions map[string]interface{}, module *Module) (bool, error) {
+// EvalCond evaluates a condition expression and returns its boolean value
+func (module *Module) EvalCond(
+	name string, val *yaml.Node) (EvalResult, error) {
 
-	config.Debugf("evalCond %s %s:\n%s", module.Config.Name, condName, node.EncodeMap(condValue))
+	// Handle mapping node (most condition functions)
+	if val.Kind == yaml.MappingNode && len(val.Content) >= 2 {
+		key := val.Content[0].Value
+		valueNode := val.Content[1]
 
-	// Handle condition node based on its type
-	switch v := condValue.(type) {
-	case map[string]interface{}:
-		// Check for condition functions: Fn::And, Fn::Or, Fn::Not, Fn::Equals, etc.
-		if and, ok := v["Fn::And"]; ok {
-			return evaluateAnd(and, conditions, module)
-		}
-		if or, ok := v["Fn::Or"]; ok {
-			return evaluateOr(or, conditions, module)
-		}
-		if not, ok := v["Fn::Not"]; ok {
-			return evaluateNot(not, conditions, module)
-		}
-		if equals, ok := v["Fn::Equals"]; ok {
-			return evaluateEquals(equals)
-		}
-		if condition, ok := v["Condition"]; ok {
-			// Reference to another condition
-			conditionName, ok := condition.(string)
-			if !ok {
-				return false, fmt.Errorf("condition reference must be a string: %v", condition)
+		switch key {
+		case "Fn::And":
+			return module.EvalAnd(valueNode)
+		case "Fn::Or":
+			return module.EvalOr(valueNode)
+		case "Fn::Not":
+			return module.EvalNot(valueNode)
+		case "Fn::Equals":
+			return module.EvalEquals(valueNode)
+		case "Condition":
+			if valueNode.Kind != yaml.ScalarNode {
+				msg := "condition reference must be a string: %s"
+				return UnResolved, fmt.Errorf(msg, node.YamlStr(valueNode))
 			}
+			conditionName := valueNode.Value
 			// Check if we've already evaluated this condition
-			if result, exists := conditions[conditionName]; exists {
-				boolResult, ok := result.(bool)
-				if ok {
-					return boolResult, nil
+			if res, exists := module.ConditionValues[conditionName]; exists {
+				if res {
+					return Equals, nil
+				} else {
+					return NotEquals, nil
 				}
-				// If not already evaluated as boolean, recursively evaluate it
-				return evalCond(conditionName, result, conditions, module)
 			}
-			return false, fmt.Errorf("referenced condition '%s' not found", conditionName)
+			msg := "referenced condition '%s' not found"
+			return UnResolved, fmt.Errorf(msg, conditionName)
 		}
-	case string:
+	} else if val.Kind == yaml.ScalarNode {
 		// This might be a direct condition reference
-		if result, exists := conditions[v]; exists {
-			return evalCond("", result, conditions, module)
+		if res, exists := module.ConditionValues[val.Value]; exists {
+			if res {
+				return Equals, nil
+			} else {
+				return NotEquals, nil
+			}
 		}
 	}
 
 	// Default to false if we can't evaluate the condition
-	return false, fmt.Errorf("unable to evaluate condition '%s' in %s: unsupported format: %v",
-		condName, module.Config.Name, condValue)
+	msg := "unable to evaluate condition '%s' in %s: unsupported format: %s"
+	return UnResolved,
+		fmt.Errorf(msg, name, module.Config.Name, node.YamlStr(val))
 }
 
-// evaluateAnd evaluates an Fn::And condition
-func evaluateAnd(andExpr interface{}, conditions map[string]interface{}, module *Module) (bool, error) {
-	andList, ok := andExpr.([]interface{})
-	if !ok {
-		return false, fmt.Errorf("Fn::And requires a list of conditions")
+// EvalAnd evaluates an Fn::And condition
+func (module *Module) EvalAnd(n *yaml.Node) (EvalResult, error) {
+	if n.Kind != yaml.SequenceNode {
+		msg := "Fn::And requires a list of conditions: %s"
+		return UnResolved, fmt.Errorf(msg, node.YamlStr(n))
 	}
+
+	hasUnResolved := false
 
 	// All conditions must be true for And to be true
-	for _, cond := range andList {
-		result, err := evalCond("", cond, conditions, module)
+	for _, val := range n.Content {
+		result, err := module.EvalCond("", val)
 		if err != nil {
-			return false, err
+			return UnResolved, err
 		}
-		if !result {
-			return false, nil // Short circuit on first false condition
+		if result == NotEquals {
+			return NotEquals, nil
+		}
+		if result == UnResolved {
+			hasUnResolved = true
 		}
 	}
-	return true, nil
+	if !hasUnResolved {
+		return Equals, nil
+	}
+	// If they're not all Equals, we can't be sure
+	return UnResolved, nil
 }
 
-// evaluateOr evaluates an Fn::Or condition
-func evaluateOr(orExpr interface{}, conditions map[string]interface{}, module *Module) (bool, error) {
-	orList, ok := orExpr.([]interface{})
-	if !ok {
-		return false, fmt.Errorf("Fn::Or requires a list of conditions")
+// EvalOr evaluates an Fn::Or condition
+func (module *Module) EvalOr(n *yaml.Node) (EvalResult, error) {
+	if n.Kind != yaml.SequenceNode {
+		msg := "Fn::Or requires a list of conditions: %s"
+		return UnResolved, fmt.Errorf(msg, node.YamlStr(n))
 	}
+
+	hasUnResolved := false
 
 	// Any condition being true makes Or true
-	for _, cond := range orList {
-		result, err := evalCond("", cond, conditions, module)
+	for _, val := range n.Content {
+		result, err := module.EvalCond("", val)
 		if err != nil {
-			return false, err
+			return UnResolved, err
 		}
-		if result {
-			return true, nil // Short circuit on first true condition
+		if result == Equals {
+			return Equals, nil
 		}
 	}
-	return false, nil
+
+	if hasUnResolved {
+		return UnResolved, nil
+	}
+
+	// All conditions are NotEquals
+	return NotEquals, nil
 }
 
-// evaluateNot evaluates an Fn::Not condition
-func evaluateNot(notExpr interface{}, conditions map[string]interface{}, module *Module) (bool, error) {
-	notList, ok := notExpr.([]interface{})
-	if !ok || len(notList) != 1 {
-		return false, fmt.Errorf("Fn::Not requires exactly one condition")
+// EvalNot evaluates an Fn::Not condition
+func (module *Module) EvalNot(n *yaml.Node) (EvalResult, error) {
+	if n.Kind != yaml.SequenceNode || len(n.Content) != 1 {
+		msg := "Fn::Not requires exactly one condition: %s"
+		return UnResolved, fmt.Errorf(msg, node.YamlStr(n))
 	}
 
-	result, err := evalCond("", notList[0], conditions, module)
+	result, err := module.EvalCond("", n.Content[0])
 	if err != nil {
-		return false, err
+		return UnResolved, err
 	}
-	return !result, nil
+	if result == Equals {
+		return NotEquals, nil
+	} else if result == NotEquals {
+		return Equals, nil
+	} else {
+		return result, nil
+	}
 }
 
-// evaluateEquals evaluates an Fn::Equals condition
-func evaluateEquals(equalsExpr interface{}) (bool, error) {
-	equalsList, ok := equalsExpr.([]interface{})
-	if !ok || len(equalsList) != 2 {
-		return false, fmt.Errorf("Fn::Equals requires exactly two values")
+// EvalEquals evaluates an Fn::Equals condition
+func (module *Module) EvalEquals(n *yaml.Node) (EvalResult, error) {
+	if n.Kind != yaml.SequenceNode || len(n.Content) != 2 {
+		msg := "Fn::Equals requires exactly two values: %s"
+		return UnResolved, fmt.Errorf(msg, node.YamlStr(n))
 	}
 
-	// Resolve parameter references if needed
-	val1 := equalsList[0]
-	val2 := equalsList[1]
+	val1 := n.Content[0]
+	val2 := n.Content[1]
 
-	// Compare the values
-	return val1 == val2, nil
+	val1Str := node.YamlStr(val1)
+	val2Str := node.YamlStr(val2)
+
+	if val1Str == val2Str {
+		return Equals, nil
+	}
+
+	if val1.Kind == yaml.ScalarNode && val2.Kind == yaml.ScalarNode {
+		if val1.Value == val2.Value {
+			return Equals, nil
+		} else {
+			return NotEquals, nil
+		}
+	}
+
+	return UnResolved, nil
 }
 
-// processFnIf processes Fn::If functions in a node and its children
+// ProcessFnIf processes Fn::If functions in a node and its children
 // Returns true if the node should be removed from its parent
-func processFnIf(n *yaml.Node, conditionValues map[string]bool) (bool, error) {
+func (module *Module) ProcessFnIf(n *yaml.Node,
+	unResolved []string) (bool, error) {
+
 	if n == nil {
 		return false, nil
 	}
@@ -237,27 +355,31 @@ func processFnIf(n *yaml.Node, conditionValues map[string]bool) (bool, error) {
 		if len(n.Content) >= 2 && n.Content[0].Value == "Fn::If" {
 			value := n.Content[1]
 			if value.Kind == yaml.SequenceNode && len(value.Content) == 3 {
-				condName := value.Content[0].Value
-				if condVal, exists := conditionValues[condName]; exists {
+				name := value.Content[0].Value
+				if condVal, exists := module.ConditionValues[name]; exists {
 					// Get the appropriate value based on condition
 					var replacement *yaml.Node
 					if condVal {
-						replacement = node.Clone(value.Content[1]) // true value
+						replacement = node.Clone(value.Content[1])
 					} else {
-						replacement = node.Clone(value.Content[2]) // false value
+						replacement = node.Clone(value.Content[2])
 					}
 
 					// Check if this is AWS::NoValue
-					if replacement.Kind == yaml.MappingNode && len(replacement.Content) >= 2 {
+					if replacement.Kind == yaml.MappingNode &&
+						len(replacement.Content) >= 2 {
 						if replacement.Content[0].Value == "Ref" &&
 							replacement.Content[1].Value == "AWS::NoValue" {
-							return true, nil // Signal that this node should be removed
+							return true, nil
 						}
 					}
 
 					// Replace the entire node with the replacement
 					*n = *replacement
 					return false, nil
+				} else if slices.Contains(unResolved, name) {
+					newName := module.Config.Name + name
+					value.Content[0].Value = newName
 				}
 			}
 		}
@@ -273,7 +395,7 @@ func processFnIf(n *yaml.Node, conditionValues map[string]bool) (bool, error) {
 			value := n.Content[i+1]
 
 			// Process the value recursively
-			shouldRemove, err := processFnIf(value, conditionValues)
+			shouldRemove, err := module.ProcessFnIf(value, unResolved)
 			if err != nil {
 				return false, err
 			}
@@ -296,7 +418,7 @@ func processFnIf(n *yaml.Node, conditionValues map[string]bool) (bool, error) {
 		// Process each item in the sequence
 		i := 0
 		for i < len(n.Content) {
-			shouldRemove, err := processFnIf(n.Content[i], conditionValues)
+			shouldRemove, err := module.ProcessFnIf(n.Content[i], unResolved)
 			if err != nil {
 				return false, err
 			}

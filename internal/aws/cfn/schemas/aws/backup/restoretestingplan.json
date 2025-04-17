@@ -1,43 +1,128 @@
 {
+  "tagging": {
+    "permissions": [
+      "backup:TagResource",
+      "backup:UntagResource",
+      "backup:ListTags"
+    ],
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "tagProperty": "/properties/Tags",
+    "cloudFormationSystemTags": true
+  },
+  "handlers": {
+    "read": {
+      "permissions": [
+        "backup:GetRestoreTestingPlan",
+        "backup:ListTags"
+      ],
+      "timeoutInMinutes": 5
+    },
+    "create": {
+      "permissions": [
+        "backup:CreateRestoreTestingPlan",
+        "backup:TagResource",
+        "backup:GetRestoreTestingPlan",
+        "backup:ListTags"
+      ],
+      "timeoutInMinutes": 5
+    },
+    "update": {
+      "permissions": [
+        "backup:UpdateRestoreTestingPlan",
+        "backup:TagResource",
+        "backup:UntagResource",
+        "backup:GetRestoreTestingPlan",
+        "backup:ListTags"
+      ],
+      "timeoutInMinutes": 5
+    },
+    "list": {
+      "permissions": [
+        "backup:ListRestoreTestingPlans"
+      ],
+      "timeoutInMinutes": 5
+    },
+    "delete": {
+      "permissions": [
+        "backup:DeleteRestoreTestingPlan",
+        "backup:GetRestoreTestingPlan"
+      ],
+      "timeoutInMinutes": 5
+    }
+  },
   "typeName": "AWS::Backup::RestoreTestingPlan",
+  "readOnlyProperties": [
+    "/properties/RestoreTestingPlanArn"
+  ],
   "description": "Definition of AWS::Backup::RestoreTestingPlan Resource Type",
+  "createOnlyProperties": [
+    "/properties/RestoreTestingPlanName"
+  ],
+  "additionalProperties": false,
+  "primaryIdentifier": [
+    "/properties/RestoreTestingPlanName"
+  ],
   "definitions": {
     "RestoreTestingRecoveryPointSelection": {
-      "type": "object",
       "additionalProperties": false,
+      "type": "object",
       "properties": {
-        "Algorithm": {
-          "$ref": "#/definitions/RestoreTestingRecoveryPointSelectionAlgorithm"
-        },
         "SelectionWindowDays": {
           "type": "integer"
         },
         "RecoveryPointTypes": {
-          "type": "array",
           "insertionOrder": false,
+          "type": "array",
           "items": {
             "$ref": "#/definitions/RestoreTestingRecoveryPointType"
           }
         },
         "IncludeVaults": {
-          "type": "array",
           "insertionOrder": false,
+          "type": "array",
           "items": {
             "type": "string"
           }
         },
         "ExcludeVaults": {
-          "type": "array",
           "insertionOrder": false,
+          "type": "array",
           "items": {
             "type": "string"
           }
+        },
+        "Algorithm": {
+          "$ref": "#/definitions/RestoreTestingRecoveryPointSelectionAlgorithm"
         }
       },
       "required": [
         "Algorithm",
         "RecoveryPointTypes",
         "IncludeVaults"
+      ]
+    },
+    "Tag": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "Value": {
+          "minLength": 0,
+          "description": "The value for the tag. You can specify a value that is 0 to 256 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.",
+          "type": "string",
+          "maxLength": 256
+        },
+        "Key": {
+          "minLength": 1,
+          "description": "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.",
+          "type": "string",
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "Key",
+        "Value"
       ]
     },
     "RestoreTestingRecoveryPointSelectionAlgorithm": {
@@ -53,38 +138,20 @@
         "SNAPSHOT",
         "CONTINUOUS"
       ]
-    },
-    "RestoreTestingScheduleStatus": {
-      "type": "string",
-      "enum": [
-        "ACTIVE",
-        "SUSPENDED"
-      ]
-    },
-    "Tag": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "Key": {
-          "type": "string",
-          "description": "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.",
-          "minLength": 1,
-          "maxLength": 128
-        },
-        "Value": {
-          "type": "string",
-          "description": "The value for the tag. You can specify a value that is 0 to 256 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.",
-          "minLength": 0,
-          "maxLength": 256
-        }
-      },
-      "required": [
-        "Key",
-        "Value"
-      ]
     }
   },
+  "required": [
+    "RecoveryPointSelection",
+    "ScheduleExpression",
+    "RestoreTestingPlanName"
+  ],
   "properties": {
+    "ScheduleExpression": {
+      "type": "string"
+    },
+    "StartWindowHours": {
+      "type": "integer"
+    },
     "RecoveryPointSelection": {
       "$ref": "#/definitions/RestoreTestingRecoveryPointSelection"
     },
@@ -94,95 +161,16 @@
     "RestoreTestingPlanName": {
       "type": "string"
     },
-    "ScheduleExpression": {
-      "type": "string"
-    },
     "ScheduleExpressionTimezone": {
       "type": "string"
     },
-    "ScheduleStatus": {
-      "$ref": "#/definitions/RestoreTestingScheduleStatus"
-    },
-    "StartWindowHours": {
-      "type": "integer"
-    },
     "Tags": {
+      "uniqueItems": true,
+      "insertionOrder": false,
+      "type": "array",
       "items": {
         "$ref": "#/definitions/Tag"
-      },
-      "type": "array",
-      "insertionOrder": false,
-      "uniqueItems": true
-    }
-  },
-  "tagging": {
-    "taggable": true,
-    "tagOnCreate": true,
-    "tagUpdatable": true,
-    "cloudFormationSystemTags": true,
-    "tagProperty": "/properties/Tags",
-    "permissions": [
-      "backup:TagResource",
-      "backup:UntagResource",
-      "backup:ListTags"
-    ]
-  },
-  "additionalProperties": false,
-  "required": [
-    "RecoveryPointSelection",
-    "ScheduleExpression",
-    "RestoreTestingPlanName"
-  ],
-  "readOnlyProperties": [
-    "/properties/RestoreTestingPlanArn"
-  ],
-  "createOnlyProperties": [
-    "/properties/RestoreTestingPlanName"
-  ],
-  "primaryIdentifier": [
-    "/properties/RestoreTestingPlanName"
-  ],
-  "handlers": {
-    "create": {
-      "permissions": [
-        "backup:CreateRestoreTestingPlan",
-        "backup:UpdateRestoreTestingPlanScheduleStatus",
-        "backup:TagResource",
-        "backup:GetRestoreTestingPlan",
-        "backup:ListTags"
-      ],
-      "timeoutInMinutes": 5
-    },
-    "read": {
-      "permissions": [
-        "backup:GetRestoreTestingPlan",
-        "backup:ListTags"
-      ],
-      "timeoutInMinutes": 5
-    },
-    "update": {
-      "permissions": [
-        "backup:UpdateRestoreTestingPlan",
-        "backup:UpdateRestoreTestingPlanScheduleStatus",
-        "backup:TagResource",
-        "backup:UntagResource",
-        "backup:GetRestoreTestingPlan",
-        "backup:ListTags"
-      ],
-      "timeoutInMinutes": 5
-    },
-    "delete": {
-      "permissions": [
-        "backup:DeleteRestoreTestingPlan",
-        "backup:GetRestoreTestingPlan"
-      ],
-      "timeoutInMinutes": 5
-    },
-    "list": {
-      "permissions": [
-        "backup:ListRestoreTestingPlans"
-      ],
-      "timeoutInMinutes": 5
+      }
     }
   }
 }

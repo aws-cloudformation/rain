@@ -1,63 +1,129 @@
 {
   "typeName": "AWS::Neptune::DBClusterParameterGroup",
-  "description": "Resource Type definition for AWS::Neptune::DBClusterParameterGroup",
-  "additionalProperties": false,
-  "properties": {
-    "Id": {
-      "type": "string"
-    },
-    "Description": {
-      "type": "string"
-    },
-    "Parameters": {
-      "type": "object"
-    },
-    "Family": {
-      "type": "string"
-    },
-    "Tags": {
-      "type": "array",
-      "uniqueItems": false,
-      "items": {
-        "$ref": "#/definitions/Tag"
-      }
-    },
-    "Name": {
-      "type": "string"
-    }
-  },
+  "description": "The AWS::Neptune::DBClusterParameterGroup resource creates a new Amazon Neptune DB cluster parameter group",
+  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-neptune",
   "definitions": {
     "Tag": {
+      "description": "A key-value pair to associate with a resource.",
       "type": "object",
-      "additionalProperties": false,
       "properties": {
         "Key": {
-          "type": "string"
+          "type": "string",
+          "description": "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -."
         },
         "Value": {
-          "type": "string"
+          "type": "string",
+          "description": "The value for the tag. You can specify a value that is 0 to 256 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -."
         }
       },
       "required": [
-        "Value",
-        "Key"
-      ]
+        "Key",
+        "Value"
+      ],
+      "additionalProperties": false
     }
   },
+  "properties": {
+    "Description": {
+      "description": "Provides the customer-specified description for this DB cluster parameter group.",
+      "type": "string"
+    },
+    "Family": {
+      "description": "Must be neptune1 for engine versions prior to 1.2.0.0, or neptune1.2 for engine version 1.2.0.0 and higher.",
+      "type": "string"
+    },
+    "Parameters": {
+      "description": "An array of parameters to be modified. A maximum of 20 parameters can be modified in a single request.",
+      "type": "object"
+    },
+    "Name": {
+      "description": "Provides the name of the DB cluster parameter group.",
+      "type": "string"
+    },
+    "Tags": {
+      "description": "The list of tags for the cluster parameter group.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "propertyTransform": {
+    "/properties/Name": "$lowercase(Name)"
+  },
   "required": [
-    "Family",
     "Description",
+    "Family",
     "Parameters"
   ],
   "createOnlyProperties": [
-    "/properties/Family",
+    "/properties/Name",
     "/properties/Description",
-    "/properties/Name"
+    "/properties/Family"
   ],
   "primaryIdentifier": [
-    "/properties/Id"
+    "/properties/Name"
   ],
-  "readOnlyProperties": [
-    "/properties/Id"
-  ]
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags",
+    "permissions": [
+      "rds:AddTagsToResource",
+      "rds:ListTagsForResource",
+      "rds:RemoveTagsFromResource"
+    ]
+  },
+  "handlers": {
+    "create": {
+      "permissions": [
+        "rds:AddTagsToResource",
+        "rds:CreateDBClusterParameterGroup",
+        "rds:DescribeDBClusterParameterGroups",
+        "rds:DescribeDBClusterParameters",
+        "rds:DescribeEngineDefaultClusterParameters",
+        "rds:ListTagsForResource",
+        "rds:ModifyDBClusterParameterGroup",
+        "iam:CreateServiceLinkedRole"
+      ],
+      "timeoutInMinutes": 180
+    },
+    "read": {
+      "permissions": [
+        "rds:DescribeDBClusterParameterGroups",
+        "rds:ListTagsForResource",
+        "rds:DescribeDBClusterParameters"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "rds:AddTagsToResource",
+        "rds:DescribeDBClusterParameterGroups",
+        "rds:DescribeDBClusterParameters",
+        "rds:DescribeDBClusters",
+        "rds:DescribeEngineDefaultClusterParameters",
+        "rds:ListTagsForResource",
+        "rds:ModifyDBClusterParameterGroup",
+        "rds:RemoveTagsFromResource",
+        "rds:ResetDBClusterParameterGroup"
+      ],
+      "timeoutInMinutes": 180
+    },
+    "delete": {
+      "permissions": [
+        "rds:DeleteDBClusterParameterGroup",
+        "rds:ListTagsForResource",
+        "rds:RemoveTagsFromResource"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "rds:DescribeDBClusterParameterGroups",
+        "rds:ListTagsForResource"
+      ]
+    }
+  }
 }

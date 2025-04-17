@@ -16,9 +16,11 @@ import (
 
 // FnJoin converts to a scalar if the join can be fully resolved
 func FnJoin(n *yaml.Node) error {
+
 	var err error
 	vf := func(v *visitor.Visitor) {
 		vn := v.GetYamlNode()
+
 		if vn.Kind != yaml.MappingNode {
 			return
 		}

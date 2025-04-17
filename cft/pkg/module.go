@@ -31,21 +31,22 @@ const (
 	Condition           = "Condition"
 	Default             = "Default"
 	Source              = "Source"
-	Map                 = "Map"
+	ForEach             = "ForEach"
 )
 
 // Module represents a complete module, including parent config
 type Module struct {
-	Config         *cft.ModuleConfig
-	ParametersNode *yaml.Node
-	ResourcesNode  *yaml.Node
-	OutputsNode    *yaml.Node
-	Node           *yaml.Node
-	ParentTemplate *cft.Template
-	ConditionsNode *yaml.Node
-	ModulesNode    *yaml.Node
-	Parsed         *ParsedModule
-	ParentModule   *Module
+	Config          *cft.ModuleConfig
+	ParametersNode  *yaml.Node
+	ResourcesNode   *yaml.Node
+	OutputsNode     *yaml.Node
+	Node            *yaml.Node
+	ParentTemplate  *cft.Template
+	ConditionsNode  *yaml.Node
+	ConditionValues map[string]bool
+	ModulesNode     *yaml.Node
+	Parsed          *ParsedModule
+	ParentModule    *Module
 }
 
 // Outputs returns the Outputs node as a map
@@ -93,7 +94,7 @@ func processModulesSection(t *cft.Template, n *yaml.Node,
 
 	originalContent := moduleSection.Content
 
-	// Duplicate module content that has a Map attribute
+	// Duplicate module content that has a ForEach attribute
 	content, err := processMaps(originalContent, t, parentModule)
 	if err != nil {
 		return err
@@ -216,13 +217,41 @@ func processModule(
 		},
 	}
 
+	transforms, err := moduleAsTemplate.GetSection(cft.Transform)
+	if err == nil {
+		// The module has Transforms
+		parentTransforms, err := t.GetSection(cft.Transform)
+		if err != nil {
+			parentTransforms, _ = t.AddMapSection(cft.Transform)
+		}
+		merged := node.MakeSequence([]string{})
+		both := []*yaml.Node{transforms, parentTransforms}
+		for _, tr := range both {
+			if tr.Kind == yaml.ScalarNode {
+				merged.Content = append(merged.Content, tr)
+			} else {
+				merged.Content = append(merged.Content, tr.Content...)
+			}
+		}
+		merged = node.Clone(merged)
+		*parentTransforms = *merged
+	}
+
 	err = processRainSection(moduleAsTemplate)
 	if err != nil {
 		return err
 	}
 
-	err = processAddedSections(moduleAsTemplate, moduleAsTemplate.Node.Content[0],
+	// processAddedSections is where we recurse on sub-modules
+	err = processAddedSections(moduleAsTemplate,
+		moduleAsTemplate.Node.Content[0],
 		parsedModule.RootDir, parsedModule.FS, m)
+	if err != nil {
+		return err
+	}
+
+	// Process conditions again to emit sub-module conditions into the parent
+	err = m.ProcessConditions()
 	if err != nil {
 		return err
 	}
@@ -242,12 +271,6 @@ func processModule(
 	if err != nil {
 		return err
 	}
-
-	// Resolve any references to this module in the parent template
-	//err = m.Resolve(t.Node)
-	//if err != nil {
-	//	return err
-	//}
 
 	fileRootDir := ""
 	if parentModule != nil {
