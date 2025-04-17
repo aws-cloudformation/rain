@@ -5,7 +5,6 @@ import (
 	"slices"
 
 	"github.com/aws-cloudformation/rain/cft"
-	"github.com/aws-cloudformation/rain/internal/config"
 	"github.com/aws-cloudformation/rain/internal/node"
 	"github.com/aws-cloudformation/rain/internal/s11n"
 	"gopkg.in/yaml.v3"
@@ -102,21 +101,15 @@ func (module *Module) ProcessConditions() error {
 				condName := conditionNode.Value
 				condResult, ok := module.ConditionValues[condName]
 				if !ok {
-					msg := "%s Condition not found in %s"
-
 					// Is this a condition that we could not
 					// fully resolve, or a condition that doesn't exist?
 
-					config.Debugf(msg, condName, module.Config.Source)
+					if slices.Contains(unResolved, condName) {
+						// Prepend the module name to the condition
+						newName := module.Config.Name + conditionNode.Value
+						conditionNode.Value = newName
 
-					if !slices.Contains(unResolved, condName) {
-						// If it's not in that list, it's likely a mistake
-						return fmt.Errorf(msg, condName, module.Config.Source)
 					}
-
-					// Prepend the module name to the condition
-					newName := module.Config.Name + conditionNode.Value
-					conditionNode.Value = newName
 				} else {
 					if !condResult {
 						itemsToRemove = append(itemsToRemove, itemName)
@@ -144,7 +137,6 @@ func (module *Module) ProcessConditions() error {
 	}
 
 	if len(unResolved) == 0 {
-		config.Debugf("No unresolved conditions in %s", module.Config.Name)
 		node.RemoveFromMap(module.Node, string(cft.Conditions))
 	} else {
 		// Only remove those that we fully resolved.
@@ -152,15 +144,20 @@ func (module *Module) ProcessConditions() error {
 		for _, name := range resolved {
 			node.RemoveFromMap(module.ConditionsNode, name)
 		}
+
+		// Ensure that the parent template has a Conditions section
 		t := module.ParentTemplate
 		tc, err := t.GetSection(cft.Conditions)
 		if err != nil {
 			tc, _ = t.AddMapSection(cft.Conditions)
 		}
+
+		// Record the existing conditions in the parent
 		tcNames := make(map[string]*yaml.Node)
 		for i := 0; i < len(tc.Content); i += 2 {
 			tcNames[tc.Content[i].Value] = tc.Content[i+1]
 		}
+
 		for i, condNode := range module.ConditionsNode.Content {
 			if i%2 == 0 {
 				// Prepend the module name to the condition
@@ -172,12 +169,12 @@ func (module *Module) ProcessConditions() error {
 							"%s that conflicts with a Condition in the parent"
 						return fmt.Errorf(msg, module.Config.Source, name)
 					}
+				} else {
+					nameNode := node.MakeScalar(name)
+					node.Append(tc, nameNode)
+					cloned := node.Clone(val)
+					node.Append(tc, cloned)
 				}
-				nameNode := node.MakeScalar(name)
-				node.Append(tc, nameNode)
-				cloned := node.Clone(module.ConditionsNode.Content[i+1])
-				node.Append(tc, cloned)
-				break
 			}
 		}
 
@@ -189,9 +186,6 @@ func (module *Module) ProcessConditions() error {
 // EvalCond evaluates a condition expression and returns its boolean value
 func (module *Module) EvalCond(
 	name string, val *yaml.Node) (EvalResult, error) {
-
-	config.Debugf("module.EvalCond %s %s:\n%s",
-		module.Config.Name, name, node.YamlStr(val))
 
 	// Handle mapping node (most condition functions)
 	if val.Kind == yaml.MappingNode && len(val.Content) >= 2 {
@@ -342,10 +336,6 @@ func (module *Module) EvalEquals(n *yaml.Node) (EvalResult, error) {
 			return NotEquals, nil
 		}
 	}
-
-	// This looks like an unresolved reference
-	config.Debugf("EvalEquals unresolved val1: %s, val2: %s",
-		node.YamlStr(val1), node.YamlStr(val2))
 
 	return UnResolved, nil
 }

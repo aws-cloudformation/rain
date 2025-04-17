@@ -242,8 +242,16 @@ func processModule(
 		return err
 	}
 
-	err = processAddedSections(moduleAsTemplate, moduleAsTemplate.Node.Content[0],
+	// processAddedSections is where we recurse on sub-modules
+	err = processAddedSections(moduleAsTemplate,
+		moduleAsTemplate.Node.Content[0],
 		parsedModule.RootDir, parsedModule.FS, m)
+	if err != nil {
+		return err
+	}
+
+	// Process conditions again to emit sub-module conditions into the parent
+	err = m.ProcessConditions()
 	if err != nil {
 		return err
 	}
