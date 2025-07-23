@@ -81,13 +81,20 @@ func formatChangeSet(stackName, changeSetName string) string {
 	return strings.TrimSpace(out.String())
 }
 
+// PackageTemplate reads and packages a template from a file or stdin
 func PackageTemplate(fn string, yes bool) *cft.Template {
 	// Call RainBucket for side-effects in case we want to force bucket creation
 	s3.RainBucket(yes)
 
+	// Handle stdin case with "-" filename
+	templateName := fn
+	if fn == "-" {
+		templateName = "stdin"
+	}
+
 	t, err := pkg.File(fn)
 	if err != nil {
-		panic(ui.Errorf(err, "error packaging template '%s'", fn))
+		panic(ui.Errorf(err, "error packaging template '%s'", templateName))
 	}
 
 	return t

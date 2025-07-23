@@ -120,11 +120,19 @@ func formatFile(filename string) result {
 		return res
 	}
 
-	r, err := os.Open(filename)
-	if err != nil {
-		return result{
-			name: filename,
-			err:  ui.Errorf(err, "unable to read '%s'", filename),
+	var r *os.File
+	var err error
+
+	if filename == "-" {
+		r = os.Stdin
+		filename = "stdin"
+	} else {
+		r, err = os.Open(filename)
+		if err != nil {
+			return result{
+				name: filename,
+				err:  ui.Errorf(err, "unable to read '%s'", filename),
+			}
 		}
 	}
 
@@ -145,24 +153,22 @@ var Cmd = &cobra.Command{
 			// Check there's data on stdin
 			stat, err := os.Stdin.Stat()
 			if err != nil {
-				panic(ui.Errorf(err, "unable to open stdin"))
+				cmd.Help()
+				os.Exit(0)
 			}
 
 			if stat.Mode()&os.ModeNamedPipe == 0 && stat.Size() == 0 {
-				fmt.Println("CAKES")
-				panic(cmd.Help())
+				cmd.Help()
+				os.Exit(0)
 			}
 
-			writeFlag = false // Can't write back to stdin ;)
+			// There is data on stdin, assume the user intends to format it
+			args = []string{"-"}
+		}
 
-			results = []result{
-				formatReader("<stdin>", os.Stdin),
-			}
-		} else {
-			results = make([]result, len(args))
-			for i, filename := range args {
-				results[i] = formatFile(filename)
-			}
+		results = make([]result, len(args))
+		for i, filename := range args {
+			results[i] = formatFile(filename)
 		}
 
 		hasErr := false
