@@ -98,6 +98,36 @@ Rain is licensed under the Apache 2.0 License.
 
 ## Example Usage
 
+### Specifying Parameter and Tag Values via File
+
+The config flag can be used to programmatically set tags and parameters. The
+format is similar to the "Template configuration file" for AWS CodePipeline
+just without the 'StackPolicy' key. The file can be in YAML or JSON format.
+
+JSON:
+```json
+{
+  "Parameters" : {
+    "NameOfTemplateParameter1" : "ValueOfParameter1",
+    "NameOfTemplateParameter2" : "ValueOfParameter2"
+  },
+  "Tags" : {
+    "TagKey1" : "TagValue1",
+    "TagKey2" : "TagValue2"
+  }
+}
+```
+
+YAML:
+```yaml
+Parameters:
+  NameOfTemplateParameter1: ValueOfParameter1
+  NameOfTemplateParameter2: ValueOfParameter2
+Tags:
+  TagKey1: TagValue1
+  TagKey2: TagValue2
+```
+
 ### Packaging
 
 The `rain pkg` command can be used as a replacement for the `aws cloudformation
