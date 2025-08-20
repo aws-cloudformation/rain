@@ -100,8 +100,8 @@ Rain is licensed under the Apache 2.0 License.
 
 ### Specifying Parameter and Tag Values via File
 
-The config flag can be used to programmatically set tags and parameters. The
-format is similar to the "Template configuration file" for AWS CodePipeline
+The `--config` flag can be used to programmatically set tags and parameters.
+The format is similar to the "Template configuration file" for AWS CodePipeline
 just without the 'StackPolicy' key. The file can be in YAML or JSON format.
 
 JSON:
