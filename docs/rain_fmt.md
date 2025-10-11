@@ -17,7 +17,7 @@ rain fmt <filename>...
       --debug                Output debugging information
   -h, --help                 help for fmt
   -j, --json                 Output the template as JSON (default format: YAML).
-      --node-style string    Set the node output style to tagged, doublequoted, singlequoted, literal, folded, strict-boolean, quotescalars, original, or flow
+      --node-style string    Set the node output style to tagged, doublequoted, singlequoted, literal, folded, strict-booleans, quotescalars, original, or flow
   -p, --pkl                  Output the template as Pkl (default format: YAML).
       --pkl-basic            Don't use Pkl modules for output
       --pkl-package string   An alias or full package URI for the Pkl package for generated Pkl files (default "@cfn")
