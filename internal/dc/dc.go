@@ -211,6 +211,22 @@ func GetDeployConfig(
 
 	dc := &deployconfig.DeployConfig{}
 
+	envParams := GetParametersFromEnv()
+	if config.Debug && len(envParams) > 0 {
+		config.Debugf("Discovered %d parameter(s) from environment variables", len(envParams))
+		for k, v := range envParams {
+			config.Debugf("  %s=%s", k, v)
+		}
+	}
+
+	envTags := GetDefaultTagsFromEnv()
+	if config.Debug && len(envTags) > 0 {
+		config.Debugf("Discovered %d default tag(s) from environment variables", len(envTags))
+		for k, v := range envTags {
+			config.Debugf("  %s=%s", k, v)
+		}
+	}
+
 	// Parse tags
 	parsedTagFlag := ListToMap("tag", tags)
 
@@ -219,6 +235,16 @@ func GetDeployConfig(
 
 	var combinedTags map[string]string
 	var combinedParameters map[string]string
+
+	combinedParameters = make(map[string]string)
+	for k, v := range envParams {
+		combinedParameters[k] = v
+	}
+
+	combinedTags = make(map[string]string)
+	for k, v := range envTags {
+		combinedTags[k] = v
+	}
 
 	if len(configFilePath) != 0 {
 		configFileContent, err := os.ReadFile(configFilePath)
@@ -234,31 +260,49 @@ func GetDeployConfig(
 
 		config.Debugf("Parsed config file struct: %+v", configFile)
 
-		combinedTags = configFile.Tags
-		if len(combinedTags) == 0 && len(configFile.LowerTags) > 0 {
-			combinedTags = configFile.LowerTags
-		}
-		combinedParameters = configFile.Parameters
-		if len(combinedParameters) == 0 && len(configFile.LowerParameters) > 0 {
-			combinedParameters = configFile.LowerParameters
+		configFileTags := configFile.Tags
+		if len(configFileTags) == 0 && len(configFile.LowerTags) > 0 {
+			configFileTags = configFile.LowerTags
 		}
 
-		for k, v := range parsedTagFlag {
-			if _, ok := combinedTags[k]; ok {
-				fmt.Println(console.Yellow(fmt.Sprintf("tags flag overrides tag in config file: %s", k)))
+		for k, v := range configFileTags {
+			if _, existsInEnv := envTags[k]; existsInEnv && config.Debug {
+				config.Debugf("Config file tag '%s' overrides environment variable", k)
 			}
 			combinedTags[k] = v
 		}
 
-		for k, v := range parsedParamFlag {
-			if _, ok := combinedParameters[k]; ok {
-				fmt.Println(console.Yellow(fmt.Sprintf("params flag overrides parameter in config file: %s", k)))
+		configFileParams := configFile.Parameters
+		if len(configFileParams) == 0 && len(configFile.LowerParameters) > 0 {
+			configFileParams = configFile.LowerParameters
+		}
+
+		for k, v := range configFileParams {
+			if _, existsInEnv := envParams[k]; existsInEnv && config.Debug {
+				config.Debugf("Config file parameter '%s' overrides environment variable", k)
 			}
 			combinedParameters[k] = v
 		}
-	} else {
-		combinedTags = parsedTagFlag
-		combinedParameters = parsedParamFlag
+	}
+
+	for k, v := range parsedTagFlag {
+		if _, existsInEnv := envTags[k]; existsInEnv && config.Debug {
+			config.Debugf("tags flag overrides tag '%s' from environment variable", k)
+		}
+		if _, existsInConfig := combinedTags[k]; existsInConfig {
+			fmt.Println(console.Yellow(fmt.Sprintf("tags flag overrides tag from config file: %s", k)))
+		}
+		combinedTags[k] = v
+	}
+
+	for k, v := range parsedParamFlag {
+		if _, existsInEnv := envParams[k]; existsInEnv && config.Debug {
+			config.Debugf("params flag overrides parameter '%s' from environment variable", k)
+		}
+		if _, existsInConfig := combinedParameters[k]; existsInConfig {
+			fmt.Println(console.Yellow(fmt.Sprintf("params flag overrides parameter from config file: %s", k)))
+		}
+		combinedParameters[k] = v
 	}
 
 	dc.Tags = combinedTags
