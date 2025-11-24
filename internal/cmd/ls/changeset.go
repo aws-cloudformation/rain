@@ -152,7 +152,7 @@ func showChangeset(stackName, changeSetName string) {
 					config.Debugf("%v", err)
 				} else {
 					diff := diff.CompareMaps(beforeJson, afterJson)
-					config.Debugf(diff.Format(true))
+					config.Debugf("%s", diff.Format(true))
 
 					// jsonpatch is a little easier to work with than Diff
 					ops, err := jsonpatch.CreatePatch([]byte(before), []byte(after))

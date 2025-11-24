@@ -423,7 +423,7 @@ func checkMatch(t *testing.T, expected string, opt format.Options) {
 	actual := format.String(template, opt)
 
 	if d := cmp.Diff(expected, actual); d != "" {
-		t.Errorf(d)
+		t.Errorf("%s", d)
 	}
 }
 
@@ -434,7 +434,7 @@ func checkMultilineBlockHeaders(t *testing.T, s string, expected bool) {
 			continue
 		}
 		if format.CheckMultilineBegin(part) != expected {
-			t.Errorf(part)
+			t.Errorf("%s", part)
 		}
 	}
 }
@@ -589,7 +589,7 @@ Resources:
 	})
 
 	if d := cmp.Diff(expect, actual); d != "" {
-		t.Fatalf(d)
+		t.Fatalf("%s", d)
 	}
 }
 
@@ -647,7 +647,7 @@ Resources:
 	})
 
 	if d := cmp.Diff(expect, actual); d != "" {
-		t.Fatalf(d)
+		t.Fatalf("%s", d)
 	}
 }
 

@@ -60,6 +60,6 @@ waldo: {} # Comment about waldo
 	actual := format.String(tmpl, format.Options{})
 
 	if d := cmp.Diff(actual, expected); d != "" {
-		t.Errorf(d)
+		t.Errorf("%s", d)
 	}
 }

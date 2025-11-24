@@ -135,7 +135,7 @@ func TestMergeTemplatesSuccess(t *testing.T) {
 	}
 
 	if d := cmp.Diff(actual.Map(), expected.Map()); d != "" {
-		t.Errorf(d)
+		t.Errorf("%s", d)
 	}
 }
 
@@ -214,7 +214,7 @@ func TestForceMergeTemplatesSuccess(t *testing.T) {
 	}
 
 	if d := cmp.Diff(actual.Map(), expected.Map()); d != "" {
-		t.Errorf(d)
+		t.Errorf("%s", d)
 	}
 }
 
@@ -276,7 +276,7 @@ func TestEmptyMergeTemplatesSuccess(t *testing.T) {
 		}
 
 		if d := cmp.Diff(actual.Map(), src.Map()); d != "" {
-			t.Errorf(d)
+			t.Errorf("%s", d)
 		}
 	}
 
@@ -288,7 +288,7 @@ func TestEmptyMergeTemplatesSuccess(t *testing.T) {
 		}
 
 		if d := cmp.Diff(actual.Map(), src.Map()); d != "" {
-			t.Errorf(d)
+			t.Errorf("%s", d)
 		}
 	}
 

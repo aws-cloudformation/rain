@@ -27,7 +27,7 @@ func TestListToMap(t *testing.T) {
 		actual := ListToMap("test", testCase.input)
 
 		if d := cmp.Diff(testCase.expected, actual); d != "" {
-			t.Errorf(d)
+			t.Errorf("%s", d)
 		}
 	}
 }

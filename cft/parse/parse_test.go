@@ -117,7 +117,7 @@ func TestRead(t *testing.T) {
 	}
 
 	if diff := cmp.Diff(actual.Map(), expected.Map()); diff != "" {
-		t.Errorf(diff)
+		t.Errorf("%s", diff)
 	}
 }
 
@@ -128,7 +128,7 @@ func TestReadFile(t *testing.T) {
 	}
 
 	if diff := cmp.Diff(actual.Map(), expected.Map()); diff != "" {
-		t.Errorf(diff)
+		t.Errorf("%s", diff)
 	}
 }
 
@@ -139,7 +139,7 @@ func TestReadString(t *testing.T) {
 	}
 
 	if diff := cmp.Diff(actual.Map(), expected.Map()); diff != "" {
-		t.Errorf(diff)
+		t.Errorf("%s", diff)
 	}
 }
 
@@ -197,7 +197,7 @@ func TestEmptySub(t *testing.T) {
 	}
 
 	if diff := cmp.Diff(actual.Map(), expected.Map()); diff != "" {
-		t.Errorf(diff)
+		t.Errorf("%s", diff)
 	}
 }
 
