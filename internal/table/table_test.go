@@ -79,7 +79,7 @@ func TestTable_WithFirstColumnFormatter(t *testing.T) {
 	out := buf.String()
 
 	config.Debug = true
-	config.Debugf(out)
+	config.Debugf("%s", out)
 
 	assert.Contains(t, out, "foo")
 	assert.Contains(t, out, "bar")

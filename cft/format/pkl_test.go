@@ -66,7 +66,7 @@ Outputs {
 	}
 
 	if d := cmp.Diff(expected, actual); d != "" {
-		t.Errorf(d)
+		t.Errorf("%s", d)
 	}
 }
 
@@ -113,6 +113,6 @@ Resources {
 	}
 
 	if d := cmp.Diff(expected, actual); d != "" {
-		t.Errorf(d)
+		t.Errorf("%s", d)
 	}
 }

@@ -40,7 +40,7 @@ func init() {
 func update() {
 	if config.Debug {
 		if len(statuses) > 0 {
-			config.Debugf(statuses[len(statuses)-1])
+			config.Debugf("%s", statuses[len(statuses)-1])
 			statuses = statuses[:len(statuses)-1]
 		}
 

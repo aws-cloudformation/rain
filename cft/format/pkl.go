@@ -275,7 +275,7 @@ func writeSequence(sb *strings.Builder, n *yaml.Node, indent string, basic bool)
 			writeNode(sb, item, indent, basic)
 		case yaml.MappingNode:
 			if !basic && isIntrinsic(item.Content[0].Value) {
-				w(sb, indent)
+				w(sb, "%s", indent)
 				writeNode(sb, item, indent+"        ", basic)
 			} else {
 				sb.WriteString(indent + " new {\n")
