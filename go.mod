@@ -1,6 +1,6 @@
 module github.com/aws-cloudformation/rain
 
-go 1.24.10
+go 1.24.11
 
 require (
 	//github.com/ake-persson/mapslice-json v0.0.0-20210720081907-22c8edf57807
