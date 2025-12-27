@@ -343,6 +343,8 @@ template has been checked to make sure it has a valid syntax.
 
 This command checks for some common issues across all resources, and 
 resource-specific checks. See the README for more details.
+
+You can use "-" as a filename to read the template from stdin.
 `,
 	Args:                  cobra.RangeArgs(1, 2),
 	DisableFlagsInUseLine: true,

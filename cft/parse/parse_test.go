@@ -132,6 +132,38 @@ func TestReadFile(t *testing.T) {
 	}
 }
 
+func TestReadFile_stdin(t *testing.T) {
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, err = w.WriteString(testTemplate)
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = w.Close()
+	if err != nil {
+		t.Error(err)
+	}
+
+	oldStdin := os.Stdin
+	defer func() {
+		os.Stdin = oldStdin
+	}()
+	os.Stdin = r
+
+	actual, err := parse.File("-")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if diff := cmp.Diff(actual.Map(), expected.Map()); diff != "" {
+		t.Errorf(diff)
+	}
+}
+
 func TestReadString(t *testing.T) {
 	actual, err := parse.String(testTemplate)
 	if err != nil {

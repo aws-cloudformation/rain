@@ -16,7 +16,7 @@ var longDiff = false
 var Cmd = &cobra.Command{
 	Use:                   "diff <from> <to>",
 	Short:                 "Compare CloudFormation templates",
-	Long:                  "Outputs a summary of the changes necessary to transform the CloudFormation template named <from> into the template named <to>.",
+	Long:                  "Outputs a summary of the changes necessary to transform the CloudFormation template named <from> into the template named <to>.\n\nYou can use \"-\" as a filename to read from stdin.",
 	Args:                  cobra.ExactArgs(2),
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
