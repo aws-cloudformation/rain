@@ -233,15 +233,12 @@ func GetDeployConfig(
 	// Parse params
 	parsedParamFlag := ListToMap("param", params)
 
-	var combinedTags map[string]string
-	var combinedParameters map[string]string
-
-	combinedParameters = make(map[string]string)
+	combinedParameters := make(map[string]string)
 	for k, v := range envParams {
 		combinedParameters[k] = v
 	}
 
-	combinedTags = make(map[string]string)
+	combinedTags := make(map[string]string)
 	for k, v := range envTags {
 		combinedTags[k] = v
 	}
