@@ -282,6 +282,35 @@ func GetStackEvents(stackName string) ([]types.StackEvent, error) {
 	return events, nil
 }
 
+
+// GetChangeSetEvents returns all events associated with the named changeset
+func GetChangeSetEvents(changeSetId string) ([]types.OperationEvent, error) {
+	events := make([]types.OperationEvent, 0)
+
+	var token *string
+
+	for {
+		res, err := getClient().DescribeEvents(context.Background(), &cloudformation.DescribeEventsInput{
+			NextToken:     token,
+			ChangeSetName: &changeSetId,
+		})
+
+		if err != nil {
+			return events, err
+		}
+
+		events = append(events, res.OperationEvents...)
+
+		if res.NextToken == nil {
+			break
+		}
+
+		token = res.NextToken
+	}
+
+	return events, nil
+}
+
 type ChangeSetContext struct {
 	Template  *cft.Template
 	Params    []types.Parameter
@@ -378,6 +407,27 @@ func CreateChangeSet(ctx *ChangeSetContext) (string, error) {
 		config.Debugf("ChangeSet status: %s", status)
 
 		if status == "FAILED" {
+			// Get validation errors if available
+			if res.ChangeSetId != nil {
+				events, eventsErr := GetChangeSetEvents(*res.ChangeSetId)
+				if eventsErr == nil {
+					var validationErrors []string
+					for _, event := range events {
+						if event.EventType == types.EventTypeValidationError {
+							validationErrors = append(validationErrors, fmt.Sprintf("Resource: %s (%s), Validation: %s, Reason: %s",
+								ptr.ToString(event.LogicalResourceId),
+								ptr.ToString(event.ResourceType),
+								ptr.ToString(event.ValidationName),
+								ptr.ToString(event.ValidationStatusReason)))
+						}
+					}
+					if len(validationErrors) > 0 {
+						return changeSetName, fmt.Errorf("changeset creation failed with validation errors:\n  - %s", strings.Join(validationErrors, "\n  - "))
+					}
+				} else {
+					config.Debugf("could not get changeset events: %v", eventsErr)
+				}
+			}
 			return changeSetName, errors.New(ptr.ToString(res.StatusReason))
 		}
 
