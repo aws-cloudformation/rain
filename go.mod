@@ -30,7 +30,7 @@ require (
 	github.com/apple/pkl-go v0.10.0
 	github.com/aws/aws-lambda-go v1.50.0
 	github.com/aws/aws-sdk-go-v2/service/acm v1.37.14
-	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.57.0
+	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.60.0
 	github.com/aws/aws-sdk-go-v2/service/codeartifact v1.38.13
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.55.0
 	github.com/aws/aws-sdk-go-v2/service/kms v1.49.0
