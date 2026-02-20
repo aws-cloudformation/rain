@@ -34,7 +34,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/codeartifact v1.38.13
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.55.0
 	github.com/aws/aws-sdk-go-v2/service/kms v1.49.0
-	github.com/aws/aws-sdk-go-v2/service/lightsail v1.50.7
+	github.com/aws/aws-sdk-go-v2/service/lightsail v1.50.11
 	github.com/aws/aws-sdk-go-v2/service/rds v1.111.0
 	github.com/aws/aws-sdk-go-v2/service/sagemaker v1.226.0
 	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.34.1
