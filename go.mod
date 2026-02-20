@@ -37,7 +37,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/lightsail v1.50.7
 	github.com/aws/aws-sdk-go-v2/service/rds v1.111.0
 	github.com/aws/aws-sdk-go-v2/service/sagemaker v1.226.0
-	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.33.8
+	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.34.1
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.67.3
 	github.com/fatih/color v1.18.0
 	github.com/gabriel-vasile/mimetype v1.4.11
