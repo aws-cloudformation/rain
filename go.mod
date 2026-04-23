@@ -27,7 +27,7 @@ require (
 )
 
 require (
-	github.com/apple/pkl-go v0.8.0
+	github.com/apple/pkl-go v0.13.2
 	github.com/aws/aws-lambda-go v1.54.0
 	github.com/aws/aws-sdk-go-v2/service/acm v1.38.2
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.61.1
@@ -43,7 +43,7 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.13
 	github.com/lestrrat-go/jwx/v2 v2.1.6
 	github.com/manifoldco/promptui v0.9.0
-	github.com/mattn/go-runewidth v0.0.20
+	github.com/mattn/go-runewidth v0.0.23
 	github.com/stretchr/testify v1.11.1
 )
 
@@ -76,7 +76,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.22 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.22 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.22 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.6 // indirect
 	github.com/aws/aws-sdk-go-v2/service/cloudcontrol v1.29.14
 	github.com/aws/aws-sdk-go-v2/service/iam v1.53.8
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.8 // indirect
