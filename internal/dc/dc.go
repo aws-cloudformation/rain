@@ -50,13 +50,17 @@ func GetParameters(
 
 	if params, ok := template.Map()["Parameters"]; ok {
 		// Check we don't have any unknown params
+		unknownParams := make([]string, 0)
 		for k := range combinedParameters {
 			if _, ok := params.(map[string]interface{})[k]; !ok {
-				if ignoreUnknownParams {
-					fmt.Println(console.Yellow(fmt.Sprintf("unknown parameter: %s", k)))
-				} else {
-					panic(fmt.Errorf("unknown parameter: %s\nif you want to proceed as is, add the --ignore-unknown-params flag", k))
-				}
+				unknownParams = append(unknownParams, k)
+			}
+		}
+		if len(unknownParams) > 0 {
+			if ignoreUnknownParams {
+				fmt.Println(console.Yellow(fmt.Sprintf("unknown parameters: %v", unknownParams)))
+			} else {
+				panic(fmt.Errorf("unknown parameters: %v\nif you want to proceed as is, add the --ignore-unknown-params flag", unknownParams))
 			}
 		}
 
