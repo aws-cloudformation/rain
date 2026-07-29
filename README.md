@@ -3,6 +3,29 @@
 
 # Rain
 
+> [!WARNING]
+> ## ⚠️ This project is deprecated
+>
+> **Rain is no longer actively maintained and has been deprecated.** We are no
+> longer accepting feature requests, and issues and pull requests may not be
+> reviewed or merged. The repository will remain available in an archived,
+> read-only state so that existing users can continue to reference the source
+> and prior releases.
+>
+> Existing binaries and releases will continue to be available on the
+> [releases page](https://github.com/aws-cloudformation/rain/releases), but no
+> new releases, bug fixes, or security patches are planned.
+>
+> We recommend migrating to actively supported alternatives such as the
+> [AWS CLI](https://aws.amazon.com/cli/) for CloudFormation operations,
+> the [AWS CDK](https://aws.amazon.com/cdk/) for authoring reusable
+> infrastructure components such as modules,
+> [cfn-lint](https://github.com/aws-cloudformation/cfn-lint) for template
+> validation, and [cfn-guard](https://github.com/aws-cloudformation/cloudformation-guard)
+> for policy checks.
+>
+> Thank you to everyone who contributed to and used Rain over the years.
+
 * Documentation: <https://aws-cloudformation.github.io/rain/>
 
 > Rain is what happens when you have a lot of CloudFormation
