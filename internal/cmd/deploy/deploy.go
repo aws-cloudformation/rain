@@ -43,6 +43,7 @@ var Cmd = &cobra.Command{
 	Long: `Creates or updates a CloudFormation stack named <stack> from the template file <template>. 
 You can also create and execute changesets with this command.
 If you don't specify a stack name, rain will use the template filename minus its extension.
+You can use "-" as the template filename to read from stdin.
 
 If a template needs to be packaged before it can be deployed, rain will package the template first.
 Rain will attempt to create an S3 bucket to store artifacts that it packages and deploys.
@@ -113,7 +114,13 @@ To list and delete changesets, use the ls and rm commands.
 		} else {
 
 			fn = args[0]
-			base := filepath.Base(fn)
+			// Handle stdin case with "-" filename
+			var base string
+			if fn == "-" {
+				base = "stdin"
+			} else {
+				base = filepath.Base(fn)
+			}
 
 			var suppliedStackName string
 
@@ -143,8 +150,16 @@ To list and delete changesets, use the ls and rm commands.
 
 			// Process metadata Rain Content before (Run build scripts before deployment)
 			if !changeset {
+				// Use current directory for stdin input
+				var dir string
+				if fn == "-" {
+					dir = "."
+				} else {
+					dir = filepath.Dir(fn)
+				}
+
 				err := processMetadataBefore(cft.Template{Node: templateNode},
-					stackName, filepath.Dir(fn))
+					stackName, dir)
 				if err != nil {
 					panic(err)
 				}
@@ -283,8 +298,16 @@ To list and delete changesets, use the ls and rm commands.
 
 		// Process Rain Metadata commands (Content)
 		if !changeset {
+			// Use current directory for stdin input
+			var dir string
+			if fn == "-" {
+				dir = "."
+			} else {
+				dir = filepath.Dir(fn)
+			}
+
 			err := processMetadataAfter(cft.Template{Node: templateNode},
-				stackName, filepath.Dir(fn))
+				stackName, dir)
 			if err != nil {
 				panic(err)
 			}

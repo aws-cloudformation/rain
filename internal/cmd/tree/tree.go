@@ -16,7 +16,7 @@ var twoWayTree = false
 var Cmd = &cobra.Command{
 	Use:                   "tree [template]",
 	Short:                 "Find dependencies of Resources and Outputs in a local template",
-	Long:                  "Find and display the dependencies between Parameters, Resources, and Outputs in a CloudFormation template.",
+	Long:                  "Find and display the dependencies between Parameters, Resources, and Outputs in a CloudFormation template.\n\nYou can use \"-\" as a filename to read from stdin.",
 	Args:                  cobra.ExactArgs(1),
 	Aliases:               []string{"graph"},
 	DisableFlagsInUseLine: true,

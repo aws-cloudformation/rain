@@ -26,6 +26,10 @@ func Reader(r io.Reader) (*cft.Template, error) {
 
 // File returns a cft.Template parsed from a file specified by fileName
 func File(fileName string) (*cft.Template, error) {
+	if fileName == "-" {
+		return Reader(os.Stdin)
+	}
+
 	source, err := os.ReadFile(fileName)
 	if err != nil {
 		return &cft.Template{}, fmt.Errorf("unable to read file: %s", err)
