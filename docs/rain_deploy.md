@@ -74,7 +74,7 @@ rain deploy <template> [stack]
       --nested-change-set        Whether or not to include nested stacks in the change set (default true)
       --no-analytics             Do not write analytics to Metadata
   -x, --no-exec                  do not execute the changeset
-      --node-style string        Set the node output style to tagged, doublequoted, singlequoted, literal, folded, strict-boolean, quotescalars, original, or flow (default "original")
+      --node-style string        Set the node output style to tagged, doublequoted, singlequoted, literal, folded, strict-booleans, quotescalars, original, or flow (default "original")
       --params strings           set parameter values; use the format key1=value1,key2=value2
   -p, --profile string           AWS profile name; read from the AWS CLI configuration file
   -r, --region string            AWS region to use

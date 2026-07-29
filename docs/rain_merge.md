@@ -16,7 +16,7 @@ rain merge <template> <template> ...
   -f, --force               Don't warn on clashing attributes; rename them instead. Note: this will not rename Refs, GetAtts, etc.
   -h, --help                help for merge
       --merge-imports       Convert imported output values into GetAtts
-      --node-style string   Set the node output style to tagged, doublequoted, singlequoted, literal, folded, strict-boolean, quotescalars, original, or flow
+      --node-style string   Set the node output style to tagged, doublequoted, singlequoted, literal, folded, strict-booleans, quotescalars, original, or flow
   -o, --output string       Output merged template to a file
 ```
 
