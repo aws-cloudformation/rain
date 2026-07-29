@@ -58,6 +58,7 @@ func Map(input map[string]interface{}) (*cft.Template, error) {
 
 // String returns a cft.Template parsed from a string
 func String(input string) (*cft.Template, error) {
+	input = strings.ReplaceAll(input, "\r", "")
 	var n yaml.Node
 	err := yaml.Unmarshal([]byte(input), &n)
 	if err != nil {
